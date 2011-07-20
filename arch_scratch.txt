@@ -1,0 +1,148 @@
+* [ThisIsClassName]
+
+In a playing game ->
+
+The game is controlled by [GameMode](eg. Game3v3 extends GameMode)
+
+There are [Player]s, represents player, all communication are done through it. [Player]s are generated from [User]s at beginning of the game.
+
+NONONO, [Effect]s *ARE* [Action]s! 
+
+[Action] has associated [Card]s, indicating source of the action, some [Action]s may use this.
+[Card] has associated [Action], the [Action] is what this card will do.
+
+[Action]
+    [UserGeneratedAction]
+        [BaseAction] # attack, graze, and peach, and perhaps... dung
+        [SpellCardAction] # instant spell cards
+        [DelayedSpellCardAction] # delayed spellcards
+        [EquipAction] # for equipments
+    [InternalAction]
+        [DrawCardsAction]
+        [UseCardAction]
+        [DropCardsAction]
+        [FateTellAction]
+
+[Action]s has apply_action method, call to apply, return value indicates whether it is applied successfully.
+
+
+Sample pseudo-code, when it's one's turn:
+
+...
+p=Player[i]
+process_fatetell(xxxx) # pan ding qu .....
+act = p.get_action()
+process_action(act)
+
+def process_action(act):
+    if action_can_do(act):
+        act.set_up()
+        act = emit_event(ACTION_BEFORE, act)
+        if action_can_do(act):
+            act.apply_action() # call the [Action]'s callback, logics' are in it.
+        emit_event(ACTION_AFTER, act)
+        act.clean_up() # some actions may use. eg: DropCardsAction may be intercepted, and cards be replaced, then it can put dropped cards to the DroppedCardsDeck in this function.
+
+class Attack(Action):
+    def apply_action(self):
+        target = self.get_target()
+        if not target.request_action(actions.UseGraze(player, amount=amount)):
+            process_action(Damage(amount=1, target=target))
+
+
+# Youmu's
+class Nitouryuu(EventHandler):
+    def process(evt):
+        if (#evt is Attack#) and (#evt is from Youmu#):
+            evt.amount=2
+
+
+class Damage(Action):
+    def apply_action(self):
+        p = self.get_target()
+        p.life -= amount
+        if p.life <=0:
+            p = emit_event(PLAYER_DYING, p)
+             
+            
+...
+
+# Effect processing is similar.
+
+---------------------------------
+
+# Use PyPy or Stackless, learn network programming!!!
+
+use gevent! ( chosen over eventlet, stackless )
+
+UI: try this: intercept all actions/effects, and tell [Player]s what to display.
+
+---------------------------------
+
+
+Server side:
+
+1 main thread + n of cpus worker threads
+
+MainThread:
+    handle start up process
+    handle all the network io, dispatch messages to worker thread / tasklet
+
+WorkThread(s):
+    GameHallTasklet: (only one)
+        handle all the users that not in a game.
+        eg: track status, start a game
+    GameTasklet:
+        handle single game logics
+
+well, give up the thread thing... there is no need to do this... at least for now.
+
+
+--------------------------
+
+gevent:
+
+Player extends User extends Client
+
+Player is in game client
+User is in game hall client, handles user info etc
+Client is the network conn representation.
+
+
+class Client:
+    has a Queue q, have length, kill client if runs out
+    
+    def gevent_loop():
+        while True:
+            q.put(parse_packet(self.sock))
+    def recv_packet:
+        return q.get()
+    
+    send = self.sock.send
+
+
+class User(Client):
+    userinfo, username, password, etc.
+
+class Player(User):
+    def request_action(***):
+        ...
+    etc
+
+
+----------------------------
+
+server.core: common game logic
+server.games: game modes
+server.network: network handler
+server.utils
+
+client.core
+client.ui
+client.network
+client.utils
+
+
+--------------------------------
+
+pygame: res -> 1000 * 720 is good
