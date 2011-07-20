@@ -13,7 +13,7 @@ NONONO, [Effect]s *ARE* [Action]s!
 
 [Action]
     [UserGeneratedAction]
-        [BaseAction] # attack, graze, and peach, and perhaps... dung
+        [SimpleAction] # attack, graze, and peach, and perhaps... dung
         [SpellCardAction] # instant spell cards
         [DelayedSpellCardAction] # delayed spellcards
         [EquipAction] # for equipments
@@ -31,8 +31,13 @@ Sample pseudo-code, when it's one's turn:
 ...
 p=Player[i]
 process_fatetell(xxxx) # pan ding qu .....
-act = p.get_action()
+
+emit event ROUND_START(player)
+
+act = p.process_action(action
 process_action(act)
+
+emit event ROUND_END(player)
 
 def process_action(act):
     if action_can_do(act):
@@ -46,7 +51,7 @@ def process_action(act):
 class Attack(Action):
     def apply_action(self):
         target = self.get_target()
-        if not target.request_action(actions.UseGraze(player, amount=amount)):
+        if not process_action(actions.UseGraze(player, amount=amount)):
             process_action(Damage(amount=1, target=target))
 
 
@@ -110,7 +115,7 @@ Client is the network conn representation.
 
 
 class Client:
-    has a Queue q, have length, kill client if runs out
+    has a Queue q, have length, kill client if overflows
     
     def gevent_loop():
         while True:
@@ -125,9 +130,7 @@ class User(Client):
     userinfo, username, password, etc.
 
 class Player(User):
-    def request_action(***):
-        ...
-    etc
+    ??
 
 
 ----------------------------
@@ -146,3 +149,12 @@ client.utils
 --------------------------------
 
 pygame: res -> 1000 * 720 is good
+
+
+-----------------------------
+
+Client / Server comm:
+
+1) remote object
+
+2) command / event string

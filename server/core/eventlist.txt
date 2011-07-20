@@ -1,0 +1,7 @@
+action_can_fire(Action)
+action_before(Action)
+action_after(Action)
+player_dying(Player)
+player_died(Player)
+player_revive(Player)
+
