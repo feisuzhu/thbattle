@@ -1,6 +1,12 @@
 import gevent
+from gevent import Greenlet, Timeout
+from gevent.queue import Queue
+from user import User
 
 class GameError(Exception):
+    pass
+
+class TimeLimitExceeded(Timeout):
     pass
 
 class EventHandler(object):
@@ -38,7 +44,30 @@ class Action(object):
         '''
         pass
 
-class Game(object):
+class DataHolder(object):
+    def __data__(self):
+        return self.__dict__
+
+class Player(User):
+    managed = False
+    
+    def __data__(self):
+        d = User.__data__(self)
+        d.update(
+            dummy='dummy',
+        )
+        return d
+
+class DroppedPlayer(Player):
+    managed = True
+    
+    def write(self, data):
+        pass
+
+    def read(self):
+        return ['dropped_player']
+
+class Game(Greenlet):
     '''
     The Game class, all game mode derives from this.
     Provides fundamental behaviors.
@@ -49,17 +78,42 @@ class Game(object):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
+    player_class = Player
 
-    def __init__(self, players):
-        raise GameError("Override this!")
+    def __data__(self):
+        return dict(
+            id=id(self),
+            type=self.__class__.name,
+            empty_slots=self.__class__.n_persons - len(self.players),
+        )
+    def __init__(self):
+        Greenlet.__init__(self)
+        self.players = []
+        self.queue = Queue(100)
 
-    def start(self):
+    def _run(self):
+        for u in self.players:
+            u.__class__ = self.__class__.player_class
+            u.active_queue = None
+            u.gamedata = DataHolder()
+
+        self.game_start()
+        # game ended
+        for p in self.players:
+            del p.gamedata
+            p.__class__ = User
+            p.active_queue = p.receptionist.wait_channel
+        # TODO: create a new game using exact the same persons
+        from server.core import gamehall as hall
+        hall.end_game(self)
+
+    def game_start(self):
         '''
         Game logic goes here.
         GameModes should override this.
         '''
-        raise GameError('Override start function to implement Game logics!')
-
+        raise GameError('Override this function to implement Game logics!')
+    
     def emit_event(self, evt_type, data):
         '''
         Fire an event, all relevant event handlers will see this,

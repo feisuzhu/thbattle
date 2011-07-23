@@ -1,16 +1,16 @@
 import gevent
 from gevent.server import StreamServer
-from server.core import User, Receptionist, GameHall
+from server.core import Client, Receptionist
+import logging
+import sys
 
-Receptionist.spawn()
-GameHall.spawn()
+logging.basicConfig(stream=sys.stdout)
+logging.getLogger().setLevel(logging.DEBUG)
 
 def new_client(sock, addr):
-    u = User(sock, addr)
-    # TODO: Notifies [Receptionist] that a new user is coming
-    Receptionist.instance.recept(u)
-    u._greenlet_waitdata()
+    u = Client.spawn(sock, addr)
+    Receptionist.spawn(u)
 
-server = StreamServer(('0.0.0.0', 9999), new_client)
+server = StreamServer(('0.0.0.0', 9999), new_client, None)
 server.serve_forever()
 
