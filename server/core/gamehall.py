@@ -68,7 +68,7 @@ def get_ready(user):
 def cancel_ready(user):
     gd = user.halldata
     user.state = 'inroomwait'
-    self_notify_playerchange(user.current_game)
+    _notify_playerchange(user.current_game)
 
 def exit_game(user):
     if hasattr(user, 'current_game'):
@@ -76,7 +76,7 @@ def exit_game(user):
         i = g.players.index(user)
         if g.game_started:
             log.debug('player dropped')
-            g.players[i].__class__ = DroppedPlayer
+            g.players[i].halldata.dropped = True
             user.state = 'hang'
         else:
             log.debug('player leave')
@@ -96,6 +96,8 @@ def join_game(user, gameid):
             user.halldata = DataHolder()
             gd = user.halldata
             gd.slot = _next_free_slot(g)
+            gd.dropped = False
+            gd.managed = False
             user.current_game = g
             g.players.append(user)
             user.write(['game_joined', g])

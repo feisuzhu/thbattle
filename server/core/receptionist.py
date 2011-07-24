@@ -76,7 +76,7 @@ class Receptionist(Greenlet):
             cmd, data = self.wait_channel.get()
             if cmd == 'QUIT' and self.quit:
                 log.debug('QUIT received.')
-                return
+                break
             f = cmds[self.client.state].get(cmd)
             if not f:
                 f = cmds['__any__'].get(cmd)
@@ -85,7 +85,10 @@ class Receptionist(Greenlet):
                 f(data)
             else:
                 u.write(['invalid_command'])
-       # TODO: tell game hall about the exit
+       
+        # client died, do clean ups
+        if self.client.state != 'hang':
+            hall.exit_game(self.client)
     
     def _create_game(self, name):
         g = hall.create_game(self.client, name)

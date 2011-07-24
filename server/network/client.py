@@ -17,7 +17,7 @@ class Client(Greenlet):
         self.address = address
         self.link_state = 'connected' # or disconnected
         self.queue = Queue(100)
-        self.raw_write = self.sock.send
+        # self.raw_write = self.sock.send
         # self.raw_recv = self.sock.recv
         self.active_queue = None # if this is not none, data will send to this queue as (self, data)
 
@@ -29,7 +29,6 @@ class Client(Greenlet):
     
     def raw_write(self, s):
         if self.link_state == 'connected':
-            log.debug("Send on fd [%d]: %s" % (self.sock.fileno(), s))
             self.sock.send(s)
         else:
             log.debug('Write after disconnected')

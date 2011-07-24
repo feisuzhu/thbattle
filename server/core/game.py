@@ -49,8 +49,7 @@ class DataHolder(object):
         return self.__dict__
 
 class Player(User):
-    managed = False
-    
+
     def __data__(self):
         d = User.__data__(self)
         d.update(
@@ -59,7 +58,6 @@ class Player(User):
         return d
 
 class DroppedPlayer(Player):
-    managed = True
     
     def write(self, data):
         pass
@@ -103,7 +101,7 @@ class Game(Greenlet):
             del p.gamedata
             p.__class__ = User
             p.active_queue = p.receptionist.wait_channel
-        # TODO: create a new game using exact the same persons
+
         from server.core import gamehall as hall
         hall.end_game(self)
 

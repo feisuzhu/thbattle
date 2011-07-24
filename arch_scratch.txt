@@ -158,3 +158,9 @@ Client / Server comm:
 1) remote object
 
 2) command / event string
+
+------------------
+
+ZODB or other NoSQL DB
+
+
