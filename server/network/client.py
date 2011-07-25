@@ -31,7 +31,7 @@ class Client(Greenlet):
         if self.link_state == 'connected':
             self.sock.send(s)
         else:
-            log.debug('Write after disconnected')
+            log.debug('Write after disconnected: %s' % s)
             return False
     
     def write(self, p):

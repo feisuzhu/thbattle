@@ -163,4 +163,34 @@ Client / Server comm:
 
 ZODB or other NoSQL DB
 
+-------------------------
+
+communication:
+
+*ALL* data are JSON encoded and in this format:
+
+["command", data]
+
+eg:
+
+["heartbeat", null]
+["create_game", "A Dummy Game"]
+["whatever", [{"key": "value"}, "asdfasdf", "fdasfdsa"]]
+
+
+Client <-> GameHall:
+active_queue = reception.wait_channel
+<client> -> [Receptionist] ( calls GameHall functions )
+
+
+Client <-> Games:
+active_queue = None
+[Game] reads, if:
+    data is ["gamedata", whatever]:
+        if data is expected:
+            go normal processing routine
+        else:
+            drop it
+    else:
+        send it to player's receptionist
 

@@ -57,13 +57,18 @@ class Player(User):
         )
         return d
 
-class DroppedPlayer(Player):
-    
+class DroppedPlayer(object):
+    def __init__(self, player):
+        self.__dict__.update(player.__data__())
+
     def write(self, data):
         pass
 
     def read(self):
         return ['dropped_player']
+
+    def raw_write(self):
+        pass
 
 class Game(Greenlet):
     '''
@@ -90,19 +95,9 @@ class Game(Greenlet):
         self.queue = Queue(100)
 
     def _run(self):
-        for u in self.players:
-            u.__class__ = self.__class__.player_class
-            u.active_queue = None
-            u.gamedata = DataHolder()
-
-        self.game_start()
-        # game ended
-        for p in self.players:
-            del p.gamedata
-            p.__class__ = User
-            p.active_queue = p.receptionist.wait_channel
-
         from server.core import gamehall as hall
+        hall.start_game(self)
+        self.game_start()
         hall.end_game(self)
 
     def game_start(self):
@@ -138,7 +133,7 @@ class Game(Greenlet):
             return True
         else:
             return False
-
+    """
     @staticmethod
     def get_current():
         '''
@@ -153,9 +148,7 @@ class Game(Greenlet):
         c = gevent.getcurrent()
         c.thisgame = self
         self.start()
-
-
-    
+    """
 
 
 
