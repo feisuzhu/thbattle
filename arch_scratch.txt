@@ -194,3 +194,13 @@ active_queue = None
     else:
         send it to player's receptionist
 
+----------------------------
+
+move server.network to network, rename Client to Endpoint
+isolate common game logic of server.core.Game to game.Game,
+
+these are usable by client
+
+def server.core.ServerGame(game.Game, Greenlet):
+   .....
+
