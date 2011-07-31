@@ -1,6 +1,6 @@
-from server.network import Client
+from network import Endpoint
 
-class User(Client):
+class User(Endpoint):
     def __data__(self):
         return dict(
             id=id(self),

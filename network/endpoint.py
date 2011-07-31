@@ -6,9 +6,9 @@ from gevent import socket
 import simplejson as json
 import logging
 
-log = logging.getLogger("Client")
+log = logging.getLogger("Endpoint")
 
-class Client(Greenlet):
+class Endpoint(Greenlet):
     
     def __init__(self, sock, address):
         Greenlet.__init__(self)
@@ -20,6 +20,7 @@ class Client(Greenlet):
         # self.raw_write = self.sock.send
         # self.raw_recv = self.sock.recv
         self.active_queue = None # if this is not none, data will send to this queue as (self, data)
+        self.timeout = 60
 
     @staticmethod
     def encode(p):
@@ -53,7 +54,7 @@ class Client(Greenlet):
         log.debug("New client")
         f = self.sock.makefile()
         while True:
-            with Timeout(30, False):
+            with Timeout(self.timeout, False):
                 try:
                     s = f.readline(1000)
                     if s == '':
@@ -73,7 +74,7 @@ class Client(Greenlet):
                     self.close()
                     return
             
-            # Not receiving data for over 30 secs, drop client
+            # Not receiving data, drop endpoint
             try:
                 self.write(['timeout',None])
             finally:

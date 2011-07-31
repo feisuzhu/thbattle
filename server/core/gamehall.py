@@ -2,7 +2,8 @@ import gevent
 from gevent import Greenlet
 from gevent.queue import Queue
 from gamepack import gamemodes
-from server.core import Client, User, Player, DroppedPlayer
+from server.core import User, Player, DroppedPlayer
+from network import Endpoint
 import logging
 import random
 
@@ -47,7 +48,7 @@ def new_user(user):
     user.state = 'hang'
 
 def _notify_playerchange(game):
-    s = Client.encode(['player_change', game.players])
+    s = Endpoint.encode(['player_change', game.players])
     for p in game.players:
         p.raw_write(s)
     
