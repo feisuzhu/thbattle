@@ -25,15 +25,9 @@ class Receptionist(Greenlet):
     def _run(self):
         u = self.client
         # TODO: auth / register
-        u.write(['auth', None])
-        name,nick = u.read()
-        u.write(['greeting','Hello %s!' % nick])
+        u.state = 'connected'
         u.__class__ = User
-        u.username = name
-        u.nickname = nick
-        
-        hall.new_user(u)
-
+                
         u.active_queue = self.wait_channel
         
         def wrap(f, has_p):
@@ -46,6 +40,11 @@ class Receptionist(Greenlet):
             return _wrapper
 
         cmds = {
+            'connected': {
+                'auth':             self._auth,
+                'register':         self._notimpl,
+            },
+
             'hang': {
                 'create_game':      self._create_game,
                 'join_game':        wrap(hall.join_game, 1),
@@ -77,7 +76,7 @@ class Receptionist(Greenlet):
             if cmd == 'QUIT' and self.quit:
                 log.debug('QUIT received.')
                 break
-            f = cmds[self.client.state].get(cmd)
+            f = cmds[u.state].get(cmd)
             if not f:
                 f = cmds['__any__'].get(cmd)
 
@@ -87,8 +86,19 @@ class Receptionist(Greenlet):
                 u.write(['invalid_command'])
        
         # client died, do clean ups
-        if self.client.state != 'hang':
+        if u.state not in('connected', 'hang'):
             hall.exit_game(self.client)
+    
+    def _notimpl(self,data):
+        self.client.write(['not_impl', None])
+        
+    def _auth(self, cred):
+        u = self.client
+        name,nick = cred
+        u.write(['greeting','Hello %s!' % nick])
+        u.username = name
+        u.nickname = nick
+        hall.new_user(u)
     
     def _create_game(self, name):
         g = hall.create_game(self.client, name)
@@ -96,7 +106,7 @@ class Receptionist(Greenlet):
 
     def _disconnect(self, _):
         hall.exit_game(self.client)
-        self.client.write(['bye!'])
+        self.client.write(['bye', None])
         self.client.close()
     
     def command(self, cmd, data):

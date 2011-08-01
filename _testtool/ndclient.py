@@ -33,8 +33,7 @@ def stall(t=1):
 gevent.spawn(heartbeat)
 gevent.spawn(recv)
 
-stall() # auth
-write(['feisuzhu', 'Proton'])
+write(['auth',['feisuzhu', 'Proton']])
 stall()
 write(['create_game','A Dummy Game'])
 stall()
