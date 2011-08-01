@@ -1,17 +1,7 @@
-import gevent
-from gevent import Greenlet, Timeout
-from gevent.queue import Queue
-from user import User
-
 class GameError(Exception):
     pass
 
-class TimeLimitExceeded(Timeout):
-    pass
-
 class EventHandler(object):
-    def __init__(self):
-        self.handles = None # here should be a subclass of Action
 
     def handle(self, evt_type, act):
         raise GameError('Override handle function to implement EventHandler logics!')
@@ -48,7 +38,7 @@ class DataHolder(object):
     def __data__(self):
         return self.__dict__
 
-class Player(User):
+class Player(object):
 
     def __data__(self):
         d = User.__data__(self)
@@ -57,20 +47,7 @@ class Player(User):
         )
         return d
 
-class DroppedPlayer(object):
-    def __init__(self, player):
-        self.__dict__.update(player.__data__())
-
-    def write(self, data):
-        pass
-
-    def read(self):
-        return ['dropped_player']
-
-    def raw_write(self):
-        pass
-
-class Game(Greenlet):
+class Game(object):
     '''
     The Game class, all game mode derives from this.
     Provides fundamental behaviors.
@@ -81,24 +58,6 @@ class Game(Greenlet):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
-    player_class = Player
-
-    def __data__(self):
-        return dict(
-            id=id(self),
-            type=self.__class__.name,
-            empty_slots=self.__class__.n_persons - len(self.players),
-        )
-    def __init__(self):
-        Greenlet.__init__(self)
-        self.players = []
-        self.queue = Queue(100)
-
-    def _run(self):
-        from server.core import gamehall as hall
-        hall.start_game(self)
-        self.game_start()
-        hall.end_game(self)
 
     def game_start(self):
         '''
@@ -133,23 +92,3 @@ class Game(Greenlet):
             return True
         else:
             return False
-    """
-    @staticmethod
-    def get_current():
-        '''
-        Return current game object
-        '''
-        return gevent.getcurrent().thisgame
-
-    def init(self):
-        '''
-        Greenlet entrypoint
-        '''
-        c = gevent.getcurrent()
-        c.thisgame = self
-        self.start()
-    """
-
-
-
-    
