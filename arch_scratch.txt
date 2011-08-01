@@ -204,3 +204,14 @@ these are usable by client
 def server.core.ServerGame(game.Game, Greenlet):
    .....
 
+------------------------------------------------------
+
+Server and clients run same logic, so client know what server expects ->
+
+SERVER:
+    process_action(UseGraze(player=xxx,amount=1))
+     --> server UseGraze.apply_action waits response
+
+CLIENT:
+    process_action(UseGraze(player=xxx,amount=1))
+     --> client UseGraze.apply_action tell ui to choose a card and send it to server
