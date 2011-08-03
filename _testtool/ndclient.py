@@ -23,6 +23,7 @@ def heartbeat():
         write(['heartbeat', None])
 
 def recv():
+    s.timeout = 600
     while True:
         r = s.encode(s.read())
         sys.stdout.write('<< %s' % r)
