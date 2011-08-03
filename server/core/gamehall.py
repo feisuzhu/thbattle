@@ -27,20 +27,20 @@ games_started = {} # started games
 
 class UserPlaceHolder(object):
     
-    @staticmethod
-    def __data__():
+    def __data__(self):
         return dict(
             id=0,
             placeholder=1,
             state='n/a',
         )
 
-    @staticmethod
-    def write(*args, **kwargs):
+    def write(self,*args, **kwargs):
         pass
 
     state = 'n/a'
     raw_write = write
+
+UserPlaceHolder = UserPlaceHolder()
 
 def new_user(user):
     #TODO: tell user to display game hall ui
