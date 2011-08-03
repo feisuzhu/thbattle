@@ -182,7 +182,7 @@ Client <-> GameHall:
 active_queue = reception.wait_channel
 <client> -> [Receptionist] ( calls GameHall functions )
 
-
+/*
 Client <-> Games:
 active_queue = None
 [Game] reads, if:
@@ -193,6 +193,25 @@ active_queue = None
             drop it
     else:
         send it to player's receptionist
+*/
+
+Client <-> Games:
+active_queue = receptionist.wiat_channel
+[Receptionist] reads, if:
+    data is ["gamedata", whatever]:
+        put it to player's queue
+    else:
+        process it
+
+[Game] reads, if
+    data is ["gamedata", whatever]:
+        if data is expected:
+            go normal processing routine
+        else:
+            drop it
+    else:
+        oh crap, this is not supposed to happen!
+
 
 ----------------------------
 

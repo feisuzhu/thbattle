@@ -64,6 +64,7 @@ class Receptionist(Greenlet):
 
             'ingame': {
                 'exit_game':        wrap(hall.exit_game, 0),
+                'gamedata':         self._gamedata,
             },
 
             '__any__': {
@@ -83,7 +84,7 @@ class Receptionist(Greenlet):
             if f:
                 f(data)
             else:
-                u.write(['invalid_command'])
+                u.write(['invalid_command', None])
        
         # client died, do clean ups
         if u.state not in('connected', 'hang'):
@@ -111,3 +112,6 @@ class Receptionist(Greenlet):
     
     def command(self, cmd, data):
         self.wait_channel.put([cmd, data])
+
+    def _gamedata(self, data):
+        self.client.queue.put(data)
