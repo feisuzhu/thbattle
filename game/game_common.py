@@ -19,7 +19,10 @@ class Action(object):
         '''
         return Game.get_current().emit_event('action_can_fire', self)
     
-    def apply_action(self):
+    def apply_action_server(self):
+        raise GameError('Override apply_action to implement Action logics!')
+    
+    def apply_action_client(self):
         raise GameError('Override apply_action to implement Action logics!')
 
     def set_up(self):
@@ -33,6 +36,9 @@ class Action(object):
         Execute after all event handlers finished there work.
         '''
         pass
+    
+    def cancel(self, cancel=True):
+        self.cancelled = cancel
 
 class DataHolder(object):
     def __data__(self):
@@ -58,6 +64,11 @@ class Game(object):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
+    CLIENT_SIDE = 0
+    SERVER_SIDE = 1
+
+    def __init__(self, side):
+        self.side = ['client', 'server'].index(side)
 
     def game_start(self):
         '''
@@ -83,8 +94,8 @@ class Game(object):
         if action.can_fire():
             action.set_up()
             action = self.emit_event('action_before', action)
-            if action.can_fire():
-                action.apply_action()
+            if action.can_fire() and not action.cancelled:
+                [action.apply_action_client, action.apply_action_server][self.side]()
             else:
                 return False
             action = self.emit_event('action_after', action)
