@@ -1,5 +1,5 @@
 import gevent
-from gevent import Greenlet, Timeout
+from gevent import Greenlet, Timeout, getcurrent
 from gevent.queue import Queue
 from user import User
 from game import GameError, EventHandler, Action
@@ -51,9 +51,13 @@ class Game(Greenlet, game.Game):
         Greenlet.__init__(self)
         self.players = []
         self.queue = Queue(100)
+        getcurrent().game = self
 
     def _run(self):
         from server.core import gamehall as hall
         hall.start_game(self)
         self.game_start()
         hall.end_game(self)
+
+    def getgame():
+        return getcurrent().game
