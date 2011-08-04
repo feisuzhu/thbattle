@@ -1,8 +1,8 @@
 import gevent
 from gevent import Greenlet, Timeout, getcurrent
 from gevent.queue import Queue
-from user import User
 from game import GameError, EventHandler, Action
+from client import Client
 import game
 
 class TimeLimitExceeded(Timeout):
@@ -12,7 +12,7 @@ class DataHolder(object):
     def __data__(self):
         return self.__dict__
 
-class Player(User, game.Player):
+class Player(Client, game.Player):
     pass
 
 class DroppedPlayer(object):

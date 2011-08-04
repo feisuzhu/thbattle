@@ -11,7 +11,7 @@ import sys
 so = socket.socket()
 so.connect(('127.0.0.1', 9999))
 
-s = Endpoint.spawn(so, '127.0.0.1')
+s = Endpoint(so, '127.0.0.1')
 
 def write(d):
     sys.stdout.write('>> %s' % s.encode(d))

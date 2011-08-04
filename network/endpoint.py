@@ -1,26 +1,21 @@
 import gevent
-from gevent import Greenlet
+from gevent import Greenlet, Timeout, socket
 from gevent.queue import Queue
-from gevent import Timeout
-from gevent import socket
 import simplejson as json
 import logging
 
 log = logging.getLogger("Endpoint")
 
-class Endpoint(Greenlet):
+class EndpointDied(Exception):
+    pass
+
+class Endpoint(object):
     
     def __init__(self, sock, address):
-        Greenlet.__init__(self)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.sock = sock
         self.address = address
         self.link_state = 'connected' # or disconnected
-        self.queue = Queue(100)
-        # self.raw_write = self.sock.send
-        # self.raw_recv = self.sock.recv
-        self.active_queue = None # if this is not none, data will send to this queue as (self, data)
-        self.timeout = 60
 
     @staticmethod
     def encode(p):
@@ -45,37 +40,22 @@ class Endpoint(Greenlet):
     def close(self):
         if not self.link_state == 'disconnected':
             self.link_state = 'disconnected'
-            self.sock.shutdown(socket.SHUT_RDWR)
+            self.sock.close()
     
-    def read(self):
-        return self.queue.get()
-
-    def _run(self):
-        log.debug("New client")
+    def read(self, timeout=60):
         f = self.sock.makefile()
         while True:
-            with Timeout(self.timeout, False):
+            with Timeout(timeout, None):
                 try:
                     s = f.readline(1000)
                     if s == '':
                         self.close()
-                        return
+                        raise EndpointDied()    
                     d = json.loads(s)
-                    
-                    if self.active_queue:
-                        self.active_queue.put(d)
-                    else:
-                        self.queue.put(d, block=False)
-                    continue
+                    return d    
                 except json.JSONDecodeError as e:
-                    self.write(dict(info='Incorrect format'))
+                    self.write(['bad_format', None])
                     continue
                 except IOError as e:
                     self.close()
-                    return
-            
-            # Not receiving data, drop endpoint
-            try:
-                self.write(['timeout',None])
-            finally:
-                self.close()
+                    raise EndpointDied()

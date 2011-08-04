@@ -1,10 +1,8 @@
 import gevent
 from gevent import Greenlet
 from gevent.queue import Queue
-from gamepack import gamemodes
-from server.core import User, Player, DroppedPlayer
-from network import Endpoint
 from utils import PlayerList
+
 import logging
 import random
 
@@ -49,7 +47,8 @@ def new_user(user):
     user.state = 'hang'
 
 def _notify_playerchange(game):
-    s = Endpoint.encode(['player_change', game.players])
+    from client import Client
+    s = Client.encode(['player_change', game.players])
     for p in game.players:
         p.raw_write(s)
     
@@ -60,6 +59,7 @@ def _next_free_slot(game):
         return None
 
 def create_game(user, gametype):
+    from gamepack import gamemodes
     if not gametype in gamemodes:
         user.write(['error', 'gametype_not_exist'])
         return
@@ -85,13 +85,13 @@ def cancel_ready(user):
     _notify_playerchange(user.current_game)
 
 def exit_game(user):
+    from game_server import DroppedPlayer
     if user.state != 'hang':
         g = user.current_game
         i = g.players.index(user)
         if g.game_started:
             log.debug('player dropped')
             g.players[i] = DroppedPlayer(user)
-            user.active_queue = user.receptionist.wait_channel
         else:
             log.debug('player leave')
             g.players[i] = UserPlaceHolder
@@ -125,7 +125,7 @@ def quick_start_game(user):
         if gl:
             join_game(user, id(random.choice(gl)))
             return
-    user.write(['cant_join_game'])
+    user.write(['cant_join_game', None])
 
 def list_game(user):
     user.write(games.values())
@@ -137,17 +137,15 @@ def start_game(g):
     del games[id(g)]
     games_started[id(g)] = g
     for u in g.players:
-        u.write(["game_started"])
+        u.write(["game_started", None])
         u.state = 'ingame'
         u.__class__ = g.__class__.player_class
-        u.active_queue = None
         u.gamedata = DataHolder()
 
 def end_game(g):
+    from game_server import DroppedPlayer
     for p in g.players:
         del p.gamedata
-        p.__class__ = User
-        p.active_queue = p.receptionist.wait_channel
     
     log.debug("end game")
     pl = [p for p in g.players if not isinstance(p, DroppedPlayer)]

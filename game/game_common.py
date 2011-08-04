@@ -17,7 +17,7 @@ class Action(object):
         '''
         Return true if the action can be fired.
         '''
-        return Game.get_current().emit_event('action_can_fire', self)
+        return Game.getgame().emit_event('action_can_fire', self)
     
     def apply_action_server(self):
         raise GameError('Override apply_action to implement Action logics!')
@@ -68,7 +68,7 @@ class Game(object):
     SERVER_SIDE = 1
 
     def __init__(self, side):
-        self.side = ['client', 'server'].index(side)
+        self.side = side
 
     def game_start(self):
         '''

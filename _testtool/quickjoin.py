@@ -37,8 +37,7 @@ def read():
         so.close()
         return
 
-read() # auth
-write(['feisuzhu', 'Proton'])
+write(['auth',['feisuzhu', 'Proton']])
 read()
 write(['quick_start_game', None])
 read()
