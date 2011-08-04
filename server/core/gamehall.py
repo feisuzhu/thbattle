@@ -4,6 +4,7 @@ from gevent.queue import Queue
 from gamepack import gamemodes
 from server.core import User, Player, DroppedPlayer
 from network import Endpoint
+from utils import PlayerList
 import logging
 import random
 
@@ -64,7 +65,7 @@ def create_game(user, gametype):
         return
     g = gamemodes[gametype]()
     g.game_started = False
-    g.players = [UserPlaceHolder] * g.n_persons
+    g.players = PlayerList([UserPlaceHolder] * g.n_persons)
     games[id(g)] = g
     log.debug("create game")
     return g
