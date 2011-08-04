@@ -59,5 +59,7 @@ class Game(Greenlet, game.Game):
         self.game_start()
         hall.end_game(self)
 
+    @staticmethod
     def getgame():
         return getcurrent().game
+
