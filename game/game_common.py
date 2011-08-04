@@ -95,11 +95,12 @@ class Game(object):
             action.set_up()
             action = self.emit_event('action_before', action)
             if action.can_fire() and not action.cancelled:
-                [action.apply_action_client, action.apply_action_server][self.side]()
+                rst = [action.apply_action_client, action.apply_action_server][self.side]()
+                assert rst in [True, False], 'Action.apply_action_* must return boolean!'
             else:
                 return False
             action = self.emit_event('action_after', action)
             action.clean_up()
-            return True
+            return rst
         else:
             return False
