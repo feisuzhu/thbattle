@@ -40,12 +40,16 @@ class Game(Greenlet, game.Game):
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
     player_class = Player
+    
+    CLIENT_SIDE = False
+    SERVER_SIDE = True
 
     def __data__(self):
+        from server.core import UserPlaceHolder
         return dict(
             id=id(self),
             type=self.__class__.name,
-            empty_slots=self.__class__.n_persons - len(self.players),
+            empty_slots=self.players.count(UserPlaceHolder),
         )
     def __init__(self):
         Greenlet.__init__(self)

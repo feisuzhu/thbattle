@@ -19,10 +19,7 @@ class Action(object):
         '''
         return Game.getgame().emit_event('action_can_fire', self)
     
-    def apply_action_server(self):
-        raise GameError('Override apply_action to implement Action logics!')
-    
-    def apply_action_client(self):
+    def apply_action(self):
         raise GameError('Override apply_action to implement Action logics!')
 
     def set_up(self):
@@ -64,11 +61,6 @@ class Game(object):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
-    CLIENT_SIDE = 0
-    SERVER_SIDE = 1
-
-    def __init__(self, side):
-        self.side = side
 
     def game_start(self):
         '''
@@ -95,8 +87,8 @@ class Game(object):
             action.set_up()
             action = self.emit_event('action_before', action)
             if action.can_fire() and not action.cancelled:
-                rst = [action.apply_action_client, action.apply_action_server][self.side]()
-                assert rst in [True, False], 'Action.apply_action_* must return boolean!'
+                rst = action.apply_action()
+                assert rst in [True, False], 'Action.apply_action must return boolean!'
             else:
                 return False
             action = self.emit_event('action_after', action)
