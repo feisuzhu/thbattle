@@ -115,6 +115,9 @@ class Client(Endpoint, Greenlet):
             if d[0] == tag:
                 return d[1]
            #else: drop
+    
+    def gwrite(self, data):
+        self.write(['gamedata', data])
 
     def __data__(self):
         return dict(
