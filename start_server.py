@@ -5,6 +5,8 @@ from server.core import Client
 import logging
 import sys
 
+RUNNING = 'Server'
+
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 

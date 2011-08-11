@@ -1,4 +1,12 @@
-from server.core import Game, EventHandler, Action, GameError
+import sys
+RUNNING = sys.modules['__main__'].RUNNING
+if RUNNING == 'Server':
+    from server.core import Game, EventHandler, Action, GameError
+elif RUNNING == 'Client':
+    from client.core import Game, EventHandler, Action, GameError
+else:
+    raise Exception('Where am I?')
+
 from utils import PlayerList
 import random
 from itertools import count
