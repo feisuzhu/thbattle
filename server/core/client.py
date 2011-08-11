@@ -69,7 +69,7 @@ class Client(Endpoint, Greenlet):
                 if f:
                     f(data)
                 else:
-                    self.write(['invalid_command', None])
+                    self.write(['invalid_command', [cmd, data]])
         
         except EndpointDied:
             pass

@@ -92,9 +92,11 @@ def exit_game(user):
         if g.game_started:
             log.debug('player dropped')
             g.players[i] = DroppedPlayer(user)
+            user.write(['fleed', None])
         else:
             log.debug('player leave')
             g.players[i] = UserPlaceHolder
+            user.write(['game_left', None])
         
         user.state = 'hang'
         _notify_playerchange(g)
@@ -117,7 +119,7 @@ def join_game(user, gameid):
             user.write(['game_joined', g])
             _notify_playerchange(g)
             return
-    user.write(['cant_join_game'])
+    user.write(['error', 'cant_join_game'])
 
 def quick_start_game(user):
     if user.state == 'hang':
@@ -125,10 +127,10 @@ def quick_start_game(user):
         if gl:
             join_game(user, id(random.choice(gl)))
             return
-    user.write(['cant_join_game', None])
+    user.write(['error', 'cant_join_game'])
 
 def list_game(user):
-    user.write(games.values())
+    user.write(['current_games', games.values()])
 
 
 def start_game(g):
@@ -153,7 +155,7 @@ def end_game(g):
     ng = create_game(None, g.__class__.name)
     ng.players = pl
     for p in pl:
-        p.write(['end_game'])
+        p.write(['end_game', None])
         p.write(['game_joined', ng])
         p.current_game = ng
         p.state = 'inroomwait'
