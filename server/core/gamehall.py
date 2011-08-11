@@ -47,7 +47,7 @@ def new_user(user):
     user.state = 'hang'
 
 def _notify_playerchange(game):
-    from client import Client
+    from client_endpoint import Client
     s = Client.encode(['player_change', game.players])
     for p in game.players:
         p.raw_write(s)

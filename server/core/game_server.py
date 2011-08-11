@@ -2,7 +2,7 @@ import gevent
 from gevent import Greenlet, Timeout, getcurrent
 from gevent.queue import Queue
 from game import GameError, EventHandler, Action
-from client import Client
+from client_endpoint import Client
 import game
 
 class TimeLimitExceeded(Timeout):
