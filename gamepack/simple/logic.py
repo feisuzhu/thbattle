@@ -1,8 +1,7 @@
-import sys
-RUNNING = sys.modules['__main__'].RUNNING
-if RUNNING == 'Server':
+import G
+if G.RUNNING == 'Server':
     from server.core import Game, EventHandler, Action, GameError
-elif RUNNING == 'Client':
+elif G.RUNNING == 'Client':
     from client.core import Game, EventHandler, Action, GameError
 else:
     raise Exception('Where am I?')
