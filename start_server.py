@@ -7,6 +7,9 @@ import sys
 
 RUNNING = 'Server'
 
+from network import Endpoint
+Endpoint.ENDPOINT_DEBUG = True
+
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 

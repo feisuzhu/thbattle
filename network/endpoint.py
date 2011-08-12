@@ -4,12 +4,16 @@ from gevent.queue import Queue
 import simplejson as json
 import logging
 
+import G
+
 log = logging.getLogger("Endpoint")
 
 class EndpointDied(Exception):
     pass
 
 class Endpoint(object):
+
+    ENDPOINT_DEBUG = False
     
     def __init__(self, sock, address):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -25,6 +29,8 @@ class Endpoint(object):
     
     def raw_write(self, s):
         if self.link_state == 'connected':
+            if Endpoint.ENDPOINT_DEBUG:
+                print "SEND>> %s" % s,
             self.sock.send(s)
         else:
             log.debug('Write after disconnected: %s' % s)
@@ -50,7 +56,9 @@ class Endpoint(object):
                     s = f.readline(1000)
                     if s == '':
                         self.close()
-                        raise EndpointDied()    
+                        raise EndpointDied()
+                    if Endpoint.ENDPOINT_DEBUG:
+                        print "<<RECV %s" % s,
                     d = json.loads(s)
                     return d    
                 except json.JSONDecodeError as e:
