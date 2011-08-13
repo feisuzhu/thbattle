@@ -86,10 +86,13 @@ class Client(Endpoint, Greenlet):
         self.write(['not_impl', None])
         
     def _auth(self, cred):
-        name,nick = cred
-        self.write(['greeting','Hello %s!' % nick])
+        name, password = cred
+        if password == 'password':
+            self.write(['greeting', id(self)])
+        else:
+            self.write(['auth_err', None])
         self.username = name
-        self.nickname = nick
+        self.nickname = name
         hall.new_user(self)
     
     def _create_game(self, name):
@@ -105,9 +108,7 @@ class Client(Endpoint, Greenlet):
             self.gdqueue.put(data)
 
     def gread(self):
-        d = self.gdqueue.get()
-        assert d[0] == 'gamedata', "What? It's impossible!"
-        return d[1]
+        return self.gdqueue.get()
 
     def gexpect(self, tag):
         while True:

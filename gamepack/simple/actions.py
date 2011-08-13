@@ -1,5 +1,12 @@
 # All Actions, EventHandlers are here
-from server.core import Game, Action, EventHandler
+import G
+if G.RUNNING == 'Server':
+    from server.core import Game, EventHandler, Action, GameError
+elif G.RUNNING == 'Client':
+    from client.core import Game, EventHandler, Action, GameError
+else:
+    raise Exception('Where am I?')
+
 from cards import Card, HiddenCard
 from network import Endpoint
 import random
@@ -19,7 +26,7 @@ class Damage(GenericAction):
         self.amount = amount
 
     def apply_action(self):
-        self.target.life -= self.amount
+        self.target.gamedata.life -= self.amount
         if Game.CLIENT_SIDE:
             # visual effects
             pass
@@ -52,7 +59,7 @@ class DropCardIndex(GenericAction):
         g = Game.getgame()
         
         cl = self.target.gamedata.cards
-        for i in cards:
+        for i in self.cards:
             cl[i] = None
         self.target.gamedata.cards = [i for i in cl if i is not None]
         return True
@@ -74,9 +81,10 @@ class ChooseAndDropCard(GenericAction):
             g.players.gwrite(['usecard_index', cards])
 
         if Game.CLIENT_SIDE:
-            me = Game.me
+            me = g.me
             if self.target is me:
                 while True:
+                    print 'Choose card: ',
                     s = raw_input()
                     if s == '':
                         me.gwrite(['cards',[]])
@@ -84,11 +92,11 @@ class ChooseAndDropCard(GenericAction):
                     try:
                         l = eval(s)
                         if self.cond([me.gamedata.cards[i] for i in l]):
+                            me.gwrite(['cards', l])
                             break
                     except:
                         pass
                     print 'Wrong card! Choose another'
-                me.gwrite(['cards', l])
 
             cards = me.gexpect('usecard_index')
         
@@ -120,9 +128,10 @@ class DrawCardStage(GenericAction):
             p.gamedata.cards += c
 
         if Game.CLIENT_SIDE:
-            if p is Game.me:
+            if p is g.me:
                 cl = p.gexpect('drawcards')
                 cl = [Card.parse(i) for i in cl]
+                p.gamedata.cards += cl
             else:
                 p.gamedata.cards += [HiddenCard] * self.amount
         
@@ -153,11 +162,12 @@ class ActionStage(GenericAction):
                     g.players.gwrite(['action', ins])
                     break
                 c = p.gamedata.cards[ins[0]]
-                act = [ins, c]
+                act = ins + [c]
                 g.players.gwrite(['action', act])
 
             if Game.CLIENT_SIDE:
-                if p is Game.me:
+                me = g.me
+                if p is me:
                     print 'Your life is %d' % p.gamedata.life
                     print 'Your cards is %s' % Endpoint.encode(p.gamedata.cards)
                     print 'Players: %s' % Endpoint.encode(g.players)
@@ -168,13 +178,11 @@ class ActionStage(GenericAction):
                     else:
                         ins = [int(i) for i in ins.split(' ')]
                     p.gwrite(['myaction', ins])
-                    act = [ins, p.gamedata.cards[ins[0]]]
-                    p.gexpect('action')
-                else:
-                    a = p.gexpect('action')
-                    if a == []:
-                        break
-                    act = [a[0], Card.parse(a[1])]
+                
+                a = me.gexpect('action')
+                if a == []:
+                    break
+                act = [a[0], a[1], Card.parse(a[2])]
             
             c = act[2]
             tg = g.players[act[1]]

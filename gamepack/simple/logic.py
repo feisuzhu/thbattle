@@ -10,6 +10,7 @@ from utils import PlayerList
 import random
 from itertools import count
 from cards import Card, HiddenCard
+from actions import *
 
 import gevent
 
@@ -30,8 +31,9 @@ class SimpleGame(Game):
         if Game.CLIENT_SIDE:
             for p in self.players:
                 p.gamedata.cards = [HiddenCard] * 4
+                p.gamedata.life = 4
 
-            p = Game.me
+            p = Game.getgame().me
             cl = p.gexpect('initial_cards')
             p.gamedata.cards = [Card.parse(i) for i in cl] 
 

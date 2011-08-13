@@ -1,3 +1,7 @@
+import logging
+
+log = logging.getLogger('Game')
+
 class GameError(Exception):
     pass
 
@@ -10,6 +14,7 @@ class EventHandler(object):
         raise GameError('Override this!')
 
 class Action(object):
+    cancelled = False
     def __init__(self):
         pass
 
@@ -17,7 +22,7 @@ class Action(object):
         '''
         Return true if the action can be fired.
         '''
-        return Game.getgame().emit_event('action_can_fire', self)
+        return self.game_class.getgame().emit_event('action_can_fire', self)
     
     def apply_action(self):
         raise GameError('Override apply_action to implement Action logics!')
@@ -61,7 +66,7 @@ class Game(object):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
-
+    event_handlers = []
     def game_start(self):
         '''
         Game logic goes here.
@@ -74,6 +79,11 @@ class Game(object):
         Fire an event, all relevant event handlers will see this,
         data can be modified.
         '''
+        if isinstance(data, object):
+            s = data.__class__.__name__
+        else:
+            s = data
+        log.info('emit_event: %s %s' % (evt_type, s))
         for evt in self.event_handlers:
             if evt.interested(evt_type, data):
                 data = evt.handle(evt_type, data)
@@ -87,6 +97,7 @@ class Game(object):
             action.set_up()
             action = self.emit_event('action_before', action)
             if action.can_fire() and not action.cancelled:
+                log.info('applying action %s' % action.__class__.__name__)
                 rst = action.apply_action()
                 assert rst in [True, False], 'Action.apply_action must return boolean!'
             else:

@@ -67,7 +67,7 @@ def create_game(user, gametype):
     g.game_started = False
     g.players = PlayerList([UserPlaceHolder] * g.n_persons)
     games[id(g)] = g
-    log.debug("create game")
+    log.info("create game")
     return g
 
 def get_ready(user):
@@ -76,7 +76,7 @@ def get_ready(user):
     g = user.current_game
     _notify_playerchange(g)
     if reduce(lambda r, p: r and p.state == 'ready', g.players, True):
-        log.debug("game starting")
+        log.info("game starting")
         g.start()
         
 def cancel_ready(user):
@@ -90,23 +90,26 @@ def exit_game(user):
         g = user.current_game
         i = g.players.index(user)
         if g.game_started:
-            log.debug('player dropped')
+            log.info('player dropped')
             g.players[i] = DroppedPlayer(user)
             user.write(['fleed', None])
         else:
-            log.debug('player leave')
+            log.info('player leave')
             g.players[i] = UserPlaceHolder
             user.write(['game_left', None])
         
         user.state = 'hang'
         _notify_playerchange(g)
-        if reduce(lambda r, p: r and p is UserPlaceHolder, g.players, True):
-            log.debug('game canceled')
-            del games[id(g)]
+        if reduce(lambda r, p: r and (p is UserPlaceHolder or isinstance(p, DroppedPlayer)), g.players, True):
+            if g.game_started:
+                log.info('game aborted')
+            else:
+                log.info('game canceled')
+                del games[id(g)]
 
 def join_game(user, gameid):
     if user.state == 'hang' and games.has_key(gameid):
-        log.debug("join game")
+        log.info("join game")
         g = games[gameid]
         slot = _next_free_slot(g)
         if slot is not None:
@@ -134,7 +137,7 @@ def list_game(user):
 
 
 def start_game(g):
-    log.debug("game started")
+    log.info("game started")
     g.game_started = True
     del games[id(g)]
     games_started[id(g)] = g
@@ -149,7 +152,7 @@ def end_game(g):
     for p in g.players:
         del p.gamedata
     
-    log.debug("end game")
+    log.info("end game")
     pl = [p for p in g.players if not isinstance(p, DroppedPlayer)]
     del games_started[id(g)]
     ng = create_game(None, g.__class__.name)

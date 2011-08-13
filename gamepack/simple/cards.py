@@ -13,7 +13,7 @@ class Card(object):
 
     @staticmethod
     def parse(data):
-        if c.hidden:
+        if data['hidden']:
             return HiddenCard
         else:
             return Card(t=data['type'])

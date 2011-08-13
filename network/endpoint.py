@@ -18,6 +18,7 @@ class Endpoint(object):
     def __init__(self, sock, address):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.sock = sock
+        self.sockfile = sock.makefile()
         self.address = address
         self.link_state = 'connected' # or disconnected
 
@@ -49,7 +50,7 @@ class Endpoint(object):
             self.sock.close()
     
     def read(self, timeout=60):
-        f = self.sock.makefile()
+        f = self.sockfile
         while True:
             with Timeout(timeout, None):
                 try:
