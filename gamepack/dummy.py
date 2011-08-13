@@ -7,6 +7,5 @@ class DummyGame(Game):
     def game_start(self):
         for i in xrange(3):
             print 'TICK %d' % i
-            for p in self.players:
-                p.write(['this is a dummy game! you are %s' % repr(self.players)])
+            self.players.gwrite(['this is a dummy game! you are %s' % repr(self.players)])
             gevent.sleep(1)

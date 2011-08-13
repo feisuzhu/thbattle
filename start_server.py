@@ -4,8 +4,9 @@ from server.core import Client
 
 import logging
 import sys
+import G
 
-RUNNING = 'Server'
+G.RUNNING = 'Server'
 
 from network import Endpoint
 Endpoint.ENDPOINT_DEBUG = True

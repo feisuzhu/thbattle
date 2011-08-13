@@ -4,6 +4,8 @@ from gevent.event import AsyncResult
 from gevent import Greenlet
 import types
 
+from itihub import *
+
 class PlayerList(list):
     def write(self, data):
         for p in self:
@@ -28,3 +30,4 @@ class AsyncService(object):
             return gevent.spawn(f, *args, **kwargs)
 
         return asyncservice_wrapper
+

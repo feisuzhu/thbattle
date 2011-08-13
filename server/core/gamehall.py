@@ -153,7 +153,7 @@ def end_game(g):
     pl = [p for p in g.players if not isinstance(p, DroppedPlayer)]
     del games_started[id(g)]
     ng = create_game(None, g.__class__.name)
-    ng.players = pl
+    ng.players = PlayerList(pl)
     for p in pl:
         p.write(['end_game', None])
         p.write(['game_joined', ng])
