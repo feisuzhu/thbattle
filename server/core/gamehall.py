@@ -71,7 +71,6 @@ def create_game(user, gametype):
     return g
 
 def get_ready(user):
-    gd = user.halldata 
     user.state = 'ready'
     g = user.current_game
     _notify_playerchange(g)
@@ -80,7 +79,6 @@ def get_ready(user):
         g.start()
         
 def cancel_ready(user):
-    gd = user.halldata
     user.state = 'inroomwait'
     _notify_playerchange(user.current_game)
 
@@ -114,9 +112,6 @@ def join_game(user, gameid):
         slot = _next_free_slot(g)
         if slot is not None:
             user.state = 'inroomwait'
-            user.halldata = DataHolder()
-            gd = user.halldata
-            gd.dropped = False
             user.current_game = g
             g.players[slot] = user
             user.write(['game_joined', g])

@@ -47,7 +47,7 @@ class GameManager(AsyncService):
         from client.core import PeerPlayer
         from gamepack import gamemodes
         while True:
-            cmd, data = self.server.ctlexpect(['player_change', 'game_started', 'game_joined', 'fleed', 'game_left'])
+            cmd, data = self.server.ctlexpect(['player_change', 'game_started', 'game_joined', 'fleed', 'game_left', 'end_game'])
             if cmd == 'player_change':
                 assert self.state in ('inroom', 'ingame')
                 players = data
@@ -78,4 +78,10 @@ class GameManager(AsyncService):
                 assert self.state == 'inroom'
                 self.state = 'hang'
                 game = None
+            
+            elif cmd == 'end_game':
+                assert self.state == 'ingame'
+                self.state = 'hang'
+                game = None
+                
 

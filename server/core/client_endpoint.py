@@ -89,11 +89,11 @@ class Client(Endpoint, Greenlet):
         name, password = cred
         if password == 'password':
             self.write(['greeting', id(self)])
+            self.username = name
+            self.nickname = name
+            hall.new_user(self)
         else:
             self.write(['auth_err', None])
-        self.username = name
-        self.nickname = name
-        hall.new_user(self)
     
     def _create_game(self, name):
         g = hall.create_game(self, name)
@@ -125,6 +125,5 @@ class Client(Endpoint, Greenlet):
             id=id(self),
             username=self.username,
             nickname=self.nickname,
-            halldata=self.halldata if hasattr(self, 'halldata') else None,
             state=self.state,
         )

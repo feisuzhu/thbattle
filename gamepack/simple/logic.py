@@ -38,7 +38,7 @@ class SimpleGame(Game):
             p.gamedata.cards = [Card.parse(i) for i in cl] 
 
 
-        for p in self.players * 10:
+        for p in self.players * 2:
             self.process_action(DrawCardStage(target=p))
             self.process_action(ActionStage(target=p))
             self.process_action(DropCardStage(target=p))

@@ -51,9 +51,13 @@ class InputThread(threading.Thread):
             se.set()
             time.sleep(0.1)
 
-InputThread().start()
+# InputThread().start()
 
-while True:
-    se.wait()
-    server.write(s)
-    se.clear()
+if sys.argv[1] == '1':
+    server.write(['create_game','Simple Game'])
+    server.write(['get_ready', None])
+elif sys.argv[1] == '2':
+    server.write(['quick_start_game', None])
+    server.write(['get_ready', None])
+
+server.join()

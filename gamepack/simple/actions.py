@@ -29,7 +29,7 @@ class Damage(GenericAction):
         self.target.gamedata.life -= self.amount
         if Game.CLIENT_SIDE:
             # visual effects
-            pass
+            print 'Damage * %d !' % self.amount
         return True
         
 
@@ -43,10 +43,12 @@ class Attack(BaseAction):
         g = Game.getgame()
         if Game.CLIENT_SIDE:
             # visual effects
-            pass
+            print 'Attack!'
         if not g.process_action(UseCard(target=self.target, cond=lambda cl: len(cl) == 1 and cl[0].type == 'graze')):
             return g.process_action(Damage(target=self.target, amount=self.damage))
         else:
+            if Game.CLIENT_SIDE:
+                print 'Missed!'
             return False
 
 class DropCardIndex(GenericAction):
@@ -59,9 +61,15 @@ class DropCardIndex(GenericAction):
         g = Game.getgame()
         
         cl = self.target.gamedata.cards
+        if Game.SERVER_SIDE:
+            g.players.gwrite(['dropcardindex', [cl[i] for i in self.cards]])
         for i in self.cards:
             cl[i] = None
         self.target.gamedata.cards = [i for i in cl if i is not None]
+        if Game.CLIENT_SIDE:
+            realcl = [Card.parse(i) for i in g.me.gexpect('dropcardindex')]
+            print 'Card dropped:', str(realcl)
+
         return True
         
 
@@ -76,9 +84,10 @@ class ChooseAndDropCard(GenericAction):
         p = self.target
         if Game.SERVER_SIDE:
             cards = p.gexpect('cards')
-            if not self.cond([p.gamedata.cards[i] for i in cards]):
+            cl = [p.gamedata.cards[i] for i in cards]
+            if not self.cond(cl):
                 cards = []
-            g.players.gwrite(['usecard_index', cards])
+            g.players.gwrite(['choosedrop_index', cards])
 
         if Game.CLIENT_SIDE:
             me = g.me
@@ -98,7 +107,7 @@ class ChooseAndDropCard(GenericAction):
                         pass
                     print 'Wrong card! Choose another'
 
-            cards = me.gexpect('usecard_index')
+            cards = me.gexpect('choosedrop_index')
         
         if not len(cards):
             return False
@@ -108,10 +117,24 @@ class ChooseAndDropCard(GenericAction):
 class UseCard(ChooseAndDropCard): pass 
 class DropUsedCard(DropCardIndex): pass
 
-class DropCardStage(ChooseAndDropCard):
+class DropCardStage(GenericAction):
     
     def __init__(self, target):
-        ChooseAndDropCard.__init__(self, target, cond = lambda cl: len(cl) == self.target.gamedata.life)
+        self.target = target
+
+    def apply_action(self):
+        p = self.target
+        life = p.gamedata.life
+        n = len(p.gamedata.cards) - life
+        if n<=0:
+            return True
+        g = Game.getgame()
+        if not g.process_action(ChooseAndDropCard(p, cond = lambda cl: len(cl) == n)):
+            g.process_action(DropCardIndex(p, cards=range(n)))
+        
+        return True
+            
+
 
 class DrawCardStage(GenericAction):
     
@@ -144,7 +167,10 @@ class Heal(BaseAction):
         self.amount = amount
 
     def apply_action(self):
-        self.target.gamedata.life += amount
+        self.target.gamedata.life += self.amount
+        if Game.CLIENT_SIDE:
+            print 'Heal!'
+        return True
 
 class ActionStage(GenericAction):
     
@@ -172,7 +198,7 @@ class ActionStage(GenericAction):
                     print 'Your cards is %s' % Endpoint.encode(p.gamedata.cards)
                     print 'Players: %s' % Endpoint.encode(g.players)
                     print 'Your instruction: ',
-                    ins = raw_input() # "$cardindex $targetindex"
+                    ins = raw_input().strip() # "$cardindex $targetindex"
                     if ins == '':
                         ins = []
                     else:
@@ -184,6 +210,8 @@ class ActionStage(GenericAction):
                     break
                 act = [a[0], a[1], Card.parse(a[2])]
             
+            g.process_action(DropUsedCard(target=p, cards=[act[0]]))
+            
             c = act[2]
             tg = g.players[act[1]]
             if c.type == 'attack':
@@ -192,7 +220,5 @@ class ActionStage(GenericAction):
                 g.process_action(Heal(target=tg))
             else:
                 continue
-
-            g.process_action(DropUsedCard(target=p, cards=[act[0]]))
         
         return True
