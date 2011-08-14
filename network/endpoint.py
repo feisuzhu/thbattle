@@ -47,9 +47,13 @@ class Endpoint(object):
     def close(self):
         if not self.link_state == 'disconnected':
             self.link_state = 'disconnected'
+            self.sockfile.close()
             self.sock.close()
     
     def read(self, timeout=60):
+        if self.link_state != 'connected':
+            raise EndpointDied()
+
         f = self.sockfile
         while True:
             with Timeout(timeout, None):

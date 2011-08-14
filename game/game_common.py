@@ -1,6 +1,10 @@
 import logging
+from gevent import Timeout
 
 log = logging.getLogger('Game')
+
+class TimeLimitExceeded(Timeout):
+    pass
 
 class GameError(Exception):
     pass
@@ -15,6 +19,7 @@ class EventHandler(object):
 
 class Action(object):
     cancelled = False
+    default_action = False
     def __init__(self):
         pass
 
@@ -98,8 +103,17 @@ class Game(object):
             action = self.emit_event('action_before', action)
             if action.can_fire() and not action.cancelled:
                 log.info('applying action %s' % action.__class__.__name__)
-                rst = action.apply_action()
-                assert rst in [True, False], 'Action.apply_action must return boolean!'
+                try:
+                    if self.SERVER_SIDE and action.default_action:
+                        with TimeLimitExceeded(30):
+                            rst = action.apply_action()
+                    else:
+                        rst = action.apply_action()
+                except TimeLimitExceeded:
+                    log.info('action timeout, use default_action: %s' % action.__class__.__name__)
+                    rst = action.default_action()
+
+                assert rst in [True, False], 'Action.apply_action or default_action  must return boolean!'
             else:
                 return False
             action = self.emit_event('action_after', action)

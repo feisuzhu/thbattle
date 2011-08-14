@@ -234,3 +234,12 @@ SERVER:
 CLIENT:
     process_action(UseGraze(player=xxx,amount=1))
      --> client UseGraze.apply_action tell ui to choose a card and send it to server
+
+-----------------------------------------------------
+
+Client do not handle timeouts of other players, 
+Server guarantees that client Actions receives correct response.
+
+Server:
+if timeout happens, abort current Action, and call it's default_action method.
+this method should only be called at server side, and never waits for user input.

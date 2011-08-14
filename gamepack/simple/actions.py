@@ -83,7 +83,7 @@ class ChooseAndDropCard(GenericAction):
         g = Game.getgame()
         p = self.target
         if Game.SERVER_SIDE:
-            cards = p.gexpect('cards')
+            cards = p.gexpect('choosedrop_cards')
             cl = [p.gamedata.cards[i] for i in cards]
             if not self.cond(cl):
                 cards = []
@@ -96,12 +96,12 @@ class ChooseAndDropCard(GenericAction):
                     print 'Choose card: ',
                     s = raw_input()
                     if s == '':
-                        me.gwrite(['cards',[]])
+                        me.gwrite(['choosedrop_cards',[]])
                         break
                     try:
                         l = eval(s)
                         if self.cond([me.gamedata.cards[i] for i in l]):
-                            me.gwrite(['cards', l])
+                            me.gwrite(['choosedrop_cards', l])
                             break
                     except:
                         pass
@@ -113,7 +113,11 @@ class ChooseAndDropCard(GenericAction):
             return False
 
         return g.process_action(DropCardIndex(target=self.target, cards=cards))
-
+    
+    def default_action(self):
+        Game.getgame().players.gwrite(['choosedrop_index',[]])
+        return False
+        
 class UseCard(ChooseAndDropCard): pass 
 class DropUsedCard(DropCardIndex): pass
 
@@ -134,8 +138,6 @@ class DropCardStage(GenericAction):
         
         return True
             
-
-
 class DrawCardStage(GenericAction):
     
     def __init__(self, target, amount=2):
@@ -176,12 +178,19 @@ class ActionStage(GenericAction):
     
     def __init__(self, target):
         self.target = target
+    
+    def default_action(self):
+       Game.getgame().players.gwrite(['action', []])
+       return True
 
     def apply_action(self):
         g = Game.getgame()
         p = self.target
 
         while True:
+            if not len(p.gamedata.cards):
+                break
+
             if Game.SERVER_SIDE:
                 ins = p.gexpect('myaction')
                 if ins == []:

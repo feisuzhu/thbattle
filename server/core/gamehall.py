@@ -89,7 +89,7 @@ def exit_game(user):
         i = g.players.index(user)
         if g.game_started:
             log.info('player dropped')
-            g.players[i] = DroppedPlayer(user)
+            g.players[i].__class__ = DroppedPlayer
             user.write(['fleed', None])
         else:
             log.info('player leave')
@@ -151,7 +151,7 @@ def end_game(g):
     pl = [p for p in g.players if not isinstance(p, DroppedPlayer)]
     del games_started[id(g)]
     ng = create_game(None, g.__class__.name)
-    ng.players = PlayerList(pl)
+    ng.players = (PlayerList(pl) + [UserPlaceHolder] * g.n_persons)[:g.n_persons]
     for p in pl:
         p.write(['end_game', None])
         p.write(['game_joined', ng])

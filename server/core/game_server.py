@@ -1,12 +1,9 @@
 import gevent
-from gevent import Greenlet, Timeout, getcurrent
+from gevent import Greenlet, getcurrent
 from gevent.queue import Queue
-from game import GameError, EventHandler, Action
+from game import GameError, EventHandler, Action, TimeLimitExceeded
 from client_endpoint import Client
 import game
-
-class TimeLimitExceeded(Timeout):
-    pass
 
 class DataHolder(object):
     def __data__(self):
@@ -15,19 +12,21 @@ class DataHolder(object):
 class Player(Client, game.Player):
     pass
 
-class DroppedPlayer(object):
-    def __init__(self, player):
-        self.__dict__.update(player.__data__())
+class DroppedPlayer(Player):
+    
+    def __data__(self):
+        return dict(
+            username=self.username,
+            nickname=self.nickname,
+            id=1,
+            dropped=True,
+        )
 
-    def write(self, data):
-        pass
-
-    def read(self):
-        # FIXME: should raise TLE
-        pass
-
-    def raw_write(self, d):
-        pass
+    def gwrite(self, d): pass
+    def gexpect(self, d): raise TimeLimitExceeded
+    def gread(self): raise TimeLimitExceeded
+    def write(self, d): pass
+    def raw_write(self, d): pass
 
 class Game(Greenlet, game.Game):
     '''

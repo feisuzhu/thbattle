@@ -50,7 +50,12 @@ class GameManager(AsyncService):
             cmd, data = self.server.ctlexpect(['player_change', 'game_started', 'game_joined', 'fleed', 'game_left', 'end_game'])
             if cmd == 'player_change':
                 assert self.state in ('inroom', 'ingame')
-                players = data
+                if self.state == 'inroom':
+                    players = data
+                else:
+                    for i, p in enumerate(data):
+                        if p.get('dropped'):
+                            game.players[i].dropped = True
 
             elif cmd == 'game_started':
                 assert self.state == 'inroom'

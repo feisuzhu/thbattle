@@ -1,12 +1,9 @@
 import gevent
-from gevent import Greenlet, Timeout, getcurrent
+from gevent import Greenlet, getcurrent
 from gevent.queue import Queue
 import game
-from game import GameError, EventHandler, Action
+from game import GameError, EventHandler, Action, TimeLimitExceeded
 from server_endpoint import Server
-
-class TimeLimitExceeded(Timeout):
-    pass
 
 class DataHolder(object):
     def __data__(self):
