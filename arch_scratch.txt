@@ -243,3 +243,65 @@ Server guarantees that client Actions receives correct response.
 Server:
 if timeout happens, abort current Action, and call it's default_action method.
 this method should only be called at server side, and never waits for user input.
+
+-----------------------------------------------------
+
+Graphic:
+
+     -------------------------------------
+     |                                   |
+     |   --------------   -----------    |
+     |   |            |   |         |    |
+     |   | [X]  [Y]   |   |  <B>    |    |
+     |   |            |   |         |    |
+     |   | [Z]  [!]   |   -----------    |
+     |   |        <A> | <-     ^         |
+     |   --------------  |-----|         |
+     |                     sub surface   |
+     |                                   |
+     |                                   |
+     |      <ROOT SURFACE>               |
+     |                                   |
+     ------------------------------------|
+
+(1) when [X] need repaint
+
+1> some code put [X] into paint queue
+2> PaintManager reads the queue, and call appropriate
+   method to repaint it, remember invalidated region, 
+   for pygame.display.update
+
+PaintManager is a dedicated greenlet.
+
+[X] is a subclass of [Widget], and has A as its parent.
+[X] has z-index, and coordinates relative to its parent.
+
+(2) repaint <A>
+
+1> put it into paint queue
+2> when PaintManager call it's 'paint' method,
+   <A> is responsible for painting its childs
+   in right order (z-index)
+
+(3) when <A> and [X] appeared in the paint
+    queue the same time, [X] will be painted
+    twice. PaintManager do not guarantee this
+    (removing dupilicate), so don't let it happen.
+
+(4) class Sprite(Widget):
+1> PaintManager do not remove [Sprite]s from paint
+   queue, they are responsible for removing themselves
+   when there work has done.
+2> They has a clock begin ticking when PaintManager
+   first paint them.
+3> They are always painted at last, for performace
+
+How to paint:
+1> when something other than [Sprite] paints,
+   they are painted both to a seperate surface(let's
+   call the surface BG) and to SCREEN. BG has the 
+   same size of SCREEN.
+2> Collect all [Sprite]s need to be painted,
+   get all regions [Sprite]s invalidated in last frame,
+   restore these regions from BG to SCREEN.
+3> paint [Sprite]s, remember invalidated region.
