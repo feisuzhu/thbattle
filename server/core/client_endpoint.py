@@ -7,8 +7,17 @@ import sys
 
 log = logging.getLogger("Client")
 
+__all__ = ['Client']
+
+cmds = {}
 class Client(Endpoint, Greenlet):
-    
+    def handler(*state):
+        def register(f):
+            for s in state:
+                d = cmds.setdefault(s, {})
+                d[f.__name__] = f
+        return register
+                
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
@@ -16,49 +25,6 @@ class Client(Endpoint, Greenlet):
 
     def _run(self):
         self.state = 'connected'
-                
-        def wrap(f, has_p):
-            u = self
-            def _wrapper(data):
-                if has_p:
-                    f(u, data)
-                else:
-                    f(u)
-            return _wrapper
-
-        cmds = {
-            'connected': {
-                'auth':             self._auth,
-                'register':         self._notimpl,
-            },
-
-            'hang': {
-                'create_game':      self._create_game,
-                'join_game':        wrap(hall.join_game, 1),
-                'list_game':        wrap(hall.list_game, 0),
-                'quick_start_game': wrap(hall.quick_start_game, 0),
-            },
-
-            'inroomwait': {
-                'get_ready':        wrap(hall.get_ready, 0),
-                'exit_game':        wrap(hall.exit_game, 0),
-            },
-
-            'ready': {
-                'cancel_ready':     wrap(hall.cancel_ready, 0),
-                'exit_game':        wrap(hall.exit_game, 0),
-            },
-
-            'ingame': {
-                'exit_game':        wrap(hall.exit_game, 0),
-                'gamedata':         self._gamedata,
-            },
-
-            '__any__': {
-                'heartbeat':        lambda *args, **kwargs: 1,
-                'disconnect':       self._disconnect,
-            },
-        }
         try:
             while True:
                 cmd, data = self.read()
@@ -67,7 +33,7 @@ class Client(Endpoint, Greenlet):
                     f = cmds['__any__'].get(cmd)
 
                 if f:
-                    f(data)
+                    f(self, data)
                 else:
                     self.write(['invalid_command', [cmd, data]])
         
@@ -82,10 +48,13 @@ class Client(Endpoint, Greenlet):
         if self.state not in('connected', 'hang'):
             hall.exit_game(self)
     
-    def _notimpl(self,data):
+    # --------- Handlers ---------
+    @handler('connected')
+    def register(self,data):
         self.write(['not_impl', None])
-        
-    def _auth(self, cred):
+    
+    @handler('connected')    
+    def auth(self, cred):
         name, password = cred
         if password == 'password':
             self.write(['greeting', id(self)])
@@ -95,17 +64,49 @@ class Client(Endpoint, Greenlet):
         else:
             self.write(['auth_err', None])
     
-    def _create_game(self, name):
+    @handler('hang')
+    def create_game(self, name):
         g = hall.create_game(self, name)
         hall.join_game(self, id(g))
+    
+    @handler('hang')
+    def join_game(self, gameid):
+        hall.join_game(self, gameid)
 
+    @handler('hang')
+    def list_game(self, _):
+        hall.list_game(self)
+    
+    @handler('hang')
+    def quick_start_game(self, _):
+        hall.quick_start_game(self)
+    
+    @handler('inroomwait')
+    def get_ready(self, _):
+        hall.get_ready(self)
+    
+    @handler('inroomwait', 'ready', 'ingame')
+    def exit_game(self, _):
+        hall.exit_game(self)
+    
+    @handler('ready')
+    def cancel_ready(self, _):
+        hall.cancel_ready(self)
+    
+    @handler('ingame')
+    def gamedata(self, data):
+        if not self.gdqueue.full():
+            self.gdqueue.put(data)
+
+    @handler('__any__')
     def _disconnect(self, _):
         self.write(['bye', None])
         self.close()
     
-    def _gamedata(self, data):
-        if not self.gdqueue.full():
-            self.gdqueue.put(data)
+    @handler('__any__')
+    def heartbeat(self, _):
+        pass
+    # --------- End ---------
 
     def gread(self):
         return self.gdqueue.get()
