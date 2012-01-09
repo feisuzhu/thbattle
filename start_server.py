@@ -4,9 +4,9 @@ from server.core import Client
 
 import logging
 import sys
-import G
 
-G.RUNNING = 'Server'
+from game import autoenv
+autoenv.init('Server')
 
 from network import Endpoint
 Endpoint.ENDPOINT_DEBUG = True

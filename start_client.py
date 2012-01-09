@@ -1,4 +1,6 @@
-import G; G.RUNNING = 'Client'
+from game import autoenv
+autoenv.init('Client')
+
 from utils import ITIHub,ITIEvent; ITIHub.replace_default()
 from client.core import GameManager
 import threading
@@ -19,9 +21,8 @@ logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger('__main__')
 
-
 gm = GameManager()
-G.gm = gm
+#G.gm = gm
 
 log.debug("connect to server")
 
@@ -36,7 +37,7 @@ class InputThread(threading.Thread):
         import time
         while True:
             global s, se
-            print 'Cmd: ',
+            print 'Cmd: '
             ss = raw_input()
             if ss == '1':
                 ss = 'create_game,Simple Game'

@@ -1,10 +1,4 @@
-import G
-if G.RUNNING == 'Server':
-    from server.core import Game, EventHandler, Action, GameError
-elif G.RUNNING == 'Client':
-    from client.core import Game, EventHandler, Action, GameError
-else:
-    raise Exception('Where am I?')
+from game.autoenv import Game, EventHandler, Action, GameError
 
 from utils import PlayerList
 import random

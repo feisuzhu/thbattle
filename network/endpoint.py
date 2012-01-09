@@ -4,8 +4,6 @@ from gevent.queue import Queue
 import simplejson as json
 import logging
 
-import G
-
 log = logging.getLogger("Endpoint")
 
 class EndpointDied(Exception):
