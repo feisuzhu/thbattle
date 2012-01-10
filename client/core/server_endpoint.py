@@ -47,6 +47,18 @@ class Server(Endpoint, Greenlet):
                 return d[1]
            #else: drop
     
+    '''
+    # enable it when needed, since it's just a thought
+    def gexpect_with_tle(self, tag):
+        while True:
+            d = self.gread()
+            if d[0] == 'client_tle':
+                import game.TimeLimitExceeded
+                raise game.TimeLimitExceeded
+            if d[0] == tag:
+                return d[1]
+           #else: drop
+    '''
     def gwrite(self, data):
         self.write(['gamedata', data])
 

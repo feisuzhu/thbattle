@@ -101,11 +101,15 @@ class Game(object):
         if action.can_fire():
             action.set_up()
             action = self.emit_event('action_before', action)
-            if action.can_fire() and not action.cancelled:
+            if not action.cancelled and action.can_fire():
                 log.info('applying action %s' % action.__class__.__name__)
                 try:
                     if self.SERVER_SIDE and action.default_action:
-                        with TimeLimitExceeded(30):
+                        # this is the ultimate timeout
+                        # general purpose timeout should be controlled by client.
+                        # if client dropped, this applies, else client
+                        # should announce the timeout/apply default action explicitly.
+                        with TimeLimitExceeded(40):
                             rst = action.apply_action()
                     else:
                         rst = action.apply_action()

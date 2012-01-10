@@ -15,6 +15,8 @@ class PlayerList(list):
         for p in self:
             p.gwrite(data)
 
+    #def gexpect_any(self, _): pass
+    
 class AsyncService(object):
     
     def __init__(self):
