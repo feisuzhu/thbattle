@@ -305,3 +305,45 @@ How to paint:
    get all regions [Sprite]s invalidated in last frame,
    restore these regions from BG to SCREEN.
 3> paint [Sprite]s, remember invalidated region.
+
+------------------
+
+investigate protobuf
+
+------------------
+
+Client side:
+    try:
+        with player.galert('goodpersoncard'):
+            do your stuff
+    except GameDataAlert:
+        something happened, abort current ui actions, do with the event.
+
+Server side:
+    use gevent.select to monitor read events.
+
+
+---------------------------------------------------
+
+Exception as an Event:
+used to implement 'any time' skills
+
+client used the event, send notification to server,
+both side generate an exception, interrupt current operation,
+Game.process_action sees the exception and found it a special one,
+then call event handlers to handle it
+
+be careful of abuse
+
+-----------------------------
+
+Client core <-> UI messaging
+
+chat / exit / ... ? should be handled by other greenlet, not the game logic one.
+
+game logic:
+when user input is required, core knows it,
+so ui can just send message to core
+
+ui intercepts game events, so it can know when core needs user input
+
