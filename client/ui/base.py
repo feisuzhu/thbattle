@@ -320,7 +320,7 @@ def init_gui():
     
     # main window setup {{
     glClearColor(1, 1, 1, 1)
-    glEnable(GL_BLEND);
+    glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_SCISSOR_TEST)
     def_overlay = Overlay()

@@ -33,7 +33,7 @@ class Button(Control):
             (0.2, 0.2, 0.2),
             (1.0, 0.2, 0.2),
         )[self.state]
-        anim_time = 0.1
+        anim_time = 0.17
         cur_time = 0.0
         while anim_time - cur_time > 0:
             cur_time += dt
@@ -112,8 +112,9 @@ class Dialog(Control):
         if nb:
             glScissor(nb.x, nb.y, nb.width, nb.height)
             glClear(GL_COLOR_BUFFER_BIT)
-            glScissor(nb.x, nb.y, nb.width, nb.height-20)
-            self.draw_subcontrols(dt)
+            if nb.height > 21:
+                glScissor(nb.x, nb.y, nb.width, nb.height-20)
+                self.draw_subcontrols(dt)
             glScissor(*ob)
             
         glColor3f(0, 0, 0)
@@ -164,20 +165,81 @@ class Dialog(Control):
 Dialog.register_event_type('on_move')
 Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
+
+
+class TextBox(Control):
+    def __init__(self, font=None, text='Yoooooo~', *args, **kwargs):
+        Control.__init__(self, can_focus=True, *args, **kwargs)
+        self.document = pyglet.text.document.UnformattedDocument(text)
+        self.document.set_style(0, len(self.document.text), 
+            dict(color=(0, 0, 0, 255))
+        )
+        font = self.document.get_font()
         
+        width = self.width
+        height = font.ascent - font.descent
+        
+        self.height = height
+
+        self.layout = pyglet.text.layout.IncrementalTextLayout(
+            self.document, width-1, height, multiline=False)
+        self.caret = pyglet.text.caret.Caret(self.layout)
+        
+        self.set_handlers(self.caret)
+        self.push_handlers(self)
+        
+        self.layout.x = 1
+        self.layout.y = 0
+        
+        from base import main_window
+        self.window = main_window
+        self.text_cursor = self.window.get_system_mouse_cursor('text')
+    
+    def draw(self, dt):
+        glPushAttrib(GL_POLYGON_BIT)
+        glColor3f(1.0, 1.0, 1.0)
+        glRecti(0, 0, self.width, self.height)
+        glColor3f(0.0, 0.0, 0.0)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glRecti(0, 0, self.width, self.height)
+        glPopAttrib()
+        self.layout.draw()
+    
+    def on_focus(self):
+        self.caret.visible = True
+        self.caret.mark = 0
+        self.caret.position = len(self.document.text)
+    
+    def on_lostfocus(self):
+        self.caret.visible = False
+        self.caret.mark = self.caret.position = 0
+    
+    def on_mouse_enter(self, x, y):
+        self.window.set_mouse_cursor(self.text_cursor)
+    
+    def on_mouse_leave(self, x, y):
+        self.window.set_mouse_cursor(None)
         
     
 if __name__ == '__main__':
     import base
     base.init_gui()
     b = Button(caption=u"进入幻想乡", x=300, y=300, width=120, height=60)
-    Button(x=400, y=400, width=200, height=60)
-    Button(x=450, y=450, width=200, height=60)
+    bbb = Button(x=400, y=400, width=200, height=60)
+    bb = Button(x=450, y=450, width=200, height=60)
+    @bb.event
+    def on_click():
+        bbb.state = Button.DISABLED if bbb.state != Button.DISABLED else Button.NORMAL
+        
     Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
     Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
     dd = Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
     Dialog(caption="hohoho", x=10, y=10, width=100, height=100, parent=dd)
     Button(caption=u"进入幻想乡1", x=230, y=30, width=120, height=60, parent=dd)
+    
+    TextBox(x=50, y=50, width=300)
+    TextBox(x=450, y=50, width=300)
+    
     
     @b.event
     def on_click():
