@@ -4,6 +4,7 @@ from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
 from base import Control
+from utils.geometry import Rect
 
 class Button(Control):
     NORMAL=0
@@ -32,7 +33,7 @@ class Button(Control):
             (0.2, 0.2, 0.2),
             (1.0, 0.2, 0.2),
         )[self.state]
-        anim_time = 0.5
+        anim_time = 0.1
         cur_time = 0.0
         while anim_time - cur_time > 0:
             cur_time += dt
@@ -47,6 +48,7 @@ class Button(Control):
             glRecti(0, 0, self.width, self.height)
             glPopAttrib()
             self.label.draw()
+            #self.draw_subcontrols()
             dt = (yield)
     
     def on_mouse_enter(self, x, y):
@@ -90,39 +92,99 @@ class Dialog(Control):
                                color=(0,0,0,255),
                                x=self.width//2, y=self.height-8,
                                anchor_x='center', anchor_y='center')
+        self.btn_close = Button(caption=u'', parent=self, font_size=12,
+                                x=self.width-20, y=self.height-19,
+                                width=19, height=19, manual_draw=True)
+        self.dragging = False
+        @self.btn_close.event
+        def on_click():
+            self.close()
     
     def draw(self, dt):
         w, h = self.width, self.height
-        glPushAttrib(GL_POLYGON_BIT)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        glColor3f(1.0, 1.0, 1.0)
-        glRecti(0, 0, w, h)
+        ax, ay = self.abs_coords()
+        ax, ay = int(ax), int(ay)
+        
+        ob = (GLint*4)()
+        glGetIntegerv(GL_SCISSOR_BOX, ob)
+        ob = list(ob)
+        nb = Rect(*ob).intersect(Rect(ax, ay, w, h))
+        if nb:
+            glScissor(nb.x, nb.y, nb.width, nb.height)
+            glClear(GL_COLOR_BUFFER_BIT)
+            glScissor(nb.x, nb.y, nb.width, nb.height-20)
+            self.draw_subcontrols(dt)
+            glScissor(*ob)
+            
         glColor3f(0, 0, 0)
         self.label.draw()
+        self.btn_close.do_draw(dt)
+        glColor3f(0, 0, 0)
+        glPushAttrib(GL_POLYGON_BIT)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glRecti(0, 0, w, h)
         graphics.draw(5, GL_LINE_STRIP,('v2i', (
-            0, h-16,
-            w, h-16,
-            w-16, h,
-            w-16, h-16,
+            0, h-20,
+            w, h-20,
+            w-20, h,
+            w-20, h-20,
             w, h,
         )))
         glPopAttrib()
     
-    #TODO: event: on_move, dialog_close
+    def on_mouse_press(self, x, y, button, modifier):
+        w, h = self.width, self.height
+        self.zindex = Dialog.next_zindex
+        Dialog.next_zindex += 1
+        if button == mouse.LEFT and h-20 <= y <= h and x <= w-20:
+            self.set_capture('on_mouse_drag', 'on_mouse_release')
+            self.dragging = True
+    
+    def on_mouse_release(self, x, y, button, modifier):
+        if self.dragging:
+            self.release_capture('on_mouse_drag', 'on_mouse_release')
+            self.dragging = False
+    
+    def on_mouse_drag(self, x, y, dx, dy, button, modifier):
+        if self.dragging:
+            self.x += dx
+            self.y += dy
+            self.dispatch_event('on_move', self.x, self.y)
+    
+    def close(self):
+        self._cancel_close = False
+        self.dispatch_event('on_close')
+        if not self._cancel_close:
+            self.delete()
+            self.dispatch_event('on_destroy')
+    
+    def cancel_close(self):
+        self._cancel_close = True
+        
+Dialog.register_event_type('on_move')
+Dialog.register_event_type('on_close')
+Dialog.register_event_type('on_destroy')
         
         
     
 if __name__ == '__main__':
     import base
     base.init_gui()
-    #b = Button(caption=u"进入幻想乡", x=300, y=300, width=120, height=60)
-    #Button(x=400, y=400, width=200, height=60)
-    #Button(x=450, y=450, width=200, height=60)
+    b = Button(caption=u"进入幻想乡", x=300, y=300, width=120, height=60)
+    Button(x=400, y=400, width=200, height=60)
+    Button(x=450, y=450, width=200, height=60)
     Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
-    #@b.event
-    #def on_click():
-    #    print 'Clicked!'
+    Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
+    dd = Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
+    Dialog(caption="hohoho", x=10, y=10, width=100, height=100, parent=dd)
+    Button(caption=u"进入幻想乡1", x=230, y=30, width=120, height=60, parent=dd)
+    
+    @b.event
+    def on_click():
+        print 'Clicked!'
+    
+    @dd.event
+    def on_close():
+        dd.cancel_close()
         
     pyglet.app.run()

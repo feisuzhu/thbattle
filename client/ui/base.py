@@ -10,7 +10,7 @@ WINDOW_WIDTH = 1000
 WINDOW_HEIGHT = 720
 
 class Control(pyglet.event.EventDispatcher):
-    def __init__(self, x=0, y=0, width=100, height=100, zindex=0, parent=None, can_focus=False, *args, **kwargs):
+    def __init__(self, x=0, y=0, width=100, height=100, zindex=0, parent=None, can_focus=False, manual_draw=False, *args, **kwargs):
         if parent is None:
             parent = Overlay.cur_overlay
             overlay = parent
@@ -28,6 +28,7 @@ class Control(pyglet.event.EventDispatcher):
             'width': width, 'height': height,
             'zindex': zindex,
             'can_focus': can_focus,
+            'manual_draw': manual_draw,
         })
         self.control_list = []
         self.continuation = None
@@ -35,6 +36,7 @@ class Control(pyglet.event.EventDispatcher):
         self._control_hit = None # control under cursor now, for tracking enter/leave events
         if parent:
             parent.add_control(self)
+        
     
     def add_control(self, c):
         self.control_list.append(c)
@@ -65,6 +67,12 @@ class Control(pyglet.event.EventDispatcher):
             self.continuation = None
     
     def do_draw(self, dt):
+        glPushMatrix()
+        glTranslatef(self.x, self.y, 0)
+        self._do_draw(dt)
+        glPopMatrix()
+        
+    def _do_draw(self, dt):
         if self.continuation:
             try:
                 self.continuation.send(dt)
@@ -78,7 +86,7 @@ class Control(pyglet.event.EventDispatcher):
                 When StopIteration occurs, nothing was done.
                 call do_draw again to do the drawing
                 '''
-                return self.do_draw(dt)
+                return self._do_draw(dt)
                 
         elif hasattr(self, 'draw'):
             rst = self.draw(dt)
@@ -116,15 +124,13 @@ class Control(pyglet.event.EventDispatcher):
             glPopAttrib()
             self.label.draw()
         
-        self._draw_subcontrols(dt)
+        #self.draw_subcontrols(dt)
     
-    def _draw_subcontrols(self, dt):
+    def draw_subcontrols(self, dt):
         self.control_list.sort(key=lambda c: c.zindex)
         for c in self.control_list:
-            glPushMatrix()
-            glTranslatef(c.x, c.y, 0)
-            c.do_draw(dt)
-            glPopMatrix()
+            if not c.manual_draw:
+                c.do_draw(dt)
     
     def set_focus(self):
         if not self.can_focus: return
@@ -139,6 +145,26 @@ class Control(pyglet.event.EventDispatcher):
                 self.dispatch_event('on_focus')
                 o.current_focus = self
 
+    def set_capture(self, *evts):
+        o = self.overlay
+        for e in evts:
+            o._capture_events.setdefault(e, []).append(self)
+    
+    def release_capture(self, *evts):
+        o = self.overlay
+        for e in evts:
+            l = o._capture_events.get(e)
+            if l:
+                l.remove(self)
+    
+    def abs_coords(self):
+        c, ax, ay = self, 0.0, 0.0
+        while not isinstance(c, Overlay):
+            ax += c.x
+            ay += c.y
+            c = c.parent
+        return (ax, ay)
+        
 class Overlay(Control):
     '''
     Represents current screen
@@ -148,21 +174,25 @@ class Overlay(Control):
         Control.__init__(self, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, parent=False)
         self.__dict__.update(kwargs)
         self.last_mouse_press = [  # WONTFIX: Button combinations not supported.
+            None,
             (0.0, None, 0.0, 0.0), # (time(), self._control_hit, x, y) LEFT
             (0.0, None, 0.0, 0.0), # MIDDLE
             None,                  # Not used
             (0.0, None, 0.0, 0.0), # RIGHT
         ]
         self.last_mouse_release = [
+            None,
             (0.0, None, 0.0, 0.0), # (time(), self._control_hit, x, y) LEFT
             (0.0, None, 0.0, 0.0), # MIDDLE
             None,                  # Not used
             (0.0, None, 0.0, 0.0), # RIGHT
         ]
         self.current_focus = None
+        self._capture_events = {}
     
     def draw(self, dt):
         main_window.clear()
+        self.draw_subcontrols(dt)
     
     def switch(self):
         ori = Overlay.cur_overlay
@@ -179,6 +209,7 @@ class Overlay(Control):
         return pyglet.event.EVENT_HANDLED
     
     def _position_events(self, _type, x, y, *args):
+        cap_list = self._capture_events.setdefault(_type, [])
         def dispatch(this, lx, ly):
             '''
             # Every hit control get event
@@ -207,8 +238,9 @@ class Overlay(Control):
             c = this.control_frompoint1(lx, ly)
             lc = this._control_hit
             if c != lc:
-                if lc:
+                while lc:
                     lc.dispatch_event('on_mouse_leave', lx - lc.x, ly - lc.y)
+                    lc._control_hit, lc = None, lc._control_hit
                 if c:
                     c.dispatch_event('on_mouse_enter', lx - c.x, ly - c.y)
             this._control_hit = c
@@ -219,10 +251,16 @@ class Overlay(Control):
                 if this is not self:
                     if _type == 'on_mouse_press':
                         this.set_focus()
-                    this.dispatch_event(_type, lx, ly, *args)
             else:
                 dispatch(c, lx - c.x, ly - c.y) # TODO: not recursive
-            
+                if not c in cap_list: # do not redispatch the same event
+                    c.dispatch_event(_type, lx - c.x, ly - c.y, *args)
+        
+        # capturing events
+        if cap_list:
+            con = cap_list[-1]
+            ax, ay = con.abs_coords()
+            con.dispatch_event(_type, x-ax, y-ay, *args)
         dispatch(self, x, y)
     
     def on_mouse_press(self, x, y, button, modifier):
@@ -284,7 +322,7 @@ def init_gui():
     glClearColor(1, 1, 1, 1)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+    glEnable(GL_SCISSOR_TEST)
     def_overlay = Overlay()
     def_overlay.name = 'Overlay'
     def_overlay.switch()
