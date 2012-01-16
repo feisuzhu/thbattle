@@ -127,6 +127,7 @@ class Executive(object):
                 self.state = 'hang'
                 self.serverevents_greenlet = ServerEvents(self.server, server_id)
                 self.serverevents_greenlet.start()
+                self.state = 'authed'
                 cb('authenticated', server_id)
             else:
                 cb('auth_failure', 'Incorrect user/pwd!')
@@ -137,7 +138,6 @@ class Executive(object):
             
         while True:
             self.event.wait()
-            print 'got one'
             for _type, cb, args in self.msg_queue:
                 handlers.setdefault(_type, no_such_handler)(self, cb, *args)
             self.event.clear()

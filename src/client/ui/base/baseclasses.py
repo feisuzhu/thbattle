@@ -201,8 +201,10 @@ class Overlay(Control):
     
     def switch(self):
         ori = Overlay.cur_overlay
+        ori.dispatch_event('on_switchout')
         Overlay.cur_overlay = self
         main_window.set_handlers(self)
+        self.dispatch_event('on_switch')
         return ori
     
     def on_resize(self, width, height):
@@ -324,6 +326,8 @@ Control.register_event_type('on_mouse_dblclick')
 Control.register_event_type('on_focus')
 Control.register_event_type('on_lostfocus')
 Control.register_event_type('on_message')
+Overlay.register_event_type('on_switch')
+Overlay.register_event_type('on_switchout')
 
 def init_gui():
     global main_window, msg_queue, msg_queue_lock

@@ -92,7 +92,7 @@ class Client(Endpoint, Greenlet):
                 f = cmds[self.state].get(cmd)
                 if not f:
                     f = cmds['__any__'].get(cmd)
-
+                
                 if f:
                     f(self, data)
                 else:
