@@ -10,7 +10,9 @@ WINDOW_WIDTH = 1000
 WINDOW_HEIGHT = 720
 
 class Control(pyglet.event.EventDispatcher):
-    def __init__(self, x=0, y=0, width=100, height=100, zindex=0, parent=None, can_focus=False, manual_draw=False, *args, **kwargs):
+    def __init__(self, x=0, y=0, width=100, height=100,
+                zindex=0, parent=None, can_focus=False, manual_draw=False,
+                *args, **kwargs):
         if parent is None:
             parent = Overlay.cur_overlay
             overlay = parent
@@ -33,7 +35,8 @@ class Control(pyglet.event.EventDispatcher):
         self.control_list = []
         self.continuation = None
         self.overlay = overlay
-        self._control_hit = None # control under cursor now, for tracking enter/leave events
+        # control under cursor now, for tracking enter/leave events
+        self._control_hit = None
         if parent:
             parent.add_control(self)
         
@@ -100,10 +103,11 @@ class Control(pyglet.event.EventDispatcher):
         else:
             # default behavior
             if not hasattr(self, 'label'):
-                self.label = pyglet.text.Label(text=self.__class__.__name__,
-                                               font_size=10,color=(0,0,0,255),
-                                               x=self.width//2, y=self.height//2,
-                                               anchor_x='center', anchor_y='center')
+                from pyglet.text import Label
+                self.label = Label(text=self.__class__.__name__,
+                                    font_size=10,color=(0,0,0,255),
+                                    x=self.width//2, y=self.height//2,
+                                    anchor_x='center', anchor_y='center')
             glPushAttrib(GL_POLYGON_BIT)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
             glColor3f(1.0, 1.0, 1.0)
@@ -171,7 +175,8 @@ class Overlay(Control):
     '''
     cur_overlay = None
     def __init__(self, *args, **kwargs):
-        Control.__init__(self, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, parent=False)
+        Control.__init__(self, width=WINDOW_WIDTH, height=WINDOW_HEIGHT,
+                         parent=False)
         self.__dict__.update(kwargs)
         self.last_mouse_press = [  # WONTFIX: Button combinations not supported.
             None,
@@ -296,6 +301,11 @@ class Overlay(Control):
     on_text = lambda self, *args: self._text_events('on_text', *args)
     on_text_motion = lambda self, *args: self._text_events('on_text_motion', *args)
     on_text_motion_select = lambda self, *args: self._text_events('on_text_motion_select', *args)
+    
+    def dispatch_message(self, args):
+        for c in self.control_list:
+            self.dispatch_message(self, args)
+        self.dispatch_event('on_message', *args)
 
 Control.register_event_type('on_key_press')
 Control.register_event_type('on_key_release')
@@ -313,10 +323,15 @@ Control.register_event_type('on_mouse_click')
 Control.register_event_type('on_mouse_dblclick')
 Control.register_event_type('on_focus')
 Control.register_event_type('on_lostfocus')
+Control.register_event_type('on_message')
 
 def init_gui():
-    global main_window
-    main_window = pyglet.window.Window(width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption='GensouKill')
+    global main_window, msg_queue, msg_queue_lock
+    import threading
+    main_window = pyglet.window.Window(
+        width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption='GensouKill')
+    msg_queue = []
+    msg_queue_lock = threading.RLock()
     
     # main window setup {{
     glClearColor(1, 1, 1, 1)
@@ -330,11 +345,23 @@ def init_gui():
     
     fps = pyglet.clock.ClockDisplay()
     
-    def _mainwindow_draw(dt):
-        Overlay.cur_overlay.do_draw(dt)
+    def _mainwindow_loop(dt):
+        global msg_queue, msg_queue_lock
+        o = Overlay.cur_overlay
+        o.do_draw(dt)
         fps.draw()
         #main_window.flip()
-    pyglet.clock.schedule_interval(_mainwindow_draw, 1/60.0)
+        with msg_queue_lock:
+            if msg_queue:
+                for m in msg_queue:
+                    o.dispatch_message(m)
+                msg_queue = []
+    pyglet.clock.schedule_interval(_mainwindow_loop, 1/60.0)
+
+def message(*args):
+    global msg_queue, msg_queue_lock
+    with msg_queue_lock:
+        msg_queue.append(args)
 
 if __name__ == '__main__':
     init_gui()

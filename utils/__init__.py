@@ -6,6 +6,10 @@ import types
 
 from itihub import *
 
+class DataHolder(object):
+    def __data__(self):
+        return self.__dict__
+
 class PlayerList(list):
     def write(self, data):
         for p in self:

@@ -4,10 +4,9 @@ import sys
 import gevent
 from gevent import socket
 
-class DataHolder(object): pass
+from utils import DataHolder
 
 class GameManager(AsyncService):
-
     def __init__(self):
         AsyncService.__init__(self)
         self.state = 'initial'
@@ -90,3 +89,9 @@ class GameManager(AsyncService):
                 game = None
                 
 
+class Executive(object):
+    '''
+    Handles UI commands
+    not a Greenlet since main greenlet run this directly.
+    '''
+    pass

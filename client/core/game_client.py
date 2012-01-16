@@ -5,9 +5,7 @@ import game
 from game import GameError, EventHandler, Action, TimeLimitExceeded
 from server_endpoint import Server
 
-class DataHolder(object):
-    def __data__(self):
-        return self.__dict__
+from utils import DataHolder
 
 class Player(Server, game.Player):
     pass

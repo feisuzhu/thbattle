@@ -1,13 +1,12 @@
 import gevent
 import gevent.hub
 from gevent.event import Event
-from gevent import core
 import os
 import threading
 import functools
 import thread
 
-class DataHolder(object): pass
+from utils import DataHolder
 
 class ITIHub(gevent.hub.Hub):
     '''gevent.hub.Hub with Inter-thread Interrupt support'''
@@ -19,6 +18,7 @@ class ITIHub(gevent.hub.Hub):
         i.reqlist = []
         i.lock = threading.RLock()
         self._itidata = i
+        from gevent import core
         core.read_event(i.fd[0], self._iticallback, persist=True)
 
     def _iticallback(self, ev, evtype):
