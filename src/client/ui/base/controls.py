@@ -3,7 +3,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
-from base import Control
+from baseclasses import Control
 from utils.geometry import Rect
 
 class Button(Control):
@@ -191,7 +191,7 @@ class TextBox(Control):
         self.layout.x = 1
         self.layout.y = 0
         
-        from base import main_window
+        from baseclasses import main_window
         self.window = main_window
         self.text_cursor = self.window.get_system_mouse_cursor('text')
     
@@ -222,8 +222,8 @@ class TextBox(Control):
         
     
 if __name__ == '__main__':
-    import base
-    base.init_gui()
+    import baseclasses
+    baseclasses.init_gui()
     b = Button(caption=u"进入幻想乡", x=300, y=300, width=120, height=60)
     bbb = Button(x=400, y=400, width=200, height=60)
     bb = Button(x=450, y=450, width=200, height=60)

@@ -6,8 +6,8 @@ from pyglet.gl import *
 import types
 from time import time
 
-WINDOW_WIDTH = 1000
-WINDOW_HEIGHT = 720
+WINDOW_WIDTH = 1024
+WINDOW_HEIGHT = 718
 
 class Control(pyglet.event.EventDispatcher):
     def __init__(self, x=0, y=0, width=100, height=100,
@@ -359,6 +359,9 @@ def init_gui():
     pyglet.clock.schedule_interval(_mainwindow_loop, 1/60.0)
 
 def message(*args):
+    '''
+    Send message to UI
+    '''
     global msg_queue, msg_queue_lock
     with msg_queue_lock:
         msg_queue.append(args)
