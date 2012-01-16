@@ -1,11 +1,13 @@
+from utils import ITIHub,ITIEvent; ITIHub.replace_default()
+
 from game import autoenv
 autoenv.init('Client')
 
-from utils import ITIHub,ITIEvent; ITIHub.replace_default()
-from client.core import GameManager
+from client.core import Executive
 import threading
 
 from gevent import socket
+from gevent.event import Event
 import gevent
 
 from network import Endpoint
@@ -21,38 +23,28 @@ logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger('__main__')
 
-gm = GameManager()
-#G.gm = gm
+gevent.spawn(Executive.run)
 
 log.debug("connect to server")
 
-server = gm.connect(('127.0.0.1', 9999)).get()
-gm.heartbeat()
-gm.inroom_handler()
+evt = Event()
 
-myid = gm.auth('proton', 'password').get()
+def signalit(*args, **kwargs):
+    global evt
+    print args, kwargs
+    evt.set()
 
-class InputThread(threading.Thread):
-    def run(self):
-        import time
-        while True:
-            global s, se
-            print 'Cmd: '
-            ss = raw_input()
-            if ss == '1':
-                ss = 'create_game,Simple Game'
-            elif ss == '2':
-                ss = 'quick_start_game'
-            elif ss == '3':
-                ss = 'get_ready'
-            ss = ss.split(',')
-            if len(ss) == 1:
-                ss.append(None)
-            s = ss
-            se.set()
-            time.sleep(0.1)
+evt.clear()
+Executive.message('connect_server', signalit, ('127.0.0.1', 9999))
+print 'wait1'
+evt.wait()
+print 'wait2'
 
-# InputThread().start()
+evt.clear()
+Executive.message('authenticate', signalit, 'proton', 'password')
+evt.wait()
+
+server = Executive.server
 
 if sys.argv[1] == '1':
     server.write(['create_game','Simple Game'])
@@ -60,5 +52,5 @@ if sys.argv[1] == '1':
 elif sys.argv[1] == '2':
     server.write(['quick_start_game', None])
     server.write(['get_ready', None])
-
+    
 server.join()

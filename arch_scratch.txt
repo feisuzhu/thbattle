@@ -341,9 +341,14 @@ Client core <-> UI messaging
 
 chat / exit / ... ? should be handled by other greenlet, not the game logic one.
 
+
 game logic:
-when user input is required, core knows it,
-so ui can just send message to core
+    when needs user interaction, fires an Action acquiring input.
+
+    ui has EventListener to handle these Actions, send request to ui, wait for complete.
+    ui receives the info. when user did the input, complete the request.
+    if errors occurred, just signal time-out.
+    now game can get result from the Action.
 
 ui intercepts game events, so it can know when core needs user input
 

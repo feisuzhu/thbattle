@@ -6,7 +6,7 @@ import threading
 import functools
 import thread
 
-from utils import DataHolder
+from misc import DataHolder
 
 class ITIHub(gevent.hub.Hub):
     '''gevent.hub.Hub with Inter-thread Interrupt support'''
