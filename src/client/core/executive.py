@@ -12,7 +12,7 @@ class ServerEvents(Greenlet):
         self.server = server
         self.server_id = server_id
         self.state = 'hang'
-        
+
     def _run(self):
         from client.core import PeerPlayer
         from gamepack import gamemodes
@@ -21,7 +21,7 @@ class ServerEvents(Greenlet):
             def register(f):
                 handlers[f.__name__] = (f, _from, _to)
             return register
-        
+
         @handler(('inroom', 'ingame'), None)
         def player_change(self, data):
             if self.state == 'inroom':
@@ -30,7 +30,7 @@ class ServerEvents(Greenlet):
                 for i, p in enumerate(data):
                     if p.get('dropped'):
                         self.game.players[i].dropped = True
-        
+
         @handler(('inroom'), 'ingame')
         def game_started(self, data):
             pid = [i['id'] for i in self.players]
@@ -40,24 +40,24 @@ class ServerEvents(Greenlet):
             self.game.players = PlayerList(pl)
             self.server.gamedata = DataHolder()
             self.game.start()
-        
+
         @handler(('hang'), 'inroom')
         def game_joined(self, data):
             self.game = gamemodes[data['type']]()
-            
+
         @handler(('ingame'), 'hang')
         def fleed(self, data):
             self.game.kill()
             self.game = None
-            
+
         @handler(('inroom'), 'hang')
         def game_left(self, data):
             self.game = None
-            
+
         @handler(('ingame'), 'hang')
         def end_game(self, data):
             self.game = None
-        
+
         while True:
             cmd, data = self.server.ctlexpect(handlers.keys())
             f, _from, _to = handlers.get(cmd)
@@ -79,22 +79,22 @@ class Executive(object):
         # callback('message', *results)
         self.default_callback = lambda *a, **k: False
         self.state = 'initial' # initial connected authed(now in game)
-    
+
     def message(self, _type, cb=None, *args):
         if not cb:
             cb = self.default_callback
         self.msg_queue.append((_type, cb, args))
         self.event.set()
-    
+
     def run(self):
         handlers = {}
         def handler(f):
             handlers[f.__name__] = f
-        
+
         @handler
         def app_exit(self, cb):
             sys.exit()
-        
+
         @handler
         def connect_server(self, cb, addr):
             if not self.state == 'initial':
@@ -114,7 +114,7 @@ class Executive(object):
                 cb('server_connected', svr)
             except:
                 cb('server_connect_failed', None)
-        
+
         @handler
         def authenticate(self, cb, user, pwd):
             if not (self.state == 'connected'):
@@ -131,11 +131,11 @@ class Executive(object):
                 cb('authenticated', server_id)
             else:
                 cb('auth_failure', 'Incorrect user/pwd!')
-        
+
         def no_such_handler(*args):
             #raise Exception('No such handler: %s' % args[0])
             print 'Executive: no such handler: %s' % args[0]
-            
+
         while True:
             self.event.wait()
             for _type, cb, args in self.msg_queue:

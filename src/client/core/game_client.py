@@ -15,7 +15,7 @@ class DroppedPlayer(object):
         self.__dict__.update(player.__data__())
 
 class PeerPlayer(object):
-    
+
     def __init__(self, d):
         self.__dict__.update(d)
         self.gamedata = DataHolder()
@@ -32,7 +32,7 @@ class Game(Greenlet, game.Game):
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
     player_class = Player
-    
+
     CLIENT_SIDE = True
     SERVER_SIDE = False
 

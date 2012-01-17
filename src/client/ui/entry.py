@@ -12,7 +12,7 @@ def start_ui():
     class PreloadThread(threading.Thread):
         def run(self):
             import time
-            time.sleep(3)
+            time.sleep(1)
             self.login.switch()
     plds = PreloadThread()
     plds.login = login
