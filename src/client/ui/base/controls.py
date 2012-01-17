@@ -100,6 +100,12 @@ class Dialog(Control):
         def on_click():
             self.close()
     
+    def on_resize(self, width, height):
+        self.label.x = width // 2
+        self.label.y = height - 8
+        self.btn_close.x = width - 20
+        self.btn_close.y = height - 19
+    
     def draw(self, dt):
         w, h = self.width, self.height
         ax, ay = self.abs_coords()
@@ -194,6 +200,15 @@ class TextBox(Control):
         from baseclasses import main_window
         self.window = main_window
         self.text_cursor = self.window.get_system_mouse_cursor('text')
+        self.focused = False
+    
+    def _gettext(self):
+        return self.document.text
+    
+    def _settext(self, text):
+        self.document.text = text
+    
+    text = property(_gettext, _settext)
     
     def draw(self, dt):
         glPushAttrib(GL_POLYGON_BIT)
@@ -209,44 +224,75 @@ class TextBox(Control):
         self.caret.visible = True
         self.caret.mark = 0
         self.caret.position = len(self.document.text)
+        self.focused = True
     
     def on_lostfocus(self):
         self.caret.visible = False
         self.caret.mark = self.caret.position = 0
+        self.focused = False
     
     def on_mouse_enter(self, x, y):
         self.window.set_mouse_cursor(self.text_cursor)
     
     def on_mouse_leave(self, x, y):
         self.window.set_mouse_cursor(None)
+    
+    def on_mouse_drag(self, x, y, dx, dy, btn, modifier):
+        # If I'm not focused, don't select texts
+        if not self.focused:
+            return pyglet.event.EVENT_HANDLED
         
     
 if __name__ == '__main__':
     import baseclasses
     baseclasses.init_gui()
-    b = Button(caption=u"进入幻想乡", x=300, y=300, width=120, height=60)
+    
+    b = Button(caption=u"进入幻想乡", x=0, y=0, width=120, height=60)
+    b1 = Button(caption=u"进入幻想乡", x=100, y=0, width=120, height=60)
+    '''
     bbb = Button(x=400, y=400, width=200, height=60)
     bb = Button(x=450, y=450, width=200, height=60)
     @bb.event
     def on_click():
         bbb.state = Button.DISABLED if bbb.state != Button.DISABLED else Button.NORMAL
-        
-    Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
-    Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
-    dd = Dialog(caption="hahaha", x=100, y=100, width=300, height=300)
+    '''    
+    dd = Dialog(caption="hahaha", x=100, y=100, width=300, height=150)
     Dialog(caption="hohoho", x=10, y=10, width=100, height=100, parent=dd)
     Button(caption=u"进入幻想乡1", x=230, y=30, width=120, height=60, parent=dd)
     
     TextBox(x=50, y=50, width=300)
-    TextBox(x=450, y=50, width=300)
-    
+    tt = TextBox(x=450, y=50, width=300)
     
     @b.event
     def on_click():
-        print 'Clicked!'
+        dd.width += 1
+        print dd.width, dd.height
+    
+    @b1.event
+    def on_click():
+        dd.height += 1
+        print dd.width, dd.height
     
     @dd.event
     def on_close():
         dd.cancel_close()
         
+    @dd.event
+    def on_move(x, y):
+        print x, y
+        
+    from baseclasses import Overlay
+    Overlay.img = pyglet.image.load('/home/proton/Desktop/o2jam.png')
+    def _draw(dt):
+        from baseclasses import main_window, Overlay
+        main_window.clear()
+        glColor3f(1,1,1)
+        glPushMatrix()
+        glTranslatef(34,0,0)
+        glScalef(2.1305637982195846,2.1305637982195846,1.)
+        Overlay.img.blit(0,0)
+        glPopMatrix()
+        Overlay.cur_overlay.draw_subcontrols(dt)
+    
+    Overlay.cur_overlay.draw = _draw
     pyglet.app.run()

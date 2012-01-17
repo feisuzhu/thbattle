@@ -27,7 +27,7 @@ class Control(pyglet.event.EventDispatcher):
         self.__dict__.update({
             'parent': parent,
             'x': x, 'y': y,
-            'width': width, 'height': height,
+            '_w': width, '_h': height,
             'zindex': zindex,
             'can_focus': can_focus,
             'manual_draw': manual_draw,
@@ -39,7 +39,21 @@ class Control(pyglet.event.EventDispatcher):
         self._control_hit = None
         if parent:
             parent.add_control(self)
-        
+    
+    def _set_w(self, v):
+        self._w = v
+        self.dispatch_event('on_resize', self._w, self._h)
+    def _get_w(self):
+        return self._w
+    width = property(_get_w, _set_w)
+    
+    def _set_h(self, v):
+        self._h = v
+        self.dispatch_event('on_resize', self._w, self._h)
+    def _get_h(self):
+        return self._h
+    height = property(_get_h, _set_h)
+    
     
     def add_control(self, c):
         self.control_list.append(c)
@@ -173,7 +187,10 @@ class Overlay(Control):
     '''
     Represents current screen
     '''
-    cur_overlay = None
+    class DummyOverlay(object):
+        def dispatch_event(*args):
+            pass
+    cur_overlay = DummyOverlay()
     def __init__(self, *args, **kwargs):
         Control.__init__(self, width=WINDOW_WIDTH, height=WINDOW_HEIGHT,
                          parent=False)
@@ -326,6 +343,8 @@ Control.register_event_type('on_mouse_dblclick')
 Control.register_event_type('on_focus')
 Control.register_event_type('on_lostfocus')
 Control.register_event_type('on_message')
+Control.register_event_type('on_resize')
+
 Overlay.register_event_type('on_switch')
 Overlay.register_event_type('on_switchout')
 
