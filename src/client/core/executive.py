@@ -6,12 +6,14 @@ from gevent import socket, Greenlet
 
 from utils import DataHolder
 
-class ServerEvents(Greenlet):
-    def __init__(self, server, server_id):
+class GameManager(Greenlet):
+    '''
+    Handles server messages, all game related operations.
+    '''
+    def __init__(self, server):
         Greenlet.__init__(self)
         self.server = server
-        self.server_id = server_id
-        self.state = 'hang'
+        self.state = 'connected'
 
     def _run(self):
         from client.core import PeerPlayer
@@ -58,6 +60,19 @@ class ServerEvents(Greenlet):
         def end_game(self, data):
             self.game = None
 
+        @handler(('connected'), None)
+        def auth_result(self, server_id):
+            if server_id > 0:
+                self.event_cb('auth_success', server_id)
+                self.server_id = server_id
+                self.state = 'hang'
+            else:
+                self.event_cb('auth_failure')
+
+        @handler(None, None)
+        def invalid_command(self, data):
+            pass
+
         while True:
             cmd, data = self.server.ctlexpect(handlers.keys())
             f, _from, _to = handlers.get(cmd)
@@ -78,7 +93,7 @@ class Executive(object):
         # Called with these args:
         # callback('message', *results)
         self.default_callback = lambda *a, **k: False
-        self.state = 'initial' # initial connected authed(now in game)
+        self.state = 'initial' # initial connected
 
     def message(self, _type, cb=None, *args):
         if not cb:
@@ -96,7 +111,7 @@ class Executive(object):
             sys.exit()
 
         @handler
-        def connect_server(self, cb, addr):
+        def connect_server(self, cb, addr, event_cb):
             if not self.state == 'initial':
                 cb('server_already_connected')
                 return
@@ -111,35 +126,37 @@ class Executive(object):
                         gevent.sleep(30)
                         self.server.write(['heartbeat', None])
                 self.heartbeat_greenlet = gevent.spawn(heartbeat)
+                self.gm_greenlet = GameManager(self.server)
+                self.gm_greenlet.start()
+                self.gm_greenlet.event_cb = event_cb
                 cb('server_connected', svr)
             except:
                 cb('server_connect_failed', None)
 
-        @handler
-        def authenticate(self, cb, user, pwd):
-            if not (self.state == 'connected'):
-                cb('auth_failure', 'Connect first!')
-                return
-            self.server.write(['auth', [user, pwd]])
-            rst, data = self.server.ctlexpect(['greeting', 'auth_err'])
-            if rst == 'greeting':
-                server_id = data
-                self.state = 'hang'
-                self.serverevents_greenlet = ServerEvents(self.server, server_id)
-                self.serverevents_greenlet.start()
-                self.state = 'authed'
-                cb('authenticated', server_id)
-            else:
-                cb('auth_failure', 'Incorrect user/pwd!')
+        # @handler def register(...): ...
+        def simple_gm_op(_type):
+            def wrapper(self, cb, *args):
+                if not (self.state == 'connected'):
+                    cb('general_failure', 'Connect first!')
+                    return
+                self.server.write([_type, args])
+            wrapper.__name__ = _type
+            return wrapper
+        ops = ['register', 'create_game', 'join_game',
+               # FIXME: the quick start thing should be done at client
+               'list_game', 'quick_start_game', 'auth',
+               'get_ready', 'exit_game', 'cancel_ready']
+        for op in ops:
+            handler(simple_gm_op(op))
 
         def no_such_handler(*args):
-            #raise Exception('No such handler: %s' % args[0])
-            print 'Executive: no such handler: %s' % args[0]
+            raise Exception('Executive: No such handler: %s' % args[0])
 
         while True:
             self.event.wait()
             for _type, cb, args in self.msg_queue:
                 handlers.setdefault(_type, no_such_handler)(self, cb, *args)
+            self.msg_queue = []
             self.event.clear()
 
 Executive = Executive()

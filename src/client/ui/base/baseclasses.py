@@ -7,7 +7,7 @@ import types
 from time import time
 
 WINDOW_WIDTH = 1024
-WINDOW_HEIGHT = 718
+WINDOW_HEIGHT = 720
 
 class Control(pyglet.event.EventDispatcher):
     def __init__(self, x=0, y=0, width=100, height=100,
@@ -182,6 +182,10 @@ class Control(pyglet.event.EventDispatcher):
             c = c.parent
         return (ax, ay)
 
+    def on_message(self, *args):
+        '''Do nothing'''
+        pass
+
 class Overlay(Control):
     '''
     Represents current screen
@@ -325,9 +329,15 @@ class Overlay(Control):
     on_text_motion_select = lambda self, *args: self._text_events('on_text_motion_select', *args)
 
     def dispatch_message(self, args):
-        for c in self.control_list:
-            self.dispatch_message(self, args)
-        self.dispatch_event('on_message', *args)
+        l = [self]
+        while l:
+            c = l.pop(0)
+            c.dispatch_event('on_message', *args)
+            l.extend(c.control_list)
+
+    def on_message(self, _type, *args):
+        if _type == 'app_exit':
+            pyglet.app.exit()
 
 Control.register_event_type('on_key_press')
 Control.register_event_type('on_key_release')

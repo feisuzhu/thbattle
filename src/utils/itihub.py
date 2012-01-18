@@ -6,54 +6,49 @@ import threading
 import functools
 import thread
 
-from misc import DataHolder
-
 class ITIHub(gevent.hub.Hub):
     '''gevent.hub.Hub with Inter-thread Interrupt support'''
 
     def __init__(self):
         gevent.hub.Hub.__init__(self)
-        i = DataHolder()
-        i.fd = os.pipe()
-        i.reqlist = []
-        i.lock = threading.RLock()
-        self._itidata = i
+        self.fd = os.pipe()
+        self.reqlist = []
+        self.lock = threading.RLock()
+        self.hub_tid = thread.get_ident()
         from gevent import core
-        core.read_event(i.fd[0], self._iticallback, persist=True)
+        core.read_event(self.fd[0], self._iticallback, persist=True)
 
     def _iticallback(self, ev, evtype):
-        i = self._itidata
-        os.read(i.fd[0], 100)
-        with i.lock:
-            l = i.reqlist
-            i.reqlist = []
+        os.read(self.fd[0], 100)
+        with self.lock:
+            l = self.reqlist
+            self.reqlist = []
         for cb in l:
             cb()
 
     def interrupt(self, cb, *args, **kwargs):
         f = functools.partial(cb, *args, **kwargs)
-        i = self._itidata
-        with i.lock:
-            i.reqlist.append(f)
-        os.write(i.fd[1], ' ')
-    
+        with self.lock:
+            self.reqlist.append(f)
+        os.write(self.fd[1], ' ')
+
+    def get_hub(self):
+        return self
+
     @staticmethod
     def replace_default():
         gevent.hub._threadlocal.Hub = ITIHub
-        assert isinstance(gevent.hub.get_hub(), ITIHub), 'failed'
+        hub = gevent.hub.get_hub()
+        assert isinstance(hub, ITIHub), 'failed'
+        ITIHub.the_hub = hub
 
 class ITIEvent(Event):
     '''
     Event can be set in other threads
     '''
-    
-    def __init__(self):
-        Event.__init__(self)
-        self._tid = thread.get_ident()
-        self._hub = gevent.hub.get_hub()
 
     def set(self):
-        if self._tid == thread.get_ident():
+        if ITIHub.the_hub.hub_tid == thread.get_ident():
             return Event.set(self)
         else:
-            self._hub.interrupt(Event.set, self)
+            ITIHub.the_hub.interrupt(Event.set, self)

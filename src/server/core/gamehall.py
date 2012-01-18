@@ -8,15 +8,13 @@ import random
 
 log = logging.getLogger('GameHall')
 
-class DataHolder(object):
-    def __data__(self):
-        return self.__dict__
+from utils import DataHolder
 
 '''
 User state machine:
                        --------------<------------<-----------
                        |                                     |
-    -> [Hang] <-> [InRoomWait] <-> [Ready] -> [InGame] -->---- 
+    -> [Hang] <-> [InRoomWait] <-> [Ready] -> [InGame] -->----
         |                  |         |             |
         --->[[Disconnect]]<-------------------------
 '''
@@ -25,7 +23,7 @@ games = {} # games ready to start
 games_started = {} # started games
 
 class UserPlaceHolder(object):
-    
+
     def __data__(self):
         return dict(
             id=0,
@@ -51,7 +49,7 @@ def _notify_playerchange(game):
     s = Client.encode(['player_change', game.players])
     for p in game.players:
         p.raw_write(s)
-    
+
 def _next_free_slot(game):
     try:
         return game.players.index(UserPlaceHolder)
@@ -77,7 +75,7 @@ def get_ready(user):
     if reduce(lambda r, p: r and p.state == 'ready', g.players, True):
         log.info("game starting")
         g.start()
-        
+
 def cancel_ready(user):
     user.state = 'inroomwait'
     _notify_playerchange(user.current_game)
@@ -95,7 +93,7 @@ def exit_game(user):
             log.info('player leave')
             g.players[i] = UserPlaceHolder
             user.write(['game_left', None])
-        
+
         user.state = 'hang'
         _notify_playerchange(g)
         if reduce(lambda r, p: r and (p is UserPlaceHolder or isinstance(p, DroppedPlayer)), g.players, True):
@@ -146,7 +144,7 @@ def end_game(g):
     from game_server import DroppedPlayer
     for p in g.players:
         del p.gamedata
-    
+
     log.info("end game")
     pl = [p for p in g.players if not isinstance(p, DroppedPlayer)]
     del games_started[id(g)]
@@ -158,5 +156,3 @@ def end_game(g):
         p.current_game = ng
         p.state = 'inroomwait'
     _notify_playerchange(ng)
-        
-

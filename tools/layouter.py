@@ -12,7 +12,7 @@ from client.ui.base import Control, WINDOW_WIDTH, WINDOW_HEIGHT, init_gui, Butto
 
 class Layouter(Control):
     def __init__(self, *args, **kwargs):
-        Control.__init__(self, can_focus=True, *args, **kwargs)
+        Control.__init__(self, can_focus=False, *args, **kwargs)
         self.set_focus()
         self.index = 0
         class Dummy(object):
@@ -29,10 +29,12 @@ class Layouter(Control):
         self.y = 0
         self.scale = 1
         self.set_capture('on_mouse_drag')
+        self.set_capture('on_key_press')
+        self.set_capture('on_text_motion')
+
         def flashing(dt):
-            global layout
-            layout.flash = not layout.flash
-        pyglet.clock.schedule_interval(flashing, 0.5)
+            self.flash = not self.flash
+        pyglet.clock.schedule_interval(flashing, 0.4)
 
     def on_key_press(self, symbol, modifier):
         if symbol == key.TAB:
@@ -57,7 +59,14 @@ class Layouter(Control):
         c.x = c.x + dd[0] * self.scale
         c.y = c.y + dd[1] * self.scale
 
+    def draw_hook_before(self, dt):
+        pass
+
+    def draw_hook_after(self, dt):
+        pass
+
     def draw(self, dt):
+        self.draw_hook_before(dt)
         l = len(self.control_list)
         index = (self.index + l*100) % len(self.control_list)
         for i, c in enumerate(self.control_list):
@@ -69,11 +78,17 @@ class Layouter(Control):
             else:
                 c._do_draw(dt)
             glPopMatrix()
+        self.draw_hook_after(dt)
 
     def on_mouse_drag(self, x, y, dx, dy, button, modifier):
         if modifier == key.MOD_SHIFT:
             c = self.control_list[self.index]
             c.x += dx
+            c.y += dy
+        elif modifier == key.MOD_SHIFT | key.MOD_CTRL:
+            c = self.control_list[self.index]
+            c.width += dx
+            c.height -= dy
             c.y += dy
 
     def on_mouse_press(self, x, y, button, modifier):
@@ -87,8 +102,7 @@ class Layouter(Control):
 class Label(Control):
     def __init__(self, text=u'Label',
                     font_size=30,color=(0,0,0,255),
-                    x=0, y=0,
-                    anchor_x='center', anchor_y='center', *a, **k):
+                    x=0, y=0, *a, **k):
         self.rawlabel = RawLabel(text=text, font_size=font_size,
                                  color=color,x=0,y=0,
                                  anchor_x='left', anchor_y='bottom')
@@ -111,26 +125,42 @@ layout = Layouter()
 
 #----------------
 
+img = pyglet.image.load('/home/proton/Desktop/capture/snap00005.png')
 
-b = Button(caption=u"进入幻想乡", x=0, y=0, width=120, height=60, parent=layout)
-Label(parent=layout)
-Rectangle(widht=100, height=100, parent=layout)
-b1 = Button(caption=u"进入幻想乡", x=100, y=0, width=120, height=60, parent=layout)
+def bg(dt):
+    glColor3f(1,1,1)
+    img.blit(0,0)
 
-bbb = Button(x=400, y=400, width=200, height=60, parent=layout)
-bb = Button(x=450, y=450, width=200, height=60, parent=layout)
-@bb.event
-def on_click():
-    bbb.state = Button.DISABLED if bbb.state != Button.DISABLED else Button.NORMAL
+layout.draw_hook_before = bg
 
-dd = Dialog(caption="hahaha", x=100, y=100, width=300, height=150, parent=layout)
-Dialog(caption="hohoho", x=10, y=10, width=100, height=100, parent=dd)
-Button(caption=u"进入幻想乡1", x=230, y=30, width=120, height=60, parent=dd)
 
-TextBox(x=50, y=50, width=300, parent=layout)
-tt = TextBox(x=450, y=50, width=300, parent=layout)
+Rectangle(parent=layout, width=820, height=720)
+Rectangle(parent=layout, width=1024-820, height=720-350, x=820, y=350)
+Rectangle(parent=layout, width=1024-820, height=350, x=820)
+
+
+'''
+Label(text='GENSOUKILL',
+                    font_size=60,color=(0,0,0,255),
+
+                    parent=layout)
+Rectangle(width=325, height=160, x=350, y=165, parent=layout)
+Label(text=u'用户名：', font_size=12,color=(0,0,0,255),
+                    x=368, y=284,
+                    anchor_x='center', anchor_y='center',
+                    parent=layout)
+Label(text=u'密码：', font_size=12,color=(0,0,0,255),
+                    x=368, y=246,
+                    anchor_x='center', anchor_y='center',
+                    parent=layout)
+TextBox(parent=layout,x=438, y=282, width=220)
+TextBox(parent=layout,x=438, y=246, width=220)
+Button(caption=u'进入幻想乡', parent=layout, x=378, y=182, width=127, height=48)
+Button(caption=u'回到现世', parent=layout, x=520, y=182, width=127, height=48)
+'''
 #------------------
 pyglet.app.run()
 
 for i, c in enumerate(layout.control_list[1:]):
-    print "#%d(%s) ==> x: %d, y:%d" % (i, c.__class__.__name__, c.x, c.y)
+    print ("#%d(%s) ==> x=%d, y=%d, width=%d, height=%d" %
+        (i, c.__class__.__name__, c.x, c.y, c.width, c.height))
