@@ -310,9 +310,13 @@ class Overlay(Control):
     on_mouse_drag = lambda self, *args: self._position_events('on_mouse_drag', *args)
     on_mouse_scroll = lambda self, *args: self._position_events('on_mouse_scroll', *args)
 
-    def _text_events(self, *args):
+    def _text_events(self, _type, *args):
+        cap_list = self._capture_events.setdefault(_type, [])
+        if cap_list:
+            con = cap_list[-1]
+            con.dispatch_event(_type, *args)
         if self.current_focus:
-            self.current_focus.dispatch_event(*args)
+            self.current_focus.dispatch_event(_type, *args)
 
     on_key_press = lambda self, *args: self._text_events('on_key_press', *args)
     on_key_release = lambda self, *args: self._text_events('on_key_release', *args)
