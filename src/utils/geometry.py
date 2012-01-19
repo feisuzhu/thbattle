@@ -174,7 +174,7 @@ class Rect(object):
         self.x = x - self.width
         self.y = y - self.height//2
     midright = property(get_midright, set_midright)
- 
+
     def get_topleft(self):
         return (self.x, self.y + self.height)
     def set_topleft(self, pos):
@@ -182,7 +182,7 @@ class Rect(object):
         self.x = x
         self.y = y - self.height
     topleft = property(get_topleft, set_topleft)
- 
+
     def get_topright(self):
         return (self.x + self.width, self.y + self.height)
     def set_topright(self, pos):
@@ -190,7 +190,7 @@ class Rect(object):
         self.x = x - self.width
         self.y = y - self.height
     topright = property(get_topright, set_topright)
- 
+
     def get_bottomright(self):
         return (self.x + self.width, self.y)
     def set_bottomright(self, pos):
@@ -198,9 +198,21 @@ class Rect(object):
         self.x = x - self.width
         self.y = y
     bottomright = property(get_bottomright, set_bottomright)
- 
+
     def get_bottomleft(self):
         return (self.x, self.y)
     def set_bottomleft(self, pos):
         self.x, self.y = pos
     bottomleft = property(get_bottomleft, set_bottomleft)
+
+    def glLineStripVertices(self):
+        x, y, w, h = self.x, self.y, self.width, self.height
+        x1, y1 = x + w, y + h
+        return [ x, y, x1, y, x1, y1, x, y1, x, y ]
+
+def rect_to_dict(rect):
+    x, y, w, h = rect
+    return dict(
+        x=x, y=y,
+        width=w, height=h,
+    )

@@ -104,44 +104,43 @@ class Control(pyglet.event.EventDispatcher):
                 '''
                 return self._do_draw(dt)
 
-        elif hasattr(self, 'draw'):
+        else:
             rst = self.draw(dt)
             if type(rst) == types.GeneratorType:
                 try:
                     rst.next()
                     self.continuation = rst
                 except StopIteration:
-                    print 'Stop first'
+                    pass
 
-        else:
-            # default behavior
-            if not hasattr(self, 'label'):
-                from pyglet.text import Label
-                self.label = Label(text=self.__class__.__name__,
-                                    font_size=10,color=(0,0,0,255),
-                                    x=self.width//2, y=self.height//2,
-                                    anchor_x='center', anchor_y='center')
-            glPushAttrib(GL_POLYGON_BIT)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-            glColor3f(1.0, 1.0, 1.0)
-            glRecti(0, 0, self.width, self.height)
-            glColor3f(0.0, 0.0, 0.0)
-            glRecti(0, 0, 4, 4)
-            glRecti(self.width-4, 0, self.width, 4)
-            glRecti(0, self.height-4, 4, self.height)
-            glRecti(self.width-4, self.height-4, self.width, self.height)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            glRecti(0, 0, self.width, self.height)
-            glBegin(GL_POLYGON)
-            glVertex2f(0,0)
-            glVertex2f(0,10)
-            glVertex2f(10,10)
-            glVertex2f(10, 0)
-            glEnd()
-            glPopAttrib()
-            self.label.draw()
-
-        #self.draw_subcontrols(dt)
+    def draw(self, dt):
+        # default behavior
+        if not hasattr(self, 'label'):
+            from pyglet.text import Label
+            self.label = Label(text=self.__class__.__name__,
+                                font_size=10,color=(0,0,0,255),
+                                x=self.width//2, y=self.height//2,
+                                anchor_x='center', anchor_y='center')
+        glPushAttrib(GL_POLYGON_BIT)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glColor3f(1.0, 1.0, 1.0)
+        glRecti(0, 0, self.width, self.height)
+        glColor3f(0.0, 0.0, 0.0)
+        glRecti(0, 0, 4, 4)
+        glRecti(self.width-4, 0, self.width, 4)
+        glRecti(0, self.height-4, 4, self.height)
+        glRecti(self.width-4, self.height-4, self.width, self.height)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glRecti(0, 0, self.width, self.height)
+        glBegin(GL_POLYGON)
+        glVertex2f(0,0)
+        glVertex2f(0,10)
+        glVertex2f(10,10)
+        glVertex2f(10, 0)
+        glEnd()
+        glPopAttrib()
+        self.label.draw()
+        self.draw_subcontrols(dt)
 
     def draw_subcontrols(self, dt):
         self.control_list.sort(key=lambda c: c.zindex)

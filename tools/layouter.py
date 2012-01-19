@@ -125,7 +125,7 @@ layout = Layouter()
 
 #----------------
 
-img = pyglet.image.load('/home/proton/Desktop/capture/snap00005.png')
+img = pyglet.image.load('/home/proton/Desktop/capture/snap00009.png')
 
 def bg(dt):
     glColor3f(1,1,1)
@@ -133,10 +133,9 @@ def bg(dt):
 
 layout.draw_hook_before = bg
 
-
-Rectangle(parent=layout, width=820, height=720)
-Rectangle(parent=layout, width=1024-820, height=720-350, x=820, y=350)
-Rectangle(parent=layout, width=1024-820, height=350, x=820)
+Rectangle(parent=layout, width=128, height=245, x=352, y=450)
+Rectangle(parent=layout, width=128, height=245, x=200, y=150)
+Rectangle(parent=layout, width=128, height=245, x=500, y=150)
 
 
 '''

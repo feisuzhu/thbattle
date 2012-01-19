@@ -12,7 +12,7 @@ class EndpointDied(Exception):
 class Endpoint(object):
 
     ENDPOINT_DEBUG = False
-    
+
     def __init__(self, sock, address):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.sock = sock
@@ -25,7 +25,7 @@ class Endpoint(object):
         def default(o):
             return o.__data__() if hasattr(o, '__data__') else repr(o)
         return json.dumps(p, default=default) + "\n"
-    
+
     def raw_write(self, s):
         if self.link_state == 'connected':
             if Endpoint.ENDPOINT_DEBUG:
@@ -34,7 +34,7 @@ class Endpoint(object):
         else:
             log.debug('Write after disconnected: %s' % s)
             return False
-    
+
     def write(self, p):
         '''
         Send json encoded packet
@@ -47,7 +47,7 @@ class Endpoint(object):
             self.link_state = 'disconnected'
             self.sockfile.close()
             self.sock.close()
-    
+
     def read(self, timeout=60):
         if self.link_state != 'connected':
             raise EndpointDied()
@@ -63,7 +63,7 @@ class Endpoint(object):
                     if Endpoint.ENDPOINT_DEBUG:
                         print "<<RECV %s" % s,
                     d = json.loads(s)
-                    return d    
+                    return d
                 except json.JSONDecodeError as e:
                     self.write(['bad_format', None])
                     continue

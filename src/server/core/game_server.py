@@ -13,7 +13,7 @@ class Player(Client, game.Player):
     pass
 
 class DroppedPlayer(Player):
-    
+
     def __data__(self):
         return dict(
             username=self.username,
@@ -40,7 +40,7 @@ class Game(Greenlet, game.Game):
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
     player_class = Player
-    
+
     CLIENT_SIDE = False
     SERVER_SIDE = True
 
@@ -49,7 +49,7 @@ class Game(Greenlet, game.Game):
         return dict(
             id=id(self),
             type=self.__class__.name,
-            empty_slots=self.players.count(UserPlaceHolder),
+            slots=self.players,
         )
     def __init__(self):
         Greenlet.__init__(self)

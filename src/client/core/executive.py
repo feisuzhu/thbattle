@@ -32,6 +32,7 @@ class GameManager(Greenlet):
                 for i, p in enumerate(data):
                     if p.get('dropped'):
                         self.game.players[i].dropped = True
+            self.event_cb('player_change', data)
 
         @handler(('inroom'), 'ingame')
         def game_started(self, data):
@@ -42,23 +43,28 @@ class GameManager(Greenlet):
             self.game.players = PlayerList(pl)
             self.server.gamedata = DataHolder()
             self.game.start()
+            self.event_cb('game_started', self.game)
 
         @handler(('hang'), 'inroom')
         def game_joined(self, data):
             self.game = gamemodes[data['type']]()
+            self.event_cb('game_joined', self.game)
 
         @handler(('ingame'), 'hang')
         def fleed(self, data):
             self.game.kill()
             self.game = None
+            self.event_cb('fleed')
 
         @handler(('inroom'), 'hang')
         def game_left(self, data):
             self.game = None
+            self.event_cb('game_left')
 
         @handler(('ingame'), 'hang')
         def end_game(self, data):
             self.game = None
+            self.event_cb('end_game')
 
         @handler(('connected'), None)
         def auth_result(self, server_id):
@@ -71,7 +77,7 @@ class GameManager(Greenlet):
 
         @handler(None, None)
         def invalid_command(self, data):
-            pass
+            self.event_cb('invalid_command', data)
 
         while True:
             cmd, data = self.server.ctlexpect(handlers.keys())
@@ -139,7 +145,7 @@ class Executive(object):
                 if not (self.state == 'connected'):
                     cb('general_failure', 'Connect first!')
                     return
-                self.server.write([_type, args])
+                self.server.write([_type, args[0]])
             wrapper.__name__ = _type
             return wrapper
         ops = ['register', 'create_game', 'join_game',

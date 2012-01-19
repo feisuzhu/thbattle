@@ -12,7 +12,7 @@ def start_ui():
     class PreloadThread(threading.Thread):
         def run(self):
             import time
-            time.sleep(1)
+            #time.sleep(1)
             self.svrsel.switch()
     plds = PreloadThread()
     plds.svrsel = svrsel

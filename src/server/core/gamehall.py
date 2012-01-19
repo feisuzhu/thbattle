@@ -59,7 +59,7 @@ def _next_free_slot(game):
 def create_game(user, gametype):
     from gamepack import gamemodes
     if not gametype in gamemodes:
-        user.write(['error', 'gametype_not_exist'])
+        user.write(['gamehall_error', 'gametype_not_exist'])
         return
     g = gamemodes[gametype]()
     g.game_started = False
@@ -99,9 +99,12 @@ def exit_game(user):
         if reduce(lambda r, p: r and (p is UserPlaceHolder or isinstance(p, DroppedPlayer)), g.players, True):
             if g.game_started:
                 log.info('game aborted')
+                del games_started[id(g)]
             else:
                 log.info('game canceled')
                 del games[id(g)]
+            g.kill()
+
 
 def join_game(user, gameid):
     if user.state == 'hang' and games.has_key(gameid):
@@ -115,7 +118,7 @@ def join_game(user, gameid):
             user.write(['game_joined', g])
             _notify_playerchange(g)
             return
-    user.write(['error', 'cant_join_game'])
+    user.write(['gamehall_error', 'cant_join_game'])
 
 def quick_start_game(user):
     if user.state == 'hang':
@@ -123,11 +126,10 @@ def quick_start_game(user):
         if gl:
             join_game(user, id(random.choice(gl)))
             return
-    user.write(['error', 'cant_join_game'])
+    user.write(['gamehall_error', 'cant_join_game'])
 
 def list_game(user):
     user.write(['current_games', games.values()])
-
 
 def start_game(g):
     log.info("game started")

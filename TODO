@@ -1,0 +1,5 @@
+UIControls: card, portrait
+Simple Game UI
+
+
+bug: endpoint: server can be silent in over 60sec, client thought it's a timeout
