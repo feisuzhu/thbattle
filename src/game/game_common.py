@@ -11,11 +11,8 @@ class GameError(Exception):
 
 class EventHandler(object):
 
-    def handle(self, evt_type, act):
+    def handle(self, evt_type, data):
         raise GameError('Override handle function to implement EventHandler logics!')
-
-    def interested(self, evt_type, act):
-        raise GameError('Override this!')
 
 class Action(object):
     cancelled = False
@@ -28,7 +25,7 @@ class Action(object):
         Return true if the action can be fired.
         '''
         return self.game_class.getgame().emit_event('action_can_fire', self)
-    
+
     def apply_action(self):
         raise GameError('Override apply_action to implement Action logics!')
 
@@ -37,13 +34,13 @@ class Action(object):
         Execute before 'action_before' event
         '''
         pass
-    
+
     def clean_up(self):
         '''
         Execute after all event handlers finished there work.
         '''
         pass
-    
+
     def cancel(self, cancel=True):
         self.cancelled = cancel
 
@@ -78,7 +75,7 @@ class Game(object):
         GameModes should override this.
         '''
         raise GameError('Override this function to implement Game logics!')
-    
+
     def emit_event(self, evt_type, data):
         '''
         Fire an event, all relevant event handlers will see this,
@@ -90,8 +87,7 @@ class Game(object):
             s = data
         log.info('emit_event: %s %s' % (evt_type, s))
         for evt in self.event_handlers:
-            if evt.interested(evt_type, data):
-                data = evt.handle(evt_type, data)
+            data = evt.handle(evt_type, data)
         return data
 
     def process_action(self, action):

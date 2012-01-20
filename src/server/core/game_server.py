@@ -5,12 +5,28 @@ from game import GameError, EventHandler, Action, TimeLimitExceeded
 from client_endpoint import Client
 import game
 
+from utils import PlayerList
+
 class DataHolder(object):
     def __data__(self):
         return self.__dict__
 
 class Player(Client, game.Player):
-    pass
+
+    def reveal(self, obj_list):
+        g = self.game_class.getgame()
+        st = g.get_synctag()
+        self.gwrite('object_sync_%d' % st, [obj_list])
+        return obj_list
+
+    def user_input(self, tag, attachment=None):
+        g = self.game_class.getgame()
+        st = g.get_synctag()
+        input = self.gexpect('input_%s_%d' % (tag, st))
+        pl = PlayerList(self.players[:])
+        pl.remove(self)
+        pl.gwrite('input_%s_%d' % (tag, st), input) # tell other players
+        return rst.input
 
 class DroppedPlayer(Player):
 
@@ -27,6 +43,15 @@ class DroppedPlayer(Player):
     def gread(self): raise TimeLimitExceeded
     def write(self, d): pass
     def raw_write(self, d): pass
+
+    def reveal(self, obj_list):
+        assert isinstance(obj, (list, tuple))
+        self.game_class.getgame().get_synctag() # must sync
+
+    def user_input(self, tag, attachment=None):
+        g = self.game_class.getgame()
+        st = g.get_synctag()
+        g.players.gwrite('input_%s_%d' % (tag, st), None) # null input
 
 class Game(Greenlet, game.Game):
     '''

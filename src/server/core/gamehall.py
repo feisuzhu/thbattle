@@ -53,7 +53,7 @@ def _notify_playerchange(game):
 def _next_free_slot(game):
     try:
         return game.players.index(UserPlaceHolder)
-    except:
+    except Exception as e:
         return None
 
 def create_game(user, gametype):

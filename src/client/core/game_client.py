@@ -8,17 +8,45 @@ from server_endpoint import Server
 from utils import DataHolder
 
 class Player(Server, game.Player):
-    pass
+    def reveal(self, obj_list):
+        # It's me, server will tell me what the hell these is.
+        assert isinstance(obj, (list, tuple))
+        g = self.game_class.getgame()
+        st = g.get_synctag()
+        raw_data = self.gexpect('object_sync_%d' % st)
+        revealed = [ol.__class__.parse(rd) for ol, rd in zip(obj_list, raw_data)]
+        return revealed
 
-class DroppedPlayer(object):
-    def __init__(self, player):
-        self.__dict__.update(player.__data__())
+    def user_input(self, tag, attachment=None):
+        g = self.game_class.getgame()
+        st = g.get_synctag()
+        input = DataHolder()
+        input.tag = tag
+        input.input = None
+        input.attacement = attachment
+        rst = g.emit_event('user_input', input)
+        self.gwrite('input_%s_%d' % (tag, st), rst.input)
+        return rst.input
 
-class PeerPlayer(object):
+class PeerPlayer(game.Player):
 
     def __init__(self, d):
         self.__dict__.update(d)
         self.gamedata = DataHolder()
+        game.Player.__init__(self)
+
+    def reveal(self, obj_list):
+        # Peer player, won't reveal.
+        assert isinstance(obj, (list, tuple))
+        self.game_class.getgame().get_synctag() # must sync
+        return obj_list
+
+    def user_input(self, tag, attachement=None):
+        # Peer player, get his input from server
+        g = self.game_class.getgame()
+        st = g.get_synctag()
+        input = g.me.gexpect('input_%s_%d' % (tag, st)) # HACK
+        return input
 
 class Game(Greenlet, game.Game):
     '''
@@ -42,14 +70,20 @@ class Game(Greenlet, game.Game):
 
     def _run(self):
         getcurrent().game = self
+        self.synctag = 0
         self.game_start()
 
     @staticmethod
     def getgame():
         return getcurrent().game
 
+    def get_synctag(self):
+        self.synctag += 1
+        return self.synctag
+
 class EventHandler(EventHandler):
     game_class = Game
 
 class Action(Action):
     game_class = Game
+

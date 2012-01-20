@@ -56,9 +56,11 @@ class Control(pyglet.event.EventDispatcher):
 
     def add_control(self, c):
         self.control_list.append(c)
+        c.parent = self
 
     def remove_control(self, c):
         self.control_list.remove(c)
+        c.parent = None
 
     def delete(self):
         self.parent.remove_control(self)
@@ -382,14 +384,16 @@ def init_gui():
 
     def _mainwindow_loop(dt):
         global msg_queue, msg_queue_lock
-        o = Overlay.cur_overlay
-        o.do_draw(dt)
+        Overlay.cur_overlay.do_draw(dt)
         fps.draw()
         #main_window.flip()
         with msg_queue_lock:
             if msg_queue:
                 for m in msg_queue:
-                    o.dispatch_message(m)
+                    # NOTICE: keep this since overlay switch may occur
+                    #         in message dispatching
+                    # o.dispatch_message(m) # this is buggy
+                    Overlay.cur_overlay.dispatch_message(m)
                 msg_queue = []
     pyglet.clock.schedule_interval(_mainwindow_loop, 1/60.0)
 
