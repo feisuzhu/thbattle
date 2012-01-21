@@ -6,7 +6,7 @@ The game is controlled by [GameMode](eg. Game3v3 extends GameMode)
 
 There are [Player]s, represents player, all communication are done through it. [Player]s are generated from [User]s at beginning of the game.
 
-NONONO, [Effect]s *ARE* [Action]s! 
+NONONO, [Effect]s *ARE* [Action]s!
 
 [Action] has associated [Card]s, indicating source of the action, some [Action]s may use this.
 [Card] has associated [Action], the [Action] is what this card will do.
@@ -68,8 +68,8 @@ class Damage(Action):
         p.life -= amount
         if p.life <=0:
             p = emit_event(PLAYER_DYING, p)
-             
-            
+
+
 ...
 
 # Effect processing is similar.
@@ -116,13 +116,13 @@ Client is the network conn representation.
 
 class Client:
     has a Queue q, have length, kill client if overflows
-    
+
     def gevent_loop():
         while True:
             q.put(parse_packet(self.sock))
     def recv_packet:
         return q.get()
-    
+
     send = self.sock.send
 
 
@@ -237,7 +237,7 @@ CLIENT:
 
 -----------------------------------------------------
 
-Client do not handle timeouts of other players, 
+Client do not handle timeouts of other players,
 Server guarantees that client Actions receives correct response.
 
 Server:
@@ -268,7 +268,7 @@ Graphic:
 
 1> some code put [X] into paint queue
 2> PaintManager reads the queue, and call appropriate
-   method to repaint it, remember invalidated region, 
+   method to repaint it, remember invalidated region,
    for pygame.display.update
 
 PaintManager is a dedicated greenlet.
@@ -299,7 +299,7 @@ PaintManager is a dedicated greenlet.
 How to paint:
 1> when something other than [Sprite] paints,
    they are painted both to a seperate surface(let's
-   call the surface BG) and to SCREEN. BG has the 
+   call the surface BG) and to SCREEN. BG has the
    same size of SCREEN.
 2> Collect all [Sprite]s need to be painted,
    get all regions [Sprite]s invalidated in last frame,
@@ -343,12 +343,26 @@ chat / exit / ... ? should be handled by other greenlet, not the game logic one.
 
 
 game logic:
-    when needs user interaction, fires an Action acquiring input.
+    when needs user interaction, fires an event acquiring input.
 
-    ui has EventListener to handle these Actions, send request to ui, wait for complete.
+    ui has EventListener to handle these event, send request to ui, wait for complete.
     ui receives the info. when user did the input, complete the request.
     if errors occurred, just signal time-out.
     now game can get result from the Action.
 
 ui intercepts game events, so it can know when core needs user input
 
+----------------------------
+
+player.reveal(card) or this? ->
+
+class Synchronizable(object):
+    def show_to(self, player_list): ....
+
+    @abstract
+    def parse(self, raw_data): return parsed_object
+
+class SyncInt(int, Synchronizable): pass
+SyncInt.parse = SyncInt
+
+.....

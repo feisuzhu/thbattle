@@ -14,21 +14,24 @@ class DataHolder(object):
 class Player(Client, game.Player):
 
     def reveal(self, obj_list):
-        g = self.game_class.getgame()
+        g = Game.getgame()
         st = g.get_synctag()
-        self.gwrite('object_sync_%d' % st, [obj_list])
+        self.gwrite(['object_sync_%d' % st, obj_list])
         return obj_list
 
     def user_input(self, tag, attachment=None):
-        g = self.game_class.getgame()
+        g = Game.getgame()
         st = g.get_synctag()
         input = self.gexpect('input_%s_%d' % (tag, st))
-        pl = PlayerList(self.players[:])
+        pl = PlayerList(g.players[:])
         pl.remove(self)
-        pl.gwrite('input_%s_%d' % (tag, st), input) # tell other players
-        return rst.input
+        pl.gwrite(['input_%s_%d' % (tag, st), input]) # tell other players
+        return input
 
-class DroppedPlayer(Player):
+class DroppedPlayer(object):
+
+    def __init__(self, p):
+        self.__dict__.update(p.__dict__)
 
     def __data__(self):
         return dict(
@@ -46,12 +49,12 @@ class DroppedPlayer(Player):
 
     def reveal(self, obj_list):
         assert isinstance(obj, (list, tuple))
-        self.game_class.getgame().get_synctag() # must sync
+        Game.getgame().get_synctag() # must sync
 
     def user_input(self, tag, attachment=None):
-        g = self.game_class.getgame()
+        g = Game.getgame()
         st = g.get_synctag()
-        g.players.gwrite('input_%s_%d' % (tag, st), None) # null input
+        g.players.gwrite(['input_%s_%d' % (tag, st), None]) # null input
 
 class Game(Greenlet, game.Game):
     '''
@@ -78,12 +81,14 @@ class Game(Greenlet, game.Game):
         )
     def __init__(self):
         Greenlet.__init__(self)
+        game.Game.__init__(self)
         self.players = []
         self.queue = Queue(100)
 
     def _run(self):
         from server.core import gamehall as hall
         getcurrent().game = self
+        self.synctag = 0
         hall.start_game(self)
         self.game_start()
         hall.end_game(self)
@@ -91,6 +96,10 @@ class Game(Greenlet, game.Game):
     @staticmethod
     def getgame():
         return getcurrent().game
+
+    def get_synctag(self):
+        self.synctag += 1
+        return self.synctag
 
 class EventHandler(EventHandler):
     game_class = Game

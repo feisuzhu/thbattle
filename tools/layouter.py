@@ -8,7 +8,8 @@ sys.path.append('../src')
 import pyglet
 from pyglet.gl import *
 
-from client.ui.base import Control, WINDOW_WIDTH, WINDOW_HEIGHT, init_gui, Button, TextBox, Dialog
+from client.ui.base import *
+from client.ui.controls_extra import *
 
 class Layouter(Control):
     def __init__(self, *args, **kwargs):
@@ -72,11 +73,20 @@ class Layouter(Control):
         for i, c in enumerate(self.control_list):
             glPushMatrix()
             glTranslatef(c.x, c.y, 0)
+            '''
             if i == index and self.flash:
                 glColor3f(0.3, 0.3, 0.3)
                 glRecti(0, 0, c.width, c.height)
             else:
                 c._do_draw(dt)
+            '''
+            c._do_draw(dt)
+            if i == index and self.flash:
+                glEnable(GL_COLOR_LOGIC_OP)
+                glLogicOp(GL_INVERT)
+                glRecti(0, 0, c.width, c.height)
+                glDisable(GL_COLOR_LOGIC_OP)
+
             glPopMatrix()
         self.draw_hook_after(dt)
 
@@ -121,11 +131,11 @@ class Rectangle(Control):
         glPopAttrib()
 
 init_gui()
-layout = Layouter()
+layout = Layouter(parent=Overlay.cur_overlay)
 
 #----------------
 
-img = pyglet.image.load('/home/proton/Desktop/capture/snap00009.png')
+img = pyglet.image.load('/home/proton/Desktop/capture/snap00001.png')
 
 def bg(dt):
     glColor3f(1,1,1)
@@ -133,30 +143,12 @@ def bg(dt):
 
 layout.draw_hook_before = bg
 
-Rectangle(parent=layout, width=128, height=245, x=352, y=450)
-Rectangle(parent=layout, width=128, height=245, x=200, y=150)
-Rectangle(parent=layout, width=128, height=245, x=500, y=150)
+CardSprite(parent=layout, x=333, y=202)
+for i in xrange(5):
+    ca = CardArea(parent=layout, x=100, y=50+i*130)
+    ca.cards = [CardSprite(parent=ca) for j in range(i+4)]
+    ca.update() # x=238, y=13
 
-
-'''
-Label(text='GENSOUKILL',
-                    font_size=60,color=(0,0,0,255),
-
-                    parent=layout)
-Rectangle(width=325, height=160, x=350, y=165, parent=layout)
-Label(text=u'用户名：', font_size=12,color=(0,0,0,255),
-                    x=368, y=284,
-                    anchor_x='center', anchor_y='center',
-                    parent=layout)
-Label(text=u'密码：', font_size=12,color=(0,0,0,255),
-                    x=368, y=246,
-                    anchor_x='center', anchor_y='center',
-                    parent=layout)
-TextBox(parent=layout,x=438, y=282, width=220)
-TextBox(parent=layout,x=438, y=246, width=220)
-Button(caption=u'进入幻想乡', parent=layout, x=378, y=182, width=127, height=48)
-Button(caption=u'回到现世', parent=layout, x=520, y=182, width=127, height=48)
-'''
 #------------------
 pyglet.app.run()
 

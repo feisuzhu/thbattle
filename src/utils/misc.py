@@ -2,6 +2,7 @@ import gevent
 from gevent.queue import Queue
 from gevent.event import AsyncResult
 from gevent import Greenlet
+from itihub import ITIEvent
 import types
 
 class DataHolder(object):
@@ -10,10 +11,10 @@ class DataHolder(object):
 
 class PlayerList(list):
     def __getattribute__(self, name):
-        if hasattr(self[0], name):
-            a = getattr(self[0], name)
-            if type(a) == types.FunctionType:
-                print 'delegate %s!' % name
+        from game.autoenv import Game
+        if hasattr(Game.player_class, name):
+            a = getattr(Game.player_class, name)
+            if type(a) in (types.FunctionType, types.MethodType):
                 def wrapper(*args, **kwargs):
                     for p in self:
                         f = p.getattr(name)
@@ -27,3 +28,16 @@ class PlayerList(list):
         )
 
     #def gexpect_any(self, _): pass
+
+class IRP(object):
+    '''I/O Request Packet'''
+    def __init__(self):
+        e = ITIEvent()
+        e.clear()
+        self.event = e
+
+    def complete(self):
+        self.event.set()
+
+    def wait(self):
+        self.event.wait()

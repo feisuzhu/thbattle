@@ -32,7 +32,10 @@ class PlayerPortrait(Control):
     def draw(self, dt):
         self.batch.draw()
 
-class GameCharacterPortrait(Control): pass
+class GameCharacterPortrait(Control):
+    def __init__(self, *args, **kwargs):
+        Control.__init__(self, *args, **kwargs)
+        self._w, self._h = 149, 195
 
 class TextArea(Control):
     def __init__(self, color=(0,0,0), *args, **kwargs):
@@ -53,3 +56,30 @@ class TextArea(Control):
 
     def draw(self, dt):
         self.batch.draw()
+
+class CardSprite(Control):
+    def __init__(self, *args, **kwargs):
+        Control.__init__(self, *args, **kwargs)
+        self._w, self._h = 91, 125
+        self.img = pyglet.image.load('/home/proton/Desktop/res/wzsy.tga')
+
+    def draw(self, dt):
+        self.img.blit(0, 0)
+
+class CardArea(Control):
+    def __init__(self, *args, **kwargs):
+        Control.__init__(self, *args, **kwargs)
+        self._w, self._h = 93*5, 125
+        self.cards = []
+
+    def draw(self, dt):
+        self.draw_subcontrols(dt)
+
+    def update(self):
+        n = len(self.cards)
+        width = min(5, n) * 93.0
+
+        step = int((width - 91)/(n-1))
+
+        for i in xrange(n):
+            self.cards[i].x = 2 + step * i

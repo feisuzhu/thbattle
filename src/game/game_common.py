@@ -68,7 +68,10 @@ class Game(object):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
-    event_handlers = []
+    # event_handlers = []
+    def __init__(self):
+        self.event_handlers = []
+
     def game_start(self):
         '''
         Game logic goes here.

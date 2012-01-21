@@ -210,6 +210,11 @@ class Rect(object):
         x1, y1 = x + w, y + h
         return [ x, y, x1, y, x1, y1, x, y1, x, y ]
 
+    def glQuadsVertices(self):
+        x, y, w, h = self.x, self.y, self.width, self.height
+        x1, y1 = x + w, y + h
+        return [ x, y, x1, y, x1, y1, x, y1 ]
+        
 def rect_to_dict(rect):
     x, y, w, h = rect
     return dict(

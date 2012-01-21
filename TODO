@@ -3,3 +3,5 @@ Simple Game UI
 
 
 bug: endpoint: server can be silent in over 60sec, client thought it's a timeout
+heartbeat: server controls -> if didn't recv any data in x mins, send heartbeat,
+           client echos.

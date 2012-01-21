@@ -7,25 +7,25 @@ from server_endpoint import Server
 
 from utils import DataHolder
 
-class Player(Server, game.Player):
+class TheChosenOne(Server, game.Player):
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.
-        assert isinstance(obj, (list, tuple))
-        g = self.game_class.getgame()
+        assert isinstance(obj_list, (list, tuple))
+        g = Game.getgame()
         st = g.get_synctag()
         raw_data = self.gexpect('object_sync_%d' % st)
         revealed = [ol.__class__.parse(rd) for ol, rd in zip(obj_list, raw_data)]
         return revealed
 
     def user_input(self, tag, attachment=None):
-        g = self.game_class.getgame()
+        g = Game.getgame()
         st = g.get_synctag()
         input = DataHolder()
         input.tag = tag
         input.input = None
-        input.attacement = attachment
+        input.attachment = attachment
         rst = g.emit_event('user_input', input)
-        self.gwrite('input_%s_%d' % (tag, st), rst.input)
+        self.gwrite(['input_%s_%d' % (tag, st), rst.input])
         return rst.input
 
 class PeerPlayer(game.Player):
@@ -37,13 +37,13 @@ class PeerPlayer(game.Player):
 
     def reveal(self, obj_list):
         # Peer player, won't reveal.
-        assert isinstance(obj, (list, tuple))
-        self.game_class.getgame().get_synctag() # must sync
+        assert isinstance(obj_list, (list, tuple))
+        Game.getgame().get_synctag() # must sync
         return obj_list
 
     def user_input(self, tag, attachement=None):
         # Peer player, get his input from server
-        g = self.game_class.getgame()
+        g = Game.getgame()
         st = g.get_synctag()
         input = g.me.gexpect('input_%s_%d' % (tag, st)) # HACK
         return input
@@ -59,13 +59,14 @@ class Game(Greenlet, game.Game):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
-    player_class = Player
+    player_class = TheChosenOne
 
     CLIENT_SIDE = True
     SERVER_SIDE = False
 
     def __init__(self):
         Greenlet.__init__(self)
+        game.Game.__init__(self)
         self.players = []
 
     def _run(self):
@@ -86,4 +87,3 @@ class EventHandler(EventHandler):
 
 class Action(Action):
     game_class = Game
-

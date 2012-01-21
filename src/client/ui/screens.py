@@ -125,23 +125,47 @@ class GameHallScreen(Overlay):
 class GameScreen(Overlay):
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
-            Control.__init__(self, parent=parent, **r2d((0, 0, 820, 140)))
+            Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
             self.btn_getready = Button(
                 parent=self, caption=u'准备', **r2d((360, 80, 100, 35))
             )
+
+            self.box = pyglet.graphics.Batch()
+            self.box.add(
+                5, GL_LINE_STRIP, None,
+                ('v2i', Rect(0, 0, 820, 140).glLineStripVertices()),
+                ('c3f', [0.0, 0.0, 0.0] * 5)
+            )
+            l = []
+            for (x, y), color in parent.ui_class.portrait_location:
+                l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y))
+            self.portraits = l
 
             @self.btn_getready.event
             def on_click():
                 Executive.message('get_ready', ui_message, [])
                 self.btn_getready.state = Button.DISABLED
 
+        def draw(self, dt):
+            self.box.draw()
+            self.draw_subcontrols(dt)
+
         def on_message(self, _type, *args):
             if _type == 'player_change':
-                self.parent.update_portrait(args[0])
+                self.update_portrait(args[0])
             elif _type == 'game_left':
                 GameHallScreen().switch()
-            else:
-                Overlay.on_message(self, _type, *args)
+            elif _type == 'game_joined':
+                # last game ended, this is the auto
+                # created game
+                self.btn_getready.state = Button.NORMAL
+
+        def update_portrait(self, pl):
+            for i, p in enumerate(pl):
+                name = p.get('nickname')
+                name = 'EMPTY SLOT' if not name else name
+                self.portraits[i].player_name = name
+                self.portraits[i].refresh()
 
     def __init__(self, game, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
@@ -152,13 +176,10 @@ class GameScreen(Overlay):
         self.chat_box = TextArea(parent=self, **r2d(chat_rect))
         self.panel = GameScreen.RoomControlPanel(parent=self)
         self.btn_exit = Button(
-             parent=self, caption=u'退出房间', **r2d((730, 20, 75, 25))
+            parent=self, caption=u'退出房间', zindex=1,
+            **r2d((730, 20, 75, 25))
         )
 
-        l = []
-        for (x, y), color in self.ui_class.portrait_location:
-            l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y))
-        self.portraits = l
         self.game = game
         self.gameui = game.ui_class(
             parent=False, game=game,
@@ -169,16 +190,12 @@ class GameScreen(Overlay):
         def on_click():
             Executive.message('exit_game', ui_message, [])
 
-    def update_portrait(self, pl):
-        for i, p in enumerate(pl):
-            name = p.get('nickname')
-            name = 'EMPTY SLOT' if not name else name
-            self.portraits[i].player_name = name
-            self.portraits[i].refresh()
-
     def on_message(self, _type, *args):
         if _type == 'game_started':
             self.remove_control(self.panel)
             self.add_control(self.gameui)
+        if _type == 'end_game':
+            self.remove_control(self.gameui)
+            self.add_control(self.panel)
         else:
             Overlay.on_message(self, _type, *args)

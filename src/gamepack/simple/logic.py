@@ -11,7 +11,7 @@ import gevent
 
 class SimpleGame(Game):
     name = 'Simple Game'
-    n_persons = 3
+    n_persons = 1
 
     ui_class = SimpleGameUI
 

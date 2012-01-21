@@ -1,7 +1,6 @@
 # All Actions, EventHandlers are here
 from game.autoenv import Game, EventHandler, Action, GameError
 
-from cards import Card, HiddenCard
 from network import Endpoint
 import random
 import types
@@ -33,7 +32,7 @@ class Attack(BaseAction):
         g = Game.getgame()
         target = self.target
         choose_action = ChooseCard(target, lambda cl: len(cl) == 1 and cl[0].type == 'graze')
-        if not g.process_action(choose_card):
+        if not g.process_action(choose_action):
             return g.process_action(Damage(target, amount=self.damage))
         else:
             drop = DropCardIndex(target, card_indices=choose_action.card_indices)
@@ -83,7 +82,7 @@ class ChooseCard(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        input = target.user_input('choose_and_drop', self)
+        input = target.user_input('choose_card', self)
 
         if not (input and isinstance(input, list)):
             return False # default action
@@ -95,7 +94,7 @@ class ChooseCard(GenericAction):
             return False
 
         input.sort()
-        if n[0] < 0 or n[-1] >= n: # index out of range
+        if input[0] < 0 or input[-1] >= n: # index out of range
             return False
 
         cards = [target.gamedata.cards[i] for i in input]
@@ -127,9 +126,9 @@ class DropCardStage(GenericAction):
         g = Game.getgame()
         choose_action = ChooseCard(target, cond = lambda cl: len(cl) == n)
         if g.process_action(choose_action):
-            g.process_action(DropCardIndex(p, cards=choose_action.card_index))
+            g.process_action(DropCardIndex(target, card_indices=choose_action.card_index))
         else:
-            g.process_action(DropCardIndex(p, cards=range(n)))
+            g.process_action(DropCardIndex(target, card_indices=range(n)))
         return True
 
 class DrawCards(GenericAction):
@@ -139,6 +138,7 @@ class DrawCards(GenericAction):
         self.amount = amount
 
     def apply_action(self):
+        from cards import Card, HiddenCard
         g = Game.getgame()
         target = self.target
         if Game.SERVER_SIDE:
@@ -182,12 +182,14 @@ class ActionStage(GenericAction):
             if not 0 <= object_index < len(g.players):
                 break
 
+            card = target.gamedata.cards[card_index]
             for p in g.players.exclude(target): # This looks WEIRD!
                 card = p.reveal(card)
 
             object = g.players[object_index]
             action = card.assocated_action
             g.process_action(DropUsedCard(target, card_indices=[card_index]))
-            g.process_action(action(target=object))
+            if action:
+                g.process_action(action(target=object))
 
         return True

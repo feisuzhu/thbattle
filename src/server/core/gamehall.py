@@ -53,7 +53,7 @@ def _notify_playerchange(game):
 def _next_free_slot(game):
     try:
         return game.players.index(UserPlaceHolder)
-    except Exception as e:
+    except IndexError as e:
         return None
 
 def create_game(user, gametype):
@@ -87,8 +87,8 @@ def exit_game(user):
         i = g.players.index(user)
         if g.game_started:
             log.info('player dropped')
-            g.players[i].__class__ = DroppedPlayer
             user.write(['fleed', None])
+            g.players[i] = DroppedPlayer(g.players[i])
         else:
             log.info('player leave')
             g.players[i] = UserPlaceHolder
@@ -104,6 +104,8 @@ def exit_game(user):
                 log.info('game canceled')
                 del games[id(g)]
             g.kill()
+    else:
+        user.write(['gamehall_error', 'not_in_a_game'])
 
 
 def join_game(user, gameid):
@@ -148,10 +150,13 @@ def end_game(g):
         del p.gamedata
 
     log.info("end game")
-    pl = [p for p in g.players if not isinstance(p, DroppedPlayer)]
+    pl = g.players
+    for i, p in enumerate(pl):
+        if isinstance(p, DroppedPlayer):
+            pl[i] = UserPlaceHolder
     del games_started[id(g)]
     ng = create_game(None, g.__class__.name)
-    ng.players = (PlayerList(pl) + [UserPlaceHolder] * g.n_persons)[:g.n_persons]
+    ng.players = pl
     for p in pl:
         p.write(['end_game', None])
         p.write(['game_joined', ng])

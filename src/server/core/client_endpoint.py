@@ -89,6 +89,7 @@ class Client(Endpoint, Greenlet):
         try:
             while True:
                 cmd, data = self.read()
+                print cmd, data
                 f = cmds[self.state].get(cmd)
                 if not f:
                     f = cmds['__any__'].get(cmd)

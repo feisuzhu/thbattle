@@ -5,6 +5,7 @@ from pyglet.gl import *
 
 import types
 from time import time
+from utils import rect_to_dict as r2d, Rect
 
 WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 720
@@ -13,16 +14,6 @@ class Control(pyglet.event.EventDispatcher):
     def __init__(self, x=0, y=0, width=100, height=100,
                 zindex=0, parent=None, can_focus=False, manual_draw=False,
                 *args, **kwargs):
-        if parent is None:
-            parent = Overlay.cur_overlay
-            overlay = parent
-        else:
-            if parent:
-                overlay = parent
-                while not isinstance(overlay, Overlay):
-                    overlay = overlay.parent
-            else:
-                overlay = self
 
         self.__dict__.update({
             'parent': parent,
@@ -32,13 +23,16 @@ class Control(pyglet.event.EventDispatcher):
             'can_focus': can_focus,
             'manual_draw': manual_draw,
         })
+        self.__dict__.update(kwargs)
         self.control_list = []
         self.continuation = None
-        self.overlay = overlay
         # control under cursor now, for tracking enter/leave events
         self._control_hit = None
         if parent:
             parent.add_control(self)
+        else:
+            self.parent = parent
+            self.overlay = False
 
     def _set_w(self, v):
         self._w = v
@@ -57,10 +51,12 @@ class Control(pyglet.event.EventDispatcher):
     def add_control(self, c):
         self.control_list.append(c)
         c.parent = self
+        c.overlay = self if isinstance(self, Overlay) else self.overlay
 
     def remove_control(self, c):
         self.control_list.remove(c)
         c.parent = None
+        c.overlay = None
 
     def delete(self):
         self.parent.remove_control(self)
@@ -118,11 +114,44 @@ class Control(pyglet.event.EventDispatcher):
     def draw(self, dt):
         # default behavior
         if not hasattr(self, 'label'):
+            '''
+            w, h = self.width, self.height
+            batch = pyglet.graphics.Batch()
+            glColor3f(1,1,1)
+            batch.add(4, GL_QUADS, None, ('v2i', (
+                0,0, 0,h, w,h, w,0,
+            )))
+            glColor3f(0,0,0)
+            batch.add(
+                5, GL_LINE_STRIP, None,
+                ('v2i', Rect(0,0,w,h).glLineStripVertices()),
+            )
+
+            v = []
+            v.extend(Rect(0,   0,   4, 4).glQuadsVertices())
+            v.extend(Rect(w-4, 0,   4, 4).glQuadsVertices())
+            v.extend(Rect(0,   h-4, 4, 4).glQuadsVertices())
+            v.extend(Rect(w-4, h-4, 4, 4).glQuadsVertices())
+
+            batch.add(4*4, GL_QUADS, None, ('v2i', v))
+            batch.add(5, GL_LINE_STRIP, None, ('v2i', (
+                0,0, 0,10, 10,10, 10,0, 0,0
+            )))'''
+
             from pyglet.text import Label
-            self.label = Label(text=self.__class__.__name__,
-                                font_size=10,color=(0,0,0,255),
-                                x=self.width//2, y=self.height//2,
-                                anchor_x='center', anchor_y='center')
+            if not hasattr(self, '_text'):
+                self._text = self.__class__.__name__
+
+            self.label = Label(
+                text=self._text,
+                font_size=10,color=(0,0,0,255),
+                x=self.width//2, y=self.height//2,
+                anchor_x='center', anchor_y='center',
+            )
+
+        if self._text != self.label.text:
+            self.label.text = self._text
+
         glPushAttrib(GL_POLYGON_BIT)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glColor3f(1.0, 1.0, 1.0)
@@ -141,6 +170,7 @@ class Control(pyglet.event.EventDispatcher):
         glVertex2f(10, 0)
         glEnd()
         glPopAttrib()
+
         self.label.draw()
         self.draw_subcontrols(dt)
 

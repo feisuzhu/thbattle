@@ -16,7 +16,7 @@ class GameManager(Greenlet):
         self.state = 'connected'
 
     def _run(self):
-        from client.core import PeerPlayer
+        from client.core import PeerPlayer, TheChosenOne
         from gamepack import gamemodes
         handlers = {}
         def handler(_from, _to):
@@ -38,6 +38,7 @@ class GameManager(Greenlet):
         def game_started(self, data):
             pid = [i['id'] for i in self.players]
             pl = [PeerPlayer(i) for i in self.players]
+            self.server.__class__ = TheChosenOne
             pl[pid.index(self.server_id)] = self.server
             self.game.me = self.server
             self.game.players = PlayerList(pl)
