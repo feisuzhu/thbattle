@@ -207,15 +207,24 @@ class Control(pyglet.event.EventDispatcher):
 
     def abs_coords(self):
         c, ax, ay = self, 0.0, 0.0
-        while not isinstance(c, Overlay):
+        while c and not isinstance(c, Overlay):
             ax += c.x
             ay += c.y
             c = c.parent
         return (ax, ay)
 
+    def migrate_to(self, new_parent):
+        ax, ay = self.abs_coords()
+        npax, npay = new_parent.abs_coords()
+        self.delete()
+        new_parent.add_control(self)
+        self.x, self.y = ax-npax, ay-npay
+
     def on_message(self, *args):
         '''Do nothing'''
         pass
+
+    xy = property(lambda self: (self.x, self.y))
 
 class Overlay(Control):
     '''

@@ -42,7 +42,7 @@ class SimpleGameUI(Control):
         self.btn_cancel = Button(
             parent=self, caption=u'取消', x=430, y=201, width=80, height=30
         )
-        self.textbox = TextBox(parent=self, x=248, y=255, width=336)
+        self.textbox = TextBox(parent=self, x=248, y=255, width=336, text='[0, 0]')
         self.prompt = pyglet.text.Label(
             text='youmu youmu youmu', font_size=20, color=(0,0,0,255),
             x=280, y=413, anchor_y = 'bottom'

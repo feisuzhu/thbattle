@@ -143,11 +143,16 @@ def bg(dt):
 
 layout.draw_hook_before = bg
 
-CardSprite(parent=layout, x=333, y=202)
-for i in xrange(5):
-    ca = CardArea(parent=layout, x=100, y=50+i*130)
-    ca.cards = [CardSprite(parent=ca) for j in range(i+4)]
-    ca.update() # x=238, y=13
+CardSprite(parent=layout, x=333, y=202).gray = True
+i = 8
+class CardSprite(CardSprite):
+    def on_mouse_click(self, *a):
+        i = self.parent.cards.index(self)
+        self.parent.get_cards([i])
+
+ca = CardArea(parent=layout, x=100, y=130)
+ca.add_cards([CardSprite(parent=layout, x=0, y=0) for j in range(30)])
+# x=238, y=13
 
 #------------------
 pyglet.app.run()

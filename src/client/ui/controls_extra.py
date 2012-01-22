@@ -4,7 +4,8 @@ from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import Control
-from utils.geometry import Rect
+from client.ui.base.interp import SineInterpolation
+from utils import Rect
 
 class PlayerPortrait(Control):
     def __init__(self, player_name, color=[0,0,0], *args, **kwargs):
@@ -62,11 +63,40 @@ class CardSprite(Control):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 91, 125
         self.img = pyglet.image.load('/home/proton/Desktop/res/wzsy.tga')
+        self.img_shine = pyglet.image.load('/home/proton/Desktop/res/shine_soft.tga')
+        self.shine = False
+        self.gray = False
+        self.ix = None
+        self.iy = None
 
     def draw(self, dt):
+        ix, iy = self.ix, self.iy
+        if ix or iy:
+            self.x, self.y = ix.value, iy.value
+            if ix.finished and iy.finished:
+                self.ix, self.iy = None, None
+
+        if self.gray:
+            glColor4f(.66, .66, .66, 1.)
+        else:
+            glColor4f(1., 1., 1., 1.)
         self.img.blit(0, 0)
+        if self.shine:
+            glColor4f(1., 1., 1., 1.)
+            self.img_shine.blit(-6, -6)
+
+    def on_mouse_enter(self, x, y):
+        self.shine = True
+
+    def on_mouse_leave(self, x, y):
+        self.shine = False
+
+    def animate_to(self, x, y):
+        self.ix = SineInterpolation(self.x, x, 0.3)
+        self.iy = SineInterpolation(self.y, y, 0.3)
 
 class CardArea(Control):
+
     def __init__(self, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 93*5, 125
@@ -75,11 +105,27 @@ class CardArea(Control):
     def draw(self, dt):
         self.draw_subcontrols(dt)
 
-    def update(self):
+    def _update(self):
         n = len(self.cards)
         width = min(5, n) * 93.0
+        step = (width - 91)/(n-1) if n > 1 else 0
+        for i, c in enumerate(self.cards):
+            c.animate_to(2 + int(step * i), 0)
 
-        step = int((width - 91)/(n-1))
+    def add_cards(self, clist):
+        self.cards.extend(clist)
+        for c in clist:
+            c.migrate_to(self)
+        self._update()
 
-        for i in xrange(n):
-            self.cards[i].x = 2 + step * i
+    def get_cards(self, indices, control=None):
+        indices = sorted(indices, reverse=True)
+        cl = [self.cards[i] for i in indices]
+        for i in indices:
+            c = self.cards[i]
+            if control:
+                c.migrate_to(control)
+            else:
+                c.delete()
+            del self.cards[i]
+        self._update()
