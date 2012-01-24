@@ -2,7 +2,27 @@
 
 from time import time
 
-class SineInterpolation(object):
+class InterpDesc(object):
+    def __init__(self, slot):
+        self.slot = slot
+
+    def __get__(self, obj, _type):
+        v = getattr(obj, self.slot)
+        if isinstance(v, AbstractInterp):
+            val = v.value
+            if v.finished:
+                setattr(obj, self.slot, val)
+            return val
+        else:
+            return v
+
+    def __set__(self, obj, val):
+        setattr(obj, self.slot, val)
+
+class AbstractInterp(object):
+    pass
+
+class SineInterp(AbstractInterp):
 
     def __init__(self, f, t, animtime=0.5):
         from math import pi
@@ -24,7 +44,7 @@ class SineInterpolation(object):
 
     value = property(_get_val)
 
-class Fixed(object):
+class FixedInterp(AbstractInterp):
 
     def __init__(self, val, animtime):
         self.finished = False
@@ -39,7 +59,7 @@ class Fixed(object):
 
     value = property(_get_val)
 
-class ChainInterpolation(object):
+class ChainInterp(AbstractInterp):
     def __init__(self, *interps):
         self.lastval = 0.0
         self.interps = list(interps)

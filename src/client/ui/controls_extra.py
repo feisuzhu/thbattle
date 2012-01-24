@@ -4,7 +4,7 @@ from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import Control
-from client.ui.base.interp import SineInterpolation
+from client.ui.base.interp import SineInterp, InterpDesc
 from utils import Rect
 
 class PlayerPortrait(Control):
@@ -59,41 +59,37 @@ class TextArea(Control):
         self.batch.draw()
 
 class CardSprite(Control):
-    def __init__(self, *args, **kwargs):
+    x = InterpDesc('_x')
+    y = InterpDesc('_y')
+    shine_alpha = InterpDesc('_shine_alpha')
+    def __init__(self, x=0.0, y=0.0, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 91, 125
         self.img = pyglet.image.load('/home/proton/Desktop/res/wzsy.tga')
         self.img_shine = pyglet.image.load('/home/proton/Desktop/res/shine_soft.tga')
         self.shine = False
         self.gray = False
-        self.ix = None
-        self.iy = None
+        self.x, self.y,  = x, y
+        self.shine_alpha = 0.0
 
     def draw(self, dt):
-        ix, iy = self.ix, self.iy
-        if ix or iy:
-            self.x, self.y = ix.value, iy.value
-            if ix.finished and iy.finished:
-                self.ix, self.iy = None, None
-
         if self.gray:
             glColor4f(.66, .66, .66, 1.)
         else:
             glColor4f(1., 1., 1., 1.)
         self.img.blit(0, 0)
-        if self.shine:
-            glColor4f(1., 1., 1., 1.)
-            self.img_shine.blit(-6, -6)
+        glColor4f(1., 1., 1., self.shine_alpha)
+        self.img_shine.blit(-6, -6)
 
     def on_mouse_enter(self, x, y):
-        self.shine = True
+        self.shine_alpha = 1.0
 
     def on_mouse_leave(self, x, y):
-        self.shine = False
+        self.shine_alpha = SineInterp(1.0, 0.0, 0.3)
 
     def animate_to(self, x, y):
-        self.ix = SineInterpolation(self.x, x, 0.3)
-        self.iy = SineInterpolation(self.y, y, 0.3)
+        self.x = SineInterp(self.x, x, 0.3)
+        self.y = SineInterp(self.y, y, 0.3)
 
 class CardArea(Control):
 
