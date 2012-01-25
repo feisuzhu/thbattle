@@ -101,7 +101,7 @@ class ChooseCard(GenericAction):
         for p in g.players.exclude(target):
             cards = p.reveal(cards)
 
-        if cond(cards):
+        if self.cond(cards):
             self.card_indices = input
             return True
         else:

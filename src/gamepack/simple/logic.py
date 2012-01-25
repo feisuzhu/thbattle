@@ -7,8 +7,6 @@ from cards import Card, HiddenCard
 from actions import *
 from ui import SimpleGameUI
 
-import gevent
-
 class SimpleGame(Game):
     name = 'Simple Game'
     n_persons = 1
