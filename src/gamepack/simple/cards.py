@@ -30,5 +30,5 @@ class Card(object):
 
     assocated_action = property(_get_action)
 
-HiddenCard = Card('__hidden__')
+HiddenCard = Card('hidden')
 HiddenCard.hidden = True

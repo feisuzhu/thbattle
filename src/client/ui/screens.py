@@ -2,7 +2,7 @@
 import pyglet
 from pyglet.gl import *
 from client.ui.base import Control, Overlay, TextBox, Button, Dialog
-from client.ui.base import message as ui_message
+from client.ui.base import message as ui_message, redispatch as ui_redispatch
 from client.ui.controls_extra import TextArea, PlayerPortrait
 from client.core import Executive
 from pyglet.text import Label
@@ -115,8 +115,7 @@ class GameHallScreen(Overlay):
 
     def on_message(self, _type, *args):
         if _type == 'game_joined':
-            game = args[0]
-            GameScreen(game).switch()
+            GameScreen(args[0]).switch()
         elif _type == 'gamehall_error':
             print args[0] # TODO
         else:
@@ -158,7 +157,7 @@ class GameScreen(Overlay):
             elif _type == 'game_joined':
                 # last game ended, this is the auto
                 # created game
-                self.btn_getready.state = Button.NORMAL
+                GameScreen(args[0]).switch()
 
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
@@ -169,7 +168,14 @@ class GameScreen(Overlay):
 
     def __init__(self, game, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
+
+        self.game = game
         self.ui_class = game.ui_class
+        self.gameui = game.ui_class(
+            parent=False, game=game,
+            **r2d((0, 0, 820, 720))
+        ) # add when game starts
+
         event_rect = (820, 350, 204, 370)
         chat_rect = (820, 0, 204, 350)
         self.events_box = TextArea(parent=self, **r2d(event_rect))
@@ -180,12 +186,6 @@ class GameScreen(Overlay):
             **r2d((730, 20, 75, 25))
         )
 
-        self.game = game
-        self.gameui = game.ui_class(
-            parent=False, game=game,
-            **r2d((0, 0, 820, 720))
-        ) # add when game starts
-
         @self.btn_exit.event
         def on_click():
             Executive.message('exit_game', ui_message, [])
@@ -193,6 +193,7 @@ class GameScreen(Overlay):
     def on_message(self, _type, *args):
         if _type == 'game_started':
             self.remove_control(self.panel)
+            self.gameui.init()
             self.add_control(self.gameui)
         if _type == 'end_game':
             self.remove_control(self.gameui)

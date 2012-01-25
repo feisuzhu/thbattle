@@ -35,9 +35,22 @@ class PlayerPortrait(Control):
         self.batch.draw()
 
 class GameCharacterPortrait(Control):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, name='Proton', *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 149, 195
+        self.name = pyglet.text.Label(
+            text=name, font_size=9,
+            x=9, y=175, anchor_x='left', anchor_y='bottom'
+        )
+        self.selected = False
+
+    def draw(self, dt):
+        glColor3f(1, 1, 1)
+        common_res.char_portrait.blit(0, 0)
+        if self.selected:
+            glColor4f(1, 1, 1, .3)
+            glRecti(0, 0, self.width, self.height)
+        self.name.draw()
 
 class TextArea(Control):
     def __init__(self, font=None, text='Yoooooo~', *args, **kwargs):
@@ -118,6 +131,7 @@ class CardSprite(Control):
         self.x, self.y,  = x, y
         self.shine_alpha = 0.0
         self.alpha = 1.0
+        self.img = img
 
     def draw(self, dt):
         if self.gray:
@@ -134,31 +148,33 @@ class CardSprite(Control):
     def on_mouse_leave(self, x, y):
         self.shine_alpha = SineInterp(1.0, 0.0, 0.3)
 
-    def animate_to(self, x, y):
-        self.x = SineInterp(self.x, x, 0.3)
-        self.y = SineInterp(self.y, y, 0.3)
-
 class HandCardArea(Control):
 
     def __init__(self, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
-        self._w, self._h = 93*5, 125
+        self._w, self._h = 93*5+42, 145
         self.cards = []
+        self.selected = []
 
     def draw(self, dt):
+        glColor4f(1,1,1,1)
         self.draw_subcontrols(dt)
 
     def _update(self):
         n = len(self.cards)
-        width = min(5, n) * 93.0
+        width = min(5*93.0+42, n*93.0)
         step = (width - 91)/(n-1) if n > 1 else 0
         for i, c in enumerate(self.cards):
-            c.animate_to(2 + int(step * i), 0)
+            c.zindex = i
+            sel = self.selected[i]
+            c.x = SineInterp(c.x, 2 + int(step * i), 0.3)
+            c.y = SineInterp(c.y, 20 if sel else 0, 0.3)
 
     def add_cards(self, clist):
         self.cards.extend(clist)
         for c in clist:
             c.migrate_to(self)
+        self.selected = [False] * len(self.cards)
         self._update()
 
     def get_cards(self, indices, control=None):
@@ -171,4 +187,16 @@ class HandCardArea(Control):
             else:
                 c.delete()
             del self.cards[i]
+        self.selected = [False] * len(self.cards)
         self._update()
+        return cl
+
+    def on_mouse_click(self, x, y, button, modifier):
+        c = self.control_frompoint1(x, y)
+        if c:
+            try:
+                i = self.cards.index(c)
+            except:
+                return
+            self.selected[i] = not self.selected[i]
+            c.y = SineInterp(c.y, 20 if self.selected[i] else 0, 0.1)

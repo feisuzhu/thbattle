@@ -11,10 +11,13 @@ def start_ui():
     LoadingScreen().switch()
     class PreloadThread(threading.Thread):
         def run(self):
-            import time
-            #time.sleep(1)
             self.svrsel.switch()
     plds = PreloadThread()
     plds.svrsel = svrsel
     plds.start()
+    # This forces all game resources to initialize,
+    # else they will be imported firstly by GameManager,
+    # then resources will be loaded at a different thread,
+    # resulting white planes.
+    import gamepack
     pyglet.app.run()

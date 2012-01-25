@@ -420,9 +420,9 @@ def init_gui():
     # }} main window setup
 
     fps = pyglet.clock.ClockDisplay()
-
+    #import gamepack
     def _mainwindow_loop(dt):
-        global msg_queue, msg_queue_lock
+        global msg_queue, msg_queue_lock, _redispatch
         Overlay.cur_overlay.do_draw(dt)
         fps.draw()
         #main_window.flip()
@@ -432,7 +432,10 @@ def init_gui():
                     # NOTICE: keep this since overlay switch may occur
                     #         in message dispatching
                     # o.dispatch_message(m) # this is buggy
-                    Overlay.cur_overlay.dispatch_message(m)
+                    _redispatch = True
+                    while _redispatch:
+                        _redispatch = False
+                        Overlay.cur_overlay.dispatch_message(m)
                 msg_queue = []
     pyglet.clock.schedule_interval(_mainwindow_loop, 1/60.0)
 
@@ -443,6 +446,10 @@ def message(*args):
     global msg_queue, msg_queue_lock
     with msg_queue_lock:
         msg_queue.append(args)
+
+def redispatch():
+    global _redispatch
+    _redispatch = True
 
 if __name__ == '__main__':
     init_gui()

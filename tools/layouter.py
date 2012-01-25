@@ -57,8 +57,9 @@ class Layouter(Control):
         }
         c = self.control_list[self.index]
         dd = dir.get(motion)
-        c.x = c.x + dd[0] * self.scale
-        c.y = c.y + dd[1] * self.scale
+        if dd:
+            c.x = c.x + dd[0] * self.scale
+            c.y = c.y + dd[1] * self.scale
 
     def draw_hook_before(self, dt):
         pass
@@ -135,24 +136,32 @@ layout = Layouter(parent=Overlay.cur_overlay)
 
 #----------------
 
-img = pyglet.image.load('/home/proton/Desktop/capture/snap00001.png')
+img = pyglet.image.load('/home/proton/Desktop/capture/snap00055.png')
 
 def bg(dt):
     glColor3f(1,1,1)
     img.blit(0,0)
 
+from game import autoenv
+autoenv.init('Client')
+from gamepack.simple import resource as sres
+
 layout.draw_hook_before = bg
 
-CardSprite(parent=layout, x=333, y=202).gray = True
+c = CardSprite(parent=layout, x=333, y=202)
+c.gray = True
+c.img = sres.card_attack
 i = 8
-class CardSprite(CardSprite):
-    def on_mouse_click(self, *a):
-        i = self.parent.cards.index(self)
-        self.parent.get_cards([i])
 
-ca = CardArea(parent=layout, x=100, y=130)
-ca.add_cards([CardSprite(parent=layout, x=0, y=0) for j in range(30)])
-# x=238, y=13
+ca = HandCardArea(parent=layout, x=238, y=13)
+csl = [CardSprite(parent=layout, x=0, y=0) for j in range(8)]
+ca.add_cards(csl)
+
+for c in csl:
+    c.img = sres.card_heal
+
+GameCharacterPortrait(parent=layout, x=521, y=446).selected=True
+GameCharacterPortrait(parent=layout, x=158, y=446)
 
 #------------------
 pyglet.app.run()

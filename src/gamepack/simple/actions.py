@@ -149,6 +149,7 @@ class DrawCards(GenericAction):
 
         cards = target.reveal(cards)
         target.gamedata.cards.extend(cards)
+        self.cards = cards
         return True
 
 class DrawCardStage(DrawCards): pass
