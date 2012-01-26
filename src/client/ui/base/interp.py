@@ -12,6 +12,8 @@ class InterpDesc(object):
             val = v.value
             if v.finished:
                 setattr(obj, self.slot, val)
+                if v.on_done:
+                    v.on_done(obj, self)
             return val
         else:
             return v
@@ -22,16 +24,15 @@ class InterpDesc(object):
 class AbstractInterp(object):
     pass
 
-class SineInterp(AbstractInterp):
-
-    def __init__(self, f, t, animtime=0.5):
+class FunctionInterp(AbstractInterp):
+    def __init__(self, f, t, animtime, on_done=None):
         from math import pi
         self._from, self._to = f, t
         self.delta = t - f
         self.starttime = time()
-        self.factor = pi/2 / animtime
         self.animtime = animtime
         self.finished = False
+        self.on_done = on_done
 
     def _get_val(self):
         elapsed = time() - self.starttime
@@ -39,17 +40,31 @@ class SineInterp(AbstractInterp):
             self.finished = True
             return self._to
         else:
-            from math import sin
-            return self._from + self.delta * sin(elapsed * self.factor)
+            return self._from + self.delta * self.func(elapsed / self.animtime)
 
     value = property(_get_val)
 
+from math import sin, cos, pi
+class LinearInterp(FunctionInterp):
+    def func(self, percent):
+        return percent
+
+class SineInterp(FunctionInterp):
+    def func(self, percent):
+        return sin(percent*pi/2)
+
+class CosineInterp(FunctionInterp):
+    def func(self, percent):
+        return 1 - cos(percent*pi/2)
+
 class FixedInterp(AbstractInterp):
 
-    def __init__(self, val, animtime):
+    def __init__(self, val, animtime, on_done=None):
         self.finished = False
         self._value = val
         self.starttime = time()
+        self.animtime = animtime
+        self.on_done = on_done
 
     def _get_val(self):
         elapsed = time() - self.starttime
@@ -60,8 +75,9 @@ class FixedInterp(AbstractInterp):
     value = property(_get_val)
 
 class ChainInterp(AbstractInterp):
-    def __init__(self, *interps):
+    def __init__(self, *interps, **k):
         self.lastval = 0.0
+        self.on_done = k.get('on_done')
         self.interps = list(interps)
         st = time()
         self.starttime = st

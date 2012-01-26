@@ -66,6 +66,7 @@ class DropCardIndex(GenericAction):
         for i in card_indices:
             cards.append(target.gamedata.cards[i])
             del target.gamedata.cards[i]
+        cards.reverse()
 
         for p in g.players.exclude(target):
             cards = p.reveal(cards)
@@ -191,6 +192,8 @@ class ActionStage(GenericAction):
             action = card.assocated_action
             g.process_action(DropUsedCard(target, card_indices=[card_index]))
             if action:
+                action = action(target=object)
+                action.source = target
                 g.process_action(action(target=object))
 
         return True

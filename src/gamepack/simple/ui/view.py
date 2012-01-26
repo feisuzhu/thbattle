@@ -9,15 +9,8 @@ from client.ui import resource as common_res
 import resource as gres
 from utils import IRP
 
-from actions import *
+from gamepack.simple.actions import *
 from game.autoenv import EventHandler, Action, GameError
-
-card_img = dict(
-    attack=gres.card_attack,
-    graze=gres.card_graze,
-    heal=gres.card_heal,
-    hidden=common_res.card_hidden,
-)
 
 class UIEventHook(EventHandler):
     def evt_action_after(self, evt):
@@ -66,6 +59,10 @@ class SimpleGameUI(Control):
             parent=self, x=238, y=13, zindex=3,
         )
 
+        self.dropcard_area = DropCardArea(
+            parent=self, x=0, y=324, zindex=3,
+        )
+
         @self.btn_ok.event
         def on_click():
             irp = self.irp
@@ -92,6 +89,7 @@ class SimpleGameUI(Control):
             c.player_index = (shift + i) % self.game.n_persons
 
         self.input_players = []
+        self.player_shift = shift
 
     def _set_inputstate(self):
         self.btn_ok.state = Button.NORMAL
@@ -106,6 +104,12 @@ class SimpleGameUI(Control):
         for c in self.char_portraits:
             c.selected = False
 
+    def player_portrait(self, c):
+        i = self.game.players.index(c)
+        p = self.char_portraits[(self.player_shift + i) % self.game.n_persons]
+        assert p.player_index == i
+        return p
+
     def on_message(self, _type, *args):
         if _type.startswith('input_'):
             self.irp = args[0]
@@ -113,21 +117,24 @@ class SimpleGameUI(Control):
             self.prompt.text = _type[6:]
         if _type == 'game_action_after':
             evt = args[0]
-            if isinstance(evt, DrawCards) and evt.target is self.game.me:
-                cards = evt.cards
-                csl = [CardSprite(
-                        parent=self, x=410, y=300,
-                        img = card_img.get(c.type),
-                ) for c in cards]
-                self.handcard_area.add_cards(csl)
+            import effects
+            if hasattr(evt, 'source') and evt.source != evt.target:
+                sp = self.player_portrait(evt.source)
+                dp = self.player_portrait(evt.target)
+                Ray(sp, dp, parent=self)
+
+            f = effects.mapping.get(evt.__class__)
+            if f:
+                f(self, evt)
+            else:
+                print '%s occured!' % evt.__class__.__name__
 
     def on_mouse_click(self, x, y, button, modifier):
         if self.input_state:
             c = self.control_frompoint1(x, y)
             if isinstance(c, GameCharacterPortrait):
-                sel = not c.selected
-                c.selected = sel
-                if sel:
+                c.selected = not c.selected
+                if c.selected:
                     self.input_players.append(c.player_index)
                 else:
                     self.input_players.remove(c.player_index)

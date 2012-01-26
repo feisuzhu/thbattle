@@ -4,7 +4,7 @@ from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import Control
-from client.ui.base.interp import SineInterp, InterpDesc
+from client.ui.base.interp import *
 from client.ui import resource as common_res
 from utils import Rect
 
@@ -123,6 +123,7 @@ class CardSprite(Control):
     shine_alpha = InterpDesc('_shine_alpha')
     alpha = InterpDesc('_alpha')
     img_shinesoft = common_res.card_shinesoft
+    width, height = 91, 125
     def __init__(self, x=0.0, y=0.0, img=None, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 91, 125
@@ -135,9 +136,9 @@ class CardSprite(Control):
 
     def draw(self, dt):
         if self.gray:
-            glColor4f(.66, .66, .66, 1.)
+            glColor4f(.66, .66, .66, self.alpha)
         else:
-            glColor4f(1., 1., 1., 1.)
+            glColor4f(1., 1., 1., self.alpha)
         self.img.blit(0, 0)
         glColor4f(1., 1., 1., self.shine_alpha)
         self.img_shinesoft.blit(-6, -6)
@@ -149,7 +150,7 @@ class CardSprite(Control):
         self.shine_alpha = SineInterp(1.0, 0.0, 0.3)
 
 class HandCardArea(Control):
-
+    width, height = 93*5+42, 145
     def __init__(self, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 93*5+42, 145
@@ -172,20 +173,13 @@ class HandCardArea(Control):
 
     def add_cards(self, clist):
         self.cards.extend(clist)
-        for c in clist:
-            c.migrate_to(self)
-        self.selected = [False] * len(self.cards)
+        self.selected.extend([False] * len(clist))
         self._update()
 
     def get_cards(self, indices, control=None):
         indices = sorted(indices, reverse=True)
         cl = [self.cards[i] for i in indices]
         for i in indices:
-            c = self.cards[i]
-            if control:
-                c.migrate_to(control)
-            else:
-                c.delete()
             del self.cards[i]
         self.selected = [False] * len(self.cards)
         self._update()
@@ -200,3 +194,81 @@ class HandCardArea(Control):
                 return
             self.selected[i] = not self.selected[i]
             c.y = SineInterp(c.y, 20 if self.selected[i] else 0, 0.1)
+
+class DropCardArea(Control):
+    width, height = 820, 125
+    def __init__(self, *args, **kwargs):
+        Control.__init__(self, *args, **kwargs)
+        self._w, self._h = 820, 125
+        self.cards = []
+        self.need_update = True
+
+    def draw(self, dt):
+        if self.need_update:
+            self.need_update = False
+            for c in self.control_list[:]:
+                tbl = dict(zip(self.cards, [True]*len(self.cards)))
+                if not tbl.get(c):
+                    c.delete()
+            self._update()
+        glColor4f(1,1,1,1)
+        self.draw_subcontrols(dt)
+
+    def _update(self):
+        n = len(self.cards)
+        x = (820-n*93)/2
+        step = 93
+        for i, c in enumerate(self.cards):
+            c.zindex = i
+            c.x = SineInterp(c.x, x + int(step * i), 0.3)
+            c.y = SineInterp(c.y, 0, 0.3)
+
+    def _on_cardanimdone(self, card, desc):
+        # Can't remove it here, or
+        # the card next will not be drawn,
+        # causes a flash
+        # card.delete()
+        self.cards.remove(card)
+        self.need_update = True
+
+    def add_cards(self, clist):
+        self.cards.extend(clist)
+        for c in clist:
+            c.alpha = ChainInterp(
+                FixedInterp(1.0, 3),
+                CosineInterp(1.0, 0.0, 1),
+                on_done=self._on_cardanimdone,
+            )
+        self._update()
+
+    def hit_test(self, x, y):
+        return self.control_frompoint1(x, y)
+
+class Ray(Control):
+    img_ray = common_res.ray
+    scale = InterpDesc('_scale')
+    alpha = InterpDesc('_alpha')
+
+    def __init__(self, f, t, *args, **kwargs):
+        Control.__init__(self, *args, **kwargs)
+        # f, t should be [GameCharacterPortrait]s
+        from math import sqrt
+        self.x, self.y = f.x + f.width/2, f.y + f.height/2
+        dx, dy = t.x-f.x, t.y-f.y
+        scale = sqrt(dx*dx+dy*dy) / self.img_ray.width
+        self.angle = atan(1.0 * dy / dx)
+        self.scale = SineInterp(1.0, scale, 0.3)
+        self.alpha = ChainInterp(
+            FixedInterp(1.0, 0.3),
+            CosineInterp(1.0, 0.0, 0.2),
+        )
+
+    def draw(self, dt):
+        glPushMatrix()
+        glRotatef(self.angle, 0., 0., 1.)
+        glScalef(self.scale, 1., 1.)
+        self.img_ray.blit(0,0)
+        glPopMatrix()
+
+        if self._alpha.finished: # the ChainInterp
+            self.delete()

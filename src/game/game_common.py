@@ -101,7 +101,11 @@ class Game(object):
             action.set_up()
             action = self.emit_event('action_before', action)
             if not action.cancelled and action.can_fire():
-                log.info('applying action %s' % action.__class__.__name__)
+                log.info('applying action %s, src=%d, dst=%d' % (
+                    action.__class__.__name__,
+                    self.players.index(action.source) if hasattr(action, 'source') else -1,
+                    self.players.index(action.target),
+                ))
                 try:
                     if self.SERVER_SIDE and action.default_action:
                         # this is the ultimate timeout
@@ -115,11 +119,12 @@ class Game(object):
                 except TimeLimitExceeded:
                     log.info('action timeout, use default_action: %s' % action.__class__.__name__)
                     rst = action.default_action()
-
                 assert rst in [True, False], 'Action.apply_action or default_action  must return boolean!'
+                action = self.emit_event('action_after', action)
+
             else:
                 return False
-            action = self.emit_event('action_after', action)
+
             action.clean_up()
             return rst
         else:

@@ -25,6 +25,7 @@ class Control(pyglet.event.EventDispatcher):
         })
         self.__dict__.update(kwargs)
         self.control_list = []
+        self._clist_inuse = False
         self.continuation = None
         # control under cursor now, for tracking enter/leave events
         self._control_hit = None
@@ -54,12 +55,16 @@ class Control(pyglet.event.EventDispatcher):
         c.overlay = self if isinstance(self, Overlay) else self.overlay
 
     def remove_control(self, c):
+        if self._clist_inuse:
+            self.control_list = self.control_list[:]
+            self._clist_inuse = False
         self.control_list.remove(c)
         c.parent = None
         c.overlay = None
 
     def delete(self):
-        self.parent.remove_control(self)
+        if self.parent:
+            self.parent.remove_control(self)
 
     def controls_frompoint(self, x, y):
         l = []
@@ -73,7 +78,19 @@ class Control(pyglet.event.EventDispatcher):
         # l.sort(key=lambda c: c.zindex, reverse=True)
         l.sort(key=lambda c: c.zindex)
         l.reverse()
-        return l[0] if l else None
+        while l:
+            c = l[0]
+            rst = c.hit_test(x-c.x, y-c.y)
+            if rst:
+                return c
+            else:
+                del l[0]
+                continue
+        else:
+            return None
+
+    def hit_test(self, x, y):
+        return True
 
     def stop_drawing(self):
         if self.continuation:
@@ -176,9 +193,11 @@ class Control(pyglet.event.EventDispatcher):
 
     def draw_subcontrols(self, dt):
         self.control_list.sort(key=lambda c: c.zindex)
+        self._clist_inuse = True
         for c in self.control_list:
             if not c.manual_draw:
                 c.do_draw(dt)
+        self._clist_inuse = False
 
     def set_focus(self):
         if not self.can_focus: return

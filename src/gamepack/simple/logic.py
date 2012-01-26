@@ -5,13 +5,14 @@ import random
 from itertools import count
 from cards import Card, HiddenCard
 from actions import *
-from ui import SimpleGameUI
 
 class SimpleGame(Game):
     name = 'Simple Game'
-    n_persons = 1
+    n_persons = 2
 
-    ui_class = SimpleGameUI
+    if Game.CLIENT_SIDE:
+        # not loading these things on server
+        from ui import SimpleGameUI as ui_class
 
     def game_start(self):
         # game started, init state
@@ -20,7 +21,7 @@ class SimpleGame(Game):
             p.gamedata.life = 4
             self.process_action(DrawCards(p, amount=4))
 
-        for p in self.players * 2:
-            self.process_action(DrawCardStage(target=p))
+        for p in self.players * 4:
+            self.process_action(DrawCardStage(target=p, amount=5))
             self.process_action(ActionStage(target=p))
             self.process_action(DropCardStage(target=p))

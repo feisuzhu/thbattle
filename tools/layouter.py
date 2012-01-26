@@ -144,7 +144,7 @@ def bg(dt):
 
 from game import autoenv
 autoenv.init('Client')
-from gamepack.simple import resource as sres
+from gamepack.simple.ui import resource as sres
 
 layout.draw_hook_before = bg
 
@@ -154,15 +154,23 @@ c.img = sres.card_attack
 i = 8
 
 ca = HandCardArea(parent=layout, x=238, y=13)
-csl = [CardSprite(parent=layout, x=0, y=0) for j in range(8)]
+csl = [CardSprite(parent=layout, x=0, y=0) for j in range(9)]
 ca.add_cards(csl)
 
 for c in csl:
     c.img = sres.card_heal
 
+
+da = DropCardArea(parent=layout, y=324)
+@da.event
+def on_mouse_click(*a):
+    cs = CardSprite(parent=layout, img=sres.card_attack)
+    da.add_cards([cs])
+'''
 GameCharacterPortrait(parent=layout, x=521, y=446).selected=True
 GameCharacterPortrait(parent=layout, x=158, y=446)
-
+'''
+pyglet.clock.schedule_interval(on_mouse_click, 1.0)
 #------------------
 pyglet.app.run()
 

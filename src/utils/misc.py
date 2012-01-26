@@ -17,7 +17,7 @@ class PlayerList(list):
             if type(a) in (types.FunctionType, types.MethodType):
                 def wrapper(*args, **kwargs):
                     for p in self:
-                        f = p.getattr(name)
+                        f = getattr(p, name)
                         f(*args, **kwargs)
                 return wrapper
         return list.__getattribute__(self, name)
