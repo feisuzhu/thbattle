@@ -10,11 +10,13 @@ from utils import DataHolder
 class TheChosenOne(Server, game.Player):
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.
-        assert isinstance(obj_list, (list, tuple))
         g = Game.getgame()
         st = g.get_synctag()
         raw_data = self.gexpect('object_sync_%d' % st)
-        revealed = [ol.__class__.parse(rd) for ol, rd in zip(obj_list, raw_data)]
+        if isinstance(obj_list, (list, tuple)):
+            revealed = [ol.__class__.parse(rd) for ol, rd in zip(obj_list, raw_data)]
+        else:
+            revealed = obj_list.__class__.parse(raw_data)
         return revealed
 
     def user_input(self, tag, attachment=None):
@@ -37,7 +39,6 @@ class PeerPlayer(game.Player):
 
     def reveal(self, obj_list):
         # Peer player, won't reveal.
-        assert isinstance(obj_list, (list, tuple))
         Game.getgame().get_synctag() # must sync
         return obj_list
 

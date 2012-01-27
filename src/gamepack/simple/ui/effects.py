@@ -30,7 +30,7 @@ def draw_cards_effect(self, evt): # here self is the SimpleGameUI instance
         ) for c in cards]
         self.handcard_area.add_cards(csl)
     else: # FIXME: not exactly the effect
-        p = self.player_portrait(evt.target)
+        p = self.player2portrait(evt.target)
         x, y = p.x + p.width/2, p.y + p.height/2
 
         n = len(evt.cards)
@@ -52,8 +52,8 @@ def draw_cards_effect(self, evt): # here self is the SimpleGameUI instance
             cs.x = SineInterp(410+sx, x+sx, 0.3)
             cs.y = SineInterp(300+sy, y+sy, 0.3)
             cs.alpha = ChainInterp(
-                FixedInterp(1.0, 0.5),
-                CosineInterp(1.0, 0.0, 0.4),
+                FixedInterp(1.0, 0.6),
+                CosineInterp(1.0, 0.0, 0.3),
                 on_done=self_destroy,
             )
             cs.img = card_img.get(card.type)
@@ -61,18 +61,24 @@ def draw_cards_effect(self, evt): # here self is the SimpleGameUI instance
 def drop_cards_effect(gray, self, evt):
     if evt.target is self.game.me:
         csl = self.handcard_area.get_cards(evt.card_indices)
+        csl.reverse()
         for c in csl:
             c.migrate_to(self.dropcard_area)
             c.gray = gray
         self.dropcard_area.add_cards(csl)
     else:
-        p = self.player_portrait(evt.target)
+        p = self.player2portrait(evt.target)
         x, y = p.x + p.width/2, p.y + p.height/2
         shift = (len(evt.cards)+1)*CardSprite.width/2
-        csl = [CardSprite(
-                parent=self.dropcard_area, x=x-shift+i*CardSprite.width/2,
+        csl = []
+        for i, card in enumerate(evt.cards):
+            cs = CardSprite(
+                parent=self, x=x-shift+i*CardSprite.width/2,
                 y=y-CardSprite.height/2, img=card_img.get(card.type),
-        ) for i, card in enumerate(evt.cards)]
+            )
+            cs.gray = gray
+            cs.migrate_to(self.dropcard_area)
+            csl.append(cs)
         self.dropcard_area.add_cards(csl)
 
 drop_cards_gray_effect = partial(drop_cards_effect, True)

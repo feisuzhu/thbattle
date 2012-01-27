@@ -60,13 +60,11 @@ class DropCardIndex(GenericAction):
         target = self.target
 
         card_indices = self.card_indices
-        card_indices.sort(reverse=True)
+        ci_sorted = sorted(card_indices, reverse=True)
 
-        cards = []
-        for i in card_indices:
-            cards.append(target.gamedata.cards[i])
+        cards = [target.gamedata.cards[i] for i in card_indices]
+        for i in ci_sorted:
             del target.gamedata.cards[i]
-        cards.reverse()
 
         for p in g.players.exclude(target):
             cards = p.reveal(cards)
@@ -95,7 +93,7 @@ class ChooseCard(GenericAction):
             return False
 
         input.sort()
-        if input[0] < 0 or input[-1] >= n: # index out of range
+        if input[0] < 0 or input[-1] >= len(target.gamedata.cards): # index out of range
             return False
 
         cards = [target.gamedata.cards[i] for i in input]
@@ -127,7 +125,7 @@ class DropCardStage(GenericAction):
         g = Game.getgame()
         choose_action = ChooseCard(target, cond = lambda cl: len(cl) == n)
         if g.process_action(choose_action):
-            g.process_action(DropCardIndex(target, card_indices=choose_action.card_index))
+            g.process_action(DropCardIndex(target, card_indices=choose_action.card_indices))
         else:
             g.process_action(DropCardIndex(target, card_indices=range(n)))
         return True
@@ -194,6 +192,6 @@ class ActionStage(GenericAction):
             if action:
                 action = action(target=object)
                 action.source = target
-                g.process_action(action(target=object))
+                g.process_action(action)
 
         return True

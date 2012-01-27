@@ -252,23 +252,26 @@ class Ray(Control):
     def __init__(self, f, t, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         # f, t should be [GameCharacterPortrait]s
-        from math import sqrt
+        from math import sqrt, atan2, pi
         self.x, self.y = f.x + f.width/2, f.y + f.height/2
         dx, dy = t.x-f.x, t.y-f.y
         scale = sqrt(dx*dx+dy*dy) / self.img_ray.width
-        self.angle = atan(1.0 * dy / dx)
-        self.scale = SineInterp(1.0, scale, 0.3)
+        self.angle = atan2(dy, dx) / pi * 180
+        self.scale = SineInterp(0.0, scale, 0.4)
         self.alpha = ChainInterp(
-            FixedInterp(1.0, 0.3),
-            CosineInterp(1.0, 0.0, 0.2),
+            FixedInterp(1.0, 1),
+            CosineInterp(1.0, 0.0, 0.5),
+            on_done=lambda self, desc: self.delete()
         )
 
     def draw(self, dt):
         glPushMatrix()
         glRotatef(self.angle, 0., 0., 1.)
         glScalef(self.scale, 1., 1.)
+        glTranslatef(0., -self.img_ray.height/2, 0.)
+        glColor4f(1., 1., 1., self.alpha)
         self.img_ray.blit(0,0)
         glPopMatrix()
 
-        if self._alpha.finished: # the ChainInterp
-            self.delete()
+    def hit_test(self):
+        return False

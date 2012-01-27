@@ -106,6 +106,7 @@ class Game(object):
                     self.players.index(action.source) if hasattr(action, 'source') else -1,
                     self.players.index(action.target),
                 ))
+                action = self.emit_event('action_apply', action)
                 try:
                     if self.SERVER_SIDE and action.default_action:
                         # this is the ultimate timeout
