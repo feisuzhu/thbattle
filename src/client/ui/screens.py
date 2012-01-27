@@ -8,6 +8,9 @@ from client.core import Executive
 from pyglet.text import Label
 from utils import Rect, rect_to_dict as r2d
 
+import logging
+log = logging.getLogger('UI_Screens')
+
 class LoadingScreen(Overlay):
 
     def __init__(self, *args, **kwargs):
@@ -38,7 +41,7 @@ class ServerSelectScreen(Overlay):
             login = LoginScreen()
             login.switch()
         elif _type == 'server_connect_failed':
-            print 'FAILED!'
+            log.error('Server connect failed.')
         else:
             Overlay.on_message(self, _type, *args)
 
@@ -88,7 +91,7 @@ class LoginScreen(Overlay):
         if _type == 'auth_success':
             GameHallScreen().switch()
         elif _type == 'auth_failure':
-            print 'FAILED'
+            log.error('Auth failure')
         else:
             Overlay.on_message(self, _type, *args)
 
@@ -117,7 +120,7 @@ class GameHallScreen(Overlay):
         if _type == 'game_joined':
             GameScreen(args[0]).switch()
         elif _type == 'gamehall_error':
-            print args[0] # TODO
+            log.error('GameHall Error: %s' % args[0]) # TODO
         else:
             Overlay.on_message(self, _type, *args)
 

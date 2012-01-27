@@ -8,6 +8,10 @@ from client.ui.base.interp import *
 from client.ui import resource as common_res
 from utils import Rect
 
+import logging
+log = logging.getLogger('UI_ControlsExtra')
+
+
 class PlayerPortrait(Control):
     def __init__(self, player_name, color=[0,0,0], *args, **kwargs):
         Control.__init__(self, *args, **kwargs)

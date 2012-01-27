@@ -5,11 +5,10 @@ from game import GameError, EventHandler, Action, TimeLimitExceeded
 from client_endpoint import Client
 import game
 
-from utils import PlayerList
+from utils import PlayerList, DataHolder
+import logging
 
-class DataHolder(object):
-    def __data__(self):
-        return self.__dict__
+log = logging.getLogger('Game_Server')
 
 class Player(Client, game.Player):
 

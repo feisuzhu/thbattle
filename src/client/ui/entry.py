@@ -3,6 +3,9 @@ import pyglet
 from client.ui.base import init_gui
 from screens import LoadingScreen, ServerSelectScreen
 
+import logging
+log = logging.getLogger('UI_Entry')
+
 def start_ui():
     init_gui()
     # start a new thread and load,

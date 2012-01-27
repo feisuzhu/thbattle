@@ -5,6 +5,9 @@ from network import Endpoint
 import random
 import types
 
+import logging
+log = logging.getLogger('SimpleGame_Actions')
+
 class GenericAction(Action): pass # others
 
 class UserAction(Action): pass # card/character skill actions

@@ -1,5 +1,6 @@
 import logging
 from gevent import Timeout
+from utils import DataHolder
 
 log = logging.getLogger('Game')
 
@@ -43,10 +44,6 @@ class Action(object):
 
     def cancel(self, cancel=True):
         self.cancelled = cancel
-
-class DataHolder(object):
-    def __data__(self):
-        return self.__dict__
 
 class Player(object):
 

@@ -12,6 +12,9 @@ from utils import IRP
 from gamepack.simple.actions import *
 from game.autoenv import EventHandler, Action, GameError
 
+import logging
+log = logging.getLogger('SimpleGameUI')
+
 class UIEventHook(EventHandler):
     def evt_action_apply(self, evt):
         ui_message('game_action_apply', evt)
@@ -89,7 +92,7 @@ class SimpleGameUI(Control):
             if cls:
                 cls(irp, parent=self)
             else:
-                print 'ERROR!'
+                log.error('No aproperate input handler!')
                 irp.input = None
                 irp.complete()
 
@@ -105,7 +108,7 @@ class SimpleGameUI(Control):
             if f:
                 f(self, evt)
             else:
-                print '%s occured!' % evt.__class__.__name__
+                log.debug('%s occured!' % evt.__class__.__name__)
 
     def draw(self, dt):
         self.prompt.draw()

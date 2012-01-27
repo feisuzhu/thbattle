@@ -1,5 +1,8 @@
 # Cards and Deck definition
 
+import logging
+log = logging.getLogger('SimpleGame_Cards')
+
 class Card(object):
 
     def __init__(self, t):

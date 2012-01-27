@@ -9,6 +9,19 @@ class DataHolder(object):
     def __data__(self):
         return self.__dict__
 
+    @staticmethod
+    def parse(dd):
+        for k, v in dd.items():
+            if isinstance(v, dict):
+                setattr(self, k, DataHolder.parse(v))
+            elif isinstance(v, (list, tuple, set, frozenset)):
+                setattr(self, k, type(v)(
+                    DataHolder.parse(lv) if isinstance(lv, dict) else lv
+                    for lv in v
+                ))
+            else:
+                setattr(self, k, v)
+
 class PlayerList(list):
     def __getattribute__(self, name):
         from game.autoenv import Game

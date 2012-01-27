@@ -6,6 +6,9 @@ from pyglet.window import mouse
 from baseclasses import Control
 from utils.geometry import Rect
 
+import logging
+log = logging.getLogger('UI_Controls')
+
 class Button(Control):
     NORMAL=0
     HOVER=1
@@ -240,4 +243,3 @@ class TextBox(Control):
         # If I'm not focused, don't select texts
         if not self.focused:
             return pyglet.event.EVENT_HANDLED
-

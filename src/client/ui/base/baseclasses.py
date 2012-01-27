@@ -10,6 +10,9 @@ from utils import rect_to_dict as r2d, Rect
 WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 720
 
+import logging
+log = logging.getLogger('UI_Baseclasses')
+
 class Control(pyglet.event.EventDispatcher):
     def __init__(self, x=0, y=0, width=100, height=100,
                 zindex=0, parent=None, can_focus=False, manual_draw=False,

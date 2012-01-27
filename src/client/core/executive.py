@@ -6,6 +6,9 @@ from gevent import socket, Greenlet
 
 from utils import DataHolder
 
+import logging
+log = logging.getLogger('Executive')
+
 class GameManager(Greenlet):
     '''
     Handles server messages, all game related operations.

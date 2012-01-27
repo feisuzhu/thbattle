@@ -9,6 +9,9 @@ from client.ui import resource as common_res
 import resource as gres
 from utils import IRP
 
+import logging
+log = logging.getLogger('SimpleGameUI_Input')
+
 class InputController(Control):
     def on_message(self, _type, *args):
         if _type == 'io_timeout':

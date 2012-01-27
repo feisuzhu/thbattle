@@ -7,6 +7,9 @@ from server_endpoint import Server
 
 from utils import DataHolder
 
+import logging
+log = logging.getLogger('Game_Client')
+
 class TheChosenOne(Server, game.Player):
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.

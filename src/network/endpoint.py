@@ -29,7 +29,7 @@ class Endpoint(object):
     def raw_write(self, s):
         if self.link_state == 'connected':
             if Endpoint.ENDPOINT_DEBUG:
-                print "SEND>> %s" % s,
+                log.debug("SEND>> %s" % s)
             self.sock.send(s)
         else:
             log.debug('Write after disconnected: %s' % s)
@@ -61,7 +61,7 @@ class Endpoint(object):
                         self.close()
                         raise EndpointDied()
                     if Endpoint.ENDPOINT_DEBUG:
-                        print "<<RECV %s" % s,
+                        log.debug("<<RECV %s" % s)
                     d = json.loads(s)
                     return d
                 except json.JSONDecodeError as e:

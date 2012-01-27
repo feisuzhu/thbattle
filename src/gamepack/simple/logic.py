@@ -6,6 +6,9 @@ from itertools import count
 from cards import Card, HiddenCard
 from actions import *
 
+import logging
+log = logging.getLogger('SimpleGame')
+
 class SimpleGame(Game):
     name = 'Simple Game'
     n_persons = 2

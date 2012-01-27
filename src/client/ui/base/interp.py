@@ -2,6 +2,9 @@
 
 from time import time
 
+import logging
+log = logging.getLogger('UI_Interp')
+
 class InterpDesc(object):
     def __init__(self, slot):
         self.slot = slot

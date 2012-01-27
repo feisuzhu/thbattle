@@ -12,6 +12,9 @@ from gamepack.simple.actions import *
 
 from functools import partial
 
+import logging
+log = logging.getLogger('SimpleGameUI_Effects')
+
 card_img = dict(
     attack=gres.card_attack,
     graze=gres.card_graze,
