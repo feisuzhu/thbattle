@@ -469,21 +469,3 @@ def message(*args):
 def redispatch():
     global _redispatch
     _redispatch = True
-
-if __name__ == '__main__':
-    init_gui()
-    Control(100, 100, can_focus=True).name = 'Foo'
-    Control(150, 150, can_focus=True).name = 'Bar'
-    Control(170, 170, can_focus=True).name = 'Youmu'
-    '''
-    o = Overlay()
-    o = o.switch()
-    Control(170, 170)
-    Control(150, 150)
-    Control(100, 100)
-    def sss(dt):
-        global o
-        o = o.switch()'''
-    #pyglet.clock.schedule_interval(sss, 1)
-
-    pyglet.app.run()
