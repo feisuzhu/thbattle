@@ -9,9 +9,14 @@ from client.ui import resource as common_res
 import resource as gres
 from utils import IRP
 
-class UIChoose1CardAnd1Char(Control):
+class InputController(Control):
+    def on_message(self, _type, *args):
+        if _type == 'io_timeout':
+            self.cleanup()
+
+class UIChoose1CardAnd1Char(InputController):
     def __init__(self, irp, *a, **k):
-        Control.__init__(self, *a, **k)
+        InputController.__init__(self, *a, **k)
         self.irp = irp
         parent = self.parent
         self.btn_ok = Button(
@@ -55,6 +60,8 @@ class UIChoose1CardAnd1Char(Control):
             parent.pop_handlers()
             self.delete()
 
+        self.cleanup = _cleanup
+
         @self.btn_ok.event
         def on_click():
             irp = self.irp
@@ -76,9 +83,9 @@ class UIChoose1CardAnd1Char(Control):
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
-class UIChooseCards(Control):
+class UIChooseCards(InputController):
     def __init__(self, irp, *a, **k):
-        Control.__init__(self, *a, **k)
+        InputController.__init__(self, *a, **k)
         self.irp = irp
         parent = self.parent
         self.btn_ok = Button(
@@ -92,6 +99,8 @@ class UIChooseCards(Control):
 
         def _cleanup():
             self.delete()
+
+        self.cleanup = _cleanup
 
         @self.btn_ok.event
         def on_click():

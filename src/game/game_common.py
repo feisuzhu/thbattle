@@ -107,22 +107,11 @@ class Game(object):
                     self.players.index(action.target),
                 ))
                 action = self.emit_event('action_apply', action)
-                try:
-                    if self.SERVER_SIDE and action.default_action:
-                        # this is the ultimate timeout
-                        # general purpose timeout should be controlled by client.
-                        # if client dropped, this applies, else client
-                        # should announce the timeout/apply default action explicitly.
-                        with TimeLimitExceeded(40):
-                            rst = action.apply_action()
-                    else:
-                        rst = action.apply_action()
-                except TimeLimitExceeded:
-                    log.info('action timeout, use default_action: %s' % action.__class__.__name__)
-                    rst = action.default_action()
+
+                rst = action.apply_action()
+
                 assert rst in [True, False], 'Action.apply_action or default_action  must return boolean!'
                 action = self.emit_event('action_after', action)
-
             else:
                 return False
 

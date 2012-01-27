@@ -22,7 +22,15 @@ class Player(Client, game.Player):
     def user_input(self, tag, attachment=None):
         g = Game.getgame()
         st = g.get_synctag()
-        input = self.gexpect('input_%s_%d' % (tag, st))
+        try:
+            # The ultimate timeout
+            with TimeLimitExceeded(60):
+                input = self.gexpect('input_%s_%d' % (tag, st))
+        except TimeLimitExceeded:
+            # Player hit the red line, he's DEAD.
+            import gamehall as halll
+            hall.exit_game(self)
+            input = None
         pl = PlayerList(g.players[:])
         pl.remove(self)
         pl.gwrite(['input_%s_%d' % (tag, st), input]) # tell other players

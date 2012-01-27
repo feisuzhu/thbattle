@@ -26,7 +26,12 @@ class TheChosenOne(Server, game.Player):
         input.tag = tag
         input.input = None
         input.attachment = attachment
-        rst = g.emit_event('user_input', input)
+        try:
+            with gevent.Timeout(25):
+                rst = g.emit_event('user_input', input)
+        except gevent.Timeout:
+            g.emit_event('user_input_timeout', input)
+            rst = input
         self.gwrite(['input_%s_%d' % (tag, st), rst.input])
         return rst.input
 

@@ -26,6 +26,9 @@ class UIEventHook(EventHandler):
         input.input = irp.input
         return input
 
+    def evt_user_input_timeout(self, input):
+        ui_message('io_timeout', input.tag)
+
     def handle(self, evt, data):
         name = 'evt_%s' % evt
         if hasattr(self, name):
@@ -84,8 +87,9 @@ class SimpleGameUI(Control):
             self.prompt.text = itype
             cls = inputs.mapping.get(itype)
             if cls:
-                con = cls(irp, parent=self)
+                cls(irp, parent=self)
             else:
+                print 'ERROR!'
                 irp.input = None
                 irp.complete()
 
