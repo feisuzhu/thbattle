@@ -47,6 +47,8 @@ class GameCharacterPortrait(Control):
             x=9, y=175, anchor_x='left', anchor_y='bottom'
         )
         self.selected = False
+        self.maxlife = 8
+        self.life = 0
 
     def draw(self, dt):
         glColor3f(1, 1, 1)
@@ -56,12 +58,44 @@ class GameCharacterPortrait(Control):
             glRecti(0, 0, self.width, self.height)
         self.name.draw()
 
+        hp, hp_bg = common_res.hp, common_res.hp_bg
+
+        tw, th = self.maxlife, 1
+        vw, vh = hp_bg.width * self.maxlife, hp_bg.height
+
+        glPushMatrix()
+        glTranslatef(5., 55., 0)
+
+        glEnable(hp_bg.target)
+        glBindTexture(hp_bg.target, hp_bg.id)
+        glBegin(GL_QUADS)
+        glTexCoord2f(0, 0); glVertex2f(0, 0)
+        glTexCoord2f(tw, 0); glVertex2f(vw, 0)
+        glTexCoord2f(tw, th); glVertex2f(vw, vh)
+        glTexCoord2f(0, th); glVertex2f(0, vh)
+        glEnd()
+        #glDisable(hp_bg.target) # both GL_TEXTURE_2D, save the calls
+
+        tw, th = self.life, 1
+        vw, vh = hp.width * self.life, hp.height
+        #glEnable(hp.target)
+        glBindTexture(hp.target, hp.id)
+        glBegin(GL_QUADS)
+        glTexCoord2f(0, 0); glVertex2f(0, 0)
+        glTexCoord2f(tw, 0); glVertex2f(vw, 0)
+        glTexCoord2f(tw, th); glVertex2f(vw, vh)
+        glTexCoord2f(0, th); glVertex2f(0, vh)
+        glEnd()
+        glDisable(hp.target)
+        glPopMatrix()
+
+
 class TextArea(Control):
-    def __init__(self, font=None, text='Yoooooo~', *args, **kwargs):
+    def __init__(self, font=None, text=u'的发', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.FormattedDocument(text)
         self.document.set_style(0, len(self.document.text),
-            dict(color=(0, 0, 0, 255))
+            dict(color=(0, 0, 0, 255), wrap=True, font_size=9)
         )
 
         width, height = self.width, self.height

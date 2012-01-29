@@ -1,2 +1,16 @@
-UIControls: card, portrait
-Simple Game UI
+SimpleGameUI: damage effect, action indicator, timeout indicator
+
+CommonUI:
+TextArea, GameHallScreen,
+ARTWORKS!
+
+
+Core:
+chat,
+user subsystem,
+error reporting subsystem
+    * server auto restart
+auto upgrade subsystem
+
+
+and finally, the game!

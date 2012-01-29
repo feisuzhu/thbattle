@@ -32,6 +32,9 @@ class UIEventHook(EventHandler):
     def evt_user_input_timeout(self, input):
         ui_message('io_timeout', input.tag)
 
+    def evt_simplegame_begin(self, _):
+        ui_message('simplegame_begin')
+
     def handle(self, evt, data):
         name = 'evt_%s' % evt
         if hasattr(self, name):
@@ -67,7 +70,7 @@ class SimpleGameUI(Control):
         self.char_portraits = [
             GameCharacterPortrait(parent=self, x=x, y=y)
             for x, y in ((3, 4), (158, 446), (521, 446))
-        ]
+        ][:len(self.game.players)] # FIXME: this is for testing
         self.input_state = False
 
         shift = self.game.players.index(self.game.me)
@@ -109,6 +112,12 @@ class SimpleGameUI(Control):
                 f(self, evt)
             else:
                 log.debug('%s occured!' % evt.__class__.__name__)
+
+        if _type == 'simplegame_begin':
+            for port in self.char_portraits:
+                p = self.game.players[port.player_index]
+                port.life = p.gamedata.life
+
 
     def draw(self, dt):
         self.prompt.draw()

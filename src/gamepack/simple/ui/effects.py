@@ -87,9 +87,23 @@ def drop_cards_effect(gray, self, evt):
 drop_cards_gray_effect = partial(drop_cards_effect, True)
 drop_cards_normal_effect = partial(drop_cards_effect, False)
 
+def damage_effect(self, evt):
+    p = evt.target
+    port = self.player2portrait(p)
+    l = p.gamedata.life
+    port.life = l if l > 0 else 0
+
+def heal_effect(self, evt):
+    p = evt.target
+    port = self.player2portrait(p)
+    l = p.gamedata.life
+    port.life = l if l > 0 else 0
+
 mapping = {
     DrawCards: draw_cards_effect,
     DrawCardStage: draw_cards_effect,
     DropCardIndex: drop_cards_gray_effect,
     DropUsedCard: drop_cards_normal_effect,
+    Damage: damage_effect,
+    Heal: heal_effect,
 }

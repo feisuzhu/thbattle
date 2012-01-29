@@ -45,6 +45,8 @@ class SimpleGame(Game):
             p.gamedata.life = 4
             self.process_action(DrawCards(p, amount=4))
 
+        self.emit_event('simplegame_begin', None)
+
         for p in PlayerQueue(self.players):
             self.process_action(DrawCardStage(target=p))
             self.process_action(ActionStage(target=p))
