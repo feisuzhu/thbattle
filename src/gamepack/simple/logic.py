@@ -19,12 +19,33 @@ class SimpleGame(Game):
 
     def game_start(self):
         # game started, init state
-        for p in self.players:
+
+        class PlayerQueue(object):
+            def __init__(self, players, repeat=-1, initial=0):
+                self.players = players
+                self.index = initial
+                self.count = repeat * len(players)
+
+            def __iter__(self):
+                return self
+
+            def next(self):
+                if not self.count:
+                    raise StopIteration
+                self.count -= 1
+                i = self.index
+                self.index = (i+1) % len(self.players)
+                return self.players[i]
+
+        # Do not do this:
+        # for p in self.players: blah-blah....
+        # since players can leave game and become DroppedPlayers
+        for p in PlayerQueue(self.players, 1):
             p.gamedata.cards = []
             p.gamedata.life = 4
             self.process_action(DrawCards(p, amount=4))
 
-        for p in self.players * 4:
-            self.process_action(DrawCardStage(target=p, amount=5))
+        for p in PlayerQueue(self.players):
+            self.process_action(DrawCardStage(target=p))
             self.process_action(ActionStage(target=p))
             self.process_action(DropCardStage(target=p))

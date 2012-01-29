@@ -18,6 +18,9 @@ class Client(Endpoint, Greenlet):
 
     def _run(self):
         cmds = {}
+        self.heartbeat_cnt = 0
+        self.nodata_cnt = 0
+        self.timeout = 60
         def handler(*state):
             def register(f):
                 for s in state:
@@ -82,28 +85,43 @@ class Client(Endpoint, Greenlet):
 
         @handler('__any__')
         def heartbeat(self, _):
-            pass
+            self.heartbeat_cnt = 0
+            self.timeout = 60
         # --------- End ---------
 
         self.state = 'connected'
-        try:
-            while True:
-                cmd, data = self.read()
+        while True:
+            try:
+                cmd, data = self.read(self.timeout)
                 f = cmds[self.state].get(cmd)
                 if not f:
                     f = cmds['__any__'].get(cmd)
 
                 if f:
                     f(self, data)
+                    if cmd != 'heartbeat': # XXX: hack
+                        self.nodata_cnt = 0
                 else:
                     self.write(['invalid_command', [cmd, data]])
 
-        except EndpointDied:
-            pass
+            except EndpointDied:
+                break
 
-        except Timeout:
-            self.write(['timeout', None])
-            self.close()
+            except Timeout:
+                self.heartbeat_cnt += 1
+                if self.heartbeat_cnt > 1:
+                    # drop the client...
+                    self.close()
+                    break
+                self.nodata_cnt += 1
+                self.timeout = 15
+                if self.nodata_cnt >= 10:
+                    # if this guy just keep online but didn't do anything,
+                    # drop
+                    self.close()
+                    break
+                self.write(['heartbeat', None])
+                continue
 
         # client died, do clean ups
         if self.state not in('connected', 'hang'):

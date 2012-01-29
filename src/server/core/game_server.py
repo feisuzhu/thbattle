@@ -55,8 +55,8 @@ class DroppedPlayer(object):
     def raw_write(self, d): pass
 
     def reveal(self, obj_list):
-        assert isinstance(obj, (list, tuple))
         Game.getgame().get_synctag() # must sync
+        return obj_list
 
     def user_input(self, tag, attachment=None):
         g = Game.getgame()

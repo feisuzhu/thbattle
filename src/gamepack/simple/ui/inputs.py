@@ -71,7 +71,7 @@ class UIChoose1CardAnd1Char(InputController):
             try:
                 ci = parent.handcard_area.selected.index(True)
                 irp.input = [ci, self.input_player]
-            except IndexError:
+            except ValueError:
                 irp.input = None
             irp.complete()
             _cleanup()

@@ -19,7 +19,6 @@ class GameManager(Greenlet):
         self.state = 'connected'
 
     def _run(self):
-        from client.core import PeerPlayer, TheChosenOne
         from gamepack import gamemodes
         handlers = {}
         def handler(_from, _to):
@@ -39,9 +38,10 @@ class GameManager(Greenlet):
 
         @handler(('inroom'), 'ingame')
         def game_started(self, data):
+            from client.core import PeerPlayer, TheChosenOne
             pid = [i['id'] for i in self.players]
             pl = [PeerPlayer(i) for i in self.players]
-            self.server.__class__ = TheChosenOne
+            #self.server.__class__ = TheChosenOne # FIXME
             pl[pid.index(self.server_id)] = self.server
             self.game.me = self.server
             self.game.players = PlayerList(pl)
@@ -83,6 +83,10 @@ class GameManager(Greenlet):
         def invalid_command(self, data):
             self.event_cb('invalid_command', data)
 
+        @handler(None, None)
+        def heartbeat(self, _):
+            self.server.write(['heartbeat', None])
+
         while True:
             cmd, data = self.server.ctlexpect(handlers.keys())
             f, _from, _to = handlers.get(cmd)
@@ -122,20 +126,16 @@ class Executive(object):
 
         @handler
         def connect_server(self, cb, addr, event_cb):
+            from client.core import TheChosenOne
             if not self.state == 'initial':
                 cb('server_already_connected')
                 return
             try:
                 s = socket.socket()
                 s.connect(addr)
-                svr = Server.spawn(s, 'SERVER')
+                svr = TheChosenOne.spawn(s, 'TheChosenOne')
                 self.server = svr
                 self.state = 'connected'
-                def heartbeat():
-                    while True:
-                        gevent.sleep(30)
-                        self.server.write(['heartbeat', None])
-                self.heartbeat_greenlet = gevent.spawn(heartbeat)
                 self.gm_greenlet = GameManager(self.server)
                 self.gm_greenlet.start()
                 self.gm_greenlet.event_cb = event_cb

@@ -277,5 +277,5 @@ class Ray(Control):
         self.img_ray.blit(0,0)
         glPopMatrix()
 
-    def hit_test(self):
+    def hit_test(self, x, y):
         return False
