@@ -89,37 +89,97 @@ class GameCharacterPortrait(Control):
         glDisable(hp.target)
         glPopMatrix()
 
-
 class TextArea(Control):
-    def __init__(self, font=None, text=u'的发', *args, **kwargs):
+    def __init__(self, font='Arial', font_size=9, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
-        self.document = pyglet.text.document.FormattedDocument(text)
-        self.document.set_style(0, len(self.document.text),
-            dict(color=(0, 0, 0, 255), wrap=True, font_size=9)
-        )
 
         width, height = self.width, self.height
 
+        self.document = doc = pyglet.text.document.FormattedDocument(u'\u200b')
+        self.default_attrib = dict(
+            font_size=font_size, font_name=font,
+            bold=False, italic=False,
+            underline=None, color=(0, 0, 0, 255),
+        )
+
         self.layout = pyglet.text.layout.IncrementalTextLayout(
             self.document, width-2, height-2, multiline=True)
-        self.caret = pyglet.text.caret.Caret(self.layout)
-
-        self.set_handlers(self.caret)
-        self.push_handlers(self)
 
         self.layout.x = 1
         self.layout.y = 1
 
-        from client.ui.base.baseclasses import main_window
-        self.window = main_window
-        self.text_cursor = self.window.get_system_mouse_cursor('text')
-        self.focused = False
+        self._text = ''
+        self.append(text)
 
     def _gettext(self):
-        return self.document.text
+        return self._text
 
     def _settext(self, text):
-        self.document.text = text
+        self._text = ''
+        self.document.text = u'\u200b'
+        self.append(text)
+
+    def append(self, text):
+        attrib = dict(self.default_attrib)
+        doc = self.document
+
+        def set_attrib(entry, val):
+            def scanner_cb(s, tok):
+                attrib[entry] = val
+            return scanner_cb
+
+        def restore(s, tok):
+            attrib = dict(self.default_attrib)
+
+        def instext(s, tok):
+            # *MEGA* HACK:
+            # pyglet's layout won't snap long words,
+            # and this is unacceptable for chinese characters!!!!
+            # so inserting ZeroWidthSpace[ZWSP] here.
+            tok = unicode(tok)
+            tok = u'\u200b'.join(tok) + u'\u200b'
+            doc.insert_text(len(doc.text), tok, attrib)
+
+        def color(s, tok):
+            c = tok[2:]
+            color = (
+                int(c[0:2], 16),
+                int(c[2:4], 16),
+                int(c[4:6], 16),
+                int(c[6:8], 16),
+            )
+            attrib['color'] = color
+
+        def insert_pipe(s, tok):
+            instext(s, '|')
+
+        import re
+        scanner = re.Scanner([
+            (r'[^|]+', instext),
+            (r'\|c[A-Fa-f0-9]{8}', color),
+            (r'\|B', set_attrib('bold', True)),
+            (r'\|b', set_attrib('bold', False)),
+            (r'\|I', set_attrib('italic', True)),
+            (r'\|i', set_attrib('italic', False)),
+            (r'\|U', set_attrib('underline', (0,0,0,255))),
+            (r'\|u', set_attrib('underline', None)),
+            (r'\|\|', insert_pipe),
+            (r'\|r', restore),
+        ])
+
+        self.layout.begin_update()
+        toks, reminder = scanner.scan(text)
+        if reminder:
+            log.error('text scanning failed: %s', text)
+        # *MEGA* HACK:
+        # make the ZeroWidthSpace(ZWSP) char invisible
+        for start, end, font in doc.get_font_runs().ranges(0, 999999):
+            zwsp = font.get_glyphs(u'\u200b')[0]
+            zwsp.vertices = (0, 0, 0, 0)
+            zwsp.advance = 0
+        self.layout.end_update()
+        self.layout.view_y = -self.layout.content_height
+        self._text += text
 
     text = property(_gettext, _settext)
 
@@ -133,27 +193,10 @@ class TextArea(Control):
         glPopAttrib()
         self.layout.draw()
 
-    def on_focus(self):
-        self.caret.visible = True
-        self.caret.mark = 0
-        self.caret.position = len(self.document.text)
-        self.focused = True
-
-    def on_lostfocus(self):
-        self.caret.visible = False
-        self.caret.mark = self.caret.position = 0
-        self.focused = False
-
-    def on_mouse_enter(self, x, y):
-        self.window.set_mouse_cursor(self.text_cursor)
-
-    def on_mouse_leave(self, x, y):
-        self.window.set_mouse_cursor(None)
-
-    def on_mouse_drag(self, x, y, dx, dy, btn, modifier):
-        # If I'm not focused, don't select texts
-        if not self.focused:
-            return pyglet.event.EVENT_HANDLED
+    def on_mouse_scroll(self, x, y, dx, dy):
+        f = self.document.get_font(0)
+        size = f.ascent - f.descent
+        self.layout.view_y += dy * size*2
 
 class CardSprite(Control):
     x = InterpDesc('_x')
