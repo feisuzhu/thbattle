@@ -2,6 +2,7 @@ import pyglet
 import os
 
 dn = os.path.dirname(__file__)
+dn = os.path.realpath(dn)
 dn = os.path.join(dn, 'res')
 ldr = pyglet.resource.Loader(dn)
 

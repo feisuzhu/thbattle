@@ -6,7 +6,7 @@ from pyglet.window import mouse
 from client.ui.base import Control
 from client.ui.base.interp import *
 from client.ui import resource as common_res
-from utils import Rect
+from utils import Rect, ScissorBox, InvalidScissorBox
 
 import logging
 log = logging.getLogger('UI_ControlsExtra')
@@ -356,3 +356,149 @@ class Ray(Control):
 
     def hit_test(self, x, y):
         return False
+
+class ListItem(object):
+    def __init__(self, p):
+        self.parent = p
+        n = len(p.columns)
+        self.labels = [None] * n
+        self._data = [''] * n
+        self.data = ['Yoo~'] * n
+        self.line_height = p.font_height + 1
+        self.selected = False
+
+    def _set_data(self, val):
+        val = list(val)
+        p = self.parent
+        n = len(p.columns)
+        val = (val + n*[''])[:n]
+        for i, v in enumerate(val):
+            self[i] = v
+
+    def _get_data(self):
+        return self._data
+
+    data = property(_get_data, _set_data)
+
+    def __getitem__(self, index):
+        if isinstance(index, basestring):
+            index = self.parent.col_lookup[index]
+        return self._data[index]
+
+    def __setitem__(self, index, val):
+        from pyglet.text import Label
+        p = self.parent
+        if isinstance(index, basestring):
+            index = p.col_lookup[index]
+        self._data[index] = val
+        self.labels[index] = Label(
+            text=str(val), font_name=p.font, font_size=p.font_size,
+            anchor_x='left', anchor_y = 'bottom', color=(0,0,0,255),
+        )
+
+    def draw(self, bx, by):
+        lh = self.line_height
+        p = self.parent
+        w = p.width
+        glColor3f(1,1,1)
+        glRecti(bx, by, bx+w, by+lh)
+        glColor3f(0,0,0)
+        glBegin(GL_LINES)
+        glVertex2f(bx, by); glVertex2f(bx+w, by)
+        glVertex2f(bx, by+lh); glVertex2f(bx+w, by+lh)
+        ox = 0
+        for _, w in p.columns + [('', 0)]:
+            glVertex2f(bx+ox, by)
+            glVertex2f(bx+ox, by+lh)
+            ox += w
+        glEnd()
+        ox = 0
+        for (_, w), lbl in zip(p.columns, self.labels):
+            lbl.x, lbl.y = bx + ox, by
+            lbl.draw()
+            ox += w
+
+        if self.selected:
+            glColor4f(0, 0, 1, 0.3)
+            glRecti(bx, by, bx+p.width, by+lh)
+
+class ListView(Control):
+    li_class = ListItem
+    lh_class = ListItem
+    header_height = 20
+    def __init__(self, font_name='Arial', font_size=10, *a, **k):
+        Control.__init__(self, *a, **k)
+        self.font, self.font_size = font_name, font_size
+        f = pyglet.font.load(font_name, font_size)
+        self.font_height = f.ascent - f.descent
+        self.items = []
+        self.columns = []
+        self.col_lookup = {}
+        self._view_y = self.header_height
+
+    def set_columns(self, cols):
+        # [('name1', 20), ('name2', 30)]
+        self.columns = list(cols)
+        self.col_lookup = {
+            name: index
+            for index, (name, width) in enumerate(cols)
+        }
+        self.header = self.lh_class(self)
+        self.header.line_height = self.header_height
+        self.header.data = [n for n, w in cols]
+
+    def append(self, val):
+        if isinstance(val, ListItem):
+            li = val
+            li.parent = self
+        elif isinstance(val, (list, tuple)):
+            li = self.li_class(self)
+            li.data = val
+        self.items.append(li)
+        return li
+
+    def clear(self):
+        self.items = []
+
+    def _set_view_y(self, val):
+        sum_h = sum(li.line_height for li in self.items)
+        lhh = self.header.line_height
+        if val > lhh: val = lhh
+        bot_lim = -sum_h + self.height - 10
+        if val < bot_lim: val = bot_lim
+        self._view_y = val
+
+    def _get_view_y(self):
+        return self._view_y
+
+    view_y = property(_get_view_y, _set_view_y)
+
+    def draw(self, dt):
+        w, h = self.width, self.height - self.header.line_height
+        self.header.draw(0, h)
+        try:
+            # GUIDO Y U REJECT PEP377 !!
+            with ScissorBox(self, -1, -1, w+2, h+2):
+                # for a consistent design with pyglet.text.layout
+                # view_y uses negative values
+                y = self.height - self.view_y
+                for li in self.items:
+                    lh = li.line_height
+                    y -= lh
+                    if y > h: continue
+                    if y < -lh: break
+                    li.draw(0, y)
+        except InvalidScissorBox:
+            pass
+
+    def on_mouse_scroll(self, x, y, dx, dy):
+        self.view_y += dy * 40
+
+    def on_mouse_click(self, x, y, button, modifier):
+        ly = self.height - self.view_y
+        for li in self.items:
+            li.selected = False
+            lh = li.line_height
+            if ly > y > ly - lh:
+                li.selected = True
+            ly -= lh

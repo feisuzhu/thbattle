@@ -54,3 +54,29 @@ class IRP(object):
 
     def wait(self):
         self.event.wait()
+
+class InvalidScissorBox(Exception):
+    pass
+
+class ScissorBox(object):
+    def __init__(self, con, x, y, w, h):
+        ax, ay = con.abs_coords()
+        self.box = (x+ax, y+ay, w, h)
+
+    def __enter__(self):
+        from utils import Rect
+        from pyglet.gl import GLint, glGetIntegerv, GL_SCISSOR_BOX, glScissor
+        ob = (GLint*4)()
+        glGetIntegerv(GL_SCISSOR_BOX, ob)
+        ob = list(ob)
+        box = [int(i) for i in self.box]
+        nb = Rect(*ob).intersect(Rect(*box))
+        if nb:
+            glScissor(nb.x, nb.y, nb.width, nb.height)
+            self.ob = ob
+        else:
+            raise InvalidScissorBox
+
+    def __exit__(self, *dont_care):
+        from pyglet.gl import glScissor
+        glScissor(*self.ob)
