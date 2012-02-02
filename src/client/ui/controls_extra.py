@@ -6,7 +6,9 @@ from pyglet.window import mouse
 from client.ui.base import Control
 from client.ui.base.interp import *
 from client.ui import resource as common_res
-from utils import Rect, ScissorBox, InvalidScissorBox
+from utils import Rect, ScissorBox
+
+from math import ceil
 
 import logging
 log = logging.getLogger('UI_ControlsExtra')
@@ -95,7 +97,7 @@ class TextArea(Control):
 
         width, height = self.width, self.height
 
-        self.document = doc = pyglet.text.document.FormattedDocument(u'\u200b')
+        self.document = doc = pyglet.text.document.FormattedDocument(u'')
         self.default_attrib = dict(
             font_size=font_size, font_name=font,
             bold=False, italic=False,
@@ -108,8 +110,7 @@ class TextArea(Control):
         self.layout.x = 1
         self.layout.y = 1
 
-        self._text = ''
-        self.append(text)
+        self._text = u''
 
     def _gettext(self):
         return self._text
@@ -364,7 +365,6 @@ class ListItem(object):
         self.labels = [None] * n
         self._data = [''] * n
         self.data = ['Yoo~'] * n
-        self.line_height = p.font_height + 1
         self.selected = False
 
     def _set_data(self, val):
@@ -397,11 +397,11 @@ class ListItem(object):
         )
 
     def draw(self, bx, by):
-        lh = self.line_height
         p = self.parent
+        lh = p.line_height
         w = p.width
         glColor3f(1,1,1)
-        glRecti(bx, by, bx+w, by+lh)
+        glRectf(bx, by, bx+w, by+lh)
         glColor3f(0,0,0)
         glBegin(GL_LINES)
         glVertex2f(bx, by); glVertex2f(bx+w, by)
@@ -420,12 +420,22 @@ class ListItem(object):
 
         if self.selected:
             glColor4f(0, 0, 1, 0.3)
-            glRecti(bx, by, bx+p.width, by+lh)
+            glRectf(bx, by, bx+p.width, by+lh)
+
+class ListHeader(object):
+    def __init__(self, p):
+        self.parent = p
+
+    def draw(self, x, y):
+        p = self.parent
+        glColor3f(0, 1, 1)
+        glRectf(x, y, x+p.width, y+p.header_height)
 
 class ListView(Control):
     li_class = ListItem
-    lh_class = ListItem
-    header_height = 20
+    lh_class = ListHeader
+    header_height = 25
+    line_height = 17
     def __init__(self, font_name='Arial', font_size=10, *a, **k):
         Control.__init__(self, *a, **k)
         self.font, self.font_size = font_name, font_size
@@ -434,7 +444,8 @@ class ListView(Control):
         self.items = []
         self.columns = []
         self.col_lookup = {}
-        self._view_y = self.header_height
+        self._view_y = 0
+        self.cur_select = None
 
     def set_columns(self, cols):
         # [('name1', 20), ('name2', 30)]
@@ -444,7 +455,6 @@ class ListView(Control):
             for index, (name, width) in enumerate(cols)
         }
         self.header = self.lh_class(self)
-        self.header.line_height = self.header_height
         self.header.data = [n for n, w in cols]
 
     def append(self, val):
@@ -461,11 +471,11 @@ class ListView(Control):
         self.items = []
 
     def _set_view_y(self, val):
-        sum_h = sum(li.line_height for li in self.items)
-        lhh = self.header.line_height
-        if val > lhh: val = lhh
-        bot_lim = -sum_h + self.height - 10
-        if val < bot_lim: val = bot_lim
+        sum_h = len(self.items) * self.line_height
+        h = self.height - self.header_height
+        if val < 0: val = 0
+        bot_lim = max(sum_h - h, 0)
+        if val > bot_lim: val = bot_lim
         self._view_y = val
 
     def _get_view_y(self):
@@ -474,31 +484,29 @@ class ListView(Control):
     view_y = property(_get_view_y, _set_view_y)
 
     def draw(self, dt):
-        w, h = self.width, self.height - self.header.line_height
+        hh = self.header_height
+        w, h = self.width, self.height - hh
+        lh, vy = self.line_height, self.view_y
         self.header.draw(0, h)
-        try:
+
+        with ScissorBox(self, 0, 0, w+2, h+2) as sb:
             # GUIDO Y U REJECT PEP377 !!
-            with ScissorBox(self, -1, -1, w+2, h+2):
-                # for a consistent design with pyglet.text.layout
-                # view_y uses negative values
-                y = self.height - self.view_y
-                for li in self.items:
-                    lh = li.line_height
-                    y -= lh
-                    if y > h: continue
-                    if y < -lh: break
-                    li.draw(0, y)
-        except InvalidScissorBox:
-            pass
+            sb.break_if_invalid()
+            y = h + vy
+            nskip = int(max(1.0 * vy / lh, 0))
+            ndisp = int(ceil(1.0 * (y - nskip * lh) / lh))
+            for i in xrange(nskip, min(nskip + ndisp, len(self.items))):
+                self.items[i].draw(0, y - (i+1)*lh)
 
     def on_mouse_scroll(self, x, y, dx, dy):
-        self.view_y += dy * 40
+        self.view_y -= dy * 40
 
     def on_mouse_click(self, x, y, button, modifier):
-        ly = self.height - self.view_y
-        for li in self.items:
-            li.selected = False
-            lh = li.line_height
-            if ly > y > ly - lh:
-                li.selected = True
-            ly -= lh
+        h = self.height - self.header_height
+        lh, vy = self.line_height, self.view_y
+        i = (h + vy - y) / lh
+        if 0 <= i < len(self.items):
+            cs = self.cur_select
+            if cs is not None: self.items[cs].selected = False
+            self.cur_select = i
+            self.items[i].selected = True
