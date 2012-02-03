@@ -116,8 +116,8 @@ class TextArea(Control):
         return self._text
 
     def _settext(self, text):
-        self._text = ''
-        self.document.text = u'\u200b'
+        self._text = u''
+        self.document.text = u''
         self.append(text)
 
     def append(self, text):
@@ -130,7 +130,7 @@ class TextArea(Control):
             return scanner_cb
 
         def restore(s, tok):
-            attrib = dict(self.default_attrib)
+            attrib.update(self.default_attrib)
 
         def instext(s, tok):
             # *MEGA* HACK:
@@ -501,12 +501,19 @@ class ListView(Control):
     def on_mouse_scroll(self, x, y, dx, dy):
         self.view_y -= dy * 40
 
-    def on_mouse_click(self, x, y, button, modifier):
+    def _mouse_click(self, evt_type, x, y, button, modifier):
         h = self.height - self.header_height
         lh, vy = self.line_height, self.view_y
         i = (h + vy - y) / lh
         if 0 <= i < len(self.items):
             cs = self.cur_select
             if cs is not None: self.items[cs].selected = False
+            self.dispatch_event(evt_type, self.items[i])
             self.cur_select = i
             self.items[i].selected = True
+
+    on_mouse_click = lambda self, *a: self._mouse_click('on_item_select', *a)
+    on_mouse_dblclick = lambda self, *a: self._mouse_click('on_item_dblclick', *a)
+
+ListView.register_event_type('on_item_select')
+ListView.register_event_type('on_item_dblclick')

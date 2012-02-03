@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import pyglet
 from pyglet.gl import *
-from client.ui.base import Control, Overlay, TextBox, Button, Dialog
-from client.ui.base import message as ui_message, redispatch as ui_redispatch
-from client.ui.controls_extra import TextArea, PlayerPortrait
+from client.ui.base import *
+from client.ui.base import message as ui_message
+from client.ui.controls_extra import *
 from client.core import Executive
 from pyglet.text import Label
 from utils import Rect, rect_to_dict as r2d
@@ -34,7 +34,7 @@ class ServerSelectScreen(Overlay):
         self.btn.set_handler('on_click', self.do_connect)
 
     def do_connect(self):
-        Executive.message('connect_server', ui_message, ('127.0.0.1', 9999), ui_message)
+        Executive.call('connect_server', ui_message, ('127.0.0.1', 9999), ui_message)
 
     def on_message(self, _type, *args):
         if _type == 'server_connected':
@@ -81,7 +81,7 @@ class LoginScreen(Overlay):
         @self.btn_login.event
         def on_click():
             u, pwd = self.txt_username.text, self.txt_pwd.text
-            Executive.message('auth', ui_message, [u, pwd])
+            Executive.call('auth', ui_message, [u, pwd])
 
         @self.btn_exit.event
         def on_click():
@@ -101,28 +101,65 @@ class LoginScreen(Overlay):
         self.batch.draw()
         self.draw_subcontrols(dt)
 
-
 class GameHallScreen(Overlay):
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
-        self.btn_create = Button(parent=self, caption=u'创建游戏', x=378, y=182, width=117, height=48)
-        self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=510, y=182, width=117, height=48)
+        gl = self.gamelist = ListView(parent=self, x=35, y=220, width=700, height=420)
+        gl.set_columns([
+            ('game_no', 100),
+            ('game_name', 300),
+            ('game_type', 180),
+            ('game_players', 80),
+        ])
+        chat = self.chatbox = TextArea(parent=self, x=35, y=20, width=680, height=180)
+        chat.text = 'Welcome to |cff0000ffGENSOUKILL|r!!!!!'
+        ctl = self.control_panel = Control(parent=self, x=750, y=220, width=240, height=420)
+        userinfo = self.userinfobox = Control(parent=self, x=750, y=20, width=240, height=180)
+
+        self.btn_create = Button(parent=ctl, caption=u'创建游戏', x=0, y=0, width=117, height=48)
+        self.btn_quickstart = Button(parent=ctl, caption=u'快速加入', x=0, y=50, width=117, height=48)
+        self.btn_refresh = Button(parent=ctl, caption=u'刷新列表', x=0, y=100, width=117, height=48)
 
         @self.btn_create.event
         def on_click():
-            Executive.message('create_game', ui_message, 'Simple Game')
+            Executive.call('create_game', ui_message, 'SimpleGame')
 
         @self.btn_quickstart.event
         def on_click():
-            Executive.message('quick_start_game', ui_message, 'Simple Game')
+            Executive.call('quick_start_game', ui_message, 'SimpleGame')
+
+        @self.btn_refresh.event
+        def on_click():
+            Executive.call('list_game', ui_message, None)
+
+        @self.gamelist.event
+        def on_item_dblclick(li):
+            Executive.call('join_game', ui_message, li.game_id)
 
     def on_message(self, _type, *args):
         if _type == 'game_joined':
             GameScreen(args[0]).switch()
+        elif _type == 'current_games':
+            current_games = args[0]
+            glist = self.gamelist
+            glist.clear()
+            for gi in current_games:
+                li = glist.append([
+                    gi['id'],
+                    'not impl',
+                    gi['type'],
+                    '%d / %d' % (
+                        len([i for i in gi['slots'] if i['id']]),
+                        len(gi['slots']),
+                    )
+                ])
+                li.game_id = gi['id']
+
         elif _type == 'gamehall_error':
             log.error('GameHall Error: %s' % args[0]) # TODO
         else:
             Overlay.on_message(self, _type, *args)
+
 
 class GameScreen(Overlay):
     class RoomControlPanel(Control):
@@ -145,7 +182,7 @@ class GameScreen(Overlay):
 
             @self.btn_getready.event
             def on_click():
-                Executive.message('get_ready', ui_message, [])
+                Executive.call('get_ready', ui_message, [])
                 self.btn_getready.state = Button.DISABLED
 
         def draw(self, dt):
@@ -191,7 +228,7 @@ class GameScreen(Overlay):
 
         @self.btn_exit.event
         def on_click():
-            Executive.message('exit_game', ui_message, [])
+            Executive.call('exit_game', ui_message, [])
 
     def on_message(self, _type, *args):
         if _type == 'game_started':

@@ -1,5 +1,5 @@
 from simple import SimpleGame
 
-gamemodes = { g.name:g for g in [
+gamemodes = { g.__name__:g for g in [
     SimpleGame,
 ]}

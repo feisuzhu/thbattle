@@ -27,15 +27,11 @@ class UserPlaceHolder(object):
     def __data__(self):
         return dict(
             id=0,
-            placeholder=1,
             state='n/a',
         )
 
-    def write(self,*args, **kwargs):
-        pass
-
     state = 'n/a'
-    raw_write = write
+    raw_write = write = lambda *a: False
 
 UserPlaceHolder = UserPlaceHolder()
 
@@ -72,7 +68,7 @@ def get_ready(user):
     user.state = 'ready'
     g = user.current_game
     _notify_playerchange(g)
-    if reduce(lambda r, p: r and p.state == 'ready', g.players, True):
+    if all(p.state == 'ready' for p in g.players):
         log.info("game starting")
         g.start()
 
@@ -96,7 +92,7 @@ def exit_game(user):
 
         user.state = 'hang'
         _notify_playerchange(g)
-        if reduce(lambda r, p: r and (p is UserPlaceHolder or isinstance(p, DroppedPlayer)), g.players, True):
+        if all((p is UserPlaceHolder or isinstance(p, DroppedPlayer)) for p in g.players):
             if g.game_started:
                 log.info('game aborted')
                 del games_started[id(g)]

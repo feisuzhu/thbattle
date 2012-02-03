@@ -83,7 +83,8 @@ class Game(Greenlet, game.Game):
         from server.core import UserPlaceHolder
         return dict(
             id=id(self),
-            type=self.__class__.name,
+            type=self.__class__.__name__,
+            started=self.game_started,
             slots=self.players,
         )
     def __init__(self):

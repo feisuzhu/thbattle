@@ -26,4 +26,4 @@ from client.ui.entry import start_ui
 start_ui()
 
 from client.core import Executive
-Executive.message('app_exit')
+Executive.call('app_exit')

@@ -87,6 +87,10 @@ class GameManager(Greenlet):
         def heartbeat(self, _):
             self.server.write(['heartbeat', None])
 
+        @handler(None, None)
+        def current_games(self, data):
+            self.event_cb('current_games', data)
+
         while True:
             cmd, data = self.server.ctlexpect(handlers.keys())
             f, _from, _to = handlers.get(cmd)
@@ -109,7 +113,7 @@ class Executive(object):
         self.default_callback = lambda *a, **k: False
         self.state = 'initial' # initial connected
 
-    def message(self, _type, cb=None, *args):
+    def call(self, _type, cb=None, *args):
         if not cb:
             cb = self.default_callback
         self.msg_queue.append((_type, cb, args))

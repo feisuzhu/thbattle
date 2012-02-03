@@ -1,7 +1,7 @@
 SimpleGameUI: damage effect, action indicator, timeout indicator
 
 CommonUI:
-TextArea, GameHallScreen,
+GameHallScreen,
 ARTWORKS!
 
 
