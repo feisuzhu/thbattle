@@ -45,8 +45,9 @@ class Client(Endpoint, Greenlet):
                 self.write(['auth_result', -1])
 
         @handler('hang')
-        def create_game(self, name):
-            g = hall.create_game(self, name)
+        def create_game(self, arg):
+            _type, name = arg
+            g = hall.create_game(self, _type, name)
             hall.join_game(self, id(g))
 
         @handler('hang')
@@ -126,6 +127,7 @@ class Client(Endpoint, Greenlet):
         # client died, do clean ups
         if self.state not in('connected', 'hang'):
             hall.exit_game(self)
+        hall.user_disconnect(self)
 
 
     def gread(self):

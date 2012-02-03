@@ -19,8 +19,8 @@ User state machine:
         --->[[Disconnect]]<-------------------------
 '''
 
-games = {} # games ready to start
-games_started = {} # started games
+games = {} # all games
+users = {} # all users
 
 class UserPlaceHolder(object):
 
@@ -36,9 +36,11 @@ class UserPlaceHolder(object):
 UserPlaceHolder = UserPlaceHolder()
 
 def new_user(user):
-    #TODO: tell user to display game hall ui
-    #users[id(user)] = user
+    users[id(user)] = user
     user.state = 'hang'
+
+def user_disconnect(user):
+    del users[id(user)]
 
 def _notify_playerchange(game):
     from client_endpoint import Client
@@ -52,13 +54,14 @@ def _next_free_slot(game):
     except IndexError as e:
         return None
 
-def create_game(user, gametype):
+def create_game(user, gametype, gamename):
     from gamepack import gamemodes
     if not gametype in gamemodes:
         user.write(['gamehall_error', 'gametype_not_exist'])
         return
     g = gamemodes[gametype]()
     g.game_started = False
+    g.game_name = gamename
     g.players = PlayerList([UserPlaceHolder] * g.n_persons)
     games[id(g)] = g
     log.info("create game")
@@ -95,10 +98,9 @@ def exit_game(user):
         if all((p is UserPlaceHolder or isinstance(p, DroppedPlayer)) for p in g.players):
             if g.game_started:
                 log.info('game aborted')
-                del games_started[id(g)]
             else:
                 log.info('game canceled')
-                del games[id(g)]
+            del games[id(g)]
             g.kill()
     else:
         user.write(['gamehall_error', 'not_in_a_game'])
@@ -132,8 +134,6 @@ def list_game(user):
 def start_game(g):
     log.info("game started")
     g.game_started = True
-    del games[id(g)]
-    games_started[id(g)] = g
     for u in g.players:
         u.write(["game_started", None])
         u.state = 'ingame'
@@ -150,7 +150,7 @@ def end_game(g):
     for i, p in enumerate(pl):
         if isinstance(p, DroppedPlayer):
             pl[i] = UserPlaceHolder
-    del games_started[id(g)]
+    del games[id(g)]
     ng = create_game(None, g.__class__.name)
     ng.players = pl
     for p in pl:

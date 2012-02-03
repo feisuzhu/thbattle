@@ -85,6 +85,7 @@ class Game(Greenlet, game.Game):
             id=id(self),
             type=self.__class__.__name__,
             started=self.game_started,
+            name=self.game_name,
             slots=self.players,
         )
     def __init__(self):

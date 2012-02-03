@@ -171,7 +171,7 @@ class TextArea(Control):
         self.layout.begin_update()
         toks, reminder = scanner.scan(text)
         if reminder:
-            log.error('text scanning failed: %s', text)
+            instext(None, reminder)
         # *MEGA* HACK:
         # make the ZeroWidthSpace(ZWSP) char invisible
         for start, end, font in doc.get_font_runs().ranges(0, 999999):
@@ -373,7 +373,7 @@ class ListItem(object):
         n = len(p.columns)
         val = (val + n*[''])[:n]
         for i, v in enumerate(val):
-            self[i] = v
+            self[i] = unicode(v)
 
     def _get_data(self):
         return self._data
@@ -392,7 +392,7 @@ class ListItem(object):
             index = p.col_lookup[index]
         self._data[index] = val
         self.labels[index] = Label(
-            text=str(val), font_name=p.font, font_size=p.font_size,
+            text=val, font_name=p.font, font_size=p.font_size,
             anchor_x='left', anchor_y = 'bottom', color=(0,0,0,255),
         )
 

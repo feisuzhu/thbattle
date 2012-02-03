@@ -106,10 +106,11 @@ class GameHallScreen(Overlay):
         Overlay.__init__(self, *args, **kwargs)
         gl = self.gamelist = ListView(parent=self, x=35, y=220, width=700, height=420)
         gl.set_columns([
-            ('game_no', 100),
+            ('game_no', 80),
             ('game_name', 300),
             ('game_type', 180),
-            ('game_players', 80),
+            ('game_players', 50),
+            ('game_status', 80),
         ])
         chat = self.chatbox = TextArea(parent=self, x=35, y=20, width=680, height=180)
         chat.text = 'Welcome to |cff0000ffGENSOUKILL|r!!!!!'
@@ -122,7 +123,7 @@ class GameHallScreen(Overlay):
 
         @self.btn_create.event
         def on_click():
-            Executive.call('create_game', ui_message, 'SimpleGame')
+            Executive.call('create_game', ui_message, ['SimpleGame', 'Default Game'])
 
         @self.btn_quickstart.event
         def on_click():
@@ -146,12 +147,13 @@ class GameHallScreen(Overlay):
             for gi in current_games:
                 li = glist.append([
                     gi['id'],
-                    'not impl',
+                    gi['name'],
                     gi['type'],
-                    '%d / %d' % (
+                    '%d/%d' % (
                         len([i for i in gi['slots'] if i['id']]),
                         len(gi['slots']),
-                    )
+                    ),
+                    [u'等待中', u'进行中'][gi['started']]
                 ])
                 li.game_id = gi['id']
 
@@ -159,7 +161,6 @@ class GameHallScreen(Overlay):
             log.error('GameHall Error: %s' % args[0]) # TODO
         else:
             Overlay.on_message(self, _type, *args)
-
 
 class GameScreen(Overlay):
     class RoomControlPanel(Control):

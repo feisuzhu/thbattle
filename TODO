@@ -5,6 +5,14 @@ GameHallScreen,
 ARTWORKS!
 
 
+bug:
+UI can get the action_apply message before the action applies,
+if UI thread first runs, it can't get needed data (or worse -- crashes).
+
+both action_apply and action_after event will be needed for ui.
+
+
+
 Core:
 chat,
 user subsystem,

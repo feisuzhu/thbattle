@@ -130,7 +130,7 @@ class DropCardStage(GenericAction):
         if g.process_action(choose_action):
             g.process_action(DropCardIndex(target, card_indices=choose_action.card_indices))
         else:
-            g.process_action(DropCardIndex(target, card_indices=range(n)))
+            g.process_action(DropCardIndex(target, card_indices=range(max(n, 0))))
         return True
 
 class DrawCards(GenericAction):
