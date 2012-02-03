@@ -131,11 +131,13 @@ class GameHallScreen(Overlay):
 
         @self.btn_refresh.event
         def on_click():
-            Executive.call('list_game', ui_message, None)
+            Executive.call('get_hallinfo', ui_message, None)
 
         @self.gamelist.event
         def on_item_dblclick(li):
             Executive.call('join_game', ui_message, li.game_id)
+
+        Executive.call('get_hallinfo', ui_message, None)
 
     def on_message(self, _type, *args):
         if _type == 'game_joined':

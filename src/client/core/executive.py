@@ -158,18 +158,19 @@ class Executive(object):
             return wrapper
         ops = ['register', 'create_game', 'join_game',
                # FIXME: the quick start thing should be done at client
-               'list_game', 'quick_start_game', 'auth',
+               'get_hallinfo', 'quick_start_game', 'auth',
                'get_ready', 'exit_game', 'cancel_ready']
         for op in ops:
             handler(simple_gm_op(op))
 
-        def no_such_handler(*args):
-            raise Exception('Executive: No such handler: %s' % args[0])
-
         while True:
             self.event.wait()
             for _type, cb, args in self.msg_queue:
-                handlers.setdefault(_type, no_such_handler)(self, cb, *args)
+                f = handlers.get(_type)
+                if f:
+                    f(self, cb, *args)
+                else:
+                    raise Exception('Executive: No such handler: %s' % _type)
             self.msg_queue = []
             self.event.clear()
 

@@ -55,8 +55,8 @@ class Client(Endpoint, Greenlet):
             hall.join_game(self, gameid)
 
         @handler('hang')
-        def list_game(self, _):
-            hall.list_game(self)
+        def get_hallinfo(self, _):
+            hall.send_hallinfo(self)
 
         @handler('hang')
         def quick_start_game(self, _):

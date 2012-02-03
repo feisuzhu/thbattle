@@ -1,7 +1,9 @@
 import gevent
 from gevent import Greenlet
+from gevent.event import Event
 from gevent.queue import Queue
 from utils import PlayerList
+from time import time
 
 import logging
 import random
@@ -21,6 +23,28 @@ User state machine:
 
 games = {} # all games
 users = {} # all users
+evt_datachange = Event()
+
+class _GameHallStatusUpdator(Greenlet):
+    def _run(self):
+        last_update = time()
+        timeout = None
+        evt = evt_datachange
+        time_limit = 1
+        while True:
+            flag = evt.wait()
+            delta = time() - last_update
+            if delta > time_limit:
+                timeout = None
+                last_update = time()
+                for u in users.values():
+                    if u.state == 'hang':
+                        send_hallinfo(u)
+                evt.clear()
+            else:
+                gevent.sleep(time_limit - delta)
+
+_GameHallStatusUpdator.spawn()
 
 class UserPlaceHolder(object):
 
@@ -38,9 +62,11 @@ UserPlaceHolder = UserPlaceHolder()
 def new_user(user):
     users[id(user)] = user
     user.state = 'hang'
+    evt_datachange.set()
 
 def user_disconnect(user):
     del users[id(user)]
+    evt_datachange.set()
 
 def _notify_playerchange(game):
     from client_endpoint import Client
@@ -65,6 +91,7 @@ def create_game(user, gametype, gamename):
     g.players = PlayerList([UserPlaceHolder] * g.n_persons)
     games[id(g)] = g
     log.info("create game")
+    evt_datachange.set()
     return g
 
 def get_ready(user):
@@ -102,9 +129,9 @@ def exit_game(user):
                 log.info('game canceled')
             del games[id(g)]
             g.kill()
+        evt_datachange.set()
     else:
         user.write(['gamehall_error', 'not_in_a_game'])
-
 
 def join_game(user, gameid):
     if user.state == 'hang' and games.has_key(gameid):
@@ -117,6 +144,7 @@ def join_game(user, gameid):
             g.players[slot] = user
             user.write(['game_joined', g])
             _notify_playerchange(g)
+            evt_datachange.set()
             return
     user.write(['gamehall_error', 'cant_join_game'])
 
@@ -128,8 +156,9 @@ def quick_start_game(user):
             return
     user.write(['gamehall_error', 'cant_join_game'])
 
-def list_game(user):
+def send_hallinfo(user):
     user.write(['current_games', games.values()])
+    user.write(['current_players', users.values()])
 
 def start_game(g):
     log.info("game started")
@@ -139,6 +168,7 @@ def start_game(g):
         u.state = 'ingame'
         u.__class__ = g.__class__.player_class
         u.gamedata = DataHolder()
+    evt_datachange.set()
 
 def end_game(g):
     from game_server import DroppedPlayer
@@ -159,3 +189,4 @@ def end_game(g):
         p.current_game = ng
         p.state = 'inroomwait'
     _notify_playerchange(ng)
+    evt_datachange.set()
