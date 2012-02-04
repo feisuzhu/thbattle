@@ -14,7 +14,7 @@ import logging
 log = logging.getLogger('UI_Baseclasses')
 
 class Control(pyglet.event.EventDispatcher):
-    def __init__(self, x=0, y=0, width=100, height=100,
+    def __init__(self, x=0, y=0, width=0, height=0,
                 zindex=0, parent=None, can_focus=False, manual_draw=False,
                 *args, **kwargs):
 

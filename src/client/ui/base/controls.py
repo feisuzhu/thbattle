@@ -174,30 +174,34 @@ Dialog.register_event_type('on_move')
 Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
-
 class TextBox(Control):
-    def __init__(self, font=None, text='Yoooooo~', *args, **kwargs):
+    def __init__(self, font='Arial', font_size=12, text='Yoooooo~', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
-        self.document.set_style(0, len(self.document.text),
-            dict(color=(0, 0, 0, 255))
-        )
-        font = self.document.get_font()
+        self.document.set_style(0, len(self.document.text), dict(
+                color=(0, 0, 0, 255),
+                font_name=font,
+                font_size=font_size,
+        ))
 
         width = self.width
-        height = font.ascent - font.descent
+        f = self.document.get_font()
+        font_height = f.ascent - f.descent
+        if self.height == 0:
+            height = font_height
+            self.height = height
+        else:
+            height = self.height
 
-        self.height = height
-
-        self.layout = pyglet.text.layout.IncrementalTextLayout(
-            self.document, width-1, height, multiline=False)
+        l = self.layout = pyglet.text.layout.IncrementalTextLayout(
+            self.document, width-1, font_height, multiline=False,
+        )
+        l.anchor_x, l.anchor_y = 'left', 'center'
+        l.x, l.y = 1, height // 2 + 1
         self.caret = pyglet.text.caret.Caret(self.layout)
 
         self.set_handlers(self.caret)
         self.push_handlers(self)
-
-        self.layout.x = 1
-        self.layout.y = 0
 
         from baseclasses import main_window
         self.window = main_window
@@ -243,3 +247,12 @@ class TextBox(Control):
         # If I'm not focused, don't select texts
         if not self.focused:
             return pyglet.event.EVENT_HANDLED
+
+    #def on_key_press(...): #handle Ctrl+C Ctrl+V Ctrl+A
+    def on_text(self, text):
+        from pyglet.window import key
+        if text == '\r': # Why this??
+            self.dispatch_event('on_enter')
+            return pyglet.event.EVENT_HANDLED
+
+TextBox.register_event_type('on_enter')

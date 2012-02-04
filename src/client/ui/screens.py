@@ -104,7 +104,7 @@ class LoginScreen(Overlay):
 class GameHallScreen(Overlay):
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
-        gl = self.gamelist = ListView(parent=self, x=35, y=220, width=700, height=420)
+        gl = self.gamelist = ListView(parent=self, x=35, y=240, width=700, height=400)
         gl.set_columns([
             ('game_no', 80),
             ('game_name', 300),
@@ -112,14 +112,15 @@ class GameHallScreen(Overlay):
             ('game_players', 50),
             ('game_status', 80),
         ])
-        chat = self.chatbox = TextArea(parent=self, x=35, y=20, width=680, height=180)
-        chat.text = 'Welcome to |cff0000ffGENSOUKILL|r!!!!!'
-        ctl = self.control_panel = Control(parent=self, x=750, y=220, width=240, height=420)
-        userinfo = self.userinfobox = Control(parent=self, x=750, y=20, width=240, height=180)
+        chat = self.chatbox = TextArea(parent=self, x=35, y=50, width=700, height=150)
+        chat.text = u'您现在处于游戏大厅！\n'
+        self.playerlist = Control(parent=self, x=750, y=220, width=240, height=420)
+        self.userinfobox = Control(parent=self, x=750, y=20, width=240, height=180)
+        self.chatmsg = TextBox(parent=self, x=35, y=20, width=700, height=25)
 
-        self.btn_create = Button(parent=ctl, caption=u'创建游戏', x=0, y=0, width=117, height=48)
-        self.btn_quickstart = Button(parent=ctl, caption=u'快速加入', x=0, y=50, width=117, height=48)
-        self.btn_refresh = Button(parent=ctl, caption=u'刷新列表', x=0, y=100, width=117, height=48)
+        self.btn_create = Button(parent=self, caption=u'创建游戏', x=35, y=220, width=100, height=28)
+        self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=35+120, y=220, width=100, height=28)
+        self.btn_refresh = Button(parent=self, caption=u'刷新列表', x=35+240, y=220, width=100, height=28)
 
         @self.btn_create.event
         def on_click():
@@ -136,6 +137,13 @@ class GameHallScreen(Overlay):
         @self.gamelist.event
         def on_item_dblclick(li):
             Executive.call('join_game', ui_message, li.game_id)
+
+        @self.chatmsg.event
+        def on_enter():
+            text = unicode(self.chatmsg.text)
+            self.chatmsg.text = u''
+            if text:
+                Executive.call('chat', ui_message, text)
 
         Executive.call('get_hallinfo', ui_message, None)
 
@@ -155,10 +163,13 @@ class GameHallScreen(Overlay):
                         len([i for i in gi['slots'] if i['id']]),
                         len(gi['slots']),
                     ),
-                    [u'等待中', u'进行中'][gi['started']]
+                    [u'等待中', u'游戏中'][gi['started']]
                 ])
                 li.game_id = gi['id']
-
+        elif _type in ('chat_msg', 'speaker_msg'):
+            uname, msg = args[0]
+            uname = uname.replace('|', '||')
+            self.chatbox.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
         elif _type == 'gamehall_error':
             log.error('GameHall Error: %s' % args[0]) # TODO
         else:

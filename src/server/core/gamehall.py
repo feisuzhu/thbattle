@@ -181,7 +181,7 @@ def end_game(g):
         if isinstance(p, DroppedPlayer):
             pl[i] = UserPlaceHolder
     del games[id(g)]
-    ng = create_game(None, g.__class__.name)
+    ng = create_game(None, g.__class__.name, g.game_name)
     ng.players = pl
     for p in pl:
         p.write(['end_game', None])
@@ -190,3 +190,23 @@ def end_game(g):
         p.state = 'inroomwait'
     _notify_playerchange(ng)
     evt_datachange.set()
+
+def chat(user, msg):
+    if user.state == 'hang': # hall chat
+        for u in users.values():
+            if u.state == 'hang':
+                u.write(['chat_msg', [user.nickname, msg]])
+    elif user.state in ('inroom', 'ready', 'ingame'): # room chat
+        for u in g.current_game.players:
+            u.write(['chat_msg', [user.nickname, msg]])
+
+def genfunc(_type):
+    def _msg(user, msg):
+        for u in users.values():
+            u.write([_type, [user.nickname, msg]])
+    _msg.__name__ = _type
+    return _msg
+
+speaker = genfunc('speaker_msg')
+system_msg = genfunc('system_msg')
+del genfunc

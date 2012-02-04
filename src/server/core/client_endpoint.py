@@ -88,6 +88,15 @@ class Client(Endpoint, Greenlet):
         def heartbeat(self, _):
             self.heartbeat_cnt = 0
             self.timeout = 60
+
+        @handler('hang', 'inroom', 'ready', 'ingame')
+        def chat(self, data):
+            hall.chat(self, data)
+
+        @handler('hang', 'inroom', 'ready', 'ingame')
+        def speaker(self, data):
+            hall.speaker(self, data)
+
         # --------- End ---------
 
         self.state = 'connected'

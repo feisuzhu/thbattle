@@ -80,16 +80,26 @@ class GameManager(Greenlet):
                 self.event_cb('auth_failure')
 
         @handler(None, None)
-        def invalid_command(self, data):
-            self.event_cb('invalid_command', data)
-
-        @handler(None, None)
         def heartbeat(self, _):
             self.server.write(['heartbeat', None])
 
-        @handler(None, None)
-        def current_games(self, data):
-            self.event_cb('current_games', data)
+        def forwarder(_type):
+            def _forwarder(self, data):
+                self.event_cb(_type, data)
+            _forwarder.__name__ = _type
+            return _forwarder
+
+        hnn = handler(None, None)
+        _types = [
+            'invalid_command',
+            'current_games',
+            'current_players',
+            'chat_msg',
+            'speaker_msg',
+            'system_msg',
+        ]
+        for _type in _types:
+            hnn(forwarder(_type))
 
         while True:
             cmd, data = self.server.ctlexpect(handlers.keys())
@@ -159,7 +169,8 @@ class Executive(object):
         ops = ['register', 'create_game', 'join_game',
                # FIXME: the quick start thing should be done at client
                'get_hallinfo', 'quick_start_game', 'auth',
-               'get_ready', 'exit_game', 'cancel_ready']
+               'get_ready', 'exit_game', 'cancel_ready',
+               'chat', 'speaker']
         for op in ops:
             handler(simple_gm_op(op))
 
