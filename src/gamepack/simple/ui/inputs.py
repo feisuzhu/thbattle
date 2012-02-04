@@ -3,8 +3,8 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
-from client.ui.base import Button, TextBox, Control, message as ui_message
-from client.ui.controls_extra import *
+from client.ui.base import message as ui_message
+from client.ui.controls import *
 from client.ui import resource as common_res
 import resource as gres
 from utils import IRP

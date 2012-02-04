@@ -1,6 +1,6 @@
 from client.ui.base import *
 from client.ui.base.interp import *
-from client.ui.controls_extra import *
+from client.ui.controls import *
 
 from client.ui import resource as common_res
 import resource as gres
@@ -107,4 +107,3 @@ mapping = {
     Damage: damage_effect,
     Heal: heal_effect,
 }
-

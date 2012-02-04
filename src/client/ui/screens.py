@@ -3,7 +3,7 @@ import pyglet
 from pyglet.gl import *
 from client.ui.base import *
 from client.ui.base import message as ui_message
-from client.ui.controls_extra import *
+from client.ui.controls import *
 from client.core import Executive
 from pyglet.text import Label
 from utils import Rect, rect_to_dict as r2d
