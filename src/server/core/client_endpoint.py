@@ -89,11 +89,11 @@ class Client(Endpoint, Greenlet):
             self.heartbeat_cnt = 0
             self.timeout = 60
 
-        @handler('hang', 'inroom', 'ready', 'ingame')
+        @handler('hang', 'inroomwait', 'ready', 'ingame')
         def chat(self, data):
             hall.chat(self, data)
 
-        @handler('hang', 'inroom', 'ready', 'ingame')
+        @handler('hang', 'inroomwait', 'ready', 'ingame')
         def speaker(self, data):
             hall.speaker(self, data)
 

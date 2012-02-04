@@ -112,11 +112,11 @@ class GameHallScreen(Overlay):
             ('game_players', 50),
             ('game_status', 80),
         ])
-        chat = self.chatbox = TextArea(parent=self, x=35, y=50, width=700, height=150)
+        chat = self.chat_box = TextArea(parent=self, x=35, y=50, width=700, height=150)
         chat.text = u'您现在处于游戏大厅！\n'
         self.playerlist = Control(parent=self, x=750, y=220, width=240, height=420)
-        self.userinfobox = Control(parent=self, x=750, y=20, width=240, height=180)
-        self.chatmsg = TextBox(parent=self, x=35, y=20, width=700, height=25)
+        self.userinfo_box = Control(parent=self, x=750, y=20, width=240, height=180)
+        self.chat_input = TextBox(parent=self, x=35, y=20, width=700, height=25)
 
         self.btn_create = Button(parent=self, caption=u'创建游戏', x=35, y=220, width=100, height=28)
         self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=35+120, y=220, width=100, height=28)
@@ -138,10 +138,10 @@ class GameHallScreen(Overlay):
         def on_item_dblclick(li):
             Executive.call('join_game', ui_message, li.game_id)
 
-        @self.chatmsg.event
+        @self.chat_input.event
         def on_enter():
-            text = unicode(self.chatmsg.text)
-            self.chatmsg.text = u''
+            text = unicode(self.chat_input.text)
+            self.chat_input.text = u''
             if text:
                 Executive.call('chat', ui_message, text)
 
@@ -169,7 +169,7 @@ class GameHallScreen(Overlay):
         elif _type in ('chat_msg', 'speaker_msg'):
             uname, msg = args[0]
             uname = uname.replace('|', '||')
-            self.chatbox.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
+            self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
         elif _type == 'gamehall_error':
             log.error('GameHall Error: %s' % args[0]) # TODO
         else:
@@ -231,9 +231,11 @@ class GameScreen(Overlay):
         ) # add when game starts
 
         event_rect = (820, 350, 204, 370)
-        chat_rect = (820, 0, 204, 350)
+        chat_rect = (820, 25, 204, 325)
+        chat_input_box = (820, 0, 204, 25)
         self.events_box = TextArea(parent=self, **r2d(event_rect))
         self.chat_box = TextArea(parent=self, **r2d(chat_rect))
+        self.chat_input = TextBox(parent=self, **r2d(chat_input_box))
         self.panel = GameScreen.RoomControlPanel(parent=self)
         self.btn_exit = Button(
             parent=self, caption=u'退出房间', zindex=1,
@@ -244,13 +246,24 @@ class GameScreen(Overlay):
         def on_click():
             Executive.call('exit_game', ui_message, [])
 
+        @self.chat_input.event
+        def on_enter():
+            text = unicode(self.chat_input.text)
+            self.chat_input.text = u''
+            if text:
+                Executive.call('chat', ui_message, text)
+
     def on_message(self, _type, *args):
         if _type == 'game_started':
             self.remove_control(self.panel)
             self.gameui.init()
             self.add_control(self.gameui)
-        if _type == 'end_game':
+        elif _type == 'end_game':
             self.remove_control(self.gameui)
             self.add_control(self.panel)
+        elif _type in ('chat_msg', 'speaker_msg'):
+            uname, msg = args[0]
+            uname = uname.replace('|', '||')
+            self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
         else:
             Overlay.on_message(self, _type, *args)

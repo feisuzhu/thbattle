@@ -196,8 +196,8 @@ def chat(user, msg):
         for u in users.values():
             if u.state == 'hang':
                 u.write(['chat_msg', [user.nickname, msg]])
-    elif user.state in ('inroom', 'ready', 'ingame'): # room chat
-        for u in g.current_game.players:
+    elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
+        for u in user.current_game.players:
             u.write(['chat_msg', [user.nickname, msg]])
 
 def genfunc(_type):

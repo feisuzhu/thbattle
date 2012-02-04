@@ -27,7 +27,7 @@ class Player(Client, game.Player):
                 input = self.gexpect('input_%s_%d' % (tag, st))
         except TimeLimitExceeded:
             # Player hit the red line, he's DEAD.
-            import gamehall as halll
+            import gamehall as hall
             hall.exit_game(self)
             input = None
         pl = PlayerList(g.players[:])
