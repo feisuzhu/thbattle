@@ -57,7 +57,7 @@ class SimpleGameUI(Control):
         game.event_handlers.append(UIEventHook())
         Control.__init__(self, *a, **k)
 
-        self.prompt = pyglet.text.Label(
+        self.label_prompt = pyglet.text.Label(
             text='youmu youmu youmu', font_size=20, color=(0,0,0,255),
             x=280, y=413, anchor_y = 'bottom'
         )
@@ -94,7 +94,7 @@ class SimpleGameUI(Control):
             import inputs
             irp = args[0]
             itype = _type[6:]
-            self.prompt.text = itype
+            self.label_prompt.text = itype
             cls = inputs.mapping.get(itype)
             if cls:
                 cls(irp, parent=self)
@@ -103,28 +103,30 @@ class SimpleGameUI(Control):
                 irp.input = None
                 irp.complete()
 
-        if _type == 'game_action_apply':
+        if _type.startswith('game_action_'):
             evt = args[0]
-            if hasattr(evt, 'source') and evt.source != evt.target:
-                sp = self.player2portrait(evt.source)
-                dp = self.player2portrait(evt.target)
-                Ray(sp, dp, parent=self, zindex=10)
-
-        if _type == 'game_action_after':
-            evt = args[0]
+            _type = _type.split('game_action_')[1]
             import effects
-            f = effects.mapping.get(evt.__class__)
-            if f:
-                f(self, evt)
-            else:
-                log.debug('%s occured!' % evt.__class__.__name__)
+
+            f = effects.mapping[_type].get(evt.__class__)
+            if f: f(self, evt)
 
         if _type == 'simplegame_begin':
             for port in self.char_portraits:
                 p = self.game.players[port.player_index]
                 port.life = p.gamedata.life
 
-
     def draw(self, dt):
-        self.prompt.draw()
+        self.label_prompt.draw()
         self.draw_subcontrols(dt)
+
+    def ray(self, f, t):
+        if f == t: return
+        sp = self.player2portrait(f)
+        dp = self.player2portrait(t)
+        x0, y0 = sp.x + sp.width/2, sp.y + sp.height/2
+        x1, y1 = dp.x + dp.width/2, dp.y + dp.height/2
+        Ray(x0, y0, x1, y1, parent=self, zindex=10)
+
+    def prompt(self, s):
+        self.parent.events_box.append(unicode(s)+u'\n')

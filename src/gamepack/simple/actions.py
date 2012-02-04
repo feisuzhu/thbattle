@@ -17,7 +17,8 @@ class InternalAction(Action): pass # actions for internal use, should not be int
 
 class Damage(GenericAction):
 
-    def __init__(self, target, amount=1):
+    def __init__(self, source, target, amount=1):
+        self.source = source
         self.target = target
         self.amount = amount
 
@@ -27,24 +28,25 @@ class Damage(GenericAction):
 
 class Attack(BaseAction):
 
-    def __init__(self, target, damage=1):
+    def __init__(self, source, target, damage=1):
+        self.source = source
         self.target = target
         self.damage = damage
 
     def apply_action(self):
         g = Game.getgame()
-        target = self.target
-        choose_action = ChooseCard(target, lambda cl: len(cl) == 1 and cl[0].type == 'graze')
-        if not g.process_action(choose_action):
-            return g.process_action(Damage(target, amount=self.damage))
+        source, target = self.source, self.target
+        graze_action = UseGraze(target)
+        if not g.process_action(graze_action):
+            g.process_action(Damage(source, target, amount=self.damage))
+            return True
         else:
-            drop = DropCardIndex(target, card_indices=choose_action.card_indices)
-            g.process_action(drop)
             return False
 
 class Heal(BaseAction):
 
-    def __init__(self, target, amount=1):
+    def __init__(self, source, target, amount=1):
+        self.source = source
         self.target = target
         self.amount = amount
 
@@ -113,6 +115,27 @@ class ChooseCard(GenericAction):
         return False
 
 class DropUsedCard(DropCardIndex): pass
+
+class UseCard(GenericAction):
+    def __init__(self, target, cond=None):
+        self.target = target
+        if cond:
+            self.cond = cond
+
+    def apply_action(self):
+        g = Game.getgame()
+        target = self.target
+        choose_action = ChooseCard(target, self.cond)
+        if not g.process_action(choose_action):
+            return False
+        else:
+            drop = DropUsedCard(target, card_indices=choose_action.card_indices)
+            g.process_action(drop)
+            return True
+
+class UseGraze(UseCard):
+    def cond(self, cl):
+        return len(cl) == 1 and cl[0].type == 'graze'
 
 class DropCardStage(GenericAction):
 
@@ -193,8 +216,7 @@ class ActionStage(GenericAction):
             action = card.assocated_action
             g.process_action(DropUsedCard(target, card_indices=[card_index]))
             if action:
-                action = action(target=object)
-                action.source = target
+                action = action(source=target, target=object)
                 g.process_action(action)
 
         return True

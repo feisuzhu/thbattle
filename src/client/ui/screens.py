@@ -206,12 +206,6 @@ class GameScreen(Overlay):
         def on_message(self, _type, *args):
             if _type == 'player_change':
                 self.update_portrait(args[0])
-            elif _type == 'game_left':
-                GameHallScreen().switch()
-            elif _type == 'game_joined':
-                # last game ended, this is the auto
-                # created game
-                GameScreen(args[0]).switch()
 
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
@@ -265,5 +259,11 @@ class GameScreen(Overlay):
             uname, msg = args[0]
             uname = uname.replace('|', '||')
             self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
+        elif _type in ('game_left', 'fleed'):
+            GameHallScreen().switch()
+        elif _type == 'game_joined':
+            # last game ended, this is the auto
+            # created game
+            GameScreen(args[0]).switch()
         else:
             Overlay.on_message(self, _type, *args)

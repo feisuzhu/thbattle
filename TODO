@@ -5,14 +5,10 @@ GameHallScreen,
 ARTWORKS!
 
 ******************************
-
-chat,chat,chat,chat,chat,chat,chat,chat,chat,
-
 Simple Game action text prompt
 ******************************
 
 Core:
-chat,
 user subsystem,
 error reporting subsystem
     * server auto restart

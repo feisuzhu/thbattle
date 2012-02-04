@@ -578,12 +578,12 @@ class Ray(Control):
     scale = InterpDesc('_scale')
     alpha = InterpDesc('_alpha')
 
-    def __init__(self, f, t, *args, **kwargs):
+    def __init__(self, x0, y0, x1, y1, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         # f, t should be [GameCharacterPortrait]s
         from math import sqrt, atan2, pi
-        self.x, self.y = f.x + f.width/2, f.y + f.height/2
-        dx, dy = t.x-f.x, t.y-f.y
+        self.x, self.y = x0, y0
+        dx, dy = x1 - x0, y1 - y0
         scale = sqrt(dx*dx+dy*dy) / self.img_ray.width
         self.angle = atan2(dy, dx) / pi * 180
         self.scale = SineInterp(0.0, scale, 0.4)

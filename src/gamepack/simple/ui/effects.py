@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from client.ui.base import *
 from client.ui.base.interp import *
 from client.ui.controls import *
@@ -11,6 +12,7 @@ from pyglet.gl import *
 from gamepack.simple.actions import *
 
 from functools import partial
+from collections import defaultdict as ddict
 
 import logging
 log = logging.getLogger('SimpleGameUI_Effects')
@@ -88,22 +90,40 @@ drop_cards_gray_effect = partial(drop_cards_effect, True)
 drop_cards_normal_effect = partial(drop_cards_effect, False)
 
 def damage_effect(self, evt):
-    p = evt.target
-    port = self.player2portrait(p)
-    l = p.gamedata.life
+    s, t = evt.source, evt.target
+    port = self.player2portrait(t)
+    l = t.gamedata.life
     port.life = l if l > 0 else 0
+    self.prompt(u'%s对%s造成了%d点伤害' % (s.nickname, t.nickname, evt.amount))
 
 def heal_effect(self, evt):
-    p = evt.target
-    port = self.player2portrait(p)
-    l = p.gamedata.life
+    t = evt.target
+    port = self.player2portrait(t)
+    l = t.gamedata.life
     port.life = l if l > 0 else 0
+    self.prompt(u'%s回复了%d点体力' % (t.nickname, evt.amount))
 
-mapping = {
-    DrawCards: draw_cards_effect,
-    DrawCardStage: draw_cards_effect,
-    DropCardIndex: drop_cards_gray_effect,
-    DropUsedCard: drop_cards_normal_effect,
-    Damage: damage_effect,
-    Heal: heal_effect,
-}
+def attack_effect(self, evt):
+    s, t = evt.source, evt.target
+    self.ray(s, t)
+    self.prompt(u'%s对%s使用了|c208020ff【杀】|r。' % (s.nickname, t.nickname))
+
+def graze_effect(self, evt):
+    if not evt.result == True: return
+    t = evt.target
+    self.prompt(u'%s使用了|c208020ff【闪】|r' % t.nickname)
+
+mapping = ddict(dict, {
+    'apply': {
+        Attack: attack_effect,
+    },
+    'after': {
+        DrawCards: draw_cards_effect,
+        DrawCardStage: draw_cards_effect,
+        DropCardIndex: drop_cards_gray_effect,
+        DropUsedCard: drop_cards_normal_effect,
+        Damage: damage_effect,
+        Heal: heal_effect,
+        UseGraze: graze_effect,
+    }
+})

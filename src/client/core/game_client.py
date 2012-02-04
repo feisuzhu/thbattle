@@ -11,6 +11,7 @@ import logging
 log = logging.getLogger('Game_Client')
 
 class TheChosenOne(Server, game.Player):
+    nickname = 'TheChosenOne!' # FOR DEBUG
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.
         g = Game.getgame()
@@ -40,6 +41,7 @@ class TheChosenOne(Server, game.Player):
 
 class PeerPlayer(game.Player):
 
+    nickname = 'Youmu!' # FOR DEBUG
     def __init__(self, d):
         self.__dict__.update(d)
         self.gamedata = DataHolder()
