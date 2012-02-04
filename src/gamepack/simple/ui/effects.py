@@ -107,3 +107,4 @@ mapping = {
     Damage: damage_effect,
     Heal: heal_effect,
 }
+

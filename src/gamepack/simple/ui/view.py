@@ -20,6 +20,10 @@ class UIEventHook(EventHandler):
         ui_message('game_action_apply', evt)
         return evt
 
+    def evt_action_after(self, evt):
+        ui_message('game_action_after', evt)
+        return evt
+
     def evt_user_input(self, input):
         irp = IRP()
         irp.input = None
@@ -81,7 +85,7 @@ class SimpleGameUI(Control):
 
     def player2portrait(self, c):
         i = self.game.players.index(c)
-        p = self.char_portraits[(self.player_shift + i) % self.game.n_persons]
+        p = self.char_portraits[(i - self.player_shift) % self.game.n_persons]
         assert p.player_index == i
         return p
 
@@ -95,18 +99,20 @@ class SimpleGameUI(Control):
             if cls:
                 cls(irp, parent=self)
             else:
-                log.error('No aproperate input handler!')
+                log.error('No apropriate input handler!')
                 irp.input = None
                 irp.complete()
 
         if _type == 'game_action_apply':
             evt = args[0]
-            import effects
             if hasattr(evt, 'source') and evt.source != evt.target:
                 sp = self.player2portrait(evt.source)
                 dp = self.player2portrait(evt.target)
                 Ray(sp, dp, parent=self, zindex=10)
 
+        if _type == 'game_action_after':
+            evt = args[0]
+            import effects
             f = effects.mapping.get(evt.__class__)
             if f:
                 f(self, evt)
