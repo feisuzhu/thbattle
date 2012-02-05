@@ -23,7 +23,12 @@ class Damage(GenericAction):
         self.amount = amount
 
     def apply_action(self):
-        self.target.gamedata.life -= self.amount
+        target = self.target
+        pd = target.gamedata
+        pd.life -= self.amount
+        if pd.life <= 0:
+            Game.getgame().emit_event('player_dead', target)
+            pd.dead = True
         return True
 
 class Attack(BaseAction):

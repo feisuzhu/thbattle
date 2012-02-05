@@ -15,14 +15,9 @@ from game.autoenv import EventHandler, Action, GameError
 import logging
 log = logging.getLogger('SimpleGameUI')
 
-class UIEventHook(EventHandler):
-    def evt_action_apply(self, evt):
-        ui_message('game_action_apply', evt)
-        return evt
+import effects, inputs
 
-    def evt_action_after(self, evt):
-        ui_message('game_action_after', evt)
-        return evt
+class UIEventHook(EventHandler):
 
     def evt_user_input(self, input):
         irp = IRP()
@@ -33,17 +28,15 @@ class UIEventHook(EventHandler):
         input.input = irp.input
         return input
 
-    def evt_user_input_timeout(self, input):
-        ui_message('io_timeout', input.tag)
-
-    def evt_simplegame_begin(self, _):
-        ui_message('simplegame_begin')
+    # evt_user_input_timeout
 
     def handle(self, evt, data):
         name = 'evt_%s' % evt
         if hasattr(self, name):
             return getattr(self, name)(data)
-        return data
+        else:
+            ui_message(name, data)
+            return data
 
 class SimpleGameUI(Control):
     portrait_location = [ # [ ((x, y), (r, g, b)) ] * Game.n_persons
@@ -91,7 +84,6 @@ class SimpleGameUI(Control):
 
     def on_message(self, _type, *args):
         if _type.startswith('input_'):
-            import inputs
             irp = args[0]
             itype = _type[6:]
             self.label_prompt.text = itype
@@ -103,18 +95,13 @@ class SimpleGameUI(Control):
                 irp.input = None
                 irp.complete()
 
-        if _type.startswith('game_action_'):
-            evt = args[0]
-            _type = _type.split('game_action_')[1]
-            import effects
-
-            f = effects.mapping[_type].get(evt.__class__)
-            if f: f(self, evt)
-
-        if _type == 'simplegame_begin':
+        elif _type == 'evt_simplegame_begin':
             for port in self.char_portraits:
                 p = self.game.players[port.player_index]
                 port.life = p.gamedata.life
+
+        else:
+            effects.handle_event(self, _type[4:], args[0])
 
     def draw(self, dt):
         self.label_prompt.draw()

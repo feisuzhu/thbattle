@@ -1,12 +1,7 @@
 SimpleGameUI: damage effect, action indicator, timeout indicator
 
 CommonUI:
-GameHallScreen,
 ARTWORKS!
-
-******************************
-Simple Game action text prompt
-******************************
 
 Core:
 user subsystem,

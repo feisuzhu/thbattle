@@ -181,7 +181,7 @@ def end_game(g):
         if isinstance(p, DroppedPlayer):
             pl[i] = UserPlaceHolder
     del games[id(g)]
-    ng = create_game(None, g.__class__.name, g.game_name)
+    ng = create_game(None, g.__class__.__name__, g.game_name)
     ng.players = pl
     for p in pl:
         p.write(['end_game', None])

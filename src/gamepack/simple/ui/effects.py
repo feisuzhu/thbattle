@@ -24,9 +24,9 @@ card_img = dict(
     hidden=common_res.card_hidden,
 )
 
-def draw_cards_effect(self, evt): # here self is the SimpleGameUI instance
-    if evt.target is self.game.me:
-        cards = evt.cards
+def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
+    if act.target is self.game.me:
+        cards = act.cards
         hca = self.handcard_area
         ax, ay = hca.abs_coords()
         csl = [CardSprite(
@@ -35,10 +35,10 @@ def draw_cards_effect(self, evt): # here self is the SimpleGameUI instance
         ) for c in cards]
         self.handcard_area.add_cards(csl)
     else: # FIXME: not exactly the effect
-        p = self.player2portrait(evt.target)
+        p = self.player2portrait(act.target)
         x, y = p.x + p.width/2, p.y + p.height/2
 
-        n = len(evt.cards)
+        n = len(act.cards)
         if n > 1:
             w = 1.5 * CardSprite.width
             step = (w-91)/(n-1)
@@ -50,7 +50,7 @@ def draw_cards_effect(self, evt): # here self is the SimpleGameUI instance
             obj.delete()
 
         sy = -CardSprite.height/2
-        for i, card in enumerate(evt.cards):
+        for i, card in enumerate(act.cards):
             sx = -w*.5 + i*step
             #sy = -CardSprite.height/2
             cs = CardSprite(parent=self)
@@ -63,20 +63,20 @@ def draw_cards_effect(self, evt): # here self is the SimpleGameUI instance
             )
             cs.img = card_img.get(card.type)
 
-def drop_cards_effect(gray, self, evt):
-    if evt.target is self.game.me:
-        csl = self.handcard_area.get_cards(evt.card_indices)
+def drop_cards_effect(gray, self, act):
+    if act.target is self.game.me:
+        csl = self.handcard_area.get_cards(act.card_indices)
         csl.reverse()
         for c in csl:
             c.migrate_to(self.dropcard_area)
             c.gray = gray
         self.dropcard_area.add_cards(csl)
     else:
-        p = self.player2portrait(evt.target)
+        p = self.player2portrait(act.target)
         x, y = p.x + p.width/2, p.y + p.height/2
-        shift = (len(evt.cards)+1)*CardSprite.width/2
+        shift = (len(act.cards)+1)*CardSprite.width/2
         csl = []
-        for i, card in enumerate(evt.cards):
+        for i, card in enumerate(act.cards):
             cs = CardSprite(
                 parent=self, x=x-shift+i*CardSprite.width/2,
                 y=y-CardSprite.height/2, img=card_img.get(card.type),
@@ -89,32 +89,32 @@ def drop_cards_effect(gray, self, evt):
 drop_cards_gray_effect = partial(drop_cards_effect, True)
 drop_cards_normal_effect = partial(drop_cards_effect, False)
 
-def damage_effect(self, evt):
-    s, t = evt.source, evt.target
+def damage_effect(self, act):
+    s, t = act.source, act.target
     port = self.player2portrait(t)
     l = t.gamedata.life
     port.life = l if l > 0 else 0
-    self.prompt(u'%s对%s造成了%d点伤害' % (s.nickname, t.nickname, evt.amount))
+    self.prompt(u'%s对%s造成了%d点伤害' % (s.nickname, t.nickname, act.amount))
 
-def heal_effect(self, evt):
-    t = evt.target
+def heal_effect(self, act):
+    t = act.target
     port = self.player2portrait(t)
     l = t.gamedata.life
     port.life = l if l > 0 else 0
-    self.prompt(u'%s回复了%d点体力' % (t.nickname, evt.amount))
+    self.prompt(u'%s回复了%d点体力' % (t.nickname, act.amount))
 
-def attack_effect(self, evt):
-    s, t = evt.source, evt.target
+def attack_effect(self, act):
+    s, t = act.source, act.target
     self.ray(s, t)
     self.prompt(u'%s对%s使用了|c208020ff【杀】|r。' % (s.nickname, t.nickname))
 
-def graze_effect(self, evt):
-    if not evt.result == True: return
-    t = evt.target
+def graze_effect(self, act):
+    if not act.result == True: return
+    t = act.target
     self.prompt(u'%s使用了|c208020ff【闪】|r' % t.nickname)
 
-mapping = ddict(dict, {
-    'apply': {
+mapping_actions = ddict(dict, {
+    'before': {
         Attack: attack_effect,
     },
     'after': {
@@ -127,3 +127,17 @@ mapping = ddict(dict, {
         UseGraze: graze_effect,
     }
 })
+
+def action_effects(_type, self, act):
+    f = mapping_actions[_type].get(act.__class__)
+    if f: f(self, act)
+
+mapping_events = ddict(str, {
+    'action_before': partial(action_effects, 'before'),
+    'action_apply': partial(action_effects, 'apply'),
+    'action_after': partial(action_effects, 'after'),
+})
+
+def handle_event(self, _type, data):
+    f = mapping_events.get(_type)
+    if f: f(self, data)

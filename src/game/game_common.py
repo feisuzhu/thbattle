@@ -10,6 +10,9 @@ class TimeLimitExceeded(Timeout):
 class GameError(Exception):
     pass
 
+class GameEnded(Exception):
+    pass
+
 class EventHandler(object):
 
     def handle(self, evt_type, data):
@@ -76,6 +79,9 @@ class Game(object):
         '''
         raise GameError('Override this function to implement Game logics!')
 
+    def game_ended(self):
+        raise GameError('Override this')
+
     def emit_event(self, evt_type, data):
         '''
         Fire an event, all relevant event handlers will see this,
@@ -109,6 +115,8 @@ class Game(object):
 
                 assert rst in [True, False], 'Action.apply_action or default_action  must return boolean!'
                 action.result = rst
+                if self.game_ended():
+                    raise GameEnded()
                 action = self.emit_event('action_after', action)
             else:
                 return False

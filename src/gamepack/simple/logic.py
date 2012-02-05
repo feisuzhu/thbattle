@@ -1,4 +1,4 @@
-from game.autoenv import Game, EventHandler, Action, GameError
+from game.autoenv import Game, EventHandler, Action, GameError, GameEnded
 
 from utils import PlayerList
 import random
@@ -11,7 +11,7 @@ log = logging.getLogger('SimpleGame')
 
 class SimpleGame(Game):
     name = 'Simple Game'
-    n_persons = 2
+    n_persons = 1
 
     if Game.CLIENT_SIDE:
         # not loading these things on server
@@ -43,11 +43,20 @@ class SimpleGame(Game):
         for p in PlayerQueue(self.players, 1):
             p.gamedata.cards = []
             p.gamedata.life = 4
+            p.gamedata.maxlife = 8
+            p.gamedata.dead = False
             self.process_action(DrawCards(p, amount=4))
 
         self.emit_event('simplegame_begin', None)
+        try:
+            for p in PlayerQueue(self.players):
+                if not p.gamedata.dead:
+                    self.emit_event('player_turn', p)
+                    self.process_action(DrawCardStage(target=p))
+                    self.process_action(ActionStage(target=p))
+                    self.process_action(DropCardStage(target=p))
+        except GameEnded:
+            pass
 
-        for p in PlayerQueue(self.players):
-            self.process_action(DrawCardStage(target=p))
-            self.process_action(ActionStage(target=p))
-            self.process_action(DropCardStage(target=p))
+    def game_ended(self):
+        return not len([p for p in self.players if not p.gamedata.dead])
