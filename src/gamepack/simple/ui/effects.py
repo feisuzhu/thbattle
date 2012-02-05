@@ -24,6 +24,12 @@ card_img = dict(
     hidden=common_res.card_hidden,
 )
 
+class OneShotAnim(pyglet.sprite.Sprite):
+    def on_animation_end(self):
+        self.delete()
+
+LoopingAnim = pyglet.sprite.Sprite
+
 def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
     if act.target is self.game.me:
         cards = act.cards
@@ -95,27 +101,29 @@ def damage_effect(self, act):
     l = t.gamedata.life
     port.life = l if l > 0 else 0
     self.prompt(u'%s对%s造成了%d点伤害' % (s.nickname, t.nickname, act.amount))
+    OneShotAnim(common_res.hurt, x=port.x, y=port.y, batch=self.animations)
 
 def heal_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
     l = t.gamedata.life
     port.life = l if l > 0 else 0
-    self.prompt(u'%s回复了%d点体力' % (t.nickname, act.amount))
+    if act.succeeded:
+        self.prompt(u'%s回复了%d点体力' % (t.nickname, act.amount))
 
-def attack_effect(self, act):
+def launch_effect(self, act):
     s, t = act.source, act.target
     self.ray(s, t)
-    self.prompt(u'%s对%s使用了|c208020ff【杀】|r。' % (s.nickname, t.nickname))
+    self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, t.nickname, act.card.name))
 
 def graze_effect(self, act):
-    if not act.result == True: return
+    if not act.succeeded: return
     t = act.target
     self.prompt(u'%s使用了|c208020ff【闪】|r' % t.nickname)
 
 mapping_actions = ddict(dict, {
     'before': {
-        Attack: attack_effect,
+        LaunchCard: launch_effect,
     },
     'after': {
         DrawCards: draw_cards_effect,
@@ -129,13 +137,46 @@ mapping_actions = ddict(dict, {
 })
 
 def action_effects(_type, self, act):
-    f = mapping_actions[_type].get(act.__class__)
-    if f: f(self, act)
+    cls = act.__class__
+    while cls is not object:
+        f = mapping_actions[_type].get(cls)
+        if f:
+            f(self, act)
+            return
+        cls = cls.__base__
+
+def user_input_start_effects(self, p):
+    if p is self.current_turn:
+        self.actor_frame = None
+        return # drawing turn frame
+    port = self.player2portrait(p)
+    self.actor_frame = LoopingAnim(
+        common_res.actor_frame,
+        x=port.x - 6, y=port.y - 4,
+        batch = self.animations
+    )
+
+def user_input_finish_effects(self, p):
+    if self.actor_frame:
+        self.actor_frame.delete()
+        self.actor_frame = None
+
+def player_turn_effect(self, p):
+    port = self.player2portrait(p)
+    if not hasattr(self, 'turn_frame') or not self.turn_frame:
+        self.turn_frame = LoopingAnim(
+            common_res.turn_frame,
+            batch = self.animations
+        )
+    self.turn_frame.position = (port.x - 6, port.y - 4)
 
 mapping_events = ddict(str, {
     'action_before': partial(action_effects, 'before'),
     'action_apply': partial(action_effects, 'apply'),
     'action_after': partial(action_effects, 'after'),
+    'user_input_start': user_input_start_effects,
+    'user_input_finish': user_input_finish_effects,
+    'player_turn': player_turn_effect,
 })
 
 def handle_event(self, _type, data):

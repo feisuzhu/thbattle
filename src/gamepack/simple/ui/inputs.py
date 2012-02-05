@@ -14,7 +14,7 @@ log = logging.getLogger('SimpleGameUI_Input')
 
 class InputController(Control):
     def on_message(self, _type, *args):
-        if _type == 'io_timeout':
+        if _type == 'evt_user_input_timeout':
             self.cleanup()
 
 class UIChoose1CardAnd1Char(InputController):
@@ -61,6 +61,7 @@ class UIChoose1CardAnd1Char(InputController):
             for c in parent.char_portraits:
                 c.selected = False
             parent.pop_handlers()
+            self.irp.complete()
             self.delete()
 
         self.cleanup = _cleanup
@@ -101,6 +102,7 @@ class UIChooseCards(InputController):
         self.x, self.y, self.width, self.height = 333, 202, 250, 30
 
         def _cleanup():
+            self.irp.complete()
             self.delete()
 
         self.cleanup = _cleanup

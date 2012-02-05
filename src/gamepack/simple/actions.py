@@ -56,8 +56,12 @@ class Heal(BaseAction):
         self.amount = amount
 
     def apply_action(self):
-        self.target.gamedata.life += self.amount
-        return True
+        gd = self.target.gamedata
+        if gd.life < gd.maxlife:
+            gd.life = min(gd.life + self.amount, gd.maxlife)
+            return True
+        else:
+            return False
 
 class DropCardIndex(GenericAction):
 
@@ -184,6 +188,23 @@ class DrawCards(GenericAction):
 
 class DrawCardStage(DrawCards): pass
 
+class LaunchCard(GenericAction):
+    def __init__(self, source, target, card, card_index):
+        # FIXME: this sucks, but ui requires it.
+        # Can be fixed when Deck comes out.
+        self.source, self.target, self.card, self.card_index= \
+            source, target, card, card_index
+
+    def apply_action(self):
+        g = Game.getgame()
+        card = self.card
+        action = card.assocated_action
+        g.process_action(DropUsedCard(self.source, card_indices=[self.card_index]))
+        if action:
+            action = action(source=self.source, target=self.target)
+            return g.process_action(action)
+        return False
+
 class ActionStage(GenericAction):
 
     def __init__(self, target):
@@ -218,10 +239,6 @@ class ActionStage(GenericAction):
                 card = p.reveal(card)
 
             object = g.players[object_index]
-            action = card.assocated_action
-            g.process_action(DropUsedCard(target, card_indices=[card_index]))
-            if action:
-                action = action(source=target, target=object)
-                g.process_action(action)
+            g.process_action(LaunchCard(target, object, card, card_index))
 
         return True

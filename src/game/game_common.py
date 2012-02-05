@@ -114,7 +114,7 @@ class Game(object):
                 rst = action.apply_action()
 
                 assert rst in [True, False], 'Action.apply_action or default_action  must return boolean!'
-                action.result = rst
+                action.succeeded = rst
                 if self.game_ended():
                     raise GameEnded()
                 action = self.emit_event('action_after', action)

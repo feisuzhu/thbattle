@@ -1,13 +1,10 @@
 import pyglet
 import os
 
-dn = os.path.dirname(__file__)
-dn = os.path.realpath(dn)
-dn = os.path.join(dn, 'res')
-ldr = pyglet.resource.Loader(dn)
+from client.ui.resource import ResLoader
 
-card_attack = ldr.image('attack.tga')
-card_graze = ldr.image('graze.tga')
-card_heal = ldr.image('heal.tga')
-
-del dn, ldr
+with ResLoader(__file__) as (_, img, anim):
+    card_attack = img('attack.tga')
+    card_graze = img('graze.tga')
+    card_heal = img('heal.tga')
+    del _, img, anim

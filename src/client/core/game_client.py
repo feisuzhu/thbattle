@@ -32,7 +32,9 @@ class TheChosenOne(Server, game.Player):
         input.attachment = attachment
         try:
             with gevent.Timeout(25):
+                g.emit_event('user_input_start', self)
                 rst = g.emit_event('user_input', input)
+                g.emit_event('user_input_finish', self)
         except gevent.Timeout:
             g.emit_event('user_input_timeout', input)
             rst = input
@@ -56,7 +58,9 @@ class PeerPlayer(game.Player):
         # Peer player, get his input from server
         g = Game.getgame()
         st = g.get_synctag()
+        g.emit_event('user_input_start', self)
         input = g.me.gexpect('input_%s_%d' % (tag, st)) # HACK
+        g.emit_event('user_input_finish', self)
         return input
 
 class Game(Greenlet, game.Game):

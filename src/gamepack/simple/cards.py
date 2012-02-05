@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Cards and Deck definition
 
 import logging
@@ -8,6 +9,12 @@ class Card(object):
     def __init__(self, t):
         self.type = t
         self.hidden = False
+        self.name = dict(
+            attack=u'杀',
+            graze=u'闪',
+            heal=u'药',
+            hidden=u'BUG!!!',
+        )[t]
 
     def __data__(self):
         return dict(

@@ -11,7 +11,7 @@ log = logging.getLogger('SimpleGame')
 
 class SimpleGame(Game):
     name = 'Simple Game'
-    n_persons = 1
+    n_persons = 2
 
     if Game.CLIENT_SIDE:
         # not loading these things on server
@@ -23,19 +23,18 @@ class SimpleGame(Game):
         class PlayerQueue(object):
             def __init__(self, players, repeat=-1, initial=0):
                 self.players = players
-                self.index = initial
-                self.count = repeat * len(players)
+                self.initial = initial
+                self.repeat = repeat
 
             def __iter__(self):
-                return self
-
-            def next(self):
-                if not self.count:
-                    raise StopIteration
-                self.count -= 1
-                i = self.index
-                self.index = (i+1) % len(self.players)
-                return self.players[i]
+                n = len(self.players)
+                if self.repeat == -1:
+                    for i in count(self.initial):
+                        yield self.players[i % n]
+                else:
+                    s, r, n = self.initial, self.repeat, len(self.players)
+                    for i in xrange(s, s + r * n):
+                        yield self.players[i % n]
 
         # Do not do this:
         # for p in self.players: blah-blah....
@@ -45,10 +44,13 @@ class SimpleGame(Game):
             p.gamedata.life = 4
             p.gamedata.maxlife = 8
             p.gamedata.dead = False
-            self.process_action(DrawCards(p, amount=4))
 
         self.emit_event('simplegame_begin', None)
+
         try:
+            for p in PlayerQueue(self.players, 1):
+                self.process_action(DrawCards(p, amount=4))
+
             for p in PlayerQueue(self.players):
                 if not p.gamedata.dead:
                     self.emit_event('player_turn', p)

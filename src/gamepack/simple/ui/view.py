@@ -23,7 +23,8 @@ class UIEventHook(EventHandler):
         irp = IRP()
         irp.input = None
         irp.attachment = input.attachment
-        ui_message('input_%s' % input.tag, irp)
+        irp.tag = input.tag
+        ui_message('evt_user_input', irp)
         irp.wait()
         input.input = irp.input
         return input
@@ -63,6 +64,8 @@ class SimpleGameUI(Control):
             parent=self, x=0, y=324, zindex=3,
         )
 
+        self.animations = pyglet.graphics.Batch()
+
     def init(self):
         self.char_portraits = [
             GameCharacterPortrait(parent=self, x=x, y=y)
@@ -83,9 +86,9 @@ class SimpleGameUI(Control):
         return p
 
     def on_message(self, _type, *args):
-        if _type.startswith('input_'):
+        if _type == 'evt_user_input':
             irp = args[0]
-            itype = _type[6:]
+            itype = irp.tag
             self.label_prompt.text = itype
             cls = inputs.mapping.get(itype)
             if cls:
@@ -100,12 +103,16 @@ class SimpleGameUI(Control):
                 p = self.game.players[port.player_index]
                 port.life = p.gamedata.life
 
-        else:
+        elif _type == 'evt_player_turn':
+            self.current_turn = args[0]
+
+        if _type.startswith('evt_'):
             effects.handle_event(self, _type[4:], args[0])
 
     def draw(self, dt):
         self.label_prompt.draw()
         self.draw_subcontrols(dt)
+        self.animations.draw()
 
     def ray(self, f, t):
         if f == t: return
