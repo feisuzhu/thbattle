@@ -1,5 +1,7 @@
 import pyglet
 import os
+from utils import DataHolder
+import itertools
 
 texbin = pyglet.image.atlas.TextureBin(2048, 2048)
 dummy_img = pyglet.image.ImageData(1, 1, '\x00' * 4, 'RGBA')
@@ -60,4 +62,9 @@ with ResLoader(__file__) as (ldr, img, anim):
     hp = ldr.texture('hp.tga')
     hp_bg = ldr.texture('hp_bg.tga')
 
+    pbar = DataHolder()
+    for fn in itertools.product(['b', 'bf', 's', 'sf'], ['l', 'm', 'r']):
+        fn = ''.join(fn)
+        setattr(pbar, fn, img(os.path.join('pbar', fn + '.tga')))
+        
     del ldr, img, anim

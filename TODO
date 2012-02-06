@@ -1,4 +1,4 @@
-SimpleGameUI: damage effect, action indicator, timeout indicator
+SimpleGameUI: timeout indicator
 
 SimpleGame: use Deck to track cards(or any obj) ==>
     cards can only be created at Deck,

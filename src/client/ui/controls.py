@@ -764,3 +764,46 @@ class ListView(Control):
 
 ListView.register_event_type('on_item_select')
 ListView.register_event_type('on_item_dblclick')
+
+class ProgressBar(Control):
+    value = InterpDesc('_value')
+    def __init__(self, *a, **k):
+        Control.__init__(self, *a, **k)
+        self.value = 1.0
+        self.height = self.pic_frame[0].height
+
+    def _drawit(self, x, y, w, l, m, r):
+        wl, wr = l.width, r.width
+        if wl + wr < w:
+            l.blit(x, y)
+            r.blit(x + w - wr, y)
+            m.get_region(0, 0, w - wl - wr, m.height).blit(x + wl, y)
+        else:
+            w /= 2
+            l.get_region(0, 0, w, l.height).blit(x, y)
+            _x = r.width - w
+            r.get_region(_x, 0, w, r.height).blit(x + w, y)
+
+    def draw(self, dt):
+        value = self.value
+        width, height = self.width, self.height
+
+        self._drawit(0, 0, width, *self.pic_frame)
+        w = (width - self.core_w_correct) * value
+        if w: self._drawit(self.offs_x, self.offs_y, w, *self.pic_core)
+
+class BigProgressBar(ProgressBar):
+    r = common_res.pbar
+    pic_frame = (r.bfl, r.bfm, r.bfr)
+    pic_core = (r.bl, r.bm, r.br)
+    offs_x, offs_y = 9, 9
+    core_w_correct = 18
+    del r
+
+class SmallProgressBar(ProgressBar):
+    r = common_res.pbar
+    pic_frame = (r.sfl, r.sfm, r.sfr)
+    pic_core = (r.sl, r.sm, r.sr)
+    offs_x, offs_y = 8, 8
+    core_w_correct = 16
+    del r
