@@ -3,7 +3,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
-from client.ui.base import message as ui_message
+from client.ui.base import Control, message as ui_message
 from client.ui.controls import *
 from client.ui import resource as common_res
 import resource as gres
@@ -64,7 +64,22 @@ class SimpleGameUI(Control):
             parent=self, x=0, y=324, zindex=3,
         )
 
-        self.animations = pyglet.graphics.Batch()
+        class Animations(pyglet.graphics.Batch, Control):
+            def __init__(self, **k):
+                pyglet.graphics.Batch.__init__(self)
+                Control.__init__(
+                    self, x=0, y=0,
+                    width=0, height=0, zindex=2,
+                    **k
+                )
+
+            def draw(self, dt):
+                pyglet.graphics.Batch.draw(self)
+
+            def hit_test(self, x, y):
+                return False
+
+        self.animations = Animations(parent=self)
 
     def init(self):
         self.char_portraits = [
@@ -112,7 +127,6 @@ class SimpleGameUI(Control):
     def draw(self, dt):
         self.label_prompt.draw()
         self.draw_subcontrols(dt)
-        self.animations.draw()
 
     def ray(self, f, t):
         if f == t: return

@@ -788,6 +788,7 @@ class ProgressBar(Control):
         value = self.value
         width, height = self.width, self.height
 
+        glColor3f(1,1,1)
         self._drawit(0, 0, width, *self.pic_frame)
         w = (width - self.core_w_correct) * value
         if w: self._drawit(self.offs_x, self.offs_y, w, *self.pic_core)

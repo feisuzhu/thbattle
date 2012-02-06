@@ -145,21 +145,44 @@ def action_effects(_type, self, act):
             return
         cls = cls.__base__
 
-def user_input_start_effects(self, p):
-    if p is self.current_turn:
-        self.actor_frame = None
-        return # drawing turn frame
+def user_input_start_effects(self, input):
+    p = input.player
     port = self.player2portrait(p)
-    self.actor_frame = LoopingAnim(
-        common_res.actor_frame,
-        x=port.x - 6, y=port.y - 4,
-        batch = self.animations
+    if p is self.current_turn:
+        # drawing turn frame
+        self.actor_frame = None
+    else:
+        self.actor_frame = LoopingAnim(
+            common_res.actor_frame,
+            x=port.x - 6, y=port.y - 4,
+            batch = self.animations
+        )
+
+    pbar = SmallProgressBar(
+        parent = self,
+        x = port.x, y = port.y - 15,
+        width = port.width,
+        # all animations have zindex 2,
+        # turn/actor frame will overdrawn on this
+        # if zindex<2
+        zindex=3,
     )
 
-def user_input_finish_effects(self, p):
+    pbar.value = LinearInterp(
+        1.0, 0.0, input.timeout,
+        on_done=lambda self, desc: self.delete(),
+    )
+    self.actor_pbar = pbar
+
+
+def user_input_finish_effects(self, input):
     if self.actor_frame:
         self.actor_frame.delete()
         self.actor_frame = None
+
+    if self.actor_pbar:
+        self.actor_pbar.delete()
+        self.actor_pbar = None
 
 def player_turn_effect(self, p):
     port = self.player2portrait(p)

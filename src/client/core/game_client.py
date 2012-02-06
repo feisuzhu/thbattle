@@ -23,21 +23,25 @@ class TheChosenOne(Server, game.Player):
             revealed = obj_list.__class__.parse(raw_data)
         return revealed
 
-    def user_input(self, tag, attachment=None):
+    def user_input(self, tag, attachment=None, timeout=25):
         g = Game.getgame()
         st = g.get_synctag()
         input = DataHolder()
         input.tag = tag
         input.input = None
         input.attachment = attachment
+        input.timeout = timeout
+        input.player = self
         try:
-            with gevent.Timeout(25):
-                g.emit_event('user_input_start', self)
+            with gevent.Timeout(timeout):
+                g.emit_event('user_input_start', input)
                 rst = g.emit_event('user_input', input)
-                g.emit_event('user_input_finish', self)
         except gevent.Timeout:
             g.emit_event('user_input_timeout', input)
             rst = input
+        finally:
+            g.emit_event('user_input_finish', input)
+
         self.gwrite(['input_%s_%d' % (tag, st), rst.input])
         return rst.input
 
@@ -54,14 +58,18 @@ class PeerPlayer(game.Player):
         Game.getgame().get_synctag() # must sync
         return obj_list
 
-    def user_input(self, tag, attachement=None):
+    def user_input(self, tag, attachement=None, timeout=25):
         # Peer player, get his input from server
         g = Game.getgame()
         st = g.get_synctag()
-        g.emit_event('user_input_start', self)
-        input = g.me.gexpect('input_%s_%d' % (tag, st)) # HACK
-        g.emit_event('user_input_finish', self)
-        return input
+        input = DataHolder()
+        input.timeout = timeout
+        input.player = self
+        input.input = None
+        g.emit_event('user_input_start', input)
+        input.input = g.me.gexpect('input_%s_%d' % (tag, st)) # HACK
+        g.emit_event('user_input_finish', input)
+        return input.input
 
 class Game(Greenlet, game.Game):
     '''
