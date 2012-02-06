@@ -2,7 +2,7 @@ import gevent
 from gevent import Greenlet, getcurrent
 from gevent.queue import Queue
 from game import GameError, EventHandler, Action, TimeLimitExceeded
-from client_endpoint import Client
+from client_endpoint import Client, EndpointDied
 import game
 
 from utils import PlayerList, DataHolder
@@ -25,7 +25,7 @@ class Player(Client, game.Player):
             # The ultimate timeout
             with TimeLimitExceeded(60):
                 input = self.gexpect('input_%s_%d' % (tag, st))
-        except TimeLimitExceeded:
+        except (TimeLimitExceeded, EndpointDied):
             # Player hit the red line, he's DEAD.
             import gamehall as hall
             hall.exit_game(self)

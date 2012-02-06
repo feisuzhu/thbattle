@@ -10,6 +10,9 @@ class InterpDesc(object):
         self.slot = slot
 
     def __get__(self, obj, _type):
+        if obj is None:
+            # class get
+            return self
         v = getattr(obj, self.slot)
         if isinstance(v, AbstractInterp):
             val = v.value
@@ -23,6 +26,9 @@ class InterpDesc(object):
 
     def __set__(self, obj, val):
         setattr(obj, self.slot, val)
+
+    def __delete__(self, obj):
+        setattr(obj, self.slot, None)
 
 class AbstractInterp(object):
     pass

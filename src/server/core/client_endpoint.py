@@ -114,8 +114,8 @@ class Client(Endpoint, Greenlet):
                 else:
                     self.write(['invalid_command', [cmd, data]])
 
-            except EndpointDied:
-                break
+            except EndpointDied as e:
+                self.gdqueue.put(e)
 
             except Timeout:
                 self.heartbeat_cnt += 1
@@ -140,7 +140,10 @@ class Client(Endpoint, Greenlet):
 
 
     def gread(self):
-        return self.gdqueue.get()
+        d = self.gdqueue.get()
+        if isinstance(d, Exception):
+            raise d
+        return d
 
     def gexpect(self, tag):
         while True:
