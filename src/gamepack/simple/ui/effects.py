@@ -98,7 +98,7 @@ drop_cards_normal_effect = partial(drop_cards_effect, False)
 def damage_effect(self, act):
     s, t = act.source, act.target
     port = self.player2portrait(t)
-    l = t.gamedata.life
+    l = t.life
     port.life = l if l > 0 else 0
     self.prompt(u'%s对%s造成了%d点伤害' % (s.nickname, t.nickname, act.amount))
     OneShotAnim(common_res.hurt, x=port.x, y=port.y, batch=self.animations)
@@ -106,7 +106,7 @@ def damage_effect(self, act):
 def heal_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
-    l = t.gamedata.life
+    l = t.life
     port.life = l if l > 0 else 0
     if act.succeeded:
         self.prompt(u'%s回复了%d点体力' % (t.nickname, act.amount))

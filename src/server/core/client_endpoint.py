@@ -10,7 +10,7 @@ log = logging.getLogger("Client")
 __all__ = ['Client']
 
 class Client(Endpoint, Greenlet):
-
+    BREAK_TAG = object()
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
@@ -138,17 +138,17 @@ class Client(Endpoint, Greenlet):
             hall.exit_game(self)
         hall.user_disconnect(self)
 
-
     def gread(self):
+        self.waiting_gamedata = True
         d = self.gdqueue.get()
-        if isinstance(d, Exception):
+        if isinstance(d, EndpointDied):
             raise d
         return d
 
     def gexpect(self, tag):
         while True:
             d = self.gread()
-            if d[0] == tag:
+            if d[0] in (tag, self.BREAK_TAG):
                 return d[1]
            #else: drop
 
@@ -162,3 +162,16 @@ class Client(Endpoint, Greenlet):
             nickname=self.nickname,
             state=self.state,
         )
+
+    def gbreak(self):
+        # is it a hack?
+        if self.gdqueue.getters:
+            self.gdqueue.put([self.BREAK_TAG, None])
+
+class DummyClient(object):
+    read = write = raw_write = \
+    gread = gwrite = gexpect = lambda *a, **k: False
+
+    def __init__(self, client=None):
+        if client:
+            self.__dict__.update(client.__dict__)

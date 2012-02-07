@@ -1,4 +1,4 @@
-from utils import PlayerList
+from utils import BatchList
 from server_endpoint import Server
 import sys
 import gevent
@@ -28,11 +28,10 @@ class GameManager(Greenlet):
 
         @handler(('inroom', 'ingame'), None)
         def player_change(self, data):
-            if self.state == 'inroom':
-                self.players = data
-            else:
+            self.players = data
+            if self.state == 'ingame':
                 for i, p in enumerate(data):
-                    if p.get('dropped'):
+                    if p['id'] == -1:
                         self.game.players[i].dropped = True
             self.event_cb('player_change', data)
 
@@ -42,10 +41,10 @@ class GameManager(Greenlet):
             pid = [i['id'] for i in self.players]
             pl = [PeerPlayer(i) for i in self.players]
             #self.server.__class__ = TheChosenOne # FIXME
-            pl[pid.index(self.server_id)] = self.server
-            self.game.me = self.server
-            self.game.players = PlayerList(pl)
-            self.server.gamedata = DataHolder()
+            me = self.game.player_class(self.server)
+            pl[pid.index(self.server_id)] = me
+            self.game.me = me
+            self.game.players = BatchList(pl)
             self.game.start()
             self.event_cb('game_started', self.game)
 
@@ -147,7 +146,7 @@ class Executive(object):
             try:
                 s = socket.socket()
                 s.connect(addr)
-                svr = TheChosenOne.spawn(s, 'TheChosenOne')
+                svr = Server.spawn(s, 'TheChosenOne')
                 self.server = svr
                 self.state = 'connected'
                 self.gm_greenlet = GameManager(self.server)

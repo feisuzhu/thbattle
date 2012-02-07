@@ -116,7 +116,7 @@ class SimpleGameUI(Control):
         elif _type == 'evt_simplegame_begin':
             for port in self.char_portraits:
                 p = self.game.players[port.player_index]
-                port.life = p.gamedata.life
+                port.life = p.life
 
         elif _type == 'evt_player_turn':
             self.current_turn = args[0]

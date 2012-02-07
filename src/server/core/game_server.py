@@ -5,17 +5,20 @@ from game import GameError, EventHandler, Action, TimeLimitExceeded
 from client_endpoint import Client, EndpointDied
 import game
 
-from utils import PlayerList, DataHolder
+from utils import BatchList, DataHolder
 import logging
 
 log = logging.getLogger('Game_Server')
 
-class Player(Client, game.Player):
+class Player(game.Player):
+    dropped = False
+    def __init__(self, client):
+        self.client = client
 
     def reveal(self, obj_list):
         g = Game.getgame()
         st = g.get_synctag()
-        self.gwrite(['object_sync_%d' % st, obj_list])
+        self.client.gwrite(['object_sync_%d' % st, obj_list])
         return obj_list
 
     def user_input(self, tag, attachment=None, timeout=25):
@@ -24,35 +27,34 @@ class Player(Client, game.Player):
         try:
             # The ultimate timeout
             with TimeLimitExceeded(60):
-                input = self.gexpect('input_%s_%d' % (tag, st))
+                print "INPUT!"
+                input = self.client.gexpect('input_%s_%d' % (tag, st))
         except (TimeLimitExceeded, EndpointDied):
             # Player hit the red line, he's DEAD.
             import gamehall as hall
-            hall.exit_game(self)
+            hall.exit_game(self.client)
             input = None
-        pl = PlayerList(g.players[:])
+        pl = BatchList(g.players[:])
         pl.remove(self)
-        pl.gwrite(['input_%s_%d' % (tag, st), input]) # tell other players
+        pl.client.gwrite(['input_%s_%d' % (tag, st), input]) # tell other players
         return input
-
-class DroppedPlayer(object):
-
-    def __init__(self, p):
-        self.__dict__.update(p.__dict__)
 
     def __data__(self):
         return dict(
-            username=self.username,
-            nickname=self.nickname,
-            id=1,
-            dropped=True,
+            id=id(self.client),
+            username=self.client.username,
+            nickname=self.client.nickname,
+            state=self.client.state,
         )
 
-    def gwrite(self, d): pass
-    def gexpect(self, d): raise TimeLimitExceeded
-    def gread(self): raise TimeLimitExceeded
-    def write(self, d): pass
-    def raw_write(self, d): pass
+class DroppedPlayer(Player):
+    dropped = True
+    def __data__(self):
+        return dict(
+            username=self.client.username,
+            nickname=self.client.nickname,
+            id=-1,
+        )
 
     def reveal(self, obj_list):
         Game.getgame().get_synctag() # must sync
@@ -61,7 +63,7 @@ class DroppedPlayer(object):
     def user_input(self, tag, attachment=None, timeout=25):
         g = Game.getgame()
         st = g.get_synctag()
-        g.players.gwrite(['input_%s_%d' % (tag, st), None]) # null input
+        g.players.client.gwrite(['input_%s_%d' % (tag, st), None]) # null input
 
 class Game(Greenlet, game.Game):
     '''
@@ -80,7 +82,6 @@ class Game(Greenlet, game.Game):
     SERVER_SIDE = True
 
     def __data__(self):
-        from server.core import UserPlaceHolder
         return dict(
             id=id(self),
             type=self.__class__.__name__,

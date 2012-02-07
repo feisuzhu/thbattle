@@ -2,7 +2,7 @@ import gevent
 from gevent import Greenlet
 from gevent.event import Event
 from gevent.queue import Queue
-from utils import PlayerList
+from utils import BatchList
 from time import time
 
 import logging
@@ -46,7 +46,7 @@ class _GameHallStatusUpdator(Greenlet):
 
 _GameHallStatusUpdator.spawn()
 
-class UserPlaceHolder(object):
+class PlayerPlaceHolder(object):
 
     def __data__(self):
         return dict(
@@ -54,10 +54,12 @@ class UserPlaceHolder(object):
             state='n/a',
         )
 
-    state = 'n/a'
-    raw_write = write = lambda *a: False
+    class client(object):
+        state = 'left'
+        raw_write = write = lambda *a: False
+    client = client()
 
-UserPlaceHolder = UserPlaceHolder()
+PlayerPlaceHolder = PlayerPlaceHolder()
 
 def new_user(user):
     users[id(user)] = user
@@ -72,11 +74,11 @@ def _notify_playerchange(game):
     from client_endpoint import Client
     s = Client.encode(['player_change', game.players])
     for p in game.players:
-        p.raw_write(s)
+        p.client.raw_write(s)
 
 def _next_free_slot(game):
     try:
-        return game.players.index(UserPlaceHolder)
+        return game.players.index(PlayerPlaceHolder)
     except ValueError as e:
         return None
 
@@ -88,7 +90,7 @@ def create_game(user, gametype, gamename):
     g = gamemodes[gametype]()
     g.game_started = False
     g.game_name = gamename
-    g.players = PlayerList([UserPlaceHolder] * g.n_persons)
+    g.players = BatchList([PlayerPlaceHolder] * g.n_persons)
     games[id(g)] = g
     log.info("create game")
     evt_datachange.set()
@@ -98,7 +100,7 @@ def get_ready(user):
     user.state = 'ready'
     g = user.current_game
     _notify_playerchange(g)
-    if all(p.state == 'ready' for p in g.players):
+    if all(p.client.state == 'ready' for p in g.players):
         log.info("game starting")
         g.start()
 
@@ -108,21 +110,25 @@ def cancel_ready(user):
 
 def exit_game(user):
     from game_server import DroppedPlayer
+    from client_endpoint import DummyClient
     if user.state != 'hang':
         g = user.current_game
-        i = g.players.index(user)
+        i = g.players.client.index(user)
         if g.game_started:
             log.info('player dropped')
             user.write(['fleed', None])
-            g.players[i] = DroppedPlayer(g.players[i])
+            p = g.players[i]
+            p.client.gbreak()
+            p.__class__ = DroppedPlayer
+            p.client = DummyClient(g.players[i].client)
         else:
             log.info('player leave')
-            g.players[i] = UserPlaceHolder
+            g.players[i] = PlayerPlaceHolder
             user.write(['game_left', None])
 
         user.state = 'hang'
         _notify_playerchange(g)
-        if all((p is UserPlaceHolder or isinstance(p, DroppedPlayer)) for p in g.players):
+        if all((p is PlayerPlaceHolder or isinstance(p, DroppedPlayer)) for p in g.players):
             if g.game_started:
                 log.info('game aborted')
             else:
@@ -141,7 +147,7 @@ def join_game(user, gameid):
         if slot is not None:
             user.state = 'inroomwait'
             user.current_game = g
-            g.players[slot] = user
+            g.players[slot] = g.player_class(user)
             user.write(['game_joined', g])
             _notify_playerchange(g)
             evt_datachange.set()
@@ -163,31 +169,33 @@ def send_hallinfo(user):
 def start_game(g):
     log.info("game started")
     g.game_started = True
-    for u in g.players:
+    for u in g.players.client:
         u.write(["game_started", None])
         u.state = 'ingame'
-        u.__class__ = g.__class__.player_class
-        u.gamedata = DataHolder()
+        #u.__class__ = g.__class__.player_class
     evt_datachange.set()
 
 def end_game(g):
     from game_server import DroppedPlayer
-    for p in g.players:
-        del p.gamedata
 
     log.info("end game")
     pl = g.players
     for i, p in enumerate(pl):
         if isinstance(p, DroppedPlayer):
-            pl[i] = UserPlaceHolder
+            pl[i] = PlayerPlaceHolder
     del games[id(g)]
     ng = create_game(None, g.__class__.__name__, g.game_name)
-    ng.players = pl
-    for p in pl:
-        p.write(['end_game', None])
-        p.write(['game_joined', ng])
-        p.current_game = ng
-        p.state = 'inroomwait'
+    ng.players = BatchList(
+        g.player_class(p.client)
+        if p is not PlayerPlaceHolder
+        else PlayerPlaceHolder
+        for p in pl
+    )
+    for cl in pl.client:
+        cl.write(['end_game', None])
+        cl.write(['game_joined', ng])
+        cl.current_game = ng
+        cl.state = 'inroomwait'
     _notify_playerchange(ng)
     evt_datachange.set()
 

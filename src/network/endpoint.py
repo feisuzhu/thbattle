@@ -41,7 +41,6 @@ class Endpoint(object):
         '''
         self.raw_write(self.encode(p))
 
-
     def close(self):
         if not self.link_state == 'disconnected':
             self.link_state = 'disconnected'

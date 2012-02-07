@@ -24,11 +24,10 @@ class Damage(GenericAction):
 
     def apply_action(self):
         target = self.target
-        pd = target.gamedata
-        pd.life -= self.amount
-        if pd.life <= 0:
+        target.life -= self.amount
+        if target.life <= 0:
             Game.getgame().emit_event('player_dead', target)
-            pd.dead = True
+            target.dead = True
         return True
 
 class Attack(BaseAction):
@@ -56,9 +55,9 @@ class Heal(BaseAction):
         self.amount = amount
 
     def apply_action(self):
-        gd = self.target.gamedata
-        if gd.life < gd.maxlife:
-            gd.life = min(gd.life + self.amount, gd.maxlife)
+        target = self.target
+        if target.life < target.maxlife:
+            target.life = min(target.life + self.amount, target.maxlife)
             return True
         else:
             return False
@@ -76,9 +75,9 @@ class DropCardIndex(GenericAction):
         card_indices = self.card_indices
         ci_sorted = sorted(card_indices, reverse=True)
 
-        cards = [target.gamedata.cards[i] for i in card_indices]
+        cards = [target.cards[i] for i in card_indices]
         for i in ci_sorted:
-            del target.gamedata.cards[i]
+            del target.cards[i]
 
         for p in g.players.exclude(target):
             cards = p.reveal(cards)
@@ -107,10 +106,10 @@ class ChooseCard(GenericAction):
             return False
 
         input.sort()
-        if input[0] < 0 or input[-1] >= len(target.gamedata.cards): # index out of range
+        if input[0] < 0 or input[-1] >= len(target.cards): # index out of range
             return False
 
-        cards = [target.gamedata.cards[i] for i in input]
+        cards = [target.cards[i] for i in input]
         for p in g.players.exclude(target):
             cards = p.reveal(cards)
 
@@ -153,8 +152,8 @@ class DropCardStage(GenericAction):
 
     def apply_action(self):
         target = self.target
-        life = target.gamedata.life
-        n = len(target.gamedata.cards) - life
+        life = target.life
+        n = len(target.cards) - life
         if n<=0:
             return True
         g = Game.getgame()
@@ -182,7 +181,7 @@ class DrawCards(GenericAction):
             cards = [HiddenCard] * self.amount
 
         cards = target.reveal(cards)
-        target.gamedata.cards.extend(cards)
+        target.cards.extend(cards)
         self.cards = cards
         return True
 
@@ -227,14 +226,14 @@ class ActionStage(GenericAction):
             if type(card_index) != int or type(object_index) != int:
                 break
 
-            n = len(target.gamedata.cards)
+            n = len(target.cards)
             if not 0 <= card_index < n:
                 break
 
             if not 0 <= object_index < len(g.players):
                 break
 
-            card = target.gamedata.cards[card_index]
+            card = target.cards[card_index]
             for p in g.players.exclude(target): # This looks WEIRD!
                 card = p.reveal(card)
 

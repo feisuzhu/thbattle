@@ -10,13 +10,18 @@ from utils import DataHolder
 import logging
 log = logging.getLogger('Game_Client')
 
-class TheChosenOne(Server, game.Player):
+class TheChosenOne(game.Player):
+    dropped = False
     nickname = 'TheChosenOne!' # FOR DEBUG
+    def __init__(self, server):
+        self.server = server
+        #self.nickname = server.nickname
+
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.
         g = Game.getgame()
         st = g.get_synctag()
-        raw_data = self.gexpect('object_sync_%d' % st)
+        raw_data = self.server.gexpect('object_sync_%d' % st)
         if isinstance(obj_list, (list, tuple)):
             revealed = [ol.__class__.parse(rd) for ol, rd in zip(obj_list, raw_data)]
         else:
@@ -42,15 +47,14 @@ class TheChosenOne(Server, game.Player):
         finally:
             g.emit_event('user_input_finish', input)
 
-        self.gwrite(['input_%s_%d' % (tag, st), rst.input])
+        self.server.gwrite(['input_%s_%d' % (tag, st), rst.input])
         return rst.input
 
 class PeerPlayer(game.Player):
-
+    dropped = False
     nickname = 'Youmu!' # FOR DEBUG
     def __init__(self, d):
         self.__dict__.update(d)
-        self.gamedata = DataHolder()
         game.Player.__init__(self)
 
     def reveal(self, obj_list):
@@ -67,7 +71,7 @@ class PeerPlayer(game.Player):
         input.player = self
         input.input = None
         g.emit_event('user_input_start', input)
-        input.input = g.me.gexpect('input_%s_%d' % (tag, st)) # HACK
+        input.input = g.me.server.gexpect('input_%s_%d' % (tag, st)) # HACK
         g.emit_event('user_input_finish', input)
         return input.input
 

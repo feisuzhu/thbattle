@@ -1,5 +1,3 @@
-SimpleGameUI: timeout indicator
-
 SimpleGame: use Deck to track cards(or any obj) ==>
     cards can only be created at Deck,
     Deck give each card an id, the id should sync
@@ -7,7 +5,7 @@ SimpleGame: use Deck to track cards(or any obj) ==>
 
     when revealing, use id to ensure the correctness.
     out of sync -> raise GameError
-
+    
 CommonUI:
 ARTWORKS!
 
@@ -16,6 +14,8 @@ user subsystem,
 error reporting subsystem
     * server auto restart
 auto upgrade subsystem
+
+make robust
 
 
 and finally, the game!
