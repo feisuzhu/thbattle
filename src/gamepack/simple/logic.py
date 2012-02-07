@@ -3,7 +3,7 @@ from game.autoenv import Game, EventHandler, Action, GameError, GameEnded
 from utils import BatchList
 import random
 from itertools import count, cycle
-from cards import Card, HiddenCard
+from cards import Card, Deck
 from actions import *
 
 import logging
@@ -25,6 +25,8 @@ class SimpleGame(Game):
             p.life = 4
             p.maxlife = 8
             p.dead = False
+
+        self.deck = Deck()
 
         self.emit_event('simplegame_begin', None)
 

@@ -19,7 +19,6 @@ class Player(game.Player):
         g = Game.getgame()
         st = g.get_synctag()
         self.client.gwrite(['object_sync_%d' % st, obj_list])
-        return obj_list
 
     def user_input(self, tag, attachment=None, timeout=25):
         g = Game.getgame()
@@ -58,7 +57,6 @@ class DroppedPlayer(Player):
 
     def reveal(self, obj_list):
         Game.getgame().get_synctag() # must sync
-        return obj_list
 
     def user_input(self, tag, attachment=None, timeout=25):
         g = Game.getgame()

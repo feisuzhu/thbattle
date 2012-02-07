@@ -1,11 +1,6 @@
-SimpleGame: use Deck to track cards(or any obj) ==>
-    cards can only be created at Deck,
-    Deck give each card an id, the id should sync
-    between server and clients.
+Game: user info !
+SimpleGameUI:text prompt
 
-    when revealing, use id to ensure the correctness.
-    out of sync -> raise GameError
-    
 CommonUI:
 ARTWORKS!
 

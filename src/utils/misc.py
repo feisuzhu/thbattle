@@ -27,11 +27,9 @@ class BatchList(list):
         if len(self) and hasattr(self[0], name):
             a = getattr(self[0], name)
             if type(a) in (types.FunctionType, types.MethodType):
-                def wrapper(*args, **kwargs):
-                    for p in self:
-                        f = getattr(p, name)
-                        f(*args, **kwargs)
-                return wrapper
+                return lambda *a, **k: BatchList(
+                    getattr(p, name)(*a, **k) for p in self
+                )
             else:
                 return BatchList(
                     getattr(i, name) for i in self

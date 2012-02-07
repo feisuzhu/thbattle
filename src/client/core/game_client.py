@@ -23,10 +23,10 @@ class TheChosenOne(game.Player):
         st = g.get_synctag()
         raw_data = self.server.gexpect('object_sync_%d' % st)
         if isinstance(obj_list, (list, tuple)):
-            revealed = [ol.__class__.parse(rd) for ol, rd in zip(obj_list, raw_data)]
+            for o, rd in zip(obj_list, raw_data):
+                o.sync(rd)
         else:
-            revealed = obj_list.__class__.parse(raw_data)
-        return revealed
+            obj_list.sync(raw_data) # it's single obj actually
 
     def user_input(self, tag, attachment=None, timeout=25):
         g = Game.getgame()
@@ -60,7 +60,6 @@ class PeerPlayer(game.Player):
     def reveal(self, obj_list):
         # Peer player, won't reveal.
         Game.getgame().get_synctag() # must sync
-        return obj_list
 
     def user_input(self, tag, attachement=None, timeout=25):
         # Peer player, get his input from server

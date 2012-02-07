@@ -79,8 +79,7 @@ class DropCardIndex(GenericAction):
         for i in ci_sorted:
             del target.cards[i]
 
-        for p in g.players.exclude(target):
-            cards = p.reveal(cards)
+        g.players.exclude(target).reveal(cards)
 
         self.cards = cards
         return True
@@ -110,8 +109,7 @@ class ChooseCard(GenericAction):
             return False
 
         cards = [target.cards[i] for i in input]
-        for p in g.players.exclude(target):
-            cards = p.reveal(cards)
+        g.players.exclude(target).reveal(cards)
 
         if self.cond(cards):
             self.card_indices = input
@@ -171,16 +169,12 @@ class DrawCards(GenericAction):
         self.amount = amount
 
     def apply_action(self):
-        from cards import Card, HiddenCard
         g = Game.getgame()
         target = self.target
-        if Game.SERVER_SIDE:
-            cards = [Card(random.choice(['attack','graze', 'heal'])) for i in xrange(self.amount)]
 
-        if Game.CLIENT_SIDE:
-            cards = [HiddenCard] * self.amount
+        cards = g.deck.drawcards(self.amount)
 
-        cards = target.reveal(cards)
+        target.reveal(cards)
         target.cards.extend(cards)
         self.cards = cards
         return True
@@ -234,8 +228,7 @@ class ActionStage(GenericAction):
                 break
 
             card = target.cards[card_index]
-            for p in g.players.exclude(target): # This looks WEIRD!
-                card = p.reveal(card)
+            g.players.exclude(target).reveal(card)
 
             object = g.players[object_index]
             g.process_action(LaunchCard(target, object, card, card_index))
