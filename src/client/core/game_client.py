@@ -12,7 +12,6 @@ log = logging.getLogger('Game_Client')
 
 class TheChosenOne(game.Player):
     dropped = False
-    nickname = 'TheChosenOne!' # FOR DEBUG
     def __init__(self, server):
         self.server = server
         #self.nickname = server.nickname
@@ -52,7 +51,6 @@ class TheChosenOne(game.Player):
 
 class PeerPlayer(game.Player):
     dropped = False
-    nickname = 'Youmu!' # FOR DEBUG
     def __init__(self, d):
         self.__dict__.update(d)
         game.Player.__init__(self)

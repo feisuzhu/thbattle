@@ -172,7 +172,6 @@ def start_game(g):
     for u in g.players.client:
         u.write(["game_started", None])
         u.state = 'ingame'
-        #u.__class__ = g.__class__.player_class
     evt_datachange.set()
 
 def end_game(g):

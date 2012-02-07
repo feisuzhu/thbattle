@@ -28,21 +28,22 @@ class GameManager(Greenlet):
 
         @handler(('inroom', 'ingame'), None)
         def player_change(self, data):
-            self.players = data
+            self.players_data = data
             if self.state == 'ingame':
                 for i, p in enumerate(data):
                     if p['id'] == -1:
-                        self.game.players[i].dropped = True
+                        self.game.players_data[i].dropped = True
             self.event_cb('player_change', data)
 
         @handler(('inroom'), 'ingame')
         def game_started(self, data):
             from client.core import PeerPlayer, TheChosenOne
-            pid = [i['id'] for i in self.players]
-            pl = [PeerPlayer(i) for i in self.players]
-            #self.server.__class__ = TheChosenOne # FIXME
+            pid = [i['id'] for i in self.players_data]
+            pl = [PeerPlayer(i) for i in self.players_data]
             me = self.game.player_class(self.server)
-            pl[pid.index(self.server_id)] = me
+            i = pid.index(self.server_id)
+            me.__dict__.update(self.players_data[i])
+            pl[i] = me
             self.game.me = me
             self.game.players = BatchList(pl)
             self.game.start()
