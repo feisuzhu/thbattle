@@ -1,5 +1,3 @@
-SimpleGameUI:text prompt
-
 CommonUI:
 ARTWORKS!
 
@@ -10,6 +8,5 @@ error reporting subsystem
 auto upgrade subsystem
 
 make robust
-
 
 and finally, the game!
