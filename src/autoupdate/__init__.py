@@ -44,16 +44,10 @@ def write_metadata(base):
     with open('current_version', 'w') as f:
         f.write(version_string(h))
 
-class _GeventAwareHTTPHandler(urllib2.AbstractHTTPHandler):
-    def http_open(self, req):
-        self.do_open(gevent.httplib.HTTPConnection, req)
-
-    http_request = urllib2.AbstractHTTPHandler.do_request_
-
 def do_update(base, url, cb=lambda *a, **k: False):
 
     try:
-        remote = urllib2.build_opener(urllib2.HTTPHandler)
+        remote = urllib2.build_opener()
         cb('update_begin')
 
         def worker(url):
@@ -111,7 +105,7 @@ def do_update(base, url, cb=lambda *a, **k: False):
                             os.makedirs(os.path.dirname(fn))
                         except OSError:
                             pass
-                        
+
                         with open(fn, 'wb') as f:
                             f.write(d)
                     except EnvironmentError:

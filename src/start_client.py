@@ -5,6 +5,9 @@ logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger('__main__')
 
+from gevent import monkey
+monkey.patch_all(thread=False, time=False)
+
 class MainThread(threading.Thread):
     def run(self):
         from utils import ITIHub; ITIHub.replace_default()
