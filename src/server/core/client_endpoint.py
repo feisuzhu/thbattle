@@ -116,6 +116,7 @@ class Client(Endpoint, Greenlet):
 
             except EndpointDied as e:
                 self.gdqueue.put(e)
+                break
 
             except Timeout:
                 self.heartbeat_cnt += 1
@@ -136,10 +137,11 @@ class Client(Endpoint, Greenlet):
         # client died, do clean ups
         if self.state not in('connected', 'hang'):
             hall.exit_game(self)
-        hall.user_disconnect(self)
+            
+        if self.state != 'connected':
+            hall.user_exit(self)
 
     def gread(self):
-        self.waiting_gamedata = True
         d = self.gdqueue.get()
         if isinstance(d, EndpointDied):
             raise d

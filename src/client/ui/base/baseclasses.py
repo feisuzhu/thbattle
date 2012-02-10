@@ -446,7 +446,7 @@ def init_gui():
     def _mainwindow_loop(dt):
         global msg_queue, msg_queue_lock, _redispatch
         Overlay.cur_overlay.do_draw(dt)
-        fps.draw()
+        #fps.draw()
         #main_window.flip()
         with msg_queue_lock:
             if msg_queue:

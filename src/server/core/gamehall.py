@@ -66,7 +66,7 @@ def new_user(user):
     user.state = 'hang'
     evt_datachange.set()
 
-def user_disconnect(user):
+def user_exit(user):
     del users[id(user)]
     evt_datachange.set()
 
@@ -204,8 +204,8 @@ def chat(user, msg):
             if u.state == 'hang':
                 u.write(['chat_msg', [user.nickname, msg]])
     elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
-        users = user.current_game.players.client
-        users.write(['chat_msg', [user.nickname, msg]])
+        ul = user.current_game.players.client
+        ul.write(['chat_msg', [user.nickname, msg]])
 
 def genfunc(_type):
     def _msg(user, msg):
