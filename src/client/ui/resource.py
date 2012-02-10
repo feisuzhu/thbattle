@@ -17,11 +17,16 @@ class ResLoader(pyglet.resource.Loader):
 
     def __enter__(self):
         tb = self.texbin
+        ldr = self
+
         def img(fn):
             f = self.file(fn)
             i = pyglet.image.load(fn, file=f)
             f.close()
-            return tb.add(i)
+            return i
+
+        def tx(fn):
+            return tb.add(img(fn))
 
         def anim(fn, durlist, loop=False):
             f = self.file(fn)
@@ -43,16 +48,21 @@ class ResLoader(pyglet.resource.Loader):
             a.add_to_texture_bin(tb)
             return a
 
-        return self, img, anim
+        return locals()
 
     def __exit__(self, *exc_args):
         pass
 
-with ResLoader(__file__) as (ldr, img, anim):
-    card_shinesoft = img('shinesoft.tga')
-    card_hidden = img('card_hidden.tga')
-    char_portrait = img('char_portrait.tga')
-    ray = img('ray.tga')
+with ResLoader(__file__) as args:
+    locals().update(args)
+
+    bg_login = tx('bg_login.png')
+    bg_gamehall = tx('bg_gamehall.png')
+
+    card_shinesoft = tx('shinesoft.tga')
+    card_hidden = tx('card_hidden.tga')
+    char_portrait = tx('char_portrait.tga')
+    ray = tx('ray.tga')
 
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)
@@ -65,6 +75,12 @@ with ResLoader(__file__) as (ldr, img, anim):
     pbar = DataHolder()
     for fn in itertools.product(['b', 'bf', 's', 'sf'], ['l', 'm', 'r']):
         fn = ''.join(fn)
-        setattr(pbar, fn, img(os.path.join('pbar', fn + '.tga')))
-        
-    del ldr, img, anim
+        setattr(pbar, fn, tx(os.path.join('pbar', fn + '.tga')))
+
+    border = [
+        i.get_texture() for i in
+        pyglet.image.ImageGrid(img('border.png'), 1, 9)
+    ]
+
+    for k in args.keys(): del locals()[k]
+    del args

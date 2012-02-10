@@ -4,12 +4,21 @@ from pyglet.gl import *
 from client.ui.base import *
 from client.ui.base import message as ui_message
 from client.ui.controls import *
+from client.ui import ui_utils
+import  client.ui.resource as common_res
 from client.core import Executive
 from pyglet.text import Label
 from utils import Rect, rect_to_dict as r2d
 
 import logging
 log = logging.getLogger('UI_Screens')
+
+class _NotImplControl(Control):
+    def draw(self, dt):
+        glColor3f(1, 1, 1)
+        ui_utils.border(
+            0, 0, self.width, self.height
+        )
 
 class LoadingScreen(Overlay):
 
@@ -55,16 +64,19 @@ class LoginScreen(Overlay):
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
         self.batch = pyglet.graphics.Batch()
+        self.bg = common_res.bg_login
+        self.bg_alpha = LinearInterp(0, 1.0, 1.5)
         self.title = Label(text='GENSOUKILL',
                     font_size=60,color=(0,0,0,255),
                     x=272, y=475,
                     batch=self.batch)
+        '''
         r = Rect(350, 165, 325, 160)
         self.batch.add(
             5, GL_LINE_STRIP, None,
             ('v2i', r.glLineStripVertices()),
             ('c3f', [0.0, 0.0, 0.0] * 5)
-        )
+        )'''
         Label(text=u'用户名：', font_size=12,color=(0,0,0,255),
                             x=368, y=284,
                             anchor_x='left', anchor_y='bottom',
@@ -73,8 +85,8 @@ class LoginScreen(Overlay):
                             x=368, y=246,
                             anchor_x='left', anchor_y='bottom',
                             batch=self.batch)
-        self.txt_username = TextBox(parent=self, x=438, y=282, width=220, text='youmu')
-        self.txt_pwd = TextBox(parent=self, x=438, y=246, width=220, text='password')
+        self.txt_username = TextBox(parent=self, x=438, y=282, width=220, height=25, text='youmu')
+        self.txt_pwd = TextBox(parent=self, x=438, y=246, width=220, height=25, text='password')
         self.btn_login = Button(parent=self, caption=u'进入幻想乡', x=378, y=182, width=127, height=48)
         self.btn_exit = Button(parent=self, caption=u'回到现世', x=520, y=182, width=127, height=48)
 
@@ -98,12 +110,16 @@ class LoginScreen(Overlay):
     def draw(self, dt):
         glClearColor(1.0, 1.0, 1.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
+        glColor4f(1, 1, 1, self.bg_alpha.value)
+        self.bg.blit(0, 0)
+        ui_utils.border(350, 165, 325, 160)
         self.batch.draw()
         self.draw_subcontrols(dt)
 
 class GameHallScreen(Overlay):
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
+        self.bg = common_res.bg_gamehall
         gl = self.gamelist = ListView(parent=self, x=35, y=240, width=700, height=400)
         gl.set_columns([
             ('game_no', 80),
@@ -114,8 +130,8 @@ class GameHallScreen(Overlay):
         ])
         chat = self.chat_box = TextArea(parent=self, x=35, y=50, width=700, height=150)
         chat.text = u'您现在处于游戏大厅！\n'
-        self.playerlist = Control(parent=self, x=750, y=220, width=240, height=420)
-        self.userinfo_box = Control(parent=self, x=750, y=20, width=240, height=180)
+        self.playerlist = _NotImplControl(parent=self, x=750, y=220, width=240, height=420)
+        self.userinfo_box = _NotImplControl(parent=self, x=750, y=20, width=240, height=180)
         self.chat_input = TextBox(parent=self, x=35, y=20, width=700, height=25)
 
         self.btn_create = Button(parent=self, caption=u'创建游戏', x=35, y=220, width=100, height=28)
@@ -174,6 +190,11 @@ class GameHallScreen(Overlay):
             log.error('GameHall Error: %s' % args[0]) # TODO
         else:
             Overlay.on_message(self, _type, *args)
+
+    def draw(self, dt):
+        glColor3f(1, 1, 1)
+        self.bg.blit(0, 0)
+        self.draw_subcontrols(dt)
 
 class GameScreen(Overlay):
     class RoomControlPanel(Control):

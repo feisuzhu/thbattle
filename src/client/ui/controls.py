@@ -5,7 +5,7 @@ from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import Control
 from client.ui.base.interp import *
-from client.ui import resource as common_res
+from client.ui import resource as common_res, ui_utils
 from utils import Rect, ScissorBox
 
 from math import ceil
@@ -201,7 +201,7 @@ class TextBox(Control):
             self.document, width-1, font_height, multiline=False,
         )
         l.anchor_x, l.anchor_y = 'left', 'center'
-        l.x, l.y = 1, height // 2 + 1
+        l.x, l.y = 4, height // 2 + 1
         self.caret = pyglet.text.caret.Caret(self.layout)
 
         self.set_handlers(self.caret)
@@ -221,13 +221,15 @@ class TextBox(Control):
     text = property(_gettext, _settext)
 
     def draw(self, dt):
+        '''
         glPushAttrib(GL_POLYGON_BIT)
         glColor3f(1.0, 1.0, 1.0)
         glRecti(0, 0, self.width, self.height)
         glColor3f(0.0, 0.0, 0.0)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glRecti(0, 0, self.width, self.height)
-        glPopAttrib()
+        glPopAttrib()'''
+        ui_utils.border(0, 0, self.width, self.height)
         self.layout.draw()
 
     def on_focus(self):
@@ -352,10 +354,10 @@ class TextArea(Control):
         )
 
         self.layout = pyglet.text.layout.IncrementalTextLayout(
-            self.document, width-2, height-2, multiline=True)
+            self.document, width-8, height-8, multiline=True)
 
-        self.layout.x = 1
-        self.layout.y = 1
+        self.layout.x = 4
+        self.layout.y = 4
 
         self._text = u''
 
@@ -432,13 +434,15 @@ class TextArea(Control):
     text = property(_gettext, _settext)
 
     def draw(self, dt):
+        '''
         glPushAttrib(GL_POLYGON_BIT)
         glColor3f(1.0, 1.0, 1.0)
         glRecti(0, 0, self.width, self.height)
         glColor3f(0.0, 0.0, 0.0)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glRecti(0, 0, self.width, self.height)
-        glPopAttrib()
+        glPopAttrib()'''
+        ui_utils.border(0, 0, self.width, self.height)
         self.layout.draw()
 
     def on_mouse_scroll(self, x, y, dx, dy):
@@ -643,10 +647,10 @@ class ListItem(object):
             anchor_x='left', anchor_y = 'bottom', color=(0,0,0,255),
         )
 
-    def draw(self, bx, by):
+    def draw(self, bx, by, w):
         p = self.parent
         lh = p.line_height
-        w = p.width
+        #w = p.width
         glColor3f(1,1,1)
         glRectf(bx, by, bx+w, by+lh)
         glColor3f(0,0,0)
@@ -673,10 +677,10 @@ class ListHeader(object):
     def __init__(self, p):
         self.parent = p
 
-    def draw(self, x, y):
+    def draw(self, x, y, w):
         p = self.parent
         glColor3f(0, 1, 1)
-        glRectf(x, y, x+p.width, y+p.header_height)
+        glRectf(x, y, x+w, y+p.header_height)
 
 class ListView(Control):
     li_class = ListItem
@@ -731,10 +735,12 @@ class ListView(Control):
     view_y = property(_get_view_y, _set_view_y)
 
     def draw(self, dt):
+        ui_utils.border(0, 0, self.width, self.height)
+
         hh = self.header_height
-        w, h = self.width, self.height - hh
+        w, h = self.width - 16, self.height - hh - 16
         lh, vy = self.line_height, self.view_y
-        self.header.draw(0, h)
+        self.header.draw(8, h, w)
 
         with ScissorBox(self, 0, 0, w+2, h+2) as sb:
             # GUIDO Y U REJECT PEP377 !!
@@ -743,7 +749,7 @@ class ListView(Control):
             nskip = int(max(1.0 * vy / lh, 0))
             ndisp = int(ceil(1.0 * (y - nskip * lh) / lh))
             for i in xrange(nskip, min(nskip + ndisp, len(self.items))):
-                self.items[i].draw(0, y - (i+1)*lh)
+                self.items[i].draw(8, y + 8 - (i+1)*lh, w)
 
     def on_mouse_scroll(self, x, y, dx, dy):
         self.view_y -= dy * 40
