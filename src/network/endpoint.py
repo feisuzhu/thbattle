@@ -55,7 +55,7 @@ class Endpoint(object):
         while True:
             with Timeout(timeout, None):
                 try:
-                    s = f.readline(1000)
+                    s = f.readline(10000)
                     if s == '':
                         self.close()
                         raise EndpointDied()

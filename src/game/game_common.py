@@ -49,13 +49,7 @@ class Action(object):
         self.cancelled = cancel
 
 class Player(object):
-
-    def __data__(self):
-        d = User.__data__(self)
-        d.update(
-            dummy='dummy',
-        )
-        return d
+    pass
 
 class Game(object):
     '''
@@ -96,6 +90,10 @@ class Game(object):
             data = evt.handle(evt_type, data)
         return data
 
+    @staticmethod
+    def getgame():
+        raise GameError('Abstract')
+
     def process_action(self, action):
         '''
         Process an action
@@ -125,3 +123,9 @@ class Game(object):
             return rst
         else:
             return False
+
+    def get_playerid(self, p):
+        return self.players.index(self)
+
+    def player_fromid(pid):
+        return self.players[pid]

@@ -1,3 +1,4 @@
+import gevent
 from gevent import Greenlet, Timeout
 from gevent.queue import Queue
 import gamehall as hall
@@ -37,7 +38,7 @@ class Client(Endpoint, Greenlet):
         def auth(self, cred):
             name, password = cred
             if password == 'password':
-                self.write(['auth_result', id(self)])
+                self.write(['auth_result', self.get_userid()])
                 self.username = name
                 self.nickname = name
                 hall.new_user(self)
@@ -137,13 +138,23 @@ class Client(Endpoint, Greenlet):
         # client died, do clean ups
         if self.state not in('connected', 'hang'):
             hall.exit_game(self)
-            
+
         if self.state != 'connected':
             hall.user_exit(self)
 
     def gread(self):
         d = self.gdqueue.get()
         if isinstance(d, EndpointDied):
+            # HACK:
+            # If the last player is in input state,
+            # and exit now, game greenlet will
+            # get this exception first,
+            # continue to run.
+            # This is not expected since gamehall
+            # will have already called 'game.kill()'
+            # So give up CPU here to make the
+            # scheduled GreenletExit exception raises.
+            gevent.sleep(0.01)
             raise d
         return d
 
@@ -153,6 +164,9 @@ class Client(Endpoint, Greenlet):
             if d[0] in (tag, self.BREAK_TAG):
                 return d[1]
            #else: drop
+
+    def get_userid(self):
+        return id(self)
 
     def gwrite(self, data):
         self.write(['gamedata', data])

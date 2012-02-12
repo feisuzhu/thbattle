@@ -1,6 +1,5 @@
-from game.autoenv import Game, EventHandler, Action, GameError, GameEnded
+from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList
 
-from utils import BatchList
 import random
 from itertools import count, cycle
 from cards import Card, Deck

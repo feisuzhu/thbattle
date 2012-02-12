@@ -198,7 +198,7 @@ class TextBox(Control):
             height = self.height
 
         l = self.layout = pyglet.text.layout.IncrementalTextLayout(
-            self.document, width-1, font_height, multiline=False,
+            self.document, width-9, font_height, multiline=False,
         )
         l.anchor_x, l.anchor_y = 'left', 'center'
         l.x, l.y = 4, height // 2 + 1

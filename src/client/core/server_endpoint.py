@@ -8,13 +8,14 @@ import sys
 log = logging.getLogger("Server")
 
 class Server(Endpoint, Greenlet):
-    
+
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
         self.gdqueue = Queue(100)
         self.read_timeout = 120
         self.ctlcmds = []
+        self.userid = 0
         e = Event()
         e.clear()
         self.ctlcmds_event = e
@@ -32,7 +33,7 @@ class Server(Endpoint, Greenlet):
 
         except Timeout:
             self.close()
-       
+
     def _gamedata(self, data):
         if not self.gdqueue.full():
             self.gdqueue.put(data)
@@ -46,19 +47,7 @@ class Server(Endpoint, Greenlet):
             if d[0] == tag:
                 return d[1]
            #else: drop
-    
-    '''
-    # enable it when needed, since it's just a thought
-    def gexpect_with_tle(self, tag):
-        while True:
-            d = self.gread()
-            if d[0] == 'client_tle':
-                import game.TimeLimitExceeded
-                raise game.TimeLimitExceeded
-            if d[0] == tag:
-                return d[1]
-           #else: drop
-    '''
+
     def gwrite(self, data):
         self.write(['gamedata', data])
 

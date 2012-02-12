@@ -192,9 +192,12 @@ class GameHallScreen(Overlay):
             Overlay.on_message(self, _type, *args)
 
     def draw(self, dt):
-        glColor3f(1, 1, 1)
+        glColor3f(.9, .9, .9)
+        #glColor3f(1,1,1)
         self.bg.blit(0, 0)
         self.draw_subcontrols(dt)
+        #glColor4f(0,0,0,.2)
+        #glRectf(0, 0, self.width, self.height)
 
 class GameScreen(Overlay):
     class RoomControlPanel(Control):

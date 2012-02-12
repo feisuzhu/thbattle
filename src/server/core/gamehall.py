@@ -2,7 +2,6 @@ import gevent
 from gevent import Greenlet
 from gevent.event import Event
 from gevent.queue import Queue
-from utils import BatchList
 from time import time
 
 import logging
@@ -21,7 +20,7 @@ User state machine:
         --->[[Disconnect]]<-------------------------
 '''
 
-games = {} # all games
+games = {} # all games FIXME: use set here!
 users = {} # all users
 evt_datachange = Event()
 
@@ -62,12 +61,12 @@ class PlayerPlaceHolder(object):
 PlayerPlaceHolder = PlayerPlaceHolder()
 
 def new_user(user):
-    users[id(user)] = user
+    users[user.get_userid()] = user
     user.state = 'hang'
     evt_datachange.set()
 
 def user_exit(user):
-    del users[id(user)]
+    del users[user.get_userid()]
     evt_datachange.set()
 
 def _notify_playerchange(game):
@@ -84,13 +83,14 @@ def _next_free_slot(game):
 
 def create_game(user, gametype, gamename):
     from gamepack import gamemodes
+    from game_server import PlayerList
     if not gametype in gamemodes:
         user.write(['gamehall_error', 'gametype_not_exist'])
         return
     g = gamemodes[gametype]()
     g.game_started = False
     g.game_name = gamename
-    g.players = BatchList([PlayerPlaceHolder] * g.n_persons)
+    g.players = PlayerList([PlayerPlaceHolder] * g.n_persons)
     games[id(g)] = g
     log.info("create game")
     evt_datachange.set()
@@ -175,7 +175,7 @@ def start_game(g):
     evt_datachange.set()
 
 def end_game(g):
-    from game_server import DroppedPlayer
+    from game_server import DroppedPlayer, PlayerList
 
     log.info("end game")
     pl = g.players
@@ -184,7 +184,7 @@ def end_game(g):
             pl[i] = PlayerPlaceHolder
     del games[id(g)]
     ng = create_game(None, g.__class__.__name__, g.game_name)
-    ng.players = BatchList(
+    ng.players = PlayerList(
         g.player_class(p.client)
         if p is not PlayerPlaceHolder
         else PlayerPlaceHolder

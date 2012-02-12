@@ -62,10 +62,12 @@ with ResLoader(__file__) as args:
     card_shinesoft = tx('shinesoft.tga')
     card_hidden = tx('card_hidden.tga')
     char_portrait = tx('char_portrait.tga')
-    ray = tx('ray.tga')
+
 
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)
+
+    ray = tx('ray.tga')
 
     hurt = anim('hurt.png', [50, 50, 50, 50, 200, 30, 30, 30, 30, 2000])
 

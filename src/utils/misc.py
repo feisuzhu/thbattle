@@ -24,24 +24,30 @@ class DataHolder(object):
 
 class BatchList(list):
     def __getattribute__(self, name):
-        if len(self) and hasattr(self[0], name):
+        cls = list.__getattribute__(self, '__class__')
+
+        try:
+            list_attr = list.__getattribute__(self, name)
+            return list_attr
+        except AttributeError:
+            pass
+
+        if len(self):
             a = getattr(self[0], name)
             if type(a) in (types.FunctionType, types.MethodType):
-                return lambda *a, **k: BatchList(
+                return lambda *a, **k: cls(
                     getattr(p, name)(*a, **k) for p in self
                 )
             else:
-                return BatchList(
+                return cls(
                     getattr(i, name) for i in self
                 )
-        return list.__getattribute__(self, name)
 
     def exclude(self, elem):
-        return BatchList(
+        cls = list.__getattribute__(self, '__class__')
+        return cls(
             p for p in self if p is not elem
         )
-
-    #def gexpect_any(self, _): pass
 
 class IRP(object):
     '''I/O Request Packet'''

@@ -1,9 +1,9 @@
 def init(place):
-    global Game, EventHandler, Action, GameError, GameEnded
     if place == 'Server':
-        from server.core import Game, EventHandler, Action
+        from server.core import Game, EventHandler, Action, PlayerList
     elif place == 'Client':
-        from client.core import Game, EventHandler, Action
+        from client.core import Game, EventHandler, Action, PlayerList
     else:
         raise Exception('Where am I?')
     from game_common import GameError, GameEnded
+    globals().update(locals())

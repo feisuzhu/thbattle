@@ -9,7 +9,7 @@ import pyglet
 from pyglet.gl import *
 
 from client.ui.base import *
-from client.ui.controls_extra import *
+from client.ui.controls import *
 
 class Layouter(Control):
     def __init__(self, *args, **kwargs):

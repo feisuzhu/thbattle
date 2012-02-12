@@ -459,7 +459,7 @@ def init_gui():
                         _redispatch = False
                         Overlay.cur_overlay.dispatch_message(m)
                 msg_queue = []
-    pyglet.clock.schedule_interval(_mainwindow_loop, 1/60.0)
+    pyglet.clock.schedule_interval(_mainwindow_loop, 1/30.0)
 
 def message(*args):
     '''

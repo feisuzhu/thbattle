@@ -4,23 +4,25 @@ from gevent.queue import Queue
 import game
 from game import GameError, EventHandler, Action, TimeLimitExceeded
 from server_endpoint import Server
+from executive import Executive
 
-from utils import DataHolder
+from utils import DataHolder, BatchList
 
 import logging
 log = logging.getLogger('Game_Client')
 
 class TheChosenOne(game.Player):
     dropped = False
-    def __init__(self, server):
-        self.server = server
-        #self.nickname = server.nickname
+    #def __init__(self):
+    #    pass
+    #    # self.server = server
+    #    # self.nickname = server.nickname
 
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.
         g = Game.getgame()
         st = g.get_synctag()
-        raw_data = self.server.gexpect('object_sync_%d' % st)
+        raw_data = Executive.server.gexpect('object_sync_%d' % st)
         if isinstance(obj_list, (list, tuple)):
             for o, rd in zip(obj_list, raw_data):
                 o.sync(rd)
@@ -46,8 +48,51 @@ class TheChosenOne(game.Player):
         finally:
             g.emit_event('user_input_finish', input)
 
-        self.server.gwrite(['input_%s_%d' % (tag, st), rst.input])
+        Executive.server.gwrite(['input_%s_%d' % (tag, st), rst.input])
         return rst.input
+
+class PlayerList(BatchList):
+    def user_input_any(self, tag, expects, attachment=None, timeout=25):
+        g = Game.getgame()
+        st = g.get_synctag()
+        tagstr = 'inputany_%s_%d' % (tag, st)
+
+        input = DataHolder()
+        input.tag = tag
+        input.input = None
+        input.attachment = attachment
+        input.timeout = timeout
+        input.player = g.me
+
+        Break = Exception('Input: you are too late!')
+
+        def waiter_func():
+            pid, data = Executive.server.gexpect(tagstr + '_resp')
+            self.kill(Break)
+            return pid, data
+
+        try:
+            waiter = gevent.spawn(waiter_func)
+            with gevent.Timeout(timeout):
+                g.emit_event('user_input_start', input)
+                rst = g.emit_event('user_input', input)
+        except (Break, gevent.Timeout):
+            g.emit_event('user_input_timeout', input)
+            rst = input
+            rst.input = None
+        finally:
+            g.emit_event('user_input_finish', input)
+
+        Executive.server.gwrite([tagstr, rst.input])
+
+        try: waiter.join()
+        except Break: pass
+
+        pid, data = waiter.get()
+
+        p = g.player_fromid(pid)
+
+        return p, data
 
 class PeerPlayer(game.Player):
     dropped = False
@@ -68,7 +113,7 @@ class PeerPlayer(game.Player):
         input.player = self
         input.input = None
         g.emit_event('user_input_start', input)
-        input.input = g.me.server.gexpect('input_%s_%d' % (tag, st)) # HACK
+        input.input = Executive.server.gexpect('input_%s_%d' % (tag, st))
         g.emit_event('user_input_finish', input)
         return input.input
 
@@ -94,13 +139,12 @@ class Game(Greenlet, game.Game):
         self.players = []
 
     def _run(self):
-        getcurrent().game = self
         self.synctag = 0
         self.game_start()
 
     @staticmethod
     def getgame():
-        return getcurrent().game
+        return getcurrent()
 
     def get_synctag(self):
         self.synctag += 1

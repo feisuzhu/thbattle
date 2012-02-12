@@ -1,4 +1,3 @@
-from utils import BatchList
 from server_endpoint import Server
 import sys
 import gevent
@@ -13,9 +12,8 @@ class GameManager(Greenlet):
     '''
     Handles server messages, all game related operations.
     '''
-    def __init__(self, server):
+    def __init__(self):
         Greenlet.__init__(self)
-        self.server = server
         self.state = 'connected'
 
     def _run(self):
@@ -32,20 +30,20 @@ class GameManager(Greenlet):
             if self.state == 'ingame':
                 for i, p in enumerate(data):
                     if p['id'] == -1:
-                        self.game.players_data[i].dropped = True
+                        self.game.players[i].dropped = True
             self.event_cb('player_change', data)
 
         @handler(('inroom'), 'ingame')
         def game_started(self, data):
-            from client.core import PeerPlayer, TheChosenOne
+            from client.core import PeerPlayer, TheChosenOne, PlayerList
             pid = [i['id'] for i in self.players_data]
             pl = [PeerPlayer(i) for i in self.players_data]
-            me = self.game.player_class(self.server)
-            i = pid.index(self.server_id)
+            me = self.game.player_class() # FIXME: this is weird
+            i = pid.index(self.userid)
             me.__dict__.update(self.players_data[i])
             pl[i] = me
             self.game.me = me
-            self.game.players = BatchList(pl)
+            self.game.players = PlayerList(pl)
             self.game.start()
             self.event_cb('game_started', self.game)
 
@@ -71,17 +69,17 @@ class GameManager(Greenlet):
             self.event_cb('end_game')
 
         @handler(('connected'), None)
-        def auth_result(self, server_id):
-            if server_id > 0:
-                self.event_cb('auth_success', server_id)
-                self.server_id = server_id
+        def auth_result(self, userid):
+            if userid > 0:
+                self.event_cb('auth_success', userid)
+                self.userid = userid
                 self.state = 'hang'
             else:
                 self.event_cb('auth_failure')
 
         @handler(None, None)
         def heartbeat(self, _):
-            self.server.write(['heartbeat', None])
+            Executive.server.write(['heartbeat', None])
 
         def forwarder(_type):
             def _forwarder(self, data):
@@ -102,7 +100,7 @@ class GameManager(Greenlet):
             hnn(forwarder(_type))
 
         while True:
-            cmd, data = self.server.ctlexpect(handlers.keys())
+            cmd, data = Executive.server.ctlexpect(handlers.keys())
             f, _from, _to = handlers.get(cmd)
             if _from: assert self.state in _from
             if f: f(self, data)
@@ -150,7 +148,7 @@ class Executive(object):
                 svr = Server.spawn(s, 'TheChosenOne')
                 self.server = svr
                 self.state = 'connected'
-                self.gm_greenlet = GameManager(self.server)
+                self.gm_greenlet = GameManager()
                 self.gm_greenlet.start()
                 self.gm_greenlet.event_cb = event_cb
                 cb('server_connected', svr)
