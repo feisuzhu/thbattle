@@ -48,7 +48,7 @@ class Action(object):
     def cancel(self, cancel=True):
         self.cancelled = cancel
 
-class Player(object):
+class AbstractPlayer(object):
     pass
 
 class Game(object):
@@ -102,11 +102,12 @@ class Game(object):
             action.set_up()
             action = self.emit_event('action_before', action)
             if not action.cancelled and action.can_fire():
-                log.info('applying action %s, src=%d, dst=%d' % (
-                    action.__class__.__name__,
-                    self.players.index(action.source) if hasattr(action, 'source') else -1,
-                    self.players.index(action.target),
-                ))
+                log.info('applying action %s' % action.__class__.__name__)
+                    #, src=%d, dst=%d' % (
+                    #action.__class__.__name__,
+                    #self.players.index(action.source) if hasattr(action, 'source') else -1,
+                    #self.players.index(action.target),
+                #))
                 action = self.emit_event('action_apply', action)
 
                 rst = action.apply_action()
@@ -125,7 +126,13 @@ class Game(object):
             return False
 
     def get_playerid(self, p):
-        return self.players.index(self)
+        try:
+            return self.players.index(self)
+        except ValueError:
+            return None
 
-    def player_fromid(pid):
-        return self.players[pid]
+    def player_fromid(self, pid):
+        try:
+            return self.players[pid]
+        except IndexError:
+            return None

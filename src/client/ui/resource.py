@@ -77,7 +77,7 @@ with ResLoader(__file__) as args:
     pbar = DataHolder()
     for fn in itertools.product(['b', 'bf', 's', 'sf'], ['l', 'm', 'r']):
         fn = ''.join(fn)
-        setattr(pbar, fn, tx(os.path.join('pbar', fn + '.tga')))
+        setattr(pbar, fn, tx('pbar/%s.tga' % fn))
 
     border = [
         i.get_texture() for i in

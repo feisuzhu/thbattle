@@ -14,6 +14,8 @@ from gamepack.simple.actions import *
 from functools import partial
 from collections import defaultdict as ddict
 
+from utils import BatchList
+
 import logging
 log = logging.getLogger('SimpleGameUI_Effects')
 
@@ -35,11 +37,13 @@ def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
         cards = act.cards
         hca = self.handcard_area
         ax, ay = hca.abs_coords()
-        csl = [CardSprite(
+        for c in cards:
+            cs = CardSprite(
                 parent=hca, x=410-ax, y=300-ay,
                 img = card_img.get(c.type),
-        ) for c in cards]
-        self.handcard_area.add_cards(csl)
+            )
+            cs.associated_card = c
+        hca.update()
     else: # FIXME: not exactly the effect
         p = self.player2portrait(act.target)
         x, y = p.x + p.width/2, p.y + p.height/2
@@ -71,17 +75,18 @@ def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
 
 def drop_cards_effect(gray, self, act):
     if act.target is self.game.me:
-        csl = self.handcard_area.get_cards(act.card_indices)
-        csl.reverse()
-        for c in csl:
-            c.migrate_to(self.dropcard_area)
-            c.gray = gray
-        self.dropcard_area.add_cards(csl)
+        csl = self.handcard_area.cards
+        cards = act.cards
+        for cs in csl[:]:
+            if cs.associated_card in cards:
+                cs.migrate_to(self.dropcard_area)
+                cs.gray = gray
+        self.dropcard_area.update()
+        self.handcard_area.update()
     else:
         p = self.player2portrait(act.target)
         x, y = p.x + p.width/2, p.y + p.height/2
         shift = (len(act.cards)+1)*CardSprite.width/2
-        csl = []
         for i, card in enumerate(act.cards):
             cs = CardSprite(
                 parent=self, x=x-shift+i*CardSprite.width/2,
@@ -89,8 +94,7 @@ def drop_cards_effect(gray, self, act):
             )
             cs.gray = gray
             cs.migrate_to(self.dropcard_area)
-            csl.append(cs)
-        self.dropcard_area.add_cards(csl)
+        self.dropcard_area.update()
 
 drop_cards_gray_effect = partial(drop_cards_effect, True)
 drop_cards_normal_effect = partial(drop_cards_effect, False)
@@ -112,9 +116,9 @@ def heal_effect(self, act):
         self.prompt(u'%s回复了%d点体力' % (t.nickname, act.amount))
 
 def launch_effect(self, act):
-    s, t = act.source, act.target
-    self.ray(s, t)
-    self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, t.nickname, act.card.name))
+    s, tl = act.source, BatchList(act.target_list)
+    for t in tl: self.ray(s, t)
+    self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, u'、'.join(tl.nickname), act.card.name))
 
 def graze_effect(self, act):
     if not act.succeeded: return
@@ -128,7 +132,7 @@ mapping_actions = ddict(dict, {
     'after': {
         DrawCards: draw_cards_effect,
         DrawCardStage: draw_cards_effect,
-        DropCardIndex: drop_cards_gray_effect,
+        DropCards: drop_cards_gray_effect,
         DropUsedCard: drop_cards_normal_effect,
         Damage: damage_effect,
         Heal: heal_effect,
@@ -193,7 +197,7 @@ def player_turn_effect(self, p):
         )
     self.turn_frame.position = (port.x - 6, port.y - 4)
 
-mapping_events = ddict(str, {
+mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),
     'action_apply': partial(action_effects, 'apply'),
     'action_after': partial(action_effects, 'after'),

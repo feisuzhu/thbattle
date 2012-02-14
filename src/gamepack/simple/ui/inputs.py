@@ -70,8 +70,12 @@ class UIChoose1CardAnd1Char(InputController):
         def on_click():
             irp = self.irp
             try:
-                ci = parent.handcard_area.selected.index(True)
-                irp.input = [ci, self.input_player]
+                cid = None
+                for cs in parent.handcard_area.cards:
+                    if cs.hca_selected:
+                        cid = cs.associated_card.syncid
+                        break
+                irp.input = [cid, [self.input_player]]
             except ValueError:
                 irp.input = None
             irp.complete()
@@ -110,8 +114,12 @@ class UIChooseCards(InputController):
         @self.btn_ok.event
         def on_click():
             irp = self.irp
-            card_indices = [i for i, c in enumerate(parent.handcard_area.selected) if c]
-            irp.input = card_indices
+            cid_list = [
+                cs.associated_card.syncid
+                for cs in parent.handcard_area.cards
+                if cs.hca_selected
+            ]
+            irp.input = cid_list
             irp.complete()
             _cleanup()
 

@@ -487,92 +487,74 @@ class HandCardArea(Control):
     def __init__(self, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 93*5+42, 145
-        self.cards = []
-        self.selected = []
 
     def draw(self, dt):
         glColor4f(1,1,1,1)
         self.draw_subcontrols(dt)
 
-    def _update(self):
-        n = len(self.cards)
+    def update(self):
+        n = len(self.control_list)
         width = min(5*93.0+42, n*93.0)
         step = (width - 91)/(n-1) if n > 1 else 0
-        for i, c in enumerate(self.cards):
+        for i, c in enumerate(self.control_list):
             c.zindex = i
-            sel = self.selected[i]
+            try:
+                sel = c.hca_selected
+            except AttributeError:
+                sel = c.hca_selected = False
             c.x = SineInterp(c.x, 2 + int(step * i), 0.3)
             c.y = SineInterp(c.y, 20 if sel else 0, 0.3)
-
-    def add_cards(self, clist):
-        self.cards.extend(clist)
-        self.selected.extend([False] * len(clist))
-        self._update()
-
-    def get_cards(self, indices, control=None):
-        indices = sorted(indices, reverse=True)
-        cl = [self.cards[i] for i in indices]
-        for i in indices:
-            del self.cards[i]
-        self.selected = [False] * len(self.cards)
-        self._update()
-        return cl
 
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
         if c:
-            try:
-                i = self.cards.index(c)
-            except:
-                return
-            self.selected[i] = not self.selected[i]
-            c.y = SineInterp(c.y, 20 if self.selected[i] else 0, 0.1)
+            s = c.hca_selected = not c.hca_selected
+            c.y = SineInterp(c.y, 20 if s else 0, 0.1)
+            self.dispatch_event('on_selection_change')
+
+    cards = property(
+        lambda self: self.control_list,
+        lambda self, x: setattr(self, 'control_list', x)
+    )
+
+HandCardArea.register_event_type('on_selection_change')
 
 class DropCardArea(Control):
     width, height = 820, 125
     def __init__(self, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 820, 125
-        self.cards = []
-        self.need_update = True
 
     def draw(self, dt):
-        if self.need_update:
-            self.need_update = False
-            for c in self.control_list[:]:
-                tbl = dict(zip(self.cards, [True]*len(self.cards)))
-                if not tbl.get(c):
-                    c.delete()
-            self._update()
         glColor4f(1,1,1,1)
         self.draw_subcontrols(dt)
 
-    def _update(self):
-        n = len(self.cards)
+    def update(self):
+        for cs in self.control_list:
+            try:
+                if cs.dca_tag:
+                    continue
+            except AttributeError:
+                pass
+
+            cs.dca_tag = True
+            cs.alpha = ChainInterp(
+                FixedInterp(1.0, 3),
+                CosineInterp(1.0, 0.0, 1),
+                on_done=self._on_cardanimdone,
+            )
+
+        n = len(self.control_list)
         x = (820-n*93)/2
         step = 93
-        for i, c in enumerate(self.cards):
+        for i, c in enumerate(self.control_list):
             c.zindex = i
             c.x = SineInterp(c.x, x + int(step * i), 0.3)
             c.y = SineInterp(c.y, 0, 0.3)
 
     def _on_cardanimdone(self, card, desc):
-        # Can't remove it here, or
-        # the card next will not be drawn,
-        # causes a flash
-        # card.delete()
-        self.cards.remove(card)
-        self.need_update = True
-
-    def add_cards(self, clist):
-        self.cards.extend(clist)
-        for c in clist:
-            c.alpha = ChainInterp(
-                FixedInterp(1.0, 3),
-                CosineInterp(1.0, 0.0, 1),
-                on_done=self._on_cardanimdone,
-            )
-        self._update()
+        card.delete()
+        self.update()
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
@@ -814,3 +796,31 @@ class SmallProgressBar(ProgressBar):
     offs_x, offs_y = 8, 8
     core_w_correct = 16
     del r
+
+class ConfirmButtons(Control):
+    def __init__(self, buttons=((u'确定', True), (u'取消', False)), *a, **k):
+        Control.__init__(self, *a, **k)
+        for i, (p, v) in enumerate(buttons):
+            btn = Button(
+                parent=self, x=i*(80+5), y=0,
+                width=80, height=24,
+                caption=p
+            )
+            btn.retval = v
+            @btn.event
+            def on_click():
+                self.confirm(btn.retval)
+
+        self.width, self.height = len(buttons)*85-5, 24
+
+    def confirm(self, val):
+        self.value = val
+        self.dispatch_event('on_confirm', val)
+
+    def draw(self, dt):
+        self.draw_subcontrols(dt)
+
+    def hit_test(self, x, y):
+        return self.control_frompoint1(x, y)
+
+ConfirmButtons.register_event_type('on_confirm')

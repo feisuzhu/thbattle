@@ -51,7 +51,7 @@ class Card(object):
 
 class Deck(object):
     def __init__(self):
-        pass
+        self.cards_record = {}
 
     def drawcards(self, num):
         g = Game.getgame()
@@ -62,7 +62,12 @@ class Deck(object):
                 c = Card((random.choice(['attack','graze', 'heal'])))
             elif Game.CLIENT_SIDE:
                 c = Card('hidden')
-            c.syncid = g.get_synctag()
+            sid = g.get_synctag()
+            c.syncid = sid
             cards.append(c)
+            self.cards_record[sid] = c
 
         return cards
+
+    def getcards(self, idlist):
+        return [self.cards_record.get(cid) for cid in idlist]

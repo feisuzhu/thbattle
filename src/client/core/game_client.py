@@ -11,7 +11,7 @@ from utils import DataHolder, BatchList
 import logging
 log = logging.getLogger('Game_Client')
 
-class TheChosenOne(game.Player):
+class TheChosenOne(game.AbstractPlayer):
     dropped = False
     #def __init__(self):
     #    pass
@@ -94,11 +94,11 @@ class PlayerList(BatchList):
 
         return p, data
 
-class PeerPlayer(game.Player):
+class PeerPlayer(game.AbstractPlayer):
     dropped = False
     def __init__(self, d):
         self.__dict__.update(d)
-        game.Player.__init__(self)
+        game.AbstractPlayer.__init__(self)
 
     def reveal(self, obj_list):
         # Peer player, won't reveal.

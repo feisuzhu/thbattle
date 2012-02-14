@@ -24,30 +24,25 @@ class DataHolder(object):
 
 class BatchList(list):
     def __getattribute__(self, name):
-        cls = list.__getattribute__(self, '__class__')
-
         try:
             list_attr = list.__getattribute__(self, name)
             return list_attr
         except AttributeError:
             pass
 
-        if len(self):
-            a = getattr(self[0], name)
-            if type(a) in (types.FunctionType, types.MethodType):
-                return lambda *a, **k: cls(
-                    getattr(p, name)(*a, **k) for p in self
-                )
-            else:
-                return cls(
-                    getattr(i, name) for i in self
-                )
+        return list.__getattribute__(self, '__class__')(
+            getattr(i, name) for i in self
+        )
+
+    def __call__(self, *a, **k):
+        return list.__getattribute__(self, '__class__')(
+            f(*a, **k) for f in self
+        )
 
     def exclude(self, elem):
-        cls = list.__getattribute__(self, '__class__')
-        return cls(
-            p for p in self if p is not elem
-        )
+        nl = list.__getattribute__(self, '__class__')(self)
+        nl.remove(elem)
+        return nl
 
 class IRP(object):
     '''I/O Request Packet'''

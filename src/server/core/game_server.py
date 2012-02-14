@@ -43,7 +43,7 @@ class PlayerList(BatchList):
 
         return p, data
 
-class Player(game.Player):
+class Player(game.AbstractPlayer):
     dropped = False
     def __init__(self, client):
         self.client = client
