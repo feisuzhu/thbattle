@@ -2,7 +2,7 @@ import gevent
 from gevent.queue import Queue
 from gevent.event import AsyncResult
 from gevent import Greenlet
-from itihub import ITIEvent
+from gevent_extension import ITIEvent
 import types
 
 class DataHolder(object):

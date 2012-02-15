@@ -32,23 +32,29 @@ class ITIHub(gevent.hub.Hub):
             self.reqlist.append(f)
         os.write(self.fd[1], ' ')
 
-    def get_hub(self):
-        return self
-
-    @staticmethod
-    def replace_default():
-        gevent.hub._threadlocal.Hub = ITIHub
-        hub = gevent.hub.get_hub()
-        assert isinstance(hub, ITIHub), 'failed'
-        ITIHub.the_hub = hub
-
 class ITIEvent(Event):
     '''
     Event can be set in other threads
     '''
 
     def set(self):
-        if ITIHub.the_hub.hub_tid == thread.get_ident():
+        assert isinstance(the_hub, ITIHub), 'not ITIHub'
+        if the_hub.hub_tid == thread.get_ident():
             return Event.set(self)
         else:
-            ITIHub.the_hub.interrupt(Event.set, self)
+            the_hub.interrupt(Event.set, self)
+
+def _instantkill(self):
+    # All Greenlets in gevent has a parent of the Hub,
+    # if call throw directly, when Greenlet finishes execution,
+    # Hub is switched to, cause current Greenlet
+    # left unscheduled forever.
+    # change the parent and get the CPU first time!
+    self.parent = gevent.getcurrent()
+    self.throw()
+
+gevent.hub._threadlocal.Hub = ITIHub
+the_hub = gevent.hub.get_hub()
+assert isinstance(the_hub, ITIHub), 'failed'
+
+gevent.Greenlet.instant_kill = _instantkill

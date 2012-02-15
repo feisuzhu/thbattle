@@ -145,16 +145,6 @@ class Client(Endpoint, Greenlet):
     def gread(self):
         d = self.gdqueue.get()
         if isinstance(d, EndpointDied):
-            # HACK:
-            # If the last player is in input state,
-            # and exit now, game greenlet will
-            # get this exception first,
-            # continue to run.
-            # This is not expected since gamehall
-            # will have already called 'game.kill()'
-            # So give up CPU here to make the
-            # scheduled GreenletExit exception raises.
-            gevent.sleep(0.01)
             raise d
         return d
 

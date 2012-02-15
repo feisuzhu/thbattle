@@ -134,7 +134,7 @@ def exit_game(user):
             else:
                 log.info('game canceled')
             del games[id(g)]
-            g.kill()
+            g.instant_kill()
         evt_datachange.set()
     else:
         user.write(['gamehall_error', 'not_in_a_game'])
