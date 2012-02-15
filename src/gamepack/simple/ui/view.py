@@ -84,21 +84,22 @@ class SimpleGameUI(Control):
     def init(self):
         self.char_portraits = [
             GameCharacterPortrait(parent=self, x=x, y=y)
-            for x, y in ((3, 4), (158, 446), (521, 446))
-        ][:len(self.game.players)] # FIXME: this is for testing
+            for x, y in ((3, 4), (158, 446), (521, 446))[:len(self.game.players)]
+        ] # FIXME: this is for testing
         self.input_state = False
 
-        shift = self.game.players.index(self.game.me)
+        pl = self.game.players
+        shift = pl.index(self.game.me)
         for i, c in enumerate(self.char_portraits):
-            c.player_index = (shift + i) % self.game.n_persons
+            c.player = pl[(shift + i) % self.game.n_persons]
 
-        self.player_shift = shift
-
-    def player2portrait(self, c):
-        i = self.game.players.index(c)
-        p = self.char_portraits[(i - self.player_shift) % self.game.n_persons]
-        assert p.player_index == i
-        return p
+    def player2portrait(self, p):
+        for port in self.char_portraits:
+            if port.player == p:
+                break
+        else:
+            raise ValueError
+        return port
 
     def on_message(self, _type, *args):
         if _type == 'evt_user_input':
@@ -138,3 +139,42 @@ class SimpleGameUI(Control):
 
     def prompt(self, s):
         self.parent.events_box.append(unicode(s)+u'\n')
+
+    def begin_select_player(self, num, disables=[]):
+        self.selecting_player = num
+        self.selected_players = []
+        for p in disables:
+            self.player2portrait(p).disabled = True
+
+    def get_selected_players(self):
+        return self.selected_players
+
+    def end_select_player(self):
+        self.selecting_player = 0
+        for p in self.char_portraits:
+            p.selected = False
+            p.disabled = False
+
+    def on_mouse_click(x, y, button, modifier):
+        c = parent.control_frompoint1(x, y)
+        if isinstance(c, GameCharacterPortrait) and self.selecting_player:
+            sel = c.selected
+            psel = self.selected_players
+            nplayers = self.selecting_player
+            if sel:
+                c.selected = False
+                psel.remove(c.player)
+            else:
+                if nplayers == 1:
+                    for port in parent.char_portraits:
+                        port.selected = False
+                    c.selected = True
+                    psel.append(c.player)
+                elif len(psel) < nplayers:
+                    c.selected = True
+                    psel.append(c.player)
+                # else: do nothing
+        self.dispatch_event('on_player_selection_change')
+        return True
+
+SimpleGameUI.register_event_type('on_player_selection_change')

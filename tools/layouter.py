@@ -38,8 +38,9 @@ class Layouter(Control):
         pyglet.clock.schedule_interval(flashing, 0.4)
 
     def on_key_press(self, symbol, modifier):
+        _ = lambda b: modifier & b == b
         if symbol == key.TAB:
-            if modifier == key.MOD_SHIFT:
+            if _(key.MOD_SHIFT):
                 self.index += 1
             else:
                 self.index -= 1
@@ -92,18 +93,21 @@ class Layouter(Control):
         self.draw_hook_after(dt)
 
     def on_mouse_drag(self, x, y, dx, dy, button, modifier):
-        if modifier == key.MOD_SHIFT:
-            c = self.control_list[self.index]
-            c.x += dx
-            c.y += dy
-        elif modifier == key.MOD_SHIFT | key.MOD_CTRL:
+        _ = lambda b: modifier & b == b
+        if _(key.MOD_SHIFT | key.MOD_CTRL):
             c = self.control_list[self.index]
             c.width += dx
             c.height -= dy
             c.y += dy
+        elif _(key.MOD_SHIFT):
+            c = self.control_list[self.index]
+            c.x += dx
+            c.y += dy
+
 
     def on_mouse_press(self, x, y, button, modifier):
-        if modifier == key.MOD_SHIFT:
+        _ = lambda b: modifier & b == b
+        if _(key.MOD_SHIFT):
             try:
                 c = self.control_frompoint1(x, y)
                 self.index = self.control_list.index(c)
@@ -112,11 +116,14 @@ class Layouter(Control):
 
 class Label(Control):
     def __init__(self, text=u'Label',
-                    font_size=30,color=(0,0,0,255),
-                    x=0, y=0, *a, **k):
-        self.rawlabel = RawLabel(text=text, font_size=font_size,
-                                 color=color,x=0,y=0,
-                                 anchor_x='left', anchor_y='bottom')
+                font_size=30, color=(0,0,0,255),
+                x=0, y=0, bold=False, italic=False, *a, **k):
+        self.rawlabel = RawLabel(
+            text=text, font_size=font_size,
+            color=color,x=0,y=0,
+            anchor_x='left', anchor_y='bottom',
+            bold=bold, italic=italic
+        )
         w, h = self.rawlabel.content_width, self.rawlabel.content_height
         Control.__init__(self, x=x, y=y, width=w, height=h, *a, **k)
 
@@ -133,47 +140,52 @@ class Rectangle(Control):
 
 init_gui()
 layout = Layouter(parent=Overlay.cur_overlay)
-
+_base = None
 #----------------
 
-img = pyglet.image.load('/home/proton/Desktop/capture/snap00055.png')
-
-def bg(dt):
-    glColor3f(1,1,1)
-    img.blit(0,0)
+img = pyglet.image.load('/home/proton/Desktop/capture/snap00031.png')
 
 from game import autoenv
 autoenv.init('Client')
+from client.ui import resource as cres
 from gamepack.simple.ui import resource as sres
+print dir(sres)
+sp = pyglet.sprite.Sprite(cres.actor_frame, x=100, y=100)
+interp = LinearInterp(0.0, 1.0, 1.0)
+
+from client.ui import ui_utils
+
+def bg(dt):
+    glColor4f(1,1,1,1)
+    img.blit(0,0)
 
 layout.draw_hook_before = bg
 
-c = CardSprite(parent=layout, x=333, y=202)
-c.gray = True
-c.img = sres.card_attack
-i = 8
+glClearColor(0,0,0, 1.0)
+#Control(parent=layout, x=35, y=20, width=700, height=180)._text = 'Chat'
+#Control(parent=layout, x=35, y=220, width=700, height=420)._text = 'GameList'
+#Control(parent=layout, x=750, y=220, width=240, height=420)._text = 'ControlPanel'
+#Control(parent=layout, x=750, y=20, width=240, height=180)._text = 'UserInfo'
 
-ca = HandCardArea(parent=layout, x=238, y=13)
-csl = [CardSprite(parent=layout, x=0, y=0) for j in range(9)]
-ca.add_cards(csl)
-
-for c in csl:
-    c.img = sres.card_heal
-
-
-da = DropCardArea(parent=layout, y=324)
-@da.event
-def on_mouse_click(*a):
-    cs = CardSprite(parent=layout, img=sres.card_attack)
-    da.add_cards([cs])
+#Rectangle(parent=layout, x=545, y=166, width=78, height=24)
 '''
-GameCharacterPortrait(parent=layout, x=521, y=446).selected=True
-GameCharacterPortrait(parent=layout, x=158, y=446)
+ConfirmButtons(parent=layout, x=544, y=166, width=165, height=24)
+Label(parent=layout, text=u'请选择…', x=373, y=190, font_size=12, color=(255,255,180,255), bold=True)
+_base = BigProgressBar(parent=layout, x=285, y=162, width=250, height=29)
+_base.value = 1.0
 '''
-pyglet.clock.schedule_interval(on_mouse_click, 1.0)
+rect = Control(parent=layout, x=285, y=162, width=531, height=58)
+ConfirmButtons(parent=rect, x=259, y=4, width=165, height=24)
+Label(parent=rect, text=u'请选择…', x=88, y=28, font_size=12, color=(255,255,180,255), bold=True)
+BigProgressBar(parent=rect, x=0, y=0, width=250, height=29).value = 1.0
+
 #------------------
 pyglet.app.run()
+if _base:
+    ox, oy = _base.x, _base.y
+    print 'Base: x=%d, y=%d' % (ox, oy)
+else:   ox, oy = 0, 0
 
 for i, c in enumerate(layout.control_list[1:]):
     print ("#%d(%s) ==> x=%d, y=%d, width=%d, height=%d" %
-        (i, c.__class__.__name__, c.x, c.y, c.width, c.height))
+        (i, c.__class__.__name__, c.x - ox, c.y - oy, c.width, c.height))

@@ -133,6 +133,95 @@ class UIChooseCards(InputController):
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
+class UISelectTarget(InputController):
+    sel_players = 1 # num of players to select
+
+    def __init__(self, irp, *a, **k):
+        InputController.__init__(self, *a, **k)
+        parent = self.parent
+        self.irp = irp
+
+        self.x, self.y, self.width, self.height = (285, 162, 531, 58)
+
+        parent.begin_select_player(self.sel_players)
+
+        self.confirmbtn = ConfirmButtons(parent=self, x=259, y=4, width=165, height=24)
+        self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
+        b.value = LinearInterp(1.0, 0.0, irp.timeout, on_done=self.cleanup)
+        self.label = lbl = pyglet.text.Label(
+            text=u'请选择…', x=88, y=28,
+            font_size=12, color=(255,255,180,255), bold=True,
+            anchor_x='center', anchor_y='center'
+        )
+
+        @self.confirmbtn.event
+        def on_confirm(is_ok):
+            irp = self.irp
+            irp.input = self.get_result() if is_ok else None
+            irp.complete()
+            self.cleanup()
+            return
+            # ------------------------
+            if is_ok:
+
+                irp.input = cid_list
+            else:
+                irp.input = None
+
+            irp.complete()
+            self.cleanup()
+
+        def dispatch_selection_change():
+            self.dispatch_event('on_selection_change')
+
+        parent.handcard_area.push_handlers(
+            on_selection_change=dispatch_selection_change
+        )
+
+        parent.push_handlers(
+            on_player_selection_change=dispatch_selection_change
+        )
+
+    def set_text(self, text):
+        self.label.text = text
+
+    def on_selection_change(self):
+        # subclasses should surpress it
+        self.confirmbtn.buttons[0].disabled = False
+
+    def get_result(self): # override this to customize
+        #return (skill, players, cards)
+        cid_list = [
+            cs.associated_card.syncid
+            for cs in parent.handcard_area.cards
+            if cs.hca_selected
+        ]
+        g = self.game
+        pid_list = [
+            g.get_playerid(p)
+            for p in self.parent.get_selected_players()
+        ]
+        return (None, pid_list, cid_list)
+
+    def hit_test(self, x, y):
+        return self.control_frompoint1(x, y)
+
+    def cleanup(self):
+        p = self.parent
+        p.end_select_player()
+        p.pop_handlers()
+        p.handcard_area.pop_handlers()
+        self.irp.complete()
+        self.delete()
+
+UISelectTarget.register_event_type('on_selection_change')
+
+'''
+class UIChooseCards(UISelectTarget):
+    sel_players = 0
+'''
+
+
 mapping = dict(
     choose_card=UIChooseCards,
     action_stage_usecard=UIChoose1CardAnd1Char,

@@ -800,6 +800,7 @@ class SmallProgressBar(ProgressBar):
 class ConfirmButtons(Control):
     def __init__(self, buttons=((u'确定', True), (u'取消', False)), *a, **k):
         Control.__init__(self, *a, **k)
+        self.buttons = bl = []
         for i, (p, v) in enumerate(buttons):
             btn = Button(
                 parent=self, x=i*(80+5), y=0,
@@ -810,6 +811,8 @@ class ConfirmButtons(Control):
             @btn.event
             def on_click():
                 self.confirm(btn.retval)
+
+            bl.append(btn)
 
         self.width, self.height = len(buttons)*85-5, 24
 
