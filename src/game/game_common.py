@@ -126,12 +126,14 @@ class Game(object):
             return False
 
     def get_playerid(self, p):
+        return self.players.index(p)
         try:
-            return self.players.index(self)
+            return self.players.index(p)
         except ValueError:
             return None
 
     def player_fromid(self, pid):
+        return self.players[pid]
         try:
             return self.players[pid]
         except IndexError:

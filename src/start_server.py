@@ -16,4 +16,3 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 server = StreamServer(('0.0.0.0', 9999), Client.spawn, None)
 server.serve_forever()
-

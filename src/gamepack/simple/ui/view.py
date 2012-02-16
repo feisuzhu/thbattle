@@ -21,21 +21,19 @@ class UIEventHook(EventHandler):
 
     def evt_user_input(self, input):
         irp = IRP()
-        irp.input = None
-        irp.attachment = input.attachment
-        irp.tag = input.tag
+        irp.__dict__.update(input.__dict__)
         ui_message('evt_user_input', irp)
         irp.wait()
         input.input = irp.input
         return input
 
-    # evt_user_input_timeout
+    # evt_user_input_timeout, InputControllers handle this
 
     def handle(self, evt, data):
         name = 'evt_%s' % evt
-        if hasattr(self, name):
+        try:
             return getattr(self, name)(data)
-        else:
+        except AttributeError:
             ui_message(name, data)
             return data
 
@@ -59,6 +57,10 @@ class SimpleGameUI(Control):
         self.handcard_area = HandCardArea(
             parent=self, x=238, y=13, zindex=3,
         )
+
+        @self.handcard_area.event
+        def on_selection_change():
+            self.dispatch_event('on_selection_change')
 
         self.dropcard_area = DropCardArea(
             parent=self, x=0, y=324, zindex=3,
@@ -86,12 +88,14 @@ class SimpleGameUI(Control):
             GameCharacterPortrait(parent=self, x=x, y=y)
             for x, y in ((3, 4), (158, 446), (521, 446))[:len(self.game.players)]
         ] # FIXME: this is for testing
-        self.input_state = False
 
         pl = self.game.players
         shift = pl.index(self.game.me)
         for i, c in enumerate(self.char_portraits):
             c.player = pl[(shift + i) % self.game.n_persons]
+
+        self.begin_select_player(1)
+        self.end_select_player()
 
     def player2portrait(self, p):
         for port in self.char_portraits:
@@ -116,7 +120,7 @@ class SimpleGameUI(Control):
 
         elif _type == 'evt_simplegame_begin':
             for port in self.char_portraits:
-                p = self.game.players[port.player_index]
+                p = port.player
                 port.life = p.life
 
         elif _type == 'evt_player_turn':
@@ -151,12 +155,20 @@ class SimpleGameUI(Control):
 
     def end_select_player(self):
         self.selecting_player = 0
+        self.selected_players = []
         for p in self.char_portraits:
             p.selected = False
             p.disabled = False
 
-    def on_mouse_click(x, y, button, modifier):
-        c = parent.control_frompoint1(x, y)
+    def get_selected_cards(self):
+        return [
+            cs.associated_card
+            for cs in self.handcard_area.cards
+            if cs.hca_selected
+        ]
+
+    def on_mouse_click(self, x, y, button, modifier):
+        c = self.control_frompoint1(x, y)
         if isinstance(c, GameCharacterPortrait) and self.selecting_player:
             sel = c.selected
             psel = self.selected_players
@@ -166,7 +178,7 @@ class SimpleGameUI(Control):
                 psel.remove(c.player)
             else:
                 if nplayers == 1:
-                    for port in parent.char_portraits:
+                    for port in self.char_portraits:
                         port.selected = False
                     c.selected = True
                     psel.append(c.player)
@@ -174,7 +186,7 @@ class SimpleGameUI(Control):
                     c.selected = True
                     psel.append(c.player)
                 # else: do nothing
-        self.dispatch_event('on_player_selection_change')
+            self.dispatch_event('on_selection_change')
         return True
 
-SimpleGameUI.register_event_type('on_player_selection_change')
+SimpleGameUI.register_event_type('on_selection_change')

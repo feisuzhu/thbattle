@@ -53,8 +53,10 @@ def _instantkill(self):
     self.parent = gevent.getcurrent()
     self.throw()
 
-gevent.hub._threadlocal.Hub = ITIHub
-the_hub = gevent.hub.get_hub()
-assert isinstance(the_hub, ITIHub), 'failed'
-
 gevent.Greenlet.instant_kill = _instantkill
+
+def patch_gevent_hub():
+    global the_hub
+    gevent.hub._threadlocal.Hub = ITIHub
+    the_hub = gevent.hub.get_hub()
+    assert isinstance(the_hub, ITIHub), 'failed'

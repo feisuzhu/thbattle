@@ -803,18 +803,18 @@ class ConfirmButtons(Control):
         self.buttons = bl = []
         for i, (p, v) in enumerate(buttons):
             btn = Button(
-                parent=self, x=i*(80+5), y=0,
+                parent=self, x=i*(80+6), y=0,
                 width=80, height=24,
                 caption=p
             )
             btn.retval = v
             @btn.event
-            def on_click():
+            def on_click(btn=btn):
                 self.confirm(btn.retval)
 
             bl.append(btn)
 
-        self.width, self.height = len(buttons)*85-5, 24
+        self.width, self.height = len(buttons)*85-6, 24
 
     def confirm(self, val):
         self.value = val

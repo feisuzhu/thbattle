@@ -17,124 +17,7 @@ class InputController(Control):
         if _type == 'evt_user_input_timeout':
             self.cleanup()
 
-class UIChoose1CardAnd1Char(InputController):
-    def __init__(self, irp, *a, **k):
-        InputController.__init__(self, *a, **k)
-        self.irp = irp
-        parent = self.parent
-        self.btn_ok = Button(
-            parent=self, caption=u'确定', x=0, y=0, width=80, height=30
-        )
-        self.btn_cancel = Button(
-            parent=self, caption=u'取消', x=97, y=0, width=80, height=30
-        )
-
-        self.x, self.y, self.width, self.height = 333, 202, 250, 30
-
-        self.input_player = None
-        '''
-        def choose_multiple_char(x, y, button, modifier):
-            c = parent.control_frompoint1(x, y)
-            if isinstance(c, GameCharacterPortrait):
-                c.selected = not c.selected
-                if c.selected:
-                    self.input_players.append(c.player_index)
-                else:
-                    self.input_players.remove(c.player_index)
-        '''
-
-        def choose_1char(x, y, button, modifier):
-            c = parent.control_frompoint1(x, y)
-            if isinstance(c, GameCharacterPortrait):
-                sel = c.selected
-                self.input_player = c.player_index
-                for p in parent.char_portraits:
-                    p.selected = False
-                c.selected = not sel
-            return True
-
-        parent.push_handlers(
-            on_mouse_click=choose_1char,
-        )
-
-        def _cleanup():
-            for c in parent.char_portraits:
-                c.selected = False
-            parent.pop_handlers()
-            self.irp.complete()
-            self.delete()
-
-        self.cleanup = _cleanup
-
-        @self.btn_ok.event
-        def on_click():
-            irp = self.irp
-            try:
-                cid = None
-                for cs in parent.handcard_area.cards:
-                    if cs.hca_selected:
-                        cid = cs.associated_card.syncid
-                        break
-                irp.input = [cid, [self.input_player]]
-            except ValueError:
-                irp.input = None
-            irp.complete()
-            _cleanup()
-
-        @self.btn_cancel.event
-        def on_click():
-            irp = self.irp
-            irp.input = None
-            irp.complete()
-            _cleanup()
-
-    def hit_test(self, x, y):
-        return self.control_frompoint1(x, y)
-
-class UIChooseCards(InputController):
-    def __init__(self, irp, *a, **k):
-        InputController.__init__(self, *a, **k)
-        self.irp = irp
-        parent = self.parent
-        self.btn_ok = Button(
-            parent=self, caption=u'确定', x=0, y=0, width=80, height=30
-        )
-        self.btn_cancel = Button(
-            parent=self, caption=u'取消', x=97, y=0, width=80, height=30
-        )
-
-        self.x, self.y, self.width, self.height = 333, 202, 250, 30
-
-        def _cleanup():
-            self.irp.complete()
-            self.delete()
-
-        self.cleanup = _cleanup
-
-        @self.btn_ok.event
-        def on_click():
-            irp = self.irp
-            cid_list = [
-                cs.associated_card.syncid
-                for cs in parent.handcard_area.cards
-                if cs.hca_selected
-            ]
-            irp.input = cid_list
-            irp.complete()
-            _cleanup()
-
-        @self.btn_cancel.event
-        def on_click():
-            irp = self.irp
-            irp.input = None
-            irp.complete()
-            _cleanup()
-
-    def hit_test(self, x, y):
-        return self.control_frompoint1(x, y)
-
 class UISelectTarget(InputController):
-    sel_players = 1 # num of players to select
 
     def __init__(self, irp, *a, **k):
         InputController.__init__(self, *a, **k)
@@ -143,15 +26,19 @@ class UISelectTarget(InputController):
 
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
-        parent.begin_select_player(self.sel_players)
-
-        self.confirmbtn = ConfirmButtons(parent=self, x=259, y=4, width=165, height=24)
+        self.confirmbtn = ConfirmButtons(
+            parent=self, x=259, y=4, width=165, height=24,
+            buttons=((u'出牌', True), (u'取消出牌', False))
+        )
         self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
-        b.value = LinearInterp(1.0, 0.0, irp.timeout, on_done=self.cleanup)
+        b.value = LinearInterp(
+            1.0, 0.0, irp.timeout,
+            on_done=lambda *a: self.cleanup()
+        )
         self.label = lbl = pyglet.text.Label(
-            text=u'请选择…', x=88, y=28,
-            font_size=12, color=(255,255,180,255), bold=True,
-            anchor_x='center', anchor_y='center'
+            text=u'请选择…', x=125, y=28,
+            font_size=12, color=(0,0,0,255), bold=True,
+            anchor_x='center', anchor_y='bottom'
         )
 
         @self.confirmbtn.event
@@ -161,47 +48,37 @@ class UISelectTarget(InputController):
             irp.complete()
             self.cleanup()
             return
-            # ------------------------
-            if is_ok:
-
-                irp.input = cid_list
-            else:
-                irp.input = None
-
-            irp.complete()
-            self.cleanup()
 
         def dispatch_selection_change():
-            self.dispatch_event('on_selection_change')
+            self.confirmbtn.buttons[0].state = Button.DISABLED
+            self.on_selection_change()
 
-        parent.handcard_area.push_handlers(
+        parent.push_handlers(
             on_selection_change=dispatch_selection_change
         )
 
-        parent.push_handlers(
-            on_player_selection_change=dispatch_selection_change
-        )
+        dispatch_selection_change()
 
     def set_text(self, text):
         self.label.text = text
 
     def on_selection_change(self):
         # subclasses should surpress it
-        self.confirmbtn.buttons[0].disabled = False
+        self.set_valid()
 
     def get_result(self): # override this to customize
         #return (skill, players, cards)
+        parent = self.parent
         cid_list = [
-            cs.associated_card.syncid
-            for cs in parent.handcard_area.cards
-            if cs.hca_selected
+            c.syncid
+            for c in parent.get_selected_cards()
         ]
-        g = self.game
+        g = parent.game
         pid_list = [
             g.get_playerid(p)
-            for p in self.parent.get_selected_players()
+            for p in parent.get_selected_players()
         ]
-        return (None, pid_list, cid_list)
+        return [None, pid_list, cid_list]
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
@@ -210,19 +87,96 @@ class UISelectTarget(InputController):
         p = self.parent
         p.end_select_player()
         p.pop_handlers()
-        p.handcard_area.pop_handlers()
         self.irp.complete()
         self.delete()
 
-UISelectTarget.register_event_type('on_selection_change')
+    def set_valid(self):
+        self.confirmbtn.buttons[0].state = Button.NORMAL
 
-'''
+    def draw(self, dt):
+        self.draw_subcontrols(dt)
+        self.label.draw()
+
 class UIChooseCards(UISelectTarget):
+    # for actions.ChooseCard
     sel_players = 0
-'''
+
+    def get_result(self):
+        _, _, cid_list = UISelectTarget.get_result(self)
+        return cid_list
+
+    def on_selection_change(self):
+        act = self.irp.attachment
+        cards = self.parent.get_selected_cards()
+        if cards:
+            if act.cond(cards):
+                self.set_text(act.ui_meta.text_valid)
+                self.set_valid()
+            else:
+                self.set_text(u'您选择的牌不符合出牌规则')
+        else:
+            self.set_text(act.ui_meta.text)
+        return True
+
+
+class UIDoActionStage(UISelectTarget):
+    # for actions.ActionStage
+    last_card = None
+    def get_result(self):
+        parent = self.parent
+        cards = parent.get_selected_cards()
+        targets = parent.get_selected_players()
+
+        assert len(cards) == 1
+        card = cards[0]
+
+        t = card.associated_action.ui_meta.target
+        g = parent.game
+        if t == 'self':
+            targets = [g.me]
+        elif isinstance(t, int):
+            assert len(targets) == t
+
+        pid_list = [g.get_playerid(p) for p in targets]
+        print [pid_list, card.syncid]
+        return [card.syncid, pid_list]
+
+    def on_selection_change(self):
+        parent = self.parent
+        cards = parent.get_selected_cards()
+        if cards:
+            while True:
+                if len(cards) != 1: break
+
+                card = cards[0]
+                act = card.associated_action
+                if not act: break
+
+                source = parent.game.me
+                t = act.ui_meta.target
+                if t == 'self':
+                    target = [source]
+                elif isinstance(t, int):
+                    if self.last_card != card:
+                        parent.begin_select_player(t)
+                        self.last_card = card
+                    target = parent.get_selected_players()
+
+                rst, reason = act.ui_meta.is_action_valid(source, target)
+                self.set_text(reason)
+                if rst: self.set_valid()
+                return
+
+
+            self.set_text(u'您选择的牌不符合出牌规则')
+            parent.end_select_player()
+        else:
+            parent.end_select_player()
+            self.set_text(u'请出牌...')
+            self.last_card = None
 
 
 mapping = dict(
     choose_card=UIChooseCards,
-    action_stage_usecard=UIChoose1CardAnd1Char,
+    action_stage_usecard=UIDoActionStage,
 )

@@ -1,4 +1,5 @@
 # All Actions, EventHandlers are here
+# -*- coding: utf-8 -*-
 from game.autoenv import Game, EventHandler, Action, GameError
 
 from network import Endpoint
@@ -7,6 +8,38 @@ import types
 
 import logging
 log = logging.getLogger('SimpleGame_Actions')
+
+# ------------------------------------------
+# aux functions
+def choose_card(act, target, cond):
+    g = Game.getgame()
+    input = target.user_input('choose_card', act) # list of card ids
+
+    if not (input and isinstance(input, list)):
+        return None
+
+    n = len(input)
+    if not n: return None
+
+    if any(i.__class__ != int for i in input): # must be a list of ints
+        return None
+
+    cards = g.deck.getcards(input)
+    cs = set(cards)
+
+    if len(cs) != n: # repeated ids
+        return None
+
+    if not cs.issubset(set(target.cards)): # Whose cards?! Wrong ids?!
+        return None
+
+    g.players.exclude(target).reveal(cards)
+
+    if cond(cards):
+        return cards
+    else:
+        return None
+# ------------------------------------------
 
 class GenericAction(Action): pass # others
 
@@ -55,9 +88,9 @@ class Heal(BaseAction):
         self.amount = amount
 
     def apply_action(self):
-        target = self.target
-        if target.life < target.maxlife:
-            target.life = min(target.life + self.amount, target.maxlife)
+        source = self.source # target is ignored
+        if source.life < source.maxlife:
+            source.life = min(source.life + self.amount, source.maxlife)
             return True
         else:
             return False
@@ -81,63 +114,21 @@ class DropCards(GenericAction):
 
         return True
 
-class ChooseCard(GenericAction):
-
-    def __init__(self, target, cond):
-        self.target = target
-        self.cond = cond
-
-    def apply_action(self):
-        g = Game.getgame()
-        target = self.target
-        input = target.user_input('choose_card', self) # list of card ids
-
-        if not (input and isinstance(input, list)):
-            return False # default action
-
-        n = len(input)
-        if not n: return False
-
-        if any(i.__class__ != int for i in input): # must be a list of ints
-            return False
-
-        cards = g.deck.getcards(input)
-        cs = set(cards)
-
-        if len(cs) != n: # repeated ids
-            return False
-
-        if not cs.issubset(set(target.cards)): # Whose cards?! Wrong ids?!
-            return False
-
-        g.players.exclude(target).reveal(cards)
-
-        if self.cond(cards):
-            self.cards = cards
-            return True
-        else:
-            return False
-
-    def default_action(self):
-        self.cards = []
-        return False
-
 class DropUsedCard(DropCards): pass
 
 class UseCard(GenericAction):
-    def __init__(self, target, cond=None):
+    def __init__(self, target):
         self.target = target
-        if cond:
-            self.cond = cond
+        # self.cond = __subclass__.cond
 
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        choose_action = ChooseCard(target, self.cond)
-        if not g.process_action(choose_action):
+        cards = choose_card(self, target, self.cond)
+        if not cards:
             return False
         else:
-            drop = DropUsedCard(target, cards=choose_action.cards)
+            drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True
 
@@ -146,6 +137,10 @@ class UseGraze(UseCard):
         return len(cl) == 1 and cl[0].type == 'graze'
 
 class DropCardStage(GenericAction):
+
+    def cond(self, cards):
+        t = self.target
+        return len(cards) == len(t.cards) - t.life
 
     def __init__(self, target):
         self.target = target
@@ -157,9 +152,9 @@ class DropCardStage(GenericAction):
         if n<=0:
             return True
         g = Game.getgame()
-        choose_action = ChooseCard(target, cond = lambda cl: len(cl) == n)
-        if g.process_action(choose_action):
-            g.process_action(DropCards(target, cards=choose_action.cards))
+        cards = choose_card(self, target, cond=self.cond)
+        if cards:
+            g.process_action(DropCards(target, cards=cards))
         else:
             g.process_action(DropCards(target, cards=target.cards[:max(n, 0)]))
         return True
@@ -190,8 +185,8 @@ class LaunchCard(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         card = self.card
-        action = card.assocated_action
-        g.process_action(DropUsedCard(self.source, cards=[self.card]))
+        action = card.associated_action
+        g.process_action(DropUsedCard(self.source, cards=[card]))
         if action:
             for target in self.target_list:
                 a = action(source=self.source, target=target)

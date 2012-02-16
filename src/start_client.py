@@ -7,7 +7,7 @@ log = logging.getLogger('__main__')
 
 class MainThread(threading.Thread):
     def run(self):
-        import utils # init ITIHub
+        import utils; utils.patch_gevent_hub()
 
         from gevent import monkey
         monkey.patch_socket()

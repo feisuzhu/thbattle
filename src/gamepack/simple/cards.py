@@ -22,7 +22,7 @@ class Card(object):
     def __init__(self, t):
         self.type = t
         self.name = self.name_lookup[t]
-        self.assocated_action = self.action_lookup.get(t)
+        self.associated_action = self.action_lookup.get(t)
 
         self.syncid = 0 # Deck will touch this
 
@@ -33,6 +33,7 @@ class Card(object):
         )
 
     def __eq__(self, other):
+        if not type(self) == type(other): return False
         return self.syncid == other.syncid
 
     def __ne__(self, other):
@@ -47,7 +48,7 @@ class Card(object):
         t = data['type']
         self.type = t
         self.name = self.name_lookup[t]
-        self.assocated_action = self.action_lookup.get(t)
+        self.associated_action = self.action_lookup.get(t)
 
 class Deck(object):
     def __init__(self):
