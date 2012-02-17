@@ -138,7 +138,6 @@ class UIDoActionStage(UISelectTarget):
             assert len(targets) == t
 
         pid_list = [g.get_playerid(p) for p in targets]
-        print [pid_list, card.syncid]
         return [card.syncid, pid_list]
 
     def on_selection_change(self):
@@ -166,7 +165,6 @@ class UIDoActionStage(UISelectTarget):
                 self.set_text(reason)
                 if rst: self.set_valid()
                 return
-
 
             self.set_text(u'您选择的牌不符合出牌规则')
             parent.end_select_player()

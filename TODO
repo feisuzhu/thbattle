@@ -1,21 +1,11 @@
 Game/GameCore:
     * how to calc distance?
         :: fire an Action
-    * how to implement ActionStage prompt?
-        :: card_attack = {
-            target = 1,
-            prompt = u'请选择杀的目标'
-        }
-        :: card_graze = {
-            target = None,
-            # prompt = u'您不能这样出牌' <- default prompt string
-        }
 
-        :: card_mapcannon = {
-            target = 'all',
-            prompt = u''
-        }
-        ui: choose_object / action_stage_input / confirm
+SimpleGame:
+    过河拆桥 无懈可击
+    距离
+    技能
 
 CommonUI:
 ARTWORKS!

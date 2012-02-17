@@ -156,7 +156,9 @@ class DropCardStage(GenericAction):
         if cards:
             g.process_action(DropCards(target, cards=cards))
         else:
-            g.process_action(DropCards(target, cards=target.cards[:max(n, 0)]))
+            cards = target.cards[:max(n, 0)]
+            g.players.exclude(target).reveal(cards)
+            g.process_action(DropCards(target, cards=cards))
         return True
 
 class DrawCards(GenericAction):

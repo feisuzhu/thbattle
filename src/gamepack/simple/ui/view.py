@@ -181,7 +181,7 @@ class SimpleGameUI(Control):
                     for port in self.char_portraits:
                         port.selected = False
                     c.selected = True
-                    psel.append(c.player)
+                    psel = self.selected_players = [c.player]
                 elif len(psel) < nplayers:
                     c.selected = True
                     psel.append(c.player)
