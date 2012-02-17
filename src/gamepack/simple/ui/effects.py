@@ -20,10 +20,10 @@ import logging
 log = logging.getLogger('SimpleGameUI_Effects')
 
 card_img = dict(
-    attack=gres.card_attack,
-    graze=gres.card_graze,
-    heal=gres.card_heal,
-    hidden=common_res.card_hidden,
+    AttackCard=gres.card_attack,
+    GrazeCard=gres.card_graze,
+    HealCard=gres.card_heal,
+    HiddenCard=common_res.card_hidden,
 )
 
 class OneShotAnim(pyglet.sprite.Sprite):
@@ -40,7 +40,7 @@ def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
         for c in cards:
             cs = CardSprite(
                 parent=hca, x=410-ax, y=300-ay,
-                img = card_img.get(c.type),
+                img = card_img.get(c.__class__.__name__),
             )
             cs.associated_card = c
         hca.update()
@@ -71,7 +71,7 @@ def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
                 CosineInterp(1.0, 0.0, 0.3),
                 on_done=self_destroy,
             )
-            cs.img = card_img.get(card.type)
+            cs.img = card_img.get(card.__class__.__name__)
 
 def drop_cards_effect(gray, self, act):
     if act.target is self.game.me:
@@ -90,7 +90,8 @@ def drop_cards_effect(gray, self, act):
         for i, card in enumerate(act.cards):
             cs = CardSprite(
                 parent=self, x=x-shift+i*CardSprite.width/2,
-                y=y-CardSprite.height/2, img=card_img.get(card.type),
+                y=y-CardSprite.height/2,
+                img=card_img.get(card.__class__.__name__),
             )
             cs.gray = gray
             cs.migrate_to(self.dropcard_area)

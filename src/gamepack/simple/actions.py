@@ -4,7 +4,6 @@ from game.autoenv import Game, EventHandler, Action, GameError
 
 from network import Endpoint
 import random
-import types
 
 import logging
 log = logging.getLogger('SimpleGame_Actions')
@@ -134,7 +133,8 @@ class UseCard(GenericAction):
 
 class UseGraze(UseCard):
     def cond(self, cl):
-        return len(cl) == 1 and cl[0].type == 'graze'
+        import cards
+        return len(cl) == 1 and isinstance(cl[0], cards.GrazeCard)
 
 class DropCardStage(GenericAction):
 

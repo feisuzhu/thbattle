@@ -6,34 +6,22 @@ import random
 import logging
 log = logging.getLogger('SimpleGame_Cards')
 
-class Card(object):
-    name_lookup = dict(
-        attack=u'杀',
-        graze=u'闪',
-        heal=u'药',
-        hidden=u'BUG!!!',
-    )
-    import actions
-    action_lookup = dict(
-        attack = actions.Attack,
-        heal = actions.Heal,
-    )
-    del actions
-    def __init__(self, t):
-        self.type = t
-        self.name = self.name_lookup[t]
-        self.associated_action = self.action_lookup.get(t)
+import actions
 
+class Card(object):
+    card_classes = {}
+
+    def __init__(self):
         self.syncid = 0 # Deck will touch this
 
     def __data__(self):
         return dict(
-            type=self.type,
+            type=self.__class__.__name__,
             syncid=self.syncid,
         )
 
     def __eq__(self, other):
-        if not type(self) == type(other): return False
+        if not isinstance(other, Card): return False
         return self.syncid == other.syncid
 
     def __ne__(self, other):
@@ -45,10 +33,10 @@ class Card(object):
     def sync(self, data):
         if data['syncid'] != self.syncid:
             raise GameError('Card: out of sync')
-        t = data['type']
-        self.type = t
-        self.name = self.name_lookup[t]
-        self.associated_action = self.action_lookup.get(t)
+        clsname = data['type']
+        cls = Card.card_classes.get(clsname)
+        if not cls: raise GameError('Card: unknown card class')
+        self.__class__ = cls
 
 class Deck(object):
     def __init__(self):
@@ -60,9 +48,9 @@ class Deck(object):
 
         for i in xrange(num):
             if Game.SERVER_SIDE:
-                c = Card((random.choice(['attack','graze', 'heal'])))
+                c = random.choice(Card.card_classes.values())()
             elif Game.CLIENT_SIDE:
-                c = Card('hidden')
+                c = HiddenCard()
             sid = g.get_synctag()
             c.syncid = sid
             cards.append(c)
@@ -72,3 +60,31 @@ class Deck(object):
 
     def getcards(self, idlist):
         return [self.cards_record.get(cid) for cid in idlist]
+
+class HiddenCard(Card): # special thing....
+    associated_action = None
+    name = u'这个是隐藏的卡片，你不该看到这个'
+
+def card_def(clsname, bases, _dict):
+    for a in ('associated_action', 'name'):
+        assert _dict.has_key(a)
+
+    cls = type(clsname, (Card,), _dict)
+    Card.card_classes[clsname] = cls
+    return cls
+
+__metaclass__ = card_def
+
+# --------------------------------------------------
+
+class AttackCard:
+    associated_action = actions.Attack
+    name = u'杀'
+
+class GrazeCard:
+    associated_action = None
+    name = u'闪'
+
+class HealCard:
+    associated_action = actions.Heal
+    name = u'药'
