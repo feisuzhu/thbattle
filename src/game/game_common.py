@@ -49,7 +49,11 @@ class Action(object):
         self.cancelled = cancel
 
 class AbstractPlayer(object):
-    pass
+    def reveal(self, obj_list):
+        raise GameError('Abstract')
+
+    def user_input(self, tag, attachment=None, timeout=25):
+        raise GameError('Abstract')
 
 class Game(object):
     '''
@@ -138,3 +142,16 @@ class Game(object):
             return self.players[pid]
         except IndexError:
             return None
+
+    def get_syncid(self):
+        raise GameError('Abstract')
+
+class SyncPrimitive(object):
+    def __init__(self, value):
+        self.value = value
+
+    def sync(self, data):
+        self.value = self.value.__class__(data)
+
+    def __data__(self):
+        return self.value

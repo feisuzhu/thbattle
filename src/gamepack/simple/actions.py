@@ -1,6 +1,6 @@
 # All Actions, EventHandlers are here
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError
+from game.autoenv import Game, EventHandler, Action, GameError, SyncPrimitive
 
 from network import Endpoint
 import random
@@ -10,7 +10,7 @@ log = logging.getLogger('SimpleGame_Actions')
 
 # ------------------------------------------
 # aux functions
-def choose_card(act, target, cond):
+def user_choose_card(act, target, cond):
     g = Game.getgame()
     input = target.user_input('choose_card', act) # list of card ids
 
@@ -38,14 +38,27 @@ def choose_card(act, target, cond):
         return cards
     else:
         return None
+
+def random_choose_card(target):
+    c = random.choice(target.cards)
+    v = SyncPrimitive(c.syncid)
+    g = Game.getgame()
+    g.players.reveal(v)
+    v = v.value
+    cl = [c for c in target.cards if c.syncid == v]
+    assert len(cl) == 1
+    return cl[0]
+
 # ------------------------------------------
 
 class GenericAction(Action): pass # others
 
 class UserAction(Action): pass # card/character skill actions
 class BaseAction(UserAction): pass # attack, graze, heal
+class SpellCardAction(UserAction): pass
 
 class InternalAction(Action): pass # actions for internal use, should not be intercepted by EHs
+
 
 class Damage(GenericAction):
 
@@ -94,6 +107,24 @@ class Heal(BaseAction):
         else:
             return False
 
+class Demolition(SpellCardAction):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        target = self.target
+        if not len(target.cards): return False
+
+        card = random_choose_card(target)
+        self.card = card
+        g.players.exclude(target).reveal(card)
+        g.process_action(
+            DropCards(target=target, cards=[card])
+        )
+        return True
+
 class DropCards(GenericAction):
 
     def __init__(self, target, cards):
@@ -123,7 +154,7 @@ class UseCard(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        cards = choose_card(self, target, self.cond)
+        cards = user_choose_card(self, target, self.cond)
         if not cards:
             return False
         else:
@@ -152,7 +183,7 @@ class DropCardStage(GenericAction):
         if n<=0:
             return True
         g = Game.getgame()
-        cards = choose_card(self, target, cond=self.cond)
+        cards = user_choose_card(self, target, cond=self.cond)
         if cards:
             g.process_action(DropCards(target, cards=cards))
         else:
@@ -190,8 +221,16 @@ class LaunchCard(GenericAction):
         action = card.associated_action
         g.process_action(DropUsedCard(self.source, cards=[card]))
         if action:
-            for target in self.target_list:
+            t = card.target
+            if t == 'self':
+                target_list = [self.source]
+            elif isinstance(t, int):
+                target_list = self.target_list
+                if len(target_list) != t: return False
+
+            for target in target_list:
                 a = action(source=self.source, target=target)
+                a.associated_card = card
                 g.process_action(a)
             return True
         return False

@@ -5,5 +5,5 @@ def init(place):
         from client.core import Game, EventHandler, Action, PlayerList
     else:
         raise Exception('Where am I?')
-    from game_common import GameError, GameEnded
+    from game_common import GameError, GameEnded, SyncPrimitive
     globals().update(locals())

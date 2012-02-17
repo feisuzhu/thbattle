@@ -11,16 +11,18 @@ class DataHolder(object):
 
     @staticmethod
     def parse(dd):
+        new = DataHolder()
         for k, v in dd.items():
             if isinstance(v, dict):
-                setattr(self, k, DataHolder.parse(v))
+                setattr(new, k, DataHolder.parse(v))
             elif isinstance(v, (list, tuple, set, frozenset)):
-                setattr(self, k, type(v)(
+                setattr(new, k, type(v)(
                     DataHolder.parse(lv) if isinstance(lv, dict) else lv
                     for lv in v
                 ))
             else:
-                setattr(self, k, v)
+                setattr(new, k, v)
+        return new
 
 class BatchList(list):
     def __getattribute__(self, name):

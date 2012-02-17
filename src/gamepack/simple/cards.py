@@ -63,13 +63,12 @@ class Deck(object):
 
 class HiddenCard(Card): # special thing....
     associated_action = None
-    name = u'这个是隐藏的卡片，你不该看到这个'
+    target = None
 
 def card_def(clsname, bases, _dict):
-    for a in ('associated_action', 'name'):
-        assert _dict.has_key(a)
-
     cls = type(clsname, (Card,), _dict)
+    for a in ('associated_action', 'target'):
+        assert hasattr(cls, a)
     Card.card_classes[clsname] = cls
     return cls
 
@@ -79,12 +78,16 @@ __metaclass__ = card_def
 
 class AttackCard:
     associated_action = actions.Attack
-    name = u'杀'
+    target = 1
 
 class GrazeCard:
     associated_action = None
-    name = u'闪'
+    target = None
 
 class HealCard:
     associated_action = actions.Heal
-    name = u'药'
+    target = 'self'
+
+class DemolitionCard:
+    associated_action = actions.Demolition
+    target = 1

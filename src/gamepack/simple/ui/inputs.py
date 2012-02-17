@@ -118,7 +118,6 @@ class UIChooseCards(UISelectTarget):
             self.set_text(act.ui_meta.text)
         return True
 
-
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
     last_card = None
@@ -130,7 +129,7 @@ class UIDoActionStage(UISelectTarget):
         assert len(cards) == 1
         card = cards[0]
 
-        t = card.associated_action.ui_meta.target
+        t = card.target
         g = parent.game
         if t == 'self':
             targets = [g.me]
@@ -148,31 +147,33 @@ class UIDoActionStage(UISelectTarget):
                 if len(cards) != 1: break
 
                 card = cards[0]
-                act = card.associated_action
-                if not act: break
 
                 source = parent.game.me
-                t = act.ui_meta.target
+                t = card.target
                 if t == 'self':
-                    target = [source]
+                    target_list = [source]
                 elif isinstance(t, int):
                     if self.last_card != card:
                         parent.begin_select_player(t)
                         self.last_card = card
-                    target = parent.get_selected_players()
+                    target_list = parent.get_selected_players()
+                else:
+                    # for cards like GrazeCard
+                    # to display customized prompt string
+                    target_list = None
 
-                rst, reason = act.ui_meta.is_action_valid(source, target)
+                rst, reason = card.ui_meta.is_action_valid(source, target_list)
                 self.set_text(reason)
                 if rst: self.set_valid()
                 return
 
             self.set_text(u'您选择的牌不符合出牌规则')
             parent.end_select_player()
+            self.last_card = None
         else:
             parent.end_select_player()
             self.set_text(u'请出牌...')
             self.last_card = None
-
 
 mapping = dict(
     choose_card=UIChooseCards,

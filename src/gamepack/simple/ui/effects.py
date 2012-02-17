@@ -19,13 +19,6 @@ from utils import BatchList
 import logging
 log = logging.getLogger('SimpleGameUI_Effects')
 
-card_img = dict(
-    AttackCard=gres.card_attack,
-    GrazeCard=gres.card_graze,
-    HealCard=gres.card_heal,
-    HiddenCard=common_res.card_hidden,
-)
-
 class OneShotAnim(pyglet.sprite.Sprite):
     def on_animation_end(self):
         self.delete()
@@ -40,7 +33,7 @@ def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
         for c in cards:
             cs = CardSprite(
                 parent=hca, x=410-ax, y=300-ay,
-                img = card_img.get(c.__class__.__name__),
+                img = c.ui_meta.image,
             )
             cs.associated_card = c
         hca.update()
@@ -71,7 +64,7 @@ def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
                 CosineInterp(1.0, 0.0, 0.3),
                 on_done=self_destroy,
             )
-            cs.img = card_img.get(card.__class__.__name__)
+            cs.img = card.ui_meta.image
 
 def drop_cards_effect(gray, self, act):
     if act.target is self.game.me:
@@ -91,7 +84,7 @@ def drop_cards_effect(gray, self, act):
             cs = CardSprite(
                 parent=self, x=x-shift+i*CardSprite.width/2,
                 y=y-CardSprite.height/2,
-                img=card_img.get(card.__class__.__name__),
+                img=card.ui_meta.image,
             )
             cs.gray = gray
             cs.migrate_to(self.dropcard_area)
@@ -119,7 +112,7 @@ def heal_effect(self, act):
 def launch_effect(self, act):
     s, tl = act.source, BatchList(act.target_list)
     for t in tl: self.ray(s, t)
-    self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, u'、'.join(tl.nickname), act.card.name))
+    self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, u'、'.join(tl.nickname), act.card.ui_meta.name))
 
 def graze_effect(self, act):
     if not act.succeeded: return
@@ -138,6 +131,7 @@ mapping_actions = ddict(dict, {
         Damage: damage_effect,
         Heal: heal_effect,
         UseGraze: graze_effect,
+        #Demolition: demolition_effect,
     }
 })
 
