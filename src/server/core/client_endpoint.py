@@ -14,7 +14,6 @@ __all__ = ['Client']
 
 class Packet(list): # compare by identity list
     __slots__ = ('scan_count')
-    scan_count = 0
     def __hash__(self):
         return id(self)
 
@@ -92,7 +91,9 @@ class Client(Endpoint, Greenlet):
 
         @handler('ingame')
         def gamedata(self, data):
-            self.gdqueue.append(Packet(data))
+            p = Packet(data)
+            p.scan_count = 0
+            self.gdqueue.append(p)
             self.gdevent.set()
 
         @handler('__any__')

@@ -122,6 +122,7 @@ class Game(object):
                     raise GameEnded()
                 action = self.emit_event('action_after', action)
             else:
+                log.info('action cancelled/invalid %s' % action.__class__.__name__)
                 return False
 
             action.clean_up()

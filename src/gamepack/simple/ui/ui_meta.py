@@ -32,6 +32,11 @@ class DropCardStage:
     text_valid = u'OK，就这些了'
     text = u'请弃牌...'
 
+class RejectHandler:
+    # choose_card meta
+    text_valid = u'对不起，你是一个好人...'
+    text = u'请选择一张好人卡'
+
 # -----END ACTIONS UI META-----
 
 # -----BEGIN CARDS UI META-----
@@ -65,6 +70,7 @@ class AttackCard:
 class GrazeCard:
     name = u'闪'
     image = gres.card_graze
+    target = None
     def is_action_valid(source, target_list):
         return (False, u'你不能主动出闪')
 
@@ -93,13 +99,21 @@ class DemolitionCard:
     def is_action_valid(source, target_list):
         if not target_list:
             return (False, u'请选择拆除目标')
-            
+
         target= target_list[0]
         if source == target:
-            return (False, u'还是拆别人的吧...')
+            return (True, u'还是拆别人的吧...')
         elif not len(target.cards):
             return (False, u'这货已经没有手牌了')
         else:
             return (True, u'嗯，你的牌太多了')
+
+class RejectCard:
+    target = None
+    name = u'好人卡'
+    image = gres.card_reject
+
+    def is_action_valid(source, target_list):
+        return (False, u'你不能主动出好人卡')
 
 # -----END CARDS UI META-----

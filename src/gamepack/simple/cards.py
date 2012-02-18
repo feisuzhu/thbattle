@@ -91,3 +91,7 @@ class HealCard:
 class DemolitionCard:
     associated_action = actions.Demolition
     target = 1
+
+class RejectCard:
+    associated_action = None
+    target = None

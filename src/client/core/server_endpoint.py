@@ -11,7 +11,6 @@ log = logging.getLogger("Server")
 
 class Packet(list): # compare by identity list
     __slots__ = ('scan_count')
-    scan_count = 0
     def __hash__(self):
         return id(self)
 
@@ -53,7 +52,9 @@ class Server(Endpoint, Greenlet):
             log.warn('GAMEDATA LIST TOO LONG, KILLING')
             self.instant_kill()
         else:
-            l.append(Packet(data))
+            p = Packet(data)
+            p.scan_count = 0
+            l.append(p)
             self.gdevent.set()
 
     def gexpect(self, tag):

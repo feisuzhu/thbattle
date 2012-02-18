@@ -33,15 +33,20 @@ class PlayerList(BatchList):
 
         for i in xrange(n):
             p, data = wait_queue.get()
-            if expects(data):
+            if expects(p, data):
                 break
         else:
             p = None
 
-        pid = None if p is None else g.get_playerid(p)
-        self.client.gwrite(tagstr + '_resp', [pid, data])
+        if p is None:
+            rst_send = rst = [None, None]
+        else:
+            rst = [p, data]
+            rst_send = [g.get_playerid(p), data]
 
-        return p, data
+        self.client.gwrite(tagstr + '_resp', rst_send)
+
+        return rst
 
 class Player(game.AbstractPlayer):
     dropped = False

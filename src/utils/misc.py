@@ -88,3 +88,10 @@ class ScissorBox(object):
     def break_if_invalid(self):
         if not self.nb:
             raise self.exc
+
+
+class CheckFailed(Exception): pass
+
+def check(b):
+    if not b:
+        raise CheckFailed

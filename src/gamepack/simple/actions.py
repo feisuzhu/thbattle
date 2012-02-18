@@ -11,32 +11,31 @@ log = logging.getLogger('SimpleGame_Actions')
 # ------------------------------------------
 # aux functions
 def user_choose_card(act, target, cond):
+    from utils import check, CheckFailed
     g = Game.getgame()
     input = target.user_input('choose_card', act) # list of card ids
 
-    if not (input and isinstance(input, list)):
-        return None
+    try:
+        check(input and isinstance(input, list))
 
-    n = len(input)
-    if not n: return None
+        n = len(input)
+        check(n)
 
-    if any(i.__class__ != int for i in input): # must be a list of ints
-        return None
+        check(all(i.__class__ == int for i in input)) # must be a list of ints
 
-    cards = g.deck.getcards(input)
-    cs = set(cards)
+        cards = g.deck.getcards(input)
+        cs = set(cards)
 
-    if len(cs) != n: # repeated ids
-        return None
+        check(len(cs) == n) # repeated ids
 
-    if not cs.issubset(set(target.cards)): # Whose cards?! Wrong ids?!
-        return None
+        check(cs.issubset(set(target.cards))) # Whose cards?! Wrong ids?!
 
-    g.players.exclude(target).reveal(cards)
+        g.players.exclude(target).reveal(cards)
 
-    if cond(cards):
+        check(cond(cards))
+
         return cards
-    else:
+    except CheckFailed:
         return None
 
 def random_choose_card(target):
@@ -48,6 +47,11 @@ def random_choose_card(target):
     cl = [c for c in target.cards if c.syncid == v]
     assert len(cl) == 1
     return cl[0]
+
+action_eventhandlers = set()
+def register_eh(cls):
+    action_eventhandlers.add(cls)
+    return cls
 
 # ------------------------------------------
 
@@ -124,6 +128,67 @@ class Demolition(SpellCardAction):
             DropCards(target=target, cards=[card])
         )
         return True
+
+class Reject(SpellCardAction):
+    def __init__(self, source, target_act):
+        self.source = source
+        self.target_act = target_act
+
+    def apply_action(self):
+        if not isinstance(self.target_act, SpellCardAction):
+            return False
+        self.target_act.cancelled = True
+        return True
+
+@register_eh
+class RejectHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, SpellCardAction):
+            g = Game.getgame()
+
+            p, cid_list = g.players.user_input_any(
+                'choose_card', self._expects, self
+            )
+
+            if p:
+                card, = g.deck.getcards(cid_list) # card was already revealed
+                action = Reject(source=p, target_act=act)
+                action.associated_card = card
+                g.process_action(DropUsedCard(p, [card]))
+                g.process_action(action)
+        return act
+
+    def _expects(self, p, cid_list):
+        from utils import check, CheckFailed
+        try:
+            check(isinstance(cid_list, list))
+            check(len(cid_list) == 1)
+            check(isinstance(cid_list[0], int))
+
+            g = Game.getgame()
+            card, = g.deck.getcards(cid_list)
+            check(card in p.cards)
+
+            g.players.exclude(p).reveal(card)
+
+            check(self.cond([card]))
+            return True
+        except CheckFailed:
+            return False
+
+    def cond(self, cardlist):
+        from utils import check, CheckFailed
+        import cards
+        try:
+            check(len(cardlist) == 1)
+            check(isinstance(cardlist[0], cards.RejectCard))
+            return True
+        except CheckFailed:
+            return False
+
+# ---------------------------------------------------
+
+
 
 class DropCards(GenericAction):
 

@@ -64,11 +64,11 @@ class PlayerList(BatchList):
         input.timeout = timeout
         input.player = g.me
 
-        Break = Exception('Input: you are too late!')
+        class Break(Exception): pass # ('Input: you are too late!')
 
         def waiter_func():
             pid, data = Executive.server.gexpect(tagstr + '_resp')
-            self.kill(Break)
+            g.kill(Break(), block=False)
             return pid, data
 
         try:
@@ -83,14 +83,21 @@ class PlayerList(BatchList):
         finally:
             g.emit_event('user_input_finish', input)
 
-        Executive.server.gwrite(tagstr, rst.input)
-
-        try: waiter.join()
-        except Break: pass
+        try:
+            Executive.server.gwrite(tagstr, rst.input)
+            waiter.join()
+        except Break:
+            pass
 
         pid, data = waiter.get()
+        
+        if pid is None:
+            return None, None
 
         p = g.player_fromid(pid)
+
+        if not expects(p, data):
+            raise GameError('WTF?! Server cheats!')
 
         return p, data
 

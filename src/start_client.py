@@ -20,6 +20,16 @@ class MainThread(threading.Thread):
         from network import Endpoint
         Endpoint.ENDPOINT_DEBUG = True
 
+        # for dbg
+        from gevent import signal as gsig
+        import signal
+        def print_stack():
+            game = Executive.gm_greenlet.game
+            import traceback
+            traceback.print_stack(game.gr_frame)
+        gsig(signal.SIGUSR1, print_stack)
+        # -------
+
         Executive.run()
 
 mt = MainThread()

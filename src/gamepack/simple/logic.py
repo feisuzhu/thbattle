@@ -1,9 +1,7 @@
 from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList
-
-import random
-from itertools import count, cycle
-from cards import Card, Deck
 from actions import *
+from itertools import cycle
+import random
 
 import logging
 log = logging.getLogger('SimpleGame')
@@ -14,10 +12,15 @@ class SimpleGame(Game):
 
     if Game.CLIENT_SIDE:
         # not loading these things on server
+        # FIXME: should it be here?
         from ui import SimpleGameUI as ui_class
 
     def game_start(self):
         # game started, init state
+        from cards import Card, Deck
+
+        for cls in action_eventhandlers:
+            self.event_handlers.append(cls())
 
         for p in self.players:
             p.cards = []
