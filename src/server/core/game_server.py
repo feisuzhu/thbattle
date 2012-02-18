@@ -39,7 +39,7 @@ class PlayerList(BatchList):
             p = None
 
         pid = None if p is None else g.get_playerid(p)
-        self.client.gwrite([tagstr + '_resp', [pid, data]])
+        self.client.gwrite(tagstr + '_resp', [pid, data])
 
         return p, data
 
@@ -51,7 +51,7 @@ class Player(game.AbstractPlayer):
     def reveal(self, obj_list):
         g = Game.getgame()
         st = g.get_synctag()
-        self.client.gwrite(['object_sync_%d' % st, obj_list])
+        self.client.gwrite('object_sync_%d' % st, obj_list)
 
     def user_input(self, tag, attachment=None, timeout=25):
         g = Game.getgame()
@@ -67,7 +67,7 @@ class Player(game.AbstractPlayer):
             input = None
         pl = PlayerList(g.players[:])
         pl.remove(self)
-        pl.client.gwrite(['input_%s_%d' % (tag, st), input]) # tell other players
+        pl.client.gwrite('input_%s_%d' % (tag, st), input) # tell other players
         return input
 
     def __data__(self):
@@ -93,7 +93,7 @@ class DroppedPlayer(Player):
     def user_input(self, tag, attachment=None, timeout=25):
         g = Game.getgame()
         st = g.get_synctag()
-        g.players.client.gwrite(['input_%s_%d' % (tag, st), None]) # null input
+        g.players.client.gwrite('input_%s_%d' % (tag, st), None) # null input
 
 class Game(Greenlet, game.Game):
     '''

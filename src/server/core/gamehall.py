@@ -118,7 +118,7 @@ def exit_game(user):
             log.info('player dropped')
             user.write(['fleed', None])
             p = g.players[i]
-            p.client.gbreak()
+            p.client.gbreak() # XXX: fuck I forgot why it's here
             p.__class__ = DroppedPlayer
             p.client = DummyClient(g.players[i].client)
         else:

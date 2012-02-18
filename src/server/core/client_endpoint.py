@@ -1,21 +1,36 @@
 import gevent
 from gevent import Greenlet, Timeout
-from gevent.queue import Queue
+from gevent.event import Event
 import gamehall as hall
 from network import Endpoint, EndpointDied
 import logging
 import sys
 
+from collections import deque
+
 log = logging.getLogger("Client")
 
 __all__ = ['Client']
+
+class Packet(list): # compare by identity list
+    __slots__ = ('scan_count')
+    scan_count = 0
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        return id(self) == id(other)
+
+    def __ne__(self, other):
+        return self.__eq__(other)
 
 class Client(Endpoint, Greenlet):
     BREAK_TAG = object()
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
-        self.gdqueue = Queue(100)
+        self.gdqueue = deque(maxlen=100)
+        self.gdevent = Event()
 
     def _run(self):
         cmds = {}
@@ -77,8 +92,8 @@ class Client(Endpoint, Greenlet):
 
         @handler('ingame')
         def gamedata(self, data):
-            if not self.gdqueue.full():
-                self.gdqueue.put(data)
+            self.gdqueue.append(Packet(data))
+            self.gdevent.set()
 
         @handler('__any__')
         def _disconnect(self, _):
@@ -116,7 +131,8 @@ class Client(Endpoint, Greenlet):
                     self.write(['invalid_command', [cmd, data]])
 
             except EndpointDied as e:
-                self.gdqueue.put(e)
+                self.gdqueue.append(e)
+                self.gdevent.set()
                 break
 
             except Timeout:
@@ -142,24 +158,30 @@ class Client(Endpoint, Greenlet):
         if self.state != 'connected':
             hall.user_exit(self)
 
-    def gread(self):
-        d = self.gdqueue.get()
-        if isinstance(d, EndpointDied):
-            raise d
-        return d
-
     def gexpect(self, tag):
+        l = self.gdqueue
+        e = self.gdevent
         while True:
-            d = self.gread()
-            if d[0] in (tag, self.BREAK_TAG):
-                return d[1]
-           #else: drop
+            for i in xrange(len(l)):
+                d = l.popleft()
+                if isinstance(d, EndpointDied):
+                    raise d
+                elif d[0] in (tag, self.BREAK_TAG):
+                    return d[1]
+                else:
+                    d.scan_count += 1
+                    if d.scan_count >= 5:
+                        log.warn('Dropped gamedata: %s' % d)
+                    else:
+                        l.append(d)
+            e.clear()
+            e.wait()
 
     def get_userid(self):
         return id(self)
 
-    def gwrite(self, data):
-        self.write(['gamedata', data])
+    def gwrite(self, tag, data):
+        self.write(['gamedata', [tag, data]])
 
     def __data__(self):
         return dict(
@@ -171,12 +193,13 @@ class Client(Endpoint, Greenlet):
 
     def gbreak(self):
         # is it a hack?
-        if self.gdqueue.getters:
-            self.gdqueue.put([self.BREAK_TAG, None])
+        # XXX: definitly, and why it's here?! can't remember
+        self.gdqueue.append([self.BREAK_TAG, None])
+        self.gdevent.set()
 
 class DummyClient(object):
     read = write = raw_write = \
-    gread = gwrite = gexpect = lambda *a, **k: False
+    gwrite = gexpect = lambda *a, **k: False
 
     def __init__(self, client=None):
         if client:

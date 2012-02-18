@@ -2,6 +2,8 @@ Game/GameCore:
     * how to calc distance?
         :: fire an Action
 
+gevent.waitany, rewrite user_input_any
+
 SimpleGame:
     无懈可击
     距离

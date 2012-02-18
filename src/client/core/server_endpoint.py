@@ -5,20 +5,33 @@ from network import Endpoint, EndpointDied
 import logging
 import sys
 
+from collections import deque
+
 log = logging.getLogger("Server")
+
+class Packet(list): # compare by identity list
+    __slots__ = ('scan_count')
+    scan_count = 0
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        return id(self) == id(other)
+
+    def __ne__(self, other):
+        return self.__eq__(other)
 
 class Server(Endpoint, Greenlet):
 
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
-        self.gdqueue = Queue(100)
+        self.gdqueue = deque(maxlen=100)
         self.read_timeout = 120
         self.ctlcmds = []
         self.userid = 0
-        e = Event()
-        e.clear()
-        self.ctlcmds_event = e
+        self.ctlcmds_event = Event()
+        self.gdevent = Event()
 
     def _run(self):
         try:
@@ -35,31 +48,45 @@ class Server(Endpoint, Greenlet):
             self.close()
 
     def _gamedata(self, data):
-        if not self.gdqueue.full():
-            self.gdqueue.put(data)
-
-    def gread(self):
-        return self.gdqueue.get()
+        l = self.gdqueue
+        if len(l) >= 100:
+            log.warn('GAMEDATA LIST TOO LONG, KILLING')
+            self.instant_kill()
+        else:
+            l.append(Packet(data))
+            self.gdevent.set()
 
     def gexpect(self, tag):
+        l = self.gdqueue
+        e = self.gdevent
         while True:
-            d = self.gread()
-            if d[0] == tag:
-                return d[1]
-           #else: drop
+            for i in xrange(len(l)):
+                d = l.popleft()
+                if d[0] == tag:
+                    return d[1]
+                else:
+                    d.scan_count += 1
+                    if d.scan_count >= 5:
+                        log.warn('Dropped gamedata: %s' % d)
+                    else:
+                        l.append(d)
+            e.clear()
+            e.wait()
 
-    def gwrite(self, data):
-        self.write(['gamedata', data])
+    def gwrite(self, tag, data):
+        self.write(['gamedata', [tag, data]])
 
     def _ctldata(self, cmd, data):
         self.ctlcmds.append([cmd, data])
         self.ctlcmds_event.set()
 
     def ctlexpect(self, cmdlst):
+        l = self.ctlcmds
+        e = self.ctlcmds_event
         while True:
-            for i, v in enumerate(self.ctlcmds):
+            for i, v in enumerate(l):
                 if v[0] in cmdlst:
-                    del self.ctlcmds[i]
+                    del l[i]
                     return v
-            self.ctlcmds_event.clear()
-            self.ctlcmds_event.wait()
+            e.clear()
+            e.wait()

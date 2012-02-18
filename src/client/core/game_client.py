@@ -48,7 +48,7 @@ class TheChosenOne(game.AbstractPlayer):
         finally:
             g.emit_event('user_input_finish', input)
 
-        Executive.server.gwrite(['input_%s_%d' % (tag, st), rst.input])
+        Executive.server.gwrite('input_%s_%d' % (tag, st), rst.input)
         return rst.input
 
 class PlayerList(BatchList):
@@ -83,7 +83,7 @@ class PlayerList(BatchList):
         finally:
             g.emit_event('user_input_finish', input)
 
-        Executive.server.gwrite([tagstr, rst.input])
+        Executive.server.gwrite(tagstr, rst.input)
 
         try: waiter.join()
         except Break: pass
