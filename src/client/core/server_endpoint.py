@@ -26,11 +26,10 @@ class Server(Endpoint, Greenlet):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
         self.gdqueue = deque(maxlen=100)
-        self.read_timeout = 120
-        self.ctlcmds = []
-        self.userid = 0
-        self.ctlcmds_event = Event()
         self.gdevent = Event()
+        self.read_timeout = 120
+        self.ctlcmds = Queue(100)
+        self.userid = 0
 
     def _run(self):
         try:
@@ -39,7 +38,7 @@ class Server(Endpoint, Greenlet):
                 if cmd == 'gamedata':
                     self._gamedata(data)
                 else:
-                    self._ctldata(cmd, data)
+                    self.ctlcmds.put([cmd, data])
         except EndpointDied:
             pass
 
@@ -76,18 +75,3 @@ class Server(Endpoint, Greenlet):
 
     def gwrite(self, tag, data):
         self.write(['gamedata', [tag, data]])
-
-    def _ctldata(self, cmd, data):
-        self.ctlcmds.append([cmd, data])
-        self.ctlcmds_event.set()
-
-    def ctlexpect(self, cmdlst):
-        l = self.ctlcmds
-        e = self.ctlcmds_event
-        while True:
-            for i, v in enumerate(l):
-                if v[0] in cmdlst:
-                    del l[i]
-                    return v
-            e.clear()
-            e.wait()

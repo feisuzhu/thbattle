@@ -81,30 +81,16 @@ class GameManager(Greenlet):
         def heartbeat(self, _):
             Executive.server.write(['heartbeat', None])
 
-        def forwarder(_type):
-            def _forwarder(self, data):
-                self.event_cb(_type, data)
-            _forwarder.__name__ = _type
-            return _forwarder
-
-        hnn = handler(None, None)
-        _types = [
-            'invalid_command',
-            'current_games',
-            'current_players',
-            'chat_msg',
-            'speaker_msg',
-            'system_msg',
-        ]
-        for _type in _types:
-            hnn(forwarder(_type))
-
         while True:
-            cmd, data = Executive.server.ctlexpect(handlers.keys())
-            f, _from, _to = handlers.get(cmd)
-            if _from: assert self.state in _from
-            if f: f(self, data)
-            if _to: self.state = _to
+            cmd, data = Executive.server.ctlcmds.get()
+            h = handlers.get(cmd)
+            if h:
+                f, _from, _to = h
+                if _from: assert self.state in _from
+                if f: f(self, data)
+                if _to: self.state = _to
+            else:
+                self.event_cb(cmd, data)
 
 class Executive(object):
     '''
