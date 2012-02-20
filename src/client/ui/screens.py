@@ -51,6 +51,7 @@ class ServerSelectScreen(Overlay):
             login.switch()
         elif _type == 'server_connect_failed':
             log.error('Server connect failed.')
+            ConfirmBox(u'服务器连接失败！', parent=self)
         else:
             Overlay.on_message(self, _type, *args)
 
@@ -104,6 +105,7 @@ class LoginScreen(Overlay):
             GameHallScreen().switch()
         elif _type == 'auth_failure':
             log.error('Auth failure')
+            ConfirmBox(u'认证失败！', parent=self)
         else:
             Overlay.on_message(self, _type, *args)
 
@@ -188,6 +190,7 @@ class GameHallScreen(Overlay):
             self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
         elif _type == 'gamehall_error':
             log.error('GameHall Error: %s' % args[0]) # TODO
+            ConfirmBox(args[0], parent=self)
         else:
             Overlay.on_message(self, _type, *args)
 
@@ -241,6 +244,8 @@ class GameScreen(Overlay):
     def __init__(self, game, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
 
+        self.bg = common_res.bg_ingame
+
         self.game = game
         self.ui_class = game.ui_class
         self.gameui = game.ui_class(
@@ -291,3 +296,8 @@ class GameScreen(Overlay):
             GameScreen(args[0]).switch()
         else:
             Overlay.on_message(self, _type, *args)
+
+    def draw(self):
+        glColor3f(1,1,1)
+        self.bg.blit(0, 0)
+        self.draw_subcontrols()

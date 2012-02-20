@@ -56,8 +56,9 @@ class ResLoader(pyglet.resource.Loader):
 with ResLoader(__file__) as args:
     locals().update(args)
 
-    bg_login = tx('bg_login.png')
-    bg_gamehall = tx('bg_gamehall.png')
+    bg_login = ldr.texture('bg_login.png')
+    bg_gamehall = ldr.texture('bg_gamehall.png')
+    bg_ingame = ldr.texture('bg_ingame.png')
 
     card_shinesoft = tx('shinesoft.tga')
     card_hidden = tx('card_hidden.tga')
@@ -84,5 +85,5 @@ with ResLoader(__file__) as args:
         pyglet.image.ImageGrid(img('border.png'), 1, 9)
     ]
 
-    for k in args.keys(): del locals()[k]
+    for k in args.keys(): del k
     del args
