@@ -393,7 +393,7 @@ Overlay.register_event_type('on_switch')
 Overlay.register_event_type('on_switchout')
 
 def init_gui():
-    global main_window, msg_queue, msg_queue_lock
+    global main_window, msg_queue, msg_queue_lock, current_time, fps_limit
     import threading
     main_window = pyglet.window.Window(
         width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption='GensouKill')
@@ -412,9 +412,18 @@ def init_gui():
 
     fps = pyglet.clock.ClockDisplay()
     #import gamepack
+    fps_limit = 60
+    delay = 1. / fps_limit
+    current_time = time()
     @main_window.event
     def on_draw():
-        Overlay.cur_overlay.do_draw()
+        global current_time
+        t = time()
+        dt = t - current_time
+        if dt > delay:
+            current_time = t
+            Overlay.cur_overlay.do_draw()
+            fps.draw()
 
     def _dispatch_msg(dt):
         global msg_queue, msg_queue_lock, _redispatch
@@ -429,8 +438,7 @@ def init_gui():
                     _redispatch = False
                     Overlay.cur_overlay.dispatch_message(m)
             msg_queue = []
-    pyglet.clock.set_fps_limit(60)
-    pyglet.clock.schedule_interval(_dispatch_msg, 1/60.)
+    pyglet.clock.schedule_interval(_dispatch_msg, delay)
 
 def message(*args):
     '''

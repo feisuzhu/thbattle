@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from time import time
+import baseclasses as bc
 
 import logging
 log = logging.getLogger('UI_Interp')
@@ -38,13 +38,13 @@ class FunctionInterp(AbstractInterp):
         from math import pi
         self._from, self._to = f, t
         self.delta = t - f
-        self.starttime = time()
+        self.starttime = bc.current_time
         self.animtime = animtime
         self.finished = False
         self.on_done = on_done
 
     def _get_val(self):
-        elapsed = time() - self.starttime
+        elapsed = bc.current_time - self.starttime
         if elapsed > self.animtime:
             self.finished = True
             return self._to
@@ -71,7 +71,7 @@ class FixedInterp(AbstractInterp):
     def __init__(self, val, animtime, on_done=None):
         self.finished = False
         self._value = val
-        self.starttime = time()
+        self.starttime = bc.current_time
         self.animtime = animtime
         self.on_done = on_done
 
@@ -88,7 +88,7 @@ class ChainInterp(AbstractInterp):
         self.lastval = 0.0
         self.on_done = k.get('on_done')
         self.interps = list(interps)
-        st = time()
+        st = bc.current_time
         self.starttime = st
         self.finished = False
         cum = st
