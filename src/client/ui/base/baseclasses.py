@@ -29,7 +29,6 @@ class Control(pyglet.event.EventDispatcher):
         self.__dict__.update(kwargs)
         self.control_list = []
         self._clist_inuse = False
-        self.continuation = None
         # control under cursor now, for tracking enter/leave events
         self._control_hit = None
         if parent:
@@ -95,43 +94,13 @@ class Control(pyglet.event.EventDispatcher):
     def hit_test(self, x, y):
         return True
 
-    def stop_drawing(self):
-        if self.continuation:
-            self.continuation.close()
-            self.continuation = None
-
-    def do_draw(self, dt):
+    def do_draw(self):
         glPushMatrix()
         glTranslatef(self.x, self.y, 0)
-        self._do_draw(dt)
+        rst = self.draw()
         glPopMatrix()
 
-    def _do_draw(self, dt):
-        if self.continuation:
-            try:
-                self.continuation.send(dt)
-            except StopIteration:
-                self.continuation = None
-                ''' Animation are supposed to be written like this:
-                def the_drawing(dt):
-                    for i in range(n_frames):
-                        do_the_drawing_step(i, dt)
-                        dt = (yield)
-                When StopIteration occurs, nothing was done.
-                call do_draw again to do the drawing
-                '''
-                return self._do_draw(dt)
-
-        else:
-            rst = self.draw(dt)
-            if type(rst) == types.GeneratorType:
-                try:
-                    rst.next()
-                    self.continuation = rst
-                except StopIteration:
-                    pass
-
-    def draw(self, dt):
+    def draw(self):
         # default behavior
         if not hasattr(self, 'label'):
             '''
@@ -192,14 +161,14 @@ class Control(pyglet.event.EventDispatcher):
         glPopAttrib()
 
         self.label.draw()
-        self.draw_subcontrols(dt)
+        self.draw_subcontrols()
 
-    def draw_subcontrols(self, dt):
+    def draw_subcontrols(self):
         self.control_list.sort(key=lambda c: c.zindex)
         self._clist_inuse = True
         for c in self.control_list:
             if not c.manual_draw:
-                c.do_draw(dt)
+                c.do_draw()
         self._clist_inuse = False
 
     def set_focus(self):
@@ -277,9 +246,9 @@ class Overlay(Control):
         self.current_focus = None
         self._capture_events = {}
 
-    def draw(self, dt):
+    def draw(self):
         main_window.clear()
-        self.draw_subcontrols(dt)
+        self.draw_subcontrols()
 
     def switch(self):
         ori = Overlay.cur_overlay
@@ -445,8 +414,8 @@ def init_gui():
     #import gamepack
     @main_window.event
     def on_draw():
-        Overlay.cur_overlay.do_draw(1/60.) #FIXME!!!
-        
+        Overlay.cur_overlay.do_draw()
+
     def _dispatch_msg(dt):
         global msg_queue, msg_queue_lock, _redispatch
         if not msg_queue: return

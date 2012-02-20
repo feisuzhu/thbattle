@@ -19,69 +19,72 @@ class Button(Control):
     PRESSED=2
     DISABLED=3
 
+    r = InterpDesc('_r')
+    g = InterpDesc('_g')
+    b = InterpDesc('_b')
+
     def __init__(self, caption='Button', font_name='Arial', font_size=9, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.caption = caption
         self.font_name = font_name
         self.font_size = font_size
+        self._state = Button.NORMAL
         self.state = Button.NORMAL
         self.label = pyglet.text.Label(caption, font_name, font_size,
                                        color=(0,0,0,255),
                                        x=self.width//2, y=self.height//2,
                                        anchor_x='center', anchor_y='center')
-        self.color_now = (0.0, 0.0, 0.0)
 
-    def draw(self, dt):
-        srccolor = self.color_now
-        dstcolor = (
-            (0.8, 0.8, 0.8),
-            (0.5, 0.5, 0.5),
-            (0.2, 0.2, 0.2),
-            (1.0, 0.2, 0.2),
-        )[self.state]
-        anim_time = 0.17
-        cur_time = 0.0
-        while anim_time - cur_time > 0:
-            cur_time += dt
-            delta = [(dst - cur)*(dt/anim_time) for cur, dst in zip(srccolor, dstcolor)]
-            self.color_now = [
-                (now+dc if (dst-now-dc)*(dst-now)>0 else dst)
-                for now, dst, dc in zip(self.color_now, dstcolor, delta)
-            ]
-            glPushAttrib(GL_POLYGON_BIT)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-            glColor3f(*self.color_now)
-            glRecti(0, 0, self.width, self.height)
-            glPopAttrib()
-            self.label.draw()
-            #self.draw_subcontrols()
-            dt = (yield)
+    def draw(self):
+        glPushAttrib(GL_POLYGON_BIT)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glColor3f(self.r, self.g, self.b)
+        glRecti(0, 0, self.width, self.height)
+        glPopAttrib()
+        self.label.draw()
 
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
             self.state = Button.HOVER
-            self.stop_drawing()
 
     def on_mouse_leave(self, x, y):
         if self.state != Button.DISABLED:
             self.state = Button.NORMAL
-            self.stop_drawing()
+
 
     def on_mouse_press(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             if button == mouse.LEFT:
                 self.state = Button.PRESSED
-                self.stop_drawing()
 
     def on_mouse_release(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             if button == mouse.LEFT:
                 self.state = Button.HOVER
-                self.stop_drawing()
 
     def on_mouse_click(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             self.dispatch_event('on_click')
+
+    def _get_state(self):
+        return self._state
+
+    def _set_state(self, val):
+        last = self._state
+        self._state = val
+        if last == Button.HOVER and val == Button.NORMAL:
+            self.r = self.g = self.b = LinearInterp(
+                0.5, 0.8, 0.17
+            )
+        else:
+            self.r, self.g, self.b = (
+                (0.8, 0.8, 0.8),
+                (0.5, 0.5, 0.5),
+                (0.2, 0.2, 0.2),
+                (1.0, 0.2, 0.2),
+            )[self.state]
+
+    state = property(_get_state, _set_state)
 
 Button.register_event_type('on_click')
 
@@ -112,7 +115,7 @@ class Dialog(Control):
         self.btn_close.x = width - 20
         self.btn_close.y = height - 19
 
-    def draw(self, dt):
+    def draw(self):
         w, h = self.width, self.height
         ax, ay = self.abs_coords()
         ax, ay = int(ax), int(ay)
@@ -123,15 +126,16 @@ class Dialog(Control):
         nb = Rect(*ob).intersect(Rect(ax, ay, w, h))
         if nb:
             glScissor(nb.x, nb.y, nb.width, nb.height)
+            glClearColor(1,1,1,1)
             glClear(GL_COLOR_BUFFER_BIT)
             if nb.height > 21:
                 glScissor(nb.x, nb.y, nb.width, nb.height-20)
-                self.draw_subcontrols(dt)
+                self.draw_subcontrols()
             glScissor(*ob)
 
         glColor3f(0, 0, 0)
         self.label.draw()
-        self.btn_close.do_draw(dt)
+        self.btn_close.do_draw()
         glColor3f(0, 0, 0)
         glPushAttrib(GL_POLYGON_BIT)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -220,7 +224,7 @@ class TextBox(Control):
 
     text = property(_gettext, _settext)
 
-    def draw(self, dt):
+    def draw(self):
         '''
         glPushAttrib(GL_POLYGON_BIT)
         glColor3f(1.0, 1.0, 1.0)
@@ -286,7 +290,7 @@ class PlayerPortrait(Control):
             ('c3i', self.color * 5)
         )
 
-    def draw(self, dt):
+    def draw(self):
         self.batch.draw()
 
 class GameCharacterPortrait(Control):
@@ -301,7 +305,7 @@ class GameCharacterPortrait(Control):
         self.maxlife = 8
         self.life = 0
 
-    def draw(self, dt):
+    def draw(self):
         glColor3f(1, 1, 1)
         common_res.char_portrait.blit(0, 0)
         if self.selected:
@@ -433,7 +437,7 @@ class TextArea(Control):
 
     text = property(_gettext, _settext)
 
-    def draw(self, dt):
+    def draw(self):
         '''
         glPushAttrib(GL_POLYGON_BIT)
         glColor3f(1.0, 1.0, 1.0)
@@ -467,7 +471,7 @@ class CardSprite(Control):
         self.alpha = 1.0
         self.img = img
 
-    def draw(self, dt):
+    def draw(self):
         if self.gray:
             glColor4f(.66, .66, .66, self.alpha)
         else:
@@ -488,9 +492,9 @@ class HandCardArea(Control):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 93*5+42, 145
 
-    def draw(self, dt):
+    def draw(self):
         glColor4f(1,1,1,1)
-        self.draw_subcontrols(dt)
+        self.draw_subcontrols()
 
     def update(self):
         n = len(self.control_list)
@@ -525,9 +529,9 @@ class DropCardArea(Control):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 820, 125
 
-    def draw(self, dt):
+    def draw(self):
         glColor4f(1,1,1,1)
-        self.draw_subcontrols(dt)
+        self.draw_subcontrols()
 
     def update(self):
         for cs in self.control_list:
@@ -566,7 +570,6 @@ class Ray(Control):
 
     def __init__(self, x0, y0, x1, y1, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
-        # f, t should be [GameCharacterPortrait]s
         from math import sqrt, atan2, pi
         self.x, self.y = x0, y0
         dx, dy = x1 - x0, y1 - y0
@@ -579,7 +582,7 @@ class Ray(Control):
             on_done=lambda self, desc: self.delete()
         )
 
-    def draw(self, dt):
+    def draw(self):
         glPushMatrix()
         glRotatef(self.angle, 0., 0., 1.)
         glScalef(self.scale, 1., 1.)
@@ -716,7 +719,7 @@ class ListView(Control):
 
     view_y = property(_get_view_y, _set_view_y)
 
-    def draw(self, dt):
+    def draw(self):
         ui_utils.border(0, 0, self.width, self.height)
 
         hh = self.header_height
@@ -772,7 +775,7 @@ class ProgressBar(Control):
             _x = r.width - w
             r.get_region(_x, 0, w, r.height).blit(x + w, y)
 
-    def draw(self, dt):
+    def draw(self):
         value = self.value
         width, height = self.width, self.height
 
@@ -820,10 +823,49 @@ class ConfirmButtons(Control):
         self.value = val
         self.dispatch_event('on_confirm', val)
 
-    def draw(self, dt):
-        self.draw_subcontrols(dt)
+    def draw(self):
+        self.draw_subcontrols()
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
 ConfirmButtons.register_event_type('on_confirm')
+
+class ConfirmBox(Dialog):
+    class Presets:
+        OK = ((u'确定', True), )
+        OKCancel = ((u'确定', True), (u'取消', False))
+
+    def __init__(self, text=u'Yoo~', caption=u'', buttons=Presets.OK, *a, **k):
+        lbl = pyglet.text.Label(
+            text=text, font_name='Arial', font_size=9,
+            anchor_x='center', anchor_y='center',
+            width=1000, multiline=True,
+            color=(0,0,0,255)
+        )
+        w, h = lbl.content_width, lbl.content_height
+        lbl.width = w
+        dw, dh = w+30, h+15*3+20+24
+        Dialog.__init__(self, caption, width=dw, height=dh, *a, **k)
+        lbl.x = dw // 2
+        lbl.y = 15*2+24+h//2
+        self.lbl = lbl
+
+        btn = ConfirmButtons(buttons, parent=self)
+        @btn.event
+        def on_confirm(val):
+            self.value = val
+            self.delete()
+            self.dispatch_event('on_confirm', val)
+        btn.x, btn.y = (dw - btn.width)/2, 15
+
+        p = self.parent
+        pw, ph = p.width, p.height
+        self.x, self.y = (pw - dw)/2, (ph - dh)/2
+
+    def draw(self):
+        glColor3f(1,1,1)
+        Dialog.draw(self)
+        self.lbl.draw()
+
+ConfirmBox.register_event_type('on_confirm')

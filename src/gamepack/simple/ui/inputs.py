@@ -93,8 +93,8 @@ class UISelectTarget(InputController):
     def set_valid(self):
         self.confirmbtn.buttons[0].state = Button.NORMAL
 
-    def draw(self, dt):
-        self.draw_subcontrols(dt)
+    def draw(self):
+        self.draw_subcontrols()
         self.label.draw()
 
 class UIChooseCards(UISelectTarget):

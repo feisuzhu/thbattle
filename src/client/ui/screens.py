@@ -14,7 +14,7 @@ import logging
 log = logging.getLogger('UI_Screens')
 
 class _NotImplControl(Control):
-    def draw(self, dt):
+    def draw(self):
         glColor3f(1, 1, 1)
         ui_utils.border(
             0, 0, self.width, self.height
@@ -30,7 +30,7 @@ class LoadingScreen(Overlay):
                     x=self.width//2, y=self.height//2,
                     anchor_x='center', anchor_y='center')
 
-    def draw(self, dt):
+    def draw(self):
         glClearColor(0.0, 0.0, 0.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
         self.label.draw()
@@ -54,10 +54,10 @@ class ServerSelectScreen(Overlay):
         else:
             Overlay.on_message(self, _type, *args)
 
-    def draw(self, dt):
+    def draw(self):
         glClearColor(0.0, 0.0, 0.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
-        self.draw_subcontrols(dt)
+        self.draw_subcontrols()
 
 class LoginScreen(Overlay):
 
@@ -107,14 +107,14 @@ class LoginScreen(Overlay):
         else:
             Overlay.on_message(self, _type, *args)
 
-    def draw(self, dt):
+    def draw(self):
         glClearColor(1.0, 1.0, 1.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
         glColor4f(1, 1, 1, self.bg_alpha.value)
         self.bg.blit(0, 0)
         ui_utils.border(350, 165, 325, 160)
         self.batch.draw()
-        self.draw_subcontrols(dt)
+        self.draw_subcontrols()
 
 class GameHallScreen(Overlay):
     def __init__(self, *args, **kwargs):
@@ -191,11 +191,11 @@ class GameHallScreen(Overlay):
         else:
             Overlay.on_message(self, _type, *args)
 
-    def draw(self, dt):
+    def draw(self):
         #glColor3f(.9, .9, .9)
         glColor3f(1,1,1)
         self.bg.blit(0, 0)
-        self.draw_subcontrols(dt)
+        self.draw_subcontrols()
         #glColor4f(0,0,0,.2)
         #glRectf(0, 0, self.width, self.height)
 
@@ -223,9 +223,9 @@ class GameScreen(Overlay):
                 Executive.call('get_ready', ui_message, [])
                 self.btn_getready.state = Button.DISABLED
 
-        def draw(self, dt):
+        def draw(self):
             self.box.draw()
-            self.draw_subcontrols(dt)
+            self.draw_subcontrols()
 
         def on_message(self, _type, *args):
             if _type == 'player_change':

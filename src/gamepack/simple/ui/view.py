@@ -75,7 +75,7 @@ class SimpleGameUI(Control):
                     **k
                 )
 
-            def draw(self, dt):
+            def draw(self):
                 pyglet.graphics.Batch.draw(self)
 
             def hit_test(self, x, y):
@@ -129,9 +129,9 @@ class SimpleGameUI(Control):
         if _type.startswith('evt_'):
             effects.handle_event(self, _type[4:], args[0])
 
-    def draw(self, dt):
+    def draw(self):
         self.label_prompt.draw()
-        self.draw_subcontrols(dt)
+        self.draw_subcontrols()
 
     def ray(self, f, t):
         if f == t: return
