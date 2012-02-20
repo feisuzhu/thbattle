@@ -5,6 +5,8 @@ logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger('__main__')
 
+_sync_evt = threading.Event()
+
 class MainThread(threading.Thread):
     def run(self):
         import utils; utils.patch_gevent_hub()
@@ -12,6 +14,8 @@ class MainThread(threading.Thread):
         from gevent import monkey
         monkey.patch_socket()
 
+        _sync_evt.set()
+        
         from game import autoenv
         autoenv.init('Client')
 
@@ -34,6 +38,9 @@ class MainThread(threading.Thread):
 
 mt = MainThread()
 mt.start()
+
+_sync_evt.wait()
+del _sync_evt
 
 from client.ui.entry import start_ui
 start_ui()
