@@ -1,9 +1,4 @@
-import gevent
-from gevent.queue import Queue
-from gevent.event import AsyncResult
-from gevent import Greenlet
 from gevent_extension import ITIEvent
-import types
 
 class DataHolder(object):
     def __data__(self):
@@ -95,3 +90,45 @@ class CheckFailed(Exception): pass
 def check(b):
     if not b:
         raise CheckFailed
+
+from pyglet import gl
+
+class Framebuffer(object):
+    def __init__(self, texture):
+        fbo_id = gl.GLuint(0)
+        gl.glGenFramebuffersEXT(1, gl.byref(fbo_id))
+        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, fbo_id)
+        gl.glFramebufferTexture2DEXT(
+            gl.GL_FRAMEBUFFER_EXT,
+            gl.GL_COLOR_ATTACHMENT0_EXT,
+            texture.target, texture.id, 0,
+        )
+        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, 0)
+        self.fbo_id = fbo_id
+        #print fbo_id
+        self.texture = texture
+
+    def __enter__(self):
+        t = self.texture
+        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, self.fbo_id)
+        gl.glPushAttrib(gl.GL_VIEWPORT_BIT)
+        gl.glViewport(0, 0, t.width, t.height)
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glPushMatrix()
+        gl.glLoadIdentity()
+        gl.gluOrtho2D(0, t.width, 0, t.height)
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glPushMatrix()
+        gl.glLoadIdentity()
+
+    def __exit__(self, exc_type, exc_value, tb):
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glPopMatrix()
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glPopMatrix()
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glPopAttrib()
+        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, 0)
+
+    def __del__(self):
+        gl.glDeleteFramebuffersEXT(1, self.fbo_id)
