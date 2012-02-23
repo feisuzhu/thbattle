@@ -6,7 +6,7 @@ from pyglet.window import mouse
 from client.ui.base import Control
 from client.ui.base.interp import *
 from client.ui import resource as common_res, ui_utils
-from utils import Rect, ScissorBox
+from utils import Rect, ScissorBox, Framebuffer
 
 from math import ceil
 
@@ -19,9 +19,14 @@ class Button(Control):
     PRESSED=2
     DISABLED=3
 
-    r = InterpDesc('_r')
-    g = InterpDesc('_g')
-    b = InterpDesc('_b')
+    hover_alpha = InterpDesc('_hv')
+    class color:
+        frame = 66, 138, 123
+        fill_up = 173, 207, 140
+        fill_medline = 173, 223, 156
+        fill_down = 189, 223, 156
+        fill_botline = 222, 239, 206
+        text = 49, 69, 99
 
     def __init__(self, caption='Button', font_name='Arial', font_size=9, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
@@ -30,18 +35,80 @@ class Button(Control):
         self.font_size = font_size
         self._state = Button.NORMAL
         self.state = Button.NORMAL
-        self.label = pyglet.text.Label(caption, font_name, font_size,
-                                       color=(0,0,0,255),
-                                       x=self.width//2, y=self.height//2,
-                                       anchor_x='center', anchor_y='center')
+        self.hover_alpha = 0.0
+
+        self.update()
+
+    def update(self):
+        lbl = pyglet.text.Label(
+            self.caption, self.font_name, self.font_size,
+            color=self.color.text + (255,),
+            x=self.width//2, y=self.height//2,
+            anchor_x='center', anchor_y='center'
+        )
+        w, h = self.width, self.height
+
+        def color(rgb):
+            r, g, b = rgb
+            return r/255., g/255., b/255., 1.0
+
+        def gray(rgb):
+            r, g, b = rgb
+            l = r*.3/255 + g*.59/255 + b*.11/255
+            return l, l, l, 1.0
+
+        def draw_it(func):
+            glColor4f(*func(self.color.fill_down))
+            glRectf(0.0, 0.0, w, h*.5)
+            glColor4f(*func(self.color.fill_up))
+            glRectf(0.0, h*.5, w, h)
+
+            glBegin(GL_LINES)
+            glColor4f(*func(self.color.fill_medline))
+            glVertex2f(0, h*.5); glVertex2f(w, h*.5)
+            glColor4f(*func(self.color.fill_botline))
+            glVertex2f(0, 2); glVertex2f(w, 2)
+            glEnd()
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+            glColor4f(*func(self.color.frame))
+            glRectf(1., 1., w, h)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+            lbl.draw()
+
+        fbo_tex = Framebuffer(pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
+        ))
+        with fbo_tex:
+            draw_it(color)
+
+        fbo_tex_gray = Framebuffer(pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
+        ))
+        r, g, b = self.color.text
+        l = int(r*.3 + g*.59 + b*.11)
+        lbl.color = (l, l, l, 255)
+        with fbo_tex_gray:
+            draw_it(gray)
+
+        self.fbo_tex, self.fbo_tex_gray = fbo_tex, fbo_tex_gray
+
 
     def draw(self):
-        glPushAttrib(GL_POLYGON_BIT)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        glColor3f(self.r, self.g, self.b)
-        glRecti(0, 0, self.width, self.height)
-        glPopAttrib()
-        self.label.draw()
+        glColor3f(1.0, 1.0, 1.0)
+        if self.state == Button.DISABLED:
+            self.fbo_tex_gray.texture.blit(0, 0)
+        else:
+            self.fbo_tex.texture.blit(0, 0)
+            if self.state == Button.PRESSED:
+                glColor4f(0, 0, 0, .25)
+                glRectf(0, 0, self.width, self.height)
+            else:
+                a = self.hover_alpha
+                if a: # HOVER, or HOVER -> NORMAL
+                    glColor4f(1.0, 1.0, .843, a)
+                    glRectf(0, 0, self.width, self.height)
 
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
@@ -72,18 +139,12 @@ class Button(Control):
     def _set_state(self, val):
         last = self._state
         self._state = val
-        if last == Button.HOVER and val == Button.NORMAL:
-            self.r = self.g = self.b = LinearInterp(
-                0.5, 0.8, 0.17
+        if val == Button.HOVER:
+            self.hover_alpha = .25
+        elif last == Button.HOVER and val == Button.NORMAL:
+            self.hover_alpha = LinearInterp(
+                .25, 0, .17
             )
-        else:
-            self.r, self.g, self.b = (
-                (0.8, 0.8, 0.8),
-                (0.5, 0.5, 0.5),
-                (0.2, 0.2, 0.2),
-                (1.0, 0.2, 0.2),
-            )[self.state]
-
     state = property(_get_state, _set_state)
 
 Button.register_event_type('on_click')
@@ -93,6 +154,13 @@ class Dialog(Control):
     Dialog, can move
     '''
     next_zindex = 1
+
+    class color:
+        frame = 49, 69, 99
+        heavy = 66, 138, 115
+        medium = 140, 186, 140
+        light = 206, 239, 156
+
     def __init__(self, caption='Dialog', *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.zindex = Dialog.next_zindex
@@ -109,6 +177,41 @@ class Dialog(Control):
         def on_click():
             self.close()
 
+        self.update()
+
+    def update(self):
+        w, h  = self.width, self.height
+        tex = pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
+        )
+        fbo = Framebuffer(tex)
+
+        def color(rgb):
+            r, g, b = rgb
+            return r/255., g/255., b/255.
+
+        with fbo:
+            glClearColor(1,1,1,1)
+            glClear(GL_COLOR_BUFFER_BIT)
+
+            glColor3f(*color(self.color.medium))
+            glRectf(0, h-24, w, h)
+            glBegin(GL_LINES)
+            glColor3f(*color(self.color.heavy))
+            glVertex2f(0, h-24)
+            glVertex2f(w, h-24)
+            glEnd()
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+            glColor3f(*color(self.color.frame))
+            glLineWidth(4.0)
+            glRectf(0, 0, w, h)
+            glLineWidth(1.0)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+        self.fbo = fbo
+
+
     def on_resize(self, width, height):
         self.label.x = width // 2
         self.label.y = height - 8
@@ -116,6 +219,8 @@ class Dialog(Control):
         self.btn_close.y = height - 19
 
     def draw(self):
+        self.fbo.texture.blit(0,0)
+
         w, h = self.width, self.height
         ax, ay = self.abs_coords()
         ax, ay = int(ax), int(ay)
@@ -125,29 +230,13 @@ class Dialog(Control):
         ob = list(ob)
         nb = Rect(*ob).intersect(Rect(ax, ay, w, h))
         if nb:
-            glScissor(nb.x, nb.y, nb.width, nb.height)
-            glClearColor(1,1,1,1)
-            glClear(GL_COLOR_BUFFER_BIT)
-            if nb.height > 21:
-                glScissor(nb.x, nb.y, nb.width, nb.height-20)
+            if nb.height > 25:
+                glScissor(nb.x, nb.y, nb.width, nb.height-24)
                 self.draw_subcontrols()
             glScissor(*ob)
 
         glColor3f(0, 0, 0)
-        self.label.draw()
         self.btn_close.do_draw()
-        glColor3f(0, 0, 0)
-        glPushAttrib(GL_POLYGON_BIT)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glRecti(0, 0, w, h)
-        graphics.draw(5, GL_LINE_STRIP,('v2i', (
-            0, h-20,
-            w, h-20,
-            w-20, h,
-            w-20, h-20,
-            w, h,
-        )))
-        glPopAttrib()
 
     def on_mouse_press(self, x, y, button, modifier):
         w, h = self.width, self.height
