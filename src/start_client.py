@@ -14,7 +14,6 @@ class MainThread(threading.Thread):
         from gevent import monkey
         monkey.patch_socket()
 
-        _sync_evt.set()
         
         from game import autoenv
         autoenv.init('Client')
@@ -25,6 +24,7 @@ class MainThread(threading.Thread):
         Endpoint.ENDPOINT_DEBUG = True
 
         # for dbg
+        '''
         from gevent import signal as gsig
         import signal
         def print_stack():
@@ -33,7 +33,8 @@ class MainThread(threading.Thread):
             traceback.print_stack(game.gr_frame)
         gsig(signal.SIGUSR1, print_stack)
         # -------
-
+        '''
+        _sync_evt.set()
         Executive.run()
 
 mt = MainThread()

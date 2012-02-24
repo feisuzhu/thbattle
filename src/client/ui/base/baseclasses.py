@@ -415,6 +415,14 @@ def init_gui():
     fps_limit = 60
     delay = 1. / fps_limit
     current_time = time()
+
+    o_flip = main_window.flip
+    
+    def n_flip():
+        pass
+    
+    main_window.flip = n_flip
+    
     @main_window.event
     def on_draw():
         global current_time
@@ -424,6 +432,7 @@ def init_gui():
             current_time = t
             Overlay.cur_overlay.do_draw()
             fps.draw()
+            o_flip()
 
     def _dispatch_msg(dt):
         global msg_queue, msg_queue_lock, _redispatch
