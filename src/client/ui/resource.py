@@ -56,6 +56,8 @@ class ResLoader(pyglet.resource.Loader):
 with ResLoader(__file__) as args:
     locals().update(args)
 
+    ldr.add_font('Zpix.ttf')
+
     bg_login = ldr.texture('bg_login.png')
     bg_gamehall = ldr.texture('bg_gamehall.png')
     bg_ingame = ldr.texture('bg_ingame.png')
@@ -84,6 +86,13 @@ with ResLoader(__file__) as args:
         i.get_texture() for i in
         pyglet.image.ImageGrid(img('border.png'), 1, 9)
     ]
+
+    buttons = DataHolder()
+    for t in ('blue', 'red', 'green', 'orange'):
+        setattr(buttons, 'close_%s' % t, [
+            tb.add(i) for i in
+            pyglet.image.ImageGrid(img('buttons/closebtn_%s.png' % t), 1, 4)
+        ])
 
     for k in args.keys(): del k
     del args

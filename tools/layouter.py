@@ -17,7 +17,7 @@ class Layouter(Control):
         self.set_focus()
         self.index = 0
         class Dummy(object):
-            def _do_draw(self, dt): pass
+            def draw(self): pass
             x = 0
             y = 0
             width = 0
@@ -62,14 +62,14 @@ class Layouter(Control):
             c.x = c.x + dd[0] * self.scale
             c.y = c.y + dd[1] * self.scale
 
-    def draw_hook_before(self, dt):
+    def draw_hook_before(self):
         pass
 
-    def draw_hook_after(self, dt):
+    def draw_hook_after(self):
         pass
 
-    def draw(self, dt):
-        self.draw_hook_before(dt)
+    def draw(self):
+        self.draw_hook_before()
         l = len(self.control_list)
         index = (self.index + l*100) % len(self.control_list)
         for i, c in enumerate(self.control_list):
@@ -82,7 +82,7 @@ class Layouter(Control):
             else:
                 c._do_draw(dt)
             '''
-            c._do_draw(dt)
+            c.draw()
             if i == index and self.flash:
                 glEnable(GL_COLOR_LOGIC_OP)
                 glLogicOp(GL_INVERT)
@@ -90,7 +90,7 @@ class Layouter(Control):
                 glDisable(GL_COLOR_LOGIC_OP)
 
             glPopMatrix()
-        self.draw_hook_after(dt)
+        self.draw_hook_after()
 
     def on_mouse_drag(self, x, y, dx, dy, button, modifier):
         _ = lambda b: modifier & b == b
@@ -127,11 +127,11 @@ class Label(Control):
         w, h = self.rawlabel.content_width, self.rawlabel.content_height
         Control.__init__(self, x=x, y=y, width=w, height=h, *a, **k)
 
-    def draw(self, dt):
+    def draw(self):
         self.rawlabel.draw()
 
 class Rectangle(Control):
-    def draw(self, dt):
+    def draw(self):
         glPushAttrib(GL_POLYGON_BIT)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glColor3f(0,0,0)
@@ -144,7 +144,7 @@ _base = None
 #----------------
 
 img = pyglet.image.load('/home/proton/Desktop/capture/snap00031.png')
-
+#img = pyglet.image.load('/dev/shm/1.png')
 from game import autoenv
 autoenv.init('Client')
 from client.ui import resource as cres
@@ -155,9 +155,10 @@ interp = LinearInterp(0.0, 1.0, 1.0)
 
 from client.ui import ui_utils
 
-def bg(dt):
+def bg():
     glColor4f(1,1,1,1)
     img.blit(0,0)
+    #gly.blit(50, 50)
 
 layout.draw_hook_before = bg
 
@@ -174,10 +175,26 @@ Label(parent=layout, text=u'请选择…', x=373, y=190, font_size=12, color=(25
 _base = BigProgressBar(parent=layout, x=285, y=162, width=250, height=29)
 _base.value = 1.0
 '''
+'''
 rect = Control(parent=layout, x=285, y=162, width=531, height=58)
 ConfirmButtons(parent=rect, x=259, y=4, width=165, height=24)
 Label(parent=rect, text=u'请选择…', x=88, y=28, font_size=12, color=(255,255,180,255), bold=True)
 BigProgressBar(parent=rect, x=0, y=0, width=250, height=29).value = 1.0
+'''
+
+#b = ConfirmBox(u'哈哈哈哈哈哈哈哈\nii和i和i和i和i和i和i和i和i后', parent=layout)
+'''
+pyglet.font.add_file('/home/proton/Desktop/res/simsun.ttc')
+fnt = pyglet.font.load(u'宋体', size=9)
+
+gly = fnt.get_glyphs(u'已')[0]
+'''
+b = Button(caption=u'哈哈哈', width=150, height=24, parent=layout, x=486, y=273)
+b.state = b.DISABLED
+@b.event
+def on_click():
+    b.update(
+    )
 
 #------------------
 pyglet.app.run()

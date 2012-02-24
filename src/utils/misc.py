@@ -91,10 +91,9 @@ def check(b):
     if not b:
         raise CheckFailed
 
-from pyglet import gl
-
 class Framebuffer(object):
     def __init__(self, texture):
+        from pyglet import gl
         fbo_id = gl.GLuint(0)
         gl.glGenFramebuffersEXT(1, gl.byref(fbo_id))
         gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, fbo_id)
@@ -109,9 +108,10 @@ class Framebuffer(object):
         self.texture = texture
 
     def __enter__(self):
+        from pyglet import gl
         t = self.texture
         gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, self.fbo_id)
-        gl.glPushAttrib(gl.GL_VIEWPORT_BIT)
+        gl.glPushAttrib(gl.GL_VIEWPORT_BIT | gl.GL_TRANSFORM_BIT)
         gl.glViewport(0, 0, t.width, t.height)
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glPushMatrix()
@@ -122,13 +122,54 @@ class Framebuffer(object):
         gl.glLoadIdentity()
 
     def __exit__(self, exc_type, exc_value, tb):
+        from pyglet import gl
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glPopMatrix()
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glPopMatrix()
-        gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glPopAttrib()
         gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, 0)
 
     def __del__(self):
+        from pyglet import gl
         gl.glDeleteFramebuffersEXT(1, self.fbo_id)
+
+def dilate(im, color):
+    import pyglet
+    w, h = im.width, im.height
+    _ori = bytearray(im.get_data('A', w))
+    _new = bytearray(_ori)
+
+    class accesser(object):
+        def __init__(self, arr):
+            self.arr = arr
+        def __getitem__(self, val):
+            x, y = val
+            if not (0 <= x < w and 0 <= y < h):
+                return 0
+            else:
+                return self.arr[y*w + x]
+
+        def __setitem__(self, loc, val):
+            x, y = loc
+            self.arr[y*w + x] = val
+
+    ori = accesser(_ori)
+    new = accesser(_new)
+
+    for x in xrange(w):
+        for y in xrange(h):
+            if any([
+                ori[x, y],
+                ori[x-1, y], ori[x+1, y], ori[x, y-1], ori[x, y+1],
+                ori[x-1, y-1], ori[x-1, y+1], ori[x+1, y-1], ori[x+1, y+1],
+            ]):
+                new[x, y] = True
+            else:
+                new[x, y] = False
+
+    color = ''.join([chr(i) for i in color]) + '\xff'
+    tr = ['\x00'*4, color]
+    new = ''.join([tr[i] for i in _new])
+    new = pyglet.image.ImageData(w, h, 'RGBA', new)
+    return new

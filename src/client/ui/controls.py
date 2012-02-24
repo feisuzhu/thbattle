@@ -6,12 +6,81 @@ from pyglet.window import mouse
 from client.ui.base import Control
 from client.ui.base.interp import *
 from client.ui import resource as common_res, ui_utils
-from utils import Rect, ScissorBox, Framebuffer
+from utils import Rect, ScissorBox, Framebuffer, dilate
 
 from math import ceil
 
 import logging
 log = logging.getLogger('UI_Controls')
+
+class Colors(object):
+    class green:
+        # Dialog
+        frame = 49, 69, 99
+        heavy = 66, 138, 115
+        medium = 140, 186, 140
+        light = 206, 239, 156
+        caption = 255, 255, 255
+        caption_shadow = heavy
+        close_btn = common_res.buttons.close_green
+        # Button
+        btn_frame = heavy
+        fill_up = 173, 207, 140
+        fill_medline = 173, 223, 156
+        fill_down = 189, 223, 156
+        fill_botline = 222, 239, 206
+        text = frame
+
+    class red:
+        # Dialog
+        frame = 171, 68, 81
+        medium = 0xff, 0x9f, 0x8c
+        heavy = frame
+        light = 254, 221, 206
+        caption = 255, 255, 255
+        caption_shadow = frame
+        close_btn = common_res.buttons.close_red
+        # Button
+        btn_frame = frame
+        fill_up = 0xee, 0x89, 0x78
+        fill_medline = fill_up
+        fill_down = 0xf7, 0x9c, 0x8c
+        fill_botline = fill_down
+        text = frame
+
+    class blue:
+        # Dialog
+        frame = 0x31, 0x55, 0x97
+        medium = 0x90, 0xbc, 0xed
+        heavy = 0x64, 0x8a, 0xd0
+        light = 0xa3, 0xd1, 0xfa
+        caption = frame
+        caption_shadow = 255, 255, 255
+        close_btn = common_res.buttons.close_blue
+        # Button
+        btn_frame = 0x54, 0x67, 0xa6
+        fill_up = 0x90, 0xbf, 0xef
+        fill_down = 0xa3, 0xd1, 0xfa
+        fill_medline = 0x9a, 0xc8, 0xf5
+        fill_botline = 0xc5, 0xf2, 0xff
+        text = frame
+
+    class orange:
+        # Dialog
+        frame = 0x88, 0x66, 0x66
+        medium = 0xff, 0xcc, 0x77
+        heavy = frame
+        light = 0xff, 0xee, 0xaa
+        caption = 255, 255, 255
+        caption_shadow = frame
+        close_btn = common_res.buttons.close_orange
+        # Button
+        btn_frame = frame
+        fill_up = medium
+        fill_medline = fill_up
+        fill_down = 0xff, 0xdd, 0x88
+        fill_botline = light
+        text = frame
 
 class Button(Control):
     NORMAL=0
@@ -28,20 +97,19 @@ class Button(Control):
         fill_botline = 222, 239, 206
         text = 49, 69, 99
 
-    def __init__(self, caption='Button', font_name='Arial', font_size=9, *args, **kwargs):
+    def __init__(self, caption='Button', color=Colors.green, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.caption = caption
-        self.font_name = font_name
-        self.font_size = font_size
         self._state = Button.NORMAL
         self.state = Button.NORMAL
         self.hover_alpha = 0.0
+        self.color = color
 
         self.update()
 
     def update(self):
         lbl = pyglet.text.Label(
-            self.caption, self.font_name, self.font_size,
+            self.caption, u'最像素', 9,
             color=self.color.text + (255,),
             x=self.width//2, y=self.height//2,
             anchor_x='center', anchor_y='center'
@@ -71,7 +139,7 @@ class Button(Control):
             glEnd()
 
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            glColor4f(*func(self.color.frame))
+            glColor4f(*func(self.color.heavy))
             glRectf(1., 1., w, h)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
@@ -147,6 +215,74 @@ class Button(Control):
             )
     state = property(_get_state, _set_state)
 
+class ImageButton(Control):
+    NORMAL=0
+    HOVER=1
+    PRESSED=2
+    DISABLED=3
+
+    hover_alpha = InterpDesc('_hv')
+
+    def __init__(self, images, *args, **kwargs):
+        Control.__init__(self, *args, **kwargs)
+        self.images = images
+        self._state = Button.NORMAL
+        self.state = Button.NORMAL
+        self.hover_alpha = 0.0
+        self.width = images[0].width
+        self.height = images[0].height
+
+    def draw(self):
+        glColor3f(1.0, 1.0, 1.0)
+        if self.state == Button.DISABLED:
+            self.images[3].blit(0, 0)
+        else:
+            if self.state == Button.PRESSED:
+                self.images[2].blit(0, 0)
+            else:
+                self.images[0].blit(0, 0)
+                a = self.hover_alpha
+                if a: # HOVER, or HOVER -> NORMAL
+                    glColor4f(1.0, 1.0, 1.0, a)
+                    self.images[1].blit(0, 0)
+
+    def on_mouse_enter(self, x, y):
+        if self.state != Button.DISABLED:
+            self.state = Button.HOVER
+
+    def on_mouse_leave(self, x, y):
+        if self.state != Button.DISABLED:
+            self.state = Button.NORMAL
+
+
+    def on_mouse_press(self, x, y, button, modifier):
+        if self.state != Button.DISABLED:
+            if button == mouse.LEFT:
+                self.state = Button.PRESSED
+
+    def on_mouse_release(self, x, y, button, modifier):
+        if self.state != Button.DISABLED:
+            if button == mouse.LEFT:
+                self.state = Button.HOVER
+
+    def on_mouse_click(self, x, y, button, modifier):
+        if self.state != Button.DISABLED:
+            self.dispatch_event('on_click')
+
+    def _get_state(self):
+        return self._state
+
+    def _set_state(self, val):
+        last = self._state
+        self._state = val
+        if val == Button.HOVER:
+            self.hover_alpha = 1.
+        elif last == Button.HOVER and val == Button.NORMAL:
+            self.hover_alpha = LinearInterp(
+                1., 0, .3
+            )
+    state = property(_get_state, _set_state)
+
 Button.register_event_type('on_click')
 
 class Dialog(Control):
@@ -155,23 +291,18 @@ class Dialog(Control):
     '''
     next_zindex = 1
 
-    class color:
-        frame = 49, 69, 99
-        heavy = 66, 138, 115
-        medium = 140, 186, 140
-        light = 206, 239, 156
-
-    def __init__(self, caption='Dialog', *args, **kwargs):
+    def __init__(self, caption='Dialog', color=Colors.green, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.zindex = Dialog.next_zindex
+        self.color = color
+        self.caption = caption
         Dialog.next_zindex += 1
-        self.label = pyglet.text.Label(caption, 'Arial', 9,
-                               color=(0,0,0,255),
-                               x=self.width//2, y=self.height-8,
-                               anchor_x='center', anchor_y='center')
-        self.btn_close = Button(caption=u'', parent=self, font_size=12,
-                                x=self.width-20, y=self.height-19,
-                                width=19, height=19, manual_draw=True)
+        self.btn_close = ImageButton(
+            images=color.close_btn,
+            parent=self, font_size=12,
+            x=self.width-18, y=self.height-19,
+            manual_draw=True
+        )
         self.dragging = False
         @self.btn_close.event
         def on_click():
@@ -190,6 +321,36 @@ class Dialog(Control):
             r, g, b = rgb
             return r/255., g/255., b/255.
 
+        lbl = pyglet.text.Label(
+            self.caption, u'最像素', 9,
+            color=self.color.caption + (255,),
+            x=15, y=4,
+            anchor_x='left', anchor_y='bottom'
+        )
+
+        ttex = pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, w, 24, GL_RGBA
+        )
+        tfbo = Framebuffer(ttex)
+        with tfbo:
+            lbl.draw()
+
+        im = ttex.get_image_data()
+        shadow = dilate(im, self.color.caption_shadow)
+        shadow = dilate(shadow, self.color.caption_shadow).get_texture()
+        with tfbo:
+            glClearColor(0,0,0,0)
+            glClear(GL_COLOR_BUFFER_BIT)
+            glColor3f(1,1,1)
+            shadow.blit(0, 0)
+            #glDisable(GL_BLEND)
+            #glEnable(GL_ALPHA_TEST)
+            #glAlphaFunc(GL_GREATER, 0.)
+            lbl.draw()
+            #glDisable(GL_ALPHA_TEST)
+            #glFlush()
+            #glEnable(GL_BLEND)
+
         with fbo:
             glClearColor(1,1,1,1)
             glClear(GL_COLOR_BUFFER_BIT)
@@ -201,6 +362,9 @@ class Dialog(Control):
             glVertex2f(0, h-24)
             glVertex2f(w, h-24)
             glEnd()
+
+            glColor3f(1,1,1)
+            ttex.blit(0, h-24)
 
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             glColor3f(*color(self.color.frame))
@@ -272,7 +436,7 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 class TextBox(Control):
-    def __init__(self, font='Arial', font_size=12, text='Yoooooo~', *args, **kwargs):
+    def __init__(self, font=u'最像素', font_size=12, text='Yoooooo~', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text), dict(
@@ -434,7 +598,7 @@ class GameCharacterPortrait(Control):
         glPopMatrix()
 
 class TextArea(Control):
-    def __init__(self, font='Arial', font_size=9, *args, **kwargs):
+    def __init__(self, font=u'最像素', font_size=9, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
 
         width, height = self.width, self.height
@@ -761,7 +925,7 @@ class ListView(Control):
     lh_class = ListHeader
     header_height = 25
     line_height = 17
-    def __init__(self, font_name='Arial', font_size=10, *a, **k):
+    def __init__(self, font_name=u'最像素', font_size=10, *a, **k):
         Control.__init__(self, *a, **k)
         self.font, self.font_size = font_name, font_size
         f = pyglet.font.load(font_name, font_size)
@@ -925,9 +1089,9 @@ class ConfirmBox(Dialog):
         OK = ((u'确定', True), )
         OKCancel = ((u'确定', True), (u'取消', False))
 
-    def __init__(self, text=u'Yoo~', caption=u'', buttons=Presets.OK, *a, **k):
+    def __init__(self, text=u'Yoo~', caption=u'信息', buttons=Presets.OK, *a, **k):
         lbl = pyglet.text.Label(
-            text=text, font_name='Arial', font_size=9,
+            text=text, font_name=u'Zfull-GB', font_size=9,
             anchor_x='center', anchor_y='center',
             width=1000, multiline=True,
             color=(0,0,0,255)
