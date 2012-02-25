@@ -61,44 +61,61 @@ class ServerSelectScreen(Overlay):
         self.draw_subcontrols()
 
 class LoginScreen(Overlay):
+    class LoginDialog(Dialog):
+        def __init__(self, *a, **k):
+            Dialog.__init__(self, u'登陆', x=350, y=165, width=325, height=184, *a, **k)
+            self.batch = pyglet.graphics.Batch()
+            Label(
+                text=u'用户名：', font_size=12,color=(0,0,0,255),
+                font_name='MyZpix', bold=True,
+                x=368-350, y=286-165,
+                anchor_x='left', anchor_y='bottom',
+                batch=self.batch
+            )
+            Label(
+                text=u'密码：', font_size=12,color=(0,0,0,255),
+                font_name='MyZpix', bold=True,
+                x=368-350, y=250-165,
+                anchor_x='left', anchor_y='bottom',
+                batch=self.batch
+            )
+            self.txt_username = TextBox(
+                parent=self, x=438-350, y=282-165, width=220, height=25,
+                text=u'魂魄妖梦'
+            )
+            self.txt_pwd = TextBox(
+                parent=self, x=438-350, y=246-165, width=220, height=25,
+                text='password'
+            )
+            self.btn_login = Button(
+                parent=self, caption=u'进入幻想乡',
+                x=378-350, y=182-165, width=127, height=48
+            )
+            self.btn_exit = Button(
+                parent=self, caption=u'回到现世',
+                x=520-350, y=182-165, width=127, height=48
+            )
+
+            @self.btn_login.event
+            def on_click():
+                u, pwd = self.txt_username.text, self.txt_pwd.text
+                Executive.call('auth', ui_message, [u, pwd])
+
+            @self.btn_exit.event
+            def on_click():
+                ui_message('app_exit')
+
+        def draw(self):
+            Dialog.draw(self)
+            self.batch.draw()
+
 
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
-        self.batch = pyglet.graphics.Batch()
         self.bg = common_res.bg_login
         self.bg_alpha = LinearInterp(0, 1.0, 1.5)
-        self.title = Label(text='GENSOUKILL',
-                    font_size=60,color=(0,0,0,255),
-                    x=272, y=475,
-                    batch=self.batch)
-        '''
-        r = Rect(350, 165, 325, 160)
-        self.batch.add(
-            5, GL_LINE_STRIP, None,
-            ('v2i', r.glLineStripVertices()),
-            ('c3f', [0.0, 0.0, 0.0] * 5)
-        )'''
-        Label(text=u'用户名：', font_size=12,color=(0,0,0,255),
-                            x=368, y=284,
-                            anchor_x='left', anchor_y='bottom',
-                            batch=self.batch)
-        Label(text=u'密码：', font_size=12,color=(0,0,0,255),
-                            x=368, y=246,
-                            anchor_x='left', anchor_y='bottom',
-                            batch=self.batch)
-        self.txt_username = TextBox(parent=self, x=438, y=282, width=220, height=25, text='youmu')
-        self.txt_pwd = TextBox(parent=self, x=438, y=246, width=220, height=25, text='password')
-        self.btn_login = Button(parent=self, caption=u'进入幻想乡', x=378, y=182, width=127, height=48)
-        self.btn_exit = Button(parent=self, caption=u'回到现世', x=520, y=182, width=127, height=48)
-
-        @self.btn_login.event
-        def on_click():
-            u, pwd = self.txt_username.text, self.txt_pwd.text
-            Executive.call('auth', ui_message, [u, pwd])
-
-        @self.btn_exit.event
-        def on_click():
-            ui_message('app_exit')
+        self.dialog = LoginScreen.LoginDialog(parent=self)
+        self.dialog.btn_close.state = Button.DISABLED
 
     def on_message(self, _type, *args):
         if _type == 'auth_success':
@@ -114,47 +131,81 @@ class LoginScreen(Overlay):
         glClear(GL_COLOR_BUFFER_BIT)
         glColor4f(1, 1, 1, self.bg_alpha.value)
         self.bg.blit(0, 0)
-        ui_utils.border(350, 165, 325, 160)
-        self.batch.draw()
+        #ui_utils.border(350, 165, 325, 160)
+        #self.batch.draw()
         self.draw_subcontrols()
 
 class GameHallScreen(Overlay):
+    class GameList(Dialog):
+        def __init__(self, p):
+            Dialog.__init__(
+                self, parent=p, caption=u'当前大厅内的游戏',
+                x=35, y=220, width=700, height=420,
+                bot_reserve=30,
+            )
+            self.no_move = True
+            self.btn_close.state = Button.DISABLED
+
+            gl = self.gamelist = ListView(parent=self, x=2, y=30, width=696, height=420-30-25)
+            gl.set_columns([
+                (u'No.', 100),
+                (u'游戏名称', 200),
+                (u'游戏类型', 200),
+                (u'人数', 50),
+                (u'当前状态', 80),
+            ])
+
+            self.btn_create = Button(parent=self, caption=u'创建游戏', x=690-270, y=5, width=70, height=20)
+            self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=690-180, y=5, width=70, height=20)
+            self.btn_refresh = Button(parent=self, caption=u'刷新列表', x=690-90, y=5, width=70, height=20)
+
+
+            @self.btn_create.event
+            def on_click():
+                Executive.call('create_game', ui_message, ['SimpleGame', 'Default Game'])
+
+            @self.btn_quickstart.event
+            def on_click():
+                Executive.call('quick_start_game', ui_message, 'SimpleGame')
+
+            @self.btn_refresh.event
+            def on_click():
+                Executive.call('get_hallinfo', ui_message, None)
+
+            @self.gamelist.event
+            def on_item_dblclick(li):
+                Executive.call('join_game', ui_message, li.game_id)
+
+
+        def on_message(self, _type, *args):
+            if _type == 'current_games':
+                current_games = args[0]
+                glist = self.gamelist
+                glist.clear()
+                for gi in current_games:
+                    li = glist.append([
+                        gi['id'],
+                        gi['name'],
+                        gi['type'],
+                        '%d/%d' % (
+                            len([i for i in gi['slots'] if i['id']]),
+                            len(gi['slots']),
+                        ),
+                        [u'等待中', u'游戏中'][gi['started']]
+                    ])
+                    li.game_id = gi['id']
+
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
         self.bg = common_res.bg_gamehall
-        gl = self.gamelist = ListView(parent=self, x=35, y=240, width=700, height=400)
-        gl.set_columns([
-            ('game_no', 80),
-            ('game_name', 300),
-            ('game_type', 180),
-            ('game_players', 50),
-            ('game_status', 80),
-        ])
+
+        self.gamelist = self.GameList(self)
+
         chat = self.chat_box = TextArea(parent=self, x=35, y=50, width=700, height=150)
         chat.text = u'您现在处于游戏大厅！\n'
-        self.playerlist = _NotImplControl(parent=self, x=750, y=220, width=240, height=420)
-        self.userinfo_box = _NotImplControl(parent=self, x=750, y=20, width=240, height=180)
+        self.playerlist = Dialog(caption=u'当前在线玩家', parent=self, x=750, y=220, width=240, height=420)
+        self.userinfo_box = Dialog(caption=u'你的战绩', parent=self, x=750, y=20, width=240, height=180)
         self.chat_input = TextBox(parent=self, x=35, y=20, width=700, height=25)
-
-        self.btn_create = Button(parent=self, caption=u'创建游戏', x=35, y=220, width=100, height=28)
-        self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=35+120, y=220, width=100, height=28)
-        self.btn_refresh = Button(parent=self, caption=u'刷新列表', x=35+240, y=220, width=100, height=28)
-
-        @self.btn_create.event
-        def on_click():
-            Executive.call('create_game', ui_message, ['SimpleGame', 'Default Game'])
-
-        @self.btn_quickstart.event
-        def on_click():
-            Executive.call('quick_start_game', ui_message, 'SimpleGame')
-
-        @self.btn_refresh.event
-        def on_click():
-            Executive.call('get_hallinfo', ui_message, None)
-
-        @self.gamelist.event
-        def on_item_dblclick(li):
-            Executive.call('join_game', ui_message, li.game_id)
 
         @self.chat_input.event
         def on_enter():
@@ -168,22 +219,6 @@ class GameHallScreen(Overlay):
     def on_message(self, _type, *args):
         if _type == 'game_joined':
             GameScreen(args[0]).switch()
-        elif _type == 'current_games':
-            current_games = args[0]
-            glist = self.gamelist
-            glist.clear()
-            for gi in current_games:
-                li = glist.append([
-                    gi['id'],
-                    gi['name'],
-                    gi['type'],
-                    '%d/%d' % (
-                        len([i for i in gi['slots'] if i['id']]),
-                        len(gi['slots']),
-                    ),
-                    [u'等待中', u'游戏中'][gi['started']]
-                ])
-                li.game_id = gi['id']
         elif _type in ('chat_msg', 'speaker_msg'):
             uname, msg = args[0]
             uname = uname.replace('|', '||')

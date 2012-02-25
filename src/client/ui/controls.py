@@ -109,7 +109,7 @@ class Button(Control):
 
     def update(self):
         lbl = pyglet.text.Label(
-            self.caption, u'最像素', 9,
+            self.caption, u'MyZpix', 9,
             color=self.color.text + (255,),
             x=self.width//2, y=self.height//2,
             anchor_x='center', anchor_y='center'
@@ -291,11 +291,13 @@ class Dialog(Control):
     '''
     next_zindex = 1
 
-    def __init__(self, caption='Dialog', color=Colors.green, *args, **kwargs):
+    def __init__(self, caption='Dialog', color=Colors.green, bot_reserve=10, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.zindex = Dialog.next_zindex
         self.color = color
         self.caption = caption
+        self.no_move = False
+        self.bot_reserve = bot_reserve
         Dialog.next_zindex += 1
         self.btn_close = ImageButton(
             images=color.close_btn,
@@ -322,14 +324,14 @@ class Dialog(Control):
             return r/255., g/255., b/255.
 
         lbl = pyglet.text.Label(
-            self.caption, u'最像素', 9,
+            self.caption, u'MyZpix', 9,
             color=self.color.caption + (255,),
-            x=15, y=4,
+            x=2, y=4,
             anchor_x='left', anchor_y='bottom'
         )
 
         ttex = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, w, 24, GL_RGBA
+            GL_TEXTURE_RECTANGLE_ARB, lbl.content_width+4, 24, GL_RGBA
         )
         tfbo = Framebuffer(ttex)
         with tfbo:
@@ -343,28 +345,24 @@ class Dialog(Control):
             glClear(GL_COLOR_BUFFER_BIT)
             glColor3f(1,1,1)
             shadow.blit(0, 0)
-            #glDisable(GL_BLEND)
-            #glEnable(GL_ALPHA_TEST)
-            #glAlphaFunc(GL_GREATER, 0.)
             lbl.draw()
-            #glDisable(GL_ALPHA_TEST)
-            #glFlush()
-            #glEnable(GL_BLEND)
 
         with fbo:
             glClearColor(1,1,1,1)
             glClear(GL_COLOR_BUFFER_BIT)
 
             glColor3f(*color(self.color.medium))
-            glRectf(0, h-24, w, h)
+            glRectf(0, h-24, w, h) # title bar
+            r = self.bot_reserve
+            glRectf(0, 0, w, r)
             glBegin(GL_LINES)
             glColor3f(*color(self.color.heavy))
-            glVertex2f(0, h-24)
-            glVertex2f(w, h-24)
+            glVertex2f(0, h-24); glVertex2f(w, h-24)
+            glVertex2f(0, r); glVertex2f(w, r)
             glEnd()
 
             glColor3f(1,1,1)
-            ttex.blit(0, h-24)
+            ttex.blit(20, h-24)
 
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             glColor3f(*color(self.color.frame))
@@ -375,7 +373,6 @@ class Dialog(Control):
 
         self.fbo = fbo
 
-
     def on_resize(self, width, height):
         self.label.x = width // 2
         self.label.y = height - 8
@@ -383,6 +380,7 @@ class Dialog(Control):
         self.btn_close.y = height - 19
 
     def draw(self):
+        glColor3f(1,1,1)
         self.fbo.texture.blit(0,0)
 
         w, h = self.width, self.height
@@ -395,18 +393,17 @@ class Dialog(Control):
         nb = Rect(*ob).intersect(Rect(ax, ay, w, h))
         if nb:
             if nb.height > 25:
-                glScissor(nb.x, nb.y, nb.width, nb.height-24)
+                glScissor(nb.x, nb.y, nb.width, nb.height-25)
                 self.draw_subcontrols()
             glScissor(*ob)
 
-        glColor3f(0, 0, 0)
         self.btn_close.do_draw()
 
     def on_mouse_press(self, x, y, button, modifier):
         w, h = self.width, self.height
         self.zindex = Dialog.next_zindex
         Dialog.next_zindex += 1
-        if button == mouse.LEFT and h-20 <= y <= h and x <= w-20:
+        if not self.no_move and button == mouse.LEFT and h-20 <= y <= h and x <= w-20:
             self.set_capture('on_mouse_drag', 'on_mouse_release')
             self.dragging = True
 
@@ -436,7 +433,7 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 class TextBox(Control):
-    def __init__(self, font=u'最像素', font_size=12, text='Yoooooo~', *args, **kwargs):
+    def __init__(self, font=u'MyZpix', font_size=12, text='Yoooooo~', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text), dict(
@@ -598,7 +595,7 @@ class GameCharacterPortrait(Control):
         glPopMatrix()
 
 class TextArea(Control):
-    def __init__(self, font=u'最像素', font_size=9, *args, **kwargs):
+    def __init__(self, font=u'MyZpix', font_size=9, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
 
         width, height = self.width, self.height
@@ -880,61 +877,92 @@ class ListItem(object):
         if isinstance(index, basestring):
             index = p.col_lookup[index]
         self._data[index] = val
+        c = p.color.text + (255,)
         self.labels[index] = Label(
-            text=val, font_name=p.font, font_size=p.font_size,
-            anchor_x='left', anchor_y = 'bottom', color=(0,0,0,255),
+            text=val, font_name='MyZpix', font_size=9,
+            anchor_x='left', anchor_y = 'bottom', color=c,
         )
 
-    def draw(self, bx, by, w):
+    def draw(self):
         p = self.parent
         lh = p.line_height
-        #w = p.width
+        color = p.color
+
+        glDisable(GL_BLEND)
+        glColor4f(0,0,0,0)
+        glRectf(0, 0, p.width, 15)
+        glEnable(GL_BLEND)
+
+        if self.selected:
+            c = [i/255.0 for i in color.light] + [1.0]
+            glColor4f(*c)
+            glRectf(0, 0, p.width, 15)
+
         glColor3f(1,1,1)
-        glRectf(bx, by, bx+w, by+lh)
-        glColor3f(0,0,0)
-        glBegin(GL_LINES)
-        glVertex2f(bx, by); glVertex2f(bx+w, by)
-        glVertex2f(bx, by+lh); glVertex2f(bx+w, by+lh)
-        ox = 0
-        for _, w in p.columns + [('', 0)]:
-            glVertex2f(bx+ox, by)
-            glVertex2f(bx+ox, by+lh)
-            ox += w
-        glEnd()
-        ox = 0
+
+        ox = 2
         for (_, w), lbl in zip(p.columns, self.labels):
-            lbl.x, lbl.y = bx + ox, by
+            lbl.x, lbl.y = ox, 2
             lbl.draw()
             ox += w
 
-        if self.selected:
-            glColor4f(0, 0, 1, 0.3)
-            glRectf(bx, by, bx+p.width, by+lh)
+        return
 
 class ListHeader(object):
     def __init__(self, p):
         self.parent = p
+        from pyglet.text import Label
+        cols = p.columns
+        labels = []
+        batch = pyglet.graphics.Batch()
+        _x = 2
+        c = p.color.heavy + (255,)
+        for name, width in cols:
+            lbl = Label(
+                name, anchor_x='left', anchor_y='bottom',
+                x=_x, y=2, color=c, font_name='MyZpix', font_size=12,
+                batch=batch
+            )
+            _x += width
+        self.batch = batch
 
-    def draw(self, x, y, w):
+
+    def draw(self):
         p = self.parent
-        glColor3f(0, 1, 1)
-        glRectf(x, y, x+w, y+p.header_height)
+        hh = p.header_height
+        c = [i/255.0 for i in p.color.light]
+        glColor3f(*c)
+        glRectf(0, 0, p.width, p.header_height)
+        c = [i/255.0 for i in p.color.heavy]
+        glColor3f(*c)
+        glBegin(GL_LINES)
+        glVertex2f(0, 0)
+        glVertex2f(p.width, 0)
+        glEnd()
+        self.batch.draw()
 
 class ListView(Control):
     li_class = ListItem
     lh_class = ListHeader
     header_height = 25
     line_height = 17
-    def __init__(self, font_name=u'最像素', font_size=10, *a, **k):
+    def __init__(self, color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
-        self.font, self.font_size = font_name, font_size
-        f = pyglet.font.load(font_name, font_size)
-        self.font_height = f.ascent - f.descent
+        self.color = color
         self.items = []
         self.columns = []
         self.col_lookup = {}
         self._view_y = 0
         self.cur_select = None
+        th = self.tex_height = 10 * self.line_height
+        tex = pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, self.width, self.tex_height,
+            GL_RGBA
+        )
+        fbo = self.fbo = Framebuffer(tex)
+        with fbo:
+            glClearColor(0,0,0,0)
+            glClear(GL_COLOR_BUFFER_BIT)
 
     def set_columns(self, cols):
         # [('name1', 20), ('name2', 30)]
@@ -954,10 +982,14 @@ class ListView(Control):
             li = self.li_class(self)
             li.data = val
         self.items.append(li)
+        self.update_single(li)
         return li
 
     def clear(self):
         self.items = []
+        with self.fbo:
+            glClearColor(0,0,0,0)
+            glClear(GL_COLOR_BUFFER_BIT)
 
     def _set_view_y(self, val):
         sum_h = len(self.items) * self.line_height
@@ -972,22 +1004,79 @@ class ListView(Control):
 
     view_y = property(_get_view_y, _set_view_y)
 
+    def update(self):
+        n = len(self.items)
+        if n * self.line_height >= self.tex_height:
+            self._double_tex_height()
+
+        fbo = self.fbo
+        tex =  fbo.texture
+        y = tex.height
+        lh = self.line_height
+        with fbo:
+            for i in self.items:
+                y -= lh
+                glLoadIdentity()
+                glTranslatef(0, y, 0)
+                i.draw()
+
+    def update_single(self, item):
+        items = self.items
+        n = len(items)
+        if n * self.line_height >= self.tex_height:
+            self._double_tex_height()
+
+        i = items.index(item)
+        fbo = self.fbo
+        tex = fbo.texture
+        y = tex.height
+        lh = self.line_height
+        with fbo:
+            y -= (i+1)*lh
+            glTranslatef(0, y, 0)
+            item.draw()
+
+    def _double_tex_height(self):
+        old_tex = self.fbo.texture
+        h = old_tex.height
+        del self.fbo
+        tex = pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, old_tex.width, h*2,
+            GL_RGBA
+        )
+        fbo = Framebuffer(tex)
+        with fbo:
+            glClearColor(0,0,0,0)
+            glClear(GL_COLOR_BUFFER_BIT)
+            glColor3f(1, 1, 1)
+            old_tex.blit(0, h)
+        self.tex_height = h*2
+        self.fbo = fbo
+
     def draw(self):
-        ui_utils.border(0, 0, self.width, self.height)
+        #glColor3f(.5,.5,.5) # XXXXXXXXXXX
+        #glRectf(0, 0, self.width, self.height)
+        glColor3f(1,1,1)
 
+        tex = self.fbo.texture
         hh = self.header_height
-        w, h = self.width - 16, self.height - hh - 16
-        lh, vy = self.line_height, self.view_y
-        self.header.draw(8, h, w)
+        content_height = len(self.items) * self.line_height
+        client_height = self.height - hh
+        vy = self.view_y
+        y = content_height - vy
+        by = y - client_height
+        if by < 0: by = 0
 
-        with ScissorBox(self, 0, 0, w+2, h+2) as sb:
-            # GUIDO Y U REJECT PEP377 !!
-            sb.break_if_invalid()
-            y = h + vy
-            nskip = int(max(1.0 * vy / lh, 0))
-            ndisp = int(ceil(1.0 * (y - nskip * lh) / lh))
-            for i in xrange(nskip, min(nskip + ndisp, len(self.items))):
-                self.items[i].draw(8, y + 8 - (i+1)*lh, w)
+        #print 'y := ', y, 'vy := ', vy, content_height, client_height
+        if y:
+            glColor3f(1,1,1)
+            tex = tex.get_region(0, tex.height - content_height, tex.width, tex.height)
+            tex.get_region(0, by, tex.width, y-by).blit(0, client_height - (y-by))
+
+        glPushMatrix()
+        glTranslatef(0, client_height, 0)
+        self.header.draw()
+        glPopMatrix()
 
     def on_mouse_scroll(self, x, y, dx, dy):
         self.view_y -= dy * 40
@@ -998,10 +1087,15 @@ class ListView(Control):
         i = (h + vy - y) / lh
         if 0 <= i < len(self.items):
             cs = self.cur_select
-            if cs is not None: self.items[cs].selected = False
+            if cs is not None:
+                item = self.items[cs]
+                item.selected = False
+                self.update_single(item)
             self.dispatch_event(evt_type, self.items[i])
             self.cur_select = i
-            self.items[i].selected = True
+            item = self.items[i]
+            item.selected = True
+            self.update_single(item)
 
     on_mouse_click = lambda self, *a: self._mouse_click('on_item_select', *a)
     on_mouse_dblclick = lambda self, *a: self._mouse_click('on_item_dblclick', *a)
@@ -1091,7 +1185,7 @@ class ConfirmBox(Dialog):
 
     def __init__(self, text=u'Yoo~', caption=u'信息', buttons=Presets.OK, *a, **k):
         lbl = pyglet.text.Label(
-            text=text, font_name=u'Zfull-GB', font_size=9,
+            text=text, font_name=u'MyZpix', font_size=9,
             anchor_x='center', anchor_y='center',
             width=1000, multiline=True,
             color=(0,0,0,255)

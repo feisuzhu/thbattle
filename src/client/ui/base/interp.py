@@ -76,7 +76,7 @@ class FixedInterp(AbstractInterp):
         self.on_done = on_done
 
     def _get_val(self):
-        elapsed = time() - self.starttime
+        elapsed = bc.current_time - self.starttime
         if elapsed > self.animtime:
             self.finished = True
         return self._value
