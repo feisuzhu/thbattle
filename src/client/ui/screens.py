@@ -67,14 +67,14 @@ class LoginScreen(Overlay):
             self.batch = pyglet.graphics.Batch()
             Label(
                 text=u'用户名：', font_size=12,color=(0,0,0,255),
-                font_name='MyZpix', bold=True,
+                font_name='AncientPix', bold=True,
                 x=368-350, y=286-165,
                 anchor_x='left', anchor_y='bottom',
                 batch=self.batch
             )
             Label(
                 text=u'密码：', font_size=12,color=(0,0,0,255),
-                font_name='MyZpix', bold=True,
+                font_name='AncientPix', bold=True,
                 x=368-350, y=250-165,
                 anchor_x='left', anchor_y='bottom',
                 batch=self.batch

@@ -56,7 +56,7 @@ class ResLoader(pyglet.resource.Loader):
 with ResLoader(__file__) as args:
     locals().update(args)
 
-    ldr.add_font('Zpix.ttf')
+    ldr.add_font('AncientPix.ttf')
 
     bg_login = ldr.texture('bg_login.png')
     bg_gamehall = ldr.texture('bg_gamehall.png')

@@ -109,7 +109,7 @@ class Button(Control):
 
     def update(self):
         lbl = pyglet.text.Label(
-            self.caption, u'MyZpix', 9,
+            self.caption, u'AncientPix', 9,
             color=self.color.text + (255,),
             x=self.width//2, y=self.height//2,
             anchor_x='center', anchor_y='center'
@@ -324,7 +324,7 @@ class Dialog(Control):
             return r/255., g/255., b/255.
 
         lbl = pyglet.text.Label(
-            self.caption, u'MyZpix', 9,
+            self.caption, u'AncientPix', 9,
             color=self.color.caption + (255,),
             x=2, y=4,
             anchor_x='left', anchor_y='bottom'
@@ -433,7 +433,7 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 class TextBox(Control):
-    def __init__(self, font=u'MyZpix', font_size=12, text='Yoooooo~', *args, **kwargs):
+    def __init__(self, font=u'AncientPix', font_size=12, text='Yoooooo~', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text), dict(
@@ -595,7 +595,7 @@ class GameCharacterPortrait(Control):
         glPopMatrix()
 
 class TextArea(Control):
-    def __init__(self, font=u'MyZpix', font_size=9, *args, **kwargs):
+    def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
 
         width, height = self.width, self.height
@@ -879,7 +879,7 @@ class ListItem(object):
         self._data[index] = val
         c = p.color.text + (255,)
         self.labels[index] = Label(
-            text=val, font_name='MyZpix', font_size=9,
+            text=val, font_name='AncientPix', font_size=9,
             anchor_x='left', anchor_y = 'bottom', color=c,
         )
 
@@ -920,7 +920,7 @@ class ListHeader(object):
         for name, width in cols:
             lbl = Label(
                 name, anchor_x='left', anchor_y='bottom',
-                x=_x, y=2, color=c, font_name='MyZpix', font_size=12,
+                x=_x, y=2, color=c, font_name='AncientPix', font_size=12,
                 batch=batch
             )
             _x += width
@@ -1185,7 +1185,7 @@ class ConfirmBox(Dialog):
 
     def __init__(self, text=u'Yoo~', caption=u'信息', buttons=Presets.OK, *a, **k):
         lbl = pyglet.text.Label(
-            text=text, font_name=u'MyZpix', font_size=9,
+            text=text, font_name=u'AncientPix', font_size=9,
             anchor_x='center', anchor_y='center',
             width=1000, multiline=True,
             color=(0,0,0,255)
