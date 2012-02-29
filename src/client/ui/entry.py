@@ -7,6 +7,10 @@ import logging
 log = logging.getLogger('UI_Entry')
 
 def start_ui():
+    # custom font renderer
+    from .base.font import AncientPixFont
+    pyglet.font._font_class = AncientPixFont
+
     init_gui()
     # start a new thread and load,
     # then switch to LoginScreen

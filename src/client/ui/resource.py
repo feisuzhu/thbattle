@@ -4,7 +4,7 @@ from utils import DataHolder
 import itertools
 
 texbin = pyglet.image.atlas.TextureBin(2048, 2048)
-dummy_img = pyglet.image.ImageData(1, 1, '\x00' * 4, 'RGBA')
+dummy_img = pyglet.image.ImageData(1, 1, 'RGBA', '\x00'*4)
 
 class ResLoader(pyglet.resource.Loader):
     def __init__(self, path):
@@ -56,7 +56,14 @@ class ResLoader(pyglet.resource.Loader):
 with ResLoader(__file__) as args:
     locals().update(args)
 
-    ldr.add_font('AncientPix.ttf')
+    import zipfile
+    fontzip = zipfile.ZipFile(ldr.file('font.zip'))
+    font = {
+        fn: fontzip.open(fn).read()
+        for fn in fontzip.namelist()
+    }
+    fontzip.close()
+    del zipfile, fontzip
 
     bg_login = ldr.texture('bg_login.png')
     bg_gamehall = ldr.texture('bg_gamehall.png')
