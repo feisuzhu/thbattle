@@ -14,7 +14,7 @@ import logging
 log = logging.getLogger('UI_Controls')
 
 class Colors(object):
-    class green:
+    class green(object):
         # Dialog
         frame = 49, 69, 99
         heavy = 66, 138, 115
@@ -31,7 +31,7 @@ class Colors(object):
         fill_botline = 222, 239, 206
         text = frame
 
-    class red:
+    class red(object):
         # Dialog
         frame = 171, 68, 81
         medium = 0xff, 0x9f, 0x8c
@@ -48,7 +48,7 @@ class Colors(object):
         fill_botline = fill_down
         text = frame
 
-    class blue:
+    class blue(object):
         # Dialog
         frame = 0x31, 0x55, 0x97
         medium = 0x90, 0xbc, 0xed
@@ -65,7 +65,7 @@ class Colors(object):
         fill_botline = 0xc5, 0xf2, 0xff
         text = frame
 
-    class orange:
+    class orange(object):
         # Dialog
         frame = 0x88, 0x66, 0x66
         medium = 0xff, 0xcc, 0x77
@@ -291,11 +291,12 @@ class Dialog(Control):
     '''
     next_zindex = 1
 
-    def __init__(self, caption='Dialog', color=Colors.green, bot_reserve=10, *args, **kwargs):
+    def __init__(self, caption='Dialog', color=Colors.green, bot_reserve=10, bg=None, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.zindex = Dialog.next_zindex
         self.color = color
         self.caption = caption
+        self.bg = bg
         self.no_move = False
         self.bot_reserve = bot_reserve
         Dialog.next_zindex += 1
@@ -348,13 +349,18 @@ class Dialog(Control):
             lbl.draw()
 
         with fbo:
-            glClearColor(1,1,1,1)
-            glClear(GL_COLOR_BUFFER_BIT)
+            bg = self.bg
+            r = self.bot_reserve
+            if bg:
+                glColor3f(1, 1, 1)
+                bg.blit(2, r)
+            else:
+                glClearColor(1,1,1,1)
+                glClear(GL_COLOR_BUFFER_BIT)
 
             glColor3f(*color(self.color.medium))
             glRectf(0, h-24, w, h) # title bar
-            r = self.bot_reserve
-            glRectf(0, 0, w, r)
+            glRectf(0, 0, w, r) # bot reserve
             glBegin(GL_LINES)
             glColor3f(*color(self.color.heavy))
             glVertex2f(0, h-24); glVertex2f(w, h-24)
@@ -433,14 +439,16 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 class TextBox(Control):
-    def __init__(self, font=u'AncientPix', font_size=12, text='Yoooooo~', *args, **kwargs):
+    def __init__(self, text='Yoooooo~', color=Colors.green, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text), dict(
                 color=(0, 0, 0, 255),
-                font_name=font,
-                font_size=font_size,
+                font_name='AncientPix',
+                font_size=9,
         ))
+
+        self.color = color
 
         width = self.width
         f = self.document.get_font()
@@ -475,15 +483,16 @@ class TextBox(Control):
     text = property(_gettext, _settext)
 
     def draw(self):
-        '''
-        glPushAttrib(GL_POLYGON_BIT)
-        glColor3f(1.0, 1.0, 1.0)
-        glRecti(0, 0, self.width, self.height)
-        glColor3f(0.0, 0.0, 0.0)
+        #ui_utils.border(0, 0, self.width, self.height)
+        w, h = self.width, self.height
+        border = [i/255.0 for i in self.color.heavy]
+        fill = [i/255.0 for i in self.color.light]
+        glColor3f(*fill)
+        glRectf(0, 0, w, h)
+        glColor3f(*border)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glRecti(0, 0, self.width, self.height)
-        glPopAttrib()'''
-        ui_utils.border(0, 0, self.width, self.height)
+        glRectf(0, 0, w, h)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         self.layout.draw()
 
     def on_focus(self):
@@ -505,8 +514,16 @@ class TextBox(Control):
 
     def on_mouse_drag(self, x, y, dx, dy, btn, modifier):
         # If I'm not focused, don't select texts
-        if not self.focused:
-            return pyglet.event.EVENT_HANDLED
+        if btn == mouse.LEFT and self.focused:
+            x = max(4, x)
+            self.caret.on_mouse_drag(x, y, dx, dy, btn, modifier)
+        return pyglet.event.EVENT_HANDLED
+
+    def on_mouse_press(self, x, y, btn, modifier):
+        self.set_capture('on_mouse_release', 'on_mouse_drag')
+
+    def on_mouse_release(self, x, y, btn, modifier):
+        self.release_capture('on_mouse_release', 'on_mouse_drag')
 
     #def on_key_press(...): #handle Ctrl+C Ctrl+V Ctrl+A
     def on_text(self, text):
@@ -696,7 +713,6 @@ class TextArea(Control):
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glRecti(0, 0, self.width, self.height)
         glPopAttrib()'''
-        ui_utils.border(0, 0, self.width, self.height)
         self.layout.draw()
 
     def on_mouse_scroll(self, x, y, dx, dy):
@@ -920,7 +936,7 @@ class ListHeader(object):
         for name, width in cols:
             lbl = Label(
                 name, anchor_x='left', anchor_y='bottom',
-                x=_x, y=2, color=c, font_name='AncientPix', font_size=12,
+                x=_x, y=5, color=c, font_name='AncientPix', font_size=12,
                 batch=batch
             )
             _x += width
@@ -1186,16 +1202,19 @@ class ConfirmBox(Dialog):
     def __init__(self, text=u'Yoo~', caption=u'信息', buttons=Presets.OK, *a, **k):
         lbl = pyglet.text.Label(
             text=text, font_name=u'AncientPix', font_size=9,
-            anchor_x='center', anchor_y='center',
+            anchor_x='center', anchor_y='bottom',
             width=1000, multiline=True,
             color=(0,0,0,255)
         )
         w, h = lbl.content_width, lbl.content_height
         lbl.width = w
-        dw, dh = w+30, h+15*3+20+24
-        Dialog.__init__(self, caption, width=dw, height=dh, *a, **k)
+        dw, dh = w+50, h+24+33+20*2
+        Dialog.__init__(
+            self, caption, width=dw, height=dh,
+            bot_reserve=33, *a, **k
+        )
         lbl.x = dw // 2
-        lbl.y = 15*2+24+h//2
+        lbl.y = 33+20
         self.lbl = lbl
 
         btn = ConfirmButtons(buttons, parent=self)
@@ -1204,7 +1223,7 @@ class ConfirmBox(Dialog):
             self.value = val
             self.delete()
             self.dispatch_event('on_confirm', val)
-        btn.x, btn.y = (dw - btn.width)/2, 15
+        btn.x, btn.y = (dw - btn.width)/2, 5
 
         p = self.parent
         pw, ph = p.width, p.height

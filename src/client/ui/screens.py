@@ -63,37 +63,41 @@ class ServerSelectScreen(Overlay):
 class LoginScreen(Overlay):
     class LoginDialog(Dialog):
         def __init__(self, *a, **k):
-            Dialog.__init__(self, u'登陆', x=350, y=165, width=325, height=184, *a, **k)
+            Dialog.__init__(
+                self, u'登陆', x=350, y=165,
+                width=325, height=184,
+                bot_reserve=50, *a, **k
+            )
             self.batch = pyglet.graphics.Batch()
             Label(
-                text=u'用户名：', font_size=12,color=(0,0,0,255),
+                text=u'用户名：', font_size=9,color=(0,0,0,255),
                 font_name='AncientPix', bold=True,
                 x=368-350, y=286-165,
                 anchor_x='left', anchor_y='bottom',
                 batch=self.batch
             )
             Label(
-                text=u'密码：', font_size=12,color=(0,0,0,255),
+                text=u'密码：', font_size=9,color=(0,0,0,255),
                 font_name='AncientPix', bold=True,
                 x=368-350, y=250-165,
                 anchor_x='left', anchor_y='bottom',
                 batch=self.batch
             )
             self.txt_username = TextBox(
-                parent=self, x=438-350, y=282-165, width=220, height=25,
+                parent=self, x=438-350, y=282-165, width=220, height=20,
                 text=u'魂魄妖梦'
             )
             self.txt_pwd = TextBox(
-                parent=self, x=438-350, y=246-165, width=220, height=25,
+                parent=self, x=438-350, y=246-165, width=220, height=20,
                 text='password'
             )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',
-                x=378-350, y=182-165, width=127, height=48
+                x=50, y=10, width=100, height=30
             )
             self.btn_exit = Button(
                 parent=self, caption=u'回到现世',
-                x=520-350, y=182-165, width=127, height=48
+                x=175, y=10, width=100, height=30
             )
 
             @self.btn_login.event
@@ -131,8 +135,6 @@ class LoginScreen(Overlay):
         glClear(GL_COLOR_BUFFER_BIT)
         glColor4f(1, 1, 1, self.bg_alpha.value)
         self.bg.blit(0, 0)
-        #ui_utils.border(350, 165, 325, 160)
-        #self.batch.draw()
         self.draw_subcontrols()
 
 class GameHallScreen(Overlay):
@@ -141,9 +143,8 @@ class GameHallScreen(Overlay):
             Dialog.__init__(
                 self, parent=p, caption=u'当前大厅内的游戏',
                 x=35, y=220, width=700, height=420,
-                bot_reserve=30,
+                bot_reserve=30, bg=common_res.bg_gamelist,
             )
-            self.no_move = True
             self.btn_close.state = Button.DISABLED
 
             gl = self.gamelist = ListView(parent=self, x=2, y=30, width=696, height=420-30-25)
@@ -155,9 +156,10 @@ class GameHallScreen(Overlay):
                 (u'当前状态', 80),
             ])
 
-            self.btn_create = Button(parent=self, caption=u'创建游戏', x=690-270, y=5, width=70, height=20)
-            self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=690-180, y=5, width=70, height=20)
-            self.btn_refresh = Button(parent=self, caption=u'刷新列表', x=690-90, y=5, width=70, height=20)
+
+            self.btn_create = Button(parent=self, caption=u'创建游戏', x=690-270, y=6, width=70, height=20)
+            self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=690-180, y=6, width=70, height=20)
+            self.btn_refresh = Button(parent=self, caption=u'刷新列表', x=690-90, y=6, width=70, height=20)
 
 
             @self.btn_create.event
@@ -195,24 +197,42 @@ class GameHallScreen(Overlay):
                     ])
                     li.game_id = gi['id']
 
+    class ChatBox(Dialog):
+        def __init__(self, parent):
+            Dialog.__init__(
+                self, parent=parent,
+                caption=u'系统/聊天信息',
+                x=35, y=20, width=700, height=180,
+                bot_reserve=33,
+            )
+            self.btn_close.state = Button.DISABLED
+            self.box = TextArea(
+                parent=self, x=2, y=33+2, width=700, height=180-24-2-33
+            )
+            self.inputbox = TextBox(
+                parent=self, x=6, y=6, width=688, height=22,
+            )
+
+            @self.inputbox.event
+            def on_enter():
+                text = unicode(self.inputbox.text)
+                self.inputbox.text = u''
+                if text:
+                    Executive.call('chat', ui_message, text)
+
+        def append(self, v):
+            self.box.append(v)
+
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
         self.bg = common_res.bg_gamehall
 
         self.gamelist = self.GameList(self)
 
-        chat = self.chat_box = TextArea(parent=self, x=35, y=50, width=700, height=150)
+        chat = self.chat_box = GameHallScreen.ChatBox(parent=self)
         chat.text = u'您现在处于游戏大厅！\n'
         self.playerlist = Dialog(caption=u'当前在线玩家', parent=self, x=750, y=220, width=240, height=420)
         self.userinfo_box = Dialog(caption=u'你的战绩', parent=self, x=750, y=20, width=240, height=180)
-        self.chat_input = TextBox(parent=self, x=35, y=20, width=700, height=25)
-
-        @self.chat_input.event
-        def on_enter():
-            text = unicode(self.chat_input.text)
-            self.chat_input.text = u''
-            if text:
-                Executive.call('chat', ui_message, text)
 
         Executive.call('get_hallinfo', ui_message, None)
 
@@ -234,8 +254,6 @@ class GameHallScreen(Overlay):
         glColor3f(1,1,1)
         self.bg.blit(0, 0)
         self.draw_subcontrols()
-        #glColor4f(0,0,0,.2)
-        #glRectf(0, 0, self.width, self.height)
 
 class GameScreen(Overlay):
     class RoomControlPanel(Control):
@@ -262,7 +280,6 @@ class GameScreen(Overlay):
                 self.btn_getready.state = Button.DISABLED
 
         def draw(self):
-            self.box.draw()
             self.draw_subcontrols()
 
         def on_message(self, _type, *args):
@@ -276,6 +293,50 @@ class GameScreen(Overlay):
                 self.portraits[i].player_name = name
                 self.portraits[i].refresh()
 
+    class EventsBox(Dialog):
+        def __init__(self, parent):
+            Dialog.__init__(
+                self, parent=parent,
+                caption=u'游戏信息',
+                x=820, y=350, width=204, height=370,
+                bot_reserve=0, bg=common_res.bg_eventsbox,
+            )
+            self.no_move = True
+            self.btn_close.state = Button.DISABLED
+            self.box = TextArea(
+                parent=self, x=2, y=2, width=200, height=370-24-2
+            )
+
+        def append(self, v):
+            self.box.append(v)
+
+    class ChatBox(Dialog):
+        def __init__(self, parent):
+            Dialog.__init__(
+                self, parent=parent,
+                caption=u'系统/聊天信息',
+                x=820, y=0, width=204, height=352,
+                bot_reserve=33, bg=common_res.bg_chatbox,
+            )
+            self.no_move = True
+            self.btn_close.state = Button.DISABLED
+            self.box = TextArea(
+                parent=self, x=2, y=33+2, width=200, height=352-24-2-33
+            )
+            self.inputbox = TextBox(
+                parent=self, x=6, y=6, width=192, height=22,
+            )
+
+            @self.inputbox.event
+            def on_enter():
+                text = unicode(self.inputbox.text)
+                self.inputbox.text = u''
+                if text:
+                    Executive.call('chat', ui_message, text)
+
+        def append(self, v):
+            self.box.append(v)
+
     def __init__(self, game, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
 
@@ -288,12 +349,8 @@ class GameScreen(Overlay):
             **r2d((0, 0, 820, 720))
         ) # add when game starts
 
-        event_rect = (820, 350, 204, 370)
-        chat_rect = (820, 25, 204, 325)
-        chat_input_box = (820, 0, 204, 25)
-        self.events_box = TextArea(parent=self, **r2d(event_rect))
-        self.chat_box = TextArea(parent=self, **r2d(chat_rect))
-        self.chat_input = TextBox(parent=self, **r2d(chat_input_box))
+        self.events_box = GameScreen.EventsBox(parent=self)
+        self.chat_box = GameScreen.ChatBox(parent=self)
         self.panel = GameScreen.RoomControlPanel(parent=self)
         self.btn_exit = Button(
             parent=self, caption=u'退出房间', zindex=1,
@@ -303,13 +360,6 @@ class GameScreen(Overlay):
         @self.btn_exit.event
         def on_click():
             Executive.call('exit_game', ui_message, [])
-
-        @self.chat_input.event
-        def on_enter():
-            text = unicode(self.chat_input.text)
-            self.chat_input.text = u''
-            if text:
-                Executive.call('chat', ui_message, text)
 
     def on_message(self, _type, *args):
         if _type == 'game_started':

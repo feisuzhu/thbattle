@@ -36,15 +36,20 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             data = fontdata[loc:loc+datasz]
 
         import Image
-        data = Image.fromstring('1', (w, h), data).convert('L').tostring()
-        img = pyglet.image.ImageData(w, h, 'A', data)
+
+        i = Image.fromstring('1', (w, h), data).convert('L')
+        if self.font.bold:
+            w += 1
+            ii = Image.new('L', (w, h))
+            ii.paste(i, (1, 0))
+            ii.paste(i, (0, 0), i)
+            i = ii
+        img = pyglet.image.ImageData(w, h, 'A', i.tostring())
         glyph = self.font.create_glyph(img)
         glyph.set_bearings(0, 0, w)
         t = list(glyph.tex_coords)
         glyph.tex_coords = t[9:12] + t[6:9] + t[3:6] + t[:3]
         return glyph
-        # bold # is with FBO(tex): tex.blit(1,0) safe?
-        # ----
 
 class AncientPixFont(Font):
     glyph_renderer_class = AncientPixGlyphRenderer

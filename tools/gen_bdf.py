@@ -1,5 +1,7 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
+# Obsoleted, using custom pyglet.font.Font class to render
+# Windows sucks.
 
 from struct import unpack
 

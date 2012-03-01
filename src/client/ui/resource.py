@@ -69,6 +69,11 @@ with ResLoader(__file__) as args:
     bg_gamehall = ldr.texture('bg_gamehall.png')
     bg_ingame = ldr.texture('bg_ingame.png')
 
+    bg_gamelist = tx('bg_gamelist.png')
+    bg_eventsbox = tx('bg_eventsbox.png')
+    bg_chatbox = tx('bg_chatbox.png')
+
+
     card_shinesoft = tx('shinesoft.tga')
     card_hidden = tx('card_hidden.tga')
     char_portrait = tx('char_portrait.tga')

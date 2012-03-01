@@ -55,7 +55,7 @@ class SimpleGameUI(Control):
         )
 
         self.handcard_area = HandCardArea(
-            parent=self, x=238, y=13, zindex=3,
+            parent=self, x=238, y=9, zindex=3,
         )
 
         @self.handcard_area.event
@@ -86,7 +86,7 @@ class SimpleGameUI(Control):
     def init(self):
         self.char_portraits = [
             GameCharacterPortrait(parent=self, x=x, y=y)
-            for x, y in ((3, 4), (158, 446), (521, 446))[:len(self.game.players)]
+            for x, y in ((3, 1), (158, 446), (521, 446))[:len(self.game.players)]
         ] # FIXME: this is for testing
 
         pl = self.game.players
