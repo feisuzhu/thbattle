@@ -195,7 +195,16 @@ b.state = b.DISABLED
 def on_click():
     b.update(
     )
-
+batch = pyglet.graphics.Batch()
+dark = [0, 0, 0, 0.5]
+trans = [0, 0, 0, 0.1]
+batch.add(8, GL_QUADS, None,
+    ('v2f', (
+        0, 0, 50, 0, 50, 8, 0, 8,
+        0, 8, 50, 8, 50, 16, 0, 16,
+    )),
+    ('c4f', trans*2 + dark*4 + trans*2)
+)
 #------------------
 pyglet.app.run()
 if _base:

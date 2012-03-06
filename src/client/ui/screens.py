@@ -291,7 +291,7 @@ class GameScreen(Overlay):
                 name = p.get('nickname')
                 name = 'EMPTY SLOT' if not name else name
                 self.portraits[i].player_name = name
-                self.portraits[i].refresh()
+                self.portraits[i].update()
 
     class EventsBox(Dialog):
         def __init__(self, parent):

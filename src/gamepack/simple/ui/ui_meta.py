@@ -78,7 +78,7 @@ class HealCard:
     # action_stage meta
     target = 'self'
     image = gres.card_heal
-    name = u'闪'
+    name = u'药'
 
     def is_action_valid(source, target_list):
         target = target_list[0]
@@ -104,7 +104,7 @@ class DemolitionCard:
         if source == target:
             return (True, u'还是拆别人的吧...')
         elif not len(target.cards):
-            return (False, u'这货已经没有手牌了')
+            return (False, u'这货已经没有牌了')
         else:
             return (True, u'嗯，你的牌太多了')
 

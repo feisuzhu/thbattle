@@ -3,7 +3,7 @@ import os
 from utils import DataHolder
 import itertools
 
-texbin = pyglet.image.atlas.TextureBin(2048, 2048)
+texbin = pyglet.image.atlas.TextureBin(1024, 1024)
 dummy_img = pyglet.image.ImageData(1, 1, 'RGBA', '\x00'*4)
 
 class ResLoader(pyglet.resource.Loader):

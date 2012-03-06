@@ -55,7 +55,7 @@ class Colors(object):
         heavy = 0x64, 0x8a, 0xd0
         light = 0xa3, 0xd1, 0xfa
         caption = frame
-        caption_shadow = 255, 255, 255
+        caption_shadow = 0xe5, 0xef, 0xfb
         close_btn = common_res.buttons.close_blue
         # Button
         btn_frame = 0x54, 0x67, 0xa6
@@ -291,7 +291,9 @@ class Dialog(Control):
     '''
     next_zindex = 1
 
-    def __init__(self, caption='Dialog', color=Colors.green, bot_reserve=10, bg=None, *args, **kwargs):
+    def __init__(self, caption='Dialog', color=Colors.green,
+                 bot_reserve=10, bg=None, shadow_thick=2,
+                 *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.zindex = Dialog.next_zindex
         self.color = color
@@ -299,6 +301,7 @@ class Dialog(Control):
         self.bg = bg
         self.no_move = False
         self.bot_reserve = bot_reserve
+        self.shadow_thick = shadow_thick
         Dialog.next_zindex += 1
         self.btn_close = ImageButton(
             images=color.close_btn,
@@ -330,23 +333,29 @@ class Dialog(Control):
             x=2, y=4,
             anchor_x='left', anchor_y='bottom'
         )
+        from client.ui import shaders
+        from client.ui.base import shader
+        if isinstance(shaders.FontShadowThick, shader.DummyShaderProgram):
+            # no shader? fall back
+            ttex = pyglet.image.Texture.create_for_size(
+                GL_TEXTURE_RECTANGLE_ARB, lbl.content_width+4, 24, GL_RGBA
+            )
+            tfbo = Framebuffer(ttex)
+            with tfbo:
+                lbl.draw()
 
-        ttex = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, lbl.content_width+4, 24, GL_RGBA
-        )
-        tfbo = Framebuffer(ttex)
-        with tfbo:
-            lbl.draw()
-
-        im = ttex.get_image_data()
-        shadow = dilate(im, self.color.caption_shadow)
-        shadow = dilate(shadow, self.color.caption_shadow).get_texture()
-        with tfbo:
-            glClearColor(0,0,0,0)
-            glClear(GL_COLOR_BUFFER_BIT)
-            glColor3f(1,1,1)
-            shadow.blit(0, 0)
-            lbl.draw()
+            shadow = ttex.get_image_data()
+            for i in range(self.shadow_thick):
+                shadow = dilate(shadow, self.color.shadow_thick)
+            shadow = shadow.get_texture()
+            with tfbo:
+                glClearColor(0,0,0,0)
+                glClear(GL_COLOR_BUFFER_BIT)
+                glColor3f(1,1,1)
+                shadow.blit(0, 0)
+                lbl.draw()
+        else:
+            ttex = False
 
         with fbo:
             bg = self.bg
@@ -367,8 +376,20 @@ class Dialog(Control):
             glVertex2f(0, r); glVertex2f(w, r)
             glEnd()
 
-            glColor3f(1,1,1)
-            ttex.blit(20, h-24)
+            if ttex:
+                glColor3f(1,1,1)
+                ttex.blit(20, h-24)
+            else:
+                shader = [
+                    shaders.DummyShader,
+                    shaders.FontShadow,
+                    shaders.FontShadowThick,
+                ][self.shadow_thick]
+                with shader as fs:
+                    fs.uniform.shadow_color = color(self.color.caption_shadow) + (1.0, )
+                    glColor3f(*color(self.color.caption))
+                    lbl.x, lbl.y = 20, h-20
+                    lbl.draw()
 
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             glColor3f(*color(self.color.frame))
@@ -472,7 +493,7 @@ class TextBox(Control):
         from base.baseclasses import main_window
         self.window = main_window
         self.text_cursor = self.window.get_system_mouse_cursor('text')
-        self.focused = False
+        self.on_lostfocus()
 
     def _gettext(self):
         return self.document.text
@@ -525,7 +546,7 @@ class TextBox(Control):
     def on_mouse_release(self, x, y, btn, modifier):
         self.release_capture('on_mouse_release', 'on_mouse_drag')
 
-    #def on_key_press(...): #handle Ctrl+C Ctrl+V Ctrl+A
+    # TODO: def on_key_press(...): #handle Ctrl+C Ctrl+V Ctrl+A
     def on_text(self, text):
         from pyglet.window import key
         if text == '\r': # Why this??
@@ -534,82 +555,83 @@ class TextBox(Control):
 
 TextBox.register_event_type('on_enter')
 
-class PlayerPortrait(Control):
-    def __init__(self, player_name, color=[0,0,0], *args, **kwargs):
-        Control.__init__(self, *args, **kwargs)
-        self.width, self.height = 128, 245
+class PlayerPortrait(Dialog):
+    def __init__(self, player_name, color=Colors.blue, *args, **kwargs):
         self.player_name = player_name
-        self.color = color
-        self.refresh()
-
-    def refresh(self):
-        from pyglet.text import Label
-        self.batch = pyglet.graphics.Batch()
-        self.label = Label(
-            text=self.player_name, font_size=9, bold=True, color=(0,0,0,255),
-            x=128//2, y=245//2, anchor_x='center', anchor_y='center',
-            batch=self.batch
-        )
-        r = Rect(0, 0, 128, 245)
-        self.batch.add(
-            5, GL_LINE_STRIP, None,
-            ('v2i', r.glLineStripVertices()),
-            ('c3i', self.color * 5)
+        Dialog.__init__(
+            self, caption=player_name, color=color,
+            bot_reserve=50, width=128, height=245,
+            shadow_thick=1,
+            *args, **kwargs
         )
 
-    def draw(self):
-        self.batch.draw()
+        self.no_move = True
+        self.btn_close.state = Button.DISABLED
 
-class GameCharacterPortrait(Control):
-    def __init__(self, name='Proton', *args, **kwargs):
-        Control.__init__(self, *args, **kwargs)
-        self._w, self._h = 149, 195
-        self.name = pyglet.text.Label(
-            text=name, font_size=9,
-            x=9, y=175, anchor_x='left', anchor_y='bottom'
-        )
+    def update(self):
+        self.caption = self.player_name
+        Dialog.update(self)
+
+class GameCharacterPortrait(Dialog):
+    def __init__(self, name='Proton', color=Colors.blue, *args, **kwargs):
         self.selected = False
         self.maxlife = 8
         self.life = 0
+        self.name = name
+        Dialog.__init__(
+            self, width=149, height=195,
+            bot_reserve=72, color=color,
+            shadow_thick=1,
+            **kwargs
+        )
+        self.no_move = True
+        self.btn_close.state = Button.DISABLED
+
+    def update(self):
+        self.caption = self.name
+        Dialog.update(self)
+        with self.fbo:
+            hp, hp_bg = common_res.hp, common_res.hp_bg
+
+            glColor3f(1, 1, 1)
+            w, h = hp_bg.width * self.maxlife, hp_bg.height
+            if w:
+                common_res.hp_bg.get_region(0, 0, w, h).blit(5, 52)
+
+            w, h = hp.width * self.life, hp.height
+            if w:
+                common_res.hp.get_region(0, 0, w, h).blit(5, 52)
+
+            glColor3f(1, 1, 1)
+            glRectf(2, 2, self.width-2, 50)
+            glLineWidth(2.0)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+            glColor3f(*[i/255.0 for i in self.color.heavy])
+            pyglet.graphics.draw(
+                10, GL_QUAD_STRIP, ('v2f', (
+                    2 + 0*36, 2,   2 + 0*36, 50,
+                    2 + 1*36, 2,   2 + 1*36, 50,
+                    2 + 2*36, 2,   2 + 2*36, 50,
+                    2 + 3*36, 2,   2 + 3*36, 50,
+                    2 + 4*36, 2,   2 + 4*36, 50,
+                ))
+            )
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+            glLineWidth(1.0)
 
     def draw(self):
-        glColor3f(1, 1, 1)
-        common_res.char_portrait.blit(0, 0)
+        Dialog.draw(self)
         if self.selected:
-            glColor4f(1, 1, 1, .3)
-            glRecti(0, 0, self.width, self.height)
-        self.name.draw()
+            glColor4f(1, 1, 0.8, 0.6)
+            glRectf(0, 0, self.width, self.height)
 
-        hp, hp_bg = common_res.hp, common_res.hp_bg
+    @property
+    def zindex(self):
+        return 0
 
-        tw, th = self.maxlife, 1
-        vw, vh = hp_bg.width * self.maxlife, hp_bg.height
-
-        glPushMatrix()
-        glTranslatef(5., 55., 0)
-
-        glEnable(hp_bg.target)
-        glBindTexture(hp_bg.target, hp_bg.id)
-        glBegin(GL_QUADS)
-        glTexCoord2f(0, 0); glVertex2f(0, 0)
-        glTexCoord2f(tw, 0); glVertex2f(vw, 0)
-        glTexCoord2f(tw, th); glVertex2f(vw, vh)
-        glTexCoord2f(0, th); glVertex2f(0, vh)
-        glEnd()
-        #glDisable(hp_bg.target) # both GL_TEXTURE_2D, save the calls
-
-        tw, th = self.life, 1
-        vw, vh = hp.width * self.life, hp.height
-        #glEnable(hp.target)
-        glBindTexture(hp.target, hp.id)
-        glBegin(GL_QUADS)
-        glTexCoord2f(0, 0); glVertex2f(0, 0)
-        glTexCoord2f(tw, 0); glVertex2f(vw, 0)
-        glTexCoord2f(tw, th); glVertex2f(vw, vh)
-        glTexCoord2f(0, th); glVertex2f(0, vh)
-        glEnd()
-        glDisable(hp.target)
-        glPopMatrix()
+    @zindex.setter
+    def zindex(self, val):
+        pass
 
 class TextArea(Control):
     def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):

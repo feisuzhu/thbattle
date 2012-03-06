@@ -75,9 +75,6 @@ class SimpleGameUI(Control):
                     **k
                 )
 
-            def draw(self):
-                pyglet.graphics.Batch.draw(self)
-
             def hit_test(self, x, y):
                 return False
 
@@ -122,6 +119,7 @@ class SimpleGameUI(Control):
             for port in self.char_portraits:
                 p = port.player
                 port.life = p.life
+                port.update()
 
         elif _type == 'evt_player_turn':
             self.current_turn = args[0]

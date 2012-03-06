@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pyglet import gl
 from pyglet.gl import *
 
 class ShaderError(Exception): pass
@@ -14,7 +13,6 @@ def _get_infolog(oid):
             POINTER(c_char)
         )
     )
-    print buffer.value
     return buffer.value
 
 class _Shader(object):
@@ -29,8 +27,10 @@ class _Shader(object):
             raise ShaderError("Can't create shader object!")
 
         l = GLsizei(len(src))
+        buf = create_string_buffer(src, len(src) + 10)
+        pbuf = pointer(buf)
         glShaderSourceARB(
-            sid, 1, cast(byref(c_char_p(src)), POINTER(POINTER(c_char))),
+            sid, 1, cast(byref(pbuf), POINTER(POINTER(c_char))),
             byref(l)
         )
         glCompileShader(sid)
@@ -83,6 +83,7 @@ class _UniformAccesser(object):
 
         n = len(value)
         fn = 'glUniform%d%s' % (n, t)
+        from pyglet import gl
         func = getattr(gl, fn)
 
         func(loc, *value)
@@ -151,3 +152,21 @@ class ShaderProgram(object):
 
     def __exit__(self, exc_type, exc_value, tb):
         self.restore()
+
+class DummyShaderProgram(object):
+    def __init__(self, *a):
+        from utils import DataHolder
+        self.uniform = DataHolder()
+        self.attrib = DataHolder()
+
+    def use(self):
+        pass
+
+    def restore(self):
+        pass
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *a):
+        pass

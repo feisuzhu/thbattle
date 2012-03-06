@@ -98,6 +98,7 @@ def damage_effect(self, act):
     port = self.player2portrait(t)
     l = t.life
     port.life = l if l > 0 else 0
+    port.update()
     self.prompt(u'%s对%s造成了%d点伤害' % (s.nickname, t.nickname, act.amount))
     OneShotAnim(common_res.hurt, x=port.x, y=port.y, batch=self.animations)
 
@@ -106,6 +107,7 @@ def heal_effect(self, act):
     port = self.player2portrait(t)
     l = t.life
     port.life = l if l > 0 else 0
+    port.update()
     if act.succeeded:
         self.prompt(u'%s回复了%d点体力' % (t.nickname, act.amount))
 

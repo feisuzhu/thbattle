@@ -17,12 +17,20 @@ class AncientPixGlyphRenderer(GlyphRenderer):
         char = text[0]
         asc = ord(char)
         datasz = int(ceil(w/8.))*h
+        import Image
         if asc < 128: # ASCII
             w /= 2
             datasz /= 2
             fontdata = self.font.fontdata['ASC%d' % h]
             loc = asc*datasz
             data = fontdata[loc:loc+datasz]
+            i = Image.fromstring('1', (w, h), data).convert('L')
+            bbox = i.getbbox()
+            if bbox:
+                bbox = (bbox[0], 0, bbox[2], h)
+                i = i.crop(bbox)
+                w = bbox[2] - bbox[0]
+            # else: space/return/etc..
         else: #GBK
             try:
                 gbk = char.encode('gbk')
@@ -34,19 +42,18 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             loc *= datasz
             fontdata = self.font.fontdata['GBK%d' % h]
             data = fontdata[loc:loc+datasz]
+            i = Image.fromstring('1', (w, h), data).convert('L')
 
-        import Image
-
-        i = Image.fromstring('1', (w, h), data).convert('L')
+        ii = Image.new('L', (w+4, h+4))
         if self.font.bold:
-            w += 1
-            ii = Image.new('L', (w, h))
-            ii.paste(i, (1, 0))
-            ii.paste(i, (0, 0), i)
-            i = ii
-        img = pyglet.image.ImageData(w, h, 'A', i.tostring())
+            ii.paste(i, (3, 2))
+            ii.paste(i, (2, 2), i)
+        else:
+            ii.paste(i, (2, 2))
+
+        img = pyglet.image.ImageData(w+4, h+4, 'A', ii.tostring())
         glyph = self.font.create_glyph(img)
-        glyph.set_bearings(0, 0, w)
+        glyph.set_bearings(2, -2, w+1)
         t = list(glyph.tex_coords)
         glyph.tex_coords = t[9:12] + t[6:9] + t[3:6] + t[:3]
         return glyph
@@ -73,7 +80,7 @@ class AncientPixFont(Font):
 
     @property
     def ascent(self):
-        return int(self.size*4/3)
+        return int(self.size*4/3) + 1
 
     @property
     def descent(self):

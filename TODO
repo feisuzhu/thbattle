@@ -2,13 +2,9 @@ Game/GameCore:
     * how to calc distance?
         :: fire an Action
 
-gevent.waitany, rewrite user_input_any
-
 SimpleGame:
     距离
     技能
-
-FrameBufferObject optimization
 
 CommonUI:
 ScrollBar

@@ -37,7 +37,7 @@ class UISelectTarget(InputController):
         )
         self.label = lbl = pyglet.text.Label(
             text=u'请选择…', x=125, y=28,
-            font_size=12, color=(0,0,0,255), bold=True,
+            font_size=12, color=(255,255,160,255), bold=True,
             anchor_x='center', anchor_y='bottom'
         )
 
@@ -95,7 +95,10 @@ class UISelectTarget(InputController):
 
     def draw(self):
         self.draw_subcontrols()
-        self.label.draw()
+        from client.ui import shaders
+        with shaders.FontShadow as fs:
+            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
+            self.label.draw()
 
 class UIChooseCards(UISelectTarget):
     # for actions.ChooseCard
