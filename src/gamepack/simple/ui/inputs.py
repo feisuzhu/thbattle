@@ -37,7 +37,7 @@ class UISelectTarget(InputController):
         )
         self.label = lbl = pyglet.text.Label(
             text=u'请选择…', x=125, y=28,
-            font_size=12, color=(255,255,160,255), bold=True,
+            font_size=12, color=(255, 255, 160, 255), bold=True,
             anchor_x='center', anchor_y='bottom'
         )
 
@@ -67,18 +67,26 @@ class UISelectTarget(InputController):
         self.set_valid()
 
     def get_result(self): # override this to customize
-        #return (skill, players, cards)
+        #return (skills, players, cards)
         parent = self.parent
+        g = parent.game
+        skills = g.me.skills
+
+        sid_list = [
+            skills.index(s)
+            for s in parent.get_selected_skills()
+        ]
+
         cid_list = [
             c.syncid
             for c in parent.get_selected_cards()
         ]
-        g = parent.game
+
         pid_list = [
             g.get_playerid(p)
             for p in parent.get_selected_players()
         ]
-        return [None, pid_list, cid_list]
+        return [sid_list, cid_list, pid_list]
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
@@ -105,12 +113,23 @@ class UIChooseCards(UISelectTarget):
     sel_players = 0
 
     def get_result(self):
-        _, _, cid_list = UISelectTarget.get_result(self)
-        return cid_list
+        sid_list, cid_list, _  = UISelectTarget.get_result(self)
+        return sid_list, cid_list
 
     def on_selection_change(self):
         act = self.irp.attachment
+        skills = self.parent.get_selected_skills()
         cards = self.parent.get_selected_cards()
+
+        g = self.parent.game
+        if skills:
+            for s in skills:
+                cls = s.associated_action
+                a = cls(g.me, cards)
+                a.apply_action()
+                cards = a.cards
+                if not cards: break
+
         if cards:
             if act.cond(cards):
                 self.set_text(act.ui_meta.text_valid)
@@ -124,27 +143,23 @@ class UIChooseCards(UISelectTarget):
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
     last_card = None
-    def get_result(self):
-        parent = self.parent
-        cards = parent.get_selected_cards()
-        targets = parent.get_selected_players()
-
-        assert len(cards) == 1
-        card = cards[0]
-
-        t = card.target
-        g = parent.game
-        if t == 'self':
-            targets = [g.me]
-        elif isinstance(t, int):
-            assert len(targets) == t
-
-        pid_list = [g.get_playerid(p) for p in targets]
-        return [card.syncid, pid_list]
+    #def get_result(self):
+    #    pass
 
     def on_selection_change(self):
         parent = self.parent
+        skills = parent.get_selected_skills()
         cards = parent.get_selected_cards()
+
+        g = parent.game
+        if skills:
+            for s in skills:
+                cls = s.associated_action
+                a = cls(g.me, cards)
+                a.apply_action()
+                cards = a.cards
+                if not cards: break
+
         if cards:
             while True:
                 if len(cards) != 1: break
@@ -165,7 +180,12 @@ class UIDoActionStage(UISelectTarget):
                     # to display customized prompt string
                     target_list = None
 
-                rst, reason = card.ui_meta.is_action_valid(source, target_list)
+                action_cls = card.associated_action
+                if action_cls:
+                    rst, reason = action_cls.ui_meta.is_action_valid(source, cards, target_list)
+                else:
+                    rst, reason = False, getattr(card.ui_meta, 'passive_card_prompt', 'UNDEFINED')
+
                 self.set_text(reason)
                 if rst: self.set_valid()
                 return
@@ -175,7 +195,7 @@ class UIDoActionStage(UISelectTarget):
             self.last_card = None
         else:
             parent.end_select_player()
-            self.set_text(u'请出牌...')
+            self.set_text(u'请出牌…')
             self.last_card = None
 
 mapping = dict(

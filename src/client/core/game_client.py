@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import gevent
 from gevent import Greenlet, getcurrent
 from gevent.queue import Queue
@@ -90,7 +91,7 @@ class PlayerList(BatchList):
             pass
 
         pid, data = waiter.get()
-        
+
         if pid is None:
             return None, None
 

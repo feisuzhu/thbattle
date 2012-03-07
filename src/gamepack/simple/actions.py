@@ -1,9 +1,11 @@
-# All Actions, EventHandlers are here
+# All generic and cards' Actions, EventHandlers are here
 # -*- coding: utf-8 -*-
 from game.autoenv import Game, EventHandler, Action, GameError, SyncPrimitive
 
 from network import Endpoint
 import random
+
+from utils import check, check_type, CheckFailed
 
 import logging
 log = logging.getLogger('SimpleGame_Actions')
@@ -16,26 +18,29 @@ def user_choose_card(act, target, cond):
     input = target.user_input('choose_card', act) # list of card ids
 
     try:
-        check(input and isinstance(input, list))
+        check_type([[int, Ellipsis], [int, Ellipsis]], input)
 
-        n = len(input)
-        check(n)
+        sid_list, cid_list = input
 
-        check(all(i.__class__ == int for i in input)) # must be a list of ints
-
-        cards = g.deck.getcards(input)
+        cards = g.deck.getcards(cid_list)
         cs = set(cards)
 
-        check(len(cs) == n) # repeated ids
+        check(len(cs) == len(cid_list)) # repeated ids
 
         check(cs.issubset(set(target.cards))) # Whose cards?! Wrong ids?!
+
+        if sid_list:
+            cards = skill_wrap(target, sid_list, cards)
 
         g.players.exclude(target).reveal(cards)
 
         check(cond(cards))
 
         return cards
-    except CheckFailed:
+    except CheckFailed as e:
+        print input
+        import traceback
+        traceback.print_exc(e)
         return None
 
 def random_choose_card(target):
@@ -47,6 +52,27 @@ def random_choose_card(target):
     cl = [c for c in target.cards if c.syncid == v]
     assert len(cl) == 1
     return cl[0]
+
+def skill_wrap(actor, sid_list, cards):
+    g = Game.getgame()
+    try:
+        for skill_id in sid_list:
+            check(isinstance(skill_id, int))
+            check(0 <= skill_id < len(actor.skills))
+            skill_action_cls = actor.skills[skill_id].associated_action
+            check(skill_action_cls)
+            skill = skill_action_cls(actor, cards)
+            check(g.process_action(skill))
+            cards = getattr(skill, 'cards', None)
+            if not cards: return None
+        from cards import CardWrapper
+        check_type([CardWrapper], cards)
+        card = cards[0]
+        return card
+    except CheckFailed as e:
+        import traceback
+        traceback.print_exc(e)
+        return False
 
 action_eventhandlers = set()
 def register_eh(cls):
@@ -63,6 +89,42 @@ class SpellCardAction(UserAction): pass
 
 class InternalAction(Action): pass # actions for internal use, should not be intercepted by EHs
 
+# skill action, should follow some conventions.
+# skill action should set it's 'cards' attrib to a CardWrapper,
+# which has similar attribs like ordinal cards,
+# primarily the 'associated_action' attrib.
+class SkillAction(Action): pass
+
+class TreatAsAction(SkillAction):
+    # treat_as = ......
+    def __init__(self, actor, cards):
+        self.cards = cards
+        self.actor = actor
+
+    def apply_action(self):
+        cards = self.cards
+        actor = self.actor
+        wrapped = self.get_wrapped_card(actor, cards)
+        if wrapped:
+            self.cards = [wrapped]
+            return True
+        else:
+            self.cards = None
+            return False
+
+    @classmethod
+    def get_wrapped_card(cls, actor, cards):
+        if cls.cond(actor, cards):
+            from cards import CardWrapper
+            w = CardWrapper.wrap(cards)
+            w.associated_action = cls.treat_as.associated_action
+            w.target = cls.treat_as.target
+            return w
+        return None
+
+    @classmethod
+    def cond(cls, actor, cards):
+        return False
 
 class Damage(GenericAction):
 
@@ -146,11 +208,12 @@ class RejectHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, SpellCardAction):
             g = Game.getgame()
 
-            p, cid_list = g.players.user_input_any(
+            p, input = g.players.user_input_any(
                 'choose_card', self._expects, self
             )
 
             if p:
+                sid_list, cid_list = input # TODO: skill
                 card, = g.deck.getcards(cid_list) # card was already revealed
                 action = Reject(source=p, target_act=act)
                 action.associated_card = card
@@ -158,12 +221,12 @@ class RejectHandler(EventHandler):
                 g.process_action(action)
         return act
 
-    def _expects(self, p, cid_list):
+    def _expects(self, p, input):
         from utils import check, CheckFailed
         try:
-            check(isinstance(cid_list, list))
-            check(len(cid_list) == 1)
-            check(isinstance(cid_list[0], int))
+            check_type([[int, Ellipsis], [int, Ellipsis]], input)
+
+            sid_list, cid_list = input
 
             g = Game.getgame()
             card, = g.deck.getcards(cid_list)
@@ -173,7 +236,9 @@ class RejectHandler(EventHandler):
 
             check(self.cond([card]))
             return True
-        except CheckFailed:
+        except CheckFailed as e:
+            import traceback
+            traceback.print_exc(e)
             return False
 
     def cond(self, cardlist):
@@ -188,8 +253,6 @@ class RejectHandler(EventHandler):
 
 # ---------------------------------------------------
 
-
-
 class DropCards(GenericAction):
 
     def __init__(self, target, cards):
@@ -201,6 +264,10 @@ class DropCards(GenericAction):
         target = self.target
 
         cards = self.cards
+
+        from cards import CardWrapper
+        cards = CardWrapper.unwrap(cards)
+        self.cards = cards
 
         tcs = set(target.cards)
         cs = set(cards)
@@ -312,27 +379,47 @@ class ActionStage(GenericAction):
         g = Game.getgame()
         actor = self.actor
 
-        while True:
-            input = actor.user_input('action_stage_usecard')
-            if not input: break
-            if type(input) != list: break
+        actor.stage = g.ACTION_STAGE
 
-            card_id, target_list = input
+        try:
+            while True:
+                input = actor.user_input('action_stage_usecard')
+                check(input)
+                check(isinstance(input, (list, tuple)))
 
-            if type(card_id) != int or type(target_list) != list:
-                break
+                skill_ids, card_ids, target_list = input
 
-            card, = g.deck.getcards([card_id])
-            if not card: break
-            if not card in actor.cards: break
+                check(isinstance(skill_ids, (list, tuple)))
+                check(isinstance(card_ids, (list, tuple)))
+                check(isinstance(target_list, (list, tuple)))
 
-            target_list = [g.player_fromid(i) for i in target_list]
-            from game import AbstractPlayer
-            if not all(isinstance(p, AbstractPlayer) for p in target_list):
-                break
+                cards = g.deck.getcards(card_ids)
+                check(cards)
+                check(set(cards).issubset(set(actor.cards)))
 
-            g.players.exclude(actor).reveal(card)
+                target_list = [g.player_fromid(i) for i in target_list]
+                from game import AbstractPlayer
+                check(all(isinstance(p, AbstractPlayer) for p in target_list))
 
-            g.process_action(LaunchCard(actor, target_list, card))
+                # skill selected
+                if skill_ids:
+                    card = skill_wrap(actor, skill_ids, cards)
+                    check(card)
 
+                else:
+                    check(len(cards) == 1)
+                    card = cards[0]
+
+                g.players.exclude(actor).reveal(card)
+                g.process_action(LaunchCard(actor, target_list, card))
+
+        except CheckFailed as e:
+            try:
+                import traceback
+                traceback.print_exc(e)
+                print skill_ids, card_ids, target_list
+            except:
+                pass
+
+        actor.stage = g.NORMAL
         return True

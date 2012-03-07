@@ -6,9 +6,24 @@ import random
 import logging
 log = logging.getLogger('SimpleGame')
 
+def mixin_character(player, charcls):
+    pcls = player.__class__
+    clsn1 = pcls.__name__
+    clsn2 = charcls.__name__
+    new_cls = type('%s_%s' % (clsn1, clsn2), (pcls,), {})
+    new_cls.__bases__ += (charcls,) # to avoid Character's metaclass
+    player.__class__ = new_cls
+
 class SimpleGame(Game):
     name = 'Simple Game'
-    n_persons = 2
+    n_persons = 1
+
+    # -----BEGIN PLAYER STAGES-----
+    NORMAL = 'NORMAL'
+    DRAWCARD_STAGE = 'DRAWCARD_STAGE'
+    ACTION_STAGE = 'ACTION_STAGE'
+    DROPCARD_STAGE = 'DROPCARD_STAGE'
+    # -----END PLAYER STAGES-----
 
     if Game.CLIENT_SIDE:
         # not loading these things on server
@@ -22,11 +37,14 @@ class SimpleGame(Game):
         for cls in action_eventhandlers:
             self.event_handlers.append(cls())
 
+        from characters import characters as chars
         for p in self.players:
+            print p, list(chars)[0]
+            mixin_character(p, chars[0])
             p.cards = []
-            p.life = 4
-            p.maxlife = 8
+            p.life = p.maxlife
             p.dead = False
+            p.stage = self.NORMAL
 
         self.deck = Deck()
 

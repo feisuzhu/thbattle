@@ -20,7 +20,14 @@ try:
                 float w = float(size[0]);
                 float h = float(size[1]);
                 for(float ox=-2.0; ox<=2.0; ox+=1.0)
-                    for(float oy=-2.0; oy<=2.0; oy+=1.0) {
+                    for(float oy=-1.0; oy<=1.0; oy+=1.0) {
+                        if(texture2D(tex, vec2(x+ox/w, y+oy/h)).a >= 0.49) {
+                            gl_FragColor = shadow_color;
+                            return;
+                        }
+                    }
+                for(float ox=-1.0; ox<=1.0; ox+=1.0)
+                    for(float oy=-2.0; oy<=2.0; oy+=4.0) {
                         if(texture2D(tex, vec2(x+ox/w, y+oy/h)).a >= 0.49) {
                             gl_FragColor = shadow_color;
                             return;

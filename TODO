@@ -4,7 +4,8 @@ Game/GameCore:
 
 SimpleGame:
     距离
-    技能
+    技能:
+    class XXX(CardWrapper, DemolitionCard): ...
 
 CommonUI:
 ScrollBar

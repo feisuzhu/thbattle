@@ -38,6 +38,44 @@ class Card(object):
         if not cls: raise GameError('Card: unknown card class')
         self.__class__ = cls
 
+class CardWrapper(object):
+    def __data__(self):
+        return dict(
+            cards=self.cards,
+        )
+
+    def sync(self, data):
+        cl = data['cards']
+        for c, data in zip(self.cards, cl):
+            c.sync(data)
+
+    def get_cards(self):
+        return self.cards
+
+    @classmethod
+    def wrap(cls, cards):
+        wrapper = cls()
+        if not isinstance(cards, (list, tuple)):
+            c = cards
+            wrapper.target = c.target
+            wrapper.associated_action = c.associated_action
+            cards = [c]
+
+        wrapper.cards = cards
+        return wrapper
+
+    @classmethod
+    def unwrap(cls, cards):
+        new_list = []
+
+        for c in cards:
+            if isinstance(c, cls):
+                new_list.extend(cls.unwrap(c.get_cards()))
+            else:
+                new_list.append(c)
+        return new_list
+
+
 class Deck(object):
     def __init__(self):
         self.cards_record = {}

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pyglet
 
 from pyglet.graphics import *
@@ -417,12 +418,12 @@ def init_gui():
     current_time = time()
 
     o_flip = main_window.flip
-    
+
     def n_flip():
         pass
-    
+
     main_window.flip = n_flip
-    
+
     @main_window.event
     def on_draw():
         global current_time

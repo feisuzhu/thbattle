@@ -9,7 +9,8 @@ import resource as gres
 import pyglet
 from pyglet.gl import *
 
-from gamepack.simple.actions import *
+from ..actions import *
+from ..cards import CardWrapper
 
 from functools import partial
 from collections import defaultdict as ddict
@@ -114,7 +115,9 @@ def heal_effect(self, act):
 def launch_effect(self, act):
     s, tl = act.source, BatchList(act.target_list)
     for t in tl: self.ray(s, t)
-    self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, u'、'.join(tl.nickname), act.card.ui_meta.name))
+    c = act.card
+    if not isinstance(c, CardWrapper): # skill card, has no ui_meta
+        self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, u'、'.join(tl.nickname), act.card.ui_meta.name))
 
 def graze_effect(self, act):
     if not act.succeeded: return

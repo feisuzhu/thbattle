@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from gevent import Greenlet, Timeout
 from gevent.queue import Queue
 from gevent.event import Event

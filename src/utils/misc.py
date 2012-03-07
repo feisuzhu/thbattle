@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from gevent_extension import ITIEvent
 
 class DataHolder(object):
@@ -90,6 +91,20 @@ class CheckFailed(Exception): pass
 def check(b):
     if not b:
         raise CheckFailed
+
+def check_type(pattern, obj):
+    if isinstance(pattern, (list, tuple)):
+        check(isinstance(obj, (list, tuple)))
+        if len(pattern) == 2 and pattern[-1] is Ellipsis:
+            cls = pattern[0]
+            for v in obj:
+                check(isinstance(v, cls))
+        else:
+            check(len(pattern) == len(obj))
+            for cls, v in zip(pattern, obj):
+                check_type(cls, v)
+    else:
+        check(isinstance(obj, pattern))
 
 class Framebuffer(object):
     def __init__(self, texture):

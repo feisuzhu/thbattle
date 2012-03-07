@@ -284,6 +284,7 @@ class ImageButton(Control):
     state = property(_get_state, _set_state)
 
 Button.register_event_type('on_click')
+ImageButton.register_event_type('on_click')
 
 class Dialog(Control):
     '''
@@ -571,67 +572,6 @@ class PlayerPortrait(Dialog):
     def update(self):
         self.caption = self.player_name
         Dialog.update(self)
-
-class GameCharacterPortrait(Dialog):
-    def __init__(self, name='Proton', color=Colors.blue, *args, **kwargs):
-        self.selected = False
-        self.maxlife = 8
-        self.life = 0
-        self.name = name
-        Dialog.__init__(
-            self, width=149, height=195,
-            bot_reserve=72, color=color,
-            shadow_thick=1,
-            **kwargs
-        )
-        self.no_move = True
-        self.btn_close.state = Button.DISABLED
-
-    def update(self):
-        self.caption = self.name
-        Dialog.update(self)
-        with self.fbo:
-            hp, hp_bg = common_res.hp, common_res.hp_bg
-
-            glColor3f(1, 1, 1)
-            w, h = hp_bg.width * self.maxlife, hp_bg.height
-            if w:
-                common_res.hp_bg.get_region(0, 0, w, h).blit(5, 52)
-
-            w, h = hp.width * self.life, hp.height
-            if w:
-                common_res.hp.get_region(0, 0, w, h).blit(5, 52)
-
-            glColor3f(1, 1, 1)
-            glRectf(2, 2, self.width-2, 50)
-            glLineWidth(2.0)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            glColor3f(*[i/255.0 for i in self.color.heavy])
-            pyglet.graphics.draw(
-                10, GL_QUAD_STRIP, ('v2f', (
-                    2 + 0*36, 2,   2 + 0*36, 50,
-                    2 + 1*36, 2,   2 + 1*36, 50,
-                    2 + 2*36, 2,   2 + 2*36, 50,
-                    2 + 3*36, 2,   2 + 3*36, 50,
-                    2 + 4*36, 2,   2 + 4*36, 50,
-                ))
-            )
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-            glLineWidth(1.0)
-
-    def draw(self):
-        Dialog.draw(self)
-        if self.selected:
-            glColor4f(1, 1, 0.8, 0.6)
-            glRectf(0, 0, self.width, self.height)
-
-    @property
-    def zindex(self):
-        return 0
-
-    @zindex.setter
-    def zindex(self, val):
-        pass
 
 class TextArea(Control):
     def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):
@@ -1257,3 +1197,4 @@ class ConfirmBox(Dialog):
         self.lbl.draw()
 
 ConfirmBox.register_event_type('on_confirm')
+
