@@ -8,6 +8,7 @@ import types
 import resource as gres
 from client.ui import resource as cres
 
+
 from utils import DataHolder
 
 
@@ -119,7 +120,8 @@ __metaclass__ = gen_metafunc(characters)
 
 class Parsee:
     # Character
-    name = u'水桥帕露西'
+    char_name = u'水桥帕露西'
+    port_image = gres.parsee_port
 
 class Envy:
     # Skill
@@ -143,7 +145,8 @@ class Envy:
 
 class Youmu:
     # Character
-    name = u'魂魄妖梦'
+    char_name = u'魂魄妖梦'
+    port_image = gres.youmu_port
 
 class Nitoryu:
     # Skill

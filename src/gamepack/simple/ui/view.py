@@ -6,6 +6,7 @@ from pyglet.window import mouse
 from client.ui.base import Control, message as ui_message
 from client.ui.controls import *
 from client.ui import resource as common_res
+from client.ui import shaders
 import resource as gres
 from utils import IRP
 
@@ -92,11 +93,12 @@ class SkillSelectionBox(Control):
         return self.control_frompoint1(x, y)
 
 class GameCharacterPortrait(Dialog):
-    def __init__(self, name='Proton', color=Colors.blue, *args, **kwargs):
+    def __init__(self, color=Colors.blue, *args, **kwargs):
         self.selected = False
         self.maxlife = 8
         self.life = 0
-        self.name = name
+        self.name = u''
+        self.char_name = u''
         Dialog.__init__(
             self, width=149, height=195,
             bot_reserve=74, color=color,
@@ -108,10 +110,17 @@ class GameCharacterPortrait(Dialog):
 
     def update(self):
         self.caption = self.name
+
+        try:
+            self.bg = self.port_image
+        except AttributeError:
+            pass
+
         Dialog.update(self)
         with self.fbo:
             hp, hp_bg = common_res.hp, common_res.hp_bg
 
+            # hp bar
             glColor3f(1, 1, 1)
             w, h = hp_bg.width * self.maxlife, hp_bg.height
             if w:
@@ -121,6 +130,7 @@ class GameCharacterPortrait(Dialog):
             if w:
                 common_res.hp.get_region(0, 0, w, h).blit(5, 55)
 
+            # equip boxes
             glColor3f(1, 1, 1)
             glRectf(2, 2, self.width-2, 54)
             glLineWidth(2.0)
@@ -138,6 +148,22 @@ class GameCharacterPortrait(Dialog):
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
             glLineWidth(1.0)
 
+            # char name
+            f = pyglet.font.load('AncientPix', size=9)
+            glyphs = f.get_glyphs(self.char_name)
+            gh = f.ascent - f.descent
+            glColor3f(1, 1, 1)
+            with shaders.FontShadow as fs:
+                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
+                glPushMatrix()
+                glTranslatef(7, self.height - 30, 0)
+                for g in glyphs:
+                    glTranslatef(0, -gh, 0)
+                    # HACK: pyglet implementation detail
+                    # g.vertices = (left_side_bearing, -baseline, ...)
+                    g.blit(g.vertices[0], g.vertices[1])
+                glPopMatrix()
+
     def draw(self):
         Dialog.draw(self)
         if self.selected:
@@ -154,6 +180,7 @@ class GameCharacterPortrait(Dialog):
 
 class SimpleGameUI(Control):
     portrait_location = [ # [ ((x, y), (r, g, b)) ] * Game.n_persons
+        # XXX: color n/a any more
         ((352, 450), (0, 0, 0)),
         ((200, 150), (0, 0, 0)),
         ((500, 150), (0, 0, 0)),
@@ -200,7 +227,12 @@ class SimpleGameUI(Control):
         pl = self.game.players
         shift = pl.index(self.game.me)
         for i, c in enumerate(self.char_portraits):
-            c.player = pl[(shift + i) % self.game.n_persons]
+            p = pl[(shift + i) % self.game.n_persons]
+            c.player = p
+            c.name = p.nickname
+            c.port_image = p.ui_meta.port_image
+            c.char_name = p.ui_meta.char_name
+            c.update()
 
         self.begin_select_player(1)
         self.end_select_player()

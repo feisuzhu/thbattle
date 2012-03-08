@@ -85,7 +85,7 @@ class LoginScreen(Overlay):
             )
             self.txt_username = TextBox(
                 parent=self, x=438-350, y=282-165, width=220, height=20,
-                text=u'魂魄妖梦'
+                text=u'另一只罪袋'
             )
             self.txt_pwd = TextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
