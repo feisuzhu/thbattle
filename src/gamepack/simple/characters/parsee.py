@@ -3,15 +3,12 @@ from baseclasses import *
 from ..actions import *
 from ..cards import *
 
-class TreatAsDemolition(TreatAsAction):
+class Envy(TreatAsSkill):
     treat_as = DemolitionCard
-    @classmethod
-    def cond(cls, actor, cards):
-        return len(cards) == 1
+    def check(self):
+        return len(self.associated_cards) == 1
 
-class Envy(Skill):
-    associated_action = TreatAsDemolition
-
+@register_character
 class Parsee(Character):
     skills = [Envy]
     eventhandlers_required = []

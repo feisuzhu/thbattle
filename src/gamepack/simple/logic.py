@@ -10,13 +10,12 @@ def mixin_character(player, charcls):
     pcls = player.__class__
     clsn1 = pcls.__name__
     clsn2 = charcls.__name__
-    new_cls = type('%s_%s' % (clsn1, clsn2), (pcls,), {})
-    new_cls.__bases__ += (charcls,) # to avoid Character's metaclass
+    new_cls = type('%s_%s' % (clsn1, clsn2), (pcls, charcls), {})
     player.__class__ = new_cls
 
 class SimpleGame(Game):
     name = 'Simple Game'
-    n_persons = 1
+    n_persons = 2
 
     # -----BEGIN PLAYER STAGES-----
     NORMAL = 'NORMAL'
@@ -38,9 +37,10 @@ class SimpleGame(Game):
             self.event_handlers.append(cls())
 
         from characters import characters as chars
-        for p in self.players:
-            print p, list(chars)[0]
-            mixin_character(p, chars[0])
+        for i, p in enumerate(self.players):
+            mixin_character(p, chars[i])
+            for cls in p.eventhandlers_required:
+                self.event_handlers.append(cls())
             p.cards = []
             p.life = p.maxlife
             p.dead = False

@@ -4,6 +4,7 @@ from ..actions import *
 
 class Nitoryu(Skill): # compulsory skill, just a tag.
     associated_action = None
+    target = None
 
 class NitoryuAttack(Attack):
     def apply_action(self):
@@ -28,6 +29,7 @@ class NitoryuHandler(EventHandler):
 
         return act
 
+@register_character
 class Youmu(Character):
     skills = [Nitoryu]
     eventhandlers_required = [NitoryuHandler]

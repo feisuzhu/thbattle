@@ -5,12 +5,13 @@ from server.core import Client
 import logging
 import sys
 
+'''
 # --- for dbg
 from gevent import signal as sig
 import signal
 sig(signal.SIGUSR1, lambda: False)
 # -----------
-
+'''
 
 from game import autoenv
 autoenv.init('Server')

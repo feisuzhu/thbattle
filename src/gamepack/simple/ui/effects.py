@@ -10,7 +10,6 @@ import pyglet
 from pyglet.gl import *
 
 from ..actions import *
-from ..cards import CardWrapper
 
 from functools import partial
 from collections import defaultdict as ddict
@@ -116,7 +115,11 @@ def launch_effect(self, act):
     s, tl = act.source, BatchList(act.target_list)
     for t in tl: self.ray(s, t)
     c = act.card
-    if not isinstance(c, CardWrapper): # skill card, has no ui_meta
+    from ..characters import Skill
+    if isinstance(c, Skill):
+        # TODO: skill prompt
+        pass
+    else:
         self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, u'、'.join(tl.nickname), act.card.ui_meta.name))
 
 def graze_effect(self, act):

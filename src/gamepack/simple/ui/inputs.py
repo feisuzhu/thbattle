@@ -123,12 +123,8 @@ class UIChooseCards(UISelectTarget):
 
         g = self.parent.game
         if skills:
-            for s in skills:
-                cls = s.associated_action
-                a = cls(g.me, cards)
-                a.apply_action()
-                cards = a.cards
-                if not cards: break
+            for skill_cls in skills:
+                cards = [skill_cls(g.me, cards)]
 
         if cards:
             if act.cond(cards):
@@ -153,12 +149,8 @@ class UIDoActionStage(UISelectTarget):
 
         g = parent.game
         if skills:
-            for s in skills:
-                cls = s.associated_action
-                a = cls(g.me, cards)
-                a.apply_action()
-                cards = a.cards
-                if not cards: break
+            for skill_cls in skills:
+                cards = [skill_cls(g.me, cards)]
 
         if cards:
             while True:
@@ -180,23 +172,20 @@ class UIDoActionStage(UISelectTarget):
                     # to display customized prompt string
                     target_list = None
 
-                action_cls = card.associated_action
-                if action_cls:
-                    rst, reason = action_cls.ui_meta.is_action_valid(source, cards, target_list)
-                else:
-                    rst, reason = False, getattr(card.ui_meta, 'passive_card_prompt', 'UNDEFINED')
+                rst, reason = card.ui_meta.is_action_valid(cards, source, target_list)
 
                 self.set_text(reason)
                 if rst: self.set_valid()
                 return
 
             self.set_text(u'您选择的牌不符合出牌规则')
-            parent.end_select_player()
             self.last_card = None
         else:
-            parent.end_select_player()
+
             self.set_text(u'请出牌…')
             self.last_card = None
+
+        parent.end_select_player()
 
 mapping = dict(
     choose_card=UIChooseCards,

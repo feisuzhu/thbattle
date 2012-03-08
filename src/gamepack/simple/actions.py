@@ -38,9 +38,6 @@ def user_choose_card(act, target, cond):
 
         return cards
     except CheckFailed as e:
-        print input
-        import traceback
-        traceback.print_exc(e)
         return None
 
 def random_choose_card(target):
@@ -59,20 +56,18 @@ def skill_wrap(actor, sid_list, cards):
         for skill_id in sid_list:
             check(isinstance(skill_id, int))
             check(0 <= skill_id < len(actor.skills))
-            skill_action_cls = actor.skills[skill_id].associated_action
-            check(skill_action_cls)
-            skill = skill_action_cls(actor, cards)
-            check(g.process_action(skill))
-            cards = getattr(skill, 'cards', None)
-            if not cards: return None
-        from cards import CardWrapper
-        check_type([CardWrapper], cards)
+
+            skill_cls = actor.skills[skill_id]
+            card = skill_cls(actor, cards)
+
+            check(card.check())
+
+            cards = [card]
+
         card = cards[0]
         return card
     except CheckFailed as e:
-        import traceback
-        traceback.print_exc(e)
-        return False
+        return None
 
 action_eventhandlers = set()
 def register_eh(cls):
@@ -88,43 +83,6 @@ class BaseAction(UserAction): pass # attack, graze, heal
 class SpellCardAction(UserAction): pass
 
 class InternalAction(Action): pass # actions for internal use, should not be intercepted by EHs
-
-# skill action, should follow some conventions.
-# skill action should set it's 'cards' attrib to a CardWrapper,
-# which has similar attribs like ordinal cards,
-# primarily the 'associated_action' attrib.
-class SkillAction(Action): pass
-
-class TreatAsAction(SkillAction):
-    # treat_as = ......
-    def __init__(self, actor, cards):
-        self.cards = cards
-        self.actor = actor
-
-    def apply_action(self):
-        cards = self.cards
-        actor = self.actor
-        wrapped = self.get_wrapped_card(actor, cards)
-        if wrapped:
-            self.cards = [wrapped]
-            return True
-        else:
-            self.cards = None
-            return False
-
-    @classmethod
-    def get_wrapped_card(cls, actor, cards):
-        if cls.cond(actor, cards):
-            from cards import CardWrapper
-            w = CardWrapper.wrap(cards)
-            w.associated_action = cls.treat_as.associated_action
-            w.target = cls.treat_as.target
-            return w
-        return None
-
-    @classmethod
-    def cond(cls, actor, cards):
-        return False
 
 class Damage(GenericAction):
 
@@ -237,8 +195,6 @@ class RejectHandler(EventHandler):
             check(self.cond([card]))
             return True
         except CheckFailed as e:
-            import traceback
-            traceback.print_exc(e)
             return False
 
     def cond(self, cardlist):
@@ -265,9 +221,8 @@ class DropCards(GenericAction):
 
         cards = self.cards
 
-        from cards import CardWrapper
-        cards = CardWrapper.unwrap(cards)
-        self.cards = cards
+        from characters import Skill
+        self.cards = cards = Skill.unwrap(cards)
 
         tcs = set(target.cards)
         cs = set(cards)
@@ -414,12 +369,7 @@ class ActionStage(GenericAction):
                 g.process_action(LaunchCard(actor, target_list, card))
 
         except CheckFailed as e:
-            try:
-                import traceback
-                traceback.print_exc(e)
-                print skill_ids, card_ids, target_list
-            except:
-                pass
+            pass
 
         actor.stage = g.NORMAL
         return True

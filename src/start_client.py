@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import threading
 import logging, sys
 
@@ -14,7 +15,7 @@ class MainThread(threading.Thread):
         from gevent import monkey
         monkey.patch_socket()
 
-        
+
         from game import autoenv
         autoenv.init('Client')
 

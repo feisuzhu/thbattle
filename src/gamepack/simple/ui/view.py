@@ -242,7 +242,9 @@ class SimpleGameUI(Control):
             for port in self.char_portraits:
                 p = port.player
                 port.life = p.life
+                port.maxlife = p.maxlife
                 port.update()
+            self.update_skillbox()
 
         elif _type == 'evt_player_turn':
             self.current_turn = args[0]
