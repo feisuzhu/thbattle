@@ -296,7 +296,10 @@ class SimpleGameUI(Control):
         Ray(x0, y0, x1, y1, parent=self, zindex=10)
 
     def prompt(self, s):
-        self.parent.events_box.append(unicode(s)+u'\n')
+        self.prompt_raw(u'|B|cff0000ff>> |r' + unicode(s) + u'\n')
+
+    def prompt_raw(self, s):
+        self.parent.events_box.append(s)
 
     def begin_select_player(self, num, disables=[]):
         if self.selecting_player: return

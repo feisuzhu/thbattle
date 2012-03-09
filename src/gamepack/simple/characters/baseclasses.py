@@ -32,7 +32,7 @@ class Skill(cards.Card):
     def __data__(self):
         return {
             'skill_type': self.__class__.__name__,
-            'cards': self.associated_cards,
+            'cards': [c.syncid for c in self.associated_cards],
         }
 
     def _zero(self, *a):
@@ -56,8 +56,7 @@ class Skill(cards.Card):
 
     def sync(self, data):
         assert data['skill_type'] == self.__class__.__name__
-        for c, d in zip(self.associated_cards, data['cards']):
-            c.sync(d)
+        assert data['cards'] == [c.syncid for c in self.associated_cards]
 
     # target = xxx
     # associated_action = xxx

@@ -99,7 +99,9 @@ def damage_effect(self, act):
     l = t.life
     port.life = l if l > 0 else 0
     port.update()
-    self.prompt(u'%s对%s造成了%d点伤害' % (s.nickname, t.nickname, act.amount))
+    self.prompt(u'|c208020ff【%s】|r对|c208020ff【%s】|r造成了%d点伤害。' % (
+        s.ui_meta.char_name, t.ui_meta.char_name, act.amount
+    ))
     OneShotAnim(common_res.hurt, x=port.x, y=port.y, batch=self.animations)
 
 def heal_effect(self, act):
@@ -109,7 +111,9 @@ def heal_effect(self, act):
     port.life = l if l > 0 else 0
     port.update()
     if act.succeeded:
-        self.prompt(u'%s回复了%d点体力' % (t.nickname, act.amount))
+        self.prompt(u'|c208020ff【%s】|r回复了%d点体力。' % (
+            t.ui_meta.char_name, act.amount
+        ))
 
 def launch_effect(self, act):
     s, tl = act.source, BatchList(act.target_list)
@@ -117,19 +121,41 @@ def launch_effect(self, act):
     c = act.card
     from ..characters import Skill
     if isinstance(c, Skill):
-        # TODO: skill prompt
-        pass
-    else:
-        self.prompt(u'%s对%s使用了|c208020ff【%s】|r。' % (s.nickname, u'、'.join(tl.nickname), act.card.ui_meta.name))
+        self.prompt(c.ui_meta.effect_string(act))
+    elif c:
+        self.prompt(u'|c208020ff【%s】|r对|c208020ff【%s】|r使用了|c208020ff%s|r。' % (
+            s.ui_meta.char_name,
+            u'】|r、|c208020ff【'.join(tl.ui_meta.char_name),
+            act.card.ui_meta.name
+        ))
 
 def graze_effect(self, act):
     if not act.succeeded: return
     t = act.target
-    self.prompt(u'%s使用了|c208020ff【闪】|r' % t.nickname)
+    self.prompt(u'|c208020ff【%s】|r使用了|c208020ff闪|r。' % t.ui_meta.char_name)
+
+def reject_effect(self, act):
+    s = u'|c208020ff【%s】|r为|c208020ff【%s】|r受到的|c208020ff%s|r使用了|c208020ff%s|r。' % (
+        act.source.ui_meta.char_name,
+        act.target.ui_meta.char_name,
+        act.target_act.associated_card.ui_meta.name,
+        act.associated_card.ui_meta.name,
+    )
+    self.prompt(s)
+
+def demolition_effect(self, act):
+    if not act.succeeded: return
+    s = u'|c208020ff【%s】|r卸掉了|c208020ff【%s】|r的|c208020ff%s|r。' % (
+        act.source.ui_meta.char_name,
+        act.target.ui_meta.char_name,
+        act.card.ui_meta.name,
+    )
+    self.prompt(s)
 
 mapping_actions = ddict(dict, {
     'before': {
         LaunchCard: launch_effect,
+        Reject: reject_effect,
     },
     'after': {
         DrawCards: draw_cards_effect,
@@ -139,7 +165,7 @@ mapping_actions = ddict(dict, {
         Damage: damage_effect,
         Heal: heal_effect,
         UseGraze: graze_effect,
-        #Demolition: demolition_effect,
+        Demolition: demolition_effect,
     }
 })
 
@@ -199,6 +225,7 @@ def player_turn_effect(self, p):
             batch = self.animations
         )
     self.turn_frame.position = (port.x - 6, port.y - 4)
+    self.prompt_raw('--------------------\n')
 
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),

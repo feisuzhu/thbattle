@@ -8,9 +8,7 @@ import types
 import resource as gres
 from client.ui import resource as cres
 
-
 from utils import DataHolder
-
 
 def gen_metafunc(_for):
     def metafunc(clsname, bases, _dict):
@@ -27,16 +25,16 @@ class UseGraze:
     # choose_card meta
     image = gres.card_graze
     text_valid = u'我闪！'
-    text = u'请出闪...'
+    text = u'请出闪…'
 
 class DropCardStage:
     # choose_card meta
     text_valid = u'OK，就这些了'
-    text = u'请弃牌...'
+    text = u'请弃牌…'
 
 class RejectHandler:
     # choose_card meta
-    text_valid = u'对不起，你是一个好人...'
+    text_valid = u'对不起，你是一个好人…'
     text = u'请选择一张好人卡'
 
 # -----END ACTIONS UI META-----
@@ -49,7 +47,7 @@ class HiddenCard:
     name = u'这个是隐藏卡片，你不应该看到它'
 
     def is_action_valid(cards, source, target_list):
-        return (False, u'这是BUG，你没法发动这张牌...')
+        return (False, u'这是BUG，你没法发动这张牌…')
 
 class AttackCard:
     # action_stage meta
@@ -100,7 +98,7 @@ class DemolitionCard:
 
         target= target_list[0]
         if source == target:
-            return (True, u'还是拆别人的吧...')
+            return (True, u'还是拆别人的吧…')
         elif not len(target.cards):
             return (False, u'这货已经没有牌了')
         else:
@@ -140,6 +138,19 @@ class Envy:
             return (False, u'请选择一张牌！')
         else:
             return cards.DemolitionCard.ui_meta.is_action_valid([skill], source, target_list)
+
+    def effect_string(act):
+        # for effects.launch_effect
+        source = act.source
+        card = act.card
+        target = act.target_list[0]
+        s = u'|c208020ff【%s】|r发动了嫉妒技能，将|c208020ff%s|r当作|c208020ff%s|r对|c208020ff【%s】|r使用。' % (
+            source.ui_meta.char_name,
+            card.associated_cards[0].ui_meta.name,
+            card.treat_as.ui_meta.name,
+            target.ui_meta.char_name,
+        )
+        return s
 
 # ----------
 

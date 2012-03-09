@@ -29,10 +29,10 @@ def user_choose_card(act, target, cond):
 
         check(cs.issubset(set(target.cards))) # Whose cards?! Wrong ids?!
 
+        g.players.exclude(target).reveal(cards)
+
         if sid_list:
             cards = skill_wrap(target, sid_list, cards)
-
-        g.players.exclude(target).reveal(cards)
 
         check(cond(cards))
 
@@ -153,6 +153,7 @@ class Reject(SpellCardAction):
     def __init__(self, source, target_act):
         self.source = source
         self.target_act = target_act
+        self.target = target_act.target
 
     def apply_action(self):
         if not isinstance(self.target_act, SpellCardAction):
@@ -171,8 +172,14 @@ class RejectHandler(EventHandler):
             )
 
             if p:
-                sid_list, cid_list = input # TODO: skill
-                card, = g.deck.getcards(cid_list) # card was already revealed
+                sid_list, cid_list = input
+                cards = g.deck.getcards(cid_list) # card was already revealed
+
+                if sid_list: # skill selected
+                    cards = skill_wrap(actor, sid_list, cards)
+
+                card = cards[0]
+
                 action = Reject(source=p, target_act=act)
                 action.associated_card = card
                 g.process_action(DropUsedCard(p, [card]))
@@ -300,21 +307,22 @@ class DrawCardStage(DrawCards): pass
 
 class LaunchCard(GenericAction):
     def __init__(self, source, target_list, card):
+        t = card.target
+        if t == 'self':
+            target_list = [source]
+        elif isinstance(t, int):
+            if len(target_list) != t:
+               card = None # Incorrect target_list
         self.source, self.target_list, self.card = source, target_list, card
 
     def apply_action(self):
         g = Game.getgame()
         card = self.card
+        target_list = self.target_list
+        if not card: return False
         action = card.associated_action
         g.process_action(DropUsedCard(self.source, cards=[card]))
         if action:
-            t = card.target
-            if t == 'self':
-                target_list = [self.source]
-            elif isinstance(t, int):
-                target_list = self.target_list
-                if len(target_list) != t: return False
-
             for target in target_list:
                 a = action(source=self.source, target=target)
                 a.associated_card = card
@@ -339,14 +347,9 @@ class ActionStage(GenericAction):
         try:
             while True:
                 input = actor.user_input('action_stage_usecard')
-                check(input)
-                check(isinstance(input, (list, tuple)))
+                check_type([[int, Ellipsis]] * 3, input)
 
                 skill_ids, card_ids, target_list = input
-
-                check(isinstance(skill_ids, (list, tuple)))
-                check(isinstance(card_ids, (list, tuple)))
-                check(isinstance(target_list, (list, tuple)))
 
                 cards = g.deck.getcards(card_ids)
                 check(cards)
@@ -355,6 +358,8 @@ class ActionStage(GenericAction):
                 target_list = [g.player_fromid(i) for i in target_list]
                 from game import AbstractPlayer
                 check(all(isinstance(p, AbstractPlayer) for p in target_list))
+
+                g.players.exclude(actor).reveal(cards)
 
                 # skill selected
                 if skill_ids:
@@ -365,7 +370,6 @@ class ActionStage(GenericAction):
                     check(len(cards) == 1)
                     card = cards[0]
 
-                g.players.exclude(actor).reveal(card)
                 g.process_action(LaunchCard(actor, target_list, card))
 
         except CheckFailed as e:

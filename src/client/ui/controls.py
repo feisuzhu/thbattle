@@ -868,13 +868,13 @@ class ListItem(object):
 
         glDisable(GL_BLEND)
         glColor4f(0,0,0,0)
-        glRectf(0, 0, p.width, 15)
+        glRectf(0, 0, p.width, 16)
         glEnable(GL_BLEND)
 
         if self.selected:
             c = [i/255.0 for i in color.light] + [1.0]
             glColor4f(*c)
-            glRectf(0, 0, p.width, 15)
+            glRectf(0, 0, p.width, 16)
 
         glColor3f(1,1,1)
 
@@ -989,7 +989,7 @@ class ListView(Control):
 
         fbo = self.fbo
         tex =  fbo.texture
-        y = tex.height
+        y = tex.height - 1
         lh = self.line_height
         with fbo:
             for i in self.items:
@@ -1007,7 +1007,7 @@ class ListView(Control):
         i = items.index(item)
         fbo = self.fbo
         tex = fbo.texture
-        y = tex.height
+        y = tex.height - 1
         lh = self.line_height
         with fbo:
             y -= (i+1)*lh
@@ -1196,5 +1196,8 @@ class ConfirmBox(Dialog):
         Dialog.draw(self)
         self.lbl.draw()
 
-ConfirmBox.register_event_type('on_confirm')
+    def _on_top(self, *a):
+        return 100000
+    zindex = property(_on_top, _on_top)
 
+ConfirmBox.register_event_type('on_confirm')
