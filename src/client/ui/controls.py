@@ -1201,3 +1201,61 @@ class ConfirmBox(Dialog):
     zindex = property(_on_top, _on_top)
 
 ConfirmBox.register_event_type('on_confirm')
+
+class Panel(Control):
+    def __init__(self, color=Colors.green, *a, **k):
+        Control.__init__(self, *a, **k)
+        self.color = color
+        self.update()
+
+    def update(self):
+        w, h = int(self.width), int(self.height)
+
+        tex1 = pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
+        )
+        tex2 = pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
+        )
+        fbo1 = Framebuffer(tex1)
+        fbo2 = Framebuffer(tex2)
+        self.fbo1, self.fbo2 = fbo1, fbo2
+
+    def draw(self):
+        from shaders import GaussianBlurHorizontal, GaussianBlurVertical
+
+        ax, ay = self.abs_coords()
+        ax, ay = int(ax), int(ay)
+        w, h = int(self.width), int(self.height)
+
+        glColor3f(1, 1, 1)
+        fbo1, fbo2 = self.fbo1, self.fbo2
+        tex1, tex2 = fbo1.texture, fbo2.texture
+        with fbo2:
+            fbo2.blit_from_current_readbuffer((ax, ay, ax + w, ay + h))
+
+        with GaussianBlurHorizontal:
+            with fbo1:
+                tex2.blit(0, 0)
+
+        with GaussianBlurVertical:
+            tex1.blit(0, 0)
+
+        glLineWidth(3.0)
+        glPolygonMode(GL_FRONT, GL_LINE)
+        glBegin(GL_QUADS)
+        glColor4f(1, 1, 0.9, 0.5)
+        glVertex2f(1.5, 1.5)
+        glVertex2f(1.5, -1.5 + h)
+        glVertex2f(-1.5 + w, -1.5 + h)
+        glVertex2f(-1.5 + w, 1.5)
+        glColor3f(*[i/255.0 for i in self.color.frame])
+        glVertex2f(1.5, 1.5)
+        glVertex2f(-1.5 + w, 1.5)
+        glVertex2f(-1.5 + w, -1.5 + h)
+        glVertex2f(1.5, -1.5 + h)
+        glEnd()
+        glLineWidth(1.0)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+        self.draw_subcontrols()

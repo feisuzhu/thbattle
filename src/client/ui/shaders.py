@@ -2,6 +2,8 @@
 
 from base.shader import *
 
+DummyShader = DummyShaderProgram()
+
 try:
     thick = FragmentShader('''
         #extension GL_EXT_gpu_shader4 : enable
@@ -69,7 +71,7 @@ try:
     FontShadow = ShaderProgram(thin)
 
 except ShaderError as e:
-    FontShadowThick = FontShadow = DummyShaderProgram()
+    FontShadowThick = FontShadow = DummyShader
 
 try:
     fshader = FragmentShader(
@@ -83,6 +85,49 @@ try:
     )
     Grayscale = ShaderProgram(fshader)
 except ShaderError as e:
-    Grayscale = DummyShaderProgram()
+    Grayscale = DummyShader
 
-DummyShader = DummyShaderProgram()
+
+def _get_gaussian_coef(radius):
+    from math import erfc
+    inv_sigma = 3.0/radius
+    def f(x):
+        return 0.5*erfc(-x*inv_sigma*0.707106781)
+    l = [f(0.5 + i) - f(-0.5 + i) for i in xrange(radius+1)]
+    l1 = l[1:]
+    l1.reverse()
+    return l1 + l
+
+try:
+    r = 12
+    coef = _get_gaussian_coef(r)
+    src = '''
+        uniform sampler2DRect tex;
+        void main()
+        {
+            vec2 xy = gl_TexCoord[0].xy;
+            vec4 s = vec4(0.0, 0.0, 0.0, 0.0);
+            // s += texture2DRect(tex, vec2(xy.x-1.0, xy.y));
+            %s
+            gl_FragColor = s;
+        }
+    '''
+
+    fshader = FragmentShader(
+        src % '\n'.join(
+            's += texture2DRect(tex, vec2(xy.x+(%d.0), xy.y)) * %f;' % (i, v)
+            for i, v in zip(xrange(-r, r+1), coef)
+        )
+    )
+    GaussianBlurHorizontal = ShaderProgram(fshader)
+
+    fshader = FragmentShader(
+        src % '\n'.join(
+            's += texture2DRect(tex, vec2(xy.x, xy.y+(%d.0))) * %f;' % (i, v)
+            for i, v in zip(xrange(-r, r+1), coef)
+        )
+    )
+    GaussianBlurVertical = ShaderProgram(fshader)
+
+except ShaderError as e:
+    GaussianBlurHorizontal = GaussianBlurVertical = DummyShader

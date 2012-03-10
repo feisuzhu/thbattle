@@ -125,7 +125,7 @@ class Framebuffer(object):
     def __enter__(self):
         from pyglet import gl
         t = self.texture
-        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, self.fbo_id)
+        gl.glBindFramebufferEXT(gl.GL_DRAW_FRAMEBUFFER_EXT, self.fbo_id)
         gl.glPushAttrib(gl.GL_VIEWPORT_BIT | gl.GL_TRANSFORM_BIT)
         gl.glViewport(0, 0, t.width, t.height)
         gl.glMatrixMode(gl.GL_PROJECTION)
@@ -143,11 +143,30 @@ class Framebuffer(object):
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glPopMatrix()
         gl.glPopAttrib()
-        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, 0)
+        gl.glBindFramebufferEXT(gl.GL_DRAW_FRAMEBUFFER_EXT, 0)
 
     def __del__(self):
         from pyglet import gl
         gl.glDeleteFramebuffersEXT(1, self.fbo_id)
+
+    def bind_as_readbuffer(self):
+        from pyglet import gl
+        gl.glBindFramebufferEXT(gl.GL_READ_FRAMEBUFFER_EXT, self.fbo_id)
+
+    def unbind_as_readbuffer(self):
+        from pyglet import gl
+        gl.glBindFramebufferEXT(gl.GL_READ_FRAMEBUFFER_EXT, 0)
+
+    def blit_from_current_readbuffer(self, src_box, dst_box=None, mask=None, _filter=None):
+        from pyglet import gl
+        mask = mask if mask else gl.GL_COLOR_BUFFER_BIT
+        _filter = _filter if _filter else gl.GL_LINEAR
+
+        if not dst_box:
+            dst_box = (0, 0, src_box[2] - src_box[0], src_box[3] - src_box[1])
+
+        args = tuple(src_box) + tuple(dst_box) + (mask, _filter)
+        gl.glBlitFramebufferEXT(*args)
 
 def dilate(im, color):
     import pyglet
