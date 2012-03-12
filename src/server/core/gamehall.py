@@ -150,6 +150,7 @@ def join_game(user, gameid):
             g.players[slot] = g.player_class(user)
             user.write(['game_joined', g])
             _notify_playerchange(g)
+            user.gclear() # clear stale gamedata
             evt_datachange.set()
             return
     user.write(['gamehall_error', 'cant_join_game'])

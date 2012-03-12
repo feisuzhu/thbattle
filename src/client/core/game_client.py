@@ -30,9 +30,9 @@ class TheChosenOne(game.AbstractPlayer):
         else:
             obj_list.sync(raw_data) # it's single obj actually
 
-    def user_input(self, tag, attachment=None, timeout=25):
-        g = Game.getgame()
-        st = g.get_synctag()
+    def user_input(self, tag, attachment=None, timeout=25, g=None, st=None):
+        g = g if g else Game.getgame()
+        st = st if st else g.get_synctag()
         input = DataHolder()
         input.tag = tag
         input.input = None
@@ -53,9 +53,11 @@ class TheChosenOne(game.AbstractPlayer):
         return rst.input
 
 class PlayerList(BatchList):
+
     def user_input_any(self, tag, expects, attachment=None, timeout=25):
         g = Game.getgame()
         st = g.get_synctag()
+
         tagstr = 'inputany_%s_%d' % (tag, st)
 
         input = DataHolder()
@@ -72,23 +74,35 @@ class PlayerList(BatchList):
             g.kill(Break(), block=False)
             return pid, data
 
-        try:
-            waiter = gevent.spawn(waiter_func)
-            with gevent.Timeout(timeout):
+        if g.me in self:
+            try:
+                waiter = gevent.spawn(waiter_func)
+                tle = TimeLimitExceeded(timeout)
+                tle.start()
                 g.emit_event('user_input_start', input)
                 rst = g.emit_event('user_input', input)
-        except (Break, gevent.Timeout):
-            g.emit_event('user_input_timeout', input)
-            rst = input
-            rst.input = None
-        finally:
-            g.emit_event('user_input_finish', input)
+            except (Break, TimeLimitExceeded) as e:
+                if isinstance(e, TimeLimitExceeded) and e is not tle:
+                    raise
+                g.emit_event('user_input_timeout', input)
+                rst = input
+                rst.input = None
+            finally:
+                tle.cancel()
+                g.emit_event('user_input_finish', input)
 
-        try:
-            Executive.server.gwrite(tagstr, rst.input)
-            waiter.join()
-        except Break:
-            pass
+            try:
+                Executive.server.gwrite(tagstr, rst.input)
+                waiter.join()
+            except Break:
+                pass
+        else:
+            # none of my business, just wait for the result
+            try:
+                waiter = gevent.spawn(waiter_func)
+                waiter.join()
+            except Break:
+                pass
 
         pid, data = waiter.get()
 
@@ -102,6 +116,39 @@ class PlayerList(BatchList):
 
         return p, data
 
+    def user_input_all(self, tag, process, attachment=None, timeout=25):
+        g = Game.getgame()
+        g.emit_event('user_input_all_begin', (tag, attachment))
+        st = g.get_synctag()
+        pl = PlayerList(g.players)
+        workers = BatchList()
+        def worker(p, i):
+            while True:
+                input = p.user_input(
+                    tag, attachment=attachment, timeout=timeout,
+                    g=g, st=st*50000+i,
+                )
+                try:
+                    input = process(p, input)
+                except ValueError:
+                    continue
+
+                g.emit_event('user_input_all_data', (tag, p, input))
+
+                break
+
+        for i, p in enumerate(g.players):
+            workers.append(
+                gevent.spawn(worker, p, i)
+            )
+
+        workers.join()
+
+        for w in workers:
+            w.kill()
+
+        g.emit_event('user_input_all_end', tag)
+
 class PeerPlayer(game.AbstractPlayer):
     dropped = False
     def __init__(self, d):
@@ -112,10 +159,10 @@ class PeerPlayer(game.AbstractPlayer):
         # Peer player, won't reveal.
         Game.getgame().get_synctag() # must sync
 
-    def user_input(self, tag, attachement=None, timeout=25):
+    def user_input(self, tag, attachment=None, timeout=25, g=None, st=None):
         # Peer player, get his input from server
-        g = Game.getgame()
-        st = g.get_synctag()
+        g = g if g else Game.getgame()
+        st = st if st else g.get_synctag()
         input = DataHolder()
         input.timeout = timeout
         input.player = self

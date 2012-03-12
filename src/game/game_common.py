@@ -20,7 +20,6 @@ class EventHandler(object):
 
 class Action(object):
     cancelled = False
-    default_action = False
     def __init__(self):
         pass
 
@@ -116,7 +115,7 @@ class Game(object):
 
                 rst = action.apply_action()
 
-                assert rst in [True, False], 'Action.apply_action or default_action  must return boolean!'
+                assert rst in [True, False], 'Action.apply_action must return boolean!'
                 action.succeeded = rst
                 if self.game_ended():
                     raise GameEnded()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from server_endpoint import Server
 import sys
 import gevent
@@ -50,6 +51,7 @@ class GameManager(Greenlet):
         @handler(('hang'), 'inroom')
         def game_joined(self, data):
             self.game = gamemodes[data['type']]()
+            Executive.server.gclear()
             self.event_cb('game_joined', self.game)
 
         @handler(('ingame'), 'hang')

@@ -58,12 +58,14 @@ class Server(Endpoint, Greenlet):
             self.gdevent.set()
 
     def gexpect(self, tag):
+        log.info('GAME_EXPECT: %s', repr(tag))
         l = self.gdqueue
         e = self.gdevent
         while True:
             for i in xrange(len(l)):
                 d = l.popleft()
                 if d[0] == tag:
+                    log.info('GAME_READ: %s', repr(d))
                     return d[1]
                 else:
                     d.scan_count += 1
@@ -76,3 +78,6 @@ class Server(Endpoint, Greenlet):
 
     def gwrite(self, tag, data):
         self.write(['gamedata', [tag, data]])
+
+    def gclear(self):
+        self.gdqueue.clear()

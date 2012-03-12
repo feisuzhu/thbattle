@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import gevent
 from gevent import Greenlet, Timeout
 from gevent.event import Event
@@ -24,7 +26,6 @@ class Packet(list): # compare by identity list
         return self.__eq__(other)
 
 class Client(Endpoint, Greenlet):
-    BREAK_TAG = object()
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
@@ -160,6 +161,7 @@ class Client(Endpoint, Greenlet):
             hall.user_exit(self)
 
     def gexpect(self, tag):
+        log.info('GAME_EXPECT: %s', repr(tag))
         l = self.gdqueue
         e = self.gdevent
         while True:
@@ -167,13 +169,15 @@ class Client(Endpoint, Greenlet):
                 d = l.popleft()
                 if isinstance(d, EndpointDied):
                     raise d
-                elif d[0] in (tag, self.BREAK_TAG):
+                elif d[0] == tag:
+                    log.info('GAME_READ: %s', repr(d))
                     return d[1]
                 else:
                     d.scan_count += 1
                     if d.scan_count >= 5:
                         log.warn('Dropped gamedata: %s' % d)
                     else:
+                        log.info('GAME_DATA_MISS: %s', repr(d))
                         l.append(d)
             e.clear()
             e.wait()
@@ -195,8 +199,20 @@ class Client(Endpoint, Greenlet):
     def gbreak(self):
         # is it a hack?
         # XXX: definitly, and why it's here?! can't remember
-        self.gdqueue.append([self.BREAK_TAG, None])
+        # Explanation:
+        # Well, when sb. exit game in input state,
+        # the others must wait until his timeout exceeded.
+        # called by gamehall.exit_game to break such condition.
+        self.gdqueue.append(EndpointDied())
         self.gdevent.set()
+
+    def gclear(self):
+        '''
+        Clear the gamedata queue,
+        used when a game starts, to eliminate data from last game,
+        which confuse.
+        '''
+        self.gdqueue.clear()
 
 class DummyClient(object):
     read = write = raw_write = \

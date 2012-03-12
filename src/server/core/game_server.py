@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import gevent
 from gevent import Greenlet, getcurrent
 from gevent.queue import Queue
@@ -12,21 +13,28 @@ import logging
 log = logging.getLogger('Game_Server')
 
 class PlayerList(BatchList):
+
     def user_input_any(self, tag, expects, attachment=None, timeout=25):
         g = Game.getgame()
         st = g.get_synctag()
         tagstr = 'inputany_%s_%d' % (tag, st)
 
         wait_queue = Queue(10)
-        pl = [p for p in self if not isinstance(p, DroppedPlayer)]
+        pl = PlayerList(p for p in self if not isinstance(p, DroppedPlayer))
         n = len(pl)
         def waiter(p):
             try:
-                with TimeLimitExceeded(60):
-                    data = p.client.gexpect(tagstr)
-                    wait_queue.put((p, data))
-            except (TimeLimitExceeded, EndpointDied):
+                tle = TimeLimitExceeded(timeout+10)
+                tle.start()
+
+                data = p.client.gexpect(tagstr)
+                wait_queue.put((p, data))
+            except (TimeLimitExceeded, EndpointDied) as e:
+                if isinstance(e, TimeLimitExceeded) and e is not tle:
+                    raise
                 wait_queue.put((p, None))
+            finally:
+                tle.cancel()
 
         for p in pl:
             gevent.spawn(waiter, p)
@@ -44,9 +52,36 @@ class PlayerList(BatchList):
             rst = [p, data]
             rst_send = [g.get_playerid(p), data]
 
-        self.client.gwrite(tagstr + '_resp', rst_send)
+        g.players.client.gwrite(tagstr + '_resp', rst_send)
 
         return rst
+
+    def user_input_all(self, tag, process, attachment=None, timeout=25):
+        g = Game.getgame()
+        st = g.get_synctag()
+        pl = PlayerList(g.players)
+        workers = BatchList()
+        def worker(p, i):
+            while True:
+                input = p.user_input(
+                    tag, attachment=attachment, timeout=timeout+10,
+                    g=g, st=st*50000+i,
+                )
+                try:
+                    input = process(p, input)
+                except ValueError:
+                    continue
+                break
+
+        for i, p in enumerate(g.players):
+            workers.append(
+                gevent.spawn(worker, p, i)
+            )
+
+        workers.join()
+
+        for w in workers:
+            w.kill()
 
 class Player(game.AbstractPlayer):
     dropped = False
@@ -58,9 +93,10 @@ class Player(game.AbstractPlayer):
         st = g.get_synctag()
         self.client.gwrite('object_sync_%d' % st, obj_list)
 
-    def user_input(self, tag, attachment=None, timeout=25):
-        g = Game.getgame()
-        st = g.get_synctag()
+    def user_input(self, tag, attachment=None, timeout=25, g=None, st=None):
+        g = g if g else Game.getgame()
+        st = st if st else g.get_synctag()
+
         try:
             # The ultimate timeout
             with TimeLimitExceeded(60):
@@ -95,9 +131,9 @@ class DroppedPlayer(Player):
     def reveal(self, obj_list):
         Game.getgame().get_synctag() # must sync
 
-    def user_input(self, tag, attachment=None, timeout=25):
-        g = Game.getgame()
-        st = g.get_synctag()
+    def user_input(self, tag, attachment=None, timeout=25, g=None, st=None):
+        g = g if g else Game.getgame()
+        st = st if st else g.get_synctag()
         g.players.client.gwrite('input_%s_%d' % (tag, st), None) # null input
 
 class Game(Greenlet, game.Game):
@@ -128,7 +164,6 @@ class Game(Greenlet, game.Game):
         Greenlet.__init__(self)
         game.Game.__init__(self)
         self.players = []
-        self.queue = Queue(100)
 
     def _run(self):
         from server.core import gamehall as hall
