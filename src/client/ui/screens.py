@@ -164,11 +164,11 @@ class GameHallScreen(Overlay):
 
             @self.btn_create.event
             def on_click():
-                Executive.call('create_game', ui_message, ['SimpleGame', 'Default Game'])
+                Executive.call('create_game', ui_message, ['THBattle', 'Default Game'])
 
             @self.btn_quickstart.event
             def on_click():
-                Executive.call('quick_start_game', ui_message, 'SimpleGame')
+                Executive.call('quick_start_game', ui_message, 'THBattle')
 
             @self.btn_refresh.event
             def on_click():

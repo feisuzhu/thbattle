@@ -78,6 +78,8 @@ with ResLoader(__file__) as args:
     card_hidden = tx('card_hidden.tga')
     char_portrait = tx('char_portrait.tga')
 
+    choosegirl_shine = tx('choosegirl_shine.png')
+
 
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)

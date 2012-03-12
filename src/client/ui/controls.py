@@ -1242,10 +1242,10 @@ class Panel(Control):
             tex1.blit(0, 0)
 
         glLineWidth(3.0)
-        glPolygonMode(GL_FRONT, GL_LINE)
-        glColor4f(1, 1, 1, .4)
+        glColor4f(1, 1, 1, .3)
         glRectf(1.5, 1.5, -1.5+w, -1.5+h)
         glColor3f(*[i/255.0 for i in self.color.frame])
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glRectf(-1.5+w, -1.5+h, 1.5, 1.5)
         glLineWidth(1.0)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
