@@ -107,36 +107,64 @@ def check_type(pattern, obj):
         check(isinstance(obj, pattern))
 
 class Framebuffer(object):
-    def __init__(self, texture):
+    def __init__(self, texture=None):
         from pyglet import gl
         fbo_id = gl.GLuint(0)
         gl.glGenFramebuffersEXT(1, gl.byref(fbo_id))
-        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, fbo_id)
+        self.fbo_id = fbo_id
+        self._texture = None
+        if texture:
+            self.bind()
+            self.texture = texture
+            self.unbind()
+
+
+    def _get_texture(self):
+        return self._texture
+
+    def _set_texture(self, t):
+        self._texture = t
+        from pyglet import gl
         gl.glFramebufferTexture2DEXT(
             gl.GL_FRAMEBUFFER_EXT,
             gl.GL_COLOR_ATTACHMENT0_EXT,
-            texture.target, texture.id, 0,
+            t.target, t.id, 0,
         )
-        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, 0)
-        self.fbo_id = fbo_id
-        #print fbo_id
-        self.texture = texture
+        gl.glViewport(0, 0, t.width, t.height)
+
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glLoadIdentity()
+        gl.gluOrtho2D(0, t.width, 0, t.height)
+
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glLoadIdentity()
+
+    texture = property(_get_texture, _set_texture)
 
     def __enter__(self):
+        self.bind()
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.unbind()
+
+    def bind(self):
         from pyglet import gl
         t = self.texture
         gl.glBindFramebufferEXT(gl.GL_DRAW_FRAMEBUFFER_EXT, self.fbo_id)
         gl.glPushAttrib(gl.GL_VIEWPORT_BIT | gl.GL_TRANSFORM_BIT)
-        gl.glViewport(0, 0, t.width, t.height)
+        if t:
+            gl.glViewport(0, 0, t.width, t.height)
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glPushMatrix()
-        gl.glLoadIdentity()
-        gl.gluOrtho2D(0, t.width, 0, t.height)
+        if t:
+            gl.glLoadIdentity()
+            gl.gluOrtho2D(0, t.width, 0, t.height)
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glPushMatrix()
-        gl.glLoadIdentity()
+        if t:
+            gl.glLoadIdentity()
 
-    def __exit__(self, exc_type, exc_value, tb):
+    def unbind(self):
         from pyglet import gl
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glPopMatrix()

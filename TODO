@@ -2,10 +2,14 @@ Game/GameCore:
     * how to calc distance?
         :: fire an Action
 
-SimpleGame:
+THBattle:
+    延时锦囊 UI
+    装备、装备区、明牌区
+    开局选择英雄
+    判定
     距离
-    技能:
-    class XXX(CardWrapper, DemolitionCard): ...
+
+    牌，Deck
 
 CommonUI:
 ScrollBar

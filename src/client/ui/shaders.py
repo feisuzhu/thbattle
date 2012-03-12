@@ -76,10 +76,11 @@ except ShaderError as e:
 try:
     fshader = FragmentShader(
         '''
+        uniform sampler2DRect tex;
         void main()
         {
-            float l = dot(gl_Color, vec4(0.3, 0.59, 0.11, 0.0));
-            gl_FragColor = vec4(l, l, l, gl_Color.a);
+            float l = dot(texture2DRect(tex, gl_TexCoord[0]), vec4(0.3, 0.59, 0.11, 0.0));
+            gl_FragColor = vec4(l, l, l, 1.0);
         }
         '''
     )
