@@ -45,15 +45,26 @@ class BatchList(list):
 class IRP(object):
     '''I/O Request Packet'''
     def __init__(self):
-        e = ITIEvent()
-        e.clear()
-        self.event = e
+        self.event = ITIEvent()
 
     def complete(self):
+        self.rpc_func = None
         self.event.set()
 
     def wait(self):
-        self.event.wait()
+        while True:
+            self.event.wait()
+            f = self.rpc_func
+            self.event.clear()
+            if f:
+                f()
+                self.rpc_func = None
+                continue
+            break
+
+    def rpc(self, func):
+        self.rpc_func = func
+        self.event.set()
 
 class ScissorBox(object):
     exc = Exception('ScissorBox Invalid')

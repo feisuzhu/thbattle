@@ -4,10 +4,15 @@ from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import message as ui_message
+from client.ui.base import schedule as ui_schedule
 from client.ui.controls import *
 from client.ui import resource as common_res
 import resource as gres
-from utils import IRP
+
+from gamepack.thb import actions
+from game.autoenv import Game
+
+from utils import DataHolder
 
 import logging
 log = logging.getLogger('THBattleUI_Input')
@@ -148,11 +153,26 @@ class UIDoActionStage(UISelectTarget):
     last_card = None
     #def get_result(self):
     #    pass
+    def __init__(self, *a, **k):
+        self.dist_calc = None
+        UISelectTarget.__init__(self, *a, **k)
+        irp = self.irp
+
+        def get_distance():
+            # will be called from Game greenlet
+            g = Game.getgame()
+            calc = actions.CalcDistance(g.me)
+            self.dist_calc = calc
+            ui_schedule(self.on_selection_change)
+
+        irp.rpc(get_distance)
 
     def on_selection_change(self):
         parent = self.parent
         skills = parent.get_selected_skills()
         cards = parent.get_selected_cards()
+
+        if not self.dist_calc: return
 
         g = parent.game
         if skills:
@@ -182,7 +202,17 @@ class UIDoActionStage(UISelectTarget):
                 rst, reason = card.ui_meta.is_action_valid(cards, source, target_list)
 
                 self.set_text(reason)
-                if rst: self.set_valid()
+                if rst:
+                    def gameengine_check():
+                        g = Game.getgame()
+                        act = actions.LaunchCard(g.me, target_list, card)
+                        if act.can_fire():
+                            ui_schedule(self.set_valid)
+                        else:
+                            ui_schedule(self.set_text, u'您不能这样出牌')
+
+                    self.irp.rpc(gameengine_check)
+
                 return
 
             self.set_text(u'您选择的牌不符合出牌规则')
@@ -289,7 +319,7 @@ class UIChooseGirl(Panel):
                 self.begin_selection()
         elif _evt == 'girl_chosen':
             c = args[0]
-            if c.char_cls: return #
+            if c.char_cls: return # choice of the other force
             port = self.parent.player2portrait(p)
             meta = c.char_cls.ui_meta
             port.port_image = meta.port_image

@@ -8,6 +8,8 @@ import types
 from time import time
 from utils import rect_to_dict as r2d, Rect
 
+from functools import partial
+
 WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 720
 
@@ -394,12 +396,12 @@ Overlay.register_event_type('on_switch')
 Overlay.register_event_type('on_switchout')
 
 def init_gui():
-    global main_window, msg_queue, msg_queue_lock, current_time, fps_limit
+    global main_window, sched_queue, sched_queue_lock, current_time, fps_limit
     import threading
     main_window = pyglet.window.Window(
         width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption='GensouKill')
-    msg_queue = []
-    msg_queue_lock = threading.RLock()
+    sched_queue = []
+    sched_queue_lock = threading.RLock()
 
     # main window setup {{
     glClearColor(1, 1, 1, 1)
@@ -436,28 +438,22 @@ def init_gui():
             o_flip()
 
     def _dispatch_msg(dt):
-        global msg_queue, msg_queue_lock, _redispatch
-        if not msg_queue: return
-        with msg_queue_lock:
-            for m in msg_queue:
-                # NOTICE: keep this since overlay switch may occur
-                #         in message dispatching
-                # o.dispatch_message(m) # this is buggy
-                _redispatch = True
-                while _redispatch:
-                    _redispatch = False
-                    Overlay.cur_overlay.dispatch_message(m)
-            msg_queue = []
+        global sched_queue, sched_queue_lock, _redispatch
+        if not sched_queue: return
+        with sched_queue_lock:
+            for func in sched_queue:
+                func()
+            sched_queue = []
     pyglet.clock.schedule_interval(_dispatch_msg, delay)
+
+def schedule(func, *args, **kwargs):
+    global sched_queue, sched_queue_lock
+    with sched_queue_lock:
+        sched_queue.append(partial(func, *args, **kwargs))
 
 def message(*args):
     '''
     Send message to UI
     '''
-    global msg_queue, msg_queue_lock
-    with msg_queue_lock:
-        msg_queue.append(args)
+    schedule(Overlay.cur_overlay.dispatch_message, args)
 
-def redispatch():
-    global _redispatch
-    _redispatch = True

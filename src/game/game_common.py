@@ -27,7 +27,9 @@ class Action(object):
         '''
         Return true if the action can be fired.
         '''
-        return self.game_class.getgame().emit_event('action_can_fire', self)
+        _self, rst = self.game_class.getgame().emit_event('action_can_fire', (self, True))
+        assert _self is self, "You can't replace action in 'action_can_fire' event!"
+        return rst
 
     def apply_action(self):
         raise GameError('Override apply_action to implement Action logics!')
@@ -44,15 +46,18 @@ class Action(object):
         '''
         pass
 
-    def cancel(self, cancel=True):
-        self.cancelled = cancel
-
 class AbstractPlayer(object):
     def reveal(self, obj_list):
         raise GameError('Abstract')
 
     def user_input(self, tag, attachment=None, timeout=25):
         raise GameError('Abstract')
+
+class _ActionStack(list):
+    def __getitem__(self, i):
+        if i > 0:
+            raise IndexError
+        return list.__getitem__(self, i-1)
 
 class Game(object):
     '''
@@ -68,6 +73,7 @@ class Game(object):
     # event_handlers = []
     def __init__(self):
         self.event_handlers = []
+        self.action_stack = _ActionStack()
 
     def game_start(self):
         '''
@@ -104,7 +110,13 @@ class Game(object):
         if action.can_fire():
             action.set_up()
             action = self.emit_event('action_before', action)
-            if not action.cancelled and action.can_fire():
+            if action.cancelled:
+                log.info('action cancelled/invalid %s' % action.__class__.__name__)
+                rst = False
+            elif not action.can_fire():
+                log.warn("action become invalid after 'action_before' event")
+                rst = False
+            else:
                 log.info('applying action %s' % action.__class__.__name__)
                     #, src=%d, dst=%d' % (
                     #action.__class__.__name__,
@@ -112,21 +124,22 @@ class Game(object):
                     #self.players.index(action.target),
                 #))
                 action = self.emit_event('action_apply', action)
-
+                self.action_stack.append(action)
                 rst = action.apply_action()
+                _a = self.action_stack.pop()
+                assert _a is action
 
                 assert rst in [True, False], 'Action.apply_action must return boolean!'
                 action.succeeded = rst
                 if self.game_ended():
                     raise GameEnded()
                 action = self.emit_event('action_after', action)
-            else:
-                log.info('action cancelled/invalid %s' % action.__class__.__name__)
-                return False
 
             action.clean_up()
             return rst
+
         else:
+            log.info('action invalid %s' % action.__class__.__name__)
             return False
 
     def get_playerid(self, p):

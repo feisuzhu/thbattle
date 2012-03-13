@@ -79,6 +79,7 @@ __metaclass__ = card_def
 class AttackCard:
     associated_action = actions.Attack
     target = 1
+    distance = 1
 
 class GrazeCard:
     associated_action = None
