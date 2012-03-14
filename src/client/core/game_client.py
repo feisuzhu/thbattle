@@ -122,30 +122,30 @@ class PlayerList(BatchList):
         st = g.get_synctag()
         pl = PlayerList(g.players)
         workers = BatchList()
-        def worker(p, i):
-            while True:
-                input = p.user_input(
-                    tag, attachment=attachment, timeout=timeout,
-                    g=g, st=st*50000+i,
+        try:
+            def worker(p, i):
+                while True:
+                    input = p.user_input(
+                        tag, attachment=attachment, timeout=timeout,
+                        g=g, st=st*50000+i,
+                    )
+                    try:
+                        input = process(p, input)
+                    except ValueError:
+                        continue
+
+                    g.emit_event('user_input_all_data', (tag, p, input))
+
+                    break
+
+            for i, p in enumerate(g.players):
+                workers.append(
+                    gevent.spawn(worker, p, i)
                 )
-                try:
-                    input = process(p, input)
-                except ValueError:
-                    continue
 
-                g.emit_event('user_input_all_data', (tag, p, input))
-
-                break
-
-        for i, p in enumerate(g.players):
-            workers.append(
-                gevent.spawn(worker, p, i)
-            )
-
-        workers.join()
-
-        for w in workers:
-            w.kill()
+            workers.join()
+        finally:
+            workers.kill()
 
         g.emit_event('user_input_all_end', tag)
 

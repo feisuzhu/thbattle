@@ -8,7 +8,7 @@ import random
 from utils import check, check_type, CheckFailed
 
 import logging
-log = logging.getLogger('SimpleGame_Actions')
+log = logging.getLogger('THBattle_Actions')
 
 # ------------------------------------------
 # aux functions
@@ -22,7 +22,7 @@ def user_choose_card(act, target, cond):
 
         sid_list, cid_list = input
 
-        cards = g.deck.getcards(cid_list)
+        cards = g.deck.lookupcards(cid_list)
         cs = set(cards)
 
         check(len(cs) == len(cid_list)) # repeated ids
@@ -84,6 +84,23 @@ def validate_distance(calc, card, source, target_list):
         for t in target_list
     ]
 
+def migrate_cards(cards, to):
+    g = Game.getgame()
+    mapping = {}
+    for c in cards:
+        l = mapping.setdefault(id(c.resides_in), [])
+        l.append(c)
+
+    act = g.action_stack[0]
+
+    for l in mapping.values():
+        cl = l[0].resides_in
+        g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
+
+        for c in l:
+            c.move_to(to)
+
+
 action_eventhandlers = set()
 def register_eh(cls):
     action_eventhandlers.add(cls)
@@ -127,10 +144,8 @@ class DropCards(GenericAction):
         from ..characters import Skill
         self.cards = cards = Skill.unwrap(cards)
 
-        tcs = set(target.cards)
-        cs = set(cards)
-        assert cs.issubset(tcs), 'WTF?!'
-        target.cards = list(tcs - cs)
+        assert all(c.resides_in.owner == target for c in cards), 'WTF?!'
+        migrate_cards(cards, g.deck.droppedcards)
 
         return True
 
@@ -180,6 +195,7 @@ class DropCardStage(GenericAction):
             cards = target.cards[:max(n, 0)]
             g.players.exclude(target).reveal(cards)
             g.process_action(DropCards(target, cards=cards))
+        self.cards = cards
         return True
 
 class DrawCards(GenericAction):
@@ -192,10 +208,10 @@ class DrawCards(GenericAction):
         g = Game.getgame()
         target = self.target
 
-        cards = g.deck.drawcards(self.amount)
+        cards = g.deck.getcards(self.amount)
 
         target.reveal(cards)
-        target.cards.extend(cards)
+        migrate_cards(cards, target.cards)
         self.cards = cards
         return True
 
@@ -247,7 +263,7 @@ class ActionStage(GenericAction):
 
                 skill_ids, card_ids, target_list = input
 
-                cards = g.deck.getcards(card_ids)
+                cards = g.deck.lookupcards(card_ids)
                 check(cards)
                 check(set(cards).issubset(set(actor.cards)))
 
@@ -306,3 +322,35 @@ class DistanceValidator(EventHandler):
                 return (act, False)
 
         return arg
+
+class FatetellStage(GenericAction):
+    def __init__(self, target):
+        self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        target = self.target
+        ft_cards = target.fatetell
+        for card in reversed(ft_cards[:]): #what comes last, launches first.
+            act = card.associated_action
+            assert act
+            a = act(source=target, target=target) # FIXME: make it LaunchFatetellCard
+            a.associated_card = card
+            g.process_action(a)
+
+        return True
+
+class Fatetell(GenericAction):
+    def __init__(self, target, cond):
+        self.target = target
+        self.cond = cond
+
+    def apply_action(self):
+        g = Game.getgame()
+        card, = g.deck.getcards(1)
+        g.players.reveal(card)
+        self.card = card
+        migrate_cards([card], g.deck.droppedcards)
+        if self.cond(card):
+            return True
+        return False

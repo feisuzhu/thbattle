@@ -446,6 +446,16 @@ def init_gui():
             sched_queue = []
     pyglet.clock.schedule_interval(_dispatch_msg, delay)
 
+    # if gc runs in the game thread,
+    # thing related to graphic will be recycled,
+    # thus freeing OpenGL resource from THE OTHER thread,
+    # whoop, segfaults.
+    # will this is perhaps naive approach
+    import gc
+    gc.disable()
+    pyglet.clock.schedule_interval(lambda dt: gc.collect(0), 5)
+    pyglet.clock.schedule_interval(lambda dt: gc.collect(2), 67)
+
 def schedule(func, *args, **kwargs):
     global sched_queue, sched_queue_lock
     with sched_queue_lock:
@@ -456,4 +466,3 @@ def message(*args):
     Send message to UI
     '''
     schedule(Overlay.cur_overlay.dispatch_message, args)
-

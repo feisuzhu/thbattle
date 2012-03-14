@@ -93,6 +93,73 @@ def drop_cards_effect(gray, self, act):
 drop_cards_gray_effect = partial(drop_cards_effect, True)
 drop_cards_normal_effect = partial(drop_cards_effect, False)
 
+def card_migration_effects(self, args):
+    act, cards, _from, to = args
+    deck = self.game.deck
+    g = self.game
+    handcard_update = False
+    dropcard_update = False
+    csl = BatchList()
+
+    from .. import actions
+
+    # --- src ---
+
+    if _from.owner is g.me:
+        if _from.type == _from.HANDCARD:
+            handcard_update = True
+            csl[:] = [
+                cs for cs in self.handcard_area.cards
+                if cs.associated_card in cards
+            ]
+
+    elif _from.type == _from.DROPPEDCARD:
+        assert False, "won't work for now"
+        dropcard_update = True
+        csl[:] = [
+            cs for cs in self.dropcard_area.cards
+            if cs.associated_card in cards
+        ]
+
+    else:
+        if _from.type == _from.DECKCARD:
+            pca = self.deck_area
+        else:
+            pca = self.player2portrait(_from.owner).portcard_area
+
+        for i, card in enumerate(cards):
+            cs = CardSprite(
+                parent=pca,
+                img=card.ui_meta.image,
+            )
+            cs.associated_card = card
+            csl.append(cs)
+        pca.arrange()
+
+    # --- dest ---
+
+    if to.owner is g.me and to.type == to.HANDCARD:
+        handcard_update = True
+        csl.migrate_to(self.handcard_area)
+    else:
+        if to.type == to.DROPPEDCARD:
+            dropcard_update = True
+            ca = self.dropcard_area
+            gray = not isinstance(act, (
+                actions.DropUsedCard,
+            ))
+            for cs in csl:
+                cs.gray = gray
+        else:
+            ca = self.player2portrait(to.owner).portcard_area
+        csl.migrate_to(ca)
+        ca.update()
+
+    if handcard_update: self.handcard_area.update()
+    if dropcard_update: self.dropcard_area.update()
+
+
+
 def damage_effect(self, act):
     s, t = act.source, act.target
     port = self.player2portrait(t)
@@ -158,10 +225,10 @@ mapping_actions = ddict(dict, {
         Reject: reject_effect,
     },
     'after': {
-        DrawCards: draw_cards_effect,
-        DrawCardStage: draw_cards_effect,
-        DropCards: drop_cards_gray_effect,
-        DropUsedCard: drop_cards_normal_effect,
+        #DrawCards: draw_cards_effect,
+        #DrawCardStage: draw_cards_effect,
+        #DropCards: drop_cards_gray_effect,
+        #DropUsedCard: drop_cards_normal_effect,
         Damage: damage_effect,
         Heal: heal_effect,
         UseGraze: graze_effect,
@@ -242,6 +309,7 @@ mapping_events = ddict(bool, {
     'action_after': partial(action_effects, 'after'),
     'user_input_start': user_input_start_effects,
     'user_input_finish': user_input_finish_effects,
+    'card_migration': card_migration_effects,
     'player_turn': player_turn_effect,
 })
 

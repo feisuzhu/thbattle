@@ -682,7 +682,7 @@ class TextArea(Control):
         size = f.ascent - f.descent
         self.layout.view_y += dy * size*2
 
-class CardSprite(Control):
+class CardSprite(Control): # TODO: these controls should be in gamepack ui, not here
     x = InterpDesc('_x')
     y = InterpDesc('_y')
     shine_alpha = InterpDesc('_shine_alpha')
@@ -714,7 +714,7 @@ class CardSprite(Control):
     def on_mouse_leave(self, x, y):
         self.shine_alpha = SineInterp(1.0, 0.0, 0.3)
 
-class HandCardArea(Control):
+class HandCardArea(Control): # TODO: these controls should be in gamepack ui, not here
     width, height = 93*5+42, 145
     def __init__(self, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
@@ -734,8 +734,8 @@ class HandCardArea(Control):
                 sel = c.hca_selected
             except AttributeError:
                 sel = c.hca_selected = False
-            c.x = SineInterp(c.x, 2 + int(step * i), 0.3)
-            c.y = SineInterp(c.y, 20 if sel else 0, 0.3)
+            c.x = SineInterp(c.x, 2 + int(step * i), 0.4)
+            c.y = SineInterp(c.y, 20 if sel else 0, 0.4)
 
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
@@ -751,7 +751,47 @@ class HandCardArea(Control):
 
 HandCardArea.register_event_type('on_selection_change')
 
-class DropCardArea(Control):
+class PortraitCardArea(Control): # TODO: these controls should be in gamepack ui, not here
+    def hit_test(self, x, y):
+        return False
+
+    def draw(self):
+        self.draw_subcontrols()
+
+    def arrange(self):
+        csl = self.control_list
+        if not csl: return
+        n = len(csl)
+
+        w, h, = self.width, self.height
+        offs = 20
+        csw = offs * (n-1) + 93
+        cor_x, cor_y = (w - csw)/2, (h - 145)/2
+        for i, cs in enumerate(csl):
+            cs.x, cs.y = i*offs - cor_x, -cor_y
+
+    def update(self):
+        csl = self.control_list
+        if not csl: return
+        n = len(csl)
+
+        w, h, = self.width, self.height
+        offs = 20
+        csw = offs * (n-1) + 93
+        cor_x, cor_y = (w - csw)/2, (h - 145)/2
+        for i, cs in enumerate(csl):
+            cs.x = SineInterp(cs.x, i*offs + cor_x, 0.4)
+            cs.y = SineInterp(cs.y, cor_y, 0.4)
+            cs.alpha = ChainInterp(
+                FixedInterp(1.0, 0.45),
+                CosineInterp(1.0, 0.0, 0.3),
+                on_done=self._on_cardanimdone,
+            )
+
+    def _on_cardanimdone(self, card, desc):
+        card.delete()
+
+class DropCardArea(Control): # TODO: these controls should be in gamepack ui, not here
     width, height = 820, 125
     def __init__(self, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
@@ -781,8 +821,8 @@ class DropCardArea(Control):
         step = 93
         for i, c in enumerate(self.control_list):
             c.zindex = i
-            c.x = SineInterp(c.x, x + int(step * i), 0.3)
-            c.y = SineInterp(c.y, 0, 0.3)
+            c.x = SineInterp(c.x, x + int(step * i), 0.4)
+            c.y = SineInterp(c.y, 0, 0.4)
 
     def _on_cardanimdone(self, card, desc):
         card.delete()

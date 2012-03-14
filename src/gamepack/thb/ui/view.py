@@ -107,6 +107,12 @@ class GameCharacterPortrait(Dialog):
         )
         self.no_move = True
         self.btn_close.state = Button.DISABLED
+        self.portcard_area = PortraitCardArea(
+            parent=self.parent,
+            x=self.x, y=self.y,
+            width=self.width, height=self.height,
+            zindex=100,
+        )
 
     def update(self):
         self.caption = self.name
@@ -217,6 +223,11 @@ class THBattleUI(Control):
 
         self.animations = Animations(parent=self)
         self.selecting_player = 0
+
+        self.deck_area = PortraitCardArea(
+            parent=self, width=1, height=1,
+            x=self.width/2, y=self.height/2,
+        )
 
     def init(self):
         self.char_portraits = [

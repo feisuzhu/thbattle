@@ -57,7 +57,7 @@ class THBattle(Game):
 
     def game_start(self):
         # game started, init state
-        from cards import Card, Deck
+        from cards import Card, Deck, CardList
 
         for cls in action_eventhandlers:
             self.event_handlers.append(cls())
@@ -152,10 +152,10 @@ class THBattle(Game):
                 self.event_handlers.append(cls())
 
         for p in self.players:
-            p.cards = [] # Cards in hand
-            p.shown_cards = [] # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = [] # Equipments
-            p.fatetell = [] # Cards in the Fatetell Zone
+            p.cards = CardList(p, CardList.HANDCARD, []) # Cards in hand
+            p.shown_cards = CardList(p, CardList.SHOWNCARD, []) # Cards which are shown to the others, treated as 'Cards in hand'
+            p.equips = CardList(p, CardList.EQUIPS, []) # Equipments
+            p.fatetell = CardList(p, CardList.FATETELL, []) # Cards in the Fatetell Zone
 
             p.tags = {}
 
@@ -174,6 +174,7 @@ class THBattle(Game):
             for p in cycle(self.players):
                 if not p.dead:
                     self.emit_event('player_turn', p)
+                    self.process_action(FatetellStage(target=p))
                     self.process_action(DrawCardStage(target=p))
                     self.process_action(ActionStage(target=p))
                     self.process_action(DropCardStage(target=p))

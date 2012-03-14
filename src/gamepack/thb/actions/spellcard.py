@@ -4,6 +4,7 @@ from .base import *
 class SpellCardAction(UserAction): pass
 
 class Demolition(SpellCardAction):
+    # 城管执法
     def __init__(self, source, target):
         self.source = source
         self.target = target
@@ -22,6 +23,7 @@ class Demolition(SpellCardAction):
         return True
 
 class Reject(SpellCardAction):
+    # 好人卡
     def __init__(self, source, target_act):
         self.source = source
         self.target_act = target_act
@@ -45,7 +47,7 @@ class RejectHandler(EventHandler):
 
             if p:
                 sid_list, cid_list = input
-                cards = g.deck.getcards(cid_list) # card was already revealed
+                cards = g.deck.lookupcards(cid_list) # card was already revealed
 
                 if sid_list: # skill selected
                     cards = skill_wrap(actor, sid_list, cards)
@@ -66,7 +68,7 @@ class RejectHandler(EventHandler):
             sid_list, cid_list = input
 
             g = Game.getgame()
-            card, = g.deck.getcards(cid_list)
+            card, = g.deck.lookupcards(cid_list)
             check(card in p.cards)
 
             g.players.exclude(p).reveal(card)
@@ -86,9 +88,14 @@ class RejectHandler(EventHandler):
         except CheckFailed:
             return False
 
-class DelayedSpellCardAction(SpellCardAction): pass
+class DelayedSpellCardAction(SpellCardAction): # 延时SC
+    def clean_up(self):
+        g = Game.getgame()
+        target = self.target
+        g.process_action(DropCards(target, [self.associated_card]))
 
 # TODO: code like this only allow ONE such behavior change.
+
 class DelayedLaunchCard(LaunchCard):
     def apply_action(self):
         g = Game.getgame()
@@ -97,10 +104,10 @@ class DelayedLaunchCard(LaunchCard):
         if not card: return False
         action = card.associated_action
 
-        assert isinstance(action, DelayedSpellCardAction)
+        assert issubclass(action, DelayedSpellCardAction)
         assert len(target_list) == 1
         t = target_list[0]
-        t.fatetell.append(card)
+        migrate_cards([card], t.fatetell)
         return True
 
 @register_eh
@@ -109,19 +116,43 @@ class DelayedSpellCardActionHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, LaunchCard):
             card = act.card
             aa = card.associated_action
-            if isinstance(aa, DelayedSpellCardAction):
+            if issubclass(aa, DelayedSpellCardAction):
                 act.__class__ = DelayedLaunchCard
 
         return act
 
-class FatetellStage(GenericAction):
-    def __init__(self, target):
-        self.target = target
+class SealingArray(DelayedSpellCardAction):
+    # 封魔阵
+    def __init__(self, source, target):
+        assert source == target
+        self.source = self.target = target
 
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        ft_cards = target.fatetell[:]
-        for c in reversed(ft_cards): # what comes last, launches first.
-            g.process_action(LaunchCard(target, [target], c))
+        from ..cards import Card
+        ft = Fatetell(target, lambda card: card.suit != Card.HEART)
+        g.process_action(ft)
+        if ft.succeeded:
+            target.tags['sealed'] = True
+        return True
+
+@register_eh
+class SealingArrayHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, ActionStage):
+            actor = act.actor
+            if actor.tags.get('sealed'):
+                del actor.tags['sealed']
+                act.cancelled = True
+        return act
+
+class NazrinRod(SpellCardAction):
+    # 纳兹琳的探宝棒
+    def __init__(self, source, target):
+        self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        g.process_action(DrawCards(self.target, amount=2))
         return True

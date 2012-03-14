@@ -22,7 +22,7 @@ def user_choose_card(act, target, cond):
 
         sid_list, cid_list = input
 
-        cards = g.deck.getcards(cid_list)
+        cards = g.deck.lookupcards(cid_list)
         cs = set(cards)
 
         check(len(cs) == len(cid_list)) # repeated ids
@@ -173,7 +173,7 @@ class RejectHandler(EventHandler):
 
             if p:
                 sid_list, cid_list = input
-                cards = g.deck.getcards(cid_list) # card was already revealed
+                cards = g.deck.lookupcards(cid_list) # card was already revealed
 
                 if sid_list: # skill selected
                     cards = skill_wrap(actor, sid_list, cards)
@@ -194,7 +194,7 @@ class RejectHandler(EventHandler):
             sid_list, cid_list = input
 
             g = Game.getgame()
-            card, = g.deck.getcards(cid_list)
+            card, = g.deck.lookupcards(cid_list)
             check(card in p.cards)
 
             g.players.exclude(p).reveal(card)
@@ -296,7 +296,7 @@ class DrawCards(GenericAction):
         g = Game.getgame()
         target = self.target
 
-        cards = g.deck.drawcards(self.amount)
+        cards = g.deck.getcards(self.amount)
 
         target.reveal(cards)
         target.cards.extend(cards)
@@ -351,7 +351,7 @@ class ActionStage(GenericAction):
 
                 skill_ids, card_ids, target_list = input
 
-                cards = g.deck.getcards(card_ids)
+                cards = g.deck.lookupcards(card_ids)
                 check(cards)
                 check(set(cards).issubset(set(actor.cards)))
 

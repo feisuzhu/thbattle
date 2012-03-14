@@ -42,7 +42,7 @@ class Deck(object):
     def __init__(self):
         self.cards_record = {}
 
-    def drawcards(self, num):
+    def getcards(self, num):
         g = Game.getgame()
         cards = []
 
@@ -58,7 +58,7 @@ class Deck(object):
 
         return cards
 
-    def getcards(self, idlist):
+    def lookupcards(self, idlist):
         return [self.cards_record.get(cid) for cid in idlist]
 
 class HiddenCard(Card): # special thing....

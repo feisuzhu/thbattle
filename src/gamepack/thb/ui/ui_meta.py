@@ -25,7 +25,7 @@ class UseGraze:
     # choose_card meta
     image = gres.card_graze
     text_valid = u'我闪！'
-    text = u'请出闪…'
+    text = u'请使用擦弹…'
 
 class DropCardStage:
     # choose_card meta
@@ -52,11 +52,11 @@ class HiddenCard:
 class AttackCard:
     # action_stage meta
     image = gres.card_attack
-    name = u'杀'
+    name = u'击'
 
     def is_action_valid(cards, source, target_list):
         if not target_list:
-            return (False, u'请选择杀的目标')
+            return (False, u'请选择击的目标')
         target = target_list[0]
         if target.dead:
             return (False, u'禁止鞭尸！')
@@ -67,15 +67,15 @@ class AttackCard:
             return (True, u'来一发！')
 
 class GrazeCard:
-    name = u'闪'
+    name = u'擦弹'
     image = gres.card_graze
     def is_action_valid(cards, source, target_list):
-        return (False, u'你不能主动出闪')
+        return (False, u'你不能主动使用擦弹')
 
 class HealCard:
     # action_stage meta
     image = gres.card_heal
-    name = u'药'
+    name = u'桃'
 
     def is_action_valid(cards, source, target_list):
         target = target_list[0]
@@ -85,12 +85,12 @@ class HealCard:
         if target.life >= target.maxlife:
             return (False, u'您的体力值已达到上限')
         else:
-            return (True, u'嗑一口，精神焕发！')
+            return (True, u'来一口，精神焕发！')
 
 class DemolitionCard:
     # action_stage meta
     image = gres.card_demolition
-    name = u'釜底抽薪'
+    name = u'城管执法'
 
     def is_action_valid(cards, source, target_list):
         if not target_list:
@@ -110,6 +110,28 @@ class RejectCard:
 
     def is_action_valid(cards, source, target_list):
         return (False, u'你不能主动出好人卡')
+
+class SealingArrayCard:
+    name = u'封魔阵'
+    image = gres.card_sealarray
+
+    def is_action_valid(cards, source, target_list):
+        if len(target_list) != 1:
+            return (False, u'请选择封魔阵的目标')
+        t = target_list[0]
+        if source == t:
+            return (True, u'你不能跟自己过不去啊！')
+
+        return (True, u'画个圈圈诅咒你！')
+
+class NazrinRodCard:
+    name = u'探宝棒'
+    image = gres.card_nazrinrod
+
+    def is_action_valid(cards, source, target_list):
+        t = target_list[0]
+        assert t is source
+        return (True, u'看看能找到什么好东西~')
 
 # -----END CARDS UI META-----
 

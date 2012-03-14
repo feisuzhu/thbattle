@@ -169,6 +169,10 @@ class UIDoActionStage(UISelectTarget):
 
     def on_selection_change(self):
         parent = self.parent
+        if not parent:
+            # the bottom half (gameengine_check thing) executes after
+            # self been deleted.
+            return
         skills = parent.get_selected_skills()
         cards = parent.get_selected_cards()
 
@@ -289,8 +293,6 @@ class UIChooseGirl(Panel):
             if a:
                 glColor4f(1, 1, 0.8, a)
                 glRectf(0, 0, self.width, self.height)
-
-
 
     def __init__(self, attachment, *a, **k):
         w, h = 500, 360

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import threading
 import pyglet
 from client.ui.base import init_gui
