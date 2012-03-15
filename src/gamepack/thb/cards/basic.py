@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from .base import *
+
+from ..actions import *
 
 class BasicAction(UserAction): pass # attack, graze, heal
 
@@ -34,3 +35,8 @@ class Heal(BasicAction):
             return True
         else:
             return False
+
+class UseGraze(UseCard):
+    def cond(self, cl):
+        from .. import cards
+        return len(cl) == 1 and isinstance(cl[0], cards.GrazeCard)

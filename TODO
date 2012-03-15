@@ -1,15 +1,8 @@
-Game/GameCore:
-    * how to calc distance?
-        :: fire an Action
-
 THBattle:
     延时锦囊 UI
-    装备、装备区、明牌区
-    开局选择英雄
-    判定
-    距离
+    判定 UI
+    距离 UI
 
-    牌，Deck
 
 CommonUI:
 ScrollBar

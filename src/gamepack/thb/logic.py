@@ -148,6 +148,7 @@ class THBattle(Game):
         for c in chosen_girls:
             p = c.chosen
             mixin_character(p, c.char_cls)
+            p.skills = p.skills[:] # make it instance variable
             for cls in p.eventhandlers_required:
                 self.event_handlers.append(cls())
 

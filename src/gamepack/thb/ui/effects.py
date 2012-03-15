@@ -10,6 +10,7 @@ import pyglet
 from pyglet.gl import *
 
 from ..actions import *
+from ..cards import *
 
 from functools import partial
 from collections import defaultdict as ddict
@@ -105,21 +106,19 @@ def card_migration_effects(self, args):
 
     # --- src ---
 
-    if _from.owner is g.me:
-        if _from.type == _from.HANDCARD:
-            handcard_update = True
-            csl[:] = [
-                cs for cs in self.handcard_area.cards
-                if cs.associated_card in cards
-            ]
-
-    elif _from.type == _from.DROPPEDCARD:
-        assert False, "won't work for now"
-        dropcard_update = True
+    if _from.owner is g.me and _from.type == _from.HANDCARD:
+        handcard_update = True
         csl[:] = [
-            cs for cs in self.dropcard_area.cards
+            cs for cs in self.handcard_area.cards
             if cs.associated_card in cards
         ]
+
+    elif _from.type == _from.DROPPEDCARD:
+        dropcard_update = True
+        for cs in self.dropcard_area.control_list:
+            if cs.associated_card in cards:
+                csl.append(cs)
+                cs.alpha = 1.0 # FIXME: hack: prevent card from fading out
 
     else:
         if _from.type == _from.DECKCARD:

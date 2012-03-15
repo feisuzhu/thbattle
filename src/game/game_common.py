@@ -108,7 +108,6 @@ class Game(object):
         Process an action
         '''
         if action.can_fire():
-            action.set_up()
             action = self.emit_event('action_before', action)
             if action.cancelled:
                 log.info('action cancelled/invalid %s' % action.__class__.__name__)
@@ -123,6 +122,7 @@ class Game(object):
                     #self.players.index(action.source) if hasattr(action, 'source') else -1,
                     #self.players.index(action.target),
                 #))
+                action.set_up()
                 action = self.emit_event('action_apply', action)
                 self.action_stack.append(action)
                 rst = action.apply_action()
@@ -135,7 +135,8 @@ class Game(object):
                     raise GameEnded()
                 action = self.emit_event('action_after', action)
 
-            action.clean_up()
+                action.clean_up()
+
             return rst
 
         else:

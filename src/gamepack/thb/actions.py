@@ -141,7 +141,7 @@ class DropCards(GenericAction):
 
         cards = self.cards
 
-        from ..characters import Skill
+        from .skill import Skill
         self.cards = cards = Skill.unwrap(cards)
 
         assert all(c.resides_in.owner == target for c in cards), 'WTF?!'
@@ -166,11 +166,6 @@ class UseCard(GenericAction):
             drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True
-
-class UseGraze(UseCard):
-    def cond(self, cl):
-        from .. import cards
-        return len(cl) == 1 and isinstance(cl[0], cards.GrazeCard)
 
 class DropCardStage(GenericAction):
 
@@ -334,7 +329,7 @@ class FatetellStage(GenericAction):
         for card in reversed(ft_cards[:]): #what comes last, launches first.
             act = card.associated_action
             assert act
-            a = act(source=target, target=target) # FIXME: make it LaunchFatetellCard
+            a = act(source=target, target=target)
             a.associated_card = card
             g.process_action(a)
 
@@ -354,3 +349,5 @@ class Fatetell(GenericAction):
         if self.cond(card):
             return True
         return False
+
+class FatetellAction(UserAction): pass

@@ -12,6 +12,7 @@ with ResLoader(__file__) as args:
     card_reject = tx('card_reject.tga')
     card_sealarray = tx('card_sealarray.tga')
     card_nazrinrod= tx('card_nazrinrod.tga')
+    card_opticalcloak = tx('card_opticalcloak.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

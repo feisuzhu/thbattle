@@ -69,9 +69,10 @@ class SkillSelectionBox(Control):
     def set_skills(self, lst):
         # lst = ('name1', 'name2', ...)
         y = self.height
-        buttons = self.buttons
-        for b in buttons:
+        for b in self.buttons[:]:
             b.delete()
+
+        assert not self.buttons
 
         for n in lst:
             y -= 22
@@ -266,6 +267,7 @@ class THBattleUI(Control):
         self.skill_box.set_skills(
             s.ui_meta.name for s in skills
         )
+
         for sb, skill in zip(self.skill_box.buttons, skills):
             if skill.ui_meta.clickable(g):
                 sb.state = Button.NORMAL

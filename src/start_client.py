@@ -22,7 +22,7 @@ class MainThread(threading.Thread):
         from client.core import Executive
 
         from network import Endpoint
-        Endpoint.ENDPOINT_DEBUG = True
+        #Endpoint.ENDPOINT_DEBUG = True
 
         # for dbg
         '''
@@ -35,6 +35,7 @@ class MainThread(threading.Thread):
         gsig(signal.SIGUSR1, print_stack)
         # -------
         '''
+
         _sync_evt.set()
         Executive.run()
 

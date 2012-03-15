@@ -17,7 +17,7 @@ from game import autoenv
 autoenv.init('Server')
 
 from network import Endpoint
-Endpoint.ENDPOINT_DEBUG = True
+#Endpoint.ENDPOINT_DEBUG = True
 
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)

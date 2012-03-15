@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from .base import *
+
+from ..actions import *
 
 class SpellCardAction(UserAction): pass
 
@@ -121,7 +122,7 @@ class DelayedSpellCardActionHandler(EventHandler):
 
         return act
 
-class SealingArray(DelayedSpellCardAction):
+class SealingArray(FatetellAction, DelayedSpellCardAction):
     # 封魔阵
     def __init__(self, source, target):
         assert source == target

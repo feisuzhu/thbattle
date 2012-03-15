@@ -21,21 +21,11 @@ def gen_metafunc(_for):
 # -----BEGIN ACTIONS UI META-----
 __metaclass__ = gen_metafunc(actions)
 
-class UseGraze:
-    # choose_card meta
-    image = gres.card_graze
-    text_valid = u'我闪！'
-    text = u'请使用擦弹…'
-
 class DropCardStage:
     # choose_card meta
     text_valid = u'OK，就这些了'
     text = u'请弃牌…'
 
-class RejectHandler:
-    # choose_card meta
-    text_valid = u'对不起，你是一个好人…'
-    text = u'请选择一张好人卡'
 
 # -----END ACTIONS UI META-----
 
@@ -43,6 +33,7 @@ class RejectHandler:
 __metaclass__ = gen_metafunc(cards)
 
 class HiddenCard:
+    # action_stage meta
     image = cres.card_hidden
     name = u'这个是隐藏卡片，你不应该看到它'
 
@@ -67,10 +58,17 @@ class AttackCard:
             return (True, u'来一发！')
 
 class GrazeCard:
+    # action_stage meta
     name = u'擦弹'
     image = gres.card_graze
     def is_action_valid(cards, source, target_list):
         return (False, u'你不能主动使用擦弹')
+
+class UseGraze:
+    # choose_card meta
+    image = gres.card_graze
+    text_valid = u'我闪！'
+    text = u'请使用擦弹…'
 
 class HealCard:
     # action_stage meta
@@ -105,13 +103,20 @@ class DemolitionCard:
             return (True, u'嗯，你的牌太多了')
 
 class RejectCard:
+    # action_stage meta
     name = u'好人卡'
     image = gres.card_reject
 
     def is_action_valid(cards, source, target_list):
         return (False, u'你不能主动出好人卡')
 
+class RejectHandler:
+    # choose_card meta
+    text_valid = u'对不起，你是一个好人…'
+    text = u'请选择一张好人卡'
+
 class SealingArrayCard:
+    # action_stage meta
     name = u'封魔阵'
     image = gres.card_sealarray
 
@@ -125,6 +130,7 @@ class SealingArrayCard:
         return (True, u'画个圈圈诅咒你！')
 
 class NazrinRodCard:
+    # action_stage meta
     name = u'探宝棒'
     image = gres.card_nazrinrod
 
@@ -132,6 +138,29 @@ class NazrinRodCard:
         t = target_list[0]
         assert t is source
         return (True, u'看看能找到什么好东西~')
+
+def equip_iav(cards, source, target_list):
+    t = target_list[0]
+    assert t is source
+    return (True, u'配上好装备，不再掉节操！')
+
+class OpticalCloakCard:
+    # action_stage meta
+    name = u'光学迷彩'
+    image = gres.card_opticalcloak
+
+    is_action_valid = equip_iav
+
+class OpticalCloakSkill:
+    # Skill
+    name = u'光学迷彩'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(skill, source, target_list):
+        return (False, 'BUG!')
+
 
 # -----END CARDS UI META-----
 
@@ -224,7 +253,7 @@ class Find:
         source = act.source
         card = act.card
         target = act.target_list[0]
-        s = u'|c208020ff【%s】|r发动了寻找技能，换掉了%d张牌' % (
+        s = u'|c208020ff【%s】|r发动了寻找技能，换掉了%d张牌。' % (
             source.ui_meta.char_name,
             len(card.associated_cards),
         )

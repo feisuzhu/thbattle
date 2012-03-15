@@ -1,126 +1,8 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck definition
 
-from game.autoenv import Game, GameError
-import random
-import logging
-log = logging.getLogger('THBattle_Cards')
-
-from utils import BatchList
-
-import actions
-
-class Card(object):
-    NOTSET = 0
-    SPADE = 1
-    HEART = 2
-    CLUB = 3
-    DIAMOND = 4
-
-    card_classes = {}
-
-    def __init__(self, suit=NOTSET, number=0, resides_in=None):
-        self.syncid = 0 # Deck will touch this
-        self.suit = suit
-        self.number = number
-        self.resides_in = resides_in
-
-    def __data__(self):
-        return dict(
-            type=self.__class__.__name__,
-            suit=self.suit,
-            number=self.number,
-            syncid=self.syncid,
-        )
-
-    def __eq__(self, other):
-        if not isinstance(other, Card): return False
-        return self.syncid == other.syncid
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return 84065234 + self.syncid
-
-    def sync(self, data):
-        if data['syncid'] != self.syncid:
-            raise GameError('Card: out of sync')
-        clsname = data['type']
-        cls = Card.card_classes.get(clsname)
-        if not cls: raise GameError('Card: unknown card class')
-        self.__class__ = cls
-        self.suit = data['suit']
-        self.number = data['number']
-
-    def move_to(self, resides_in):
-        if self.resides_in is not None:
-            self.resides_in.remove(self)
-
-        if resides_in is not None:
-            resides_in.append(self)
-
-        self.resides_in = resides_in
-
-class CardList(BatchList):
-    DECKCARD = 'deckcard'
-    DROPPEDCARD = 'droppedcard'
-    HANDCARD = 'handcard'
-    SHOWNCARD = 'showncard'
-    EQUIPS = 'equips'
-    FATETELL = 'fatetell'
-    def __init__(self, owner, type, arg):
-        self.owner = owner
-        self.type = type
-        BatchList.__init__(self, arg)
-
-    def __repr__(self):
-        return "CardList(%s, %s, len([...]) == %d)" % (self.owner, self.type, len(self))
-
-class Deck(object):
-    def __init__(self):
-        self.cards_record = {}
-        self.droppedcards = CardList(None, CardList.DROPPEDCARD, [])
-        cards = CardList(None, CardList.DECKCARD, [])
-        self.cards = cards
-        if Game.SERVER_SIDE:
-            cards[:] = [cls(suit, n, cards) for cls, suit, n in card_definition]
-            random.shuffle(cards)
-        elif Game.CLIENT_SIDE:
-            self.cards[:] = [HiddenCard(Card.NOTSET, 0, cards) for i in xrange(len(card_definition))]
-
-    def getcards(self, num):
-        g = Game.getgame()
-        rst = []
-
-        if len(self.cards) <= num:
-            if Game.SERVER_SIDE:
-                # performance hack
-                random.shuffle(self.droppedcards)
-                cards = self.cards
-                for c in self.droppedcards:
-                    c.resides_in = cards
-                cards.extend(self.droppedcards)
-            elif Game.CLIENT_SIDE:
-                self.cards.extend([HiddenCard() for i in xrange(len(self.droppedcards))])
-
-            self.droppedcards = []
-
-        for i in xrange(num):
-            c = self.cards[i]
-            sid = g.get_synctag()
-            c.syncid = sid
-            rst.append(c)
-            self.cards_record[sid] = c
-
-        return rst
-
-    def lookupcards(self, idlist):
-        return [self.cards_record.get(cid) for cid in idlist]
-
-class HiddenCard(Card): # special thing....
-    associated_action = None
-    target = None
+from . import basic, equipment, spellcard
+from .base import Card
 
 def card_meta(clsname, bases, _dict):
     cls = type(clsname, (Card,), _dict)
@@ -134,7 +16,7 @@ __metaclass__ = card_meta
 # --------------------------------------------------
 
 class AttackCard:
-    associated_action = actions.Attack
+    associated_action = basic.Attack
     target = 1
     distance = 1
 
@@ -143,11 +25,11 @@ class GrazeCard:
     target = None
 
 class HealCard:
-    associated_action = actions.Heal
+    associated_action = basic.Heal
     target = 'self'
 
 class DemolitionCard:
-    associated_action = actions.Demolition
+    associated_action = spellcard.Demolition
     target = 1
 
 class RejectCard:
@@ -155,29 +37,35 @@ class RejectCard:
     target = None
 
 class SealingArrayCard:
-    associated_action = actions.SealingArray
+    associated_action = spellcard.SealingArray
     target = 1
 
 class NazrinRodCard:
-    associated_action = actions.NazrinRod
+    associated_action = spellcard.NazrinRod
     target = 'self'
+
+class OpticalCloakCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.OpticalCloakSkill
+    equipment_category = 'shield'
 
 # --------------------------------------------------
 
 __metaclass__ = type
 
 card_definition = [
-    (AttackCard, Card.SPADE, 1), (GrazeCard, Card.SPADE, 1), (HealCard, Card.SPADE, 1), (DemolitionCard, Card.SPADE, 1),
-    (AttackCard, Card.SPADE, 2), (GrazeCard, Card.SPADE, 2), (HealCard, Card.SPADE, 2), (DemolitionCard, Card.SPADE, 2),
-    (AttackCard, Card.SPADE, 3), (GrazeCard, Card.SPADE, 3), (HealCard, Card.SPADE, 3), (DemolitionCard, Card.SPADE, 3),
-    (AttackCard, Card.SPADE, 4), (GrazeCard, Card.SPADE, 4), (HealCard, Card.SPADE, 4), (DemolitionCard, Card.SPADE, 4),
-    (AttackCard, Card.SPADE, 5), (GrazeCard, Card.SPADE, 5), (HealCard, Card.SPADE, 5), (DemolitionCard, Card.SPADE, 5),
-    (AttackCard, Card.SPADE, 6), (GrazeCard, Card.SPADE, 6), (HealCard, Card.SPADE, 6), (DemolitionCard, Card.SPADE, 6),
-    (AttackCard, Card.SPADE, 7), (GrazeCard, Card.SPADE, 7), (HealCard, Card.SPADE, 7), (DemolitionCard, Card.SPADE, 7),
-    (AttackCard, Card.SPADE, 8), (GrazeCard, Card.SPADE, 8), (HealCard, Card.SPADE, 8), (DemolitionCard, Card.SPADE, 8),
-    (AttackCard, Card.SPADE, 9), (GrazeCard, Card.SPADE, 9), (HealCard, Card.SPADE, 9), (DemolitionCard, Card.SPADE, 9),
-    (AttackCard, Card.SPADE, 10), (GrazeCard, Card.SPADE, 10), (HealCard, Card.SPADE, 10), (DemolitionCard, Card.SPADE, 10),
-    (AttackCard, Card.SPADE, 11), (GrazeCard, Card.SPADE, 11), (HealCard, Card.SPADE, 11), (DemolitionCard, Card.SPADE, 11),
+    (OpticalCloakCard, Card.SPADE, 1), (OpticalCloakCard, Card.SPADE, 1), (HealCard, Card.SPADE, 1), (DemolitionCard, Card.SPADE, 1),
+    (OpticalCloakCard, Card.SPADE, 2), (OpticalCloakCard, Card.SPADE, 2), (HealCard, Card.SPADE, 2), (DemolitionCard, Card.SPADE, 2),
+    (OpticalCloakCard, Card.SPADE, 3), (OpticalCloakCard, Card.SPADE, 3), (HealCard, Card.SPADE, 3), (DemolitionCard, Card.SPADE, 3),
+    (OpticalCloakCard, Card.SPADE, 4), (OpticalCloakCard, Card.SPADE, 4), (HealCard, Card.SPADE, 4), (DemolitionCard, Card.SPADE, 4),
+    (OpticalCloakCard, Card.SPADE, 5), (OpticalCloakCard, Card.SPADE, 5), (HealCard, Card.SPADE, 5), (DemolitionCard, Card.SPADE, 5),
+    (OpticalCloakCard, Card.SPADE, 6), (OpticalCloakCard, Card.SPADE, 6), (HealCard, Card.SPADE, 6), (DemolitionCard, Card.SPADE, 6),
+    (OpticalCloakCard, Card.SPADE, 7), (OpticalCloakCard, Card.SPADE, 7), (HealCard, Card.SPADE, 7), (DemolitionCard, Card.SPADE, 7),
+    (OpticalCloakCard, Card.SPADE, 8), (OpticalCloakCard, Card.SPADE, 8), (HealCard, Card.SPADE, 8), (DemolitionCard, Card.SPADE, 8),
+    (OpticalCloakCard, Card.SPADE, 9), (OpticalCloakCard, Card.SPADE, 9), (HealCard, Card.SPADE, 9), (DemolitionCard, Card.SPADE, 9),
+    (OpticalCloakCard, Card.SPADE, 10), (OpticalCloakCard, Card.SPADE, 10), (HealCard, Card.SPADE, 10), (DemolitionCard, Card.SPADE, 10),
+    (OpticalCloakCard, Card.SPADE, 11), (OpticalCloakCard, Card.SPADE, 11), (HealCard, Card.SPADE, 11), (DemolitionCard, Card.SPADE, 11),
     (RejectCard, Card.SPADE, 12), (RejectCard, Card.SPADE, 12), (RejectCard, Card.SPADE, 12), (RejectCard, Card.SPADE, 12),
     (RejectCard, Card.SPADE, 13), (RejectCard, Card.SPADE, 13), (RejectCard, Card.SPADE, 13), (RejectCard, Card.SPADE, 13),
 
