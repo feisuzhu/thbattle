@@ -685,9 +685,15 @@ class TextArea(Control):
 class CardSprite(Control): # TODO: these controls should be in gamepack ui, not here
     x = InterpDesc('_x')
     y = InterpDesc('_y')
+    back_scale = InterpDesc('_bs')
+    question_scale = InterpDesc('_qs')
+    ftanim_alpha = InterpDesc('_fta')
+    ftanim_cardalpha = InterpDesc('_ftca')
     shine_alpha = InterpDesc('_shine_alpha')
     alpha = InterpDesc('_alpha')
     img_shinesoft = common_res.card_shinesoft
+    img_cardq = common_res.card_question
+    img_cardh = common_res.card_hidden
     width, height = 91, 125
     def __init__(self, x=0.0, y=0.0, img=None, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
@@ -698,13 +704,36 @@ class CardSprite(Control): # TODO: these controls should be in gamepack ui, not 
         self.shine_alpha = 0.0
         self.alpha = 1.0
         self.img = img
+        self.ft_anim = False
 
     def draw(self):
-        if self.gray:
-            glColor4f(.66, .66, .66, self.alpha)
+        if self.ft_anim:
+            qs = self.question_scale
+            bs = self.back_scale
+            aa = self.ftanim_alpha
+            ca = self.ftanim_cardalpha
+            if self.gray:
+                glColor4f(.66, .66, .66, ca)
+            else:
+                glColor4f(1., 1., 1., ca)
+            self.img.blit(0, 0)
+
+            glColor4f(1, 1, 1, aa)
+
+            if qs:
+                self.img_cardq.blit((1-qs)*45, 0, 0, qs*91)
+
+            if bs:
+                self.img_cardh.blit((1-bs)*45, 0, 0, bs*91)
         else:
-            glColor4f(1., 1., 1., self.alpha)
-        self.img.blit(0, 0)
+            a = self.alpha
+            if self.gray:
+                glColor4f(.66, .66, .66, a)
+            else:
+                glColor4f(1., 1., 1., a)
+            self.img.blit(0, 0)
+
+
         glColor4f(1., 1., 1., self.shine_alpha)
         self.img_shinesoft.blit(-6, -6)
 
@@ -714,19 +743,51 @@ class CardSprite(Control): # TODO: these controls should be in gamepack ui, not 
     def on_mouse_leave(self, x, y):
         self.shine_alpha = SineInterp(1.0, 0.0, 0.3)
 
+    def do_fatetell_anim(self):
+        self.ft_anim = True
+        self.question_scale = ChainInterp(
+            SineInterp(0.0, 1.0, 0.1),
+            CosineInterp(1.0, 0.0, 0.1),
+            FixedInterp(0.0, 0.2),
+            SineInterp(0.0, 1.0, 0.1),
+            CosineInterp(1.0, 0.0, 0.1),
+            FixedInterp(0.0, 0.2),
+            SineInterp(0.0, 1.0, 0.1)
+        )
+        self.back_scale = ChainInterp(
+            FixedInterp(0.0, 0.2),
+            SineInterp(0.0, 1.0, 0.1),
+            CosineInterp(1.0, 0.0, 0.1),
+            FixedInterp(0.0, 0.2),
+            SineInterp(0.0, 1.0, 0.1),
+            CosineInterp(1.0, 0.0, 0.1),
+        )
+        self.ftanim_alpha = ChainInterp(
+            FixedInterp(1.0, 1.0),
+            LinearInterp(1.0, 0.0, 2.0),
+            on_done=self._end_ft_anim,
+        )
+        self.ftanim_cardalpha = ChainInterp(
+            FixedInterp(0.0, 1.0),
+            FixedInterp(1.0, 0.0),
+        )
+
+    def _end_ft_anim(self, _self, desc):
+        self.ft_anim = False
+
 class HandCardArea(Control): # TODO: these controls should be in gamepack ui, not here
-    width, height = 93*5+42, 145
-    def __init__(self, *args, **kwargs):
+    def __init__(self, fold_size=5, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
-        self._w, self._h = 93*5+42, 145
+        self.fold_size = fold_size
 
     def draw(self):
         glColor4f(1,1,1,1)
         self.draw_subcontrols()
 
     def update(self):
+        fsz = self.fold_size
         n = len(self.control_list)
-        width = min(5*93.0+42, n*93.0)
+        width = min(fsz*93.0+42, n*93.0)
         step = (width - 91)/(n-1) if n > 1 else 0
         for i, c in enumerate(self.control_list):
             c.zindex = i
@@ -766,9 +827,9 @@ class PortraitCardArea(Control): # TODO: these controls should be in gamepack ui
         w, h, = self.width, self.height
         offs = 20
         csw = offs * (n-1) + 93
-        cor_x, cor_y = (w - csw)/2, (h - 145)/2
+        cor_x, cor_y = (w - csw)/2, (h - 125)/2
         for i, cs in enumerate(csl):
-            cs.x, cs.y = i*offs - cor_x, -cor_y
+            cs.x, cs.y = i*offs + cor_x, cor_y
 
     def update(self):
         csl = self.control_list
@@ -778,10 +839,13 @@ class PortraitCardArea(Control): # TODO: these controls should be in gamepack ui
         w, h, = self.width, self.height
         offs = 20
         csw = offs * (n-1) + 93
-        cor_x, cor_y = (w - csw)/2, (h - 145)/2
+        cor_x, cor_y = (w - csw)/2, (h - 125)/2
         for i, cs in enumerate(csl):
             cs.x = SineInterp(cs.x, i*offs + cor_x, 0.4)
             cs.y = SineInterp(cs.y, cor_y, 0.4)
+
+    def fade(self):
+        for cs in self.control_list:
             cs.alpha = ChainInterp(
                 FixedInterp(1.0, 0.45),
                 CosineInterp(1.0, 0.0, 0.3),
@@ -792,37 +856,38 @@ class PortraitCardArea(Control): # TODO: these controls should be in gamepack ui
         card.delete()
 
 class DropCardArea(Control): # TODO: these controls should be in gamepack ui, not here
-    width, height = 820, 125
-    def __init__(self, *args, **kwargs):
+    def __init__(self, fold_size=5, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
-        self._w, self._h = 820, 125
+        self.fold_size = fold_size
 
     def draw(self):
         glColor4f(1,1,1,1)
         self.draw_subcontrols()
 
     def update(self):
+        fsz = self.fold_size
+        n = len(self.control_list)
+        width = min(fsz*93.0, n*93.0)
+        ox = (self.width - width) // 2
+        step = (width - 91)/(n-1) if n > 1 else 0
+        for i, c in enumerate(self.control_list):
+            c.zindex = i
+            c.x = SineInterp(c.x, 2 + ox + int(step * i), 0.4)
+            c.y = SineInterp(c.y, 0, 0.4)
+
+    def fade(self):
         for cs in self.control_list:
             try:
-                if cs.dca_tag:
-                    continue
+                cs.dca_tag
+                continue
             except AttributeError:
-                pass
+                cs.dca_tag = 1
 
-            cs.dca_tag = True
             cs.alpha = ChainInterp(
                 FixedInterp(1.0, 3),
                 CosineInterp(1.0, 0.0, 1),
                 on_done=self._on_cardanimdone,
             )
-
-        n = len(self.control_list)
-        x = (820-n*93)/2
-        step = 93
-        for i, c in enumerate(self.control_list):
-            c.zindex = i
-            c.x = SineInterp(c.x, x + int(step * i), 0.4)
-            c.y = SineInterp(c.y, 0, 0.4)
 
     def _on_cardanimdone(self, card, desc):
         card.delete()

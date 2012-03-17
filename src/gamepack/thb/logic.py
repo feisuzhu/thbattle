@@ -153,10 +153,10 @@ class THBattle(Game):
                 self.event_handlers.append(cls())
 
         for p in self.players:
-            p.cards = CardList(p, CardList.HANDCARD, []) # Cards in hand
-            p.shown_cards = CardList(p, CardList.SHOWNCARD, []) # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, CardList.EQUIPS, []) # Equipments
-            p.fatetell = CardList(p, CardList.FATETELL, []) # Cards in the Fatetell Zone
+            p.cards = CardList(p, CardList.HANDCARD) # Cards in hand
+            p.shown_cards = CardList(p, CardList.SHOWNCARD) # Cards which are shown to the others, treated as 'Cards in hand'
+            p.equips = CardList(p, CardList.EQUIPS) # Equipments
+            p.fatetell = CardList(p, CardList.FATETELL) # Cards in the Fatetell Zone
 
             p.tags = {}
 

@@ -187,7 +187,7 @@ class DropCardStage(GenericAction):
         if cards:
             g.process_action(DropCards(target, cards=cards))
         else:
-            cards = target.cards[:max(n, 0)]
+            cards = list(target.cards)[min(-n, 0):]
             g.players.exclude(target).reveal(cards)
             g.process_action(DropCards(target, cards=cards))
         self.cards = cards
@@ -326,12 +326,8 @@ class FatetellStage(GenericAction):
         g = Game.getgame()
         target = self.target
         ft_cards = target.fatetell
-        for card in reversed(ft_cards[:]): #what comes last, launches first.
-            act = card.associated_action
-            assert act
-            a = act(source=target, target=target)
-            a.associated_card = card
-            g.process_action(a)
+        for card in reversed(list(ft_cards)): #what comes last, launches first.
+            g.process_action(LaunchFatetellCard(target, card))
 
         return True
 
@@ -351,3 +347,20 @@ class Fatetell(GenericAction):
         return False
 
 class FatetellAction(UserAction): pass
+
+class LaunchFatetellCard(FatetellAction):
+    def __init__(self, target, card):
+        self.target = target
+        self.card = card
+
+    def apply_action(self):
+        g = Game.getgame()
+        target = self.target
+        card = self.card
+        act = card.associated_action
+        assert act
+        a = act(source=target, target=target)
+        a.associated_card = card
+        g.process_action(a)
+        a.fatetell_postprocess()
+        return True

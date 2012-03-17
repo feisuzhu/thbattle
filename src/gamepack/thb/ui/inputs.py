@@ -120,7 +120,7 @@ class UISelectTarget(InputController):
             fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
             self.label.draw()
 
-class UIChooseCards(UISelectTarget):
+class UIChooseMyCards(UISelectTarget):
     # for actions.ChooseCard
     sel_players = 0
 
@@ -165,12 +165,13 @@ class UIDoActionStage(UISelectTarget):
             self.dist_calc = calc
             ui_schedule(self.on_selection_change)
 
-        irp.rpc(get_distance)
+        irp.do_callback(get_distance)
 
     def on_selection_change(self):
         parent = self.parent
         if not parent:
-            # the bottom half (gameengine_check thing) executes after
+            # if user close this too fast,
+            # the bottom half (get_distance thing) will execute after
             # self been deleted.
             return
         skills = parent.get_selected_skills()
@@ -215,7 +216,7 @@ class UIDoActionStage(UISelectTarget):
                         else:
                             ui_schedule(self.set_text, u'您不能这样出牌')
 
-                    self.irp.rpc(gameengine_check)
+                    self.irp.do_callback(gameengine_check)
 
                 return
 
@@ -347,7 +348,7 @@ class UIChooseGirl(Panel):
 
 
 mapping = dict(
-    choose_card=UIChooseCards,
+    choose_card=UIChooseMyCards,
     action_stage_usecard=UIDoActionStage,
     choose_girl=Dummy,
 )

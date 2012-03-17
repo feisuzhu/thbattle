@@ -178,7 +178,7 @@ class Envy:
 
     def clickable(game):
         me = game.me
-        if me.stage == game.ACTION_STAGE and me.cards:
+        if me.stage == game.ACTION_STAGE and me.cards: # FIXME: lit on 'choose_card'
             return True
         return False
 

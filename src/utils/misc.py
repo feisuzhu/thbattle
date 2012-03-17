@@ -62,7 +62,7 @@ class IRP(object):
                 continue
             break
 
-    def rpc(self, func):
+    def do_callback(self, func):
         self.rpc_func = func
         self.event.set()
 

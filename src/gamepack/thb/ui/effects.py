@@ -26,75 +26,7 @@ class OneShotAnim(pyglet.sprite.Sprite):
 
 LoopingAnim = pyglet.sprite.Sprite
 
-def draw_cards_effect(self, act): # here self is the SimpleGameUI instance
-    if act.target is self.game.me:
-        cards = act.cards
-        hca = self.handcard_area
-        ax, ay = hca.abs_coords()
-        for c in cards:
-            cs = CardSprite(
-                parent=hca, x=410-ax, y=300-ay,
-                img = c.ui_meta.image,
-            )
-            cs.associated_card = c
-        hca.update()
-    else: # FIXME: not exactly the effect
-        p = self.player2portrait(act.target)
-        x, y = p.x + p.width/2, p.y + p.height/2
-
-        n = len(act.cards)
-        if n > 1:
-            w = 1.5 * CardSprite.width
-            step = (w-91)/(n-1)
-        else:
-            w = CardSprite.width
-            step = 0
-
-        def self_destroy(obj, desc):
-            obj.delete()
-
-        sy = -CardSprite.height/2
-        for i, card in enumerate(act.cards):
-            sx = -w*.5 + i*step
-            #sy = -CardSprite.height/2
-            cs = CardSprite(parent=self)
-            cs.x = SineInterp(410+sx, x+sx, 0.3)
-            cs.y = SineInterp(300+sy, y+sy, 0.3)
-            cs.alpha = ChainInterp(
-                FixedInterp(1.0, 0.6),
-                CosineInterp(1.0, 0.0, 0.3),
-                on_done=self_destroy,
-            )
-            cs.img = card.ui_meta.image
-
-def drop_cards_effect(gray, self, act):
-    if act.target is self.game.me:
-        csl = self.handcard_area.cards
-        cards = act.cards
-        for cs in csl[:]:
-            if cs.associated_card in cards:
-                cs.migrate_to(self.dropcard_area)
-                cs.gray = gray
-        self.dropcard_area.update()
-        self.handcard_area.update()
-    else:
-        p = self.player2portrait(act.target)
-        x, y = p.x + p.width/2, p.y + p.height/2
-        shift = (len(act.cards)+1)*CardSprite.width/2
-        for i, card in enumerate(act.cards):
-            cs = CardSprite(
-                parent=self, x=x-shift+i*CardSprite.width/2,
-                y=y-CardSprite.height/2,
-                img=card.ui_meta.image,
-            )
-            cs.gray = gray
-            cs.migrate_to(self.dropcard_area)
-        self.dropcard_area.update()
-
-drop_cards_gray_effect = partial(drop_cards_effect, True)
-drop_cards_normal_effect = partial(drop_cards_effect, False)
-
-def card_migration_effects(self, args):
+def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     act, cards, _from, to = args
     deck = self.game.deck
     g = self.game
@@ -118,10 +50,9 @@ def card_migration_effects(self, args):
         for cs in self.dropcard_area.control_list:
             if cs.associated_card in cards:
                 csl.append(cs)
-                cs.alpha = 1.0 # FIXME: hack: prevent card from fading out
 
     else:
-        if _from.type == _from.DECKCARD:
+        if _from.type in _from.DECKCARD:
             pca = self.deck_area
         else:
             pca = self.player2portrait(_from.owner).portcard_area
@@ -144,15 +75,22 @@ def card_migration_effects(self, args):
         if to.type == to.DROPPEDCARD:
             dropcard_update = True
             ca = self.dropcard_area
-            gray = not isinstance(act, (
-                actions.DropUsedCard,
-            ))
-            for cs in csl:
-                cs.gray = gray
+            if isinstance(act, Fatetell):
+                assert len(csl) == 1
+                csl[0].gray = not act.succeeded # may be race condition
+                csl[0].do_fatetell_anim()
+            else:
+                gray = not isinstance(act, (
+                    actions.DropUsedCard,
+                ))
+                for cs in csl:
+                    cs.gray = gray
+            csl.migrate_to(ca)
         else:
             ca = self.player2portrait(to.owner).portcard_area
-        csl.migrate_to(ca)
-        ca.update()
+            csl.migrate_to(ca)
+            ca.update()
+            ca.fade()
 
     if handcard_update: self.handcard_area.update()
     if dropcard_update: self.dropcard_area.update()
@@ -224,10 +162,6 @@ mapping_actions = ddict(dict, {
         Reject: reject_effect,
     },
     'after': {
-        #DrawCards: draw_cards_effect,
-        #DrawCardStage: draw_cards_effect,
-        #DropCards: drop_cards_gray_effect,
-        #DropUsedCard: drop_cards_normal_effect,
         Damage: damage_effect,
         Heal: heal_effect,
         UseGraze: graze_effect,
@@ -253,6 +187,9 @@ def user_input_start_effects(self, input):
         self.actor_frame = None
         self.actor_pbar = None
         return
+
+    if input.tag == 'action_stage_usecard':
+        self.dropcard_area.fade()
 
     p = input.player
     port = self.player2portrait(p)

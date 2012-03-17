@@ -76,10 +76,9 @@ with ResLoader(__file__) as args:
 
     card_shinesoft = tx('shinesoft.tga')
     card_hidden = tx('card_hidden.tga')
-    char_portrait = tx('char_portrait.tga')
+    card_question = tx('card_question.tga')
 
     choosegirl_shine = tx('choosegirl_shine.png')
-
 
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)
@@ -95,11 +94,6 @@ with ResLoader(__file__) as args:
     for fn in itertools.product(['b', 'bf', 's', 'sf'], ['l', 'm', 'r']):
         fn = ''.join(fn)
         setattr(pbar, fn, tx('pbar/%s.tga' % fn))
-
-    border = [
-        i.get_texture() for i in
-        pyglet.image.ImageGrid(img('border.png'), 1, 9)
-    ]
 
     buttons = DataHolder()
     for t in ('blue', 'red', 'green', 'orange'):

@@ -62,24 +62,9 @@ class Card(object):
 
         self.resides_in = resides_in
 
-class CardList(BatchList):
-    DECKCARD = 'deckcard'
-    DROPPEDCARD = 'droppedcard'
-    HANDCARD = 'handcard'
-    SHOWNCARD = 'showncard'
-    EQUIPS = 'equips'
-    FATETELL = 'fatetell'
-    def __init__(self, owner, type, arg):
-        self.owner = owner
-        self.type = type
-        BatchList.__init__(self, arg)
-
-    def __repr__(self):
-        return "CardList(%s, %s, len([...]) == %d)" % (self.owner, self.type, len(self))
-
 from collections import deque
 
-class _DroppedCardList(deque):
+class CardList(deque):
     # performance hack
     DECKCARD = 'deckcard'
     DROPPEDCARD = 'droppedcard'
@@ -87,29 +72,31 @@ class _DroppedCardList(deque):
     SHOWNCARD = 'showncard'
     EQUIPS = 'equips'
     FATETELL = 'fatetell'
-    def __init__(self, arg):
-        self.owner = None
-        self.type = self.DROPPEDCARD
-        deque.__init__(self, arg)
+    def __init__(self, owner, type):
+        self.owner = owner
+        self.type = type
+        deque.__init__(self)
 
     def __repr__(self):
-        return "DroppedCardList(len([...]) == %d)" % len(self)
+        return "CardList(len([...]) == %d)" % len(self)
 
     extend = deque.extendleft
     append = deque.appendleft
+    appendright = deque.append
+    extendright = deque.extend
 
 class Deck(object):
     def __init__(self):
         from .definition import card_definition
         self.cards_record = {}
-        self.droppedcards = _DroppedCardList([])
-        cards = CardList(None, CardList.DECKCARD, [])
+        self.droppedcards = CardList(None, CardList.DROPPEDCARD)
+        cards = CardList(None, CardList.DECKCARD)
         self.cards = cards
         if Game.SERVER_SIDE:
-            cards[:] = [cls(suit, n, cards) for cls, suit, n in card_definition]
+            cards.extendright(cls(suit, n, cards) for cls, suit, n in card_definition)
             random.shuffle(cards)
         elif Game.CLIENT_SIDE:
-            self.cards[:] = [HiddenCard(Card.NOTSET, 0, cards) for i in xrange(len(card_definition))]
+            self.cards.extendright(HiddenCard(Card.NOTSET, 0, cards) for i in xrange(len(card_definition)))
 
     def getcards(self, num):
         g = Game.getgame()
@@ -118,14 +105,19 @@ class Deck(object):
         if len(self.cards) <= num:
             if Game.SERVER_SIDE:
                 # performance hack
-                dropped = list(self.droppedcards)
+                dropped = self.droppedcards
                 random.shuffle(dropped)
                 cards = self.cards
+                rec = self.cards_record
                 for c in dropped:
                     c.resides_in = cards
-                cards.extend(dropped)
+                    del rec[c.syncid]
+                cards.extendright(dropped)
             elif Game.CLIENT_SIDE:
-                self.cards.extend([HiddenCard() for i in xrange(len(self.droppedcards))])
+                rec = self.cards_record
+                for c in self.droppedcards:
+                    del rec[c.syncid]
+                self.cards.extendright([HiddenCard() for i in xrange(len(self.droppedcards))])
 
             self.droppedcards.clear()
 

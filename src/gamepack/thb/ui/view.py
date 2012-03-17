@@ -41,7 +41,7 @@ class UIEventHook(EventHandler):
 class SkillSelectionBox(Control):
     class SkillButton(Button):
         def __init__(self, *a, **k):
-            Button.__init__(self, width=64, height=20, *a, **k)
+            Button.__init__(self, width=69, height=20, *a, **k)
             self.selected = False
             self.state = Button.DISABLED
             self.color = Colors.blue
@@ -200,7 +200,14 @@ class THBattleUI(Control):
 
         self.handcard_area = HandCardArea(
             parent=self, x=238, y=9, zindex=3,
+            width=93*5+42, height=145,
         )
+
+        self.deck_area = PortraitCardArea(
+            parent=self, width=1, height=1,
+            x=self.width//2, y=self.height//2, zindex=4,
+        )
+
 
         @self.handcard_area.event
         def on_selection_change():
@@ -208,6 +215,7 @@ class THBattleUI(Control):
 
         self.dropcard_area = DropCardArea(
             parent=self, x=0, y=324, zindex=3,
+            width=820, height=125,
         )
 
         class Animations(pyglet.graphics.Batch, Control):
@@ -225,10 +233,6 @@ class THBattleUI(Control):
         self.animations = Animations(parent=self)
         self.selecting_player = 0
 
-        self.deck_area = PortraitCardArea(
-            parent=self, width=1, height=1,
-            x=self.width/2, y=self.height/2,
-        )
 
     def init(self):
         self.char_portraits = [
@@ -247,7 +251,7 @@ class THBattleUI(Control):
         self.begin_select_player(1)
         self.end_select_player()
         self.skill_box = SkillSelectionBox(
-            parent=self, x=161, y=9, width=65, height=22*6-4
+            parent=self, x=161, y=9, width=70, height=22*6-4
         )
 
     def player2portrait(self, p):

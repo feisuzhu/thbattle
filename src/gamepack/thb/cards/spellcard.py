@@ -89,11 +89,7 @@ class RejectHandler(EventHandler):
         except CheckFailed:
             return False
 
-class DelayedSpellCardAction(SpellCardAction): # 延时SC
-    def clean_up(self):
-        g = Game.getgame()
-        target = self.target
-        g.process_action(DropCards(target, [self.associated_card]))
+class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
 
 # TODO: code like this only allow ONE such behavior change.
 
@@ -122,7 +118,7 @@ class DelayedSpellCardActionHandler(EventHandler):
 
         return act
 
-class SealingArray(FatetellAction, DelayedSpellCardAction):
+class SealingArray(DelayedSpellCardAction):
     # 封魔阵
     def __init__(self, source, target):
         assert source == target
@@ -137,6 +133,11 @@ class SealingArray(FatetellAction, DelayedSpellCardAction):
         if ft.succeeded:
             target.tags['sealed'] = True
         return True
+
+    def fatetell_postprocess(self):
+        g = Game.getgame()
+        target = self.target
+        g.process_action(DropCards(target, [self.associated_card]))
 
 @register_eh
 class SealingArrayHandler(EventHandler):
