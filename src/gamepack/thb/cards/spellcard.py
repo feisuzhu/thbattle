@@ -12,10 +12,22 @@ class Demolition(SpellCardAction):
 
     def apply_action(self):
         g = Game.getgame()
+        source = self.source
         target = self.target
-        if not len(target.cards): return False
 
-        card = random_choose_card(target)
+        #cards = random_choose_card(target, target.cards, 1)
+        categories = [
+            target.cards,
+            target.shown_cards,
+            target.equips,
+            target.fatetell,
+        ]
+        card = choose_peer_card(source, target, categories)
+        if not card:
+            card = random_choose_card(categories)
+            if not card:
+                return False
+            
         self.card = card
         g.players.exclude(target).reveal(card)
         g.process_action(

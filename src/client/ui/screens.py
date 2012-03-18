@@ -288,8 +288,7 @@ class GameScreen(Overlay):
 
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
-                name = p.get('nickname')
-                name = 'EMPTY SLOT' if not name else name
+                name = p.get('nickname', 'EMPTY SLOT')
                 self.portraits[i].player_name = name
                 self.portraits[i].update()
 

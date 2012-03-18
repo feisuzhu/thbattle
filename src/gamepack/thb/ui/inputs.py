@@ -6,13 +6,13 @@ from pyglet.window import mouse
 from client.ui.base import message as ui_message
 from client.ui.base import schedule as ui_schedule
 from client.ui.controls import *
-from client.ui import resource as common_res
+from client.ui import resource as common_res, shaders
 import resource as gres
 
-from gamepack.thb import actions
+from gamepack.thb import actions, cards
 from game.autoenv import Game
 
-from utils import DataHolder
+from utils import DataHolder, BatchList
 
 import logging
 log = logging.getLogger('THBattleUI_Input')
@@ -251,6 +251,13 @@ class UIChooseGirl(Panel):
             self.grayed_image = pyglet.image.Texture.create_for_size(
                 GL_TEXTURE_RECTANGLE_ARB, pimg.width, pimg.height, GL_RGBA
             )
+            fbo = self.auxfbo
+            with fbo:
+                fbo.texture = self.grayed_image
+                glColor3f(1, 1, 1)
+                with shaders.Grayscale:
+                    pimg.blit(0, 0)
+
 
         def on_mouse_enter(self, x, y):
             self.hover_alpha = 0.4
@@ -346,11 +353,87 @@ class UIChooseGirl(Panel):
         self.can_select = False
         self.irp = None
 
+class UIChoosePeerCard(Panel, InputController):
+    lookup = {
+        cards.CardList.HANDCARD: u'手牌区',
+        cards.CardList.SHOWNCARD: u'明牌区',
+        cards.CardList.EQUIPS: u'装备区',
+        cards.CardList.FATETELL: u'判定区',
+    }
+
+    def __init__(self, irp, *a, **k):
+        self.irp = irp
+        target, categories = irp.attachment
+        h = 40 + len(categories)*145 + 10
+        w = 100 + 6*93.0+30
+        self.lbls = lbls = pyglet.graphics.Batch()
+
+        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
+
+        y = 40
+
+        i = 0
+        for cat in reversed(categories):
+            if not len(cat):
+                h -= 145 # no cards in this category
+                continue
+
+            pyglet.text.Label(
+                text=self.lookup[cat.type],
+                font_name = 'AncientPix', font_size=12,
+                color=(255, 255, 160, 255),
+                x=30, y=y+62+145*i,
+                anchor_x='left', anchor_y='center',
+                batch=lbls,
+            )
+            ca = DropCardArea(
+                parent=self,
+                x=100, y=y+145*i,
+                fold_size=6,
+                width=6*93, height=125,
+            )
+            for c in cat:
+                cs = CardSprite(
+                    parent=ca,
+                    img=c.ui_meta.image,
+                )
+                cs.associated_card = c
+                @cs.event
+                def on_mouse_dblclick(x, y, btn, mod, cs=cs):
+                    irp = self.irp
+                    irp.input = cs.associated_card.syncid
+                    self.cleanup()
+            ca.update()
+            i += 1
+
+        p = self.parent
+        self.x, self.y = (p.width - w)//2, (p.height -h)//2
+        self.width, self.height = w, h
+        self.update()
+
+        self.progress_bar = b = BigProgressBar(
+            parent=self, x=(w-250)//2, y=7, width=250
+        )
+        b.value = LinearInterp(
+            1.0, 0.0, irp.timeout
+        )
+
+    def blur_update(self):
+        Panel.blur_update(self)
+        with self.fbo:
+            with shaders.FontShadow as fs:
+                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+                self.lbls.draw()
+
+    def cleanup(self):
+        self.irp.complete()
+        self.delete()
 
 mapping = dict(
     choose_card=UIChooseMyCards,
     action_stage_usecard=UIDoActionStage,
     choose_girl=Dummy,
+    choose_peer_card=UIChoosePeerCard,
 )
 
 mapping_all = dict(

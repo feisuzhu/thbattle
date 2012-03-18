@@ -1137,8 +1137,6 @@ class ListView(Control):
         self.fbo = fbo
 
     def draw(self):
-        #glColor3f(.5,.5,.5) # XXXXXXXXXXX
-        #glRectf(0, 0, self.width, self.height)
         glColor3f(1,1,1)
 
         tex = self.fbo.texture
@@ -1311,6 +1309,8 @@ class Panel(Control):
     def __init__(self, color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
         self.color = color
+        self.fbo = Framebuffer()
+        self.tick = 0
         self.update()
 
     def update(self):
@@ -1322,11 +1322,14 @@ class Panel(Control):
         tex2 = pyglet.image.Texture.create_for_size(
             GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
         )
-        fbo1 = Framebuffer(tex1)
-        fbo2 = Framebuffer(tex2)
-        self.fbo1, self.fbo2 = fbo1, fbo2
 
-    def draw(self):
+        self.tex1, self.tex2 = tex1, tex2
+        self.blur_update()
+
+    def blur_update(self):
+        fbo = self.fbo
+        tex1, tex2 = self.tex1, self.tex2
+
         from shaders import GaussianBlurHorizontal, GaussianBlurVertical
 
         ax, ay = self.abs_coords()
@@ -1334,18 +1337,26 @@ class Panel(Control):
         w, h = int(self.width), int(self.height)
 
         glColor3f(1, 1, 1)
-        fbo1, fbo2 = self.fbo1, self.fbo2
-        tex1, tex2 = fbo1.texture, fbo2.texture
-        with fbo2:
-            fbo2.blit_from_current_readbuffer((ax, ay, ax + w, ay + h))
+        with fbo:
+            fbo.texture = tex1
+            fbo.blit_from_current_readbuffer((ax, ay, ax + w, ay + h))
 
-        with GaussianBlurHorizontal:
-            with fbo1:
+            fbo.texture = tex2
+
+            with GaussianBlurHorizontal:
+                tex1.blit(0, 0)
+
+            fbo.texture = tex1
+            with GaussianBlurVertical:
                 tex2.blit(0, 0)
 
-        with GaussianBlurVertical:
-            tex1.blit(0, 0)
-
+    def draw(self):
+        self.tick += 1
+        if not (self.tick % 2):
+            self.blur_update()
+        from . import shaders
+        self.fbo.texture.blit(0, 0)
+        w, h = int(self.width), int(self.height)
         glLineWidth(3.0)
         glColor4f(1, 1, 1, .3)
         glRectf(1.5, 1.5, -1.5+w, -1.5+h)

@@ -5,14 +5,14 @@ from game.autoenv import Game, EventHandler, Action, GameError, SyncPrimitive
 from network import Endpoint
 import random
 
-from utils import check, check_type, CheckFailed
+from utils import check, check_type, CheckFailed, BatchList
 
 import logging
 log = logging.getLogger('THBattle_Actions')
 
 # ------------------------------------------
 # aux functions
-def user_choose_card(act, target, cond):
+def user_choose_card(act, target, cond, categories=None):
     from utils import check, CheckFailed
     g = Game.getgame()
     input = target.user_input('choose_card', act) # list of card ids
@@ -22,12 +22,19 @@ def user_choose_card(act, target, cond):
 
         sid_list, cid_list = input
 
-        cards = g.deck.lookupcards(cid_list)
-        cs = set(cards)
 
+        cards = g.deck.lookupcards(cid_list)
+        check(len(cards) == len(cid_list)) # Invalid id
+
+        cs = set(cards)
         check(len(cs) == len(cid_list)) # repeated ids
 
-        check(cs.issubset(set(target.cards))) # Whose cards?! Wrong ids?!
+        check(all(c.resides_in.owner is target for c in cards)) # Whose cards?!
+
+        if not categories:
+            categories = [target.cards, target.shown_cards]
+
+        check(all(c.resides_in in categories for c in cards)) # Cards in desired categories?
 
         g.players.exclude(target).reveal(cards)
 
@@ -40,13 +47,17 @@ def user_choose_card(act, target, cond):
     except CheckFailed as e:
         return None
 
-def random_choose_card(target):
-    c = random.choice(target.cards)
+def random_choose_card(categories):
+    from itertools import chain
+    allcards = list(chain.from_iterable(categories))
+    if not allcards:
+        return None
+    c = random.choice(allcards)
     v = SyncPrimitive(c.syncid)
     g = Game.getgame()
     g.players.reveal(v)
     v = v.value
-    cl = [c for c in target.cards if c.syncid == v]
+    cl = g.deck.lookupcards([v])
     assert len(cl) == 1
     return cl[0]
 
@@ -100,6 +111,26 @@ def migrate_cards(cards, to):
         for c in l:
             c.move_to(to)
 
+def choose_peer_card(source, target, categories):
+    assert all(c.owner is target for c in categories)
+    try:
+        cid = source.user_input('choose_peer_card', (target, categories))
+        g = Game.getgame()
+
+        check(isinstance(cid, int))
+
+        cards = g.deck.lookupcards((cid,))
+
+        check(len(cards) == 1) # Invalid id
+        card = cards[0]
+
+        check(card.resides_in.owner is target)
+        check(card.resides_in in categories)
+
+        return card
+
+    except CheckFailed:
+        return None
 
 action_eventhandlers = set()
 def register_eh(cls):
@@ -171,7 +202,13 @@ class DropCardStage(GenericAction):
 
     def cond(self, cards):
         t = self.target
-        return len(cards) == len(t.cards) - t.life
+        if not len(cards) == len(t.cards) + len(t.shown_cards) - t.life:
+            return False
+
+        if not all(c.resides_in in (t.cards, t.shown_cards) for c in cards):
+            return False
+
+        return True
 
     def __init__(self, target):
         self.target = target
@@ -187,7 +224,8 @@ class DropCardStage(GenericAction):
         if cards:
             g.process_action(DropCards(target, cards=cards))
         else:
-            cards = list(target.cards)[min(-n, 0):]
+            from itertools import chain
+            cards = list(chain(target.cards, target.shown_cards))[min(-n, 0):]
             g.players.exclude(target).reveal(cards)
             g.process_action(DropCards(target, cards=cards))
         self.cards = cards

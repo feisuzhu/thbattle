@@ -167,6 +167,7 @@ class PeerPlayer(game.AbstractPlayer):
         input.timeout = timeout
         input.player = self
         input.input = None
+        input.tag = tag
         g.emit_event('user_input_start', input)
         input.input = Executive.server.gexpect('input_%s_%d' % (tag, st))
         g.emit_event('user_input_finish', input)

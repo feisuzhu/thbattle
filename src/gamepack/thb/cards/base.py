@@ -112,6 +112,7 @@ class Deck(object):
                 for c in dropped:
                     c.resides_in = cards
                     del rec[c.syncid]
+                    c.syncid = 0
                 cards.extendright(dropped)
             elif Game.CLIENT_SIDE:
                 rec = self.cards_record
@@ -123,8 +124,9 @@ class Deck(object):
 
         for i in xrange(num):
             c = self.cards[i]
-            sid = g.get_synctag()
-            c.syncid = sid
+            if not c.syncid:
+                sid = g.get_synctag()
+                c.syncid = sid
             rst.append(c)
             self.cards_record[sid] = c
 
@@ -132,6 +134,21 @@ class Deck(object):
 
     def lookupcards(self, idlist):
         return [self.cards_record.get(cid) for cid in idlist]
+
+    def shuffle(self, cl):
+        g = Game.getgame()
+        for c in cl:
+            try:
+                del self.cards_record[c.syncid]
+            except KeyError:
+                pass
+
+        if Game.SERVER_SIDE:
+            random.shuffle(cl)
+            for c in cl:
+                c.syncid = g.get_synctag()
+        elif Game.CLIENT_SIDE:
+            cl[:] = [HiddenCard(Card.NOTSET, 0, cl) for i in xrange(len(cl))]
 
 class HiddenCard(Card): # special thing....
     associated_action = None

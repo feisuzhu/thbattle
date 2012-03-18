@@ -109,7 +109,7 @@ def cancel_ready(user):
     _notify_playerchange(user.current_game)
 
 def exit_game(user):
-    from game_server import DroppedPlayer
+    from game_server import Player, DroppedPlayer
     from client_endpoint import DummyClient
     if user.state != 'hang':
         g = user.current_game
@@ -118,8 +118,20 @@ def exit_game(user):
             log.info('player dropped')
             user.write(['fleed', None])
             p = g.players[i]
-            p.client.gbreak() # XXX: fuck I forgot why it's here
-            p.__class__ = DroppedPlayer
+            p.client.gbreak() # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
+
+            if p.__class__ is Player:
+                p.__class__ = DroppedPlayer
+            else:
+                # it's a customized class, Player_Character or something.
+                # each class like this should have only 1 instance,
+                # so we can modify the class directly
+                cls = p.__class__
+                bases = list(cls.__bases__)
+                i = bases.index(Player)
+                bases[i] = DroppedPlayer
+                cls.__bases__ = tuple(bases)
+
             p.client = DummyClient(g.players[i].client)
         else:
             log.info('player leave')

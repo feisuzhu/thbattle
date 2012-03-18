@@ -84,6 +84,21 @@ try:
         }
         '''
     )
+    GrayscaleRect = ShaderProgram(fshader)
+except ShaderError as e:
+    GrayscaleRect = DummyShader
+
+try:
+    fshader = FragmentShader(
+        '''
+        uniform sampler2D tex;
+        void main()
+        {
+            float l = dot(texture2D(tex, gl_TexCoord[0]), vec4(0.3, 0.59, 0.11, 0.0));
+            gl_FragColor = vec4(l, l, l, 1.0);
+        }
+        '''
+    )
     Grayscale = ShaderProgram(fshader)
 except ShaderError as e:
     Grayscale = DummyShader
@@ -92,15 +107,16 @@ except ShaderError as e:
 def _get_gaussian_coef(radius):
     from math import erfc
     inv_sigma = 3.0/radius
-    def f(x):
-        return 0.5*erfc(-x*inv_sigma*0.707106781)
+
+    f = lambda x: 0.5*erfc(-x*inv_sigma*0.707106781)
+
     l = [f(0.5 + i) - f(-0.5 + i) for i in xrange(radius+1)]
     l1 = l[1:]
     l1.reverse()
     return l1 + l
 
 try:
-    r = 12
+    r = 7
     coef = _get_gaussian_coef(r)
     src = '''
         uniform sampler2DRect tex;
@@ -108,9 +124,8 @@ try:
         {
             vec2 xy = gl_TexCoord[0].xy;
             vec4 s = vec4(0.0, 0.0, 0.0, 0.0);
-            // s += texture2DRect(tex, vec2(xy.x-1.0, xy.y));
             %s
-            gl_FragColor = s;
+            gl_FragColor = vec4(s.rgb, 1.0);
         }
     '''
 

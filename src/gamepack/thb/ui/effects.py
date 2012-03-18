@@ -38,7 +38,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     # --- src ---
 
-    if _from.owner is g.me and _from.type == _from.HANDCARD:
+    if _from.owner is g.me and _from.type in (_from.HANDCARD, _from.SHOWNCARD):
         handcard_update = True
         csl[:] = [
             cs for cs in self.handcard_area.cards
@@ -52,7 +52,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
                 csl.append(cs)
 
     else:
-        if _from.type in _from.DECKCARD:
+        if _from.type == _from.DECKCARD:
             pca = self.deck_area
         else:
             pca = self.player2portrait(_from.owner).portcard_area
@@ -68,7 +68,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     # --- dest ---
 
-    if to.owner is g.me and to.type == to.HANDCARD:
+    if to.owner is g.me and to.type in (to.HANDCARD, to.SHOWNCARD):
         handcard_update = True
         csl.migrate_to(self.handcard_area)
     else:
@@ -94,8 +94,6 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     if handcard_update: self.handcard_area.update()
     if dropcard_update: self.dropcard_area.update()
-
-
 
 def damage_effect(self, act):
     s, t = act.source, act.target
