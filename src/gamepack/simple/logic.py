@@ -33,18 +33,18 @@ class SimpleGame(Game):
         # game started, init state
         from cards import Card, Deck
 
-        for cls in action_eventhandlers:
-            self.event_handlers.append(cls())
+        ehclasses = action_eventhandlers[:]
 
         from characters import characters as chars
         for i, p in enumerate(self.players):
             mixin_character(p, chars[i])
-            for cls in p.eventhandlers_required:
-                self.event_handlers.append(cls())
+            ehclasses.extend(p.eventhandlers_required)
             p.cards = []
             p.life = p.maxlife
             p.dead = False
             p.stage = self.NORMAL
+            
+        self.event_handlers = EventHandler.make_list(ehclasses)
 
         self.deck = Deck()
 

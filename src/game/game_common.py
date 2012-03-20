@@ -14,9 +14,47 @@ class GameEnded(Exception):
     pass
 
 class EventHandler(object):
-
+    execute_before = []
+    execute_after = []
     def handle(self, evt_type, data):
         raise GameError('Override handle function to implement EventHandler logics!')
+
+    @staticmethod
+    def make_list(eh_classes):
+        table = {}
+        for cls in eh_classes:
+            eh = cls()
+            eh.execute_before = set(eh.execute_before) # make it instance var
+            eh.execute_after = set(eh.execute_after)
+            table[cls] = eh
+
+        for cls in table:
+            eh = table[cls]
+            for before in eh.execute_before:
+                table[before].execute_after.add(cls)
+
+            for after in eh.execute_after:
+                table[after].execute_before.add(cls)
+
+        l = table.values()
+        rst = []
+        while l:
+            l1 = []
+            added = False
+            for eh in l:
+                if not eh.execute_after:
+                    for b in eh.execute_before:
+                        table[b].execute_after.remove(eh.__class__)
+                    rst.append(eh)
+                    added = True
+                else:
+                    l1.append(eh)
+            if not added:
+                raise GameError("Can't resolve dependencies! Check for circular reference!")
+            l = l1
+
+        assert len(rst) == len(table)
+        return rst
 
 class Action(object):
     cancelled = False
