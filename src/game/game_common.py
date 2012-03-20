@@ -20,6 +20,7 @@ class EventHandler(object):
 
 class Action(object):
     cancelled = False
+
     def __init__(self):
         pass
 
@@ -36,7 +37,7 @@ class Action(object):
 
     def set_up(self):
         '''
-        Execute before 'action_before' event
+        Execute before 'action_apply' event
         '''
         pass
 
@@ -97,6 +98,8 @@ class Game(object):
         log.info('emit_event: %s %s' % (evt_type, s))
         for evt in self.event_handlers:
             data = evt.handle(evt_type, data)
+            if data is None:
+                log.warn('EventHandler %s returned None' % evt.__class__.__name__)
         return data
 
     @staticmethod

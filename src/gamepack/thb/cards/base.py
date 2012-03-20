@@ -118,7 +118,8 @@ class Deck(object):
                 rec = self.cards_record
                 for c in self.droppedcards:
                     del rec[c.syncid]
-                self.cards.extendright([HiddenCard() for i in xrange(len(self.droppedcards))])
+                cards = self.cards
+                cards.extendright([HiddenCard(Card.NOTSET, 0, cards) for i in xrange(len(self.droppedcards))])
 
             self.droppedcards.clear()
 

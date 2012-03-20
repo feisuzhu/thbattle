@@ -50,10 +50,24 @@ class OpticalCloakCard:
     equipment_skill = equipment.OpticalCloakSkill
     equipment_category = 'shield'
 
+class GreenUFOCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.GreenUFOSkill
+    equipment_category = 'greenufo'
+
+class RedUFOCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.RedUFOSkill
+    equipment_category = 'redufo'
+
+
 # --------------------------------------------------
 
 __metaclass__ = type
 
+'''
 card_definition = [
     (OpticalCloakCard, Card.SPADE, 1), (OpticalCloakCard, Card.SPADE, 1), (HealCard, Card.SPADE, 1), (DemolitionCard, Card.SPADE, 1),
     (OpticalCloakCard, Card.SPADE, 2), (OpticalCloakCard, Card.SPADE, 2), (HealCard, Card.SPADE, 2), (DemolitionCard, Card.SPADE, 2),
@@ -111,3 +125,17 @@ card_definition = [
     (RejectCard, Card.DIAMOND, 12), (RejectCard, Card.DIAMOND, 12), (RejectCard, Card.DIAMOND, 12), (RejectCard, Card.DIAMOND, 12),
     (RejectCard, Card.DIAMOND, 13), (RejectCard, Card.DIAMOND, 13), (RejectCard, Card.DIAMOND, 13), (RejectCard, Card.DIAMOND, 13),
 ]
+'''
+
+card_definition = [
+    (OpticalCloakCard, Card.SPADE, 1),
+    (AttackCard, Card.CLUB, 1),
+    (GrazeCard, Card.CLUB, 1),
+    (HealCard, Card.CLUB, 3),
+    (DemolitionCard, Card.DIAMOND, 1),
+    (SealingArrayCard, Card.HEART, 1),
+    (NazrinRodCard, Card.HEART, 1),
+    (RejectCard, Card.SPADE, 13),
+    (GreenUFOCard, Card.HEART, 3),
+    (RedUFOCard, Card.DIAMOND, 4),
+] * 2

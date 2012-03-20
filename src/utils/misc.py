@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from gevent_extension import ITIEvent
-
 class DataHolder(object):
     def __data__(self):
         return self.__dict__
@@ -44,27 +42,25 @@ class BatchList(list):
 
 class IRP(object):
     '''I/O Request Packet'''
+    complete_tag = object()
     def __init__(self):
-        self.event = ITIEvent()
+        from gevent.queue import Queue
+        self.queue = Queue()
 
     def complete(self):
-        self.rpc_func = None
-        self.event.set()
+        from gevent_extension import the_hub
+        the_hub.interrupt(self.queue.put, self.complete_tag)
 
     def wait(self):
-        while True:
-            self.event.wait()
-            f = self.rpc_func
-            self.event.clear()
-            if f:
+        for f in self.queue:
+            if f is self.complete_tag:
+                break
+            else:
                 f()
-                self.rpc_func = None
-                continue
-            break
 
     def do_callback(self, func):
-        self.rpc_func = func
-        self.event.set()
+        from gevent_extension import the_hub
+        the_hub.interrupt(self.queue.put, func)
 
 class ScissorBox(object):
     exc = Exception('ScissorBox Invalid')

@@ -80,21 +80,6 @@ def skill_wrap(actor, sid_list, cards):
     except CheckFailed as e:
         return None
 
-def validate_distance(calc, card, source, target_list):
-    try:
-        dist = card.distance
-    except AttributeError:
-        # no distance constraint
-        return [True] * len(target_list)
-
-    lookup = calc.distance
-    c = calc.correction
-
-    return [
-        lookup[t] - (dist + c) <= 0
-        for t in target_list
-    ]
-
 def migrate_cards(cards, to):
     g = Game.getgame()
     mapping = {}
@@ -326,10 +311,11 @@ class ActionStage(GenericAction):
         return True
 
 class CalcDistance(InternalAction):
-    def __init__(self, source):
+    def __init__(self, source, card):
         self.source = source
         self.distance = None
         self.correction = 0
+        self.card = card
 
     def apply_action(self):
         g = Game.getgame()
@@ -337,21 +323,41 @@ class CalcDistance(InternalAction):
         source = self.source
         loc = pl.index(source)
         n = len(pl)
-        self.distance = {
+        raw = self.raw_distance = {
             p: min(abs(i), n-abs(i))
             for p, i in zip(pl, xrange(-loc, -loc+n))
         }
+        self.distance = dict(raw)
         return True
+
+    def validate(self):
+        g = Game.getgame()
+        pl = g.players
+        lookup = self.distance
+        c = self.correction
+        dist = self.card.distance
+
+        return {
+            t: lookup[t] - (dist + c) <= 0
+            for t in pl
+        }
+
 
 @register_eh
 class DistanceValidator(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'action_can_fire' and isinstance(arg[0], LaunchCard):
-            act = arg[0]
             g = Game.getgame()
-            calc = CalcDistance(act.source)
+            act = arg[0]
+            card = act.card
+            dist = getattr(card, 'distance', None)
+            if dist is None:
+                # no distance constraint
+                return arg
+            calc = CalcDistance(act.source, card)
             g.process_action(calc)
-            if not all(validate_distance(calc, act.card, act.source, act.target_list)):
+            rst = calc.validate()
+            if not all(rst[t] for t in act.target_list):
                 return (act, False)
 
         return arg

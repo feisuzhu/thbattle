@@ -161,6 +161,42 @@ class OpticalCloakSkill:
     def is_action_valid(skill, source, target_list):
         return (False, 'BUG!')
 
+class GreenUFOCard:
+    # action_stage meta
+    name = u'绿色UFO'
+    image = gres.card_greenufo
+
+    is_action_valid = equip_iav
+
+class GreenUFOSkill:
+    # Skill
+    name = u'绿色UFO'
+    no_display = True
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(skill, source, target_list):
+        return (False, 'BUG!')
+
+class RedUFOCard:
+    # action_stage meta
+    name = u'红色UFO'
+    image = gres.card_redufo
+
+    is_action_valid = equip_iav
+
+class RedUFOSkill:
+    # Skill
+    name = u'红色UFO'
+    no_display = True
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(skill, source, target_list):
+        return (False, 'BUG!')
+
 
 # -----END CARDS UI META-----
 

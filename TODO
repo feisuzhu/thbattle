@@ -9,6 +9,15 @@ CommonUI:
 ScrollBar
 ARTWORKS!
 
+Sorting EventHandlers:
+    use topo sort!
+    class XXX(EventHandler):
+        execute_before = (AAA, BBB)
+        execute_after = (CCC, DDD)
+        def handle(*a):
+            ...
+
+
 Core:
 user subsystem,
 error reporting subsystem

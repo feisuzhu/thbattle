@@ -12,7 +12,7 @@ import resource as gres
 from gamepack.thb import actions, cards
 from game.autoenv import Game
 
-from utils import DataHolder, BatchList
+from utils import DataHolder, BatchList, IRP
 
 import logging
 log = logging.getLogger('THBattleUI_Input')
@@ -35,6 +35,7 @@ class UISelectTarget(InputController):
         InputController.__init__(self, *a, **k)
         parent = self.parent
         self.irp = irp
+        assert isinstance(irp, IRP)
 
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
@@ -150,34 +151,15 @@ class UIChooseMyCards(UISelectTarget):
 
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
-    last_card = None
     #def get_result(self):
     #    pass
     def __init__(self, *a, **k):
-        self.dist_calc = None
         UISelectTarget.__init__(self, *a, **k)
-        irp = self.irp
-
-        def get_distance():
-            # will be called from Game greenlet
-            g = Game.getgame()
-            calc = actions.CalcDistance(g.me)
-            self.dist_calc = calc
-            ui_schedule(self.on_selection_change)
-
-        irp.do_callback(get_distance)
 
     def on_selection_change(self):
         parent = self.parent
-        if not parent:
-            # if user close this too fast,
-            # the bottom half (get_distance thing) will execute after
-            # self been deleted.
-            return
         skills = parent.get_selected_skills()
         cards = parent.get_selected_cards()
-
-        if not self.dist_calc: return
 
         g = parent.game
         if skills:
@@ -195,9 +177,23 @@ class UIDoActionStage(UISelectTarget):
                 if t == 'self':
                     target_list = [source]
                 elif isinstance(t, int):
-                    if self.last_card != card:
+                    if getattr(card, 'distance', None) is not None:
+                        # FIXME: if user chooses too fast(not 'too' actually),
+                        # irp.do_callback will be called without previous one returns
+                        def sel_players():
+                            g = Game.getgame()
+                            calc = actions.CalcDistance(g.me, card)
+                            g.process_action(calc)
+
+                            rst = calc.validate()
+
+                            disables = [p for p, r in rst.iteritems() if not r]
+                            ui_schedule(parent.begin_select_player, t, disables)
+
+                        self.irp.do_callback(sel_players)
+                    else:
                         parent.begin_select_player(t)
-                        self.last_card = card
+
                     target_list = parent.get_selected_players()
                 else:
                     # for cards like GrazeCard
@@ -221,11 +217,11 @@ class UIDoActionStage(UISelectTarget):
                 return
 
             self.set_text(u'您选择的牌不符合出牌规则')
-            self.last_card = None
+            #self.last_card = None
         else:
 
             self.set_text(u'请出牌…')
-            self.last_card = None
+            #self.last_card = None
 
         parent.end_select_player()
 

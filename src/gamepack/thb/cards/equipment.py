@@ -68,3 +68,30 @@ class OpticalCloakHandler(EventHandler):
                 new_act = OpticalCloak(target=target, ori=act)
                 return new_act
         return act
+
+class UFOSkill(Skill):
+    associated_action = None
+    target = None
+
+class GreenUFOSkill(UFOSkill):
+    increment = 1
+
+class RedUFOSkill(UFOSkill):
+    increment = 1
+
+@register_eh
+class UFODistanceHandler(EventHandler):
+    execute_before = (DistanceValidator,)
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, CalcDistance):
+            source = act.source
+            for s in source.skills:
+                if issubclass(s, RedUFOSkill):
+                    act.correction += s.increment
+
+            dist = act.distance
+            for p in dist.keys():
+                for s in p.skills:
+                    if issubclass(s, GreenUFOSkill):
+                        dist[p] += s.increment
+        return act

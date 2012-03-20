@@ -33,10 +33,12 @@ class UIEventHook(EventHandler):
     def handle(self, evt, data):
         name = 'evt_%s' % evt
         try:
-            return getattr(self, name)(data)
+            f = getattr(self, name)
         except AttributeError:
             ui_message(name, data)
             return data
+
+        return f(data)
 
 class SkillSelectionBox(Control):
     class SkillButton(Button):
@@ -173,6 +175,9 @@ class GameCharacterPortrait(Dialog):
 
     def draw(self):
         Dialog.draw(self)
+        if self.disabled:
+            glColor4f(0, 0, 0, 0.5)
+            glRectf(0, 0, self.width, self.height)
         if self.selected:
             glColor4f(1, 1, 0.8, 0.6)
             glRectf(0, 0, self.width, self.height)
@@ -268,6 +273,7 @@ class THBattleUI(Control):
         if not skills:
             # before girl chosen
             return
+        skills = [s for s in skills if not getattr(s.ui_meta, 'no_display', False)]
         self.skill_box.set_skills(
             s.ui_meta.name for s in skills
         )
@@ -361,7 +367,7 @@ class THBattleUI(Control):
 
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
-        if isinstance(c, GameCharacterPortrait) and self.selecting_player:
+        if isinstance(c, GameCharacterPortrait) and self.selecting_player and not c.disabled:
             sel = c.selected
             psel = self.selected_players
             nplayers = self.selecting_player
