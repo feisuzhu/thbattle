@@ -18,6 +18,13 @@ class FindAction(UserAction):
         g.process_action(DrawCards(self.target, n))
         return True
 
+    def is_valid(self):
+        return all(
+            c.resides_in is not self.target.fatetell
+            for c in self.associated_card.associated_cards
+        )
+
+
 class Find(Skill):
     associated_action = FindAction
     target = 'self'

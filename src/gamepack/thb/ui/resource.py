@@ -13,8 +13,11 @@ with ResLoader(__file__) as args:
     card_sealarray = tx('card_sealarray.tga')
     card_nazrinrod= tx('card_nazrinrod.tga')
     card_opticalcloak = tx('card_opticalcloak.tga')
+    card_opticalcloak_small = tx('card_opticalcloak_small.tga')
     card_greenufo = tx('card_greenufo.tga')
+    card_greenufo_small = tx('card_greenufo_small.tga')
     card_redufo = tx('card_redufo.tga')
+    card_redufo_small = tx('card_redufo_small.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

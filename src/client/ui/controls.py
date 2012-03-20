@@ -795,8 +795,8 @@ class HandCardArea(Control): # TODO: these controls should be in gamepack ui, no
                 sel = c.hca_selected
             except AttributeError:
                 sel = c.hca_selected = False
-            c.x = SineInterp(c.x, 2 + int(step * i), 0.4)
-            c.y = SineInterp(c.y, 20 if sel else 0, 0.4)
+            c.x = SineInterp(c.x, 2 + int(step * i), 0.6)
+            c.y = SineInterp(c.y, 20 if sel else 0, 0.6)
 
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
@@ -841,8 +841,8 @@ class PortraitCardArea(Control): # TODO: these controls should be in gamepack ui
         csw = offs * (n-1) + 93
         cor_x, cor_y = (w - csw)/2, (h - 125)/2
         for i, cs in enumerate(csl):
-            cs.x = SineInterp(cs.x, i*offs + cor_x, 0.4)
-            cs.y = SineInterp(cs.y, cor_y, 0.4)
+            cs.x = SineInterp(cs.x, i*offs + cor_x, 0.6)
+            cs.y = SineInterp(cs.y, cor_y, 0.6)
 
     def fade(self):
         for cs in self.control_list:
@@ -868,12 +868,18 @@ class DropCardArea(Control): # TODO: these controls should be in gamepack ui, no
         fsz = self.fold_size
         n = len(self.control_list)
         width = min(fsz*93.0, n*93.0)
-        ox = (self.width - width) // 2
         step = (width - 91)/(n-1) if n > 1 else 0
+
+        if step < 30:
+            step = 30
+            width = (n-1)*30 + 93
+
+        ox = (self.width - width) // 2
+
         for i, c in enumerate(self.control_list):
             c.zindex = i
-            c.x = SineInterp(c.x, 2 + ox + int(step * i), 0.4)
-            c.y = SineInterp(c.y, 0, 0.4)
+            c.x = SineInterp(c.x, 2 + ox + int(step * i), 0.5)
+            c.y = SineInterp(c.y, 0, 0.5)
 
     def fade(self):
         for cs in self.control_list:

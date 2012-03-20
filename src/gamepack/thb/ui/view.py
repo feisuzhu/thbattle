@@ -95,16 +95,72 @@ class SkillSelectionBox(Control):
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
+class SmallCardSprite(Control):
+    width, height = 33, 46
+    x = InterpDesc('_x')
+    y = InterpDesc('_y')
+    def __init__(self, img, x=0.0, y=0.0, *args, **kwargs):
+        Control.__init__(self, *args, **kwargs)
+        self._w, self._h = 33, 46
+        self.x, self.y = x, y
+        self.selected = False
+        self.hover = False
+        self.img = img
+
+    def draw(self):
+        glColor3f(1., 1., 1.)
+        self.img.blit(0, 0)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        if self.selected:
+            glColor3f(0, 1, 0)
+        else:
+            glColor4f(0, 0, 1, 0.5)
+
+        glRectf(0, 0, 33, 46)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+class EquipCardArea(Control):
+    def __init__(self, fold_size=4, *args, **kwargs):
+        Control.__init__(self, *args, **kwargs)
+        self.width, self.height = 35*4, 46
+        self.fold_size = fold_size
+        self.selectable = False
+
+    def draw(self):
+        glColor4f(1,1,1,1)
+        self.draw_subcontrols()
+
+    def update(self):
+        fsz = self.fold_size
+        n = len(self.control_list)
+        width = min(fsz*35.0, n*35.0)
+        step = int((width - 34)/(n-1)) if n > 1 else 0
+        for i, c in enumerate(self.control_list):
+            c.zindex = i
+            c.x = SineInterp(c.x, 2 + step * i, 0.4)
+            c.y = SineInterp(c.y, 0, 0.4)
+
+    def on_mouse_click(self, x, y, button, modifier):
+        if not self.selectable: return
+        c = self.control_frompoint1(x, y)
+        if c:
+            s = c.selected = not c.selected
+            self.dispatch_event('on_selection_change')
+
+    cards = property(
+        lambda self: self.control_list,
+        lambda self, x: setattr(self, 'control_list', x)
+    )
+EquipCardArea.register_event_type('on_selection_change')
+
 class GameCharacterPortrait(Dialog):
     def __init__(self, color=Colors.blue, *args, **kwargs):
         self.selected = False
-        self.maxlife = 8
-        self.life = 0
-        self.name = u''
-        self.char_name = u''
+        self.player = None
+        self.disabled = False
         Dialog.__init__(
             self, width=149, height=195,
-            bot_reserve=74, color=color,
+            bot_reserve=20, color=color,
             shadow_thick=1,
             **kwargs
         )
@@ -116,50 +172,57 @@ class GameCharacterPortrait(Dialog):
             width=self.width, height=self.height,
             zindex=100,
         )
+        self.equipcard_area = EquipCardArea(
+            parent=self,
+            x=3, y=6,
+        )
+
+        @self.equipcard_area.event
+        def on_selection_change():
+            self.parent.dispatch_event('on_selection_change')
 
     def update(self):
-        self.caption = self.name
+        p = self.player
+        if not p: return
 
+
+        self.caption = p.nickname
         try:
-            self.bg = self.port_image
-        except AttributeError:
-            pass
+            meta = p.ui_meta
 
+        except AttributeError:
+            # before girls chosen
+            Dialog.update(self)
+            return
+
+        self.bg = meta.port_image
+
+        self.bot_reserve=74
         Dialog.update(self)
         with self.fbo:
             hp, hp_bg = common_res.hp, common_res.hp_bg
 
             # hp bar
             glColor3f(1, 1, 1)
-            w, h = hp_bg.width * self.maxlife, hp_bg.height
+            w, h = hp_bg.width * p.maxlife, hp_bg.height
             if w:
                 common_res.hp_bg.get_region(0, 0, w, h).blit(5, 55)
 
-            w, h = hp.width * self.life, hp.height
+            w, h = hp.width * p.life, hp.height
             if w:
                 common_res.hp.get_region(0, 0, w, h).blit(5, 55)
 
             # equip boxes
             glColor3f(1, 1, 1)
             glRectf(2, 2, self.width-2, 54)
-            glLineWidth(2.0)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             glColor3f(*[i/255.0 for i in self.color.heavy])
-            pyglet.graphics.draw(
-                10, GL_QUAD_STRIP, ('v2f', (
-                    2 + 0*36, 3,   2 + 0*36, 54,
-                    2 + 1*36, 3,   2 + 1*36, 54,
-                    2 + 2*36, 3,   2 + 2*36, 54,
-                    2 + 3*36, 3,   2 + 3*36, 54,
-                    2 + 4*36, 3,   2 + 4*36, 54,
-                ))
-            )
+            glRectf(2.5, 2.5, 2.5+4*36, 54.5)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-            glLineWidth(1.0)
 
             # char name
             f = pyglet.font.load('AncientPix', size=9)
-            glyphs = f.get_glyphs(self.char_name)
+            glyphs = f.get_glyphs(meta.char_name)
             gh = f.ascent - f.descent
             glColor3f(1, 1, 1)
             with shaders.FontShadow as fs:
@@ -189,6 +252,10 @@ class GameCharacterPortrait(Dialog):
     @zindex.setter
     def zindex(self, val):
         pass
+
+    def delete(self):
+        Dialog.delete(self)
+        self.portcard_area.delete()
 
 class THBattleUI(Control):
     portrait_location = [ # [ ((x, y), (r, g, b)) ] * Game.n_persons
@@ -240,18 +307,19 @@ class THBattleUI(Control):
 
 
     def init(self):
-        self.char_portraits = [
+        ports = self.char_portraits = [
             GameCharacterPortrait(parent=self, x=x, y=y)
             for x, y in ((3, 1), (158, 446), (521, 446))[:len(self.game.players)]
         ] # FIXME: this is for testing
 
         pl = self.game.players
         shift = pl.index(self.game.me)
-        for i, c in enumerate(self.char_portraits):
+        for i, c in enumerate(ports):
             p = pl[(shift + i) % self.game.n_persons]
             c.player = p
-            c.name = p.nickname
             c.update()
+
+        ports[0].equipcard_area.selectable = True # it's TheChosenOne
 
         self.begin_select_player(1)
         self.end_select_player()
@@ -302,12 +370,6 @@ class THBattleUI(Control):
                 cls(attachment=arg[1], parent=self)
         elif _type == 'evt_simplegame_begin':
             for port in self.char_portraits:
-                p = port.player
-                port.life = p.life
-                port.maxlife = p.maxlife
-                meta = p.ui_meta
-                port.port_image = meta.port_image
-                port.char_name = meta.char_name
                 port.update()
             self.update_skillbox()
 
@@ -357,6 +419,10 @@ class THBattleUI(Control):
             cs.associated_card
             for cs in self.handcard_area.cards
             if cs.hca_selected
+        ] + [
+            cs.associated_card
+            for cs in self.player2portrait(self.game.me).equipcard_area.cards
+            if cs.selected
         ]
 
     def get_selected_skills(self):

@@ -78,7 +78,7 @@ class CardList(deque):
         deque.__init__(self)
 
     def __repr__(self):
-        return "CardList(len([...]) == %d)" % len(self)
+        return "CardList(owner=%s, type=%s, len([...]) == %d)" % (self.owner, self.type, len(self))
 
     extend = deque.extendleft
     append = deque.appendleft
@@ -93,10 +93,16 @@ class Deck(object):
         cards = CardList(None, CardList.DECKCARD)
         self.cards = cards
         if Game.SERVER_SIDE:
-            cards.extendright(cls(suit, n, cards) for cls, suit, n in card_definition)
+            cards.extendright(
+                cls(suit, n, cards)
+                for cls, suit, n in card_definition
+            )
             random.shuffle(cards)
         elif Game.CLIENT_SIDE:
-            self.cards.extendright(HiddenCard(Card.NOTSET, 0, cards) for i in xrange(len(card_definition)))
+            self.cards.extendright(
+                HiddenCard(Card.NOTSET, 0, cards)
+                for i in xrange(len(card_definition))
+            )
 
     def getcards(self, num):
         g = Game.getgame()
@@ -119,7 +125,10 @@ class Deck(object):
                 for c in self.droppedcards:
                     del rec[c.syncid]
                 cards = self.cards
-                cards.extendright([HiddenCard(Card.NOTSET, 0, cards) for i in xrange(len(self.droppedcards))])
+                cards.extendright(
+                    HiddenCard(Card.NOTSET, 0, cards)
+                    for i in xrange(len(self.droppedcards))
+                )
 
             self.droppedcards.clear()
 

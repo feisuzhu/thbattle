@@ -283,7 +283,7 @@ class ActionStage(GenericAction):
 
                 cards = g.deck.lookupcards(card_ids)
                 check(cards)
-                check(set(cards).issubset(set(actor.cards)))
+                check(all(c.resides_in.owner is actor for c in cards))
 
                 target_list = [g.player_fromid(i) for i in target_list]
                 from game import AbstractPlayer
@@ -295,10 +295,10 @@ class ActionStage(GenericAction):
                 if skill_ids:
                     card = skill_wrap(actor, skill_ids, cards)
                     check(card)
-
                 else:
                     check(len(cards) == 1)
                     card = cards[0]
+                    check(card.resides_in in (actor.cards, actor.shown_cards))
 
                 if not g.process_action(LaunchCard(actor, target_list, card)):
                     # invalid input

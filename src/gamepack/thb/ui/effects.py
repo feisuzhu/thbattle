@@ -38,6 +38,13 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     # --- src ---
 
+    if _from.type == _from.EQUIPS:
+        equips = self.player2portrait(_from.owner).equipcard_area
+        for cs in equips.cards[:]:
+            if cs.associated_card in cards:
+                cs.delete()
+        equips.update()
+
     if _from.owner is g.me and _from.type in (_from.HANDCARD, _from.SHOWNCARD):
         handcard_update = True
         csl[:] = [
@@ -68,9 +75,21 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     # --- dest ---
 
+    if to.type == to.EQUIPS:
+        equips = self.player2portrait(to.owner).equipcard_area
+        from .view import SmallCardSprite
+        for c in cards:
+            cs = SmallCardSprite(
+                parent=equips, x=0, y=0,
+                img=c.ui_meta.image_small,
+            )
+            cs.associated_card = c
+        equips.update()
+
     if to.owner is g.me and to.type in (to.HANDCARD, to.SHOWNCARD):
         handcard_update = True
         csl.migrate_to(self.handcard_area)
+
     else:
         if to.type == to.DROPPEDCARD:
             dropcard_update = True

@@ -148,6 +148,7 @@ class OpticalCloakCard:
     # action_stage meta
     name = u'光学迷彩'
     image = gres.card_opticalcloak
+    image_small = gres.card_opticalcloak_small
 
     is_action_valid = equip_iav
 
@@ -165,6 +166,7 @@ class GreenUFOCard:
     # action_stage meta
     name = u'绿色UFO'
     image = gres.card_greenufo
+    image_small = gres.card_greenufo_small
 
     is_action_valid = equip_iav
 
@@ -183,6 +185,7 @@ class RedUFOCard:
     # action_stage meta
     name = u'红色UFO'
     image = gres.card_redufo
+    image_small = gres.card_redufo_small
 
     is_action_valid = equip_iav
 

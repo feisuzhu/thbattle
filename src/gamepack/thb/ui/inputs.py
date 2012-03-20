@@ -171,6 +171,12 @@ class UIDoActionStage(UISelectTarget):
                 if len(cards) != 1: break
 
                 card = cards[0]
+                try:
+                    rin = card.resides_in
+                    if rin not in (g.me.cards, g.me.shown_cards):
+                        break
+                except AttributeError:
+                    pass
 
                 source = parent.game.me
                 t = card.target

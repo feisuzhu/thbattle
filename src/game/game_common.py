@@ -28,7 +28,7 @@ class Action(object):
         '''
         Return true if the action can be fired.
         '''
-        _self, rst = self.game_class.getgame().emit_event('action_can_fire', (self, True))
+        _self, rst = self.game_class.getgame().emit_event('action_can_fire', (self, self.is_valid()))
         assert _self is self, "You can't replace action in 'action_can_fire' event!"
         return rst
 
@@ -46,6 +46,12 @@ class Action(object):
         Execute after all event handlers finished there work.
         '''
         pass
+
+    def is_valid(self):
+        '''
+        Return True if this action is complete and ready to fire.
+        '''
+        return True
 
 class AbstractPlayer(object):
     def reveal(self, obj_list):
