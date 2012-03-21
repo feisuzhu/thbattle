@@ -11,7 +11,8 @@ with ResLoader(__file__) as args:
     card_demolition = tx('card_demolition.tga')
     card_reject = tx('card_reject.tga')
     card_sealarray = tx('card_sealarray.tga')
-    tag_sealarray = anim('tag_sealarray.png', [300, 500, 300], True)
+    tag_sealarray = anim('tag_sealarray.png', [83]*36, True)
+
     card_nazrinrod= tx('card_nazrinrod.tga')
     card_opticalcloak = tx('card_opticalcloak.tga')
     card_opticalcloak_small = tx('card_opticalcloak_small.tga')
