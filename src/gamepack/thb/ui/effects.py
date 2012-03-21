@@ -45,6 +45,16 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
                 cs.delete()
         equips.update()
 
+    if _from.type == _from.FATETELL:
+        port = self.player2portrait(_from.owner)
+        taganims = port.taganims
+        for a in taganims:
+            if a.associated_card in cards:
+                a.associated_card = None
+                a.delete()
+        port.taganims = [a for a in port.taganims if a.associated_card]
+        port.tagarrange()
+
     if _from.owner is g.me and _from.type in (_from.HANDCARD, _from.SHOWNCARD):
         handcard_update = True
         csl[:] = [
@@ -85,6 +95,19 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             )
             cs.associated_card = c
         equips.update()
+
+    if to.type == to.FATETELL:
+        port = self.player2portrait(to.owner)
+        taganims = port.taganims
+        for c in cards:
+            a = LoopingAnim(
+                c.ui_meta.tag_anim,
+                x=0, y=0,
+                batch = self.animations
+            )
+            a.associated_card = c
+            port.taganims.append(a)
+        port.tagarrange()
 
     if to.owner is g.me and to.type in (to.HANDCARD, to.SHOWNCARD):
         handcard_update = True

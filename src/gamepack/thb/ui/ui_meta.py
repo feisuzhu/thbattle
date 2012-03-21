@@ -119,6 +119,7 @@ class SealingArrayCard:
     # action_stage meta
     name = u'封魔阵'
     image = gres.card_sealarray
+    tag_anim = gres.tag_sealarray
 
     def is_action_valid(cards, source, target_list):
         if len(target_list) != 1:

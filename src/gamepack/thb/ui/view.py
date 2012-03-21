@@ -154,10 +154,14 @@ class EquipCardArea(Control):
 EquipCardArea.register_event_type('on_selection_change')
 
 class GameCharacterPortrait(Dialog):
-    def __init__(self, color=Colors.blue, *args, **kwargs):
+
+    def __init__(self, color=Colors.blue, tag_placement='me', *args, **kwargs):
         self.selected = False
         self.player = None
         self.disabled = False
+        self.taganims = []
+        self.tag_placement = tag_placement
+
         Dialog.__init__(
             self, width=149, height=195,
             bot_reserve=20, color=color,
@@ -180,6 +184,50 @@ class GameCharacterPortrait(Dialog):
         @self.equipcard_area.event
         def on_selection_change():
             self.parent.dispatch_event('on_selection_change')
+
+
+        def tagarrange_bottom():
+            x, y = self.x, self.y
+            w, h = self.width, self.height
+            x += w + 1
+            y -= 27
+            for a in self.taganims: # they are pyglet.sprite.Sprite instances
+                x -= 27
+                a.set_position(x, y)
+
+        def tagarrange_me():
+            x, y = self.x, self.y
+            w, h = self.width, self.height
+            x += w + 6
+            y += 142
+            for a in self.taganims: # they are pyglet.sprite.Sprite instances
+                a.set_position(x, y)
+                x += 27
+
+        def tagarrange_right():
+            x, y = self.x, self.y
+            w, h = self.width, self.height
+            x += w + 3
+            y += 1
+            for a in self.taganims: # they are pyglet.sprite.Sprite instances
+                a.set_position(x, y)
+                y += 27
+
+        def tagarrange_left():
+            x, y = self.x, self.y
+            w, h = self.width, self.height
+            x -= 28
+            y += 1
+            for a in self.taganims: # they are pyglet.sprite.Sprite instances
+                a.set_position(x, y)
+                y += 27
+
+        self._tagarrange_funcs = {
+            'bottom': tagarrange_bottom,
+            'me': tagarrange_me,
+            'left': tagarrange_left,
+            'right': tagarrange_right,
+        }
 
     def update(self):
         p = self.player
@@ -257,6 +305,9 @@ class GameCharacterPortrait(Dialog):
         Dialog.delete(self)
         self.portcard_area.delete()
 
+    def tagarrange(self):
+        self._tagarrange_funcs[self.tag_placement]()
+
 class THBattleUI(Control):
     portrait_location = [ # [ ((x, y), (r, g, b)) ] * Game.n_persons
         # XXX: color n/a any more
@@ -308,8 +359,8 @@ class THBattleUI(Control):
 
     def init(self):
         ports = self.char_portraits = [
-            GameCharacterPortrait(parent=self, x=x, y=y)
-            for x, y in ((3, 1), (158, 446), (521, 446))[:len(self.game.players)]
+            GameCharacterPortrait(parent=self, x=x, y=y, tag_placement=tp)
+            for x, y, tp in ((3, 1, 'me'), (158, 446, 'bottom'), (521, 446, 'bottom'))[:len(self.game.players)]
         ] # FIXME: this is for testing
 
         pl = self.game.players

@@ -65,7 +65,6 @@ class Card(object):
 from collections import deque
 
 class CardList(deque):
-    # performance hack
     DECKCARD = 'deckcard'
     DROPPEDCARD = 'droppedcard'
     HANDCARD = 'handcard'
