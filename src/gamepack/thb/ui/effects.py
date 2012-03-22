@@ -78,6 +78,8 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             cs = CardSprite(
                 parent=pca,
                 img=card.ui_meta.image,
+                number=card.number,
+                suit=card.suit,
             )
             cs.associated_card = card
             csl.append(cs)

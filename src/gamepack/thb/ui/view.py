@@ -153,6 +153,63 @@ class EquipCardArea(Control):
     )
 EquipCardArea.register_event_type('on_selection_change')
 
+class ShownCardPanel(Panel):
+    current = None
+    def __init__(self, player, *a, **k):
+        self.player = player
+        ShownCardPanel.current = self
+        h = 30 + 145 + 10
+        w = 100 + 6*93.0 + 30
+
+        self.lbl = pyglet.text.Label(
+            text=u'明牌区',
+            font_name = 'AncientPix', font_size=12,
+            color=(255, 255, 160, 255),
+            x=30, y=30+62,
+            anchor_x='left', anchor_y='center',
+        )
+
+        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
+        p = self.parent
+        self.x, self.y = (p.width - w)//2, (p.height - h)//2
+        self.width, self.height = w, h
+        self.update()
+
+        ca = DropCardArea(
+            parent=self,
+            x=100, y=30,
+            fold_size=6,
+            width=6*93, height=125,
+        )
+        for c in player.shown_cards:
+            cs = CardSprite(
+                parent=ca,
+                img=c.ui_meta.image,
+                number=c.number,
+                suit=c.suit,
+            )
+        ca.update()
+
+        closebtn = ImageButton(
+            common_res.buttons.close_blue,
+            parent=self,
+            x=w-20, y=h-20
+        )
+        @closebtn.event
+        def on_click():
+            self.delete()
+
+    def blur_update(self):
+        Panel.blur_update(self)
+        with self.fbo:
+            with shaders.FontShadow as fs:
+                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+                self.lbl.draw()
+
+    def delete(self):
+        Panel.delete(self)
+        ShownCardPanel.current = None
+
 class GameCharacterPortrait(Dialog):
 
     def __init__(self, color=Colors.blue, tag_placement='me', *args, **kwargs):
@@ -184,7 +241,6 @@ class GameCharacterPortrait(Dialog):
         @self.equipcard_area.event
         def on_selection_change():
             self.parent.dispatch_event('on_selection_change')
-
 
         def tagarrange_bottom():
             x, y = self.x, self.y
@@ -229,6 +285,24 @@ class GameCharacterPortrait(Dialog):
             'right': tagarrange_right,
         }
 
+        showncard_btn = ImageButton(
+            common_res.buttons.port_showncard,
+            parent=self,
+            x=self.width - 22, y=90,
+        )
+
+        @showncard_btn.event
+        def on_click():
+            p = self.player
+            if not p: return
+            if not hasattr(p, 'shown_cards'): return # before the 'real' game start
+            last = ShownCardPanel.current
+            if last:
+                last.delete()
+                if last.player is p:
+                    return
+            ShownCardPanel(p, parent=self.parent)
+
     def update(self):
         p = self.player
         if not p: return
@@ -247,7 +321,10 @@ class GameCharacterPortrait(Dialog):
 
         self.bot_reserve=74
         Dialog.update(self)
-        with self.fbo:
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
+        fbo = self.auxfbo
+        with fbo:
+            fbo.texture = self.tex
             hp, hp_bg = common_res.hp, common_res.hp_bg
 
             # hp bar
@@ -260,12 +337,21 @@ class GameCharacterPortrait(Dialog):
             if w:
                 common_res.hp.get_region(0, 0, w, h).blit(5, 55)
 
-            # equip boxes
+
+            glPolygonMode(GL_BACK, GL_LINE)
+            w, h = self.width, self.height
+            # equip box
             glColor3f(1, 1, 1)
-            glRectf(2, 2, self.width-2, 54)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+            glRectf(2, 2, w-2, 54)
             glColor3f(*[i/255.0 for i in self.color.heavy])
-            glRectf(2.5, 2.5, 2.5+4*36, 54.5)
+            glRectf(2.5, 54.5, 2.5+4*36, 2.5)
+
+            # cardnum box
+            glColor3f(*[i/255.0 for i in self.color.light])
+            glRectf(w-2-32, 66,  w-2, 66+22)
+            glColor3f(*[i/255.0 for i in self.color.heavy])
+            glRectf(w-2-32, 66+22,  w-2, 66)
+
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
             # char name
@@ -286,6 +372,21 @@ class GameCharacterPortrait(Dialog):
 
     def draw(self):
         Dialog.draw(self)
+        w, h = self.width, self.height
+        p = self.player
+        glColor3f(1, 1, 1)
+        try:
+            n = len(p.cards) + len(p.shown_cards)
+            seq = str(n)
+            ox = (32 - len(seq)*14)//2
+            nums = common_res.num
+            for i, ch in enumerate(seq):
+                n = ord(ch) - ord('0')
+                x, y = w - 34 + ox + i*14, 68
+                nums[n].blit(w - 34 + ox + i*14, 68)
+        except AttributeError as e:
+            pass
+
         if self.disabled:
             glColor4f(0, 0, 0, 0.5)
             glRectf(0, 0, self.width, self.height)

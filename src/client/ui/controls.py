@@ -291,7 +291,7 @@ class Dialog(Control):
     Dialog, can move
     '''
     next_zindex = 1
-
+    auxfbo = Framebuffer()
     def __init__(self, caption='Dialog', color=Colors.green,
                  bot_reserve=10, bg=None, shadow_thick=2,
                  *args, **kwargs):
@@ -315,14 +315,17 @@ class Dialog(Control):
         def on_click():
             self.close()
 
+        self.tex = None
         self.update()
 
     def update(self):
+        tex = self.tex
+        fbo = self.auxfbo
         w, h  = self.width, self.height
-        tex = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
-        )
-        fbo = Framebuffer(tex)
+        if not tex or (tex.width, tex.height) != (w, h):
+            tex = pyglet.image.Texture.create_for_size(
+                GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
+            )
 
         def color(rgb):
             r, g, b = rgb
@@ -359,6 +362,7 @@ class Dialog(Control):
             ttex = False
 
         with fbo:
+            fbo.texture = tex
             bg = self.bg
             r = self.bot_reserve
             if bg:
@@ -399,7 +403,7 @@ class Dialog(Control):
             glLineWidth(1.0)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
-        self.fbo = fbo
+        self.tex = tex
 
     def on_resize(self, width, height):
         self.label.x = width // 2
@@ -409,7 +413,7 @@ class Dialog(Control):
 
     def draw(self):
         glColor3f(1,1,1)
-        self.fbo.texture.blit(0,0)
+        self.tex.blit(0,0)
 
         w, h = self.width, self.height
         ax, ay = self.abs_coords()
@@ -695,7 +699,8 @@ class CardSprite(Control): # TODO: these controls should be in gamepack ui, not 
     img_cardq = common_res.card_question
     img_cardh = common_res.card_hidden
     width, height = 91, 125
-    def __init__(self, x=0.0, y=0.0, img=None, *args, **kwargs):
+    auxfbo = Framebuffer()
+    def __init__(self, x=0.0, y=0.0, img=None, number=0, suit=0, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 91, 125
         self.shine = False
@@ -704,7 +709,12 @@ class CardSprite(Control): # TODO: these controls should be in gamepack ui, not 
         self.shine_alpha = 0.0
         self.alpha = 1.0
         self.img = img
+        self.tex = pyglet.image.Texture.create_for_size(
+            GL_TEXTURE_RECTANGLE_ARB, 91, 125, GL_RGBA
+        )
+        self.number, self.suit = number, suit
         self.ft_anim = False
+        self.update()
 
     def draw(self):
         if self.ft_anim:
@@ -716,7 +726,7 @@ class CardSprite(Control): # TODO: these controls should be in gamepack ui, not 
                 glColor4f(.66, .66, .66, ca)
             else:
                 glColor4f(1., 1., 1., ca)
-            self.img.blit(0, 0)
+            self.tex.blit(0, 0)
 
             glColor4f(1, 1, 1, aa)
 
@@ -731,11 +741,22 @@ class CardSprite(Control): # TODO: these controls should be in gamepack ui, not 
                 glColor4f(.66, .66, .66, a)
             else:
                 glColor4f(1., 1., 1., a)
-            self.img.blit(0, 0)
+            self.tex.blit(0, 0)
 
 
         glColor4f(1., 1., 1., self.shine_alpha)
         self.img_shinesoft.blit(-6, -6)
+
+    def update(self):
+        fbo = self.auxfbo
+        with fbo:
+            fbo.texture = self.tex
+            glColor3f(1, 1, 1)
+            self.img.blit(0, 0)
+            n, s = self.number, self.suit
+            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
+            if n: common_res.cardnumbers[s%2, n-1].blit(5, 105)
+            if s: common_res.suit[s-1].blit(6, 94)
 
     def on_mouse_enter(self, x, y):
         self.shine_alpha = 1.0

@@ -78,6 +78,16 @@ with ResLoader(__file__) as args:
     card_hidden = tx('card_hidden.tga')
     card_question = tx('card_question.tga')
 
+    cardnumbers = pyglet.image.ImageGrid(img('cardnum.tga'), 2, 13)
+    cardnumbers = pyglet.image.TextureGrid(cardnumbers)
+
+    suit = pyglet.image.ImageGrid(img('suit.tga'), 1, 4)
+    suit = pyglet.image.TextureGrid(suit)
+
+    num = pyglet.image.ImageGrid(img('num.tga'), 1, 10)
+    num = pyglet.image.TextureGrid(num)
+
+
     choosegirl_shine = tx('choosegirl_shine.png')
 
     actor_frame = anim('actor.png', [50] * 9, True)
@@ -101,6 +111,11 @@ with ResLoader(__file__) as args:
             tb.add(i) for i in
             pyglet.image.ImageGrid(img('buttons/closebtn_%s.png' % t), 1, 4)
         ])
+
+    buttons.port_showncard = [
+        tb.add(i) for i in
+        pyglet.image.ImageGrid(img('buttons/port_showncard.png'), 1, 4)
+    ]
 
     for k in args.keys(): del k
     del args

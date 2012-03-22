@@ -1,22 +1,8 @@
 THBattle:
-    延时锦囊 UI
-    距离 UI
-    装备 UI
-    明牌 UI
-
 
 CommonUI:
 ScrollBar
 ARTWORKS!
-
-Sorting EventHandlers:
-    use topo sort!
-    class XXX(EventHandler):
-        execute_before = (AAA, BBB)
-        execute_after = (CCC, DDD)
-        def handle(*a):
-            ...
-
 
 Core:
 user subsystem,

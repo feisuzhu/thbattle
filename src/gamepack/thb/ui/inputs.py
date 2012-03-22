@@ -398,6 +398,8 @@ class UIChoosePeerCard(Panel, InputController):
                 cs = CardSprite(
                     parent=ca,
                     img=c.ui_meta.image,
+                    number=c.number,
+                    suit=c.suit,
                 )
                 cs.associated_card = c
                 @cs.event
