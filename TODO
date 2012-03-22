@@ -1,5 +1,7 @@
 THBattle:
-
+    UI: ChooseIndividualCard, ChooseOption
+    Ballon prompt
+    
 CommonUI:
 ScrollBar
 ARTWORKS!

@@ -142,19 +142,24 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 def damage_effect(self, act):
     s, t = act.source, act.target
     port = self.player2portrait(t)
-    l = t.life
-    port.life = l if l > 0 else 0
+    #l = t.life
+    #port.life = l if l > 0 else 0
     port.update()
-    self.prompt(u'|c208020ff【%s】|r对|c208020ff【%s】|r造成了%d点伤害。' % (
-        s.ui_meta.char_name, t.ui_meta.char_name, act.amount
-    ))
+    if s:
+        self.prompt(u'|c208020ff【%s】|r对|c208020ff【%s】|r造成了%d点伤害。' % (
+            s.ui_meta.char_name, t.ui_meta.char_name, act.amount
+        ))
+    else:
+        self.prompt(u'|c208020ff【%s】|r受到了%d点无来源的伤害。' % (
+            t.ui_meta.char_name, act.amount
+        ))
     OneShotAnim(common_res.hurt, x=port.x, y=port.y, batch=self.animations)
 
 def heal_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
-    l = t.life
-    port.life = l if l > 0 else 0
+    #l = t.life
+    #port.life = l if l > 0 else 0
     port.update()
     if act.succeeded:
         self.prompt(u'|c208020ff【%s】|r回复了%d点体力。' % (

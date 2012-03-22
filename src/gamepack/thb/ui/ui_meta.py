@@ -140,6 +140,19 @@ class NazrinRodCard:
         assert t is source
         return (True, u'看看能找到什么好东西~')
 
+class WorshiperCard:
+    # action_stage meta
+    name = u'罪袋'
+    image = gres.card_zuidai
+    tag_anim = gres.tag_zuidai
+
+    def is_action_valid(cards, source, target_list):
+        target = target_list[0]
+        if not source == target:
+            return (False, u'BUG!!!!')
+
+        return (True, u'别来找我！')
+
 def equip_iav(cards, source, target_list):
     t = target_list[0]
     assert t is source
@@ -201,6 +214,22 @@ class RedUFOSkill:
     def is_action_valid(skill, source, target_list):
         return (False, 'BUG!')
 
+class YukariDimensionCard:
+    # action_stage meta
+    image = gres.card_yukaridimension
+    name = u'紫的隙间'
+
+    def is_action_valid(cards, source, target_list):
+        if not target_list:
+            return (False, u'请选择目标')
+
+        target= target_list[0]
+        if source == target:
+            return (True, u'这毫无意义！')
+        elif not len(target.cards):
+            return (False, u'这货已经没有牌了')
+        else:
+            return (True, u'请把胖次给我！')
 
 # -----END CARDS UI META-----
 

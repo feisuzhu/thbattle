@@ -22,6 +22,7 @@ with ResLoader(__file__) as args:
     card_redufo_small = tx('card_redufo_small.tga')
     card_zuidai = tx('card_zuidai.tga')
     tag_zuidai = anim('tag_zuidai.png', [100]*3, True)
+    card_yukaridimension = tx('card_yukaridimension.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

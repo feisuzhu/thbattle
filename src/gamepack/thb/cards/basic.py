@@ -16,7 +16,9 @@ class Attack(BasicAction):
         source, target = self.source, self.target
         graze_action = UseGraze(target)
         if not g.process_action(graze_action):
-            g.process_action(Damage(source, target, amount=self.damage))
+            dmg = Damage(source, target, amount=self.damage)
+            dmg.associated_action = self
+            g.process_action(dmg)
             return True
         else:
             return False

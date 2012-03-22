@@ -62,6 +62,14 @@ class RedUFOCard:
     equipment_skill = equipment.RedUFOSkill
     equipment_category = 'redufo'
 
+class WorshiperCard:
+    associated_action = spellcard.Worshiper
+    target = 'self'
+
+class YukariDimensionCard:
+    associated_action = spellcard.YukariDimension
+    target = 1
+    distance = 1
 
 # --------------------------------------------------
 
@@ -138,4 +146,6 @@ card_definition = [
     (RejectCard, Card.SPADE, 13),
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
+    (WorshiperCard, Card.SPADE, 7),
+    (YukariDimensionCard, Card.HEART, 9)
 ] * 2
