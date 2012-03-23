@@ -23,6 +23,9 @@ with ResLoader(__file__) as args:
     card_zuidai = tx('card_zuidai.tga')
     tag_zuidai = anim('tag_zuidai.png', [100]*3, True)
     card_yukaridimension = tx('card_yukaridimension.tga')
+    card_duel = tx('card_duel.tga')
+    card_worshiperscarnival = tx('card_worshiperscarnival.tga')
+    card_mapcannon = tx('card_mapcannon.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

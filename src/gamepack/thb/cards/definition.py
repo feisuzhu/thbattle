@@ -71,6 +71,18 @@ class YukariDimensionCard:
     target = 1
     distance = 1
 
+class DuelCard:
+    associated_action = spellcard.Duel
+    target = 1
+
+class MapCannonCard:
+    associated_action = spellcard.MapCannon
+    target = 'all'
+
+class WorshipersCarnivalCard:
+    associated_action = spellcard.WorshipersCarnival
+    target = 'all'
+
 # --------------------------------------------------
 
 __metaclass__ = type
@@ -138,6 +150,8 @@ card_definition = [
 card_definition = [
     (OpticalCloakCard, Card.SPADE, 1),
     (AttackCard, Card.CLUB, 1),
+    (AttackCard, Card.CLUB, 3),
+    (AttackCard, Card.CLUB, 5),
     (GrazeCard, Card.CLUB, 1),
     (HealCard, Card.CLUB, 3),
     (DemolitionCard, Card.DIAMOND, 1),
@@ -147,5 +161,8 @@ card_definition = [
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
     (WorshiperCard, Card.SPADE, 7),
-    (YukariDimensionCard, Card.HEART, 9)
+    (YukariDimensionCard, Card.HEART, 9),
+    (DuelCard, Card.SPADE, 13),
+    (WorshipersCarnivalCard, Card.SPADE, 12),
+    (MapCannonCard, Card.SPADE, 12),
 ] * 2

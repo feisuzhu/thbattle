@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..actions import *
+from . import basic
 
 class SpellCardAction(UserAction): pass
 
@@ -227,3 +228,60 @@ class YukariDimension(SpellCardAction):
         source.reveal(card)
         migrate_cards([card], source.cards)
         return True
+
+class Duel(SpellCardAction):
+    # 弹幕战
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        source = self.source
+        target = self.target
+
+        d = (source, target)
+        while True:
+            d = (d[1], d[0])
+            if not g.process_action(basic.UseAttack(d[0])): break
+
+        dmg = Damage(d[1], d[0], amount=1)
+        dmg.associated_action = self
+        g.process_action(dmg)
+        return d[1] is source
+
+class MapCannon(SpellCardAction):
+    # 地图炮
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        source, target = self.source, self.target
+        graze_action = basic.UseGraze(target)
+        if not g.process_action(graze_action):
+            dmg = Damage(source, target, amount=1)
+            dmg.associated_action = self
+            g.process_action(dmg)
+            return True
+        else:
+            return False
+
+class WorshipersCarnival(SpellCardAction):
+    # 罪袋狂欢
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        source, target = self.source, self.target
+        use_action = basic.UseAttack(target)
+        if not g.process_action(use_action):
+            dmg = Damage(source, target, amount=1)
+            dmg.associated_action = self
+            g.process_action(dmg)
+            return True
+        else:
+            return False

@@ -70,6 +70,11 @@ class UseGraze:
     text_valid = u'我闪！'
     text = u'请使用擦弹…'
 
+class UseAttack:
+    # choose_card meta
+    text_valid = u'打架？来吧！'
+    text = u'请打出一张击…'
+
 class HealCard:
     # action_stage meta
     image = gres.card_heal
@@ -225,11 +230,41 @@ class YukariDimensionCard:
 
         target= target_list[0]
         if source == target:
-            return (True, u'这毫无意义！')
+            return (True, u'你不能对自己使用隙间')
         elif not len(target.cards):
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'请把胖次给我！')
+
+class DuelCard:
+    # action_stage meta
+    image = gres.card_duel
+    name = u'弹幕战'
+
+    def is_action_valid(cards, source, target_list):
+        if not target_list:
+            return (False, u'请选择弹幕战的目标')
+
+        target= target_list[0]
+        if source == target:
+            return (True, u'你不能对自己使用弹幕战')
+        else:
+            return (True, u'来，战个痛快！')
+
+class MapCannonCard:
+    image = gres.card_mapcannon
+    name = u'地图炮'
+
+    def is_action_valid(cards, source, target_list):
+        return (True, u'一个都不能跑！')
+
+class WorshipersCarnivalCard:
+    image = gres.card_worshiperscarnival
+    name = u'罪袋狂欢'
+
+    def is_action_valid(cards, source, target_list):
+        return (True, u'罪袋们冲进来啦！')
+
 
 # -----END CARDS UI META-----
 

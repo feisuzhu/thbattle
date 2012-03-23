@@ -177,8 +177,10 @@ class UseCard(GenericAction):
         target = self.target
         cards = user_choose_card(self, target, self.cond)
         if not cards:
+            self.associated_cards = []
             return False
         else:
+            self.associated_cards = cards
             drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True
@@ -240,6 +242,13 @@ class LaunchCard(GenericAction):
         t = card.target
         if t == 'self':
             target_list = [source]
+        elif t == 'all':
+            g = Game.getgame()
+            target_list = BatchList(g.players)
+            target_list.remove(source)
+        elif t == 'all_inclusive':
+            g = Game.getgame()
+            target_list = BatchList(g.players)
         elif isinstance(t, int):
             if len(target_list) != t:
                card = None # Incorrect target_list

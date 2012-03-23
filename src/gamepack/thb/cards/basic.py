@@ -31,9 +31,9 @@ class Heal(BasicAction):
         self.amount = amount
 
     def apply_action(self):
-        source = self.source # target is ignored
-        if source.life < source.maxlife:
-            source.life = min(source.life + self.amount, source.maxlife)
+        target = self.target
+        if target.life < target.maxlife:
+            target.life = min(target.life + self.amount, target.maxlife)
             return True
         else:
             return False
@@ -41,4 +41,19 @@ class Heal(BasicAction):
 class UseGraze(UseCard):
     def cond(self, cl):
         from .. import cards
-        return len(cl) == 1 and isinstance(cl[0], cards.GrazeCard)
+        t = self.target
+        return (
+            len(cl) == 1 and
+            isinstance(cl[0], cards.GrazeCard) and
+            cl[0].resides_in.owner is t
+        )
+
+class UseAttack(UseCard):
+    def cond(self, cl):
+        from .. import cards
+        t = self.target
+        return (
+            len(cl) == 1 and
+            isinstance(cl[0], cards.AttackCard) and
+            cl[0].resides_in.owner is t
+        )
