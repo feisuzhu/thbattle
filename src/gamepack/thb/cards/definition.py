@@ -83,6 +83,12 @@ class WorshipersCarnivalCard:
     associated_action = spellcard.WorshipersCarnival
     target = 'all'
 
+class HakuroukenCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.HakuroukenSkill
+    equipment_category = 'weapon'
+
 # --------------------------------------------------
 
 __metaclass__ = type
@@ -165,4 +171,7 @@ card_definition = [
     (DuelCard, Card.SPADE, 13),
     (WorshipersCarnivalCard, Card.SPADE, 12),
     (MapCannonCard, Card.SPADE, 12),
+    (HakuroukenCard, Card.SPADE, 7),
+    (HakuroukenCard, Card.SPADE, 8),
+    (HakuroukenCard, Card.SPADE, 9),
 ] * 2

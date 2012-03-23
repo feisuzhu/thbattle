@@ -26,6 +26,8 @@ with ResLoader(__file__) as args:
     card_duel = tx('card_duel.tga')
     card_worshiperscarnival = tx('card_worshiperscarnival.tga')
     card_mapcannon = tx('card_mapcannon.tga')
+    card_hakurouken = tx('card_hakurouken.tga')
+    card_hakurouken_small = tx('card_hakurouken_small.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

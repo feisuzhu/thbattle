@@ -265,6 +265,23 @@ class WorshipersCarnivalCard:
     def is_action_valid(cards, source, target_list):
         return (True, u'罪袋们冲进来啦！')
 
+class HakuroukenCard:
+    # action_stage meta
+    name = u'白楼剑'
+    image = gres.card_hakurouken
+    image_small = gres.card_hakurouken_small
+
+    is_action_valid = equip_iav
+
+class HakuroukenSkill:
+    # Skill
+    name = u'白楼剑'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(skill, source, target_list):
+        return (False, 'BUG!')
 
 # -----END CARDS UI META-----
 

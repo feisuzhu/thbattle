@@ -4,6 +4,8 @@ from .base import *
 from ..skill import *
 from ..actions import *
 
+from . import basic
+
 class WearEquipmentAction(UserAction):
     def __init__(self, source, target):
         self.source = source
@@ -36,9 +38,12 @@ class EquipmentTransferHandler(EventHandler):
 
         return args
 
-class OpticalCloakSkill(Skill): # just a tag
+class ShieldSkill(Skill):
     associated_action = None
     target = None
+
+class OpticalCloakSkill(ShieldSkill): # just a tag
+    pass
 
 class OpticalCloak(FatetellAction, GenericAction):
     # 光学迷彩
@@ -94,4 +99,58 @@ class UFODistanceHandler(EventHandler):
                 for s in p.skills:
                     if issubclass(s, GreenUFOSkill):
                         dist[p] += s.increment
+        return act
+
+class WeaponSkill(Skill):
+    range = 1
+
+@register_eh
+class WeaponDistanceHandler(EventHandler):
+    execute_before = (DistanceValidator,)
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, CalcDistance):
+            card = act.card
+            if issubclass(card.associated_action, basic.BaseAttack):
+                source = act.source
+                for s in source.skills:
+                    if issubclass(s, WeaponSkill):
+                        act.correction += s.range - 1
+        return act
+
+
+class HakuroukenSkill(Skill):
+    associated_action = None
+    target = None
+    range = 2
+
+class Hakurouken(InternalAction):
+    # 白楼剑
+    def __init__(self, act):
+        assert isinstance(act, basic.BaseAttack)
+        self.action = act
+
+    def apply_action(self):
+        act = self.action
+        target = act.target
+        shield_skills = []
+        skills = target.skills
+        for i, s in reversed(list(enumerate(skills))):
+            if issubclass(s, ShieldSkill):
+                del skills[i]
+                shield_skills.append(s)
+        rst = Game.getgame().process_action(act)
+        skills.extend(shield_skills)
+        return rst
+
+@register_eh
+class HakuroukenEffectHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
+            if hasattr(act, 'hakurouken_tag'):
+                return act
+            act.hakurouken_tag = True
+            source = act.source
+            if source.has_skill(HakuroukenSkill):
+                act = Hakurouken(act)
+                return act
         return act
