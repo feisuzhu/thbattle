@@ -30,7 +30,10 @@ class EquipmentTransferHandler(EventHandler):
             act, cards, _from, to = args
             if _from.type == CardList.EQUIPS:
                 for c in cards:
-                    _from.owner.skills.remove(c.equipment_skill)
+                    try:
+                        _from.owner.skills.remove(c.equipment_skill)
+                    except ValueError:
+                        pass
 
             if to.type == CardList.EQUIPS:
                 for c in cards:
@@ -132,14 +135,16 @@ class Hakurouken(InternalAction):
     def apply_action(self):
         act = self.action
         target = act.target
-        shield_skills = []
         skills = target.skills
-        for i, s in reversed(list(enumerate(skills))):
+        for e in target.equips:
+            s = e.equipment_skill
             if issubclass(s, ShieldSkill):
-                del skills[i]
-                shield_skills.append(s)
+                skills.remove(s)
         rst = Game.getgame().process_action(act)
-        skills.extend(shield_skills)
+        for card in target.equips:
+            s = card.equipment_skill
+            if issubclass(s, ShieldSkill):
+                skills.append(s)
         return rst
 
 @register_eh
