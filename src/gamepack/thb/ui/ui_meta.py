@@ -302,6 +302,25 @@ class ElementalReactorSkill:
         return (False, 'BUG!')
 
 
+class UmbrellaCard:
+    # action_stage meta
+    name = u'紫的阳伞'
+    image = gres.card_umbrella
+    image_small = gres.card_umbrella_small
+
+    is_action_valid = equip_iav
+
+class UmbrellaSkill:
+    # Skill
+    name = u'紫的阳伞'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(skill, source, target_list):
+        return (False, 'BUG!')
+
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----

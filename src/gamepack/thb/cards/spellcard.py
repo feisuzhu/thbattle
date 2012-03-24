@@ -53,6 +53,8 @@ class Reject(SpellCardAction):
 class RejectHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, SpellCardAction):
+            if act.cancelled: return act # some other thing have done the job
+
             g = Game.getgame()
 
             p, input = g.players.user_input_any(

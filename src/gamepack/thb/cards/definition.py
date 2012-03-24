@@ -94,6 +94,12 @@ class ElementalReactorCard:
     target = 'self'
     equipment_skill = equipment.ElementalReactorSkill
     equipment_category = 'weapon'
+
+class UmbrellaCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.UmbrellaSkill
+    equipment_category = 'shield'
 # --------------------------------------------------
 
 __metaclass__ = type
@@ -178,8 +184,6 @@ card_definition = [
     (MapCannonCard, Card.SPADE, 12),
     (HakuroukenCard, Card.SPADE, 7),
     (ElementalReactorCard, Card.DIAMOND, 1),
-    (ElementalReactorCard, Card.DIAMOND, 1),
-    (ElementalReactorCard, Card.DIAMOND, 1),
-    (ElementalReactorCard, Card.DIAMOND, 1),
-    
+    (UmbrellaCard, Card.DIAMOND, 4),
+
 ] * 2

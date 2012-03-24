@@ -59,8 +59,7 @@ class THBattle(Game):
         # game started, init state
         from cards import Card, Deck, CardList
 
-        for cls in action_eventhandlers:
-            self.event_handlers.append(cls())
+        ehclasses = list(action_eventhandlers)
 
         forces = BatchList([PlayerList(), PlayerList()])
         for i, p in enumerate(self.players):
@@ -149,8 +148,9 @@ class THBattle(Game):
             p = c.chosen
             mixin_character(p, c.char_cls)
             p.skills = p.skills[:] # make it instance variable
-            for cls in p.eventhandlers_required:
-                self.event_handlers.append(cls())
+            ehclasses.extend(p.eventhandlers_required)
+
+        self.event_handlers = EventHandler.make_list(ehclasses)
 
         for p in self.players:
             p.cards = CardList(p, CardList.HANDCARD) # Cards in hand

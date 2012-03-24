@@ -4,7 +4,7 @@ from .base import *
 from ..skill import *
 from ..actions import *
 
-from . import basic
+from . import basic, spellcard
 
 class WearEquipmentAction(UserAction):
     def __init__(self, source, target):
@@ -167,5 +167,19 @@ class ElementalReactorHandler(EventHandler):
                     actor.tags['attack_num'] -= 1000
         elif evt_type == 'action_after' and isinstance(act, ActionStage):
             act.actor.tags['reactor_tag'] = False
-            
+
+        return act
+
+class UmbrellaSkill(ShieldSkill):
+    pass
+
+@register_eh
+class UmbrellaHandler(EventHandler):
+    # 紫的阳伞
+    execute_before = (spellcard.RejectHandler, )
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before':
+            if isinstance(act, (spellcard.MapCannon, spellcard.WorshipersCarnival)):
+                if act.target.has_skill(UmbrellaSkill):
+                    act.cancelled = True
         return act

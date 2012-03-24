@@ -10,7 +10,7 @@ from client.ui import shaders
 import resource as gres
 from utils import IRP
 
-from gamepack.simple.actions import *
+from ..actions import register_eh
 from game.autoenv import EventHandler, Action, GameError
 
 import logging
@@ -18,6 +18,7 @@ log = logging.getLogger('THBattleUI')
 
 import effects, inputs
 
+@register_eh
 class UIEventHook(EventHandler):
 
     def evt_user_input(self, input):
@@ -419,7 +420,7 @@ class THBattleUI(Control):
 
     def __init__(self, game, *a, **k):
         self.game = game
-        game.event_handlers.append(UIEventHook())
+        #game.event_handlers.append(UIEventHook())
         Control.__init__(self, *a, **k)
 
         self.handcard_area = HandCardArea(
