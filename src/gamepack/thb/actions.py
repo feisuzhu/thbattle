@@ -285,6 +285,7 @@ class ActionStage(GenericAction):
 
         try:
             while True:
+                g.emit_event('action_stage_action', self)
                 input = actor.user_input('action_stage_usecard')
                 check_type([[int, Ellipsis]] * 3, input)
 

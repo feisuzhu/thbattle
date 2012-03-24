@@ -107,21 +107,7 @@ class UFODistanceHandler(EventHandler):
 class WeaponSkill(Skill):
     range = 1
 
-@register_eh
-class WeaponDistanceHandler(EventHandler):
-    execute_before = (DistanceValidator,)
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, CalcDistance):
-            card = act.card
-            if issubclass(card.associated_action, basic.BaseAttack):
-                source = act.source
-                for s in source.skills:
-                    if issubclass(s, WeaponSkill):
-                        act.correction += s.range - 1
-        return act
-
-
-class HakuroukenSkill(Skill):
+class HakuroukenSkill(WeaponSkill):
     associated_action = None
     target = None
     range = 2
@@ -158,4 +144,28 @@ class HakuroukenEffectHandler(EventHandler):
             if source.has_skill(HakuroukenSkill):
                 act = Hakurouken(act)
                 return act
+        return act
+
+class ElementalReactorSkill(WeaponSkill):
+    associated_action = None
+    target = None
+    range = 1
+
+@register_eh
+class ElementalReactorHandler(EventHandler):
+    # 八卦炉
+    def handle(self, evt_type, act):
+        if evt_type == 'action_stage_action':
+            actor = act.actor
+            if actor.has_skill(ElementalReactorSkill):
+                if not actor.tags.get('reactor_tag', False):
+                    actor.tags['reactor_tag'] = True
+                    actor.tags['attack_num'] += 1000
+            else:
+                if actor.tags.get('reactor_tag', False):
+                    actor.tags['reactor_tag'] = False
+                    actor.tags['attack_num'] -= 1000
+        elif evt_type == 'action_after' and isinstance(act, ActionStage):
+            act.actor.tags['reactor_tag'] = False
+            
         return act

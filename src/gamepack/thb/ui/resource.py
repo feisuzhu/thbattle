@@ -28,6 +28,8 @@ with ResLoader(__file__) as args:
     card_mapcannon = tx('card_mapcannon.tga')
     card_hakurouken = tx('card_hakurouken.tga')
     card_hakurouken_small = tx('card_hakurouken_small.tga')
+    card_reactor = tx('card_reactor.tga')
+    card_reactor_small = tx('card_reactor_small.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

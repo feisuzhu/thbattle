@@ -283,6 +283,25 @@ class HakuroukenSkill:
     def is_action_valid(skill, source, target_list):
         return (False, 'BUG!')
 
+class ElementalReactorCard:
+    # action_stage meta
+    name = u'八卦炉'
+    image = gres.card_reactor
+    image_small = gres.card_reactor_small
+
+    is_action_valid = equip_iav
+
+class ElementalReactorSkill:
+    # Skill
+    name = u'八卦炉'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(skill, source, target_list):
+        return (False, 'BUG!')
+
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----
