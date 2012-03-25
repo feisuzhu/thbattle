@@ -150,7 +150,7 @@ class THBattle(Game):
             p.skills = p.skills[:] # make it instance variable
             ehclasses.extend(p.eventhandlers_required)
 
-        self.event_handlers = EventHandler.make_list(ehclasses)
+        self.event_handlers.extend(EventHandler.make_list(ehclasses))
 
         for p in self.players:
             p.cards = CardList(p, CardList.HANDCARD) # Cards in hand
