@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import cards
+import cards.base
 
-class Skill(cards.Card):
+class Skill(cards.base.Card): # arghhh nasty circular references!
     __eq__ = object.__eq__
     __ne__ = object.__ne__
     __hash__ = object.__hash__
@@ -44,7 +44,7 @@ class Skill(cards.Card):
 
     # target = xxx
     # associated_action = xxx
-    # associated_cards = xxx
+    # instance var: associated_cards = xxx
 
 class _TreatAsSkillMeta(type):
     def __new__(cls, clsname, bases, _dict):

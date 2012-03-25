@@ -37,7 +37,7 @@ class HiddenCard:
     image = cres.card_hidden
     name = u'这个是隐藏卡片，你不应该看到它'
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, u'这是BUG，你没法发动这张牌…')
 
 class AttackCard:
@@ -45,7 +45,7 @@ class AttackCard:
     image = gres.card_attack
     name = u'击'
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         if not target_list:
             return (False, u'请选择击的目标')
         target = target_list[0]
@@ -61,7 +61,7 @@ class GrazeCard:
     # action_stage meta
     name = u'擦弹'
     image = gres.card_graze
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, u'你不能主动使用擦弹')
 
 class UseGraze:
@@ -80,7 +80,7 @@ class HealCard:
     image = gres.card_heal
     name = u'桃'
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         target = target_list[0]
         if not source == target:
             return (False, u'BUG!!!!')
@@ -95,7 +95,7 @@ class DemolitionCard:
     image = gres.card_demolition
     name = u'城管执法'
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         if not target_list:
             return (False, u'请选择拆除目标')
 
@@ -112,7 +112,7 @@ class RejectCard:
     name = u'好人卡'
     image = gres.card_reject
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, u'你不能主动出好人卡')
 
 class RejectHandler:
@@ -126,7 +126,7 @@ class SealingArrayCard:
     image = gres.card_sealarray
     tag_anim = gres.tag_sealarray
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         if len(target_list) != 1:
             return (False, u'请选择封魔阵的目标')
         t = target_list[0]
@@ -140,7 +140,7 @@ class NazrinRodCard:
     name = u'探宝棒'
     image = gres.card_nazrinrod
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         t = target_list[0]
         assert t is source
         return (True, u'看看能找到什么好东西~')
@@ -151,14 +151,14 @@ class WorshiperCard:
     image = gres.card_zuidai
     tag_anim = gres.tag_zuidai
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         target = target_list[0]
         if not source == target:
             return (False, u'BUG!!!!')
 
         return (True, u'别来找我！')
 
-def equip_iav(cards, source, target_list):
+def equip_iav(cl, source, target_list):
     t = target_list[0]
     assert t is source
     return (True, u'配上好装备，不再掉节操！')
@@ -178,7 +178,7 @@ class OpticalCloakSkill:
     def clickable(game):
         return False
 
-    def is_action_valid(skill, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
 class GreenUFOCard:
@@ -197,7 +197,7 @@ class GreenUFOSkill:
     def clickable(game):
         return False
 
-    def is_action_valid(skill, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
 class RedUFOCard:
@@ -216,7 +216,7 @@ class RedUFOSkill:
     def clickable(game):
         return False
 
-    def is_action_valid(skill, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
 class YukariDimensionCard:
@@ -224,7 +224,7 @@ class YukariDimensionCard:
     image = gres.card_yukaridimension
     name = u'紫的隙间'
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         if not target_list:
             return (False, u'请选择目标')
 
@@ -241,7 +241,7 @@ class DuelCard:
     image = gres.card_duel
     name = u'弹幕战'
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         if not target_list:
             return (False, u'请选择弹幕战的目标')
 
@@ -255,14 +255,14 @@ class MapCannonCard:
     image = gres.card_mapcannon
     name = u'地图炮'
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (True, u'一个都不能跑！')
 
 class WorshipersCarnivalCard:
     image = gres.card_worshiperscarnival
     name = u'罪袋狂欢'
 
-    def is_action_valid(cards, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (True, u'罪袋们冲进来啦！')
 
 class HakuroukenCard:
@@ -280,7 +280,7 @@ class HakuroukenSkill:
     def clickable(game):
         return False
 
-    def is_action_valid(skill, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
 class ElementalReactorCard:
@@ -298,7 +298,7 @@ class ElementalReactorSkill:
     def clickable(game):
         return False
 
-    def is_action_valid(skill, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
 
@@ -317,7 +317,7 @@ class UmbrellaSkill:
     def clickable(game):
         return False
 
-    def is_action_valid(skill, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
 class RoukankenCard:
@@ -335,9 +335,49 @@ class RoukankenSkill:
     def clickable(game):
         return False
 
-    def is_action_valid(skill, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
+class GungnirCard:
+    # action_stage meta
+    name = u'冈格尼尔'
+    image = gres.card_gungnir
+    image_small = gres.card_gungnir_small
+
+    is_action_valid = equip_iav
+
+class GungnirSkill:
+    # Skill
+    name = u'冈格尼尔'
+
+    def clickable(game):
+        me = game.me
+        try:
+            act = game.action_stack[0]
+            if isinstance(act, (actions.ActionStage, cards.UseAttack)):
+                return True
+        except IndexError:
+            pass
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        skill = cl[0]
+        assert isinstance(skill, cards.GungnirSkill)
+        if len(skill.associated_cards) != 2:
+            return (False, u'请选择2张牌！')
+        else:
+            return cards.AttackCard.ui_meta.is_action_valid([skill], source, target_list)
+
+    def effect_string(act):
+        # for effects.launch_effect
+        source = act.source
+        card = act.card
+        target = act.target_list[0]
+        s = u'|c208020ff【%s】|r发动了冈格尼尔之枪，将两张牌当作|c208020ff【击】|r对|c208020ff【%s】|r使用。' % (
+            source.ui_meta.char_name,
+            target.ui_meta.char_name,
+        )
+        return s
 
 
 # -----END CARDS UI META-----
@@ -360,8 +400,8 @@ class Envy:
             return True
         return False
 
-    def is_action_valid(skill, source, target_list):
-        skill = skill[0]
+    def is_action_valid(cl, source, target_list):
+        skill = cl[0]
         assert isinstance(skill, characters.Envy)
         if len(skill.associated_cards) != 1:
             return (False, u'请选择一张牌！')
@@ -395,7 +435,7 @@ class Mijincihangzhan:
     def clickable(game):
         return False
 
-    def is_action_valid(skill, source, target_list):
+    def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
 # ----------
@@ -415,8 +455,8 @@ class Find:
             return True
         return False
 
-    def is_action_valid(skill, source, target_list):
-        skill = skill[0]
+    def is_action_valid(cl, source, target_list):
+        skill = cl[0]
         assert isinstance(skill, characters.Find)
         if not len(skill.associated_cards):
             return (False, u'请选择需要换掉的牌！')

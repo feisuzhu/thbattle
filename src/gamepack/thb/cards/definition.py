@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck definition
 
-from . import basic, equipment, spellcard
 from .base import Card
 
 def card_meta(clsname, bases, _dict):
@@ -13,7 +12,9 @@ def card_meta(clsname, bases, _dict):
 
 __metaclass__ = card_meta
 
-# --------------------------------------------------
+# ==================================================
+
+from . import basic
 
 class AttackCard:
     associated_action = basic.Attack
@@ -27,6 +28,10 @@ class GrazeCard:
 class HealCard:
     associated_action = basic.Heal
     target = 'self'
+
+# --------------------------------------------------
+
+from . import spellcard
 
 class DemolitionCard:
     associated_action = spellcard.Demolition
@@ -43,24 +48,6 @@ class SealingArrayCard:
 class NazrinRodCard:
     associated_action = spellcard.NazrinRod
     target = 'self'
-
-class OpticalCloakCard:
-    associated_action = equipment.WearEquipmentAction
-    target = 'self'
-    equipment_skill = equipment.OpticalCloakSkill
-    equipment_category = 'shield'
-
-class GreenUFOCard:
-    associated_action = equipment.WearEquipmentAction
-    target = 'self'
-    equipment_skill = equipment.GreenUFOSkill
-    equipment_category = 'greenufo'
-
-class RedUFOCard:
-    associated_action = equipment.WearEquipmentAction
-    target = 'self'
-    equipment_skill = equipment.RedUFOSkill
-    equipment_category = 'redufo'
 
 class WorshiperCard:
     associated_action = spellcard.Worshiper
@@ -82,6 +69,28 @@ class MapCannonCard:
 class WorshipersCarnivalCard:
     associated_action = spellcard.WorshipersCarnival
     target = 'all'
+
+# --------------------------------------------------
+
+from . import equipment
+
+class OpticalCloakCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.OpticalCloakSkill
+    equipment_category = 'shield'
+
+class GreenUFOCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.GreenUFOSkill
+    equipment_category = 'greenufo'
+
+class RedUFOCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.RedUFOSkill
+    equipment_category = 'redufo'
 
 class HakuroukenCard:
     associated_action = equipment.WearEquipmentAction
@@ -107,7 +116,13 @@ class RoukankenCard:
     equipment_skill = equipment.RoukankenSkill
     equipment_category = 'weapon'
 
-# --------------------------------------------------
+class GungnirCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.GungnirSkill
+    equipment_category = 'weapon'
+
+# ==================================================
 
 __metaclass__ = type
 
@@ -179,7 +194,7 @@ card_definition = [
     (AttackCard, Card.CLUB, 1),
     (AttackCard, Card.CLUB, 3),
     (AttackCard, Card.CLUB, 5),
-    
+
     (GrazeCard, Card.CLUB, 1),
     (HealCard, Card.CLUB, 3),
     (DemolitionCard, Card.DIAMOND, 1),
@@ -197,6 +212,10 @@ card_definition = [
     (ElementalReactorCard, Card.DIAMOND, 1),
     (UmbrellaCard, Card.DIAMOND, 4),
     (RoukankenCard, Card.DIAMOND, 1),
-    (RoukankenCard, Card.DIAMOND, 1),
-    (RoukankenCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+
+
 ] * 2

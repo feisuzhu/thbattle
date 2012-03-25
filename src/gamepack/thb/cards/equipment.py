@@ -4,7 +4,7 @@ from .base import *
 from ..skill import *
 from ..actions import *
 
-from . import basic, spellcard
+from . import basic, spellcard, base
 
 class WearEquipmentAction(UserAction):
     def __init__(self, source, target):
@@ -202,3 +202,13 @@ class RoukankenHandler(EventHandler):
                     g.process_action(basic.Attack(source=src, target=tgt))
 
         return act
+
+class GungnirSkill(TreatAsSkill, WeaponSkill):
+    treat_as = Card.card_classes['AttackCard'] # arghhhhh, nasty circular references!
+    range = 3
+    target = 1
+    def check(self):
+        cl = self.associated_cards
+        cat = (base.CardList.HANDCARD, base.CardList.SHOWNCARD)
+        if not all(c.resides_in.type in cat for c in cl): return False
+        return len(cl) == 2
