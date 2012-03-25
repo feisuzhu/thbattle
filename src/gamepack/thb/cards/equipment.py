@@ -6,6 +6,8 @@ from ..actions import *
 
 from . import basic, spellcard, base
 
+from utils import check, CheckFailed
+
 class WearEquipmentAction(UserAction):
     def __init__(self, source, target):
         self.source = source
@@ -214,3 +216,20 @@ class GungnirSkill(TreatAsSkill, WeaponSkill):
         cat = (base.CardList.HANDCARD, base.CardList.SHOWNCARD)
         if not all(c.resides_in.type in cat for c in cl): return False
         return len(cl) == 2
+
+class LaevateinSkill(TreatAsSkill, WeaponSkill):
+    treat_as = Card.card_classes['AttackCard'] # arghhhh, the same reason ^
+    range = 4
+    target = t_OtherLessThanN(3)
+    def check(self):
+        try:
+            cl = self.associated_cards
+            check(len(cl) == 1)
+            card = cl[0]
+            from .definition import AttackCard
+            check(isinstance(card, AttackCard))
+            actor = card.resides_in.owner
+            check(len(actor.cards) + len(actor.shown_cards) == 1)
+            return True
+        except CheckFailed:
+            return False

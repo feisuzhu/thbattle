@@ -122,6 +122,13 @@ class GungnirCard:
     equipment_skill = equipment.GungnirSkill
     equipment_category = 'weapon'
 
+class LaevateinCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.LaevateinSkill
+    equipment_category = 'weapon'
+
+
 # ==================================================
 
 __metaclass__ = type
@@ -213,8 +220,8 @@ card_definition = [
     (UmbrellaCard, Card.DIAMOND, 4),
     (RoukankenCard, Card.DIAMOND, 1),
     (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
+    (LaevateinCard, Card.CLUB, 1),
+    (LaevateinCard, Card.CLUB, 1),
+    (LaevateinCard, Card.CLUB, 1),
 
 ] * 2

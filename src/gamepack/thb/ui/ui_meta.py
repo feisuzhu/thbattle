@@ -379,6 +379,59 @@ class GungnirSkill:
         )
         return s
 
+class LaevateinCard:
+    # action_stage meta
+    name = u'莱瓦汀'
+    image = gres.card_laevatein
+    image_small = gres.card_laevatein_small
+
+    is_action_valid = equip_iav
+
+class LaevateinSkill:
+    # Skill
+    name = u'莱瓦汀'
+
+    def clickable(game):
+        me = game.me
+        try:
+            act = game.action_stack[0]
+            if isinstance(act, actions.ActionStage):
+                cl = list(me.cards) + list(me.shown_cards)
+                if len(cl) == 1 and isinstance(cl[0], cards.AttackCard):
+                    return True
+        except IndexError:
+            pass
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        skill = cl[0]
+        assert isinstance(skill, cards.LaevateinSkill)
+        acards = skill.associated_cards
+        if not (len(acards) == 1 and isinstance(acards[0], cards.AttackCard)):
+            return (False, u'请选择你的最后一张【击】！')
+        else:
+            if not target_list:
+                return (False, u'请选择击的目标（最多可以选择3名玩家）')
+
+            if any(t.dead for t in target_list):
+                return (False, u'禁止鞭尸！')
+
+            if source in target_list:
+                return (True, u'您真的要自残么？！')
+            else:
+                return (True, u'觉醒吧，禁忌的炎之魔剑！')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        source = act.source
+        card = act.card
+        target = act.target_list[0]
+        s = u'|c208020ff【%s】|r发动了冈格尼尔之枪，将两张牌当作|c208020ff【击】|r对|c208020ff【%s】|r使用。' % (
+            source.ui_meta.char_name,
+            target.ui_meta.char_name,
+        )
+        return s
+
 
 # -----END CARDS UI META-----
 
