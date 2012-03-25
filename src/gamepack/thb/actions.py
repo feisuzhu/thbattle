@@ -269,6 +269,18 @@ class LaunchCard(GenericAction):
             return True
         return False
 
+    def is_valid(self):
+        g = Game.getgame()
+        card = self.card
+        cls = card.associated_action
+        src = self.source
+        for t in self.target_list:
+            act = cls(source=src, target=t)
+            act.associated_card = card
+            if not act.is_valid():
+                return False
+        return True
+
 class ActionStage(GenericAction):
 
     def __init__(self, target):

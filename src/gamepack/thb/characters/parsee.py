@@ -7,7 +7,10 @@ from ..skill import *
 class Envy(TreatAsSkill):
     treat_as = DemolitionCard
     def check(self):
-        return len(self.associated_cards) == 1
+        cards = self.associated_cards
+        if len(cards) != 1: return False
+        if cards[0].resides_in.type == CardList.FATETELL: return False
+        return True
 
 @register_character
 class Parsee(Character):

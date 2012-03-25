@@ -184,7 +184,6 @@ class UmbrellaHandler(EventHandler):
                     act.cancelled = True
         return act
 
-
 class RoukankenSkill(WeaponSkill):
     range = 3
     associated_action = None
@@ -198,9 +197,12 @@ class RoukankenHandler(EventHandler):
             if src.has_skill(RoukankenSkill) and not act.succeeded:
                 # TODO: ask for skill invoke
                 g = Game.getgame()
-                if g.process_action(basic.UseAttack(target=src)):
-                    g.process_action(basic.Attack(source=src, target=tgt))
-
+                a = basic.UseAttack(target=src)
+                if g.process_action(a):
+                    card = a.associated_cards[0]
+                    a = basic.Attack(source=src, target=tgt)
+                    a.associated_card = card
+                    g.process_action(a)
         return act
 
 class GungnirSkill(TreatAsSkill, WeaponSkill):

@@ -19,10 +19,13 @@ class FindAction(UserAction):
         return True
 
     def is_valid(self):
-        return all(
-            c.resides_in is not self.target.fatetell
-            for c in self.associated_card.associated_cards
-        )
+        try:
+            return all(
+                c.resides_in is not self.target.fatetell
+                for c in self.associated_card.associated_cards
+            )
+        except AttributeError: # well, some cards are skill?
+            return False
 
 
 class Find(Skill):

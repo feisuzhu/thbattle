@@ -519,7 +519,7 @@ class THBattleUI(Control):
             cls = inputs.mapping_all.get(itype)
             if cls:
                 cls(attachment=arg[1], parent=self)
-        elif _type == 'evt_simplegame_begin':
+        elif _type == 'evt_game_begin':
             for port in self.char_portraits:
                 port.update()
             self.update_skillbox()

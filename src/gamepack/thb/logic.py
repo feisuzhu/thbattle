@@ -166,7 +166,7 @@ class THBattle(Game):
 
         self.deck = Deck()
 
-        self.emit_event('simplegame_begin', None)
+        self.emit_event('game_begin', self)
 
         try:
             for p in self.players:
