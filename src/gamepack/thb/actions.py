@@ -262,6 +262,7 @@ class LaunchCard(GenericAction):
     def is_valid(self):
         g = Game.getgame()
         card = self.card
+        if not card: return False
         cls = card.associated_action
         src = self.source
         for t in self.target_list:

@@ -41,24 +41,25 @@ class UIEventHook(EventHandler):
 
 class SkillSelectionBox(Control):
     class SkillButton(Button):
-        def __init__(self, *a, **k):
-            Button.__init__(self, width=69, height=20, *a, **k)
+        def __init__(self, sid, *a, **k):
+            Button.__init__(self, width=71, height=20, *a, **k)
             self.selected = False
             self.state = Button.DISABLED
             self.color = Colors.blue
+            self.sid = sid
             self.update()
 
         def on_click(self):
             buttons = self.parent.buttons
             if self.selected:
-                self.parent.selection.remove(buttons.index(self))
+                self.parent.selection.remove(self.sid)
                 self.color = Colors.blue
                 self.selected = False
                 self.update()
             else:
                 self.color = Colors.orange
                 self.update()
-                self.parent.selection.append(buttons.index(self))
+                self.parent.selection.append(self.sid)
                 self.selected = True
 
             self.parent.parent.dispatch_event('on_selection_change')
@@ -68,16 +69,16 @@ class SkillSelectionBox(Control):
         self.selection = []
 
     def set_skills(self, lst):
-        # lst = ('name1', 'name2', ...)
+        # lst = (('name1', sid1), ('name2', sid2), ...)
         y = self.height
         for b in self.buttons[:]:
             b.delete()
 
         assert not self.buttons
 
-        for n in lst:
+        for nam, sid in lst:
             y -= 22
-            SkillSelectionBox.SkillButton(n, parent=self, x=0, y=y)
+            SkillSelectionBox.SkillButton(sid, nam, parent=self, x=0, y=y)
 
         self.selection = []
 
@@ -489,15 +490,15 @@ class THBattleUI(Control):
     def update_skillbox(self):
         g = self.game
         skills = getattr(g.me, 'skills', None)
-        if not skills:
+        if skills is None:
             # before girl chosen
             return
-        skills = [s for s in skills if not getattr(s.ui_meta, 'no_display', False)]
+        skills = [(i, s) for i, s in enumerate(skills) if not getattr(s.ui_meta, 'no_display', False)]
         self.skill_box.set_skills(
-            s.ui_meta.name for s in skills
+            (s.ui_meta.name, i) for i, s in skills
         )
 
-        for sb, skill in zip(self.skill_box.buttons, skills):
+        for sb, (_, skill) in zip(self.skill_box.buttons, skills):
             if skill.ui_meta.clickable(g):
                 sb.state = Button.NORMAL
 
