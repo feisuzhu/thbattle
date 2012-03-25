@@ -100,6 +100,13 @@ class UmbrellaCard:
     target = 'self'
     equipment_skill = equipment.UmbrellaSkill
     equipment_category = 'shield'
+
+class RoukankenCard:
+    associated_action = equipment.WearEquipmentAction
+    target = 'self'
+    equipment_skill = equipment.RoukankenSkill
+    equipment_category = 'weapon'
+
 # --------------------------------------------------
 
 __metaclass__ = type
@@ -169,6 +176,10 @@ card_definition = [
     (AttackCard, Card.CLUB, 1),
     (AttackCard, Card.CLUB, 3),
     (AttackCard, Card.CLUB, 5),
+    (AttackCard, Card.CLUB, 1),
+    (AttackCard, Card.CLUB, 3),
+    (AttackCard, Card.CLUB, 5),
+    
     (GrazeCard, Card.CLUB, 1),
     (HealCard, Card.CLUB, 3),
     (DemolitionCard, Card.DIAMOND, 1),
@@ -185,5 +196,7 @@ card_definition = [
     (HakuroukenCard, Card.SPADE, 7),
     (ElementalReactorCard, Card.DIAMOND, 1),
     (UmbrellaCard, Card.DIAMOND, 4),
-
+    (RoukankenCard, Card.DIAMOND, 1),
+    (RoukankenCard, Card.DIAMOND, 1),
+    (RoukankenCard, Card.DIAMOND, 1),
 ] * 2

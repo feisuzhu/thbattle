@@ -320,6 +320,25 @@ class UmbrellaSkill:
     def is_action_valid(skill, source, target_list):
         return (False, 'BUG!')
 
+class RoukankenCard:
+    # action_stage meta
+    name = u'楼观剑'
+    image = gres.card_roukanken
+    image_small = gres.card_roukanken_small
+
+    is_action_valid = equip_iav
+
+class RoukankenSkill:
+    # Skill
+    name = u'楼观剑'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(skill, source, target_list):
+        return (False, 'BUG!')
+
+
 
 # -----END CARDS UI META-----
 

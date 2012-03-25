@@ -183,3 +183,22 @@ class UmbrellaHandler(EventHandler):
                 if act.target.has_skill(UmbrellaSkill):
                     act.cancelled = True
         return act
+
+
+class RoukankenSkill(WeaponSkill):
+    range = 3
+    associated_action = None
+    target = None
+
+@register_eh
+class RoukankenHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
+            src, tgt = act.source, act.target
+            if src.has_skill(RoukankenSkill) and not act.succeeded:
+                # TODO: ask for skill invoke
+                g = Game.getgame()
+                if g.process_action(basic.UseAttack(target=src)):
+                    g.process_action(basic.Attack(source=src, target=tgt))
+
+        return act

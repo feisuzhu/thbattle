@@ -32,6 +32,8 @@ with ResLoader(__file__) as args:
     card_reactor_small = tx('card_reactor_small.tga')
     card_umbrella = tx('card_umbrella.tga')
     card_umbrella_small = tx('card_umbrella_small.tga')
+    card_roukanken = tx('card_roukanken.tga')
+    card_roukanken_small = tx('card_roukanken_small.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')
