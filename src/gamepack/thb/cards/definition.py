@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck definition
 
-from .base import Card
+from .base import *
 
 def card_meta(clsname, bases, _dict):
     cls = type(clsname, (Card,), _dict)
@@ -18,16 +18,16 @@ from . import basic
 
 class AttackCard:
     associated_action = basic.Attack
-    target = 1
+    target = t_OtherOne
     distance = 1
 
 class GrazeCard:
     associated_action = None
-    target = None
+    target = t_None
 
 class HealCard:
     associated_action = basic.Heal
-    target = 'self'
+    target = t_Self
 
 # --------------------------------------------------
 
@@ -35,40 +35,40 @@ from . import spellcard
 
 class DemolitionCard:
     associated_action = spellcard.Demolition
-    target = 1
+    target = t_OtherOne
 
 class RejectCard:
     associated_action = None
-    target = None
+    target = t_None
 
 class SealingArrayCard:
     associated_action = spellcard.SealingArray
-    target = 1
+    target = t_OtherOne
 
 class NazrinRodCard:
     associated_action = spellcard.NazrinRod
-    target = 'self'
+    target = t_Self
 
 class WorshiperCard:
     associated_action = spellcard.Worshiper
-    target = 'self'
+    target = t_Self
 
 class YukariDimensionCard:
     associated_action = spellcard.YukariDimension
-    target = 1
+    target = t_OtherOne
     distance = 1
 
 class DuelCard:
     associated_action = spellcard.Duel
-    target = 1
+    target = t_OtherOne
 
 class MapCannonCard:
     associated_action = spellcard.MapCannon
-    target = 'all'
+    target = t_All
 
 class WorshipersCarnivalCard:
     associated_action = spellcard.WorshipersCarnival
-    target = 'all'
+    target = t_All
 
 # --------------------------------------------------
 
@@ -76,49 +76,49 @@ from . import equipment
 
 class OpticalCloakCard:
     associated_action = equipment.WearEquipmentAction
-    target = 'self'
+    target = t_Self
     equipment_skill = equipment.OpticalCloakSkill
     equipment_category = 'shield'
 
 class GreenUFOCard:
     associated_action = equipment.WearEquipmentAction
-    target = 'self'
+    target = t_Self
     equipment_skill = equipment.GreenUFOSkill
     equipment_category = 'greenufo'
 
 class RedUFOCard:
     associated_action = equipment.WearEquipmentAction
-    target = 'self'
+    target = t_Self
     equipment_skill = equipment.RedUFOSkill
     equipment_category = 'redufo'
 
 class HakuroukenCard:
     associated_action = equipment.WearEquipmentAction
-    target = 'self'
+    target = t_Self
     equipment_skill = equipment.HakuroukenSkill
     equipment_category = 'weapon'
 
 class ElementalReactorCard:
     associated_action = equipment.WearEquipmentAction
-    target = 'self'
+    target = t_Self
     equipment_skill = equipment.ElementalReactorSkill
     equipment_category = 'weapon'
 
 class UmbrellaCard:
     associated_action = equipment.WearEquipmentAction
-    target = 'self'
+    target = t_Self
     equipment_skill = equipment.UmbrellaSkill
     equipment_category = 'shield'
 
 class RoukankenCard:
     associated_action = equipment.WearEquipmentAction
-    target = 'self'
+    target = t_Self
     equipment_skill = equipment.RoukankenSkill
     equipment_category = 'weapon'
 
 class GungnirCard:
     associated_action = equipment.WearEquipmentAction
-    target = 'self'
+    target = t_Self
     equipment_skill = equipment.GungnirSkill
     equipment_category = 'weapon'
 
@@ -216,6 +216,5 @@ card_definition = [
     (GungnirCard, Card.DIAMOND, 1),
     (GungnirCard, Card.DIAMOND, 1),
     (GungnirCard, Card.DIAMOND, 1),
-
 
 ] * 2

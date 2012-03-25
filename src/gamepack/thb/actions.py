@@ -239,20 +239,10 @@ class DrawCardStage(DrawCards): pass
 
 class LaunchCard(GenericAction):
     def __init__(self, source, target_list, card):
-        t = card.target
-        if t == 'self':
-            target_list = [source]
-        elif t == 'all':
-            g = Game.getgame()
-            target_list = BatchList(g.players)
-            target_list.remove(source)
-        elif t == 'all_inclusive':
-            g = Game.getgame()
-            target_list = BatchList(g.players)
-        elif isinstance(t, int):
-            if len(target_list) != t:
-               card = None # Incorrect target_list
-        self.source, self.target_list, self.card = source, target_list, card
+        tl, tl_valid = card.target(Game.getgame(), source, target_list)
+        if not tl_valid:
+            card = None # Incorrect target_list
+        self.source, self.target_list, self.card = source, tl, card
 
     def apply_action(self):
         g = Game.getgame()
@@ -357,12 +347,18 @@ class CalcDistance(InternalAction):
         pl = g.players
         lookup = self.distance
         c = self.correction
-        dist = self.card.distance
+        try:
+            dist = self.card.distance
 
-        return {
-            t: lookup[t] - (dist + c) <= 0
-            for t in pl
-        }
+            return {
+                t: lookup[t] - (dist + c) <= 0
+                for t in pl
+            }
+        except AttributeError:
+            return {
+                t: True
+                for t in pl
+            }
 
 
 @register_eh

@@ -8,7 +8,7 @@ class Mijincihangzhan(Skill):
     # 迷津慈航斩
     # compulsory skill, just a tag.
     associated_action = None
-    target = None
+    target = t_None
 
 class MijincihangzhanAttack(Attack):
     def apply_action(self):

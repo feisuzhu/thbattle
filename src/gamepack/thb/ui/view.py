@@ -472,7 +472,7 @@ class THBattleUI(Control):
 
         ports[0].equipcard_area.selectable = True # it's TheChosenOne
 
-        self.begin_select_player(1)
+        self.begin_select_player()
         self.end_select_player()
         self.skill_box = SkillSelectionBox(
             parent=self, x=161, y=9, width=70, height=22*6-4
@@ -547,9 +547,9 @@ class THBattleUI(Control):
     def prompt_raw(self, s):
         self.parent.events_box.append(s)
 
-    def begin_select_player(self, num, disables=[]):
+    def begin_select_player(self, disables=[]):
         if self.selecting_player: return
-        self.selecting_player = num
+        self.selecting_player = True
         self.selected_players = []
         for p in disables:
             self.player2portrait(p).disabled = True
@@ -557,9 +557,18 @@ class THBattleUI(Control):
     def get_selected_players(self):
         return self.selected_players
 
+    def set_selected_players(self, players):
+        for p in self.char_portraits:
+            p.selected = False
+
+        for p in players:
+            self.player2portrait(p).selected = True
+
+        self.selected_players = players
+
     def end_select_player(self):
         if not self.selecting_player: return
-        self.selecting_player = 0
+        self.selecting_player = False
         self.selected_players = []
         for p in self.char_portraits:
             p.selected = False
@@ -587,20 +596,12 @@ class THBattleUI(Control):
         if isinstance(c, GameCharacterPortrait) and self.selecting_player and not c.disabled:
             sel = c.selected
             psel = self.selected_players
-            nplayers = self.selecting_player
             if sel:
                 c.selected = False
                 psel.remove(c.player)
             else:
-                if nplayers == 1:
-                    for port in self.char_portraits:
-                        port.selected = False
-                    c.selected = True
-                    psel = self.selected_players = [c.player]
-                elif len(psel) < nplayers:
-                    c.selected = True
-                    psel.append(c.player)
-                # else: do nothing
+                c.selected = True
+                psel.append(c.player)
             self.dispatch_event('on_selection_change')
         return True
 

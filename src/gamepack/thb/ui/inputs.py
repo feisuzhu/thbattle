@@ -179,47 +179,41 @@ class UIDoActionStage(UISelectTarget):
                     pass
 
                 source = parent.game.me
-                t = card.target
-                if t == 'self':
-                    target_list = [source]
-                elif isinstance(t, int):
-                    if getattr(card, 'distance', None) is not None:
-                        # FIXME: if user chooses too fast(not 'too' actually),
-                        # irp.do_callback will be called without previous one returns
-                        def sel_players():
-                            g = Game.getgame()
-                            calc = actions.CalcDistance(g.me, card)
-                            g.process_action(calc)
+                target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())
+                if target_list is not None:
+                    parent.begin_select_player()
+                    parent.set_selected_players(target_list)
 
-                            rst = calc.validate()
+                    # FIXME: if user chooses too fast(not 'too' actually),
+                    # irp.do_callback will be called without previous one returns
+                    def sel_players():
+                        g = Game.getgame()
+                        calc = actions.CalcDistance(g.me, card)
+                        g.process_action(calc)
 
-                            disables = [p for p, r in rst.iteritems() if not r]
-                            ui_schedule(parent.begin_select_player, t, disables)
+                        rst = calc.validate()
 
-                        self.irp.do_callback(sel_players)
-                    else:
-                        parent.begin_select_player(t)
+                        disables = [p for p, r in rst.iteritems() if not r]
+                        ui_schedule(parent.begin_select_player, disables)
 
-                    target_list = parent.get_selected_players()
-                else:
-                    # for cards like GrazeCard
-                    # to display customized prompt string
-                    target_list = None
+                    self.irp.do_callback(sel_players)
 
                 rst, reason = card.ui_meta.is_action_valid(cards, source, target_list)
 
                 self.set_text(reason)
                 if rst:
-                    def gameengine_check():
-                        g = Game.getgame()
-                        act = actions.LaunchCard(g.me, target_list, card)
-                        if act.can_fire():
-                            ui_schedule(self.set_valid)
-                        else:
-                            ui_schedule(self.set_text, u'您不能这样出牌')
+                    if tl_valid:
+                        def gameengine_check():
+                            g = Game.getgame()
+                            act = actions.LaunchCard(g.me, target_list, card)
+                            if act.can_fire():
+                                ui_schedule(self.set_valid)
+                            else:
+                                ui_schedule(self.set_text, u'您不能这样出牌')
 
-                    self.irp.do_callback(gameengine_check)
-
+                        self.irp.do_callback(gameengine_check)
+                    else:
+                        self.set_text(u'您选择的目标不符合规则')
                 return
 
             self.set_text(u'您选择的牌不符合出牌规则')

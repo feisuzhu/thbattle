@@ -159,6 +159,46 @@ class Deck(object):
         elif Game.CLIENT_SIDE:
             cl[:] = [HiddenCard(Card.NOTSET, 0, cl) for i in xrange(len(cl))]
 
+# card targets:
+@staticmethod
+def t_None(g, source, tl):
+    return (None, True)
+
+@staticmethod
+def t_Self(g, source, tl):
+    return ([source], True)
+
+@staticmethod
+def t_OtherOne(g, source, tl):
+    tl = tl[:]
+    ''' # Add it back when done debugging!
+    try:
+        tl.remove(source)
+    except ValueError:
+        pass
+    '''
+    return (tl[-1:], bool(len(tl)))
+
+@staticmethod
+def t_All(g, source, tl):
+    return (g.players.exclude(source), True)
+
+@staticmethod
+def t_AllInclusive(g, source, tl):
+    return (g.players, True)
+
+def t_OtherLessThanN(n):
+    @staticmethod
+    def _t_OtherLessThanN(g, source, tl):
+        ''' # Add it back when done debugging!
+        try:
+            tl.remove(source)
+        except ValueError:
+            pass
+        '''
+        return (tl[:n], bool(len(tl)))
+    return _t_OtherLessThanN
+
 class HiddenCard(Card): # special thing....
     associated_action = None
-    target = None
+    target = t_None

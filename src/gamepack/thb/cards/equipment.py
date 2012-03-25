@@ -43,7 +43,7 @@ class EquipmentTransferHandler(EventHandler):
 
 class ShieldSkill(Skill):
     associated_action = None
-    target = None
+    target = t_None
 
 class OpticalCloakSkill(ShieldSkill): # just a tag
     pass
@@ -79,7 +79,7 @@ class OpticalCloakHandler(EventHandler):
 
 class UFOSkill(Skill):
     associated_action = None
-    target = None
+    target = t_None
 
 class GreenUFOSkill(UFOSkill):
     increment = 1
@@ -109,7 +109,7 @@ class WeaponSkill(Skill):
 
 class HakuroukenSkill(WeaponSkill):
     associated_action = None
-    target = None
+    target = t_None
     range = 2
 
 class Hakurouken(InternalAction):
@@ -148,7 +148,7 @@ class HakuroukenEffectHandler(EventHandler):
 
 class ElementalReactorSkill(WeaponSkill):
     associated_action = None
-    target = None
+    target = t_None
     range = 1
 
 @register_eh
@@ -187,7 +187,7 @@ class UmbrellaHandler(EventHandler):
 class RoukankenSkill(WeaponSkill):
     range = 3
     associated_action = None
-    target = None
+    target = t_None
 
 @register_eh
 class RoukankenHandler(EventHandler):
@@ -208,7 +208,7 @@ class RoukankenHandler(EventHandler):
 class GungnirSkill(TreatAsSkill, WeaponSkill):
     treat_as = Card.card_classes['AttackCard'] # arghhhhh, nasty circular references!
     range = 3
-    target = 1
+    target = t_OtherOne
     def check(self):
         cl = self.associated_cards
         cat = (base.CardList.HANDCARD, base.CardList.SHOWNCARD)

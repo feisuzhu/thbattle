@@ -30,7 +30,7 @@ class FindAction(UserAction):
 
 class Find(Skill):
     associated_action = FindAction
-    target = 'self'
+    target = t_Self
     def check(self):
         return len(self.associated_cards)
 
