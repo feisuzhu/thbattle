@@ -117,6 +117,24 @@ def choose_peer_card(source, target, categories):
     except CheckFailed:
         return None
 
+
+def choose_individual_card(source, cards):
+    try:
+        cid = source.user_input('choose_individual_card', cards)
+        g = Game.getgame()
+
+        check(isinstance(cid, int))
+
+        cards = [c for c in cards if c.syncid == cid]
+
+        check(len(cards)) # Invalid id
+
+        return cards[0]
+
+    except CheckFailed:
+        return None
+
+
 action_eventhandlers = set()
 def register_eh(cls):
     action_eventhandlers.add(cls)

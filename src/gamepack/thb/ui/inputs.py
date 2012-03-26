@@ -488,12 +488,65 @@ class UIChooseOption(InputController):
             fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
             self.label.draw()
 
+class UIChooseIndividualCard(Panel, InputController):
+    def __init__(self, irp, *a, **k):
+        self.irp = irp
+        cards = irp.attachment
+        cw = min(6, len(cards)) * 93
+        h = 30 + 145 + 10
+        w = 30 + cw + 30
+
+        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
+
+        ca = DropCardArea(
+            parent=self,
+            x=30, y=30,
+            fold_size=6,
+            width=cw, height=125,
+        )
+        for c in cards:
+            cs = CardSprite(
+                parent=ca,
+                img=c.ui_meta.image,
+                number=c.number,
+                suit=c.suit,
+            )
+            cs.associated_card = c
+            @cs.event
+            def on_mouse_dblclick(x, y, btn, mod, cs=cs):
+                irp = self.irp
+                irp.input = cs.associated_card.syncid
+                self.cleanup()
+        ca.update()
+
+        p = self.parent
+        self.x, self.y = (p.width - w)//2, (p.height -h)//2
+        self.width, self.height = w, h
+        self.update()
+
+        btn = ImageButton(
+            common_res.buttons.close_blue,
+            parent=self,
+            x=w-20, y=h-20,
+        )
+
+        @btn.event
+        def on_click():
+            self.irp.input = None
+            self.cleanup()
+
+    def cleanup(self):
+        self.irp.complete()
+        self.delete()
+
+
 mapping = dict(
     choose_card=UIChooseMyCards,
     action_stage_usecard=UIDoActionStage,
     choose_girl=Dummy,
     choose_peer_card=UIChoosePeerCard,
     choose_option=UIChooseOption,
+    choose_individual_card=UIChooseIndividualCard,
 )
 
 mapping_all = dict(
