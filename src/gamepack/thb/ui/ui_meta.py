@@ -442,6 +442,23 @@ class LaevateinSkill:
         )
         return s
 
+class ThoridalCard:
+    # action_stage meta
+    name = u"Thori'dal"
+    image = gres.card_thoridal
+    image_small = gres.card_thoridal_small
+
+    is_action_valid = equip_iav
+
+class ThoridalSkill:
+    # Skill
+    name = u"Thori'dal"
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
 
 # -----END CARDS UI META-----
 

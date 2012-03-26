@@ -128,6 +128,11 @@ class LaevateinCard:
     equipment_skill = equipment.LaevateinSkill
     equipment_category = 'weapon'
 
+class ThoridalCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.ThoridalSkill
+    equipment_category = 'weapon'
 
 # ==================================================
 
@@ -203,25 +208,18 @@ card_definition = [
     (AttackCard, Card.CLUB, 5),
 
     (GrazeCard, Card.CLUB, 1),
+    (GrazeCard, Card.CLUB, 1),
+    (GrazeCard, Card.CLUB, 1),
     (HealCard, Card.CLUB, 3),
     (DemolitionCard, Card.DIAMOND, 1),
-    (SealingArrayCard, Card.HEART, 1),
-    (NazrinRodCard, Card.HEART, 1),
-    (RejectCard, Card.SPADE, 13),
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
-    (WorshiperCard, Card.SPADE, 7),
-    (YukariDimensionCard, Card.HEART, 9),
-    (DuelCard, Card.SPADE, 13),
-    (WorshipersCarnivalCard, Card.SPADE, 12),
     (MapCannonCard, Card.SPADE, 12),
-    (HakuroukenCard, Card.SPADE, 7),
-    (ElementalReactorCard, Card.DIAMOND, 1),
-    (UmbrellaCard, Card.DIAMOND, 4),
-    (RoukankenCard, Card.DIAMOND, 1),
     (GungnirCard, Card.DIAMOND, 1),
     (LaevateinCard, Card.CLUB, 1),
-    (LaevateinCard, Card.CLUB, 1),
-    (LaevateinCard, Card.CLUB, 1),
+    (ThoridalCard, Card.CLUB, 1),
+    (ThoridalCard, Card.CLUB, 1),
+    (ThoridalCard, Card.CLUB, 1),
+    
 
 ] * 2

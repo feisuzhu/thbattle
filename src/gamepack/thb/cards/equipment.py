@@ -233,3 +233,25 @@ class LaevateinSkill(TreatAsSkill, WeaponSkill):
             return True
         except CheckFailed:
             return False
+
+class ThoridalSkill(WeaponSkill):
+    range = 5
+    associate_action = None
+    target = t_None
+
+@register_eh
+class ThoridalHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
+            if act.succeeded:
+                target = act.target
+                ufos = [
+                    c for c in target.equips
+                    if c.equipment_category in ('greenufo', 'redufo')
+                ]
+                if ufos:
+                    card = choose_individual_card(act.source, ufos)
+                    if card:
+                        g = Game.getgame()
+                        g.process_action(DropCards(target=target, cards=[card]))
+        return act
