@@ -181,6 +181,11 @@ class OpticalCloakSkill:
     def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
+class OpticalCloakHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【光学迷彩】吗？'
+
 class GreenUFOCard:
     # action_stage meta
     name = u'绿色UFO'
@@ -337,6 +342,11 @@ class RoukankenSkill:
 
     def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
+
+class RoukankenHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【楼观剑】吗？'
 
 class GungnirCard:
     # action_stage meta

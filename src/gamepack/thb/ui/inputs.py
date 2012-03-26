@@ -416,6 +416,17 @@ class UIChoosePeerCard(Panel, InputController):
             1.0, 0.0, irp.timeout
         )
 
+        btn = ImageButton(
+            common_res.buttons.close_blue,
+            parent=self,
+            x=w-20, y=h-20,
+        )
+
+        @btn.event
+        def on_click():
+            self.irp.input = None
+            self.cleanup()
+
     def blur_update(self):
         Panel.blur_update(self)
         with self.fbo:
@@ -427,11 +438,62 @@ class UIChoosePeerCard(Panel, InputController):
         self.irp.complete()
         self.delete()
 
+class UIChooseOption(InputController):
+
+    def __init__(self, irp, *a, **k):
+        InputController.__init__(self, *a, **k)
+        parent = self.parent
+        self.irp = irp
+        assert isinstance(irp, IRP)
+
+        self.x, self.y, self.width, self.height = (285, 162, 531, 58)
+
+        ui_meta = irp.attachment.ui_meta
+
+        self.confirmbtn = ConfirmButtons(
+            parent=self, x=259, y=4, width=165, height=24,
+            buttons=ui_meta.choose_option_buttons
+            #buttons=((u'出牌', True), (u'取消出牌', False))
+        )
+        self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
+        b.value = LinearInterp(
+            1.0, 0.0, irp.timeout,
+            on_done=lambda *a: self.cleanup()
+        )
+        self.label = lbl = pyglet.text.Label(
+            text=ui_meta.choose_option_prompt, x=125, y=28,
+            font_size=12, color=(255, 255, 160, 255), bold=True,
+            anchor_x='center', anchor_y='bottom'
+        )
+
+        @self.confirmbtn.event
+        def on_confirm(val):
+            irp = self.irp
+            irp.input = val
+            irp.complete()
+            self.cleanup()
+            return
+
+    def hit_test(self, x, y):
+        return self.control_frompoint1(x, y)
+
+    def cleanup(self):
+        self.irp.complete()
+        self.delete()
+
+    def draw(self):
+        self.draw_subcontrols()
+        from client.ui import shaders
+        with shaders.FontShadow as fs:
+            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
+            self.label.draw()
+
 mapping = dict(
     choose_card=UIChooseMyCards,
     action_stage_usecard=UIDoActionStage,
     choose_girl=Dummy,
     choose_peer_card=UIChoosePeerCard,
+    choose_option=UIChooseOption,
 )
 
 mapping_all = dict(

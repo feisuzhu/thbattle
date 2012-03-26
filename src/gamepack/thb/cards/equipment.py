@@ -73,10 +73,10 @@ class OpticalCloakHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, UseGraze) and not hasattr(act, 'oc_tag'):
             target = act.target
             if target.has_skill(OpticalCloakSkill):
-                # TODO: ask for skill invoke
-                act.oc_tag = True
-                new_act = OpticalCloak(target=target, ori=act)
-                return new_act
+                if target.user_input('choose_option', self):
+                    act.oc_tag = True
+                    new_act = OpticalCloak(target=target, ori=act)
+                    return new_act
         return act
 
 class UFOSkill(Skill):
@@ -197,14 +197,14 @@ class RoukankenHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
             src, tgt = act.source, act.target
             if src.has_skill(RoukankenSkill) and not act.succeeded:
-                # TODO: ask for skill invoke
-                g = Game.getgame()
-                a = basic.UseAttack(target=src)
-                if g.process_action(a):
-                    card = a.associated_cards[0]
-                    a = basic.Attack(source=src, target=tgt)
-                    a.associated_card = card
-                    g.process_action(a)
+                if src.user_input('choose_option', self):
+                    g = Game.getgame()
+                    a = basic.UseAttack(target=src)
+                    if g.process_action(a):
+                        card = a.associated_cards[0]
+                        a = basic.Attack(source=src, target=tgt)
+                        a.associated_card = card
+                        g.process_action(a)
         return act
 
 class GungnirSkill(TreatAsSkill, WeaponSkill):
