@@ -40,6 +40,8 @@ with ResLoader(__file__) as args:
     card_laevatein_small = tx('card_laevatein_small.tga')
     card_thoridal = tx('card_thoridal.tga')
     card_thoridal_small = tx('card_thoridal_small.tga')
+    card_repentancestick = tx('card_repentancestick.tga')
+    card_repentancestick_small = tx('card_repentancestick_small.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

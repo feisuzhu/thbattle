@@ -134,6 +134,12 @@ class ThoridalCard:
     equipment_skill = equipment.ThoridalSkill
     equipment_category = 'weapon'
 
+class RepentanceStickCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.RepentanceStickSkill
+    equipment_category = 'weapon'
+
 # ==================================================
 
 __metaclass__ = type
@@ -218,8 +224,9 @@ card_definition = [
     (GungnirCard, Card.DIAMOND, 1),
     (LaevateinCard, Card.CLUB, 1),
     (ThoridalCard, Card.CLUB, 1),
-    (ThoridalCard, Card.CLUB, 1),
-    (ThoridalCard, Card.CLUB, 1),
-    
+    (RepentanceStickCard, Card.SPADE, 10),
+    (RepentanceStickCard, Card.SPADE, 10),
+    (RepentanceStickCard, Card.SPADE, 10),
+    (RepentanceStickCard, Card.SPADE, 10),
 
 ] * 2

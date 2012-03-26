@@ -255,3 +255,34 @@ class ThoridalHandler(EventHandler):
                         g = Game.getgame()
                         g.process_action(DropCards(target=target, cards=[card]))
         return act
+
+class RepentanceStickSkill(WeaponSkill):
+    range = 2
+    associate_action = None
+    target = t_None
+
+@register_eh
+class RepentanceStickHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, Damage):
+            src = act.source
+            if src.has_skill(RepentanceStickSkill):
+                g = Game.getgame()
+                pa = g.action_stack[0]
+                if isinstance(pa, basic.BaseAttack):
+                    if src.user_input('choose_option', self):
+                        tgt = act.target
+                        cats = [
+                            tgt.cards, tgt.shown_cards,
+                            tgt.equips, tgt.fatetell,
+                        ]
+                        for i in xrange(2):
+                            card = choose_peer_card(src, tgt, cats)
+                            if not card:
+                                card = random_choose_card(cats)
+                            if card:
+                                g.process_action(DropCards(target=tgt, cards=[card]))
+                        act.cancelled = True
+        return act
+
+

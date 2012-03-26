@@ -460,6 +460,28 @@ class ThoridalSkill:
     def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
+class RepentanceStickCard:
+    # action_stage meta
+    name = u'悔悟棒'
+    image = gres.card_repentancestick
+    image_small = gres.card_repentancestick_small
+
+    is_action_valid = equip_iav
+
+class RepentanceStickSkill:
+    # Skill
+    name = u'悔悟棒'
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class RepentanceStickHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【悔悟棒】吗？'
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----

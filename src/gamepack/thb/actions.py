@@ -99,6 +99,8 @@ def migrate_cards(cards, to):
 def choose_peer_card(source, target, categories):
     assert all(c.owner is target for c in categories)
     try:
+        check(sum(len(c) for c in categories)) # no cards at all
+        
         cid = source.user_input('choose_peer_card', (target, categories))
         g = Game.getgame()
 
@@ -117,7 +119,6 @@ def choose_peer_card(source, target, categories):
     except CheckFailed:
         return None
 
-
 def choose_individual_card(source, cards):
     try:
         cid = source.user_input('choose_individual_card', cards)
@@ -133,7 +134,6 @@ def choose_individual_card(source, cards):
 
     except CheckFailed:
         return None
-
 
 action_eventhandlers = set()
 def register_eh(cls):
