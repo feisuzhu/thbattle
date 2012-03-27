@@ -22,7 +22,22 @@ class EventHandler(object):
     @staticmethod
     def make_list(eh_classes):
         table = {}
+
+        before_all = []
+        after_all = []
+        rest = []
+
         for cls in eh_classes:
+            if cls.execute_before == '__all__':
+                before_all.append(cls())
+                assert not cls.execute_after
+            elif cls.execute_after == '__all__':
+                after_all.append(cls())
+                assert not cls.execute_before
+            else:
+                rest.append(cls)
+
+        for cls in rest:
             eh = cls()
             eh.execute_before = set(eh.execute_before) # make it instance var
             eh.execute_after = set(eh.execute_after)
@@ -37,7 +52,7 @@ class EventHandler(object):
                 table[after].execute_before.add(cls)
 
         l = table.values()
-        rst = []
+        rst = before_all
         while l:
             l1 = []
             added = False
@@ -53,7 +68,11 @@ class EventHandler(object):
                 raise GameError("Can't resolve dependencies! Check for circular reference!")
             l = l1
 
-        assert len(rst) == len(table)
+        rst.extend(after_all)
+
+        assert len(rst) == len(table) + len(after_all) # + len(before_all), it is rst
+        for i in rst:
+            print i.__class__
         return rst
 
 class Action(object):
