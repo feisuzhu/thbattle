@@ -243,7 +243,7 @@ class ThoridalSkill(WeaponSkill):
 class ThoridalHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
-            if act.succeeded:
+            if act.succeeded and act.source.has_skill(ThoridalSkill):
                 target = act.target
                 ufos = [
                     c for c in target.equips
@@ -284,5 +284,3 @@ class RepentanceStickHandler(EventHandler):
                                 g.process_action(DropCards(target=tgt, cards=[card]))
                         act.cancelled = True
         return act
-
-
