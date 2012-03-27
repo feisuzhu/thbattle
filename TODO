@@ -1,8 +1,8 @@
 THBattle:
-    UI: ChooseIndividualCard, ChooseOption
     Ballon prompt
 
     bugs: died person should drop all cards, should not respond to any input events
+    
 CommonUI:
 ScrollBar
 ARTWORKS!

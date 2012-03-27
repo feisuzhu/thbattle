@@ -100,7 +100,7 @@ def choose_peer_card(source, target, categories):
     assert all(c.owner is target for c in categories)
     try:
         check(sum(len(c) for c in categories)) # no cards at all
-        
+
         cid = source.user_input('choose_peer_card', (target, categories))
         g = Game.getgame()
 
@@ -378,7 +378,6 @@ class CalcDistance(InternalAction):
                 t: True
                 for t in pl
             }
-
 
 @register_eh
 class DistanceValidator(EventHandler):

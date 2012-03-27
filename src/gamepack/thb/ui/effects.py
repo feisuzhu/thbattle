@@ -193,18 +193,13 @@ def _update_tags(self, p):
         if meta and meta.display(p.tags[t]):
             new_tags.add(t)
 
-    print old_tags
-    print p.tags
-
     for t in old_tags - new_tags: # to be removed
-        print 'Remove %s' % t
         old[t].delete()
         taganims.remove(old[t])
 
     for t in new_tags - old_tags: # to be added
-        print 'Add %s' % t
         a = LoopingAnim(
-            meta.tag_anim,
+            tags_meta[t].tag_anim,
             x=0, y=0,
             batch = self.animations
         )

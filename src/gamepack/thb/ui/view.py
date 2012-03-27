@@ -549,9 +549,9 @@ class THBattleUI(Control):
         self.parent.events_box.append(s)
 
     def begin_select_player(self, disables=[]):
-        if self.selecting_player: return
+        #if self.selecting_player: return
         self.selecting_player = True
-        self.selected_players = []
+        #self.selected_players = []
         for p in disables:
             self.player2portrait(p).disabled = True
 
@@ -568,7 +568,7 @@ class THBattleUI(Control):
         self.selected_players = players
 
     def end_select_player(self):
-        if not self.selecting_player: return
+        #if not self.selecting_player: return
         self.selecting_player = False
         self.selected_players = []
         for p in self.char_portraits:

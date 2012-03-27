@@ -181,7 +181,7 @@ class UIDoActionStage(UISelectTarget):
                 source = parent.game.me
                 target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())
                 if target_list is not None:
-                    parent.begin_select_player()
+                    #parent.begin_select_player()
                     parent.set_selected_players(target_list)
 
                     # FIXME: if user chooses too fast(not 'too' actually),
