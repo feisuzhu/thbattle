@@ -88,3 +88,24 @@ class UseAttack(UseCard):
             isinstance(cl[0], cards.AttackCard) and
             cl[0].resides_in.owner is t
         )
+
+class Wine(BasicAction):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        self.target.tags['wine'] = True
+        return True
+
+@register_eh
+class WineHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, BaseAttack):
+            src = act.source
+            if src.tags.get('wine', False):
+                act.damage += 1
+                src.tags['wine'] = False
+        elif evt_type == 'action_apply' and isinstance(act, ActionStage):
+            act.actor.tags['wine'] = False
+        return act

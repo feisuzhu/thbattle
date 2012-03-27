@@ -64,6 +64,15 @@ class GrazeCard:
     def is_action_valid(cl, source, target_list):
         return (False, u'你不能主动使用擦弹')
 
+class WineCard:
+    # action_stage meta
+    name = u'酒'
+    image = gres.card_wine
+    def is_action_valid(cl, source, target_list):
+        if source.tags.get('wine', False):
+            return (True, u'你已经醉了，还要再喝吗？')
+        return (True, u'三年陈酿，西瓜酒！')
+
 class UseGraze:
     # choose_card meta
     image = gres.card_graze
@@ -305,7 +314,6 @@ class ElementalReactorSkill:
 
     def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
-
 
 class UmbrellaCard:
     # action_stage meta
@@ -593,4 +601,7 @@ class attack_num:
     tag_anim = gres.tag_attacked
     display = lambda val: val <= 0
 
+class wine:
+    tag_anim = gres.tag_wine
+    display = lambda val: val
 # -----END TAGS UI META-----

@@ -29,6 +29,10 @@ class HealCard:
     associated_action = basic.Heal
     target = t_Self
 
+class WineCard:
+    associated_action = basic.Wine
+    target = t_Self
+
 # --------------------------------------------------
 
 from . import spellcard
@@ -225,8 +229,10 @@ card_definition = [
     (LaevateinCard, Card.CLUB, 1),
     (ThoridalCard, Card.CLUB, 1),
     (RepentanceStickCard, Card.SPADE, 10),
-    (RepentanceStickCard, Card.SPADE, 10),
-    (RepentanceStickCard, Card.SPADE, 10),
-    (RepentanceStickCard, Card.SPADE, 10),
+    (WineCard, Card.HEART, 12),
+    (WineCard, Card.HEART, 12),
+    (WineCard, Card.HEART, 12),
+    (WineCard, Card.HEART, 12),
+    (WineCard, Card.HEART, 12),
 
 ] * 2
