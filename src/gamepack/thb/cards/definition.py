@@ -74,6 +74,10 @@ class WorshipersCarnivalCard:
     associated_action = spellcard.WorshipersCarnival
     target = t_All
 
+class FeastCard:
+    associated_action = spellcard.Feast
+    target = t_AllInclusive
+
 # --------------------------------------------------
 
 from . import equipment
@@ -230,9 +234,9 @@ card_definition = [
     (ThoridalCard, Card.CLUB, 1),
     (RepentanceStickCard, Card.SPADE, 10),
     (WineCard, Card.HEART, 12),
-    (WineCard, Card.HEART, 12),
-    (WineCard, Card.HEART, 12),
-    (WineCard, Card.HEART, 12),
-    (WineCard, Card.HEART, 12),
+    (FeastCard, Card.DIAMOND, 12),
+    (FeastCard, Card.DIAMOND, 12),
+    (FeastCard, Card.DIAMOND, 12),
+    (FeastCard, Card.DIAMOND, 12),
 
 ] * 2

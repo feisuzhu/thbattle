@@ -490,6 +490,15 @@ class RepentanceStickHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【悔悟棒】吗？'
 
+class FeastCard:
+    # action_stage meta
+    image = gres.card_feast
+    name = u'宴会'
+
+    def is_action_valid(cl, source, target_list):
+        return (True, u'开宴啦~~')
+
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----

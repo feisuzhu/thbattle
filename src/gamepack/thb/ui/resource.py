@@ -45,6 +45,7 @@ with ResLoader(__file__) as args:
     card_repentancestick_small = tx('card_repentancestick_small.tga')
     card_wine = tx('card_wine.tga')
     tag_wine = anim('tag_wine.png', [100]*3, True)
+    card_feast = tx('card_feast.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

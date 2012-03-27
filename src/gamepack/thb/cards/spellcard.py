@@ -287,3 +287,18 @@ class WorshipersCarnival(SpellCardAction):
             return True
         else:
             return False
+
+class Feast(SpellCardAction):
+    # 宴会
+    def __init__(self, source, target):
+        self.source, self.target = source, target
+
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        g = Game.getgame()
+        if tgt.life < tgt.maxlife:
+            g.process_action(basic.Heal(src, tgt))
+        else:
+            g.process_action(basic.Wine(src, tgt))
+        return True
+
