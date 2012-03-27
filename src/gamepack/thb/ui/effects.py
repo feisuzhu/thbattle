@@ -48,11 +48,10 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     if _from.type == _from.FATETELL:
         port = self.player2portrait(_from.owner)
         taganims = port.taganims
-        for a in taganims:
-            if a.associated_card in cards:
-                a.associated_card = None
-                a.delete()
-        port.taganims = [a for a in port.taganims if a.associated_card]
+        for a in [t for t in taganims if hasattr(t, 'for_fatetell_card')]:
+            if a.for_fatetell_card in cards:
+                taganims.remove(a)
+        #port.taganims = [a for a in port.taganims if a.associated_card]
         port.tagarrange()
 
     if _from.owner is g.me and _from.type in (_from.HANDCARD, _from.SHOWNCARD):
@@ -107,7 +106,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
                 x=0, y=0,
                 batch = self.animations
             )
-            a.associated_card = c
+            a.for_fatetell_card = c
             port.taganims.append(a)
         port.tagarrange()
 
@@ -180,6 +179,47 @@ def launch_effect(self, act):
             act.card.ui_meta.name
         ))
 
+def _update_tags(self, p):
+    port = self.player2portrait(p)
+    taganims = port.taganims
+    old = {a.for_tag:a for a in taganims if hasattr(a, 'for_tag')}
+    old_tags = set(old.keys())
+    new_tags = set()
+
+    from .ui_meta import tags as tags_meta
+
+    for t in p.tags.keys():
+        meta = tags_meta.get(t)
+        if meta and meta.display(p.tags[t]):
+            new_tags.add(t)
+
+    print old_tags
+    print p.tags
+
+    for t in old_tags - new_tags: # to be removed
+        print 'Remove %s' % t
+        old[t].delete()
+        taganims.remove(old[t])
+
+    for t in new_tags - old_tags: # to be added
+        print 'Add %s' % t
+        a = LoopingAnim(
+            meta.tag_anim,
+            x=0, y=0,
+            batch = self.animations
+        )
+        a.for_tag = t
+        taganims.append(a)
+    port.tagarrange()
+
+def after_launch_effect(self, act):
+    _update_tags(self, act.source)
+    for p in act.target_list:
+        _update_tags(self, p)
+
+def after_action_stage_effect(self, act):
+    _update_tags(self, act.actor)
+
 def graze_effect(self, act):
     if not act.succeeded: return
     t = act.target
@@ -213,6 +253,8 @@ mapping_actions = ddict(dict, {
         Heal: heal_effect,
         UseGraze: graze_effect,
         Demolition: demolition_effect,
+        LaunchCard: after_launch_effect,
+        ActionStage: after_action_stage_effect,
     }
 })
 

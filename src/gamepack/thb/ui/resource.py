@@ -6,6 +6,7 @@ from client.ui.resource import ResLoader
 with ResLoader(__file__) as args:
     locals().update(args)
     card_attack = tx('attack.tga')
+    tag_attacked = anim('tag_attacked.png', [100]*3, True)
     card_graze = tx('graze.tga')
     card_heal = tx('heal.tga')
     card_demolition = tx('card_demolition.tga')

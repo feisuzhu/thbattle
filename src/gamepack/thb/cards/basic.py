@@ -31,25 +31,27 @@ class AttackCardHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
             act.actor.tags['attack_num'] = 1
-        elif evt_type == 'action_after' and isinstance(act, LaunchCard):
-            from .definition import AttackCard
-            if isinstance(act.card, AttackCard):
-                act.target_list[0].tags['attack_num'] -= 1
-        elif evt_type == 'action_after' and isinstance(act, CalcDistance):
-            card = act.card
-            from .definition import AttackCard
-            if isinstance(card, AttackCard):
-                from .equipment import WeaponSkill
-                source = act.source
-                if source.tags['attack_num'] <= 0:
-                    act.correction -= 10000
+        elif evt_type == 'action_after':
+            if isinstance(act, LaunchCard):
+                from .definition import AttackCard
+                if isinstance(act.card, AttackCard):
+                    act.target_list[0].tags['attack_num'] -= 1
+            elif isinstance(act, ActionStage):
+                act.actor.tags['attack_num'] = 1
+            elif isinstance(act, CalcDistance):
+                card = act.card
+                from .definition import AttackCard
+                if isinstance(card, AttackCard):
+                    from .equipment import WeaponSkill
+                    source = act.source
+                    if source.tags['attack_num'] <= 0:
+                        act.correction -= 10000
 
-                l = []
-                for s in source.skills:
-                    if issubclass(s, WeaponSkill):
-                        l.append(s.range - 1)
-                if l: act.correction += min(l)
-
+                    l = []
+                    for s in source.skills:
+                        if issubclass(s, WeaponSkill):
+                            l.append(s.range - 1)
+                    if l: act.correction += min(l)
         return act
 
 class Heal(BasicAction):

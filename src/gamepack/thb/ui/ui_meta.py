@@ -580,3 +580,17 @@ class Find:
         return s
 
 # -----END CHARACTERS UI META-----
+
+# -----BEGIN TAGS UI META-----
+tags = {}
+def tag_metafunc(clsname, bases, _dict):
+    data = DataHolder.parse(_dict)
+    tags[clsname] = data
+
+__metaclass__ = tag_metafunc
+
+class attack_num:
+    tag_anim = gres.tag_attacked
+    display = lambda val: val <= 0
+
+# -----END TAGS UI META-----
