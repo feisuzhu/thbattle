@@ -70,7 +70,11 @@ class UISelectTarget(InputController):
             on_selection_change=dispatch_selection_change
         )
 
-        dispatch_selection_change()
+        g = parent.game
+        port = parent.player2portrait(g.me)
+        port.equipcard_area.clear_selection()
+
+        #dispatch_selection_change() # ^^ this will trigger this
 
     def set_text(self, text):
         self.label.text = text

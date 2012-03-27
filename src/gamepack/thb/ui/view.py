@@ -147,6 +147,11 @@ class EquipCardArea(Control):
             s = c.selected = not c.selected
             self.dispatch_event('on_selection_change')
 
+    def clear_selection(self):
+        for c in self.control_list:
+            c.selected = False
+        self.dispatch_event('on_selection_change')
+
     cards = property(
         lambda self: self.control_list,
         lambda self, x: setattr(self, 'control_list', x)
@@ -236,6 +241,7 @@ class GameCharacterPortrait(Dialog):
         self.equipcard_area = EquipCardArea(
             parent=self,
             x=3, y=6,
+            manual_draw=True,
         )
 
         @self.equipcard_area.event
@@ -394,6 +400,8 @@ class GameCharacterPortrait(Dialog):
             glColor4f(1, 1, 0.8, 0.6)
             glRectf(0, 0, self.width, self.height)
 
+        self.equipcard_area.do_draw()
+
     @property
     def zindex(self):
         return 0
@@ -419,7 +427,8 @@ class THBattleUI(Control):
 
     def __init__(self, game, *a, **k):
         self.game = game
-        game.event_handlers.append(UIEventHook())
+        self.hook = hook = UIEventHook()
+        game.event_handlers.append(hook)
         Control.__init__(self, *a, **k)
 
         self.handcard_area = HandCardArea(
@@ -524,6 +533,17 @@ class THBattleUI(Control):
             for port in self.char_portraits:
                 port.update()
             self.update_skillbox()
+            '''
+            # HACK: move UIEventHook to the end of EH list
+
+            ehlist = self.game.event_handlers
+            hook = self.hook
+            ehlist.remove(hook)
+            ehlist.append(hook)
+
+            for i in ehlist:
+                print i.__class__
+            '''
 
         elif _type == 'evt_player_turn':
             self.current_turn = args[0]
@@ -565,7 +585,7 @@ class THBattleUI(Control):
         for p in players:
             self.player2portrait(p).selected = True
 
-        self.selected_players = players
+        self.selected_players = players[:]
 
     def end_select_player(self):
         #if not self.selecting_player: return
@@ -594,7 +614,10 @@ class THBattleUI(Control):
 
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
-        if isinstance(c, GameCharacterPortrait) and self.selecting_player and not c.disabled:
+        if isinstance(c, GameCharacterPortrait) and (
+            self.selecting_player) and (not c.disabled) and (
+            not c.control_frompoint1(x-c.x, y-c.y)):
+
             sel = c.selected
             psel = self.selected_players
             if sel:
