@@ -2,6 +2,7 @@
 
 from ..actions import *
 from . import basic
+from . import base
 
 class SpellCardAction(UserAction): pass
 
@@ -252,7 +253,7 @@ class Duel(SpellCardAction):
         g.process_action(dmg)
         return d[1] is source
 
-class MapCannon(SpellCardAction):
+class MapCannonEffect(SpellCardAction):
     # 地图炮
     def __init__(self, source, target):
         self.source = source
@@ -270,7 +271,10 @@ class MapCannon(SpellCardAction):
         else:
             return False
 
-class WorshipersCarnival(SpellCardAction):
+class MapCannon(ForEach):
+    action_cls = MapCannonEffect
+
+class WorshipersCarnivalEffect(SpellCardAction):
     # 罪袋狂欢
     def __init__(self, source, target):
         self.source = source
@@ -288,7 +292,10 @@ class WorshipersCarnival(SpellCardAction):
         else:
             return False
 
-class Feast(SpellCardAction):
+class WorshipersCarnival(ForEach):
+    action_cls = WorshipersCarnivalEffect
+
+class FeastEffect(SpellCardAction):
     # 宴会
     def __init__(self, source, target):
         self.source, self.target = source, target
@@ -301,4 +308,7 @@ class Feast(SpellCardAction):
         else:
             g.process_action(basic.Wine(src, tgt))
         return True
+
+class Feast(ForEach):
+    action_cls = FeastEffect
 

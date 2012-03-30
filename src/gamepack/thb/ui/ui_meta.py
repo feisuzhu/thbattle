@@ -444,7 +444,7 @@ class LaevateinSkill:
         source = act.source
         card = act.card
         target = act.target_list[0]
-        s = u'|c208020ff【%s】|r发动了冈格尼尔之枪，将两张牌当作|c208020ff【击】|r对|c208020ff【%s】|r使用。' % (
+        s = u'|c208020ff【%s】|Laevatein!...|c208020ff【击】|r对|c208020ff【%s】|r使用。' % (
             source.ui_meta.char_name,
             target.ui_meta.char_name,
         )

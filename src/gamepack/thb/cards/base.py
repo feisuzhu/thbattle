@@ -62,6 +62,42 @@ class Card(object):
 
         self.resides_in = resides_in
 
+class VirtualCard(Card):
+    __eq__ = object.__eq__
+    __ne__ = object.__ne__
+    __hash__ = object.__hash__
+
+    sort_index = 0
+
+    def __init__(self):
+        self.suit = Card.NOTSET
+        self.number = 0
+
+    def __data__(self):
+        raise GameError('should not sync VirtualCard!')
+
+    def _zero(self, *a):
+        return 0
+
+    def check(self): # override this
+        return False
+    syncid = property(_zero, _zero)
+
+    @classmethod
+    def unwrap(cls, vcard):
+        l = []
+        sl = vcard[:]
+        while sl:
+            s = sl.pop()
+            try:
+                sl.extend(s.associated_cards)
+            except AttributeError:
+                l.append(s)
+        return l
+
+    def sync(self, data):
+        raise GameError('should not sync VirtualCard!')
+
 from collections import deque
 
 class CardList(deque):
@@ -170,7 +206,7 @@ def t_Self(g, source, tl):
 
 @staticmethod
 def t_OtherOne(g, source, tl):
-    tl = tl[:]
+    tl = [t for t in tl if not t.dead]
     ''' # Add it back when done debugging!
     try:
         tl.remove(source)
@@ -181,15 +217,16 @@ def t_OtherOne(g, source, tl):
 
 @staticmethod
 def t_All(g, source, tl):
-    return (g.players.exclude(source), True)
+    return ([t for t in g.players.exclude(source) if not t.dead], True)
 
 @staticmethod
 def t_AllInclusive(g, source, tl):
-    return (g.players, True)
+    return ([t for t in g.players if not t.dead], True)
 
-def t_OtherLessThanN(n):
+def t_OtherLessEqThanN(n):
     @staticmethod
-    def _t_OtherLessThanN(g, source, tl):
+    def _t_OtherLessEqThanN(g, source, tl):
+        tl = [t for t in tl if not t.dead]
         ''' # Add it back when done debugging!
         try:
             tl.remove(source)
@@ -197,7 +234,7 @@ def t_OtherLessThanN(n):
             pass
         '''
         return (tl[:n], bool(len(tl)))
-    return _t_OtherLessThanN
+    return _t_OtherLessEqThanN
 
 class HiddenCard(Card): # special thing....
     associated_action = None

@@ -181,7 +181,7 @@ class UmbrellaHandler(EventHandler):
     execute_before = (spellcard.RejectHandler, )
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
-            if isinstance(act, (spellcard.MapCannon, spellcard.WorshipersCarnival)):
+            if isinstance(act, (spellcard.MapCannonEffect, spellcard.WorshipersCarnivalEffect)):
                 if act.target.has_skill(UmbrellaSkill):
                     act.cancelled = True
         return act
@@ -217,10 +217,13 @@ class GungnirSkill(TreatAsSkill, WeaponSkill):
         if not all(c.resides_in.type in cat for c in cl): return False
         return len(cl) == 2
 
-class LaevateinSkill(TreatAsSkill, WeaponSkill):
-    treat_as = Card.card_classes['AttackCard'] # arghhhh, the same reason ^
+class Laevatein(ForEach):
+    action_cls = basic.Attack
+
+class LaevateinSkill(WeaponSkill):
     range = 4
-    target = t_OtherLessThanN(3)
+    associated_action = Laevatein
+    target = t_OtherLessEqThanN(3)
     def check(self):
         try:
             cl = self.associated_cards

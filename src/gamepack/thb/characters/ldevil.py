@@ -27,7 +27,6 @@ class FindAction(UserAction):
         except AttributeError: # well, some cards are skill?
             return False
 
-
 class Find(Skill):
     associated_action = FindAction
     target = t_Self

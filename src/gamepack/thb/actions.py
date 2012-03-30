@@ -175,8 +175,8 @@ class DropCards(GenericAction):
 
         cards = self.cards
 
-        from .skill import Skill
-        self.cards = cards = Skill.unwrap(cards)
+        from .cards import VirtualCard
+        self.cards = cards = VirtualCard.unwrap(cards)
 
         assert all(c.resides_in.owner == target for c in cards), 'WTF?!'
         migrate_cards(cards, g.deck.droppedcards)
@@ -270,10 +270,11 @@ class LaunchCard(GenericAction):
         action = card.associated_action
         g.process_action(DropUsedCard(self.source, cards=[card]))
         if action:
-            for target in target_list:
-                a = action(source=self.source, target=target)
-                a.associated_card = card
-                g.process_action(a)
+            target = target_list[0] if len(target_list) == 1 else None
+            a = action(source=self.source, target=target)
+            a.associated_card = card
+            a.target_list = target_list
+            g.process_action(a)
             return True
         return False
 
@@ -294,9 +295,6 @@ class ActionStage(GenericAction):
 
     def __init__(self, target):
         self.actor = target
-
-    def default_action(self):
-       return True
 
     def apply_action(self):
         g = Game.getgame()
@@ -443,4 +441,29 @@ class LaunchFatetellCard(FatetellAction):
         a.associated_card = card
         g.process_action(a)
         a.fatetell_postprocess()
+        return True
+
+class ForEach(GenericAction):
+    def prepare(self):
+        pass
+
+    def cleanup(self):
+        pass
+
+    def __init__(self, source, target):
+        self.source = source
+        self.target = None
+
+    def apply_action(self):
+        tl = self.target_list
+        source = self.source
+        card = self.associated_card
+        g = Game.getgame()
+        self.prepare()
+        for t in tl:
+            a = self.action_cls(source, t)
+            a.associated_card = card
+            a.parent_action = self
+            g.process_action(a)
+        self.cleanup()
         return True
