@@ -17,11 +17,6 @@ from utils import DataHolder, BatchList, IRP
 import logging
 log = logging.getLogger('THBattleUI_Input')
 
-class InputController(Control):
-    def on_message(self, _type, *args):
-        if _type == 'evt_user_input_timeout':
-            self.cleanup()
-
 class Dummy(object):
     '''
     Make the view think the input request will get processed.
@@ -29,10 +24,10 @@ class Dummy(object):
     def __init__(*a, **k):
         pass
 
-class UISelectTarget(InputController):
+class UISelectTarget(Control):
 
     def __init__(self, irp, *a, **k):
-        InputController.__init__(self, *a, **k)
+        Control.__init__(self, *a, **k)
         parent = self.parent
         self.irp = irp
         assert isinstance(irp, IRP)
@@ -124,6 +119,10 @@ class UISelectTarget(InputController):
         with shaders.FontShadow as fs:
             fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
             self.label.draw()
+
+    def on_message(self, _type, *args):
+        if _type == 'evt_user_input_timeout':
+            self.cleanup()
 
 class UIChooseMyCards(UISelectTarget):
     # for actions.ChooseCard
@@ -258,7 +257,6 @@ class UIChooseGirl(Panel):
                 with shaders.Grayscale:
                     pimg.blit(0, 0)
 
-
         def on_mouse_enter(self, x, y):
             self.hover_alpha = 0.4
 
@@ -304,7 +302,7 @@ class UIChooseGirl(Panel):
 
     def __init__(self, attachment, *a, **k):
         w, h = 500, 360
-        Panel.__init__(self, width=w, height=h, *a, **k)
+        Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
         pw, ph = p.width, p.height
         self.x, self.y = (pw-w)/2, (ph-h)/2
@@ -327,14 +325,7 @@ class UIChooseGirl(Panel):
                 assert self.irp is None
                 self.irp = irp
                 self.begin_selection()
-        elif _evt == 'girl_chosen':
-            c = args[0]
-            if c.char_cls: return # choice of the other force
-            port = self.parent.player2portrait(p)
-            meta = c.char_cls.ui_meta
-            port.port_image = meta.port_image
-            port.char_name = meta.char_name
-            port.update()
+
         elif _evt == 'evt_user_input_all_end':
             tag = args[0]
             if tag == 'choose_girl':
@@ -353,7 +344,7 @@ class UIChooseGirl(Panel):
         self.can_select = False
         self.irp = None
 
-class UIChoosePeerCard(Panel, InputController):
+class UIChoosePeerCard(Panel):
     lookup = {
         cards.CardList.HANDCARD: u'手牌区',
         cards.CardList.SHOWNCARD: u'明牌区',
@@ -442,10 +433,14 @@ class UIChoosePeerCard(Panel, InputController):
         self.irp.complete()
         self.delete()
 
-class UIChooseOption(InputController):
+    def on_message(self, _type, *args):
+        if _type == 'evt_user_input_timeout':
+            self.cleanup()
+
+class UIChooseOption(Control):
 
     def __init__(self, irp, *a, **k):
-        InputController.__init__(self, *a, **k)
+        Control.__init__(self, *a, **k)
         parent = self.parent
         self.irp = irp
         assert isinstance(irp, IRP)
@@ -492,7 +487,11 @@ class UIChooseOption(InputController):
             fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
             self.label.draw()
 
-class UIChooseIndividualCard(Panel, InputController):
+    def on_message(self, _type, *args):
+        if _type == 'evt_user_input_timeout':
+            self.cleanup()
+
+class UIChooseIndividualCard(Panel):
     def __init__(self, irp, *a, **k):
         self.irp = irp
         cards = irp.attachment
@@ -543,6 +542,58 @@ class UIChooseIndividualCard(Panel, InputController):
         self.irp.complete()
         self.delete()
 
+    def on_message(self, _type, *args):
+        if _type == 'evt_user_input_timeout':
+            self.cleanup()
+
+class UIHarvestChoose(Panel):
+    def __init__(self, cards, *a, **k):
+        w = 20 + (91+10)*4 + 20
+        h = 20 + 125 + 20 + 125 + 20
+        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
+        parent = self.parent
+        self.x, self.y = (parent.width - w)//2, (parent.height - h)//2 + 20
+        self.width, self.height = w, h
+        self.update()
+
+        self.mapping = mapping = {}
+        self.irp = None
+        for i, c in enumerate(cards):
+            y, x = divmod(i, 4)
+            x, y = 20 + (91+10)*x, 20 +(125+20)*(1-y)
+            cs = CardSprite(
+                parent=self,
+                img=c.ui_meta.image,
+                suit=c.suit, number=c.number,
+                x=x, y=y,
+            )
+            cs.associated_card = c
+            mapping[c] = cs
+            @cs.event
+            def on_mouse_dblclick(x, y, button, modifier, cs=cs):
+                if not cs.gray:
+                    irp = self.irp
+                    if irp:
+                        irp.input = cs.associated_card.syncid
+                        irp.complete()
+                        self.irp = None
+
+    def on_message(self, _type, *args):
+        if _type == 'evt_harvest_finish':
+            self.cleanup()
+        elif _type == 'evt_user_input':
+            irp = args[0]
+            if irp.tag == 'harvest_choose':
+                self.irp = irp
+        elif _type == 'evt_harvest_choose':
+            self.mapping[args[0]].gray = True
+        elif _type in 'evt_harvest_finish':
+            self.cleanup()
+
+    def cleanup(self):
+        if self.irp:
+            self.irp.complete()
+        self.delete()
 
 mapping = dict(
     choose_card=UIChooseMyCards,
@@ -551,8 +602,35 @@ mapping = dict(
     choose_peer_card=UIChoosePeerCard,
     choose_option=UIChooseOption,
     choose_individual_card=UIChooseIndividualCard,
+    harvest_choose=Dummy,
 )
 
 mapping_all = dict(
     choose_girl=UIChooseGirl,
 )
+
+mapping_event = dict(
+    harvest_cards=UIHarvestChoose,
+)
+
+def handle_event(self, _type, data):
+    if _type == 'user_input':
+        irp = data
+        itype = irp.tag
+        cls = mapping.get(itype)
+        if cls:
+            self.update_skillbox()
+            cls(irp, parent=self)
+        else:
+            log.error('No apropriate input handler!')
+            irp.input = None
+            irp.complete()
+    elif _type == 'user_input_all_begin':
+        tag, attachment = data
+        cls = mapping_all.get(tag)
+        if cls:
+            cls(attachment=attachment, parent=self)
+    else:
+        cls = mapping_event.get(_type)
+        if cls:
+            cls(data, parent=self)

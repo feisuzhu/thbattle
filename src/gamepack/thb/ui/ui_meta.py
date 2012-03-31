@@ -87,7 +87,7 @@ class UseAttack:
 class HealCard:
     # action_stage meta
     image = gres.card_heal
-    name = u'桃'
+    name = u'麻薯'
 
     def is_action_valid(cl, source, target_list):
         target = target_list[0]
@@ -95,7 +95,7 @@ class HealCard:
             return (False, u'BUG!!!!')
 
         if target.life >= target.maxlife:
-            return (False, u'您的体力值已达到上限')
+            return (False, u'您已经吃饱了')
         else:
             return (True, u'来一口，精神焕发！')
 
@@ -498,6 +498,13 @@ class FeastCard:
     def is_action_valid(cl, source, target_list):
         return (True, u'开宴啦~~')
 
+class HarvestCard:
+    # action_stage meta
+    image = gres.card_harvest
+    name = u'五谷丰登'
+
+    def is_action_valid(cl, source, target_list):
+        return (True, u'麻薯会有的，节操是没有的！')
 
 # -----END CARDS UI META-----
 

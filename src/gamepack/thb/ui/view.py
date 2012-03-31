@@ -512,24 +512,7 @@ class THBattleUI(Control):
                 sb.state = Button.NORMAL
 
     def on_message(self, _type, *args):
-        if _type == 'evt_user_input':
-            irp = args[0]
-            itype = irp.tag
-            cls = inputs.mapping.get(itype)
-            if cls:
-                self.update_skillbox()
-                cls(irp, parent=self)
-            else:
-                log.error('No apropriate input handler!')
-                irp.input = None
-                irp.complete()
-        elif _type == 'evt_user_input_all_begin':
-            arg = args[0]
-            itype = arg[0]
-            cls = inputs.mapping_all.get(itype)
-            if cls:
-                cls(attachment=arg[1], parent=self)
-        elif _type == 'evt_game_begin':
+        if _type == 'evt_game_begin':
             for port in self.char_portraits:
                 port.update()
             self.update_skillbox()
@@ -549,6 +532,7 @@ class THBattleUI(Control):
             self.current_turn = args[0]
 
         if _type.startswith('evt_'):
+            inputs.handle_event(self, _type[4:], args[0])
             effects.handle_event(self, _type[4:], args[0])
 
     def draw(self):

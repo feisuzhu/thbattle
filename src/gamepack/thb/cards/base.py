@@ -198,7 +198,7 @@ class Deck(object):
 # card targets:
 @staticmethod
 def t_None(g, source, tl):
-    return (None, True)
+    return (None, False)
 
 @staticmethod
 def t_Self(g, source, tl):

@@ -1381,8 +1381,9 @@ class Panel(Control):
         self.tick += 1
         if not (self.tick % 2):
             self.blur_update()
-        from . import shaders
-        self.fbo.texture.blit(0, 0)
+
+        glColor3f(1, 1, 1)
+        self.tex1.blit(0, 0)
         w, h = int(self.width), int(self.height)
         glLineWidth(3.0)
         glColor4f(1, 1, 1, .3)

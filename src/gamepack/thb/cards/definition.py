@@ -78,6 +78,10 @@ class FeastCard:
     associated_action = spellcard.Feast
     target = t_AllInclusive
 
+class HarvestCard:
+    associated_action = spellcard.Harvest
+    target = t_AllInclusive
+
 # --------------------------------------------------
 
 from . import equipment
@@ -235,8 +239,10 @@ card_definition = [
     (RepentanceStickCard, Card.SPADE, 10),
     (WineCard, Card.HEART, 12),
     (FeastCard, Card.DIAMOND, 12),
-    (FeastCard, Card.DIAMOND, 12),
-    (FeastCard, Card.DIAMOND, 12),
-    (FeastCard, Card.DIAMOND, 12),
+    (HarvestCard, Card.DIAMOND, 12),
+    (HarvestCard, Card.DIAMOND, 12),
+    (HarvestCard, Card.DIAMOND, 12),
+    (HarvestCard, Card.DIAMOND, 12),
+
 
 ] * 2

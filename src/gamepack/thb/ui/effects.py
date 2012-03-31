@@ -212,7 +212,7 @@ def after_launch_effect(self, act):
     for p in act.target_list:
         _update_tags(self, p)
 
-def after_action_stage_effect(self, act):
+def action_stage_update_tag(self, act):
     _update_tags(self, act.actor)
 
 def graze_effect(self, act):
@@ -242,6 +242,7 @@ mapping_actions = ddict(dict, {
     'before': {
         LaunchCard: launch_effect,
         Reject: reject_effect,
+        ActionStage: action_stage_update_tag,
     },
     'after': {
         Damage: damage_effect,
@@ -249,7 +250,7 @@ mapping_actions = ddict(dict, {
         UseGraze: graze_effect,
         Demolition: demolition_effect,
         LaunchCard: after_launch_effect,
-        ActionStage: after_action_stage_effect,
+        ActionStage: action_stage_update_tag,
     }
 })
 
@@ -302,7 +303,6 @@ def user_input_start_effects(self, input):
         on_done=lambda self, desc: self.delete(),
     )
     self.actor_pbar = pbar
-
 
 def user_input_finish_effects(self, input):
     if self.actor_frame:

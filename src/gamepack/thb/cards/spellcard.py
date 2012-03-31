@@ -312,3 +312,39 @@ class FeastEffect(SpellCardAction):
 class Feast(ForEach):
     action_cls = FeastEffect
 
+class HarvestEffect(SpellCardAction):
+    # 五谷丰登 效果
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        cards = self.parent_action.cards
+        cards_avail = [c for c in cards if not c.resides_in.owner]
+        cmap = {c.syncid:c for c in cards_avail}
+        g = Game.getgame()
+        tgt = self.target
+        cid = tgt.user_input('harvest_choose', cards_avail)
+        card = cmap.get(cid)
+        if not card:
+            card = random_choose_card([cards_avail])
+        migrate_cards([card], tgt.cards)
+        g.emit_event('harvest_choose', card)
+        return True
+
+class Harvest(ForEach):
+    action_cls = HarvestEffect
+    def prepare(self):
+        tl = self.target_list
+        g = Game.getgame()
+        cards = g.deck.getcards(len(tl))
+        g.players.reveal(cards)
+        g.emit_event('harvest_cards', cards)
+        self.cards = cards
+
+    def cleanup(self):
+        g = Game.getgame()
+        g.emit_event('harvest_finish', self)
+        dropped = g.deck.droppedcards
+        deckcard = g.deck.cards
+        migrate_cards([c for c in self.cards if not c.resides_in.owner], dropped)

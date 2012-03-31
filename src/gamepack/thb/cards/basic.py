@@ -35,7 +35,7 @@ class AttackCardHandler(EventHandler):
             if isinstance(act, LaunchCard):
                 from .definition import AttackCard
                 if isinstance(act.card, AttackCard):
-                    act.target_list[0].tags['attack_num'] -= 1
+                    act.source.tags['attack_num'] -= 1
             elif isinstance(act, ActionStage):
                 act.actor.tags['attack_num'] = 1
             elif isinstance(act, CalcDistance):
