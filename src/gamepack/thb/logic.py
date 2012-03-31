@@ -41,7 +41,7 @@ class CharChoice(object):
 
 class THBattle(Game):
     name = u'符斗祭 - 3v3 - 休闲'
-    n_persons = 1
+    n_persons = 2
 
     # -----BEGIN PLAYER STAGES-----
     NORMAL = 'NORMAL'
@@ -154,7 +154,7 @@ class THBattle(Game):
 
         for p in self.players:
             p.cards = CardList(p, CardList.HANDCARD) # Cards in hand
-            p.shown_cards = CardList(p, CardList.SHOWNCARD) # Cards which are shown to the others, treated as 'Cards in hand'
+            p.showncards = CardList(p, CardList.SHOWNCARD) # Cards which are shown to the others, treated as 'Cards in hand'
             p.equips = CardList(p, CardList.EQUIPS) # Equipments
             p.fatetell = CardList(p, CardList.FATETELL) # Cards in the Fatetell Zone
 

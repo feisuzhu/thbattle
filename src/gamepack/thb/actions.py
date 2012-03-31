@@ -32,7 +32,7 @@ def user_choose_card(act, target, cond, categories=None):
         check(all(c.resides_in.owner is target for c in cards)) # Whose cards?!
 
         if not categories:
-            categories = [target.cards, target.shown_cards]
+            categories = [target.cards, target.showncards]
 
         check(all(c.resides_in in categories for c in cards)) # Cards in desired categories?
 
@@ -207,10 +207,10 @@ class DropCardStage(GenericAction):
 
     def cond(self, cards):
         t = self.target
-        if not len(cards) == len(t.cards) + len(t.shown_cards) - t.life:
+        if not len(cards) == len(t.cards) + len(t.showncards) - t.life:
             return False
 
-        if not all(c.resides_in in (t.cards, t.shown_cards) for c in cards):
+        if not all(c.resides_in in (t.cards, t.showncards) for c in cards):
             return False
 
         return True
@@ -230,7 +230,7 @@ class DropCardStage(GenericAction):
             g.process_action(DropCards(target, cards=cards))
         else:
             from itertools import chain
-            cards = list(chain(target.cards, target.shown_cards))[min(-n, 0):]
+            cards = list(chain(target.cards, target.showncards))[min(-n, 0):]
             g.players.exclude(target).reveal(cards)
             g.process_action(DropCards(target, cards=cards))
         self.cards = cards
@@ -327,7 +327,7 @@ class ActionStage(GenericAction):
                 else:
                     check(len(cards) == 1)
                     card = cards[0]
-                    check(card.resides_in in (actor.cards, actor.shown_cards))
+                    check(card.resides_in in (actor.cards, actor.showncards))
 
                 if not g.process_action(LaunchCard(actor, target_list, card)):
                     # invalid input

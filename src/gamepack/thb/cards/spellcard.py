@@ -20,7 +20,7 @@ class Demolition(SpellCardAction):
         #cards = random_choose_card(target, target.cards, 1)
         categories = [
             target.cards,
-            target.shown_cards,
+            target.showncards,
             target.equips,
             target.fatetell,
         ]
@@ -217,7 +217,7 @@ class YukariDimension(SpellCardAction):
 
         categories = [
             target.cards,
-            target.shown_cards,
+            target.showncards,
             target.equips,
             target.fatetell,
         ]

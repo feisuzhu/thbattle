@@ -381,8 +381,11 @@ class GungnirSkill:
     def is_action_valid(cl, source, target_list):
         skill = cl[0]
         assert isinstance(skill, cards.GungnirSkill)
-        if len(skill.associated_cards) != 2:
-            return (False, u'请选择2张牌！')
+        acards = skill.associated_cards
+        if len(acards) != 2:
+            return (False, u'请选择2张手牌！')
+        elif any(c.resides_in not in (source.cards, source.showncards) for c in acards):
+            return (False, u'只能使用手牌发动！')
         else:
             return cards.AttackCard.ui_meta.is_action_valid([skill], source, target_list)
 
@@ -414,7 +417,7 @@ class LaevateinSkill:
         try:
             act = game.action_stack[0]
             if isinstance(act, actions.ActionStage):
-                cl = list(me.cards) + list(me.shown_cards)
+                cl = list(me.cards) + list(me.showncards)
                 if len(cl) == 1 and isinstance(cl[0], cards.AttackCard):
                     return True
         except IndexError:
@@ -524,7 +527,7 @@ class MaidenCostumeCard:
 class MaidenCostumeSkill:
     # Skill
     name = u'巫女服'
-    
+
     def clickable(game):
         return False
 

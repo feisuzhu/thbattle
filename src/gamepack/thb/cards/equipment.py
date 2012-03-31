@@ -232,7 +232,7 @@ class LaevateinSkill(WeaponSkill):
             from .definition import AttackCard
             check(isinstance(card, AttackCard))
             actor = card.resides_in.owner
-            check(len(actor.cards) + len(actor.shown_cards) == 1)
+            check(len(actor.cards) + len(actor.showncards) == 1)
             return True
         except CheckFailed:
             return False
@@ -276,7 +276,7 @@ class RepentanceStickHandler(EventHandler):
                     if src.user_input('choose_option', self):
                         tgt = act.target
                         cats = [
-                            tgt.cards, tgt.shown_cards,
+                            tgt.cards, tgt.showncards,
                             tgt.equips, tgt.fatetell,
                         ]
                         for i in xrange(2):

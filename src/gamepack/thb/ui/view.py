@@ -152,6 +152,12 @@ class EquipCardArea(Control):
             c.selected = False
         self.dispatch_event('on_selection_change')
 
+    def hit_test(self, x, y):
+        if not self.selectable:
+            return False
+        else:
+            return self.control_frompoint1(x, y)
+
     cards = property(
         lambda self: self.control_list,
         lambda self, x: setattr(self, 'control_list', x)
@@ -186,7 +192,7 @@ class ShownCardPanel(Panel):
             fold_size=6,
             width=6*93, height=125,
         )
-        for c in player.shown_cards:
+        for c in player.showncards:
             cs = CardSprite(
                 parent=ca,
                 img=c.ui_meta.image,
@@ -301,7 +307,7 @@ class GameCharacterPortrait(Dialog):
         def on_click():
             p = self.player
             if not p: return
-            if not hasattr(p, 'shown_cards'): return # before the 'real' game start
+            if not hasattr(p, 'showncards'): return # before the 'real' game start
             last = ShownCardPanel.current
             if last:
                 last.delete()
@@ -382,7 +388,7 @@ class GameCharacterPortrait(Dialog):
         p = self.player
         glColor3f(1, 1, 1)
         try:
-            n = len(p.cards) + len(p.shown_cards)
+            n = len(p.cards) + len(p.showncards)
             seq = str(n)
             ox = (32 - len(seq)*14)//2
             nums = common_res.num
@@ -598,19 +604,18 @@ class THBattleUI(Control):
 
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
-        if isinstance(c, GameCharacterPortrait) and (
-            self.selecting_player) and (not c.disabled) and (
-            not c.control_frompoint1(x-c.x, y-c.y)):
-
-            sel = c.selected
-            psel = self.selected_players
-            if sel:
-                c.selected = False
-                psel.remove(c.player)
-            else:
-                c.selected = True
-                psel.append(c.player)
-            self.dispatch_event('on_selection_change')
+        if isinstance(c, GameCharacterPortrait) and self.selecting_player and not c.disabled:
+            cc = c.control_frompoint1(x-c.x, y-c.y)
+            if not (cc and cc.hit_test(x-c.x, y-c.y)):
+                sel = c.selected
+                psel = self.selected_players
+                if sel:
+                    c.selected = False
+                    psel.remove(c.player)
+                else:
+                    c.selected = True
+                    psel.append(c.player)
+                self.dispatch_event('on_selection_change')
         return True
 
 THBattleUI.register_event_type('on_selection_change')

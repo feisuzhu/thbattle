@@ -176,7 +176,7 @@ class UIDoActionStage(UISelectTarget):
                 card = cards[0]
                 try:
                     rin = card.resides_in
-                    if rin not in (g.me.cards, g.me.shown_cards):
+                    if rin not in (g.me.cards, g.me.showncards):
                         break
                 except AttributeError:
                     pass
