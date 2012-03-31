@@ -73,6 +73,18 @@ class WineCard:
             return (True, u'你已经醉了，还要再喝吗？')
         return (True, u'三年陈酿，西瓜酒！')
 
+class ExinwanCard:
+    # action_stage meta
+    name =u'恶心丸'
+    image = gres.card_exinwan
+    def is_action_valid(cl, source, target_list):
+        return (True, u'哼，哼，哼哼……')
+
+class ExinwanHandler:
+    # choose_card meta
+    text = u'请选择两张牌（不选则受到一点无源伤害）'
+    text_valid = u'节操给你，离我远点！'
+
 class UseGraze:
     # choose_card meta
     image = gres.card_graze

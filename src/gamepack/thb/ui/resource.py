@@ -49,6 +49,7 @@ with ResLoader(__file__) as args:
     card_harvest = tx('card_harvest.tga')
     card_maidencostume = tx('card_maidencostume.tga')
     card_maidencostume_small = tx('card_maidencostume_small.tga')
+    card_exinwan = tx('card_exinwan.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

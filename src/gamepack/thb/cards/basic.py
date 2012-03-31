@@ -109,3 +109,45 @@ class WineHandler(EventHandler):
         elif evt_type == 'action_apply' and isinstance(act, ActionStage):
             act.actor.tags['wine'] = False
         return act
+
+class Exinwan(UserAction):
+    # 恶心丸
+    def __init__(self, source, target):
+        pass
+
+    def apply_action(self):
+        return True
+
+@register_eh
+class ExinwanHandler(EventHandler):
+    # 恶心丸
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, DropCards):
+            from .definition import ExinwanCard
+            cards = [c for c in act.cards if isinstance(c, ExinwanCard)]
+            if cards:
+                g = Game.getgame()
+                pact = g.action_stack[0]
+                if isinstance(pact, DropCardStage):
+                    target = pact.target
+                else:
+                    target = pact.source
+
+                cats = [
+                    target.cards,
+                    target.showncards,
+                    target.equips,
+                ]
+                for i in xrange(len(cards)):
+                    cards = user_choose_card(self, target, self.cond, cats)
+                    if cards:
+                        g.process_action(DropCards(target=target, cards=cards))
+                    else:
+                        g.process_action(Damage(source=None, target=target))
+        return act
+
+    def cond(self, cards):
+        if len(cards) != 2: return False
+        from ..skill import Skill
+        if any(isinstance(c, Skill) for c in cards): return False
+        return True

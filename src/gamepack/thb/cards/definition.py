@@ -33,6 +33,10 @@ class WineCard:
     associated_action = basic.Wine
     target = t_Self
 
+class ExinwanCard:
+    associated_action = basic.Exinwan
+    target = t_Self
+
 # --------------------------------------------------
 
 from . import spellcard
@@ -237,13 +241,17 @@ card_definition = [
     (GrazeCard, Card.CLUB, 1),
     (HealCard, Card.CLUB, 3),
     (DemolitionCard, Card.DIAMOND, 1),
+    (DemolitionCard, Card.DIAMOND, 1),
+    (DemolitionCard, Card.DIAMOND, 1),
+    (DemolitionCard, Card.DIAMOND, 1),
+
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
     (MapCannonCard, Card.SPADE, 12),
     (WorshipersCarnivalCard, Card.SPADE, 1),
     (WorshipersCarnivalCard, Card.SPADE, 1),
     (WorshipersCarnivalCard, Card.SPADE, 1),
-    
+
     (GungnirCard, Card.DIAMOND, 1),
     (LaevateinCard, Card.CLUB, 1),
     (ThoridalCard, Card.CLUB, 1),
@@ -252,8 +260,11 @@ card_definition = [
     (FeastCard, Card.DIAMOND, 12),
     (HarvestCard, Card.DIAMOND, 12),
     (MaidenCostumeCard, Card.DIAMOND, 12),
-    (MaidenCostumeCard, Card.DIAMOND, 12),
-    (MaidenCostumeCard, Card.DIAMOND, 12),
+    (ExinwanCard, Card.SPADE, 10),
+    (ExinwanCard, Card.SPADE, 10),
+    (ExinwanCard, Card.SPADE, 10),
+    (ExinwanCard, Card.SPADE, 10),
+
 
 
 ] * 2

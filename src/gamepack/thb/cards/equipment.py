@@ -269,7 +269,7 @@ class RepentanceStickHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
             src = act.source
-            if src.has_skill(RepentanceStickSkill):
+            if src and src.has_skill(RepentanceStickSkill):
                 g = Game.getgame()
                 pa = g.action_stack[0]
                 if isinstance(pa, basic.BaseAttack):
