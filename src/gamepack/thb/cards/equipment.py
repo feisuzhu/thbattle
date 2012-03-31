@@ -287,3 +287,20 @@ class RepentanceStickHandler(EventHandler):
                                 g.process_action(DropCards(target=tgt, cards=[card]))
                         act.cancelled = True
         return act
+
+class MaidenCostumeSkill(ShieldSkill):
+    pass
+
+@register_eh
+class MaidenCostumeHandler(EventHandler):
+    execute_before = (spellcard.RejectHandler, )
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, spellcard.WorshipersCarnivalEffect):
+            target = act.target
+            if target.has_skill(MaidenCostumeSkill):
+                act.cancelled = True
+                g = Game.getgame()
+                dmg = Damage(source=act.source, target=target)
+                dmg.associated_action = act
+                g.process_action(dmg)
+        return act

@@ -506,6 +506,31 @@ class HarvestCard:
     def is_action_valid(cl, source, target_list):
         return (True, u'麻薯会有的，节操是没有的！')
 
+
+class MaidenCostumeCard:
+    # action_stage meta
+    name = u'巫女服'
+    image = gres.card_maidencostume
+    image_small = gres.card_maidencostume_small
+
+    def is_action_valid(cl, source, target_list):
+        if not target_list:
+            return (False, u'请选择目标')
+        t = target_list[0]
+        if source is t:
+            return (True, u'真的要自己穿上吗？')
+        return (True, u'腋！')
+
+class MaidenCostumeSkill:
+    # Skill
+    name = u'巫女服'
+    
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----

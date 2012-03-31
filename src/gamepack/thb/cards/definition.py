@@ -152,6 +152,13 @@ class RepentanceStickCard:
     equipment_skill = equipment.RepentanceStickSkill
     equipment_category = 'weapon'
 
+class MaidenCostumeCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_OtherOne
+    equipment_skill = equipment.MaidenCostumeSkill
+    equipment_category = 'shield'
+    distance = 2
+
 # ==================================================
 
 __metaclass__ = type
@@ -233,6 +240,10 @@ card_definition = [
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
     (MapCannonCard, Card.SPADE, 12),
+    (WorshipersCarnivalCard, Card.SPADE, 1),
+    (WorshipersCarnivalCard, Card.SPADE, 1),
+    (WorshipersCarnivalCard, Card.SPADE, 1),
+    
     (GungnirCard, Card.DIAMOND, 1),
     (LaevateinCard, Card.CLUB, 1),
     (ThoridalCard, Card.CLUB, 1),
@@ -240,9 +251,9 @@ card_definition = [
     (WineCard, Card.HEART, 12),
     (FeastCard, Card.DIAMOND, 12),
     (HarvestCard, Card.DIAMOND, 12),
-    (HarvestCard, Card.DIAMOND, 12),
-    (HarvestCard, Card.DIAMOND, 12),
-    (HarvestCard, Card.DIAMOND, 12),
+    (MaidenCostumeCard, Card.DIAMOND, 12),
+    (MaidenCostumeCard, Card.DIAMOND, 12),
+    (MaidenCostumeCard, Card.DIAMOND, 12),
 
 
 ] * 2
