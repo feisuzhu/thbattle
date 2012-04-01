@@ -332,3 +332,31 @@ class IbukiGourdHandler(EventHandler):
                     g.process_action(basic.Wine(target, target))
 
         return arg
+
+class SpellCardAttack(spellcard.SpellCardAction):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        dmg = Damage(self.source, self.target)
+        dmg.associated_action = self
+        g.process_action(dmg)
+        return True
+
+class HouraiJewelSkill(WeaponSkill):
+    associated_action =  None
+    target = t_None
+    range = 1
+
+@register_eh
+class HouraiJewelHandler(EventHandler):
+    execute_before = (spellcard.RejectHandler, ) # will desync without this?!
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
+            src = act.source
+            if src.has_skill(HouraiJewelSkill):
+                if src.user_input('choose_option', self):
+                    act.__class__ = SpellCardAttack
+        return act

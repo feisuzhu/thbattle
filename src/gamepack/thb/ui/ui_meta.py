@@ -562,6 +562,28 @@ class IbukiGourdSkill:
     def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
+class HouraiJewelCard:
+    # action_stage meta
+    name = u'蓬莱玉枝'
+    image = gres.card_houraijewel
+    image_small = gres.card_houraijewel_small
+    is_action_valid = equip_iav
+
+class HouraiJewelSkill:
+    # Skill
+    name = u'蓬莱玉枝'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class HouraiJewelHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【蓬莱玉枝】吗？'
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----

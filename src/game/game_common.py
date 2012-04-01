@@ -110,12 +110,18 @@ class Action(object):
         '''
         return True
 
+    def __repr__(self):
+        return self.__class__.__name__
+
 class AbstractPlayer(object):
     def reveal(self, obj_list):
         raise GameError('Abstract')
 
     def user_input(self, tag, attachment=None, timeout=25):
         raise GameError('Abstract')
+
+    def __repr__(self):
+        return self.__class__.__name__
 
 class _ActionStack(list):
     def __getitem__(self, i):
@@ -154,10 +160,10 @@ class Game(object):
         Fire an event, all relevant event handlers will see this,
         data can be modified.
         '''
-        if isinstance(data, object):
-            s = data.__class__.__name__
-        else:
+        if isinstance(data, (list, tuple)):
             s = data
+        else:
+            s = data.__class__.__name__
         log.info('emit_event: %s %s' % (evt_type, s))
         for evt in self.event_handlers:
             data = evt.handle(evt_type, data)

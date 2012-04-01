@@ -169,6 +169,12 @@ class IbukiGourdCard:
     equipment_skill = equipment.IbukiGourdSkill
     equipment_category = 'redufo'
 
+class HouraiJewelCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.HouraiJewelSkill
+    equipment_category = 'weapon'
+
 # ==================================================
 
 __metaclass__ = type
@@ -239,9 +245,9 @@ card_definition = [
     (AttackCard, Card.CLUB, 1),
     (AttackCard, Card.CLUB, 1),
 
-    (GrazeCard, Card.CLUB, 1),
-    (GrazeCard, Card.CLUB, 1),
-    (GrazeCard, Card.CLUB, 1),
+    (RejectCard, Card.CLUB, 1),
+    (RejectCard, Card.CLUB, 1),
+    (RejectCard, Card.CLUB, 1),
     (HealCard, Card.CLUB, 3),
     (DemolitionCard, Card.DIAMOND, 1),
 
@@ -259,9 +265,10 @@ card_definition = [
     (MaidenCostumeCard, Card.DIAMOND, 12),
     (ExinwanCard, Card.SPADE, 10),
     (IbukiGourdCard, Card.HEART, 7),
-    (IbukiGourdCard, Card.HEART, 7),
-    (IbukiGourdCard, Card.HEART, 7),
-    (IbukiGourdCard, Card.HEART, 7),
-    (IbukiGourdCard, Card.HEART, 7),
+    (HouraiJewelCard, Card.DIAMOND, 3),
+    (HouraiJewelCard, Card.DIAMOND, 3),
+    (HouraiJewelCard, Card.DIAMOND, 3),
+    (HouraiJewelCard, Card.DIAMOND, 3),
+    (HouraiJewelCard, Card.DIAMOND, 3),
 
 ] * 2

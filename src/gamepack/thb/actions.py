@@ -176,6 +176,7 @@ class DropCards(GenericAction):
         cards = self.cards
 
         from .cards import VirtualCard
+        self.cards_before_unwrap = cards
         self.cards = cards = VirtualCard.unwrap(cards)
 
         assert all(c.resides_in.owner == target for c in cards), 'WTF?!'

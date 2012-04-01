@@ -62,6 +62,9 @@ class Card(object):
 
         self.resides_in = resides_in
 
+    def __repr__(self):
+        return self.__class__.__name__
+
 class VirtualCard(Card):
     __eq__ = object.__eq__
     __ne__ = object.__ne__
