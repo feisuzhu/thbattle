@@ -584,6 +584,31 @@ class HouraiJewelHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【蓬莱玉枝】吗？'
 
+class SaigyouBranchCard:
+    # action_stage meta
+    name = u'西行妖枝条'
+    image = gres.card_saigyoubranch
+    image_small = gres.card_saigyoubranch_small
+    is_action_valid = equip_iav
+
+class SaigyouBranchSkill:
+    # Skill
+    name = u'西行妖枝条'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class SaigyouBranch:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【西行妖枝条】吗？'
+
+
+
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----

@@ -360,3 +360,40 @@ class HouraiJewelHandler(EventHandler):
                 if src.user_input('choose_option', self):
                     act.__class__ = SpellCardAttack
         return act
+
+class SaigyouBranch(FatetellAction):
+    def __init__(self, source, act):
+        self.source = source
+        self.act = act
+
+    def apply_action(self):
+        act = self.act
+        src = self.source
+        assert isinstance(act, spellcard.SpellCardAction)
+        if isinstance(act, spellcard.Reject) and src == act.source == act.target:
+            # my own Reject
+            return True
+
+        if src.user_input('choose_option', self):
+            g = Game.getgame()
+            ft = Fatetell(src, lambda card: card.suit in (Card.SPADE, Card.CLUB))
+            g.process_action(ft)
+            if ft.succeeded:
+                g.process_action(spellcard.Reject(src, act))
+
+        return True
+
+class SaigyouBranchSkill(ShieldSkill):
+    pass
+
+@register_eh
+class SaigyouBranchHandler(EventHandler):
+    execute_before = (spellcard.RejectHandler, )
+    execute_after = (HouraiJewelHandler, )
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, spellcard.SpellCardAction):
+            tgt = act.target
+            if tgt.has_skill(SaigyouBranchSkill):
+                Game.getgame().process_action(SaigyouBranch(tgt, act))
+
+        return act

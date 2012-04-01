@@ -175,6 +175,12 @@ class HouraiJewelCard:
     equipment_skill = equipment.HouraiJewelSkill
     equipment_category = 'weapon'
 
+class SaigyouBranchCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.SaigyouBranchSkill
+    equipment_category = 'shield'
+
 # ==================================================
 
 __metaclass__ = type
@@ -250,6 +256,9 @@ card_definition = [
     (RejectCard, Card.CLUB, 1),
     (HealCard, Card.CLUB, 3),
     (DemolitionCard, Card.DIAMOND, 1),
+    (DemolitionCard, Card.DIAMOND, 1),
+    (DemolitionCard, Card.DIAMOND, 1),
+    
 
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
@@ -266,9 +275,9 @@ card_definition = [
     (ExinwanCard, Card.SPADE, 10),
     (IbukiGourdCard, Card.HEART, 7),
     (HouraiJewelCard, Card.DIAMOND, 3),
-    (HouraiJewelCard, Card.DIAMOND, 3),
-    (HouraiJewelCard, Card.DIAMOND, 3),
-    (HouraiJewelCard, Card.DIAMOND, 3),
-    (HouraiJewelCard, Card.DIAMOND, 3),
+    (SaigyouBranchCard, Card.DIAMOND, 3),
+    (SaigyouBranchCard, Card.DIAMOND, 3),
+    (SaigyouBranchCard, Card.DIAMOND, 3),
+    (SaigyouBranchCard, Card.DIAMOND, 3),
 
 ] * 2

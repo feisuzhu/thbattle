@@ -241,7 +241,7 @@ def demolition_effect(self, act):
 mapping_actions = ddict(dict, {
     'before': {
         LaunchCard: launch_effect,
-        Reject: reject_effect,
+        #Reject: reject_effect, # uncomment after adding action ui_meta
         ActionStage: action_stage_update_tag,
     },
     'after': {
