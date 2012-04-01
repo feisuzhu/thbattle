@@ -622,10 +622,10 @@ class Mijincihangzhan:
 
 # ----------
 
-class LittleDevil:
+class Koakuma:
     # Character
     char_name = u'小恶魔'
-    port_image = gres.ldevil_port
+    port_image = gres.koakuma_port
 
 class Find:
     # Skill

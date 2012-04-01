@@ -34,7 +34,7 @@ class Find(Skill):
         return len(self.associated_cards)
 
 @register_character
-class LittleDevil(Character):
+class Koakuma(Character):
     skills = [Find]
     eventhandlers_required = []
     maxlife = 4
