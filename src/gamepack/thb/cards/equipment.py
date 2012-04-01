@@ -304,3 +304,31 @@ class MaidenCostumeHandler(EventHandler):
                 dmg.associated_action = act
                 g.process_action(dmg)
         return act
+
+class IbukiGourdSkill(RedUFOSkill):
+    increment = 0
+
+@register_eh
+class IbukiGourdHandler(EventHandler):
+    execute_after = (basic.WineHandler, )
+    def handle(self, evt_type, arg):
+        if (evt_type in ('action_apply', 'action_after') and isinstance(arg, ActionStage)):
+            actor = arg.actor
+            if actor.has_skill(IbukiGourdSkill):
+                g = Game.getgame()
+                g.process_action(basic.Wine(actor, actor))
+        elif evt_type == 'card_migration':
+            from .definition import IbukiGourdCard
+            act, cl, _from, to = arg
+            if any(isinstance(c, IbukiGourdCard) for c in cl):
+                target = None
+                if _from.type == _from.EQUIPS:
+                    target = _from.owner
+                elif to.type == to.EQUIPS:
+                    target = to.owner
+
+                if target:
+                    g = Game.getgame()
+                    g.process_action(basic.Wine(target, target))
+
+        return arg

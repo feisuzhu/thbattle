@@ -216,6 +216,11 @@ def t_OtherOne(g, source, tl):
     return (tl[-1:], bool(len(tl)))
 
 @staticmethod
+def t_One(g, source, tl):
+    tl = [t for t in tl if not t.dead]
+    return (tl[-1:], bool(len(tl)))
+
+@staticmethod
 def t_All(g, source, tl):
     return ([t for t in g.players.exclude(source) if not t.dead], True)
 
@@ -235,6 +240,19 @@ def t_OtherLessEqThanN(n):
         '''
         return (tl[:n], bool(len(tl)))
     return _t_OtherLessEqThanN
+
+def t_OtherN(n):
+    @staticmethod
+    def _t_OtherN(g, source, tl):
+        tl = [t for t in tl if not t.dead]
+        ''' # Add it back when done debugging!
+        try:
+            tl.remove(source)
+        except ValueError:
+            pass
+        '''
+        return (tl[:n], bool(len(tl) >= n))
+    return _t_OtherN
 
 class HiddenCard(Card): # special thing....
     associated_action = None

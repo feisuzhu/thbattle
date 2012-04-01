@@ -521,7 +521,6 @@ class HarvestCard:
     def is_action_valid(cl, source, target_list):
         return (True, u'麻薯会有的，节操是没有的！')
 
-
 class MaidenCostumeCard:
     # action_stage meta
     name = u'巫女服'
@@ -539,6 +538,23 @@ class MaidenCostumeCard:
 class MaidenCostumeSkill:
     # Skill
     name = u'巫女服'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class IbukiGourdCard:
+    # action_stage meta
+    name = u'伊吹瓢'
+    image = gres.card_ibukigourd
+    image_small = gres.card_ibukigourd_small
+    is_action_valid = equip_iav
+
+class IbukiGourdSkill:
+    # Skill
+    name = u'伊吹瓢'
 
     def clickable(game):
         return False

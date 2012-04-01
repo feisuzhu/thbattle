@@ -158,10 +158,16 @@ class RepentanceStickCard:
 
 class MaidenCostumeCard:
     associated_action = equipment.WearEquipmentAction
-    target = t_OtherOne
+    target = t_One
     equipment_skill = equipment.MaidenCostumeSkill
     equipment_category = 'shield'
     distance = 2
+
+class IbukiGourdCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.IbukiGourdSkill
+    equipment_category = 'redufo'
 
 # ==================================================
 
@@ -230,27 +236,18 @@ card_definition = [
 card_definition = [
     (OpticalCloakCard, Card.SPADE, 1),
     (AttackCard, Card.CLUB, 1),
-    (AttackCard, Card.CLUB, 3),
-    (AttackCard, Card.CLUB, 5),
     (AttackCard, Card.CLUB, 1),
-    (AttackCard, Card.CLUB, 3),
-    (AttackCard, Card.CLUB, 5),
+    (AttackCard, Card.CLUB, 1),
 
     (GrazeCard, Card.CLUB, 1),
     (GrazeCard, Card.CLUB, 1),
     (GrazeCard, Card.CLUB, 1),
     (HealCard, Card.CLUB, 3),
     (DemolitionCard, Card.DIAMOND, 1),
-    (DemolitionCard, Card.DIAMOND, 1),
-    (DemolitionCard, Card.DIAMOND, 1),
-    (DemolitionCard, Card.DIAMOND, 1),
 
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
     (MapCannonCard, Card.SPADE, 12),
-    (WorshipersCarnivalCard, Card.SPADE, 1),
-    (WorshipersCarnivalCard, Card.SPADE, 1),
-    (WorshipersCarnivalCard, Card.SPADE, 1),
 
     (GungnirCard, Card.DIAMOND, 1),
     (LaevateinCard, Card.CLUB, 1),
@@ -261,10 +258,10 @@ card_definition = [
     (HarvestCard, Card.DIAMOND, 12),
     (MaidenCostumeCard, Card.DIAMOND, 12),
     (ExinwanCard, Card.SPADE, 10),
-    (ExinwanCard, Card.SPADE, 10),
-    (ExinwanCard, Card.SPADE, 10),
-    (ExinwanCard, Card.SPADE, 10),
-
-
+    (IbukiGourdCard, Card.HEART, 7),
+    (IbukiGourdCard, Card.HEART, 7),
+    (IbukiGourdCard, Card.HEART, 7),
+    (IbukiGourdCard, Card.HEART, 7),
+    (IbukiGourdCard, Card.HEART, 7),
 
 ] * 2

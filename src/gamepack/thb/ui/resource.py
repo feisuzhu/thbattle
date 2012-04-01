@@ -50,6 +50,8 @@ with ResLoader(__file__) as args:
     card_maidencostume = tx('card_maidencostume.tga')
     card_maidencostume_small = tx('card_maidencostume_small.tga')
     card_exinwan = tx('card_exinwan.tga')
+    card_ibukigourd = tx('card_ibukigourd.tga')
+    card_ibukigourd_small = tx('card_ibukigourd_small.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

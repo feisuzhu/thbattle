@@ -41,7 +41,7 @@ class CharChoice(object):
 
 class THBattle(Game):
     name = u'符斗祭 - 3v3 - 休闲'
-    n_persons = 2
+    n_persons = 1
 
     # -----BEGIN PLAYER STAGES-----
     NORMAL = 'NORMAL'
@@ -150,7 +150,8 @@ class THBattle(Game):
             p.skills = p.skills[:] # make it instance variable
             ehclasses.extend(p.eventhandlers_required)
 
-        self.event_handlers.extend(EventHandler.make_list(ehclasses))
+        # this will make UIEventHook the last one
+        self.event_handlers[:] = EventHandler.make_list(ehclasses) + self.event_handlers
 
         for p in self.players:
             p.cards = CardList(p, CardList.HANDCARD) # Cards in hand
