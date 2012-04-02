@@ -191,6 +191,18 @@ class FlirtingSwordCard:
     equipment_skill = equipment.FlirtingSwordSkill
     equipment_category = 'weapon'
 
+class AyaRoundfanCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.AyaRoundfanSkill
+    equipment_category = 'weapon'
+
+class ScarletRhapsodySwordCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.ScarletRhapsodySwordSkill
+    equipment_category = 'weapon'
+
 # ==================================================
 
 __metaclass__ = type
@@ -288,9 +300,12 @@ card_definition = [
     (SaigyouBranchCard, Card.DIAMOND, 3),
     (FlirtingSwordCard, Card.DIAMOND, 3),
     (CameraCard, Card.SPADE, 3),
-    (CameraCard, Card.SPADE, 3),
-    (CameraCard, Card.SPADE, 3),
-    (CameraCard, Card.SPADE, 3),
-    (CameraCard, Card.SPADE, 3),
+    (ScarletRhapsodySwordCard, Card.HEART, 1),
+    (ScarletRhapsodySwordCard, Card.HEART, 1),
+    (ScarletRhapsodySwordCard, Card.HEART, 1),
+    (AyaRoundfanCard, Card.DIAMOND, 1),
+    (AyaRoundfanCard, Card.DIAMOND, 1),
+    (AyaRoundfanCard, Card.DIAMOND, 1),
+
 
 ] * 2

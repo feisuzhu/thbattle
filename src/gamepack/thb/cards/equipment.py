@@ -412,7 +412,7 @@ class FlirtingSword(GenericAction):
         src = self.source
         tgt = self.target
 
-        if not src.user_input('choose_option', self): return act
+        if not src.user_input('choose_option', self): return True
 
         cards = user_choose_card(self, tgt, self.cond)
         g = Game.getgame()
@@ -426,7 +426,6 @@ class FlirtingSword(GenericAction):
     def cond(self, cards):
         return len(cards) == 1
 
-
 @register_eh
 class FlirtingSwordHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -434,7 +433,97 @@ class FlirtingSwordHandler(EventHandler):
             src = act.source
             if not src.has_skill(FlirtingSwordSkill): return act
 
-
             Game.getgame().process_action(FlirtingSword(src, act.target))
 
+        return act
+
+class AyaRoundfan(GenericAction):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        src = self.source
+        tgt = self.target
+
+        if not tgt.equips: return True
+
+        cards = user_choose_card(self, src, self.cond)
+        if cards:
+            g = Game.getgame()
+            g.process_action(DropCards(src, cards))
+            equip = choose_peer_card(src, tgt, [tgt.equips])
+            if not equip:
+                equip = random_choose_card([tgt.equips])
+            g.process_action(DropCards(tgt, [equip]))
+
+        return True
+
+    def cond(self, cards):
+        if not len(cards) == 1: return False
+        from .base import CardList
+        return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+
+class AyaRoundfanSkill(WeaponSkill):
+    range = 3
+    associated_action = None
+    target = t_None
+
+@register_eh
+class AyaRoundfanHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
+            if not act.succeeded: return act
+            src = act.source
+            tgt = act.target
+            if src.has_skill(AyaRoundfanSkill):
+                g = Game.getgame()
+                g.process_action(AyaRoundfan(src, tgt))
+        return act
+
+class ScarletRhapsodySword(GenericAction):
+    def __init__(self, atkact):
+        self.atkact = atkact
+        self.source = atkact.source
+        self.target = atkact.target
+
+    def apply_action(self):
+        g = Game.getgame()
+        src = self.source
+        tgt = self.target
+
+        cats = [
+            src.cards,
+            src.showncards,
+            src.equips,
+        ]
+        cards = user_choose_card(self, src, self.cond, cats)
+        if cards:
+            g.process_action(DropCards(src, cards))
+            dmg = Damage(src, tgt)
+            dmg.associated_action = self.atkact
+            g.process_action(dmg)
+
+        return True
+
+    def cond(self, cards):
+        if not len(cards) == 2: return False
+        from .base import CardList
+        return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
+
+class ScarletRhapsodySwordSkill(WeaponSkill):
+    range = 3
+    associated_action = None
+    target = t_None
+
+@register_eh
+class ScarletRhapsodySwordHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
+            if act.succeeded: return act
+            src = act.source
+            tgt = act.target
+            if src.has_skill(ScarletRhapsodySwordSkill):
+                g = Game.getgame()
+                g.process_action(ScarletRhapsodySword(act))
         return act

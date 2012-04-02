@@ -647,6 +647,50 @@ class CameraCard:
 
         return (True, u'摄影的境界，你们这些玩器材的永远都不会懂！')
 
+class AyaRoundfanCard:
+    # action_stage meta
+    name = u'文文的团扇'
+    image = gres.card_ayaroundfan
+    image_small = gres.card_ayaroundfan_small
+    is_action_valid = equip_iav
+
+class AyaRoundfanSkill:
+    # Skill
+    name = u'文文的团扇'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class AyaRoundfan:
+    # choose_card
+    text_valid = u'这种妨碍拍摄的东西，统统脱掉！'
+    text = u'请弃掉一张手牌发动团扇（否则不发动）'
+
+class ScarletRhapsodySwordCard:
+    # action_stage meta
+    name = u'绯色之剑'
+    image = gres.card_scarletrhapsodysword
+    image_small = gres.card_scarletrhapsodysword_small
+    is_action_valid = equip_iav
+
+class ScarletRhapsodySwordSkill:
+    # Skill
+    name = u'绯色之剑'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class ScarletRhapsodySword:
+    # choose_card
+    text_valid = u'闪过头了！'
+    text = u'请弃掉两张牌发动绯色之剑（否则不发动）'
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----
