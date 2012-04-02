@@ -348,3 +348,20 @@ class Harvest(ForEach):
         dropped = g.deck.droppedcards
         deckcard = g.deck.cards
         migrate_cards([c for c in self.cards if not c.resides_in.owner], dropped)
+
+class Camera(SpellCardAction):
+    # 文文的相机
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        src = self.source
+        tgt = self.target
+
+        cards = list(tgt.cards)[:2]
+        g = Game.getgame()
+        g.players.exclude(tgt).reveal(cards)
+        migrate_cards(cards, tgt.showncards)
+
+        return True

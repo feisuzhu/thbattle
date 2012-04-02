@@ -86,6 +86,10 @@ class HarvestCard:
     associated_action = spellcard.Harvest
     target = t_AllInclusive
 
+class CameraCard:
+    associated_action = spellcard.Camera
+    target = t_OtherOne
+
 # --------------------------------------------------
 
 from . import equipment
@@ -283,8 +287,10 @@ card_definition = [
     (HouraiJewelCard, Card.DIAMOND, 3),
     (SaigyouBranchCard, Card.DIAMOND, 3),
     (FlirtingSwordCard, Card.DIAMOND, 3),
-    (FlirtingSwordCard, Card.DIAMOND, 3),
-    (FlirtingSwordCard, Card.DIAMOND, 3),
-    (FlirtingSwordCard, Card.DIAMOND, 3),
+    (CameraCard, Card.SPADE, 3),
+    (CameraCard, Card.SPADE, 3),
+    (CameraCard, Card.SPADE, 3),
+    (CameraCard, Card.SPADE, 3),
+    (CameraCard, Card.SPADE, 3),
 
 ] * 2

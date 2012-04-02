@@ -123,7 +123,7 @@ class DemolitionCard:
         target= target_list[0]
         if source == target:
             return (True, u'还是拆别人的吧…')
-        elif not len(target.cards):
+        elif not len(target.cards) + len(target.showncards) + len(target.equips) + len(target.fatetell):
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'嗯，你的牌太多了')
@@ -606,7 +606,6 @@ class SaigyouBranch:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【西行妖枝条】吗？'
 
-
 class FlirtingSwordCard:
     # action_stage meta
     name = u'调教剑'
@@ -633,6 +632,20 @@ class FlirtingSword:
     text_valid = u'才……才不给你机会呢！'
     text = u'请弃掉一张牌（否则对方摸一张牌）'
 
+class CameraCard:
+    # action_stage meta
+    name = u'文文的相机'
+    image = gres.card_camera
+
+    def is_action_valid(cl, source, tl):
+        if not tl:
+            return (False, u'请选择目标')
+        t = tl[0]
+
+        if not t.cards:
+            return (True, u'这货已经没有隐藏的手牌了')
+
+        return (True, u'摄影的境界，你们这些玩器材的永远都不会懂！')
 
 # -----END CARDS UI META-----
 

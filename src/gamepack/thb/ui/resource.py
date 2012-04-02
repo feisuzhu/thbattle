@@ -58,6 +58,7 @@ with ResLoader(__file__) as args:
     card_saigyoubranch_small = tx('card_saigyoubranch_small.tga')
     card_flirtingsword = tx('card_flirtingsword.tga')
     card_flirtingsword_small = tx('card_flirtingsword_small.tga')
+    card_camera = tx('card_camera.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

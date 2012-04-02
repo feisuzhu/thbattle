@@ -208,7 +208,7 @@ class DropCardStage(GenericAction):
 
     def cond(self, cards):
         t = self.target
-        if not len(cards) == len(t.cards) + len(t.showncards) - t.life:
+        if not len(cards) == len(t.cards) + len(t.showncards) - t.life - self.correction:
             return False
 
         if not all(c.resides_in in (t.cards, t.showncards) for c in cards):
@@ -218,11 +218,12 @@ class DropCardStage(GenericAction):
 
     def __init__(self, target):
         self.target = target
+        self.correction = 0
 
     def apply_action(self):
         target = self.target
         life = target.life
-        n = len(target.cards) - life
+        n = len(target.cards) + len(target.showncards) - life - self.correction
         if n<=0:
             return True
         g = Game.getgame()
