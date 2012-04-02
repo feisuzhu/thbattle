@@ -607,6 +607,31 @@ class SaigyouBranch:
     choose_option_prompt = u'你要发动【西行妖枝条】吗？'
 
 
+class FlirtingSwordCard:
+    # action_stage meta
+    name = u'调教剑'
+    image = gres.card_flirtingsword
+    image_small = gres.card_flirtingsword_small
+    is_action_valid = equip_iav
+
+class FlirtingSwordSkill:
+    # Skill
+    name = u'调教剑'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class FlirtingSword:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【调教剑】吗？'
+
+    # choose_card
+    text_valid = u'才……才不给你机会呢！'
+    text = u'请弃掉一张牌（否则对方摸一张牌）'
 
 
 # -----END CARDS UI META-----

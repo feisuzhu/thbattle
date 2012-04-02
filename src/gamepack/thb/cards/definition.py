@@ -181,6 +181,12 @@ class SaigyouBranchCard:
     equipment_skill = equipment.SaigyouBranchSkill
     equipment_category = 'shield'
 
+class FlirtingSwordCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.FlirtingSwordSkill
+    equipment_category = 'weapon'
+
 # ==================================================
 
 __metaclass__ = type
@@ -258,7 +264,7 @@ card_definition = [
     (DemolitionCard, Card.DIAMOND, 1),
     (DemolitionCard, Card.DIAMOND, 1),
     (DemolitionCard, Card.DIAMOND, 1),
-    
+
 
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
@@ -276,8 +282,9 @@ card_definition = [
     (IbukiGourdCard, Card.HEART, 7),
     (HouraiJewelCard, Card.DIAMOND, 3),
     (SaigyouBranchCard, Card.DIAMOND, 3),
-    (SaigyouBranchCard, Card.DIAMOND, 3),
-    (SaigyouBranchCard, Card.DIAMOND, 3),
-    (SaigyouBranchCard, Card.DIAMOND, 3),
+    (FlirtingSwordCard, Card.DIAMOND, 3),
+    (FlirtingSwordCard, Card.DIAMOND, 3),
+    (FlirtingSwordCard, Card.DIAMOND, 3),
+    (FlirtingSwordCard, Card.DIAMOND, 3),
 
 ] * 2

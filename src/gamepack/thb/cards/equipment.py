@@ -397,3 +397,44 @@ class SaigyouBranchHandler(EventHandler):
                 Game.getgame().process_action(SaigyouBranch(tgt, act))
 
         return act
+
+class FlirtingSwordSkill(WeaponSkill):
+    range = 2
+    associated_action = None
+    target = t_None
+
+class FlirtingSword(GenericAction):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        src = self.source
+        tgt = self.target
+
+        if not src.user_input('choose_option', self): return act
+
+        cards = user_choose_card(self, tgt, self.cond)
+        g = Game.getgame()
+        if cards:
+            g.process_action(DropCards(tgt, cards))
+        else:
+            g.process_action(DrawCards(src, 1))
+
+        return True
+
+    def cond(self, cards):
+        return len(cards) == 1
+
+
+@register_eh
+class FlirtingSwordHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, basic.BaseAttack):
+            src = act.source
+            if not src.has_skill(FlirtingSwordSkill): return act
+
+
+            Game.getgame().process_action(FlirtingSword(src, act.target))
+
+        return act
