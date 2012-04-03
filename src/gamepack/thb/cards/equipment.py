@@ -230,7 +230,7 @@ class LaevateinSkill(WeaponSkill):
             check(len(cl) == 1)
             card = cl[0]
             from .definition import AttackCard
-            check(isinstance(card, AttackCard))
+            check(card.is_card(AttackCard))
             actor = card.resides_in.owner
             check(len(actor.cards) + len(actor.showncards) == 1)
             return True
@@ -320,7 +320,7 @@ class IbukiGourdHandler(EventHandler):
         elif evt_type == 'card_migration':
             from .definition import IbukiGourdCard
             act, cl, _from, to = arg
-            if any(isinstance(c, IbukiGourdCard) for c in cl):
+            if any(c.is_card(IbukiGourdCard) for c in cl):
                 target = None
                 if _from.type == _from.EQUIPS:
                     target = _from.owner

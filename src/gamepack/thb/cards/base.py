@@ -65,6 +65,9 @@ class Card(object):
     def __repr__(self):
         return self.__class__.__name__
 
+    def is_card(self, cls):
+        return isinstance(self, cls)
+
 class VirtualCard(Card):
     __eq__ = object.__eq__
     __ne__ = object.__ne__

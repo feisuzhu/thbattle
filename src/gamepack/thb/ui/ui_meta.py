@@ -392,7 +392,7 @@ class GungnirSkill:
 
     def is_action_valid(cl, source, target_list):
         skill = cl[0]
-        assert isinstance(skill, cards.GungnirSkill)
+        assert skill.is_card(cards.GungnirSkill)
         acards = skill.associated_cards
         if len(acards) != 2:
             return (False, u'请选择2张手牌！')
@@ -438,9 +438,9 @@ class LaevateinSkill:
 
     def is_action_valid(cl, source, target_list):
         skill = cl[0]
-        assert isinstance(skill, cards.LaevateinSkill)
+        assert skill.is_card(cards.LaevateinSkill)
         acards = skill.associated_cards
-        if not (len(acards) == 1 and isinstance(acards[0], cards.AttackCard)):
+        if not (len(acards) == 1 and acards[0].is_card(cards.AttackCard)):
             return (False, u'请选择你的最后一张【击】！')
         else:
             if not target_list:
@@ -713,7 +713,7 @@ class Envy:
 
     def is_action_valid(cl, source, target_list):
         skill = cl[0]
-        assert isinstance(skill, characters.Envy)
+        assert skill.is_card(characters.Envy)
         if len(skill.associated_cards) != 1:
             return (False, u'请选择一张牌！')
         else:
@@ -768,7 +768,7 @@ class Find:
 
     def is_action_valid(cl, source, target_list):
         skill = cl[0]
-        assert isinstance(skill, characters.Find)
+        assert skill.is_card(characters.Find)
         if not len(skill.associated_cards):
             return (False, u'请选择需要换掉的牌！')
 

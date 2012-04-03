@@ -34,14 +34,14 @@ class AttackCardHandler(EventHandler):
         elif evt_type == 'action_after':
             if isinstance(act, LaunchCard):
                 from .definition import AttackCard
-                if isinstance(act.card, AttackCard):
+                if act.card.is_card(AttackCard):
                     act.source.tags['attack_num'] -= 1
             elif isinstance(act, ActionStage):
                 act.actor.tags['attack_num'] = 1
             elif isinstance(act, CalcDistance):
                 card = act.card
                 from .definition import AttackCard
-                if isinstance(card, AttackCard):
+                if card.is_card(AttackCard):
                     from .equipment import WeaponSkill
                     source = act.source
                     if source.tags['attack_num'] <= 0:
@@ -75,7 +75,7 @@ class UseGraze(UseCard):
         t = self.target
         return (
             len(cl) == 1 and
-            isinstance(cl[0], cards.GrazeCard) and
+            cl[0].is_card(cards.GrazeCard) and
             cl[0].resides_in.owner is t
         )
 
@@ -85,7 +85,7 @@ class UseAttack(UseCard):
         t = self.target
         return (
             len(cl) == 1 and
-            isinstance(cl[0], cards.AttackCard) and
+            cl[0].is_card(cards.AttackCard) and
             cl[0].resides_in.owner is t
         )
 
@@ -124,7 +124,7 @@ class ExinwanHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, DropCards):
             from .definition import ExinwanCard
-            cards = [c for c in act.cards_before_unwrap if isinstance(c, ExinwanCard)]
+            cards = [c for c in act.cards_before_unwrap if c.is_card(ExinwanCard)]
             if cards:
                 g = Game.getgame()
                 pact = g.action_stack[0]

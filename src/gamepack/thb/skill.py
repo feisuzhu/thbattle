@@ -16,18 +16,18 @@ class Skill(VirtualCard):
     # associated_action = xxx
     # instance var: associated_cards = xxx
 
-class _TreatAsSkillMeta(type):
-    def __new__(cls, clsname, bases, _dict):
-        if not _dict.has_key('treat_as'):
-            raise Exception("You must specify 'treat_as' attrib!")
-        ta = _dict['treat_as']
-        ta = (ta, ) if ta else ()
-        ncls = type.__new__(cls, clsname, bases + ta, _dict)
-        return ncls
-
 class TreatAsSkill(Skill):
-    __metaclass__ = _TreatAsSkillMeta
     treat_as = None
 
     def check(self):
         return False
+
+    def is_card(self, cls):
+        return isinstance(self, (cls, self.treat_as))
+
+    def __getattribute__(self, name):
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            tr = object.__getattribute__(self, 'treat_as')
+            return getattr(tr, name)

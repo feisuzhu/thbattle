@@ -100,7 +100,7 @@ class RejectHandler(EventHandler):
         from .. import cards
         try:
             check(len(cardlist) == 1)
-            check(isinstance(cardlist[0], cards.RejectCard))
+            check(cardlist[0].is_card(cards.RejectCard))
             return True
         except CheckFailed:
             return False
