@@ -233,6 +233,18 @@ class SuwakoHatCard:
     equipment_skill = equipment.SuwakoHatSkill
     equipment_category = 'accessories'
 
+class YoumuPhantomCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.YoumuPhantomSkill
+    equipment_category = 'accessories'
+
+class IceWingCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.IceWingSkill
+    equipment_category = 'accessories'
+
 
 # ==================================================
 
@@ -341,17 +353,11 @@ card_definition = [
     (YinYangOrbCard, Card.DIAMOND, 1),
     (SuwakoHatCard, Card.DIAMOND, 1),
 
-    (DeathSickleCard, Card.HEART, 1),
-    (KeystoneCard, Card.HEART, 1),
-    (WitchBroomCard, Card.DIAMOND, 1),
-    (YinYangOrbCard, Card.DIAMOND, 1),
-    (SuwakoHatCard, Card.DIAMOND, 1),
-
-    (DeathSickleCard, Card.HEART, 1),
-    (KeystoneCard, Card.HEART, 1),
-    (WitchBroomCard, Card.DIAMOND, 1),
-    (YinYangOrbCard, Card.DIAMOND, 1),
-    (SuwakoHatCard, Card.DIAMOND, 1),
-
+    (YoumuPhantomCard, Card.HEART, 4),
+    (IceWingCard, Card.DIAMOND, 9),
+    (YoumuPhantomCard, Card.HEART, 4),
+    (IceWingCard, Card.DIAMOND, 9),
+    (YoumuPhantomCard, Card.HEART, 4),
+    (IceWingCard, Card.DIAMOND, 9),
 
 ] * 2

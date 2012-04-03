@@ -312,7 +312,7 @@ class IbukiGourdSkill(RedUFOSkill):
 class IbukiGourdHandler(EventHandler):
     execute_after = (basic.WineHandler, )
     def handle(self, evt_type, arg):
-        if (evt_type in ('action_apply', 'action_after') and isinstance(arg, ActionStage)):
+        if evt_type == 'action_after' and isinstance(arg, ActionStage):
             actor = arg.actor
             if actor.has_skill(IbukiGourdSkill):
                 g = Game.getgame()
@@ -462,7 +462,6 @@ class AyaRoundfan(GenericAction):
 
     def cond(self, cards):
         if not len(cards) == 1: return False
-        from .base import CardList
         return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
 
 class AyaRoundfanSkill(WeaponSkill):
@@ -509,7 +508,6 @@ class ScarletRhapsodySword(GenericAction):
 
     def cond(self, cards):
         if not len(cards) == 2: return False
-        from .base import CardList
         return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
 
 class ScarletRhapsodySwordSkill(WeaponSkill):
@@ -613,3 +611,43 @@ class SuwakoHatHandler(EventHandler):
                 act.dropn = max(act.dropn - 2, 0)
         return act
 
+
+class YoumuPhantomSkill(AccessoriesSkill):
+    pass
+
+@register_eh
+class YoumuPhantomHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if not evt_type == 'card_migration': return arg
+
+        act, cards, _from, to = arg
+
+        from .definition import YoumuPhantomCard
+
+        if _from.type == CardList.EQUIPS:
+            src = _from.owner
+            for c in cards:
+                if c.is_card(YoumuPhantomCard):
+                    src.maxlife -= 1
+                    src.life = min(src.life+1, src.maxlife)
+
+        if to.type == CardList.EQUIPS:
+            src = to.owner
+            for c in cards:
+                if c.is_card(YoumuPhantomCard):
+                    src.maxlife += 1
+
+        return arg
+
+class IceWingSkill(ShieldSkill):
+    pass
+
+@register_eh
+class IceWingHandler(EventHandler):
+    execute_before = (spellcard.RejectHandler, SaigyouBranchHandler)
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, spellcard.SealingArray):
+            if act.target.has_skill(IceWingSkill):
+                act.cancelled = True
+
+        return act

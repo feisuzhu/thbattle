@@ -785,6 +785,44 @@ class SuwakoHatSkill:
     def is_action_valid(cl, source, target_list):
         return (False, 'BUG!')
 
+
+class YoumuPhantomCard:
+    # action_stage meta
+    name = u'半灵'
+    image = gres.card_youmuphantom
+    image_small = gres.card_youmuphantom_small
+    is_action_valid = equip_iav
+
+class YoumuPhantomSkill:
+    # Skill
+    name = u'半灵'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+
+class IceWingCard:
+    # action_stage meta
+    name = u'⑨的翅膀'
+    image = gres.card_icewing
+    image_small = gres.card_icewing_small
+    is_action_valid = equip_iav
+
+class IceWingSkill:
+    # Skill
+    name = u'⑨的翅膀'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----

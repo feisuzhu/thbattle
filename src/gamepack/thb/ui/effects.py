@@ -144,7 +144,7 @@ def damage_effect(self, act):
     port = self.player2portrait(t)
     #l = t.life
     #port.life = l if l > 0 else 0
-    port.update()
+    #port.update()
     if s:
         self.prompt(u'|c208020ff【%s】|r对|c208020ff【%s】|r造成了%d点伤害。' % (
             s.ui_meta.char_name, t.ui_meta.char_name, act.amount
@@ -160,7 +160,7 @@ def heal_effect(self, act):
     port = self.player2portrait(t)
     #l = t.life
     #port.life = l if l > 0 else 0
-    port.update()
+    #port.update()
     if act.succeeded:
         self.prompt(u'|c208020ff【%s】|r回复了%d点体力。' % (
             t.ui_meta.char_name, act.amount
@@ -210,7 +210,9 @@ def _update_tags(self, p):
 
 def after_launch_effect(self, act):
     _update_tags(self, act.source)
+    self.player2portrait(act.source).update()
     for p in act.target_list:
+        self.player2portrait(p).update()
         _update_tags(self, p)
 
 def action_stage_update_tag(self, act):
