@@ -197,7 +197,7 @@ class Worshiper(DelayedSpellCardAction):
     def fatetell_postprocess(self):
         g = Game.getgame()
         target = self.target
-        if self.succeeded:
+        if not self.cancelled and self.succeeded:
             g.process_action(DropCards(target, [self.associated_card]))
         else:
             pl = g.players

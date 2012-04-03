@@ -202,7 +202,11 @@ class Game(object):
                 assert _a is action
 
                 assert rst in [True, False], 'Action.apply_action must return boolean!'
-                action.succeeded = rst
+                try:
+                    action.succeeded = rst
+                except AttributeError:
+                    pass
+
                 if self.game_ended():
                     raise GameEnded()
                 action = self.emit_event('action_after', action)

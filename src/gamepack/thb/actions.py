@@ -208,7 +208,7 @@ class DropCardStage(GenericAction):
 
     def cond(self, cards):
         t = self.target
-        if not len(cards) == len(t.cards) + len(t.showncards) - t.life - self.correction:
+        if not len(cards) == self.dropn:
             return False
 
         if not all(c.resides_in in (t.cards, t.showncards) for c in cards):
@@ -218,12 +218,12 @@ class DropCardStage(GenericAction):
 
     def __init__(self, target):
         self.target = target
-        self.correction = 0
+        self.dropn = len(target.cards) + len(target.showncards) - target.life
 
     def apply_action(self):
         target = self.target
         life = target.life
-        n = len(target.cards) + len(target.showncards) - life - self.correction
+        n = self.dropn
         if n<=0:
             return True
         g = Game.getgame()
@@ -422,9 +422,11 @@ class Fatetell(GenericAction):
         g.players.reveal(card)
         self.card = card
         migrate_cards([card], g.deck.droppedcards)
-        if self.cond(card):
-            return True
-        return False
+        return True
+
+    @property
+    def succeeded(self):
+        return self.cond(self.card)
 
 class FatetellAction(UserAction): pass
 

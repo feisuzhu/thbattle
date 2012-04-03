@@ -691,6 +691,100 @@ class ScarletRhapsodySword:
     text_valid = u'闪过头了！'
     text = u'请弃掉两张牌发动绯色之剑（否则不发动）'
 
+class DeathSickleCard:
+    # action_stage meta
+    name = u'死神之镰'
+    image = gres.card_deathsickle
+    image_small = gres.card_deathsickle_small
+    is_action_valid = equip_iav
+
+class DeathSickleSkill:
+    # Skill
+    name = u'死神之镰'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class KeystoneCard:
+    # action_stage meta
+    name = u'要石'
+    image = gres.card_keystone
+    image_small = gres.card_keystone_small
+    is_action_valid = equip_iav
+
+class KeystoneSkill:
+    # Skill
+    name = u'要石'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+
+class WitchBroomCard:
+    # action_stage meta
+    name = u'魔女的扫把'
+    image = gres.card_witchbroom
+    image_small = gres.card_witchbroom_small
+    is_action_valid = equip_iav
+
+class WitchBroomSkill:
+    # Skill
+    no_display = True
+    '''
+    name = u'绯色之剑'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+    '''
+
+class YinYangOrbCard:
+    # action_stage meta
+    name = u'阴阳玉'
+    image = gres.card_yinyangorb
+    image_small = gres.card_yinyangorb_small
+    is_action_valid = equip_iav
+
+class YinYangOrbSkill:
+    # Skill
+    name = u'阴阳玉'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
+class YinYangOrb:
+    # choose_option
+    choose_option_buttons = ((u'替换', True), (u'不替换', False))
+    choose_option_prompt = u'你要使用【阴阳玉】替换当前的判定牌吗？'
+
+class SuwakoHatCard:
+    # action_stage meta
+    name = u'青蛙帽'
+    image = gres.card_suwakohat
+    image_small = gres.card_suwakohat_small
+    is_action_valid = equip_iav
+
+class SuwakoHatSkill:
+    # Skill
+    name = u'青蛙帽'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(cl, source, target_list):
+        return (False, 'BUG!')
+
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----

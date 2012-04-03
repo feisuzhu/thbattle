@@ -203,6 +203,37 @@ class ScarletRhapsodySwordCard:
     equipment_skill = equipment.ScarletRhapsodySwordSkill
     equipment_category = 'weapon'
 
+class DeathSickleCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.DeathSickleSkill
+    equipment_category = 'weapon'
+
+class KeystoneCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.KeystoneSkill
+    equipment_category = 'greenufo'
+
+class WitchBroomCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.WitchBroomSkill
+    equipment_category = 'redufo'
+
+class YinYangOrbCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.YinYangOrbSkill
+    equipment_category = 'accessories'
+
+class SuwakoHatCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.SuwakoHatSkill
+    equipment_category = 'accessories'
+
+
 # ==================================================
 
 __metaclass__ = type
@@ -276,7 +307,10 @@ card_definition = [
     (RejectCard, Card.CLUB, 1),
     (RejectCard, Card.CLUB, 1),
     (RejectCard, Card.CLUB, 1),
-    (HealCard, Card.CLUB, 3),
+    (SealingArrayCard, Card.CLUB, 3),
+    (SealingArrayCard, Card.CLUB, 3),
+    (SealingArrayCard, Card.CLUB, 3),
+
     (DemolitionCard, Card.DIAMOND, 1),
     (DemolitionCard, Card.DIAMOND, 1),
     (DemolitionCard, Card.DIAMOND, 1),
@@ -300,12 +334,24 @@ card_definition = [
     (SaigyouBranchCard, Card.DIAMOND, 3),
     (FlirtingSwordCard, Card.DIAMOND, 3),
     (CameraCard, Card.SPADE, 3),
-    (ScarletRhapsodySwordCard, Card.HEART, 1),
-    (ScarletRhapsodySwordCard, Card.HEART, 1),
-    (ScarletRhapsodySwordCard, Card.HEART, 1),
-    (AyaRoundfanCard, Card.DIAMOND, 1),
-    (AyaRoundfanCard, Card.DIAMOND, 1),
-    (AyaRoundfanCard, Card.DIAMOND, 1),
+
+    (DeathSickleCard, Card.HEART, 1),
+    (KeystoneCard, Card.HEART, 1),
+    (WitchBroomCard, Card.DIAMOND, 1),
+    (YinYangOrbCard, Card.DIAMOND, 1),
+    (SuwakoHatCard, Card.DIAMOND, 1),
+
+    (DeathSickleCard, Card.HEART, 1),
+    (KeystoneCard, Card.HEART, 1),
+    (WitchBroomCard, Card.DIAMOND, 1),
+    (YinYangOrbCard, Card.DIAMOND, 1),
+    (SuwakoHatCard, Card.DIAMOND, 1),
+
+    (DeathSickleCard, Card.HEART, 1),
+    (KeystoneCard, Card.HEART, 1),
+    (WitchBroomCard, Card.DIAMOND, 1),
+    (YinYangOrbCard, Card.DIAMOND, 1),
+    (SuwakoHatCard, Card.DIAMOND, 1),
 
 
 ] * 2

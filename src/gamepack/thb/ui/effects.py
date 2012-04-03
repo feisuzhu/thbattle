@@ -50,6 +50,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
         taganims = port.taganims
         for a in [t for t in taganims if hasattr(t, 'for_fatetell_card')]:
             if a.for_fatetell_card in cards:
+                a.delete()
                 taganims.remove(a)
         #port.taganims = [a for a in port.taganims if a.associated_card]
         port.tagarrange()

@@ -369,17 +369,19 @@ class SaigyouBranch(FatetellAction):
     def apply_action(self):
         act = self.act
         src = self.source
+        if act.cancelled: return True
         assert isinstance(act, spellcard.SpellCardAction)
         if isinstance(act, spellcard.Reject) and src == act.source == act.target:
             # my own Reject
             return True
 
-        if src.user_input('choose_option', self):
-            g = Game.getgame()
-            ft = Fatetell(src, lambda card: card.suit in (Card.SPADE, Card.CLUB))
-            g.process_action(ft)
-            if ft.succeeded:
-                g.process_action(spellcard.Reject(src, act))
+        if not src.user_input('choose_option', self): return False
+
+        g = Game.getgame()
+        ft = Fatetell(src, lambda card: card.suit in (Card.SPADE, Card.CLUB))
+        g.process_action(ft)
+        if ft.succeeded:
+            g.process_action(spellcard.Reject(src, act))
 
         return True
 
@@ -412,7 +414,7 @@ class FlirtingSword(GenericAction):
         src = self.source
         tgt = self.target
 
-        if not src.user_input('choose_option', self): return True
+        if not src.user_input('choose_option', self): return False
 
         cards = user_choose_card(self, tgt, self.cond)
         g = Game.getgame()
@@ -446,16 +448,15 @@ class AyaRoundfan(GenericAction):
         src = self.source
         tgt = self.target
 
-        if not tgt.equips: return True
-
         cards = user_choose_card(self, src, self.cond)
-        if cards:
-            g = Game.getgame()
-            g.process_action(DropCards(src, cards))
-            equip = choose_peer_card(src, tgt, [tgt.equips])
-            if not equip:
-                equip = random_choose_card([tgt.equips])
-            g.process_action(DropCards(tgt, [equip]))
+        if not cards: return False
+
+        g = Game.getgame()
+        g.process_action(DropCards(src, cards))
+        equip = choose_peer_card(src, tgt, [tgt.equips])
+        if not equip:
+            equip = random_choose_card([tgt.equips])
+        g.process_action(DropCards(tgt, [equip]))
 
         return True
 
@@ -476,7 +477,7 @@ class AyaRoundfanHandler(EventHandler):
             if not act.succeeded: return act
             src = act.source
             tgt = act.target
-            if src.has_skill(AyaRoundfanSkill):
+            if src.has_skill(AyaRoundfanSkill) and tgt.equips:
                 g = Game.getgame()
                 g.process_action(AyaRoundfan(src, tgt))
         return act
@@ -527,3 +528,88 @@ class ScarletRhapsodySwordHandler(EventHandler):
                 g = Game.getgame()
                 g.process_action(ScarletRhapsodySword(act))
         return act
+
+class DeathSickleSkill(WeaponSkill):
+    range = 2
+    associated_action = None
+    target = t_None
+
+@register_eh
+class DeathSickleHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, Damage):
+            src, tgt = act.source, act.target
+            if len(tgt.cards) + len(tgt.showncards): return act
+            if not src.has_skill(DeathSickleSkill): return act
+
+            act.amount += 1
+
+        return act
+
+class KeystoneSkill(GreenUFOSkill):
+    increment = 1
+
+@register_eh
+class KeystoneHandler(EventHandler):
+    execute_before = (SaigyouBranchHandler, spellcard.RejectHandler)
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, spellcard.Worshiper):
+            tgt = act.target
+            if tgt.has_skill(KeystoneSkill):
+                act.cancelled = True
+
+        return act
+
+class WitchBroomSkill(RedUFOSkill):
+    increment = 2
+
+class AccessoriesSkill(Skill):
+    associated_action = None
+    target = t_None
+
+class YinYangOrb(GenericAction):
+    def __init__(self, ft):
+        self.ftact = ft
+
+    def apply_action(self):
+        ft = self.ftact
+        tgt = ft.target
+
+        if not tgt.user_input('choose_option', self): return False
+        from .definition import YinYangOrbCard
+        for e in tgt.equips:
+            if e.is_card(YinYangOrbCard):
+                g = Game.getgame()
+                migrate_cards([e], g.deck.droppedcards)
+                ft.card = e
+                break
+        else:
+            raise GameError('Player has YinYangOrb skill but no equip!')
+
+        return True
+
+class YinYangOrbSkill(AccessoriesSkill):
+    pass
+
+@register_eh
+class YinYangOrbHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, Fatetell):
+            tgt = act.target
+            if tgt.has_skill(YinYangOrbSkill):
+                g = Game.getgame()
+                g.process_action(YinYangOrb(act))
+        return act
+
+class SuwakoHatSkill(AccessoriesSkill):
+    pass
+
+@register_eh
+class SuwakoHatHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, DropCardStage):
+            tgt = act.target
+            if tgt.has_skill(SuwakoHatSkill):
+                act.dropn = max(act.dropn - 2, 0)
+        return act
+

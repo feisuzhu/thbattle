@@ -64,6 +64,18 @@ with ResLoader(__file__) as args:
     card_scarletrhapsodysword = tx('card_scarletrhapsodysword.tga')
     card_scarletrhapsodysword_small = tx('card_scarletrhapsodysword_small.tga')
 
+    card_deathsickle = tx('card_deathsickle.tga')
+    card_deathsickle_small = tx('card_deathsickle_small.tga')
+    card_keystone = tx('card_keystone.tga')
+    card_keystone_small = tx('card_keystone_small.tga')
+    card_witchbroom = tx('card_witchbroom.tga')
+    card_witchbroom_small = tx('card_witchbroom_small.tga')
+    card_yinyangorb = tx('card_yinyangorb.tga')
+    card_yinyangorb_small = tx('card_yinyangorb_small.tga')
+    card_suwakohat = tx('card_suwakohat.tga')
+    card_suwakohat_small = tx('card_suwakohat_small.tga')
+
+
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')
     koakuma_port = tx('koakuma_port.png')
