@@ -140,7 +140,7 @@ class UIChooseMyCards(UISelectTarget):
         g = self.parent.game
         if skills:
             for skill_cls in skills:
-                cards = [skill_cls(g.me, cards)]
+                cards = [skill_cls.wrap(cards)]
 
         if cards:
             if act.cond(cards):
@@ -167,7 +167,10 @@ class UIDoActionStage(UISelectTarget):
         g = parent.game
         if skills:
             for skill_cls in skills:
-                cards = [skill_cls(g.me, cards)]
+                print skill_cls.__name__, cards
+                cards = [skill_cls.wrap(cards)]
+
+        print cards
 
         if cards:
             while True:
@@ -202,7 +205,7 @@ class UIDoActionStage(UISelectTarget):
 
                     #self.irp.do_callback(sel_players)
 
-                rst, reason = card.ui_meta.is_action_valid(cards, source, target_list)
+                rst, reason = card.ui_meta.is_action_valid(g, cards, target_list)
 
                 self.set_text(reason)
                 if rst:

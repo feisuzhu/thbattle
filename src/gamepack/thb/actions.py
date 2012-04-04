@@ -69,7 +69,7 @@ def skill_wrap(actor, sid_list, cards):
             check(0 <= skill_id < len(actor.skills))
 
             skill_cls = actor.skills[skill_id]
-            card = skill_cls(actor, cards)
+            card = skill_cls.wrap(cards)
 
             check(card.check())
 

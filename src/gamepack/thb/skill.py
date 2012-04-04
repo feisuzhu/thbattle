@@ -4,8 +4,7 @@ from cards.base import VirtualCard
 
 class Skill(VirtualCard):
 
-    def __init__(self, actor, cards):
-        self.actor = actor
+    def __init__(self, cards=None):
         self.associated_cards = cards
         VirtualCard.__init__(self)
 

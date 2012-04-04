@@ -101,6 +101,18 @@ class VirtualCard(Card):
                 l.append(s)
         return l
 
+    @classmethod
+    def wrap(cls, cl):
+        vc = cls()
+        if not cl:
+            vc.associated_cards = []
+            return vc
+        suit = reduce(lambda s1, s2: s1 if s1 == s2 else Card.NOTSET, [c.suit for c in cl])
+        num = reduce(lambda n1, n2: n1 if n1 == n2 else 0, [c.number for c in cl])
+        vc.suit, vc.number = suit, num
+        vc.associated_cards = cl[:]
+        return vc
+
     def sync(self, data):
         raise GameError('should not sync VirtualCard!')
 
