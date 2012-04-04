@@ -141,6 +141,11 @@ class UIChooseMyCards(UISelectTarget):
         if skills:
             for skill_cls in skills:
                 cards = [skill_cls.wrap(cards)]
+            s = cards[0]
+            rst, reason = s.ui_meta.is_complete(g, [s])
+            if not rst:
+                self.set_text(reason)
+                return
 
         if cards:
             if act.cond(cards):
@@ -150,7 +155,6 @@ class UIChooseMyCards(UISelectTarget):
                 self.set_text(u'您选择的牌不符合出牌规则')
         else:
             self.set_text(act.ui_meta.text)
-        return True
 
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
@@ -167,10 +171,7 @@ class UIDoActionStage(UISelectTarget):
         g = parent.game
         if skills:
             for skill_cls in skills:
-                print skill_cls.__name__, cards
                 cards = [skill_cls.wrap(cards)]
-
-        print cards
 
         if cards:
             while True:

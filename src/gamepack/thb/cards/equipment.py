@@ -636,3 +636,44 @@ class IceWingHandler(EventHandler):
                 act.cancelled = True
 
         return act
+
+class GrimoireSkill(TreatAsSkill, WeaponSkill):
+    range = 1
+    from .base import Card
+    lookup_tbl = {
+        Card.SPADE: Card.card_classes['WorshipersCarnivalCard'], # again...
+        Card.HEART: Card.card_classes['FeastCard'],
+        Card.CLUB: Card.card_classes['MapCannonCard'],
+        Card.DIAMOND: Card.card_classes['HarvestCard'],
+    }
+    del Card
+
+    @property
+    def treat_as(self):
+        cl = self.associated_cards
+        if not cl:
+            from .definition import DummyCard
+            return DummyCard
+        return self.lookup_tbl[cl[0].suit]
+
+    def check(self):
+        cl = self.associated_cards
+        if not len(cl) == 1: return False
+        if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS):
+            return False
+        return True
+
+@register_eh
+class GrimoireHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if evt_type == 'action_can_fire':
+            act, v = arg
+            if not isinstance(act, LaunchCard): return arg
+            c = act.card
+            if c.is_card(GrimoireSkill) and not act.source.tags.get('attack_num', 0):
+                return (act, False)
+        elif evt_type == 'action_after' and isinstance(arg, LaunchCard):
+            c = arg.card
+            if c.is_card(GrimoireSkill):
+                arg.source.tags['attack_num'] -= 1
+        return arg

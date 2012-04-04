@@ -22,7 +22,8 @@ class TreatAsSkill(Skill):
         return False
 
     def is_card(self, cls):
-        return isinstance(self, (cls, self.treat_as))
+        if issubclass(self.treat_as, cls): return True
+        return isinstance(self, cls)
 
     def __getattribute__(self, name):
         try:

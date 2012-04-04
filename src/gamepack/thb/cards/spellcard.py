@@ -326,3 +326,28 @@ class Camera(SpellCardAction):
         migrate_cards(cards, tgt.showncards)
 
         return True
+
+class DollControl(SpellCardAction):
+    def apply_action(self):
+        tl = self.target_list
+        assert len(tl) == 2
+        src = self.source
+
+        controllee, attackee = tl
+        cats = [
+            controllee.cards,
+            controllee.showncards,
+        ]
+        cards = user_choose_card(self, controllee, self.cond, cats)
+        g = Game.getgame()
+        if cards:
+            g.process_action(LaunchCard(controllee, [attackee], cards[0]))
+        else:
+            l = [e for e in controllee.equips if e.equipment_category == 'weapon']
+            migrate_cards(l, src.cards)
+        return True
+
+    def cond(self, cl):
+        from .definition import AttackCard
+        return cl and cl[0].is_card(AttackCard)
+

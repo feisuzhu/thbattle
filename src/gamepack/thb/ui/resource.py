@@ -77,6 +77,9 @@ with ResLoader(__file__) as args:
     card_youmuphantom_small = tx('card_youmuphantom_small.tga')
     card_icewing = tx('card_icewing.tga')
     card_icewing_small = tx('card_icewing_small.tga')
+    card_grimoire = tx('card_grimoire.tga')
+    card_grimoire_small = tx('card_grimoire_small.tga')
+    card_dollcontrol = tx('card_dollcontrol.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

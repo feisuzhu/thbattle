@@ -39,7 +39,7 @@ def user_choose_card(act, target, cond, categories=None):
         g.players.exclude(target).reveal(cards)
 
         if sid_list:
-            cards = skill_wrap(target, sid_list, cards)
+            cards = [skill_wrap(target, sid_list, cards)]
 
         check(cond(cards))
 
@@ -75,8 +75,7 @@ def skill_wrap(actor, sid_list, cards):
 
             cards = [card]
 
-        card = cards[0]
-        return card
+        return cards[0]
     except CheckFailed as e:
         return None
 
@@ -272,7 +271,7 @@ class LaunchCard(GenericAction):
         action = card.associated_action
         g.process_action(DropUsedCard(self.source, cards=[card]))
         if action:
-            target = target_list[0] if len(target_list) == 1 else None
+            target = target_list[0]
             a = action(source=self.source, target=target)
             a.associated_card = card
             a.target_list = target_list

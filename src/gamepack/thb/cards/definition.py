@@ -14,6 +14,10 @@ __metaclass__ = card_meta
 
 # ==================================================
 
+class DummyCard:
+    associated_action = None
+    target = t_None
+
 from . import basic
 
 class AttackCard:
@@ -89,6 +93,17 @@ class HarvestCard:
 class CameraCard:
     associated_action = spellcard.Camera
     target = t_OtherOne
+
+class DollControlCard:
+    associated_action = spellcard.DollControl
+
+    @staticmethod
+    def target(g, source, tl):
+        if not tl: return ([], False)
+        tl = tl[:]
+        while tl and source is tl[0]:
+            del tl[0]
+        return (tl[:2], len(tl) >= 2)
 
 # --------------------------------------------------
 
@@ -245,6 +260,11 @@ class IceWingCard:
     equipment_skill = equipment.IceWingSkill
     equipment_category = 'accessories'
 
+class GrimoireCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    equipment_skill = equipment.GrimoireSkill
+    equipment_category = 'weapon'
 
 # ==================================================
 
@@ -315,49 +335,42 @@ card_definition = [
     (AttackCard, Card.CLUB, 1),
     (AttackCard, Card.CLUB, 1),
     (AttackCard, Card.CLUB, 1),
+    (AttackCard, Card.CLUB, 1),
+    (AttackCard, Card.CLUB, 1),
+    (AttackCard, Card.CLUB, 1),
+    (AttackCard, Card.CLUB, 1),
 
-    (RejectCard, Card.CLUB, 1),
-    (RejectCard, Card.CLUB, 1),
-    (RejectCard, Card.CLUB, 1),
     (SealingArrayCard, Card.CLUB, 3),
-    (SealingArrayCard, Card.CLUB, 3),
-    (SealingArrayCard, Card.CLUB, 3),
-
     (DemolitionCard, Card.DIAMOND, 1),
-    (DemolitionCard, Card.DIAMOND, 1),
-    (DemolitionCard, Card.DIAMOND, 1),
-
 
     (GreenUFOCard, Card.HEART, 3),
     (RedUFOCard, Card.DIAMOND, 4),
     (MapCannonCard, Card.SPADE, 12),
 
     (GungnirCard, Card.DIAMOND, 1),
-    (LaevateinCard, Card.CLUB, 1),
-    (ThoridalCard, Card.CLUB, 1),
-    (RepentanceStickCard, Card.SPADE, 10),
-    (WineCard, Card.HEART, 12),
-    (FeastCard, Card.DIAMOND, 12),
-    (HarvestCard, Card.DIAMOND, 12),
-    (MaidenCostumeCard, Card.DIAMOND, 12),
-    (ExinwanCard, Card.SPADE, 10),
-    (IbukiGourdCard, Card.HEART, 7),
-    (HouraiJewelCard, Card.DIAMOND, 3),
-    (SaigyouBranchCard, Card.DIAMOND, 3),
-    (FlirtingSwordCard, Card.DIAMOND, 3),
-    (CameraCard, Card.SPADE, 3),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
+    (GungnirCard, Card.DIAMOND, 1),
 
-    (DeathSickleCard, Card.HEART, 1),
-    (KeystoneCard, Card.HEART, 1),
-    (WitchBroomCard, Card.DIAMOND, 1),
-    (YinYangOrbCard, Card.DIAMOND, 1),
-    (SuwakoHatCard, Card.DIAMOND, 1),
+    (GrimoireCard, Card.SPADE, 10),
+    (DollControlCard, Card.SPADE, 11),
+    (GrimoireCard, Card.SPADE, 10),
+    (DollControlCard, Card.SPADE, 11),
+    (GrimoireCard, Card.SPADE, 10),
+    (DollControlCard, Card.SPADE, 11),
 
-    (YoumuPhantomCard, Card.HEART, 4),
-    (IceWingCard, Card.DIAMOND, 9),
-    (YoumuPhantomCard, Card.HEART, 4),
-    (IceWingCard, Card.DIAMOND, 9),
-    (YoumuPhantomCard, Card.HEART, 4),
-    (IceWingCard, Card.DIAMOND, 9),
 
+    (GrimoireCard, Card.SPADE, 10),
+    (DollControlCard, Card.SPADE, 11),
+    (GrimoireCard, Card.SPADE, 10),
+    (DollControlCard, Card.SPADE, 11),
+    (GrimoireCard, Card.SPADE, 10),
+    (DollControlCard, Card.SPADE, 11),
 ] * 2

@@ -384,20 +384,29 @@ class GungnirSkill:
         me = game.me
         try:
             act = game.action_stack[0]
-            if isinstance(act, (actions.ActionStage, cards.UseAttack)):
+            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.DollControl)):
                 return True
         except IndexError:
             pass
         return False
 
-    def is_action_valid(g, cl, target_list):
+    def is_complete(g, cl):
         skill = cl[0]
+        me = g.me
         assert skill.is_card(cards.GungnirSkill)
         acards = skill.associated_cards
         if len(acards) != 2:
             return (False, u'请选择2张手牌！')
-        elif any(c.resides_in not in (g.me.cards, g.me.showncards) for c in acards):
+        elif any(c.resides_in not in (me.cards, me.showncards) for c in acards):
             return (False, u'只能使用手牌发动！')
+        return (True, u'反正这条也看不到，偷个懒~~~')
+
+    def is_action_valid(g, cl, source, target_list, is_complete=is_complete):
+        skill = cl[0]
+        assert skill.is_card(cards.GungnirSkill)
+        rst, reason = is_complete(g, cl)
+        if not rst:
+            return (rst, reason)
         else:
             return cards.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
 
@@ -820,7 +829,76 @@ class IceWingSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+class GrimoireCard:
+    # action_stage meta
+    name = u'魔导书'
+    image = gres.card_grimoire
+    image_small = gres.card_grimoire_small
 
+    is_action_valid = equip_iav
+
+class GrimoireSkill:
+    # Skill
+    name = u'魔导书'
+
+    def clickable(game):
+        me = game.me
+        try:
+            act = game.action_stack[0]
+            if isinstance(act, actions.ActionStage):
+                if me.tags.get('attack_num', 0):
+                    return True
+        except IndexError:
+            pass
+        return False
+
+    def is_action_valid(g, cl, source, target_list):
+        skill = cl[0]
+        assert skill.is_card(cards.GrimoireSkill)
+        acards = skill.associated_cards
+        if not (len(acards)) == 1:
+            return (False, u'请选择一张牌')
+        else:
+            s = skill.lookup_tbl[acards[0].suit].ui_meta.name
+            return (True, u'发动【%s】' % s)
+
+    def effect_string(act):
+        # for effects.launch_effect
+        source = act.source
+        card = act.card
+        #target = act.target_list[0]
+        return u'Grimoire!'
+
+class DollControlCard:
+    # action_stage meta
+    name = u'人形操控'
+    image = gres.card_dollcontrol
+
+    def is_action_valid(g, cl, source, tl):
+        n = len(tl)
+        if n == 0:
+            return (False, u'请选择被控者')
+
+        if tl[0] is source:
+            return (False, u'你不可以控制你自己')
+
+        if all(e.equipment_category != 'weapon' for e in tl[0].equips):
+            return (False, u'被控者没有武器！')
+
+        if n == 1:
+            return (False, u'请选择被控者的攻击目标')
+        elif n == 2:
+            from .. import actions, cards
+            c = cards.AttackCard()
+            lc = actions.LaunchCard(tl[0], [tl[1]], c)
+            if not lc.can_fire():
+                return (False, u'被控者无法向目标出【击】！')
+            return (True, u'乖，听话！')
+
+class DollControl:
+    # choose card meta
+    text_valid = u'那好吧…'
+    text = u'请出【击】（否则你的武器会被拿走）'
 
 # -----END CARDS UI META-----
 
@@ -893,7 +971,12 @@ class Find:
 
     def clickable(game):
         me = game.me
-        if me.stage == game.ACTION_STAGE and me.cards:
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
             return True
         return False
 
