@@ -78,8 +78,9 @@ class EventHandler(object):
 class Action(object):
     cancelled = False
 
-    def __init__(self):
-        pass
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
 
     def can_fire(self):
         '''

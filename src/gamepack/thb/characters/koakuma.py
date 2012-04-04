@@ -4,11 +4,6 @@ from ..actions import *
 from ..cards import *
 
 class FindAction(UserAction):
-    def __init__(self, source, target):
-        assert source == target
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         g = Game.getgame()
         cards = self.associated_card.associated_cards

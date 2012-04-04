@@ -90,10 +90,6 @@ class UseAttack(UseCard):
         )
 
 class Wine(BasicAction):
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         self.target.tags['wine'] = True
         return True
@@ -112,9 +108,6 @@ class WineHandler(EventHandler):
 
 class Exinwan(UserAction):
     # 恶心丸
-    def __init__(self, source, target):
-        pass
-
     def apply_action(self):
         return True
 

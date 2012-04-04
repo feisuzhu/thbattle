@@ -9,10 +9,6 @@ from . import basic, spellcard, base
 from utils import check, CheckFailed
 
 class WearEquipmentAction(UserAction):
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         g = Game.getgame()
         card = self.associated_card
@@ -334,10 +330,6 @@ class IbukiGourdHandler(EventHandler):
         return arg
 
 class SpellCardAttack(spellcard.SpellCardAction):
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         g = Game.getgame()
         dmg = Damage(self.source, self.target)
@@ -406,10 +398,6 @@ class FlirtingSwordSkill(WeaponSkill):
     target = t_None
 
 class FlirtingSword(GenericAction):
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -440,9 +428,6 @@ class FlirtingSwordHandler(EventHandler):
         return act
 
 class AyaRoundfan(GenericAction):
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
 
     def apply_action(self):
         src = self.source

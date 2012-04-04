@@ -8,9 +8,6 @@ class SpellCardAction(UserAction): pass
 
 class Demolition(SpellCardAction):
     # 城管执法
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
 
     def apply_action(self):
         g = Game.getgame()
@@ -136,10 +133,6 @@ class DelayedSpellCardActionHandler(EventHandler):
 
 class SealingArray(DelayedSpellCardAction):
     # 封魔阵
-    def __init__(self, source, target):
-        assert source == target
-        self.source = self.target = target
-
     def apply_action(self):
         g = Game.getgame()
         target = self.target
@@ -167,8 +160,6 @@ class SealingArrayHandler(EventHandler):
 
 class NazrinRod(SpellCardAction):
     # 纳兹琳的探宝棒
-    def __init__(self, source, target):
-        self.target = target
 
     def apply_action(self):
         g = Game.getgame()
@@ -177,10 +168,6 @@ class NazrinRod(SpellCardAction):
 
 class Worshiper(DelayedSpellCardAction):
     # 罪袋
-    def __init__(self, source, target):
-        assert source == target
-        self.source = self.target = target
-
     def apply_action(self):
         g = Game.getgame()
         target = self.target
@@ -206,9 +193,6 @@ class Worshiper(DelayedSpellCardAction):
 
 class YukariDimension(SpellCardAction):
     # 紫的隙间
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
 
     def apply_action(self):
         g = Game.getgame()
@@ -234,10 +218,6 @@ class YukariDimension(SpellCardAction):
 
 class Duel(SpellCardAction):
     # 弹幕战
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         g = Game.getgame()
         source = self.source
@@ -255,10 +235,6 @@ class Duel(SpellCardAction):
 
 class MapCannonEffect(SpellCardAction):
     # 地图炮
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         g = Game.getgame()
         source, target = self.source, self.target
@@ -276,10 +252,6 @@ class MapCannon(ForEach):
 
 class WorshipersCarnivalEffect(SpellCardAction):
     # 罪袋狂欢
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         g = Game.getgame()
         source, target = self.source, self.target
@@ -297,9 +269,6 @@ class WorshipersCarnival(ForEach):
 
 class FeastEffect(SpellCardAction):
     # 宴会
-    def __init__(self, source, target):
-        self.source, self.target = source, target
-
     def apply_action(self):
         src, tgt = self.source, self.target
         g = Game.getgame()
@@ -314,10 +283,6 @@ class Feast(ForEach):
 
 class HarvestEffect(SpellCardAction):
     # 五谷丰登 效果
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         cards = self.parent_action.cards
         cards_avail = [c for c in cards if not c.resides_in.owner]
@@ -351,10 +316,6 @@ class Harvest(ForEach):
 
 class Camera(SpellCardAction):
     # 文文的相机
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
     def apply_action(self):
         src = self.source
         tgt = self.target
