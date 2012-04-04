@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import gevent
-from gevent import Greenlet, getcurrent
+from gevent import Greenlet
 from gevent.queue import Queue
 import game
 from game import GameError, EventHandler, Action, TimeLimitExceeded
@@ -185,22 +185,25 @@ class Game(Greenlet, game.Game):
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
     player_class = TheChosenOne
-
+    thegame = None
     CLIENT_SIDE = True
     SERVER_SIDE = False
 
     def __init__(self):
         Greenlet.__init__(self)
         game.Game.__init__(self)
-        self.players = []
+        self.players = PlayerList()
+        from .game_client import Game # this class
+        Game.thegame = self
 
     def _run(self):
         self.synctag = 0
         self.game_start()
 
-    @staticmethod
-    def getgame():
-        return getcurrent()
+    @classmethod
+    def getgame(cls):
+        return cls.thegame
+        #return getcurrent()
 
     def get_synctag(self):
         self.synctag += 1
