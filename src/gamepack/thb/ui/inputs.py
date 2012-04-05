@@ -137,6 +137,8 @@ class UIChooseMyCards(UISelectTarget):
         skills = self.parent.get_selected_skills()
         cards = self.parent.get_selected_cards()
 
+        self.set_valid() # FIXME: FOR DEBUG
+
         g = self.parent.game
         if skills:
             for skill_cls in skills:
@@ -169,6 +171,9 @@ class UIDoActionStage(UISelectTarget):
         cards = parent.get_selected_cards()
 
         g = parent.game
+
+        self.set_valid() # FIXME: FOR DEBUG
+
         if skills:
             for skill_cls in skills:
                 cards = [skill_cls.wrap(cards)]

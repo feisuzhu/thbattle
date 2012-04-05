@@ -43,7 +43,7 @@ class Card(object):
     def __hash__(self):
         return 84065234 + self.syncid
 
-    def sync(self, data):
+    def sync(self, data): # this only executes at client side, let it crash.
         if data['syncid'] != self.syncid:
             raise GameError('Card: out of sync')
         clsname = data['type']
@@ -185,8 +185,9 @@ class Deck(object):
 
             self.droppedcards.clear()
 
-        for i in xrange(num):
-            c = self.cards[i]
+        cl = self.cards
+        for i in xrange(min(len(cl), num)):
+            c = cl[i]
             if not c.syncid:
                 sid = g.get_synctag()
                 c.syncid = sid
@@ -196,7 +197,12 @@ class Deck(object):
         return rst
 
     def lookupcards(self, idlist):
-        return [self.cards_record.get(cid) for cid in idlist]
+        l = []
+        cr = self.cards_record
+        for cid in idlist:
+            c = cr.get(cid, None)
+            if c: l.append(c)
+        return l
 
     def shuffle(self, cl):
         g = Game.getgame()
@@ -225,12 +231,10 @@ def t_Self(g, source, tl):
 @staticmethod
 def t_OtherOne(g, source, tl):
     tl = [t for t in tl if not t.dead]
-    ''' # Add it back when done debugging!
     try:
         tl.remove(source)
     except ValueError:
         pass
-    '''
     return (tl[-1:], bool(len(tl)))
 
 @staticmethod
@@ -250,12 +254,10 @@ def t_OtherLessEqThanN(n):
     @staticmethod
     def _t_OtherLessEqThanN(g, source, tl):
         tl = [t for t in tl if not t.dead]
-        ''' # Add it back when done debugging!
         try:
             tl.remove(source)
         except ValueError:
             pass
-        '''
         return (tl[:n], bool(len(tl)))
     return _t_OtherLessEqThanN
 
@@ -263,12 +265,10 @@ def t_OtherN(n):
     @staticmethod
     def _t_OtherN(g, source, tl):
         tl = [t for t in tl if not t.dead]
-        ''' # Add it back when done debugging!
         try:
             tl.remove(source)
         except ValueError:
             pass
-        '''
         return (tl[:n], bool(len(tl) >= n))
     return _t_OtherN
 

@@ -82,7 +82,9 @@ class RejectHandler(EventHandler):
             sid_list, cid_list = input
 
             g = Game.getgame()
-            card, = g.deck.lookupcards(cid_list)
+            cards = g.deck.lookupcards(cid_list)
+            check(cards)
+            card = cards[0]
             check(card in p.cards)
 
             g.players.exclude(p).reveal(card)
@@ -107,16 +109,18 @@ class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
 # TODO: code like this only allow ONE such behavior change.
 
 class DelayedLaunchCard(LaunchCard):
+    def is_valid(self):
+        if not self.card: return False
+        if not len(target_list) == 1: return False
+        return True
+
     def apply_action(self):
         g = Game.getgame()
         card = self.card
-        target_list = self.target_list
-        if not card: return False
         action = card.associated_action
-
         assert issubclass(action, DelayedSpellCardAction)
-        assert len(target_list) == 1
-        t = target_list[0]
+
+        t = self.target_list[0]
         migrate_cards([card], t.fatetell)
         return True
 

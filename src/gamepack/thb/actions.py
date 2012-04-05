@@ -257,9 +257,7 @@ class DrawCardStage(DrawCards): pass
 class LaunchCard(GenericAction):
     def __init__(self, source, target_list, card):
         tl, tl_valid = card.target(Game.getgame(), source, target_list)
-        if not tl_valid:
-            card = None # Incorrect target_list
-        self.source, self.target_list, self.card = source, tl, card
+        self.source, self.target_list, self.card, self.tl_valid = source, tl, card, tl_valid
 
     def apply_action(self):
         g = Game.getgame()
@@ -278,6 +276,7 @@ class LaunchCard(GenericAction):
         return False
 
     def is_valid(self):
+        if not self.tl_valid: return False
         g = Game.getgame()
         card = self.card
         if not card: return False
