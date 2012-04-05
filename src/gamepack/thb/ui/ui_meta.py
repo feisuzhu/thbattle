@@ -43,16 +43,13 @@ class HiddenCard:
 class AttackCard:
     # action_stage meta
     image = gres.card_attack
-    name = u'击'
+    name = u'弹幕'
 
     def is_action_valid(g, cl, target_list):
         if not target_list:
-            return (False, u'请选择击的目标')
-        target = target_list[0]
-        if target.dead:
-            return (False, u'禁止鞭尸！')
+            return (False, u'请选择弹幕的目标')
 
-        if g.me == target:
+        if g.me is target:
             return (True, u'您真的要自残么？！')
         else:
             return (True, u'来一发！')
@@ -415,7 +412,7 @@ class GungnirSkill:
         source = act.source
         card = act.card
         target = act.target_list[0]
-        s = u'|c208020ff【%s】|r发动了冈格尼尔之枪，将两张牌当作|c208020ff【击】|r对|c208020ff【%s】|r使用。' % (
+        s = u'|c208020ff【%s】|r发动了冈格尼尔之枪，将两张牌当作|c208020ff【弹幕】|r对|c208020ff【%s】|r使用。' % (
             source.ui_meta.char_name,
             target.ui_meta.char_name,
         )
@@ -450,13 +447,10 @@ class LaevateinSkill:
         assert skill.is_card(cards.LaevateinSkill)
         acards = skill.associated_cards
         if not (len(acards) == 1 and acards[0].is_card(cards.AttackCard)):
-            return (False, u'请选择你的最后一张【击】！')
+            return (False, u'请选择你的最后一张【弹幕】！')
         else:
             if not target_list:
-                return (False, u'请选择击的目标（最多可以选择3名玩家）')
-
-            if any(t.dead for t in target_list):
-                return (False, u'禁止鞭尸！')
+                return (False, u'请选择弹幕的目标（最多可以选择3名玩家）')
 
             if g.me in target_list:
                 return (True, u'您真的要自残么？！')
@@ -468,7 +462,7 @@ class LaevateinSkill:
         source = act.source
         card = act.card
         target = act.target_list[0]
-        s = u'|c208020ff【%s】|Laevatein!...|c208020ff【击】|r对|c208020ff【%s】|r使用。' % (
+        s = u'|c208020ff【%s】|Laevatein!...|c208020ff【弹幕】|r对|c208020ff【%s】|r使用。' % (
             source.ui_meta.char_name,
             target.ui_meta.char_name,
         )
@@ -542,7 +536,7 @@ class MaidenCostumeCard:
         t = target_list[0]
         if g.me is t:
             return (True, u'真的要自己穿上吗？')
-        return (True, u'腋！')
+        return (True, u'\腋/！')
 
 class MaidenCostumeSkill:
     # Skill
@@ -892,13 +886,13 @@ class DollControlCard:
             c = cards.AttackCard()
             lc = actions.LaunchCard(tl[0], [tl[1]], c)
             if not lc.can_fire():
-                return (False, u'被控者无法向目标出【击】！')
+                return (False, u'被控者无法向目标出【弹幕】！')
             return (True, u'乖，听话！')
 
 class DollControl:
     # choose card meta
     text_valid = u'那好吧…'
-    text = u'请出【击】（否则你的武器会被拿走）'
+    text = u'请出【弹幕】（否则你的武器会被拿走）'
 
 # -----END CARDS UI META-----
 
