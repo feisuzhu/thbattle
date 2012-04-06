@@ -49,7 +49,7 @@ class AttackCard:
         if not target_list:
             return (False, u'请选择弹幕的目标')
 
-        if g.me is target:
+        if g.me is target_list[0]:
             return (True, u'您真的要自残么？！')
         else:
             return (True, u'来一发！')
@@ -398,7 +398,7 @@ class GungnirSkill:
             return (False, u'只能使用手牌发动！')
         return (True, u'反正这条也看不到，偷个懒~~~')
 
-    def is_action_valid(g, cl, source, target_list, is_complete=is_complete):
+    def is_action_valid(g, cl, target_list, is_complete=is_complete):
         skill = cl[0]
         assert skill.is_card(cards.GungnirSkill)
         rst, reason = is_complete(g, cl)
@@ -846,7 +846,7 @@ class GrimoireSkill:
             pass
         return False
 
-    def is_action_valid(g, cl, source, target_list):
+    def is_action_valid(g, cl, target_list):
         skill = cl[0]
         assert skill.is_card(cards.GrimoireSkill)
         acards = skill.associated_cards
@@ -868,12 +868,12 @@ class DollControlCard:
     name = u'人形操控'
     image = gres.card_dollcontrol
 
-    def is_action_valid(g, cl, source, tl):
+    def is_action_valid(g, cl, tl):
         n = len(tl)
         if n == 0:
             return (False, u'请选择被控者')
 
-        if tl[0] is source:
+        if tl[0] is g.me:
             return (False, u'你不可以控制你自己')
 
         if all(e.equipment_category != 'weapon' for e in tl[0].equips):
@@ -893,6 +893,31 @@ class DollControl:
     # choose card meta
     text_valid = u'那好吧…'
     text = u'请出【弹幕】（否则你的武器会被拿走）'
+
+class DonationBoxCard:
+    # action_stage meta
+    name = u'塞钱箱'
+    image = gres.card_donationbox
+
+    def is_action_valid(g, cl, tl):
+        n = len(tl)
+        if not n:
+            return (False, u'请选择1-2名玩家')
+
+        if g.me in tl:
+            return (True, u'你不能选择自己作为目标')
+
+        for t in tl:
+            if not (t.cards or t.showncards or t.equips):
+                return (False, u'目标没有可以给你的牌')
+
+        return (True, u'纳奉！纳奉！')
+
+class DonationBox:
+    # choose card meta
+    text_valid = u'这是抢劫啊！'
+    text = u'请选择一张牌（否则会随机选择一张）'
+
 
 # -----END CARDS UI META-----
 

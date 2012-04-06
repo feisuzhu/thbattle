@@ -105,6 +105,11 @@ class DollControlCard:
             del tl[0]
         return (tl[:2], len(tl) >= 2)
 
+class DonationBoxCard:
+    associated_action = spellcard.DonationBox
+    target = t_OtherLessEqThanN(2)
+
+
 # --------------------------------------------------
 
 from . import equipment
@@ -350,27 +355,13 @@ card_definition = [
     (GungnirCard, Card.DIAMOND, 1),
     (GungnirCard, Card.DIAMOND, 1),
     (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-    (GungnirCard, Card.DIAMOND, 1),
-
-    (GrimoireCard, Card.SPADE, 10),
-    (DollControlCard, Card.SPADE, 11),
-    (GrimoireCard, Card.SPADE, 10),
-    (DollControlCard, Card.SPADE, 11),
-    (GrimoireCard, Card.SPADE, 10),
-    (DollControlCard, Card.SPADE, 11),
-
-
-    (GrimoireCard, Card.SPADE, 10),
-    (DollControlCard, Card.SPADE, 11),
-    (GrimoireCard, Card.SPADE, 10),
-    (DollControlCard, Card.SPADE, 11),
-    (GrimoireCard, Card.SPADE, 10),
-    (DollControlCard, Card.SPADE, 11),
+    (DonationBoxCard, Card.HEART, 1),
+    (DonationBoxCard, Card.HEART, 1),
+    (DonationBoxCard, Card.HEART, 1),
+    (DonationBoxCard, Card.HEART, 1),
+    (DonationBoxCard, Card.HEART, 1),
+    (DonationBoxCard, Card.HEART, 1),
+    (DonationBoxCard, Card.HEART, 1),
+    (DonationBoxCard, Card.HEART, 1),
+    
 ] * 2

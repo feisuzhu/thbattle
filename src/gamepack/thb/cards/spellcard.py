@@ -340,7 +340,9 @@ class DollControl(SpellCardAction):
         ]
         cards = user_choose_card(self, controllee, self.cond, cats)
         g = Game.getgame()
+
         if cards:
+            g.players.reveal(cards)
             g.process_action(LaunchCard(controllee, [attackee], cards[0]))
         else:
             l = [e for e in controllee.equips if e.equipment_category == 'weapon']
@@ -351,3 +353,27 @@ class DollControl(SpellCardAction):
         from .definition import AttackCard
         return cl and cl[0].is_card(AttackCard)
 
+class DonationBox(SpellCardAction):
+    def apply_action(self):
+        tl = self.target_list
+        src = self.source
+        assert 0 < len(tl) <= 2
+        g = Game.getgame()
+        for t in tl:
+            cats = [
+                t.cards,
+                t.showncards,
+                t.equips,
+            ]
+            cards = user_choose_card(self, t, self.cond, cats)
+            if not cards:
+                cards = [random_choose_card(cats)]
+
+            if cards:
+                src.reveal(cards)
+                migrate_cards(cards, src.cards)
+
+        return True
+
+    def cond(self, cards):
+        return len(cards) == 1

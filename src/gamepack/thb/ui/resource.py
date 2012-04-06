@@ -80,6 +80,7 @@ with ResLoader(__file__) as args:
     card_grimoire = tx('card_grimoire.tga')
     card_grimoire_small = tx('card_grimoire_small.tga')
     card_dollcontrol = tx('card_dollcontrol.tga')
+    card_donationbox = tx('card_donationbox.tga')
 
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')

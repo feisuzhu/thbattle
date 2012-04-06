@@ -29,8 +29,6 @@ def user_choose_card(act, target, cond, categories=None):
         cs = set(cards)
         check(len(cs) == len(cid_list)) # repeated ids
 
-        check(all(c.resides_in.owner is target for c in cards)) # Whose cards?!
-
         if not categories:
             categories = [target.cards, target.showncards]
 
@@ -38,7 +36,7 @@ def user_choose_card(act, target, cond, categories=None):
 
         g.players.exclude(target).reveal(cards)
 
-        if sid_list:
+        if sid_list and all(cat.owner is target for cat in categories):
             cards = [skill_wrap(target, sid_list, cards)]
 
         check(cond(cards))
