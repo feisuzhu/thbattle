@@ -419,7 +419,8 @@ class FlirtingSword(GenericAction):
 @register_eh
 class FlirtingSwordHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, basic.BaseAttack):
+        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
+            if act.cancelled: return act
             src = act.source
             if not src.has_skill(FlirtingSwordSkill): return act
 
@@ -520,7 +521,7 @@ class DeathSickleSkill(WeaponSkill):
 @register_eh
 class DeathSickleHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, Damage):
+        if evt_type == 'action_before' and isinstance(act, Damage):
             src, tgt = act.source, act.target
             if len(tgt.cards) + len(tgt.showncards): return act
             if not src.has_skill(DeathSickleSkill): return act
@@ -590,7 +591,7 @@ class SuwakoHatSkill(AccessoriesSkill):
 @register_eh
 class SuwakoHatHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, DropCardStage):
+        if evt_type == 'action_before' and isinstance(act, DropCardStage):
             tgt = act.target
             if tgt.has_skill(SuwakoHatSkill):
                 act.dropn = max(act.dropn - 2, 0)

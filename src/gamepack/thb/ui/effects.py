@@ -144,7 +144,7 @@ def damage_effect(self, act):
     port = self.player2portrait(t)
     #l = t.life
     #port.life = l if l > 0 else 0
-    #port.update()
+    port.update()
     if s:
         self.prompt(u'|c208020ff【%s】|r对|c208020ff【%s】|r造成了%d点伤害。' % (
             s.ui_meta.char_name, t.ui_meta.char_name, act.amount
@@ -160,7 +160,7 @@ def heal_effect(self, act):
     port = self.player2portrait(t)
     #l = t.life
     #port.life = l if l > 0 else 0
-    #port.update()
+    port.update()
     if act.succeeded:
         self.prompt(u'|c208020ff【%s】|r回复了%d点体力。' % (
             t.ui_meta.char_name, act.amount
@@ -248,7 +248,7 @@ mapping_actions = ddict(dict, {
         ActionStage: action_stage_update_tag,
     },
     'after': {
-        Damage: damage_effect,
+        DamageEffect: damage_effect,
         Heal: heal_effect,
         UseGraze: graze_effect,
         Demolition: demolition_effect,

@@ -197,6 +197,7 @@ class Game(object):
                 #))
                 action.set_up()
                 action = self.emit_event('action_apply', action)
+                assert not action.cancelled
                 self.action_stack.append(action)
                 rst = action.apply_action()
                 _a = self.action_stack.pop()

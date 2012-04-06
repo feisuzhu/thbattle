@@ -143,6 +143,41 @@ class GenericAction(Action): pass # others
 class UserAction(Action): pass # card/character skill actions
 class InternalAction(Action): pass # actions for internal use
 
+class TryRevive(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        assert tgt.life <= 0
+        g = Game.getgame()
+        pl = [p for p in g.players if not p.dead]
+        n = len(pl)
+        i = pl.index(tgt)
+        pl = (pl*2)[i:i+n]
+        for p in pl:
+            while True:
+                act = UseHeal(p)
+                if g.process_action(act):
+                    cards = act.cards
+                    if not cards: continue
+                    from .cards import Heal
+                    g.process_action(Heal(p, tgt))
+                    if tgt.life > 0:
+                        return True
+                    continue
+                break
+        return tgt.life > 0
+
+class DamageEffect(GenericAction):
+    # In a 'WTF' face now? Well, this absurdy thing is for UI
+    def __init__(self, source, target, amount=1):
+        self.source = source
+        self.target = target
+        self.amount = amount
+
+    def apply_action(self):
+        tgt = self.target
+        tgt.life -= self.amount
+        return True
+
 class Damage(GenericAction):
 
     def __init__(self, source, target, amount=1):
@@ -151,11 +186,13 @@ class Damage(GenericAction):
         self.amount = amount
 
     def apply_action(self):
-        target = self.target
-        target.life -= self.amount
-        if target.life <= 0:
-            Game.getgame().emit_event('player_dead', target)
-            target.dead = True
+        tgt = self.target
+        g = Game.getgame()
+        g.process_action(DamageEffect(self.source, tgt, self.amount))
+        if tgt.life <= 0:
+            if not g.process_action(TryRevive(tgt, tgt)):
+                g.emit_event('player_dead', tgt)
+                tgt.dead = True
         return True
 
 # ---------------------------------------------------
@@ -193,10 +230,10 @@ class UseCard(GenericAction):
         target = self.target
         cards = user_choose_card(self, target, self.cond)
         if not cards:
-            self.associated_cards = []
+            self.cards = []
             return False
         else:
-            self.associated_cards = cards
+            self.cards = cards
             drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True
@@ -484,3 +521,14 @@ class PlayerTurn(GenericAction):
         g.process_action(ActionStage(p))
         g.process_action(DropCardStage(p))
         return True
+
+class UseHeal(UseCard):
+    def cond(self, cl):
+        from .cards import HealCard
+        t = self.target
+        print cl[0]
+        return (
+            len(cl) == 1 and
+            cl[0].is_card(HealCard) and
+            cl[0].resides_in.owner is t
+        )

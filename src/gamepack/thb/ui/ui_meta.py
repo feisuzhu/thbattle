@@ -26,6 +26,10 @@ class DropCardStage:
     text_valid = u'OK，就这些了'
     text = u'请弃牌…'
 
+class UseHeal:
+    # choose_card meta
+    text_valid = u'神说，你不能在这里MISS'
+    text = u'请选择一张【麻薯】…'
 
 # -----END ACTIONS UI META-----
 
