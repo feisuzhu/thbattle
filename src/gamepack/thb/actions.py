@@ -267,7 +267,9 @@ class LaunchCard(GenericAction):
         action = card.associated_action
         g.process_action(DropUsedCard(self.source, cards=[card]))
         if action:
-            target = target_list[0]
+            # the target_list == [] thing will not gonna happen in real scenarios,
+            # just for debug
+            target = target_list[0] if target_list else self.source
             a = action(source=self.source, target=target)
             a.associated_card = card
             a.target_list = target_list
@@ -466,4 +468,19 @@ class ForEach(GenericAction):
             a.parent_action = self
             g.process_action(a)
         self.cleanup()
+        return True
+
+class PlayerTurn(GenericAction):
+    def __init__(self, target):
+        self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        p = self.target
+        t = p.tags.get('turn_count', 0)
+        p.tags['turn_count'] = t + 1
+        g.process_action(FatetellStage(p))
+        g.process_action(DrawCardStage(p))
+        g.process_action(ActionStage(p))
+        g.process_action(DropCardStage(p))
         return True

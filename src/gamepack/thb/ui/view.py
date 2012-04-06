@@ -17,6 +17,8 @@ log = logging.getLogger('THBattleUI')
 
 import effects, inputs
 
+from .. import actions
+
 class UIEventHook(EventHandler):
 
     def evt_user_input(self, input):
@@ -534,8 +536,8 @@ class THBattleUI(Control):
                 print i.__class__
             '''
 
-        elif _type == 'evt_player_turn':
-            self.current_turn = args[0]
+        elif _type == 'evt_action_apply' and isinstance(args[0], actions.PlayerTurn):
+            self.current_turn = args[0].target
 
         if _type.startswith('evt_'):
             inputs.handle_event(self, _type[4:], args[0])

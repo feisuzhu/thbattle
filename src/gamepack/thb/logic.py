@@ -176,10 +176,7 @@ class THBattle(Game):
             for p in cycle(self.players):
                 if not p.dead:
                     self.emit_event('player_turn', p)
-                    self.process_action(FatetellStage(target=p))
-                    self.process_action(DrawCardStage(target=p))
-                    self.process_action(ActionStage(target=p))
-                    self.process_action(DropCardStage(target=p))
+                    self.process_action(PlayerTurn(p))
         except GameEnded:
             pass
 

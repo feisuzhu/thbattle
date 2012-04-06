@@ -152,10 +152,24 @@ def demolition_effect(self, act):
     )
     self.prompt(s)
 
+def player_turn_effect(self, act):
+    p = act.target
+    port = self.player2portrait(p)
+    if not hasattr(self, 'turn_frame') or not self.turn_frame:
+        self.turn_frame = LoopingAnim(
+            common_res.turn_frame,
+            batch = self.animations
+        )
+    self.turn_frame.position = (port.x - 6, port.y - 4)
+    self.prompt_raw('--------------------\n')
+
 mapping_actions = ddict(dict, {
     'before': {
         LaunchCard: launch_effect,
         Reject: reject_effect,
+    },
+    'apply': {
+        PlayerTurn: player_turn_effects,
     },
     'after': {
         DrawCards: draw_cards_effect,
@@ -217,23 +231,12 @@ def user_input_finish_effects(self, input):
         self.actor_pbar.delete()
         self.actor_pbar = None
 
-def player_turn_effect(self, p):
-    port = self.player2portrait(p)
-    if not hasattr(self, 'turn_frame') or not self.turn_frame:
-        self.turn_frame = LoopingAnim(
-            common_res.turn_frame,
-            batch = self.animations
-        )
-    self.turn_frame.position = (port.x - 6, port.y - 4)
-    self.prompt_raw('--------------------\n')
-
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),
     'action_apply': partial(action_effects, 'apply'),
     'action_after': partial(action_effects, 'after'),
     'user_input_start': user_input_start_effects,
     'user_input_finish': user_input_finish_effects,
-    'player_turn': player_turn_effect,
 })
 
 def handle_event(self, _type, data):
