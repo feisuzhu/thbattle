@@ -935,16 +935,27 @@ class Envy:
 
     def clickable(game):
         me = game.me
-        if me.stage == game.ACTION_STAGE and me.cards: # FIXME: lit on 'choose_card'
+
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
             return True
+
         return False
 
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
         assert skill.is_card(characters.Envy)
-        if len(skill.associated_cards) != 1:
+        cl = skill.associated_cards
+        if len(cl) != 1:
             return (False, u'请选择一张牌！')
         else:
+            c = cl[0]
+            if c.suit not in (cards.Card.SPADE, cards.Card.CLUB):
+                return (False, u'请选择一张黑色的牌！')
             return cards.DemolitionCard.ui_meta.is_action_valid(g, [skill], target_list)
 
     def effect_string(act):
@@ -990,6 +1001,9 @@ class Find:
 
     def clickable(game):
         me = game.me
+        if me.tags.get('find_tag', 0) >= me.tags.get('turn_count', 0):
+            return False
+
         try:
             act = game.action_stack[0]
         except IndexError:
@@ -997,6 +1011,7 @@ class Find:
 
         if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
             return True
+
         return False
 
     def is_action_valid(g, cl, target_list):

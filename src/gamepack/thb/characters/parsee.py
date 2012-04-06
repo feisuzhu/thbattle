@@ -9,7 +9,9 @@ class Envy(TreatAsSkill):
     def check(self):
         cards = self.associated_cards
         if len(cards) != 1: return False
-        if cards[0].resides_in.type == CardList.FATETELL: return False
+        c = cards[0]
+        if c.suit not in (Card.SPADE, Card.CLUB): return False
+        if c.resides_in.type == CardList.FATETELL: return False
         return True
 
 @register_character
