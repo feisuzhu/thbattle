@@ -72,6 +72,7 @@ class Server(Endpoint, Greenlet):
                     if d.scan_count >= 5:
                         log.warn('Dropped gamedata: %s' % d)
                     else:
+                        log.info('GAME_DATA_MISS: %s', repr(d))
                         l.append(d)
             e.clear()
             e.wait()

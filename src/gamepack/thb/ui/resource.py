@@ -85,6 +85,7 @@ with ResLoader(__file__) as args:
     parsee_port = tx('parsee_port.png')
     youmu_port = tx('youmu_port.png')
     koakuma_port = tx('koakuma_port.png')
+    marisa_port = tx('marisa_port.png')
 
 
     for k in args.keys(): del k

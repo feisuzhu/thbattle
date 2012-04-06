@@ -850,7 +850,11 @@ class PortraitCardArea(Control): # TODO: these controls should be in gamepack ui
         csw = offs * (n-1) + 93
         cor_x, cor_y = (w - csw)/2, (h - 125)/2
         for i, cs in enumerate(csl):
-            cs.x, cs.y = i*offs + cor_x, cor_y
+            if isinstance(getinterp(cs, 'x'), AbstractInterp):
+                cs.x = SineInterp(cs.x, i*offs + cor_x, 0.6)
+                cs.y = SineInterp(cs.y, cor_y, 0.6)
+            else:
+                cs.x, cs.y = i*offs + cor_x, cor_y
 
     def update(self):
         csl = self.control_list

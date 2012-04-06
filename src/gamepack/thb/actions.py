@@ -45,6 +45,19 @@ def user_choose_card(act, target, cond, categories=None):
     except CheckFailed as e:
         return None
 
+def user_choose_players(act, target, candidates, cond):
+    try:
+        g = Game.getgame()
+        pids = target.user_input('choose_players', (act, candidates))
+        check(pids)
+        pl = [g.player_fromid(i) for i in pids]
+        from game import AbstractPlayer
+        check(all(p in candidates for p in pl))
+        check(cond(pl))
+        return pl
+    except CheckFailed:
+        return None
+
 def random_choose_card(categories):
     from itertools import chain
     allcards = list(chain.from_iterable(categories))

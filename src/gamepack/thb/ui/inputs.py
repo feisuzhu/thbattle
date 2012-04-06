@@ -69,7 +69,7 @@ class UISelectTarget(Control):
         port = parent.player2portrait(g.me)
         port.equipcard_area.clear_selection()
 
-        #dispatch_selection_change() # ^^ this will trigger this
+        #dispatch_selection_change() # the clear_selection thing will trigger this
 
     def set_text(self, text):
         self.label.text = text
@@ -193,50 +193,33 @@ class UIDoActionStage(UISelectTarget):
                 source = parent.game.me
                 target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())
                 if target_list is not None:
-                    #parent.begin_select_player()
                     parent.set_selected_players(target_list)
 
-                    # FIXME: if user chooses too fast(not 'too' actually),
-                    # irp.do_callback will be called without previous one returns
-                    #def sel_players():
-                    #g = Game.getgame()
                     calc = actions.CalcDistance(g.me, card)
                     g.process_action(calc)
 
                     rst = calc.validate()
 
                     disables = [p for p, r in rst.iteritems() if not r]
-                    #ui_schedule(parent.begin_select_player, disables)
                     parent.begin_select_player(disables)
-
-                    #self.irp.do_callback(sel_players)
 
                 rst, reason = card.ui_meta.is_action_valid(g, cards, target_list)
 
                 self.set_text(reason)
                 if rst:
                     if tl_valid:
-                        #def gameengine_check():
-                            #g = Game.getgame()
                         act = actions.LaunchCard(g.me, target_list, card)
                         if act.can_fire():
-                            #ui_schedule(self.set_valid)
                             self.set_valid()
                         else:
-                            #ui_schedule(self.set_text, u'您不能这样出牌')
                             self.set_text(u'您不能这样出牌')
-
-                        #self.irp.do_callback(gameengine_check)
                     else:
                         self.set_text(u'您选择的目标不符合规则')
                 return
 
             self.set_text(u'您选择的牌不符合出牌规则')
-            #self.last_card = None
         else:
-
             self.set_text(u'请出牌…')
-            #self.last_card = None
 
         parent.end_select_player()
 
@@ -607,6 +590,37 @@ class UIHarvestChoose(Panel):
             self.irp.complete()
         self.delete()
 
+class UIChoosePlayers(UISelectTarget):
+    # for actions.ActionStage
+    #def get_result(self):
+    #    pass
+    def __init__(self, irp, *a, **k):
+        action, candidates = irp.attachment
+        self.action = action
+        UISelectTarget.__init__(self, irp, *a, **k)
+        parent = self.parent
+        disables = [p for p in parent.game.players if p not in candidates]
+        parent.begin_select_player(disables)
+
+
+    def on_selection_change(self):
+        parent = self.parent
+        act = self.action
+
+        g = parent.game
+
+        #self.set_valid() # FIXME: FOR DEBUG
+
+        players = parent.get_selected_players()
+        players, valid, reason = act.ui_meta.target(players)
+        parent.set_selected_players(players)
+        if valid: self.set_valid()
+        self.set_text(reason)
+
+    def get_result(self):
+        _, _, pids = UISelectTarget.get_result(self)
+        return pids
+
 mapping = dict(
     choose_card=UIChooseMyCards,
     action_stage_usecard=UIDoActionStage,
@@ -614,6 +628,7 @@ mapping = dict(
     choose_peer_card=UIChoosePeerCard,
     choose_option=UIChooseOption,
     choose_individual_card=UIChooseIndividualCard,
+    choose_players=UIChoosePlayers,
     harvest_choose=Dummy,
 )
 

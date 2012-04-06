@@ -5,6 +5,11 @@ import baseclasses as bc
 import logging
 log = logging.getLogger('UI_Interp')
 
+def getinterp(obj, name):
+    desc = getattr(obj.__class__, name)
+    slot = desc.slot
+    return getattr(obj, slot)
+
 class InterpDesc(object):
     def __init__(self, slot):
         self.slot = slot

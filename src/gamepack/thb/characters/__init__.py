@@ -6,3 +6,4 @@ from baseclasses import *
 from parsee import *
 from youmu import *
 from koakuma import *
+from marisa import *

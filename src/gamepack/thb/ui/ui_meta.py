@@ -1040,6 +1040,35 @@ class Find:
         )
         return s
 
+# ----------
+
+class Marisa:
+    # Character
+    char_name = u'雾雨魔理沙'
+    port_image = gres.marisa_port
+
+class Borrow:
+    # Skill
+    name = u'借走'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class BorrowHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【借走】技能吗？'
+
+    # choose_players
+    def target(pl):
+        if not pl:
+            return (pl, False, u'请选择1-2名玩家')
+
+        return (pl[:2], True, u'哎哎，什么还不还的~')
+
 # -----END CHARACTERS UI META-----
 
 # -----BEGIN TAGS UI META-----
