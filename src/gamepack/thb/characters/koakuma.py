@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from baseclasses import *
+from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
@@ -31,8 +31,10 @@ class Find(Skill):
     def check(self):
         cl = self.associated_cards
         return cl and all(
-            c.resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
-            for c in self.associated_cards
+            getattr(c, 'resides_in', None) and
+            c.resides_in.type in (
+                CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS
+            ) for c in self.associated_cards
         )
 
 @register_character

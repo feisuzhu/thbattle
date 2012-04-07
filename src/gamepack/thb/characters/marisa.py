@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from baseclasses import *
+from .baseclasses import *
 from ..actions import *
 from ..cards import *
 from ..skill import *
@@ -18,8 +18,7 @@ class BorrowHandler(EventHandler):
             g = Game.getgame()
             pl = [p for p in g.players if not p.dead and (p.cards or p.showncards)]
             try:
-                pass
-                #pl.remove(tgt)
+                pl.remove(tgt)
             except ValueError:
                 pass
 

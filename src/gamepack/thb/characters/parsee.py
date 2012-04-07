@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from baseclasses import *
+from .baseclasses import *
 from ..actions import *
 from ..cards import *
 from ..skill import *
@@ -10,8 +10,10 @@ class Envy(TreatAsSkill):
         cards = self.associated_cards
         if len(cards) != 1: return False
         c = cards[0]
+        rin = getattr(c, 'resides_in', None)
+        if not rin: return False
+        if not rin.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
-        if c.resides_in.type == CardList.FATETELL: return False
         return True
 
 @register_character

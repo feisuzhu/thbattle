@@ -315,7 +315,9 @@ class LaunchCard(GenericAction):
         target_list = self.target_list
         if not card: return False
         action = card.associated_action
-        g.process_action(DropUsedCard(self.source, cards=[card]))
+        if not getattr(card, 'no_drop', False):
+            g.process_action(DropUsedCard(self.source, cards=[card]))
+
         if action:
             # the target_list == [] thing will not gonna happen in real scenarios,
             # just for debug
@@ -368,13 +370,14 @@ class ActionStage(GenericAction):
                 from game import AbstractPlayer
                 check(all(isinstance(p, AbstractPlayer) for p in target_list))
 
-                g.players.exclude(actor).reveal(cards)
-
                 # skill selected
                 if skill_ids:
                     card = skill_wrap(actor, skill_ids, cards)
+                    if not getattr(card, 'no_reveal', False):
+                        g.players.exclude(actor).reveal(cards)
                     check(card)
                 else:
+                    g.players.exclude(actor).reveal(cards)
                     check(len(cards) == 1)
                     card = cards[0]
                     check(card.resides_in in (actor.cards, actor.showncards))

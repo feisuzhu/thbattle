@@ -221,7 +221,7 @@ def action_stage_update_tag(self, act):
 def graze_effect(self, act):
     if not act.succeeded: return
     t = act.target
-    self.prompt(u'|c208020ff【%s】|r使用了|c208020ff闪|r。' % t.ui_meta.char_name)
+    self.prompt(u'|c208020ff【%s】|r使用了|c208020ff擦弹|r。' % t.ui_meta.char_name)
 
 def reject_effect(self, act):
     s = u'|c208020ff【%s】|r为|c208020ff【%s】|r受到的|c208020ff%s|r使用了|c208020ff%s|r。' % (

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from baseclasses import *
+from .baseclasses import *
 from ..actions import *
 from ..skill import *
 from ..cards import *

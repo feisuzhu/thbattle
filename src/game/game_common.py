@@ -209,6 +209,8 @@ class Game(object):
                 except AttributeError:
                     pass
 
+                rst = action.succeeded
+
                 if self.game_ended():
                     raise GameEnded()
                 action = self.emit_event('action_after', action)

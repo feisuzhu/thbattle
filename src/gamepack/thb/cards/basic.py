@@ -29,8 +29,8 @@ class Attack(BaseAttack): pass
 class AttackCardHandler(EventHandler):
     execute_before = (DistanceValidator,)
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, ActionStage):
-            act.actor.tags['attack_num'] = 1
+        if evt_type == 'action_before' and isinstance(act, FatetellStage):
+            act.target.tags['attack_num'] = 1
         elif evt_type == 'action_after':
             if isinstance(act, LaunchCard):
                 from .definition import AttackCard
@@ -76,7 +76,7 @@ class UseGraze(UseCard):
         return (
             len(cl) == 1 and
             cl[0].is_card(cards.GrazeCard) and
-            cl[0].resides_in.owner is t
+            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
         )
 
 class UseAttack(UseCard):
@@ -86,7 +86,7 @@ class UseAttack(UseCard):
         return (
             len(cl) == 1 and
             cl[0].is_card(cards.AttackCard) and
-            cl[0].resides_in.owner is t
+            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
         )
 
 class Wine(BasicAction):

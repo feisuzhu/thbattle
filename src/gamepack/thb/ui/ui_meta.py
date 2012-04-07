@@ -732,7 +732,6 @@ class KeystoneSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
-
 class WitchBroomCard:
     # action_stage meta
     name = u'魔女的扫把'
@@ -791,7 +790,6 @@ class SuwakoHatSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
-
 
 class YoumuPhantomCard:
     # action_stage meta
@@ -1068,6 +1066,145 @@ class BorrowHandler:
             return (pl, False, u'请选择1-2名玩家')
 
         return (pl[:2], True, u'哎哎，什么还不还的~')
+
+# ----------
+
+class Daiyousei:
+    # Character
+    char_name = u'大妖精'
+    port_image = gres.daiyousei_port
+
+class SupportSkill:
+    # Skill
+    name = u'支援'
+
+    def clickable(game):
+        me = game.me
+
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        if not cl: return (False, u'请选择要给出的牌')
+        if len(target_list) != 1: return (False, u'请选择1名玩家')
+        return (True, u'加油！')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'daiyousei support'
+        return s
+
+class Moe:
+    # Skill
+    name = u'卖萌'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+# ----------
+
+class Flandre:
+    # Character
+    char_name = u'芙兰朵露'
+    port_image = gres.flandre_port
+
+class CriticalStrike:
+    # Skill
+    name = u'狂咲'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class CriticalStrikeHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【狂咲】吗？'
+
+# ----------
+
+class Alice:
+    # Character
+    char_name = u'爱丽丝'
+    port_image = gres.alice_port
+
+class DollManipulation:
+    # Skill
+    name = u'人形操演'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+# ----------
+
+class Nazrin:
+    # Character
+    char_name = u'娜兹琳'
+    port_image = gres.nazrin_port
+
+class TreasureHuntSkill:
+    # Skill
+    name = u'探宝'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class TreasureHuntHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【探宝】吗？'
+
+class Agile:
+    # Skill
+    name = u'轻敏'
+
+    def clickable(game):
+        me = game.me
+
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, cards.UseGraze) and (me.cards or me.showncards):
+            return True
+
+        return False
+
+    def is_complete(g, cl):
+        skill = cl[0]
+        cl = skill.associated_cards
+        if len(cl) != 1:
+            return (False, u'请选择一张牌！')
+        else:
+            c = cl[0]
+            if c.suit not in (cards.Card.SPADE, cards.Card.CLUB):
+                return (False, u'请选择一张黑色的牌！')
+            return (True, u'这种三脚猫的弹幕，想要打中我是不可能的啦~')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'nazrin agile'
+        return s
+
 
 # -----END CHARACTERS UI META-----
 

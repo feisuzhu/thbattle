@@ -3,25 +3,29 @@ THBattle:
 
     bugs: died person should drop all cards, should not respond to any input events
 
-    player death
     victory condition
-    target
+    target ?
 
     youmu incomplete
+
+QUIRKS:
+    Card.resides_in thing, VirtualCard has no this attrib, dangling cards are
+    set to None.
 
 reimu
 
 曹　操
 司马懿         四季
 夏侯惇
-张　辽         摸你傻
-许　褚         flandre
-郭　嘉         天子
-甄　姬         老鼠
 
-刘　备         大妖精
+##张　辽         摸你傻
+>>许　褚         flandre
+郭　嘉         天子
+>>甄　姬         老鼠
+
+>>刘　备         大妖精
 关　羽
-张　飞         alice
+>>张　飞         alice
 诸葛亮         半个蓝
 赵　云
 马　超         星熊勇仪
