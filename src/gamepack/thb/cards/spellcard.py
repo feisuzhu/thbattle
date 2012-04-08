@@ -39,7 +39,7 @@ class Reject(SpellCardAction):
     def __init__(self, source, target_act):
         self.source = source
         self.target_act = target_act
-        self.target = target_act.target
+        self.target = target_act.source
 
     def apply_action(self):
         if not isinstance(self.target_act, SpellCardAction):
@@ -111,7 +111,7 @@ class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
 class DelayedLaunchCard(LaunchCard):
     def is_valid(self):
         if not self.card: return False
-        if not len(target_list) == 1: return False
+        if not len(self.target_list) == 1: return False
         return True
 
     def apply_action(self):

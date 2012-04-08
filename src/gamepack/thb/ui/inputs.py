@@ -202,6 +202,11 @@ class UIDoActionStage(UISelectTarget):
 
                     disables = [p for p, r in rst.iteritems() if not r]
                     parent.begin_select_player(disables)
+                    for i in disables:
+                        try:
+                            target_list.remove(i)
+                        except ValueError:
+                            pass
 
                 rst, reason = card.ui_meta.is_action_valid(g, cards, target_list)
 

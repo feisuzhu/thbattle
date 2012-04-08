@@ -82,6 +82,9 @@ def skill_wrap(actor, sid_list, cards):
             skill_cls = actor.skills[skill_id]
             card = skill_cls.wrap(cards)
 
+            if not getattr(card, 'no_reveal', False):
+                g.players.exclude(actor).reveal(cards)
+
             check(card.check())
 
             cards = [card]
@@ -362,9 +365,12 @@ class ActionStage(GenericAction):
 
                 skill_ids, card_ids, target_list = input
 
-                cards = g.deck.lookupcards(card_ids)
-                check(cards)
-                check(all(c.resides_in.owner is actor for c in cards))
+                if card_ids:
+                    cards = g.deck.lookupcards(card_ids)
+                    check(cards)
+                    check(all(c.resides_in.owner is actor for c in cards))
+                else:
+                    cards = []
 
                 target_list = [g.player_fromid(i) for i in target_list]
                 from game import AbstractPlayer
@@ -373,12 +379,10 @@ class ActionStage(GenericAction):
                 # skill selected
                 if skill_ids:
                     card = skill_wrap(actor, skill_ids, cards)
-                    if not getattr(card, 'no_reveal', False):
-                        g.players.exclude(actor).reveal(cards)
                     check(card)
                 else:
-                    g.players.exclude(actor).reveal(cards)
                     check(len(cards) == 1)
+                    g.players.exclude(actor).reveal(cards)
                     card = cards[0]
                     check(card.resides_in in (actor.cards, actor.showncards))
 
@@ -542,7 +546,6 @@ class UseHeal(UseCard):
     def cond(self, cl):
         from .cards import HealCard
         t = self.target
-        print cl[0]
         return (
             len(cl) == 1 and
             cl[0].is_card(HealCard) and

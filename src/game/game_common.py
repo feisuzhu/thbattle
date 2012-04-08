@@ -71,12 +71,11 @@ class EventHandler(object):
         rst.extend(after_all)
 
         assert len(rst) == len(table) + len(after_all) # + len(before_all), it is rst
-        for i in rst:
-            print i.__class__
         return rst
 
 class Action(object):
     cancelled = False
+    done = False
 
     def __init__(self, source, target):
         self.source = source
@@ -182,13 +181,14 @@ class Game(object):
         '''
         if action.can_fire():
             action = self.emit_event('action_before', action)
-            if action.cancelled:
+            if action.done:
+                log.info('action already done %s' % action.__class__.__name__)
+                rst = action.succeeded
+            elif action.cancelled:
                 log.info('action cancelled/invalid %s' % action.__class__.__name__)
                 rst = False
-            elif not action.can_fire():
-                log.warn("action become invalid after 'action_before' event")
-                rst = False
             else:
+                assert action.can_fire()
                 log.info('applying action %s' % action.__class__.__name__)
                     #, src=%d, dst=%d' % (
                     #action.__class__.__name__,
@@ -210,6 +210,7 @@ class Game(object):
                     pass
 
                 rst = action.succeeded
+                action.done = True
 
                 if self.game_ended():
                     raise GameEnded()

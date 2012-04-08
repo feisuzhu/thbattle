@@ -1205,6 +1205,100 @@ class Agile:
         s = u'nazrin agile'
         return s
 
+# ----------
+
+class Yugi:
+    # Character
+    char_name = u'星熊勇仪'
+    port_image = gres.yugi_port
+
+class AssaultSkill:
+    # Skill
+    name = u'强袭'
+
+    def clickable(game):
+        me = game.me
+        if me.tags.get('yugi_assault', 0) >= me.tags.get('turn_count', 0):
+            return False
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        return isinstance(act, actions.ActionStage)
+
+    def is_action_valid(g, cl, target_list):
+        if not target_list:
+            return (False, u'请选择强袭的目标，以及一张武器牌（不选自己会受到1点伤害）')
+
+        if g.me is target_list[0]:
+            return (False, u'不可以对自己发动')
+        else:
+            return (True, u'[不知道该说什么，先这样吧]')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'yugi assault'
+        return s
+
+class FreakingPowerSkill:
+    # Skill
+    name = u'怪力'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class YugiHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【怪力】吗？'
+
+# ----------
+
+class Library:
+    # Skill
+    name = u'图书'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Knowledge:
+    # Skill
+    name = u'博学'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Patchouli:
+    # Character
+    char_name = u'帕秋莉'
+    port_image = gres.patchouli_port
+
+# ----------
+
+class Luck:
+    # Skill
+    name = u'幸运'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Tewi:
+    # Character
+    char_name = u'因幡帝'
+    port_image = gres.tewi_port
 
 # -----END CHARACTERS UI META-----
 

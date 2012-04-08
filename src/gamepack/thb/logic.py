@@ -71,7 +71,7 @@ class THBattle(Game):
         # choose girls -->
         from characters import characters as _chars
         # FIXME: this is for debug
-        chars = _chars * 4
+        chars = _chars * 2
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)

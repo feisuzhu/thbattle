@@ -11,4 +11,6 @@ from daiyousei import *
 from flandre import *
 from alice import *
 from nazrin import *
-
+from yugi import *
+from patchouli import *
+from tewi import *

@@ -564,8 +564,17 @@ class THBattleUI(Control):
         #if self.selecting_player: return
         self.selecting_player = True
         #self.selected_players = []
-        for p in disables:
-            self.player2portrait(p).disabled = True
+        for p in self.game.players:
+            port = self.player2portrait(p)
+            if p in disables:
+                port.disabled = True
+                port.selected = False
+                try:
+                    self.selected_players.remove(p)
+                except ValueError:
+                    pass
+            else:
+                port.disabled = False
 
     def get_selected_players(self):
         return self.selected_players
