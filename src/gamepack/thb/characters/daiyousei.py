@@ -27,7 +27,7 @@ class SupportSkill(Skill):
     def check(self):
         cl = self.associated_cards
         return cl and all(
-            getattr(c, 'resides_in', None) and
+            c.resides_in and
             c.resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
             for c in cl
         )

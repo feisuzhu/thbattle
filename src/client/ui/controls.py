@@ -1263,10 +1263,18 @@ class ConfirmButtons(Control):
     def __init__(self, buttons=((u'确定', True), (u'取消', False)), *a, **k):
         Control.__init__(self, *a, **k)
         self.buttons = bl = []
-        for i, (p, v) in enumerate(buttons):
+        n = len(buttons)
+        if n > 2:
+            wl = [len(b[0])*20 + 20 for b in buttons]
+        else:
+            wl = [80] * n
+
+        loc = 0
+        for p, v in buttons:
+            w = wl.pop(0)
             btn = Button(
-                parent=self, x=i*(80+6), y=0,
-                width=80, height=24,
+                parent=self, x=loc, y=0,
+                width=w, height=24,
                 caption=p
             )
             btn.retval = v
@@ -1275,8 +1283,9 @@ class ConfirmButtons(Control):
                 self.confirm(btn.retval)
 
             bl.append(btn)
+            loc += w + 6
 
-        self.width, self.height = len(buttons)*85-6, 24
+        self.width, self.height = loc, 24
 
     def confirm(self, val):
         self.value = val

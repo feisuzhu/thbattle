@@ -1092,6 +1092,7 @@ class SupportSkill:
         return False
 
     def is_action_valid(g, cl, target_list):
+        cl = cl[0].associated_cards
         if not cl: return (False, u'请选择要给出的牌')
         if len(target_list) != 1: return (False, u'请选择1名玩家')
         return (True, u'加油！')
@@ -1299,6 +1300,239 @@ class Tewi:
     # Character
     char_name = u'因幡帝'
     port_image = gres.tewi_port
+
+# ----------
+
+class SealingArraySkill:
+    # Skill
+    name = u'封魔阵'
+    image = gres.card_sealarray
+    tag_anim = gres.tag_sealarray
+
+
+    def clickable(game):
+        me = game.me
+
+        if me.tags.get('reimusa_tag', 0) >= me.tags.get('turn_count', 0):
+            return False
+
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        skill = cl[0]
+        cl = skill.associated_cards
+        if len(cl) != 1:
+            return (False, u'请选择一张牌！')
+        else:
+            c = cl[0]
+            if c.suit != cards.Card.DIAMOND:
+                return (False, u'请选择一张方片花色的牌！')
+            return (True, u'乖，歇会吧~')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        return u'reimu sa'
+        source = act.source
+        card = act.card
+        target = act.target_list[0]
+        s = u''
+        return s
+
+class Flight:
+    # Skill
+    name = u'飞行'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class TributeTarget:
+    # Skill
+    name = u'纳奉'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Tribute:
+    # Skill
+    name = u'塞钱'
+
+    def clickable(game):
+        me = game.me
+
+        if me.tags.get('tribute_tag', 0) >= me.tags.get('turn_count', 0):
+            return False
+
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, tl):
+        cl = cl[0].associated_cards
+        if not cl: return (False, u'请选择要给出的牌')
+        if len(cl) != 1: return (False, u'只能选择一张牌')
+        if len(tl) != 1 or not tl[0].has_skill(characters.TributeTarget):
+            return (False, u'请选择一只灵梦')
+        return (True, u'塞钱……会发生什么呢？')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'reimu tribute'
+        return s
+
+class Reimu:
+    # Character
+    char_name = u'博丽灵梦'
+    port_image = gres.reimu_port
+
+# ----------
+
+class Jolly:
+    # Skill
+    name = u'愉快'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class SurpriseSkill:
+    # Skill
+    name = u'惊吓'
+
+    def clickable(game):
+        me = game.me
+
+        if me.tags.get('surprise_tag', 0) >= me.tags.get('turn_count', 0):
+            return False
+
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, tl):
+        if len(tl) != 1:
+            return (False, u'请选择惊吓对象…')
+        #return (True, u'(´・ω・`)')
+        return (True, u'SURPRISE！')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'surprise'
+        return s
+
+class Surprise:
+    # choose_option
+    choose_option_buttons = (
+        (u'黑桃', cards.Card.SPADE),
+        (u'红桃', cards.Card.HEART),
+        (u'草花', cards.Card.CLUB),
+        (u'方片', cards.Card.DIAMOND),
+    )
+    choose_option_prompt = u'请选择一个花色…'
+
+class Kogasa:
+    # Character
+    char_name = u'多多良小伞'
+    port_image = gres.kogasa_port
+
+# ----------
+
+class FirstAid:
+    # Skill
+    name = u'急救'
+
+    def clickable(game):
+        me = game.me
+
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.UseHeal):
+            return True
+
+        return False
+
+    def is_complete(g, cl):
+        skill = cl[0]
+        me = g.me
+        acards = skill.associated_cards
+        if len(acards) != 1:
+            return (False, u'请选择一张红色牌！')
+        return (True, u'k看不到@#@#￥@#￥')
+
+class Medic:
+    # Skill
+    name = u'医者'
+
+    def clickable(game):
+        me = game.me
+
+        if me.tags.get('turn_count', 0) <= me.tags.get('medic_tag', 0):
+            return False
+
+        try:
+            act = game.action_stack[0]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, tl):
+        skill = cl[0]
+        me = g.me
+        cl = skill.associated_cards
+        if len(cl) != 1:
+            return (False, u'请选择一张手牌！')
+        elif any(c.resides_in not in (me.cards, me.showncards) for c in cl):
+            return (False, u'只能使用手牌发动！')
+        elif not tl or len(tl) != 1:
+            return (False, u'请选择一名受伤的玩家')
+        elif tl[0].maxlife <= tl[0].life:
+            return (False, u'这只精神着呢，不用管她')
+        return (True, u'少女，身体要紧啊！')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'medic'
+        return s
+
+class Eirin:
+    # Character
+    char_name = u'八意永琳'
+    port_image = gres.eirin_port
+
 
 # -----END CHARACTERS UI META-----
 

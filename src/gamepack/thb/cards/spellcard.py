@@ -122,6 +122,9 @@ class DelayedLaunchCard(LaunchCard):
 
         t = self.target_list[0]
         migrate_cards([card], t.fatetell)
+        from .base import VirtualCard
+        if card.is_card(VirtualCard):
+            migrate_cards(card.associated_cards, t.special)
         return True
 
 @register_eh

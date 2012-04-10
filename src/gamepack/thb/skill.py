@@ -4,9 +4,11 @@ from cards.base import VirtualCard
 
 class Skill(VirtualCard):
 
-    def __init__(self, cards=None):
-        self.associated_cards = cards
-        VirtualCard.__init__(self)
+    def __init__(self, player):
+        assert not isinstance(player, list) # signature changed, let it fail early.
+        assert player is not None
+        self.associated_cards = []
+        VirtualCard.__init__(self, player)
 
     def check(self): # override this
         return False

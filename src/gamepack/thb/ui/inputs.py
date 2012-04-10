@@ -142,9 +142,8 @@ class UIChooseMyCards(UISelectTarget):
         g = self.parent.game
         if skills:
             for skill_cls in skills:
-                cards = [skill_cls.wrap(cards)]
-            s = cards[0]
-            rst, reason = s.ui_meta.is_complete(g, [s])
+                cards = [skill_cls.wrap(cards, g.me)]
+            rst, reason = cards[0].ui_meta.is_complete(g, cards)
             if not rst:
                 self.set_text(reason)
                 return
@@ -176,19 +175,19 @@ class UIDoActionStage(UISelectTarget):
 
         if skills:
             for skill_cls in skills:
-                cards = [skill_cls.wrap(cards)]
+                cards = [skill_cls.wrap(cards, g.me)]
 
         if cards:
             while True:
                 if len(cards) != 1: break
 
                 card = cards[0]
-                try:
-                    rin = card.resides_in
-                    if rin not in (g.me.cards, g.me.showncards):
-                        break
-                except AttributeError:
-                    pass
+
+                from ..cards import VirtualCard
+                if not (
+                    card.is_card(VirtualCard) or
+                    card.resides_in in (g.me.cards, g.me.showncards)
+                ): break
 
                 source = parent.game.me
                 target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())

@@ -54,8 +54,10 @@ class Card(object):
         self.number = data['number']
 
     def move_to(self, resides_in):
-        if self.resides_in is not None:
+        try:
             self.resides_in.remove(self)
+        except (AttributeError, ValueError):
+            pass
 
         if resides_in is not None:
             resides_in.append(self)
@@ -75,9 +77,10 @@ class VirtualCard(Card):
 
     sort_index = 0
 
-    def __init__(self):
+    def __init__(self, player):
         self.suit = Card.NOTSET
         self.number = 0
+        self.resides_in = player.special
 
     def __data__(self):
         raise GameError('should not sync VirtualCard!')
@@ -102,8 +105,8 @@ class VirtualCard(Card):
         return l
 
     @classmethod
-    def wrap(cls, cl):
-        vc = cls()
+    def wrap(cls, cl, player):
+        vc = cls(player)
         if not cl:
             vc.associated_cards = []
             return vc
@@ -125,6 +128,7 @@ class CardList(deque):
     SHOWNCARD = 'showncard'
     EQUIPS = 'equips'
     FATETELL = 'fatetell'
+    SPECIAL = 'special'
     def __init__(self, owner, type):
         self.owner = owner
         self.type = type

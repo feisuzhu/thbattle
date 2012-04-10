@@ -37,23 +37,25 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     from .. import actions
 
     # --- src ---
+    rawcards = [c for c in cards if not c.is_card(VirtualCard)]
 
-    if _from.type == _from.EQUIPS:
+    if _from.type == _from.EQUIPS: # equip area
         equips = self.player2portrait(_from.owner).equipcard_area
         for cs in equips.cards[:]:
             if cs.associated_card in cards:
                 cs.delete()
         equips.update()
 
-    if _from.type == _from.FATETELL:
+    if _from.type == _from.FATETELL: # fatetell tag
         port = self.player2portrait(_from.owner)
         taganims = port.taganims
         for a in [t for t in taganims if hasattr(t, 'for_fatetell_card')]:
             if a.for_fatetell_card in cards:
                 a.delete()
                 taganims.remove(a)
-        #port.taganims = [a for a in port.taganims if a.associated_card]
         port.tagarrange()
+
+    if to is None: return # not supposed to have visual effects
 
     if _from.owner is g.me and _from.type in (_from.HANDCARD, _from.SHOWNCARD):
         handcard_update = True
@@ -72,9 +74,13 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
         if _from.type == _from.DECKCARD:
             pca = self.deck_area
         else:
-            pca = self.player2portrait(_from.owner).portcard_area
+            try:
+                pca = self.player2portrait(_from.owner).portcard_area
+            except ValueError:
+                print _from
+                raise
 
-        for i, card in enumerate(cards):
+        for i, card in enumerate(rawcards):
             cs = CardSprite(
                 parent=pca,
                 img=card.ui_meta.image,
@@ -87,7 +93,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     # --- dest ---
 
-    if to.type == to.EQUIPS:
+    if to.type == to.EQUIPS: # equip area
         equips = self.player2portrait(to.owner).equipcard_area
         from .view import SmallCardSprite
         for c in cards:
@@ -98,7 +104,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             cs.associated_card = c
         equips.update()
 
-    if to.type == to.FATETELL:
+    if to.type == to.FATETELL: # fatetell tag
         port = self.player2portrait(to.owner)
         taganims = port.taganims
         for c in cards:

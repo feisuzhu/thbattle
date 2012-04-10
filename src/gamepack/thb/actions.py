@@ -32,7 +32,7 @@ def user_choose_card(act, target, cond, categories=None):
         if not categories:
             categories = [target.cards, target.showncards]
 
-        check(all(c.resides_in in categories for c in cards)) # Cards in desired categories?
+        check(all(c.resides_in in categories or c.is_card(VirtualCard) for c in cards)) # Cards in desired categories?
 
         g.players.exclude(target).reveal(cards)
 
@@ -80,7 +80,7 @@ def skill_wrap(actor, sid_list, cards):
             check(0 <= skill_id < len(actor.skills))
 
             skill_cls = actor.skills[skill_id]
-            card = skill_cls.wrap(cards)
+            card = skill_cls.wrap(cards, actor)
 
             if not getattr(card, 'no_reveal', False):
                 g.players.exclude(actor).reveal(cards)
@@ -96,8 +96,9 @@ def skill_wrap(actor, sid_list, cards):
 def migrate_cards(cards, to):
     g = Game.getgame()
     mapping = {}
+    from .cards import VirtualCard
     for c in cards:
-        l = mapping.setdefault(id(c.resides_in), [])
+        l = mapping.setdefault(id(c) if c.is_card(VirtualCard) else id(c.resides_in), [])
         l.append(c)
 
     act = g.action_stack[0]
@@ -227,6 +228,9 @@ class DropCards(GenericAction):
 
         from .cards import VirtualCard
         self.cards_before_unwrap = cards
+
+        migrate_cards([c for c in cards if c.is_card(VirtualCard)], None)
+
         self.cards = cards = VirtualCard.unwrap(cards)
 
         assert all(c.resides_in.owner == target for c in cards), 'WTF?!'
@@ -544,10 +548,10 @@ class PlayerTurn(GenericAction):
 
 class UseHeal(UseCard):
     def cond(self, cl):
-        from .cards import HealCard
+        from . import cards
         t = self.target
         return (
             len(cl) == 1 and
-            cl[0].is_card(HealCard) and
-            cl[0].resides_in.owner is t
+            cl[0].is_card(cards.HealCard) and
+            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
         )

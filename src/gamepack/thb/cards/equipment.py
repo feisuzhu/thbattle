@@ -26,14 +26,14 @@ class EquipmentTransferHandler(EventHandler):
     def handle(self, evt, args):
         if evt == 'card_migration':
             act, cards, _from, to = args
-            if _from.type == CardList.EQUIPS:
+            if _from is not None and _from.type == CardList.EQUIPS:
                 for c in cards:
                     try:
                         _from.owner.skills.remove(c.equipment_skill)
                     except ValueError:
                         pass
 
-            if to.type == CardList.EQUIPS:
+            if to is not None and to.type == CardList.EQUIPS:
                 for c in cards:
                     to.owner.skills.append(c.equipment_skill)
 
@@ -610,14 +610,14 @@ class YoumuPhantomHandler(EventHandler):
 
         from .definition import YoumuPhantomCard
 
-        if _from.type == CardList.EQUIPS:
+        if _from and _from.type == CardList.EQUIPS:
             src = _from.owner
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
                     src.maxlife -= 1
                     src.life = min(src.life+1, src.maxlife)
 
-        if to.type == CardList.EQUIPS:
+        if to and to.type == CardList.EQUIPS:
             src = to.owner
             for c in cards:
                 if c.is_card(YoumuPhantomCard):

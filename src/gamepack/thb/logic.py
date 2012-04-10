@@ -158,6 +158,7 @@ class THBattle(Game):
             p.showncards = CardList(p, CardList.SHOWNCARD) # Cards which are shown to the others, treated as 'Cards in hand'
             p.equips = CardList(p, CardList.EQUIPS) # Equipments
             p.fatetell = CardList(p, CardList.FATETELL) # Cards in the Fatetell Zone
+            p.special = CardList(p, CardList.SPECIAL) # used on special purpose
 
             p.tags = {}
 

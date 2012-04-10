@@ -14,3 +14,6 @@ from nazrin import *
 from yugi import *
 from patchouli import *
 from tewi import *
+from reimu import *
+from kogasa import *
+from eirin import *
