@@ -12,16 +12,15 @@ log = logging.getLogger('THBattle_Actions')
 
 # ------------------------------------------
 # aux functions
-def user_choose_card(act, target, cond, categories=None):
+
+def _user_choose_cards_logic(input, act, target, categories=None):
     from utils import check, CheckFailed
     g = Game.getgame()
-    input = target.user_input('choose_card', act) # list of card ids
 
     try:
-        check_type([[int, Ellipsis], [int, Ellipsis]], input)
+        check_type([[int, Ellipsis]] * 3, input)
 
-        sid_list, cid_list = input
-
+        sid_list, cid_list, pid_list = input
 
         cards = g.deck.lookupcards(cid_list)
         check(len(cards) == len(cid_list)) # Invalid id
@@ -39,24 +38,42 @@ def user_choose_card(act, target, cond, categories=None):
         if sid_list and all(cat.owner is target for cat in categories):
             cards = [skill_wrap(target, sid_list, cards)]
 
-        check(cond(cards))
+        check(act.cond(cards))
 
         return cards
     except CheckFailed as e:
         return None
 
-def user_choose_players(act, target, candidates, cond):
+def user_choose_cards(act, target, categories=None):
+    input = target.user_input('choose_card_and_player', (act, [])) # list of card ids
+    return _user_choose_cards_logic(input, act, target, categories)
+
+def _user_choose_players_logic(input, act, target, candidates):
     try:
         g = Game.getgame()
-        pids = target.user_input('choose_players', (act, candidates))
+        check_type([[int, Ellipsis]] * 3, input)
+        _, _, pids = input
         check(pids)
         pl = [g.player_fromid(i) for i in pids]
         from game import AbstractPlayer
         check(all(p in candidates for p in pl))
-        check(cond(pl))
+        pl, valid = act.target(pl)
+        check(valid)
         return pl
     except CheckFailed:
         return None
+
+def user_choose_players(act, target, candidates):
+    input = target.user_input('choose_card_and_player', (act, candidates))
+    return _user_choose_players_logic(input, act, target, candidates)
+
+def user_choose_cards_and_players(act, target, categories=None, candidates=[]):
+    input = target.user_input('choose_card_and_player', (act, candidates))
+    cards = _user_choose_cards_logic(input, act, target, categories)
+    if not cards: return None
+    pl = _user_choose_players_logic(input, act, target, candidates)
+    if not pl: return None
+    return (cards, pl)
 
 def random_choose_card(categories):
     from itertools import chain
@@ -248,7 +265,7 @@ class UseCard(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        cards = user_choose_card(self, target, self.cond)
+        cards = user_choose_cards(self, target)
         if not cards:
             self.cards = []
             return False
@@ -281,7 +298,7 @@ class DropCardStage(GenericAction):
         if n<=0:
             return True
         g = Game.getgame()
-        cards = user_choose_card(self, target, cond=self.cond)
+        cards = user_choose_cards(self, target)
         if cards:
             g.process_action(DropCards(target, cards=cards))
         else:

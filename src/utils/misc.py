@@ -40,6 +40,12 @@ class BatchList(list):
         nl.remove(elem)
         return nl
 
+    def rotate_to(self, elem):
+        print 'rotate_to!'
+        i = self.index(elem)
+        n = len(self)
+        return self.__class__((self*2)[i:i+n])
+
 class IRP(object):
     '''I/O Request Packet'''
     complete_tag = object()

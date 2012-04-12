@@ -44,7 +44,7 @@ class UISelectTarget(Control):
             on_done=lambda *a: self.cleanup()
         )
         self.label = lbl = pyglet.text.Label(
-            text=u'请选择…', x=125, y=28,
+            text=u"HEY SOMETHING'S WRONG", x=125, y=28,
             font_size=12, color=(255, 255, 160, 255), bold=True,
             anchor_x='center', anchor_y='bottom'
         )
@@ -124,38 +124,54 @@ class UISelectTarget(Control):
         if _type == 'evt_user_input_timeout':
             self.cleanup()
 
-class UIChooseMyCards(UISelectTarget):
-    # for actions.ChooseCard
-    sel_players = 0
-
-    def get_result(self):
-        sid_list, cid_list, _  = UISelectTarget.get_result(self)
-        return sid_list, cid_list
+class UIChooseCardAndPlayer(UISelectTarget):
+    def __init__(self, irp, *a, **k):
+        action, candidates = irp.attachment
+        self.action = action
+        UISelectTarget.__init__(self, irp, *a, **k)
+        if candidates:
+            parent = self.parent
+            disables = [p for p in parent.game.players if p not in candidates]
+            parent.begin_select_player(disables)
 
     def on_selection_change(self):
-        act = self.irp.attachment
-        skills = self.parent.get_selected_skills()
-        cards = self.parent.get_selected_cards()
+        act, candidates = self.irp.attachment
 
         self.set_valid() # FIXME: FOR DEBUG
 
         g = self.parent.game
-        if skills:
-            for skill_cls in skills:
-                cards = [skill_cls.wrap(cards, g.me)]
-            rst, reason = cards[0].ui_meta.is_complete(g, cards)
-            if not rst:
-                self.set_text(reason)
+        parent = self.parent
+        if getattr(act, 'cond', False):
+            skills = parent.get_selected_skills()
+            cards = parent.get_selected_cards()
+            if skills:
+                for skill_cls in skills:
+                    cards = [skill_cls.wrap(cards, g.me)]
+                rst, reason = cards[0].ui_meta.is_complete(g, cards)
+                if not rst:
+                    self.set_text(reason)
+                    return
+
+            if cards:
+                if act.cond(cards):
+                    self.set_text(act.ui_meta.text_valid)
+                else:
+                    self.set_text(u'您选择的牌不符合出牌规则')
+                    return
+            else:
+                self.set_text(act.ui_meta.text)
                 return
 
-        if cards:
-            if act.cond(cards):
-                self.set_text(act.ui_meta.text_valid)
-                self.set_valid()
-            else:
-                self.set_text(u'您选择的牌不符合出牌规则')
-        else:
-            self.set_text(act.ui_meta.text)
+        if candidates:
+            players = parent.get_selected_players()
+            players, valid = act.target(players)
+            valid1, reason = act.ui_meta.target(players)
+            assert bool(valid) == bool(valid1)
+            parent.set_selected_players(players)
+            self.set_text(reason)
+            if not valid: return
+
+        self.set_valid()
 
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
@@ -616,7 +632,9 @@ class UIChoosePlayers(UISelectTarget):
         #self.set_valid() # FIXME: FOR DEBUG
 
         players = parent.get_selected_players()
-        players, valid, reason = act.ui_meta.target(players)
+        players, valid = act.target(players)
+        valid1, reason = act.ui_meta.target(players)
+        assert bool(valid) == bool(valid1)
         parent.set_selected_players(players)
         if valid: self.set_valid()
         self.set_text(reason)
@@ -626,13 +644,12 @@ class UIChoosePlayers(UISelectTarget):
         return pids
 
 mapping = dict(
-    choose_card=UIChooseMyCards,
+    choose_card_and_player=UIChooseCardAndPlayer,
     action_stage_usecard=UIDoActionStage,
     choose_girl=Dummy,
     choose_peer_card=UIChoosePeerCard,
     choose_option=UIChooseOption,
     choose_individual_card=UIChooseIndividualCard,
-    choose_players=UIChoosePlayers,
     harvest_choose=Dummy,
 )
 

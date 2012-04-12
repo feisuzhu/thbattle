@@ -404,7 +404,7 @@ class FlirtingSword(GenericAction):
 
         if not src.user_input('choose_option', self): return False
 
-        cards = user_choose_card(self, tgt, self.cond)
+        cards = user_choose_cards(self, tgt)
         g = Game.getgame()
         if cards:
             g.process_action(DropCards(tgt, cards))
@@ -434,7 +434,7 @@ class AyaRoundfan(GenericAction):
         src = self.source
         tgt = self.target
 
-        cards = user_choose_card(self, src, self.cond)
+        cards = user_choose_cards(self, src)
         if not cards: return False
 
         g = Game.getgame()
@@ -483,7 +483,7 @@ class ScarletRhapsodySword(GenericAction):
             src.showncards,
             src.equips,
         ]
-        cards = user_choose_card(self, src, self.cond, cats)
+        cards = user_choose_cards(self, src, cats)
         if cards:
             g.process_action(DropCards(src, cards))
             dmg = Damage(src, tgt)

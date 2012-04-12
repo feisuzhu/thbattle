@@ -17,3 +17,5 @@ from tewi import *
 from reimu import *
 from kogasa import *
 from eirin import *
+from shikieiki import *
+from tenshi import *

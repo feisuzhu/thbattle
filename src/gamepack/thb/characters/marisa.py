@@ -22,7 +22,7 @@ class BorrowHandler(EventHandler):
             except ValueError:
                 pass
 
-            pl = user_choose_players(self, tgt, pl, lambda l: len(l) <= 2)
+            pl = user_choose_players(self, tgt, pl)
 
             if not pl: return act
 
@@ -35,6 +35,11 @@ class BorrowHandler(EventHandler):
 
         return act
 
+    def target(self, tl):
+        if not tl:
+            return (tl, False)
+
+        return (tl[:2], True)
 
 @register_character
 class Marisa(Character):

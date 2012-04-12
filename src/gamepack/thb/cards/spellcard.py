@@ -345,7 +345,7 @@ class DollControl(SpellCardAction):
             controllee.cards,
             controllee.showncards,
         ]
-        cards = user_choose_card(self, controllee, self.cond, cats)
+        cards = user_choose_cards(self, controllee, cats)
         g = Game.getgame()
 
         if cards:
@@ -372,7 +372,7 @@ class DonationBox(SpellCardAction):
                 t.showncards,
                 t.equips,
             ]
-            cards = user_choose_card(self, t, self.cond, cats)
+            cards = user_choose_cards(self, t, cats)
             if not cards:
                 cards = [random_choose_card(cats)]
 

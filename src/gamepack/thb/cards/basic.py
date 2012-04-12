@@ -132,7 +132,7 @@ class ExinwanHandler(EventHandler):
                     target.equips,
                 ]
                 for i in xrange(len(cards)):
-                    cards = user_choose_card(self, target, self.cond, cats)
+                    cards = user_choose_cards(self, target, cats)
                     if cards:
                         g.process_action(DropCards(target=target, cards=cards))
                     else:

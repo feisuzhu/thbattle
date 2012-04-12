@@ -10,42 +10,21 @@ THBattle:
 
 QUIRKS:
     >> Card.resides_in thing, VirtualCard has no this attrib, dangling cards are
-    set to None.
+    set to None. FIXED
 
     >> actions.LaunchCard.is_valid uses associated_action.is_valid
     to determine the validity, which is inaccurate.
     use action.can_fire will be fine, but the action will be checked twice
     which is unnecessary.
 
-
 曹　操
-司马懿         四季
 夏侯惇
-
-##张　辽         摸你傻
-##许　褚         flandre
-郭　嘉         天子
-##甄　姬         老鼠
-
-##刘　备         大妖精
 关　羽
-##张　飞         alice
 诸葛亮         半个蓝
-赵　云
-##马　超         星熊勇仪
-##黄月英         图书
-
-##孙　权         小恶魔
-##甘　宁         parsee
+赵　云         幽香
 吕　蒙
 黄　盖
-##周　瑜         小伞
-##大　乔         reimu
-##陆　逊         腹黑兔
-孙尚香
-
-##华　佗         eirin
-##吕　布         youmu
+孙尚香         rinnosuke!
 貂　蝉         rumia
 
 

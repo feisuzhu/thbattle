@@ -1063,9 +1063,9 @@ class BorrowHandler:
     # choose_players
     def target(pl):
         if not pl:
-            return (pl, False, u'请选择1-2名玩家')
+            return (False, u'请选择1-2名玩家')
 
-        return (pl[:2], True, u'哎哎，什么还不还的~')
+        return (True, u'哎哎，什么还不还的~')
 
 # ----------
 
@@ -1440,7 +1440,8 @@ class SurpriseSkill:
         if len(tl) != 1:
             return (False, u'请选择惊吓对象…')
         #return (True, u'(´・ω・`)')
-        return (True, u'SURPRISE！')
+        return (True, u'\ ( °▽ °) /')
+        #return (True, u'SURPRISE！')
 
     def effect_string(act):
         # for effects.launch_effect
@@ -1533,6 +1534,78 @@ class Eirin:
     char_name = u'八意永琳'
     port_image = gres.eirin_port
 
+# ----------
+
+class Trial:
+    # Skill
+    name = u'审判'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Majesty:
+    # Skill
+    name = u'威严'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class TrialHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【审判】吗？'
+
+    # choose_card
+    text = u'请选择一张牌代替当前的判定牌'
+    text_valid = u'有罪！'
+
+class MajestyHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【威严】吗？'
+
+class Shikieiki:
+    # Character
+    char_name = u'四季映姬'
+    port_image = gres.shikieiki_port
+
+# ----------
+
+class Masochist:
+    # Skill
+    name = u'抖Ｍ'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class MasochistHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【抖Ｍ】吗？'
+
+    # choose_card
+    text = u'请选择你要给出的牌'
+    text_valid = u'给你牌~'
+
+    def target(pl):
+        if not pl:
+            return (False, u'请选择1名玩家')
+
+        return (True, u'给你牌~')
+
+class Tenshi:
+    # Character
+    char_name = u'比那名居天子'
+    port_image = gres.tenshi_port
 
 # -----END CHARACTERS UI META-----
 

@@ -160,7 +160,7 @@ class Game(object):
         Fire an event, all relevant event handlers will see this,
         data can be modified.
         '''
-        if isinstance(data, (list, tuple)):
+        if isinstance(data, (list, tuple, str, unicode)):
             s = data
         else:
             s = data.__class__.__name__
