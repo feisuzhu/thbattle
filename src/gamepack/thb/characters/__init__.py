@@ -19,3 +19,6 @@ from kogasa import *
 from eirin import *
 from shikieiki import *
 from tenshi import *
+from rumia import *
+from yuuka import *
+from rinnosuke import *

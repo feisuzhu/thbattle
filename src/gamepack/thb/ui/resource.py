@@ -98,6 +98,10 @@ with ResLoader(__file__) as args:
     kogasa_port = tx('kogasa_port.png')
     shikieiki_port = tx('shikieiki_port.png')
     tenshi_port = tx('tenshi_port.png')
+    rumia_port = tx('rumia_port.png')
+    yuuka_port = tx('yuuka_port.png')
+    rinnosuke_port = tx('rinnosuke_port.png')
+
 
     for k in args.keys(): del k
     del args

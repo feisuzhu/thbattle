@@ -1607,6 +1607,176 @@ class Tenshi:
     char_name = u'比那名居天子'
     port_image = gres.tenshi_port
 
+# ----------
+
+class FlowerQueen:
+    # Skill
+    name = u'花王'
+
+    def clickable(game):
+        me = game.me
+        try:
+            act = game.action_stack[0]
+            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.UseGraze, cards.DollControl)):
+                return True
+        except IndexError:
+            pass
+        return False
+
+    def is_complete(g, cl):
+        skill = cl[0]
+        me = g.me
+        acards = skill.associated_cards
+        if len(acards) != 1 or acards[0].suit != cards.Card.CLUB:
+            return (False, u'请选择1张草花色手牌！')
+        return (True, u'反正这条也看不到，偷个懒~~~')
+
+    def is_action_valid(g, cl, target_list, is_complete=is_complete):
+        skill = cl[0]
+        rst, reason = is_complete(g, cl)
+        if not rst:
+            return (rst, reason)
+        else:
+            return cards.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'flower queen'
+        return s
+
+class MagicCannon:
+    # Skill
+    name = u'魔炮'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class PerfectKill:
+    # Skill
+    name = u'完杀'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Yuuka:
+    # Character
+    char_name = u'风见幽香'
+    port_image = gres.yuuka_port
+
+# ----------
+
+class Darkness:
+    # Skill
+    name = u'黑暗'
+
+    def clickable(game):
+        me = game.me
+        try:
+            tags = me.tags
+            if tags['turn_count'] <= tags['darkness_tag']:
+                return False
+            act = game.action_stack[0]
+            if isinstance(act, actions.ActionStage):
+                return True
+        except IndexError:
+            pass
+        return False
+
+    def is_action_valid(g, cl, tl):
+        skill = cl[0]
+        cl = skill.associated_cards
+        if not cl or len(cl) != 1:
+            return (False, u'请选择一张牌')
+
+        if not len(tl):
+            return (False, u'请选择第一名玩家（先出弹幕）')
+        elif len(tl) == 1:
+            return (False, u'请选择第二名玩家（后出弹幕）')
+        else:
+            return (True, u'你们的关系…是~这样吗？')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'darkness duel'
+        return s
+
+class Cheating:
+    # Skill
+    name = u'作弊'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Rumia:
+    # Character
+    char_name = u'露米娅'
+    port_image = gres.rumia_port
+
+# ----------
+
+class Netoru:
+    # Skill
+    name = u'寝取'
+
+    def clickable(game):
+        me = game.me
+        try:
+            if me.tags['netoru_tag'] >= me.tags['turn_count']:
+                return False
+            act = game.action_stack[0]
+            if isinstance(act, actions.ActionStage):
+                return True
+        except IndexError:
+            pass
+        return False
+
+    def is_action_valid(g, cl, tl):
+        skill = cl[0]
+        cl = skill.associated_cards
+        me = g.me
+        if not cl or len(cl) != 2:
+            return (False, u'请选择两张手牌')
+        elif any(c.resides_in not in (me.cards, me.showncards) for c in cl):
+            return (False, u'只能使用手牌发动！')
+
+        if len(tl) != 1:
+            return (False, u'请选择一名受伤的玩家')
+
+        t = tl[0]
+        if t.life >= t.maxlife:
+            return (False, u'这位少女节操满满，不会答应你的…')
+        else:
+            return (True, u'少女，做个好梦~')
+
+    def effect_string(act):
+        # for effects.launch_effect
+        s = u'netoru'
+        return s
+
+class Psychopath:
+    # Skill
+    name = u'变态'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Rinnosuke:
+    # Character
+    char_name = u'森近霖之助'
+    port_image = gres.rinnosuke_port
+
 # -----END CHARACTERS UI META-----
 
 # -----BEGIN TAGS UI META-----

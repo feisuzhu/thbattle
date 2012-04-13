@@ -4,6 +4,7 @@ from game import TimeLimitExceeded
 
 from actions import *
 from itertools import cycle
+from collections import defaultdict
 import random
 
 from utils import BatchList, check, CheckFailed
@@ -160,7 +161,7 @@ class THBattle(Game):
             p.fatetell = CardList(p, CardList.FATETELL) # Cards in the Fatetell Zone
             p.special = CardList(p, CardList.SPECIAL) # used on special purpose
 
-            p.tags = {}
+            p.tags = defaultdict(int)
 
             p.life = p.maxlife
             p.dead = False

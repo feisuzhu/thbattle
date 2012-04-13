@@ -178,14 +178,18 @@ class UserAction(Action): pass # card/character skill actions
 class InternalAction(Action): pass # actions for internal use
 
 class TryRevive(GenericAction):
+    def __init__(self, target):
+        self.source = self.target = target
+        g = Game.getgame()
+        self.asklist = BatchList(
+            p for p in g.players if not p.dead
+        ).rotate_to(target)
+
     def apply_action(self):
         tgt = self.target
         assert tgt.life <= 0
         g = Game.getgame()
-        pl = [p for p in g.players if not p.dead]
-        n = len(pl)
-        i = pl.index(tgt)
-        pl = (pl*2)[i:i+n]
+        pl = self.asklist
         for p in pl:
             while True:
                 act = UseHeal(p)
@@ -224,8 +228,9 @@ class Damage(GenericAction):
         g = Game.getgame()
         g.process_action(DamageEffect(self.source, tgt, self.amount))
         if tgt.life <= 0:
-            if not g.process_action(TryRevive(tgt, tgt)):
-                g.emit_event('player_dead', tgt)
+            if not g.process_action(TryRevive(tgt)):
+                #g.emit_event('player_dead', tgt)
+                #FIXME: make it an action
                 tgt.dead = True
         return True
 
@@ -555,8 +560,7 @@ class PlayerTurn(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         p = self.target
-        t = p.tags.get('turn_count', 0)
-        p.tags['turn_count'] = t + 1
+        p.tags['turn_count'] += 1
         g.process_action(FatetellStage(p))
         g.process_action(DrawCardStage(p))
         g.process_action(ActionStage(p))

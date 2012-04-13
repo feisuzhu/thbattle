@@ -56,7 +56,7 @@ class RejectHandler(EventHandler):
             g = Game.getgame()
 
             p, input = g.players.user_input_any(
-                'choose_card', self._expects, self
+                'choose_card_and_player', self._expects, (self, [])
             )
 
             if p:
@@ -223,7 +223,7 @@ class YukariDimension(SpellCardAction):
         migrate_cards([card], source.cards)
         return True
 
-class Duel(SpellCardAction):
+class BaseDuel(UserAction):
     # 弹幕战
     def apply_action(self):
         g = Game.getgame()
@@ -239,6 +239,9 @@ class Duel(SpellCardAction):
         dmg.associated_action = self
         g.process_action(dmg)
         return d[1] is source
+
+class Duel(BaseDuel, SpellCardAction):
+    pass
 
 class MapCannonEffect(SpellCardAction):
     # 地图炮
