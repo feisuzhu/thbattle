@@ -643,6 +643,137 @@ class UIChoosePlayers(UISelectTarget):
         _, _, pids = UISelectTarget.get_result(self)
         return pids
 
+class RanFengshuiControl(Control):
+    def __init__(self, *a, **k):
+        Control.__init__(self, *a, **k)
+        self.width, self.height = 5*95, 280
+
+    def update(self):
+        for j, l in enumerate([self.downcards, self.upcards]):
+            for i, cs in enumerate(l):
+                nx, ny = self._to_loc(i, j)
+                cs.x = SineInterp(cs.x, nx, 0.3)
+                cs.y = SineInterp(cs.y, ny, 0.3)
+
+    def init(self):
+        self.upcards = self.control_list[:]
+        for cs in self.upcards:
+            cs.zindex = 0
+        self.downcards = []
+        self.update()
+        self.cur_zindex = 1
+
+    def on_mouse_press(self, x, y, button, modifier):
+        c = self.control_frompoint1(x, y)
+        if c:
+            self.dragging = True
+            self.sprite = c
+
+    def on_mouse_drag(self, x, y, dx, dy, button, modifier):
+        if not self.dragging: return
+        c = self.sprite
+        ni = self._to_index(x, y)
+        cx, cy = getinterp(c, 'x'), getinterp(c, 'y')
+        if isinstance(cx, AbstractInterp): cx = cx._to
+        if isinstance(cy, AbstractInterp): cy = cy._to
+
+        oi = self._to_index(cx+45, cy+62)
+        if oi != ni:
+            c.zindex = self.cur_zindex
+            self.cur_zindex += 1
+            ll = [self.downcards, self.upcards]
+            ll[oi[1]].remove(c)
+            ll[ni[1]].insert(ni[0], c)
+            self.update()
+
+    def on_mouse_release(self, x, y, btn, modifier):
+        self.dragging = False
+
+    def _to_index(self, x, y):
+        return int(x / 95), int(y / 155)
+
+    def _to_loc(self, i, j):
+        return i*95, j*155
+
+    def get_result(self):
+        return (self.upcards, self.downcards)
+
+    def draw(self):
+        self.draw_subcontrols()
+
+class UIRanFengshui(Panel):
+    def __init__(self, irp, parent, *a, **k):
+        self.irp = irp
+        cards = irp.attachment
+        h = 60 + 50 + 280
+        w = 100 + 95*5 + 20
+
+        x, y = (parent.width - w)//2, (parent.height -h)//2
+
+        lbls = pyglet.graphics.Batch()
+        def lbl(text, x, y):
+            pyglet.text.Label(
+                text=text,
+                font_name = 'AncientPix', font_size=12,
+                color=(255, 255, 160, 255),
+                x=x, y=y,
+                anchor_x='center', anchor_y='center',
+                batch=lbls,
+            )
+        lbl(u'牌堆底', 50, 122)
+        lbl(u'牌堆顶', 50, 277)
+        lbl(u'请拖动调整牌的位置', w//2, h-25)
+        self.lbls = lbls
+
+        Panel.__init__(
+            self, x=x, y=y, width=w, height=h, zindex=5, parent=parent,
+            *a, **k
+        )
+
+        rpc = RanFengshuiControl(parent=self, x=100, y=60)
+        for i, c in enumerate(cards):
+            cs = CardSprite(
+                parent=rpc,
+                img=c.ui_meta.image,
+                suit=c.suit,
+                number=c.number,
+            )
+            cs.associated_card = c
+            cs.card_index = i
+        rpc.init()
+
+        btn = Button(parent=self, caption=u'调整完成', x=w-120, y=15, width=100, height=30)
+        @btn.event
+        def on_click():
+            up, down = rpc.get_result()
+            up = [c.card_index for c in up]
+            down = [c.card_index for c in down]
+            irp.input = [up, down]
+            print '!!!!!', [up, down]
+            self.cleanup()
+
+        b = BigProgressBar(
+            parent=self, x=100, y=15, width=250
+        )
+        b.value = LinearInterp(
+            1.0, 0.0, irp.timeout
+        )
+
+    def on_message(self, _type, *args):
+        if _type == 'evt_user_input_timeout':
+            self.cleanup()
+
+    def cleanup(self):
+        self.irp.complete()
+        self.delete()
+
+    def blur_update(self):
+        Panel.blur_update(self)
+        with self.fbo:
+            with shaders.FontShadow as fs:
+                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+                self.lbls.draw()
+
 mapping = dict(
     choose_card_and_player=UIChooseCardAndPlayer,
     action_stage_usecard=UIDoActionStage,
@@ -651,6 +782,7 @@ mapping = dict(
     choose_option=UIChooseOption,
     choose_individual_card=UIChooseIndividualCard,
     harvest_choose=Dummy,
+    ran_fengshui=UIRanFengshui,
 )
 
 mapping_all = dict(

@@ -137,11 +137,6 @@ class CardList(deque):
     def __repr__(self):
         return "CardList(owner=%s, type=%s, len([...]) == %d)" % (self.owner, self.type, len(self))
 
-    extend = deque.extendleft
-    append = deque.appendleft
-    appendright = deque.append
-    extendright = deque.extend
-
 class Deck(object):
     def __init__(self):
         from .definition import card_definition
@@ -150,13 +145,13 @@ class Deck(object):
         cards = CardList(None, CardList.DECKCARD)
         self.cards = cards
         if Game.SERVER_SIDE:
-            cards.extendright(
+            cards.extend(
                 cls(suit, n, cards)
                 for cls, suit, n in card_definition
             )
             random.shuffle(cards)
         elif Game.CLIENT_SIDE:
-            self.cards.extendright(
+            self.cards.extend(
                 HiddenCard(Card.NOTSET, 0, cards)
                 for i in xrange(len(card_definition))
             )
@@ -176,13 +171,13 @@ class Deck(object):
                     c.resides_in = cards
                     del rec[c.syncid]
                     c.syncid = 0
-                cards.extendright(dropped)
+                cards.extend(dropped)
             elif Game.CLIENT_SIDE:
                 rec = self.cards_record
                 for c in self.droppedcards:
                     del rec[c.syncid]
                 cards = self.cards
-                cards.extendright(
+                cards.extend(
                     HiddenCard(Card.NOTSET, 0, cards)
                     for i in xrange(len(self.droppedcards))
                 )
@@ -192,9 +187,12 @@ class Deck(object):
         cl = self.cards
         for i in xrange(min(len(cl), num)):
             c = cl[i]
-            if not c.syncid:
+            if c.syncid:
+                sid = c.syncid
+            else:
                 sid = g.get_synctag()
                 c.syncid = sid
+
             rst.append(c)
             self.cards_record[sid] = c
 

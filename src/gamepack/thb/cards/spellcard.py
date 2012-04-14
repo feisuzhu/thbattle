@@ -5,8 +5,9 @@ from . import basic
 from . import base
 
 class SpellCardAction(UserAction): pass
+class InstantSpellCardAction(SpellCardAction): pass
 
-class Demolition(SpellCardAction):
+class Demolition(InstantSpellCardAction):
     # 城管执法
 
     def apply_action(self):
@@ -34,7 +35,7 @@ class Demolition(SpellCardAction):
         )
         return True
 
-class Reject(SpellCardAction):
+class Reject(InstantSpellCardAction):
     # 好人卡
     def __init__(self, source, target_act):
         self.source = source
@@ -42,7 +43,7 @@ class Reject(SpellCardAction):
         self.target = target_act.source
 
     def apply_action(self):
-        if not isinstance(self.target_act, SpellCardAction):
+        if not isinstance(self.target_act, InstantSpellCardAction):
             return False
         self.target_act.cancelled = True
         return True
@@ -50,7 +51,7 @@ class Reject(SpellCardAction):
 @register_eh
 class RejectHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, SpellCardAction):
+        if evt_type == 'action_before' and isinstance(act, InstantSpellCardAction):
             if act.cancelled: return act # some other thing have done the job
 
             g = Game.getgame()
@@ -165,7 +166,7 @@ class SealingArrayHandler(EventHandler):
                 act.cancelled = True
         return act
 
-class NazrinRod(SpellCardAction):
+class NazrinRod(InstantSpellCardAction):
     # 纳兹琳的探宝棒
 
     def apply_action(self):
@@ -198,7 +199,7 @@ class Worshiper(DelayedSpellCardAction):
             next = pl[pl.index(target) - len(pl) + 1]
             migrate_cards([self.associated_card], next.fatetell)
 
-class YukariDimension(SpellCardAction):
+class YukariDimension(InstantSpellCardAction):
     # 紫的隙间
 
     def apply_action(self):
@@ -240,10 +241,10 @@ class BaseDuel(UserAction):
         g.process_action(dmg)
         return d[1] is source
 
-class Duel(BaseDuel, SpellCardAction):
+class Duel(BaseDuel, InstantSpellCardAction):
     pass
 
-class MapCannonEffect(SpellCardAction):
+class MapCannonEffect(InstantSpellCardAction):
     # 地图炮
     def apply_action(self):
         g = Game.getgame()
@@ -260,7 +261,7 @@ class MapCannonEffect(SpellCardAction):
 class MapCannon(ForEach):
     action_cls = MapCannonEffect
 
-class WorshipersCarnivalEffect(SpellCardAction):
+class WorshipersCarnivalEffect(InstantSpellCardAction):
     # 罪袋狂欢
     def apply_action(self):
         g = Game.getgame()
@@ -277,7 +278,7 @@ class WorshipersCarnivalEffect(SpellCardAction):
 class WorshipersCarnival(ForEach):
     action_cls = WorshipersCarnivalEffect
 
-class FeastEffect(SpellCardAction):
+class FeastEffect(InstantSpellCardAction):
     # 宴会
     def apply_action(self):
         src, tgt = self.source, self.target
@@ -291,7 +292,7 @@ class FeastEffect(SpellCardAction):
 class Feast(ForEach):
     action_cls = FeastEffect
 
-class HarvestEffect(SpellCardAction):
+class HarvestEffect(InstantSpellCardAction):
     # 五谷丰登 效果
     def apply_action(self):
         cards = self.parent_action.cards
@@ -324,7 +325,7 @@ class Harvest(ForEach):
         deckcard = g.deck.cards
         migrate_cards([c for c in self.cards if not c.resides_in.owner], dropped)
 
-class Camera(SpellCardAction):
+class Camera(InstantSpellCardAction):
     # 文文的相机
     def apply_action(self):
         src = self.source
@@ -337,7 +338,7 @@ class Camera(SpellCardAction):
 
         return True
 
-class DollControl(SpellCardAction):
+class DollControl(InstantSpellCardAction):
     def apply_action(self):
         tl = self.target_list
         assert len(tl) == 2
@@ -363,7 +364,7 @@ class DollControl(SpellCardAction):
         from .definition import AttackCard
         return cl and cl[0].is_card(AttackCard)
 
-class DonationBox(SpellCardAction):
+class DonationBox(InstantSpellCardAction):
     def apply_action(self):
         tl = self.target_list
         src = self.source

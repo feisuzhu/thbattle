@@ -329,7 +329,7 @@ class IbukiGourdHandler(EventHandler):
 
         return arg
 
-class SpellCardAttack(spellcard.SpellCardAction):
+class SpellCardAttack(spellcard.InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         dmg = Damage(self.source, self.target)
@@ -362,7 +362,7 @@ class SaigyouBranch(FatetellAction):
         act = self.act
         src = self.source
         if act.cancelled: return True
-        assert isinstance(act, spellcard.SpellCardAction)
+        assert isinstance(act, spellcard.InstantSpellCardAction)
         if isinstance(act, spellcard.Reject) and src == act.source == act.target:
             # my own Reject
             return True
@@ -385,7 +385,7 @@ class SaigyouBranchHandler(EventHandler):
     execute_before = (spellcard.RejectHandler, )
     execute_after = (HouraiJewelHandler, )
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, spellcard.SpellCardAction):
+        if evt_type == 'action_before' and isinstance(act, spellcard.InstantSpellCardAction):
             tgt = act.target
             if tgt.has_skill(SaigyouBranchSkill):
                 Game.getgame().process_action(SaigyouBranch(tgt, act))

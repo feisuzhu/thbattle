@@ -42,7 +42,7 @@ class CharChoice(object):
 
 class THBattle(Game):
     name = u'符斗祭 - 3v3 - 休闲'
-    n_persons = 1
+    n_persons = 2
 
     # -----BEGIN PLAYER STAGES-----
     NORMAL = 'NORMAL'
@@ -72,7 +72,8 @@ class THBattle(Game):
         # choose girls -->
         from characters import characters as _chars
         # FIXME: this is for debug
-        chars = _chars * 2
+        '''
+        chars = _chars # * 2
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
@@ -87,6 +88,27 @@ class THBattle(Game):
             choice[:9],
             choice[9:],
         ]
+        '''
+
+        # FOR DBG VER
+        chars = list(reversed(_chars))
+        if Game.SERVER_SIDE:
+            choice = [
+                CharChoice(cls, cid)
+                for cls, cid in zip(chars[:18], xrange(18))
+            ]
+        elif Game.CLIENT_SIDE:
+            choice = [
+                CharChoice(None, i)
+                for i in xrange(18)
+            ]
+        fchoice = [
+            choice[:9],
+            choice[9:],
+        ]
+
+        # -----------
+
         forces[0].reveal(fchoice[0])
         forces[1].reveal(fchoice[1])
 

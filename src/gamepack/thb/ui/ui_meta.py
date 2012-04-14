@@ -1777,6 +1777,47 @@ class Rinnosuke:
     char_name = u'森近霖之助'
     port_image = gres.rinnosuke_port
 
+# ----------
+
+class Fengshui:
+    # Skill
+    name = u'风水'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class ExtremeIntelligence:
+    # Skill
+    name = u'极智'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class FengshuiHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【风水】吗？'
+
+class ExtremeIntelligenceHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【极智】吗？'
+
+    # choose_card
+    text = u'请选择1张牌弃置'
+    text_valid = u'再来！'
+
+class Ran:
+    # Character
+    char_name = u'八云蓝'
+    port_image = gres.ran_port
+
 # -----END CHARACTERS UI META-----
 
 # -----BEGIN TAGS UI META-----

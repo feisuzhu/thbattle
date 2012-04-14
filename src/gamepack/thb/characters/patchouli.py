@@ -15,7 +15,7 @@ class Knowledge(Skill):
 class PatchouliHandler(EventHandler):
     execute_before = (RejectHandler, )
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, SpellCardAction):
+        if evt_type == 'action_before' and isinstance(act, InstantSpellCardAction):
             src = act.source
             tgt = act.target
             if src.has_skill(Library):

@@ -536,7 +536,7 @@ class THBattleUI(Control):
                 print i.__class__
             '''
 
-        elif _type == 'evt_action_apply' and isinstance(args[0], actions.PlayerTurn):
+        elif _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
             self.current_turn = args[0].target
 
         if _type.startswith('evt_'):

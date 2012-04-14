@@ -17,10 +17,11 @@ QUIRKS:
     use action.can_fire will be fine, but the action will be checked twice
     which is unnecessary.
 
+    >> Action.target / Action.actor
+
 曹　操
 夏侯惇
 关　羽
-诸葛亮         半个蓝
 吕　蒙
 黄　盖
 

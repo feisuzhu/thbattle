@@ -75,7 +75,8 @@ class Control(pyglet.event.EventDispatcher):
         l = []
         for c in self.control_list:
             if c.x <= x <= c.x + c.width and c.y <= y <= c.y + c.height:
-                l.append(c)
+                if c.hit_test(x-c.x, y-c.y):
+                    l.append(c)
         return l
 
     def control_frompoint1(self, x, y):

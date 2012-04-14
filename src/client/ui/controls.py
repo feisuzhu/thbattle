@@ -162,7 +162,6 @@ class Button(Control):
 
         self.fbo_tex, self.fbo_tex_gray = fbo_tex, fbo_tex_gray
 
-
     def draw(self):
         glColor3f(1.0, 1.0, 1.0)
         if self.state == Button.DISABLED:
