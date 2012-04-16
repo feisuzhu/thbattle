@@ -8,6 +8,14 @@ THBattle:
 
     youmu incomplete
 
+    shuffle handcards when sb get cards
+    prompt strings
+    donationbox empty bug
+    ran: extremeintel didn't handle the reject thing
+    ran: ui tune
+    worshiper -> sinsack
+    
+
 QUIRKS:
     >> Card.resides_in thing, VirtualCard has no this attrib, dangling cards are
     set to None. FIXED
