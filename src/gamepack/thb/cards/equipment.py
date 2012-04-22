@@ -177,7 +177,7 @@ class UmbrellaHandler(EventHandler):
     execute_before = (spellcard.RejectHandler, )
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
-            if isinstance(act, (spellcard.MapCannonEffect, spellcard.WorshipersCarnivalEffect)):
+            if isinstance(act, (spellcard.MapCannonEffect, spellcard.SinsackCarnivalEffect)):
                 if act.target.has_skill(UmbrellaSkill):
                     act.cancelled = True
         return act
@@ -233,16 +233,16 @@ class LaevateinSkill(WeaponSkill):
         except CheckFailed:
             return False
 
-class ThoridalSkill(WeaponSkill):
+class TridentSkill(WeaponSkill):
     range = 5
     associate_action = None
     target = t_None
 
 @register_eh
-class ThoridalHandler(EventHandler):
+class TridentHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
-            if act.succeeded and act.source.has_skill(ThoridalSkill):
+            if act.succeeded and act.source.has_skill(TridentSkill):
                 target = act.target
                 ufos = [
                     c for c in target.equips
@@ -291,7 +291,7 @@ class MaidenCostumeSkill(ShieldSkill):
 class MaidenCostumeHandler(EventHandler):
     execute_before = (spellcard.RejectHandler, )
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, spellcard.WorshipersCarnivalEffect):
+        if evt_type == 'action_before' and isinstance(act, spellcard.SinsackCarnivalEffect):
             target = act.target
             if target.has_skill(MaidenCostumeSkill):
                 act.cancelled = True
@@ -537,7 +537,7 @@ class KeystoneSkill(GreenUFOSkill):
 class KeystoneHandler(EventHandler):
     execute_before = (SaigyouBranchHandler, spellcard.RejectHandler)
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, spellcard.Worshiper):
+        if evt_type == 'action_before' and isinstance(act, spellcard.Sinsack):
             tgt = act.target
             if tgt.has_skill(KeystoneSkill):
                 act.cancelled = True
@@ -642,7 +642,7 @@ class GrimoireSkill(TreatAsSkill, WeaponSkill):
     range = 1
     from .base import Card
     lookup_tbl = {
-        Card.SPADE: Card.card_classes['WorshipersCarnivalCard'], # again...
+        Card.SPADE: Card.card_classes['SinsackCarnivalCard'], # again...
         Card.HEART: Card.card_classes['FeastCard'],
         Card.CLUB: Card.card_classes['MapCannonCard'],
         Card.DIAMOND: Card.card_classes['HarvestCard'],

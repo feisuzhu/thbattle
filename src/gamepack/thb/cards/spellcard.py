@@ -174,7 +174,7 @@ class NazrinRod(InstantSpellCardAction):
         g.process_action(DrawCards(self.target, amount=2))
         return True
 
-class Worshiper(DelayedSpellCardAction):
+class Sinsack(DelayedSpellCardAction):
     # 罪袋
     def apply_action(self):
         g = Game.getgame()
@@ -261,7 +261,7 @@ class MapCannonEffect(InstantSpellCardAction):
 class MapCannon(ForEach):
     action_cls = MapCannonEffect
 
-class WorshipersCarnivalEffect(InstantSpellCardAction):
+class SinsackCarnivalEffect(InstantSpellCardAction):
     # 罪袋狂欢
     def apply_action(self):
         g = Game.getgame()
@@ -275,8 +275,8 @@ class WorshipersCarnivalEffect(InstantSpellCardAction):
         else:
             return False
 
-class WorshipersCarnival(ForEach):
-    action_cls = WorshipersCarnivalEffect
+class SinsackCarnival(ForEach):
+    action_cls = SinsackCarnivalEffect
 
 class FeastEffect(InstantSpellCardAction):
     # 宴会

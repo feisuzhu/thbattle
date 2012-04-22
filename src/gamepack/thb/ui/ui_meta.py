@@ -167,11 +167,11 @@ class NazrinRodCard:
         assert t is g.me
         return (True, u'看看能找到什么好东西~')
 
-class WorshiperCard:
+class SinsackCard:
     # action_stage meta
     name = u'罪袋'
-    image = gres.card_zuidai
-    tag_anim = gres.tag_zuidai
+    image = gres.card_sinsack
+    tag_anim = gres.tag_sinsack
 
     def is_action_valid(g, cl, target_list):
         target = target_list[0]
@@ -285,8 +285,8 @@ class MapCannonCard:
     def is_action_valid(g, cl, target_list):
         return (True, u'一个都不能跑！')
 
-class WorshipersCarnivalCard:
-    image = gres.card_worshiperscarnival
+class SinsackCarnivalCard:
+    image = gres.card_sinsackcarnival
     name = u'罪袋狂欢'
 
     def is_action_valid(g, cl, target_list):
@@ -472,17 +472,17 @@ class LaevateinSkill:
         )
         return s
 
-class ThoridalCard:
+class TridentCard:
     # action_stage meta
-    name = u"Thori'dal"
-    image = gres.card_thoridal
-    image_small = gres.card_thoridal_small
+    name = u"三叉戟"
+    image = gres.card_trident
+    image_small = gres.card_trident_small
 
     is_action_valid = equip_iav
 
-class ThoridalSkill:
+class TridentSkill:
     # Skill
-    name = u"Thori'dal"
+    name = u"三叉戟"
 
     def clickable(game):
         return False
@@ -794,8 +794,8 @@ class SuwakoHatSkill:
 class YoumuPhantomCard:
     # action_stage meta
     name = u'半灵'
-    image = gres.card_youmuphantom
-    image_small = gres.card_youmuphantom_small
+    image = gres.card_phantom
+    image_small = gres.card_phantom_small
     is_action_valid = equip_iav
 
 class YoumuPhantomSkill:
