@@ -610,40 +610,8 @@ class UIHarvestChoose(Panel):
             self.irp.complete()
         self.delete()
 
-class UIChoosePlayers(UISelectTarget):
-    # for actions.ActionStage
-    #def get_result(self):
-    #    pass
-    def __init__(self, irp, *a, **k):
-        action, candidates = irp.attachment
-        self.action = action
-        UISelectTarget.__init__(self, irp, *a, **k)
-        parent = self.parent
-        disables = [p for p in parent.game.players if p not in candidates]
-        parent.begin_select_player(disables)
-
-
-    def on_selection_change(self):
-        parent = self.parent
-        act = self.action
-
-        g = parent.game
-
-        #self.set_valid() # FIXME: FOR DEBUG
-
-        players = parent.get_selected_players()
-        players, valid = act.target(players)
-        valid1, reason = act.ui_meta.target(players)
-        assert bool(valid) == bool(valid1)
-        parent.set_selected_players(players)
-        if valid: self.set_valid()
-        self.set_text(reason)
-
-    def get_result(self):
-        _, _, pids = UISelectTarget.get_result(self)
-        return pids
-
 class RanFengshuiControl(Control):
+    dragging = False
     def __init__(self, *a, **k):
         Control.__init__(self, *a, **k)
         self.width, self.height = 5*95, 280

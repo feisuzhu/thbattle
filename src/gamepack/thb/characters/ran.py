@@ -20,8 +20,7 @@ class FengshuiHandler(EventHandler):
             if not tgt.has_skill(Fengshui): return act
             if not tgt.user_input('choose_option', self): return act
             g = Game.getgame()
-            #n = min(len([p for p in g.players if not p.dead]), 5)
-            n=5
+            n = min(len([p for p in g.players if not p.dead]), 5)
             cards = g.deck.getcards(n)
             tgt.reveal(cards)
             rst = tgt.user_input('ran_fengshui', cards, timeout=40)
@@ -32,8 +31,6 @@ class FengshuiHandler(EventHandler):
                 downcards = rst[1]
                 check(sorted(upcards+downcards) == range(n))
             except CheckFailed as e:
-                import traceback
-                traceback.print_exc(e)
                 return act
 
             deck = g.deck.cards
@@ -47,6 +44,7 @@ class FengshuiHandler(EventHandler):
 class ExtremeIntelligenceHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, InstantSpellCardAction):
+            if isinstance(act, Reject): return act
             g = Game.getgame()
             for a in reversed(g.action_stack):
                 if isinstance(a, ActionStage):
@@ -72,6 +70,15 @@ class ExtremeIntelligenceHandler(EventHandler):
                     nact.target_list = act.target_list
                 except AttributeError:
                     pass
+
+                try:
+                    # this is for actions triggered by ForEach action.
+                    # Well, actually it's for Harvest since only this
+                    # uses the attrib
+                    nact.parent_action = act.parent_action
+                except AttributeError:
+                    pass
+
                 nact.associated_card = cards[0]
 
                 g.process_action(nact)

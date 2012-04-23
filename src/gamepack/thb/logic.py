@@ -136,8 +136,6 @@ class THBattle(Game):
                 pl.remove(p)
                 return c
             except CheckFailed as e:
-                import traceback
-                traceback.print_exc(e)
                 try:
                     del p._retry
                 except AttributeError:

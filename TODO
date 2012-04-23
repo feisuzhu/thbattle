@@ -14,7 +14,9 @@ THBattle:
     ran: extremeintel didn't handle the reject thing
     ran: ui tune
     worshiper -> sinsack
-    
+
+    game server: use weakref to track active games/users
+    tag ui_meta: use function
 
 QUIRKS:
     >> Card.resides_in thing, VirtualCard has no this attrib, dangling cards are
@@ -28,7 +30,7 @@ QUIRKS:
     >> Action.target / Action.actor
 
 曹　操
-夏侯惇
+夏侯惇 船长
 关　羽
 吕　蒙
 黄　盖

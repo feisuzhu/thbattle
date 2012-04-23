@@ -51,7 +51,7 @@ class Reject(InstantSpellCardAction):
 @register_eh
 class RejectHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, InstantSpellCardAction):
+        if evt_type == 'action_before' and isinstance(act, SpellCardAction):
             if act.cancelled: return act # some other thing have done the job
 
             g = Game.getgame()
@@ -61,7 +61,7 @@ class RejectHandler(EventHandler):
             )
 
             if p:
-                sid_list, cid_list = input
+                sid_list, cid_list, _ = input
                 cards = g.deck.lookupcards(cid_list) # card was already revealed
 
                 if sid_list: # skill selected
@@ -78,15 +78,17 @@ class RejectHandler(EventHandler):
     def _expects(self, p, input):
         from utils import check, CheckFailed
         try:
-            check_type([[int, Ellipsis], [int, Ellipsis]], input)
+            check_type([[int, Ellipsis], [int, Ellipsis], []], input)
 
-            sid_list, cid_list = input
+            sid_list, cid_list, _ = input
+
+            # FIXME: no skill wrap here
 
             g = Game.getgame()
             cards = g.deck.lookupcards(cid_list)
             check(cards)
             card = cards[0]
-            check(card in p.cards)
+            check(card in p.cards or card in p.showncards)
 
             g.players.exclude(p).reveal(card)
 
@@ -297,6 +299,7 @@ class HarvestEffect(InstantSpellCardAction):
     def apply_action(self):
         cards = self.parent_action.cards
         cards_avail = [c for c in cards if not c.resides_in.owner]
+        if not cards_avail: return False
         cmap = {c.syncid:c for c in cards_avail}
         g = Game.getgame()
         tgt = self.target
@@ -322,7 +325,6 @@ class Harvest(ForEach):
         g = Game.getgame()
         g.emit_event('harvest_finish', self)
         dropped = g.deck.droppedcards
-        deckcard = g.deck.cards
         migrate_cards([c for c in self.cards if not c.resides_in.owner], dropped)
 
 class Camera(InstantSpellCardAction):

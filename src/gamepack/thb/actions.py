@@ -529,6 +529,7 @@ class LaunchFatetellCard(FatetellAction):
         return True
 
 class ForEach(GenericAction):
+    # action_cls == __subclass__.action_cls
     def prepare(self):
         pass
 

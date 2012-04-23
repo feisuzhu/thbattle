@@ -246,11 +246,14 @@ def t_One(g, source, tl):
 
 @staticmethod
 def t_All(g, source, tl):
-    return ([t for t in g.players.exclude(source) if not t.dead], True)
+    l = g.players.rotate_to(source)
+    del l[0]
+    return ([t for t in l if not t.dead], True)
 
 @staticmethod
 def t_AllInclusive(g, source, tl):
-    return ([t for t in g.players if not t.dead], True)
+    l = g.players.rotate_to(source)
+    return ([t for t in l if not t.dead], True)
 
 def t_OtherLessEqThanN(n):
     @staticmethod

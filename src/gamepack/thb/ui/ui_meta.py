@@ -72,7 +72,7 @@ class WineCard:
     def is_action_valid(g, cl, target_list):
         if g.me.tags.get('wine', False):
             return (True, u'你已经醉了，还要再喝吗？')
-        return (True, u'三年陈酿，西瓜酒！')
+        return (True, u'青岛啤酒，神主也爱喝！')
 
 class ExinwanCard:
     # action_stage meta
@@ -290,7 +290,7 @@ class SinsackCarnivalCard:
     name = u'罪袋狂欢'
 
     def is_action_valid(g, cl, target_list):
-        return (True, u'罪袋们冲进来啦！')
+        return (True, u'罪袋们来送水啦！')
 
 class HakuroukenCard:
     # action_stage meta
