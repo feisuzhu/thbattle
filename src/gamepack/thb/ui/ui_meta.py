@@ -26,10 +26,39 @@ class DropCardStage:
     text_valid = u'OK，就这些了'
     text = u'请弃牌…'
 
-class UseHeal:
-    # choose_card meta
-    text_valid = u'神说，你不能在这里MISS'
-    text = u'请选择一张【麻薯】…'
+    def effect_string(act):
+        t = act.target
+        cards = t.cards
+        return u'|c208020ff【%s】|r弃掉了%d张牌。' % (
+            t.ui_meta.char_name, len(cards)
+        )
+
+class DamageEffect:
+    def effect_string(act):
+        s, t = act.source, act.target
+        if s:
+            return u'|c208020ff【%s】|r对|c208020ff【%s】|r造成了%d点伤害。' % (
+                s.ui_meta.char_name, t.ui_meta.char_name, act.amount
+            )
+        else:
+            return u'|c208020ff【%s】|r受到了%d点无来源的伤害。' % (
+                t.ui_meta.char_name, act.amount
+            )
+
+class LaunchCard:
+    def effect_string_before(act):
+        from utils import BatchList
+        s, tl = act.source, BatchList(act.target_list)
+        c = act.card
+        from ..cards import Skill
+        if isinstance(c, Skill):
+            return c.ui_meta.effect_string(act)
+        elif c:
+            return u'|c208020ff【%s】|r对|c208020ff【%s】|r使用了|c208020ff%s|r。' % (
+                s.ui_meta.char_name,
+                u'】|r、|c208020ff【'.join(tl.ui_meta.char_name),
+                act.card.ui_meta.name
+            )
 
 # -----END ACTIONS UI META-----
 
@@ -92,10 +121,20 @@ class UseGraze:
     text_valid = u'我闪！'
     text = u'请使用擦弹…'
 
+    def effect_string(act):
+        if not act.succeeded: return None
+        t = act.target
+        return u'|c208020ff【%s】|r使用了|c208020ff擦弹|r。' % t.ui_meta.char_name
+
 class UseAttack:
     # choose_card meta
     text_valid = u'打架？来吧！'
-    text = u'请打出一张击…'
+    text = u'请打出一张弹幕…'
+
+    def effect_string(act):
+        if not act.succeeded: return None
+        t = act.target
+        return u'|c208020ff【%s】|r打出了|c208020ff弹幕|r。' % t.ui_meta.char_name
 
 class HealCard:
     # action_stage meta
@@ -111,6 +150,17 @@ class HealCard:
             return (False, u'您已经吃饱了')
         else:
             return (True, u'来一口，精神焕发！')
+
+class UseHeal:
+    # choose_card meta
+    text_valid = u'神说，你不能在这里MISS'
+    text = u'请选择一张【麻薯】…'
+
+    def effect_string(act):
+        if act.succeeded:
+            return u'|c208020ff【%s】|r回复了%d点体力。' % (
+                act.target.ui_meta.char_name, act.amount
+            )
 
 class DemolitionCard:
     # action_stage meta
@@ -129,6 +179,15 @@ class DemolitionCard:
         else:
             return (True, u'嗯，你的牌太多了')
 
+class Demolition:
+    def effect_string(act):
+        if not act.succeeded: return None
+        return u'|c208020ff【%s】|r卸掉了|c208020ff【%s】|r的|c208020ff%s|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+            act.card.ui_meta.name,
+        )
+
 class RejectCard:
     # action_stage meta
     name = u'好人卡'
@@ -141,6 +200,15 @@ class RejectHandler:
     # choose_card meta
     text_valid = u'对不起，你是一个好人…'
     text = u'请选择一张好人卡'
+
+class Reject:
+    def effect_string_before(act):
+        return u'|c208020ff【%s】|r为|c208020ff【%s】|r受到的|c208020ff%s|r使用了|c208020ff%s|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+            act.target_act.associated_card.ui_meta.name,
+            act.associated_card.ui_meta.name,
+        )
 
 class SealingArrayCard:
     # action_stage meta
@@ -156,6 +224,14 @@ class SealingArrayCard:
             return (True, u'你不能跟自己过不去啊！')
 
         return (True, u'画个圈圈诅咒你！')
+
+class SealingArray:
+    def effect_string(act):
+        tgt = act.target
+        if act.succeeded:
+            return u'|c208020ff【%s】|r被困在了封魔阵中' % tgt.ui_meta.char_name
+        else:
+            return u'封魔阵没有布置完善，|c208020ff【%s】|r侥幸逃了出来' % tgt.ui_meta.char_name
 
 class NazrinRodCard:
     # action_stage meta
@@ -179,6 +255,12 @@ class SinsackCard:
             return (False, u'BUG!!!!')
 
         return (True, u'别来找我！')
+
+class Sinsack:
+    def effect_string(act):
+        tgt = act.target
+        if act.succeeded:
+            return u'罪袋终于找到了机会，将|c208020ff【%s】|r推倒了…' % tgt.ui_meta.char_name
 
 def equip_iav(g, cl, target_list):
     t = target_list[0]
@@ -262,6 +344,15 @@ class YukariDimensionCard:
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'请把胖次给我！')
+
+class YukariDimension:
+    def effect_string(act):
+        src, tgt = act.source, act.target
+        if act.succeeded:
+            return u'|c208020ff【%s】|r透过隙间拿走了|c208020ff【%s】|r的1张牌' % (
+                src.ui_meta.char_name,
+                tgt.ui_meta.char_name
+            )
 
 class DuelCard:
     # action_stage meta
@@ -527,6 +618,16 @@ class HarvestCard:
 
     def is_action_valid(g, cl, target_list):
         return (True, u'麻薯会有的，节操是没有的！')
+
+class HarvestEffect:
+    def effect_string(act):
+        if not act.succeeded: return None
+        tgt = act.target
+        c = act.card
+        return u'|c208020ff【%s】|r获得了|c208020ff%s|r' % (
+            tgt.ui_meta.char_name,
+            c.ui_meta.name,
+        )
 
 class MaidenCostumeCard:
     # action_stage meta
@@ -1477,7 +1578,7 @@ class FirstAid:
         except IndexError:
             return False
 
-        if isinstance(act, actions.UseHeal):
+        if isinstance(act, cards.UseHeal):
             return True
 
         return False

@@ -2,7 +2,6 @@
 from .baseclasses import *
 from ..actions import *
 from ..cards import *
-from ..skill import *
 
 class Borrow(Skill):
     associated_action = None

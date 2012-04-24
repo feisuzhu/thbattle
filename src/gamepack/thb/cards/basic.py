@@ -89,6 +89,16 @@ class UseAttack(UseCard):
             (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
         )
 
+class UseHeal(UseCard):
+    def cond(self, cl):
+        from . import cards
+        t = self.target
+        return (
+            len(cl) == 1 and
+            cl[0].is_card(cards.HealCard) and
+            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
+        )
+
 class Wine(BasicAction):
     def apply_action(self):
         self.target.tags['wine'] = True
@@ -141,6 +151,6 @@ class ExinwanHandler(EventHandler):
 
     def cond(self, cards):
         if len(cards) != 2: return False
-        from ..skill import Skill
+        from .base import Skill
         if any(isinstance(c, Skill) for c in cards): return False
         return True

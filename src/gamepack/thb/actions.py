@@ -189,6 +189,7 @@ class TryRevive(GenericAction):
         tgt = self.target
         g = Game.getgame()
         pl = self.asklist
+        from .cards import UseHeal
         for p in pl:
             while True:
                 act = UseHeal(p)
@@ -580,13 +581,3 @@ class PlayerTurn(GenericAction):
         g.process_action(ActionStage(p))
         g.process_action(DropCardStage(p))
         return True
-
-class UseHeal(UseCard):
-    def cond(self, cl):
-        from . import cards
-        t = self.target
-        return (
-            len(cl) == 1 and
-            cl[0].is_card(cards.HealCard) and
-            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
-        )

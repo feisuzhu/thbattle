@@ -146,19 +146,11 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     if dropcard_update: self.dropcard_area.update()
 
 def damage_effect(self, act):
-    s, t = act.source, act.target
+    t = act.target
     port = self.player2portrait(t)
     #l = t.life
     #port.life = l if l > 0 else 0
     port.update()
-    if s:
-        self.prompt(u'|c208020ff【%s】|r对|c208020ff【%s】|r造成了%d点伤害。' % (
-            s.ui_meta.char_name, t.ui_meta.char_name, act.amount
-        ))
-    else:
-        self.prompt(u'|c208020ff【%s】|r受到了%d点无来源的伤害。' % (
-            t.ui_meta.char_name, act.amount
-        ))
     OneShotAnim(common_res.hurt, x=port.x, y=port.y, batch=self.animations)
 
 def heal_effect(self, act):
@@ -167,24 +159,10 @@ def heal_effect(self, act):
     #l = t.life
     #port.life = l if l > 0 else 0
     port.update()
-    if act.succeeded:
-        self.prompt(u'|c208020ff【%s】|r回复了%d点体力。' % (
-            t.ui_meta.char_name, act.amount
-        ))
 
 def launch_effect(self, act):
-    s, tl = act.source, BatchList(act.target_list)
-    for t in tl: self.ray(s, t)
-    c = act.card
-    from ..characters import Skill
-    if isinstance(c, Skill):
-        self.prompt(c.ui_meta.effect_string(act))
-    elif c:
-        self.prompt(u'|c208020ff【%s】|r对|c208020ff【%s】|r使用了|c208020ff%s|r。' % (
-            s.ui_meta.char_name,
-            u'】|r、|c208020ff【'.join(tl.ui_meta.char_name),
-            act.card.ui_meta.name
-        ))
+    s = act.source
+    for t in act.target_list: self.ray(s, t)
 
 def _update_tags(self, p):
     port = self.player2portrait(p)
@@ -224,42 +202,43 @@ def after_launch_effect(self, act):
 def action_stage_update_tag(self, act):
     _update_tags(self, act.actor)
 
-def graze_effect(self, act):
-    if not act.succeeded: return
-    t = act.target
-    self.prompt(u'|c208020ff【%s】|r使用了|c208020ff擦弹|r。' % t.ui_meta.char_name)
+def player_turn_effect(self, act):
+    p = act.target
+    port = self.player2portrait(p)
+    if not hasattr(self, 'turn_frame') or not self.turn_frame:
+        self.turn_frame = LoopingAnim(
+            common_res.turn_frame,
+            batch = self.animations
+        )
+    self.turn_frame.position = (port.x - 6, port.y - 4)
+    self.prompt_raw('--------------------\n')
 
-def reject_effect(self, act):
-    s = u'|c208020ff【%s】|r为|c208020ff【%s】|r受到的|c208020ff%s|r使用了|c208020ff%s|r。' % (
-        act.source.ui_meta.char_name,
-        act.target.ui_meta.char_name,
-        act.target_act.associated_card.ui_meta.name,
-        act.associated_card.ui_meta.name,
-    )
-    self.prompt(s)
+def _aese(_type, self, act):
+    meta = getattr(act, 'ui_meta', None)
+    if not meta: return
+    prompt = getattr(meta, _type, None)
+    if not prompt: return
+    s = prompt(act)
+    if s is not None:
+        self.prompt(s)
 
-def demolition_effect(self, act):
-    if not act.succeeded: return
-    s = u'|c208020ff【%s】|r卸掉了|c208020ff【%s】|r的|c208020ff%s|r。' % (
-        act.source.ui_meta.char_name,
-        act.target.ui_meta.char_name,
-        act.card.ui_meta.name,
-    )
-    self.prompt(s)
+action_effect_string_before = partial(_aese, 'effect_string_before')
+action_effect_string_after = partial(_aese, 'effect_string')
 
 mapping_actions = ddict(dict, {
     'before': {
         LaunchCard: launch_effect,
         #Reject: reject_effect, # uncomment after adding action ui_meta
         ActionStage: action_stage_update_tag,
+        PlayerTurn: player_turn_effect,
+        Action: action_effect_string_before,
     },
     'after': {
         DamageEffect: damage_effect,
         Heal: heal_effect,
-        UseGraze: graze_effect,
-        Demolition: demolition_effect,
         LaunchCard: after_launch_effect,
         ActionStage: action_stage_update_tag,
+        Action: action_effect_string_after,
     }
 })
 
@@ -269,7 +248,6 @@ def action_effects(_type, self, act):
         f = mapping_actions[_type].get(cls)
         if f:
             f(self, act)
-            return
         cls = cls.__base__
 
 def user_input_start_effects(self, input):
@@ -322,16 +300,6 @@ def user_input_finish_effects(self, input):
         self.actor_pbar.delete()
         self.actor_pbar = None
 
-def player_turn_effect(self, p):
-    port = self.player2portrait(p)
-    if not hasattr(self, 'turn_frame') or not self.turn_frame:
-        self.turn_frame = LoopingAnim(
-            common_res.turn_frame,
-            batch = self.animations
-        )
-    self.turn_frame.position = (port.x - 6, port.y - 4)
-    self.prompt_raw('--------------------\n')
-
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),
     'action_apply': partial(action_effects, 'apply'),
@@ -339,7 +307,6 @@ mapping_events = ddict(bool, {
     'user_input_start': user_input_start_effects,
     'user_input_finish': user_input_finish_effects,
     'card_migration': card_migration_effects,
-    'player_turn': player_turn_effect,
 })
 
 def handle_event(self, _type, data):

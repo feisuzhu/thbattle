@@ -172,7 +172,13 @@ class THBattle(Game):
             ehclasses.extend(p.eventhandlers_required)
 
         # this will make UIEventHook the last one
-        self.event_handlers[:] = EventHandler.make_list(ehclasses) + self.event_handlers
+        # BUT WHY? FORGOT BUT THIS CAUSES PROBLEMS, REVERT
+        # PROBLEM:
+        # Reject prompt string should appear when the action fired,
+        # actually appears after the whole reject process finished,
+        # IN REVERSE ORDER.
+        #self.event_handlers[:] = EventHandler.make_list(ehclasses) + self.event_handlers
+        self.event_handlers.extend(EventHandler.make_list(ehclasses))
 
         for p in self.players:
             p.cards = CardList(p, CardList.HANDCARD) # Cards in hand

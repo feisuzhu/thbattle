@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from .base import *
-from ..skill import *
 from ..actions import *
 
 from . import basic, spellcard, base

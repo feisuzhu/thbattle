@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from .baseclasses import *
 from ..actions import *
-from ..skill import *
 from ..cards import *
 
 class CriticalStrike(Skill):
@@ -20,7 +19,7 @@ class CriticalStrikeHandler(EventHandler):
             tgt.tags['flan_cs'] = tgt.tags['turn_count']
             tgt.tags['flan_lasttarget'] = None
             act.amount = max(0, act.amount - 1)
-            
+
         elif evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
             st = src.tags

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from .. import cards
-from ..skill import *
 
 characters = []
 

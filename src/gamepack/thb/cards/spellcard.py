@@ -151,7 +151,9 @@ class SealingArray(DelayedSpellCardAction):
         g.process_action(ft)
         if ft.succeeded:
             target.tags['sealed'] = True
-        return True
+            return True
+        else:
+            return False
 
     def fatetell_postprocess(self):
         g = Game.getgame()
@@ -309,6 +311,7 @@ class HarvestEffect(InstantSpellCardAction):
             card = random_choose_card([cards_avail])
         migrate_cards([card], tgt.cards)
         g.emit_event('harvest_choose', card)
+        self.card = card
         return True
 
 class Harvest(ForEach):

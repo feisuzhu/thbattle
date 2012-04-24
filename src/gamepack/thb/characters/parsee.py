@@ -2,7 +2,6 @@
 from .baseclasses import *
 from ..actions import *
 from ..cards import *
-from ..skill import *
 
 class Envy(TreatAsSkill):
     treat_as = DemolitionCard
