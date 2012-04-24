@@ -20,7 +20,9 @@ User state machine:
         --->[[Disconnect]]<-------------------------
 '''
 
-games = {} # all games FIXME: use set here!
+# should use WeakSet or WeakValueDictionary,
+# but this works fine, not touching it.
+games = {} # all games
 users = {} # all users
 evt_datachange = Event()
 
@@ -123,9 +125,10 @@ def exit_game(user):
             if p.__class__ is Player:
                 p.__class__ = DroppedPlayer
             else:
-                # it's a customized class, Player_Character or something.
+                # HACK:it's a customized class, Player_Character or something.
                 # each class like this should have only 1 instance,
                 # so we can modify the class directly
+                # !!classes are expensive, they need to be cached.!!
                 cls = p.__class__
                 bases = list(cls.__bases__)
                 i = bases.index(Player)

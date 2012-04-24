@@ -210,7 +210,7 @@ class Client(Endpoint, Greenlet):
         '''
         Clear the gamedata queue,
         used when a game starts, to eliminate data from last game,
-        which confuse.
+        which confuses the new game.
         '''
         self.gdqueue.clear()
 

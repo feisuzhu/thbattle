@@ -187,7 +187,6 @@ class TryRevive(GenericAction):
 
     def apply_action(self):
         tgt = self.target
-        assert tgt.life <= 0
         g = Game.getgame()
         pl = self.asklist
         for p in pl:
@@ -203,6 +202,18 @@ class TryRevive(GenericAction):
                     continue
                 break
         return tgt.life > 0
+
+class PlayerDeath(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        g = Game.getgame()
+        dropped = g.deck.droppedcards
+        pl = g.players.exclude(self.source)
+        for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell]:
+            pl.reveal(cl)
+            migrate_cards(cl, dropped)
+        tgt.dead = True
+        return True
 
 class DamageEffect(GenericAction):
     # In a 'WTF' face now? Well, this absurdy thing is for UI
@@ -229,9 +240,7 @@ class Damage(GenericAction):
         g.process_action(DamageEffect(self.source, tgt, self.amount))
         if tgt.life <= 0:
             if not g.process_action(TryRevive(tgt)):
-                #g.emit_event('player_dead', tgt)
-                #FIXME: make it an action
-                tgt.dead = True
+                g.process_action(PlayerDeath(self.source, tgt))
         return True
 
 # ---------------------------------------------------
@@ -365,11 +374,15 @@ class LaunchCard(GenericAction):
         if not card: return False
         cls = card.associated_action
         src = self.source
-        for t in self.target_list:
-            act = cls(source=src, target=t)
-            act.associated_card = card
-            if not act.is_valid():
-                return False
+
+        tl = self.target_list
+        target = tl[0] if tl else src
+        act = cls(source=src, target=target)
+        act.associated_card = card
+        act.target_list = tl
+        if not act.is_valid():
+            return False
+
         return True
 
 class ActionStage(GenericAction):

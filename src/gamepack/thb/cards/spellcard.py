@@ -370,7 +370,6 @@ class DonationBox(InstantSpellCardAction):
     def apply_action(self):
         tl = self.target_list
         src = self.source
-        assert 0 < len(tl) <= 2
         g = Game.getgame()
         for t in tl:
             cats = [
@@ -389,4 +388,16 @@ class DonationBox(InstantSpellCardAction):
         return True
 
     def cond(self, cards):
-        return len(cards) == 1
+        from .base import CardList
+        return len(cards) == 1 and cards[0].resides_in.type != CardList.FATETELL
+
+    def is_valid(self):
+        tl = self.target_list
+        if not 0 < len(tl) <= 2: return False
+
+        if not all(
+            t.cards or t.showncards or t.equips
+            for t in tl
+        ): return False
+
+        return True

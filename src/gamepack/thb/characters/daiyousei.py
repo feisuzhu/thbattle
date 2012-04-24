@@ -54,4 +54,4 @@ class DaiyouseiHandler(EventHandler):
 class Daiyousei(Character):
     skills = [SupportSkill, Moe]
     eventhandlers_required = [DaiyouseiHandler]
-    maxlife = 4
+    maxlife = 3

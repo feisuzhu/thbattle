@@ -1,7 +1,9 @@
 THBattle:
     Ballon prompt
 
-    bugs: died person should drop all cards, should not respond to any input events
+    #bugs: died person should drop all cards, should not respond to any input events
+
+    server selection screen
 
     victory condition
     target ?
@@ -10,12 +12,8 @@ THBattle:
 
     shuffle handcards when sb get cards
     prompt strings
-    donationbox empty bug
-    ran: extremeintel didn't handle the reject thing
     ran: ui tune
-    worshiper -> sinsack
 
-    game server: use weakref to track active games/users
     tag ui_meta: use function
 
 QUIRKS:
