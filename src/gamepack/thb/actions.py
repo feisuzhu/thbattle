@@ -581,3 +581,11 @@ class PlayerTurn(GenericAction):
         g.process_action(ActionStage(p))
         g.process_action(DropCardStage(p))
         return True
+
+class DummyAction(GenericAction):
+    def __init__(self, source, target, result):
+        self.source, self.target, self.result = \
+            source, target, result
+
+    def apply_action(self):
+        return self.result

@@ -47,10 +47,6 @@ class OpticalCloakSkill(ShieldSkill): # just a tag
 
 class OpticalCloak(FatetellAction, GenericAction):
     # 光学迷彩
-    def __init__(self, target, ori):
-        self.target = target
-        self.ori_usegraze = ori
-
     def apply_action(self):
         g = Game.getgame()
         target = self.target
@@ -59,19 +55,20 @@ class OpticalCloak(FatetellAction, GenericAction):
         if ft.succeeded:
             return True
         else:
-            return g.process_action(self.ori_usegraze)
+            return False
 
 @register_eh
 class OpticalCloakHandler(EventHandler):
     def handle(self, evt_type, act):
         from .basic import UseGraze
-        if evt_type == 'action_before' and isinstance(act, UseGraze) and not hasattr(act, 'oc_tag'):
+        if evt_type == 'action_before' and isinstance(act, UseGraze):
             target = act.target
-            if target.has_skill(OpticalCloakSkill):
-                if target.user_input('choose_option', self):
-                    act.oc_tag = True
-                    new_act = OpticalCloak(target=target, ori=act)
-                    return new_act
+            if not target.has_skill(OpticalCloakSkill): return act
+            if not target.user_input('choose_option', self): return act
+            g = Game.getgame()
+            if g.process_action(OpticalCloak(target, target)):
+                return DummyAction(target, target, True)
+            return act
         return act
 
 class UFOSkill(Skill):
@@ -186,6 +183,9 @@ class RoukankenSkill(WeaponSkill):
     associated_action = None
     target = t_None
 
+class Roukanken(basic.Attack):
+    pass
+
 @register_eh
 class RoukankenHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -197,7 +197,7 @@ class RoukankenHandler(EventHandler):
                     a = basic.UseAttack(target=src)
                     if g.process_action(a):
                         card = a.associated_cards[0]
-                        a = basic.Attack(source=src, target=tgt)
+                        a = Roukanken(source=src, target=tgt)
                         a.associated_card = card
                         g.process_action(a)
         return act
@@ -259,6 +259,22 @@ class RepentanceStickSkill(WeaponSkill):
     associate_action = None
     target = t_None
 
+class RepentanceStick(GenericAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        g = Game.getgame()
+        cats = [
+            tgt.cards, tgt.showncards,
+            tgt.equips, tgt.fatetell,
+        ]
+        for i in xrange(2):
+            card = choose_peer_card(src, tgt, cats)
+            if not card:
+                card = random_choose_card(cats)
+            if card:
+                g.process_action(DropCards(target=tgt, cards=[card]))
+        return True
+
 @register_eh
 class RepentanceStickHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -269,17 +285,7 @@ class RepentanceStickHandler(EventHandler):
                 pa = g.action_stack[0]
                 if isinstance(pa, basic.BaseAttack):
                     if src.user_input('choose_option', self):
-                        tgt = act.target
-                        cats = [
-                            tgt.cards, tgt.showncards,
-                            tgt.equips, tgt.fatetell,
-                        ]
-                        for i in xrange(2):
-                            card = choose_peer_card(src, tgt, cats)
-                            if not card:
-                                card = random_choose_card(cats)
-                            if card:
-                                g.process_action(DropCards(target=tgt, cards=[card]))
+                        g.process_action(RepentanceStick(src, act.target))
                         act.cancelled = True
         return act
 
@@ -328,7 +334,7 @@ class IbukiGourdHandler(EventHandler):
 
         return arg
 
-class SpellCardAttack(spellcard.InstantSpellCardAction):
+class HouraiJewelAttack(spellcard.InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         dmg = Damage(self.source, self.target)
@@ -349,7 +355,7 @@ class HouraiJewelHandler(EventHandler):
             src = act.source
             if src.has_skill(HouraiJewelSkill):
                 if src.user_input('choose_option', self):
-                    act.__class__ = SpellCardAttack
+                    act.__class__ = HouraiJewelAttack
         return act
 
 class SaigyouBranch(FatetellAction):
@@ -360,21 +366,15 @@ class SaigyouBranch(FatetellAction):
     def apply_action(self):
         act = self.act
         src = self.source
-        if act.cancelled: return True
-        assert isinstance(act, spellcard.InstantSpellCardAction)
-        if isinstance(act, spellcard.Reject) and src == act.source == act.target:
-            # my own Reject
-            return True
-
-        if not src.user_input('choose_option', self): return False
 
         g = Game.getgame()
         ft = Fatetell(src, lambda card: card.suit in (Card.SPADE, Card.CLUB))
         g.process_action(ft)
         if ft.succeeded:
             g.process_action(spellcard.Reject(src, act))
-
-        return True
+            return True
+        else:
+            return False
 
 class SaigyouBranchSkill(ShieldSkill):
     pass
@@ -385,10 +385,15 @@ class SaigyouBranchHandler(EventHandler):
     execute_after = (HouraiJewelHandler, )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.InstantSpellCardAction):
-            tgt = act.target
-            if tgt.has_skill(SaigyouBranchSkill):
-                Game.getgame().process_action(SaigyouBranch(tgt, act))
+            src, tgt = act.source, act.target
+            if not tgt.has_skill(SaigyouBranchSkill): return act
+            if act.cancelled: return act
+            if isinstance(act, spellcard.Reject) and src == tgt:
+                # target's own Reject
+                return act
 
+            if not src.user_input('choose_option', self): return act
+            Game.getgame().process_action(SaigyouBranch(tgt, act))
         return act
 
 class FlirtingSwordSkill(WeaponSkill):
@@ -406,8 +411,10 @@ class FlirtingSword(GenericAction):
         cards = user_choose_cards(self, tgt)
         g = Game.getgame()
         if cards:
+            self.peer_action = 'drop'
             g.process_action(DropCards(tgt, cards))
         else:
+            self.peer_action = 'draw'
             g.process_action(DrawCards(src, 1))
 
         return True
@@ -428,26 +435,20 @@ class FlirtingSwordHandler(EventHandler):
         return act
 
 class AyaRoundfan(GenericAction):
-
     def apply_action(self):
         src = self.source
         tgt = self.target
 
-        cards = user_choose_cards(self, src)
-        if not cards: return False
-
         g = Game.getgame()
-        g.process_action(DropCards(src, cards))
+
         equip = choose_peer_card(src, tgt, [tgt.equips])
         if not equip:
             equip = random_choose_card([tgt.equips])
         g.process_action(DropCards(tgt, [equip]))
+        self.card = equip
 
         return True
 
-    def cond(self, cards):
-        if not len(cards) == 1: return False
-        return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
 
 class AyaRoundfanSkill(WeaponSkill):
     range = 3
@@ -462,38 +463,20 @@ class AyaRoundfanHandler(EventHandler):
             src = act.source
             tgt = act.target
             if src.has_skill(AyaRoundfanSkill) and tgt.equips:
+                cards = user_choose_cards(self, src)
+                if not cards: return act
                 g = Game.getgame()
+                g.process_action(DropCards(src, cards))
                 g.process_action(AyaRoundfan(src, tgt))
         return act
 
-class ScarletRhapsodySword(GenericAction):
-    def __init__(self, atkact):
-        self.atkact = atkact
-        self.source = atkact.source
-        self.target = atkact.target
-
-    def apply_action(self):
-        g = Game.getgame()
-        src = self.source
-        tgt = self.target
-
-        cats = [
-            src.cards,
-            src.showncards,
-            src.equips,
-        ]
-        cards = user_choose_cards(self, src, cats)
-        if cards:
-            g.process_action(DropCards(src, cards))
-            dmg = Damage(src, tgt)
-            dmg.associated_action = self.atkact
-            g.process_action(dmg)
-
-        return True
-
     def cond(self, cards):
-        if not len(cards) == 2: return False
-        return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
+        if not len(cards) == 1: return False
+        return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+
+
+class ScarletRhapsodySword(Damage):
+    pass
 
 class ScarletRhapsodySwordSkill(WeaponSkill):
     range = 3
@@ -507,10 +490,26 @@ class ScarletRhapsodySwordHandler(EventHandler):
             if act.succeeded: return act
             src = act.source
             tgt = act.target
-            if src.has_skill(ScarletRhapsodySwordSkill):
-                g = Game.getgame()
-                g.process_action(ScarletRhapsodySword(act))
+            if not src.has_skill(ScarletRhapsodySwordSkill): return act
+
+            g = Game.getgame()
+            cats = [
+                src.cards,
+                src.showncards,
+                src.equips,
+            ]
+            cards = user_choose_cards(self, src, cats)
+            if cards:
+                g.process_action(DropCards(src, cards))
+                dmg = ScarletRhapsodySword(src, tgt)
+                dmg.associated_action = act
+                g.process_action(dmg)
+
         return act
+
+    def cond(self, cards):
+        if not len(cards) == 2: return False
+        return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
 
 class DeathSickleSkill(WeaponSkill):
     range = 2
@@ -558,7 +557,6 @@ class YinYangOrb(GenericAction):
         ft = self.ftact
         tgt = ft.target
 
-        if not tgt.user_input('choose_option', self): return False
         from .definition import YinYangOrbCard
         for e in tgt.equips:
             if e.is_card(YinYangOrbCard):
@@ -579,9 +577,12 @@ class YinYangOrbHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Fatetell):
             tgt = act.target
-            if tgt.has_skill(YinYangOrbSkill):
-                g = Game.getgame()
-                g.process_action(YinYangOrb(act))
+            if not tgt.has_skill(YinYangOrbSkill): return act
+            if not tgt.user_input('choose_option', self): return act
+
+            g = Game.getgame()
+            g.process_action(YinYangOrb(act))
+
         return act
 
 class SuwakoHatSkill(AccessoriesSkill):

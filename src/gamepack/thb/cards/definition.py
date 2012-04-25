@@ -299,5 +299,9 @@ card_definition = [
     (RejectCard, Card.HEART, 1),
     (DonationBoxCard, Card.HEART, 1),
     (SinsackCarnivalCard, Card.HEART, 1),
+    (SaigyouBranchCard, Card.HEART, 1),
+    (AyaRoundfanCard, Card.HEART, 1),
+    (GrimoireCard, Card.HEART, 1),
+    (RepentanceStickCard, Card.CLUB, 1),
 
 ] * 2

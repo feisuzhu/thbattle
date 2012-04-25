@@ -8,7 +8,7 @@ import types
 import resource as gres
 from client.ui import resource as cres
 
-from utils import DataHolder
+from utils import DataHolder, BatchList
 
 def gen_metafunc(_for):
     def metafunc(clsname, bases, _dict):
@@ -27,11 +27,10 @@ class DropCardStage:
     text = u'请弃牌…'
 
     def effect_string(act):
-        t = act.target
-        cards = t.cards
-        return u'|c208020ff【%s】|r弃掉了%d张牌。' % (
-            t.ui_meta.char_name, len(cards)
-        )
+        if act.dropn:
+            return u'|c208020ff【%s】|r弃掉了%d张牌。' % (
+                act.target.ui_meta.char_name, act.dropn
+            )
 
 class DamageEffect:
     def effect_string(act):
@@ -47,7 +46,6 @@ class DamageEffect:
 
 class LaunchCard:
     def effect_string_before(act):
-        from utils import BatchList
         s, tl = act.source, BatchList(act.target_list)
         c = act.card
         from ..cards import Skill
@@ -102,6 +100,10 @@ class WineCard:
         if g.me.tags.get('wine', False):
             return (True, u'你已经醉了，还要再喝吗？')
         return (True, u'青岛啤酒，神主也爱喝！')
+
+class Wine:
+    def effect_string(act):
+        return u'|c208020ff【%s】|r喝醉了…' % act.target.ui_meta.char_name
 
 class ExinwanCard:
     # action_stage meta
@@ -203,11 +205,10 @@ class RejectHandler:
 
 class Reject:
     def effect_string_before(act):
-        return u'|c208020ff【%s】|r为|c208020ff【%s】|r受到的|c208020ff%s|r使用了|c208020ff%s|r。' % (
+        return u'|c208020ff【%s】|r为|c208020ff【%s】|r受到的|c208020ff%s|r使用了|c208020ff好人卡|r。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
             act.target_act.associated_card.ui_meta.name,
-            act.associated_card.ui_meta.name,
         )
 
 class SealingArrayCard:
@@ -221,7 +222,7 @@ class SealingArrayCard:
             return (False, u'请选择封魔阵的目标')
         t = target_list[0]
         if g.me is t:
-            return (True, u'你不能跟自己过不去啊！')
+            return (False, u'你不能跟自己过不去啊！')
 
         return (True, u'画个圈圈诅咒你！')
 
@@ -290,6 +291,18 @@ class OpticalCloakHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【光学迷彩】吗？'
 
+class OpticalCloak:
+    def effect_string_before(act):
+        return u'|c208020ff【%s】|r祭起了|c208020ff光学迷彩|r…' % (
+            act.target.ui_meta.char_name,
+        )
+
+    def effect_string(act):
+        if act.succeeded:
+            return u'效果拔群！'
+        else:
+            return u'但是被看穿了…'
+
 class GreenUFOCard:
     # action_stage meta
     name = u'绿色UFO'
@@ -339,7 +352,7 @@ class YukariDimensionCard:
 
         target= target_list[0]
         if g.me is target:
-            return (True, u'你不能对自己使用隙间')
+            return (False, u'你不能对自己使用隙间')
         elif not len(target.cards):
             return (False, u'这货已经没有牌了')
         else:
@@ -365,7 +378,7 @@ class DuelCard:
 
         target= target_list[0]
         if g.me is target:
-            return (True, u'你不能对自己使用弹幕战')
+            return (False, u'你不能对自己使用弹幕战')
         else:
             return (True, u'来，战个痛快！')
 
@@ -400,6 +413,14 @@ class HakuroukenSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+class Hakurouken:
+    def effect_string_before(act):
+        a = act.action
+        src, tgt = a.source, a.target
+        return u'|c208020ff【%s】|r祭起了|c208020ff白楼剑|r，直斩|c208020ff【%s】|r的魂魄！' % (
+            t.ui_meta.char_name
+        )
 
 class ElementalReactorCard:
     # action_stage meta
@@ -460,6 +481,17 @@ class RoukankenHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【楼观剑】吗？'
 
+class Roukanken:
+    def effect_string_before(act):
+        return (
+            u'虽然上一刀落空了，但是|c208020ff楼观剑|r的气势并未褪去。' +
+            u'|c208020ff【%s】|r调整了姿势，再次向|c208020ff【%s】|r出刀！'
+        ) % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+
+        )
+
 class GungnirCard:
     # action_stage meta
     name = u'冈格尼尔'
@@ -503,11 +535,11 @@ class GungnirSkill:
             return cards.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.effect_string
         source = act.source
         card = act.card
         target = act.target_list[0]
-        s = u'|c208020ff【%s】|r发动了冈格尼尔之枪，将两张牌当作|c208020ff【弹幕】|r对|c208020ff【%s】|r使用。' % (
+        s = u'|c208020ff【%s】|r发动了冈格尼尔之枪，将两张牌当作|c208020ff弹幕|r对|c208020ff【%s】|r使用。' % (
             source.ui_meta.char_name,
             target.ui_meta.char_name,
         )
@@ -553,15 +585,15 @@ class LaevateinSkill:
                 return (True, u'觉醒吧，禁忌的炎之魔剑！')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
-        target = act.target_list[0]
-        s = u'|c208020ff【%s】|Laevatein!...|c208020ff【弹幕】|r对|c208020ff【%s】|r使用。' % (
-            source.ui_meta.char_name,
-            target.ui_meta.char_name,
+        tl = BatchList(act.target_list)
+
+        return u'|c208020ff【%s】|r不顾危险发动了|c208020ff莱瓦汀|r，火焰立刻扑向了对|c208020ff【%s】|r！' % (
+            s.ui_meta.char_name,
+            u'】|r、|c208020ff【'.join(tl.ui_meta.char_name),
         )
-        return s
 
 class TridentCard:
     # action_stage meta
@@ -602,6 +634,17 @@ class RepentanceStickHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【悔悟棒】吗？'
+
+class RepentanceStick:
+    def effect_string_before(act):
+        return (
+            u'|c208020ff【%s】|r用|c208020ff悔悟棒|r狠狠的敲了|c208020ff【%s】|r一通，' +
+            u'又抢过|c208020ff【%s】|r手里的牌扔了出去！'
+        ) % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
 
 class FeastCard:
     # action_stage meta
@@ -692,6 +735,15 @@ class HouraiJewelHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【蓬莱玉枝】吗？'
 
+class HouraiJewelAttack:
+    def effect_string_before(act):
+        return (
+            u'|c208020ff【%s】|r发动了|c208020ff蓬莱玉枝|r，包裹着魔法核心的弹幕冲向了|c208020ff【%s】|r！'
+        ) % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
 class SaigyouBranchCard:
     # action_stage meta
     name = u'西行妖枝条'
@@ -709,10 +761,27 @@ class SaigyouBranchSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
-class SaigyouBranch:
+class SaigyouBranchHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【西行妖枝条】吗？'
+
+class SaigyouBranch:
+    def effect_string_before(act):
+        return (
+            u'|c208020ff西行妖|r的枝条受到了|c208020ff【%s】|r春度的滋养，' +
+            u'在关键时刻突然撑出一片结界，试图将符卡挡下！'
+        ) % (
+            act.source.ui_meta.char_name,
+        )
+
+    def effect_string(act):
+        if not act.succeeded:
+            return (
+                u'但是很明显|c208020ff【%s】|r的春度不够用了…'
+            ) % (
+                act.source.ui_meta.char_name,
+            )
 
 class FlirtingSwordCard:
     # action_stage meta
@@ -739,6 +808,30 @@ class FlirtingSword:
     # choose_card
     text_valid = u'才……才不给你机会呢！'
     text = u'请弃掉一张牌（否则对方摸一张牌）'
+
+    def effect_string_before(act):
+        return (
+            u'|c208020ff【%s】|r拿起了|c208020ff调教剑|r，对着|c208020ff【%s】|r做起了啪啪啪的事！'
+        ) % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+    def effect_string(act):
+        if act.peer_action == 'drop':
+            return (
+                u'但是|c208020ff【%s】|r不太情愿，拿起一张牌甩在了|c208020ff【%s】|r的脸上！'
+            ) % (
+                act.target.ui_meta.char_name,
+                act.source.ui_meta.char_name,
+            )
+        else:
+            return (
+                u'|c208020ff【%s】|r被（哗）后，|c208020ff【%s】|r居然摆着人生赢家的姿态摸了一张牌！'
+            ) % (
+                act.target.ui_meta.char_name,
+                act.source.ui_meta.char_name,
+            )
 
 class CameraCard:
     # action_stage meta
@@ -772,21 +865,37 @@ class AyaRoundfanSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
-class AyaRoundfan:
+class AyaRoundfanHandler:
     # choose_card
     text_valid = u'这种妨碍拍摄的东西，统统脱掉！'
     text = u'请弃掉一张手牌发动团扇（否则不发动）'
 
+class AyaRoundfan:
+    def effect_string_before(act):
+        return (
+            u'|c208020ff【%s】|r觉得手中的|c208020ff团扇|r用起来好顺手，便加大力度试了试…'
+        ) % (
+            act.source.ui_meta.char_name,
+        )
+
+    def effect_string(act):
+        return (
+            u'于是|c208020ff【%s】|r的|c208020ff%s|r就飞了出去！'
+        ) % (
+            act.target.ui_meta.char_name,
+            act.card.ui_meta.name,
+        )
+
 class ScarletRhapsodySwordCard:
     # action_stage meta
-    name = u'绯色之剑'
+    name = u'绯想之剑'
     image = gres.card_scarletrhapsodysword
     image_small = gres.card_scarletrhapsodysword_small
     is_action_valid = equip_iav
 
 class ScarletRhapsodySwordSkill:
     # Skill
-    name = u'绯色之剑'
+    name = u'绯想之剑'
 
     def clickable(game):
         return False
@@ -794,10 +903,20 @@ class ScarletRhapsodySwordSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
-class ScarletRhapsodySword:
+class ScarletRhapsodySwordHandler:
     # choose_card
     text_valid = u'闪过头了！'
-    text = u'请弃掉两张牌发动绯色之剑（否则不发动）'
+    text = u'请弃掉两张牌发动绯想之剑（否则不发动）'
+
+class ScarletRhapsodySword:
+    def effect_string_before(act):
+        sn, tn = act.source.ui_meta.char_name, act.target.ui_meta.char_name
+        return (
+            u'但是弱点早已被|c208020ff绯想之剑|r看穿，在|c208020ff【%s】|r还未' +
+            u'停稳脚步时，|c208020ff【%s】|r给了她精准的一击！'
+        ) % (
+            tn, sn
+        )
 
 class DeathSickleCard:
     # action_stage meta
@@ -843,15 +962,6 @@ class WitchBroomCard:
 class WitchBroomSkill:
     # Skill
     no_display = True
-    '''
-    name = u'绯色之剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
-    '''
 
 class YinYangOrbCard:
     # action_stage meta
@@ -870,10 +980,18 @@ class YinYangOrbSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
-class YinYangOrb:
+class YinYangOrbHandler:
     # choose_option
     choose_option_buttons = ((u'替换', True), (u'不替换', False))
     choose_option_prompt = u'你要使用【阴阳玉】替换当前的判定牌吗？'
+
+class YinYangOrb:
+    def effect_string(act):
+        return (
+            u'|c208020ff【%s】|r用|c208020ff阴阳玉|r代替了她的判定牌！'
+        ) % (
+            act.target.ui_meta.char_name,
+        )
 
 class SuwakoHatCard:
     # action_stage meta
@@ -960,11 +1078,16 @@ class GrimoireSkill:
             return (True, u'发动【%s】' % s)
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
-        #target = act.target_list[0]
-        return u'Grimoire!'
+        return (
+            u'|c208020ff【%s】|r抓起一张牌放入|c208020ff魔导书|r' +
+            u'，念动咒语，发动了|c208020ff%s|r。'
+        ) % (
+            source.ui_meta.char_name,
+            card.lookup_tbl[card.associated_cards[0].suit].ui_meta.name
+        )
 
 class DollControlCard:
     # action_stage meta
@@ -1008,7 +1131,7 @@ class DonationBoxCard:
             return (False, u'请选择1-2名玩家')
 
         if g.me in tl:
-            return (True, u'你不能选择自己作为目标')
+            return (False, u'你不能选择自己作为目标')
 
         for t in tl:
             if not (t.cards or t.showncards or t.equips):
@@ -1020,7 +1143,6 @@ class DonationBox:
     # choose card meta
     text_valid = u'这是抢劫啊！'
     text = u'请选择一张牌（否则会随机选择一张）'
-
 
 # -----END CARDS UI META-----
 
@@ -1062,7 +1184,7 @@ class Envy:
             return cards.DemolitionCard.ui_meta.is_action_valid(g, [skill], target_list)
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
         target = act.target_list[0]
@@ -1129,7 +1251,7 @@ class Find:
         return (True, u'换掉这些牌')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
         target = act.target_list[0]
@@ -1199,7 +1321,7 @@ class SupportSkill:
         return (True, u'加油！')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'daiyousei support'
         return s
 
@@ -1303,7 +1425,7 @@ class Agile:
             return (True, u'这种三脚猫的弹幕，想要打中我是不可能的啦~')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'nazrin agile'
         return s
 
@@ -1339,7 +1461,7 @@ class AssaultSkill:
             return (True, u'[不知道该说什么，先这样吧]')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'yugi assault'
         return s
 
@@ -1439,7 +1561,7 @@ class SealingArraySkill:
             return (True, u'乖，歇会吧~')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         return u'reimu sa'
         source = act.source
         card = act.card
@@ -1496,7 +1618,7 @@ class Tribute:
         return (True, u'塞钱……会发生什么呢？')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'reimu tribute'
         return s
 
@@ -1545,7 +1667,7 @@ class SurpriseSkill:
         #return (True, u'SURPRISE！')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'surprise'
         return s
 
@@ -1626,7 +1748,7 @@ class Medic:
         return (True, u'少女，身体要紧啊！')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'medic'
         return s
 
@@ -1741,7 +1863,7 @@ class FlowerQueen:
             return cards.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'flower queen'
         return s
 
@@ -1803,7 +1925,7 @@ class Darkness:
             return (True, u'你们的关系…是~这样吗？')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'darkness duel'
         return s
 
@@ -1859,7 +1981,7 @@ class Netoru:
             return (True, u'少女，做个好梦~')
 
     def effect_string(act):
-        # for effects.launch_effect
+        # for LaunchCard.ui_meta.effect_string
         s = u'netoru'
         return s
 

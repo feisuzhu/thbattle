@@ -119,7 +119,10 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     if to.owner is g.me and to.type in (to.HANDCARD, to.SHOWNCARD):
         handcard_update = True
-        csl.migrate_to(self.handcard_area)
+        hca = self.handcard_area
+        for cs in csl:
+            cs.migrate_to(hca)
+            cs.gray = False
 
     else:
         if to.type == to.DROPPEDCARD:
@@ -138,7 +141,9 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             csl.migrate_to(ca)
         else:
             ca = self.player2portrait(to.owner).portcard_area
-            csl.migrate_to(ca)
+            for cs in csl:
+                cs.migrate_to(ca)
+                cs.gray = False
             ca.update()
             ca.fade()
 
@@ -163,6 +168,9 @@ def heal_effect(self, act):
 def launch_effect(self, act):
     s = act.source
     for t in act.target_list: self.ray(s, t)
+
+def reject_effect(self, act):
+    self.ray(act.source, act.target)
 
 def _update_tags(self, p):
     port = self.player2portrait(p)
@@ -228,7 +236,7 @@ action_effect_string_after = partial(_aese, 'effect_string')
 mapping_actions = ddict(dict, {
     'before': {
         LaunchCard: launch_effect,
-        #Reject: reject_effect, # uncomment after adding action ui_meta
+        Reject: reject_effect,
         ActionStage: action_stage_update_tag,
         PlayerTurn: player_turn_effect,
         Action: action_effect_string_before,
