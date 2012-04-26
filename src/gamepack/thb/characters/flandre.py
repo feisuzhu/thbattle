@@ -7,6 +7,14 @@ class CriticalStrike(Skill):
     associated_action = None
     target = t_None
 
+class CriticalStrikeAction(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        tgt.tags['attack_num'] += 1
+        tgt.tags['flan_cs'] = tgt.tags['turn_count']
+        tgt.tags['flan_lasttarget'] = None
+        return True
+
 class CriticalStrikeHandler(EventHandler):
     execute_after = (AttackCardHandler, )
     def handle(self, evt_type, act):
@@ -15,15 +23,14 @@ class CriticalStrikeHandler(EventHandler):
             if not tgt.has_skill(CriticalStrike): return act
             if not tgt.user_input('choose_option', self): return act
 
-            tgt.tags['attack_num'] += 1
-            tgt.tags['flan_cs'] = tgt.tags['turn_count']
-            tgt.tags['flan_lasttarget'] = None
+            Game.getgame().process_action(CriticalStrikeAction(tgt, tgt))
+
             act.amount = max(0, act.amount - 1)
 
         elif evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
             st = src.tags
-            if not st.get('flan_cs', 0) == st.get('turn_count'): return act
+            if not st['flan_cs'] == st['turn_count']: return act
             if not src.has_skill(CriticalStrike): return act
             tgt = act.target
             st['flan_lasttarget'] = tgt

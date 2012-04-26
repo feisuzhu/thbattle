@@ -11,6 +11,18 @@ class Knowledge(Skill):
     associated_action = None
     target = t_None
 
+class LibraryDrawCard(DrawCards):
+    pass
+
+class KnowledgeAction(GenericAction):
+    def __init__(self, act):
+        self.source = self.target = act.target
+        self.action = act
+
+    def apply_action(self):
+        self.action.cancelled = True
+        return True
+
 class PatchouliHandler(EventHandler):
     execute_before = (RejectHandler, )
     def handle(self, evt_type, act):
@@ -18,12 +30,12 @@ class PatchouliHandler(EventHandler):
             src = act.source
             tgt = act.target
             if src.has_skill(Library):
-                Game.getgame().process_action(DrawCards(src, 1))
+                Game.getgame().process_action(LibraryDrawCards(src, 1))
 
             if tgt.has_skill(Knowledge):
                 c = getattr(act, 'associated_card', None)
                 if c and c.suit == Card.SPADE:
-                    act.cancelled = True
+                    Game.getgame().process_action(KnowledgeAction(act))
         return act
 
 @register_character

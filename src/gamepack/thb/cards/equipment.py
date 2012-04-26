@@ -267,26 +267,32 @@ class RepentanceStick(GenericAction):
             tgt.cards, tgt.showncards,
             tgt.equips, tgt.fatetell,
         ]
+        l = []
         for i in xrange(2):
             card = choose_peer_card(src, tgt, cats)
             if not card:
                 card = random_choose_card(cats)
             if card:
+                l.append(card)
                 g.process_action(DropCards(target=tgt, cards=[card]))
+        self.cards = l
         return True
 
 @register_eh
 class RepentanceStickHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
-            src = act.source
+            src, tgt = act.source, act.target
             if src and src.has_skill(RepentanceStickSkill):
                 g = Game.getgame()
                 pa = g.action_stack[0]
-                if isinstance(pa, basic.BaseAttack):
-                    if src.user_input('choose_option', self):
-                        g.process_action(RepentanceStick(src, act.target))
-                        act.cancelled = True
+                if not isinstance(pa, basic.BaseAttack): return act
+                if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell):
+                    return act
+                if not src.user_input('choose_option', self): return act
+                g.process_action(RepentanceStick(src, tgt))
+                act.cancelled = True
+
         return act
 
 class MaidenCostumeSkill(ShieldSkill):
@@ -516,20 +522,38 @@ class DeathSickleSkill(WeaponSkill):
     associated_action = None
     target = t_None
 
+class DeathSickle(GenericAction):
+    def __init__(self, act):
+        self.action = act
+        self.source, self.target = act.source, act.target
+
+    def apply_action(self):
+        self.action.damage += 1
+        return True
+
 @register_eh
 class DeathSickleHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, Damage):
+        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             src, tgt = act.source, act.target
-            if len(tgt.cards) + len(tgt.showncards): return act
+            if tgt.cards or tgt.showncards: return act
             if not src.has_skill(DeathSickleSkill): return act
-
-            act.amount += 1
+            Game.getgame().process_action(DeathSickle(act))
 
         return act
 
 class KeystoneSkill(GreenUFOSkill):
     increment = 1
+
+class Keystone(GenericAction):
+    def __init__(self, act):
+        assert isinstance(act, spellcard.Sinsack)
+        self.source = self.target = act.target
+        self.action = act
+
+    def apply_action(self):
+        self.action.cancelled = True
+        return True
 
 @register_eh
 class KeystoneHandler(EventHandler):
@@ -538,7 +562,7 @@ class KeystoneHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, spellcard.Sinsack):
             tgt = act.target
             if tgt.has_skill(KeystoneSkill):
-                act.cancelled = True
+                Game.getgame().process_action(Keystone(act))
 
         return act
 
@@ -597,7 +621,6 @@ class SuwakoHatHandler(EventHandler):
                 act.dropn = max(act.dropn - 2, 0)
         return act
 
-
 class YoumuPhantomSkill(AccessoriesSkill):
     pass
 
@@ -628,13 +651,23 @@ class YoumuPhantomHandler(EventHandler):
 class IceWingSkill(ShieldSkill):
     pass
 
+class IceWing(GenericAction):
+    def __init__(self, act):
+        assert isinstance(act, spellcard.SealingArray)
+        self.source = self.target = act.target
+        self.action = act
+
+    def apply_action(self):
+        self.action.cancelled = True
+        return True
+
 @register_eh
 class IceWingHandler(EventHandler):
     execute_before = (spellcard.RejectHandler, SaigyouBranchHandler)
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SealingArray):
             if act.target.has_skill(IceWingSkill):
-                act.cancelled = True
+                Game.getgame().process_action(IceWing(act))
 
         return act
 

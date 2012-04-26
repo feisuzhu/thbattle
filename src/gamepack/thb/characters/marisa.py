@@ -7,6 +7,20 @@ class Borrow(Skill):
     associated_action = None
     target = t_None
 
+class BorrowAction(GenericAction):
+    def __init__(self, source, target_list):
+        self.source = source
+        self.target_list = target_list
+
+    def apply_action(self):
+        src = self.source
+        for p in self.target_list:
+            c = random_choose_card([p.cards, p.showncards])
+            if not c: continue
+            src.reveal(c)
+            migrate_cards([c], src.cards)
+        return True
+
 class BorrowHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
@@ -24,12 +38,7 @@ class BorrowHandler(EventHandler):
             pl = user_choose_players(self, tgt, pl)
 
             if not pl: return act
-
-            for p in pl:
-                c = random_choose_card([p.cards, p.showncards])
-                if not c: continue
-                tgt.reveal(c)
-                migrate_cards([c], tgt.cards)
+            g.process_action(BorrowAction(tgt, pl))
             act.cancelled = True
 
         return act

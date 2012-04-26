@@ -583,7 +583,7 @@ class PlayerTurn(GenericAction):
         return True
 
 class DummyAction(GenericAction):
-    def __init__(self, source, target, result):
+    def __init__(self, source, target, result=True):
         self.source, self.target, self.result = \
             source, target, result
 

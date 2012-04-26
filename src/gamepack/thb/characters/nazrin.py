@@ -8,7 +8,8 @@ class TreasureHunt(FatetellAction):
         ft = Fatetell(self.target, lambda c: c.suit in (Card.SPADE, Card.CLUB))
         g = Game.getgame()
         if g.process_action(ft):
-            migrate_cards([ft.card], self.target.cards)
+            self.card = c = ft.card
+            migrate_cards([c], self.target.cards)
             return True
         return False
 

@@ -303,5 +303,6 @@ card_definition = [
     (AyaRoundfanCard, Card.HEART, 1),
     (GrimoireCard, Card.HEART, 1),
     (RepentanceStickCard, Card.CLUB, 1),
+    (SinsackCard, Card.SPADE, 1),
 
 ] * 2

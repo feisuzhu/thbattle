@@ -92,4 +92,4 @@ class ExtremeIntelligenceHandler(EventHandler):
 class Ran(Character):
     skills = [Fengshui, ExtremeIntelligence]
     eventhandlers_required = [FengshuiHandler, ExtremeIntelligenceHandler]
-    maxlife = 4
+    maxlife = 3

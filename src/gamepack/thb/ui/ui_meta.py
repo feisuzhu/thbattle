@@ -539,7 +539,7 @@ class GungnirSkill:
         source = act.source
         card = act.card
         target = act.target_list[0]
-        s = u'|c208020ff【%s】|r发动了冈格尼尔之枪，将两张牌当作|c208020ff弹幕|r对|c208020ff【%s】|r使用。' % (
+        s = u'|c208020ff【%s】|r发动了|c208020ff冈格尼尔|r之枪，将两张牌当作|c208020ff弹幕|r对|c208020ff【%s】|r使用。' % (
             source.ui_meta.char_name,
             target.ui_meta.char_name,
         )
@@ -638,12 +638,18 @@ class RepentanceStickHandler:
 class RepentanceStick:
     def effect_string_before(act):
         return (
-            u'|c208020ff【%s】|r用|c208020ff悔悟棒|r狠狠的敲了|c208020ff【%s】|r一通，' +
-            u'又抢过|c208020ff【%s】|r手里的牌扔了出去！'
+            u'|c208020ff【%s】|r用|c208020ff悔悟棒|r狠狠的敲了|c208020ff【%s】|r一通…'
         ) % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
+
+        )
+
+    def effect_string(act):
+        cl = BatchList(act.cards)
+        return u'又抢过|c208020ff【%s】|r的|c208020ff%s|r扔了出去！' % (
             act.target.ui_meta.char_name,
+            u'|r和|c208020ff'.join(cl.ui_meta.name)
         )
 
 class FeastCard:
@@ -935,6 +941,16 @@ class DeathSickleSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+class DeathSickle:
+    def effect_string(act):
+        return (
+            u'|c208020ff【%s】|r看到|c208020ff【%s】|r一副丧家犬的模样，' +
+            '手中的|c208020f死神之镰|r不自觉地一狠…'
+        ) % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
 class KeystoneCard:
     # action_stage meta
     name = u'要石'
@@ -951,6 +967,12 @@ class KeystoneSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+class Keystone:
+    def effect_string(act):
+        return u'|c208020ff【%s】|r站在|c208020ff要石|r上，照着|c208020ff罪袋|r的脸一脚踹了下去！' % (
+            act.target.ui_meta.char_name
+        )
 
 class WitchBroomCard:
     # action_stage meta
@@ -988,7 +1010,7 @@ class YinYangOrbHandler:
 class YinYangOrb:
     def effect_string(act):
         return (
-            u'|c208020ff【%s】|r用|c208020ff阴阳玉|r代替了她的判定牌！'
+            u'|c208020ff【%s】|r用|c208020ff阴阳玉|r代替了她的判定牌'
         ) % (
             act.target.ui_meta.char_name,
         )
@@ -1043,6 +1065,12 @@ class IceWingSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+class IceWing:
+    def effect_string(act):
+        return u'|c208020ff【%s】|r借着|c208020ff⑨的翅膀|r飞了出来，|c208020ff封魔阵|r没起到什么作用' % (
+            act.target.ui_meta.char_name
+        )
 
 class GrimoireCard:
     # action_stage meta
@@ -1290,6 +1318,13 @@ class BorrowHandler:
 
         return (True, u'哎哎，什么还不还的~')
 
+class BorrowAction:
+    def effect_string(act):
+        return u'大盗|c208020ff【%s】|r又跑出来“|c208020ff借走|r”了|c208020ff【%s】|r的牌。' % (
+            act.source.ui_meta.char_name,
+            u'】|r和|c208020ff【'.join(BatchList(act.target_list).ui_meta.char_name),
+        )
+
 # ----------
 
 class Daiyousei:
@@ -1322,8 +1357,11 @@ class SupportSkill:
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
-        s = u'daiyousei support'
-        return s
+        return u'|c208020ff【%s】|r发动了|c208020ff支援|r技能，将%d张手牌交给了|c208020ff【%s】|r' % (
+            act.source.ui_meta.char_name,
+            len(act.cards),
+            act.target.ui_meta.char_name,
+        )
 
 class Moe:
     # Skill
@@ -1334,6 +1372,13 @@ class Moe:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+class MoeDrawCard:
+    def effect_string(act):
+        return u'|c208020ff【%s】|r用手扯开脸颊，向大家做了一个夸张的笑脸，摸了%d张牌跑开了' % (
+            act.target.ui_meta.char_name,
+            act.amount,
+        )
 
 # ----------
 
@@ -1356,6 +1401,12 @@ class CriticalStrikeHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【狂咲】吗？'
+
+class CriticalStrikeAction:
+    def effect_string(act):
+        return u'|c208020ff【%s】|r突然呵呵一笑，进入了黑化状态！' % (
+            act.target.ui_meta.char_name,
+        )
 
 # ----------
 
@@ -1424,10 +1475,17 @@ class Agile:
                 return (False, u'请选择一张黑色的牌！')
             return (True, u'这种三脚猫的弹幕，想要打中我是不可能的啦~')
 
+class TreasureHunt:
     def effect_string(act):
-        # for LaunchCard.ui_meta.effect_string
-        s = u'nazrin agile'
-        return s
+        if act.succeeded:
+            return u'|c208020ff【%s】|r找到了一张|c208020ff%s|r' % (
+                act.target.ui_meta.char_name,
+                act.card.ui_meta.name,
+            )
+        else:
+            return u'|c208020ff【%s】|r什么也没有找到…' % (
+                act.target.ui_meta.char_name,
+            )
 
 # ----------
 
@@ -1461,9 +1519,10 @@ class AssaultSkill:
             return (True, u'[不知道该说什么，先这样吧]')
 
     def effect_string(act):
-        # for LaunchCard.ui_meta.effect_string
-        s = u'yugi assault'
-        return s
+        return u'|c208020ff【%s】|r向|c208020ff【%s】|r发动了|c208020ff强袭|r技能' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name
+        )
 
 class FreakingPowerSkill:
     # Skill
@@ -1474,6 +1533,13 @@ class FreakingPowerSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+class FreakingPower:
+    def effect_string_before(act):
+        return u'|c208020ff【%s】|r稍微认真了一下，弹幕以惊人的速度冲向|c208020ff【%s】|r' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
 
 class YugiHandler:
     # choose_option
@@ -1492,6 +1558,12 @@ class Library:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+class LibraryDrawCards:
+    def effect_string(act):
+        return u'|c208020ff【%s】|r发动了|c208020ff图书|r技能，摸1张牌。' % (
+            act.source.ui_meta.char_name,
+        )
+
 class Knowledge:
     # Skill
     name = u'博学'
@@ -1501,6 +1573,12 @@ class Knowledge:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+class KnowledgeAction:
+    def effect_string(act):
+        return u'|c208020ff【%s】|r一眼就看穿了这张符卡，直接被挡下了。' % (
+            act.source.ui_meta.char_name,
+        )
 
 class Patchouli:
     # Character

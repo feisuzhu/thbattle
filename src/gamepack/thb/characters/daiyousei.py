@@ -16,6 +16,7 @@ class Support(GenericAction):
         src.tags['daiyousei_spnum'] = l + n
         tgt.reveal(cl)
         migrate_cards(cl, tgt.cards)
+        self.cards = cl
         return True
 
 class SupportSkill(Skill):
@@ -35,6 +36,9 @@ class Moe(Skill):
     associated_action = None
     target = t_None
 
+class MoeDrawCard(DrawCardStage):
+    pass
+
 class DaiyouseiHandler(EventHandler):
     # Well, well, things are getting messy
     def handle(self, evt_type, act):
@@ -43,6 +47,7 @@ class DaiyouseiHandler(EventHandler):
                 tgt = act.target
                 if tgt.has_skill(Moe):
                     act.amount += tgt.maxlife - tgt.life
+                    act.__class__ = MoeDrawCard
             elif isinstance(act, ActionStage):
                 tgt = act.actor
                 if tgt.has_skill(SupportSkill):
