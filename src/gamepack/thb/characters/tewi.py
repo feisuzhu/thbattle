@@ -7,13 +7,16 @@ class Luck(Skill):
     associated_action = None
     target = t_None
 
+class LuckDrawCards(DrawCards):
+    pass
+
 class LuckHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after':
             for p in [getattr(act, 'source', None), getattr(act, 'target', None)]:
                 if p and p.has_skill(Luck) and not (p.cards or p.showncards):
                     g = Game.getgame()
-                    g.process_action(DrawCards(p, 2))
+                    g.process_action(LuckDrawCards(p, 2))
         return act
 
 @register_character

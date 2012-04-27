@@ -651,6 +651,8 @@ class TextArea(Control):
             (r'\|u', set_attrib('underline', None)),
             (r'\|\|', insert_pipe),
             (r'\|r', restore),
+
+            (r'\|G', set_attrib('color', (0x20, 0x80, 0x20, 0xff))), # short cut
         ])
 
         self.layout.begin_update()

@@ -36,6 +36,9 @@ class Netoru(Skill):
             for c in cl
         )
 
+class PsycopathDrawCards(DrawCards):
+    pass
+
 class PsychopathHandler(EventHandler):
     def handle(self, evt_type, args):
         if evt_type == 'card_migration':
@@ -44,7 +47,7 @@ class PsychopathHandler(EventHandler):
                 src = _from.owner
                 if src.has_skill(Psychopath):
                     g = Game.getgame()
-                    g.process_action(DrawCards(src, len(cards)*2))
+                    g.process_action(PsychopathDrawCards(src, len(cards)*2))
         return args
 
 @register_character

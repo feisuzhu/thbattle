@@ -179,6 +179,14 @@ class Game(object):
         '''
         Process an action
         '''
+
+        if action.done:
+            log.info('action already done %s' % action.__class__.__name__)
+            return action.succeeded
+        elif action.cancelled:
+            log.info('action cancelled/invalid %s' % action.__class__.__name__)
+            return False
+
         if action.can_fire():
             action = self.emit_event('action_before', action)
             if action.done:

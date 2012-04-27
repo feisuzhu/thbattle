@@ -32,13 +32,16 @@ class Cheating(Skill):
     associated_action = None
     target = t_None
 
+class CheatingDrawCards(DrawCards):
+    pass
+
 class CheatingHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
             if tgt.has_skill(Cheating):
                 g = Game.getgame()
-                g.process_action(DrawCards(tgt, 1))
+                g.process_action(CheatingDrawCards(tgt, 1))
         return act
 
 @register_character

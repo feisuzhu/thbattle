@@ -11,6 +11,19 @@ class Majesty(Skill):
     associated_action = None
     target = t_None
 
+class TrialAction(GenericAction):
+    def __init__(self, source, target, ft, card):
+        self.source, self.target, self.ft, self.card = \
+            source, target, ft, card
+
+    def apply_action(self):
+        g = Game.getgame()
+        c = self.card
+        g.players.exclude(self.source).reveal(c)
+        migrate_cards([c], g.deck.droppedcards)
+        self.ft.card = c
+        return True
+
 class TrialHandler(EventHandler):
     execute_before = (YinYangOrbHandler, )
     def handle(self, evt_type, act):
@@ -27,13 +40,24 @@ class TrialHandler(EventHandler):
                 cards = user_choose_cards(self, p, cats)
                 if cards:
                     c = cards[0]
-                    g.players.exclude(p).reveal(c)
-                    migrate_cards(cards, g.deck.droppedcards)
-                    act.card = c
+                    g.process_action(TrialAction(p, p, act, c))
+
         return act
 
     def cond(self, cards):
         return len(cards) == 1
+
+class MajestyAction(GenericAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        cats = [
+            tgt.cards, tgt.showncards, tgt.equips
+        ]
+        c = choose_peer_card(src, tgt, cats)
+        if not c: return act
+        src.reveal(c)
+        migrate_cards([c], src.cards)
+        return True
 
 class MajestyHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -52,10 +76,8 @@ class MajestyHandler(EventHandler):
 
         if not tgt.user_input('choose_option', self): return act
 
-        c = choose_peer_card(tgt, src, cats)
-        if not c: return act
-        tgt.reveal(c)
-        migrate_cards([c], tgt.cards)
+        Game.getgame.process_action(MajestyAction(tgt, src))
+
         return act
 
 @register_character

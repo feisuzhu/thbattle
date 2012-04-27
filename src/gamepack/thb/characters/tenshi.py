@@ -7,27 +7,24 @@ class Masochist(Skill):
     associated_action = None
     target = t_None
 
-class MasochistHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, Damage):
-            tgt = act.target
-            if tgt.dead: return act
-            if not tgt.has_skill(Masochist): return act
-            if not tgt.user_input('choose_option', self): return act
+class MasochistAction(GenericAction):
+    def __init__(self, target, n):
+        self.target, self.amount = target, n
 
-            g = Game.getgame()
-            a = DrawCards(tgt, act.amount*2)
-            g.process_action(a)
-            self.cards = cards = a.cards
-            n = len(cards)
-            while n>0:
-                rst = user_choose_cards_and_players(self, tgt, [tgt.cards], g.players.exclude(tgt))
-                if not rst: return act
-                cl, pl = rst
-                migrate_cards(cl, pl[0].cards)
-                n -= len(cl)
-
-        return act
+    def apply_action(self):
+        g = Game.getgame()
+        tgt = self.target
+        a = DrawCards(tgt, self.amount*2)
+        g.process_action(a)
+        self.cards = cards = a.cards
+        n = len(cards)
+        while n>0:
+            rst = user_choose_cards_and_players(self, tgt, [tgt.cards], g.players.exclude(tgt))
+            if not rst: return True
+            cl, pl = rst
+            migrate_cards(cl, pl[0].cards)
+            n -= len(cl)
+        return True
 
     def cond(self, cl):
         cards = self.cards
@@ -38,6 +35,16 @@ class MasochistHandler(EventHandler):
             return (tl, False)
 
         return (tl[-1:], True)
+
+class MasochistHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, Damage):
+            tgt = act.target
+            if tgt.dead: return act
+            if not tgt.has_skill(Masochist): return act
+            if not tgt.user_input('choose_option', self): return act
+            Game.getgame.process_action(MasochistAction(tgt, tgt, act.amount))
+        return act
 
 @register_character
 class Tenshi(Character):

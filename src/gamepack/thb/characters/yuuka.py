@@ -29,6 +29,18 @@ class PerfectKill(Skill):
     target = t_None
     distance = 1
 
+class MagicCannonAttack(Attack):
+    pass
+
+class PerfectKillAction(GenericAction):
+    def __init__(self, source, target, act):
+        self.source, self.target, self.act = \
+            source, target, act
+
+    def apply_action(self):
+        self.act.asklist = [self.source, self.target]
+        return True
+
 class YuukaHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Attack):
@@ -38,6 +50,7 @@ class YuukaHandler(EventHandler):
             if not src.has_skill(MagicCannon): return act
             if c.suit in (Card.HEART, Card.DIAMOND):
                 act.damage += 1
+                act.__class__ = MagicCannonAttack
         elif evt_type == 'action_before' and isinstance(act, TryRevive):
             g = Game.getgame()
             dmg = g.action_stack[0]
@@ -45,7 +58,7 @@ class YuukaHandler(EventHandler):
             src = dmg.source
             tgt = dmg.target
             if src != tgt and src.has_skill(PerfectKill):
-                act.asklist = [src, dmg.target]
+                g.process_action(PerfectKillAction(src, dmg.target, act))
         return act
 
 @register_character
