@@ -106,17 +106,21 @@ except ShaderError as e:
 
 def _get_gaussian_coef(radius):
     from math import erfc
-    inv_sigma = 3.0/radius
+    a = 3.0 / radius * 0.707106781
 
-    f = lambda x: 0.5*erfc(-x*inv_sigma*0.707106781)
+    f = lambda x: 0.5*erfc(-x*a)
 
     l = [f(0.5 + i) - f(-0.5 + i) for i in xrange(radius+1)]
+    l = [i for i in l if i>0.01]
     l1 = l[1:]
     l1.reverse()
-    return l1 + l
+    l = l1 + l
+    s = sum(l)
+    l = [i/s for i in l]
+    return l
 
 try:
-    r = 7
+    r = 9
     coef = _get_gaussian_coef(r)
     src = '''
         uniform sampler2DRect tex;
@@ -128,11 +132,11 @@ try:
             gl_FragColor = vec4(s.rgb, 1.0);
         }
     '''
-
+    l = len(coef)//2
     fshader = FragmentShader(
         src % '\n'.join(
             's += texture2DRect(tex, vec2(xy.x+(%d.0), xy.y)) * %f;' % (i, v)
-            for i, v in zip(xrange(-r, r+1), coef)
+            for i, v in zip(xrange(-l, l+1), coef)
         )
     )
     GaussianBlurHorizontal = ShaderProgram(fshader)
@@ -140,7 +144,7 @@ try:
     fshader = FragmentShader(
         src % '\n'.join(
             's += texture2DRect(tex, vec2(xy.x, xy.y+(%d.0))) * %f;' % (i, v)
-            for i, v in zip(xrange(-r, r+1), coef)
+            for i, v in zip(xrange(-l, l+1), coef)
         )
     )
     GaussianBlurVertical = ShaderProgram(fshader)

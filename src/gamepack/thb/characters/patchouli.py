@@ -11,7 +11,7 @@ class Knowledge(Skill):
     associated_action = None
     target = t_None
 
-class LibraryDrawCard(DrawCards):
+class LibraryDrawCards(DrawCards):
     pass
 
 class KnowledgeAction(GenericAction):

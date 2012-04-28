@@ -9,6 +9,8 @@ from client.ui.controls import *
 from client.ui import resource as common_res, shaders
 import resource as gres
 
+from .game_controls import *
+
 from gamepack.thb import actions, cards
 from game.autoenv import Game
 
@@ -399,12 +401,7 @@ class UIChoosePeerCard(Panel):
                 width=6*93, height=125,
             )
             for c in cat:
-                cs = CardSprite(
-                    parent=ca,
-                    img=c.ui_meta.image,
-                    number=c.number,
-                    suit=c.suit,
-                )
+                cs = CardSprite(c, parent=ca)
                 cs.associated_card = c
                 @cs.event
                 def on_mouse_dblclick(x, y, btn, mod, cs=cs):
@@ -523,12 +520,7 @@ class UIChooseIndividualCard(Panel):
             width=cw, height=125,
         )
         for c in cards:
-            cs = CardSprite(
-                parent=ca,
-                img=c.ui_meta.image,
-                number=c.number,
-                suit=c.suit,
-            )
+            cs = CardSprite(c, parent=ca)
             cs.associated_card = c
             @cs.event
             def on_mouse_dblclick(x, y, btn, mod, cs=cs):
@@ -576,12 +568,7 @@ class UIHarvestChoose(Panel):
         for i, c in enumerate(cards):
             y, x = divmod(i, 4)
             x, y = 20 + (91+10)*x, 20 +(125+20)*(1-y)
-            cs = CardSprite(
-                parent=self,
-                img=c.ui_meta.image,
-                suit=c.suit, number=c.number,
-                x=x, y=y,
-            )
+            cs = CardSprite(c, parent=self, x=x, y=y)
             cs.associated_card = c
             mapping[c] = cs
             @cs.event
@@ -700,12 +687,7 @@ class UIRanFengshui(Panel):
 
         rpc = RanFengshuiControl(parent=self, x=100, y=60)
         for i, c in enumerate(cards):
-            cs = CardSprite(
-                parent=rpc,
-                img=c.ui_meta.image,
-                suit=c.suit,
-                number=c.number,
-            )
+            cs = CardSprite(c, parent=rpc)
             cs.associated_card = c
             cs.card_index = i
         rpc.init()

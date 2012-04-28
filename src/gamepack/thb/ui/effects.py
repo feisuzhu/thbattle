@@ -6,6 +6,8 @@ from client.ui.controls import *
 from client.ui import resource as common_res
 import resource as gres
 
+from .game_controls import *
+
 import pyglet
 from pyglet.gl import *
 
@@ -81,12 +83,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
                 raise
 
         for i, card in enumerate(rawcards):
-            cs = CardSprite(
-                parent=pca,
-                img=card.ui_meta.image,
-                number=card.number,
-                suit=card.suit,
-            )
+            cs = CardSprite(card, parent=pca)
             cs.associated_card = card
             csl.append(cs)
         pca.arrange()
@@ -95,12 +92,8 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     if to.type == to.EQUIPS: # equip area
         equips = self.player2portrait(to.owner).equipcard_area
-        from .view import SmallCardSprite
         for c in cards:
-            cs = SmallCardSprite(
-                parent=equips, x=0, y=0,
-                img=c.ui_meta.image_small,
-            )
+            cs = SmallCardSprite(c, parent=equips, x=0, y=0)
             cs.associated_card = c
         equips.update()
 

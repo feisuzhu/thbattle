@@ -36,7 +36,7 @@ class Netoru(Skill):
             for c in cl
         )
 
-class PsycopathDrawCards(DrawCards):
+class PsychopathDrawCards(DrawCards):
     pass
 
 class PsychopathHandler(EventHandler):

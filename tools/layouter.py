@@ -148,63 +148,25 @@ img = pyglet.image.load('/home/proton/Desktop/capture/snap00031.png')
 from game import autoenv
 autoenv.init('Client')
 from client.ui import resource as cres
-from gamepack.simple.ui import resource as sres
-print dir(sres)
-sp = pyglet.sprite.Sprite(cres.actor_frame, x=100, y=100)
-interp = LinearInterp(0.0, 1.0, 1.0)
-
-from client.ui import ui_utils
+from gamepack.thb.ui.game_controls import *
+from gamepack.thb.ui import resource as gres
+from utils import BatchList
 
 def bg():
     glColor4f(1,1,1,1)
     img.blit(0,0)
-    #gly.blit(50, 50)
 
 layout.draw_hook_before = bg
 
-glClearColor(0,0,0, 1.0)
-#Control(parent=layout, x=35, y=20, width=700, height=180)._text = 'Chat'
-#Control(parent=layout, x=35, y=220, width=700, height=420)._text = 'GameList'
-#Control(parent=layout, x=750, y=220, width=240, height=420)._text = 'ControlPanel'
-#Control(parent=layout, x=750, y=20, width=240, height=180)._text = 'UserInfo'
+from gamepack.thb.cards import *
 
-#Rectangle(parent=layout, x=545, y=166, width=78, height=24)
-'''
-ConfirmButtons(parent=layout, x=544, y=166, width=165, height=24)
-Label(parent=layout, text=u'请选择…', x=373, y=190, font_size=12, color=(255,255,180,255), bold=True)
-_base = BigProgressBar(parent=layout, x=285, y=162, width=250, height=29)
-_base.value = 1.0
-'''
-'''
-rect = Control(parent=layout, x=285, y=162, width=531, height=58)
-ConfirmButtons(parent=rect, x=259, y=4, width=165, height=24)
-Label(parent=rect, text=u'请选择…', x=88, y=28, font_size=12, color=(255,255,180,255), bold=True)
-BigProgressBar(parent=rect, x=0, y=0, width=250, height=29).value = 1.0
-'''
+c = AttackCard(1, 1)
 
-#b = ConfirmBox(u'哈哈哈哈哈哈哈哈\nii和i和i和i和i和i和i和i和i后', parent=layout)
-'''
-pyglet.font.add_file('/home/proton/Desktop/res/simsun.ttc')
-fnt = pyglet.font.load(u'宋体', size=9)
+cs = CardSprite(c, parent=layout)
 
-gly = fnt.get_glyphs(u'已')[0]
-'''
-b = Button(caption=u'哈哈哈', width=150, height=24, parent=layout, x=486, y=273)
-b.state = b.DISABLED
-@b.event
-def on_click():
-    b.update(
-    )
-batch = pyglet.graphics.Batch()
-dark = [0, 0, 0, 0.5]
-trans = [0, 0, 0, 0.1]
-batch.add(8, GL_QUADS, None,
-    ('v2f', (
-        0, 0, 50, 0, 50, 8, 0, 8,
-        0, 8, 50, 8, 50, 16, 0, 16,
-    )),
-    ('c4f', trans*2 + dark*4 + trans*2)
-)
+cs.init_ballon_text('|Ghahahah!|r\n\nasdfasdfasdfasdfasdfa\nsdfasdfasdfasdf')
+
+
 #------------------
 pyglet.app.run()
 if _base:

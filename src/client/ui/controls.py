@@ -3,7 +3,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
-from client.ui.base import Control
+from client.ui.base import *
 from client.ui.base.interp import *
 from client.ui import resource as common_res, ui_utils
 from utils import Rect, ScissorBox, Framebuffer, dilate
@@ -463,6 +463,61 @@ Dialog.register_event_type('on_move')
 Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
+class BallonPrompt(object):
+    def init_ballon(self, text):
+        self.ballon_state = 'hidden'
+
+        ta = TextArea(parent=None, x=2, y=2, width=288, height=100)
+        ta.append(text)
+        h = max(ta.content_height, 100)
+        ta.height = h
+        panel = Panel(parent=None, x=0, y=0, width=292, height=h+4)
+        panel.add_control(ta)
+        panel.blur_update_interval = 1
+        self.ballon_panel = panel
+
+        self.push_handlers(
+            on_mouse_motion=self.ballon_on_mouse_motion,
+            on_mouse_drag=self.ballon_on_mouse_motion,
+            on_mouse_enter=self.ballon_on_mouse_enter,
+            on_mouse_leave=self.ballon_on_mouse_leave,
+        )
+
+    def ballon_on_mouse_motion(self, x, y, dx, dy, *a):
+        o = Overlay.cur_overlay
+        ow, oh = o.width, o.height
+        ax, ay = self.abs_coords()
+        ax += x
+        ay += y
+        b = self.ballon_panel
+        bw, bh = b.width, b.height
+
+        if ax*2 <= ow:
+            ax += 10
+        else:
+            ax -= bw + 10
+
+        if ay*2 <= oh:
+            ay += 10
+        else:
+            ay -= bh + 10
+
+        b.x, b.y = ax, ay
+
+    def ballon_on_mouse_enter(self, x, y):
+        if self.ballon_state == 'hidden':
+            self.ballon_state = 'ticking'
+            pyglet.clock.schedule_once(self.ballon_show, 0.8)
+
+    def ballon_on_mouse_leave(self, x, y):
+        if self.ballon_state == 'ticking':
+            pyglet.clock.unschedule(self.ballon_show)
+        self.ballon_state = 'hidden'
+        self.ballon_panel.delete()
+
+    def ballon_show(self, dt):
+        Overlay.cur_overlay.add_control(self.ballon_panel)
+
 class TextBox(Control):
     def __init__(self, text='Yoooooo~', color=Colors.green, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
@@ -590,7 +645,8 @@ class TextArea(Control):
         )
 
         self.layout = pyglet.text.layout.IncrementalTextLayout(
-            self.document, width-8, height-8, multiline=True)
+            self.document, width-8, height-8, multiline=True
+        )
 
         self.layout.x = 4
         self.layout.y = 4
@@ -687,277 +743,15 @@ class TextArea(Control):
         size = f.ascent - f.descent
         self.layout.view_y += dy * size*2
 
-class CardSprite(Control): # TODO: these controls should be in gamepack ui, not here
-    x = InterpDesc('_x')
-    y = InterpDesc('_y')
-    back_scale = InterpDesc('_bs')
-    question_scale = InterpDesc('_qs')
-    ftanim_alpha = InterpDesc('_fta')
-    ftanim_cardalpha = InterpDesc('_ftca')
-    shine_alpha = InterpDesc('_shine_alpha')
-    alpha = InterpDesc('_alpha')
-    img_shinesoft = common_res.card_shinesoft
-    img_cardq = common_res.card_question
-    img_cardh = common_res.card_hidden
-    width, height = 91, 125
-    auxfbo = Framebuffer()
-    def __init__(self, x=0.0, y=0.0, img=None, number=0, suit=0, *args, **kwargs):
-        Control.__init__(self, *args, **kwargs)
-        self._w, self._h = 91, 125
-        self.shine = False
-        self.gray = False
-        self.x, self.y,  = x, y
-        self.shine_alpha = 0.0
-        self.alpha = 1.0
-        self.img = img
-        self.tex = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, 91, 125, GL_RGBA
-        )
-        self.number, self.suit = number, suit
-        self.ft_anim = False
-        self.update()
+    @property
+    def content_height(self):
+        return self.layout.content_height + 8
 
-    def draw(self):
-        if self.ft_anim:
-            qs = self.question_scale
-            bs = self.back_scale
-            aa = self.ftanim_alpha
-            ca = self.ftanim_cardalpha
-            if self.gray:
-                glColor4f(.66, .66, .66, ca)
-            else:
-                glColor4f(1., 1., 1., ca)
-            self.tex.blit(0, 0)
-
-            glColor4f(1, 1, 1, aa)
-
-            if qs:
-                self.img_cardq.blit((1-qs)*45, 0, 0, qs*91)
-
-            if bs:
-                self.img_cardh.blit((1-bs)*45, 0, 0, bs*91)
-        else:
-            a = self.alpha
-            if self.gray:
-                glColor4f(.66, .66, .66, a)
-            else:
-                glColor4f(1., 1., 1., a)
-            self.tex.blit(0, 0)
-
-
-        glColor4f(1., 1., 1., self.shine_alpha)
-        self.img_shinesoft.blit(-6, -6)
-
-    def update(self):
-        fbo = self.auxfbo
-        with fbo:
-            fbo.texture = self.tex
-            glColor3f(1, 1, 1)
-            self.img.blit(0, 0)
-            n, s = self.number, self.suit
-            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
-            if n: common_res.cardnumbers[s%2, n-1].blit(5, 105)
-            if s: common_res.suit[s-1].blit(6, 94)
-
-    def on_mouse_enter(self, x, y):
-        self.shine_alpha = 1.0
-
-    def on_mouse_leave(self, x, y):
-        self.shine_alpha = SineInterp(1.0, 0.0, 0.3)
-
-    def do_fatetell_anim(self):
-        self.ft_anim = True
-        self.question_scale = ChainInterp(
-            SineInterp(0.0, 1.0, 0.1),
-            CosineInterp(1.0, 0.0, 0.1),
-            FixedInterp(0.0, 0.2),
-            SineInterp(0.0, 1.0, 0.1),
-            CosineInterp(1.0, 0.0, 0.1),
-            FixedInterp(0.0, 0.2),
-            SineInterp(0.0, 1.0, 0.1)
-        )
-        self.back_scale = ChainInterp(
-            FixedInterp(0.0, 0.2),
-            SineInterp(0.0, 1.0, 0.1),
-            CosineInterp(1.0, 0.0, 0.1),
-            FixedInterp(0.0, 0.2),
-            SineInterp(0.0, 1.0, 0.1),
-            CosineInterp(1.0, 0.0, 0.1),
-        )
-        self.ftanim_alpha = ChainInterp(
-            FixedInterp(1.0, 1.0),
-            LinearInterp(1.0, 0.0, 2.0),
-            on_done=self._end_ft_anim,
-        )
-        self.ftanim_cardalpha = ChainInterp(
-            FixedInterp(0.0, 1.0),
-            FixedInterp(1.0, 0.0),
-        )
-
-    def _end_ft_anim(self, _self, desc):
-        self.ft_anim = False
-
-class HandCardArea(Control): # TODO: these controls should be in gamepack ui, not here
-    def __init__(self, fold_size=5, *args, **kwargs):
-        Control.__init__(self, *args, **kwargs)
-        self.fold_size = fold_size
-
-    def draw(self):
-        glColor4f(1,1,1,1)
-        self.draw_subcontrols()
-
-    def update(self):
-        fsz = self.fold_size
-        n = len(self.control_list)
-        width = min(fsz*93.0+42, n*93.0)
-        step = (width - 91)/(n-1) if n > 1 else 0
-        for i, c in enumerate(self.control_list):
-            c.zindex = i
-            try:
-                sel = c.hca_selected
-            except AttributeError:
-                sel = c.hca_selected = False
-            c.x = SineInterp(c.x, 2 + int(step * i), 0.6)
-            c.y = SineInterp(c.y, 20 if sel else 0, 0.6)
-
-    def on_mouse_click(self, x, y, button, modifier):
-        c = self.control_frompoint1(x, y)
-        if c:
-            s = c.hca_selected = not c.hca_selected
-            c.y = SineInterp(c.y, 20 if s else 0, 0.1)
-            self.dispatch_event('on_selection_change')
-
-    cards = property(
-        lambda self: self.control_list,
-        lambda self, x: setattr(self, 'control_list', x)
-    )
-
-HandCardArea.register_event_type('on_selection_change')
-
-class PortraitCardArea(Control): # TODO: these controls should be in gamepack ui, not here
-    def hit_test(self, x, y):
-        return False
-
-    def draw(self):
-        self.draw_subcontrols()
-
-    def arrange(self):
-        csl = self.control_list
-        if not csl: return
-        n = len(csl)
-
-        w, h, = self.width, self.height
-        offs = 20
-        csw = offs * (n-1) + 93
-        cor_x, cor_y = (w - csw)/2, (h - 125)/2
-        for i, cs in enumerate(csl):
-            if isinstance(getinterp(cs, 'x'), AbstractInterp):
-                cs.x = SineInterp(cs.x, i*offs + cor_x, 0.6)
-                cs.y = SineInterp(cs.y, cor_y, 0.6)
-            else:
-                cs.x, cs.y = i*offs + cor_x, cor_y
-
-    def update(self):
-        csl = self.control_list
-        if not csl: return
-        n = len(csl)
-
-        w, h, = self.width, self.height
-        offs = 20
-        csw = offs * (n-1) + 93
-        cor_x, cor_y = (w - csw)/2, (h - 125)/2
-        for i, cs in enumerate(csl):
-            cs.x = SineInterp(cs.x, i*offs + cor_x, 0.6)
-            cs.y = SineInterp(cs.y, cor_y, 0.6)
-
-    def fade(self):
-        for cs in self.control_list:
-            cs.alpha = ChainInterp(
-                FixedInterp(1.0, 0.45),
-                CosineInterp(1.0, 0.0, 0.3),
-                on_done=self._on_cardanimdone,
-            )
-
-    def _on_cardanimdone(self, card, desc):
-        card.delete()
-
-class DropCardArea(Control): # TODO: these controls should be in gamepack ui, not here
-    def __init__(self, fold_size=5, *args, **kwargs):
-        Control.__init__(self, *args, **kwargs)
-        self.fold_size = fold_size
-
-    def draw(self):
-        glColor4f(1,1,1,1)
-        self.draw_subcontrols()
-
-    def update(self):
-        fsz = self.fold_size
-        n = len(self.control_list)
-        width = min(fsz*93.0, n*93.0)
-        step = (width - 91)/(n-1) if n > 1 else 0
-
-        if step < 30:
-            step = 30
-            width = (n-1)*30 + 93
-
-        ox = (self.width - width) // 2
-
-        for i, c in enumerate(self.control_list):
-            c.zindex = i
-            c.x = SineInterp(c.x, 2 + ox + int(step * i), 0.5)
-            c.y = SineInterp(c.y, 0, 0.5)
-
-    def fade(self):
-        for cs in self.control_list:
-            try:
-                cs.dca_tag
-                continue
-            except AttributeError:
-                cs.dca_tag = 1
-
-            cs.alpha = ChainInterp(
-                FixedInterp(1.0, 3),
-                CosineInterp(1.0, 0.0, 1),
-                on_done=self._on_cardanimdone,
-            )
-
-    def _on_cardanimdone(self, card, desc):
-        card.delete()
-        self.update()
-
-    def hit_test(self, x, y):
-        return self.control_frompoint1(x, y)
-
-class Ray(Control):
-    img_ray = common_res.ray
-    scale = InterpDesc('_scale')
-    alpha = InterpDesc('_alpha')
-
-    def __init__(self, x0, y0, x1, y1, *args, **kwargs):
-        Control.__init__(self, *args, **kwargs)
-        from math import sqrt, atan2, pi
-        self.x, self.y = x0, y0
-        dx, dy = x1 - x0, y1 - y0
-        scale = sqrt(dx*dx+dy*dy) / self.img_ray.width
-        self.angle = atan2(dy, dx) / pi * 180
-        self.scale = SineInterp(0.0, scale, 0.4)
-        self.alpha = ChainInterp(
-            FixedInterp(1.0, 1),
-            CosineInterp(1.0, 0.0, 0.5),
-            on_done=lambda self, desc: self.delete()
-        )
-
-    def draw(self):
-        glPushMatrix()
-        glRotatef(self.angle, 0., 0., 1.)
-        glScalef(self.scale, 1., 1.)
-        glTranslatef(0., -self.img_ray.height/2, 0.)
-        glColor4f(1., 1., 1., self.alpha)
-        self.img_ray.blit(0,0)
-        glPopMatrix()
-
-    def hit_test(self, x, y):
-        return False
+    def on_resize(self, width, height):
+        l = self.layout
+        l.begin_update()
+        l.width, l.height = width - 8, height - 8
+        l.end_update()
 
 class ListItem(object):
     def __init__(self, p):
@@ -1347,6 +1141,7 @@ class ConfirmBox(Dialog):
 ConfirmBox.register_event_type('on_confirm')
 
 class Panel(Control):
+    blur_update_interval = 2
     def __init__(self, color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
         self.color = color
@@ -1393,7 +1188,8 @@ class Panel(Control):
 
     def draw(self):
         self.tick += 1
-        if not (self.tick % 2):
+        i = self.blur_update_interval
+        if i <= 1 or self.tick % i:
             self.blur_update()
 
         glColor3f(1, 1, 1)
