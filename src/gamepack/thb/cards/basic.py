@@ -127,14 +127,14 @@ class ExinwanHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, DropCards):
             from .definition import ExinwanCard
-            cards = [c for c in act.cards_before_unwrap if c.is_card(ExinwanCard)]
+            cards = [c for c in act.cards if c.is_card(ExinwanCard)]
             if cards:
                 g = Game.getgame()
                 pact = g.action_stack[0]
-                if isinstance(pact, DropCardStage):
-                    target = pact.target
-                else:
-                    target = pact.source
+                #if isinstance(pact, DropCardStage):
+                #    target = pact.target
+                #else:
+                target = pact.source
 
                 cats = [
                     target.cards,

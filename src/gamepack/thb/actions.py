@@ -303,7 +303,7 @@ class DropCardStage(GenericAction):
         return True
 
     def __init__(self, target):
-        self.target = target
+        self.source = self.target = target
         self.dropn = len(target.cards) + len(target.showncards) - target.life
 
     def apply_action(self):

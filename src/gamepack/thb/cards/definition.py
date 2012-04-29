@@ -304,5 +304,6 @@ card_definition = [
     (GrimoireCard, Card.SPADE, 1),
     (RepentanceStickCard, Card.CLUB, 1),
     (SinsackCard, Card.SPADE, 1),
+    (ExinwanCard, Card.SPADE, 1),
 
 ] * 2

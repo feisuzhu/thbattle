@@ -13,9 +13,10 @@ class WearEquipmentAction(UserAction):
         card = self.associated_card
         target = self.target
         equips = target.equips
+        g = Game.getgame()
         for oc in equips:
             if oc.equipment_category == card.equipment_category:
-                migrate_cards([oc], g.deck.droppedcards)
+                g.process_action(DropCards(target, [oc]))
                 break
         migrate_cards([card], target.equips)
         return True
@@ -585,7 +586,7 @@ class YinYangOrb(GenericAction):
         for e in tgt.equips:
             if e.is_card(YinYangOrbCard):
                 g = Game.getgame()
-                migrate_cards([e], g.deck.droppedcards)
+                g.process_action(DropCards(tgt, [e]))
                 ft.card = e
                 break
         else:

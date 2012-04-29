@@ -350,7 +350,7 @@ class SmallCardSprite(Control):
         self.x, self.y = x, y
         self.selected = False
         self.hover = False
-        self.img = card.ui_meta.img
+        self.img = card.ui_meta.image_small
 
     def draw(self):
         glColor3f(1., 1., 1.)

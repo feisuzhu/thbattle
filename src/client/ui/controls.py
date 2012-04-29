@@ -708,7 +708,12 @@ class TextArea(Control):
             (r'\|\|', insert_pipe),
             (r'\|r', restore),
 
-            (r'\|G', set_attrib('color', (0x20, 0x80, 0x20, 0xff))), # short cut
+            # shortcuts
+            (r'\|R', set_attrib('color', (0xff, 0x35, 0x35, 0xff))),
+            (r'\|G', set_attrib('color', (0x20, 0x80, 0x20, 0xff))),
+            (r'\|Y', set_attrib('color', (0xff, 0xff, 0x30, 0xff))),
+            (r'\|LB', set_attrib('color', (0x90, 0xdc, 0xe8, 0xff))),
+
         ])
 
         self.layout.begin_update()

@@ -75,6 +75,12 @@ class AttackCard:
     # action_stage meta
     image = gres.card_attack
     name = u'弹幕'
+    description = (
+        u'|R弹幕|r\n\n'
+        u'你的出牌阶段，对除你外，你攻击范围内的一名角色使用，效果是对该角色造成1点伤害。\n'
+        u'|B|R>> |r游戏开始时你的攻击范围是1	。\n'
+        u'|B|R>> |r每个出牌阶段你只能使用一张【弹幕】。\n'
+    )
 
     def is_action_valid(g, cl, target_list):
         if not target_list:
@@ -89,6 +95,12 @@ class GrazeCard:
     # action_stage meta
     name = u'擦弹'
     image = gres.card_graze
+    description = (
+        u'|R擦弹|r\n\n'
+        u'当你受到【弹幕】的攻击时，你可以使用一张【擦弹】来抵消【弹幕】的效果。\n'
+        u'|B|R>> |r【擦弹】通常情况下只能在回合外使用或打出。\n'
+    )
+
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动使用擦弹')
 
@@ -96,6 +108,13 @@ class WineCard:
     # action_stage meta
     name = u'酒'
     image = gres.card_wine
+    description = (
+        u'|R酒|r\n\n'
+        u'使用后获得|B喝醉|r状态。\n'
+        u'|B喝醉|r状态下，使用【弹幕】命中后伤害+1，受到致命伤害时伤害-1。\n'
+        u'|B|R>> |r效果触发或者轮到自己的行动回合时须弃掉|B喝醉|r状态。'
+    )
+
     def is_action_valid(g, cl, target_list):
         if g.me.tags.get('wine', False):
             return (True, u'你已经醉了，还要再喝吗？')
@@ -109,6 +128,13 @@ class ExinwanCard:
     # action_stage meta
     name =u'恶心丸'
     image = gres.card_exinwan
+    description = (
+        u'|R恶心丸|r\n\n'
+        u'当该牌以任意的方式因弃牌动作进入弃牌堆时，动作来源需要选择其中一项执行：\n'
+	u'|B|R>> |r受到一点伤害，无来源\n'
+	u'|B|R>> |r弃两张牌'
+    )
+
     def is_action_valid(g, cl, target_list):
         return (True, u'哼，哼，哼哼……')
 
@@ -142,6 +168,13 @@ class HealCard:
     # action_stage meta
     image = gres.card_heal
     name = u'麻薯'
+    description = (
+        u'|R麻薯|r\n\n'
+        u'【麻薯】桃能在两种情况下使用：\n'
+        u'1、在你的出牌阶段，你可以使用它来回复你的1点体力。\n'
+        u'2、当有角色处于濒死状态时，你可以对该角色使用【麻薯】，防止该角色的死亡。\n'
+        u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。\n'
+    )
 
     def is_action_valid(g, cl, target_list):
         target = target_list[0]
@@ -168,6 +201,10 @@ class DemolitionCard:
     # action_stage meta
     image = gres.card_demolition
     name = u'城管执法'
+    description = (
+        u'|R城管执法|r\n\n'
+        u'出牌阶段对(除自己外)任意一名玩家使用，随机抽取并弃掉对方一张手牌，或选择并弃掉一张对方面前的牌(包括装备、明牌区和判定区内延时类符卡)。'
+    )
 
     def is_action_valid(g, cl, target_list):
         if not target_list:
@@ -194,7 +231,10 @@ class RejectCard:
     # action_stage meta
     name = u'好人卡'
     image = gres.card_reject
-
+    description = (
+        u'|R好人卡|r\n\n'
+        u'目标符卡对目标角色生效前，对目标符卡使用。抵消该符卡对其指定的一名目标角色产生的效果。'
+    )
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动出好人卡')
 
@@ -216,6 +256,12 @@ class SealingArrayCard:
     name = u'封魔阵'
     image = gres.card_sealarray
     tag_anim = gres.tag_sealarray
+    description = (
+        u'|R封魔阵|r\n\n'
+        u'延时类符卡\n'
+        u'出牌阶段对任意一名玩家使用,将此牌置于目标玩家判定区,对方在其判定阶段需判定——如果判定结果为红桃，则照常行动，弃掉【封魔阵】；如果判定结果不是红桃，则该回合跳过出牌阶段（照常摸牌和弃牌），弃掉【封魔阵】。\n'
+        u'|B|R>> |r仅当需要开始进行【封魔阵】的判定时,才能使用【好人卡】抵消之(抵消后弃掉【封魔阵】)。'
+    )
 
     def is_action_valid(g, cl, target_list):
         if len(target_list) != 1:
@@ -236,9 +282,13 @@ class SealingArray:
 
 class NazrinRodCard:
     # action_stage meta
-    name = u'探宝棒'
+    name = u'寻龙尺'
     image = gres.card_nazrinrod
-
+    description = (
+        u'|R寻龙尺|r\n\n'
+        u'非延时符卡\n'
+        u'出牌阶段使用，从牌堆摸两张牌。'
+    )
     def is_action_valid(g, cl, target_list):
         t = target_list[0]
         assert t is g.me
@@ -249,6 +299,13 @@ class SinsackCard:
     name = u'罪袋'
     image = gres.card_sinsack
     tag_anim = gres.tag_sinsack
+    description = (
+        u'|R罪袋|r\n\n'
+        u'延时类锦囊\n'
+        u'出牌阶段使用,将【罪袋】横置于自己面前:\n'
+        u'|B|R>> |r【罪袋】将一直放在那里直到这回合结束,当自己下回合进入回合开始阶段时,自己需要判定——若判定结果为黑桃1~黑桃8的牌,视为被【罪袋】推倒,受到3点伤害,并将【罪袋】弃掉;否则,将【罪袋】传给右边的玩家,右边的玩家在他/她的回合开始阶段需要做同样的判定,以此类推,直到【罪袋】生效为止,弃掉【罪袋】。\n'
+        u'|B|R>> |r仅当需要开始进行【罪袋】的判定时,才能使用【好人卡】抵消之,但抵消后不弃掉【罪袋】,而是将之传递给下家。'
+    )
 
     def is_action_valid(g, cl, target_list):
         target = target_list[0]
@@ -268,17 +325,24 @@ def equip_iav(g, cl, target_list):
     assert t is g.me
     return (True, u'配上好装备，不再掉节操！')
 
+description = (
+    u'|R光学迷彩|r\n\n'
+    u'装备【光学迷彩】后，每次需要出【擦弹】时（例如受到【弹幕】或【地图炮】攻击时），可以选择判定，若判定结果为红色花色（红桃或方块），则等效于出了一张【擦弹】；否则需再出【擦弹】。'
+)
+
 class OpticalCloakCard:
     # action_stage meta
     name = u'光学迷彩'
     image = gres.card_opticalcloak
     image_small = gres.card_opticalcloak_small
+    description = description
 
     is_action_valid = equip_iav
 
 class OpticalCloakSkill:
     # Skill
     name = u'光学迷彩'
+    description = description
 
     def clickable(game):
         return False
@@ -303,11 +367,20 @@ class OpticalCloak:
         else:
             return u'但是被看穿了…'
 
+
+ufo_desc = (
+    u'|R%s|r\n\n'
+    u'UFO用来改变自己与其他玩家之间的距离。\n'
+    u'|B|R>> |r红色UFO为进攻用，当你计算和其它玩家的距离时,在原有的基础上减少相应距离，若结果小于1则依然视为1。\n'
+    u'|B|R>> |r绿色UFO为防守用，当其它玩家计算和你的距离时,在原有的基础上增加相应距离。\n'
+    u'|B|R>> |r你可以同时装备两种UFO'
+)
 class GreenUFOCard:
     # action_stage meta
     name = u'绿色UFO'
     image = gres.card_greenufo
     image_small = gres.card_greenufo_small
+    description = ufo_desc % name
 
     is_action_valid = equip_iav
 
@@ -327,6 +400,7 @@ class RedUFOCard:
     name = u'红色UFO'
     image = gres.card_redufo
     image_small = gres.card_redufo_small
+    description = ufo_desc % name
 
     is_action_valid = equip_iav
 
@@ -344,7 +418,12 @@ class RedUFOSkill:
 class YukariDimensionCard:
     # action_stage meta
     image = gres.card_yukaridimension
-    name = u'紫的隙间'
+    name = u'隙间'
+
+    description = (
+        u'|R隙间|r\n\n'
+        u'出牌阶段对距离为1的一名玩家使用，随机抽取并获得对方一张手牌，或选择并获得一张对方面前的牌(包括装备、明牌区内的牌和判定区的延时类符卡)。'
+    )
 
     def is_action_valid(g, cl, target_list):
         if not target_list:
@@ -371,7 +450,10 @@ class DuelCard:
     # action_stage meta
     image = gres.card_duel
     name = u'弹幕战'
-
+    description = (
+        u'|R弹幕战|r\n\n'
+        u'出牌阶段对(除自己外)任意一名玩家使用，由目标角色先开始，你和他（她）轮流打出一张【弹幕】，【弹幕战】对首先不出【弹幕】的一方造成1点伤害；另一方成为此伤害的来源。'
+    )
     def is_action_valid(g, cl, target_list):
         if not target_list:
             return (False, u'请选择弹幕战的目标')
@@ -385,6 +467,10 @@ class DuelCard:
 class MapCannonCard:
     image = gres.card_mapcannon
     name = u'地图炮'
+    description = (
+        u'|R地图炮|r\n\n'
+        u'按行动顺序结算，除非目标角色打出一张【擦弹】，否则该角色受到【地图炮】对其造成的1点伤害。'
+    )
 
     def is_action_valid(g, cl, target_list):
         return (True, u'一个都不能跑！')
@@ -392,21 +478,31 @@ class MapCannonCard:
 class SinsackCarnivalCard:
     image = gres.card_sinsackcarnival
     name = u'罪袋狂欢'
-
+    description = (
+        u'|R罪袋狂欢|r\n\n'
+        u'出牌阶段使用,(除自己外)所有玩家各需出一张【弹幕】，没有【弹幕】（或不出）的玩家受到一点伤害。'
+    )
     def is_action_valid(g, cl, target_list):
         return (True, u'罪袋们来送水啦！')
+
+description = (
+    u'|R白楼剑|r\n\n'
+    u'攻击范围2，每当你使用【弹幕】攻击一名角色时，无视该角色的防具。'
+)
 
 class HakuroukenCard:
     # action_stage meta
     name = u'白楼剑'
     image = gres.card_hakurouken
     image_small = gres.card_hakurouken_small
+    description = description
 
     is_action_valid = equip_iav
 
 class HakuroukenSkill:
     # Skill
     name = u'白楼剑'
+    description = description
 
     def clickable(game):
         return False
@@ -422,17 +518,24 @@ class Hakurouken:
             t.ui_meta.char_name
         )
 
+description = (
+    u'|R八卦炉|r\n\n'
+    u'攻击范围1，出牌阶段可以使用任意张【弹幕】。'
+)
+
 class ElementalReactorCard:
     # action_stage meta
     name = u'八卦炉'
     image = gres.card_reactor
     image_small = gres.card_reactor_small
+    description = description
 
     is_action_valid = equip_iav
 
 class ElementalReactorSkill:
     # Skill
     name = u'八卦炉'
+    description = description
 
     def clickable(game):
         return False
@@ -440,17 +543,24 @@ class ElementalReactorSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+description = (
+    u'|R阳伞|r\n\n'
+    u'装备后不受【地图炮】和【罪袋狂欢】的影响。'
+)
+
 class UmbrellaCard:
     # action_stage meta
-    name = u'紫的阳伞'
+    name = u'阳伞'
     image = gres.card_umbrella
     image_small = gres.card_umbrella_small
+    description = description
 
     is_action_valid = equip_iav
 
 class UmbrellaSkill:
     # Skill
     name = u'紫的阳伞'
+    description = description
 
     def clickable(game):
         return False
@@ -458,17 +568,24 @@ class UmbrellaSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+description = (
+    u'|R楼观剑|r\n\n'
+    u'攻击范围3，当你使用的【弹幕】被抵消时，你可以立即对相同的目标再使用一张【弹幕】。'
+)
+
 class RoukankenCard:
     # action_stage meta
     name = u'楼观剑'
     image = gres.card_roukanken
     image_small = gres.card_roukanken_small
+    description = description
 
     is_action_valid = equip_iav
 
 class RoukankenSkill:
     # Skill
     name = u'楼观剑'
+    description = description
 
     def clickable(game):
         return False
@@ -492,17 +609,24 @@ class Roukanken:
 
         )
 
+description = (
+    u'|R冈格尼尔|r\n\n'
+    u'攻击范围3，当你需要使用或打出一张【弹幕】时，你可以将两张手牌当一张【弹幕】来使用或打出。'
+)
+
 class GungnirCard:
     # action_stage meta
     name = u'冈格尼尔'
     image = gres.card_gungnir
     image_small = gres.card_gungnir_small
+    description = description
 
     is_action_valid = equip_iav
 
 class GungnirSkill:
     # Skill
     name = u'冈格尼尔'
+    description = description
 
     def clickable(game):
         me = game.me
@@ -545,17 +669,24 @@ class GungnirSkill:
         )
         return s
 
+description = (
+    u'|R莱瓦汀|r\n\n'
+    u'攻击范围4，当你使用的【莱瓦汀】是你的最后一张手牌时，你可以为这张【莱瓦汀】指定至多三名目标，然后依次结算之。'
+)
+
 class LaevateinCard:
     # action_stage meta
     name = u'莱瓦汀'
     image = gres.card_laevatein
     image_small = gres.card_laevatein_small
+    description = description
 
     is_action_valid = equip_iav
 
 class LaevateinSkill:
     # Skill
     name = u'莱瓦汀'
+    description = description
 
     def clickable(game):
         me = game.me
@@ -595,17 +726,24 @@ class LaevateinSkill:
             u'】|r、|G【'.join(tl.ui_meta.char_name),
         )
 
+description = (
+    u'|R三叉戟|r\n\n'
+    u'攻击范围5，你使用【弹幕】对一名角色造成伤害时，你可以弃掉对方装备区里的一个UFO。'
+)
+
 class TridentCard:
     # action_stage meta
     name = u"三叉戟"
     image = gres.card_trident
     image_small = gres.card_trident_small
+    description = description
 
     is_action_valid = equip_iav
 
 class TridentSkill:
     # Skill
     name = u"三叉戟"
+    description = description
 
     def clickable(game):
         return False
@@ -613,17 +751,25 @@ class TridentSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+description = (
+    u'|R悔悟棒|r\n\n'
+    u'攻击范围2，当你使用【弹幕】造成伤害时，你可以防止此伤害，改为弃置该目标角色的两张牌（弃完第一张再弃第二张）。'
+)
+
 class RepentanceStickCard:
     # action_stage meta
     name = u'悔悟棒'
     image = gres.card_repentancestick
     image_small = gres.card_repentancestick_small
+    description = description
 
     is_action_valid = equip_iav
 
 class RepentanceStickSkill:
     # Skill
     name = u'悔悟棒'
+    description = description
+
     def clickable(game):
         return False
 
@@ -656,6 +802,10 @@ class FeastCard:
     # action_stage meta
     image = gres.card_feast
     name = u'宴会'
+    description = (
+        u'|R宴会|r\n\n'
+        u'对所有玩家生效，每一个体力不满的玩家回复一点体力，满体力玩家获得|B喝醉|r状态。'
+    )
 
     def is_action_valid(g, cl, target_list):
         return (True, u'开宴啦~~')
@@ -664,6 +814,10 @@ class HarvestCard:
     # action_stage meta
     image = gres.card_harvest
     name = u'五谷丰登'
+    description = (
+        u'|R五谷丰登|r\n\n'
+        u'你从牌堆顶亮出等同于现存角色数量的牌，然后所有角色按行动顺序结算，选择并获得这些牌中的一张。'
+    )
 
     def is_action_valid(g, cl, target_list):
         return (True, u'麻薯会有的，节操是没有的！')
@@ -678,11 +832,18 @@ class HarvestEffect:
             c.ui_meta.name,
         )
 
+description = (
+    u'|R巫女服|r\n\n'
+    u'距离限制2，你可以将这张牌置于任意一名处于距离内的玩家的装备区里。\n'
+    u'受到【罪袋狂欢】效果时，无法回避。'
+)
+
 class MaidenCostumeCard:
     # action_stage meta
     name = u'巫女服'
     image = gres.card_maidencostume
     image_small = gres.card_maidencostume_small
+    description = description
 
     def is_action_valid(g, cl, target_list):
         if not target_list:
@@ -695,12 +856,18 @@ class MaidenCostumeCard:
 class MaidenCostumeSkill:
     # Skill
     name = u'巫女服'
+    description = description
 
     def clickable(game):
         return False
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+description = (
+    u'|R伊吹瓢|r\n\n'
+    u'当装备在进攻马位置。在装备、失去装备及回合结束时获得|B喝醉|r状态'
+)
 
 class IbukiGourdCard:
     # action_stage meta
@@ -708,10 +875,12 @@ class IbukiGourdCard:
     image = gres.card_ibukigourd
     image_small = gres.card_ibukigourd_small
     is_action_valid = equip_iav
+    description = description
 
 class IbukiGourdSkill:
     # Skill
     name = u'伊吹瓢'
+    description = description
 
     def clickable(game):
         return False
@@ -719,16 +888,25 @@ class IbukiGourdSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
+description = (
+    u'|R蓬莱玉枝|r\n\n'
+    u'攻击范围1，当使用【弹幕】时可以选择发动。发动后【弹幕】带有符卡性质，可以被【好人卡】抵消，不可以使用【擦弹】躲过。\n'
+    u'计算在出【弹幕】的次数内。'
+)
+
 class HouraiJewelCard:
     # action_stage meta
     name = u'蓬莱玉枝'
     image = gres.card_houraijewel
     image_small = gres.card_houraijewel_small
     is_action_valid = equip_iav
+    description = description
 
 class HouraiJewelSkill:
     # Skill
     name = u'蓬莱玉枝'
+    description = description
 
     def clickable(game):
         return False
@@ -750,16 +928,23 @@ class HouraiJewelAttack:
             act.target.ui_meta.char_name,
         )
 
+description = (
+    u'|R西行妖|r\n\n'
+    u'每当你成为其他人符卡的目标时，你可以进行一次判定：若判定结果为黑色，则视为你使用了一张【好人卡】。'
+)
+
 class SaigyouBranchCard:
     # action_stage meta
-    name = u'西行妖枝条'
+    name = u'西行妖'
     image = gres.card_saigyoubranch
     image_small = gres.card_saigyoubranch_small
     is_action_valid = equip_iav
+    description = description
 
 class SaigyouBranchSkill:
     # Skill
-    name = u'西行妖枝条'
+    name = u'西行妖'
+    description = description
 
     def clickable(game):
         return False
@@ -789,16 +974,23 @@ class SaigyouBranch:
                 act.source.ui_meta.char_name,
             )
 
+description = (
+    u'|R调教剑|r\n\n'
+    u'攻击范围2，你使用【弹幕】，指定了一名角色为目标后，你可以令对方选择一项：自己弃一张手牌或让你从牌堆摸一张牌。'
+)
+
 class FlirtingSwordCard:
     # action_stage meta
     name = u'调教剑'
     image = gres.card_flirtingsword
     image_small = gres.card_flirtingsword_small
     is_action_valid = equip_iav
+    description = description
 
 class FlirtingSwordSkill:
     # Skill
     name = u'调教剑'
+    description = description
 
     def clickable(game):
         return False
@@ -841,8 +1033,12 @@ class FlirtingSword:
 
 class CameraCard:
     # action_stage meta
-    name = u'文文的相机'
+    name = u'相机'
     image = gres.card_camera
+    description = (
+        u'|R相机|r\n\n'
+        u'将除了你之外的任意一名玩家的2张手牌置入明牌区'
+    )
 
     def is_action_valid(g, cl, tl):
         if not tl:
@@ -854,16 +1050,23 @@ class CameraCard:
 
         return (True, u'摄影的境界，你们这些玩器材的永远都不会懂！')
 
+description = (
+    u'|R团扇|r\n\n'
+    u'攻击距离3，当你使用【弹幕】命中时，可以另外弃一张牌，卸掉目标的一件装备。'
+)
+
 class AyaRoundfanCard:
     # action_stage meta
-    name = u'文文的团扇'
+    name = u'团扇'
     image = gres.card_ayaroundfan
     image_small = gres.card_ayaroundfan_small
     is_action_valid = equip_iav
+    description = description
 
 class AyaRoundfanSkill:
     # Skill
-    name = u'文文的团扇'
+    name = u'团扇'
+    description = description
 
     def clickable(game):
         return False
@@ -892,16 +1095,23 @@ class AyaRoundfan:
             act.card.ui_meta.name,
         )
 
+description = (
+    u'|R绯想之剑|r\n\n'
+    u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），强制命中对方，对方无法闪避（则【弹幕】依然造成伤害）。'
+)
+
 class ScarletRhapsodySwordCard:
     # action_stage meta
     name = u'绯想之剑'
     image = gres.card_scarletrhapsodysword
     image_small = gres.card_scarletrhapsodysword_small
     is_action_valid = equip_iav
+    description = description
 
 class ScarletRhapsodySwordSkill:
     # Skill
     name = u'绯想之剑'
+    description = description
 
     def clickable(game):
         return False
@@ -924,16 +1134,23 @@ class ScarletRhapsodySword:
             tn, sn
         )
 
+description = (
+    u'|R死神之镰|r\n\n'
+    u'攻击范围2，锁定技，当你使用的【弹幕】造成伤害时，若指定的目标没有手牌，该伤害+1。'
+)
+
 class DeathSickleCard:
     # action_stage meta
     name = u'死神之镰'
     image = gres.card_deathsickle
     image_small = gres.card_deathsickle_small
     is_action_valid = equip_iav
+    description = description
 
 class DeathSickleSkill:
     # Skill
     name = u'死神之镰'
+    description = description
 
     def clickable(game):
         return False
@@ -951,16 +1168,25 @@ class DeathSickle:
             act.target.ui_meta.char_name,
         )
 
+
+description = (
+    u'|R要石|r\n\n'
+    u'特殊的绿色UFO装备，距离+1\n'
+    u'装备后不受【罪袋】的影响'
+)
+
 class KeystoneCard:
     # action_stage meta
     name = u'要石'
     image = gres.card_keystone
     image_small = gres.card_keystone_small
     is_action_valid = equip_iav
+    description = description
 
 class KeystoneSkill:
     # Skill
     name = u'要石'
+    description = description
 
     def clickable(game):
         return False
@@ -976,14 +1202,23 @@ class Keystone:
 
 class WitchBroomCard:
     # action_stage meta
-    name = u'魔女的扫把'
+    name = u'魔女扫把'
     image = gres.card_witchbroom
     image_small = gres.card_witchbroom_small
     is_action_valid = equip_iav
+    description = (
+        u'|R魔女扫把|r\n\n'
+        u'特殊的红色UFO装备，距离+2'
+    )
 
 class WitchBroomSkill:
     # Skill
     no_display = True
+
+description = (
+    u'|R阴阳玉|r\n\n'
+    u'当你的判定牌即将生效时，可以用装备着的【阴阳玉】代替判定牌生效。'
+)
 
 class YinYangOrbCard:
     # action_stage meta
@@ -991,10 +1226,12 @@ class YinYangOrbCard:
     image = gres.card_yinyangorb
     image_small = gres.card_yinyangorb_small
     is_action_valid = equip_iav
+    description = description
 
 class YinYangOrbSkill:
     # Skill
     name = u'阴阳玉'
+    description = description
 
     def clickable(game):
         return False
@@ -1015,22 +1252,35 @@ class YinYangOrb:
             act.target.ui_meta.char_name,
         )
 
+description = (
+    u'|R青蛙帽|r\n\n'
+    u'装备后，手牌上限+2'
+)
+
 class SuwakoHatCard:
     # action_stage meta
     name = u'青蛙帽'
     image = gres.card_suwakohat
     image_small = gres.card_suwakohat_small
     is_action_valid = equip_iav
+    description = description
 
 class SuwakoHatSkill:
     # Skill
     name = u'青蛙帽'
+    description = description
 
     def clickable(game):
         return False
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+
+description = (
+    u'|R半灵|r\n\n'
+    u'装备时增加一点体力上限，当失去装备区里的【半灵】时，回复一点体力。'
+)
 
 class YoumuPhantomCard:
     # action_stage meta
@@ -1038,10 +1288,12 @@ class YoumuPhantomCard:
     image = gres.card_phantom
     image_small = gres.card_phantom_small
     is_action_valid = equip_iav
+    description = description
 
 class YoumuPhantomSkill:
     # Skill
     name = u'半灵'
+    description = description
 
     def clickable(game):
         return False
@@ -1049,16 +1301,23 @@ class YoumuPhantomSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+description = (
+    u'|R⑨的翅膀|r\n\n'
+    u'装备后不受【封魔阵】的影响。'
+)
+
 class IceWingCard:
     # action_stage meta
     name = u'⑨的翅膀'
     image = gres.card_icewing
     image_small = gres.card_icewing_small
     is_action_valid = equip_iav
+    description = description
 
 class IceWingSkill:
     # Skill
     name = u'⑨的翅膀'
+    description = description
 
     def clickable(game):
         return False
@@ -1072,17 +1331,28 @@ class IceWing:
             act.target.ui_meta.char_name
         )
 
+description = (
+    u'|R魔导书|r\n\n'
+    u'攻击距离1，当在你的出牌阶段还没有出【弹幕】时，你可以弃一张牌，发动魔导书，发动后不可以再出【弹幕】（人物技能、【八卦炉】优先），一回合限一次。\n'
+    u'|B|R>> |r弃牌为红桃：视为发动【宴会】\n'
+    u'|B|R>> |r弃牌为方片：视为发动【五谷丰登】\n'
+    u'|B|R>> |r弃牌为黑桃：视为发动【罪袋狂欢】\n'
+    u'|B|R>> |r弃牌为梅花：视为发动【地图炮】'
+)
+
 class GrimoireCard:
     # action_stage meta
     name = u'魔导书'
     image = gres.card_grimoire
     image_small = gres.card_grimoire_small
+    description = description
 
     is_action_valid = equip_iav
 
 class GrimoireSkill:
     # Skill
     name = u'魔导书'
+    description = description
 
     def clickable(game):
         me = game.me
@@ -1121,6 +1391,10 @@ class DollControlCard:
     # action_stage meta
     name = u'人形操控'
     image = gres.card_dollcontrol
+    description = (
+        u'|R人形操控|r\n\n'
+        u'对装备有武器的玩家使用，令其使用一张【弹幕】攻击另一名指定玩家，否则将武器交给自己。'
+    )
 
     def is_action_valid(g, cl, tl):
         n = len(tl)
@@ -1152,6 +1426,10 @@ class DonationBoxCard:
     # action_stage meta
     name = u'塞钱箱'
     image = gres.card_donationbox
+    description = (
+        u'|R塞钱箱|r\n\n'
+        u'指定1-2名有手牌或装备的玩家，被指定玩家必须选择一张手牌或装备牌交给你。'
+    )
 
     def is_action_valid(g, cl, tl):
         n = len(tl)
@@ -1478,7 +1756,7 @@ class Agile:
 class TreasureHunt:
     def effect_string(act):
         if act.succeeded:
-            return u'|G【%s】|r找到了一张|G%s|r' % (
+            return u'|G【%s】|r找到了|G%s|r' % (
                 act.target.ui_meta.char_name,
                 act.card.ui_meta.name,
             )

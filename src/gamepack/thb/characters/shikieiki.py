@@ -20,7 +20,7 @@ class TrialAction(GenericAction):
         g = Game.getgame()
         c = self.card
         g.players.exclude(self.source).reveal(c)
-        migrate_cards([c], g.deck.droppedcards)
+        g.process_action(DropCards(self.source, [c]))
         self.ft.card = c
         return True
 
