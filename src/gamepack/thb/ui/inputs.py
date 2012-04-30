@@ -246,7 +246,7 @@ class UIDoActionStage(UISelectTarget):
         parent.end_select_player()
 
 class UIChooseGirl(Panel):
-    class GirlSelector(Control):
+    class GirlSelector(Control, BallonPrompt):
         hover_alpha = InterpDesc('_hover_alpha')
         auxfbo = Framebuffer()
         def __init__(self, choice, *a, **k):
@@ -262,6 +262,7 @@ class UIChooseGirl(Panel):
             pimg = self.port_image = meta.port_image
             self.char_name = meta.char_name
             self.char_maxlife = cc.maxlife
+            self.init_ballon(meta.description)
 
             # TODO: name and maxlife
             self.grayed_image = pyglet.image.Texture.create_for_size(
@@ -597,7 +598,7 @@ class UIHarvestChoose(Panel):
             self.irp.complete()
         self.delete()
 
-class RanFengshuiControl(Control):
+class RanProphetControl(Control):
     dragging = False
     def __init__(self, *a, **k):
         Control.__init__(self, *a, **k)
@@ -656,7 +657,7 @@ class RanFengshuiControl(Control):
     def draw(self):
         self.draw_subcontrols()
 
-class UIRanFengshui(Panel):
+class UIRanProphet(Panel):
     def __init__(self, irp, parent, *a, **k):
         self.irp = irp
         cards = irp.attachment
@@ -685,7 +686,7 @@ class UIRanFengshui(Panel):
             *a, **k
         )
 
-        rpc = RanFengshuiControl(parent=self, x=100, y=60)
+        rpc = RanProphetControl(parent=self, x=100, y=60)
         for i, c in enumerate(cards):
             cs = CardSprite(c, parent=rpc)
             cs.associated_card = c
@@ -732,7 +733,7 @@ mapping = dict(
     choose_option=UIChooseOption,
     choose_individual_card=UIChooseIndividualCard,
     harvest_choose=Dummy,
-    ran_fengshui=UIRanFengshui,
+    ran_prophet=UIRanProphet,
 )
 
 mapping_all = dict(

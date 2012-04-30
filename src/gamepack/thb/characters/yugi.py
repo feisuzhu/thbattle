@@ -35,8 +35,9 @@ class AssaultSkill(Skill):
             cl = self.associated_cards
             if not cl: return True
             if not len(cl) == 1: return False
-            if cl[0].equipment_category != 'weapon': return False
-            return True
+            if cl[0].is_card(WineCard): return True
+            if cl[0].equipment_category == 'weapon': return True
+            return False
         except AttributeError:
             return False
 

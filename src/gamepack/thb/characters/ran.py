@@ -5,7 +5,7 @@ from ..cards import *
 from utils import check, check_type, CheckFailed
 
 
-class Fengshui(Skill):
+class Prophet(Skill):
     associated_action = None
     target = t_None
 
@@ -13,14 +13,14 @@ class ExtremeIntelligence(Skill):
     associated_action = None
     target = t_None
 
-class FengshuiAction(GenericAction):
+class ProphetAction(GenericAction):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
         n = min(len([p for p in g.players if not p.dead]), 5)
         cards = g.deck.getcards(n)
         tgt.reveal(cards)
-        rst = tgt.user_input('ran_fengshui', cards, timeout=40)
+        rst = tgt.user_input('ran_prophet', cards, timeout=40)
         if not rst: return act
         try:
             check_type([[int, Ellipsis]]*2, rst)
@@ -39,13 +39,13 @@ class FengshuiAction(GenericAction):
 
         return True
 
-class FengshuiHandler(EventHandler):
+class ProphetHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             tgt = act.target
-            if not tgt.has_skill(Fengshui): return act
+            if not tgt.has_skill(Prophet): return act
             if not tgt.user_input('choose_option', self): return act
-            Game.getgame().process_action(FengshuiAction(tgt, tgt))
+            Game.getgame().process_action(ProphetAction(tgt, tgt))
 
         return act
 
@@ -107,6 +107,6 @@ class ExtremeIntelligenceHandler(EventHandler):
 
 @register_character
 class Ran(Character):
-    skills = [Fengshui, ExtremeIntelligence]
-    eventhandlers_required = [FengshuiHandler, ExtremeIntelligenceHandler]
+    skills = [Prophet, ExtremeIntelligence]
+    eventhandlers_required = [ProphetHandler, ExtremeIntelligenceHandler]
     maxlife = 3

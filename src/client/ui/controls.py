@@ -464,17 +464,20 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 class BallonPrompt(object):
-    def init_ballon(self, text):
+    def init_ballon(self, text, region=None):
         self.ballon_state = 'hidden'
 
         ta = TextArea(parent=None, x=2, y=2, width=288, height=100)
         ta.append(text)
-        h = max(ta.content_height, 100)
+        #h = max(ta.content_height, 100)
+        h = ta.content_height
         ta.height = h
         panel = Panel(parent=None, x=0, y=0, width=292, height=h+4)
         panel.add_control(ta)
         panel.blur_update_interval = 1
+        panel.fill_color = (1.0, 1.0, 0.9, 0.5)
         self.ballon_panel = panel
+        self.ballon_region = region
 
         self.push_handlers(
             on_mouse_motion=self.ballon_on_mouse_motion,
@@ -491,6 +494,16 @@ class BallonPrompt(object):
         ay += y
         b = self.ballon_panel
         bw, bh = b.width, b.height
+
+        r = self.ballon_region
+        if r:
+            x1, y1, w, h = r
+            x2 = x1 + w
+            y2 = y1 + h
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                self.ballon_on_mouse_enter(x, y)
+            else:
+                self.ballon_on_mouse_leave(x, y)
 
         if ax*2 <= ow:
             ax += 10
@@ -512,10 +525,14 @@ class BallonPrompt(object):
     def ballon_on_mouse_leave(self, x, y):
         if self.ballon_state == 'ticking':
             pyglet.clock.unschedule(self.ballon_show)
+        if self.ballon_state == 'shown':
+            self.ballon_panel.delete()
         self.ballon_state = 'hidden'
-        self.ballon_panel.delete()
+
 
     def ballon_show(self, dt):
+        if self.ballon_state == 'shown': return
+        self.ballon_state = 'shown'
         Overlay.cur_overlay.add_control(self.ballon_panel)
 
 class TextBox(Control):
@@ -713,6 +730,7 @@ class TextArea(Control):
             (r'\|G', set_attrib('color', (0x20, 0x80, 0x20, 0xff))),
             (r'\|Y', set_attrib('color', (0xff, 0xff, 0x30, 0xff))),
             (r'\|LB', set_attrib('color', (0x90, 0xdc, 0xe8, 0xff))),
+            (r'\|DB', set_attrib('color', (0x00, 0x00, 0x60, 0xff))),
 
         ])
 
@@ -1147,6 +1165,8 @@ ConfirmBox.register_event_type('on_confirm')
 
 class Panel(Control):
     blur_update_interval = 2
+    fill_color = (1.0, 1.0, 0.8, 0.0)
+
     def __init__(self, color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
         self.color = color
@@ -1190,6 +1210,12 @@ class Panel(Control):
             fbo.texture = tex1
             with GaussianBlurVertical:
                 tex2.blit(0, 0)
+
+            c = self.fill_color
+            if c[3] != 0.0:
+                glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
+                glColor4f(*c)
+                glRectf(0, 0, w, h)
 
     def draw(self):
         self.tick += 1

@@ -340,7 +340,7 @@ class SkillSelectionBox(Control):
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
-class SmallCardSprite(Control):
+class SmallCardSprite(Control, BallonPrompt):
     width, height = 33, 46
     x = InterpDesc('_x')
     y = InterpDesc('_y')
@@ -351,6 +351,7 @@ class SmallCardSprite(Control):
         self.selected = False
         self.hover = False
         self.img = card.ui_meta.image_small
+        self.init_ballon(card.ui_meta.description)
 
     def draw(self):
         glColor3f(1., 1., 1.)
@@ -461,7 +462,7 @@ class ShownCardPanel(Panel):
         Panel.delete(self)
         ShownCardPanel.current = None
 
-class GameCharacterPortrait(Dialog):
+class GameCharacterPortrait(Dialog, BallonPrompt):
 
     def __init__(self, color=Colors.blue, tag_placement='me', *args, **kwargs):
         self.selected = False
@@ -489,6 +490,10 @@ class GameCharacterPortrait(Dialog):
             x=3, y=6,
             manual_draw=True,
         )
+
+        #self.prompt_area = PromptControl(
+        #    parent=self, x=2, y=74, width=145, height=96, zindex=-1,
+        #)
 
         @self.equipcard_area.event
         def on_selection_change():
@@ -570,6 +575,7 @@ class GameCharacterPortrait(Dialog):
             return
 
         self.bg = meta.port_image
+        self.init_ballon(meta.description, (2, 74, 145, 96))
 
         self.bot_reserve=74
         Dialog.update(self)

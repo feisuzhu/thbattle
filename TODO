@@ -11,7 +11,7 @@ THBattle:
     youmu incomplete
 
     shuffle handcards when sb get cards
-    prompt strings
+    #prompt strings
     ran: ui tune
 
     tag ui_meta: use function

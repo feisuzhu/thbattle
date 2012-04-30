@@ -15,8 +15,12 @@ class LuckHandler(EventHandler):
         if evt_type == 'action_after':
             for p in [getattr(act, 'source', None), getattr(act, 'target', None)]:
                 if p and p.has_skill(Luck) and not (p.cards or p.showncards):
-                    g = Game.getgame()
-                    g.process_action(LuckDrawCards(p, 2))
+                    Game.getgame().process_action(LuckDrawCards(p, 2))
+                    
+        elif evt_type == 'action_apply' and isinstance(act, LaunchCard):
+            p = act.source
+            if p and p.has_skill(Luck) and (len(p.cards) + len(p.showncards)) == 1:
+                Game.getgame().process_action(LuckDrawCards(p, 2))
         return act
 
 @register_character
