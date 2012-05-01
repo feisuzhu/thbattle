@@ -225,6 +225,7 @@ def _aese(_type, self, act):
 
 action_effect_string_before = partial(_aese, 'effect_string_before')
 action_effect_string_after = partial(_aese, 'effect_string')
+action_effect_string_apply = partial(_aese, 'effect_string_apply')
 
 mapping_actions = ddict(dict, {
     'before': {
@@ -233,6 +234,9 @@ mapping_actions = ddict(dict, {
         ActionStage: action_stage_update_tag,
         PlayerTurn: player_turn_effect,
         Action: action_effect_string_before,
+    },
+    'apply': {
+        Action: action_effect_string_apply,
     },
     'after': {
         DamageEffect: damage_effect,

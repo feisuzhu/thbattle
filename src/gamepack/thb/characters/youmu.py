@@ -9,6 +9,18 @@ class Mijincihangzhan(Skill):
     associated_action = None
     target = t_None
 
+class Nitoryuu(Skill):
+    # 二刀流
+    # compulsory skill, just a tag.
+    associated_action = None
+    target = t_None
+
+class Xianshiwangzhi(Skill):
+    # 现世妄执
+    # compulsory skill, just a tag.
+    associated_action = None
+    target = t_None
+
 class MijincihangzhanAttack(Attack):
     def apply_action(self):
         g = Game.getgame()
@@ -24,16 +36,57 @@ class MijincihangzhanAttack(Attack):
         g.process_action(Damage(source, target, amount=self.damage))
         return True
 
-class MijincihangzhanHandler(EventHandler):
+class XianshiwangzhiAwake(SkillAwake):
+    skill = Xianshiwangzhi
+
+class YoumuWearEquipmentAction(UserAction):
+    def apply_action(self):
+        g = Game.getgame()
+        card = self.associated_card
+        target = self.target
+        equips = target.equips
+        g = Game.getgame()
+        cat = card.equipment_category
+        if cat == 'weapon':
+            weapons = [e for e in equips if e.equipment_category == 'weapon']
+            if len(weapons) > 1:
+                e = choose_individual_card(target, weapons)
+                if not e: e = weapons[0]
+                g.process_action(DropCards(target, [e]))
+                weapons.remove(e)
+
+            weapons.append(card)
+            cls = [e.__class__ for e in weapons]
+            l = [HakuroukenCard, RoukankenCard]
+            l_r = [RoukankenCard, HakuroukenCard]
+            if (cls == l or cls == l_r) and not target.has_skill(Xianshiwangzhi):
+                g.process_action(XianshiwangzhiAwake(target, target))
+        else:
+            for oc in equips:
+                if oc.equipment_category == cat:
+                    g.process_action(DropCards(target, [oc]))
+                    break
+        migrate_cards([card], target.equips)
+        return True
+
+class YoumuHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, Attack):
-            if act.source.has_skill(Mijincihangzhan):
+        if evt_type == 'action_before':
+            if isinstance(act, Attack):
+                if not act.source.has_skill(Mijincihangzhan): return act
                 act.__class__ = MijincihangzhanAttack
+            elif isinstance(act, WearEquipmentAction):
+                if not act.source.has_skill(Nitoryuu): return act
+                act.__class__ = YoumuWearEquipmentAction
+            elif isinstance(act, ActionStage):
+                a = act.actor
+                if not a.has_skill(Xianshiwangzhi): return act
+                a.tags['attack_num'] += 1
 
         return act
 
 @register_character
 class Youmu(Character):
-    skills = [Mijincihangzhan]
-    eventhandlers_required = [MijincihangzhanHandler]
+    skills = [Mijincihangzhan, Nitoryuu]
+    eventhandlers_required = [YoumuHandler]
     maxlife = 4

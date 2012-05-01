@@ -599,3 +599,11 @@ class CardShuffler(EventHandler):
             if to and to.type == CardList.HANDCARD:
                 Game.getgame().deck.shuffle(to)
         return arg
+
+class SkillAwake(GenericAction):
+    skill = None
+    def apply_action(self):
+        s = self.skill
+        assert s
+        self.target.skills.append(s)
+        return True

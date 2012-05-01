@@ -27,7 +27,7 @@ class DropCardStage:
     text = u'请弃牌…'
 
     def effect_string(act):
-        if act.dropn:
+        if act.dropn > 0:
             return u'|G【%s】|r弃掉了%d张牌。' % (
                 act.target.ui_meta.char_name, act.dropn
             )
@@ -883,7 +883,7 @@ class HouraiJewelHandler:
     choose_option_prompt = u'你要发动【蓬莱玉枝】吗？'
 
 class HouraiJewelAttack:
-    def effect_string_before(act):
+    def effect_string_apply(act):
         return (
             u'|G【%s】|r发动了|G蓬莱玉枝|r，包裹着魔法核心的弹幕冲向了|G【%s】|r！'
         ) % (
@@ -1447,7 +1447,6 @@ class Youmu:
         u'|G二刀流|r：你可以同时装备两把武器。同时装备时，攻击距离加成按其中较低者计算，武器技能同时有效。\n'
         u'|B|R>> |r成为【人形操控】目标并且不出【弹幕】的话，两把武器会被一起拿走\n\n'
         u'|G现世妄执|r：|B觉醒技|r，同时装备了楼观剑与白楼剑获得此技能（卸掉/更换装备不会失去）。一回合内你可以使用两张【弹幕】。'
-
     )
 
 class Mijincihangzhan:
@@ -1459,6 +1458,36 @@ class Mijincihangzhan:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+class MijincihangzhanAttack:
+    def effect_string_apply(act):
+        # for LaunchCard.ui_meta.effect_string
+        src = act.source
+        tgt = act.target
+        return u'|G【%s】|r在弹幕中注入了妖力，弹幕形成了一个巨大的光刃，怕是不能轻易地闪开的！' % (
+            src.ui_meta.char_name,
+        )
+
+class Nitoryuu:
+    # Skill
+    name = u'二刀流'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Xianshiwangzhi:
+    # Skill
+    name = u'现世妄执'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
 
 # ----------
 
@@ -1996,6 +2025,13 @@ class Jolly:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+class JollyDrawCards:
+    def effect_string(act):
+        return u'|G【%s】|r高兴地多摸了%d张牌~' % (
+            act.source.ui_meta.char_name,
+            act.amount,
+        )
+
 class SurpriseSkill:
     # Skill
     name = u'惊吓'
@@ -2290,7 +2326,7 @@ class MagicCannon:
         return (False, 'BUG!')
 
 class MagicCannonAttack:
-    def effect_string(act):
+    def effect_string_apply(act):
         return (
             u'|G【%s】|r已经做好了迎接弹幕的准备，谁知冲过来的竟是一束|G魔炮|r！'
         ) % (

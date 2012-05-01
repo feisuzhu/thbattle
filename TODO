@@ -4,12 +4,6 @@ THBattle:
     server selection screen
 
     victory condition
-    target ?
-
-    youmu incomplete
-
-    shuffle handcards when sb get cards
-    #prompt strings
     ran: ui tune
 
     tag ui_meta: use function
