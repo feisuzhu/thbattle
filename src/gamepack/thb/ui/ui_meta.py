@@ -78,7 +78,7 @@ class AttackCard:
     description = (
         u'|R弹幕|r\n\n'
         u'你的出牌阶段，对除你外，你攻击范围内的一名角色使用，效果是对该角色造成1点伤害。\n'
-        u'|B|R>> |r游戏开始时你的攻击范围是1	。\n'
+        u'|B|R>> |r游戏开始时你的攻击范围是1。\n'
         u'|B|R>> |r每个出牌阶段你只能使用一张【弹幕】。'
     )
 
@@ -131,8 +131,8 @@ class ExinwanCard:
     description = (
         u'|R恶心丸|r\n\n'
         u'当该牌以任意的方式因弃牌动作进入弃牌堆时，动作来源需要选择其中一项执行：\n'
-	u'|B|R>> |r受到一点伤害，无来源\n'
-	u'|B|R>> |r弃两张牌'
+        u'|B|R>> |r受到一点伤害，无来源\n'
+        u'|B|R>> |r弃两张牌'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -2137,8 +2137,8 @@ class Eirin:
     port_image = gres.eirin_port
     description = (
         u'|DB街中的药贩 八意永琳 体力：3|r\n\n'
-	u'|G医者|r：出牌阶段，你可以主动弃掉一张手牌，令任一目标角色回复1点体力。每回合限一次。\n\n'
-	u'|G急救|r：你的回合外，你可以将你的任意红色牌当【麻薯】使用。'
+        u'|G医者|r：出牌阶段，你可以主动弃掉一张手牌，令任一目标角色回复1点体力。每回合限一次。\n\n'
+        u'|G急救|r：你的回合外，你可以将你的任意红色牌当【麻薯】使用。'
     )
 
 # ----------
@@ -2197,8 +2197,8 @@ class Shikieiki:
     port_image = gres.shikieiki_port
     description = (
         u'|DB乐园的最高裁判长 四季映姬 体力：3|r\n\n'
-	u'|G审判|r：在任意角色的判定牌生效前，你可以打出一张手牌代替之。\n\n'
-	u'|G威严|r：可以立即从对你造成伤害的来源处获得一张牌。'
+        u'|G审判|r：在任意角色的判定牌生效前，你可以打出一张手牌代替之。\n\n'
+        u'|G威严|r：可以立即从对你造成伤害的来源处获得一张牌。'
     )
 
 # ----------
@@ -2321,9 +2321,9 @@ class Yuuka:
     port_image = gres.yuuka_port
     description = (
         u'|DB：四季的鲜花之主 风见幽香 体力：4|r\n\n'
-	u'|G花王|r：你的所有的梅花牌都可以当做【弹幕】和【擦弹】使用或打出。\n\n'
-	u'|G魔炮|r：锁定技，你在使用红色的【弹幕】时伤害+1\n\n'
-	u'|G完杀|r：锁定技，由你击杀的玩家只能由你的和被击杀玩家的【麻薯】救起。'
+        u'|G花王|r：你的所有的梅花牌都可以当做【弹幕】和【擦弹】使用或打出。\n\n'
+        u'|G魔炮|r：锁定技，你在使用红色的【弹幕】时伤害+1\n\n'
+        u'|G完杀|r：锁定技，由你击杀的玩家只能由你的和被击杀玩家的【麻薯】救起。'
     )
 
 # ----------
@@ -2387,7 +2387,7 @@ class Rumia:
     description = (
         u'|DB宵暗的妖怪 露米娅 体力：3|r\n\n'
         u'|G黑暗|r：出牌阶段，你可以弃一张牌并选择两名角色。若如此做，视为由你选择的其中一名角色对另一名角色使用一张【弹幕战】。额外的，此【弹幕战】不能被【好人卡】响应。每回合限一次。\n\n'
-	u'|G作弊|r：弃牌阶段后，你摸一张牌。'
+        u'|G作弊|r：弃牌阶段后，你摸一张牌。'
     )
 
 # ----------
@@ -2458,15 +2458,15 @@ class Rinnosuke:
     port_image = gres.rinnosuke_port
     description = (
         u'|DB变态出没注意 森近霖之助 体力：3|r\n\n'
-	u'|G变态|r：当你失去一张装备区里的牌时，你可以立即摸两张牌。\n\n'
-	u'|G寝取|r：出牌阶段，你可以弃两张手牌并指定一名除了你之外的受伤的角色：你和目标角色各回复1点体力。每回合限用一次。'
+        u'|G变态|r：当你失去一张装备区里的牌时，你可以立即摸两张牌。\n\n'
+        u'|G寝取|r：出牌阶段，你可以弃两张手牌并指定一名除了你之外的受伤的角色：你和目标角色各回复1点体力。每回合限用一次。'
     )
 
 # ----------
 
 class Prophet:
     # Skill
-    name = u'风水'
+    name = u'神算'
 
     def clickable(game):
         return False
@@ -2487,11 +2487,11 @@ class ExtremeIntelligence:
 class ProphetHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【风水】吗？'
+    choose_option_prompt = u'你要发动【神算】吗？'
 
 class ProphetAction:
     def effect_string_before(act):
-        return u'众人正准备接招呢，|G【%s】|r却不急不忙地看起了|G风水|r…' % (
+        return u'众人正准备接招呢，|G【%s】|r却掐着指头算了起来…' % (
             act.target.ui_meta.char_name,
         )
 
@@ -2520,7 +2520,7 @@ class Ran:
     description = (
         u'|DB天河一号的核心 八云蓝 体力：3|r\n\n'
         u'|G神算|r：在你的判定流程前，可以翻开等于场上存活人数（不超过5张）的牌，并以任意的顺序放回牌堆的上面或者下面。\n\n'
-	u'|G极智|r：自己的回合外，当任何人发动除【好人卡】以外非延时SC时，发动完成后，你可以选择弃一张牌，再次发动该SC，目标不变，发动者算作你。一轮一次。'
+        u'|G极智|r：自己的回合外，当任何人发动除【好人卡】以外非延时SC时，发动完成后，你可以选择弃一张牌，再次发动该SC，目标不变，发动者算作你。一轮一次。'
     )
 
 # -----END CHARACTERS UI META-----

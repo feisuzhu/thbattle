@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck classes
 
-from game.autoenv import Game, GameError
+from game.autoenv import Game, GameError, SyncPrimitive
 import random
 import logging
 log = logging.getLogger('THBattle_Cards')
@@ -214,12 +214,35 @@ class Deck(object):
             except KeyError:
                 pass
 
+        oids = [c.syncid for c in cl]
+        random.shuffle(oids)
+
+        newids = [g.get_synctag() for c in cl]
+
+        owner = cl.owner
+        mapping = SyncPrimitive({oid:nid for oid, nid in zip(oids, newids)})
+        owner.reveal(mapping)
+        mapping = mapping.value
+        print mapping
+
+        if Game.CLIENT_SIDE and owner is not g.me:
+            cl.clear()
+            cl.extend(HiddenCard(Card.NOTSET, 0, cl) for c in cl)
+            return
+
         if Game.SERVER_SIDE:
-            random.shuffle(cl)
             for c in cl:
-                c.syncid = g.get_synctag()
+                print "%d ==> %d" % (c.syncid, mapping[c.syncid])
+                c.syncid = mapping[c.syncid]
         elif Game.CLIENT_SIDE:
-            cl[:] = [HiddenCard(Card.NOTSET, 0, cl) for i in xrange(len(cl))]
+            for c in cl:
+                # WORKAROUND: simplejson always convert integer keys to strings
+                print "%d ==> %d" % (c.syncid, mapping[str(c.syncid)])
+                c.syncid = mapping[str(c.syncid)]
+
+        for c in cl:
+            self.cards_record[c.syncid] = c
+
 
 class Skill(VirtualCard):
 

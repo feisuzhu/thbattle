@@ -122,10 +122,9 @@ def migrate_cards(cards, to):
 
     for l in mapping.values():
         cl = l[0].resides_in
-        g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
-
         for c in l:
             c.move_to(to)
+        g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 
 def choose_peer_card(source, target, categories):
     assert all(c.owner is target for c in categories)
@@ -209,7 +208,8 @@ class PlayerDeath(GenericAction):
         tgt = self.target
         g = Game.getgame()
         dropped = g.deck.droppedcards
-        pl = g.players.exclude(self.source)
+        src = self.source or self.target
+        pl = g.players.exclude(src)
         for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell]:
             pl.reveal(cl)
             migrate_cards(cl, dropped)
@@ -381,7 +381,7 @@ class LaunchCard(GenericAction):
         act = cls(source=src, target=target)
         act.associated_card = card
         act.target_list = tl
-        if not act.is_valid():
+        if not act.can_fire():
             return False
 
         return True
@@ -589,3 +589,13 @@ class DummyAction(GenericAction):
 
     def apply_action(self):
         return self.result
+
+@register_eh
+class CardShuffler(EventHandler):
+    def handle(self, evt_type, arg):
+        if evt_type == 'card_migration':
+            act, l, cl, to = arg # (action, cardlist, from, to)
+            from .cards import CardList
+            if to and to.type == CardList.HANDCARD:
+                Game.getgame().deck.shuffle(to)
+        return arg

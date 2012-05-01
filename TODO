@@ -1,6 +1,4 @@
 THBattle:
-    Ballon prompt
-
     #bugs: died person should drop all cards, should not respond to any input events
 
     server selection screen
@@ -17,15 +15,7 @@ THBattle:
     tag ui_meta: use function
 
 QUIRKS:
-    >> Card.resides_in thing, VirtualCard has no this attrib, dangling cards are
-    set to None. FIXED
-
-    >> actions.LaunchCard.is_valid uses associated_action.is_valid
-    to determine the validity, which is inaccurate.
-    use action.can_fire will be fine, but the action will be checked twice
-    which is unnecessary.
-
-    >> Action.target / Action.actor
+    >> Action.target / Action.actor, NOT TOUCHING IT
 
 曹　操
 夏侯惇 船长
