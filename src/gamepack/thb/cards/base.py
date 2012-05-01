@@ -232,12 +232,10 @@ class Deck(object):
 
         if Game.SERVER_SIDE:
             for c in cl:
-                print "%d ==> %d" % (c.syncid, mapping[c.syncid])
                 c.syncid = mapping[c.syncid]
         elif Game.CLIENT_SIDE:
             for c in cl:
                 # WORKAROUND: simplejson always convert integer keys to strings
-                print "%d ==> %d" % (c.syncid, mapping[str(c.syncid)])
                 c.syncid = mapping[str(c.syncid)]
 
         for c in cl:

@@ -464,19 +464,10 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 class BallonPrompt(object):
+    ballon_panel = None
     def init_ballon(self, text, region=None):
         self.ballon_state = 'hidden'
-
-        ta = TextArea(parent=None, x=2, y=2, width=288, height=100)
-        ta.append(text)
-        #h = max(ta.content_height, 100)
-        h = ta.content_height
-        ta.height = h
-        panel = Panel(parent=None, x=0, y=0, width=292, height=h+4)
-        panel.add_control(ta)
-        panel.blur_update_interval = 1
-        panel.fill_color = (1.0, 1.0, 0.9, 0.5)
-        self.ballon_panel = panel
+        self.ballon_text = text
         self.ballon_region = region
 
         self.push_handlers(
@@ -487,13 +478,11 @@ class BallonPrompt(object):
         )
 
     def ballon_on_mouse_motion(self, x, y, dx, dy, *a):
-        o = Overlay.cur_overlay
-        ow, oh = o.width, o.height
         ax, ay = self.abs_coords()
         ax += x
         ay += y
-        b = self.ballon_panel
-        bw, bh = b.width, b.height
+
+        self.ballon_cursorloc = (ax, ay)
 
         r = self.ballon_region
         if r:
@@ -505,17 +494,28 @@ class BallonPrompt(object):
             else:
                 self.ballon_on_mouse_leave(x, y)
 
-        if ax*2 <= ow:
-            ax += 10
-        else:
-            ax -= bw + 10
+        b = self.ballon_panel
+        if b:
+            b.x, b.y = self._ballon_getloc(ax, ay)
 
-        if ay*2 <= oh:
-            ay += 10
-        else:
-            ay -= bh + 10
 
-        b.x, b.y = ax, ay
+    def _ballon_getloc(self, x, y):
+        b = self.ballon_panel
+        o = Overlay.cur_overlay
+        ow, oh = o.width, o.height
+        bw, bh = b.width, b.height
+
+        if x*2 <= ow:
+            x += 10
+        else:
+            x -= bw + 10
+
+        if y*2 <= oh:
+            y += 10
+        else:
+            y -= bh + 10
+
+        return (x, y)
 
     def ballon_on_mouse_enter(self, x, y):
         if self.ballon_state == 'hidden':
@@ -527,13 +527,26 @@ class BallonPrompt(object):
             pyglet.clock.unschedule(self.ballon_show)
         if self.ballon_state == 'shown':
             self.ballon_panel.delete()
+            del self.ballon_panel
         self.ballon_state = 'hidden'
 
 
     def ballon_show(self, dt):
         if self.ballon_state == 'shown': return
         self.ballon_state = 'shown'
-        Overlay.cur_overlay.add_control(self.ballon_panel)
+
+        ta = TextArea(parent=None, x=2, y=2, width=288, height=100)
+        ta.append(self.ballon_text)
+        h = ta.content_height
+        ta.height = h
+
+        panel = Panel(parent=Overlay.cur_overlay, x=0, y=0, width=292, height=h+4)
+        panel.add_control(ta)
+        panel.blur_update_interval = 1
+        panel.fill_color = (1.0, 1.0, 0.9, 0.5)
+        self.ballon_panel = panel
+
+        panel.x, panel.y = self._ballon_getloc(*self.ballon_cursorloc)
 
 class TextBox(Control):
     def __init__(self, text='Yoooooo~', color=Colors.green, *args, **kwargs):

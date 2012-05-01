@@ -591,7 +591,7 @@ class GameCharacterPortrait(Dialog, BallonPrompt):
             if w:
                 common_res.hp_bg.get_region(0, 0, w, h).blit(5, 55)
 
-            w, h = hp.width * p.life, hp.height
+            w, h = hp.width * max(p.life, 0), hp.height
             if w:
                 common_res.hp.get_region(0, 0, w, h).blit(5, 55)
 
