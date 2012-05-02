@@ -230,8 +230,9 @@ class Overlay(Control):
             pass
     cur_overlay = DummyOverlay()
     def __init__(self, *args, **kwargs):
-        Control.__init__(self, width=WINDOW_WIDTH, height=WINDOW_HEIGHT,
-                         parent=False)
+        Control.__init__(
+            self, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, parent=False
+        )
         self.__dict__.update(kwargs)
         self.last_mouse_press = [  # WONTFIX: Button combinations not supported.
             None,

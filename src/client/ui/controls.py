@@ -253,7 +253,6 @@ class ImageButton(Control):
         if self.state != Button.DISABLED:
             self.state = Button.NORMAL
 
-
     def on_mouse_press(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             if button == mouse.LEFT:
@@ -498,7 +497,6 @@ class BallonPrompt(object):
         if b:
             b.x, b.y = self._ballon_getloc(ax, ay)
 
-
     def _ballon_getloc(self, x, y):
         b = self.ballon_panel
         o = Overlay.cur_overlay
@@ -520,6 +518,7 @@ class BallonPrompt(object):
     def ballon_on_mouse_enter(self, x, y):
         if self.ballon_state == 'hidden':
             self.ballon_state = 'ticking'
+            self.ballon_overlay = Overlay.cur_overlay
             pyglet.clock.schedule_once(self.ballon_show, 0.8)
 
     def ballon_on_mouse_leave(self, x, y):
@@ -530,9 +529,10 @@ class BallonPrompt(object):
             del self.ballon_panel
         self.ballon_state = 'hidden'
 
-
     def ballon_show(self, dt):
         if self.ballon_state == 'shown': return
+        if Overlay.cur_overlay != self.ballon_overlay: return
+
         self.ballon_state = 'shown'
 
         ta = TextArea(parent=None, x=2, y=2, width=288, height=100)

@@ -68,11 +68,11 @@ with ResLoader(__file__) as args:
     bg_login = ldr.texture('bg_login.png')
     bg_gamehall = ldr.texture('bg_gamehall.png')
     bg_ingame = ldr.texture('bg_ingame.png')
+    worldmap = ldr.texture('worldmap.png')
 
     bg_gamelist = tx('bg_gamelist.png')
     bg_eventsbox = tx('bg_eventsbox.png')
     bg_chatbox = tx('bg_chatbox.png')
-
 
     card_shinesoft = tx('shinesoft.tga')
     card_hidden = tx('card_hidden.tga')
@@ -86,7 +86,6 @@ with ResLoader(__file__) as args:
 
     num = pyglet.image.ImageGrid(img('num.tga'), 1, 10)
     num = pyglet.image.TextureGrid(num)
-
 
     choosegirl_shine = tx('choosegirl_shine.png')
 
@@ -115,6 +114,11 @@ with ResLoader(__file__) as args:
     buttons.port_showncard = [
         tb.add(i) for i in
         pyglet.image.ImageGrid(img('buttons/port_showncard.png'), 1, 4)
+    ]
+
+    buttons.serverbtn = [
+        tb.add(i) for i in
+        pyglet.image.ImageGrid(img('buttons/serverbtn.png'), 1, 4)
     ]
 
     for k in args.keys(): del k

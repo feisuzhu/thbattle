@@ -2,6 +2,7 @@ THBattle:
     #bugs: died person should drop all cards, should not respond to any input events
 
     server selection screen
+    auto update
 
     victory condition
     ran: ui tune
@@ -16,8 +17,6 @@ QUIRKS:
 关　羽
 吕　蒙
 黄　盖
-
-
 
 
 CommonUI:
@@ -38,7 +37,6 @@ and finally, the game!
 异变 -- 忠
 解决者 -- 反
 不明 -- 内
-
 
 addtional:
 

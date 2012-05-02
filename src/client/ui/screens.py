@@ -13,51 +13,44 @@ from utils import Rect, rect_to_dict as r2d
 import logging
 log = logging.getLogger('UI_Screens')
 
-class _NotImplControl(Control):
-    def draw(self):
-        glColor3f(1, 1, 1)
-        ui_utils.border(
-            0, 0, self.width, self.height
-        )
-
-class LoadingScreen(Overlay):
-
-    def __init__(self, *args, **kwargs):
-        Overlay.__init__(self, *args, **kwargs)
-
-        self.label = Label(text='Loading',
-                    font_size=60,color=(255,255,255,255),
-                    x=self.width//2, y=self.height//2,
-                    anchor_x='center', anchor_y='center')
-
-    def draw(self):
-        glClearColor(0.0, 0.0, 0.0, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT)
-        self.label.draw()
-
 class ServerSelectScreen(Overlay):
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
-        self.btn = Button(caption=u'连接服务器', x=480, y=400,
-                          width=64, height=32, parent=self)
-        self.btn.set_handler('on_click', self.do_connect)
+        self.buttons  = buttons = []
+        from settings import ServerList as sl
 
-    def do_connect(self):
-        Executive.call('connect_server', ui_message, ('127.0.0.1', 9999), ui_message)
+        class BallonImageButton(ImageButton, BallonPrompt):
+            pass
+
+        for s in sl.values():
+            btn = BallonImageButton(
+                common_res.buttons.serverbtn,
+                parent=self, x=s['x'], y=s['y'],
+            )
+            btn.init_ballon(s['description'])
+            btn.set_handler('on_click', lambda s=s: self.do_connect(s['address']))
+            buttons.append(btn)
+
+    def do_connect(self, addr):
+        for b in self.buttons:
+            b.state = Button.DISABLED
+        Executive.call('connect_server', ui_message, addr, ui_message)
 
     def on_message(self, _type, *args):
         if _type == 'server_connected':
             login = LoginScreen()
             login.switch()
         elif _type == 'server_connect_failed':
+            for b in self.buttons:
+                b.state = Button.NORMAL
             log.error('Server connect failed.')
             ConfirmBox(u'服务器连接失败！', parent=self)
         else:
             Overlay.on_message(self, _type, *args)
 
     def draw(self):
-        glClearColor(0.0, 0.0, 0.0, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT)
+        glColor3f(0.9, 0.9, 0.9)
+        common_res.worldmap.blit(0, 0)
         self.draw_subcontrols()
 
 class LoginScreen(Overlay):
