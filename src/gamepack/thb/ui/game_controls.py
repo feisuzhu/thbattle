@@ -4,7 +4,7 @@ from client.ui.controls import *
 from client.ui import resource as common_res
 from client.ui import shaders
 
-class CardSprite(Control, BallonPrompt):
+class CardSprite(Control, BalloonPrompt):
     x = InterpDesc('_x')
     y = InterpDesc('_y')
     back_scale = InterpDesc('_bs')
@@ -38,7 +38,7 @@ class CardSprite(Control, BallonPrompt):
 
         t = getattr(meta, 'description', None) # FOR DEBUG
         if t:
-            self.init_ballon(t)
+            self.init_balloon(t)
 
         self.update()
 
@@ -340,7 +340,7 @@ class SkillSelectionBox(Control):
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
-class SmallCardSprite(Control, BallonPrompt):
+class SmallCardSprite(Control, BalloonPrompt):
     width, height = 33, 46
     x = InterpDesc('_x')
     y = InterpDesc('_y')
@@ -351,7 +351,7 @@ class SmallCardSprite(Control, BallonPrompt):
         self.selected = False
         self.hover = False
         self.img = card.ui_meta.image_small
-        self.init_ballon(card.ui_meta.description)
+        self.init_balloon(card.ui_meta.description)
 
     def draw(self):
         glColor3f(1., 1., 1.)
@@ -462,7 +462,7 @@ class ShownCardPanel(Panel):
         Panel.delete(self)
         ShownCardPanel.current = None
 
-class GameCharacterPortrait(Dialog, BallonPrompt):
+class GameCharacterPortrait(Dialog, BalloonPrompt):
 
     def __init__(self, color=Colors.blue, tag_placement='me', *args, **kwargs):
         self.selected = False
@@ -575,7 +575,7 @@ class GameCharacterPortrait(Dialog, BallonPrompt):
             return
 
         self.bg = meta.port_image
-        self.init_ballon(meta.description, (2, 74, 145, 96))
+        self.init_balloon(meta.description, (2, 74, 145, 96))
 
         self.bot_reserve=74
         Dialog.update(self)

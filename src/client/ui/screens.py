@@ -13,21 +13,52 @@ from utils import Rect, rect_to_dict as r2d
 import logging
 log = logging.getLogger('UI_Screens')
 
+class UpdateScreen(Overlay):
+    trans = dict(
+        update_begin = lambda: u'|W开始更新……|r',
+        up2date = lambda: u'|W已经是最新版本了|r',
+        delete_file = lambda fn: u'|W删除：|LB%s|r' % fn,
+        download_file = lambda fn: u'|W下载：|LB%s|r' % fn,
+        download_complete= lambda fn: u'|W下载完成：|LB%s|r' % fn,
+        write_failed = lambda fn: u'|R无法写入：|LB%s|r' % fn,
+        update_finished = lambda: u'|W更新完成|r',
+        http_error = lambda code, url: u'|RHTTP错误： %d %s|r' % (code, url),
+        network_error = lambda: u'|R网络错误|r',
+        io_error = lambda: u'|R系统错误|r', # WHATEVER
+    )
+
+    def __init__(self, *args, **kwargs):
+        Overlay.__init__(self, *args, **kwargs)
+        ta = TextArea(
+            parent=self, width=600, height=450,
+            x=(self.width-600)//2, y=(self.height-450)//2
+        )
+        self.textarea = ta
+
+    def update_message(self, msg, *args):
+        msg = self.trans[msg](*args)
+        self.textarea.append(msg + '\n')
+
+    def draw(self):
+        glClearColor(0.0, 0.0, 0.0, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT)
+        self.draw_subcontrols()
+
 class ServerSelectScreen(Overlay):
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
         self.buttons  = buttons = []
         from settings import ServerList as sl
 
-        class BallonImageButton(ImageButton, BallonPrompt):
+        class BalloonImageButton(ImageButton, BalloonPrompt):
             pass
 
         for s in sl.values():
-            btn = BallonImageButton(
+            btn = BalloonImageButton(
                 common_res.buttons.serverbtn,
                 parent=self, x=s['x'], y=s['y'],
             )
-            btn.init_ballon(s['description'])
+            btn.init_balloon(s['description'])
             btn.set_handler('on_click', lambda s=s: self.do_connect(s['address']))
             buttons.append(btn)
 
@@ -45,6 +76,11 @@ class ServerSelectScreen(Overlay):
                 b.state = Button.NORMAL
             log.error('Server connect failed.')
             ConfirmBox(u'服务器连接失败！', parent=self)
+        elif _type == 'version_mismatch':
+            for b in self.buttons:
+                b.state = Button.NORMAL
+            log.error('Version mismatch')
+            ConfirmBox(u'您的版本与服务器版本不符，无法进行游戏！', parent=self)
         else:
             Overlay.on_message(self, _type, *args)
 
@@ -100,12 +136,11 @@ class LoginScreen(Overlay):
 
             @self.btn_exit.event
             def on_click():
-                ui_message('app_exit')
+                pyglet.app.exit()
 
         def draw(self):
             Dialog.draw(self)
             self.batch.draw()
-
 
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
@@ -148,7 +183,6 @@ class GameHallScreen(Overlay):
                 (u'人数', 50),
                 (u'当前状态', 80),
             ])
-
 
             self.btn_create = Button(parent=self, caption=u'创建游戏', x=690-270, y=6, width=70, height=20)
             self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=690-180, y=6, width=70, height=20)

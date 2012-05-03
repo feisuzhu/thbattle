@@ -246,7 +246,7 @@ class UIDoActionStage(UISelectTarget):
         parent.end_select_player()
 
 class UIChooseGirl(Panel):
-    class GirlSelector(Control, BallonPrompt):
+    class GirlSelector(Control, BalloonPrompt):
         hover_alpha = InterpDesc('_hover_alpha')
         auxfbo = Framebuffer()
         def __init__(self, choice, *a, **k):
@@ -262,7 +262,7 @@ class UIChooseGirl(Panel):
             pimg = self.port_image = meta.port_image
             self.char_name = meta.char_name
             self.char_maxlife = cc.maxlife
-            self.init_ballon(meta.description)
+            self.init_balloon(meta.description)
 
             # TODO: name and maxlife
             self.grayed_image = pyglet.image.Texture.create_for_size(
@@ -700,7 +700,6 @@ class UIRanProphet(Panel):
             up = [c.card_index for c in up]
             down = [c.card_index for c in down]
             irp.input = [up, down]
-            print '!!!!!', [up, down]
             self.cleanup()
 
         b = BigProgressBar(

@@ -462,43 +462,43 @@ Dialog.register_event_type('on_move')
 Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
-class BallonPrompt(object):
-    ballon_panel = None
-    def init_ballon(self, text, region=None):
-        self.ballon_state = 'hidden'
-        self.ballon_text = text
-        self.ballon_region = region
+class BalloonPrompt(object):
+    balloon_panel = None
+    def init_balloon(self, text, region=None):
+        self.balloon_state = 'hidden'
+        self.balloon_text = text
+        self.balloon_region = region
 
         self.push_handlers(
-            on_mouse_motion=self.ballon_on_mouse_motion,
-            on_mouse_drag=self.ballon_on_mouse_motion,
-            on_mouse_enter=self.ballon_on_mouse_enter,
-            on_mouse_leave=self.ballon_on_mouse_leave,
+            on_mouse_motion=self.balloon_on_mouse_motion,
+            on_mouse_drag=self.balloon_on_mouse_motion,
+            on_mouse_enter=self.balloon_on_mouse_enter,
+            on_mouse_leave=self.balloon_on_mouse_leave,
         )
 
-    def ballon_on_mouse_motion(self, x, y, dx, dy, *a):
+    def balloon_on_mouse_motion(self, x, y, dx, dy, *a):
         ax, ay = self.abs_coords()
         ax += x
         ay += y
 
-        self.ballon_cursorloc = (ax, ay)
+        self.balloon_cursorloc = (ax, ay)
 
-        r = self.ballon_region
+        r = self.balloon_region
         if r:
             x1, y1, w, h = r
             x2 = x1 + w
             y2 = y1 + h
             if x1 <= x <= x2 and y1 <= y <= y2:
-                self.ballon_on_mouse_enter(x, y)
+                self.balloon_on_mouse_enter(x, y)
             else:
-                self.ballon_on_mouse_leave(x, y)
+                self.balloon_on_mouse_leave(x, y)
 
-        b = self.ballon_panel
+        b = self.balloon_panel
         if b:
-            b.x, b.y = self._ballon_getloc(ax, ay)
+            b.x, b.y = self._balloon_getloc(ax, ay)
 
-    def _ballon_getloc(self, x, y):
-        b = self.ballon_panel
+    def _balloon_getloc(self, x, y):
+        b = self.balloon_panel
         o = Overlay.cur_overlay
         ow, oh = o.width, o.height
         bw, bh = b.width, b.height
@@ -515,28 +515,28 @@ class BallonPrompt(object):
 
         return (x, y)
 
-    def ballon_on_mouse_enter(self, x, y):
-        if self.ballon_state == 'hidden':
-            self.ballon_state = 'ticking'
-            self.ballon_overlay = Overlay.cur_overlay
-            pyglet.clock.schedule_once(self.ballon_show, 0.8)
+    def balloon_on_mouse_enter(self, x, y):
+        if self.balloon_state == 'hidden':
+            self.balloon_state = 'ticking'
+            self.balloon_overlay = Overlay.cur_overlay
+            pyglet.clock.schedule_once(self.balloon_show, 0.8)
 
-    def ballon_on_mouse_leave(self, x, y):
-        if self.ballon_state == 'ticking':
-            pyglet.clock.unschedule(self.ballon_show)
-        if self.ballon_state == 'shown':
-            self.ballon_panel.delete()
-            del self.ballon_panel
-        self.ballon_state = 'hidden'
+    def balloon_on_mouse_leave(self, x, y):
+        if self.balloon_state == 'ticking':
+            pyglet.clock.unschedule(self.balloon_show)
+        if self.balloon_state == 'shown':
+            self.balloon_panel.delete()
+            del self.balloon_panel
+        self.balloon_state = 'hidden'
 
-    def ballon_show(self, dt):
-        if self.ballon_state == 'shown': return
-        if Overlay.cur_overlay != self.ballon_overlay: return
+    def balloon_show(self, dt):
+        if self.balloon_state == 'shown': return
+        if Overlay.cur_overlay != self.balloon_overlay: return
 
-        self.ballon_state = 'shown'
+        self.balloon_state = 'shown'
 
         ta = TextArea(parent=None, x=2, y=2, width=288, height=100)
-        ta.append(self.ballon_text)
+        ta.append(self.balloon_text)
         h = ta.content_height
         ta.height = h
 
@@ -544,9 +544,9 @@ class BallonPrompt(object):
         panel.add_control(ta)
         panel.blur_update_interval = 1
         panel.fill_color = (1.0, 1.0, 0.9, 0.5)
-        self.ballon_panel = panel
+        self.balloon_panel = panel
 
-        panel.x, panel.y = self._ballon_getloc(*self.ballon_cursorloc)
+        panel.x, panel.y = self._balloon_getloc(*self.balloon_cursorloc)
 
 class TextBox(Control):
     def __init__(self, text='Yoooooo~', color=Colors.green, *args, **kwargs):
@@ -744,6 +744,7 @@ class TextArea(Control):
             (r'\|Y', set_attrib('color', (0xff, 0xff, 0x30, 0xff))),
             (r'\|LB', set_attrib('color', (0x90, 0xdc, 0xe8, 0xff))),
             (r'\|DB', set_attrib('color', (0x00, 0x00, 0x60, 0xff))),
+            (r'\|W', set_attrib('color', (0xff, 0xff, 0xff, 0xff))),
 
         ])
 

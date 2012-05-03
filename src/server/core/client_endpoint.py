@@ -117,6 +117,11 @@ class Client(Endpoint, Greenlet):
 
         # --------- End ---------
 
+        # ----- Banner -----
+        from settings import VERSION
+        self.write(['gensoukill_greeting', VERSION])
+        # ------------------
+
         self.state = 'connected'
         while True:
             try:
@@ -161,7 +166,7 @@ class Client(Endpoint, Greenlet):
             hall.user_exit(self)
 
     def gexpect(self, tag):
-        log.info('GAME_EXPECT: %s', repr(tag))
+        log.debug('GAME_EXPECT: %s', repr(tag))
         l = self.gdqueue
         e = self.gdevent
         while True:
@@ -170,14 +175,14 @@ class Client(Endpoint, Greenlet):
                 if isinstance(d, EndpointDied):
                     raise d
                 elif d[0] == tag:
-                    log.info('GAME_READ: %s', repr(d))
+                    log.debug('GAME_READ: %s', repr(d))
                     return d[1]
                 else:
                     d.scan_count += 1
                     if d.scan_count >= 5:
-                        log.warn('Dropped gamedata: %s' % d)
+                        log.debug('Dropped gamedata: %s' % d)
                     else:
-                        log.info('GAME_DATA_MISS: %s', repr(d))
+                        log.debug('GAME_DATA_MISS: %s', repr(d))
                         l.append(d)
             e.clear()
             e.wait()

@@ -83,6 +83,15 @@ class GameManager(Greenlet):
         def heartbeat(self, _):
             Executive.server.write(['heartbeat', None])
 
+        @handler(None, None)
+        def gensoukill_greeting(self, ver):
+            from settings import VERSION
+            if ver != VERSION:
+                self.event_cb('version_mismatch')
+                Executive.call('disconnect')
+            else:
+                self.event_cb('server_connected', self)
+
         while True:
             cmd, data = Executive.server.ctlcmds.get()
             h = handlers.get(cmd)
@@ -139,9 +148,32 @@ class Executive(object):
                 self.gm_greenlet = GameManager()
                 self.gm_greenlet.start()
                 self.gm_greenlet.event_cb = event_cb
-                cb('server_connected', svr)
+                #cb('server_connected', svr)
             except:
                 cb('server_connect_failed', None)
+
+        @handler
+        def disconnect(self, cb):
+            if not self.state != 'connected':
+                cb('not_connected')
+                return
+            else:
+                self.server.close()
+                self.state = 'initial'
+                self.gm_greenlet.kill()
+                self.server = self.gm_greenlet = None
+                cb('disconnected')
+
+        @handler
+        def update(self, cb, update_cb):
+            import autoupdate as au
+            import settings
+            if settings.AUTOUPDATE_ENABLE:
+                base = settings.UPDATE_BASE
+                url = settings.UPDATE_URL
+                gevent.spawn(lambda: cb(au.do_update(base, url, update_cb)))
+            else:
+                cb('update_disabled')
 
         # @handler def register(...): ...
         def simple_gm_op(_type):

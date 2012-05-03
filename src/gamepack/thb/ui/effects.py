@@ -79,7 +79,6 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             try:
                 pca = self.player2portrait(_from.owner).portcard_area
             except ValueError:
-                print _from
                 raise
 
         for i, card in enumerate(rawcards):

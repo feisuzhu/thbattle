@@ -1,16 +1,16 @@
 THBattle:
     #bugs: died person should drop all cards, should not respond to any input events
 
-    server selection screen
-    auto update
-
     victory condition
     ran: ui tune
 
     tag ui_meta: use function
 
-QUIRKS:
-    >> Action.target / Action.actor, NOT TOUCHING IT
+    online users display
+
+    speaker, system_msg
+
+    welcome message
 
 曹　操
 夏侯惇 船长
@@ -28,10 +28,6 @@ user subsystem,
 error reporting subsystem
     * server auto restart
 
-make robust
-
-and finally, the game!
-
 身份场：
 黑幕 -- 主
 异变 -- 忠
@@ -39,7 +35,6 @@ and finally, the game!
 不明 -- 内
 
 addtional:
-
 
 catan -- ？
 樱树 -- 春度

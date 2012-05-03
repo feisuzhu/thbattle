@@ -11,6 +11,14 @@ def makedict(clsname, bases, _dict):
 #__metaclass__ = lambda clsname, bases, _dict: _dict
 __metaclass__ = makedict
 
+VERSION = 'PROTON NOT COMPLETED 01'
+AUTOUPDATE_ENABLE = True
+
+import os
+
+UPDATE_BASE = os.getcwd()
+UPDATE_URL = 'http://127.0.0.1:8000/'
+
 class ServerList:
     class HakureiShrine:
         address = ('127.0.0.1', 9999)

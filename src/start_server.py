@@ -22,5 +22,9 @@ from network import Endpoint
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 
+from gevent.backdoor import BackdoorServer
+
+gevent.spawn(BackdoorServer(('127.0.0.1', 10000)).serve_forever)
+
 server = StreamServer(('0.0.0.0', 9999), Client.spawn, None)
 server.serve_forever()

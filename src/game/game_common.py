@@ -164,11 +164,11 @@ class Game(object):
             s = data
         else:
             s = data.__class__.__name__
-        log.info('emit_event: %s %s' % (evt_type, s))
+        log.debug('emit_event: %s %s' % (evt_type, s))
         for evt in self.event_handlers:
             data = evt.handle(evt_type, data)
             if data is None:
-                log.warn('EventHandler %s returned None' % evt.__class__.__name__)
+                log.debug('EventHandler %s returned None' % evt.__class__.__name__)
         return data
 
     @staticmethod
@@ -181,23 +181,23 @@ class Game(object):
         '''
 
         if action.done:
-            log.info('action already done %s' % action.__class__.__name__)
+            log.debug('action already done %s' % action.__class__.__name__)
             return action.succeeded
         elif action.cancelled:
-            log.info('action cancelled/invalid %s' % action.__class__.__name__)
+            log.debug('action cancelled/invalid %s' % action.__class__.__name__)
             return False
 
         if action.can_fire():
             action = self.emit_event('action_before', action)
             if action.done:
-                log.info('action already done %s' % action.__class__.__name__)
+                log.debug('action already done %s' % action.__class__.__name__)
                 rst = action.succeeded
             elif action.cancelled:
-                log.info('action cancelled/invalid %s' % action.__class__.__name__)
+                log.debug('action cancelled/invalid %s' % action.__class__.__name__)
                 rst = False
             else:
                 assert action.can_fire()
-                log.info('applying action %s' % action.__class__.__name__)
+                log.debug('applying action %s' % action.__class__.__name__)
                     #, src=%d, dst=%d' % (
                     #action.__class__.__name__,
                     #self.players.index(action.source) if hasattr(action, 'source') else -1,
@@ -229,7 +229,7 @@ class Game(object):
             return rst
 
         else:
-            log.info('action invalid %s' % action.__class__.__name__)
+            log.debug('action invalid %s' % action.__class__.__name__)
             return False
 
     def get_playerid(self, p):
