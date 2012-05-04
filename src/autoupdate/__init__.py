@@ -96,6 +96,7 @@ def do_update(base, url, cb=lambda *a, **k: False):
             try:
                 while True:
                     url, fn = queue.get_nowait()
+                    log.debug('update %s' % fn)
                     cb('download_file', fn)
                     file = remote.open(url)
                     d = file.read()
@@ -106,7 +107,6 @@ def do_update(base, url, cb=lambda *a, **k: False):
                             os.makedirs(os.path.dirname(fn))
                         except OSError:
                             pass
-
                         with open(fn, 'wb') as f:
                             f.write(d)
                     except EnvironmentError:

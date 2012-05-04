@@ -173,7 +173,7 @@ class HealCard:
         u'【麻薯】桃能在两种情况下使用：\n'
         u'1、在你的出牌阶段，你可以使用它来回复你的1点体力。\n'
         u'2、当有角色处于濒死状态时，你可以对该角色使用【麻薯】，防止该角色的死亡。\n'
-        u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。\n'
+        u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -1620,8 +1620,8 @@ class SupportSkill:
         # for LaunchCard.ui_meta.effect_string
         return u'|G【%s】|r发动了|G支援|r技能，将%d张手牌交给了|G【%s】|r' % (
             act.source.ui_meta.char_name,
-            len(act.cards),
-            act.target.ui_meta.char_name,
+            len(act.card.associated_cards),
+            act.target_list[0].ui_meta.char_name,
         )
 
 class Moe:

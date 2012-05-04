@@ -564,7 +564,6 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         p = self.player
         if not p: return
 
-
         self.caption = p.nickname
         try:
             meta = p.ui_meta

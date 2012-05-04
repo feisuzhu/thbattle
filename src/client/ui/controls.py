@@ -688,8 +688,11 @@ class TextArea(Control):
 
     def _settext(self, text):
         self._text = u''
+        l = self.layout
+        l.begin_update()
         self.document.text = u''
         self.append(text)
+        #l.end_update() # self.append will call it
 
     def append(self, text):
         attrib = dict(self.default_attrib)

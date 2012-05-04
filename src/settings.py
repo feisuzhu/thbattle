@@ -52,3 +52,16 @@ class ServerList:
         ) % repr(address)
         x=379
         y=286
+
+NOTICE = u'''
+东方符斗祭 测试版
+==================
+
+仍然有很多bug与不完善的地方。
+图片素材大多来自于互联网，如果其中有你的作品，请联系我。
+
+feisuzhu@163.com
+
+Proton制作
+
+'''.strip()

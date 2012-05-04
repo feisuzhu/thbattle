@@ -44,11 +44,13 @@ class UIEventHook(EventHandler):
         return f(data)
 
 class THBattleUI(Control):
-    portrait_location = [ # [ ((x, y), (r, g, b)) ] * Game.n_persons
-        # XXX: color n/a any more
-        ((352, 450), (0, 0, 0)),
-        ((200, 150), (0, 0, 0)),
-        ((500, 150), (0, 0, 0)),
+    portrait_location = [
+        (60, 300, Colors.blue),
+        (450, 450, Colors.blue),
+        (450, 150, Colors.blue),
+        (250, 450, Colors.orange),
+        (250, 150, Colors.orange),
+        (640, 300, Colors.orange),
     ]
 
     def __init__(self, game, *a, **k):
@@ -66,7 +68,6 @@ class THBattleUI(Control):
             parent=self, width=1, height=1,
             x=self.width//2, y=self.height//2, zindex=4,
         )
-
 
         @self.handcard_area.event
         def on_selection_change():
@@ -92,11 +93,18 @@ class THBattleUI(Control):
         self.animations = Animations(parent=self)
         self.selecting_player = 0
 
-
     def init(self):
+        orange, blue = Colors.orange, Colors.blue
         ports = self.char_portraits = [
-            GameCharacterPortrait(parent=self, x=x, y=y, tag_placement=tp)
-            for x, y, tp in ((3, 1, 'me'), (158, 446, 'bottom'), (521, 446, 'bottom'))[:len(self.game.players)]
+            GameCharacterPortrait(parent=self, color=color, x=x, y=y, tag_placement=tp)
+            for x, y, tp, color in (
+                (3, 1, 'me', blue),
+                (669, 280, 'left', orange),
+                (155+180+180, 520, 'bottom', blue),
+                (155+180, 520, 'bottom', orange),
+                (155, 520, 'bottom', blue),
+                (3, 280, 'right', orange),
+            )[:len(self.game.players)]
         ] # FIXME: this is for testing
 
         pl = self.game.players
@@ -142,17 +150,6 @@ class THBattleUI(Control):
             for port in self.char_portraits:
                 port.update()
             self.update_skillbox()
-            '''
-            # HACK: move UIEventHook to the end of EH list
-
-            ehlist = self.game.event_handlers
-            hook = self.hook
-            ehlist.remove(hook)
-            ehlist.append(hook)
-
-            for i in ehlist:
-                print i.__class__
-            '''
 
         elif _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
             self.current_turn = args[0].target

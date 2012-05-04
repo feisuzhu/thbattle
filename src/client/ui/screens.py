@@ -48,10 +48,32 @@ class ServerSelectScreen(Overlay):
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
         self.buttons  = buttons = []
-        from settings import ServerList as sl
+        from settings import ServerList as sl, NOTICE
 
         class BalloonImageButton(ImageButton, BalloonPrompt):
             pass
+
+        class NoticePanel(Panel):
+            fill_color = (1.0, 1.0, 0.9, 0.5)
+            def __init__(self, text, *a, **k):
+                Panel.__init__(self, *a, **k)
+                w, h = self.width, self.height
+                ta = TextArea(
+                    parent=self,
+                    font_size=12,
+                    x=2, y=60,
+                    width=w-4, height=h-4-60
+                )
+                ta.append(text)
+                btn = Button(
+                    u'关闭',
+                    parent=self,
+                    x=(w-120)//2, y=20,
+                    width=120, height=40,
+                )
+                @btn.event
+                def on_click():
+                    self.delete()
 
         for s in sl.values():
             btn = BalloonImageButton(
@@ -61,6 +83,13 @@ class ServerSelectScreen(Overlay):
             btn.init_balloon(s['description'])
             btn.set_handler('on_click', lambda s=s: self.do_connect(s['address']))
             buttons.append(btn)
+
+        NoticePanel(
+            NOTICE,
+            parent=self,
+            width=800, height=600,
+            x=(self.width-800)//2, y=(self.height-600)//2
+        )
 
     def do_connect(self, addr):
         for b in self.buttons:
@@ -250,6 +279,33 @@ class GameHallScreen(Overlay):
         def append(self, v):
             self.box.append(v)
 
+    class OnlineUsers(Dialog):
+        def __init__(self, parent):
+            Dialog.__init__(
+                self, parent=parent,
+                caption=u'当前在线玩家',
+                x=750, y=220, width=240, height=420,
+                bot_reserve=10,
+            )
+            self.btn_close.state = Button.DISABLED
+            self.box = TextArea(
+                parent=self, x=2, y=12, width=240-4, height=420-24-2-10
+            )
+
+        def on_message(self, _type, *args):
+            if _type == 'current_users':
+                users = args[0]
+                box = self.box
+                box.text = u'\u200b'
+                self.caption = u'当前在线玩家：%d' % len(users)
+                self.update()
+                t = u'\n'.join(
+                    u'%(nickname)s(|G%(username)s|r)' % u
+                    for u in users
+                )
+                box.append(t)
+
+
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
         self.bg = common_res.bg_gamehall
@@ -258,7 +314,7 @@ class GameHallScreen(Overlay):
 
         chat = self.chat_box = GameHallScreen.ChatBox(parent=self)
         chat.text = u'您现在处于游戏大厅！\n'
-        self.playerlist = Dialog(caption=u'当前在线玩家', parent=self, x=750, y=220, width=240, height=420)
+        self.playerlist = GameHallScreen.OnlineUsers(parent=self)
         self.userinfo_box = Dialog(caption=u'你的战绩', parent=self, x=750, y=20, width=240, height=180)
 
         Executive.call('get_hallinfo', ui_message, None)
@@ -297,8 +353,8 @@ class GameScreen(Overlay):
                 ('c3f', [0.0, 0.0, 0.0] * 5)
             )
             l = []
-            for (x, y), color in parent.ui_class.portrait_location:
-                l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y))
+            for x, y, color in parent.ui_class.portrait_location:
+                l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y, color=color))
             self.portraits = l
 
             @self.btn_getready.event

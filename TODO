@@ -6,18 +6,13 @@ THBattle:
 
     tag ui_meta: use function
 
-    online users display
-
     speaker, system_msg
-
-    welcome message
 
 曹　操
 夏侯惇 船长
 关　羽
 吕　蒙
 黄　盖
-
 
 CommonUI:
 ScrollBar
