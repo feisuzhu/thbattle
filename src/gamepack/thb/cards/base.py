@@ -223,7 +223,6 @@ class Deck(object):
         mapping = SyncPrimitive({oid:nid for oid, nid in zip(oids, newids)})
         owner.reveal(mapping)
         mapping = mapping.value
-        print mapping
 
         if Game.CLIENT_SIDE and owner is not g.me:
             cl.clear()

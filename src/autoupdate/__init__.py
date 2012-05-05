@@ -51,13 +51,18 @@ def do_update(base, url, cb=lambda *a, **k: False):
         remote = urllib2.build_opener()
         cb('update_begin')
 
-        def worker(url):
-            resp = remote.open(url)
-            rst = resp.read()
-            resp.close()
-            return rst
+        me = gevent.getcurrent()
 
-        latest_ver = gevent.spawn_link_exception(worker, urljoin(url, 'current_version'))
+        def worker(url):
+            try:
+                resp = remote.open(url)
+                rst = resp.read()
+                resp.close()
+                return rst
+            except Exception as e:
+                me.kill(e)
+
+        latest_ver = gevent.spawn(worker, urljoin(url, 'current_version'))
 
         my_hash = build_hash(base)
         my_ver = version_string(my_hash)
@@ -114,7 +119,10 @@ def do_update(base, url, cb=lambda *a, **k: False):
             except gevent.queue.Empty:
                 pass
 
-        workers = [gevent.spawn_link_exception(retrieve_worker) for i in range(3)]
+            except Exception as e:
+                me.kill(e)
+
+        workers = [gevent.spawn(retrieve_worker) for i in range(3)]
         for w in workers: w.join()
 
         cb('update_finished')

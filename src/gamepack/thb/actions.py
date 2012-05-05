@@ -327,7 +327,7 @@ class DropCardStage(GenericAction):
 class DrawCards(GenericAction):
 
     def __init__(self, target, amount=2):
-        self.target = target
+        self.source = self.target = target
         self.amount = amount
 
     def apply_action(self):

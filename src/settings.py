@@ -32,7 +32,7 @@ class ServerList:
         y=404
 
     class LakeOfFog:
-        address = ('127.0.0.1', 9999)
+        address = ('feisuzhu.xen.prgmr.com', 9999)
         description = (
             u'|R这里没有青蛙 雾之湖|r\n\n'
             u'一个让人开心的地方。只是游客普遍反应，游玩结束后会感到自己的智商被拉低了一个档次。'

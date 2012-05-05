@@ -24,7 +24,6 @@ def start_ui():
     sss = ServerSelectScreen()
 
     def update_callback(msg):
-        print msg
         if msg in ('up2date', 'update_disabled', 'error'):
             sss.switch()
         else:

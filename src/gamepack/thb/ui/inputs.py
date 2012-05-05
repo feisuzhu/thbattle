@@ -139,8 +139,6 @@ class UIChooseCardAndPlayer(UISelectTarget):
     def on_selection_change(self):
         act, candidates = self.irp.attachment
 
-        self.set_valid() # FIXME: FOR DEBUG
-
         g = self.parent.game
         parent = self.parent
         if getattr(act, 'cond', False):
@@ -188,8 +186,6 @@ class UIDoActionStage(UISelectTarget):
         cards = parent.get_selected_cards()
 
         g = parent.game
-
-        self.set_valid() # FIXME: FOR DEBUG
 
         if skills:
             for skill_cls in skills:

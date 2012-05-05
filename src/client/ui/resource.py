@@ -74,17 +74,17 @@ with ResLoader(__file__) as args:
     bg_eventsbox = tx('bg_eventsbox.png')
     bg_chatbox = tx('bg_chatbox.png')
 
-    card_shinesoft = tx('shinesoft.tga')
-    card_hidden = tx('card_hidden.tga')
-    card_question = tx('card_question.tga')
+    card_shinesoft = tx('shinesoft.png')
+    card_hidden = tx('card_hidden.png')
+    card_question = tx('card_question.png')
 
-    cardnumbers = pyglet.image.ImageGrid(img('cardnum.tga'), 2, 13)
+    cardnumbers = pyglet.image.ImageGrid(img('cardnum.png'), 2, 13)
     cardnumbers = pyglet.image.TextureGrid(cardnumbers)
 
-    suit = pyglet.image.ImageGrid(img('suit.tga'), 1, 4)
+    suit = pyglet.image.ImageGrid(img('suit.png'), 1, 4)
     suit = pyglet.image.TextureGrid(suit)
 
-    num = pyglet.image.ImageGrid(img('num.tga'), 1, 10)
+    num = pyglet.image.ImageGrid(img('num.png'), 1, 10)
     num = pyglet.image.TextureGrid(num)
 
     choosegirl_shine = tx('choosegirl_shine.png')
@@ -92,17 +92,17 @@ with ResLoader(__file__) as args:
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)
 
-    ray = tx('ray.tga')
+    ray = tx('ray.png')
 
     hurt = anim('hurt.png', [50, 50, 50, 50, 200, 30, 30, 30, 30, 2000])
 
-    hp = ldr.texture('hp.tga')
-    hp_bg = ldr.texture('hp_bg.tga')
+    hp = ldr.texture('hp.png')
+    hp_bg = ldr.texture('hp_bg.png')
 
     pbar = DataHolder()
     for fn in itertools.product(['b', 'bf', 's', 'sf'], ['l', 'm', 'r']):
         fn = ''.join(fn)
-        setattr(pbar, fn, tx('pbar/%s.tga' % fn))
+        setattr(pbar, fn, tx('pbar/%s.png' % fn))
 
     buttons = DataHolder()
     for t in ('blue', 'red', 'green', 'orange'):

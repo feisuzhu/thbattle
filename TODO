@@ -5,6 +5,7 @@ THBattle:
     ran: ui tune
 
     tag ui_meta: use function
+    auto select card
 
     speaker, system_msg
 
