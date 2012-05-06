@@ -2,8 +2,23 @@
 import threading
 import logging, sys
 
+class Tee(object):
+    def __init__(self):
+        self.logfile = f = open('client_log.txt', 'a')
+        import datetime
+        f.write(
+            '\n' + datetime.datetime.now().strftime("%Y-%m-%d %H:%M") +
+            '\n==============================================\n'
+        )
+
+    def write(self, v):
+        sys.__stdout__.write(v)
+        self.logfile.write(v)
+
+sys.stdout = Tee()
+
 logging.basicConfig(stream=sys.stdout)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 log = logging.getLogger('__main__')
 
 _sync_evt = threading.Event()
@@ -19,9 +34,6 @@ class MainThread(threading.Thread):
         autoenv.init('Client')
 
         from client.core import Executive
-
-        from network import Endpoint
-        #Endpoint.ENDPOINT_DEBUG = True
 
         # for dbg
         '''

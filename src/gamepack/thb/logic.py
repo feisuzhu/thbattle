@@ -62,7 +62,7 @@ class THBattle(Game):
 
         ehclasses = list(action_eventhandlers)
 
-        forces = BatchList([PlayerList(), PlayerList()])
+        self.forces = forces = BatchList([PlayerList(), PlayerList()])
         for i, p in enumerate(self.players):
             f = i%2
             p.force = f
@@ -70,10 +70,8 @@ class THBattle(Game):
 
 
         # choose girls -->
-        from characters import characters as _chars
-        # FIXME: this is for debug
-        '''
-        chars = _chars # * 2
+        from characters import characters as chars
+
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
@@ -88,10 +86,11 @@ class THBattle(Game):
             choice[:9],
             choice[9:],
         ]
-        '''
 
+        '''
         # FOR DBG VER
-        chars = list(reversed(_chars))
+        #chars = list(reversed(_chars))
+        chars = list(_chars)
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
@@ -105,7 +104,7 @@ class THBattle(Game):
         fchoice = [
             choice[:9],
             choice[9:],
-        ]
+        ]'''
 
         # -----------
 
@@ -209,4 +208,9 @@ class THBattle(Game):
             pass
 
     def game_ended(self):
-        return all(p.dead or p.dropped for p in self.players)
+        return False
+        forces = self.forces
+        return any(
+            all(p.dead or p.dropped for p in f)
+            for f in forces
+        )

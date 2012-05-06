@@ -144,13 +144,16 @@ class HandCardArea(Control):
                 sel = c.hca_selected = False
             c.x = SineInterp(c.x, 2 + int(step * i), 0.6)
             c.y = SineInterp(c.y, 20 if sel else 0, 0.6)
-
+    
+    def toggle(self, c, t):
+        s = c.hca_selected = not c.hca_selected
+        c.y = SineInterp(c.y, 20 if s else 0, t)
+        self.dispatch_event('on_selection_change')
+            
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
         if c:
-            s = c.hca_selected = not c.hca_selected
-            c.y = SineInterp(c.y, 20 if s else 0, 0.1)
-            self.dispatch_event('on_selection_change')
+            self.toggle(c, 0.1)
 
     cards = property(
         lambda self: self.control_list,

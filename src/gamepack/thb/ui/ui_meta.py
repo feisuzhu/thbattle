@@ -87,7 +87,7 @@ class AttackCard:
             return (False, u'请选择弹幕的目标')
 
         if g.me is target_list[0]:
-            return (True, u'您真的要自残么？！')
+            return (False, u'你不可以对自己使用【弹幕】')
         else:
             return (True, u'来一发！')
 
@@ -191,6 +191,7 @@ class UseHeal:
     text_valid = u'神说，你不能在这里MISS'
     text = u'请选择一张【麻薯】…'
 
+class Heal:
     def effect_string(act):
         if act.succeeded:
             return u'|G【%s】|r回复了%d点体力。' % (
@@ -255,7 +256,7 @@ class SealingArrayCard:
     # action_stage meta
     name = u'封魔阵'
     image = gres.card_sealarray
-    tag_anim = gres.tag_sealarray
+    tag_anim = lambda g, p: gres.tag_sealarray
     description = (
         u'|R封魔阵|r\n\n'
         u'延时类符卡\n'
@@ -298,7 +299,7 @@ class SinsackCard:
     # action_stage meta
     name = u'罪袋'
     image = gres.card_sinsack
-    tag_anim = gres.tag_sinsack
+    tag_anim = lambda g, p: gres.tag_sinsack
     description = (
         u'|R罪袋|r\n\n'
         u'延时类锦囊\n'
@@ -1902,7 +1903,7 @@ class SealingArraySkill:
     # Skill
     name = u'封魔阵'
     image = gres.card_sealarray
-    tag_anim = gres.tag_sealarray
+    tag_anim = lambda g, p: gres.tag_sealarray
 
     def clickable(game):
         me = game.me
@@ -2356,7 +2357,7 @@ class Yuuka:
     char_name = u'风见幽香'
     port_image = gres.yuuka_port
     description = (
-        u'|DB：四季的鲜花之主 风见幽香 体力：4|r\n\n'
+        u'|DB四季的鲜花之主 风见幽香 体力：4|r\n\n'
         u'|G花王|r：你的所有的梅花牌都可以当做【弹幕】和【擦弹】使用或打出。\n\n'
         u'|G魔炮|r：锁定技，你在使用红色的【弹幕】时伤害+1\n\n'
         u'|G完杀|r：锁定技，由你击杀的玩家只能由你的和被击杀玩家的【麻薯】救起。'
@@ -2570,10 +2571,13 @@ def tag_metafunc(clsname, bases, _dict):
 __metaclass__ = tag_metafunc
 
 class attack_num:
-    tag_anim = gres.tag_attacked
-    display = lambda val: val <= 0
+    tag_anim = lambda g, p: gres.tag_attacked
+    display = lambda v: v <= 0
+    description = u'该玩家在此回合不能再使用【弹幕】了'
 
 class wine:
-    tag_anim = gres.tag_wine
-    display = lambda val: val
+    tag_anim = lambda g, p: gres.tag_wine
+    display = lambda v: v
+    description = u'喝醉了…'
+
 # -----END TAGS UI META-----

@@ -65,7 +65,10 @@ class Card(object):
         self.resides_in = resides_in
 
     def __repr__(self):
-        return self.__class__.__name__
+        return u'%s(%d, %d) at 0x%x' % (
+            self.__class__.__name__, self.suit, self.number,
+            id(self),
+        )
 
     def is_card(self, cls):
         return isinstance(self, cls)

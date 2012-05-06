@@ -577,6 +577,7 @@ class AccessoriesSkill(Skill):
 class YinYangOrb(GenericAction):
     def __init__(self, ft):
         self.ftact = ft
+        self.source = self.target = ft.target
 
     def apply_action(self):
         ft = self.ftact

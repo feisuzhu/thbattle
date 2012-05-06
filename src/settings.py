@@ -16,7 +16,7 @@ AUTOUPDATE_ENABLE = True
 
 import os
 
-UPDATE_BASE = os.getcwd()
+UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
 UPDATE_URL = 'http://127.0.0.1:8000/'
 
 class ServerList:

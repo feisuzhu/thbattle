@@ -91,7 +91,7 @@ class UseAttack(UseCard):
 
 class UseHeal(UseCard):
     def cond(self, cl):
-        from . import cards
+        from .. import cards
         t = self.target
         return (
             len(cl) == 1 and

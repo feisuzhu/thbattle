@@ -19,14 +19,28 @@ from collections import defaultdict as ddict
 
 from utils import BatchList
 
+from pyglet.sprite import Sprite
+
 import logging
 log = logging.getLogger('THBattleUI_Effects')
 
-class OneShotAnim(pyglet.sprite.Sprite):
+class OneShotAnim(Sprite):
     def on_animation_end(self):
         self.delete()
 
-LoopingAnim = pyglet.sprite.Sprite
+LoopingAnim = Sprite
+
+class TagAnim(Control, BalloonPrompt):
+    def __init__(self, img, x, y, text, *a, **k):
+        Control.__init__(self, x=x, y=y, width=25, height=25, *a, **k)
+        self.sprite = LoopingAnim(img)
+        self.init_balloon(text)
+
+    def draw(self):
+        self.sprite.draw()
+
+    def set_position(self, x, y):
+        self.x, self.y = x, y
 
 def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     act, cards, _from, to = args
@@ -100,10 +114,11 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
         port = self.player2portrait(to.owner)
         taganims = port.taganims
         for c in cards:
-            a = LoopingAnim(
-                c.ui_meta.tag_anim,
-                x=0, y=0,
-                batch = self.animations
+            a = TagAnim(
+                c.ui_meta.tag_anim(g, to.owner),
+                0, 0,
+                c.ui_meta.description,
+                parent=self,
             )
             a.for_fatetell_card = c
             port.taganims.append(a)
@@ -183,10 +198,11 @@ def _update_tags(self, p):
         taganims.remove(old[t])
 
     for t in new_tags - old_tags: # to be added
-        a = LoopingAnim(
-            tags_meta[t].tag_anim,
-            x=0, y=0,
-            batch = self.animations
+        a = TagAnim(
+            tags_meta[t].tag_anim(self.game, p),
+            0, 0,
+            tags_meta[t].description,
+            parent=self,
         )
         a.for_tag = t
         taganims.append(a)

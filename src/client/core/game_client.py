@@ -81,26 +81,30 @@ class PlayerList(BatchList):
                 tle.start()
                 g.emit_event('user_input_start', input)
                 rst = g.emit_event('user_input', input)
+                Executive.server.gwrite(tagstr, rst.input)
+                waiter.join()
+                try:
+                    gevent.sleep(0)
+                except Break:
+                    pass
             except (Break, TimeLimitExceeded) as e:
                 if isinstance(e, TimeLimitExceeded) and e is not tle:
                     raise
                 g.emit_event('user_input_timeout', input)
                 rst = input
                 rst.input = None
+                Executive.server.gwrite(tagstr, rst.input)
+                waiter.join()
             finally:
                 tle.cancel()
                 g.emit_event('user_input_finish', input)
 
-            try:
-                Executive.server.gwrite(tagstr, rst.input)
-                waiter.join()
-            except Break:
-                pass
         else:
             # none of my business, just wait for the result
             try:
                 waiter = gevent.spawn(waiter_func)
                 waiter.join()
+                gevent.sleep(0)
             except Break:
                 pass
 

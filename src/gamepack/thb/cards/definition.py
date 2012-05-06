@@ -309,6 +309,7 @@ card_definition = [
     (SinsackCarnivalCard, SPADE, K),
 
     (RepentanceStickCard, SPADE, 2),
+    (YinYangOrbCard, SPADE, K),
 
     (DeathSickleCard, SPADE, 1),
     (UmbrellaCard, SPADE, 2),
@@ -354,6 +355,7 @@ card_definition = [
     (GreenUFOCard, HEART, K),
 
     (DonationBoxCard, HEART, 7),
+    (MaidenCostumeCard, HEART, 10),
     (YinYangOrbCard, HEART, J),
     (SinsackCard, HEART, Q),
     (YinYangOrbCard, HEART, K),
@@ -402,7 +404,7 @@ card_definition = [
     (RejectCard, CLUB, K),
 
     (SaigyouBranchCard, CLUB, 2),
-    (ExinwanCard, CLUB, 0),
+    (ExinwanCard, CLUB, 10),
     (ExinwanCard, CLUB, J),
     (ExinwanCard, CLUB, Q),
 
@@ -450,6 +452,7 @@ card_definition = [
     (GreenUFOCard, DIAMOND, K),
 
     (ExinwanCard, DIAMOND, 5),
+    (MaidenCostumeCard, DIAMOND, 10),
     (HouraiJewelCard, DIAMOND, J),
     (RejectCard, DIAMOND, Q),
 

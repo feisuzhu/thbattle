@@ -14,6 +14,7 @@ import re
 ignores = re.compile(r'''
           ^current_version$
         | ^update_info\.json$
+        | ^client_log\.txt$
         | ^.+\.py[co]$
         | ^.*~$
         | ^\.
@@ -21,14 +22,13 @@ ignores = re.compile(r'''
 
 def build_hash(base):
     my_hash = {}
-    cwd = os.getcwd()
     for path, _, names in os.walk(base):
         # exclude list
         for name in names:
             if ignores.match(name):
                 continue
             fn = os.path.join(path, name)
-            fn = os.path.relpath(fn, cwd)
+            fn = os.path.relpath(fn, base)
             with open(fn, 'rb') as f:
                 h = crc32(f.read())
                 my_hash[fn] = h

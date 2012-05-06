@@ -1,14 +1,17 @@
 import gevent
 import gevent.hub
 from gevent.event import Event
-import os
+import os, sys
 import threading
 import functools
 import thread
 
-class ITIHub013(gevent.hub.Hub):
+#from ctypes import *
+
+# This file are pure hacks, and, fuck Windows!!!!!!!!!
+
+class BaseITIHub(gevent.hub.Hub):
     '''gevent.hub.Hub with Inter-thread Interrupt support
-       for gevent 0.13.x
     '''
 
     def __init__(self):
@@ -16,12 +19,11 @@ class ITIHub013(gevent.hub.Hub):
         self.reqlist = []
         self.lock = threading.RLock()
         self.hub_tid = thread.get_ident()
-        from gevent import core
-        self.fd = os.pipe()
-        core.read_event(self.fd[0], self._iticallback, persist=True)
 
-    def _iticallback(self, ev, evtype):
-        os.read(self.fd[0], 100)
+        self.register_event()
+
+    def _iticallback(self, *args):
+        self.clear_event()
         with self.lock:
             l = self.reqlist
             self.reqlist = []
@@ -32,36 +34,73 @@ class ITIHub013(gevent.hub.Hub):
         f = functools.partial(cb, *args, **kwargs)
         with self.lock:
             self.reqlist.append(f)
+        self.set_event()
+
+class ITIHub013Win_DOESNOTWORK(BaseITIHub):
+    def register_event(self):
+        from gevent import core
+        kn32 = windll.kernel32
+        i, o = c_int(), c_int()
+        if not kn32.CreatePipe(byref(i), byref(o), 0, 0):
+            raise Exception('Failed to create pipe')
+        self.fd = (i.value, o.value)
+        core.read_event(self.fd[0], self._iticallback, persist=True)
+
+    def set_event(self):
+        o = self.fd[1]
+        kn32 = windll.kernel32
+        nbytes = c_int()
+        kn32.WriteFile(o, byref(nbytes), 1, byref(nbytes), 0)
+
+    def clear_event(self):
+        i = self.fd[0]
+        kn32 = windll.kernel32
+        nbytes = c_int()
+        kn32.WriteFile(i, byref(nbytes), 100, byref(nbytes), 0)
+
+class ITIHub013Win(BaseITIHub):
+    def __init__(self):
+        BaseITIHub.__init__(self)
+        self.signal = False
+
+    def register_event(self):
+        pass
+
+    def set_event(self):
+        self.signal = True
+
+    def clear_event(self):
+        self.signal = False
+
+class ITIHub013Unix(BaseITIHub):
+    def register_event(self):
+        self.fd = os.pipe()
+        from gevent import core
+        core.read_event(self.fd[0], self._iticallback, persist=True)
+
+    def set_event(self):
         os.write(self.fd[1], ' ')
 
-class ITIHub10(gevent.hub.Hub):
+    def clear_event(self):
+        os.read(self.fd[0], 100)
+
+class ITIHub10(BaseITIHub):
     '''gevent.hub.Hub with Inter-thread Interrupt support
        for gevent 1.0
     '''
 
-    def __init__(self):
-        gevent.hub.Hub.__init__(self)
-        self.reqlist = []
-        self.lock = threading.RLock()
-        self.hub_tid = thread.get_ident()
+    def register_event(self):
         from gevent import core
         a = core.async(self.loop)
         a.start(self._iticallback)
         self.async_watcher = a
 
-    def _iticallback(self):
-        with self.lock:
-            l = self.reqlist
-            self.reqlist = []
-        for cb in l:
-            cb()
-
-    def interrupt(self, cb, *args, **kwargs):
-        f = functools.partial(cb, *args, **kwargs)
-        with self.lock:
-            self.reqlist.append(f)
+    def set_event(self):
         self.async_watcher.send()
-        
+
+    def clear_event(self):
+        pass
+
 class ITIEvent(Event):
     '''
     Event can be set in other threads
@@ -88,13 +127,26 @@ gevent.Greenlet.instant_kill = _instantkill
 
 def patch_gevent_hub():
     global the_hub, ITIHub
+    import sys
     if hasattr(gevent.hub, 'set_hub'): # gevent 1.0
         ITIHub = ITIHub10
         the_hub = ITIHub()
         gevent.hub.set_hub(the_hub)
     else:
-        ITIHub = ITIHub013
+        if sys.platform == 'win32':
+            ITIHub = ITIHub013Win
+        else:
+            ITIHub = ITIHub013Unix
         gevent.hub._threadlocal.Hub = ITIHub # gevent 0.13
 
     the_hub = gevent.hub.get_hub()
     assert isinstance(the_hub, ITIHub), 'failed'
+
+    if sys.platform == 'win32':
+        # ITIHub013Win part 2
+        def polling():
+            while True:
+                gevent.sleep(0.1)
+                if the_hub.signal:
+                    the_hub._iticallback()
+        gevent.spawn(polling)

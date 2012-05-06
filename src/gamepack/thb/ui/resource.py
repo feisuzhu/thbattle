@@ -6,7 +6,7 @@ from client.ui.resource import ResLoader
 with ResLoader(__file__) as args:
     locals().update(args)
     card_attack = tx('card_attack.png')
-    tag_attacked = anim('tag_attacked.png', [100]*3, True)
+    tag_attacked = anim('tag_attacked.png', [10000], True)
     card_graze = tx('card_graze.png')
     card_heal = tx('card_heal.png')
     card_demolition = tx('card_demolition.png')
@@ -44,7 +44,7 @@ with ResLoader(__file__) as args:
     card_repentancestick = tx('card_repentancestick.png')
     card_repentancestick_small = tx('card_repentancestick_small.png')
     card_wine = tx('card_wine.png')
-    tag_wine = anim('tag_wine.png', [100]*3, True)
+    tag_wine = anim('tag_wine.png', [150]*3, True)
     card_feast = tx('card_feast.png')
     card_harvest = tx('card_harvest.png')
     card_maidencostume = tx('card_maidencostume.png')

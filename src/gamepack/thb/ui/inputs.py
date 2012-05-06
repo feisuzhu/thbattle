@@ -127,6 +127,7 @@ class UISelectTarget(Control):
             self.cleanup()
 
 class UIChooseCardAndPlayer(UISelectTarget):
+    auto_chosen = False
     def __init__(self, irp, *a, **k):
         action, candidates = irp.attachment
         self.action = action
@@ -141,7 +142,23 @@ class UIChooseCardAndPlayer(UISelectTarget):
 
         g = self.parent.game
         parent = self.parent
-        if getattr(act, 'cond', False):
+        cond = getattr(act, 'cond', False)
+        if cond:
+            if not self.auto_chosen:
+                self.auto_chosen = True
+                import itertools
+                cl = itertools.chain(g.me.showncards, g.me.cards)
+                for c in cl:
+                    if not cond([c]): continue
+                    hca = parent.handcard_area
+                    for cs in hca.cards:
+                        if cs.associated_card == c:
+                            break
+                    else:
+                        raise Exception('WTF?!')
+                    hca.toggle(cs, 0.3)
+                    return
+
             skills = parent.get_selected_skills()
             cards = parent.get_selected_cards()
             if skills:
@@ -153,7 +170,7 @@ class UIChooseCardAndPlayer(UISelectTarget):
                     return
 
             if cards:
-                if act.cond(cards):
+                if cond(cards):
                     self.set_text(act.ui_meta.text_valid)
                 else:
                     self.set_text(u'您选择的牌不符合出牌规则')
@@ -567,7 +584,7 @@ class UIHarvestChoose(Panel):
             x, y = 20 + (91+10)*x, 20 +(125+20)*(1-y)
             cs = CardSprite(c, parent=self, x=x, y=y)
             cs.associated_card = c
-            mapping[c] = cs
+            mapping[id(c)] = cs
             @cs.event
             def on_mouse_dblclick(x, y, button, modifier, cs=cs):
                 if not cs.gray:
@@ -585,7 +602,7 @@ class UIHarvestChoose(Panel):
             if irp.tag == 'harvest_choose':
                 self.irp = irp
         elif _type == 'evt_harvest_choose':
-            self.mapping[args[0]].gray = True
+            self.mapping[id(args[0])].gray = True
         elif _type in 'evt_harvest_finish':
             self.cleanup()
 
