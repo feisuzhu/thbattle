@@ -57,7 +57,7 @@ def _user_choose_players_logic(input, act, target, candidates):
         pl = [g.player_fromid(i) for i in pids]
         from game import AbstractPlayer
         check(all(p in candidates for p in pl))
-        pl, valid = act.target(pl)
+        pl, valid = act.choose_player_target(pl)
         check(valid)
         return pl
     except CheckFailed:
@@ -86,6 +86,8 @@ def random_choose_card(categories):
     g.players.reveal(v)
     v = v.value
     cl = g.deck.lookupcards([v])
+    if len(cl)!=1:
+        print cl
     assert len(cl) == 1
     return cl[0]
 
@@ -97,10 +99,11 @@ def skill_wrap(actor, sid_list, cards):
             check(0 <= skill_id < len(actor.skills))
 
             skill_cls = actor.skills[skill_id]
-            card = skill_cls.wrap(cards, actor)
 
-            if not getattr(card, 'no_reveal', False):
+            if not getattr(skill_cls, 'no_reveal', False):
                 g.players.exclude(actor).reveal(cards)
+
+            card = skill_cls.wrap(cards, actor)
 
             check(card.check())
 
@@ -109,6 +112,14 @@ def skill_wrap(actor, sid_list, cards):
         return cards[0]
     except CheckFailed as e:
         return None
+
+def shuffle_here():
+    from .cards import CardList
+    g = Game.getgame()
+    for p in g.players:
+        if p.need_shuffle:
+            g.deck.shuffle(p.cards)
+            p.need_shuffle = False
 
 def migrate_cards(cards, to):
     g = Game.getgame()
@@ -207,13 +218,14 @@ class PlayerDeath(GenericAction):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
+        tgt.dead = True
         dropped = g.deck.droppedcards
         src = self.source or self.target
         pl = g.players.exclude(src)
         for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell]:
-            pl.reveal(cl)
-            migrate_cards(cl, dropped)
-        tgt.dead = True
+            l = list(cl)
+            pl.reveal(l)
+            migrate_cards(l, dropped)
         return True
 
 class DamageEffect(GenericAction):
@@ -343,23 +355,32 @@ class DrawCards(GenericAction):
 
 class DrawCardStage(DrawCards): pass
 
-class LaunchCard(GenericAction):
+class BaseLaunchCard(GenericAction):
+    pass
+
+class LaunchCard(BaseLaunchCard):
     def __init__(self, source, target_list, card):
         tl, tl_valid = card.target(Game.getgame(), source, target_list)
         self.source, self.target_list, self.card, self.tl_valid = source, tl, card, tl_valid
+        self.target = target_list[0] if target_list else source
 
     def apply_action(self):
         g = Game.getgame()
         card = self.card
         target_list = self.target_list
         if not card: return False
+
+        # special case for debug
+        from .cards import HiddenCard
+        if card.is_card(HiddenCard):
+            raise GameError('launch hidden card')
+        # ----------------------
+
         action = card.associated_action
         if not getattr(card, 'no_drop', False):
             g.process_action(DropUsedCard(self.source, cards=[card]))
 
         if action:
-            # the target_list == [] thing will not gonna happen in real scenarios,
-            # just for debug
             target = target_list[0] if target_list else self.source
             a = action(source=self.source, target=target)
             a.associated_card = card
@@ -397,6 +418,8 @@ class ActionStage(GenericAction):
 
         actor.stage = g.ACTION_STAGE
 
+        shuffle_here()
+
         try:
             while True:
                 g.emit_event('action_stage_action', self)
@@ -424,16 +447,20 @@ class ActionStage(GenericAction):
                     check(len(cards) == 1)
                     g.players.exclude(actor).reveal(cards)
                     card = cards[0]
+                    from .cards import HiddenCard
+                    assert not card.is_card(HiddenCard)
                     check(card.resides_in in (actor.cards, actor.showncards))
-
                 if not g.process_action(LaunchCard(actor, target_list, card)):
                     # invalid input
                     break
+
+                shuffle_here()
 
         except CheckFailed as e:
             pass
 
         actor.stage = g.NORMAL
+
         return True
 
 class CalcDistance(InternalAction):
@@ -525,7 +552,7 @@ class Fatetell(GenericAction):
 
 class FatetellAction(UserAction): pass
 
-class LaunchFatetellCard(FatetellAction):
+class LaunchFatetellCard(BaseLaunchCard, FatetellAction):
     def __init__(self, target, card):
         self.target = target
         self.card = card
@@ -589,16 +616,6 @@ class DummyAction(GenericAction):
 
     def apply_action(self):
         return self.result
-
-@register_eh
-class CardShuffler(EventHandler):
-    def handle(self, evt_type, arg):
-        if evt_type == 'card_migration':
-            act, l, cl, to = arg # (action, cardlist, from, to)
-            from .cards import CardList
-            if to and to.type == CardList.HANDCARD:
-                Game.getgame().deck.shuffle(to)
-        return arg
 
 class SkillAwake(GenericAction):
     skill = None

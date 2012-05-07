@@ -83,9 +83,6 @@ def _next_free_slot(game):
     except ValueError as e:
         return None
 
-def _except_logger(g):
-    log.exception(g.exception)
-
 def create_game(user, gametype, gamename):
     from gamepack import gamemodes
     from game_server import PlayerList
@@ -93,7 +90,6 @@ def create_game(user, gametype, gamename):
         user.write(['gamehall_error', 'gametype_not_exist'])
         return
     g = gamemodes[gametype]()
-    g.link_exception(_except_logger)
     g.game_started = False
     g.game_name = gamename
     g.players = PlayerList([PlayerPlaceHolder] * g.n_persons)

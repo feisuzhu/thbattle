@@ -4,7 +4,6 @@ from pyglet.gl import *
 from client.ui.base import *
 from client.ui.base import message as ui_message
 from client.ui.controls import *
-from client.ui import ui_utils
 import  client.ui.resource as common_res
 from client.core import Executive
 from pyglet.text import Label

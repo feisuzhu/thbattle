@@ -191,6 +191,7 @@ class Client(Endpoint, Greenlet):
         return id(self)
 
     def gwrite(self, tag, data):
+        log.debug('GAME_WRITE: %s', repr([tag, data]))
         self.write(['gamedata', [tag, data]])
 
     def __data__(self):

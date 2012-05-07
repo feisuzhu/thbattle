@@ -144,12 +144,12 @@ class HandCardArea(Control):
                 sel = c.hca_selected = False
             c.x = SineInterp(c.x, 2 + int(step * i), 0.6)
             c.y = SineInterp(c.y, 20 if sel else 0, 0.6)
-    
+
     def toggle(self, c, t):
         s = c.hca_selected = not c.hca_selected
         c.y = SineInterp(c.y, 20 if s else 0, t)
         self.dispatch_event('on_selection_change')
-            
+
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
         if c:
@@ -494,6 +494,8 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             manual_draw=True,
         )
 
+        self.grayed_tex = None
+
         #self.prompt_area = PromptControl(
         #    parent=self, x=2, y=74, width=145, height=96, zindex=-1,
         #)
@@ -630,8 +632,26 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
                     g.blit(g.vertices[0], g.vertices[1])
                 glPopMatrix()
 
+
+            gtex = self.grayed_tex
+            if not gtex or (gtex.width, gtex.height) != (self.width, self.height):
+                self.grayed_tex = gtex = pyglet.image.Texture.create_for_size(
+                    GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
+                )
+
+            fbo.texture = gtex
+            with shaders.GrayscaleRect:
+                self.tex.blit(0, 0)
+
     def draw(self):
-        Dialog.draw(self)
+        p = self.player
+        if getattr(p, 'dead', False):
+            self.tex, tmp = self.grayed_tex, self.tex
+            Dialog.draw(self)
+            self.tex = tmp
+        else:
+            Dialog.draw(self)
+
         w, h = self.width, self.height
         p = self.player
         glColor3f(1, 1, 1)

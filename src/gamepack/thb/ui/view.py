@@ -46,11 +46,11 @@ class UIEventHook(EventHandler):
 class THBattleUI(Control):
     portrait_location = [
         (60, 300, Colors.blue),
-        (450, 450, Colors.blue),
-        (450, 150, Colors.blue),
         (250, 450, Colors.orange),
-        (250, 150, Colors.orange),
+        (450, 450, Colors.blue),
         (640, 300, Colors.orange),
+        (450, 150, Colors.blue),
+        (250, 150, Colors.orange),
     ]
 
     def __init__(self, game, *a, **k):

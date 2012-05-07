@@ -190,6 +190,7 @@ class THBattle(Game):
 
             p.life = p.maxlife
             p.dead = False
+            p.need_shuffle = False
             p.stage = self.NORMAL
 
         self.deck = Deck()

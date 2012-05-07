@@ -5,11 +5,13 @@ from ..cards import *
 
 class TreasureHunt(FatetellAction):
     def apply_action(self):
-        ft = Fatetell(self.target, lambda c: c.suit in (Card.SPADE, Card.CLUB))
+        tgt = self.target
+        ft = Fatetell(tgt, lambda c: c.suit in (Card.SPADE, Card.CLUB))
         g = Game.getgame()
         if g.process_action(ft):
             self.card = c = ft.card
-            migrate_cards([c], self.target.cards)
+            migrate_cards([c], tgt.cards)
+            tgt.need_shuffle = True
             return True
         return False
 

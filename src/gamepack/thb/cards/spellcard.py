@@ -43,7 +43,7 @@ class Reject(InstantSpellCardAction):
         self.target = target_act.source
 
     def apply_action(self):
-        if not isinstance(self.target_act, InstantSpellCardAction):
+        if not isinstance(self.target_act, SpellCardAction):
             return False
         self.target_act.cancelled = True
         return True
@@ -55,6 +55,7 @@ class RejectHandler(EventHandler):
             if act.cancelled: return act # some other thing have done the job
 
             g = Game.getgame()
+            self.target_act = act # for ui
 
             p, input = g.players.user_input_any(
                 'choose_card_and_player', self._expects, (self, [])
@@ -111,7 +112,7 @@ class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
 
 # TODO: code like this only allow ONE such behavior change.
 
-class DelayedLaunchCard(LaunchCard):
+class DelayedLaunchCard(BaseLaunchCard):
     def is_valid(self):
         if not self.card: return False
         if not len(self.target_list) == 1: return False
@@ -123,11 +124,13 @@ class DelayedLaunchCard(LaunchCard):
         action = card.associated_action
         assert issubclass(action, DelayedSpellCardAction)
 
-        t = self.target_list[0]
+        t = self.target
         migrate_cards([card], t.fatetell)
         from .base import VirtualCard
         if card.is_card(VirtualCard):
-            migrate_cards(card.associated_cards, t.special)
+            s = t.special
+            for c in card.associated_cards:
+                c.move_to(s)
         return True
 
 @register_eh
@@ -196,7 +199,7 @@ class Sinsack(DelayedSpellCardAction):
     def fatetell_postprocess(self):
         g = Game.getgame()
         target = self.target
-        if not self.cancelled and self.succeeded:
+        if not self.cancelled and self.succeeded and not target.dead:
             g.process_action(DropCards(target, [self.associated_card]))
         else:
             pl = g.players
@@ -310,6 +313,7 @@ class HarvestEffect(InstantSpellCardAction):
         if not card:
             card = random_choose_card([cards_avail])
         migrate_cards([card], tgt.cards)
+        tgt.need_shuffle = True
         g.emit_event('harvest_choose', card)
         self.card = card
         return True
@@ -363,6 +367,7 @@ class DollControl(InstantSpellCardAction):
         else:
             l = [e for e in controllee.equips if e.equipment_category == 'weapon']
             migrate_cards(l, src.cards)
+            src.need_shuffle = True
         return True
 
     def cond(self, cl):
@@ -387,6 +392,7 @@ class DonationBox(InstantSpellCardAction):
             if cards:
                 src.reveal(cards)
                 migrate_cards(cards, src.cards)
+                src.need_shuffle = True
 
         return True
 

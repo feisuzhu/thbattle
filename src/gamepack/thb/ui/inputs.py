@@ -169,19 +169,16 @@ class UIChooseCardAndPlayer(UISelectTarget):
                     self.set_text(reason)
                     return
 
-            if cards:
-                if cond(cards):
-                    self.set_text(act.ui_meta.text_valid)
-                else:
-                    self.set_text(u'您选择的牌不符合出牌规则')
-                    return
-            else:
-                self.set_text(act.ui_meta.text)
-                return
+            c = cond(cards)
+            c1, text = act.ui_meta.choose_card_text(g, act, cards)
+            assert c == c1
+            self.set_text(text)
+
+            if not c: return
 
         if candidates:
             players = parent.get_selected_players()
-            players, valid = act.target(players)
+            players, valid = act.choose_player_target(players)
             valid1, reason = act.ui_meta.target(players)
             assert bool(valid) == bool(valid1)
             parent.set_selected_players(players)

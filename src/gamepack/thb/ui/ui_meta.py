@@ -23,8 +23,11 @@ __metaclass__ = gen_metafunc(actions)
 
 class DropCardStage:
     # choose_card meta
-    text_valid = u'OK，就这些了'
-    text = u'请弃牌…'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'OK，就这些了')
+        else:
+            return (False, u'请弃牌…')
 
     def effect_string(act):
         if act.dropn > 0:
@@ -57,6 +60,13 @@ class LaunchCard:
                 u'】|r、|G【'.join(tl.ui_meta.char_name),
                 act.card.ui_meta.name
             )
+
+class PlayerDeath:
+    def effect_string(act):
+        tgt = act.target
+        return u'|G【%s】|rMISS了。' % (
+            tgt.ui_meta.char_name,
+        )
 
 # -----END ACTIONS UI META-----
 
@@ -140,14 +150,20 @@ class ExinwanCard:
 
 class ExinwanHandler:
     # choose_card meta
-    text = u'请选择两张牌（不选则受到一点无源伤害）'
-    text_valid = u'节操给你，离我远点！'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'节操给你，离我远点！')
+        else:
+            return (False, u'请选择两张牌（不选则受到一点无源伤害）')
 
 class UseGraze:
     # choose_card meta
     image = gres.card_graze
-    text_valid = u'我闪！'
-    text = u'请使用擦弹…'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'我闪！')
+        else:
+            return (False, u'请使用擦弹…')
 
     def effect_string(act):
         if not act.succeeded: return None
@@ -156,8 +172,11 @@ class UseGraze:
 
 class UseAttack:
     # choose_card meta
-    text_valid = u'打架？来吧！'
-    text = u'请打出一张弹幕…'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'打架？来吧！')
+        else:
+            return (False, u'请打出一张弹幕…')
 
     def effect_string(act):
         if not act.succeeded: return None
@@ -188,8 +207,11 @@ class HealCard:
 
 class UseHeal:
     # choose_card meta
-    text_valid = u'神说，你不能在这里MISS'
-    text = u'请选择一张【麻薯】…'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'神说，你不能在这里MISS')
+        else:
+            return (False, u'请选择一张【麻薯】…')
 
 class Heal:
     def effect_string(act):
@@ -241,8 +263,24 @@ class RejectCard:
 
 class RejectHandler:
     # choose_card meta
-    text_valid = u'对不起，你是一个好人…'
-    text = u'请选择一张好人卡'
+    def choose_card_text(g, act, cards):
+        for i in range(0, -9999, -1):
+            lc = g.action_stack[i]
+            from ..actions import BaseLaunchCard
+            from ..cards import SpellCardAction
+            if isinstance(lc, BaseLaunchCard):
+                c = lc.card
+                assert issubclass(c.associated_action, SpellCardAction)
+                break
+
+        s = u'【%s】受到的【%s】' % (
+            act.target_act.target.ui_meta.char_name,
+            c.ui_meta.name,
+        )
+        if act.cond(cards):
+            return (True, u'对不起，你是一个好人(%s)' % s)
+        else:
+            return (False, u'请选择一张好人卡（%s)' % s)
 
 class Reject:
     def effect_string_before(act):
@@ -643,7 +681,7 @@ class GungnirSkill:
         # for LaunchCard.effect_string
         source = act.source
         card = act.card
-        target = act.target_list[0]
+        target = act.target
         s = u'|G【%s】|r发动了|G冈格尼尔|r之枪，将两张牌当作|G弹幕|r对|G【%s】|r使用。' % (
             source.ui_meta.char_name,
             target.ui_meta.char_name,
@@ -962,8 +1000,11 @@ class FlirtingSword:
     choose_option_prompt = u'你要发动【调教剑】吗？'
 
     # choose_card
-    text_valid = u'才……才不给你机会呢！'
-    text = u'请弃掉一张牌（否则对方摸一张牌）'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'才……才不给你机会呢！')
+        else:
+            return (False, u'请弃掉一张牌（否则对方摸一张牌）')
 
     def effect_string_before(act):
         return (
@@ -1031,8 +1072,11 @@ class AyaRoundfanSkill:
 
 class AyaRoundfanHandler:
     # choose_card
-    text_valid = u'这种妨碍拍摄的东西，统统脱掉！'
-    text = u'请弃掉一张手牌发动团扇（否则不发动）'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'这种妨碍拍摄的东西，统统脱掉！')
+        else:
+            return (False, u'请弃掉一张手牌发动团扇（否则不发动）')
 
 class AyaRoundfan:
     def effect_string_before(act):
@@ -1073,8 +1117,11 @@ class ScarletRhapsodySwordSkill:
 
 class ScarletRhapsodySwordHandler:
     # choose_card
-    text_valid = u'闪过头了！'
-    text = u'请弃掉两张牌发动绯想之剑（否则不发动）'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'闪过头了！')
+        else:
+            return (False, u'请弃掉两张牌发动绯想之剑（否则不发动）')
 
 class ScarletRhapsodySword:
     def effect_string_before(act):
@@ -1349,8 +1396,11 @@ class DollControlCard:
 
 class DollControl:
     # choose card meta
-    text_valid = u'那好吧…'
-    text = u'请出【弹幕】（否则你的武器会被拿走）'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'那好吧…')
+        else:
+            return (False, u'请出【弹幕】（否则你的武器会被拿走）')
 
 class DonationBoxCard:
     # action_stage meta
@@ -1377,8 +1427,11 @@ class DonationBoxCard:
 
 class DonationBox:
     # choose card meta
-    text_valid = u'这是抢劫啊！'
-    text = u'请选择一张牌（否则会随机选择一张）'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'这是抢劫啊！')
+        else:
+            return (False, u'请选择一张牌（否则会随机选择一张）')
 
 # -----END CARDS UI META-----
 
@@ -1427,7 +1480,7 @@ class Envy:
         # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
-        target = act.target_list[0]
+        target = act.target
         s = u'|G【%s】|r发动了嫉妒技能，将|G%s|r当作|G%s|r对|G【%s】|r使用。' % (
             source.ui_meta.char_name,
             card.associated_cards[0].ui_meta.name,
@@ -1462,7 +1515,6 @@ class Mijincihangzhan:
 
 class MijincihangzhanAttack:
     def effect_string_apply(act):
-        # for LaunchCard.ui_meta.effect_string
         src = act.source
         tgt = act.target
         return u'|G【%s】|r在弹幕中注入了妖力，弹幕形成了一个巨大的光刃，怕是不能轻易地闪开的！' % (
@@ -1535,7 +1587,7 @@ class Find:
         # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
-        target = act.target_list[0]
+        target = act.target
         s = u'|G【%s】|r发动了寻找技能，换掉了%d张牌。' % (
             source.ui_meta.char_name,
             len(card.associated_cards),
@@ -1622,7 +1674,7 @@ class SupportSkill:
         return u'|G【%s】|r发动了|G支援|r技能，将%d张手牌交给了|G【%s】|r' % (
             act.source.ui_meta.char_name,
             len(act.card.associated_cards),
-            act.target_list[0].ui_meta.char_name,
+            act.target.ui_meta.char_name,
         )
 
 class Moe:
@@ -1856,7 +1908,7 @@ class Knowledge:
 
 class KnowledgeAction:
     def effect_string(act):
-        return u'|G【%s】|r一眼就看穿了这张符卡，直接被挡下了。' % (
+        return u'|G【%s】|r一眼就看穿了这张符卡，直接挡下。' % (
             act.source.ui_meta.char_name,
         )
 
@@ -1904,6 +1956,9 @@ class SealingArraySkill:
     name = u'封魔阵'
     image = gres.card_sealarray
     tag_anim = lambda g, p: gres.tag_sealarray
+    description = (
+        u'|G【博丽灵梦】|r的技能产生的封魔阵'
+    )
 
     def clickable(game):
         me = game.me
@@ -1936,7 +1991,7 @@ class SealingArraySkill:
         # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
-        target = act.target_list[0]
+        target = act.target
         return (
             u'|G【%s】|r发动了|G封魔阵|r技能，用|G%s|r' +
             u'在|G【%s】|r的脚下画了一个大圈圈！'
@@ -2160,7 +2215,7 @@ class Medic:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return (
-            u'|G【%s】|r用一张|G%s|r做药引做了一贴膏药，' +
+            u'|G【%s】|r用一张|G%s|r做药引做了一贴膏药，'
             u'细心地贴在了|G【%s】|r的伤口上。'
         ) % (
             act.source.ui_meta.char_name,
@@ -2220,8 +2275,11 @@ class TrialHandler:
     choose_option_prompt = u'你要发动【审判】吗？'
 
     # choose_card
-    text = u'请选择一张牌代替当前的判定牌'
-    text_valid = u'有罪！'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'有罪！')
+        else:
+            return (False, u'请选择一张牌代替当前的判定牌')
 
 class MajestyHandler:
     # choose_option
@@ -2257,8 +2315,11 @@ class MasochistHandler:
 
 class MasochistAction:
     # choose_card
-    text = u'请选择你要给出的牌'
-    text_valid = u'给你牌~'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'给你牌~')
+        else:
+            return (False, u'请选择你要给出的牌')
 
     def target(pl):
         if not pl:
@@ -2539,8 +2600,11 @@ class ExtremeIntelligenceHandler:
 
 class ExtremeIntelligenceAction:
     # choose_card
-    text = u'请选择1张牌弃置'
-    text_valid = u'再来！'
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'再来！')
+        else:
+            return (False, u'请选择1张牌弃置')
 
     def effect_string(act):
         return (

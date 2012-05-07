@@ -14,65 +14,16 @@ class Rect(object):
             self.width, self.height)
 
     def __eq__(self, other):
-        '''Compare the two rects.
-
-        >>> r1 = Rect(0, 0, 10, 10)
-        >>> r1 == Rect(0, 0, 10, 10)
-        True
-        >>> r1 == Rect(1, 0, 10, 10)
-        False
-        >>> r1 == Rect(0, 1, 10, 10)
-        False
-        >>> r1 == Rect(0, 0, 11, 10)
-        False
-        >>> r1 == Rect(0, 0, 10, 11)
-        False
-        '''
         return (self.x == other.x and self.y == other.y and
             self.width == other.width and  self.height == other.height)
 
     def __ne__(self, other):
-        '''Compare the two rects.
-
-        >>> r1 = Rect(0, 0, 10, 10)
-        >>> r1 != Rect(0, 0, 10, 10)
-        False
-        >>> r1 != Rect(1, 0, 10, 10)
-        True
-        >>> r1 != Rect(0, 1, 10, 10)
-        True
-        >>> r1 != Rect(0, 0, 11, 10)
-        True
-        >>> r1 != Rect(0, 0, 10, 11)
-        True
-        '''
         return not (self == other)
 
     def copy(self):
         return self.__class__(self.x, self.y, self.width, self.height)
 
     def clippedBy(self, other):
-        '''Determine whether this rect is clipped by the other rect.
-
-        >>> r1 = Rect(0, 0, 10, 10)
-        >>> r2 = Rect(1, 1, 9, 9)
-        >>> r2.clippedBy(r1)
-        False
-        >>> r1.clippedBy(r2)
-        True
-        >>> r2 = Rect(1, 1, 11, 11)
-        >>> r1.intersect(r2)
-        Rect(xy=1,1; wh=9,9)
-        >>> r1.clippedBy(r2)
-        True
-        >>> r2.intersect(r1)
-        Rect(xy=1,1; wh=9,9)
-        >>> r2.clippedBy(r1)
-        True
-        >>> r2 = Rect(11, 11, 1, 1)
-        >>> r1.clippedBy(r2)
-        True
-        '''
         i = self.intersect(other)
         if i is None: return True
         if i.x > self.x: return True
@@ -82,32 +33,6 @@ class Rect(object):
         return False
 
     def intersect(self, other):
-        '''Find the intersection of two rects defined as tuples (x, y, w, h).
-
-        >>> r1 = Rect(0, 51, 200, 17)
-        >>> r2 = Rect(0, 64, 200, 55)
-        >>> r1.intersect(r2)
-        Rect(xy=0,64; wh=200,4)
-
-        >>> r1 = Rect(0, 64, 200, 55)
-        >>> r2 = Rect(0, 0, 200, 17)
-        >>> print r1.intersect(r2)
-        None
-
-        >>> r1 = Rect(10, 10, 10, 10)
-        >>> r2 = Rect(20, 20, 10, 10)
-        >>> print r1.intersect(r2)
-        None
-
-        >>> bool(Rect(0, 0, 1, 1))
-        True
-        >>> bool(Rect(0, 0, 1, 0))
-        False
-        >>> bool(Rect(0, 0, 0, 1))
-        False
-        >>> bool(Rect(0, 0, 0, 0))
-        False
-        '''
         s_tr_x, s_tr_y = self.topright
         o_tr_x, o_tr_y = other.topright
         bl_x = max(self.x, other.x)

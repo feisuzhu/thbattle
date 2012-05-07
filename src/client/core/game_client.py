@@ -82,11 +82,6 @@ class PlayerList(BatchList):
                 g.emit_event('user_input_start', input)
                 rst = g.emit_event('user_input', input)
                 Executive.server.gwrite(tagstr, rst.input)
-                waiter.join()
-                try:
-                    gevent.sleep(0)
-                except Break:
-                    pass
             except (Break, TimeLimitExceeded) as e:
                 if isinstance(e, TimeLimitExceeded) and e is not tle:
                     raise
@@ -94,10 +89,14 @@ class PlayerList(BatchList):
                 rst = input
                 rst.input = None
                 Executive.server.gwrite(tagstr, rst.input)
-                waiter.join()
             finally:
                 tle.cancel()
                 g.emit_event('user_input_finish', input)
+                try:
+                    waiter.join()
+                    gevent.sleep(0)
+                except Break:
+                    pass
 
         else:
             # none of my business, just wait for the result
@@ -211,6 +210,19 @@ class Game(Greenlet, game.Game):
 
     def get_synctag(self):
         self.synctag += 1
+        import sys
+        if 0: # FOR DEBUG
+            try:
+                raise Exception
+            except:
+                f = sys.exc_info()[2].tb_frame.f_back
+
+            info = (f.f_code.co_name, f.f_lineno, self.synctag)
+            from client.core import Executive
+            Executive.server.gwrite('synctag_debug', info)
+            ok = Executive.server.gexpect('in_sync')
+            if not ok:
+                raise Exception('Out of sync')
         return self.synctag
 
 class EventHandler(EventHandler):

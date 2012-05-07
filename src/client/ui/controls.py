@@ -5,7 +5,7 @@ from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import *
 from client.ui.base.interp import *
-from client.ui import resource as common_res, ui_utils
+from client.ui import resource as common_res
 from utils import Rect, ScissorBox, Framebuffer, dilate
 
 from math import ceil
@@ -545,6 +545,10 @@ class BalloonPrompt(object):
         panel.blur_update_interval = 1
         panel.fill_color = (1.0, 1.0, 0.9, 0.5)
         self.balloon_panel = panel
+
+        @panel.event
+        def on_mouse_enter(x, y, panel=panel):
+            panel.delete()
 
         panel.x, panel.y = self._balloon_getloc(*self.balloon_cursorloc)
 

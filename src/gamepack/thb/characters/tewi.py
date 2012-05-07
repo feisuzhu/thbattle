@@ -11,17 +11,13 @@ class LuckDrawCards(DrawCards):
     pass
 
 class LuckHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after':
-            for p in [getattr(act, 'source', None), getattr(act, 'target', None)]:
-                if p and p.has_skill(Luck) and not (p.cards or p.showncards):
-                    Game.getgame().process_action(LuckDrawCards(p, 2))
-                    
-        elif evt_type == 'action_apply' and isinstance(act, LaunchCard):
-            p = act.source
-            if p and p.has_skill(Luck) and (len(p.cards) + len(p.showncards)) == 1:
+    def handle(self, evt_type, arg):
+        if evt_type == 'card_migration':
+            act, l, _from, to = arg # (action, cardlist, from, to)
+            p = _from.owner
+            if p and p.has_skill(Luck) and not p.dead and not (p.cards or p.showncards):
                 Game.getgame().process_action(LuckDrawCards(p, 2))
-        return act
+        return arg
 
 @register_character
 class Tewi(Character):

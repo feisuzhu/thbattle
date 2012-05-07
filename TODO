@@ -3,12 +3,9 @@ THBattle:
 
     ran: ui tune
 
-    tag ui_meta: use function
-
     speaker, system_msg
 
     logic: n persons!
-
 
 曹　操
 夏侯惇 船长

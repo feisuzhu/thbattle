@@ -53,7 +53,6 @@ class PlayerList(BatchList):
             rst_send = [g.get_playerid(p), data]
 
         g.players.client.gwrite(tagstr + '_resp', rst_send)
-
         return rst
 
     def user_input_all(self, tag, process, attachment=None, timeout=25):
@@ -179,8 +178,31 @@ class Game(Greenlet, game.Game):
 
     def get_synctag(self):
         self.synctag += 1
-        return self.synctag
+        import sys
+        if 0: # FOR DEBUG
+            t = self.synctag
+            expects = [
+                set([('reveal', 25, t), ('reveal', 165, t)]),
+                set([('reveal', 165, t), ('reveal', 25, t)]),
+                set([('user_input', 35, t), ('user_input', 170, t)]),
+                set([('user_input', 170, t), ('user_input', 35, t)]),
+            ]
 
+            try:
+                raise Exception
+            except:
+                f = sys.exc_info()[2].tb_frame.f_back
+
+            info = (f.f_code.co_name, f.f_lineno, t)
+            l = self.players.client.gexpect('synctag_debug')
+            l = [tuple(i) for i in l]
+            sl = set(l)
+            if len(sl) != 1 and sl not in expects:
+                print 'SYNC_DEBUG', info, l
+                self.players.client.gwrite('in_sync', False)
+            else:
+                self.players.client.gwrite('in_sync', True)
+        return self.synctag
 
 class EventHandler(EventHandler):
     game_class = Game

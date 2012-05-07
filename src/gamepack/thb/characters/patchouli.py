@@ -26,12 +26,31 @@ class KnowledgeAction(GenericAction):
 class PatchouliHandler(EventHandler):
     execute_before = (RejectHandler, )
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, InstantSpellCardAction):
-            src = act.source
-            tgt = act.target
-            if src.has_skill(Library):
-                Game.getgame().process_action(LibraryDrawCards(src, 1))
+        if evt_type == 'action_apply':
+            try:
+                src = act.source
+            except AttributeError:
+                return act
 
+            if not src or not src.has_skill(Library): return act
+
+            if isinstance(act, Reject):
+                Game.getgame().process_action(LibraryDrawCards(src, 1))
+                return act
+
+            if isinstance(act, LaunchCard):
+                aact = act.card.associated_action
+                if issubclass(aact, InstantSpellCardAction):
+                    Game.getgame().process_action(LibraryDrawCards(src, 1))
+                    return act
+
+                if issubclass(aact, ForEach) and issubclass(aact.action_cls, InstantSpellCardAction):
+                    Game.getgame().process_action(LibraryDrawCards(src, 1))
+                    return act
+
+
+        elif evt_type == 'action_before' and isinstance(act, InstantSpellCardAction):
+            tgt = act.target
             if tgt.has_skill(Knowledge):
                 c = getattr(act, 'associated_card', None)
                 if c and c.suit == Card.SPADE:

@@ -209,6 +209,40 @@ class Deck(object):
             if c: l.append(c)
         return l
 
+    '''
+    def __shuffle(self, cl):
+        print 'BEFORE'
+        self.shuffle_dbg(cl)
+        self._shuffle(cl)
+        print 'AFTER'
+        self.shuffle_dbg(cl)
+
+    def shuffle_dbg(self, cl):
+        g = Game.getgame()
+        # FOR DBG
+        if Game.SERVER_SIDE:
+            myl = [c.syncid for c in cl]
+            for p in g.players:
+                l = p.client.gexpect('shuffle_debug')
+                if l != myl:
+                    print u'SHUFFLE: %s != %s', repr(myl), repr(l)
+            l1 = cl.owner.client.gexpect('shuffle_debug_me')
+            myl_cls = [c.__class__.__name__ for c in cl]
+            l_cls = [c['type'] for c in l1]
+            if myl_cls != l_cls:
+                print '==========================='
+                print myl_cls
+                print l_cls
+                print '==========================='
+
+
+        if Game.CLIENT_SIDE:
+            from client.core import Executive
+            Executive.server.gwrite('shuffle_debug', [c.syncid for c in cl])
+            if cl.owner is g.me:
+                Executive.server.gwrite('shuffle_debug_me', list(cl))
+    '''
+
     def shuffle(self, cl):
         g = Game.getgame()
         for c in cl:
@@ -217,32 +251,39 @@ class Deck(object):
             except KeyError:
                 pass
 
-        oids = [c.syncid for c in cl]
-        random.shuffle(oids)
+        perm = [c.syncid for c in cl]
+        random.shuffle(perm)
 
         newids = [g.get_synctag() for c in cl]
 
         owner = cl.owner
-        mapping = SyncPrimitive({oid:nid for oid, nid in zip(oids, newids)})
-        owner.reveal(mapping)
-        mapping = mapping.value
+        perm = SyncPrimitive(perm)
+        owner.reveal(perm)
+        perm = perm.value
 
         if Game.CLIENT_SIDE and owner is not g.me:
-            cl.clear()
-            cl.extend(HiddenCard(Card.NOTSET, 0, cl) for c in cl)
+            for c, i in zip(cl, newids):
+                c.syncid = i
+                c.__class__ = HiddenCard
+                c.suit = c.number = 0
+                self.cards_record[i] = c
             return
 
-        if Game.SERVER_SIDE:
-            for c in cl:
-                c.syncid = mapping[c.syncid]
-        elif Game.CLIENT_SIDE:
-            for c in cl:
-                # WORKAROUND: simplejson always convert integer keys to strings
-                c.syncid = mapping[str(c.syncid)]
+        mapping = {oid:nid for oid, nid in zip(perm, newids)}
+
+        for c in cl:
+            c.syncid = mapping[c.syncid]
+
+        l = list(cl)
+        l.sort(key=lambda v: v.syncid)
+
+        assert newids == [c.syncid for c in l]
+
+        cl.clear()
+        cl.extend(l)
 
         for c in cl:
             self.cards_record[c.syncid] = c
-
 
 class Skill(VirtualCard):
 

@@ -72,7 +72,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
         port.tagarrange()
 
     if to is None: return # not supposed to have visual effects
-
+    '''
     if _from.owner is g.me and _from.type in (_from.HANDCARD, _from.SHOWNCARD):
         handcard_update = True
         csl[:] = [
@@ -90,16 +90,52 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
         if _from.type == _from.DECKCARD:
             pca = self.deck_area
         else:
-            try:
-                pca = self.player2portrait(_from.owner).portcard_area
-            except ValueError:
-                raise
+            pca = self.player2portrait(_from.owner).portcard_area
 
         for i, card in enumerate(rawcards):
             cs = CardSprite(card, parent=pca)
             cs.associated_card = card
             csl.append(cs)
         pca.arrange()
+    '''
+    hca_mapping = {cs.associated_card: (cs, i) for i, cs in enumerate(self.handcard_area.control_list)}
+    dca_mapping = {cs.associated_card: (cs, i+100) for i, cs in enumerate(self.dropcard_area.control_list)}
+    pca = None
+    for c in rawcards:
+        # handcard
+        k = hca_mapping.get(c, None)
+        if k:
+            cs, i = k
+            handcard_update = True
+            cs.sort_idx = i
+            csl.append(cs)
+            continue
+
+        # dropped card
+        k = dca_mapping.get(c, None)
+        if k:
+            cs, i = k
+            dropcard_update = True
+            cs.sort_idx = i
+            csl.append(cs)
+            continue
+
+        # others
+        if not pca:
+            if _from.type in (_from.DECKCARD, _from.DROPPEDCARD):
+                pca = self.deck_area
+            else:
+                pca = self.player2portrait(_from.owner).portcard_area
+
+        cs = CardSprite(c, parent=pca)
+        cs.associated_card = c
+        cs.sort_idx = -1
+        csl.append(cs)
+
+    csl.sort(key=lambda cs: cs.sort_idx)
+
+    if pca: pca.arrange()
+
 
     # --- dest ---
 
@@ -229,6 +265,9 @@ def player_turn_effect(self, act):
     self.turn_frame.position = (port.x - 6, port.y - 4)
     self.prompt_raw('--------------------\n')
 
+def player_death_update(self, act):
+    self.player2portrait(act.target).update()
+
 def _aese(_type, self, act):
     meta = getattr(act, 'ui_meta', None)
     if not meta: return
@@ -254,6 +293,7 @@ mapping_actions = ddict(dict, {
         Action: action_effect_string_apply,
     },
     'after': {
+        PlayerDeath: player_death_update,
         DamageEffect: damage_effect,
         Heal: heal_effect,
         LaunchCard: after_launch_effect,

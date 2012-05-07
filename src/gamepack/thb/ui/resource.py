@@ -22,7 +22,7 @@ with ResLoader(__file__) as args:
     card_redufo = tx('card_redufo.png')
     card_redufo_small = tx('card_redufo_small.png')
     card_sinsack = tx('card_sinsack.png')
-    tag_sinsack = anim('tag_zuidai.png', [100]*3, True)
+    tag_sinsack = anim('tag_sinsack.png', [10000], True)
     card_yukaridimension = tx('card_yukaridimension.png')
     card_duel = tx('card_duel.png')
     card_sinsackcarnival = tx('card_sinsackcarnival.png')

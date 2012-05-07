@@ -43,7 +43,7 @@ class BorrowHandler(EventHandler):
 
         return act
 
-    def target(self, tl):
+    def choose_player_target(self, tl):
         if not tl:
             return (tl, False)
 

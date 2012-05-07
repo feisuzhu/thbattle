@@ -52,7 +52,11 @@ class EventHandler(object):
                 table[after].execute_before.add(cls)
 
         l = table.values()
-        rst = before_all
+
+        for eh in before_all:
+            eh.sort_key = 0
+
+        k = 1
         while l:
             l1 = []
             added = False
@@ -60,17 +64,22 @@ class EventHandler(object):
                 if not eh.execute_after:
                     for b in eh.execute_before:
                         table[b].execute_after.remove(eh.__class__)
-                    rst.append(eh)
+                    eh.sort_key = k
                     added = True
                 else:
                     l1.append(eh)
             if not added:
                 raise GameError("Can't resolve dependencies! Check for circular reference!")
             l = l1
+            k += 1
 
-        rst.extend(after_all)
+        for eh in after_all:
+            eh.sort_key = k
 
-        assert len(rst) == len(table) + len(after_all) # + len(before_all), it is rst
+        rst = before_all + table.values() + after_all
+
+        rst.sort(key=lambda v: (v.sort_key, v.__class__.__name__)) # must sync between server and client
+        
         return rst
 
 class Action(object):

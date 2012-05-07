@@ -15,10 +15,10 @@ class Tee(object):
         sys.__stdout__.write(v)
         self.logfile.write(v)
 
-sys.stdout = Tee()
+sys.stderr = sys.stdout = Tee()
 
 logging.basicConfig(stream=sys.stdout)
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger('__main__')
 
 _sync_evt = threading.Event()

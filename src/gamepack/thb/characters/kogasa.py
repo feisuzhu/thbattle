@@ -27,6 +27,7 @@ class Surprise(GenericAction):
 
         if not tgt.dead:
             migrate_cards([card], tgt.cards)
+            tgt.need_shuffle = True
 
         return rst
 

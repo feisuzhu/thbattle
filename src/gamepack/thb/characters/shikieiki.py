@@ -40,7 +40,7 @@ class TrialHandler(EventHandler):
                 cards = user_choose_cards(self, p, cats)
                 if cards:
                     c = cards[0]
-                    g.process_action(TrialAction(p, p, act, c))
+                    g.process_action(TrialAction(p, act.target, act, c))
 
         return act
 
@@ -57,6 +57,7 @@ class MajestyAction(GenericAction):
         if not c: return act
         src.reveal(c)
         migrate_cards([c], src.cards)
+        src.need_shuffle = True
         return True
 
 class MajestyHandler(EventHandler):
@@ -76,7 +77,7 @@ class MajestyHandler(EventHandler):
 
         if not tgt.user_input('choose_option', self): return act
 
-        Game.getgame.process_action(MajestyAction(tgt, src))
+        Game.getgame().process_action(MajestyAction(tgt, src))
 
         return act
 

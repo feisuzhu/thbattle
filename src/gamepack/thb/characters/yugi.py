@@ -48,6 +48,8 @@ class FreakingPowerSkill(Skill):
 class FreakingPower(FatetellAction):
     def __init__(self, atkact):
         self.atkact = atkact
+        self.source = atkact.source
+        self.target = atkact.target
 
     def apply_action(self):
         act = self.atkact
