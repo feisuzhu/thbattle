@@ -63,6 +63,7 @@ try:
 except:
     import traceback
     traceback.print_exc()
+    import pyglet
     pyglet.app.exit()
 
 from client.core import Executive
