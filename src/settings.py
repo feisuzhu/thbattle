@@ -11,13 +11,18 @@ def makedict(clsname, bases, _dict):
 #__metaclass__ = lambda clsname, bases, _dict: _dict
 __metaclass__ = makedict
 
-VERSION = 'PROTON NOT COMPLETED 01'
+VERSION = 'GENSOUKILL V1.0b'
 AUTOUPDATE_ENABLE = True
 
 import os
 
 UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
-UPDATE_URL = 'http://127.0.0.1:8000/'
+
+import sys
+if sys.platform == 'win32':
+    UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/'
+else:
+    UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/src/'
 
 class ServerList:
     class HakureiShrine:
@@ -43,7 +48,7 @@ class ServerList:
         y=470
 
     class ForestOfMagic:
-        address = ('127.0.0.1', 9999)
+        address = ('feisuzhu.xen.prgmr.com', 9999)
         description = (
             u'|R光明牛奶指定销售地点 魔法之森|r\n\n'
             u'森林里好玩的东西很多，比如被捉弄什么的。'
@@ -61,6 +66,8 @@ NOTICE = u'''
 图片素材大多来自于互联网，如果其中有你的作品，请联系我。
 
 feisuzhu@163.com
+
+首发在人人东方Project公共主页
 
 Proton制作
 

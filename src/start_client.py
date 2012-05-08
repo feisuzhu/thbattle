@@ -18,7 +18,7 @@ class Tee(object):
 sys.stderr = sys.stdout = Tee()
 
 logging.basicConfig(stream=sys.stdout)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 log = logging.getLogger('__main__')
 
 _sync_evt = threading.Event()
@@ -57,7 +57,13 @@ _sync_evt.wait()
 del _sync_evt
 
 from client.ui.entry import start_ui
-start_ui()
+
+try:
+    start_ui()
+except:
+    import traceback
+    traceback.print_exc()
+    pyglet.app.exit()
 
 from client.core import Executive
 Executive.call('app_exit')
