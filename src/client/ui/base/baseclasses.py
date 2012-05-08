@@ -463,8 +463,12 @@ def schedule(func, *args, **kwargs):
     with sched_queue_lock:
         sched_queue.append(partial(func, *args, **kwargs))
 
+
+def _msg(args):
+    Overlay.cur_overlay.dispatch_message(args)
+
 def message(*args):
     '''
     Send message to UI
     '''
-    schedule(Overlay.cur_overlay.dispatch_message, args)
+    schedule(_msg, args)

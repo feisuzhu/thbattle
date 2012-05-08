@@ -416,8 +416,6 @@ class ActionStage(GenericAction):
         g = Game.getgame()
         actor = self.actor
 
-        actor.stage = g.ACTION_STAGE
-
         shuffle_here()
 
         try:
@@ -458,8 +456,6 @@ class ActionStage(GenericAction):
 
         except CheckFailed as e:
             pass
-
-        actor.stage = g.NORMAL
 
         return True
 

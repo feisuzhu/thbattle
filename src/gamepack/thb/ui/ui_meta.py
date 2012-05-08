@@ -27,7 +27,7 @@ class DropCardStage:
         if act.cond(cards):
             return (True, u'OK，就这些了')
         else:
-            return (False, u'请弃牌…')
+            return (False, u'请弃掉%d张牌…' % act.dropn)
 
     def effect_string(act):
         if act.dropn > 0:
@@ -2319,7 +2319,7 @@ class MasochistAction:
         if act.cond(cards):
             return (True, u'给你牌~')
         else:
-            return (False, u'请选择你要给出的牌')
+            return (False, u'请选择你要给出的牌（否则给自己）')
 
     def target(pl):
         if not pl:

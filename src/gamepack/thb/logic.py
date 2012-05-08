@@ -42,14 +42,7 @@ class CharChoice(object):
 
 class THBattle(Game):
     name = u'符斗祭 - 3v3 - 休闲'
-    n_persons = 2
-
-    # -----BEGIN PLAYER STAGES-----
-    NORMAL = 'NORMAL'
-    DRAWCARD_STAGE = 'DRAWCARD_STAGE'
-    ACTION_STAGE = 'ACTION_STAGE'
-    DROPCARD_STAGE = 'DROPCARD_STAGE'
-    # -----END PLAYER STAGES-----
+    n_persons = 6
 
     if Game.CLIENT_SIDE:
         # not loading these things on server
@@ -191,7 +184,6 @@ class THBattle(Game):
             p.life = p.maxlife
             p.dead = False
             p.need_shuffle = False
-            p.stage = self.NORMAL
 
         self.deck = Deck()
 
@@ -209,7 +201,6 @@ class THBattle(Game):
             pass
 
     def game_ended(self):
-        return False
         forces = self.forces
         return any(
             all(p.dead or p.dropped for p in f)

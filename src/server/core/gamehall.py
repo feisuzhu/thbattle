@@ -34,10 +34,11 @@ class _GameHallStatusUpdator(Greenlet):
         time_limit = 1
         while True:
             flag = evt.wait()
-            delta = time() - last_update
+            t = time()
+            delta = t - last_update
             if delta > time_limit:
                 timeout = None
-                last_update = time()
+                last_update = t
                 for u in users.values():
                     if u.state == 'hang':
                         send_hallinfo(u)

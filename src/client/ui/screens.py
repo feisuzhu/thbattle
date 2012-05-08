@@ -233,7 +233,6 @@ class GameHallScreen(Overlay):
             def on_item_dblclick(li):
                 Executive.call('join_game', ui_message, li.game_id)
 
-
         def on_message(self, _type, *args):
             if _type == 'current_games':
                 current_games = args[0]
@@ -303,7 +302,6 @@ class GameHallScreen(Overlay):
                     for u in users
                 )
                 box.append(t)
-
 
     def __init__(self, *args, **kwargs):
         Overlay.__init__(self, *args, **kwargs)
