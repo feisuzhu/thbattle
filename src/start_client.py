@@ -13,7 +13,7 @@ class Tee(object):
 
     def write(self, v):
         sys.__stdout__.write(v)
-        self.logfile.write(v)
+        self.logfile.write(v.encode('utf-8'))
 
 sys.stderr = sys.stdout = Tee()
 
@@ -30,6 +30,17 @@ class MainThread(threading.Thread):
         from gevent import monkey
         monkey.patch_socket()
 
+        # ipv4 only
+        from gevent import socket
+        origGetAddrInfo = socket.getaddrinfo
+
+        def getAddrInfoWrapper(host, port, family=0, socktype=0, proto=0, flags=0):
+            return origGetAddrInfo(host, port, socket.AF_INET, socktype, proto, flags)
+
+        # replace the original socket.getaddrinfo by our version
+        socket.getaddrinfo = getAddrInfoWrapper
+        # -----------------------------------------
+        
         from game import autoenv
         autoenv.init('Client')
 

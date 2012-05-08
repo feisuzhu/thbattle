@@ -16,10 +16,11 @@ AUTOUPDATE_ENABLE = True
 
 import os
 
+import sys
 UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
 
-import sys
 if sys.platform == 'win32':
+    UPDATE_BASE = os.path.dirname(UPDATE_BASE)
     UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/'
 else:
     UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/src/'

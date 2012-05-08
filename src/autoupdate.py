@@ -22,16 +22,17 @@ ignores = re.compile(r'''
 
 def build_hash(base):
     my_hash = {}
+    cwd = os.getcwd()
     for path, _, names in os.walk(base):
         # exclude list
         for name in names:
             if ignores.match(name):
                 continue
             fn = os.path.join(path, name)
-            fn = os.path.relpath(fn, base)
+            fn = os.path.relpath(fn, cwd)
             with open(fn, 'rb') as f:
                 h = crc32(f.read())
-                my_hash[fn] = h
+                my_hash[fn.replace('\\', '/')] = h
     return my_hash
 
 def version_string(hash):
@@ -45,7 +46,7 @@ def write_metadata(base):
     with open('current_version', 'w') as f:
         f.write(version_string(h))
 
-def do_update(base, url, cb=lambda *a, **k: False):
+def do_update(base, update_url, cb=lambda *a, **k: False):
 
     try:
         remote = urllib2.build_opener()
@@ -62,8 +63,9 @@ def do_update(base, url, cb=lambda *a, **k: False):
             except Exception as e:
                 me.kill(e)
 
-        latest_ver = gevent.spawn(worker, urljoin(url, 'current_version'))
+        latest_ver = gevent.spawn(worker, urljoin(update_url, 'current_version'))
 
+        write_metadata(base)
         my_hash = build_hash(base)
         my_ver = version_string(my_hash)
 
@@ -74,7 +76,7 @@ def do_update(base, url, cb=lambda *a, **k: False):
             cb('up2date')
             return 'up2date'
 
-        latest_hash = json.loads(worker(urljoin(url, 'update_info.json')))
+        latest_hash = json.loads(worker(urljoin(update_url, 'update_info.json')))
 
         my_set = set(my_hash.items())
         latest_set = set(latest_hash.items())
@@ -90,11 +92,12 @@ def do_update(base, url, cb=lambda *a, **k: False):
             except OSError: pass
         '''
 
-        queue = gevent.queue.Queue(100)
+        queue = gevent.queue.Queue(1000000)
         for fn, _ in files_update:
             suburl = os.path.relpath(fn, base).replace('\\', '/')
+            print update_url, suburl, urljoin(update_url, suburl)
             queue.put(
-                (urljoin(url, suburl), fn)
+                (urljoin(update_url, suburl), fn)
             )
 
         def retrieve_worker():
@@ -112,8 +115,8 @@ def do_update(base, url, cb=lambda *a, **k: False):
                             os.makedirs(os.path.dirname(fn))
                         except OSError:
                             pass
-                        with open(fn, 'wb') as f:
-                            f.write(d)
+                        #with open(fn, 'wb') as f:
+                        #    f.write(d)
                     except EnvironmentError:
                         cb('write_failed', fn)
             except gevent.queue.Empty:
