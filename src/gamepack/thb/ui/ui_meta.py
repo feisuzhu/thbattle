@@ -267,16 +267,15 @@ class RejectHandler:
         for i in range(0, -9999, -1):
             lc = g.action_stack[i]
             from ..actions import BaseLaunchCard
-            from ..cards import SpellCardAction
             if isinstance(lc, BaseLaunchCard):
                 c = lc.card
-                assert issubclass(c.associated_action, SpellCardAction)
                 break
 
         s = u'【%s】受到的【%s】' % (
             act.target_act.target.ui_meta.char_name,
             c.ui_meta.name,
         )
+
         if act.cond(cards):
             return (True, u'对不起，你是一个好人(%s)' % s)
         else:

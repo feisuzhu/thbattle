@@ -402,10 +402,7 @@ class EquipCardArea(Control):
         self.dispatch_event('on_selection_change')
 
     def hit_test(self, x, y):
-        if not self.selectable:
-            return False
-        else:
-            return self.control_frompoint1(x, y)
+        return self.control_frompoint1(x, y)
 
     cards = property(
         lambda self: self.control_list,

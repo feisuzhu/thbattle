@@ -138,54 +138,58 @@ class UIChooseCardAndPlayer(UISelectTarget):
             parent.begin_select_player(disables)
 
     def on_selection_change(self):
-        act, candidates = self.irp.attachment
+        try:
+            act, candidates = self.irp.attachment
 
-        g = self.parent.game
-        parent = self.parent
-        cond = getattr(act, 'cond', False)
-        if cond:
-            if not self.auto_chosen:
-                self.auto_chosen = True
-                import itertools
-                cl = itertools.chain(g.me.showncards, g.me.cards)
-                for c in cl:
-                    if not cond([c]): continue
-                    hca = parent.handcard_area
-                    for cs in hca.cards:
-                        if cs.associated_card == c:
-                            break
-                    else:
-                        raise Exception('WTF?!')
-                    hca.toggle(cs, 0.3)
-                    return
+            g = self.parent.game
+            parent = self.parent
+            cond = getattr(act, 'cond', False)
+            if cond:
+                if not self.auto_chosen:
+                    self.auto_chosen = True
+                    import itertools
+                    cl = itertools.chain(g.me.showncards, g.me.cards)
+                    for c in cl:
+                        if not cond([c]): continue
+                        hca = parent.handcard_area
+                        for cs in hca.cards:
+                            if cs.associated_card == c:
+                                break
+                        else:
+                            raise Exception('WTF?!')
+                        hca.toggle(cs, 0.3)
+                        return
 
-            skills = parent.get_selected_skills()
-            cards = parent.get_selected_cards()
-            if skills:
-                for skill_cls in skills:
-                    cards = [skill_cls.wrap(cards, g.me)]
-                rst, reason = cards[0].ui_meta.is_complete(g, cards)
-                if not rst:
-                    self.set_text(reason)
-                    return
+                skills = parent.get_selected_skills()
+                cards = parent.get_selected_cards()
+                if skills:
+                    for skill_cls in skills:
+                        cards = [skill_cls.wrap(cards, g.me)]
+                    rst, reason = cards[0].ui_meta.is_complete(g, cards)
+                    if not rst:
+                        self.set_text(reason)
+                        return
 
-            c = cond(cards)
-            c1, text = act.ui_meta.choose_card_text(g, act, cards)
-            assert c == c1
-            self.set_text(text)
+                c = cond(cards)
+                c1, text = act.ui_meta.choose_card_text(g, act, cards)
+                assert c == c1
+                self.set_text(text)
 
-            if not c: return
+                if not c: return
 
-        if candidates:
-            players = parent.get_selected_players()
-            players, valid = act.choose_player_target(players)
-            valid1, reason = act.ui_meta.target(players)
-            assert bool(valid) == bool(valid1)
-            parent.set_selected_players(players)
-            self.set_text(reason)
-            if not valid: return
+            if candidates:
+                players = parent.get_selected_players()
+                players, valid = act.choose_player_target(players)
+                valid1, reason = act.ui_meta.target(players)
+                assert bool(valid) == bool(valid1)
+                parent.set_selected_players(players)
+                self.set_text(reason)
+                if not valid: return
 
-        self.set_valid()
+            self.set_valid()
+        except Exception as e:
+            import traceback
+            traceback.print_exc(e)
 
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
