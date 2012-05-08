@@ -83,14 +83,12 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
         files_delete = my_set - latest_set
         files_update = latest_set - my_set
 
-        ''' # Temp disabled
         for fn, _ in files_delete:
             fn = os.path.relpath(fn)
             cb('delete_file', fn)
             log.info('delete file %s', fn)
             try: os.unlink(fn)
             except OSError: pass
-        '''
 
         queue = gevent.queue.Queue(1000000)
         for fn, _ in files_update:
@@ -115,8 +113,8 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
                             os.makedirs(os.path.dirname(fn))
                         except OSError:
                             pass
-                        #with open(fn, 'wb') as f:
-                        #    f.write(d)
+                        with open(fn, 'wb') as f:
+                            f.write(d)
                     except EnvironmentError:
                         cb('write_failed', fn)
             except gevent.queue.Empty:
@@ -142,5 +140,3 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
         cb('io_error')
 
     return 'error'
-
-# autoupdate.do_update('.', 'http://127.0.0.1/src/')
