@@ -348,7 +348,7 @@ class Dialog(Control):
 
             shadow = ttex.get_image_data()
             for i in range(self.shadow_thick):
-                shadow = dilate(shadow, self.color.shadow_thick)
+                shadow = dilate(shadow, self.color.caption_shadow)
             shadow = shadow.get_texture()
             with tfbo:
                 glClearColor(0,0,0,0)

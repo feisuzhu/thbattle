@@ -3,22 +3,15 @@ import gevent.queue
 import urllib2
 from zlib import crc32
 import simplejson as json
-import os
+import sys, os
 from urlparse import urljoin
 
 import logging
 log = logging.getLogger('autoupdate')
 
-import re
+import settings
 
-ignores = re.compile(r'''
-          ^current_version$
-        | ^update_info\.json$
-        | ^client_log\.txt$
-        | ^.+\.py[co]$
-        | ^.*~$
-        | ^\.
-''', re.VERBOSE)
+ignores = settings.UPDATE_IGNORES
 
 def build_hash(base):
     my_hash = {}
@@ -41,7 +34,7 @@ def version_string(hash):
 def write_metadata(base):
     h = build_hash(base)
     with open('update_info.json', 'w') as f:
-        f.write(json.dumps(h, indent='    '))
+        f.write(json.dumps(h, encoding=sys.getfilesystemencoding(), indent='    '))
 
     with open('current_version', 'w') as f:
         f.write(version_string(h))
@@ -65,7 +58,6 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
 
         latest_ver = gevent.spawn(worker, urljoin(update_url, 'current_version'))
 
-        write_metadata(base)
         my_hash = build_hash(base)
         my_ver = version_string(my_hash)
 
@@ -93,7 +85,6 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
         queue = gevent.queue.Queue(1000000)
         for fn, _ in files_update:
             suburl = os.path.relpath(fn, base).replace('\\', '/')
-            print update_url, suburl, urljoin(update_url, suburl)
             queue.put(
                 (urljoin(update_url, suburl), fn)
             )
@@ -102,7 +93,7 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
             try:
                 while True:
                     url, fn = queue.get_nowait()
-                    log.debug('update %s' % fn)
+                    log.info('update %s' % fn)
                     cb('download_file', fn)
                     file = remote.open(url)
                     d = file.read()

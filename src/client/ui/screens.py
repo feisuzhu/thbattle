@@ -219,7 +219,7 @@ class GameHallScreen(Overlay):
 
             @self.btn_create.event
             def on_click():
-                Executive.call('create_game', ui_message, ['THBattle', 'Default Game'])
+                Executive.call('create_game', ui_message, ['THBattle', u'我的游戏'])
 
             @self.btn_quickstart.event
             def on_click():
@@ -235,14 +235,17 @@ class GameHallScreen(Overlay):
 
         def on_message(self, _type, *args):
             if _type == 'current_games':
+                from gamepack import gamemodes as modes
                 current_games = args[0]
                 glist = self.gamelist
                 glist.clear()
                 for gi in current_games:
+                    gcls = modes.get(gi['type'], None)
+                    s = gcls.name if gcls else u'未知游戏类型'
                     li = glist.append([
                         gi['id'],
                         gi['name'],
-                        gi['type'],
+                        s,
                         '%d/%d' % (
                             len([i for i in gi['slots'] if i['id']]),
                             len(gi['slots']),

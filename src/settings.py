@@ -11,9 +11,6 @@ def makedict(clsname, bases, _dict):
 #__metaclass__ = lambda clsname, bases, _dict: _dict
 __metaclass__ = makedict
 
-VERSION = 'GENSOUKILL V1.0b'
-AUTOUPDATE_ENABLE = True
-
 import os
 
 import sys
@@ -24,6 +21,22 @@ if sys.platform == 'win32':
     UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/'
 else:
     UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/src/'
+
+VERSION = 'GENSOUKILL V1.0b'
+
+import re
+
+UPDATE_IGNORES = re.compile(r'''
+          ^current_version$
+        | ^update_info\.json$
+        | ^client_log\.txt$
+        | ^.+\.py[co]$
+        | ^.*~$
+        | ^NO_UPDATE$
+        | ^\.
+''', re.VERBOSE)
+
+AUTOUPDATE_ENABLE = not os.path.exists(os.path.join(UPDATE_BASE, 'NO_UPDATE'))
 
 class ServerList:
     class HakureiShrine:

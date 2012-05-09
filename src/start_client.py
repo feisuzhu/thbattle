@@ -2,6 +2,9 @@
 import threading
 import logging, sys
 
+reload(sys)
+sys.setdefaultencoding(sys.getfilesystemencoding())
+
 class Tee(object):
     def __init__(self):
         self.logfile = f = open('client_log.txt', 'a')
@@ -40,7 +43,7 @@ class MainThread(threading.Thread):
         # replace the original socket.getaddrinfo by our version
         socket.getaddrinfo = getAddrInfoWrapper
         # -----------------------------------------
-        
+
         from game import autoenv
         autoenv.init('Client')
 
