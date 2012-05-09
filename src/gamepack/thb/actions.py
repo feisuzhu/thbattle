@@ -559,7 +559,7 @@ class LaunchFatetellCard(BaseLaunchCard, FatetellAction):
         card = self.card
         act = card.associated_action
         assert act
-        a = act(source=target, target=target)
+        a = act(source=card.fatetell_source, target=target)
         a.associated_card = card
         g.process_action(a)
         a.fatetell_postprocess()

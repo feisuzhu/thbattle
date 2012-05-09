@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/src/'
 
-VERSION = 'GENSOUKILL V1.0b'
+VERSION = 'GENSOUKILL V1.0b incr 1'
 
 import re
 

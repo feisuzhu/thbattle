@@ -246,3 +246,61 @@ def dilate(im, color):
     new = ''.join([tr[i] for i in _new])
     new = pyglet.image.ImageData(w, h, 'RGBA', new)
     return new
+
+TRANS = {
+    124: 101, #LOAD_FAST: LOAD_NAME,
+    125: 90, #STORE_FAST: STORE_NAME,
+    126: 91, #DELETE_FAST: DELETE_NAME,
+}
+
+def pinnable(*scopevars):
+    def _pinnable(f):
+        c = f.__code__
+
+        assert c.co_argcount == 0
+        assert len(c.co_freevars) == 0
+        assert len(c.co_cellvars) == 0
+
+        names = c.co_names
+        vnames = c.co_varnames
+
+        len_names = len(names)
+
+        bcode = [ord(i) for i in c.co_code]
+        nbcode = []
+        i = 0
+        n = len(bcode)
+        while i < n:
+            op = bcode[i]
+            nop = TRANS.get(op, op)
+            i += 1
+            if op >= 90: # HAVE_ARGUMENT
+                if op in (124, 125, 126): # (LOAD|STORE|DELETE)_FAST opcodes
+                    nbcode.append(nop)
+                    arg = bcode[i] + (bcode[i+1] << 8)
+                    arg += len_names
+                    nbcode.extend([arg & 255, (arg >> 8) & 255])
+                elif op == 116: # LOAD_GLOBAL
+                    arg = bcode[i] + (bcode[i+1] << 8)
+                    gname = names[arg]
+                    if gname in scopevars:
+                        nbcode.append(101) # LOAD_NAME
+                    else:
+                        nbcode.append(nop)
+                    nbcode.extend(bcode[i:i+2])
+                else:
+                    nbcode.append(nop)
+                    nbcode.extend(bcode[i:i+2])
+                i += 2
+            else:
+                nbcode.append(nop)
+
+        nbcode = ''.join(chr(i) for i in nbcode)
+        newco = type(c)(
+            0, 0, c.co_stacksize, c.co_flags & (~2), # CO_NEWLOCALS
+            nbcode, c.co_consts, names + vnames,
+            tuple(), c.co_filename, '<pinnable %s>' % f.__name__,
+            c.co_firstlineno, c.co_lnotab
+        )
+        return newco
+    return _pinnable

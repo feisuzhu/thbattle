@@ -265,15 +265,18 @@ class RejectHandler:
     # choose_card meta
     def choose_card_text(g, act, cards):
         for i in range(0, -9999, -1):
-            lc = g.action_stack[i]
+            a = g.action_stack[i]
             from ..actions import BaseLaunchCard
-            if isinstance(lc, BaseLaunchCard):
-                c = lc.card
+            from ..cards import Reject
+            if isinstance(a, BaseLaunchCard):
+                name = a.card.ui_meta.name
                 break
+            elif isinstance(a, Reject):
+                name = u'好人卡'
 
         s = u'【%s】受到的【%s】' % (
             act.target_act.target.ui_meta.char_name,
-            c.ui_meta.name,
+            name,
         )
 
         if act.cond(cards):

@@ -40,7 +40,7 @@ class Reject(InstantSpellCardAction):
     def __init__(self, source, target_act):
         self.source = source
         self.target_act = target_act
-        self.target = target_act.source
+        self.target = target_act.target
 
     def apply_action(self):
         if not isinstance(self.target_act, SpellCardAction):
@@ -58,7 +58,7 @@ class RejectHandler(EventHandler):
             self.target_act = act # for ui
 
             p, input = g.players.user_input_any(
-                'choose_card_and_player', self._expects, (self, [])
+                'choose_card_and_player_reject', self._expects, (self, [])
             )
 
             if p:
@@ -122,6 +122,7 @@ class DelayedLaunchCard(BaseLaunchCard):
         g = Game.getgame()
         card = self.card
         action = card.associated_action
+        card.fatetell_source = self.source
         assert issubclass(action, DelayedSpellCardAction)
 
         t = self.target

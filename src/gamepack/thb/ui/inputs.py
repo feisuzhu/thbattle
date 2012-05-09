@@ -8,13 +8,14 @@ from client.ui.base import schedule as ui_schedule
 from client.ui.controls import *
 from client.ui import resource as common_res, shaders
 import resource as gres
+import itertools
 
 from .game_controls import *
 
 from gamepack.thb import actions, cards
 from game.autoenv import Game
 
-from utils import DataHolder, BatchList, IRP
+from utils import DataHolder, BatchList, IRP, pinnable
 
 import logging
 log = logging.getLogger('THBattleUI_Input')
@@ -126,7 +127,7 @@ class UISelectTarget(Control):
         if _type == 'evt_user_input_timeout':
             self.cleanup()
 
-class UIChooseCardAndPlayer(UISelectTarget):
+class BaseUIChooseCardAndPlayer(UISelectTarget):
     auto_chosen = False
     def __init__(self, irp, *a, **k):
         action, candidates = irp.attachment
@@ -143,11 +144,22 @@ class UIChooseCardAndPlayer(UISelectTarget):
 
             g = self.parent.game
             parent = self.parent
+            if not parent: return
+
             cond = getattr(act, 'cond', False)
+
+            if self.for_reject:
+                self.irp.input = None
+                if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
+                    self.cleanup()
+                    return
+                if act.target_act.source is act.target_act.target is g.me:
+                    self.cleanup()
+                    return
+
             if cond:
                 if not self.auto_chosen:
                     self.auto_chosen = True
-                    import itertools
                     cl = itertools.chain(g.me.showncards, g.me.cards)
                     for c in cl:
                         if not cond([c]): continue
@@ -190,6 +202,12 @@ class UIChooseCardAndPlayer(UISelectTarget):
         except Exception as e:
             import traceback
             traceback.print_exc(e)
+
+class UIChooseCardAndPlayer(BaseUIChooseCardAndPlayer):
+    for_reject = False
+
+class UIChooseCardAndPlayerReject(BaseUIChooseCardAndPlayer):
+    for_reject = True
 
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
@@ -740,6 +758,7 @@ class UIRanProphet(Panel):
 
 mapping = dict(
     choose_card_and_player=UIChooseCardAndPlayer,
+    choose_card_and_player_reject=UIChooseCardAndPlayerReject,
     action_stage_usecard=UIDoActionStage,
     choose_girl=Dummy,
     choose_peer_card=UIChoosePeerCard,
