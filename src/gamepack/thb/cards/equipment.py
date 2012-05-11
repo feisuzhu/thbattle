@@ -286,7 +286,7 @@ class RepentanceStickHandler(EventHandler):
             src, tgt = act.source, act.target
             if src and src.has_skill(RepentanceStickSkill):
                 g = Game.getgame()
-                pa = g.action_stack[0]
+                pa = g.action_stack[-1]
                 if not isinstance(pa, basic.BaseAttack): return act
                 if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell):
                     return act

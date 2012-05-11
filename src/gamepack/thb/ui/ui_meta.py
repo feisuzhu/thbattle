@@ -652,7 +652,7 @@ class GungnirSkill:
     def clickable(game):
         me = game.me
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
             if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.DollControl)):
                 return True
         except IndexError:
@@ -709,7 +709,7 @@ class LaevateinSkill:
     def clickable(game):
         me = game.me
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 cl = list(me.cards) + list(me.showncards)
                 if len(cl) == 1 and isinstance(cl[0], cards.AttackCard):
@@ -1336,7 +1336,7 @@ class GrimoireSkill:
     def clickable(game):
         me = game.me
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 if me.tags.get('attack_num', 0):
                     return True
@@ -1457,7 +1457,7 @@ class Envy:
         me = game.me
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -1565,7 +1565,7 @@ class Find:
             return False
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -1656,7 +1656,7 @@ class SupportSkill:
         me = game.me
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -1784,7 +1784,7 @@ class Agile:
         me = game.me
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -1837,7 +1837,7 @@ class AssaultSkill:
         if me.tags.get('yugi_assault', 0) >= me.tags.get('turn_count', 0):
             return False
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -1969,7 +1969,7 @@ class SealingArraySkill:
             return False
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -2034,7 +2034,7 @@ class Tribute:
             return False
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -2101,7 +2101,7 @@ class SurpriseSkill:
             return False
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -2163,7 +2163,7 @@ class FirstAid:
         me = game.me
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -2191,7 +2191,7 @@ class Medic:
             return False
 
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
         except IndexError:
             return False
 
@@ -2352,7 +2352,7 @@ class FlowerQueen:
     def clickable(game):
         me = game.me
         try:
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
             if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.UseGraze, cards.DollControl)):
                 return True
         except IndexError:
@@ -2438,7 +2438,7 @@ class Darkness:
             tags = me.tags
             if tags['turn_count'] <= tags['darkness_tag']:
                 return False
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 return True
         except IndexError:
@@ -2501,7 +2501,7 @@ class Netoru:
         try:
             if me.tags['netoru_tag'] >= me.tags['turn_count']:
                 return False
-            act = game.action_stack[0]
+            act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 return True
         except IndexError:

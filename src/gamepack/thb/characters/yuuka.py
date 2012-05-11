@@ -53,7 +53,7 @@ class YuukaHandler(EventHandler):
                 act.__class__ = MagicCannonAttack
         elif evt_type == 'action_before' and isinstance(act, TryRevive):
             g = Game.getgame()
-            dmg = g.action_stack[0]
+            dmg = g.action_stack[-1]
             assert isinstance(dmg, Damage)
             src = dmg.source
             tgt = dmg.target

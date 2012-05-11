@@ -79,7 +79,7 @@ class EventHandler(object):
         rst = before_all + table.values() + after_all
 
         rst.sort(key=lambda v: (v.sort_key, v.__class__.__name__)) # must sync between server and client
-        
+
         return rst
 
 class Action(object):
@@ -132,12 +132,6 @@ class AbstractPlayer(object):
     def __repr__(self):
         return self.__class__.__name__
 
-class _ActionStack(list):
-    def __getitem__(self, i):
-        if i > 0:
-            raise IndexError
-        return list.__getitem__(self, i-1)
-
 class Game(object):
     '''
     The Game class, all game mode derives from this.
@@ -152,7 +146,7 @@ class Game(object):
     # event_handlers = []
     def __init__(self):
         self.event_handlers = []
-        self.action_stack = _ActionStack()
+        self.action_stack = []
 
     def game_start(self):
         '''
@@ -226,12 +220,12 @@ class Game(object):
                 except AttributeError:
                     pass
 
-                rst = action.succeeded
-                action.done = True
-
                 if self.game_ended():
                     raise GameEnded()
                 action = self.emit_event('action_after', action)
+
+                rst = action.succeeded
+                action.done = True
 
                 action.clean_up()
 

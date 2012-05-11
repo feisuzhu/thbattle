@@ -9,7 +9,7 @@ import random
 
 log = logging.getLogger('GameHall')
 
-from utils import DataHolder
+from utils import DataHolder, classmix
 
 '''
 User state machine:
@@ -126,15 +126,11 @@ def exit_game(user):
             if p.__class__ is Player:
                 p.__class__ = DroppedPlayer
             else:
-                # HACK:it's a customized class, Player_Character or something.
-                # each class like this should have only 1 instance,
-                # so we can modify the class directly
-                # !!classes are expensive, they need to be cached.!!
+                # It's a dynamic created class, Mixed(Player, Character) or something.
                 cls = p.__class__
                 bases = list(cls.__bases__)
-                i = bases.index(Player)
-                bases[i] = DroppedPlayer
-                cls.__bases__ = tuple(bases)
+                bases[bases.index(Player)] = DroppedPlayer
+                p.__class__ = classmix(*bases)
 
             p.client = DummyClient(g.players[i].client)
         else:

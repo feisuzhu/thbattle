@@ -234,6 +234,11 @@ class YukariDimension(InstantSpellCardAction):
 
 class BaseDuel(UserAction):
     # 弹幕战
+    def __init__(self, source, target, damage=1):
+        self.source = source
+        self.target = target
+        self.damage = damage
+
     def apply_action(self):
         g = Game.getgame()
         source = self.source
@@ -244,7 +249,7 @@ class BaseDuel(UserAction):
             d = (d[1], d[0])
             if not g.process_action(basic.UseAttack(d[0])): break
 
-        dmg = Damage(d[1], d[0], amount=1)
+        dmg = Damage(d[1], d[0], amount=self.damage)
         dmg.associated_action = self
         g.process_action(dmg)
         return d[1] is source

@@ -401,7 +401,7 @@ def init_gui():
     global main_window, sched_queue, sched_queue_lock, current_time, fps_limit
     import threading
     main_window = pyglet.window.Window(
-        width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption='GensouKill')
+        width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption=u'东方符斗祭')
     sched_queue = []
     sched_queue_lock = threading.RLock()
 

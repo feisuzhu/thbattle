@@ -300,3 +300,13 @@ def pinnable(*scopevars):
         )
         return newco
     return _pinnable
+
+cls_cache = {}
+def classmix(*classes):
+    cached = cls_cache.get(classes, None)
+    if cached: return cached
+
+    clsname = ', '.join(cls.__name__ for cls in classes)
+    new_cls = type('Mixed(%s)' % clsname, classes, {})
+    cls_cache[classes] = new_cls
+    return new_cls

@@ -18,11 +18,11 @@ UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
 
 if sys.platform == 'win32':
     UPDATE_BASE = os.path.dirname(UPDATE_BASE)
-    UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/'
+    UPDATE_URL = 'http://update.thbattle.net/'
 else:
-    UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/thbattle/src/'
+    UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'GENSOUKILL V1.0b incr 1'
+VERSION = 'THBATTLE V1.0b incr 2'
 
 import re
 
@@ -51,7 +51,7 @@ class ServerList:
         y=404
 
     class LakeOfFog:
-        address = ('feisuzhu.xen.prgmr.com', 9999)
+        address = ('game.thbattle.net', 9999)
         description = (
             u'|R这里没有青蛙 雾之湖|r\n\n'
             u'一个让人开心的地方。只是游客普遍反应，游玩结束后会感到自己的智商被拉低了一个档次。'
@@ -62,7 +62,7 @@ class ServerList:
         y=470
 
     class ForestOfMagic:
-        address = ('feisuzhu.xen.prgmr.com', 9999)
+        address = ('game.thbattle.net', 9999)
         description = (
             u'|R光明牛奶指定销售地点 魔法之森|r\n\n'
             u'森林里好玩的东西很多，比如被捉弄什么的。'

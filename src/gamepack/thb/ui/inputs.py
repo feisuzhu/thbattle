@@ -15,7 +15,7 @@ from .game_controls import *
 from gamepack.thb import actions, cards
 from game.autoenv import Game
 
-from utils import DataHolder, BatchList, IRP, pinnable
+from utils import DataHolder, BatchList, IRP
 
 import logging
 log = logging.getLogger('THBattleUI_Input')
@@ -156,6 +156,10 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                 if act.target_act.source is act.target_act.target is g.me:
                     self.cleanup()
                     return
+                if act.target_act.source is g.me and not hasattr(act.target_act, 'parent_action'):
+                    # my SC and is not targeting multiple players
+                    self.cleanup()
+                    return
 
             if cond:
                 if not self.auto_chosen:
@@ -202,6 +206,13 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
         except Exception as e:
             import traceback
             traceback.print_exc(e)
+
+    def cleanup(self):
+        hca = self.parent.handcard_area
+        for cs in hca.control_list:
+            if cs.hca_selected:
+                hca.toggle(cs, 0.3)
+        UISelectTarget.cleanup(self)
 
 class UIChooseCardAndPlayer(BaseUIChooseCardAndPlayer):
     for_reject = False

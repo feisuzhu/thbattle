@@ -7,17 +7,14 @@ from itertools import cycle
 from collections import defaultdict
 import random
 
-from utils import BatchList, check, CheckFailed
+from utils import BatchList, check, CheckFailed, classmix
 
 import logging
 log = logging.getLogger('THBattle')
 
 def mixin_character(player, charcls):
     pcls = player.__class__
-    clsn1 = pcls.__name__
-    clsn2 = charcls.__name__
-    new_cls = type('%s_%s' % (clsn1, clsn2), (pcls, charcls), {})
-    player.__class__ = new_cls
+    player.__class__ = classmix(pcls, charcls)
 
 class CharChoice(object):
     chosen = None

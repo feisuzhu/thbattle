@@ -119,7 +119,7 @@ class Client(Endpoint, Greenlet):
 
         # ----- Banner -----
         from settings import VERSION
-        self.write(['gensoukill_greeting', VERSION])
+        self.write(['thbattle_greeting', VERSION])
         # ------------------
 
         self.state = 'connected'

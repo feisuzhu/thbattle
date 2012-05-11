@@ -84,7 +84,7 @@ class GameManager(Greenlet):
             Executive.server.write(['heartbeat', None])
 
         @handler(None, None)
-        def gensoukill_greeting(self, ver):
+        def thbattle_greeting(self, ver):
             from settings import VERSION
             if ver != VERSION:
                 self.event_cb('version_mismatch')

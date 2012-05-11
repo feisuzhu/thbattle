@@ -130,7 +130,7 @@ class ExinwanHandler(EventHandler):
             cards = [c for c in act.cards if c.is_card(ExinwanCard)]
             if cards:
                 g = Game.getgame()
-                pact = g.action_stack[0]
+                pact = g.action_stack[-1]
                 #if isinstance(pact, DropCardStage):
                 #    target = pact.target
                 #else:

@@ -3,6 +3,8 @@ from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
+from utils import classmix
+
 class Mijincihangzhan(Skill):
     # 迷津慈航斩
     # compulsory skill, just a tag.
@@ -35,6 +37,29 @@ class MijincihangzhanAttack(Attack):
 
         g.process_action(Damage(source, target, amount=self.damage))
         return True
+
+class MijincihangzhanDuelMixin(object):
+    # 迷津慈航斩 弹幕战
+    def apply_action(self):
+        g = Game.getgame()
+        source = self.source
+        target = self.target
+
+        d = (source, target)
+        while True:
+            d = (d[1], d[0])
+            if d[1].has_skill(Nitoryuu):
+                if not (
+                    g.process_action(basic.UseAttack(d[0])) and
+                    g.process_action(basic.UseAttack(d[0]))
+                ): break
+            else:
+                if not g.process_action(basic.UseAttack(d[0])): break
+
+        dmg = Damage(d[1], d[0], amount=1)
+        dmg.associated_action = self
+        g.process_action(dmg)
+        return d[1] is source
 
 class XianshiwangzhiAwake(SkillAwake):
     skill = Xianshiwangzhi
@@ -75,6 +100,8 @@ class YoumuHandler(EventHandler):
             if isinstance(act, Attack):
                 if not act.source.has_skill(Mijincihangzhan): return act
                 act.__class__ = MijincihangzhanAttack
+            elif isinstance(act, BaseDuel):
+                act.__class__ = classmix(MijincihangzhanDuelMixin, act.__class__)
             elif isinstance(act, WearEquipmentAction):
                 if not act.source.has_skill(Nitoryuu): return act
                 act.__class__ = YoumuWearEquipmentAction

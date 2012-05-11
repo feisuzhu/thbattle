@@ -129,7 +129,7 @@ def migrate_cards(cards, to):
         l = mapping.setdefault(id(c) if c.is_card(VirtualCard) else id(c.resides_in), [])
         l.append(c)
 
-    act = g.action_stack[0]
+    act = g.action_stack[-1]
 
     for l in mapping.values():
         cl = l[0].resides_in
@@ -592,6 +592,7 @@ class ForEach(GenericAction):
         return True
 
 class PlayerTurn(GenericAction):
+    current_turn = None
     def __init__(self, target):
         self.target = target
 
@@ -599,6 +600,7 @@ class PlayerTurn(GenericAction):
         g = Game.getgame()
         p = self.target
         p.tags['turn_count'] += 1
+        PlayerTurn.current_turn = p
         g.process_action(FatetellStage(p))
         g.process_action(DrawCardStage(p))
         g.process_action(ActionStage(p))
