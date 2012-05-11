@@ -118,6 +118,7 @@ def check_type(pattern, obj):
         check(isinstance(obj, pattern))
 
 class Framebuffer(object):
+    current_fbo = None
     def __init__(self, texture=None):
         from pyglet import gl
         fbo_id = gl.GLuint(0)
@@ -128,7 +129,6 @@ class Framebuffer(object):
             self.bind()
             self.texture = texture
             self.unbind()
-
 
     def _get_texture(self):
         return self._texture
@@ -159,9 +159,10 @@ class Framebuffer(object):
         self.unbind()
 
     def bind(self):
+        assert Framebuffer.current_fbo is None
         from pyglet import gl
         t = self.texture
-        gl.glBindFramebufferEXT(gl.GL_DRAW_FRAMEBUFFER_EXT, self.fbo_id)
+        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, self.fbo_id)
         gl.glPushAttrib(gl.GL_VIEWPORT_BIT | gl.GL_TRANSFORM_BIT)
         if t:
             gl.glViewport(0, 0, t.width, t.height)
@@ -175,6 +176,8 @@ class Framebuffer(object):
         if t:
             gl.glLoadIdentity()
 
+        Framebuffer.current_fbo = self
+
     def unbind(self):
         from pyglet import gl
         gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -182,19 +185,12 @@ class Framebuffer(object):
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glPopMatrix()
         gl.glPopAttrib()
-        gl.glBindFramebufferEXT(gl.GL_DRAW_FRAMEBUFFER_EXT, 0)
+        gl.glBindFramebufferEXT(gl.GL_FRAMEBUFFER_EXT, 0)
+        Framebuffer.current_fbo = None
 
     def __del__(self):
         from pyglet import gl
         gl.glDeleteFramebuffersEXT(1, self.fbo_id)
-
-    def bind_as_readbuffer(self):
-        from pyglet import gl
-        gl.glBindFramebufferEXT(gl.GL_READ_FRAMEBUFFER_EXT, self.fbo_id)
-
-    def unbind_as_readbuffer(self):
-        from pyglet import gl
-        gl.glBindFramebufferEXT(gl.GL_READ_FRAMEBUFFER_EXT, 0)
 
     def blit_from_current_readbuffer(self, src_box, dst_box=None, mask=None, _filter=None):
         from pyglet import gl
