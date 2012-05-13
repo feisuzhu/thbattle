@@ -26,7 +26,7 @@ class KnowledgeAction(GenericAction):
 class PatchouliHandler(EventHandler):
     execute_before = (RejectHandler, )
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply':
+        if evt_type == 'action_before':
             try:
                 src = act.source
             except AttributeError:

@@ -140,7 +140,7 @@ class ExinwanCard:
     image = gres.card_exinwan
     description = (
         u'|R恶心丸|r\n\n'
-        u'当该牌以任意的方式因弃牌动作进入弃牌堆时，动作来源需要选择其中一项执行：\n'
+        u'当该牌以任意的方式进入弃牌堆时，动作来源需要选择其中一项执行：\n'
         u'|B|R>> |r受到一点伤害，无来源\n'
         u'|B|R>> |r弃两张牌'
     )
@@ -2460,7 +2460,7 @@ class Darkness:
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
-        return u'|G【%s】|r在黑暗中一通乱搅，结果|G【%s】|和|G【%s】|打了起来！' % (
+        return u'|G【%s】|r在黑暗中一通乱搅，结果|G【%s】|r和|G【%s】|r打了起来！' % (
             act.source.ui_meta.char_name,
             act.target_list[0].ui_meta.char_name,
             act.target_list[1].ui_meta.char_name,

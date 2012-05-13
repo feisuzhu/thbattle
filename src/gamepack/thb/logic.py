@@ -190,7 +190,8 @@ class THBattle(Game):
             for p in self.players:
                 self.process_action(DrawCards(p, amount=4))
 
-            for p in cycle(self.players):
+            for i, p in enumerate(cycle(self.players)):
+                if i >= 6000: break
                 if not p.dead:
                     self.emit_event('player_turn', p)
                     self.process_action(PlayerTurn(p))

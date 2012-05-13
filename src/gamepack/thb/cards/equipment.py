@@ -197,7 +197,7 @@ class RoukankenHandler(EventHandler):
                     g = Game.getgame()
                     a = basic.UseAttack(target=src)
                     if g.process_action(a):
-                        card = a.associated_cards[0]
+                        card = a.cards[0]
                         a = Roukanken(source=src, target=tgt)
                         a.associated_card = card
                         g.process_action(a)
@@ -368,6 +368,7 @@ class HouraiJewelHandler(EventHandler):
 class SaigyouBranch(FatetellAction):
     def __init__(self, source, act):
         self.source = source
+        self.target = source
         self.act = act
 
     def apply_action(self):
@@ -399,7 +400,7 @@ class SaigyouBranchHandler(EventHandler):
                 # target's own Reject
                 return act
 
-            if not src.user_input('choose_option', self): return act
+            if not tgt.user_input('choose_option', self): return act
             Game.getgame().process_action(SaigyouBranch(tgt, act))
         return act
 
@@ -635,14 +636,14 @@ class YoumuPhantomHandler(EventHandler):
 
         from .definition import YoumuPhantomCard
 
-        if _from and _from.type == CardList.EQUIPS:
+        if _from is not None and _from.type == CardList.EQUIPS:
             src = _from.owner
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
                     src.maxlife -= 1
                     src.life = min(src.life+1, src.maxlife)
 
-        if to and to.type == CardList.EQUIPS:
+        if to is not None and to.type == CardList.EQUIPS:
             src = to.owner
             for c in cards:
                 if c.is_card(YoumuPhantomCard):

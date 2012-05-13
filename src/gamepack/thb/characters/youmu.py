@@ -101,7 +101,8 @@ class YoumuHandler(EventHandler):
                 if not act.source.has_skill(Mijincihangzhan): return act
                 act.__class__ = MijincihangzhanAttack
             elif isinstance(act, BaseDuel):
-                act.__class__ = classmix(MijincihangzhanDuelMixin, act.__class__)
+                if not isinstance(act, MijincihangzhanDuelMixin):
+                    act.__class__ = classmix(MijincihangzhanDuelMixin, act.__class__)
             elif isinstance(act, WearEquipmentAction):
                 if not act.source.has_skill(Nitoryuu): return act
                 act.__class__ = YoumuWearEquipmentAction

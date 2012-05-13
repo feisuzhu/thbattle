@@ -30,7 +30,10 @@ class Endpoint(object):
         if self.link_state == 'connected':
             if Endpoint.ENDPOINT_DEBUG:
                 log.debug("SEND>> %s" % s[:-1])
-            self.sock.send(s)
+            try:
+                self.sock.send(s)
+            except IOError:
+                raise EndpointDied()
         else:
             log.debug('Write after disconnected: %s' % s[:-1])
             return False

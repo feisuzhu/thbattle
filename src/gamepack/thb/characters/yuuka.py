@@ -57,7 +57,7 @@ class YuukaHandler(EventHandler):
             assert isinstance(dmg, Damage)
             src = dmg.source
             tgt = dmg.target
-            if src != tgt and src.has_skill(PerfectKill):
+            if src != tgt and src and src.has_skill(PerfectKill):
                 g.process_action(PerfectKillAction(src, dmg.target, act))
         return act
 

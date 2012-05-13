@@ -128,6 +128,8 @@ class ExinwanHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, DropCards):
             from .definition import ExinwanCard
             cards = [c for c in act.cards if c.is_card(ExinwanCard)]
+            from .base import CardList
+            cards = [c for c in cards if c.resides_in.type != CardList.SPECIAL]
             if cards:
                 g = Game.getgame()
                 pact = g.action_stack[-1]
@@ -135,6 +137,7 @@ class ExinwanHandler(EventHandler):
                 #    target = pact.target
                 #else:
                 target = pact.source
+                if target.dead: return True
 
                 cats = [
                     target.cards,

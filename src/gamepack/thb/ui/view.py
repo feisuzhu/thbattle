@@ -180,7 +180,17 @@ class THBattleUI(Control):
         self.selecting_player = True
         #self.selected_players = []
         for p in self.game.players:
-            port = self.player2portrait(p)
+            try:
+                port = self.player2portrait(p)
+            except ValueError:
+                print p, self.game.players
+                print p, self.game.players
+                print p, self.game.players
+                print p, self.game.players
+                print p, self.game.players
+                print p, self.game.players
+                return
+            
             if p in disables:
                 port.disabled = True
                 port.selected = False

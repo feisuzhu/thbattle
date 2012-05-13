@@ -31,6 +31,7 @@ def _user_choose_cards_logic(input, act, target, categories=None):
         if not categories:
             categories = [target.cards, target.showncards]
 
+        from .cards import VirtualCard
         check(all(c.resides_in in categories or c.is_card(VirtualCard) for c in cards)) # Cards in desired categories?
 
         g.players.exclude(target).reveal(cards)
@@ -191,12 +192,20 @@ class TryRevive(GenericAction):
     def __init__(self, target):
         self.source = self.target = target
         g = Game.getgame()
+        if target.dead:
+            log.error('TryRevive buggy condition, __init__')
+            return
         self.asklist = BatchList(
             p for p in g.players if not p.dead
         ).rotate_to(target)
 
     def apply_action(self):
         tgt = self.target
+        if tgt.dead:
+            log.error('TryRevive buggy condition, apply')
+            import traceback
+            traceback.print_stack()
+            return False
         g = Game.getgame()
         pl = self.asklist
         from .cards import UseHeal
@@ -222,10 +231,12 @@ class PlayerDeath(GenericAction):
         dropped = g.deck.droppedcards
         src = self.source or self.target
         pl = g.players.exclude(src)
-        for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell]:
-            l = list(cl)
+        from .cards import VirtualCard
+        for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]:
+            l = [c for c in cl if not c.is_card(VirtualCard)]
             pl.reveal(l)
             migrate_cards(l, dropped)
+            cl.clear()
         return True
 
 class DamageEffect(GenericAction):
@@ -277,7 +288,7 @@ class DropCards(GenericAction):
 
         self.cards = cards = VirtualCard.unwrap(cards)
 
-        assert all(c.resides_in.owner == target for c in cards), 'WTF?!'
+        assert all(c.resides_in.owner in (target, None) for c in cards), 'WTF?!'
         migrate_cards(cards, g.deck.droppedcards)
 
         return True
@@ -286,7 +297,7 @@ class DropUsedCard(DropCards): pass
 
 class UseCard(GenericAction):
     def __init__(self, target):
-        self.target = target
+        self.source = self.target = target
         # self.cond = __subclass__.cond
 
     def apply_action(self):
@@ -320,6 +331,7 @@ class DropCardStage(GenericAction):
 
     def apply_action(self):
         target = self.target
+        if target.dead: return False
         life = target.life
         n = self.dropn
         if n<=0:
@@ -353,7 +365,11 @@ class DrawCards(GenericAction):
         self.cards = cards
         return True
 
-class DrawCardStage(DrawCards): pass
+class DrawCardStage(DrawCards):
+    def apply_action(self):
+        t = self.target
+        if t.dead: return False
+        return DrawCards.apply_action(self)
 
 class BaseLaunchCard(GenericAction):
     pass
@@ -415,11 +431,12 @@ class ActionStage(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         actor = self.actor
+        if actor.dead: return False
 
         shuffle_here()
 
         try:
-            while True:
+            while not actor.dead:
                 g.emit_event('action_stage_action', self)
                 input = actor.user_input('action_stage_usecard')
                 check_type([[int, Ellipsis]] * 3, input)
@@ -468,7 +485,7 @@ class CalcDistance(InternalAction):
 
     def apply_action(self):
         g = Game.getgame()
-        pl = g.players
+        pl = [p for p in g.players if not p.dead]
         source = self.source
         loc = pl.index(source)
         n = len(pl)
@@ -523,9 +540,11 @@ class FatetellStage(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
+        if target.dead: return False
         ft_cards = target.fatetell
         for card in reversed(list(ft_cards)): #what comes last, launches first.
-            g.process_action(LaunchFatetellCard(target, card))
+            if not target.dead:
+                g.process_action(LaunchFatetellCard(target, card))
 
         return True
 
@@ -550,6 +569,7 @@ class FatetellAction(UserAction): pass
 
 class LaunchFatetellCard(BaseLaunchCard, FatetellAction):
     def __init__(self, target, card):
+        self.source = target
         self.target = target
         self.card = card
 
@@ -592,7 +612,6 @@ class ForEach(GenericAction):
         return True
 
 class PlayerTurn(GenericAction):
-    current_turn = None
     def __init__(self, target):
         self.target = target
 
@@ -600,7 +619,7 @@ class PlayerTurn(GenericAction):
         g = Game.getgame()
         p = self.target
         p.tags['turn_count'] += 1
-        PlayerTurn.current_turn = p
+        g.current_turn = p
         g.process_action(FatetellStage(p))
         g.process_action(DrawCardStage(p))
         g.process_action(ActionStage(p))

@@ -39,7 +39,7 @@ class CheatingHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
-            if tgt.has_skill(Cheating):
+            if tgt.has_skill(Cheating) and not tgt.dead:
                 g = Game.getgame()
                 g.process_action(CheatingDrawCards(tgt, 1))
         return act

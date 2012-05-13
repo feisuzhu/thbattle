@@ -130,8 +130,9 @@ class DelayedLaunchCard(BaseLaunchCard):
         from .base import VirtualCard
         if card.is_card(VirtualCard):
             s = t.special
-            for c in card.associated_cards:
-                c.move_to(s)
+            migrate_cards(card.associated_cards, s)
+            #for c in card.associated_cards:
+            #    c.move_to(s)
         return True
 
 @register_eh
@@ -200,12 +201,18 @@ class Sinsack(DelayedSpellCardAction):
     def fatetell_postprocess(self):
         g = Game.getgame()
         target = self.target
-        if not self.cancelled and self.succeeded and not target.dead:
+        if (not self.cancelled) and self.succeeded:
             g.process_action(DropCards(target, [self.associated_card]))
         else:
             pl = g.players
-            next = pl[pl.index(target) - len(pl) + 1]
-            migrate_cards([self.associated_card], next.fatetell)
+            stop = pl.index(target)
+            n = len(pl)
+            next = stop - len(pl) + 1
+            while next < stop:
+                if not pl[next].dead:
+                    migrate_cards([self.associated_card], pl[next].fatetell)
+                    return
+                next += 1
 
 class YukariDimension(InstantSpellCardAction):
     # 紫的隙间

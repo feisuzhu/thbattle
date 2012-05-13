@@ -45,7 +45,7 @@ class PsychopathHandler(EventHandler):
             act, cards, _from, to = args
             if _from is not None and _from.type == CardList.EQUIPS:
                 src = _from.owner
-                if src.has_skill(Psychopath):
+                if src.has_skill(Psychopath) and not src.dead:
                     g = Game.getgame()
                     g.process_action(PsychopathDrawCards(src, len(cards)*2))
         return args

@@ -328,7 +328,10 @@ class GameHallScreen(Overlay):
             self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
         elif _type == 'gamehall_error':
             log.error('GameHall Error: %s' % args[0]) # TODO
-            ConfirmBox(args[0], parent=self)
+            mapping = {
+                'cant_join_game': u'无法加入游戏！'
+            }
+            ConfirmBox(mapping.get(args[0], args[0]), parent=self)
         else:
             Overlay.on_message(self, _type, *args)
 

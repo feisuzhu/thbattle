@@ -21,6 +21,7 @@ class EventHandler(object):
 
     @staticmethod
     def make_list(eh_classes):
+        print len(eh_classes)
         table = {}
 
         before_all = []
@@ -52,33 +53,30 @@ class EventHandler(object):
                 table[after].execute_before.add(cls)
 
         l = table.values()
+        l.sort(key=lambda v: v.__class__.__name__) # must sync between server and client
 
-        for eh in before_all:
-            eh.sort_key = 0
-
-        k = 1
+        toposorted = []
         while l:
-            l1 = []
+            deferred = []
+            commit = []
             added = False
             for eh in l:
                 if not eh.execute_after:
                     for b in eh.execute_before:
                         table[b].execute_after.remove(eh.__class__)
-                    eh.sort_key = k
-                    added = True
+                    commit.append(eh)
                 else:
-                    l1.append(eh)
-            if not added:
+                    deferred.append(eh)
+
+            if not commit:
                 raise GameError("Can't resolve dependencies! Check for circular reference!")
-            l = l1
-            k += 1
 
-        for eh in after_all:
-            eh.sort_key = k
+            toposorted.extend(commit)
+            l = deferred
 
-        rst = before_all + table.values() + after_all
+        rst = before_all + toposorted + after_all
 
-        rst.sort(key=lambda v: (v.sort_key, v.__class__.__name__)) # must sync between server and client
+        assert len(rst) == len(eh_classes)
 
         return rst
 

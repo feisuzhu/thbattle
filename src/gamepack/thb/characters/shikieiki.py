@@ -54,7 +54,7 @@ class MajestyAction(GenericAction):
             tgt.cards, tgt.showncards, tgt.equips
         ]
         c = choose_peer_card(src, tgt, cats)
-        if not c: return act
+        if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)
         src.need_shuffle = True

@@ -31,7 +31,7 @@ class CriticalStrikeHandler(EventHandler):
             src = act.source
             st = src.tags
             if not st['flan_cs'] == st['turn_count']: return act
-            if not PlayerTurn.current_turn is src: return act
+            if not Game.getgame().current_turn is src: return act
             if not src.has_skill(CriticalStrike): return act
             tgt = act.target
             if isinstance(act, BaseAttack):

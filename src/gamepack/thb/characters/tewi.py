@@ -23,4 +23,4 @@ class LuckHandler(EventHandler):
 class Tewi(Character):
     skills = [Luck]
     eventhandlers_required = [LuckHandler]
-    maxlife = 3
+    maxlife = 4

@@ -1036,9 +1036,10 @@ class ListView(Control):
         h = self.height - self.header_height
         lh, vy = self.line_height, self.view_y
         i = (h + vy - y) / lh
-        if 0 <= i < len(self.items):
+        n = len(self.items)
+        if 0 <= i < n:
             cs = self.cur_select
-            if cs is not None:
+            if cs is not None and 0 <= cs < n:
                 item = self.items[cs]
                 item.selected = False
                 self.update_single(item)

@@ -57,7 +57,7 @@ class UISelectTarget(Control):
             irp = self.irp
             irp.input = self.get_result() if is_ok else None
             irp.complete()
-            self.cleanup()
+            #self.cleanup()
             return
 
         def dispatch_selection_change():
@@ -124,7 +124,7 @@ class UISelectTarget(Control):
             self.label.draw()
 
     def on_message(self, _type, *args):
-        if _type == 'evt_user_input_timeout':
+        if _type in ('evt_user_input_timeout', 'evt_user_input_finish'):
             self.cleanup()
 
 class BaseUIChooseCardAndPlayer(UISelectTarget):
@@ -149,17 +149,22 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
             cond = getattr(act, 'cond', False)
 
             if self.for_reject:
-                self.irp.input = None
+                self.set_text(u'自动结算好人卡…')
                 if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
-                    self.cleanup()
+                    self.irp.input = None
+                    self.irp.complete()
                     return
                 if act.target_act.source is act.target_act.target is g.me:
-                    self.cleanup()
+                    # my sc
+                    self.irp.input = None
+                    self.irp.complete()
                     return
                 if act.target_act.source is g.me and not hasattr(act.target_act, 'parent_action'):
-                    # my SC and is not targeting multiple players
-                    self.cleanup()
-                    return
+                    # my SC and is not targeting multiple players, target is not me
+                    if act.target_act.target is not g.me:
+                        self.irp.input = None
+                        self.irp.complete()
+                        return
 
             if cond:
                 if not self.auto_chosen:
@@ -208,10 +213,14 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
             traceback.print_exc(e)
 
     def cleanup(self):
-        hca = self.parent.handcard_area
-        for cs in hca.control_list:
-            if cs.hca_selected:
-                hca.toggle(cs, 0.3)
+        try:
+            hca = self.parent.handcard_area
+            for cs in hca.control_list:
+                if cs.hca_selected:
+                    hca.toggle(cs, 0.3)
+        except AttributeError:
+            # parent is none, self already deleted
+            pass
         UISelectTarget.cleanup(self)
 
 class UIChooseCardAndPlayer(BaseUIChooseCardAndPlayer):

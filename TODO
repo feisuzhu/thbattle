@@ -7,6 +7,64 @@ THBattle:
 
     logic: n persons!
 
+
+
+youmu duel
+
+#被雷炸死以后会诈尸
+#诈尸
+#好人卡提示 没法出
+
+#罪袋没有扔掉， 还传递到死人那里
+#cant_join_game 改！
+#楼观剑的BUG啊！连着两次了。
+#rumia 提示 多了些东西
+# （个人）新发现的BUG:貌似大酱用【支援】给装备区的【半灵】不会回血，但是【体力上限+1】会保留下来
+# 客户端：游戏崩溃，gui提示
+# 乡长带着装备死了之后还能发动技能
+# 灵梦 技能没法用
+
+在弹幕弹里把梅花恶心丸当弹幕出后就卡了，一直卡在我这边过不了对方那边
+恶心丸不以弃牌方式进入弃牌堆，但恶心丸仍然生效...
+魔导书出宴会，对方有西行妖，会卡主不动。。。 desync
+
+intel显卡
+双封魔阵
+
+玩家离开提示
+貌似死亡角色参与了距离判定
+好人卡 时间提示
+自动上传client_log.txt
+大厅， 玩家状态
+房间 打磨
+五谷丰登 提示
+装备区 card suit num
+进度条 在tag上面 要改吗？
+
+
+
+
+等有空的时候我会加上让更新忽略文件的功能的
+
+?? 大妖精 开局 摸牌
+?? 黑化芙兰弹幕战只扣一血
+?? tewi 血量 死后摸牌。 其他人没有摸牌
+
+
+Traceback (most recent call last):
+  File "C:\Users\Proton\Desktop\thb\src\gamepack\thb\ui\inputs.py", line 191, in
+ on_selection_change
+    assert c == c1
+AssertionError
+INFO:Server:GAME_EXPECT: 'input_action_stage_usecard_182'
+
+should catch this, logic shouldn't process it.
+
+
+
+
+
+
 曹　操
 夏侯惇 船长
 关　羽
