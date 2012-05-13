@@ -43,10 +43,12 @@ class GameManager(Greenlet):
             i = pid.index(self.userid)
             me.__dict__.update(self.players_data[i])
             pl[i] = me
-            self.game.me = me
-            self.game.players = PlayerList(pl)
-            self.game.start()
-            self.event_cb('game_started', self.game)
+            g = self.game
+            g.me = me
+            g.players = PlayerList(pl)
+            g.start()
+            g.link_exception(lambda *a: self.event_cb('game_crashed', g))
+            self.event_cb('game_started', g)
 
         @handler(('hang'), 'inroom')
         def game_joined(self, data):
@@ -148,6 +150,9 @@ class Executive(object):
                 self.gm_greenlet = GameManager()
                 self.gm_greenlet.start()
                 self.gm_greenlet.event_cb = event_cb
+
+                svr.link_exception(lambda *a: event_cb('server_dropped'))
+
                 #cb('server_connected', svr)
             except:
                 cb('server_connect_failed', None)

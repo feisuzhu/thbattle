@@ -1100,7 +1100,7 @@ class SmallProgressBar(ProgressBar):
     del r
 
 class ConfirmButtons(Control):
-    def __init__(self, buttons=((u'确定', True), (u'取消', False)), *a, **k):
+    def __init__(self, buttons=((u'确定', True), (u'取消', False)), color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
         self.buttons = bl = []
         n = len(buttons)
@@ -1115,7 +1115,7 @@ class ConfirmButtons(Control):
             btn = Button(
                 parent=self, x=loc, y=0,
                 width=w, height=24,
-                caption=p
+                caption=p, color=color,
             )
             btn.retval = v
             @btn.event
@@ -1162,7 +1162,7 @@ class ConfirmBox(Dialog):
         lbl.y = 33+20
         self.lbl = lbl
 
-        btn = ConfirmButtons(buttons, parent=self)
+        btn = ConfirmButtons(buttons, parent=self, color=self.color)
         @btn.event
         def on_confirm(val):
             self.value = val

@@ -12,7 +12,14 @@ from utils import Rect, rect_to_dict as r2d
 import logging
 log = logging.getLogger('UI_Screens')
 
-class UpdateScreen(Overlay):
+class Screen(Overlay):
+    def on_message(self, _type, *args):
+        if _type == 'server_dropped':
+            ConfirmBox(u'已经与服务器断开链接，请重新启动游戏！', parent=Screen.cur_overlay)
+        else:
+            Overlay.on_message(self, _type, *args)
+
+class UpdateScreen(Screen):
     trans = dict(
         update_begin = lambda: u'|W开始更新……|r',
         up2date = lambda: u'|W已经是最新版本了|r',
@@ -27,7 +34,7 @@ class UpdateScreen(Overlay):
     )
 
     def __init__(self, *args, **kwargs):
-        Overlay.__init__(self, *args, **kwargs)
+        Screen.__init__(self, *args, **kwargs)
         ta = TextArea(
             parent=self, width=600, height=450,
             x=(self.width-600)//2, y=(self.height-450)//2
@@ -43,9 +50,9 @@ class UpdateScreen(Overlay):
         glClear(GL_COLOR_BUFFER_BIT)
         self.draw_subcontrols()
 
-class ServerSelectScreen(Overlay):
+class ServerSelectScreen(Screen):
     def __init__(self, *args, **kwargs):
-        Overlay.__init__(self, *args, **kwargs)
+        Screen.__init__(self, *args, **kwargs)
         self.buttons  = buttons = []
         from settings import ServerList as sl, NOTICE
 
@@ -110,14 +117,14 @@ class ServerSelectScreen(Overlay):
             log.error('Version mismatch')
             ConfirmBox(u'您的版本与服务器版本不符，无法进行游戏！', parent=self)
         else:
-            Overlay.on_message(self, _type, *args)
+            Screen.on_message(self, _type, *args)
 
     def draw(self):
         glColor3f(0.9, 0.9, 0.9)
         common_res.worldmap.blit(0, 0)
         self.draw_subcontrols()
 
-class LoginScreen(Overlay):
+class LoginScreen(Screen):
     class LoginDialog(Dialog):
         def __init__(self, *a, **k):
             Dialog.__init__(
@@ -171,7 +178,7 @@ class LoginScreen(Overlay):
             self.batch.draw()
 
     def __init__(self, *args, **kwargs):
-        Overlay.__init__(self, *args, **kwargs)
+        Screen.__init__(self, *args, **kwargs)
         self.bg = common_res.bg_login
         self.bg_alpha = LinearInterp(0, 1.0, 1.5)
         self.dialog = LoginScreen.LoginDialog(parent=self)
@@ -184,7 +191,7 @@ class LoginScreen(Overlay):
             log.error('Auth failure')
             ConfirmBox(u'认证失败！', parent=self)
         else:
-            Overlay.on_message(self, _type, *args)
+            Screen.on_message(self, _type, *args)
 
     def draw(self):
         glClearColor(1.0, 1.0, 1.0, 1.0)
@@ -193,7 +200,7 @@ class LoginScreen(Overlay):
         self.bg.blit(0, 0)
         self.draw_subcontrols()
 
-class GameHallScreen(Overlay):
+class GameHallScreen(Screen):
     class GameList(Dialog):
         def __init__(self, p):
             Dialog.__init__(
@@ -307,7 +314,7 @@ class GameHallScreen(Overlay):
                 box.append(t)
 
     def __init__(self, *args, **kwargs):
-        Overlay.__init__(self, *args, **kwargs)
+        Screen.__init__(self, *args, **kwargs)
         self.bg = common_res.bg_gamehall
 
         self.gamelist = self.GameList(self)
@@ -333,7 +340,7 @@ class GameHallScreen(Overlay):
             }
             ConfirmBox(mapping.get(args[0], args[0]), parent=self)
         else:
-            Overlay.on_message(self, _type, *args)
+            Screen.on_message(self, _type, *args)
 
     def draw(self):
         #glColor3f(.9, .9, .9)
@@ -341,7 +348,7 @@ class GameHallScreen(Overlay):
         self.bg.blit(0, 0)
         self.draw_subcontrols()
 
-class GameScreen(Overlay):
+class GameScreen(Screen):
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
@@ -423,7 +430,7 @@ class GameScreen(Overlay):
             self.box.append(v)
 
     def __init__(self, game, *args, **kwargs):
-        Overlay.__init__(self, *args, **kwargs)
+        Screen.__init__(self, *args, **kwargs)
 
         self.bg = common_res.bg_ingame
 
@@ -464,8 +471,10 @@ class GameScreen(Overlay):
             # last game ended, this is the auto
             # created game
             GameScreen(args[0]).switch()
+        elif _type == 'game_crashed':
+            ConfirmBox(u'游戏逻辑已经崩溃，请退出房间！\n这是不正常的状态，你可以报告bug。', parent=self)
         else:
-            Overlay.on_message(self, _type, *args)
+            Screen.on_message(self, _type, *args)
 
     def draw(self):
         glColor3f(1,1,1)

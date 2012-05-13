@@ -40,8 +40,6 @@ class Server(Endpoint, Greenlet):
                     self._gamedata(data)
                 else:
                     self.ctlcmds.put([cmd, data])
-        except EndpointDied:
-            pass
 
         except Timeout:
             self.close()
