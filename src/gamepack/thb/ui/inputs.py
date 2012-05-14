@@ -186,7 +186,10 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                 if skills:
                     for skill_cls in skills:
                         cards = [skill_cls.wrap(cards, g.me)]
-                    rst, reason = cards[0].ui_meta.is_complete(g, cards)
+                    try:
+                        rst, reason = cards[0].ui_meta.is_complete(g, cards)
+                    except Exception as e:
+                        rst, reason = True, u'[card.ui_meta.is_complete错误]'
                     if not rst:
                         self.set_text(reason)
                         return
@@ -201,7 +204,11 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
             if candidates:
                 players = parent.get_selected_players()
                 players, valid = act.choose_player_target(players)
-                valid1, reason = act.ui_meta.target(players)
+                try:
+                    valid1, reason = act.ui_meta.target(players)
+                except Exception as e:
+                    log.exception(e)
+                    valid1, reason = valid, u'[act.ui_meta.target错误]'
                 assert bool(valid) == bool(valid1)
                 parent.set_selected_players(players)
                 self.set_text(reason)
@@ -277,7 +284,11 @@ class UIDoActionStage(UISelectTarget):
                         except ValueError:
                             pass
 
-                rst, reason = card.ui_meta.is_action_valid(g, cards, target_list)
+                try:
+                    rst, reason = card.ui_meta.is_action_valid(g, cards, target_list)
+                except Exception as e:
+                    log.exception(e)
+                    rst, reason = (True, u'[card.ui_meta.is_action_valid错误]')
 
                 self.set_text(reason)
                 if rst:
