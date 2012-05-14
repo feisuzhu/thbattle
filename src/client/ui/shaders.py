@@ -4,6 +4,10 @@ from base.shader import *
 
 DummyShader = DummyShaderProgram()
 
+import logging
+
+log = logging.getLogger('shaders')
+
 try:
     thick = FragmentShader('''
         #extension GL_EXT_gpu_shader4 : enable
@@ -71,6 +75,7 @@ try:
     FontShadow = ShaderProgram(thin)
 
 except ShaderError as e:
+    log.error(e.infolog)
     FontShadowThick = FontShadow = DummyShader
 
 try:
@@ -86,6 +91,7 @@ try:
     )
     GrayscaleRect = ShaderProgram(fshader)
 except ShaderError as e:
+    log.error(e.infolog)
     GrayscaleRect = DummyShader
 
 try:
@@ -101,6 +107,7 @@ try:
     )
     Grayscale = ShaderProgram(fshader)
 except ShaderError as e:
+    log.error(e.infolog)
     Grayscale = DummyShader
 
 
@@ -150,4 +157,5 @@ try:
     GaussianBlurVertical = ShaderProgram(fshader)
 
 except ShaderError as e:
+    log.error(e.infolog)
     GaussianBlurHorizontal = GaussianBlurVertical = DummyShader
