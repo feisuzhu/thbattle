@@ -1673,7 +1673,7 @@ class SupportSkill:
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
-        return u'|G【%s】|r发动了|G支援|r技能，将%d张手牌交给了|G【%s】|r' % (
+        return u'|G【%s】|r发动了|G支援|r技能，将%d张牌交给了|G【%s】|r' % (
             act.source.ui_meta.char_name,
             len(act.card.associated_cards),
             act.target.ui_meta.char_name,
