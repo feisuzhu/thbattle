@@ -414,8 +414,6 @@ class FlirtingSword(GenericAction):
         src = self.source
         tgt = self.target
 
-        if not src.user_input('choose_option', self): return False
-
         cards = user_choose_cards(self, tgt)
         g = Game.getgame()
         if cards:
@@ -437,6 +435,7 @@ class FlirtingSwordHandler(EventHandler):
             if act.cancelled: return act
             src = act.source
             if not src.has_skill(FlirtingSwordSkill): return act
+            if not src.user_input('choose_option', self): return act
 
             Game.getgame().process_action(FlirtingSword(src, act.target))
 
