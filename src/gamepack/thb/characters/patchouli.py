@@ -48,13 +48,12 @@ class PatchouliHandler(EventHandler):
                     Game.getgame().process_action(LibraryDrawCards(src, 1))
                     return act
 
-
-        elif evt_type == 'action_before' and isinstance(act, InstantSpellCardAction):
-            tgt = act.target
-            if tgt.has_skill(Knowledge):
-                c = getattr(act, 'associated_card', None)
-                if c and c.suit == Card.SPADE:
-                    Game.getgame().process_action(KnowledgeAction(act))
+            if isinstance(act, InstantSpellCardAction):
+                tgt = act.target
+                if tgt.has_skill(Knowledge):
+                    c = getattr(act, 'associated_card', None)
+                    if c and c.suit == Card.SPADE:
+                        Game.getgame().process_action(KnowledgeAction(act))
         return act
 
 @register_character
