@@ -523,11 +523,19 @@ class UIChooseOption(Control):
 
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
-        ui_meta = irp.attachment.ui_meta
+        try:
+            ui_meta = irp.attachment.ui_meta
+            choose_option_buttons = ui_meta.choose_option_buttons
+            choose_option_prompt = ui_meta.choose_option_prompt
+        except AttributeError:
+            choose_optin_buttons = ((u'出牌', True), (u'取消出牌', False))
+            choose_option_prompt = u'UIChooseOption: %s missing ui_meta' % (
+                irp.attachment.__class__.__name__
+            )
 
         self.confirmbtn = ConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
-            buttons=ui_meta.choose_option_buttons
+            buttons=choose_option_buttons
             #buttons=((u'出牌', True), (u'取消出牌', False))
         )
         self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
@@ -536,7 +544,7 @@ class UIChooseOption(Control):
             on_done=lambda *a: self.cleanup()
         )
         self.label = lbl = pyglet.text.Label(
-            text=ui_meta.choose_option_prompt, x=125, y=28,
+            text=choose_option_prompt, x=125, y=28,
             font_size=12, color=(255, 255, 160, 255), bold=True,
             anchor_x='center', anchor_y='bottom'
         )

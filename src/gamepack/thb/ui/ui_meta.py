@@ -997,10 +997,6 @@ class FlirtingSwordSkill:
         return (False, 'BUG!')
 
 class FlirtingSword:
-    # choose_option
-    choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【调教剑】吗？'
-
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -1031,6 +1027,11 @@ class FlirtingSword:
                 act.target.ui_meta.char_name,
                 act.source.ui_meta.char_name,
             )
+
+class FlirtingSwordHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【调教剑】吗？'
 
 class CameraCard:
     # action_stage meta
