@@ -740,7 +740,7 @@ class LaevateinSkill:
         tl = BatchList(act.target_list)
 
         return u'|G【%s】|r不顾危险发动了|G莱瓦汀|r，火焰立刻扑向了对|G【%s】|r！' % (
-            s.ui_meta.char_name,
+            source.ui_meta.char_name,
             u'】|r、|G【'.join(tl.ui_meta.char_name),
         )
 
