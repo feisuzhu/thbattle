@@ -498,7 +498,7 @@ class CalcDistance(InternalAction):
 
     def validate(self):
         g = Game.getgame()
-        pl = g.players
+        pl = [p for p in g.players if not p.dead]
         lookup = self.distance
         c = self.correction
         try:
