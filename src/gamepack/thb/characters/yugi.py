@@ -99,8 +99,8 @@ class YugiHandler(EventHandler):
                 tgt.equips, tgt.fatetell,
             ]
             card = choose_peer_card(src, tgt, cats)
-            g.players.exclude(tgt).reveal(card)
             if card:
+                g.players.exclude(tgt).reveal(card)
                 g.process_action(DropCards(tgt, [card]))
 
         return act
