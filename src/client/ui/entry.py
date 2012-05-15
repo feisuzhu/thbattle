@@ -24,9 +24,23 @@ def start_ui():
     from client.core import Executive
     sss = ServerSelectScreen()
 
-    def update_callback(msg):
-        if msg in ('up2date', 'update_disabled', 'error'):
+    errmsgs = {
+        'update_disabled': u'自动更新已被禁止',
+        'error': u'更新过程出现错误，您可能无法正常进行游戏！',
+    }
+
+    def display_box(msg):
+        from client.ui.controls import ConfirmBox
+        b = ConfirmBox(msg, parent=us)
+        @b.event
+        def on_confirm(val):
             sss.switch()
+
+    def update_callback(msg):
+        if msg == 'up2date':
+            sss.switch()
+        elif msg in errmsgs:
+            ui_schedule(display_box, errmsgs[msg])
         else:
             os.execv(sys.executable, [sys.executable] + sys.argv)
 
