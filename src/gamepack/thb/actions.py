@@ -31,13 +31,14 @@ def _user_choose_cards_logic(input, act, target, categories=None):
         if not categories:
             categories = [target.cards, target.showncards]
 
-        from .cards import VirtualCard
-        check(all(c.resides_in in categories or c.is_card(VirtualCard) for c in cards)) # Cards in desired categories?
+        if sid_list:
+            check(all(cat.owner is target for cat in categories))
 
-        g.players.exclude(target).reveal(cards)
-
-        if sid_list and all(cat.owner is target for cat in categories):
+            # associated_cards will be revealed here
             cards = [skill_wrap(target, sid_list, cards)]
+        else:
+            check(all(c.resides_in in categories for c in cards)) # Cards in desired categories?
+            g.players.exclude(target).reveal(cards)
 
         check(act.cond(cards))
 

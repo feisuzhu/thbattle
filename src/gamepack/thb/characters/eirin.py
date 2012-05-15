@@ -12,10 +12,12 @@ class FirstAid(Skill):
         c = cl[0]
         return bool(
             c.resides_in and
-            c.resides_in.type != CardList.FATETELL and
+            c.resides_in.type in (
+                CardList.HANDCARD, CardList.SHOWNCARD,
+                CardList.EQUIPS,
+            ) and
             c.suit in (Card.HEART, Card.DIAMOND)
         )
-
     def is_card(self, cls):
         if issubclass(HealCard, cls): return True
         return isinstance(self, cls)
