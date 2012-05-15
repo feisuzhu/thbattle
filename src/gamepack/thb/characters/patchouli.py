@@ -27,6 +27,14 @@ class PatchouliHandler(EventHandler):
     execute_before = (RejectHandler, )
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
+
+            if isinstance(act, InstantSpellCardAction):
+                tgt = act.target
+                if tgt.has_skill(Knowledge):
+                    c = getattr(act, 'associated_card', None)
+                    if c and c.suit == Card.SPADE:
+                        Game.getgame().process_action(KnowledgeAction(act))
+
             try:
                 src = act.source
             except AttributeError:
@@ -48,12 +56,6 @@ class PatchouliHandler(EventHandler):
                     Game.getgame().process_action(LibraryDrawCards(src, 1))
                     return act
 
-            if isinstance(act, InstantSpellCardAction):
-                tgt = act.target
-                if tgt.has_skill(Knowledge):
-                    c = getattr(act, 'associated_card', None)
-                    if c and c.suit == Card.SPADE:
-                        Game.getgame().process_action(KnowledgeAction(act))
         return act
 
 @register_character

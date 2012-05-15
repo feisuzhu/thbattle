@@ -264,15 +264,9 @@ class RejectCard:
 class RejectHandler:
     # choose_card meta
     def choose_card_text(g, act, cards):
-        for i in range(0, -9999, -1):
-            a = g.action_stack[i]
-            from ..actions import BaseLaunchCard
-            from ..cards import Reject
-            if isinstance(a, BaseLaunchCard):
-                name = a.card.ui_meta.name
-                break
-            elif isinstance(a, Reject):
-                name = u'好人卡'
+        from ..cards import Reject
+        c = act.target_act.associated_card
+        name = c.ui_meta.name
 
         s = u'【%s】受到的【%s】' % (
             act.target_act.target.ui_meta.char_name,
@@ -470,7 +464,7 @@ class YukariDimensionCard:
         target= target_list[0]
         if g.me is target:
             return (False, u'你不能对自己使用隙间')
-        elif not len(target.cards):
+        elif not (target.cards or target.showncards or target.equips or target.fatetell):
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'请把胖次给我！')
@@ -1160,8 +1154,8 @@ class DeathSickleSkill:
 class DeathSickle:
     def effect_string(act):
         return (
-            u'|G【%s】|r看到|G【%s】|r一副丧家犬的模样，' +
-            '手中的|c208020f死神之镰|r不自觉地一狠…'
+            u'|G【%s】|r看到|G【%s】|r一副丧家犬的模样，'
+            u'手中的|G死神之镰|r不自觉地一狠…'
         ) % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
@@ -2086,7 +2080,7 @@ class Jolly:
 
 class JollyDrawCards:
     def effect_string(act):
-        return u'|G【%s】|r高兴地多摸了%d张牌~' % (
+        return u'|G【%s】|r高兴地摸了%d张牌~' % (
             act.source.ui_meta.char_name,
             act.amount,
         )
@@ -2120,7 +2114,7 @@ class SurpriseSkill:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return (
-            u'|G【%s】|r突然出现在|G【%s】|r面前，伞上' +
+            u'|G【%s】|r突然出现在|G【%s】|r面前，伞上'
             u'的大舌头直接糊在了|G【%s】|r的脸上！'
         ) % (
             act.source.ui_meta.char_name,

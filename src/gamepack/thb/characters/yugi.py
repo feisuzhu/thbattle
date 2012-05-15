@@ -64,14 +64,6 @@ class FreakingPower(FatetellAction):
             g.process_action(dmg)
         else:
             act.yugifptag = True
-            if g.process_action(act):
-                cats = [
-                    tgt.cards, tgt.showncards,
-                    tgt.equips, tgt.fatetell,
-                ]
-                card = choose_peer_card(src, tgt, cats)
-                if card:
-                    g.process_action(DropCards(tgt, [card]))
         return True
 
 class YugiHandler(EventHandler):
@@ -83,6 +75,7 @@ class YugiHandler(EventHandler):
             if not src.user_input('choose_option', self): return act
             tgt = act.target
             Game.getgame().process_action(FreakingPower(act))
+
         elif evt_type == 'action_after' and isinstance(act, CalcDistance):
             card = act.card
             if card.is_card(AssaultSkill):
@@ -96,6 +89,20 @@ class YugiHandler(EventHandler):
                     pass
                 l = [s.range-1 for s in skills]
                 if l: act.correction += min(l)
+
+        elif evt_type == 'action_after' and hasattr(act, 'yugifptag'):
+            if not act.succeeded: return act
+            src = act.source; tgt = act.target
+            g = Game.getgame()
+            cats = [
+                tgt.cards, tgt.showncards,
+                tgt.equips, tgt.fatetell,
+            ]
+            card = choose_peer_card(src, tgt, cats)
+            g.players.exclude(tgt).reveal(card)
+            if card:
+                g.process_action(DropCards(tgt, [card]))
+
         return act
 
 @register_character
