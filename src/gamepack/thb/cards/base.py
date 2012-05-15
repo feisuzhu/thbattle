@@ -145,6 +145,7 @@ class Deck(object):
         from .definition import card_definition
         self.cards_record = {}
         self.droppedcards = CardList(None, CardList.DROPPEDCARD)
+        self.special = CardList(None, CardList.SPECIAL)
         cards = CardList(None, CardList.DECKCARD)
         self.cards = cards
         if Game.SERVER_SIDE:

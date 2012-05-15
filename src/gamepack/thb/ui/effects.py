@@ -122,8 +122,10 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
         # others
         if not pca:
-            if _from.type in (_from.DECKCARD, _from.DROPPEDCARD):
+            if _from.type in (_from.DECKCARD, _from.DROPPEDCARD) or not _from.owner:
                 pca = self.deck_area
+            #elif not _from.owner:
+            #    break
             else:
                 pca = self.player2portrait(_from.owner).portcard_area
 
@@ -182,13 +184,16 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
                 for cs in csl:
                     cs.gray = gray
             csl.migrate_to(ca)
-        else:
+        elif to.owner:
             ca = self.player2portrait(to.owner).portcard_area
             for cs in csl:
                 cs.migrate_to(ca)
                 cs.gray = False
             ca.update()
             ca.fade()
+        else:
+            for cs in csl:
+                cs.delete()
 
     if handcard_update: self.handcard_area.update()
     if dropcard_update: self.dropcard_area.update()

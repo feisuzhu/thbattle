@@ -338,6 +338,7 @@ class Harvest(ForEach):
         g = Game.getgame()
         cards = g.deck.getcards(len(tl))
         g.players.reveal(cards)
+        migrate_cards(cards, g.deck.special)
         g.emit_event('harvest_cards', cards)
         self.cards = cards
 
