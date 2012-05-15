@@ -179,7 +179,7 @@ class Client(Endpoint, Greenlet):
                     return d[1]
                 else:
                     d.scan_count += 1
-                    if d.scan_count >= 5:
+                    if d.scan_count >= 10:
                         log.debug('Dropped gamedata: %s' % d)
                     else:
                         log.debug('GAME_DATA_MISS: %s', repr(d))
