@@ -21,7 +21,6 @@ class EventHandler(object):
 
     @staticmethod
     def make_list(eh_classes):
-        print len(eh_classes)
         table = {}
 
         before_all = []
