@@ -19,6 +19,7 @@ class BorrowAction(GenericAction):
             if not c: continue
             src.reveal(c)
             migrate_cards([c], src.cards)
+        src.need_shuffle = True
         return True
 
 class BorrowHandler(EventHandler):
