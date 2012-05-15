@@ -25,6 +25,7 @@ class BorrowHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
             tgt = act.target
+            if tgt.dead: return act
             if not tgt.has_skill(Borrow): return act
             if not tgt.user_input('choose_option', self): return act
 
