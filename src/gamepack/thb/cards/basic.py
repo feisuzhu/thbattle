@@ -137,7 +137,6 @@ class ExinwanHandler(EventHandler):
                 #    target = pact.target
                 #else:
                 target = pact.source
-                if target.dead: return True
 
                 cats = [
                     target.cards,
@@ -145,6 +144,7 @@ class ExinwanHandler(EventHandler):
                     target.equips,
                 ]
                 for i in xrange(len(cards)):
+                    if target.dead: return True
                     cards = user_choose_cards(self, target, cats)
                     if cards:
                         g.process_action(DropCards(target=target, cards=cards))

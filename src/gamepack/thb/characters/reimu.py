@@ -32,6 +32,8 @@ class TributeAction(GenericAction):
         p = self.source
         if p.tags.get('turn_count', 0) <= p.tags.get('tribute_tag', 0):
             return False
+        if self.target.dead:
+            return False
         return True
 
 class Tribute(Skill):
