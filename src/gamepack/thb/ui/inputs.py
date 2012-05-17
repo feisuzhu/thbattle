@@ -476,7 +476,7 @@ class UIChoosePeerCard(Panel):
             i += 1
 
         p = self.parent
-        self.x, self.y = (p.width - w)//2, (p.height -h)//2
+        self.x, self.y = (p.width - w)//2, (p.height - h)//2
         self.width, self.height = w, h
         self.update()
 

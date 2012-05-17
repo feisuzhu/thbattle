@@ -446,7 +446,7 @@ class GameScreen(Screen):
         self.panel = GameScreen.RoomControlPanel(parent=self)
         self.btn_exit = Button(
             parent=self, caption=u'退出房间', zindex=1,
-            **r2d((730, 20, 75, 25))
+            **r2d((730, 670, 75, 25))
         )
 
         @self.btn_exit.event

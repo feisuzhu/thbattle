@@ -2171,8 +2171,10 @@ class FirstAid:
         skill = cl[0]
         me = g.me
         acards = skill.associated_cards
-        if len(acards) != 1:
+        C = cards.Card
+        if len(acards) != 1 or acards[0].suit not in (C.DIAMOND, C.HEART):
             return (False, u'请选择一张红色牌！')
+
         return (True, u'k看不到@#@#￥@#￥')
 
 class Medic:

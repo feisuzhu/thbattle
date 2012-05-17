@@ -21,7 +21,7 @@ class ProphetAction(GenericAction):
         cards = g.deck.getcards(n)
         tgt.reveal(cards)
         rst = tgt.user_input('ran_prophet', cards, timeout=40)
-        if not rst: return act
+        if not rst: return False
         try:
             check_type([[int, Ellipsis]]*2, rst)
             upcards = rst[0]

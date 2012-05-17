@@ -192,10 +192,7 @@ class Client(Endpoint, Greenlet):
 
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
-        try:
-            self.write(['gamedata', [tag, data]])
-        except EndpointDied:
-            pass
+        self.write(['gamedata', [tag, data]])
 
     def __data__(self):
         return dict(

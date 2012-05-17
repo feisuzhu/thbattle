@@ -7,7 +7,32 @@ THBattle:
 
     logic: n persons!
 
+<<<<<<< Updated upstream
 intel显卡
+=======
+
+
+youmu duel
+
+#被雷炸死以后会诈尸
+#诈尸
+#好人卡提示 没法出
+
+#罪袋没有扔掉， 还传递到死人那里
+#cant_join_game 改！
+#楼观剑的BUG啊！连着两次了。
+#rumia 提示 多了些东西
+# （个人）新发现的BUG:貌似大酱用【支援】给装备区的【半灵】不会回血，但是【体力上限+1】会保留下来
+# 客户端：游戏崩溃，gui提示
+# 乡长带着装备死了之后还能发动技能
+# 灵梦 技能没法用
+# 在弹幕弹里把梅花恶心丸当弹幕出后就卡了，一直卡在我这边过不了对方那边
+
+恶心丸不以弃牌方式进入弃牌堆，但恶心丸仍然生效...
+魔导书出宴会，对方有西行妖，会卡主不动。。。 desync
+
+显卡问题
+>>>>>>> Stashed changes
 双封魔阵
 
 玩家离开提示
@@ -30,10 +55,6 @@ intel显卡
 如果 你1血 我伤害2   是不是打你-1血 你起码2个药吧
 !! 但是1个药就活了
 
-1.灵梦写着3血 游戏中实际4血
->2.姆Q的2技能无效 黑色锦囊仍然可以对她用
->3.不能对没手牌 但有装备的玩家使用隙间
->>4.勇仪带调教剑弹幕时，可以先发动武器效果，再发动2技能，再发动一次武器效果。能发动2次武器效果的BUG
 ?5.蓝的2技能对罪袋狂欢和五谷丰登无效。弹幕战也无效。就是不会询问是否使用该技能再发动一次。
 
 sinsack reject
@@ -42,11 +63,169 @@ reject prompt
 
 等有空的时候我会加上让更新忽略文件的功能的
 
+windows: update sometimes fail
+
 ?? 大妖精 开局 摸牌
 ?? 黑化芙兰弹幕战只扣一血
 ?? tewi 血量 死后摸牌。 其他人没有摸牌
 
 ui_meta SOMETHING WRONG DollControl
+
+
+Traceback (most recent call last):
+  File "C:\Users\Proton\Desktop\thb\src\gamepack\thb\ui\inputs.py", line 191, in
+ on_selection_change
+    assert c == c1
+AssertionError
+INFO:Server:GAME_EXPECT: 'input_action_stage_usecard_182'
+
+Traceback (most recent call last):
+  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/greenlet.py", line 390, in run
+    result = self._run(*self.args, **self.kwargs)
+  File "/home/proton/thbattle/src/server/core/client_endpoint.py", line 158, in _run
+    self.write(['heartbeat', None])
+  File "/home/proton/thbattle/src/network/endpoint.py", line 42, in write
+    self.raw_write(self.encode(p))
+  File "/home/proton/thbattle/src/network/endpoint.py", line 33, in raw_write
+    self.sock.send(s)
+  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/socket.py", line 489, in send
+    wait_write(sock.fileno(), timeout=timeout, event=self._write_event)
+  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/socket.py", line 188, in wait_write
+    assert event.arg is None, 'This event is already used by another greenlet: %r' % (event.arg, )
+AssertionError: This event is already used by another greenlet: (<_GameHallStatusUpdator at 0xb7133edcL>, timeout('timed out',))
+<Client at 0xa010f2c> failed with AssertionError
+
+
+
+
+
+
+
+
+
+>> 反馈BUG：⑧阿姨用自己装备上的【黑色装备】急救时，系统崩坏
+?? 另外 被封魔阵封住的黑白应该也能偷的
+bug：被罪袋炸死以后 身上如果有封魔状态不会清除
+
+
+天子给牌不能reveal all
+蓝用 半灵 触发极致不会回血，HP最大值锁定为4
+
+
+用城管执法拆掉待发动的封魔阵时显示逻辑错误 游戏崩溃
+
+
+tatara reveal all： need shuffle thing
+
+id是？？？(虽然不知道为什么要id)建议：希望在游戏开始时有提示音。在点退出房间时有再次确定的选项。望采纳。
+
+灵梦 一回合一次 没效果
+
+灵梦1血 剩3恶心丸 死了游戏崩溃
+
+
+
+问下莱瓦顶是不是有BUG?
+Proton  20:55:29
+什么bug？
+★突破天际の菜鸟★  20:55:44
+貌似不出效果
+
+
+Traceback (most recent call last):
+  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/greenlet.py", line 390, in run
+    result = self._run(*self.args, **self.kwargs)
+  File "/home/proton/thbattle/src/server/core/game_server.py", line 172, in _run
+    self.game_start()
+  File "/home/proton/thbattle/src/gamepack/thb/logic.py", line 197, in game_start
+    self.process_action(PlayerTurn(p))
+  File "/home/proton/thbattle/src/game/game_common.py", line 207, in process_action
+    action = self.emit_event('action_apply', action)
+  File "/home/proton/thbattle/src/game/game_common.py", line 169, in emit_event
+    data = evt.handle(evt_type, data)
+  File "/home/proton/thbattle/src/gamepack/thb/characters/ran.py", line 48, in handle
+    Game.getgame().process_action(ProphetAction(tgt, tgt))
+  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
+    rst = action.apply_action()
+  File "/home/proton/thbattle/src/gamepack/thb/characters/ran.py", line 24, in apply_action
+    if not rst: return act
+NameError: global name 'act' is not defined
+<THBattle at 0x89aa57c> failed with NameError
+
+
+ERROR:THBattle_Actions:TryRevive buggy condition, __init__
+ERROR:THBattle_Actions:TryRevive buggy condition, apply
+  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/greenlet.py", line 390, in run
+    result = self._run(*self.args, **self.kwargs)
+  File "/home/proton/thbattle/src/server/core/game_server.py", line 172, in _run
+    self.game_start()
+  File "/home/proton/thbattle/src/gamepack/thb/logic.py", line 197, in game_start
+    self.process_action(PlayerTurn(p))
+  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
+    rst = action.apply_action()
+  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 627, in apply_action
+    g.process_action(DropCardStage(p))
+  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
+    rst = action.apply_action()
+  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 343, in apply_action
+    g.process_action(DropCards(target, cards=cards))
+  File "/home/proton/thbattle/src/game/game_common.py", line 222, in process_action
+    action = self.emit_event('action_after', action)
+  File "/home/proton/thbattle/src/game/game_common.py", line 169, in emit_event
+    data = evt.handle(evt_type, data)
+  File "/home/proton/thbattle/src/gamepack/thb/cards/basic.py", line 152, in handle
+    g.process_action(Damage(source=None, target=target))
+  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
+    rst = action.apply_action()
+  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 267, in apply_action
+    if not g.process_action(TryRevive(tgt)):
+  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
+    rst = action.apply_action()
+  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 208, in apply_action
+    traceback.print_stack()
+
+
+
+  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
+    rst = action.apply_action()
+  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 267, in apply_action
+    if not g.process_action(TryRevive(tgt)):
+  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
+    rst = action.apply_action()
+  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 208, in apply_action
+    traceback.print_stack()
+Traceback (most recent call last):
+  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/greenlet.py", line 390, in run
+    result = self._run(*self.args, **self.kwargs)
+  File "/home/proton/thbattle/src/server/core/client_endpoint.py", line 158, in _run
+    self.write(['heartbeat', None])
+  File "/home/proton/thbattle/src/network/endpoint.py", line 45, in write
+    self.raw_write(self.encode(p))
+  File "/home/proton/thbattle/src/network/endpoint.py", line 34, in raw_write
+    self.sock.send(s)
+  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/socket.py", line 489, in send
+    wait_write(sock.fileno(), timeout=timeout, event=self._write_event)
+  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/socket.py", line 188, in wait_write
+    assert event.arg is None, 'This event is already used by another greenlet: %r' % (event.arg, )
+AssertionError: This event is already used by another greenlet: (<_GameHallStatusUpdator at 0xb7049f2cL>, timeout('timed out',))
+<Client at 0xb700bd9cL> failed with AssertionError
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 曹　操
 夏侯惇 船长

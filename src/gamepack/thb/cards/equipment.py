@@ -275,6 +275,7 @@ class RepentanceStick(GenericAction):
                 card = random_choose_card(cats)
             if card:
                 l.append(card)
+                g.players.exclude(tgt).reveal(card)
                 g.process_action(DropCards(target=tgt, cards=[card]))
         self.cards = l
         return True

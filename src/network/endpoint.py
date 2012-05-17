@@ -33,7 +33,7 @@ class Endpoint(object):
             try:
                 self.sock.send(s)
             except IOError:
-                raise EndpointDied()
+                self.close()
         else:
             log.debug('Write after disconnected: %s' % s[:-1])
             return False

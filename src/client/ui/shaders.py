@@ -84,7 +84,7 @@ try:
         uniform sampler2DRect tex;
         void main()
         {
-            float l = dot(texture2DRect(tex, gl_TexCoord[0]), vec4(0.3, 0.59, 0.11, 0.0));
+            float l = dot(texture2DRect(tex, gl_TexCoord[0].xy), vec4(0.3, 0.59, 0.11, 0.0));
             gl_FragColor = vec4(l, l, l, 1.0);
         }
         '''
@@ -100,7 +100,7 @@ try:
         uniform sampler2D tex;
         void main()
         {
-            float l = dot(texture2D(tex, gl_TexCoord[0]), vec4(0.3, 0.59, 0.11, 0.0));
+            float l = dot(texture2D(tex, gl_TexCoord[0].xy), vec4(0.3, 0.59, 0.11, 0.0));
             gl_FragColor = vec4(l, l, l, 1.0);
         }
         '''

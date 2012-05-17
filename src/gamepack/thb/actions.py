@@ -35,7 +35,9 @@ def _user_choose_cards_logic(input, act, target, categories=None):
             check(all(cat.owner is target for cat in categories))
 
             # associated_cards will be revealed here
-            cards = [skill_wrap(target, sid_list, cards)]
+            c = skill_wrap(target, sid_list, cards)
+            check(c)
+            cards = [c]
         else:
             check(all(c.resides_in in categories for c in cards)) # Cards in desired categories?
             g.players.exclude(target).reveal(cards)
@@ -231,11 +233,11 @@ class PlayerDeath(GenericAction):
         tgt.dead = True
         dropped = g.deck.droppedcards
         src = self.source or self.target
-        pl = g.players.exclude(src)
+        others = g.players.exclude(tgt)
         from .cards import VirtualCard
         for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]:
             l = [c for c in cl if not c.is_card(VirtualCard)]
-            pl.reveal(l)
+            others.reveal(l)
             migrate_cards(l, dropped)
             cl.clear()
         return True
