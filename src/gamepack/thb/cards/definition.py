@@ -330,7 +330,7 @@ card_definition = [
     (GrazeCard, HEART, 2),
     (HealCard, HEART, 3),
     (HealCard, HEART, 4),
-    (HealCard, HEART, 5),
+    (TridentCard, HEART, 5),
     (HealCard, HEART, 6),
     (HealCard, HEART, 7),
     (HealCard, HEART, 8),
