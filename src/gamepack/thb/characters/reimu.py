@@ -71,7 +71,7 @@ class ReimuHandler(EventHandler):
             src = act.source
             if src.tags.get('turn_count', 0) <= src.tags.get('reimusa_tag', 0):
                 return (act, False)
-        elif evt_type == 'action_apply' and isinstance(arg, LaunchCard):
+        elif evt_type == 'action_apply' and isinstance(arg, DelayedLaunchCard):
             c = arg.card
             if c.is_card(SealingArraySkill):
                 src = arg.source

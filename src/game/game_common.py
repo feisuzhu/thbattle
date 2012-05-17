@@ -246,7 +246,7 @@ class Game(object):
         except IndexError:
             return None
 
-    def get_syncid(self):
+    def get_synctag(self):
         raise GameError('Abstract')
 
 class SyncPrimitive(object):

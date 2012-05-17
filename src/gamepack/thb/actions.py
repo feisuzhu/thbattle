@@ -111,6 +111,9 @@ def skill_wrap(actor, sid_list, cards):
 
             check(card.check())
 
+            card.syncid = g.get_synctag()
+            g.deck.register_vcard(card)
+
             cards = [card]
 
         return cards[0]

@@ -79,21 +79,23 @@ class VirtualCard(Card):
     __hash__ = object.__hash__
 
     sort_index = 0
+    syncid = 0
 
     def __init__(self, player):
         self.suit = Card.NOTSET
         self.number = 0
         self.resides_in = player.special
 
-    def __data__(self):
-        raise GameError('should not sync VirtualCard!')
 
-    def _zero(self, *a):
-        return 0
+    def __data__(self):
+        return {
+            'class': self.__class__.__name__,
+            'syncid': self.syncid,
+            'vcard': True,
+        }
 
     def check(self): # override this
         return False
-    syncid = property(_zero, _zero)
 
     @classmethod
     def unwrap(cls, vcard):
@@ -120,7 +122,9 @@ class VirtualCard(Card):
         return vc
 
     def sync(self, data):
-        raise GameError('should not sync VirtualCard!')
+        assert data['vcard']
+        assert self.__class__.__name__ == data['class']
+        assert self.syncid == data['syncid']
 
 from collections import deque
 
@@ -143,7 +147,9 @@ class CardList(deque):
 class Deck(object):
     def __init__(self):
         from .definition import card_definition
+        from weakref import WeakValueDictionary
         self.cards_record = {}
+        self.vcards_record = WeakValueDictionary()
         self.droppedcards = CardList(None, CardList.DROPPEDCARD)
         self.special = CardList(None, CardList.SPECIAL)
         cards = CardList(None, CardList.DECKCARD)
@@ -205,10 +211,14 @@ class Deck(object):
     def lookupcards(self, idlist):
         l = []
         cr = self.cards_record
+        vcr = self.vcards_record
         for cid in idlist:
-            c = cr.get(cid, None)
+            c = cr.get(cid, vcr.get(cid, None))
             if c: l.append(c)
         return l
+
+    def register_vcard(self, vc):
+        self.vcards_record[vc.syncid] = vc
 
     '''
     def __shuffle(self, cl):

@@ -210,8 +210,14 @@ class Game(Greenlet, game.Game):
 
     def get_synctag(self):
         self.synctag += 1
-        import sys
+        # HACK:
+        # prevent UI thread from calling
+        # this func.
+        # since gevent 0.13 can only used in one thread.
+        import gevent.hub
+        gevent.hub.get_hub()
         if 0: # FOR DEBUG
+            import sys
             try:
                 raise Exception
             except:

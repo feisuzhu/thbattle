@@ -7,32 +7,10 @@ THBattle:
 
     logic: n persons!
 
-<<<<<<< Updated upstream
-intel显卡
-=======
-
-
-youmu duel
-
-#被雷炸死以后会诈尸
-#诈尸
-#好人卡提示 没法出
-
-#罪袋没有扔掉， 还传递到死人那里
-#cant_join_game 改！
-#楼观剑的BUG啊！连着两次了。
-#rumia 提示 多了些东西
-# （个人）新发现的BUG:貌似大酱用【支援】给装备区的【半灵】不会回血，但是【体力上限+1】会保留下来
-# 客户端：游戏崩溃，gui提示
-# 乡长带着装备死了之后还能发动技能
-# 灵梦 技能没法用
-# 在弹幕弹里把梅花恶心丸当弹幕出后就卡了，一直卡在我这边过不了对方那边
-
 恶心丸不以弃牌方式进入弃牌堆，但恶心丸仍然生效...
 魔导书出宴会，对方有西行妖，会卡主不动。。。 desync
 
 显卡问题
->>>>>>> Stashed changes
 双封魔阵
 
 玩家离开提示
@@ -71,6 +49,8 @@ windows: update sometimes fail
 
 ui_meta SOMETHING WRONG DollControl
 
+对了 有个问题。。用绯想剑强制命中的伤害不管有没有喝酒都是1
+红三的技能点了直接跳过了诶=。=
 
 Traceback (most recent call last):
   File "C:\Users\Proton\Desktop\thb\src\gamepack\thb\ui\inputs.py", line 191, in
@@ -106,6 +86,11 @@ AssertionError: This event is already used by another greenlet: (<_GameHallStatu
 >> 反馈BUG：⑧阿姨用自己装备上的【黑色装备】急救时，系统崩坏
 ?? 另外 被封魔阵封住的黑白应该也能偷的
 bug：被罪袋炸死以后 身上如果有封魔状态不会清除
+
+
+
+1.首轮自己行动之前不能发动（没有触发提示）
+2.打个比方，比如A用罪呆狂欢杀死B，八云蓝再用机智重新攻击B触发游戏逻辑崩溃
 
 
 天子给牌不能reveal all
