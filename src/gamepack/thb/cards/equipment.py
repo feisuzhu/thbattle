@@ -509,7 +509,7 @@ class ScarletRhapsodySwordHandler(EventHandler):
             cards = user_choose_cards(self, src, cats)
             if cards:
                 g.process_action(DropCards(src, cards))
-                dmg = ScarletRhapsodySword(src, tgt)
+                dmg = ScarletRhapsodySword(src, tgt, amount=act.damage)
                 dmg.associated_action = act
                 g.process_action(dmg)
 
