@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 10'
+VERSION = 'THBATTLE V1.0b incr 11'
 
 import re
 
@@ -83,6 +83,7 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 最近bug修复/加强：
+灵梦的封魔阵相关bug  绯想之剑只有固定1点伤害的bug 蓝大人极智第一回合无效的bug
 显卡问题（貌似不完全，如果仍然打不开，请报告bug）
 "退出游戏"按钮位置调整到上边
 还有一堆游戏相关的bug，不一一列举了

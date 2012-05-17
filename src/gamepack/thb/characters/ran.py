@@ -56,7 +56,7 @@ class ExtremeIntelligenceAction(GenericAction):
 
     def apply_action(self):
         p = self.source
-        p.tags['ran_ei_tag'] = p.tags['turn_count']
+        p.tags['ran_ei_tag'] = p.tags['turn_count'] + 1
         cards = user_choose_cards(self, p, [p.cards, p.showncards, p.equips])
         if not cards: return False
         g = Game.getgame()
@@ -100,7 +100,7 @@ class ExtremeIntelligenceHandler(EventHandler):
             for p in g.players.exclude(actor):
                 if p.dead: continue
                 if not p.has_skill(ExtremeIntelligence): continue
-                if p.tags['ran_ei_tag'] >= p.tags['turn_count']: continue
+                if p.tags['ran_ei_tag'] >= p.tags['turn_count'] + 1: continue
                 if not p.user_input('choose_option', self): continue
                 g.process_action(ExtremeIntelligenceAction(p, act.target, act))
 
