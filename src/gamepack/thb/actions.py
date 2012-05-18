@@ -40,7 +40,8 @@ def _user_choose_cards_logic(input, act, target, categories=None):
             cards = [c]
         else:
             check(all(c.resides_in in categories for c in cards)) # Cards in desired categories?
-            g.players.exclude(target).reveal(cards)
+            if not getattr(act, 'no_reveal', False):
+                g.players.exclude(target).reveal(cards)
 
         check(act.cond(cards))
 

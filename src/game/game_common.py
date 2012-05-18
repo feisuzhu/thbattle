@@ -192,11 +192,10 @@ class Game(object):
             if action.done:
                 log.debug('action already done %s' % action.__class__.__name__)
                 rst = action.succeeded
-            elif action.cancelled:
+            elif action.cancelled or not action.can_fire():
                 log.debug('action cancelled/invalid %s' % action.__class__.__name__)
                 rst = False
             else:
-                assert action.can_fire()
                 log.debug('applying action %s' % action.__class__.__name__)
                     #, src=%d, dst=%d' % (
                     #action.__class__.__name__,

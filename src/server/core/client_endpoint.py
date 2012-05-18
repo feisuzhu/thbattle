@@ -31,12 +31,15 @@ class Client(Endpoint, Greenlet):
         Greenlet.__init__(self)
         self.gdqueue = deque(maxlen=100)
         self.gdevent = Event()
+        from gevent.coros import RLock
+        self.writelock = RLock()
 
     def _run(self):
         cmds = {}
         self.heartbeat_cnt = 0
         self.nodata_cnt = 0
         self.timeout = 60
+
         def handler(*state):
             def register(f):
                 for s in state:
@@ -179,7 +182,7 @@ class Client(Endpoint, Greenlet):
                     return d[1]
                 else:
                     d.scan_count += 1
-                    if d.scan_count >= 10:
+                    if d.scan_count >= 15:
                         log.debug('Dropped gamedata: %s' % d)
                     else:
                         log.debug('GAME_DATA_MISS: %s', repr(d))
@@ -219,6 +222,10 @@ class Client(Endpoint, Greenlet):
         which confuses the new game.
         '''
         self.gdqueue.clear()
+
+    def raw_write(self, s):
+        with self.writelock:
+            Endpoint.raw_write(self, s)
 
 class DummyClient(object):
     read = write = raw_write = \

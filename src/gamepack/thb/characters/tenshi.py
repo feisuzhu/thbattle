@@ -8,6 +8,7 @@ class Masochist(Skill):
     target = t_None
 
 class MasochistAction(GenericAction):
+    no_reveal = True
     def __init__(self, target, n):
         self.target, self.amount = target, n
 
@@ -22,6 +23,7 @@ class MasochistAction(GenericAction):
             rst = user_choose_cards_and_players(self, tgt, [tgt.cards], g.players.exclude(tgt))
             if not rst: return True
             cl, pl = rst
+            tgt.reveal(cl)
             migrate_cards(cl, pl[0].cards)
             n -= len(cl)
         return True

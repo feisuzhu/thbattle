@@ -3,7 +3,7 @@ import os
 from utils import DataHolder
 import itertools
 
-texbin = pyglet.image.atlas.TextureBin(1024, 1024)
+texbin = pyglet.image.atlas.TextureBin(512, 512)
 dummy_img = pyglet.image.ImageData(1, 1, 'RGBA', '\x00'*4)
 
 class ResLoader(pyglet.resource.Loader):
@@ -70,9 +70,9 @@ with ResLoader(__file__) as args:
     bg_ingame = ldr.texture('bg_ingame.png')
     worldmap = ldr.texture('worldmap.png')
 
-    bg_gamelist = tx('bg_gamelist.png')
-    bg_eventsbox = tx('bg_eventsbox.png')
-    bg_chatbox = tx('bg_chatbox.png')
+    bg_gamelist = ldr.texture('bg_gamelist.png')
+    bg_eventsbox = ldr.texture('bg_eventsbox.png')
+    bg_chatbox = ldr.texture('bg_chatbox.png')
 
     card_shinesoft = tx('shinesoft.png')
     card_hidden = tx('card_hidden.png')
@@ -92,7 +92,7 @@ with ResLoader(__file__) as args:
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)
 
-    ray = tx('ray.png')
+    ray = ldr.texture('ray.png')
 
     hurt = anim('hurt.png', [50, 50, 50, 50, 200, 30, 30, 30, 30, 2000])
 
