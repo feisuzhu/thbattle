@@ -2336,7 +2336,7 @@ class Tenshi:
     char_name = u'比那名居天子'
     port_image = gres.tenshi_port
     description = (
-        u'|DB有顶天的大M子 比那名居天子 体力：3|r\n\n'
+        u'|DB有顶天的大M子 比那名居天子 体力：4|r\n\n'
         u'|G抖Ｍ|r：每当你受到1点伤害，可摸两张牌，将其中的一张交给任意一名角色，然后将另一张交给任意一名角色。'
     )
 
@@ -2417,7 +2417,7 @@ class Yuuka:
     char_name = u'风见幽香'
     port_image = gres.yuuka_port
     description = (
-        u'|DB四季的鲜花之主 风见幽香 体力：4|r\n\n'
+        u'|DB四季的鲜花之主 风见幽香 体力：3|r\n\n'
         u'|G花王|r：你的所有的梅花牌都可以当做【弹幕】和【擦弹】使用或打出。\n\n'
         u'|G魔炮|r：锁定技，你在使用红色的【弹幕】时伤害+1\n\n'
         u'|G完杀|r：锁定技，由你击杀的玩家只能由你的和被击杀玩家的【麻薯】救起。'

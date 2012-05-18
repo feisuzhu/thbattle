@@ -23,7 +23,7 @@ class MasochistAction(GenericAction):
             rst = user_choose_cards_and_players(self, tgt, [tgt.cards], g.players.exclude(tgt))
             if not rst: return True
             cl, pl = rst
-            tgt.reveal(cl)
+            pl[0].reveal(cl)
             migrate_cards(cl, pl[0].cards)
             n -= len(cl)
         return True
@@ -52,4 +52,4 @@ class MasochistHandler(EventHandler):
 class Tenshi(Character):
     skills = [Masochist]
     eventhandlers_required = [MasochistHandler]
-    maxlife = 3
+    maxlife = 4

@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 12'
+VERSION = 'THBATTLE V1.0b incr 14'
 
 import re
 
@@ -83,10 +83,10 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 最近bug修复/加强：
+幽香、M子HP调整 M子抖M不该向所有人展示卡牌
+服务器调整，会更加稳定
 灵梦的封魔阵相关bug  绯想之剑只有固定1点伤害的bug 蓝大人极智第一回合无效的bug
 显卡问题（貌似不完全，如果仍然打不开，请报告bug）
-"退出游戏"按钮位置调整到上边
-还有一堆游戏相关的bug，不一一列举了
 
 正在积极修复的bug/加强：
 玩家离开提示 好人卡时间提示 装备区牌面花色、数字

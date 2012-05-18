@@ -65,4 +65,4 @@ class YuukaHandler(EventHandler):
 class Yuuka(Character):
     skills = [FlowerQueen, MagicCannon, PerfectKill]
     eventhandlers_required = [YuukaHandler]
-    maxlife = 4
+    maxlife = 3
