@@ -31,8 +31,6 @@ class Client(Endpoint, Greenlet):
         Greenlet.__init__(self)
         self.gdqueue = deque(maxlen=100)
         self.gdevent = Event()
-        from gevent.coros import RLock
-        self.writelock = RLock()
 
     def _run(self):
         cmds = {}
@@ -222,10 +220,6 @@ class Client(Endpoint, Greenlet):
         which confuses the new game.
         '''
         self.gdqueue.clear()
-
-    def raw_write(self, s):
-        with self.writelock:
-            Endpoint.raw_write(self, s)
 
 class DummyClient(object):
     read = write = raw_write = \

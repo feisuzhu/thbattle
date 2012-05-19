@@ -1,5 +1,5 @@
 import gevent
-from gevent import Greenlet, Timeout, socket
+from gevent import Greenlet, Timeout, socket, coros
 from gevent.queue import Queue
 import simplejson as json
 import logging
@@ -17,6 +17,7 @@ class Endpoint(object):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.sock = sock
         self.sockfile = sock.makefile()
+        self.writelock = coros.RLock()
         self.address = address
         self.link_state = 'connected' # or disconnected
 
@@ -31,7 +32,8 @@ class Endpoint(object):
             if Endpoint.ENDPOINT_DEBUG:
                 log.debug("SEND>> %s" % s[:-1])
             try:
-                self.sock.send(s)
+                with self.writelock:
+                    self.sock.send(s)
             except IOError:
                 self.close()
         else:
