@@ -36,19 +36,30 @@ class MainThread(threading.Thread):
 
         # ipv4 only, dns retry
         from gevent import socket, dns
-        origGetAddrInfo = socket.getaddrinfo
+        orig_getaddrinfo = socket.getaddrinfo
 
-        def getAddrInfoWrapper(host, port, family=0, socktype=0, proto=0, flags=0):
+        def getaddrinfo_wrapper(host, port, family=0, socktype=0, proto=0, flags=0):
             while True:
                 try:
-                    return origGetAddrInfo(host, port, socket.AF_INET, socktype, proto, flags)
+                    return orig_getaddrinfo(host, port, socket.AF_INET, socktype, proto, flags)
                 except dns.DNSError as e:
-                    if not e.errno == 2: # server fail thing
+                    if not e.errno == 2: # dns server fail thing
                         raise
                 gevent.sleep(0.15)
 
         # replace the original socket.getaddrinfo by our version
-        socket.getaddrinfo = getAddrInfoWrapper
+        socket.getaddrinfo = getaddrinfo_wrapper
+
+        orig_gethostbyname = socket.gethostbyname
+        def gethostbyname_wrapper(hostname):
+            try:
+                return orig_gethostbyname(hostname)
+            except dns.DNSError as e:
+                if not e.errno == 2: # dns server fail thing
+                    raise
+            gevent.sleep(0.15)
+        socket.gethostbyname = gethostbyname_wrapper
+
         # -----------------------------------------
 
         from game import autoenv
