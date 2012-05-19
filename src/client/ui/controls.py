@@ -1220,12 +1220,10 @@ class Panel(Control):
         w, h = int(self.width), int(self.height)
 
         glColor3f(1, 1, 1)
+        glBindTexture(tex1.target, tex1.id)
+        glCopyTexImage2D(tex1.target, 0, GL_RGBA, ax, ay, w, h, 0)
+        glBindTexture(tex1.target, 0)
         with fbo:
-            fbo.texture = tex1
-            glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0)
-            fbo.blit_from_current_readbuffer((ax, ay, ax + w, ay + h))
-            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo.fbo_id)
-
             fbo.texture = tex2
 
             with GaussianBlurHorizontal:
