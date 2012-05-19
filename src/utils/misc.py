@@ -136,16 +136,11 @@ class Framebuffer(object):
     def _set_texture(self, t):
         self._texture = t
         from pyglet import gl
-        try:
-            gl.glFramebufferTexture2DEXT(
-                gl.GL_FRAMEBUFFER_EXT,
-                gl.GL_COLOR_ATTACHMENT0_EXT,
-                t.target, t.id, 0,
-            )
-        except gl.GLException as e:
-            # Intel card hack
-            if e.message is not None:
-                raise
+        gl.glFramebufferTexture2DEXT(
+            gl.GL_FRAMEBUFFER_EXT,
+            gl.GL_COLOR_ATTACHMENT0_EXT,
+            t.target, t.id, 0,
+        )
         gl.glViewport(0, 0, t.width, t.height)
 
         gl.glMatrixMode(gl.GL_PROJECTION)

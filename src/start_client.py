@@ -88,6 +88,21 @@ mt.start()
 _sync_evt.wait()
 del _sync_evt
 
+import pyglet.gl.lib as gllib
+orig_errcheck = gllib.errcheck
+
+import ctypes
+def my_errcheck(result, func, arguments):
+    from pyglet import gl
+    error = gl.glGetError()
+    if error:
+        msg = ctypes.cast(gl.gluErrorString(error), ctypes.c_char_p).value
+        if msg:
+            raise GLException(msg)
+    return result
+
+gllib.errcheck = my_errcheck
+
 from client.ui.entry import start_ui
 
 try:
