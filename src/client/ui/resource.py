@@ -84,6 +84,10 @@ with ResLoader(__file__) as args:
     suit = pyglet.image.ImageGrid(img('suit.png'), 1, 4)
     suit = pyglet.image.TextureGrid(suit)
 
+    smallsuit = pyglet.image.ImageGrid(img('smallsuit.png'), 1, 4)
+    smallsuit = pyglet.image.TextureGrid(smallsuit)
+
+
     num = pyglet.image.ImageGrid(img('num.png'), 1, 10)
     num = pyglet.image.TextureGrid(num)
 

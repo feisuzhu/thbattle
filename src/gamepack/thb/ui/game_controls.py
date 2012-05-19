@@ -347,13 +347,40 @@ class SmallCardSprite(Control, BalloonPrompt):
     width, height = 33, 46
     x = InterpDesc('_x')
     y = InterpDesc('_y')
+    auxfbo = Framebuffer()
     def __init__(self, card, x=0.0, y=0.0, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 33, 46
         self.x, self.y = x, y
         self.selected = False
         self.hover = False
-        self.img = card.ui_meta.image_small
+
+        bg = card.ui_meta.image_small
+        from pyglet.image import Texture
+        img = Texture.create(bg.width, bg.height)
+        fbo = self.auxfbo
+
+        f = pyglet.font.load('AncientPix', size=9)
+
+        ssuit = common_res.smallsuit
+        with fbo:
+            fbo.texture = img
+            glColor3f(1, 1, 1)
+            bg.blit(0, 0)
+            if card.suit % 2:
+                glColor3f(0, 0, 0)
+            else:
+                glColor3f(1, 0, 0)
+
+            if card.number == 10: # special case
+                g = f.get_glyphs('10')
+                g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
+                g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
+            else:
+                g = f.get_glyphs(' A23456789!JQK'[card.number])[0]
+                g.blit(3+g.vertices[0], 33+g.vertices[1])
+            ssuit[card.suit-1].blit(1, 24)
+        self.img = img
         self.init_balloon(card.ui_meta.description)
 
     def draw(self):
