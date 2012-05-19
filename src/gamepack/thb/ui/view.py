@@ -154,6 +154,14 @@ class THBattleUI(Control):
         elif _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
             self.current_turn = args[0].target
 
+        elif _type == 'player_change':
+            for i, pd in enumerate(args[0]):
+                if pd.get('id', -1) == -1:
+                    p = self.game.players[i]
+                    port = self.player2portrait(p)
+                    port.dropped = True
+                    port.update()
+
         if _type.startswith('evt_'):
             inputs.handle_event(self, _type[4:], args[0])
             effects.handle_event(self, _type[4:], args[0])
@@ -190,7 +198,7 @@ class THBattleUI(Control):
                 print p, self.game.players
                 print p, self.game.players
                 return
-            
+
             if p in disables:
                 port.disabled = True
                 port.selected = False

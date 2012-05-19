@@ -463,6 +463,7 @@ class ShownCardPanel(Panel):
         ShownCardPanel.current = None
 
 class GameCharacterPortrait(Dialog, BalloonPrompt):
+    dropped = False
 
     def __init__(self, color=Colors.blue, tag_placement='me', *args, **kwargs):
         self.selected = False
@@ -566,7 +567,9 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         p = self.player
         if not p: return
 
-        self.caption = p.nickname
+        nick = p.nickname
+        if self.dropped: nick = u'(离开)' + nick
+        self.caption = nick
         try:
             meta = p.ui_meta
 
