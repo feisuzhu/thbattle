@@ -30,15 +30,22 @@ class MainThread(threading.Thread):
     def run(self):
         import utils; utils.patch_gevent_hub()
 
+        import gevent
         from gevent import monkey
         monkey.patch_socket()
 
-        # ipv4 only
-        from gevent import socket
+        # ipv4 only, dns retry
+        from gevent import socket, dns
         origGetAddrInfo = socket.getaddrinfo
 
         def getAddrInfoWrapper(host, port, family=0, socktype=0, proto=0, flags=0):
-            return origGetAddrInfo(host, port, socket.AF_INET, socktype, proto, flags)
+            while True:
+                try:
+                    return origGetAddrInfo(host, port, socket.AF_INET, socktype, proto, flags)
+                except dns.DNSError as e:
+                    if not e.errno == 2: # server fail thing
+                        raise
+                gevent.sleep(0.15)
 
         # replace the original socket.getaddrinfo by our version
         socket.getaddrinfo = getAddrInfoWrapper
