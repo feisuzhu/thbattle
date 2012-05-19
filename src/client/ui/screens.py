@@ -254,7 +254,7 @@ class GameHallScreen(Screen):
                         gi['name'],
                         s,
                         '%d/%d' % (
-                            len([i for i in gi['slots'] if i['id']]),
+                            len([i for i in gi['slots'] if i['id'] and i['id'] != -1]),
                             len(gi['slots']),
                         ),
                         [u'等待中', u'游戏中'][gi['started']]
@@ -301,6 +301,12 @@ class GameHallScreen(Screen):
             )
 
         def on_message(self, _type, *args):
+            lookup = {
+                'hang': u'|c0000ffff游戏大厅|r',
+                'ingame': u'|G游戏中|r',
+                'inroomwait': u'|R在房间中|r',
+                'ready': u'|c9f5f9fff准备状态|r',
+            }
             if _type == 'current_users':
                 users = args[0]
                 box = self.box
@@ -308,7 +314,7 @@ class GameHallScreen(Screen):
                 self.caption = u'当前在线玩家：%d' % len(users)
                 self.update()
                 t = u'\n'.join(
-                    u'%(nickname)s(|G%(username)s|r)' % u
+                    u'%s(%s)' % (u['nickname'], lookup.get(u['state'], u['state']))
                     for u in users
                 )
                 box.append(t)
@@ -382,6 +388,7 @@ class GameScreen(Screen):
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
                 name = p.get('nickname', 'EMPTY SLOT')
+                if p.get('state', False) == 'ready': name = u'(准备)' + name
                 self.portraits[i].player_name = name
                 self.portraits[i].update()
 
