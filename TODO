@@ -7,9 +7,6 @@ THBattle:
 
     logic: n persons!
 
-恶心丸不以弃牌方式进入弃牌堆，但恶心丸仍然生效...
-魔导书出宴会，对方有西行妖，会卡主不动。。。 desync
-
 显卡问题
 双封魔阵
 
@@ -34,6 +31,9 @@ THBattle:
 
 ?5.蓝的2技能对罪袋狂欢和五谷丰登无效。弹幕战也无效。就是不会询问是否使用该技能再发动一次。
 
+
+被赛钱箱选中的目标A如果只有一张好人卡并对自己使用，此时就会出现装备与手牌都空掉的情况，如果此时A的好人卡被其他好人卡打消，并且赛钱箱生效的话，出现逻辑崩溃。
+
 sinsack reject
 
 reject prompt
@@ -57,33 +57,10 @@ Traceback (most recent call last):
 AssertionError
 INFO:Server:GAME_EXPECT: 'input_action_stage_usecard_182'
 
-Traceback (most recent call last):
-  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/greenlet.py", line 390, in run
-    result = self._run(*self.args, **self.kwargs)
-  File "/home/proton/thbattle/src/server/core/client_endpoint.py", line 158, in _run
-    self.write(['heartbeat', None])
-  File "/home/proton/thbattle/src/network/endpoint.py", line 42, in write
-    self.raw_write(self.encode(p))
-  File "/home/proton/thbattle/src/network/endpoint.py", line 33, in raw_write
-    self.sock.send(s)
-  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/socket.py", line 489, in send
-    wait_write(sock.fileno(), timeout=timeout, event=self._write_event)
-  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/socket.py", line 188, in wait_write
-    assert event.arg is None, 'This event is already used by another greenlet: %r' % (event.arg, )
-AssertionError: This event is already used by another greenlet: (<_GameHallStatusUpdator at 0xb7133edcL>, timeout('timed out',))
-<Client at 0xa010f2c> failed with AssertionError
-
-
 ?? 另外 被封魔阵封住的黑白应该也能偷的
 bug：被罪袋炸死以后 身上如果有封魔状态不会清除
 
-
-
-1.首轮自己行动之前不能发动（没有触发提示）
 2.打个比方，比如A用罪呆狂欢杀死B，八云蓝再用机智重新攻击B触发游戏逻辑崩溃
-
-
-天子给牌不能reveal all
 
 tatara reveal all： need shuffle thing
 
@@ -91,7 +68,6 @@ id是？？？(虽然不知道为什么要id)建议：希望在游戏开始时�
 灵梦1血 剩3恶心丸 死了游戏崩溃
 
 disable esc key
-
 
 ?
 问下莱瓦顶是不是有BUG?
@@ -101,102 +77,37 @@ Proton  20:55:29
 貌似不出效果
 
 
-Traceback (most recent call last):
-  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/greenlet.py", line 390, in run
-    result = self._run(*self.args, **self.kwargs)
-  File "/home/proton/thbattle/src/server/core/game_server.py", line 172, in _run
-    self.game_start()
-  File "/home/proton/thbattle/src/gamepack/thb/logic.py", line 197, in game_start
-    self.process_action(PlayerTurn(p))
-  File "/home/proton/thbattle/src/game/game_common.py", line 207, in process_action
-    action = self.emit_event('action_apply', action)
-  File "/home/proton/thbattle/src/game/game_common.py", line 169, in emit_event
-    data = evt.handle(evt_type, data)
-  File "/home/proton/thbattle/src/gamepack/thb/characters/ran.py", line 48, in handle
-    Game.getgame().process_action(ProphetAction(tgt, tgt))
-  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
-    rst = action.apply_action()
-  File "/home/proton/thbattle/src/gamepack/thb/characters/ran.py", line 24, in apply_action
-    if not rst: return act
-NameError: global name 'act' is not defined
-<THBattle at 0x89aa57c> failed with NameError
+被赛钱箱选中的目标A如果只有一张好人卡并对自己使用，此时就会出现装备与手牌都空掉的情况，如果此时A的好人卡被其他好人卡打消，并且赛钱箱生效的话，出现逻辑崩溃。
+2妹决斗自己受1点伤
+
+死人 好人卡
+
+大厅，玩家状态， dropped不算在游戏中
+酒 抵挡伤害
+
+还有队友发动好人卡 我有好人卡的话也能不能不提示= =
+
+对了。 目前 需要的功能 是 可能自动判定踢出玩家的吧
+
+好不容易 5等1 来人了。 有个没准备的。或者有多个未准备的
+
+那么可惨了。
+
+要么 默认进房 10秒自动准备。 要么默认 进房 人满 自动踢没准备的
+
+我还是觉得前者好些。  后者如果有多个未准备 那悲剧了。
+
+先来个房间加密和移动位子好不好
+
+最好的支持右键出牌把
 
 
-ERROR:THBattle_Actions:TryRevive buggy condition, __init__
-ERROR:THBattle_Actions:TryRevive buggy condition, apply
-  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/greenlet.py", line 390, in run
-    result = self._run(*self.args, **self.kwargs)
-  File "/home/proton/thbattle/src/server/core/game_server.py", line 172, in _run
-    self.game_start()
-  File "/home/proton/thbattle/src/gamepack/thb/logic.py", line 197, in game_start
-    self.process_action(PlayerTurn(p))
-  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
-    rst = action.apply_action()
-  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 627, in apply_action
-    g.process_action(DropCardStage(p))
-  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
-    rst = action.apply_action()
-  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 343, in apply_action
-    g.process_action(DropCards(target, cards=cards))
-  File "/home/proton/thbattle/src/game/game_common.py", line 222, in process_action
-    action = self.emit_event('action_after', action)
-  File "/home/proton/thbattle/src/game/game_common.py", line 169, in emit_event
-    data = evt.handle(evt_type, data)
-  File "/home/proton/thbattle/src/gamepack/thb/cards/basic.py", line 152, in handle
-    g.process_action(Damage(source=None, target=target))
-  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
-    rst = action.apply_action()
-  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 267, in apply_action
-    if not g.process_action(TryRevive(tgt)):
-  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
-    rst = action.apply_action()
-  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 208, in apply_action
-    traceback.print_stack()
+spider: 曹操 + 鸡肋
+
+绯想剑能在发动效果时丢掉。。。
 
 
-
-  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
-    rst = action.apply_action()
-  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 267, in apply_action
-    if not g.process_action(TryRevive(tgt)):
-  File "/home/proton/thbattle/src/game/game_common.py", line 210, in process_action
-    rst = action.apply_action()
-  File "/home/proton/thbattle/src/gamepack/thb/actions.py", line 208, in apply_action
-    traceback.print_stack()
-Traceback (most recent call last):
-  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/greenlet.py", line 390, in run
-    result = self._run(*self.args, **self.kwargs)
-  File "/home/proton/thbattle/src/server/core/client_endpoint.py", line 158, in _run
-    self.write(['heartbeat', None])
-  File "/home/proton/thbattle/src/network/endpoint.py", line 45, in write
-    self.raw_write(self.encode(p))
-  File "/home/proton/thbattle/src/network/endpoint.py", line 34, in raw_write
-    self.sock.send(s)
-  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/socket.py", line 489, in send
-    wait_write(sock.fileno(), timeout=timeout, event=self._write_event)
-  File "/home/proton/env/local/lib/python2.7/site-packages/gevent/socket.py", line 188, in wait_write
-    assert event.arg is None, 'This event is already used by another greenlet: %r' % (event.arg, )
-AssertionError: This event is already used by another greenlet: (<_GameHallStatusUpdator at 0xb7049f2cL>, timeout('timed out',))
-<Client at 0xb700bd9cL> failed with AssertionError
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-曹　操
+曹　操 yamame
 夏侯惇 船长
 关　羽
 吕　蒙

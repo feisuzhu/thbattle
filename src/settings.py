@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 14'
+VERSION = 'THBATTLE V1.0b incr 15'
 
 import re
 
@@ -83,6 +83,8 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 最近bug修复/加强：
+恶心丸在某些条件导致崩溃
+游戏大厅修正
 幽香、M子HP调整 M子抖M不该向所有人展示卡牌
 服务器调整，会更加稳定
 灵梦的封魔阵相关bug  绯想之剑只有固定1点伤害的bug 蓝大人极智第一回合无效的bug
