@@ -39,7 +39,7 @@ class UISelectTarget(Control):
 
         self.confirmbtn = ConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
-            buttons=((u'出牌', True), (u'取消出牌', False))
+            buttons=((u'确定', True), (u'结束', False))
         )
         self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
         b.value = LinearInterp(
@@ -528,7 +528,7 @@ class UIChooseOption(Control):
             choose_option_buttons = ui_meta.choose_option_buttons
             choose_option_prompt = ui_meta.choose_option_prompt
         except AttributeError:
-            choose_optin_buttons = ((u'出牌', True), (u'取消出牌', False))
+            choose_optin_buttons = ((u'确定', True), (u'结束', False))
             choose_option_prompt = u'UIChooseOption: %s missing ui_meta' % (
                 irp.attachment.__class__.__name__
             )
