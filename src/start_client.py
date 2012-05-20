@@ -52,12 +52,13 @@ class MainThread(threading.Thread):
 
         orig_gethostbyname = socket.gethostbyname
         def gethostbyname_wrapper(hostname):
-            try:
-                return orig_gethostbyname(hostname)
-            except dns.DNSError as e:
-                if not e.errno == 2: # dns server fail thing
-                    raise
-            gevent.sleep(0.15)
+            while True:
+                try:
+                    return orig_gethostbyname(hostname)
+                except dns.DNSError as e:
+                    if not e.errno == 2: # dns server fail thing
+                        raise
+                gevent.sleep(0.15)
         socket.gethostbyname = gethostbyname_wrapper
 
         # -----------------------------------------
