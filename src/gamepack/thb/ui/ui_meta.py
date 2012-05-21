@@ -704,7 +704,7 @@ class LaevateinCard:
     image_small = gres.card_laevatein_small
     description = (
         u'|R莱瓦汀|r\n\n'
-        u'攻击范围4，当你使用的【莱瓦汀】是你的最后一张手牌时，你可以为这张【莱瓦汀】指定至多三名目标，然后依次结算之。'
+        u'攻击范围4，当你使用的【弹幕】是你的最后一张手牌时，你可以为这张【弹幕】指定至多三名目标，然后依次结算之。'
     )
 
     is_action_valid = equip_iav
@@ -2304,7 +2304,7 @@ class Shikieiki:
     port_image = gres.shikieiki_port
     description = (
         u'|DB乐园的最高裁判长 四季映姬 体力：3|r\n\n'
-        u'|G审判|r：在任意角色的判定牌生效前，你可以打出一张手牌代替之。\n\n'
+        u'|G审判|r：在任意角色的判定牌生效前，你可以打出一张牌代替之。\n\n'
         u'|G威严|r：可以立即从对你造成伤害的来源处获得一张牌。'
     )
 
