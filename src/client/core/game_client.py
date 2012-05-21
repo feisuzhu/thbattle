@@ -40,7 +40,7 @@ class TheChosenOne(game.AbstractPlayer):
         input.timeout = timeout
         input.player = self
         try:
-            with gevent.Timeout(timeout):
+            with gevent.Timeout(timeout+1):
                 g.emit_event('user_input_start', input)
                 rst = g.emit_event('user_input', input)
         except gevent.Timeout:

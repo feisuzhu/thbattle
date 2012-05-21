@@ -372,14 +372,16 @@ class SmallCardSprite(Control, BalloonPrompt):
             else:
                 glColor3f(1, 0, 0)
 
-            if card.number == 10: # special case
-                g = f.get_glyphs('10')
-                g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
-                g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
-            else:
-                g = f.get_glyphs(' A23456789!JQK'[card.number])[0]
-                g.blit(3+g.vertices[0], 33+g.vertices[1])
-            ssuit[card.suit-1].blit(1, 24)
+            with shaders.FontShadow as fs:
+                fs.uniform.shadow_color = (1.0, 1.0, 1.0, 0.7)
+                if card.number == 10: # special case
+                    g = f.get_glyphs('10')
+                    g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
+                    g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
+                else:
+                    g = f.get_glyphs(' A23456789!JQK'[card.number])[0]
+                    g.blit(3+g.vertices[0], 33+g.vertices[1])
+                ssuit[card.suit-1].blit(1, 24)
         self.img = img
         self.init_balloon(card.ui_meta.description)
 

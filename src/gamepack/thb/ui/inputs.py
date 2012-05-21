@@ -382,7 +382,7 @@ class UIChooseGirl(Panel):
                 glRectf(0, 0, self.width, self.height)
 
     def __init__(self, attachment, *a, **k):
-        w, h = 500, 360
+        w, h = 500, 390
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
         pw, ph = p.width, p.height
@@ -395,12 +395,23 @@ class UIChooseGirl(Panel):
         self.girl_selectors = self.control_list
         for i, c in enumerate(choices):
             y, x = divmod(i, 3)
-            x, y = 15 + 160*x, 15 + 113*y
+            x, y = 15 + 160*x, 45 + 113*y
             GS(parent=self, choice=c, x=x, y=y)
+
+        self.pbar = BigProgressBar(
+            parent=self, x=(w-250)//2, y=9, width=250,
+        )
+
+        self.pbar.value = 1.0
+
 
     def on_message(self, _evt, *args):
         if _evt == 'evt_user_input':
             irp = args[0]
+            self.pbar.value = LinearInterp(
+                1.0, 0.0, irp.timeout,
+                on_done=lambda *a: self.cleanup(),
+            )
             tag = irp.tag
             if tag == 'choose_girl':
                 assert self.irp is None
@@ -484,7 +495,8 @@ class UIChoosePeerCard(Panel):
             parent=self, x=(w-250)//2, y=7, width=250
         )
         b.value = LinearInterp(
-            1.0, 0.0, irp.timeout
+            1.0, 0.0, irp.timeout,
+            on_done=lambda *a: self.cleanup()
         )
 
         btn = ImageButton(
@@ -528,7 +540,7 @@ class UIChooseOption(Control):
             choose_option_buttons = ui_meta.choose_option_buttons
             choose_option_prompt = ui_meta.choose_option_prompt
         except AttributeError:
-            choose_optin_buttons = ((u'确定', True), (u'结束', False))
+            choose_option_buttons = ((u'确定', True), (u'结束', False))
             choose_option_prompt = u'UIChooseOption: %s missing ui_meta' % (
                 irp.attachment.__class__.__name__
             )
@@ -757,7 +769,7 @@ class UIRanProphet(Panel):
             *a, **k
         )
 
-        rpc = RanProphetControl(parent=self, x=100, y=60)
+        self.rpc = rpc = RanProphetControl(parent=self, x=100, y=60)
         for i, c in enumerate(cards):
             cs = CardSprite(c, parent=rpc)
             cs.associated_card = c
@@ -767,24 +779,25 @@ class UIRanProphet(Panel):
         btn = Button(parent=self, caption=u'调整完成', x=w-120, y=15, width=100, height=30)
         @btn.event
         def on_click():
-            up, down = rpc.get_result()
-            up = [c.card_index for c in up]
-            down = [c.card_index for c in down]
-            irp.input = [up, down]
             self.cleanup()
 
         b = BigProgressBar(
-            parent=self, x=100, y=15, width=250
+            parent=self, x=100, y=15, width=250,
         )
         b.value = LinearInterp(
-            1.0, 0.0, irp.timeout
+            1.0, 0.0, irp.timeout,
+            on_done=self.cleanup,
         )
 
     def on_message(self, _type, *args):
         if _type == 'evt_user_input_timeout':
             self.cleanup()
 
-    def cleanup(self):
+    def cleanup(self, *a, **k):
+        up, down = self.rpc.get_result()
+        up = [c.card_index for c in up]
+        down = [c.card_index for c in down]
+        self.irp.input = [up, down]
         self.irp.complete()
         self.delete()
 
