@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 15'
+VERSION = 'THBATTLE V1.0b incr 16'
 
 import re
 
@@ -83,16 +83,13 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 最近bug修复/加强：
+开局出手顺序调整
 恶心丸在某些条件导致崩溃
 游戏大厅修正
 幽香、M子HP调整 M子抖M不该向所有人展示卡牌
-服务器调整，会更加稳定
-灵梦的封魔阵相关bug  绯想之剑只有固定1点伤害的bug 蓝大人极智第一回合无效的bug
-显卡问题（貌似不完全，如果仍然打不开，请报告bug）
 
 正在积极修复的bug/加强：
-玩家离开提示 好人卡时间提示 装备区牌面花色、数字
-双封魔阵/罪袋 大厅里显示玩家状态  五谷丰登提示
+好人卡时间提示 双封魔阵/罪袋  五谷丰登提示
 
 另外，如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
 

@@ -19,6 +19,9 @@ class ProphetAction(GenericAction):
         g = Game.getgame()
         n = min(len([p for p in g.players if not p.dead]), 5)
         cards = g.deck.getcards(n)
+
+        assert cards == g.deck.getcards(n)
+
         tgt.reveal(cards)
         rst = tgt.user_input('ran_prophet', cards, timeout=40)
         if not rst: return False
@@ -28,6 +31,10 @@ class ProphetAction(GenericAction):
             downcards = rst[1]
             check(sorted(upcards+downcards) == range(n))
         except CheckFailed as e:
+            try:
+                print 'RAN PROPHET:', upcards, downcards
+            except:
+                pass
             return act
 
         deck = g.deck.cards
@@ -36,6 +43,9 @@ class ProphetAction(GenericAction):
         deck.rotate(-len(downcards))
         for i, j in enumerate(upcards):
             deck[i] = cards[j]
+
+        cl = [cards[i] for i in upcards]
+        assert g.deck.getcards(len(upcards)) == cl
 
         return True
 
