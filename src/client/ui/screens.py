@@ -442,8 +442,8 @@ class GameScreen(Screen):
         self.bg = common_res.bg_ingame
 
         self.game = game
-        self.ui_class = game.ui_class
-        self.gameui = game.ui_class(
+        self.ui_class = game.get_ui_class()
+        self.gameui = self.ui_class(
             parent=False, game=game,
             **r2d((0, 0, 820, 720))
         ) # add when game starts

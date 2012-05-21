@@ -316,25 +316,16 @@ def action_effects(_type, self, act):
         cls = cls.__base__
 
 def user_input_start_effects(self, input):
-    try:
-        cturn = self.current_turn
-    except AttributeError:
-        # game not really started,
-        # players are choosing their girl now.
-        self.actor_frame = None
-        self.actor_pbar = None
-        return
+    cturn = getattr(self, 'current_turn', None)
 
     if input.tag == 'action_stage_usecard':
         self.dropcard_area.fade()
 
     p = input.player
     port = self.player2portrait(p)
-    if p is cturn:
+    if p is not cturn:
         # drawing turn frame
-        self.actor_frame = None
-    else:
-        self.actor_frame = LoopingAnim(
+        port.actor_frame = LoopingAnim(
             common_res.actor_frame,
             x=port.x - 6, y=port.y - 4,
             batch = self.animations
@@ -354,16 +345,23 @@ def user_input_start_effects(self, input):
         1.0, 0.0, input.timeout,
         on_done=lambda self, desc: self.delete(),
     )
-    self.actor_pbar = pbar
+    port.actor_pbar = pbar
 
 def user_input_finish_effects(self, input):
-    if self.actor_frame:
-        self.actor_frame.delete()
-        self.actor_frame = None
+    p = input.player
+    port = self.player2portrait(p)
+    if port.actor_frame:
+        port.actor_frame.delete()
+        port.actor_frame = None
 
-    if self.actor_pbar:
-        self.actor_pbar.delete()
-        self.actor_pbar = None
+    if port.actor_pbar:
+        port.actor_pbar.delete()
+        port.actor_pbar = None
+
+def game_roll_prompt(self, pl):
+    self.prompt(u'Roll点顺序：')
+    for p in pl:
+        self.prompt(p.ui_meta.char_name)
 
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),
@@ -372,6 +370,7 @@ mapping_events = ddict(bool, {
     'user_input_start': user_input_start_effects,
     'user_input_finish': user_input_finish_effects,
     'card_migration': card_migration_effects,
+    'game_roll': game_roll_prompt,
 })
 
 def handle_event(self, _type, data):

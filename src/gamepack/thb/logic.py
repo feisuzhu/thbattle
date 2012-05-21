@@ -37,14 +37,16 @@ class CharChoice(object):
         else:
             self.char_cls = None
 
+class ActFirst(object): # for choose_option
+    pass
+
 class THBattle(Game):
     name = u'符斗祭 - 3v3 - 休闲'
     n_persons = 6
 
-    if Game.CLIENT_SIDE:
-        # not loading these things on server
-        # FIXME: should it be here?
-        from ui import THBattleUI as ui_class
+    def get_ui_class(self):
+        from ui import THBattleUI
+        return THBattleUI
 
     def game_start(self):
         # game started, init state
@@ -131,7 +133,7 @@ class THBattle(Game):
                     pass
                 return None
 
-        self.players.user_input_all('choose_girl', process, choice, timeout=30)
+        self.players.user_input_all('choose_girl', process, choice, timeout=30) # ALL?? NOT ANY?!!
 
         # now you can have them.
         forces[1].reveal(fchoice[0])
@@ -186,11 +188,36 @@ class THBattle(Game):
 
         self.emit_event('game_begin', self)
 
+        # roll
+        roll = range(len(self.players))
+        random.shuffle(roll)
+        roll = [
+            SyncPrimitive(i)
+            for i in roll
+        ]
+        pl = self.players
+        pl.reveal(roll)
+        roll = [i.value for i in roll]
+
+        roll = [pl[i] for i in roll]
+
+        self.emit_event('game_roll', roll)
+
+        first = roll[0]
+
+        for p in roll:
+            if p.user_input('choose_option', ActFirst):
+                first = p
+                break
+        # ----
+
         try:
             for p in self.players:
-                self.process_action(DrawCards(p, amount=4))
+                self.process_action(DrawCards(p, amount=3 if p.force == first.force else 4))
 
-            for i, p in enumerate(cycle(self.players)):
+            pl = self.players.rotate_to(first)
+
+            for i, p in enumerate(cycle(pl)):
                 if i >= 6000: break
                 if not p.dead:
                     self.emit_event('player_turn', p)

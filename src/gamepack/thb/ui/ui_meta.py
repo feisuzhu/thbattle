@@ -2,6 +2,7 @@
 from .. import actions
 from .. import cards
 from .. import characters
+from .. import logic
 
 import game
 import types
@@ -17,6 +18,18 @@ def gen_metafunc(_for):
         meta_for.ui_meta = data
 
     return metafunc
+
+
+# -----BEGIN LOGIC UI META-----
+__metaclass__ = gen_metafunc(logic)
+
+class ActFirst:
+    # choose_option meta
+    choose_option_buttons = ((u'先出牌', True), (u'弃权', False))
+    choose_option_prompt = u'你要首先出牌吗（首先出牌己方势力开局摸3张牌）？'
+
+# -----END LOGIC UI META-----
+
 
 # -----BEGIN ACTIONS UI META-----
 __metaclass__ = gen_metafunc(actions)
