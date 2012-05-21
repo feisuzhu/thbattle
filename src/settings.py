@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 16'
+VERSION = 'THBATTLE V1.0b incr 17'
 
 import re
 
@@ -83,7 +83,7 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 最近bug修复/加强：
-开局出手顺序调整
+开局出手顺序调整(按roll点顺序选是否要先手 先手敌方势力开局摸5张牌)
 恶心丸在某些条件导致崩溃
 游戏大厅修正
 幽香、M子HP调整 M子抖M不该向所有人展示卡牌

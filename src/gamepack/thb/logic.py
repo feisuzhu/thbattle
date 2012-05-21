@@ -213,7 +213,7 @@ class THBattle(Game):
 
         try:
             for p in self.players:
-                self.process_action(DrawCards(p, amount=3 if p.force == first.force else 4))
+                self.process_action(DrawCards(p, amount=4 if p.force == first.force else 5))
 
             pl = self.players.rotate_to(first)
 

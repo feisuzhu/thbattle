@@ -26,7 +26,7 @@ __metaclass__ = gen_metafunc(logic)
 class ActFirst:
     # choose_option meta
     choose_option_buttons = ((u'先出牌', True), (u'弃权', False))
-    choose_option_prompt = u'你要首先出牌吗（首先出牌己方势力开局摸3张牌）？'
+    choose_option_prompt = u'你要首先出牌吗（首先出牌敌方势力开局摸5张牌）？'
 
 # -----END LOGIC UI META-----
 
