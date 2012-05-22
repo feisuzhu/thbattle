@@ -32,7 +32,7 @@ class PatchouliHandler(EventHandler):
                 tgt = act.target
                 if tgt.has_skill(Knowledge):
                     c = getattr(act, 'associated_card', None)
-                    if c and c.suit == Card.SPADE:
+                    if c and c.suit == Card.SPADE and not c.is_card(RejectCard):
                         Game.getgame().process_action(KnowledgeAction(act))
 
             try:

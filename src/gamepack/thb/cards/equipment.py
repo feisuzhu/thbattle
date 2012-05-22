@@ -357,7 +357,7 @@ class HouraiJewelSkill(WeaponSkill):
 
 @register_eh
 class HouraiJewelHandler(EventHandler):
-    execute_before = (spellcard.RejectHandler, ) # will desync without this?!
+    execute_before = (spellcard.RejectHandler, basic.WineHandler) # wine does not affect this.
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             src = act.source
@@ -393,7 +393,7 @@ class SaigyouBranchHandler(EventHandler):
     execute_before = (spellcard.RejectHandler, )
     execute_after = (HouraiJewelHandler, )
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, spellcard.InstantSpellCardAction):
+        if evt_type == 'action_before' and isinstance(act, spellcard.SpellCardAction):
             src, tgt = act.source, act.target
             if not tgt.has_skill(SaigyouBranchSkill): return act
             if act.cancelled: return act

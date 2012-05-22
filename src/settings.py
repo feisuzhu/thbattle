@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 17'
+VERSION = 'THBATTLE V1.0b incr 18'
 
 import re
 
@@ -83,10 +83,9 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 最近bug修复/加强：
+西行妖不能对延时符卡使用的bug 姆Q挡掉黑桃好人卡的bug
+蓬莱玉枝说明不完整
 开局出手顺序调整(按roll点顺序选是否要先手 先手敌方势力开局摸5张牌)
-恶心丸在某些条件导致崩溃
-游戏大厅修正
-幽香、M子HP调整 M子抖M不该向所有人展示卡牌
 
 正在积极修复的bug/加强：
 好人卡时间提示 双封魔阵/罪袋  五谷丰登提示
