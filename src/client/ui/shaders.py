@@ -81,22 +81,6 @@ except ShaderError as e:
 try:
     fshader = FragmentShader(
         '''
-        uniform sampler2DRect tex;
-        void main()
-        {
-            float l = dot(texture2DRect(tex, gl_TexCoord[0].xy), vec4(0.3, 0.59, 0.11, 0.0));
-            gl_FragColor = vec4(l, l, l, 1.0);
-        }
-        '''
-    )
-    GrayscaleRect = ShaderProgram(fshader)
-except ShaderError as e:
-    log.error(e.infolog)
-    GrayscaleRect = DummyShader
-
-try:
-    fshader = FragmentShader(
-        '''
         uniform sampler2D tex;
         void main()
         {
@@ -130,7 +114,8 @@ try:
     r = 9
     coef = _get_gaussian_coef(r)
     src = '''
-        uniform sampler2DRect tex;
+        uniform sampler2D tex;
+        uniform ivec2 size;
         void main()
         {
             vec2 xy = gl_TexCoord[0].xy;
@@ -142,7 +127,7 @@ try:
     l = len(coef)//2
     fshader = FragmentShader(
         src % '\n'.join(
-            's += texture2DRect(tex, vec2(xy.x+(%d.0), xy.y)) * %f;' % (i, v)
+            's += texture2D(tex, vec2(xy.x+(%d.0/size[0]), xy.y)) * %f;' % (i, v)
             for i, v in zip(xrange(-l, l+1), coef)
         )
     )
@@ -150,7 +135,7 @@ try:
 
     fshader = FragmentShader(
         src % '\n'.join(
-            's += texture2DRect(tex, vec2(xy.x, xy.y+(%d.0))) * %f;' % (i, v)
+            's += texture2D(tex, vec2(xy.x, xy.y+(%d.0/size[1]))) * %f;' % (i, v)
             for i, v in zip(xrange(-l, l+1), coef)
         )
     )

@@ -328,8 +328,8 @@ class UIChooseGirl(Panel):
             self.init_balloon(meta.description)
 
             # TODO: name and maxlife
-            self.grayed_image = pyglet.image.Texture.create_for_size(
-                GL_TEXTURE_RECTANGLE_ARB, pimg.width, pimg.height, GL_RGBA
+            self.grayed_image = pyglet.image.Texture.create(
+                pimg.width, pimg.height
             )
             fbo = self.auxfbo
             with fbo:

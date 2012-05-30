@@ -400,8 +400,29 @@ Overlay.register_event_type('on_switchout')
 def init_gui():
     global main_window, sched_queue, sched_queue_lock, current_time, fps_limit
     import threading
+
+    config = pyglet.gl.Config(
+        double_buffer = True,
+        buffer_size = 32,
+        aux_buffers = 0,
+        sample_buffers = 0,
+        samples = 0,
+        red_size = 8,
+        green_size = 8,
+        blue_size = 8,
+        alpha_size = 8,
+        depth_size = 0,
+        stencil_size = 0,
+        accum_red_size = 0,
+        accum_green_size = 0,
+        accum_blue_size = 0,
+        accum_alpha_size = 0,
+    )
+
     main_window = pyglet.window.Window(
-        width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption=u'东方符斗祭')
+        width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption=u'东方符斗祭',
+        config=config,
+    )
     sched_queue = []
     sched_queue_lock = threading.RLock()
 

@@ -145,15 +145,11 @@ class Button(Control):
 
             lbl.draw()
 
-        fbo_tex = Framebuffer(pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
-        ))
+        fbo_tex = Framebuffer(pyglet.image.Texture.create(w, h))
         with fbo_tex:
             draw_it(color)
 
-        fbo_tex_gray = Framebuffer(pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
-        ))
+        fbo_tex_gray = Framebuffer(pyglet.image.Texture.create(w, h))
         r, g, b = self.color.text
         l = int(r*.3 + g*.59 + b*.11)
         lbl.color = (l, l, l, 255)
@@ -321,9 +317,7 @@ class Dialog(Control):
         fbo = self.auxfbo
         w, h  = self.width, self.height
         if not tex or (tex.width, tex.height) != (w, h):
-            tex = pyglet.image.Texture.create_for_size(
-                GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
-            )
+            tex = pyglet.image.Texture.create(w, h)
 
         def color(rgb):
             r, g, b = rgb
@@ -339,9 +333,7 @@ class Dialog(Control):
         from client.ui.base import shader
         if isinstance(shaders.FontShadowThick, shader.DummyShaderProgram):
             # no shader? fall back
-            ttex = pyglet.image.Texture.create_for_size(
-                GL_TEXTURE_RECTANGLE_ARB, lbl.content_width+4, 24, GL_RGBA
-            )
+            ttex = pyglet.image.Texture.create(lbl.content_width+4, 24)
             tfbo = Framebuffer(ttex)
             with tfbo:
                 lbl.draw()
@@ -908,10 +900,7 @@ class ListView(Control):
         self._view_y = 0
         self.cur_select = None
         th = self.tex_height = 10 * self.line_height
-        tex = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, self.width, self.tex_height,
-            GL_RGBA
-        )
+        tex = pyglet.image.Texture.create(self.width, self.tex_height)
         fbo = self.fbo = Framebuffer(tex)
         with fbo:
             glClearColor(0,0,0,0)
@@ -993,10 +982,7 @@ class ListView(Control):
         old_tex = self.fbo.texture
         h = old_tex.height
         del self.fbo
-        tex = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, old_tex.width, h*2,
-            GL_RGBA
-        )
+        tex = pyglet.image.Texture.create(old_tex.width, h*2)
         fbo = Framebuffer(tex)
         with fbo:
             glClearColor(0,0,0,0)
@@ -1199,12 +1185,8 @@ class Panel(Control):
     def update(self):
         w, h = int(self.width), int(self.height)
 
-        tex1 = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
-        )
-        tex2 = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
-        )
+        tex1 = pyglet.image.Texture.create(w, h)
+        tex2 = pyglet.image.Texture.create(w, h)
 
         self.tex1, self.tex2 = tex1, tex2
         self.blur_update()
@@ -1219,18 +1201,24 @@ class Panel(Control):
         ax, ay = int(ax), int(ay)
         w, h = int(self.width), int(self.height)
 
+        t = getattr(tex1, 'owner', tex1)
+        _w, _h = t.width, t.height
+
         glColor3f(1, 1, 1)
         glBindTexture(tex1.target, tex1.id)
-        glCopyTexImage2D(tex1.target, 0, GL_RGBA, ax, ay, w, h, 0)
+        glCopyTexImage2D(tex1.target, 0, GL_RGBA, ax, ay, _w, _h, 0)
         glBindTexture(tex1.target, 0)
+
         with fbo:
             fbo.texture = tex2
 
-            with GaussianBlurHorizontal:
+            with GaussianBlurHorizontal as s:
+                s.uniform.size = (_w, _h)
                 tex1.blit(0, 0)
 
             fbo.texture = tex1
-            with GaussianBlurVertical:
+            with GaussianBlurVertical as s:
+                s.uniform.size = (_w, _h)
                 tex2.blit(0, 0)
 
             c = self.fill_color

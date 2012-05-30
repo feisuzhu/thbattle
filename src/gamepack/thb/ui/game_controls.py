@@ -30,9 +30,9 @@ class CardSprite(Control, BalloonPrompt):
         meta = card.ui_meta
 
         self.img = meta.image
-        self.tex = pyglet.image.Texture.create_for_size(
-            GL_TEXTURE_RECTANGLE_ARB, 91, 125, GL_RGBA
-        )
+
+        self.tex = pyglet.image.Texture.create(91, 125)
+
         self.number, self.suit = card.number, card.suit
         self.ft_anim = False
 
@@ -664,12 +664,10 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
 
             gtex = self.grayed_tex
             if not gtex or (gtex.width, gtex.height) != (self.width, self.height):
-                self.grayed_tex = gtex = pyglet.image.Texture.create_for_size(
-                    GL_TEXTURE_RECTANGLE_ARB, w, h, GL_RGBA
-                )
+                self.grayed_tex = gtex = pyglet.image.Texture.create(w, h)
 
             fbo.texture = gtex
-            with shaders.GrayscaleRect:
+            with shaders.Grayscale:
                 self.tex.blit(0, 0)
 
     def draw(self):
