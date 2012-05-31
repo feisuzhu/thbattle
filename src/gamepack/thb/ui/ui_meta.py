@@ -181,7 +181,10 @@ class UseGraze:
     def effect_string(act):
         if not act.succeeded: return None
         t = act.target
-        return u'|G【%s】|r使用了|G擦弹|r。' % t.ui_meta.char_name
+        return u'|G【%s】|r使用了|G%s|r。' % (
+            t.ui_meta.char_name,
+            act.cards[0].ui_meta.name,
+        )
 
 class UseAttack:
     # choose_card meta
@@ -194,7 +197,10 @@ class UseAttack:
     def effect_string(act):
         if not act.succeeded: return None
         t = act.target
-        return u'|G【%s】|r打出了|G弹幕|r。' % t.ui_meta.char_name
+        return u'|G【%s】|r使用了|G%s|r。' % (
+            t.ui_meta.char_name,
+            act.cards[0].ui_meta.name,
+        )
 
 class HealCard:
     # action_stage meta
@@ -202,7 +208,7 @@ class HealCard:
     name = u'麻薯'
     description = (
         u'|R麻薯|r\n\n'
-        u'【麻薯】桃能在两种情况下使用：\n'
+        u'【麻薯】能在两种情况下使用：\n'
         u'1、在你的出牌阶段，你可以使用它来回复你的1点体力。\n'
         u'2、当有角色处于濒死状态时，你可以对该角色使用【麻薯】，防止该角色的死亡。\n'
         u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。'
@@ -1344,6 +1350,10 @@ class GrimoireSkill:
 
     def clickable(game):
         me = game.me
+        t = me.tags
+        if t['grimoire_tag'] >= t['turn_count']:
+            return False
+
         try:
             act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
@@ -1809,6 +1819,8 @@ class Agile:
             return (False, u'请选择一张牌！')
         else:
             c = cl[0]
+            if c.resides_in not in (g.me.cards, g.me.showncards):
+                return (False, u'请选择手牌！')
             if c.suit not in (cards.Card.SPADE, cards.Card.CLUB):
                 return (False, u'请选择一张黑色的牌！')
             return (True, u'这种三脚猫的弹幕，想要打中我是不可能的啦~')

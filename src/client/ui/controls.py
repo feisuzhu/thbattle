@@ -456,6 +456,7 @@ Dialog.register_event_type('on_destroy')
 
 class BalloonPrompt(object):
     balloon_panel = None
+    balloon_cursorloc = (0, 0)
     def init_balloon(self, text, region=None):
         self.balloon_state = 'hidden'
         self.balloon_text = text

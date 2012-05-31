@@ -129,7 +129,7 @@ def shuffle_here():
             g.deck.shuffle(p.cards)
             p.need_shuffle = False
 
-def migrate_cards(cards, to):
+def migrate_cards(cards, to, unwrap=False):
     g = Game.getgame()
     mapping = {}
     from .cards import VirtualCard
@@ -142,7 +142,15 @@ def migrate_cards(cards, to):
     for l in mapping.values():
         cl = l[0].resides_in
         for c in l:
-            c.move_to(to)
+            if unwrap and c.is_card(VirtualCard):
+                migrate_cards(c.associated_cards, to, True)
+                c.move_to(None)
+            else:
+                c.move_to(to)
+                if c.is_card(VirtualCard):
+                    assert c.resides_in.owner
+                    sp = c.resides_in.owner.special
+                    migrate_cards(c.associated_cards, sp)
         g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 
 def choose_peer_card(source, target, categories):
@@ -235,15 +243,18 @@ class PlayerDeath(GenericAction):
         tgt = self.target
         g = Game.getgame()
         tgt.dead = True
-        dropped = g.deck.droppedcards
+        #dropped = g.deck.droppedcards
         src = self.source or self.target
         others = g.players.exclude(tgt)
         from .cards import VirtualCard
         for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]:
-            l = [c for c in cl if not c.is_card(VirtualCard)]
-            others.reveal(l)
-            migrate_cards(l, dropped)
-            cl.clear()
+            if not cl: continue
+            #l = [c for c in cl if not c.is_card(VirtualCard)]
+            others.reveal(list(cl))
+            g.process_action(DropCards(tgt, cl))
+            #migrate_cards(l, dropped, unwrap=True)
+            assert not cl
+            #cl.clear()
         return True
 
 class DamageEffect(GenericAction):
@@ -289,14 +300,15 @@ class DropCards(GenericAction):
         cards = self.cards
 
         from .cards import VirtualCard
-        self.cards_before_unwrap = cards
+        #self.cards_before_unwrap = cards
 
-        migrate_cards([c for c in cards if c.is_card(VirtualCard)], None)
+        #migrate_cards([c for c in cards if c.is_card(VirtualCard)], None)
 
-        self.cards = cards = VirtualCard.unwrap(cards)
+        #self.cards = cards = VirtualCard.unwrap(cards)
+        self.cards = cards
 
         assert all(c.resides_in.owner in (target, None) for c in cards), 'WTF?!'
-        migrate_cards(cards, g.deck.droppedcards)
+        migrate_cards(cards, g.deck.droppedcards, unwrap=True)
 
         return True
 

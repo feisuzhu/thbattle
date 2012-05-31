@@ -35,7 +35,11 @@ class Agile(TreatAsSkill):
     treat_as = GrazeCard
     def check(self):
         cl = self.associated_cards
-        return cl and len(cl) == 1 and cl[0].suit in (Card.SPADE, Card.CLUB)
+        return (
+            cl and len(cl) == 1 and
+            cl[0].suit in (Card.SPADE, Card.CLUB) and
+            cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+        )
 
 @register_character
 class Nazrin(Character):

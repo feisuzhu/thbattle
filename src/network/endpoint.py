@@ -33,7 +33,7 @@ class Endpoint(object):
                 log.debug("SEND>> %s" % s[:-1])
             try:
                 with self.writelock:
-                    self.sock.send(s)
+                    self.sock.sendall(s)
             except IOError:
                 self.close()
         else:

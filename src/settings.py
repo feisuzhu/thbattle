@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 18'
+VERSION = 'THBATTLE V1.0b incr 19'
 
 import re
 
@@ -82,20 +82,20 @@ NOTICE = u'''
 博丽神社的那个点指向的是自己，所以会连接失败，
 请点击另外两个点进入游戏。
 
-最近bug修复/加强：|R
+|B最近bug修复/加强：|r
+灵梦的方片恶心丸封魔阵不再触发效果 灵梦的封魔阵现在可以被隙间正常地拿走
+莱瓦汀无限触发的bug修复 魔导书无限触发的bug修复
+老鼠现在不能用装备发动轻敏了 服务器代码调整（希望有用）|R
 图形代码调整
 >请出现“显卡驱动停止响应”、透明卡牌现象的同学做一下反馈，如果问题解决了请在论坛上发帖告知
 >如果以前正常但是现在异常请报告bug|r
 
-西行妖不能对延时符卡使用的bug 姆Q挡掉黑桃好人卡的bug
-蓬莱玉枝说明不完整
-开局出手顺序调整(按roll点顺序选是否要先手 先手敌方势力开局摸5张牌)
-
-正在积极修复的bug/加强：
+|B正在积极修复的bug/加强：|r
 好人卡时间提示 双封魔阵/罪袋  五谷丰登提示
+
 另外，如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
 
-游戏论坛：
+|B游戏论坛：|r
 www.thbattle.net(接受BUG报告，请附上游戏目录中的client_log.txt文件)
 www.touhou.cc/bbs
 也可以通过人人的东方Project公共主页、邮箱(feisuzhu@163.com)联系

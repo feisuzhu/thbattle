@@ -218,6 +218,7 @@ class Laevatein(ForEach):
 
 class LaevateinSkill(WeaponSkill):
     range = 4
+    distance = 1
     associated_action = Laevatein
     target = t_OtherLessEqThanN(3)
     def check(self):
@@ -232,6 +233,11 @@ class LaevateinSkill(WeaponSkill):
             return True
         except CheckFailed:
             return False
+
+    def is_card(self, cls):
+        from ..cards import AttackCard
+        if issubclass(AttackCard, cls): return True
+        return isinstance(self, cls)
 
 class TridentSkill(WeaponSkill):
     range = 5
@@ -707,10 +713,15 @@ class GrimoireHandler(EventHandler):
             act, v = arg
             if not isinstance(act, LaunchCard): return arg
             c = act.card
-            if c.is_card(GrimoireSkill) and not act.source.tags.get('attack_num', 0):
-                return (act, False)
+            if c.is_card(GrimoireSkill):
+                src = act.source
+                t = src.tags
+                if not t['attack_num'] or t['turn_count'] <= t['grimoire_tag']:
+                    return (act, False)
         elif evt_type == 'action_after' and isinstance(arg, LaunchCard):
             c = arg.card
             if c.is_card(GrimoireSkill):
-                arg.source.tags['attack_num'] -= 1
+                t = arg.source.tags
+                t['attack_num'] -= 1
+                t['grimoire_tag'] = t['turn_count']
         return arg

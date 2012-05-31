@@ -127,12 +127,13 @@ class DelayedLaunchCard(BaseLaunchCard):
 
         t = self.target
         migrate_cards([card], t.fatetell)
-        from .base import VirtualCard
-        if card.is_card(VirtualCard):
-            s = t.special
-            migrate_cards(card.associated_cards, s)
-            #for c in card.associated_cards:
-            #    c.move_to(s)
+
+        #from .base import VirtualCard
+        #if card.is_card(VirtualCard):
+        #    s = t.special
+        #    migrate_cards(card.associated_cards, s)
+        #    #for c in card.associated_cards:
+        #    #    c.move_to(s)
         return True
 
 @register_eh
@@ -236,7 +237,8 @@ class YukariDimension(InstantSpellCardAction):
 
         self.card = card
         source.reveal(card)
-        migrate_cards([card], source.cards)
+        migrate_cards([card], source.cards, unwrap=True)
+        source.need_shuffle = True
         return True
 
 class BaseDuel(UserAction):
