@@ -32,11 +32,14 @@ class Client(Endpoint, Greenlet):
         self.gdqueue = deque(maxlen=100)
         self.gdevent = Event()
 
+        import socket
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 6)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
+
     def _run(self):
         cmds = {}
-        self.heartbeat_cnt = 0
-        self.nodata_cnt = 0
-        self.timeout = 60
 
         def handler(*state):
             def register(f):
@@ -103,11 +106,6 @@ class Client(Endpoint, Greenlet):
             self.write(['bye', None])
             self.close()
 
-        @handler('__any__')
-        def heartbeat(self, _):
-            self.heartbeat_cnt = 0
-            self.timeout = 60
-
         @handler('hang', 'inroomwait', 'ready', 'ingame')
         def chat(self, data):
             hall.chat(self, data)
@@ -126,15 +124,13 @@ class Client(Endpoint, Greenlet):
         self.state = 'connected'
         while True:
             try:
-                cmd, data = self.read(self.timeout)
+                cmd, data = self.read(999999)
                 f = cmds[self.state].get(cmd)
                 if not f:
                     f = cmds['__any__'].get(cmd)
 
                 if f:
                     f(self, data)
-                    if cmd != 'heartbeat': # XXX: hack
-                        self.nodata_cnt = 0
                 else:
                     self.write(['invalid_command', [cmd, data]])
 
@@ -142,22 +138,6 @@ class Client(Endpoint, Greenlet):
                 self.gdqueue.append(e)
                 self.gdevent.set()
                 break
-
-            except Timeout:
-                self.heartbeat_cnt += 1
-                if self.heartbeat_cnt > 1:
-                    # drop the client...
-                    self.close()
-                    break
-                self.nodata_cnt += 1
-                self.timeout = 15
-                if self.nodata_cnt >= 10:
-                    # if this guy just keep online but didn't do anything,
-                    # drop
-                    self.close()
-                    break
-                self.write(['heartbeat', None])
-                continue
 
         # client died, do clean ups
         if self.state not in('connected', 'hang'):

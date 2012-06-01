@@ -82,10 +82,6 @@ class GameManager(Greenlet):
                 self.event_cb('auth_failure')
 
         @handler(None, None)
-        def heartbeat(self, _):
-            Executive.server.write(['heartbeat', None])
-
-        @handler(None, None)
         def thbattle_greeting(self, ver):
             from settings import VERSION
             if ver != VERSION:
