@@ -42,7 +42,6 @@ class Surprise(GenericAction):
 class SurpriseSkill(Skill):
     associated_action = Surprise
     target = t_OtherOne
-    no_drop = True
     no_reveal = True
     def check(self):
         return True

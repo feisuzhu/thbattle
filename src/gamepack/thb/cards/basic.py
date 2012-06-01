@@ -125,17 +125,22 @@ class Exinwan(UserAction):
 class ExinwanHandler(EventHandler):
     # 恶心丸
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, DropCards):
+        if evt_type == 'action_before' and isinstance(act, DropCards):
+            for c in act.cards:
+                c.exinwan_lastin = c.resides_in.type
+            return act
+
+        elif evt_type == 'action_after' and isinstance(act, DropCards):
             from .definition import ExinwanCard
-            cards = [c for c in act.cards if c.is_card(ExinwanCard)]
-            from .base import CardList
-            cards = [c for c in cards if c.resides_in.type != CardList.SPECIAL]
+            from .base import CardList, VirtualCard
+            typelist = [CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS]
+            cards = [c for c in act.cards if getattr(c, 'exinwan_lastin', None) in typelist]
+            cards = VirtualCard.unwrap(cards)
+            cards = [c for c in cards if c.is_card(ExinwanCard)]
             if cards:
                 g = Game.getgame()
                 pact = g.action_stack[-1]
-                #if isinstance(pact, DropCardStage):
-                #    target = pact.target
-                #else:
+
                 target = pact.source
 
                 cats = [

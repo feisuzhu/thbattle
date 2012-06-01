@@ -23,9 +23,10 @@ class TributeAction(GenericAction):
         cl = self.associated_card.associated_cards
         tgt = self.target
         tgt.reveal(cl)
-        migrate_cards(cl, tgt.cards)
+        migrate_cards([self.associated_card], tgt.cards, unwrap=True)
         src = self.source
         src.tags['tribute_tag'] = src.tags['turn_count']
+        tgt.need_shuffle = True
         return True
 
     def is_valid(self):

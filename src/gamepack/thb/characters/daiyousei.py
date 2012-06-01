@@ -15,7 +15,7 @@ class Support(GenericAction):
             g.process_action(Heal(src, src))
         src.tags['daiyousei_spnum'] = l + n
         tgt.reveal(cl)
-        migrate_cards(cl, tgt.cards)
+        migrate_cards([self.associated_card], tgt.cards, unwrap=True)
         self.cards = cl
         return True
 

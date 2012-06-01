@@ -117,6 +117,9 @@ def skill_wrap(actor, sid_list, cards):
 
             cards = [card]
 
+        #migrate_cards(cards, actor.cards, False, True)
+        cards[0].move_to(actor.cards)
+
         return cards[0]
     except CheckFailed as e:
         return None
@@ -129,7 +132,7 @@ def shuffle_here():
             g.deck.shuffle(p.cards)
             p.need_shuffle = False
 
-def migrate_cards(cards, to, unwrap=False):
+def migrate_cards(cards, to, unwrap=False, no_event=False):
     g = Game.getgame()
     mapping = {}
     from .cards import VirtualCard
@@ -143,15 +146,17 @@ def migrate_cards(cards, to, unwrap=False):
         cl = l[0].resides_in
         for c in l:
             if unwrap and c.is_card(VirtualCard):
-                migrate_cards(c.associated_cards, to, True)
+                migrate_cards(c.associated_cards, to, True, no_event)
                 c.move_to(None)
             else:
                 c.move_to(to)
                 if c.is_card(VirtualCard):
                     assert c.resides_in.owner
                     sp = c.resides_in.owner.special
-                    migrate_cards(c.associated_cards, sp)
-        g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
+                    migrate_cards(c.associated_cards, sp, False, no_event)
+
+        if not no_event:
+            g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 
 def choose_peer_card(source, target, categories):
     assert all(c.owner is target for c in categories)
@@ -216,11 +221,18 @@ class TryRevive(GenericAction):
 
     def apply_action(self):
         tgt = self.target
+        if tgt.tags['in_tryrevive']:
+            # nested TryRevive, just return True
+            # will trigger when Eirin uses Diamond Exinwan to heal self
+            return True
+
         if tgt.dead:
             log.error('TryRevive buggy condition, apply')
             import traceback
             traceback.print_stack()
             return False
+
+        tgt.tags['in_tryrevive'] = True
         g = Game.getgame()
         pl = self.asklist
         from .cards import UseHeal
@@ -233,9 +245,11 @@ class TryRevive(GenericAction):
                     from .cards import Heal
                     g.process_action(Heal(p, tgt))
                     if tgt.life > 0:
+                        tgt.tags['in_tryrevive'] = False
                         return True
                     continue
                 break
+        tgt.tags['in_tryrevive'] = False
         return tgt.life > 0
 
 class PlayerDeath(GenericAction):
