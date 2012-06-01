@@ -215,15 +215,15 @@ def chat(user, msg):
     if user.state == 'hang': # hall chat
         for u in users.values():
             if u.state == 'hang':
-                u.write(['chat_msg', [user.nickname, msg]])
+                u.write(['chat_msg', [user.username, msg]])
     elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
         ul = user.current_game.players.client
-        ul.write(['chat_msg', [user.nickname, msg]])
+        ul.write(['chat_msg', [user.username, msg]])
 
 def genfunc(_type):
     def _msg(user, msg):
         for u in users.values():
-            u.write([_type, [user.nickname, msg]])
+            u.write([_type, [user.username, msg]])
     _msg.__name__ = _type
     return _msg
 

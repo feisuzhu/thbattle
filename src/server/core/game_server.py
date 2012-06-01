@@ -115,7 +115,6 @@ class Player(game.AbstractPlayer):
         return dict(
             id=self.client.get_userid(),
             username=self.client.username,
-            nickname=self.client.nickname,
             state=self.client.state,
         )
 
@@ -124,7 +123,6 @@ class DroppedPlayer(Player):
     def __data__(self):
         return dict(
             username=self.client.username,
-            nickname=self.client.nickname,
             id=-1,
         )
 
@@ -153,13 +151,15 @@ class Game(Greenlet, game.Game):
     SERVER_SIDE = True
 
     def __data__(self):
+        from .gamehall import PlayerPlaceHolder as pph
         return dict(
             id=id(self),
             type=self.__class__.__name__,
             started=self.game_started,
             name=self.game_name,
-            slots=self.players,
+            nplayers=sum(not (isinstance(p, DroppedPlayer) or p is pph) for p in self.players),
         )
+
     def __init__(self):
         Greenlet.__init__(self)
         game.Game.__init__(self)

@@ -17,7 +17,7 @@ class TheChosenOne(game.AbstractPlayer):
     #def __init__(self):
     #    pass
     #    # self.server = server
-    #    # self.nickname = server.nickname
+    #    # self.username = server.username
 
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.

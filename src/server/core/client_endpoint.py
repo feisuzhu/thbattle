@@ -59,7 +59,6 @@ class Client(Endpoint, Greenlet):
             if password == 'password':
                 self.write(['auth_result', self.get_userid()])
                 self.username = name
-                self.nickname = name
                 hall.new_user(self)
             else:
                 self.write(['auth_result', -1])
@@ -176,12 +175,7 @@ class Client(Endpoint, Greenlet):
         self.write(['gamedata', [tag, data]])
 
     def __data__(self):
-        return dict(
-            id=id(self),
-            username=self.username,
-            nickname=self.nickname,
-            state=self.state,
-        )
+        return [id(self), self.username, self.state]
 
     def gbreak(self):
         # is it a hack?

@@ -248,14 +248,20 @@ class GameHallScreen(Screen):
                 glist.clear()
                 for gi in current_games:
                     gcls = modes.get(gi['type'], None)
-                    s = gcls.name if gcls else u'未知游戏类型'
+                    if gcls:
+                        gname = gcls.name
+                        n_persons = gcls.n_persons
+                    else:
+                        gname = u'未知游戏类型'
+                        n_persons = 0
+
                     li = glist.append([
                         gi['id'],
                         gi['name'],
-                        s,
+                        gname,
                         '%d/%d' % (
-                            len([i for i in gi['slots'] if i['id'] and i['id'] != -1]),
-                            len(gi['slots']),
+                            gi['nplayers'],
+                            n_persons,
                         ),
                         [u'等待中', u'游戏中'][gi['started']]
                     ])
@@ -314,8 +320,8 @@ class GameHallScreen(Screen):
                 self.caption = u'当前在线玩家：%d' % len(users)
                 self.update()
                 t = u'\n'.join(
-                    u'%s(%s)' % (u['nickname'], lookup.get(u['state'], u['state']))
-                    for u in users
+                    u'%s(%s)' % (username, lookup.get(state, state))
+                    for uid, username, state in users
                 )
                 box.append(t)
 
@@ -387,7 +393,7 @@ class GameScreen(Screen):
 
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
-                name = p.get('nickname', 'EMPTY SLOT')
+                name = p.get('username', 'EMPTY SLOT')
                 if p.get('state', False) == 'ready': name = u'(准备)' + name
                 self.portraits[i].player_name = name
                 self.portraits[i].update()
