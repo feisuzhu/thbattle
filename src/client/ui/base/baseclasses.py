@@ -460,6 +460,13 @@ def init_gui():
             fps.draw()
             o_flip()
 
+    o_okp = main_window.on_key_press
+    def okp(symbol, modifiers):
+        if symbol == pyglet.window.key.ESCAPE:
+            return pyglet.event.EVENT_HANDLED
+        return o_okp(symbol, modifiers)
+    main_window.on_key_press = okp
+
     def _dispatch_msg(dt):
         global sched_queue, sched_queue_lock, _redispatch
         if not sched_queue: return
