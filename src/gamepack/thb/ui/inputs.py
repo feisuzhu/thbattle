@@ -640,7 +640,14 @@ class UIChooseIndividualCard(Panel):
 class UIHarvestChoose(Panel):
     def __init__(self, cards, *a, **k):
         w = 20 + (91+10)*4 + 20
-        h = 20 + 125 + 20 + 125 + 20
+        h = 20 + 125 + 20 + 125 + 20 + 20
+
+        self.lbl = lbl = pyglet.text.Label(
+            text=u"等待玩家的其他操作", x=w//2, y=300,
+            font_size=12, color=(255, 255, 160, 255), bold=True,
+            anchor_x='center', anchor_y='bottom'
+        )
+
         Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
         parent = self.parent
         self.x, self.y = (parent.width - w)//2, (parent.height - h)//2 + 20
@@ -664,17 +671,35 @@ class UIHarvestChoose(Panel):
                         irp.complete()
                         self.irp = None
 
+    def blur_update(self):
+        Panel.blur_update(self)
+        with self.fbo:
+            with shaders.FontShadow as fs:
+                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+                self.lbl.draw()
+
     def on_message(self, _type, *args):
         if _type == 'evt_harvest_finish':
             self.cleanup()
+        elif _type == 'evt_user_input_start':
+            irp = args[0]
+            if irp.tag == 'harvest_choose':
+                self.lbl.text = u'等待%s选择卡牌' % (irp.player.ui_meta.char_name)
+                self.lbl.color = (255, 255, 160, 255)
+        elif _type == 'evt_user_input_finish':
+            irp = args[0]
+            if irp.tag == 'harvest_choose':
+                self.lbl.text = u'等待玩家的其他操作'
+                self.lbl.color = (255, 255, 160, 255)
+
         elif _type == 'evt_user_input':
             irp = args[0]
             if irp.tag == 'harvest_choose':
                 self.irp = irp
+                self.lbl.text = u'请你选择一张卡牌'
+                self.lbl.color = (160, 251, 255, 255)
         elif _type == 'evt_harvest_choose':
             self.mapping[id(args[0])].gray = True
-        elif _type in 'evt_harvest_finish':
-            self.cleanup()
 
     def cleanup(self):
         if self.irp:
