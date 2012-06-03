@@ -25,7 +25,7 @@ class TrialAction(GenericAction):
         return True
 
 class TrialHandler(EventHandler):
-    execute_before = (YinYangOrbHandler, )
+    execute_before = ('YinYangOrbHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Fatetell):
             g = Game.getgame()

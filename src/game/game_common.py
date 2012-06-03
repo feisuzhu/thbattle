@@ -14,8 +14,8 @@ class GameEnded(Exception):
     pass
 
 class EventHandler(object):
-    execute_before = []
-    execute_after = []
+    execute_before = tuple()
+    execute_after = tuple()
     def handle(self, evt_type, data):
         raise GameError('Override handle function to implement EventHandler logics!')
 
@@ -41,15 +41,15 @@ class EventHandler(object):
             eh = cls()
             eh.execute_before = set(eh.execute_before) # make it instance var
             eh.execute_after = set(eh.execute_after)
-            table[cls] = eh
+            table[cls.__name__] = eh
 
-        for cls in table:
-            eh = table[cls]
+        for clsname in table:
+            eh = table[clsname]
             for before in eh.execute_before:
-                table[before].execute_after.add(cls)
+                table[before].execute_after.add(clsname)
 
             for after in eh.execute_after:
-                table[after].execute_before.add(cls)
+                table[after].execute_before.add(clsname)
 
         l = table.values()
         l.sort(key=lambda v: v.__class__.__name__) # must sync between server and client
@@ -62,7 +62,7 @@ class EventHandler(object):
             for eh in l:
                 if not eh.execute_after:
                     for b in eh.execute_before:
-                        table[b].execute_after.remove(eh.__class__)
+                        table[b].execute_after.remove(eh.__class__.__name__)
                     commit.append(eh)
                 else:
                     deferred.append(eh)

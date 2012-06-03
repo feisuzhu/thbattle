@@ -24,7 +24,7 @@ class KnowledgeAction(GenericAction):
         return True
 
 class PatchouliHandler(EventHandler):
-    execute_before = (RejectHandler, )
+    execute_before = ('RejectHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
 

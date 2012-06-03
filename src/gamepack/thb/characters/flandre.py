@@ -16,7 +16,7 @@ class CriticalStrikeAction(GenericAction):
         return True
 
 class CriticalStrikeHandler(EventHandler):
-    execute_after = (AttackCardHandler, )
+    execute_after = ('AttackCardHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
             tgt = act.target

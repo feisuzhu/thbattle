@@ -84,7 +84,7 @@ class RedUFOSkill(UFOSkill):
 
 @register_eh
 class UFODistanceHandler(EventHandler):
-    execute_before = (DistanceValidator,)
+    execute_before = ('DistanceValidator',)
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, CalcDistance):
             source = act.source
@@ -171,7 +171,7 @@ class UmbrellaSkill(ShieldSkill):
 @register_eh
 class UmbrellaHandler(EventHandler):
     # 紫的阳伞
-    execute_before = (spellcard.RejectHandler, )
+    execute_before = ('RejectHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
             if isinstance(act, (spellcard.MapCannonEffect, spellcard.SinsackCarnivalEffect)):
@@ -288,8 +288,10 @@ class RepentanceStick(GenericAction):
 
 @register_eh
 class RepentanceStickHandler(EventHandler):
+    execute_before = ('WineHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
+            if act.cancelled: return act
             src, tgt = act.source, act.target
             if src and src.has_skill(RepentanceStickSkill):
                 g = Game.getgame()
@@ -308,7 +310,7 @@ class MaidenCostumeSkill(ShieldSkill):
 
 @register_eh
 class MaidenCostumeHandler(EventHandler):
-    execute_before = (spellcard.RejectHandler, )
+    execute_before = ('RejectHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SinsackCarnivalEffect):
             target = act.target
@@ -325,7 +327,7 @@ class IbukiGourdSkill(RedUFOSkill):
 
 @register_eh
 class IbukiGourdHandler(EventHandler):
-    execute_after = (basic.WineHandler, )
+    execute_after = ('WineHandler', )
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, ActionStage):
             actor = arg.actor
@@ -363,7 +365,7 @@ class HouraiJewelSkill(WeaponSkill):
 
 @register_eh
 class HouraiJewelHandler(EventHandler):
-    execute_before = (spellcard.RejectHandler, basic.WineHandler) # wine does not affect this.
+    execute_before = ('RejectHandler', 'WineHandler') # wine does not affect this.
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             src = act.source
@@ -396,8 +398,8 @@ class SaigyouBranchSkill(ShieldSkill):
 
 @register_eh
 class SaigyouBranchHandler(EventHandler):
-    execute_before = (spellcard.RejectHandler, )
-    execute_after = (HouraiJewelHandler, )
+    execute_before = ('RejectHandler', )
+    execute_after = ('HouraiJewelHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SpellCardAction):
             src, tgt = act.source, act.target
@@ -565,7 +567,7 @@ class Keystone(GenericAction):
 
 @register_eh
 class KeystoneHandler(EventHandler):
-    execute_before = (SaigyouBranchHandler, spellcard.RejectHandler)
+    execute_before = ('SaigyouBranchHandler', 'RejectHandler')
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.Sinsack):
             tgt = act.target
@@ -672,7 +674,7 @@ class IceWing(GenericAction):
 
 @register_eh
 class IceWingHandler(EventHandler):
-    execute_before = (spellcard.RejectHandler, SaigyouBranchHandler)
+    execute_before = ('RejectHandler', 'SaigyouBranchHandler')
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SealingArray):
             if act.target.has_skill(IceWingSkill):

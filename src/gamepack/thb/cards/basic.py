@@ -27,7 +27,7 @@ class Attack(BaseAttack): pass
 
 @register_eh
 class AttackCardHandler(EventHandler):
-    execute_before = (DistanceValidator,)
+    execute_before = ('DistanceValidator',)
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             act.target.tags['attack_num'] = 1
@@ -104,16 +104,36 @@ class Wine(BasicAction):
         self.target.tags['wine'] = True
         return True
 
+class WineRevive(GenericAction):
+    def __init__(self, act):
+        self.act = act
+        self.source = act.target
+        self.target = act.target
+
+    def apply_action(self):
+        self.act.amount -= 1
+        self.target.tags['wine'] = False
+        return True
+
 @register_eh
 class WineHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
-            if src.tags.get('wine', False):
+            if src.tags['wine']:
                 act.damage += 1
-                src.tags['wine'] = False
+        elif evt_type == 'action_after' and isinstance(act, LaunchCard):
+            from ..cards import AttackCard
+            if act.card.is_card(AttackCard):
+                act.source.tags['wine'] = False
         elif evt_type == 'action_apply' and isinstance(act, ActionStage):
             act.actor.tags['wine'] = False
+        elif evt_type == 'action_before' and isinstance(act, Damage):
+            if act.cancelled: return act
+            tgt = act.target
+            if act.amount >= tgt.life and tgt.tags['wine']:
+                g = Game.getgame()
+                g.process_action(WineRevive(act))
         return act
 
 class Exinwan(UserAction):

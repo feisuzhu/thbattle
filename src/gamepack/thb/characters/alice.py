@@ -8,7 +8,7 @@ class DollManipulation(Skill):
     target = t_None
 
 class DollManipulationHandler(EventHandler):
-    execute_after = (AttackCardHandler, )
+    execute_after = ('AttackCardHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
             tgt = act.actor

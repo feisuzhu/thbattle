@@ -147,6 +147,10 @@ class Wine:
     def effect_string(act):
         return u'|G【%s】|r喝醉了…' % act.target.ui_meta.char_name
 
+class WineRevive:
+    def effect_string(act):
+        return u'|G【%s】|r醒酒了。' % act.target.ui_meta.char_name
+
 class ExinwanCard:
     # action_stage meta
     name =u'恶心丸'

@@ -67,7 +67,7 @@ class FreakingPower(FatetellAction):
         return True
 
 class YugiHandler(EventHandler):
-    execute_before = (DistanceValidator, )
+    execute_before = ('DistanceValidator', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack) and not hasattr(act, 'yugifptag'):
             src = act.source
