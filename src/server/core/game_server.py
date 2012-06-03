@@ -56,6 +56,7 @@ class PlayerList(BatchList):
         return rst
 
     def user_input_all(self, tag, process, attachment=None, timeout=25):
+        # XXX: buggy: where is 'self'? why g.players?!
         g = Game.getgame()
         st = g.get_synctag()
         pl = PlayerList(g.players)

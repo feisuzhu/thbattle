@@ -206,10 +206,10 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                 players, valid = act.choose_player_target(players)
                 try:
                     valid1, reason = act.ui_meta.target(players)
+                    assert bool(valid) == bool(valid1)
                 except Exception as e:
                     log.exception(e)
                     valid1, reason = valid, u'[act.ui_meta.target错误]'
-                assert bool(valid) == bool(valid1)
                 parent.set_selected_players(players)
                 self.set_text(reason)
                 if not valid: return

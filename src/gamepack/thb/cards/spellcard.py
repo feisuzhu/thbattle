@@ -4,6 +4,8 @@ from ..actions import *
 from . import basic
 from . import base
 
+from game.autoenv import PlayerList
+
 class SpellCardAction(UserAction): pass
 class InstantSpellCardAction(SpellCardAction): pass
 
@@ -57,23 +59,26 @@ class RejectHandler(EventHandler):
             g = Game.getgame()
             self.target_act = act # for ui
 
-            p, input = g.players.user_input_any(
+            pl = PlayerList(p for p in g.players if not g.dead)
+            p, input = pl.user_input_any(
                 'choose_card_and_player_reject', self._expects, (self, [])
             )
 
-            if p:
-                sid_list, cid_list, _ = input
-                cards = g.deck.lookupcards(cid_list) # card was already revealed
+            if not p: return act
 
-                if sid_list: # skill selected
-                    cards = skill_wrap(actor, sid_list, cards)
+            sid_list, cid_list, _ = input
+            cards = g.deck.lookupcards(cid_list) # card was already revealed
 
-                card = cards[0]
+            if sid_list: # skill selected
+                cards = skill_wrap(actor, sid_list, cards)
 
-                action = Reject(source=p, target_act=act)
-                action.associated_card = card
-                g.process_action(DropUsedCard(p, [card]))
-                g.process_action(action)
+            card = cards[0]
+
+            action = Reject(source=p, target_act=act)
+            action.associated_card = card
+            g.process_action(DropUsedCard(p, [card]))
+            g.process_action(action)
+
         return act
 
     def _expects(self, p, input):

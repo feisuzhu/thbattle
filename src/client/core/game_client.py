@@ -60,6 +60,8 @@ class PlayerList(BatchList):
 
         tagstr = 'inputany_%s_%d' % (tag, st)
 
+        g.emit_event('user_input_any_begin', (tag, attachment))
+
         input = DataHolder()
         input.tag = tag
         input.input = None
@@ -109,6 +111,8 @@ class PlayerList(BatchList):
 
         pid, data = waiter.get()
 
+        g.emit_event('user_input_any_begin', tag)
+
         if pid is None:
             return None, None
 
@@ -120,6 +124,7 @@ class PlayerList(BatchList):
         return p, data
 
     def user_input_all(self, tag, process, attachment=None, timeout=25):
+        # XXX: buggy: where is 'self'? why g.players?!
         g = Game.getgame()
         g.emit_event('user_input_all_begin', (tag, attachment))
         st = g.get_synctag()
