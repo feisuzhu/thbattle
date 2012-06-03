@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 22'
+VERSION = 'THBATTLE V1.0b incr 23'
 
 import re
 
@@ -33,6 +33,7 @@ UPDATE_IGNORES = re.compile(r'''
         | ^.+\.py[co]$
         | ^.*~$
         | ^NO_UPDATE$
+        | _custom\..{2,4}$
         | ^\.
 ''', re.VERBOSE)
 
@@ -84,9 +85,8 @@ NOTICE = u'''
 
 |B最近bug修复/加强：|r
 游戏大厅调整
+喝醉状态现在可以抵挡1点致命伤害了
 灵梦的方片恶心丸封魔阵不再触发效果 灵梦的封魔阵现在可以被隙间正常地拿走
-莱瓦汀无限触发的bug修复 魔导书无限触发的bug修复
-老鼠现在不能用装备发动轻敏了 服务器代码调整（希望有用）
 
 |B正在积极修复的bug/加强：|r
 好人卡时间提示 双封魔阵/罪袋  五谷丰登提示

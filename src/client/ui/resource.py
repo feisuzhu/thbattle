@@ -1,4 +1,5 @@
 import pyglet
+from pyglet.resource import Loader, ResourceNotFoundException
 import os
 from utils import DataHolder
 import itertools
@@ -6,7 +7,7 @@ import itertools
 texbin = pyglet.image.atlas.TextureBin(512, 512)
 dummy_img = pyglet.image.ImageData(1, 1, 'RGBA', '\x00'*4)
 
-class ResLoader(pyglet.resource.Loader):
+class ResLoader(Loader):
     def __init__(self, path):
         global texbin
         self.texbin = texbin
@@ -14,6 +15,16 @@ class ResLoader(pyglet.resource.Loader):
         dn = os.path.realpath(dn)
         dn = os.path.join(dn, 'res')
         pyglet.resource.Loader.__init__(self, dn)
+
+    def file(self, name, mode='rb'):
+        fn, ext = os.path.splitext(name)
+        custom_name = fn + '_custom' + ext
+        try:
+            return Loader.file(self, custom_name, mode)
+        except ResourceNotFoundException:
+            pass
+
+        return Loader.file(self, name, mode)
 
     def __enter__(self):
         tb = self.texbin
