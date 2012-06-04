@@ -87,6 +87,7 @@ class Button(Control):
     HOVER=1
     PRESSED=2
     DISABLED=3
+    auxfbo = Framebuffer()
 
     hover_alpha = InterpDesc('_hv')
     class color:
@@ -145,25 +146,28 @@ class Button(Control):
 
             lbl.draw()
 
-        fbo_tex = Framebuffer(pyglet.image.Texture.create(w, h))
-        with fbo_tex:
+        fbo = self.auxfbo
+        tex = pyglet.image.Texture.create(w, h)
+        with fbo:
+            fbo.texture = tex
             draw_it(color)
 
-        fbo_tex_gray = Framebuffer(pyglet.image.Texture.create(w, h))
+        tex_gray = pyglet.image.Texture.create(w, h)
         r, g, b = self.color.text
         l = int(r*.3 + g*.59 + b*.11)
         lbl.color = (l, l, l, 255)
-        with fbo_tex_gray:
+        with fbo:
+            fbo.texture = tex_gray
             draw_it(gray)
 
-        self.fbo_tex, self.fbo_tex_gray = fbo_tex, fbo_tex_gray
+        self.tex, self.tex_gray = tex, tex_gray
 
     def draw(self):
         glColor3f(1.0, 1.0, 1.0)
         if self.state == Button.DISABLED:
-            self.fbo_tex_gray.texture.blit(0, 0)
+            self.tex_gray.blit(0, 0)
         else:
-            self.fbo_tex.texture.blit(0, 0)
+            self.tex.blit(0, 0)
             if self.state == Button.PRESSED:
                 glColor4f(0, 0, 0, .25)
                 glRectf(0, 0, self.width, self.height)
@@ -1175,11 +1179,11 @@ ConfirmBox.register_event_type('on_confirm')
 class Panel(Control):
     blur_update_interval = 2
     fill_color = (1.0, 1.0, 0.8, 0.0)
+    auxfbo = Framebuffer()
 
     def __init__(self, color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
         self.color = color
-        self.fbo = Framebuffer()
         self.tick = 0
         self.update()
 
@@ -1193,7 +1197,7 @@ class Panel(Control):
         self.blur_update()
 
     def blur_update(self):
-        fbo = self.fbo
+        fbo = self.auxfbo
         tex1, tex2 = self.tex1, self.tex2
 
         from shaders import GaussianBlurHorizontal, GaussianBlurVertical

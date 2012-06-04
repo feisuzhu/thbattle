@@ -4,6 +4,7 @@ from pyglet.gl import *
 from client.ui.base import *
 from client.ui.base import message as ui_message
 from client.ui.controls import *
+from client.ui import soundmgr
 import  client.ui.resource as common_res
 from client.core import Executive
 from pyglet.text import Label
@@ -97,6 +98,17 @@ class ServerSelectScreen(Screen):
             x=(self.width-800)//2, y=(self.height-600)//2
         )
 
+        mute = Button(
+            u'静音',
+            parent=self,
+            x=self.width-90, y=60,
+            width=60, height=30,
+        )
+        @mute.event
+        def on_click():
+            mute.delete()
+            soundmgr.mute()
+
     def do_connect(self, addr):
         for b in self.buttons:
             b.state = Button.DISABLED
@@ -120,9 +132,13 @@ class ServerSelectScreen(Screen):
             Screen.on_message(self, _type, *args)
 
     def draw(self):
-        glColor3f(0.9, 0.9, 0.9)
+        #glColor3f(0.9, 0.9, 0.9)
+        glColor3f(1, 1, 1)
         common_res.worldmap.blit(0, 0)
         self.draw_subcontrols()
+
+    def on_switch(self):
+        soundmgr.switch_bgm(common_res.bgm_hall)
 
 class LoginScreen(Screen):
     class LoginDialog(Dialog):
@@ -199,6 +215,9 @@ class LoginScreen(Screen):
         glColor4f(1, 1, 1, self.bg_alpha.value)
         self.bg.blit(0, 0)
         self.draw_subcontrols()
+
+    def on_switch(self):
+        soundmgr.switch_bgm(common_res.bgm_hall)
 
 class GameHallScreen(Screen):
     class GameList(Dialog):
@@ -360,6 +379,9 @@ class GameHallScreen(Screen):
         self.bg.blit(0, 0)
         self.draw_subcontrols()
 
+    def on_switch(self):
+        soundmgr.switch_bgm(common_res.bgm_hall)
+
 class GameScreen(Screen):
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
@@ -466,6 +488,7 @@ class GameScreen(Screen):
         def on_click():
             Executive.call('exit_game', ui_message, [])
 
+
     def on_message(self, _type, *args):
         if _type == 'game_started':
             self.remove_control(self.panel)
@@ -493,3 +516,6 @@ class GameScreen(Screen):
         glColor3f(1,1,1)
         self.bg.blit(0, 0)
         self.draw_subcontrols()
+
+    def on_switch(self):
+        soundmgr.switch_bgm(common_res.bgm_hall)

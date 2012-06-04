@@ -76,6 +76,8 @@ with ResLoader(__file__) as args:
     fontzip.close()
     del zipfile, fontzip
 
+    bgm_hall = lambda: ldr.media('bgm_hall.ogg')
+
     bg_login = ldr.texture('bg_login.png')
     bg_gamehall = ldr.texture('bg_gamehall.png')
     bg_ingame = ldr.texture('bg_ingame.png')

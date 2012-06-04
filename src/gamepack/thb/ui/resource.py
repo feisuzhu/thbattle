@@ -5,6 +5,9 @@ from client.ui.resource import ResLoader
 
 with ResLoader(__file__) as args:
     locals().update(args)
+
+    bgm_game = lambda: ldr.media('bgm_game.ogg')
+
     card_attack = tx('card_attack.png')
     tag_attacked = anim('tag_attacked.png', [10000], True)
     card_graze = tx('card_graze.png')

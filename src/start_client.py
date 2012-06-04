@@ -89,6 +89,14 @@ mt.start()
 _sync_evt.wait()
 del _sync_evt
 
+import pyglet
+
+pyglet.options['audio'] = ('directsound', 'openal', 'alsa', 'silent')
+if sys.platform == 'win32':
+    from pyglet.media.drivers.directsound import DirectSoundAudioPlayer
+    DirectSoundAudioPlayer._buffer_size = 44800 * 2
+    DirectSoundAudioPlayer._update_buffer_size = 44800 * 2 // 8
+
 import pyglet.gl.lib as gllib
 orig_errcheck = gllib.errcheck
 

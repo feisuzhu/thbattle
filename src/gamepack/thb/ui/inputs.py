@@ -512,7 +512,9 @@ class UIChoosePeerCard(Panel):
 
     def blur_update(self):
         Panel.blur_update(self)
-        with self.fbo:
+        fbo = self.auxfbo
+        with fbo:
+            fbo.texture = self.tex1
             with shaders.FontShadow as fs:
                 fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
                 self.lbls.draw()
@@ -673,7 +675,9 @@ class UIHarvestChoose(Panel):
 
     def blur_update(self):
         Panel.blur_update(self)
-        with self.fbo:
+        fbo = self.auxfbo
+        with fbo:
+            fbo.texture = self.tex1
             with shaders.FontShadow as fs:
                 fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
                 self.lbl.draw()
@@ -828,7 +832,9 @@ class UIRanProphet(Panel):
 
     def blur_update(self):
         Panel.blur_update(self)
-        with self.fbo:
+        fbo = self.auxfbo
+        with fbo:
+            fbo.texture = self.tex1
             with shaders.FontShadow as fs:
                 fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
                 self.lbls.draw()
