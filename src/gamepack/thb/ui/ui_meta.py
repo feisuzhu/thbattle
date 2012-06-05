@@ -157,7 +157,7 @@ class ExinwanCard:
     image = gres.card_exinwan
     description = (
         u'|R恶心丸|r\n\n'
-        u'当该牌以任意的方式进入弃牌堆时，动作来源需要选择其中一项执行：\n'
+        u'当该牌以任意的方式由手牌/明牌区进入弃牌堆时，引发弃牌动作的玩家需要选择其中一项执行：\n'
         u'|B|R>> |r受到一点伤害，无来源\n'
         u'|B|R>> |r弃两张牌'
     )
