@@ -440,7 +440,7 @@ class FlirtingSword(GenericAction):
 @register_eh
 class FlirtingSwordHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
+        if evt_type == 'action_apply' and isinstance(act, basic.BaseAttack):
             if act.cancelled: return act
             src = act.source
             if not src.has_skill(FlirtingSwordSkill): return act

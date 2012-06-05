@@ -27,7 +27,7 @@ class CriticalStrikeHandler(EventHandler):
 
             act.amount = max(0, act.amount - 1)
 
-        elif evt_type == 'action_before' and isinstance(act, (BaseAttack, BaseDuel)):
+        elif evt_type == 'action_apply' and isinstance(act, (BaseAttack, BaseDuel)):
             src = act.source
             st = src.tags
             if not st['flan_cs'] == st['turn_count']: return act
