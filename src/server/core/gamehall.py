@@ -3,6 +3,7 @@ from gevent import Greenlet
 from gevent.event import Event
 from gevent.queue import Queue
 from time import time
+from collections import defaultdict
 
 import logging
 import random
@@ -94,6 +95,7 @@ def create_game(user, gametype, gamename):
     g.game_started = False
     g.game_name = gamename
     g.players = PlayerList([PlayerPlaceHolder] * g.n_persons)
+    g.banlist = defaultdict(set)
     games[id(g)] = g
     log.info("create game")
     evt_datachange.set()
@@ -110,6 +112,28 @@ def get_ready(user):
 def cancel_ready(user):
     user.state = 'inroomwait'
     _notify_playerchange(user.current_game)
+
+def change_location(user, loc):
+    g = user.current_game
+    pl = g.players
+    if (not 0 <= loc < len(g.players)) or (pl[loc] is not PlayerPlaceHolder):
+        user.write(['change_loc_failed', None])
+        return
+    i = pl.client.index(user)
+    pl[loc], pl[i] = pl[i], pl[loc]
+    _notify_playerchange(g)
+
+def kick_user(user, uid):
+    g = user.current_game
+    u = users.get(uid, None)
+    cl = g.players.client
+    if u not in cl:
+        return
+    bl = g.banlist[u]
+    bl.add(user)
+    cl.write(['kick_request', [user, u, len(bl)]])
+    if len(bl) >= len(cl)//2:
+        exit_game(u)
 
 def exit_game(user):
     from game_server import Player, DroppedPlayer
@@ -140,6 +164,13 @@ def exit_game(user):
 
         user.state = 'hang'
         _notify_playerchange(g)
+
+        for bl in g.banlist.values():
+            try:
+                bl.remove(user)
+            except KeyError:
+                pass
+
         if all((p is PlayerPlaceHolder or isinstance(p, DroppedPlayer)) for p in g.players):
             if g.game_started:
                 log.info('game aborted')
@@ -153,12 +184,19 @@ def exit_game(user):
 
 def join_game(user, gameid):
     if user.state == 'hang' and games.has_key(gameid):
-        log.info("join game")
         g = games[gameid]
+        if len(g.banlist[user]) >= 3:
+            user.write(['gamehall_error', 'banned'])
+            return
+
+        log.info("join game")
         slot = _next_free_slot(g)
         if slot is not None:
             user.state = 'inroomwait'
             user.current_game = g
+            # FIXME: this is not right, should be
+            # g.players[slot] = Player(user)
+            # Game should use Mixed(Player, yyy) to customize
             g.players[slot] = g.player_class(user)
             user.write(['game_joined', g])
             _notify_playerchange(g)

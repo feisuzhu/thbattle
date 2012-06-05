@@ -185,11 +185,14 @@ class Executive(object):
                 self.server.write([_type, args[0]])
             wrapper.__name__ = _type
             return wrapper
-        ops = ['register', 'create_game', 'join_game',
-               # FIXME: the quick start thing should be done at client
-               'get_hallinfo', 'quick_start_game', 'auth',
-               'get_ready', 'exit_game', 'cancel_ready',
-               'chat', 'speaker']
+        ops = [
+            # FIXME: the quick start thing should be done at client
+            'register',     'create_game',      'join_game',
+            'get_hallinfo', 'quick_start_game', 'auth',
+            'get_ready',    'exit_game',        'cancel_ready',
+            'chat',         'speaker',          'change_location',
+            'kick_user',
+        ]
         for op in ops:
             handler(simple_gm_op(op))
 

@@ -89,6 +89,14 @@ class Client(Endpoint, Greenlet):
         def exit_game(self, _):
             hall.exit_game(self)
 
+        @handler('inroomwait', 'ready')
+        def kick_user(self, uid):
+            hall.kick_user(self, uid)
+
+        @handler('inroomwait')
+        def change_location(self, loc):
+            hall.change_location(self, loc)
+
         @handler('ready')
         def cancel_ready(self, _):
             hall.cancel_ready(self)

@@ -103,6 +103,7 @@ class ServerSelectScreen(Screen):
             parent=self,
             x=self.width-90, y=60,
             width=60, height=30,
+            color=Colors.orange,
         )
         @mute.event
         def on_click():
@@ -383,6 +384,35 @@ class GameHallScreen(Screen):
         soundmgr.switch_bgm(common_res.bgm_hall)
 
 class GameScreen(Screen):
+    class MyPP(PlayerPortrait):
+        def __init__(self, *a, **k):
+            PlayerPortrait.__init__(self, *a, **k)
+            def btn(caption, command, x, y, w, h):
+                btn = Button(
+                    caption, parent=self,
+                    x=x, y=y, width=w, height=h,
+                    color=self.color
+                )
+
+                @btn.event
+                def on_click(btn=btn, cmd=command):
+                    cmd()
+
+            def change_loc():
+                Executive.call(
+                    'change_location', ui_message,
+                    self.parent.portraits.index(self)
+                )
+
+            def kick():
+                if not self.userid: return
+                Executive.call(
+                    'kick_user', ui_message, self.userid
+                )
+
+            btn(u'换位', change_loc , 90, 55, 32, 20)
+            btn(u'请离', kick, 90, 80, 32, 20)
+
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
@@ -397,8 +427,9 @@ class GameScreen(Screen):
                 ('c3f', [0.0, 0.0, 0.0] * 5)
             )
             l = []
+            MyPP = GameScreen.MyPP
             for x, y, color in parent.ui_class.portrait_location:
-                l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y, color=color))
+                l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
             self.portraits = l
 
             @self.btn_getready.event
@@ -412,12 +443,24 @@ class GameScreen(Screen):
         def on_message(self, _type, *args):
             if _type == 'player_change':
                 self.update_portrait(args[0])
+            elif _type == 'kick_request':
+                u1, u2, count = args[0]
+                self.parent.chat_box.append(
+                    u'|B|R>> |c0000ffff%s|r希望|c0000ffff|B%s|r离开游戏，已有%d人请求\n' % (
+                        u1[1], u2[1], count
+                    )
+                )
 
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
-                name = p.get('username', 'EMPTY SLOT')
+                name = p.get('username', None)
+                if name:
+                    name = u'<' + name + u'>'
+                else:
+                    name = u'空位置'
                 if p.get('state', False) == 'ready': name = u'(准备)' + name
                 self.portraits[i].player_name = name
+                self.portraits[i].userid = p.get('id', 0)
                 self.portraits[i].update()
 
     class EventsBox(Dialog):
@@ -487,7 +530,6 @@ class GameScreen(Screen):
         @self.btn_exit.event
         def on_click():
             Executive.call('exit_game', ui_message, [])
-
 
     def on_message(self, _type, *args):
         if _type == 'game_started':
