@@ -34,6 +34,7 @@ UPDATE_IGNORES = re.compile(r'''
         | ^.*~$
         | ^NO_UPDATE$
         | _custom\..{2,4}$
+        | ^last_id$
         | ^\.
 ''', re.VERBOSE)
 

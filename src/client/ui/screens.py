@@ -164,9 +164,18 @@ class LoginScreen(Screen):
                 anchor_x='left', anchor_y='bottom',
                 batch=self.batch
             )
+
+            from settings import UPDATE_BASE
+            import os
+            path = os.path.join(UPDATE_BASE, 'last_id')
+            if os.path.exists(path):
+                myid = open(path, 'r').readline().strip().decode('utf-8')
+            else:
+                myid = u'无名の罪袋'
+
             self.txt_username = TextBox(
                 parent=self, x=438-350, y=282-165, width=220, height=20,
-                text=u'另一只罪袋'
+                text=myid
             )
             self.txt_pwd = TextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
@@ -203,6 +212,12 @@ class LoginScreen(Screen):
 
     def on_message(self, _type, *args):
         if _type == 'auth_success':
+            from settings import UPDATE_BASE
+            import os
+            path = os.path.join(UPDATE_BASE, 'last_id')
+            with open(path, 'w') as f:
+                f.write(self.dialog.txt_username.text.encode('utf-8'))
+
             GameHallScreen().switch()
         elif _type == 'auth_failure':
             log.error('Auth failure')
