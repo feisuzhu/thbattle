@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 23'
+VERSION = 'THBATTLE V1.0b incr 33'
 
 import re
 
@@ -85,12 +85,9 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 |B最近bug修复/加强：|r
-游戏大厅调整
-喝醉状态现在可以抵挡1点致命伤害了
-灵梦的方片恶心丸封魔阵不再触发效果 灵梦的封魔阵现在可以被隙间正常地拿走
-
-|B正在积极修复的bug/加强：|r
-好人卡时间提示 双封魔阵/罪袋  五谷丰登提示
+新人物：西瓜
+红美铃更新后恶心丸结算混乱的修复
+新人物：红美铃
 
 另外，如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
 
@@ -98,7 +95,9 @@ NOTICE = u'''
 www.thbattle.net(接受BUG报告，请附上游戏目录中的client_log.txt文件)
 www.touhou.cc/bbs
 也可以通过人人的东方Project公共主页、邮箱(feisuzhu@163.com)联系
-
-|R游戏QQ群： 175054570|r
+|R
+游戏QQ群： 175054570
+设定讨论群： 247123221（仅讨论设定问题，不是灌水群）
+|r
 Proton制作
 '''.strip()
