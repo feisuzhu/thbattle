@@ -23,3 +23,4 @@ from rumia import *
 from yuuka import *
 from rinnosuke import *
 from ran import *
+from remilia import *

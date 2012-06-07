@@ -17,6 +17,10 @@ class Card(object):
     CLUB = 3
     DIAMOND = 4
 
+    RED = 5
+    BLACK = 6
+
+    _color = None
     card_classes = {}
 
     def __init__(self, suit=NOTSET, number=0, resides_in=None):
@@ -73,6 +77,21 @@ class Card(object):
     def is_card(self, cls):
         return isinstance(self, cls)
 
+    @property
+    def color(self):
+        if self._color is not None: return self._color
+        s = self.suit
+        if s in (Card.HEART, Card.DIAMOND):
+            return Card.RED
+        elif s in (Card.SPADE, Card.CLUB):
+            return Card.BLACK
+        else:
+            return Card.NOTSET
+
+    @color.setter
+    def color(self, val):
+        self._color = val
+
 class VirtualCard(Card):
     __eq__ = object.__eq__
     __ne__ = object.__ne__
@@ -85,7 +104,6 @@ class VirtualCard(Card):
         self.suit = Card.NOTSET
         self.number = 0
         self.resides_in = player.special
-
 
     def __data__(self):
         return {
@@ -115,9 +133,15 @@ class VirtualCard(Card):
         if not cl:
             vc.associated_cards = []
             return vc
-        suit = reduce(lambda s1, s2: s1 if s1 == s2 else Card.NOTSET, [c.suit for c in cl])
+        #suit = reduce(lambda s1, s2: s1 if s1 == s2 else Card.NOTSET, [c.suit for c in cl])
+        suit = cl[0].suit
+        color = cl[0].color
+        for c in cl:
+            if c.suit != suit: suit = Card.NOTSET
+            if c.color != color: color = Card.NOTSET
+
         num = reduce(lambda n1, n2: n1 if n1 == n2 else 0, [c.number for c in cl])
-        vc.suit, vc.number = suit, num
+        vc.suit, vc.number, vc.color = suit, num, color
         vc.associated_cards = cl[:]
         return vc
 

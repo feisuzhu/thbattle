@@ -2653,6 +2653,51 @@ class Ran:
         u'|G极智|r：自己的回合外，当任何人发动除【好人卡】以外非延时符卡时，发动完成后，你可以选择弃一张牌，再次发动该符卡，目标不变，发动者算作你。一轮一次。'
     )
 
+# ----------
+
+class FateSpear:
+    # Skill
+    name = u'神枪'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class FateSpearAction:
+    def effect_string(act):
+        return u'|G【%s】|r举起右手，将|G弹幕|r汇聚成一把命运之矛，向|G【%s】|r掷去！' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+class VampireKiss:
+    # Skill
+    name = u'红魔之吻'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class VampireKissAction:
+    def effect_string_before(act):
+        return u'|G【%s】|r:“B型血，赞！”' % (
+            act.source.ui_meta.char_name
+        )
+
+class Remilia:
+    # Character
+    char_name = u'蕾米莉亚'
+    port_image = gres.remilia_port
+    description = (
+        u'|DB永远幼小的红月 蕾米莉亚 体力：3|r\n\n'
+        u'|G神枪|r：|B锁定技|r，当使用红色的或发动【刚格尼尔】时的【弹幕】时距离无限不可闪避。\n\n'
+        u'|G红魔之吻|r：|B锁定技|r，对距离2内的玩家使用【弹幕】命中时，回复1点体力值。'
+    )
+
 # -----END CHARACTERS UI META-----
 
 # -----BEGIN TAGS UI META-----

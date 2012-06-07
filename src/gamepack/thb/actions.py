@@ -514,11 +514,13 @@ class CalcDistance(InternalAction):
         self.source = source
         self.distance = None
         self.correction = 0
+        self._force_valid = False
         self.card = card
 
     def apply_action(self):
         g = Game.getgame()
         pl = [p for p in g.players if not p.dead]
+        self.player_list = pl
         source = self.source
         loc = pl.index(source)
         n = len(pl)
@@ -529,23 +531,29 @@ class CalcDistance(InternalAction):
         self.distance = dict(raw)
         return True
 
+    def force_valid(self):
+        self._force_valid = True
+
     def validate(self):
         g = Game.getgame()
-        pl = [p for p in g.players if not p.dead]
+        pl = self.player_list
         lookup = self.distance
         c = self.correction
-        try:
-            dist = self.card.distance
+        if not self._force_valid:
+            try:
+                dist = self.card.distance
 
-            return {
-                t: lookup[t] - (dist + c) <= 0
-                for t in pl
-            }
-        except AttributeError:
-            return {
-                t: True
-                for t in pl
-            }
+                return {
+                    t: lookup[t] - (dist + c) <= 0
+                    for t in pl
+                }
+            except AttributeError:
+                pass
+
+        return {
+            t: True
+            for t in pl
+        }
 
 @register_eh
 class DistanceValidator(EventHandler):

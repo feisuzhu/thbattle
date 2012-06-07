@@ -25,6 +25,13 @@ class BaseAttack(BasicAction):
 
 class Attack(BaseAttack): pass
 
+class InevitableAttack(Attack):
+    def apply_action(self):
+        g = Game.getgame()
+        dmg = Damage(self.source, self.target, amount=self.damage)
+        g.process_action(dmg)
+        return True
+
 @register_eh
 class AttackCardHandler(EventHandler):
     execute_before = ('DistanceValidator',)
@@ -52,6 +59,11 @@ class AttackCardHandler(EventHandler):
                         if issubclass(s, WeaponSkill):
                             l.append(s.range - 1)
                     if l: act.correction += min(l)
+        elif evt_type == 'action_can_fire' and isinstance(act[0], LaunchCard):
+            lc, rst = act
+            from .definition import AttackCard
+            if lc.card.is_card(AttackCard) and lc.source.tags['attack_num'] <= 0:
+                return (lc, False)
         return act
 
 class Heal(BasicAction):
