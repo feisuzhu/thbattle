@@ -1,0 +1,64 @@
+# -*- coding: utf-8 -*-
+from .baseclasses import *
+from ..actions import *
+from ..cards import *
+
+class Foison(Skill):
+    associated_action = None
+    target = t_None
+
+class FoisonDrawCardStage(DrawCardStage):
+    def apply_action(self):
+        self.amount = max(2, 5 - len(self.target.cards) - len(self.target.showncards))
+        return DrawCardStage.apply_action(self)
+
+class FoisonHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
+            tgt = act.target
+            if tgt.has_skill(Foison):
+                act.__class__ = FoisonDrawCardStage
+        return act
+
+class AutumnFeast(TreatAsSkill):
+    treat_as = HarvestCard
+    def check(self):
+        cl = self.associated_cards
+        if cl and len(cl) == 2 and all(c.color == Card.RED for c in cl):
+            return True
+        return False
+
+class AkiTribute(Skill):
+    associated_actoin = None
+    target = t_None
+
+class AkiTributeHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, LaunchCard):
+            card = act.card
+            if not card.is_card(HarvestCard): return act
+            g = Game.getgame()
+            pl = [p for p in g.players if p.has_skill(AkiTribute)]
+            assert len(pl) <= 1, 'Multiple AkiTributes!'
+            if not pl: return act
+            p = pl[0]
+            tl = act.target_list
+            if not p in tl: return act
+            tl.remove(p)
+            tl.insert(0, p)
+
+        elif evt_type == 'harvest_finish':
+            g = Game.getgame()
+            pl = [p for p in g.players if p.has_skill(AkiTribute)]
+            assert len(pl) <= 1, 'Multiple AkiTributes!'
+            if not pl: return act
+            p = pl[0]
+            migrate_cards([c for c in act.cards if not c.resides_in.owner], p.showncards)
+
+        return act
+
+@register_character
+class Minoriko(Character):
+    skills = [Foison, AutumnFeast, AkiTribute]
+    eventhandlers_required = [FoisonHandler, AkiTributeHandler]
+    maxlife = 3

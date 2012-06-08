@@ -24,3 +24,4 @@ from yuuka import *
 from rinnosuke import *
 from ran import *
 from remilia import *
+from minoriko import *

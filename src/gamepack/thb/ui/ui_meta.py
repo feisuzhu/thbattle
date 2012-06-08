@@ -2698,6 +2698,86 @@ class Remilia:
         u'|G红魔之吻|r：|B锁定技|r，对距离2内的玩家使用【弹幕】命中时，回复1点体力值。'
     )
 
+# ----------
+
+class Foison:
+    # Skill
+    name = u'丰收'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class FoisonDrawCardStage:
+    def effect_string(act):
+        return u'大丰收！|G【%s】|r一下子收获了%d张牌！' % (
+            act.source.ui_meta.char_name,
+            act.amount,
+        )
+
+class AutumnFeast:
+    # Skill
+    name = u'秋祭'
+
+    def clickable(game):
+        me = game.me
+
+        try:
+            act = game.action_stack[-1]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        skill = cl[0]
+        cl = skill.associated_cards
+        from ..cards import Card
+        if len(cl) != 2 or any(c.color != Card.RED for c in cl):
+            return (False, u'请选择2张红色的牌！')
+        return (True, u'发麻薯啦~')
+
+    def effect_string(act):
+        # for LaunchCard.ui_meta.effect_string
+        source = act.source
+        card = act.card
+        target = act.target
+        return (
+            u'|G【%s】|r：麻薯年年有，今年特别多！'
+        ) % (
+            source.ui_meta.char_name,
+        )
+
+class AkiTribute:
+    # Skill
+    name = u'上贡'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Minoriko:
+    # Character
+    char_name = u'秋穰子'
+    port_image = gres.minoriko_port
+    description = (
+        u'|DB没人气的丰收神 秋穰子 体力：3|r\n\n'
+        u'|G丰收|r：|B锁定技|r，摸牌阶段摸牌后，若你的手牌数不足5张，你可以补至5张。\n\n'
+        u'|G秋祭|r：你可以将任意两张红色牌当作【五谷丰登】使用。\n\n'
+        u'|G上贡|r：|B锁定技|r，任何人使用【五谷丰登】时，你首先拿牌。在【五谷丰登】结算完毕后，若仍有牌没有被拿走，你将这些牌收入明牌区。'
+    )
+
+# ----------
+
+
+
 # -----END CHARACTERS UI META-----
 
 # -----BEGIN TAGS UI META-----
