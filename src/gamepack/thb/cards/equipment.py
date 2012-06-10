@@ -5,7 +5,7 @@ from ..actions import *
 
 from . import basic, spellcard, base
 
-from utils import check, CheckFailed
+from utils import check, CheckFailed, classmix
 
 class WearEquipmentAction(UserAction):
     def apply_action(self):
@@ -465,7 +465,6 @@ class AyaRoundfan(GenericAction):
 
         return True
 
-
 class AyaRoundfanSkill(WeaponSkill):
     range = 3
     associated_action = None
@@ -490,9 +489,55 @@ class AyaRoundfanHandler(EventHandler):
         if not len(cards) == 1: return False
         return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
 
-
 class ScarletRhapsodySword(Damage):
     pass
+
+class ScarletRhapsodySwordAttack(basic.Attack):
+    def apply_action(self):
+        # FIXME: tune Mixed/classmix!
+        cls = self.__class__
+        assert cls is not ScarletRhapsodySwordAttack # should be Mixed(Me, xxx)
+        bases = cls.__bases__
+        assert len(bases) == 2
+        assert bases[0] is ScarletRhapsodySwordAttack
+        cls = bases[1]
+        rst = cls.apply_action(self)
+
+        if rst: return True
+
+        src = self.source
+        tgt = self.target
+        if not src.has_skill(ScarletRhapsodySwordSkill): return False
+
+        g = Game.getgame()
+        cats = [
+            src.cards,
+            src.showncards,
+            src.equips,
+        ]
+        cards = user_choose_cards(self, src, cats)
+        if cards:
+            g.process_action(DropCards(src, cards))
+            dmg = ScarletRhapsodySword(src, tgt, amount=self.damage)
+            dmg.associated_action = self
+            g.process_action(dmg)
+            return True
+        return False
+
+    def cond(self, cards):
+        if not len(cards) == 2: return False
+
+        if any(c.resides_in.type not in (
+            CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS
+        ) for c in cards): return False
+
+        from ..cards import ScarletRhapsodySwordCard as SRSC
+        if any(
+            c.resides_in.type == CardList.EQUIPS and c.is_card(SRSC)
+            for c in cards
+        ): return False
+
+        return True
 
 class ScarletRhapsodySwordSkill(WeaponSkill):
     range = 3
@@ -502,30 +547,14 @@ class ScarletRhapsodySwordSkill(WeaponSkill):
 @register_eh
 class ScarletRhapsodySwordHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
-            if act.succeeded: return act
+        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
+            if isinstance(act, ScarletRhapsodySwordAttack): return act
             src = act.source
-            tgt = act.target
+            if not src: return act
             if not src.has_skill(ScarletRhapsodySwordSkill): return act
-
-            g = Game.getgame()
-            cats = [
-                src.cards,
-                src.showncards,
-                src.equips,
-            ]
-            cards = user_choose_cards(self, src, cats)
-            if cards:
-                g.process_action(DropCards(src, cards))
-                dmg = ScarletRhapsodySword(src, tgt, amount=act.damage)
-                dmg.associated_action = act
-                g.process_action(dmg)
+            act.__class__ = classmix(ScarletRhapsodySwordAttack, act.__class__)
 
         return act
-
-    def cond(self, cards):
-        if not len(cards) == 2: return False
-        return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
 
 class DeathSickleSkill(WeaponSkill):
     range = 2

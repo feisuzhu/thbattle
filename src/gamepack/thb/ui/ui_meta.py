@@ -1136,7 +1136,7 @@ class ScarletRhapsodySwordSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
-class ScarletRhapsodySwordHandler:
+class ScarletRhapsodySwordAttack:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
