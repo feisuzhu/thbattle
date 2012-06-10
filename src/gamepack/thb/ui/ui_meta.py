@@ -2071,9 +2071,15 @@ class Tribute:
     def is_action_valid(g, cl, tl):
         cl = cl[0].associated_cards
         if not cl: return (False, u'请选择要给出的牌')
-        if len(cl) != 1: return (False, u'只能选择一张牌')
+        if len(cl) != 1: return (False, u'只能选择一张手牌')
+
+        from ..cards import CardList
+        if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD):
+            return (False, u'只能选择手牌！')
+
         if len(tl) != 1 or not tl[0].has_skill(characters.TributeTarget):
             return (False, u'请选择一只灵梦')
+
         return (True, u'塞钱……会发生什么呢？')
 
     def effect_string(act):
