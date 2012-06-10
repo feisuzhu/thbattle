@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from base.shader import *
+from pyglet.gl import gl_info
+
+have = gl_info.have_version
 
 DummyShader = DummyShaderProgram()
 
@@ -9,8 +12,8 @@ import logging
 log = logging.getLogger('shaders')
 
 try:
-    thick = FragmentShader('''
-        #extension GL_EXT_gpu_shader4 : enable
+    thick = '''
+        %s
         uniform sampler2D tex;
         uniform vec4 shadow_color;
         void main()
@@ -22,7 +25,7 @@ try:
             } else {
                 float x = gl_TexCoord[0].x;
                 float y = gl_TexCoord[0].y;
-                ivec2 size = textureSize2D(tex, 0);
+                ivec2 size = textureSize%s(tex, 0);
                 float w = float(size[0]);
                 float h = float(size[1]);
                 for(float ox=-2.0; ox<=2.0; ox+=1.0)
@@ -43,11 +46,16 @@ try:
             }
         }
         '''
-    )
-    FontShadowThick = ShaderProgram(thick)
 
-    thin = FragmentShader('''
-        #extension GL_EXT_gpu_shader4 : enable
+    if have(3, 1, 0):
+        thick = thick % ('', '')
+    else:
+        thick = thick % ('#extension GL_EXT_gpu_shader4 : enable', '2D')
+
+    FontShadowThick = ShaderProgram(FragmentShader(thick))
+
+    thin = '''
+        %s
         uniform sampler2D tex;
         uniform vec4 shadow_color;
         void main()
@@ -59,7 +67,7 @@ try:
             } else {
                 float x = gl_TexCoord[0].x;
                 float y = gl_TexCoord[0].y;
-                ivec2 size = textureSize2D(tex, 0);
+                ivec2 size = textureSize%s(tex, 0);
                 float w = float(size[0]);
                 float h = float(size[1]);
                 float a = 0.0;
@@ -70,9 +78,14 @@ try:
                 gl_FragColor = a > 0.49 ? shadow_color : vec4(0.0, 0.0, 0.0, 0.0);
             }
         }
-        '''
-    )
-    FontShadow = ShaderProgram(thin)
+    '''
+
+    if have(3, 1, 0):
+        thin = thin % ('', '')
+    else:
+        thin = thin % ('#extension GL_EXT_gpu_shader4 : enable', '2D')
+
+    FontShadow = ShaderProgram(FragmentShader(thin))
 
 except ShaderError as e:
     log.error(e.infolog)
