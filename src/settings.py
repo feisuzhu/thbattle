@@ -33,7 +33,7 @@ UPDATE_IGNORES = re.compile(r'''
         | ^.+\.py[co]$
         | ^.*~$
         | ^NO_UPDATE$
-        | _custom\..{2,4}$
+        | ^.*_custom\..{2,4}$
         | ^last_id$
         | ^\.
 ''', re.VERBOSE)

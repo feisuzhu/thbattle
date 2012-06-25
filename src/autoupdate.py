@@ -12,6 +12,7 @@ log = logging.getLogger('autoupdate')
 import settings
 
 ignores = settings.UPDATE_IGNORES
+VERSION = settings.VERSION
 
 def build_hash(base):
     my_hash = {}
@@ -43,6 +44,7 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
 
     try:
         remote = urllib2.build_opener()
+        remote.addheaders = [('User-Agent', VERSION)]
         cb('update_begin')
 
         me = gevent.getcurrent()
