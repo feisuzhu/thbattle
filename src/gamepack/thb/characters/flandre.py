@@ -11,7 +11,7 @@ class CriticalStrikeAction(GenericAction):
     def apply_action(self):
         tgt = self.target
         tgt.tags['attack_num'] += 1
-        tgt.tags['flan_cs'] = tgt.tags['turn_count']
+        tgt.tags['flan_cs'] = True
         tgt.tags['flan_lasttarget'] = None
         return True
 
@@ -32,6 +32,7 @@ class CriticalStrikeHandler(EventHandler):
             if not src.has_skill(CriticalStrike): return act
             st = src.tags
             st['flan_lasttarget'] = None
+            st['flan_cs'] = False
 
         elif evt_type == 'action_apply' and isinstance(act, (BaseAttack, BaseDuel)):
             src = act.source
@@ -58,6 +59,7 @@ class CriticalStrikeHandler(EventHandler):
             tl = a.target_list
             if last in tl:
                 return (a, False)
+
         return act
 
 @register_character

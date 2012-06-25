@@ -2808,4 +2808,9 @@ class wine:
     display = lambda v: v
     description = u'喝醉了…'
 
+class flan_cs:
+    tag_anim = lambda g, p: gres.tag_flandrecs
+    display = lambda v: v
+    description = u'玩坏你哦！'
+
 # -----END TAGS UI META-----

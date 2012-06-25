@@ -91,6 +91,7 @@ with ResLoader(__file__) as args:
     marisa_port = tx('marisa_port.png')
     daiyousei_port = tx('daiyousei_port.png')
     flandre_port = tx('flandre_port.png')
+    tag_flandrecs = anim('tag_flandrecs.png', [10000], True)
     nazrin_port = tx('nazrin_port.png')
     alice_port = tx('alice_port.png')
     yugi_port = tx('yugi_port.png')
