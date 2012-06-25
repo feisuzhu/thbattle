@@ -19,7 +19,6 @@ def gen_metafunc(_for):
 
     return metafunc
 
-
 # -----BEGIN LOGIC UI META-----
 __metaclass__ = gen_metafunc(logic)
 
@@ -79,6 +78,29 @@ class PlayerDeath:
         tgt = act.target
         return u'|G【%s】|rMISS了。' % (
             tgt.ui_meta.char_name,
+        )
+
+C = cards.Card
+ftstring = {
+    C.SPADE: u'|r|B[黑桃 ',
+    C.HEART: u'|r|R|B[红桃 ',
+    C.CLUB: u'|r|B[草花 ',
+    C.DIAMOND: u'|r|R|B[方片 ',
+}
+del C
+
+def card_suitnum(c):
+    suit = ftstring.get(c.suit, u'|r[错误 ')
+    num = ' A23456789_JQK'[c.number]
+    if num == '_': num = '10'
+    return suit + num + ']|r'
+
+class Fatetell:
+    def effect_string(act):
+        tgt = act.target
+        return u'|G【%s】|r进行了一次判定，判定结果为%s' % (
+            tgt.ui_meta.char_name,
+            card_suitnum(act.card)
         )
 
 # -----END ACTIONS UI META-----
@@ -2286,9 +2308,10 @@ class Trial:
 
 class TrialAction:
     def effect_string(act):
-        return u'幻想乡各地巫女妖怪纷纷表示坚决拥护|G【%s】|r修改|G【%s】|r判定结果的有关决定！' % (
+        return u'幻想乡各地巫女妖怪纷纷表示坚决拥护|G【%s】|r将|G【%s】|r的判定结果修改为%s的有关决定！' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
+            card_suitnum(act.card)
         )
 
 class Majesty:
