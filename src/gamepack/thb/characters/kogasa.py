@@ -33,6 +33,7 @@ class Surprise(GenericAction):
 
     def is_valid(self):
         src = self.source
+        if self.associated_card.associated_cards: return False
         if src.tags.get('turn_count', 0) <= src.tags.get('surprise_tag', 0):
             return False
         if not (src.cards or src.showncards):
@@ -42,9 +43,8 @@ class Surprise(GenericAction):
 class SurpriseSkill(Skill):
     associated_action = Surprise
     target = t_OtherOne
-    no_reveal = True
     def check(self):
-        return True
+        return not self.associated_cards
 
 class JollyDrawCards(DrawCardStage):
     pass

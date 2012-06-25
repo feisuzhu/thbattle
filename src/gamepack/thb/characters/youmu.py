@@ -46,8 +46,10 @@ class MijincihangzhanDuelMixin(object):
         target = self.target
 
         d = (source, target)
+        dmg = (self.source_damage, self.target_damage)
         while True:
             d = (d[1], d[0])
+            dmg = (dmg[1], dmg[0])
             if d[1].has_skill(Nitoryuu):
                 if not (
                     g.process_action(basic.UseAttack(d[0])) and
@@ -56,9 +58,9 @@ class MijincihangzhanDuelMixin(object):
             else:
                 if not g.process_action(basic.UseAttack(d[0])): break
 
-        dmg = Damage(d[1], d[0], amount=1)
-        dmg.associated_action = self
-        g.process_action(dmg)
+        dact = Damage(d[1], d[0], amount=dmg[1])
+        dact.associated_action = self
+        g.process_action(dact)
         return d[1] is source
 
 class XianshiwangzhiAwake(SkillAwake):
@@ -95,11 +97,12 @@ class YoumuWearEquipmentAction(UserAction):
         return True
 
 class YoumuHandler(EventHandler):
+    execute_before = ('ScarletRhapsodySwordHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
             if isinstance(act, Attack):
                 if not act.source.has_skill(Mijincihangzhan): return act
-                act.__class__ = MijincihangzhanAttack
+                act.__class__ = classmix(MijincihangzhanAttack, act.__class__)
             elif isinstance(act, BaseDuel):
                 if not isinstance(act, MijincihangzhanDuelMixin):
                     act.__class__ = classmix(MijincihangzhanDuelMixin, act.__class__)

@@ -2144,6 +2144,10 @@ class SurpriseSkill:
     def is_action_valid(g, cl, tl):
         if len(tl) != 1:
             return (False, u'请选择惊吓对象…')
+
+        if len(cl[0].associated_cards):
+            return (False, u'请不要选择牌！')
+
         #return (True, u'(´・ω・`)')
         return (True, u'\ ( °▽ °) /')
 

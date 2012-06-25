@@ -388,7 +388,9 @@ class SaigyouBranch(FatetellAction):
         ft = Fatetell(src, lambda card: card.suit in (Card.SPADE, Card.CLUB))
         g.process_action(ft)
         if ft.succeeded:
-            g.process_action(spellcard.Reject(src, act))
+            rej = spellcard.Reject(src, act)
+            rej.associated_card = SaigyouBranchSkill(src)
+            g.process_action(rej)
             return True
         else:
             return False
@@ -494,13 +496,7 @@ class ScarletRhapsodySword(Damage):
 
 class ScarletRhapsodySwordAttack(basic.Attack):
     def apply_action(self):
-        # FIXME: tune Mixed/classmix!
-        cls = self.__class__
-        assert cls is not ScarletRhapsodySwordAttack # should be Mixed(Me, xxx)
-        bases = cls.__bases__
-        assert len(bases) == 2
-        assert bases[0] is ScarletRhapsodySwordAttack
-        cls = bases[1]
+        cls = self.prev_mixin(ScarletRhapsodySwordAttack)
         rst = cls.apply_action(self)
 
         if rst: return True

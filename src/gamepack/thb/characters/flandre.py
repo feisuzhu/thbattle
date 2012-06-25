@@ -27,22 +27,31 @@ class CriticalStrikeHandler(EventHandler):
 
             act.amount = max(0, act.amount - 1)
 
+        elif evt_type == 'action_after' and isinstance(act, ActionStage):
+            src = act.actor
+            if not src.has_skill(CriticalStrike): return act
+            st = src.tags
+            st['flan_lasttarget'] = None
+
         elif evt_type == 'action_apply' and isinstance(act, (BaseAttack, BaseDuel)):
             src = act.source
             st = src.tags
-            if not st['flan_cs'] == st['turn_count']: return act
+            if not st['flan_cs']: return act
             if not Game.getgame().current_turn is src: return act
             if not src.has_skill(CriticalStrike): return act
             tgt = act.target
             if isinstance(act, BaseAttack):
                 st['flan_lasttarget'] = tgt
-            act.damage += 1
+                act.damage += 1
+            elif isinstance(act, BaseDuel):
+                act.source_damage += 1
+
         elif evt_type == 'action_can_fire':
             a, valid = act
             if not isinstance(a, LaunchCard): return act
             src = a.source
             st = src.tags
-            if not st.get('flan_cs', 0) == st.get('turn_count'): return act
+            if not st['flan_cs']: return act
             if not src.has_skill(CriticalStrike): return act
             if not a.card.is_card(AttackCard): return act
             last = st['flan_lasttarget']

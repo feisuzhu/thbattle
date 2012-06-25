@@ -251,7 +251,7 @@ class BaseDuel(UserAction):
     def __init__(self, source, target, damage=1):
         self.source = source
         self.target = target
-        self.damage = damage
+        self.source_damage = self.target_damage = damage
 
     def apply_action(self):
         g = Game.getgame()
@@ -259,13 +259,15 @@ class BaseDuel(UserAction):
         target = self.target
 
         d = (source, target)
+        dmg = (self.source_damage, self.target_damage)
         while True:
             d = (d[1], d[0])
+            dmg = (dmg[1], dmg[0])
             if not g.process_action(basic.UseAttack(d[0])): break
 
-        dmg = Damage(d[1], d[0], amount=self.damage)
-        dmg.associated_action = self
-        g.process_action(dmg)
+        dact = Damage(d[1], d[0], amount=dmg[1])
+        dact.associated_action = self
+        g.process_action(dact)
         return d[1] is source
 
 class Duel(BaseDuel, InstantSpellCardAction):
@@ -322,11 +324,11 @@ class Feast(ForEach):
 class HarvestEffect(InstantSpellCardAction):
     # 五谷丰登 效果
     def apply_action(self):
+        g = Game.getgame()
         cards = self.parent_action.cards
-        cards_avail = [c for c in cards if not c.resides_in.owner]
+        cards_avail = [c for c in cards if c.resides_in is g.deck.special]
         if not cards_avail: return False
         cmap = {c.syncid:c for c in cards_avail}
-        g = Game.getgame()
         tgt = self.target
         cid = tgt.user_input('harvest_choose', cards_avail)
         card = cmap.get(cid)
@@ -353,7 +355,7 @@ class Harvest(ForEach):
         g = Game.getgame()
         g.emit_event('harvest_finish', self)
         dropped = g.deck.droppedcards
-        migrate_cards([c for c in self.cards if not c.resides_in.owner], dropped)
+        migrate_cards([c for c in self.cards if c.resides_in is g.deck.special], dropped)
 
 class Camera(InstantSpellCardAction):
     # 文文的相机

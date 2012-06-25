@@ -50,7 +50,7 @@ class YuukaHandler(EventHandler):
             if not src.has_skill(MagicCannon): return act
             if c.suit in (Card.HEART, Card.DIAMOND):
                 act.damage += 1
-                act.__class__ = MagicCannonAttack
+                act.__class__ = classmix(MagicCannonAttack, act.__class__)
         elif evt_type == 'action_before' and isinstance(act, TryRevive):
             g = Game.getgame()
             dmg = g.action_stack[-1]

@@ -9,7 +9,7 @@ class Foison(Skill):
 
 class FoisonDrawCardStage(DrawCardStage):
     def apply_action(self):
-        self.amount = max(2, 5 - len(self.target.cards) - len(self.target.showncards))
+        self.amount = max(self.amount, 5 - len(self.target.cards) - len(self.target.showncards))
         return DrawCardStage.apply_action(self)
 
 class FoisonHandler(EventHandler):
@@ -29,7 +29,7 @@ class AutumnFeast(TreatAsSkill):
         return False
 
 class AkiTribute(Skill):
-    associated_actoin = None
+    associated_action = None
     target = t_None
 
 class AkiTributeHandler(EventHandler):
@@ -38,7 +38,7 @@ class AkiTributeHandler(EventHandler):
             card = act.card
             if not card.is_card(HarvestCard): return act
             g = Game.getgame()
-            pl = [p for p in g.players if p.has_skill(AkiTribute)]
+            pl = [p for p in g.players if p.has_skill(AkiTribute) and not p.dead]
             assert len(pl) <= 1, 'Multiple AkiTributes!'
             if not pl: return act
             p = pl[0]
@@ -49,11 +49,14 @@ class AkiTributeHandler(EventHandler):
 
         elif evt_type == 'harvest_finish':
             g = Game.getgame()
-            pl = [p for p in g.players if p.has_skill(AkiTribute)]
+            pl = [p for p in g.players if p.has_skill(AkiTribute) and not p.dead]
             assert len(pl) <= 1, 'Multiple AkiTributes!'
             if not pl: return act
             p = pl[0]
-            migrate_cards([c for c in act.cards if not c.resides_in.owner], p.showncards)
+            migrate_cards([
+                c for c in act.cards
+                if c.resides_in is g.deck.special
+            ], p.showncards)
 
         return act
 

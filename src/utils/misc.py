@@ -301,12 +301,52 @@ def pinnable(*scopevars):
         return newco
     return _pinnable
 
+def remove_dups(s):
+    seen = set()
+    for i in s:
+        if i not in seen:
+            yield i
+            seen.add(i)
+
+@property
+def __mixins(self):
+    return self.__class__.__bases__
+
+def __prev_mixin(self, this):
+    mixins = self.mixins
+
+    try:
+        i = mixins.index(this) + 1
+    except ValueError:
+        return None
+
+    if i >= len(mixins):
+        return None
+
+    return mixins[i]
+
 cls_cache = {}
-def classmix(*classes):
+def classmix(*_classes):
+    classes = []
+    for c in _classes:
+        if hasattr(c, '_is_mixedclass'):
+            classes.extend(c.__bases__)
+        else:
+            classes.append(c)
+
+    classes = tuple(remove_dups(classes))
     cached = cls_cache.get(classes, None)
     if cached: return cached
 
     clsname = ', '.join(cls.__name__ for cls in classes)
-    new_cls = type('Mixed(%s)' % clsname, classes, {})
+    new_cls = type(
+        'Mixed(%s)' % clsname,
+        classes,
+        {
+            'mixins': __mixins,
+            'prev_mixin': __prev_mixin,
+            '_is_mixedclass': True,
+        }
+    )
     cls_cache[classes] = new_cls
     return new_cls
