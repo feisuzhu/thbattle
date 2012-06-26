@@ -28,7 +28,7 @@ class PatchouliHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
 
-            if isinstance(act, InstantSpellCardAction):
+            if isinstance(act, SpellCardAction):
                 tgt = act.target
                 if tgt.has_skill(Knowledge):
                     c = getattr(act, 'associated_card', None)
