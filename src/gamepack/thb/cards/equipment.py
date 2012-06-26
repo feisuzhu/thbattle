@@ -385,7 +385,7 @@ class SaigyouBranch(FatetellAction):
         src = self.source
 
         g = Game.getgame()
-        ft = Fatetell(src, lambda card: card.suit in (Card.SPADE, Card.CLUB))
+        ft = Fatetell(src, lambda card: 9 <= card.number <= 13)
         g.process_action(ft)
         if ft.succeeded:
             rej = spellcard.Reject(src, act)

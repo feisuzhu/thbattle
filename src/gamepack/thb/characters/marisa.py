@@ -51,8 +51,26 @@ class BorrowHandler(EventHandler):
 
         return (tl[:2], True)
 
+class MasterSpark(Skill):
+    associated_action = Attack
+    target = t_OtherOne
+
+    def check(self):
+        cl = self.associated_cards
+        if cl and len(cl) == 2 and all(
+            c.is_card(GrazeCard)
+            for c in cl
+        ): return True
+
+        return False
+
+    def is_card(self, cls):
+        if issubclass(AttackCard, cls): return True
+        return isinstance(self, cls)
+
+
 @register_character
 class Marisa(Character):
-    skills = [Borrow]
+    skills = [Borrow, MasterSpark]
     eventhandlers_required = [BorrowHandler]
     maxlife = 4

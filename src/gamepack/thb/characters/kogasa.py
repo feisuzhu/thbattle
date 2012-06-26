@@ -29,6 +29,8 @@ class Surprise(GenericAction):
             migrate_cards([card], tgt.cards)
             tgt.need_shuffle = True
 
+        g.process_action(DrawCards(src, 1))
+
         return rst
 
     def is_valid(self):
@@ -46,17 +48,33 @@ class SurpriseSkill(Skill):
     def check(self):
         return not self.associated_cards
 
-class JollyDrawCards(DrawCardStage):
-    pass
+class JollyDrawCard(DrawCards):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+        self.amount = 1
 
 class JollyHandler(EventHandler):
+    choose_player_target = t_One
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
+        if evt_type == 'action_after' and isinstance(act, DrawCardStage):
             tgt = act.target
-            if tgt.has_skill(Jolly):
-                act.amount += 1
-                act.__class__ = JollyDrawCards
+
+            if not tgt.has_skill(Jolly): return act
+
+            g = Game.getgame()
+            pl = user_choose_players(self, tgt, [p for p in g.players if not p.dead])
+            if not pl: pl = [tgt]
+
+            p = pl[0]
+
+            g.process_action(JollyDrawCard(tgt, p))
+
         return act
+
+    def choose_player_target(self, tl):
+        if not tl: return (tl, False)
+        return (tl[-1:], True)
 
 @register_character
 class Kogasa(Character):

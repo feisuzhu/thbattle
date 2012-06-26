@@ -2,7 +2,7 @@
 from .baseclasses import *
 from ..actions import *
 from ..cards import *
-
+'''
 class Assault(GenericAction):
     def apply_action(self):
         src = self.source
@@ -40,6 +40,10 @@ class AssaultSkill(Skill):
             return False
         except AttributeError:
             return False
+'''
+
+class AssaultSkill(RedUFOSkill):
+    increment = 1
 
 class FreakingPowerSkill(Skill):
     associated_action = None
@@ -77,20 +81,6 @@ class YugiHandler(EventHandler):
             tgt = act.target
             Game.getgame().process_action(FreakingPower(act))
 
-        elif evt_type == 'action_after' and isinstance(act, CalcDistance):
-            card = act.card
-            if card.is_card(AssaultSkill):
-                src = act.source
-                skills = [s for s in src.skills if issubclass(s, WeaponSkill)]
-                cl = card.associated_cards
-                try:
-                    if cl[0].resides_in.type == CardList.EQUIPS:
-                        skills.remove(cl[0].equipment_skill)
-                except (IndexError, AttributeError, ValueError) as e:
-                    pass
-                l = [s.range-1 for s in skills]
-                if l: act.correction += min(l)
-
         elif evt_type == 'action_after' and hasattr(act, 'yugifptag'):
             if not act.succeeded: return act
             src = act.source; tgt = act.target
@@ -104,10 +94,26 @@ class YugiHandler(EventHandler):
                 g.players.exclude(tgt).reveal(card)
                 g.process_action(DropCards(tgt, [card]))
 
+        '''
+        elif evt_type == 'action_after' and isinstance(act, CalcDistance):
+            card = act.card
+            if card.is_card(AssaultSkill):
+                src = act.source
+                skills = [s for s in src.skills if issubclass(s, WeaponSkill)]
+                cl = card.associated_cards
+                try:
+                    if cl[0].resides_in.type == CardList.EQUIPS:
+                        skills.remove(cl[0].equipment_skill)
+                except (IndexError, AttributeError, ValueError) as e:
+                    pass
+                l = [s.range-1 for s in skills]
+                if l: act.correction += min(l)
+        '''
+
         return act
 
 @register_character
 class Yugi(Character):
     skills = [AssaultSkill, FreakingPowerSkill]
     eventhandlers_required = [YugiHandler]
-    maxlife = 3
+    maxlife = 4

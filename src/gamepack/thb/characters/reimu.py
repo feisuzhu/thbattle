@@ -84,6 +84,7 @@ class ReimuHandler(EventHandler):
 
 @register_character
 class Reimu(Character):
-    skills = [SealingArraySkill, Flight, TributeTarget]
+    #skills = [SealingArraySkill, Flight, TributeTarget]
+    skills = [SealingArraySkill, TributeTarget]
     eventhandlers_required = [ReimuHandler]
     maxlife = 3

@@ -979,7 +979,7 @@ class SaigyouBranchCard:
     image_small = gres.card_saigyoubranch_small
     description = (
         u'|R西行妖|r\n\n'
-        u'每当你成为其他人符卡的目标时，你可以进行一次判定：若判定结果为黑色，则视为你使用了一张【好人卡】。'
+        u'每当你成为其他人符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张【好人卡】。'
     )
     is_action_valid = equip_iav
 
@@ -1649,8 +1649,41 @@ class Marisa:
     port_image = gres.marisa_port
     description = (
         u'|DB绝非普通的强盗少女 雾雨魔理沙 体力：4|r\n\n'
-        u'|G借走|r：摸牌阶段，你可以放弃摸牌，然后从至多两名角色的手牌里各抽取一张牌。'
+        u'|G借走|r：摸牌阶段，你可以放弃摸牌，然后从至多两名角色的手牌里各抽取一张牌。\n\n'
+        u'|G极限火花|r：你可以使用两张【擦弹】作为一张无距离限制的【弹幕】使用。'
     )
+
+class MasterSpark:
+    # Skill
+    name = u'极限火花'
+
+    def clickable(game):
+        me = game.me
+
+        try:
+            act = game.action_stack[-1]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        cl = cl[0].associated_cards
+        if not (cl and len(cl) == 2 and all(c.is_card(cards.GrazeCard) for c in cl)):
+            return (False, u'请选择两张【擦弹】')
+
+        if len(target_list) != 1: return (False, u'请选择1名玩家')
+        return (True, u'MASTER SPARK！')
+
+    def effect_string(act):
+        # for LaunchCard.ui_meta.effect_string
+        return u'|G【%s】|r向|G【%s】|r发动了|G极限火花|r……打的真远！' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
 
 class Borrow:
     # Skill
@@ -1870,8 +1903,9 @@ class Yugi:
     char_name = u'星熊勇仪'
     port_image = gres.yugi_port
     description = (
-        u'|DB人所谈论的怪力乱神 星熊勇仪 体力：3|r\n\n'
-        u'|G强袭|r：你可以自损1点体力，或者使用一张武器牌/【酒】，对任意一名在你的攻击范围内的玩家造成一点伤害。\n\n'
+        u'|DB人所谈论的怪力乱神 星熊勇仪 体力：4|r\n\n'
+        #u'|G强袭|r：你可以自损1点体力，或者使用一张武器牌/【酒】，对任意一名在你的攻击范围内的玩家造成一点伤害。\n\n'
+        u'|G强袭|r：你与其他玩家结算距离时始终-1\n\n'
         u'|G怪力|r：你对别的角色出【弹幕】时可以选择做一次判定：若判定牌为红色花色，则此【弹幕】不可回避，直接命中；若判定牌为黑色花色，则此【弹幕】可回避，但如果对方没有出【擦弹】，则命中后可以选择弃掉对方一张牌。'
     )
 
@@ -1879,6 +1913,13 @@ class AssaultSkill:
     # Skill
     name = u'强袭'
 
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+'''
     def clickable(game):
         me = game.me
         if me.tags.get('yugi_assault', 0) >= me.tags.get('turn_count', 0):
@@ -1904,6 +1945,7 @@ class AssaultSkill:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name
         )
+'''
 
 class FreakingPowerSkill:
     # Skill
@@ -2120,7 +2162,7 @@ class Reimu:
     description = (
         u'|DB乐园奇妙的无节操巫女 博丽灵梦 体力：3|r\n\n'
         u'|G封魔阵|r：出牌阶段，你可以用一张方块牌当做【封魔阵】使用，一回合一次。\n\n'
-        u'|G飞行|r：锁定技，其他玩家对你结算距离时始终+1\n\n'
+        #u'|G飞行|r：锁定技，其他玩家对你结算距离时始终+1\n\n'
         u'|G纳奉|r：任何人都可以在自己的出牌阶段给你一张牌。'
     )
 
@@ -2136,12 +2178,21 @@ class Jolly:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
-class JollyDrawCards:
+class JollyDrawCard:
     def effect_string(act):
-        return u'|G【%s】|r高兴地摸了%d张牌~' % (
+        return u'|G【%s】|r高兴地让|G【%s】|r摸了%d张牌~' % (
             act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
             act.amount,
         )
+
+class JollyHandler:
+    # choose_players
+    def target(pl):
+        if not pl:
+            return (False, u'请选择1名玩家，该玩家摸一张牌')
+
+        return (True, u'(～￣▽￣)～')
 
 class SurpriseSkill:
     # Skill
@@ -2206,8 +2257,8 @@ class Kogasa:
     port_image = gres.kogasa_port
     description = (
         u'|DB愉快的遗忘之伞 多多良小伞 体力：3|r\n\n'
-        u'|G惊吓|r：出牌阶段，你可以指定另一名角色选择一种花色，抽取你的一张手牌并亮出，若此牌与所选花色不吻合，则你对该角色造成1点伤害。然后不论结果，该角色都获得此牌，每回合限用一次。\n\n'
-        u'|G愉快|r：摸牌阶段，你可以额外多摸1张牌'
+        u'|G惊吓|r：出牌阶段，你可以指定另一名角色选择一种花色，抽取你的一张手牌并亮出，若此牌与所选花色不吻合，则你对该角色造成1点伤害。然后不论结果，该角色都获得此牌，你摸一张牌。每回合限用一次。\n\n'
+        u'|G愉快|r：摸牌阶段摸牌后，你可以指定一人摸1张牌。'
     )
 
 # ----------
