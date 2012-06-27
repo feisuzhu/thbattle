@@ -138,14 +138,18 @@ class THBattleUI(Control):
         if skills is None:
             # before girl chosen
             return
-        skills = [(i, s) for i, s in enumerate(skills) if not getattr(s.ui_meta, 'no_display', False)]
-        self.skill_box.set_skills(
-            (s.ui_meta.name, i) for i, s in skills
-        )
 
-        for sb, (_, skill) in zip(self.skill_box.buttons, skills):
-            if skill.ui_meta.clickable(g):
-                sb.state = Button.NORMAL
+        skills = [
+            (i, s, s.ui_meta.clickable(g))
+            for i, s in enumerate(skills)
+            if not getattr(s.ui_meta, 'no_display', False)
+        ]
+
+        skills.sort(key=lambda i: -i[2])
+
+        self.skill_box.set_skills(
+            (s.ui_meta.name, i, e) for i, s, e in skills
+        )
 
     def on_message(self, _type, *args):
         if _type == 'evt_game_begin':

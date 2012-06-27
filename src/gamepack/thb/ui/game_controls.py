@@ -289,10 +289,10 @@ class Ray(Control):
 
 class SkillSelectionBox(Control):
     class SkillButton(Button):
-        def __init__(self, sid, *a, **k):
+        def __init__(self, enable, sid, *a, **k):
             Button.__init__(self, width=71, height=20, *a, **k)
             self.selected = False
-            self.state = Button.DISABLED
+            self.state = Button.NORMAL if enable else Button.DISABLED
             self.color = Colors.blue
             self.sid = sid
             self.update()
@@ -317,16 +317,16 @@ class SkillSelectionBox(Control):
         self.selection = []
 
     def set_skills(self, lst):
-        # lst = (('name1', sid1), ('name2', sid2), ...)
+        # lst = (('name1', sid1, enable), ('name2', sid2, enable), ...)
         y = self.height
         for b in self.buttons[:]:
             b.delete()
 
         assert not self.buttons
 
-        for nam, sid in lst:
+        for nam, sid, enable in lst:
             y -= 22
-            SkillSelectionBox.SkillButton(sid, nam, parent=self, x=0, y=y)
+            SkillSelectionBox.SkillButton(enable, sid, nam, parent=self, x=0, y=y)
 
         self.selection = []
 
