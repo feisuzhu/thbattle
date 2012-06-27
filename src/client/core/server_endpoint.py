@@ -28,21 +28,16 @@ class Server(Endpoint, Greenlet):
         Greenlet.__init__(self)
         self.gdqueue = deque(maxlen=100)
         self.gdevent = Event()
-        self.read_timeout = 120
         self.ctlcmds = Queue(100)
         self.userid = 0
 
     def _run(self):
-        try:
-            while True:
-                cmd, data = self.read(timeout=self.read_timeout)
-                if cmd == 'gamedata':
-                    self._gamedata(data)
-                else:
-                    self.ctlcmds.put([cmd, data])
-
-        except Timeout:
-            self.close()
+        while True:
+            cmd, data = self.read()
+            if cmd == 'gamedata':
+                self._gamedata(data)
+            else:
+                self.ctlcmds.put([cmd, data])
 
     def _gamedata(self, data):
         l = self.gdqueue

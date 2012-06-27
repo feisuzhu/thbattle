@@ -131,7 +131,7 @@ class Client(Endpoint, Greenlet):
         self.state = 'connected'
         while True:
             try:
-                cmd, data = self.read(999999)
+                cmd, data = self.read()
                 f = cmds[self.state].get(cmd)
                 if not f:
                     f = cmds['__any__'].get(cmd)

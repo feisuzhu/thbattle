@@ -52,25 +52,25 @@ class Endpoint(object):
             self.sockfile.close()
             self.sock.close()
 
-    def read(self, timeout=60):
+    def read(self):
         if self.link_state != 'connected':
             raise EndpointDied()
 
         f = self.sockfile
         while True:
-            with Timeout(timeout, None):
-                try:
-                    s = f.readline(1048576)
-                    if s == '':
-                        self.close()
-                        raise EndpointDied()
-                    if Endpoint.ENDPOINT_DEBUG:
-                        log.debug("<<RECV %s" % s[:-1])
-                    d = json.loads(s)
-                    return d
-                except json.JSONDecodeError as e:
-                    self.write(['bad_format', None])
-                    continue
-                except IOError as e:
+            #with Timeout(timeout, None):
+            try:
+                s = f.readline(1048576)
+                if s == '':
                     self.close()
                     raise EndpointDied()
+                if Endpoint.ENDPOINT_DEBUG:
+                    log.debug("<<RECV %s" % s[:-1])
+                d = json.loads(s)
+                return d
+            except json.JSONDecodeError as e:
+                self.write(['bad_format', None])
+                continue
+            except IOError as e:
+                self.close()
+                raise EndpointDied()
