@@ -42,6 +42,7 @@ class PerfectKillAction(GenericAction):
         return True
 
 class YuukaHandler(EventHandler):
+    execute_before = ('ScarletRhapsodySwordHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Attack):
             c = getattr(act, 'associated_card', None)
