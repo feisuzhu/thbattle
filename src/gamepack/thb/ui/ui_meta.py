@@ -11,11 +11,38 @@ from client.ui import resource as cres
 
 from utils import DataHolder, BatchList
 
+metadata = {}
+
+class UIMetaAccesser(object):
+    def __init__(self, obj, cls):
+        self.cls = obj.__class__ if obj else cls
+
+    def __getattr__(self, name):
+        cls = self.cls
+        if hasattr(cls, '_is_mixedclass'):
+            l = list(cls.__bases__)
+        else:
+            l = [cls]
+
+        while l:
+            c = l.pop(0)
+            try:
+                return metadata[c][name]
+            except KeyError:
+                pass
+            b = c.__base__
+            if b is not object: l.append(b)
+        raise AttributeError(name)
+
+class UIMetaDescriptor(object):
+    def __get__(self, obj, cls):
+        return UIMetaAccesser(obj, cls)
+
 def gen_metafunc(_for):
     def metafunc(clsname, bases, _dict):
-        meta_for = _for.__dict__.get(clsname)
-        data = DataHolder.parse(_dict)
-        meta_for.ui_meta = data
+        meta_for = getattr(_for, clsname)
+        meta_for.ui_meta = UIMetaDescriptor()
+        metadata[meta_for] = _dict
 
     return metafunc
 
