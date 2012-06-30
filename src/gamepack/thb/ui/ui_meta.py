@@ -2877,6 +2877,104 @@ class Minoriko:
 
 # ----------
 
+class RiverBehind:
+    # Skill
+    name = u'背水'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Taichi:
+    # Skill
+    name = u'太极'
+
+    def clickable(game):
+        me = game.me
+        try:
+            act = game.action_stack[-1]
+            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.DollControl, cards.BaseUseGraze)):
+                return True
+        except IndexError:
+            pass
+        return False
+
+    def is_complete(g, cl):
+        skill = cl[0]
+        cl = skill.associated_cards
+        from ..cards import Card, AttackCard, GrazeCard
+        if len(cl) != 1 or not (cl[0].is_card(AttackCard) or cl[0].is_card(GrazeCard)):
+            return (False, u'请选择一张【弹幕】或者【擦弹】！')
+        return (True, u'动之则分，静之则合。无过不及，随曲就伸')
+
+    def is_action_valid(g, cl, target_list, is_complete=is_complete):
+        skill = cl[0]
+        rst, reason = is_complete(g, cl)
+        if not rst:
+            return (rst, reason)
+        else:
+            return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
+
+    def effect_string(act):
+        # for LaunchCard.ui_meta.effect_string
+        source = act.source
+        card = act.card
+        target = act.target
+        return (
+            u'动之则分，静之则合。无过不及，随曲就伸……|G【%s】|r凭|G太极|r之势，轻松应对。'
+        ) % (
+            source.ui_meta.char_name,
+        )
+
+class LoongPunch:
+    # Skill
+    name = u'龙拳'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class LoongPunchHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【龙拳】吗？'
+
+class LoongPunchAction:
+    def effect_string_before(act):
+        if act.type == 'attack':
+            return u'|G【%s】|r将内力灌入拳中向|G【%s】|r击出，拳未至，气先行，|G【%s】|r的一张手牌被震飞！' % (
+                act.source.ui_meta.char_name,
+                act.target.ui_meta.char_name,
+                act.target.ui_meta.char_name,
+            )
+        if act.type == 'graze':
+            return u'|G【%s】|r擦过弹幕，随即以拳劲沿着弹幕轨迹回震，|G【%s】|r措手不及，一张手牌掉在了地上。' % (
+                act.source.ui_meta.char_name,
+                act.target.ui_meta.char_name,
+            )
+
+class RiverBehindAwake:
+    def effect_string_before(act):
+        return u'|G【%s】|r发现自己处境危险，于是强行催动内力护住身体，顺便参悟了太极拳。' % (
+            act.target.ui_meta.char_name,
+        )
+
+class Meirin:
+    # Character
+    char_name = u'红美铃'
+    port_image = gres.meirin_port
+    description = (
+        u'|DB我只打盹我不翘班 红美铃 体力：4|r\n\n'
+        u'|G龙拳|r：每当你使用一张【弹幕】或【擦弹】时，你可以立即弃置对方的一张手牌。\n\n'
+        u'|G背水|r：|B觉醒技|r，回合开始阶段，当你的体力为全场最少时，你损失一点体力上限并回复一点体力，同时获得|R太极|r技能。\n\n'
+        u'|R太极|r：你可将【弹幕】作为【擦弹】，【擦弹】作为【弹幕】使用或打出。'
+    )
+
+# ----------
 
 
 # -----END CHARACTERS UI META-----

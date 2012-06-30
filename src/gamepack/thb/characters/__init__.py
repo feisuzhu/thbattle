@@ -25,3 +25,4 @@ from rinnosuke import *
 from ran import *
 from remilia import *
 from minoriko import *
+from meirin import *
