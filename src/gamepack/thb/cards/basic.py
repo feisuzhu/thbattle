@@ -14,7 +14,7 @@ class BaseAttack(BasicAction):
     def apply_action(self):
         g = Game.getgame()
         source, target = self.source, self.target
-        graze_action = UseGraze(target)
+        graze_action = LaunchGraze(target)
         if not g.process_action(graze_action):
             dmg = Damage(source, target, amount=self.damage)
             dmg.associated_action = self
@@ -81,7 +81,7 @@ class Heal(BasicAction):
         else:
             return False
 
-class UseGraze(UseCard):
+class BaseUseGraze(UseCard):
     def cond(self, cl):
         from .. import cards
         t = self.target
@@ -90,6 +90,12 @@ class UseGraze(UseCard):
             cl[0].is_card(cards.GrazeCard) and
             (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
         )
+
+class UseGraze(BaseUseGraze):
+    pass
+
+class LaunchGraze(BaseUseGraze):
+    pass
 
 class UseAttack(UseCard):
     def cond(self, cl):

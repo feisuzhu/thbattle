@@ -61,8 +61,8 @@ class OpticalCloak(FatetellAction, GenericAction):
 @register_eh
 class OpticalCloakHandler(EventHandler):
     def handle(self, evt_type, act):
-        from .basic import UseGraze
-        if evt_type == 'action_before' and isinstance(act, UseGraze):
+        from .basic import BaseUseGraze
+        if evt_type == 'action_before' and isinstance(act, BaseUseGraze):
             target = act.target
             if not target.has_skill(OpticalCloakSkill): return act
             if not target.user_input('choose_option', self): return act

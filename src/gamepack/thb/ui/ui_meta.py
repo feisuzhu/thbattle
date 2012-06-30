@@ -202,7 +202,24 @@ class UseGraze:
         if act.cond(cards):
             return (True, u'我闪！')
         else:
-            return (False, u'请使用擦弹…')
+            return (False, u'请打出一张【擦弹】…')
+
+    def effect_string(act):
+        if not act.succeeded: return None
+        t = act.target
+        return u'|G【%s】|r打出了|G%s|r。' % (
+            t.ui_meta.char_name,
+            act.cards[0].ui_meta.name,
+        )
+
+class LaunchGraze:
+    # choose_card meta
+    image = gres.card_graze
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'我闪！')
+        else:
+            return (False, u'请使用一张【擦弹】抵消【弹幕】效果…')
 
     def effect_string(act):
         if not act.succeeded: return None
@@ -223,7 +240,7 @@ class UseAttack:
     def effect_string(act):
         if not act.succeeded: return None
         t = act.target
-        return u'|G【%s】|r使用了|G%s|r。' % (
+        return u'|G【%s】|r打出了|G%s|r。' % (
             t.ui_meta.char_name,
             act.cards[0].ui_meta.name,
         )
@@ -1866,7 +1883,7 @@ class Agile:
         except IndexError:
             return False
 
-        if isinstance(act, cards.UseGraze) and (me.cards or me.showncards):
+        if isinstance(act, cards.BaseUseGraze) and (me.cards or me.showncards):
             return True
 
         return False
@@ -2464,7 +2481,7 @@ class FlowerQueen:
         me = game.me
         try:
             act = game.action_stack[-1]
-            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.UseGraze, cards.DollControl)):
+            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
                 return True
         except IndexError:
             pass

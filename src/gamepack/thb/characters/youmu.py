@@ -29,7 +29,7 @@ class MijincihangzhanAttack(Attack):
         source, target = self.source, self.target
 
         for i in xrange(2):
-            graze_action = UseGraze(target)
+            graze_action = LaunchGraze(target)
             if not g.process_action(graze_action):
                 break
         else:
