@@ -661,10 +661,10 @@ class PlayerTurn(GenericAction):
         p = self.target
         p.tags['turn_count'] += 1
         g.current_turn = p
-        g.process_action(FatetellStage(p))
-        g.process_action(DrawCardStage(p))
-        g.process_action(ActionStage(p))
-        g.process_action(DropCardStage(p))
+        if not p.dead: g.process_action(FatetellStage(p))
+        if not p.dead: g.process_action(DrawCardStage(p))
+        if not p.dead: g.process_action(ActionStage(p))
+        if not p.dead: g.process_action(DropCardStage(p))
         return True
 
 class DummyAction(GenericAction):
