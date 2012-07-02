@@ -9,10 +9,11 @@ class Drunkard(TreatAsSkill):
         cl = self.associated_cards
         if not (cl and len(cl) == 1 and cl[0].color == Card.BLACK):
             return False
-        if cl[0].resides_in.type not in (CardList.HANDCARD, CardList.SHOWNCARD):
+        if cl[0].resides_in.type not in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS):
             return False
         return True
 
+'''
 class DrunkardHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'action_can_fire':
@@ -31,6 +32,7 @@ class DrunkardHandler(EventHandler):
                 src.tags['drunkard_tag'] = src.tags['turn_count']
 
         return arg
+'''
 
 class GreatLandscape(Skill):
     associated_action = None
@@ -92,7 +94,7 @@ class WineDreamHandler(EventHandler):
 class Suika(Character):
     skills = [GreatLandscape, Drunkard, WineGod]
     eventhandlers_required = [
-        DrunkardHandler,
+        #DrunkardHandler,
         GreatLandscapeHandler,
         WineGodHandler,
         WineDreamHandler
