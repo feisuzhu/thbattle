@@ -122,6 +122,11 @@ class Wine(BasicAction):
         self.target.tags['wine'] = True
         return True
 
+class SoberUp(GenericAction):
+    def apply_action(self):
+        self.target.tags['wine'] = False
+        return True
+
 class WineRevive(GenericAction):
     def __init__(self, act):
         self.act = act
@@ -130,7 +135,8 @@ class WineRevive(GenericAction):
 
     def apply_action(self):
         self.act.amount -= 1
-        self.target.tags['wine'] = False
+        tgt = self.target
+        Game.getgame().process_action(SoberUp(tgt, tgt))
         return True
 
 @register_eh
@@ -143,9 +149,13 @@ class WineHandler(EventHandler):
         elif evt_type == 'action_after' and isinstance(act, LaunchCard):
             from ..cards import AttackCard
             if act.card.is_card(AttackCard):
-                act.source.tags['wine'] = False
+                src = act.source
+                if src.tags['wine']:
+                    Game.getgame().process_action(SoberUp(src, src))
         elif evt_type == 'action_apply' and isinstance(act, ActionStage):
-            act.actor.tags['wine'] = False
+            src = act.actor
+            if src.tags['wine']:
+                Game.getgame().process_action(SoberUp(src, src))
         elif evt_type == 'action_before' and isinstance(act, Damage):
             if act.cancelled: return act
             tgt = act.target

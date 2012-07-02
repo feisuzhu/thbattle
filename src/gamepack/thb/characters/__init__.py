@@ -26,3 +26,4 @@ from ran import *
 from remilia import *
 from minoriko import *
 from meirin import *
+from suika import *
