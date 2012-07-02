@@ -49,7 +49,7 @@ class LoongPunchAction(GenericAction):
 
 class LoongPunchHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, Attack):
+        if evt_type == 'action_apply' and isinstance(act, BaseAttack):
             self.do_effect(act.source, act.target, 'attack')
         elif evt_type == 'action_after' and isinstance(act, LaunchGraze):
             if not act.succeeded: return act
@@ -75,8 +75,8 @@ class RiverBehindAwake(GenericAction):
         tgt.skills.append(Taichi)
         tgt.maxlife -= 1
         tgt.life = min(tgt.life, tgt.maxlife)
-        g = Game.getgame()
-        g.process_action(Heal(tgt, tgt))
+        #g = Game.getgame()
+        #g.process_action(Heal(tgt, tgt))
         return True
 
 class RiverBehindHandler(EventHandler):
@@ -85,7 +85,7 @@ class RiverBehindHandler(EventHandler):
             tgt = act.target
             if not tgt.has_skill(RiverBehind): return act
             g = Game.getgame()
-            if tgt.life <= min(p.life for p in g.players if not p.dead):
+            if tgt.life <= 2 and tgt.life <= min(p.life for p in g.players if not p.dead):
                 g.process_action(RiverBehindAwake(tgt, tgt))
         return act
 
