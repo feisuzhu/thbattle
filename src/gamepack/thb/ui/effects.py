@@ -251,9 +251,7 @@ def _update_tags(self, p):
 
 def after_launch_effect(self, act):
     _update_tags(self, act.source)
-    self.player2portrait(act.source).update()
     for p in act.target_list:
-        self.player2portrait(p).update()
         _update_tags(self, p)
 
 def action_stage_update_tag(self, act):

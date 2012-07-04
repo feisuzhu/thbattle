@@ -618,18 +618,6 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         fbo = self.auxfbo
         with fbo:
             fbo.texture = self.tex
-            hp, hp_bg = common_res.hp, common_res.hp_bg
-
-            # hp bar
-            glColor3f(1, 1, 1)
-            w, h = hp_bg.width * p.maxlife, hp_bg.height
-            if w:
-                common_res.hp_bg.get_region(0, 0, w, h).blit(5, 55)
-
-            w, h = hp.width * max(p.life, 0), hp.height
-            if w:
-                common_res.hp.get_region(0, 0, w, h).blit(5, 55)
-
 
             glPolygonMode(GL_BACK, GL_LINE)
             w, h = self.width, self.height
@@ -680,6 +668,22 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             self.tex = tmp
         else:
             Dialog.draw(self)
+
+        try:
+            p.ui_meta
+            hp, hp_bg = common_res.hp, common_res.hp_bg
+
+            # hp bar
+            glColor3f(1, 1, 1)
+            w, h = hp_bg.width * p.maxlife, hp_bg.height
+            if w:
+                common_res.hp_bg.get_region(0, 0, w, h).blit(5, 55)
+
+            w, h = hp.width * max(p.life, 0), hp.height
+            if w:
+                common_res.hp.get_region(0, 0, w, h).blit(5, 55)
+        except AttributeError:
+            pass
 
         w, h = self.width, self.height
         p = self.player
