@@ -4,7 +4,7 @@ from ..actions import *
 
 class BasicAction(UserAction): pass # attack, graze, heal
 
-class BaseAttack(BasicAction):
+class BaseAttack(Action):
 
     def __init__(self, source, target, damage=1):
         self.source = source
@@ -23,7 +23,7 @@ class BaseAttack(BasicAction):
         else:
             return False
 
-class Attack(BaseAttack): pass
+class Attack(BaseAttack, BasicAction): pass
 
 class InevitableAttack(Attack):
     def apply_action(self):

@@ -350,7 +350,7 @@ class IbukiGourdHandler(EventHandler):
 
         return arg
 
-class HouraiJewelAttack(spellcard.InstantSpellCardAction):
+class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         dmg = Damage(self.source, self.target)
