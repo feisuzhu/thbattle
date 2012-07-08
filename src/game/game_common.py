@@ -106,7 +106,7 @@ class Action(object):
 
     def clean_up(self):
         '''
-        Execute after all event handlers finished there work.
+        Execute after all event handlers finished their work.
         '''
         pass
 
