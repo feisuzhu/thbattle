@@ -10,7 +10,7 @@ class CriticalStrike(Skill):
 class CriticalStrikeAction(GenericAction):
     def apply_action(self):
         tgt = self.target
-        tgt.tags['attack_num'] += 1
+        tgt.tags['attack_num'] = 10000
         tgt.tags['flan_cs'] = True
         tgt.tags['flan_lasttarget'] = None
         return True
