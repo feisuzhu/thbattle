@@ -176,6 +176,14 @@ class Executive(object):
             else:
                 cb('update_disabled')
 
+        @handler
+        def auth(self, cb, arg):
+            if not (self.state == 'connected'):
+                cb('general_failure', 'Connect first!')
+                return
+            self.server.username = arg[0]
+            self.server.write(['auth', arg])
+
         # @handler def register(...): ...
         def simple_gm_op(_type):
             def wrapper(self, cb, *args):
@@ -188,7 +196,7 @@ class Executive(object):
         ops = [
             # FIXME: the quick start thing should be done at client
             'register',     'create_game',      'join_game',
-            'get_hallinfo', 'quick_start_game', 'auth',
+            'get_hallinfo', 'quick_start_game', #'auth',
             'get_ready',    'exit_game',        'cancel_ready',
             'chat',         'speaker',          'change_location',
             'kick_user',

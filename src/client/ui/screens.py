@@ -261,7 +261,10 @@ class GameHallScreen(Screen):
 
             @self.btn_create.event
             def on_click():
-                Executive.call('create_game', ui_message, ['THBattle', u'我的游戏'])
+                uname = Executive.server.username
+                if len(uname) > 8:
+                    uname = uname[:6] + u'……'
+                Executive.call('create_game', ui_message, ['THBattle', u'[' + uname + u']的游戏'])
 
             @self.btn_quickstart.event
             def on_click():
