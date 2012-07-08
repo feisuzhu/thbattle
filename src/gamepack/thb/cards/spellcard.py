@@ -395,7 +395,7 @@ class DollControl(InstantSpellCardAction):
 
     def cond(self, cl):
         from .definition import AttackCard
-        return cl and cl[0].is_card(AttackCard)
+        return bool(cl) and cl[0].is_card(AttackCard)
 
 class DonationBox(InstantSpellCardAction):
     def apply_action(self):

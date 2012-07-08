@@ -432,6 +432,7 @@ class LaunchCard(BaseLaunchCard):
         if action:
             target = target_list[0] if target_list else self.source
             a = action(source=self.source, target=target)
+            self.card_action = a
             a.associated_card = card
             a.target_list = target_list
             g.process_action(a)
@@ -439,10 +440,15 @@ class LaunchCard(BaseLaunchCard):
         return False
 
     def is_valid(self):
-        if not self.tl_valid: return False
+        if not self.tl_valid:
+            log.debug('LaunchCard.tl_valid FALSE')
+            return False
         g = Game.getgame()
         card = self.card
-        if not card: return False
+        if not card:
+            log.debug('LaunchCard.card FALSE')
+            return False
+
         cls = card.associated_action
         src = self.source
 
@@ -452,6 +458,7 @@ class LaunchCard(BaseLaunchCard):
         act.associated_card = card
         act.target_list = tl
         if not act.can_fire():
+            log.debug('LaunchCard card_action.can_fire() FALSE')
             return False
 
         return True
@@ -500,6 +507,7 @@ class ActionStage(GenericAction):
                     check(card.resides_in in (actor.cards, actor.showncards))
                 if not g.process_action(LaunchCard(actor, target_list, card)):
                     # invalid input
+                    log.debug('ActionStage: LaunchCard failed.')
                     break
 
                 shuffle_here()
@@ -570,6 +578,7 @@ class DistanceValidator(EventHandler):
             g.process_action(calc)
             rst = calc.validate()
             if not all(rst[t] for t in act.target_list):
+                log.debug('REJECTED due to distance constraint.')
                 return (act, False)
 
         return arg

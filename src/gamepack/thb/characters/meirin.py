@@ -48,6 +48,7 @@ class LoongPunchAction(GenericAction):
         return True
 
 class LoongPunchHandler(EventHandler):
+    execute_after = ('DeathSickleHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, BaseAttack):
             self.do_effect(act.source, act.target, 'attack')

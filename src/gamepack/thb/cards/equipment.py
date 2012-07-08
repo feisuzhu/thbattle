@@ -53,6 +53,7 @@ class OpticalCloak(FatetellAction, GenericAction):
         target = self.target
         ft = Fatetell(target, lambda card: card.suit in (Card.HEART, Card.DIAMOND))
         g.process_action(ft)
+        self.fatetell_card = ft.card
         if ft.succeeded:
             return True
         else:
@@ -67,8 +68,13 @@ class OpticalCloakHandler(EventHandler):
             if not target.has_skill(OpticalCloakSkill): return act
             if not target.user_input('choose_option', self): return act
             g = Game.getgame()
-            if g.process_action(OpticalCloak(target, target)):
-                return DummyAction(target, target, True)
+            oc = OpticalCloak(target, target)
+            if g.process_action(oc):
+                act.__class__ = classmix(DummyAction, act.__class__)
+                act.result = True
+                ocs = OpticalCloakSkill(target)
+                ocs.associated_cards = [oc.fatetell_card]
+                act.cards = [ocs] # UseCard attribute
             return act
         return act
 
@@ -184,24 +190,50 @@ class RoukankenSkill(WeaponSkill):
     associated_action = None
     target = t_None
 
-class Roukanken(basic.Attack):
+class RoukankenLaunchAttack(LaunchCard):
     pass
 
 @register_eh
 class RoukankenHandler(EventHandler):
+    execute_after = ('WineHandler', )
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
+        if evt_type == 'action_after' and isinstance(act, LaunchCard):
             src, tgt = act.source, act.target
-            if src.has_skill(RoukankenSkill) and not act.succeeded:
-                if src.user_input('choose_option', self):
-                    g = Game.getgame()
-                    a = basic.UseAttack(target=src)
-                    if g.process_action(a):
-                        card = a.cards[0]
-                        a = Roukanken(source=src, target=tgt)
-                        a.associated_card = card
-                        g.process_action(a)
+            if not act.succeeded: return act
+            atk = act.card_action
+            if not isinstance(atk, basic.Attack): return act
+            if not src.has_skill(RoukankenSkill): return act
+            if atk.succeeded: return act
+
+            '''
+            g = Game.getgame()
+            a = basic.UseAttack(target=src)
+            if g.process_action(a):
+                card = a.cards[0]
+                a = Roukanken(source=src, target=tgt)
+                a.associated_card = card
+                g.process_action(a)
+            '''
+            cats = [
+                src.cards,
+                src.showncards,
+            ]
+            cards = user_choose_cards(self, src, cats)
+            g = Game.getgame()
+
+            if cards:
+                #g.players.reveal(cards)
+                tags = src.tags
+                ori = tags['attack_num']
+                tags['attack_num'] += 1
+                g.process_action(RoukankenLaunchAttack(src, [tgt], cards[0]))
+                tags['attack_num'] = ori
+
         return act
+
+    def cond(self, cl):
+        from .definition import AttackCard
+        return bool(cl) and len(cl) == 1 and cl[0].is_card(AttackCard)
 
 class GungnirSkill(TreatAsSkill, WeaponSkill):
     treat_as = Card.card_classes['AttackCard'] # arghhhhh, nasty circular references!
@@ -441,6 +473,11 @@ class FlirtingSword(GenericAction):
 
 @register_eh
 class FlirtingSwordHandler(EventHandler):
+    # BUG WITH OUT THIS LINE:
+    # src equips [Gourd, FlirtingSword], tgt drops Exwinwan
+    # then src drops Gourd,
+    # but Attack.damage == 1, Wine tag preserved.
+    execute_before = ('WineHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, basic.BaseAttack):
             if act.cancelled: return act

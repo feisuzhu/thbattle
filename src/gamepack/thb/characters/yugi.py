@@ -62,11 +62,7 @@ class FreakingPower(FatetellAction):
         ft = Fatetell(tgt, lambda c: c.suit in (Card.HEART, Card.DIAMOND))
         g = Game.getgame()
         if g.process_action(ft):
-            # FIXME: use InevitableAttack
-            dmg = Damage(src, tgt, act.damage)
-            dmg.associated_action = act
-            act.cancelled = True
-            g.process_action(dmg)
+            act.__class__ = classmix(InevitableAttack, act.__class__)
         else:
             act.yugifptag = True
         return True

@@ -628,11 +628,12 @@ class HakuroukenSkill:
         return (False, 'BUG!')
 
 class Hakurouken:
-    def effect_string_before(act):
+    def effect_string_apply(act):
         a = act.action
         src, tgt = a.source, a.target
         return u'|G【%s】|r祭起了|G白楼剑|r，直斩|G【%s】|r的魂魄！' % (
-            t.ui_meta.char_name
+            src.ui_meta.char_name,
+            tgt.ui_meta.char_name,
         )
 
 class ElementalReactorCard:
@@ -701,11 +702,14 @@ class RoukankenSkill:
         return (False, 'BUG!')
 
 class RoukankenHandler:
-    # choose_option
-    choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【楼观剑】吗？'
+    # choose_card
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'再来一刀！')
+        else:
+            return (False, u'请使用【弹幕】发动楼观剑……')
 
-class Roukanken:
+class RoukankenLaunchAttack:
     def effect_string_before(act):
         return (
             u'虽然上一刀落空了，但是|G楼观剑|r的气势并未褪去。' +
@@ -2081,7 +2085,7 @@ class Tewi:
     port_image = gres.tewi_port
     description = (
         u'|DB幸运的腹黑兔子 因幡帝 体力：4|r\n\n'
-        u'|G幸运|r：锁定技，当你的手牌数为0时，立即摸2张牌。'
+        u'|G幸运|r：|B锁定技|r，当你的手牌数为0时，立即摸2张牌。'
     )
 
 # ----------
@@ -2495,7 +2499,7 @@ class Tenshi:
     port_image = gres.tenshi_port
     description = (
         u'|DB有顶天的大M子 比那名居天子 体力：4|r\n\n'
-        u'|G抖Ｍ|r：每当你受到1点伤害，可摸两张牌，将其中的一张交给任意一名角色，然后将另一张交给任意一名角色。'
+        u'|G抖Ｍ|r：每当你受到X点伤害，你可以摸X*2张牌，然后将这些牌分配给任意的角色。'
     )
 
 # ----------
@@ -2508,7 +2512,9 @@ class FlowerQueen:
         me = game.me
         try:
             act = game.action_stack[-1]
-            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
+            if isinstance(act, actions.ActionStage) and act.actor is me:
+                return True
+            if isinstance(act, (cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
                 return True
         except IndexError:
             pass
@@ -2519,7 +2525,7 @@ class FlowerQueen:
         me = g.me
         acards = skill.associated_cards
         if len(acards) != 1 or acards[0].suit != cards.Card.CLUB:
-            return (False, u'请选择1张草花色手牌！')
+            return (False, u'请选择1张草花色牌！')
         return (True, u'反正这条也看不到，偷个懒~~~')
 
     def is_action_valid(g, cl, target_list, is_complete=is_complete):
