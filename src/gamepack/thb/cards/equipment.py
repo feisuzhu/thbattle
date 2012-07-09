@@ -401,9 +401,10 @@ class HouraiJewelHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             src = act.source
-            if src.has_skill(HouraiJewelSkill):
-                if src.user_input('choose_option', self):
-                    act.__class__ = HouraiJewelAttack
+            if not src.has_skill(HouraiJewelSkill): return act
+            if isinstance(act, HouraiJewelAttack): return act
+            if src.user_input('choose_option', self):
+                act.__class__ = HouraiJewelAttack
         return act
 
 class SaigyouBranch(FatetellAction):
@@ -605,6 +606,7 @@ class DeathSickle(GenericAction):
 
 @register_eh
 class DeathSickleHandler(EventHandler):
+    execute_after = ('HakuroukenEffectHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             src, tgt = act.source, act.target
