@@ -932,6 +932,12 @@ class HarvestEffect:
             c.ui_meta.name,
         )
 
+class MaidenCostumeEffect:
+    def effect_string(act):
+        return u'|G【%s】|r美美的穿着巫女服，却在危险来到的时候踩到了裙边……' % (
+            act.target.ui_meta.char_name,
+        )
+
 class MaidenCostumeCard:
     # action_stage meta
     name = u'巫女服'

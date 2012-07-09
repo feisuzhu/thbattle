@@ -340,6 +340,14 @@ class RepentanceStickHandler(EventHandler):
 class MaidenCostumeSkill(ShieldSkill):
     pass
 
+class MaidenCostumeEffect(GenericAction):
+    def apply_action(self):
+        g = Game.getgame()
+        dmg = Damage(source=self.source, target=self.target)
+        dmg.associated_action = self
+        g.process_action(dmg)
+        return True
+
 @register_eh
 class MaidenCostumeHandler(EventHandler):
     execute_before = ('RejectHandler', )
@@ -348,10 +356,9 @@ class MaidenCostumeHandler(EventHandler):
             target = act.target
             if target.has_skill(MaidenCostumeSkill):
                 act.cancelled = True
-                g = Game.getgame()
-                dmg = Damage(source=act.source, target=target)
-                dmg.associated_action = act
-                g.process_action(dmg)
+                Game.getgame().process_action(
+                    MaidenCostumeEffect(source=act.source, target=target)
+                )
         return act
 
 class IbukiGourdSkill(RedUFOSkill):
