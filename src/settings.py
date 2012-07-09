@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 33'
+VERSION = 'THBATTLE V1.0b incr 36'
 
 import re
 
@@ -85,9 +85,12 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 |B最近bug修复/加强：|r
-新人物：西瓜
-红美铃更新后恶心丸结算混乱的修复
-新人物：红美铃
+二小姐设定调整
+光学迷彩实现调整，现在正确区分打出与使用（美铃相关）
+楼观剑实现调整，现在为使用而不是打出弹幕（美铃相关），同时正确处理酒效果
+调教剑：某些极端情况的酒状态结算bug修复
+星熊永仪：怪力调整，现在正常与各种武器效果结算
+美铃发动蓬莱玉枝不触发龙拳的bug修复
 
 另外，如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
 
