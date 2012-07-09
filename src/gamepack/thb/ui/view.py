@@ -43,6 +43,37 @@ class UIEventHook(EventHandler):
 
         return f(data)
 
+class DeckIndicator(Control):
+    def draw(self):
+        w, h = self.width, self.height
+        g = self.parent.game
+        try:
+            n = len(g.deck.cards)
+        except AttributeError:
+            return
+
+        glPolygonMode(GL_BACK, GL_LINE)
+
+        glColor3f(*[i/255.0 for i in Colors.blue.light])
+        glRectf(0, 0,  w, h)
+        glColor3f(*[i/255.0 for i in Colors.blue.heavy])
+        glRectf(0, h, w, 0)
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+        glColor3f(1, 1, 1)
+        try:
+            nums = common_res.num
+            seq = str(n)
+            ox = (w - len(seq)*14)//2
+            oy = (h - nums[0].height)//2
+            for i, ch in enumerate(seq):
+                n = ord(ch) - ord('0')
+                #x, y = w - 34 + ox + i*14, 68
+                nums[n].blit(ox + i*14, oy)
+        except AttributeError as e:
+            pass
+
 class THBattleUI(Control):
     portrait_location = [
         (60, 300, Colors.blue),
@@ -58,6 +89,10 @@ class THBattleUI(Control):
         self.hook = hook = UIEventHook()
         game.event_handlers.append(hook)
         Control.__init__(self, *a, **k)
+
+        self.deck_indicator = DeckIndicator(
+            parent=self, x=30, y=680, width=50, height=25,
+        )
 
         self.handcard_area = HandCardArea(
             parent=self, x=238, y=9, zindex=3,

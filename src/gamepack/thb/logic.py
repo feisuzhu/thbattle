@@ -52,6 +52,8 @@ class THBattle(Game):
         # game started, init state
         from cards import Card, Deck, CardList
 
+        self.deck = Deck()
+
         ehclasses = list(action_eventhandlers)
 
         self.forces = forces = BatchList([PlayerList(), PlayerList()])
@@ -183,8 +185,6 @@ class THBattle(Game):
             p.life = p.maxlife
             p.dead = False
             p.need_shuffle = False
-
-        self.deck = Deck()
 
         self.emit_event('game_begin', self)
 

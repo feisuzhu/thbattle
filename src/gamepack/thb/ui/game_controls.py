@@ -695,7 +695,7 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             nums = common_res.num
             for i, ch in enumerate(seq):
                 n = ord(ch) - ord('0')
-                x, y = w - 34 + ox + i*14, 68
+                #x, y = w - 34 + ox + i*14, 68
                 nums[n].blit(w - 34 + ox + i*14, 68)
         except AttributeError as e:
             pass
