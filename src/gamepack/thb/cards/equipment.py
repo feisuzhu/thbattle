@@ -717,6 +717,7 @@ class YoumuPhantomHandler(EventHandler):
 
         if _from is not None and _from.type == CardList.EQUIPS:
             src = _from.owner
+            if src.dead: return arg
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
                     src.maxlife -= 1
