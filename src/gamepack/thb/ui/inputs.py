@@ -12,7 +12,7 @@ import itertools
 
 from .game_controls import *
 
-from gamepack.thb import actions, cards
+from gamepack.thb import actions as thbactions, cards as thbcards
 from game.autoenv import Game
 
 from utils import DataHolder, BatchList, IRP
@@ -148,12 +148,16 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
 
             cond = getattr(act, 'cond', False)
 
-            if self.for_reject:
+            while self.for_reject:
                 self.set_text(u'自动结算好人卡…')
                 if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
                     self.irp.input = None
                     self.irp.complete()
                     return
+
+                if isinstance(act.target_act, thbcards.DelayedSpellCardAction):
+                    break
+
                 if act.target_act.source is act.target_act.target is g.me:
                     # my sc
                     self.irp.input = None
@@ -165,6 +169,7 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                         self.irp.input = None
                         self.irp.complete()
                         return
+                break
 
             if cond:
                 if not self.auto_chosen:
@@ -271,7 +276,7 @@ class UIDoActionStage(UISelectTarget):
                 if target_list is not None:
                     parent.set_selected_players(target_list)
 
-                    calc = actions.CalcDistance(g.me, card)
+                    calc = thbactions.CalcDistance(g.me, card)
                     g.process_action(calc)
 
                     rst = calc.validate()
@@ -293,7 +298,7 @@ class UIDoActionStage(UISelectTarget):
                 self.set_text(reason)
                 if rst:
                     if tl_valid:
-                        act = actions.LaunchCard(g.me, target_list, card)
+                        act = thbactions.LaunchCard(g.me, target_list, card)
                         if act.can_fire():
                             self.set_valid()
                         else:
@@ -438,10 +443,10 @@ class UIChooseGirl(Panel):
 
 class UIChoosePeerCard(Panel):
     lookup = {
-        cards.CardList.HANDCARD: u'手牌区',
-        cards.CardList.SHOWNCARD: u'明牌区',
-        cards.CardList.EQUIPS: u'装备区',
-        cards.CardList.FATETELL: u'判定区',
+        thbcards.CardList.HANDCARD: u'手牌区',
+        thbcards.CardList.SHOWNCARD: u'明牌区',
+        thbcards.CardList.EQUIPS: u'装备区',
+        thbcards.CardList.FATETELL: u'判定区',
     }
 
     def __init__(self, irp, *a, **k):
