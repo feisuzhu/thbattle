@@ -66,9 +66,9 @@ class ExtremeIntelligenceAction(GenericAction):
 
     def apply_action(self):
         p = self.source
-        p.tags['ran_ei_tag'] = p.tags['turn_count'] + 1
         cards = user_choose_cards(self, p, [p.cards, p.showncards, p.equips])
         if not cards: return False
+        p.tags['ran_ei_tag'] = p.tags['turn_count'] + 1
         g = Game.getgame()
         g.process_action(DropCards(p, cards))
 
