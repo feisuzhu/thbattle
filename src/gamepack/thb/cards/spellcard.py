@@ -397,25 +397,25 @@ class DollControl(InstantSpellCardAction):
         from .definition import AttackCard
         return bool(cl) and cl[0].is_card(AttackCard)
 
-class DonationBox(InstantSpellCardAction):
+class DonationBoxEffect(InstantSpellCardAction):
     def apply_action(self):
-        tl = self.target_list
+        t = self.target
         src = self.source
         g = Game.getgame()
-        for t in tl:
-            cats = [
-                t.cards,
-                t.showncards,
-                t.equips,
-            ]
-            cards = user_choose_cards(self, t, cats)
-            if not cards:
-                cards = [random_choose_card(cats)]
 
-            if cards:
-                src.reveal(cards)
-                migrate_cards(cards, src.cards)
-                src.need_shuffle = True
+        cats = [
+            t.cards,
+            t.showncards,
+            t.equips,
+        ]
+        cards = user_choose_cards(self, t, cats)
+        if not cards:
+            cards = [random_choose_card(cats)]
+
+        if cards:
+            src.reveal(cards)
+            migrate_cards(cards, src.cards)
+            src.need_shuffle = True
 
         return True
 
@@ -423,6 +423,13 @@ class DonationBox(InstantSpellCardAction):
         from .base import CardList
         return len(cards) == 1 and cards[0].resides_in.type != CardList.FATETELL
 
+    def is_valid(self):
+        t = self.target
+        if t.cards or t.showncards or t.equips: return True
+        return False
+
+class DonationBox(ForEach):
+    action_cls = DonationBoxEffect
     def is_valid(self):
         tl = self.target_list
         if not 0 < len(tl) <= 2: return False

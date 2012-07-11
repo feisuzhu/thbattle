@@ -1517,8 +1517,8 @@ class DonationBoxCard:
         if not n:
             return (False, u'请选择1-2名玩家')
 
-        if g.me in tl:
-            return (False, u'你不能选择自己作为目标')
+        #if g.me in tl:
+        #    return (False, u'你不能选择自己作为目标')
 
         for t in tl:
             if not (t.cards or t.showncards or t.equips):
@@ -1526,7 +1526,7 @@ class DonationBoxCard:
 
         return (True, u'纳奉！纳奉！')
 
-class DonationBox:
+class DonationBoxEffect:
     # choose card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
