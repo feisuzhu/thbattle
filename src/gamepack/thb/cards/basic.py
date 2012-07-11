@@ -152,8 +152,8 @@ class WineHandler(EventHandler):
                 src = act.source
                 if src.tags['wine']:
                     Game.getgame().process_action(SoberUp(src, src))
-        elif evt_type == 'action_apply' and isinstance(act, ActionStage):
-            src = act.actor
+        elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+            src = act.target
             if src.tags['wine']:
                 Game.getgame().process_action(SoberUp(src, src))
         elif evt_type == 'action_before' and isinstance(act, Damage):
