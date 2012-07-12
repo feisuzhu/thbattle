@@ -1,1 +1,1 @@
-from logic import THBattle
+from logic import THBattle, THBattle1v1DBG

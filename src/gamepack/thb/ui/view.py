@@ -307,3 +307,12 @@ class THBattleUI(Control):
         return True
 
 THBattleUI.register_event_type('on_selection_change')
+
+
+class THBattleUI1v1DBG(THBattleUI):
+    name = u'符斗祭 - 调试用1v1'
+    logo = gres.thblogo_1v1dbg
+    portrait_location = [
+        (250, 300, Colors.orange),
+        (450, 300, Colors.blue),
+    ]

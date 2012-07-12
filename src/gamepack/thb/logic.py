@@ -231,3 +231,11 @@ class THBattle(Game):
             all(p.dead or p.dropped for p in f)
             for f in forces
         )
+
+class THBattle1v1DBG(THBattle):
+    n_persons = 2
+
+    @staticmethod
+    def get_ui_class():
+        from ui import THBattleUI1v1DBG
+        return THBattleUI1v1DBG
