@@ -41,10 +41,10 @@ class ActFirst(object): # for choose_option
     pass
 
 class THBattle(Game):
-    name = u'符斗祭 - 3v3 - 休闲'
     n_persons = 6
 
-    def get_ui_class(self):
+    @staticmethod
+    def get_ui_class():
         from ui import THBattleUI
         return THBattleUI
 

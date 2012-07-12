@@ -8,7 +8,7 @@ from client.ui import soundmgr
 import  client.ui.resource as common_res
 from client.core import Executive
 from pyglet.text import Label
-from utils import Rect, rect_to_dict as r2d
+from utils import Rect, rect_to_dict as r2d, BatchList
 
 import logging
 log = logging.getLogger('UI_Screens')
@@ -237,6 +237,79 @@ class LoginScreen(Screen):
 
 class GameHallScreen(Screen):
     class GameList(Dialog):
+        class CreateGamePanel(Panel):
+            def __init__(self, *a, **k):
+                Panel.__init__(
+                    self, width=550, height=340,
+                    zindex=10000,
+                    *a, **k
+                )
+                self.x = (self.overlay.width - 550) // 2
+                self.y = (self.overlay.height - 340) // 2
+
+                self.btncreate = btncreate = Button(
+                    u'创建游戏', parent=self, x=440, y=75, width=90, height=40
+                )
+                self.btncancel = btncancel = Button(
+                    u'取消', parent=self, x=440, y=25, width=90, height=40
+                )
+                btncreate.state = Button.DISABLED
+
+                txtbox = self.txtgamename = TextBox(
+                    parent=self, x=95, y=270, width=420, height=22,
+                )
+                uname = Executive.server.username
+                if len(uname) > 8:
+                    uname = uname[:6] + u'……'
+                txtbox.text = uname + u'的游戏'
+
+                self.labels = BatchList([
+                    pyglet.text.Label(
+                        u'创建游戏房间', font_size=12, x=275, y=306,
+                        anchor_x = 'center', anchor_y = 'bottom',
+                        color = Colors.green.heavy + (255, ),
+                    ),
+                    pyglet.text.Label(
+                        u'房间名称：', font_size=9, x=30, y=275,
+                        anchor_x = 'left', anchor_y = 'bottom',
+                        color = Colors.green.heavy + (255, ),
+                    )
+                ])
+
+                from gamepack import gamemodes as modes
+
+                self.selectors = selectors = []
+
+                def on_select():
+                    btncreate.state = Button.NORMAL
+
+                for i, (gname, gcls) in enumerate(modes.items()):
+                    y, x = divmod(i, 3)
+                    x, y = 30 + 170*x, 150 - 125*y
+                    s = ImageSelector(
+                        gcls.get_ui_class().logo, selectors,
+                        parent=self, x=x, y=y
+                    )
+                    s.gametype = gname
+                    s.event(on_select)
+                    selectors.append(s)
+
+                @btncreate.event
+                def on_click():
+                    gtype = ImageSelector.get_selected(selectors).gametype
+                    roomname = txtbox.text[:15]
+                    Executive.call('create_game', ui_message, [gtype, roomname])
+
+                @btncancel.event
+                def on_click():
+                    self.delete()
+
+            def draw(self):
+                Panel.draw(self)
+                with shaders.FontShadow as fs:
+                    fs.uniform.shadow_color = (0.81, 0.94, 0.61, 0.8)
+                    self.labels.draw()
+
         def __init__(self, p):
             Dialog.__init__(
                 self, parent=p, caption=u'当前大厅内的游戏',
@@ -261,10 +334,7 @@ class GameHallScreen(Screen):
 
             @self.btn_create.event
             def on_click():
-                uname = Executive.server.username
-                if len(uname) > 8:
-                    uname = uname[:6] + u'……'
-                Executive.call('create_game', ui_message, ['THBattle', u'[' + uname + u']的游戏'])
+                self.CreateGamePanel(parent=self.overlay)
 
             @self.btn_quickstart.event
             def on_click():
@@ -287,7 +357,7 @@ class GameHallScreen(Screen):
                 for gi in current_games:
                     gcls = modes.get(gi['type'], None)
                     if gcls:
-                        gname = gcls.name
+                        gname = gcls.get_ui_class().name
                         n_persons = gcls.n_persons
                     else:
                         gname = u'未知游戏类型'

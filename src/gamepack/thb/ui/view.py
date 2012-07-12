@@ -75,6 +75,9 @@ class DeckIndicator(Control):
             pass
 
 class THBattleUI(Control):
+    name = u'符斗祭 - 3v3 - 休闲'
+    logo = gres.thblogo_3v3
+
     portrait_location = [
         (60, 300, Colors.blue),
         (250, 450, Colors.orange),

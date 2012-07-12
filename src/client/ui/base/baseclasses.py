@@ -272,31 +272,8 @@ class Overlay(Control):
         return pyglet.event.EVENT_HANDLED
 
     def _position_events(self, _type, x, y, *args):
-        cap_list = self._capture_events.setdefault(_type, [])
+        cap_list = self._capture_events.setdefault(_type, [])[:]
         def dispatch(this, lx, ly):
-            '''
-            # Every hit control get event
-
-            l = this.controls_frompoint(lx, ly)
-
-            last = set(this._controls_hit)
-            now = set(l)
-            for c in last - now:
-                c.dispatch_event('on_mouse_leave', lx - c.x, ly - c.y)
-
-            for c in now - last:
-                c.dispatch_event('on_mouse_enter', lx - c.x, ly - c.y)
-
-            this._controls_hit = l
-
-            if not l:
-                if this is not self:
-                    this.dispatch_event(_type, lx, ly, *args)
-            else:
-                for c in l:
-                    dispatch(c, lx-c.x, ly-c.y)
-            '''
-
             # Top most control get event
             c = this.control_frompoint1(lx, ly)
             lc = this._control_hit
@@ -320,8 +297,7 @@ class Overlay(Control):
                     c.dispatch_event(_type, lx - c.x, ly - c.y, *args)
 
         # capturing events
-        if cap_list:
-            con = cap_list[-1]
+        for con in cap_list:
             ax, ay = con.abs_coords()
             con.dispatch_event(_type, x-ax, y-ay, *args)
         dispatch(self, x, y)

@@ -8,6 +8,8 @@ with ResLoader(__file__) as args:
 
     bgm_game = lambda: ldr.media('bgm_game.ogg')
 
+    thblogo_3v3 = tx('thblogo_3v3.png')
+
     card_attack = tx('card_attack.png')
     tag_attacked = anim('tag_attacked.png', [10000], True)
     card_graze = tx('card_graze.png')

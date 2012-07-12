@@ -635,6 +635,7 @@ class TextBox(Control):
 
     def on_mouse_release(self, x, y, btn, modifier):
         self.release_capture('on_mouse_release', 'on_mouse_drag')
+        return True
 
     # TODO: def on_key_press(...): #handle Ctrl+C Ctrl+V Ctrl+A
     def on_text(self, text):
