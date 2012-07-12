@@ -1153,7 +1153,7 @@ class AyaRoundfanCard:
     image_small = gres.card_ayaroundfan_small
     description = (
         u'|R团扇|r\n\n'
-        u'攻击距离3，当你使用【弹幕】命中时，可以另外弃一张牌，卸掉目标的一件装备。'
+        u'攻击距离3，当你使用【弹幕】命中时，可以弃一张手牌，卸掉目标的一件装备。'
     )
     is_action_valid = equip_iav
 
