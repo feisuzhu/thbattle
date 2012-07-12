@@ -314,49 +314,24 @@ class UIDoActionStage(UISelectTarget):
         parent.end_select_player()
 
 class UIChooseGirl(Panel):
-    class GirlSelector(Control, BalloonPrompt):
-        hover_alpha = InterpDesc('_hover_alpha')
-        auxfbo = Framebuffer()
-        def __init__(self, choice, *a, **k):
-            Control.__init__(
-                self, width=145, height=98,
-                *a, **k
-            )
-            self.draw_frame = False
-            self.hover_alpha = 0.0
+    class GirlSelector(ImageSelector, BalloonPrompt):
+        def __init__(self, choice, group, *a, **k):
+
             self.choice = choice
             cc = choice.char_cls
             meta = cc.ui_meta
-            pimg = self.port_image = meta.port_image
+            pimg = meta.port_image
             self.char_name = meta.char_name
             self.char_maxlife = cc.maxlife
+
+            ImageSelector.__init__(
+                self, pimg, group,
+                *a, **k
+            )
+
             self.init_balloon(meta.description)
 
-            # TODO: name and maxlife
-            self.grayed_image = pyglet.image.Texture.create(
-                pimg.width, pimg.height
-            )
-            fbo = self.auxfbo
-            with fbo:
-                fbo.texture = self.grayed_image
-                glColor3f(1, 1, 1)
-                with shaders.Grayscale:
-                    pimg.blit(0, 0)
-
-        def on_mouse_enter(self, x, y):
-            self.hover_alpha = 0.4
-
-        def on_mouse_leave(self, x, y):
-            self.hover_alpha = LinearInterp(
-                0.4, 0, 0.3
-            )
-
-        def on_mouse_click(self, x, y, button, modifier):
-            for gs in self.parent.girl_selectors:
-                gs.draw_frame = False
-            self.draw_frame = True
-
-        def on_mouse_dblclick(self, x, y, button, modifier):
+        def on_dblclick(self):
             p = self.parent
             c = self.choice
             if not c.chosen and p.can_select:
@@ -365,26 +340,6 @@ class UIChooseGirl(Panel):
                 irp.input = c.cid
                 irp.complete()
                 p.end_selection()
-
-        def draw(self):
-            glColor3f(1, 1, 1)
-            if self.choice.chosen:
-                self.grayed_image.blit(0, 0)
-            else:
-                self.port_image.blit(0, 0)
-
-            glColor3f(0.757, 1.0, 0.384)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            glRectf(0, 0, self.width, self.height)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-
-            if self.draw_frame:
-                common_res.choosegirl_shine.blit(-11, -11)
-
-            a = self.hover_alpha
-            if a:
-                glColor4f(1, 1, 0.8, a)
-                glRectf(0, 0, self.width, self.height)
 
     def __init__(self, attachment, *a, **k):
         w, h = 500, 390
@@ -397,18 +352,19 @@ class UIChooseGirl(Panel):
         choices = self.choices = [c for c in attachment if c.char_cls]
         assert len(choices) == 9
         GS = UIChooseGirl.GirlSelector
-        self.girl_selectors = self.control_list
+        self.selectors = selectors = []
         for i, c in enumerate(choices):
             y, x = divmod(i, 3)
             x, y = 15 + 160*x, 45 + 113*y
-            GS(parent=self, choice=c, x=x, y=y)
+            selectors.append(
+                GS(c, selectors, parent=self, x=x, y=y)
+            )
 
         self.pbar = BigProgressBar(
             parent=self, x=(w-250)//2, y=9, width=250,
         )
 
         self.pbar.value = 1.0
-
 
     def on_message(self, _evt, *args):
         if _evt == 'evt_user_input':
@@ -427,6 +383,13 @@ class UIChooseGirl(Panel):
             tag = args[0]
             if tag == 'choose_girl':
                 self.cleanup()
+
+        elif _evt == 'evt_girl_chosen':
+            choice = args[0]
+            for c in self.selectors:
+                if c.choice is choice:
+                    c.disable()
+                    break
 
     def cleanup(self):
         if self.irp:

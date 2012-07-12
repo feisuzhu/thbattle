@@ -104,7 +104,7 @@ with ResLoader(__file__) as args:
     num = pyglet.image.ImageGrid(img('num.png'), 1, 10)
     num = pyglet.image.TextureGrid(num)
 
-    choosegirl_shine = tx('choosegirl_shine.png')
+    imagesel_shine = tx('imagesel_shine.png')
 
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)

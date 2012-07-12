@@ -5,7 +5,7 @@ from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import *
 from client.ui.base.interp import *
-from client.ui import resource as common_res
+from client.ui import resource as common_res, shaders
 from utils import Rect, ScissorBox, Framebuffer, dilate
 
 from math import ceil
@@ -1251,3 +1251,82 @@ class Panel(Control):
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
         self.draw_subcontrols()
+
+class ImageSelector(Control):
+    hover_alpha = InterpDesc('_hover_alpha')
+    auxfbo = Framebuffer()
+    def __init__(self, image, group, *a, **k):
+        Control.__init__(
+            self, width=145, height=98,
+            *a, **k
+        )
+
+        self.selected = False
+        self.disabled = False
+        self.hover_alpha = 0.0
+        self.image = image
+        self.group = group
+
+        self.grayed_image = pyglet.image.Texture.create(
+            image.width, image.height
+        )
+
+        fbo = self.auxfbo
+        with fbo:
+            fbo.texture = self.grayed_image
+            glColor3f(1, 1, 1)
+            with shaders.Grayscale:
+                image.blit(0, 0)
+
+    def on_mouse_enter(self, x, y):
+        self.hover_alpha = 0.4
+
+    def on_mouse_leave(self, x, y):
+        self.hover_alpha = LinearInterp(
+            0.4, 0, 0.3
+        )
+
+    def on_mouse_click(self, x, y, button, modifier):
+        if self.disabled: return
+        for gs in self.group:
+            gs.selected = False
+        self.selected = True
+        self.dispatch_event('on_select')
+
+    def on_mouse_dblclick(self, x, y, button, modifier):
+        if self.disabled: return
+        self.dispatch_event('on_dblclick')
+
+    def draw(self):
+        glColor3f(1, 1, 1)
+        if self.disabled:
+            self.grayed_image.blit(0, 0)
+        else:
+            self.image.blit(0, 0)
+
+        glColor3f(0.757, 1.0, 0.384)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glRectf(0, 0, self.width, self.height)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+        if self.selected:
+            common_res.imagesel_shine.blit(-11, -11)
+
+        a = self.hover_alpha
+        if a:
+            glColor4f(1, 1, 0.8, a)
+            glRectf(0, 0, self.width, self.height)
+
+    def disable(self):
+        self.disabled = True
+        self.selected = False
+
+    @staticmethod
+    def get_selected(group):
+        for c in group:
+            if c.selected:
+                return c
+        return None
+
+ImageSelector.register_event_type('on_select')
+ImageSelector.register_event_type('on_dblclick')
