@@ -24,6 +24,8 @@ else:
 
 VERSION = 'THBATTLE V1.0b incr 36'
 
+HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
+
 import re
 
 UPDATE_IGNORES = re.compile(r'''

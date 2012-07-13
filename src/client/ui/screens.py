@@ -2,7 +2,7 @@
 import pyglet
 from pyglet.gl import *
 from client.ui.base import *
-from client.ui.base import message as ui_message
+from client.ui.base import message as ui_message, schedule as ui_schedule
 from client.ui.controls import *
 from client.ui import soundmgr
 import  client.ui.resource as common_res
@@ -433,6 +433,37 @@ class GameHallScreen(Screen):
                 )
                 box.append(t)
 
+    class NoticeBox(Dialog):
+        def __init__(self, parent):
+            Dialog.__init__(
+                self, x=750, y=20, width=240, height=180,
+                caption=u'花果子念报', parent=parent,
+            )
+            ta = self.textarea = TextArea(
+                parent=self, x=2, y=10+2, width=240-4, height=180-24-2-10
+            )
+            ta.text = u'正在获取最新新闻……'
+
+            def update(content):
+                try:
+                    ta.text = content.decode('utf-8')
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc(e)
+                    ta.text = u'|R无法显示新闻！|r'
+
+            def retrieve():
+                from settings import HALL_NOTICE_URL as url
+                import urllib2
+                txt = urllib2.urlopen(url).read()
+                ui_schedule(update, txt)
+
+            def cb():
+                import gevent
+                gevent.spawn(retrieve)
+
+            Executive.call('run_callback', cb)
+
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
         self.bg = common_res.bg_gamehall
@@ -442,7 +473,7 @@ class GameHallScreen(Screen):
         chat = self.chat_box = GameHallScreen.ChatBox(parent=self)
         chat.text = u'您现在处于游戏大厅！\n'
         self.playerlist = GameHallScreen.OnlineUsers(parent=self)
-        self.userinfo_box = Dialog(caption=u'你的战绩', parent=self, x=750, y=20, width=240, height=180)
+        self.noticebox = GameHallScreen.NoticeBox(parent=self)
 
         Executive.call('get_hallinfo', ui_message, None)
 

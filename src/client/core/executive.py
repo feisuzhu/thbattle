@@ -184,6 +184,10 @@ class Executive(object):
             self.server.username = arg[0]
             self.server.write(['auth', arg])
 
+        @handler
+        def run_callback(self, cb, *args):
+            cb(*args)
+
         # @handler def register(...): ...
         def simple_gm_op(_type):
             def wrapper(self, cb, *args):
