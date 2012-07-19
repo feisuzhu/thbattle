@@ -136,11 +136,18 @@ class Framebuffer(object):
     def _set_texture(self, t):
         self._texture = t
         from pyglet import gl
-        gl.glFramebufferTexture2DEXT(
-            gl.GL_FRAMEBUFFER_EXT,
-            gl.GL_COLOR_ATTACHMENT0_EXT,
-            t.target, t.id, 0,
-        )
+        try:
+            gl.glFramebufferTexture2DEXT(
+                gl.GL_FRAMEBUFFER_EXT,
+                gl.GL_COLOR_ATTACHMENT0_EXT,
+                t.target, t.id, 0,
+            )
+        except gl.GLException as e:
+            # HACK: Some Intel card return errno == 1286L
+            # which means GL_INVALID_FRAMEBUFFER_OPERATION_EXT
+            # but IT ACTUALLY WORKS FINE!!
+            pass
+
         gl.glViewport(0, 0, t.width, t.height)
 
         gl.glMatrixMode(gl.GL_PROJECTION)
