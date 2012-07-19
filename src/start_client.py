@@ -106,8 +106,7 @@ def my_errcheck(result, func, arguments):
     error = gl.glGetError()
     if error:
         msg = ctypes.cast(gl.gluErrorString(error), ctypes.c_char_p).value
-        if msg:
-            raise GLException(msg)
+        raise gl.GLException((error, msg))
     return result
 
 gllib.errcheck = my_errcheck
