@@ -67,10 +67,12 @@ PlayerPlaceHolder = PlayerPlaceHolder()
 def new_user(user):
     users[user.get_userid()] = user
     user.state = 'hang'
+    log.info(u'User %s joined, online user %d' % (user.username, len(users)))
     evt_datachange.set()
 
 def user_exit(user):
     del users[user.get_userid()]
+    log.info(u'User %s leaved, online user %d' % (user.username, len(users)))
     evt_datachange.set()
 
 def _notify_playerchange(game):
