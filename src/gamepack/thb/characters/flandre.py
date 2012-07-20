@@ -27,8 +27,8 @@ class CriticalStrikeHandler(EventHandler):
 
             act.amount = max(0, act.amount - 1)
 
-        elif evt_type == 'action_after' and isinstance(act, ActionStage):
-            src = act.actor
+        elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
+            src = act.target
             if not src.has_skill(CriticalStrike): return act
             st = src.tags
             st['flan_lasttarget'] = None

@@ -368,8 +368,8 @@ class IbukiGourdSkill(RedUFOSkill):
 class IbukiGourdHandler(EventHandler):
     execute_after = ('WineHandler', )
     def handle(self, evt_type, arg):
-        if evt_type == 'action_after' and isinstance(arg, ActionStage):
-            actor = arg.actor
+        if evt_type == 'action_after' and isinstance(arg, PlayerTurn):
+            actor = arg.target
             if actor.has_skill(IbukiGourdSkill):
                 g = Game.getgame()
                 g.process_action(basic.Wine(actor, actor))
