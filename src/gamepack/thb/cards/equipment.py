@@ -790,7 +790,7 @@ class GrimoireHandler(EventHandler):
             if c.is_card(GrimoireSkill):
                 src = act.source
                 t = src.tags
-                if not t['attack_num'] or t['turn_count'] <= t['grimoire_tag']:
+                if t['attack_num'] <= 0 or t['turn_count'] <= t['grimoire_tag']:
                     return (act, False)
         elif evt_type == 'action_after' and isinstance(arg, LaunchCard):
             c = arg.card
