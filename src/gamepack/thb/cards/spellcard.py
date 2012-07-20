@@ -8,6 +8,7 @@ from game.autoenv import PlayerList
 
 class SpellCardAction(UserAction): pass
 class InstantSpellCardAction(SpellCardAction): pass
+class NonResponsiveInstantSpellCardAction(InstantSpellCardAction): pass
 
 class Demolition(InstantSpellCardAction):
     # 城管执法
@@ -55,6 +56,8 @@ class RejectHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, SpellCardAction):
             if act.cancelled: return act # some other thing have done the job
+            if isinstance(act, NonResponsiveInstantSpellCardAction):
+                return act
 
             g = Game.getgame()
             self.target_act = act # for ui

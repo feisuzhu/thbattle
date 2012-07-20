@@ -340,7 +340,7 @@ class RepentanceStickHandler(EventHandler):
 class MaidenCostumeSkill(ShieldSkill):
     pass
 
-class MaidenCostumeEffect(GenericAction):
+class MaidenCostumeEffect(spellcard.NonResponsiveInstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         dmg = Damage(source=self.source, target=self.target)
@@ -356,9 +356,9 @@ class MaidenCostumeHandler(EventHandler):
             target = act.target
             if target.has_skill(MaidenCostumeSkill):
                 act.cancelled = True
-                Game.getgame().process_action(
-                    MaidenCostumeEffect(source=act.source, target=target)
-                )
+                nact = MaidenCostumeEffect(source=act.source, target=target)
+                nact.associated_card = act.associated_card
+                Game.getgame().process_action(nact)
         return act
 
 class IbukiGourdSkill(RedUFOSkill):
