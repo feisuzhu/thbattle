@@ -87,8 +87,11 @@ try:
 
     FontShadow = ShaderProgram(FragmentShader(thin))
 
-except ShaderError as e:
-    log.error(e.infolog)
+except Exception as e:
+    if isinstance(e, ShaderError):
+        log.error(e.infolog)
+    else:
+        log.exception(e)
     FontShadowThick = FontShadow = DummyShader
 
 try:
@@ -103,8 +106,11 @@ try:
         '''
     )
     Grayscale = ShaderProgram(fshader)
-except ShaderError as e:
-    log.error(e.infolog)
+except Exception as e:
+    if isinstance(e, ShaderError):
+        log.error(e.infolog)
+    else:
+        log.exception(e)
     Grayscale = DummyShader
 
 
@@ -154,6 +160,9 @@ try:
     )
     GaussianBlurVertical = ShaderProgram(fshader)
 
-except ShaderError as e:
-    log.error(e.infolog)
+except Exception as e:
+    if isinstance(e, ShaderError):
+        log.error(e.infolog)
+    else:
+        log.exception(e)
     GaussianBlurHorizontal = GaussianBlurVertical = DummyShader
