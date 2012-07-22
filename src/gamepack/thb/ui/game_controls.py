@@ -4,6 +4,8 @@ from client.ui.controls import *
 from client.ui import resource as common_res
 from client.ui import shaders
 
+from .. import actions
+
 class CardSprite(Control, BalloonPrompt):
     x = InterpDesc('_x')
     y = InterpDesc('_y')
@@ -525,9 +527,23 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
 
         self.grayed_tex = None
 
-        #self.prompt_area = PromptControl(
-        #    parent=self, x=2, y=74, width=145, height=96, zindex=-1,
-        #)
+        w, h = self.width, self.height
+
+        self.identity_btn = b = Button(
+            u'？', parent = self,
+            x=w-34-4, y=h-24-10-18,
+            width=34, height=18,
+        )
+
+        @b.event
+        def on_click():
+            l = self.parent.game.ui_meta.identity_table.values()
+            try:
+                i = (l.index(b.caption) + 1) % len(l)
+            except ValueError:
+                i = 0
+            b.caption = l[i]
+            b.update()
 
         @self.equipcard_area.event
         def on_selection_change():
@@ -723,3 +739,15 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
 
     def tagarrange(self):
         self._tagarrange_funcs[self.tag_placement]()
+
+    def on_message(self, _type, *args):
+        if _type == 'evt_action_after' and isinstance(args[0], actions.RevealIdentity):
+            act = args[0]
+            if act.target is self.player:
+                btn = self.identity_btn
+                tbl = self.parent.game.ui_meta.identity_table
+                btn.caption = tbl[act.target.identity.type]
+                btn.state = Button.DISABLED
+                btn.update()
+
+

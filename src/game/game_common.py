@@ -257,3 +257,16 @@ class SyncPrimitive(object):
 
     def __data__(self):
         return self.value
+
+    @classmethod
+    def do_sync(cls, val, to):
+        if isinstance(val, list):
+            l = [cls[i] for i in val]
+            to.reveal(l)
+            return val.__class__(
+                i.value for i in l
+            )
+        else:
+            v = cls(val)
+            to.reveal(v)
+            return v.value

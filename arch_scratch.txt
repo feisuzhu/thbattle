@@ -366,3 +366,24 @@ class SyncInt(int, Synchronizable): pass
 SyncInt.parse = SyncInt
 
 .....
+
+----------------------------------
+
+class CardChoice(object):
+    def sync(self, data):
+        if #data valid#:
+            self.card = lookup(data)
+            return True
+        else:
+            return False
+
+    def __data__(self):
+        return encode_for_transmission(self)
+
+class SkillChoice(object):
+    ...
+
+
+input = actor.user_input('action_stage_usecard', expects=[CardChoice(), SkillChoice(), PlayerChoice()])
+# SUCCEEDED: return [CardChoice instance, SkillChoice instance, PlayerChoice instance] # same instance in 'expects' above
+# FAILED: return None

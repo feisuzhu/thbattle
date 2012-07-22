@@ -9,36 +9,19 @@ import random
 
 from utils import BatchList, check, CheckFailed, classmix
 
+from .common import *
+
 import logging
 log = logging.getLogger('THBattle')
 
-def mixin_character(player, charcls):
-    pcls = player.__class__
-    player.__class__ = classmix(pcls, charcls)
-
-class CharChoice(object):
-    chosen = None
-    def __init__(self, char_cls, cid):
-        self.char_cls = char_cls
-        self.cid = cid
-
-    def __data__(self):
-        return dict(
-            char_cls=self.char_cls.__name__,
-            cid=self.cid,
-        )
-
-    def sync(self, data):
-        from characters import characters as chars
-        for cls in chars:
-            if cls.__name__ == data['char_cls']:
-                self.char_cls = cls
-                break
-        else:
-            self.char_cls = None
-
 class ActFirst(object): # for choose_option
     pass
+
+class Identity(PlayerIdentity):
+    class TYPE:
+        HIDDEN = 0
+        HAKUREI = 1
+        MORIYA = 2
 
 class THBattle(Game):
     n_persons = 6
@@ -173,7 +156,7 @@ class THBattle(Game):
         #self.event_handlers[:] = EventHandler.make_list(ehclasses) + self.event_handlers
         self.event_handlers.extend(EventHandler.make_list(ehclasses))
 
-        for p in self.players:
+        for i, p in enumerate(self.players):
             p.cards = CardList(p, CardList.HANDCARD) # Cards in hand
             p.showncards = CardList(p, CardList.SHOWNCARD) # Cards which are shown to the others, treated as 'Cards in hand'
             p.equips = CardList(p, CardList.EQUIPS) # Equipments
@@ -185,6 +168,11 @@ class THBattle(Game):
             p.life = p.maxlife
             p.dead = False
             p.need_shuffle = False
+            p.identity = Identity()
+            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
+
+        for p in self.players:
+            self.process_action(RevealIdentity(p))
 
         self.emit_event('game_begin', self)
 

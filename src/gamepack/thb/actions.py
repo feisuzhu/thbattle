@@ -691,3 +691,12 @@ class SkillAwake(GenericAction):
         assert s
         self.target.skills.append(s)
         return True
+
+class RevealIdentity(GenericAction):
+    def __init__(self, target):
+        self.target = target
+
+    def apply_action(self):
+        tgt = self.target
+        Game.getgame().players.reveal(tgt.identity)
+        return True

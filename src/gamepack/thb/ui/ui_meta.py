@@ -54,6 +54,16 @@ class ActFirst:
     choose_option_buttons = ((u'先出牌', True), (u'弃权', False))
     choose_option_prompt = u'你要首先出牌吗（首先出牌敌方势力开局摸5张牌）？'
 
+class THBattle:
+    # identity meta
+    T = thb3v3.Identity.TYPE
+    identity_table = {
+        T.HIDDEN: u'？',
+        T.HAKUREI: u'博丽',
+        T.MORIYA: u'守矢'
+    }
+    del T
+
 # -----END THB3v3 UI META-----
 
 
@@ -128,6 +138,15 @@ class Fatetell:
         return u'|G【%s】|r进行了一次判定，判定结果为%s' % (
             tgt.ui_meta.char_name,
             card_suitnum(act.card)
+        )
+
+class RevealIdentity:
+    def effect_string(act):
+        tgt = act.target
+        i = tgt.identity
+        return u'|G%s|r亮出身份：|R%s|r' % (
+            tgt.ui_meta.char_name,
+            thb3v3.THBattle.ui_meta.identity_table[i.type],
         )
 
 # -----END ACTIONS UI META-----
