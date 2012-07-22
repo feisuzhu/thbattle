@@ -118,6 +118,8 @@ class Hakurouken(InternalAction):
     def __init__(self, act):
         assert isinstance(act, basic.BaseAttack)
         self.action = act
+        self.source = act.source
+        self.target = act.target
 
     def apply_action(self):
         act = self.action
