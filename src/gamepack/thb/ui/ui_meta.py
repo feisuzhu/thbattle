@@ -2,7 +2,7 @@
 from .. import actions
 from .. import cards
 from .. import characters
-from .. import logic
+from .. import thb3v3
 
 import game
 import types
@@ -46,15 +46,15 @@ def gen_metafunc(_for):
 
     return metafunc
 
-# -----BEGIN LOGIC UI META-----
-__metaclass__ = gen_metafunc(logic)
+# -----BEGIN THB3v3 UI META-----
+__metaclass__ = gen_metafunc(thb3v3)
 
 class ActFirst:
     # choose_option meta
     choose_option_buttons = ((u'先出牌', True), (u'弃权', False))
     choose_option_prompt = u'你要首先出牌吗（首先出牌敌方势力开局摸5张牌）？'
 
-# -----END LOGIC UI META-----
+# -----END THB3v3 UI META-----
 
 
 # -----BEGIN ACTIONS UI META-----
