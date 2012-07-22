@@ -3022,15 +3022,12 @@ class Drunkard:
     def clickable(game):
         me = game.me
 
-        if me.tags['drunkard_tag'] >= me.tags['turn_count']:
-            return False
-
         try:
             act = game.action_stack[-1]
         except IndexError:
             return False
 
-        if isinstance(act, actions.ActionStage) and act.actor is me and (me.cards or me.showncards):
+        if isinstance(act, actions.ActionStage) and act.actor is me and (me.cards or me.showncards or me.equips):
             return True
 
         return False
