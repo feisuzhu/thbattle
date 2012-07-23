@@ -123,12 +123,7 @@ class THBattle(Game):
         # FIXME: this can choose girl from the other force!
         if pl:
             choice = [c for c in choice if not c.chosen]
-            sample = [
-                SyncPrimitive(i)
-                for i in random.sample(xrange(len(choice)), len(pl))
-            ]
-            self.players.reveal(sample)
-            sample = [i.value for i in sample]
+            sample = sync_primitive(random.sample(xrange(len(choice)), len(pl)), self.players)
             for p, i in zip(pl, sample):
                 c = choice[i]
                 c.chosen = p
@@ -174,13 +169,8 @@ class THBattle(Game):
         # roll
         roll = range(len(self.players))
         random.shuffle(roll)
-        roll = [
-            SyncPrimitive(i)
-            for i in roll
-        ]
         pl = self.players
-        pl.reveal(roll)
-        roll = [i.value for i in roll]
+        roll = sync_primitive(roll, pl)
 
         roll = [pl[i] for i in roll]
 

@@ -1,6 +1,6 @@
 # All generic and cards' Actions, EventHandlers are here
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, SyncPrimitive
+from game.autoenv import Game, EventHandler, Action, GameError, sync_primitive
 
 from network import Endpoint
 import random
@@ -86,10 +86,8 @@ def random_choose_card(categories):
     if not allcards:
         return None
     c = random.choice(allcards)
-    v = SyncPrimitive(c.syncid)
     g = Game.getgame()
-    g.players.reveal(v)
-    v = v.value
+    v = sync_primitive(c.syncid, g.players)
     cl = g.deck.lookupcards([v])
     if len(cl)!=1:
         print cl

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck classes
 
-from game.autoenv import Game, GameError, SyncPrimitive
+from game.autoenv import Game, GameError, sync_primitive
 import random
 import logging
 log = logging.getLogger('THBattle_Cards')
@@ -292,9 +292,7 @@ class Deck(object):
         newids = [g.get_synctag() for c in cl]
 
         owner = cl.owner
-        perm = SyncPrimitive(perm)
-        owner.reveal(perm)
-        perm = perm.value
+        perm = sync_primitive(perm, owner)
 
         if Game.CLIENT_SIDE and owner is not g.me:
             for c, i in zip(cl, newids):

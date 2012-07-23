@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, SyncPrimitive
+from game.autoenv import Game, sync_primitive
 
 def mixin_character(player, charcls):
     pcls = player.__class__
@@ -42,7 +42,7 @@ class PlayerIdentity(object):
     def is_type(self, t):
         g = Game.getgame()
         pl = g.players
-        return SyncPrimitive.do_sync(self.type == t, pl)
+        return sync_primitive(self.type == t, pl)
 
     def set_type(self, t):
         if Game.SERVER_SIDE:
