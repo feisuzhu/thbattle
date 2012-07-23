@@ -26,11 +26,6 @@ class Identity(PlayerIdentity):
 class THBattle(Game):
     n_persons = 6
 
-    @staticmethod
-    def get_ui_class():
-        from ui import THBattleUI
-        return THBattleUI
-
     def game_start(self):
         # game started, init state
         from cards import Card, Deck, CardList
@@ -222,8 +217,3 @@ class THBattle(Game):
 
 class THBattle1v1DBG(THBattle):
     n_persons = 2
-
-    @staticmethod
-    def get_ui_class():
-        from ui import THBattleUI1v1DBG
-        return THBattleUI1v1DBG

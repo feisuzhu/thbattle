@@ -55,7 +55,25 @@ class ActFirst:
     choose_option_prompt = u'你要首先出牌吗（首先出牌敌方势力开局摸5张牌）？'
 
 class THBattle:
-    # identity meta
+    name = u'符斗祭 - 3v3 - 休闲'
+    logo = gres.thblogo_3v3
+
+    from .view import THBattleUI as ui_class
+
+    T = thb3v3.Identity.TYPE
+    identity_table = {
+        T.HIDDEN: u'？',
+        T.HAKUREI: u'博丽',
+        T.MORIYA: u'守矢'
+    }
+    del T
+
+class THBattle1v1DBG:
+    name = u'符斗祭 - 调试用1v1'
+    logo = gres.thblogo_1v1dbg
+
+    from .view import THBattleUI1v1DBG as ui_class
+
     T = thb3v3.Identity.TYPE
     identity_table = {
         T.HIDDEN: u'？',

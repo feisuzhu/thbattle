@@ -75,9 +75,6 @@ class DeckIndicator(Control):
             pass
 
 class THBattleUI(Control):
-    name = u'符斗祭 - 3v3 - 休闲'
-    logo = gres.thblogo_3v3
-
     portrait_location = [
         (60, 300, Colors.blue),
         (250, 450, Colors.orange),
@@ -308,10 +305,7 @@ class THBattleUI(Control):
 
 THBattleUI.register_event_type('on_selection_change')
 
-
 class THBattleUI1v1DBG(THBattleUI):
-    name = u'符斗祭 - 调试用1v1'
-    logo = gres.thblogo_1v1dbg
     portrait_location = [
         (250, 300, Colors.orange),
         (450, 300, Colors.blue),
