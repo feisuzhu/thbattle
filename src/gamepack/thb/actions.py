@@ -207,8 +207,9 @@ class UserAction(Action): pass # card/character skill actions
 class InternalAction(Action): pass # actions for internal use
 
 class TryRevive(GenericAction):
-    def __init__(self, target):
+    def __init__(self, target, dmgact):
         self.source = self.target = target
+        self.dmgact = dmgact
         g = Game.getgame()
         if target.dead:
             log.error('TryRevive buggy condition, __init__')
@@ -269,20 +270,7 @@ class PlayerDeath(GenericAction):
             #cl.clear()
         return True
 
-class DamageEffect(GenericAction):
-    # In a 'WTF' face now? Well, this absurdy thing is for UI
-    def __init__(self, source, target, amount=1):
-        self.source = source
-        self.target = target
-        self.amount = amount
-
-    def apply_action(self):
-        tgt = self.target
-        tgt.life -= self.amount
-        return True
-
 class Damage(GenericAction):
-
     def __init__(self, source, target, amount=1):
         self.source = source
         self.target = target
@@ -291,10 +279,7 @@ class Damage(GenericAction):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
-        g.process_action(DamageEffect(self.source, tgt, self.amount))
-        if tgt.life <= 0:
-            if not g.process_action(TryRevive(tgt)):
-                g.process_action(PlayerDeath(self.source, tgt))
+        tgt.life -= self.amount
         return True
 
 # ---------------------------------------------------

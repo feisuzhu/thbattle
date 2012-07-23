@@ -201,17 +201,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 def damage_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
-    #l = t.life
-    #port.life = l if l > 0 else 0
-    port.update()
     OneShotAnim(common_res.hurt, x=port.x, y=port.y, batch=self.animations)
-
-def heal_effect(self, act):
-    t = act.target
-    port = self.player2portrait(t)
-    #l = t.life
-    #port.life = l if l > 0 else 0
-    port.update()
 
 def launch_effect(self, act):
     s = act.source
@@ -294,11 +284,11 @@ mapping_actions = ddict(dict, {
     },
     'apply': {
         Action: action_effect_string_apply,
+        Damage: damage_effect,
+        #Heal: heal_effect,
     },
     'after': {
         PlayerDeath: player_death_update,
-        DamageEffect: damage_effect,
-        Heal: heal_effect,
         LaunchCard: after_launch_effect,
         ActionStage: action_stage_update_tag,
         Action: action_effect_string_after,

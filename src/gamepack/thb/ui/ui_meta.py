@@ -102,7 +102,7 @@ class DropCardStage:
                 act.target.ui_meta.char_name, act.dropn
             )
 
-class DamageEffect:
+class Damage:
     def effect_string(act):
         s, t = act.source, act.target
         if s:

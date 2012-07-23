@@ -14,6 +14,22 @@ from .common import *
 import logging
 log = logging.getLogger('THBattle')
 
+game_ehs = set()
+def game_eh(cls):
+    game_ehs.add(cls)
+    return cls
+
+@game_eh
+class DeathHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, Damage):
+            tgt = act.target
+            if tgt.life > 0: return act
+            g = Game.getgame()
+            if not g.process_action(TryRevive(tgt, dmgact=act)):
+                g.process_action(PlayerDeath(act.source, tgt))
+        return act
+
 class ActFirst(object): # for choose_option
     pass
 
@@ -32,7 +48,7 @@ class THBattle(Game):
 
         self.deck = Deck()
 
-        ehclasses = list(action_eventhandlers)
+        ehclasses = list(action_eventhandlers) + list(game_ehs)
 
         self.forces = forces = BatchList([PlayerList(), PlayerList()])
         for i, p in enumerate(self.players):
