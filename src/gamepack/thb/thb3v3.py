@@ -56,6 +56,25 @@ class THBattle(Game):
             p.force = f
             forces[f].append(p)
 
+        # roll
+        roll = range(len(self.players))
+        random.shuffle(roll)
+        pl = self.players
+        roll = sync_primitive(roll, pl)
+
+        roll = [pl[i] for i in roll]
+
+        self.emit_event('game_roll', roll)
+
+        first = roll[0]
+
+        for p in roll:
+            if p.user_input('choose_option', ActFirst):
+                first = p
+                break
+
+        self.emit_event('game_roll_result', first)
+        # ----
 
         # choose girls -->
         from characters import characters as chars
@@ -182,26 +201,10 @@ class THBattle(Game):
 
         self.emit_event('game_begin', self)
 
-        # roll
-        roll = range(len(self.players))
-        random.shuffle(roll)
-        pl = self.players
-        roll = sync_primitive(roll, pl)
-
-        roll = [pl[i] for i in roll]
-
-        self.emit_event('game_roll', roll)
-
-        first = roll[0]
-
-        for p in roll:
-            if p.user_input('choose_option', ActFirst):
-                first = p
-                break
-        # ----
-
         try:
             for p in self.players:
+                # variable 'first': see the roll process before
+                # swapped with choose girl process
                 self.process_action(DrawCards(p, amount=4 if p.force == first.force else 5))
 
             pl = self.players.rotate_to(first)
