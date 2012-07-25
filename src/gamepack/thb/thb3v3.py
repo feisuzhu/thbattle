@@ -196,12 +196,12 @@ class THBattle(Game):
             p.identity = Identity()
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
 
-        for p in self.players:
-            self.process_action(RevealIdentity(p))
-
-        self.emit_event('game_begin', self)
-
         try:
+            for p in self.players:
+                self.process_action(RevealIdentity(p))
+
+            self.emit_event('game_begin', self)
+
             for p in self.players:
                 # variable 'first': see the roll process before
                 # swapped with choose girl process
