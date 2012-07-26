@@ -257,9 +257,13 @@ def player_turn_effect(self, act):
         )
     self.turn_frame.position = (port.x - 6, port.y - 4)
     self.prompt_raw('--------------------\n')
+    _update_tags(self, p)
 
 def player_death_update(self, act):
     self.player2portrait(act.target).update()
+    _update_tags(self, act.target)
+
+player_turn_after_update = player_death_update
 
 def _aese(_type, self, act):
     meta = getattr(act, 'ui_meta', None)
@@ -291,6 +295,7 @@ mapping_actions = ddict(dict, {
         PlayerDeath: player_death_update,
         LaunchCard: after_launch_effect,
         ActionStage: action_stage_update_tag,
+        PlayerTurn: player_turn_after_update,
         Action: action_effect_string_after,
     }
 })
