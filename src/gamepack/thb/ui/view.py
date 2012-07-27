@@ -31,6 +31,12 @@ class UIEventHook(EventHandler):
         input.input = irp.input
         return input
 
+    def evt_shuffle_cards(self, args):
+        import gevent
+        print 'triggered'
+        gevent.sleep(0.1) # wait a sec, or ui will display as hidden card
+        return args
+
     # evt_user_input_timeout, InputControllers handle this
 
     def handle(self, evt, data):

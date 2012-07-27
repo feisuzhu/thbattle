@@ -125,6 +125,7 @@ def skill_wrap(actor, sid_list, cards):
 def shuffle_here():
     from .cards import CardList
     g = Game.getgame()
+    g.emit_event('shuffle_cards', True)
     for p in g.players:
         if p.need_shuffle:
             g.deck.shuffle(p.cards)
