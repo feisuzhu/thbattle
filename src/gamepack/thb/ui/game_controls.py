@@ -482,14 +482,11 @@ class ShownCardPanel(Panel):
         def on_click():
             self.delete()
 
-    def blur_update(self):
-        Panel.blur_update(self)
-        fbo = self.auxfbo
-        with fbo:
-            fbo.texture = self.tex1
-            with shaders.FontShadow as fs:
-                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-                self.lbl.draw()
+    def draw(self):
+        Panel.draw(self)
+        with shaders.FontShadow as fs:
+            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+            self.lbl.draw()
 
     def delete(self):
         Panel.delete(self)
@@ -749,5 +746,3 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
                 btn.caption = tbl[act.target.identity.type]
                 btn.state = Button.DISABLED
                 btn.update()
-
-

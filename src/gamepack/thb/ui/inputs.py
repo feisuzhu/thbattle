@@ -478,14 +478,11 @@ class UIChoosePeerCard(Panel):
             self.irp.input = None
             self.cleanup()
 
-    def blur_update(self):
-        Panel.blur_update(self)
-        fbo = self.auxfbo
-        with fbo:
-            fbo.texture = self.tex1
-            with shaders.FontShadow as fs:
-                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-                self.lbls.draw()
+    def draw(self):
+        Panel.draw(self)
+        with shaders.FontShadow as fs:
+            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+            self.lbls.draw()
 
     def cleanup(self):
         self.irp.complete()
@@ -641,14 +638,11 @@ class UIHarvestChoose(Panel):
                         irp.complete()
                         self.irp = None
 
-    def blur_update(self):
-        Panel.blur_update(self)
-        fbo = self.auxfbo
-        with fbo:
-            fbo.texture = self.tex1
-            with shaders.FontShadow as fs:
-                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-                self.lbl.draw()
+    def draw(self):
+        Panel.draw(self)
+        with shaders.FontShadow as fs:
+            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+            self.lbl.draw()
 
     def on_message(self, _type, *args):
         if _type == 'evt_harvest_finish':
@@ -798,14 +792,11 @@ class UIRanProphet(Panel):
         self.irp.complete()
         self.delete()
 
-    def blur_update(self):
-        Panel.blur_update(self)
-        fbo = self.auxfbo
-        with fbo:
-            fbo.texture = self.tex1
-            with shaders.FontShadow as fs:
-                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-                self.lbls.draw()
+    def draw(self):
+        Panel.draw(self)
+        with shaders.FontShadow as fs:
+            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+            self.lbls.draw()
 
 mapping = dict(
     choose_card_and_player=UIChooseCardAndPlayer,

@@ -137,7 +137,7 @@ class ShaderProgram(object):
         ShaderProgram.shader_stack.append(self)
         glUseProgramObjectARB(self.pid)
 
-    def restore(self):
+    def unuse(self):
         l = ShaderProgram.shader_stack
         p = l.pop()
         assert p is self
@@ -146,12 +146,17 @@ class ShaderProgram(object):
         else:
             glUseProgramObjectARB(0)
 
+    @classmethod
+    def restore(cls):
+        cls.shader_stack[:] = []
+        glUseProgramObjectARB(0)
+
     def __enter__(self):
         self.use()
         return self
 
     def __exit__(self, exc_type, exc_value, tb):
-        self.restore()
+        self.unuse()
 
 class DummyShaderProgram(object):
     def __init__(self, *a):

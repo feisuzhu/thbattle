@@ -1180,7 +1180,6 @@ ConfirmBox.register_event_type('on_confirm')
 class Panel(Control):
     blur_update_interval = 2
     fill_color = (1.0, 1.0, 0.8, 0.0)
-    auxfbo = Framebuffer()
 
     def __init__(self, color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
@@ -1191,57 +1190,66 @@ class Panel(Control):
     def update(self):
         w, h = int(self.width), int(self.height)
 
-        tex1 = pyglet.image.Texture.create(w, h)
-        tex2 = pyglet.image.Texture.create(w, h)
+        blurtex = pyglet.image.Texture.create(w, h)
 
-        self.tex1, self.tex2 = tex1, tex2
-        self.blur_update()
+        self.blurtex = blurtex
 
-    def blur_update(self):
-        fbo = self.auxfbo
-        tex1, tex2 = self.tex1, self.tex2
+        t = blurtex.tex_coords
+        x1 = 0
+        y1 = 0
+        x2 = blurtex.width
+        y2 = blurtex.height
+        array = (GLfloat * 32)(
+             t[0],  t[1],  t[2],  1.,
+             x1,    y1,    0,     1.,
+             t[3],  t[4],  t[5],  1.,
+             x2,    y1,    0,     1.,
+             t[6],  t[7],  t[8],  1.,
+             x2,    y2,    0,     1.,
+             t[9],  t[10], t[11], 1.,
+             x1,    y2,    0,     1.
+        )
+        self._blurtex_array = array
 
-        from shaders import GaussianBlurHorizontal, GaussianBlurVertical
+    def draw(self):
+        blurtex = self.blurtex
+
+        from shaders import GaussianBlurHorizontal as GBH, GaussianBlurVertical as GBV, ShaderProgram
 
         ax, ay = self.abs_coords()
         ax, ay = int(ax), int(ay)
         w, h = int(self.width), int(self.height)
 
-        t = getattr(tex1, 'owner', tex1)
+        t = getattr(blurtex, 'owner', blurtex)
         _w, _h = t.width, t.height
 
         glColor3f(1, 1, 1)
-        glBindTexture(tex1.target, tex1.id)
-        glCopyTexImage2D(tex1.target, 0, GL_RGBA, ax, ay, _w, _h, 0)
-        glBindTexture(tex1.target, 0)
 
-        with fbo:
-            fbo.texture = tex2
+        glEnable(blurtex.target)
+        glInterleavedArrays(GL_T4F_V4F, 0, self._blurtex_array)
+        glBindTexture(blurtex.target, blurtex.id)
 
-            with GaussianBlurHorizontal as s:
-                s.uniform.size = (_w, _h)
-                tex1.blit(0, 0)
+        glCopyTexImage2D(blurtex.target, 0, GL_RGBA, ax, ay, _w, _h, 0)
+        GBV.use()
+        GBV.uniform.size = (_w, _h)
+        glDrawArrays(GL_QUADS, 0, 4)
 
-            fbo.texture = tex1
-            with GaussianBlurVertical as s:
-                s.uniform.size = (_w, _h)
-                tex2.blit(0, 0)
+        glCopyTexImage2D(blurtex.target, 0, GL_RGBA, ax, ay, _w, _h, 0)
+        GBH.use()
+        GBH.uniform.size = (_w, _h)
+        glDrawArrays(GL_QUADS, 0, 4)
 
-            c = self.fill_color
-            if c[3] != 0.0:
-                glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
-                glColor4f(*c)
-                glRectf(0, 0, w, h)
+        ShaderProgram.restore()
 
-    def draw(self):
-        self.tick += 1
-        i = self.blur_update_interval
-        if i <= 1 or self.tick % i:
-            self.blur_update()
+        glBindTexture(blurtex.target, 0)
+        glDisable(blurtex.target)
 
-        glColor3f(1, 1, 1)
-        self.tex1.blit(0, 0)
-        w, h = int(self.width), int(self.height)
+        c = self.fill_color
+        if c[3] != 0.0:
+            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
+            glColor4f(*c)
+            glRectf(0, 0, w, h)
+
         glLineWidth(3.0)
         glColor4f(1, 1, 1, .3)
         glRectf(1.5, 1.5, -1.5+w, -1.5+h)
