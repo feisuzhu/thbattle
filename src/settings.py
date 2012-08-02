@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 36'
+VERSION = 'THBATTLE V1.0b incr 46'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -87,12 +87,12 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 |B最近bug修复/加强：|r
-二小姐设定调整
-光学迷彩实现调整，现在正确区分打出与使用（美铃相关）
-楼观剑实现调整，现在为使用而不是打出弹幕（美铃相关），同时正确处理酒效果
-调教剑：某些极端情况的酒状态结算bug修复
-星熊永仪：怪力调整，现在正常与各种武器效果结算
-美铃发动蓬莱玉枝不触发龙拳的bug修复
+大酱送牌崩溃修复
+某些恼人的小bug……
+将ROLL点过程调整到选将之前
+某些内部机制调整（如果出现了以前没有的bug，请报告）
+萃香无手牌时不能喝装备的bug
+勇仪带白楼剑怪力弃恶心丸导致游戏崩溃的bug
 
 另外，如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
 
