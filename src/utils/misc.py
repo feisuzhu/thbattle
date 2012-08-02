@@ -157,6 +157,11 @@ class Framebuffer(object):
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glLoadIdentity()
 
+        # ATI cards hack
+        gl.glBegin(gl.GL_LINES)
+        gl.glEnd()
+        # --------------
+
     texture = property(_get_texture, _set_texture)
 
     def __enter__(self):
