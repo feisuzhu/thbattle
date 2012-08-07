@@ -17,8 +17,8 @@ class BorrowAction(GenericAction):
         for p in self.target_list:
             c = random_choose_card([p.cards, p.showncards])
             if not c: continue
-            src.reveal(c)
-            migrate_cards([c], src.cards)
+            Game.getgame().players.exclude(p).reveal(c)
+            migrate_cards([c], src.showncards)
         src.need_shuffle = True
         return True
 
