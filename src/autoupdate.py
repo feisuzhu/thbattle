@@ -5,6 +5,8 @@ from zlib import crc32
 import simplejson as json
 import sys, os
 from urlparse import urljoin
+from StringIO import StringIO
+from gzip import GzipFile
 
 import logging
 log = logging.getLogger('autoupdate')
@@ -44,7 +46,7 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
 
     try:
         remote = urllib2.build_opener()
-        remote.addheaders = [('User-Agent', VERSION)]
+        remote.addheaders = [('User-Agent', VERSION), ('Accept-Encoding', 'gzip')]
         cb('update_begin')
 
         me = gevent.getcurrent()
@@ -53,6 +55,8 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
             try:
                 resp = remote.open(url)
                 rst = resp.read()
+                if resp.headers.get('Content-Encoding') == 'gzip':
+                    rst = GzipFile(fileobj=StringIO(rst), mode='rb').read()
                 resp.close()
                 return rst
             except Exception as e:
@@ -97,9 +101,12 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
                     url, fn = queue.get_nowait()
                     log.info('update %s' % fn)
                     cb('download_file', fn)
-                    file = remote.open(url)
-                    d = file.read()
-                    file.close()
+                    resp = remote.open(url)
+                    d = resp.read()
+                    if resp.headers.get('Content-Encoding') == 'gzip':
+                        d = GzipFile(fileobj=StringIO(d), mode='rb').read()
+
+                    resp.close()
                     cb('download_complete', fn)
                     try:
                         try:
