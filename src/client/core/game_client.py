@@ -111,7 +111,7 @@ class PlayerList(BatchList):
 
         pid, data = waiter.get()
 
-        g.emit_event('user_input_any_begin', tag)
+        g.emit_event('user_input_any_end', tag)
 
         if pid is None:
             return None, None

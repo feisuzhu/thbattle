@@ -33,8 +33,7 @@ class UIEventHook(EventHandler):
 
     def evt_shuffle_cards(self, args):
         import gevent
-        print 'triggered'
-        gevent.sleep(0.1) # wait a sec, or ui will display as hidden card
+        gevent.sleep(0.2) # wait a sec, or ui will display as hidden card
         return args
 
     # evt_user_input_timeout, InputControllers handle this
@@ -170,7 +169,7 @@ class THBattleUI(Control):
             if port.player == p:
                 break
         else:
-            raise ValueError
+            raise ValueError(p)
         return port
 
     def update_skillbox(self):
