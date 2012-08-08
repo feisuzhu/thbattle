@@ -96,13 +96,15 @@ class UFODistanceHandler(EventHandler):
             source = act.source
             for s in source.skills:
                 if issubclass(s, RedUFOSkill):
-                    act.correction += s.increment
+                    incr = s.increment
+                    act.correction += incr(source) if callable(incr) else incr
 
             dist = act.distance
             for p in dist.keys():
                 for s in p.skills:
                     if issubclass(s, GreenUFOSkill):
-                        dist[p] += s.increment
+                        incr = s.increment
+                        dist[p] += incr(p) if callable(incr) else incr
         return act
 
 class WeaponSkill(Skill):

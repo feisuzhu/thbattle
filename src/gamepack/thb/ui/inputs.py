@@ -151,9 +151,11 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
             while self.for_reject:
                 self.set_text(u'自动结算好人卡…')
                 if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
-                    self.irp.input = None
-                    self.irp.complete()
-                    return
+                    from gamepack.thb.characters import reimu
+                    if not (isinstance(g.me, reimu.Reimu) and not g.me.dead): # HACK: but it works fine
+                        self.irp.input = None
+                        self.irp.complete()
+                        return
 
                 if isinstance(act.target_act, thbcards.DelayedSpellCardAction):
                     break
@@ -194,7 +196,10 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                     try:
                         rst, reason = cards[0].ui_meta.is_complete(g, cards)
                     except Exception as e:
-                        rst, reason = True, u'[card.ui_meta.is_complete错误]'
+                        rst, reason = False, u'[card.ui_meta.is_complete错误]'
+                        import traceback
+                        traceback.print_exc()
+
                     if not rst:
                         self.set_text(reason)
                         return

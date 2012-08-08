@@ -70,12 +70,17 @@ class RejectHandler(EventHandler):
             if not p: return act
 
             sid_list, cid_list, _ = input
-            cards = g.deck.lookupcards(cid_list) # card was already revealed
+            cards = g.deck.lookupcards(cid_list)
 
             if sid_list: # skill selected
-                cards = skill_wrap(actor, sid_list, cards)
+                card = skill_wrap(p, sid_list, cards)
+            else:
+                card = cards[0]
 
-            card = cards[0]
+            g.players.exclude(p).reveal(card)
+
+            if not (card and self.cond([card])):
+                return act
 
             action = Reject(source=p, target_act=act)
             action.associated_card = card
@@ -91,17 +96,20 @@ class RejectHandler(EventHandler):
 
             sid_list, cid_list, _ = input
 
-            # FIXME: no skill wrap here
-
             g = Game.getgame()
             cards = g.deck.lookupcards(cid_list)
             check(cards)
-            card = cards[0]
-            check(card in p.cards or card in p.showncards)
 
-            g.players.exclude(p).reveal(card)
+            if sid_list:
+                check(len(sid_list) == 1) # FIXME: HACK, but seems enough
+                sid = sid_list[0]
+                check(0 <= sid < len(p.skills))
+                skill_cls = p.skills[sid]
+                card = skill_cls.wrap(cards, p)
+            else:
+                card = cards[0]
+                check(card in p.cards or card in p.showncards)
 
-            check(self.cond([card]))
             return True
         except CheckFailed as e:
             return False

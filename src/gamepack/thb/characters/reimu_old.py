@@ -3,22 +3,16 @@ from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
-class Flight(GreenUFOSkill):
-    @staticmethod
-    def increment(src):
-        for c in src.equips:
-            if issubclass(c.equipment_skill, UFOSkill):
-                return 0
-
-        return 1
-
-class SpiritualAttack(TreatAsSkill):
-    treat_as = RejectCard
+class SealingArraySkill(TreatAsSkill):
+    treat_as = SealingArrayCard
     def check(self):
         cl = self.associated_cards
-        if cl and len(cl) == 1 and cl[0].color == Card.RED:
+        if cl and cl[0].suit == Card.DIAMOND:
             return True
         return False
+
+class Flight(GreenUFOSkill):
+    increment = 1
 
 class TributeTarget(Skill):
     associated_action = None
@@ -64,18 +58,32 @@ class Tribute(Skill):
             pass
         return (tl[-1:], bool(len(tl)))
 
-class TributeHandler(EventHandler):
+class ReimuHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'game_begin':
             g = Game.getgame()
             for p in g.players:
                 if not p.has_skill(TributeTarget):
                     p.skills.append(Tribute)
+        elif evt_type == 'action_can_fire':
+            act, valid = arg
+            if not isinstance(act, LaunchCard): return arg
+            c = act.card
+            if not c.is_card(SealingArraySkill): return arg
+
+            src = act.source
+            if src.tags.get('turn_count', 0) <= src.tags.get('reimusa_tag', 0):
+                return (act, False)
+        elif evt_type == 'action_apply' and isinstance(arg, DelayedLaunchCard):
+            c = arg.card
+            if c.is_card(SealingArraySkill):
+                src = arg.source
+                src.tags['reimusa_tag'] = src.tags['turn_count']
+
         return arg
 
-@register_character
+#@register_character
 class Reimu(Character):
-    #skills = [SealingArraySkill, Flight, TributeTarget]
-    skills = [SpiritualAttack, Flight, TributeTarget]
-    eventhandlers_required = [TributeHandler]
+    skills = [SealingArraySkill, Flight, TributeTarget]
+    eventhandlers_required = [ReimuHandler]
     maxlife = 3

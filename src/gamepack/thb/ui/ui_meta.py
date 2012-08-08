@@ -406,10 +406,11 @@ class RejectHandler:
 
 class Reject:
     def effect_string_before(act):
-        return u'|G【%s】|r为|G【%s】|r受到的|G%s|r使用了|G好人卡|r。' % (
+        return u'|G【%s】|r为|G【%s】|r受到的|G%s|r使用了|G%s|r。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
             act.target_act.associated_card.ui_meta.name,
+            act.associated_card.ui_meta.name,
         )
 
 class SealingArrayCard:
@@ -2141,8 +2142,9 @@ class Tewi:
         u'|G幸运|r：|B锁定技|r，当你的手牌数为0时，立即摸2张牌。'
     )
 
+'''
 # ----------
-__metaclass__ = gen_metafunc(characters.reimu)
+__metaclass__ = gen_metafunc(characters.reimu_old)
 
 class SealingArraySkill:
     # Skill
@@ -2243,7 +2245,7 @@ class Tribute:
         if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD):
             return (False, u'只能选择手牌！')
 
-        if len(tl) != 1 or not tl[0].has_skill(characters.reimu.TributeTarget):
+        if len(tl) != 1 or not tl[0].has_skill(characters.reimu_old.TributeTarget):
             return (False, u'请选择一只灵梦')
 
         return (True, u'塞钱……会发生什么呢？')
@@ -2265,8 +2267,114 @@ class Reimu:
         u'|DB乐园奇妙的无节操巫女 博丽灵梦 体力：3|r\n\n'
         u'|G封魔阵|r：出牌阶段，你可以用一张方块牌当做【封魔阵】使用，一回合一次。\n\n'
         #u'|G飞行|r：锁定技，其他玩家对你结算距离时始终+1\n\n'
-        u'|G纳奉|r：任何人都可以在自己的出牌阶段给你一张牌。'
+        u'|G纳奉|r：任何人都可以在自己的出牌阶段给你一张手牌。'
     )
+'''
+
+# ----------
+__metaclass__ = gen_metafunc(characters.reimu)
+
+class Flight:
+    # Skill
+    name = u'飞行'
+    no_display = False
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class SpiritualAttack:
+    name = u'灵击'
+
+    def clickable(game):
+        return True # FIXME: !!!!!!
+
+    def is_complete(g, cl):
+        skill = cl[0]
+        me = g.me
+        assert skill.is_card(characters.reimu.SpiritualAttack)
+        acards = skill.associated_cards
+        if len(acards) != 1:
+            return (False, u'请选择1张手牌！')
+
+        c = acards[0]
+
+        if c.resides_in not in (me.cards, me.showncards):
+            return (False, u'只能使用手牌发动！')
+        elif not c.color == cards.Card.RED:
+            return (False, u'请选择红色手牌！')
+
+        return (True, u'反正这条也看不到，偷个懒~~~')
+
+    def is_action_valid(g, cl, target_list):
+        return (False, u'你不能主动使用灵击')
+
+class TributeTarget:
+    # Skill
+    name = u'纳奉'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class Tribute:
+    # Skill
+    name = u'塞钱'
+
+    def clickable(game):
+        me = game.me
+
+        if me.tags.get('tribute_tag', 0) >= me.tags.get('turn_count', 0):
+            return False
+
+        try:
+            act = game.action_stack[-1]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, tl):
+        cl = cl[0].associated_cards
+        if not cl: return (False, u'请选择要给出的牌')
+        if len(cl) != 1: return (False, u'只能选择一张手牌')
+
+        from ..cards import CardList
+        if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD):
+            return (False, u'只能选择手牌！')
+
+        if len(tl) != 1 or not tl[0].has_skill(characters.reimu.TributeTarget):
+            return (False, u'请选择一只灵梦')
+
+        return (True, u'塞钱……会发生什么呢？')
+
+    def effect_string(act):
+        # for LaunchCard.ui_meta.effect_string
+        return (
+            u'|G【%s】|r向|G【%s】|r的塞钱箱里放了一张牌… 会发生什么呢？'
+        ) % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+class Reimu:
+    # Character
+    char_name = u'博丽灵梦'
+    port_image = gres.reimu_port
+    description = (
+        u'|DB节操满地跑的城管 博丽灵梦 体力：3|r\n\n'
+        u'|G灵击|r：你可以将你的任意一张红色手牌当【好人卡】使用。\n\n'
+        u'|G飞行|r：锁定技，当你没有装备任何UFO时，其他玩家对你结算距离时始终+1\n\n'
+        u'|G纳奉|r：任何人都可以在自己的出牌阶段给你一张手牌。'
+    )
+
 
 # ----------
 __metaclass__ = gen_metafunc(characters.kogasa)
