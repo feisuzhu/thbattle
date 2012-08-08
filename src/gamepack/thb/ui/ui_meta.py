@@ -1574,7 +1574,7 @@ class DonationBoxEffect:
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----
-__metaclass__ = gen_metafunc(characters)
+__metaclass__ = gen_metafunc(characters.parsee)
 
 class Parsee:
     # Character
@@ -1604,7 +1604,7 @@ class Envy:
 
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
-        assert skill.is_card(characters.Envy)
+        assert skill.is_card(characters.parsee.Envy)
         cl = skill.associated_cards
         if len(cl) != 1:
             return (False, u'请选择一张牌！')
@@ -1628,6 +1628,7 @@ class Envy:
         return s
 
 # ----------
+__metaclass__ = gen_metafunc(characters.youmu)
 
 class Youmu:
     # Character
@@ -1681,6 +1682,7 @@ class Xianshiwangzhi:
 
 
 # ----------
+__metaclass__ = gen_metafunc(characters.koakuma)
 
 class Koakuma:
     # Character
@@ -1712,7 +1714,7 @@ class Find:
 
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
-        assert skill.is_card(characters.Find)
+        assert skill.is_card(characters.koakuma.Find)
         if not len(skill.associated_cards):
             return (False, u'请选择需要换掉的牌！')
 
@@ -1733,6 +1735,7 @@ class Find:
         return s
 
 # ----------
+__metaclass__ = gen_metafunc(characters.marisa)
 
 class Marisa:
     # Character
@@ -1806,6 +1809,7 @@ class BorrowAction:
         )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.daiyousei)
 
 class Daiyousei:
     # Character
@@ -1866,6 +1870,7 @@ class MoeDrawCard:
         )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.flandre)
 
 class Flandre:
     # Character
@@ -1898,6 +1903,7 @@ class CriticalStrikeAction:
         )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.alice)
 
 class Alice:
     # Character
@@ -1919,6 +1925,7 @@ class DollManipulation:
         return (False, 'BUG!')
 
 # ----------
+__metaclass__ = gen_metafunc(characters.nazrin)
 
 class Nazrin:
     # Character
@@ -1988,6 +1995,7 @@ class TreasureHunt:
             )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.yugi)
 
 class Yugi:
     # Character
@@ -2061,6 +2069,7 @@ class YugiHandler:
     choose_option_prompt = u'你要发动【怪力】吗？'
 
 # ----------
+__metaclass__ = gen_metafunc(characters.patchouli)
 
 class Library:
     # Skill
@@ -2105,6 +2114,7 @@ class Patchouli:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.tewi)
 
 class Luck:
     # Skill
@@ -2132,6 +2142,7 @@ class Tewi:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.reimu)
 
 class SealingArraySkill:
     # Skill
@@ -2232,7 +2243,7 @@ class Tribute:
         if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD):
             return (False, u'只能选择手牌！')
 
-        if len(tl) != 1 or not tl[0].has_skill(characters.TributeTarget):
+        if len(tl) != 1 or not tl[0].has_skill(characters.reimu.TributeTarget):
             return (False, u'请选择一只灵梦')
 
         return (True, u'塞钱……会发生什么呢？')
@@ -2258,6 +2269,7 @@ class Reimu:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.kogasa)
 
 class Jolly:
     # Skill
@@ -2353,6 +2365,7 @@ class Kogasa:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.eirin)
 
 class FirstAid:
     # Skill
@@ -2437,6 +2450,7 @@ class Eirin:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.shikieiki)
 
 class Trial:
     # Skill
@@ -2501,6 +2515,7 @@ class Shikieiki:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.tenshi)
 
 class Masochist:
     # Skill
@@ -2546,6 +2561,7 @@ class Tenshi:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.yuuka)
 
 class FlowerQueen:
     # Skill
@@ -2631,6 +2647,7 @@ class Yuuka:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.rumia)
 
 class Darkness:
     # Skill
@@ -2695,6 +2712,7 @@ class Rumia:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.rinnosuke)
 
 class Netoru:
     # Skill
@@ -2767,6 +2785,7 @@ class Rinnosuke:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.ran)
 
 class Prophet:
     # Skill
@@ -2831,6 +2850,7 @@ class Ran:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.remilia)
 
 class FateSpear:
     # Skill
@@ -2876,6 +2896,7 @@ class Remilia:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.minoriko)
 
 class Foison:
     # Skill
@@ -2952,6 +2973,7 @@ class Minoriko:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.meirin)
 
 class RiverBehind:
     # Skill
@@ -3051,6 +3073,7 @@ class Meirin:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.suika)
 
 class Drunkard:
     # Skill

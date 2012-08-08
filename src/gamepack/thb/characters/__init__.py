@@ -3,27 +3,27 @@
 
 from baseclasses import *
 
-from parsee import *
-from youmu import *
-from koakuma import *
-from marisa import *
-from daiyousei import *
-from flandre import *
-from alice import *
-from nazrin import *
-from yugi import *
-from patchouli import *
-from tewi import *
-from reimu import *
-from kogasa import *
-from eirin import *
-from shikieiki import *
-from tenshi import *
-from rumia import *
-from yuuka import *
-from rinnosuke import *
-from ran import *
-from remilia import *
-from minoriko import *
-from meirin import *
-from suika import *
+import parsee
+import youmu
+import koakuma
+import marisa
+import daiyousei
+import flandre
+import alice
+import nazrin
+import yugi
+import patchouli
+import tewi
+import reimu
+import kogasa
+import eirin
+import shikieiki
+import tenshi
+import rumia
+import yuuka
+import rinnosuke
+import ran
+import remilia
+import minoriko
+import meirin
+import suika
