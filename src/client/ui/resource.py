@@ -14,17 +14,19 @@ class ResLoader(Loader):
         dn = os.path.dirname(path)
         dn = os.path.realpath(dn)
         dn = os.path.join(dn, 'res')
+        self.respath = dn
         pyglet.resource.Loader.__init__(self, dn)
 
-    def file(self, name, mode='rb'):
+    def filename(self, name):
         fn, ext = os.path.splitext(name)
         custom_name = fn + '_custom' + ext
-        try:
-            return Loader.file(self, custom_name, mode)
-        except ResourceNotFoundException:
-            pass
+        if os.path.exists(os.path.join(self.respath, custom_name)):
+            return custom_name
+        else:
+            return name
 
-        return Loader.file(self, name, mode)
+    def file(self, name, mode='rb'):
+        return Loader.file(self, self.filename(name), mode)
 
     def __enter__(self):
         tb = self.texbin
@@ -76,16 +78,18 @@ with ResLoader(__file__) as args:
     fontzip.close()
     del zipfile, fontzip
 
-    bgm_hall = lambda: ldr.media('bgm_hall.ogg')
+    fname = ldr.filename
 
-    bg_login = ldr.texture('bg_login.png')
-    bg_gamehall = ldr.texture('bg_gamehall.png')
-    bg_ingame = ldr.texture('bg_ingame.png')
-    worldmap = ldr.texture('worldmap.png')
+    bgm_hall = lambda: ldr.media(fname('bgm_hall.ogg'))
 
-    bg_gamelist = ldr.texture('bg_gamelist.png')
-    bg_eventsbox = ldr.texture('bg_eventsbox.png')
-    bg_chatbox = ldr.texture('bg_chatbox.png')
+    bg_login = ldr.texture(fname('bg_login.png'))
+    bg_gamehall = ldr.texture(fname('bg_gamehall.png'))
+    bg_ingame = ldr.texture(fname('bg_ingame.png'))
+    worldmap = ldr.texture(fname('worldmap.png'))
+
+    bg_gamelist = ldr.texture(fname('bg_gamelist.png'))
+    bg_eventsbox = ldr.texture(fname('bg_eventsbox.png'))
+    bg_chatbox = ldr.texture(fname('bg_chatbox.png'))
 
     card_shinesoft = tx('shinesoft.png')
     card_hidden = tx('card_hidden.png')
@@ -109,12 +113,12 @@ with ResLoader(__file__) as args:
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)
 
-    ray = ldr.texture('ray.png')
+    ray = ldr.texture(fname('ray.png'))
 
     hurt = anim('hurt.png', [50, 50, 50, 50, 200, 30, 30, 30, 30, 2000])
 
-    hp = ldr.texture('hp.png')
-    hp_bg = ldr.texture('hp_bg.png')
+    hp = ldr.texture(fname('hp.png'))
+    hp_bg = ldr.texture(fname('hp_bg.png'))
 
     pbar = DataHolder()
     for fn in itertools.product(['b', 'bf', 's', 'sf'], ['l', 'm', 'r']):

@@ -6,7 +6,7 @@ from client.ui.resource import ResLoader
 with ResLoader(__file__) as args:
     locals().update(args)
 
-    bgm_game = lambda: ldr.media('bgm_game.ogg')
+    bgm_game = lambda: ldr.media(ldr.filename('bgm_game.ogg'))
 
     thblogo_3v3 = tx('thblogo_3v3.png')
     thblogo_1v1dbg = tx('thblogo_1v1dbg.png')
