@@ -3035,6 +3035,9 @@ class AutumnFeast:
         except IndexError:
             return False
 
+        if me.tags['autumnfeast_tag'] >= me.tags['turn_count']:
+            return False
+
         if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
             return True
 
@@ -3076,7 +3079,7 @@ class Minoriko:
     description = (
         u'|DB没人气的丰收神 秋穰子 体力：3|r\n\n'
         u'|G丰收|r：|B锁定技|r，摸牌阶段摸牌后，若你的手牌数不足5张，你可以补至5张。\n\n'
-        u'|G秋祭|r：你可以将任意两张红色牌当作【五谷丰登】使用。\n\n'
+        u'|G秋祭|r：你可以将任意两张红色牌当作【五谷丰登】使用。一回合限一次。\n\n'
         u'|G上贡|r：|B锁定技|r，任何人使用【五谷丰登】时，你首先拿牌。在【五谷丰登】结算完毕后，若仍有牌没有被拿走，你将这些牌收入明牌区。'
     )
 

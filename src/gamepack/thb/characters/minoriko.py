@@ -20,8 +20,21 @@ class FoisonHandler(EventHandler):
                 act.__class__ = FoisonDrawCardStage
         return act
 
-class AutumnFeast(TreatAsSkill):
-    treat_as = HarvestCard
+class AutumnFeastAction(Harvest):
+    def apply_action(self):
+        tags = self.source.tags
+        tags['autumnfeast_tag'] = tags['turn_count']
+        return Harvest.apply_action(self)
+
+    def is_valid(self):
+        tags = self.source.tags
+        if tags['turn_count'] <= tags['autumnfeast_tag']:
+            return False
+        return Harvest.is_valid(self)
+
+class AutumnFeast(Skill):
+    associated_action = AutumnFeastAction
+    target = t_AllInclusive
     def check(self):
         cl = self.associated_cards
         if cl and len(cl) == 2 and all(c.color == Card.RED for c in cl):
