@@ -157,6 +157,7 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                         self.irp.complete()
                         return
 
+                '''
                 if isinstance(act.target_act, thbcards.DelayedSpellCardAction):
                     break
 
@@ -171,6 +172,7 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                         self.irp.input = None
                         self.irp.complete()
                         return
+                '''
                 break
 
             if cond:
