@@ -51,6 +51,21 @@ class Reject(InstantSpellCardAction):
         self.target_act.cancelled = True
         return True
 
+class LaunchReject(GenericAction):
+    def __init__(self, source, target_act, card):
+        self.source = source
+        self.target_act = target_act
+        self.target = target_act.target
+        self.card = card
+
+    def apply_action(self):
+        action = Reject(source=self.source, target_act=self.target_act)
+        action.associated_card = self.card
+        g = Game.getgame()
+        g.process_action(DropUsedCard(self.source, [self.card]))
+        g.process_action(action)
+        return True
+
 @register_eh
 class RejectHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -82,10 +97,7 @@ class RejectHandler(EventHandler):
             if not (card and self.cond([card])):
                 return act
 
-            action = Reject(source=p, target_act=act)
-            action.associated_card = card
-            g.process_action(DropUsedCard(p, [card]))
-            g.process_action(action)
+            g.process_action(LaunchReject(p, act, card))
 
         return act
 
