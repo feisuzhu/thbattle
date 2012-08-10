@@ -197,8 +197,9 @@ class THBattle(Game):
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
 
         try:
-            for p in self.players:
-                self.process_action(RevealIdentity(p))
+            pl = self.players
+            for p in pl:
+                self.process_action(RevealIdentity(p, pl))
 
             self.emit_event('game_begin', self)
 

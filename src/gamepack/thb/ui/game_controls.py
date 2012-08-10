@@ -4,6 +4,8 @@ from client.ui.controls import *
 from client.ui import resource as common_res
 from client.ui import shaders
 
+from game.autoenv import Game
+
 from .. import actions
 
 class CardSprite(Control, BalloonPrompt):
@@ -740,7 +742,8 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
     def on_message(self, _type, *args):
         if _type == 'evt_action_after' and isinstance(args[0], actions.RevealIdentity):
             act = args[0]
-            if act.target is self.player:
+            me = Game.getgame().me
+            if (act.target is self.player) and (me in act.to if isinstance(act.to, list) else me is act.to):
                 btn = self.identity_btn
                 tbl = self.parent.game.ui_meta.identity_table
                 btn.caption = tbl[act.target.identity.type]

@@ -677,10 +677,11 @@ class SkillAwake(GenericAction):
         return True
 
 class RevealIdentity(GenericAction):
-    def __init__(self, target):
+    def __init__(self, target, to):
         self.target = target
+        self.to = to
 
     def apply_action(self):
         tgt = self.target
-        Game.getgame().players.reveal(tgt.identity)
+        self.to.reveal(tgt.identity)
         return True
