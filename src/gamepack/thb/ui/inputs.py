@@ -834,13 +834,13 @@ def handle_event(self, _type, data):
             self.update_skillbox()
             cls(irp, parent=self)
         else:
-            log.error('No apropriate input handler!')
+            log.error('No appropriate input handler!')
             irp.input = None
             irp.complete()
     elif _type == 'user_input_all_begin':
-        tag, attachment = data
+        pl, tag, attachment = data
         cls = mapping_all.get(tag)
-        if cls:
+        if cls and Game.getgame().me in pl:
             cls(attachment=attachment, parent=self)
     else:
         cls = mapping_event.get(_type)

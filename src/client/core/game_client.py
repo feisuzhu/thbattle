@@ -60,7 +60,7 @@ class PlayerList(BatchList):
 
         tagstr = 'inputany_%s_%d' % (tag, st)
 
-        g.emit_event('user_input_any_begin', (tag, attachment))
+        g.emit_event('user_input_any_begin', (self, tag, attachment))
 
         input = DataHolder()
         input.tag = tag
@@ -124,11 +124,9 @@ class PlayerList(BatchList):
         return p, data
 
     def user_input_all(self, tag, process, attachment=None, timeout=25):
-        # XXX: buggy: where is 'self'? why g.players?!
         g = Game.getgame()
-        g.emit_event('user_input_all_begin', (tag, attachment))
+        g.emit_event('user_input_all_begin', (self, tag, attachment))
         st = g.get_synctag()
-        pl = PlayerList(g.players)
         workers = BatchList()
         try:
             def worker(p, i):
@@ -146,7 +144,7 @@ class PlayerList(BatchList):
 
                     break
 
-            for i, p in enumerate(g.players):
+            for i, p in enumerate(self):
                 workers.append(
                     gevent.spawn(worker, p, i)
                 )
