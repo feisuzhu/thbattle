@@ -4,6 +4,8 @@ from client.ui.base import init_gui, schedule as ui_schedule
 from screens import UpdateScreen, ServerSelectScreen
 import sys, os
 
+from utils import hook
+
 import logging
 log = logging.getLogger('UI_Entry')
 
@@ -22,6 +24,7 @@ def start_ui():
 
     # custom errcheck
     import pyglet.gl.lib as gllib
+    from pyglet import gl
     orig_errcheck = gllib.errcheck
 
     import ctypes
@@ -35,6 +38,18 @@ def start_ui():
 
     gllib.errcheck = my_errcheck
     # ------------------------------------
+
+    # ATI workarounds
+    from pyglet.image import Texture
+
+    @hook(Texture)
+    def blit(ori, *a, **k):
+        from pyglet.gl import glBegin, glEnd, GL_QUADS
+        glBegin(GL_QUADS)
+        glEnd()
+        return ori(*a, **k)
+
+    # ---------------
 
     us = UpdateScreen()
     us.switch()

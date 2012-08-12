@@ -362,3 +362,16 @@ def classmix(*_classes):
     )
     cls_cache[classes] = new_cls
     return new_cls
+
+from functools import wraps
+
+def hook(module):
+    def inner(hooker):
+        funcname = hooker.__name__
+        hookee = getattr(module, funcname)
+        @wraps(hookee)
+        def real_hooker(*args, **kwargs):
+            return hooker(hookee, *args, **kwargs)
+        setattr(module, funcname, real_hooker)
+        return real_hooker
+    return inner
