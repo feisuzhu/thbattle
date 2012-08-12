@@ -97,20 +97,6 @@ if sys.platform == 'win32':
     DirectSoundAudioPlayer._buffer_size = 44800 * 2
     DirectSoundAudioPlayer._update_buffer_size = 44800 * 2 // 8
 
-import pyglet.gl.lib as gllib
-orig_errcheck = gllib.errcheck
-
-import ctypes
-def my_errcheck(result, func, arguments):
-    from pyglet import gl
-    error = gl.glGetError()
-    if error:
-        msg = ctypes.cast(gl.gluErrorString(error), ctypes.c_char_p).value
-        raise gl.GLException((error, msg))
-    return result
-
-gllib.errcheck = my_errcheck
-
 from client.ui.entry import start_ui
 
 try:

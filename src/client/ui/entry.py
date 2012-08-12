@@ -19,6 +19,23 @@ def start_ui():
     # then resources will be loaded at a different thread,
     # resulting white planes.
     import gamepack
+
+    # custom errcheck
+    import pyglet.gl.lib as gllib
+    orig_errcheck = gllib.errcheck
+
+    import ctypes
+    def my_errcheck(result, func, arguments):
+        from pyglet import gl
+        error = gl.glGetError()
+        if error:
+            msg = ctypes.cast(gl.gluErrorString(error), ctypes.c_char_p).value
+            raise gl.GLException((error, msg))
+        return result
+
+    gllib.errcheck = my_errcheck
+    # ------------------------------------
+
     us = UpdateScreen()
     us.switch()
     from client.core import Executive
