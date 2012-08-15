@@ -1,8 +1,15 @@
 from thb import *
+from collections import OrderedDict
 
-gamemodes = { g.__name__:g for g in [
+gamemodes = OrderedDict()
+l = [
     THBattle,
     THBattle1v1DBG,
-    THBattleIdentity,
     THBattleIdentity5,
-]}
+    THBattleIdentity,
+]
+
+for g in l:
+    gamemodes[g.__name__] = g
+
+del l, g, OrderedDict
