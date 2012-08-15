@@ -207,69 +207,13 @@ class GenericAction(Action): pass # others
 class UserAction(Action): pass # card/character skill actions
 class InternalAction(Action): pass # actions for internal use
 
-class TryRevive(GenericAction):
-    def __init__(self, target, dmgact):
-        self.source = self.target = target
-        self.dmgact = dmgact
-        g = Game.getgame()
-        if target.dead:
-            log.error('TryRevive buggy condition, __init__')
-            return
-        self.asklist = BatchList(
-            p for p in g.players if not p.dead
-        ).rotate_to(target)
-
-    def apply_action(self):
-        tgt = self.target
-        if tgt.tags['in_tryrevive']:
-            # nested TryRevive, just return True
-            # will trigger when Eirin uses Diamond Exinwan to heal self
-            return True
-
-        if tgt.dead:
-            log.error('TryRevive buggy condition, apply')
-            import traceback
-            traceback.print_stack()
-            return False
-
-        tgt.tags['in_tryrevive'] = True
-        g = Game.getgame()
-        pl = self.asklist
-        from .cards import UseHeal
-        for p in pl:
-            while True:
-                act = UseHeal(p)
-                if g.process_action(act):
-                    cards = act.cards
-                    if not cards: continue
-                    from .cards import Heal
-                    g.process_action(Heal(p, tgt))
-                    if tgt.life > 0:
-                        tgt.tags['in_tryrevive'] = False
-                        return True
-                    continue
-                break
-        tgt.tags['in_tryrevive'] = False
-        return tgt.life > 0
-
 class PlayerDeath(GenericAction):
-    def apply_action(self):
-        tgt = self.target
-        g = Game.getgame()
-        tgt.dead = True
-        #dropped = g.deck.droppedcards
-        src = self.source or self.target
-        others = g.players.exclude(tgt)
-        from .cards import VirtualCard
-        for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]:
-            if not cl: continue
-            #l = [c for c in cl if not c.is_card(VirtualCard)]
-            others.reveal(list(cl))
-            g.process_action(DropCards(tgt, cl))
-            #migrate_cards(l, dropped, unwrap=True)
-            assert not cl
-            #cl.clear()
-        return True
+    # dummy, implemented in Game
+    pass
+
+class TryRevive(GenericAction):
+    # dummy, implemented in Game
+    pass
 
 class Damage(GenericAction):
     def __init__(self, source, target, amount=1):

@@ -10,6 +10,8 @@ with ResLoader(__file__) as args:
 
     thblogo_3v3 = tx('thblogo_3v3.png')
     thblogo_1v1dbg = tx('thblogo_1v1dbg.png')
+    thblogo_8id = tx('thblogo_8id.png')
+    thblogo_5id = tx('thblogo_5id.png')
 
     card_attack = tx('card_attack.png')
     tag_attacked = anim('tag_attacked.png', [10000], True)

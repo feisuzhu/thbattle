@@ -552,8 +552,8 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
 
         self.identity_btn = b = Button(
             u'？', parent = self,
-            x=w-34-4, y=h-24-10-18,
-            width=34, height=18,
+            x=w-42-4, y=h-24-10-18,
+            width=42, height=18,
         )
 
         @b.event

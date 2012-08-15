@@ -539,7 +539,6 @@ class BalloonPrompt(object):
 
         panel = Panel(parent=Overlay.cur_overlay, x=0, y=0, width=292, height=h+4)
         panel.add_control(ta)
-        panel.blur_update_interval = 1
         panel.fill_color = (1.0, 1.0, 0.9, 0.5)
         self.balloon_panel = panel
 
@@ -1178,7 +1177,6 @@ class ConfirmBox(Dialog):
 ConfirmBox.register_event_type('on_confirm')
 
 class Panel(Control):
-    blur_update_interval = 2
     fill_color = (1.0, 1.0, 0.8, 0.0)
 
     def __init__(self, color=Colors.green, *a, **k):

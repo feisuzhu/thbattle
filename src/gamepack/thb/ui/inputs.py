@@ -356,13 +356,12 @@ class UIChooseGirl(Panel):
         self.x, self.y = (pw-w)/2, (ph-h)/2
         self.irp = None
         self.can_select = False
-        choices = self.choices = [c for c in attachment if c.char_cls]
-        assert len(choices) == 9
+        choices = self.choices = [c for c in attachment if c.char_cls and not getattr(c, 'chosen', False)]
         GS = UIChooseGirl.GirlSelector
         self.selectors = selectors = []
         for i, c in enumerate(choices):
             y, x = divmod(i, 3)
-            x, y = 15 + 160*x, 45 + 113*y
+            x, y = 15 + 160*x, 45 + 113*(2-y)
             selectors.append(
                 GS(c, selectors, parent=self, x=x, y=y)
             )

@@ -2,9 +2,9 @@
 from .. import actions
 from .. import cards
 from .. import characters
-from .. import thb3v3
+from .. import thb3v3, thbidentity
 
-import game
+from game.autoenv import Game
 import types
 import resource as gres
 from client.ui import resource as cres
@@ -84,6 +84,43 @@ class THBattle1v1DBG:
 
 # -----END THB3v3 UI META-----
 
+# -----BEGIN THBIdentity UI META-----
+__metaclass__ = gen_metafunc(thbidentity)
+
+class THBattleIdentity:
+    name = u'符斗祭 - 标准8人身份场'
+    logo = gres.thblogo_8id
+
+    from .view import THBattleIdentityUI as ui_class
+
+    T = thbidentity.Identity.TYPE
+    identity_table = {
+        T.HIDDEN: u'？',
+        T.ATTACKER: u'城管',
+        T.BOSS: u'BOSS',
+        T.ACCOMPLICE: u'道中',
+        T.CURTAIN: u'黑幕',
+    }
+    del T
+
+class THBattleIdentity5:
+    name = u'符斗祭 - 标准5人身份场'
+    logo = gres.thblogo_5id
+
+    from .view import THBattleIdentity5UI as ui_class
+
+    T = thbidentity.Identity.TYPE
+    identity_table = {
+        T.HIDDEN: u'？',
+        T.ATTACKER: u'城管',
+        T.BOSS: u'BOSS',
+        T.ACCOMPLICE: u'道中',
+        T.CURTAIN: u'黑幕',
+    }
+    del T
+
+# -----END THBIdentity UI META-----
+
 
 # -----BEGIN ACTIONS UI META-----
 __metaclass__ = gen_metafunc(actions)
@@ -160,11 +197,21 @@ class Fatetell:
 
 class RevealIdentity:
     def effect_string(act):
+        g = Game.getgame()
+        me = g.me
+        if not (me in act.to if isinstance(act.to, list) else me is act.to):
+            return
+
         tgt = act.target
         i = tgt.identity
-        return u'|G%s|r亮出身份：|R%s|r' % (
-            tgt.ui_meta.char_name,
-            thb3v3.THBattle.ui_meta.identity_table[i.type],
+        try:
+            name = u'|G%s|r' % tgt.ui_meta.char_name
+        except:
+            name = u'|R%s|r' % tgt.username
+
+        return u'%s的身份是：|R%s|r' % (
+            name,
+            Game.getgame().ui_meta.identity_table[i.type],
         )
 
 # -----END ACTIONS UI META-----

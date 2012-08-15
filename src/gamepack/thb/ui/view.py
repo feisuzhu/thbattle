@@ -89,6 +89,15 @@ class THBattleUI(Control):
         (250, 150, Colors.orange),
     ]
 
+    gcp_location = [
+        (3, 1, 'me', Colors.blue),
+        (669, 280, 'left', Colors.orange),
+        (155+180+180, 520, 'bottom', Colors.blue),
+        (155+180, 520, 'bottom', Colors.orange),
+        (155, 520, 'bottom', Colors.blue),
+        (3, 280, 'right', Colors.orange),
+    ]
+
     def __init__(self, game, *a, **k):
         self.game = game
         self.hook = hook = UIEventHook()
@@ -134,18 +143,10 @@ class THBattleUI(Control):
         self.selecting_player = 0
 
     def init(self):
-        orange, blue = Colors.orange, Colors.blue
         ports = self.char_portraits = [
             GameCharacterPortrait(parent=self, color=color, x=x, y=y, tag_placement=tp)
-            for x, y, tp, color in (
-                (3, 1, 'me', blue),
-                (669, 280, 'left', orange),
-                (155+180+180, 520, 'bottom', blue),
-                (155+180, 520, 'bottom', orange),
-                (155, 520, 'bottom', blue),
-                (3, 280, 'right', orange),
-            )[:len(self.game.players)]
-        ] # FIXME: this is for testing
+            for x, y, tp, color in self.gcp_location[:len(self.game.players)]
+        ]
 
         pl = self.game.players
         shift = pl.index(self.game.me)
@@ -314,4 +315,51 @@ class THBattleUI1v1DBG(THBattleUI):
     portrait_location = [
         (250, 300, Colors.orange),
         (450, 300, Colors.blue),
+    ]
+
+    gcp_location = [
+        (3, 1, 'me', Colors.blue),
+        (335, 520, 'bottom', Colors.orange),
+    ]
+
+class THBattleIdentityUI(THBattleUI):
+    portrait_location = [
+        (150, 430, Colors.blue),
+        (290, 430, Colors.blue),
+        (430, 430, Colors.blue),
+        (570, 430, Colors.blue),
+
+        (150, 170, Colors.blue),
+        (290, 170, Colors.blue),
+        (430, 170, Colors.blue),
+        (570, 170, Colors.blue),
+    ]
+
+    gcp_location = [
+        (3, 1, 'me', Colors.blue),
+        (669, 210, 'left', Colors.blue),
+        (669, 420, 'left', Colors.blue),
+        (505, 520, 'bottom', Colors.blue),
+        (335, 520, 'bottom', Colors.blue),
+        (165, 520, 'bottom', Colors.blue),
+        (3, 420, 'right', Colors.blue),
+        (3, 210, 'right', Colors.blue),
+    ]
+
+class THBattleIdentity5UI(THBattleUI):
+    portrait_location = [
+        (290, 450, Colors.blue),
+        (490, 450, Colors.blue),
+
+        (190, 150, Colors.blue),
+        (380, 150, Colors.blue),
+        (570, 150, Colors.blue),
+    ]
+
+    gcp_location = [
+        (3, 1, 'me', Colors.blue),
+        (669, 270, 'left', Colors.blue),
+        (455, 520, 'bottom', Colors.blue),
+        (215, 520, 'bottom', Colors.blue),
+        (3, 270, 'right', Colors.blue),
     ]
