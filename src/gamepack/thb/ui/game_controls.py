@@ -444,43 +444,65 @@ class EquipCardArea(Control):
 EquipCardArea.register_event_type('on_selection_change')
 
 class ShownCardPanel(Panel):
+    from ..cards.base import CardList
+    lookup = {
+        CardList.HANDCARD: u'手牌区',
+        CardList.SHOWNCARD: u'明牌区',
+        CardList.EQUIPS: u'装备区',
+        CardList.FATETELL: u'判定区',
+        CardList.BOMB: u'BOMB'
+    }
+
     current = None
     def __init__(self, player, *a, **k):
         self.player = player
         ShownCardPanel.current = self
-        h = 30 + 145 + 10
-        w = 100 + 6*93.0 + 30
 
-        self.lbl = pyglet.text.Label(
-            text=u'明牌区',
-            font_name = 'AncientPix', font_size=12,
-            color=(255, 255, 160, 255),
-            x=30, y=30+62,
-            anchor_x='left', anchor_y='center',
-        )
+        categories = player.showncardlists
+
+        h = 30 + len(categories)*145 + 10
+        w = 100 + 6*93.0+30
+        self.lbls = lbls = pyglet.graphics.Batch()
 
         Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
+
+        y = 30
+
+        i = 0
+        for cat in reversed(categories):
+
+            pyglet.text.Label(
+                text=self.lookup[cat.type],
+                font_name = 'AncientPix', font_size=12,
+                color=(255, 255, 160, 255),
+                x=30, y=y+62+145*i,
+                anchor_x='left', anchor_y='center',
+                batch=lbls,
+            )
+            ca = DropCardArea(
+                parent=self,
+                x=100, y=y+145*i,
+                fold_size=6,
+                width=6*93, height=125,
+            )
+            for c in cat:
+                cs = CardSprite(c, parent=ca)
+                cs.associated_card = c
+            ca.update()
+            i += 1
+
         p = self.parent
         self.x, self.y = (p.width - w)//2, (p.height - h)//2
         self.width, self.height = w, h
         self.update()
 
-        ca = DropCardArea(
-            parent=self,
-            x=100, y=30,
-            fold_size=6,
-            width=6*93, height=125,
-        )
-        for c in player.showncards:
-            cs = CardSprite(c, parent=ca)
-        ca.update()
-
-        closebtn = ImageButton(
+        btn = ImageButton(
             common_res.buttons.close_blue,
             parent=self,
-            x=w-20, y=h-20
+            x=w-20, y=h-20,
         )
-        @closebtn.event
+
+        @btn.event
         def on_click():
             self.delete()
 
@@ -488,7 +510,7 @@ class ShownCardPanel(Panel):
         Panel.draw(self)
         with shaders.FontShadow as fs:
             fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-            self.lbl.draw()
+            self.lbls.draw()
 
     def delete(self):
         Panel.delete(self)
@@ -601,7 +623,7 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         def on_click():
             p = self.player
             if not p: return
-            if not hasattr(p, 'showncards'): return # before the 'real' game start
+            if not hasattr(p, 'showncardlists'): return # before the 'real' game_start
             last = ShownCardPanel.current
             if last:
                 last.delete()

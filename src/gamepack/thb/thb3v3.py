@@ -188,6 +188,8 @@ class THBattle(Game):
             p.fatetell = CardList(p, CardList.FATETELL) # Cards in the Fatetell Zone
             p.special = CardList(p, CardList.SPECIAL) # used on special purpose
 
+            p.showncardlists = [p.showncards]
+
             p.tags = defaultdict(int)
 
             p.life = p.maxlife

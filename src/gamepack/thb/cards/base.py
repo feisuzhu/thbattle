@@ -160,6 +160,7 @@ class CardList(deque):
     EQUIPS = 'equips'
     FATETELL = 'fatetell'
     SPECIAL = 'special'
+    BOMB = 'bomb'
     def __init__(self, owner, type):
         self.owner = owner
         self.type = type
