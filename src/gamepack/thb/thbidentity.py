@@ -61,7 +61,7 @@ class Identity(PlayerIdentity):
         CURTAIN = 4
 
 class THBattleIdentity(Game):
-    n_persons = 2
+    n_persons = 8
     game_actions = _game_actions
     T = Identity.TYPE
     identities = [
@@ -153,7 +153,7 @@ class THBattleIdentity(Game):
         boss.identity = Identity()
         boss.identity.type = Identity.TYPE.BOSS
 
-        g.process_action(RevealIdentity(boss, pl))
+        g.process_action(RevealIdentity(boss, g.players))
 
         PlayerList([boss]).user_input_all('choose_girl', process, choice, timeout=30)
         if not chosen_girls:
@@ -181,8 +181,10 @@ class THBattleIdentity(Game):
         if len(g.players) > 5:
             boss.maxlife += 1
 
+        g.emit_event('boss_chosen', boss)
+
         # tell the others their own identity
-        il = g.identities
+        il = g.identities[:]
         random.shuffle(il)
         for p in g.players.exclude(boss):
             p.identity = Identity()
@@ -258,7 +260,8 @@ class THBattleIdentity(Game):
 
         # boss & accomplices' win
         if len(d[T.ATTACKER]) == g.identities.count(T.ATTACKER):
-            return True
+            if not d[T.CURTAIN]:
+                return True
 
         # attackers' win
         if len(d[T.BOSS]):

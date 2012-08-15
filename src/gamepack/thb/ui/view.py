@@ -346,7 +346,14 @@ class THBattleIdentityUI(THBattleUI):
         (3, 210, 'right', Colors.blue),
     ]
 
-class THBattleIdentity5UI(THBattleUI):
+    def on_message(self, _type, *args):
+        if _type == 'evt_boss_chosen':
+            port = self.player2portrait(args[0])
+            port.update()
+
+        return THBattleUI.on_message(self, _type, *args)
+
+class THBattleIdentity5UI(THBattleIdentityUI):
     portrait_location = [
         (290, 450, Colors.blue),
         (490, 450, Colors.blue),
