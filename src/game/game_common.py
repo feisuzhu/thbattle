@@ -216,14 +216,15 @@ class Game(object):
                 except AttributeError:
                     pass
 
-                if self.game_ended():
-                    raise GameEnded()
                 action = self.emit_event('action_after', action)
 
                 rst = action.succeeded
                 action.done = True
 
                 action.clean_up()
+
+            if self.game_ended():
+                raise GameEnded()
 
             return rst
 

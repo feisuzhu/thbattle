@@ -664,6 +664,8 @@ class GameScreen(Screen):
             self.remove_control(self.gameui)
             self.add_control(self.panel)
             g = args[0]
+        elif _type == 'client_game_finished':
+            g = args[0]
             g.ui_meta.ui_class.show_result(g)
         elif _type in ('chat_msg', 'speaker_msg'):
             uname, msg = args[0]

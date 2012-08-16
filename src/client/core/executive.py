@@ -48,6 +48,7 @@ class GameManager(Greenlet):
             g.players = PlayerList(pl)
             g.start()
             g.link_exception(lambda *a: self.event_cb('game_crashed', g))
+            g.link_value(lambda *a: self.event_cb('client_game_finished', g))
             self.event_cb('game_started', g)
 
         @handler(('hang'), 'inroom')

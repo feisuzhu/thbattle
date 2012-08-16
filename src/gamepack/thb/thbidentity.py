@@ -246,24 +246,30 @@ class THBattleIdentity(Game):
             pass
 
     def game_ended(g):
-        d = defaultdict(list)
         T = Identity.TYPE
-        for p in g.players:
-            if p.dead:
-                d[p.identity.type].append(p)
+        def build():
+            deads = defaultdict(list)
+            for p in g.players:
+                if p.dead or p.dropped:
+                    deads[p.identity.type].append(p)
+            return deads
 
         # curtain's win
-        if len([p for p in g.players if p.dead]) == len(g.players) - 1:
-            if not d[T.CURTAIN]:
-                pl = g.players
-                for p in pl:
-                    pl.reveal(p.identity)
+        if len([p for p in g.players if p.dead or p.dropped]) == len(g.players) - 1:
+            pl = g.players
+            for p in pl:
+                pl.reveal(p.identity)
+
+            deads = build()
+            if not deads[T.CURTAIN]:
                 g.winners = [p for p in pl if p.identity.type == T.CURTAIN]
                 return True
 
+        deads = build()
+
         # boss & accomplices' win
-        if len(d[T.ATTACKER]) == g.identities.count(T.ATTACKER):
-            if d[T.CURTAIN]:
+        if len(deads[T.ATTACKER]) == g.identities.count(T.ATTACKER):
+            if deads[T.CURTAIN]:
                 pl = g.players
                 for p in pl:
                     pl.reveal(p.identity)
@@ -271,7 +277,7 @@ class THBattleIdentity(Game):
                 return True
 
         # attackers' win
-        if len(d[T.BOSS]):
+        if len(deads[T.BOSS]):
             pl = g.players
             for p in pl:
                 pl.reveal(p.identity)

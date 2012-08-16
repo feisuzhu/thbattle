@@ -81,7 +81,7 @@ class DeckIndicator(Control):
 
 class ResultPanel(Panel):
     def __init__(self, g, *a, **k):
-        Panel.__init__(self, width=550, height=340, *a, **k)
+        Panel.__init__(self, width=550, height=340, zindex=10000, *a, **k)
         parent = self.parent
         self.x = (parent.width - 550) // 2
         self.y = (parent.height - 340) // 2
@@ -123,7 +123,6 @@ class ResultPanel(Panel):
         pic = self.pic
         glColor3f(1, 1, 1)
         self.pic.blit(self.width - pic.width - 10, self.height - pic.height - 10)
-
 
 class THBattleUI(Control):
     portrait_location = [
