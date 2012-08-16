@@ -295,11 +295,16 @@ class THBattle(Game):
             pass
 
     def game_ended(self):
-        forces = self.forces
-        return any(
-            all(p.dead or p.dropped for p in f)
-            for f in forces
-        )
+        force1, force2 = self.forces
+        if all(p.dead or p.dropped for p in force1):
+            self.winners = force2[:]
+            return True
+
+        if all(p.dead or p.dropped for p in force2):
+            self.winners = force1[:]
+            return True
+
+        return False
 
 class THBattle1v1DBG(THBattle):
     n_persons = 2

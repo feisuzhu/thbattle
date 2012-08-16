@@ -569,6 +569,8 @@ class GameScreen(Screen):
                         u1[1], u2[1], count
                     )
                 )
+            elif _type == 'game_joined':
+                self.btn_getready.state = Button.NORMAL
 
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
@@ -598,6 +600,9 @@ class GameScreen(Screen):
 
         def append(self, v):
             self.box.append(v)
+
+        def clear(self):
+            self.box.text = u'\u200b'
 
     class ChatBox(Dialog):
         def __init__(self, parent):
@@ -658,6 +663,8 @@ class GameScreen(Screen):
         elif _type == 'end_game':
             self.remove_control(self.gameui)
             self.add_control(self.panel)
+            g = args[0]
+            g.ui_meta.ui_class.show_result(g)
         elif _type in ('chat_msg', 'speaker_msg'):
             uname, msg = args[0]
             uname = uname.replace('|', '||')
@@ -667,7 +674,14 @@ class GameScreen(Screen):
         elif _type == 'game_joined':
             # last game ended, this is the auto
             # created game
-            GameScreen(args[0]).switch()
+            self.game = game = args[0]
+            self.panel.btn_getready.state = Button.NORMAL
+            self.gameui = self.ui_class(
+                parent=False, game=self.game,
+                **r2d((0, 0, 820, 720))
+            )
+            self.events_box.clear()
+
         elif _type == 'game_crashed':
             ConfirmBox(u'游戏逻辑已经崩溃，请退出房间！\n这是不正常的状态，你可以报告bug。', parent=self)
         else:

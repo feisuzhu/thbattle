@@ -255,16 +255,27 @@ class THBattleIdentity(Game):
         # curtain's win
         if len([p for p in g.players if p.dead]) == len(g.players) - 1:
             if not d[T.CURTAIN]:
-                # winner = Curtain
+                pl = g.players
+                for p in pl:
+                    pl.reveal(p.identity)
+                g.winners = [p for p in pl if p.identity.type == T.CURTAIN]
                 return True
 
         # boss & accomplices' win
         if len(d[T.ATTACKER]) == g.identities.count(T.ATTACKER):
-            if not d[T.CURTAIN]:
+            if d[T.CURTAIN]:
+                pl = g.players
+                for p in pl:
+                    pl.reveal(p.identity)
+                g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
                 return True
 
         # attackers' win
         if len(d[T.BOSS]):
+            pl = g.players
+            for p in pl:
+                pl.reveal(p.identity)
+            g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
             return True
 
         return False

@@ -343,11 +343,11 @@ def user_input_start_effects(self, input):
 def user_input_finish_effects(self, input):
     p = input.player
     port = self.player2portrait(p)
-    if port.actor_frame:
+    if getattr(port, 'actor_frame', False):
         port.actor_frame.delete()
         port.actor_frame = None
 
-    if port.actor_pbar:
+    if getattr(port, 'actor_pbar', False):
         port.actor_pbar.delete()
         port.actor_pbar = None
 

@@ -69,8 +69,8 @@ class GameManager(Greenlet):
 
         @handler(('ingame'), 'hang')
         def end_game(self, data):
+            self.event_cb('end_game', self.game)
             self.game = None
-            self.event_cb('end_game')
 
         @handler(('connected'), None)
         def auth_result(self, userid):

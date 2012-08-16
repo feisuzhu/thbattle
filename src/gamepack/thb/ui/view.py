@@ -3,12 +3,12 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
-from client.ui.base import Control, message as ui_message
+from client.ui.base import Control, message as ui_message, Overlay
 from client.ui.controls import *
 from client.ui import resource as common_res
 from client.ui import shaders, soundmgr
 import resource as gres
-from utils import IRP
+from utils import IRP, hook
 
 from .game_controls import *
 
@@ -78,6 +78,52 @@ class DeckIndicator(Control):
                 nums[n].blit(ox + i*14, oy)
         except AttributeError as e:
             pass
+
+class ResultPanel(Panel):
+    def __init__(self, g, *a, **k):
+        Panel.__init__(self, width=550, height=340, *a, **k)
+        parent = self.parent
+        self.x = (parent.width - 550) // 2
+        self.y = (parent.height - 340) // 2
+        self.textarea = ta = TextArea(
+            parent=self, x=30, y=30, width=550-30, height=340-60,
+            font_size=12,
+        )
+        ta.text = u''
+        winners = g.winners
+        for p in g.players:
+            s = u'|G%s|r(|R%s|r, |c0000ffff%s|r, %s)\n' % (
+                p.ui_meta.char_name, p.username,
+                g.ui_meta.identity_table[p.identity.type],
+                u'|R胜利|r' if p in winners else u'失败'
+            )
+            ta.append(s)
+
+        @hook(ta)
+        def draw(ori):
+            with shaders.FontShadow as fs:
+                fs.uniform.shadow_color = (1.0, 1.0, 0.625, 0.3)
+                ori()
+
+        if g.me in winners:
+            self.pic = gres.win
+        else:
+            self.pic = gres.lose
+
+        close = Button(
+            u'关闭', parent=self, x=440, y=25, width=90, height=40
+        )
+
+        @close.event
+        def on_click():
+            self.delete()
+
+    def draw(self):
+        Panel.draw(self)
+        pic = self.pic
+        glColor3f(1, 1, 1)
+        self.pic.blit(self.width - pic.width - 10, self.height - pic.height - 10)
+
 
 class THBattleUI(Control):
     portrait_location = [
@@ -235,16 +281,7 @@ class THBattleUI(Control):
         self.selecting_player = True
         #self.selected_players = []
         for p in self.game.players:
-            try:
-                port = self.player2portrait(p)
-            except ValueError:
-                print p, self.game.players
-                print p, self.game.players
-                print p, self.game.players
-                print p, self.game.players
-                print p, self.game.players
-                print p, self.game.players
-                return
+            port = self.player2portrait(p)
 
             if p in disables:
                 port.disabled = True
@@ -308,6 +345,10 @@ class THBattleUI(Control):
                     psel.append(c.player)
                 self.dispatch_event('on_selection_change')
         return True
+
+    @staticmethod
+    def show_result(g):
+        ResultPanel(g, parent=Overlay.cur_overlay)
 
 THBattleUI.register_event_type('on_selection_change')
 
