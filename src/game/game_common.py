@@ -152,9 +152,6 @@ class Game(object):
         '''
         raise GameError('Override this function to implement Game logics!')
 
-    def game_ended(self):
-        raise GameError('Override this')
-
     def emit_event(self, evt_type, data):
         '''
         Fire an event, all relevant event handlers will see this,
@@ -222,9 +219,6 @@ class Game(object):
                 action.done = True
 
                 action.clean_up()
-
-            if self.game_ended():
-                raise GameEnded()
 
             return rst
 

@@ -39,15 +39,53 @@ class DeathHandler(EventHandler):
                 from .actions import RevealIdentity, DrawCards, DropCards
                 g.process_action(RevealIdentity(tgt, g.players))
 
-                if not act.source: return act
-                src = act.source
-                if tgt.identity.type == Identity.TYPE.ATTACKER:
-                    g.process_action(DrawCards(src, 3))
-                elif tgt.identity.type == Identity.TYPE.ACCOMPLICE:
-                    if src.identity.type == Identity.TYPE.BOSS:
-                        if src.cards: g.process_action(DropCards(src, src.cards))
-                        if src.showncards: g.process_action(DropCards(src, src.showncards))
-                        if src.equips: g.process_action(DropCards(src, src.equips))
+                if act.source:
+                    src = act.source
+                    if tgt.identity.type == Identity.TYPE.ATTACKER:
+                        g.process_action(DrawCards(src, 3))
+                    elif tgt.identity.type == Identity.TYPE.ACCOMPLICE:
+                        if src.identity.type == Identity.TYPE.BOSS:
+                            if src.cards: g.process_action(DropCards(src, src.cards))
+                            if src.showncards: g.process_action(DropCards(src, src.showncards))
+                            if src.equips: g.process_action(DropCards(src, src.equips))
+
+                # see if game ended
+                T = Identity.TYPE
+                def build():
+                    deads = defaultdict(list)
+                    for p in g.players:
+                        if p.dead:
+                            deads[p.identity.type].append(p)
+                    return deads
+
+                # curtain's win
+                if len([p for p in g.players if p.dead]) == len(g.players) - 1:
+                    pl = g.players
+                    pl.reveal([p.identity for p in g.players])
+
+                    deads = build()
+                    if not deads[T.CURTAIN]:
+                        g.winners = [p for p in pl if p.identity.type == T.CURTAIN]
+                        raise GameEnded
+
+                deads = build()
+
+                # boss & accomplices' win
+                if len(deads[T.ATTACKER]) == g.identities.count(T.ATTACKER):
+                    if deads[T.CURTAIN]:
+                        pl = g.players
+                        pl.reveal([p.identity for p in g.players])
+
+                        g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
+                        raise GameEnded
+
+                # attackers' win
+                if len(deads[T.BOSS]):
+                    pl = g.players
+                    pl.reveal([p.identity for p in g.players])
+
+                    g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
+                    raise GameEnded
 
         return act
 
@@ -256,46 +294,6 @@ class THBattleIdentity(Game):
                     g.process_action(PlayerTurn(p))
         except GameEnded:
             pass
-
-    def game_ended(g):
-        T = Identity.TYPE
-        def build():
-            deads = defaultdict(list)
-            for p in g.players:
-                if p.dead or p.dropped:
-                    deads[p.identity.type].append(p)
-            return deads
-
-        # curtain's win
-        if len([p for p in g.players if p.dead or p.dropped]) == len(g.players) - 1:
-            pl = g.players
-            pl.reveal([p.identity for p in g.players])
-
-            deads = build()
-            if not deads[T.CURTAIN]:
-                g.winners = [p for p in pl if p.identity.type == T.CURTAIN]
-                return True
-
-        deads = build()
-
-        # boss & accomplices' win
-        if len(deads[T.ATTACKER]) == g.identities.count(T.ATTACKER):
-            if deads[T.CURTAIN]:
-                pl = g.players
-                pl.reveal([p.identity for p in g.players])
-
-                g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
-                return True
-
-        # attackers' win
-        if len(deads[T.BOSS]):
-            pl = g.players
-            pl.reveal([p.identity for p in g.players])
-
-            g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
-            return True
-
-        return False
 
 class THBattleIdentity5(THBattleIdentity):
     n_persons = 5

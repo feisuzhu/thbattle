@@ -200,10 +200,10 @@ class Game(Greenlet, game.Game):
         game.Game.__init__(self)
         self.players = PlayerList()
         from .game_client import Game # this class
-        Game.thegame = self
 
     def _run(self):
         self.synctag = 0
+        Game.thegame = self
         self.game_start()
 
     @classmethod
