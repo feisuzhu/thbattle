@@ -66,6 +66,13 @@ class THBattle:
         T.HAKUREI: u'博丽',
         T.MORIYA: u'守矢'
     }
+
+    identity_color = {
+        T.HIDDEN: u'blue',
+        T.HAKUREI: u'blue',
+        T.MORIYA: u'orange'
+    }
+
     del T
 
 class THBattle1v1DBG:
@@ -79,6 +86,12 @@ class THBattle1v1DBG:
         T.HIDDEN: u'？',
         T.HAKUREI: u'博丽',
         T.MORIYA: u'守矢'
+    }
+
+    identity_color = {
+        T.HIDDEN: u'blue',
+        T.HAKUREI: u'blue',
+        T.MORIYA: u'orange'
     }
     del T
 
@@ -101,6 +114,15 @@ class THBattleIdentity:
         T.ACCOMPLICE: u'道中',
         T.CURTAIN: u'黑幕',
     }
+
+    identity_color = {
+        T.HIDDEN: u'blue',
+        T.ATTACKER: u'blue',
+        T.BOSS: u'red',
+        T.ACCOMPLICE: u'orange',
+        T.CURTAIN: u'green',
+    }
+
     del T
 
 class THBattleIdentity5:
@@ -117,6 +139,15 @@ class THBattleIdentity5:
         T.ACCOMPLICE: u'道中',
         T.CURTAIN: u'黑幕',
     }
+
+    identity_color = {
+        T.HIDDEN: u'blue',
+        T.ATTACKER: u'blue',
+        T.BOSS: u'red',
+        T.ACCOMPLICE: u'orange',
+        T.CURTAIN: u'green',
+    }
+
     del T
 
 # -----END THBIdentity UI META-----

@@ -459,19 +459,28 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 class BalloonPrompt(object):
+    balloon_inited = False
     balloon_panel = None
     balloon_cursorloc = (0, 0)
     def init_balloon(self, text, region=None):
-        self.balloon_state = 'hidden'
         self.balloon_text = text
         self.balloon_region = region
 
-        self.push_handlers(
-            on_mouse_motion=self.balloon_on_mouse_motion,
-            on_mouse_drag=self.balloon_on_mouse_motion,
-            on_mouse_enter=self.balloon_on_mouse_enter,
-            on_mouse_leave=self.balloon_on_mouse_leave,
-        )
+        if not self.balloon_inited:
+            self.balloon_inited = True
+            self.push_handlers(
+                on_mouse_motion=self.balloon_on_mouse_motion,
+                on_mouse_drag=self.balloon_on_mouse_motion,
+                on_mouse_enter=self.balloon_on_mouse_enter,
+                on_mouse_leave=self.balloon_on_mouse_leave,
+            )
+            self.balloon_state = 'hidden'
+        else:
+            print self.balloon_state
+            if self.balloon_state == 'shown':
+                self.balloon_panel.delete()
+                del self.balloon_panel
+                self.balloon_state = 'hidden'
 
     def balloon_on_mouse_motion(self, x, y, dx, dy, *a):
         ax, ay = self.abs_coords()

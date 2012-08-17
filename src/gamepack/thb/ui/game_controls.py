@@ -562,15 +562,25 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             width=42, height=18,
         )
 
+        self.cur_idtag = 0
+
         @b.event
         def on_click():
-            l = self.parent.game.ui_meta.identity_table.values()
+            tbl = self.parent.game.ui_meta.identity_table
+            colortbl = self.parent.game.ui_meta.identity_color
+            keys = tbl.keys()
             try:
-                i = (l.index(b.caption) + 1) % len(l)
+                i = (keys.index(self.cur_idtag) + 1) % len(keys)
             except ValueError:
                 i = 0
-            b.caption = l[i]
+            next = keys[i]
+            b.caption = tbl[next]
+            color = getattr(Colors, colortbl[next])
+            b.color = color
+            self.color = color
             b.update()
+            self.update()
+            self.cur_idtag = next
 
         @self.equipcard_area.event
         def on_selection_change():
@@ -708,9 +718,9 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         # HACK: make actor_frame track ports' location
         if self.actor_frame:
             self.actor_frame.set_position(self.x - 6, self.y - 4)
-        if self.turn_frame:
-            self.turn_frame.set_position(self.x - 6, self.y - 4)
-        
+        #if self.turn_frame:
+        #    self.turn_frame.set_position(self.x - 6, self.y - 4)
+
         p = self.player
         if getattr(p, 'dead', False):
             self.tex, tmp = self.grayed_tex, self.tex
@@ -781,9 +791,14 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             if (act.target is self.player) and (me in act.to if isinstance(act.to, list) else me is act.to):
                 btn = self.identity_btn
                 tbl = self.parent.game.ui_meta.identity_table
+                colortbl = self.parent.game.ui_meta.identity_color
+                color = getattr(Colors, colortbl[act.target.identity.type])
                 btn.caption = tbl[act.target.identity.type]
                 btn.state = Button.DISABLED
                 btn.update()
+                self.color = color
+                self.update()
+
 
     def animate_to(self, x, y):
         self.x = SineInterp(self.x, x, 1)

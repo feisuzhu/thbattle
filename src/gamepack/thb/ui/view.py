@@ -212,10 +212,9 @@ class THBattleUI(Control):
         ports = [self.player2portrait(p) for p in pl]
         assert set(ports) == set(self.char_portraits)
         locations = self.gcp_location[:len(self.game.players)]
-        for port, (x, y, tp, color) in zip(ports, locations):
+        for port, (x, y, tp, _) in zip(ports, locations):
             port.tag_placement = tp
             port.animate_to(x, y)
-            port.color = color
             port.update()
         self.char_portraits[:] = ports
 
