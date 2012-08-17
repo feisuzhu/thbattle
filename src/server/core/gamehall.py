@@ -252,21 +252,24 @@ def end_game(g):
     evt_datachange.set()
 
 def chat(user, msg):
-    if user.state == 'hang': # hall chat
-        for u in users.values():
-            if u.state == 'hang':
-                u.write(['chat_msg', [user.username, msg]])
-    elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
-        ul = user.current_game.players.client
-        ul.write(['chat_msg', [user.username, msg]])
+    def worker():
+        if user.state == 'hang': # hall chat
+            for u in users.values():
+                if u.state == 'hang':
+                    u.write(['chat_msg', [user.username, msg]])
+        elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
+            ul = user.current_game.players.client
+            ul.write(['chat_msg', [user.username, msg]])
+    gevent.spawn(worker)
 
-def genfunc(_type):
-    def _msg(user, msg):
+def speaker(user, msg):
+    def worker():
         for u in users.values():
-            u.write([_type, [user.username, msg]])
-    _msg.__name__ = _type
-    return _msg
+            u.write(['speaker_msg', [user.username, msg]])
+    gevent.spawn(worker)
 
-speaker = genfunc('speaker_msg')
-system_msg = genfunc('system_msg') #FIXME!
-del genfunc
+def system_msg(msg):
+    def worker():
+        for u in users.values():
+            u.write(['system_msg', [None, msg]])
+    gevent.spawn(worker)

@@ -395,7 +395,9 @@ class GameHallScreen(Screen):
             def on_enter():
                 text = unicode(self.inputbox.text)
                 self.inputbox.text = u''
-                if text:
+                if text.startswith(u'`') and len(text) > 1:
+                    Executive.call('speaker', ui_message, text[1:])
+                else:
                     Executive.call('chat', ui_message, text)
 
         def append(self, v):
@@ -480,10 +482,17 @@ class GameHallScreen(Screen):
     def on_message(self, _type, *args):
         if _type == 'game_joined':
             GameScreen(args[0]).switch()
-        elif _type in ('chat_msg', 'speaker_msg'):
+        elif _type == 'chat_msg':
             uname, msg = args[0]
             uname = uname.replace('|', '||')
             self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
+        elif _type == 'speaker_msg':
+            uname, msg = args[0]
+            uname = uname.replace('|', '||')
+            self.chat_box.append(u'|ccc3299ff『文々。新闻』|cff0000ff%s|r： %s\n' % (uname, msg))
+        elif _type == 'system_msg':
+            _, msg = args[0]
+            self.chat_box.append(u'|B|R%s|r\n' % msg)
         elif _type == 'gamehall_error':
             log.error('GameHall Error: %s' % args[0]) # TODO
             mapping = {
@@ -625,7 +634,9 @@ class GameScreen(Screen):
             def on_enter():
                 text = unicode(self.inputbox.text)
                 self.inputbox.text = u''
-                if text:
+                if text.startswith(u'`') and len(text) > 1:
+                    Executive.call('speaker', ui_message, text[1:])
+                else:
                     Executive.call('chat', ui_message, text)
 
         def append(self, v):
@@ -667,10 +678,17 @@ class GameScreen(Screen):
         elif _type == 'client_game_finished':
             g = args[0]
             g.ui_meta.ui_class.show_result(g)
-        elif _type in ('chat_msg', 'speaker_msg'):
+        elif _type == 'chat_msg':
             uname, msg = args[0]
             uname = uname.replace('|', '||')
             self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
+        elif _type == 'speaker_msg':
+            uname, msg = args[0]
+            uname = uname.replace('|', '||')
+            self.chat_box.append(u'|ccc3299ff『文々。新闻』|cff0000ff%s|r： %s\n' % (uname, msg))
+        elif _type == 'system_msg':
+            _, msg = args[0]
+            self.chat_box.append(u'|B|R%s|r\n' % msg)
         elif _type in ('game_left', 'fleed'):
             GameHallScreen().switch()
         elif _type == 'game_joined':
