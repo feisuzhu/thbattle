@@ -518,8 +518,13 @@ class ShownCardPanel(Panel):
 
 class GameCharacterPortrait(Dialog, BalloonPrompt):
     dropped = False
+    x = InterpDesc('_x')
+    y = InterpDesc('_y')
+    _x = _y = 0
+    actor_frame = None
+    turn_frame = None
 
-    def __init__(self, color=Colors.blue, tag_placement='me', *args, **kwargs):
+    def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', *args, **kwargs):
         self.selected = False
         self.player = None
         self.disabled = False
@@ -532,6 +537,7 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             shadow_thick=1,
             **kwargs
         )
+        self.x, self.y = x, y
         self.no_move = True
         self.btn_close.state = Button.DISABLED
         self.portcard_area = PortraitCardArea(
@@ -698,6 +704,13 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
                 self.tex.blit(0, 0)
 
     def draw(self):
+
+        # HACK: make actor_frame track ports' location
+        if self.actor_frame:
+            self.actor_frame.set_position(self.x - 6, self.y - 4)
+        if self.turn_frame:
+            self.turn_frame.set_position(self.x - 6, self.y - 4)
+        
         p = self.player
         if getattr(p, 'dead', False):
             self.tex, tmp = self.grayed_tex, self.tex
@@ -771,3 +784,10 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
                 btn.caption = tbl[act.target.identity.type]
                 btn.state = Button.DISABLED
                 btn.update()
+
+    def animate_to(self, x, y):
+        self.x = SineInterp(self.x, x, 1)
+        self.y = SineInterp(self.y, y, 1)
+        pca = self.portcard_area
+        pca.x = x
+        pca.y = y

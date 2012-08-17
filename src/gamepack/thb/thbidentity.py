@@ -183,6 +183,18 @@ class THBattleIdentity(Game):
 
         g.emit_event('boss_chosen', boss)
 
+        # reseat
+        opl = g.players
+        loc = range(len(opl))
+        random.shuffle(loc)
+        loc = sync_primitive(loc, opl)
+        npl = opl[:]
+        for i, l in zip(range(len(opl)), loc):
+            npl[i] = opl[l]
+        g.players[:] = npl
+
+        g.emit_event('reseat', None)
+
         # tell the others their own identity
         il = g.identities[:]
         random.shuffle(il)
@@ -257,8 +269,7 @@ class THBattleIdentity(Game):
         # curtain's win
         if len([p for p in g.players if p.dead or p.dropped]) == len(g.players) - 1:
             pl = g.players
-            for p in pl:
-                pl.reveal(p.identity)
+            pl.reveal([p.identity for p in g.players])
 
             deads = build()
             if not deads[T.CURTAIN]:
@@ -271,16 +282,16 @@ class THBattleIdentity(Game):
         if len(deads[T.ATTACKER]) == g.identities.count(T.ATTACKER):
             if deads[T.CURTAIN]:
                 pl = g.players
-                for p in pl:
-                    pl.reveal(p.identity)
+                pl.reveal([p.identity for p in g.players])
+
                 g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
                 return True
 
         # attackers' win
         if len(deads[T.BOSS]):
             pl = g.players
-            for p in pl:
-                pl.reveal(p.identity)
+            pl.reveal([p.identity for p in g.players])
+
             g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
             return True
 

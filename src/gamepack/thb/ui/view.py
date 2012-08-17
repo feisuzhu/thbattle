@@ -144,6 +144,8 @@ class THBattleUI(Control):
         game.event_handlers.append(hook)
         Control.__init__(self, *a, **k)
 
+        self.char_portraits = None
+
         self.deck_indicator = DeckIndicator(
             parent=self, x=30, y=680, width=50, height=25,
         )
@@ -205,6 +207,18 @@ class THBattleUI(Control):
 
         soundmgr.switch_bgm(gres.bgm_game)
 
+    def reseat(self):
+        pl = self.game.players.rotate_to(self.game.me)
+        ports = [self.player2portrait(p) for p in pl]
+        assert set(ports) == set(self.char_portraits)
+        locations = self.gcp_location[:len(self.game.players)]
+        for port, (x, y, tp, color) in zip(ports, locations):
+            port.tag_placement = tp
+            port.animate_to(x, y)
+            port.color = color
+            port.update()
+        self.char_portraits[:] = ports
+
     def player2portrait(self, p):
         for port in self.char_portraits:
             if port.player == p:
@@ -240,6 +254,9 @@ class THBattleUI(Control):
 
         elif _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
             self.current_turn = args[0].target
+
+        elif _type == 'evt_reseat':
+            self.reseat()
 
         elif _type == 'player_change':
             for i, pd in enumerate(args[0]):
