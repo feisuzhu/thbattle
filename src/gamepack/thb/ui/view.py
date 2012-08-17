@@ -80,6 +80,7 @@ class DeckIndicator(Control):
             pass
 
 class ResultPanel(Panel):
+    fill_color = (1.0, 1.0, 0.9, 0.5)
     def __init__(self, g, *a, **k):
         Panel.__init__(self, width=550, height=340, zindex=10000, *a, **k)
         parent = self.parent
@@ -98,12 +99,6 @@ class ResultPanel(Panel):
                 u'|R胜利|r' if p in winners else u'失败'
             )
             ta.append(s)
-
-        @hook(ta)
-        def draw(ori):
-            with shaders.FontShadow as fs:
-                fs.uniform.shadow_color = (1.0, 1.0, 0.625, 0.3)
-                ori()
 
         if g.me in winners:
             self.pic = gres.win

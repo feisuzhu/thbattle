@@ -682,6 +682,7 @@ class GameScreen(Screen):
                 parent=False, game=self.game,
                 **r2d((0, 0, 820, 720))
             )
+            soundmgr.switch_bgm(common_res.bgm_hall)
             self.events_box.clear()
 
         elif _type == 'game_crashed':
