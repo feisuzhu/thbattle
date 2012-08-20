@@ -24,7 +24,12 @@ logging.getLogger().setLevel(logging.INFO)
 
 from gevent.backdoor import BackdoorServer
 
-gevent.spawn(BackdoorServer(('127.0.0.1', 10000)).serve_forever)
+if len(sys.argv) > 1 and sys.argv[1] == 'TESTING':
+    gameport, bdport = 9998, 10001
+else:
+    gameport, bdport = 9999, 10000
 
-server = StreamServer(('0.0.0.0', 9999), Client.spawn, None)
+gevent.spawn(BackdoorServer(('127.0.0.1', bdport)).serve_forever)
+
+server = StreamServer(('0.0.0.0', gameport), Client.spawn, None)
 server.serve_forever()

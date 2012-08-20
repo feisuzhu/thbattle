@@ -15,12 +15,20 @@ import os
 
 import sys
 UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
+AUTOUPDATE_ENABLE = not os.path.exists(os.path.join(UPDATE_BASE, 'NO_UPDATE'))
 
-if sys.platform == 'win32':
+if not sys.platform.startswith('linux'):
     UPDATE_BASE = os.path.dirname(UPDATE_BASE)
-    UPDATE_URL = 'http://update.thbattle.net/'
+
+TESTING = os.path.exists(os.path.join(UPDATE_BASE, 'TESTING'))
+
+if TESTING:
+    UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/testing/'
 else:
-    UPDATE_URL = 'http://update.thbattle.net/src/'
+    UPDATE_URL = 'http://update.thbattle.net/'
+
+if sys.platform.startswith('linux'):
+    UPDATE_URL += 'src/'
 
 VERSION = 'THBATTLE V1.0b incr 56'
 
@@ -35,20 +43,20 @@ UPDATE_IGNORES = re.compile(r'''
         | ^.+\.py[co]$
         | ^.*~$
         | ^NO_UPDATE$
+        | ^TESTING$
         | ^.*_custom\..{2,4}$
         | ^last_id$
         | ^\.
 ''', re.VERBOSE)
 
-AUTOUPDATE_ENABLE = not os.path.exists(os.path.join(UPDATE_BASE, 'NO_UPDATE'))
-
 class ServerList:
     class HakureiShrine:
-        address = ('127.0.0.1', 9999)
+        address = ('game.thbattle.net', 9998)
         description = (
             u'|R没什么香火钱 博丽神社|r\n\n'
             u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
             u'出手大方的话，说不定会欣赏到博丽神社历代传下来的10万元COS哦。\n\n'
+            u'|R|B注意：这是测试服务器，并不保证稳定、与正常服务器的同步！|r\n\n'
             u'|DB服务器地址： %s|r'
         ) % repr(address)
         x=893
