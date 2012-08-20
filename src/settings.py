@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 else:
     UPDATE_URL = 'http://update.thbattle.net/src/'
 
-VERSION = 'THBATTLE V1.0b incr 46'
+VERSION = 'THBATTLE V1.0b incr 56'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -87,19 +87,22 @@ NOTICE = u'''
 请点击另外两个点进入游戏。
 
 |B最近bug修复/加强：|r
-大酱送牌崩溃修复
-某些恼人的小bug……
-将ROLL点过程调整到选将之前
-某些内部机制调整（如果出现了以前没有的bug，请报告）
-萃香无手牌时不能喝装备的bug
-勇仪带白楼剑怪力弃恶心丸导致游戏崩溃的bug
+各种奇怪的、难以描述的bug
+身份场随机座次，大喇叭
+某些奇怪的、难以描述的bug
+游戏战报窗口，身份场黑幕赢不了的bug
+标准身份场
+无限好人卡bug修复……
+秋穰子 秋祭 技能修改为一回合一次
+灵梦灵击恶心丸结算bug修复
+灵梦重制，黑白‘借走’的牌放入明牌区
 
 另外，如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
 
 |B游戏论坛：|r
-www.thbattle.net(接受BUG报告，请附上游戏目录中的client_log.txt文件)
-www.touhou.cc/bbs
-也可以通过人人的东方Project公共主页、邮箱(feisuzhu@163.com)联系
+http://www.thbattle.net
+
+论坛有板块接受BUG报告，请附上游戏目录中的client_log.txt文件
 |R
 游戏QQ群： 175054570
 设定讨论群： 247123221（仅讨论设定问题，不是灌水群）
