@@ -152,7 +152,7 @@ class Game(Greenlet, game.Game):
     def __data__(self):
         from .gamehall import PlayerPlaceHolder as pph
         return dict(
-            id=id(self),
+            id=self.gameid,
             type=self.__class__.__name__,
             started=self.game_started,
             name=self.game_name,

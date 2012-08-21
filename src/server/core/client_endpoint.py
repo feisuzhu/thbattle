@@ -67,7 +67,7 @@ class Client(Endpoint, Greenlet):
         def create_game(self, arg):
             _type, name = arg
             g = hall.create_game(self, _type, name)
-            hall.join_game(self, id(g))
+            hall.join_game(self, g.gameid)
 
         @handler('hang')
         def join_game(self, gameid):

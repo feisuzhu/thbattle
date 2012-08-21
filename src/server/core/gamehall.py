@@ -27,6 +27,12 @@ games = {} # all games
 users = {} # all users
 evt_datachange = Event()
 
+_curgameid = 0
+def new_gameid():
+    global _curgameid
+    _curgameid += 1
+    return _curgameid
+
 class _GameHallStatusUpdator(Greenlet):
     def _run(self):
         last_update = time()
@@ -98,7 +104,9 @@ def create_game(user, gametype, gamename):
     g.game_name = gamename
     g.players = PlayerList([PlayerPlaceHolder] * g.n_persons)
     g.banlist = defaultdict(set)
-    games[id(g)] = g
+    gid = new_gameid()
+    g.gameid = gid
+    games[gid] = g
     log.info("create game")
     evt_datachange.set()
     return g
@@ -178,7 +186,7 @@ def exit_game(user):
                 log.info('game aborted')
             else:
                 log.info('game canceled')
-            del games[id(g)]
+            del games[g.gameid]
             g.instant_kill()
         evt_datachange.set()
     else:
@@ -211,7 +219,7 @@ def quick_start_game(user):
     if user.state == 'hang':
         gl = [g for g in games.values() if _next_free_slot(g) is not None]
         if gl:
-            join_game(user, id(random.choice(gl)))
+            join_game(user, random.choice(gl).gameid)
             return
     user.write(['gamehall_error', 'cant_join_game'])
 
@@ -235,7 +243,7 @@ def end_game(g):
     for i, p in enumerate(pl):
         if isinstance(p, DroppedPlayer):
             pl[i] = PlayerPlaceHolder
-    del games[id(g)]
+    del games[g.gameid]
     ng = create_game(None, g.__class__.__name__, g.game_name)
     ng.players = PlayerList(
         g.player_class(p.client)
