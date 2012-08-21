@@ -62,6 +62,17 @@ class ServerList:
         x=893
         y=404
 
+    import os
+    if hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton'):
+        class ProtonMachine:
+            address = ('127.0.0.1', 9999)
+            description = (
+                u'|RProton自己的机器|r'
+            )
+            x=893
+            y=504
+    del os
+
     class LakeOfFog:
         address = ('game.thbattle.net', 9999)
         description = (
