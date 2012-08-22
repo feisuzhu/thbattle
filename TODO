@@ -1,3 +1,43 @@
+REFACTORING：
+user_input sync
+__data__ quirk !
+graphic layer rewrite
+
+RAN: top x, bottom x
+
+yugi + scarletrhapsody, force hit, drops card
+
+
+任意牌 -> 手牌装备
+
+INFO:Server:GAME_EXPECT: 'input_choose_girl_700000'
+INFO:Server:GAME_EXPECT: 'input_choose_girl_700001'
+INFO:Server:GAME_EXPECT: 'input_choose_girl_700002'
+INFO:Server:GAME_EXPECT: 'input_choose_girl_700004'
+        INFO:Server:GAME_EXPECT: 'input_choose_girl_700005'
+INFO:Server:GAME_DATA_MISS: ['input_choose_girl_700004', 1]
+INFO:Server:GAME_DATA_MISS: ['input_choose_girl_700004', 1]
+INFO:Server:GAME_DATA_MISS: ['input_choose_girl_700004', 1]
+INFO:Server:GAME_READ: ['input_choose_girl_700004', 1]
+INFO:Server:GAME_READ: ['input_choose_girl_700000', 4]
+INFO:Server:GAME_DATA_MISS: ['input_choose_girl_700002', 6]
+INFO:Server:GAME_READ: ['input_choose_girl_700002', 6]
+INFO:Server:GAME_READ: ['input_choose_girl_700001', 16]
+INFO:Server:GAME_READ: ['input_choose_girl_700005', 16]
+       INFO:Server:GAME_EXPECT: 'input_choose_girl_700005'
+
+
+游戏旁观、断线重连、录像
+
+另外手快的话可以再次打开游戏 能看到自己建立的房间 如果加入的话显示两个NONAME然后自动退出0<0
+以及昨晚上用美玲打秋襄子龙拳无法发动
+
+中国喝酒装莱瓦丁 发动八卦 莱瓦丁还是暗的 不能三杀
+
+极限火花不能抵消罪袋狂欢不科学啊。。
+
+回合内喝过一次酒打过弹幕之后不能再喝装备了（无手牌的情况下）
+
 绿色ufo 图像 bug
 
 相机 加强
