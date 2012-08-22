@@ -13,6 +13,8 @@ from utils import Rect, rect_to_dict as r2d, BatchList
 import logging
 log = logging.getLogger('UI_Screens')
 
+from account import Account
+
 class Screen(Overlay):
     def on_message(self, _type, *args):
         if _type == 'server_dropped':
@@ -258,7 +260,7 @@ class GameHallScreen(Screen):
                 txtbox = self.txtgamename = TextBox(
                     parent=self, x=95, y=270, width=420, height=22,
                 )
-                uname = Executive.server.username
+                uname = Executive.account.username
                 if len(uname) > 8:
                     uname = uname[:6] + u'……'
                 txtbox.text = uname + u'的游戏'
@@ -583,14 +585,18 @@ class GameScreen(Screen):
 
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
-                name = p.get('username', None)
-                if name:
-                    name = u'<' + name + u'>'
+                accdata = p['account']
+                if accdata:
+                    acc = Account.parse(accdata)
+                    name = u'<' + acc.username + u'>'
+                    userid = acc.userid
                 else:
                     name = u'空位置'
-                if p.get('state', False) == 'ready': name = u'(准备)' + name
+                    userid = 0
+
+                if p['state'] == 'ready': name = u'(准备)' + name
                 self.portraits[i].player_name = name
-                self.portraits[i].userid = p.get('id', 0)
+                self.portraits[i].userid = userid
                 self.portraits[i].update()
 
     class EventsBox(Dialog):

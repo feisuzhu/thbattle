@@ -10,6 +10,8 @@ import sys
 
 from collections import deque
 
+from account import Account
+
 log = logging.getLogger("Client")
 
 __all__ = ['Client']
@@ -55,13 +57,16 @@ class Client(Endpoint, Greenlet):
 
         @handler('connected')
         def auth(self, cred):
-            name, password = cred
-            if password == 'password':
-                self.write(['auth_result', self.get_userid()])
-                self.username = name
+            login, password = cred
+            print cred
+            acc = Account.authenticate(login, password)
+            print acc
+            if acc:
+                self.write(['auth_result', acc])
+                self.account = acc
                 hall.new_user(self)
             else:
-                self.write(['auth_result', -1])
+                self.write(['auth_result', None])
 
         @handler('hang')
         def create_game(self, arg):
@@ -175,15 +180,12 @@ class Client(Endpoint, Greenlet):
             e.clear()
             e.wait()
 
-    def get_userid(self):
-        return id(self)
-
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
         self.write(['gamedata', [tag, data]])
 
     def __data__(self):
-        return [id(self), self.username, self.state]
+        return [self.account.userid, self.account.username, self.state]
 
     def gbreak(self):
         # is it a hack?

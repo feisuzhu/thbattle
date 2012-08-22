@@ -354,11 +354,11 @@ def user_input_finish_effects(self, input):
 def game_roll_prompt(self, pl):
     self.prompt(u'Roll点顺序：')
     for p in pl:
-        self.prompt(p.username)
+        self.prompt(p.account.username)
     self.prompt_raw('--------------------\n')
 
 def game_roll_result_prompt(self, p):
-    self.prompt(u'由|R%s|r先行动' % p.username)
+    self.prompt(u'由|R%s|r先行动' % p.account.username)
 
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),

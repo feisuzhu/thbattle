@@ -6,6 +6,8 @@ from gevent import socket, Greenlet
 
 from utils import DataHolder
 
+from account import Account
+
 import logging
 log = logging.getLogger('Executive')
 
@@ -30,18 +32,17 @@ class GameManager(Greenlet):
             self.players_data = data
             if self.state == 'ingame':
                 for i, p in enumerate(data):
-                    if p['id'] == -1:
+                    if p['state'] == 'dropped':
                         self.game.players[i].dropped = True
             self.event_cb('player_change', data)
 
         @handler(('inroom'), 'ingame')
         def game_started(self, data):
             from client.core import PeerPlayer, TheChosenOne, PlayerList
-            pid = [i['id'] for i in self.players_data]
-            pl = [PeerPlayer(i) for i in self.players_data]
-            me = self.game.player_class() # FIXME: this is weird
-            i = pid.index(self.userid)
-            me.__dict__.update(self.players_data[i])
+            pl = [PeerPlayer.parse(i) for i in self.players_data]
+            pid = [i.account.userid for i in pl]
+            me = TheChosenOne()
+            i = pid.index(me.account.userid)
             pl[i] = me
             g = self.game
             g.me = me
@@ -74,10 +75,11 @@ class GameManager(Greenlet):
             self.game = None
 
         @handler(('connected'), None)
-        def auth_result(self, userid):
-            if userid > 0:
-                self.event_cb('auth_success', userid)
-                self.userid = userid
+        def auth_result(self, accdata):
+            if accdata:
+                acc = Account.parse(accdata)
+                Executive.account = acc
+                self.event_cb('auth_success', acc)
                 self.state = 'hang'
             else:
                 self.event_cb('auth_failure')
@@ -182,7 +184,6 @@ class Executive(object):
             if not (self.state == 'connected'):
                 cb('general_failure', 'Connect first!')
                 return
-            self.server.username = arg[0]
             self.server.write(['auth', arg])
 
         @handler

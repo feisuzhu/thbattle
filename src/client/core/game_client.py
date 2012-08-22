@@ -9,15 +9,13 @@ from executive import Executive
 
 from utils import DataHolder, BatchList
 
+from account import Account
+
 import logging
 log = logging.getLogger('Game_Client')
 
 class TheChosenOne(game.AbstractPlayer):
     dropped = False
-    #def __init__(self):
-    #    pass
-    #    # self.server = server
-    #    # self.username = server.username
 
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.
@@ -51,6 +49,14 @@ class TheChosenOne(game.AbstractPlayer):
 
         Executive.server.gwrite('input_%s_%d' % (tag, st), rst.input)
         return rst.input
+
+    @property
+    def account(self):
+        return Executive.account
+
+    def update(self, data):
+        # It's me and I know everything about myself
+        pass
 
 class PlayerList(BatchList):
 
@@ -157,8 +163,7 @@ class PlayerList(BatchList):
 
 class PeerPlayer(game.AbstractPlayer):
     dropped = False
-    def __init__(self, d):
-        self.__dict__.update(d)
+    def __init__(self):
         game.AbstractPlayer.__init__(self)
 
     def reveal(self, obj_list):
@@ -179,6 +184,19 @@ class PeerPlayer(game.AbstractPlayer):
         g.emit_event('user_input_finish', input)
         return input.input
 
+    def update(self, data):
+        # data comes from server.core.Player.__data__
+        self.account = Account.parse(data['account'])
+        self.state = data['state']
+
+    @classmethod
+    def parse(cls, data):
+        pp = cls()
+        pp.update(data)
+        return pp
+
+    # account = < set by update >
+
 class Game(Greenlet, game.Game):
     '''
     The Game class, all game mode derives from this.
@@ -190,7 +208,6 @@ class Game(Greenlet, game.Game):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
-    player_class = TheChosenOne
     thegame = None
     CLIENT_SIDE = True
     SERVER_SIDE = False

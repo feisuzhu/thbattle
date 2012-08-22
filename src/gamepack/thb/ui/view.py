@@ -94,7 +94,7 @@ class ResultPanel(Panel):
         winners = g.winners
         for p in g.players:
             s = u'|G%s|r(|R%s|r, |c0000ffff%s|r, %s)\n' % (
-                p.ui_meta.char_name, p.username,
+                p.ui_meta.char_name, p.account.username,
                 g.ui_meta.identity_table[p.identity.type],
                 u'|R胜利|r' if p in winners else u'失败'
             )
@@ -259,7 +259,7 @@ class THBattleUI(Control):
 
         elif _type == 'player_change':
             for i, pd in enumerate(args[0]):
-                if pd.get('id', -1) == -1:
+                if pd['state'] == 'dropped':
                     p = self.game.players[i]
                     port = self.player2portrait(p)
                     port.dropped = True

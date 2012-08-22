@@ -59,8 +59,8 @@ class PlayerPlaceHolder(object):
 
     def __data__(self):
         return dict(
-            id=0,
-            state='n/a',
+            state='left',
+            account=None,
         )
 
     class client(object):
@@ -71,14 +71,16 @@ class PlayerPlaceHolder(object):
 PlayerPlaceHolder = PlayerPlaceHolder()
 
 def new_user(user):
-    users[user.get_userid()] = user
+    users[user.account.userid] = user
     user.state = 'hang'
-    log.info(u'User %s joined, online user %d' % (user.username, len(users)))
+    log.info(u'User %s joined, online user %d' % (user.account.username, len(users)))
     evt_datachange.set()
 
 def user_exit(user):
-    del users[user.get_userid()]
-    log.info(u'User %s leaved, online user %d' % (user.username, len(users)))
+    uid = user.account.userid
+    user.account.logout()
+    del users[uid]
+    log.info(u'User %s leaved, online user %d' % (user.account.username, len(users)))
     evt_datachange.set()
 
 def _notify_playerchange(game):
@@ -146,7 +148,7 @@ def kick_user(user, uid):
         exit_game(u)
 
 def exit_game(user):
-    from game_server import Player, DroppedPlayer
+    from .game_server import Player, DroppedPlayer
     from client_endpoint import DummyClient
     if user.state != 'hang':
         g = user.current_game
@@ -204,10 +206,8 @@ def join_game(user, gameid):
         if slot is not None:
             user.state = 'inroomwait'
             user.current_game = g
-            # FIXME: this is not right, should be
-            # g.players[slot] = Player(user)
-            # Game should use Mixed(Player, yyy) to customize
-            g.players[slot] = g.player_class(user)
+            from .game_server import Player
+            g.players[slot] = Player(user)
             user.write(['game_joined', g])
             _notify_playerchange(g)
             user.gclear() # clear stale gamedata
@@ -236,7 +236,7 @@ def start_game(g):
     evt_datachange.set()
 
 def end_game(g):
-    from game_server import DroppedPlayer, PlayerList
+    from .game_server import Player, DroppedPlayer, PlayerList
 
     log.info("end game")
     pl = g.players
@@ -246,7 +246,7 @@ def end_game(g):
     del games[g.gameid]
     ng = create_game(None, g.__class__.__name__, g.game_name)
     ng.players = PlayerList(
-        g.player_class(p.client)
+        Player(p.client)
         if p is not PlayerPlaceHolder
         else PlayerPlaceHolder
         for p in pl
@@ -264,16 +264,16 @@ def chat(user, msg):
         if user.state == 'hang': # hall chat
             for u in users.values():
                 if u.state == 'hang':
-                    u.write(['chat_msg', [user.username, msg]])
+                    u.write(['chat_msg', [user.account.username, msg]])
         elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
             ul = user.current_game.players.client
-            ul.write(['chat_msg', [user.username, msg]])
+            ul.write(['chat_msg', [user.account.username, msg]])
     gevent.spawn(worker)
 
 def speaker(user, msg):
     def worker():
         for u in users.values():
-            u.write(['speaker_msg', [user.username, msg]])
+            u.write(['speaker_msg', [user.account.username, msg]])
     gevent.spawn(worker)
 
 def system_msg(msg):

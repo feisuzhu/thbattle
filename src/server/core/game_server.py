@@ -112,18 +112,20 @@ class Player(game.AbstractPlayer):
 
     def __data__(self):
         return dict(
-            id=self.client.get_userid(),
-            username=self.client.username,
+            account=self.client.account,
             state=self.client.state,
         )
+
+    @property
+    def account(self):
+        return self.client.account
 
 class DroppedPlayer(Player):
     dropped = True
     def __data__(self):
-        return dict(
-            username=self.client.username,
-            id=-1,
-        )
+        data = Player.__data__(self)
+        data['state'] = 'dropped'
+        return data
 
     def reveal(self, obj_list):
         Game.getgame().get_synctag() # must sync
@@ -132,6 +134,10 @@ class DroppedPlayer(Player):
         g = g if g else Game.getgame()
         st = st if st else g.get_synctag()
         g.players.client.gwrite('input_%s_%d' % (tag, st), None) # null input
+
+    @property
+    def account(self):
+        return self.client.account
 
 class Game(Greenlet, game.Game):
     '''
@@ -144,7 +150,6 @@ class Game(Greenlet, game.Game):
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
-    player_class = Player
 
     CLIENT_SIDE = False
     SERVER_SIDE = True

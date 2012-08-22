@@ -651,7 +651,7 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         p = self.player
         if not p: return
 
-        nick = p.username
+        nick = p.account.username
         if self.dropped: nick = u'(离开)' + nick
         self.caption = nick
         try:

@@ -238,7 +238,7 @@ class RevealIdentity:
         try:
             name = u'|G%s|r' % tgt.ui_meta.char_name
         except:
-            name = u'|R%s|r' % tgt.username
+            name = u'|R%s|r' % tgt.account.username
 
         return u'%s的身份是：|R%s|r' % (
             name,
