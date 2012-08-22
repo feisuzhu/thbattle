@@ -50,20 +50,24 @@ UPDATE_IGNORES = re.compile(r'''
 ''', re.VERBOSE)
 
 class ServerList:
-    class HakureiShrine:
-        address = ('game.thbattle.net', 9998)
-        description = (
-            u'|R没什么香火钱 博丽神社|r\n\n'
-            u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
-            u'出手大方的话，说不定会欣赏到博丽神社历代传下来的10万元COS哦。\n\n'
-            u'|R|B注意：这是测试服务器，并不保证稳定、与正常服务器的同步！|r\n\n'
-            u'|DB服务器地址： %s|r'
-        ) % repr(address)
-        x=893
-        y=404
-
     import os
-    if hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton'):
+    IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
+    del os
+
+    if TESTING or IS_PROTON:
+        class HakureiShrine:
+            address = ('game.thbattle.net', 9998)
+            description = (
+                u'|R没什么香火钱 博丽神社|r\n\n'
+                u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
+                u'出手大方的话，说不定会欣赏到博丽神社历代传下来的10万元COS哦。\n\n'
+                u'|R|B注意：这是测试服务器，并不保证稳定、与正常服务器的同步！|r\n\n'
+                u'|DB服务器地址： %s|r'
+            ) % repr(address)
+            x=893
+            y=404
+
+    if IS_PROTON:
         class ProtonMachine:
             address = ('127.0.0.1', 9999)
             description = (
@@ -71,7 +75,6 @@ class ServerList:
             )
             x=893
             y=504
-    del os
 
     class LakeOfFog:
         address = ('game.thbattle.net', 9999)
@@ -94,6 +97,8 @@ class ServerList:
         ) % repr(address)
         x=379
         y=286
+
+    del IS_PROTON
 
 NOTICE = u'''
 东方符斗祭 测试版
