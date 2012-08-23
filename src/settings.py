@@ -34,6 +34,8 @@ VERSION = 'THBATTLE V1.0b incr 56'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
+ACCOUNT_MODULE = 'forum_integration'
+
 import re
 
 UPDATE_IGNORES = re.compile(r'''
@@ -99,6 +101,14 @@ class ServerList:
         y=286
 
     del IS_PROTON
+
+import os
+other = os.environ.get('THB_OTHERSETTINGS', None)
+if other:
+    with open(other, 'r') as f:
+        src = f.read()
+    exec src
+del os, other
 
 NOTICE = u'''
 东方符斗祭 测试版

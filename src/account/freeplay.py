@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from functools import wraps
-
-def server_side_only(f):
-    @wraps(f)
-    def _wrapper(*a, **k):
-        from game.autoenv import Game
-        if Game.CLIENT_SIDE:
-            raise Exception('Server side only method!')
-        return f(*a, **k)
-    return _wrapper
+from .base import server_side_only
+from collections import defaultdict
 
 class Account(object):
 
@@ -20,9 +12,15 @@ class Account(object):
             acc = cls()
             acc.username = username
             acc.userid = id(acc)
+            acc.other = defaultdict(
+                lambda: None,
+                title=u'野生的THB玩家',
+                avatar=None,
+                credits=998,
+                games=1,
+            )
             return acc
 
-        print cls, username, password
         return False
 
     @server_side_only
@@ -33,6 +31,13 @@ class Account(object):
     def parse(cls, data):
         acc = cls()
         mode, acc.userid, acc.username = data
+        acc.other = defaultdict(
+            lambda: None,
+            title=u'野生的THB玩家',
+            avatar=None,
+            credits=998,
+            games=1,
+        )
         assert mode == 'freeplay'
         return acc
 
