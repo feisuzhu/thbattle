@@ -58,9 +58,7 @@ class Client(Endpoint, Greenlet):
         @handler('connected')
         def auth(self, cred):
             login, password = cred
-            print cred
             acc = Account.authenticate(login, password)
-            print acc
             if acc:
                 self.write(['auth_result', acc])
                 self.account = acc
