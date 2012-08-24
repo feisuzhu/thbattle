@@ -71,10 +71,14 @@ class PlayerPlaceHolder(object):
 PlayerPlaceHolder = PlayerPlaceHolder()
 
 def new_user(user):
-    users[user.account.userid] = user
+    uid = user.account.userid
+    if uid in users:
+        return False
+    users[uid] = user
     user.state = 'hang'
     log.info(u'User %s joined, online user %d' % (user.account.username, len(users)))
     evt_datachange.set()
+    return True
 
 def user_exit(user):
     uid = user.account.userid

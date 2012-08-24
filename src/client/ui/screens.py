@@ -223,7 +223,13 @@ class LoginScreen(Screen):
             GameHallScreen().switch()
         elif _type == 'auth_failure':
             log.error('Auth failure')
-            ConfirmBox(u'认证失败！', parent=self)
+            status = args[0]
+            tbl = dict(
+                not_available=u'您的帐号目前不可用，请联系管理员询问！',
+                already_logged_in=u'请不要重复登录！',
+                invalid_credential=u'认证失败！',
+            )
+            ConfirmBox(tbl.get(status, status), parent=self)
         else:
             Screen.on_message(self, _type, *args)
 

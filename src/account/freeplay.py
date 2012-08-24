@@ -27,6 +27,10 @@ class Account(object):
     def logout(self):
         pass
 
+    @server_side_only
+    def available(self):
+        return True
+
     @classmethod
     def parse(cls, data):
         acc = cls()

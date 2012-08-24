@@ -42,6 +42,7 @@ class Client(Endpoint, Greenlet):
 
     def _run(self):
         cmds = {}
+        self.account = None
 
         def handler(*state):
             def register(f):
@@ -60,11 +61,17 @@ class Client(Endpoint, Greenlet):
             login, password = cred
             acc = Account.authenticate(login, password)
             if acc:
-                self.write(['auth_result', acc])
                 self.account = acc
-                hall.new_user(self)
+                if not acc.available():
+                    self.write(['auth_result', ['failed', 'not_available']])
+                elif not hall.new_user(self):
+                    self.write(['auth_result', ['failed', 'already_logged_in']])
+                else:
+                    self.write(['auth_result', ['success', acc]])
+                    self.account = acc
+
             else:
-                self.write(['auth_result', None])
+                self.write(['auth_result', ['failed', 'invalid_credential']])
 
         @handler('hang')
         def create_game(self, arg):
@@ -139,7 +146,7 @@ class Client(Endpoint, Greenlet):
                 if not f:
                     f = cmds['__any__'].get(cmd)
 
-                if f:
+                if (self.account or cmd == 'auth') and f:
                     f(self, data)
                 else:
                     self.write(['invalid_command', [cmd, data]])

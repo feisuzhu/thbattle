@@ -27,10 +27,6 @@ class Account(object):
         except UCenterMember.DoesNotExist:
             return False
 
-        if ucmember.forum_member.status == -1:
-            # account locked
-            return False
-
         if not ucmember.validate_password(password):
             return False
 
@@ -50,11 +46,17 @@ class Account(object):
             games=ucmember.forum_count.extcredits8,
         )
 
+        acc.ucmember = ucmember
+
         return acc
 
     @server_side_only
     def logout(self):
         pass
+
+    @server_side_only
+    def available(self):
+        return self.ucmember.forum_member.status != -1
 
     @classmethod
     def parse(cls, data):
