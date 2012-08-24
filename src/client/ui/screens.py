@@ -455,13 +455,16 @@ class GameHallScreen(Screen):
             )
             ta.text = u'正在获取最新新闻……'
 
-            def update(content):
-                try:
-                    ta.text = content.decode('utf-8')
-                except Exception as e:
-                    import traceback
-                    traceback.print_exc(e)
-                    ta.text = u'|R无法显示新闻！|r'
+            def update(rst):
+                if rst:
+                    _, content = rst
+                    try:
+                        ta.text = content.decode('utf-8')
+                        return
+                    except Exception as e:
+                        import traceback
+                        traceback.print_exc(e)
+                ta.text = u'|R无法显示新闻！|r'
 
             from settings import HALL_NOTICE_URL
             Executive.call('fetch_resource', update, HALL_NOTICE_URL)
@@ -564,9 +567,9 @@ class GameScreen(Screen):
             btn(u'换位', change_loc , 90, 55, 32, 20)
             btn(u'请离', kick, 90, 80, 32, 20)
 
-
         def update(self):
             acc = self.account
+            self.avatar = None
             if acc:
                 name = u'<' + acc.username + u'>'
                 if self.ready: name = u'(准备)' + name
@@ -576,6 +579,36 @@ class GameScreen(Screen):
                 self.userid = 0
 
             self.player_name = name
+
+            if acc:
+                avurl = acc.other['avatar']
+            else:
+                avurl = None
+
+            if avurl:
+                avatar = self.cached_avatar.get(avurl, None)
+                if avatar is not None:
+                    self.avatar = avatar
+                else:
+                    def callback(rst):
+                        if rst:
+                            resp, data = rst
+                            from StringIO import StringIO
+                            f = StringIO(data)
+                            tex = pyglet.image.load(resp.geturl(), file=f).get_texture()
+                            tex.anchor_x, tex.anchor_y = tex.width // 2, tex.height // 2
+                            sprite = pyglet.sprite.Sprite(tex, x=64, y=135)
+                            sprite.scale = min(1.0, 64.0*2/tex.width, 170.0*2/tex.height)
+                        else:
+                            sprite = False
+
+                        self.cached_avatar[avurl] = sprite
+                        self.avatar = sprite
+
+                        if tex:
+                            ui_schedule(self.update)
+
+                    Executive.call('fetch_resource', callback, avurl)
 
             PlayerPortrait.update(self)
 
@@ -605,6 +638,9 @@ class GameScreen(Screen):
                 fs.uniform.shadow_color = [i/255.0 for i in self.color.caption_shadow+(255,)]
                 b.draw()
 
+            if self.avatar:
+                self.avatar.draw()
+
             PlayerPortrait.custom_update(self)
 
     class RoomControlPanel(Control):
@@ -621,7 +657,12 @@ class GameScreen(Screen):
                 ('c3f', [0.0, 0.0, 0.0] * 5)
             )
             l = []
-            MyPP = GameScreen.MyPP
+
+            class MyPP(GameScreen.MyPP):
+                # this class is INTENTIONALLY put here
+                # to make cached avatars get gc'd
+                cached_avatar = {}
+
             for x, y, color in parent.ui_class.portrait_location:
                 l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
             self.portraits = l
