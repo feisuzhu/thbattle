@@ -388,15 +388,16 @@ class GameHallScreen(Screen):
             Dialog.__init__(
                 self, parent=parent,
                 caption=u'系统/聊天信息',
-                x=35, y=20, width=700, height=180,
+                #x=35, y=20, width=700, height=180,
+                x=35+255, y=20, width=700-255, height=180,
                 bot_reserve=33,
             )
             self.btn_close.state = Button.DISABLED
             self.box = TextArea(
-                parent=self, x=2, y=33+2, width=700, height=180-24-2-33
+                parent=self, x=2, y=33+2, width=700-255, height=180-24-2-33
             )
             self.inputbox = TextBox(
-                parent=self, x=6, y=6, width=688, height=22,
+                parent=self, x=6, y=6, width=688-255, height=22,
             )
 
             @self.inputbox.event
@@ -462,17 +463,26 @@ class GameHallScreen(Screen):
                     traceback.print_exc(e)
                     ta.text = u'|R无法显示新闻！|r'
 
-            def retrieve():
-                from settings import HALL_NOTICE_URL as url
-                import urllib2
-                txt = urllib2.urlopen(url).read()
-                ui_schedule(update, txt)
+            from settings import HALL_NOTICE_URL
+            Executive.call('fetch_resource', update, HALL_NOTICE_URL)
 
-            def cb():
-                import gevent
-                gevent.spawn(retrieve)
+    class StatusBox(Dialog):
+        def __init__(self, parent):
+            Dialog.__init__(
+                self, x=35, y=20, width=240, height=180,
+                caption=u'帐号信息', parent=parent,
+            )
+            ta = self.textarea = TextArea(
+                parent=self, x=2, y=10+2, width=240-4, height=180-24-2-10
+            )
 
-            Executive.call('run_callback', cb)
+            f = u'|c0000ffff%s：|r %s\n'
+            acc = Executive.account
+            ta.append(f % (u'UID', acc.userid))
+            ta.append(f % (u'用户名', acc.username))
+            ta.append(f % (u'节操', acc.other['credits']))
+            ta.append(f % (u'游戏局数', acc.other['games']))
+            ta.append(f % (u'称号', acc.other['title']))
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
@@ -484,6 +494,7 @@ class GameHallScreen(Screen):
         chat.text = u'您现在处于游戏大厅！\n'
         self.playerlist = GameHallScreen.OnlineUsers(parent=self)
         self.noticebox = GameHallScreen.NoticeBox(parent=self)
+        self.statusbox = GameHallScreen.StatusBox(parent=self)
 
         Executive.call('get_hallinfo', ui_message, None)
 

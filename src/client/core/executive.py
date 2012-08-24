@@ -188,8 +188,13 @@ class Executive(object):
             self.server.write(['auth', arg])
 
         @handler
-        def run_callback(self, cb, *args):
-            cb(*args)
+        def fetch_resource(self, cb, url):
+            def worker():
+                import urllib2
+                txt = urllib2.urlopen(url).read()
+                from client.ui.base import schedule
+                schedule(cb, txt)
+            gevent.spawn(worker)
 
         # @handler def register(...): ...
         def simple_gm_op(_type):
