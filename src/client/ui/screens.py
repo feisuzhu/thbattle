@@ -533,6 +533,10 @@ class GameHallScreen(Screen):
 class GameScreen(Screen):
     class MyPP(PlayerPortrait):
         def __init__(self, *a, **k):
+            self.account = None
+            self.lbls = None
+            self.ready = False
+
             PlayerPortrait.__init__(self, *a, **k)
             def btn(caption, command, x, y, w, h):
                 btn = Button(
@@ -559,6 +563,49 @@ class GameScreen(Screen):
 
             btn(u'换位', change_loc , 90, 55, 32, 20)
             btn(u'请离', kick, 90, 80, 32, 20)
+
+
+        def update(self):
+            acc = self.account
+            if acc:
+                name = u'<' + acc.username + u'>'
+                if self.ready: name = u'(准备)' + name
+                self.userid = acc.userid
+            else:
+                name = u'空位置'
+                self.userid = 0
+
+            self.player_name = name
+
+            PlayerPortrait.update(self)
+
+        def custom_update(self):
+            acc = self.account
+            if not acc: return
+
+            b = pyglet.graphics.Batch()
+
+            L = pyglet.text.Label
+
+            c = self.color.caption + (255,)
+            def L(text, loc):
+                pyglet.text.Label(
+                    text, x=8, y=47-15*loc,
+                    anchor_x='left', anchor_y='top',
+                    font_name='AncientPix', font_size=9,
+                    color=c, batch=b,
+                )
+
+            L(acc.other['title'], 0)
+            L(u'节操： %d' % acc.other['credits'], 1)
+            L(u'游戏局数： %d' % acc.other['games'], 2)
+
+            from client.ui.shaders import FontShadow
+            with FontShadow as fs:
+                fs.uniform.shadow_color = [i/255.0 for i in self.color.caption_shadow+(255,)]
+                b.draw()
+
+            PlayerPortrait.custom_update(self)
 
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
@@ -605,16 +652,14 @@ class GameScreen(Screen):
                 accdata = p['account']
                 if accdata:
                     acc = Account.parse(accdata)
-                    name = u'<' + acc.username + u'>'
-                    userid = acc.userid
                 else:
-                    name = u'空位置'
-                    userid = 0
+                    acc = None
 
-                if p['state'] == 'ready': name = u'(准备)' + name
-                self.portraits[i].player_name = name
-                self.portraits[i].userid = userid
-                self.portraits[i].update()
+                port = self.portraits[i]
+                port.account = acc
+                port.ready = (p['state'] == 'ready')
+
+                port.update()
 
     class EventsBox(Dialog):
         def __init__(self, parent):

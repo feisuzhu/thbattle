@@ -390,6 +390,8 @@ class Dialog(Control):
                     lbl.x, lbl.y = 20, h-20
                     lbl.draw()
 
+            self.custom_update()
+
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             glColor3f(*color(self.color.frame))
             glLineWidth(4.0)
@@ -398,6 +400,9 @@ class Dialog(Control):
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
         self.tex = tex
+
+    def custom_update(self):
+        pass
 
     def on_resize(self, width, height):
         self.label.x = width // 2
