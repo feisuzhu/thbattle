@@ -261,6 +261,12 @@ class Overlay(Control):
         Overlay.cur_overlay = self
         main_window.set_handlers(self)
         self.dispatch_event('on_switch')
+
+        # HACK
+        import gc
+        gc.collect()
+        # -----
+        
         return ori
 
     def on_resize(self, width, height):
