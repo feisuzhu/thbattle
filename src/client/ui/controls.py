@@ -557,12 +557,12 @@ class BalloonPrompt(object):
         panel.x, panel.y = self._balloon_getloc(*self.balloon_cursorloc)
 
 class TextBox(Control):
-    def __init__(self, text='Yoooooo~', color=Colors.green, *args, **kwargs):
+    def __init__(self, text='Yoooooo~', color=Colors.green, font_name='AncientPix', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text), dict(
                 color=(0, 0, 0, 255),
-                font_name='AncientPix',
+                font_name=font_name,
                 font_size=9,
         ))
 
@@ -652,6 +652,10 @@ class TextBox(Control):
             return pyglet.event.EVENT_HANDLED
 
 TextBox.register_event_type('on_enter')
+
+class PasswordTextBox(TextBox):
+    def __init__(self, *a, **k):
+        TextBox.__init__(self, font_name='AncientPixPassword', *a, **k)
 
 class PlayerPortrait(Dialog):
     def __init__(self, player_name, color=Colors.blue, *args, **kwargs):

@@ -179,9 +179,9 @@ class LoginScreen(Screen):
                 parent=self, x=438-350, y=282-165, width=220, height=20,
                 text=myid
             )
-            self.txt_pwd = TextBox(
+            self.txt_pwd = PasswordTextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
-                text='password'
+                text=''
             )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',

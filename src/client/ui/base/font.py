@@ -14,10 +14,11 @@ class AncientPixGlyphRenderer(GlyphRenderer):
     def render(self, text):
         h = int(self.font.size*4/3)
         w = h
-        char = text[0]
+        char = u'⑨' if self.font.password else text[0]
         asc = ord(char)
         datasz = int(ceil(w/8.))*h
         import Image
+
         if asc < 128: # ASCII
             w /= 2
             datasz /= 2
@@ -70,6 +71,8 @@ class AncientPixFont(Font):
         self._size = size
         self.bold = bold
 
+        self.password = (name == 'AncientPixPassword')
+
     @property
     def size(self):
         return self._size
@@ -88,7 +91,7 @@ class AncientPixFont(Font):
 
     @staticmethod
     def have_font(name):
-        return name == 'AncientPix'
+        return name in ('AncientPix', 'AncientPixPassword')
 
     @staticmethod
     def add_font_data(data):
