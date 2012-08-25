@@ -26,7 +26,7 @@ class UCenterMember(models.Model):
 
     def calc_password(self, pwd):
         from hashlib import md5
-        return md5(md5(pwd).hexdigest() + self.salt).hexdigest()
+        return md5(md5(pwd.encode('utf-8')).hexdigest() + self.salt).hexdigest()
 
     def validate_password(self, pwd):
         return self.calc_password(pwd) == self.password

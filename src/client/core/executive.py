@@ -64,8 +64,9 @@ class GameManager(Greenlet):
             self.game = None
             self.event_cb('fleed')
 
-        @handler(('inroom'), 'hang')
+        @handler(('ingame', 'inroom'), 'hang')
         def game_left(self, data):
+            self.game.kill()
             self.game = None
             self.event_cb('game_left')
 
@@ -191,6 +192,7 @@ class Executive(object):
         def fetch_resource(self, cb, url):
             def worker():
                 import urllib2
+                from client.ui.base import schedule
                 try:
                     resp = urllib2.urlopen(url)
                     data = resp.read()
@@ -198,7 +200,6 @@ class Executive(object):
                     schedule(cb, False)
                     return
 
-                from client.ui.base import schedule
                 schedule(cb, (resp, data))
             gevent.spawn(worker)
 

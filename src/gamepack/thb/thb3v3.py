@@ -94,22 +94,23 @@ class PlayerDeath(PlayerDeath):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
+        g = Game.getgame()
         if evt_type == 'action_after' and isinstance(act, Damage):
             tgt = act.target
             if tgt.life > 0: return act
-            g = Game.getgame()
             if not g.process_action(TryRevive(tgt, dmgact=act)):
                 g.process_action(PlayerDeath(act.source, tgt))
 
-                # see if game ended
-                force1, force2 = g.forces
-                if all(p.dead or p.dropped for p in force1):
-                    g.winners = force2[:]
-                    raise GameEnded
+        # see if game ended
+        force1, force2 = g.forces
+        if all(p.dead or p.dropped for p in force1):
+            g.winners = force2[:]
+            raise GameEnded
 
-                if all(p.dead or p.dropped for p in force2):
-                    g.winners = force1[:]
-                    raise GameEnded
+        if all(p.dead or p.dropped for p in force2):
+            g.winners = force1[:]
+            raise GameEnded
+
         return act
 
 class ActFirst(object): # for choose_option
