@@ -375,3 +375,37 @@ def hook(module):
         setattr(module, funcname, real_hooker)
         return real_hooker
     return inner
+
+def gif_to_animation(giffile):
+    import pyglet
+    import Image
+
+    im = Image.open(giffile)
+
+    dur = []
+    framedata = []
+
+    while True:
+        dur.append(im.info['duration'])
+        framedata.append(im.convert('RGBA').tostring())
+        try:
+            im.seek(im.tell()+1)
+        except:
+            break
+
+    dur[0] = 100
+
+    w, h = im.size
+
+    frames = []
+    for d, data in zip(dur, framedata):
+        img = pyglet.image.ImageData(w, h, 'RGBA', data, pitch=-w*4)
+        img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
+        frames.append(
+            pyglet.image.AnimationFrame(img, d/1000.0)
+        )
+
+    anim = pyglet.image.Animation(frames)
+    anim.width, anim.height = w, h
+
+    return anim

@@ -541,12 +541,15 @@ class GameScreen(Screen):
             self.ready = False
 
             PlayerPortrait.__init__(self, *a, **k)
+            self.buttons = []
             def btn(caption, command, x, y, w, h):
                 btn = Button(
                     caption, parent=self,
                     x=x, y=y, width=w, height=h,
+                    manual_draw=True,
                     color=self.color
                 )
+                self.buttons.append(btn)
 
                 @btn.event
                 def on_click(btn=btn, cmd=command):
@@ -593,19 +596,33 @@ class GameScreen(Screen):
                     def callback(rst):
                         if rst:
                             resp, data = rst
+
+                            if data.startswith('GIF'):
+                                fn = 'foo.gif'
+                            elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
+                                fn = 'foo.jpg'
+                            elif data.startswith('\x89PNG'):
+                                fn = 'foo.png'
+
                             from StringIO import StringIO
                             f = StringIO(data)
-                            tex = pyglet.image.load(resp.geturl(), file=f).get_texture()
-                            tex.anchor_x, tex.anchor_y = tex.width // 2, tex.height // 2
-                            sprite = pyglet.sprite.Sprite(tex, x=64, y=150)
-                            sprite.scale = min(1.0, 64.0*2/tex.width, 170.0*2/tex.height)
+
+                            if fn == 'foo.gif':
+                                from utils import gif_to_animation
+                                img = gif_to_animation(f)
+                            else:
+                                img = pyglet.image.load(fn, file=f)
+                                img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
+
+                            sprite = pyglet.sprite.Sprite(img, x=64, y=150)
+                            sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
                         else:
                             sprite = False
 
                         self.cached_avatar[avurl] = sprite
                         self.avatar = sprite
 
-                        if tex:
+                        if sprite:
                             ui_schedule(self.update)
 
                     Executive.call('fetch_resource', callback, avurl)
@@ -638,10 +655,14 @@ class GameScreen(Screen):
                 fs.uniform.shadow_color = [i/255.0 for i in self.color.caption_shadow+(255,)]
                 b.draw()
 
+            PlayerPortrait.custom_update(self)
+
+        def draw(self):
+            PlayerPortrait.draw(self)
             if self.avatar:
                 self.avatar.draw()
-
-            PlayerPortrait.custom_update(self)
+            for b in self.buttons:
+                b.do_draw()
 
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
