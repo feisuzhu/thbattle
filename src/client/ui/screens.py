@@ -439,7 +439,7 @@ class GameHallScreen(Screen):
                 self.caption = u'当前在线玩家：%d' % len(users)
                 self.update()
                 t = u'\n'.join(
-                    u'%s(%s)' % (username, lookup.get(state, state))
+                    u'%s([|c9100ffff%s|r], %s)' % (username, uid, lookup.get(state, state))
                     for uid, username, state in users
                 )
                 box.append(t)
@@ -597,7 +597,7 @@ class GameScreen(Screen):
                             f = StringIO(data)
                             tex = pyglet.image.load(resp.geturl(), file=f).get_texture()
                             tex.anchor_x, tex.anchor_y = tex.width // 2, tex.height // 2
-                            sprite = pyglet.sprite.Sprite(tex, x=64, y=135)
+                            sprite = pyglet.sprite.Sprite(tex, x=64, y=150)
                             sprite.scale = min(1.0, 64.0*2/tex.width, 170.0*2/tex.height)
                         else:
                             sprite = False
