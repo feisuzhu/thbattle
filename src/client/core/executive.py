@@ -76,15 +76,17 @@ class GameManager(Greenlet):
             self.game = None
 
         @handler(('connected'), None)
-        def auth_result(self, authdata):
-            status, data = authdata
+        def auth_result(self, status):
             if status == 'success':
-                acc = Account.parse(data)
-                Executive.account = acc
-                self.event_cb('auth_success', acc)
+                self.event_cb('auth_success')
                 self.state = 'hang'
             else:
-                self.event_cb('auth_failure', data)
+                self.event_cb('auth_failure', status)
+
+        @handler(('hang'), None)
+        def your_account(self, accdata):
+            Executive.account = acc = Account.parse(accdata)
+            self.event_cb('your_account', acc)
 
         @handler(None, None)
         def thbattle_greeting(self, ver):

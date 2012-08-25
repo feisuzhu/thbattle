@@ -63,15 +63,15 @@ class Client(Endpoint, Greenlet):
             if acc:
                 self.account = acc
                 if not acc.available():
-                    self.write(['auth_result', ['failed', 'not_available']])
+                    self.write(['auth_result', 'not_available'])
                 elif not hall.new_user(self):
-                    self.write(['auth_result', ['failed', 'already_logged_in']])
+                    self.write(['auth_result', 'already_logged_in'])
                 else:
-                    self.write(['auth_result', ['success', acc]])
+                    self.write(['auth_result', 'success'])
                     self.account = acc
 
             else:
-                self.write(['auth_result', ['failed', 'invalid_credential']])
+                self.write(['auth_result', 'invalid_credential'])
 
         @handler('hang')
         def create_game(self, arg):

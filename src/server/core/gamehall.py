@@ -239,6 +239,7 @@ def quick_start_game(user):
 def send_hallinfo(user):
     user.write(['current_games', games.values()])
     user.write(['current_users', users.values()])
+    user.write(['your_account', user.account])
 
 def start_game(g):
     log.info("game started")

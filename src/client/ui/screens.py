@@ -475,18 +475,22 @@ class GameHallScreen(Screen):
                 self, x=35, y=20, width=240, height=180,
                 caption=u'帐号信息', parent=parent,
             )
-            ta = self.textarea = TextArea(
+            self.textarea = TextArea(
                 parent=self, x=2, y=10+2, width=240-4, height=180-24-2-10
             )
 
-            f = u'|c0000ffff%s：|r %s\n'
-            acc = Executive.account
-            ta.append(f % (u'UID', acc.userid))
-            ta.append(f % (u'用户名', acc.username))
-            ta.append(f % (u'节操', acc.other['credits']))
-            ta.append(f % (u'游戏数', acc.other['games']))
-            ta.append(f % (u'逃跑数', acc.other['drops']))
-            ta.append(f % (u'称号', acc.other['title']))
+        def on_message(self, _type, *args):
+            if _type == 'your_account':
+                acc = Executive.account
+                ta = self.textarea
+                ta.text = u'\u200b'
+                f = u'|c0000ffff%s：|r %s\n'
+                ta.append(f % (u'UID', acc.userid))
+                ta.append(f % (u'用户名', acc.username))
+                ta.append(f % (u'节操', acc.other['credits']))
+                ta.append(f % (u'游戏数', acc.other['games']))
+                ta.append(f % (u'逃跑数', acc.other['drops']))
+                ta.append(f % (u'称号', acc.other['title']))
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
