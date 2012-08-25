@@ -45,7 +45,9 @@ class DeathHandler(EventHandler):
                         g.process_action(DrawCards(src, 3))
                     elif tgt.identity.type == Identity.TYPE.ACCOMPLICE:
                         if src.identity.type == Identity.TYPE.BOSS:
-                            if src.cards: g.process_action(DropCards(src, src.cards))
+                            if src.cards:
+                                g.players.exclude(src).reveal(list(src.cards))
+                                g.process_action(DropCards(src, src.cards))
                             if src.showncards: g.process_action(DropCards(src, src.showncards))
                             if src.equips: g.process_action(DropCards(src, src.equips))
 
