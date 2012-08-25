@@ -484,7 +484,8 @@ class GameHallScreen(Screen):
             ta.append(f % (u'UID', acc.userid))
             ta.append(f % (u'用户名', acc.username))
             ta.append(f % (u'节操', acc.other['credits']))
-            ta.append(f % (u'游戏局数', acc.other['games']))
+            ta.append(f % (u'游戏数', acc.other['games']))
+            ta.append(f % (u'逃跑数', acc.other['drops']))
             ta.append(f % (u'称号', acc.other['title']))
 
     def __init__(self, *args, **kwargs):
@@ -648,7 +649,9 @@ class GameScreen(Screen):
 
             L(acc.other['title'], 0)
             L(u'节操： %d' % acc.other['credits'], 1)
-            L(u'游戏局数： %d' % acc.other['games'], 2)
+            g, d = acc.other['games'], acc.other['drops']
+            dr = int(100*d/g) if d else 0
+            L(u'游戏数：%d(%d%%)' % (g, dr), 2)
 
             from client.ui.shaders import FontShadow
             with FontShadow as fs:

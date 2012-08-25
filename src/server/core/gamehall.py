@@ -158,9 +158,16 @@ def exit_game(user):
         g = user.current_game
         i = g.players.client.index(user)
         if g.game_started:
-            log.info('player dropped')
-            user.write(['fleed', None])
             p = g.players[i]
+            log.info('player dropped')
+            if g.can_leave(p):
+                user.write(['game_left', None])
+                p.fleed = False
+            else:
+                user.write(['fleed', None])
+                p.fleed = True
+                user.account.other['games'] += 1
+                user.account.other['drops'] += 1
             p.client.gbreak() # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
 
             if p.__class__ is Player:
@@ -234,6 +241,7 @@ def send_hallinfo(user):
 def start_game(g):
     log.info("game started")
     g.game_started = True
+    g.start_time = time()
     for u in g.players.client:
         u.write(["game_started", None])
         u.state = 'ingame'
@@ -244,6 +252,21 @@ def end_game(g):
 
     log.info("end game")
     pl = g.players
+
+    # add credits
+    t = time()
+    percent = min(1.0, (t-g.start_time)/1200)
+    import math
+    rate = math.sin(math.pi/2*percent)
+    winners = g.winners
+    bonus = g.n_persons * 5 / len(winners)
+    for p in pl:
+        if not (p.dropped and p.fleed):
+            s = 5 + bonus if p in winners else 5
+            p.client.account.other['credits'] += int(s * rate)
+            p.client.account.other['games'] += 1
+    # -----------
+
     for i, p in enumerate(pl):
         if isinstance(p, DroppedPlayer):
             pl[i] = PlayerPlaceHolder

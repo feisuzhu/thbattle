@@ -297,6 +297,9 @@ class THBattleIdentity(Game):
         except GameEnded:
             pass
 
+    def can_leave(self, p):
+        return getattr(p, 'dead', False)
+
 class THBattleIdentity5(THBattleIdentity):
     n_persons = 5
     T = Identity.TYPE

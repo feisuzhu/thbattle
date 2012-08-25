@@ -304,5 +304,8 @@ class THBattle(Game):
         except GameEnded:
             pass
 
+    def can_leave(self, p):
+        return getattr(p, 'dead', False)
+
 class THBattle1v1DBG(THBattle):
     n_persons = 2

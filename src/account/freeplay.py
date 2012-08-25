@@ -18,6 +18,7 @@ class Account(object):
                 avatar=None,
                 credits=998,
                 games=1,
+                drops=0,
             )
             return acc
 
