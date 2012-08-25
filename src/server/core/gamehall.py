@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import gevent
 from gevent import Greenlet
 from gevent.event import Event
@@ -299,8 +301,12 @@ def chat(user, msg):
 
 def speaker(user, msg):
     def worker():
-        for u in users.values():
-            u.write(['speaker_msg', [user.account.username, msg]])
+        if user.account.other['credits'] < 3:
+            user.write(['system_msg', [None, u'您的节操不足，文文不愿意帮你散播消息。']])
+        else:
+            user.account.other['credits'] -= 3
+            for u in users.values():
+                u.write(['speaker_msg', [user.account.username, msg]])
     gevent.spawn(worker)
 
 def system_msg(msg):
