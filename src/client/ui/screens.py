@@ -187,8 +187,9 @@ class LoginScreen(Screen):
                 parent=self, caption=u'进入幻想乡',
                 x=50, y=10, width=100, height=30
             )
-            self.btn_exit = Button(
-                parent=self, caption=u'回到现世',
+            self.btn_reg = Button(
+                parent=self, caption=u'乡民登记',
+                color=Colors.orange,
                 x=175, y=10, width=100, height=30
             )
 
@@ -197,9 +198,13 @@ class LoginScreen(Screen):
                 u, pwd = self.txt_username.text, self.txt_pwd.text
                 Executive.call('auth', ui_message, [u, pwd])
 
-            @self.btn_exit.event
+            @self.btn_reg.event
             def on_click():
-                pyglet.app.exit()
+                import sys, os
+                if sys.platform == 'win32':
+                    os.startfile('http://www.thbattle.net', 'open')
+                elif sys.platform.startswith('linux'):
+                    os.system('xdg-open http://www.thbattle.net')
 
         def draw(self):
             Dialog.draw(self)
