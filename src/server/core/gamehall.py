@@ -315,3 +315,12 @@ def system_msg(msg):
         for u in users.values():
             u.write(['system_msg', [None, msg]])
     gevent.spawn(worker)
+
+import atexit
+
+@atexit.register
+def _exit_handler():
+    # logout all the accounts
+    # to save the credits
+    for u in users.values():
+        u.account.logout()

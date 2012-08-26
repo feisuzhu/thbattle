@@ -70,6 +70,10 @@ class Account(object):
                 extcredits7=F('extcredits7') + ddelta,
             )
 
+        self.ori_credits = self.other['credits']
+        self.ori_games = self.other['games']
+        self.ori_drops = self.other['drops']
+
     @server_side_only
     def available(self):
         return self.ucmember.forum_member.status != -1

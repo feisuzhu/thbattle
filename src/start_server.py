@@ -13,6 +13,15 @@ sig(signal.SIGUSR1, lambda: False)
 # -----------
 '''
 
+main = gevent.getcurrent()
+
+from gevent import signal as sig
+import signal
+
+def _exit_handler(*a, **k):
+    gevent.kill(main, SystemExit)
+sig(signal.SIGTERM, _exit_handler)
+
 from game import autoenv
 autoenv.init('Server')
 
