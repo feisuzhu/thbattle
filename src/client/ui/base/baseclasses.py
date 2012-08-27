@@ -465,8 +465,8 @@ def init_gui():
     # will this is perhaps naive approach
     import gc
     gc.disable()
-    pyglet.clock.schedule_interval(lambda dt: gc.collect(0), 5)
-    pyglet.clock.schedule_interval(lambda dt: gc.collect(2), 67)
+    pyglet.clock.schedule_interval_soft(lambda dt: gc.collect(0), 1)
+    pyglet.clock.schedule_interval_soft(lambda dt: gc.collect(2), 7)
 
 def schedule(func, *args, **kwargs):
     global sched_queue, sched_queue_lock
