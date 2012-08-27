@@ -13,6 +13,8 @@ from functools import partial
 WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 720
 
+from utils import hook
+
 import logging
 log = logging.getLogger('UI_Baseclasses')
 
@@ -266,7 +268,7 @@ class Overlay(Control):
         import gc
         gc.collect()
         # -----
-        
+
         return ori
 
     def on_resize(self, width, height):
@@ -419,38 +421,34 @@ def init_gui():
     # }} main window setup
 
     fps = pyglet.clock.ClockDisplay()
-    #import gamepack
     fps_limit = 60
     delay = 1. / fps_limit
     current_time = time()
-
-    o_flip = main_window.flip
-
-    def n_flip():
-        pass
-
-    main_window.flip = n_flip
 
     @main_window.event
     def on_draw():
         global current_time
         t = time()
         dt = t - current_time
-        if dt > delay:
-            current_time = t
-            Overlay.cur_overlay.do_draw()
-            fps.draw()
-            o_flip()
+        current_time = t
+        Overlay.cur_overlay.do_draw()
+        fps.draw()
 
-    o_okp = main_window.on_key_press
-    def okp(symbol, modifiers):
+    @main_window.event
+    def on_close():
+        # HACK: suppress exceptions,
+        # dont want to explain....
+        pyglet.clock.tick = lambda a: 0.0
+        pyglet.app.exit()
+
+    @hook(main_window)
+    def on_key_press(ori, symbol, modifiers):
         if symbol == pyglet.window.key.ESCAPE:
             return pyglet.event.EVENT_HANDLED
-        return o_okp(symbol, modifiers)
-    main_window.on_key_press = okp
+        return ori(symbol, modifiers)
 
     def _dispatch_msg(dt):
-        global sched_queue, sched_queue_lock, _redispatch
+        global sched_queue, sched_queue_lock
         if not sched_queue: return
         with sched_queue_lock:
             for func in sched_queue:
@@ -472,7 +470,6 @@ def schedule(func, *args, **kwargs):
     global sched_queue, sched_queue_lock
     with sched_queue_lock:
         sched_queue.append(partial(func, *args, **kwargs))
-
 
 def _msg(args):
     Overlay.cur_overlay.dispatch_message(args)

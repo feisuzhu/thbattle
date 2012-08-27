@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import threading
-from client.ui.base import init_gui, schedule as ui_schedule
-from screens import UpdateScreen, ServerSelectScreen
 import sys, os
 
 from utils import hook
@@ -10,12 +8,15 @@ import logging
 log = logging.getLogger('UI_Entry')
 
 def start_ui():
+    from client.ui.base import init_gui, schedule as ui_schedule
+
     # custom font renderer
     import pyglet
     from .base.font import AncientPixFont
     pyglet.font._font_class = AncientPixFont
 
     init_gui()
+
     # This forces all game resources to initialize,
     # else they will be imported firstly by GameManager,
     # then resources will be loaded at a different thread,
@@ -50,6 +51,8 @@ def start_ui():
         return ori(*a, **k)
 
     # ---------------
+
+    from screens import UpdateScreen, ServerSelectScreen
 
     us = UpdateScreen()
     us.switch()

@@ -61,7 +61,12 @@ class AncientPixGlyphRenderer(GlyphRenderer):
 
 class AncientPixFont(Font):
     glyph_renderer_class = AncientPixGlyphRenderer
-    from ..resource import font as fontdata
+
+    @property
+    def fontdata(self):
+        # Lazy loading
+        from ..resource import font as fontdata
+        return fontdata
 
     def __init__(self, name, size, bold=False, italic=False, dpi=None):
         Font.__init__(self)
