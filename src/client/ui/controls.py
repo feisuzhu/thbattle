@@ -6,7 +6,7 @@ from pyglet.window import mouse
 from client.ui.base import *
 from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
-from utils import Rect, ScissorBox, Framebuffer, dilate
+from utils import Rect, Framebuffer, dilate
 
 from math import ceil
 
@@ -418,6 +418,7 @@ class Dialog(Control):
         ax, ay = self.abs_coords()
         ax, ay = int(ax), int(ay)
 
+        '''
         ob = (GLint*4)()
         glGetIntegerv(GL_SCISSOR_BOX, ob)
         ob = list(ob)
@@ -427,7 +428,9 @@ class Dialog(Control):
                 glScissor(nb.x, nb.y, nb.width, nb.height-25)
                 self.draw_subcontrols()
             glScissor(*ob)
+        '''
 
+        self.draw_subcontrols()
         self.btn_close.do_draw()
 
     def on_mouse_press(self, x, y, button, modifier):
