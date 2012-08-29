@@ -6,7 +6,7 @@ from pyglet.window import mouse
 from client.ui.base import *
 from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
-from utils import Rect, Framebuffer, dilate
+from utils import Rect, Framebuffer, DisplayList
 
 from math import ceil
 
@@ -82,21 +82,19 @@ class Colors(object):
         fill_botline = light
         text = frame
 
+    def get4f(self, c):
+        return c[0]/255.0, c[1]/255.0, c[2]/255.0, 1.0
+
+    def get4i(self, c):
+        return c + (255, )
+
 class Button(Control):
     NORMAL=0
     HOVER=1
     PRESSED=2
     DISABLED=3
-    auxfbo = Framebuffer()
 
     hover_alpha = InterpDesc('_hv')
-    class color:
-        frame = 66, 138, 123
-        fill_up = 173, 207, 140
-        fill_medline = 173, 223, 156
-        fill_down = 189, 223, 156
-        fill_botline = 222, 239, 206
-        text = 49, 69, 99
 
     def __init__(self, caption='Button', color=Colors.green, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
@@ -105,6 +103,9 @@ class Button(Control):
         self.state = Button.NORMAL
         self.hover_alpha = 0.0
         self.color = color
+
+        self._dl = DisplayList()
+        self._dl_gray = DisplayList()
 
         self.update()
 
@@ -126,48 +127,40 @@ class Button(Control):
             l = r*.3/255 + g*.59/255 + b*.11/255
             return l, l, l, 1.0
 
-        def draw_it(func):
-            glColor4f(*func(self.color.fill_down))
-            glRectf(0.0, 0.0, w, h*.5)
-            glColor4f(*func(self.color.fill_up))
-            glRectf(0.0, h*.5, w, h)
+        def build(func, dl):
+            with dl:
+                glColor4f(*func(self.color.fill_down))
+                glRectf(0.0, 0.0, w, h*.5)
+                glColor4f(*func(self.color.fill_up))
+                glRectf(0.0, h*.5, w, h)
 
-            glBegin(GL_LINES)
-            glColor4f(*func(self.color.fill_medline))
-            glVertex2f(0, h*.5); glVertex2f(w, h*.5)
-            glColor4f(*func(self.color.fill_botline))
-            glVertex2f(0, 2); glVertex2f(w, 2)
-            glEnd()
+                glBegin(GL_LINES)
+                glColor4f(*func(self.color.fill_medline))
+                glVertex2f(0, h*.5); glVertex2f(w, h*.5)
+                glColor4f(*func(self.color.fill_botline))
+                glVertex2f(0, 2); glVertex2f(w, 2)
+                glEnd()
 
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            glColor4f(*func(self.color.heavy))
-            glRectf(1., 1., w, h)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+                glColor4f(*func(self.color.heavy))
+                glRectf(1., 1., w, h)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
-            lbl.draw()
+                lbl.draw()
 
-        fbo = self.auxfbo
-        tex = pyglet.image.Texture.create(w, h)
-        with fbo:
-            fbo.texture = tex
-            draw_it(color)
+        build(color, self._dl)
 
-        tex_gray = pyglet.image.Texture.create(w, h)
         r, g, b = self.color.text
         l = int(r*.3 + g*.59 + b*.11)
         lbl.color = (l, l, l, 255)
-        with fbo:
-            fbo.texture = tex_gray
-            draw_it(gray)
-
-        self.tex, self.tex_gray = tex, tex_gray
+        build(gray, self._dl_gray)
 
     def draw(self):
         glColor3f(1.0, 1.0, 1.0)
         if self.state == Button.DISABLED:
-            self.tex_gray.blit(0, 0)
+            self._dl_gray()
         else:
-            self.tex.blit(0, 0)
+            self._dl()
             if self.state == Button.PRESSED:
                 glColor4f(0, 0, 0, .25)
                 glRectf(0, 0, self.width, self.height)
@@ -289,7 +282,6 @@ class Dialog(Control):
     Dialog, can move
     '''
     next_zindex = 1
-    auxfbo = Framebuffer()
     def __init__(self, caption='Dialog', color=Colors.green,
                  bot_reserve=10, bg=None, shadow_thick=2,
                  *args, **kwargs):
@@ -313,93 +305,70 @@ class Dialog(Control):
         def on_click():
             self.close()
 
-        self.tex = None
+        self._dl = DisplayList()
+
         self.update()
 
     def update(self):
-        tex = self.tex
-        fbo = self.auxfbo
+        self.caption_lbl = pyglet.text.Label(
+            self.caption, u'AncientPix', 9,
+            color=self.color.caption + (255,),
+            x=20, y=self.height - 20,
+            anchor_x='left', anchor_y='bottom'
+        )
+        with self._dl:
+            self._content_draw()
+
+    def _content_draw(self):
         w, h  = self.width, self.height
-        if not tex or (tex.width, tex.height) != (w, h):
-            tex = pyglet.image.Texture.create(w, h)
 
         def color(rgb):
             r, g, b = rgb
             return r/255., g/255., b/255.
 
-        lbl = pyglet.text.Label(
-            self.caption, u'AncientPix', 9,
-            color=self.color.caption + (255,),
-            x=2, y=4,
-            anchor_x='left', anchor_y='bottom'
-        )
         from client.ui import shaders
         from client.ui.base import shader
-        if isinstance(shaders.FontShadowThick, shader.DummyShaderProgram):
-            # no shader? fall back
-            ttex = pyglet.image.Texture.create(lbl.content_width+4, 24)
-            tfbo = Framebuffer(ttex)
-            with tfbo:
-                lbl.draw()
 
-            shadow = ttex.get_image_data()
-            for i in range(self.shadow_thick):
-                shadow = dilate(shadow, self.color.caption_shadow)
-            shadow = shadow.get_texture()
-            with tfbo:
-                glClearColor(0,0,0,0)
-                glClear(GL_COLOR_BUFFER_BIT)
-                glColor3f(1,1,1)
-                shadow.blit(0, 0)
-                lbl.draw()
-        else:
-            ttex = False
+        bg = self.bg
+        r = self.bot_reserve
+        glColor3f(1, 1, 1)
+        if bg:
+            if bg.height > h - 24 - r or bg.width > w - 4:
+                _w = min(bg.width, w - 4)
+                _h = min(bg.height, h - 24 - r)
+                bg = bg.get_region(0, 0, _w, _h)
+            bg.blit(2, r)
 
-        with fbo:
-            fbo.texture = tex
-            bg = self.bg
-            r = self.bot_reserve
-            if bg:
-                glColor3f(1, 1, 1)
-                bg.blit(2, r)
-            else:
-                glClearColor(1,1,1,1)
-                glClear(GL_COLOR_BUFFER_BIT)
+        if not bg:
+            glRectf(1, 1, w-1, h-1)
 
-            glColor3f(*color(self.color.medium))
-            glRectf(0, h-24, w, h) # title bar
-            glRectf(0, 0, w, r) # bot reserve
-            glBegin(GL_LINES)
-            glColor3f(*color(self.color.heavy))
-            glVertex2f(0, h-24); glVertex2f(w, h-24)
-            glVertex2f(0, r); glVertex2f(w, r)
-            glEnd()
+        glColor3f(*color(self.color.medium))
+        glRectf(0, h-24, w, h) # title bar
+        glRectf(0, 0, w, r) # bot reserve
+        glBegin(GL_LINES)
+        glColor3f(*color(self.color.heavy))
+        glVertex2f(0, h-24); glVertex2f(w, h-24)
+        glVertex2f(0, r); glVertex2f(w, r)
+        glEnd()
 
-            if ttex:
-                glColor3f(1,1,1)
-                ttex.blit(20, h-24)
-            else:
-                shader = [
-                    shaders.DummyShader,
-                    shaders.FontShadow,
-                    shaders.FontShadowThick,
-                ][self.shadow_thick]
-                with shader as fs:
-                    fs.uniform.shadow_color = color(self.color.caption_shadow) + (1.0, )
-                    glColor3f(*color(self.color.caption))
-                    lbl.x, lbl.y = 20, h-20
-                    lbl.draw()
+        shader = [
+            shaders.DummyShader,
+            shaders.FontShadow,
+            shaders.FontShadowThick,
+        ][self.shadow_thick]
+        with shader as fs:
+            fs.uniform.shadow_color = color(self.color.caption_shadow) + (1.0, )
+            glColor3f(*color(self.color.caption))
+            self.caption_lbl.draw()
 
-            self.custom_update()
+        self.custom_update()
 
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            glColor3f(*color(self.color.frame))
-            glLineWidth(4.0)
-            glRectf(0, 0, w, h)
-            glLineWidth(1.0)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-
-        self.tex = tex
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glColor3f(*color(self.color.frame))
+        glLineWidth(2.0)
+        glRectf(1, 1, w-1, h-1)
+        glLineWidth(1.0)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
     def custom_update(self):
         pass
@@ -412,23 +381,7 @@ class Dialog(Control):
 
     def draw(self):
         glColor3f(1,1,1)
-        self.tex.blit(0,0)
-
-        w, h = self.width, self.height
-        ax, ay = self.abs_coords()
-        ax, ay = int(ax), int(ay)
-
-        '''
-        ob = (GLint*4)()
-        glGetIntegerv(GL_SCISSOR_BOX, ob)
-        ob = list(ob)
-        nb = Rect(*ob).intersect(Rect(ax, ay, w, h))
-        if nb:
-            if nb.height > 25:
-                glScissor(nb.x, nb.y, nb.width, nb.height-25)
-                self.draw_subcontrols()
-            glScissor(*ob)
-        '''
+        self._dl()
 
         self.draw_subcontrols()
         self.btn_close.do_draw()
@@ -789,14 +742,6 @@ class TextArea(Control):
     text = property(_gettext, _settext)
 
     def draw(self):
-        '''
-        glPushAttrib(GL_POLYGON_BIT)
-        glColor3f(1.0, 1.0, 1.0)
-        glRecti(0, 0, self.width, self.height)
-        glColor3f(0.0, 0.0, 0.0)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glRecti(0, 0, self.width, self.height)
-        glPopAttrib()'''
         self.layout.draw()
 
     def on_mouse_scroll(self, x, y, dx, dy):

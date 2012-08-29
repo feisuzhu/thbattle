@@ -3,10 +3,14 @@ from client.ui.base import Control, message as ui_message
 from client.ui.controls import *
 from client.ui import resource as common_res
 from client.ui import shaders
-
 from game.autoenv import Game
-
 from .. import actions
+
+from utils import DisplayList
+
+import pyglet
+
+HAVE_FBO = pyglet.gl.gl_info.have_extension('GL_EXT_framebuffer_object')
 
 class CardSprite(Control, BalloonPrompt):
     x = InterpDesc('_x')
@@ -523,6 +527,10 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
     _x = _y = 0
     actor_frame = None
     turn_frame = None
+    gray_tex = None
+    if HAVE_FBO:
+        auxfbo = Framebuffer()
+        auxtex = pyglet.image.Texture.create(256, 256)
 
     def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', *args, **kwargs):
         self.selected = False
@@ -551,8 +559,6 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             x=3, y=6,
             manual_draw=True,
         )
-
-        self.grayed_tex = None
 
         w, h = self.width, self.height
 
@@ -647,6 +653,22 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
                     return
             ShownCardPanel(p, parent=self.parent)
 
+    def build_gray_tex(self):
+        gt = self.gray_tex
+        if not (gt and gt.width == self.width and gt.height == self.height):
+            from pyglet.image import Texture
+            gt = Texture.create(self.width, self.height)
+            fbo = self.auxfbo
+            with fbo:
+                fbo.texture = self.auxtex
+                glColor3f(1,1,1)
+                self._dl()
+
+                fbo.texture = gt
+                with shaders.Grayscale:
+                    self.auxtex.blit(0, 0)
+            self.gray_tex = gt
+
     def update(self):
         p = self.player
         if not p: return
@@ -654,41 +676,39 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         nick = p.account.username
         if self.dropped: nick = u'(离开)' + nick
         self.caption = nick
-        try:
-            meta = p.ui_meta
+        meta = getattr(p, 'ui_meta', None)
 
-        except AttributeError:
-            # before girls chosen
-            Dialog.update(self)
-            return
-
-        self.bg = meta.port_image
-        self.init_balloon(meta.description, (2, 74, 145, 96))
+        if meta:
+            self.bg = meta.port_image
+            self.init_balloon(meta.description, (2, 74, 145, 96))
 
         self.bot_reserve=74
+        self.gray_tex = None
         Dialog.update(self)
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
-        fbo = self.auxfbo
-        with fbo:
-            fbo.texture = self.tex
 
-            glPolygonMode(GL_BACK, GL_LINE)
-            w, h = self.width, self.height
-            # equip box
-            glColor3f(1, 1, 1)
-            glRectf(2, 2, w-2, 54)
-            glColor3f(*[i/255.0 for i in self.color.heavy])
-            glRectf(2.5, 54.5, 2.5+4*36, 2.5)
+    def _content_draw(self):
+        p = self.player
+        meta = getattr(p, 'ui_meta', None)
 
-            # cardnum box
-            glColor3f(*[i/255.0 for i in self.color.light])
-            glRectf(w-2-32, 66,  w-2, 66+22)
-            glColor3f(*[i/255.0 for i in self.color.heavy])
-            glRectf(w-2-32, 66+22,  w-2, 66)
+        Dialog._content_draw(self)
+        glPolygonMode(GL_BACK, GL_LINE)
+        w, h = self.width, self.height
+        # equip box
+        glColor3f(1, 1, 1)
+        glRectf(2, 2, w-2, 54)
+        glColor3f(*[i/255.0 for i in self.color.heavy])
+        glRectf(2.5, 54.5, 2.5+4*36, 2.5)
 
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        # cardnum box
+        glColor3f(*[i/255.0 for i in self.color.light])
+        glRectf(w-2-32, 66,  w-2, 66+22)
+        glColor3f(*[i/255.0 for i in self.color.heavy])
+        glRectf(w-2-32, 66+22,  w-2, 66)
 
-            # char name
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+        # char name
+        if meta:
             f = pyglet.font.load('AncientPix', size=9)
             glyphs = f.get_glyphs(meta.char_name)
             gh = f.ascent - f.descent
@@ -697,21 +717,17 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
                 fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
                 glPushMatrix()
                 glTranslatef(7, self.height - 30, 0)
-                for g in glyphs:
-                    glTranslatef(0, -gh, 0)
-                    # HACK: pyglet implementation detail
-                    # g.vertices = (left_side_bearing, -baseline, ...)
-                    g.blit(g.vertices[0], g.vertices[1])
+                tex = glyphs[0].owner
+                with tex:
+                    for g in glyphs:
+                        glTranslatef(0, -gh, 0)
+                        # HACK: pyglet implementation detail
+                        # g.vertices = (left_side_bearing, -baseline, ...)
+                        #g.blit(g.vertices[0], g.vertices[1])
+                        glBegin(GL_QUADS)
+                        g.draw_quad_vertices()
+                        glEnd()
                 glPopMatrix()
-
-
-            gtex = self.grayed_tex
-            if not gtex or (gtex.width, gtex.height) != (self.width, self.height):
-                self.grayed_tex = gtex = pyglet.image.Texture.create(w, h)
-
-            fbo.texture = gtex
-            with shaders.Grayscale:
-                self.tex.blit(0, 0)
 
     def draw(self):
 
@@ -722,10 +738,11 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         #    self.turn_frame.set_position(self.x - 6, self.y - 4)
 
         p = self.player
-        if getattr(p, 'dead', False):
-            self.tex, tmp = self.grayed_tex, self.tex
-            Dialog.draw(self)
-            self.tex = tmp
+        if getattr(p, 'dead', False) and HAVE_FBO:
+            if not self.gray_tex:
+                self.build_gray_tex()
+            self.gray_tex.blit(0, 0)
+            self.draw_subcontrols()
         else:
             Dialog.draw(self)
 
@@ -753,10 +770,11 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             seq = str(n)
             ox = (32 - len(seq)*14)//2
             nums = common_res.num
-            for i, ch in enumerate(seq):
-                n = ord(ch) - ord('0')
-                #x, y = w - 34 + ox + i*14, 68
-                nums[n].blit(w - 34 + ox + i*14, 68)
+            with nums[0].owner:
+                for i, ch in enumerate(seq):
+                    n = ord(ch) - ord('0')
+                    #x, y = w - 34 + ox + i*14, 68
+                    nums[n].blit_nobind(w - 34 + ox + i*14, 68)
         except AttributeError as e:
             pass
 
