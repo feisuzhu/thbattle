@@ -409,3 +409,30 @@ def gif_to_animation(giffile):
     anim.width, anim.height = w, h
 
     return anim
+
+class DisplayList(object):
+    compiled = False
+    def __init__(self):
+        from pyglet import gl
+        self._list_id = gl.glGenLists(1)
+
+    def __enter__(self):
+        self.compiled = True
+        from pyglet import gl
+        gl.glNewList(self._list_id, gl.GL_COMPILE)
+        return self
+
+    def __exit__(self, *exc_args):
+        from pyglet import gl
+        gl.glEndList()
+
+    def __call__(self):
+        if not self.compiled:
+            return Exception('Not compiled!')
+        from pyglet import gl
+        gl.glCallList(self._list_id)
+
+    def __del__(self):
+        from pyglet import gl
+        gl.glDeleteLists(self._list_id, 1)
+
