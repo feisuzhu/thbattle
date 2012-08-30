@@ -202,7 +202,10 @@ class Framebuffer(object):
 
     def __del__(self):
         from pyglet import gl
-        gl.glDeleteFramebuffersEXT(1, self.fbo_id)
+        try:
+            gl.glDeleteFramebuffersEXT(1, self.fbo_id)
+        except:
+            pass
 
     def blit_from_current_readbuffer(self, src_box, dst_box=None, mask=None, _filter=None):
         from pyglet import gl
@@ -434,7 +437,10 @@ class DisplayList(object):
 
     def __del__(self):
         from pyglet import gl
-        gl.glDeleteLists(self._list_id, 1)
+        try:
+            gl.glDeleteLists(self._list_id, 1)
+        except:
+            pass
 
 def extendclass(clsname, bases, _dict):
     for cls in bases:
