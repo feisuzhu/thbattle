@@ -252,7 +252,7 @@ __metaclass__ = gen_metafunc(cards)
 
 class HiddenCard:
     # action_stage meta
-    image = cres.card_hidden
+    image = gres.card_hidden
     name = u'这个是隐藏卡片，你不应该看到它'
 
     def is_action_valid(g, cl, target_list):

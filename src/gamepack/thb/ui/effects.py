@@ -201,7 +201,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 def damage_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
-    OneShotAnim(common_res.hurt, x=port.x, y=port.y, batch=self.animations)
+    OneShotAnim(gres.hurt, x=port.x, y=port.y, batch=self.animations)
 
 def launch_effect(self, act):
     s = act.source

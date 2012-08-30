@@ -91,20 +91,6 @@ with ResLoader(__file__) as args:
     bg_eventsbox = ldr.texture(fname('bg_eventsbox.png'))
     bg_chatbox = ldr.texture(fname('bg_chatbox.png'))
 
-    card_shinesoft = tx('shinesoft.png')
-    card_hidden = tx('card_hidden.png')
-    card_question = tx('card_question.png')
-
-    cardnumbers = pyglet.image.ImageGrid(img('cardnum.png'), 2, 13)
-    cardnumbers = pyglet.image.TextureGrid(cardnumbers)
-
-    suit = pyglet.image.ImageGrid(img('suit.png'), 1, 4)
-    suit = pyglet.image.TextureGrid(suit)
-
-    smallsuit = pyglet.image.ImageGrid(img('smallsuit.png'), 1, 4)
-    smallsuit = pyglet.image.TextureGrid(smallsuit)
-
-
     num = pyglet.image.ImageGrid(img('num.png'), 1, 10)
     num = pyglet.image.TextureGrid(num)
 
@@ -114,8 +100,6 @@ with ResLoader(__file__) as args:
     turn_frame = anim('turn.png', [50] * 9, True)
 
     ray = ldr.texture(fname('ray.png'))
-
-    hurt = anim('hurt.png', [50, 50, 50, 50, 200, 30, 30, 30, 30, 2000])
 
     hp = ldr.texture(fname('hp.png'))
     hp_bg = ldr.texture(fname('hp_bg.png'))

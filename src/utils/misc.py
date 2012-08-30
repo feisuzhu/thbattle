@@ -436,3 +436,9 @@ class DisplayList(object):
         from pyglet import gl
         gl.glDeleteLists(self._list_id, 1)
 
+def extendclass(clsname, bases, _dict):
+    for cls in bases:
+        for key, value in _dict.items():
+            if key == '__module__':
+                continue
+            setattr(cls, key, value)

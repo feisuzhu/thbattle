@@ -2,6 +2,7 @@
 from client.ui.base import Control, message as ui_message
 from client.ui.controls import *
 from client.ui import resource as common_res
+import resource as game_res
 from client.ui import shaders
 from game.autoenv import Game
 from .. import actions
@@ -21,13 +22,13 @@ class CardSprite(Control, BalloonPrompt):
     ftanim_cardalpha = InterpDesc('_ftca')
     shine_alpha = InterpDesc('_shine_alpha')
     alpha = InterpDesc('_alpha')
-    img_shinesoft = common_res.card_shinesoft
-    img_cardq = common_res.card_question
-    img_cardh = common_res.card_hidden
+    img_cardq = game_res.card_question
+    img_cardh = game_res.card_hidden
     width, height = 91, 125
-    auxfbo = Framebuffer()
+
     def __init__(self, card, x=0.0, y=0.0, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
+
         self._w, self._h = 91, 125
         self.shine = False
         self.gray = False
@@ -39,8 +40,6 @@ class CardSprite(Control, BalloonPrompt):
 
         self.img = meta.image
 
-        self.tex = pyglet.image.Texture.create(91, 125)
-
         self.number, self.suit = card.number, card.suit
         self.ft_anim = False
 
@@ -51,6 +50,10 @@ class CardSprite(Control, BalloonPrompt):
         self.update()
 
     def draw(self):
+        with game_res.card_atlas.texture:
+            self.draw_vertices()
+
+    def draw_vertices(self):
         if self.ft_anim:
             qs = self.question_scale
             bs = self.back_scale
@@ -60,37 +63,36 @@ class CardSprite(Control, BalloonPrompt):
                 glColor4f(.66, .66, .66, ca)
             else:
                 glColor4f(1., 1., 1., ca)
-            self.tex.blit(0, 0)
+            self.img.blit_nobind(0, 0)
+
+            n, s = self.number, self.suit
+            if n: game_res.cardnumbers[s%2*13 + n-1].blit_nobind(5, 105)
+            if s: game_res.suit[s-1].blit_nobind(6, 94)
 
             glColor4f(1, 1, 1, aa)
 
             if qs:
-                self.img_cardq.blit((1-qs)*45, 0, 0, qs*91)
+                game_res.card_question.blit_nobind((1-qs)*45, 0, 0, qs*91)
 
             if bs:
-                self.img_cardh.blit((1-bs)*45, 0, 0, bs*91)
+                game_res.card_hidden.blit_nobind((1-bs)*45, 0, 0, bs*91)
         else:
             a = self.alpha
             if self.gray:
                 glColor4f(.66, .66, .66, a)
             else:
                 glColor4f(1., 1., 1., a)
-            self.tex.blit(0, 0)
+            self.img.blit_nobind(0, 0)
 
+            n, s = self.number, self.suit
+            if n: game_res.cardnumbers[s%2*13 + n-1].blit_nobind(5, 105)
+            if s: game_res.suit[s-1].blit_nobind(6, 94)
 
         glColor4f(1., 1., 1., self.shine_alpha)
-        self.img_shinesoft.blit(-6, -6)
+        game_res.card_shinesoft.blit_nobind(-6, -6)
 
     def update(self):
-        fbo = self.auxfbo
-        with fbo:
-            fbo.texture = self.tex
-            glColor3f(1, 1, 1)
-            self.img.blit(0, 0)
-            n, s = self.number, self.suit
-            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
-            if n: common_res.cardnumbers[s%2, n-1].blit(5, 105)
-            if s: common_res.suit[s-1].blit(6, 94)
+        pass
 
     def on_mouse_enter(self, x, y):
         self.shine_alpha = 1.0
@@ -137,7 +139,13 @@ class HandCardArea(Control):
 
     def draw(self):
         glColor4f(1,1,1,1)
-        self.draw_subcontrols()
+        if not self.control_list: return
+        with game_res.card_atlas.texture:
+            for cs in self.control_list:
+                glPushMatrix()
+                glTranslatef(cs.x, cs.y, 0)
+                cs.draw_vertices()
+                glPopMatrix()
 
     def update(self):
         fsz = self.fold_size
@@ -175,7 +183,14 @@ class PortraitCardArea(Control):
         return False
 
     def draw(self):
-        self.draw_subcontrols()
+        glColor3f(1, 1, 1)
+        if not self.control_list: return
+        with game_res.card_atlas.texture:
+            for cs in self.control_list:
+                glPushMatrix()
+                glTranslatef(cs.x, cs.y, 0)
+                cs.draw_vertices()
+                glPopMatrix()
 
     def arrange(self):
         csl = self.control_list
@@ -224,7 +239,13 @@ class DropCardArea(Control):
 
     def draw(self):
         glColor4f(1,1,1,1)
-        self.draw_subcontrols()
+        if not self.control_list: return
+        with game_res.card_atlas.texture:
+            for cs in self.control_list:
+                glPushMatrix()
+                glTranslatef(cs.x, cs.y, 0)
+                cs.draw_vertices()
+                glPopMatrix()
 
     def update(self):
         fsz = self.fold_size
@@ -355,55 +376,44 @@ class SmallCardSprite(Control, BalloonPrompt):
     width, height = 33, 46
     x = InterpDesc('_x')
     y = InterpDesc('_y')
-    auxfbo = Framebuffer()
     def __init__(self, card, x=0.0, y=0.0, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 33, 46
         self.x, self.y = x, y
         self.selected = False
         self.hover = False
+        self.card = card
 
-        bg = card.ui_meta.image_small
-        from pyglet.image import Texture
-        img = Texture.create(bg.width, bg.height)
-        fbo = self.auxfbo
-
-        f = pyglet.font.load('AncientPix', size=9)
-
-        ssuit = common_res.smallsuit
-        with fbo:
-            fbo.texture = img
-            glColor3f(1, 1, 1)
-            bg.blit(0, 0)
-            if card.suit % 2:
-                glColor3f(0, 0, 0)
-            else:
-                glColor3f(1, 0, 0)
-
-            with shaders.FontShadow as fs:
-                fs.uniform.shadow_color = (1.0, 1.0, 1.0, 0.7)
-                if card.number == 10: # special case
-                    g = f.get_glyphs('10')
-                    g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
-                    g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
-                else:
-                    g = f.get_glyphs(' A23456789!JQK'[card.number])[0]
-                    g.blit(3+g.vertices[0], 33+g.vertices[1])
-                ssuit[card.suit-1].blit(1, 24)
-        self.img = img
+        self.img = card.ui_meta.image_small
         self.init_balloon(card.ui_meta.description)
 
     def draw(self):
-        glColor3f(1., 1., 1.)
-        self.img.blit(0, 0)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        if self.selected:
-            glColor3f(0, 1, 0)
-        else:
-            glColor4f(0, 0, 1, 0.5)
+        with game_res.card_atlas.texture:
+            self.draw_vertices()
 
-        glRectf(0, 0, 33, 46)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+    def draw_vertices(self):
+        glColor3f(1., 1., 1.)
+        self.img.blit_nobind(0, 0)
+
+        s = self.card.suit
+        n = self.card.number
+
+        ssuit = game_res.smallsuit
+        snum = game_res.smallnum
+
+        if n == 10: # special case
+            #g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
+            #g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
+            snum[s%2*14 + 10].blit_nobind(-1, 31)
+            snum[s%2*14 + 0].blit_nobind(3, 31)
+        else:
+            snum[s%2*14 + n].blit_nobind(1, 31)
+        ssuit[s-1].blit_nobind(1, 22)
+
+        if self.selected:
+            game_res.scardframe_selected.blit_nobind(0, 0)
+        else:
+            game_res.scardframe_normal.blit_nobind(0, 0)
 
 class EquipCardArea(Control):
     def __init__(self, fold_size=4, *args, **kwargs):
@@ -414,7 +424,13 @@ class EquipCardArea(Control):
 
     def draw(self):
         glColor4f(1,1,1,1)
-        self.draw_subcontrols()
+        if not self.control_list: return
+        with game_res.card_atlas.texture:
+            for cs in self.control_list:
+                glPushMatrix()
+                glTranslatef(cs.x, cs.y, 0)
+                cs.draw_vertices()
+                glPopMatrix()
 
     def update(self):
         fsz = self.fold_size

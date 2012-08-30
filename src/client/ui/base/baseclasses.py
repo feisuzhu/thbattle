@@ -18,6 +18,9 @@ from utils import hook
 import logging
 log = logging.getLogger('UI_Baseclasses')
 
+
+import pyglet_extension # just init it
+
 class Control(pyglet.event.EventDispatcher):
     def __init__(self, x=0, y=0, width=0, height=0,
                 zindex=0, parent=None, can_focus=False, manual_draw=False,
