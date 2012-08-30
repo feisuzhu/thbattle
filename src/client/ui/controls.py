@@ -84,10 +84,12 @@ class Colors(object):
         fill_botline = light
         text = frame
 
-    def get4f(self, c):
+    @staticmethod
+    def get4f(c):
         return c[0]/255.0, c[1]/255.0, c[2]/255.0, 1.0
 
-    def get4i(self, c):
+    @staticmethod
+    def get4i(c):
         return c + (255, )
 
 class Button(Control):
@@ -762,13 +764,13 @@ class TextArea(Control):
         l.end_update()
 
 class ListItem(object):
-    def __init__(self, p):
+    def __init__(self, p, i):
         self.parent = p
         n = len(p.columns)
         self.labels = [None] * n
         self._data = [''] * n
-        self.data = ['Yoo~'] * n
-        self.selected = False
+        self.idx = i
+        #self.data = ['Yoo~'] * n
 
     def _set_data(self, val):
         val = list(val)
@@ -777,11 +779,22 @@ class ListItem(object):
         val = (val + n*[''])[:n]
         for i, v in enumerate(val):
             self[i] = unicode(v)
+        self._update_labels()
 
     def _get_data(self):
         return self._data
 
     data = property(_get_data, _set_data)
+
+    def _update_labels(self):
+        p = self.parent
+        p.need_refresh = True
+        ox = 2
+        for (_, w), lbl in zip(p.columns, self.labels):
+            lbl.begin_update()
+            lbl.x, lbl.y = ox, -2 - self.idx * self.parent.line_height
+            lbl.end_update()
+            ox += w
 
     def __getitem__(self, index):
         if isinstance(index, basestring):
@@ -795,35 +808,13 @@ class ListItem(object):
             index = p.col_lookup[index]
         self._data[index] = val
         c = p.color.text + (255,)
+        o = self.labels[index]
+        if o: o.delete()
         self.labels[index] = Label(
             text=val, font_name='AncientPix', font_size=9,
-            anchor_x='left', anchor_y = 'bottom', color=c,
+            anchor_x='left', anchor_y = 'top', color=c,
+            batch=p.batch,
         )
-
-    def draw(self):
-        p = self.parent
-        lh = p.line_height
-        color = p.color
-
-        glDisable(GL_BLEND)
-        glColor4f(0,0,0,0)
-        glRectf(0, 0, p.width, 16)
-        glEnable(GL_BLEND)
-
-        if self.selected:
-            c = [i/255.0 for i in color.light] + [1.0]
-            glColor4f(*c)
-            glRectf(0, 0, p.width, 16)
-
-        glColor3f(1,1,1)
-
-        ox = 2
-        for (_, w), lbl in zip(p.columns, self.labels):
-            lbl.x, lbl.y = ox, 2
-            lbl.draw()
-            ox += w
-
-        return
 
 class ListHeader(object):
     def __init__(self, p):
@@ -842,7 +833,6 @@ class ListHeader(object):
             )
             _x += width
         self.batch = batch
-
 
     def draw(self):
         p = self.parent
@@ -870,13 +860,10 @@ class ListView(Control):
         self.columns = []
         self.col_lookup = {}
         self._view_y = 0
+        self.batch = pyglet.graphics.Batch()
         self.cur_select = None
-        th = self.tex_height = 10 * self.line_height
-        tex = pyglet.image.Texture.create(self.width, self.tex_height)
-        fbo = self.fbo = Framebuffer(tex)
-        with fbo:
-            glClearColor(0,0,0,0)
-            glClear(GL_COLOR_BUFFER_BIT)
+        self._dl = DisplayList()
+        self.need_refresh = True
 
     def set_columns(self, cols):
         # [('name1', 20), ('name2', 30)]
@@ -893,17 +880,15 @@ class ListView(Control):
             li = val
             li.parent = self
         elif isinstance(val, (list, tuple)):
-            li = self.li_class(self)
+            li = self.li_class(self, len(self.items))
             li.data = val
         self.items.append(li)
-        self.update_single(li)
         return li
 
     def clear(self):
         self.items = []
-        with self.fbo:
-            glClearColor(0,0,0,0)
-            glClear(GL_COLOR_BUFFER_BIT)
+        self.cur_select = None
+        self.batch = pyglet.graphics.Batch()
 
     def _set_view_y(self, val):
         sum_h = len(self.items) * self.line_height
@@ -918,77 +903,40 @@ class ListView(Control):
 
     view_y = property(_get_view_y, _set_view_y)
 
-    def update(self):
-        n = len(self.items)
-        if n * self.line_height >= self.tex_height:
-            self._double_tex_height()
-
-        fbo = self.fbo
-        tex =  fbo.texture
-        y = tex.height - 1
-        lh = self.line_height
-        with fbo:
-            for i in self.items:
-                y -= lh
-                glLoadIdentity()
-                glTranslatef(0, y, 0)
-                i.draw()
-
-    def update_single(self, item):
-        items = self.items
-        n = len(items)
-        if n * self.line_height >= self.tex_height:
-            self._double_tex_height()
-
-        i = items.index(item)
-        fbo = self.fbo
-        tex = fbo.texture
-        y = tex.height - 1
-        lh = self.line_height
-        with fbo:
-            y -= (i+1)*lh
-            glTranslatef(0, y, 0)
-            item.draw()
-
-    def _double_tex_height(self):
-        old_tex = self.fbo.texture
-        h = old_tex.height
-        del self.fbo
-        tex = pyglet.image.Texture.create(old_tex.width, h*2)
-        fbo = Framebuffer(tex)
-        with fbo:
-            glClearColor(0,0,0,0)
-            glClear(GL_COLOR_BUFFER_BIT)
-            glColor3f(1, 1, 1)
-            old_tex.blit(0, h)
-        self.tex_height = h*2
-        self.fbo = fbo
-
     def draw(self):
         glColor3f(1,1,1)
 
-        tex = self.fbo.texture
         hh = self.header_height
-        content_height = len(self.items) * self.line_height
         client_height = self.height - hh
         vy = self.view_y
-        y = content_height - vy
-        by = y - client_height
-        if by < 0: by = 0
 
-        #print 'y := ', y, 'vy := ', vy, content_height, client_height
-        if y:
-            glColor3f(1,1,1)
-            tex = tex.get_region(0, tex.height - content_height, tex.width, tex.height)
-            tex.get_region(0, by, tex.width, y-by).blit(0, client_height - (y-by))
+        #glPushMatrix()
+        if self.need_refresh:
+            with self._dl:
+                glTranslatef(0, client_height + vy, 0)
+                glEnable(GL_SCISSOR_TEST)
+                ax, ay = self.abs_coords()
+                ax, ay, w, h = map(int, (ax, ay, self.width, client_height))
+                glScissor(ax, ay, w, h)
+                self.batch.draw()
+                cs = self.cur_select
+                if cs is not None:
+                    c = Colors.get4f(self.color.light)
+                    glColor4f(c[0], c[1], c[2], 0.5)
+                    glRectf(
+                        0, -16-cs*self.line_height,
+                        self.width, -cs*self.line_height
+                    )
+                glDisable(GL_SCISSOR_TEST)
+                glTranslatef(0, -vy, 0)
+                self.header.draw()
 
-        glPushMatrix()
-        glTranslatef(0, client_height, 0)
-        self.header.draw()
-        glPopMatrix()
+        self._dl()
+        #glPopMatrix()
 
     def on_mouse_scroll(self, x, y, dx, dy):
         self.view_y -= dy * 40
+        self.need_refresh = True
 
     def _mouse_click(self, evt_type, x, y, button, modifier):
         h = self.height - self.header_height
@@ -999,13 +947,10 @@ class ListView(Control):
             cs = self.cur_select
             if cs is not None and 0 <= cs < n:
                 item = self.items[cs]
-                item.selected = False
-                self.update_single(item)
             self.dispatch_event(evt_type, self.items[i])
             self.cur_select = i
             item = self.items[i]
-            item.selected = True
-            self.update_single(item)
+            self.need_refresh = True
 
     on_mouse_click = lambda self, *a: self._mouse_click('on_item_select', *a)
     on_mouse_dblclick = lambda self, *a: self._mouse_click('on_item_dblclick', *a)
