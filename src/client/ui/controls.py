@@ -8,6 +8,8 @@ from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
 from utils import Rect, Framebuffer, DisplayList
 
+HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
+
 from math import ceil
 
 import logging
@@ -1226,7 +1228,7 @@ class Panel(Control):
 
 class ImageSelector(Control):
     hover_alpha = InterpDesc('_hover_alpha')
-    auxfbo = Framebuffer()
+    auxfbo = Framebuffer() if HAVE_FBO else None
     def __init__(self, image, group, *a, **k):
         Control.__init__(
             self, width=145, height=98,
@@ -1239,16 +1241,17 @@ class ImageSelector(Control):
         self.image = image
         self.group = group
 
-        self.grayed_image = pyglet.image.Texture.create(
-            image.width, image.height
-        )
-
         fbo = self.auxfbo
-        with fbo:
-            fbo.texture = self.grayed_image
-            glColor3f(1, 1, 1)
-            with shaders.Grayscale:
-                image.blit(0, 0)
+        if fbo:
+            self.grayed_image = pyglet.image.Texture.create(
+                image.width, image.height
+            )
+
+            with fbo:
+                fbo.texture = self.grayed_image
+                glColor3f(1, 1, 1)
+                with shaders.Grayscale:
+                    image.blit(0, 0)
 
     def on_mouse_enter(self, x, y):
         self.hover_alpha = 0.4
@@ -1272,7 +1275,11 @@ class ImageSelector(Control):
     def draw(self):
         glColor3f(1, 1, 1)
         if self.disabled:
-            self.grayed_image.blit(0, 0)
+            if HAVE_FBO:
+                self.grayed_image.blit(0, 0)
+            else:
+                glColor3f(0, 0, 0)
+                glRectf(0, 0, self.width, self.height)
         else:
             self.image.blit(0, 0)
 
