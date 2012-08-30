@@ -61,6 +61,8 @@ class AncientPixGlyphRenderer(GlyphRenderer):
 
 class AncientPixFont(Font):
     glyph_renderer_class = AncientPixGlyphRenderer
+    texture_width = 512
+    texture_height = 1024
 
     @property
     def fontdata(self):
