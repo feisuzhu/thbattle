@@ -8,7 +8,7 @@ from client.ui import soundmgr
 import  client.ui.resource as common_res
 from client.core import Executive
 from pyglet.text import Label
-from utils import Rect, rect_to_dict as r2d, BatchList
+from utils import Rect, rect_to_dict as r2d, BatchList, textsnap
 
 import logging
 log = logging.getLogger('UI_Screens')
@@ -648,7 +648,9 @@ class GameScreen(Screen):
             L = pyglet.text.Label
 
             c = self.color.caption + (255,)
+            f = pyglet.font.load('AncientPix', 9)
             def L(text, loc):
+                text = textsnap(text, f, self.width - 8 - 4)
                 pyglet.text.Label(
                     text, x=8, y=47-15*loc,
                     anchor_x='left', anchor_y='top',

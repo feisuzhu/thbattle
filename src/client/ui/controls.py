@@ -6,7 +6,7 @@ from pyglet.window import mouse
 from client.ui.base import *
 from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
-from utils import Rect, Framebuffer, DisplayList
+from utils import Rect, Framebuffer, DisplayList, textsnap
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
 
@@ -314,8 +314,11 @@ class Dialog(Control):
         self.update()
 
     def update(self):
+        cap = self.caption
+        f = pyglet.font.load('AncientPix', 9)
+        cap = textsnap(cap, f, self.width - 20 - 4)
         self.caption_lbl = pyglet.text.Label(
-            self.caption, u'AncientPix', 9,
+            cap, u'AncientPix', 9,
             color=self.color.caption + (255,),
             x=20, y=self.height - 20,
             anchor_x='left', anchor_y='bottom'

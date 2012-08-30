@@ -442,3 +442,14 @@ def extendclass(clsname, bases, _dict):
             if key == '__module__':
                 continue
             setattr(cls, key, value)
+
+def textsnap(text, font, l):
+    tl = 0
+    for i, g in enumerate(font.get_glyphs(text)):
+        if tl + g.advance > l:
+            break
+        tl += g.advance
+    else:
+        return text
+
+    return text[:i]
