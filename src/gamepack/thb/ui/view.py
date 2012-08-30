@@ -72,10 +72,11 @@ class DeckIndicator(Control):
             seq = str(n)
             ox = (w - len(seq)*14)//2
             oy = (h - nums[0].height)//2
-            for i, ch in enumerate(seq):
-                n = ord(ch) - ord('0')
-                #x, y = w - 34 + ox + i*14, 68
-                nums[n].blit(ox + i*14, oy)
+            with nums[0].owner:
+                for i, ch in enumerate(seq):
+                    n = ord(ch) - ord('0')
+                    #x, y = w - 34 + ox + i*14, 68
+                    nums[n].blit_nobind(ox + i*14, oy)
         except AttributeError as e:
             pass
 
