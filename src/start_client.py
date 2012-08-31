@@ -94,6 +94,10 @@ import pyglet
 pyglet.options['audio'] = ('directsound', 'openal', 'alsa', 'silent')
 pyglet.options['shadow_window'] = False
 
+from settings import NO_ERRCHECK
+if NO_ERRCHECK:
+    pyglet.options['debug_gl'] = False
+
 if sys.platform == 'win32':
     from pyglet.media.drivers.directsound import DirectSoundAudioPlayer
     DirectSoundAudioPlayer._buffer_size = 44800 * 2
