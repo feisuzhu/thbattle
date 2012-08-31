@@ -698,6 +698,11 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
             self.bg = meta.port_image
             self.init_balloon(meta.description, (2, 74, 145, 96))
 
+            # HACK: prevent glyph creation in _content_draw
+            # since _content_draw may be called with DisplayList
+            f = pyglet.font.load('AncientPix', size=9)
+            f.get_glyphs(meta.char_name)
+
         self.bot_reserve=74
         self.gray_tex = None
         Dialog.update(self)
