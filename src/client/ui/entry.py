@@ -32,7 +32,9 @@ def start_ui():
     def my_errcheck(result, func, arguments):
         from pyglet import gl
         error = gl.glGetError()
-        if error:
+        if error and error != 1286:
+            # HACK: The 1286(INVALID_FRAMEBUFFER_OPERATION) error again!
+            # This time I DIDN'T EVEN USE FBO! ATI!!
             msg = ctypes.cast(gl.gluErrorString(error), ctypes.c_char_p).value
             raise gl.GLException((error, msg))
         return result
