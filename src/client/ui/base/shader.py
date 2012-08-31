@@ -15,7 +15,15 @@ def _get_infolog(oid):
     )
     return buffer.value
 
+HAVE_SHADER = gl_info.have_extension('GL_ARB_shader_objects')
+
 class _Shader(object):
+    def __new__(cls, *a):
+        if HAVE_SHADER:
+            return object.__new__(cls, *a)
+        else:
+            return None
+
     def __init__(self, src):
         sid = False
         try:
@@ -103,8 +111,34 @@ class _AttributeAccesser(object):
 
         return loc
 
+class _DummyShaderProgram(object):
+    def __init__(self, *a):
+        from utils import DataHolder
+        self.uniform = DataHolder()
+        self.attrib = DataHolder()
+
+    def use(self):
+        pass
+
+    def restore(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        pass
+
+DummyShader = _DummyShaderProgram()
+
 class ShaderProgram(object):
     shader_stack = []
+    def __new__(cls, *a):
+        if HAVE_SHADER:
+            return object.__new__(cls, *a)
+        else:
+            return DummyShader
+
     def __init__(self, *shaders):
         pid = False
         try:
@@ -157,21 +191,3 @@ class ShaderProgram(object):
 
     def __exit__(self, exc_type, exc_value, tb):
         self.unuse()
-
-class DummyShaderProgram(object):
-    def __init__(self, *a):
-        from utils import DataHolder
-        self.uniform = DataHolder()
-        self.attrib = DataHolder()
-
-    def use(self):
-        pass
-
-    def restore(self):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *a):
-        pass

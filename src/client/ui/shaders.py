@@ -5,8 +5,6 @@ from pyglet.gl import gl_info
 
 have = gl_info.have_version
 
-DummyShader = DummyShaderProgram()
-
 import logging
 
 log = logging.getLogger('shaders')
