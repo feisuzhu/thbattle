@@ -1103,59 +1103,64 @@ class Panel(Control):
     def update(self):
         w, h = int(self.width), int(self.height)
 
-        blurtex = pyglet.image.Texture.create(w, h)
+        from shaders import HAVE_SHADER
+        if HAVE_SHADER:
+            blurtex = pyglet.image.Texture.create(w, h)
 
-        self.blurtex = blurtex
+            self.blurtex = blurtex
 
-        t = blurtex.tex_coords
-        x1 = 0
-        y1 = 0
-        x2 = blurtex.width
-        y2 = blurtex.height
-        array = (GLfloat * 32)(
-             t[0],  t[1],  t[2],  1.,
-             x1,    y1,    0,     1.,
-             t[3],  t[4],  t[5],  1.,
-             x2,    y1,    0,     1.,
-             t[6],  t[7],  t[8],  1.,
-             x2,    y2,    0,     1.,
-             t[9],  t[10], t[11], 1.,
-             x1,    y2,    0,     1.
-        )
-        self._blurtex_array = array
+            t = blurtex.tex_coords
+            x1 = 0
+            y1 = 0
+            x2 = blurtex.width
+            y2 = blurtex.height
+            array = (GLfloat * 32)(
+                 t[0],  t[1],  t[2],  1.,
+                 x1,    y1,    0,     1.,
+                 t[3],  t[4],  t[5],  1.,
+                 x2,    y1,    0,     1.,
+                 t[6],  t[7],  t[8],  1.,
+                 x2,    y2,    0,     1.,
+                 t[9],  t[10], t[11], 1.,
+                 x1,    y2,    0,     1.
+            )
+            self._blurtex_array = array
+        else:
+            self.blurtex = None
 
     def draw(self):
         blurtex = self.blurtex
-
-        from shaders import GaussianBlurHorizontal as GBH, GaussianBlurVertical as GBV, ShaderProgram
-
-        ax, ay = self.abs_coords()
-        ax, ay = int(ax), int(ay)
         w, h = int(self.width), int(self.height)
 
-        t = getattr(blurtex, 'owner', blurtex)
-        _w, _h = t.width, t.height
+        if blurtex:
+            from shaders import GaussianBlurHorizontal as GBH, GaussianBlurVertical as GBV, ShaderProgram
 
-        glColor3f(1, 1, 1)
+            ax, ay = self.abs_coords()
+            ax, ay = int(ax), int(ay)
 
-        glEnable(blurtex.target)
-        glInterleavedArrays(GL_T4F_V4F, 0, self._blurtex_array)
-        glBindTexture(blurtex.target, blurtex.id)
+            t = getattr(blurtex, 'owner', blurtex)
+            _w, _h = t.width, t.height
 
-        glCopyTexImage2D(blurtex.target, 0, GL_RGBA, ax, ay, _w, _h, 0)
-        GBV.use()
-        GBV.uniform.size = (_w, _h)
-        glDrawArrays(GL_QUADS, 0, 4)
+            glColor3f(1, 1, 1)
 
-        glCopyTexImage2D(blurtex.target, 0, GL_RGBA, ax, ay, _w, _h, 0)
-        GBH.use()
-        GBH.uniform.size = (_w, _h)
-        glDrawArrays(GL_QUADS, 0, 4)
+            glEnable(blurtex.target)
+            glInterleavedArrays(GL_T4F_V4F, 0, self._blurtex_array)
+            glBindTexture(blurtex.target, blurtex.id)
 
-        ShaderProgram.restore()
+            glCopyTexImage2D(blurtex.target, 0, GL_RGBA, ax, ay, _w, _h, 0)
+            GBV.use()
+            GBV.uniform.size = (_w, _h)
+            glDrawArrays(GL_QUADS, 0, 4)
 
-        glBindTexture(blurtex.target, 0)
-        glDisable(blurtex.target)
+            glCopyTexImage2D(blurtex.target, 0, GL_RGBA, ax, ay, _w, _h, 0)
+            GBH.use()
+            GBH.uniform.size = (_w, _h)
+            glDrawArrays(GL_QUADS, 0, 4)
+
+            ShaderProgram.restore()
+
+            glBindTexture(blurtex.target, 0)
+            glDisable(blurtex.target)
 
         c = self.fill_color
         if c[3] != 0.0:
