@@ -15,12 +15,12 @@ import os
 
 import sys
 UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
-AUTOUPDATE_ENABLE = not os.path.exists(os.path.join(UPDATE_BASE, 'NO_UPDATE'))
-NO_ERRCHECK = os.path.exists(os.path.join(UPDATE_BASE, 'NO_ERRCHECK'))
 
 if not sys.platform.startswith('linux'):
     UPDATE_BASE = os.path.dirname(UPDATE_BASE)
 
+AUTOUPDATE_ENABLE = not os.path.exists(os.path.join(UPDATE_BASE, 'NO_UPDATE'))
+NO_ERRCHECK = os.path.exists(os.path.join(UPDATE_BASE, 'NO_ERRCHECK'))
 TESTING = os.path.exists(os.path.join(UPDATE_BASE, 'TESTING'))
 
 if TESTING:
