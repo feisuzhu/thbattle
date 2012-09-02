@@ -444,7 +444,7 @@ class GameHallScreen(Screen):
                 self.caption = u'当前在线玩家：%d' % len(users)
                 self.update()
                 t = u'\n'.join(
-                    u'%s([|c9100ffff%s|r], %s)' % (username, uid, lookup.get(state, state))
+                    u'%s([|c9100ffff%s|r], %s)' % (username.replace('|', '||'), uid, lookup.get(state, state))
                     for uid, username, state in users
                 )
                 box.append(t)
