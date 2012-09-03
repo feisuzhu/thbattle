@@ -18,17 +18,16 @@ VERSION = settings.VERSION
 
 def build_hash(base):
     my_hash = {}
-    cwd = os.getcwd()
     for path, _, names in os.walk(base):
-        # exclude list
         for name in names:
             if ignores.match(name):
+                # file in exclude list
                 continue
             fn = os.path.join(path, name)
-            fn = os.path.relpath(fn, cwd)
+            rfn = os.path.relpath(fn, base)
             with open(fn, 'rb') as f:
                 h = crc32(f.read())
-                my_hash[fn.replace('\\', '/')] = h
+                my_hash[rfn.replace('\\', '/')] = h
     return my_hash
 
 def version_string(hash):
@@ -82,15 +81,15 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
         files_update = latest_set - my_set
 
         for fn, _ in files_delete:
-            fn = os.path.relpath(fn)
+            ffn = os.path.join(base, fn)
             cb('delete_file', fn)
             log.info('delete file %s', fn)
-            try: os.unlink(fn)
+            try: os.unlink(ffn)
             except OSError: pass
 
         queue = gevent.queue.Queue(1000000)
         for fn, _ in files_update:
-            suburl = os.path.relpath(fn, base).replace('\\', '/')
+            suburl = fn.replace('\\', '/')
             queue.put(
                 (urljoin(update_url, suburl), fn)
             )
@@ -108,12 +107,13 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
 
                     resp.close()
                     cb('download_complete', fn)
+                    ffn = os.path.join(base, fn)
                     try:
                         try:
-                            os.makedirs(os.path.dirname(fn))
+                            os.makedirs(os.path.dirname(ffn))
                         except OSError:
                             pass
-                        with open(fn, 'wb') as f:
+                        with open(ffn, 'wb') as f:
                             f.write(d)
                     except EnvironmentError:
                         cb('write_failed', fn)
@@ -123,7 +123,7 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
             except Exception as e:
                 me.kill(e)
 
-        workers = [gevent.spawn(retrieve_worker) for i in range(3)]
+        workers = [gevent.spawn(retrieve_worker) for i in range(4)]
         for w in workers: w.join()
 
         cb('update_finished')
