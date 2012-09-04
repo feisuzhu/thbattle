@@ -28,3 +28,4 @@ import minoriko
 import meirin
 import suika
 import chen
+import yukari

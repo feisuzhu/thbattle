@@ -592,7 +592,7 @@ class ForEach(GenericAction):
 
 class PlayerTurn(GenericAction):
     def __init__(self, target):
-        self.target = target
+        self.source = self.target = target
 
     def apply_action(self):
         g = Game.getgame()
