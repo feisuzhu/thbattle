@@ -802,6 +802,7 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         if self.disabled:
             glColor4f(0, 0, 0, 0.5)
             glRectf(0, 0, self.width, self.height)
+
         if self.selected:
             glColor4f(1, 1, 0.8, 0.6)
             glRectf(0, 0, self.width, self.height)

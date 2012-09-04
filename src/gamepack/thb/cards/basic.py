@@ -43,8 +43,8 @@ class AttackCardHandler(EventHandler):
                 from .definition import AttackCard
                 if act.card.is_card(AttackCard):
                     act.source.tags['attack_num'] -= 1
-            elif isinstance(act, ActionStage):
-                act.actor.tags['attack_num'] = 10000
+            elif isinstance(act, PlayerTurn):
+                act.target.tags['attack_num'] = 10000
             elif isinstance(act, CalcDistance):
                 card = act.card
                 from .definition import AttackCard

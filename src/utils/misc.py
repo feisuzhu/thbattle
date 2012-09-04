@@ -35,9 +35,10 @@ class BatchList(list):
             f(*a, **k) for f in self
         )
 
-    def exclude(self, elem):
+    def exclude(self, *elems):
         nl = list.__getattribute__(self, '__class__')(self)
-        nl.remove(elem)
+        for e in elems:
+            nl.remove(e)
         return nl
 
     def rotate_to(self, elem):

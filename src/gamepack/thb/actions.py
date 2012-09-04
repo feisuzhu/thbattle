@@ -32,6 +32,7 @@ def _user_choose_cards_logic(input, act, target, categories=None):
             categories = [target.cards, target.showncards]
 
         if sid_list:
+            # FIXME: seems you can choose others' cards here
             check(all(cat.owner is target for cat in categories))
 
             # associated_cards will be revealed here
