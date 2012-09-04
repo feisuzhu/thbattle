@@ -3351,7 +3351,53 @@ class Suika:
     )
 
 # ----------
+__metaclass__ = gen_metafunc(characters.chen)
 
+class FlyingSkanda:
+    # Skill
+    name = u'飞翔韦驮天'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, u'BUG!')
+
+class FlyingSkandaAction:
+    def effect_string_before(act):
+        return u'|G【%s】|r 飞翔韦驮天 提示' % (
+            act.target.ui_meta.char_name,
+        )
+
+class FlyingSkandaHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【飞翔韦驮天】吗？'
+
+    # choose_card meta
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'喵！')
+        else:
+            return (False, u'请弃置一张手牌或装备牌')
+
+    # choose_players
+    def target(tl):
+        if not tl:
+            return (False, u'请选择一名其他玩家')
+
+        return (True, u'喵！')
+
+class Chen:
+    # Character
+    char_name = u'橙'
+    port_image = gres.chen_port
+    description = (
+        u'|DB凶兆的黑喵 橙 体力：4|r\n\n'
+        u'|G飞翔韦驮天|r：出牌阶段，你使用『弹幕』或非延时性单体符卡在结算后，你可以弃一张手牌或装备牌，指定另一名角色，视为对该角色再次使用了该[弹幕]或非延时单体符卡。每阶段限一次。'
+    )
+
+# ----------
 
 # -----END CHARACTERS UI META-----
 

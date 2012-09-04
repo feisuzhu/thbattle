@@ -147,6 +147,7 @@ with ResLoader(__file__) as args:
     minoriko_port = tx('minoriko_port.png')
     meirin_port = tx('meirin_port.png')
     suika_port = tx('suika_port.png')
+    chen_port = tx('chen_port.png')
 
     for k in args.keys(): del k
     del args
