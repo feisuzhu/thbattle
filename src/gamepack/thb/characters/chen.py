@@ -3,94 +3,58 @@ from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
+class FlyingSkandaAction(ForEach):
+    @property
+    def action_cls(self):
+        skill = self.associated_card
+        card = skill.associated_cards[0]
+        action = card.associated_action
+        return action
+
+    def is_valid(self):
+        p = self.source
+        if p.tags['turn_count'] <= p.tags['flying_skanda']:
+            return False
+        if any(t.dead for t in self.target_list):
+            return False
+        return True
+
 class FlyingSkanda(Skill):
-    associated_action = None
-    target = t_None
+    associated_action = FlyingSkandaAction
+    target = t_OtherN(2)
 
-class FlyingSkandaAction(GenericAction):
-    def __init__(self, source, target, card, ori_action):
-        self.source = source
-        self.target = target
-        self.card = card
-        self.ori_action = ori_action
+    @property
+    def distance(self):
+        cl = self.associated_cards
+        if not cl: return 0
+        return cl[0].distance
 
-    def apply_action(self):
-        g = Game.getgame()
-        src = self.source
-        tgt = self.target
-        card = self.card
-        ori = self.ori_action
+    def check(self):
+        cl = self.associated_cards
+        if len(cl) != 1: return False
+        c = cl[0]
+        if c.is_card(Skill): return False
+        if c.is_card(AttackCard): return True
 
-        src.tags['flyingskanda'] = src.tags['turn_count']
+        if c.is_card(DollControlCard): return False
+        if c.is_card(RejectCard): return False
 
-        act = ori.card.associated_action(src, tgt)
-        act.associated_card = card
+        act = c.associated_action
+        if not issubclass(act, InstantSpellCardAction): return False
+        return True
 
-        g.process_action(DropUsedCard(src, [card]))
-        return g.process_action(act)
+    def is_card(self, cls):
+        cl = self.associated_cards
+        if cl and cl[0].is_card(cls): return True
+        return isinstance(self, cls)
+
 
 class FlyingSkandaHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, LaunchCard):
-            g = Game.getgame()
-            src = g.current_turn
-            if not src.has_skill(FlyingSkanda): return act
-            tags = src.tags
-            if not tags['flyingskanda'] < tags['turn_count']: return act
-            card = act.card
-            if not ( # assoc_act of multiple targeted SC is ForEach
-                card.is_card(AttackCard) or
-                issubclass(card.associated_action, InstantSpellCardAction)
-            ): return act
-
-            if not src.user_input('choose_option', self):
-                return act
-
-            self.source = src
-            self.ori_action = act
-
-            rst = user_choose_cards_and_players(
-                self, src, [src.cards, src.showncards, src.equips],
-                g.players.exclude(src, act.target),
-            )
-
-            if not rst: return act
-            cl, tl = rst
-            card = cl[0]; tgt = tl[0]
-
-            g.process_action(FlyingSkandaAction(src, tgt, card, act))
-
+            if not act.card.is_card(FlyingSkanda): return act
+            act.source.tags['flying_skanda'] = act.source.tags['turn_count']
         return act
-
-    def cond(self, cl):
-        if len(cl) != 1: return False
-        src = self.source
-        if cl[0].resides_in not in (src.cards, src.showncards, src.equips):
-            return False
-        return True
-
-    def choose_player_target(self, tl):
-        if not tl:
-            return (tl, False)
-
-        ori = self.ori_action
-        dist = CalcDistance(self.source, ori.card)
-        Game.getgame().process_action(dist)
-        if ori.card.is_card(AttackCard):
-            # FIXME+HACK: AttackCard's constraint is implemented
-            # by limiting attack range below 0
-            # and should be fixed.
-            if dist.correction < 0:
-                dist.correction += 10000
-
-        rst = dist.validate()
-
-        tl = [t for t in tl if rst[t]]
-
-        if not tl:
-            return (tl, False)
-
-        return (tl[-1:], True)
 
 @register_character
 class Chen(Character):
