@@ -12,7 +12,7 @@ class CriticalStrikeAction(GenericAction):
         tgt = self.target
         tgt.tags['attack_num'] = 10000
         tgt.tags['flan_cs'] = True
-        tgt.tags['flan_lasttarget'] = None
+        tgt.tags['flan_targets'] = []
         return True
 
 class CriticalStrikeHandler(EventHandler):
@@ -31,7 +31,7 @@ class CriticalStrikeHandler(EventHandler):
             src = act.target
             if not src.has_skill(CriticalStrike): return act
             st = src.tags
-            st['flan_lasttarget'] = None
+            st['flan_targets'] = []
             st['flan_cs'] = False
 
         elif evt_type == 'action_apply' and isinstance(act, (BaseAttack, BaseDuel)):
@@ -42,7 +42,7 @@ class CriticalStrikeHandler(EventHandler):
             if not src.has_skill(CriticalStrike): return act
             tgt = act.target
             if isinstance(act, BaseAttack):
-                st['flan_lasttarget'] = tgt
+                st['flan_targets'].append(tgt)
                 act.damage += 1
             elif isinstance(act, BaseDuel):
                 act.source_damage += 1
@@ -55,9 +55,9 @@ class CriticalStrikeHandler(EventHandler):
             if not st['flan_cs']: return act
             if not src.has_skill(CriticalStrike): return act
             if not a.card.is_card(AttackCard): return act
-            last = st['flan_lasttarget']
-            tl = a.target_list
-            if last in tl:
+            last = set(st['flan_targets'])
+            tl = set(a.target_list)
+            if tl & last:
                 return (a, False)
 
         return act
