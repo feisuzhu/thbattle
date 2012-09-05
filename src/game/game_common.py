@@ -37,10 +37,12 @@ class EventHandler(object):
             else:
                 rest.append(cls)
 
+        allnames = set(cls.__name__ for cls in eh_classes)
+
         for cls in rest:
             eh = cls()
-            eh.execute_before = set(eh.execute_before) # make it instance var
-            eh.execute_after = set(eh.execute_after)
+            eh.execute_before = set(eh.execute_before) & allnames # make it instance var
+            eh.execute_after = set(eh.execute_after) & allnames
             table[cls.__name__] = eh
 
         for clsname in table:

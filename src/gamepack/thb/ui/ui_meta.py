@@ -2737,13 +2737,24 @@ class MasochistAction:
             act.target.ui_meta.char_name,
         )
 
+class Hermit:
+    # Skill
+    name = u'天人'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
 class Tenshi:
     # Character
     char_name = u'比那名居天子'
     port_image = gres.tenshi_port
     description = (
-        u'|DB有顶天的大M子 比那名居天子 体力：4|r\n\n'
-        u'|G抖Ｍ|r：每当你受到X点伤害，你可以摸X*2张牌，然后将这些牌分配给任意的角色。'
+        u'|DB有顶天的大M子 比那名居天子 体力：3|r\n\n'
+        u'|G抖Ｍ|r：每当你受到X点伤害，你可以摸X*2张牌，然后将这些牌分配给任意的角色。\n\n'
+        u'|G天人|r：在你的判定结束后，你获得该判定牌。'
     )
 
 # ----------

@@ -48,8 +48,23 @@ class MasochistHandler(EventHandler):
             Game.getgame().process_action(MasochistAction(tgt, act.amount))
         return act
 
+class Hermit(Skill):
+    associated_action = None
+    target = t_None
+
+class HermitHandler(EventHandler):
+    execute_before = ('YinYangOrbHandler', )
+    execute_after = ('TrialHandler', )
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, Fatetell):
+            tgt = act.target
+            if not tgt.has_skill(Hermit): return act
+            migrate_cards([act.card], tgt.cards)
+            tgt.need_shuffle = True
+        return act
+
 @register_character
 class Tenshi(Character):
-    skills = [Masochist]
-    eventhandlers_required = [MasochistHandler]
-    maxlife = 4
+    skills = [Masochist, Hermit]
+    eventhandlers_required = [MasochistHandler, HermitHandler]
+    maxlife = 3
