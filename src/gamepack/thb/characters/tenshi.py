@@ -25,6 +25,7 @@ class MasochistAction(GenericAction):
             cl, pl = rst
             pl[0].reveal(cl)
             migrate_cards(cl, pl[0].cards)
+            pl[0].need_shuffle = True
             n -= len(cl)
         return True
 
