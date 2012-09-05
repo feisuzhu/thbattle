@@ -29,3 +29,11 @@ import meirin
 import suika
 import chen
 import yukari
+import dummy
+
+import sys
+from game.autoenv import Game
+if Game.CLIENT_SIDE or (len(sys.argv) > 1 and sys.argv[1] == 'TESTING'):
+    register_character(dummy.Dummy)
+
+del sys, Game
