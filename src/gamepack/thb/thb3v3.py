@@ -101,15 +101,15 @@ class DeathHandler(EventHandler):
             if not g.process_action(TryRevive(tgt, dmgact=act)):
                 g.process_action(PlayerDeath(act.source, tgt))
 
-        # see if game ended
-        force1, force2 = g.forces
-        if all(p.dead or p.dropped for p in force1):
-            g.winners = force2[:]
-            raise GameEnded
+            # see if game ended
+            force1, force2 = g.forces
+            if all(p.dead or p.dropped for p in force1):
+                g.winners = force2[:]
+                raise GameEnded
 
-        if all(p.dead or p.dropped for p in force2):
-            g.winners = force1[:]
-            raise GameEnded
+            if all(p.dead or p.dropped for p in force2):
+                g.winners = force1[:]
+                raise GameEnded
 
         return act
 
