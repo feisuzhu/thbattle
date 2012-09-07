@@ -1920,6 +1920,12 @@ class SupportSkill:
     def is_action_valid(g, cl, target_list):
         cl = cl[0].associated_cards
         if not cl: return (False, u'请选择要给出的牌')
+        me = g.me
+        allcards = list(me.cards) + list(me.showncards) + list(me.equips)
+        if any(
+            c not in allcards
+            for c in cl
+        ): return (False, u'你只能选择手牌与装备牌！')
         if len(target_list) != 1: return (False, u'请选择1名玩家')
         return (True, u'加油！')
 
@@ -3434,7 +3440,6 @@ class FlyingSkanda:
 
             rst = c.is_card(cards.RejectCard)
             rst = rst or c.is_card(cards.DollControlCard)
-            rst = rst or c.is_card(cards.Skill)
             rst = (not rst) and issubclass(c.associated_action, cards.InstantSpellCardAction)
             if rst: break
 

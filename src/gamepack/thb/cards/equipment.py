@@ -772,7 +772,7 @@ class GrimoireSkill(TreatAsSkill, WeaponSkill):
     @property
     def treat_as(self):
         cl = self.associated_cards
-        if not cl:
+        if not (cl and cl[0].suit):
             from .definition import DummyCard
             return DummyCard
         return self.lookup_tbl[cl[0].suit]
@@ -782,6 +782,7 @@ class GrimoireSkill(TreatAsSkill, WeaponSkill):
         if not len(cl) == 1: return False
         if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS):
             return False
+        if not cl[0].suit: return False
         return True
 
 @register_eh

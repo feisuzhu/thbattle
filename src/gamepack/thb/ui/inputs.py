@@ -195,16 +195,16 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                 if skills:
                     for skill_cls in skills:
                         cards = [skill_cls.wrap(cards, g.me)]
-                    try:
-                        rst, reason = cards[0].ui_meta.is_complete(g, cards)
-                    except Exception as e:
-                        rst, reason = False, u'[card.ui_meta.is_complete错误]'
-                        import traceback
-                        traceback.print_exc()
+                        try:
+                            rst, reason = cards[0].ui_meta.is_complete(g, cards)
+                        except Exception as e:
+                            rst, reason = False, u'[card.ui_meta.is_complete错误]'
+                            import traceback
+                            traceback.print_exc()
 
-                    if not rst:
-                        self.set_text(reason)
-                        return
+                        if not rst:
+                            self.set_text(reason)
+                            return
 
                 c = cond(cards)
                 c1, text = act.ui_meta.choose_card_text(g, act, cards)
@@ -263,7 +263,23 @@ class UIDoActionStage(UISelectTarget):
         g = parent.game
 
         if skills:
-            for skill_cls in skills:
+            cards = [skills[0].wrap(cards, g.me)]
+            for skill_cls in skills[1:]:
+                try:
+                    isc = getattr(cards[0].ui_meta, 'is_complete', None)
+                    if not isc:
+                        self.set_text(u'您不能像这样组合技能')
+                        return
+                    rst, reason = isc(g, cards)
+                    if not rst:
+                        self.set_text(reason)
+                        return
+                except Exception as e:
+                    self.set_text(u'[card.ui_meta.is_complete错误]')
+                    import traceback
+                    traceback.print_exc()
+                    return
+
                 cards = [skill_cls.wrap(cards, g.me)]
 
         if cards:

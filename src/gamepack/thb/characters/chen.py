@@ -33,7 +33,6 @@ class FlyingSkanda(Skill):
         cl = self.associated_cards
         if len(cl) != 1: return False
         c = cl[0]
-        if c.is_card(Skill): return False
         if c.is_card(AttackCard): return True
 
         if c.is_card(DollControlCard): return False
