@@ -1164,7 +1164,6 @@ class Panel(Control):
 
         c = self.fill_color
         if c[3] != 0.0:
-            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
             glColor4f(*c)
             glRectf(0, 0, w, h)
 
