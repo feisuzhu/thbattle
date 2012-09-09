@@ -59,7 +59,7 @@ class FreakingPower(FatetellAction):
         act = self.atkact
         src = act.source
         tgt = act.target
-        ft = Fatetell(tgt, lambda c: c.suit in (Card.HEART, Card.DIAMOND))
+        ft = Fatetell(src, lambda c: c.suit in (Card.HEART, Card.DIAMOND))
         g = Game.getgame()
         if g.process_action(ft):
             act.__class__ = classmix(InevitableAttack, act.__class__)
