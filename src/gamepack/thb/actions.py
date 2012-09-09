@@ -566,6 +566,7 @@ class LaunchFatetellCard(BaseLaunchCard, FatetellAction):
 
 class ForEach(GenericAction):
     # action_cls == __subclass__.action_cls
+    include_dead = False
     def prepare(self):
         pass
 
@@ -583,6 +584,8 @@ class ForEach(GenericAction):
         g = Game.getgame()
         self.prepare()
         for t in tl:
+            if t.dead and not self.include_dead:
+                continue
             a = self.action_cls(source, t)
             a.associated_card = card
             a.parent_action = self
