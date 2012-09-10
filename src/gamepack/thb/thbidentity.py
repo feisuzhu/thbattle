@@ -141,17 +141,13 @@ class THBattleIdentity(Game):
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
-                for cls, cid in zip(random.sample(chars, 3*np), xrange(3*np))
+                for cls, cid in zip(random.sample(chars, 3*np+2), xrange(3*np+2))
             ]
         elif Game.CLIENT_SIDE:
             choice = [
                 CharChoice(None, i)
-                for i in xrange(3*np)
+                for i in xrange(3*np+2)
             ]
-
-        for i, p in enumerate(g.players):
-            p._choose_tag = i
-            p.reveal(choice[i*3:(i+1)*3])
 
         chosen_girls = []
         pl = PlayerList(g.players)
@@ -165,7 +161,11 @@ class THBattleIdentity(Game):
             try:
                 check(isinstance(cid, int))
                 i = p._choose_tag
-                check(i*3 <= cid < (i+1)*3)
+                if p is boss:
+                    assert p is pl[-1]
+                    check(i*3 <= cid< (i+1)*3+2)
+                else:
+                    check(i*3 <= cid < (i+1)*3)
                 c = choice[cid]
                 if c.chosen and retry > 0:
                     p._retry = retry
@@ -188,18 +188,25 @@ class THBattleIdentity(Game):
 
         # choose boss
         idx = sync_primitive(random.randrange(len(g.players)), g.players)
-        boss = g.boss = g.players[idx]
+        pl[-1], pl[idx] = pl[idx], pl[-1]
+        boss = g.boss = pl[-1]
 
         boss.identity = Identity()
         boss.identity.type = Identity.TYPE.BOSS
 
         g.process_action(RevealIdentity(boss, g.players))
 
+        for i, p in enumerate(pl):
+            p._choose_tag = i
+            p.reveal(choice[i*3:(i+1)*3])
+
+        boss.reveal(choice[-2:])
+
         PlayerList([boss]).user_input_all('choose_girl', process, choice, timeout=30)
         if not chosen_girls:
             # didn't choose
-            offs = sync_primitive(random.randrange(3), g.players)
-            c = choice[idx*3+offs]
+            offs = sync_primitive(random.randrange(5), g.players)
+            c = choice[(len(pl)-1)*3+offs]
             c.chosen = boss
             g.emit_event('girl_chosen', c)
             pl.remove(boss)

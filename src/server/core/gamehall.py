@@ -262,7 +262,7 @@ def end_game(g):
     import math
     rate = math.sin(math.pi/2*percent)
     winners = g.winners
-    bonus = g.n_persons * 5 / len(winners)
+    bonus = g.n_persons * 5 / len(winners) if winners else 0
     for p in pl:
         if not (p.dropped and p.fleed):
             s = 5 + bonus if p in winners else 5
