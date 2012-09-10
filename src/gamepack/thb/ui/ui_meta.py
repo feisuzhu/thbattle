@@ -3449,7 +3449,7 @@ class FlyingSkanda:
         if len(target_list) != 2:
             return (False, u'请选择目标（2名玩家）')
 
-        if g.me in target_list:
+        if g.me is target_list[-1]:
             return (False, u'不允许选择自己')
         else:
             return (True, u'喵！')

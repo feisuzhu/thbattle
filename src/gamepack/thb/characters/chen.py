@@ -21,7 +21,20 @@ class FlyingSkandaAction(ForEach):
 
 class FlyingSkanda(Skill):
     associated_action = FlyingSkandaAction
-    target = t_OtherN(2)
+
+    def target(self, g, source, tl):
+        cl = self.associated_cards
+        if not cl: return ([], False)
+        c = cl[0]
+        if len(tl) < 2:
+            return c.target(g, source, tl)
+        else:
+            rst = c.target(g, source, tl[:-1])
+            a = tl[-1]
+            if a is source:
+                return rst[0], False
+            else:
+                return rst[0] + [a], rst[1]
 
     @property
     def distance(self):
