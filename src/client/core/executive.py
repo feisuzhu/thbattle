@@ -145,8 +145,7 @@ class Executive(object):
                 cb('server_already_connected')
                 return
             try:
-                s = socket.socket()
-                s.connect(addr)
+                s = socket.create_connection(addr)
                 svr = Server.spawn(s, 'TheChosenOne')
                 self.server = svr
                 self.state = 'connected'

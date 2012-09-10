@@ -5,6 +5,8 @@ import logging, sys
 reload(sys)
 sys.setdefaultencoding(sys.getfilesystemencoding())
 
+from utils import hook
+
 class Tee(object):
     def __init__(self):
         self.logfile = f = open('client_log.txt', 'a')
@@ -34,32 +36,27 @@ class MainThread(threading.Thread):
         from gevent import monkey
         monkey.patch_socket()
 
-        # ipv4 only, dns retry
         from gevent import socket, dns
-        orig_getaddrinfo = socket.getaddrinfo
 
-        def getaddrinfo_wrapper(host, port, family=0, socktype=0, proto=0, flags=0):
+        @hook(socket)
+        def getaddrinfo(ori, host, port, family=0, socktype=0, proto=0, flags=0):
             while True:
                 try:
-                    return orig_getaddrinfo(host, port, socket.AF_INET, socktype, proto, flags)
+                    return ori(host, port, family, socktype, proto, flags)
                 except dns.DNSError as e:
                     if not e.errno == 2: # dns server fail thing
                         raise
                 gevent.sleep(0.15)
 
-        # replace the original socket.getaddrinfo by our version
-        socket.getaddrinfo = getaddrinfo_wrapper
-
-        orig_gethostbyname = socket.gethostbyname
-        def gethostbyname_wrapper(hostname):
+        @hook(socket)
+        def gethostbyname(ori, hostname):
             while True:
                 try:
-                    return orig_gethostbyname(hostname)
+                    return ori(hostname)
                 except dns.DNSError as e:
                     if not e.errno == 2: # dns server fail thing
                         raise
                 gevent.sleep(0.15)
-        socket.gethostbyname = gethostbyname_wrapper
 
         # -----------------------------------------
 
