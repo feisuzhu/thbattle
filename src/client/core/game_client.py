@@ -28,7 +28,7 @@ class TheChosenOne(game.AbstractPlayer):
         else:
             obj_list.sync(raw_data) # it's single obj actually
 
-    def user_input(self, tag, attachment=None, timeout=25, g=None, st=None):
+    def user_input(self, tag, attachment=None, timeout=15, g=None, st=None):
         g = g if g else Game.getgame()
         st = st if st else g.get_synctag()
         input = DataHolder()
@@ -60,7 +60,7 @@ class TheChosenOne(game.AbstractPlayer):
 
 class PlayerList(BatchList):
 
-    def user_input_any(self, tag, expects, attachment=None, timeout=25):
+    def user_input_any(self, tag, expects, attachment=None, timeout=15):
         g = Game.getgame()
         st = g.get_synctag()
 
@@ -129,7 +129,7 @@ class PlayerList(BatchList):
 
         return p, data
 
-    def user_input_all(self, tag, process, attachment=None, timeout=25):
+    def user_input_all(self, tag, process, attachment=None, timeout=15):
         g = Game.getgame()
         g.emit_event('user_input_all_begin', (self, tag, attachment))
         st = g.get_synctag()
@@ -170,7 +170,7 @@ class PeerPlayer(game.AbstractPlayer):
         # Peer player, won't reveal.
         Game.getgame().get_synctag() # must sync
 
-    def user_input(self, tag, attachment=None, timeout=25, g=None, st=None):
+    def user_input(self, tag, attachment=None, timeout=15, g=None, st=None):
         # Peer player, get his input from server
         g = g if g else Game.getgame()
         st = st if st else g.get_synctag()

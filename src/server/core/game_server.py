@@ -14,7 +14,7 @@ log = logging.getLogger('Game_Server')
 
 class PlayerList(BatchList):
 
-    def user_input_any(self, tag, expects, attachment=None, timeout=25):
+    def user_input_any(self, tag, expects, attachment=None, timeout=15):
         g = Game.getgame()
         st = g.get_synctag()
         tagstr = 'inputany_%s_%d' % (tag, st)
@@ -55,7 +55,7 @@ class PlayerList(BatchList):
         g.players.client.gwrite(tagstr + '_resp', rst_send)
         return rst
 
-    def user_input_all(self, tag, process, attachment=None, timeout=25):
+    def user_input_all(self, tag, process, attachment=None, timeout=15):
         g = Game.getgame()
         st = g.get_synctag()
         workers = BatchList()
@@ -92,7 +92,7 @@ class Player(game.AbstractPlayer):
         st = g.get_synctag()
         self.client.gwrite('object_sync_%d' % st, obj_list)
 
-    def user_input(self, tag, attachment=None, timeout=25, g=None, st=None):
+    def user_input(self, tag, attachment=None, timeout=15, g=None, st=None):
         g = g if g else Game.getgame()
         st = st if st else g.get_synctag()
 
@@ -130,7 +130,7 @@ class DroppedPlayer(Player):
     def reveal(self, obj_list):
         Game.getgame().get_synctag() # must sync
 
-    def user_input(self, tag, attachment=None, timeout=25, g=None, st=None):
+    def user_input(self, tag, attachment=None, timeout=15, g=None, st=None):
         g = g if g else Game.getgame()
         st = st if st else g.get_synctag()
         g.players.client.gwrite('input_%s_%d' % (tag, st), None) # null input

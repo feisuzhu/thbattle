@@ -125,7 +125,7 @@ class AbstractPlayer(object):
     def reveal(self, obj_list):
         raise GameError('Abstract')
 
-    def user_input(self, tag, attachment=None, timeout=25):
+    def user_input(self, tag, attachment=None, timeout=15):
         raise GameError('Abstract')
 
     def __repr__(self):
