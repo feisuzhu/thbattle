@@ -124,8 +124,42 @@ class ExtremeIntelligenceHandler(EventHandler):
 
         return act
 
+class NakedFox(Skill):
+    associated_action = None
+    target = t_None
+
+class NakedFoxAction(GenericAction):
+    def __init__(self, dmg):
+        self.source = self.target = dmg.target
+        self.dmgact = dmg
+        self.dmgamount = dmg.amount # for UI
+
+    def apply_action(self):
+        self.dmgact.amount -= 1
+        return True
+
+class NakedFoxHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, Damage):
+            g = Game.getgame()
+            tgt = act.target
+            if not tgt.has_skill(NakedFox): return act
+            pact = g.action_stack[-1]
+            if not isinstance(pact, SpellCardAction): return act
+            if tgt.cards or tgt.showncards: return act
+            if act.amount < 1: return act
+
+            g.process_action(NakedFoxAction(act))
+            return act
+
+        return act
+
 @register_character
 class Ran(Character):
-    skills = [Prophet, ExtremeIntelligence]
-    eventhandlers_required = [ProphetHandler, ExtremeIntelligenceHandler]
+    skills = [Prophet, ExtremeIntelligence, NakedFox]
+    eventhandlers_required = [
+        ProphetHandler,
+        ExtremeIntelligenceHandler,
+        NakedFoxHandler,
+    ]
     maxlife = 3

@@ -158,6 +158,7 @@ class WineHandler(EventHandler):
                 Game.getgame().process_action(SoberUp(src, src))
         elif evt_type == 'action_before' and isinstance(act, Damage):
             if act.cancelled: return act
+            if act.amount < 1: return act
             tgt = act.target
             if act.amount >= tgt.life and tgt.tags['wine']:
                 g = Game.getgame()

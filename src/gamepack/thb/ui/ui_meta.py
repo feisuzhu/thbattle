@@ -3085,6 +3085,25 @@ class ExtremeIntelligenceAction:
             act.source.ui_meta.char_name,
         )
 
+class NakedFox:
+    # Skill
+    name = u'素裸'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, 'BUG!')
+
+class NakedFoxAction:
+    def effect_string_before(act):
+        if act.dmgamount <= 1:
+            s = u'符卡飞到了|G【%s】|r毛茸茸的大尾巴里，然后……就没有然后了……'
+        else:
+            s = u'符卡飞到了|G【%s】|r毛茸茸的大尾巴里，恩……似乎还是有点疼……'
+
+        return s % act.target.ui_meta.char_name
+
 class Ran:
     # Character
     char_name = u'八云蓝'
@@ -3092,7 +3111,8 @@ class Ran:
     description = (
         u'|DB天河一号的核心 八云蓝 体力：3|r\n\n'
         u'|G神算|r：在你的判定流程前，可以翻开等于场上存活人数（不超过5张）的牌，并以任意的顺序放回牌堆的上面或者下面。\n\n'
-        u'|G极智|r：自己的回合外，当任何人发动除【好人卡】以外非延时符卡时，发动完成后，你可以选择弃一张牌，再次发动该符卡，目标不变，发动者算作你。一轮一次。'
+        u'|G极智|r：自己的回合外，当任何人发动除【好人卡】以外非延时符卡时，发动完成后，你可以选择弃一张牌，再次发动该符卡，目标不变，发动者算作你。一轮一次。\n\n'
+        u'|G素裸|r：在你没有手牌时，你受到的符卡伤害-1'
     )
 
 # ----------
