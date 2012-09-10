@@ -3077,7 +3077,7 @@ class ExtremeIntelligenceAction:
         else:
             return (False, u'请选择1张牌弃置')
 
-    def effect_string(act):
+    def effect_string_before(act):
         return (
             u'|G【%s】|r刚松了一口气，却看见一张一模一样的符卡从|G【%s】|r的方向飞来！'
         ) % (
