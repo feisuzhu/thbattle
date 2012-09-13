@@ -272,8 +272,13 @@ class GameHallScreen(Screen):
                     parent=self, x=95, y=270, width=420, height=22,
                 )
                 uname = Executive.account.username
-                if len(uname) > 8:
-                    uname = uname[:6] + u'……'
+
+                f = pyglet.font.load('AncientPix', 9)
+
+                un1 = textsnap(uname, f, 140)
+
+                if un1 != uname:
+                    uname = textsnap(uname, f, 120) + u'…'
                 txtbox.text = uname + u'的游戏'
 
                 self.labels = BatchList([
@@ -310,7 +315,8 @@ class GameHallScreen(Screen):
                 @btncreate.event
                 def on_click():
                     gtype = ImageSelector.get_selected(selectors).gametype
-                    roomname = txtbox.text[:15]
+                    f = pyglet.font.load('AncientPix', 9)
+                    roomname = textsnap(txtbox.text, f, 200)
                     Executive.call('create_game', ui_message, [gtype, roomname])
 
                 @btncancel.event
