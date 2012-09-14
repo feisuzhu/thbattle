@@ -91,18 +91,12 @@ with ResLoader(__file__) as args:
     bg_eventsbox = ldr.texture(fname('bg_eventsbox.png'))
     bg_chatbox = ldr.texture(fname('bg_chatbox.png'))
 
-    num = pyglet.image.ImageGrid(img('num.png'), 1, 10)
-    num = pyglet.image.TextureGrid(num)
-
     imagesel_shine = tx('imagesel_shine.png')
 
     actor_frame = anim('actor.png', [50] * 9, True)
     turn_frame = anim('turn.png', [50] * 9, True)
 
     ray = ldr.texture(fname('ray.png'))
-
-    hp = ldr.texture(fname('hp.png'))
-    hp_bg = ldr.texture(fname('hp_bg.png'))
 
     pbar = DataHolder()
     for fn in itertools.product(['b', 'bf', 's', 'sf'], ['l', 'm', 'r']):

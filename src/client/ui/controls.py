@@ -4,8 +4,11 @@ from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import *
+from client.ui.base import message as ui_message, schedule as ui_schedule
+from client.ui.base.shader import ShaderGroup, ShaderUniformGroup
 from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
+from client.core import Executive
 from utils import Rect, Framebuffer, DisplayList, textsnap
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
@@ -15,9 +18,9 @@ from math import ceil
 import logging
 log = logging.getLogger('UI_Controls')
 
-class Colors(object):
-    class green(object):
-        # Dialog
+class Colors:
+    class green:
+        # Frame
         frame = 49, 69, 99
         heavy = 66, 138, 115
         medium = 140, 186, 140
@@ -33,8 +36,8 @@ class Colors(object):
         fill_botline = 222, 239, 206
         text = frame
 
-    class red(object):
-        # Dialog
+    class red:
+        # Frame
         frame = 171, 68, 81
         medium = 0xff, 0x9f, 0x8c
         heavy = frame
@@ -50,8 +53,8 @@ class Colors(object):
         fill_botline = fill_down
         text = frame
 
-    class blue(object):
-        # Dialog
+    class blue:
+        # Frame
         frame = 0x31, 0x55, 0x97
         medium = 0x90, 0xbc, 0xed
         heavy = 0x64, 0x8a, 0xd0
@@ -67,8 +70,8 @@ class Colors(object):
         fill_botline = 0xc5, 0xf2, 0xff
         text = frame
 
-    class orange(object):
-        # Dialog
+    class orange:
+        # Frame
         frame = 0x88, 0x66, 0x66
         medium = 0xff, 0xcc, 0x77
         heavy = frame
@@ -83,6 +86,22 @@ class Colors(object):
         fill_down = 0xff, 0xdd, 0x88
         fill_botline = light
         text = frame
+
+    class gray:
+        # Frame
+        close_btn = common_res.buttons.close_blue
+        btn_frame  =  104, 104, 104
+        caption  =  81, 81, 81
+        caption_shadow  =  237, 237, 237
+        fill_botline  =  229, 229, 229
+        fill_down  =  199, 199, 199
+        fill_medline  =  191, 191, 191
+        fill_up  =  182, 182, 182
+        frame  =  81, 81, 81
+        heavy  =  134, 134, 134
+        light  =  199, 199, 199
+        medium  =  180, 180, 180
+        text  =  81, 81, 81
 
     @staticmethod
     def get4f(c):
@@ -281,35 +300,55 @@ class ImageButton(Control):
 Button.register_event_type('on_click')
 ImageButton.register_event_type('on_click')
 
-class Dialog(Control):
-    '''
-    Dialog, can move
-    '''
-    next_zindex = 1
-    def __init__(self, caption='Dialog', color=Colors.green,
+def batch_drawlabel(lbls):
+    s = set([l.batch for l in lbls])
+    if len(s) == 1:
+        batch = list(s)[0]
+    else:
+        batch = pyglet.graphics.Batch()
+        for l in lbls:
+            adj = getattr(l, '_loc_adjusted', False)
+            l.begin_update()
+            if not adj:
+                p = l._parent
+                x, y = p.abs_coords()
+                l.x += x
+                l.y += y
+                l._loc_adjusted = True
+            l._own_batch = False
+            l.batch = batch
+            l.end_update()
+    batch.draw()
+
+def batch_drawsprite(sprites):
+    s = list(set([l.batch for l in sprites]))
+    if len(s) == 1 and s[0]:
+        batch = s[0]
+    else:
+        batch = pyglet.graphics.Batch()
+        for sp in sprites:
+            adj = getattr(sp, '_loc_adjusted', False)
+            sp.batch = batch
+            if not adj:
+                p = sp._parent
+                x, y = p.abs_coords()
+                sp.set_position(sp.x + x, sp.y + y)
+                sp._loc_adjusted = True
+    batch.draw()
+
+class Frame(Control):
+    no_move = True
+    zindex = 1
+    def __init__(self, caption='Frame', color=Colors.green,
                  bot_reserve=10, bg=None, shadow_thick=2,
                  *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
-        self.zindex = Dialog.next_zindex
         self.color = color
         self.caption = caption
         self.bg = bg
-        self.no_move = False
+        self.labels = []
         self.bot_reserve = bot_reserve
         self.shadow_thick = shadow_thick
-        Dialog.next_zindex += 1
-        self.btn_close = ImageButton(
-            images=color.close_btn,
-            parent=self, font_size=12,
-            x=self.width-18, y=self.height-19,
-            manual_draw=True
-        )
-        self.dragging = False
-        @self.btn_close.event
-        def on_click():
-            self.close()
-
-        self._dl = DisplayList()
 
         self.update()
 
@@ -317,81 +356,165 @@ class Dialog(Control):
         cap = self.caption
         f = pyglet.font.load('AncientPix', 9)
         cap = textsnap(cap, f, self.width - 20 - 4)
-        self.caption_lbl = pyglet.text.Label(
+
+        sg = ShaderGroup([
+            shaders.DummyShader,
+            shaders.FontShadow,
+            shaders.FontShadowThick,
+        ][self.shadow_thick])
+
+        args = ((
+            'shadow_color',
+            tuple([i/255.0 for i in self.color.caption_shadow+(255,)])
+        ), )
+        g = ShaderUniformGroup(args, sg)
+
+        l = self.caption_lbl = pyglet.text.Label(
             cap, u'AncientPix', 9,
             color=self.color.caption + (255,),
             x=20, y=self.height - 20,
-            anchor_x='left', anchor_y='bottom'
+            anchor_x='left', anchor_y='bottom',
+            group=g
         )
-        with self._dl:
-            self._content_draw()
+        l._parent = self
 
-    def _content_draw(self):
-        w, h  = self.width, self.height
+        #with self._dl:
+        #    self._batch_content_draw([self])
+
+    @staticmethod
+    def _batch_content_draw(dlgs):
 
         def color(rgb):
             r, g, b = rgb
             return r/255., g/255., b/255.
 
         from client.ui import shaders
-        from client.ui.base import shader
 
-        bg = self.bg
-        r = self.bot_reserve
+        # bg pics
+        bglist = []
+        nobglist = []
+        for d in dlgs:
+            bg = getattr(d, 'bg', None)
+            if bg: bglist.append(d)
+            else: nobglist.append(d)
+
+        bglist.sort(key=lambda d: d.bg.id)
+
         glColor3f(1, 1, 1)
-        if bg:
+
+        glEnable(GL_TEXTURE_2D)
+        curtex = None
+        for d in bglist:
+            bg = d.bg; r = d.bot_reserve; w = d.width; h = d.height
+            ax, ay = d.abs_coords()
+            if curtex != bg.id:
+                glBindTexture(GL_TEXTURE_2D, bg.id)
+                curtex = bg.id
+
             if bg.height > h - 24 - r or bg.width > w - 4:
                 _w = min(bg.width, w - 4)
                 _h = min(bg.height, h - 24 - r)
                 bg = bg.get_region(0, 0, _w, _h)
-            bg.blit(2, r)
+            bg.blit_nobind(ax + 2, ay + r)
+        glDisable(GL_TEXTURE_2D)
 
-        if not bg:
-            glRectf(1, 1, w-1, h-1)
+        for d in nobglist:
+            x, y = d.abs_coords()
+            glRectf(x + 1, d.y + 1, x + d.width-1, d.y + d.height-1)
 
-        glColor3f(*color(self.color.medium))
-        glRectf(0, h-24, w, h) # title bar
-        glRectf(0, 0, w, r) # bot reserve
-        glBegin(GL_LINES)
-        glColor3f(*color(self.color.heavy))
-        glVertex2f(0, h-24); glVertex2f(w, h-24)
-        glVertex2f(0, r); glVertex2f(w, r)
-        glEnd()
+        for d in dlgs:
+            w, h, r = d.width, d.height, d.bot_reserve
+            ax, ay = d.abs_coords()
+            glColor3f(*color(d.color.medium))
+            glRectf(ax, ay+h-24, ax+w, ay+h) # title bar
+            glRectf(ax, ay, ax+w, ay+r) # bot reserve
+            glBegin(GL_LINES)
+            glColor3f(*color(d.color.heavy))
+            glVertex2f(ax, ay+h-24); glVertex2f(ax+w, ay+h-24)
+            glVertex2f(ax, ay+r); glVertex2f(ax+w, ay+r)
+            glEnd()
 
-        shader = [
-            shaders.DummyShader,
-            shaders.FontShadow,
-            shaders.FontShadowThick,
-        ][self.shadow_thick]
-        with shader as fs:
-            fs.uniform.shadow_color = color(self.color.caption_shadow) + (1.0, )
-            glColor3f(*color(self.color.caption))
-            self.caption_lbl.draw()
+        from itertools import chain
+        lbls = list(chain(*[d.labels for d in dlgs]))
+        lbls.extend([d.caption_lbl for d in dlgs])
 
-        self.custom_update()
+        batch_drawlabel(lbls)
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glColor3f(*color(self.color.frame))
         glLineWidth(2.0)
-        glRectf(1, 1, w-1, h-1)
+        for d in dlgs:
+            ax, ay = d.abs_coords()
+            w, h = d.width, d.height
+            glColor3f(*color(d.color.frame))
+
+            vl = (GLfloat*10)(
+                ax+1, ay+1,
+                ax+1, ay+h-1,
+                ax+w-1, ay+h-1,
+                ax+w-1, ay+1,
+                ax+1, ay+1,
+            )
+
+            glInterleavedArrays(GL_V2F, 0, vl)
+            glDrawArrays(GL_LINE_STRIP, 0, 5)
+
         glLineWidth(1.0)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
-    def custom_update(self):
-        pass
-
-    def on_resize(self, width, height):
-        self.label.x = width // 2
-        self.label.y = height - 8
-        self.btn_close.x = width - 20
-        self.btn_close.y = height - 19
-
-    def draw(self):
+    @staticmethod
+    def batch_draw(dlgs):
         glColor3f(1,1,1)
-        self._dl()
+        glPushMatrix()
+        glLoadIdentity()
+        Frame._batch_content_draw(dlgs)
+        glPopMatrix()
 
-        self.draw_subcontrols()
-        self.btn_close.do_draw()
+        from itertools import chain
+        cl = list(chain(*[d.control_list for d in dlgs]))
+        Control.do_draw(cl)
+
+    def close(self):
+        self._cancel_close = False
+        self.dispatch_event('on_close')
+        if not self._cancel_close:
+            self.delete()
+            self.dispatch_event('on_destroy')
+
+    def cancel_close(self):
+        self._cancel_close = True
+
+    def add_label(self, *a, **k):
+        l = pyglet.text.Label(*a, **k)
+        l._parent = self
+        self.labels.append(l)
+        return l
+
+    def delete(self):
+        Control.delete(self)
+        for l in self.labels:
+            l.delete()
+        self.caption_lbl.delete()
+
+class Dialog(Frame):
+    no_move = False
+    next_zindex = 1
+
+    def __init__(self, *a, **k):
+        Frame.__init__(self, *a, **k)
+        self.zindex = Dialog.next_zindex
+        Dialog.next_zindex += 1
+        self.btn_close = ImageButton(
+            images=self.color.close_btn,
+            parent=self, font_size=12,
+            x=self.width-18, y=self.height-19,
+        )
+        self.dragging = False
+        @self.btn_close.event
+        def on_click():
+            self.close()
+
+    @staticmethod
+    def batch_draw(dlgs):
+        for d in dlgs:
+            Frame.batch_draw([d])
 
     def on_mouse_press(self, x, y, button, modifier):
         w, h = self.width, self.height
@@ -410,21 +533,18 @@ class Dialog(Control):
         if self.dragging:
             self.x += dx
             self.y += dy
+
+            for lbl in self.labels + [self.caption_lbl]:
+                lbl.begin_update()
+                lbl.x += dx
+                lbl.y += dy
+                lbl.end_update()
+
             self.dispatch_event('on_move', self.x, self.y)
 
-    def close(self):
-        self._cancel_close = False
-        self.dispatch_event('on_close')
-        if not self._cancel_close:
-            self.delete()
-            self.dispatch_event('on_destroy')
-
-    def cancel_close(self):
-        self._cancel_close = True
-
-Dialog.register_event_type('on_move')
-Dialog.register_event_type('on_close')
-Dialog.register_event_type('on_destroy')
+Frame.register_event_type('on_move')
+Frame.register_event_type('on_close')
+Frame.register_event_type('on_destroy')
 
 class BalloonPrompt(object):
     balloon_inited = False
@@ -625,22 +745,169 @@ class PasswordTextBox(TextBox):
     def __init__(self, *a, **k):
         TextBox.__init__(self, font_name='AncientPixPassword', *a, **k)
 
-class PlayerPortrait(Dialog):
+class PlayerPortrait(Frame):
+    shader_group = ShaderGroup(shaders.FontShadow)
     def __init__(self, player_name, color=Colors.blue, *args, **kwargs):
+        self.account = None
+        self.ready = False
+        self.accinfo_labels = []
+
         self.player_name = player_name
-        Dialog.__init__(
+        Frame.__init__(
             self, caption=player_name, color=color,
             bot_reserve=50, width=128, height=245,
             shadow_thick=1,
             *args, **kwargs
         )
 
-        self.no_move = True
-        self.btn_close.state = Button.DISABLED
+        self.buttons = []
+        def btn(caption, command, x, y, w, h):
+            btn = Button(
+                caption, parent=self,
+                x=x, y=y, width=w, height=h,
+                manual_draw=True,
+                color=self.color
+            )
+            self.buttons.append(btn)
+
+            @btn.event
+            def on_click(btn=btn, cmd=command):
+                cmd()
+
+        def change_loc():
+            Executive.call(
+                'change_location', ui_message,
+                self.parent.portraits.index(self)
+            )
+
+        def kick():
+            if not self.userid: return
+            Executive.call(
+                'kick_user', ui_message, self.userid
+            )
+
+        btn(u'换位', change_loc , 90, 55, 32, 20)
+        btn(u'请离', kick, 90, 80, 32, 20)
 
     def update(self):
-        self.caption = self.player_name
-        Dialog.update(self)
+        acc = self.account
+        self.avatar = None
+        if acc:
+            name = u'<' + acc.username + u'>'
+            if self.ready: name = u'(准备)' + name
+            self.userid = acc.userid
+        else:
+            name = u'空位置'
+            self.userid = 0
+
+        lbls = self.labels
+        for l in self.accinfo_labels:
+            lbls.remove(l)
+            l.delete()
+        self.accinfo_labels = []
+        self.avatar = None
+
+        self.caption = name
+
+        if acc:
+            avurl = acc.other['avatar']
+        else:
+            avurl = None
+
+        if avurl:
+            img = self.cached_avatar.get(avurl, None)
+            if img:
+                sprite = pyglet.sprite.Sprite(img, x=64, y=150)
+                sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
+                sprite._parent = self
+                self.avatar = sprite
+            else:
+                def callback(rst):
+                    if rst:
+                        resp, data = rst
+
+                        if data.startswith('GIF'):
+                            fn = 'foo.gif'
+                        elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
+                            fn = 'foo.jpg'
+                        elif data.startswith('\x89PNG'):
+                            fn = 'foo.png'
+
+                        from StringIO import StringIO
+                        f = StringIO(data)
+
+                        if fn == 'foo.gif':
+                            from utils import gif_to_animation
+                            img = gif_to_animation(f)
+                        else:
+                            img = pyglet.image.load(fn, file=f)
+                            img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
+
+                        sprite = pyglet.sprite.Sprite(img, x=64, y=150)
+                        sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
+                        sprite._parent = self
+                    else:
+                        img = sprite = False
+
+                    self.cached_avatar[avurl] = img
+                    self.avatar = sprite
+
+                    if sprite:
+                        ui_schedule(self.update)
+
+                Executive.call('fetch_resource', callback, avurl)
+
+        Frame.update(self)
+
+        if not acc: return
+
+        c = self.color.caption + (255,)
+        f = pyglet.font.load('AncientPix', 9)
+        def L(text, loc):
+            text = textsnap(text, f, self.width - 8 - 4)
+            args = ((
+                'shadow_color',
+                tuple([i/255.0 for i in self.color.caption_shadow+(255,)])
+            ), )
+            g = ShaderUniformGroup(args, self.shader_group)
+
+            l = pyglet.text.Label(
+                text, x=8, y=47-15*loc,
+                anchor_x='left', anchor_y='top',
+                font_name='AncientPix', font_size=9,
+                color=c, group=g
+            )
+            l._parent = self
+
+            self.accinfo_labels.append(l)
+            self.labels.append(l)
+
+        L(acc.other['title'], 0)
+        L(u'节操： %d' % acc.other['credits'], 1)
+        g, d = acc.other['games'], acc.other['drops']
+        dr = int(100*d/g) if d else 0
+        L(u'游戏数：%d(%d%%)' % (g, dr), 2)
+
+    def draw(self):
+        PlayerPortrait.draw(self)
+        if self.avatar:
+            self.avatar.draw()
+
+        #for b in self.buttons:
+        #    b.do_draw()
+        Button.batch_draw(self.buttons)
+
+    @staticmethod
+    def batch_draw(pps):
+        Frame.batch_draw(pps)
+        from itertools import chain
+        #lbls = list(chain(*[p.accinfo_labels for p in pps]))
+        #batch_drawlabel(lbls)
+        sprites = [getattr(p, 'avatar', None) for p in pps]
+        sprites = [s for s in sprites if s]
+        batch_drawsprite(sprites)
+        btns = list(chain(*[p.buttons for p in pps]))
+        Button.batch_draw(btns)
 
 class TextArea(Control):
     def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):
@@ -971,23 +1238,25 @@ class ProgressBar(Control):
     def _drawit(self, x, y, w, l, m, r):
         wl, wr = l.width, r.width
         if wl + wr < w:
-            l.blit(x, y)
-            r.blit(x + w - wr, y)
-            m.get_region(0, 0, w - wl - wr, m.height).blit(x + wl, y)
+            l.blit_nobind(x, y)
+            r.blit_nobind(x + w - wr, y)
+            m.get_region(0, 0, w - wl - wr, m.height).blit_nobind(x + wl, y)
         else:
             w /= 2
-            l.get_region(0, 0, w, l.height).blit(x, y)
+            l.get_region(0, 0, w, l.height).blit_nobind(x, y)
             _x = r.width - w
-            r.get_region(_x, 0, w, r.height).blit(x + w, y)
+            r.get_region(_x, 0, w, r.height).blit_nobind(x + w, y)
 
     def draw(self):
         value = self.value
         width, height = self.width, self.height
 
         glColor3f(1,1,1)
-        self._drawit(0, 0, width, *self.pic_frame)
-        w = (width - self.core_w_correct) * value
-        if w: self._drawit(self.offs_x, self.offs_y, w, *self.pic_core)
+        tex = self.pic_frame[0].owner
+        with tex:
+            self._drawit(0, 0, width, *self.pic_frame)
+            w = (width - self.core_w_correct) * value
+            if w: self._drawit(self.offs_x, self.offs_y, w, *self.pic_core)
 
 class BigProgressBar(ProgressBar):
     r = common_res.pbar
@@ -1066,7 +1335,8 @@ class ConfirmBox(Dialog):
         )
         lbl.x = dw // 2
         lbl.y = 33+20
-        self.lbl = lbl
+        lbl._parent = self
+        self.labels.append(lbl)
 
         btn = ConfirmButtons(buttons, parent=self, color=self.color)
         @btn.event
@@ -1079,15 +1349,6 @@ class ConfirmBox(Dialog):
         p = self.parent
         pw, ph = p.width, p.height
         self.x, self.y = (pw - dw)/2, (ph - dh)/2
-
-    def draw(self):
-        glColor3f(1,1,1)
-        Dialog.draw(self)
-        self.lbl.draw()
-
-    def _on_top(self, *a):
-        return 100000
-    zindex = property(_on_top, _on_top)
 
 ConfirmBox.register_event_type('on_confirm')
 

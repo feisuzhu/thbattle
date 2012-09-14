@@ -36,7 +36,6 @@ class Control(pyglet.event.EventDispatcher):
         })
         self.__dict__.update(kwargs)
         self.control_list = []
-        self._clist_inuse = False
         # control under cursor now, for tracking enter/leave events
         self._control_hit = None
         if parent:
@@ -65,9 +64,6 @@ class Control(pyglet.event.EventDispatcher):
         c.overlay = self if isinstance(self, Overlay) else self.overlay
 
     def remove_control(self, c):
-        if self._clist_inuse:
-            self.control_list = self.control_list[:]
-            self._clist_inuse = False
         self.control_list.remove(c)
         c.parent = None
         c.overlay = None
@@ -103,10 +99,14 @@ class Control(pyglet.event.EventDispatcher):
     def hit_test(self, x, y):
         return True
 
-    def do_draw(self):
+    @staticmethod
+    def batch_draw(l):
         glPushMatrix()
-        glTranslatef(self.x, self.y, 0)
-        rst = self.draw()
+        for c in l:
+            glLoadIdentity()
+            x, y = c.abs_coords()
+            glTranslatef(x, y, 0)
+            rst = c.draw()
         glPopMatrix()
 
     def draw(self):
@@ -172,13 +172,26 @@ class Control(pyglet.event.EventDispatcher):
         self.label.draw()
         self.draw_subcontrols()
 
+    @staticmethod
+    def do_draw(cl):
+        cl.sort(key=lambda c: (c.zindex, c.batch_draw))
+        cl = [c for c in cl if not c.manual_draw]
+        if not cl: return
+
+        f = cl[0].batch_draw
+        commit = []
+        for c in cl:
+            if c.batch_draw == f:
+                commit.append(c)
+            else:
+                f(commit)
+                commit = [c]
+                f = c.batch_draw
+
+        if commit: f(commit)
+
     def draw_subcontrols(self):
-        self.control_list.sort(key=lambda c: c.zindex)
-        self._clist_inuse = True
-        for c in self.control_list:
-            if not c.manual_draw:
-                c.do_draw()
-        self._clist_inuse = False
+        self.do_draw(self.control_list)
 
     def set_focus(self):
         if not self.can_focus: return
@@ -434,7 +447,7 @@ def init_gui():
         t = time()
         dt = t - current_time
         current_time = t
-        Overlay.cur_overlay.do_draw()
+        Overlay.cur_overlay.draw()
         fps.draw()
 
     @main_window.event

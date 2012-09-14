@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pyglet.gl import *
+import pyglet
 
 class ShaderError(Exception): pass
 
@@ -191,3 +192,61 @@ class ShaderProgram(object):
 
     def __exit__(self, exc_type, exc_value, tb):
         self.unuse()
+
+class ShaderGroup(pyglet.graphics.Group):
+    def __init__(self, shader, parent=None):
+        pyglet.graphics.Group.__init__(self, parent)
+        self.shader = shader
+
+    def set_state(self):
+        self.shader.use()
+
+    def unset_state(self):
+        self.shader.unuse()
+
+    def __hash__(self):
+        return hash(self.shader)
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__ and
+            self.shader == other.shader and
+            self.parent == other.parent
+        )
+
+    def __repr__(self):
+        return '%s(%d)' % (self.__class__.__name__, self.shader)
+
+class ShaderUniformGroup(pyglet.graphics.Group):
+    def __init__(self, args, parent):
+        pyglet.graphics.Group.__init__(self, parent)
+        self.args = args
+        while parent and not isinstance(parent, ShaderGroup):
+            parent = parent.parent
+
+        if not parent:
+            raise Exception('Should be child group of ShaderGroup!')
+
+        self.shader = parent.shader
+
+    def set_state(self):
+        ua = self.shader.uniform
+        for k, v in self.args:
+            setattr(ua, k, v)
+
+    def unset_state(self):
+        pass
+
+    def __hash__(self):
+        return hash(self.shader)
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__ and
+            self.shader == other.shader and
+            self.args == other.args and
+            self.parent == other.parent
+        )
+
+    def __repr__(self):
+        return '%s(%d)' % (self.__class__.__name__, self.shader)

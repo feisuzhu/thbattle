@@ -144,27 +144,30 @@ class ServerSelectScreen(Screen):
         soundmgr.switch_bgm(common_res.bgm_hall)
 
 class LoginScreen(Screen):
-    class LoginDialog(Dialog):
+    class LoginDialog(Frame):
         def __init__(self, *a, **k):
-            Dialog.__init__(
+            Frame.__init__(
                 self, u'登陆', x=350, y=165,
                 width=325, height=184,
                 bot_reserve=50, *a, **k
             )
-            self.batch = pyglet.graphics.Batch()
-            Label(
+
+            def L(*a, **k):
+                l = Label(*a, **k)
+                l._parent = self
+                self.labels.append(l)
+
+            L(
                 text=u'用户名：', font_size=9,color=(0,0,0,255),
                 font_name='AncientPix', bold=True,
                 x=368-350, y=286-165,
                 anchor_x='left', anchor_y='bottom',
-                batch=self.batch
             )
-            Label(
+            L(
                 text=u'密码：', font_size=9,color=(0,0,0,255),
                 font_name='AncientPix', bold=True,
                 x=368-350, y=250-165,
                 anchor_x='left', anchor_y='bottom',
-                batch=self.batch
             )
 
             from settings import UPDATE_BASE
@@ -206,16 +209,11 @@ class LoginScreen(Screen):
                 elif sys.platform.startswith('linux'):
                     os.system('xdg-open http://www.thbattle.net')
 
-        def draw(self):
-            Dialog.draw(self)
-            self.batch.draw()
-
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
         self.bg = common_res.bg_login
         self.bg_alpha = LinearInterp(0, 1.0, 1.5)
         self.dialog = LoginScreen.LoginDialog(parent=self)
-        self.dialog.btn_close.state = Button.DISABLED
 
     def on_message(self, _type, *args):
         if _type == 'auth_success':
@@ -249,7 +247,7 @@ class LoginScreen(Screen):
         soundmgr.switch_bgm(common_res.bgm_hall)
 
 class GameHallScreen(Screen):
-    class GameList(Dialog):
+    class GameList(Frame):
         class CreateGamePanel(Panel):
             def __init__(self, *a, **k):
                 Panel.__init__(
@@ -330,12 +328,11 @@ class GameHallScreen(Screen):
                     self.labels.draw()
 
         def __init__(self, p):
-            Dialog.__init__(
+            Frame.__init__(
                 self, parent=p, caption=u'当前大厅内的游戏',
                 x=35, y=220, width=700, height=420,
                 bot_reserve=30, bg=common_res.bg_gamelist,
             )
-            self.btn_close.state = Button.DISABLED
 
             gl = self.gamelist = ListView(parent=self, x=2, y=30, width=696, height=420-30-25)
             gl.set_columns([
@@ -394,16 +391,15 @@ class GameHallScreen(Screen):
                     ])
                     li.game_id = gi['id']
 
-    class ChatBox(Dialog):
+    class ChatBox(Frame):
         def __init__(self, parent):
-            Dialog.__init__(
+            Frame.__init__(
                 self, parent=parent,
                 caption=u'系统/聊天信息',
                 #x=35, y=20, width=700, height=180,
                 x=35+255, y=20, width=700-255, height=180,
                 bot_reserve=33,
             )
-            self.btn_close.state = Button.DISABLED
             self.box = TextArea(
                 parent=self, x=2, y=33+2, width=700-255, height=180-24-2-33
             )
@@ -423,15 +419,14 @@ class GameHallScreen(Screen):
         def append(self, v):
             self.box.append(v)
 
-    class OnlineUsers(Dialog):
+    class OnlineUsers(Frame):
         def __init__(self, parent):
-            Dialog.__init__(
+            Frame.__init__(
                 self, parent=parent,
                 caption=u'当前在线玩家',
                 x=750, y=220, width=240, height=420,
                 bot_reserve=10,
             )
-            self.btn_close.state = Button.DISABLED
             self.box = TextArea(
                 parent=self, x=2, y=12, width=240-4, height=420-24-2-10
             )
@@ -455,9 +450,9 @@ class GameHallScreen(Screen):
                 )
                 box.append(t)
 
-    class NoticeBox(Dialog):
+    class NoticeBox(Frame):
         def __init__(self, parent):
-            Dialog.__init__(
+            Frame.__init__(
                 self, x=750, y=20, width=240, height=180,
                 caption=u'花果子念报', parent=parent,
             )
@@ -480,9 +475,9 @@ class GameHallScreen(Screen):
             from settings import HALL_NOTICE_URL
             Executive.call('fetch_resource', update, HALL_NOTICE_URL)
 
-    class StatusBox(Dialog):
+    class StatusBox(Frame):
         def __init__(self, parent):
-            Dialog.__init__(
+            Frame.__init__(
                 self, x=35, y=20, width=240, height=180,
                 caption=u'帐号信息', parent=parent,
             )
@@ -550,140 +545,6 @@ class GameHallScreen(Screen):
         soundmgr.switch_bgm(common_res.bgm_hall)
 
 class GameScreen(Screen):
-    class MyPP(PlayerPortrait):
-        def __init__(self, *a, **k):
-            self.account = None
-            self.lbls = None
-            self.ready = False
-
-            PlayerPortrait.__init__(self, *a, **k)
-            self.buttons = []
-            def btn(caption, command, x, y, w, h):
-                btn = Button(
-                    caption, parent=self,
-                    x=x, y=y, width=w, height=h,
-                    manual_draw=True,
-                    color=self.color
-                )
-                self.buttons.append(btn)
-
-                @btn.event
-                def on_click(btn=btn, cmd=command):
-                    cmd()
-
-            def change_loc():
-                Executive.call(
-                    'change_location', ui_message,
-                    self.parent.portraits.index(self)
-                )
-
-            def kick():
-                if not self.userid: return
-                Executive.call(
-                    'kick_user', ui_message, self.userid
-                )
-
-            btn(u'换位', change_loc , 90, 55, 32, 20)
-            btn(u'请离', kick, 90, 80, 32, 20)
-
-        def update(self):
-            acc = self.account
-            self.avatar = None
-            if acc:
-                name = u'<' + acc.username + u'>'
-                if self.ready: name = u'(准备)' + name
-                self.userid = acc.userid
-            else:
-                name = u'空位置'
-                self.userid = 0
-
-            self.player_name = name
-
-            if acc:
-                avurl = acc.other['avatar']
-            else:
-                avurl = None
-
-            if avurl:
-                avatar = self.cached_avatar.get(avurl, None)
-                if avatar is not None:
-                    self.avatar = avatar
-                else:
-                    def callback(rst):
-                        if rst:
-                            resp, data = rst
-
-                            if data.startswith('GIF'):
-                                fn = 'foo.gif'
-                            elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
-                                fn = 'foo.jpg'
-                            elif data.startswith('\x89PNG'):
-                                fn = 'foo.png'
-
-                            from StringIO import StringIO
-                            f = StringIO(data)
-
-                            if fn == 'foo.gif':
-                                from utils import gif_to_animation
-                                img = gif_to_animation(f)
-                            else:
-                                img = pyglet.image.load(fn, file=f)
-                                img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
-
-                            sprite = pyglet.sprite.Sprite(img, x=64, y=150)
-                            sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
-                        else:
-                            sprite = False
-
-                        self.cached_avatar[avurl] = sprite
-                        self.avatar = sprite
-
-                        if sprite:
-                            ui_schedule(self.update)
-
-                    Executive.call('fetch_resource', callback, avurl)
-
-            PlayerPortrait.update(self)
-
-        def custom_update(self):
-            acc = self.account
-            if not acc: return
-
-            b = pyglet.graphics.Batch()
-
-            L = pyglet.text.Label
-
-            c = self.color.caption + (255,)
-            f = pyglet.font.load('AncientPix', 9)
-            def L(text, loc):
-                text = textsnap(text, f, self.width - 8 - 4)
-                pyglet.text.Label(
-                    text, x=8, y=47-15*loc,
-                    anchor_x='left', anchor_y='top',
-                    font_name='AncientPix', font_size=9,
-                    color=c, batch=b,
-                )
-
-            L(acc.other['title'], 0)
-            L(u'节操： %d' % acc.other['credits'], 1)
-            g, d = acc.other['games'], acc.other['drops']
-            dr = int(100*d/g) if d else 0
-            L(u'游戏数：%d(%d%%)' % (g, dr), 2)
-
-            from client.ui.shaders import FontShadow
-            with FontShadow as fs:
-                fs.uniform.shadow_color = [i/255.0 for i in self.color.caption_shadow+(255,)]
-                b.draw()
-
-            PlayerPortrait.custom_update(self)
-
-        def draw(self):
-            PlayerPortrait.draw(self)
-            if self.avatar:
-                self.avatar.draw()
-            for b in self.buttons:
-                b.do_draw()
-
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
@@ -691,15 +552,9 @@ class GameScreen(Screen):
                 parent=self, caption=u'准备', **r2d((360, 80, 100, 35))
             )
 
-            self.box = pyglet.graphics.Batch()
-            self.box.add(
-                5, GL_LINE_STRIP, None,
-                ('v2i', Rect(0, 0, 820, 140).glLineStripVertices()),
-                ('c3f', [0.0, 0.0, 0.0] * 5)
-            )
             l = []
 
-            class MyPP(GameScreen.MyPP):
+            class MyPP(PlayerPortrait):
                 # this class is INTENTIONALLY put here
                 # to make cached avatars get gc'd
                 cached_avatar = {}
@@ -743,16 +598,14 @@ class GameScreen(Screen):
 
                 port.update()
 
-    class EventsBox(Dialog):
+    class EventsBox(Frame):
         def __init__(self, parent):
-            Dialog.__init__(
+            Frame.__init__(
                 self, parent=parent,
                 caption=u'游戏信息',
                 x=820, y=350, width=204, height=370,
                 bot_reserve=0, bg=common_res.bg_eventsbox,
             )
-            self.no_move = True
-            self.btn_close.state = Button.DISABLED
             self.box = TextArea(
                 parent=self, x=2, y=2, width=200, height=370-24-2
             )
@@ -763,16 +616,14 @@ class GameScreen(Screen):
         def clear(self):
             self.box.text = u'\u200b'
 
-    class ChatBox(Dialog):
+    class ChatBox(Frame):
         def __init__(self, parent):
-            Dialog.__init__(
+            Frame.__init__(
                 self, parent=parent,
                 caption=u'系统/聊天信息',
                 x=820, y=0, width=204, height=352,
                 bot_reserve=33, bg=common_res.bg_chatbox,
             )
-            self.no_move = True
-            self.btn_close.state = Button.DISABLED
             self.box = TextArea(
                 parent=self, x=2, y=33+2, width=200, height=352-24-2-33
             )

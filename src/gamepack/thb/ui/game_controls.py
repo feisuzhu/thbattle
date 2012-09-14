@@ -536,17 +536,13 @@ class ShownCardPanel(Panel):
         Panel.delete(self)
         ShownCardPanel.current = None
 
-class GameCharacterPortrait(Dialog, BalloonPrompt):
+class GameCharacterPortrait(Frame, BalloonPrompt):
     dropped = False
     x = InterpDesc('_x')
     y = InterpDesc('_y')
     _x = _y = 0
     actor_frame = None
     turn_frame = None
-    gray_tex = None
-    if HAVE_FBO:
-        auxfbo = Framebuffer()
-        auxtex = pyglet.image.Texture.create(256, 256)
 
     def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', *args, **kwargs):
         self.selected = False
@@ -555,15 +551,13 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         self.taganims = []
         self.tag_placement = tag_placement
 
-        Dialog.__init__(
+        Frame.__init__(
             self, width=149, height=195,
             bot_reserve=20, color=color,
             shadow_thick=1,
             **kwargs
         )
         self.x, self.y = x, y
-        self.no_move = True
-        self.btn_close.state = Button.DISABLED
         self.portcard_area = PortraitCardArea(
             parent=self.parent,
             x=self.x, y=self.y,
@@ -573,7 +567,6 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         self.equipcard_area = EquipCardArea(
             parent=self,
             x=3, y=6,
-            manual_draw=True,
         )
 
         w, h = self.width, self.height
@@ -669,22 +662,6 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
                     return
             ShownCardPanel(p, parent=self.parent)
 
-    def build_gray_tex(self):
-        gt = self.gray_tex
-        if not (gt and gt.width == self.width and gt.height == self.height):
-            from pyglet.image import Texture
-            gt = Texture.create(self.width, self.height)
-            fbo = self.auxfbo
-            with fbo:
-                fbo.texture = self.auxtex
-                glColor3f(1,1,1)
-                self._dl()
-
-                fbo.texture = gt
-                with shaders.Grayscale:
-                    self.auxtex.blit(0, 0)
-            self.gray_tex = gt
-
     def update(self):
         p = self.player
         if not p: return
@@ -705,109 +682,147 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
 
         self.bot_reserve=74
         self.gray_tex = None
-        Dialog.update(self)
+        Frame.update(self)
 
-    def _content_draw(self):
-        p = self.player
-        meta = getattr(p, 'ui_meta', None)
+    @staticmethod
+    def batch_draw_frame(gcps):
+        for port in gcps:
+            dead = getattr(port.player, 'dead', False)
+            if dead:
+                port.color = Colors.gray
+                port.bg = getattr(port.bg, 'grayed', port.bg)
 
-        Dialog._content_draw(self)
+        Frame.batch_draw(gcps)
+
+        vertices = []
+        def Rect(port, x1, y1, x2, y2, r, g, b):
+            x = port.x; y = port.y
+            vertices.extend([
+                r, g, b, x+x1, y+y1, 0,
+                r, g, b, x+x2, y+y1, 0,
+                r, g, b, x+x2, y+y2, 0,
+                r, g, b, x+x1, y+y2, 0,
+            ])
+
         glPolygonMode(GL_BACK, GL_LINE)
-        w, h = self.width, self.height
-        # equip box
-        glColor3f(1, 1, 1)
-        glRectf(2, 2, w-2, 54)
-        glColor3f(*[i/255.0 for i in self.color.heavy])
-        glRectf(2.5, 54.5, 2.5+4*36, 2.5)
+        for port in gcps:
+            w, h = port.width, port.height
+            # equip box
+            Rect(port, 2, 2, w-2, 54, 1, 1, 1)
+            Rect(port, 2.5, 54.5, 2.5+4*36, 2.5, *[i/255.0 for i in port.color.heavy])
 
-        # cardnum box
-        glColor3f(*[i/255.0 for i in self.color.light])
-        glRectf(w-2-32, 66,  w-2, 66+22)
-        glColor3f(*[i/255.0 for i in self.color.heavy])
-        glRectf(w-2-32, 66+22,  w-2, 66)
+            # cardnum box
+            Rect(port, w-2-32, 66,  w-2, 66+22, *[i/255.0 for i in port.color.light])
+            Rect(port, w-2-32, 66+22,  w-2, 66, *[i/255.0 for i in port.color.heavy])
+
+        buf = (GLfloat * len(vertices))(*vertices)
+        glInterleavedArrays(GL_C3F_V3F, 0, buf)
+        glDrawArrays(GL_QUADS, 0, len(vertices)/6)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
         # char name
-        if meta:
-            f = pyglet.font.load('AncientPix', size=9)
-            glyphs = f.get_glyphs(meta.char_name)
-            gh = f.ascent - f.descent
+        f = pyglet.font.load('AncientPix', size=9)
+        gh = f.ascent - f.descent
+
+        vertices = []
+        for port in gcps:
+            meta = getattr(port.player, 'ui_meta', None)
+            if not meta: continue
+            x = port.x + 7; y = port.y + port.height - 30
+            for i, g in enumerate(f.get_glyphs(meta.char_name)):
+                # HACK: pyglet implementation detail
+                # g.vertices = (left_side_bearing, -baseline, ...)
+                vertices.extend(g.get_t4f_v4f_vertices(
+                    x+g.vertices[0], y+g.vertices[1]-gh*(i+1)
+                ))
+
+        if vertices:
             glColor3f(1, 1, 1)
             with shaders.FontShadow as fs:
                 fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
-                glPushMatrix()
-                glTranslatef(7, self.height - 30, 0)
-                tex = glyphs[0].owner
+                tex = f.get_glyphs(u'Proton rocks!')[0].owner
                 with tex:
-                    for g in glyphs:
-                        glTranslatef(0, -gh, 0)
-                        # HACK: pyglet implementation detail
-                        # g.vertices = (left_side_bearing, -baseline, ...)
-                        #g.blit(g.vertices[0], g.vertices[1])
-                        glBegin(GL_QUADS)
-                        g.draw_quad_vertices()
-                        glEnd()
-                glPopMatrix()
-
-    def draw(self):
+                    n = len(vertices)
+                    buf = (GLfloat*n)(*vertices)
+                    glInterleavedArrays(GL_T4F_V4F, 0, buf)
+                    glDrawArrays(GL_QUADS, 0, n/8)
 
         # HACK: make actor_frame track ports' location
-        if self.actor_frame:
-            self.actor_frame.set_position(self.x - 6, self.y - 4)
-        #if self.turn_frame:
-        #    self.turn_frame.set_position(self.x - 6, self.y - 4)
+        for port in gcps:
+            if port.actor_frame:
+                port.actor_frame.set_position(port.x - 6, port.y - 4)
 
-        p = self.player
-        if getattr(p, 'dead', False) and HAVE_FBO:
-            if not self.gray_tex:
-                self.build_gray_tex()
-            self.gray_tex.blit(0, 0)
-            self.draw_subcontrols()
-        else:
-            Dialog.draw(self)
+    @staticmethod
+    def batch_draw_hpcn(gcps):
+        vertices = []
+        for port in gcps:
+            p = port.player
+            if not getattr(p, 'ui_meta', False): continue
 
-        try:
-            p.ui_meta
-            hp, hp_bg = common_res.hp, common_res.hp_bg
+            hp = game_res.hp; hp_bg = game_res.hp_bg
+            if p.dead:
+                hp = hp.grayed
+                hp_bg = hp_bg.grayed
 
             # hp bar
-            glColor3f(1, 1, 1)
-            w, h = hp_bg.width * p.maxlife, hp_bg.height
-            if w:
-                common_res.hp_bg.get_region(0, 0, w, h).blit(5, 55)
+            w = hp.width
+            x = port.x; y = port.y
+            for i in xrange(getattr(p, 'maxlife', 0)):
+                vertices.extend(
+                    hp_bg.get_t4f_v4f_vertices(5+x+i*w, 55+y)
+                )
 
-            w, h = hp.width * max(p.life, 0), hp.height
-            if w:
-                common_res.hp.get_region(0, 0, w, h).blit(5, 55)
-        except AttributeError:
-            pass
+            for i in xrange(max(getattr(p, 'life', 0), 0)):
+                vertices.extend(
+                    hp.get_t4f_v4f_vertices(5+x+i*w, 55+y)
+                )
 
-        w, h = self.width, self.height
-        p = self.player
-        glColor3f(1, 1, 1)
-        try:
-            n = len(p.cards) + len(p.showncards)
-            seq = str(n)
-            ox = (32 - len(seq)*14)//2
-            nums = common_res.num
-            with nums[0].owner:
+        nums = game_res.num
+        for port in gcps:
+            x, y, w, h = port.x, port.y, port.width, port.height
+            p = port.player
+            try:
+                n = len(p.cards) + len(p.showncards)
+                seq = str(n)
+                ox = (32 - len(seq)*14)//2
                 for i, ch in enumerate(seq):
                     n = ord(ch) - ord('0')
                     #x, y = w - 34 + ox + i*14, 68
-                    nums[n].blit_nobind(w - 34 + ox + i*14, 68)
-        except AttributeError as e:
-            pass
+                    vertices.extend(nums[n].get_t4f_v4f_vertices(
+                        x + w - 34 + ox + i*14,
+                        y + 68
+                    ))
+            except AttributeError as e:
+                pass
 
-        if self.disabled:
-            glColor4f(0, 0, 0, 0.5)
-            glRectf(0, 0, self.width, self.height)
+        with nums[0].owner:
+            n = len(vertices)
+            buf = (GLfloat*n)(*vertices)
+            glInterleavedArrays(GL_T4F_V4F, 0, buf)
+            glDrawArrays(GL_QUADS, 0, n/8)
 
-        if self.selected:
-            glColor4f(1, 1, 0.8, 0.6)
-            glRectf(0, 0, self.width, self.height)
+        glColor4f(0, 0, 0, 0.5)
+        for port in gcps:
+            if port.disabled:
+                glRectf(port.x, port.y, port.x + port.width, port.y + port.height)
 
-        self.equipcard_area.do_draw()
+        glColor4f(1, 1, 0.8, 0.6)
+        for port in gcps:
+            if port.selected:
+                glRectf(port.x, port.y, port.x + port.width, port.y + port.height)
+
+    @staticmethod
+    def batch_draw(gcps):
+        glPushMatrix()
+        glLoadIdentity()
+        GameCharacterPortrait.batch_draw_frame(gcps)
+        GameCharacterPortrait.batch_draw_hpcn(gcps)
+        glPopMatrix()
+        from itertools import chain
+        cl = list(chain(*[p.control_list for p in gcps]))
+        cl.sort(key=lambda c: c.batch_draw)
+        Control.do_draw(cl)
 
     @property
     def zindex(self):
@@ -818,7 +833,7 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
         pass
 
     def delete(self):
-        Dialog.delete(self)
+        Frame.delete(self)
         self.portcard_area.delete()
 
     def tagarrange(self):
@@ -838,7 +853,6 @@ class GameCharacterPortrait(Dialog, BalloonPrompt):
                 btn.update()
                 self.color = color
                 self.update()
-
 
     def animate_to(self, x, y):
         self.x = SineInterp(self.x, x, 1)

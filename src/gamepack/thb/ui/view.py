@@ -68,7 +68,7 @@ class DeckIndicator(Control):
 
         glColor3f(1, 1, 1)
         try:
-            nums = common_res.num
+            nums = gres.num
             seq = str(n)
             ox = (w - len(seq)*14)//2
             oy = (h - nums[0].height)//2

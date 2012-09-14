@@ -3,7 +3,8 @@ import os
 
 from client.ui.resource import ResLoader
 
-with ResLoader(__file__) as args:
+ldr = ResLoader(__file__)
+with ldr as args:
     locals().update(args)
 
     bgm_game = lambda: ldr.media(ldr.filename('bgm_game.ogg'))
@@ -28,20 +29,17 @@ with ResLoader(__file__) as args:
     card_question = card_tx('card_question.png')
 
     card_attack = card_tx('card_attack.png')
-    tag_attacked = anim('tag_attacked.png', [10000], True)
     card_graze = card_tx('card_graze.png')
     card_heal = card_tx('card_heal.png')
     card_demolition = card_tx('card_demolition.png')
     card_reject = card_tx('card_reject.png')
     card_sealarray = card_tx('card_sealarray.png')
-    tag_sealarray = anim('tag_sealarray.png', [83]*36, True)
 
     card_nazrinrod= card_tx('card_nazrinrod.png')
     card_opticalcloak = card_tx('card_opticalcloak.png')
     card_greenufo = card_tx('card_greenufo.png')
     card_redufo = card_tx('card_redufo.png')
     card_sinsack = card_tx('card_sinsack.png')
-    tag_sinsack = anim('tag_sinsack.png', [10000], True)
     card_yukaridimension = card_tx('card_yukaridimension.png')
     card_duel = card_tx('card_duel.png')
     card_sinsackcarnival = card_tx('card_sinsackcarnival.png')
@@ -55,7 +53,6 @@ with ResLoader(__file__) as args:
     card_trident = card_tx('card_trident.png')
     card_repentancestick = card_tx('card_repentancestick.png')
     card_wine = card_tx('card_wine.png')
-    tag_wine = anim('tag_wine.png', [150]*3, True)
     card_feast = card_tx('card_feast.png')
     card_harvest = card_tx('card_harvest.png')
     card_maidencostume = card_tx('card_maidencostume.png')
@@ -122,34 +119,42 @@ with ResLoader(__file__) as args:
 
     del card_tx
 
-    parsee_port = tx('parsee_port.png')
-    youmu_port = tx('youmu_port.png')
-    koakuma_port = tx('koakuma_port.png')
-    marisa_port = tx('marisa_port.png')
-    daiyousei_port = tx('daiyousei_port.png')
-    flandre_port = tx('flandre_port.png')
     tag_flandrecs = anim('tag_flandrecs.png', [10000], True)
-    nazrin_port = tx('nazrin_port.png')
-    alice_port = tx('alice_port.png')
-    yugi_port = tx('yugi_port.png')
-    tewi_port = tx('tewi_port.png')
-    patchouli_port = tx('patchouli_port.png')
-    reimu_port = tx('reimu_port.png')
-    eirin_port = tx('eirin_port.png')
-    kogasa_port = tx('kogasa_port.png')
-    shikieiki_port = tx('shikieiki_port.png')
-    tenshi_port = tx('tenshi_port.png')
-    rumia_port = tx('rumia_port.png')
-    yuuka_port = tx('yuuka_port.png')
-    rinnosuke_port = tx('rinnosuke_port.png')
-    ran_port = tx('ran_port.png')
-    remilia_port = tx('remilia_port.png')
-    minoriko_port = tx('minoriko_port.png')
-    meirin_port = tx('meirin_port.png')
-    suika_port = tx('suika_port.png')
-    chen_port = tx('chen_port.png')
-    yukari_port = tx('yukari_port.png')
-    dummy_port = tx('dummy_port.png')
+    tag_attacked = anim('tag_attacked.png', [10000], True)
+    tag_sealarray = anim('tag_sealarray.png', [83]*36, True)
+    tag_sinsack = anim('tag_sinsack.png', [10000], True)
+    tag_wine = anim('tag_wine.png', [150]*3, True)
+
+    port_atlas = pyglet.image.atlas.TextureAtlas(1024, 1024)
+
+    ports = ['%s_port' % p  for p in [
+        'parsee', 'youmu', 'koakuma', 'marisa', 'daiyousei',
+        'flandre', 'nazrin', 'alice', 'yugi', 'tewi',
+        'patchouli', 'reimu', 'eirin', 'kogasa', 'shikieiki',
+        'tenshi', 'rumia', 'yuuka', 'rinnosuke', 'ran',
+        'remilia', 'minoriko', 'meirin', 'suika', 'chen',
+        'yukari', 'dummy',
+    ]]
+
+    ports.extend([
+        'hp', 'hp_bg',
+    ])
+
+    import Image
+    #exec '\n'.join('%s_port = port_tx("%s_port.png")' % (s, s) for s in ports) in locals()
+    for p in ports:
+        i = Image.open(ldr.file('%s.png' % p))
+        w, h = i.size
+        colored = i.convert('RGBA').tostring()
+        grayed = i.convert('LA').convert('RGBA').tostring()
+        colored = pyglet.image.ImageData(w, h, 'RGBA', colored, -w*4)
+        grayed = pyglet.image.ImageData(w, h, 'RGBA', grayed, -w*4)
+        tex = port_atlas.add(colored)
+        tex.grayed = port_atlas.add(grayed)
+        exec '%s = tex' % p in locals()
+
+    num = pyglet.image.ImageGrid(img('num.png'), 1, 10)
+    num = [port_atlas.add(t) for t in num]
 
     for k in args.keys(): del k
     del args
