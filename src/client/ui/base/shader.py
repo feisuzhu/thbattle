@@ -121,7 +121,11 @@ class _DummyShaderProgram(object):
     def use(self):
         pass
 
-    def restore(self):
+    def unuse(self):
+        pass
+
+    @classmethod
+    def restore(cls):
         pass
 
     def __enter__(self):

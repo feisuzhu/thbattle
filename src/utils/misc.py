@@ -460,3 +460,8 @@ def textsnap(text, font, l):
         return text
 
     return text[:i]
+
+def partition(pred, l):
+    t = filter(pred, l)
+    f = filter(lambda v: not pred(v), l)
+    return t, f

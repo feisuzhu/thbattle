@@ -96,6 +96,13 @@ class Control(pyglet.event.EventDispatcher):
         else:
             return None
 
+    def control_frompoint1_recursive(self, x, y):
+        c = self
+        while True:
+            c1 = c.control_frompoint1(x, y)
+            if not c1: return c
+            x -= c1.x; y -= c1.y; c = c1
+
     def hit_test(self, x, y):
         return True
 

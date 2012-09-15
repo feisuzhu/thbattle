@@ -66,6 +66,7 @@ class ServerSelectScreen(Screen):
             fill_color = (1.0, 1.0, 0.9, 0.5)
             def __init__(self, text, *a, **k):
                 Panel.__init__(self, *a, **k)
+                self.zindex = 100
                 w, h = self.width, self.height
                 ta = TextArea(
                     parent=self,

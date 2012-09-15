@@ -68,7 +68,7 @@ class UISelectTarget(Control):
             on_selection_change=dispatch_selection_change
         )
 
-        g = parent.game
+        g = Game.getgame()
         port = parent.player2portrait(g.me)
         port.equipcard_area.clear_selection()
 
@@ -84,7 +84,7 @@ class UISelectTarget(Control):
     def get_result(self): # override this to customize
         #return (skills, players, cards)
         parent = self.parent
-        g = parent.game
+        g = Game.getgame()
         skills = g.me.skills
 
         sid_list = [
@@ -135,14 +135,15 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
         UISelectTarget.__init__(self, irp, *a, **k)
         if candidates:
             parent = self.parent
-            disables = [p for p in parent.game.players if p not in candidates]
+            g = Game.getgame()
+            disables = [p for p in g.players if p not in candidates]
             parent.begin_select_player(disables)
 
     def on_selection_change(self):
         try:
             act, candidates = self.irp.attachment
 
-            g = self.parent.game
+            g = Game.getgame()
             parent = self.parent
             if not parent: return
 
@@ -178,8 +179,8 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
             if cond:
                 if not self.auto_chosen:
                     self.auto_chosen = True
-                    cl = itertools.chain(g.me.showncards, g.me.cards)
-                    for c in cl:
+                    from itertools import chain
+                    for c in chain(g.me.showncards, g.me.cards):
                         if not cond([c]): continue
                         hca = parent.handcard_area
                         for cs in hca.cards:
@@ -260,7 +261,7 @@ class UIDoActionStage(UISelectTarget):
         skills = parent.get_selected_skills()
         cards = parent.get_selected_cards()
 
-        g = parent.game
+        g = Game.getgame()
 
         if skills:
             cards = [skills[0].wrap(cards, g.me)]
@@ -294,7 +295,7 @@ class UIDoActionStage(UISelectTarget):
                     card.resides_in in (g.me.cards, g.me.showncards)
                 ): break
 
-                source = parent.game.me
+                source = Game.getgame().me
                 target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())
                 if target_list is not None:
                     parent.set_selected_players(target_list)

@@ -51,7 +51,7 @@ class UIEventHook(EventHandler):
 class DeckIndicator(Control):
     def draw(self):
         w, h = self.width, self.height
-        g = self.parent.game
+        g = Game.getgame()
         try:
             n = len(g.deck.cards)
         except AttributeError:
@@ -120,6 +120,64 @@ class ResultPanel(Panel):
         glColor3f(1, 1, 1)
         self.pic.blit(self.width - pic.width - 10, self.height - pic.height - 10)
 
+class GCPBooster(Control):
+    enabled = InterpDesc('_enabled')
+    def init(self):
+        cl = self.control_list
+        assert all(isinstance(p, GameCharacterPortrait) for p in cl)
+        self.dl = DisplayList()
+        self.need_update = True
+        self.enabled = True
+
+        for p in cl:
+            @hook(p)
+            def update(ori):
+                self.need_update = True
+                ori()
+
+            p._gcphooked = True
+
+    def draw(self):
+        if self.enabled:
+            cl = self.control_list
+            GCP = GameCharacterPortrait
+            if self.need_update:
+                with self.dl:
+                    GCP.batch_draw_frame(cl)
+                self.need_update = False
+            self.dl()
+            sc = []
+            map(sc.extend, [c.control_list for c in cl])
+            GCP.do_draw(sc)
+            GCP.batch_draw_hilight(cl)
+
+        else:
+            self.draw_subcontrols()
+
+    def hit_test(self, x, y):
+        return self.control_frompoint1(x, y)
+
+    def update(self, *a):
+        for c in self.control_list:
+            c.update()
+
+    def on_message(self, _type, *args):
+        if _type == 'evt_action_after':
+            self.need_update = True
+            self.update()
+
+        elif _type == 'evt_reseat':
+            self.enabled = ChainInterp(
+                FixedInterp(False, 1.0),
+                FixedInterp(True, 0),
+                on_done=self.update
+            )
+
+            for c in self.control_list:
+                c.caption_lbl.text = u''
+
+            self.need_update = True
+
 class THBattleUI(Control):
     portrait_location = [
         (60, 300, Colors.blue),
@@ -186,10 +244,12 @@ class THBattleUI(Control):
         self.selecting_player = 0
 
     def init(self):
+        booster = GCPBooster(parent=self, x=0, y=0, width=self.width, height=self.height)
         ports = self.char_portraits = [
-            GameCharacterPortrait(parent=self, color=color, x=x, y=y, tag_placement=tp)
+            GameCharacterPortrait(parent=booster, color=color, x=x, y=y, tag_placement=tp)
             for x, y, tp, color in self.gcp_location[:len(self.game.players)]
         ]
+        booster.init()
 
         pl = self.game.players
         shift = pl.index(self.game.me)
@@ -342,19 +402,17 @@ class THBattleUI(Control):
         ], key=lambda s: s.sort_index)
 
     def on_mouse_click(self, x, y, button, modifier):
-        c = self.control_frompoint1(x, y)
+        c = self.control_frompoint1_recursive(x, y)
         if isinstance(c, GameCharacterPortrait) and self.selecting_player and not c.disabled:
-            cc = c.control_frompoint1(x-c.x, y-c.y)
-            if not (cc and cc.hit_test(x-c.x, y-c.y)):
-                sel = c.selected
-                psel = self.selected_players
-                if sel:
-                    c.selected = False
-                    psel.remove(c.player)
-                else:
-                    c.selected = True
-                    psel.append(c.player)
-                self.dispatch_event('on_selection_change')
+            sel = c.selected
+            psel = self.selected_players
+            if sel:
+                c.selected = False
+                psel.remove(c.player)
+            else:
+                c.selected = True
+                psel.append(c.player)
+            self.dispatch_event('on_selection_change')
         return True
 
     @staticmethod

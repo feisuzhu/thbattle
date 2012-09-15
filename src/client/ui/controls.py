@@ -201,7 +201,6 @@ class Button(Control):
         if self.state != Button.DISABLED:
             self.state = Button.NORMAL
 
-
     def on_mouse_press(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             if button == mouse.LEFT:
@@ -247,19 +246,41 @@ class ImageButton(Control):
         self.width = images[0].width
         self.height = images[0].height
 
-    def draw(self):
+    @staticmethod
+    def batch_draw(ibs):
+        glPushMatrix()
+        glLoadIdentity()
         glColor3f(1.0, 1.0, 1.0)
-        if self.state == Button.DISABLED:
-            self.images[3].blit(0, 0)
-        else:
-            if self.state == Button.PRESSED:
-                self.images[2].blit(0, 0)
+
+        glPushAttrib(GL_ENABLE_BIT)
+        glEnable(GL_TEXTURE_2D)
+
+        tex = [None]
+        def blit(btn, idx):
+            img = btn.images[idx]
+            t = getattr(img, 'owner', img)
+            if tex[0] != t:
+                tex[0] = t
+                glBindTexture(GL_TEXTURE_2D, t.id)
+            img.blit_nobind(*btn.abs_coords())
+
+        for btn in ibs:
+            if btn.state == Button.DISABLED:
+                blit(btn, 3)
             else:
-                self.images[0].blit(0, 0)
-                a = self.hover_alpha
-                if a: # HOVER, or HOVER -> NORMAL
-                    glColor4f(1.0, 1.0, 1.0, a)
-                    self.images[1].blit(0, 0)
+                if btn.state == Button.PRESSED:
+                    blit(btn, 2)
+                else:
+                    blit(btn, 0)
+                    a = btn.hover_alpha
+                    if a: # HOVER, or HOVER -> NORMAL
+                        glColor4f(1.0, 1.0, 1.0, a)
+                        blit(btn, 1)
+                        glColor3f(1, 1, 1)
+
+        glPopAttrib()
+        glPopMatrix()
+
 
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
@@ -434,8 +455,8 @@ class Frame(Control):
             glVertex2f(ax, ay+r); glVertex2f(ax+w, ay+r)
             glEnd()
 
-        from itertools import chain
-        lbls = list(chain(*[d.labels for d in dlgs]))
+        lbls = []
+        map(lbls.extend, [d.labels for d in dlgs])
         lbls.extend([d.caption_lbl for d in dlgs])
 
         batch_drawlabel(lbls)
@@ -467,8 +488,8 @@ class Frame(Control):
         Frame._batch_content_draw(dlgs)
         glPopMatrix()
 
-        from itertools import chain
-        cl = list(chain(*[d.control_list for d in dlgs]))
+        cl = []
+        map(cl.extend, [d.control_list for d in dlgs])
         Control.do_draw(cl)
 
     def close(self):
@@ -900,13 +921,11 @@ class PlayerPortrait(Frame):
     @staticmethod
     def batch_draw(pps):
         Frame.batch_draw(pps)
-        from itertools import chain
-        #lbls = list(chain(*[p.accinfo_labels for p in pps]))
-        #batch_drawlabel(lbls)
         sprites = [getattr(p, 'avatar', None) for p in pps]
         sprites = [s for s in sprites if s]
         batch_drawsprite(sprites)
-        btns = list(chain(*[p.buttons for p in pps]))
+        btns = []
+        map(btns.extend, [p.buttons for p in pps])
         Button.batch_draw(btns)
 
 class TextArea(Control):

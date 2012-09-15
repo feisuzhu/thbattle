@@ -7,7 +7,7 @@ from client.ui import shaders
 from game.autoenv import Game
 from .. import actions
 
-from utils import DisplayList
+from utils import DisplayList, partition
 
 import pyglet
 
@@ -49,47 +49,61 @@ class CardSprite(Control, BalloonPrompt):
 
         self.update()
 
-    def draw(self):
-        with game_res.card_atlas.texture:
-            self.draw_vertices()
+    @staticmethod
+    def batch_draw(csl):
+        glPushMatrix()
+        glLoadIdentity()
 
-    def draw_vertices(self):
-        if self.ft_anim:
-            qs = self.question_scale
-            bs = self.back_scale
-            aa = self.ftanim_alpha
-            ca = self.ftanim_cardalpha
-            if self.gray:
-                glColor4f(.66, .66, .66, ca)
+        vertices = []
+        for cs in csl:
+            ax, ay = cs.abs_coords()
+            if cs.ft_anim:
+                qs = cs.question_scale
+                bs = cs.back_scale
+                aa = cs.ftanim_alpha
+                ca = cs.ftanim_cardalpha
+                if cs.gray:
+                    c = (.66, .66, .66, ca)
+                else:
+                    c = (1., 1., 1., ca)
+                vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
+
+                n, s = cs.number, cs.suit
+                if n: vertices += game_res.cardnumbers[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)
+                if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
+
+                c = (1, 1, 1, aa)
+
+                if qs:
+                    vertices += game_res.card_question.get_t2c4n3v3_vertices(c, ax+(1-qs)*45, ay, 0, qs*91)
+
+                if bs:
+                    vertices += game_res.card_hidden.get_t2c4n3v3_vertices(c, ax+(1-bs)*45, ay, 0, bs*91)
             else:
-                glColor4f(1., 1., 1., ca)
-            self.img.blit_nobind(0, 0)
+                a = cs.alpha
+                if cs.gray:
+                    c = (.66, .66, .66, a)
+                else:
+                    c = (1., 1., 1., a)
+                vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
 
-            n, s = self.number, self.suit
-            if n: game_res.cardnumbers[s%2*13 + n-1].blit_nobind(5, 105)
-            if s: game_res.suit[s-1].blit_nobind(6, 94)
+                n, s = cs.number, cs.suit
+                if n: vertices += game_res.cardnumbers[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)
+                if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
 
-            glColor4f(1, 1, 1, aa)
+                vertices += game_res.card_shinesoft.get_t2c4n3v3_vertices(
+                    (1., 1., 1., cs.shine_alpha), ax-6, ay-6
+                )
 
-            if qs:
-                game_res.card_question.blit_nobind((1-qs)*45, 0, 0, qs*91)
+        if vertices:
+            n = len(vertices)
+            buf = (GLfloat*n)()
+            buf[:] = vertices
+            glInterleavedArrays(GL_T2F_C4F_N3F_V3F, 0, buf)
+            with game_res.card_atlas.texture:
+                glDrawArrays(GL_QUADS, 0, n/12)
 
-            if bs:
-                game_res.card_hidden.blit_nobind((1-bs)*45, 0, 0, bs*91)
-        else:
-            a = self.alpha
-            if self.gray:
-                glColor4f(.66, .66, .66, a)
-            else:
-                glColor4f(1., 1., 1., a)
-            self.img.blit_nobind(0, 0)
-
-            n, s = self.number, self.suit
-            if n: game_res.cardnumbers[s%2*13 + n-1].blit_nobind(5, 105)
-            if s: game_res.suit[s-1].blit_nobind(6, 94)
-
-        glColor4f(1., 1., 1., self.shine_alpha)
-        game_res.card_shinesoft.blit_nobind(-6, -6)
+        glPopMatrix()
 
     def update(self):
         pass
@@ -132,11 +146,19 @@ class CardSprite(Control, BalloonPrompt):
     def _end_ft_anim(self, _self, desc):
         self.ft_anim = False
 
+@staticmethod
+def cardarea_batch_draw(cl):
+    csl = []
+    for c in cl:
+        csl += c.control_list
+    CardSprite.batch_draw(csl)
+
 class HandCardArea(Control):
     def __init__(self, fold_size=5, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.fold_size = fold_size
 
+    '''
     def draw(self):
         glColor4f(1,1,1,1)
         if not self.control_list: return
@@ -146,6 +168,9 @@ class HandCardArea(Control):
                 glTranslatef(cs.x, cs.y, 0)
                 cs.draw_vertices()
                 glPopMatrix()
+    '''
+
+    batch_draw = cardarea_batch_draw
 
     def update(self):
         fsz = self.fold_size
@@ -182,15 +207,7 @@ class PortraitCardArea(Control):
     def hit_test(self, x, y):
         return False
 
-    def draw(self):
-        glColor3f(1, 1, 1)
-        if not self.control_list: return
-        with game_res.card_atlas.texture:
-            for cs in self.control_list:
-                glPushMatrix()
-                glTranslatef(cs.x, cs.y, 0)
-                cs.draw_vertices()
-                glPopMatrix()
+    batch_draw = cardarea_batch_draw
 
     def arrange(self):
         csl = self.control_list
@@ -237,6 +254,7 @@ class DropCardArea(Control):
         Control.__init__(self, *args, **kwargs)
         self.fold_size = fold_size
 
+    '''
     def draw(self):
         glColor4f(1,1,1,1)
         if not self.control_list: return
@@ -245,7 +263,9 @@ class DropCardArea(Control):
                 glPushMatrix()
                 glTranslatef(cs.x, cs.y, 0)
                 cs.draw_vertices()
-                glPopMatrix()
+                glPopMatrix()'''
+
+    batch_draw = cardarea_batch_draw
 
     def update(self):
         fsz = self.fold_size
@@ -387,33 +407,44 @@ class SmallCardSprite(Control, BalloonPrompt):
         self.img = card.ui_meta.image_small
         self.init_balloon(card.ui_meta.description)
 
-    def draw(self):
-        with game_res.card_atlas.texture:
-            self.draw_vertices()
+    @staticmethod
+    def batch_draw(csl):
+        glPushMatrix()
+        glLoadIdentity()
+        vertices = []
+        for cs in csl:
+            ax, ay = cs.abs_coords()
+            vertices += cs.img.get_t4f_v4f_vertices(ax, ay)
 
-    def draw_vertices(self):
+            s = cs.card.suit
+            n = cs.card.number
+
+            ssuit = game_res.smallsuit
+            snum = game_res.smallnum
+
+            if n == 10: # special case
+                #g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
+                #g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
+                vertices += snum[s%2*14 + 10].get_t4f_v4f_vertices(ax-1, ay+31)
+                vertices += snum[s%2*14 + 0].get_t4f_v4f_vertices(ax+3, ay+31)
+            else:
+                vertices += snum[s%2*14 + n].get_t4f_v4f_vertices(ax+1, ay+31)
+            vertices += ssuit[s-1].get_t4f_v4f_vertices(ax+1, ay+22)
+
+            if cs.selected:
+                vertices += game_res.scardframe_selected.get_t4f_v4f_vertices(ax, ay)
+            else:
+                vertices += game_res.scardframe_normal.get_t4f_v4f_vertices(ax, ay)
+
+        n = len(vertices)
+        buf = (GLfloat*n)()
+        buf[:] = vertices
         glColor3f(1., 1., 1.)
-        self.img.blit_nobind(0, 0)
+        glInterleavedArrays(GL_T4F_V4F, 0, buf)
+        with game_res.card_atlas.texture:
+            glDrawArrays(GL_QUADS, 0, n/8)
 
-        s = self.card.suit
-        n = self.card.number
-
-        ssuit = game_res.smallsuit
-        snum = game_res.smallnum
-
-        if n == 10: # special case
-            #g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
-            #g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
-            snum[s%2*14 + 10].blit_nobind(-1, 31)
-            snum[s%2*14 + 0].blit_nobind(3, 31)
-        else:
-            snum[s%2*14 + n].blit_nobind(1, 31)
-        ssuit[s-1].blit_nobind(1, 22)
-
-        if self.selected:
-            game_res.scardframe_selected.blit_nobind(0, 0)
-        else:
-            game_res.scardframe_normal.blit_nobind(0, 0)
+        glPopMatrix()
 
 class EquipCardArea(Control):
     def __init__(self, fold_size=4, *args, **kwargs):
@@ -422,15 +453,12 @@ class EquipCardArea(Control):
         self.fold_size = fold_size
         self.selectable = False
 
-    def draw(self):
-        glColor4f(1,1,1,1)
-        if not self.control_list: return
-        with game_res.card_atlas.texture:
-            for cs in self.control_list:
-                glPushMatrix()
-                glTranslatef(cs.x, cs.y, 0)
-                cs.draw_vertices()
-                glPopMatrix()
+    @staticmethod
+    def batch_draw(cl):
+        csl = []
+        for c in cl:
+            csl += c.control_list
+        SmallCardSprite.batch_draw(csl)
 
     def update(self):
         fsz = self.fold_size
@@ -558,8 +586,15 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             **kwargs
         )
         self.x, self.y = x, y
+
+        from .view import THBattleUI
+        v = self.parent
+        while not isinstance(v, THBattleUI):
+            v = v.parent
+        self.view = v
+
         self.portcard_area = PortraitCardArea(
-            parent=self.parent,
+            parent=self.view,
             x=self.x, y=self.y,
             width=self.width, height=self.height,
             zindex=100,
@@ -581,8 +616,9 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
         @b.event
         def on_click():
-            tbl = self.parent.game.ui_meta.identity_table
-            colortbl = self.parent.game.ui_meta.identity_color
+            g = Game.getgame()
+            tbl = g.ui_meta.identity_table
+            colortbl = g.ui_meta.identity_color
             keys = tbl.keys()
             try:
                 i = (keys.index(self.cur_idtag) + 1) % len(keys)
@@ -599,7 +635,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
         @self.equipcard_area.event
         def on_selection_change():
-            self.parent.dispatch_event('on_selection_change')
+            self.view.dispatch_event('on_selection_change')
 
         def tagarrange_bottom():
             x, y = self.x, self.y
@@ -660,7 +696,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 last.delete()
                 if last.player is p:
                     return
-            ShownCardPanel(p, parent=self.parent)
+            ShownCardPanel(p, parent=self.view)
 
     def update(self):
         p = self.player
@@ -715,7 +751,8 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             Rect(port, w-2-32, 66,  w-2, 66+22, *[i/255.0 for i in port.color.light])
             Rect(port, w-2-32, 66+22,  w-2, 66, *[i/255.0 for i in port.color.heavy])
 
-        buf = (GLfloat * len(vertices))(*vertices)
+        buf = (GLfloat * len(vertices))()
+        buf[:] = vertices
         glInterleavedArrays(GL_C3F_V3F, 0, buf)
         glDrawArrays(GL_QUADS, 0, len(vertices)/6)
 
@@ -737,14 +774,15 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                     x+g.vertices[0], y+g.vertices[1]-gh*(i+1)
                 ))
 
+        glColor3f(1, 1, 1)
         if vertices:
-            glColor3f(1, 1, 1)
             with shaders.FontShadow as fs:
                 fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
-                tex = f.get_glyphs(u'Proton rocks!')[0].owner
+                tex = f.get_glyphs(u'A')[0].owner
                 with tex:
                     n = len(vertices)
-                    buf = (GLfloat*n)(*vertices)
+                    buf = (GLfloat*n)()
+                    buf[:] = vertices
                     glInterleavedArrays(GL_T4F_V4F, 0, buf)
                     glDrawArrays(GL_QUADS, 0, n/8)
 
@@ -753,8 +791,6 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             if port.actor_frame:
                 port.actor_frame.set_position(port.x - 6, port.y - 4)
 
-    @staticmethod
-    def batch_draw_hpcn(gcps):
         vertices = []
         for port in gcps:
             p = port.player
@@ -796,12 +832,16 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             except AttributeError as e:
                 pass
 
-        with nums[0].owner:
-            n = len(vertices)
-            buf = (GLfloat*n)(*vertices)
-            glInterleavedArrays(GL_T4F_V4F, 0, buf)
-            glDrawArrays(GL_QUADS, 0, n/8)
+        if vertices:
+            with nums[0].owner:
+                n = len(vertices)
+                buf = (GLfloat*n)()
+                buf[:] = vertices
+                glInterleavedArrays(GL_T4F_V4F, 0, buf)
+                glDrawArrays(GL_QUADS, 0, n/8)
 
+    @staticmethod
+    def batch_draw_hilight(gcps):
         glColor4f(0, 0, 0, 0.5)
         for port in gcps:
             if port.disabled:
@@ -817,12 +857,11 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         glPushMatrix()
         glLoadIdentity()
         GameCharacterPortrait.batch_draw_frame(gcps)
-        GameCharacterPortrait.batch_draw_hpcn(gcps)
         glPopMatrix()
-        from itertools import chain
-        cl = list(chain(*[p.control_list for p in gcps]))
-        cl.sort(key=lambda c: c.batch_draw)
+        cl = []
+        map(cl.extend, [p.control_list for p in gcps])
         Control.do_draw(cl)
+        GameCharacterPortrait.batch_draw_hilight(gcps)
 
     @property
     def zindex(self):
@@ -842,11 +881,12 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
     def on_message(self, _type, *args):
         if _type == 'evt_action_after' and isinstance(args[0], actions.RevealIdentity):
             act = args[0]
-            me = Game.getgame().me
+            g = Game.getgame()
+            me = g.me
             if (act.target is self.player) and (me in act.to if isinstance(act.to, list) else me is act.to):
                 btn = self.identity_btn
-                tbl = self.parent.game.ui_meta.identity_table
-                colortbl = self.parent.game.ui_meta.identity_color
+                tbl = g.ui_meta.identity_table
+                colortbl = g.ui_meta.identity_color
                 color = getattr(Colors, colortbl[act.target.identity.type])
                 btn.caption = tbl[act.target.identity.type]
                 btn.state = Button.DISABLED
