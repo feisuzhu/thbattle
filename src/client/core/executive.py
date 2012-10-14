@@ -161,7 +161,7 @@ class Executive(object):
 
         @handler
         def disconnect(self, cb):
-            if not self.state != 'connected':
+            if self.state != 'connected':
                 cb('not_connected')
                 return
             else:
