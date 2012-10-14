@@ -42,7 +42,10 @@ class MainThread(threading.Thread):
         def getaddrinfo(ori, host, port, family=0, socktype=0, proto=0, flags=0):
             while True:
                 try:
-                    return ori(host, port, family, socktype, proto, flags)
+                    # WARNING:
+                    # Don't change the 'family'!
+                    # gevent 0.13 on Windows doesn't handle IPv6 well!
+                    return ori(host, port, socket.AF_INET, socktype, proto, flags)
                 except dns.DNSError as e:
                     if not e.errno == 2: # dns server fail thing
                         raise
