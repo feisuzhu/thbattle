@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pyglet
+from pyglet.gl import *
 from utils import extendclass
 
 class TextureExtension(pyglet.image.Texture):
@@ -50,15 +51,14 @@ class TextureExtension(pyglet.image.Texture):
         ]
 
     def blit_nobind(self, x, y, z=0, width=None, height=None, tilt=0):
-        from pyglet.gl import glInterleavedArrays, glDrawArrays, \
-            GL_T4F_V4F, GL_QUADS, GLfloat
         array = (GLfloat * 32)()
         array[:] = self.get_t4f_v4f_vertices(x, y, z, width, height, tilt)
+        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         glInterleavedArrays(GL_T4F_V4F, 0, array)
         glDrawArrays(GL_QUADS, 0, 4)
+        glPopClientAttrib()
 
     def bind(self):
-        from pyglet.gl import glBindTexture, glEnable, glPushAttrib, GL_ENABLE_BIT
         glPushAttrib(GL_ENABLE_BIT)
         glEnable(self.target)
         glBindTexture(self.target, self.id)

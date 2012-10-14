@@ -462,6 +462,7 @@ class Frame(Control):
         batch_drawlabel(lbls)
 
         glLineWidth(2.0)
+        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         for d in dlgs:
             ax, ay = d.abs_coords()
             w, h = d.width, d.height
@@ -478,6 +479,7 @@ class Frame(Control):
             glInterleavedArrays(GL_V2F, 0, vl)
             glDrawArrays(GL_LINE_STRIP, 0, 5)
 
+        glPopClientAttrib()
         glLineWidth(1.0)
 
     @staticmethod
@@ -1424,6 +1426,7 @@ class Panel(Control):
             glColor3f(1, 1, 1)
 
             glEnable(blurtex.target)
+            glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
             glInterleavedArrays(GL_T4F_V4F, 0, self._blurtex_array)
             glBindTexture(blurtex.target, blurtex.id)
 
@@ -1440,6 +1443,7 @@ class Panel(Control):
             ShaderProgram.restore()
 
             glBindTexture(blurtex.target, 0)
+            glPopClientAttrib()
             glDisable(blurtex.target)
 
         c = self.fill_color

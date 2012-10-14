@@ -99,9 +99,11 @@ class CardSprite(Control, BalloonPrompt):
             n = len(vertices)
             buf = (GLfloat*n)()
             buf[:] = vertices
+            glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
             glInterleavedArrays(GL_T2F_C4F_N3F_V3F, 0, buf)
             with game_res.card_atlas.texture:
                 glDrawArrays(GL_QUADS, 0, n/12)
+            glPopClientAttrib()
 
         glPopMatrix()
 
@@ -440,10 +442,12 @@ class SmallCardSprite(Control, BalloonPrompt):
         buf = (GLfloat*n)()
         buf[:] = vertices
         glColor3f(1., 1., 1.)
+        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         glInterleavedArrays(GL_T4F_V4F, 0, buf)
         with game_res.card_atlas.texture:
             glDrawArrays(GL_QUADS, 0, n/8)
 
+        glPopClientAttrib()
         glPopMatrix()
 
 class EquipCardArea(Control):
@@ -722,6 +726,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
     @staticmethod
     def batch_draw_frame(gcps):
+        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         for port in gcps:
             dead = getattr(port.player, 'dead', False)
             if dead:
@@ -840,6 +845,8 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 glInterleavedArrays(GL_T4F_V4F, 0, buf)
                 glDrawArrays(GL_QUADS, 0, n/8)
 
+        glPopClientAttrib()
+        
     @staticmethod
     def batch_draw_hilight(gcps):
         glColor4f(0, 0, 0, 0.5)
