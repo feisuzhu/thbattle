@@ -114,6 +114,11 @@ class RealmSkipAction(GenericAction):
         tgt = self.target
         from itertools import chain
         allcards = list(chain.from_iterable([_from.equips, _from.fatetell]))
+
+        if not allcards:
+            # Dropped by Exinwan
+            return False
+
         card = choose_individual_card(tgt, allcards)
         if not card:
             card = random_choose_card([_from.equips, _from.fatetell])
