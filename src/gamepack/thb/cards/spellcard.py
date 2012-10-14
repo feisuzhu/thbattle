@@ -437,8 +437,7 @@ class DonationBoxEffect(InstantSpellCardAction):
 
         if cards:
             src.reveal(cards)
-            migrate_cards(cards, src.cards)
-            src.need_shuffle = True
+            migrate_cards(cards, src.showncards)
 
         return True
 

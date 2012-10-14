@@ -1625,7 +1625,7 @@ class DonationBoxCard:
     image = gres.card_donationbox
     description = (
         u'|R塞钱箱|r\n\n'
-        u'指定1-2名有手牌或装备的玩家，被指定玩家必须选择一张手牌或装备牌交给你。'
+        u'指定1-2名有手牌或装备的玩家，被指定玩家必须选择一张手牌或装备牌置入你的明牌区。'
     )
 
     def is_action_valid(g, cl, tl):
