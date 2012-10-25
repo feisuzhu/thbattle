@@ -31,7 +31,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 66'
+VERSION = 'THBATTLE V1.0b incr 67'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -121,16 +121,11 @@ NOTICE = u'''
 |R请点击地图上的两个蓝点进入游戏。实际上是同一个服务器。|r
 
 |B最近更新情况：|r
+无法登录服务器的情况调整（尝试性质）
+塞钱箱现在就将获得的牌置入明牌区
+八云紫&恶心丸相关bug修复
+优化游戏图形代码，使游戏运行更流畅
 人物调整：八云蓝，橙
-身份场BOSS现在有5个选项
-出牌时间变为15秒
-各种小bug修复
-技能组合问题修复(不排除仍然有bug，请及时报告)
-新人物：橙，八云紫
-人物调整：天子、爱丽丝、二小姐
-|R文文新闻收费，一发3节操，请节约使用！|r
-MISS后无法退出房间的bug
-某些人使用奇怪密码无法登录的问题
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
 
 另外，如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
