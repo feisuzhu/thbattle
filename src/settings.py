@@ -31,7 +31,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 67'
+VERSION = 'THBATTLE V1.0b incr 72'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -121,6 +121,10 @@ NOTICE = u'''
 |R请点击地图上的两个蓝点进入游戏。实际上是同一个服务器。|r
 
 |B最近更新情况：|r
+断线重连机制
+旁观的人现在可以发言了（暂定所有人都可以看见）
+bug修复……bug修复……还会有bug的……
+旁观系统（出现bug请一定要报告！）
 无法登录服务器的情况调整（尝试性质）
 塞钱箱现在就将获得的牌置入明牌区
 八云紫&恶心丸相关bug修复
