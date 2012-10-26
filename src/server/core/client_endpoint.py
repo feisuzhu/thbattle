@@ -9,6 +9,7 @@ import logging
 import sys
 
 from collections import deque
+from utils import BatchList
 
 from account import Account
 
@@ -25,7 +26,7 @@ class Packet(list): # compare by identity list
         return id(self) == id(other)
 
     def __ne__(self, other):
-        return self.__eq__(other)
+        return not self.__eq__(other)
 
 class Client(Endpoint, Greenlet):
     def __init__(self, sock, addr):
@@ -33,6 +34,8 @@ class Client(Endpoint, Greenlet):
         Greenlet.__init__(self)
         self.gdqueue = deque(maxlen=100)
         self.gdevent = Event()
+        self.gdhistory = []
+        self.observers = BatchList()
 
         import socket
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
@@ -91,12 +94,17 @@ class Client(Endpoint, Greenlet):
         def quick_start_game(self, _):
             hall.quick_start_game(self)
 
+        @handler('hang')
+        def observe_user(self, uid):
+            hall.observe_user(self, uid)
+
         @handler('inroomwait')
         def get_ready(self, _):
             hall.get_ready(self)
 
-        @handler('inroomwait', 'ready', 'ingame')
+        @handler('inroomwait', 'ready', 'ingame', 'observing')
         def exit_game(self, _):
+            print 'EXITGAME:', self.state
             hall.exit_game(self)
 
         @handler('inroomwait', 'ready')
@@ -187,7 +195,14 @@ class Client(Endpoint, Greenlet):
 
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
-        self.write(['gamedata', [tag, data]])
+        encoded = self.encode(['gamedata', [tag, data]])
+        self.raw_write(encoded)
+        self.gdhistory.append(encoded)
+        if self.observers: self.observers.raw_write(encoded)
+
+    def replay(self, ob):
+        for data in self.gdhistory:
+            ob.raw_write(data)
 
     def __data__(self):
         return [self.account.userid, self.account.username, self.state]
@@ -209,6 +224,7 @@ class Client(Endpoint, Greenlet):
         which confuses the new game.
         '''
         self.gdqueue.clear()
+        self.gdhistory[:] = []
 
 class DummyClient(object):
     read = write = raw_write = \

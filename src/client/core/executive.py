@@ -36,8 +36,8 @@ class GameManager(Greenlet):
                         self.game.players[i].dropped = True
             self.event_cb('player_change', data)
 
-        @handler(('inroom'), 'ingame')
-        def game_started(self, data):
+        @handler(('inroom',), 'ingame')
+        def game_started(self, _):
             from client.core import PeerPlayer, TheChosenOne, PlayerList
             pl = [PeerPlayer.parse(i) for i in self.players_data]
             pid = [i.account.userid for i in pl]
@@ -52,13 +52,36 @@ class GameManager(Greenlet):
             g.link_value(lambda *a: self.event_cb('client_game_finished', g))
             self.event_cb('game_started', g)
 
-        @handler(('hang'), 'inroom')
+        @handler(('inroom',), 'ingame')
+        def observe_started(self, tgtid):
+            from client.core import PeerPlayer, PlayerList, TheLittleBrother
+            pl = [PeerPlayer.parse(i) for i in self.players_data]
+            pid = [i.account.userid for i in pl]
+            i = pid.index(tgtid)
+            g = self.game
+            g.players = PlayerList(pl)
+            g.me = g.players[i]
+            g.me.__class__ = TheLittleBrother
+            g.start()
+
+            @g.link_exception
+            def crash(*a):
+                Executive.server.gclear()
+                self.event_cb('game_crashed', g)
+
+            @g.link_value
+            def finish(*a):
+                Executive.server.gclear()
+                self.event_cb('client_game_finished', g)
+
+            self.event_cb('game_started', g)
+
+        @handler(('hang',), 'inroom')
         def game_joined(self, data):
             self.game = gamemodes[data['type']]()
-            Executive.server.gclear()
             self.event_cb('game_joined', self.game)
 
-        @handler(('ingame'), 'hang')
+        @handler(('ingame',), 'hang')
         def fleed(self, data):
             self.game.kill()
             self.game = None
@@ -70,12 +93,12 @@ class GameManager(Greenlet):
             self.game = None
             self.event_cb('game_left')
 
-        @handler(('ingame'), 'hang')
+        @handler(('ingame',), 'hang')
         def end_game(self, data):
             self.event_cb('end_game', self.game)
             self.game = None
 
-        @handler(('connected'), None)
+        @handler(('connected',), None)
         def auth_result(self, status):
             if status == 'success':
                 self.event_cb('auth_success')
@@ -83,7 +106,7 @@ class GameManager(Greenlet):
             else:
                 self.event_cb('auth_failure', status)
 
-        @handler(('hang'), None)
+        @handler(('hang',), None)
         def your_account(self, accdata):
             Executive.account = acc = Account.parse(accdata)
             self.event_cb('your_account', acc)
@@ -102,7 +125,8 @@ class GameManager(Greenlet):
             h = handlers.get(cmd)
             if h:
                 f, _from, _to = h
-                if _from: assert self.state in _from
+                if _from:
+                    assert self.state in _from, 'Calling %s in %s state' % (f.__name__, self.state)
                 if f: f(self, data)
                 if _to: self.state = _to
             else:
@@ -219,7 +243,7 @@ class Executive(object):
             'get_hallinfo', 'quick_start_game', #'auth',
             'get_ready',    'exit_game',        'cancel_ready',
             'chat',         'speaker',          'change_location',
-            'kick_user',
+            'kick_user',    'observe_user',
         ]
         for op in ops:
             handler(simple_gm_op(op))

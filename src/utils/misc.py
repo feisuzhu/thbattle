@@ -465,3 +465,12 @@ def partition(pred, l):
     t = filter(pred, l)
     f = filter(lambda v: not pred(v), l)
     return t, f
+
+import functools
+
+def track(f):
+    @functools.wraps(f)
+    def _wrapper(*a, **k):
+        print '%s: %s %s' % (f.__name__, a, k)
+        return f(*a, **k)
+    return _wrapper

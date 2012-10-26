@@ -12,12 +12,12 @@ import random
 
 log = logging.getLogger('GameHall')
 
-from utils import DataHolder, classmix
+from utils import DataHolder, classmix, BatchList
 
 '''
 User state machine:
-                       --------------<------------<-----------
-                       |                                     |
+     [Observing]     --------------<------------<-----------
+          |          |                                     |
     -> [Hang] <-> [InRoomWait] <-> [Ready] -> [InGame] -->----
         |                  |         |             |
         --->[[Disconnect]]<-------------------------
@@ -67,6 +67,7 @@ class PlayerPlaceHolder(object):
 
     class client(object):
         state = 'left'
+        observers = BatchList()
         raw_write = write = lambda *a: False
     client = client()
 
@@ -78,6 +79,7 @@ def new_user(user):
         return False
     users[uid] = user
     user.state = 'hang'
+    user.observing = None
     log.info(u'User %s joined, online user %d' % (user.account.username, len(users)))
     evt_datachange.set()
     return True
@@ -92,8 +94,9 @@ def user_exit(user):
 def _notify_playerchange(game):
     from client_endpoint import Client
     s = Client.encode(['player_change', game.players])
-    for p in game.players:
-        p.client.raw_write(s)
+    for cl in game.players.client:
+        cl.raw_write(s)
+        if cl.observers: cl.observers.raw_write(s)
 
 def _next_free_slot(game):
     try:
@@ -156,8 +159,18 @@ def kick_user(user, uid):
 def exit_game(user):
     from .game_server import Player, DroppedPlayer
     from client_endpoint import DummyClient
-    if user.state != 'hang':
+
+    if user.state == 'observing':
+        tgt = user.observing
+        tgt.observers.remove(user)
+        user.state = 'hang'
+        user.observing = None
+        user.gclear()
+        user.write(['game_left', None])
+
+    elif user.state != 'hang':
         g = user.current_game
+        user.gclear()
         i = g.players.client.index(user)
         if g.game_started:
             p = g.players[i]
@@ -171,6 +184,12 @@ def exit_game(user):
                 user.account.other['games'] += 1
                 user.account.other['drops'] += 1
             p.client.gbreak() # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
+
+            for ob in user.observers:
+                ob.write(['game_left', None])
+                ob.state = 'hang'
+                ob.observing = None
+            user.observers[:] = []
 
             if p.__class__ is Player:
                 p.__class__ = DroppedPlayer
@@ -223,7 +242,6 @@ def join_game(user, gameid):
             g.players[slot] = Player(user)
             user.write(['game_joined', g])
             _notify_playerchange(g)
-            user.gclear() # clear stale gamedata
             evt_datachange.set()
             return
     user.write(['gamehall_error', 'cant_join_game'])
@@ -236,6 +254,39 @@ def quick_start_game(user):
             return
     user.write(['gamehall_error', 'cant_join_game'])
 
+def observe_user(user, other_userid):
+    # FIXME: temp code
+    g = games[other_userid]
+    other = g.players[0].client
+    #other = users.get(other_userid, None)
+    if not other:
+        user.write(['gamehall_error', 'no_such_user'])
+        return
+
+    if other.state not in ('ingame', 'inroomwait', 'ready'):
+        user.write(['gamehall_error', 'user_not_ingame'])
+        return
+
+    g = other.current_game
+    other.observers.append(user)
+
+    if len(g.banlist[user]) >= 3:
+        user.write(['gamehall_error', 'banned'])
+        return
+
+    log.info("observe game")
+    user.state = 'observing'
+    user.current_game = g
+    user.observing = other
+    user.write(['game_joined', g])
+    user.gclear() # clear stale gamedata
+    _notify_playerchange(g)
+    evt_datachange.set()
+
+    if g.started:
+        user.write(['observe_started', other.account.userid])
+        other.replay(user)
+
 def send_hallinfo(user):
     user.write(['current_games', games.values()])
     user.write(['current_users', users.values()])
@@ -247,6 +298,7 @@ def start_game(g):
     g.start_time = time()
     for u in g.players.client:
         u.write(["game_started", None])
+        if u.observers: u.observers.write(['observe_started', u.account.userid])
         u.state = 'ingame'
     evt_datachange.set()
 
@@ -264,6 +316,7 @@ def end_game(g):
     winners = g.winners
     bonus = g.n_persons * 5 / len(winners) if winners else 0
     for p in pl:
+        p.client.gclear() # clear game data
         if not (p.dropped and p.fleed):
             s = 5 + bonus if p in winners else 5
             p.client.account.other['credits'] += int(s * rate)
@@ -284,8 +337,15 @@ def end_game(g):
     for cl in pl.client:
         cl.write(['end_game', None])
         cl.write(['game_joined', ng])
+        if cl.observers:
+            obl = cl.observers
+            obl.write(['end_game', None])
+            obl.write(['game_joined', ng])
         cl.current_game = ng
         cl.state = 'inroomwait'
+        for ob in cl.observers:
+            ob.current_game = ng
+            ob.state = 'observing'
     _notify_playerchange(ng)
     evt_datachange.set()
 
@@ -297,13 +357,16 @@ def chat(user, msg):
                     u.write(['chat_msg', [user.account.username, msg]])
         elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
             ul = user.current_game.players.client
+            obl = BatchList()
+            map(ob.__iadd__, ul.observers)
             ul.write(['chat_msg', [user.account.username, msg]])
+            obl.write(['chat_msg', [user.account.username, msg]])
     gevent.spawn(worker)
 
 def speaker(user, msg):
     def worker():
         if user.account.other['credits'] < 3:
-            user.write(['system_msg', [None, u'您的节操不足，文文不愿意帮你散播消息。']])
+            user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
         else:
             user.account.other['credits'] -= 3
             for u in users.values():

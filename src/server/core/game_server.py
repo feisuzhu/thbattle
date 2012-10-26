@@ -106,7 +106,6 @@ class Player(game.AbstractPlayer):
             #hall.exit_game(self.client)
             input = None
         pl = PlayerList(g.players[:])
-        pl.remove(self)
         pl.client.gwrite('input_%s_%d' % (tag, st), input) # tell other players
         return input
 

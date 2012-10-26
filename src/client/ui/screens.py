@@ -363,7 +363,12 @@ class GameHallScreen(Screen):
 
             @self.gamelist.event
             def on_item_dblclick(li):
-                Executive.call('join_game', ui_message, li.game_id)
+                # TODO:
+                if li.started:
+                    Executive.call('observe_user', ui_message, li.game_id)
+                else:
+                    Executive.call('join_game', ui_message, li.game_id)
+
 
         def on_message(self, _type, *args):
             if _type == 'current_games':
@@ -391,6 +396,7 @@ class GameHallScreen(Screen):
                         [u'等待中', u'游戏中'][gi['started']]
                     ])
                     li.game_id = gi['id']
+                    li.started = gi['started']
 
     class ChatBox(Frame):
         def __init__(self, parent):
@@ -438,6 +444,7 @@ class GameHallScreen(Screen):
                 'ingame': u'|G游戏中|r',
                 'inroomwait': u'|R在房间中|r',
                 'ready': u'|c9f5f9fff准备状态|r',
+                'observing': u'|LB观战中|r',
             }
             if _type == 'current_users':
                 users = args[0]

@@ -26,7 +26,7 @@ class Server(Endpoint, Greenlet):
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
-        self.gdqueue = deque(maxlen=100)
+        self.gdqueue = deque(maxlen=100000)
         self.gdevent = Event()
         self.ctlcmds = Queue(100)
         self.userid = 0
@@ -41,7 +41,7 @@ class Server(Endpoint, Greenlet):
 
     def _gamedata(self, data):
         l = self.gdqueue
-        if len(l) >= 100:
+        if len(l) >= 100000:
             log.warn('GAMEDATA LIST TOO LONG, KILLING')
             self.instant_kill()
         else:

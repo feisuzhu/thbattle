@@ -44,10 +44,10 @@ class TheChosenOne(game.AbstractPlayer):
         except gevent.Timeout:
             g.emit_event('user_input_timeout', input)
             rst = input
-        finally:
-            g.emit_event('user_input_finish', input)
 
         Executive.server.gwrite('input_%s_%d' % (tag, st), rst.input)
+        rst.input = Executive.server.gexpect('input_%s_%d' % (tag, st))
+        g.emit_event('user_input_finish', input)
         return rst.input
 
     @property
@@ -196,6 +196,17 @@ class PeerPlayer(game.AbstractPlayer):
         return pp
 
     # account = < set by update >
+
+class TheLittleBrother(PeerPlayer):
+    _reveal = TheChosenOne.reveal.im_func
+    _user_input = PeerPlayer.user_input.im_func
+    def reveal(self, *a, **k):
+        gevent.sleep(0.1)
+        return self._reveal(*a, **k)
+
+    def user_input(self, *a, **k):
+        gevent.sleep(0.1)
+        return self._user_input(*a, **k)
 
 class Game(Greenlet, game.Game):
     '''
