@@ -1360,16 +1360,20 @@ class ConfirmBox(Dialog):
         self.labels.append(lbl)
 
         btn = ConfirmButtons(buttons, parent=self, color=self.color)
+        self.value = buttons[0][1]
         @btn.event
         def on_confirm(val):
             self.value = val
             self.delete()
-            self.dispatch_event('on_confirm', val)
         btn.x, btn.y = (dw - btn.width)/2, 5
 
         p = self.parent
         pw, ph = p.width, p.height
         self.x, self.y = (pw - dw)/2, (ph - dh)/2
+
+    def delete(self):
+        self.dispatch_event('on_confirm', self.value)
+        Dialog.delete(self)
 
 ConfirmBox.register_event_type('on_confirm')
 

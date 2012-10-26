@@ -243,7 +243,8 @@ class Executive(object):
             'get_hallinfo', 'quick_start_game', #'auth',
             'get_ready',    'exit_game',        'cancel_ready',
             'chat',         'speaker',          'change_location',
-            'kick_user',    'observe_user',
+            'kick_user',    'observe_user',     'query_gameinfo',
+            'observe_grant',
         ]
         for op in ops:
             handler(simple_gm_op(op))

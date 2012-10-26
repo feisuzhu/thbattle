@@ -98,6 +98,10 @@ def _notify_playerchange(game):
         cl.raw_write(s)
         if cl.observers: cl.observers.raw_write(s)
 
+def query_gameinfo(user, gid):
+    g = games.get(gid, None)
+    if g: user.write(['gameinfo', [gid, g.players]])
+
 def _next_free_slot(game):
     try:
         return game.players.index(PlayerPlaceHolder)
@@ -185,12 +189,6 @@ def exit_game(user):
                 user.account.other['drops'] += 1
             p.client.gbreak() # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
 
-            for ob in user.observers:
-                ob.write(['game_left', None])
-                ob.state = 'hang'
-                ob.observing = None
-            user.observers[:] = []
-
             if p.__class__ is Player:
                 p.__class__ = DroppedPlayer
             else:
@@ -205,6 +203,12 @@ def exit_game(user):
             log.info('player leave')
             g.players[i] = PlayerPlaceHolder
             user.write(['game_left', None])
+        
+        for ob in user.observers:
+            ob.write(['game_left', None])
+            ob.state = 'hang'
+            ob.observing = None
+        user.observers[:] = []
 
         user.state = 'hang'
         _notify_playerchange(g)
@@ -254,11 +258,7 @@ def quick_start_game(user):
             return
     user.write(['gamehall_error', 'cant_join_game'])
 
-def observe_user(user, other_userid):
-    # FIXME: temp code
-    g = games[other_userid]
-    other = g.players[0].client
-    #other = users.get(other_userid, None)
+def _observe_user(user, other):
     if not other:
         user.write(['gamehall_error', 'no_such_user'])
         return
@@ -269,10 +269,6 @@ def observe_user(user, other_userid):
 
     g = other.current_game
     other.observers.append(user)
-
-    if len(g.banlist[user]) >= 3:
-        user.write(['gamehall_error', 'banned'])
-        return
 
     log.info("observe game")
     user.state = 'observing'
@@ -286,6 +282,36 @@ def observe_user(user, other_userid):
     if g.started:
         user.write(['observe_started', other.account.userid])
         other.replay(user)
+
+observe_table = defaultdict(set)
+def observe_user(user, other_userid):
+    other = users.get(other_userid, None)
+    if not other:
+        user.write(['gamehall_error', 'no_such_user'])
+        return
+
+    if other.state not in ('ingame', 'inroomwait', 'ready'):
+        user.write(['gamehall_error', 'user_not_ingame'])
+        return
+
+    observe_table[other_userid].add(user.account.userid)
+    other.write(['observe_request', [user.account.userid, user.account.username]])
+
+def observe_grant(user, rst):
+    try:
+        ob_id, grant = rst
+    except:
+        return
+
+    l = observe_table[user.account.userid]
+    if ob_id in l:
+        l.remove(ob_id)
+        ob = users.get(ob_id, None)
+        if not (ob and ob.state == 'hang'): return
+        if grant:
+            _observe_user(ob, user)
+        else:
+            ob.write(['observe_refused', user.account.username])
 
 def send_hallinfo(user):
     user.write(['current_games', games.values()])
@@ -358,7 +384,7 @@ def chat(user, msg):
         elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
             ul = user.current_game.players.client
             obl = BatchList()
-            map(ob.__iadd__, ul.observers)
+            map(obl.__iadd__, ul.observers)
             ul.write(['chat_msg', [user.account.username, msg]])
             obl.write(['chat_msg', [user.account.username, msg]])
     gevent.spawn(worker)

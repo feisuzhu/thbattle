@@ -328,6 +328,66 @@ class GameHallScreen(Screen):
                     fs.uniform.shadow_color = (0.81, 0.94, 0.61, 0.8)
                     self.labels.draw()
 
+        class ObserveGamePanel(Panel):
+            def __init__(self, game_id, *a, **k):
+                Panel.__init__(
+                    self, width=550, height=340,
+                    zindex=10000,
+                    *a, **k
+                )
+                self.game_id = game_id
+                self.x = (self.overlay.width - 550) // 2
+                self.y = (self.overlay.height - 340) // 2
+
+                self.btncancel = btncancel = Button(
+                    u'取消', parent=self, x=440, y=25, width=90, height=40
+                )
+
+                self.labels = BatchList([
+                    pyglet.text.Label(
+                        u'旁观游戏', font_size=12, x=275, y=306,
+                        anchor_x = 'center', anchor_y = 'bottom',
+                        color = Colors.green.heavy + (255, ),
+                    )
+                ])
+
+                @btncancel.event
+                def on_click():
+                    self.delete()
+
+                Executive.call('query_gameinfo', ui_message, game_id)
+
+            def draw(self):
+                Panel.draw(self)
+                with shaders.FontShadow as fs:
+                    fs.uniform.shadow_color = (0.81, 0.94, 0.61, 0.8)
+                    self.labels.draw()
+
+            def on_message(self, _type, *args):
+                if _type == 'gameinfo':
+                    gid, ul = args[0]
+                    if gid != self.game_id: return
+
+                    ul = [i for i in ul if i['state'] != 'dropped']
+
+                    for i, p in enumerate(ul):
+                        y, x = divmod(i, 5)
+                        x, y = 30 + 100*x, 250 - 60*y
+                        acc = Account.parse(p['account'])
+                        s = Button(
+                            acc.username,
+                            color=Colors.orange,
+                            parent=self, x=x, y=y,
+                            width=95, height=30,
+                        )
+                        s.userid = acc.userid
+
+                        @s.event
+                        def on_click(uid=acc.userid, un=acc.username):
+                            Executive.call('observe_user', ui_message, uid)
+                            self.overlay.chat_box.append(u'|R已经向%s发送了旁观请求，请等待回应……|r\n' % un)
+                            self.delete()
+
         def __init__(self, p):
             Frame.__init__(
                 self, parent=p, caption=u'当前大厅内的游戏',
@@ -365,7 +425,8 @@ class GameHallScreen(Screen):
             def on_item_dblclick(li):
                 # TODO:
                 if li.started:
-                    Executive.call('observe_user', ui_message, li.game_id)
+                    #Executive.call('observe_user', ui_message, li.game_id)
+                    self.ObserveGamePanel(li.game_id, parent=self.overlay)
                 else:
                     Executive.call('join_game', ui_message, li.game_id)
 
@@ -540,6 +601,9 @@ class GameHallScreen(Screen):
                 'cant_join_game': u'无法加入游戏！'
             }
             ConfirmBox(mapping.get(args[0], args[0]), parent=self)
+        elif _type == 'observe_refused':
+            uname = args[0]
+            self.chat_box.append('|R%s 回绝了你的旁观请求|r\n' % uname)
         else:
             Screen.on_message(self, _type, *args)
 
@@ -714,6 +778,15 @@ class GameScreen(Screen):
 
         elif _type == 'game_crashed':
             ConfirmBox(u'游戏逻辑已经崩溃，请退出房间！\n这是不正常的状态，你可以报告bug。', parent=self)
+        elif _type == 'observe_request':
+            uid, uname = args[0]
+            box = ConfirmBox(
+                u'玩家 %s 希望旁观你的游戏，是否允许？\n旁观玩家可以看到你的手牌。' % uname,
+                parent=self, buttons=((u'允许', True), (u'不允许', False))
+            )
+            @box.event
+            def on_confirm(val, uid=uid):
+                Executive.call('observe_grant', ui_message, [uid, val])
         else:
             Screen.on_message(self, _type, *args)
 

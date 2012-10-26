@@ -98,13 +98,20 @@ class Client(Endpoint, Greenlet):
         def observe_user(self, uid):
             hall.observe_user(self, uid)
 
+        @handler('inroomwait', 'ready', 'ingame')
+        def observe_grant(self, rst):
+            hall.observe_grant(self, rst)
+
+        @handler('hang')
+        def query_gameinfo(self, gid):
+            hall.query_gameinfo(self, gid)
+
         @handler('inroomwait')
         def get_ready(self, _):
             hall.get_ready(self)
 
         @handler('inroomwait', 'ready', 'ingame', 'observing')
         def exit_game(self, _):
-            print 'EXITGAME:', self.state
             hall.exit_game(self)
 
         @handler('inroomwait', 'ready')
