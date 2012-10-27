@@ -82,7 +82,7 @@ class PlayerList(BatchList):
             g.kill(Break(), block=False)
             return pid, data
 
-        if g.me in self:
+        if isinstance(g.me, TheChosenOne) and g.me in self:
             try:
                 waiter = gevent.spawn(waiter_func)
                 tle = TimeLimitExceeded(timeout)

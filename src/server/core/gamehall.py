@@ -118,6 +118,7 @@ def create_game(user, gametype, gamename):
     g.game_started = False
     g.game_name = gamename
     g.players = PlayerList([PlayerPlaceHolder] * g.n_persons)
+    g.players_original = None
     g.banlist = defaultdict(set)
     gid = new_gameid()
     g.gameid = gid
@@ -203,7 +204,7 @@ def exit_game(user):
             log.info('player leave')
             g.players[i] = PlayerPlaceHolder
             user.write(['game_left', None])
-        
+
         for ob in user.observers:
             ob.write(['game_left', None])
             ob.state = 'hang'
@@ -276,11 +277,12 @@ def _observe_user(user, other):
     user.observing = other
     user.write(['game_joined', g])
     user.gclear() # clear stale gamedata
-    _notify_playerchange(g)
+    #_notify_playerchange(g)
+    pl = g.players if not g.players_original else g.players_original
     evt_datachange.set()
 
     if g.started:
-        user.write(['observe_started', other.account.userid])
+        user.write(['observe_started', [other.account.userid, pl]])
         other.replay(user)
 
 observe_table = defaultdict(set)
@@ -321,10 +323,14 @@ def send_hallinfo(user):
 def start_game(g):
     log.info("game started")
     g.game_started = True
+    g.players_original = BatchList(g.players)
     g.start_time = time()
     for u in g.players.client:
         u.write(["game_started", None])
-        if u.observers: u.observers.write(['observe_started', u.account.userid])
+        u.gclear()
+        if u.observers:
+            u.observers.gclear()
+            u.observers.write(['observe_started', [u.account.userid, g.players]])
         u.state = 'ingame'
     evt_datachange.set()
 

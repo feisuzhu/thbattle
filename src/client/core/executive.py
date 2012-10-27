@@ -31,10 +31,17 @@ class GameManager(Greenlet):
         def player_change(self, data):
             self.players_data = data
             if self.state == 'ingame':
-                for i, p in enumerate(data):
-                    if p['state'] == 'dropped':
-                        self.game.players[i].dropped = True
-            self.event_cb('player_change', data)
+                data1 = []
+                for p in data:
+                    acc = Account.parse(p['account'])
+                    for i, pl in enumerate(self.game.players):
+                        if pl.account.userid != acc.userid: continue
+                        data1.append(p)
+                        self.game.players[i].dropped = (p['state'] == 'dropped')
+
+                self.event_cb('player_change', data1)
+            else:
+                self.event_cb('player_change', data)
 
         @handler(('inroom',), 'ingame')
         def game_started(self, _):
@@ -48,14 +55,24 @@ class GameManager(Greenlet):
             g.me = me
             g.players = PlayerList(pl)
             g.start()
-            g.link_exception(lambda *a: self.event_cb('game_crashed', g))
-            g.link_value(lambda *a: self.event_cb('client_game_finished', g))
+
+            @g.link_exception
+            def crash(*a):
+                Executive.server.gclear()
+                self.event_cb('game_crashed', g)
+
+            @g.link_value
+            def finish(*a):
+                Executive.server.gclear()
+                self.event_cb('client_game_finished', g)
+
             self.event_cb('game_started', g)
 
         @handler(('inroom',), 'ingame')
-        def observe_started(self, tgtid):
+        def observe_started(self, data):
+            tgtid, pldata = data
             from client.core import PeerPlayer, PlayerList, TheLittleBrother
-            pl = [PeerPlayer.parse(i) for i in self.players_data]
+            pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
             i = pid.index(tgtid)
             g = self.game

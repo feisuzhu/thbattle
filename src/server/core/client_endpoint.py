@@ -234,7 +234,7 @@ class Client(Endpoint, Greenlet):
         self.gdhistory[:] = []
 
 class DummyClient(object):
-    read = write = raw_write = \
+    read = write = raw_write = gclear = \
     gwrite = gexpect = lambda *a, **k: False
 
     def __init__(self, client=None):
