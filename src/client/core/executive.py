@@ -11,6 +11,8 @@ from account import Account
 import logging
 log = logging.getLogger('Executive')
 
+class ForcedKill(gevent.GreenletExit): pass
+
 class GameManager(Greenlet):
     '''
     Handles server messages, all game related operations.
@@ -18,6 +20,8 @@ class GameManager(Greenlet):
     def __init__(self):
         Greenlet.__init__(self)
         self.state = 'connected'
+        self.game = None
+        self.last_game = None
 
     def _run(self):
         from gamepack import gamemodes
@@ -45,6 +49,13 @@ class GameManager(Greenlet):
 
         @handler(('inroom',), 'ingame')
         def game_started(self, _):
+            if self.last_game:
+                self.last_game.kill(ForcedKill)
+                self.last_game.get()
+                self.last_game = None
+
+            Executive.server.gclear()
+
             from client.core import PeerPlayer, TheChosenOne, PlayerList
             pl = [PeerPlayer.parse(i) for i in self.players_data]
             pid = [i.account.userid for i in pl]
@@ -55,21 +66,30 @@ class GameManager(Greenlet):
             g.me = me
             g.players = PlayerList(pl)
             g.start()
+            log.info('=======GAME STARTED=======')
+            log.info(g)
 
             @g.link_exception
             def crash(*a):
-                Executive.server.gclear()
                 self.event_cb('game_crashed', g)
 
             @g.link_value
             def finish(*a):
-                Executive.server.gclear()
-                self.event_cb('client_game_finished', g)
+                v = g.get()
+                if not isinstance(v, ForcedKill):
+                    self.event_cb('client_game_finished', g)
 
             self.event_cb('game_started', g)
 
         @handler(('inroom',), 'ingame')
         def observe_started(self, data):
+            if self.last_game:
+                self.last_game.kill(ForcedKill)
+                self.last_game.get()
+                self.last_game = None
+
+            Executive.server.gclear()
+
             tgtid, pldata = data
             from client.core import PeerPlayer, PlayerList, TheLittleBrother
             pl = [PeerPlayer.parse(i) for i in pldata]
@@ -80,16 +100,18 @@ class GameManager(Greenlet):
             g.me = g.players[i]
             g.me.__class__ = TheLittleBrother
             g.start()
+            log.info('=======OBSERVE STARTED=======')
+            log.info(g)
 
             @g.link_exception
             def crash(*a):
-                Executive.server.gclear()
                 self.event_cb('game_crashed', g)
 
             @g.link_value
             def finish(*a):
-                Executive.server.gclear()
-                self.event_cb('client_game_finished', g)
+                v = g.get()
+                if not isinstance(v, ForcedKill):
+                    self.event_cb('client_game_finished', g)
 
             self.event_cb('game_started', g)
 
@@ -100,20 +122,25 @@ class GameManager(Greenlet):
 
         @handler(('ingame',), 'hang')
         def fleed(self, data):
-            self.game.kill()
+            self.game.kill(ForcedKill)
             self.game = None
+            log.info('=======FLEED=======')
+            Executive.server.gclear()
             self.event_cb('fleed')
 
         @handler(('ingame', 'inroom'), 'hang')
         def game_left(self, data):
-            self.game.kill()
+            self.game.kill(ForcedKill)
             self.game = None
+            log.info('=======GAME LEFT=======')
+            Executive.server.gclear()
             self.event_cb('game_left')
 
         @handler(('ingame',), 'hang')
         def end_game(self, data):
             self.event_cb('end_game', self.game)
-            self.game = None
+            log.info('=======GAME ENDED=======')
+            self.last_game = self.game
 
         @handler(('connected',), None)
         def auth_result(self, status):

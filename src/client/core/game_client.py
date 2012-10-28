@@ -200,6 +200,10 @@ class PeerPlayer(game.AbstractPlayer):
 class TheLittleBrother(PeerPlayer):
     _reveal = TheChosenOne.reveal.im_func
     _user_input = PeerPlayer.user_input.im_func
+
+    # FIXME:
+    # If returned too fast, UI will malfunction
+    # should fix UI.
     def reveal(self, *a, **k):
         gevent.sleep(0.1)
         return self._reveal(*a, **k)

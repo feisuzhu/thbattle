@@ -196,6 +196,7 @@ class Client(Endpoint, Greenlet):
                         log.debug('Dropped gamedata: %s' % d)
                     else:
                         log.debug('GAME_DATA_MISS: %s', repr(d))
+                        log.debug('EXPECTS: %s' % tag)
                         l.append(d)
             e.clear()
             e.wait()

@@ -19,7 +19,7 @@ class PlayerList(BatchList):
         st = g.get_synctag()
         tagstr = 'inputany_%s_%d' % (tag, st)
 
-        wait_queue = Queue(10)
+        wait_queue = Queue(20)
         pl = PlayerList(p for p in self if not isinstance(p, DroppedPlayer))
         n = len(pl)
         def waiter(p):
