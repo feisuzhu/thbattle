@@ -28,7 +28,7 @@ class Server(Endpoint, Greenlet):
         Greenlet.__init__(self)
         self.gdqueue = deque(maxlen=100000)
         self.gdevent = Event()
-        self.ctlcmds = Queue(1)
+        self.ctlcmds = Queue(0)
         self.userid = 0
 
     def _run(self):

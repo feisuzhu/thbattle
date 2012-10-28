@@ -755,6 +755,10 @@ class GameScreen(Screen):
             uname, msg = args[0]
             uname = uname.replace('|', '||')
             self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
+        elif _type == 'ob_msg':
+            uname, msg = args[0]
+            uname = uname.replace('|', '||')
+            self.chat_box.append(u'|c9f5f9fff%s|r： %s\n' % (uname, msg))
         elif _type == 'speaker_msg':
             uname, msg = args[0]
             uname = uname.replace('|', '||')

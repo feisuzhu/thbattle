@@ -138,11 +138,11 @@ class Client(Endpoint, Greenlet):
             self.write(['bye', None])
             self.close()
 
-        @handler('hang', 'inroomwait', 'ready', 'ingame')
+        @handler('hang', 'inroomwait', 'ready', 'ingame', 'observing')
         def chat(self, data):
             hall.chat(self, data)
 
-        @handler('hang', 'inroomwait', 'ready', 'ingame')
+        @handler('hang', 'inroomwait', 'ready', 'ingame', 'observing')
         def speaker(self, data):
             hall.speaker(self, data)
 

@@ -387,12 +387,16 @@ def chat(user, msg):
             for u in users.values():
                 if u.state == 'hang':
                     u.write(['chat_msg', [user.account.username, msg]])
-        elif user.state in ('inroomwait', 'ready', 'ingame'): # room chat
+        elif user.state in ('inroomwait', 'ready', 'ingame', 'observing'): # room chat
             ul = user.current_game.players.client
             obl = BatchList()
             map(obl.__iadd__, ul.observers)
-            ul.write(['chat_msg', [user.account.username, msg]])
-            obl.write(['chat_msg', [user.account.username, msg]])
+            if user.state == 'observing':
+                ul.write(['ob_msg', [user.account.username, msg]]) # should be here?
+                obl.write(['ob_msg', [user.account.username, msg]])
+            else:
+                ul.write(['chat_msg', [user.account.username, msg]])
+                obl.write(['chat_msg', [user.account.username, msg]])
     gevent.spawn(worker)
 
 def speaker(user, msg):

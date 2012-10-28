@@ -49,12 +49,11 @@ class GameManager(Greenlet):
 
         @handler(('inroom',), 'ingame')
         def game_started(self, _):
+            Executive.server.gclear()
             if self.last_game:
                 self.last_game.kill(ForcedKill)
                 self.last_game.get()
                 self.last_game = None
-
-            Executive.server.gclear()
 
             from client.core import PeerPlayer, TheChosenOne, PlayerList
             pl = [PeerPlayer.parse(i) for i in self.players_data]
@@ -83,12 +82,11 @@ class GameManager(Greenlet):
 
         @handler(('inroom',), 'ingame')
         def observe_started(self, data):
+            Executive.server.gclear()
             if self.last_game:
                 self.last_game.kill(ForcedKill)
                 self.last_game.get()
                 self.last_game = None
-
-            Executive.server.gclear()
 
             tgtid, pldata = data
             from client.core import PeerPlayer, PlayerList, TheLittleBrother
