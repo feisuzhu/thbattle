@@ -20,7 +20,7 @@ class PlayerList(BatchList):
         tagstr = 'inputany_%s_%d' % (tag, st)
 
         wait_queue = Queue(20)
-        pl = PlayerList(p for p in self if not isinstance(p, DroppedPlayer))
+        pl = PlayerList(p for p in self if not p.dropped)
         n = len(pl)
         def waiter(p):
             try:
@@ -119,25 +119,6 @@ class Player(game.AbstractPlayer):
     def account(self):
         return self.client.account
 
-class DroppedPlayer(Player):
-    dropped = True
-    def __data__(self):
-        data = Player.__data__(self)
-        data['state'] = 'dropped'
-        return data
-
-    def reveal(self, obj_list):
-        Game.getgame().get_synctag() # must sync
-
-    def user_input(self, tag, attachment=None, timeout=15, g=None, st=None):
-        g = g if g else Game.getgame()
-        st = st if st else g.get_synctag()
-        g.players.client.gwrite('input_%s_%d' % (tag, st), None) # null input
-
-    @property
-    def account(self):
-        return self.client.account
-
 class Game(Greenlet, game.Game):
     '''
     The Game class, all game mode derives from this.
@@ -160,7 +141,7 @@ class Game(Greenlet, game.Game):
             type=self.__class__.__name__,
             started=self.game_started,
             name=self.game_name,
-            nplayers=sum(not (isinstance(p, DroppedPlayer) or p is pph) for p in self.players),
+            nplayers=sum(not (p is pph or p.dropped) for p in self.players),
         )
 
     def __init__(self):

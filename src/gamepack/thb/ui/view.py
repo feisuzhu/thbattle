@@ -33,7 +33,7 @@ class UIEventHook(EventHandler):
 
     def evt_shuffle_cards(self, args):
         import gevent
-        gevent.sleep(0.2) # wait a sec, or ui will display as hidden card
+        gevent.sleep(0.1) # wait a sec, or ui will display as hidden card
         return args
 
     # evt_user_input_timeout, InputControllers handle this
@@ -320,11 +320,10 @@ class THBattleUI(Control):
 
         elif _type == 'player_change':
             for i, pd in enumerate(args[0]):
-                if pd['state'] == 'dropped':
-                    p = self.game.players[i]
-                    port = self.player2portrait(p)
-                    port.dropped = True
-                    port.update()
+                p = self.game.players[i]
+                port = self.player2portrait(p)
+                port.dropped = (pd['state'] == 'dropped')
+                port.update()
 
         if _type.startswith('evt_'):
             inputs.handle_event(self, _type[4:], args[0])

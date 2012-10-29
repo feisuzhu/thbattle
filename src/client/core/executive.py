@@ -48,7 +48,7 @@ class GameManager(Greenlet):
                 self.event_cb('player_change', data)
 
         @handler(('inroom',), 'ingame')
-        def game_started(self, _):
+        def game_started(self, pldata):
             Executive.server.gclear()
             if self.last_game:
                 self.last_game.kill(ForcedKill)
@@ -56,7 +56,7 @@ class GameManager(Greenlet):
                 self.last_game = None
 
             from client.core import PeerPlayer, TheChosenOne, PlayerList
-            pl = [PeerPlayer.parse(i) for i in self.players_data]
+            pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
             me = TheChosenOne()
             i = pid.index(me.account.userid)
@@ -64,7 +64,7 @@ class GameManager(Greenlet):
             g = self.game
             g.me = me
             g.players = PlayerList(pl)
-            g.start()
+            #g.start()
             log.info('=======GAME STARTED=======')
             log.info(g)
 
@@ -97,7 +97,7 @@ class GameManager(Greenlet):
             g.players = PlayerList(pl)
             g.me = g.players[i]
             g.me.__class__ = TheLittleBrother
-            g.start()
+            #g.start()
             log.info('=======OBSERVE STARTED=======')
             log.info(g)
 

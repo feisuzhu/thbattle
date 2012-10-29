@@ -27,6 +27,7 @@ User state machine:
 # but this works fine, not touching it.
 games = {} # all games
 users = {} # all users
+dropped_users = {} # passively dropped users
 evt_datachange = Event()
 
 _curgameid = 0
@@ -75,12 +76,51 @@ PlayerPlaceHolder = PlayerPlaceHolder()
 
 def new_user(user):
     uid = user.account.userid
+    user.write(['your_account', user.account])
     if uid in users:
-        return False
+        # squeeze the original one out
+        log.info('%s has been sqeezed out' % user.account.username)
+        old = users[uid]
+        #if old.state not in('connected', 'hang'):
+        #    exit_game(old, drops=True)
+        old.write(['others_logged_in', None])
+        old.close()
+
+        user.account = old.account
+
     users[uid] = user
     user.state = 'hang'
     user.observing = None
     log.info(u'User %s joined, online user %d' % (user.account.username, len(users)))
+
+    if uid in dropped_users:
+        log.info(u'%s rejoining dropped game' % user.account.username)
+        old = dropped_users[uid]
+        from client_endpoint import DroppedClient
+        assert isinstance(old, DroppedClient), 'Arghhhhh'
+
+        g = user.current_game = old.current_game
+        user.gdhistory = old.gdhistory
+        user.state = 'ingame'
+
+        for p in g.players:
+            if p.client is old:
+                break
+        else:
+            assert False, 'Oops'
+
+        p.client = user
+        p.dropped = False
+
+        user.write(['game_joined', g])
+        user.write(['game_started', g.players_original])
+
+        user.replay(user)
+
+        del dropped_users[uid]
+
+        _notify_playerchange(g)
+
     evt_datachange.set()
     return True
 
@@ -161,9 +201,9 @@ def kick_user(user, uid):
     if len(bl) >= len(cl)//2:
         exit_game(u)
 
-def exit_game(user):
-    from .game_server import Player, DroppedPlayer
-    from client_endpoint import DummyClient
+def exit_game(user, drops=False):
+    from .game_server import Player
+    from client_endpoint import DroppedClient
 
     if user.state == 'observing':
         tgt = user.observing
@@ -175,7 +215,7 @@ def exit_game(user):
 
     elif user.state != 'hang':
         g = user.current_game
-        user.gclear()
+        if not drops: user.gclear()
         i = g.players.client.index(user)
         if g.game_started:
             p = g.players[i]
@@ -184,22 +224,20 @@ def exit_game(user):
                 user.write(['game_left', None])
                 p.fleed = False
             else:
-                user.write(['fleed', None])
-                p.fleed = True
+                if not drops:
+                    user.write(['fleed', None])
+                    p.fleed = True
+                else:
+                    p.fleed = False
                 user.account.other['games'] += 1
                 user.account.other['drops'] += 1
             p.client.gbreak() # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
 
-            if p.__class__ is Player:
-                p.__class__ = DroppedPlayer
-            else:
-                # It's a dynamic created class, Mixed(Player, Character) or something.
-                cls = p.__class__
-                bases = list(cls.__bases__)
-                bases[bases.index(Player)] = DroppedPlayer
-                p.__class__ = classmix(*bases)
-
-            p.client = DummyClient(g.players[i].client)
+            p.dropped = True
+            dummy = DroppedClient(g.players[i].client)
+            if drops:
+                dropped_users[p.client.account.userid] = dummy
+            p.client = dummy
         else:
             log.info('player leave')
             g.players[i] = PlayerPlaceHolder
@@ -220,11 +258,19 @@ def exit_game(user):
             except KeyError:
                 pass
 
-        if all((p is PlayerPlaceHolder or isinstance(p, DroppedPlayer)) for p in g.players):
+        if all((p is PlayerPlaceHolder or p.dropped) for p in g.players):
             if g.game_started:
                 log.info('game aborted')
             else:
                 log.info('game canceled')
+
+            for p in g.players:
+                if p is PlayerPlaceHolder: continue
+                try:
+                    del dropped_users[p.client.account.userid]
+                except KeyError:
+                    pass
+
             del games[g.gameid]
             g.instant_kill()
         evt_datachange.set()
@@ -326,7 +372,7 @@ def start_game(g):
     g.players_original = BatchList(g.players)
     g.start_time = time()
     for u in g.players.client:
-        u.write(["game_started", None])
+        u.write(["game_started", g.players])
         u.gclear()
         if u.observers:
             u.observers.gclear()
@@ -335,7 +381,7 @@ def start_game(g):
     evt_datachange.set()
 
 def end_game(g):
-    from .game_server import Player, DroppedPlayer, PlayerList
+    from .game_server import Player, PlayerList
 
     log.info("end game")
     pl = g.players
@@ -349,14 +395,21 @@ def end_game(g):
     bonus = g.n_persons * 5 / len(winners) if winners else 0
     for p in pl:
         p.client.gclear() # clear game data
+        acc = p.client.account
         if not (p.dropped and p.fleed):
             s = 5 + bonus if p in winners else 5
-            p.client.account.other['credits'] += int(s * rate)
-            p.client.account.other['games'] += 1
+            acc.other['credits'] += int(s * rate)
+            acc.other['games'] += 1
+
+        if p.dropped:
+            try:
+                del dropped_users[acc.userid]
+            except KeyError:
+                pass
     # -----------
 
     for i, p in enumerate(pl):
-        if isinstance(p, DroppedPlayer):
+        if p.dropped:
             pl[i] = PlayerPlaceHolder
     del games[g.gameid]
     ng = create_game(None, g.__class__.__name__, g.game_name)
@@ -414,6 +467,11 @@ def system_msg(msg):
         for u in users.values():
             u.write(['system_msg', [None, msg]])
     gevent.spawn(worker)
+
+def admin_clearzombies():
+    for i, u in users.items():
+        if u.ready():
+            del users[i]
 
 import atexit
 

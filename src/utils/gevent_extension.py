@@ -150,3 +150,7 @@ def patch_gevent_hub():
                 if the_hub.signal:
                     the_hub._iticallback()
         gevent.spawn(polling)
+
+def hub_interrupt(cb):
+    global the_hub
+    the_hub.interrupt(cb)

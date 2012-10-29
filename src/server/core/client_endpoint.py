@@ -67,11 +67,11 @@ class Client(Endpoint, Greenlet):
                 self.account = acc
                 if not acc.available():
                     self.write(['auth_result', 'not_available'])
-                elif not hall.new_user(self):
-                    self.write(['auth_result', 'already_logged_in'])
+                    self.close()
                 else:
                     self.write(['auth_result', 'success'])
                     self.account = acc
+                    hall.new_user(self)
 
             else:
                 self.write(['auth_result', 'invalid_credential'])
@@ -173,7 +173,7 @@ class Client(Endpoint, Greenlet):
 
         # client died, do clean ups
         if self.state not in('connected', 'hang'):
-            hall.exit_game(self)
+            hall.exit_game(self, drops=True)
 
         if self.state != 'connected':
             hall.user_exit(self)
@@ -234,10 +234,29 @@ class Client(Endpoint, Greenlet):
         self.gdqueue.clear()
         self.gdhistory[:] = []
 
-class DummyClient(object):
+    def close(self):
+        Endpoint.close(self)
+        self.kill(EndpointDied)
+
+class DroppedClient(Endpoint):
     read = write = raw_write = gclear = \
-    gwrite = gexpect = lambda *a, **k: False
+    lambda *a, **k: None
 
     def __init__(self, client=None):
         if client:
             self.__dict__.update(client.__dict__)
+
+    def gwrite(self, tag, data):
+        encoded = self.encode(['gamedata', [tag, data]])
+        self.gdhistory.append(encoded)
+
+    def gexpect(self, tag):
+        raise EndpointDied
+
+    @property
+    def state(self):
+        return 'dropped'
+
+    @state.setter
+    def state(self, val):
+        pass

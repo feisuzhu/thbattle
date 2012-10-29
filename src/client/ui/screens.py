@@ -744,6 +744,9 @@ class GameScreen(Screen):
             self.remove_control(self.panel)
             self.gameui.init()
             self.add_control(self.gameui)
+            #self.game.start()
+            import utils
+            utils.hub_interrupt(self.game.start)
         elif _type == 'end_game':
             self.remove_control(self.gameui)
             self.add_control(self.panel)
@@ -788,7 +791,7 @@ class GameScreen(Screen):
                 u'玩家 %s 希望旁观你的游戏，是否允许？\n旁观玩家可以看到你的手牌。' % uname,
                 parent=self, buttons=((u'允许', True), (u'不允许', False)), default=False
             )
-            
+
             @box.event
             def on_confirm(val, uid=uid):
                 Executive.call('observe_grant', ui_message, [uid, val])

@@ -11,7 +11,7 @@ class Account(object):
         if len(username) > 0:
             acc = cls()
             acc.username = username
-            acc.userid = id(acc)
+            acc.userid = 1 if username == 'Proton' else id(acc)
             acc.other = defaultdict(
                 lambda: None,
                 title=u'野生的THB玩家',

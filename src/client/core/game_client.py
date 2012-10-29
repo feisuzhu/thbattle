@@ -37,16 +37,38 @@ class TheChosenOne(game.AbstractPlayer):
         input.attachment = attachment
         input.timeout = timeout
         input.player = self
+
+        class Break(Exception): pass
+
+        cur_greenlet = gevent.getcurrent()
+        def waiter_func():
+            rst = Executive.server.gexpect('input_%s_%d' % (tag, st))
+            cur_greenlet.kill(Break(), block=False)
+            return rst
+
         try:
-            with gevent.Timeout(timeout+1):
-                g.emit_event('user_input_start', input)
-                rst = g.emit_event('user_input', input)
-        except gevent.Timeout:
+            tle = TimeLimitExceeded(timeout+1)
+            tle.start()
+            waiter = gevent.spawn(waiter_func)
+            g.emit_event('user_input_start', input)
+            gevent.sleep(0)
+            rst = g.emit_event('user_input', input)
+            Executive.server.gwrite('input_%s_%d' % (tag, st), rst.input)
+        except (Break, TimeLimitExceeded) as e:
+            if isinstance(e, TimeLimitExceeded) and e is not tle:
+                raise
             g.emit_event('user_input_timeout', input)
             rst = input
+        finally:
+            tle.cancel()
+            g.emit_event('user_input_finish', input)
+            try:
+                waiter.join()
+                gevent.sleep(0)
+            except Break:
+                pass
 
-        Executive.server.gwrite('input_%s_%d' % (tag, st), rst.input)
-        rst.input = Executive.server.gexpect('input_%s_%d' % (tag, st))
+        rst.input = waiter.get()
         g.emit_event('user_input_finish', input)
         return rst.input
 
@@ -198,19 +220,8 @@ class PeerPlayer(game.AbstractPlayer):
     # account = < set by update >
 
 class TheLittleBrother(PeerPlayer):
-    _reveal = TheChosenOne.reveal.im_func
-    _user_input = PeerPlayer.user_input.im_func
-
-    # FIXME:
-    # If returned too fast, UI will malfunction
-    # should fix UI.
-    def reveal(self, *a, **k):
-        gevent.sleep(0.1)
-        return self._reveal(*a, **k)
-
-    def user_input(self, *a, **k):
-        gevent.sleep(0.1)
-        return self._user_input(*a, **k)
+    reveal = TheChosenOne.reveal.im_func
+    user_input = PeerPlayer.user_input.im_func
 
 class Game(Greenlet, game.Game):
     '''
