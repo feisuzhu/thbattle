@@ -603,7 +603,7 @@ class GameHallScreen(Screen):
             ConfirmBox(mapping.get(args[0], args[0]), parent=self)
         elif _type == 'observe_refused':
             uname = args[0]
-            self.chat_box.append('|R%s 回绝了你的旁观请求|r\n' % uname)
+            self.chat_box.append(u'|R%s 回绝了你的旁观请求|r\n' % uname)
         else:
             Screen.on_message(self, _type, *args)
 
@@ -786,8 +786,9 @@ class GameScreen(Screen):
             uid, uname = args[0]
             box = ConfirmBox(
                 u'玩家 %s 希望旁观你的游戏，是否允许？\n旁观玩家可以看到你的手牌。' % uname,
-                parent=self, buttons=((u'允许', True), (u'不允许', False))
+                parent=self, buttons=((u'允许', True), (u'不允许', False)), default=False
             )
+            
             @box.event
             def on_confirm(val, uid=uid):
                 Executive.call('observe_grant', ui_message, [uid, val])

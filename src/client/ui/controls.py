@@ -1340,7 +1340,9 @@ class ConfirmBox(Dialog):
         OK = ((u'确定', True), )
         OKCancel = ((u'确定', True), (u'取消', False))
 
-    def __init__(self, text=u'Yoo~', caption=u'信息', buttons=Presets.OK, *a, **k):
+    _default_value = object()
+    def __init__(self, text=u'Yoo~', caption=u'信息',
+                 buttons=Presets.OK, default=_default_value, *a, **k):
         lbl = pyglet.text.Label(
             text=text, font_name=u'AncientPix', font_size=9,
             anchor_x='center', anchor_y='bottom',
@@ -1360,7 +1362,8 @@ class ConfirmBox(Dialog):
         self.labels.append(lbl)
 
         btn = ConfirmButtons(buttons, parent=self, color=self.color)
-        self.value = buttons[0][1]
+        self.value = buttons[0][1] if default is self._default_value else default
+
         @btn.event
         def on_confirm(val):
             self.value = val

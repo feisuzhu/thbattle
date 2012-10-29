@@ -1353,7 +1353,7 @@ class DeathSickleCard:
     image_small = gres.card_deathsickle_small
     description = (
         u'|R死神之镰|r\n\n'
-        u'攻击范围2，锁定技，当你使用的【弹幕】造成伤害时，若指定的目标没有手牌，该伤害+1。'
+        u'攻击范围2，锁定技，当你使用的【弹幕】时，若指定的目标没有手牌，结算时伤害+1。'
     )
     is_action_valid = equip_iav
 
