@@ -132,6 +132,22 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
     def __init__(self, irp, *a, **k):
         action, candidates = irp.attachment
         self.action = action
+
+        if self.for_reject:
+            ori = self.set_valid
+            self._sv_val = False
+
+            def reject_sv():
+                self._sv_val = True
+
+            self.set_valid = reject_sv
+
+            def delay(dt):
+                self.set_valid = ori
+                if self._sv_val: ori()
+
+            pyglet.clock.schedule_once(delay, 0.5)
+
         UISelectTarget.__init__(self, irp, *a, **k)
         if candidates:
             parent = self.parent
@@ -150,6 +166,7 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
             cond = getattr(act, 'cond', False)
 
             while self.for_reject:
+                self._sv_val = False
                 self.set_text(u'自动结算好人卡…')
                 if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
                     from gamepack.thb.characters import reimu
