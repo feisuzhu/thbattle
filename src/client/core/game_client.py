@@ -59,6 +59,9 @@ class TheChosenOne(game.AbstractPlayer):
                 raise
             g.emit_event('user_input_timeout', input)
             rst = input
+        except:
+            waiter.kill()
+            raise
         finally:
             tle.cancel()
             g.emit_event('user_input_finish', input)
@@ -119,6 +122,9 @@ class PlayerList(BatchList):
                 rst = input
                 rst.input = None
                 Executive.server.gwrite(tagstr, rst.input)
+            except:
+                waiter.kill()
+                raise
             finally:
                 tle.cancel()
                 g.emit_event('user_input_finish', input)
