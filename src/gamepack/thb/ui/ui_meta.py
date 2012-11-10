@@ -520,6 +520,35 @@ class SealingArray:
         else:
             return u'封魔阵没有布置完善，|G【%s】|r侥幸逃了出来' % tgt.ui_meta.char_name
 
+class FrozenFrogCard:
+    # action_stage meta
+    name = u'冻青蛙'
+    image = gres.card_frozenfrog
+    tag_anim = lambda g, p: gres.tag_frozenfrog
+    description = (
+        u'|R冻青蛙|r\n\n'
+        u'延时类符卡\n'
+        u'出牌阶段对任意一名玩家使用,将此牌置于目标玩家判定区,对方在其摸牌阶段需判定——如果判定结果不为黑桃，则该回合跳过摸牌阶段。无论判定是否成功，弃掉该【冻青蛙】。\n'
+        u'|B|R>> |r仅当需要开始进行【冻青蛙】的判定时,才能使用【好人卡】抵消之(抵消后弃掉【冻青蛙】)。'
+    )
+
+    def is_action_valid(g, cl, target_list):
+        if len(target_list) != 1:
+            return (False, u'请选择冻青蛙的目标')
+        t = target_list[0]
+        if g.me is t:
+            return (False, u'你不能跟自己过不去啊！')
+
+        return (True, u'伸手党什么的，冻住就好了！')
+
+class FrozenFrog:
+    def effect_string(act):
+        tgt = act.target
+        if act.succeeded:
+            return u'|G【%s】|r被冻住了……' % tgt.ui_meta.char_name
+        else:
+            return u'幻想乡今天大晴，|G【%s】|r没有被冻住~' % tgt.ui_meta.char_name
+
 class NazrinRodCard:
     # action_stage meta
     name = u'寻龙尺'

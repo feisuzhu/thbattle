@@ -16,9 +16,10 @@ class CriticalStrikeAction(GenericAction):
         return True
 
 class CriticalStrikeHandler(EventHandler):
-    execute_after = ('AttackCardHandler', )
+    execute_after = ('AttackCardHandler', 'FrozenFrogHandler')
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
+            if act.cancelled: return act
             tgt = act.target
             if not tgt.has_skill(CriticalStrike): return act
             if not tgt.user_input('choose_option', self): return act

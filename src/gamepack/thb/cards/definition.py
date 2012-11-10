@@ -57,6 +57,11 @@ class SealingArrayCard:
     associated_action = spellcard.SealingArray
     target = t_OtherOne
 
+class FrozenFrogCard:
+    associated_action = spellcard.FrozenFrog
+    target = t_OtherOne
+    distance = 1
+
 class NazrinRodCard:
     associated_action = spellcard.NazrinRod
     target = t_Self
@@ -320,7 +325,7 @@ card_definition = [
     (AttackCard, SPADE, 7),
     (AttackCard, SPADE, 8),
     (WineCard, SPADE, 9),
-    (AttackCard, SPADE, 10),
+    (FrozenFrogCard, SPADE, 10),
     (KeystoneCard, SPADE, J),
     (IceWingCard, SPADE, Q),
     (RejectCard, SPADE, K),
@@ -404,6 +409,7 @@ card_definition = [
     (RejectCard, CLUB, K),
 
     (SaigyouBranchCard, CLUB, 2),
+    (FrozenFrogCard, CLUB, 3),
     (ExinwanCard, CLUB, 10),
     (ExinwanCard, CLUB, J),
     (ExinwanCard, CLUB, Q),
@@ -411,7 +417,7 @@ card_definition = [
     (YoumuPhantomCard, CLUB, 1),
     (SuwakoHatCard, CLUB, 2),
     (WineCard, CLUB, 3),
-    (AttackCard, CLUB, 4),
+    (FrozenFrogCard, CLUB, 4),
     (AttackCard, CLUB, 5),
     (AttackCard, CLUB, 6),
     (AttackCard, CLUB, 7),

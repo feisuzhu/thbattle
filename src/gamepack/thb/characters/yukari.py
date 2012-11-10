@@ -68,8 +68,10 @@ class RealmSkipDrawCard(GenericAction):
         return True
 
 class RealmSkipDrawCardHandler(EventHandler):
+    execute_after = ('FrozenFrogHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
+            if act.cancelled: return act
             self.target = tgt = act.target
             if not tgt.has_skill(Realm): return act
             cats = [

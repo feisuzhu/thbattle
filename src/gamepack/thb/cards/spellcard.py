@@ -462,3 +462,34 @@ class DonationBox(ForEach):
         ): return False
 
         return True
+
+
+class FrozenFrog(DelayedSpellCardAction):
+    # 冻青蛙
+    def apply_action(self):
+        g = Game.getgame()
+        target = self.target
+        from ..cards import Card
+        ft = Fatetell(target, lambda card: card.suit != Card.SPADE)
+        g.process_action(ft)
+        if ft.succeeded:
+            target.tags['freezed'] = True
+            return True
+        else:
+            return False
+
+    def fatetell_postprocess(self):
+        g = Game.getgame()
+        target = self.target
+        g.process_action(DropCards(target, [self.associated_card]))
+
+@register_eh
+class FrozenFrogHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
+            tgt = act.target
+            if tgt.tags.get('freezed'):
+                del tgt.tags['freezed']
+                act.cancelled = True
+        return act
+

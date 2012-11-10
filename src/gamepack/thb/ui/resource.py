@@ -74,6 +74,7 @@ with ldr as args:
     card_grimoire = card_tx('card_grimoire.png')
     card_dollcontrol = card_tx('card_dollcontrol.png')
     card_donationbox = card_tx('card_donationbox.png')
+    card_frozenfrog = card_tx('card_frozenfrog.png')
 
     card_opticalcloak_small = card_tx('card_opticalcloak_small.png')
     card_greenufo_small = card_tx('card_greenufo_small.png')
@@ -124,6 +125,7 @@ with ldr as args:
     tag_sealarray = anim('tag_sealarray.png', [83]*36, True)
     tag_sinsack = anim('tag_sinsack.png', [10000], True)
     tag_wine = anim('tag_wine.png', [150]*3, True)
+    tag_frozenfrog = anim('tag_frozenfrog.png', [10000], True)
 
     port_atlas = pyglet.image.atlas.TextureAtlas(1024, 1024)
 

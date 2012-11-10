@@ -165,7 +165,7 @@ class WineHandler(EventHandler):
                 g.process_action(WineRevive(act))
         return act
 
-class Exinwan(UserAction):
+class Exinwan(BasicAction):
     # 恶心丸
     def apply_action(self):
         return True
