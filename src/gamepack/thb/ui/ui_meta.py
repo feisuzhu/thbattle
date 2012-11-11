@@ -2428,6 +2428,68 @@ class Reimu:
 '''
 
 # ----------
+__metaclass__ = gen_metafunc(characters.cirno)
+
+class PerfectFreeze:
+    # Skill
+    name = u'完美冻结'
+    image = gres.card_frozenfrog
+    tag_anim = lambda g, p: gres.tag_frozenfrog
+    description = (
+        u'|G【琪露诺】|r的技能产生的【冻青蛙】'
+    )
+
+    def clickable(game):
+        me = game.me
+
+        try:
+            act = game.action_stack[-1]
+        except IndexError:
+            return False
+
+        if isinstance(act, actions.ActionStage) and act.actor is me and (me.cards or me.showncards or me.equips):
+            return True
+
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        skill = cl[0]
+        cl = skill.associated_cards
+        if len(cl) != 1:
+            return (False, u'请选择一张牌！')
+        else:
+            c = cl[0]
+            if c.suit in (cards.Card.SPADE, cards.Card.CLUB):
+                act = c.associated_action
+                if act and issubclass(act, (cards.BasicAction, cards.WearEquipmentAction)):
+                    return (True, u'PERFECT FREEZE~')
+            
+            return (False, u'请选择一张黑色的基本牌或装备牌！')
+
+    def effect_string(act):
+        # for LaunchCard.ui_meta.effect_string
+        source = act.source
+        card = act.card
+        target = act.target
+        return (
+            u'|G【%s】|r发动了|G完美冻结|r技能，用|G%s|r' +
+            u'把|G【%s】|r装进了大冰块里！'
+        ) % (
+            source.ui_meta.char_name,
+            card.associated_cards[0].ui_meta.name,
+            target.ui_meta.char_name,
+        )
+
+class Cirno:
+    # Character
+    char_name = u'琪露诺'
+    port_image = gres.cirno_port
+    description = (
+        u'|DB跟青蛙过不去的笨蛋 琪露诺 体力：4|r\n\n'
+        u'|G完美冻结|r：出牌阶段，可以将你的任意一张黑色的基本牌或装备牌当【冻青蛙】使用；你可以对与你距离2以内的角色使用【冻青蛙】。'
+    )
+
+# ----------
 __metaclass__ = gen_metafunc(characters.reimu)
 
 class Flight:

@@ -135,7 +135,7 @@ with ldr as args:
         'patchouli', 'reimu', 'eirin', 'kogasa', 'shikieiki',
         'tenshi', 'rumia', 'yuuka', 'rinnosuke', 'ran',
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
-        'yukari', 'dummy',
+        'yukari', 'cirno', 'dummy',
     ]]
 
     ports.extend([

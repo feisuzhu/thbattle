@@ -29,6 +29,8 @@ import meirin
 import suika
 import chen
 import yukari
+import cirno
+
 import dummy
 
 import sys
