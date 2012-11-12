@@ -66,6 +66,8 @@ class MainThread(threading.Thread):
         from game import autoenv
         autoenv.init('Client')
 
+        autoenv.options = None # not used in client
+
         from client.core import Executive
 
         # for dbg

@@ -34,8 +34,9 @@ import cirno
 import dummy
 
 import sys
-from game.autoenv import Game
-if Game.CLIENT_SIDE or (len(sys.argv) > 1 and sys.argv[1] == 'TESTING'):
+
+from game.autoenv import Game, options
+if Game.CLIENT_SIDE or options.testing:
     register_character(dummy.Dummy)
 
-del sys, Game
+del sys, Game, options

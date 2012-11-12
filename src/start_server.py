@@ -25,20 +25,38 @@ sig(signal.SIGTERM, _exit_handler)
 from game import autoenv
 autoenv.init('Server')
 
+import argparse
+
+parser = argparse.ArgumentParser(prog=sys.argv[0])
+parser.add_argument('--port', default=9999, type=int)
+parser.add_argument('--backdoor-port', default=10000, type=int)
+parser.add_argument('--testing', action='store_true')
+parser.add_argument('--no-backdoor', action='store_true')
+parser.add_argument('--conf')
+
+options = parser.parse_args()
+
+autoenv.options = options
+
+if options.conf:
+    import os
+    with open(options.conf, 'r') as f:
+        src = f.read()
+    import settings
+    env = {}
+    exec src in env
+    for k, v in env.items():
+        setattr(settings, k, v)
+
 from network import Endpoint
 #Endpoint.ENDPOINT_DEBUG = True
 
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.INFO)
 
-from gevent.backdoor import BackdoorServer
+if not options.no_backdoor:
+    from gevent.backdoor import BackdoorServer
+    gevent.spawn(BackdoorServer(('127.0.0.1', options.backdoor_port)).serve_forever)
 
-if len(sys.argv) > 1 and sys.argv[1] == 'TESTING':
-    gameport, bdport = 9998, 10001
-else:
-    gameport, bdport = 9999, 10000
-
-gevent.spawn(BackdoorServer(('127.0.0.1', bdport)).serve_forever)
-
-server = StreamServer(('0.0.0.0', gameport), Client.spawn, None)
+server = StreamServer(('0.0.0.0', options.port), Client.spawn, None)
 server.serve_forever()

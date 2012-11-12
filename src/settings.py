@@ -104,14 +104,6 @@ class ServerList:
 
     del IS_PROTON
 
-import os
-other = os.environ.get('THB_OTHERSETTINGS', None)
-if other:
-    with open(other, 'r') as f:
-        src = f.read()
-    exec src
-del os, other
-
 NOTICE = u'''
 东方符斗祭 测试版
 ==================
