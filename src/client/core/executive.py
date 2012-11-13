@@ -240,8 +240,9 @@ class Executive(object):
         @handler
         def update(self, cb, update_cb):
             import autoupdate as au
+            from options import options
             import settings
-            if settings.AUTOUPDATE_ENABLE:
+            if not options.no_update:
                 base = settings.UPDATE_BASE
                 url = settings.UPDATE_URL
                 gevent.spawn(lambda: cb(au.do_update(base, url, update_cb)))

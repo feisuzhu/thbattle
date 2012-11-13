@@ -19,11 +19,9 @@ UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
 if not sys.platform.startswith('linux'):
     UPDATE_BASE = os.path.dirname(UPDATE_BASE)
 
-AUTOUPDATE_ENABLE = not os.path.exists(os.path.join(UPDATE_BASE, 'NO_UPDATE'))
-NO_ERRCHECK = os.path.exists(os.path.join(UPDATE_BASE, 'NO_ERRCHECK'))
-TESTING = os.path.exists(os.path.join(UPDATE_BASE, 'TESTING'))
+from options import options
 
-if TESTING:
+if options.testing:
     UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/testing/'
 else:
     UPDATE_URL = 'http://update.thbattle.net/'
@@ -45,9 +43,6 @@ UPDATE_IGNORES = re.compile(r'''
         | ^client_log\.txt$
         | ^.+\.py[co]$
         | ^.*~$
-        | ^NO_UPDATE$
-        | ^TESTING$
-        | ^NO_ERRCHECK$
         | ^.*_custom\..{2,4}$
         | ^last_id$
         | ^\.
@@ -58,7 +53,7 @@ class ServerList:
     IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
     del os
 
-    if TESTING or IS_PROTON:
+    if options.testing or IS_PROTON:
         class HakureiShrine:
             address = ('game.thbattle.net', 9998)
             description = (

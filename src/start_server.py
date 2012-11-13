@@ -1,6 +1,5 @@
 import gevent
 from gevent.server import StreamServer
-from server.core import Client
 
 import logging
 import sys
@@ -23,7 +22,6 @@ def _exit_handler(*a, **k):
 sig(signal.SIGTERM, _exit_handler)
 
 from game import autoenv
-autoenv.init('Server')
 
 import argparse
 
@@ -36,7 +34,11 @@ parser.add_argument('--conf')
 
 options = parser.parse_args()
 
-autoenv.options = options
+import options as opmodule
+
+opmodule.options = options
+
+autoenv.init('Server')
 
 if options.conf:
     import os
@@ -57,6 +59,8 @@ logging.getLogger().setLevel(logging.INFO)
 if not options.no_backdoor:
     from gevent.backdoor import BackdoorServer
     gevent.spawn(BackdoorServer(('127.0.0.1', options.backdoor_port)).serve_forever)
+
+from server.core import Client
 
 server = StreamServer(('0.0.0.0', options.port), Client.spawn, None)
 server.serve_forever()

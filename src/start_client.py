@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import threading
 import logging, sys
+import argparse
 
 reload(sys)
 sys.setdefaultencoding(sys.getfilesystemencoding())
@@ -63,11 +64,8 @@ class MainThread(threading.Thread):
 
         # -----------------------------------------
 
-        from game import autoenv
         autoenv.init('Client')
-
-        autoenv.options = None # not used in client
-
+        
         from client.core import Executive
 
         # for dbg
@@ -85,6 +83,18 @@ class MainThread(threading.Thread):
         _sync_evt.set()
         Executive.run()
 
+from game import autoenv
+
+parser = argparse.ArgumentParser(prog=sys.argv[0])
+parser.add_argument('--testing', action='store_true')
+parser.add_argument('--no-update', action='store_true')
+parser.add_argument('--with-gl-errcheck', action='store_true')
+
+options = parser.parse_args()
+
+import options as opmodule
+opmodule.options = options
+
 mt = MainThread()
 mt.start()
 
@@ -96,8 +106,7 @@ import pyglet
 pyglet.options['audio'] = ('directsound', 'openal', 'alsa', 'silent')
 pyglet.options['shadow_window'] = False
 
-from settings import NO_ERRCHECK
-if NO_ERRCHECK:
+if not options.with_gl_errcheck:
     pyglet.options['debug_gl'] = False
 
 if sys.platform == 'win32':
