@@ -55,7 +55,7 @@ class ServerList:
 
     if options.testing or IS_PROTON:
         class HakureiShrine:
-            address = ('game.thbattle.net', 9998)
+            address = ('game.thbattle.net', 8999)
             description = (
                 u'|R没什么香火钱 博丽神社|r\n\n'
                 u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
