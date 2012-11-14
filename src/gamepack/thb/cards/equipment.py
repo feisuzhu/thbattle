@@ -740,7 +740,7 @@ class IceWingSkill(ShieldSkill):
 
 class IceWing(GenericAction):
     def __init__(self, act):
-        assert isinstance(act, spellcard.SealingArray)
+        assert isinstance(act, (spellcard.SealingArray, spellcard.FrozenFrog))
         self.source = self.target = act.target
         self.action = act
 
@@ -751,8 +751,9 @@ class IceWing(GenericAction):
 @register_eh
 class IceWingHandler(EventHandler):
     execute_before = ('RejectHandler', 'SaigyouBranchHandler')
+    _effect_cls = spellcard.SealingArray, spellcard.FrozenFrog
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, spellcard.SealingArray):
+        if evt_type == 'action_before' and isinstance(act, self._effect_cls):
             if act.target.has_skill(IceWingSkill):
                 Game.getgame().process_action(IceWing(act))
 

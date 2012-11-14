@@ -1533,7 +1533,7 @@ class IceWingCard:
     image_small = gres.card_icewing_small
     description = (
         u'|R⑨的翅膀|r\n\n'
-        u'装备后不受【封魔阵】的影响。'
+        u'装备后不受【封魔阵】和【冻青蛙】的影响。'
     )
 
     is_action_valid = equip_iav
@@ -1550,8 +1550,9 @@ class IceWingSkill:
 
 class IceWing:
     def effect_string(act):
-        return u'|G【%s】|r借着|G⑨的翅膀|r飞了出来，|G封魔阵|r没起到什么作用' % (
-            act.target.ui_meta.char_name
+        return u'|G【%s】|r借着|G⑨的翅膀|r飞了出来，|G%s|r没起到什么作用' % (
+            act.target.ui_meta.char_name,
+            act.action.associated_card.ui_meta.name,
         )
 
 class GrimoireCard:
