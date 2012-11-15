@@ -156,25 +156,6 @@ class ElementalReactorSkill(WeaponSkill):
     target = t_None
     range = 1
 
-@register_eh
-class ElementalReactorHandler(EventHandler):
-    # 八卦炉
-    def handle(self, evt_type, act):
-        if evt_type == 'action_stage_action':
-            actor = act.actor
-            if actor.has_skill(ElementalReactorSkill):
-                if not actor.tags.get('reactor_tag', False):
-                    actor.tags['reactor_tag'] = True
-                    actor.tags['attack_num'] += 1000
-            else:
-                if actor.tags.get('reactor_tag', False):
-                    actor.tags['reactor_tag'] = False
-                    actor.tags['attack_num'] -= 1000
-        elif evt_type == 'action_after' and isinstance(act, ActionStage):
-            act.actor.tags['reactor_tag'] = False
-
-        return act
-
 class UmbrellaSkill(ShieldSkill):
     pass
 
@@ -209,15 +190,6 @@ class RoukankenHandler(EventHandler):
             if not src.has_skill(RoukankenSkill): return act
             if atk.succeeded: return act
 
-            '''
-            g = Game.getgame()
-            a = basic.UseAttack(target=src)
-            if g.process_action(a):
-                card = a.cards[0]
-                a = Roukanken(source=src, target=tgt)
-                a.associated_card = card
-                g.process_action(a)
-            '''
             cats = [
                 src.cards,
                 src.showncards,
@@ -225,13 +197,9 @@ class RoukankenHandler(EventHandler):
             cards = user_choose_cards(self, src, cats)
             g = Game.getgame()
 
-            if cards:
-                #g.players.reveal(cards)
-                tags = src.tags
-                ori = tags['attack_num']
-                tags['attack_num'] += 1
-                g.process_action(RoukankenLaunchAttack(src, [tgt], cards[0]))
-                tags['attack_num'] = ori
+            if not cards: return act
+            
+            g.process_action(RoukankenLaunchAttack(src, [tgt], cards[0]))
 
         return act
 

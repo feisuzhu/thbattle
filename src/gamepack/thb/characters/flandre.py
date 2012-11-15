@@ -55,6 +55,7 @@ class CriticalStrikeHandler(EventHandler):
             st = src.tags
             if not st['flan_cs']: return act
             if not src.has_skill(CriticalStrike): return act
+            if src.has_skill(ElementalReactorSkill): return act
             if not a.card.is_card(AttackCard): return act
             last = set(st['flan_targets'])
             tl = set(a.target_list)

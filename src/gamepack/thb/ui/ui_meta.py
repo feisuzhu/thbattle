@@ -5,11 +5,14 @@ from .. import characters
 from .. import thb3v3, thbidentity
 
 from game.autoenv import Game
+G = Game.getgame
+
 import types
 import resource as gres
 from client.ui import resource as cres
 
 from utils import DataHolder, BatchList
+
 
 metadata = {}
 
@@ -3722,18 +3725,18 @@ def tag_metafunc(clsname, bases, _dict):
 __metaclass__ = tag_metafunc
 
 class attack_num:
-    tag_anim = lambda g, p: gres.tag_attacked
-    display = lambda v: v <= 0
+    tag_anim = lambda p: gres.tag_attacked
+    display = lambda p, v: v <= 0 and G().current_turn is p
     description = u'该玩家在此回合不能再使用【弹幕】了'
-
+  
 class wine:
-    tag_anim = lambda g, p: gres.tag_wine
-    display = lambda v: v
+    tag_anim = lambda p: gres.tag_wine
+    display = lambda p, v: v
     description = u'喝醉了…'
 
 class flan_cs:
-    tag_anim = lambda g, p: gres.tag_flandrecs
-    display = lambda v: v
+    tag_anim = lambda p: gres.tag_flandrecs
+    display = lambda p, v: v
     description = u'玩坏你哦！'
 
 # -----END TAGS UI META-----

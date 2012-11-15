@@ -339,7 +339,7 @@ class UIDoActionStage(UISelectTarget):
                 self.set_text(reason)
                 if rst:
                     if tl_valid:
-                        act = thbactions.LaunchCard(g.me, target_list, card)
+                        act = thbactions.ActionStageLaunchCard(g.me, target_list, card)
                         if act.can_fire():
                             self.set_valid()
                         else:

@@ -36,34 +36,36 @@ class InevitableAttack(Attack):
 class AttackCardHandler(EventHandler):
     execute_before = ('DistanceValidator',)
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, FatetellStage):
+        if evt_type == 'action_before' and isinstance(act, PlayerTurn):
             act.target.tags['attack_num'] = 1
+        
         elif evt_type == 'action_after':
-            if isinstance(act, LaunchCard):
+            if isinstance(act, ActionStageLaunchCard):
                 from .definition import AttackCard
                 if act.card.is_card(AttackCard):
                     act.source.tags['attack_num'] -= 1
-            elif isinstance(act, PlayerTurn):
-                act.target.tags['attack_num'] = 10000
+            
             elif isinstance(act, CalcDistance):
                 card = act.card
                 from .definition import AttackCard
                 if card.is_card(AttackCard):
                     from .equipment import WeaponSkill
                     source = act.source
-                    if source.tags['attack_num'] <= 0:
-                        act.correction -= 10000
 
                     l = []
                     for s in source.skills:
                         if issubclass(s, WeaponSkill):
                             l.append(s.range - 1)
                     if l: act.correction += min(l)
-        elif evt_type == 'action_can_fire' and isinstance(act[0], LaunchCard):
+
+        elif evt_type == 'action_can_fire' and isinstance(act[0], ActionStageLaunchCard):
             lc, rst = act
             from .definition import AttackCard
+            from .equipment import ElementalReactorSkill
+            if lc.source.has_skill(ElementalReactorSkill): return act
             if lc.card.is_card(AttackCard) and lc.source.tags['attack_num'] <= 0:
                 return (lc, False)
+
         return act
 
 class Heal(BasicAction):

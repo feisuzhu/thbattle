@@ -221,7 +221,7 @@ def _update_tags(self, p):
 
     for t in p.tags.keys():
         meta = tags_meta.get(t)
-        if meta and meta.display(p.tags[t]):
+        if meta and meta.display(p, p.tags[t]):
             new_tags.add(t)
 
     for t in old_tags - new_tags: # to be removed
@@ -230,7 +230,7 @@ def _update_tags(self, p):
 
     for t in new_tags - old_tags: # to be added
         a = TagAnim(
-            tags_meta[t].tag_anim(self.game, p),
+            tags_meta[t].tag_anim(p),
             0, 0,
             tags_meta[t].description,
             parent=self,

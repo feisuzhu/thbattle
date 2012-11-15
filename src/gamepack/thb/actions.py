@@ -392,6 +392,9 @@ class LaunchCard(BaseLaunchCard):
 
         return True
 
+class ActionStageLaunchCard(LaunchCard):
+    pass
+
 class ActionStage(GenericAction):
 
     def __init__(self, target):
@@ -406,7 +409,6 @@ class ActionStage(GenericAction):
 
         try:
             while not actor.dead:
-                g.emit_event('action_stage_action', self)
                 input = actor.user_input('action_stage_usecard')
                 check_type([[int, Ellipsis]] * 3, input)
 
@@ -434,7 +436,7 @@ class ActionStage(GenericAction):
                     from .cards import HiddenCard
                     assert not card.is_card(HiddenCard)
                     check(card.resides_in in (actor.cards, actor.showncards))
-                if not g.process_action(LaunchCard(actor, target_list, card)):
+                if not g.process_action(ActionStageLaunchCard(actor, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
                     break
