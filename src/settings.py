@@ -33,7 +33,7 @@ VERSION = 'THBATTLE V1.0b incr 72'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
-ACCOUNT_MODULE = 'forum_integration'
+ACCOUNT_MODULE = 'freeplay' if options.freeplay else 'forum_integration'
 
 import re
 
@@ -66,11 +66,11 @@ class ServerList:
             x=893
             y=404
 
-    if IS_PROTON:
-        class ProtonMachine:
+    if options.freeplay:
+        class YourMachine:
             address = ('127.0.0.1', 9999)
             description = (
-                u'|RProton自己的机器|r'
+                u'|R你自己的本机服务器|r'
             )
             x=893
             y=504

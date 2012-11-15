@@ -30,6 +30,7 @@ parser.add_argument('--port', default=9999, type=int)
 parser.add_argument('--backdoor-port', default=10000, type=int)
 parser.add_argument('--testing', action='store_true')
 parser.add_argument('--no-backdoor', action='store_true')
+parser.add_argument('--freeplay', action='store_true')
 parser.add_argument('--conf')
 
 options = parser.parse_args()

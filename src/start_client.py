@@ -89,6 +89,7 @@ parser = argparse.ArgumentParser(prog=sys.argv[0])
 parser.add_argument('--testing', action='store_true')
 parser.add_argument('--no-update', action='store_true')
 parser.add_argument('--with-gl-errcheck', action='store_true')
+parser.add_argument('--freeplay', action='store_true')
 
 options = parser.parse_args()
 
