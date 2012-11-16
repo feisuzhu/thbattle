@@ -59,11 +59,13 @@ class VampireKissHandler(EventHandler):
             g = Game.getgame()
             pact = g.action_stack[-1]
             if not isinstance(pact, Attack): return act
-            cd = CalcDistance(src, VampireKiss(src))
-            g.process_action(cd)
-            rst = cd.validate()
-            if rst[act.target]:
-                g.process_action(VampireKissAction(src, tgt))
+            #cd = CalcDistance(src, VampireKiss(src))
+            #g.process_action(cd)
+            #rst = cd.validate()
+            #if rst[act.target]:
+            card = pact.associated_card
+            if (not card) or card.color != Card.RED: return act
+            g.process_action(VampireKissAction(src, tgt))
 
         return act
 
@@ -71,4 +73,4 @@ class VampireKissHandler(EventHandler):
 class Remilia(Character):
     skills = [FateSpear, VampireKiss]
     eventhandlers_required = [FateSpearHandler, VampireKissHandler]
-    maxlife = 3
+    maxlife = 4
