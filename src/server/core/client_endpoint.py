@@ -38,10 +38,13 @@ class Client(Endpoint, Greenlet):
         self.observers = BatchList()
 
         import socket
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 6)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
+        try:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
+            sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
+            sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 6)
+            sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
+        except:
+            pass
 
     def _run(self):
         cmds = {}
