@@ -62,14 +62,18 @@ class PlayerList(BatchList):
         try:
             def worker(p, i):
                 while True:
+                    retry = 0
                     input = p.user_input(
                         tag, attachment=attachment, timeout=timeout+10,
-                        g=g, st=st*50000+i,
+                        g=g, st=100000 + st*1000 + i*10 + retry,
                     )
+
                     try:
                         input = process(p, input)
                     except ValueError:
+                        retry += 1
                         continue
+
                     break
 
             for i, p in enumerate(self):
