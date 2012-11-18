@@ -578,14 +578,6 @@ class DummyAction(GenericAction):
     def apply_action(self):
         return self.result
 
-class SkillAwake(GenericAction):
-    skill = None
-    def apply_action(self):
-        s = self.skill
-        assert s
-        self.target.skills.append(s)
-        return True
-
 class RevealIdentity(GenericAction):
     def __init__(self, target, to):
         self.target = target

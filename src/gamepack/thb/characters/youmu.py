@@ -63,8 +63,11 @@ class MijincihangzhanDuelMixin(object):
         g.process_action(dact)
         return d[1] is source
 
-class XianshiwangzhiAwake(SkillAwake):
-    skill = Xianshiwangzhi
+class XianshiwangzhiAwake(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        tgt.skills.append(Xianshiwangzhi)
+        return True
 
 class YoumuWearEquipmentAction(UserAction):
     def apply_action(self):
