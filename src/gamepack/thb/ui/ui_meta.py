@@ -248,6 +248,28 @@ class RevealIdentity:
             Game.getgame().ui_meta.identity_table[i.type],
         )
 
+class Pindian:
+    # choose_card meta
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'不服来战！')
+        else:
+            return (False, u'请选择一张牌用于拼点')
+
+    def effect_string_before(act):
+        return u'|G【%s】|r对|G【%s】|r发起了拼点' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+    def effect_string(act):
+        winner = act.source if act.succeeded else act.target
+        return u'|G【%s】|r是人生赢家！' % (
+            winner.ui_meta.char_name
+        )
+
+
+
 # -----END ACTIONS UI META-----
 
 # -----BEGIN CARDS UI META-----

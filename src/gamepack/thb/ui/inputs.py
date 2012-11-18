@@ -125,7 +125,8 @@ class UISelectTarget(Control):
 
     def on_message(self, _type, *args):
         if _type in ('evt_user_input_timeout', 'evt_user_input_finish'):
-            self.cleanup()
+            if args[0].player is Game.getgame().me:
+                self.cleanup()
 
 class BaseUIChooseCardAndPlayer(UISelectTarget):
     auto_chosen = False

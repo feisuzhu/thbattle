@@ -1,6 +1,6 @@
 # All generic and cards' Actions, EventHandlers are here
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, sync_primitive
+from game.autoenv import Game, EventHandler, Action, GameError, PlayerList, sync_primitive
 
 from network import Endpoint
 import random
@@ -13,7 +13,7 @@ log = logging.getLogger('THBattle_Actions')
 # ------------------------------------------
 # aux functions
 
-def _user_choose_cards_logic(input, act, target, categories=None):
+def user_choose_cards_logic(input, act, target, categories=None):
     from utils import check, CheckFailed
     g = Game.getgame()
 
@@ -52,9 +52,9 @@ def _user_choose_cards_logic(input, act, target, categories=None):
 
 def user_choose_cards(act, target, categories=None):
     input = target.user_input('choose_card_and_player', (act, [])) # list of card ids
-    return _user_choose_cards_logic(input, act, target, categories)
+    return user_choose_cards_logic(input, act, target, categories)
 
-def _user_choose_players_logic(input, act, target, candidates):
+def user_choose_players_logic(input, act, target, candidates):
     try:
         g = Game.getgame()
         check_type([[int, Ellipsis]] * 3, input)
@@ -71,13 +71,13 @@ def _user_choose_players_logic(input, act, target, candidates):
 
 def user_choose_players(act, target, candidates):
     input = target.user_input('choose_card_and_player', (act, candidates))
-    return _user_choose_players_logic(input, act, target, candidates)
+    return user_choose_players_logic(input, act, target, candidates)
 
 def user_choose_cards_and_players(act, target, categories=None, candidates=[]):
     input = target.user_input('choose_card_and_player', (act, candidates))
-    cards = _user_choose_cards_logic(input, act, target, categories)
+    cards = user_choose_cards_logic(input, act, target, categories)
     if not cards: return None
-    pl = _user_choose_players_logic(input, act, target, candidates)
+    pl = user_choose_players_logic(input, act, target, candidates)
     if not pl: return None
     return (cards, pl)
 
@@ -406,13 +406,13 @@ class LaunchCard(BaseLaunchCard):
             p: min(abs(i), n-abs(i))
             for p, i in zip(pl, xrange(-loc, -loc+n))
         }
-        
+
         g.emit_event('calcdistance', (self, dist))
         card_dist = getattr(self.card, 'distance', 1000)
         for p in dist:
             dist[p] -= card_dist
         g.emit_event('post_calcdistance', (self, dist))
-        
+
         return all([dist[p] <= 0 for p in self.target_list])
 
 
@@ -587,3 +587,52 @@ class RevealIdentity(GenericAction):
         tgt = self.target
         self.to.reveal(tgt.identity)
         return True
+
+class Pindian(GenericAction):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+    def apply_action(self):
+        src = self.source
+        tgt = self.target
+        g = Game.getgame()
+
+        pl = PlayerList([src, tgt])
+        cl = [None, None]
+
+        def process(p, input):
+            card = user_choose_cards_logic(input, self, p, [p.cards, p.showncards])
+            if not card:
+                card = random_choose_card([p.cards, p.showncards])
+            else:
+                card = card[0]
+
+            cl[pl.index(p)] = card
+            g.emit_event('pindian_card_chosen', (p, card))
+
+            return card
+
+        pl.user_input_all('choose_card_and_player', process, (self, []))
+
+        g.players.reveal(cl)
+        g.process_action(DropCards(pl[0], [cl[0]]))
+        g.process_action(DropCards(pl[1], [cl[1]]))
+
+        return cl[0].number > cl[1].number
+
+    @staticmethod
+    def cond(cl):
+        from .cards import CardList
+        return len(cl) == 1 and cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+
+    no_reveal = True
+
+    def is_valid(self):
+        src = self.source
+        tgt = self.target
+        if src.dead or tgt.dead: return False
+        if not (src.cards or src.showncards): return False
+        if not (tgt.cards or tgt.showncards): return False
+        return True
+

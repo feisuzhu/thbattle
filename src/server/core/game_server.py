@@ -83,8 +83,7 @@ class PlayerList(BatchList):
 
             workers.join()
         finally:
-            for w in workers:
-                w.kill()
+            workers.kill()
 
 class Player(game.AbstractPlayer):
     dropped = False

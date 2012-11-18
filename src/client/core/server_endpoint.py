@@ -72,6 +72,7 @@ class Server(Endpoint, Greenlet):
             e.wait()
 
     def gwrite(self, tag, data):
+        log.debug('GAME_WRITE: %s', repr([tag, data]))
         self.write(['gamedata', [tag, data]])
 
     def gclear(self):

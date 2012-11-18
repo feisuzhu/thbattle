@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from client.ui.base import *
+from client.ui.base import schedule as ui_schedule
 from client.ui.base.interp import *
 from client.ui.controls import *
 
@@ -278,8 +279,71 @@ action_effect_string_before = partial(_aese, 'effect_string_before')
 action_effect_string_after = partial(_aese, 'effect_string')
 action_effect_string_apply = partial(_aese, 'effect_string_apply')
 
+class UIPindianEffect(Panel):
+    def __init__(self, act, *a, **k):
+        w = 20 + 91 + 20 + 91 + 20
+        h = 20 + 125 + 20 + 20 + 20
+
+        self.action = act
+        src = act.source
+        tgt = act.target
+
+        self.lbls = batch = pyglet.graphics.Batch()
+
+        self.srclbl = lbl = pyglet.text.Label(
+            text=src.ui_meta.char_name, x=20+91//2, y=165,
+            font_size=12, color=(255, 255, 160, 255), bold=True,
+            anchor_x='center', anchor_y='bottom', batch=batch
+        )
+
+        self.tgtlbl = lbl = pyglet.text.Label(
+            text=tgt.ui_meta.char_name, x=20+91+20+91//2, y=165,
+            font_size=12, color=(255, 255, 160, 255), bold=True,
+            anchor_x='center', anchor_y='bottom', batch=batch
+        )
+
+        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
+        parent = self.parent
+        self.x, self.y = (parent.width - w)//2, (parent.height - h)//2 + 20
+        self.width, self.height = w, h
+        self.update()
+
+    def draw(self):
+        Panel.draw(self)
+        with shaders.FontShadow as fs:
+            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+            self.lbls.draw()
+
+    def on_message(self, _type, *args):
+        if _type == 'evt_action_after' and isinstance(args[0], Pindian):
+            rst = args[0].succeeded
+            if rst:
+                self.tgtcs.gray = True
+                self.srclbl.color = (80, 255, 80, 255)
+                self.tgtlbl.color = (0, 0, 0, 0)
+            else:
+                self.srccs.gray = True
+                self.tgtlbl.color = (80, 255, 80, 255)
+                self.srclbl.color = (0, 0, 0, 0)
+
+            self.srccs.update()
+            self.tgtcs.update()
+
+            pyglet.clock.schedule_once(lambda *a: self.delete(), 2)
+
+        elif _type == 'evt_pindian_card_chosen':
+            p, card = args[0]
+            if p is self.action.source:
+                self.srccs = CardSprite(card, parent=self, x=20, y=20)
+            else:
+                self.tgtcs = CardSprite(card, parent=self, x=20+91+20, y=20)
+
+def pindian_effect(self, act):
+    UIPindianEffect(act, parent=self)
+
 mapping_actions = ddict(dict, {
     'before': {
+        Pindian: pindian_effect,
         LaunchCard: launch_effect,
         Reject: reject_effect,
         ActionStage: action_stage_update_tag,

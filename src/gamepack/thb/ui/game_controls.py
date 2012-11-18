@@ -35,17 +35,9 @@ class CardSprite(Control, BalloonPrompt):
         self.x, self.y,  = x, y
         self.shine_alpha = 0.0
         self.alpha = 1.0
+        self.card = card
 
-        meta = card.ui_meta
-
-        self.img = meta.image
-
-        self.number, self.suit = card.number, card.suit
         self.ft_anim = False
-
-        t = getattr(meta, 'description', None) # FOR DEBUG
-        if t:
-            self.init_balloon(t)
 
         self.update()
 
@@ -108,7 +100,15 @@ class CardSprite(Control, BalloonPrompt):
         glPopMatrix()
 
     def update(self):
-        pass
+        card = self.card
+        meta = card.ui_meta
+
+        self.img = meta.image
+
+        self.number, self.suit = card.number, card.suit
+
+        t = getattr(meta, 'description', None)
+        if t: self.init_balloon(t)
 
     def on_mouse_enter(self, x, y):
         self.shine_alpha = 1.0
@@ -846,7 +846,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 glDrawArrays(GL_QUADS, 0, n/8)
 
         glPopClientAttrib()
-        
+
     @staticmethod
     def batch_draw_hilight(gcps):
         glColor4f(0, 0, 0, 0.5)
