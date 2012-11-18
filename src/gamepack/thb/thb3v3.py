@@ -273,7 +273,7 @@ class THBattle(Game):
             p.fatetell = CardList(p, CardList.FATETELL) # Cards in the Fatetell Zone
             p.special = CardList(p, CardList.SPECIAL) # used on special purpose
 
-            p.showncardlists = [p.showncards]
+            p.showncardlists = [p.showncards, p.fatetell]
 
             p.tags = defaultdict(int)
 
