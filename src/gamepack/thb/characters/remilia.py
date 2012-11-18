@@ -18,29 +18,23 @@ class FateSpearAction(GenericAction):
         return True
 
 class FateSpearHandler(EventHandler):
-    execute_before = ('DistanceValidator', )
-    execute_after = ('AttackCardHandler', )
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, CalcDistance):
-            if not act.source.has_skill(FateSpear): return act
-            g = Game.getgame()
-            card = act.card
-            if self.cardcond(card):
-                act.force_valid()
-        elif evt_type == 'action_before' and isinstance(act, Attack):
-            if not act.source.has_skill(FateSpear): return act
-            card = getattr(act, 'associated_card', None)
-            if card and self.cardcond(card):
+        if evt_type == 'action_before' and isinstance(act, Attack):
+            src = act.source
+            if not src.has_skill(FateSpear): return act
+            tgt = act.target
+
+            while True:
+                if tgt.life >= src.life: break
+                if len(tgt.cards) + len(tgt.showncards) > len(src.cards) + len(src.showncards): break
+                return act
+
+            if act.source.user_input('choose_option', self):
                 Game.getgame().process_action(FateSpearAction(act))
+
         return act
 
-    def cardcond(self, card):
-        return card.is_card(GungnirSkill) or (
-            card.is_card(AttackCard) and card.color == Card.RED
-        )
-
 class VampireKiss(Skill):
-    distance = 2
     associated_action = None
     target = t_None
 
@@ -59,10 +53,6 @@ class VampireKissHandler(EventHandler):
             g = Game.getgame()
             pact = g.action_stack[-1]
             if not isinstance(pact, Attack): return act
-            #cd = CalcDistance(src, VampireKiss(src))
-            #g.process_action(cd)
-            #rst = cd.validate()
-            #if rst[act.target]:
             card = pact.associated_card
             if (not card) or card.color != Card.RED: return act
             g.process_action(VampireKissAction(src, tgt))

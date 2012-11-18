@@ -34,7 +34,6 @@ class InevitableAttack(Attack):
 
 @register_eh
 class AttackCardHandler(EventHandler):
-    execute_before = ('DistanceValidator',)
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, PlayerTurn):
             act.target.tags['attack_num'] = 1
@@ -45,18 +44,20 @@ class AttackCardHandler(EventHandler):
                 if act.card.is_card(AttackCard):
                     act.source.tags['attack_num'] -= 1
             
-            elif isinstance(act, CalcDistance):
-                card = act.card
-                from .definition import AttackCard
-                if card.is_card(AttackCard):
-                    from .equipment import WeaponSkill
-                    source = act.source
+        elif evt_type == 'calcdistance':
+            lc, dist = act
+            card = lc.card
+            from .definition import AttackCard
+            if card.is_card(AttackCard):
+                from .equipment import WeaponSkill
+                src = lc.source
 
-                    l = []
-                    for s in source.skills:
-                        if issubclass(s, WeaponSkill):
-                            l.append(s.range - 1)
-                    if l: act.correction += min(l)
+                l = [s.range - 1 for s in src.skills if issubclass(s, WeaponSkill)]
+                if not l: return act
+                l = min(l)
+
+                for p in dist:
+                    dist[p] -= l
 
         elif evt_type == 'action_can_fire' and isinstance(act[0], ActionStageLaunchCard):
             lc, rst = act

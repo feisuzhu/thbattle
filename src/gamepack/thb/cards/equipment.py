@@ -90,22 +90,22 @@ class RedUFOSkill(UFOSkill):
 
 @register_eh
 class UFODistanceHandler(EventHandler):
-    execute_before = ('DistanceValidator',)
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, CalcDistance):
-            source = act.source
-            for s in source.skills:
+    def handle(self, evt_type, arg):
+        if evt_type == 'calcdistance':
+            act, dist = arg
+            src = act.source
+            for s in src.skills:
                 if issubclass(s, RedUFOSkill):
                     incr = s.increment
-                    act.correction += incr(source) if callable(incr) else incr
+                    for p in dist:
+                        dist[p] -= incr(source) if callable(incr) else incr
 
-            dist = act.distance
-            for p in dist.keys():
+            for p in dist:
                 for s in p.skills:
                     if issubclass(s, GreenUFOSkill):
                         incr = s.increment
                         dist[p] += incr(p) if callable(incr) else incr
-        return act
+        return arg
 
 class WeaponSkill(Skill):
     range = 1

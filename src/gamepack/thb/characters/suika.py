@@ -39,19 +39,22 @@ class GreatLandscape(Skill):
     target = t_None
 
 class GreatLandscapeHandler(EventHandler):
-    execute_before = ('DistanceValidator', )
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, CalcDistance):
+    def handle(self, evt_type, arg):
+        if evt_type == 'calcdistance':
+            act, dist = arg
             card = act.card
             if card.is_card(AttackCard):
                 src = act.source
-                if not src.has_skill(GreatLandscape): return act
+                if not src.has_skill(GreatLandscape): return arg
 
                 for s in src.skills:
                     if issubclass(s, WeaponSkill):
-                        return act
-                act.correction += src.maxlife - src.life
-        return act
+                        return arg
+                
+                correction = src.maxlife - src.life
+                for p in dist:
+                    dist[p] -= correction
+        return arg
 
 class WineGod(Skill):
     associated_action = None

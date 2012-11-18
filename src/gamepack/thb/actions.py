@@ -378,6 +378,10 @@ class LaunchCard(BaseLaunchCard):
             log.debug('LaunchCard.card FALSE')
             return False
 
+        if not self.validate_distance():
+            log.debug('LaunchCard: does not fulfill distance constraint')
+            return False
+
         cls = card.associated_action
         src = self.source
 
@@ -392,8 +396,29 @@ class LaunchCard(BaseLaunchCard):
 
         return True
 
+    def validate_distance(self):
+        g = Game.getgame()
+        pl = [p for p in g.players if not p.dead]
+        src = self.source
+        loc = pl.index(src)
+        n = len(pl)
+        dist = {
+            p: min(abs(i), n-abs(i))
+            for p, i in zip(pl, xrange(-loc, -loc+n))
+        }
+        
+        g.emit_event('calcdistance', (self, dist))
+        card_dist = getattr(self.card, 'distance', 1000)
+        for p in dist:
+            dist[p] -= card_dist
+        g.emit_event('post_calcdistance', (self, dist))
+        
+        return all([dist[p] <= 0 for p in self.target_list])
+
+
 class ActionStageLaunchCard(LaunchCard):
     pass
+
 
 class ActionStage(GenericAction):
 
@@ -448,71 +473,6 @@ class ActionStage(GenericAction):
 
         return True
 
-class CalcDistance(InternalAction):
-    def __init__(self, source, card):
-        self.source = source
-        self.distance = None
-        self.correction = 0
-        self._force_valid = False
-        self.card = card
-
-    def apply_action(self):
-        g = Game.getgame()
-        pl = [p for p in g.players if not p.dead]
-        self.player_list = pl
-        source = self.source
-        loc = pl.index(source)
-        n = len(pl)
-        raw = self.raw_distance = {
-            p: min(abs(i), n-abs(i))
-            for p, i in zip(pl, xrange(-loc, -loc+n))
-        }
-        self.distance = dict(raw)
-        return True
-
-    def force_valid(self):
-        self._force_valid = True
-
-    def validate(self):
-        g = Game.getgame()
-        pl = self.player_list
-        lookup = self.distance
-        c = self.correction
-        if not self._force_valid:
-            try:
-                dist = self.card.distance
-
-                return {
-                    t: lookup[t] - (dist + c) <= 0
-                    for t in pl
-                }
-            except AttributeError:
-                pass
-
-        return {
-            t: True
-            for t in pl
-        }
-
-@register_eh
-class DistanceValidator(EventHandler):
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_can_fire' and isinstance(arg[0], LaunchCard):
-            g = Game.getgame()
-            act = arg[0]
-            card = act.card
-            dist = getattr(card, 'distance', None)
-            if dist is None:
-                # no distance constraint
-                return arg
-            calc = CalcDistance(act.source, card)
-            g.process_action(calc)
-            rst = calc.validate()
-            if not all(rst[t] for t in act.target_list):
-                log.debug('REJECTED due to distance constraint.')
-                return (act, False)
-
-        return arg
 
 class FatetellStage(GenericAction):
     def __init__(self, target):

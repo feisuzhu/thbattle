@@ -2467,7 +2467,7 @@ class PerfectFreeze:
                 act = c.associated_action
                 if act and issubclass(act, (cards.BasicAction, cards.WearEquipmentAction)):
                     return (True, u'PERFECT FREEZE~')
-            
+
             return (False, u'请选择一张黑色的基本牌或装备牌！')
 
     def effect_string(act):
@@ -3230,6 +3230,11 @@ class FateSpearAction:
             act.target.ui_meta.char_name,
         )
 
+class FateSpearHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【神枪】吗？'
+
 class VampireKiss:
     # Skill
     name = u'红魔之吻'
@@ -3252,7 +3257,9 @@ class Remilia:
     port_image = gres.remilia_port
     description = (
         u'|DB永远幼小的红月 蕾米莉亚 体力：4|r\n\n'
-        u'|G神枪|r：|B锁定技|r，当使用红色的或发动【刚格尼尔】时的【弹幕】时距离无限不可闪避。\n\n'
+        u'|G神枪|r：出牌阶段，出现以下情况之一，你可以令你的【弹幕】不能被【擦弹】抵消：\n'
+        u'|B|R>> |r目标角色的体力值 ≥ 你的体力值。\n'
+        u'|B|R>> |r目标角色的手牌数 ＞ 你的手牌数。\n\n'
         u'|G红魔之吻|r：|B锁定技|r，对玩家使用红色【弹幕】命中时，回复1点体力值。'
     )
 
@@ -3728,7 +3735,7 @@ class attack_num:
     tag_anim = lambda p: gres.tag_attacked
     display = lambda p, v: v <= 0 and G().current_turn is p
     description = u'该玩家在此回合不能再使用【弹幕】了'
-  
+
 class wine:
     tag_anim = lambda p: gres.tag_wine
     display = lambda p, v: v

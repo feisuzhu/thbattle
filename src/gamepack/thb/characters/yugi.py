@@ -68,7 +68,6 @@ class FreakingPower(FatetellAction):
         return True
 
 class YugiHandler(EventHandler):
-    execute_before = ('DistanceValidator', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack) and not hasattr(act, 'yugifptag'):
             src = act.source
@@ -91,6 +90,8 @@ class YugiHandler(EventHandler):
                 g.process_action(DropCards(tgt, [card]))
 
         '''
+        # obsoleted, not refactoring.
+
         elif evt_type == 'action_after' and isinstance(act, CalcDistance):
             card = act.card
             if card.is_card(AssaultSkill):

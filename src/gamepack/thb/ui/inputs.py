@@ -312,17 +312,17 @@ class UIDoActionStage(UISelectTarget):
                     card.resides_in in (g.me.cards, g.me.showncards)
                 ): break
 
-                source = Game.getgame().me
                 target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())
                 if target_list is not None:
                     parent.set_selected_players(target_list)
+                    disables = []
+                    # if card.target in (thbcards.t_One, thbcards.t_OtherOne):
+                    if card.target.__name__ in ('t_One', 't_OtherOne'):
+                        for p in g.players:
+                            act = thbactions.ActionStageLaunchCard(g.me, [p], card)
+                            if not act.can_fire():
+                                disables.append(p)
 
-                    calc = thbactions.CalcDistance(g.me, card)
-                    g.process_action(calc)
-
-                    rst = calc.validate()
-
-                    disables = [p for p, r in rst.iteritems() if not r]
                     parent.begin_select_player(disables)
                     for i in disables:
                         try:
