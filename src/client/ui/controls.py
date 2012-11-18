@@ -4,7 +4,7 @@ from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import *
-from client.ui.base import message as ui_message, schedule as ui_schedule
+from client.ui.base import ui_message, ui_schedule
 from client.ui.base.shader import ShaderGroup, ShaderUniformGroup
 from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders

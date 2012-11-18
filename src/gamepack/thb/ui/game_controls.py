@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from client.ui.base import Control, message as ui_message
+from client.ui.base import Control, ui_message
 from client.ui.controls import *
 from client.ui import resource as common_res
 import resource as game_res

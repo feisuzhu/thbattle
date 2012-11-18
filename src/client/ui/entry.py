@@ -19,7 +19,7 @@ def start_ui():
 
     # ---------------
 
-    from client.ui.base import init_gui, schedule as ui_schedule
+    from client.ui.base import init_gui, ui_schedule
 
     # custom font renderer
     import pyglet

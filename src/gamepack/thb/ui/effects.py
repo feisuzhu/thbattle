@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from client.ui.base import *
-from client.ui.base import schedule as ui_schedule
+from client.ui.base import ui_schedule
 from client.ui.base.interp import *
 from client.ui.controls import *
 

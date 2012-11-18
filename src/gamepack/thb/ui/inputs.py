@@ -3,8 +3,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
-from client.ui.base import message as ui_message
-from client.ui.base import schedule as ui_schedule
+from client.ui.base import ui_message, ui_schedule
 from client.ui.controls import *
 from client.ui import resource as common_res, shaders
 import resource as gres

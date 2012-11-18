@@ -3,7 +3,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
-from client.ui.base import Control, message as ui_message, Overlay
+from client.ui.base import Control, ui_message, Overlay
 from client.ui.controls import *
 from client.ui import resource as common_res
 from client.ui import shaders, soundmgr

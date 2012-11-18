@@ -473,10 +473,14 @@ def init_gui():
     def _dispatch_msg(dt):
         global sched_queue, sched_queue_lock
         if not sched_queue: return
+
         with sched_queue_lock:
-            for func in sched_queue:
-                func()
+            queue = sched_queue
             sched_queue = []
+
+        for func in queue:
+            func()
+
     pyglet.clock.schedule_interval(_dispatch_msg, delay)
 
     # if gc runs in the game thread,
@@ -489,7 +493,7 @@ def init_gui():
     pyglet.clock.schedule_interval_soft(lambda dt: gc.collect(0), 1)
     pyglet.clock.schedule_interval_soft(lambda dt: gc.collect(2), 7)
 
-def schedule(func, *args, **kwargs):
+def ui_schedule(func, *args, **kwargs):
     global sched_queue, sched_queue_lock
     with sched_queue_lock:
         sched_queue.append(partial(func, *args, **kwargs))
@@ -497,8 +501,8 @@ def schedule(func, *args, **kwargs):
 def _msg(args):
     Overlay.cur_overlay.dispatch_message(args)
 
-def message(*args):
+def ui_message(*args):
     '''
     Send message to UI
     '''
-    schedule(_msg, args)
+    ui_schedule(_msg, args)

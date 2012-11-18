@@ -260,15 +260,15 @@ class Executive(object):
         def fetch_resource(self, cb, url):
             def worker():
                 import urllib2
-                from client.ui.base import schedule
+                from client.ui.base import ui_schedule
                 try:
                     resp = urllib2.urlopen(url)
                     data = resp.read()
                 except:
-                    schedule(cb, False)
+                    ui_schedule(cb, False)
                     return
 
-                schedule(cb, (resp, data))
+                ui_schedule(cb, (resp, data))
             gevent.spawn(worker)
 
         # @handler def register(...): ...

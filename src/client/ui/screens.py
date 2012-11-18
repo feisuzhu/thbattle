@@ -2,7 +2,7 @@
 import pyglet
 from pyglet.gl import *
 from client.ui.base import *
-from client.ui.base import message as ui_message, schedule as ui_schedule
+from client.ui.base import ui_message, ui_schedule
 from client.ui.controls import *
 from client.ui import soundmgr
 import  client.ui.resource as common_res
@@ -144,7 +144,7 @@ class ServerSelectScreen(Screen):
     def on_switch(self):
         soundmgr.switch_bgm(common_res.bgm_hall)
         from options import options
-        
+
         if options.testing:
             ConfirmBox(
                 u'测试模式开启，现在可以登陆测试服务器。\n'
