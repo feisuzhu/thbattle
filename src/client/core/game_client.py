@@ -181,9 +181,9 @@ class PlayerList(BatchList):
                     break
 
             for i, p in enumerate(self):
-                workers.append(
-                    gevent.spawn(worker, p, i)
-                )
+                w = gevent.spawn(worker, p, i)
+                w.game = g
+                workers.append(w)
 
             workers.join()
         finally:

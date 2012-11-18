@@ -77,9 +77,9 @@ class PlayerList(BatchList):
                     break
 
             for i, p in enumerate(self):
-                workers.append(
-                    gevent.spawn(worker, p, i)
-                )
+                w = gevent.spawn(worker, p, i)
+                w.game = g
+                workers.append(w)
 
             workers.join()
         finally:
@@ -156,13 +156,14 @@ class Game(Greenlet, game.Game):
     def _run(self):
         from server.core import gamehall as hall
         self.synctag = 0
+        self.game = getcurrent()
         hall.start_game(self)
         self.game_start()
         hall.end_game(self)
 
     @staticmethod
     def getgame():
-        return getcurrent()
+        return getcurrent().game
 
     def get_synctag(self):
         self.synctag += 1
