@@ -25,7 +25,7 @@ class FateSpearHandler(EventHandler):
             tgt = act.target
 
             while True:
-                if tgt.life >= src.life: break
+                if tgt.life > src.life: break
                 if len(tgt.cards) + len(tgt.showncards) > len(src.cards) + len(src.showncards): break
                 return act
 
