@@ -73,7 +73,7 @@ def start_ui():
 
     def update_callback(msg):
         if msg == 'up2date':
-            sss.switch()
+            ui_schedule(sss.switch)
         elif msg in errmsgs:
             ui_schedule(display_box, errmsgs[msg])
         else:
