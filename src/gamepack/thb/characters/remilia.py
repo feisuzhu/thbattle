@@ -26,7 +26,7 @@ class FateSpearHandler(EventHandler):
 
             while True:
                 if tgt.life > src.life: break
-                if len(tgt.cards) + len(tgt.showncards) > len(src.cards) + len(src.showncards): break
+                if len(tgt.cards) + len(tgt.showncards) < len(src.cards) + len(src.showncards): break
                 return act
 
             if act.source.user_input('choose_option', self):
