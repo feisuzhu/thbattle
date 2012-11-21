@@ -35,15 +35,16 @@ class InevitableAttack(Attack):
 @register_eh
 class AttackCardHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, PlayerTurn):
-            act.target.tags['attack_num'] = 1
-        
+        #if evt_type == 'action_before' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_before' and isinstance(act, ActionStage):
+            act.actor.tags['attack_num'] = 1
+
         elif evt_type == 'action_after':
             if isinstance(act, ActionStageLaunchCard):
                 from .definition import AttackCard
                 if act.card.is_card(AttackCard):
                     act.source.tags['attack_num'] -= 1
-            
+
         elif evt_type == 'calcdistance':
             lc, dist = act
             card = lc.card

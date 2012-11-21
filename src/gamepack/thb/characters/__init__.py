@@ -30,6 +30,7 @@ import suika
 import chen
 import yukari
 import cirno
+import sakuya
 
 import dummy
 

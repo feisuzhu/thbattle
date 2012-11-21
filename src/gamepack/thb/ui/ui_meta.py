@@ -3742,6 +3742,68 @@ class Dummy:
         u'|G我很强壮|r：嗯，很强壮……'
     )
 
+# ----------
+__metaclass__ = gen_metafunc(characters.sakuya)
+
+class Sakuya:
+    # Character
+    char_name = u'十六夜咲夜'
+    port_image = gres.sakuya_port
+    description = (
+        u'|DB完全潇洒的PAD长 十六夜咲夜 体力：4|r\n\n'
+        u'|G月时计|r：|B锁定技|r，在你的判定阶段开始前，你执行一个额外的出牌阶段。\n\n'
+        u'|G飞刀|r：你可以将一张装备牌当【弹幕】使用或打出；你以此法使用【弹幕】时无距离限制。'
+    )
+
+class FlyingKnife:
+    # Skill
+    name = u'飞刀'
+
+    def clickable(game):
+        me = game.me
+
+        try:
+            act = game.action_stack[-1]
+        except IndexError:
+            return False
+
+        if not (me.cards or me.showncards or me.equips): return False
+        if not isinstance(act, (actions.ActionStage, cards.UseAttack)): return False
+        actor = act.actor if hasattr(act, 'actor') else act.target
+
+        return True
+
+    def is_action_valid(g, cl, target_list):
+        skill = cl[0]
+        assert skill.is_card(characters.sakuya.FlyingKnife)
+        cl = skill.associated_cards
+        if len(cl) != 1 or not issubclass(cl[0].associated_action, cards.WearEquipmentAction):
+            return (False, u'请选择一张装备牌！')
+        else:
+            return cards.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
+
+    def effect_string(act):
+        # for LaunchCard.ui_meta.effect_string
+        source = act.source
+        card = act.card
+        target = act.target
+        s = u'|G【%s】|r将|G%s|r制成了|G飞刀|r，向|G【%s】|r掷去！' % (
+            source.ui_meta.char_name,
+            card.associated_cards[0].ui_meta.name,
+            target.ui_meta.char_name,
+        )
+        return s
+
+
+class LunaClock:
+    # Skill
+    name = u'月时计'
+
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, u'BUG!')
 
 # -----END CHARACTERS UI META-----
 
