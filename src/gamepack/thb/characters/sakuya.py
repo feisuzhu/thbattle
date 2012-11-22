@@ -21,9 +21,11 @@ class FlyingKnife(Skill):
 
 class LunaClockActionStage(ActionStage):
     def apply_action(self):
+        tags = self.target.tags
+        tags['lunaclock'] = True
         rst = ActionStage.apply_action(self)
-        tgt = self.target
-        tgt.tags['turn_count'] += 1
+        tags['lunaclock'] = False
+        tags['turn_count'] += 1
         return rst
 
 

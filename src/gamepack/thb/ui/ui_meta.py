@@ -3842,4 +3842,9 @@ class flan_cs:
     display = lambda p, v: v
     description = u'玩坏你哦！'
 
+class lunaclock:
+    tag_anim = lambda p: gres.tag_lunaclock
+    display = lambda p, v: v
+    description = u'咲夜的时间！'
+
 # -----END TAGS UI META-----

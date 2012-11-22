@@ -126,6 +126,7 @@ with ldr as args:
     tag_sinsack = anim('tag_sinsack.png', [10000], True)
     tag_wine = anim('tag_wine.png', [150]*3, True)
     tag_frozenfrog = anim('tag_frozenfrog.png', [10000], True)
+    tag_lunaclock = anim('tag_lunaclock.png', [200]*10, True)
 
     port_atlas = pyglet.image.atlas.TextureAtlas(1024, 1024)
 
