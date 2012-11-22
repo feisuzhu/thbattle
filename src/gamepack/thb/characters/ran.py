@@ -102,12 +102,12 @@ class ExtremeIntelligenceHandler(EventHandler):
             g = Game.getgame()
             for a in reversed(g.action_stack):
                 if isinstance(a, ActionStage):
-                    actor = a.actor
+                    target = a.target
                     break
             else:
                 assert False, 'Should not happen'
 
-            for p in g.players.exclude(actor):
+            for p in g.players.exclude(target):
                 if p.dead: continue
                 if not p.has_skill(ExtremeIntelligence): continue
                 if p.tags['ran_ei_tag'] >= p.tags['turn_count'] + 1: continue

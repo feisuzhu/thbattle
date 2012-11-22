@@ -11,9 +11,9 @@ class DollManipulationHandler(EventHandler):
     execute_after = ('AttackCardHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
-            tgt = act.actor
+            tgt = act.target
             if tgt.has_skill(DollManipulation):
-                act.actor.tags['attack_num'] = 10000
+                act.target.tags['attack_num'] = 10000
         return act
 
 class DollCrusader(TreatAsSkill):

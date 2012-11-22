@@ -101,6 +101,7 @@ class VirtualCard(Card):
     syncid = 0
 
     def __init__(self, player):
+        self.player = player
         self.suit = Card.NOTSET
         self.number = 0
         self.resides_in = player.special

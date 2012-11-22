@@ -50,7 +50,7 @@ class DaiyouseiHandler(EventHandler):
                     act.amount += tgt.maxlife - tgt.life
                     act.__class__ = MoeDrawCard
             elif isinstance(act, ActionStage):
-                tgt = act.actor
+                tgt = act.target
                 if tgt.has_skill(SupportSkill):
                     tgt.tags['daiyousei_spnum'] = 0
         return act

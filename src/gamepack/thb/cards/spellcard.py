@@ -198,9 +198,9 @@ class SealingArray(DelayedSpellCardAction):
 class SealingArrayHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
-            actor = act.actor
-            if actor.tags.get('sealed'):
-                del actor.tags['sealed']
+            target = act.target
+            if target.tags.get('sealed'):
+                del target.tags['sealed']
                 act.cancelled = True
         return act
 
@@ -418,7 +418,11 @@ class DollControl(InstantSpellCardAction):
 
     def cond(self, cl):
         from .definition import AttackCard
-        return bool(cl) and cl[0].is_card(AttackCard)
+        if len(cl) != 1: return False
+        if not cl[0].associated_action: return False
+        if issubclass(cl[0].associated_action, basic.Attack): return True
+        return False
+
 
 class DonationBoxEffect(InstantSpellCardAction):
     def apply_action(self):

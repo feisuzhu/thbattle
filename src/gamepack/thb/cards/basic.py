@@ -37,7 +37,7 @@ class AttackCardHandler(EventHandler):
     def handle(self, evt_type, act):
         #if evt_type == 'action_before' and isinstance(act, PlayerTurn):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
-            act.actor.tags['attack_num'] = 1
+            act.target.tags['attack_num'] = 1
 
         elif evt_type == 'action_after':
             if isinstance(act, ActionStageLaunchCard):

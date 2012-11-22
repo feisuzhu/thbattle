@@ -113,7 +113,7 @@ class YoumuHandler(EventHandler):
                 if not act.source.has_skill(Nitoryuu): return act
                 act.__class__ = YoumuWearEquipmentAction
             elif isinstance(act, ActionStage):
-                a = act.actor
+                a = act.target
                 if not a.has_skill(Xianshiwangzhi): return act
                 a.tags['attack_num'] += 1
 

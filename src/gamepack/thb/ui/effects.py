@@ -246,7 +246,7 @@ def after_launch_effect(self, act):
         _update_tags(self, p)
 
 def action_stage_update_tag(self, act):
-    _update_tags(self, act.actor)
+    _update_tags(self, act.target)
 
 def player_turn_effect(self, act):
     p = act.target
@@ -393,7 +393,7 @@ def user_input_start_effects(self, input):
         x = port.x, y = port.y - 15,
         width = port.width,
         # all animations have zindex 2,
-        # turn/actor frame will overdrawn on this
+        # turn/target frame will overdrawn on this
         # if zindex<2
         zindex=3,
     )

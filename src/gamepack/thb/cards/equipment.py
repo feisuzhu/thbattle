@@ -198,7 +198,7 @@ class RoukankenHandler(EventHandler):
             g = Game.getgame()
 
             if not cards: return act
-            
+
             g.process_action(RoukankenLaunchAttack(src, [tgt], cards[0]))
 
         return act
@@ -232,8 +232,8 @@ class LaevateinSkill(WeaponSkill):
             card = cl[0]
             from .definition import AttackCard
             check(card.is_card(AttackCard))
-            actor = card.resides_in.owner
-            check(len(actor.cards) + len(actor.showncards) == 1)
+            target = card.resides_in.owner
+            check(len(target.cards) + len(target.showncards) == 1)
             return True
         except CheckFailed:
             return False
@@ -341,10 +341,10 @@ class IbukiGourdHandler(EventHandler):
     execute_after = ('WineHandler', )
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, PlayerTurn):
-            actor = arg.target
-            if actor.has_skill(IbukiGourdSkill):
+            target = arg.target
+            if target.has_skill(IbukiGourdSkill):
                 g = Game.getgame()
-                g.process_action(basic.Wine(actor, actor))
+                g.process_action(basic.Wine(target, target))
         elif evt_type == 'card_migration':
             from .definition import IbukiGourdCard
             act, cl, _from, to = arg

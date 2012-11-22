@@ -423,18 +423,18 @@ class ActionStageLaunchCard(LaunchCard):
 class ActionStage(GenericAction):
 
     def __init__(self, target):
-        self.actor = target
+        self.target = target
 
     def apply_action(self):
         g = Game.getgame()
-        actor = self.actor
-        if actor.dead: return False
+        target = self.target
+        if target.dead: return False
 
         shuffle_here()
 
         try:
-            while not actor.dead:
-                input = actor.user_input('action_stage_usecard')
+            while not target.dead:
+                input = target.user_input('action_stage_usecard')
                 check_type([[int, Ellipsis]] * 3, input)
 
                 skill_ids, card_ids, target_list = input
@@ -442,7 +442,7 @@ class ActionStage(GenericAction):
                 if card_ids:
                     cards = g.deck.lookupcards(card_ids)
                     check(cards)
-                    check(all(c.resides_in.owner is actor for c in cards))
+                    check(all(c.resides_in.owner is target for c in cards))
                 else:
                     cards = []
 
@@ -452,16 +452,16 @@ class ActionStage(GenericAction):
 
                 # skill selected
                 if skill_ids:
-                    card = skill_wrap(actor, skill_ids, cards)
+                    card = skill_wrap(target, skill_ids, cards)
                     check(card)
                 else:
                     check(len(cards) == 1)
-                    g.players.exclude(actor).reveal(cards)
+                    g.players.exclude(target).reveal(cards)
                     card = cards[0]
                     from .cards import HiddenCard
                     assert not card.is_card(HiddenCard)
-                    check(card.resides_in in (actor.cards, actor.showncards))
-                if not g.process_action(ActionStageLaunchCard(actor, target_list, card)):
+                    check(card.resides_in in (target.cards, target.showncards))
+                if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
                     break

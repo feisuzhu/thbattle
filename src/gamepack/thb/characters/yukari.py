@@ -148,7 +148,7 @@ class RealmSkipActionHandler(EventHandler):
     execute_after = ('SealingArrayHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
-            self.target = tgt = act.actor
+            self.target = tgt = act.target
             if act.cancelled: return act
             if not tgt.has_skill(Realm): return act
 

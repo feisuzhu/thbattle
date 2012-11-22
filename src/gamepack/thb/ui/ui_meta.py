@@ -1893,7 +1893,13 @@ class MasterSpark:
         except IndexError:
             return False
 
-        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+        if act.target is not me: return False
+        if not (me.cards or me.showncards): return False
+
+        if isinstance(act, actions.ActionStage):
+            return True
+
+        if isinstance(act, cards.DollControl):
             return True
 
         return False
@@ -2078,7 +2084,7 @@ class DollCrusader:
             return False
 
         if isinstance(act, actions.ActionStage) and \
-            act.actor is me and \
+            act.target is me and \
             (me.cards or me.showncards or me.equips):
             return True
 
@@ -2473,7 +2479,7 @@ class PerfectFreeze:
         except IndexError:
             return False
 
-        if isinstance(act, actions.ActionStage) and act.actor is me and (me.cards or me.showncards or me.equips):
+        if isinstance(act, actions.ActionStage) and act.target is me and (me.cards or me.showncards or me.equips):
             return True
 
         return False
@@ -2934,7 +2940,7 @@ class FlowerQueen:
         me = game.me
         try:
             act = game.action_stack[-1]
-            if isinstance(act, actions.ActionStage) and act.actor is me:
+            if isinstance(act, actions.ActionStage) and act.target is me:
                 return True
             if isinstance(act, (cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
                 return True
@@ -3480,7 +3486,7 @@ class Drunkard:
         except IndexError:
             return False
 
-        if isinstance(act, actions.ActionStage) and act.actor is me and (me.cards or me.showncards or me.equips):
+        if isinstance(act, actions.ActionStage) and act.target is me and (me.cards or me.showncards or me.equips):
             return True
 
         return False
@@ -3566,7 +3572,7 @@ class FlyingSkanda:
         if me.tags['flying_skanda'] >= me.tags['turn_count']: return False
         try:
             act = game.action_stack[-1]
-            if isinstance(act, actions.ActionStage) and act.actor is me:
+            if isinstance(act, actions.ActionStage) and act.target is me:
                 return True
         except IndexError:
             pass
@@ -3752,35 +3758,41 @@ class Sakuya:
     description = (
         u'|DB完全潇洒的PAD长 十六夜咲夜 体力：4|r\n\n'
         u'|G月时计|r：|B锁定技|r，在你的判定阶段开始前，你执行一个额外的出牌阶段。\n\n'
-        u'|G飞刀|r：你可以将一张装备牌当【弹幕】使用或打出；你以此法使用【弹幕】时无距离限制。'
+        u'|G飞刀|r：在你的出牌阶段，你可以将一张装备牌当【弹幕】使用；你以此法使用【弹幕】时无距离限制。'
     )
 
 class FlyingKnife:
     # Skill
     name = u'飞刀'
 
-    def clickable(game):
-        me = game.me
+    def clickable(g):
+        me = g.me
 
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
         except IndexError:
             return False
 
         if not (me.cards or me.showncards or me.equips): return False
-        if not isinstance(act, (actions.ActionStage, cards.UseAttack)): return False
-        actor = act.actor if hasattr(act, 'actor') else act.target
+        if not isinstance(act, actions.ActionStage): return False
+        if act.target is not g.me: return False
 
         return True
 
-    def is_action_valid(g, cl, target_list):
+    def is_complete(g, cl):
         skill = cl[0]
         assert skill.is_card(characters.sakuya.FlyingKnife)
         cl = skill.associated_cards
         if len(cl) != 1 or not issubclass(cl[0].associated_action, cards.WearEquipmentAction):
             return (False, u'请选择一张装备牌！')
+        return (True, '快看！灰出去了！')
+
+    def is_action_valid(g, cl, target_list, is_complete=is_complete):
+        rst, reason = is_complete(g, cl)
+        if not rst:
+            return rst, reason
         else:
-            return cards.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
+            return cards.AttackCard.ui_meta.is_action_valid(g, cl, target_list)
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string

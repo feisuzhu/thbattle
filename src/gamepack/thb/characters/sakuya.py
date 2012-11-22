@@ -4,10 +4,12 @@ from ..actions import *
 from ..cards import *
 
 
-class FlyingKnife(TreatAsSkill):
-    treat_as = AttackCard
-    distance = 1000
+class FlyingKnife(Skill):
+    associated_action = Attack
+    target = t_OtherOne
     def check(self):
+        p = self.player
+        if Game.getgame().current_turn is not p: return False
         cards = self.associated_cards
         if len(cards) != 1: return False
         c = cards[0]
@@ -18,7 +20,11 @@ class FlyingKnife(TreatAsSkill):
 
 
 class LunaClockActionStage(ActionStage):
-    pass
+    def apply_action(self):
+        rst = ActionStage.apply_action(self)
+        tgt = self.target
+        tgt.tags['turn_count'] += 1
+        return rst
 
 
 class LunaClock(Skill):
