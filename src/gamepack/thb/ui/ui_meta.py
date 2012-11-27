@@ -1878,7 +1878,7 @@ class Marisa:
     description = (
         u'|DB绝非普通的强盗少女 雾雨魔理沙 体力：4|r\n\n'
         u'|G借走|r：摸牌阶段，你可以放弃摸牌，然后从至多两名角色的手牌里各抽取一张牌，置入你的明牌区。\n\n'
-        u'|G极限火花|r：你可以使用两张【擦弹】作为一张无距离限制的【弹幕】使用。'
+        u'|G极限火花|r：你可以使用两张【擦弹】作为一张无距离限制的【弹幕】使用或打出。'
     )
 
 class MasterSpark:
@@ -1899,17 +1899,27 @@ class MasterSpark:
         if isinstance(act, actions.ActionStage):
             return True
 
-        if isinstance(act, cards.DollControl):
+        if isinstance(act, (cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
             return True
 
         return False
 
-    def is_action_valid(g, cl, target_list):
+
+    def is_complete(g, cl):
         cl = cl[0].associated_cards
         if not (cl and len(cl) == 2 and all(c.is_card(cards.GrazeCard) for c in cl)):
             return (False, u'请选择两张【擦弹】')
 
-        if len(target_list) != 1: return (False, u'请选择1名玩家')
+        return (True, u'nyan')
+
+    def is_action_valid(g, cl, target_list, is_complete=is_complete):
+        rst, reason = is_complete(g, cl)
+        if not rst:
+            return rst, reason
+
+        if len(target_list) != 1:
+            return (False, u'请选择1名玩家')
+
         return (True, u'MASTER SPARK！')
 
     def effect_string(act):
@@ -3758,7 +3768,7 @@ class Sakuya:
     description = (
         u'|DB完全潇洒的PAD长 十六夜咲夜 体力：4|r\n\n'
         u'|G月时计|r：|B锁定技|r，在你的判定阶段开始前，你执行一个额外的出牌阶段。\n\n'
-        u'|G飞刀|r：在你的出牌阶段，你可以将一张装备牌当【弹幕】使用；你以此法使用【弹幕】时无距离限制。'
+        u'|G飞刀|r：你可以将一张装备牌当【弹幕】使用或打出。你以此法使用【弹幕】时无距离限制。'
     )
 
 class FlyingKnife:
@@ -3774,7 +3784,9 @@ class FlyingKnife:
             return False
 
         if not (me.cards or me.showncards or me.equips): return False
-        if not isinstance(act, actions.ActionStage): return False
+        if not isinstance(act, (actions.ActionStage, cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
+            return False
+
         if act.target is not g.me: return False
 
         return True

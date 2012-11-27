@@ -66,6 +66,10 @@ class MasterSpark(Skill):
 
         return False
 
+    def is_card(self, cls):
+        if issubclass(AttackCard, cls): return True
+        return isinstance(self, cls)
+
 
 @register_character
 class Marisa(Character):

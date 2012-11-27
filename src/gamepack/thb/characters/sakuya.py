@@ -9,7 +9,6 @@ class FlyingKnife(Skill):
     target = t_OtherOne
     def check(self):
         p = self.player
-        if Game.getgame().current_turn is not p: return False
         cards = self.associated_cards
         if len(cards) != 1: return False
         c = cards[0]
@@ -17,6 +16,10 @@ class FlyingKnife(Skill):
         if not c.resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS): return False
         if not issubclass(c.associated_action, WearEquipmentAction): return False
         return True
+
+    def is_card(self, cls):
+        if issubclass(AttackCard, cls): return True
+        return isinstance(self, cls)
 
 
 class LunaClockActionStage(ActionStage):
