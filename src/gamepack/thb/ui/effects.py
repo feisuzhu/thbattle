@@ -338,8 +338,20 @@ class UIPindianEffect(Panel):
             else:
                 self.tgtcs = CardSprite(card, parent=self, x=20+91+20, y=20)
 
+
 def pindian_effect(self, act):
     UIPindianEffect(act, parent=self)
+
+
+def flash_taskbar_effect(self, data):
+    import sys
+    if sys.platform == 'win32':
+        from ctypes import windll
+        u = windll.user32
+        from client.ui.base.baseclasses import main_window
+        if u.GetForegroundWindow() != main_window._hwnd:
+            u.FlashWindow(main_window._hwnd, 1)
+
 
 mapping_actions = ddict(dict, {
     'before': {
@@ -404,6 +416,7 @@ def user_input_start_effects(self, input):
     )
     port.actor_pbar = pbar
 
+
 def user_input_finish_effects(self, input):
     p = input.player
     port = self.player2portrait(p)
@@ -429,6 +442,7 @@ mapping_events = ddict(bool, {
     'action_apply': partial(action_effects, 'apply'),
     'action_after': partial(action_effects, 'after'),
     'user_input_start': user_input_start_effects,
+    'user_input': flash_taskbar_effect,
     'user_input_finish': user_input_finish_effects,
     'card_migration': card_migration_effects,
     'game_roll': game_roll_prompt,
