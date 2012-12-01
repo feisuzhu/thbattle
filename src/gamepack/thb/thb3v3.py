@@ -267,11 +267,11 @@ class THBattle(Game):
         self.event_handlers.extend(EventHandler.make_list(ehclasses))
 
         for i, p in enumerate(self.players):
-            p.cards = CardList(p, CardList.HANDCARD) # Cards in hand
-            p.showncards = CardList(p, CardList.SHOWNCARD) # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, CardList.EQUIPS) # Equipments
-            p.fatetell = CardList(p, CardList.FATETELL) # Cards in the Fatetell Zone
-            p.special = CardList(p, CardList.SPECIAL) # used on special purpose
+            p.cards = CardList(p, 'handcard') # Cards in hand
+            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
+            p.equips = CardList(p, 'equips') # Equipments
+            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
+            p.special = CardList(p, 'special') # used on special purpose
 
             p.showncardlists = [p.showncards, p.fatetell]
 

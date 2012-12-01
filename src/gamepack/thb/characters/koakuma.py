@@ -33,7 +33,7 @@ class Find(Skill):
         return cl and all(
             c.resides_in and
             c.resides_in.type in (
-                CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS
+                'handcard', 'showncard', 'equips'
             ) for c in self.associated_cards
         )
 

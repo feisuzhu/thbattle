@@ -624,7 +624,7 @@ class Pindian(GenericAction):
     @staticmethod
     def cond(cl):
         from .cards import CardList
-        return len(cl) == 1 and cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+        return len(cl) == 1 and cl[0].resides_in.type in ('handcard', 'showncard')
 
     no_reveal = True
 

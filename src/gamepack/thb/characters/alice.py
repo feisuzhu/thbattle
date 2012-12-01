@@ -23,9 +23,9 @@ class DollCrusader(TreatAsSkill):
         if not cl and len(cl) == 1: return False
         c = cl[0]
         if c.resides_in.type not in (
-            CardList.HANDCARD,
-            CardList.SHOWNCARD,
-            CardList.EQUIPS,
+            'handcard',
+            'showncard',
+            'equips',
         ): return False
 
         cat = getattr(c, 'equipment_category', None)

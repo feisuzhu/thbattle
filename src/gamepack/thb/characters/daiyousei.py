@@ -29,7 +29,7 @@ class SupportSkill(Skill):
         cl = self.associated_cards
         return cl and all(
             c.resides_in and
-            c.resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
+            c.resides_in.type in ('handcard', 'showncard', 'equips')
             for c in cl
         )
 

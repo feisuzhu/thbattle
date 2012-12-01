@@ -176,9 +176,9 @@ class Deck(object):
         from weakref import WeakValueDictionary
         self.cards_record = {}
         self.vcards_record = WeakValueDictionary()
-        self.droppedcards = CardList(None, CardList.DROPPEDCARD)
-        self.special = CardList(None, CardList.SPECIAL)
-        cards = CardList(None, CardList.DECKCARD)
+        self.droppedcards = CardList(None, 'droppedcard')
+        self.special = CardList(None, 'special')
+        cards = CardList(None, 'deckcard')
         self.cards = cards
         if Game.SERVER_SIDE:
             cards.extend(

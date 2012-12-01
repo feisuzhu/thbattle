@@ -446,10 +446,10 @@ class UIChooseGirl(Panel):
 
 class UIChoosePeerCard(Panel):
     lookup = {
-        thbcards.CardList.HANDCARD: u'手牌区',
-        thbcards.CardList.SHOWNCARD: u'明牌区',
-        thbcards.CardList.EQUIPS: u'装备区',
-        thbcards.CardList.FATETELL: u'判定区',
+        'handcard': u'手牌区',
+        'showncard': u'明牌区',
+        'equips': u'装备区',
+        'fatetell': u'判定区',
     }
 
     def __init__(self, irp, *a, **k):

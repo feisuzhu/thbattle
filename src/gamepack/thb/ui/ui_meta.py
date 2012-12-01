@@ -2440,7 +2440,7 @@ class Tribute:
         if len(cl) != 1: return (False, u'只能选择一张手牌')
 
         from ..cards import CardList
-        if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD):
+        if not cl[0].resides_in.type in ('handcard', 'showncard'):
             return (False, u'只能选择手牌！')
 
         if len(tl) != 1 or not tl[0].has_skill(characters.reimu_old.TributeTarget):
@@ -2607,7 +2607,7 @@ class Tribute:
         if len(cl) != 1: return (False, u'只能选择一张手牌')
 
         from ..cards import CardList
-        if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD):
+        if not cl[0].resides_in.type in ('handcard', 'showncard'):
             return (False, u'只能选择手牌！')
 
         if len(tl) != 1 or not tl[0].has_skill(characters.reimu.TributeTarget):
@@ -3508,7 +3508,7 @@ class Drunkard:
         if not (
             cl and len(cl) == 1 and
             cl[0].color == Card.BLACK and
-            cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS)
+            cl[0].resides_in.type in ('handcard', 'showncard', 'equips')
         ): return (False, u'请选择一张黑色牌！')
         return (True, u'常在地狱走，怎能没有二锅头！')
 

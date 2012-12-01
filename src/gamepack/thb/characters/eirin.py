@@ -13,8 +13,8 @@ class FirstAid(Skill):
         return bool(
             c.resides_in and
             c.resides_in.type in (
-                CardList.HANDCARD, CardList.SHOWNCARD,
-                CardList.EQUIPS,
+                'handcard', 'showncard',
+                'equips',
             ) and
             c.suit in (Card.HEART, Card.DIAMOND)
         )
@@ -42,7 +42,7 @@ class Medic(Skill):
         if bool(
             cl and len(cl) == 1 and
             cl[0].resides_in and
-            cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+            cl[0].resides_in.type in ('handcard', 'showncard')
         ): return True
         return False
 

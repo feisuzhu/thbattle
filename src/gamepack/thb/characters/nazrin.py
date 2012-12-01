@@ -38,7 +38,7 @@ class Agile(TreatAsSkill):
         return (
             cl and len(cl) == 1 and
             cl[0].suit in (Card.SPADE, Card.CLUB) and
-            cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+            cl[0].resides_in.type in ('handcard', 'showncard')
         )
 
 @register_character

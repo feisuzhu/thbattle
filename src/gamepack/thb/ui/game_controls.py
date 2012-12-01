@@ -498,11 +498,11 @@ EquipCardArea.register_event_type('on_selection_change')
 class ShownCardPanel(Panel):
     from ..cards.base import CardList
     lookup = {
-        CardList.HANDCARD: u'手牌区',
-        CardList.SHOWNCARD: u'明牌区',
-        CardList.EQUIPS: u'装备区',
-        CardList.FATETELL: u'判定区',
-        CardList.BOMB: u'BOMB'
+        'handcard': u'手牌区',
+        'showncard': u'明牌区',
+        'equips': u'装备区',
+        'fatetell': u'判定区',
+        'bomb': u'BOMB'
     }
 
     current = None

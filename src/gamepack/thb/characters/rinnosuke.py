@@ -32,7 +32,7 @@ class Netoru(Skill):
         cl = self.associated_cards
         return cl and len(cl) == 2 and all(
             c.resides_in and
-            c.resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+            c.resides_in.type in ('handcard', 'showncard')
             for c in cl
         )
 
@@ -43,7 +43,7 @@ class PsychopathHandler(EventHandler):
     def handle(self, evt_type, args):
         if evt_type == 'card_migration':
             act, cards, _from, to = args
-            if _from is not None and _from.type == CardList.EQUIPS:
+            if _from is not None and _from.type == 'equips':
                 src = _from.owner
                 if src.has_skill(Psychopath) and not src.dead:
                     g = Game.getgame()

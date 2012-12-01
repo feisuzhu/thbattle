@@ -10,7 +10,7 @@ class Envy(TreatAsSkill):
         if len(cards) != 1: return False
         c = cards[0]
         if not c.resides_in: return False
-        if not c.resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS): return False
+        if not c.resides_in.type in ('handcard', 'showncard', 'equips'): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         return True
 

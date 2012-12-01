@@ -13,7 +13,7 @@ class FlowerQueen(Skill):
         c = cl[0]
         if not c.suit == Card.CLUB: return False
         return c.resides_in and c.resides_in.type in (
-            CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS,
+            'handcard', 'showncard', 'equips',
         )
 
     def is_card(self, cls):

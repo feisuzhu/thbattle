@@ -26,14 +26,14 @@ class EquipmentTransferHandler(EventHandler):
     def handle(self, evt, args):
         if evt == 'card_migration':
             act, cards, _from, to = args
-            if _from is not None and _from.type == CardList.EQUIPS:
+            if _from is not None and _from.type == 'equips':
                 for c in cards:
                     try:
                         _from.owner.skills.remove(c.equipment_skill)
                     except ValueError:
                         pass
 
-            if to is not None and to.type == CardList.EQUIPS:
+            if to is not None and to.type == 'equips':
                 for c in cards:
                     to.owner.skills.append(c.equipment_skill)
 
@@ -213,7 +213,7 @@ class GungnirSkill(TreatAsSkill, WeaponSkill):
     target = t_OtherOne
     def check(self):
         cl = self.associated_cards
-        cat = (base.CardList.HANDCARD, base.CardList.SHOWNCARD)
+        cat = ('handcard', 'showncard')
         if not all(c.resides_in.type in cat for c in cl): return False
         return len(cl) == 2
 
@@ -350,9 +350,9 @@ class IbukiGourdHandler(EventHandler):
             act, cl, _from, to = arg
             if any(c.is_card(IbukiGourdCard) for c in cl):
                 target = None
-                if _from.type == _from.EQUIPS:
+                if _from.type == 'equips':
                     target = _from.owner
-                elif to.type == to.EQUIPS:
+                elif to.type == 'equips':
                     target = to.owner
 
                 if target:
@@ -506,7 +506,7 @@ class AyaRoundfanHandler(EventHandler):
 
     def cond(self, cards):
         if not len(cards) == 1: return False
-        return cards[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+        return cards[0].resides_in.type in ('handcard', 'showncard')
 
 class ScarletRhapsodySword(Damage):
     pass
@@ -541,12 +541,12 @@ class ScarletRhapsodySwordAttack(basic.Attack):
         if not len(cards) == 2: return False
 
         if any(c.resides_in.type not in (
-            CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS
+            'handcard', 'showncard', 'equips'
         ) for c in cards): return False
 
         from ..cards import ScarletRhapsodySwordCard as SRSC
         if any(
-            c.resides_in.type == CardList.EQUIPS and c.is_card(SRSC)
+            c.resides_in.type == 'equips' and c.is_card(SRSC)
             for c in cards
         ): return False
 
@@ -687,7 +687,7 @@ class YoumuPhantomHandler(EventHandler):
 
         from .definition import YoumuPhantomCard
 
-        if _from is not None and _from.type == CardList.EQUIPS:
+        if _from is not None and _from.type == 'equips':
             src = _from.owner
             if src.dead: return arg
             for c in cards:
@@ -695,7 +695,7 @@ class YoumuPhantomHandler(EventHandler):
                     src.maxlife -= 1
                     src.life = min(src.life+1, src.maxlife)
 
-        if to is not None and to.type == CardList.EQUIPS:
+        if to is not None and to.type == 'equips':
             src = to.owner
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
@@ -749,7 +749,7 @@ class GrimoireSkill(TreatAsSkill, WeaponSkill):
     def check(self):
         cl = self.associated_cards
         if not len(cl) == 1: return False
-        if not cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS):
+        if not cl[0].resides_in.type in ('handcard', 'showncard', 'equips'):
             return False
         if not cl[0].suit: return False
         return True

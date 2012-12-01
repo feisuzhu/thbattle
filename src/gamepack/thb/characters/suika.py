@@ -9,7 +9,7 @@ class Drunkard(TreatAsSkill):
         cl = self.associated_cards
         if not (cl and len(cl) == 1 and cl[0].color == Card.BLACK):
             return False
-        if cl[0].resides_in.type not in (CardList.HANDCARD, CardList.SHOWNCARD, CardList.EQUIPS):
+        if cl[0].resides_in.type not in ('handcard', 'showncard', 'equips'):
             return False
         return True
 
@@ -50,7 +50,7 @@ class GreatLandscapeHandler(EventHandler):
                 for s in src.skills:
                     if issubclass(s, WeaponSkill):
                         return arg
-                
+
                 correction = src.maxlife - src.life
                 for p in dist:
                     dist[p] -= correction

@@ -99,7 +99,7 @@ class YugiHandler(EventHandler):
                 skills = [s for s in src.skills if issubclass(s, WeaponSkill)]
                 cl = card.associated_cards
                 try:
-                    if cl[0].resides_in.type == CardList.EQUIPS:
+                    if cl[0].resides_in.type == 'equips':
                         skills.remove(cl[0].equipment_skill)
                 except (IndexError, AttributeError, ValueError) as e:
                     pass

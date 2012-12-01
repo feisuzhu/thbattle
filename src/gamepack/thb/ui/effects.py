@@ -56,14 +56,14 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     # --- src ---
     rawcards = [c for c in cards if not c.is_card(VirtualCard)]
 
-    if _from.type == _from.EQUIPS: # equip area
+    if _from.type == 'equips': # equip area
         equips = self.player2portrait(_from.owner).equipcard_area
         for cs in equips.cards[:]:
             if cs.associated_card in cards:
                 cs.delete()
         equips.update()
 
-    if _from.type == _from.FATETELL: # fatetell tag
+    if _from.type == 'fatetell': # fatetell tag
         port = self.player2portrait(_from.owner)
         taganims = port.taganims
         for a in [t for t in taganims if hasattr(t, 'for_fatetell_card')]:
@@ -74,21 +74,21 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     if to is None: return # not supposed to have visual effects
     '''
-    if _from.owner is g.me and _from.type in (_from.HANDCARD, _from.SHOWNCARD):
+    if _from.owner is g.me and _from.type in ('handcard', 'showncard'):
         handcard_update = True
         csl[:] = [
             cs for cs in self.handcard_area.cards
             if cs.associated_card in cards
         ]
 
-    elif _from.type == _from.DROPPEDCARD:
+    elif _from.type == 'droppedcard':
         dropcard_update = True
         for cs in self.dropcard_area.control_list:
             if cs.associated_card in cards:
                 csl.append(cs)
 
     else:
-        if _from.type == _from.DECKCARD:
+        if _from.type == 'deckcard':
             pca = self.deck_area
         else:
             pca = self.player2portrait(_from.owner).portcard_area
@@ -123,7 +123,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
         # others
         if not pca:
-            if _from.type in (_from.DECKCARD, _from.DROPPEDCARD) or not _from.owner:
+            if _from.type in ('deckcard', 'droppedcard') or not _from.owner:
                 pca = self.deck_area
             #elif not _from.owner:
             #    break
@@ -142,14 +142,14 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     # --- dest ---
 
-    if to.type == to.EQUIPS: # equip area
+    if to.type == 'equips': # equip area
         equips = self.player2portrait(to.owner).equipcard_area
         for c in cards:
             cs = SmallCardSprite(c, parent=equips, x=0, y=0)
             cs.associated_card = c
         equips.update()
 
-    if to.type == to.FATETELL: # fatetell tag
+    if to.type == 'fatetell': # fatetell tag
         port = self.player2portrait(to.owner)
         taganims = port.taganims
         for c in cards:
@@ -163,7 +163,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             port.taganims.append(a)
         port.tagarrange()
 
-    if to.owner is g.me and to.type in (to.HANDCARD, to.SHOWNCARD):
+    if to.owner is g.me and to.type in ('handcard', 'showncard'):
         handcard_update = True
         hca = self.handcard_area
         for cs in csl:
@@ -171,7 +171,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             cs.gray = False
 
     else:
-        if to.type == to.DROPPEDCARD:
+        if to.type == 'droppedcard':
             dropcard_update = True
             ca = self.dropcard_area
             if isinstance(act, Fatetell):

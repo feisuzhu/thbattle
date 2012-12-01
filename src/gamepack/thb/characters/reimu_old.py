@@ -45,7 +45,7 @@ class Tribute(Skill):
         cl = self.associated_cards
         rst = cl and len(cl) == 1 and (
             cl[0].resides_in and
-            cl[0].resides_in.type in (CardList.HANDCARD, CardList.SHOWNCARD)
+            cl[0].resides_in.type in ('handcard', 'showncard')
         )
         return rst
 

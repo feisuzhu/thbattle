@@ -447,7 +447,7 @@ class DonationBoxEffect(InstantSpellCardAction):
 
     def cond(self, cards):
         from .base import CardList
-        return len(cards) == 1 and cards[0].resides_in.type != CardList.FATETELL
+        return len(cards) == 1 and cards[0].resides_in.type != 'fatetell'
 
     def is_valid(self):
         t = self.target

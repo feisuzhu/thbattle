@@ -25,7 +25,7 @@ class Taichi(TreatAsSkill):
         c = cl[0]
         if not (c.is_card(AttackCard) or c.is_card(GrazeCard)): return False
         return c.resides_in and c.resides_in.type in (
-            CardList.HANDCARD, CardList.SHOWNCARD,
+            'handcard', 'showncard',
         )
 
 class RiverBehind(Skill):
