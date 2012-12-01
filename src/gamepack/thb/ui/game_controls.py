@@ -78,6 +78,8 @@ class CardSprite(Control, BalloonPrompt):
                 else:
                     c = (1., 1., 1., a)
                 vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
+                if cs.card.resides_in.type == 'showncard':
+                    vertices += game_res.card_showncardtag.get_t2c4n3v3_vertices(c, ax, ay)
 
                 n, s = cs.number, cs.suit
                 if n: vertices += game_res.cardnumbers[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)

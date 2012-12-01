@@ -27,6 +27,7 @@ with ldr as args:
     card_shinesoft = card_tx('shinesoft.png')
     card_hidden = card_tx('card_hidden.png')
     card_question = card_tx('card_question.png')
+    card_showncardtag = card_tx('card_showncardtag.png')
 
     card_attack = card_tx('card_attack.png')
     card_graze = card_tx('card_graze.png')
