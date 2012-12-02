@@ -31,6 +31,7 @@ import chen
 import yukari
 import cirno
 import sakuya
+import sanae
 
 import dummy
 

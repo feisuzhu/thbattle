@@ -35,7 +35,7 @@ class UIMetaAccesser(object):
                 pass
             b = c.__base__
             if b is not object: l.append(b)
-        raise AttributeError(name)
+        raise AttributeError('%s.%s' % (self.cls.__name__, name))
 
 class UIMetaDescriptor(object):
     def __get__(self, obj, cls):
@@ -3829,6 +3829,116 @@ class LunaClock:
     def is_action_valid(g, cl, target_list):
         return (False, u'BUG!')
 
+# ----------
+__metaclass__ = gen_metafunc(characters.sanae)
+
+class Sanae:
+    # Character
+    char_name = u'东风谷早苗'
+    port_image = gres.sanae_port
+    description = (
+        u'|DB常识满满的现人神 东风谷早苗 体力：3|r\n\n'
+        u'|G御神签|r：出牌阶段，你可以指定体力值不同的两名角色，然后选择一项：\n'
+        u'|B|R>> |r体力值较少的角色摸双方体力值差的牌。\n'
+        u'|B|R>> |r体力值较多的角色弃置双方体力值差的牌（不足则全弃）。\n\n'
+        u'|G奇迹|r：你每受到一点伤害时，可以令一名角色摸X张牌（X为该角色已损失的体力值且至多为4）。'
+    )
+
+
+class DrawingLotAction:
+    # choose_option meta
+    choose_option_buttons = ((u'体力少玩家摸牌', True), (u'体力多玩家弃牌', False))
+    choose_option_prompt = u'你要做什么？'
+
+    # choose_card meta
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'大凶！又是大凶！')
+        else:
+            return (False, u'请弃置%d张牌' % act.diff)
+
+    def effect_string(act):
+        if act.is_drawcard:
+            return u'大吉！|G【%s】|r脸上满满的满足感，摸了%d张牌。' % (
+                act.lesser.ui_meta.char_name,
+                act.diff,
+            )
+        else:
+            if act.amount:
+                return u'大凶！|G【%s】|r脸一黑，扔掉了%d张牌，并求脸不再黑。' % (
+                    act.greater.ui_meta.char_name,
+                    act.amount,
+                )
+
+
+class DrawingLot:
+    name = u'御神签'
+    def clickable(g):
+        me = g.me
+
+        try:
+            act = g.action_stack[-1]
+        except IndexError:
+            return False
+
+        if not isinstance(act, actions.ActionStage):
+            return False
+
+        if act.target is not g.me: return False
+        t = act.target.tags
+        if t['turn_count'] <= t['drawinglot_tag']: return False
+        
+        return True
+    
+    def effect_string(act):
+        return u'|G【%s】|r叫住了|G【%s】|r和|G【%s】|r，帮他们抽了一签……' % (
+            act.source.ui_meta.char_name,
+            act.target_list[0].ui_meta.char_name,
+            act.target_list[1].ui_meta.char_name,
+        )
+
+
+    def is_action_valid(g, cl, tl):
+        if cl[0].associated_cards:
+            return (False, u'请不要选择牌！')
+
+        if len(tl) != 2:
+            return (False, u'请选择两个当前体力不同的玩家')
+
+        if tl[0].life == tl[1].life:
+            return (False, u'这两名玩家体力相同，你不能发动技能！')
+
+        return (True, u'大吉？大凶？')
+
+
+class Miracle:
+    # Skill
+    name = u'奇迹'
+    def clickable(game):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, u'BUG!')
+
+
+class MiracleAction:
+    def effect_string(act):
+        return u'|G【%s】|r说，要有|G奇迹|r，于是|G【%s】|r就摸了%d张牌。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+            act.amount,
+        )
+
+
+class MiracleHandler:
+    # choose_players
+    def target(pl):
+        if not pl:
+            return (False, u'奇迹：请选择1名体力不满的玩家')
+
+        return (True, u'奇迹！')
+    
+    
 # -----END CHARACTERS UI META-----
 
 # -----BEGIN TAGS UI META-----

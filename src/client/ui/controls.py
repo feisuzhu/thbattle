@@ -1301,9 +1301,9 @@ class ConfirmButtons(Control):
         self.buttons = bl = []
         n = len(buttons)
         if n > 2:
-            wl = [len(b[0])*20 + 20 for b in buttons]
+            wl = [len(b[0])*16 + 20 for b in buttons]
         else:
-            wl = [80] * n
+            wl = [max(len(b[0])*16 + 20, 80) for b in buttons]
 
         loc = 0
         for p, v in buttons:
