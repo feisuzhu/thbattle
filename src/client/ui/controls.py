@@ -1299,11 +1299,8 @@ class ConfirmButtons(Control):
     def __init__(self, buttons=((u'确定', True), (u'取消', False)), color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
         self.buttons = bl = []
-        n = len(buttons)
-        if n > 2:
-            wl = [len(b[0])*16 + 20 for b in buttons]
-        else:
-            wl = [max(len(b[0])*16 + 20, 80) for b in buttons]
+
+        wl = self._get_widths(buttons)
 
         loc = 0
         for p, v in buttons:
@@ -1321,7 +1318,7 @@ class ConfirmButtons(Control):
             bl.append(btn)
             loc += w + 6
 
-        self.width, self.height = loc, 24
+        self.width, self.height = loc - 6, 24
 
     def confirm(self, val):
         self.value = val
@@ -1332,6 +1329,22 @@ class ConfirmButtons(Control):
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
+
+    @classmethod
+    def _get_widths(cls, buttons):
+        if len(buttons) > 2:
+            wl = [len(b[0])*16 + 20 for b in buttons]
+        else:
+            wl = [max(len(b[0])*16 + 20, 80) for b in buttons]
+        
+        return wl
+
+    @classmethod
+    def calc_width(cls, buttons):
+        wl = cls._get_widths(buttons)
+        n = len(wl)
+        return sum(wl) + (n-1)*6
+
 
 ConfirmButtons.register_event_type('on_confirm')
 
@@ -1351,7 +1364,7 @@ class ConfirmBox(Dialog):
         )
         w, h = lbl.content_width, lbl.content_height
         lbl.width = w
-        dw, dh = w+50, h+24+33+20*2
+        dw, dh = max(w, ConfirmButtons.calc_width(buttons))+50, h+24+33+20*2
         Dialog.__init__(
             self, caption, width=dw, height=dh,
             bot_reserve=33, *a, **k
@@ -1379,6 +1392,7 @@ class ConfirmBox(Dialog):
         Dialog.delete(self)
 
 ConfirmBox.register_event_type('on_confirm')
+
 
 class Panel(Control):
     fill_color = (1.0, 1.0, 0.8, 0.0)

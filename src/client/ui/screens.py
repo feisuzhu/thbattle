@@ -746,7 +746,12 @@ class GameScreen(Screen):
 
         @self.btn_exit.event
         def on_click():
-            Executive.call('exit_game', ui_message, [])
+            box = ConfirmBox(u'真的要离开吗？', buttons=ConfirmBox.Presets.OKCancel, parent=self)
+
+            @box.event
+            def on_confirm(val):
+                if val:
+                    Executive.call('exit_game', ui_message, [])
 
     def on_message(self, _type, *args):
         if _type == 'game_started':
