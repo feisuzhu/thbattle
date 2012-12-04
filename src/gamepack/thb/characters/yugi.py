@@ -80,10 +80,10 @@ class YugiHandler(EventHandler):
             if not act.succeeded: return act
             src = act.source; tgt = act.target
             g = Game.getgame()
-            cats = [
+            cats = (
                 tgt.cards, tgt.showncards,
-                tgt.equips, tgt.fatetell,
-            ]
+                tgt.equips,
+            )
             card = choose_peer_card(src, tgt, cats)
             if card:
                 g.players.exclude(tgt).reveal(card)
