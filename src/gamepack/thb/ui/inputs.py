@@ -383,7 +383,7 @@ class UIChooseGirl(Panel):
                 p.end_selection()
 
     def __init__(self, attachment, *a, **k):
-        w, h = 500, 390
+        w, h = 500 + 1*160, 390 + 2*113
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
         pw, ph = p.width, p.height
@@ -394,35 +394,24 @@ class UIChooseGirl(Panel):
         GS = UIChooseGirl.GirlSelector
         self.selectors = selectors = []
         for i, c in enumerate(choices):
-            y, x = divmod(i, 3)
-            x, y = 15 + 160*x, 45 + 113*(2-y)
+            y, x = divmod(i, 4)
+            x, y = 15 + 160*x, 45 + 113*(4-y)
             selectors.append(
                 GS(c, selectors, parent=self, x=x, y=y)
             )
 
-        self.pbar = BigProgressBar(
-            parent=self, x=(w-250)//2, y=9, width=250,
-        )
-
-        self.pbar.value = 1.0
 
     def on_message(self, _evt, *args):
         if _evt == 'evt_user_input':
             irp = args[0]
-            self.pbar.value = LinearInterp(
-                1.0, 0.0, irp.timeout,
-                on_done=lambda *a: self.cleanup(),
-            )
             tag = irp.tag
             if tag == 'choose_girl':
                 assert self.irp is None
                 self.irp = irp
                 self.begin_selection()
 
-        elif _evt == 'evt_user_input_all_end':
-            tag = args[0]
-            if tag == 'choose_girl':
-                self.cleanup()
+        elif _evt == 'evt_choose_girl_end':
+            self.cleanup()
 
         elif _evt == 'evt_girl_chosen':
             choice = args[0]
@@ -438,11 +427,30 @@ class UIChooseGirl(Panel):
         self.delete()
 
     def begin_selection(self):
+        self.pbar = BigProgressBar(
+            parent=self, x=(self.width-250)//2, y=9, width=250,
+        )
+
+        def on_done(*a):
+            self.irp.input = None
+            self.irp.complete()
+            self.end_selection()
+
+        self.pbar.value = LinearInterp(
+            1.0, 0.0, self.irp.timeout,
+            on_done=on_done,
+        )
         self.can_select = True
 
     def end_selection(self):
         self.can_select = False
         self.irp = None
+        self.pbar.delete()
+
+def choose_girl_event_handler(data, parent):
+    pl, choices = data
+    if Game.getgame().me in pl:
+        UIChooseGirl(choices, parent=parent)
 
 class UIChoosePeerCard(Panel):
     lookup = {
@@ -851,11 +859,11 @@ mapping = dict(
 )
 
 mapping_all = dict(
-    choose_girl=UIChooseGirl,
 )
 
 mapping_event = dict(
     harvest_cards=UIHarvestChoose,
+    choose_girl_begin=choose_girl_event_handler,
 )
 
 def handle_event(self, _type, data):

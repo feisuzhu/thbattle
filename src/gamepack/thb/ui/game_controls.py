@@ -804,7 +804,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             if not getattr(p, 'ui_meta', False): continue
 
             hp = game_res.hp; hp_bg = game_res.hp_bg
-            if p.dead:
+            if getattr(p, 'dead', False):
                 hp = hp.grayed
                 hp_bg = hp_bg.grayed
 

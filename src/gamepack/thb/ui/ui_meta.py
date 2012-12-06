@@ -55,7 +55,7 @@ __metaclass__ = gen_metafunc(thb3v3)
 class ActFirst:
     # choose_option meta
     choose_option_buttons = ((u'先出牌', True), (u'弃权', False))
-    choose_option_prompt = u'你要首先出牌吗（首先出牌敌方势力开局摸5张牌）？'
+    choose_option_prompt = u'你要首先出牌吗（首先出牌最后选将）？'
 
 class THBattle:
     name = u'符斗祭 - 3v3 - 休闲'

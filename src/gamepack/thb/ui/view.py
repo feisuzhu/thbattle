@@ -324,6 +324,10 @@ class THBattleUI(Control):
                 port = self.player2portrait(p)
                 port.dropped = (pd['state'] == 'dropped')
                 port.update()
+        
+        elif _type in { 'evt_girl_chosen', 'evt_girl_chosen_end' }:
+            for port in self.char_portraits:
+                port.update()
 
         if _type.startswith('evt_'):
             inputs.handle_event(self, _type[4:], args[0])
@@ -455,12 +459,6 @@ class THBattleIdentityUI(THBattleUI):
         (3, 210, 'right', Colors.blue),
     ]
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_boss_chosen':
-            port = self.player2portrait(args[0])
-            port.update()
-
-        return THBattleUI.on_message(self, _type, *args)
 
 class THBattleIdentity5UI(THBattleIdentityUI):
     portrait_location = [

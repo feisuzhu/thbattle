@@ -126,6 +126,7 @@ class THBattle(Game):
     n_persons = 6
     game_ehs = _game_ehs
     game_actions = _game_actions
+    order_list = (5, 4, 2, 3, 1, 0)
 
     def game_start(self):
         # game started, init state
@@ -167,95 +168,47 @@ class THBattle(Game):
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
-                for cls, cid in zip(random.sample(chars, 18), xrange(18))
+                for cls, cid in zip(random.sample(chars, 20), xrange(20))
             ]
-        elif Game.CLIENT_SIDE:
-            choice = [
-                CharChoice(None, i)
-                for i in xrange(18)
-            ]
-        fchoice = [
-            choice[:9],
-            choice[9:],
-        ]
 
-        '''
-        # FOR DBG VER
-        #chars = list(reversed(_chars))
-        chars = list(_chars)
-        if Game.SERVER_SIDE:
-            choice = [
-                CharChoice(cls, cid)
-                for cls, cid in zip(chars[:18], xrange(18))
-            ]
         elif Game.CLIENT_SIDE:
             choice = [
                 CharChoice(None, i)
-                for i in xrange(18)
+                for i in xrange(20)
             ]
-        fchoice = [
-            choice[:9],
-            choice[9:],
-        ]'''
 
         # -----------
 
-        forces[0].reveal(fchoice[0])
-        forces[1].reveal(fchoice[1])
+        self.players.reveal(choice)
 
-        chosen_girls = []
-        pl = PlayerList(self.players)
-        def process(p, cid):
-            try:
-                retry = p._retry
-            except AttributeError:
-                retry = 3
+        first_index = self.players.index(first)
+        n = len(self.order_list)
+        order = [self.players[(first_index + i) % n] for i in self.order_list]
 
-            retry -= 1
+        self.emit_event('choose_girl_begin', (pl, choice))
+        for p in order:
+            cid = p.user_input('choose_girl', choice)
             try:
                 check(isinstance(cid, int))
-                f = p.force
                 check(0 <= cid < len(choice))
                 c = choice[cid]
-                check(c in fchoice[f])
-                if c.chosen and retry > 0:
-                    p._retry = retry
-                    raise ValueError
+                check(not c.chosen)
                 c.chosen = p
-                chosen_girls.append(c)
-                self.emit_event('girl_chosen', c)
-                pl.remove(p)
-                return c
-            except CheckFailed as e:
-                try:
-                    del p._retry
-                except AttributeError:
-                    pass
-                return None
+            except CheckFailed:
+                # first non-chosen char 
+                for c in choice:
+                    if not c.chosen:
+                        c.chosen = p
+                        break
 
-        self.players.user_input_all('choose_girl', process, choice, timeout=30) # ALL?? NOT ANY?!!
-
-        # now you can have them.
-        forces[1].reveal(fchoice[0])
-        forces[0].reveal(fchoice[1])
-
-        # if there's any person didn't make a choice -->
-        # FIXME: this can choose girl from the other force!
-        if pl:
-            choice = [c for c in choice if not c.chosen]
-            sample = sync_primitive(random.sample(xrange(len(choice)), len(pl)), self.players)
-            for p, i in zip(pl, sample):
-                c = choice[i]
-                c.chosen = p
-                chosen_girls.append(c)
-                self.emit_event('girl_chosen', c)
-
-        # mix char class with player -->
-        for c in chosen_girls:
-            p = c.chosen
+            # mix char class with player -->
             mixin_character(p, c.char_cls)
             p.skills = p.skills[:] # make it instance variable
             ehclasses.extend(p.eventhandlers_required)
+
+            self.emit_event('girl_chosen', c)
+
+        self.emit_event('choose_girl_end', None)
 
         # this will make UIEventHook the last one
         # BUT WHY? FORGOT BUT THIS CAUSES PROBLEMS, REVERT
@@ -293,7 +246,7 @@ class THBattle(Game):
             for p in self.players:
                 # variable 'first': see the roll process before
                 # swapped with choose girl process
-                self.process_action(DrawCards(p, amount=4 if p.force == first.force else 5))
+                self.process_action(DrawCards(p, amount=4))
 
             pl = self.players.rotate_to(first)
 
@@ -308,5 +261,7 @@ class THBattle(Game):
     def can_leave(self, p):
         return getattr(p, 'dead', False)
 
+
 class THBattle1v1DBG(THBattle):
     n_persons = 2
+    order_list = (1, 0)

@@ -202,7 +202,9 @@ class THBattleIdentity(Game):
 
         boss.reveal(choice[-2:])
 
+        g.emit_event('choose_girl_begin', ([boss], choice))
         PlayerList([boss]).user_input_all('choose_girl', process, choice, timeout=30)
+
         if not chosen_girls:
             # didn't choose
             offs = sync_primitive(random.randrange(5), g.players)
@@ -228,7 +230,7 @@ class THBattleIdentity(Game):
         if len(g.players) > 5:
             boss.maxlife += 1
 
-        g.emit_event('boss_chosen', boss)
+        g.emit_event('choose_girl_end', None)
 
         # reseat
         opl = g.players
@@ -252,7 +254,10 @@ class THBattleIdentity(Game):
                 p.identity.type = id
             g.process_action(RevealIdentity(p, p))
 
-        g.players.exclude(boss).user_input_all('choose_girl', process, choice, timeout=30) # ALL?? NOT ANY?!!
+        pl = g.players.exclude(boss)
+        g.emit_event('choose_girl_begin', (pl, choice))
+        pl.user_input_all('choose_girl', process, choice, timeout=30)
+        g.emit_event('choose_girl_end', None)
 
         # now you can have them all.
         g.players.reveal(choice)

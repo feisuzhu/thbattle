@@ -389,6 +389,9 @@ def user_input_start_effects(self, input):
 
     if input.tag == 'action_stage_usecard':
         self.dropcard_area.fade()
+    
+    if input.tag == 'choose_girl':
+        self.prompt(u'|R%s|r正在选择……' % input.player.account.username)
 
     p = input.player
     port = self.player2portrait(p)
