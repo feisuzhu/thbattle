@@ -440,7 +440,7 @@ class DonationBoxEffect(InstantSpellCardAction):
             cards = [random_choose_card(cats)]
 
         if cards:
-            src.reveal(cards)
+            g.players.exclude(t).reveal(cards)
             migrate_cards(cards, src.showncards)
 
         return True
