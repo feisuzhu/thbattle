@@ -64,7 +64,7 @@ class PlayerList(BatchList):
                 while True:
                     retry = 0
                     input = p.user_input(
-                        tag, attachment=attachment, timeout=timeout+10,
+                        tag, attachment=attachment, timeout=timeout,
                         g=g, st=100000 + st*1000 + i*10 + retry,
                     )
 
@@ -101,7 +101,7 @@ class Player(game.AbstractPlayer):
 
         try:
             # The ultimate timeout
-            with TimeLimitExceeded(60):
+            with TimeLimitExceeded(timeout+10):
                 input = self.client.gexpect('input_%s_%d' % (tag, st))
         except (TimeLimitExceeded, EndpointDied):
             # Player hit the red line, he's DEAD.
