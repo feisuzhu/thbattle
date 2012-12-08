@@ -120,5 +120,8 @@ with ResLoader(__file__) as args:
         pyglet.image.ImageGrid(img('buttons/serverbtn.png'), 1, 4)
     ]
 
+    sound = DataHolder()
+    sound.input = ldr.media(fname('se/se_bonus.ogg'), streaming=False)
+
     for k in args.keys(): del k
     del args

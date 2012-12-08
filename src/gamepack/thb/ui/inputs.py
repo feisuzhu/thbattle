@@ -866,6 +866,8 @@ mapping_event = dict(
     choose_girl_begin=choose_girl_event_handler,
 )
 
+
+
 def handle_event(self, _type, data):
     if _type == 'user_input':
         irp = data

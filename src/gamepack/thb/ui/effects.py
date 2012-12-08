@@ -3,6 +3,7 @@ from client.ui.base import *
 from client.ui.base import ui_schedule
 from client.ui.base.interp import *
 from client.ui.controls import *
+from client.ui import soundmgr
 
 from client.ui import resource as common_res
 import resource as gres
@@ -14,6 +15,7 @@ from pyglet.gl import *
 
 from ..actions import *
 from ..cards import *
+from game.autoenv import Game
 
 from functools import partial
 from collections import defaultdict as ddict
@@ -245,8 +247,12 @@ def after_launch_effect(self, act):
     for p in act.target_list:
         _update_tags(self, p)
 
-def action_stage_update_tag(self, act):
+def action_stage_effect(self, act):
     _update_tags(self, act.target)
+    g = Game.getgame()
+    if act.target is g.me:
+        input_snd_prompt()
+
 
 def player_turn_effect(self, act):
     p = act.target
@@ -343,7 +349,17 @@ def pindian_effect(self, act):
     UIPindianEffect(act, parent=self)
 
 
-def flash_taskbar_effect(self, data):
+__last_sound_time = 0
+def input_snd_prompt():
+    global __last_sound_time
+    from time import time
+    if time() - __last_sound_time > 4:
+        soundmgr.play(common_res.sound.input)
+
+    # intentionally put outside
+    __last_sound_time = time()
+
+def user_input_effects(self, irp):
     import sys
     if sys.platform == 'win32':
         from ctypes import windll
@@ -351,14 +367,17 @@ def flash_taskbar_effect(self, data):
         from client.ui.base.baseclasses import main_window
         if u.GetForegroundWindow() != main_window._hwnd:
             u.FlashWindow(main_window._hwnd, 1)
-
+    
+    g = Game.getgame()
+    if getattr(g, 'current_turn', None) is not g.me:
+        input_snd_prompt()
 
 mapping_actions = ddict(dict, {
     'before': {
         Pindian: pindian_effect,
         LaunchCard: launch_effect,
         Reject: reject_effect,
-        ActionStage: action_stage_update_tag,
+        ActionStage: action_stage_effect,
         PlayerTurn: player_turn_effect,
         Action: action_effect_string_before,
     },
@@ -370,7 +389,7 @@ mapping_actions = ddict(dict, {
     'after': {
         PlayerDeath: player_death_update,
         LaunchCard: after_launch_effect,
-        ActionStage: action_stage_update_tag,
+        ActionStage: action_stage_effect,
         PlayerTurn: player_turn_after_update,
         Action: action_effect_string_after,
     }
@@ -445,7 +464,7 @@ mapping_events = ddict(bool, {
     'action_apply': partial(action_effects, 'apply'),
     'action_after': partial(action_effects, 'after'),
     'user_input_start': user_input_start_effects,
-    'user_input': flash_taskbar_effect,
+    'user_input': user_input_effects,
     'user_input_finish': user_input_finish_effects,
     'card_migration': card_migration_effects,
     'game_roll': game_roll_prompt,

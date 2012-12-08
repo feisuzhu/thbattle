@@ -50,3 +50,8 @@ def mute():
     global _mute
     _mute = True
     bgm_player.pause()
+
+def play(snd):
+    global _mute
+    if not _mute:
+        snd.play()
