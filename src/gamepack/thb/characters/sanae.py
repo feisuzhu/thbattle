@@ -8,47 +8,18 @@ from itertools import chain
 class DrawingLotAction(GenericAction):
     def apply_action(self):
         src = self.source
-        tl = self.target_list
+        tgt = self.target
         tags = src.tags
         tags['drawinglot_tag'] = tags['turn_count']
-        assert len(tl) == 2
-        assert tl[0].life != tl[1].life
-        a, b = tl
-        if a.life > b.life:
-            a, b = b, a
 
-        self.lesser, self.greater = a, b
-
-        diff = b.life - a.life
-        self.diff = diff
         g  = Game.getgame()
+        diff = max(p.life for p in g.players) - tgt.life
+        diff = min(diff, 4)
+        diff = max(diff, 1)
 
-        is_drawcard = src.user_input('choose_option', self)
-        self.is_drawcard = False
-        if is_drawcard:
-            self.is_drawcard = True
-            g.process_action(DrawCards(a, amount=diff))
-        else:
-            cats = [b.showncards, b.cards, b.equips]
-            n = sum([len(l) for l in cats])
-            
-            cards = None
-            if n > diff:
-                cards = user_choose_cards(self, b, cats)
-
-            if not cards:
-                cards = list(chain.from_iterable(cats))[:diff]
-                if cards:
-                    g.players.exclude(b).reveal(cards) 
-
-            if cards:
-                g.process_action(DropCards(b, cards))
-
-            self.amount = len(cards)
+        g.process_action(DrawCards(tgt, amount=diff))
+        self.amount = diff
         return True
-
-    def cond(self, cl):
-        return len(cl) == self.diff
 
     def is_valid(self):
         tags = self.source.tags
@@ -57,11 +28,7 @@ class DrawingLotAction(GenericAction):
 
 class DrawingLot(Skill):
     associated_action = DrawingLotAction
-
-    @staticmethod
-    def target(g, source, tl):
-        tl = [t for t in tl if not t.dead]
-        return (tl[:2], len(tl) >= 2 and tl[0].life != tl[1].life)
+    target = t_One
 
     def check(self):
         if self.associated_cards: return False
@@ -77,7 +44,7 @@ class MiracleAction(GenericAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
-        amount = min(tgt.maxlife - tgt.life, 4)
+        amount = min(src.maxlife - src.life, 4)
         self.amount = amount
         g = Game.getgame()
         g.process_action(DrawCards(tgt, amount))
@@ -91,18 +58,20 @@ class MiracleHandler(EventHandler):
             if not tgt.has_skill(Miracle): return act
             if tgt.dead: return act
             g = Game.getgame()
-            for _ in xrange(act.amount):
-                candidates = [p for p in g.players if p.life < p.maxlife and not p.dead]
-                if not candidates: return act
-                pl = user_choose_players(self, tgt, candidates)
-                if not pl: return act
-                g = Game.getgame()
-                g.process_action(MiracleAction(tgt, pl[0]))
+            
+            candidates = [p for p in g.players if p.life < p.maxlife and not p.dead]
+            if not candidates: return act
+            pl = user_choose_players(self, tgt, candidates)
+            if not pl: return act
+            g = Game.getgame()
+            g.process_action(MiracleAction(tgt, pl[0]))
 
         return act
 
-    def choose_player_target(self, pl):
-        return (pl[:1], len(pl) >= 1)
+    def choose_player_target(self, tl):
+        if not tl: return (tl, False)
+        return (tl[-1:], True)
+
 
 @register_character
 class Sanae(Character):

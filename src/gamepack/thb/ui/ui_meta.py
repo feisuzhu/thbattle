@@ -3838,37 +3838,17 @@ class Sanae:
     port_image = gres.sanae_port
     description = (
         u'|DB常识满满的现人神 东风谷早苗 体力：3|r\n\n'
-        u'|G御神签|r：出牌阶段，你可以指定体力值不同的两名角色，然后选择一项：\n'
-        u'|B|R>> |r体力值较少的角色摸双方体力值差的牌。\n'
-        u'|B|R>> |r体力值较多的角色弃置双方体力值差的牌（不足则全弃）。\n\n'
-        u'|G奇迹|r：你每受到一点伤害时，可以令一名角色摸X张牌（X为该角色已损失的体力值且至多为4）。'
+        u'|G御神签|r：出牌阶段，你可以指定一名角色，然后让其摸取等同于其残机数与场上残机数最多的角色的残机数之差的牌（至多4张，至少1张）。每阶段限一次。\n\n'
+        u'|G奇迹|r：当你受到一次伤害，你可以指定任意一名角色摸X张牌（X为你已损失的体力值）。'
     )
 
 
 class DrawingLotAction:
-    # choose_option meta
-    choose_option_buttons = ((u'体力少玩家摸牌', True), (u'体力多玩家弃牌', False))
-    choose_option_prompt = u'你要做什么？'
-
-    # choose_card meta
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'大凶！又是大凶！')
-        else:
-            return (False, u'请弃置%d张牌' % act.diff)
-
     def effect_string(act):
-        if act.is_drawcard:
-            return u'大吉！|G【%s】|r脸上满满的满足感，摸了%d张牌。' % (
-                act.lesser.ui_meta.char_name,
-                act.diff,
-            )
-        else:
-            if act.amount:
-                return u'大凶！|G【%s】|r脸一黑，扔掉了%d张牌，并求脸不再黑。' % (
-                    act.greater.ui_meta.char_name,
-                    act.amount,
-                )
+        return u'大吉！|G【%s】|r脸上满满的满足感，摸了%d张牌。' % (
+            act.target.ui_meta.char_name,
+            act.amount,
+        )
 
 
 class DrawingLot:
@@ -3891,10 +3871,9 @@ class DrawingLot:
         return True
     
     def effect_string(act):
-        return u'|G【%s】|r叫住了|G【%s】|r和|G【%s】|r，帮他们抽了一签……' % (
+        return u'|G【%s】|r给|G【%s】|r抽了一签……' % (
             act.source.ui_meta.char_name,
-            act.target_list[0].ui_meta.char_name,
-            act.target_list[1].ui_meta.char_name,
+            act.target.ui_meta.char_name,
         )
 
 
@@ -3902,13 +3881,7 @@ class DrawingLot:
         if cl[0].associated_cards:
             return (False, u'请不要选择牌！')
 
-        if len(tl) != 2:
-            return (False, u'请选择两个当前体力不同的玩家')
-
-        if tl[0].life == tl[1].life:
-            return (False, u'这两名玩家体力相同，你不能发动技能！')
-
-        return (True, u'大吉？大凶？')
+        return (True, u'一定是好运气的！')
 
 
 class Miracle:
