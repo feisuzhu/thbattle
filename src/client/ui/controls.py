@@ -1055,8 +1055,9 @@ class TextArea(Control):
         l.end_update()
 
 class ListItem(object):
-    def __init__(self, p, i):
+    def __init__(self, p, i, color=(0, 0, 0, 255)):
         self.parent = p
+        self.color = color
         n = len(p.columns)
         self.labels = [None] * n
         self._data = [''] * n
@@ -1084,6 +1085,7 @@ class ListItem(object):
         for (_, w), lbl in zip(p.columns, self.labels):
             lbl.begin_update()
             lbl.x, lbl.y = ox, -2 - self.idx * self.parent.line_height
+            lbl.color = self.color
             lbl.end_update()
             ox += w
 
@@ -1166,12 +1168,13 @@ class ListView(Control):
         self.header = self.lh_class(self)
         self.header.data = [n for n, w in cols]
 
-    def append(self, val):
+    def append(self, val, color=(0, 0, 0, 255)):
         if isinstance(val, ListItem):
             li = val
             li.parent = self
         elif isinstance(val, (list, tuple)):
             li = self.li_class(self, len(self.items))
+            li.color = color
             li.data = val
         self.items.append(li)
         return li

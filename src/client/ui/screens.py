@@ -464,7 +464,7 @@ class GameHallScreen(Screen):
                             n_persons,
                         ),
                         [u'等待中', u'游戏中'][gi['started']]
-                    ])
+                    ], color=(0, 0, 0, 255) if gi['started'] else (0xef, 0x75, 0x45, 0xff))
                     li.game_id = gi['id']
                     li.started = gi['started']
 
