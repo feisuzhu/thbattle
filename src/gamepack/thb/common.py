@@ -9,6 +9,7 @@ def mixin_character(player, charcls):
 
 class CharChoice(object):
     chosen = None
+    real_cls = None
     def __init__(self, char_cls, cid):
         self.char_cls = char_cls
         self.cid = cid
@@ -21,7 +22,8 @@ class CharChoice(object):
 
     def sync(self, data):
         from .characters import characters as chars
-        for cls in chars:
+        from .characters.akari import Akari
+        for cls in [Akari] + chars:
             if cls.__name__ == data['char_cls']:
                 self.char_cls = cls
                 break

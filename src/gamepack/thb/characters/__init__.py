@@ -34,6 +34,7 @@ import sakuya
 import sanae
 
 import dummy
+import akari
 
 import sys
 

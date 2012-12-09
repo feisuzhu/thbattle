@@ -55,7 +55,7 @@ __metaclass__ = gen_metafunc(thb3v3)
 class ActFirst:
     # choose_option meta
     choose_option_buttons = ((u'先出牌', True), (u'弃权', False))
-    choose_option_prompt = u'你要首先出牌吗（首先出牌最后选将）？'
+    choose_option_prompt = u'你要首先出牌吗（可以转让给己方阵营的其他玩家）？'
 
 class THBattle:
     name = u'符斗祭 - 3v3 - 休闲'
@@ -3746,17 +3746,20 @@ class Yukari:
     )
 
 # ----------
+from options import options
+if options.testing:
+    __metaclass__ = gen_metafunc(characters.dummy)
 
-__metaclass__ = gen_metafunc(characters.dummy)
+    class Dummy:
+        # Character
+        char_name = u'机器人'
+        port_image = gres.dummy_port
+        description = (
+            u'|DB河童工厂的残次品 机器人 体力：5|r\n\n'
+            u'|G我很强壮|r：嗯，很强壮……'
+        )
 
-class Dummy:
-    # Character
-    char_name = u'机器人'
-    port_image = gres.dummy_port
-    description = (
-        u'|DB河童工厂的残次品 机器人 体力：5|r\n\n'
-        u'|G我很强壮|r：嗯，很强壮……'
-    )
+del options
 
 # ----------
 __metaclass__ = gen_metafunc(characters.sakuya)
@@ -3911,7 +3914,18 @@ class MiracleHandler:
 
         return (True, u'奇迹！')
     
-    
+# ----------
+__metaclass__ = gen_metafunc(characters.akari)
+
+class Akari:
+    # Character
+    char_name = u'随机角色'
+    port_image = gres.akari_port
+    description = (
+        u'|DB会是谁呢 随机角色 体力：?|r\n\n'
+        u'|G阿卡林|r：消失在画面里的能力。在开局之前，没有人知道这是谁。'
+    )
+
 # -----END CHARACTERS UI META-----
 
 # -----BEGIN TAGS UI META-----

@@ -457,7 +457,7 @@ def game_roll_prompt(self, pl):
     self.prompt_raw('--------------------\n')
 
 def game_roll_result_prompt(self, p):
-    self.prompt(u'由|R%s|r先行动' % p.account.username)
+    self.prompt(u'由|R%s|r首先选将、行动' % p.account.username)
 
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),

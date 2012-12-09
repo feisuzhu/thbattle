@@ -383,7 +383,7 @@ class UIChooseGirl(Panel):
                 p.end_selection()
 
     def __init__(self, attachment, *a, **k):
-        w, h = 500 + 1*160, 390 + 2*113
+        w, h = 500 + 1*160, 390 + 1*113
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
         pw, ph = p.width, p.height
@@ -395,7 +395,7 @@ class UIChooseGirl(Panel):
         self.selectors = selectors = []
         for i, c in enumerate(choices):
             y, x = divmod(i, 4)
-            x, y = 15 + 160*x, 45 + 113*(4-y)
+            x, y = 15 + 160*x, 45 + 113*(3-y)
             selectors.append(
                 GS(c, selectors, parent=self, x=x, y=y)
             )

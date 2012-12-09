@@ -24,85 +24,35 @@ with ldr as args:
     def card_tx(fn):
         return card_atlas.add(img(fn))
 
-    card_shinesoft = card_tx('shinesoft.png')
-    card_hidden = card_tx('card_hidden.png')
-    card_question = card_tx('card_question.png')
-    card_showncardtag = card_tx('card_showncardtag.png')
+    cards = (
+        'shinesoft', 'hidden', 'question', 'showncardtag',
 
-    card_attack = card_tx('card_attack.png')
-    card_graze = card_tx('card_graze.png')
-    card_heal = card_tx('card_heal.png')
-    card_demolition = card_tx('card_demolition.png')
-    card_reject = card_tx('card_reject.png')
-    card_sealarray = card_tx('card_sealarray.png')
+        'attack', 'graze', 'heal', 'demolition', 'reject', 'sealarray',
 
-    card_nazrinrod= card_tx('card_nazrinrod.png')
-    card_opticalcloak = card_tx('card_opticalcloak.png')
-    card_greenufo = card_tx('card_greenufo.png')
-    card_redufo = card_tx('card_redufo.png')
-    card_sinsack = card_tx('card_sinsack.png')
-    card_yukaridimension = card_tx('card_yukaridimension.png')
-    card_duel = card_tx('card_duel.png')
-    card_sinsackcarnival = card_tx('card_sinsackcarnival.png')
-    card_mapcannon = card_tx('card_mapcannon.png')
-    card_hakurouken = card_tx('card_hakurouken.png')
-    card_reactor = card_tx('card_reactor.png')
-    card_umbrella = card_tx('card_umbrella.png')
-    card_roukanken = card_tx('card_roukanken.png')
-    card_gungnir = card_tx('card_gungnir.png')
-    card_laevatein = card_tx('card_laevatein.png')
-    card_trident = card_tx('card_trident.png')
-    card_repentancestick = card_tx('card_repentancestick.png')
-    card_wine = card_tx('card_wine.png')
-    card_feast = card_tx('card_feast.png')
-    card_harvest = card_tx('card_harvest.png')
-    card_maidencostume = card_tx('card_maidencostume.png')
-    card_exinwan = card_tx('card_exinwan.png')
-    card_ibukigourd = card_tx('card_ibukigourd.png')
-    card_houraijewel = card_tx('card_houraijewel.png')
-    card_saigyoubranch = card_tx('card_saigyoubranch.png')
-    card_flirtingsword = card_tx('card_flirtingsword.png')
-    card_camera = card_tx('card_camera.png')
-    card_ayaroundfan = card_tx('card_ayaroundfan.png')
-    card_scarletrhapsodysword = card_tx('card_scarletrhapsodysword.png')
-    card_deathsickle = card_tx('card_deathsickle.png')
-    card_keystone = card_tx('card_keystone.png')
-    card_witchbroom = card_tx('card_witchbroom.png')
-    card_yinyangorb = card_tx('card_yinyangorb.png')
-    card_suwakohat = card_tx('card_suwakohat.png')
-    card_phantom = card_tx('card_phantom.png')
-    card_icewing = card_tx('card_icewing.png')
-    card_grimoire = card_tx('card_grimoire.png')
-    card_dollcontrol = card_tx('card_dollcontrol.png')
-    card_donationbox = card_tx('card_donationbox.png')
-    card_frozenfrog = card_tx('card_frozenfrog.png')
+        'nazrinrod', 'opticalcloak', 'greenufo', 'redufo', 'sinsack',
+        'yukaridimension', 'duel', 'sinsackcarnival', 'mapcannon',
+        'hakurouken', 'reactor', 'umbrella', 'roukanken', 'gungnir',
+        'laevatein', 'trident', 'repentancestick', 'wine', 'feast',
+        'harvest', 'maidencostume', 'exinwan', 'ibukigourd', 'houraijewel',
+        'saigyoubranch', 'flirtingsword', 'camera', 'ayaroundfan',
+        'scarletrhapsodysword', 'deathsickle', 'keystone', 'witchbroom',
+        'yinyangorb', 'suwakohat', 'phantom', 'icewing', 'grimoire',
+        'dollcontrol', 'donationbox', 'frozenfrog',
+        
+        'opticalcloak_small', 'greenufo_small', 'redufo_small',
+        'hakurouken_small', 'reactor_small', 'umbrella_small',
+        'roukanken_small', 'gungnir_small', 'laevatein_small',
+        'trident_small', 'repentancestick_small', 'maidencostume_small',
+        'ibukigourd_small', 'houraijewel_small', 'saigyoubranch_small',
+        'flirtingsword_small', 'ayaroundfan_small', 'scarletrhapsodysword_small',
+        'deathsickle_small', 'keystone_small', 'witchbroom_small',
+        'yinyangorb_small', 'suwakohat_small', 'phantom_small',
+        'icewing_small', 'grimoire_small',
+    )
 
-    card_opticalcloak_small = card_tx('card_opticalcloak_small.png')
-    card_greenufo_small = card_tx('card_greenufo_small.png')
-    card_redufo_small = card_tx('card_redufo_small.png')
-    card_hakurouken_small = card_tx('card_hakurouken_small.png')
-    card_reactor_small = card_tx('card_reactor_small.png')
-    card_umbrella_small = card_tx('card_umbrella_small.png')
-    card_roukanken_small = card_tx('card_roukanken_small.png')
-    card_gungnir_small = card_tx('card_gungnir_small.png')
-    card_laevatein_small = card_tx('card_laevatein_small.png')
-    card_trident_small = card_tx('card_trident_small.png')
-    card_repentancestick_small = card_tx('card_repentancestick_small.png')
-    card_maidencostume_small = card_tx('card_maidencostume_small.png')
-    card_ibukigourd_small = card_tx('card_ibukigourd_small.png')
-    card_houraijewel_small = card_tx('card_houraijewel_small.png')
-    card_saigyoubranch_small = card_tx('card_saigyoubranch_small.png')
-    card_flirtingsword_small = card_tx('card_flirtingsword_small.png')
-    card_ayaroundfan_small = card_tx('card_ayaroundfan_small.png')
-    card_scarletrhapsodysword_small = card_tx('card_scarletrhapsodysword_small.png')
-    card_deathsickle_small = card_tx('card_deathsickle_small.png')
-    card_keystone_small = card_tx('card_keystone_small.png')
-    card_witchbroom_small = card_tx('card_witchbroom_small.png')
-    card_yinyangorb_small = card_tx('card_yinyangorb_small.png')
-    card_suwakohat_small = card_tx('card_suwakohat_small.png')
-    card_phantom_small = card_tx('card_phantom_small.png')
-    card_icewing_small = card_tx('card_icewing_small.png')
-    card_grimoire_small = card_tx('card_grimoire_small.png')
+    for cn in cards:
+        tex = card_tx('card_%s.png' % cn)
+        exec 'card_%s = tex' % cn in locals()
 
     scardframe_normal = card_tx('scardframe_normal.png')
     scardframe_selected = card_tx('scardframe_selected.png')
@@ -137,8 +87,14 @@ with ldr as args:
         'patchouli', 'reimu', 'eirin', 'kogasa', 'shikieiki',
         'tenshi', 'rumia', 'yuuka', 'rinnosuke', 'ran',
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
-        'yukari', 'cirno', 'sakuya', 'sanae', 'dummy',
+        'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
     ]]
+
+    from options import options
+    if options.testing:
+        ports.append('dummy_port')
+
+    del options
 
     ports.extend([
         'hp', 'hp_bg',
@@ -146,6 +102,7 @@ with ldr as args:
 
     import Image
     #exec '\n'.join('%s_port = port_tx("%s_port.png")' % (s, s) for s in ports) in locals()
+    
     for p in ports:
         i = Image.open(ldr.file('%s.png' % p))
         w, h = i.size
