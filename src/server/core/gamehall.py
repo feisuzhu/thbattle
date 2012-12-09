@@ -271,8 +271,12 @@ def exit_game(user, drops=False):
                 except KeyError:
                     pass
 
-            del games[g.gameid]
-            g.instant_kill()
+            try:
+                del games[g.gameid]
+                g.instant_kill()
+            except:
+                pass
+
         evt_datachange.set()
     else:
         user.write(['gamehall_error', 'not_in_a_game'])
