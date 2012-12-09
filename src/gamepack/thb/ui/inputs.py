@@ -191,6 +191,12 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                         self.irp.complete()
                         return
                 '''
+                
+                # HACK
+                if g.current_turn is not g.me:
+                    from .effects import input_snd_prompt
+                    input_snd_prompt()
+
                 break
 
             if cond:

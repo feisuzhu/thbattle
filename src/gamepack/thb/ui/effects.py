@@ -247,8 +247,11 @@ def after_launch_effect(self, act):
     for p in act.target_list:
         _update_tags(self, p)
 
-def action_stage_effect(self, act):
+def action_stage_effect_before(self, act):
     _update_tags(self, act.target)
+
+
+def action_stage_effect_apply(self, act):
     g = Game.getgame()
     if act.target is g.me:
         input_snd_prompt()
@@ -353,7 +356,7 @@ __last_sound_time = 0
 def input_snd_prompt():
     global __last_sound_time
     from time import time
-    if time() - __last_sound_time > 4:
+    if time() - __last_sound_time > 6:
         soundmgr.play(common_res.sound.input)
 
     # intentionally put outside
@@ -370,18 +373,21 @@ def user_input_effects(self, irp):
     
     g = Game.getgame()
     if getattr(g, 'current_turn', None) is not g.me:
-        input_snd_prompt()
+        # HACK
+        if irp.tag != 'choose_card_and_player_reject':
+            input_snd_prompt()
 
 mapping_actions = ddict(dict, {
     'before': {
         Pindian: pindian_effect,
         LaunchCard: launch_effect,
         Reject: reject_effect,
-        ActionStage: action_stage_effect,
+        ActionStage: action_stage_effect_before,
         PlayerTurn: player_turn_effect,
         Action: action_effect_string_before,
     },
     'apply': {
+        ActionStage: action_stage_effect_apply,
         Action: action_effect_string_apply,
         Damage: damage_effect,
         #Heal: heal_effect,
@@ -389,7 +395,7 @@ mapping_actions = ddict(dict, {
     'after': {
         PlayerDeath: player_death_update,
         LaunchCard: after_launch_effect,
-        ActionStage: action_stage_effect,
+        ActionStage: action_stage_effect_before,
         PlayerTurn: player_turn_after_update,
         Action: action_effect_string_after,
     }
