@@ -186,8 +186,8 @@ class THBattle(Game):
         order = [self.players[(first_index + i) % n] for i in self.order_list]
 
         self.emit_event('choose_girl_begin', (pl, choice))
-        for p in order:
-            cid = p.user_input('choose_girl', choice)
+        for i, p in enumerate(order):
+            cid = p.user_input('choose_girl', choice, timeout=(n-i+1)*5)
             try:
                 check(isinstance(cid, int))
                 check(0 <= cid < len(choice))
