@@ -165,7 +165,6 @@ class THBattle(Game):
         # -----------
 
         self.players.reveal(choice)
-        self.emit_event('choose_girl_begin', (self.players, choice))
 
         # roll
         roll = range(len(self.players))
@@ -192,7 +191,9 @@ class THBattle(Game):
             p.skills = p.skills[:] # make it instance variable
             ehclasses.extend(p.eventhandlers_required)
 
-        akaris = {}
+        # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
+        akaris = []
+        self.emit_event('choose_girl_begin', (self.players, choice))
         for i, p in enumerate(order):
             cid = p.user_input('choose_girl', choice, timeout=(n-i+1)*5)
             try:
@@ -209,7 +210,7 @@ class THBattle(Game):
                         break
 
             if issubclass(c.char_cls, Akari):
-                akaris[p] = c
+                akaris.append((p, c))
             else:
                 mix(p, c)
 
@@ -219,12 +220,12 @@ class THBattle(Game):
 
         # reveal akaris
         if akaris:
-            for c in akaris.itervalues():
+            for p, c in akaris:
                 c.char_cls = c.real_cls
 
-            self.players.reveal(akaris.values())
+            self.players.reveal([i[1] for i in akaris])
 
-            for p, c in akaris.iteritems():
+            for p, c in akaris:
                 mix(p, c)
 
         first_actor = first
