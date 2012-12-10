@@ -458,10 +458,10 @@ def chat(user, msg):
 
 def speaker(user, msg):
     def worker():
-        if user.account.other['credits'] < 3:
+        if user.account.other['credits'] < 10:
             user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
         else:
-            user.account.other['credits'] -= 3
+            user.account.other['credits'] -= 10
             for u in users.values():
                 u.write(['speaker_msg', [user.account.username, msg]])
     gevent.spawn(worker)
