@@ -59,7 +59,7 @@ class MiracleHandler(EventHandler):
             if tgt.dead: return act
             g = Game.getgame()
             
-            candidates = [p for p in g.players if p.life < p.maxlife and not p.dead]
+            candidates = [p for p in g.players if not p.dead]
             if not candidates: return act
             pl = user_choose_players(self, tgt, candidates)
             if not pl: return act
