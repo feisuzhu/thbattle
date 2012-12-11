@@ -3,7 +3,6 @@ from gevent.server import StreamServer
 
 import logging
 import sys
-import settings
 
 '''
 # --- for dbg
@@ -44,6 +43,8 @@ opmodule.options = options
 
 autoenv.init('Server')
 
+import settings
+
 if options.conf:
     import os
     with open(options.conf, 'r') as f:
@@ -64,9 +65,9 @@ class ServerLogFormatter(logging.Formatter):
             s.append('>>>>>>' + '-' * 74)
             s.append(self._format(rec))
             import traceback
-            s.append(''.join(traceback.format_exception(*sys.exc_info())).strip())
+            s.append(u''.join(traceback.format_exception(*sys.exc_info())).strip())
             s.append('<<<<<<' + '-' * 74)
-            return '\n'.join(s)
+            return u'\n'.join(s)
         else:
             return self._format(rec)
 
@@ -78,10 +79,10 @@ class ServerLogFormatter(logging.Formatter):
         except:
             g = gevent.getcurrent()
 
-        return '[%s %s %s] %s' % (
+        return u'[%s %s %s] %s' % (
             rec.levelname[0],
             time.strftime('%y%m%d %H:%M:%S'),
-            repr(g),
+            repr(g).decode('utf-8'),
             rec.msg % rec.args,
         )
 

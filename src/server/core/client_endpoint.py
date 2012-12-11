@@ -249,7 +249,7 @@ class Client(Endpoint, Greenlet):
         return '%s:%s:%s' % (
             self.__class__.__name__,
             self.address[0],
-            acc.username,
+            acc.username.encode('utf-8'),
         )
 
 class DroppedClient(Endpoint):
