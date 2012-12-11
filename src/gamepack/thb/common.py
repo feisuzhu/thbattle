@@ -5,6 +5,7 @@ from game.autoenv import Game, sync_primitive
 def mixin_character(player, charcls):
     pcls = player.__class__
     from utils import classmix
+    player.char_cls = charcls
     player.__class__ = classmix(pcls, charcls)
 
 class CharChoice(object):

@@ -7,7 +7,7 @@ from itertools import cycle
 from collections import defaultdict
 import random
 
-from utils import BatchList, check, CheckFailed, classmix
+from utils import BatchList, check, CheckFailed, classmix, Enum
 
 from .common import *
 
@@ -117,7 +117,7 @@ class ActFirst(object): # for choose_option
     pass
 
 class Identity(PlayerIdentity):
-    class TYPE:
+    class TYPE(Enum):
         HIDDEN = 0
         HAKUREI = 1
         MORIYA = 2
@@ -263,6 +263,14 @@ class THBattle(Game):
             p.identity = Identity()
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
 
+        # -------
+        log.info('>> Game info: ')
+        log.info('>> First: %s:%s ', first.char_cls.__name__, Identity.TYPE.rlookup(first.identity.type))
+        for p in self.players:
+            log.info('>> Player: %s:%s %s', p.char_cls.__name__, Identity.TYPE.rlookup(p.identity.type), p.account.username)
+
+        # -------
+
         try:
             pl = self.players
             for p in pl:
@@ -282,6 +290,8 @@ class THBattle(Game):
                     self.process_action(PlayerTurn(p))
         except GameEnded:
             pass
+
+        log.info('>> Winner: %s', Identity.TYPE.rlookup(self.winners[0].identity.type))
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)
