@@ -3,6 +3,7 @@ from gevent.server import StreamServer
 
 import logging
 import sys
+import settings
 
 '''
 # --- for dbg
@@ -32,6 +33,8 @@ parser.add_argument('--testing', action='store_true')
 parser.add_argument('--no-backdoor', action='store_true')
 parser.add_argument('--freeplay', action='store_true')
 parser.add_argument('--conf')
+parser.add_argument('--log', default='INFO')
+parser.add_argument('--logfile', default='')
 
 options = parser.parse_args()
 
@@ -45,7 +48,6 @@ if options.conf:
     import os
     with open(options.conf, 'r') as f:
         src = f.read()
-    import settings
     env = {}
     exec src in env
     for k, v in env.items():
@@ -54,8 +56,50 @@ if options.conf:
 from network import Endpoint
 #Endpoint.ENDPOINT_DEBUG = True
 
-logging.basicConfig(stream=sys.stdout)
-logging.getLogger().setLevel(logging.INFO)
+class ServerLogFormatter(logging.Formatter):
+    def format(self, rec):
+        
+        if rec.exc_info:
+            s = []
+            s.append('>>>>>>' + '-' * 74)
+            s.append(self._format(rec))
+            import traceback
+            s.append(''.join(traceback.format_exception(*sys.exc_info())).strip())
+            s.append('<<<<<<' + '-' * 74)
+            return '\n'.join(s)
+        else:
+            return self._format(rec)
+
+    def _format(self, rec):
+        from game.autoenv import Game
+        import time
+        try:
+            g = Game.getgame()
+        except:
+            g = gevent.getcurrent()
+
+        return '[%s %s %s] %s' % (
+            rec.levelname[0],
+            time.strftime('%y%m%d %H:%M:%S'),
+            repr(g),
+            rec.msg % rec.args,
+        )
+
+
+fmter = ServerLogFormatter()
+
+root = logging.getLogger()
+
+root.setLevel(getattr(logging, options.log.upper()))
+std = logging.StreamHandler(stream=sys.stdout)
+std.setFormatter(fmter)
+root.addHandler(std)
+
+if options.logfile:
+    from logging.handlers import WatchedFileHandler
+    filehdlr = WatchedFileHandler(options.logfile)
+    filehdlr.setFormatter(fmter)
+    root.addHandler(filehdlr)
 
 if not options.no_backdoor:
     from gevent.backdoor import BackdoorServer
@@ -63,5 +107,6 @@ if not options.no_backdoor:
 
 from server.core import Client
 
+root.info('=' * 20 + settings.VERSION + '=' * 20)
 server = StreamServer(('0.0.0.0', options.port), Client.spawn, None)
 server.serve_forever()

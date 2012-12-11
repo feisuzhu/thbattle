@@ -21,6 +21,13 @@ class Endpoint(object):
         self.address = address
         self.link_state = 'connected' # or disconnected
 
+    def __repr__(self):
+        return '%s:%s:%s' % (
+            self.__class__.__name__,
+            self.address[0],
+            self.address[1],
+        )
+
     @staticmethod
     def encode(p):
         def default(o):

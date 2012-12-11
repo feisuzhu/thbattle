@@ -241,6 +241,17 @@ class Client(Endpoint, Greenlet):
         Endpoint.close(self)
         self.kill(EndpointDied)
 
+    def __repr__(self):
+        acc = self.account
+        if not acc:
+            return Endpoint.__repr__(self)
+        
+        return '%s:%s:%s' % (
+            self.__class__.__name__,
+            self.address[0],
+            acc.username,
+        )
+
 class DroppedClient(Endpoint):
     read = write = raw_write = gclear = \
     lambda *a, **k: None

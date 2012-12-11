@@ -163,6 +163,14 @@ class Game(Greenlet, game.Game):
     @staticmethod
     def getgame():
         return getcurrent().game
+    
+    def __repr__(self):
+        try:
+            gid = str(self.gameid)
+        except:
+            gid = 'X'
+
+        return '%s:%s' % (self.__class__.__name__, gid)
 
     def get_synctag(self):
         self.synctag += 1

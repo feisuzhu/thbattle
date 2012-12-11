@@ -464,6 +464,8 @@ def speaker(user, msg):
             user.account.other['credits'] -= 10
             for u in users.values():
                 u.write(['speaker_msg', [user.account.username, msg]])
+
+    log.info('Speaker: %s' % msg)
     gevent.spawn(worker)
 
 def system_msg(msg):
