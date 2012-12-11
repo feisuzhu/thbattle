@@ -486,4 +486,5 @@ def _exit_handler():
     # logout all the accounts
     # to save the credits
     for u in users.values():
+        u.account.other['credits'] += 50
         u.account.logout()
