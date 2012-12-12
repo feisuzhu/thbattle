@@ -440,20 +440,20 @@ def end_game(g):
 
 def chat(user, msg):
     def worker():
+        packed = (user.account.username, msg)
         if user.state == 'hang': # hall chat
             for u in users.values():
                 if u.state == 'hang':
-                    u.write(['chat_msg', [user.account.username, msg]])
-        elif user.state in ('inroomwait', 'ready', 'ingame', 'observing'): # room chat
+                    u.write(['chat_msg', packed])
+
+        elif user.state in {'inroomwait', 'ready', 'ingame', 'observing'}: # room chat
             ul = user.current_game.players.client
             obl = BatchList()
             map(obl.__iadd__, ul.observers)
-            if user.state == 'observing':
-                ul.write(['ob_msg', [user.account.username, msg]]) # should be here?
-                obl.write(['ob_msg', [user.account.username, msg]])
-            else:
-                ul.write(['chat_msg', [user.account.username, msg]])
-                obl.write(['chat_msg', [user.account.username, msg]])
+            _type = 'ob_msg' if user.state == 'observing' else 'chat_msg'
+            ul.write([_type, packed]) # should be here?
+            obl.write([_type, packed])
+
     gevent.spawn(worker)
 
 def speaker(user, msg):

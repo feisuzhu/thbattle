@@ -113,9 +113,17 @@ class Player(game.AbstractPlayer):
         return input
 
     def __data__(self):
+        if self.dropped:
+            if self.fleed:
+                state = 'fleed'
+            else:
+                state = 'dropped'
+        else:
+            state = self.client.state
+
         return dict(
             account=self.client.account,
-            state=self.client.state,
+            state=state,
         )
 
     @property

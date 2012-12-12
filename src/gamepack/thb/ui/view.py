@@ -322,7 +322,8 @@ class THBattleUI(Control):
             for i, pd in enumerate(args[0]):
                 p = self.game.players[i]
                 port = self.player2portrait(p)
-                port.dropped = (pd['state'] == 'dropped')
+                port.dropped = (pd['state'] in { 'dropped', 'fleed' })
+                port.fleed = (pd['state'] == 'fleed')
                 port.update()
         
         elif _type in { 'evt_girl_chosen', 'evt_girl_chosen_end' }:

@@ -572,6 +572,7 @@ class ShownCardPanel(Panel):
 
 class GameCharacterPortrait(Frame, BalloonPrompt):
     dropped = False
+    fleed = False
     x = InterpDesc('_x')
     y = InterpDesc('_y')
     _x = _y = 0
@@ -709,7 +710,14 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         if not p: return
 
         nick = p.account.username
-        if self.dropped: nick = u'(离开)' + nick
+        if self.dropped:
+            if self.fleed:
+                prefix = u'(逃跑)'
+            else:
+                prefix = u'(掉线)'
+
+            nick = prefix + nick
+
         self.caption = nick
         meta = getattr(p, 'ui_meta', None)
 

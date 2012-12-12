@@ -377,7 +377,7 @@ class GameHallScreen(Screen):
                     gid, ul = args[0]
                     if gid != self.game_id: return
 
-                    ul = [i for i in ul if i['state'] != 'dropped']
+                    ul = [i for i in ul if i['state'] not in { 'dropped', 'fleed' }]
 
                     for i, p in enumerate(ul):
                         y, x = divmod(i, 5)

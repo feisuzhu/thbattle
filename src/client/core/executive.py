@@ -41,7 +41,7 @@ class GameManager(Greenlet):
                     for i, pl in enumerate(self.game.players):
                         if pl.account.userid != acc.userid: continue
                         data1.append(p)
-                        self.game.players[i].dropped = (p['state'] == 'dropped')
+                        self.game.players[i].dropped = (p['state'] in { 'dropped', 'fleed' })
 
                 self.event_cb('player_change', data1)
             else:
