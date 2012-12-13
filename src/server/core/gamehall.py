@@ -13,6 +13,7 @@ import random
 log = logging.getLogger('GameHall')
 
 from utils import DataHolder, classmix, BatchList
+from options import options
 
 '''
 User state machine:
@@ -30,7 +31,15 @@ users = {} # all users
 dropped_users = {} # passively dropped users
 evt_datachange = Event()
 
-_curgameid = 0
+if options.gidfile:
+    try:
+        with open(options.gidfile, 'r') as f:
+            _curgameid = int(f.read())
+    except:
+        _curgameid = 0
+else:
+    _curgameid = 0
+
 def new_gameid():
     global _curgameid
     _curgameid += 1
@@ -488,3 +497,9 @@ def _exit_handler():
     for u in users.values():
         u.account.other['credits'] += 50
         u.account.logout()
+
+    # save gameid
+    fn = options.gidfile
+    if fn:
+        with open(fn, 'w') as f:
+            f.write(str(_curgameid + 1))

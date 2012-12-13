@@ -34,6 +34,7 @@ parser.add_argument('--freeplay', action='store_true')
 parser.add_argument('--conf')
 parser.add_argument('--log', default='INFO')
 parser.add_argument('--logfile', default='')
+parser.add_argument('--gidfile', default='')
 
 options = parser.parse_args()
 
