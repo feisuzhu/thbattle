@@ -23,8 +23,13 @@ class Dummy(object):
     '''
     Make the view think the input request will get processed.
     '''
+    parent = None
     def __init__(*a, **k):
         pass
+
+    def cleanup(self):
+        pass
+
 
 class UISelectTarget(Control):
 
@@ -872,7 +877,10 @@ mapping_event = dict(
     choose_girl_begin=choose_girl_event_handler,
 )
 
-
+def afk_autocomplete(_, view, ctrl):
+    # if view.afk and ctrl is not deleted:
+    if view.afk and ctrl.parent:
+        ctrl.cleanup()
 
 def handle_event(self, _type, data):
     if _type == 'user_input':
@@ -880,7 +888,8 @@ def handle_event(self, _type, data):
         itype = irp.tag
         cls = mapping.get(itype)
         if cls:
-            cls(irp, parent=self)
+            ctrl = cls(irp, parent=self)
+            pyglet.clock.schedule_once(afk_autocomplete, 2, self, ctrl)
         else:
             log.error('No appropriate input handler!')
             irp.input = None
@@ -893,7 +902,8 @@ def handle_event(self, _type, data):
         pl, tag, attachment = data
         cls = mapping_all.get(tag)
         if cls and Game.getgame().me in pl:
-            cls(attachment=attachment, parent=self)
+            ctrl = cls(attachment=attachment, parent=self)
+            pyglet.clock.schedule_once(afk_autocomplete, 2, self, ctrl)
     else:
         cls = mapping_event.get(_type)
         if cls:

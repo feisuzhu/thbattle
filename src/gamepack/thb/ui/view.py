@@ -22,7 +22,6 @@ import effects, inputs
 from .. import actions
 
 class UIEventHook(EventHandler):
-
     def evt_user_input(self, input):
         irp = IRP()
         irp.__dict__.update(input.__dict__)
@@ -33,6 +32,7 @@ class UIEventHook(EventHandler):
 
     def evt_shuffle_cards(self, args):
         import gevent
+        # HACK
         gevent.sleep(0.1) # wait a sec, or ui will display as hidden card
         return args
 
@@ -218,6 +218,21 @@ class THBattleUI(Control):
             parent=self, width=1, height=1,
             x=self.width//2, y=self.height//2, zindex=4,
         )
+        
+        self.btn_afk = Button(
+            parent=self, caption=u'让⑨帮你玩', zindex=1,
+            color=Colors.blue,
+            **r2d((730, 640, 75, 25))
+        )
+
+        self.afk = False
+
+        @self.btn_afk.event
+        def on_click():
+            v = not self.afk
+            self.afk = v
+            self.btn_afk.color = (Colors.blue, Colors.orange)[v]
+            self.btn_afk.update()
 
         @self.handcard_area.event
         def on_selection_change():
