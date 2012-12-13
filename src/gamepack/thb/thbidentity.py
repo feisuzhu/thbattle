@@ -230,6 +230,8 @@ class THBattleIdentity(Game):
         if len(g.players) > 5:
             boss.maxlife += 1
 
+        boss.life = boss.maxlife
+
         g.emit_event('choose_girl_end', None)
 
         # reseat
@@ -280,6 +282,7 @@ class THBattleIdentity(Game):
             p = c.chosen
             mixin_character(p, c.char_cls)
             p.skills = p.skills[:] # make it instance variable
+            p.life = p.maxlife
             ehclasses.extend(p.eventhandlers_required)
 
         # this will make UIEventHook the last one
@@ -290,9 +293,6 @@ class THBattleIdentity(Game):
         # IN REVERSE ORDER.
         #g.event_handlers[:] = EventHandler.make_list(ehclasses) + g.event_handlers
         g.event_handlers.extend(EventHandler.make_list(ehclasses))
-
-        for p in g.players:
-            p.life = p.maxlife
 
         g.emit_event('game_begin', g)
 

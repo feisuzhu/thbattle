@@ -880,12 +880,15 @@ def handle_event(self, _type, data):
         itype = irp.tag
         cls = mapping.get(itype)
         if cls:
-            self.update_skillbox()
             cls(irp, parent=self)
         else:
             log.error('No appropriate input handler!')
             irp.input = None
             irp.complete()
+
+    elif _type == 'user_input_start':
+        self.update_skillbox()
+
     elif _type == 'user_input_all_begin':
         pl, tag, attachment = data
         cls = mapping_all.get(tag)

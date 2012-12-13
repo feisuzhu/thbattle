@@ -135,6 +135,22 @@ class THBattle(Game):
         self.deck = Deck()
 
         ehclasses = list(action_eventhandlers) + self.game_ehs.values()
+        
+        for i, p in enumerate(self.players):
+            p.cards = CardList(p, 'handcard') # Cards in hand
+            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
+            p.equips = CardList(p, 'equips') # Equipments
+            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
+            p.special = CardList(p, 'special') # used on special purpose
+
+            p.showncardlists = [p.showncards, p.fatetell]
+
+            p.tags = defaultdict(int)
+            
+            p.dead = False
+            p.need_shuffle = False
+            p.identity = Identity()
+            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
 
         self.forces = forces = BatchList([PlayerList(), PlayerList()])
         for i, p in enumerate(self.players):
@@ -189,6 +205,7 @@ class THBattle(Game):
             # mix char class with player -->
             mixin_character(p, c.char_cls)
             p.skills = p.skills[:] # make it instance variable
+            p.life = p.maxlife
             ehclasses.extend(p.eventhandlers_required)
 
         # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
@@ -245,23 +262,6 @@ class THBattle(Game):
         # IN REVERSE ORDER.
         #self.event_handlers[:] = EventHandler.make_list(ehclasses) + self.event_handlers
         self.event_handlers.extend(EventHandler.make_list(ehclasses))
-
-        for i, p in enumerate(self.players):
-            p.cards = CardList(p, 'handcard') # Cards in hand
-            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips') # Equipments
-            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special') # used on special purpose
-
-            p.showncardlists = [p.showncards, p.fatetell]
-
-            p.tags = defaultdict(int)
-
-            p.life = p.maxlife
-            p.dead = False
-            p.need_shuffle = False
-            p.identity = Identity()
-            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
 
         # -------
         log.info(u'>> Game info: ')

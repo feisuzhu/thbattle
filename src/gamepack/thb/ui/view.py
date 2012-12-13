@@ -310,7 +310,6 @@ class THBattleUI(Control):
         if _type == 'evt_game_begin':
             for port in self.char_portraits:
                 port.update()
-            self.update_skillbox()
 
         elif _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
             self.current_turn = args[0].target
