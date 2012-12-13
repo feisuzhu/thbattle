@@ -148,18 +148,25 @@ class WineHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
-            if src.tags['wine']:
+            if src.tags['wine_damage+1']:
                 act.damage += 1
-        elif evt_type == 'action_after' and isinstance(act, LaunchCard):
+
+        elif evt_type == 'action_before' and isinstance(act, LaunchCard):
             from ..cards import AttackCard
             if act.card.is_card(AttackCard):
                 src = act.source
                 if src.tags['wine']:
                     Game.getgame().process_action(SoberUp(src, src))
+                    src.tags['wine_damage+1'] = True
+
+        elif evt_type == 'action_after' and isinstance(act, LaunchCard):
+            act.source.tags['wine_damage+1'] = False
+
         elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             src = act.target
             if src.tags['wine']:
                 Game.getgame().process_action(SoberUp(src, src))
+
         elif evt_type == 'action_before' and isinstance(act, Damage):
             if act.cancelled: return act
             if act.amount < 1: return act
@@ -167,6 +174,7 @@ class WineHandler(EventHandler):
             if act.amount >= tgt.life and tgt.tags['wine']:
                 g = Game.getgame()
                 g.process_action(WineRevive(act))
+
         return act
 
 class Exinwan(BasicAction):
