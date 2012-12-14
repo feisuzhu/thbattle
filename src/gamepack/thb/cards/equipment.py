@@ -151,10 +151,10 @@ class HakuroukenEffectHandler(EventHandler):
                 return act
         return act
 
-class ElementalReactorSkill(WeaponSkill):
-    associated_action = None
-    target = t_None
+
+class ElementalReactorSkill(basic.FreeAttackSkill, WeaponSkill):
     range = 1
+
 
 class UmbrellaSkill(ShieldSkill):
     pass

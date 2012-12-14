@@ -3,7 +3,7 @@ from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
-class CriticalStrike(Skill):
+class CriticalStrike(FreeAttackSkill):
     associated_action = None
     target = t_None
 

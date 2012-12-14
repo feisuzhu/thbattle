@@ -5,14 +5,15 @@ from .. import cards
 characters = []
 
 class Character(object):
-    #skills = []
-    #eventhandlers_required = []
-    #associated_action = None
+    # skills = []
+    # eventhandlers_required = []
+    # associated_action = None
 
-    def has_skill(self, skill):
-        return skill in self.skills
+    def get_skills(self, skill):
+        return [s for s in self.skills if issubclass(s, skill)]
 
-characters[:] = []
+    has_skill = get_skills
+
 
 def register_character(cls):
     characters.append(cls)

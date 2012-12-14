@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..actions import *
+from .base import *
 
 class BasicAction(UserAction): pass # attack, graze, heal
 
@@ -31,6 +32,12 @@ class InevitableAttack(Attack):
         dmg = Damage(self.source, self.target, amount=self.damage)
         g.process_action(dmg)
         return True
+
+
+class FreeAttackSkill(Skill):
+    associated_action = None
+    target = t_None
+
 
 @register_eh
 class AttackCardHandler(EventHandler):
@@ -63,8 +70,7 @@ class AttackCardHandler(EventHandler):
         elif evt_type == 'action_can_fire' and isinstance(act[0], ActionStageLaunchCard):
             lc, rst = act
             from .definition import AttackCard
-            from .equipment import ElementalReactorSkill
-            if lc.source.has_skill(ElementalReactorSkill): return act
+            if lc.source.has_skill(FreeAttackSkill): return act
             if lc.card.is_card(AttackCard) and lc.source.tags['attack_num'] <= 0:
                 return (lc, False)
 

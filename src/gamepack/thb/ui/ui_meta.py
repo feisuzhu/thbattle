@@ -268,8 +268,6 @@ class Pindian:
             winner.ui_meta.char_name
         )
 
-
-
 # -----END ACTIONS UI META-----
 
 # -----BEGIN CARDS UI META-----
@@ -302,6 +300,12 @@ class AttackCard:
             return (False, u'你不可以对自己使用【弹幕】')
         else:
             return (True, u'来一发！')
+
+
+class FreeAttackSkill:
+    # Skill
+    name = u'无限弹幕'
+
 
 class GrazeCard:
     # action_stage meta
