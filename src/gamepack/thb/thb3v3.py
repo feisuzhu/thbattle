@@ -95,7 +95,7 @@ class PlayerDeath(PlayerDeath):
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
         g = Game.getgame()
-        if evt_type == 'action_after' and isinstance(act, Damage):
+        if evt_type == 'action_after' and isinstance(act, BaseDamage):
             tgt = act.target
             if tgt.life > 0: return act
             if not g.process_action(TryRevive(tgt, dmgact=act)):

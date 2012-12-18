@@ -487,6 +487,7 @@ class FrozenFrog(DelayedSpellCardAction):
         target = self.target
         g.process_action(DropCards(target, [self.associated_card]))
 
+
 @register_eh
 class FrozenFrogHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -497,3 +498,97 @@ class FrozenFrogHandler(EventHandler):
                 act.cancelled = True
         return act
 
+
+class LotteryHeart(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        g = Game.getgame()
+        candidates = [
+            p for p in g.players
+            if (p.cards or p.showncards or p.equips or p.fatetell) and not p.dead
+        ]
+        pl = user_choose_players(self, tgt, candidates)
+        if not pl:
+            return True
+
+        p = pl[0]
+
+        cats = [p.cards, p.showncards, p.equips, p.fatetell]
+        card = choose_peer_card(tgt, p, cats)
+        if not card:
+            return True
+
+        tgt.reveal(card)
+        migrate_cards([card], tgt.cards, unwrap=True)
+        return True
+
+    def choose_player_target(self, pl):
+        return (pl[-1:], True)
+
+
+class LotteryDiamond(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        g = Game.getgame()
+
+        cards = user_choose_cards(self, tgt, [tgt.cards, tgt.showncards])
+        if not cards:
+            return True
+
+        g.process_action(DropCards(tgt, cards))
+        g.process_action(DrawCards(tgt, len(cards)))
+
+        return True
+
+    def cond(self, cards):
+        return len(cards) <= 2
+
+
+class LotteryClub(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        cats = [tgt.cards, tgt.showncards, tgt.equips]
+        if not any(cats):
+            return True
+
+        cards = user_choose_cards(self, tgt, cats)
+        if not cards:
+            cards = [random_choose_card(cats)]
+
+        Game.getgame().process_action(DropCards(tgt, cards))
+        return True
+    
+    def cond(self, cards):
+        return len(cards) == 1
+
+
+class LotterySpade(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        Game.getgame().process_action(LifeLost(tgt, tgt, 1))
+        return True
+
+
+class Lottery(SpellCardAction):
+    # 御神签
+    mapping = {
+        base.Card.HEART: LotteryHeart,
+        base.Card.DIAMOND: LotteryDiamond,
+        base.Card.CLUB: LotteryClub,
+        base.Card.SPADE: LotterySpade,
+    }
+    def apply_action(self):
+        src = self.source
+        g = Game.getgame()
+        g.process_action(DrawCards(src, 1))
+        if not self.target_list:
+            return True
+
+        for tgt in self.target_list:
+            ft = TurnOverCard(tgt, lambda card: True)
+            g.process_action(ft)
+            suit = ft.card.suit
+            ActionClass = self.mapping[suit]
+            g.process_action(ActionClass(tgt, tgt))
+
+        return True

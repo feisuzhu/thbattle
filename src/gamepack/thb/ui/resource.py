@@ -37,7 +37,7 @@ with ldr as args:
         'saigyoubranch', 'flirtingsword', 'camera', 'ayaroundfan',
         'scarletrhapsodysword', 'deathsickle', 'keystone', 'witchbroom',
         'yinyangorb', 'suwakohat', 'phantom', 'icewing', 'grimoire',
-        'dollcontrol', 'donationbox', 'frozenfrog',
+        'dollcontrol', 'donationbox', 'frozenfrog', 'lottery',
         
         'opticalcloak_small', 'greenufo_small', 'redufo_small',
         'hakurouken_small', 'reactor_small', 'umbrella_small',

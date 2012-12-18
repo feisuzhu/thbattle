@@ -185,6 +185,14 @@ class Damage:
                 t.ui_meta.char_name, act.amount
             )
 
+
+class LifeLost:
+    def effect_string(act):
+        return u'|G【%s】|r流失了%d点体力。' % (
+            act.target.ui_meta.char_name, act.amount
+        )
+
+
 class LaunchCard:
     def effect_string_before(act):
         s, tl = act.source, BatchList(act.target_list)
@@ -228,6 +236,16 @@ class Fatetell:
             tgt.ui_meta.char_name,
             card_suitnum(act.card)
         )
+
+
+class TurnOverCard:
+    def effect_string(act):
+        tgt = act.target
+        return u'|G【%s】|r翻开了牌堆顶的一张牌，%s' % (
+            tgt.ui_meta.char_name,
+            card_suitnum(act.card)
+        )
+
 
 class RevealIdentity:
     def effect_string(act):
@@ -1708,6 +1726,63 @@ class DonationBoxEffect:
             return (True, u'这是抢劫啊！')
         else:
             return (False, u'请选择一张牌（否则会随机选择一张）')
+
+
+class LotteryCard:
+    # action_stage meta
+    name = u'御神签'
+    image = gres.card_lottery
+    description = (
+        u'|R御神签|r\n\n'
+        u'符卡，你可以选择1名玩家作为目标（或不选）。当你使用此符卡时，你摸一张牌。若选择了目标，则目标翻开牌堆顶的一张牌：\n'
+        u'|B|R>> |r红桃：目标可以将场上的任意一张牌收入手牌\n'
+        u'|B|R>> |r方片：目标可以弃置至多2张手牌，并且摸相同数量的牌\n'
+        u'|B|R>> |r草花：目标须弃置一张牌\n'
+        u'|B|R>> |r黑桃：目标流失1点体力'
+    )
+
+    def is_action_valid(g, cl, tl):
+        n = len(tl)
+        if n == 0:
+            return (True, u'请选择目标（或者不选）')
+
+        return (True, u'运气也是实力的一部分！')
+
+
+class LotteryHeart:
+    # choose_players
+    def target(pl):
+        if not pl:
+            return (True, u'御神签效果：请选择1玩家，抽取一张牌(或不选)')
+
+        return (True, u'收集信仰！')
+
+    def effect_string_apply(act):
+        return u'大吉！'
+
+
+class LotteryDiamond:
+    # choose card meta
+    def choose_card_text(g, act, cards):
+        return (True, u'御神签效果：请选择至多2张手牌换走（或不选）')
+
+    def effect_string_apply(act):
+        return u'小吉！'
+
+
+class LotteryClub:
+    # choose card meta
+    def choose_card_text(g, act, cards):
+        return (True, u'御神签效果：请选择1张牌弃置')
+
+    def effect_string_apply(act):
+        return u'小凶！'
+
+
+class LotterySpade:
+    def effect_string_apply(act):
+        return u'大凶！'
+
 
 # -----END CARDS UI META-----
 
@@ -3874,9 +3949,9 @@ class DrawingLot:
         if act.target is not g.me: return False
         t = act.target.tags
         if t['turn_count'] <= t['drawinglot_tag']: return False
-        
+
         return True
-    
+
     def effect_string(act):
         return u'|G【%s】|r给|G【%s】|r抽了一签……' % (
             act.source.ui_meta.char_name,
@@ -3917,7 +3992,7 @@ class MiracleHandler:
             return (False, u'奇迹：请选择1名体力不满的玩家')
 
         return (True, u'奇迹！')
-    
+
 # ----------
 __metaclass__ = gen_metafunc(characters.akari)
 

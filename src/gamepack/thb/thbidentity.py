@@ -30,7 +30,7 @@ game_action(TryRevive)
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, Damage):
+        if evt_type == 'action_after' and isinstance(act, BaseDamage):
             tgt = act.target
             if tgt.life > 0: return act
             g = Game.getgame()

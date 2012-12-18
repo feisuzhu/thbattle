@@ -216,7 +216,7 @@ class TryRevive(GenericAction):
     # dummy, implemented in Game
     pass
 
-class Damage(GenericAction):
+class BaseDamage(GenericAction):
     def __init__(self, source, target, amount=1):
         self.source = source
         self.target = target
@@ -227,6 +227,15 @@ class Damage(GenericAction):
         g = Game.getgame()
         tgt.life -= self.amount
         return True
+
+
+class Damage(BaseDamage):
+    pass
+
+
+class LifeLost(BaseDamage):
+    pass
+
 
 # ---------------------------------------------------
 
@@ -489,7 +498,7 @@ class FatetellStage(GenericAction):
 
         return True
 
-class Fatetell(GenericAction):
+class BaseFatetell(GenericAction):
     def __init__(self, target, cond):
         self.target = target
         self.cond = cond
@@ -505,6 +514,15 @@ class Fatetell(GenericAction):
     @property
     def succeeded(self):
         return self.cond(self.card)
+
+
+class Fatetell(BaseFatetell):
+    pass
+
+
+class TurnOverCard(BaseFatetell):
+    pass
+
 
 class FatetellAction(UserAction): pass
 
