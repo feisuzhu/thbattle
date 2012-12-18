@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 86'
+VERSION = 'THBATTLE V1.0b incr 87'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -104,11 +104,16 @@ NOTICE = u'''
 ==================
 
 图片素材大多来自于互联网，如果其中有你的作品，请联系我。
+Proton制作
 
 |R请点击地图上的两个蓝点进入游戏。实际上是同一个服务器。|r
+如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
+
+|B游戏论坛：|r
+http://www.thbattle.net
 
 |B最近更新情况：|r
-|R好吧，昨天做的更新全部有bug…… 抱歉了各位，状态不好…… bug修复|r
+新卡片：御神签
 托管，酒的一个bug修复
 阿卡林、早苗的bug修复。
 3v3选将方式再次调整（暗将，完全随机地确定先手）
@@ -122,17 +127,4 @@ NOTICE = u'''
 魔理沙&咲夜技能调整，bug修复
 新人物：十六夜咲夜
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
-
-另外，如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
-
-|B游戏论坛：|r
-http://www.thbattle.net
-如果希望讨论游戏，请来论坛，QQ群跑题的时间居多
-
-论坛有板块接受BUG报告，请附上游戏目录中的client_log.txt文件
-
-游戏QQ群： 175054570（“官方”群，但是实际上乱糟糟的，建议去论坛）
-设定讨论群： 247123221（仅讨论设定问题的群，但是很少有人说话……）
-
-Proton制作
 '''.strip()
