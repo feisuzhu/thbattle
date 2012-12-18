@@ -176,7 +176,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
         if to.type == 'droppedcard':
             dropcard_update = True
             ca = self.dropcard_area
-            if isinstance(act, Fatetell):
+            if isinstance(act, BaseFatetell):
                 assert len(csl) == 1
                 csl[0].gray = not act.succeeded # may be race condition
                 csl[0].do_fatetell_anim()

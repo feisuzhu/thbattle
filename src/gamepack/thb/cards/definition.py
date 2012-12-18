@@ -115,6 +115,11 @@ class DonationBoxCard:
     target = t_OtherLessEqThanN(2)
 
 
+class LotteryCard:
+    associated_action = spellcard.Lottery
+    target = t_OneOrNone
+
+
 # --------------------------------------------------
 
 from . import equipment
@@ -314,6 +319,7 @@ card_definition = [
     (SinsackCarnivalCard, SPADE, K),
 
     (RepentanceStickCard, SPADE, 2),
+    (LotteryCard, SPADE, J),
     (YinYangOrbCard, SPADE, K),
 
     (DeathSickleCard, SPADE, 1),
@@ -361,7 +367,7 @@ card_definition = [
 
     (DonationBoxCard, HEART, 7),
     (MaidenCostumeCard, HEART, 10),
-    (YinYangOrbCard, HEART, J),
+    (LotteryCard, HEART, J),
     (SinsackCard, HEART, Q),
     (YinYangOrbCard, HEART, K),
 

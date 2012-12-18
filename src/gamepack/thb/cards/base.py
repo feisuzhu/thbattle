@@ -10,6 +10,7 @@ from utils import BatchList
 
 from .. import actions
 
+
 class Card(object):
     NOTSET = 0
     SPADE = 1
@@ -92,6 +93,7 @@ class Card(object):
     def color(self, val):
         self._color = val
 
+
 class VirtualCard(Card):
     __eq__ = object.__eq__
     __ne__ = object.__ne__
@@ -169,6 +171,7 @@ class CardList(deque):
 
     def __repr__(self):
         return "CardList(owner=%s, type=%s, len([...]) == %d)" % (self.owner, self.type, len(self))
+
 
 class Deck(object):
     def __init__(self):
@@ -320,6 +323,7 @@ class Deck(object):
         for c in cl:
             self.cards_record[c.syncid] = c
 
+
 class Skill(VirtualCard):
 
     def __init__(self, player):
@@ -334,6 +338,7 @@ class Skill(VirtualCard):
     # target = xxx
     # associated_action = xxx
     # instance var: associated_cards = xxx
+
 
 class TreatAsSkill(Skill):
     treat_as = None
@@ -352,14 +357,17 @@ class TreatAsSkill(Skill):
             tr = object.__getattribute__(self, 'treat_as')
             return getattr(tr, name)
 
+
 # card targets:
 @staticmethod
 def t_None(g, source, tl):
     return (None, False)
 
+
 @staticmethod
 def t_Self(g, source, tl):
     return ([source], True)
+
 
 @staticmethod
 def t_OtherOne(g, source, tl):
@@ -370,10 +378,12 @@ def t_OtherOne(g, source, tl):
         pass
     return (tl[-1:], bool(len(tl)))
 
+
 @staticmethod
 def t_One(g, source, tl):
     tl = [t for t in tl if not t.dead]
     return (tl[-1:], bool(len(tl)))
+
 
 @staticmethod
 def t_All(g, source, tl):
@@ -381,10 +391,12 @@ def t_All(g, source, tl):
     del l[0]
     return ([t for t in l if not t.dead], True)
 
+
 @staticmethod
 def t_AllInclusive(g, source, tl):
     l = g.players.rotate_to(source)
     return ([t for t in l if not t.dead], True)
+
 
 def t_OtherLessEqThanN(n):
     @staticmethod
@@ -397,6 +409,13 @@ def t_OtherLessEqThanN(n):
         return (tl[:n], bool(len(tl)))
     return _t_OtherLessEqThanN
 
+
+@staticmethod
+def t_OneOrNone(g, source, tl):
+    tl = [t for t in tl if not t.dead]
+    return (tl[-1:], True)
+
+
 def t_OtherN(n):
     @staticmethod
     def _t_OtherN(g, source, tl):
@@ -407,6 +426,7 @@ def t_OtherN(n):
             pass
         return (tl[:n], bool(len(tl) >= n))
     return _t_OtherN
+
 
 class HiddenCard(Card): # special thing....
     associated_action = None
