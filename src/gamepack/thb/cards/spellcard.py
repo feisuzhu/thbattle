@@ -555,7 +555,9 @@ class LotteryClub(GenericAction):
         if not cards:
             cards = [random_choose_card(cats)]
 
-        Game.getgame().process_action(DropCards(tgt, cards))
+        g = Game.getgame()
+        g.players.reveal(cards)
+        g.process_action(DropCards(tgt, cards))
         return True
     
     def cond(self, cards):
@@ -589,6 +591,6 @@ class Lottery(SpellCardAction):
             g.process_action(ft)
             suit = ft.card.suit
             ActionClass = self.mapping[suit]
-            g.process_action(ActionClass(tgt, tgt))
+            g.process_action(ActionClass(src, tgt))
 
         return True
