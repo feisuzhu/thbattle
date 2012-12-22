@@ -14,7 +14,8 @@ class FlyingKnife(Skill):
         c = cards[0]
         if not c.resides_in: return False
         if not c.resides_in.type in ('handcard', 'showncard', 'equips'): return False
-        if not issubclass(c.associated_action, WearEquipmentAction): return False
+        act = c.associated_action
+        if not (act and issubclass(act, WearEquipmentAction)): return False
         return True
 
     def is_card(self, cls):
