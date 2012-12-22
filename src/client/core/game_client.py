@@ -231,6 +231,7 @@ class TheLittleBrother(PeerPlayer):
     reveal = TheChosenOne.reveal.im_func
     user_input = PeerPlayer.user_input.im_func
 
+
 class Game(Greenlet, game.Game):
     '''
     The Game class, all game mode derives from this.
@@ -245,6 +246,7 @@ class Game(Greenlet, game.Game):
     thegame = None
     CLIENT_SIDE = True
     SERVER_SIDE = False
+    event_observer = None
 
     def __init__(self):
         Greenlet.__init__(self)
@@ -284,6 +286,13 @@ class Game(Greenlet, game.Game):
             if not ok:
                 raise Exception('Out of sync')
         return self.synctag
+
+    def emit_event(self, evt_type, data):
+        if self.event_observer:
+            self.event_observer.handle(evt_type, data)
+
+        return game.Game.emit_event(self, evt_type, data)
+
 
 class EventHandler(EventHandler):
     game_class = Game

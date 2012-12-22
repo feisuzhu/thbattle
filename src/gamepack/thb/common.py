@@ -2,11 +2,21 @@
 
 from game.autoenv import Game, sync_primitive
 
-def mixin_character(player, charcls):
-    pcls = player.__class__
+
+def mixin_character(player, char_cls):
     from utils import classmix
-    player.char_cls = charcls
-    player.__class__ = classmix(pcls, charcls)
+    pcls = player.__class__
+    if hasattr(pcls, 'mixins'):
+        old = player.char_cls
+        player.char_cls = char_cls
+        player.__class__ = classmix(player.base_cls, char_cls)
+        return old
+    else:
+        player.base_cls = pcls
+        player.char_cls = char_cls
+        player.__class__ = classmix(pcls, char_cls)
+        return None
+
 
 class CharChoice(object):
     chosen = None
@@ -30,6 +40,7 @@ class CharChoice(object):
                 break
         else:
             self.char_cls = None
+
 
 class PlayerIdentity(object):
     def __init__(self):

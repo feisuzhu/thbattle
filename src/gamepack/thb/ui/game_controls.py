@@ -585,6 +585,8 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         self.disabled = False
         self.taganims = []
         self.tag_placement = tag_placement
+        self.color = color
+        self.bg = None
 
         Frame.__init__(
             self, width=149, height=195,
@@ -734,14 +736,40 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         self.gray_tex = None
         Frame.update(self)
 
+    @property
+    def color(self):
+        if not self.player:
+            return self._color
+
+        dead = getattr(self.player, 'dead', False)
+        if dead:
+            return Colors.gray
+        
+        return self._color
+
+    @color.setter
+    def color(self, val):
+        self._color = val
+
+    @property
+    def bg(self):
+        if not self.player:
+            return self._bg
+
+        dead = getattr(self.player, 'dead', False)
+
+        if dead:
+            return self._bg.grayed
+
+        return self._bg
+
+    @bg.setter
+    def bg(self, val):
+        self._bg = val
+
     @staticmethod
     def batch_draw_frame(gcps):
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
-        for port in gcps:
-            dead = getattr(port.player, 'dead', False)
-            if dead:
-                port.color = Colors.gray
-                port.bg = getattr(port.bg, 'grayed', port.bg)
 
         Frame.batch_draw(gcps)
 
