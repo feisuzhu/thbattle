@@ -285,14 +285,7 @@ class THBattleIdentity(Game):
             p.life = p.maxlife
             ehclasses.extend(p.eventhandlers_required)
 
-        # this will make UIEventHook the last one
-        # BUT WHY? FORGOT BUT THIS CAUSES PROBLEMS, REVERT
-        # PROBLEM:
-        # Reject prompt string should appear when the action fired,
-        # actually appears after the whole reject process finished,
-        # IN REVERSE ORDER.
-        #g.event_handlers[:] = EventHandler.make_list(ehclasses) + g.event_handlers
-        g.event_handlers.extend(EventHandler.make_list(ehclasses))
+        g.event_handlers = EventHandler.make_list(ehclasses)
 
         g.emit_event('game_begin', g)
 

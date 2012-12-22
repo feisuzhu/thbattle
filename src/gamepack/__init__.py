@@ -4,6 +4,7 @@ from collections import OrderedDict
 gamemodes = OrderedDict()
 l = [
     THBattle,
+    THBattleKOF,
     THBattle1v1DBG,
     THBattleIdentity5,
     THBattleIdentity,

@@ -196,7 +196,7 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                         self.irp.complete()
                         return
                 '''
-                
+
                 # HACK
                 if g.current_turn is not g.me:
                     from .effects import input_snd_prompt
@@ -365,34 +365,31 @@ class UIDoActionStage(UISelectTarget):
 
         parent.end_select_player()
 
+
+class GirlSelector(ImageSelector, BalloonPrompt):
+    x = InterpDesc('_x')
+    y = InterpDesc('_y')
+    def __init__(self, choice, group, x=0, y=0, *a, **k):
+
+        self.choice = choice
+        cc = choice.char_cls
+        meta = cc.ui_meta
+        pimg = meta.port_image
+        self.char_name = meta.char_name
+        self.char_maxlife = cc.maxlife
+
+        self.x = x
+        self.y = y
+
+        ImageSelector.__init__(
+            self, pimg, group,
+            *a, **k
+        )
+
+        self.init_balloon(meta.description)
+
+
 class UIChooseGirl(Panel):
-    class GirlSelector(ImageSelector, BalloonPrompt):
-        def __init__(self, choice, group, *a, **k):
-
-            self.choice = choice
-            cc = choice.char_cls
-            meta = cc.ui_meta
-            pimg = meta.port_image
-            self.char_name = meta.char_name
-            self.char_maxlife = cc.maxlife
-
-            ImageSelector.__init__(
-                self, pimg, group,
-                *a, **k
-            )
-
-            self.init_balloon(meta.description)
-
-        def on_dblclick(self):
-            p = self.parent
-            c = self.choice
-            if not c.chosen and p.can_select:
-                irp = p.irp
-                assert irp
-                irp.input = c.cid
-                irp.complete()
-                p.end_selection()
-
     def __init__(self, attachment, *a, **k):
         w, h = 500 + 1*160, 390 + 1*113
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
@@ -402,14 +399,23 @@ class UIChooseGirl(Panel):
         self.irp = None
         self.can_select = False
         choices = self.choices = [c for c in attachment if c.char_cls and not getattr(c, 'chosen', False)]
-        GS = UIChooseGirl.GirlSelector
         self.selectors = selectors = []
         for i, c in enumerate(choices):
             y, x = divmod(i, 4)
             x, y = 15 + 160*x, 45 + 113*(3-y)
-            selectors.append(
-                GS(c, selectors, parent=self, x=x, y=y)
-            )
+            gs = GirlSelector(c, selectors, parent=self, x=x, y=y)
+
+            @gs.event
+            def on_dblclick(gs=gs):
+                c = gs.choice
+                if not c.chosen and self.can_select:
+                    irp = self.irp
+                    assert irp
+                    irp.input = c.cid
+                    irp.complete()
+                    self.end_selection()
+
+            selectors.append(gs)
 
 
     def on_message(self, _evt, *args):
@@ -731,24 +737,37 @@ class UIHarvestChoose(Panel):
             self.irp.complete()
         self.delete()
 
-class RanProphetControl(Control):
+
+class Dragger(Control):
     dragging = False
     def __init__(self, *a, **k):
         Control.__init__(self, *a, **k)
-        self.width, self.height = 5*95, 280
+        self.width, self.height = self.expected_size()
+
+    @classmethod
+    def expected_size(cls):
+        return (
+            (cls.item_width + 4) * cls.cols,
+            (cls.item_height + 15) * cls.rows,
+        )
+
 
     def update(self):
-        for j, l in enumerate([self.downcards, self.upcards]):
+        for j, l in enumerate(reversed(self.sprites)):
             for i, cs in enumerate(l):
                 nx, ny = self._to_loc(i, j)
                 cs.x = SineInterp(cs.x, nx, 0.3)
                 cs.y = SineInterp(cs.y, ny, 0.3)
+                self.update_sprite(cs, i, j)
+
+    def update_sprite(self, cs, i, j):
+        pass
 
     def init(self):
-        self.upcards = self.control_list[:]
-        for cs in self.upcards:
+        self.sprites = [list() for i in xrange(self.rows)]
+        self.sprites[0] = self.control_list[:]
+        for cs in self.sprites[0]:
             cs.zindex = 0
-        self.downcards = []
         self.update()
         self.cur_zindex = 1
 
@@ -766,11 +785,11 @@ class RanProphetControl(Control):
         if isinstance(cx, AbstractInterp): cx = cx._to
         if isinstance(cy, AbstractInterp): cy = cy._to
 
-        oi = self._to_index(cx+45, cy+62)
+        oi = self._to_index(cx + self.item_width // 2, cy + self.item_height // 2)
         if oi != ni:
             c.zindex = self.cur_zindex
             self.cur_zindex += 1
-            ll = [self.downcards, self.upcards]
+            ll = list(reversed(self.sprites))
             ll[oi[1]].remove(c)
             ll[ni[1]].insert(ni[0], c)
             self.update()
@@ -779,31 +798,39 @@ class RanProphetControl(Control):
         self.dragging = False
 
     def _to_index(self, x, y):
-        return int(x / 95), int(y / 155)
+        return int(x / (self.item_width + 4)), int(y / (self.item_height + 30))
 
     def _to_loc(self, i, j):
-        return i*95, j*155
-
-    def get_result(self):
-        return (self.upcards, self.downcards)
+        return i * (self.item_width + 4), j * (self.item_height + 30)
 
     def draw(self):
         self.draw_subcontrols()
+
+    def get_result(self):
+        return self.sprites
+
+
+class RanProphetControl(Dragger):
+    cols, rows = 5, 2
+    item_width, item_height = 91, 125
+
 
 class UIRanProphet(Panel):
     def __init__(self, irp, parent, *a, **k):
         self.irp = irp
         cards = irp.attachment
-        h = 60 + 50 + 280
-        w = 100 + 95*5 + 20
 
-        x, y = (parent.width - w)//2, (parent.height -h)//2
+        w, h = RanProphetControl.expected_size()
+        w = 100 + w + 20
+        h = 60 + h + 50
+
+        x, y = (parent.width - w)//2, (parent.height - h)//2
 
         lbls = pyglet.graphics.Batch()
         def lbl(text, x, y):
             pyglet.text.Label(
                 text=text,
-                font_name = 'AncientPix', font_size=12,
+                font_name='AncientPix', font_size=12,
                 color=(255, 255, 160, 255),
                 x=x, y=y,
                 anchor_x='center', anchor_y='center',
@@ -857,6 +884,93 @@ class UIRanProphet(Panel):
             fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
             self.lbls.draw()
 
+
+class KOFSorterControl(Dragger):
+    cols, rows = 5, 1
+    item_width, item_height = 145, 96
+
+    def update_sprite(self, c, i, j):
+        if i >= 3:
+            c.disable()
+        else:
+            c.enable()
+
+
+class UIKOFCharacterSorter(Panel):
+    def __init__(self, irp, parent, *a, **k):
+        self.irp = irp
+        g = Game.getgame()
+        me = irp.player
+        assert me is g.me
+        choices = me.choices
+        choices = [choices[i] for i in me._perm]
+        for i, c in enumerate(choices):
+            c._choice_index = i
+
+        w, h = KOFSorterControl.expected_size()
+        w = 20 + w + 20
+        h = 60 + h + 50
+
+        x, y = (parent.width - w)//2, (parent.height - h)//2
+
+        lbls = pyglet.graphics.Batch()
+        def lbl(text, x, y):
+            pyglet.text.Label(
+                text=text,
+                font_name='AncientPix', font_size=12,
+                color=(255, 255, 160, 255),
+                x=x, y=y,
+                anchor_x='center', anchor_y='center',
+                batch=lbls,
+            )
+
+        lbl(u'请拖动调整角色的出场顺序', w//2, h-25)
+        self.lbls = lbls
+
+        Panel.__init__(
+            self, x=x, y=y, width=w, height=h, zindex=5, parent=parent,
+            *a, **k
+        )
+
+        self.sorter = sorter = KOFSorterControl(parent=self, x=20, y=60)
+        selectors = []
+        for i, c in enumerate(choices):
+            selectors.append(
+                GirlSelector(c, selectors, parent=sorter)
+            )
+        sorter.init()
+
+        btn = Button(parent=self, caption=u'调整完成', x=w-120, y=15, width=100, height=30)
+        @btn.event
+        def on_click():
+            self.cleanup()
+
+        b = BigProgressBar(
+            parent=self, x=100, y=15, width=250,
+        )
+        b.value = LinearInterp(
+            1.0, 0.0, irp.timeout,
+            on_done=self.cleanup,
+        )
+
+    def on_message(self, _type, *args):
+        if _type == 'evt_user_input_timeout':
+            self.cleanup()
+
+    def cleanup(self, *a, **k):
+        gslist, = self.sorter.get_result()
+        choices = [c.choice for c in gslist]
+        index = [c._choice_index for c in choices]
+        self.irp.input = index
+        self.irp.complete()
+        self.delete()
+
+    def draw(self):
+        Panel.draw(self)
+        with shaders.FontShadow as fs:
+            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
+            self.lbls.draw()
+
 mapping = dict(
     choose_card_and_player=UIChooseCardAndPlayer,
     choose_card_and_player_reject=UIChooseCardAndPlayerReject,
@@ -867,6 +981,7 @@ mapping = dict(
     choose_individual_card=UIChooseIndividualCard,
     harvest_choose=Dummy,
     ran_prophet=UIRanProphet,
+    kof_sort_characters=UIKOFCharacterSorter,
 )
 
 mapping_all = dict(

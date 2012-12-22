@@ -2,7 +2,7 @@
 from .. import actions
 from .. import cards
 from .. import characters
-from .. import thb3v3, thbidentity
+from .. import thb3v3, thbidentity, thbkof
 
 from game.autoenv import Game
 G = Game.getgame
@@ -97,6 +97,36 @@ class THBattle1v1DBG:
         T.MORIYA: u'orange'
     }
     del T
+
+# -----END THB3v3 UI META-----
+
+# -----BEGIN THBKOF UI META-----
+__metaclass__ = gen_metafunc(thbkof)
+
+class THBattleKOF:
+    name = u'符斗祭 - KOF模式'
+    logo = gres.thblogo_3v3
+
+    from .view import THBattleKOFUI as ui_class
+
+    T = thbkof.Identity.TYPE
+    identity_table = {
+        T.HIDDEN: u'？',
+        T.HAKUREI: u'博丽',
+        T.MORIYA: u'守矢'
+    }
+
+    identity_color = {
+        T.HIDDEN: u'blue',
+        T.HAKUREI: u'blue',
+        T.MORIYA: u'orange'
+    }
+
+    del T
+
+
+class PlayerDeath:
+    barrier = True
 
 # -----END THB3v3 UI META-----
 

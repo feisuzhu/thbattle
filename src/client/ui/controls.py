@@ -1560,6 +1560,9 @@ class ImageSelector(Control):
         self.disabled = True
         self.selected = False
 
+    def enable(self):
+        self.disabled = False
+
     @staticmethod
     def get_selected(group):
         for c in group:

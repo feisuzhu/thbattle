@@ -22,7 +22,8 @@ import effects, inputs
 from .. import actions
 
 class UIEventHook(EventHandler):
-    def evt_user_input(self, input):
+    @classmethod
+    def evt_user_input(cls, input):
         irp = IRP()
         irp.__dict__.update(input.__dict__)
         ui_message('evt_user_input', irp)
@@ -30,18 +31,30 @@ class UIEventHook(EventHandler):
         input.input = irp.input
         return input
 
-    def evt_shuffle_cards(self, args):
+    @classmethod
+    def evt_shuffle_cards(cls, args):
         import gevent
         # HACK
         gevent.sleep(0.1) # wait a sec, or ui will display as hidden card
         return args
 
+    @classmethod
+    def evt_action_after(cls, act):
+        ui_message('evt_action_after', act)
+        if hasattr(act, 'ui_meta'):
+            if getattr(act.ui_meta, 'barrier', False):
+                import gevent
+                gevent.sleep(0.1)
+
+        return act
+
     # evt_user_input_timeout, InputControllers handle this
 
-    def handle(self, evt, data):
+    @classmethod
+    def handle(cls, evt, data):
         name = 'evt_%s' % evt
         try:
-            f = getattr(self, name)
+            f = getattr(cls, name)
         except AttributeError:
             ui_message(name, data)
             return data
@@ -199,8 +212,8 @@ class THBattleUI(Control):
 
     def __init__(self, game, *a, **k):
         self.game = game
-        self.hook = hook = UIEventHook()
-        game.event_handlers.append(hook)
+        game.event_observer = UIEventHook
+
         Control.__init__(self, *a, **k)
 
         self.char_portraits = None
@@ -218,7 +231,7 @@ class THBattleUI(Control):
             parent=self, width=1, height=1,
             x=self.width//2, y=self.height//2, zindex=4,
         )
-        
+
         self.btn_afk = Button(
             parent=self, caption=u'让⑨帮你玩', zindex=1,
             color=Colors.blue,
@@ -339,7 +352,7 @@ class THBattleUI(Control):
                 port.dropped = (pd['state'] in { 'dropped', 'fleed' })
                 port.fleed = (pd['state'] == 'fleed')
                 port.update()
-        
+
         elif _type in { 'evt_girl_chosen', 'evt_girl_chosen_end' }:
             for port in self.char_portraits:
                 port.update()
@@ -492,3 +505,15 @@ class THBattleIdentity5UI(THBattleIdentityUI):
         (215, 520, 'bottom', Colors.blue),
         (3, 270, 'right', Colors.blue),
     ]
+
+class THBattleKOFUI(THBattleUI):
+    portrait_location = [
+        (250, 300, Colors.orange),
+        (450, 300, Colors.blue),
+    ]
+
+    gcp_location = [
+        (3, 1, 'me', Colors.blue),
+        (335, 520, 'bottom', Colors.orange),
+    ]
+
