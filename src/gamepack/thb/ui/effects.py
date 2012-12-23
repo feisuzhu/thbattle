@@ -356,8 +356,11 @@ __last_sound_time = 0
 def input_snd_prompt():
     global __last_sound_time
     from time import time
-    if time() - __last_sound_time > 6:
-        soundmgr.play(common_res.sound.input)
+    
+    # if time() - __last_sound_time > 6:
+    #     soundmgr.play(common_res.sound.input)
+
+    soundmgr.play(common_res.sound.input)
 
     # intentionally put outside
     __last_sound_time = time()
