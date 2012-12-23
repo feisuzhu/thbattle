@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 88'
+VERSION = 'THBATTLE V1.0b incr 89'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -113,6 +113,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+修复KOF模式相关的bug
 KOF模式，bug修复
 新卡片：御神签
 托管，酒的一个bug修复
