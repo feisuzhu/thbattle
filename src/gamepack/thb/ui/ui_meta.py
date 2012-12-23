@@ -78,26 +78,6 @@ class THBattle:
 
     del T
 
-class THBattle1v1DBG:
-    name = u'符斗祭 - 调试用1v1'
-    logo = gres.thblogo_1v1dbg
-
-    from .view import THBattleUI1v1DBG as ui_class
-
-    T = thb3v3.Identity.TYPE
-    identity_table = {
-        T.HIDDEN: u'？',
-        T.HAKUREI: u'博丽',
-        T.MORIYA: u'守矢'
-    }
-
-    identity_color = {
-        T.HIDDEN: u'blue',
-        T.HAKUREI: u'blue',
-        T.MORIYA: u'orange'
-    }
-    del T
-
 # -----END THB3v3 UI META-----
 
 # -----BEGIN THBKOF UI META-----

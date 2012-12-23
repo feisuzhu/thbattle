@@ -10,7 +10,6 @@ with ldr as args:
     bgm_game = lambda: ldr.media(ldr.filename('bgm_game.ogg'))
 
     thblogo_3v3 = tx('thblogo_3v3.png')
-    thblogo_1v1dbg = tx('thblogo_1v1dbg.png')
     thblogo_8id = tx('thblogo_8id.png')
     thblogo_5id = tx('thblogo_5id.png')
     thblogo_kof = tx('thblogo_kof.png')
