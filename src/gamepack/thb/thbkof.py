@@ -313,11 +313,12 @@ class THBattleKOF(Game):
 
         # mix char class with player -->
         old = mixin_character(p, cls)
-        p.skills = p.__class__.skills[:] # make it instance variable
-        p.life = p.maxlife
+        p.skills = cls.skills[:] # make it instance variable
+        p.maxlife = cls.maxlife
+        p.life = cls.maxlife
         ehs = self.ehclasses
         if old:
-            for s in p.__class__.skills:
+            for s in old.skills:
                 try:
                     ehs.remove(s)
                 except ValueError:
