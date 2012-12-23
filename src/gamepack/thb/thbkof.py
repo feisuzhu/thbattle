@@ -314,6 +314,7 @@ class THBattleKOF(Game):
         # mix char class with player -->
         old = mixin_character(p, cls)
         p.skills = cls.skills[:] # make it instance variable
+        p.maxlife = cls.maxlife
         p.life = cls.maxlife
         ehs = self.ehclasses
         if old:

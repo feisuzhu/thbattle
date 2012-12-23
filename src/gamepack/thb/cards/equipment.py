@@ -689,10 +689,10 @@ class YoumuPhantomHandler(EventHandler):
 
         if _from is not None and _from.type == 'equips':
             src = _from.owner
-            if src.dead: return arg
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
                     src.maxlife -= 1
+                    if src.dead: return arg
                     src.life = min(src.life+1, src.maxlife)
 
         if to is not None and to.type == 'equips':
