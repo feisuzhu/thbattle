@@ -1642,6 +1642,10 @@ class GrimoireSkill:
             if isinstance(act, actions.ActionStage):
                 if me.tags.get('attack_num', 0):
                     return True
+
+                if me.has_skill(cards.ElementalReactorSkill):
+                    return True
+
         except IndexError:
             pass
         return False

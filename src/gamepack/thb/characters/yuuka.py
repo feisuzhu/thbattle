@@ -55,7 +55,7 @@ class YuukaHandler(EventHandler):
         elif evt_type == 'action_before' and isinstance(act, TryRevive):
             g = Game.getgame()
             dmg = act.dmgact
-            assert isinstance(dmg, Damage)
+            assert isinstance(dmg, BaseDamage)
             src = dmg.source
             tgt = dmg.target
             if src != tgt and src and src.has_skill(PerfectKill):

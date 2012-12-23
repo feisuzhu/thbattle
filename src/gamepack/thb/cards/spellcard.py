@@ -571,7 +571,7 @@ class LotterySpade(GenericAction):
         return True
 
 
-class Lottery(SpellCardAction):
+class Lottery(InstantSpellCardAction):
     # 御神签
     mapping = {
         base.Card.HEART: LotteryHeart,
