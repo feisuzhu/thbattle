@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 87'
+VERSION = 'THBATTLE V1.0b incr 88'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -113,6 +113,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+KOF模式，bug修复
 新卡片：御神签
 托管，酒的一个bug修复
 阿卡林、早苗的bug修复。
@@ -122,9 +123,5 @@ http://www.thbattle.net
 3v3选将方式调整（先出牌最后选将，取消后手开局摸5牌）
 需要操作时给出提示音
 塞钱箱的bug修复
-东风谷早苗bug修复。退出房间现在要求确认。
-新人物：东风谷早苗
-魔理沙&咲夜技能调整，bug修复
-新人物：十六夜咲夜
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
 '''.strip()
