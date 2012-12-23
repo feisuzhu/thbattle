@@ -282,8 +282,3 @@ class THBattle(Game):
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)
-
-
-class THBattle1v1DBG(THBattle):
-    n_persons = 2
-    order_list = (1, 0)

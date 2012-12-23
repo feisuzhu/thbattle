@@ -1,4 +1,4 @@
-from thb3v3 import THBattle, THBattle1v1DBG
+from thb3v3 import THBattle
 from thbkof import THBattleKOF
 from thbidentity import THBattleIdentity, THBattleIdentity5
 

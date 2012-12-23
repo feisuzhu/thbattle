@@ -452,17 +452,6 @@ class THBattleUI(Control):
 
 THBattleUI.register_event_type('on_selection_change')
 
-class THBattleUI1v1DBG(THBattleUI):
-    portrait_location = [
-        (250, 300, Colors.orange),
-        (450, 300, Colors.blue),
-    ]
-
-    gcp_location = [
-        (3, 1, 'me', Colors.blue),
-        (335, 520, 'bottom', Colors.orange),
-    ]
-
 class THBattleIdentityUI(THBattleUI):
     portrait_location = [
         (150, 430, Colors.blue),
