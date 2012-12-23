@@ -3,6 +3,7 @@ from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
+
 class Flight(GreenUFOSkill):
     @staticmethod
     def increment(src):
@@ -12,6 +13,7 @@ class Flight(GreenUFOSkill):
 
         return 1
 
+
 class SpiritualAttack(TreatAsSkill):
     treat_as = RejectCard
     def check(self):
@@ -20,9 +22,11 @@ class SpiritualAttack(TreatAsSkill):
             return True
         return False
 
+
 class TributeTarget(Skill):
     associated_action = None
     target = t_None
+
 
 class TributeAction(GenericAction):
     def apply_action(self):
@@ -42,6 +46,7 @@ class TributeAction(GenericAction):
         if self.target.dead:
             return False
         return True
+
 
 class Tribute(Skill):
     associated_action = TributeAction
@@ -64,14 +69,34 @@ class Tribute(Skill):
             pass
         return (tl[-1:], bool(len(tl)))
 
+
 class TributeHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'game_begin':
-            g = Game.getgame()
-            for p in g.players:
-                if not p.has_skill(TributeTarget):
-                    p.skills.append(Tribute)
+            self.add()
+
+        elif evt_type == 'kof_next_character':
+            if any(p.has_skill(TributeTarget) for p in Game.getgame().players):
+                self.add()
+            else:
+                self.remove()
+            
         return arg
+    
+    def add(self):
+        g = Game.getgame()
+        for p in g.players:
+            if not p.has_skill(TributeTarget):
+                p.skills.append(Tribute)
+
+    def remove(self):
+        g = Game.getgame()
+        for p in g.players:
+            try:
+                p.skills.remove(Tribute)
+            except ValueError:
+                pass
+
 
 @register_character
 class Reimu(Character):
