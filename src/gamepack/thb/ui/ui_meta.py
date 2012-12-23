@@ -105,7 +105,7 @@ __metaclass__ = gen_metafunc(thbkof)
 
 class THBattleKOF:
     name = u'符斗祭 - KOF模式'
-    logo = gres.thblogo_3v3
+    logo = gres.thblogo_kof
 
     from .view import THBattleKOFUI as ui_class
 

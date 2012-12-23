@@ -13,6 +13,7 @@ with ldr as args:
     thblogo_1v1dbg = tx('thblogo_1v1dbg.png')
     thblogo_8id = tx('thblogo_8id.png')
     thblogo_5id = tx('thblogo_5id.png')
+    thblogo_kof = tx('thblogo_kof.png')
 
     win = tx('win.png')
     lose = tx('lose.png')
