@@ -19,14 +19,14 @@ def game_eh(cls):
     _game_ehs[cls.__name__] = cls
     return cls
 
-_game_actions = {}
-def game_action(cls):
-    _game_actions[cls.__name__] = cls
-    return cls
+
+class NextCharacter(Exception):
+    def __init__(self, player):
+        Exception.__init__(self)
+        self.player = player
 
 
-@game_action
-class TryRevive(TryRevive):
+class KOFTryRevive(TryRevive):
     def __init__(self, target, dmgact):
         self.source = self.target = target
         self.dmgact = dmgact
@@ -68,12 +68,12 @@ class TryRevive(TryRevive):
                         return True
                     continue
                 break
+
         tgt.tags['in_tryrevive'] = False
         return tgt.life > 0
 
 
-@game_action
-class PlayerDeath(PlayerDeath):
+class KOFPlayerDeath(PlayerDeath):
     def apply_action(self):
         tgt = self.target
         tgt.dead = True
@@ -111,6 +111,7 @@ class DeathHandler(EventHandler):
                     g.process_action(DrawCards(tgt, 4))
                     tgt.dead = False
                     g.emit_event('kof_next_character', tgt)
+                    raise NextCharacter(tgt)
 
             pl = g.players
             if pl[0].dropped:
@@ -124,6 +125,20 @@ class DeathHandler(EventHandler):
         return act
 
 
+class KOFActionStage(ActionStage):
+    def apply_action(self):
+        while True:
+            try:
+                rst = ActionStage.apply_action(self)
+            except NextCharacter as e:
+                if e.player is not self.target:
+                    continue
+                raise
+            break
+        
+        return rst
+
+
 class Identity(PlayerIdentity):
     class TYPE(Enum):
         HIDDEN = 0
@@ -134,10 +149,14 @@ class Identity(PlayerIdentity):
 class THBattleKOF(Game):
     n_persons = 2
     game_ehs = _game_ehs
-    game_actions = _game_actions
 
     def game_start(self):
         # game started, init state
+        
+        self.action_hooks[ActionStage] = KOFActionStage
+        self.action_hooks[PlayerDeath] = KOFPlayerDeath
+        self.action_hooks[TryRevive] = KOFTryRevive
+
         from cards import Card, Deck, CardList
 
         self.deck = Deck()
@@ -294,7 +313,10 @@ class THBattleKOF(Game):
                 if i >= 6000: break
                 if not p.dead:
                     self.emit_event('player_turn', p)
-                    self.process_action(PlayerTurn(p))
+                    try:
+                        self.process_action(PlayerTurn(p))
+                    except NextCharacter:
+                        pass
 
         except GameEnded:
             pass
@@ -316,6 +338,11 @@ class THBattleKOF(Game):
         p.skills = cls.skills[:] # make it instance variable
         p.maxlife = cls.maxlife
         p.life = cls.maxlife
+        tags = p.tags
+
+        for k in tags.keys():
+            del tags[k]
+            
         ehs = self.ehclasses
         if old:
             for s in old.skills:
