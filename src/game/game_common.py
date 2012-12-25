@@ -85,6 +85,15 @@ class Action(object):
     cancelled = False
     done = False
 
+    def __new__(cls, *a, **k):
+        try:
+            g = cls.game_class.getgame()
+            actual_cls = g.action_hooks.get(cls, cls)
+        except:
+            actual_cls = cls
+
+        return object.__new__(actual_cls, *a, **k)
+
     def __init__(self, source, target):
         self.source = source
         self.target = target
@@ -99,18 +108,6 @@ class Action(object):
 
     def apply_action(self):
         raise GameError('Override apply_action to implement Action logics!')
-
-    def set_up(self):
-        '''
-        Execute before 'action_apply' event
-        '''
-        pass
-
-    def clean_up(self):
-        '''
-        Execute after all event handlers finished their work.
-        '''
-        pass
 
     def is_valid(self):
         '''
@@ -146,6 +143,7 @@ class Game(object):
     def __init__(self):
         self.event_handlers = []
         self.action_stack = []
+        self.action_hooks = {}
 
     def game_start(self):
         '''
@@ -186,47 +184,50 @@ class Game(object):
             log.debug('action cancelled/invalid %s' % action.__class__.__name__)
             return False
 
-        if action.can_fire():
-            action = self.emit_event('action_before', action)
-            if action.done:
-                log.debug('action already done %s' % action.__class__.__name__)
-                rst = action.succeeded
-            elif action.cancelled or not action.can_fire():
-                log.debug('action cancelled/invalid %s' % action.__class__.__name__)
-                rst = False
-            else:
-                log.debug('applying action %s' % action.__class__.__name__)
-                    #, src=%d, dst=%d' % (
-                    #action.__class__.__name__,
-                    #self.players.index(action.source) if hasattr(action, 'source') else -1,
-                    #self.players.index(action.target),
-                #))
-                action.set_up()
-                action = self.emit_event('action_apply', action)
-                assert not action.cancelled
+        if not action.can_fire():
+            log.debug('action invalid %s' % action.__class__.__name__)
+            return False
+
+        action = self.emit_event('action_before', action)
+        if action.done:
+            log.debug('action already done %s' % action.__class__.__name__)
+            rst = action.succeeded
+        elif action.cancelled or not action.can_fire():
+            log.debug('action cancelled/invalid %s' % action.__class__.__name__)
+            rst = False
+        else:
+            log.debug('applying action %s' % action.__class__.__name__)
+                #, src=%d, dst=%d' % (
+                #action.__class__.__name__,
+                #self.players.index(action.source) if hasattr(action, 'source') else -1,
+                #self.players.index(action.target),
+            #))
+            action = self.emit_event('action_apply', action)
+            assert not action.cancelled
+            try:
                 self.action_stack.append(action)
                 rst = action.apply_action()
+            finally:
                 _a = self.action_stack.pop()
                 assert _a is action
 
-                assert rst in [True, False], 'Action.apply_action must return boolean!'
-                try:
-                    action.succeeded = rst
-                except AttributeError:
-                    pass
+                # If exception occurs here,
+                # the action should be abandoned,
+                # code below makes no sense,
+                # so it's ok to ignore them.
 
-                action = self.emit_event('action_after', action)
+            assert rst in [True, False], 'Action.apply_action must return boolean!'
+            try:
+                action.succeeded = rst
+            except AttributeError:
+                pass
 
-                rst = action.succeeded
-                action.done = True
+            action = self.emit_event('action_after', action)
 
-                action.clean_up()
+            rst = action.succeeded
+            action.done = True
 
-            return rst
-
-        else:
-            log.debug('action invalid %s' % action.__class__.__name__)
-            return False
+        return rst
 
     def get_playerid(self, p):
         return self.players.index(p)

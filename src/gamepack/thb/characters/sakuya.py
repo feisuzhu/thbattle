@@ -23,14 +23,14 @@ class FlyingKnife(Skill):
         return isinstance(self, cls)
 
 
-class LunaClockActionStage(ActionStage):
+class LunaClockActionStage(GenericAction):
     def apply_action(self):
         tags = self.target.tags
         tags['lunaclock'] = True
-        rst = ActionStage.apply_action(self)
+        Game.getgame().process_action(ActionStage(self.target))
         tags['lunaclock'] = False
         tags['turn_count'] += 1
-        return rst
+        return True
 
 
 class LunaClock(Skill):
@@ -43,8 +43,9 @@ class LunaClockHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             src = act.target
             if not src.has_skill(LunaClock): return act
-            Game.getgame().process_action(LunaClockActionStage(src))
+            Game.getgame().process_action(LunaClockActionStage(src, src))
         return act
+
 
 @register_character
 class Sakuya(Character):
