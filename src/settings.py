@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 90'
+VERSION = 'THBATTLE V1.0b incr 91'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -113,16 +113,14 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+KOF模式跨人物结算的bug
 修复KOF模式相关的bug
 KOF模式，bug修复
 新卡片：御神签
 托管，酒的一个bug修复
 阿卡林、早苗的bug修复。
 3v3选将方式再次调整（暗将，完全随机地确定先手）
-提示音bug修复
 东风谷早苗设定调整
 3v3选将方式调整（先出牌最后选将，取消后手开局摸5牌）
-需要操作时给出提示音
-塞钱箱的bug修复
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
 '''.strip()
