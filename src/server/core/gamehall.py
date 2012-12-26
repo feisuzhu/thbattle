@@ -121,6 +121,10 @@ def new_user(user):
         p.client = user
         p.dropped = False
 
+        acc = user.account
+        acc.other['games'] -= 1
+        acc.other['drops'] -= 1
+
         user.write(['game_joined', g])
         user.write(['game_started', g.players_original])
 
