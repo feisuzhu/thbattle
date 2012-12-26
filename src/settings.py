@@ -113,6 +113,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+移除了御神签卡牌。掉线重连后不算逃跑。
 KOF模式跨人物结算的bug
 修复KOF模式相关的bug
 KOF模式，bug修复
