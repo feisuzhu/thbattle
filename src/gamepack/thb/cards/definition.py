@@ -319,7 +319,7 @@ card_definition = [
     (SinsackCarnivalCard, SPADE, K),
 
     (RepentanceStickCard, SPADE, 2),
-    (LotteryCard, SPADE, J),
+    # (LotteryCard, SPADE, J),
     (YinYangOrbCard, SPADE, K),
 
     (DeathSickleCard, SPADE, 1),
@@ -367,7 +367,8 @@ card_definition = [
 
     (DonationBoxCard, HEART, 7),
     (MaidenCostumeCard, HEART, 10),
-    (LotteryCard, HEART, J),
+    (YinYangOrbCard, HEART, J),
+    # (LotteryCard, HEART, J),
     (SinsackCard, HEART, Q),
     (YinYangOrbCard, HEART, K),
 
