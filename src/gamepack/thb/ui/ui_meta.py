@@ -12,13 +12,15 @@ import resource as gres
 from client.ui import resource as cres
 
 from utils import DataHolder, BatchList
-
+from types import FunctionType
 
 metadata = {}
 
+
 class UIMetaAccesser(object):
     def __init__(self, obj, cls):
-        self.cls = obj.__class__ if obj else cls
+        self.obj = obj
+        self.cls = cls
 
     def __getattr__(self, name):
         cls = self.cls
@@ -30,16 +32,24 @@ class UIMetaAccesser(object):
         while l:
             c = l.pop(0)
             try:
-                return metadata[c][name]
+                val = metadata[c][name]
+
+                if isinstance(val, FunctionType) and getattr(val, '_is_property', False):
+                    val = val(self.obj or self.cls)
+
+                return val
+
             except KeyError:
                 pass
             b = c.__base__
             if b is not object: l.append(b)
         raise AttributeError('%s.%s' % (self.cls.__name__, name))
 
+
 class UIMetaDescriptor(object):
     def __get__(self, obj, cls):
         return UIMetaAccesser(obj, cls)
+
 
 def gen_metafunc(_for):
     def metafunc(clsname, bases, _dict):
@@ -48,6 +58,12 @@ def gen_metafunc(_for):
         metadata[meta_for] = _dict
 
     return metafunc
+
+
+def property(f):
+    f._is_property = True
+    return f
+
 
 # -----BEGIN THB3v3 UI META-----
 __metaclass__ = gen_metafunc(thb3v3)
@@ -552,7 +568,7 @@ class SealingArrayCard:
     # action_stage meta
     name = u'封魔阵'
     image = gres.card_sealarray
-    tag_anim = lambda g, p: gres.tag_sealarray
+    tag_anim = lambda c: gres.tag_sealarray
     description = (
         u'|R封魔阵|r\n\n'
         u'延时类符卡\n'
@@ -581,7 +597,7 @@ class FrozenFrogCard:
     # action_stage meta
     name = u'冻青蛙'
     image = gres.card_frozenfrog
-    tag_anim = lambda g, p: gres.tag_frozenfrog
+    tag_anim = lambda c: gres.tag_frozenfrog
     description = (
         u'|R冻青蛙|r\n\n'
         u'延时类符卡\n'
@@ -624,7 +640,7 @@ class SinsackCard:
     # action_stage meta
     name = u'罪袋'
     image = gres.card_sinsack
-    tag_anim = lambda g, p: gres.tag_sinsack
+    tag_anim = lambda c: gres.tag_sinsack
     description = (
         u'|R罪袋|r\n\n'
         u'延时类符卡\n'
@@ -2441,7 +2457,7 @@ class SealingArraySkill:
     # Skill
     name = u'封魔阵'
     image = gres.card_sealarray
-    tag_anim = lambda g, p: gres.tag_sealarray
+    tag_anim = lambda c: gres.tag_sealarray
     description = (
         u'|G【博丽灵梦】|r的技能产生的封魔阵'
     )
@@ -2568,8 +2584,12 @@ __metaclass__ = gen_metafunc(characters.cirno)
 class PerfectFreeze:
     # Skill
     name = u'完美冻结'
-    image = gres.card_frozenfrog
-    tag_anim = lambda g, p: gres.tag_frozenfrog
+
+    @property
+    def image(c):
+        return c.associated_cards[0].ui_meta.image
+
+    tag_anim = lambda c: gres.tag_frozenfrog
     description = (
         u'|G【琪露诺】|r的技能产生的【冻青蛙】'
     )
