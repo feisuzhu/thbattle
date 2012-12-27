@@ -156,7 +156,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
         taganims = port.taganims
         for c in cards:
             a = TagAnim(
-                c.ui_meta.tag_anim(g, to.owner),
+                c.ui_meta.tag_anim(c),
                 0, 0,
                 c.ui_meta.description,
                 parent=self,
