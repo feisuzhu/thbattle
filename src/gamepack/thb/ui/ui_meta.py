@@ -121,7 +121,7 @@ class THBattleKOF:
     del T
 
 
-class PlayerDeath:
+class KOFPlayerDeath:
     barrier = True
 
 # -----END THB3v3 UI META-----

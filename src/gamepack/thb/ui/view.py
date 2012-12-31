@@ -3,7 +3,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
-from client.ui.base import Control, ui_message, Overlay
+from client.ui.base import Control, ui_message, Overlay, process_msg
 from client.ui.controls import *
 from client.ui import resource as common_res
 from client.ui import shaders, soundmgr
@@ -33,20 +33,29 @@ class UIEventHook(EventHandler):
 
     @classmethod
     def evt_shuffle_cards(cls, args):
-        import gevent
-        # HACK
-        gevent.sleep(0.1) # wait a sec, or ui will display as hidden card
+        cls.ui_barrier_schedule(lambda: None)
         return args
 
     @classmethod
     def evt_action_after(cls, act):
-        ui_message('evt_action_after', act)
         if hasattr(act, 'ui_meta'):
             if getattr(act.ui_meta, 'barrier', False):
-                import gevent
-                gevent.sleep(0.1)
+                cls.ui_barrier_schedule(process_msg, ('evt_action_after', act))
+            else:
+                ui_message('evt_action_after', act)
 
         return act
+
+    @classmethod
+    def ui_barrier_schedule(cls, cb, *args, **kwargs):
+        irp = IRP()
+
+        def ui_callback():
+            cb(*args, **kwargs)
+            irp.complete()
+
+        ui_schedule(ui_callback)
+        irp.wait()
 
     # evt_user_input_timeout, InputControllers handle this
 
@@ -334,12 +343,15 @@ class THBattleUI(Control):
             (s.ui_meta.name, i, e) for i, s, e in skills
         )
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_game_begin':
-            for port in self.char_portraits:
-                port.update()
+    PORT_UPDATE_MESSAGES = {
+        'evt_game_begin',
+        'evt_girl_chosen',
+        'evt_girl_chosen_end',
+        'evt_kof_next_character',
+    }
 
-        elif _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
+    def on_message(self, _type, *args):
+        if _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
             self.current_turn = args[0].target
 
         elif _type == 'evt_reseat':
@@ -353,7 +365,7 @@ class THBattleUI(Control):
                 port.fleed = (pd['state'] == 'fleed')
                 port.update()
 
-        elif _type in { 'evt_girl_chosen', 'evt_girl_chosen_end' }:
+        elif _type in self.PORT_UPDATE_MESSAGES:
             for port in self.char_portraits:
                 port.update()
 
@@ -450,7 +462,9 @@ class THBattleUI(Control):
     def show_result(g):
         ResultPanel(g, parent=Overlay.cur_overlay)
 
+
 THBattleUI.register_event_type('on_selection_change')
+
 
 class THBattleIdentityUI(THBattleUI):
     portrait_location = [
@@ -494,6 +508,7 @@ class THBattleIdentity5UI(THBattleIdentityUI):
         (215, 520, 'bottom', Colors.blue),
         (3, 270, 'right', Colors.blue),
     ]
+
 
 class THBattleKOFUI(THBattleUI):
     portrait_location = [
