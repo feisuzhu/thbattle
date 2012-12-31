@@ -46,7 +46,7 @@ class AttackCardHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
             act.target.tags['attack_num'] = 1
 
-        elif evt_type == 'action_after':
+        elif evt_type == 'action_apply':
             if isinstance(act, ActionStageLaunchCard):
                 from .definition import AttackCard
                 if act.card.is_card(AttackCard):
@@ -154,7 +154,9 @@ class WineHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
-            if src.tags['wine_damage+1']:
+            g = Game.getgame()
+            pact = g.action_stack[-1]
+            if isinstance(pact, LaunchCard) and getattr(pact, 'in_wine', False):
                 act.damage += 1
 
         elif evt_type == 'action_before' and isinstance(act, LaunchCard):
@@ -163,10 +165,7 @@ class WineHandler(EventHandler):
                 src = act.source
                 if src.tags['wine']:
                     Game.getgame().process_action(SoberUp(src, src))
-                    src.tags['wine_damage+1'] = True
-
-        elif evt_type == 'action_after' and isinstance(act, LaunchCard):
-            act.source.tags['wine_damage+1'] = False
+                    act.in_wine = True
 
         elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             src = act.target

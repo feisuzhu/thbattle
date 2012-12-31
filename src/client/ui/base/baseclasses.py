@@ -504,11 +504,11 @@ def ui_schedule(func, *args, **kwargs):
     with sched_queue_lock:
         sched_queue.append(partial(func, *args, **kwargs))
 
-def _msg(args):
+def process_msg(args):
     Overlay.cur_overlay.dispatch_message(args)
 
 def ui_message(*args):
     '''
     Send message to UI
     '''
-    ui_schedule(_msg, args)
+    ui_schedule(process_msg, args)
