@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 91'
+VERSION = 'THBATTLE V1.0b incr 92'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -113,6 +113,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+KOF模式相关bug修复
 移除了御神签卡牌。掉线重连后不算逃跑。
 KOF模式跨人物结算的bug
 修复KOF模式相关的bug
