@@ -88,6 +88,7 @@ with ldr as args:
         'tenshi', 'rumia', 'yuuka', 'rinnosuke', 'ran',
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
         'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
+        'seiga',
     ]]
 
     from options import options

@@ -153,9 +153,9 @@ class THBattleKOF(Game):
     def game_start(self):
         # game started, init state
         
-        self.action_hooks[ActionStage] = KOFActionStage
-        self.action_hooks[PlayerDeath] = KOFPlayerDeath
-        self.action_hooks[TryRevive] = KOFTryRevive
+        self.action_types[ActionStage] = KOFActionStage
+        self.action_types[PlayerDeath] = KOFPlayerDeath
+        self.action_types[TryRevive] = KOFTryRevive
 
         from cards import Card, Deck, CardList
 

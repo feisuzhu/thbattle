@@ -11,7 +11,7 @@ class Surprise(GenericAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
-        suit = tgt.user_input('choose_option', self)
+        suit = user_choose_option(self, tgt)
         card = random_choose_card([src.cards, src.showncards])
         src.tags['surprise_tag'] = src.tags['turn_count']
         assert card

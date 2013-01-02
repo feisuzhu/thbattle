@@ -30,7 +30,7 @@ class BorrowHandler(EventHandler):
             tgt = act.target
             if tgt.dead: return act
             if not tgt.has_skill(Borrow): return act
-            if not tgt.user_input('choose_option', self): return act
+            if not user_choose_option(self, tgt): return act
 
             g = Game.getgame()
             pl = [p for p in g.players if not p.dead and (p.cards or p.showncards)]

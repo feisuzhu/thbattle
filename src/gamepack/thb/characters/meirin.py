@@ -64,7 +64,7 @@ class LoongPunchHandler(EventHandler):
     def do_effect(self, src, tgt, _type):
         if not src.has_skill(LoongPunch): return
         if not (tgt.cards or tgt.showncards): return
-        if not src.user_input('choose_option', self): return
+        if not user_choose_option(self, src): return
         g = Game.getgame()
         g.process_action(LoongPunchAction(src, tgt, _type))
 

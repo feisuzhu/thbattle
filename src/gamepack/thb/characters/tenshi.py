@@ -46,7 +46,7 @@ class MasochistHandler(EventHandler):
             if tgt.dead: return act
             if not tgt.has_skill(Masochist): return act
             if not act.amount: return act
-            if not tgt.user_input('choose_option', self): return act
+            if not user_choose_option(self, tgt): return act
             Game.getgame().process_action(MasochistAction(tgt, act.amount))
         return act
 

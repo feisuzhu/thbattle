@@ -72,7 +72,7 @@ class YugiHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, BaseAttack) and not hasattr(act, 'yugifptag'):
             src = act.source
             if not src.has_skill(FreakingPowerSkill): return act
-            if not src.user_input('choose_option', self): return act
+            if not user_choose_option(self, src): return act
             tgt = act.target
             Game.getgame().process_action(FreakingPower(act))
 

@@ -126,7 +126,7 @@ class RealmSkipAction(GenericAction):
             card = random_choose_card([_from.equips, _from.fatetell])
 
         if card.resides_in is _from.fatetell:
-            if tgt.user_input('choose_option', self):
+            if user_choose_option(self, tgt):
                 migrate_cards([card], _to.fatetell)
             else:
                 migrate_cards([card], _to.cards, unwrap=True)
@@ -135,7 +135,7 @@ class RealmSkipAction(GenericAction):
             cats = set([c.equipment_category for c in _to.equips])
             migrate_cards([card], _to.cards)
             if card.equipment_category not in cats:
-                if tgt.user_input('choose_option', self):
+                if user_choose_option(self, tgt):
                     Game.getgame().process_action(
                         LaunchCard(_to, [_to], card)
                     )
