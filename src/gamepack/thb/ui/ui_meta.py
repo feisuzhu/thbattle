@@ -4075,8 +4075,9 @@ class Seiga:
     port_image = gres.seiga_port
     description = (
         u'|DB僵尸别跑 霍青娥 体力：4|r\n\n'
-        u'|G邪仙|r：你的回合内，你可以将对自己生效、单体目标或者群体目标的卡牌以任意玩家的身份使用。\n'
-        u'|B|R>> |r在结算的过程中，“选择对方的牌”、“是否发动技能”操作均由霍青娥完成。\n'
+        u'|G邪仙|r：你的回合内，你可以将一张对自己生效、单体目标或者群体目标的卡牌交给任意一名玩家，并以该玩家的身份立即使用。\n'
+        u'|B|R>> |r以此方法使用弹幕时，弹幕的“一回合一次”的限制由你来承担\n'
+        u'|B|R>> |r在结算的过程中，“选择对方的牌”、“是否发动技能”操作均由你来完成。\n'
         u'|B|R>> |r在结算的过程中，你可以选择跳过指向多人的卡牌效果结算。'
         
         # u'|G穿墙|r：当你成为可指向多人的卡牌、技能的目标时，你可以使该效果无效并摸一张牌。'
@@ -4120,9 +4121,15 @@ class HeterodoxySkipAction:
         )
 
 
+class HeterodoxyAction:
+   def ray(act):
+       return [(act.source, act.target_list[0])]
+
+
 class Heterodoxy:
     # Skill
     name = u'邪仙'
+    custom_ray = True
 
     def clickable(g):
         if not my_turn(g):
@@ -4145,7 +4152,8 @@ class Heterodoxy:
         card = acards[0]
 
         permitted = {
-            't_Self', 't_One', 't_OtherOne', 't_All', 't_AllInclusive'
+            't_Self', 't_One', 't_OtherOne', 't_DollControl',
+            't_All', 't_AllInclusive',
         }
 
         tname = card.target.__name__
@@ -4156,10 +4164,8 @@ class Heterodoxy:
             return (False, u'请选择一名玩家作为卡牌发起者')
 
         victim = tl[0]
-        if tname in { 't_Self', 't_All', 't_AllInclusive' }:
-            return card.ui_meta.is_action_valid(g, [card], [victim])
-        else:
-            return card.ui_meta.is_action_valid(g, [card], tl[1:])
+        _tl, valid = card.target(g, victim, tl[1:])
+        return card.ui_meta.is_action_valid(g, [card], _tl)
 
         # can't reach here
         # return (True, u'僵尸什么的最萌了！')

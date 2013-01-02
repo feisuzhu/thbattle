@@ -102,9 +102,12 @@ class HeterodoxyAction(GenericAction):
         return True
     
     def is_valid(self):
+        src = self.source
         card = self.associated_card.associated_cards[0]
-        if card.is_card(AttackCard) and self.source.tags['attack_num'] < 1:
-            return False
+        if card.is_card(AttackCard) and src.tags['attack_num'] < 1:
+            if not src.has_skill(ElementalReactorSkill):
+                return False
+
         victim = self.target
         tgts = self.target_list[1:]
         lc = LaunchCard(victim, tgts, card)
@@ -120,7 +123,8 @@ class Heterodoxy(Skill):
         return (
             cl and len(cl) == 1 and
             cl[0].target.__name__ in {
-                't_Self', 't_One', 't_OtherOne', 't_All', 't_AllInclusive'
+                't_Self', 't_One', 't_OtherOne', 't_DollControl', 
+                't_All', 't_AllInclusive',
             }
         )
 
@@ -138,8 +142,8 @@ class Heterodoxy(Skill):
         if tname in { 't_Self', 't_All', 't_AllInclusive' }:
             return tl[-1:], True
         else:
-            return tl[:2], len(tl) >= 2
-
+            _tl, valid = c.target(g, tl[0], tl[1:])
+            return [tl[0]] + _tl, valid
 
 @register_character
 class Seiga(Character):

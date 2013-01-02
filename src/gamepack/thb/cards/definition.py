@@ -102,13 +102,15 @@ class CameraCard:
 class DollControlCard:
     associated_action = spellcard.DollControl
 
-    @staticmethod
-    def target(g, source, tl):
+    def t_DollControl(g, source, tl):
         if not tl: return ([], False)
         tl = tl[:]
         while tl and source is tl[0]:
             del tl[0]
         return (tl[:2], len(tl) >= 2)
+
+    target = staticmethod(t_DollControl)
+    del t_DollControl
 
 class DonationBoxCard:
     associated_action = spellcard.DonationBox
