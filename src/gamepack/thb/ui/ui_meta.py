@@ -250,6 +250,13 @@ class LaunchCard:
                 act.card.ui_meta.name
             )
 
+    def ray(act):
+        if getattr(act.card.ui_meta, 'custom_ray', False):
+            return []
+
+        s = act.source
+        return [(s, t) for t in act.target_list]
+
 class PlayerDeath:
     def effect_string(act):
         tgt = act.target
@@ -573,6 +580,10 @@ class Reject:
             act.target_act.associated_card.ui_meta.name,
             act.associated_card.ui_meta.name,
         )
+
+    def ray(act):
+        return [(act.source, act.target)]
+
 
 class SealingArrayCard:
     # action_stage meta
@@ -1695,6 +1706,7 @@ class DollControlCard:
         u'|R人形操控|r\n\n'
         u'对装备有武器的玩家使用，令其使用一张【弹幕】攻击另一名指定玩家，否则将武器交给自己。'
     )
+    custom_ray = True
 
     def is_action_valid(g, cl, tl):
         n = len(tl)
@@ -1724,6 +1736,12 @@ class DollControl:
             return (True, u'那好吧…')
         else:
             return (False, u'请出【弹幕】（否则你的武器会被拿走）')
+
+    def ray(act):
+        src = act.source
+        tl = act.target_list
+        return [(src, tl[0]), (tl[0], tl[1])]
+
 
 class DonationBoxCard:
     # action_stage meta
@@ -3143,6 +3161,7 @@ __metaclass__ = gen_metafunc(characters.rumia)
 class Darkness:
     # Skill
     name = u'黑暗'
+    custom_ray = True
 
     def clickable(game):
         me = game.me
@@ -3177,6 +3196,14 @@ class Darkness:
             act.target_list[0].ui_meta.char_name,
             act.target_list[1].ui_meta.char_name,
         )
+
+
+class DarknessAction:
+    def ray(act):
+        src = act.source
+        tl = act.target_list
+        return [(src, tl[1]), (tl[1], tl[0])]
+
 
 class Cheating:
     # Skill

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from client.ui.base import *
 from client.ui.base import ui_schedule
 from client.ui.base.interp import *
@@ -206,12 +207,6 @@ def damage_effect(self, act):
     port = self.player2portrait(t)
     OneShotAnim(gres.hurt, x=port.x, y=port.y, batch=self.animations)
 
-def launch_effect(self, act):
-    s = act.source
-    for t in act.target_list: self.ray(s, t)
-
-def reject_effect(self, act):
-    self.ray(act.source, act.target)
 
 def _update_tags(self, p):
     port = self.player2portrait(p)
@@ -284,9 +279,20 @@ def _aese(_type, self, act):
     if s is not None:
         self.prompt(s)
 
+
 action_effect_string_before = partial(_aese, 'effect_string_before')
 action_effect_string_after = partial(_aese, 'effect_string')
 action_effect_string_apply = partial(_aese, 'effect_string_apply')
+
+
+def action_effect_before(self, act):
+    action_effect_string_before(self, act)
+    if hasattr(act, 'ui_meta'):
+        rays = getattr(act.ui_meta, 'ray', None)
+        rays = rays(act) if rays else []
+        for f, t in rays:
+            self.ray(f, t)
+
 
 class UIPindianEffect(Panel):
     def __init__(self, act, *a, **k):
@@ -383,11 +389,9 @@ def user_input_effects(self, irp):
 mapping_actions = ddict(dict, {
     'before': {
         Pindian: pindian_effect,
-        LaunchCard: launch_effect,
-        Reject: reject_effect,
         ActionStage: action_stage_effect_before,
         PlayerTurn: player_turn_effect,
-        Action: action_effect_string_before,
+        Action: action_effect_before,
     },
     'apply': {
         ActionStage: action_stage_effect_apply,
