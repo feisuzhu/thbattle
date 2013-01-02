@@ -155,8 +155,13 @@ class WineHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
             g = Game.getgame()
-            pact = g.action_stack[-1]
-            if isinstance(pact, LaunchCard) and getattr(pact, 'in_wine', False):
+            for pact in reversed(g.action_stack):
+                if isinstance(pact, LaunchCard):
+                    break
+            else:
+                return act
+
+            if getattr(pact, 'in_wine', False):
                 act.damage += 1
 
         elif evt_type == 'action_before' and isinstance(act, LaunchCard):
