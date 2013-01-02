@@ -91,6 +91,11 @@ class Heal(BasicAction):
         else:
             return False
 
+    def is_valid(self):
+        tgt = self.target
+        return tgt.life < tgt.maxlife
+
+
 class BaseUseGraze(UseCard):
     def cond(self, cl):
         from .. import cards

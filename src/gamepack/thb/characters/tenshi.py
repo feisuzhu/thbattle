@@ -20,7 +20,9 @@ class MasochistAction(GenericAction):
         self.cards = cards = a.cards
         n = len(cards)
         while n>0:
-            rst = user_choose_cards_and_players(self, tgt, [tgt.cards], g.players.exclude(tgt))
+            pl = [p for p in g.players if not p.dead]
+            pl.remove(tgt)
+            rst = user_choose_cards_and_players(self, tgt, [tgt.cards], pl)
             if not rst: return True
             cl, pl = rst
             pl[0].reveal(cl)
