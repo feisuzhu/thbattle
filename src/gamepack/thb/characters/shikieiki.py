@@ -34,7 +34,7 @@ class TrialHandler(EventHandler):
                 if p.dead: continue
                 if not p.has_skill(Trial): continue
 
-                if not p.user_input('choose_option', self): return act
+                if not user_choose_option(self, p): return act
 
                 cats = [p.cards, p.showncards, p.equips]
                 cards = user_choose_cards(self, p, cats)
@@ -75,7 +75,7 @@ class MajestyHandler(EventHandler):
         if tgt.dead: return act
         if not tgt.has_skill(Majesty): return act
 
-        if not tgt.user_input('choose_option', self): return act
+        if not user_choose_option(self, tgt): return act
 
         Game.getgame().process_action(MajestyAction(tgt, src))
 

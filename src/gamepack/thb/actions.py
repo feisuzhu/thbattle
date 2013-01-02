@@ -5,6 +5,9 @@ from game.autoenv import Game, EventHandler, Action, GameError, PlayerList, sync
 from network import Endpoint
 import random
 
+from functools import wraps
+from collections import defaultdict
+
 from utils import check, check_type, CheckFailed, BatchList
 
 import logging
@@ -12,6 +15,36 @@ log = logging.getLogger('THBattle_Actions')
 
 # ------------------------------------------
 # aux functions
+
+def _get_hooktable():
+    g = Game.getgame()
+    hooktable = getattr(g, '_hooktable', None)
+    if hooktable is None:
+        hooktable = defaultdict(list)
+        g._hooktable = hooktable
+
+    return hooktable
+
+
+def hookable(func):
+    @wraps(func)
+    def hooker(*args, **kwargs):
+        hooks = _get_hooktable()[func]
+        if not hooks:
+            return func(*args, **kwargs)
+        else:
+            return hooks[-1](func, *args, **kwargs)
+
+    def hook(hookfunc):
+        _get_hooktable()[func].append(hookfunc)
+
+    def unhook(hookfunc=None):
+        _get_hooktable()[func].remove(hookfunc)
+
+    hooker.hook = hook
+    hooker.unhook = unhook
+    return hooker
+
 
 def user_choose_cards_logic(input, act, target, categories=None):
     from utils import check, CheckFailed
@@ -50,9 +83,11 @@ def user_choose_cards_logic(input, act, target, categories=None):
     except CheckFailed as e:
         return None
 
+
 def user_choose_cards(act, target, categories=None):
     input = target.user_input('choose_card_and_player', (act, [])) # list of card ids
     return user_choose_cards_logic(input, act, target, categories)
+
 
 def user_choose_players_logic(input, act, target, candidates):
     try:
@@ -69,9 +104,11 @@ def user_choose_players_logic(input, act, target, candidates):
     except CheckFailed:
         return None
 
+
 def user_choose_players(act, target, candidates):
     input = target.user_input('choose_card_and_player', (act, candidates))
     return user_choose_players_logic(input, act, target, candidates)
+
 
 def user_choose_cards_and_players(act, target, categories=None, candidates=[]):
     input = target.user_input('choose_card_and_player', (act, candidates))
@@ -80,6 +117,7 @@ def user_choose_cards_and_players(act, target, categories=None, candidates=[]):
     pl = user_choose_players_logic(input, act, target, candidates)
     if not pl: return None
     return (cards, pl)
+
 
 def random_choose_card(categories):
     from itertools import chain
@@ -94,6 +132,7 @@ def random_choose_card(categories):
         print cl
     assert len(cl) == 1
     return cl[0]
+
 
 def skill_wrap(actor, sid_list, cards):
     g = Game.getgame()
@@ -123,6 +162,7 @@ def skill_wrap(actor, sid_list, cards):
     except CheckFailed as e:
         return None
 
+
 def shuffle_here():
     from .cards import CardList
     g = Game.getgame()
@@ -131,6 +171,7 @@ def shuffle_here():
         if p.need_shuffle:
             g.deck.shuffle(p.cards)
             p.need_shuffle = False
+
 
 def migrate_cards(cards, to, unwrap=False, no_event=False):
     g = Game.getgame()
@@ -146,7 +187,7 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
         cl = l[0].resides_in
         for c in l:
             if unwrap and c.is_card(VirtualCard):
-                migrate_cards(c.associated_cards, to, True, no_event)
+                migrate_cards(c.associated_cards, to, unwrap != migrate_cards.SINGLE_LAYER, no_event)
                 c.move_to(None)
             else:
                 c.move_to(to)
@@ -158,12 +199,15 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
         if not no_event:
             g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 
-def choose_peer_card(source, target, categories):
+migrate_cards.SINGLE_LAYER = 2
+
+
+def choose_peer_card_logic(input, source, target, categories):
     assert all(c.owner is target for c in categories)
     try:
         check(sum(len(c) for c in categories)) # no cards at all
 
-        cid = source.user_input('choose_peer_card', (target, categories))
+        cid = input
         g = Game.getgame()
 
         check(isinstance(cid, int))
@@ -181,9 +225,16 @@ def choose_peer_card(source, target, categories):
     except CheckFailed:
         return None
 
-def choose_individual_card(source, cards):
+
+@hookable
+def choose_peer_card(source, target, categories):
+    cid = source.user_input('choose_peer_card', (target, categories))
+    return choose_peer_card_logic(cid, source, target, categories)
+
+
+def choose_individual_card_logic(input, source, cards):
     try:
-        cid = source.user_input('choose_individual_card', cards)
+        cid = input
         g = Game.getgame()
 
         check(isinstance(cid, int))
@@ -196,6 +247,18 @@ def choose_individual_card(source, cards):
 
     except CheckFailed:
         return None
+
+
+@hookable
+def choose_individual_card(source, cards):
+    cid = source.user_input('choose_individual_card', cards)
+    return choose_individual_card_logic(cid, source, cards)
+
+
+@hookable
+def user_choose_option(act, tgt):
+    return tgt.user_input('choose_option', act)
+
 
 action_eventhandlers = set()
 def register_eh(cls):

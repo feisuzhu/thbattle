@@ -54,7 +54,7 @@ class ProphetHandler(EventHandler):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             tgt = act.target
             if not tgt.has_skill(Prophet): return act
-            if not tgt.user_input('choose_option', self): return act
+            if not user_choose_option(self, tgt): return act
             Game.getgame().process_action(ProphetAction(tgt, tgt))
 
         return act
@@ -118,7 +118,7 @@ class ExtremeIntelligenceHandler(EventHandler):
                     tl = [act.target]
                 if any(t.dead for t in tl): return act
 
-                if not p.user_input('choose_option', self): continue
+                if not user_choose_option(self, p): continue
 
                 g.process_action(ExtremeIntelligenceAction(p, act.target, act))
 

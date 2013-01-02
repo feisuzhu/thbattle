@@ -32,6 +32,7 @@ import yukari
 import cirno
 import sakuya
 import sanae
+import seiga
 
 import dummy
 import akari

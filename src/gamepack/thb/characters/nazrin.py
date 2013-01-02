@@ -26,7 +26,7 @@ class TreasureHuntHandler(EventHandler):
             if not tgt.has_skill(TreasureHuntSkill): return act
             g = Game.getgame()
             while True:
-                if not tgt.user_input('choose_option', self): return act
+                if not user_choose_option(self, tgt): return act
                 if not g.process_action(TreasureHunt(tgt, tgt)):
                     return act
         return act

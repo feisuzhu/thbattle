@@ -1,6 +1,7 @@
 import logging
 from gevent import Timeout
 from utils import DataHolder
+from contextlib import contextmanager
 
 log = logging.getLogger('Game')
 
@@ -81,6 +82,7 @@ class EventHandler(object):
 
         return rst
 
+
 class Action(object):
     cancelled = False
     done = False
@@ -88,11 +90,18 @@ class Action(object):
     def __new__(cls, *a, **k):
         try:
             g = cls.game_class.getgame()
-            actual_cls = g.action_hooks.get(cls, cls)
+            actual_cls = g.action_types.get(cls, cls)
         except:
+            g = None
             actual_cls = cls
 
-        return object.__new__(actual_cls, *a, **k)
+        obj = object.__new__(actual_cls, *a, **k)
+
+        if g:
+            for hook in reversed(g._action_hooks):
+                obj = hook(obj)
+
+        return obj
 
     def __init__(self, source, target):
         self.source = source
@@ -143,7 +152,8 @@ class Game(object):
     def __init__(self):
         self.event_handlers = []
         self.action_stack = []
-        self.action_hooks = {}
+        self.action_types = {}
+        self._action_hooks = []
 
     def game_start(self):
         '''
@@ -245,6 +255,16 @@ class Game(object):
 
     def get_synctag(self):
         raise GameError('Abstract')
+    
+    @contextmanager
+    def action_hook(self, hook):
+        try:
+            self._action_hooks.append(hook)
+            yield
+        finally:
+            expected_hook = self._action_hooks.pop()
+            assert expected_hook is hook
+    
 
 class SyncPrimitive(object):
     def __init__(self, value):

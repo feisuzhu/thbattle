@@ -64,6 +64,23 @@ def property(f):
     f._is_property = True
     return f
 
+# -----COMMON FUNCTIONS-----
+def my_turn(g):
+    me = g.me
+
+    try:
+        act = g.action_stack[-1]
+    except IndexError:
+        return False
+
+    if not isinstance(act, actions.ActionStage):
+        return False
+
+    if act.target is not g.me: return False
+
+    return True
+
+# -----END COMMON FUNCTIONS-----
 
 # -----BEGIN THB3v3 UI META-----
 __metaclass__ = gen_metafunc(thb3v3)
@@ -340,10 +357,7 @@ class AttackCard:
         if not target_list:
             return (False, u'请选择弹幕的目标')
 
-        if g.me is target_list[0]:
-            return (False, u'你不可以对自己使用【弹幕】')
-        else:
-            return (True, u'来一发！')
+        return (True, u'来一发！')
 
 
 class FreeAttackSkill:
@@ -474,8 +488,6 @@ class HealCard:
 
     def is_action_valid(g, cl, target_list):
         target = target_list[0]
-        if not g.me is target:
-            return (False, u'BUG!!!!')
 
         if target.life >= target.maxlife:
             return (False, u'您已经吃饱了')
@@ -511,9 +523,7 @@ class DemolitionCard:
             return (False, u'请选择拆除目标')
 
         target= target_list[0]
-        if g.me is target:
-            return (True, u'还是拆别人的吧…')
-        elif not len(target.cards) + len(target.showncards) + len(target.equips) + len(target.fatetell):
+        if not len(target.cards) + len(target.showncards) + len(target.equips) + len(target.fatetell):
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'嗯，你的牌太多了')
@@ -633,7 +643,6 @@ class NazrinRodCard:
     )
     def is_action_valid(g, cl, target_list):
         t = target_list[0]
-        assert t is g.me
         return (True, u'看看能找到什么好东西~')
 
 class SinsackCard:
@@ -650,10 +659,6 @@ class SinsackCard:
     )
 
     def is_action_valid(g, cl, target_list):
-        target = target_list[0]
-        if not g.me == target:
-            return (False, u'BUG!!!!')
-
         return (True, u'别来找我！')
 
 class Sinsack:
@@ -664,7 +669,6 @@ class Sinsack:
 
 def equip_iav(g, cl, target_list):
     t = target_list[0]
-    assert t is g.me
     return (True, u'配上好装备，不再掉节操！')
 
 class OpticalCloakCard:
@@ -769,9 +773,7 @@ class YukariDimensionCard:
             return (False, u'请选择目标')
 
         target= target_list[0]
-        if g.me is target:
-            return (False, u'你不能对自己使用隙间')
-        elif not (target.cards or target.showncards or target.equips or target.fatetell):
+        if not (target.cards or target.showncards or target.equips or target.fatetell):
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'请把胖次给我！')
@@ -798,10 +800,7 @@ class DuelCard:
             return (False, u'请选择弹幕战的目标')
 
         target= target_list[0]
-        if g.me is target:
-            return (False, u'你不能对自己使用弹幕战')
-        else:
-            return (True, u'来，战个痛快！')
+        return (True, u'来，战个痛快！')
 
 class MapCannonCard:
     image = gres.card_mapcannon
@@ -4038,6 +4037,105 @@ class Akari:
         u'|DB会是谁呢 随机角色 体力：?|r\n\n'
         u'|G阿卡林|r：消失在画面里的能力。在开局之前，没有人知道这是谁。'
     )
+
+# ----------
+__metaclass__ = gen_metafunc(characters.seiga)
+
+
+class Seiga:
+    # Character
+    char_name = u'霍青娥'
+    port_image = gres.seiga_port
+    description = (
+        u'|DB僵尸别跑 霍青娥 体力：4|r\n\n'
+        u'|G邪仙|r：你的回合内，你可以将对自己生效、单体目标或者群体目标的卡牌以任意玩家的身份使用。\n'
+        u'|B|R>> |r在结算的过程中，“选择对方的牌”、“是否发动技能”操作均由霍青娥完成。\n'
+        u'|B|R>> |r在结算的过程中，你可以选择跳过指向多人的卡牌效果结算。'
+        
+        # u'|G穿墙|r：当你成为可指向多人的卡牌、技能的目标时，你可以使该效果无效并摸一张牌。'
+    )
+
+
+class Passthru:
+    # Skill
+    name = u'穿墙'
+
+    def clickable(g):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, u'BUG!')
+
+
+class PassthruAction:
+    def effect_string(act):
+        return u'|G【%s】|r发动了|G穿墙|r技能，跳过了卡牌效果，并摸1张牌。' % (
+            act.source.ui_meta.char_name,
+        )
+
+
+class PassthruHandler:
+    # choose_option meta
+    choose_option_buttons = ((u'跳过并摸牌', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【穿墙】技能吗？'
+
+
+class HeterodoxyHandler:
+    # choose_option meta
+    choose_option_buttons = ((u'跳过结算', True), (u'正常结算', False))
+    choose_option_prompt = u'你要跳过当前的卡牌结算吗？'
+
+
+class HeterodoxySkipAction:
+    def effect_string(act):
+        return u'|G【%s】|r跳过了卡牌效果的结算' % (
+            act.source.ui_meta.char_name,
+        )
+
+
+class Heterodoxy:
+    # Skill
+    name = u'邪仙'
+
+    def clickable(g):
+        if not my_turn(g):
+            return False
+
+        me = g.me
+        return bool(me.cards or me.showncards or me.equips)
+
+    def effect_string(act):
+        return u'|G【%s】|r发动了邪仙技能，以|G【%s】|r的身份使用了卡牌' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+    def is_action_valid(g, cl, tl):
+        acards = cl[0].associated_cards
+        if (not acards) or len(acards) != 1:
+            return (False, u'请选择一张牌')
+
+        card = acards[0]
+
+        permitted = {
+            't_Self', 't_One', 't_OtherOne', 't_All', 't_AllInclusive'
+        }
+
+        tname = card.target.__name__
+        if tname not in permitted:
+            return (False, u'请的选择对自己生效、单体、群体卡牌！')
+
+        if not tl:
+            return (False, u'请选择一名玩家作为卡牌发起者')
+
+        victim = tl[0]
+        if tname in { 't_Self', 't_All', 't_AllInclusive' }:
+            return card.ui_meta.is_action_valid(g, [card], [victim])
+        else:
+            return card.ui_meta.is_action_valid(g, [card], tl[1:])
+
+        # can't reach here
+        # return (True, u'僵尸什么的最萌了！')
 
 # -----END CHARACTERS UI META-----
 

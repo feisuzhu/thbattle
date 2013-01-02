@@ -66,7 +66,7 @@ class OpticalCloakHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, BaseUseGraze):
             target = act.target
             if not target.has_skill(OpticalCloakSkill): return act
-            if not target.user_input('choose_option', self): return act
+            if not user_choose_option(self, target): return act
             g = Game.getgame()
             oc = OpticalCloak(target, target)
             if g.process_action(oc):
@@ -303,7 +303,7 @@ class RepentanceStickHandler(EventHandler):
                 if not isinstance(pa, basic.BaseAttack): return act
                 if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell):
                     return act
-                if not src.user_input('choose_option', self): return act
+                if not user_choose_option(self, src): return act
                 g.process_action(RepentanceStick(src, tgt))
                 act.cancelled = True
 
@@ -382,7 +382,7 @@ class HouraiJewelHandler(EventHandler):
             src = act.source
             if not src.has_skill(HouraiJewelSkill): return act
             if isinstance(act, HouraiJewelAttack): return act
-            if src.user_input('choose_option', self):
+            if user_choose_option(self, src):
                 act.__class__ = HouraiJewelAttack
         return act
 
@@ -423,7 +423,7 @@ class SaigyouBranchHandler(EventHandler):
                 # target's own Reject
                 return act
 
-            if not tgt.user_input('choose_option', self): return act
+            if not user_choose_option(self, tgt): return act
             Game.getgame().process_action(SaigyouBranch(tgt, act))
         return act
 
@@ -463,7 +463,7 @@ class FlirtingSwordHandler(EventHandler):
             if act.cancelled: return act
             src = act.source
             if not src.has_skill(FlirtingSwordSkill): return act
-            if not src.user_input('choose_option', self): return act
+            if not user_choose_option(self, src): return act
 
             Game.getgame().process_action(FlirtingSword(src, act.target))
 
@@ -656,7 +656,7 @@ class YinYangOrbHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, Fatetell):
             tgt = act.target
             if not tgt.has_skill(YinYangOrbSkill): return act
-            if not tgt.user_input('choose_option', self): return act
+            if not user_choose_option(self, tgt): return act
 
             g = Game.getgame()
             g.process_action(YinYangOrb(act))

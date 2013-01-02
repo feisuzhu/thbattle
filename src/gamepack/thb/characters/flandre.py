@@ -22,7 +22,7 @@ class CriticalStrikeHandler(EventHandler):
             if act.cancelled: return act
             tgt = act.target
             if not tgt.has_skill(CriticalStrike): return act
-            if not tgt.user_input('choose_option', self): return act
+            if not user_choose_option(self, tgt): return act
 
             Game.getgame().process_action(CriticalStrikeAction(tgt, tgt))
 
