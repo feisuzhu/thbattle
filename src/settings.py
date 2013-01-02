@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 92'
+VERSION = 'THBATTLE V1.0b incr 94'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -113,6 +113,9 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新人物：霍青娥
+天子可以把牌分给阵亡人物的bug修复
+酒的bug修复
 KOF模式相关bug修复
 移除了御神签卡牌。掉线重连后不算逃跑。
 KOF模式跨人物结算的bug
