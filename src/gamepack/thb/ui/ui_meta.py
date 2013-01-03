@@ -4093,9 +4093,8 @@ class Seiga:
     port_image = gres.seiga_port
     description = (
         u'|DB僵尸别跑 霍青娥 体力：4|r\n\n'
-        u'|G邪仙|r：你的回合内，你可以将一张对自己生效、单体目标或者群体目标的卡牌交给任意一名玩家，并以该玩家的身份立即使用。\n'
+        u'|G邪仙|r：你的回合内，你可以将一张可以主动发动的卡牌交给任意一名玩家，并以该玩家的身份立即使用。\n'
         u'|B|R>> |r以此方法使用弹幕时，弹幕的“一回合一次”的限制由你来承担\n'
-        u'|B|R>> |r在结算的过程中，“选择对方的牌”、“是否发动技能”操作均由你来完成。\n'
         u'|B|R>> |r在结算的过程中，你可以选择跳过指向多人的卡牌效果结算。'
         
         # u'|G穿墙|r：当你成为可指向多人的卡牌、技能的目标时，你可以使该效果无效并摸一张牌。'
@@ -4169,14 +4168,11 @@ class Heterodoxy:
 
         card = acards[0]
 
-        permitted = {
-            't_Self', 't_One', 't_OtherOne', 't_DollControl',
-            't_All', 't_AllInclusive',
-        }
+        if card.is_card(cards.Skill):
+            return (False, u'你不可以像这样组合技能')
 
-        tname = card.target.__name__
-        if tname not in permitted:
-            return (False, u'请的选择对自己生效、单体、群体卡牌！')
+        if not getattr(card, 'associated_action', None):
+            return (False, u'请的选择可以主动发动的卡牌！')
 
         if not tl:
             return (False, u'请选择一名玩家作为卡牌发起者')
