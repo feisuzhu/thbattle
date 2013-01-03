@@ -71,33 +71,8 @@ class HeterodoxyAction(UserAction):
 
         lc = LaunchCard(victim, tgts, card)
 
-        def choose_peer_card_hook(ori, source, target, categories):
-            source = src if source is victim else source
-            cid = source.user_input('choose_peer_card', (target, categories))
-            return choose_peer_card_logic(cid, source, target, categories)
-
-        def choose_individual_card_hook(ori, source, cards):
-            source = src if source is victim else source
-            cid = source.user_input('choose_individual_card', cards)
-            return choose_individual_card_logic(cid, source, cards)
-
-        def user_choose_option_hook(ori, act, target):
-            target = src if target is victim else target
-            return target.user_input('choose_option', act)
-
-        try:
-            choose_peer_card.hook(choose_peer_card_hook)
-            choose_individual_card.hook(choose_individual_card_hook)
-            user_choose_option.hook(user_choose_option_hook)
-
-            g = Game.getgame()
-            g.process_action(lc)
-
-        finally:
-            choose_peer_card.unhook(choose_peer_card_hook)
-            choose_individual_card.unhook(choose_individual_card_hook)
-            user_choose_option.unhook(user_choose_option_hook)
-
+        g = Game.getgame()
+        g.process_action(lc)
 
         return True
     
@@ -122,10 +97,8 @@ class Heterodoxy(Skill):
         cl = self.associated_cards
         return (
             cl and len(cl) == 1 and
-            cl[0].target.__name__ in {
-                't_Self', 't_One', 't_OtherOne', 't_DollControl', 
-                't_All', 't_AllInclusive',
-            }
+            not cl[0].is_card(Skill) and
+            getattr(cl[0], 'associated_action', None)
         )
 
     def target(self, g, src, tl):
@@ -145,10 +118,9 @@ class Heterodoxy(Skill):
             _tl, valid = c.target(g, tl[0], tl[1:])
             return [tl[0]] + _tl, valid
 
+
 @register_character
 class Seiga(Character):
-    # skills = [Heterodoxy, Passthru]
     skills = [Heterodoxy]
-    # eventhandlers_required = [PassthruHandler]
     eventhandlers_required = [HeterodoxyHandler]
     maxlife = 4
