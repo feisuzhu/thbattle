@@ -24,72 +24,6 @@ def game_action(cls):
     _game_actions[cls.__name__] = cls
     return cls
 
-@game_action
-class TryRevive(TryRevive):
-    def __init__(self, target, dmgact):
-        self.source = self.target = target
-        self.dmgact = dmgact
-        g = Game.getgame()
-        if target.dead:
-            log.error('TryRevive buggy condition, __init__')
-            return
-        self.asklist = BatchList(
-            p for p in g.players if not p.dead
-        ).rotate_to(target)
-
-    def apply_action(self):
-        tgt = self.target
-        if tgt.tags['in_tryrevive']:
-            # nested TryRevive, just return True
-            # will trigger when Eirin uses Diamond Exinwan to heal self
-            return True
-
-        if tgt.dead:
-            log.error('TryRevive buggy condition, apply')
-            import traceback
-            traceback.print_stack()
-            return False
-
-        tgt.tags['in_tryrevive'] = True
-        g = Game.getgame()
-        pl = self.asklist
-        from .cards import UseHeal
-        for p in pl:
-            while True:
-                act = UseHeal(p)
-                if g.process_action(act):
-                    cards = act.cards
-                    if not cards: continue
-                    from .cards import Heal
-                    g.process_action(Heal(p, tgt))
-                    if tgt.life > 0:
-                        tgt.tags['in_tryrevive'] = False
-                        return True
-                    continue
-                break
-        tgt.tags['in_tryrevive'] = False
-        return tgt.life > 0
-
-@game_action
-class PlayerDeath(PlayerDeath):
-    def apply_action(self):
-        tgt = self.target
-        g = Game.getgame()
-        tgt.dead = True
-        #dropped = g.deck.droppedcards
-        src = self.source or self.target
-        others = g.players.exclude(tgt)
-        from .cards import VirtualCard
-        from .actions import DropCards
-        for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]:
-            if not cl: continue
-            #l = [c for c in cl if not c.is_card(VirtualCard)]
-            others.reveal(list(cl))
-            g.process_action(DropCards(tgt, cl))
-            #migrate_cards(l, dropped, unwrap=True)
-            assert not cl
-            #cl.clear()
-        return True
 
 @game_eh
 class DeathHandler(EventHandler):
@@ -98,7 +32,10 @@ class DeathHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, BaseDamage):
             tgt = act.target
             if tgt.life > 0: return act
+
+            tgt_dead = False
             if not g.process_action(TryRevive(tgt, dmgact=act)):
+                tgt_dead = True
                 g.process_action(PlayerDeath(act.source, tgt))
 
             # see if game ended
@@ -111,10 +48,15 @@ class DeathHandler(EventHandler):
                 g.winners = force1[:]
                 raise GameEnded
 
+            if tgt_dead and tgt is g.current_turn:
+                raise InterruptActionFlow(tgt)
+
         return act
+
 
 class ActFirst(object): # for choose_option
     pass
+
 
 class Identity(PlayerIdentity):
     class TYPE(Enum):
@@ -273,7 +215,10 @@ class THBattle(Game):
                 if i >= 6000: break
                 if not p.dead:
                     self.emit_event('player_turn', p)
-                    self.process_action(PlayerTurn(p))
+                    try:
+                        self.process_action(PlayerTurn(p))
+                    except InterruptActionFlow:
+                        pass
         
         except GameEnded:
             pass

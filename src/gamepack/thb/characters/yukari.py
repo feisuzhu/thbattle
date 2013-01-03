@@ -7,7 +7,8 @@ class Realm(Skill):
     associated_action = None
     target = t_None
 
-class RealmSkipFatetell(GenericAction):
+
+class RealmSkipFatetell(UserAction):
     def __init__(self, target, fts):
         self.source = self.target = target
         self.fts = fts
@@ -20,6 +21,7 @@ class RealmSkipFatetell(GenericAction):
         if card:
             Game.getgame().process_action(DropCards(tgt, [card]))
         return True
+
 
 class RealmSkipFatetellHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -47,6 +49,7 @@ class RealmSkipFatetellHandler(EventHandler):
             return False
         return True
 
+
 class RealmSkipDrawCard(GenericAction):
     def __init__(self, target, dcs, pl):
         self.source = self.target = target
@@ -66,6 +69,7 @@ class RealmSkipDrawCard(GenericAction):
             migrate_cards([c], tgt.cards)
 
         return True
+
 
 class RealmSkipDrawCardHandler(EventHandler):
     execute_after = ('FrozenFrogHandler', )
@@ -104,7 +108,8 @@ class RealmSkipDrawCardHandler(EventHandler):
 
         return (tl[:2], True)
 
-class RealmSkipAction(GenericAction):
+
+class RealmSkipAction(UserAction):
     def __init__(self, target, act, pl):
         self.source = self.target = target
         self.act = act
@@ -144,6 +149,7 @@ class RealmSkipAction(GenericAction):
 
         return True
 
+
 class RealmSkipActionHandler(EventHandler):
     execute_after = ('SealingArrayHandler', )
     def handle(self, evt_type, act):
@@ -182,7 +188,8 @@ class RealmSkipActionHandler(EventHandler):
 
         return (tl[:2], bool(len(tl) == 2 and (tl[0].equips or tl[0].fatetell)))
 
-class RealmSkipDropCard(GenericAction):
+
+class RealmSkipDropCard(UserAction):
     def __init__(self, target, fts):
         self.source = self.target = target
         self.fts = fts
@@ -190,6 +197,7 @@ class RealmSkipDropCard(GenericAction):
     def apply_action(self):
         self.fts.cancelled = True
         return True
+
 
 class RealmSkipDropCardHandler(EventHandler):
     execute_after = ('SuwakoHatHandler',)

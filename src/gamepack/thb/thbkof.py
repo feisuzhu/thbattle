@@ -20,76 +20,6 @@ def game_eh(cls):
     return cls
 
 
-class NextCharacter(Exception):
-    def __init__(self, player):
-        Exception.__init__(self)
-        self.player = player
-
-
-class KOFTryRevive(TryRevive):
-    def __init__(self, target, dmgact):
-        self.source = self.target = target
-        self.dmgact = dmgact
-        g = Game.getgame()
-        if target.dead:
-            log.error('TryRevive buggy condition, __init__')
-            return
-        self.asklist = BatchList(
-            p for p in g.players if not p.dead
-        ).rotate_to(target)
-
-    def apply_action(self):
-        tgt = self.target
-        if tgt.tags['in_tryrevive']:
-            # nested TryRevive, just return True
-            # will trigger when Eirin uses Diamond Exinwan to heal self
-            return True
-
-        if tgt.dead:
-            log.error('TryRevive buggy condition, apply')
-            import traceback
-            traceback.print_stack()
-            return False
-
-        tgt.tags['in_tryrevive'] = True
-        g = Game.getgame()
-        pl = self.asklist
-        from .cards import UseHeal
-        for p in pl:
-            while True:
-                act = UseHeal(p)
-                if g.process_action(act):
-                    cards = act.cards
-                    if not cards: continue
-                    from .cards import Heal
-                    g.process_action(Heal(p, tgt))
-                    if tgt.life > 0:
-                        tgt.tags['in_tryrevive'] = False
-                        return True
-                    continue
-                break
-
-        tgt.tags['in_tryrevive'] = False
-        return tgt.life > 0
-
-
-class KOFPlayerDeath(PlayerDeath):
-    def apply_action(self):
-        tgt = self.target
-        tgt.dead = True
-        g = Game.getgame()
-        src = self.source or self.target
-        others = g.players.exclude(tgt)
-        from .cards import VirtualCard
-        from .actions import DropCards
-        for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]:
-            if not cl: continue
-            others.reveal(list(cl))
-            g.process_action(DropCards(tgt, cl))
-            assert not cl
-        return True
-
-
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -111,7 +41,8 @@ class DeathHandler(EventHandler):
                     g.process_action(DrawCards(tgt, 4))
                     tgt.dead = False
                     g.emit_event('kof_next_character', tgt)
-                    raise NextCharacter(tgt)
+                    if tgt is g.current_turn:
+                        raise InterruptActionFlow(tgt)
 
             pl = g.players
             if pl[0].dropped:
@@ -123,20 +54,6 @@ class DeathHandler(EventHandler):
                 raise GameEnded
 
         return act
-
-
-class KOFActionStage(ActionStage):
-    def apply_action(self):
-        while True:
-            try:
-                rst = ActionStage.apply_action(self)
-            except NextCharacter as e:
-                if e.player is not self.target:
-                    continue
-                raise
-            break
-        
-        return rst
 
 
 class Identity(PlayerIdentity):
@@ -153,10 +70,6 @@ class THBattleKOF(Game):
     def game_start(self):
         # game started, init state
         
-        self.action_types[ActionStage] = KOFActionStage
-        self.action_types[PlayerDeath] = KOFPlayerDeath
-        self.action_types[TryRevive] = KOFTryRevive
-
         from cards import Card, Deck, CardList
 
         self.deck = Deck()
@@ -315,7 +228,7 @@ class THBattleKOF(Game):
                     self.emit_event('player_turn', p)
                     try:
                         self.process_action(PlayerTurn(p))
-                    except NextCharacter:
+                    except InterruptActionFlow:
                         pass
 
         except GameEnded:

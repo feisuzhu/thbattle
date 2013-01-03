@@ -267,17 +267,79 @@ def register_eh(cls):
 
 # ------------------------------------------
 
+class InterruptActionFlow(Exception):
+    def __init__(self, player):
+        Exception.__init__(self)
+        self.player = player
+
+
 class GenericAction(Action): pass # others
 class UserAction(Action): pass # card/character skill actions
 class InternalAction(Action): pass # actions for internal use
 
+
 class PlayerDeath(GenericAction):
-    # dummy, implemented in Game
-    pass
+    def apply_action(self):
+        tgt = self.target
+        g = Game.getgame()
+        tgt.dead = True
+        src = self.source or self.target
+        others = g.players.exclude(tgt)
+        from .cards import VirtualCard
+        from .actions import DropCards
+        for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]:
+            if not cl: continue
+            others.reveal(list(cl))
+            g.process_action(DropCards(tgt, cl))
+            assert not cl
+        return True
+
 
 class TryRevive(GenericAction):
-    # dummy, implemented in Game
-    pass
+    def __init__(self, target, dmgact):
+        self.source = self.target = target
+        self.dmgact = dmgact
+        g = Game.getgame()
+        if target.dead:
+            log.error('TryRevive buggy condition, __init__')
+            return
+        self.asklist = BatchList(
+            p for p in g.players if not p.dead
+        ).rotate_to(target)
+
+    def apply_action(self):
+        tgt = self.target
+        if tgt.tags['in_tryrevive']:
+            # nested TryRevive, just return True
+            # will trigger when Eirin uses Diamond Exinwan to heal self
+            return True
+
+        if tgt.dead:
+            log.error('TryRevive buggy condition, apply')
+            import traceback
+            traceback.print_stack()
+            return False
+
+        tgt.tags['in_tryrevive'] = True
+        g = Game.getgame()
+        pl = self.asklist
+        from .cards import UseHeal
+        for p in pl:
+            while True:
+                act = UseHeal(p)
+                if g.process_action(act):
+                    cards = act.cards
+                    if not cards: continue
+                    from .cards import Heal
+                    g.process_action(Heal(p, tgt))
+                    if tgt.life > 0:
+                        tgt.tags['in_tryrevive'] = False
+                        return True
+                    continue
+                break
+        tgt.tags['in_tryrevive'] = False
+        return tgt.life > 0
+
 
 class BaseDamage(GenericAction):
     def __init__(self, source, target, amount=1):
@@ -399,14 +461,17 @@ class DrawCards(GenericAction):
         self.cards = cards
         return True
 
+
 class DrawCardStage(DrawCards):
     def apply_action(self):
         t = self.target
         if t.dead: return False
         return DrawCards.apply_action(self)
 
+
 class BaseLaunchCard(GenericAction):
     pass
+
 
 class LaunchCard(BaseLaunchCard):
     def __init__(self, source, target_list, card):
@@ -607,7 +672,8 @@ class LaunchFatetellCard(BaseLaunchCard, FatetellAction):
         a.fatetell_postprocess()
         return True
 
-class ForEach(GenericAction):
+
+class ForEach(UserAction):
     # action_cls == __subclass__.action_cls
     include_dead = False
     def prepare(self):
@@ -636,6 +702,7 @@ class ForEach(GenericAction):
         self.cleanup()
         return True
 
+
 class PlayerTurn(GenericAction):
     def __init__(self, target):
         self.source = self.target = target
@@ -645,11 +712,14 @@ class PlayerTurn(GenericAction):
         p = self.target
         p.tags['turn_count'] += 1
         g.current_turn = p
-        if not p.dead: g.process_action(FatetellStage(p))
-        if not p.dead: g.process_action(DrawCardStage(p))
-        if not p.dead: g.process_action(ActionStage(p))
-        if not p.dead: g.process_action(DropCardStage(p))
+
+        g.process_action(FatetellStage(p))
+        g.process_action(DrawCardStage(p))
+        g.process_action(ActionStage(p))
+        g.process_action(DropCardStage(p))
+
         return True
+
 
 class DummyAction(GenericAction):
     def __init__(self, source, target, result=True):

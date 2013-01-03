@@ -3,7 +3,7 @@ from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
-class Support(GenericAction):
+class Support(UserAction):
     def apply_action(self):
         cl = self.associated_card.associated_cards
         src = self.source

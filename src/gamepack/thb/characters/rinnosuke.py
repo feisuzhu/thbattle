@@ -7,7 +7,7 @@ class Psychopath(Skill):
     associated_action = None
     target = t_None
 
-class NetoruAction(GenericAction):
+class NetoruAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
         src = self.source

@@ -5,7 +5,7 @@ from ..cards import *
 from itertools import chain
 
 
-class DrawingLotAction(GenericAction):
+class DrawingLotAction(UserAction):
     def apply_action(self):
         src = self.source
         tgt = self.target

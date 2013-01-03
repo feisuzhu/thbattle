@@ -23,9 +23,6 @@ def game_action(cls):
     _game_actions[cls.__name__] = cls
     return cls
 
-from thb3v3 import PlayerDeath, TryRevive
-game_action(PlayerDeath)
-game_action(TryRevive)
 
 @game_eh
 class DeathHandler(EventHandler):
@@ -89,7 +86,11 @@ class DeathHandler(EventHandler):
                     g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
                     raise GameEnded
 
+                if tgt is g.current_turn:
+                    raise InterruptActionFlow(tgt)
+
         return act
+
 
 class Identity(PlayerIdentity):
     # 城管 BOSS 道中 黑幕
@@ -99,6 +100,7 @@ class Identity(PlayerIdentity):
         BOSS = 2
         ACCOMPLICE = 3
         CURTAIN = 4
+
 
 class THBattleIdentity(Game):
     n_persons = 8
@@ -298,7 +300,11 @@ class THBattleIdentity(Game):
             for i, p in enumerate(cycle(pl)):
                 if i >= 6000: break
                 if not p.dead:
-                    g.process_action(PlayerTurn(p))
+                    try:
+                        g.process_action(PlayerTurn(p))
+                    except InterruptActionFlow:
+                        pass
+
         except GameEnded:
             pass
 
