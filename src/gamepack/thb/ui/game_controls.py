@@ -587,6 +587,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         self.tag_placement = tag_placement
         self.color = color
         self.bg = None
+        self._last_balloon = None
 
         Frame.__init__(
             self, width=149, height=195,
@@ -725,7 +726,9 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
         if meta:
             self.bg = meta.port_image
-            self.init_balloon(meta.description, (2, 74, 145, 96))
+            if self._last_balloon != meta.description:
+                self.init_balloon(meta.description, (2, 74, 145, 96))
+                self._last_balloon = meta.description
 
             # HACK: prevent glyph creation in _content_draw
             # since _content_draw may be called with DisplayList

@@ -70,6 +70,7 @@ class UIEventHook(EventHandler):
 
         return f(data)
 
+
 class DeckIndicator(Control):
     def draw(self):
         w, h = self.width, self.height
@@ -369,9 +370,24 @@ class THBattleUI(Control):
             for port in self.char_portraits:
                 port.update()
 
+        elif _type in { 'evt_action_apply', 'evt_action_after' }:
+            act = args[0]
+            if isinstance(act, actions.UserAction):
+                pl = set()
+                if act.source:
+                    pl.add(act.source)
+
+                if hasattr(act, 'target_list'):
+                    pl.update(act.target_list)
+                elif act.target:
+                    pl.add(act.target)
+
+                for p in pl:
+                    self.player2portrait(p).update()
+
         if _type.startswith('evt_'):
-            inputs.handle_event(self, _type[4:], args[0])
             effects.handle_event(self, _type[4:], args[0])
+            inputs.handle_event(self, _type[4:], args[0])
 
     def draw(self):
         self.draw_subcontrols()

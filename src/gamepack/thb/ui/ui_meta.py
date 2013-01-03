@@ -55,6 +55,9 @@ def gen_metafunc(_for):
     def metafunc(clsname, bases, _dict):
         meta_for = getattr(_for, clsname)
         meta_for.ui_meta = UIMetaDescriptor()
+        if meta_for in metadata:
+            raise Exception('%s ui_meta redefinition!' % meta_for)
+
         metadata[meta_for] = _dict
 
     return metafunc
@@ -137,10 +140,6 @@ class THBattleKOF:
 
     del T
 
-
-class KOFPlayerDeath:
-    barrier = True
-
 # -----END THB3v3 UI META-----
 
 # -----BEGIN THBIdentity UI META-----
@@ -202,6 +201,7 @@ class THBattleIdentity5:
 # -----BEGIN ACTIONS UI META-----
 __metaclass__ = gen_metafunc(actions)
 
+
 class DropCardStage:
     # choose_card meta
     def choose_card_text(g, act, cards):
@@ -257,12 +257,15 @@ class LaunchCard:
         s = act.source
         return [(s, t) for t in act.target_list]
 
+
 class PlayerDeath:
+    barrier = True
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|rMISS了。' % (
             tgt.ui_meta.char_name,
         )
+
 
 C = cards.Card
 ftstring = {
@@ -340,6 +343,21 @@ class Pindian:
 
 # -----BEGIN CARDS UI META-----
 __metaclass__ = gen_metafunc(cards)
+
+class DelayedLaunchCard:
+    def effect_string_before(act):
+        s, t = act.source, act.target
+        c = act.card
+        from ..cards import Skill
+        if isinstance(c, Skill):
+            return c.ui_meta.effect_string(act)
+        elif c:
+            return u'|G【%s】|r对|G【%s】|r使用了|G%s|r。' % (
+                s.ui_meta.char_name,
+                t.ui_meta.char_name,
+                act.card.ui_meta.name
+            )
+
 
 class HiddenCard:
     # action_stage meta

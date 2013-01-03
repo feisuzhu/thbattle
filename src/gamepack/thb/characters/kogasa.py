@@ -7,7 +7,7 @@ class Jolly(Skill):
     associated_action = None
     target = t_None
 
-class Surprise(GenericAction):
+class Surprise(UserAction):
     def apply_action(self):
         src = self.source
         tgt = self.target

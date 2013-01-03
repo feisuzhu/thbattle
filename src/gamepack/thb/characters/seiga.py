@@ -55,7 +55,7 @@ class HeterodoxyHandler(EventHandler):
         return act
 
 
-class HeterodoxyAction(GenericAction):
+class HeterodoxyAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
         card = self.associated_card.associated_cards[0]
