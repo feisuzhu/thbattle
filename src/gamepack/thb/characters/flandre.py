@@ -53,7 +53,14 @@ class CriticalStrikeHandler(EventHandler):
             if not isinstance(a, LaunchCard): return act
             src = a.source
             st = src.tags
-            if not st['flan_cs']: return act
+
+            if not st['flan_cs']:
+                if isinstance(a, ActionStageLaunchCard):
+                    if a.source.tags['attack_num'] <= 0:
+                        return (a, False)
+
+                return act
+
             if not src.has_skill(CriticalStrike): return act
             if src.has_skill(ElementalReactorSkill): return act
             if not a.card.is_card(AttackCard): return act

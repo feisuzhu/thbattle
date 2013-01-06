@@ -280,6 +280,9 @@ class RepentanceStick(GenericAction):
         ]
         l = []
         for i in xrange(2):
+            if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell):
+                break
+
             card = choose_peer_card(src, tgt, cats)
             if not card:
                 card = random_choose_card(cats)

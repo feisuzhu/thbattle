@@ -192,10 +192,41 @@ class WineHandler(EventHandler):
 
         return act
 
+
 class Exinwan(BasicAction):
     # 恶心丸
     def apply_action(self):
         return True
+
+
+class ExinwanEffect(GenericAction):
+    # 恶心丸
+
+    def apply_action(self):
+        g = Game.getgame()
+        target = self.target
+
+        cats = [
+            target.cards,
+            target.showncards,
+            target.equips,
+        ]
+
+        cards = user_choose_cards(self, target, cats)
+
+        if cards:
+            g.process_action(DropCards(target=target, cards=cards))
+        else:
+            g.process_action(Damage(source=None, target=target))
+
+        return True
+
+    def cond(self, cards):
+        if len(cards) != 2: return False
+        from .base import Skill
+        if any(isinstance(c, Skill) for c in cards): return False
+        return True
+
 
 @register_eh
 class ExinwanHandler(EventHandler):
@@ -219,22 +250,7 @@ class ExinwanHandler(EventHandler):
 
                 target = pact.source
 
-                cats = [
-                    target.cards,
-                    target.showncards,
-                    target.equips,
-                ]
                 for i in xrange(len(cards)):
-                    if target.dead: return act
-                    cards = user_choose_cards(self, target, cats)
-                    if cards:
-                        g.process_action(DropCards(target=target, cards=cards))
-                    else:
-                        g.process_action(Damage(source=None, target=target))
-        return act
+                    g.process_action(ExinwanEffect(target, target))
 
-    def cond(self, cards):
-        if len(cards) != 2: return False
-        from .base import Skill
-        if any(isinstance(c, Skill) for c in cards): return False
-        return True
+        return act

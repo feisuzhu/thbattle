@@ -133,7 +133,8 @@ class UISelectTarget(Control):
                 self.cleanup()
 
 class BaseUIChooseCardAndPlayer(UISelectTarget):
-    auto_chosen = False
+    _auto_chosen = False
+    _snd_prompt = False
     def __init__(self, irp, *a, **k):
         action, candidates = irp.attachment
         self.action = action
@@ -199,14 +200,16 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
 
                 # HACK
                 if g.current_turn is not g.me:
-                    from .effects import input_snd_prompt
-                    input_snd_prompt()
+                    if not self._snd_prompt:
+                        from .effects import input_snd_prompt
+                        input_snd_prompt()
+                        self._snd_prompt = True
 
                 break
 
             if cond:
-                if not self.auto_chosen:
-                    self.auto_chosen = True
+                if not self._auto_chosen:
+                    self._auto_chosen = True
                     from itertools import chain
                     for c in chain(g.me.showncards, g.me.cards):
                         if not cond([c]): continue

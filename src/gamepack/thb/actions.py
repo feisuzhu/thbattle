@@ -389,7 +389,10 @@ class DropCards(GenericAction):
 
         return True
 
-class DropUsedCard(DropCards): pass
+
+class DropUsedCard(DropCards):
+    pass
+
 
 class UseCard(GenericAction):
     def __init__(self, target):
@@ -409,7 +412,8 @@ class UseCard(GenericAction):
             g.process_action(drop)
             return True
 
-class DropCardStage(GenericAction):
+
+class DropCardStage(UserAction):
 
     def cond(self, cards):
         t = self.target
@@ -444,7 +448,7 @@ class DropCardStage(GenericAction):
         self.cards = cards
         return True
 
-class DrawCards(GenericAction):
+class DrawCards(UserAction):
 
     def __init__(self, target, amount=2):
         self.source = self.target = target
@@ -469,7 +473,7 @@ class DrawCardStage(DrawCards):
         return DrawCards.apply_action(self)
 
 
-class BaseLaunchCard(GenericAction):
+class BaseLaunchCard(UserAction):
     pass
 
 

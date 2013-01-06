@@ -423,9 +423,11 @@ class Wine:
     def effect_string(act):
         return u'|G【%s】|r喝醉了…' % act.target.ui_meta.char_name
 
+
 class WineRevive:
     def effect_string(act):
         return u'|G【%s】|r醒酒了。' % act.target.ui_meta.char_name
+
 
 class ExinwanCard:
     # action_stage meta
@@ -441,13 +443,18 @@ class ExinwanCard:
     def is_action_valid(g, cl, target_list):
         return (True, u'哼，哼，哼哼……')
 
-class ExinwanHandler:
+
+class ExinwanEffect:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
             return (True, u'节操给你，离我远点！')
         else:
             return (False, u'请选择两张牌（不选则受到一点无源伤害）')
+
+    def effect_string_before(act):
+        return u'|G【%s】|r被恶心到了！' % act.target.ui_meta.char_name
+
 
 class UseGraze:
     # choose_card meta
