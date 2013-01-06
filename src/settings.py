@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 95'
+VERSION = 'THBATTLE V1.0b incr 96'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -113,6 +113,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+bug修复
 霍青娥技能调整，bug修复，代码重构（可能会引入较多的新bug）
 新人物：霍青娥
 天子可以把牌分给阵亡人物的bug修复
