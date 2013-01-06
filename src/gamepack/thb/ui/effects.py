@@ -380,11 +380,9 @@ def user_input_effects(self, irp):
         if u.GetForegroundWindow() != main_window._hwnd:
             u.FlashWindow(main_window._hwnd, 1)
     
-    g = Game.getgame()
-    if getattr(g, 'current_turn', None) is not g.me:
-        # HACK
-        if irp.tag != 'choose_card_and_player_reject':
-            input_snd_prompt()
+    # HACK
+    if irp.tag != 'choose_card_and_player_reject':
+        input_snd_prompt()
 
 mapping_actions = ddict(dict, {
     'before': {
