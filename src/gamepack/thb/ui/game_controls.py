@@ -737,7 +737,6 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
         self.bot_reserve=74
         self.gray_tex = None
-        self.tagarrange()
         Frame.update(self)
 
     @property

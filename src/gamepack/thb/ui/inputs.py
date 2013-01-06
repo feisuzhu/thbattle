@@ -199,11 +199,10 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                 '''
 
                 # HACK
-                if g.current_turn is not g.me:
-                    if not self._snd_prompt:
-                        from .effects import input_snd_prompt
-                        input_snd_prompt()
-                        self._snd_prompt = True
+                if not self._snd_prompt:
+                    from .effects import input_snd_prompt
+                    input_snd_prompt()
+                    self._snd_prompt = True
 
                 break
 

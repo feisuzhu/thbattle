@@ -237,19 +237,17 @@ def _update_tags(self, p):
         taganims.append(a)
     port.tagarrange()
 
+
 def after_launch_effect(self, act):
     _update_tags(self, act.source)
     for p in act.target_list:
         _update_tags(self, p)
 
+
 def action_stage_effect_before(self, act):
     _update_tags(self, act.target)
 
-
-def action_stage_effect_apply(self, act):
-    g = Game.getgame()
-    if act.target is g.me:
-        input_snd_prompt()
+action_stage_effect_after = action_stage_effect_before
 
 
 def player_turn_effect(self, act):
@@ -264,11 +262,18 @@ def player_turn_effect(self, act):
     self.prompt_raw('--------------------\n')
     _update_tags(self, p)
 
+
 def player_death_update(self, act):
     self.player2portrait(act.target).update()
     _update_tags(self, act.target)
 
-player_turn_after_update = player_death_update
+
+def player_turn_after_update(self, act):
+    global input_snd_enabled
+    player_death_update(self, act)
+    if act.target is Game.getgame().me:
+        input_snd_enabled = True
+
 
 def _aese(_type, self, act):
     meta = getattr(act, 'ui_meta', None)
@@ -358,20 +363,13 @@ def pindian_effect(self, act):
     UIPindianEffect(act, parent=self)
 
 
-__last_sound_time = 0
 def input_snd_prompt():
-    global __last_sound_time
-    from time import time
-    
-    # if time() - __last_sound_time > 6:
-    #     soundmgr.play(common_res.sound.input)
-
     soundmgr.play(common_res.sound.input)
 
-    # intentionally put outside
-    __last_sound_time = time()
 
+input_snd_enabled = True
 def user_input_effects(self, irp):
+    global input_snd_enabled
     import sys
     if sys.platform == 'win32':
         from ctypes import windll
@@ -380,9 +378,17 @@ def user_input_effects(self, irp):
         if u.GetForegroundWindow() != main_window._hwnd:
             u.FlashWindow(main_window._hwnd, 1)
     
+    g = Game.getgame()
+    if getattr(g, 'current_turn', None) is not g.me:
+        input_snd_enabled = True
+
     # HACK
-    if irp.tag != 'choose_card_and_player_reject':
-        input_snd_prompt()
+    if input_snd_enabled:
+        if irp.tag != 'choose_card_and_player_reject':
+            input_snd_prompt()
+        
+    if getattr(g, 'current_turn', None) is g.me:
+        input_snd_enabled = False
 
 mapping_actions = ddict(dict, {
     'before': {
@@ -392,27 +398,27 @@ mapping_actions = ddict(dict, {
         Action: action_effect_before,
     },
     'apply': {
-        ActionStage: action_stage_effect_apply,
         Action: action_effect_string_apply,
         Damage: damage_effect,
-        #Heal: heal_effect,
     },
     'after': {
         PlayerDeath: player_death_update,
         LaunchCard: after_launch_effect,
-        ActionStage: action_stage_effect_before,
+        ActionStage: action_stage_effect_after,
         PlayerTurn: player_turn_after_update,
         Action: action_effect_string_after,
     }
 })
 
+
 def action_effects(_type, self, act):
     cls = act.__class__
+
     while cls is not object:
         f = mapping_actions[_type].get(cls)
-        if f:
-            f(self, act)
+        if f: f(self, act)
         cls = cls.__base__
+
 
 def user_input_start_effects(self, input):
     cturn = getattr(self, 'current_turn', None)

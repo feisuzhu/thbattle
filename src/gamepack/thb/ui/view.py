@@ -41,9 +41,9 @@ class UIEventHook(EventHandler):
         if hasattr(act, 'ui_meta'):
             if getattr(act.ui_meta, 'barrier', False):
                 cls.ui_barrier_schedule(process_msg, ('evt_action_after', act))
-            else:
-                ui_message('evt_action_after', act)
+                return act
 
+        ui_message('evt_action_after', act)
         return act
 
     @classmethod
@@ -149,6 +149,7 @@ class ResultPanel(Panel):
         glColor3f(1, 1, 1)
         self.pic.blit(self.width - pic.width - 10, self.height - pic.height - 10)
 
+
 class GCPBooster(Control):
     enabled = InterpDesc('_enabled')
     def init(self):
@@ -191,11 +192,7 @@ class GCPBooster(Control):
             c.update()
 
     def on_message(self, _type, *args):
-        if _type == 'evt_action_after':
-            self.need_update = True
-            self.update()
-
-        elif _type == 'evt_reseat':
+        if _type == 'evt_reseat':
             self.enabled = ChainInterp(
                 FixedInterp(False, 1.0),
                 FixedInterp(True, 0),
@@ -206,6 +203,7 @@ class GCPBooster(Control):
                 c.caption_lbl.text = u''
 
             self.need_update = True
+
 
 class THBattleUI(Control):
     portrait_location = [
