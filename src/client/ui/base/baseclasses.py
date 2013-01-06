@@ -474,18 +474,13 @@ def init_gui():
         global sched_queue, sched_queue_lock
         if not sched_queue: return
 
-        # NOTE:
-        # Keep it like this
-        # Yeah I mean calling these callbacks
-        # with the lock.
-        # Or UI will choke when intensive callbacks
-        # arrived, eg. observing game.
-        # reason unknown.
         with sched_queue_lock:
-            for func in sched_queue:
-                func()
-
+            queue = sched_queue
             sched_queue = []
+
+        for func in queue:
+            func()
+
 
     pyglet.clock.schedule_interval(_dispatch_msg, delay)
 
