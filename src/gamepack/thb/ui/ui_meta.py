@@ -4213,12 +4213,12 @@ class wine:
 
 class flan_cs:
     tag_anim = lambda p: gres.tag_flandrecs
-    display = lambda p, v: v
+    display = lambda p, v: v and G().current_turn is p
     description = u'玩坏你哦！'
 
 class lunaclock:
     tag_anim = lambda p: gres.tag_lunaclock
-    display = lambda p, v: v
+    display = lambda p, v: v and G().current_turn is p
     description = u'咲夜的时间！'
 
 # -----END TAGS UI META-----

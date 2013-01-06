@@ -15,6 +15,7 @@ class CriticalStrikeAction(GenericAction):
         tgt.tags['flan_targets'] = []
         return True
 
+
 class CriticalStrikeHandler(EventHandler):
     execute_after = ('AttackCardHandler', 'FrozenFrogHandler')
     def handle(self, evt_type, act):
@@ -28,7 +29,7 @@ class CriticalStrikeHandler(EventHandler):
 
             act.amount = max(0, act.amount - 1)
 
-        elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_after' and isinstance(act, ActionStage):
             src = act.target
             if not src.has_skill(CriticalStrike): return act
             st = src.tags
@@ -54,14 +55,16 @@ class CriticalStrikeHandler(EventHandler):
             src = a.source
             st = src.tags
 
+            if not src.has_skill(CriticalStrike): return act
+
             if not st['flan_cs']:
                 if isinstance(a, ActionStageLaunchCard):
-                    if a.source.tags['attack_num'] <= 0:
-                        return (a, False)
+                    if a.card.is_card(AttackCard):
+                        if a.source.tags['attack_num'] <= 0:
+                            return (a, False)
 
                 return act
 
-            if not src.has_skill(CriticalStrike): return act
             if src.has_skill(ElementalReactorSkill): return act
             if not a.card.is_card(AttackCard): return act
             last = set(st['flan_targets'])
@@ -70,6 +73,7 @@ class CriticalStrikeHandler(EventHandler):
                 return (a, False)
 
         return act
+
 
 @register_character
 class Flandre(Character):
