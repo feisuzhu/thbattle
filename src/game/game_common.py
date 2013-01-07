@@ -8,11 +8,23 @@ log = logging.getLogger('Game')
 class TimeLimitExceeded(Timeout):
     pass
 
-class GameError(Exception):
+
+class GameException(Exception):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+
+class GameError(GameException):
     pass
 
-class GameEnded(Exception):
+
+class GameEnded(GameException):
     pass
+
+
+class InterruptActionFlow(GameException):
+    pass
+
 
 class EventHandler(object):
     execute_before = tuple()
@@ -86,6 +98,7 @@ class EventHandler(object):
 class Action(object):
     cancelled = False
     done = False
+    _interrupt_after_me = False
 
     def __new__(cls, *a, **k):
         try:
@@ -124,8 +137,12 @@ class Action(object):
         '''
         return True
 
+    def interrupt_after_me(self):
+        self._interrupt_after_me = True
+
     def __repr__(self):
         return self.__class__.__name__
+
 
 class AbstractPlayer(object):
     def reveal(self, obj_list):
@@ -136,6 +153,7 @@ class AbstractPlayer(object):
 
     def __repr__(self):
         return self.__class__.__name__
+
 
 class Game(object):
     '''
@@ -237,6 +255,9 @@ class Game(object):
             rst = action.succeeded
             action.done = True
 
+            if action._interrupt_after_me:
+                raise InterruptActionFlow
+
         return rst
 
     def get_playerid(self, p):
@@ -275,6 +296,7 @@ class SyncPrimitive(object):
 
     def __data__(self):
         return self.value
+
 
 def sync_primitive(val, to):
     if isinstance(val, list):

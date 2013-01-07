@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList
+from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow
 from game import TimeLimitExceeded
 
 from actions import *
@@ -36,13 +36,11 @@ class DeathHandler(EventHandler):
                     g.winners = pl
                     raise GameEnded
                 else:
-                    g.next_character(tgt)
-                    g.update_event_handlers()
-                    g.process_action(DrawCards(tgt, 4))
-                    tgt.dead = False
-                    g.emit_event('kof_next_character', tgt)
+                    # character switch occurs in KOFCharacterSwitchHandler
                     if tgt is g.current_turn:
-                        raise InterruptActionFlow(tgt)
+                        for a in reversed(g.action_stack):
+                            if isinstance(a, UserAction):
+                                a.interrupt_after_me()
 
             pl = g.players
             if pl[0].dropped:
@@ -52,6 +50,24 @@ class DeathHandler(EventHandler):
             if pl[1].dropped:
                 g.winners = [pl[0]]
                 raise GameEnded
+
+        return act
+
+
+@game_eh
+class KOFCharacterSwitchHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_stage_action' or \
+            (evt_type in { 'action_before', 'action_after'} and isinstance(act, PlayerTurn)):
+
+            g = Game.getgame()
+
+            for p in [p for p in g.players if p.dead and p.characters]:
+                g.next_character(p)
+                g.update_event_handlers()
+                g.process_action(DrawCards(p, 4))
+                p.dead = False
+                g.emit_event('kof_next_character', p)
 
         return act
 

@@ -267,12 +267,6 @@ def register_eh(cls):
 
 # ------------------------------------------
 
-class InterruptActionFlow(Exception):
-    def __init__(self, player):
-        Exception.__init__(self)
-        self.player = player
-
-
 class GenericAction(Action): pass # others
 class UserAction(Action): pass # card/character skill actions
 class InternalAction(Action): pass # actions for internal use
@@ -292,6 +286,8 @@ class PlayerDeath(GenericAction):
             others.reveal(list(cl))
             g.process_action(DropCards(tgt, cl))
             assert not cl
+
+        tgt.skills[:] = []
         return True
 
 
@@ -575,6 +571,7 @@ class ActionStage(GenericAction):
 
         try:
             while not target.dead:
+                g.emit_event('action_stage_action', target)
                 input = target.user_input('action_stage_usecard')
                 check_type([[int, Ellipsis]] * 3, input)
 

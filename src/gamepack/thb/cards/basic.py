@@ -205,6 +205,8 @@ class ExinwanEffect(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
+        if target.dead:
+            return False
 
         cats = [
             target.cards,
