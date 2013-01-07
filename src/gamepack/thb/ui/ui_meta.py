@@ -201,6 +201,9 @@ class THBattleIdentity5:
 # -----BEGIN ACTIONS UI META-----
 __metaclass__ = gen_metafunc(actions)
 
+class UserAction:
+    update_portrait = True
+
 
 class DropCardStage:
     # choose_card meta
@@ -216,7 +219,9 @@ class DropCardStage:
                 act.target.ui_meta.char_name, act.dropn
             )
 
+
 class Damage:
+    update_portrait = True
     def effect_string(act):
         s, t = act.source, act.target
         if s:
@@ -230,6 +235,7 @@ class Damage:
 
 
 class LifeLost:
+    update_portrait = True
     def effect_string(act):
         return u'|G【%s】|r流失了%d点体力。' % (
             act.target.ui_meta.char_name, act.amount
@@ -419,6 +425,7 @@ class WineCard:
             return (True, u'你已经醉了，还要再喝吗？')
         return (True, u'青岛啤酒，神主也爱喝！')
 
+
 class Wine:
     def effect_string(act):
         return u'|G【%s】|r喝醉了…' % act.target.ui_meta.char_name
@@ -490,6 +497,7 @@ class LaunchGraze:
             act.cards[0].ui_meta.name,
         )
 
+
 class UseAttack:
     # choose_card meta
     def choose_card_text(g, act, cards):
@@ -505,6 +513,7 @@ class UseAttack:
             t.ui_meta.char_name,
             act.cards[0].ui_meta.name,
         )
+
 
 class HealCard:
     # action_stage meta
@@ -526,6 +535,7 @@ class HealCard:
         else:
             return (True, u'来一口，精神焕发！')
 
+
 class UseHeal:
     # choose_card meta
     def choose_card_text(g, act, cards):
@@ -534,12 +544,14 @@ class UseHeal:
         else:
             return (False, u'请选择一张【麻薯】…')
 
+
 class Heal:
     def effect_string(act):
         if act.succeeded:
             return u'|G【%s】|r回复了%d点体力。' % (
                 act.target.ui_meta.char_name, act.amount
             )
+
 
 class DemolitionCard:
     # action_stage meta

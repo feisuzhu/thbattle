@@ -374,9 +374,10 @@ class THBattleUI(Control):
             for port in self.char_portraits:
                 port.update()
 
-        elif _type in { 'evt_action_apply', 'evt_action_after' }:
+        elif _type == 'evt_action_after':
             act = args[0]
-            if isinstance(act, actions.UserAction):
+            meta = getattr(act, 'ui_meta', None)
+            if meta and getattr(meta, 'update_portrait', None):
                 pl = set()
                 if act.source:
                     pl.add(act.source)
