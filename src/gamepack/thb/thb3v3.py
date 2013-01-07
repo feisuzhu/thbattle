@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList
+from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow
 from game import TimeLimitExceeded
 
 from actions import *
@@ -49,7 +49,9 @@ class DeathHandler(EventHandler):
                 raise GameEnded
 
             if tgt_dead and tgt is g.current_turn:
-                raise InterruptActionFlow(tgt)
+                for a in reversed(g.action_stack):
+                    if isinstance(a, UserAction):
+                        a.interrupt_after_me()
 
         return act
 

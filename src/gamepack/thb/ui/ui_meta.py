@@ -373,6 +373,7 @@ class HiddenCard:
     def is_action_valid(g, cl, target_list):
         return (False, u'这是BUG，你没法发动这张牌…')
 
+
 class AttackCard:
     # action_stage meta
     image = gres.card_attack
