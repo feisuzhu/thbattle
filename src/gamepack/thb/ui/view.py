@@ -176,6 +176,7 @@ class GCPBooster(Control):
                     GCP.batch_draw_frame(cl)
                 self.need_update = False
             self.dl()
+            GCP.batch_draw_status(cl)
             sc = []
             map(sc.extend, [c.control_list for c in cl])
             GCP.do_draw(sc)

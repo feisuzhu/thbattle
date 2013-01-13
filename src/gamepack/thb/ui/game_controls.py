@@ -570,6 +570,7 @@ class ShownCardPanel(Panel):
         Panel.delete(self)
         ShownCardPanel.current = None
 
+
 class GameCharacterPortrait(Frame, BalloonPrompt):
     dropped = False
     fleed = False
@@ -772,8 +773,6 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
     @staticmethod
     def batch_draw_frame(gcps):
-        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
-
         Frame.batch_draw(gcps)
 
         vertices = []
@@ -837,6 +836,21 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             if port.actor_frame:
                 port.actor_frame.set_position(port.x - 6, port.y - 4)
 
+
+    @staticmethod
+    def batch_draw_hilight(gcps):
+        glColor4f(0, 0, 0, 0.5)
+        for port in gcps:
+            if port.disabled:
+                glRectf(port.x, port.y, port.x + port.width, port.y + port.height)
+
+        glColor4f(1, 1, 0.8, 0.6)
+        for port in gcps:
+            if port.selected:
+                glRectf(port.x, port.y, port.x + port.width, port.y + port.height)
+
+    @staticmethod
+    def batch_draw_status(gcps):
         vertices = []
         for port in gcps:
             p = port.player
@@ -886,25 +900,12 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 glInterleavedArrays(GL_T4F_V4F, 0, buf)
                 glDrawArrays(GL_QUADS, 0, n/8)
 
-        glPopClientAttrib()
-
-    @staticmethod
-    def batch_draw_hilight(gcps):
-        glColor4f(0, 0, 0, 0.5)
-        for port in gcps:
-            if port.disabled:
-                glRectf(port.x, port.y, port.x + port.width, port.y + port.height)
-
-        glColor4f(1, 1, 0.8, 0.6)
-        for port in gcps:
-            if port.selected:
-                glRectf(port.x, port.y, port.x + port.width, port.y + port.height)
-
     @staticmethod
     def batch_draw(gcps):
         glPushMatrix()
         glLoadIdentity()
         GameCharacterPortrait.batch_draw_frame(gcps)
+        GameCharacterPortrait.batch_draw_status(gcps)
         glPopMatrix()
         cl = []
         map(cl.extend, [p.control_list for p in gcps])
