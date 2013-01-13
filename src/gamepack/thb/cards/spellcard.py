@@ -38,6 +38,7 @@ class Demolition(InstantSpellCardAction):
         )
         return True
 
+
 class Reject(InstantSpellCardAction):
     # 好人卡
     def __init__(self, source, target_act):
@@ -50,6 +51,7 @@ class Reject(InstantSpellCardAction):
             return False
         self.target_act.cancelled = True
         return True
+
 
 class LaunchReject(GenericAction):
     def __init__(self, source, target_act, card):
@@ -65,6 +67,7 @@ class LaunchReject(GenericAction):
         g.process_action(DropUsedCard(self.source, [self.card]))
         g.process_action(action)
         return True
+
 
 @register_eh
 class RejectHandler(EventHandler):
@@ -136,10 +139,11 @@ class RejectHandler(EventHandler):
         except CheckFailed:
             return False
 
+
 class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
 
-# TODO: code like this only allow ONE such behavior change.
 
+# TODO: code like this only allow ONE such behavior change.
 class DelayedLaunchCard(BaseLaunchCard):
     def is_valid(self):
         if not self.card: return False
@@ -158,6 +162,7 @@ class DelayedLaunchCard(BaseLaunchCard):
 
         return True
 
+
 @register_eh
 class DelayedSpellCardActionHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -168,6 +173,7 @@ class DelayedSpellCardActionHandler(EventHandler):
                 act.__class__ = DelayedLaunchCard
 
         return act
+
 
 class SealingArray(DelayedSpellCardAction):
     # 封魔阵
@@ -188,6 +194,7 @@ class SealingArray(DelayedSpellCardAction):
         target = self.target
         g.process_action(DropCards(target, [self.associated_card]))
 
+
 @register_eh
 class SealingArrayHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -198,6 +205,7 @@ class SealingArrayHandler(EventHandler):
                 act.cancelled = True
         return act
 
+
 class NazrinRod(InstantSpellCardAction):
     # 纳兹琳的探宝棒
 
@@ -205,6 +213,7 @@ class NazrinRod(InstantSpellCardAction):
         g = Game.getgame()
         g.process_action(DrawCards(self.target, amount=2))
         return True
+
 
 class Sinsack(DelayedSpellCardAction):
     # 罪袋
@@ -237,6 +246,7 @@ class Sinsack(DelayedSpellCardAction):
                     return
                 next += 1
 
+
 class YukariDimension(InstantSpellCardAction):
     # 紫的隙间
 
@@ -263,6 +273,7 @@ class YukariDimension(InstantSpellCardAction):
         source.need_shuffle = True
         return True
 
+
 class BaseDuel(UserAction):
     # 弹幕战
     def __init__(self, source, target, damage=1):
@@ -287,8 +298,10 @@ class BaseDuel(UserAction):
         g.process_action(dact)
         return d[1] is source
 
+
 class Duel(BaseDuel, InstantSpellCardAction):
     pass
+
 
 class MapCannonEffect(InstantSpellCardAction):
     # 地图炮
@@ -304,8 +317,10 @@ class MapCannonEffect(InstantSpellCardAction):
         else:
             return False
 
+
 class MapCannon(ForEach):
     action_cls = MapCannonEffect
+
 
 class SinsackCarnivalEffect(InstantSpellCardAction):
     # 罪袋狂欢
@@ -321,8 +336,10 @@ class SinsackCarnivalEffect(InstantSpellCardAction):
         else:
             return False
 
+
 class SinsackCarnival(ForEach):
     action_cls = SinsackCarnivalEffect
+
 
 class FeastEffect(InstantSpellCardAction):
     # 宴会

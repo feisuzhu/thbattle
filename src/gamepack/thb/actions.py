@@ -319,10 +319,10 @@ class TryRevive(GenericAction):
         tgt.tags['in_tryrevive'] = True
         g = Game.getgame()
         pl = self.asklist
-        from .cards import UseHeal
+        from .cards import LaunchHeal
         for p in pl:
             while True:
-                act = UseHeal(p)
+                act = LaunchHeal(p, tgt)
                 if g.process_action(act):
                     cards = act.cards
                     if not cards: continue

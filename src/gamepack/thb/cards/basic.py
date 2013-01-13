@@ -122,15 +122,30 @@ class UseAttack(UseCard):
             (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
         )
 
-class UseHeal(UseCard):
+
+class LaunchHeal(UserAction):
+    def apply_action(self):
+        g = Game.getgame()
+        src = self.source
+        cards = user_choose_cards(self, src)
+        if not cards:
+            self.cards = []
+            return False
+        else:
+            self.cards = cards
+            drop = DropUsedCard(src, cards=cards)
+            g.process_action(drop)
+            return True
+
     def cond(self, cl):
         from .. import cards
-        t = self.target
+        t = self.source
         return (
             len(cl) == 1 and
             cl[0].is_card(cards.HealCard) and
             (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
         )
+
 
 class Wine(BasicAction):
     def apply_action(self):
