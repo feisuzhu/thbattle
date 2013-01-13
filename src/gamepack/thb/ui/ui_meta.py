@@ -912,6 +912,7 @@ class ElementalReactorCard:
 
     is_action_valid = equip_iav
 
+
 class ElementalReactorSkill:
     # Skill
     name = u'八卦炉'
@@ -922,6 +923,7 @@ class ElementalReactorSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class UmbrellaCard:
     # action_stage meta
     name = u'阳伞'
@@ -929,10 +931,11 @@ class UmbrellaCard:
     image_small = gres.card_umbrella_small
     description = (
         u'|R阳伞|r\n\n'
-        u'装备后不受【地图炮】和【罪袋狂欢】的影响。'
+        u'装备后符卡造成的伤害对你无效。'
     )
 
     is_action_valid = equip_iav
+
 
 class UmbrellaSkill:
     # Skill
@@ -943,6 +946,18 @@ class UmbrellaSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
+
+class UmbrellaEffect:
+    def effect_string_before(act):
+        a = act.action
+        card = getattr(a, 'associated_card', None)
+        s = u'|G%s|r' % card.ui_meta.name if card else u''
+        return u'|G【%s】|r受到的%s效果被|G阳伞|r挡下了' % (
+            act.target.ui_meta.char_name,
+            s,
+        )
+
 
 class RoukankenCard:
     # action_stage meta
