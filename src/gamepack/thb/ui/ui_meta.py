@@ -201,9 +201,6 @@ class THBattleIdentity5:
 # -----BEGIN ACTIONS UI META-----
 __metaclass__ = gen_metafunc(actions)
 
-class UserAction:
-    update_portrait = True
-
 
 class DropCardStage:
     # choose_card meta
@@ -266,6 +263,7 @@ class LaunchCard:
 
 class PlayerDeath:
     barrier = True
+    update_portrait = True
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|rMISS了。' % (
