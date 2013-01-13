@@ -19,6 +19,19 @@ class AncientPixGlyphRenderer(GlyphRenderer):
         datasz = int(ceil(w/8.))*h
         import Image
 
+        suit = u'♠♡♣♢'
+        if char in suit:
+            # special case for suits
+            i = suit.index(char)
+            if h == 12:
+                grid = self.font.suit12
+            else:
+                grid = self.font.suit16
+
+            glyph = self.font.create_glyph(grid[i])
+            glyph.set_bearings(1, -2, 12)
+            return glyph
+
         if asc < 128: # ASCII
             w /= 2
             datasz /= 2
@@ -69,6 +82,18 @@ class AncientPixFont(Font):
         # Lazy loading
         from ..resource import font as fontdata
         return fontdata
+
+    @property
+    def suit12(self):
+        # Lazy loading
+        from ..resource import suit12
+        return suit12
+
+    @property
+    def suit16(self):
+        # Lazy loading
+        from ..resource import suit16
+        return suit16
 
     def __init__(self, name, size, bold=False, italic=False, dpi=None):
         Font.__init__(self)

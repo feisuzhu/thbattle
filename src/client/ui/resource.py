@@ -123,5 +123,8 @@ with ResLoader(__file__) as args:
     sound = DataHolder()
     sound.input = ldr.media(fname('se/se_bonus.ogg'), streaming=False)
 
+    suit12 = pyglet.image.ImageGrid(img('suit12.png'), 1, 4)
+    suit16 = pyglet.image.ImageGrid(img('suit16.png'), 1, 4)
+
     for k in args.keys(): del k
     del args

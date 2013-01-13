@@ -83,6 +83,21 @@ def my_turn(g):
 
     return True
 
+C = cards.Card
+ftstring = {
+    C.SPADE: u'|r♠',
+    C.HEART: u'|r|cb03a11ff♡',
+    C.CLUB: u'|r♣',
+    C.DIAMOND: u'|r|cb03a11ff♢',
+}
+del C
+
+def card_desc(c):
+    suit = ftstring.get(c.suit, u'|r错误')
+    num = ' A23456789_JQK'[c.number]
+    if num == '_': num = '10'
+    return suit + num + ' |G%s|r' % c.ui_meta.name
+
 # -----END COMMON FUNCTIONS-----
 
 # -----BEGIN THB3v3 UI META-----
@@ -212,8 +227,9 @@ class DropCardStage:
 
     def effect_string(act):
         if act.dropn > 0:
-            return u'|G【%s】|r弃掉了%d张牌。' % (
-                act.target.ui_meta.char_name, act.dropn
+            s = u'、'.join(card_desc(c) for c in act.cards)
+            return u'|G【%s】|r弃掉了%d张牌：%s' % (
+                act.target.ui_meta.char_name, act.dropn, s,
             )
 
 
@@ -271,27 +287,12 @@ class PlayerDeath:
         )
 
 
-C = cards.Card
-ftstring = {
-    C.SPADE: u'|r|B[黑桃 ',
-    C.HEART: u'|r|R|B[红桃 ',
-    C.CLUB: u'|r|B[草花 ',
-    C.DIAMOND: u'|r|R|B[方片 ',
-}
-del C
-
-def card_suitnum(c):
-    suit = ftstring.get(c.suit, u'|r[错误 ')
-    num = ' A23456789_JQK'[c.number]
-    if num == '_': num = '10'
-    return suit + num + ']|r'
-
 class Fatetell:
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|r进行了一次判定，判定结果为%s' % (
             tgt.ui_meta.char_name,
-            card_suitnum(act.card)
+            card_desc(act.card)
         )
 
 
@@ -300,7 +301,7 @@ class TurnOverCard:
         tgt = act.target
         return u'|G【%s】|r翻开了牌堆顶的一张牌，%s' % (
             tgt.ui_meta.char_name,
-            card_suitnum(act.card)
+            card_desc(act.card)
         )
 
 
@@ -535,13 +536,20 @@ class HealCard:
             return (True, u'来一口，精神焕发！')
 
 
-class UseHeal:
+class LaunchHeal:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'神说，你不能在这里MISS')
+            return (True, u'神说，你不能在这里MISS(对%s使用)' % act.target.ui_meta.char_name)
         else:
-            return (False, u'请选择一张【麻薯】…')
+            return (False, u'请选择一张【麻薯】(对%s使用)…' % act.target.ui_meta.char_name)
+
+    def effect_string(act):
+        if act.succeeded:
+            return u'|G【%s】|r对|G【%s】|r使用了|G麻薯|r。' % (
+                act.source.ui_meta.char_name,
+                act.target.ui_meta.char_name,
+            )
 
 
 class Heal:
@@ -571,14 +579,16 @@ class DemolitionCard:
         else:
             return (True, u'嗯，你的牌太多了')
 
+
 class Demolition:
     def effect_string(act):
         if not act.succeeded: return None
-        return u'|G【%s】|r卸掉了|G【%s】|r的|G%s|r。' % (
+        return u'|G【%s】|r卸掉了|G【%s】|r的%s。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
-            act.card.ui_meta.name,
+            card_desc(act.card),
         )
+
 
 class RejectCard:
     # action_stage meta
@@ -2928,7 +2938,7 @@ class FirstAid:
         except IndexError:
             return False
 
-        if isinstance(act, cards.UseHeal):
+        if isinstance(act, cards.LaunchHeal):
             return True
 
         return False
@@ -3016,7 +3026,7 @@ class TrialAction:
         return u'幻想乡各地巫女妖怪纷纷表示坚决拥护|G【%s】|r将|G【%s】|r的判定结果修改为%s的有关决定！' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
-            card_suitnum(act.card)
+            card_desc(act.card)
         )
 
 class Majesty:
