@@ -5,11 +5,13 @@ from ..cards import *
 
 from utils import classmix
 
+
 class Mijincihangzhan(Skill):
     # 迷津慈航斩
     # compulsory skill, just a tag.
     associated_action = None
     target = t_None
+
 
 class Nitoryuu(Skill):
     # 二刀流
@@ -17,11 +19,13 @@ class Nitoryuu(Skill):
     associated_action = None
     target = t_None
 
+
 class Xianshiwangzhi(Skill):
     # 现世妄执
     # compulsory skill, just a tag.
     associated_action = None
     target = t_None
+
 
 class MijincihangzhanAttack(Attack):
     def apply_action(self):
@@ -37,6 +41,7 @@ class MijincihangzhanAttack(Attack):
 
         g.process_action(Damage(source, target, amount=self.damage))
         return True
+
 
 class MijincihangzhanDuelMixin(object):
     # 迷津慈航斩 弹幕战
@@ -63,11 +68,14 @@ class MijincihangzhanDuelMixin(object):
         g.process_action(dact)
         return d[1] is source
 
+
 class XianshiwangzhiAwake(GenericAction):
     def apply_action(self):
         tgt = self.target
         tgt.skills.append(Xianshiwangzhi)
+        tgt.tags['attack_num'] += 1
         return True
+
 
 class YoumuWearEquipmentAction(UserAction):
     def apply_action(self):
@@ -99,8 +107,10 @@ class YoumuWearEquipmentAction(UserAction):
         migrate_cards([card], target.equips)
         return True
 
+
 class YoumuHandler(EventHandler):
     execute_before = ('ScarletRhapsodySwordHandler', )
+    execute_after = ('AttackCardHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
             if isinstance(act, Attack):
@@ -118,6 +128,7 @@ class YoumuHandler(EventHandler):
                 a.tags['attack_num'] += 1
 
         return act
+
 
 @register_character
 class Youmu(Character):

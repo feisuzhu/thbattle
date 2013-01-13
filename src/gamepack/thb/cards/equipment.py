@@ -156,20 +156,6 @@ class ElementalReactorSkill(basic.FreeAttackSkill, WeaponSkill):
     range = 1
 
 
-class UmbrellaSkill(ShieldSkill):
-    pass
-
-@register_eh
-class UmbrellaHandler(EventHandler):
-    # 紫的阳伞
-    execute_before = ('RejectHandler', )
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before':
-            if isinstance(act, (spellcard.MapCannonEffect, spellcard.SinsackCarnivalEffect)):
-                if act.target.has_skill(UmbrellaSkill):
-                    act.cancelled = True
-        return act
-
 class RoukankenSkill(WeaponSkill):
     range = 3
     associated_action = None
@@ -329,7 +315,7 @@ class MaidenCostumeHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SinsackCarnivalEffect):
             target = act.target
-            if target.has_skill(MaidenCostumeSkill):
+            if not act.cancelled and target.has_skill(MaidenCostumeSkill):
                 act.cancelled = True
                 nact = MaidenCostumeEffect(source=act.source, target=target)
                 nact.associated_card = act.associated_card
@@ -388,6 +374,50 @@ class HouraiJewelHandler(EventHandler):
             if user_choose_option(self, src):
                 act.__class__ = HouraiJewelAttack
         return act
+
+
+class UmbrellaSkill(ShieldSkill):
+    pass
+
+
+class UmbrellaEffect(GenericAction):
+    def __init__(self, act):
+        self.source = self.target = act.target
+        self.action = act
+
+    def apply_action(self):
+        return True
+
+
+@register_eh
+class UmbrellaHandler(EventHandler):
+    # 紫的阳伞
+    execute_before = ('RejectHandler', )
+    blocks = (
+        spellcard.MapCannonEffect,
+        spellcard.SinsackCarnivalEffect,
+        spellcard.Duel,
+        HouraiJewelAttack,
+    )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before':
+            if isinstance(act, self.blocks):
+                if not act.target.has_skill(UmbrellaSkill): return act
+                act.cancelled = True
+                Game.getgame().process_action(UmbrellaEffect(act))
+
+            elif isinstance(act, Damage):
+                if not act.target.has_skill(UmbrellaSkill): return act
+                g = Game.getgame()
+                pact = g.action_stack[-1]
+
+                if isinstance(pact, spellcard.SpellCardAction):
+                    act.cancelled = True
+                    Game.getgame().process_action(UmbrellaEffect(pact))
+
+        return act
+
 
 class SaigyouBranch(FatetellAction):
     def __init__(self, source, act):
