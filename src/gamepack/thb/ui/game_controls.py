@@ -773,6 +773,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
     @staticmethod
     def batch_draw_frame(gcps):
+        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         Frame.batch_draw(gcps)
 
         vertices = []
@@ -836,6 +837,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             if port.actor_frame:
                 port.actor_frame.set_position(port.x - 6, port.y - 4)
 
+        glPopClientAttrib()
 
     @staticmethod
     def batch_draw_hilight(gcps):
@@ -851,6 +853,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
     @staticmethod
     def batch_draw_status(gcps):
+        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         vertices = []
         for port in gcps:
             p = port.player
@@ -899,6 +902,8 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 buf[:] = vertices
                 glInterleavedArrays(GL_T4F_V4F, 0, buf)
                 glDrawArrays(GL_QUADS, 0, n/8)
+
+        glPopClientAttrib()
 
     @staticmethod
     def batch_draw(gcps):
