@@ -81,7 +81,6 @@ def start_ui():
 
     Executive.call('update', update_callback, lambda *a: ui_schedule(us.update_message, *a))
 
-
     # workaround for pyglet's bug
     if sys.platform == 'win32':
         import pyglet.app.win32

@@ -6,6 +6,17 @@ import argparse
 reload(sys)
 sys.setdefaultencoding(sys.getfilesystemencoding())
 
+parser = argparse.ArgumentParser(prog=sys.argv[0])
+parser.add_argument('--testing', action='store_true')
+parser.add_argument('--no-update', action='store_true')
+parser.add_argument('--with-gl-errcheck', action='store_true')
+parser.add_argument('--freeplay', action='store_true')
+
+options = parser.parse_args()
+
+import options as opmodule
+opmodule.options = options
+
 from utils import hook
 
 class Tee(object):
@@ -27,80 +38,54 @@ logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.INFO)
 log = logging.getLogger('__main__')
 
-_sync_evt = threading.Event()
+import gevent
+from gevent import monkey
+monkey.patch_socket()
 
-class MainThread(threading.Thread):
-    def run(self):
-        import utils; utils.patch_gevent_hub()
+from gevent import socket, dns
 
-        import gevent
-        from gevent import monkey
-        monkey.patch_socket()
+@hook(socket)
+def getaddrinfo(ori, host, port, family=0, socktype=0, proto=0, flags=0):
+    while True:
+        try:
+            # WARNING:
+            # Don't change the 'family'!
+            # gevent 0.13 on Windows doesn't handle IPv6 well!
+            return ori(host, port, socket.AF_INET, socktype, proto, flags)
+        except dns.DNSError as e:
+            if not e.errno == 2: # dns server fail thing
+                raise
+        gevent.sleep(0.15)
 
-        from gevent import socket, dns
+@hook(socket)
+def gethostbyname(ori, hostname):
+    while True:
+        try:
+            return ori(hostname)
+        except dns.DNSError as e:
+            if not e.errno == 2: # dns server fail thing
+                raise
+        gevent.sleep(0.15)
 
-        @hook(socket)
-        def getaddrinfo(ori, host, port, family=0, socktype=0, proto=0, flags=0):
-            while True:
-                try:
-                    # WARNING:
-                    # Don't change the 'family'!
-                    # gevent 0.13 on Windows doesn't handle IPv6 well!
-                    return ori(host, port, socket.AF_INET, socktype, proto, flags)
-                except dns.DNSError as e:
-                    if not e.errno == 2: # dns server fail thing
-                        raise
-                gevent.sleep(0.15)
-
-        @hook(socket)
-        def gethostbyname(ori, hostname):
-            while True:
-                try:
-                    return ori(hostname)
-                except dns.DNSError as e:
-                    if not e.errno == 2: # dns server fail thing
-                        raise
-                gevent.sleep(0.15)
-
-        # -----------------------------------------
-
-        autoenv.init('Client')
-        
-        from client.core import Executive
-
-        # for dbg
-        '''
-        from gevent import signal as gsig
-        import signal
-        def print_stack():
-            game = Executive.gm_greenlet.game
-            import traceback
-            traceback.print_stack(game.gr_frame)
-        gsig(signal.SIGUSR1, print_stack)
-        # -------
-        '''
-
-        _sync_evt.set()
-        Executive.run()
+# -----------------------------------------
 
 from game import autoenv
+autoenv.init('Client')
 
-parser = argparse.ArgumentParser(prog=sys.argv[0])
-parser.add_argument('--testing', action='store_true')
-parser.add_argument('--no-update', action='store_true')
-parser.add_argument('--with-gl-errcheck', action='store_true')
-parser.add_argument('--freeplay', action='store_true')
+from client.core import Executive
 
-options = parser.parse_args()
+# for dbg
+'''
+from gevent import signal as gsig
+import signal
+def print_stack():
+    game = Executive.gm_greenlet.game
+    import traceback
+    traceback.print_stack(game.gr_frame)
+gsig(signal.SIGUSR1, print_stack)
+# -------
+'''
 
-import options as opmodule
-opmodule.options = options
-
-mt = MainThread()
-mt.start()
-
-_sync_evt.wait()
-del _sync_evt
 
 import pyglet
 
@@ -125,5 +110,4 @@ except:
     import pyglet
     pyglet.app.exit()
 
-from client.core import Executive
 Executive.call('app_exit')
