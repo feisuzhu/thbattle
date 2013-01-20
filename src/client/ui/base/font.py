@@ -29,7 +29,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
                 grid = self.font.suit16
 
             glyph = self.font.create_glyph(grid[i])
-            glyph.set_bearings(1, -2, 12)
+            glyph.set_bearings(1, -2, 13)
             return glyph
 
         if asc < 128: # ASCII

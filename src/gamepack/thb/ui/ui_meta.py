@@ -2905,6 +2905,15 @@ class Surprise:
         (u'草花', cards.Card.CLUB),
         (u'方片', cards.Card.DIAMOND),
     )
+
+    # choose_option
+    choose_option_buttons = (
+        (u'♠', cards.Card.SPADE),
+        (u'♡', cards.Card.HEART),
+        (u'♣', cards.Card.CLUB),
+        (u'♢', cards.Card.DIAMOND),
+    )
+
     choose_option_prompt = u'请选择一个花色…'
 
     def effect_string(act):
