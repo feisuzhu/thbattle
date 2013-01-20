@@ -46,6 +46,7 @@ class BatchList(list):
         n = len(self)
         return self.__class__((self*2)[i:i+n])
 
+
 class IRP(object):
     '''I/O Request Packet'''
     complete_tag = object()
@@ -54,19 +55,13 @@ class IRP(object):
         self.queue = Queue()
 
     def complete(self):
-        from gevent_extension import the_hub
-        the_hub.interrupt(self.queue.put, self.complete_tag)
+        # from gevent_extension import the_hub
+        self.queue.put(self.complete_tag)
+        # the_hub.interrupt(self.queue.put, self.complete_tag)
 
     def wait(self):
-        for f in self.queue:
-            if f is self.complete_tag:
-                break
-            else:
-                f()
+        self.queue.get()
 
-    def do_callback(self, func):
-        from gevent_extension import the_hub
-        the_hub.interrupt(self.queue.put, func)
 
 class ScissorBox(object):
     exc = Exception('ScissorBox Invalid')

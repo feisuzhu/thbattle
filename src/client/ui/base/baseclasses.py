@@ -472,6 +472,11 @@ def init_gui():
 
     def _dispatch_msg(dt):
         global sched_queue, sched_queue_lock
+        import gevent
+
+        # give logics a chance to run
+        gevent.sleep(0)
+
         if not sched_queue: return
 
         with sched_queue_lock:

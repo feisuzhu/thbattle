@@ -11,7 +11,9 @@ from account import Account
 import logging
 log = logging.getLogger('Executive')
 
+
 class ForcedKill(gevent.GreenletExit): pass
+
 
 class GameManager(Greenlet):
     '''
@@ -174,14 +176,17 @@ class GameManager(Greenlet):
             else:
                 self.event_cb(cmd, data)
 
-class Executive(object):
+
+class Executive(Greenlet):
     '''
     Handles UI commands
-    not a Greenlet since main greenlet run this directly.
     '''
     def __init__(self):
-        from utils import ITIEvent
-        self.event = ITIEvent()
+        Greenlet.__init__(self)
+        # from utils import ITIEvent
+        # self.event = ITIEvent()
+        from gevent.event import Event
+        self.event = Event()
         self.msg_queue = []
         # This callback is called when executive completed a request
         # Called with these args:
@@ -195,7 +200,7 @@ class Executive(object):
         self.msg_queue.append((_type, cb, args))
         self.event.set()
 
-    def run(self):
+    def _run(self):
         handlers = {}
         def handler(f):
             handlers[f.__name__] = f
@@ -303,4 +308,4 @@ class Executive(object):
             self.msg_queue = []
             self.event.clear()
 
-Executive = Executive()
+Executive = Executive.spawn()

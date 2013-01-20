@@ -758,9 +758,8 @@ class GameScreen(Screen):
             self.remove_control(self.panel)
             self.gameui.init()
             self.add_control(self.gameui)
-            #self.game.start()
-            import utils
-            utils.hub_interrupt(self.game.start)
+            self.game.start()
+            # utils.hub_interrupt(self.game.start)
         elif _type == 'end_game':
             self.remove_control(self.gameui)
             self.add_control(self.panel)
