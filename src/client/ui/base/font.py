@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import pyglet
+from pyglet.gl import GL_ALPHA, GL_TEXTURE_2D
 from pyglet.font.base import GlyphRenderer, Font, FontException
 from math import ceil
+import Image
+
 
 class AncientPixGlyphRenderer(GlyphRenderer):
     gbk_cols = 191
@@ -12,40 +15,56 @@ class AncientPixGlyphRenderer(GlyphRenderer):
         self.font = font
 
     def render(self, text):
-        h = int(self.font.size*4/3)
-        w = h
         char = u'⑨' if self.font.password else text[0]
         asc = ord(char)
-        datasz = int(ceil(w/8.))*h
-        import Image
+        font = self.font
+        if font.italic:
+            if font.bold:
+                suffix = 'SHADOWTHICK'
+            else:
+                suffix = 'SHADOWTHIN'
+        else:
+            suffix = 'BLOAT'
 
-        suit = u'♠♡♣♢'
-        if char in suit:
+        if font.size == 9:
+            suffix = '12' + suffix
+        else:
+            suffix = '16' + suffix
+
+        if char in u'♠♡♣♢':
             # special case for suits
             i = suit.index(char)
-            if h == 12:
-                grid = self.font.suit12
+            if font.size == 9:
+                grid = font.suit12
             else:
-                grid = self.font.suit16
+                grid = font.suit16
 
-            glyph = self.font.create_glyph(grid[i])
-            glyph.set_bearings(1, -2, 13)
+            glyph = font.create_glyph(grid[i])
+            glyph.set_bearings(1, -2, h + 1)
             return glyph
 
-        if asc < 128: # ASCII
-            w /= 2
-            datasz /= 2
-            fontdata = self.font.fontdata['ASC%d' % h]
-            loc = asc*datasz
+        elif asc < 128:  # ASCII
+            h = int(font.size*4/3)
+            w = h // 2
+            w += 4
+            h += 4
+            datasz = int(ceil(w/8.))*h
+
+            fontdata = self.font.fontdata['ASC%s' % suffix]
+            loc = asc * datasz
             data = fontdata[loc:loc+datasz]
             i = Image.fromstring('1', (w, h), data).convert('L')
             bbox = i.getbbox()
             if bbox:
-                bbox = (bbox[0], 0, bbox[2], h)
+                bbox = (bbox[0] - 2, 0, bbox[2] + 2, h)
+                print bbox
                 i = i.crop(bbox)
                 w = bbox[2] - bbox[0]
             # else: space/return/etc..
-        else: #GBK
+
+        else:  # GBK
+            w = h = int(font.size*4/3) + 4
+            datasz = int(ceil(w/8.))*h
             try:
                 gbk = char.encode('gbk')
             except UnicodeEncodeError:
@@ -54,28 +73,39 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             col = (256 + ord(gbk[1]) - 0x40) & 0xff
             loc = rol * self.gbk_cols + col
             loc *= datasz
-            fontdata = self.font.fontdata['GBK%d' % h]
+            fontdata = self.font.fontdata['GBK%s' % suffix]
             data = fontdata[loc:loc+datasz]
             i = Image.fromstring('1', (w, h), data).convert('L')
 
-        ii = Image.new('L', (w+4, h+4))
+        ii = i
         if self.font.bold:
-            ii.paste(i, (3, 2))
-            ii.paste(i, (2, 2), i)
-        else:
-            ii.paste(i, (2, 2))
+            ii = Image.new('L', (w, h))
+            ii.paste(i, (1, 0))
+            ii.paste(i, (0, 0), i)
 
-        img = pyglet.image.ImageData(w+4, h+4, 'A', ii.tostring())
+        img = pyglet.image.ImageData(w, h, 'A', ii.tostring())
         glyph = self.font.create_glyph(img)
-        glyph.set_bearings(2, -2, w+1)
+        glyph.set_bearings(2, -2, w - 4 + 1)
         t = list(glyph.tex_coords)
         glyph.tex_coords = t[9:12] + t[6:9] + t[3:6] + t[:3]
         return glyph
 
+
 class AncientPixFont(Font):
     glyph_renderer_class = AncientPixGlyphRenderer
-    texture_width = 512
+    texture_width = 1024
     texture_height = 1024
+    _font_texture = [pyglet.image.Texture.create_for_size(
+        GL_TEXTURE_2D, texture_width, texture_height, GL_ALPHA,
+    )]
+
+    @property
+    def texture(self):
+        return self._font_texture
+
+    @texture.setter
+    def texture(self, val):
+        pass
 
     @property
     def fontdata(self):
@@ -102,6 +132,7 @@ class AncientPixFont(Font):
 
         self._size = size
         self.bold = bold
+        self.italic = italic
 
         self.password = (name == 'AncientPixPassword')
 
