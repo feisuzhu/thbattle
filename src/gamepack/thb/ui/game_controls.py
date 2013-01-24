@@ -786,7 +786,6 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 r, g, b, x+x1, y+y2, 0,
             ])
 
-        glPolygonMode(GL_BACK, GL_LINE)
         for port in gcps:
             w, h = port.width, port.height
             # equip box
@@ -801,8 +800,6 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         buf[:] = vertices
         glInterleavedArrays(GL_C3F_V3F, 0, buf)
         glDrawArrays(GL_QUADS, 0, len(vertices)/6)
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
         # char name
         f = pyglet.font.load('AncientPix', size=9)

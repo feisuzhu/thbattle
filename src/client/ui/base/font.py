@@ -57,7 +57,6 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             bbox = i.getbbox()
             if bbox:
                 bbox = (bbox[0] - 2, 0, bbox[2] + 2, h)
-                print bbox
                 i = i.crop(bbox)
                 w = bbox[2] - bbox[0]
             # else: space/return/etc..

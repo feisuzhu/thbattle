@@ -500,3 +500,14 @@ class EnumMeta(type):
 
 class Enum(object):
     __metaclass__ = EnumMeta
+
+
+def flatten(l):
+    rst = []
+    for i in l:
+        if isinstance(i, (list, tuple)):
+            rst.extend(flatten(i))
+        else:
+            rst.append(i)
+
+    return rst
