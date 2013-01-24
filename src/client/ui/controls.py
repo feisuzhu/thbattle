@@ -3,13 +3,14 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
+from pyglet.graphics import OrderedGroup
 from client.ui.base import *
 from client.ui.base import ui_message, ui_schedule
 from client.ui.base.shader import ShaderGroup, ShaderUniformGroup
 from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
 from client.core import Executive
-from utils import Rect, Framebuffer, DisplayList, textsnap
+from utils import Rect, Framebuffer, DisplayList, textsnap, flatten
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
 
@@ -111,6 +112,7 @@ class Colors:
     def get4i(c):
         return c + (255, )
 
+
 class Button(Control):
     NORMAL=0
     HOVER=1
@@ -121,62 +123,85 @@ class Button(Control):
 
     def __init__(self, caption='Button', color=Colors.green, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
+        self._batch = None
         self.caption = caption
         self._state = Button.NORMAL
         self.state = Button.NORMAL
         self.hover_alpha = 0.0
+
+        self.need_update = True
         self.color = color
 
-        self._dl = DisplayList()
-        self._dl_gray = DisplayList()
-
-        self.update()
-
     def update(self):
-        lbl = pyglet.text.Label(
-            self.caption, u'AncientPix', 9,
-            color=self.color.text + (255,),
-            x=self.width//2, y=self.height//2,
-            anchor_x='center', anchor_y='center'
-        )
+        if self._batch:
+            self._batch.need_update = True
+
+    def _fill_batch(self, batch):
+        ax, ay = self.abs_coords()
         w, h = self.width, self.height
 
-        def color(rgb):
-            r, g, b = rgb
-            return r/255., g/255., b/255., 1.0
+        color = self.color
 
-        def gray(rgb):
-            r, g, b = rgb
-            l = r*.3/255 + g*.59/255 + b*.11/255
-            return l, l, l, 1.0
+        up, down = Colors.get4f(color.fill_up), Colors.get4f(color.fill_down)
+        heavy = Colors.get4f(self.color.heavy)
+        color_array = flatten([
+            down, down, up, up, [heavy]*4
+        ])
 
-        def build(func, dl):
-            with dl:
-                glColor4f(*func(self.color.fill_down))
-                glRectf(0.0, 0.0, w, h*.5)
-                glColor4f(*func(self.color.fill_up))
-                glRectf(0.0, h*.5, w, h)
+        batch.add(8, GL_QUADS, None,
+            ('v2f', (
+                ax, ay,  ax + w, ay,  ax + w, ay + h, ax, ay + h,
+                ax, ay,  ax, ay + h,  ax + w, ay + h, ax + w, ay,
+            )),
+            ('c4f', color_array),
+        )
 
-                glBegin(GL_LINES)
-                glColor4f(*func(self.color.fill_medline))
-                glVertex2f(0, h*.5); glVertex2f(w, h*.5)
-                glColor4f(*func(self.color.fill_botline))
-                glVertex2f(0, 2); glVertex2f(w, 2)
-                glEnd()
+        pyglet.text.Label(
+            self.caption, u'AncientPix', 9,
+            color=color.text + (255,),
+            x=(ax + self.width // 2), y=(ay + self.height // 2),
+            anchor_x='center', anchor_y='center', batch=batch
+        )
 
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-                glColor4f(*func(self.color.heavy))
-                glRectf(1., 1., w, h)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        self.hilight_vl = batch.add(4, GL_QUADS, None, 
+            ('v2f', (ax, ay,  ax + w, ay,  ax + w, ay + h, ax, ay + h)),
+            ('c4f/stream', [0.0] * (4 * 4)),
+        )
 
-                lbl.draw()
+    @staticmethod
+    def batch_draw(btns):
+        glPushMatrix()
+        glLoadIdentity()
+        batch_list = set([b._batch for b in btns])
+        batch = list(batch_list)[0]
+        if len(batch_list) != 1 or not batch or batch.need_update:
+            if batch:
+                for b in batch.buttons:
+                    b._batch = None
 
-        build(color, self._dl)
+            batch = pyglet.graphics.Batch()
+            batch.buttons = btns[:]
+            batch.need_update = False
+            for b in btns:
+                b._batch = batch
+                b._fill_batch(batch)
 
-        r, g, b = self.color.text
-        l = int(r*.3 + g*.59 + b*.11)
-        lbl.color = (l, l, l, 255)
-        build(gray, self._dl_gray)
+        for b in btns:
+            if b.state == Button.DISABLED:
+                continue
+
+            hilight = (0., 0., 0., 0.)
+            if b.state == Button.PRESSED:
+                hilight = (0., 0., 0., .25)
+            else:
+                a = b.hover_alpha
+                if a: # HOVER, or HOVER -> NORMAL
+                    hilight = (1.0, 1.0, .843, a)
+
+            b.hilight_vl.colors[:] = hilight * 4
+
+        batch.draw()
+        glPopMatrix()
 
     def draw(self):
         glColor3f(1.0, 1.0, 1.0)
@@ -227,7 +252,21 @@ class Button(Control):
             self.hover_alpha = LinearInterp(
                 .25, 0, .17
             )
+        else:
+            self.update()
+
     state = property(_get_state, _set_state)
+
+    def _get_color(self):
+        if self._state == Button.DISABLED:
+            return Colors.gray
+
+        return self._color
+
+    def _set_color(self, val):
+        self._color = val
+
+    color = property(_get_color, _set_color)
 
 
 class ImageButton(Control):
@@ -720,9 +759,7 @@ class TextBox(Control):
         glColor3f(*fill)
         glRectf(0, 0, w, h)
         glColor3f(*border)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glRectf(0, 0, w, h)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glRectf(0, h, w, 0)
         self.layout.draw()
 
     def on_focus(self):
@@ -1480,10 +1517,8 @@ class Panel(Control):
         glColor4f(1, 1, 1, .3)
         glRectf(1.5, 1.5, -1.5+w, -1.5+h)
         glColor3f(*[i/255.0 for i in self.color.frame])
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glRectf(-1.5+w, -1.5+h, 1.5, 1.5)
+        glRectf(-1.5+w, 1.5, 1.5, -1.5+h)
         glLineWidth(1.0)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
         self.draw_subcontrols()
 
@@ -1545,9 +1580,7 @@ class ImageSelector(Control):
             self.image.blit(0, 0)
 
         glColor3f(0.757, 1.0, 0.384)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glRectf(0, 0, self.width, self.height)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glRectf(0, self.height, self.width, 0)
 
         if self.selected:
             common_res.imagesel_shine.blit(-11, -11)

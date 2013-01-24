@@ -86,14 +86,10 @@ class DeckIndicator(Control):
         except AttributeError:
             return
 
-        glPolygonMode(GL_BACK, GL_LINE)
-
         glColor3f(*[i/255.0 for i in Colors.blue.light])
         glRectf(0, 0,  w, h)
         glColor3f(*[i/255.0 for i in Colors.blue.heavy])
         glRectf(0, h, w, 0)
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
         glColor3f(1, 1, 1)
         try:

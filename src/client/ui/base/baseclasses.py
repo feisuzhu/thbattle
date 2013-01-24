@@ -117,66 +117,7 @@ class Control(pyglet.event.EventDispatcher):
         glPopMatrix()
 
     def draw(self):
-        # default behavior
-        if not hasattr(self, 'label'):
-            '''
-            w, h = self.width, self.height
-            batch = pyglet.graphics.Batch()
-            glColor3f(1,1,1)
-            batch.add(4, GL_QUADS, None, ('v2i', (
-                0,0, 0,h, w,h, w,0,
-            )))
-            glColor3f(0,0,0)
-            batch.add(
-                5, GL_LINE_STRIP, None,
-                ('v2i', Rect(0,0,w,h).glLineStripVertices()),
-            )
-
-            v = []
-            v.extend(Rect(0,   0,   4, 4).glQuadsVertices())
-            v.extend(Rect(w-4, 0,   4, 4).glQuadsVertices())
-            v.extend(Rect(0,   h-4, 4, 4).glQuadsVertices())
-            v.extend(Rect(w-4, h-4, 4, 4).glQuadsVertices())
-
-            batch.add(4*4, GL_QUADS, None, ('v2i', v))
-            batch.add(5, GL_LINE_STRIP, None, ('v2i', (
-                0,0, 0,10, 10,10, 10,0, 0,0
-            )))'''
-
-            from pyglet.text import Label
-            if not hasattr(self, '_text'):
-                self._text = self.__class__.__name__
-
-            self.label = Label(
-                text=self._text,
-                font_size=10,color=(0,0,0,255),
-                x=self.width//2, y=self.height//2,
-                anchor_x='center', anchor_y='center',
-            )
-
-        if self._text != self.label.text:
-            self.label.text = self._text
-
-        glPushAttrib(GL_POLYGON_BIT)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        glColor3f(1.0, 1.0, 1.0)
-        glRecti(0, 0, self.width, self.height)
-        glColor3f(0.0, 0.0, 0.0)
-        glRecti(0, 0, 4, 4)
-        glRecti(self.width-4, 0, self.width, 4)
-        glRecti(0, self.height-4, 4, self.height)
-        glRecti(self.width-4, self.height-4, self.width, self.height)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glRecti(0, 0, self.width, self.height)
-        glBegin(GL_POLYGON)
-        glVertex2f(0,0)
-        glVertex2f(0,10)
-        glVertex2f(10,10)
-        glVertex2f(10, 0)
-        glEnd()
-        glPopAttrib()
-
-        self.label.draw()
+        # default behaviors
         self.draw_subcontrols()
 
     @staticmethod
@@ -438,6 +379,9 @@ def init_gui():
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     #glEnable(GL_SCISSOR_TEST)
+    glPolygonMode(GL_FRONT, GL_FILL)
+    glPolygonMode(GL_BACK, GL_LINE)
+
     def_overlay = Overlay()
     def_overlay.name = 'Overlay'
     def_overlay.switch()
