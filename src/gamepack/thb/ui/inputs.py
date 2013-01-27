@@ -50,10 +50,17 @@ class UISelectTarget(Control):
             1.0, 0.0, irp.timeout,
             on_done=lambda *a: self.cleanup()
         )
-        self.label = lbl = pyglet.text.Label(
+       
+        self.label_text = lbl = pyglet.text.Label(
             text=u"HEY SOMETHING'S WRONG", x=125, y=28,
-            font_size=12, color=(255, 255, 160, 255), bold=True,
-            anchor_x='center', anchor_y='bottom'
+            font_size=12, color=(255, 255, 160, 255), 
+            anchor_x='center', anchor_y='bottom',
+        )
+
+        self.label_shadow = lbl = pyglet.text.Label(
+            text=u"HEY SOMETHING'S WRONG", x=125, y=28,
+            font_size=12, color=(0, 0, 0, 179), bold=True,
+            anchor_x='center', anchor_y='bottom', italic=True,
         )
 
         @self.confirmbtn.event
@@ -79,7 +86,8 @@ class UISelectTarget(Control):
         #dispatch_selection_change() # the clear_selection thing will trigger this
 
     def set_text(self, text):
-        self.label.text = text
+        self.label_shadow.text = text
+        self.label_text.text = text
 
     def on_selection_change(self):
         # subclasses should surpress it
@@ -123,9 +131,8 @@ class UISelectTarget(Control):
     def draw(self):
         self.draw_subcontrols()
         from client.ui import shaders
-        with shaders.FontShadow as fs:
-            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
-            self.label.draw()
+        self.label_shadow.draw()
+        self.label_text.draw()
 
     def on_message(self, _type, *args):
         if _type in ('evt_user_input_timeout', 'evt_user_input_finish'):

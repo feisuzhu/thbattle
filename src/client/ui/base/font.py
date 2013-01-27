@@ -31,16 +31,27 @@ class AncientPixGlyphRenderer(GlyphRenderer):
         else:
             suffix = '16' + suffix
 
+    
         if char in u'♠♡♣♢':
             # special case for suits
-            i = suit.index(char)
+            i = u'♠♡♣♢'.index(char)
             if font.size == 9:
+                h = 12
                 grid = font.suit12
             else:
+                h = 16
                 grid = font.suit16
 
             glyph = font.create_glyph(grid[i])
             glyph.set_bearings(1, -2, h + 1)
+            return glyph
+        
+        elif char == u'\u200b':
+            glyph = font.create_glyph(
+                pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64)
+            )
+            glyph.set_bearings(0, 0, 0)
+            glyph.vertices = (0, 0, 0, 0)
             return glyph
 
         elif asc < 128:  # ASCII
@@ -99,16 +110,21 @@ class AncientPixFont(Font):
     glyph_renderer_class = AncientPixGlyphRenderer
     texture_width = 1024
     texture_height = 1024
-    _font_texture = [pyglet.image.Texture.create_for_size(
-        GL_TEXTURE_2D, texture_width, texture_height, GL_ALPHA,
-    )]
+    _font_texture = []
 
     @property
-    def texture(self):
+    def textures(self):
+        if not AncientPixFont._font_texture:
+            AncientPixFont._font_texture = [
+                self.texture_class.create_for_size(
+                    GL_TEXTURE_2D, self.texture_width, self.texture_height, GL_ALPHA,
+                )
+            ]
+
         return self._font_texture
 
-    @texture.setter
-    def texture(self, val):
+    @textures.setter
+    def textures(self, val):
         pass
 
     @property

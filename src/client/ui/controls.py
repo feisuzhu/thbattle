@@ -173,10 +173,11 @@ class Button(Control):
         glLoadIdentity()
         batch_list = set([b._batch for b in btns])
         batch = list(batch_list)[0]
-        if len(batch_list) != 1 or not batch or batch.need_update:
-            if batch:
-                for b in batch.buttons:
-                    b._batch = None
+        if not (len(batch_list) == 1 and batch and not batch.need_update):
+            for i in batch_list:
+                if i:
+                    for b in i.buttons:
+                        b._batch = None
 
             batch = pyglet.graphics.Batch()
             batch.buttons = btns[:]
@@ -403,6 +404,7 @@ class Frame(Control):
     bg_group = OrderedGroup(50)
     frame_group = OrderedGroup(100)
     labels_group = OrderedGroup(150)
+    top_group = OrderedGroup(1000)
     def __init__(self, caption='Frame', color=Colors.green,
                  bot_reserve=10, bg=None, thin_shadow=False,
                  *args, **kwargs):
@@ -432,17 +434,14 @@ class Frame(Control):
 
     def update(self):
         self.set_caption(self.caption)
-        self.set_color()
-        self.set_position(self.x, self.y)
+        Frame.update_color(self)
+        Frame.update_position(self)
+        Frame.update_bg(self)
         self._update_labels()
 
-    def _fill_batch(self, batch):
-        ax, ay = self.abs_coords()
-        self._batch = batch
-
-        r = self.bot_reserve; w = self.width; h = self.height
-
+    def update_bg(self):
         bg = getattr(self, 'bg', None)
+        r = self.bot_reserve; w = self.width; h = self.height
         _w = w - 2
         _h = h - 24 - r
         if bg:
@@ -454,8 +453,16 @@ class Frame(Control):
             # HACK
             bg = common_res.white.get_region(0, 0, _w, _h)
             bg.tex_coords = common_res.white.tex_coords
+        
+        self.bgsprite.image = bg
 
-        self.bgsprite = Sprite(bg, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
+    def _fill_batch(self, batch):
+        ax, ay = self.abs_coords()
+        self._batch = batch
+
+        r = self.bot_reserve; w = self.width; h = self.height
+        self.bgsprite = Sprite(common_res.white, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
+        self.update_bg()
 
         self.framevlist = batch.add(20, GL_QUADS, self.frame_group, 
             'v2f', 'c4B',
@@ -497,9 +504,12 @@ class Frame(Control):
             rrectv2f(ax+1.5, ay+1.5, w-2.5, h-2.5), 
         ])
 
-    def set_color(self, color=None):
-        c = color or self.color
-        self._color = c
+    def set_color(self, color):
+        self._color = color
+        Frame.update_color(self)
+
+    def update_color(self):
+        c = self.color
         C = Colors.get4i
         medium = C(c.medium)
         heavy = C(c.heavy)
@@ -511,11 +521,17 @@ class Frame(Control):
             [heavy] * 4,  # heavy line
             [frame] * 8,  # border
         ])
+
+        self.caption_shadow_lbl.color = C(c.caption_shadow)
+        self.caption_lbl.color = C(c.caption)
     
     def set_position(self, x, y):
         self.x = x; self.y = y
-        self.framevlist.vertices[:] = self._get_frame_v2f()
+        Frame.update_position(self)
+
+    def update_position(self):
         ax, ay = self.abs_coords()
+        self.framevlist.vertices[:] = self._get_frame_v2f()
         self.bgsprite.set_position(ax+2, ay+self.bot_reserve)
         self._update_labels()
 
@@ -549,9 +565,10 @@ class Frame(Control):
         batch_list = set([d._batch for d in dlgs])
         batch = list(batch_list)[0]
         if not (len(batch_list) == 1 and batch and not batch.need_update):
-            for b in batch_list:
-                for d in batch.dialogs:
-                    d._batch = None
+            for i in batch_list:
+                if i:
+                    for d in i.dialogs:
+                        d._batch = None
 
             batch = pyglet.graphics.Batch()
             batch.dialogs = dlgs[:]
@@ -1144,12 +1161,7 @@ class TextArea(Control):
         toks, reminder = scanner.scan(text)
         if reminder:
             instext(None, reminder)
-        # *MEGA* HACK:
-        # make the ZeroWidthSpace(ZWSP) char invisible
-        for start, end, font in doc.get_font_runs().ranges(0, 999999):
-            zwsp = font.get_glyphs(u'\u200b')[0]
-            zwsp.vertices = (0, 0, 0, 0)
-            zwsp.advance = 0
+
         self.layout.end_update()
         self.layout.view_y = -self.layout.content_height
         self._text += text

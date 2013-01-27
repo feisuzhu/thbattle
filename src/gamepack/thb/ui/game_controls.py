@@ -7,7 +7,7 @@ from client.ui import shaders
 from game.autoenv import Game
 from .. import actions
 
-from utils import DisplayList, partition
+from utils import DisplayList, partition, flatten
 
 import pyglet
 
@@ -574,29 +574,35 @@ class ShownCardPanel(Panel):
 class GameCharacterPortrait(Frame, BalloonPrompt):
     dropped = False
     fleed = False
-    x = InterpDesc('_x')
-    y = InterpDesc('_y')
-    _x = _y = 0
     actor_frame = None
     turn_frame = None
 
     def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', *args, **kwargs):
-        self.selected = False
         self.player = None
-        self.disabled = False
+        self._disabled = False
+        self._selected = False
         self.taganims = []
         self.tag_placement = tag_placement
-        self.color = color
+        self._color = color
         self.bg = None
         self._last_balloon = None
 
         Frame.__init__(
             self, width=149, height=195,
             bot_reserve=20, color=color,
-            shadow_thick=1,
+            thin_shadow=True,
             **kwargs
         )
         self.x, self.y = x, y
+
+        self.charname_lbl = self.add_label(
+            u'', 7, self.height-30,
+            width=16, multiline=True,
+            font_size=9,
+            anchor_x='left', anchor_y='top',
+            color=(255, 255, 255, 255),
+            shadow='thin', shadow_color=(0, 0, 0, 179),
+        )
 
         from .view import THBattleUI
         v = self.parent
@@ -639,7 +645,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             b.caption = tbl[next]
             color = getattr(Colors, colortbl[next])
             b.color = color
-            self.color = color
+            self.set_color(color)
             b.update()
             self.update()
             self.cur_idtag = next
@@ -722,19 +728,16 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
             nick = prefix + nick
 
-        self.caption = nick
+        self.set_caption(nick)
         meta = getattr(p, 'ui_meta', None)
 
         if meta:
             self.bg = meta.port_image
+            self.update_bg()
+            self.set_charname(meta.char_name)
             if self._last_balloon != meta.description:
                 self.init_balloon(meta.description, (2, 74, 145, 96))
                 self._last_balloon = meta.description
-
-            # HACK: prevent glyph creation in _content_draw
-            # since _content_draw may be called with DisplayList
-            f = pyglet.font.load('AncientPix', size=9)
-            f.get_glyphs(meta.char_name)
 
         self.bot_reserve=74
         self.gray_tex = None
@@ -750,10 +753,6 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             return Colors.gray
         
         return self._color
-
-    @color.setter
-    def color(self, val):
-        self._color = val
 
     @property
     def bg(self):
@@ -771,82 +770,82 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
     def bg(self, val):
         self._bg = val
 
-    @staticmethod
-    def batch_draw_frame(gcps):
-        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
-        Frame.batch_draw(gcps)
+    def _fill_batch(self, batch):
+        Frame._fill_batch(self, batch)
+        self._gcp_framevlist = batch.add(16, GL_QUADS, self.frame_group, 'c4B', 'v2f')
+        self._highlight_disabled = batch.add(4, GL_QUADS, self.top_group, 'c4B', 'v2f')
+        self._highlight = batch.add(4, GL_QUADS, self.top_group, 'c4B', 'v2f')
 
-        vertices = []
-        def Rect(port, x1, y1, x2, y2, r, g, b):
-            x = port.x; y = port.y
-            vertices.extend([
-                r, g, b, x+x1, y+y1, 0,
-                r, g, b, x+x2, y+y1, 0,
-                r, g, b, x+x2, y+y2, 0,
-                r, g, b, x+x1, y+y2, 0,
-            ])
+        self.selected = self.selected
+        self.disabled = self.disabled
+        GameCharacterPortrait.update_position(self)
+        GameCharacterPortrait.update_color(self)
+    
+    def set_postion(self, x, y):
+        Frame.set_position(self, x, y)
+        GameCharacterPortrait.update_position(self)
 
-        for port in gcps:
-            w, h = port.width, port.height
-            # equip box
-            Rect(port, 2, 2, w-2, 54, 1, 1, 1)
-            Rect(port, 2.5, 54.5, 2.5+4*36, 2.5, *[i/255.0 for i in port.color.heavy])
+    def update_position(self):
+        Frame.update_position(self)
+        w, h = self.width, self.height
+        ax, ay = self.abs_coords()
+        self._gcp_framevlist.vertices[:] = flatten([
+            rectv2f(2, 2, w-4, 54-2, ax, ay),  # equip box
+            rrectv2f(2.5, 2.5, 4*36, 52, ax, ay),  # equip box border
+            rectv2f(w-2-32, 66, 32, 22, ax, ay),  # cardnum box
+            rrectv2f(w-2-32, 66, 32, 22, ax, ay),  # cardnum box border
+        ])
 
-            # cardnum box
-            Rect(port, w-2-32, 66,  w-2, 66+22, *[i/255.0 for i in port.color.light])
-            Rect(port, w-2-32, 66+22,  w-2, 66, *[i/255.0 for i in port.color.heavy])
+        full = rectv2f(0, 0, w, h, ax, ay)
+        self._highlight_disabled.vertices[:] = full
+        self._highlight.vertices[:] = full
 
-        buf = (GLfloat * len(vertices))()
-        buf[:] = vertices
-        glInterleavedArrays(GL_C3F_V3F, 0, buf)
-        glDrawArrays(GL_QUADS, 0, len(vertices)/6)
+        if self.actor_frame:
+            self.actor_frame.set_position(self.x - 6, self.y - 4)
 
-        # char name
-        f = pyglet.font.load('AncientPix', size=9)
-        gh = f.ascent - f.descent
+        if self.turn_frame:
+            self.turn_frame.set_position(self.x - 6, self.y - 4)
 
-        vertices = []
-        for port in gcps:
-            meta = getattr(port.player, 'ui_meta', None)
-            if not meta: continue
-            x = port.x + 7; y = port.y + port.height - 30
-            for i, g in enumerate(f.get_glyphs(meta.char_name)):
-                # HACK: pyglet implementation detail
-                # g.vertices = (left_side_bearing, -baseline, ...)
-                vertices.extend(g.get_t4f_v4f_vertices(
-                    x+g.vertices[0], y+g.vertices[1]-gh*(i+1)
-                ))
+    def set_color(self, color):
+        Frame.set_color(self, color)
+        GameCharacterPortrait.update_color(self)
 
-        glColor3f(1, 1, 1)
-        if vertices:
-            with shaders.FontShadow as fs:
-                fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
-                tex = f.get_glyphs(u'A')[0].owner
-                with tex:
-                    n = len(vertices)
-                    buf = (GLfloat*n)()
-                    buf[:] = vertices
-                    glInterleavedArrays(GL_T4F_V4F, 0, buf)
-                    glDrawArrays(GL_QUADS, 0, n/8)
+    def update_color(self):
+        Frame.update_color(self)
+        C = Colors.get4i
+        c = self.color
+        heavy = C(c.heavy); light = C(c.light)
+        self._gcp_framevlist.colors = flatten([
+            [255, 255, 255, 255] * 4,  # equip box
+            [heavy] * 4,  # eqip box border
+            [light] * 4,  # cardnum box
+            [heavy] * 4,  # cardnum box border
+        ])
 
-        # HACK: make actor_frame track ports' location
-        for port in gcps:
-            if port.actor_frame:
-                port.actor_frame.set_position(port.x - 6, port.y - 4)
+    def set_charname(self, char_name):
+        s = u'\u200b'.join(char_name)
+        self.charname_lbl.text = s
+        self.charname_lbl._shadow.text = s
 
-        glPopClientAttrib()
+    @property
+    def disabled(self):
+        return self._disabled
 
-    @staticmethod
-    def batch_draw_hilight(gcps):
-        glColor4f(0, 0, 0, 0.5)
-        for port in gcps:
-            if port.disabled:
-                glRectf(port.x, port.y, port.x + port.width, port.y + port.height)
+    @disabled.setter
+    def disabled(self, val):
+        self._disabled = val
+        color = (0, 0, 0, 128) if val else (0, 0, 0, 0)
+        self._highlight_disabled.colors[:] = color * 4
 
-        glColor4f(1, 1, 0.8, 0.6)
-        for port in gcps:
-            if port.selected:
-                glRectf(port.x, port.y, port.x + port.width, port.y + port.height)
+    @property
+    def selected(self):
+        return self._selected
+
+    @selected.setter
+    def selected(self, val):
+        self._selected = val
+        color = (255, 255, 204, 153) if val else (0, 0, 0, 0)
+        self._highlight.colors[:] = color * 4
 
     @staticmethod
     def batch_draw_status(gcps):
@@ -866,12 +865,12 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             x = port.x; y = port.y
             for i in xrange(getattr(p, 'maxlife', 0)):
                 vertices.extend(
-                    hp_bg.get_t4f_v4f_vertices(5+x+i*w, 55+y)
+                    hp_bg.get_t4f_v4f_vertices(5+x+i*w, 56+y)
                 )
 
             for i in xrange(max(getattr(p, 'life', 0), 0)):
                 vertices.extend(
-                    hp.get_t4f_v4f_vertices(5+x+i*w, 55+y)
+                    hp.get_t4f_v4f_vertices(5+x+i*w, 56+y)
                 )
 
         nums = game_res.num
@@ -906,13 +905,12 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
     def batch_draw(gcps):
         glPushMatrix()
         glLoadIdentity()
-        GameCharacterPortrait.batch_draw_frame(gcps)
+        Frame.batch_draw(gcps)
         GameCharacterPortrait.batch_draw_status(gcps)
         glPopMatrix()
         cl = []
         map(cl.extend, [p.control_list for p in gcps])
         Control.do_draw(cl)
-        GameCharacterPortrait.batch_draw_hilight(gcps)
 
     @property
     def zindex(self):
@@ -942,8 +940,8 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 btn.caption = tbl[act.target.identity.type]
                 btn.state = Button.DISABLED
                 btn.update()
-                self.color = color
-                self.update()
+                self.set_color(color)
+                # self.update()
 
     def animate_to(self, x, y):
         self.x = SineInterp(self.x, x, 1)

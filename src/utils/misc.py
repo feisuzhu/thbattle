@@ -507,10 +507,12 @@ class Enum(object):
 
 def flatten(l):
     rst = []
-    for i in l:
-        if isinstance(i, (list, tuple)):
-            rst.extend(flatten(i))
-        else:
-            rst.append(i)
+    def _flatten(sl):
+        for i in sl:
+            if isinstance(i, (list, tuple)):
+                _flatten(i)
+            else:
+                rst.append(i)
 
+    _flatten(l)
     return rst
