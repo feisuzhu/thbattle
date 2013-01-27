@@ -56,7 +56,12 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             i = Image.fromstring('1', (w, h), data).convert('L')
             bbox = i.getbbox()
             if bbox:
-                bbox = (bbox[0] - 2, 0, bbox[2] + 2, h)
+                adj = 2
+                if font.italic:
+                    adj -= 1
+                    if font.bold:
+                        adj -= 1
+                bbox = (bbox[0] - adj, 0, bbox[2] + adj, h)
                 i = i.crop(bbox)
                 w = bbox[2] - bbox[0]
             # else: space/return/etc..
@@ -77,7 +82,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             i = Image.fromstring('1', (w, h), data).convert('L')
 
         ii = i
-        if self.font.bold:
+        if self.font.bold and not self.font.italic:
             ii = Image.new('L', (w, h))
             ii.paste(i, (1, 0))
             ii.paste(i, (0, 0), i)

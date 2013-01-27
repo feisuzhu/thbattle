@@ -9,10 +9,10 @@ with ldr as args:
 
     bgm_game = lambda: ldr.media(ldr.filename('bgm_game.ogg'))
 
-    thblogo_3v3 = tx('thblogo_3v3.png')
-    thblogo_8id = tx('thblogo_8id.png')
-    thblogo_5id = tx('thblogo_5id.png')
-    thblogo_kof = tx('thblogo_kof.png')
+    thblogo_3v3 = tx_with_grayed('thblogo_3v3.png')
+    thblogo_8id = tx_with_grayed('thblogo_8id.png')
+    thblogo_5id = tx_with_grayed('thblogo_5id.png')
+    thblogo_kof = tx_with_grayed('thblogo_kof.png')
 
     win = tx('win.png')
     lose = tx('lose.png')
@@ -101,18 +101,10 @@ with ldr as args:
         'hp', 'hp_bg',
     ])
 
-    import Image
     #exec '\n'.join('%s_port = port_tx("%s_port.png")' % (s, s) for s in ports) in locals()
     
     for p in ports:
-        i = Image.open(ldr.file('%s.png' % p))
-        w, h = i.size
-        colored = i.convert('RGBA').tostring()
-        grayed = i.convert('LA').convert('RGBA').tostring()
-        colored = pyglet.image.ImageData(w, h, 'RGBA', colored, -w*4)
-        grayed = pyglet.image.ImageData(w, h, 'RGBA', grayed, -w*4)
-        tex = port_atlas.add(colored)
-        tex.grayed = port_atlas.add(grayed)
+        tex = tx_with_grayed('%s.png' % p, port_atlas)
         exec '%s = tex' % p in locals()
 
     num = pyglet.image.ImageGrid(img('num.png'), 1, 10)

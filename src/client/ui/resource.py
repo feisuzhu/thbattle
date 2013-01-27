@@ -3,6 +3,7 @@ from pyglet.resource import Loader, ResourceNotFoundException
 import os
 from utils import DataHolder
 import itertools
+import Image
 
 texbin = pyglet.image.atlas.TextureBin(512, 512)
 dummy_img = pyglet.image.ImageData(1, 1, 'RGBA', '\x00'*4)
@@ -40,6 +41,17 @@ class ResLoader(Loader):
 
         def tx(fn):
             return tb.add(img(fn))
+
+        def tx_with_grayed(fn, tb=tb):
+            i = Image.open(ldr.file(fn))
+            w, h = i.size
+            colored = i.convert('RGBA').tostring()
+            grayed = i.convert('LA').convert('RGBA').tostring()
+            colored = pyglet.image.ImageData(w, h, 'RGBA', colored, -w*4)
+            grayed = pyglet.image.ImageData(w, h, 'RGBA', grayed, -w*4)
+            tex = tb.add(colored)
+            tex.grayed = tb.add(grayed)
+            return tex
 
         def anim(fn, durlist, loop=False):
             f = self.file(fn)
@@ -125,6 +137,12 @@ with ResLoader(__file__) as args:
 
     suit12 = pyglet.image.ImageGrid(img('suit12.png'), 1, 4)
     suit16 = pyglet.image.ImageGrid(img('suit16.png'), 1, 4)
+
+    white = tb.add(pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64))
+    c = white.tex_coords
+    f = c[0:3]; t = c[6:9]
+    white.tex_coords = ((f[0] + t[0]) / 2, (f[1] + t[1]) / 2, 0) * 4
+    del c, f, t
 
     for k in args.keys(): del k
     del args

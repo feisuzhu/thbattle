@@ -4,17 +4,16 @@ from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
 from pyglet.graphics import OrderedGroup
+from pyglet.sprite import Sprite
 from client.ui.base import *
 from client.ui.base import ui_message, ui_schedule
 from client.ui.base.shader import ShaderGroup, ShaderUniformGroup
 from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
 from client.core import Executive
-from utils import Rect, Framebuffer, DisplayList, textsnap, flatten
+from utils import Rect, Framebuffer, DisplayList, textsnap, flatten, rectv2f, rrectv2f
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
-
-from math import ceil
 
 import logging
 log = logging.getLogger('UI_Controls')
@@ -397,164 +396,246 @@ def batch_drawsprite(sprites):
                 sp._loc_adjusted = True
     batch.draw()
 
+
 class Frame(Control):
     no_move = True
     zindex = 1
+    bg_group = OrderedGroup(50)
+    frame_group = OrderedGroup(100)
+    labels_group = OrderedGroup(150)
     def __init__(self, caption='Frame', color=Colors.green,
-                 bot_reserve=10, bg=None, shadow_thick=2,
+                 bot_reserve=10, bg=None, thin_shadow=False,
                  *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
-        self.color = color
         self.caption = caption
+        self._color = color
         self.bg = bg
-        self.labels = []
+        self._labels = []
         self.bot_reserve = bot_reserve
-        self.shadow_thick = shadow_thick
+        self.thin_shadow = thin_shadow
+
+        # HACK
+        self._batch = pyglet.graphics.Batch()  # will be abandoned soon, acutally
+        self._fill_batch(self._batch)
+        self._batch.dialogs = [self]
+        self._batch.need_update = False
 
         self.update()
 
+    @property
+    def color(self):
+        return self._color
+
+    @property
+    def labels(self):
+        raise AttributeError('Do not use labels! use add_label!')
+
     def update(self):
-        cap = self.caption
+        self.set_caption(self.caption)
+        self.set_color()
+        self.set_position(self.x, self.y)
+        self._update_labels()
+
+    def _fill_batch(self, batch):
+        ax, ay = self.abs_coords()
+        self._batch = batch
+
+        r = self.bot_reserve; w = self.width; h = self.height
+
+        bg = getattr(self, 'bg', None)
+        _w = w - 2
+        _h = h - 24 - r
+        if bg:
+            if bg.height > h - 24 - r or bg.width > w - 2:
+                _w = min(bg.width, _w)
+                _h = min(bg.height, _h)
+                bg = bg.get_region(0, 0, _w, _h)
+        else:
+            # HACK
+            bg = common_res.white.get_region(0, 0, _w, _h)
+            bg.tex_coords = common_res.white.tex_coords
+
+        self.bgsprite = Sprite(bg, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
+
+        self.framevlist = batch.add(20, GL_QUADS, self.frame_group, 
+            'v2f', 'c4B',
+        )
+
+        for lbl in self._labels:
+            if lbl.batch is not batch:
+                lbl.batch = batch
+
+        shadow_arg = {'italic': True} if self.thin_shadow else {'italic':True, 'bold': True}
+
+        self.caption_shadow_lbl = pyglet.text.Label(
+            u'', u'AncientPix', 9,
+            color=self.color.caption_shadow + (255,),
+            x=20, y=self.height - 20,
+            anchor_x='left', anchor_y='bottom',
+            batch=batch, group=self.frame_group, **shadow_arg
+        )
+
+        self.caption_lbl = pyglet.text.Label(
+            u'', u'AncientPix', 9,
+            color=self.color.caption + (255,),
+            anchor_x='left', anchor_y='bottom',
+            batch=batch, group=self.labels_group,
+        )
+
+        self.set_caption(self.caption)
+
+        self.update()
+
+    def _get_frame_v2f(self):
+        ax, ay = self.abs_coords()
+        w = self.width; h = self.height; r = self.bot_reserve
+        return flatten([
+            rectv2f(ax+.5, ay+h-24+.5, w-.5, 24-.5),  # title bar
+            rectv2f(ax+.5, ay+.5, w-.5, r-.5),  # bot reserve
+            rrectv2f(ax+.5, ay+r+.5, w-.5, h-24-r-.5),  # heavy line
+            rrectv2f(ax+.5, ay+.5, w-.5, h-.5),  # border
+            rrectv2f(ax+1.5, ay+1.5, w-2.5, h-2.5), 
+        ])
+
+    def set_color(self, color=None):
+        c = color or self.color
+        self._color = c
+        C = Colors.get4i
+        medium = C(c.medium)
+        heavy = C(c.heavy)
+        frame = C(c.frame)
+
+        self.framevlist.colors[:] = flatten([
+            [medium] * 4,  # title bar
+            [medium] * 4,  # bot reserve
+            [heavy] * 4,  # heavy line
+            [frame] * 8,  # border
+        ])
+    
+    def set_position(self, x, y):
+        self.x = x; self.y = y
+        self.framevlist.vertices[:] = self._get_frame_v2f()
+        ax, ay = self.abs_coords()
+        self.bgsprite.set_position(ax+2, ay+self.bot_reserve)
+        self._update_labels()
+
+        cap = self.caption_lbl
+        shadow = self.caption_shadow_lbl
+
+        cap.begin_update()
+        cap.x = ax + 20
+        cap.y = ay + self.height - 20
+        cap.end_update()
+
+        shadow.begin_update()
+        shadow.x = ax + 20
+        shadow.y = ay + self.height - 20
+        shadow.end_update()
+
+    def set_caption(self, cap):
         f = pyglet.font.load('AncientPix', 9)
         cap = textsnap(cap, f, self.width - 20 - 4)
 
-        sg = ShaderGroup([
-            shaders.DummyShader,
-            shaders.FontShadow,
-            shaders.FontShadowThick,
-        ][self.shadow_thick])
-
-        args = ((
-            'shadow_color',
-            tuple([i/255.0 for i in self.color.caption_shadow+(255,)])
-        ), )
-        g = ShaderUniformGroup(args, sg)
-
-        l = self.caption_lbl = pyglet.text.Label(
-            cap, u'AncientPix', 9,
-            color=self.color.caption + (255,),
-            x=20, y=self.height - 20,
-            anchor_x='left', anchor_y='bottom',
-            group=g
-        )
-        l._parent = self
-
-        #with self._dl:
-        #    self._batch_content_draw([self])
-
-    @staticmethod
-    def _batch_content_draw(dlgs):
-
-        def color(rgb):
-            r, g, b = rgb
-            return r/255., g/255., b/255.
-
-        from client.ui import shaders
-
-        # bg pics
-        bglist = []
-        nobglist = []
-        for d in dlgs:
-            bg = getattr(d, 'bg', None)
-            if bg: bglist.append(d)
-            else: nobglist.append(d)
-
-        bglist.sort(key=lambda d: d.bg.id)
-
-        glColor3f(1, 1, 1)
-
-        glEnable(GL_TEXTURE_2D)
-        curtex = None
-        for d in bglist:
-            bg = d.bg; r = d.bot_reserve; w = d.width; h = d.height
-            ax, ay = d.abs_coords()
-            if curtex != bg.id:
-                glBindTexture(GL_TEXTURE_2D, bg.id)
-                curtex = bg.id
-
-            if bg.height > h - 24 - r or bg.width > w - 4:
-                _w = min(bg.width, w - 4)
-                _h = min(bg.height, h - 24 - r)
-                bg = bg.get_region(0, 0, _w, _h)
-            bg.blit_nobind(ax + 2, ay + r)
-        glDisable(GL_TEXTURE_2D)
-
-        for d in nobglist:
-            x, y = d.abs_coords()
-            glRectf(x + 1, d.y + 1, x + d.width-1, d.y + d.height-1)
-
-        for d in dlgs:
-            w, h, r = d.width, d.height, d.bot_reserve
-            ax, ay = d.abs_coords()
-            glColor3f(*color(d.color.medium))
-            glRectf(ax, ay+h-24, ax+w, ay+h) # title bar
-            glRectf(ax, ay, ax+w, ay+r) # bot reserve
-            glBegin(GL_LINES)
-            glColor3f(*color(d.color.heavy))
-            glVertex2f(ax, ay+h-24); glVertex2f(ax+w, ay+h-24)
-            glVertex2f(ax, ay+r); glVertex2f(ax+w, ay+r)
-            glEnd()
-
-        lbls = []
-        map(lbls.extend, [d.labels for d in dlgs])
-        lbls.extend([d.caption_lbl for d in dlgs])
-
-        batch_drawlabel(lbls)
-
-        glLineWidth(2.0)
-        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
-        for d in dlgs:
-            ax, ay = d.abs_coords()
-            w, h = d.width, d.height
-            glColor3f(*color(d.color.frame))
-
-            vl = (GLfloat*10)(
-                ax+1, ay+1,
-                ax+1, ay+h-1,
-                ax+w-1, ay+h-1,
-                ax+w-1, ay+1,
-                ax+1, ay+1,
-            )
-
-            glInterleavedArrays(GL_V2F, 0, vl)
-            glDrawArrays(GL_LINE_STRIP, 0, 5)
-
-        glPopClientAttrib()
-        glLineWidth(1.0)
+        self.caption = cap
+        self.caption_shadow_lbl.text = cap
+        self.caption_lbl.text = cap
 
     @staticmethod
     def batch_draw(dlgs):
         glColor3f(1,1,1)
         glPushMatrix()
         glLoadIdentity()
-        Frame._batch_content_draw(dlgs)
+
+        batch_list = set([d._batch for d in dlgs])
+        batch = list(batch_list)[0]
+        if not (len(batch_list) == 1 and batch and not batch.need_update):
+            for b in batch_list:
+                for d in batch.dialogs:
+                    d._batch = None
+
+            batch = pyglet.graphics.Batch()
+            batch.dialogs = dlgs[:]
+            batch.need_update = False
+            for d in dlgs:
+                d._batch = batch
+                d._fill_batch(batch)
+
+        batch.draw()
+
         glPopMatrix()
 
         cl = []
         map(cl.extend, [d.control_list for d in dlgs])
         Control.do_draw(cl)
 
-    def close(self):
-        self._cancel_close = False
-        self.dispatch_event('on_close')
-        if not self._cancel_close:
-            self.delete()
-            self.dispatch_event('on_destroy')
-
-    def cancel_close(self):
-        self._cancel_close = True
-
-    def add_label(self, *a, **k):
-        l = pyglet.text.Label(*a, **k)
+    def add_label(self, text, x, y, shadow=None, shadow_color=None, *a, **k):
+        ax, ay = self.abs_coords()
+        l = pyglet.text.Label(
+            text, x=ax+x, y=ay+y,
+            font_name='AncientPix',
+            batch=self._batch, group=self.labels_group,
+            *a, **k
+        )
         l._parent = self
-        self.labels.append(l)
+        l._ox = x
+        l._oy = y
+        self._labels.append(l)
+
+        if not shadow:
+            return l
+
+        elif shadow == 'thin':
+            k['italic'] = True
+
+        elif shadow == 'thick':
+            k['italic'] = True
+            k['bold'] = True
+
+        else:
+            raise TypeError('shadow type?')
+        
+        try:
+            del k['color']
+        except:
+            pass
+
+        s = pyglet.text.Label(
+            text, x=ax+x, y=ay+y,
+            font_name='AncientPix',
+            batch=self._batch, group=self.frame_group,
+            color=shadow_color,
+            *a, **k
+        )
+        s._parent = self
+        s._ox = x
+        s._oy = y
+        l._shadow = s
+        self._labels.append(s)
+
         return l
+
+    def remove_label(self, l):
+        self._labels.remove(l)
+        l.delete()
+        shadow = getattr(l, '_shadow', None)
+        if shadow:
+            self._labels.remove(shadow)
+            shadow.delete()
+
+    def _update_labels(self):
+        ax, ay = self.abs_coords()
+        for l in self._labels:
+            l.begin_update()
+            l.x = ax + l._ox
+            l.y = ay + l._oy
+            l.end_update()
 
     def delete(self):
         Control.delete(self)
-        for l in self.labels:
+        for l in self._labels:
             l.delete()
         self.caption_lbl.delete()
+
 
 class Dialog(Frame):
     no_move = False
@@ -594,20 +675,22 @@ class Dialog(Frame):
 
     def on_mouse_drag(self, x, y, dx, dy, button, modifier):
         if self.dragging:
-            self.x += dx
-            self.y += dy
-
-            for lbl in self.labels + [self.caption_lbl]:
-                lbl.begin_update()
-                lbl.x += dx
-                lbl.y += dy
-                lbl.end_update()
-
+            self.set_position(self.x + dx, self.y + dy)
             self.dispatch_event('on_move', self.x, self.y)
 
-Frame.register_event_type('on_move')
-Frame.register_event_type('on_close')
-Frame.register_event_type('on_destroy')
+    def close(self):
+        self._cancel_close = False
+        self.dispatch_event('on_close')
+        if not self._cancel_close:
+            self.delete()
+            self.dispatch_event('on_destroy')
+
+    def cancel_close(self):
+        self._cancel_close = True
+
+Dialog.register_event_type('on_move')
+Dialog.register_event_type('on_close')
+Dialog.register_event_type('on_destroy')
 
 class BalloonPrompt(object):
     balloon_inited = False
@@ -802,12 +885,13 @@ class TextBox(Control):
 
 TextBox.register_event_type('on_enter')
 
+
 class PasswordTextBox(TextBox):
     def __init__(self, *a, **k):
         TextBox.__init__(self, font_name='AncientPixPassword', *a, **k)
 
+
 class PlayerPortrait(Frame):
-    shader_group = ShaderGroup(shaders.FontShadow)
     def __init__(self, player_name, color=Colors.blue, *args, **kwargs):
         self.account = None
         self.ready = False
@@ -817,7 +901,7 @@ class PlayerPortrait(Frame):
         Frame.__init__(
             self, caption=player_name, color=color,
             bot_reserve=50, width=128, height=245,
-            shadow_thick=1,
+            thin_shadow=True,
             *args, **kwargs
         )
 
@@ -861,14 +945,13 @@ class PlayerPortrait(Frame):
             name = u'空位置'
             self.userid = 0
 
-        lbls = self.labels
         for l in self.accinfo_labels:
-            lbls.remove(l)
-            l.delete()
+            self.remove_label(l)
+
         self.accinfo_labels = []
         self.avatar = None
 
-        self.caption = name
+        self.set_caption(name)
 
         if acc:
             avurl = acc.other['avatar']
@@ -926,22 +1009,21 @@ class PlayerPortrait(Frame):
         f = pyglet.font.load('AncientPix', 9)
         def L(text, loc):
             text = textsnap(text, f, self.width - 8 - 4)
+            C = Colors.get4i
+            ccap = C(self.color.caption)
+            ccapshadow = C(self.color.caption_shadow)
+
             args = ((
                 'shadow_color',
                 tuple([i/255.0 for i in self.color.caption_shadow+(255,)])
             ), )
-            g = ShaderUniformGroup(args, self.shader_group)
 
-            l = pyglet.text.Label(
+            self.accinfo_labels.append(self.add_label(
                 text, x=8, y=47-15*loc,
                 anchor_x='left', anchor_y='top',
-                font_name='AncientPix', font_size=9,
-                color=c, group=g
-            )
-            l._parent = self
-
-            self.accinfo_labels.append(l)
-            self.labels.append(l)
+                font_size=9, color=ccap,
+                shadow='thin', shadow_color=ccapshadow,
+            ))
 
         L(acc.other['title'], 0)
         L(u'节操： %d' % acc.other['credits'], 1)
@@ -1370,6 +1452,10 @@ class ConfirmButtons(Control):
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
+    
+    def update(self):
+        for b in self.buttons:
+            b.update()
 
     @classmethod
     def _get_widths(cls, buttons):
@@ -1397,25 +1483,32 @@ class ConfirmBox(Dialog):
     _default_value = object()
     def __init__(self, text=u'Yoo~', caption=u'信息',
                  buttons=Presets.OK, default=_default_value, *a, **k):
+
+        # FIXME: this label is just for calculating width and height
+        # should not be like this
         lbl = pyglet.text.Label(
-            text=text, font_name=u'AncientPix', font_size=9,
-            anchor_x='center', anchor_y='bottom',
+            text, font_name=u'AncientPix', font_size=9,
+            x=0, y=0, anchor_x='center', anchor_y='bottom',
             width=1000, multiline=True,
             color=(0,0,0,255)
         )
         w, h = lbl.content_width, lbl.content_height
-        lbl.width = w
         dw, dh = max(w, ConfirmButtons.calc_width(buttons))+50, h+24+33+20*2
         Dialog.__init__(
             self, caption, width=dw, height=dh,
             bot_reserve=33, *a, **k
         )
-        lbl.x = dw // 2
-        lbl.y = 33+20
-        lbl._parent = self
-        self.labels.append(lbl)
 
-        btn = ConfirmButtons(buttons, parent=self, color=self.color)
+        p = self.parent
+        pw, ph = p.width, p.height
+        self.set_position((pw - dw)/2, (ph - dh)/2)
+
+        self.add_label(
+            text, dw // 2, 33 + 20, anchor_x='center', anchor_y='bottom',
+            font_size=9, width=w, multiline=True, color=(0,0,0,255)
+        )
+
+        self.confirm_btns = btn = ConfirmButtons(buttons, parent=self, color=self.color)
         self.value = buttons[0][1] if default is self._default_value else default
 
         @btn.event
@@ -1424,16 +1517,16 @@ class ConfirmBox(Dialog):
             self.delete()
         btn.x, btn.y = (dw - btn.width)/2, 5
 
-        p = self.parent
-        pw, ph = p.width, p.height
-        self.x, self.y = (pw - dw)/2, (ph - dh)/2
 
     def delete(self):
         self.dispatch_event('on_confirm', self.value)
         Dialog.delete(self)
 
-ConfirmBox.register_event_type('on_confirm')
+    def on_move(self, x, y):
+        self.confirm_btns.update()
 
+
+ConfirmBox.register_event_type('on_confirm')
 
 class Panel(Control):
     fill_color = (1.0, 1.0, 0.8, 0.0)
@@ -1524,7 +1617,6 @@ class Panel(Control):
 
 class ImageSelector(Control):
     hover_alpha = InterpDesc('_hover_alpha')
-    auxfbo = Framebuffer() if HAVE_FBO else None
     def __init__(self, image, group, *a, **k):
         Control.__init__(
             self, width=145, height=98,
@@ -1536,18 +1628,6 @@ class ImageSelector(Control):
         self.hover_alpha = 0.0
         self.image = image
         self.group = group
-
-        fbo = self.auxfbo
-        if fbo:
-            self.grayed_image = pyglet.image.Texture.create(
-                image.width, image.height
-            )
-
-            with fbo:
-                fbo.texture = self.grayed_image
-                glColor3f(1, 1, 1)
-                with shaders.Grayscale:
-                    image.blit(0, 0)
 
     def on_mouse_enter(self, x, y):
         self.hover_alpha = 0.4
@@ -1571,11 +1651,7 @@ class ImageSelector(Control):
     def draw(self):
         glColor3f(1, 1, 1)
         if self.disabled:
-            if HAVE_FBO:
-                self.grayed_image.blit(0, 0)
-            else:
-                glColor3f(0, 0, 0)
-                glRectf(0, 0, self.width, self.height)
+            self.image.grayed.blit(0, 0)
         else:
             self.image.blit(0, 0)
 

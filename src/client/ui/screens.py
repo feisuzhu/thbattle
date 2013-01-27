@@ -153,6 +153,7 @@ class ServerSelectScreen(Screen):
                 parent=self, zindex=99999,
             )
 
+
 class LoginScreen(Screen):
     class LoginDialog(Frame):
         def __init__(self, *a, **k):
@@ -162,23 +163,16 @@ class LoginScreen(Screen):
                 bot_reserve=50, *a, **k
             )
 
-            def L(*a, **k):
-                l = Label(*a, **k)
-                l._parent = self
-                self.labels.append(l)
+            def L(text, x, y, *a, **k):
+                self.add_label(
+                    text, x=x, y=y, 
+                    font_size=9,color=(0,0,0,255),
+                    bold=True, anchor_x='left', anchor_y='bottom',
+                    *a, **k
+                )
 
-            L(
-                text=u'用户名：', font_size=9,color=(0,0,0,255),
-                font_name='AncientPix', bold=True,
-                x=368-350, y=286-165,
-                anchor_x='left', anchor_y='bottom',
-            )
-            L(
-                text=u'密码：', font_size=9,color=(0,0,0,255),
-                font_name='AncientPix', bold=True,
-                x=368-350, y=250-165,
-                anchor_x='left', anchor_y='bottom',
-            )
+            L(u'用户名：', 368 - 350, 286 - 165)
+            L(u'密码：', 368 - 350, 250 - 165) 
 
             from settings import UPDATE_BASE
             import os
@@ -292,13 +286,23 @@ class GameHallScreen(Screen):
                 self.labels = BatchList([
                     pyglet.text.Label(
                         u'创建游戏房间', font_size=12, x=275, y=306,
-                        anchor_x = 'center', anchor_y = 'bottom',
+                        anchor_x='center', anchor_y = 'bottom',
+                        color=(207, 240, 156, 204), italic=True,
+                    ),
+                    pyglet.text.Label(
+                        u'创建游戏房间', font_size=12, x=275, y=306,
+                        anchor_x='center', anchor_y='bottom',
                         color = Colors.green.heavy + (255, ),
                     ),
                     pyglet.text.Label(
                         u'房间名称：', font_size=9, x=30, y=275,
-                        anchor_x = 'left', anchor_y = 'bottom',
-                        color = Colors.green.heavy + (255, ),
+                        anchor_x='left', anchor_y='bottom',
+                        color =(207, 240, 156, 204), italic=True,
+                    ),
+                    pyglet.text.Label(
+                        u'房间名称：', font_size=9, x=30, y=275,
+                        anchor_x='left', anchor_y='bottom',
+                        color=Colors.green.heavy + (255, ),
                     )
                 ])
 
@@ -333,9 +337,7 @@ class GameHallScreen(Screen):
 
             def draw(self):
                 Panel.draw(self)
-                with shaders.FontShadow as fs:
-                    fs.uniform.shadow_color = (0.81, 0.94, 0.61, 0.8)
-                    self.labels.draw()
+                self.labels.draw()
 
         class ObserveGamePanel(Panel):
             def __init__(self, game_id, *a, **k):
