@@ -146,3 +146,11 @@ def rect_to_dict(rect):
         x=x, y=y,
         width=w, height=h,
     )
+
+def rectv2f(x, y, w, h):
+    x1, y1 = x + w, y + h
+    return [ x, y, x1, y, x1, y1, x, y1 ]
+
+def rrectv2f(x, y, w, h):
+    x1, y1 = x + w, y + h
+    return [ x, y, x, y1, x1, y1, x1, y ]

@@ -456,6 +456,9 @@ def textsnap(text, font, l):
 
     return text[:i]
 
+def textwidth(text, font):
+    return sum([g.advance for g in font.get_flyphs(text)])
+
 def partition(pred, l):
     t = filter(pred, l)
     f = filter(lambda v: not pred(v), l)
