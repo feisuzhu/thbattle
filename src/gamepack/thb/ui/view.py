@@ -283,12 +283,12 @@ class THBattleUI(Control):
         self.selecting_player = 0
 
     def init(self):
-        booster = GCPBooster(parent=self, x=0, y=0, width=self.width, height=self.height)
+        #booster = GCPBooster(parent=self, x=0, y=0, width=self.width, height=self.height)
         ports = self.char_portraits = [
-            GameCharacterPortrait(parent=booster, color=color, x=x, y=y, tag_placement=tp)
+            GameCharacterPortrait(parent=self, color=color, x=x, y=y, tag_placement=tp)
             for x, y, tp, color in self.gcp_location[:len(self.game.players)]
         ]
-        booster.init()
+        #booster.init()
 
         pl = self.game.players
         shift = pl.index(self.game.me)
