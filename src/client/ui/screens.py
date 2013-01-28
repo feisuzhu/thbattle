@@ -283,28 +283,19 @@ class GameHallScreen(Screen):
                     uname = textsnap(uname, f, 120) + u'…'
                 txtbox.text = uname + u'的游戏'
 
-                self.labels = BatchList([
-                    pyglet.text.Label(
-                        u'创建游戏房间', font_size=12, x=275, y=306,
-                        anchor_x='center', anchor_y = 'bottom',
-                        color=(207, 240, 156, 204), italic=True,
-                    ),
-                    pyglet.text.Label(
-                        u'创建游戏房间', font_size=12, x=275, y=306,
-                        anchor_x='center', anchor_y='bottom',
-                        color = Colors.green.heavy + (255, ),
-                    ),
-                    pyglet.text.Label(
-                        u'房间名称：', font_size=9, x=30, y=275,
-                        anchor_x='left', anchor_y='bottom',
-                        color =(207, 240, 156, 204), italic=True,
-                    ),
-                    pyglet.text.Label(
-                        u'房间名称：', font_size=9, x=30, y=275,
-                        anchor_x='left', anchor_y='bottom',
-                        color=Colors.green.heavy + (255, ),
-                    )
-                ])
+                self.labels = batch = pyglet.graphics.Batch()
+                ShadowedLabel(
+                    u'创建游戏房间', font_size=12, x=275, y=306,
+                    anchor_x='center', anchor_y='bottom',
+                    color = Colors.green.heavy + (255, ),
+                    shadow_color=(207, 240, 156, 204),
+                ),
+                ShadowedLabel(
+                    u'房间名称：', font_size=9, x=30, y=275,
+                    anchor_x='left', anchor_y='bottom',
+                    color=Colors.green.heavy + (255, ),
+                    shadow_color=(207, 240, 156, 204),
+                )
 
                 from gamepack import gamemodes as modes
 
@@ -354,13 +345,15 @@ class GameHallScreen(Screen):
                     u'取消', parent=self, x=440, y=25, width=90, height=40
                 )
 
-                self.labels = BatchList([
-                    pyglet.text.Label(
-                        u'旁观游戏', font_size=12, x=275, y=306,
-                        anchor_x = 'center', anchor_y = 'bottom',
-                        color = Colors.green.heavy + (255, ),
-                    )
-                ])
+                self.labels = pyglet.graphics.Batch()
+
+                ShaodowedLabel(
+                    u'旁观游戏', font_size=12, x=275, y=306,
+                    anchor_x='center', anchor_y='bottom',
+                    color=Colors.green.heavy + (255, ),
+                    shadow_color=(207, 240, 156, 204),
+                    thin_shadow=True, batch=self.labels,
+                )
 
                 @btncancel.event
                 def on_click():
@@ -370,9 +363,7 @@ class GameHallScreen(Screen):
 
             def draw(self):
                 Panel.draw(self)
-                with shaders.FontShadow as fs:
-                    fs.uniform.shadow_color = (0.81, 0.94, 0.61, 0.8)
-                    self.labels.draw()
+                self.labels.draw()
 
             def on_message(self, _type, *args):
                 if _type == 'gameinfo':

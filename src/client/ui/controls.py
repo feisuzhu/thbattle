@@ -1694,3 +1694,97 @@ class ImageSelector(Control):
 
 ImageSelector.register_event_type('on_select')
 ImageSelector.register_event_type('on_dblclick')
+
+
+class ShadowedLabel(object):
+    text_group = OrderedGroup(62)
+    shadow_group = OrderedGroup(61)
+
+    def __init__(self, text, x, y, anchor_x='left', anchor_y='bottom',
+            font_size=12, color=(0, 0, 0, 255), thin_shadow=False, shadow_color=(255, 255, 255, 255),
+            batch=None):
+        
+        self._own_batch = False
+        if not batch:
+            batch = pyglet.graphics.Batch()
+            self._own_batch = True
+
+        self._batch = batch
+
+        shadow_args = {'italic': True} if thin_shadow else {'italic': True, 'bold': True}
+        
+        self.shadow_lbl = pyglet.text.Label(
+            text=text, x=x, y=y,
+            anchor_x=anchor_x, anchor_y=anchor_y,
+            font_name='AncientPix', font_size=font_size,
+            color=shadow_color, batch=batch, group=self.shadow_group,
+            **shadow_args
+        )
+
+        self.txt_lbl = pyglet.text.Label(
+            text=text, x=x, y=y,
+            anchor_x=anchor_x, anchor_y=anchor_y,
+            font_name='AncientPix', font_size=font_size,
+            color=color, batch=batch, group=self.text_group,
+        )
+
+    def begin_update(self):
+        self.shadow_lbl.begin_update()
+        self.txt_lbl.begin_update()
+
+    def end_update(self):
+        self.shadow_lbl.end_update()
+        self.txt_lbl.end_update()
+
+    @property
+    def color(self):
+        return self.txt_lbl.color
+
+    @color.setter
+    def color(self, v):
+        self.txt_lbl.color = v
+
+    @property
+    def shadow_color(self):
+        return self.txt_lbl.color
+
+    @shadow_color.setter
+    def shadow_color(self, v):
+        self.shadow_lbl.color = v
+
+    @property
+    def batch(self):
+        return self._batch
+
+    @batch.setter
+    def batch(self, v):
+        self._batch = v
+        self._own_batch = False
+
+    def draw(self):
+        if self._own_batch:
+            self.batch.draw()
+        else:
+            raise Exception("please use your batch to draw!")
+
+    def _lbl_property(name):
+        def _getter(self):
+            return getattr(self.txt_lbl, name)
+
+        def _setter(self, v):
+            self.begin_update()
+            setattr(self.txt_lbl, name, v)
+            setattr(self.shadow_lbl, name, v)
+            self.end_update()
+
+        return property(_getter, _setter)
+
+    x = _lbl_property('x')
+    y = _lbl_property('y')
+    anchor_x = _lbl_property('anchor_x')
+    anchor_y = _lbl_property('anchor_y')
+    text = _lbl_property('text')
+    font_size = _lbl_property('font_size')
+    A = _lbl_property('A')
+    A = _lbl_property('A')
+    A = _lbl_property('A')

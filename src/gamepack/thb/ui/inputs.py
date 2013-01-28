@@ -50,17 +50,11 @@ class UISelectTarget(Control):
             1.0, 0.0, irp.timeout,
             on_done=lambda *a: self.cleanup()
         )
-       
-        self.label_text = lbl = pyglet.text.Label(
-            text=u"HEY SOMETHING'S WRONG", x=125, y=28,
-            font_size=12, color=(255, 255, 160, 255), 
-            anchor_x='center', anchor_y='bottom',
-        )
 
-        self.label_shadow = lbl = pyglet.text.Label(
-            text=u"HEY SOMETHING'S WRONG", x=125, y=28,
-            font_size=12, color=(0, 0, 0, 179), bold=True,
-            anchor_x='center', anchor_y='bottom', italic=True,
+        self.label = lbl = ShadowedLabel(
+            text=u"HEY SOMETHING'S WRONG", x=125, y=28, font_size=12,
+            color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 179),
+            anchor_x='center', anchor_y='bottom',
         )
 
         @self.confirmbtn.event
@@ -86,8 +80,7 @@ class UISelectTarget(Control):
         #dispatch_selection_change() # the clear_selection thing will trigger this
 
     def set_text(self, text):
-        self.label_shadow.text = text
-        self.label_text.text = text
+        self.label.text = text
 
     def on_selection_change(self):
         # subclasses should surpress it
@@ -131,13 +124,13 @@ class UISelectTarget(Control):
     def draw(self):
         self.draw_subcontrols()
         from client.ui import shaders
-        self.label_shadow.draw()
-        self.label_text.draw()
+        self.label.draw()
 
     def on_message(self, _type, *args):
         if _type in ('evt_user_input_timeout', 'evt_user_input_finish'):
             if args[0].player is Game.getgame().me:
                 self.cleanup()
+
 
 class BaseUIChooseCardAndPlayer(UISelectTarget):
     _auto_chosen = False
@@ -503,14 +496,13 @@ class UIChoosePeerCard(Panel):
                 h -= 145 # no cards in this category
                 continue
 
-            pyglet.text.Label(
-                text=self.lookup[cat.type],
-                font_name = 'AncientPix', font_size=12,
-                color=(255, 255, 160, 255),
-                x=30, y=y+62+145*i,
-                anchor_x='left', anchor_y='center',
+            ShadowedLabel(
+                text=self.lookup[cat.type], font_size=12,
+                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230), 
+                x=30, y=y+62+145*i, anchor_x='left', anchor_y='center',
                 batch=lbls,
             )
+
             ca = DropCardArea(
                 parent=self,
                 x=100, y=y+145*i,
@@ -554,9 +546,7 @@ class UIChoosePeerCard(Panel):
 
     def draw(self):
         Panel.draw(self)
-        with shaders.FontShadow as fs:
-            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-            self.lbls.draw()
+        self.lbls.draw()
 
     def cleanup(self):
         self.irp.complete()
@@ -565,6 +555,7 @@ class UIChoosePeerCard(Panel):
     def on_message(self, _type, *args):
         if _type == 'evt_user_input_timeout':
             self.cleanup()
+
 
 class UIChooseOption(Control):
 
@@ -596,10 +587,10 @@ class UIChooseOption(Control):
             1.0, 0.0, irp.timeout,
             on_done=lambda *a: self.cleanup()
         )
-        self.label = lbl = pyglet.text.Label(
-            text=choose_option_prompt, x=125, y=28,
-            font_size=12, color=(255, 255, 160, 255), bold=True,
-            anchor_x='center', anchor_y='bottom'
+        self.label = lbl = ShadowedLabel(
+            text=choose_option_prompt, x=125, y=28, font_size=12, 
+            color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 179),
+            thin_shadow=False, anchor_x='center', anchor_y='bottom',
         )
 
         @self.confirmbtn.event
@@ -620,9 +611,7 @@ class UIChooseOption(Control):
     def draw(self):
         self.draw_subcontrols()
         from client.ui import shaders
-        with shaders.FontShadow as fs:
-            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.7)
-            self.label.draw()
+        self.label.draw()
 
     def on_message(self, _type, *args):
         if _type == 'evt_user_input_timeout':
@@ -683,9 +672,9 @@ class UIHarvestChoose(Panel):
         w = 20 + (91+10)*4 + 20
         h = 20 + 125 + 20 + 125 + 20 + 20
 
-        self.lbl = lbl = pyglet.text.Label(
-            text=u"等待玩家的其他操作", x=w//2, y=300,
-            font_size=12, color=(255, 255, 160, 255), bold=True,
+        self.lbl = lbl = ShadowedLabel(
+            text=u"等待玩家的其他操作", x=w//2, y=300, font_size=12,
+            color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom'
         )
 
@@ -714,9 +703,7 @@ class UIHarvestChoose(Panel):
 
     def draw(self):
         Panel.draw(self)
-        with shaders.FontShadow as fs:
-            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-            self.lbl.draw()
+        self.lbl.draw()
 
     def on_message(self, _type, *args):
         if _type == 'evt_harvest_finish':
@@ -838,13 +825,12 @@ class UIRanProphet(Panel):
         lbls = pyglet.graphics.Batch()
         def lbl(text, x, y):
             pyglet.text.Label(
-                text=text,
-                font_name='AncientPix', font_size=12,
-                color=(255, 255, 160, 255),
-                x=x, y=y,
+                text=text, x=x, y=y, font_size=12,
                 anchor_x='center', anchor_y='center',
+                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
                 batch=lbls,
             )
+
         lbl(u'牌堆底', 50, 122)
         lbl(u'牌堆顶', 50, 277)
         lbl(u'请拖动调整牌的位置', w//2, h-25)
@@ -889,9 +875,7 @@ class UIRanProphet(Panel):
 
     def draw(self):
         Panel.draw(self)
-        with shaders.FontShadow as fs:
-            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-            self.lbls.draw()
+        self.lbls.draw()
 
 
 class KOFSorterControl(Dragger):
@@ -925,12 +909,9 @@ class UIKOFCharacterSorter(Panel):
         lbls = pyglet.graphics.Batch()
         def lbl(text, x, y):
             pyglet.text.Label(
-                text=text,
-                font_name='AncientPix', font_size=12,
-                color=(255, 255, 160, 255),
-                x=x, y=y,
-                anchor_x='center', anchor_y='center',
-                batch=lbls,
+                text=text, font_size=12, x=x, y=y,
+                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
+                anchor_x='center', anchor_y='center', batch=lbls,
             )
 
         lbl(u'请拖动调整角色的出场顺序', w//2, h-25)
@@ -976,9 +957,7 @@ class UIKOFCharacterSorter(Panel):
 
     def draw(self):
         Panel.draw(self)
-        with shaders.FontShadow as fs:
-            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-            self.lbls.draw()
+        self.lbls.draw()
 
 mapping = dict(
     choose_card_and_player=UIChooseCardAndPlayer,

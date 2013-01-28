@@ -525,13 +525,10 @@ class ShownCardPanel(Panel):
         i = 0
         for cat in reversed(categories):
 
-            pyglet.text.Label(
-                text=self.lookup[cat.type],
-                font_name = 'AncientPix', font_size=12,
-                color=(255, 255, 160, 255),
-                x=30, y=y+62+145*i,
-                anchor_x='left', anchor_y='center',
-                batch=lbls,
+            ShadowedLabel(
+                text=self.lookup[cat.type], x=30, y=y+62+145*i, font_size=12,
+                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 130),
+                anchor_x='left', anchor_y='center', batch=lbls,
             )
             ca = DropCardArea(
                 parent=self,
@@ -562,9 +559,7 @@ class ShownCardPanel(Panel):
 
     def draw(self):
         Panel.draw(self)
-        with shaders.FontShadow as fs:
-            fs.uniform.shadow_color = (0.0, 0.0, 0.0, 0.9)
-            self.lbls.draw()
+        self.lbls.draw()
 
     def delete(self):
         Panel.delete(self)
