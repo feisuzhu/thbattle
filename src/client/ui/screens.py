@@ -289,12 +289,14 @@ class GameHallScreen(Screen):
                     anchor_x='center', anchor_y='bottom',
                     color = Colors.green.heavy + (255, ),
                     shadow_color=(207, 240, 156, 204),
+                    thin_shadow=True, batch=batch,
                 ),
                 ShadowedLabel(
                     u'房间名称：', font_size=9, x=30, y=275,
                     anchor_x='left', anchor_y='bottom',
                     color=Colors.green.heavy + (255, ),
                     shadow_color=(207, 240, 156, 204),
+                    thin_shadow=True, batch=batch,
                 )
 
                 from gamepack import gamemodes as modes
@@ -347,7 +349,7 @@ class GameHallScreen(Screen):
 
                 self.labels = pyglet.graphics.Batch()
 
-                ShaodowedLabel(
+                ShadowedLabel(
                     u'旁观游戏', font_size=12, x=275, y=306,
                     anchor_x='center', anchor_y='bottom',
                     color=Colors.green.heavy + (255, ),

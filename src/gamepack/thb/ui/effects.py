@@ -316,7 +316,7 @@ class UIPindianEffect(Panel):
             anchor_x='center', anchor_y='bottom', batch=batch
         )
 
-        self.tgtlbl = lbl = pyglet.text.Label(
+        self.tgtlbl = lbl = ShadowedLabel(
             text=tgt.ui_meta.char_name, x=20+91+20+91//2, y=165, font_size=12,
             color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom', batch=batch

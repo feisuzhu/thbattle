@@ -146,62 +146,6 @@ class ResultPanel(Panel):
         self.pic.blit(self.width - pic.width - 10, self.height - pic.height - 10)
 
 
-class GCPBooster(Control):
-    enabled = InterpDesc('_enabled')
-    def init(self):
-        cl = self.control_list
-        assert all(isinstance(p, GameCharacterPortrait) for p in cl)
-        self.dl = DisplayList()
-        self.need_update = True
-        self.enabled = True
-
-        for p in cl:
-            @hook(p)
-            def update(ori):
-                self.need_update = True
-                ori()
-
-            p._gcphooked = True
-
-    def draw(self):
-        if self.enabled:
-            cl = self.control_list
-            GCP = GameCharacterPortrait
-            if self.need_update:
-                with self.dl:
-                    GCP.batch_draw_frame(cl)
-                self.need_update = False
-            self.dl()
-            GCP.batch_draw_status(cl)
-            sc = []
-            map(sc.extend, [c.control_list for c in cl])
-            GCP.do_draw(sc)
-            GCP.batch_draw_hilight(cl)
-
-        else:
-            self.draw_subcontrols()
-
-    def hit_test(self, x, y):
-        return self.control_frompoint1(x, y)
-
-    def update(self, *a):
-        for c in self.control_list:
-            c.update()
-
-    def on_message(self, _type, *args):
-        if _type == 'evt_reseat':
-            self.enabled = ChainInterp(
-                FixedInterp(False, 1.0),
-                FixedInterp(True, 0),
-                on_done=self.update
-            )
-
-            for c in self.control_list:
-                c.caption_lbl.text = u''
-
-            self.need_update = True
-
-
 class THBattleUI(Control):
     portrait_location = [
         (60, 300, Colors.blue),
@@ -283,12 +227,10 @@ class THBattleUI(Control):
         self.selecting_player = 0
 
     def init(self):
-        #booster = GCPBooster(parent=self, x=0, y=0, width=self.width, height=self.height)
         ports = self.char_portraits = [
             GameCharacterPortrait(parent=self, color=color, x=x, y=y, tag_placement=tp)
             for x, y, tp, color in self.gcp_location[:len(self.game.players)]
         ]
-        #booster.init()
 
         pl = self.game.players
         shift = pl.index(self.game.me)

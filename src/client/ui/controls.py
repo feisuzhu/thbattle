@@ -11,7 +11,7 @@ from client.ui.base.shader import ShaderGroup, ShaderUniformGroup
 from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
 from client.core import Executive
-from utils import Rect, Framebuffer, DisplayList, textsnap, flatten, rectv2f, rrectv2f
+from utils import Rect, textsnap, flatten, rectv2f, rrectv2f
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
 
@@ -148,10 +148,10 @@ class Button(Control):
         ])
 
         batch.add(8, GL_QUADS, None,
-            ('v2f', (
-                ax, ay,  ax + w, ay,  ax + w, ay + h, ax, ay + h,
-                ax, ay,  ax, ay + h,  ax + w, ay + h, ax + w, ay,
-            )),
+            ('v2f', flatten([
+                rectv2f(.5, .5, w-.5, h-.5, ax, ay),
+                rrectv2f(.5, .5, w-.5, h-.5, ax, ay),
+            ])),
             ('c4f', color_array),
         )
 
@@ -434,9 +434,14 @@ class Frame(Control):
 
     def update(self):
         self.set_caption(self.caption)
-        Frame.update_color(self)
-        Frame.update_position(self)
-        Frame.update_bg(self)
+
+        #Frame.update_color(self)
+        #Frame.update_position(self)
+        #Frame.update_bg(self)
+
+        self.update_color()
+        self.update_position()
+        self.update_bg()
         self._update_labels()
 
     def update_bg(self):
@@ -1030,11 +1035,6 @@ class PlayerPortrait(Frame):
             ccap = C(self.color.caption)
             ccapshadow = C(self.color.caption_shadow)
 
-            args = ((
-                'shadow_color',
-                tuple([i/255.0 for i in self.color.caption_shadow+(255,)])
-            ), )
-
             self.accinfo_labels.append(self.add_label(
                 text, x=8, y=47-15*loc,
                 anchor_x='left', anchor_y='top',
@@ -1287,7 +1287,6 @@ class ListView(Control):
         self._view_y = 0
         self.batch = pyglet.graphics.Batch()
         self.cur_select = None
-        self._dl = DisplayList()
         self.need_refresh = True
 
     def set_columns(self, cols):
@@ -1337,27 +1336,24 @@ class ListView(Control):
         vy = self.view_y
 
         #glPushMatrix()
-        if self.need_refresh:
-            with self._dl:
-                glTranslatef(0, client_height + vy, 0)
-                glEnable(GL_SCISSOR_TEST)
-                ax, ay = self.abs_coords()
-                ax, ay, w, h = map(int, (ax, ay, self.width, client_height))
-                glScissor(ax, ay, w, h)
-                self.batch.draw()
-                cs = self.cur_select
-                if cs is not None:
-                    c = Colors.get4f(self.color.light)
-                    glColor4f(c[0], c[1], c[2], 0.5)
-                    glRectf(
-                        0, -16-cs*self.line_height,
-                        self.width, -cs*self.line_height
-                    )
-                glDisable(GL_SCISSOR_TEST)
-                glTranslatef(0, -vy, 0)
-                self.header.draw()
+        glTranslatef(0, client_height + vy, 0)
+        glEnable(GL_SCISSOR_TEST)
+        ax, ay = self.abs_coords()
+        ax, ay, w, h = map(int, (ax, ay, self.width, client_height))
+        glScissor(ax, ay, w, h)
+        self.batch.draw()
+        cs = self.cur_select
+        if cs is not None:
+            c = Colors.get4f(self.color.light)
+            glColor4f(c[0], c[1], c[2], 0.5)
+            glRectf(
+                0, -16-cs*self.line_height,
+                self.width, -cs*self.line_height
+            )
+        glDisable(GL_SCISSOR_TEST)
+        glTranslatef(0, -vy, 0)
+        self.header.draw()
 
-        self._dl()
         #glPopMatrix()
 
     def on_mouse_scroll(self, x, y, dx, dy):
