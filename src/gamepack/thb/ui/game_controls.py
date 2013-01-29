@@ -7,7 +7,7 @@ from client.ui import shaders
 from game.autoenv import Game
 from .. import actions
 
-from utils import DisplayList, partition, flatten
+from utils import partition, flatten
 
 import pyglet
 
