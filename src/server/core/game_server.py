@@ -131,6 +131,7 @@ class Player(game.AbstractPlayer):
         return self.client.account
 
 class Game(Greenlet, game.Game):
+    suicide = False
     '''
     The Game class, all game mode derives from this.
     Provides fundamental behaviors.
@@ -181,6 +182,10 @@ class Game(Greenlet, game.Game):
         return '%s:%s' % (self.__class__.__name__, gid)
 
     def get_synctag(self):
+        if self.suicide:
+            self.kill()
+            return
+
         self.synctag += 1
         import sys
         if 0: # FOR DEBUG

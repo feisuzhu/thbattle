@@ -284,9 +284,9 @@ def exit_game(user, drops=False):
                 except KeyError:
                     pass
 
+            g.suicide = True  # game will kill itself in get_synctag()
             try:
                 del games[g.gameid]
-                g.instant_kill()
             except:
                 pass
 

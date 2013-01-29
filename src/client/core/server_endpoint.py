@@ -43,7 +43,7 @@ class Server(Endpoint, Greenlet):
         l = self.gdqueue
         if len(l) >= 100000:
             log.warn('GAMEDATA LIST TOO LONG, KILLING')
-            self.instant_kill()
+            self.kill()
         else:
             p = Packet(data)
             p.scan_count = 0
