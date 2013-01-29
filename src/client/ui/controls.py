@@ -148,10 +148,10 @@ class Button(Control):
         ])
 
         batch.add(8, GL_QUADS, None,
-            ('v2f', (
-                ax, ay,  ax + w, ay,  ax + w, ay + h, ax, ay + h,
-                ax, ay,  ax, ay + h,  ax + w, ay + h, ax + w, ay,
-            )),
+            ('v2f', flatten([
+                rectv2f(.5, .5, w-.5, h-.5, ax, ay),
+                rrectv2f(.5, .5, w-.5, h-.5, ax, ay),
+            ])),
             ('c4f', color_array),
         )
 
@@ -434,9 +434,14 @@ class Frame(Control):
 
     def update(self):
         self.set_caption(self.caption)
-        Frame.update_color(self)
-        Frame.update_position(self)
-        Frame.update_bg(self)
+
+        #Frame.update_color(self)
+        #Frame.update_position(self)
+        #Frame.update_bg(self)
+
+        self.update_color()
+        self.update_position()
+        self.update_bg()
         self._update_labels()
 
     def update_bg(self):

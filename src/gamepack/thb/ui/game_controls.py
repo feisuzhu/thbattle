@@ -723,7 +723,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
 
             nick = prefix + nick
 
-        self.set_caption(nick)
+        self.caption = nick
         meta = getattr(p, 'ui_meta', None)
 
         if meta:
@@ -737,6 +737,8 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         self.bot_reserve=74
         self.gray_tex = None
         Frame.update(self)
+        self.update_position()
+        self.update_color()
 
     @property
     def color(self):
@@ -812,7 +814,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         heavy = C(c.heavy); light = C(c.light)
         self._gcp_framevlist.colors = flatten([
             [255, 255, 255, 255] * 4,  # equip box
-            [heavy] * 4,  # eqip box border
+            [heavy] * 4,  # equip box border
             [light] * 4,  # cardnum box
             [heavy] * 4,  # cardnum box border
         ])
@@ -939,8 +941,16 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 # self.update()
 
     def animate_to(self, x, y):
-        self.x = SineInterp(self.x, x, 1)
-        self.y = SineInterp(self.y, y, 1)
+        tx = SineInterp(self.x, x, 1)
+        ty = SineInterp(self.y, y, 1)
         pca = self.portcard_area
-        pca.x = x
-        pca.y = y
+        def _update(dt):
+            if tx.finished:
+                pyglet.clock.unschedule(_update)
+                return
+
+            pca.x = x
+            pca.y = y
+            self.set_position(tx.value, ty.value)
+
+        pyglet.clock.schedule_interval_soft(_update, 1/60.0)
