@@ -824,7 +824,7 @@ class UIRanProphet(Panel):
 
         lbls = pyglet.graphics.Batch()
         def lbl(text, x, y):
-            pyglet.text.Label(
+            ShadowedLabel(
                 text=text, x=x, y=y, font_size=12,
                 anchor_x='center', anchor_y='center',
                 color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),

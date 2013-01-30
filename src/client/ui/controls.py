@@ -1035,11 +1035,6 @@ class PlayerPortrait(Frame):
             ccap = C(self.color.caption)
             ccapshadow = C(self.color.caption_shadow)
 
-            args = ((
-                'shadow_color',
-                tuple([i/255.0 for i in self.color.caption_shadow+(255,)])
-            ), )
-
             self.accinfo_labels.append(self.add_label(
                 text, x=8, y=47-15*loc,
                 anchor_x='left', anchor_y='top',
