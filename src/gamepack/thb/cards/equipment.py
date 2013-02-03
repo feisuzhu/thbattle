@@ -365,9 +365,9 @@ class HouraiJewelSkill(WeaponSkill):
 
 @register_eh
 class HouraiJewelHandler(EventHandler):
-    execute_before = ('RejectHandler', 'WineHandler') # wine does not affect this.
+    execute_before = ('RejectHandler', 'WineHandler')  # wine does not affect this.
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
+        if evt_type == 'action_before' and isinstance(act, basic.Attack):
             src = act.source
             if not src.has_skill(HouraiJewelSkill): return act
             if isinstance(act, HouraiJewelAttack): return act

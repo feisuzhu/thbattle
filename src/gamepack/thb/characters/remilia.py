@@ -18,8 +18,9 @@ class FateSpearAction(GenericAction):
         return True
 
 class FateSpearHandler(EventHandler):
+    execute_after = ('HakuroukenEffectHandler', )
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, Attack):
+        if evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
             if not src.has_skill(FateSpear): return act
             tgt = act.target
