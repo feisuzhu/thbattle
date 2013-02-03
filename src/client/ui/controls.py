@@ -2,7 +2,7 @@
 import pyglet
 from pyglet.gl import *
 from pyglet import graphics
-from pyglet.window import mouse
+from pyglet.window import mouse, key
 from pyglet.graphics import OrderedGroup
 from pyglet.sprite import Sprite
 from client.ui.base import *
@@ -12,6 +12,8 @@ from client.ui.base.interp import *
 from client.ui import resource as common_res, shaders
 from client.core import Executive
 from utils import Rect, textsnap, flatten, rectv2f, rrectv2f
+from utils import pyperclip
+
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
 
@@ -532,7 +534,7 @@ class Frame(Control):
     
     def set_position(self, x, y):
         self.x = x; self.y = y
-        Frame.update_position(self)
+        self.update_position()
 
     def update_position(self):
         ax, ay = self.abs_coords()
@@ -898,10 +900,35 @@ class TextBox(Control):
         self.release_capture('on_mouse_release', 'on_mouse_drag')
         return True
 
-    # TODO: def on_key_press(...): #handle Ctrl+C Ctrl+V Ctrl+A
+    def on_key_press(self, symbol, modifiers):
+        if modifiers == key.MOD_CTRL:
+            if symbol == key.A:
+                self.caret.position = 0
+                self.caret.mark = len(self.text)
+                return pyglet.event.EVENT_HANDLED
+
+            elif symbol == key.C:
+                start = self.layout.selection_start
+                end = self.layout.selection_end
+                if start != end:
+                    pyperclip.copy(self.text[start:end])
+                return pyglet.event.EVENT_HANDLED
+
+            elif symbol == key.V:
+                content = unicode(pyperclip.paste()).replace('\r\n', ' ').replace('\n', ' ')
+                self.dispatch_event('on_text', content)
+                return pyglet.event.EVENT_HANDLED
+
+            elif symbol == key.X:
+                start = self.layout.selection_start
+                end = self.layout.selection_end
+                if start != end:
+                    pyperclip.copy(self.text[start:end])
+                    self.dispatch_event('on_text', '')
+                return pyglet.event.EVENT_HANDLED
+    
     def on_text(self, text):
-        from pyglet.window import key
-        if text == '\r': # Why this??
+        if text == '\r':
             self.dispatch_event('on_enter')
             return pyglet.event.EVENT_HANDLED
 

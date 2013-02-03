@@ -113,6 +113,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+bug修复，复制/粘贴支持（感谢zhyk提供补丁）
 修复一处导致服务器卡顿的bug
 阳伞设定调整，bug修复，细节调整
 霍青娥技能调整，bug修复，代码重构（可能会引入较多的新bug）
