@@ -58,18 +58,21 @@ class DeathHandler(EventHandler):
 class KOFCharacterSwitchHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_stage_action' or \
-            (evt_type in { 'action_before', 'action_after'} and isinstance(act, PlayerTurn)):
-
-            g = Game.getgame()
-
-            for p in [p for p in g.players if p.dead and p.characters]:
-                g.next_character(p)
-                g.update_event_handlers()
-                g.process_action(DrawCards(p, 4))
-                p.dead = False
-                g.emit_event('kof_next_character', p)
+            (evt_type in { 'action_before', 'action_after' } and isinstance(act, PlayerTurn)):
+                self.do_switch()
 
         return act
+
+    @staticmethod
+    def do_switch():
+        g = Game.getgame()
+
+        for p in [p for p in g.players if p.dead and p.characters]:
+            g.next_character(p)
+            g.update_event_handlers()
+            g.process_action(DrawCards(p, 4))
+            p.dead = False
+            g.emit_event('kof_next_character', p)
 
 
 class Identity(PlayerIdentity):
@@ -246,6 +249,9 @@ class THBattleKOF(Game):
                         self.process_action(PlayerTurn(p))
                     except InterruptActionFlow:
                         pass
+                else:
+                    assert p.characters  # if not holds true, DeathHandler should end game.
+                    KOFCharacterSwitchHandler.do_switch()
 
         except GameEnded:
             pass

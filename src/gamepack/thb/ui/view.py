@@ -55,25 +55,22 @@ class UIEventHook(EventHandler):
             irp.complete()
 
         ui_schedule(ui_callback)
-        import time
-        time.sleep(0.02)
+        import gevent
+        gevent.sleep(0.02)
         irp.wait()
 
     # evt_user_input_timeout, InputControllers handle this
 
     @classmethod
     def handle(cls, evt, data):
-        import time
         name = 'evt_%s' % evt
         try:
             f = getattr(cls, name)
         except AttributeError:
             ui_message(name, data)
-            time.sleep(0)
             return data
 
         rst = f(data)
-        time.sleep(0)
         return rst
 
 
