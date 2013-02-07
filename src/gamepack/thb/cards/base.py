@@ -25,7 +25,7 @@ class Card(object):
     card_classes = {}
 
     def __init__(self, suit=NOTSET, number=0, resides_in=None):
-        self.syncid = 0 # Deck will touch this
+        self.syncid = 0  # Deck will touch this
         self.suit = suit
         self.number = number
         self.resides_in = resides_in
@@ -48,7 +48,7 @@ class Card(object):
     def __hash__(self):
         return 84065234 + self.syncid
 
-    def sync(self, data): # this only executes at client side, let it crash.
+    def sync(self, data):  # this only executes at client side, let it crash.
         if data['syncid'] != self.syncid:
             raise GameError('Card: out of sync')
         clsname = data['type']
@@ -206,15 +206,18 @@ class Deck(object):
                 random.shuffle(dropped)
                 cards = self.cards
                 rec = self.cards_record
-                for c in dropped:
-                    c.resides_in = cards
-                    del rec[c.syncid]
-                    c.syncid = 0
-                cards.extend(dropped)
+
+                # preserve it, does not consume much memory
+                # del rec[c.syncid]
+                cards.extend([
+                    c.__class__(c.suit, c.number, cards)
+                    for c in dropped
+                ])
+
             elif Game.CLIENT_SIDE:
                 rec = self.cards_record
-                for c in self.droppedcards:
-                    del rec[c.syncid]
+                # for c in self.droppedcards:
+                #     del rec[c.syncid]
                 cards = self.cards
                 cards.extend(
                     HiddenCard(Card.NOTSET, 0, cards)
@@ -226,11 +229,8 @@ class Deck(object):
         cl = self.cards
         for i in xrange(min(len(cl), num)):
             c = cl[i]
-            if c.syncid:
-                sid = c.syncid
-            else:
-                sid = g.get_synctag()
-                c.syncid = sid
+            sid = c.syncid or g.get_synctag()
+            c.syncid = sid
 
             rst.append(c)
             self.cards_record[sid] = c
