@@ -2,7 +2,6 @@
 from .baseclasses import *
 from ..actions import *
 from ..cards import *
-from itertools import chain
 
 
 class DrawingLotAction(UserAction):
@@ -28,7 +27,7 @@ class DrawingLotAction(UserAction):
 
 class DrawingLot(Skill):
     associated_action = DrawingLotAction
-    target = t_One
+    target = t_OtherOne
 
     def check(self):
         if self.associated_cards: return False
