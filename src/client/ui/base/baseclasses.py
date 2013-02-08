@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import pyglet
 
-from pyglet.graphics import *
 from pyglet.gl import *
 
 import types
@@ -346,7 +345,7 @@ Overlay.register_event_type('on_switch')
 Overlay.register_event_type('on_switchout')
 
 def init_gui():
-    global main_window, sched_queue, sched_queue_lock, current_time, fps_limit
+    global main_window, sched_queue, current_time, fps_limit
     import threading
 
     config = pyglet.gl.Config(
@@ -372,7 +371,17 @@ def init_gui():
         config=config,
     )
     sched_queue = []
-    sched_queue_lock = threading.RLock()
+
+    from pyglet.gl import gl_info
+    vendor = gl_info.get_vendor().lower()
+    if 'amd' in vendor or 'ati' in vendor:
+        pyglet.options['graphics_vbo'] = False  # AMD: Do you have QA team for your OpenGL driver ????
+        from pyglet.graphics import vertexbuffer
+        assert not vertexbuffer._enable_vbo
+
+    # custom font renderer
+    from .font import AncientPixFont
+    pyglet.font._font_class = AncientPixFont
 
     # main window setup {{
     glClearColor(1, 1, 1, 1)
@@ -415,7 +424,7 @@ def init_gui():
         return ori(symbol, modifiers)
 
     def _dispatch_msg(dt):
-        global sched_queue, sched_queue_lock
+        global sched_queue
         import gevent
 
         # give logics a chance to run
@@ -423,12 +432,10 @@ def init_gui():
 
         if not sched_queue: return
 
-        with sched_queue_lock:
-            queue = sched_queue
-            sched_queue = []
-
-        for func in queue:
+        for func in sched_queue:
             func()
+
+        sched_queue = []
 
 
     pyglet.clock.schedule_interval(_dispatch_msg, delay)
@@ -444,9 +451,8 @@ def init_gui():
     pyglet.clock.schedule_interval_soft(lambda dt: gc.collect(2), 7)
 
 def ui_schedule(func, *args, **kwargs):
-    global sched_queue, sched_queue_lock
-    with sched_queue_lock:
-        sched_queue.append(partial(func, *args, **kwargs))
+    global sched_queue
+    sched_queue.append(partial(func, *args, **kwargs))
 
 def process_msg(args):
     Overlay.cur_overlay.dispatch_message(args)

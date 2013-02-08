@@ -91,7 +91,6 @@ import pyglet
 
 pyglet.options['audio'] = ('directsound', 'openal', 'alsa', 'silent')
 pyglet.options['shadow_window'] = False
-# pyglet.options['graphics_vbo'] = False  # AMD: Do you have QA team for your OpenGL driver ????
 
 if not options.with_gl_errcheck:
     pyglet.options['debug_gl'] = False
