@@ -50,7 +50,7 @@ class YuukaHandler(EventHandler):
             if not c: return act
             src = act.source
             if not src.has_skill(MagicCannon): return act
-            if c.suit in (Card.HEART, Card.DIAMOND):
+            if c.color == Card.RED:
                 act.damage += 1
                 act.__class__ = classmix(MagicCannonAttack, act.__class__)
 
