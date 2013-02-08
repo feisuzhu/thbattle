@@ -9,6 +9,7 @@ log = logging.getLogger('UI_Entry')
 
 def start_ui():
     # ATI workarounds
+    import pyglet
     from pyglet import gl
     @hook(gl)
     def glDrawArrays(ori, *a, **k):
@@ -21,17 +22,13 @@ def start_ui():
 
     from client.ui.base import init_gui, ui_schedule
 
-    # custom font renderer
-    import pyglet
-    from .base.font import AncientPixFont
-    pyglet.font._font_class = AncientPixFont
-
     init_gui()
 
     # This forces all game resources to initialize,
     # else they will be imported firstly by GameManager,
     # then resources will be loaded at a different thread,
     # resulting white planes.
+    # UPDATE: no more threading now, but retain notice above.
     import gamepack
 
     # custom errcheck
