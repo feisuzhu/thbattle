@@ -243,15 +243,17 @@ class THBattleKOF(Game):
 
             for i, p in enumerate(cycle([second, first])):
                 if i >= 6000: break
-                if not p.dead:
-                    self.emit_event('player_turn', p)
-                    try:
-                        self.process_action(PlayerTurn(p))
-                    except InterruptActionFlow:
-                        pass
-                else:
+                if p.dead:
                     assert p.characters  # if not holds true, DeathHandler should end game.
                     KOFCharacterSwitchHandler.do_switch()
+
+                assert not p.dead
+
+                try:
+                    self.emit_event('player_turn', p)
+                    self.process_action(PlayerTurn(p))
+                except InterruptActionFlow:
+                    pass
 
         except GameEnded:
             pass
