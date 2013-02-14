@@ -901,7 +901,7 @@ class TextBox(Control):
         return True
 
     def on_key_press(self, symbol, modifiers):
-        if modifiers == key.MOD_CTRL:
+        if modifiers & ( key.MOD_SHIFT | key.MOD_CTRL | key.MOD_ALT) == key.MOD_CTRL:
             if symbol == key.A:
                 self.caret.position = 0
                 self.caret.mark = len(self.text)
@@ -915,7 +915,7 @@ class TextBox(Control):
                 return pyglet.event.EVENT_HANDLED
 
             elif symbol == key.V:
-                content = unicode(pyperclip.paste()).replace('\r\n', ' ').replace('\n', ' ')
+                content = unicode(pyperclip.paste()).replace(u'\r\n', u' ').replace(u'\n', u' ')
                 self.dispatch_event('on_text', content)
                 return pyglet.event.EVENT_HANDLED
 
@@ -924,7 +924,7 @@ class TextBox(Control):
                 end = self.layout.selection_end
                 if start != end:
                     pyperclip.copy(self.text[start:end])
-                    self.dispatch_event('on_text', '')
+                    self.dispatch_event('on_text', u'')
                 return pyglet.event.EVENT_HANDLED
     
     def on_text(self, text):
@@ -1808,6 +1808,3 @@ class ShadowedLabel(object):
     anchor_y = _lbl_property('anchor_y')
     text = _lbl_property('text')
     font_size = _lbl_property('font_size')
-    A = _lbl_property('A')
-    A = _lbl_property('A')
-    A = _lbl_property('A')
