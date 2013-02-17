@@ -3,6 +3,7 @@
 from .. import cards
 
 characters = []
+ex_characters = []
 
 class Character(object):
     # skills = []
@@ -17,4 +18,8 @@ class Character(object):
 
 def register_character(cls):
     characters.append(cls)
+    return cls
+
+def register_ex_character(cls):
+    ex_characters.append(cls)
     return cls

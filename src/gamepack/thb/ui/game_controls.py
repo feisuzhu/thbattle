@@ -504,7 +504,7 @@ class ShownCardPanel(Panel):
         'showncard': u'明牌区',
         'equips': u'装备区',
         'fatetell': u'判定区',
-        'bomb': u'BOMB'
+        'faiths': u'信仰',
     }
 
     current = None

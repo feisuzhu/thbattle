@@ -73,7 +73,7 @@ class LaunchReject(GenericAction):
 class RejectHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, SpellCardAction):
-            if act.cancelled: return act # some other thing have done the job
+            if act.cancelled: return act  # some other thing have done the job
             if isinstance(act, NonResponsiveInstantSpellCardAction):
                 return act
 

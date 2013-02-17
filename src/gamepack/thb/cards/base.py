@@ -163,7 +163,7 @@ class CardList(deque):
     EQUIPS = 'equips'
     FATETELL = 'fatetell'
     SPECIAL = 'special'
-    BOMB = 'bomb'
+    FAITHS = 'faiths'
     def __init__(self, owner, type):
         self.owner = owner
         self.type = type
@@ -174,8 +174,10 @@ class CardList(deque):
 
 
 class Deck(object):
-    def __init__(self):
-        from .definition import card_definition
+    def __init__(self, card_definition=None):
+        if not card_definition:
+            from .definition import card_definition
+
         from weakref import WeakValueDictionary
         self.cards_record = {}
         self.vcards_record = WeakValueDictionary()
@@ -190,10 +192,11 @@ class Deck(object):
             )
             random.shuffle(cards)
         elif Game.CLIENT_SIDE:
-            self.cards.extend(
+            cards.extend(
                 HiddenCard(Card.NOTSET, 0, cards)
                 for i in xrange(len(card_definition))
             )
+
 
     def getcards(self, num):
         g = Game.getgame()

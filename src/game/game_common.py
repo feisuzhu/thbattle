@@ -5,6 +5,12 @@ from contextlib import contextmanager
 
 log = logging.getLogger('Game')
 
+intern('action_can_fire')
+intern('action_before')
+intern('action_apply')
+intern('action_after')
+
+
 class TimeLimitExceeded(Timeout):
     pass
 

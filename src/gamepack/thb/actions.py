@@ -534,6 +534,17 @@ class LaunchCard(BaseLaunchCard):
         return True
 
     def validate_distance(self):
+        dist = self.calc_base_distance()
+
+        g.emit_event('calcdistance', (self, dist))
+        card_dist = getattr(self.card, 'distance', 1000)
+        for p in dist:
+            dist[p] -= card_dist
+        g.emit_event('post_calcdistance', (self, dist))
+
+        return all([dist[p] <= 0 for p in self.target_list])
+
+    def calc_base_distance(self):
         g = Game.getgame()
         pl = [p for p in g.players if not p.dead]
         src = self.source
@@ -543,14 +554,7 @@ class LaunchCard(BaseLaunchCard):
             p: min(abs(i), n-abs(i))
             for p, i in zip(pl, xrange(-loc, -loc+n))
         }
-
-        g.emit_event('calcdistance', (self, dist))
-        card_dist = getattr(self.card, 'distance', 1000)
-        for p in dist:
-            dist[p] -= card_dist
-        g.emit_event('post_calcdistance', (self, dist))
-
-        return all([dist[p] <= 0 for p in self.target_list])
+        return dist
 
 
 class ActionStageLaunchCard(LaunchCard):
