@@ -27,71 +27,51 @@ def game_action(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, BaseDamage):
-            tgt = act.target
-            if tgt.life > 0: return act
-            g = Game.getgame()
-            if not g.process_action(TryRevive(tgt, dmgact=act)):
-                g.process_action(PlayerDeath(act.source, tgt))
-                from .actions import RevealIdentity, DrawCards, DropCards
-                g.process_action(RevealIdentity(tgt, g.players))
+        if not evt_type == 'action_after': return act
+        if not isinstance(act, BaseDamage): return act
 
-                if act.source:
-                    src = act.source
-                    if tgt.identity.type == Identity.TYPE.ATTACKER:
-                        g.process_action(DrawCards(src, 3))
-                    elif tgt.identity.type == Identity.TYPE.ACCOMPLICE:
-                        if src.identity.type == Identity.TYPE.BOSS:
-                            if src.cards:
-                                g.players.exclude(src).reveal(list(src.cards))
-                                g.process_action(DropCards(src, src.cards))
-                            if src.showncards: g.process_action(DropCards(src, src.showncards))
-                            if src.equips: g.process_action(DropCards(src, src.equips))
+        tgt = act.target
+        if tgt.life > 0: return act
+        g = Game.getgame()
+        if g.process_action(TryRevive(tgt, dmgact=act)):
+            return act
 
-                # see if game ended
-                T = Identity.TYPE
-                def build():
-                    deads = defaultdict(list)
-                    for p in g.players:
-                        if p.dead:
-                            deads[p.identity.type].append(p)
-                    return deads
+        g.process_action(PlayerDeath(act.source, tgt))
+        from .actions import DrawCards, DropCards
 
-                # curtain's win
-                if len([p for p in g.players if p.dead]) == len(g.players) - 1:
-                    pl = g.players
-                    pl.reveal([p.identity for p in g.players])
+        # attackers' win
+        if tgt is g.mutant:
+            g.winners = g.attackers
+            raise GameEnded
 
-                    deads = build()
-                    if not deads[T.CURTAIN]:
-                        g.winners = [p for p in pl if p.identity.type == T.CURTAIN]
-                        raise GameEnded
+        # mutant's win
+        if all(p.dead for p in g.attackers):
+            g.winners = [g.mutant]
+            raise GameEnded
 
-                deads = build()
+        if tgt in g.attackers:
+            for p in [p for p in g.attackers if not p.dead]:
+                if p.user_input('choose_option', self):
+                    g.process_action(DrawCards(p, 1))
 
-                # boss & accomplices' win
-                if len(deads[T.ATTACKER]) == g.identities.count(T.ATTACKER):
-                    if deads[T.CURTAIN]:
-                        pl = g.players
-                        pl.reveal([p.identity for p in g.players])
-
-                        g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
-                        raise GameEnded
-
-                # attackers' win
-                if len(deads[T.BOSS]):
-                    pl = g.players
-                    pl.reveal([p.identity for p in g.players])
-
-                    g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
-                    raise GameEnded
-
-                if tgt is g.current_turn:
-                    for a in reversed(g.action_stack):
-                        if isinstance(a, UserAction):
-                            a.interrupt_after_me()
+        if tgt is g.current_turn:
+            for a in reversed(g.action_stack):
+                if isinstance(a, UserAction):
+                    a.interrupt_after_me()
 
         return act
+
+
+def use_faith(target, amount=1):
+    g = Game.getgame()
+    for i in xrange(1, amount + 1):
+        c = choose_individual_card(target, target.faiths)
+        if not c: break
+        g.process_action(DropCards(target, [c]))
+
+    rest = amount - i
+    if rest:
+        g.process_action(DropCards(target, target.faiths[:rest])
 
 
 class CollectFaith(GenericAction):
@@ -125,8 +105,89 @@ class CollectFaithHandler(EventHandler):
         g = Game.getgame()
         g,process_action(CollectFaith(src, src, amount))
         return act
-        
 
+
+class CooperationAction(UserAction):
+    no_reveal = True
+    def apply_action(self):
+        src = self.source
+        tgt = self.target
+
+        src.tags['cooperation_tag'] = src.tags['turn_count']
+        self.ncards = len(self.associated_cards)
+
+        cards, showncards = partition(
+            lambda c: c in src.cards, self.associated_cards
+        )
+        migrate_cards(cards, tgt.cards)
+        migrate_cards(showncards, tgt.showncards)
+
+        returned = user_choose_cards(self, tgt)
+        cards, showncards = partition(lambda c: c in tgt.cards, returned)
+        migrate_cards(cards, src.cards)
+        migrate_cards(showncards, src.showncards)
+
+        return True
+
+    def is_valid(self):
+        tags = self.source.tags
+        return tags['turn_count'] > tags['cooperation_tag']
+
+
+class Cooperation(Skill):
+    associated_action = CooperationAction
+    no_reveal = True
+
+    def target(self, g, src, tl):
+        return (tl[-1:], bool(len(tl)) and tl[-1] in g.attackers)
+
+    def check(self):
+        cl = self.associated_cards
+        if not cl: return False
+        return all(c.resides_in and c.resides_in.type in (
+            'handcard', 'showncard',
+        ) for c in cl)
+       
+
+class Protection(Skill):
+    associate_action = None
+    target = t_None
+
+
+class ProtectionAction(GenericAction):
+    def __init__(self, source, dmgact):
+        self.source = source
+        self.target = dmgact.target
+        self.dmgact = dmgact
+
+    def apply_action(self):
+        use_faith(self.source, 1)
+        self.dmgact.target = self.source
+        return True
+
+
+@game_eh
+class ProtectionHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type != 'action_before': return act
+        if not isinstace(act, Damage): return act
+        if not (act.amount >= 2 or tgt.life <= act.amount): return act
+        tgt = act.target
+        pl = g.attackers[:]
+        if tgt not in pl: return act
+
+        g = Game.getgame()
+        pl.remove(tgt)
+
+        pl = [p for p in pl if not p.dead and len(p.faiths)]
+        for p in pl:
+            if p.user_input('choose_option', self):
+                g,process_action(ProtectionAction(p, act))
+                break
+
+        return act
+        
+        
 class Identity(PlayerIdentity):
     # 异变 解决者
     class TYPE:
@@ -412,7 +473,7 @@ class THBattleRaid(Game):
             pass
 
     def can_leave(self, p):
-        return getattr(p, 'dead', False)
+        return False
 
     def update_event_handlers(self):
         ehclasses = list(action_eventhandlers) + self.game_ehs.values()

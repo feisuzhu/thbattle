@@ -330,7 +330,6 @@ class Deck(object):
 class Skill(VirtualCard):
 
     def __init__(self, player):
-        assert not isinstance(player, list) # signature changed, let it fail early.
         assert player is not None
         self.associated_cards = []
         VirtualCard.__init__(self, player)

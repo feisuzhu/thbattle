@@ -137,6 +137,7 @@ def random_choose_card(categories):
 def skill_wrap(actor, sid_list, cards):
     g = Game.getgame()
     try:
+        check(all(c.resides_in.owner is actor for c in cards))
         for skill_id in sid_list:
             check(isinstance(skill_id, int))
             check(0 <= skill_id < len(actor.skills))

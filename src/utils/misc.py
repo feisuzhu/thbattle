@@ -445,6 +445,7 @@ def extendclass(clsname, bases, _dict):
                 continue
             setattr(cls, key, value)
 
+
 def textsnap(text, font, l):
     tl = 0
     for i, g in enumerate(font.get_glyphs(text)):
@@ -456,13 +457,16 @@ def textsnap(text, font, l):
 
     return text[:i]
 
+
 def textwidth(text, font):
-    return sum([g.advance for g in font.get_flyphs(text)])
+    return sum([g.advance for g in font.get_glyphs(text)])
+
 
 def partition(pred, l):
     t = filter(pred, l)
     f = filter(lambda v: not pred(v), l)
     return t, f
+
 
 import functools
 
