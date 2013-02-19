@@ -127,6 +127,9 @@ class CooperationAction(UserAction):
         migrate_cards(cards, src.cards)
         migrate_cards(showncards, src.showncards)
 
+        src.need_shuffle = True
+        tgt.need_shuffle = True
+
         return True
 
     def is_valid(self):
@@ -139,7 +142,9 @@ class Cooperation(Skill):
     no_reveal = True
 
     def target(self, g, src, tl):
-        return (tl[-1:], bool(len(tl)) and tl[-1] in g.attackers)
+        attackers = g.attackers
+        tl = [p for p in tl if not p.dead and p in attackers]
+        return (tl[-1:], bool(len(tl)))
 
     def check(self):
         cl = self.associated_cards
@@ -171,10 +176,10 @@ class ProtectionHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstace(act, Damage): return act
-        if not (act.amount >= 2 or tgt.life <= act.amount): return act
         tgt = act.target
         pl = g.attackers[:]
         if tgt not in pl: return act
+        if tgt.life != min([p.life for p in pl if not p.dead]): return act
 
         g = Game.getgame()
         pl.remove(tgt)
@@ -187,6 +192,72 @@ class ProtectionHandler(EventHandler):
 
         return act
         
+
+class Parry(Skill):
+    associate_action = None
+    target = t_None
+
+
+class ParryAction(GenericAction):
+    def __init__(self, source, dmgact):
+        self.source = source
+        self.target = dmgact.target
+        self.dmgact = dmgact
+
+    def apply_action(self):
+        use_faith(self.source, 1)
+        self.dmgact.amount -= 1
+        return True
+
+
+class ParryHandler(EventHandler):
+    execute_before = ('ProtectionHandler', )
+    def handle(self, evt_type, act):
+        if evt_type != 'action_before': return act
+        if not isinstance(act, Damage): return act
+        tgt = act.target
+        if not act.faiths: return act
+        if not (act.amount >= 2 or tgt.life <= act.amount): return act
+
+        if not tgt.user_input('choose_option', self): return act
+
+        g = Game.getgame()
+        g.process_action(ParryAction(tgt, act))
+
+        return act
+
+
+class OneUpAction(GenericAction):
+    def apply_action(self):
+        src = self.source
+        tgt = self.target
+
+        g = Game.getgame()
+        assert tgt.dead, 'WTF?!'
+        assert tgt in g.attackers
+
+        use_faith(src, 3)
+
+        tgt.dead = False
+        tgt.maxlife = tgt.__class__.maxlife
+        tgt.life = min(tgt.maxlife, 3)
+
+        tgt.skills.remove(OneUp)
+        
+        return True
+
+
+class OneUp(Skill):
+    associate_action = OneUpAction
+    def target(self, g, src, tl):
+        attackers = g.attackers
+        tl = [p for p in tl if p.dead and p in attackers]
+        return (tl[-1:], bool(len(tl)))
+
+    def check(self):
+        if len(self.player.faiths) < 3: return False
+        return not self.associated_cards
+
         
 class Identity(PlayerIdentity):
     # 异变 解决者
@@ -384,7 +455,7 @@ class THBattleRaid(Game):
                         p.tags['action'] = True
 
                     while True:
-                        avail = PlayerList([p for p in attackers if p.tags['action']])
+                        avail = PlayerList([p for p in attackers if p.tags['action'] and not p.dead])
                         if not avail:
                             break
 
@@ -450,7 +521,7 @@ class THBattleRaid(Game):
                     pass
 
                 while True:
-                    avail = PlayerList([p for p in attackers if p.tags['action']])
+                    avail = PlayerList([p for p in attackers if p.tags['action'] and not p.dead])
                     if not avail:
                         break
 
