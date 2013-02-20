@@ -64,6 +64,11 @@ class DeathHandler(EventHandler):
 
 def use_faith(target, amount=1):
     g = Game.getgame()
+    assert amount <= len(target.faiths)
+    if len(target.faiths) == amount:
+        g.process_action(DropCards(target, target.faiths))
+        return
+
     for i in xrange(1, amount + 1):
         c = choose_individual_card(target, target.faiths)
         if not c: break
@@ -259,6 +264,42 @@ class OneUp(Skill):
         return not self.associated_cards
 
         
+class FaithExchange(UserAction):
+    def apply_action(self):
+        tgt = self.target
+        g = Game.getgame()
+        for i in xrange(len(tgt.faiths)):
+            c = choose_individual_card(tgt, tgt.faiths)
+            if not c: break
+            migrate_cards([c], tgt.showncards)
+
+        self.amount = i
+
+        cards = user_choose_cards(self, tgt)
+        if not cards:
+            cards = tgt.showncards[:self.amount]
+        
+        g.players.reveal(cards)
+        migrate_cards(cards, tgt.faiths)
+        
+        return True
+
+    def cond(self, cl):
+        return len(cl) == self.amount
+
+
+@game_eh
+class FaithExchangeHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if not evt_type == 'action_before': return act
+        if not isinstance(act, ActionStage): return act
+        g = Game.getgame()
+        tgt = act.target
+        if not tgt.faiths: return act
+        g.process_action(FaithExchange(tgt, tgt))
+        return act
+
+
 class Identity(PlayerIdentity):
     # 异变 解决者
     class TYPE:
@@ -506,6 +547,9 @@ class THBattleRaid(Game):
             mutant.maxlife -= stage1.maxlife // 2
 
             mixin_character(mutant, stage2)
+
+            for p in attackers:
+                g.process_action(CollectFaith(p, 1))
 
             g.emit_event('mutant_morph', None)
 

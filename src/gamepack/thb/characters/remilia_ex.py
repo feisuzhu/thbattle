@@ -3,6 +3,8 @@ from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
+from ..thbraid import use_faith
+
 
 class FateSpear(Skill):
     associated_action = None
@@ -66,6 +68,67 @@ class VampireKissHandler(EventHandler):
 
         return act
 
+
+class HeartBreakAction(InevitableAttack):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+        self.amount = 2
+
+    def apply_action(self):
+        use_faith(self.target, 4)
+        return InevitableAttack.apply_action(self)
+
+
+class HeartBreak(Skill):
+    associated_action = HeartBreakAction
+    target = t_OtherOne
+
+    @property
+    def color(self):
+        return Card.RED
+
+    def is_card(self, cls):
+        if issubclass(AttackCard, cls): return True
+        return isinstance(self, cls)
+
+    def check(self):
+        if self.associated_cards: return False
+        return len(self.player.faiths) >= 4
+
+
+class NeverNightAction(UserAction):
+    def apply_action(self):
+        g = Game.getgame()
+        tgt = self.target
+        for p in self.target_list:
+            if not (p.cards or p.showncards or p.equips):
+                if p.faiths:
+                    g.process_action(DropCards(p, p.faiths))
+            else:
+                cats = [p.cards, p.showncards, p.equips]
+                c = choose_peer_card(tgt, p, cats)
+                if not c:
+                    c = random_choose_card(cats)
+
+                g.process_action(DropCards(p, [c]))
+
+        return True
+
+
+class NeverNight(Skill):
+    associated_action = NeverNightAction
+    target = t_All
+
+    def check(self):
+        if self.associated_cards: return False
+        return len(self.player.faiths) >= 4
+
+
+class ScarletFogAction(UserAction):
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa
+
+class ScarletFog(Skill):
 
 class RemiliaEx2(Character):
     maxlife = 6
