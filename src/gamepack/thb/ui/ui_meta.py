@@ -68,8 +68,8 @@ def property(f):
     return f
 
 # -----COMMON FUNCTIONS-----
-def my_turn(g):
-    me = g.me
+def my_turn():
+    me = G().me
 
     try:
         act = g.action_stack[-1]
@@ -82,6 +82,20 @@ def my_turn(g):
     if act.target is not g.me: return False
 
     return True
+
+
+def limit1_skill_used(tag):
+    t = G().tags
+    return t[tag] >= t['turn_count']
+
+
+def passive_clickable(game):
+    return False
+
+
+def passive_is_action_valid(g, cl, target_list):
+    return (False, 'BUG!')
+
 
 C = cards.Card
 ftstring = {
@@ -157,6 +171,7 @@ class THBattleKOF:
 
 # -----END THB3v3 UI META-----
 
+
 # -----BEGIN THBIdentity UI META-----
 __metaclass__ = gen_metafunc(thbidentity)
 
@@ -185,6 +200,7 @@ class THBattleIdentity:
 
     del T
 
+
 class THBattleIdentity5:
     name = u'符斗祭 - 标准5人身份场'
     logo = gres.thblogo_5id
@@ -212,6 +228,145 @@ class THBattleIdentity5:
 
 # -----END THBIdentity UI META-----
 
+
+# -----BEGIN THBRaid UI META-----
+__metaclass__ = gen_metafunc(thbraid)
+
+
+class THBattleKOF:
+    name = u'符斗祭 - 异变模式'
+    logo = gres.thblogo_raid
+
+    from .view import THBattleRaidUI as ui_class
+
+    T = thbraid.Identity.TYPE
+    identity_table = {
+        T.HIDDEN: u'？',
+        T.MUTANT: u'异变',
+        T.ATTACKER: u'解决者'
+    }
+
+    identity_color = {
+        T.HIDDEN: u'blue',
+        T.MUTANT: u'red',
+        T.ATTACKER: u'blue'
+    }
+
+    del T
+
+
+class CollectFaith:
+    def effect_string(act):
+        s = u'、'.join(card_desc(c) for c in act.cards)
+        return u'|G【%s】|r收集的%d点信仰：%s' % (
+            act.target.ui_meta.char_name, len(act.cards), s,
+        )
+
+
+class CooperationAction:
+    def effect_string(act):
+        s = u'、'.join(card_desc(c) for c in act.cards)
+        return u'|G【%s】|r与|G【%s】|r相互合作，交换了手牌。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+    # choose_card meta
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'OK，就这些了')
+        else:
+            return (False, u'请选择%d张手牌交还…' % act.dropn)
+
+
+class Cooperation:
+    # Skill
+    name = u'合作'
+
+    def clickable(g):
+        if not my_turn(): return False
+        if limit1_skill_used('cooperation_tag'): return False
+        return True
+
+    def is_action_valid(g, cl, target_list):
+        if not cl:
+            return (False, u'请选择希望交换的手牌')
+
+        if any(c.resides_in.type not in ('handcard', 'showncard')):
+            return (False, u'只能选择手牌！')
+
+        if len(target_list) != 1:
+            return (False, u'请选择一名解决者')
+
+        return (False, u'合作愉快~')
+
+
+class Protection:
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class ProtectionAction:
+    def effect_string(act):
+        return u'|G【%s】|r帮|G【%s】|r承受了伤害。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
+class ProtectionHandler:
+    # choose_option
+    choose_option_buttons = ((u'保护', True), (u'不保护', False))
+    choose_option_prompt = u'你要使用1点信仰承受此次伤害吗？'
+
+
+class Parry:
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class ParryAction:
+    def effect_string(act):
+        s = u'、'.join(card_desc(c) for c in act.cards)
+        return u'|G【%s】|r使用了|G招架|r，降低了1点伤害' % (
+            act.target.ui_meta.char_name,
+        )
+
+
+class ParryHandler:
+    # choose_option
+    choose_option_buttons = ((u'招架', True), (u'不招架', False))
+    choose_option_prompt = u'你要使用1点信仰减免1点伤害吗？'
+
+
+class OneUp:
+    # Skill
+    name = '1UP'
+
+    def clickable(g):
+        return len(g.me.faiths) >= 3
+
+    def is_action_valid(g, cl, target_list):
+        if len(cl):
+            return (False, u'请不要选择牌！')
+
+        if not (len(target_list) == 1 and target_list[0].dead):
+            return (False, u'请选择一名已经离场的玩家')
+
+        return (False, u'神说，你不能在这里死去')
+
+
+class OneUpAction:
+    def effect_string(act):
+        return u'|G【%s】|r用3点信仰换了一枚1UP，贴到了|G【%s】|r的脸上' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
+
+
+# -----END THBRaid UI META-----
 
 # -----BEGIN ACTIONS UI META-----
 __metaclass__ = gen_metafunc(actions)
@@ -349,7 +504,7 @@ class Pindian:
 # -----BEGIN CARDS UI META-----
 __metaclass__ = gen_metafunc(cards)
 
-class DelayedLaunchCard:
+class LaunchDelayedSpellCardAction:
     def effect_string_before(act):
         s, t = act.source, act.target
         c = act.card
@@ -1021,6 +1176,7 @@ class GungnirCard:
 
     is_action_valid = equip_iav
 
+
 class GungnirSkill:
     # Skill
     name = u'冈格尼尔'
@@ -1033,6 +1189,7 @@ class GungnirSkill:
                 return True
         except IndexError:
             pass
+
         return False
 
     def is_complete(g, cl):
@@ -1065,6 +1222,7 @@ class GungnirSkill:
             target.ui_meta.char_name,
         )
         return s
+
 
 class LaevateinCard:
     # action_stage meta
@@ -4148,7 +4306,7 @@ class Seiga:
         u'|G邪仙|r：你的回合内，你可以将一张可以主动发动的卡牌交给任意一名玩家，并以该玩家的身份立即使用。\n'
         u'|B|R>> |r以此方法使用弹幕时，弹幕的“一回合一次”的限制由你来承担\n'
         u'|B|R>> |r在结算的过程中，你可以选择跳过指向多人的卡牌效果结算。'
-        
+
         # u'|G穿墙|r：当你成为可指向多人的卡牌、技能的目标时，你可以使该效果无效并摸一张牌。'
     )
 
@@ -4201,8 +4359,7 @@ class Heterodoxy:
     custom_ray = True
 
     def clickable(g):
-        if not my_turn(g):
-            return False
+        if not my_turn(): return False
 
         me = g.me
         return bool(me.cards or me.showncards or me.equips)

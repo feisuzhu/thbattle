@@ -285,6 +285,7 @@ class Game(object):
     
     @contextmanager
     def action_hook(self, hook):
+        ''' Dark art, do not use '''
         try:
             self._action_hooks.append(hook)
             yield

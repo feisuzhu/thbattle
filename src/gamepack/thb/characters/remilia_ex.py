@@ -204,7 +204,7 @@ class Septet(Skill):
 
 class SeptetHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, DelayedSpellCardAction):
+        if evt_type == 'action_after' and isinstance(act, LaunchDelayedSpellCardAction):
             src = act.source
             tgt = act.target
             if not src.has_skill(Septet): return act

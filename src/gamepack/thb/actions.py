@@ -470,11 +470,7 @@ class DrawCardStage(DrawCards):
         return DrawCards.apply_action(self)
 
 
-class BaseLaunchCard(UserAction):
-    pass
-
-
-class LaunchCard(BaseLaunchCard):
+class LaunchCard(UserAction):
     def __init__(self, source, target_list, card):
         tl, tl_valid = card.target(Game.getgame(), source, target_list)
         self.source, self.target_list, self.card, self.tl_valid = source, tl, card, tl_valid
@@ -660,7 +656,7 @@ class TurnOverCard(BaseFatetell):
 
 class FatetellAction(UserAction): pass
 
-class LaunchFatetellCard(BaseLaunchCard, FatetellAction):
+class LaunchFatetellCard(FatetellAction):
     def __init__(self, target, card):
         self.source = target
         self.target = target
@@ -670,7 +666,7 @@ class LaunchFatetellCard(BaseLaunchCard, FatetellAction):
         g = Game.getgame()
         target = self.target
         card = self.card
-        act = card.associated_action
+        act = card.dsc_action
         assert act
         a = act(source=card.fatetell_source, target=target)
         a.associated_card = card

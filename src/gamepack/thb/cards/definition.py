@@ -54,21 +54,27 @@ class RejectCard:
     target = t_None
 
 class SealingArrayCard:
-    associated_action = spellcard.SealingArray
+    associated_action = spellcard.LaunchDelayedSpellCardAction
     target = t_OtherOne
+    dsc_action = spellcard.SealingArray
+    no_drop = True
 
 class FrozenFrogCard:
-    associated_action = spellcard.FrozenFrog
+    associated_action = spellcard.LaunchDelayedSpellCardAction
     target = t_OtherOne
     distance = 1
+    dsc_action = spellcard.FrozenFrog
+    no_drop = True
 
 class NazrinRodCard:
     associated_action = spellcard.NazrinRod
     target = t_Self
 
 class SinsackCard:
-    associated_action = spellcard.Sinsack
+    associated_action = spellcard.LaunchDelayedSpellCardAction
     target = t_Self
+    dsc_action = spellcard.Sinsack
+    no_drop = True
 
 class YukariDimensionCard:
     associated_action = spellcard.YukariDimension

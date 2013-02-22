@@ -141,6 +141,9 @@ class CooperationAction(UserAction):
         tags = self.source.tags
         return tags['turn_count'] > tags['cooperation_tag']
 
+    def cond(self, cl):
+        if not len(cl) = self.ncards: return False
+
 
 class Cooperation(Skill):
     associated_action = CooperationAction
@@ -192,7 +195,7 @@ class ProtectionHandler(EventHandler):
         pl = [p for p in pl if not p.dead and len(p.faiths)]
         for p in pl:
             if p.user_input('choose_option', self):
-                g,process_action(ProtectionAction(p, act))
+                g.process_action(ProtectionAction(p, act))
                 break
 
         return act
@@ -246,6 +249,7 @@ class OneUpAction(GenericAction):
         tgt.dead = False
         tgt.maxlife = tgt.__class__.maxlife
         tgt.life = min(tgt.maxlife, 3)
+        tgt.tags['action'] = True
 
         tgt.skills.remove(OneUp)
         
@@ -308,6 +312,12 @@ class Identity(PlayerIdentity):
         ATTACKER = 2
 
 
+class RaidLaunchCard(LaunchCard):
+    def calc_base_distance(self):
+        g = Game.getgame()
+        return { p: 1 for p in g.players if not p.dead }
+
+
 class RequestAction(object):  # for choose_option
     pass
 
@@ -323,6 +333,8 @@ class THBattleRaid(Game):
     def game_start(g):
         # game started, init state
         from cards import Card, CardList
+
+        self.action_types[LaunchCard] = RaidLaunchCard
 
         ehclasses = self.ehclasses = []
 
@@ -545,6 +557,7 @@ class THBattleRaid(Game):
             ehclasses.extend(stage2.eventhandlers_required)
 
             mutant.maxlife -= stage1.maxlife // 2
+            mutant.life = min(mutant.life, mutant.maxlife)
 
             mixin_character(mutant, stage2)
 

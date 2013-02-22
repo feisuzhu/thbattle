@@ -181,23 +181,6 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                         self.irp.complete()
                         return
 
-                '''
-                if isinstance(act.target_act, thbcards.DelayedSpellCardAction):
-                    break
-
-                if act.target_act.source is act.target_act.target is g.me:
-                    # my sc
-                    self.irp.input = None
-                    self.irp.complete()
-                    return
-                if act.target_act.source is g.me and not hasattr(act.target_act, 'parent_action'):
-                    # my SC and is not targeting multiple players, target is not me
-                    if act.target_act.target is not g.me:
-                        self.irp.input = None
-                        self.irp.complete()
-                        return
-                '''
-
                 # HACK
                 if not self._snd_prompt:
                     from .effects import input_snd_prompt

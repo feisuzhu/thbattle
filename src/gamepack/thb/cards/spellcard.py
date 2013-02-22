@@ -143,17 +143,11 @@ class RejectHandler(EventHandler):
 class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
 
 
-# TODO: code like this only allow ONE such behavior change.
-class DelayedLaunchCard(BaseLaunchCard):
-    def is_valid(self):
-        if not self.card: return False
-        if not len(self.target_list) == 1: return False
-        return True
-
+class LaunchDelayedSpellCardAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
         card = self.card
-        action = card.associated_action
+        action = card.dsc_action
         card.fatetell_source = self.source
         assert issubclass(action, DelayedSpellCardAction)
 
@@ -162,17 +156,10 @@ class DelayedLaunchCard(BaseLaunchCard):
 
         return True
 
-
-@register_eh
-class DelayedSpellCardActionHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, LaunchCard):
-            card = act.card
-            aa = card.associated_action
-            if issubclass(aa, DelayedSpellCardAction):
-                act.__class__ = DelayedLaunchCard
-
-        return act
+    def is_valid(self):
+        if not self.card: return False
+        if not len(self.target_list) == 1: return False
+        return True
 
 
 class SealingArray(DelayedSpellCardAction):
