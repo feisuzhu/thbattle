@@ -115,10 +115,15 @@ class THBattleKOF(Game):
         from characters import characters as chars
         from characters.akari import Akari
 
+        from characters.koakuma import Koakuma
+        from characters.yuuka import Yuuka
+
+        _chars = random.sample(chars, 10)
+        _chars.extend([Koakuma, Yuuka])
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
-                for cls, cid in zip(random.sample(chars, 10), xrange(10))
+                for cls, cid in zip(_chars[-10:], xrange(10))
             ]
 
             for c in random.sample(choice, 4):

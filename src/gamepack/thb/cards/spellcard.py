@@ -143,11 +143,11 @@ class RejectHandler(EventHandler):
 class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
 
 
-class LaunchDelayedSpellCardAction(UserAction):
+class DelayedLaunchCard(UserAction):
     def apply_action(self):
         g = Game.getgame()
         card = self.card
-        action = card.dsc_action
+        action = card.delayed_action
         card.fatetell_source = self.source
         assert issubclass(action, DelayedSpellCardAction)
 

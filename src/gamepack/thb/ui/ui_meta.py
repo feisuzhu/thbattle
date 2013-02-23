@@ -358,13 +358,23 @@ class OneUp:
 
 class OneUpAction:
     def effect_string(act):
-        return u'|G【%s】|r用3点信仰换了一枚1UP，贴到了|G【%s】|r的脸上' % (
+        return u'|G【%s】|r用3点信仰换了一枚1UP，贴到了|G【%s】|r的身上。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
 
 
+class FaithExchange:
+    def effect_string_before(act):
+        return u'|G【%s】|r正在交换信仰牌……' % (
+            act.target.ui_meta.char_name,
+        )
 
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'OK，就这些了')
+        else:
+            return (False, u'请选择%d张手牌作为信仰…' % act.amount)
 
 # -----END THBRaid UI META-----
 
@@ -504,7 +514,7 @@ class Pindian:
 # -----BEGIN CARDS UI META-----
 __metaclass__ = gen_metafunc(cards)
 
-class LaunchDelayedSpellCardAction:
+class DelayedLaunchCard:
     def effect_string_before(act):
         s, t = act.source, act.target
         c = act.card
@@ -563,6 +573,7 @@ class GrazeCard:
 
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动使用擦弹')
+
 
 class WineCard:
     # action_stage meta
@@ -634,6 +645,7 @@ class UseGraze:
             t.ui_meta.char_name,
             act.cards[0].ui_meta.name,
         )
+
 
 class LaunchGraze:
     # choose_card meta
@@ -3618,7 +3630,7 @@ class Ran:
 # ----------
 __metaclass__ = gen_metafunc(characters.remilia)
 
-class FateSpear:
+class SpearTheGungnir:
     # Skill
     name = u'神枪'
 
@@ -3628,17 +3640,20 @@ class FateSpear:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
-class FateSpearAction:
+
+class SpearTheGungnirAction:
     def effect_string(act):
         return u'|G【%s】|r举起右手，将|G弹幕|r汇聚成一把命运之矛，向|G【%s】|r掷去！' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
 
-class FateSpearHandler:
+        
+class SpearTheGungnirHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【神枪】吗？'
+
 
 class VampireKiss:
     # Skill
@@ -3650,11 +3665,13 @@ class VampireKiss:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class VampireKissAction:
     def effect_string_before(act):
         return u'|G【%s】|r:“B型血，赞！”' % (
             act.source.ui_meta.char_name
         )
+
 
 class Remilia:
     # Character
@@ -4296,7 +4313,6 @@ class Akari:
 # ----------
 __metaclass__ = gen_metafunc(characters.seiga)
 
-
 class Seiga:
     # Character
     char_name = u'霍青娥'
@@ -4392,6 +4408,60 @@ class Heterodoxy:
 
         # can't reach here
         # return (True, u'僵尸什么的最萌了！')
+        # orig
+
+# ----------
+__metaclass__ = gen_metafunc(characters.remilia_ex)
+
+remilia_ex_description = (
+    u'|DB永远威严的红月 蕾米莉亚 体力：6 最大信仰：4|r\n\n'
+    u'|G碎心|r：|DB信仰消耗4|r。你可以在使用【弹幕】的时候发动此技能。用此方法使用的【弹幕】视为红色，距离无限不可闪避，对目标造成2点伤害。\n\n'
+    u'|G不夜城|r：|DB信仰消耗3|r，在出牌阶段主动发动。你依次弃置所有解决者的一张手牌或装备牌。如果解决者无牌可弃，则弃置所有信仰。\n\n'
+    u'|G红魔之吻|r：|B锁定技|r，对玩家使用红色【弹幕】命中时，回复1点体力值。\n\n'
+    u'|B|R=== 以下是变身后获得的技能 ===\n\n'
+    u'|G七重奏|r: |B锁定技|r，解决者向你的判定区放置卡牌时，需额外弃置一张颜色相同的手牌。\n\n'
+    u'|G夜王|r: |B锁定技|r，你在自己的出牌阶段前额外摸2张牌。你的手牌上限+2。\n\n'
+    u'|G神枪|r：出牌阶段，出现以下情况之一，你可以令你的【弹幕】不能被【擦弹】抵消：\n'
+    u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
+    u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。\n\n'
+    u'|B红雾|r：出牌阶段，你可以弃置一张红色牌，令所有解决者依次对另一名解决者使用一张【弹幕】，无法如此做者失去1点体力。一回合一次。'
+)
+
+
+class RemiliaEx:
+    # Character
+    char_name = u'蕾米莉亚'
+    port_image = gres.remilia_ex_port
+    description = remilia_ex_description
+
+
+class RemiliaEx2:
+    # Character
+    char_name = u'蕾米莉亚'
+    port_image = gres.remilia_ex2_port
+    description = remilia_ex_description
+
+
+class HeartBreak:
+    # Skill
+    name = u'碎心'
+    def effect_string(act):
+        return u'|G【%s】|r将信仰灌注在神枪里，向|G【%s】|r使用了|G碎心|R。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
+class NeverNight:
+    # Skill
+    name = u'不夜城'
+    def effect_string(act):
+        return u'|G【%s】|r将信仰灌注在神枪里，向|G【%s】|r使用了|G碎心|R。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
 
 # -----END CHARACTERS UI META-----
 

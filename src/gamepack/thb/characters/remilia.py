@@ -3,11 +3,13 @@ from .baseclasses import *
 from ..actions import *
 from ..cards import *
 
-class FateSpear(Skill):
+
+class SpearTheGungnir(Skill):
     associated_action = None
     target = t_None
 
-class FateSpearAction(GenericAction):
+
+class SpearTheGungnirAction(GenericAction):
     def __init__(self, act):
         self.act = act
         self.source = act.source
@@ -17,12 +19,13 @@ class FateSpearAction(GenericAction):
         self.act.__class__ = InevitableAttack
         return True
 
-class FateSpearHandler(EventHandler):
+
+class SpearTheGungnirHandler(EventHandler):
     execute_after = ('HakuroukenEffectHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
-            if not src.has_skill(FateSpear): return act
+            if not src.has_skill(SpearTheGungnir): return act
             tgt = act.target
 
             while True:
@@ -31,19 +34,22 @@ class FateSpearHandler(EventHandler):
                 return act
 
             if user_choose_option(self, act.source):
-                Game.getgame().process_action(FateSpearAction(act))
+                Game.getgame().process_action(SpearTheGungnirAction(act))
 
         return act
+
 
 class VampireKiss(Skill):
     associated_action = None
     target = t_None
+
 
 class VampireKissAction(GenericAction):
     def apply_action(self):
         return Game.getgame().process_action(
             Heal(self.target, self.source)
         )
+
 
 class VampireKissHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -60,8 +66,9 @@ class VampireKissHandler(EventHandler):
 
         return act
 
+
 @register_character
 class Remilia(Character):
-    skills = [FateSpear, VampireKiss]
-    eventhandlers_required = [FateSpearHandler, VampireKissHandler]
+    skills = [SpearTheGungnir, VampireKiss]
+    eventhandlers_required = [SpearTheGungnirHandler, VampireKissHandler]
     maxlife = 4
