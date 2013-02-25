@@ -65,28 +65,24 @@ class NeverNight(Skill):
         return len(self.player.faiths) >= 4
 
 
-class ScarletFogAction(UserAction):
+class ScarletFogEffect(UserAction):
     def apply_action(self):
         g = Game.getgame()
-        src = self.source
-        tags = src.tags
-        tags['scarletfog_tag'] = tags['turn_count']
 
-        for p in self.target_list:
-            _pl = g.attackers[:]
-            _pl.remove(p)
-            pl = []
-            atkcard = AttackCard()
-            for t in _pl:
-                if LaunchCard(p, [t], atkcard).can_fire():
-                    pl.append(t)
+        _pl = g.attackers[:]
+        _pl.remove(p)
+        pl = []
+        atkcard = AttackCard()
+        for t in _pl:
+            if LaunchCard(p, [t], atkcard).can_fire():
+                pl.append(t)
 
-            rst = user_choose_cards_and_players(self, p, [p.cards, p.showncards], pl)
-            if rst:
-                c = rst[0][0]; t = rst[1][0]
-                g.process_action(LaunchCard(p, t, c))
-            else:
-                g.process_action(LifeLost(p, p, 1))
+        rst = user_choose_cards_and_players(self, p, [p.cards, p.showncards], pl)
+        if rst:
+            c = rst[0][0]; t = rst[1][0]
+            g.process_action(LaunchCard(p, t, c))
+        else:
+            g.process_action(LifeLost(p, p, 1))
 
         return True
 
@@ -98,6 +94,14 @@ class ScarletFogAction(UserAction):
             return (tl, False)
 
         return (tl[-1:], True)
+
+
+class ScarletFogAction(ForEach):
+    action_cls = ScarletFogEffect
+    def prepare(self):
+        src = self.source
+        tags = src.tags
+        tags['scarletfog_tag'] = tags['turn_count']
 
     def is_valid(self):
         tags = self.source.tags
@@ -157,6 +161,11 @@ class SeptetHandler(EventHandler):
                 g.process_action(DropCards(tgt, [act.card]))
 
         return act
+
+    def cond(self, cl):
+        if not len(cl) == 1: return False
+        if cl[0].color != self.action.card.color: return False
+
 
 
 class RemiliaEx2(Character):

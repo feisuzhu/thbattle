@@ -4446,7 +4446,7 @@ class HeartBreak:
     # Skill
     name = u'碎心'
     def effect_string(act):
-        return u'|G【%s】|r将信仰灌注在神枪里，向|G【%s】|r使用了|G碎心|R。' % (
+        return u'|G【%s】|r将信仰灌注在神枪里，向|G【%s】|r使用了|G碎心|r。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
@@ -4456,11 +4456,96 @@ class NeverNight:
     # Skill
     name = u'不夜城'
     def effect_string(act):
-        return u'|G【%s】|r将信仰灌注在神枪里，向|G【%s】|r使用了|G碎心|R。' % (
+        tl = BatchList(act.target_list)
+        return u'|G【%s】|r使用了3点信仰，向|G【%s】|r使用了|G不夜城|r。' % (
             act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            u'】|r、|G【'.join(tl.ui_meta.char_name),
         )
 
+    def clickable(g):
+        me = g.me
+        if len(me.faiths) < 3: return False
+        return True
+
+    def is_action_valid(g, cl, tl):
+        if cl[0].associated_cards:
+            return (False, u'请不要选择牌')
+
+        if not tl:
+            return (False, u'WTF?!')
+
+        return (True, u'发动不夜城')
+
+
+class ScarletFogEffect:
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'红雾里看不清，先来一发再说！')
+        else:
+            return (False, u'请对另一名解决者使用一张【弹幕】（否则失去一点体力）')
+
+    # choose_players
+    def target(pl):
+        if not pl:
+            return (False, u'请对另一名解决者使用一张【弹幕】（否则失去一点体力）')
+
+        return (True, u'红雾里看不清，先来一发再说！')
+
+
+class ScarletFog:
+    # Skill
+    name = u'红雾'
+    def effect_string(act):
+        tl = BatchList(act.target_list)
+        return u'|G【%s】|r向|G【%s】|r发动了|G红雾|r！' % (
+            act.source.ui_meta.char_name,
+            u'】|r、|G【'.join(tl.ui_meta.char_name),
+        )
+
+    def clickable(g):
+        if not my_turn(): return False
+        if limit1_skill_used('scarletfog_tag'): return False
+        return True
+
+    def is_action_valid(g, cl, tl):
+        acards = cl[0].associated_cards
+        if (not acards) or len(acards) != 1:
+            return (False, u'请选择一张红色手牌')
+
+        card = acards[0]
+
+        if card.color != Card.RED or card.resides_in.type not in ('handcard', 'showncard'):
+            return (False, u'请选择一张红色的手牌!')
+
+        if card.is_card(cards.Skill):
+            return (False, u'你不可以像这样组合技能')
+
+        if not tl:
+            return (False, u'WTF?!')
+
+        return (True, u'发动红雾')
+
+
+class QueenOfMidnight:
+    # Skill
+    name = u'夜王'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class Septet:
+    # Skill
+    name = u'七重奏'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class SeptetHandler:
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'弃置并使延时符卡生效')
+        else:
+            return (False, u'【七重奏】请选择一张颜色相同的手牌弃置')
 
 
 # -----END CHARACTERS UI META-----
