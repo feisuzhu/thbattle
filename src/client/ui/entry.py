@@ -20,7 +20,7 @@ def start_ui():
 
     # ---------------
 
-    from client.ui.base import init_gui, ui_schedule
+    from client.ui.base import init_gui, ui_schedule, ui_message
 
     init_gui()
 
@@ -69,8 +69,29 @@ def start_ui():
             sss.switch()
 
     def update_callback(msg):
+        # executes in logic thread
+        # well, intented to be
+        # ui and logic now run in the same thread.
+
+        from options import options
         if msg == 'up2date':
             ui_schedule(sss.switch)
+        elif msg == 'update_disabled' and options.fastjoin:
+            import gevent
+            def func():
+                gevent.sleep(0.3)
+                ui_schedule(sss.switch)
+                gevent.sleep(0.3)
+                Executive.call('connect_server', ui_message, ('127.0.0.1', 9999), ui_message)
+                gevent.sleep(0.3)
+                Executive.call('auth', ui_message, ['Proton1', 'abcde'])
+                gevent.sleep(0.3)
+                Executive.call('quick_start_game', ui_message, 'THBattle')
+                gevent.sleep(0.3)
+                Executive.call('get_ready', ui_message, [])
+
+            gevent.spawn(func)
+                
         elif msg in errmsgs:
             ui_schedule(display_box, errmsgs[msg])
         else:

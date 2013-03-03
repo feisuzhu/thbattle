@@ -108,6 +108,7 @@ class ServerSelectScreen(Screen):
             width=60, height=30,
             color=Colors.orange,
         )
+
         @mute.event
         def on_click():
             mute.delete()

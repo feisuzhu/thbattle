@@ -232,11 +232,10 @@ class Deck(object):
         cl = self.cards
         for i in xrange(min(len(cl), num)):
             c = cl[i]
-            sid = c.syncid or g.get_synctag()
-            c.syncid = sid
+            if not c.syncid:
+                self.register_card(c)
 
             rst.append(c)
-            self.cards_record[sid] = c
 
         return rst
 
@@ -249,45 +248,22 @@ class Deck(object):
             if c: l.append(c)
         return l
 
+    def register_card(self, card):
+        assert not card.syncid
+        sid = Game.getgame().get_synctag()
+        card.syncid = sid
+        self.cards_record[sid] = card
+        return sid
+
     def register_vcard(self, vc):
-        self.vcards_record[vc.syncid] = vc
-
-    '''
-    def __shuffle(self, cl):
-        print 'BEFORE'
-        self.shuffle_dbg(cl)
-        self._shuffle(cl)
-        print 'AFTER'
-        self.shuffle_dbg(cl)
-
-    def shuffle_dbg(self, cl):
-        g = Game.getgame()
-        # FOR DBG
-        if Game.SERVER_SIDE:
-            myl = [c.syncid for c in cl]
-            for p in g.players:
-                l = p.client.gexpect('shuffle_debug')
-                if l != myl:
-                    print u'SHUFFLE: %s != %s', repr(myl), repr(l)
-            l1 = cl.owner.client.gexpect('shuffle_debug_me')
-            myl_cls = [c.__class__.__name__ for c in cl]
-            l_cls = [c['type'] for c in l1]
-            if myl_cls != l_cls:
-                print '==========================='
-                print myl_cls
-                print l_cls
-                print '==========================='
-
-
-        if Game.CLIENT_SIDE:
-            from client.core import Executive
-            Executive.server.gwrite('shuffle_debug', [c.syncid for c in cl])
-            if cl.owner is g.me:
-                Executive.server.gwrite('shuffle_debug_me', list(cl))
-    '''
+        sid = Game.getgame().get_synctag()
+        vc.syncid = sid
+        self.vcards_record[sid] = vc
+        return sid
 
     def shuffle(self, cl):
         g = Game.getgame()
+
         for c in cl:
             try:
                 del self.cards_record[c.syncid]

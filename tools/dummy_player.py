@@ -20,6 +20,7 @@ types = [
     ('THBattleKOF', 2), # 5
     ('THBattleRaid', 4), # 6
     ('THBattleRaid', -3), # 7
+    ('THBattleRaid', 2), # 8
 ]
 
 t, N = sys.argv[1:]

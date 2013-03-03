@@ -277,7 +277,7 @@ class CooperationAction:
         if act.cond(cards):
             return (True, u'OK，就这些了')
         else:
-            return (False, u'请选择%d张手牌交还…' % act.dropn)
+            return (False, u'请选择%d张手牌交还…' % act.ncards)
 
 
 class Cooperation:

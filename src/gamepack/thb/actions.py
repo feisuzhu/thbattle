@@ -151,7 +151,6 @@ def skill_wrap(actor, sid_list, cards):
 
             check(card.check())
 
-            card.syncid = g.get_synctag()
             g.deck.register_vcard(card)
 
             cards = [card]
@@ -165,10 +164,15 @@ def skill_wrap(actor, sid_list, cards):
 
 
 def shuffle_here():
-    from .cards import CardList
+    from .cards import CardList, VirtualCard
     g = Game.getgame()
     g.emit_event('shuffle_cards', True)
     for p in g.players:
+        assert all([
+            not c.is_card(VirtualCard)
+            for c in p.cards
+        ]), 'VirtualCard in handcard of %s !!!' % repr(p)
+
         if p.need_shuffle:
             g.deck.shuffle(p.cards)
             p.need_shuffle = False

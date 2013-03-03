@@ -120,11 +120,10 @@ class CooperationAction(UserAction):
         g = Game.getgame()
 
         src.tags['cooperation_tag'] = src.tags['turn_count']
-        cards = self.associated_card.associated_cards
-        self.ncards = len(cards)
+        card = self.associated_card
+        self.ncards = len(card.associated_cards)
 
-        g.players.reveal(cards)
-        migrate_cards(cards, tgt.showncards)
+        migrate_cards([card], tgt.showncards, unwrap=True)
 
         returned = user_choose_cards(self, tgt)
         if not returned:
@@ -144,6 +143,8 @@ class CooperationAction(UserAction):
 
     def cond(self, cl):
         if not len(cl) == self.ncards: return False
+        tgt = self.target
+        return all(c.resides_in in (tgt.cards, tgt.showncards) for c in cl)
 
 
 class Cooperation(Skill):
@@ -251,9 +252,17 @@ class OneUpAction(GenericAction):
         assert tgt in g.attackers
 
         use_faith(src, 3)
+        src.tags['oneup_used'] = True
 
         tgt.dead = False
         tgt.maxlife = tgt.__class__.maxlife
+        tgt.skills = tgt.__class__.skills + [
+            Cooperation, Protection, Parry,
+        ]
+
+        if not tgt.tags['oneup_used']:
+            tgt.skills.append(OneUp)
+
         tgt.life = min(tgt.maxlife, 3)
         tgt.tags['action'] = True
 
@@ -324,10 +333,6 @@ class Identity(PlayerIdentity):
 
 
 class RaidLaunchCard(LaunchCard):
-    def apply_action(self):
-        print '!' * 1000
-        return LaunchCard.apply_action(self)
-
     def calc_base_distance(self):
         g = Game.getgame()
         return { p: 1 for p in g.players }
@@ -524,10 +529,11 @@ class THBattleRaid(Game):
         deckcards = g.deck.cards
 
         equips = [
-            cls(suit, num, deckcards)
+            cls(suit, num, None)
             for cls, suit, num in mutant.initial_equips
         ]
-        deckcards.extend(equips)
+        for c in equips:
+            g.deck.register_card(c)
 
         migrate_cards(equips, mutant.cards, no_event=True)
 
@@ -622,7 +628,7 @@ class THBattleRaid(Game):
                 if len(mutant.faiths) < mutant.maxfaith:
                     g.process_action(CollectFaith(mutant, mutant, 1))
 
-                g.emit_event('round_start', None)
+                g.emit_event('round_start', False)
                 for p in attackers:
                     p.tags['action'] = True
 
