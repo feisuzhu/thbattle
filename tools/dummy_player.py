@@ -11,10 +11,21 @@ names = itertools.cycle(names)
 
 import sys
 
-types = [('THBattle', 5), ('THBattle', 6), ('THBattle', 4), ('THBattleIdentity5', 5), ('THBattleIdentity', 7), ('THBattleKOF', 2)]
+types = [
+    ('THBattle', 5), # 0
+    ('THBattle', 6), # 1
+    ('THBattle', 4),  # 2
+    ('THBattleIdentity5', 5), # 3
+    ('THBattleIdentity', 7), # 4
+    ('THBattleKOF', 2), # 5
+    ('THBattleRaid', 4), # 6
+    ('THBattleRaid', -3), # 7
+]
 
 t, N = sys.argv[1:]
 t, n = types[int(t)]
+no_create = n < 0
+n = abs(n)
 
 en = lambda d: dumps(d) + '\n'
 
@@ -38,15 +49,18 @@ def join():
 
     while s.recv(100): pass
 
-print 'create'
-for _ in xrange(int(N)):
-    l.append(gevent.spawn(create))
+if not no_create:
+    print 'create'
+    for _ in xrange(int(N)):
+        l.append(gevent.spawn(create))
 
-gevent.sleep(1.0)
+    gevent.sleep(1.0)
+
+
 
 print 'join'
 for _ in xrange(int(N)):
-    for i in xrange(n-1):
+    for i in xrange(n-(not no_create)):
         l.append(gevent.spawn(join))
 
 print 'done'

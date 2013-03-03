@@ -7,6 +7,7 @@ l = [
     THBattleKOF,
     THBattleIdentity5,
     THBattleIdentity,
+    THBattleRaid,
 ]
 
 for g in l:

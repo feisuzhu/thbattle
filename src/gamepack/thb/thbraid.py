@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow
+from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow, GameException
 
 from actions import *
+from cards import *
 from itertools import cycle
 from collections import defaultdict
 import random
 
-from utils import BatchList, check, CheckFailed
+from utils import BatchList, check, CheckFailed, partition
 
 from .common import *
 
@@ -66,17 +67,17 @@ def use_faith(target, amount=1):
     g = Game.getgame()
     assert amount <= len(target.faiths)
     if len(target.faiths) == amount:
-        g.process_action(DropCards(target, target.faiths))
+        g.process_action(DropCards(target, list(target.faiths)))
         return
 
-    for i in xrange(1, amount + 1):
+    for i in xrange(amount):
         c = choose_individual_card(target, target.faiths)
         if not c: break
         g.process_action(DropCards(target, [c]))
+        amount -= 1
 
-    rest = amount - i
-    if rest:
-        g.process_action(DropCards(target, target.faiths[:rest])
+    if amount:
+        g.process_action(DropCards(target, list(target.faiths)[:amount]))
 
 
 class CollectFaith(GenericAction):
@@ -90,7 +91,7 @@ class CollectFaith(GenericAction):
 
         g = Game.getgame()
         cards = g.deck.getcards(self.amount)
-        g,players.reveal(cards)
+        g.players.reveal(cards)
         migrate_cards(cards, tgt.faiths)
         self.cards = cards
         return True
@@ -108,29 +109,29 @@ class CollectFaithHandler(EventHandler):
         amount = min(amount, act.amount)
 
         g = Game.getgame()
-        g,process_action(CollectFaith(src, src, amount))
+        g.process_action(CollectFaith(src, src, amount))
         return act
 
 
 class CooperationAction(UserAction):
-    no_reveal = True
     def apply_action(self):
         src = self.source
         tgt = self.target
+        g = Game.getgame()
 
         src.tags['cooperation_tag'] = src.tags['turn_count']
-        self.ncards = len(self.associated_cards)
+        cards = self.associated_card.associated_cards
+        self.ncards = len(cards)
 
-        cards, showncards = partition(
-            lambda c: c in src.cards, self.associated_cards
-        )
-        migrate_cards(cards, tgt.cards)
-        migrate_cards(showncards, tgt.showncards)
+        g.players.reveal(cards)
+        migrate_cards(cards, tgt.showncards)
 
         returned = user_choose_cards(self, tgt)
-        cards, showncards = partition(lambda c: c in tgt.cards, returned)
-        migrate_cards(cards, src.cards)
-        migrate_cards(showncards, src.showncards)
+        if not returned:
+            returned = (list(tgt.showncards) + list(tgt.cards))[:self.ncards]
+
+        g.players.reveal(returned)
+        migrate_cards(returned, src.showncards)
 
         src.need_shuffle = True
         tgt.need_shuffle = True
@@ -142,12 +143,12 @@ class CooperationAction(UserAction):
         return tags['turn_count'] > tags['cooperation_tag']
 
     def cond(self, cl):
-        if not len(cl) = self.ncards: return False
+        if not len(cl) == self.ncards: return False
 
 
 class Cooperation(Skill):
     associated_action = CooperationAction
-    no_reveal = True
+    no_drop = True
 
     def target(self, g, src, tl):
         attackers = g.attackers
@@ -183,8 +184,11 @@ class ProtectionAction(GenericAction):
 class ProtectionHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
-        if not isinstace(act, Damage): return act
+        if not isinstance(act, Damage): return act
+
+        g = Game.getgame()
         tgt = act.target
+
         pl = g.attackers[:]
         if tgt not in pl: return act
         if tgt.life != min([p.life for p in pl if not p.dead]): return act
@@ -192,7 +196,7 @@ class ProtectionHandler(EventHandler):
         g = Game.getgame()
         pl.remove(tgt)
 
-        pl = [p for p in pl if not p.dead and len(p.faiths)]
+        pl = [p for p in pl if not p.dead and len(p.faiths) and p.has_skill(Protection)]
         for p in pl:
             if p.user_input('choose_option', self):
                 g.process_action(ProtectionAction(p, act))
@@ -218,13 +222,15 @@ class ParryAction(GenericAction):
         return True
 
 
+@game_eh
 class ParryHandler(EventHandler):
     execute_before = ('ProtectionHandler', )
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstance(act, Damage): return act
         tgt = act.target
-        if not act.faiths: return act
+        if not tgt.has_skill(Parry): return act
+        if not tgt.faiths: return act
         if not (act.amount >= 2 or tgt.life <= act.amount): return act
 
         if not tgt.user_input('choose_option', self): return act
@@ -251,13 +257,13 @@ class OneUpAction(GenericAction):
         tgt.life = min(tgt.maxlife, 3)
         tgt.tags['action'] = True
 
-        tgt.skills.remove(OneUp)
+        src.skills.remove(OneUp)
         
         return True
 
 
 class OneUp(Skill):
-    associate_action = OneUpAction
+    associated_action = OneUpAction
     def target(self, g, src, tl):
         attackers = g.attackers
         tl = [p for p in tl if p.dead and p in attackers]
@@ -272,16 +278,21 @@ class FaithExchange(UserAction):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
+        n = 0
         for i in xrange(len(tgt.faiths)):
             c = choose_individual_card(tgt, tgt.faiths)
             if not c: break
             migrate_cards([c], tgt.showncards)
+            n += 1
 
-        self.amount = i
+        if not n:
+            return True
+
+        self.amount = n
 
         cards = user_choose_cards(self, tgt)
         if not cards:
-            cards = tgt.showncards[:self.amount]
+            cards = list(tgt.showncards)[:self.amount]
         
         g.players.reveal(cards)
         migrate_cards(cards, tgt.faiths)
@@ -313,9 +324,17 @@ class Identity(PlayerIdentity):
 
 
 class RaidLaunchCard(LaunchCard):
+    def apply_action(self):
+        print '!' * 1000
+        return LaunchCard.apply_action(self)
+
     def calc_base_distance(self):
         g = Game.getgame()
-        return { p: 1 for p in g.players if not p.dead }
+        return { p: 1 for p in g.players }
+
+
+class RaidActionStageLaunchCard(RaidLaunchCard, ActionStageLaunchCard):
+    pass
 
 
 class RequestAction(object):  # for choose_option
@@ -326,17 +345,35 @@ class MutantMorph(GameException):
     pass
 
 
+@game_eh
+class MutantMorphHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if not evt_type == 'action_after': return act
+        if not isinstance(act, Damage): return act
+        g = Game.getgame()
+        tgt = act.target
+        if tgt is not g.mutant: return act
+        if tgt.morphed: return act
+
+        if tgt.life <= tgt.__class__.maxlife // 2:
+            raise MutantMorph
+
+        return act
+
+
 class THBattleRaid(Game):
     n_persons = 4
     game_actions = _game_actions
+    game_ehs = _game_ehs
 
     def game_start(g):
         # game started, init state
         from cards import Card, CardList
 
-        self.action_types[LaunchCard] = RaidLaunchCard
+        g.action_types[LaunchCard] = RaidLaunchCard
+        g.action_types[ActionStageLaunchCard] = RaidActionStageLaunchCard
 
-        ehclasses = self.ehclasses = []
+        ehclasses = g.ehclasses = []
 
         for p in g.players:
             p.cards = CardList(p, 'handcard')  # Cards in hand
@@ -355,7 +392,7 @@ class THBattleRaid(Game):
 
         # reveal identities
         mutant = g.mutant = g.players[0]
-        attackers = g.attackers = g.players[1:]
+        attackers = g.attackers = PlayerList(g.players[1:])
 
         mutant.identity = Identity()
         mutant.identity.type = Identity.TYPE.MUTANT
@@ -374,7 +411,6 @@ class THBattleRaid(Game):
         def process(p, cid):
             try:
                 check(isinstance(cid, int))
-                i = p._choose_tag
                 check(0 <= cid < len(choice) - 1)
                 c = choice[cid]
                 if c.chosen:
@@ -415,6 +451,7 @@ class THBattleRaid(Game):
         ehclasses.extend(mutant.eventhandlers_required)
 
         mutant.life = mutant.maxlife
+        mutant.morphed = False
 
         g.emit_event('choose_girl_end', None)
 
@@ -434,21 +471,7 @@ class THBattleRaid(Game):
                 pass
 
         g.deck = Deck(raid_carddef)
-        deckcards = g.deck.cards
 
-        equips = [
-            cls(suit, num, deckcards)
-            for cls, suit, num in mutant.initial_equips
-        ]
-        deckcards.extend(equips)
-
-        migrate_cards(equips, mutant.cards)
-
-        for c in equips:
-            act = WearEquipmentAction(mutant, mutant)
-            act.associated_card = c
-            g.process_action(act)
-            
         # attackers' choose
         from characters import characters as chars
 
@@ -488,10 +511,30 @@ class THBattleRaid(Game):
             p = c.chosen
             mixin_character(p, c.char_cls)
             p.skills = p.skills[:]  # make it instance variable
+            p.skills.extend([
+                Cooperation, Protection,
+                Parry, OneUp,
+            ])
             p.life = p.maxlife
             ehclasses.extend(p.eventhandlers_required)
 
         g.update_event_handlers()
+
+        # wear initial equips
+        deckcards = g.deck.cards
+
+        equips = [
+            cls(suit, num, deckcards)
+            for cls, suit, num in mutant.initial_equips
+        ]
+        deckcards.extend(equips)
+
+        migrate_cards(equips, mutant.cards, no_event=True)
+
+        for c in equips:
+            act = WearEquipmentAction(mutant, mutant)
+            act.associated_card = c
+            g.process_action(act)
 
         g.emit_event('game_begin', g)
 
@@ -503,7 +546,10 @@ class THBattleRaid(Game):
             # stage 1
             try:
                 for i in xrange(500):
-                    g.emit_event('round_start', None)
+                    if len(mutant.faiths) < mutant.maxfaith:
+                        g.process_action(CollectFaith(mutant, mutant, 1))
+
+                    g.emit_event('round_start', False)
                     for p in attackers:
                         p.tags['action'] = True
 
@@ -545,9 +591,9 @@ class THBattleRaid(Game):
                 except ValueError:
                     pass
 
-            mutant.skills.extend(stage2,skills)
+            mutant.skills.extend(stage2.skills)
 
-            ehclasses = self.ehclasses
+            ehclasses = g.ehclasses
             for s in stage1.eventhandlers_required:
                 try:
                     ehclasses.remove(s)
@@ -558,16 +604,24 @@ class THBattleRaid(Game):
 
             mutant.maxlife -= stage1.maxlife // 2
             mutant.life = min(mutant.life, mutant.maxlife)
+            mutant.morphed = True
 
             mixin_character(mutant, stage2)
 
-            for p in attackers:
-                g.process_action(CollectFaith(p, 1))
+            g.update_event_handlers()
 
-            g.emit_event('mutant_morph', None)
+            for p in attackers:
+                g.process_action(CollectFaith(p, p, 1))
+
+            g.emit_event('mutant_morph', False)
+
+            g.pause(3)
 
             # stage 2
             for i in xrange(500):
+                if len(mutant.faiths) < mutant.maxfaith:
+                    g.process_action(CollectFaith(mutant, mutant, 1))
+
                 g.emit_event('round_start', None)
                 for p in attackers:
                     p.tags['action'] = True

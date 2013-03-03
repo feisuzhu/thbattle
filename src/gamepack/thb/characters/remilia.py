@@ -26,6 +26,8 @@ class SpearTheGungnirHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source
             if not src.has_skill(SpearTheGungnir): return act
+            if not act.__class__ is Attack(None, None).__class__: return act
+
             tgt = act.target
 
             while True:

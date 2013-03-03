@@ -13,7 +13,7 @@ class HeartBreakAction(InevitableAttack):
     def __init__(self, source, target):
         self.source = source
         self.target = target
-        self.amount = 2
+        self.damage = 2
 
     def apply_action(self):
         use_faith(self.source, 4)
@@ -27,6 +27,10 @@ class HeartBreak(Skill):
     @property
     def color(self):
         return Card.RED
+    
+    @color.setter
+    def color(self, val):
+        pass
 
     def is_card(self, cls):
         if issubclass(AttackCard, cls): return True
@@ -40,16 +44,20 @@ class HeartBreak(Skill):
 class NeverNightAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
-        tgt = self.target
+        src = self.source
+        use_faith(src, 3)
+
         for p in self.target_list:
             if not (p.cards or p.showncards or p.equips):
                 if p.faiths:
                     g.process_action(DropCards(p, p.faiths))
             else:
                 cats = [p.cards, p.showncards, p.equips]
-                c = choose_peer_card(tgt, p, cats)
+                c = choose_peer_card(src, p, cats)
                 if not c:
                     c = random_choose_card(cats)
+
+                g.players.reveal(c)
 
                 g.process_action(DropCards(p, [c]))
 
@@ -62,12 +70,13 @@ class NeverNight(Skill):
 
     def check(self):
         if self.associated_cards: return False
-        return len(self.player.faiths) >= 4
+        return len(self.player.faiths) >= 3
 
 
 class ScarletFogEffect(UserAction):
     def apply_action(self):
         g = Game.getgame()
+        p = self.target
 
         _pl = g.attackers[:]
         _pl.remove(p)
@@ -151,21 +160,20 @@ class SeptetHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, DelayedLaunchCard):
             src = act.source
             tgt = act.target
-            if not src.has_skill(Septet): return act
+            if not tgt.has_skill(Septet): return act
             self.action = act
-            c = user_choose_cards(self, src, [src.cards, src.showncards])
+            cl = user_choose_cards(self, src, [src.cards, src.showncards])
             g = Game.getgame()
-            if c:
-                g.process_action(DropCards(src, [c]))
+            if cl:
+                g.process_action(DropCards(src, cl))
             else:
-                g.process_action(DropCards(tgt, [act.card]))
+                g.process_action(DropCards(tgt, [act.associated_card]))
 
         return act
 
     def cond(self, cl):
         if not len(cl) == 1: return False
-        if cl[0].color != self.action.card.color: return False
-
+        return cl[0].color == self.action.associated_card.color
 
 
 class RemiliaEx2(Character):
@@ -188,7 +196,7 @@ class RemiliaEx2(Character):
         SeptetHandler,
     ]
 
-    initial_equips = [(GungnirCard, SPADE, Q)]
+    initial_equips = [(GungnirCard, SPADE, 12)]  # SPADE, Q
 
 
 @register_ex_character
@@ -198,5 +206,5 @@ class RemiliaEx(Character):
     skills = [HeartBreak, NeverNight, VampireKiss]
     eventhandlers_required = [VampireKissHandler]
 
-    initial_equips = [(GungnirCard, SPADE, Q)]
+    initial_equips = [(GungnirCard, SPADE, 12)]  # SPADE, Q
     stage2 = RemiliaEx2

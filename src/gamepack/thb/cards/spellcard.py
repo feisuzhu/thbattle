@@ -146,7 +146,7 @@ class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
 class DelayedLaunchCard(UserAction):
     def apply_action(self):
         g = Game.getgame()
-        card = self.card
+        card = self.associated_card
         action = card.delayed_action
         card.fatetell_source = self.source
         assert issubclass(action, DelayedSpellCardAction)
@@ -157,7 +157,7 @@ class DelayedLaunchCard(UserAction):
         return True
 
     def is_valid(self):
-        if not self.card: return False
+        if not self.associated_card: return False
         if not len(self.target_list) == 1: return False
         return True
 

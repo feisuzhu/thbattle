@@ -293,6 +293,9 @@ class Game(Greenlet, game.Game):
 
         return game.Game.emit_event(self, evt_type, data)
 
+    def pause(self, time):
+        gevent.sleep(time)
+
 
 class EventHandler(EventHandler):
     game_class = Game

@@ -213,6 +213,10 @@ class Game(Greenlet, game.Game):
                 self.players.client.gwrite('in_sync', True)
         return self.synctag
 
+    def pause(self, time):
+        gevent.sleep(time)
+
+
 class EventHandler(EventHandler):
     game_class = Game
 

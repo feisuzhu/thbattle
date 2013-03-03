@@ -2,7 +2,7 @@
 from .. import actions
 from .. import cards
 from .. import characters
-from .. import thb3v3, thbidentity, thbkof
+from .. import thb3v3, thbidentity, thbkof, thbraid
 
 from game.autoenv import Game
 G = Game.getgame
@@ -69,7 +69,8 @@ def property(f):
 
 # -----COMMON FUNCTIONS-----
 def my_turn():
-    me = G().me
+    g = G()
+    me = g.me
 
     try:
         act = g.action_stack[-1]
@@ -85,7 +86,7 @@ def my_turn():
 
 
 def limit1_skill_used(tag):
-    t = G().tags
+    t = G().me.tags
     return t[tag] >= t['turn_count']
 
 
@@ -233,7 +234,7 @@ class THBattleIdentity5:
 __metaclass__ = gen_metafunc(thbraid)
 
 
-class THBattleKOF:
+class THBattleRaid:
     name = u'符斗祭 - 异变模式'
     logo = gres.thblogo_raid
 
@@ -255,22 +256,22 @@ class THBattleKOF:
     del T
 
 
+class DeathHandler:
+    # choose_option
+    choose_option_buttons = ((u'摸一张', True), (u'不摸牌', False))
+    choose_option_prompt = u'你要摸一张牌吗？'
+
+
 class CollectFaith:
     def effect_string(act):
+        if not len(act.cards): return None
         s = u'、'.join(card_desc(c) for c in act.cards)
-        return u'|G【%s】|r收集的%d点信仰：%s' % (
+        return u'|G【%s】|r收集了%d点信仰：%s' % (
             act.target.ui_meta.char_name, len(act.cards), s,
         )
 
 
 class CooperationAction:
-    def effect_string(act):
-        s = u'、'.join(card_desc(c) for c in act.cards)
-        return u'|G【%s】|r与|G【%s】|r相互合作，交换了手牌。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
-        )
-
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -289,19 +290,29 @@ class Cooperation:
         return True
 
     def is_action_valid(g, cl, target_list):
-        if not cl:
+        acards = cl[0].associated_cards
+        if not acards:
             return (False, u'请选择希望交换的手牌')
 
-        if any(c.resides_in.type not in ('handcard', 'showncard')):
+        if any(c.resides_in.type not in ('handcard', 'showncard') for c in acards):
             return (False, u'只能选择手牌！')
 
         if len(target_list) != 1:
             return (False, u'请选择一名解决者')
 
-        return (False, u'合作愉快~')
+        return (True, u'合作愉快~')
+
+    def effect_string(act):
+        s = u'、'.join(card_desc(c) for c in act.card.associated_cards)
+        return u'|G【%s】|r与|G【%s】|r相互合作，交换了手牌。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
 
 
 class Protection:
+    # Skill
+    name = u'保护'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -321,14 +332,15 @@ class ProtectionHandler:
 
 
 class Parry:
+    # Skill
+    name = u'招架'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
 class ParryAction:
     def effect_string(act):
-        s = u'、'.join(card_desc(c) for c in act.cards)
-        return u'|G【%s】|r使用了|G招架|r，降低了1点伤害' % (
+        return u'|G【%s】|r使用了|G招架|r，减免了1点伤害。' % (
             act.target.ui_meta.char_name,
         )
 
@@ -344,24 +356,28 @@ class OneUp:
     name = '1UP'
 
     def clickable(g):
+        if not my_turn(): return False
         return len(g.me.faiths) >= 3
 
     def is_action_valid(g, cl, target_list):
-        if len(cl):
+        acards = cl[0].associated_cards
+        if len(acards):
             return (False, u'请不要选择牌！')
 
         if not (len(target_list) == 1 and target_list[0].dead):
             return (False, u'请选择一名已经离场的玩家')
 
-        return (False, u'神说，你不能在这里死去')
+        return (True, u'神说，你不能在这里死去')
 
-
-class OneUpAction:
     def effect_string(act):
         return u'|G【%s】|r用3点信仰换了一枚1UP，贴到了|G【%s】|r的身上。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+
+class OneUpAction:
+    update_portrait = True
 
 
 class FaithExchange:
@@ -375,6 +391,12 @@ class FaithExchange:
             return (True, u'OK，就这些了')
         else:
             return (False, u'请选择%d张手牌作为信仰…' % act.amount)
+
+
+class RequestAction:
+    # choose_option
+    choose_option_buttons = ((u'行动', True), (u'等一下', False))
+    choose_option_prompt = u'你要行动吗？'
 
 # -----END THBRaid UI META-----
 
@@ -513,21 +535,6 @@ class Pindian:
 
 # -----BEGIN CARDS UI META-----
 __metaclass__ = gen_metafunc(cards)
-
-class DelayedLaunchCard:
-    def effect_string_before(act):
-        s, t = act.source, act.target
-        c = act.card
-        from ..cards import Skill
-        if isinstance(c, Skill):
-            return c.ui_meta.effect_string(act)
-        elif c:
-            return u'|G【%s】|r对|G【%s】|r使用了|G%s|r。' % (
-                s.ui_meta.char_name,
-                t.ui_meta.char_name,
-                act.card.ui_meta.name
-            )
-
 
 class HiddenCard:
     # action_stage meta
@@ -4414,30 +4421,30 @@ class Heterodoxy:
 __metaclass__ = gen_metafunc(characters.remilia_ex)
 
 remilia_ex_description = (
-    u'|DB永远威严的红月 蕾米莉亚 体力：6 最大信仰：4|r\n\n'
+    u'|DB永远威严的红月 蕾米莉亚 体力：6 信仰：4|r\n\n'
     u'|G碎心|r：|DB信仰消耗4|r。你可以在使用【弹幕】的时候发动此技能。用此方法使用的【弹幕】视为红色，距离无限不可闪避，对目标造成2点伤害。\n\n'
     u'|G不夜城|r：|DB信仰消耗3|r，在出牌阶段主动发动。你依次弃置所有解决者的一张手牌或装备牌。如果解决者无牌可弃，则弃置所有信仰。\n\n'
     u'|G红魔之吻|r：|B锁定技|r，对玩家使用红色【弹幕】命中时，回复1点体力值。\n\n'
-    u'|B|R=== 以下是变身后获得的技能 ===\n\n'
-    u'|G七重奏|r: |B锁定技|r，解决者向你的判定区放置卡牌时，需额外弃置一张颜色相同的手牌。\n\n'
-    u'|G夜王|r: |B锁定技|r，你在自己的出牌阶段前额外摸2张牌。你的手牌上限+2。\n\n'
+    u'|B|R=== 以下是变身后获得的技能 ===|r\n\n'
+    u'|G七重奏|r：|B锁定技|r，解决者向你的判定区放置卡牌时，需额外弃置一张颜色相同的手牌。\n\n'
+    u'|G夜王|r：|B锁定技|r，你在自己的出牌阶段前额外摸2张牌。你的手牌上限+2。\n\n'
     u'|G神枪|r：出牌阶段，出现以下情况之一，你可以令你的【弹幕】不能被【擦弹】抵消：\n'
     u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
     u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。\n\n'
-    u'|B红雾|r：出牌阶段，你可以弃置一张红色牌，令所有解决者依次对另一名解决者使用一张【弹幕】，无法如此做者失去1点体力。一回合一次。'
+    u'|G红雾|r：出牌阶段，你可以弃置一张红色牌，令所有解决者依次对另一名解决者使用一张【弹幕】，无法如此做者失去1点体力。一回合一次。'
 )
 
 
 class RemiliaEx:
     # Character
-    char_name = u'蕾米莉亚'
+    char_name = u'异·蕾米莉亚'
     port_image = gres.remilia_ex_port
     description = remilia_ex_description
 
 
 class RemiliaEx2:
     # Character
-    char_name = u'蕾米莉亚'
+    char_name = u'异·蕾米莉亚'
     port_image = gres.remilia_ex2_port
     description = remilia_ex_description
 
@@ -4450,6 +4457,20 @@ class HeartBreak:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def clickable(g):
+        me = g.me
+        if len(me.faiths) < 4: return False
+        return True
+
+    def is_action_valid(g, cl, tl):
+        if cl[0].associated_cards:
+            return (False, u'请不要选择牌')
+
+        if not tl:
+            return (False, u'请选择一名解决者')
+
+        return (True, u'发动碎心')
 
 
 class NeverNight:
@@ -4514,7 +4535,7 @@ class ScarletFog:
 
         card = acards[0]
 
-        if card.color != Card.RED or card.resides_in.type not in ('handcard', 'showncard'):
+        if card.color != cards.Card.RED or card.resides_in.type not in ('handcard', 'showncard'):
             return (False, u'请选择一张红色的手牌!')
 
         if card.is_card(cards.Skill):

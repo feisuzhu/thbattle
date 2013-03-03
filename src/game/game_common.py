@@ -46,6 +46,7 @@ class EventHandler(object):
         after_all = []
         rest = []
 
+        eh_classes = set(eh_classes)
         for cls in eh_classes:
             if cls.execute_before == '__all__':
                 before_all.append(cls())

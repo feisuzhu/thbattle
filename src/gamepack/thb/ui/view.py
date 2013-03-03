@@ -478,3 +478,18 @@ class THBattleKOFUI(THBattleUI):
         (335, 520, 'bottom', Colors.orange),
     ]
 
+
+class THBattleRaidUI(THBattleUI):
+    portrait_location = [
+        (290, 450, Colors.red),
+        (490, 450, Colors.blue),
+        (190, 150, Colors.blue),
+        (380, 150, Colors.blue),
+    ]
+
+    gcp_location = [
+        (3, 1, 'me', Colors.blue),
+        (669, 270, 'left', Colors.blue),
+        (455, 520, 'bottom', Colors.blue),
+        (215, 520, 'bottom', Colors.blue),
+    ]

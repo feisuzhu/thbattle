@@ -182,8 +182,6 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
         l = mapping.setdefault(id(c) if c.is_card(VirtualCard) else id(c.resides_in), [])
         l.append(c)
 
-    act = g.action_stack[-1]
-
     for l in mapping.values():
         cl = l[0].resides_in
         for c in l:
@@ -198,6 +196,7 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
                     migrate_cards(c.associated_cards, sp, False, no_event)
 
         if not no_event:
+            act = g.action_stack[-1]
             g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 
 migrate_cards.SINGLE_LAYER = 2
@@ -532,6 +531,7 @@ class LaunchCard(UserAction):
 
     def validate_distance(self):
         dist = self.calc_base_distance()
+        g = Game.getgame()
 
         g.emit_event('calcdistance', (self, dist))
         card_dist = getattr(self.card, 'distance', 1000)
@@ -666,7 +666,7 @@ class LaunchFatetellCard(FatetellAction):
         g = Game.getgame()
         target = self.target
         card = self.card
-        act = card.dsc_action
+        act = card.delayed_action
         assert act
         a = act(source=card.fatetell_source, target=target)
         a.associated_card = card

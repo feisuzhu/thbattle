@@ -13,6 +13,7 @@ with ldr as args:
     thblogo_8id = tx_with_grayed('thblogo_8id.png')
     thblogo_5id = tx_with_grayed('thblogo_5id.png')
     thblogo_kof = tx_with_grayed('thblogo_kof.png')
+    thblogo_raid = tx_with_grayed('thblogo_raid.png')
 
     win = tx('win.png')
     lose = tx('lose.png')
@@ -28,7 +29,6 @@ with ldr as args:
         'shinesoft', 'hidden', 'question', 'showncardtag',
 
         'attack', 'graze', 'heal', 'demolition', 'reject', 'sealarray',
-
         'nazrinrod', 'opticalcloak', 'greenufo', 'redufo', 'sinsack',
         'yukaridimension', 'duel', 'sinsackcarnival', 'mapcannon',
         'hakurouken', 'reactor', 'umbrella', 'roukanken', 'gungnir',
@@ -89,6 +89,8 @@ with ldr as args:
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
         'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
         'seiga',
+
+        'remilia_ex', 'remilia_ex2',
     ]]
 
     from options import options
@@ -109,6 +111,8 @@ with ldr as args:
 
     num = pyglet.image.ImageGrid(img('num.png'), 1, 10)
     num = [port_atlas.add(t) for t in num]
+
+    remilia_ex_wallpaper = ldr.texture(ldr.filename('remilia_ex_wallpaper.png'))
 
     for k in args.keys(): del k
     del args

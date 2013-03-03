@@ -34,6 +34,8 @@ import sakuya
 import sanae
 import seiga
 
+import remilia_ex
+
 import dummy
 import akari
 
