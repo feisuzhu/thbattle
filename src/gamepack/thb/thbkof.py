@@ -19,41 +19,6 @@ def game_eh(cls):
     _game_ehs[cls.__name__] = cls
     return cls
 
-
-@game_eh
-class DeathHandler(EventHandler):
-    def handle(self, evt_type, act):
-        g = Game.getgame()
-        if evt_type == 'action_after' and isinstance(act, BaseDamage):
-            tgt = act.target
-            if tgt.life > 0: return act
-            if not g.process_action(TryRevive(tgt, dmgact=act)):
-                g.process_action(PlayerDeath(act.source, tgt))
-
-                if not tgt.characters:
-                    pl = g.players[:]
-                    pl.remove(tgt)
-                    g.winners = pl
-                    raise GameEnded
-                else:
-                    # character switch occurs in KOFCharacterSwitchHandler
-                    if tgt is g.current_turn:
-                        for a in reversed(g.action_stack):
-                            if isinstance(a, UserAction):
-                                a.interrupt_after_me()
-
-            pl = g.players
-            if pl[0].dropped:
-                g.winners = [pl[1]]
-                raise GameEnded
-
-            if pl[1].dropped:
-                g.winners = [pl[0]]
-                raise GameEnded
-
-        return act
-
-
 @game_eh
 class KOFCharacterSwitchHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -68,12 +33,16 @@ class KOFCharacterSwitchHandler(EventHandler):
         g = Game.getgame()
 
         for p in [p for p in g.players if p.dead and p.characters]:
+            if p.dropped:
+                pl = g.players[:]
+                pl.remove(p)
+                g.winners = pl
+                raise GameEnded
             g.next_character(p)
             g.update_event_handlers()
             g.process_action(DrawCards(p, 4))
             p.dead = False
             g.emit_event('kof_next_character', p)
-
 
 class Identity(PlayerIdentity):
     class TYPE(Enum):
@@ -81,10 +50,16 @@ class Identity(PlayerIdentity):
         HAKUREI = 1
         MORIYA = 2
 
-
 class THBattleKOF(Game):
     n_persons = 2
     game_ehs = _game_ehs
+    
+    def on_player_dead(g, tgt, src):
+        if not tgt.characters:
+            pl = g.players[:]
+            pl.remove(tgt)
+            g.winners = pl
+            raise GameEnded
 
     def game_start(self):
         # game started, init state

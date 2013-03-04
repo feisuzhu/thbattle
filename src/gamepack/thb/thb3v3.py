@@ -24,41 +24,8 @@ def game_action(cls):
     _game_actions[cls.__name__] = cls
     return cls
 
-
-@game_eh
-class DeathHandler(EventHandler):
-    def handle(self, evt_type, act):
-        g = Game.getgame()
-        if evt_type == 'action_after' and isinstance(act, BaseDamage):
-            tgt = act.target
-            if tgt.life > 0: return act
-
-            tgt_dead = False
-            if not g.process_action(TryRevive(tgt, dmgact=act)):
-                tgt_dead = True
-                g.process_action(PlayerDeath(act.source, tgt))
-
-            # see if game ended
-            force1, force2 = g.forces
-            if all(p.dead or p.dropped for p in force1):
-                g.winners = force2[:]
-                raise GameEnded
-
-            if all(p.dead or p.dropped for p in force2):
-                g.winners = force1[:]
-                raise GameEnded
-
-            if tgt_dead and tgt is g.current_turn:
-                for a in reversed(g.action_stack):
-                    if isinstance(a, UserAction):
-                        a.interrupt_after_me()
-
-        return act
-
-
 class ActFirst(object): # for choose_option
     pass
-
 
 class Identity(PlayerIdentity):
     class TYPE(Enum):
@@ -71,6 +38,16 @@ class THBattle(Game):
     game_ehs = _game_ehs
     game_actions = _game_actions
     order_list = (0, 5, 3, 4, 2, 1)
+    
+    def on_player_dead(g, tgt, src):
+        force1, force2 = g.forces
+        if all(p.dead or p.dropped for p in force1):
+            g.winners = force2[:]
+            raise GameEnded
+
+        if all(p.dead or p.dropped for p in force2):
+            g.winners = force1[:]
+            raise GameEnded
 
     def game_start(self):
         # game started, init state
