@@ -79,6 +79,8 @@ def start_ui():
         elif msg == 'update_disabled' and options.fastjoin:
             import gevent
             def func():
+                from client.ui import soundmgr
+                soundmgr.mute()
                 gevent.sleep(0.3)
                 ui_schedule(sss.switch)
                 gevent.sleep(0.3)

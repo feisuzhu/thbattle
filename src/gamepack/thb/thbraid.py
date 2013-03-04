@@ -619,9 +619,9 @@ class THBattleRaid(Game):
             for p in attackers:
                 g.process_action(CollectFaith(p, p, 1))
 
-            g.emit_event('mutant_morph', False)
+            g.emit_event('mutant_morph', mutant)
 
-            g.pause(3)
+            g.pause(4)
 
             # stage 2
             for i in xrange(500):

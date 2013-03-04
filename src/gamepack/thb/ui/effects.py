@@ -206,6 +206,7 @@ def damage_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
     OneShotAnim(gres.hurt, x=port.x, y=port.y, batch=self.animations)
+    soundmgr.play(gres.sound.hit)
 
 
 def _update_tags(self, p):
@@ -471,8 +472,32 @@ def game_roll_prompt(self, pl):
         self.prompt(p.account.username)
     self.prompt_raw('--------------------\n')
 
+
 def game_roll_result_prompt(self, p):
     self.prompt(u'由|R%s|r首先选将、行动' % p.account.username)
+
+
+def reseat_effects(self, _):
+    pl = self.game.players.rotate_to(self.game.me)
+    ports = [self.player2portrait(p) for p in pl]
+    assert set(ports) == set(self.char_portraits)
+    locations = self.gcp_location[:len(self.game.players)]
+    for port, (x, y, tp, _) in zip(ports, locations):
+        port.tag_placement = tp
+        port.animate_to(x, y)
+        port.update()
+    self.char_portraits[:] = ports
+
+
+def mutant_morph_effects(self, mutant):
+    meta = mutant.ui_meta
+    gs = self.get_game_screen()
+
+    gs.set_flash(5.0)
+    gs.set_color(getattr(Colors, meta.color_scheme))
+    gs.backdrop = meta.wallpaper
+    soundmgr.instant_switch_bgm(meta.bgm)
+
 
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),
@@ -484,7 +509,10 @@ mapping_events = ddict(bool, {
     'card_migration': card_migration_effects,
     'game_roll': game_roll_prompt,
     'game_roll_result': game_roll_result_prompt,
+    'reseat': reseat_effects,
+    'mutant_morph': mutant_morph_effects,
 })
+
 
 def handle_event(self, _type, data):
     f = mapping_events.get(_type)

@@ -621,7 +621,9 @@ class GameHallScreen(Screen):
     def on_switch(self):
         soundmgr.switch_bgm(common_res.bgm_hall)
 
+
 class GameScreen(Screen):
+    flash_alpha = InterpDesc('_flash_alpha')
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
@@ -664,10 +666,7 @@ class GameScreen(Screen):
         def update_portrait(self, pl):
             for i, p in enumerate(pl):
                 accdata = p['account']
-                if accdata:
-                    acc = Account.parse(accdata)
-                else:
-                    acc = None
+                acc = Account.parse(accdata) if accdata else None
 
                 port = self.portraits[i]
                 port.account = acc
@@ -723,7 +722,8 @@ class GameScreen(Screen):
     def __init__(self, game, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
 
-        self.bg = common_res.bg_ingame
+        self.backdrop = common_res.bg_ingame
+        self.flash_alpha = 0.0
 
         self.game = game
         self.ui_class = game.ui_meta.ui_class
@@ -756,30 +756,38 @@ class GameScreen(Screen):
             self.add_control(self.gameui)
             self.game.start()
             # utils.hub_interrupt(self.game.start)
+
         elif _type == 'end_game':
             self.remove_control(self.gameui)
             self.add_control(self.panel)
             g = args[0]
+
         elif _type == 'client_game_finished':
             g = args[0]
             g.ui_meta.ui_class.show_result(g)
+
         elif _type == 'chat_msg':
             uname, msg = args[0]
             uname = uname.replace('|', '||')
             self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
+
         elif _type == 'ob_msg':
             uname, msg = args[0]
             uname = uname.replace('|', '||')
             self.chat_box.append(u'|c9f5f9fff%s|r： %s\n' % (uname, msg))
+
         elif _type == 'speaker_msg':
             uname, msg = args[0]
             uname = uname.replace('|', '||')
             self.chat_box.append(u'|ccc3299ff『文々。新闻』|cff0000ff%s|r： %s\n' % (uname, msg))
+
         elif _type == 'system_msg':
             _, msg = args[0]
             self.chat_box.append(u'|B|R%s|r\n' % msg)
+
         elif _type in ('game_left', 'fleed'):
             GameHallScreen().switch()
+
         elif _type == 'game_joined':
             # last game ended, this is the auto
             # created game
@@ -790,10 +798,13 @@ class GameScreen(Screen):
                 **r2d((0, 0, 820, 720))
             )
             soundmgr.switch_bgm(common_res.bgm_hall)
+            self.backdrop = common_res.bg_ingame
+            self.set_color(Colors.green)
             self.events_box.clear()
 
         elif _type == 'game_crashed':
             ConfirmBox(u'游戏逻辑已经崩溃，请退出房间！\n这是不正常的状态，你可以报告bug。', parent=self)
+
         elif _type == 'observe_request':
             uid, uname = args[0]
             box = ConfirmBox(
@@ -804,13 +815,30 @@ class GameScreen(Screen):
             @box.event
             def on_confirm(val, uid=uid):
                 Executive.call('observe_grant', ui_message, [uid, val])
+
         else:
             Screen.on_message(self, _type, *args)
 
     def draw(self):
-        glColor3f(1,1,1)
-        self.bg.blit(0, 0)
+        glColor3f(1, 1, 1)
+        self.backdrop.blit(0, 0)
+        glColor4f(0, 0, 0, .5)
+        glRectf(0, 0, 1000, 138)
+        glColor3f(0.1922, 0.2706, 0.3882)
+        glRectf(0, 138, 1000, 140)
+        glColor3f(1, 1, 1)
         self.draw_subcontrols()
+        fa = self.flash_alpha
+        if fa:
+            glColor4f(1, 1, 1, fa)
+            glRectf(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+
+    def set_flash(self, duration):
+        self.flash_alpha = CosineInterp(1.0, 0.0, duration)
+
+    def set_color(self, color):
+        self.events_box.set_color(color)
+        self.chat_box.set_color(color)
 
     def on_switch(self):
         soundmgr.switch_bgm(common_res.bgm_hall)

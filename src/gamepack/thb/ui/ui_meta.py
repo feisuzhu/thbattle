@@ -4448,6 +4448,10 @@ class RemiliaEx2:
     port_image = gres.remilia_ex2_port
     description = remilia_ex_description
 
+    wallpaper = gres.remilia_ex_wallpaper
+    bgm = gres.bgm_remilia_ex
+    color_scheme = 'red'
+
 
 class HeartBreak:
     # Skill

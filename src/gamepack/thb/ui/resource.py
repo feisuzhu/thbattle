@@ -103,8 +103,6 @@ with ldr as args:
         'hp', 'hp_bg',
     ])
 
-    #exec '\n'.join('%s_port = port_tx("%s_port.png")' % (s, s) for s in ports) in locals()
-    
     for p in ports:
         tex = tx_with_grayed('%s.png' % p, port_atlas)
         exec '%s = tex' % p in locals()
@@ -113,6 +111,10 @@ with ldr as args:
     num = [port_atlas.add(t) for t in num]
 
     remilia_ex_wallpaper = ldr.texture(ldr.filename('remilia_ex_wallpaper.png'))
+    bgm_remilia_ex = lambda: ldr.media(ldr.filename('bgm_remilia_ex.ogg'))
+
+    class sound:
+        hit = ldr.media(ldr.filename('se/hit.ogg'), streaming=False)
 
     for k in args.keys(): del k
     del args
