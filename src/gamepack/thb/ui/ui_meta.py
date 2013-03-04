@@ -348,7 +348,7 @@ class ParryAction:
 class ParryHandler:
     # choose_option
     choose_option_buttons = ((u'招架', True), (u'不招架', False))
-    choose_option_prompt = u'你要使用1点信仰减免1点伤害吗？'
+    choose_option_prompt = u'你要使用2点信仰减免1点伤害吗？'
 
 
 class OneUp:
@@ -4566,7 +4566,7 @@ class SeptetHandler:
         if act.cond(cards):
             return (True, u'弃置并使延时符卡生效')
         else:
-            return (False, u'【七重奏】请选择一张颜色相同的手牌弃置')
+            return (False, u'【七重奏】请选择一张花色相同的手牌弃置')
 
 
 # -----END CHARACTERS UI META-----

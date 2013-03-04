@@ -89,7 +89,7 @@ class ScarletFogEffect(UserAction):
         rst = user_choose_cards_and_players(self, p, [p.cards, p.showncards], pl)
         if rst:
             c = rst[0][0]; t = rst[1][0]
-            g.process_action(LaunchCard(p, t, c))
+            g.process_action(LaunchCard(p, [t], c))
         else:
             g.process_action(LifeLost(p, p, 1))
 
@@ -173,7 +173,7 @@ class SeptetHandler(EventHandler):
 
     def cond(self, cl):
         if not len(cl) == 1: return False
-        return cl[0].color == self.action.associated_card.color
+        return cl[0].suit == self.action.associated_card.suit
 
 
 class RemiliaEx2(Character):

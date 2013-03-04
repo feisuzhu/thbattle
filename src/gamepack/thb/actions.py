@@ -285,7 +285,9 @@ class PlayerDeath(GenericAction):
         others = g.players.exclude(tgt)
         from .cards import VirtualCard
         from .actions import DropCards
-        for cl in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]:
+        lists = [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]
+        lists.extend(tgt.showncardlists)
+        for cl in lists:
             if not cl: continue
             others.reveal(list(cl))
             g.process_action(DropCards(tgt, cl))

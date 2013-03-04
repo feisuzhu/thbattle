@@ -218,7 +218,7 @@ class ParryAction(GenericAction):
         self.dmgact = dmgact
 
     def apply_action(self):
-        use_faith(self.source, 1)
+        use_faith(self.source, 2)
         self.dmgact.amount -= 1
         return True
 
@@ -231,7 +231,7 @@ class ParryHandler(EventHandler):
         if not isinstance(act, Damage): return act
         tgt = act.target
         if not tgt.has_skill(Parry): return act
-        if not tgt.faiths: return act
+        if not len(tgt.faiths) >= 2: return act
         if not (act.amount >= 2 or tgt.life <= act.amount): return act
 
         if not tgt.user_input('choose_option', self): return act
@@ -251,7 +251,7 @@ class OneUpAction(GenericAction):
         assert tgt.dead, 'WTF?!'
         assert tgt in g.attackers
 
-        use_faith(src, 3)
+        use_faith(src, 4)
         src.tags['oneup_used'] = True
 
         tgt.dead = False
@@ -279,7 +279,7 @@ class OneUp(Skill):
         return (tl[-1:], bool(len(tl)))
 
     def check(self):
-        if len(self.player.faiths) < 3: return False
+        if len(self.player.faiths) < 4: return False
         return not self.associated_cards
 
         
