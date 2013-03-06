@@ -257,7 +257,7 @@ class GameHallScreen(Screen):
             def __init__(self, *a, **k):
                 Panel.__init__(
                     self, width=550, height=340,
-                    zindex=10000,
+                    zindex=1000,
                     *a, **k
                 )
                 self.x = (self.overlay.width - 550) // 2
@@ -314,6 +314,8 @@ class GameHallScreen(Screen):
                         gcls.ui_meta.logo, selectors,
                         parent=self, x=x, y=y
                     )
+                    intro = getattr(gcls.ui_meta, 'description', None)
+                    intro and s.init_balloon(intro, width=480)
                     s.gametype = gname
                     s.event(on_select)
                     selectors.append(s)
@@ -718,6 +720,10 @@ class GameScreen(Screen):
 
         def append(self, v):
             self.box.append(v)
+
+        def set_color(self, c):
+            Frame.set_color(self, c)
+            self.inputbox.color = c
 
     def __init__(self, game, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)

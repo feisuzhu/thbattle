@@ -716,13 +716,16 @@ Dialog.register_event_type('on_move')
 Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
+
 class BalloonPrompt(object):
     balloon_inited = False
     balloon_panel = None
     balloon_cursorloc = (0, 0)
-    def init_balloon(self, text, region=None):
+    balloon_width = 288
+    def init_balloon(self, text, region=None, width=288):
         self.balloon_text = text
         self.balloon_region = region
+        self.balloon_width = width 
 
         if not self.balloon_inited:
             self.balloon_inited = True
@@ -798,12 +801,13 @@ class BalloonPrompt(object):
 
         self.balloon_state = 'shown'
 
-        ta = TextArea(parent=None, x=2, y=2, width=288, height=100)
+        width = self.balloon_width
+        ta = TextArea(parent=None, x=2, y=2, width=width, height=100)
         ta.append(self.balloon_text)
         h = ta.content_height
         ta.height = h
 
-        panel = Panel(parent=Overlay.cur_overlay, x=0, y=0, width=292, height=h+4)
+        panel = Panel(parent=Overlay.cur_overlay, x=0, y=0, width=width+4, height=h+4, zindex=999999)
         panel.add_control(ta)
         panel.fill_color = (1.0, 1.0, 0.9, 0.5)
         self.balloon_panel = panel
@@ -813,6 +817,7 @@ class BalloonPrompt(object):
             panel.delete()
 
         panel.x, panel.y = self._balloon_getloc(*self.balloon_cursorloc)
+
 
 class TextBox(Control):
     def __init__(self, text='Yoooooo~', color=Colors.green, font_name='AncientPix', *args, **kwargs):
@@ -1650,7 +1655,8 @@ class Panel(Control):
 
         self.draw_subcontrols()
 
-class ImageSelector(Control):
+
+class ImageSelector(Control, BalloonPrompt):
     hover_alpha = InterpDesc('_hover_alpha')
     def __init__(self, image, group, *a, **k):
         Control.__init__(

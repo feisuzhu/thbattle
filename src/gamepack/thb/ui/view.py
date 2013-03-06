@@ -21,6 +21,7 @@ import effects, inputs
 
 from .. import actions
 
+
 class UIEventHook(EventHandler):
     @classmethod
     def evt_user_input(cls, input):
@@ -102,6 +103,7 @@ class DeckIndicator(Control):
         except AttributeError as e:
             pass
 
+
 class ResultPanel(Panel):
     fill_color = (1.0, 1.0, 0.9, 0.5)
     def __init__(self, g, *a, **k):
@@ -141,6 +143,17 @@ class ResultPanel(Panel):
         pic = self.pic
         glColor3f(1, 1, 1)
         self.pic.blit(self.width - pic.width - 10, self.height - pic.height - 10)
+
+
+class GameIntroIcon(Control, BalloonPrompt):
+    def __init__(self, game, *a, **k):
+        Control.__init__(self, *a, **k)
+        intro = getattr(game.ui_meta, 'description')
+        intro and self.init_balloon(intro, width=480)
+
+    def draw(self):
+        glColor3f(1, 1, 1)
+        gres.tag_gameintro.blit(0, 0)
 
 
 class THBattleUI(Control):
@@ -188,6 +201,11 @@ class THBattleUI(Control):
             parent=self, caption=u'让⑨帮你玩', zindex=1,
             color=Colors.blue,
             **r2d((730, 640, 75, 25))
+        )
+
+        self.gameintro_icon = GameIntroIcon(
+            parent=self, game=game,
+            **r2d((780, 610, 25, 25))
         )
 
         self.afk = False

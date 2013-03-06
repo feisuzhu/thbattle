@@ -28,11 +28,14 @@ from pyglet.sprite import Sprite
 import logging
 log = logging.getLogger('THBattleUI_Effects')
 
+
 class OneShotAnim(Sprite):
     def on_animation_end(self):
         self.delete()
 
+
 LoopingAnim = Sprite
+
 
 class TagAnim(Control, BalloonPrompt):
     def __init__(self, img, x, y, text, *a, **k):
@@ -45,6 +48,7 @@ class TagAnim(Control, BalloonPrompt):
 
     def set_position(self, x, y):
         self.x, self.y = x, y
+
 
 def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     act, cards, _from, to = args
@@ -223,11 +227,13 @@ def _update_tags(self, p):
         if meta and meta.display(p, p.tags[t]):
             new_tags.add(t)
 
-    for t in old_tags - new_tags: # to be removed
+    # for t in old_tags - new_tags: # to be removed
+    for t in old_tags:
         old[t].delete()
         taganims.remove(old[t])
 
-    for t in new_tags - old_tags: # to be added
+    # for t in new_tags - old_tags: # to be added
+    for t in new_tags: # to be added
         a = TagAnim(
             tags_meta[t].tag_anim(p),
             0, 0,
@@ -236,6 +242,7 @@ def _update_tags(self, p):
         )
         a.for_tag = t
         taganims.append(a)
+
     port.tagarrange()
 
 

@@ -29,7 +29,11 @@ class CriticalStrikeHandler(EventHandler):
 
             act.amount = max(0, act.amount - 1)
 
-        elif evt_type == 'action_after' and isinstance(act, ActionStage):
+        elif (
+            evt_type == 'action_after' and isinstance(act, ActionStage)
+        ) or (
+            evt_type == 'action_apply' and isinstance(act, PlayerTurn)
+        ):
             src = act.target
             if not src.has_skill(CriticalStrike): return act
             st = src.tags

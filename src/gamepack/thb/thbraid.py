@@ -391,6 +391,7 @@ class THBattleRaid(Game):
             p.showncardlists = [p.showncards, p.faiths, p.fatetell]  # cardlists should shown to others
 
             p.tags = defaultdict(int)
+            p.tags['faithcounter'] = True
 
             p.dead = False
             p.need_shuffle = False
