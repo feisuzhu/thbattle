@@ -199,16 +199,12 @@ class Deck(object):
 
 
     def getcards(self, num):
-        g = Game.getgame()
-        rst = []
-
         if len(self.cards) <= num:
             if Game.SERVER_SIDE:
                 # performance hack
                 dropped = self.droppedcards
                 random.shuffle(dropped)
                 cards = self.cards
-                rec = self.cards_record
 
                 # preserve it, does not consume much memory
                 # del rec[c.syncid]
@@ -218,7 +214,6 @@ class Deck(object):
                 ])
 
             elif Game.CLIENT_SIDE:
-                rec = self.cards_record
                 # for c in self.droppedcards:
                 #     del rec[c.syncid]
                 cards = self.cards
@@ -230,6 +225,7 @@ class Deck(object):
             self.droppedcards.clear()
 
         cl = self.cards
+        rst = []
         for i in xrange(min(len(cl), num)):
             c = cl[i]
             if not c.syncid:
@@ -244,8 +240,9 @@ class Deck(object):
         cr = self.cards_record
         vcr = self.vcards_record
         for cid in idlist:
-            c = cr.get(cid, vcr.get(cid, None))
+            c = vcr.get(cid, None) or cr.get(cid, None)
             if c: l.append(c)
+
         return l
 
     def register_card(self, card):
@@ -264,11 +261,11 @@ class Deck(object):
     def shuffle(self, cl):
         g = Game.getgame()
 
-        for c in cl:
-            try:
-                del self.cards_record[c.syncid]
-            except KeyError:
-                pass
+        # for c in cl:
+        #     try:
+        #         del self.cards_record[c.syncid]
+        #     except KeyError:
+        #         pass
 
         perm = [c.syncid for c in cl]
         random.shuffle(perm)
@@ -284,6 +281,7 @@ class Deck(object):
                 c.__class__ = HiddenCard
                 c.suit = c.number = 0
                 self.cards_record[i] = c
+
             return
 
         mapping = {oid:nid for oid, nid in zip(perm, newids)}

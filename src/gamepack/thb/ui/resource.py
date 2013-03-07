@@ -78,6 +78,7 @@ with ldr as args:
     tag_wine = anim('tag_wine.png', [150]*3, True)
     tag_frozenfrog = anim('tag_frozenfrog.png', [10000], True)
     tag_lunaclock = anim('tag_lunaclock.png', [200]*10, True)
+    tag_action = tx('tag_action.png')
     tag_gameintro = tx('tag_gameintro.png')
 
     tag_faiths = pyglet.image.ImageGrid(img('tag_faiths.png'), 1, 7)

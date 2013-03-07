@@ -80,32 +80,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
         port.tagarrange()
 
     if to is None: return # not supposed to have visual effects
-    '''
-    if _from.owner is g.me and _from.type in ('handcard', 'showncard'):
-        handcard_update = True
-        csl[:] = [
-            cs for cs in self.handcard_area.cards
-            if cs.associated_card in cards
-        ]
 
-    elif _from.type == 'droppedcard':
-        dropcard_update = True
-        for cs in self.dropcard_area.control_list:
-            if cs.associated_card in cards:
-                csl.append(cs)
-
-    else:
-        if _from.type == 'deckcard':
-            pca = self.deck_area
-        else:
-            pca = self.player2portrait(_from.owner).portcard_area
-
-        for i, card in enumerate(rawcards):
-            cs = CardSprite(card, parent=pca)
-            cs.associated_card = card
-            csl.append(cs)
-        pca.arrange()
-    '''
     hca_mapping = {cs.associated_card: (cs, i) for i, cs in enumerate(self.handcard_area.control_list)}
     dca_mapping = {cs.associated_card: (cs, i+100) for i, cs in enumerate(self.dropcard_area.control_list)}
     pca = None
@@ -419,6 +394,12 @@ mapping_actions = ddict(dict, {
 
 def action_effects(_type, self, act):
     cls = act.__class__
+
+    if isinstance(act, UserAction):
+        print act.__class__.__name__
+        g = self.game
+        for p in g.players:
+            _update_tags(self, p)
 
     while cls is not object:
         f = mapping_actions[_type].get(cls)

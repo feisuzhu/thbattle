@@ -51,7 +51,9 @@ def switch_bgm(bgm):
 
 
 def instant_switch_bgm(bgm):
-    global bgm_next, bgm_switching, vol, bgm_player, cur_bgm
+    global bgm_next, bgm_switching, vol, bgm_player, cur_bgm, _mute
+    if _mute: return
+
     pyglet.clock.unschedule(_bgm_switcher)
     bgm_player.pause()
     bgm_player.queue(bgm())
