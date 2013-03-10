@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, sync_primitive
+from game.autoenv import Game, sync_primitive, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow
+from .actions import PlayerTurn
+from itertools import cycle
+from collections import defaultdict
+from utils import check, CheckFailed
 
+#import testing
 
 def mixin_character(player, char_cls):
     from utils import classmix
@@ -66,3 +71,53 @@ class PlayerIdentity(object):
         return self._type
 
     type = property(get_type, set_type)
+
+class GameBase(Game):
+    def game_start(self):
+        # game started, init state
+        from cards import Card, Deck, CardList
+
+        self.deck = Deck()
+        
+        for p in self.players:
+            p.cards = CardList(p, 'handcard') # Cards in hand
+            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
+            p.equips = CardList(p, 'equips') # Equipments
+            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
+            p.special = CardList(p, 'special') # used on special purpose
+
+            p.showncardlists = [p.showncards, p.fatetell]
+
+            p.tags = defaultdict(int)
+            
+            p.dead = False
+            p.need_shuffle = False
+
+        self.init_identities(None)
+        first_actor = self.roll_and_choose_girls(None)
+        try:
+            self.init_game(first_actor)
+            pl = self.players.rotate_to(first_actor)
+            
+            for i, p in enumerate(cycle(pl)):
+                if i >= 6000: break
+                if not self.on_player_turn(p):
+                    continue
+                try:
+                    self.emit_event('player_turn', p)
+                    self.process_action(PlayerTurn(p))
+                except InterruptActionFlow:
+                    pass
+        except GameEnded:
+            pass
+        else:
+            #raise GameError('Game not ended')
+            pass
+
+        #assert self.winner
+
+    def on_player_dead(self):
+        pass
+
+    def on_player_turn(self, p):
+        return not p.dead
