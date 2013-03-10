@@ -70,7 +70,7 @@ class THBattle(GameBase):
         from characters import characters as chars
         from characters.akari import Akari
         
-        #roll
+        # roll
         roll = range(len(self.players))
         if not sample:
             random.shuffle(roll)
