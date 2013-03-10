@@ -90,10 +90,17 @@ class CollectFaith(GenericAction):
         tgt = self.target
 
         g = Game.getgame()
+
+        amount = max(0, 5 - len(tgt.faiths))
+        amount = min(amount, self.amount)
+
+        if not amount: return False
+
         cards = g.deck.getcards(self.amount)
         g.players.reveal(cards)
         migrate_cards(cards, tgt.faiths)
         self.cards = cards
+
         return True
 
 
@@ -105,11 +112,8 @@ class CollectFaithHandler(EventHandler):
         src = act.source
         if not src: return act
         
-        amount = getattr(src, 'maxfaith', 999) - len(src.faiths)
-        amount = min(amount, act.amount)
-
         g = Game.getgame()
-        g.process_action(CollectFaith(src, src, amount))
+        g.process_action(CollectFaith(src, src, act.amount))
         return act
 
 
@@ -120,10 +124,10 @@ class CooperationAction(UserAction):
         g = Game.getgame()
 
         src.tags['cooperation_tag'] = src.tags['turn_count']
-        card = self.associated_card
-        self.ncards = len(card.associated_cards)
+        skill = self.associated_card
+        self.ncards = len(skill.associated_cards)
 
-        migrate_cards([card], tgt.showncards, unwrap=True)
+        migrate_cards([skill], tgt.showncards, unwrap=True)
 
         returned = user_choose_cards(self, tgt)
         if not returned:
@@ -131,9 +135,6 @@ class CooperationAction(UserAction):
 
         g.players.reveal(returned)
         migrate_cards(returned, src.showncards)
-
-        src.need_shuffle = True
-        tgt.need_shuffle = True
 
         return True
 
@@ -159,6 +160,7 @@ class Cooperation(Skill):
     def check(self):
         cl = self.associated_cards
         if not cl: return False
+        if not len(cl) <= 2: return False
         return all(c.resides_in and c.resides_in.type in (
             'handcard', 'showncard',
         ) for c in cl)
@@ -176,16 +178,28 @@ class ProtectionAction(GenericAction):
         self.dmgact = dmgact
 
     def apply_action(self):
-        use_faith(self.source, 1)
-        self.dmgact.target = self.source
+        g = Game.getgame()
+        src = self.source
+
+        use_faith(src, 1)
+
+        act = self.dmgact
+        act.cancelled = True
+
+        g.process_action(LifeLost(src, src, act.amount))
+        g.process_action(CollectFaith(g.mutant, g.mutant, 1))
+
         return True
 
 
 @game_eh
 class ProtectionHandler(EventHandler):
+    execute_before = ('WineHandler', )
+    execute_after = ('RepentanceStickHandler', )
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstance(act, Damage): return act
+        if act.cancelled: return act
 
         g = Game.getgame()
         tgt = act.target
@@ -470,12 +484,6 @@ class THBattleRaid(Game):
             if carddef[0] is not SinsackCard
         ]
 
-        for carddef in mutant.initial_equips:
-            try:
-                raid_carddef.remove(carddef)
-            except ValueError:
-                pass
-
         g.deck = Deck(raid_carddef)
 
         # attackers' choose
@@ -526,23 +534,6 @@ class THBattleRaid(Game):
 
         g.update_event_handlers()
 
-        # wear initial equips
-        deckcards = g.deck.cards
-
-        equips = [
-            cls(suit, num, None)
-            for cls, suit, num in mutant.initial_equips
-        ]
-        for c in equips:
-            g.deck.register_card(c)
-
-        migrate_cards(equips, mutant.cards, no_event=True)
-
-        for c in equips:
-            act = WearEquipmentAction(mutant, mutant)
-            act.associated_card = c
-            g.process_action(act)
-
         g.emit_event('game_begin', g)
 
         try:
@@ -553,8 +544,7 @@ class THBattleRaid(Game):
             # stage 1
             try:
                 for i in xrange(500):
-                    if len(mutant.faiths) < mutant.maxfaith:
-                        g.process_action(CollectFaith(mutant, mutant, 1))
+                    g.process_action(CollectFaith(mutant, mutant, 1))
 
                     g.emit_event('round_start', False)
                     for p in attackers:
@@ -620,14 +610,15 @@ class THBattleRaid(Game):
             for p in attackers:
                 g.process_action(CollectFaith(p, p, 1))
 
+            g.process_action(DropCards(mutant, mutant.fatetell))
+
             g.emit_event('mutant_morph', mutant)
 
             g.pause(4)
 
             # stage 2
             for i in xrange(500):
-                if len(mutant.faiths) < mutant.maxfaith:
-                    g.process_action(CollectFaith(mutant, mutant, 1))
+                g.process_action(CollectFaith(mutant, mutant, 1))
 
                 g.emit_event('round_start', False)
                 for p in attackers:

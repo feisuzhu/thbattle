@@ -113,6 +113,13 @@ def card_desc(c):
     if num == '_': num = '10'
     return suit + num + ' |G%s|r' % c.ui_meta.name
 
+
+def build_handcard(cardcls):
+    cl = cards.CardList(G().me, 'handcard')
+    c = cardcls()
+    c.move_to(cl)
+    return c
+
 # -----END COMMON FUNCTIONS-----
 
 # -----BEGIN THB3v3 UI META-----
@@ -244,13 +251,13 @@ class THBattleRaid:
     identity_table = {
         T.HIDDEN: u'？',
         T.MUTANT: u'异变',
-        T.ATTACKER: u'解决者'
+        T.ATTACKER: u'解决者',
     }
 
     identity_color = {
         T.HIDDEN: u'blue',
         T.MUTANT: u'red',
-        T.ATTACKER: u'blue'
+        T.ATTACKER: u'blue',
     }
 
     del T
@@ -258,7 +265,7 @@ class THBattleRaid:
     description = (
         u"|R势力|r： 异变（1人） vs 解决者（3人）\n"
         u"\n"
-        u"|R信仰|r：所有人都有额外的“信仰”，信仰使用卡牌做标记，需向他人展示。信仰可以在自己的出牌阶段前与手牌做交换。交换后进入明牌区。每对其他玩家造成一点伤害时，获得一点。异变信仰有上限，跟人物有关。每轮开始时获得一点。\n"
+        u"|R信仰|r：所有人都有额外的“信仰”，信仰使用卡牌做标记，需向他人展示。信仰可以在自己的出牌阶段前与手牌做交换。交换后进入明牌区。每对其他玩家造成一点伤害时，获得一点。信仰上限为5点。异变在每轮开始时获得一点信仰，解决者不获得。\n"
         u"\n"
         u"|R距离|r：所有人之间的默认距离为1\n"
         u"\n"
@@ -269,17 +276,17 @@ class THBattleRaid:
         u"解决者们可以任意决定行动顺序，但是每轮一个解决者仅能行动一次。\n"
         u"当所有在场的玩家结束了各自回合之后，算作一轮。\n"
         u"\n"
-        u"|R异变变身|r：当1阶段的异变体力值变化成小于等于默认体力上限的一半时，变身成2阶段，获得2阶段技能，体力上限减少默认体力上限的一半。异变变身时，所有解决者各获得1点信仰。\n"
+        u"|R异变变身|r：当1阶段的异变体力值变化成小于等于默认体力上限的一半时，变身成2阶段，获得2阶段技能，体力上限减少默认体力上限的一半，弃置判定区的所有牌。异变变身时，所有解决者各获得1点信仰。\n"
         u"\n"
         u"|R卡牌|r：牌堆中没有【罪袋】\n"
         u"\n"
         u"|R摸牌|r：游戏开始时，3个解决者每人摸4张牌，异变摸6张。当任意解决者阵亡时，弃置所有信仰，其他存活的解决者可以选择立即在牌堆里摸1张牌。\n"
         u"\n"
         u"|R解决者额外技能|r：\n"
-        u"|G合作|r：在你的出牌阶段，你可以将任意张手牌交给其他的一名解决者。收到牌的解决者需交还相同数量的手牌，交换后进入明牌区。一回合一次。\n"
-        u"|G保护|r：任意解决者的体力是全场最低之一的话，在受到伤害时，其他的解决者可以使用1点信仰，代替他承受伤害。\n"
+        u"|G合作|r：在你的出牌阶段，你可以将至多两张手牌交给其他的一名解决者。收到牌的解决者需交还相同数量的手牌，交换后进入明牌区。一回合一次。\n"
+        u"|G保护|r：当其他解决者受到伤害时，如果该解决者的体力是全场最低之一，你可以使用1点信仰防止此伤害。若如此做，你承受相同数量的体力流失，并且异变获得一点信仰。\n"
         u"|G招架|r：若你受到了2点及以上/致命的伤害时，你可以使用2点信仰使伤害-1。在 保护 之前结算。\n"
-        u"|G1UP|r：限定技，你可以使用4点信仰使已经阵亡的解决者重新上场。重新上场的解决者回复3点体力，算作当前回合没有行动。"
+        u"|G1UP|r：|B限定技|r，你可以使用4点信仰使已经阵亡的解决者重新上场。重新上场的解决者回复3点体力，算作当前回合没有行动。"
     )
 
 
@@ -291,6 +298,7 @@ class DeathHandler:
 
 class CollectFaith:
     def effect_string(act):
+        if not act.succeeded: return None
         if not len(act.cards): return None
         s = u'、'.join(card_desc(c) for c in act.cards)
         return u'|G【%s】|r收集了%d点信仰：%s' % (
@@ -320,6 +328,9 @@ class Cooperation:
         acards = cl[0].associated_cards
         if not acards:
             return (False, u'请选择希望交换的手牌')
+
+        if len(acards) > 2:
+            return (False, u'最多选择两张')
 
         if any(c.resides_in.type not in ('handcard', 'showncard') for c in acards):
             return (False, u'只能选择手牌！')
@@ -384,7 +395,7 @@ class OneUp:
 
     def clickable(g):
         if not my_turn(): return False
-        return len(g.me.faiths) >= 3
+        return len(g.me.faiths) >= 4
 
     def is_action_valid(g, cl, target_list):
         acards = cl[0].associated_cards
@@ -397,7 +408,7 @@ class OneUp:
         return (True, u'神说，你不能在这里死去')
 
     def effect_string(act):
-        return u'|G【%s】|r用3点信仰换了一枚1UP，贴到了|G【%s】|r的身上。' % (
+        return u'|G【%s】|r用4点信仰换了一枚1UP，贴到了|G【%s】|r的身上。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
@@ -2514,6 +2525,7 @@ class DollCrusader:
         )
         return s
 
+
 # ----------
 __metaclass__ = gen_metafunc(characters.nazrin)
 
@@ -2527,6 +2539,7 @@ class Nazrin:
         u'|G探宝|r：回合开始阶段，你可以进行判定：若为黑色，立即获得此牌，并且可以继续发动探宝；直到出现红色牌为止。'
     )
 
+
 class TreasureHuntSkill:
     # Skill
     name = u'探宝'
@@ -2537,10 +2550,12 @@ class TreasureHuntSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class TreasureHuntHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【探宝】吗？'
+
 
 class Agile:
     # Skill
@@ -3682,7 +3697,7 @@ class SpearTheGungnirAction:
             act.target.ui_meta.char_name,
         )
 
-        
+
 class SpearTheGungnirHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
@@ -3820,10 +3835,18 @@ class Taichi:
         me = game.me
         try:
             act = game.action_stack[-1]
-            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.DollControl, cards.BaseUseGraze)):
+            if isinstance(act, actions.ActionStage):
                 return True
-        except IndexError:
+
+            if act.cond([build_handcard(cards.AttackCard)]):
+                return True
+
+            if act.cond([build_handcard(cards.GrazeCard)]):
+                return True
+
+        except:
             pass
+
         return False
 
     def is_complete(g, cl):
@@ -3853,6 +3876,7 @@ class Taichi:
             source.ui_meta.char_name,
         )
 
+
 class LoongPunch:
     # Skill
     name = u'龙拳'
@@ -3863,10 +3887,12 @@ class LoongPunch:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class LoongPunchHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【龙拳】吗？'
+
 
 class LoongPunchAction:
     def effect_string_before(act):
@@ -3882,11 +3908,13 @@ class LoongPunchAction:
                 act.target.ui_meta.char_name,
             )
 
+
 class RiverBehindAwake:
     def effect_string_before(act):
         return u'|G【%s】|r发现自己处境危险，于是强行催动内力护住身体，顺便参悟了太极拳。' % (
             act.target.ui_meta.char_name,
         )
+
 
 class Meirin:
     # Character
@@ -4205,12 +4233,18 @@ class FlyingKnife:
             return False
 
         if not (me.cards or me.showncards or me.equips): return False
-        if not isinstance(act, (actions.ActionStage, cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
-            return False
-
         if act.target is not g.me: return False
 
-        return True
+        try:
+            if act.cond([build_handcard(cards.AttackCard)]):
+                return True
+        except:
+            pass
+
+        if isinstance(act, actions.ActionStage):
+            return True
+
+        return False
 
     def is_complete(g, cl):
         skill = cl[0]
@@ -4448,17 +4482,17 @@ class Heterodoxy:
 __metaclass__ = gen_metafunc(characters.remilia_ex)
 
 remilia_ex_description = (
-    u'|DB永远威严的红月 蕾米莉亚 体力：6 信仰：4|r\n\n'
-    u'|G碎心|r：|DB信仰消耗4|r。你可以发动该技能，视为对任意一名玩家使用【弹幕】。用此方法使用的【弹幕】视为红色，距离无限不可闪避，对目标造成2点伤害。\n\n'
-    u'|G不夜城|r：|DB信仰消耗3|r，在出牌阶段主动发动。你依次弃置所有解决者的一张手牌或装备牌。如果解决者无牌可弃，则弃置所有信仰。\n\n'
-    u'|G红魔之吻|r：|B锁定技|r，对玩家使用红色【弹幕】命中时，回复1点体力值。\n\n'
-    u'|B|R=== 以下是变身后获得的技能 ===|r\n\n'
-    u'|G七重奏|r：|B锁定技|r，解决者向你的判定区放置卡牌时，需额外弃置一张颜色相同的手牌。\n\n'
-    u'|G夜王|r：|B锁定技|r，你在自己的出牌阶段前额外摸2张牌。你的手牌上限+2。\n\n'
+    u'|DB永远威严的红月 蕾米莉亚 体力：6|r\n\n'
     u'|G神枪|r：出牌阶段，出现以下情况之一，你可以令你的【弹幕】不能被【擦弹】抵消：\n'
     u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
     u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。\n\n'
-    u'|G红雾|r：出牌阶段，你可以弃置一张红色手牌，令所有解决者依次对另一名解决者使用一张【弹幕】，无法如此做者失去1点体力。一回合一次。'
+    u'|G红魔之吻|r：|B锁定技|r，对玩家使用红色【弹幕】命中时，回复1点体力值。\n\n'
+    u'|G不夜城|r：|DB信仰消耗3|r，在出牌阶段主动发动。你依次弃置所有解决者的一张手牌或装备牌。如果解决者无牌可弃，则弃置所有信仰。\n\n'
+    u'|B|R=== 以下是变身后获得的技能 ===|r\n\n'
+    u'|G碎心|r：|DB信仰消耗4|r。你可以发动该技能，视为对任意一名玩家使用【弹幕】。用此方法使用的【弹幕】视为红色，距离无限不可闪避，对目标造成2点伤害。\n\n'
+    u'|G红雾|r：出牌阶段，你可以弃置一张红色手牌，令所有解决者依次对另一名解决者使用一张【弹幕】，无法如此做者失去1点体力。一回合一次。\n\n'
+    u'|G七重奏|r：|B锁定技|r，解决者向你的判定区放置卡牌时，需额外弃置一张颜色相同的符卡。\n\n'
+    u'|G夜王|r：|B锁定技|r，你在自己的出牌阶段前额外摸2张牌。你的手牌上限+2。'
 )
 
 
@@ -4597,7 +4631,7 @@ class SeptetHandler:
         if act.cond(cards):
             return (True, u'弃置并使延时符卡生效')
         else:
-            return (False, u'【七重奏】请选择一张花色相同的手牌弃置')
+            return (False, u'【七重奏】请选择一张颜色相同的符卡弃置')
 
 
 # -----END CHARACTERS UI META-----

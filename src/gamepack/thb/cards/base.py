@@ -50,7 +50,13 @@ class Card(object):
 
     def sync(self, data):  # this only executes at client side, let it crash.
         if data['syncid'] != self.syncid:
+            logging.error(
+                'CardOOS: server: %s, %d, %d, syncid=%d; client: %s, %d, %d, syncid=%d',
+                data['type'], data['suit'], data['number'], data['syncid'],
+                self.__class__.__name__, self.suit, self.number, self.syncid,
+            )
             raise GameError('Card: out of sync')
+
         clsname = data['type']
         cls = Card.card_classes.get(clsname)
         if not cls: raise GameError('Card: unknown card class')

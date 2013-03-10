@@ -148,7 +148,7 @@ class ResultPanel(Panel):
 class GameIntroIcon(Control, BalloonPrompt):
     def __init__(self, game, *a, **k):
         Control.__init__(self, *a, **k)
-        intro = getattr(game.ui_meta, 'description')
+        intro = getattr(game.ui_meta, 'description', None)
         intro and self.init_balloon(intro, width=480)
 
     def draw(self):

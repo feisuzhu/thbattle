@@ -40,6 +40,7 @@ LoopingAnim = Sprite
 class TagAnim(Control, BalloonPrompt):
     def __init__(self, img, x, y, text, *a, **k):
         Control.__init__(self, x=x, y=y, width=25, height=25, *a, **k)
+        self.image = img
         self.sprite = LoopingAnim(img)
         self.init_balloon(text)
 
@@ -195,20 +196,29 @@ def _update_tags(self, p):
     old_tags = set(old.keys())
     new_tags = set()
 
+    updated_tags = set()
+
     from .ui_meta import tags as tags_meta
 
-    for t in p.tags.keys():
+    for t in p.tags:
         meta = tags_meta.get(t)
         if meta and meta.display(p, p.tags[t]):
             new_tags.add(t)
 
-    # for t in old_tags - new_tags: # to be removed
-    for t in old_tags:
+    for t in old_tags:  # to be removed
+        if t in new_tags:
+            anim = tags_meta[t].tag_anim(p)
+            if old[t].image == anim:
+                continue
+            else:
+                updated_tags.add(t)
+                # fallthrough
+
         old[t].delete()
         taganims.remove(old[t])
 
     # for t in new_tags - old_tags: # to be added
-    for t in new_tags: # to be added
+    for t in updated_tags | (new_tags - old_tags): # to be added
         a = TagAnim(
             tags_meta[t].tag_anim(p),
             0, 0,
@@ -396,7 +406,6 @@ def action_effects(_type, self, act):
     cls = act.__class__
 
     if isinstance(act, UserAction):
-        print act.__class__.__name__
         g = self.game
         for p in g.players:
             _update_tags(self, p)

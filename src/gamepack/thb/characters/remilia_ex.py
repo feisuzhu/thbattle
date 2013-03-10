@@ -135,6 +135,7 @@ class QueenOfMidnight(Skill):
 
 
 class QueenOfMidnightHandler(EventHandler):
+    execute_before = ('FaithExchangeHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
             g = Game.getgame()
@@ -173,12 +174,13 @@ class SeptetHandler(EventHandler):
 
     def cond(self, cl):
         if not len(cl) == 1: return False
-        return cl[0].suit == self.action.associated_card.suit
+        if not cl[0].color == self.action.associated_card.color: return False
+        if not issubclass(cl[0].associated_action, cards.SpellCardAction): return False
+        return True
 
 
 class RemiliaEx2(Character):
     maxlife = 6
-    maxfaith = 4
     skills = [
         HeartBreak,
         NeverNight,
@@ -196,15 +198,11 @@ class RemiliaEx2(Character):
         SeptetHandler,
     ]
 
-    initial_equips = [(GungnirCard, SPADE, 12)]  # SPADE, Q
-
 
 @register_ex_character
 class RemiliaEx(Character):
     maxlife = 6
-    maxfaith = 4
-    skills = [HeartBreak, NeverNight, VampireKiss]
-    eventhandlers_required = [VampireKissHandler]
+    skills = [NeverNight, SpearTheGungnir, VampireKiss]
+    eventhandlers_required = [VampireKissHandler, SpearTheGungnirHandler]
 
-    initial_equips = [(GungnirCard, SPADE, 12)]  # SPADE, Q
     stage2 = RemiliaEx2

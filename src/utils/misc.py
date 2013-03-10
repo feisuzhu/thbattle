@@ -16,7 +16,9 @@ class DataHolder(object):
                 ))
             else:
                 setattr(new, k, v)
+
         return new
+
 
 class BatchList(list):
     def __getattribute__(self, name):
