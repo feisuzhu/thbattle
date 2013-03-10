@@ -19,41 +19,6 @@ def game_eh(cls):
     _game_ehs[cls.__name__] = cls
     return cls
 
-
-@game_eh
-class DeathHandler(EventHandler):
-    def handle(self, evt_type, act):
-        g = Game.getgame()
-        if evt_type == 'action_after' and isinstance(act, BaseDamage):
-            tgt = act.target
-            if tgt.life > 0: return act
-            if not g.process_action(TryRevive(tgt, dmgact=act)):
-                g.process_action(PlayerDeath(act.source, tgt))
-
-                if not tgt.characters:
-                    pl = g.players[:]
-                    pl.remove(tgt)
-                    g.winners = pl
-                    raise GameEnded
-                else:
-                    # character switch occurs in KOFCharacterSwitchHandler
-                    if tgt is g.current_turn:
-                        for a in reversed(g.action_stack):
-                            if isinstance(a, UserAction):
-                                a.interrupt_after_me()
-
-            pl = g.players
-            if pl[0].dropped:
-                g.winners = [pl[1]]
-                raise GameEnded
-
-            if pl[1].dropped:
-                g.winners = [pl[0]]
-                raise GameEnded
-
-        return act
-
-
 @game_eh
 class KOFCharacterSwitchHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -68,12 +33,16 @@ class KOFCharacterSwitchHandler(EventHandler):
         g = Game.getgame()
 
         for p in [p for p in g.players if p.dead and p.characters]:
+            if p.dropped:
+                pl = g.players[:]
+                pl.remove(p)
+                g.winners = pl
+                raise GameEnded
             g.next_character(p)
             g.update_event_handlers()
             g.process_action(DrawCards(p, 4))
             p.dead = False
             g.emit_event('kof_next_character', p)
-
 
 class Identity(PlayerIdentity):
     class TYPE(Enum):
@@ -81,49 +50,41 @@ class Identity(PlayerIdentity):
         HAKUREI = 1
         MORIYA = 2
 
-
-class THBattleKOF(Game):
+class THBattleKOF(GameBase):
     n_persons = 2
     game_ehs = _game_ehs
+    
+    def on_player_dead(g, tgt, src):
+        if not tgt.characters:
+            pl = g.players[:]
+            pl.remove(tgt)
+            g.winners = pl
+            raise GameEnded
 
-    def game_start(self):
-        # game started, init state
-        
-        from cards import Card, Deck, CardList
+    def on_player_turn(g, p):
+        if p.dead:
+            assert p.characters  # if not holds true, game should been ended.
+            KOFCharacterSwitchHandler.do_switch()
+        assert not p.dead
+        return True
 
-        self.deck = Deck()
-
-        self.ehclasses = []
-
-        for i, p in enumerate(self.players):
-            p.cards = CardList(p, 'handcard') # Cards in hand
-            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips') # Equipments
-            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special') # used on special purpose
-
-            p.showncardlists = [p.showncards, p.fatetell]
-
-            p.tags = defaultdict(int)
-
-            p.dead = False
-            p.need_shuffle = False
-            p.identity = Identity()
-            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
-
-        # choose girls -->
+    def roll_and_choose_girls(self, sample):
         from characters import characters as chars
         from characters.akari import Akari
-
+        
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
                 for cls, cid in zip(random.sample(chars, 10), xrange(10))
             ]
 
-            for c in random.sample(choice, 4):
-                c.real_cls = c.char_cls
-                c.char_cls = Akari
+            if sample:
+                for i, c in enumerate(sample):
+                    choice[i] = CharChoice(c, i)
+            else:
+                for c in random.sample(choice, 4):
+                    c.real_cls = c.char_cls
+                    c.char_cls = Akari
 
         elif Game.CLIENT_SIDE:
             choice = [
@@ -131,26 +92,21 @@ class THBattleKOF(Game):
                 for i in xrange(10)
             ]
 
-        # -----------
-
         self.players.reveal(choice)
 
-        # roll
+        #roll
         roll = range(len(self.players))
-        random.shuffle(roll)
+        if not sample:
+            random.shuffle(roll)
         pl = self.players
         roll = sync_primitive(roll, pl)
-
         roll = [pl[i] for i in roll]
 
         self.emit_event('game_roll', roll)
-
         first = roll[0]
         second = roll[1]
-
         self.emit_event('game_roll_result', first)
-        # ----
-
+        
         # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
         akaris = []
         self.emit_event('choose_girl_begin', (self.players, choice))
@@ -195,7 +151,7 @@ class THBattleKOF(Game):
             random.shuffle(perm)
             perm = sync_primitive(perm, p)
             p._perm = perm
-
+            
         def process(p, input):
             try:
                 check(input)
@@ -225,38 +181,32 @@ class THBattleKOF(Game):
             perm = [perm[i] for i in p._perm_input[:3]]
             p.characters = [c.char_cls for c in perm]
             del p.choices
+        
+        self.ehclasses = []
 
         self.next_character(first)
         self.next_character(second)
 
         self.update_event_handlers()
 
-        try:
-            pl = self.players
-            for p in pl:
-                self.process_action(RevealIdentity(p, pl))
+        return second
+    
+    def init_identities(self, sample):
+        T = Identity.TYPE
+        pl = self.players
+        
+        for i, p in enumerate(pl):
+            p.identity = Identity()
+            p.identity.type = (T.HAKUREI, T.MORIYA)[i%2]
+            self.process_action(RevealIdentity(p, pl))
 
-            self.emit_event('game_begin', self)
+    def init_game(self, first):
+        self.emit_event('game_begin', self)
 
-            for p in pl:
-                self.process_action(DrawCards(p, amount=3 if p is second else 4))
-
-            for i, p in enumerate(cycle([second, first])):
-                if i >= 6000: break
-                if p.dead:
-                    assert p.characters  # if not holds true, DeathHandler should end game.
-                    KOFCharacterSwitchHandler.do_switch()
-
-                assert not p.dead
-
-                try:
-                    self.emit_event('player_turn', p)
-                    self.process_action(PlayerTurn(p))
-                except InterruptActionFlow:
-                    pass
-
-        except GameEnded:
-            pass
+        for p in self.players:
+            self.process_action(
+                DrawCards(p, amount=3 if p is first else 4)
+            )
 
     def can_leave(self, p):
         return False

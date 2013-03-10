@@ -24,41 +24,8 @@ def game_action(cls):
     _game_actions[cls.__name__] = cls
     return cls
 
-
-@game_eh
-class DeathHandler(EventHandler):
-    def handle(self, evt_type, act):
-        g = Game.getgame()
-        if evt_type == 'action_after' and isinstance(act, BaseDamage):
-            tgt = act.target
-            if tgt.life > 0: return act
-
-            tgt_dead = False
-            if not g.process_action(TryRevive(tgt, dmgact=act)):
-                tgt_dead = True
-                g.process_action(PlayerDeath(act.source, tgt))
-
-            # see if game ended
-            force1, force2 = g.forces
-            if all(p.dead or p.dropped for p in force1):
-                g.winners = force2[:]
-                raise GameEnded
-
-            if all(p.dead or p.dropped for p in force2):
-                g.winners = force1[:]
-                raise GameEnded
-
-            if tgt_dead and tgt is g.current_turn:
-                for a in reversed(g.action_stack):
-                    if isinstance(a, UserAction):
-                        a.interrupt_after_me()
-
-        return act
-
-
 class ActFirst(object): # for choose_option
     pass
-
 
 class Identity(PlayerIdentity):
     class TYPE(Enum):
@@ -66,55 +33,68 @@ class Identity(PlayerIdentity):
         HAKUREI = 1
         MORIYA = 2
 
-class THBattle(Game):
+class THBattle(GameBase):
     n_persons = 6
     game_ehs = _game_ehs
     game_actions = _game_actions
     order_list = (0, 5, 3, 4, 2, 1)
+    
+    def on_player_dead(g, tgt, src):
+        force1, force2 = g.forces
+        if all(p.dead or p.dropped for p in force1):
+            g.winners = force2[:]
+            raise GameEnded
 
-    def game_start(self):
-        # game started, init state
-        from cards import Card, Deck, CardList
+        if all(p.dead or p.dropped for p in force2):
+            g.winners = force1[:]
+            raise GameEnded
 
-        self.deck = Deck()
-
-        ehclasses = list(action_eventhandlers) + self.game_ehs.values()
-        
-        for i, p in enumerate(self.players):
-            p.cards = CardList(p, 'handcard') # Cards in hand
-            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips') # Equipments
-            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special') # used on special purpose
-
-            p.showncardlists = [p.showncards, p.fatetell]
-
-            p.tags = defaultdict(int)
-            
-            p.dead = False
-            p.need_shuffle = False
-            p.identity = Identity()
-            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
-
+    def init_identities(self, sample):
+        T = Identity.TYPE
         self.forces = forces = BatchList([PlayerList(), PlayerList()])
-        for i, p in enumerate(self.players):
+        pl = self.players
+
+        for i, p in enumerate(pl):
+            p.identity = Identity()
             f = i % 2
+            p.identity.type = (T.HAKUREI, T.MORIYA)[f]
             p.force = f
             forces[f].append(p)
 
+        for p in pl:
+            self.process_action(RevealIdentity(p, pl))
+
+    def roll_and_choose_girls(self, sample):
+        ehclasses = list(action_eventhandlers) + self.game_ehs.values()
         # choose girls -->
         from characters import characters as chars
         from characters.akari import Akari
+        
+        # roll
+        roll = range(len(self.players))
+        if not sample:
+            random.shuffle(roll)
+        pl = self.players
+        roll = sync_primitive(roll, pl)
+        roll = [pl[i] for i in roll]
+
+        self.emit_event('game_roll', roll)
+        first = roll[0]
+        self.emit_event('game_roll_result', first)
 
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
                 for cls, cid in zip(random.sample(chars, 16), xrange(16))
             ]
-
-            for c in random.sample(choice, 4):
-                c.real_cls = c.char_cls
-                c.char_cls = Akari
+            
+            if sample:
+                for i, c in enumerate(sample):
+                    choice[i] = CharChoice(c, i)
+            else:
+                for c in random.sample(choice, 4):
+                    c.real_cls = c.char_cls
+                    c.char_cls = Akari
 
         elif Game.CLIENT_SIDE:
             choice = [
@@ -122,25 +102,7 @@ class THBattle(Game):
                 for i in xrange(16)
             ]
 
-        # -----------
-
         self.players.reveal(choice)
-
-        # roll
-        roll = range(len(self.players))
-        random.shuffle(roll)
-        pl = self.players
-        roll = sync_primitive(roll, pl)
-
-        roll = [pl[i] for i in roll]
-
-        self.emit_event('game_roll', roll)
-
-        first = roll[0]
-
-        self.emit_event('game_roll_result', first)
-        # ----
-        
         first_index = self.players.index(first)
         n = len(self.order_list)
         order = [self.players[(first_index + i) % n] for i in self.order_list]
@@ -189,43 +151,16 @@ class THBattle(Game):
             for p, c in akaris:
                 mix(p, c)
 
-        first_actor = first
-
         self.event_handlers = EventHandler.make_list(ehclasses)
+        return first
 
-        # -------
-        log.info(u'>> Game info: ')
-        log.info(u'>> First: %s:%s ', first.char_cls.__name__, Identity.TYPE.rlookup(first.identity.type))
+    def init_game(self, first_actor):
+        self.emit_event('game_begin', self)
+
         for p in self.players:
-            log.info(u'>> Player: %s:%s %s', p.char_cls.__name__, Identity.TYPE.rlookup(p.identity.type), p.account.username)
-
-        # -------
-
-        try:
-            pl = self.players
-            for p in pl:
-                self.process_action(RevealIdentity(p, pl))
-
-            self.emit_event('game_begin', self)
-
-            for p in self.players:
-                self.process_action(DrawCards(p, amount=3 if p is first_actor else 4))
-
-            pl = self.players.rotate_to(first_actor)
-
-            for i, p in enumerate(cycle(pl)):
-                if i >= 6000: break
-                if not p.dead:
-                    self.emit_event('player_turn', p)
-                    try:
-                        self.process_action(PlayerTurn(p))
-                    except InterruptActionFlow:
-                        pass
-        
-        except GameEnded:
-            pass
-
-        log.info(u'>> Winner: %s', Identity.TYPE.rlookup(self.winners[0].identity.type))
+            self.process_action(
+                DrawCards(p, amount=3 if p is first_actor else 4)
+            )
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)
