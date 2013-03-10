@@ -14,21 +14,18 @@ _mute = False
 vol = 1.0
 
 def _bgm_switcher(dt):
-    global bgm_next, bgm_switching, vol, bgm_player, cur_bgm, _mute
+    global bgm_next, bgm_switching, vol, bgm_player, cur_bgm
     vol -= 0.1
     if vol <= 0.0:
         bgm_player.pause()
         bgm_player.queue(bgm_next())
-        if _mute:
-            vol = 0.0
-        else:
-            vol = 1.0
-        bgm_player.volume = vol
+        bgm_player.volume = 1.0
         bgm_player.next()
         bgm_player.play()
         bgm_switching = False
         cur_bgm = bgm_next
         bgm_next = None
+        vol = 1.0
         pyglet.clock.unschedule(_bgm_switcher)
     else:
         bgm_player.volume = vol
@@ -52,7 +49,9 @@ def switch_bgm(bgm):
 def mute():
     global _mute
     _mute = True
-    bgm_player.volume = 0.0
+    bgm_player.pause()
 
 def play(snd):
-    snd.play()
+    global _mute
+    if not _mute:
+        snd.play()

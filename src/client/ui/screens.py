@@ -181,12 +181,6 @@ class LoginScreen(Screen):
                 myid = open(path, 'r').readline().strip().decode('utf-8')
             else:
                 myid = u'无名の罪袋'
-            
-            path2 = os.path.join(UPDATE_BASE, 'last_pass')
-            if os.path.exists(path2):
-                mypass = open(path2, 'r').readline().strip().decode('utf-8')
-            else:
-                mypass = u''
 
             self.txt_username = TextBox(
                 parent=self, x=438-350, y=282-165, width=220, height=20,
@@ -194,7 +188,7 @@ class LoginScreen(Screen):
             )
             self.txt_pwd = PasswordTextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
-                text=mypass
+                text=''
             )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',
