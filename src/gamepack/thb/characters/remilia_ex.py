@@ -141,12 +141,12 @@ class QueenOfMidnightHandler(EventHandler):
             g = Game.getgame()
             tgt = act.target
             if not tgt.has_skill(QueenOfMidnight): return act
-            g.process_action(DrawCards(act.target, 2))
+            g.process_action(DrawCards(act.target, 4))
 
         elif evt_type == 'action_before' and isinstance(act, DropCardStage):
             tgt = act.target
             if tgt.has_skill(QueenOfMidnight):
-                act.dropn = max(act.dropn - 2, 0)
+                act.dropn = max(act.dropn - 3, 0)
 
         return act
 
