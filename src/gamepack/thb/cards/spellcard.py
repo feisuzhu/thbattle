@@ -257,7 +257,6 @@ class YukariDimension(InstantSpellCardAction):
         self.card = card
         source.reveal(card)
         migrate_cards([card], source.cards, unwrap=True)
-        source.need_shuffle = True
         return True
 
 
@@ -356,7 +355,6 @@ class HarvestEffect(InstantSpellCardAction):
         if not card:
             card = random_choose_card([cards_avail])
         migrate_cards([card], tgt.cards)
-        tgt.need_shuffle = True
         g.emit_event('harvest_choose', card)
         self.card = card
         return True
@@ -411,7 +409,6 @@ class DollControl(InstantSpellCardAction):
         else:
             l = [e for e in controllee.equips if e.equipment_category == 'weapon']
             migrate_cards(l, src.cards)
-            src.need_shuffle = True
         return True
 
     def cond(self, cl):

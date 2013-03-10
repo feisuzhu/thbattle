@@ -137,7 +137,6 @@ class THBattleIdentity(Game):
             p.tags = defaultdict(int)
 
             p.dead = False
-            p.need_shuffle = False
 
         # choose girls init -->
         from characters import characters as chars

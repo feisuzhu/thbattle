@@ -16,9 +16,9 @@ class Support(UserAction):
         src.tags['daiyousei_spnum'] = l + n
         tgt.reveal(cl)
         migrate_cards([self.associated_card], tgt.cards, unwrap=True)
-        tgt.need_shuffle = True
         self.cards = cl
         return True
+
 
 class SupportSkill(Skill):
     associated_action = Support

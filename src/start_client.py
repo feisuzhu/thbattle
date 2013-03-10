@@ -12,6 +12,7 @@ parser.add_argument('--no-update', action='store_true')
 parser.add_argument('--with-gl-errcheck', action='store_true')
 parser.add_argument('--freeplay', action='store_true')
 parser.add_argument('--fastjoin', action='store_true')
+parser.add_argument('--log', default='INFO')
 
 options = parser.parse_args()
 
@@ -36,7 +37,7 @@ class Tee(object):
 sys.stderr = sys.stdout = Tee()
 
 logging.basicConfig(stream=sys.stdout)
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(getattr(logging, options.log.upper()))
 log = logging.getLogger('__main__')
 
 import gevent

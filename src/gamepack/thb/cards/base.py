@@ -176,7 +176,7 @@ class CardList(deque):
         deque.__init__(self)
 
     def __repr__(self):
-        return "CardList(owner=%s, type=%s, len([...]) == %d)" % (self.owner, self.type, len(self))
+        return "CardList(owner=%s, type=%s, len == %d)" % (self.owner, self.type, len(self))
 
 
 class Deck(object):
@@ -191,53 +191,28 @@ class Deck(object):
         self.special = CardList(None, 'special')
         cards = CardList(None, 'deckcard')
         self.cards = cards
-        if Game.SERVER_SIDE:
-            cards.extend(
-                cls(suit, n, cards)
-                for cls, suit, n in card_definition
-            )
-            random.shuffle(cards)
-        elif Game.CLIENT_SIDE:
-            cards.extend(
-                HiddenCard(Card.NOTSET, 0, cards)
-                for i in xrange(len(card_definition))
-            )
-
+        cards.extend(
+            cls(suit, n, cards)
+            for cls, suit, n in card_definition
+        )
+        self.shuffle(cards)
 
     def getcards(self, num):
+        cl = self.cards
         if len(self.cards) <= num:
-            if Game.SERVER_SIDE:
-                # performance hack
-                dropped = self.droppedcards
-                random.shuffle(dropped)
-                cards = self.cards
-
-                # preserve it, does not consume much memory
-                # del rec[c.syncid]
-                cards.extend([
-                    c.__class__(c.suit, c.number, cards)
-                    for c in dropped
-                ])
-
-            elif Game.CLIENT_SIDE:
-                # for c in self.droppedcards:
-                #     del rec[c.syncid]
-                cards = self.cards
-                cards.extend(
-                    HiddenCard(Card.NOTSET, 0, cards)
-                    for i in xrange(len(self.droppedcards))
-                )
-
-            self.droppedcards.clear()
+            dcl = self.droppedcards
+            
+            l = [c.__class__(c.suit, c.number, cl) for c in dcl]
+            dcl.clear()
+            dcl.extend(l)
+            self.shuffle(dcl)
+            cl.extend(dcl)
+            dcl.clear()
 
         cl = self.cards
         rst = []
         for i in xrange(min(len(cl), num)):
-            c = cl[i]
-            if not c.syncid:
-                self.register_card(c)
-
-            rst.append(c)
+            rst.append(cl[i])
 
         return rst
 
@@ -265,46 +240,27 @@ class Deck(object):
         return sid
 
     def shuffle(self, cl):
-        g = Game.getgame()
-
-        # for c in cl:
-        #     try:
-        #         del self.cards_record[c.syncid]
-        #     except KeyError:
-        #         pass
-
-        perm = [c.syncid for c in cl]
-        random.shuffle(perm)
-
-        newids = [g.get_synctag() for c in cl]
+        if Game.SERVER_SIDE:
+            seed = long(random.randint(1, 27814431486575L))
+        else:
+            seed = 0L
 
         owner = cl.owner
-        perm = sync_primitive(perm, owner)
+        seed = sync_primitive(seed, owner)
 
-        if Game.CLIENT_SIDE and owner is not g.me:
-            for c, i in zip(cl, newids):
-                c.syncid = i
+        if seed:  # cardlist owner & server
+            shuffler = random.Random(seed)
+            shuffler.shuffle(cl)
+        else:  # others
+            for c in cl:
                 c.__class__ = HiddenCard
                 c.suit = c.number = 0
-                self.cards_record[i] = c
-
-            return
-
-        mapping = {oid:nid for oid, nid in zip(perm, newids)}
 
         for c in cl:
-            c.syncid = mapping[c.syncid]
-
-        l = list(cl)
-        l.sort(key=lambda v: v.syncid)
-
-        assert newids == [c.syncid for c in l]
-
-        cl.clear()
-        cl.extend(l)
-
-        for c in cl:
-            self.cards_record[c.syncid] = c
+            ori = c.syncid
+            c.syncid = 0
+            self.register_card(c)
+            n = c.syncid
 
 
 class Skill(VirtualCard):

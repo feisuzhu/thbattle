@@ -175,7 +175,11 @@ class SeptetHandler(EventHandler):
     def cond(self, cl):
         if not len(cl) == 1: return False
         if not cl[0].color == self.action.associated_card.color: return False
-        if not issubclass(cl[0].associated_action, cards.SpellCardAction): return False
+        sc_actions = (
+            cards.InstantSpellCardAction,
+            cards.DelayedLaunchCard,
+        )
+        if not issubclass(cl[0].associated_action, sc_actions): return False
         return True
 
 

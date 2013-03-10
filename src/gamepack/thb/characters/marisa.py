@@ -19,8 +19,9 @@ class BorrowAction(GenericAction):
             if not c: continue
             Game.getgame().players.exclude(p).reveal(c)
             migrate_cards([c], src.showncards)
-        src.need_shuffle = True
+
         return True
+
 
 class BorrowHandler(EventHandler):
     execute_after = ('FrozenFrogHandler', )

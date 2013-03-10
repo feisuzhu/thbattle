@@ -307,6 +307,9 @@ class SyncPrimitive(object):
 
 
 def sync_primitive(val, to):
+    if not to:  # sync to nobody
+        return val
+
     if isinstance(val, list):
         l = [SyncPrimitive(i) for i in val]
         to.reveal(l)

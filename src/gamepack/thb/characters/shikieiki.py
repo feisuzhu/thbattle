@@ -57,7 +57,6 @@ class MajestyAction(GenericAction):
         if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)
-        src.need_shuffle = True
         return True
 
 class MajestyHandler(EventHandler):

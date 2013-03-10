@@ -27,7 +27,6 @@ class Surprise(UserAction):
 
         if not tgt.dead:
             migrate_cards([card], tgt.cards)
-            tgt.need_shuffle = True
 
         g.process_action(DrawCards(src, 1))
 

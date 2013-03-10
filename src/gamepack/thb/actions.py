@@ -173,9 +173,7 @@ def shuffle_here():
             for c in p.cards
         ]), 'VirtualCard in handcard of %s !!!' % repr(p)
 
-        if p.need_shuffle:
-            g.deck.shuffle(p.cards)
-            p.need_shuffle = False
+        g.deck.shuffle(p.cards)
 
 
 def migrate_cards(cards, to, unwrap=False, no_event=False):

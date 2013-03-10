@@ -27,7 +27,6 @@ class MasochistAction(GenericAction):
             cl, pl = rst
             pl[0].reveal(cl)
             migrate_cards(cl, pl[0].cards)
-            pl[0].need_shuffle = True
             n -= len(cl)
         return True
 
@@ -64,7 +63,7 @@ class HermitHandler(EventHandler):
             tgt = act.target
             if not tgt.has_skill(Hermit): return act
             migrate_cards([act.card], tgt.cards)
-            tgt.need_shuffle = True
+
         return act
 
 @register_character

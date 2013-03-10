@@ -11,9 +11,10 @@ class TreasureHunt(FatetellAction):
         if g.process_action(ft):
             self.card = c = ft.card
             migrate_cards([c], tgt.cards)
-            tgt.need_shuffle = True
             return True
+
         return False
+
 
 class TreasureHuntSkill(Skill):
     associated_action = None

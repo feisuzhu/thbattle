@@ -408,7 +408,6 @@ class THBattleRaid(Game):
             p.tags['faithcounter'] = True
 
             p.dead = False
-            p.need_shuffle = False
 
         # reveal identities
         mutant = g.mutant = g.players[0]

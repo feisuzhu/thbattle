@@ -135,7 +135,7 @@ class RealmSkipAction(UserAction):
                 migrate_cards([card], _to.fatetell)
             else:
                 migrate_cards([card], _to.cards, unwrap=True)
-                _to.need_shuffle = True
+
         elif card.resides_in is _from.equips:
             cats = set([c.equipment_category for c in _to.equips])
             migrate_cards([card], _to.cards)

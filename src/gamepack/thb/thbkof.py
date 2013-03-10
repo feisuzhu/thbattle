@@ -107,7 +107,6 @@ class THBattleKOF(Game):
             p.tags = defaultdict(int)
 
             p.dead = False
-            p.need_shuffle = False
             p.identity = Identity()
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
 
