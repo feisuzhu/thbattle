@@ -121,7 +121,7 @@ def new_user(user):
         p.client = user
         p.dropped = False
 
-        acc = user.account
+        acc = user.account = old.account
         acc.other['games'] -= 1
         acc.other['drops'] -= 1
 
@@ -397,6 +397,7 @@ def start_game(g):
         u.state = 'ingame'
     evt_datachange.set()
 
+
 def end_game(g):
     from .game_server import Player, PlayerList
 
@@ -423,6 +424,7 @@ def end_game(g):
                 del dropped_users[acc.userid]
             except KeyError:
                 pass
+
     # -----------
 
     for i, p in enumerate(pl):
@@ -451,6 +453,7 @@ def end_game(g):
     _notify_playerchange(ng)
     evt_datachange.set()
 
+
 def chat(user, msg):
     def worker():
         packed = (user.account.username, msg)
@@ -469,6 +472,7 @@ def chat(user, msg):
 
     gevent.spawn(worker)
 
+
 def speaker(user, msg):
     def worker():
         if user.account.other['credits'] < 10:
@@ -481,16 +485,19 @@ def speaker(user, msg):
     log.info(u'Speaker: %s', msg)
     gevent.spawn(worker)
 
+
 def system_msg(msg):
     def worker():
         for u in users.values():
             u.write(['system_msg', [None, msg]])
     gevent.spawn(worker)
 
+
 def admin_clearzombies():
     for i, u in users.items():
         if u.ready():
             del users[i]
+
 
 import atexit
 

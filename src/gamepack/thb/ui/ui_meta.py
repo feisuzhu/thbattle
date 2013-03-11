@@ -286,7 +286,7 @@ class THBattleRaid:
         u"|G合作|r：在你的出牌阶段，你可以将至多两张手牌交给其他的一名解决者。收到牌的解决者需交还相同数量的手牌，交换后进入明牌区。一回合一次。\n"
         u"|G保护|r：当其他解决者受到伤害时，如果该解决者的体力是全场最低之一，你可以使用1点信仰防止此伤害。若如此做，你承受相同数量的体力流失，并且异变获得一点信仰。\n"
         u"|G招架|r：若你受到了2点及以上/致命的伤害时，你可以使用2点信仰使伤害-1。在 保护 之前结算。\n"
-        u"|G1UP|r：|B限定技|r，你可以使用4点信仰使已经阵亡的解决者重新上场。重新上场的解决者回复3点体力，算作当前回合没有行动。"
+        u"|G1UP|r：|B限定技|r，你可以使用3点信仰使已经阵亡的解决者重新上场。重新上场的解决者回复3点体力，算作当前回合没有行动。"
     )
 
 
@@ -395,7 +395,7 @@ class OneUp:
 
     def clickable(g):
         if not my_turn(): return False
-        return len(g.me.faiths) >= 4
+        return len(g.me.faiths) >= 3
 
     def is_action_valid(g, cl, target_list):
         acards = cl[0].associated_cards
@@ -408,7 +408,7 @@ class OneUp:
         return (True, u'神说，你不能在这里死去')
 
     def effect_string(act):
-        return u'|G【%s】|r用4点信仰换了一枚1UP，贴到了|G【%s】|r的身上。' % (
+        return u'|G【%s】|r用3点信仰换了一枚1UP，贴到了|G【%s】|r的身上。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
@@ -508,6 +508,16 @@ class PlayerDeath:
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|rMISS了。' % (
+            tgt.ui_meta.char_name,
+        )
+
+
+class PlayerRevive:
+    barrier = True
+    update_portrait = True
+    def effect_string(act):
+        tgt = act.target
+        return u'|G【%s】|r重新回到了场上。' % (
             tgt.ui_meta.char_name,
         )
 
@@ -4488,7 +4498,7 @@ remilia_ex_description = (
     u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
     u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。\n\n'
     u'|G红魔之吻|r：|B锁定技|r，对玩家使用红色【弹幕】命中时，回复1点体力值。\n\n'
-    u'|G不夜城|r：|DB信仰消耗3|r，在出牌阶段主动发动。你依次弃置所有解决者的一张手牌或装备牌。如果解决者无牌可弃，则弃置所有信仰。\n\n'
+    u'|G不夜城|r：|DB信仰消耗3|r，在出牌阶段主动发动。你依次弃置所有解决者的一张手牌或装备牌。如果解决者无牌可弃，则弃置所有信仰。一回合一次。\n\n'
     u'|B|R=== 以下是变身后获得的技能 ===|r\n\n'
     u'|G碎心|r：|DB信仰消耗4|r。你可以发动该技能，视为对任意一名玩家使用【弹幕】。用此方法使用的【弹幕】视为红色，距离无限不可闪避，对目标造成2点伤害。\n\n'
     u'|G红雾|r：出牌阶段，你可以弃置一张红色手牌，令所有解决者依次对另一名解决者使用一张【弹幕】，无法如此做者失去1点体力。一回合一次。\n\n'
@@ -4552,6 +4562,7 @@ class NeverNight:
     def clickable(g):
         me = g.me
         if len(me.faiths) < 3: return False
+        if limit1_skill_used('nevernight_tag'): return False
         return True
 
     def is_action_valid(g, cl, tl):

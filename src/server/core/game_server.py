@@ -61,8 +61,8 @@ class PlayerList(BatchList):
         workers = BatchList()
         try:
             def worker(p, i):
+                retry = 0
                 while True:
-                    retry = 0
                     input = p.user_input(
                         tag, attachment=attachment, timeout=timeout,
                         g=g, st=100000 + st*1000 + i*10 + retry,
@@ -72,6 +72,10 @@ class PlayerList(BatchList):
                         input = process(p, input)
                     except ValueError:
                         retry += 1
+                        if retry >= 3:
+                            input = None
+                            break
+
                         continue
 
                     break
@@ -84,6 +88,7 @@ class PlayerList(BatchList):
             workers.join()
         finally:
             workers.kill()
+
 
 class Player(game.AbstractPlayer):
     dropped = False

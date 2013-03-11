@@ -8,7 +8,7 @@ import random
 from functools import wraps
 from collections import defaultdict
 
-from utils import check, check_type, CheckFailed, BatchList
+from utils import check, check_type, CheckFailed, BatchList, group_by
 
 import logging
 log = logging.getLogger('THBattle_Actions')
@@ -178,13 +178,10 @@ def shuffle_here():
 
 def migrate_cards(cards, to, unwrap=False, no_event=False):
     g = Game.getgame()
-    mapping = {}
     from .cards import VirtualCard
-    for c in cards:
-        l = mapping.setdefault(id(c) if c.is_card(VirtualCard) else id(c.resides_in), [])
-        l.append(c)
+    groups = group_by(cards, lambda c: c if c.is_card(VirtualCard) else c.resides_in)
 
-    for l in mapping.values():
+    for l in groups:
         cl = l[0].resides_in
         for c in l:
             if unwrap and c.is_card(VirtualCard):
@@ -292,6 +289,24 @@ class PlayerDeath(GenericAction):
             assert not cl
 
         tgt.skills[:] = []
+        return True
+
+
+class PlayerRevive(GenericAction):
+    def __init__(self, source, target, hp):
+        self.source = source
+        self.target = target
+        self.hp = hp
+
+    def apply_action(self):
+        tgt = self.target
+        assert tgt.dead
+
+        tgt.dead = False
+        tgt.maxlife = tgt.__class__.maxlife
+        tgt.skills = tgt.__class__.skills
+
+        tgt.life = min(tgt.maxlife, self.hp)
         return True
 
 

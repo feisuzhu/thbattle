@@ -522,3 +522,25 @@ def flatten(l):
 
     _flatten(l)
     return rst
+
+
+def group_by(l, keyfunc):
+    if not l: return []
+
+    grouped = []
+    group = []
+
+    lastkey = keyfunc(l[0])
+    for i in l:
+        k = keyfunc(i)
+        if k == lastkey:
+            group.append(i)
+        else:
+            grouped.append(group)
+            group = [i]
+            lastkey = k
+
+    if group:
+        grouped.append(group)
+
+    return grouped

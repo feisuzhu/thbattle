@@ -96,7 +96,7 @@ class CollectFaith(GenericAction):
 
         if not amount: return False
 
-        cards = g.deck.getcards(self.amount)
+        cards = g.deck.getcards(amount)
         g.players.reveal(cards)
         migrate_cards(cards, tgt.faiths)
         self.cards = cards
@@ -256,6 +256,22 @@ class ParryHandler(EventHandler):
         return act
 
 
+@game_eh
+class RaidPlayerReviveHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if not evt_type == 'action_after': return act
+        if not isinstance(act, PlayerRevive): return act
+        tgt = act.target
+        tgt.skills.extend([
+            Cooperation, Protection, Parry,
+        ])
+
+        if not tgt.tags['oneup_used']:
+            tgt.skills.append(OneUp)
+
+        return act
+
+
 class OneUpAction(GenericAction):
     def apply_action(self):
         src = self.source
@@ -265,22 +281,12 @@ class OneUpAction(GenericAction):
         assert tgt.dead, 'WTF?!'
         assert tgt in g.attackers
 
-        use_faith(src, 4)
+        use_faith(src, 3)
+        src.skills.remove(OneUp)
         src.tags['oneup_used'] = True
 
-        tgt.dead = False
-        tgt.maxlife = tgt.__class__.maxlife
-        tgt.skills = tgt.__class__.skills + [
-            Cooperation, Protection, Parry,
-        ]
-
-        if not tgt.tags['oneup_used']:
-            tgt.skills.append(OneUp)
-
-        tgt.life = min(tgt.maxlife, 3)
+        g.process_action(PlayerRevive(tgt, tgt, 3))
         tgt.tags['action'] = True
-
-        src.skills.remove(OneUp)
         
         return True
 
@@ -293,7 +299,7 @@ class OneUp(Skill):
         return (tl[-1:], bool(len(tl)))
 
     def check(self):
-        if len(self.player.faiths) < 4: return False
+        if len(self.player.faiths) < 3: return False
         return not self.associated_cards
 
         
@@ -430,10 +436,11 @@ class THBattleRaid(Game):
         def process(p, cid):
             try:
                 check(isinstance(cid, int))
-                check(0 <= cid < len(choice) - 1)
+                check(0 <= cid < len(choice))
                 c = choice[cid]
                 if c.chosen:
                     raise ValueError
+
                 c.chosen = p
                 chosen_girls.append(c)
                 g.emit_event('girl_chosen', c)
@@ -441,7 +448,7 @@ class THBattleRaid(Game):
                 return c
 
             except CheckFailed:
-                return None
+                raise ValueError
 
         # mutant's choose
         from characters import ex_characters as ex_chars
@@ -449,7 +456,7 @@ class THBattleRaid(Game):
         choice = [CharChoice(cls, cid) for cid, cls in enumerate(ex_chars)]
 
         g.emit_event('choose_girl_begin', ([mutant], choice))
-        PlayerList([mutant]).user_input_all('choose_girl', process, choice, timeout=15)
+        PlayerList([mutant]).user_input_all('choose_girl', process, choice, timeout=5)
 
         if not chosen_girls:
             # didn't choose
@@ -534,6 +541,14 @@ class THBattleRaid(Game):
         g.update_event_handlers()
 
         g.emit_event('game_begin', g)
+
+        # -------
+        log.info(u'>> Game info: ')
+        log.info(u'>> Mutant: %s', mutant.char_cls.__name__)
+        for p in attackers:
+            log.info(u'>> Attacker: %s', p.char_cls.__name__)
+
+        # -------
 
         try:
             g.process_action(DrawCards(mutant, amount=6))
@@ -650,6 +665,9 @@ class THBattleRaid(Game):
 
         except GameEnded:
             pass
+
+        winner_force = 'Mutant' if g.winners == [mutant] else 'Attackers'
+        log.info(u'>> Winner: %s', winner_force)
 
     def can_leave(self, p):
         return False

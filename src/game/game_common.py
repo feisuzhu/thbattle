@@ -16,7 +16,8 @@ class TimeLimitExceeded(Timeout):
 
 
 class GameException(Exception):
-    def __init__(self, **kwargs):
+    def __init__(self, msg=None, **kwargs):
+        Exception.__init__(self, msg)
         self.__dict__.update(kwargs)
 
 
@@ -197,10 +198,21 @@ class Game(object):
         else:
             s = data.__class__.__name__
         log.debug('emit_event: %s %s' % (evt_type, s))
+
+        if evt_type in ('action_before', 'action_apply', 'action_after'):
+            action_event = True
+            assert isinstance(data, Action)
+        else:
+            action_event = False
+
         for evt in self.event_handlers:
             data = evt.handle(evt_type, data)
             if data is None:
                 log.debug('EventHandler %s returned None' % evt.__class__.__name__)
+
+            if action_event and data.cancelled:
+                break
+
         return data
 
     @staticmethod

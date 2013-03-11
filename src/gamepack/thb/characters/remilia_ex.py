@@ -46,6 +46,7 @@ class NeverNightAction(UserAction):
         g = Game.getgame()
         src = self.source
         use_faith(src, 3)
+        src.tags['nevernight_tag'] = src.tags['turn_count']
 
         for p in self.target_list:
             if not (p.cards or p.showncards or p.equips):
@@ -62,6 +63,10 @@ class NeverNightAction(UserAction):
                 g.process_action(DropCards(p, [c]))
 
         return True
+
+    def is_valid(self):
+        tags = self.source.tags
+        return tags['turn_count'] > tags['nevernight_tag']
 
 
 class NeverNight(Skill):

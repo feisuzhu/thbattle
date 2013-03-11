@@ -257,10 +257,8 @@ class Deck(object):
                 c.suit = c.number = 0
 
         for c in cl:
-            ori = c.syncid
             c.syncid = 0
             self.register_card(c)
-            n = c.syncid
 
 
 class Skill(VirtualCard):
