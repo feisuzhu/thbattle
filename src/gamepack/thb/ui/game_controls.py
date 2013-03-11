@@ -739,6 +739,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         Frame.update(self)
         self.update_position()
         self.update_color()
+        self.tagarrange()
 
     @property
     def color(self):
@@ -947,6 +948,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         def _update(dt):
             if tx.finished:
                 pyglet.clock.unschedule(_update)
+                self.identity_btn.update()
                 return
 
             pca.x = x

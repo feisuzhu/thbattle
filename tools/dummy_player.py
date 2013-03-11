@@ -11,7 +11,7 @@ names = itertools.cycle(names)
 
 import sys
 
-types = [('THBattle', 6), ('THBattle1v1DBG', 2), ('THBattleIdentity', 8), ('THBattleIdentity5', 5), ('THBattleIdentity', 7)]
+types = [('THBattle', 5), ('THBattle', 6), ('THBattle', 4), ('THBattleIdentity5', 5), ('THBattleIdentity', 7), ('THBattleKOF', 2)]
 
 t, N = sys.argv[1:]
 t, n = types[int(t)]
