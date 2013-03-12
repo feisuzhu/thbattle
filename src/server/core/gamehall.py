@@ -194,10 +194,10 @@ def create_game(user, gametype, gamename):
 def _archive_game(g):
     data = []
 
-    data.append(u'# ' + u', '.join([
-        p.account.username
+    data.append('# ' + ', '.join([
+        p.account.username.encode('utf-8')
         for p in g.players
-    ]).encode('utf-8'))
+    ]))
 
     data.append('# Game Id = ' + str(g.gameid))
 
