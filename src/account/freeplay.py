@@ -6,7 +6,6 @@ from collections import defaultdict
 class Account(object):
 
     @classmethod
-    @server_side_only
     def authenticate(cls, username, password):
         if len(username) > 0:
             acc = cls()

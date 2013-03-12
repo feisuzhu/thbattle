@@ -253,6 +253,8 @@ class Game(Greenlet, game.Game):
     SERVER_SIDE = False
     event_observer = None
 
+    import random  # intentionally put here
+
     def __init__(self):
         Greenlet.__init__(self)
         game.Game.__init__(self)

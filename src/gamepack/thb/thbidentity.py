@@ -4,7 +4,6 @@ from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, Playe
 from actions import *
 from itertools import cycle
 from collections import defaultdict
-import random
 
 from utils import BatchList, check, CheckFailed
 
@@ -144,7 +143,7 @@ class THBattleIdentity(Game):
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
-                for cls, cid in zip(random.sample(chars, 3*np+2), xrange(3*np+2))
+                for cls, cid in zip(g.random.sample(chars, 3*np+2), xrange(3*np+2))
             ]
         elif Game.CLIENT_SIDE:
             choice = [
@@ -190,7 +189,7 @@ class THBattleIdentity(Game):
                     pass
 
         # choose boss
-        idx = sync_primitive(random.randrange(len(g.players)), g.players)
+        idx = sync_primitive(g.random.randrange(len(g.players)), g.players)
         pl[-1], pl[idx] = pl[idx], pl[-1]
         boss = g.boss = pl[-1]
 
@@ -210,7 +209,7 @@ class THBattleIdentity(Game):
 
         if not chosen_girls:
             # didn't choose
-            offs = sync_primitive(random.randrange(5), g.players)
+            offs = sync_primitive(g.random.randrange(5), g.players)
             c = choice[(len(pl)-1)*3+offs]
             c.chosen = boss
             g.emit_event('girl_chosen', c)
@@ -240,7 +239,7 @@ class THBattleIdentity(Game):
         # reseat
         opl = g.players
         loc = range(len(opl))
-        random.shuffle(loc)
+        g.random.shuffle(loc)
         loc = sync_primitive(loc, opl)
         npl = opl[:]
         for i, l in zip(range(len(opl)), loc):
@@ -251,7 +250,7 @@ class THBattleIdentity(Game):
 
         # tell the others their own identity
         il = g.identities[:]
-        random.shuffle(il)
+        g.random.shuffle(il)
         for p in g.players.exclude(boss):
             p.identity = Identity()
             id = il.pop()
@@ -272,7 +271,7 @@ class THBattleIdentity(Game):
         if pl:
             choice = [c for c in choice if not c.chosen]
             sample = sync_primitive(
-                random.sample(xrange(len(choice)), len(pl)), g.players
+                g.random.sample(xrange(len(choice)), len(pl)), g.players
             )
             for p, i in zip(pl, sample):
                 c = choice[i]

@@ -498,7 +498,7 @@ class THBattleRaid(Game):
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid) for cid, cls in
-                enumerate(random.sample(chars, 16))
+                enumerate(g.random.sample(chars, 16))
             ]
 
         elif Game.CLIENT_SIDE:
@@ -518,7 +518,7 @@ class THBattleRaid(Game):
         if pl:
             choice = [c for c in choice if not c.chosen]
             sample = sync_primitive(
-                random.sample(xrange(len(choice)), len(pl)), g.players
+                g.random.sample(xrange(len(choice)), len(pl)), g.players
             )
             for p, i in zip(pl, sample):
                 c = choice[i]

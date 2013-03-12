@@ -124,8 +124,9 @@ def random_choose_card(categories):
     allcards = list(chain.from_iterable(categories))
     if not allcards:
         return None
-    c = random.choice(allcards)
+
     g = Game.getgame()
+    c = g.random.choice(allcards)
     v = sync_primitive(c.syncid, g.players)
     cl = g.deck.lookupcards([v])
     if len(cl)!=1:
@@ -185,8 +186,8 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
         cl = l[0].resides_in
         for c in l:
             if unwrap and c.is_card(VirtualCard):
-                migrate_cards(c.associated_cards, to, unwrap != migrate_cards.SINGLE_LAYER, no_event)
                 c.move_to(None)
+                migrate_cards(c.associated_cards, to, unwrap != migrate_cards.SINGLE_LAYER, no_event)
             else:
                 c.move_to(to)
                 if c.is_card(VirtualCard):
@@ -194,7 +195,7 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
                     sp = c.resides_in.owner.special
                     migrate_cards(c.associated_cards, sp, False, no_event)
 
-        if not no_event:
+        if not no_event and not l[0].is_card(VirtualCard):
             act = g.action_stack[-1]
             g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 
@@ -761,6 +762,8 @@ class RevealIdentity(GenericAction):
         return True
 
 class Pindian(GenericAction):
+    no_reveal = True
+
     def __init__(self, source, target):
         self.source = source
         self.target = target
@@ -797,8 +800,6 @@ class Pindian(GenericAction):
     def cond(cl):
         from .cards import CardList
         return len(cl) == 1 and cl[0].resides_in.type in ('handcard', 'showncard')
-
-    no_reveal = True
 
     def is_valid(self):
         src = self.source

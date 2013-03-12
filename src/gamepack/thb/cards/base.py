@@ -241,7 +241,7 @@ class Deck(object):
 
     def shuffle(self, cl):
         if Game.SERVER_SIDE:
-            seed = long(random.randint(1, 27814431486575L))
+            seed = long(Game.getgame().random.randint(1, 27814431486575L))
         else:
             seed = 0L
 

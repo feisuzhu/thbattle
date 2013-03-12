@@ -35,6 +35,7 @@ parser.add_argument('--conf')
 parser.add_argument('--log', default='INFO')
 parser.add_argument('--logfile', default='')
 parser.add_argument('--gidfile', default='')
+parser.add_argument('--archive-path', default='')
 
 options = parser.parse_args()
 

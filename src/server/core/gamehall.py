@@ -7,8 +7,11 @@ from gevent.queue import Queue
 from time import time
 from collections import defaultdict
 
+import simplejson as json
+
 import logging
 import random
+import os
 
 log = logging.getLogger('GameHall')
 
@@ -137,12 +140,14 @@ def new_user(user):
     evt_datachange.set()
     return True
 
+
 def user_exit(user):
     uid = user.account.userid
     user.account.logout()
     del users[uid]
     log.info(u'User %s leaved, online user %d' % (user.account.username, len(users)))
     evt_datachange.set()
+
 
 def _notify_playerchange(game):
     from client_endpoint import Client
@@ -151,15 +156,18 @@ def _notify_playerchange(game):
         cl.raw_write(s)
         if cl.observers: cl.observers.raw_write(s)
 
+
 def query_gameinfo(user, gid):
     g = games.get(gid, None)
     if g: user.write(['gameinfo', [gid, g.players]])
+
 
 def _next_free_slot(game):
     try:
         return game.players.index(PlayerPlaceHolder)
     except ValueError as e:
         return None
+
 
 def create_game(user, gametype, gamename):
     from gamepack import gamemodes
@@ -172,6 +180,8 @@ def create_game(user, gametype, gamename):
     g.game_name = gamename
     g.players = PlayerList([PlayerPlaceHolder] * g.n_persons)
     g.players_original = None
+    g.rndseed = random.randint(1, 27814431486575L)
+    g.random = random.Random(g.rndseed)
     g.banlist = defaultdict(set)
     gid = new_gameid()
     g.gameid = gid
@@ -179,6 +189,26 @@ def create_game(user, gametype, gamename):
     log.info("create game")
     evt_datachange.set()
     return g
+
+
+def _archive_game(g):
+    data = []
+
+    data.append(u'# ' + u', '.join([
+        p.account.username
+        for p in g.players
+    ]).encode('utf-8'))
+
+    data.append('# Game Id = ' + str(g.gameid))
+
+    data.append(g.__class__.__name__)
+    data.append(str(g.rndseed))
+    for p in g.players:
+        data.append(json.dumps(p.client.usergdhistory))
+
+    with open(os.path.join(options.archive_path, str(g.gameid)), 'w') as f:
+        f.write('\n'.join(data))
+
 
 def get_ready(user):
     user.state = 'ready'
@@ -274,6 +304,7 @@ def exit_game(user, drops=False):
         if all((p is PlayerPlaceHolder or p.dropped) for p in g.players):
             if g.game_started:
                 log.info('game aborted')
+                _archive_game(g)
             else:
                 log.info('game canceled')
 
@@ -411,6 +442,9 @@ def end_game(g):
     rate = math.sin(math.pi/2*percent)
     winners = g.winners
     bonus = g.n_persons * 5 / len(winners) if winners else 0
+
+    _archive_game(g)
+
     for p in pl:
         p.client.gclear() # clear game data
         acc = p.client.account

@@ -67,7 +67,7 @@ class GameManager(Greenlet):
             g.me = me
             g.players = PlayerList(pl)
             #g.start()
-            log.info('=======GAME STARTED=======')
+            log.info('=======GAME STARTED: %d=======' % g.gameid)
             log.info(g)
 
             @g.link_exception
@@ -118,6 +118,7 @@ class GameManager(Greenlet):
         @handler(('hang',), 'inroom')
         def game_joined(self, data):
             self.game = gamemodes[data['type']]()
+            self.game.gameid = int(data['id'])
             self.event_cb('game_joined', self.game)
 
         @handler(('ingame',), 'hang')

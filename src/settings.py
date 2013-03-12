@@ -45,6 +45,8 @@ UPDATE_IGNORES = re.compile(r'''
         | ^.*~$
         | ^.*_custom\..{2,4}$
         | ^last_id$
+        | ^cc?$
+        | ^[sd]$
         | ^\.
 ''', re.VERBOSE)
 

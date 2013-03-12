@@ -17,6 +17,7 @@ log = logging.getLogger("Client")
 
 __all__ = ['Client']
 
+
 class Packet(list): # compare by identity list
     __slots__ = ('scan_count')
     def __hash__(self):
@@ -28,6 +29,7 @@ class Packet(list): # compare by identity list
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class Client(Endpoint, Greenlet):
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
@@ -35,6 +37,7 @@ class Client(Endpoint, Greenlet):
         self.gdqueue = deque(maxlen=100)
         self.gdevent = Event()
         self.gdhistory = []
+        self.usergdhistory = []
         self.observers = BatchList()
 
         import socket
@@ -175,7 +178,7 @@ class Client(Endpoint, Greenlet):
                 break
 
         # client died, do clean ups
-        if self.state not in('connected', 'hang'):
+        if self.state not in ('connected', 'hang'):
             hall.exit_game(self, drops=True)
 
         if self.state != 'connected':
@@ -192,6 +195,7 @@ class Client(Endpoint, Greenlet):
                     raise d
                 elif d[0] == tag:
                     log.debug('GAME_READ: %s', repr(d))
+                    self.usergdhistory.append(d[1])
                     return d[1]
                 else:
                     d.scan_count += 1
@@ -236,6 +240,7 @@ class Client(Endpoint, Greenlet):
         '''
         self.gdqueue.clear()
         self.gdhistory[:] = []
+        self.usergdhistory[:] = []
 
     def close(self):
         Endpoint.close(self)

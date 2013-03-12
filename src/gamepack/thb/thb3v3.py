@@ -108,10 +108,10 @@ class THBattle(Game):
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
-                for cls, cid in zip(random.sample(chars, 16), xrange(16))
+                for cls, cid in zip(self.random.sample(chars, 16), xrange(16))
             ]
 
-            for c in random.sample(choice, 4):
+            for c in self.random.sample(choice, 4):
                 c.real_cls = c.char_cls
                 c.char_cls = Akari
 
@@ -127,7 +127,7 @@ class THBattle(Game):
 
         # roll
         roll = range(len(self.players))
-        random.shuffle(roll)
+        self.random.shuffle(roll)
         pl = self.players
         roll = sync_primitive(roll, pl)
 

@@ -5,7 +5,6 @@ from game import TimeLimitExceeded
 from actions import *
 from itertools import cycle
 from collections import defaultdict
-import random
 
 from utils import BatchList, check, CheckFailed, classmix, Enum
 
@@ -117,7 +116,7 @@ class THBattleKOF(Game):
         from characters.koakuma import Koakuma
         from characters.yuuka import Yuuka
 
-        _chars = random.sample(chars, 10)
+        _chars = self.random.sample(chars, 10)
         _chars.extend([Koakuma, Yuuka])
         if Game.SERVER_SIDE:
             choice = [
@@ -125,7 +124,7 @@ class THBattleKOF(Game):
                 for cls, cid in zip(_chars[-10:], xrange(10))
             ]
 
-            for c in random.sample(choice, 4):
+            for c in self.random.sample(choice, 4):
                 c.real_cls = c.char_cls
                 c.char_cls = Akari
 
@@ -141,7 +140,7 @@ class THBattleKOF(Game):
 
         # roll
         roll = range(len(self.players))
-        random.shuffle(roll)
+        self.random.shuffle(roll)
         pl = self.players
         roll = sync_primitive(roll, pl)
 
@@ -196,7 +195,7 @@ class THBattleKOF(Game):
 
         for p in self.players:
             perm = range(5)
-            random.shuffle(perm)
+            self.random.shuffle(perm)
             perm = sync_primitive(perm, p)
             p._perm = perm
 
@@ -281,7 +280,7 @@ class THBattleKOF(Game):
         p.life = cls.maxlife
         tags = p.tags
 
-        for k in tags:
+        for k in list(tags):
             del tags[k]
             
         ehs = self.ehclasses
