@@ -821,7 +821,7 @@ class BalloonPrompt(object):
 
 
 class TextBox(Control):
-    DISABLE_NEWLINE = False
+    DISABLE_NEWLINE = True
     
     def __init__(self, text='Yoooooo~', color=Colors.green, font_name='AncientPix', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
@@ -1111,7 +1111,7 @@ class PlayerPortrait(Frame):
         Button.batch_draw(btns)
 
 class TextArea(Control):
-    WRAP_HACK = False
+    WRAP_HACK = True
 
     def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
