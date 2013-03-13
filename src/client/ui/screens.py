@@ -15,6 +15,70 @@ log = logging.getLogger('UI_Screens')
 
 from account import Account
 
+class ChatBoxFrame(Frame):
+    def __init__(self, **k):
+        Frame.__init__(        
+            self,
+            caption=u'系统/聊天信息',
+            bot_reserve=33, **k
+        )
+        self.box = TextArea(
+            parent=self, x=2, y=33+2, width=self.width, height=self.height-24-2-33
+        )
+        self.inputbox = TextBox(
+            parent=self, x=6, y=6, width=self.width-12, height=22,
+        )
+        self.history_id = None
+
+        @self.inputbox.event
+        def on_text_motion(motion):
+            from pyglet.window import key
+            if motion == key.MOTION_UP:
+                if self.history_id is None:
+                    self.history_id = len(ChatBoxFrame.history)
+                if self.history_id > 0:
+                    self.history_id -= 1
+                    self.inputbox.text = ChatBoxFrame.history[self.history_id]
+
+            if motion == key.MOTION_DOWN:
+                if self.history_id is None:
+                    return
+                if self.history_id + 1 < len(ChatBoxFrame.history):
+                    self.history_id += 1
+                    self.inputbox.text = ChatBoxFrame.history[self.history_id]
+                else:
+                    self.history_id = None
+                    self.inputbox.text = u''
+
+        @self.inputbox.event
+        def on_enter():
+            text = unicode(self.inputbox.text)
+            ChatBoxFrame.add_history(text)
+            self.history_id = None
+            self.inputbox.text = u''
+            if text.startswith(u'`') and len(text) > 1:
+                Executive.call('speaker', ui_message, text[1:])
+            elif text.startswith(u'/'):
+                import commands
+                msg = commands.root(*text[1:].split(u' '))
+                if msg:
+                    self.append(msg)
+            else:
+                Executive.call('chat', ui_message, text)
+
+    history = []
+    history_limit = 10
+
+    def append(self, v):
+        self.box.append(v)
+
+    @classmethod
+    def add_history(cls, text):
+        if cls.history_limit:
+            cls.history.append(text)
+            if len(cls.history) > cls.history_limit:
+                cls.history = cls.history[-cls.history_limit:]
+
 class Screen(Overlay):
     def on_message(self, _type, *args):
         if _type == 'server_dropped':
@@ -182,6 +246,12 @@ class LoginScreen(Screen):
                 myid = open(path, 'r').readline().strip().decode('utf-8')
             else:
                 myid = u'无名の罪袋'
+            
+            path2 = os.path.join(UPDATE_BASE, 'last_pass')
+            if os.path.exists(path2):
+                mypass = open(path2, 'r').readline().strip().decode('utf-8')
+            else:
+                mypass = u''
 
             self.txt_username = TextBox(
                 parent=self, x=438-350, y=282-165, width=220, height=20,
@@ -189,7 +259,7 @@ class LoginScreen(Screen):
             )
             self.txt_pwd = PasswordTextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
-                text=''
+                text=mypass
             )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',
@@ -203,8 +273,11 @@ class LoginScreen(Screen):
 
             @self.btn_login.event
             def on_click():
-                u, pwd = self.txt_username.text, self.txt_pwd.text
-                Executive.call('auth', ui_message, [u, pwd])
+                self.do_login()
+
+            @self.txt_pwd.event
+            def on_enter():
+                self.do_login()
 
             @self.btn_reg.event
             def on_click():
@@ -213,6 +286,11 @@ class LoginScreen(Screen):
                     os.startfile('http://www.thbattle.net', 'open')
                 elif sys.platform.startswith('linux'):
                     os.system('xdg-open http://www.thbattle.net')
+        
+        def do_login(self):
+            u, pwd = self.txt_username.text, self.txt_pwd.text
+            Executive.call('auth', ui_message, [u, pwd])
+
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
@@ -466,33 +544,13 @@ class GameHallScreen(Screen):
                     li.game_id = gi['id']
                     li.started = gi['started']
 
-    class ChatBox(Frame):
+    class ChatBox(ChatBoxFrame):
         def __init__(self, parent):
-            Frame.__init__(
+            ChatBoxFrame.__init__(
                 self, parent=parent,
-                caption=u'系统/聊天信息',
                 #x=35, y=20, width=700, height=180,
                 x=35+255, y=20, width=700-255, height=180,
-                bot_reserve=33,
             )
-            self.box = TextArea(
-                parent=self, x=2, y=33+2, width=700-255, height=180-24-2-33
-            )
-            self.inputbox = TextBox(
-                parent=self, x=6, y=6, width=688-255, height=22,
-            )
-
-            @self.inputbox.event
-            def on_enter():
-                text = unicode(self.inputbox.text)
-                self.inputbox.text = u''
-                if text.startswith(u'`') and len(text) > 1:
-                    Executive.call('speaker', ui_message, text[1:])
-                else:
-                    Executive.call('chat', ui_message, text)
-
-        def append(self, v):
-            self.box.append(v)
 
     class OnlineUsers(Frame):
         def __init__(self, parent):
@@ -633,6 +691,8 @@ class GameScreen(Screen):
                 parent=self, caption=u'准备', **r2d((360, 80, 100, 35))
             )
 
+            self.ready = False
+
             l = []
 
             class MyPP(PlayerPortrait):
@@ -646,8 +706,17 @@ class GameScreen(Screen):
 
             @self.btn_getready.event
             def on_click():
-                Executive.call('get_ready', ui_message, [])
-                self.btn_getready.state = Button.DISABLED
+                if self.ready:
+                    Executive.call('cancel_ready', ui_message, [])
+                    self.ready = False
+                    self.btn_getready.caption = u'准备'
+                    self.btn_getready.update()
+                else:
+                    Executive.call('get_ready', ui_message, [])
+                    #self.btn_getready.state = Button.DISABLED
+                    self.ready = True
+                    self.btn_getready.caption = u'取消准备'
+                    self.btn_getready.update()
 
         def draw(self):
             self.draw_subcontrols()
@@ -663,9 +732,18 @@ class GameScreen(Screen):
                     )
                 )
             elif _type == 'game_joined':
+                self.ready = False
+                self.btn_getready.caption = u'准备'
                 self.btn_getready.state = Button.NORMAL
 
         def update_portrait(self, pl):
+            def players():
+                return {
+                    p.account.username
+                    for p in self.portraits
+                    if p.account
+                }
+            orig_players = players()
             for i, p in enumerate(pl):
                 accdata = p['account']
                 acc = Account.parse(accdata) if accdata else None
@@ -675,6 +753,17 @@ class GameScreen(Screen):
                 port.ready = (p['state'] == 'ready')
 
                 port.update()
+            curr_players = players()
+            
+            for player in (orig_players - curr_players):
+                self.parent.chat_box.append(
+                    u'|B|R>> |r玩家|c0000ffff|B%s|r已离开游戏\n' % player
+                    )
+            
+            for player in (curr_players - orig_players):
+                self.parent.chat_box.append(
+                    u'|B|R>> |r玩家|c0000ffff|B%s|r已进入游戏\n' % player
+                    )
 
     class EventsBox(Frame):
         def __init__(self, parent):
@@ -694,43 +783,20 @@ class GameScreen(Screen):
         def clear(self):
             self.box.text = u'\u200b'
 
-    class ChatBox(Frame):
+    class ChatBox(ChatBoxFrame):
         def __init__(self, parent):
-            Frame.__init__(
+            ChatBoxFrame.__init__(
                 self, parent=parent,
-                caption=u'系统/聊天信息',
                 x=820, y=0, width=204, height=352,
-                bot_reserve=33, bg=common_res.bg_chatbox,
+                bg=common_res.bg_chatbox,
             )
-            self.box = TextArea(
-                parent=self, x=2, y=33+2, width=200, height=352-24-2-33
-            )
-            self.inputbox = TextBox(
-                parent=self, x=6, y=6, width=192, height=22,
-            )
-
-            @self.inputbox.event
-            def on_enter():
-                text = unicode(self.inputbox.text)
-                self.inputbox.text = u''
-                if text.startswith(u'`') and len(text) > 1:
-                    Executive.call('speaker', ui_message, text[1:])
-                else:
-                    Executive.call('chat', ui_message, text)
-
-        def append(self, v):
-            self.box.append(v)
-
-        def set_color(self, c):
-            Frame.set_color(self, c)
-            self.inputbox.color = c
-
+            
     def __init__(self, game, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
 
         self.backdrop = common_res.bg_ingame
         self.flash_alpha = 0.0
-
+        
         self.game = game
         self.ui_class = game.ui_meta.ui_class
         self.gameui = self.ui_class(
