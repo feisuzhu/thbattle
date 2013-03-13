@@ -3,7 +3,7 @@
 from client.ui.base import *
 from client.core import Executive
 from contextlib import contextmanager
-import threading
+import gevent.local as threading
 
 local = threading.local()
 local.caller = None
