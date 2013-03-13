@@ -2,11 +2,26 @@
 
 from client.ui.base import *
 from client.core import Executive
+from contextlib import contextmanager
+import threading
+
+local = threading.local()
+local.caller = None
+
+@contextmanager
+def Calling(func):
+    caller = local.caller
+    local.caller = func
+    try:
+        yield
+    finally:
+        local.caller = caller
 
 def caller():
-    import inspect
-    frame = inspect.currentframe().f_back.f_back  # caller of caller
-    return inspect.getargvalues(frame.f_back).locals['func']
+    return local.caller
+    #import inspect
+    #frame = inspect.currentframe().f_back.f_back  # caller of caller
+    #return inspect.getargvalues(frame.f_back).locals['func']
 
 from functools import *
 def category(func):
@@ -16,18 +31,22 @@ def category(func):
             func.subcommands
         except AttributeError:
             func.subcommands = {}
-            func()
+            with Calling(func):
+                func()
+
         try:
             command = func.subcommands[name]
         except KeyError:
             commands = func.subcommands.itervalues()
             msg = u'\n'.join(get_help_msg(cmd) for cmd in commands)
-            return u'|R{}|r\n'.format(msg)
+            return u'|R未知命令，你想要输入的是：\n{}|r\n'.format(msg)
 
         try:
             return command(*a)
         except TypeError:
-            return u'|R{}|r\n'.format(get_help_msg(command))
+            return u'|R命令格式错误，格式：\n{}|r\n'.format(
+                get_help_msg(command)
+            )
 
     return wrapper
 
