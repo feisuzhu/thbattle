@@ -7,9 +7,12 @@ sys.path.append('../src')
 
 from game import autoenv
 autoenv.init('Client')
+# autoenv.init('Server')
 
 from game.autoenv import Game
 from client.core import PeerPlayer, TheLittleBrother, PlayerList
+
+Game.CLIENT_SIDE = 'blah'  # Hack: not loading ui resource
 
 from account.freeplay import Account
 
@@ -50,12 +53,15 @@ class MockServer(object):
             log.info('Game data exhausted, exiting...')
             sys.exit(0)
 
+        missed = False
         for i, d in enumerate(self.gdlist):
             if d[0] == tag:
                 log.info('GAME_READ: %s', repr(d))
                 del self.gdlist[i]
                 return d[1]
-            log.info('GAME_DATA_MISS: %s', repr(d))
+            if not missed:
+                log.info('GAME_DATA_MISS: %s', repr(d))
+                missed = True
 
         log.info('GAME_DATA_MISS!!')
         sys.exit(1)

@@ -113,6 +113,7 @@ def new_user(user):
 
         g = user.current_game = old.current_game
         user.gdhistory = old.gdhistory
+        user.usergdhistory = old.usergdhistory
         user.state = 'ingame'
 
         for p in g.players:
@@ -192,6 +193,9 @@ def create_game(user, gametype, gamename):
 
 
 def _archive_game(g):
+    if not options.archive_path:
+        return
+
     data = []
 
     data.append('# ' + ', '.join([
@@ -203,8 +207,7 @@ def _archive_game(g):
 
     data.append(g.__class__.__name__)
     data.append(str(g.rndseed))
-    for p in g.players:
-        data.append(json.dumps(p.client.usergdhistory))
+    data.append(json.dumps(g.usergdhistory))
 
     with open(os.path.join(options.archive_path, str(g.gameid)), 'w') as f:
         f.write('\n'.join(data))
@@ -414,10 +417,16 @@ def send_hallinfo(user):
     user.write(['current_users', users.values()])
     user.write(['your_account', user.account])
 
+
 def start_game(g):
     log.info("game started")
     g.game_started = True
     g.players_original = BatchList(g.players)
+    g.usergdhistory = [list() for p in g.players]
+
+    for l, u in zip(g.usergdhistory, g.players.client):
+        u.usergdhistory = l
+
     g.start_time = time()
     for u in g.players.client:
         u.write(["game_started", g.players])

@@ -37,7 +37,6 @@ class Client(Endpoint, Greenlet):
         self.gdqueue = deque(maxlen=100)
         self.gdevent = Event()
         self.gdhistory = []
-        self.usergdhistory = []
         self.observers = BatchList()
 
         import socket
@@ -193,9 +192,10 @@ class Client(Endpoint, Greenlet):
                 d = l.popleft()
                 if isinstance(d, EndpointDied):
                     raise d
+
                 elif d[0] == tag:
                     log.debug('GAME_READ: %s', repr(d))
-                    self.usergdhistory.append(d[1])
+                    self.usergdhistory.append((d[0], d[1]))
                     return d[1]
                 else:
                     d.scan_count += 1
@@ -240,7 +240,7 @@ class Client(Endpoint, Greenlet):
         '''
         self.gdqueue.clear()
         self.gdhistory[:] = []
-        self.usergdhistory[:] = []
+        # self.usergdhistory[:] = []
 
     def close(self):
         Endpoint.close(self)
