@@ -202,6 +202,7 @@ class Deck(object):
         if len(self.cards) <= num:
             dcl = self.droppedcards
             
+            assert all(not c.is_card(VirtualCard) for c in dcl)
             l = [c.__class__(c.suit, c.number, cl) for c in dcl]
             dcl.clear()
             dcl.extend(l)

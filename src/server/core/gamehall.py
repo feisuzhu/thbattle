@@ -204,8 +204,10 @@ def _archive_game(g):
         for p in g.players
     ]))
 
-    data.append('# Ver = ' + VERSION)
-    data.append('# Game Id = ' + str(g.gameid))
+    data.append('# Ver: ' + VERSION)
+    data.append('# GameId: ' + str(g.gameid))
+    s, e = int(g.start_time), int(time())
+    data.append('# Time: start = %d, end = %d, elapsed = %d' % (s, e, e - s))
 
     data.append(g.__class__.__name__)
     data.append(str(g.rndseed))

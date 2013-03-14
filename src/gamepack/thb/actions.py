@@ -195,7 +195,7 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
                     sp = c.resides_in.owner.special
                     migrate_cards(c.associated_cards, sp, False, no_event)
 
-        if not no_event and not l[0].is_card(VirtualCard):
+        if not no_event:
             act = g.action_stack[-1]
             g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 

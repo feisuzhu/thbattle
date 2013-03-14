@@ -70,10 +70,14 @@ class MockServer(object):
 
 
 data = open(options.replay_file, 'r').read().split('\n')
-print data.pop(0)
-print data.pop(0)
-print data.pop(0)
-mode = data.pop(0)
+
+while True:
+    last = data.pop(0)
+    if not last.startswith('#'):
+        break
+    print last
+
+mode = last
 data.pop(0) # seed
 data.pop(0) # server data
 
