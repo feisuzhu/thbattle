@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 106'
+VERSION = 'THBATTLE V1.0b incr 107'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -121,9 +121,5 @@ bug修复，复制/粘贴支持（感谢zhyk提供补丁）
 修复一处导致服务器卡顿的bug
 阳伞设定调整，bug修复，细节调整
 霍青娥技能调整，bug修复，代码重构（可能会引入较多的新bug）
-新人物：霍青娥
-3v3选将方式再次调整（暗将，完全随机地确定先手）
-东风谷早苗设定调整
-3v3选将方式调整（先出牌最后选将，取消后手开局摸5牌）
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
 '''.strip()
