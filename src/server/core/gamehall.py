@@ -113,6 +113,7 @@ def new_user(user):
         assert isinstance(old, DroppedClient), 'Arghhhhh'
 
         g = user.current_game = old.current_game
+        user.player_index = old.player_index
         user.gdhistory = old.gdhistory
         user.usergdhistory = old.usergdhistory
         user.state = 'ingame'
