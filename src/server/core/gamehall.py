@@ -17,6 +17,7 @@ log = logging.getLogger('GameHall')
 
 from utils import DataHolder, classmix, BatchList
 from options import options
+from settings import VERSION
 
 '''
 User state machine:
@@ -203,11 +204,13 @@ def _archive_game(g):
         for p in g.players
     ]))
 
+    data.append('# Ver = ' + VERSION)
     data.append('# Game Id = ' + str(g.gameid))
 
     data.append(g.__class__.__name__)
     data.append(str(g.rndseed))
     data.append(json.dumps(g.usergdhistory))
+    data.append(json.dumps(g.gdhistory))
 
     with open(os.path.join(options.archive_path, str(g.gameid)), 'w') as f:
         f.write('\n'.join(data))
@@ -422,10 +425,13 @@ def start_game(g):
     log.info("game started")
     g.game_started = True
     g.players_original = BatchList(g.players)
-    g.usergdhistory = [list() for p in g.players]
+    g.usergdhistory = ugh = []
+    g.gdhistory = [list() for p in g.players]
 
-    for l, u in zip(g.usergdhistory, g.players.client):
-        u.usergdhistory = l
+    for i, (u, l) in enumerate(zip(g.players.client, g.gdhistory)):
+        u.player_index = i
+        u.usergdhistory = ugh
+        u.gdhistory = l
 
     g.start_time = time()
     for u in g.players.client:

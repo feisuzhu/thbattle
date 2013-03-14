@@ -5,34 +5,30 @@
 import sys
 sys.path.append('../src')
 
+import simplejson as json
+
 from game import autoenv
 autoenv.init('Client')
 # autoenv.init('Server')
 
+from account.freeplay import Account
 from game.autoenv import Game
 from client.core import PeerPlayer, TheLittleBrother, PlayerList
 
 Game.CLIENT_SIDE = 'blah'  # Hack: not loading ui resource
 
-from account.freeplay import Account
-
-import re
-RE_GAMEDATA = re.compile('^INFO:Server:GAME_READ: (.*)$', re.MULTILINE)
-
-import simplejson as json
+from gamepack import gamemodes
 
 import logging
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger('Replay')
 
-
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument('mode', type=str)
-parser.add_argument('loc', type=int)
 parser.add_argument('replay_file', type=str)
+parser.add_argument('location', type=int)
 
 options = parser.parse_args()
 
@@ -73,26 +69,29 @@ class MockServer(object):
         pass
 
 
-data = open(options.replay_file, 'r').read()
-gdlist = RE_GAMEDATA.findall(data)
-gdlist = [eval(i) for i in gdlist]
-# gdlist = [json.loads(i) for i in gdlist]
+data = open(options.replay_file, 'r').read().split('\n')
+print data.pop(0)
+print data.pop(0)
+print data.pop(0)
+mode = data.pop(0)
+data.pop(0) # seed
+data.pop(0) # server data
+
+loc = options.location
+gdlist = json.loads(data.pop(0))[loc]
+
 server = MockServer(gdlist)
 Executive = MockExecutive(server)
 
 from client.core import game_client
 game_client.Executive = Executive  # Hack
 
-if options.mode == 'raid':
-    from gamepack import THBattleRaid as GameMode
-else:
-    log.error('what mode?')
-    sys.exit(1)
+GameMode = gamemodes[mode]
 
 players = [PeerPlayer() for i in xrange(GameMode.n_persons)]
-players[options.loc].__class__ = TheLittleBrother
+players[loc].__class__ = TheLittleBrother
 
 g = GameMode()
 g.players = PlayerList(players)
-g.me = players[options.loc]
+g.me = players[loc]
 g._run()
