@@ -215,12 +215,11 @@ class Client(Endpoint, Greenlet):
         encoded = self.encode(['gamedata', [tag, data]])
         self.raw_write(encoded)
         self.gdhistory.append([tag, json.loads(self.encode(data))])
-        print [tag, json.loads(self.encode(data))]
         if self.observers: self.observers.raw_write(encoded)
 
     def replay(self, ob):
         for data in self.gdhistory:
-            ob.raw_write(data)
+            ob.raw_write(json.dumps(['gamedata', data]) + '\n')
 
     def __data__(self):
         return [self.account.userid, self.account.username, self.state]
