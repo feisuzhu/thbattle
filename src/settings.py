@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 107'
+VERSION = 'THBATTLE V1.0b incr 108'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -115,6 +115,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+莫名其妙卡顿bug修复
 异变模式。
 早苗设定调整，各种bug修复……
 bug修复，复制/粘贴支持（感谢zhyk提供补丁）
