@@ -31,10 +31,9 @@ def _bgm_switcher(dt):
     global bgm_next, bgm_switching, vol, bgm_player, cur_bgm
     vol -= 0.1
     if vol <= 0.0:
-        bgm_player.pause()
+        bgm_player.next()
         bgm_player.queue(bgm_next())
         _set_vol(1.0)
-        bgm_player.next()
         bgm_player.play()
         bgm_switching = False
         cur_bgm = bgm_next
