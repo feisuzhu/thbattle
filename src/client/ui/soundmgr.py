@@ -33,7 +33,7 @@ def _bgm_switcher(dt):
     if vol <= 0.0:
         bgm_player.pause()
         bgm_player.queue(bgm_next())
-        _sel_vol(1.0)
+        _set_vol(1.0)
         bgm_player.next()
         bgm_player.play()
         bgm_switching = False
