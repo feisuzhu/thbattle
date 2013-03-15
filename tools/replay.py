@@ -15,6 +15,8 @@ from account.freeplay import Account
 from game.autoenv import Game
 from client.core import PeerPlayer, TheLittleBrother, PlayerList
 
+from utils import hook
+
 Game.CLIENT_SIDE = 'blah'  # Hack: not loading ui resource
 
 from gamepack import gamemodes
@@ -98,4 +100,9 @@ players[loc].__class__ = TheLittleBrother
 g = GameMode()
 g.players = PlayerList(players)
 g.me = players[loc]
+
+@hook(g)
+def pause(*a):
+    pass
+
 g._run()
