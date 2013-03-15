@@ -473,7 +473,7 @@ class THBattleRaid(Game):
         # so the others could see it
 
         mixin_character(mutant, c.char_cls)
-        mutant.skills = mutant.skills[:]  # make it instance variable
+        mutant.skills = list(mutant.skills)  # make it instance variable
         ehclasses.extend(mutant.eventhandlers_required)
 
         mutant.life = mutant.maxlife
@@ -530,7 +530,7 @@ class THBattleRaid(Game):
         for c in chosen_girls:
             p = c.chosen
             mixin_character(p, c.char_cls)
-            p.skills = p.skills[:]  # make it instance variable
+            p.skills = list(p.skills)  # make it instance variable
             p.skills.extend([
                 Cooperation, Protection,
                 Parry, OneUp,

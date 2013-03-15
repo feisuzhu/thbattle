@@ -147,7 +147,7 @@ class THBattle(Game):
         def mix(p, c):
             # mix char class with player -->
             mixin_character(p, c.char_cls)
-            p.skills = p.skills[:] # make it instance variable
+            p.skills = list(p.skills)  # make it instance variable
             p.life = p.maxlife
             ehclasses.extend(p.eventhandlers_required)
 

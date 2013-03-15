@@ -271,7 +271,7 @@ class THBattleKOF(Game):
 
         # mix char class with player -->
         old = mixin_character(p, cls)
-        p.skills = cls.skills[:]  # make it instance variable
+        p.skills = list(cls.skills)  # make it instance variable
         p.maxlife = cls.maxlife
         p.life = cls.maxlife
         tags = p.tags
