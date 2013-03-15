@@ -305,7 +305,7 @@ class PlayerRevive(GenericAction):
 
         tgt.dead = False
         tgt.maxlife = tgt.__class__.maxlife
-        tgt.skills = tgt.__class__.skills
+        tgt.skills = list(tgt.__class__.skills)
 
         tgt.life = min(tgt.maxlife, self.hp)
         return True
