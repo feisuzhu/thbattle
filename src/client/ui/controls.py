@@ -13,6 +13,7 @@ from client.ui import resource as common_res, shaders
 from client.core import Executive
 from utils import Rect, textsnap, flatten, rectv2f, rrectv2f
 from utils import pyperclip
+from custom_options import options
 
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
@@ -1180,7 +1181,7 @@ class TextArea(Control):
             else:
                 self.pos_table.append(pos + len(text) - len(tok))
             self.loc_table.append(len(doc.text))
-            if TextArea.WRAP_HACK:
+            if self.WRAP_HACK:
                 tok = u'\u200b'.join(tok) + u'\u200b'
             doc.insert_text(len(doc.text), tok, attrib)
 
