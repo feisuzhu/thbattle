@@ -263,6 +263,7 @@ class Deck(GameObject):
 
 
 class Skill(VirtualCard):
+    category = ('skill', )
 
     def __init__(self, player):
         assert player is not None
@@ -279,6 +280,10 @@ class Skill(VirtualCard):
 
 class TreatAsSkill(Skill):
     treat_as = None
+
+    @property
+    def category(self):
+        return ('skill', ) + self.treat_as.category
 
     def check(self):
         return False
