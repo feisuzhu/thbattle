@@ -13,9 +13,11 @@ from client.ui import resource as common_res, shaders
 from client.core import Executive
 from utils import Rect, textsnap, flatten, rectv2f, rrectv2f
 from utils import pyperclip
+from custom_options import options
 
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
+KEYMOD_MASK = key.MOD_CTRL | key.MOD_ALT | key.MOD_SHIFT
 
 import logging
 log = logging.getLogger('UI_Controls')
@@ -725,7 +727,7 @@ class BalloonPrompt(object):
     def init_balloon(self, text, region=None, width=288):
         self.balloon_text = text
         self.balloon_region = region
-        self.balloon_width = width 
+        self.balloon_width = width
 
         if not self.balloon_inited:
             self.balloon_inited = True
@@ -806,7 +808,7 @@ class BalloonPrompt(object):
         ta.append(self.balloon_text)
         h = ta.content_height
         ta.height = h
-
+    
         panel = Panel(parent=Overlay.cur_overlay, x=0, y=0, width=width+4, height=h+4, zindex=999999)
         panel.add_control(ta)
         panel.fill_color = (1.0, 1.0, 0.9, 0.5)
@@ -820,6 +822,8 @@ class BalloonPrompt(object):
 
 
 class TextBox(Control):
+    DISABLE_NEWLINE = True
+    
     def __init__(self, text='Yoooooo~', color=Colors.green, font_name='AncientPix', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
@@ -906,7 +910,7 @@ class TextBox(Control):
         return True
 
     def on_key_press(self, symbol, modifiers):
-        if modifiers & ( key.MOD_SHIFT | key.MOD_CTRL | key.MOD_ALT) == key.MOD_CTRL:
+        if modifiers & KEYMOD_MASK == key.MOD_CTRL:
             if symbol == key.A:
                 self.caret.position = 0
                 self.caret.mark = len(self.text)
@@ -919,8 +923,16 @@ class TextBox(Control):
                     pyperclip.copy(self.text[start:end])
                 return pyglet.event.EVENT_HANDLED
 
+            elif symbol == key.ENTER:
+                if self.DISABLE_NEWLINE: return
+                self.dispatch_event('on_text', u'\n')
+                return pyglet.event.EVENT_HANDLED
+
             elif symbol == key.V:
-                content = unicode(pyperclip.paste()).replace(u'\r\n', u' ').replace(u'\n', u' ')
+                content = unicode(pyperclip.paste())
+                if self.DISABLE_NEWLINE:
+                    for le in (u'\r\n', u'\r', u'\n'):
+                        content = content.replace(le, u' ')
                 self.dispatch_event('on_text', content)
                 return pyglet.event.EVENT_HANDLED
 
@@ -1100,6 +1112,8 @@ class PlayerPortrait(Frame):
         Button.batch_draw(btns)
 
 class TextArea(Control):
+    WRAP_HACK = True
+
     def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
 
@@ -1119,22 +1133,38 @@ class TextArea(Control):
         self.layout.x = 4
         self.layout.y = 4
 
+        self.pos_table = []
+        self.loc_table = []
+
         self._text = u''
+        self.caret = pyglet.text.caret.Caret(self.layout)
+
+        self.set_handlers(self.caret)
+        self.push_handlers(self)
+
+        from base.baseclasses import main_window
+        self.window = main_window
+        self.text_cursor = self.window.get_system_mouse_cursor('text')
+        self.on_lostfocus()
 
     def _gettext(self):
         return self._text
 
     def _settext(self, text):
         self._text = u''
+        self.pos_table = []
+        self.loc_table = []
+        self.caret.mark = None
         l = self.layout
         l.begin_update()
         self.document.text = u''
+        #l.end_update()  # CRASH
         self.append(text)
-        #l.end_update() # self.append will call it
 
     def append(self, text):
         attrib = dict(self.default_attrib)
         doc = self.document
+        pos = len(self._text)
 
         def set_attrib(entry, val):
             def scanner_cb(s, tok):
@@ -1145,12 +1175,14 @@ class TextArea(Control):
             attrib.update(self.default_attrib)
 
         def instext(s, tok):
-            # *MEGA* HACK:
-            # pyglet's layout won't snap long words,
-            # and this is unacceptable for chinese characters!!!!
-            # so inserting ZeroWidthSpace[ZWSP] here.
             tok = unicode(tok)
-            tok = u'\u200b'.join(tok) + u'\u200b'
+            if s:
+                self.pos_table.append(pos + s.match.start())
+            else:
+                self.pos_table.append(pos + len(text) - len(tok))
+            self.loc_table.append(len(doc.text))
+            if self.WRAP_HACK:
+                tok = u'\u200b'.join(tok) + u'\u200b'
             doc.insert_text(len(doc.text), tok, attrib)
 
         def color(s, tok):
@@ -1189,13 +1221,18 @@ class TextArea(Control):
 
         ])
 
-        self.layout.begin_update()
+        l = self.layout
+
+        bottom = (-l.view_y + l.height >= l.content_height)
+
+        l.begin_update()
         toks, reminder = scanner.scan(text)
         if reminder:
             instext(None, reminder)
 
-        self.layout.end_update()
-        self.layout.view_y = -self.layout.content_height
+        l.end_update()
+        if bottom:
+            l.view_y = -l.content_height
         self._text += text
 
     text = property(_gettext, _settext)
@@ -1207,6 +1244,82 @@ class TextArea(Control):
         f = self.document.get_font(0)
         size = f.ascent - f.descent
         self.layout.view_y += dy * size*2
+
+    def on_focus(self):
+        self.focused = True
+        self.caret.visible = False
+
+    def on_lostfocus(self):
+        self.caret.visible = False
+        self.caret.mark = None
+        self.focused = False
+
+    def on_mouse_enter(self, x, y):
+        self.window.set_mouse_cursor(self.text_cursor)
+
+    def on_mouse_leave(self, x, y):
+        self.window.set_mouse_cursor(None)
+
+    def on_mouse_drag(self, x, y, dx, dy, btn, modifier):
+        # If I'm not focused, don't select texts
+        if btn == mouse.LEFT and self.focused:
+            x = max(4, x)
+            self.caret.on_mouse_drag(x, y, dx, dy, btn, modifier)
+        return pyglet.event.EVENT_HANDLED
+
+    def on_mouse_press(self, x, y, btn, modifier):
+        self.set_capture('on_mouse_release', 'on_mouse_drag')
+
+    def on_mouse_release(self, x, y, btn, modifier):
+        self.release_capture('on_mouse_release', 'on_mouse_drag')
+        return True
+
+    def on_key_press(self, symbol, modifiers):
+        def get_pos(loc, left = True):
+            import bisect
+            if left:
+                bisect = bisect.bisect_left
+            else:
+                bisect = bisect.bisect_right
+                
+            idx = bisect(self.loc_table, loc) - 1
+            if idx < 0: idx = 0
+
+            loc_diff = loc - self.loc_table[idx]
+            pos_diff = loc_diff / 2 if self.WRAP_HACK else loc_diff
+            
+            return self.pos_table[idx] + pos_diff, idx
+
+        if modifiers & KEYMOD_MASK == key.MOD_CTRL:
+            if symbol == key.A:
+                self.caret.position = 0
+                self.caret.mark = len(self.text)
+                return pyglet.event.EVENT_HANDLED
+
+            elif symbol == key.C:
+                start = self.layout.selection_start
+                end = self.layout.selection_end
+                if start != end:
+                    step = 2 if self.WRAP_HACK else 1
+                    pyperclip.copy(self.document.text[start:end:step])
+                return pyglet.event.EVENT_HANDLED
+            
+        elif modifiers & KEYMOD_MASK == (key.MOD_CTRL | key.MOD_SHIFT):
+            if symbol == key.C:
+                start = get_pos(self.layout.selection_start)[0]
+                end = get_pos(self.layout.selection_end)[0]
+                if start != end:
+                    pyperclip.copy(self.text[start:end])
+                return pyglet.event.EVENT_HANDLED
+            
+        return pyglet.event.EVENT_HANDLED
+
+    def on_text(self, text):
+        return pyglet.event.EVENT_HANDLED
+
+    def on_text_motion(self, motion):
+        if motion == key.MOTION_DELETE or motion == key.MOTION_BACKSPACE:
+            return pyglet.event.EVENT_HANDLED
 
     @property
     def content_height(self):
@@ -1459,7 +1572,8 @@ class SmallProgressBar(ProgressBar):
     del r
 
 class ConfirmButtons(Control):
-    def __init__(self, buttons=((u'确定', True), (u'取消', False)), color=Colors.green, *a, **k):
+    def __init__(self, buttons=((u'确定', True), (u'取消', False)),
+                 color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
         self.buttons = bl = []
 
@@ -1730,8 +1844,8 @@ class ShadowedLabel(object):
     shadow_group = OrderedGroup(61)
 
     def __init__(self, text, x, y, anchor_x='left', anchor_y='bottom',
-            font_size=12, color=(0, 0, 0, 255), thin_shadow=False, shadow_color=(255, 255, 255, 255),
-            batch=None):
+                 font_size=12, color=(0, 0, 0, 255), thin_shadow=False,
+                 shadow_color=(255, 255, 255, 255), batch=None):
         
         self._own_batch = False
         if not batch:
