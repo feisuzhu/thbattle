@@ -10,12 +10,32 @@ intern('action_before')
 intern('action_apply')
 intern('action_after')
 
+class GameObjectMeta(type):
+    def __new__(mcls, clsname, bases, _dict):
+        for k, v in _dict.items():
+            if isinstance(v, (list, set)):
+                _dict[k] = tuple(v)  # mutable obj not allowed
+
+        return type.__new__(mcls, clsname, bases, _dict)
+
+    # def __setattr__(cls, field, v):
+    #     type.__setattr__(cls, field, v)
+    #     if field in ('ui_meta', ):
+    #         return
+    #
+    #     log.warning('SetAttr: %s.%s = %s' % (cls.__name__, field, repr(v)))
+
+
+class GameObject(object):
+    __metaclass__ = GameObjectMeta
+
 
 class TimeLimitExceeded(Timeout):
-    pass
+    __metaclass__ = GameObjectMeta
 
 
 class GameException(Exception):
+    __metaclass__ = GameObjectMeta
     def __init__(self, msg=None, **kwargs):
         Exception.__init__(self, msg)
         self.__dict__.update(kwargs)
@@ -33,7 +53,7 @@ class InterruptActionFlow(GameException):
     pass
 
 
-class EventHandler(object):
+class EventHandler(GameObject):
     execute_before = tuple()
     execute_after = tuple()
     def handle(self, evt_type, data):
@@ -103,7 +123,7 @@ class EventHandler(object):
         return rst
 
 
-class Action(object):
+class Action(GameObject):
     cancelled = False
     done = False
     _interrupt_after_me = False
@@ -152,7 +172,7 @@ class Action(object):
         return self.__class__.__name__
 
 
-class AbstractPlayer(object):
+class AbstractPlayer(GameObject):
     def reveal(self, obj_list):
         raise GameError('Abstract')
 
@@ -163,7 +183,7 @@ class AbstractPlayer(object):
         return self.__class__.__name__
 
 
-class Game(object):
+class Game(GameObject):
     '''
     The Game class, all game mode derives from this.
     Provides fundamental behaviors.
@@ -295,7 +315,7 @@ class Game(object):
 
     def get_synctag(self):
         raise GameError('Abstract')
-    
+
     @contextmanager
     def action_hook(self, hook):
         ''' Dark art, do not use '''
@@ -305,9 +325,9 @@ class Game(object):
         finally:
             expected_hook = self._action_hooks.pop()
             assert expected_hook is hook
-    
 
-class SyncPrimitive(object):
+
+class SyncPrimitive(GameObject):
     def __init__(self, value):
         self.value = value
 

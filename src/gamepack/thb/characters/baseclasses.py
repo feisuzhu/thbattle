@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from .. import cards
+from game.autoenv import GameObject
 
 characters = []
 ex_characters = []
 
-class Character(object):
+class Character(GameObject):
     # skills = []
     # eventhandlers_required = []
     # associated_action = None

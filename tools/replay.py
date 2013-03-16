@@ -5,33 +5,31 @@
 import sys
 sys.path.append('../src')
 
+import simplejson as json
+
+from utils import hook
+
 from game import autoenv
 autoenv.init('Client')
-
+# autoenv.init('Server')
+from account.freeplay import Account
 from game.autoenv import Game
 from client.core import PeerPlayer, TheLittleBrother, PlayerList
+Game.CLIENT_SIDE = 'blah'  # Hack: not loading ui resource
+from gamepack import gamemodes
 
-from account.freeplay import Account
-
-import re
-RE_GAMEDATA = re.compile('^INFO:Server:GAME_READ: (.*)$', re.MULTILINE)
-
-import simplejson as json
+from argparse import ArgumentParser
+parser = ArgumentParser()
+parser.add_argument('replay_file', type=str)
+parser.add_argument('location', type=int)
+parser.add_argument('--catch', action='store_true', default=False)
+parser.add_argument('--log', type=str, default='DEBUG')
+options = parser.parse_args()
 
 import logging
 logging.basicConfig(stream=sys.stdout)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(getattr(logging, options.log.upper()))
 log = logging.getLogger('Replay')
-
-
-from argparse import ArgumentParser
-
-parser = ArgumentParser()
-parser.add_argument('mode', type=str)
-parser.add_argument('loc', type=int)
-parser.add_argument('replay_file', type=str)
-
-options = parser.parse_args()
 
 
 class MockExecutive(object):
@@ -50,12 +48,15 @@ class MockServer(object):
             log.info('Game data exhausted, exiting...')
             sys.exit(0)
 
+        missed = False
         for i, d in enumerate(self.gdlist):
             if d[0] == tag:
                 log.info('GAME_READ: %s', repr(d))
                 del self.gdlist[i]
                 return d[1]
-            log.info('GAME_DATA_MISS: %s', repr(d))
+            if not missed:
+                log.info('GAME_DATA_MISS: %s', repr(d))
+                missed = True
 
         log.info('GAME_DATA_MISS!!')
         sys.exit(1)
@@ -67,26 +68,47 @@ class MockServer(object):
         pass
 
 
-data = open(options.replay_file, 'r').read()
-gdlist = RE_GAMEDATA.findall(data)
-gdlist = [eval(i) for i in gdlist]
-# gdlist = [json.loads(i) for i in gdlist]
+data = open(options.replay_file, 'r').read().split('\n')
+
+while True:
+    last = data.pop(0)
+    if not last.startswith('#'):
+        break
+    print last
+
+mode = last
+data.pop(0) # seed
+data.pop(0) # server data
+
+loc = options.location
+gdlist = json.loads(data.pop(0))[loc]
+
 server = MockServer(gdlist)
 Executive = MockExecutive(server)
 
 from client.core import game_client
 game_client.Executive = Executive  # Hack
 
-if options.mode == 'raid':
-    from gamepack import THBattleRaid as GameMode
-else:
-    log.error('what mode?')
-    sys.exit(1)
+GameMode = gamemodes[mode]
 
 players = [PeerPlayer() for i in xrange(GameMode.n_persons)]
-players[options.loc].__class__ = TheLittleBrother
+players[loc].__class__ = TheLittleBrother
+
+for p in players:
+    p.account = Account.authenticate('Proton', '123')
 
 g = GameMode()
 g.players = PlayerList(players)
-g.me = players[options.loc]
-g._run()
+g.me = players[loc]
+
+@hook(g)
+def pause(*a):
+    pass
+
+try:
+    g._run()
+except Exception as e:
+    if not isinstance(e, SystemExit) and options.catch:
+        import pdb; pdb.post_mortem()
+
+    raise

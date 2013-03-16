@@ -7,11 +7,13 @@ import gamehall as hall
 from network import Endpoint, EndpointDied
 import logging
 import sys
+import simplejson as json
 
 from collections import deque
 from utils import BatchList
 
 from account import Account
+
 
 log = logging.getLogger("Client")
 
@@ -36,8 +38,6 @@ class Client(Endpoint, Greenlet):
         Greenlet.__init__(self)
         self.gdqueue = deque(maxlen=100)
         self.gdevent = Event()
-        self.gdhistory = []
-        self.usergdhistory = []
         self.observers = BatchList()
 
         import socket
@@ -193,10 +193,12 @@ class Client(Endpoint, Greenlet):
                 d = l.popleft()
                 if isinstance(d, EndpointDied):
                     raise d
+
                 elif d[0] == tag:
                     log.debug('GAME_READ: %s', repr(d))
-                    self.usergdhistory.append(d[1])
+                    self.usergdhistory.append((self.player_index, d[0], d[1]))
                     return d[1]
+
                 else:
                     d.scan_count += 1
                     if d.scan_count >= 15:
@@ -212,12 +214,12 @@ class Client(Endpoint, Greenlet):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
         encoded = self.encode(['gamedata', [tag, data]])
         self.raw_write(encoded)
-        self.gdhistory.append(encoded)
+        self.gdhistory.append([tag, json.loads(self.encode(data))])
         if self.observers: self.observers.raw_write(encoded)
 
     def replay(self, ob):
         for data in self.gdhistory:
-            ob.raw_write(data)
+            ob.raw_write(json.dumps(['gamedata', data]) + '\n')
 
     def __data__(self):
         return [self.account.userid, self.account.username, self.state]
@@ -239,8 +241,6 @@ class Client(Endpoint, Greenlet):
         which confuses the new game.
         '''
         self.gdqueue.clear()
-        self.gdhistory[:] = []
-        self.usergdhistory[:] = []
 
     def close(self):
         Endpoint.close(self)
@@ -257,6 +257,7 @@ class Client(Endpoint, Greenlet):
             acc.username.encode('utf-8'),
         )
 
+
 class DroppedClient(Endpoint):
     read = write = raw_write = gclear = \
     lambda *a, **k: None
@@ -267,7 +268,7 @@ class DroppedClient(Endpoint):
 
     def gwrite(self, tag, data):
         encoded = self.encode(['gamedata', [tag, data]])
-        self.gdhistory.append(encoded)
+        self.gdhistory.append([tag, json.loads(self.encode(data))])
 
     def gexpect(self, tag):
         raise EndpointDied

@@ -113,11 +113,7 @@ class THBattleKOF(Game):
         from characters import characters as chars
         from characters.akari import Akari
 
-        from characters.koakuma import Koakuma
-        from characters.yuuka import Yuuka
-
         _chars = self.random.sample(chars, 10)
-        _chars.extend([Koakuma, Yuuka])
         if Game.SERVER_SIDE:
             choice = [
                 CharChoice(cls, cid)
@@ -275,7 +271,7 @@ class THBattleKOF(Game):
 
         # mix char class with player -->
         old = mixin_character(p, cls)
-        p.skills = cls.skills[:]  # make it instance variable
+        p.skills = list(cls.skills)  # make it instance variable
         p.maxlife = cls.maxlife
         p.life = cls.maxlife
         tags = p.tags

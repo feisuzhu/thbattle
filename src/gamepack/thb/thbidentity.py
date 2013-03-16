@@ -225,7 +225,7 @@ class THBattleIdentity(Game):
         # so the others could see it
 
         mixin_character(boss, c.char_cls)
-        boss.skills = boss.skills[:] # make it instance variable
+        boss.skills = list(boss.skills) # make it instance variable
         ehclasses.extend(boss.eventhandlers_required)
 
         # boss's hp bonus
@@ -249,7 +249,7 @@ class THBattleIdentity(Game):
         g.emit_event('reseat', None)
 
         # tell the others their own identity
-        il = g.identities[:]
+        il = list(g.identities)
         g.random.shuffle(il)
         for p in g.players.exclude(boss):
             p.identity = Identity()
@@ -283,7 +283,7 @@ class THBattleIdentity(Game):
         for c in chosen_girls:
             p = c.chosen
             mixin_character(p, c.char_cls)
-            p.skills = p.skills[:] # make it instance variable
+            p.skills = list(p.skills)  # make it instance variable
             p.life = p.maxlife
             ehclasses.extend(p.eventhandlers_required)
 

@@ -17,6 +17,7 @@ log = logging.getLogger('GameHall')
 
 from utils import DataHolder, classmix, BatchList
 from options import options
+from settings import VERSION
 
 '''
 User state machine:
@@ -112,7 +113,9 @@ def new_user(user):
         assert isinstance(old, DroppedClient), 'Arghhhhh'
 
         g = user.current_game = old.current_game
+        user.player_index = old.player_index
         user.gdhistory = old.gdhistory
+        user.usergdhistory = old.usergdhistory
         user.state = 'ingame'
 
         for p in g.players:
@@ -192,6 +195,9 @@ def create_game(user, gametype, gamename):
 
 
 def _archive_game(g):
+    if not options.archive_path:
+        return
+
     data = []
 
     data.append('# ' + ', '.join([
@@ -199,12 +205,15 @@ def _archive_game(g):
         for p in g.players
     ]))
 
-    data.append('# Game Id = ' + str(g.gameid))
+    data.append('# Ver: ' + VERSION)
+    data.append('# GameId: ' + str(g.gameid))
+    s, e = int(g.start_time), int(time())
+    data.append('# Time: start = %d, end = %d, elapsed = %d' % (s, e, e - s))
 
     data.append(g.__class__.__name__)
     data.append(str(g.rndseed))
-    for p in g.players:
-        data.append(json.dumps(p.client.usergdhistory))
+    data.append(json.dumps(g.usergdhistory))
+    data.append(json.dumps(g.gdhistory))
 
     with open(os.path.join(options.archive_path, str(g.gameid)), 'w') as f:
         f.write('\n'.join(data))
@@ -414,10 +423,19 @@ def send_hallinfo(user):
     user.write(['current_users', users.values()])
     user.write(['your_account', user.account])
 
+
 def start_game(g):
     log.info("game started")
     g.game_started = True
     g.players_original = BatchList(g.players)
+    g.usergdhistory = ugh = []
+    g.gdhistory = [list() for p in g.players]
+
+    for i, (u, l) in enumerate(zip(g.players.client, g.gdhistory)):
+        u.player_index = i
+        u.usergdhistory = ugh
+        u.gdhistory = l
+
     g.start_time = time()
     for u in g.players.client:
         u.write(["game_started", g.players])

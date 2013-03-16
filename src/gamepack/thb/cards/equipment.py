@@ -74,7 +74,7 @@ class OpticalCloakHandler(EventHandler):
                 act.result = True
                 ocs = OpticalCloakSkill(target)
                 ocs.associated_cards = [oc.fatetell_card]
-                act.cards = [ocs] # UseCard attribute
+                act.cards = [ocs]  # UseCard attribute
             return act
         return act
 
@@ -91,29 +91,34 @@ class RedUFOSkill(UFOSkill):
 @register_eh
 class UFODistanceHandler(EventHandler):
     def handle(self, evt_type, arg):
-        if evt_type == 'calcdistance':
-            act, dist = arg
-            src = act.source
-            for s in src.skills:
-                if issubclass(s, RedUFOSkill):
-                    incr = s.increment
-                    for p in dist:
-                        dist[p] -= incr(source) if callable(incr) else incr
+        if not evt_type == 'calcdistance': return arg
 
+        act, dist = arg
+        src = act.source
+        for s in src.skills:
+            if not issubclass(s, RedUFOSkill): continue
+            incr = s.increment
             for p in dist:
-                for s in p.skills:
-                    if issubclass(s, GreenUFOSkill):
-                        incr = s.increment
-                        dist[p] += incr(p) if callable(incr) else incr
+                dist[p] -= incr(source) if callable(incr) else incr
+
+        for p in dist:
+            for s in p.skills:
+                if not issubclass(s, GreenUFOSkill): continue
+                incr = s.increment
+                dist[p] += incr(p) if callable(incr) else incr
+
         return arg
+
 
 class WeaponSkill(Skill):
     range = 1
+
 
 class HakuroukenSkill(WeaponSkill):
     associated_action = None
     target = t_None
     range = 2
+
 
 class Hakurouken(InternalAction):
     # 白楼剑
@@ -131,12 +136,17 @@ class Hakurouken(InternalAction):
             s = e.equipment_skill
             if issubclass(s, ShieldSkill):
                 skills.remove(s)
-        rst = Game.getgame().process_action(act)
-        for card in target.equips:
-            s = card.equipment_skill
-            if issubclass(s, ShieldSkill):
-                skills.append(s)
+
+        try:
+            rst = Game.getgame().process_action(act)
+        finally:
+            for card in target.equips:
+                s = card.equipment_skill
+                if issubclass(s, ShieldSkill):
+                    target.has_skill(s) or skills.append(s)
+
         return rst
+
 
 @register_eh
 class HakuroukenEffectHandler(EventHandler):

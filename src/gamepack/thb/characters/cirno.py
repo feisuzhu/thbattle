@@ -11,9 +11,8 @@ class PerfectFreeze(TreatAsSkill):
         if not (cl and len(cl) == 1): return False
         c  = cl[0]
         if c.suit not in (Card.SPADE, Card.CLUB): return False
-        act = c.associated_action
-        if not act: return False
-        return issubclass(act, (BasicAction, WearEquipmentAction))
+        if 'skill' in c.category: return False
+        return bool(set(c.category) & {'basic', 'equipment'})
 
 
 class PerfectFreezeHandler(EventHandler):

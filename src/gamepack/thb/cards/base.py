@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck classes
 
-from game.autoenv import Game, GameError, sync_primitive
+from game.autoenv import Game, GameError, sync_primitive, GameObject
 import random
 import logging
 log = logging.getLogger('THBattle_Cards')
@@ -11,7 +11,7 @@ from utils import BatchList
 from .. import actions
 
 
-class Card(object):
+class Card(GameObject):
     NOTSET = 0
     SPADE = 1
     HEART = 2
@@ -161,7 +161,7 @@ class VirtualCard(Card):
 
 from collections import deque
 
-class CardList(deque):
+class CardList(GameObject, deque):
     DECKCARD = 'deckcard'
     DROPPEDCARD = 'droppedcard'
     HANDCARD = 'handcard'
@@ -179,7 +179,7 @@ class CardList(deque):
         return "CardList(owner=%s, type=%s, len == %d)" % (self.owner, self.type, len(self))
 
 
-class Deck(object):
+class Deck(GameObject):
     def __init__(self, card_definition=None):
         if not card_definition:
             from .definition import card_definition
@@ -202,6 +202,7 @@ class Deck(object):
         if len(self.cards) <= num:
             dcl = self.droppedcards
             
+            assert all(not c.is_card(VirtualCard) for c in dcl)
             l = [c.__class__(c.suit, c.number, cl) for c in dcl]
             dcl.clear()
             dcl.extend(l)
@@ -262,6 +263,7 @@ class Deck(object):
 
 
 class Skill(VirtualCard):
+    category = ('skill', )
 
     def __init__(self, player):
         assert player is not None
@@ -278,6 +280,10 @@ class Skill(VirtualCard):
 
 class TreatAsSkill(Skill):
     treat_as = None
+
+    @property
+    def category(self):
+        return ('skill', ) + self.treat_as.category
 
     def check(self):
         return False
@@ -364,6 +370,6 @@ def t_OtherN(n):
     return _t_OtherN
 
 
-class HiddenCard(Card): # special thing....
+class HiddenCard(Card):  # special thing....
     associated_action = None
     target = t_None
