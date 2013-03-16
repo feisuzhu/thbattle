@@ -7,32 +7,29 @@ sys.path.append('../src')
 
 import simplejson as json
 
+from utils import hook
+
 from game import autoenv
 autoenv.init('Client')
 # autoenv.init('Server')
-
 from account.freeplay import Account
 from game.autoenv import Game
 from client.core import PeerPlayer, TheLittleBrother, PlayerList
-
-from utils import hook
-
 Game.CLIENT_SIDE = 'blah'  # Hack: not loading ui resource
-
 from gamepack import gamemodes
 
-import logging
-logging.basicConfig(stream=sys.stdout)
-logging.getLogger().setLevel(logging.DEBUG)
-log = logging.getLogger('Replay')
-
 from argparse import ArgumentParser
-
 parser = ArgumentParser()
 parser.add_argument('replay_file', type=str)
 parser.add_argument('location', type=int)
-
+parser.add_argument('--catch', action='store_true', default=False)
+parser.add_argument('--log', type=str, default='DEBUG')
 options = parser.parse_args()
+
+import logging
+logging.basicConfig(stream=sys.stdout)
+logging.getLogger().setLevel(getattr(logging, options.log.upper()))
+log = logging.getLogger('Replay')
 
 
 class MockExecutive(object):
@@ -97,6 +94,9 @@ GameMode = gamemodes[mode]
 players = [PeerPlayer() for i in xrange(GameMode.n_persons)]
 players[loc].__class__ = TheLittleBrother
 
+for p in players:
+    p.account = Account.authenticate('Proton', '123')
+
 g = GameMode()
 g.players = PlayerList(players)
 g.me = players[loc]
@@ -105,4 +105,10 @@ g.me = players[loc]
 def pause(*a):
     pass
 
-g._run()
+try:
+    g._run()
+except Exception as e:
+    if not isinstance(e, SystemExit) and options.catch:
+        import pdb; pdb.post_mortem()
+
+    raise
