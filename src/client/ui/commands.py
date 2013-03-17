@@ -1,147 +1,104 @@
 # -*- coding: utf-8 -*-
 
 from client.ui.base import *
-from client.core import Executive
-from contextlib import contextmanager
-import gevent.local as threading
+from client.ui.soundmgr import SoundManager
 
-local = threading.local()
-local.caller = None
+registered_commands = {}
 
-@contextmanager
-def Calling(func):
-    caller = local.caller
-    local.caller = func
-    try:
-        yield
-    finally:
-        local.caller = caller
+def command(name, help, cmd=None):
+    def decorate(f):
+        f.commandname = name
+        f.commandhelp = help
+        registered_commands[cmd or f.__name__] = f
+        return f
 
-def caller():
-    return local.caller
-    #import inspect
-    #frame = inspect.currentframe().f_back.f_back  # caller of caller
-    #return inspect.getargvalues(frame.f_back).locals['func']
+    return decorate
 
-from functools import *
-def category(func):
-    @wraps(func, WRAPPER_ASSIGNMENTS + WRAPPER_UPDATES, ())
-    def wrapper(name = None, *a):
+
+def argdesc(*desclist):
+    def decorate(f):
+        f.argdesc = desclist
+        return f
+
+    return decorate
+
+
+def argtypes(*types):
+    def decorate(f):
+        f.argtypes= types
+        return f
+
+    return decorate
+
+
+def _format_all_commands():
+    return '\n'.join([
+        u'/%s ' % cmdname + cmd.commandname
+        for cmdname, cmd in registered_commands.items()
+    ])
+
+
+def process_command(arglist):
+    while True:
+        if not arglist:
+            prompt = _format_all_commands()
+            break
+
+        al = list(arglist)
+        cmdname = al.pop(0)
+        cmd = registered_commands.get(cmdname)
+        if not cmd:
+            prompt = _format_all_commands()
+            break
+
+        if len(al) != len(cmd.argdesc):
+            prompt = registered_commands['?'](cmdname)
+            break
+
         try:
-            func.subcommands
-        except AttributeError:
-            func.subcommands = {}
-            with Calling(func):
-                func()
-
-        try:
-            command = func.subcommands[name]
-        except KeyError:
-            commands = func.subcommands.itervalues()
-            msg = u'\n'.join(get_help_msg(cmd) for cmd in commands)
-            return u'|R未知命令，你想要输入的是：\n{}|r\n'.format(msg)
-
-        try:
-            return command(*a)
-        except TypeError:
-            return u'|R命令格式错误，格式：\n{}|r\n'.format(
-                get_help_msg(command)
-            )
-
-    return wrapper
-
-def subcommand(func, parent = None):
-    if not parent:
-        parent = caller() 
-    
-    parent.subcommands[func.__name__] = func
-    try:
-        func.command_name = parent.command_name + ' ' + func.__name__
-    except AttributeError:
-        func.command_name = '/' + func.__name__
-    return func
-
-def subcategory(func):
-    func = category(func)
-    return subcommand(func, caller())
-
-def get_help_msg(func):
-    msg = func.command_name
-    
-    try:
-        arginfo = ' |DB{}|R'.format(func.arginfo)
-        msg += arginfo
-    except:
-        pass
-    
-    try:
-        help_msg = '\t' + func.help_msg
-        msg += help_msg
-    except:
-        pass
-    return msg
-
-def help_msg(msg):
-    def set_help_msg(func):
-        func.help_msg = msg
-        return func
-    return set_help_msg
-
-def arginfo(msg):
-    def set_arginfo(func):
-        func.arginfo = msg
-        return func
-    return set_arginfo
-
-@category
-def root():
-    @subcategory
-    @help_msg(u'背景音乐相关')
-    def bgm():
-        from soundmgr import SoundManager 
-
-        @subcommand
-        @help_msg(u'静音')
-        def mute():
-            SoundManager.mute()
-            return u'|RBGM已静音。|r\n'
-
-        @subcommand
-        @help_msg(u'取消静音')
-        def unmute():
-            SoundManager.unmute()
-            return u'|RBGM已取消静音。|r\n'
+            al = [argtype(i) for argtype, i in zip(cmd.argtypes, al)]
+        except:
+            prompt = registered_commands['?'](cmdname)
+            break
         
-        @subcommand
-        @arginfo(u'<音量>')
-        @help_msg(u'调整bgm音量')
-        def vol(percent):
-            try:
-                vol = float(percent) / 100
-                if vol < 0 or vol > 1:
-                    raise ValueError
-                SoundManager.set_volume(vol)
-                return u'|RBGM音量已设置为|DB' + percent + u'|R。|r\n'
-            except ValueError:
-                return u'|R音量应该在0至100之间。|r\n'
+        prompt = cmd(*al)
+        break
 
-    @subcategory
-    @help_msg(u'聊天框相关')
-    def chat():
-        @subcommand
-        @arginfo(u'<数量>')
-        @help_msg(u'调整聊天框历史记录最大数量')
-        def history(count):
-            from screens import ChatBoxFrame
-            try:
-                c = int(count)
-                if c < 0:
-                    raise ValueError
-                if c:
-                    ChatBoxFrame.history = ChatBoxFrame.history[-c:]
-                else:
-                    ChatBoxFrame.history = []
-                ChatBoxFrame.history_limit = int(count)
-            except ValueError:
-                return u'|R数量应为非负整数。|r\n'
-            return u'|R历史记录最到数量已调整为|DB' + count + '|R。|r\n'
+    return u'|R%s|R\n' % prompt
+
+# -----------------------------------
+
+@command(u'设置音量', u'音量可以是 on、off 和 0-100 之间的整数')
+@argtypes(str)
+@argdesc(u'<音量>')
+def vol(val):
+    if val == 'on':
+        val = 100
+    elif val == 'off':
+        val = 0
+    elif val.isdigit():
+        val = min(int(val), 100)
+        val = max(val, 0)
+    else:
+        return registered_commands['?']('vol')
+
+    if not val:
+        SoundManager.mute()
+        return u'已静音。'
+    else:
+        SoundManager.unmute()
+        SoundManager.set_volume(val / 100.0)
+        return u'音量已设置为 %d' % val
+
+
+@command(u'帮助', u'查看命令的帮助', cmd='?')
+@argtypes(str)
+@argdesc(u'<命令>')
+def help(cmdname):
+    cmd = registered_commands.get(cmdname)
+    if not cmd:
+        return _format_all_commands()
+    else:
+        help = [cmd.commandname, cmd.commandhelp]
+        help.append(u'/%s ' % cmdname + u' '.join(cmd.argdesc))
+        return u'\n'.join(help)

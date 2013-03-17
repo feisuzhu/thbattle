@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pyglet
-from pyglet.media import Player
+from pyglet.media import Player, ManagedSoundPlayer
 from .base.interp import InterpDesc, LinearInterp
 
 from utils import instantiate
@@ -9,13 +9,13 @@ from utils import instantiate
 
 @instantiate
 class SoundManager(object):
-    volume = InterpDesc('_volume')  # 实际音量 
+    volume_factor = InterpDesc('_volume_factor')  # 音量系数
     def __init__(self):
         self.cur_bgm = None
         self.bgm_next = None
         self.bgm_switching = False
         self.bgm_player = Player()
-        self.bgm_volume = 1.0  # BGM音量
+        self.volume = 1.0  # 音量
         self.bgm_player.eos_action = Player.EOS_LOOP
         self.muted = False
 
@@ -29,9 +29,9 @@ class SoundManager(object):
             return
 
         if bgm is self.cur_bgm:
-            return 
+            return
 
-        self.volume = LinearInterp(1.0, 0.0, 1.0)
+        self.volume_factor = LinearInterp(1.0, 0.0, 1.0)
 
         self.bgm_next = bgm
         if not self.bgm_switching:
@@ -43,7 +43,7 @@ class SoundManager(object):
         pyglet.clock.unschedule(self._set_vol)
         self.bgm_player.next()
         self.bgm_player.queue(self.bgm_next())
-        self.volume = 1.0
+        self.volume_factor = 1.0
         self._set_vol()
         self.bgm_player.play()
         self.bgm_switching = False
@@ -57,8 +57,9 @@ class SoundManager(object):
             self._bgm_fade_out_done()
 
     def mute(self):
+        if self.muted: return
         self.muted = True
-        self.volume = 0.0
+        self.volume_factor = 0.0
         self.bgm_player.pause()
         pyglet.clock.unschedule(self._set_vol)
         pyglet.clock.unschedule(self._bgm_fade_out_done)
@@ -66,15 +67,20 @@ class SoundManager(object):
         self.cur_bgm = None
 
     def unmute(self):
+        if not self.muted: return
         self.muted = False
         self.bgm_next and self.instant_switch_bgm(self.bgm_next)
 
     def play(self, snd):
-        snd.play()
+        if self.muted: return
+        player = ManagedSoundPlayer()
+        player.volume = self.volume
+        player.queue(snd)
+        player.play()
 
     def set_volume(self, vol):
-        self.bgm_volume = vol
+        self.volume = vol
         self._set_vol()
 
     def _set_vol(self, _=None):
-        self.bgm_player.volume = self.volume * self.bgm_volume
+        self.bgm_player.volume = self.volume_factor * self.volume

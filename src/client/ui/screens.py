@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
+log = logging.getLogger('UI_Screens')
+
 import pyglet
 from pyglet.gl import *
+import shlex
+
 from client.ui.base import *
 from client.ui.base import ui_message, ui_schedule
 from client.ui.controls import *
@@ -11,9 +16,7 @@ from pyglet.text import Label
 from utils import Rect, rect_to_dict as r2d, BatchList, textsnap
 from user_settings import UserSettings
 
-import logging
-log = logging.getLogger('UI_Screens')
-
+from . import commands
 from account import Account
 
 class ChatBoxFrame(Frame):
@@ -60,15 +63,15 @@ class ChatBoxFrame(Frame):
             if text.startswith(u'`') and len(text) > 1:
                 Executive.call('speaker', ui_message, text[1:])
             elif text.startswith(u'/'):
-                import commands
-                msg = commands.root(*text[1:].split(u' '))
-                if msg:
-                    self.append(msg)
+                from . import commands
+                cmdline = shlex.split(text[1:])
+                msg = commands.process_command(cmdline)
+                msg and self.append(msg)
             else:
                 Executive.call('chat', ui_message, text)
 
     history = []
-    history_limit = 10
+    history_limit = 1000
 
     def append(self, v):
         self.box.append(v)
