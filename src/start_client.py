@@ -40,54 +40,50 @@ logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(getattr(logging, options.log.upper()))
 log = logging.getLogger('__main__')
 
+# gevent: do not patch dns, they fail on windows
+# monkey.patch_socket(dns=False) won't work since
+# socket.create_connection internally references
+# gevents' getaddrinfo
+import socket
+from gevent import socket as gsock
+
+if not sys.platform.startswith('linux'):
+    gsock.getaddrinfo = socket.getaddrinfo
+    gsock.gethostbyname = socket.gethostbyname
+
+    # HACK: resolve domain in parallel
+    import threading
+    class ResolveIt(threading.Thread):
+        def __init__(self, host):
+            threading.Thread.__init__(self)
+            self.host = host
+
+        def run(self):
+            host = self.host
+            print host
+            socket.getaddrinfo(host, 80)
+            socket.gethostbyname(host)
+
+    domains = [
+        'update.thbattle.net',
+        'game.thbattle.net',
+        'feisuzhu.xen.prgmr.com',
+    ]
+    for host in domains:
+        thread = ResolveIt(host)
+        thread.daemon = True
+        thread.start()
+
+
 import gevent
 from gevent import monkey
 monkey.patch_socket()
 
-from gevent import socket, dns
-
-@hook(socket)
-def getaddrinfo(ori, host, port, family=0, socktype=0, proto=0, flags=0):
-    while True:
-        try:
-            # WARNING:
-            # Don't change the 'family'!
-            # gevent 0.13 on Windows doesn't handle IPv6 well!
-            return ori(host, port, socket.AF_INET, socktype, proto, flags)
-        except dns.DNSError as e:
-            if not e.errno == 2: # dns server fail thing
-                raise
-        gevent.sleep(0.15)
-
-@hook(socket)
-def gethostbyname(ori, hostname):
-    while True:
-        try:
-            return ori(hostname)
-        except dns.DNSError as e:
-            if not e.errno == 2: # dns server fail thing
-                raise
-        gevent.sleep(0.15)
-
-# -----------------------------------------
 
 from game import autoenv
 autoenv.init('Client')
 
 from client.core import Executive
-
-# for dbg
-'''
-from gevent import signal as gsig
-import signal
-def print_stack():
-    game = Executive.gm_greenlet.game
-    import traceback
-    traceback.print_stack(game.gr_frame)
-gsig(signal.SIGUSR1, print_stack)
-# -------
-'''
-
 
 import pyglet
 
