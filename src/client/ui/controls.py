@@ -165,7 +165,7 @@ class Button(Control):
             anchor_x='center', anchor_y='center', batch=batch
         )
 
-        self.hilight_vl = batch.add(4, GL_QUADS, None, 
+        self.hilight_vl = batch.add(4, GL_QUADS, None,
             ('v2f', (ax, ay,  ax + w, ay,  ax + w, ay + h, ax, ay + h)),
             ('c4f/stream', [0.0] * (4 * 4)),
         )
@@ -461,7 +461,7 @@ class Frame(Control):
             # HACK
             bg = common_res.white.get_region(0, 0, _w, _h)
             bg.tex_coords = common_res.white.tex_coords
-        
+
         self.bgsprite.image = bg
 
     def _fill_batch(self, batch):
@@ -472,7 +472,7 @@ class Frame(Control):
         self.bgsprite = Sprite(common_res.white, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
         self.update_bg()
 
-        self.framevlist = batch.add(20, GL_QUADS, self.frame_group, 
+        self.framevlist = batch.add(20, GL_QUADS, self.frame_group,
             'v2f', 'c4B',
         )
 
@@ -509,7 +509,7 @@ class Frame(Control):
             rectv2f(ax+.5, ay+.5, w-.5, r-.5),  # bot reserve
             rrectv2f(ax+.5, ay+r+.5, w-.5, h-24-r-.5),  # heavy line
             rrectv2f(ax+.5, ay+.5, w-.5, h-.5),  # border
-            rrectv2f(ax+1.5, ay+1.5, w-2.5, h-2.5), 
+            rrectv2f(ax+1.5, ay+1.5, w-2.5, h-2.5),
         ])
 
     def set_color(self, color):
@@ -532,7 +532,7 @@ class Frame(Control):
 
         self.caption_shadow_lbl.color = C(c.caption_shadow)
         self.caption_lbl.color = C(c.caption)
-    
+
     def set_position(self, x, y):
         self.x = x; self.y = y
         self.update_position()
@@ -618,7 +618,7 @@ class Frame(Control):
 
         else:
             raise TypeError('shadow type?')
-        
+
         try:
             del k['color']
         except:
@@ -807,7 +807,7 @@ class BalloonPrompt(object):
         ta.append(self.balloon_text)
         h = ta.content_height
         ta.height = h
-    
+
         panel = Panel(parent=Overlay.cur_overlay, x=0, y=0, width=width+4, height=h+4, zindex=999999)
         panel.add_control(ta)
         panel.fill_color = (1.0, 1.0, 0.9, 0.5)
@@ -822,7 +822,7 @@ class BalloonPrompt(object):
 
 class TextBox(Control):
     DISABLE_NEWLINE = True
-    
+
     def __init__(self, text='Yoooooo~', color=Colors.green, font_name='AncientPix', *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
@@ -942,7 +942,7 @@ class TextBox(Control):
                     pyperclip.copy(self.text[start:end])
                     self.dispatch_event('on_text', u'')
                 return pyglet.event.EVENT_HANDLED
-    
+
     def on_text(self, text):
         if text == '\r':
             self.dispatch_event('on_enter')
@@ -1158,8 +1158,8 @@ class TextArea(Control):
         l = self.layout
         l.begin_update()
         self.document.text = u''
-        #l.end_update()  # CRASH
         self.append(text)
+        # l.end_update()  # self.append(text) will call it
 
     def append(self, text):
         attrib = dict(self.default_attrib)
@@ -1281,13 +1281,13 @@ class TextArea(Control):
                 bisect = bisect.bisect_left
             else:
                 bisect = bisect.bisect_right
-                
+
             idx = bisect(self.loc_table, loc) - 1
             if idx < 0: idx = 0
 
             loc_diff = loc - self.loc_table[idx]
             pos_diff = loc_diff / 2 if self.WRAP_HACK else loc_diff
-            
+
             return self.pos_table[idx] + pos_diff, idx
 
         if modifiers & KEYMOD_MASK == key.MOD_CTRL:
@@ -1303,7 +1303,7 @@ class TextArea(Control):
                     step = 2 if self.WRAP_HACK else 1
                     pyperclip.copy(self.document.text[start:end:step])
                 return pyglet.event.EVENT_HANDLED
-            
+
         elif modifiers & KEYMOD_MASK == (key.MOD_CTRL | key.MOD_SHIFT):
             if symbol == key.C:
                 start = get_pos(self.layout.selection_start)[0]
@@ -1311,7 +1311,7 @@ class TextArea(Control):
                 if start != end:
                     pyperclip.copy(self.text[start:end])
                 return pyglet.event.EVENT_HANDLED
-            
+
         return pyglet.event.EVENT_HANDLED
 
     def on_text(self, text):
@@ -1607,7 +1607,7 @@ class ConfirmButtons(Control):
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
-    
+
     def update(self):
         for b in self.buttons:
             b.update()
@@ -1618,7 +1618,7 @@ class ConfirmButtons(Control):
             wl = [len(b[0])*16 + 20 for b in buttons]
         else:
             wl = [max(len(b[0])*16 + 20, 80) for b in buttons]
-        
+
         return wl
 
     @classmethod
@@ -1847,7 +1847,7 @@ class ShadowedLabel(object):
     def __init__(self, text, x, y, anchor_x='left', anchor_y='bottom',
                  font_size=12, color=(0, 0, 0, 255), thin_shadow=False,
                  shadow_color=(255, 255, 255, 255), batch=None):
-        
+
         self._own_batch = False
         if not batch:
             batch = pyglet.graphics.Batch()
@@ -1856,7 +1856,7 @@ class ShadowedLabel(object):
         self._batch = batch
 
         shadow_args = {'italic': True} if thin_shadow else {'italic': True, 'bold': True}
-        
+
         self.shadow_lbl = pyglet.text.Label(
             text=text, x=x, y=y,
             anchor_x=anchor_x, anchor_y=anchor_y,

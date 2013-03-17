@@ -19,9 +19,14 @@ from user_settings import UserSettings
 from . import commands
 from account import Account
 
+from collections import deque
+
 class ChatBoxFrame(Frame):
+    history_limit = 1000
+    history = deque([None] * history_limit)
+
     def __init__(self, **k):
-        Frame.__init__(        
+        Frame.__init__(
             self,
             caption=u'系统/聊天信息',
             bot_reserve=33, **k
@@ -32,36 +37,52 @@ class ChatBoxFrame(Frame):
         self.inputbox = TextBox(
             parent=self, x=6, y=6, width=self.width-12, height=22,
         )
-        self.history_id = None
+        self.history_cursor = -1
+        self.last_input = u''
 
         @self.inputbox.event
         def on_text_motion(motion):
+            hist = self.history
+            cursor = self.history_cursor
             from pyglet.window import key
             if motion == key.MOTION_UP:
-                if self.history_id is None:
-                    self.history_id = len(ChatBoxFrame.history)
-                if self.history_id > 0:
-                    self.history_id -= 1
-                    self.inputbox.text = ChatBoxFrame.history[self.history_id]
+                cursor += 1
+                if not cursor:
+                    self.last_input = self.inputbox.text
+
+                text = hist[cursor]
+                if text:
+                    self.history_cursor = cursor
+                    self.inputbox.text = text
 
             if motion == key.MOTION_DOWN:
-                if self.history_id is None:
+                if cursor < 0: return
+                cursor -= 1
+
+                if cursor < 0:
+                    self.history_cursor = -1
+                    self.inputbox.text = self.last_input
+
                     return
-                if self.history_id + 1 < len(ChatBoxFrame.history):
-                    self.history_id += 1
-                    self.inputbox.text = ChatBoxFrame.history[self.history_id]
+
+                text = hist[cursor]
+                if text:
+                    self.inputbox.text = text
+                    self.history_cursor = cursor
                 else:
-                    self.history_id = None
-                    self.inputbox.text = u''
+                    self.history_cursor = -1
 
         @self.inputbox.event
         def on_enter():
             text = unicode(self.inputbox.text)
-            ChatBoxFrame.add_history(text)
-            self.history_id = None
             self.inputbox.text = u''
+            if not text: return
+
+            self.add_history(text)
             if text.startswith(u'`') and len(text) > 1:
-                Executive.call('speaker', ui_message, text[1:])
+                text = text[1:]
+                if not text: return
+                Executive.call('speaker', ui_message, text)
             elif text.startswith(u'/'):
                 from . import commands
                 cmdline = shlex.split(text[1:])
@@ -70,18 +91,16 @@ class ChatBoxFrame(Frame):
             else:
                 Executive.call('chat', ui_message, text)
 
-    history = []
-    history_limit = 1000
-
     def append(self, v):
         self.box.append(v)
 
-    @classmethod
-    def add_history(cls, text):
-        if cls.history_limit:
-            cls.history.append(text)
-            if len(cls.history) > cls.history_limit:
-                cls.history = cls.history[-cls.history_limit:]
+    def add_history(self, text):
+        self.history_cursor = -1
+        hist = self.__class__.history
+        hist.rotate(1)
+        hist[0] = text
+        hist[-1] = None
+
 
 class Screen(Overlay):
     def on_message(self, _type, *args):
@@ -234,14 +253,14 @@ class LoginScreen(Screen):
 
             def L(text, x, y, *a, **k):
                 self.add_label(
-                    text, x=x, y=y, 
+                    text, x=x, y=y,
                     font_size=9,color=(0,0,0,255),
                     bold=True, anchor_x='left', anchor_y='bottom',
                     *a, **k
                 )
 
             L(u'用户名：', 368 - 350, 286 - 165)
-            L(u'密码：', 368 - 350, 250 - 165) 
+            L(u'密码：', 368 - 350, 250 - 165)
 
             self.txt_username = TextBox(
                 parent=self, x=438-350, y=282-165, width=220, height=20,
@@ -276,7 +295,7 @@ class LoginScreen(Screen):
                     os.startfile('http://www.thbattle.net', 'open')
                 elif sys.platform.startswith('linux'):
                     os.system('xdg-open http://www.thbattle.net')
-        
+
         def do_login(self):
             u, pwd = self.txt_username.text, self.txt_pwd.text
             Executive.call('auth', ui_message, [u, pwd])
@@ -740,12 +759,12 @@ class GameScreen(Screen):
 
                 port.update()
             curr_players = players()
-            
+
             for player in (orig_players - curr_players):
                 self.parent.chat_box.append(
                     u'|B|R>> |r玩家|c0000ffff|B%s|r已离开游戏\n' % player
                     )
-            
+
             for player in (curr_players - orig_players):
                 self.parent.chat_box.append(
                     u'|B|R>> |r玩家|c0000ffff|B%s|r已进入游戏\n' % player
@@ -776,13 +795,13 @@ class GameScreen(Screen):
                 x=820, y=0, width=204, height=352,
                 bg=common_res.bg_chatbox,
             )
-            
+
     def __init__(self, game, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
 
         self.backdrop = common_res.bg_ingame
         self.flash_alpha = 0.0
-        
+
         self.game = game
         self.ui_class = game.ui_meta.ui_class
         self.gameui = self.ui_class(
