@@ -98,18 +98,18 @@ def root():
     @subcategory
     @help_msg(u'背景音乐相关')
     def bgm():
-        import soundmgr
+        from soundmgr import SoundManager 
 
         @subcommand
         @help_msg(u'静音')
         def mute():
-            soundmgr.mute()
+            SoundManager.mute()
             return u'|RBGM已静音。|r\n'
 
         @subcommand
         @help_msg(u'取消静音')
         def unmute():
-            soundmgr.unmute()
+            SoundManager.unmute()
             return u'|RBGM已取消静音。|r\n'
         
         @subcommand
@@ -120,7 +120,7 @@ def root():
                 vol = float(percent) / 100
                 if vol < 0 or vol > 1:
                     raise ValueError
-                soundmgr.set_volume(vol)
+                SoundManager.set_volume(vol)
                 return u'|RBGM音量已设置为|DB' + percent + u'|R。|r\n'
             except ValueError:
                 return u'|R音量应该在0至100之间。|r\n'

@@ -109,9 +109,6 @@ if not options.no_backdoor:
     gevent.spawn(BackdoorServer(('127.0.0.1', options.backdoor_port)).serve_forever)
 
 from server.core import Client
-from custom_options import options
-options.default('server_startup', None)
-exec unicode(options.server_startup)
 
 root.info('=' * 20 + settings.VERSION + '=' * 20)
 server = StreamServer(('0.0.0.0', options.port), Client.spawn, None)

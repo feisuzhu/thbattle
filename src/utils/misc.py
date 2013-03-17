@@ -544,3 +544,7 @@ def group_by(l, keyfunc):
         grouped.append(group)
 
     return grouped
+
+
+def instantiate(cls):
+    return cls()

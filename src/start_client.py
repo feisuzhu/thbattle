@@ -104,10 +104,6 @@ if sys.platform == 'win32':
 
 from client.ui.entry import start_ui
 
-from custom_options import options
-options.default('client_startup', None)
-exec unicode(options.client_startup)
-
 try:
     start_ui()
 except:

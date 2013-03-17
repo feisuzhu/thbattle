@@ -4,7 +4,7 @@ from pyglet.gl import *
 from client.ui.base import *
 from client.ui.base import ui_message, ui_schedule
 from client.ui.controls import *
-from client.ui import soundmgr
+from client.ui.soundmgr import SoundManager
 import  client.ui.resource as common_res
 from client.core import Executive
 from pyglet.text import Label
@@ -176,7 +176,7 @@ class ServerSelectScreen(Screen):
         @mute.event
         def on_click():
             mute.delete()
-            soundmgr.mute()
+            SoundManager.mute()
 
     def do_connect(self, addr):
         for b in self.buttons:
@@ -207,7 +207,7 @@ class ServerSelectScreen(Screen):
         self.draw_subcontrols()
 
     def on_switch(self):
-        soundmgr.switch_bgm(common_res.bgm_hall)
+        SoundManager.switch_bgm(common_res.bgm_hall)
         from options import options
 
         if options.testing:
@@ -327,7 +327,7 @@ class LoginScreen(Screen):
         self.draw_subcontrols()
 
     def on_switch(self):
-        soundmgr.switch_bgm(common_res.bgm_hall)
+        SoundManager.switch_bgm(common_res.bgm_hall)
 
 class GameHallScreen(Screen):
     class GameList(Frame):
@@ -679,7 +679,7 @@ class GameHallScreen(Screen):
         self.draw_subcontrols()
 
     def on_switch(self):
-        soundmgr.switch_bgm(common_res.bgm_hall)
+        SoundManager.switch_bgm(common_res.bgm_hall)
 
 
 class GameScreen(Screen):
@@ -869,7 +869,7 @@ class GameScreen(Screen):
                 parent=False, game=self.game,
                 **r2d((0, 0, 820, 720))
             )
-            soundmgr.switch_bgm(common_res.bgm_hall)
+            SoundManager.switch_bgm(common_res.bgm_hall)
             self.backdrop = common_res.bg_ingame
             self.set_color(Colors.green)
             self.events_box.clear()
@@ -913,4 +913,4 @@ class GameScreen(Screen):
         self.chat_box.set_color(color)
 
     def on_switch(self):
-        soundmgr.switch_bgm(common_res.bgm_hall)
+        SoundManager.switch_bgm(common_res.bgm_hall)

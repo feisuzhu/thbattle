@@ -13,7 +13,6 @@ from client.ui import resource as common_res, shaders
 from client.core import Executive
 from utils import Rect, textsnap, flatten, rectv2f, rrectv2f
 from utils import pyperclip
-from custom_options import options
 
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
@@ -1111,6 +1110,7 @@ class PlayerPortrait(Frame):
         map(btns.extend, [p.buttons for p in pps])
         Button.batch_draw(btns)
 
+
 class TextArea(Control):
     WRAP_HACK = True
 
@@ -1330,6 +1330,7 @@ class TextArea(Control):
         l.begin_update()
         l.width, l.height = width - 8, height - 8
         l.end_update()
+
 
 class ListItem(object):
     def __init__(self, p, i, color=(0, 0, 0, 255)):

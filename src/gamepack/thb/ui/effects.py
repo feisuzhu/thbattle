@@ -4,7 +4,7 @@ from client.ui.base import *
 from client.ui.base import ui_schedule
 from client.ui.base.interp import *
 from client.ui.controls import *
-from client.ui import soundmgr
+from client.ui.soundmgr import SoundManager
 
 from client.ui import resource as common_res
 import resource as gres
@@ -186,7 +186,7 @@ def damage_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
     OneShotAnim(gres.hurt, x=port.x, y=port.y, batch=self.animations)
-    soundmgr.play(gres.sound.hit)
+    SoundManager.play(gres.sound.hit)
 
 
 def _update_tags(self, p):
@@ -355,7 +355,7 @@ def pindian_effect(self, act):
 
 
 def input_snd_prompt():
-    soundmgr.play(common_res.sound.input)
+    SoundManager.play(common_res.sound.input)
 
 
 input_snd_enabled = True
@@ -493,7 +493,7 @@ def mutant_morph_effects(self, mutant):
     gs.set_flash(5.0)
     gs.set_color(getattr(Colors, meta.color_scheme))
     gs.backdrop = meta.wallpaper
-    soundmgr.instant_switch_bgm(meta.bgm)
+    SoundManager.instant_switch_bgm(meta.bgm)
 
 
 mapping_events = ddict(bool, {

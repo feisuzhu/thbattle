@@ -3,78 +3,78 @@
 import pyglet
 from pyglet.media import Player
 from .base.interp import InterpDesc, LinearInterp
-from custom_options import options
 
-cur_bgm = None
-bgm_next = None
-bgm_switching = False
-bgm_player = Player()
-bgm_player.eos_action = Player.EOS_LOOP
+from utils import instantiate
 
-options.default('bgm_vol', 1.0)
-options.default('mute', False)
 
-if options.mute:
-    vol = 0.0
-else:
-    vol = 1.0
+@instantiate
+class SoundManager(object):
+    volume = InterpDesc('_volume')  # 实际音量 
+    def __init__(self):
+        self.cur_bgm = None
+        self.bgm_next = None
+        self.bgm_switching = False
+        self.bgm_player = Player()
+        self.bgm_volume = 1.0  # BGM音量
+        self.bgm_player.eos_action = Player.EOS_LOOP
+        self.muted = False
 
-def _set_vol(v = None):
-    global vol
-    if v:
-        vol = v
-    if options.mute:
-        vol = 0.0
-    bgm_player.volume = vol * options.bgm_vol
+    def switch_bgm(self, bgm):
+        if self.muted:
+            self.bgm_next = bgm
+            return
 
-def _bgm_switcher(dt):
-    global bgm_next, bgm_switching, vol, bgm_player, cur_bgm
-    vol -= 0.1
-    if vol <= 0.0:
-        bgm_player.next()
-        bgm_player.queue(bgm_next())
-        _set_vol(1.0)
-        bgm_player.play()
-        bgm_switching = False
-        cur_bgm = bgm_next
-        bgm_next = None
-        pyglet.clock.unschedule(_bgm_switcher)
-    else:
-        _set_vol()
+        if not self.cur_bgm:
+            self.instant_switch_bgm(bgm)
+            return
 
-def switch_bgm(bgm):
-    global cur_bgm, bgm_next, bgm_switching
+        if bgm is self.cur_bgm:
+            return 
 
-    if bgm is cur_bgm:
-        return
+        self.volume = LinearInterp(1.0, 0.0, 1.0)
 
-    if not cur_bgm:
-        instant_switch_bgm(bgm)
+        self.bgm_next = bgm
+        if not self.bgm_switching:
+            self.bgm_switching = True
+            pyglet.clock.schedule_interval(self._set_vol, 0.1)
+            pyglet.clock.schedule_once(self._bgm_fade_out_done, 1.0)
 
-    else:
-        bgm_next = bgm
-        if not bgm_switching:
-            bgm_switching = True
-            pyglet.clock.schedule_interval(_bgm_switcher, 0.1)
+    def _bgm_fade_out_done(self, _=None):
+        pyglet.clock.unschedule(self._set_vol)
+        self.bgm_player.next()
+        self.bgm_player.queue(self.bgm_next())
+        self.volume = 1.0
+        self._set_vol()
+        self.bgm_player.play()
+        self.bgm_switching = False
+        self.cur_bgm = self.bgm_next
+        self.bgm_next = None
 
-def instant_switch_bgm(bgm):
-    global vol, bgm_next
-    pyglet.clock.unschedule(_bgm_switcher)
-    bgm_next = bgm
-    vol = 0.0
-    _bgm_switcher(0)
+    def instant_switch_bgm(self, bgm):
+        pyglet.clock.unschedule(self._bgm_fade_out_done)
+        self.bgm_next = bgm
+        if not self.muted:
+            self._bgm_fade_out_done()
 
-def mute():
-    options.mute = True
-    _set_vol()
+    def mute(self):
+        self.muted = True
+        self.volume = 0.0
+        self.bgm_player.pause()
+        pyglet.clock.unschedule(self._set_vol)
+        pyglet.clock.unschedule(self._bgm_fade_out_done)
+        self.bgm_next = self.cur_bgm
+        self.cur_bgm = None
 
-def unmute():
-    options.mute = False
-    _set_vol(1.0)
+    def unmute(self):
+        self.muted = False
+        self.bgm_next and self.instant_switch_bgm(self.bgm_next)
 
-def set_volume(vol):
-    options.bgm_vol = vol
-    _set_vol(vol)
+    def play(self, snd):
+        snd.play()
 
-def play(snd):
-    snd.play()
+    def set_volume(self, vol):
+        self.bgm_volume = vol
+        self._set_vol()
+
+    def _set_vol(self, _=None):
+        self.bgm_player.volume = self.volume * self.bgm_volume

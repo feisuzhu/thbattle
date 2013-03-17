@@ -6,7 +6,9 @@ from pyglet.window import mouse
 from client.ui.base import Control, ui_message, Overlay, process_msg
 from client.ui.controls import *
 from client.ui import resource as common_res
-from client.ui import shaders, soundmgr
+from client.ui import shaders
+from client.ui.soundmgr import SoundManager
+
 import resource as gres
 from utils import IRP, hook
 
@@ -262,7 +264,7 @@ class THBattleUI(Control):
             parent=self, x=161, y=9, width=70, height=22*6-4
         )
 
-        soundmgr.switch_bgm(gres.bgm_game)
+        SoundManager.switch_bgm(gres.bgm_game)
 
     def player2portrait(self, p):
         for port in self.char_portraits:
