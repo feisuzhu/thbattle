@@ -2,15 +2,12 @@
 *~
 *.pyc
 *.pyo
-*_custom.py
 current_version
 update_info.json
 client_log.txt
-NO_UPDATE
-TESTING
+user_settings.json
 s
 c
 cc
 d
-last_id
 tags

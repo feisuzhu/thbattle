@@ -9,6 +9,7 @@ import  client.ui.resource as common_res
 from client.core import Executive
 from pyglet.text import Label
 from utils import Rect, rect_to_dict as r2d, BatchList, textsnap
+from user_settings import UserSettings
 
 import logging
 log = logging.getLogger('UI_Screens')
@@ -239,27 +240,13 @@ class LoginScreen(Screen):
             L(u'用户名：', 368 - 350, 286 - 165)
             L(u'密码：', 368 - 350, 250 - 165) 
 
-            from settings import UPDATE_BASE
-            import os
-            path = os.path.join(UPDATE_BASE, 'last_id')
-            if os.path.exists(path):
-                myid = open(path, 'r').readline().strip().decode('utf-8')
-            else:
-                myid = u'无名の罪袋'
-            
-            path2 = os.path.join(UPDATE_BASE, 'last_pass')
-            if os.path.exists(path2):
-                mypass = open(path2, 'r').readline().strip().decode('utf-8')
-            else:
-                mypass = u''
-
             self.txt_username = TextBox(
                 parent=self, x=438-350, y=282-165, width=220, height=20,
-                text=myid
+                text=UserSettings.last_id,
             )
             self.txt_pwd = PasswordTextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
-                text=mypass
+                text='',
             )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',
@@ -300,13 +287,9 @@ class LoginScreen(Screen):
 
     def on_message(self, _type, *args):
         if _type == 'auth_success':
-            from settings import UPDATE_BASE
-            import os
-            path = os.path.join(UPDATE_BASE, 'last_id')
-            with open(path, 'w') as f:
-                f.write(self.dialog.txt_username.text.encode('utf-8'))
-
+            UserSettings.last_id = self.dialog.txt_username.text
             GameHallScreen().switch()
+
         elif _type == 'auth_failure':
             log.error('Auth failure')
             status = args[0]

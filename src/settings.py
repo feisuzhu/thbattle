@@ -44,7 +44,7 @@ UPDATE_IGNORES = re.compile(r'''
         | ^.+\.py[co]$
         | ^.*~$
         | ^.*_custom\..{2,4}$
-        | ^last_id$
+        | ^user_settings.json$
         | ^cc?$
         | ^[sd]$
         | ^\.
