@@ -21,6 +21,7 @@ from account import Account
 
 from collections import deque
 
+
 class ChatBoxFrame(Frame):
     history_limit = 1000
     history = deque([None] * history_limit)
@@ -44,16 +45,18 @@ class ChatBoxFrame(Frame):
         def on_text_motion(motion):
             hist = self.history
             cursor = self.history_cursor
+            box = self.inputbox
             from pyglet.window import key
             if motion == key.MOTION_UP:
                 cursor += 1
                 if not cursor:
-                    self.last_input = self.inputbox.text
+                    self.last_input = box.text
 
                 text = hist[cursor]
                 if text:
                     self.history_cursor = cursor
-                    self.inputbox.text = text
+                    box.text = text
+                    box.caret.position = len(text)
 
             if motion == key.MOTION_DOWN:
                 if cursor < 0: return
@@ -61,13 +64,14 @@ class ChatBoxFrame(Frame):
 
                 if cursor < 0:
                     self.history_cursor = -1
-                    self.inputbox.text = self.last_input
+                    box.text = self.last_input
 
                     return
 
                 text = hist[cursor]
                 if text:
-                    self.inputbox.text = text
+                    box.text = text
+                    box.caret.position = len(text)
                     self.history_cursor = cursor
                 else:
                     self.history_cursor = -1
