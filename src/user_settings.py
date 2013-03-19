@@ -21,7 +21,8 @@ class UserSettings(dict):
         self[name] = v
 
     def add_setting(self, name, default):
-        self[name] = default
+        if name not in self:
+            self[name] = default
 
     def save(self):
         with open(self._get_conf_name(), 'w') as f:
