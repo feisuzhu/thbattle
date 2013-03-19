@@ -3079,6 +3079,12 @@ class JollyDrawCard:
         )
 
 class JollyHandler:
+    def choose_card_text(g, act, cards):
+        if cards:
+            return (False, u'请不要选择牌！')
+
+        return (True, u'(～￣▽￣)～')
+
     # choose_players
     def target(pl):
         if not pl:

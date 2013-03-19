@@ -39,6 +39,9 @@ class InevitableAttack(Attack):
 class FreeAttackSkill(Skill):
     associated_action = None
     target = t_None
+    @staticmethod
+    def is_valid(src, tl):
+        return True
 
 
 @register_eh
@@ -72,9 +75,15 @@ class AttackCardHandler(EventHandler):
         elif evt_type == 'action_can_fire' and isinstance(act[0], ActionStageLaunchCard):
             lc, rst = act
             from .definition import AttackCard
-            if lc.source.has_skill(FreeAttackSkill): return act
-            if lc.card.is_card(AttackCard) and lc.source.tags['attack_num'] <= 0:
-                return (lc, False)
+            if lc.card.is_card(AttackCard):
+                src = lc.source
+                tl = lc.target_list
+                if any(s.is_valid(src, tl)
+                       for s in src.get_skills(FreeAttackSkill)):
+                    return act
+                
+                if src.tags['attack_num'] <= 0:
+                    return (lc, False)
 
         return act
 

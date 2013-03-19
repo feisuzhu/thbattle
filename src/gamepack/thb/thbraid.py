@@ -29,16 +29,12 @@ def game_action(cls):
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
-        if not isinstance(act, BaseDamage): return act
+        if not isinstance(act, PlayerDeath): return act
+
+        from .actions import DrawCards, DropCards
 
         tgt = act.target
-        if tgt.life > 0: return act
         g = Game.getgame()
-        if g.process_action(TryRevive(tgt, dmgact=act)):
-            return act
-
-        g.process_action(PlayerDeath(act.source, tgt))
-        from .actions import DrawCards, DropCards
 
         # attackers' win
         if tgt is g.mutant:
@@ -154,7 +150,7 @@ class Cooperation(Skill):
 
     def target(self, g, src, tl):
         attackers = g.attackers
-        tl = [p for p in tl if not p.dead and p in attackers]
+        tl = [p for p in tl if not p.dead and p is not src and p in attackers]
         return (tl[-1:], bool(len(tl)))
 
     def check(self):

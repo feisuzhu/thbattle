@@ -22,33 +22,26 @@ def game_eh(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
+        if evt_type != 'action_after': return act
+        if not isinstance(act, PlayerDeath): return act
+        tgt = act.target
+        
         g = Game.getgame()
-        if evt_type == 'action_after' and isinstance(act, BaseDamage):
-            tgt = act.target
-            if tgt.life > 0: return act
-            if not g.process_action(TryRevive(tgt, dmgact=act)):
-                g.process_action(PlayerDeath(act.source, tgt))
 
-                if not tgt.characters:
-                    pl = g.players[:]
-                    pl.remove(tgt)
-                    g.winners = pl
-                    raise GameEnded
-                else:
-                    # character switch occurs in KOFCharacterSwitchHandler
-                    if tgt is g.current_turn:
-                        for a in reversed(g.action_stack):
-                            if isinstance(a, UserAction):
-                                a.interrupt_after_me()
+        if not tgt.characters:
+            pl = g.players[:]
+            pl.remove(tgt)
+            g.winners = pl
+            raise GameEnded
 
-            pl = g.players
-            if pl[0].dropped:
-                g.winners = [pl[1]]
-                raise GameEnded
+        pl = g.players
+        if pl[0].dropped:
+            g.winners = [pl[1]]
+            raise GameEnded
 
-            if pl[1].dropped:
-                g.winners = [pl[0]]
-                raise GameEnded
+        if pl[1].dropped:
+            g.winners = [pl[0]]
+            raise GameEnded
 
         return act
 
@@ -69,8 +62,8 @@ class KOFCharacterSwitchHandler(EventHandler):
         for p in [p for p in g.players if p.dead and p.characters]:
             g.next_character(p)
             g.update_event_handlers()
-            g.process_action(DrawCards(p, 4))
             p.dead = False
+            g.process_action(DrawCards(p, 4))
             g.emit_event('kof_next_character', p)
 
 
