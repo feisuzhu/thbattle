@@ -151,9 +151,43 @@ def vol(kind, val):
 def cls(frame):
     frame.cls()
 
+
+@command(u'存储设置', u'修改存储')
+@argtypes(optional(str), optional(str))
+@argdesc(u'[<分类名>', u'[on||off||show]]')
+def save(ctg, stat):
+    from user_settings import UserSettings as us
+    try:
+        stat = { 'on': True, 'off': False, None: None, 'show': 2 }[stat]
+    except KeyError:
+        help('save')
+
+    def msg(ctg, detail = False):
+        a = u'已' if ctg in us.saves else u'未'
+        if detail:
+            d = u'分类【%s】：%s\n' % (ctg, us.categories[ctg].description)
+        else:
+            d = u''
+        return d + u'分类【%s】%s设置为保存。' % (ctg, a)
+
+    if ctg:
+        if ctg not in us.categories:
+            return u'分类【%s】不存在。' % ctg
+
+        if stat == 2:  # show
+            return msg(ctg, True)
+
+        if stat is not None:
+            us.save_category(ctg, stat)
+            us.save()
+
+        return msg(ctg)
+
+    return u'\n'.join([msg(ctg) for ctg in us.categories if ctg])
+
 @command(u'帮助', u'查看命令的帮助', cmd='?')
 @argtypes(optional(str))
-@argdesc(u'<命令>')
+@argdesc(u'[<命令>]')
 def help(cmdname = None):
     cmd = registered_commands.get(cmdname)
     if not cmd:

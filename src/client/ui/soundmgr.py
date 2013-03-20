@@ -13,10 +13,13 @@ class SoundManager(object):
     volume_factor = InterpDesc('_volume_factor')  # 音量系数
     def __init__(self):
         us = UserSettings
-        us.add_setting('bgm_muted', False)
-        us.add_setting('se_muted', False)
-        us.add_setting('bgm_vol', 1.0)
-        us.add_setting('se_vol', 1.0)
+        us.add_category('sound', u'音量设置')
+        us.add_settings('sound',
+            bgm_muted = False,
+            se_muted = False,
+            bgm_vol = 1.0,
+            se_vol = 1.0,
+        )
         self.cur_bgm = None
         self.bgm_next = None
         self.bgm_switching = False
