@@ -809,3 +809,25 @@ class Pindian(GenericAction):
         if not (tgt.cards or tgt.showncards): return False
         return True
 
+
+@register_eh
+class DyingHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if not evt_type == 'action_after': return act
+        if not isinstance(act, BaseDamage): return act
+
+        tgt = act.target
+        if tgt.dead or tgt.life > 0: return act
+
+        g = Game.getgame()
+        if g.process_action(TryRevive(tgt, dmgact=act)):
+            return act
+
+        g.process_action(PlayerDeath(act.source, tgt))
+
+        if tgt is g.current_turn:
+            for a in reversed(g.action_stack):
+                if isinstance(a, UserAction):
+                    a.interrupt_after_me()
+
+        return act

@@ -29,16 +29,11 @@ def game_action(cls):
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
-        if not isinstance(act, BaseDamage): return act
+        if not isinstance(act, PlayerDeath): return act
+
+        from .actions import DrawCards, DropCards
 
         tgt = act.target
-        if tgt.life > 0: return act
-        g = Game.getgame()
-        if g.process_action(TryRevive(tgt, dmgact=act)):
-            return act
-
-        g.process_action(PlayerDeath(act.source, tgt))
-        from .actions import DrawCards, DropCards
 
         # attackers' win
         if tgt is g.mutant:

@@ -274,6 +274,7 @@ def exit_game(user, drops=False):
             log.info('player dropped')
             if g.can_leave(p):
                 user.write(['game_left', None])
+                p.leave = True
                 p.fleed = False
             else:
                 if not drops:
@@ -281,6 +282,8 @@ def exit_game(user, drops=False):
                     p.fleed = True
                 else:
                     p.fleed = False
+
+                p.leave = False
                 #user.account.other['games'] += 1
                 #user.account.other['drops'] += 1
             p.client.gbreak() # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
@@ -463,19 +466,20 @@ def end_game(g):
 
     _archive_game(g)
 
-    all_dropped = all(p.dropped or p.fleed for p in pl)
+    all_dropped = all(p.dropped for p in pl)
     # TODO: likely there is something wrong, log it
 
     for p in pl:
-        p.client.gclear() # clear game data
         acc = p.client.account
         if not all_dropped:
             acc.other['games'] += 1
-            if p.dropped or p.fleed:
+            if p.dropped and not p.leave:
                 acc.other['drops'] += 1
             else:
                 s = 5 + bonus if p in winners else 5
                 acc.other['credits'] += int(s * rate)
+        
+        p.client.gclear()  # clear game data
 
         if p.dropped:
             try:
