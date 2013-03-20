@@ -51,25 +51,14 @@ class UIMetaDescriptor(object):
         return UIMetaAccesser(obj, cls)
 
 
-class UIMetaClass(dict):
-    def __init__(self, clsname, bases, _dict):
-        dict.__init__(self)
-        self.update(__metaclass__(clsname, bases, _dict))
-
 def gen_metafunc(_for):
     def metafunc(clsname, bases, _dict):
         meta_for = getattr(_for, clsname)
         meta_for.ui_meta = UIMetaDescriptor()
         if meta_for in metadata:
             raise Exception('%s ui_meta redefinition!' % meta_for)
-
-        d = UIMetaClass.__new__(UIMetaClass)
-        for b in reversed(bases): d.update(b.__dict__)
-        d.update(_dict)
         
-        metadata[meta_for] = d
-        
-        return d
+        metadata[meta_for] = _dict
 
     return metafunc
 
@@ -229,7 +218,7 @@ class THBattleIdentity:
 
     description = D % (4, 2, 1)
 
-class THBattleIdentity5(THBattleIdentity):
+class THBattleIdentity5:
     name = u'符斗祭 - 标准5人身份场'
     logo = gres.thblogo_5id
 
