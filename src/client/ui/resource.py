@@ -1,148 +1,76 @@
 import pyglet
-from pyglet.resource import Loader, ResourceNotFoundException
+from pyglet.resource import Loader
+import zipfile
+
+from client.ui.resloader import *
+from client.ui.resloader import _ResourceDesc
 import os
-from utils import DataHolder
-import itertools
-import Image
 
-texbin = pyglet.image.atlas.TextureBin(512, 512)
-dummy_img = pyglet.image.ImageData(1, 1, 'RGBA', '\x00'*4)
 
-class ResLoader(Loader):
-    def __init__(self, path):
-        global texbin
-        self.texbin = texbin
-        dn = os.path.dirname(path)
-        dn = os.path.realpath(dn)
-        dn = os.path.join(dn, 'res')
-        self.respath = dn
-        pyglet.resource.Loader.__init__(self, dn)
+respath = os.path.join(__file__, 'res')
 
-    def filename(self, name):
-        fn, ext = os.path.splitext(name)
-        custom_name = fn + '_custom' + ext
-        if os.path.exists(os.path.join(self.respath, custom_name)):
-            return custom_name
-        else:
-            return name
+# special case for font
+ldr = Loader(respath)
+fontzip = zipfile.ZipFile(ldr.file('font.zip'))
+font = {
+    fn: fontzip.open(fn).read()
+    for fn in fontzip.namelist()
+}
+fontzip.close()
+del fontzip, ldr
 
-    def file(self, name, mode='rb'):
-        return Loader.file(self, self.filename(name), mode)
 
-    def __enter__(self):
-        tb = self.texbin
-        ldr = self
+class white(_ResourceDesc):
+    __slots__ = ('name', )
+    def load(self, loader):
+        atlas = loader.get_atlas()
+        white = atlas.add(pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64))
+        c = white.tex_coords
+        f = c[0:3]; t = c[6:9]
+        white.tex_coords = ((f[0] + t[0]) / 2, (f[1] + t[1]) / 2, 0) * 4
+        return white
 
-        def img(fn):
-            f = self.file(fn)
-            i = pyglet.image.load(fn, file=f)
-            f.close()
-            return i
 
-        def tx(fn):
-            return tb.add(img(fn))
+resource = Resource(respath, [
+    bgm('bgm_hall'),
 
-        def tx_with_grayed(fn, tb=tb):
-            i = Image.open(ldr.file(fn))
-            w, h = i.size
-            colored = i.convert('RGBA').tostring()
-            grayed = i.convert('LA').convert('RGBA').tostring()
-            colored = pyglet.image.ImageData(w, h, 'RGBA', colored, -w*4)
-            grayed = pyglet.image.ImageData(w, h, 'RGBA', grayed, -w*4)
-            tex = tb.add(colored)
-            tex.grayed = tb.add(grayed)
-            return tex
+    texture('bg_login'),
+    texture('bg_gamehall'),
+    texture('bg_ingame'),
+    texture('worldmap'),
+    texture('bg_gamelist'),
+    texture('bg_eventsbox'),
+    texture('bg_chatbox'),
 
-        def anim(fn, durlist, loop=False):
-            f = self.file(fn)
-            img = pyglet.image.load(fn, file=f)
-            f.close()
+    img('imagesel_shine'),
 
-            n = len(durlist)
+    anim('actor_frame', [50] * 9, True),
+    anim('turn_frame', [50] * 9, True),
 
-            ig = pyglet.image.ImageGrid(img, 1, n)
-            frames = []
-            for i, (fi, dur) in enumerate(zip(ig, durlist)):
-                f = pyglet.image.AnimationFrame(fi, dur/1000.0)
-                frames.append(f)
-            if not loop:
-                frames.append(
-                    pyglet.image.AnimationFrame(dummy_img, None)
-                )
-            a = pyglet.image.Animation(frames)
-            a.add_to_texture_bin(tb)
-            return a
+    texture('ray'),
 
-        return locals()
+    subdir('pbar', [img(i) for i in [
+        'bl', 'bm', 'br',
+        'bfl', 'bfm', 'bfr',
+        'sl', 'sm', 'sr',
+        'sfl', 'sfm', 'sfr',
+    ]]),
 
-    def __exit__(self, *exc_args):
-        pass
+    subdir('buttons', [
+        [
+            img_grid('closebtn_' + i, 1, 4)
+            for t in ('blue', 'red', 'green', 'orange')
+        ],
+        img('port_showncard'),
+        img_grid('serverbtn', 1, 4),
+    ])
 
-with ResLoader(__file__) as args:
-    locals().update(args)
 
-    import zipfile
-    fontzip = zipfile.ZipFile(ldr.file('font.zip'))
-    font = {
-        fn: fontzip.open(fn).read()
-        for fn in fontzip.namelist()
-    }
-    fontzip.close()
-    del zipfile, fontzip
+    subdir('sound', [
+        sound('input'),
+    ]),
 
-    fname = ldr.filename
+    img_grid('suit12'), img_grid('suit16'),
 
-    bgm_hall = lambda: ldr.media(fname('bgm_hall.ogg'))
-
-    bg_login = ldr.texture(fname('bg_login.png'))
-    bg_gamehall = ldr.texture(fname('bg_gamehall.png'))
-    bg_ingame = ldr.texture(fname('bg_ingame.png'))
-    worldmap = ldr.texture(fname('worldmap.png'))
-
-    bg_gamelist = ldr.texture(fname('bg_gamelist.png'))
-    bg_eventsbox = ldr.texture(fname('bg_eventsbox.png'))
-    bg_chatbox = ldr.texture(fname('bg_chatbox.png'))
-
-    imagesel_shine = tx('imagesel_shine.png')
-
-    actor_frame = anim('actor.png', [50] * 9, True)
-    turn_frame = anim('turn.png', [50] * 9, True)
-
-    ray = ldr.texture(fname('ray.png'))
-
-    pbar = DataHolder()
-    for fn in itertools.product(['b', 'bf', 's', 'sf'], ['l', 'm', 'r']):
-        fn = ''.join(fn)
-        setattr(pbar, fn, tx('pbar/%s.png' % fn))
-
-    buttons = DataHolder()
-    for t in ('blue', 'red', 'green', 'orange'):
-        setattr(buttons, 'close_%s' % t, [
-            tb.add(i) for i in
-            pyglet.image.ImageGrid(img('buttons/closebtn_%s.png' % t), 1, 4)
-        ])
-
-    buttons.port_showncard = [
-        tb.add(i) for i in
-        pyglet.image.ImageGrid(img('buttons/port_showncard.png'), 1, 4)
-    ]
-
-    buttons.serverbtn = [
-        tb.add(i) for i in
-        pyglet.image.ImageGrid(img('buttons/serverbtn.png'), 1, 4)
-    ]
-
-    sound = DataHolder()
-    sound.input = ldr.media(fname('se/se_bonus.ogg'), streaming=False)
-
-    suit12 = pyglet.image.ImageGrid(img('suit12.png'), 1, 4)
-    suit16 = pyglet.image.ImageGrid(img('suit16.png'), 1, 4)
-
-    white = tb.add(pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64))
-    c = white.tex_coords
-    f = c[0:3]; t = c[6:9]
-    white.tex_coords = ((f[0] + t[0]) / 2, (f[1] + t[1]) / 2, 0) * 4
-    del c, f, t
-
-    for k in args.keys(): del k
-    del args
+    white('white'),
+])

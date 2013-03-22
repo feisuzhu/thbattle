@@ -1,31 +1,18 @@
-import pyglet
-import os
+# -*- coding: utf-8 -*-
+from client.ui.resloader import *
 
-from client.ui.resource import ResLoader
 
-ldr = ResLoader(__file__)
-with ldr as args:
-    locals().update(args)
+resource = Resource([
+    bgm('bgm_game'),
 
-    bgm_game = lambda: ldr.media(ldr.filename('bgm_game.ogg'))
+    [img_with_grayed('thblogo_' + i) for i in [
+        '3v3', '8id', '5id', 'kof', 'raid'.
+    ]],
 
-    thblogo_3v3 = tx_with_grayed('thblogo_3v3.png')
-    thblogo_8id = tx_with_grayed('thblogo_8id.png')
-    thblogo_5id = tx_with_grayed('thblogo_5id.png')
-    thblogo_kof = tx_with_grayed('thblogo_kof.png')
-    thblogo_raid = tx_with_grayed('thblogo_raid.png')
+    img('win'), img('lose'),
+    anim('hurt', [50, 50, 50, 50, 200, 30, 30, 30, 30, 2000]),
 
-    win = tx('win.png')
-    lose = tx('lose.png')
-
-    hurt = anim('hurt.png', [50, 50, 50, 50, 200, 30, 30, 30, 30, 2000])
-
-    card_atlas = pyglet.image.atlas.TextureAtlas(1024, 1024)
-
-    def card_tx(fn):
-        return card_atlas.add(img(fn))
-
-    cards = (
+    [img('card_' + i, 'card') for i in [
         'shinesoft', 'hidden', 'question', 'showncardtag',
 
         'attack', 'graze', 'heal', 'demolition', 'reject', 'sealarray',
@@ -48,45 +35,29 @@ with ldr as args:
         'deathsickle_small', 'keystone_small', 'witchbroom_small',
         'yinyangorb_small', 'suwakohat_small', 'phantom_small',
         'icewing_small', 'grimoire_small',
-    )
+    ]],
 
-    for cn in cards:
-        tex = card_tx('card_%s.png' % cn)
-        exec 'card_%s = tex' % cn in locals()
 
-    scardframe_normal = card_tx('scardframe_normal.png')
-    scardframe_selected = card_tx('scardframe_selected.png')
+    img('scardframe_normal', 'card'),
+    img('scardframe_selected', 'card'),
 
-    cardnumbers = pyglet.image.ImageGrid(img('cardnum.png'), 2, 13)
-    cardnumbers = [card_atlas.add(t) for t in cardnumbers]
+    img_grid('cardnum', 2, 13, 'card'),
+    img_grid('suit', 4, 'card'),
+    img_grid('smallsuit', 1, 4, 'card'),
+    img_grid('smallnum'), 2, 14, 'card'),
 
-    suit = pyglet.image.ImageGrid(img('suit.png'), 1, 4)
-    suit = [card_atlas.add(t) for t in suit]
+    anim('tag_sealarray', [83]*36, True),
+    anim('tag_wine', [150]*3, True),
+    anim('tag_lunaclock', [200]*10, True),
+    img('tag_action'),
+    img('tag_attacked'),
+    img('tag_flandrecs'),
+    img('tag_frozenfrog'),
+    img('tag_gameintro'),
+    img('tag_sinsack'),
+    img_grid('tag_faiths', 1, 7),
 
-    smallsuit = pyglet.image.ImageGrid(img('smallsuit.png'), 1, 4)
-    smallsuit = [card_atlas.add(t) for t in smallsuit]
-
-    smallnum = pyglet.image.ImageGrid(img('cardnum_small.png'), 2, 14)
-    smallnum = [card_atlas.add(t) for t in smallnum]
-
-    del card_tx
-
-    tag_flandrecs = anim('tag_flandrecs.png', [10000], True)
-    tag_attacked = anim('tag_attacked.png', [10000], True)
-    tag_sealarray = anim('tag_sealarray.png', [83]*36, True)
-    tag_sinsack = anim('tag_sinsack.png', [10000], True)
-    tag_wine = anim('tag_wine.png', [150]*3, True)
-    tag_frozenfrog = anim('tag_frozenfrog.png', [10000], True)
-    tag_lunaclock = anim('tag_lunaclock.png', [200]*10, True)
-    tag_action = tx('tag_action.png')
-    tag_gameintro = tx('tag_gameintro.png')
-
-    tag_faiths = pyglet.image.ImageGrid(img('tag_faiths.png'), 1, 7)
-    tag_faiths = [card_atlas.add(t) for t in tag_faiths]
-
-    port_atlas = pyglet.image.atlas.TextureAtlas(1024, 1024)
-
-    ports = ['%s_port' % p  for p in [
+    [img_with_grayed('%s_port' % p, 'portrait') for p in [
         'parsee', 'youmu', 'koakuma', 'marisa', 'daiyousei',
         'flandre', 'nazrin', 'alice', 'yugi', 'tewi',
         'patchouli', 'reimu', 'eirin', 'kogasa', 'shikieiki',
@@ -96,30 +67,20 @@ with ldr as args:
         'seiga',
 
         'remilia_ex', 'remilia_ex2',
-    ]]
+    ]],
 
-    from options import options
-    if options.testing:
-        ports.append('dummy_port')
+    img('dummy_port', 'portrait') if options.testing else dummy(),
 
-    del options
+    img('hp', 'portrait'),
+    img('hp_bg', 'portrait'),
 
-    ports.extend([
-        'hp', 'hp_bg',
-    ])
+    img_grid('num', 1, 10, 'portrait'),
 
-    for p in ports:
-        tex = tx_with_grayed('%s.png' % p, port_atlas)
-        exec '%s = tex' % p in locals()
+    texture('remilia_ex_wallpaper'),
 
-    num = pyglet.image.ImageGrid(img('num.png'), 1, 10)
-    num = [port_atlas.add(t) for t in num]
+    bgm('bgm_remilia_ex'),
 
-    remilia_ex_wallpaper = ldr.texture(ldr.filename('remilia_ex_wallpaper.png'))
-    bgm_remilia_ex = lambda: ldr.media(ldr.filename('bgm_remilia_ex.ogg'))
-
-    class sound:
-        hit = ldr.media(ldr.filename('se/hit.ogg'), streaming=False)
-
-    for k in args.keys(): del k
-    del args
+    subdir('sound', [
+        sound('hit'),
+    ]),
+])
