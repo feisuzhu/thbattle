@@ -5,11 +5,11 @@ from pyglet import graphics
 from pyglet.window import mouse
 from client.ui.base import Control, ui_message, Overlay, process_msg
 from client.ui.controls import *
-from client.ui import resource as common_res
+from client.ui.resource import resource as common_res
 from client.ui import shaders
 from client.ui.soundmgr import SoundManager
 
-import resource as gres
+from resource import resource as gres
 from utils import IRP, hook
 
 from .game_controls import *

@@ -8,7 +8,7 @@ from game.autoenv import Game
 G = Game.getgame
 
 import types
-import resource as gres
+from resource import resource as gres
 from client.ui import resource as cres
 
 from utils import DataHolder, BatchList

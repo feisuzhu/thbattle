@@ -5,14 +5,15 @@ from pyglet import graphics
 from pyglet.window import mouse, key
 from pyglet.graphics import OrderedGroup
 from pyglet.sprite import Sprite
+from client.ui import shaders
 from client.ui.base import *
 from client.ui.base import ui_message, ui_schedule
 from client.ui.base.shader import ShaderGroup, ShaderUniformGroup
 from client.ui.base.interp import *
-from client.ui import resource as common_res, shaders
+from client.ui.resource import resource as common_res
 from client.core import Executive
 from utils import Rect, textsnap, flatten, rectv2f, rrectv2f
-from utils import pyperclip
+from utils import pyperclip, instantiate
 
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
@@ -22,6 +23,7 @@ import logging
 log = logging.getLogger('UI_Controls')
 
 class Colors:
+    @instantiate
     class green:
         # Frame
         frame = 49, 69, 99
@@ -30,7 +32,7 @@ class Colors:
         light = 206, 239, 156
         caption = 255, 255, 255
         caption_shadow = heavy
-        close_btn = common_res.buttons.close_green
+        close_btn = property(lambda _: common_res.buttons.close_green)
         # Button
         btn_frame = heavy
         fill_up = 173, 207, 140
@@ -39,6 +41,7 @@ class Colors:
         fill_botline = 222, 239, 206
         text = frame
 
+    @instantiate
     class red:
         # Frame
         frame = 171, 68, 81
@@ -47,7 +50,7 @@ class Colors:
         light = 254, 221, 206
         caption = 255, 255, 255
         caption_shadow = frame
-        close_btn = common_res.buttons.close_red
+        close_btn = property(lambda _: common_res.buttons.close_red)
         # Button
         btn_frame = frame
         fill_up = 0xee, 0x89, 0x78
@@ -56,6 +59,7 @@ class Colors:
         fill_botline = fill_down
         text = frame
 
+    @instantiate
     class blue:
         # Frame
         frame = 0x31, 0x55, 0x97
@@ -64,7 +68,7 @@ class Colors:
         light = 0xa3, 0xd1, 0xfa
         caption = frame
         caption_shadow = 0xe5, 0xef, 0xfb
-        close_btn = common_res.buttons.close_blue
+        close_btn = property(lambda _: common_res.buttons.close_blue)
         # Button
         btn_frame = 0x54, 0x67, 0xa6
         fill_up = 0x90, 0xbf, 0xef
@@ -73,6 +77,7 @@ class Colors:
         fill_botline = 0xc5, 0xf2, 0xff
         text = frame
 
+    @instantiate
     class orange:
         # Frame
         frame = 0x88, 0x66, 0x66
@@ -81,7 +86,7 @@ class Colors:
         light = 0xff, 0xee, 0xaa
         caption = 255, 255, 255
         caption_shadow = frame
-        close_btn = common_res.buttons.close_orange
+        close_btn = property(lambda _: common_res.buttons.close_orange)
         # Button
         btn_frame = frame
         fill_up = medium
@@ -90,9 +95,10 @@ class Colors:
         fill_botline = light
         text = frame
 
+    @instantiate
     class gray:
         # Frame
-        close_btn = common_res.buttons.close_blue
+        close_btn = property(lambda _: common_res.buttons.close_blue)
         btn_frame  =  104, 104, 104
         caption  =  81, 81, 81
         caption_shadow  =  237, 237, 237
@@ -1556,21 +1562,36 @@ class ProgressBar(Control):
             w = (width - self.core_w_correct) * value
             if w: self._drawit(self.offs_x, self.offs_y, w, *self.pic_core)
 
+
 class BigProgressBar(ProgressBar):
-    r = common_res.pbar
-    pic_frame = (r.bfl, r.bfm, r.bfr)
-    pic_core = (r.bl, r.bm, r.br)
     offs_x, offs_y = 9, 9
     core_w_correct = 18
-    del r
+
+    @property
+    def pic_frame(self):
+        r = common_res.pbar
+        return r.bfl, r.bfm, r.bfr
+
+    @property
+    def pic_core(self):
+        r = common_res.pbar
+        return r.bl, r.bm, r.br
+
 
 class SmallProgressBar(ProgressBar):
-    r = common_res.pbar
-    pic_frame = (r.sfl, r.sfm, r.sfr)
-    pic_core = (r.sl, r.sm, r.sr)
     offs_x, offs_y = 8, 8
     core_w_correct = 16
-    del r
+
+    @property
+    def pic_frame(self):
+        r = common_res.pbar
+        return r.sfl, r.sfm, r.sfr
+
+    @property
+    def pic_core(self):
+        r = common_res.pbar
+        return r.sl, r.sm, r.sr
+
 
 class ConfirmButtons(Control):
     def __init__(self, buttons=((u'确定', True), (u'取消', False)),

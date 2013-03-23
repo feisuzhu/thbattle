@@ -7,7 +7,7 @@ from client.ui.resloader import _ResourceDesc
 import os
 
 
-respath = os.path.join(__file__, 'res')
+respath = os.path.join(os.path.dirname(__file__), 'res')
 
 # special case for font
 ldr = Loader(respath)
@@ -23,7 +23,7 @@ del fontzip, ldr
 class white(_ResourceDesc):
     __slots__ = ('name', )
     def load(self, loader):
-        atlas = loader.get_atlas()
+        atlas = Resource.get_atlas()
         white = atlas.add(pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64))
         c = white.tex_coords
         f = c[0:3]; t = c[6:9]
@@ -58,19 +58,19 @@ resource = Resource(respath, [
 
     subdir('buttons', [
         [
-            img_grid('closebtn_' + i, 1, 4)
+            img_grid('close_' + t, 1, 4)
             for t in ('blue', 'red', 'green', 'orange')
         ],
-        img('port_showncard'),
+        img_grid('port_showncard', 1, 4),
         img_grid('serverbtn', 1, 4),
-    ])
+    ]),
 
 
     subdir('sound', [
         sound('input'),
     ]),
 
-    img_grid('suit12'), img_grid('suit16'),
+    imgdata_grid('suit12', 1, 4), imgdata_grid('suit16', 1, 4),
 
     white('white'),
 ])

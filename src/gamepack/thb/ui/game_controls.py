@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from client.ui.base import Control, ui_message
 from client.ui.controls import *
-from client.ui import resource as common_res
-import resource as game_res
+from client.ui.resource import resource as common_res
+from resource import resource as game_res
 from client.ui import shaders
 from game.autoenv import Game
 from .. import actions
@@ -22,8 +22,6 @@ class CardSprite(Control, BalloonPrompt):
     ftanim_cardalpha = InterpDesc('_ftca')
     shine_alpha = InterpDesc('_shine_alpha')
     alpha = InterpDesc('_alpha')
-    img_cardq = game_res.card_question
-    img_cardh = game_res.card_hidden
     width, height = 91, 125
 
     def __init__(self, card, x=0.0, y=0.0, *args, **kwargs):
@@ -61,7 +59,7 @@ class CardSprite(Control, BalloonPrompt):
                 vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
 
                 n, s = cs.number, cs.suit
-                if n: vertices += game_res.cardnumbers[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)
+                if n: vertices += game_res.cardnum[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)
                 if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
 
                 c = (1, 1, 1, aa)
@@ -82,7 +80,7 @@ class CardSprite(Control, BalloonPrompt):
                     vertices += game_res.card_showncardtag.get_t2c4n3v3_vertices(c, ax, ay)
 
                 n, s = cs.number, cs.suit
-                if n: vertices += game_res.cardnumbers[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)
+                if n: vertices += game_res.cardnum[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)
                 if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
 
                 vertices += game_res.card_shinesoft.get_t2c4n3v3_vertices(
@@ -95,7 +93,7 @@ class CardSprite(Control, BalloonPrompt):
             buf[:] = vertices
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
             glInterleavedArrays(GL_T2F_C4F_N3F_V3F, 0, buf)
-            with game_res.card_atlas.texture:
+            with game_res.get_atlas('card').texture:
                 glDrawArrays(GL_QUADS, 0, n/12)
             glPopClientAttrib()
 
@@ -161,18 +159,6 @@ class HandCardArea(Control):
     def __init__(self, fold_size=5, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.fold_size = fold_size
-
-    '''
-    def draw(self):
-        glColor4f(1,1,1,1)
-        if not self.control_list: return
-        with game_res.card_atlas.texture:
-            for cs in self.control_list:
-                glPushMatrix()
-                glTranslatef(cs.x, cs.y, 0)
-                cs.draw_vertices()
-                glPopMatrix()
-    '''
 
     batch_draw = cardarea_batch_draw
 
@@ -253,21 +239,11 @@ class PortraitCardArea(Control):
     def _on_cardanimdone(self, card, desc):
         card.delete()
 
+
 class DropCardArea(Control):
     def __init__(self, fold_size=5, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.fold_size = fold_size
-
-    '''
-    def draw(self):
-        glColor4f(1,1,1,1)
-        if not self.control_list: return
-        with game_res.card_atlas.texture:
-            for cs in self.control_list:
-                glPushMatrix()
-                glTranslatef(cs.x, cs.y, 0)
-                cs.draw_vertices()
-                glPopMatrix()'''
 
     batch_draw = cardarea_batch_draw
 
@@ -310,7 +286,6 @@ class DropCardArea(Control):
         return self.control_frompoint1(x, y)
 
 class Ray(Control):
-    img_ray = common_res.ray
     scale = InterpDesc('_scale')
     alpha = InterpDesc('_alpha')
 
@@ -319,7 +294,7 @@ class Ray(Control):
         from math import sqrt, atan2, pi
         self.x, self.y = x0, y0
         dx, dy = x1 - x0, y1 - y0
-        scale = sqrt(dx*dx+dy*dy) / self.img_ray.width
+        scale = sqrt(dx*dx+dy*dy) / common_res.ray.width
         self.angle = atan2(dy, dx) / pi * 180
         self.scale = SineInterp(0.0, scale, 0.4)
         self.alpha = ChainInterp(
@@ -332,9 +307,9 @@ class Ray(Control):
         glPushMatrix()
         glRotatef(self.angle, 0., 0., 1.)
         glScalef(self.scale, 1., 1.)
-        glTranslatef(0., -self.img_ray.height/2, 0.)
+        glTranslatef(0., -common_res.ray.height/2, 0.)
         glColor4f(1., 1., 1., self.alpha)
-        self.img_ray.blit(0,0)
+        common_res.ray.blit(0,0)
         glPopMatrix()
 
     def hit_test(self, x, y):
@@ -446,7 +421,7 @@ class SmallCardSprite(Control, BalloonPrompt):
         glColor3f(1., 1., 1.)
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         glInterleavedArrays(GL_T4F_V4F, 0, buf)
-        with game_res.card_atlas.texture:
+        with game_res.get_atlas('card').texture:
             glDrawArrays(GL_QUADS, 0, n/8)
 
         glPopClientAttrib()

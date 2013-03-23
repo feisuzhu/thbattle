@@ -13,20 +13,38 @@ class _ResourceDesc(object):
     __defaults__ = {}
     def __init__(self, *args):
         d = dict(self.__defaults__)
-        for k, v in self.__defaults__:
+        for k, v in self.__defaults__.items():
             setattr(self, k, v)
 
         for s, v in zip(self.__slots__, args):
-            setattr(self, k, v)
+            setattr(self, s, v)
+
+
+class dummy(_ResourceDesc):
+    __slots__ = ('name', )
+    def __init__(self):
+        self.name = '__dummy__'
+
+    def load(self, loader):
+        pass
 
 
 class imgdata(_ResourceDesc):
     __slots__ = ('name', )
     def load(self, loader):
-        f = loader.file(self.name + '.png')
+        fn = self.name + '.png'
+        f = loader.file(fn)
         i = pyglet.image.load(fn, file=f)
         f.close()
         return i
+
+
+class imgdata_grid(_ResourceDesc):
+    __slots__ = ('name', 'rows', 'columns')
+    def load(self, loader):
+        img = imgdata(self.name).load(loader)
+        img = pyglet.image.ImageGrid(img, self.rows, self.columns)
+        return img
 
 
 class img(_ResourceDesc):
@@ -34,7 +52,7 @@ class img(_ResourceDesc):
     __defaults__ = {'atlas': '__default__'}
     def load(self, loader):
         i = imgdata(self.name).load(loader)
-        atlas = loader.get_atlas(self.atlas)
+        atlas = Resource.get_atlas(self.atlas)
         return atlas.add(i)
 
 
@@ -48,7 +66,7 @@ class img_with_grayed(_ResourceDesc):
         grayed = i.convert('LA').convert('RGBA').tostring()
         colored = pyglet.image.ImageData(w, h, 'RGBA', colored, -w*4)
         grayed = pyglet.image.ImageData(w, h, 'RGBA', grayed, -w*4)
-        atlas = loader.get_atlas(self.atlas)
+        atlas = Resource.get_atlas(self.atlas)
         tex = atlas.add(colored)
         tex.grayed = atlas.add(grayed)
         return tex
@@ -58,9 +76,8 @@ class img_grid(_ResourceDesc):
     __slots__ = ('name', 'rows', 'columns', 'atlas')
     __defaults__ = {'atlas': '__default__'}
     def load(self, loader):
-        img = imgdata(self.name).load(loader)
-        img = pyglet.image.ImageGrid(img, self.rows, self.columns)
-        atlas = loader.get_atlas(self.atlas)
+        img = imgdata_grid(self.name, self.rows, self.columns).load(loader)
+        atlas = Resource.get_atlas(self.atlas)
         img = [atlas.add(t) for t in img]
         return img
 
@@ -71,6 +88,7 @@ class anim(_ResourceDesc):
     dummy_img = pyglet.image.ImageData(1, 1, 'RGBA', '\x00'*4)
     def load(self, loader):
         img = imgdata(self.name).load(loader)
+        durlist = self.durlist
 
         n = len(durlist)
 
@@ -80,12 +98,12 @@ class anim(_ResourceDesc):
             f = pyglet.image.AnimationFrame(fi, dur/1000.0)
             frames.append(f)
 
-        loop or frames.append(
+        self.loop or frames.append(
             pyglet.image.AnimationFrame(self.dummy_img, None)
         )
 
         a = pyglet.image.Animation(frames)
-        atlas = loader.get_atlas(self.atlas)
+        atlas = Resource.get_atlas(self.atlas)
         a.add_to_texture_bin(atlas)
         return a
 
@@ -93,9 +111,7 @@ class anim(_ResourceDesc):
 class texture(_ResourceDesc):
     __slots__ = ('name', )
     def load(self, loader):
-        return loader.texture(
-            loader.filename(self.name + '.png')
-        )
+        return loader.texture(self.name + '.png')
 
 
 class bgm(_ResourceDesc):
@@ -139,12 +155,15 @@ class _Resource(object):
         for desc in desclist:
             res = desc.load(loader)
             setattr(self, desc.name, res)
+    
+    @staticmethod
+    def get_atlas(atlas_name='__default__'):
+        atlas = atlases.get(atlas_name)
+        if not atlas:
+            atlas = pyglet.image.atlas.TextureAtlas(1024, 1024)
+            atlases[atlas_name] = atlas
 
-    @classmethod
-    def load_resources(cls):
-        cls.loaded = True
-        for res in self.__class__.resources:
-            res.load
+        return atlas
 
 
 class Resource(_Resource):
@@ -156,23 +175,21 @@ class Resource(_Resource):
         self.__class__.resources.append(self)
         _Resource.__init__(self, *a)
 
+    @classmethod
+    def load_resources(cls):
+        cls.loaded = True
+        for res in cls.resources:
+            res.load()
+
 
 class ResourceLoader(Loader):
     def filename(self, name):
         fn, ext = os.path.splitext(name)
         custom_name = fn + '_custom' + ext
-        if os.path.exists(os.path.join(self.respath, custom_name)):
+        if os.path.exists(os.path.join(self.path[0], custom_name)):
             return custom_name
         else:
             return name
 
     def file(self, name, mode='rb'):
         return Loader.file(self, self.filename(name), mode)
-    
-    def get_atlas(self, atlas_name='__default__'):
-        atlas = atlases.get(atlas_name)
-        if not atlas:
-            atlas = pyglet.image.atlas.TextureAtlas(1024, 1024)
-            atlases[atlas_name] = atlas
-
-        return atlas

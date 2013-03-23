@@ -1,12 +1,23 @@
 # -*- coding: utf-8 -*-
 from client.ui.resloader import *
+from client.ui.resloader import _ResourceDesc
+from options import options
+import os
+
+respath = os.path.join(os.path.dirname(__file__), 'res')
+
+class ui_meta(_ResourceDesc):
+    __slots__ = ('name', )
+    def load(self, loader):
+        import importlib
+        importlib.import_module('gamepack.thb.ui.ui_meta')
 
 
-resource = Resource([
+resource = Resource(respath, [
     bgm('bgm_game'),
 
     [img_with_grayed('thblogo_' + i) for i in [
-        '3v3', '8id', '5id', 'kof', 'raid'.
+        '3v3', '8id', '5id', 'kof', 'raid',
     ]],
 
     img('win'), img('lose'),
@@ -42,9 +53,9 @@ resource = Resource([
     img('scardframe_selected', 'card'),
 
     img_grid('cardnum', 2, 13, 'card'),
-    img_grid('suit', 4, 'card'),
+    img_grid('suit', 1, 4, 'card'),
     img_grid('smallsuit', 1, 4, 'card'),
-    img_grid('smallnum'), 2, 14, 'card'),
+    img_grid('smallnum', 2, 14, 'card'),
 
     anim('tag_sealarray', [83]*36, True),
     anim('tag_wine', [150]*3, True),
@@ -83,4 +94,6 @@ resource = Resource([
     subdir('sound', [
         sound('hit'),
     ]),
+
+    ui_meta('thb_uimeta'),
 ])

@@ -136,14 +136,14 @@ class AncientPixFont(Font):
     @property
     def suit12(self):
         # Lazy loading
-        from ..resource import suit12
-        return suit12
+        from ..resource import resource
+        return resource.suit12
 
     @property
     def suit16(self):
         # Lazy loading
-        from ..resource import suit16
-        return suit16
+        from ..resource import resource
+        return resource.suit16
 
     def __init__(self, name, size, bold=False, italic=False, dpi=None):
         Font.__init__(self)

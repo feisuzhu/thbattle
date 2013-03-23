@@ -10,7 +10,7 @@ from client.ui.base import *
 from client.ui.base import ui_message, ui_schedule
 from client.ui.controls import *
 from client.ui.soundmgr import SoundManager
-import  client.ui.resource as common_res
+from client.ui.resource import resource as common_res
 from client.core import Executive
 from pyglet.text import Label
 from utils import Rect, rect_to_dict as r2d, BatchList, textsnap

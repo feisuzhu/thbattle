@@ -6,8 +6,8 @@ from client.ui.base.interp import *
 from client.ui.controls import *
 from client.ui.soundmgr import SoundManager
 
-from client.ui import resource as common_res
-import resource as gres
+from client.ui.resource import resource as common_res
+from resource import resource as gres
 
 from .game_controls import *
 

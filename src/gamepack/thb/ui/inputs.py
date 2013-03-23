@@ -3,10 +3,11 @@ import pyglet
 from pyglet.gl import *
 from pyglet import graphics
 from pyglet.window import mouse
+from client.ui import shaders
 from client.ui.base import ui_message, ui_schedule
 from client.ui.controls import *
-from client.ui import resource as common_res, shaders
-import resource as gres
+from client.ui.resource import resource as common_res
+from resource import resource as gres
 import itertools
 
 from .game_controls import *
