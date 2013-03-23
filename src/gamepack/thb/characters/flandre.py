@@ -6,6 +6,12 @@ from ..cards import *
 class CriticalStrike(FreeAttackSkill):
     associated_action = None
     target = t_None
+    @staticmethod
+    def is_valid(src, tl):
+        st = src.tags
+        if not st['flan_cs']: return False
+        if tl & st['flan_targets']: return False
+        return True
 
 class CriticalStrikeAction(GenericAction):
     def apply_action(self):
@@ -52,29 +58,6 @@ class CriticalStrikeHandler(EventHandler):
                 act.damage += 1
             elif isinstance(act, BaseDuel):
                 act.source_damage += 1
-
-        elif evt_type == 'action_can_fire':
-            a, valid = act
-            if not isinstance(a, LaunchCard): return act
-            src = a.source
-            st = src.tags
-
-            if not src.has_skill(CriticalStrike): return act
-
-            if not st['flan_cs']:
-                if isinstance(a, ActionStageLaunchCard):
-                    if a.card.is_card(AttackCard):
-                        if a.source.tags['attack_num'] <= 0:
-                            return (a, False)
-
-                return act
-
-            if src.has_skill(ElementalReactorSkill): return act
-            if not a.card.is_card(AttackCard): return act
-            last = set(st['flan_targets'])
-            tl = set(a.target_list)
-            if tl & last:
-                return (a, False)
 
         return act
 
