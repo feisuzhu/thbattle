@@ -12,6 +12,7 @@ parser.add_argument('--no-update', action='store_true')
 parser.add_argument('--with-gl-errcheck', action='store_true')
 parser.add_argument('--freeplay', action='store_true')
 parser.add_argument('--fastjoin', action='store_true')
+parser.add_argument('--dump-gameobj', action='store_true')
 parser.add_argument('--log', default='INFO')
 
 options = parser.parse_args()
@@ -60,7 +61,6 @@ if not sys.platform.startswith('linux'):
 
         def run(self):
             host = self.host
-            print host
             socket.getaddrinfo(host, 80)
             socket.gethostbyname(host)
 
@@ -97,6 +97,11 @@ if sys.platform == 'win32':
     from pyglet.media.drivers.directsound import DirectSoundAudioPlayer
     DirectSoundAudioPlayer._buffer_size = 44800 * 2
     DirectSoundAudioPlayer._update_buffer_size = 44800 * 2 // 8
+
+if sys.platform.startswith('linux') and options.dump_gameobj:
+    import atexit, game
+    atexit.register(game.GameObjectMeta._dump_gameobject_hierarchy)
+    atexit.register(game.EventHandler._dump_eh_dependency_graph)
 
 from client.ui.entry import start_ui
 

@@ -10,13 +10,32 @@ intern('action_before')
 intern('action_apply')
 intern('action_after')
 
+all_gameobjects = set()
+game_objects_hierarchy = set()
+
+
 class GameObjectMeta(type):
     def __new__(mcls, clsname, bases, _dict):
         for k, v in _dict.items():
             if isinstance(v, (list, set)):
                 _dict[k] = tuple(v)  # mutable obj not allowed
 
-        return type.__new__(mcls, clsname, bases, _dict)
+        cls = type.__new__(mcls, clsname, bases, _dict)
+        all_gameobjects.add(cls)
+        for b in bases:
+            game_objects_hierarchy.add((b, cls))
+
+        return cls
+    
+    @staticmethod
+    def _dump_gameobject_hierarchy():
+        with open('/dev/shm/gomap.dot', 'w') as f:
+            f.write('digraph {\nrankdir=LR;\n')
+            f.write('\n'.join([
+                '%s -> %s;' % (a.__name__, b.__name__)
+                for a, b in game_objects_hierarchy
+            ]))
+            f.write('}')
 
     # def __setattr__(cls, field, v):
     #     type.__setattr__(cls, field, v)
@@ -121,6 +140,28 @@ class EventHandler(GameObject):
         assert len(rst) == len(eh_classes)
 
         return rst
+
+    @staticmethod
+    def _dump_eh_dependency_graph():
+        from game import all_gameobjects as A
+        from game.autoenv import EventHandler
+        ehs = set([i for i in A if issubclass(i, EventHandler)])
+        ehs.remove(EventHandler)
+        dependencies = set()
+        for eh in ehs:
+            for b in eh.execute_before:
+                dependencies.add((eh.__name__, b))
+
+            for a in eh.execute_after:
+                dependencies.add((a, eh.__name__))
+
+        with open('/dev/shm/eh_relations.dot', 'w') as f:
+            f.write('digraph {\nrankdir=LR;\n')
+            f.write('\n'.join([
+                '%s -> %s;' % (a, b)
+                for a, b in dependencies
+            ]))
+            f.write('}')
 
 
 class Action(GameObject):
