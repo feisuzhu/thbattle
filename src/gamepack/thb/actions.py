@@ -267,9 +267,8 @@ def register_eh(cls):
 
 # ------------------------------------------
 
-class GenericAction(Action): pass # others
-class UserAction(Action): pass # card/character skill actions
-class InternalAction(Action): pass # actions for internal use
+class GenericAction(Action): pass  # others
+class UserAction(Action): pass  # card/character skill actions
 
 
 class PlayerDeath(GenericAction):

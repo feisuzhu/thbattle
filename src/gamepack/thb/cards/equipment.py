@@ -39,14 +39,17 @@ class EquipmentTransferHandler(EventHandler):
 
         return args
 
+
 class ShieldSkill(Skill):
     associated_action = None
     target = t_None
 
+
 class OpticalCloakSkill(ShieldSkill): # just a tag
     pass
 
-class OpticalCloak(FatetellAction, GenericAction):
+
+class OpticalCloak(FatetellAction):
     # 光学迷彩
     def apply_action(self):
         g = Game.getgame()
@@ -58,6 +61,7 @@ class OpticalCloak(FatetellAction, GenericAction):
             return True
         else:
             return False
+
 
 @register_eh
 class OpticalCloakHandler(EventHandler):
@@ -120,7 +124,7 @@ class HakuroukenSkill(WeaponSkill):
     range = 2
 
 
-class Hakurouken(InternalAction):
+class Hakurouken(GenericAction):
     # 白楼剑
     def __init__(self, act):
         assert isinstance(act, basic.BaseAttack)
@@ -150,6 +154,12 @@ class Hakurouken(InternalAction):
 
 @register_eh
 class HakuroukenEffectHandler(EventHandler):
+    execute_before = (
+        'OpticalCloakHandler',
+        'SaigyouBranchHandler',
+        'HouraiJewelHandler',
+        'SpearTheGungnirHandler',
+    )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             if hasattr(act, 'hakurouken_tag'):
@@ -360,6 +370,7 @@ class IbukiGourdHandler(EventHandler):
 
         return arg
 
+
 class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
@@ -368,10 +379,12 @@ class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
         g.process_action(dmg)
         return True
 
+
 class HouraiJewelSkill(WeaponSkill):
     associated_action =  None
     target = t_None
     range = 1
+
 
 @register_eh
 class HouraiJewelHandler(EventHandler):
@@ -746,8 +759,10 @@ class YoumuPhantomHandler(EventHandler):
 
         return arg
 
-class IceWingSkill(ShieldSkill):
+
+class IceWingSkill(AccessoriesSkill):
     pass
+
 
 class IceWing(GenericAction):
     def __init__(self, act):
@@ -758,6 +773,7 @@ class IceWing(GenericAction):
     def apply_action(self):
         self.action.cancelled = True
         return True
+
 
 @register_eh
 class IceWingHandler(EventHandler):
