@@ -71,6 +71,9 @@ class JollyHandler(EventHandler):
 
         return act
 
+    def cond(self, cards):
+        return not cards
+
     def choose_player_target(self, tl):
         if not tl: return (tl, False)
         return (tl[-1:], True)
