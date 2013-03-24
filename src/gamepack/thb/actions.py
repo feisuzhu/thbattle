@@ -270,9 +270,11 @@ def register_eh(cls):
 class GenericAction(Action): pass # others
 class UserAction(Action): pass # card/character skill actions
 class InternalAction(Action): pass # actions for internal use
+class BaseAction(GenericAction):
+    def is_valid(self):
+        return not self.target.dead
 
-
-class PlayerDeath(GenericAction):
+class PlayerDeath(BaseAction):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
@@ -293,7 +295,7 @@ class PlayerDeath(GenericAction):
         return True
 
 
-class PlayerRevive(GenericAction):
+class PlayerRevive(BaseAction):
     def __init__(self, source, target, hp):
         self.source = source
         self.target = target
@@ -310,8 +312,11 @@ class PlayerRevive(GenericAction):
         tgt.life = min(tgt.maxlife, self.hp)
         return True
 
+    def is_valid(self):
+        return self.target.dead
 
-class TryRevive(GenericAction):
+
+class TryRevive(BaseAction):
     def __init__(self, target, dmgact):
         self.source = self.target = target
         self.dmgact = dmgact
@@ -357,7 +362,7 @@ class TryRevive(GenericAction):
         return tgt.life > 0
 
 
-class BaseDamage(GenericAction):
+class BaseDamage(BaseAction):
     def __init__(self, source, target, amount=1):
         self.source = source
         self.target = target
@@ -380,7 +385,7 @@ class LifeLost(BaseDamage):
 
 # ---------------------------------------------------
 
-class DropCards(GenericAction):
+class DropCards(BaseAction):
 
     def __init__(self, target, cards):
         self.target = target
@@ -410,7 +415,7 @@ class DropUsedCard(DropCards):
     pass
 
 
-class UseCard(GenericAction):
+class UseCard(BaseAction):
     def __init__(self, target):
         self.source = self.target = target
         # self.cond = __subclass__.cond
@@ -464,7 +469,7 @@ class DropCardStage(UserAction):
         self.cards = cards
         return True
 
-class DrawCards(UserAction):
+class DrawCards(BaseAction):
 
     def __init__(self, target, amount=2):
         self.source = self.target = target
@@ -648,7 +653,7 @@ class FatetellStage(GenericAction):
 
         return True
 
-class BaseFatetell(GenericAction):
+class BaseFatetell(BaseAction):
     def __init__(self, target, cond):
         self.target = target
         self.cond = cond
@@ -743,7 +748,7 @@ class PlayerTurn(GenericAction):
         return True
 
 
-class DummyAction(GenericAction):
+class DummyAction(BaseAction):
     def __init__(self, source, target, result=True):
         self.source, self.target, self.result = \
             source, target, result
@@ -751,7 +756,10 @@ class DummyAction(GenericAction):
     def apply_action(self):
         return self.result
 
-class RevealIdentity(GenericAction):
+    def is_valid(self):
+        return True
+
+class RevealIdentity(BaseAction):
     def __init__(self, target, to):
         self.target = target
         self.to = to
@@ -761,7 +769,10 @@ class RevealIdentity(GenericAction):
         self.to.reveal(tgt.identity)
         return True
 
-class Pindian(GenericAction):
+    def is_valid(self):
+        return True
+
+class Pindian(BaseAction):
     no_reveal = True
 
     def __init__(self, source, target):

@@ -10,7 +10,7 @@ class CriticalStrike(FreeAttackSkill):
     def is_valid(src, tl):
         st = src.tags
         if not st['flan_cs']: return False
-        if tl & st['flan_targets']: return False
+        if set(tl) & set(st['flan_targets']): return False
         return True
 
 class CriticalStrikeAction(GenericAction):

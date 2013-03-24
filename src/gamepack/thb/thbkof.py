@@ -62,8 +62,8 @@ class KOFCharacterSwitchHandler(EventHandler):
         for p in [p for p in g.players if p.dead and p.characters]:
             g.next_character(p)
             g.update_event_handlers()
-            g.process_action(DrawCards(p, 4))
             p.dead = False
+            g.process_action(DrawCards(p, 4))
             g.emit_event('kof_next_character', p)
 
 
