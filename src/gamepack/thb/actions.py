@@ -270,8 +270,14 @@ def register_eh(cls):
 class GenericAction(Action): pass  # others
 class UserAction(Action): pass  # card/character skill actions
 
+def target_alive(self):
+    return not self.target.dead
+
+def target_dead(self):
+    return self.target.dead
 
 class PlayerDeath(GenericAction):
+    is_valid = target_alive
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
@@ -285,7 +291,7 @@ class PlayerDeath(GenericAction):
         for cl in lists:
             if not cl: continue
             others.reveal(list(cl))
-            g.process_action(DropCards(tgt, cl))
+            g.process_action(DropCardsOnDeath(tgt, cl))
             assert not cl
 
         tgt.skills[:] = []
@@ -293,6 +299,7 @@ class PlayerDeath(GenericAction):
 
 
 class PlayerRevive(GenericAction):
+    is_valid = target_dead
     def __init__(self, source, target, hp):
         self.source = source
         self.target = target
@@ -311,6 +318,7 @@ class PlayerRevive(GenericAction):
 
 
 class TryRevive(GenericAction):
+    is_valid = target_alive
     def __init__(self, target, dmgact):
         self.source = self.target = target
         self.dmgact = dmgact
@@ -357,6 +365,7 @@ class TryRevive(GenericAction):
 
 
 class BaseDamage(GenericAction):
+    is_valid = target_alive
     def __init__(self, source, target, amount=1):
         self.source = source
         self.target = target
@@ -380,7 +389,7 @@ class LifeLost(BaseDamage):
 # ---------------------------------------------------
 
 class DropCards(GenericAction):
-
+    is_valid = target_alive
     def __init__(self, target, cards):
         self.target = target
         self.cards = cards
@@ -409,7 +418,12 @@ class DropUsedCard(DropCards):
     pass
 
 
+class DropCardsOnDeath(DropCards):
+    is_valid = target_dead
+
+
 class UseCard(GenericAction):
+    is_valid = target_alive
     def __init__(self, target):
         self.source = self.target = target
         # self.cond = __subclass__.cond
@@ -463,8 +477,8 @@ class DropCardStage(UserAction):
         self.cards = cards
         return True
 
-class DrawCards(UserAction):
-
+class DrawCards(GenericAction):
+    is_valid = target_alive
     def __init__(self, target, amount=2):
         self.source = self.target = target
         self.amount = amount
@@ -648,6 +662,7 @@ class FatetellStage(GenericAction):
         return True
 
 class BaseFatetell(GenericAction):
+    is_valid = target_alive
     def __init__(self, target, cond):
         self.target = target
         self.cond = cond
@@ -750,6 +765,7 @@ class DummyAction(GenericAction):
     def apply_action(self):
         return self.result
 
+
 class RevealIdentity(GenericAction):
     def __init__(self, target, to):
         self.target = target
@@ -759,6 +775,7 @@ class RevealIdentity(GenericAction):
         tgt = self.target
         self.to.reveal(tgt.identity)
         return True
+
 
 class Pindian(GenericAction):
     no_reveal = True
@@ -808,3 +825,25 @@ class Pindian(GenericAction):
         if not (tgt.cards or tgt.showncards): return False
         return True
 
+
+@register_eh
+class DyingHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if not evt_type == 'action_after': return act
+        if not isinstance(act, BaseDamage): return act
+
+        tgt = act.target
+        if tgt.dead or tgt.life > 0: return act
+
+        g = Game.getgame()
+        if g.process_action(TryRevive(tgt, dmgact=act)):
+            return act
+
+        g.process_action(PlayerDeath(act.source, tgt))
+
+        if tgt is g.current_turn:
+            for a in reversed(g.action_stack):
+                if isinstance(a, UserAction):
+                    a.interrupt_after_me()
+
+        return act

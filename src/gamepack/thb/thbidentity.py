@@ -26,69 +26,60 @@ def game_action(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, BaseDamage):
-            tgt = act.target
-            if tgt.life > 0: return act
-            g = Game.getgame()
-            if not g.process_action(TryRevive(tgt, dmgact=act)):
-                g.process_action(PlayerDeath(act.source, tgt))
-                from .actions import RevealIdentity, DrawCards, DropCards
-                g.process_action(RevealIdentity(tgt, g.players))
+        if evt_type != 'action_after': return act
+        if not isinstance(act, PlayerDeath): return act
+        tgt = act.target
+        g = Game.getgame()
+        
+        if act.source:
+            src = act.source
+            if tgt.identity.type == Identity.TYPE.ATTACKER:
+                g.process_action(DrawCards(src, 3))
+            elif tgt.identity.type == Identity.TYPE.ACCOMPLICE:
+                if src.identity.type == Identity.TYPE.BOSS:
+                    if src.cards:
+                        g.players.exclude(src).reveal(list(src.cards))
+                        g.process_action(DropCards(src, src.cards))
+                    if src.showncards: g.process_action(DropCards(src, src.showncards))
+                    if src.equips: g.process_action(DropCards(src, src.equips))
 
-                if act.source:
-                    src = act.source
-                    if tgt.identity.type == Identity.TYPE.ATTACKER:
-                        g.process_action(DrawCards(src, 3))
-                    elif tgt.identity.type == Identity.TYPE.ACCOMPLICE:
-                        if src.identity.type == Identity.TYPE.BOSS:
-                            if src.cards:
-                                g.players.exclude(src).reveal(list(src.cards))
-                                g.process_action(DropCards(src, src.cards))
-                            if src.showncards: g.process_action(DropCards(src, src.showncards))
-                            if src.equips: g.process_action(DropCards(src, src.equips))
+        # see if game ended
+        T = Identity.TYPE
+        def build():
+            deads = defaultdict(list)
+            for p in g.players:
+                if p.dead:
+                    deads[p.identity.type].append(p)
+            return deads
 
-                # see if game ended
-                T = Identity.TYPE
-                def build():
-                    deads = defaultdict(list)
-                    for p in g.players:
-                        if p.dead:
-                            deads[p.identity.type].append(p)
-                    return deads
+        # curtain's win
+        survivors = [p for p in g.players if not p.dead]
+        if len(survivors) == 1:
+            pl = g.players
+            pl.reveal([p.identity for p in g.players])
 
-                # curtain's win
-                if len([p for p in g.players if p.dead]) == len(g.players) - 1:
-                    pl = g.players
-                    pl.reveal([p.identity for p in g.players])
+            if survivors[0].identity.type == T.CURTAIN:
+                g.winners = survivors[:]
+                raise GameEnded
 
-                    deads = build()
-                    if not deads[T.CURTAIN]:
-                        g.winners = [p for p in pl if p.identity.type == T.CURTAIN]
-                        raise GameEnded
+        deads = build()
 
-                deads = build()
+        # boss & accomplices' win
+        if len(deads[T.ATTACKER]) == g.identities.count(T.ATTACKER):
+            if len(deads[T.CURTAIN]) == g.identities.count(T.CURTAIN):
+                pl = g.players
+                pl.reveal([p.identity for p in g.players])
 
-                # boss & accomplices' win
-                if len(deads[T.ATTACKER]) == g.identities.count(T.ATTACKER):
-                    if deads[T.CURTAIN]:
-                        pl = g.players
-                        pl.reveal([p.identity for p in g.players])
+                g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
+                raise GameEnded
 
-                        g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
-                        raise GameEnded
+        # attackers' win
+        if len(deads[T.BOSS]):
+            pl = g.players
+            pl.reveal([p.identity for p in g.players])
 
-                # attackers' win
-                if len(deads[T.BOSS]):
-                    pl = g.players
-                    pl.reveal([p.identity for p in g.players])
-
-                    g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
-                    raise GameEnded
-
-                if tgt is g.current_turn:
-                    for a in reversed(g.action_stack):
-                        if isinstance(a, UserAction):
-                            a.interrupt_after_me()
+            g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
+            raise GameEnded
 
         return act
 

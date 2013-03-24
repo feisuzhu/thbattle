@@ -23,10 +23,10 @@ class SpearTheGungnirAction(GenericAction):
 class SpearTheGungnirHandler(EventHandler):
     execute_after = ('HakuroukenEffectHandler', )
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, BaseAttack):
+        if evt_type == 'action_before' and isinstance(act, Attack):
             src = act.source
             if not src.has_skill(SpearTheGungnir): return act
-            if not act.__class__ is Attack(None, None).__class__: return act
+            if isinstance(act, InevitableAttack): return act 
 
             tgt = act.target
 
