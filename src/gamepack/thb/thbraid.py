@@ -34,6 +34,7 @@ class DeathHandler(EventHandler):
         from .actions import DrawCards, DropCards
 
         tgt = act.target
+        g = Game.getgame()
 
         # attackers' win
         if tgt is g.mutant:
@@ -149,7 +150,7 @@ class Cooperation(Skill):
 
     def target(self, g, src, tl):
         attackers = g.attackers
-        tl = [p for p in tl if not p.dead and p in attackers]
+        tl = [p for p in tl if not p.dead and p is not src and p in attackers]
         return (tl[-1:], bool(len(tl)))
 
     def check(self):

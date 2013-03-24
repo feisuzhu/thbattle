@@ -288,7 +288,7 @@ class PlayerDeath(BaseAction):
         for cl in lists:
             if not cl: continue
             others.reveal(list(cl))
-            g.process_action(DropCards(tgt, cl))
+            g.process_action(DropCardsOnDeath(tgt, cl))
             assert not cl
 
         tgt.skills[:] = []
@@ -413,6 +413,11 @@ class DropCards(BaseAction):
 
 class DropUsedCard(DropCards):
     pass
+
+
+class DropCardsOnDeath(DropCards):
+    def is_valid(self):
+        return self.target.dead
 
 
 class UseCard(BaseAction):

@@ -29,6 +29,7 @@ class DeathHandler(EventHandler):
         if evt_type != 'action_after': return act
         if not isinstance(act, PlayerDeath): return act
         tgt = act.target
+        g = Game.getgame()
         
         if act.source:
             src = act.source
