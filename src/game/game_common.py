@@ -32,7 +32,7 @@ class GameObjectMeta(type):
         with open('/dev/shm/gomap.dot', 'w') as f:
             f.write('digraph {\nrankdir=LR;\n')
             f.write('\n'.join([
-                '%s -> %s;' % (a.__name__, b.__name__)
+                '"%s" -> "%s";' % (a.__name__, b.__name__)
                 for a, b in game_objects_hierarchy
             ]))
             f.write('}')

@@ -200,7 +200,7 @@ def _update_tags(self, p):
 
     from .ui_meta import tags as tags_meta
 
-    for t in p.tags:
+    for t in list(p.tags):
         meta = tags_meta.get(t)
         if meta and meta.display(p, p.tags[t]):
             new_tags.add(t)

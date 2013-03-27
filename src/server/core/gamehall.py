@@ -128,8 +128,6 @@ def new_user(user):
         p.dropped = False
 
         acc = user.account = old.account
-        #acc.other['games'] -= 1
-        #acc.other['drops'] -= 1
 
         user.write(['game_joined', g])
         user.write(['game_started', g.players_original])
@@ -274,7 +272,6 @@ def exit_game(user, drops=False):
             log.info('player dropped')
             if g.can_leave(p):
                 user.write(['game_left', None])
-                p.leave = True
                 p.fleed = False
             else:
                 if not drops:
@@ -283,9 +280,6 @@ def exit_game(user, drops=False):
                 else:
                     p.fleed = False
 
-                p.leave = False
-                #user.account.other['games'] += 1
-                #user.account.other['drops'] += 1
             p.client.gbreak() # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
 
             p.dropped = True
@@ -458,9 +452,9 @@ def end_game(g):
 
     # add credits
     t = time()
-    percent = min(1.0, (t-g.start_time)/1200)
+    percent = min(1.0, (t - g.start_time) / 1200)
     import math
-    rate = math.sin(math.pi/2*percent)
+    rate = math.sin(math.pi / 2 * percent)
     winners = g.winners
     bonus = g.n_persons * 5 / len(winners) if winners else 0
 
@@ -473,7 +467,7 @@ def end_game(g):
         acc = p.client.account
         if not all_dropped:
             acc.other['games'] += 1
-            if p.dropped and not p.leave:
+            if p.dropped and p.fleed:
                 acc.other['drops'] += 1
             else:
                 s = 5 + bonus if p in winners else 5

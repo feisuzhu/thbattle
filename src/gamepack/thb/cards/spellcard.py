@@ -279,9 +279,11 @@ class BaseDuel(UserAction):
             dmg = (dmg[1], dmg[0])
             if not g.process_action(basic.UseAttack(d[0])): break
 
-        dact = Damage(d[1], d[0], amount=dmg[1])
-        dact.associated_action = self
-        g.process_action(dact)
+        if not d[0].dead:
+            dact = Damage(d[1], d[0], amount=dmg[1])
+            dact.associated_action = self
+            g.process_action(dact)
+
         return d[1] is source
 
 

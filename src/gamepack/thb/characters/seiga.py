@@ -81,7 +81,7 @@ class HeterodoxyAction(UserAction):
         src = self.source
         card = self.associated_card.associated_cards[0]
         if card.is_card(AttackCard) and src.tags['attack_num'] < 1:
-            if not src.has_skill(ElementalReactorSkill):
+            if not AttackCardHandler.is_freeattack(src):
                 return False
 
         victim = self.target

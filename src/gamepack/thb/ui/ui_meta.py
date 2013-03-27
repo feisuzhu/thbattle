@@ -612,11 +612,6 @@ class AttackCard:
         return (True, u'来一发！')
 
 
-class FreeAttackSkill:
-    # Skill
-    name = u'无限弹幕'
-
-
 class GrazeCard:
     # action_stage meta
     name = u'擦弹'
@@ -4664,23 +4659,33 @@ __metaclass__ = tag_metafunc
 
 class attack_num:
     tag_anim = lambda p: gres.tag_attacked
-    display = lambda p, v: v <= 0 and G().current_turn is p
+
+    def display(p, v):
+        if cards.AttackCardHandler.is_freeattack(p):
+            return False
+
+        return v <= 0 and G().current_turn is p
+
     description = u'该玩家在此回合不能再使用【弹幕】了'
+
 
 class wine:
     tag_anim = lambda p: gres.tag_wine
     display = lambda p, v: v
     description = u'喝醉了…'
 
+
 class flan_cs:
     tag_anim = lambda p: gres.tag_flandrecs
-    display = lambda p, v: v and G().current_turn is p
+    display = lambda p, v: v >= p.tags['turn_count'] and G().current_turn is p
     description = u'玩坏你哦！'
+
 
 class lunaclock:
     tag_anim = lambda p: gres.tag_lunaclock
     display = lambda p, v: v and G().current_turn is p
     description = u'咲夜的时间！'
+
 
 class faithcounter:
     def tag_anim(p):
@@ -4689,6 +4694,7 @@ class faithcounter:
 
     display = lambda p, v: v
     description = u'信仰数'
+
 
 class action:
     tag_anim = lambda p: gres.tag_action

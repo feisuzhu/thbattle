@@ -187,7 +187,12 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
         for c in l:
             if unwrap and c.is_card(VirtualCard):
                 c.move_to(None)
-                migrate_cards(c.associated_cards, to, unwrap != migrate_cards.SINGLE_LAYER, no_event)
+                migrate_cards(
+                    c.associated_cards,
+                    to,
+                    unwrap != migrate_cards.SINGLE_LAYER,
+                    no_event
+                )
             else:
                 c.move_to(to)
                 if c.is_card(VirtualCard):
@@ -267,17 +272,29 @@ def register_eh(cls):
 
 # ------------------------------------------
 
-class GenericAction(Action): pass  # others
-class UserAction(Action): pass  # card/character skill actions
+class GenericAction(Action): pass
 
-def target_alive(self):
-    return not self.target.dead
 
-def target_dead(self):
-    return self.target.dead
+class UserAction(Action): # card/character skill actions
+    def is_valid(self):
+        if getattr(self, '_force_fire', False):
+            return True
+
+        if self.source and self.source.dead:
+            return False
+
+        if self.target and self.target.dead:
+            return False
+
+        return True
+
+    def force_fire(self):
+        # Fire action regardless player status
+        # for Exinwan only, do not use on other purpose
+        self._force_fire = True
+
 
 class PlayerDeath(GenericAction):
-    is_valid = target_alive
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
@@ -291,7 +308,7 @@ class PlayerDeath(GenericAction):
         for cl in lists:
             if not cl: continue
             others.reveal(list(cl))
-            g.process_action(DropCardsOnDeath(tgt, cl))
+            g.process_action(DropCards(tgt, cl))
             assert not cl
 
         tgt.skills[:] = []
@@ -299,7 +316,6 @@ class PlayerDeath(GenericAction):
 
 
 class PlayerRevive(GenericAction):
-    is_valid = target_dead
     def __init__(self, source, target, hp):
         self.source = source
         self.target = target
@@ -316,9 +332,11 @@ class PlayerRevive(GenericAction):
         tgt.life = min(tgt.maxlife, self.hp)
         return True
 
+    def is_valid(self):
+        return self.target.dead
+
 
 class TryRevive(GenericAction):
-    is_valid = target_alive
     def __init__(self, target, dmgact):
         self.source = self.target = target
         self.dmgact = dmgact
@@ -365,7 +383,6 @@ class TryRevive(GenericAction):
 
 
 class BaseDamage(GenericAction):
-    is_valid = target_alive
     def __init__(self, source, target, amount=1):
         self.source = source
         self.target = target
@@ -389,7 +406,6 @@ class LifeLost(BaseDamage):
 # ---------------------------------------------------
 
 class DropCards(GenericAction):
-    is_valid = target_alive
     def __init__(self, target, cards):
         self.target = target
         self.cards = cards
@@ -413,17 +429,15 @@ class DropCards(GenericAction):
 
         return True
 
+    def is_valid(self):
+        return True
+
 
 class DropUsedCard(DropCards):
     pass
 
 
-class DropCardsOnDeath(DropCards):
-    is_valid = target_dead
-
-
-class UseCard(GenericAction):
-    is_valid = target_alive
+class UseCard(UserAction):
     def __init__(self, target):
         self.source = self.target = target
         # self.cond = __subclass__.cond
@@ -442,18 +456,7 @@ class UseCard(GenericAction):
             return True
 
 
-class DropCardStage(UserAction):
-
-    def cond(self, cards):
-        t = self.target
-        if not len(cards) == self.dropn:
-            return False
-
-        if not all(c.resides_in in (t.cards, t.showncards) for c in cards):
-            return False
-
-        return True
-
+class DropCardStage(GenericAction):
     def __init__(self, target):
         self.source = self.target = target
         self.dropn = len(target.cards) + len(target.showncards) - target.life
@@ -477,8 +480,18 @@ class DropCardStage(UserAction):
         self.cards = cards
         return True
 
+    def cond(self, cards):
+        t = self.target
+        if not len(cards) == self.dropn:
+            return False
+
+        if not all(c.resides_in in (t.cards, t.showncards) for c in cards):
+            return False
+
+        return True
+
+
 class DrawCards(GenericAction):
-    is_valid = target_alive
     def __init__(self, target, amount=2):
         self.source = self.target = target
         self.amount = amount
@@ -494,15 +507,15 @@ class DrawCards(GenericAction):
         self.cards = cards
         return True
 
+    def is_valid(self):
+        return not self.target.dead
+
 
 class DrawCardStage(DrawCards):
-    def apply_action(self):
-        t = self.target
-        if t.dead: return False
-        return DrawCards.apply_action(self)
+    pass
 
 
-class LaunchCard(UserAction):
+class LaunchCard(GenericAction):
     def __init__(self, source, target_list, card):
         tl, tl_valid = card.target(Game.getgame(), source, target_list)
         self.source, self.target_list, self.card, self.tl_valid = source, tl, card, tl_valid
@@ -530,14 +543,17 @@ class LaunchCard(UserAction):
             self.card_action = a
             a.associated_card = card
             a.target_list = target_list
+            a.force_fire()  # For Exinwan, see UserAction.force_fire
             g.process_action(a)
             return True
+
         return False
 
     def is_valid(self):
         if not self.tl_valid:
             log.debug('LaunchCard.tl_valid FALSE')
             return False
+
         g = Game.getgame()
         card = self.card
         if not card:
@@ -655,14 +671,14 @@ class FatetellStage(GenericAction):
         target = self.target
         if target.dead: return False
         ft_cards = target.fatetell
-        for card in reversed(list(ft_cards)): #what comes last, launches first.
+        for card in reversed(list(ft_cards)):  # what comes last, launches first.
             if not target.dead:
                 g.process_action(LaunchFatetellCard(target, card))
 
         return True
 
+
 class BaseFatetell(GenericAction):
-    is_valid = target_alive
     def __init__(self, target, cond):
         self.target = target
         self.cond = cond
@@ -688,7 +704,8 @@ class TurnOverCard(BaseFatetell):
     pass
 
 
-class FatetellAction(UserAction): pass
+class FatetellAction(GenericAction): pass
+
 
 class LaunchFatetellCard(FatetellAction):
     def __init__(self, target, card):
@@ -777,7 +794,7 @@ class RevealIdentity(GenericAction):
         return True
 
 
-class Pindian(GenericAction):
+class Pindian(UserAction):
     no_reveal = True
 
     def __init__(self, source, target):

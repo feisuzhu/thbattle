@@ -3,18 +3,22 @@ from baseclasses import *
 from ..actions import *
 from ..cards import *
 
+
 class DollManipulation(Skill):
     associated_action = None
     target = t_None
 
+
 class DollManipulationHandler(EventHandler):
-    execute_after = ('AttackCardHandler', )
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, ActionStage):
-            tgt = act.target
-            if tgt.has_skill(DollManipulation):
-                act.target.tags['attack_num'] = 10000
-        return act
+    execute_after = ('ElementalReactorHandler', )
+    def handle(self, evt_type, tgt):
+        if evt_type == 'action_stage_action':
+            tags = tgt.tags
+            if not tgt.has_skill(DollManipulation): return tgt
+            AttackCardHandler.set_freeattack(tgt)
+
+        return tgt
+
 
 class DollCrusader(TreatAsSkill):
     treat_as = DollControlCard
@@ -31,6 +35,7 @@ class DollCrusader(TreatAsSkill):
         cat = getattr(c, 'equipment_category', None)
         if cat == 'accessories': return True
         return False
+
 
 @register_character
 class Alice(Character):

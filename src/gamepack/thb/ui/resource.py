@@ -9,8 +9,7 @@ respath = os.path.join(os.path.dirname(__file__), 'res')
 class ui_meta(_ResourceDesc):
     __slots__ = ('name', )
     def load(self, loader):
-        import importlib
-        importlib.import_module('gamepack.thb.ui.ui_meta')
+        import gamepack.thb.ui.ui_meta
 
 
 resource = Resource(respath, [
@@ -80,10 +79,10 @@ resource = Resource(respath, [
         'remilia_ex', 'remilia_ex2',
     ]],
 
-    img('dummy_port', 'portrait') if options.testing else dummy(),
+    img_with_grayed('dummy_port', 'portrait') if options.testing else dummy(),
 
-    img('hp', 'portrait'),
-    img('hp_bg', 'portrait'),
+    img_with_grayed('hp', 'portrait'),
+    img_with_grayed('hp_bg', 'portrait'),
 
     img_grid('num', 1, 10, 'portrait'),
 

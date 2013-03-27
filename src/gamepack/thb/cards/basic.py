@@ -36,14 +36,6 @@ class InevitableAttack(Attack):
         return True
 
 
-class FreeAttackSkill(Skill):
-    associated_action = None
-    target = t_None
-    @staticmethod
-    def is_valid(src, tl):
-        return True
-
-
 @register_eh
 class AttackCardHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -78,14 +70,26 @@ class AttackCardHandler(EventHandler):
             if lc.card.is_card(AttackCard):
                 src = lc.source
                 tl = lc.target_list
-                if any(s.is_valid(src, tl)
-                       for s in src.get_skills(FreeAttackSkill)):
+                if src.tags['freeattack'] >= src.tags['turn_count']:
                     return act
                 
                 if src.tags['attack_num'] <= 0:
                     return (lc, False)
 
         return act
+
+    @staticmethod
+    def set_freeattack(player):
+        player.tags['freeattack'] = player.tags['turn_count']
+
+    @staticmethod
+    def cancel_freeattack(player):
+        player.tags['freeattack'] = 0
+
+    @staticmethod
+    def is_freeattack(player):
+        return player.tags['freeattack'] >= player.tags['turn_count']
+
 
 class Heal(BasicAction):
 

@@ -268,7 +268,7 @@ class RaidPlayerReviveHandler(EventHandler):
         return act
 
 
-class OneUpAction(GenericAction):
+class OneUpAction(UserAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -285,6 +285,9 @@ class OneUpAction(GenericAction):
         tgt.tags['action'] = True
         
         return True
+
+    def is_valid(self):
+        return self.target.dead
 
 
 class OneUp(Skill):

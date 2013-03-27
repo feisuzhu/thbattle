@@ -172,8 +172,32 @@ class HakuroukenEffectHandler(EventHandler):
         return act
 
 
-class ElementalReactorSkill(basic.FreeAttackSkill, WeaponSkill):
+class ElementalReactorSkill(WeaponSkill):
     range = 1
+
+
+@register_eh
+class ElementalReactorHandler(EventHandler):
+    execute_after = ('EquipmentTransferHandler', )
+    def handle(self, evt_type, arg):
+        if evt_type == 'action_stage_action':
+            tgt = arg
+            tags = tgt.tags
+            if not tgt.has_skill(ElementalReactorSkill): return arg
+            basic.AttackCardHandler.set_freeattack(tgt)
+
+        elif evt_type == 'card_migration':
+            act, cards, _from, to = arg
+
+            from .definition import ElementalReactorCard
+
+            if _from is not None and _from.type == 'equips':
+                src = _from.owner
+                for c in cards:
+                    if c.is_card(ElementalReactorCard):
+                        basic.AttackCardHandler.cancel_freeattack(src)
+
+        return arg
 
 
 class RoukankenSkill(WeaponSkill):
@@ -564,8 +588,10 @@ class AyaRoundfanHandler(EventHandler):
         if not len(cards) == 1: return False
         return cards[0].resides_in.type in ('handcard', 'showncard')
 
+
 class ScarletRhapsodySword(Damage):
     pass
+
 
 class ScarletRhapsodySwordAttack(basic.Attack):
     def apply_action(self):
@@ -608,10 +634,12 @@ class ScarletRhapsodySwordAttack(basic.Attack):
 
         return True
 
+
 class ScarletRhapsodySwordSkill(WeaponSkill):
     range = 3
     associated_action = None
     target = t_None
+
 
 @register_eh
 class ScarletRhapsodySwordHandler(EventHandler):
@@ -722,6 +750,7 @@ class YinYangOrbHandler(EventHandler):
 class SuwakoHatSkill(AccessoriesSkill):
     pass
 
+
 @register_eh
 class SuwakoHatHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -731,8 +760,10 @@ class SuwakoHatHandler(EventHandler):
                 act.dropn = max(act.dropn - 2, 0)
         return act
 
+
 class YoumuPhantomSkill(AccessoriesSkill):
     pass
+
 
 @register_eh
 class YoumuPhantomHandler(EventHandler):
@@ -813,6 +844,7 @@ class GrimoireSkill(TreatAsSkill, WeaponSkill):
         if not cl[0].suit: return False
         return True
 
+
 @register_eh
 class GrimoireHandler(EventHandler):
     def handle(self, evt_type, arg):
@@ -827,7 +859,7 @@ class GrimoireHandler(EventHandler):
                 if t['turn_count'] <= t['grimoire_tag']:
                     return (act, False)
 
-                if act.source.has_skill(ElementalReactorSkill):
+                if AttackCardHandler.is_freeattack(act.source):
                     return arg
 
                 if t['attack_num'] <= 0:
