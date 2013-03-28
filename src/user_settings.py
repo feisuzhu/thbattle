@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import logging
+log = logging.getLogger('user_settings')
+
 from utils import instantiate
 import simplejson as json
 import os.path
@@ -29,8 +32,12 @@ class UserSettings(dict):
         if not os.path.exists(conf):
             return
 
-        with open(conf, 'r') as f:
-            self.update(json.loads(f.read()))
+        try:
+            with open(conf, 'r') as f:
+                self.update(json.loads(f.read()))
+
+        except Exception as e:
+            log.exception(e)
 
     def _get_conf_name(self):
         import settings
