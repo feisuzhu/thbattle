@@ -11,20 +11,20 @@ names = itertools.cycle(names)
 
 import sys
 
-types = [
-    ('THBattle', 5), # 0
-    ('THBattle', 6), # 1
-    ('THBattle', 4),  # 2
-    ('THBattleIdentity5', 5), # 3
-    ('THBattleIdentity', 7), # 4
-    ('THBattleKOF', 2), # 5
-    ('THBattleRaid', 4), # 6
-    ('THBattleRaid', -3), # 7
-    ('THBattleRaid', 2), # 8
-]
+types = {
+    '3v3': 'THBattle',
+    'id5': 'THBattleIdentity5',
+    'id8': 'THBattleIdentity',
+    'kof': 'THBattleKOF',
+    'raid': 'THBattleRaid',
+}
 
-t, N = sys.argv[1:]
-t, n = types[int(t)]
+argv = sys.argv[1:]
+t = argv.pop(0)
+n = int(argv.pop(0))
+N = int(argv.pop(0)) if argv else 1
+
+t = types[t]
 no_create = n < 0
 n = abs(n)
 
