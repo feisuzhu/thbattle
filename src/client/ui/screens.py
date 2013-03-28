@@ -105,6 +105,10 @@ class ChatBoxFrame(Frame):
         hist[0] = text
         hist[-1] = None
 
+    def set_color(self, color):
+        Frame.set_color(self, color)
+        self.inputbox.color = color
+
 
 class Screen(Overlay):
     def on_message(self, _type, *args):
@@ -112,6 +116,7 @@ class Screen(Overlay):
             ConfirmBox(u'已经与服务器断开链接，请重新启动游戏！', parent=Screen.cur_overlay)
         else:
             Overlay.on_message(self, _type, *args)
+
 
 class UpdateScreen(Screen):
     trans = dict(
