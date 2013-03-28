@@ -163,7 +163,7 @@ class Cooperation(Skill):
        
 
 class Protection(Skill):
-    associate_action = None
+    associated_action = None
     target = t_None
 
 
@@ -217,7 +217,7 @@ class ProtectionHandler(EventHandler):
         
 
 class Parry(Skill):
-    associate_action = None
+    associated_action = None
     target = t_None
 
 

@@ -28,7 +28,7 @@ class TributeTarget(Skill):
     target = t_None
 
 
-class TributeAction(GenericAction):
+class TributeAction(UserAction):
     def apply_action(self):
         cl = self.associated_card.associated_cards
         tgt = self.target

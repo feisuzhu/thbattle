@@ -141,11 +141,13 @@ class QueenOfMidnight(Skill):
 
 class QueenOfMidnightHandler(EventHandler):
     execute_before = ('FaithExchangeHandler', )
+    execute_after = ('SealingArrayHandler', )
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
             g = Game.getgame()
             tgt = act.target
             if not tgt.has_skill(QueenOfMidnight): return act
+            if act.cancelled: return act
             g.process_action(DrawCards(act.target, 4))
 
         elif evt_type == 'action_before' and isinstance(act, DropCardStage):

@@ -173,6 +173,8 @@ class HakuroukenEffectHandler(EventHandler):
 
 
 class ElementalReactorSkill(WeaponSkill):
+    associated_action = None
+    target = t_None
     range = 1
 
 
@@ -237,18 +239,21 @@ class RoukankenHandler(EventHandler):
         from .definition import AttackCard
         return bool(cl) and len(cl) == 1 and cl[0].is_card(AttackCard)
 
+
 class GungnirSkill(TreatAsSkill, WeaponSkill):
-    treat_as = Card.card_classes['AttackCard'] # arghhhhh, nasty circular references!
-    range = 3
     target = t_OtherOne
+    range = 3
+    treat_as = Card.card_classes['AttackCard'] # arghhhhh, nasty circular references!
     def check(self):
         cl = self.associated_cards
         cat = ('handcard', 'showncard')
         if not all(c.resides_in.type in cat for c in cl): return False
         return len(cl) == 2
 
+
 class Laevatein(ForEach):
     action_cls = basic.Attack
+
 
 class LaevateinSkill(WeaponSkill):
     range = 4
@@ -273,10 +278,12 @@ class LaevateinSkill(WeaponSkill):
         if issubclass(AttackCard, cls): return True
         return isinstance(self, cls)
 
+
 class TridentSkill(WeaponSkill):
     range = 5
-    associate_action = None
+    associated_action = None
     target = t_None
+
 
 @register_eh
 class TridentHandler(EventHandler):
@@ -295,10 +302,12 @@ class TridentHandler(EventHandler):
                         g.process_action(DropCards(target=target, cards=[card]))
         return act
 
+
 class RepentanceStickSkill(WeaponSkill):
     range = 2
-    associate_action = None
+    associated_action = None
     target = t_None
+
 
 class RepentanceStick(GenericAction):
     def apply_action(self):
@@ -816,6 +825,7 @@ class IceWingHandler(EventHandler):
                 Game.getgame().process_action(IceWing(act))
 
         return act
+
 
 class GrimoireSkill(TreatAsSkill, WeaponSkill):
     range = 1

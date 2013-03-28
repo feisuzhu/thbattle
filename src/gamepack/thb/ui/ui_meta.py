@@ -3749,6 +3749,7 @@ class Remilia:
 # ----------
 __metaclass__ = gen_metafunc(characters.minoriko)
 
+
 class Foison:
     # Skill
     name = u'丰收'
@@ -3759,6 +3760,7 @@ class Foison:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class FoisonDrawCardStage:
     def effect_string(act):
         return u'大丰收！|G【%s】|r一下子收获了%d张牌！' % (
@@ -3766,25 +3768,20 @@ class FoisonDrawCardStage:
             act.amount,
         )
 
+
 class AutumnFeast:
     # Skill
     name = u'秋祭'
 
     def clickable(game):
         me = game.me
+        if not my_turn(): return False
+        if limit1_skill_used('autumnfeast_tag'): return False
 
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
+        if not (me.cards or me.showncards or me.equips):
             return False
 
-        if me.tags['autumnfeast_tag'] >= me.tags['turn_count']:
-            return False
-
-        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
-            return True
-
-        return False
+        return True
 
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
@@ -3805,6 +3802,7 @@ class AutumnFeast:
             source.ui_meta.char_name,
         )
 
+
 class AkiTribute:
     # Skill
     name = u'上贡'
@@ -3814,6 +3812,7 @@ class AkiTribute:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class Minoriko:
     # Character
