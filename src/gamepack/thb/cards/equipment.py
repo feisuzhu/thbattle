@@ -782,20 +782,25 @@ class YoumuPhantomHandler(EventHandler):
         act, cards, _from, to = arg
 
         from .definition import YoumuPhantomCard
+        
+        g = Game.getgame()
 
         if _from is not None and _from.type == 'equips':
-            src = _from.owner
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
-                    src.maxlife -= 1
-                    if src.dead: return arg
-                    src.life = min(src.life+1, src.maxlife)
+                    from .basic import Heal
+                    
+                    src = act.source
+                    owner = _from.owner
+
+                    g.process_action(MaxLifeChange(owner, owner, -1))
+                    if not owner.dead:
+                        g.process_action(Heal(src, owner))
 
         if to is not None and to.type == 'equips':
-            src = to.owner
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
-                    src.maxlife += 1
+                    g.process_action(MaxLifeChange(to.owner, to.owner, 1))
 
         return arg
 

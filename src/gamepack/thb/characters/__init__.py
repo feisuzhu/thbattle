@@ -33,6 +33,7 @@ import cirno
 import sakuya
 import sanae
 import seiga
+import kaguya
 
 import remilia_ex
 

@@ -74,10 +74,8 @@ class RiverBehindAwake(GenericAction):
         assert tgt.has_skill(RiverBehind)
         tgt.skills.remove(RiverBehind)
         tgt.skills.append(Taichi)
-        tgt.maxlife -= 1
-        tgt.life = min(tgt.life, tgt.maxlife)
-        #g = Game.getgame()
-        #g.process_action(Heal(tgt, tgt))
+        g = Game.getgame()
+        g.process_action(MaxLifeChange(tgt, tgt, -1))
         return True
 
 class RiverBehindHandler(EventHandler):
