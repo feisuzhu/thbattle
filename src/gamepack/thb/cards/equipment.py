@@ -869,7 +869,7 @@ class GrimoireHandler(EventHandler):
                 if t['turn_count'] <= t['grimoire_tag']:
                     return (act, False)
 
-                if AttackCardHandler.is_freeattack(act.source):
+                if basic.AttackCardHandler.is_freeattack(act.source):
                     return arg
 
                 if t['attack_num'] <= 0:
