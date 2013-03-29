@@ -4495,7 +4495,7 @@ __metaclass__ = gen_metafunc(characters.kaguya)
 class Kaguya:
     # Character
     char_name = u'蓬莱山辉夜'
-    port_image = gres.seiga_port
+    port_image = gres.kaguya_port
     description = (
         u'|DB永远的公主殿下 蓬莱山辉夜 体力：3|r\n\n'
         u'|G难题|r：一名角色每次令你回复一点体力时，你可以令该角色摸一张牌；你每受到一次伤害后，可令伤害来源交给你一张方片牌，否则其失去一点体力。\n'
