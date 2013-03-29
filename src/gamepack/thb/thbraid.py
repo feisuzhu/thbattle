@@ -612,8 +612,9 @@ class THBattleRaid(Game):
 
             ehclasses.extend(stage2.eventhandlers_required)
 
-            mutant.maxlife -= stage1.maxlife // 2
-            mutant.life = min(mutant.life, mutant.maxlife)
+            g.process_action(
+                MaxLifeChange(None, mutant, -(stage1.maxlife // 2))
+            )
             mutant.morphed = True
 
             mixin_character(mutant, stage2)

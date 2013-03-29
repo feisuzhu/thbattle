@@ -273,7 +273,7 @@ def register_eh(cls):
 # ------------------------------------------
 
 class GenericAction(Action): pass
-
+class LaunchCardAction: pass
 
 class UserAction(Action): # card/character skill actions
     def is_valid(self):
@@ -403,6 +403,26 @@ class LifeLost(BaseDamage):
     pass
 
 
+class MaxLifeChange(BaseDamage):
+    def __init__(self, source, target, amount):
+        self.source = source
+        self.target = target
+        self.amount = amount
+        
+    def apply_action(self):
+        tgt = self.target
+        g = Game.getgame()
+        tgt.maxlife += self.amount
+        if not tgt.maxlife:
+            g.process_action(PlayerDeath(None, tgt))
+            return True
+            
+        if tgt.life > tgt.maxlife:
+            tgt.life = tgt.maxlife
+            
+        return True
+
+        
 # ---------------------------------------------------
 
 class DropCards(GenericAction):
@@ -515,7 +535,7 @@ class DrawCardStage(DrawCards):
     pass
 
 
-class LaunchCard(GenericAction):
+class LaunchCard(GenericAction, LaunchCardAction):
     def __init__(self, source, target_list, card):
         tl, tl_valid = card.target(Game.getgame(), source, target_list)
         self.source, self.target_list, self.card, self.tl_valid = source, tl, card, tl_valid
@@ -856,7 +876,9 @@ class DyingHandler(EventHandler):
         if g.process_action(TryRevive(tgt, dmgact=act)):
             return act
 
-        g.process_action(PlayerDeath(act.source, tgt))
+        src = act.source if isinstance(act, Damage) else None
+
+        g.process_action(PlayerDeath(src, tgt))
 
         if tgt is g.current_turn:
             for a in reversed(g.action_stack):

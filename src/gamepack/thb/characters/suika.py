@@ -69,8 +69,8 @@ class WineGodAwake(GenericAction):
         tgt = self.target
         tgt.skills.remove(WineGod)
         tgt.skills.append(WineDream)
-        tgt.maxlife -= 1
-        tgt.life = min(tgt.life, tgt.maxlife)
+        g = Game.getgame()
+        g.process_action(MaxLifeChange(None, tgt, -1))
         return True
 
 class WineGodHandler(EventHandler):

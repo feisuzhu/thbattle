@@ -108,7 +108,7 @@ class Heal(BasicAction):
 
     def is_valid(self):
         tgt = self.target
-        return tgt.life < tgt.maxlife
+        return not tgt.dead and tgt.life < tgt.maxlife
 
 
 class BaseUseGraze(UseCard):
@@ -124,7 +124,7 @@ class BaseUseGraze(UseCard):
 class UseGraze(BaseUseGraze):
     pass
 
-class LaunchGraze(BaseUseGraze):
+class LaunchGraze(BaseUseGraze, LaunchCardAction):
     pass
 
 class UseAttack(UseCard):
@@ -138,7 +138,7 @@ class UseAttack(UseCard):
         )
 
 
-class LaunchHeal(UserAction):
+class LaunchHeal(UserAction, LaunchCardAction):
     def apply_action(self):
         g = Game.getgame()
         src = self.source
