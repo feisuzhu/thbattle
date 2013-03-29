@@ -4373,7 +4373,7 @@ class MiracleHandler:
     # choose_players
     def target(pl):
         if not pl:
-            return (False, u'奇迹：请选择1名体力不满的玩家')
+            return (False, u'奇迹：请选择1名玩家')
 
         return (True, u'奇迹！')
 
