@@ -53,7 +53,7 @@ class Reject(InstantSpellCardAction):
         return True
 
 
-class LaunchReject(GenericAction):
+class LaunchReject(GenericAction, LaunchCardAction):
     def __init__(self, source, target_act, card):
         self.source = source
         self.target_act = target_act

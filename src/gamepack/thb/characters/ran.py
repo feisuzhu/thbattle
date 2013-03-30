@@ -100,12 +100,7 @@ class ExtremeIntelligenceHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, InstantSpellCardAction):
             if isinstance(act, Reject): return act
             g = Game.getgame()
-            for a in reversed(g.action_stack):
-                if isinstance(a, ActionStage):
-                    target = a.target
-                    break
-            else:
-                assert False, 'Should not happen'
+            target = g.current_turn
 
             for p in g.players.exclude(target):
                 if p.dead: continue
