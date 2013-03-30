@@ -4514,6 +4514,14 @@ class Dilemma:
         return (False, u'BUG!')
 
 
+class DilemmaAction:
+    def effect_string_before(act):
+        return u'|G【%s】|r对|G【%s】|r发动了|G难题|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name
+        )
+
+
 class DilemmaDamageAction:
     # choose_card meta
     def choose_card_text(g, act, cards):
@@ -4522,13 +4530,6 @@ class DilemmaDamageAction:
         else:
             return (False, u'请选择交出一张方片牌，或流失一点体力')
             
-            
-    def effect_string_before(act):
-        return u'|G【%s】|r对|G【%s】|r发动了【难题】。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
-        )
-
 
     def effect_string(act):
         if act.peer_action == 'card':
@@ -4579,6 +4580,16 @@ class ImperishableNight:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name
         )
+
+
+class ImperishableNightSkill:
+    name = u'永夜'
+
+    def clickable(g):
+        return False
+
+    def is_action_valid(g, cl, target_list):
+        return (False, u'BUG')
 
 
 class ImperishableNightHandler:

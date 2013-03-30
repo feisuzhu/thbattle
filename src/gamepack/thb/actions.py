@@ -140,10 +140,14 @@ def skill_wrap(actor, sid_list, cards):
     try:
         check(all(c.resides_in.owner is actor for c in cards))
         for skill_id in sid_list:
-            check(isinstance(skill_id, int))
-            check(0 <= skill_id < len(actor.skills))
-
-            skill_cls = actor.skills[skill_id]
+            if isinstance(skill_id, int):
+                check(0 <= skill_id < len(actor.skills))
+                skill_cls = actor.skills[skill_id]
+            else:
+                check(isinstance(skill_id, type))
+                from .cards.base import Skill
+                check(issubclass(skill_id, Skill))
+                skill_cls = skill_id
 
             if not getattr(skill_cls, 'no_reveal', False):
                 g.players.exclude(actor).reveal(cards)

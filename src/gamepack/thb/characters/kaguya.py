@@ -5,9 +5,10 @@ from ..cards import *
 class Dilemma(Skill):
     associated_action = None
     target = t_None
-    
 
-class DilemmaDamageAction(UserAction):
+class DilemmaAction(UserAction): pass
+
+class DilemmaDamageAction(DilemmaAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -33,7 +34,7 @@ class DilemmaDamageAction(UserAction):
         return card.suit == Card.DIAMOND
 
 
-class DilemmaHealAction(DrawCards):
+class DilemmaHealAction(DilemmaAction, DrawCards):
     pass
 
 class DilemmaHandler(EventHandler):
@@ -60,7 +61,12 @@ class DilemmaHandler(EventHandler):
 class ImperishableNight(TreatAsSkill):
     treat_as = SealingArrayCard
     def check(self):
-        return False  # can only launch by handler
+        return True  # can only launch by handler
+
+
+class ImperishableNightSkill(Skill):
+    associated_action = None
+    target = t_None
 
 
 class ImperishableNightHandler(EventHandler):
@@ -84,7 +90,7 @@ class ImperishableNightHandler(EventHandler):
         
         for p in g.players.exclude(turn_player):
             if p.dead or p is tgt: continue
-            if not p.has_skill(ImperishableNight): continue
+            if not p.has_skill(ImperishableNightSkill): continue
             
             if not user_choose_option(self, p): continue
 
@@ -92,10 +98,7 @@ class ImperishableNightHandler(EventHandler):
             cards = user_choose_cards(self, p, cats)
 
             if cards:
-                g.players.exclude(p).reveal(cards)
-                card = ImperishableNight.wrap(cards, p)
-                g.deck.register_vcard(card)
-                card.move_to(p.cards)
+                card = skill_wrap(p, (ImperishableNight,), cards)
                 g.process_action(LaunchCard(p, [tgt], card))
 
         return act
@@ -110,6 +113,6 @@ class ImperishableNightHandler(EventHandler):
 
 @register_character
 class Kaguya(Character):
-    skills = [Dilemma, ImperishableNight]
+    skills = [Dilemma, ImperishableNightSkill]
     eventhandlers_required = [DilemmaHandler, ImperishableNightHandler]
     maxlife = 3
