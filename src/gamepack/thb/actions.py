@@ -273,7 +273,7 @@ def register_eh(cls):
 # ------------------------------------------
 
 class GenericAction(Action): pass
-class LaunchCardAction: pass
+class LaunchCardAction(object): pass
 
 class UserAction(Action): # card/character skill actions
     def is_valid(self):
