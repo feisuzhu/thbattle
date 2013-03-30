@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 109'
+VERSION = 'THBATTLE V1.0b incr 110'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -115,9 +115,11 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
-文本框可以选择文字复制了。(zhyk)
-聊天框内可以使用命令（目前只有 /vol ，设置音量使用)(zhyk)
-聊天框保存聊天记录(zhyk)
+新人物：蓬莱山辉夜（zhyk）
+八云紫 & 霍青娥 技能调整：不再可以使用装备牌发动技能
+文本框可以选择文字复制了。（zhyk）
+聊天框内可以使用命令（目前只有 /vol ，设置音量使用）（zhyk）
+聊天框保存聊天记录（zhyk）
 莫名其妙卡顿bug修复
 异变模式。
 早苗设定调整，各种bug修复……
