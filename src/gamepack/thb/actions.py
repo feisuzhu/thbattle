@@ -186,7 +186,7 @@ def shuffle_here():
         g.deck.shuffle(p.cards)
 
 
-def migrate_cards(cards, to, unwrap=False, no_event=False):
+def migrate_cards(cards, to, unwrap=False, no_event=False, action=None):
     g = Game.getgame()
     from .cards import VirtualCard
     groups = group_by(cards, lambda c: c if c.is_card(VirtualCard) else c.resides_in)
@@ -210,7 +210,7 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
                     migrate_cards(c.associated_cards, sp, False, no_event)
 
         if not no_event:
-            act = g.action_stack[-1]
+            act = action if action else g.action_stack[-1]
             g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 
 migrate_cards.SINGLE_LAYER = 2
@@ -472,7 +472,18 @@ class DropCards(GenericAction):
 
 
 class DropUsedCard(DropCards):
-    pass
+    def __enter__(self):
+        cards = self.cards
+        target = self.target
+        assert all(c.resides_in.owner is target for c in cards), 'WTF?!'
+        migrate_cards(cards, target.droppedcards, action=self)
+
+    def __exit__(self, *exc):
+        droppedcards = self.target.droppedcards
+        self.cards = [c for c in self.cards if c.resides_in is droppedcards]
+        if self.cards:
+            g = Game.getgame()
+            g.process_action(self)
 
 
 class UseCard(UserAction):
@@ -490,9 +501,8 @@ class UseCard(UserAction):
             return False
         else:
             self.card = cards[0]
-            drop = DropUsedCard(target, cards=cards)
-            g.process_action(drop)
-            return True
+            with DropUsedCard(target, cards=cards):
+                return True
     
     @property
     def cards(self):
@@ -577,20 +587,30 @@ class LaunchCard(GenericAction, LaunchCardAction):
         # ----------------------
 
         action = card.associated_action
-        if not getattr(card, 'no_drop', False):
-            g.process_action(DropUsedCard(self.source, cards=[card]))
+        
+        class dummy(object):
+            def __init__(self, source, target): pass
+            def __enter__(self): pass
+            def __exit__(*a): pass
+            def __len__(self): return 0
+            def force_fire(self): pass
 
-        if action:
-            target = target_list[0] if target_list else self.source
-            a = action(source=self.source, target=target)
-            self.card_action = a
-            a.associated_card = card
-            a.target_list = target_list
-            a.force_fire()  # For Exinwan, see UserAction.force_fire
-            g.process_action(a)
-            return True
+        drop = dummy if getattr(card, 'no_drop', False) else DropUsedCard
 
-        return False
+        if not action: action = dummy
+        
+        target = target_list[0] if target_list else self.source
+        a = action(source=self.source, target=target)
+        if a: self.card_action = a
+        a.associated_card = card
+        a.target_list = target_list
+        a.force_fire()  # For Exinwan, see UserAction.force_fire
+        with drop(self.source, [card]):
+            if a:
+                g.process_action(a)
+                return True
+            else:
+                return False
 
     def is_valid(self):
         if not self.tl_valid:
