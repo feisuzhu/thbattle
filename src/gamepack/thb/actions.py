@@ -429,6 +429,8 @@ class DropCards(GenericAction):
     def __init__(self, target, cards):
         self.target = target
         self.cards = cards
+        g = Game.getgame()
+        self.source = g.action_stack[-1].source
 
     def apply_action(self):
         g = Game.getgame()

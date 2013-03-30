@@ -790,11 +790,7 @@ class YoumuPhantomHandler(EventHandler):
                 if c.is_card(YoumuPhantomCard):
                     from .basic import Heal
                     
-                    if isinstance(act, DropCards):
-                        src = g.action_stack[-2].source
-                    else:
-                        src = act.source
-
+                    src = act.source
                     owner = _from.owner
 
                     g.process_action(MaxLifeChange(owner, owner, -1))
