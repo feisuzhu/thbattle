@@ -3,6 +3,7 @@
 import pyglet
 from pyglet.media import Player, ManagedSoundPlayer
 from .base.interp import InterpDesc, LinearInterp
+from user_settings import UserSettings
 
 from utils import instantiate
 
@@ -11,13 +12,23 @@ from utils import instantiate
 class SoundManager(object):
     volume_factor = InterpDesc('_volume_factor')  # 音量系数
     def __init__(self):
+        us = UserSettings
+        us.add_category('sound', u'音量设置')
+        us.add_settings('sound',
+            bgm_muted = False,
+            se_muted = False,
+            bgm_vol = 1.0,
+            se_vol = 1.0,
+        )
         self.cur_bgm = None
         self.bgm_next = None
         self.bgm_switching = False
         self.bgm_player = Player()
-        self.volume = 1.0  # 音量
+        self.volume = us.bgm_vol  # 音量
+        self.se_volume = us.se_vol
         self.bgm_player.eos_action = Player.EOS_LOOP
-        self.muted = False
+        self.muted = us.bgm_muted
+        self.se_muted = us.se_muted
 
     def switch_bgm(self, bgm):
         if self.muted:
@@ -56,31 +67,61 @@ class SoundManager(object):
         if not self.muted:
             self._bgm_fade_out_done()
 
-    def mute(self):
-        if self.muted: return
-        self.muted = True
-        self.volume_factor = 0.0
-        self.bgm_player.pause()
-        pyglet.clock.unschedule(self._set_vol)
-        pyglet.clock.unschedule(self._bgm_fade_out_done)
-        self.bgm_next = self.cur_bgm
-        self.cur_bgm = None
+    def mute(self, value = True, kind = 'bgm'):
+        if kind == 'se':
+            return self.mute_se() if value else self.unmute_se()
+
+        if kind != 'bgm':
+            return
+
+        if value:
+            if self.muted: return
+            UserSettings.bgm_muted = True
+            self.muted = True
+            self.volume_factor = 0.0
+            self.bgm_player.pause()
+            pyglet.clock.unschedule(self._set_vol)
+            pyglet.clock.unschedule(self._bgm_fade_out_done)
+            self.bgm_next = self.cur_bgm
+            self.cur_bgm = None
+        else:
+            self.unmute()
+
+    def mute_se(self):
+        UserSettings.se_muted = True
+        self.se_muted = True
 
     def unmute(self):
         if not self.muted: return
+        UserSettings.bgm_muted = False
         self.muted = False
         self.bgm_next and self.instant_switch_bgm(self.bgm_next)
 
+    def unmute_se(self):
+        UserSettings.se_muted = False
+        self.se_muted = False
+
     def play(self, snd):
-        if self.muted: return
+        if self.se_muted: return
         player = ManagedSoundPlayer()
-        player.volume = self.volume
+        player.volume = self.se_volume
         player.queue(snd)
         player.play()
 
-    def set_volume(self, vol):
+    def set_volume(self, vol, kind = 'bgm'):
+        if kind == 'se':
+            return self.set_se_volume(vol)
+
+        if kind != 'bgm':
+            return
+
+        UserSettings.bgm_vol = vol
         self.volume = vol
         self._set_vol()
+
+    def set_se_volume(self, vol):
+        UserSettings.se_vol = vol
+        self.se_volume = vol
 
     def _set_vol(self, _=None):
         self.bgm_player.volume = self.volume_factor * self.volume

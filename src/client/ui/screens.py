@@ -90,13 +90,16 @@ class ChatBoxFrame(Frame):
             elif text.startswith(u'/'):
                 from . import commands
                 cmdline = shlex.split(text[1:])
-                msg = commands.process_command(cmdline)
-                msg and self.append(msg)
+                msg = commands.process_command(cmdline, frame = self)
+                if msg: self.append(msg)
             else:
                 Executive.call('chat', ui_message, text)
 
     def append(self, v):
         self.box.append(v)
+
+    def cls(self):
+        self.box.text = u'\u200b'  # prevent CRASH
 
     def add_history(self, text):
         self.history_cursor = -1
@@ -277,7 +280,7 @@ class LoginScreen(Screen):
             )
             self.txt_pwd = PasswordTextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
-                text='',
+                text=UserSettings.saved_pass,
             )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',

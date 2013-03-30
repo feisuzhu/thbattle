@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from client.ui.base import *
-from client.ui.soundmgr import SoundManager
 
 registered_commands = {}
 
@@ -9,6 +8,10 @@ def command(name, help, cmd=None):
     def decorate(f):
         f.commandname = name
         f.commandhelp = help
+        try:
+            f.framearg
+        except:
+            f.framearg = False
         registered_commands[cmd or f.__name__] = f
         return f
 
@@ -25,10 +28,47 @@ def argdesc(*desclist):
 
 def argtypes(*types):
     def decorate(f):
-        f.argtypes= types
+        f.argtypes = types
         return f
 
     return decorate
+
+
+def required(f):
+    def wrapper(arg):
+        return f(arg), True
+
+    return wrapper
+
+
+def optional(f, default = None):
+    def wrapper(arg = None):
+        try:
+            if arg is not None:
+                return f(arg), True
+        except:
+            pass
+        
+        return default, False
+
+    return wrapper
+
+
+def matchs(regex, f = str):
+    import re
+    r = re.compile(regex)
+    def wrapper(arg):
+        if r.match(arg):
+            return f(arg)
+        else:
+            raise ValueError
+
+    return wrapper
+
+
+def framearg(f):
+    f.framearg = True
+    return f
 
 
 def _format_all_commands():
@@ -37,68 +77,121 @@ def _format_all_commands():
         for cmdname, cmd in registered_commands.items()
     ])
 
-
-def process_command(arglist):
-    while True:
-        if not arglist:
-            prompt = _format_all_commands()
-            break
-
-        al = list(arglist)
-        cmdname = al.pop(0)
+def process_command(arglist, frame):
+    def process():
+        if not arglist: return help()
+        
+        cmdname = arglist[0]
         cmd = registered_commands.get(cmdname)
-        if not cmd:
-            prompt = _format_all_commands()
-            break
+        if not cmd: return help()
 
-        if len(al) != len(cmd.argdesc):
-            prompt = registered_commands['?'](cmdname)
-            break
+        al = []
 
         try:
-            al = [argtype(i) for argtype, i in zip(cmd.argtypes, al)]
-        except:
-            prompt = registered_commands['?'](cmdname)
-            break
-        
-        prompt = cmd(*al)
-        break
+            i, l = 1, len(arglist)
+            for arg in cmd.argtypes:
+                v, n = arg(arglist[i]) if i < l else arg()
+                al.append(v)
+                if n: i += 1
 
-    return u'|R%s|R\n' % prompt
+            if i != l:
+                raise ValueError
+        except:
+            return help(cmdname)
+
+        return cmd(*al, frame = frame) if cmd.framearg else cmd(*al)
+
+    msg = process()
+    if msg: return u'|R%s|r\n' % msg
 
 # -----------------------------------
 
-@command(u'设置音量', u'音量可以是 on、off 和 0-100 之间的整数')
-@argtypes(str)
-@argdesc(u'<音量>')
-def vol(val):
+@command(u'显示/设置音量', u'音量可以是 on、off、show 或 0-100 之间的整数')
+@argtypes(
+    optional(matchs(r'se|bgm|all'), 'all'),
+    optional(matchs(r'[0-9]+|on|off|show'), 'show')
+)
+@argdesc(u'[se||bgm||all]', u'[<音量>]')
+def vol(kind, val):
+    from client.ui.soundmgr import SoundManager as sm
+    
+    mute = None
+    kinds = ('se', 'bgm') if kind == 'all' else (kind,)
+
     if val == 'on':
-        val = 100
+        mute = False
     elif val == 'off':
-        val = 0
+        mute = True
+    elif val == 'show':
+        def vol(kind):
+            kind = 'se_' if kind == 'se' else ''
+            muted = u'(静音)' if getattr(sm, kind + 'muted') else ''
+            return '%d%s' % (getattr(sm, kind+'volume') *100, muted)
+
+        return '\n'.join([k + u'音量：' + vol(k) for k in kinds])
+
     elif val.isdigit():
-        val = min(int(val), 100)
-        val = max(val, 0)
-    else:
-        return registered_commands['?']('vol')
+        vol = min(int(val), 100)
+        vol = max(vol, 0)
 
-    if not val:
-        SoundManager.mute()
-        return u'已静音。'
+    if mute is not None:
+        for k in kinds: sm.mute(mute, k)
+        return u'已静音。' if mute else u'静音已解除。'
     else:
-        SoundManager.unmute()
-        SoundManager.set_volume(val / 100.0)
-        return u'音量已设置为 %d' % val
+        vol /= 100.0
+        for k in kinds:
+            sm.mute(False, k)
+            sm.set_volume(vol, k)
+        return u'音量已设置为 %s' % val
 
+@command(u'清屏', u'清空消息框')
+@argtypes()
+@argdesc()
+@framearg
+def cls(frame):
+    frame.cls()
+
+
+@command(u'存储设置', u'修改存储')
+@argtypes(optional(str), optional(str))
+@argdesc(u'[<分类名>', u'[on||off||show]]')
+def save(ctg, stat):
+    from user_settings import UserSettings as us
+    try:
+        stat = { 'on': True, 'off': False, None: None, 'show': 2 }[stat]
+    except KeyError:
+        help('save')
+
+    def msg(ctg, detail = False):
+        a = u'已' if ctg in us.saves else u'未'
+        if detail:
+            d = u'分类【%s】：%s\n' % (ctg, us.categories[ctg].description)
+        else:
+            d = u''
+        return d + u'分类【%s】%s设置为保存。' % (ctg, a)
+
+    if ctg:
+        if ctg not in us.categories:
+            return u'分类【%s】不存在。' % ctg
+
+        if stat == 2:  # show
+            return msg(ctg, True)
+
+        if stat is not None:
+            us.save_category(ctg, stat)
+            us.save()
+
+        return msg(ctg)
+
+    return u'\n'.join([msg(ctg) for ctg in us.categories if ctg])
 
 @command(u'帮助', u'查看命令的帮助', cmd='?')
-@argtypes(str)
-@argdesc(u'<命令>')
-def help(cmdname):
+@argtypes(optional(str))
+@argdesc(u'[<命令>]')
+def help(cmdname = None):
     cmd = registered_commands.get(cmdname)
     if not cmd:
         return _format_all_commands()
-    else:
-        help = [cmd.commandname, cmd.commandhelp]
-        help.append(u'/%s ' % cmdname + u' '.join(cmd.argdesc))
-        return u'\n'.join(help)
+    help = [cmd.commandname, cmd.commandhelp]
+    help.append(u'/%s ' % cmdname + u' '.join(cmd.argdesc))
+    return u'\n'.join(help)

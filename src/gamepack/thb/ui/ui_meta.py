@@ -57,7 +57,7 @@ def gen_metafunc(_for):
         meta_for.ui_meta = UIMetaDescriptor()
         if meta_for in metadata:
             raise Exception('%s ui_meta redefinition!' % meta_for)
-
+        
         metadata[meta_for] = _dict
 
     return metafunc
@@ -183,6 +183,14 @@ class THBattleKOF:
 # -----BEGIN THBIdentity UI META-----
 __metaclass__ = gen_metafunc(thbidentity)
 
+D = '''
+|R身份|r： BOSS（1人）、城管（%d人）、道中（%d人）、黑幕（%d人）
+|RBOSS|r： 胜利条件：除BOSS与道中以外角色全部死亡。杀死道中时，弃置所有牌。
+|R道中|r： 胜利条件：与BOSS相同。
+|R黑幕|r： 胜利条件：除你与BOSS以外角色全部死亡时，BOSS死亡。
+|R城管|r： 胜利条件：BOSS死亡，除非黑幕获胜。角色死亡后，伤害来源摸3张牌。
+'''.strip()
+
 class THBattleIdentity:
     name = u'符斗祭 - 标准8人身份场'
     logo = gres.thblogo_8id
@@ -208,6 +216,7 @@ class THBattleIdentity:
 
     del T
 
+    description = D % (4, 2, 1)
 
 class THBattleIdentity5:
     name = u'符斗祭 - 标准5人身份场'
@@ -215,24 +224,9 @@ class THBattleIdentity5:
 
     from .view import THBattleIdentity5UI as ui_class
 
-    T = thbidentity.Identity.TYPE
-    identity_table = {
-        T.HIDDEN: u'？',
-        T.ATTACKER: u'城管',
-        T.BOSS: u'BOSS',
-        T.ACCOMPLICE: u'道中',
-        T.CURTAIN: u'黑幕',
-    }
+    description = D % (2, 1, 1)
 
-    identity_color = {
-        T.HIDDEN: u'blue',
-        T.ATTACKER: u'blue',
-        T.BOSS: u'red',
-        T.ACCOMPLICE: u'orange',
-        T.CURTAIN: u'green',
-    }
-
-    del T
+del D
 
 # -----END THBIdentity UI META-----
 
