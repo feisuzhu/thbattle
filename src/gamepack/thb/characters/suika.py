@@ -70,7 +70,7 @@ class WineGodAwake(GenericAction):
         tgt.skills.remove(WineGod)
         tgt.skills.append(WineDream)
         g = Game.getgame()
-        g.process_action(MaxLifeChange(None, tgt, -1))
+        g.process_action(MaxLifeChange(tgt, tgt, -1))
         return True
 
 class WineGodHandler(EventHandler):

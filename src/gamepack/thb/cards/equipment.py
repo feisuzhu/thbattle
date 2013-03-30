@@ -797,14 +797,14 @@ class YoumuPhantomHandler(EventHandler):
 
                     owner = _from.owner
 
-                    g.process_action(MaxLifeChange(None, owner, -1))
+                    g.process_action(MaxLifeChange(owner, owner, -1))
                     if not owner.dead:
                         g.process_action(Heal(src, owner))
 
         if to is not None and to.type == 'equips':
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
-                    g.process_action(MaxLifeChange(None, to.owner, 1))
+                    g.process_action(MaxLifeChange(to.owner, to.owner, 1))
 
         return arg
 

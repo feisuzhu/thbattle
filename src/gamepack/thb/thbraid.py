@@ -613,7 +613,7 @@ class THBattleRaid(Game):
             ehclasses.extend(stage2.eventhandlers_required)
 
             g.process_action(
-                MaxLifeChange(None, mutant, -(stage1.maxlife // 2))
+                MaxLifeChange(mutant, mutant, -(stage1.maxlife // 2))
             )
             mutant.morphed = True
 

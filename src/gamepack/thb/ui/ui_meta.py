@@ -4503,7 +4503,7 @@ class Kaguya:
     )
 
 
-class Problem:
+class Dilemma:
     # Skill
     name = u'难题'
 
@@ -4514,7 +4514,7 @@ class Problem:
         return (False, u'BUG!')
 
 
-class ProblemDamageAction:
+class DilemmaDamageAction:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -4536,26 +4536,26 @@ class ProblemDamageAction:
                 act.target.ui_meta.char_name,
                 act.source.ui_meta.char_name
             )
-        else:
-            return u'|G【%s】|r失去了1残机。' % (
-                act.target.ui_meta.char_name,
-            )
+        #else:
+            #return u'|G【%s】|r失去了1残机。' % (
+            #    act.target.ui_meta.char_name,
+            #)
         
 
-class ProblemHealAction:
+class DilemmaHealAction:
     def effect_string(act):
         return u'|G【%s】|r摸了一张牌。' % (
             act.target.ui_meta.char_name
         )
         
 
-class ProblemHandler:
+class DilemmaHandler:
     # choose_option meta
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【难题】吗？'
 
 
-class EndlessNight:
+class ImperishableNight:
     # Skill
     name = u'永夜'
 
@@ -4575,13 +4575,13 @@ class EndlessNight:
         return (False, u'BUG')
 
     def effect_string(act):
-        return u'|G【%s】|r对|G【%s】|r使用了【永夜】。' % (
+        return u'|G【%s】|r对|G【%s】|r使用了|G永夜|r。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name
         )
 
 
-class EndlessNightHandler:
+class ImperishableNightHandler:
     # choose_option meta
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【永夜】吗？'
