@@ -4537,15 +4537,14 @@ class DilemmaDamageAction:
                 act.target.ui_meta.char_name,
                 act.source.ui_meta.char_name
             )
-        #else:
-            #return u'|G【%s】|r失去了1残机。' % (
-            #    act.target.ui_meta.char_name,
-            #)
+        else:
+            pass  # print by LifeLost
         
 
 class DilemmaHealAction:
     def effect_string(act):
-        return u'|G【%s】|r摸了一张牌。' % (
+        return u'|G【%s】|r让|G【%s】|r摸了一张牌。' % (
+            act.source.ui_meta.char_name,
             act.target.ui_meta.char_name
         )
         
