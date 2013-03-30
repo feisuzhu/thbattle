@@ -142,14 +142,15 @@ class VirtualCard(Card):
         if not cl:
             vc.associated_cards = []
             return vc
-        #suit = reduce(lambda s1, s2: s1 if s1 == s2 else Card.NOTSET, [c.suit for c in cl])
-        suit = cl[0].suit
-        color = cl[0].color
-        for c in cl:
-            if c.suit != suit: suit = Card.NOTSET
-            if c.color != color: color = Card.NOTSET
 
-        num = reduce(lambda n1, n2: n1 if n1 == n2 else 0, [c.number for c in cl])
+        suit = cl[0].suit if len(cl) == 1 else Card.NOTSET
+
+        color = set([c.color for c in cl])
+        color = color.pop() if len(color) == 1 else Card.NOTSET
+
+        num = set([c.number for c in cl])
+        num = num.pop() if len(num) == 1 else Card.NOTSET
+
         vc.suit, vc.number, vc.color = suit, num, color
         vc.associated_cards = cl[:]
         return vc
@@ -201,7 +202,7 @@ class Deck(GameObject):
         cl = self.cards
         if len(self.cards) <= num:
             dcl = self.droppedcards
-            
+
             assert all(not c.is_card(VirtualCard) for c in dcl)
             l = [c.__class__(c.suit, c.number, cl) for c in dcl]
             dcl.clear()

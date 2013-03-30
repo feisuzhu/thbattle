@@ -78,7 +78,7 @@ class OpticalCloakHandler(EventHandler):
                 act.result = True
                 ocs = OpticalCloakSkill(target)
                 ocs.associated_cards = [oc.fatetell_card]
-                act.cards = [ocs]  # UseCard attribute
+                act.card = ocs  # UseCard attribute
             return act
         return act
 
@@ -782,20 +782,20 @@ class YoumuPhantomHandler(EventHandler):
         act, cards, _from, to = arg
 
         from .definition import YoumuPhantomCard
-        
+
         g = Game.getgame()
 
         if _from is not None and _from.type == 'equips':
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
                     from .basic import Heal
-                    
+
                     src = act.source
                     owner = _from.owner
 
                     g.process_action(MaxLifeChange(owner, owner, -1))
                     if not owner.dead:
-                        g.process_action(Heal(src, owner))
+                        g.process_action(Heal(src, src, owner))
 
         if to is not None and to.type == 'equips':
             for c in cards:

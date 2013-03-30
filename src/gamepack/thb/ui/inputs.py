@@ -555,6 +555,9 @@ class UIChooseOption(Control):
             ui_meta = irp.attachment.ui_meta
             choose_option_buttons = ui_meta.choose_option_buttons
             choose_option_prompt = ui_meta.choose_option_prompt
+            if callable(choose_option_prompt):
+                choose_option_prompt = choose_option_prompt(irp.attachment)
+
         except AttributeError:
             choose_option_buttons = ((u'确定', True), (u'结束', False))
             choose_option_prompt = u'UIChooseOption: %s missing ui_meta' % (

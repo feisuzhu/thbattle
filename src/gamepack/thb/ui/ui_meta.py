@@ -712,7 +712,7 @@ class LaunchGraze:
         t = act.target
         return u'|G【%s】|r使用了|G%s|r。' % (
             t.ui_meta.char_name,
-            act.cards[0].ui_meta.name,
+            act.card.ui_meta.name,
         )
 
 
@@ -819,6 +819,7 @@ class RejectCard:
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动出好人卡')
 
+
 class RejectHandler:
     # choose_card meta
     def choose_card_text(g, act, cards):
@@ -835,6 +836,7 @@ class RejectHandler:
             return (True, u'对不起，你是一个好人(%s)' % s)
         else:
             return (False, u'请选择一张好人卡（%s)' % s)
+
 
 class Reject:
     def effect_string_before(act):
@@ -1216,6 +1218,7 @@ class RoukankenHandler:
         else:
             return (False, u'请使用【弹幕】发动楼观剑……')
 
+
 class RoukankenLaunchAttack:
     def effect_string_before(act):
         return (
@@ -1226,6 +1229,7 @@ class RoukankenLaunchAttack:
             act.target.ui_meta.char_name,
 
         )
+
 
 class GungnirCard:
     # action_stage meta
@@ -4373,7 +4377,7 @@ class MiracleHandler:
     # choose_players
     def target(pl):
         if not pl:
-            return (False, u'奇迹：请选择1名玩家')
+            return (False, u'奇迹：请选择1名其他玩家')
 
         return (True, u'奇迹！')
 
@@ -4498,7 +4502,7 @@ class Kaguya:
     port_image = gres.kaguya_port
     description = (
         u'|DB永远的公主殿下 蓬莱山辉夜 体力：3|r\n\n'
-        u'|G难题|r：一名角色每次令你回复一点体力时，你可以令该角色摸一张牌；你每受到一次伤害后，可令伤害来源交给你一张方片牌，否则其失去一点体力。\n'
+        u'|G难题|r：一名角色每次令你回复一点体力时，你可以令该角色摸一张牌；你每受到一次伤害后，可令伤害来源交给你一张方片牌，否则其失去一点体力。\n\n'
         u'|G永夜|r：在你的回合外，当一名角色的一张方片基本牌因使用进入弃牌堆时，你可以将一张方片牌置于该角色的判定区视为【封魔阵】。'
     )
 
@@ -4520,15 +4524,13 @@ class DilemmaDamageAction:
         if act.cond(cards):
             return (True, u'交出一张方片牌')
         else:
-            return (False, u'请选择交出一张方片牌，或流失一点体力')
-            
-            
+            return (False, u'请选择交出一张方片牌（否则失去一点体力）')
+
     def effect_string_before(act):
-        return u'|G【%s】|r对|G【%s】|r发动了【难题】。' % (
+        return u'|G【%s】|r对|G【%s】|r发动了|G难题|r。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name
         )
-
 
     def effect_string(act):
         if act.peer_action == 'card':
@@ -4536,23 +4538,27 @@ class DilemmaDamageAction:
                 act.target.ui_meta.char_name,
                 act.source.ui_meta.char_name
             )
-        #else:
-            #return u'|G【%s】|r失去了1残机。' % (
-            #    act.target.ui_meta.char_name,
-            #)
-        
+        # elif act.peer_action == 'life':
+        #     <handled by LifeLost>
+
 
 class DilemmaHealAction:
     def effect_string(act):
-        return u'|G【%s】|r摸了一张牌。' % (
-            act.target.ui_meta.char_name
+        return u'|G【%s】|r发动了|G难题|r，|G【%s】|r摸了一张牌。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
         )
-        
+
 
 class DilemmaHandler:
     # choose_option meta
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【难题】吗？'
+    def choose_option_prompt(act):
+        _type = {
+            'positive': u'正面效果',
+            'negative': u'负面效果'
+        }.get(act.dilemma_type, u'WTF?!')
+        return u'你要发动【难题】吗（%s）？' % _type
 
 
 class ImperishableNight:
@@ -4584,16 +4590,18 @@ class ImperishableNight:
 class ImperishableNightHandler:
     # choose_option meta
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【永夜】吗？'
+    def choose_option_prompt(act):
+        prompt = u'你要发动【永夜】吗（对%s）？'
+        return prompt % act.target.ui_meta.char_name
 
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'永恒之夜！')
+            return (True, u'陷入永夜吧！')
         else:
             return (False, u'请选择一张方片牌')
 
-        
+
 # ----------
 __metaclass__ = gen_metafunc(characters.remilia_ex)
 

@@ -136,30 +136,39 @@ def random_choose_card(categories):
 
 
 def skill_wrap(actor, sid_list, cards):
-    g = Game.getgame()
+    skill_list = []
     try:
-        check(all(c.resides_in.owner is actor for c in cards))
         for skill_id in sid_list:
             check(isinstance(skill_id, int))
             check(0 <= skill_id < len(actor.skills))
 
-            skill_cls = actor.skills[skill_id]
+            skill_list.append(actor.skills[skill_id])
+
+        return skill_wrap_by_class(actor, skill_list, cards)
+
+    except CheckFailed:
+        return None
+
+
+def skill_wrap_by_class(actor, skill_list, cards):
+    g = Game.getgame()
+    try:
+        check(all(c.resides_in.owner is actor for c in cards))
+        for skill_cls in skill_list:
+            check(skill_cls in actor.skills)
 
             if not getattr(skill_cls, 'no_reveal', False):
                 g.players.exclude(actor).reveal(cards)
 
             card = skill_cls.wrap(cards, actor)
-
             check(card.check())
-
             g.deck.register_vcard(card)
-
             cards = [card]
 
         #migrate_cards(cards, actor.cards, False, True)
         cards[0].move_to(actor.cards)
-
         return cards[0]
+
     except CheckFailed as e:
         return None
 
@@ -369,8 +378,8 @@ class TryRevive(GenericAction):
             while True:
                 act = LaunchHeal(p, tgt)
                 if g.process_action(act):
-                    cards = act.cards
-                    if not cards: continue
+                    card = act.card
+                    if not card: continue
                     from .cards import Heal
                     g.process_action(Heal(p, tgt))
                     if tgt.life > 0:
@@ -414,15 +423,20 @@ class MaxLifeChange(GenericAction):
         self.amount = amount
         
     def apply_action(self):
+        src = self.source
         tgt = self.target
         g = Game.getgame()
         tgt.maxlife += self.amount
-        if not tgt.maxlife:
-            g.process_action(PlayerDeath(None, tgt))
-            return True
-            
+
         if tgt.life > tgt.maxlife:
-            tgt.life = tgt.maxlife
+            g.process_action(
+                LifeLost(src, tgt, tgt.maxlife - tgt.tgt.life)
+            )
+
+        if not tgt.maxlife and not tgt.dead:
+            # WTF ?!
+            g.process_action(PlayerDeath(src, tgt))
+            return True
             
         return True
 
@@ -433,8 +447,6 @@ class DropCards(GenericAction):
     def __init__(self, target, cards):
         self.target = target
         self.cards = cards
-        g = Game.getgame()
-        self.source = g.action_stack[-1].source
 
     def apply_action(self):
         g = Game.getgame()
@@ -472,14 +484,19 @@ class UseCard(UserAction):
         g = Game.getgame()
         target = self.target
         cards = user_choose_cards(self, target)
-        if not cards:
-            self.cards = []
+
+        if not cards or len(cards) != 1:
+            self.card = None
             return False
         else:
-            self.cards = cards
+            self.card = cards[0]
             drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True
+    
+    @property
+    def cards(self):
+        raise Exception('obsolete')  # fail fast
 
 
 class DropCardStage(GenericAction):
@@ -875,14 +892,13 @@ class DyingHandler(EventHandler):
         if not evt_type == 'action_after': return act
         if not isinstance(act, (BaseDamage, MaxLifeChange)): return act
 
+        src = act.source
         tgt = act.target
         if tgt.dead or tgt.life > 0: return act
 
         g = Game.getgame()
         if g.process_action(TryRevive(tgt, dmgact=act)):
             return act
-
-        src = act.source if isinstance(act, Damage) else None
 
         g.process_action(PlayerDeath(src, tgt))
 

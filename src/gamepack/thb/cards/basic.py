@@ -121,11 +121,14 @@ class BaseUseGraze(UseCard):
             (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
         )
 
+
 class UseGraze(BaseUseGraze):
     pass
 
+
 class LaunchGraze(BaseUseGraze, LaunchCardAction):
     pass
+
 
 class UseAttack(UseCard):
     def cond(self, cl):
@@ -144,10 +147,10 @@ class LaunchHeal(UserAction, LaunchCardAction):
         src = self.source
         cards = user_choose_cards(self, src)
         if not cards:
-            self.cards = []
+            self.card = None
             return False
         else:
-            self.cards = cards
+            self.card = cards[0]
             drop = DropUsedCard(src, cards=cards)
             g.process_action(drop)
             return True
@@ -167,10 +170,12 @@ class Wine(BasicAction):
         self.target.tags['wine'] = True
         return True
 
+
 class SoberUp(GenericAction):
     def apply_action(self):
         self.target.tags['wine'] = False
         return True
+
 
 class WineRevive(GenericAction):
     def __init__(self, act):
@@ -183,6 +188,7 @@ class WineRevive(GenericAction):
         tgt = self.target
         Game.getgame().process_action(SoberUp(tgt, tgt))
         return True
+
 
 @register_eh
 class WineHandler(EventHandler):
