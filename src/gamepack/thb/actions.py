@@ -381,6 +381,10 @@ class TryRevive(GenericAction):
         tgt.tags['in_tryrevive'] = False
         return tgt.life > 0
 
+    def is_valid(self):
+        tgt = self.target
+        return not tgt.dead and tgt.maxlife > 0
+
 
 class BaseDamage(GenericAction):
     def __init__(self, source, target, amount=1):
@@ -403,7 +407,7 @@ class LifeLost(BaseDamage):
     pass
 
 
-class MaxLifeChange(BaseDamage):
+class MaxLifeChange(GenericAction):
     def __init__(self, source, target, amount):
         self.source = source
         self.target = target
@@ -869,7 +873,7 @@ class Pindian(UserAction):
 class DyingHandler(EventHandler):
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
-        if not isinstance(act, BaseDamage): return act
+        if not isinstance(act, (BaseDamage, MaxLifeChange)): return act
 
         tgt = act.target
         if tgt.dead or tgt.life > 0: return act

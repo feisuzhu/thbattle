@@ -51,11 +51,6 @@ class DeathHandler(EventHandler):
                 if p.user_input('choose_option', self):
                     g.process_action(DrawCards(p, 1))
 
-        if tgt is g.current_turn:
-            for a in reversed(g.action_stack):
-                if isinstance(a, UserAction):
-                    a.interrupt_after_me()
-
         return act
 
 
