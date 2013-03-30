@@ -4114,11 +4114,13 @@ class Realm:
     def is_action_valid(g, cl, target_list):
         return (False, u'BUG!')
 
+
 class RealmSkipFatetell:
     def effect_string_before(act):
         return u'|G【%s】|r 发动了|G境界|r，跳过了判定阶段。' % (
             act.target.ui_meta.char_name,
         )
+
 
 class RealmSkipFatetellHandler:
     # choose_card meta
@@ -4126,7 +4128,8 @@ class RealmSkipFatetellHandler:
         if act.cond(cards):
             return (True, u'跳过判定阶段，并弃置一张判定区内的牌')
         else:
-            return (False, u'请弃置一张手牌或装备牌，跳过判定阶段')
+            return (False, u'请弃置一张手牌，跳过判定阶段')
+
 
 class RealmSkipDrawCard:
     def effect_string_before(act):
@@ -4136,13 +4139,14 @@ class RealmSkipDrawCard:
             u'】|r和|G【'.join(tl.ui_meta.char_name),
         )
 
+
 class RealmSkipDrawCardHandler:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
             return (True, u'跳过摸牌阶段，并获得任意1～2名角色的一张手牌')
         else:
-            return (False, u'请弃置一张手牌或装备牌，跳过摸牌阶段')
+            return (False, u'请弃置一张手牌，跳过摸牌阶段')
 
     # choose_players
     def target(tl):
@@ -4150,6 +4154,7 @@ class RealmSkipDrawCardHandler:
             return (False, u'请选择1-2名其他玩家，随机出抽取一张手牌')
 
         return (True, u'跳过摸牌阶段，并获得任意1～2名角色的一张手牌')
+
 
 class RealmSkipAction:
     # choose_option meta
@@ -4167,7 +4172,7 @@ class RealmSkipActionHandler:
         if act.cond(cards):
             return (True, u'跳过出牌阶段，并移动场上卡牌')
         else:
-            return (False, u'请弃置一张手牌或装备牌，跳过出牌阶段')
+            return (False, u'请弃置一张手牌，跳过出牌阶段')
 
     # choose_players
     def target(tl):
@@ -4180,11 +4185,13 @@ class RealmSkipActionHandler:
         else:
             return (False, u'第一名玩家没有牌可以让你移动！')
 
+
 class RealmSkipDropCard:
     def effect_string_before(act):
         return u'|G【%s】|r发动了|G境界|r，跳过了弃牌阶段。' % (
             act.target.ui_meta.char_name,
         )
+
 
 class RealmSkipDropCardHandler:
     # choose_card meta
@@ -4192,7 +4199,8 @@ class RealmSkipDropCardHandler:
         if act.cond(cards):
             return (True, u'弃置一张牌，跳过弃牌阶段')
         else:
-            return (False, u'弃置一张牌，跳过弃牌阶段')
+            return (False, u'弃置一张手牌，跳过弃牌阶段')
+
 
 class Yukari:
     # Character
@@ -4200,7 +4208,7 @@ class Yukari:
     port_image = gres.yukari_port
     description = (
         u'|DB永远17岁 八云紫 体力：4|r\n\n'
-        u'|G境界|r：你可以弃一张牌跳过你的一个阶段（回合开始和回合结束阶段除外）\n'
+        u'|G境界|r：你可以弃置一张手牌跳过你的一个阶段（回合开始和回合结束阶段除外）\n'
         u'|B|R>>|r 若你跳过判定阶段，你可以弃置你的判定区里的一张牌\n'
         u'|B|R>>|r 若你跳过摸牌阶段，你可以获得任意1～2名角色的一张手牌；\n'
         u'|B|R>>|r 若你跳过出牌阶段，你可以将一名角色装备区或判定区的一张牌移动到另一名角色的装备区或判定区相同位置（不可替换原装备）或交给其他任意一名角色。'
@@ -4234,6 +4242,7 @@ class Sakuya:
         u'|G月时计|r：|B锁定技|r，在你的判定阶段开始前，你执行一个额外的出牌阶段。\n\n'
         u'|G飞刀|r：你可以将一张装备牌当【弹幕】使用或打出。你以此法使用【弹幕】时无距离限制。'
     )
+
 
 class FlyingKnife:
     # Skill
@@ -4402,7 +4411,7 @@ class Seiga:
     port_image = gres.seiga_port
     description = (
         u'|DB僵尸别跑 霍青娥 体力：4|r\n\n'
-        u'|G邪仙|r：你的回合内，你可以将一张可以主动发动的卡牌交给任意一名玩家，并以该玩家的身份立即使用。\n'
+        u'|G邪仙|r：你的回合内，你可以将一张可以主动发动的手牌交给任意一名玩家，并以该玩家的身份立即使用。\n'
         u'|B|R>> |r以此方法使用弹幕时，弹幕的“一回合一次”的限制由你来承担\n'
         u'|B|R>> |r在结算的过程中，你可以选择跳过指向多人的卡牌效果结算。'
 
@@ -4472,9 +4481,12 @@ class Heterodoxy:
     def is_action_valid(g, cl, tl):
         acards = cl[0].associated_cards
         if (not acards) or len(acards) != 1:
-            return (False, u'请选择一张牌')
+            return (False, u'请选择一张手牌')
 
         card = acards[0]
+
+        if card.resides_in.type not in ('handcard', 'showncard'):
+            return (False, u'请选择一张手牌!')
 
         if card.is_card(cards.Skill):
             return (False, u'你不可以像这样组合技能')

@@ -45,8 +45,9 @@ class RealmSkipFatetellHandler(EventHandler):
     def cond(self, cl):
         if len(cl) != 1: return False
         t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards, t.equips):
+        if cl[0].resides_in not in (t.cards, t.showncards):
             return False
+
         return True
 
 
@@ -98,8 +99,9 @@ class RealmSkipDrawCardHandler(EventHandler):
     def cond(self, cl):
         if len(cl) != 1: return False
         t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards, t.equips):
+        if cl[0].resides_in not in (t.cards, t.showncards):
             return False
+
         return True
 
     def choose_player_target(self, tl):
@@ -178,8 +180,9 @@ class RealmSkipActionHandler(EventHandler):
     def cond(self, cl):
         if len(cl) != 1: return False
         t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards, t.equips):
+        if cl[0].resides_in not in (t.cards, t.showncards):
             return False
+
         return True
 
     def choose_player_target(self, tl):
@@ -222,9 +225,11 @@ class RealmSkipDropCardHandler(EventHandler):
     def cond(self, cl):
         if len(cl) != 1: return False
         t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards, t.equips):
+        if cl[0].resides_in not in (t.cards, t.showncards):
             return False
+
         return True
+
 
 @register_character
 class Yukari(Character):
