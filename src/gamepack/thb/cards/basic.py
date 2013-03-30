@@ -272,7 +272,7 @@ class ExinwanHandler(EventHandler):
         elif evt_type == 'action_after' and isinstance(act, DropCards):
             from .definition import ExinwanCard
             from .base import CardList, VirtualCard
-            typelist = ('handcard', 'showncard', 'equips')
+            typelist = ('handcard', 'showncard', 'equips', 'special')
             cards = [c for c in act.cards if getattr(c, 'exinwan_lastin', None) in typelist]
             cards = VirtualCard.unwrap(cards)
             cards = [c for c in cards if c.is_card(ExinwanCard)]

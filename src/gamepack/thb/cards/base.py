@@ -142,12 +142,9 @@ class VirtualCard(Card):
         if not cl:
             vc.associated_cards = []
             return vc
-        #suit = reduce(lambda s1, s2: s1 if s1 == s2 else Card.NOTSET, [c.suit for c in cl])
-        suit = cl[0].suit
+        suit = cl[0].suit if len(cl) == 1 else Card.NOTSET
         color = cl[0].color
-        for c in cl:
-            if c.suit != suit: suit = Card.NOTSET
-            if c.color != color: color = Card.NOTSET
+        color = color if all(c.color == color for c in cl) else Card.NOTSET
 
         num = reduce(lambda n1, n2: n1 if n1 == n2 else 0, [c.number for c in cl])
         vc.suit, vc.number, vc.color = suit, num, color
