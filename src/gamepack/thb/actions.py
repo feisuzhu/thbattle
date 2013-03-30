@@ -534,20 +534,26 @@ class LaunchCard(GenericAction):
         # ----------------------
 
         action = card.associated_action
-        if not getattr(card, 'no_drop', False):
+        no_drop = getattr(card, 'no_drop', False)
+        if not no_drop:
+            migrate_cards([card], self.source.special)
+        
+        try:
+            if action:
+                target = target_list[0] if target_list else self.source
+                a = action(source=self.source, target=target)
+                self.card_action = a
+                a.associated_card = card
+                a.target_list = target_list
+                a.force_fire()  # For Exinwan, see UserAction.force_fire
+                g.process_action(a)
+
+                return True
+
+            return False
+        finally:
             g.process_action(DropUsedCard(self.source, cards=[card]))
 
-        if action:
-            target = target_list[0] if target_list else self.source
-            a = action(source=self.source, target=target)
-            self.card_action = a
-            a.associated_card = card
-            a.target_list = target_list
-            a.force_fire()  # For Exinwan, see UserAction.force_fire
-            g.process_action(a)
-            return True
-
-        return False
 
     def is_valid(self):
         if not self.tl_valid:
