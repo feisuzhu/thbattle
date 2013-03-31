@@ -102,7 +102,7 @@ class CollectFaithHandler(EventHandler):
         if not isinstance(act, Damage): return act
         src = act.source
         if not src: return act
-        
+
         g = Game.getgame()
         g.process_action(CollectFaith(src, src, act.amount))
         return act
@@ -155,7 +155,7 @@ class Cooperation(Skill):
         return all(c.resides_in and c.resides_in.type in (
             'handcard', 'showncard',
         ) for c in cl)
-       
+
 
 class Protection(Skill):
     associated_action = None
@@ -209,7 +209,7 @@ class ProtectionHandler(EventHandler):
                 break
 
         return act
-        
+
 
 class Parry(Skill):
     associated_action = None
@@ -278,7 +278,7 @@ class OneUpAction(UserAction):
 
         g.process_action(PlayerRevive(tgt, tgt, 3))
         tgt.tags['action'] = True
-        
+
         return True
 
     def is_valid(self):
@@ -296,7 +296,7 @@ class OneUp(Skill):
         if len(self.player.faiths) < 3: return False
         return not self.associated_cards
 
-        
+
 class FaithExchange(UserAction):
     def apply_action(self):
         tgt = self.target
@@ -316,10 +316,10 @@ class FaithExchange(UserAction):
         cards = user_choose_cards(self, tgt)
         if not cards:
             cards = list(tgt.showncards)[:self.amount]
-        
+
         g.players.reveal(cards)
         migrate_cards(cards, tgt.faiths)
-        
+
         return True
 
     def cond(self, cl):
@@ -368,7 +368,7 @@ class MutantMorph(GameException):
 class MutantMorphHandler(EventHandler):
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
-        if not isinstance(act, Damage): return act
+        if not isinstance(act, BaseDamage): return act
         g = Game.getgame()
         tgt = act.target
         if tgt is not g.mutant: return act
@@ -585,7 +585,7 @@ class THBattleRaid(Game):
 
             except MutantMorph:
                 pass
-            
+
             # morphing
             stage1 = mutant.__class__
             stage2 = stage1.stage2
