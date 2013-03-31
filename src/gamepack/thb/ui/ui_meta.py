@@ -694,7 +694,7 @@ class UseGraze:
         t = act.target
         return u'|G【%s】|r打出了|G%s|r。' % (
             t.ui_meta.char_name,
-            act.cards[0].ui_meta.name,
+            act.card.ui_meta.name,
         )
 
 
@@ -729,7 +729,7 @@ class UseAttack:
         t = act.target
         return u'|G【%s】|r打出了|G%s|r。' % (
             t.ui_meta.char_name,
-            act.cards[0].ui_meta.name,
+            act.card.ui_meta.name,
         )
 
 
