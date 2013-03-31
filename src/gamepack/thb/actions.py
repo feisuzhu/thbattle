@@ -79,8 +79,10 @@ def user_choose_cards_logic(input, act, target, categories=None):
 
         check(act.cond(cards))
 
+        log.debug('user_choose_cards: %s %s %s', repr(act), target.__class__.__name__, repr(cards))
         return cards
     except CheckFailed as e:
+        log.debug('user_choose_cards FAILED: %s %s', repr(act), target.__class__.__name__)
         return None
 
 
@@ -421,7 +423,7 @@ class MaxLifeChange(GenericAction):
         self.source = source
         self.target = target
         self.amount = amount
-        
+
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -437,10 +439,10 @@ class MaxLifeChange(GenericAction):
             # WTF ?!
             g.process_action(PlayerDeath(src, tgt))
             return True
-            
+
         return True
 
-        
+
 # ---------------------------------------------------
 
 class DropCards(GenericAction):
@@ -493,7 +495,7 @@ class UseCard(UserAction):
             drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True
-    
+
     @property
     def cards(self):
         raise Exception('obsolete')  # fail fast

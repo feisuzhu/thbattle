@@ -24,6 +24,8 @@ parser.add_argument('replay_file', type=str)
 parser.add_argument('location', type=int)
 parser.add_argument('--catch', action='store_true', default=False)
 parser.add_argument('--log', type=str, default='DEBUG')
+parser.add_argument('--break-at', type=int, default=0)
+parser.add_argument('--print-synctag', action='store_true', default=False)
 options = parser.parse_args()
 
 import logging
@@ -104,6 +106,17 @@ g.me = players[loc]
 @hook(g)
 def pause(*a):
     pass
+
+@hook(g)
+def get_synctag(ori):
+    tag = ori()
+    if options.print_synctag:
+        print '----- %d -----' % tag
+
+    if options.break_at and tag == options.break_at:
+        raise Exception('break!')
+
+    return tag
 
 try:
     g._run()
