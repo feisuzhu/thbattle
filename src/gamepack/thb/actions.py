@@ -892,7 +892,7 @@ class Pindian(UserAction):
 class DyingHandler(EventHandler):
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
-        if not isinstance(act, (BaseDamage, MaxLifeChange)): return act
+        if not isinstance(act, BaseDamage): return act
 
         src = act.source
         tgt = act.target

@@ -44,6 +44,7 @@ class DilemmaHealAction(DrawCards):
 
 
 class DilemmaHandler(EventHandler):
+    execute_after = ('DeathHandler', )
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
         if not isinstance(act, (Damage, Heal)): return act
