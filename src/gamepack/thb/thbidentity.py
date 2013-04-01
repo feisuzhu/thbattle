@@ -30,8 +30,9 @@ class DeathHandler(EventHandler):
         if not isinstance(act, PlayerDeath): return act
         tgt = act.target
         g = Game.getgame()
+
         g.process_action(RevealIdentity(tgt, g.players))
-        
+
         if act.source:
             src = act.source
             if tgt.identity.type == Identity.TYPE.ATTACKER:
