@@ -205,17 +205,6 @@ class THBattleKOF(Game):
 
         self.players.user_input_all('kof_sort_characters', process, None, 30)
 
-        # reveal akaris for both
-        if akaris:
-            for p, c in akaris:
-                c.char_cls = c.real_cls
-
-            self.players.reveal([i[1] for i in akaris])
-
-        # reveal _perm
-        first._perm = sync_primitive(first._perm, self.players)
-        second._perm = sync_primitive(second._perm, self.players)
-
         for p in self.players:
             perm = p.choices
             perm = [perm[i] for i in p._perm]
@@ -265,7 +254,9 @@ class THBattleKOF(Game):
 
     def next_character(self, p):
         assert p.characters
-        cls = p.characters.pop(0)
+        char = CharChoice(p.characters.pop(0), 0)
+        self.players.reveal(char)
+        cls = char.char_cls
 
         # mix char class with player -->
         old = mixin_character(p, cls)
