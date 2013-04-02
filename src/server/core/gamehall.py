@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+from collections import defaultdict
+import atexit
+import logging
+import os
+import random
+import time
+
+# -- third party --
 import gevent
 from gevent import Greenlet
 from gevent.event import Event
 from gevent.queue import Queue
-from time import time
-from collections import defaultdict
-
 import simplejson as json
+import pika
 
-import logging
-import random
-import os
+# -- own --
+from network import Endpoint
+from utils import DataHolder, classmix, BatchList, instantiate, surpress_and_restart, swallow
+from options import options
+from settings import VERSION, ServerList
 
 log = logging.getLogger('GameHall')
-
-from utils import DataHolder, classmix, BatchList
-from options import options
-from settings import VERSION
 
 '''
 User state machine:
@@ -35,6 +40,7 @@ users = {} # all users
 dropped_users = {} # passively dropped users
 evt_datachange = Event()
 
+
 if options.gidfile:
     try:
         with open(options.gidfile, 'r') as f:
@@ -44,32 +50,102 @@ if options.gidfile:
 else:
     _curgameid = 0
 
+
 def new_gameid():
     global _curgameid
     _curgameid += 1
     return _curgameid
 
-class _GameHallStatusUpdator(Greenlet):
-    def _run(self):
-        last_update = time()
-        timeout = None
-        evt = evt_datachange
-        time_limit = 1
-        while True:
-            flag = evt.wait()
-            t = time()
-            delta = t - last_update
-            if delta > time_limit:
-                timeout = None
-                last_update = t
-                for u in users.values():
-                    if u.state == 'hang':
-                        send_hallinfo(u)
-                evt.clear()
-            else:
-                gevent.sleep(time_limit - delta)
 
-_GameHallStatusUpdator.spawn()
+if options.interconnect:
+    @instantiate
+    class Interconnect(object):
+        def __init__(self):
+            self.conn = conn = pika.BlockingConnection()
+            self.chan = chan = conn.channel()
+            chan.exchange_declare('thb_events', 'fanout')
+
+        def publish(self, key, body):
+            self.chan.basic_publish(
+                'thb_events', '%s:%s' % (options.node, key),
+                Endpoint.encode(body),
+            )
+
+        def shutdown(self):
+            self.chan.close()
+            self.conn.close()
+
+    atexit.register(Interconnect.shutdown)
+
+    class InterconnectHandler(Greenlet):
+        @surpress_and_restart
+        def _run(self):
+            try:
+                conn = pika.BlockingConnection()
+                chan = conn.channel()
+                queue = chan.queue_declare(
+                    exclusive=True,
+                    auto_delete=True,
+                    arguments={'x-message-ttl': 1000},
+                )
+                chan.queue_bind(queue.method.queue, 'thb_events')
+
+                for method, header, body in chan.consume(queue.method.queue):
+                    chan.basic_ack(method.delivery_tag)
+                    body = json.loads(body)
+                    node, topic = method.routing_key.split(':')
+
+                    if topic == 'speaker':
+                        @gevent.spawn
+                        def speaker(body=body, node=node):
+                            node = node if node != options.node else ''
+                            body.insert(0, node)
+                            for u in users.values():
+                                # u.write(['speaker_msg', [user.account.username, msg]])
+                                # u.write(['speaker_msg', ['%s(%s)' % (body[0], options.node), body[1]]])
+                                u.write(['speaker_msg', body])
+
+            finally:
+                swallow(chan.close)()
+                swallow(conn.close)()
+
+        def __repr__(self):
+            return self.__class__.__name__
+
+    InterconnectHandler = InterconnectHandler.spawn()
+
+else:
+    @instantiate
+    class Interconnect(object):
+        def publish(self, key, body):
+            pass
+
+
+@gevent.spawn
+def gamehall_status_updator():
+    last_update = time.time()
+    timeout = None
+    evt = evt_datachange
+    time_limit = 1
+    while True:
+        flag = evt.wait()
+        t = time.time()
+        delta = t - last_update
+        if delta > time_limit:
+            timeout = None
+            last_update = t
+            for u in users.values():
+                if u.state == 'hang':
+                    send_hallinfo(u)
+
+            Interconnect.publish('current_users', users.values())
+            Interconnect.publish('current_games', games.values())
+
+            evt.clear()
+
+        else:
+            gevent.sleep(time_limit - delta)
+
 
 class PlayerPlaceHolder(object):
 
@@ -205,7 +281,7 @@ def _archive_game(g):
 
     data.append('# Ver: ' + VERSION)
     data.append('# GameId: ' + str(g.gameid))
-    s, e = int(g.start_time), int(time())
+    s, e = int(g.start_time), int(time.time())
     data.append('# Time: start = %d, end = %d, elapsed = %d' % (s, e, e - s))
 
     data.append(g.__class__.__name__)
@@ -331,6 +407,7 @@ def exit_game(user, drops=False):
     else:
         user.write(['gamehall_error', 'not_in_a_game'])
 
+
 def join_game(user, gameid):
     if user.state == 'hang' and games.has_key(gameid):
         g = games[gameid]
@@ -415,6 +492,7 @@ def observe_grant(user, rst):
         else:
             ob.write(['observe_refused', user.account.username])
 
+
 def send_hallinfo(user):
     user.write(['current_games', games.values()])
     user.write(['current_users', users.values()])
@@ -433,7 +511,7 @@ def start_game(g):
         u.usergdhistory = ugh
         u.gdhistory = l
 
-    g.start_time = time()
+    g.start_time = time.time()
     for u in g.players.client:
         u.write(["game_started", g.players])
         u.gclear()
@@ -451,7 +529,7 @@ def end_game(g):
     pl = g.players
 
     # add credits
-    t = time()
+    t = time.time()
     percent = min(1.0, (t - g.start_time) / 1200)
     import math
     rate = math.sin(math.pi / 2 * percent)
@@ -472,7 +550,7 @@ def end_game(g):
             else:
                 s = 5 + bonus if p in winners else 5
                 acc.other['credits'] += int(s * rate)
-        
+
         p.client.gclear()  # clear game data
 
         if p.dropped:
@@ -518,7 +596,7 @@ def chat(user, msg):
                 if u.state == 'hang':
                     u.write(['chat_msg', packed])
 
-        elif user.state in {'inroomwait', 'ready', 'ingame', 'observing'}: # room chat
+        elif user.state in ('inroomwait', 'ready', 'ingame', 'observing'): # room chat
             ul = user.current_game.players.client
             obl = BatchList()
             map(obl.__iadd__, ul.observers)
@@ -535,8 +613,7 @@ def speaker(user, msg):
             user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
         else:
             user.account.other['credits'] -= 10
-            for u in users.values():
-                u.write(['speaker_msg', [user.account.username, msg]])
+            Interconnect.publish('speaker', [user.account.username, msg])
 
     log.info(u'Speaker: %s', msg)
     gevent.spawn(worker)
@@ -554,8 +631,6 @@ def admin_clearzombies():
         if u.ready():
             del users[i]
 
-
-import atexit
 
 @atexit.register
 def _exit_handler():

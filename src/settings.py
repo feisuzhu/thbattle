@@ -50,13 +50,22 @@ UPDATE_IGNORES = re.compile(r'''
         | ^\.
 ''', re.VERBOSE)
 
+
+class ServerNames:
+    forum = u'论坛'
+    localhost = u'本机'
+    lake = u'雾之湖'
+    forest= u'魔法之森'
+
+
 class ServerList:
     import os
     IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
     del os
 
     if options.testing or IS_PROTON:
-        class HakureiShrine:
+        class hakurei:
+            name = u'博丽神社'
             address = ('game.thbattle.net', 8999)
             description = (
                 u'|R没什么香火钱 博丽神社|r\n\n'
@@ -69,7 +78,7 @@ class ServerList:
             y=404
 
     if options.freeplay:
-        class YourMachine:
+        class localhost:
             address = ('127.0.0.1', 9999)
             description = (
                 u'|R你自己的本机服务器|r'
@@ -77,7 +86,7 @@ class ServerList:
             x=893
             y=504
 
-    class LakeOfFog:
+    class lake:
         address = ('game.thbattle.net', 9999)
         description = (
             u'|R这里没有青蛙 雾之湖|r\n\n'
@@ -88,7 +97,7 @@ class ServerList:
         x=570
         y=470
 
-    class ForestOfMagic:
+    class forest:
         address = ('game.thbattle.net', 9999)
         description = (
             u'|R光明牛奶指定销售地点 魔法之森|r\n\n'

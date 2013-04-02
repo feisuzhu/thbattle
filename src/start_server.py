@@ -1,4 +1,7 @@
 import gevent
+from gevent import monkey
+monkey.patch_all()
+
 from gevent.server import StreamServer
 
 import logging
@@ -12,13 +15,13 @@ sig(signal.SIGUSR1, lambda: False)
 # -----------
 '''
 
-main = gevent.getcurrent()
+MAIN = gevent.getcurrent()
 
 from gevent import signal as sig
 import signal
 
 def _exit_handler(*a, **k):
-    gevent.kill(main, SystemExit)
+    gevent.kill(MAIN, SystemExit)
 sig(signal.SIGTERM, _exit_handler)
 
 from game import autoenv
@@ -26,8 +29,9 @@ from game import autoenv
 import argparse
 
 parser = argparse.ArgumentParser(prog=sys.argv[0])
+parser.add_argument('node', type=str)
 parser.add_argument('--port', default=9999, type=int)
-parser.add_argument('--backdoor-port', default=10000, type=int)
+parser.add_argument('--backdoor-port', default=19999, type=int)
 parser.add_argument('--testing', action='store_true')
 parser.add_argument('--no-backdoor', action='store_true')
 parser.add_argument('--freeplay', action='store_true')
@@ -36,11 +40,11 @@ parser.add_argument('--log', default='INFO')
 parser.add_argument('--logfile', default='')
 parser.add_argument('--gidfile', default='')
 parser.add_argument('--archive-path', default='')
-
+# parser.add_argument('--rabbitmq-host', default='localhost')
+parser.add_argument('--interconnect', action='store_true', default=False)
 options = parser.parse_args()
 
 import options as opmodule
-
 opmodule.options = options
 
 autoenv.init('Server')
@@ -61,7 +65,7 @@ from network import Endpoint
 
 class ServerLogFormatter(logging.Formatter):
     def format(self, rec):
-        
+
         if rec.exc_info:
             s = []
             s.append('>>>>>>' + '-' * 74)
@@ -84,8 +88,8 @@ class ServerLogFormatter(logging.Formatter):
         return u'[%s %s %s] %s' % (
             rec.levelname[0],
             time.strftime('%y%m%d %H:%M:%S'),
-            repr(g).decode('utf-8'),
-            rec.msg % rec.args,
+            'MAIN' if g is MAIN else repr(g).decode('utf-8'),
+            rec.msg % rec.args if isinstance(rec.msg, str) else repr((rec.msg, rec.args)),
         )
 
 

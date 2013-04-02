@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
+
+# -- stdlib --
 import logging
 log = logging.getLogger('UI_Screens')
-
-import pyglet
-from pyglet.gl import *
+from collections import deque
 import shlex
 
+# -- third party --
+import pyglet
+from pyglet.gl import *
+
+# -- own --
 from client.ui.base import *
 from client.ui.base import ui_message, ui_schedule
 from client.ui.controls import *
@@ -15,11 +20,34 @@ from client.core import Executive
 from pyglet.text import Label
 from utils import Rect, rect_to_dict as r2d, BatchList, textsnap
 from user_settings import UserSettings
-
 from . import commands
 from account import Account
+from settings import ServerNames
 
-from collections import deque
+
+def handle_chat(_type, args):
+    if _type == 'chat_msg':
+        uname, msg = args[0]
+        uname = uname.replace('|', '||')
+        return u'|cff0000ff%s|r： %s\n' % (uname, msg)
+
+    elif _type == 'ob_msg':
+        uname, msg = args[0]
+        uname = uname.replace('|', '||')
+        return u'|c9f5f9fff%s|r： %s\n' % (uname, msg)
+
+    elif _type == 'speaker_msg':
+        node, uname, msg = args[0]
+        node = node and '|G%s' % ServerNames.get(node, node)
+        uname = uname.replace('|', '||')
+        return u'%s|ccc3299ff『文々。新闻』|cff0000ff%s|r： %s\n' % (node, uname, msg)
+
+    elif _type == 'system_msg':
+        _, msg = args[0]
+        return u'|B|R%s|r\n' % msg
+
+    else:
+        return None
 
 
 class ChatBoxFrame(Frame):
@@ -661,28 +689,25 @@ class GameHallScreen(Screen):
         Executive.call('get_hallinfo', ui_message, None)
 
     def on_message(self, _type, *args):
-        if _type == 'game_joined':
+        rst = handle_chat(_type, args)
+        if rst:
+            self.chat_box.append(rst)
+            return
+
+        elif _type == 'game_joined':
             GameScreen(args[0]).switch()
-        elif _type == 'chat_msg':
-            uname, msg = args[0]
-            uname = uname.replace('|', '||')
-            self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
-        elif _type == 'speaker_msg':
-            uname, msg = args[0]
-            uname = uname.replace('|', '||')
-            self.chat_box.append(u'|ccc3299ff『文々。新闻』|cff0000ff%s|r： %s\n' % (uname, msg))
-        elif _type == 'system_msg':
-            _, msg = args[0]
-            self.chat_box.append(u'|B|R%s|r\n' % msg)
+
         elif _type == 'gamehall_error':
             log.error('GameHall Error: %s' % args[0]) # TODO
             mapping = {
                 'cant_join_game': u'无法加入游戏！'
             }
             ConfirmBox(mapping.get(args[0], args[0]), parent=self)
+
         elif _type == 'observe_refused':
             uname = args[0]
             self.chat_box.append(u'|R%s 回绝了你的旁观请求|r\n' % uname)
+
         else:
             Screen.on_message(self, _type, *args)
 
@@ -757,6 +782,7 @@ class GameScreen(Screen):
                     for p in self.portraits
                     if p.account
                 }
+
             orig_players = players()
             for i, p in enumerate(pl):
                 accdata = p['account']
@@ -772,12 +798,12 @@ class GameScreen(Screen):
             for player in (orig_players - curr_players):
                 self.parent.chat_box.append(
                     u'|B|R>> |r玩家|c0000ffff|B%s|r已离开游戏\n' % player
-                    )
+                )
 
             for player in (curr_players - orig_players):
                 self.parent.chat_box.append(
                     u'|B|R>> |r玩家|c0000ffff|B%s|r已进入游戏\n' % player
-                    )
+                )
 
     class EventsBox(Frame):
         def __init__(self, parent):
@@ -836,7 +862,11 @@ class GameScreen(Screen):
                     Executive.call('exit_game', ui_message, [])
 
     def on_message(self, _type, *args):
-        if _type == 'game_started':
+        rst = handle_chat(_type, args)
+        if rst:
+            self.chat_box.append(rst)
+
+        elif _type == 'game_started':
             self.remove_control(self.panel)
             self.gameui.init()
             self.add_control(self.gameui)
@@ -851,25 +881,6 @@ class GameScreen(Screen):
         elif _type == 'client_game_finished':
             g = args[0]
             g.ui_meta.ui_class.show_result(g)
-
-        elif _type == 'chat_msg':
-            uname, msg = args[0]
-            uname = uname.replace('|', '||')
-            self.chat_box.append(u'|cff0000ff%s|r： %s\n' % (uname, msg))
-
-        elif _type == 'ob_msg':
-            uname, msg = args[0]
-            uname = uname.replace('|', '||')
-            self.chat_box.append(u'|c9f5f9fff%s|r： %s\n' % (uname, msg))
-
-        elif _type == 'speaker_msg':
-            uname, msg = args[0]
-            uname = uname.replace('|', '||')
-            self.chat_box.append(u'|ccc3299ff『文々。新闻』|cff0000ff%s|r： %s\n' % (uname, msg))
-
-        elif _type == 'system_msg':
-            _, msg = args[0]
-            self.chat_box.append(u'|B|R%s|r\n' % msg)
 
         elif _type in ('game_left', 'fleed'):
             GameHallScreen().switch()

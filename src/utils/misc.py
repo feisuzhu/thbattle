@@ -487,7 +487,7 @@ class _Enum(object):
 
     def __getattr__(self, name):
         return self.forward[name]
-    
+
     def rlookup(self, v):
         return self.reverse[v]
 
@@ -548,3 +548,26 @@ def group_by(l, keyfunc):
 
 def instantiate(cls):
     return cls()
+
+
+def surpress_and_restart(f):
+    def wrapper(*a, **k):
+        while True:
+            try:
+                return f(*a, **k)
+            except Exception as e:
+                import logging
+                log = logging.getLogger('misc')
+                log.exception(e)
+
+    return wrapper
+
+
+def swallow(f):
+    def wrapper(*a, **k):
+        try:
+            return f(*a, **k)
+        except:
+            pass
+
+    return wrapper
