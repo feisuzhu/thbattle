@@ -25,7 +25,7 @@ class DeathHandler(EventHandler):
         if evt_type != 'action_after': return act
         if not isinstance(act, PlayerDeath): return act
         tgt = act.target
-        
+
         g = Game.getgame()
 
         if not tgt.characters:
@@ -42,6 +42,11 @@ class DeathHandler(EventHandler):
         if pl[1].dropped:
             g.winners = [pl[0]]
             raise GameEnded
+
+        if tgt is g.current_turn:
+            for a in reversed(g.action_stack):
+                if isinstance(a, UserAction):
+                    a.interrupt_after_me()
 
         return act
 
@@ -80,7 +85,7 @@ class THBattleKOF(Game):
 
     def game_start(self):
         # game started, init state
-        
+
         from cards import Card, Deck, CardList
 
         self.deck = Deck()
@@ -271,7 +276,7 @@ class THBattleKOF(Game):
 
         for k in list(tags):
             del tags[k]
-            
+
         ehs = self.ehclasses
         if old:
             for eh in old.eventhandlers_required:

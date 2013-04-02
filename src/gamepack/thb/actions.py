@@ -432,7 +432,7 @@ class MaxLifeChange(GenericAction):
 
         if tgt.life > tgt.maxlife:
             g.process_action(
-                LifeLost(src, tgt, tgt.maxlife - tgt.tgt.life)
+                LifeLost(src, tgt, tgt.maxlife - tgt.life)
             )
 
         if not tgt.maxlife and not tgt.dead:
@@ -903,10 +903,5 @@ class DyingHandler(EventHandler):
             return act
 
         g.process_action(PlayerDeath(src, tgt))
-
-        if tgt is g.current_turn:
-            for a in reversed(g.action_stack):
-                if isinstance(a, UserAction):
-                    a.interrupt_after_me()
 
         return act
