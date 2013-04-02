@@ -8,6 +8,7 @@ sys.path.append('../src')
 import simplejson as json
 
 from utils import hook
+import traceback
 
 from game import autoenv
 autoenv.init('Client')
@@ -26,6 +27,7 @@ parser.add_argument('--catch', action='store_true', default=False)
 parser.add_argument('--log', type=str, default='DEBUG')
 parser.add_argument('--break-at', type=int, default=0)
 parser.add_argument('--print-synctag', action='store_true', default=False)
+parser.add_argument('--action-singlestep',  default=0)
 options = parser.parse_args()
 
 import logging
@@ -103,9 +105,11 @@ g = GameMode()
 g.players = PlayerList(players)
 g.me = players[loc]
 
+
 @hook(g)
 def pause(*a):
     pass
+
 
 @hook(g)
 def get_synctag(ori):
@@ -117,6 +121,16 @@ def get_synctag(ori):
         raise Exception('break!')
 
     return tag
+
+
+@hook(g)
+def process_action(ori, act):
+    ass = options.action_singlestep
+    if ass and ass >= g.synctag:
+        print g.action_stack
+        raw_input()
+
+    return ori(act)
 
 try:
     g._run()
