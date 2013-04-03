@@ -415,7 +415,10 @@ class Damage(BaseDamage):
 
 
 class LifeLost(BaseDamage):
-    pass
+    def __init__(self, source, target, amount=1):
+        self.source = None
+        self.target = target
+        self.amount = amount
 
 
 class MaxLifeChange(GenericAction):
@@ -432,13 +435,11 @@ class MaxLifeChange(GenericAction):
 
         if tgt.life > tgt.maxlife:
             g.process_action(
-                LifeLost(src, tgt, tgt.maxlife - tgt.life)
+                LifeLost(src, tgt, abs(tgt.life - tgt.maxlife))
             )
+            assert tgt.life == tgt.maxlife
 
-        if not tgt.maxlife and not tgt.dead:
-            # WTF ?!
-            g.process_action(PlayerDeath(src, tgt))
-            return True
+        assert tgt.maxlife or tgt.dead
 
         return True
 
