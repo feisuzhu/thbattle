@@ -590,29 +590,28 @@ class LaunchCard(GenericAction, LaunchCardAction):
 
         action = card.associated_action
         
-        class dummy(object):
-            def __init__(self, source, target): pass
-            def __enter__(self): pass
-            def __exit__(*a): pass
-            def __len__(self): return 0
-            def force_fire(self): pass
+        no_drop = getattr(card, 'no_drop', False)
 
-        drop = dummy if getattr(card, 'no_drop', False) else DropUsedCard
-
-        if not action: action = dummy
-        
         target = target_list[0] if target_list else self.source
-        a = action(source=self.source, target=target)
-        if a: self.card_action = a
-        a.associated_card = card
-        a.target_list = target_list
-        a.force_fire()  # For Exinwan, see UserAction.force_fire
-        with drop(self.source, [card]):
-            if a:
-                g.process_action(a)
-                return True
+        a = action(source=self.source, target=target) if action else None
+        if a:
+            self.card_action = a
+            a.associated_card = card
+            a.target_list = target_list
+            a.force_fire()  # For Exinwan, see UserAction.force_fire
+            if not no_drop:
+                with DropUsedCard(self.source, [card]):
+                    g.process_action(a)
             else:
+                g.process_action(a)
+
+            return True
+
+        if not no_drop:
+            with DropUsedCard(self.source, [card]):
                 return False
+        else:
+            return False
 
     def is_valid(self):
         if not self.tl_valid:
