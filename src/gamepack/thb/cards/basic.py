@@ -151,9 +151,8 @@ class LaunchHeal(UserAction, LaunchCardAction):
             return False
         else:
             self.card = cards[0]
-            drop = DropUsedCard(src, cards=cards)
-            g.process_action(drop)
-            return True
+            with DropUsedCard(src, cards=cards):
+                return True
 
     def cond(self, cl):
         from .. import cards
@@ -278,7 +277,7 @@ class ExinwanHandler(EventHandler):
         elif evt_type == 'action_after' and isinstance(act, DropCards):
             from .definition import ExinwanCard
             from .base import CardList, VirtualCard
-            typelist = ('handcard', 'showncard', 'equips')
+            typelist = ('handcard', 'showncard', 'equips', 'execution')
             cards = [c for c in act.cards if getattr(c, 'exinwan_lastin', None) in typelist]
             cards = VirtualCard.unwrap(cards)
             cards = [c for c in cards if c.is_card(ExinwanCard)]

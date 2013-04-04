@@ -474,7 +474,18 @@ class DropCards(GenericAction):
 
 
 class DropUsedCard(DropCards):
-    pass
+    def __enter__(self):
+        cards = self.cards
+        target = self.target
+        assert all(c.resides_in.owner is target for c in cards), 'WTF?!'
+        migrate_cards(cards, target.droppedcards)
+
+    def __exit__(self, *exc):
+        droppedcards = self.target.droppedcards
+        self.cards = [c for c in self.cards if c.resides_in is droppedcards]
+        if self.cards:
+            g = Game.getgame()
+            g.process_action(self)
 
 
 class UseCard(UserAction):
@@ -492,9 +503,8 @@ class UseCard(UserAction):
             return False
         else:
             self.card = cards[0]
-            drop = DropUsedCard(target, cards=cards)
-            g.process_action(drop)
-            return True
+            with DropUsedCard(target, cards=cards):
+                return True
 
     @property
     def cards(self):
@@ -579,20 +589,29 @@ class LaunchCard(GenericAction, LaunchCardAction):
         # ----------------------
 
         action = card.associated_action
-        if not getattr(card, 'no_drop', False):
-            g.process_action(DropUsedCard(self.source, cards=[card]))
+        
+        no_drop = getattr(card, 'no_drop', False)
 
-        if action:
-            target = target_list[0] if target_list else self.source
-            a = action(source=self.source, target=target)
+        target = target_list[0] if target_list else self.source
+        a = action(source=self.source, target=target) if action else None
+        if a:
             self.card_action = a
             a.associated_card = card
             a.target_list = target_list
             a.force_fire()  # For Exinwan, see UserAction.force_fire
-            g.process_action(a)
+            if not no_drop:
+                with DropUsedCard(self.source, [card]):
+                    g.process_action(a)
+            else:
+                g.process_action(a)
+
             return True
 
-        return False
+        if not no_drop:
+            with DropUsedCard(self.source, [card]):
+                return False
+        else:
+            return False
 
     def is_valid(self):
         if not self.tl_valid:

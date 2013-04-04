@@ -64,9 +64,9 @@ class LaunchReject(GenericAction, LaunchCardAction):
         action = Reject(source=self.source, target_act=self.target_act)
         action.associated_card = self.card
         g = Game.getgame()
-        g.process_action(DropUsedCard(self.source, [self.card]))
-        g.process_action(action)
-        return True
+        with DropUsedCard(self.source, [self.card]):
+            g.process_action(action)
+            return True
 
 
 @register_eh

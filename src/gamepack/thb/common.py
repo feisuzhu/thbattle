@@ -66,3 +66,16 @@ class PlayerIdentity(object):
         return self._type
 
     type = property(get_type, set_type)
+
+
+def init_basic_card_lists(p):
+    from .cards.base import CardList
+    p.cards = CardList(p, 'handcard')  # Cards in hand
+    p.showncards = CardList(p, 'showncard')  # Cards which are shown to the others, treated as 'Cards in hand'
+    p.equips = CardList(p, 'equips')  # Equipments
+    p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+    p.special = CardList(p, 'special')  # used on special purpose
+    p.droppedcards = CardList(p, 'execution')  # used cards
+
+    p.showncardlists = [p.showncards, p.fatetell]  # cardlists should shown to others
+
