@@ -44,7 +44,7 @@ class DilemmaHealAction(DrawCards):
 
 
 class DilemmaHandler(EventHandler):
-    execute_after = ('DeathHandler', )
+    execute_after = ('DyingHandler', )
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
         if not isinstance(act, (Damage, Heal)): return act
@@ -76,26 +76,21 @@ class ImperishableNight(TreatAsSkill):
 class ImperishableNightHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
-        if not isinstance(act, LaunchCardAction): return act
+        if not isinstance(act, DropUsedCard): return act
 
         g = Game.getgame()
 
-        card = act.card
+        pact = g.action_stack[-1]
+        if not isinstance(pact, LaunchCardAction): return act
+
+        assert len(act.cards) == 1
+        card = act.cards[0]
         if not card: return act
         if 'basic' not in card.category : return act
         if card.suit != Card.DIAMOND: return act
 
-        if card.is_card(VirtualCard):
-            rawcards = VirtualCard.unwrap([card])
-        else:
-            rawcards = [card]
-
-        if not all(
-            not c.resides_in or c.resides_in.type == 'droppedcard'
-            for c in rawcards
-        ): return act
-
-        tgt = act.source
+        tgt = pact.source
+        assert act.target is tgt
         self.target = tgt  # for ui
 
         if tgt.dead: return act

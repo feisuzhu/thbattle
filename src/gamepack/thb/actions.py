@@ -188,7 +188,7 @@ def shuffle_here():
         g.deck.shuffle(p.cards)
 
 
-def migrate_cards(cards, to, unwrap=False, no_event=False, action=None):
+def migrate_cards(cards, to, unwrap=False, no_event=False):
     g = Game.getgame()
     from .cards import VirtualCard
     groups = group_by(cards, lambda c: c if c.is_card(VirtualCard) else c.resides_in)
@@ -212,7 +212,7 @@ def migrate_cards(cards, to, unwrap=False, no_event=False, action=None):
                     migrate_cards(c.associated_cards, sp, False, no_event)
 
         if not no_event:
-            act = action if action else g.action_stack[-1]
+            act = g.action_stack[-1]
             g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
 
 migrate_cards.SINGLE_LAYER = 2
@@ -478,7 +478,7 @@ class DropUsedCard(DropCards):
         cards = self.cards
         target = self.target
         assert all(c.resides_in.owner is target for c in cards), 'WTF?!'
-        migrate_cards(cards, target.droppedcards, action=self)
+        migrate_cards(cards, target.droppedcards)
 
     def __exit__(self, *exc):
         droppedcards = self.target.droppedcards

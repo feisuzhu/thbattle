@@ -62,7 +62,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     from .. import actions
 
     # --- src ---
-    if to.type == 'droppedcard':
+    if to.type == 'execution':
         rawcards = VirtualCard.unwrap(cards)
     else:
         rawcards = [c for c in cards if not c.is_card(VirtualCard)]
@@ -73,9 +73,6 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             if cs.associated_card in cards:
                 cs.delete()
         equips.update()
-
-    #if _from.type == 'droppedcard' and to.type == 'droppedcard':
-    #    return
 
     if _from.type == 'fatetell': # fatetell tag
         port = self.player2portrait(_from.owner)
@@ -112,7 +109,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
         # others
         if not pca:
-            if _from.type in ('deckcard', 'droppedcard') or not _from.owner:
+            if _from.type in ('deckcard', 'droppedcard', 'execution') or not _from.owner:
                 pca = self.deck_area
             #elif not _from.owner:
             #    break
@@ -160,7 +157,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             cs.gray = False
 
     else:
-        if to.type == 'droppedcard':
+        if to.type in ('droppedcard', 'execution'):
             dropcard_update = True
             ca = self.dropcard_area
             if isinstance(act, BaseFatetell):
@@ -168,9 +165,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
                 csl[0].gray = not act.succeeded  # may be race condition
                 csl[0].do_fatetell_anim()
             else:
-                gray = not isinstance(act, (
-                    actions.DropUsedCard,
-                ))
+                gray = to.type == 'droppedcard'
                 for cs in csl:
                     cs.gray = gray
             csl.migrate_to(ca)

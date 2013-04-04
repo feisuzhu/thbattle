@@ -75,7 +75,7 @@ def init_basic_card_lists(p):
     p.equips = CardList(p, 'equips')  # Equipments
     p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
     p.special = CardList(p, 'special')  # used on special purpose
-    p.droppedcards = CardList(p, 'droppedcard')  # used cards
+    p.droppedcards = CardList(p, 'execution')  # used cards
 
     p.showncardlists = [p.showncards, p.fatetell]  # cardlists should shown to others
 
