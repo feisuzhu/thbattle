@@ -35,12 +35,10 @@ parser.add_argument('--backdoor-port', default=19999, type=int)
 parser.add_argument('--testing', action='store_true')
 parser.add_argument('--no-backdoor', action='store_true')
 parser.add_argument('--freeplay', action='store_true')
-parser.add_argument('--conf')
 parser.add_argument('--log', default='INFO')
 parser.add_argument('--logfile', default='')
 parser.add_argument('--gidfile', default='')
 parser.add_argument('--archive-path', default='')
-# parser.add_argument('--rabbitmq-host', default='localhost')
 parser.add_argument('--interconnect', action='store_true', default=False)
 options = parser.parse_args()
 
@@ -50,15 +48,6 @@ opmodule.options = options
 autoenv.init('Server')
 
 import settings
-
-if options.conf:
-    import os
-    with open(options.conf, 'r') as f:
-        src = f.read()
-    env = {}
-    exec src in env
-    for k, v in env.items():
-        setattr(settings, k, v)
 
 from network import Endpoint
 #Endpoint.ENDPOINT_DEBUG = True
@@ -89,7 +78,7 @@ class ServerLogFormatter(logging.Formatter):
             rec.levelname[0],
             time.strftime('%y%m%d %H:%M:%S'),
             'MAIN' if g is MAIN else repr(g).decode('utf-8'),
-            rec.msg % rec.args if isinstance(rec.msg, str) else repr((rec.msg, rec.args)),
+            rec.msg % rec.args if isinstance(rec.msg, basestring) else repr((rec.msg, rec.args)),
         )
 
 
@@ -100,6 +89,7 @@ root = logging.getLogger()
 root.setLevel(getattr(logging, options.log.upper()))
 std = logging.StreamHandler(stream=sys.stdout)
 std.setFormatter(fmter)
+root.handlers = []
 root.addHandler(std)
 
 if options.logfile:

@@ -1,82 +1,80 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
+
 from .base import server_side_only
 
-from collections import defaultdict
+
+# -- globals --
+_member_client = None
+
+
+# -- code --
+def get_member_client():
+    global _member_client
+
+    from utils.rpc import RPCClient
+    if _member_client:
+        return _member_client
+
+    _member_client = RPCClient(('127.0.0.1', 7000), timeout=1)
+    return _member_client
+
 
 class Account(object):
 
     @classmethod
     @server_side_only
     def authenticate(cls, username, password):
-        from .forum_integration_db import UCenterMember
+        cli = get_member_client()
         try:
-            qs = UCenterMember.objects.select_related(
-                'forum_count', 'forum_member', 'forum_field'
-            )
-            try:
-                uid = int(username)
-                uid = uid if uid < 100000 else None
-            except ValueError:
-                uid = None
+            uid = int(username)
+            uid = uid if uid < 100000 else None
+        except ValueError:
+            uid = None
 
-            if uid:
-                ucmember = qs.get(uid=uid)
-            else:
-                ucmember = qs.get(username=username)
+        if uid:
+            member = cli.validate_by_uid(uid, password)
+        else:
+            member = cli.validate_by_username(username, password)
 
-        except UCenterMember.DoesNotExist:
-            return False
-
-        if not ucmember.validate_password(password):
+        if not member:
             return False
 
         acc = cls()
-        acc.username = ucmember.username
-        acc.userid = ucmember.uid
-
-        from urlparse import urljoin
-
-        from settings import ACCOUNT_FORUMURL
-
-        acc.ori_credits = oc = ucmember.forum_count.extcredits2
-        acc.ori_games = og = ucmember.forum_count.extcredits8
-        acc.ori_drops = od = ucmember.forum_count.extcredits7
-        acc.other = defaultdict(
-            lambda: None,
-            title=ucmember.forum_field.customstatus,
-            avatar=urljoin(ACCOUNT_FORUMURL, '/uc_server/avatar.php?uid=%d&size=middle' % ucmember.uid),
-            credits=oc,
-            games=og,
-            drops=od,
-        )
-
-        acc.ucmember = ucmember
-
+        acc._fill_account(member)
         return acc
 
     @server_side_only
-    def logout(self):
-        # save credits and games
-        cdelta = self.other['credits'] - self.ori_credits
-        gdelta = self.other['games'] - self.ori_games
-        ddelta = self.other['drops'] - self.ori_drops
+    def _fill_account(self, data):
+        self.username = data['username'].decode('utf-8')
+        self.status = data['status']
+        self.userid = data['uid']
 
-        if cdelta or gdelta or ddelta:
-            from django.db.models import F
-            from .forum_integration_db import ForumCount
-            ForumCount.objects.filter(ucmember=self.ucmember).update(
-                extcredits2=F('extcredits2') + cdelta,
-                extcredits8=F('extcredits8') + gdelta,
-                extcredits7=F('extcredits7') + ddelta,
-            )
+        from urlparse import urljoin
+        from settings import ACCOUNT_FORUMURL
 
-        self.ori_credits = self.other['credits']
-        self.ori_games = self.other['games']
-        self.ori_drops = self.other['drops']
+        self.other = defaultdict(
+            lambda: None,
+            title=data['title'].decode('utf-8'),
+            avatar=urljoin(
+                ACCOUNT_FORUMURL,
+                '/uc_server/avatar.php?uid=%d&size=middle' % data['uid'],
+            ),
+            credits=data['credits'],
+            games=data['games'],
+            drops=data['drops'],
+        )
 
     @server_side_only
     def available(self):
-        return self.ucmember.forum_member.status != -1
+        return self.status != -1
+
+    @server_side_only
+    def add_credit(self, type, amount):
+        cli = get_member_client()
+        rst = cli.add_credit(self.userid, type, amount)
+        if rst:
+            self._fill_account(rst)
 
     @classmethod
     def parse(cls, data):

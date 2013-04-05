@@ -83,6 +83,7 @@ if options.interconnect:
             try:
                 conn = pika.BlockingConnection()
                 chan = conn.channel()
+                chan.exchange_declare('thb_events', 'fanout')
                 queue = chan.queue_declare(
                     exclusive=True,
                     auto_delete=True,
@@ -108,6 +109,7 @@ if options.interconnect:
             finally:
                 swallow(chan.close)()
                 swallow(conn.close)()
+                gevent.sleep(1)
 
         def __repr__(self):
             return self.__class__.__name__
@@ -220,7 +222,6 @@ def new_user(user):
 
 def user_exit(user):
     uid = user.account.userid
-    user.account.logout()
     del users[uid]
     log.info(u'User %s leaved, online user %d' % (user.account.username, len(users)))
     evt_datachange.set()
@@ -544,12 +545,12 @@ def end_game(g):
     for p in pl:
         acc = p.client.account
         if not all_dropped:
-            acc.other['games'] += 1
+            acc.add_credit('games', 1)
             if p.dropped and p.fleed:
-                acc.other['drops'] += 1
+                acc.add_credit('drops', 1)
             else:
                 s = 5 + bonus if p in winners else 5
-                acc.other['credits'] += int(s * rate)
+                acc.add_credit('credits', int(s * rate))
 
         p.client.gclear()  # clear game data
 
@@ -612,7 +613,7 @@ def speaker(user, msg):
         if user.account.other['credits'] < 10:
             user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
         else:
-            user.account.other['credits'] -= 10
+            user.account.add_credit('credits', -10)
             Interconnect.publish('speaker', [user.account.username, msg])
 
     log.info(u'Speaker: %s', msg)
@@ -637,8 +638,7 @@ def _exit_handler():
     # logout all the accounts
     # to save the credits
     for u in users.values():
-        u.account.other['credits'] += 50
-        u.account.logout()
+        u.account.add_credit('credits', 50)
 
     # save gameid
     fn = options.gidfile

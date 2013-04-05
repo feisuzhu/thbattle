@@ -34,6 +34,7 @@ VERSION = 'THBATTLE V1.0b incr 116'
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
 ACCOUNT_MODULE = 'freeplay' if options.freeplay else 'forum_integration'
+ACCOUNT_FORUMURL = 'http://www.thbattle.net'
 
 import re
 

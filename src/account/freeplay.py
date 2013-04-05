@@ -24,12 +24,12 @@ class Account(object):
         return False
 
     @server_side_only
-    def logout(self):
-        pass
-
-    @server_side_only
     def available(self):
         return True
+
+    @server_side_only
+    def add_credit(self, type, amount):
+        pass
 
     @classmethod
     def parse(cls, data):
