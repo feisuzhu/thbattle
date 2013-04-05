@@ -506,14 +506,15 @@ class DropCardStage(GenericAction):
     def __init__(self, target):
         self.source = self.target = target
         self.dropn = len(target.cards) + len(target.showncards) - target.life
+        self.cards = []
 
     def apply_action(self):
         target = self.target
         if target.dead: return False
         life = target.life
         n = self.dropn
-        if n<=0:
-            return True
+        if n <= 0: return True
+
         g = Game.getgame()
         cards = user_choose_cards(self, target)
         if cards:
@@ -523,6 +524,7 @@ class DropCardStage(GenericAction):
             cards = list(chain(target.cards, target.showncards))[min(-n, 0):]
             g.players.exclude(target).reveal(cards)
             g.process_action(DropCards(target, cards=cards))
+
         self.cards = cards
         return True
 

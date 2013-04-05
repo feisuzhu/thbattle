@@ -76,7 +76,8 @@ class CardSprite(Control, BalloonPrompt):
                 else:
                     c = (1., 1., 1., a)
                 vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
-                if cs.card.resides_in.type == 'showncard':
+                resides_in = cs.card.resides_in
+                if resides_in and resides_in.type == 'showncard':
                     vertices += game_res.card_showncardtag.get_t2c4n3v3_vertices(c, ax, ay)
 
                 n, s = cs.number, cs.suit
@@ -724,7 +725,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         dead = getattr(self.player, 'dead', False)
         if dead:
             return Colors.gray
-        
+
         return self._color
 
     @property
@@ -753,7 +754,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         self.disabled = self.disabled
         GameCharacterPortrait.update_position(self)
         GameCharacterPortrait.update_color(self)
-    
+
     def set_postion(self, x, y):
         Frame.set_position(self, x, y)
         GameCharacterPortrait.update_position(self)
