@@ -76,21 +76,14 @@ class ImperishableNight(TreatAsSkill):
 class ImperishableNightHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
-        if not isinstance(act, DropUsedCard): return act
+        if not isinstance(act, LaunchCardAction): return act
 
-        g = Game.getgame()
-
-        pact = g.action_stack[-1]
-        if not isinstance(pact, LaunchCardAction): return act
-
-        assert len(act.cards) == 1
-        card = act.cards[0]
+        card = act.card
         if not card: return act
         if 'basic' not in card.category : return act
         if card.suit != Card.DIAMOND: return act
 
-        tgt = pact.source
-        assert act.target is tgt
+        tgt = act.source
         self.target = tgt  # for ui
 
         if tgt.dead: return act
