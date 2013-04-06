@@ -148,7 +148,6 @@ class DelayedLaunchCard(UserAction):
         g = Game.getgame()
         card = self.associated_card
         action = card.delayed_action
-        card.fatetell_source = self.source
         assert issubclass(action, DelayedSpellCardAction)
 
         t = self.target
@@ -558,7 +557,7 @@ class LotteryClub(GenericAction):
         g.players.reveal(cards)
         g.process_action(DropCards(tgt, cards))
         return True
-    
+
     def cond(self, cards):
         return len(cards) == 1
 

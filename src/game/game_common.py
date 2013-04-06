@@ -26,7 +26,7 @@ class GameObjectMeta(type):
             game_objects_hierarchy.add((b, cls))
 
         return cls
-    
+
     @staticmethod
     def _dump_gameobject_hierarchy():
         with open('/dev/shm/gomap.dot', 'w') as f:
