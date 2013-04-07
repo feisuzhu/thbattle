@@ -1,0 +1,163 @@
+<script type="text/javascript">
+$$ = jQuery.noConflict();
+THB = {
+    servers: {
+        'forum': '论坛',
+        'lake': '雾之湖',
+        'forest': '魔法之森',
+        'hakurei': '博丽神社',
+        'localhost': '本机服务器',
+    },
+
+    updateOnlineUsers: function(data) {
+        var list = $$('#thb_online_list dd ul');
+        $$('#thb_online_count').text(' ' + data.length + '人');
+        $$('li', list).remove();
+        $$(data).map(function() {
+            var node = this[0], username = this[1], state = this[2];
+            var item = $$('<li><img alt="icon"/></li>');
+            item.attr('title', THB.servers[node]);
+            item.append(document.createTextNode(' ' + username));
+            $$('img', item).attr('src', '/source/plugin/thbattle_interconnect/resource/state_' + state + '.png');
+            list.append(item);
+        });
+    },
+
+    showAyaNews: function(data) {
+        // span source username content
+        var box = $$('#ayanews_content');
+        box.append($$('<span class="source"></span>').text(THB.servers[data[0]]));
+        box.append($$('<span class="tag">『文々。新闻』</span>'));
+        box.append($$('<span class="username"></span>').text(data[1]));
+        box.append($$('<span class="content"></span>').text('： ' + data[2]));
+        box.append('<br />');
+    },
+
+    sendAyaNews: function(text) {
+        $$.post('/interconnect/speaker', {'message': text}); 
+    },
+
+    pullEvents: function() {
+        $$.get('/interconnect/events', function(data) {
+            // ["current_users", [["localhost", "admin", "hang"]]]
+            // ["speaker", ["localhost", "admin", "Yoooooo~"]]
+            var topic = data[0];
+            var content = data[1];
+
+            console.log([topic, content]);
+
+            if(topic == 'current_users') {
+                THB.updateOnlineUsers(content);
+            } else if(topic == "speaker") {
+                THB.showAyaNews(content);
+            }
+            
+            setTimeout(function() {
+                THB.pullEvents();
+            }, 10);
+        }, 'json');
+    },
+        
+    init: function() {
+        $$.get('/interconnect/onlineusers', function(data) {
+            THB.updateOnlineUsers(data);
+        }, 'json');
+
+        THB.pullEvents();
+    }
+};
+
+$$(function() {
+    $$('.toggler').click(function(e) {
+        $$($$(this).attr('toggle')).fadeToggle(200);
+    });
+
+    $$('#ayanews_send').click(function() {
+        var input = $$('#ayanews_input');
+        var v = input.val()
+        input.val('');
+        v && THB.sendAyaNews(v);
+    });
+
+    THB.init();
+});
+
+</script>
+
+<style type="text/css">
+#thb_online .cl li {
+    float: left;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 16.5%;
+    height: 24px;
+    line-height: 24px;
+}
+
+#thb_online_list {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+#ayanews_content .source {
+    color: #208020;
+}
+
+#ayanews_content .tag {
+    color: #cc3299;
+}
+
+#ayanews_content .username {
+    color: red;
+}
+
+#ayanews_input {
+    width: 61%;
+    border: 1px solid #cdcdcd;
+}
+
+</style>
+
+<div class="wp">
+    <div id="thb_online" class="bm oll">
+        <div class="bm_h">
+            <span class="o"><a href="javascript:void(0);" title="收起/展开" class='toggler' toggle="#thb_online_list"><img src="static/image/common/collapsed_no.gif" alt="收起/展开"></a></span>
+            <h3>
+                <strong>当前在线玩家</strong>
+                <span class="xs1" id="thb_online_count"></span>
+            </h3>
+        </div>
+        <dl id="thb_online_list" class="bm_c">
+            <dt class="ptm pbm bbda">
+                <img src="/source/plugin/thbattle_interconnect/resource/state_hang.png"> 游戏大厅&nbsp; &nbsp; &nbsp; 
+                <img src="/source/plugin/thbattle_interconnect/resource/state_inroomwait.png"> 在房间中 &nbsp; &nbsp; &nbsp; 
+                <img src="/source/plugin/thbattle_interconnect/resource/state_ready.png"> 准备状态 &nbsp; &nbsp; &nbsp; 
+                <img src="/source/plugin/thbattle_interconnect/resource/state_ingame.png"> 游戏中 &nbsp; &nbsp; &nbsp; 
+                <img src="/source/plugin/thbattle_interconnect/resource/state_observing.png"> 观战中 &nbsp; &nbsp; &nbsp; 
+            </dt>
+            <dd class="ptm pbm">
+                <ul class="cl">
+                </ul>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="wp">
+    <div id="ayanews" class="bm oll">
+        <div class="bm_h">
+            <span class="o"><a href="javascript:void(0);" title="收起/展开" class='toggler' toggle="#ayanews_frame"><img src="static/image/common/collapsed_no.gif" alt="收起/展开"></a></span>
+            <h3>
+                <strong>『文々。新闻』</strong>
+                <span class="xs1" id="thb_online_count"></span>
+            </h3>
+        </div>
+        <dl id='ayanews_frame' class="bm_c">
+            <dt id="ayanews_content" class="ptm pbm bbda">
+            </dt>
+            <dd class="ptm pbm">
+                <input id='ayanews_input' placeholder='文々。新闻！ 一发10节操！' /><button id="ayanews_send">发送新闻</button>
+            </dd>
+        </dl>
+    </div>
+</div>

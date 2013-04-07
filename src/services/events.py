@@ -31,6 +31,7 @@ options = parser.parse_args()
 
 
 member_service = RPCClient(('127.0.0.1', 7000), timeout=2)
+current_users = {}
 event_waiters = set()
 
 @instantiate
@@ -56,6 +57,7 @@ atexit.register(Interconnect.shutdown)
 class InterconnectHandler(Greenlet):
     @surpress_and_restart
     def _run(self):
+        global current_users
         try:
             conn = pika.BlockingConnection()
             chan = conn.channel()
@@ -67,18 +69,40 @@ class InterconnectHandler(Greenlet):
             )
             chan.queue_bind(queue.method.queue, 'thb_events')
 
+            def notify(key, message):
+                def _notify():
+                    encoded = json.dumps([key, message])
+                    for a in list(event_waiters):
+                        a.set(encoded)
+
+                return gevent.spawn(_notify)
+
             for method, header, body in chan.consume(queue.method.queue):
                 chan.basic_ack(method.delivery_tag)
                 message = json.loads(body)
                 key = method.routing_key
                 node, topic = key.split(':')
 
-                if topic in ('speaker', 'current_users'):
-                    @gevent.spawn
-                    def notify(message=message, node=node):
-                        encoded = json.dumps([key, message])
-                        for a in list(event_waiters):
-                            a.set(encoded)
+                if topic == 'current_users':
+                    # [[node, username, state], ...]
+                    current_users[node] = [
+                        (node, i[1], i[2]) for i in message
+                    ]
+                    rst = []
+                    map(rst.__iadd__, current_users.values())
+                    notify('current_users', rst)
+
+                elif topic == 'shutdown':
+                    # not implemented yet
+                    current_users[node] = []
+                    rst = []
+                    map(rst.__iadd__, current_users.values())
+                    notify('current_users', rst)
+
+                if topic == 'speaker':
+                    # [node, username, content]
+                    message.insert(0, node)
+                    notify('speaker', message)
 
         finally:
             swallow(chan.close)()
@@ -91,7 +115,14 @@ class InterconnectHandler(Greenlet):
 InterconnectHandler = InterconnectHandler.spawn()
 
 
-@route('/events')
+@route('/interconnect/onlineusers')
+def onlineusers():
+    rst = []
+    map(rst.__iadd__, current_users.values())
+    return json.dumps(rst)
+
+
+@route('/interconnect/events')
 def events():
     try:
         waiter = AsyncResult()
@@ -99,18 +130,14 @@ def events():
         return waiter.get(timeout=30)
 
     except Timeout:
-        return 'null'
+        return '["no_event", null]'
 
     finally:
         event_waiters.discard(waiter)
 
 
-@route('/speaker')
+@route('/interconnect/speaker', method='POST')
 def speaker():
-    if request.method != 'POST':
-        response.status = 405
-        return
-
     idx = {
         k.split('_')[-1]: k for k in request.cookies
         if k.startswith(options.discuz_cookiepre)
@@ -127,7 +154,7 @@ def speaker():
     if member['credits'] < 10:
         return 'false'
 
-    message = request.params.get('message').decode('utf-8', 'ignore')
+    message = request.forms.get('message').decode('utf-8', 'ignore')
     username = member['username'].decode('utf-8', 'ignore')
     member_service.add_credit(member['uid'], 'credits', -10)
 
