@@ -1,5 +1,4 @@
 <script type="text/javascript">
-$$ = jQuery.noConflict();
 THB = {
     servers: {
         'forum': '论坛',
@@ -10,41 +9,39 @@ THB = {
     },
 
     updateOnlineUsers: function(data) {
-        var list = $$('#thb_online_list dd ul');
-        $$('#thb_online_count').text(' ' + data.length + '人');
-        $$('li', list).remove();
-        $$(data).map(function() {
+        var list = jq('#thb_online_list dd ul');
+        jq('#thb_online_count').text(' ' + data.length + '人');
+        jq('li', list).remove();
+        jq(data).map(function() {
             var node = this[0], username = this[1], state = this[2];
-            var item = $$('<li><img alt="icon"/></li>');
+            var item = jq('<li><img alt="icon"/></li>');
             item.attr('title', THB.servers[node]);
             item.append(document.createTextNode(' ' + username));
-            $$('img', item).attr('src', '/source/plugin/thbattle_interconnect/resource/state_' + state + '.png');
+            jq('img', item).attr('src', '/source/plugin/thbattle_interconnect/resource/state_' + state + '.png');
             list.append(item);
         });
     },
 
     showAyaNews: function(data) {
         // span source username content
-        var box = $$('#ayanews_content');
-        box.append($$('<span class="source"></span>').text(THB.servers[data[0]]));
-        box.append($$('<span class="tag">『文々。新闻』</span>'));
-        box.append($$('<span class="username"></span>').text(data[1]));
-        box.append($$('<span class="content"></span>').text('： ' + data[2]));
+        var box = jq('#ayanews_content');
+        box.append(jq('<span class="source"></span>').text(THB.servers[data[0]]));
+        box.append(jq('<span class="tag">『文々。新闻』</span>'));
+        box.append(jq('<span class="username"></span>').text(data[1]));
+        box.append(jq('<span class="content"></span>').text('： ' + data[2]));
         box.append('<br />');
     },
 
     sendAyaNews: function(text) {
-        $$.post('/interconnect/speaker', {'message': text}); 
+        jq.post('/interconnect/speaker', {'message': text});
     },
 
     pullEvents: function() {
-        $$.get('/interconnect/events', function(data) {
+        jq.get('/interconnect/events', function(data) {
             // ["current_users", [["localhost", "admin", "hang"]]]
             // ["speaker", ["localhost", "admin", "Yoooooo~"]]
             var topic = data[0];
             var content = data[1];
-
-            console.log([topic, content]);
 
             if(topic == 'current_users') {
                 THB.updateOnlineUsers(content);
@@ -52,14 +49,15 @@ THB = {
                 THB.showAyaNews(content);
             }
             
-            setTimeout(function() {
-                THB.pullEvents();
-            }, 10);
-        }, 'json');
+            setTimeout(function() { THB.pullEvents(); });
+
+        }, 'json').fail(function() {
+            setTimeout(function() { THB.pullEvents(); }, 500);
+        });
     },
         
     init: function() {
-        $$.get('/interconnect/onlineusers', function(data) {
+        jq.get('/interconnect/onlineusers', function(data) {
             THB.updateOnlineUsers(data);
         }, 'json');
 
@@ -67,13 +65,13 @@ THB = {
     }
 };
 
-$$(function() {
-    $$('.toggler').click(function(e) {
-        $$($$(this).attr('toggle')).fadeToggle(200);
+jq(function() {
+    jq('.toggler').click(function(e) {
+        jq(jq(this).attr('toggle')).fadeToggle(200);
     });
 
-    $$('#ayanews_send').click(function() {
-        var input = $$('#ayanews_input');
+    jq('#ayanews_send').click(function() {
+        var input = jq('#ayanews_input');
         var v = input.val()
         input.val('');
         v && THB.sendAyaNews(v);

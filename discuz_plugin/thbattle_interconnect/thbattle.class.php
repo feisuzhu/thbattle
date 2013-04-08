@@ -7,7 +7,7 @@ if(!defined('IN_DISCUZ')) {
 
 class plugin_thbattle_interconnect {
     public function global_header() {
-        return '<script src="/source/plugin/thbattle_interconnect/resource/jquery-1.9.1.min.js"></script>';
+        return '<script src="/source/plugin/thbattle_interconnect/resource/jquery-1.9.1.min.js"></script><script type="text/javascript">jq = jQuery.noConflict();</script>';
     }
 }
 
