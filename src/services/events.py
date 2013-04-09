@@ -127,6 +127,7 @@ def events():
     try:
         waiter = AsyncResult()
         event_waiters.add(waiter)
+        response.set_header('Content-Type', 'application/json')
         return waiter.get(timeout=30)
 
     except Timeout:
@@ -150,6 +151,8 @@ def speaker():
     auth = unquote(request.get_cookie(idx['auth']))
     saltkey = unquote(request.get_cookie(idx['saltkey']))
     member = member_service.validate_by_cookie(auth, saltkey)
+    if not member:
+        return 'false'
 
     if member['credits'] < 10:
         return 'false'

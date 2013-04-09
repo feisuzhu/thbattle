@@ -64,6 +64,10 @@ def _discuz_authcode(string, operation, key, expiry=0):
         key_length = len(cryptkey)
 
         if operation == 'DECODE':
+            pads = len(string) % 4 - 4
+            if pads != -4:
+                string += '=' * -pads
+
             string = b64decode(string[ckey_length:])
         else:
             string = str(int(time.time()) + expiry if expiry else 10000000000)[-10:]
