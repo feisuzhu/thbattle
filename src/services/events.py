@@ -4,13 +4,15 @@ import sys
 import argparse
 from urllib import unquote
 import atexit
+from collections import deque
+import time
 
 # -- third party --
 import gevent
 from gevent import monkey
 monkey.patch_all()
 
-from gevent.event import AsyncResult
+from gevent.event import Event
 from gevent import Timeout, Greenlet
 from bottle import route, run, request, response
 import pika
@@ -33,6 +35,8 @@ options = parser.parse_args()
 member_service = RPCClient(('127.0.0.1', 7000), timeout=2)
 current_users = {}
 event_waiters = set()
+events_history = deque([[None, 0]] * 100)
+
 
 @instantiate
 class Interconnect(object):
@@ -57,7 +61,6 @@ atexit.register(Interconnect.shutdown)
 class InterconnectHandler(Greenlet):
     @surpress_and_restart
     def _run(self):
-        global current_users
         try:
             conn = pika.BlockingConnection()
             chan = conn.channel()
@@ -71,9 +74,10 @@ class InterconnectHandler(Greenlet):
 
             def notify(key, message):
                 def _notify():
+                    events_history.rotate()
+                    events_history[0] = [[key, message], time.time()]
                     encoded = json.dumps([key, message])
-                    for a in list(event_waiters):
-                        a.set(encoded)
+                    [evt.set() for evt in list(event_waiters)]
 
                 return gevent.spawn(_notify)
 
@@ -125,16 +129,31 @@ def onlineusers():
 @route('/interconnect/events')
 def events():
     try:
-        waiter = AsyncResult()
-        event_waiters.add(waiter)
-        response.set_header('Content-Type', 'application/json')
-        return waiter.get(timeout=30)
+        last = float(request.get_cookie('interconnect_last_event'))
+    except:
+        last = time.time()
 
-    except Timeout:
-        return '["no_event", null]'
+    evt = Event()
 
-    finally:
-        event_waiters.discard(waiter)
+    events_history[0][1] > last and evt.set()
+
+    event_waiters.add(evt)
+    evt.wait(timeout=30)
+    event_waiters.discard(evt)
+
+    response.set_header('Content-Type', 'application/json')
+    response.set_header('Cache-Control', 'no-cache')
+    response.set_cookie('interconnect_last_event', '%.5f' % time.time())
+
+    data = []
+    for e in events_history:
+        if e[1] > last:
+            data.append(e[0])
+        else:
+            break
+
+    data = list(reversed(data))
+    return json.dumps(data)
 
 
 @route('/interconnect/speaker', method='POST')

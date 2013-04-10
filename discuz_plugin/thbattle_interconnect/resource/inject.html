@@ -40,14 +40,16 @@ THB = {
         jq.get('/interconnect/events', function(data) {
             // ["current_users", [["localhost", "admin", "hang"]]]
             // ["speaker", ["localhost", "admin", "Yoooooo~"]]
-            var topic = data[0];
-            var content = data[1];
+            jq(data).map(function() {
+                var topic = this[0];
+                var content = this[1];
 
-            if(topic == 'current_users') {
-                THB.updateOnlineUsers(content);
-            } else if(topic == "speaker") {
-                THB.showAyaNews(content);
-            }
+                if(topic == 'current_users') {
+                    THB.updateOnlineUsers(content);
+                } else if(topic == "speaker") {
+                    THB.showAyaNews(content);
+                }
+            });
             
             setTimeout(function() { THB.pullEvents(); });
 

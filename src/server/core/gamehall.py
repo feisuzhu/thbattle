@@ -302,9 +302,15 @@ def get_ready(user):
         log.info("game starting")
         g.start()
 
+    else:
+        evt_datachange.set()
+
+
 def cancel_ready(user):
     user.state = 'inroomwait'
     _notify_playerchange(user.current_game)
+    evt_datachange.set()
+
 
 def change_location(user, loc):
     g = user.current_game
@@ -315,6 +321,7 @@ def change_location(user, loc):
     i = pl.client.index(user)
     pl[loc], pl[i] = pl[i], pl[loc]
     _notify_playerchange(g)
+
 
 def kick_user(user, uid):
     g = user.current_game
@@ -327,6 +334,7 @@ def kick_user(user, uid):
     cl.write(['kick_request', [user, u, len(bl)]])
     if len(bl) >= len(cl)//2:
         exit_game(u)
+
 
 def exit_game(user, drops=False):
     from .game_server import Player
@@ -427,7 +435,9 @@ def join_game(user, gameid):
             _notify_playerchange(g)
             evt_datachange.set()
             return
+
     user.write(['gamehall_error', 'cant_join_game'])
+
 
 def quick_start_game(user):
     if user.state == 'hang':
@@ -435,7 +445,9 @@ def quick_start_game(user):
         if gl:
             join_game(user, random.choice(gl).gameid)
             return
+
     user.write(['gamehall_error', 'cant_join_game'])
+
 
 def _observe_user(user, other):
     if not other:
@@ -463,6 +475,7 @@ def _observe_user(user, other):
         user.write(['observe_started', [other.account.userid, pl]])
         other.replay(user)
 
+
 observe_table = defaultdict(set)
 def observe_user(user, other_userid):
     other = users.get(other_userid, None)
@@ -476,6 +489,7 @@ def observe_user(user, other_userid):
 
     observe_table[other_userid].add(user.account.userid)
     other.write(['observe_request', [user.account.userid, user.account.username]])
+
 
 def observe_grant(user, rst):
     try:
