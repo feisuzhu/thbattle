@@ -138,12 +138,12 @@ def events():
     events_history[0][1] > last and evt.set()
 
     event_waiters.add(evt)
-    evt.wait(timeout=30)
+    success = evt.wait(timeout=30)
     event_waiters.discard(evt)
 
     response.set_header('Content-Type', 'application/json')
     response.set_header('Cache-Control', 'no-cache')
-    response.set_cookie('interconnect_last_event', '%.5f' % time.time())
+    success and response.set_cookie('interconnect_last_event', '%.5f' % time.time())
 
     data = []
     for e in events_history:
