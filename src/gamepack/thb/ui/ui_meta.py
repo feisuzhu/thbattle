@@ -366,7 +366,8 @@ class ProtectionAction:
 class ProtectionHandler:
     # choose_option
     choose_option_buttons = ((u'保护', True), (u'不保护', False))
-    choose_option_prompt = u'你要使用1点信仰承受此次伤害吗？'
+    def choose_option_prompt(act):
+        return u'你要使用1点信仰承受此次的%d点伤害吗？' % act.dmgact.amount
 
 
 class Parry:
@@ -4628,7 +4629,7 @@ remilia_ex_description = (
     u'|G碎心|r：|DB信仰消耗4|r。你可以发动该技能，视为对任意一名玩家使用【弹幕】。用此方法使用的【弹幕】视为红色，距离无限不可闪避，对目标造成2点伤害。\n\n'
     u'|G红雾|r：出牌阶段，你可以弃置一张红色手牌，令所有解决者依次对另一名解决者使用一张【弹幕】，无法如此做者失去1点体力。一回合一次。\n\n'
     u'|G七重奏|r：|B锁定技|r，解决者向你的判定区放置卡牌时，需额外弃置一张颜色相同的符卡。\n\n'
-    u'|G夜王|r：|B锁定技|r，你在自己的出牌阶段前额外摸4张牌。你的手牌上限+3。'
+    u'|G夜王|r：|B锁定技|r，你在自己的出牌阶段时额外摸4张牌。你的手牌上限+3。'
 )
 
 

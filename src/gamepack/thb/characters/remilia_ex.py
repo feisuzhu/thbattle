@@ -27,7 +27,7 @@ class HeartBreak(Skill):
     @property
     def color(self):
         return Card.RED
-    
+
     @color.setter
     def color(self, val):
         pass
@@ -140,10 +140,9 @@ class QueenOfMidnight(Skill):
 
 
 class QueenOfMidnightHandler(EventHandler):
-    execute_before = ('FaithExchangeHandler', )
     execute_after = ('SealingArrayHandler', )
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, ActionStage):
+        if evt_type == 'action_apply' and isinstance(act, ActionStage):
             g = Game.getgame()
             tgt = act.target
             if not tgt.has_skill(QueenOfMidnight): return act

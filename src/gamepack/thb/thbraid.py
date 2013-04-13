@@ -202,9 +202,11 @@ class ProtectionHandler(EventHandler):
         g = Game.getgame()
         pl.remove(tgt)
 
+        self.dmgact = act
+
         pl = [p for p in pl if not p.dead and len(p.faiths) and p.has_skill(Protection)]
         for p in pl:
-            if p.user_input('choose_option', self):
+            if user_choose_option(self, p):
                 g.process_action(ProtectionAction(p, act))
                 break
 
