@@ -108,9 +108,18 @@ from client.ui.entry import start_ui
 try:
     start_ui()
 except:
-    import traceback
-    traceback.print_exc()
     import pyglet
     pyglet.app.exit()
+
+    import traceback
+    traceback.print_exc()
+    if sys.platform == 'win32':
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(
+            0,  # HWND
+            unicode(traceback.format_exc()),  # Text
+            u'错误：请将这个截图并放到论坛的bug区里！',  # Caption
+            16,  # Flags, MB_ICONERROR
+        )
 
 Executive.call('app_exit')

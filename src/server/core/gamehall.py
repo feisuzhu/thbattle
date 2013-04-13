@@ -7,6 +7,7 @@ import logging
 import os
 import random
 import time
+import gzip
 
 # -- third party --
 import gevent
@@ -290,8 +291,9 @@ def _archive_game(g):
     data.append(json.dumps(g.usergdhistory))
     data.append(json.dumps(g.gdhistory))
 
-    with open(os.path.join(options.archive_path, str(g.gameid)), 'w') as f:
-        f.write('\n'.join(data))
+    f = gzip.open(os.path.join(options.archive_path, str(g.gameid)) + '.gz', 'wb')
+    f.write('\n'.join(data))
+    f.close()
 
 
 def get_ready(user):
