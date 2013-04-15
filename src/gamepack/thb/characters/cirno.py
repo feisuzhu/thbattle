@@ -9,7 +9,10 @@ class PerfectFreeze(TreatAsSkill):
     def check(self):
         cl = self.associated_cards
         if not (cl and len(cl) == 1): return False
-        c  = cl[0]
+        c = cl[0]
+        if not c.resides_in.type in (
+            'handcard', 'showncard', 'equips'
+        ): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         if 'skill' in c.category: return False
         return bool(set(c.category) & {'basic', 'equipment'})

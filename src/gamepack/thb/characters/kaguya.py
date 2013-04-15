@@ -83,7 +83,7 @@ class ImperishableNightHandler(EventHandler):
         card = act.card
         if not card: return act
         if 'basic' not in card.category : return act
-        if card.suit != Card.DIAMOND: return act
+        if card.color != Card.RED: return act
 
         if card.is_card(VirtualCard):
             rawcards = VirtualCard.unwrap([card])
@@ -124,7 +124,8 @@ class ImperishableNightHandler(EventHandler):
         if not card.resides_in.type in (
             'handcard', 'showncard', 'equips'
         ): return False
-        return card.suit == Card.DIAMOND
+        if 'skill' in c.category: return False
+        return bool(set(c.category) & {'basic', 'equipment'})
 
 
 @register_character

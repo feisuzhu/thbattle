@@ -2899,18 +2899,15 @@ class PerfectFreeze:
 
     tag_anim = lambda c: gres.tag_frozenfrog
     description = (
-        u'|G【琪露诺】|r的技能产生的【冻青蛙】'
+        u'|G【琪露诺】|r的技能产生的|G冻青蛙|r'
     )
 
     def clickable(game):
         me = game.me
-
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
+        if not my_turn():
             return False
 
-        if isinstance(act, actions.ActionStage) and act.target is me and (me.cards or me.showncards or me.equips):
+        if me.cards or me.showncards or me.equips:
             return True
 
         return False
@@ -2920,14 +2917,16 @@ class PerfectFreeze:
         cl = skill.associated_cards
         if len(cl) != 1:
             return (False, u'请选择一张牌！')
-        else:
-            c = cl[0]
-            if c.suit in (cards.Card.SPADE, cards.Card.CLUB):
-                act = c.associated_action
-                if act and issubclass(act, (cards.BasicAction, cards.WearEquipmentAction)):
-                    return (True, u'PERFECT FREEZE~')
 
-            return (False, u'请选择一张黑色的基本牌或装备牌！')
+        c = cl[0]
+        if c.is_card(cards.Skill):
+            return (False, u'你不能像这样组合技能')
+
+        if c.suit in (cards.Card.SPADE, cards.Card.CLUB):
+            if set(c.category) & {'basic', 'equipment'}:
+                return (True, u'PERFECT FREEZE~')
+
+        return (False, u'请选择一张黑色的基本牌或装备牌！')
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
@@ -2965,6 +2964,7 @@ class Flight:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class SpiritualAttack:
     name = u'灵击'
@@ -3078,6 +3078,7 @@ class JollyDrawCard:
             act.amount,
         )
 
+
 class JollyHandler:
     def choose_card_text(g, act, cards):
         if cards:
@@ -3091,6 +3092,7 @@ class JollyHandler:
             return (False, u'请选择1名玩家，该玩家摸一张牌')
 
         return (True, u'(～￣▽￣)～')
+
 
 class SurpriseSkill:
     # Skill
@@ -4516,7 +4518,7 @@ class Kaguya:
     description = (
         u'|DB永远的公主殿下 蓬莱山辉夜 体力：3|r\n\n'
         u'|G难题|r：一名角色每次令你回复一点体力时，你可以令该角色摸一张牌；你每受到一次伤害后，可令伤害来源交给你一张方片牌，否则其失去一点体力。\n\n'
-        u'|G永夜|r：在你的回合外，当一名角色的一张方片基本牌因使用进入弃牌堆时，你可以将一张方片牌置于该角色的判定区视为【封魔阵】。'
+        u'|G永夜|r：在你的回合外，当一名角色的一张红色基本牌因使用进入弃牌堆时，你可以将一张红色基本牌/装备牌置于该角色的判定区视为【封魔阵】。'
     )
 
 
