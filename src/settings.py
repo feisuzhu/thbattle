@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 117'
+VERSION = 'THBATTLE V1.0b incr 118'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -125,6 +125,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+辉夜设定调整
 论坛互联
 新人物：蓬莱山辉夜（zhyk）
 八云紫 & 霍青娥 技能调整：不再可以使用装备牌发动技能
