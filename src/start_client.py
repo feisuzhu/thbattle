@@ -110,16 +110,24 @@ try:
 except:
     import pyglet
     pyglet.app.exit()
+    Executive.call('app_exit')
+    raise
 
+
+if sys.platform == 'win32':
     import traceback
-    traceback.print_exc()
-    if sys.platform == 'win32':
+    def msgbox_error(exc_type, exc_value, exc_traceback):
+        excstr = u"".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
         import ctypes
         ctypes.windll.user32.MessageBoxW(
             0,  # HWND
-            unicode(traceback.format_exc()),  # Text
+            unicode(excstr),  # Text
             u'错误：请将这个截图并放到论坛的bug区里！',  # Caption
             16,  # Flags, MB_ICONERROR
         )
+
+    traceback.print_exception = msgbox_error  # for greenlet failures
+    sys.excepthook = msgbox_error
+
 
 Executive.call('app_exit')
