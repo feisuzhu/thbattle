@@ -1051,16 +1051,22 @@ class PlayerPortrait(Frame):
                         from StringIO import StringIO
                         f = StringIO(data)
 
-                        if fn == 'foo.gif':
-                            from utils import gif_to_animation
-                            img = gif_to_animation(f)
-                        else:
-                            img = pyglet.image.load(fn, file=f)
-                            img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
+                        try:
+                            if fn == 'foo.gif':
+                                from utils import gif_to_animation
+                                img = gif_to_animation(f)
+                            else:
+                                img = pyglet.image.load(fn, file=f)
+                                img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
+                        except:
+                            img = False
 
-                        sprite = pyglet.sprite.Sprite(img, x=64, y=150)
-                        sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
-                        sprite._parent = self
+                        sprite = False
+                        if img:
+                            sprite = pyglet.sprite.Sprite(img, x=64, y=150)
+                            sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
+                            sprite._parent = self
+
                     else:
                         img = sprite = False
 
