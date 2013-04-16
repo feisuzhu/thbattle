@@ -77,8 +77,9 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
 
         my_set = set(my_hash.items())
         latest_set = set(latest_hash.items())
-        files_delete = set(my_hash) - set(latest_set)
+        files_delete = my_set - latest_set
         files_update = latest_set - my_set
+        files_delete -= files_update
 
         for fn, _ in files_delete:
             ffn = os.path.join(base, fn)
