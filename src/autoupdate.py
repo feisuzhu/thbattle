@@ -75,13 +75,10 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
 
         latest_hash = json.loads(worker(urljoin(update_url, 'update_info.json')))
 
-        my_set = set(my_hash.items())
-        latest_set = set(latest_hash.items())
-        files_delete = my_set - latest_set
-        files_update = latest_set - my_set
-        files_delete -= files_update
+        files_delete = set(my_hash) - set(latest_hash)
+        files_update = set(latest_hash.items()) - set(my_hash.items())
 
-        for fn, _ in files_delete:
+        for fn in files_delete:
             ffn = os.path.join(base, fn)
             cb('delete_file', fn)
             log.info('delete file %s', fn)
