@@ -142,7 +142,9 @@ def events():
     event_waiters.discard(evt)
 
     response.set_header('Content-Type', 'application/json')
-    response.set_header('Cache-Control', 'no-cache')
+    response.set_header('Pragma', 'no-cache')
+    response.set_header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+    response.set_header('Expires', 'Thu, 01 Dec 1994 16:00:00 GMT')
     success and response.set_cookie('interconnect_last_event', '%.5f' % time.time())
 
     data = []
