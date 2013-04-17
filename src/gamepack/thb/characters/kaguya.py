@@ -124,8 +124,8 @@ class ImperishableNightHandler(EventHandler):
         if not card.resides_in.type in (
             'handcard', 'showncard', 'equips'
         ): return False
-        if 'skill' in c.category: return False
-        return bool(set(c.category) & {'basic', 'equipment'})
+        if 'skill' in card.category: return False
+        return bool(set(card.category) & {'basic', 'equipment'})
 
 
 @register_character

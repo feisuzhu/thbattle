@@ -10,6 +10,7 @@ import simplejson as json
 from utils import hook
 import traceback
 
+import gzip
 from game import autoenv
 autoenv.init('Client')
 # autoenv.init('Server')
@@ -72,7 +73,12 @@ class MockServer(object):
         pass
 
 
-data = open(options.replay_file, 'r').read().split('\n')
+if options.replay_file.endswith('.gz'):
+    data = gzip.open(options.replay_file, 'r').read()
+else:
+    data = open(options.replay_file, 'r').read()
+
+data = data.split('\n')
 
 while True:
     last = data.pop(0)
