@@ -6,6 +6,7 @@ from urllib import unquote
 import atexit
 from collections import deque
 import time
+import logging
 
 # -- third party --
 import gevent
@@ -28,6 +29,7 @@ from network import Endpoint
 parser = argparse.ArgumentParser(sys.argv[0])
 parser.add_argument('--host', default='127.0.0.1')
 parser.add_argument('--port', type=int, default=7001)
+parser.add_argument('--rabbitmq-host', default='localhost')
 parser.add_argument('--discuz-cookiepre', default='VfKd_')
 options = parser.parse_args()
 
@@ -37,23 +39,42 @@ current_users = {}
 event_waiters = set()
 events_history = deque([[None, 0]] * 100)
 
+logging.basicConfig()
+
 
 @instantiate
 class Interconnect(object):
     def __init__(self):
-        self.conn = conn = pika.BlockingConnection()
-        self.chan = chan = conn.channel()
-        chan.exchange_declare('thb_events', 'fanout')
+        self.conn = None
+        self.chan = None
+        self.connect()
+
+    def connect(self):
+        try:
+            self.conn = conn = pika.BlockingConnection(
+                pika.connection.ConnectionParameters(host=options.rabbitmq_host),
+            )
+            self.chan = chan = conn.channel()
+            chan.exchange_declare('thb_events', 'fanout')
+        except:
+            logging.error('error connecting rabbitmq', exc_info=True)
+            self.conn = self.chan = None
 
     def publish(self, key, body):
-        self.chan.basic_publish(
-            'thb_events', '%s:%s' % ('forum', key),
-            Endpoint.encode(body),
-        )
+        try:
+            self.chan.basic_publish(
+                'thb_events', '%s:%s' % ('forum', key),
+                Endpoint.encode(body),
+            )
+
+        except:
+            logging.error('error publishing', exc_info=True)
+            swallow(self.shutdown)()
+            self.connect()
 
     def shutdown(self):
-        swallow(self.chan.close)()
-        swallow(self.conn.close)()
+        self.conn and swallow(self.conn.close)()
+
 
 atexit.register(Interconnect.shutdown)
 
@@ -62,7 +83,10 @@ class InterconnectHandler(Greenlet):
     @surpress_and_restart
     def _run(self):
         try:
-            conn = pika.BlockingConnection()
+            self.conn = None
+            conn = pika.BlockingConnection(
+                pika.connection.ConnectionParameters(host=options.rabbitmq_host),
+            )
             chan = conn.channel()
             chan.exchange_declare('thb_events', 'fanout')
             queue = chan.queue_declare(
@@ -73,13 +97,12 @@ class InterconnectHandler(Greenlet):
             chan.queue_bind(queue.method.queue, 'thb_events')
 
             def notify(key, message):
+                @gevent.spawn
                 def _notify():
                     events_history.rotate()
                     events_history[0] = [[key, message], time.time()]
                     encoded = json.dumps([key, message])
                     [evt.set() for evt in list(event_waiters)]
-
-                return gevent.spawn(_notify)
 
             for method, header, body in chan.consume(queue.method.queue):
                 chan.basic_ack(method.delivery_tag)
@@ -109,8 +132,7 @@ class InterconnectHandler(Greenlet):
                     notify('speaker', message)
 
         finally:
-            swallow(chan.close)()
-            swallow(conn.close)()
+            self.conn and swallow(conn.close)()
             gevent.sleep(1)
 
     def __repr__(self):

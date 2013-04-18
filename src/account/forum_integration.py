@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from options import options
 
 from .base import server_side_only
 
@@ -16,7 +17,9 @@ def get_member_client():
     if _member_client:
         return _member_client
 
-    _member_client = RPCClient(('127.0.0.1', 7000), timeout=1)
+    host, port = options.member_service.split(':')
+    port = int(port)
+    _member_client = RPCClient((host, port), timeout=1)
     return _member_client
 
 

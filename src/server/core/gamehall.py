@@ -62,15 +62,31 @@ if options.interconnect:
     @instantiate
     class Interconnect(object):
         def __init__(self):
-            self.conn = conn = pika.BlockingConnection()
-            self.chan = chan = conn.channel()
-            chan.exchange_declare('thb_events', 'fanout')
+            self.conn = None
+            self.chan = None
+            self.connect()
+
+        def connect(self):
+            try:
+                self.conn = conn = pika.BlockingConnection(
+                    pika.connection.ConnectionParameters(host=options.rabbitmq_host),
+                )
+                self.chan = chan = conn.channel()
+                chan.exchange_declare('thb_events', 'fanout')
+            except:
+                log.error('error connecting rabbitmq', exc_info=True)
+                self.conn = self.chan = None
 
         def publish(self, key, body):
-            self.chan.basic_publish(
-                'thb_events', '%s:%s' % (options.node, key),
-                Endpoint.encode(body),
-            )
+            try:
+                self.chan.basic_publish(
+                    'thb_events', '%s:%s' % (options.node, key),
+                    Endpoint.encode(body),
+                )
+            except:
+                log.error('error publishing', exc_info=True)
+                swallow(self.shutdown)()
+                self.connect()
 
         def shutdown(self):
             self.chan.close()
@@ -82,6 +98,7 @@ if options.interconnect:
         @surpress_and_restart
         def _run(self):
             try:
+                conn = chan = None
                 conn = pika.BlockingConnection()
                 chan = conn.channel()
                 chan.exchange_declare('thb_events', 'fanout')
@@ -108,9 +125,9 @@ if options.interconnect:
                                 u.write(['speaker_msg', body])
 
             finally:
-                swallow(chan.close)()
-                swallow(conn.close)()
                 gevent.sleep(1)
+                chan and swallow(chan.close)()
+                conn and swallow(conn.close)()
 
         def __repr__(self):
             return self.__class__.__name__
