@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 120'
+VERSION = 'THBATTLE V1.0b incr 121'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -67,7 +67,7 @@ class ServerList:
     if options.testing or IS_PROTON:
         class hakurei:
             name = u'博丽神社'
-            address = ('game.thbattle.net', 8999)
+            address = ('cngame.thbattle.net', 8999)
             description = (
                 u'|R没什么香火钱 博丽神社|r\n\n'
                 u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
@@ -88,7 +88,7 @@ class ServerList:
             y=504
 
     class lake:
-        address = ('game.thbattle.net', 9999)
+        address = ('cngame.thbattle.net', 9999)
         description = (
             u'|R这里没有青蛙 雾之湖|r\n\n'
             u'一个让人开心的地方。只是游客普遍反应，游玩结束后会感到自己的智商被拉低了一个档次。'
@@ -99,7 +99,7 @@ class ServerList:
         y=470
 
     class forest:
-        address = ('game.thbattle.net', 9999)
+        address = ('cngame.thbattle.net', 9999)
         description = (
             u'|R光明牛奶指定销售地点 魔法之森|r\n\n'
             u'森林里好玩的东西很多，比如被捉弄什么的。'
@@ -125,6 +125,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+游戏服务器迁到国内
 辉夜设定调整
 论坛互联
 新人物：蓬莱山辉夜（zhyk）
