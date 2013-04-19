@@ -52,7 +52,7 @@ class Interconnect(object):
     def connect(self):
         try:
             self.conn = conn = pika.BlockingConnection(
-                pika.connection.ConnectionParameters(host=options.rabbitmq_host),
+                pika.connection.ConnectionParameters(host=options.rabbitmq_host, socket_timeout=6.0),
             )
             self.chan = chan = conn.channel()
             chan.exchange_declare('thb_events', 'fanout')
@@ -85,7 +85,7 @@ class InterconnectHandler(Greenlet):
         try:
             self.conn = None
             conn = pika.BlockingConnection(
-                pika.connection.ConnectionParameters(host=options.rabbitmq_host),
+                pika.connection.ConnectionParameters(host=options.rabbitmq_host, socket_timeout=6.0),
             )
             chan = conn.channel()
             chan.exchange_declare('thb_events', 'fanout')
