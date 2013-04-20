@@ -163,12 +163,21 @@ class MemberService(RPCService):
         if not info:
             return {}
 
-        if md5(md5(password.encode('utf-8')) + info['ucsalt']) != info['ucpassword']:
+        if isinstance(password, unicode):
+            password = password.encode('utf-8')
+
+        if md5(md5(password) + info['ucsalt']) != info['ucpassword']:
             return {}
 
         return info
 
     def validate_by_username(self, username, password):
+        if isinstance(username, unicode):
+            username = username.encode('utf-8')
+
+        if isinstance(password, unicode):
+            password = password.encode('utf-8')
+
         ucmember = engine.execute(text('''
             select * from cdb_ucenter_members
             where username=:username
@@ -179,7 +188,7 @@ class MemberService(RPCService):
 
         info = self.get_user_info(ucmember.uid)
 
-        if md5(md5(password.encode('utf-8')) + info['ucsalt']) != info['ucpassword']:
+        if md5(md5(password) + info['ucsalt']) != info['ucpassword']:
             return {}
 
         return info
