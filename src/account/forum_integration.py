@@ -1,26 +1,41 @@
 # -*- coding: utf-8 -*-
+
+# -- stdlib --
 from collections import defaultdict
 from options import options
+from contextlib import contextmanager
 
+# -- third party --
+from gevent.queue import Queue
+import gevent
+
+# -- own --
 from .base import server_side_only
 
 
 # -- globals --
 _member_client = None
+_cli_pool = None
 
 
 # -- code --
-def get_member_client():
-    global _member_client
+@contextmanager
+def member_client_pool():
+    global _cli_pool
 
-    from utils.rpc import RPCClient
-    if _member_client:
-        return _member_client
+    if not _cli_pool:
+        from utils.rpc import RPCClient
+        host, port = options.member_service.split(':')
+        port = int(port)
+        _cli_pool = Queue(10)
+        for i in xrange(10):
+            _cli_pool.put(RPCClient((host, port), timeout=6))
 
-    host, port = options.member_service.split(':')
-    port = int(port)
-    _member_client = RPCClient((host, port), timeout=1)
-    return _member_client
+    try:
+        cli = _cli_pool.get()
+        yield cli
+    finally:
+        _cli_pool.put(cli)
 
 
 class Account(object):
@@ -28,24 +43,24 @@ class Account(object):
     @classmethod
     @server_side_only
     def authenticate(cls, username, password):
-        cli = get_member_client()
-        try:
-            uid = int(username)
-            uid = uid if uid < 100000 else None
-        except ValueError:
-            uid = None
+        with member_client_pool() as cli:
+            try:
+                uid = int(username)
+                uid = uid if uid < 100000 else None
+            except ValueError:
+                uid = None
 
-        if uid:
-            member = cli.validate_by_uid(uid, password)
-        else:
-            member = cli.validate_by_username(username, password)
+            if uid:
+                member = cli.validate_by_uid(uid, password)
+            else:
+                member = cli.validate_by_username(username, password)
 
-        if not member:
-            return False
+            if not member:
+                return False
 
-        acc = cls()
-        acc._fill_account(member)
-        return acc
+            acc = cls()
+            acc._fill_account(member)
+            return acc
 
     @server_side_only
     def _fill_account(self, data):
@@ -74,10 +89,11 @@ class Account(object):
 
     @server_side_only
     def add_credit(self, type, amount):
-        cli = get_member_client()
-        rst = cli.add_credit(self.userid, type, amount)
-        if rst:
-            self._fill_account(rst)
+        @gevent.spawn
+        def worker():
+            with member_client_pool() as cli:
+                rst = cli.add_credit(self.userid, type, amount)
+                rst and self._fill_account(rst)
 
     @classmethod
     def parse(cls, data):

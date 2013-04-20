@@ -78,7 +78,7 @@ class ServerList:
             x=893
             y=404
 
-    if options.freeplay:
+    if options.freeplay or IS_PROTON:
         class localhost:
             address = ('127.0.0.1', 9999)
             description = (
