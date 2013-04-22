@@ -2129,7 +2129,7 @@ class Parsee:
     port_image = gres.parsee_port
     description = (
         u'|DB地壳下的嫉妒心 水桥帕露西 体力：4|r\n\n'
-        u'|G嫉妒|r：出牌阶段，你可以将你的黑色的手牌或装备牌牌当【城管执法】使用。'
+        u'|G嫉妒|r：出牌阶段，你可以将你的黑色的手牌或装备牌牌当【城管执法】使用。你使用【城管执法】时若拆除的牌是方片花色，你获得此牌。'
     )
 
 class Envy:
@@ -2173,6 +2173,13 @@ class Envy:
             target.ui_meta.char_name,
         )
         return s
+
+class EnvyAction:
+    def effect_string(act):
+        return u'|G但【%s】|r觉得那张牌还不错，就收了起来。' % (
+            act.source.ui_meta.char_name
+        )
+
 
 # ----------
 __metaclass__ = gen_metafunc(characters.youmu)
