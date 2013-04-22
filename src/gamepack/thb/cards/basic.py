@@ -51,18 +51,17 @@ class AttackCardHandler(EventHandler):
 
         elif evt_type == 'calcdistance':
             lc, dist = act
+            if not isinstance(lc, LaunchCard): return act
             card = lc.card
             from .definition import AttackCard
             if card.is_card(AttackCard):
                 from .equipment import WeaponSkill
                 src = lc.source
 
-                l = [s.range - 1 for s in src.skills if issubclass(s, WeaponSkill)]
+                l = [s.range for s in src.skills if issubclass(s, WeaponSkill)]
                 if not l: return act
-                l = min(l)
-
-                for p in dist:
-                    dist[p] -= l
+                lc.distance = min(l)
+                
 
         elif evt_type == 'action_can_fire' and isinstance(act[0], ActionStageLaunchCard):
             lc, rst = act

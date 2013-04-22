@@ -24,8 +24,7 @@ class PerfectFreezeHandler(EventHandler):
             act, dist = arg
             if not act.source.has_skill(PerfectFreeze): return arg
             if not act.card.is_card(FrozenFrogCard): return arg
-            for p in dist:
-                dist[p] -= 1
+            act.distance += 1
 
         return arg
 
