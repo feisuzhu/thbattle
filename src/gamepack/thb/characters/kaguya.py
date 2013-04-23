@@ -125,6 +125,7 @@ class ImperishableNightHandler(EventHandler):
             'handcard', 'showncard', 'equips'
         ): return False
         if 'skill' in card.category: return False
+        if card.color != Card.RED: return False
         return bool(set(card.category) & {'basic', 'equipment'})
 
 

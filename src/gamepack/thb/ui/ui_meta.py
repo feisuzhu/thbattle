@@ -4614,7 +4614,7 @@ class ImperishableNightHandler:
         if act.cond(cards):
             return (True, u'陷入永夜吧！')
         else:
-            return (False, u'请选择一张方片牌')
+            return (False, u'请选择一张红色的基本牌或装备牌')
 
 
 # ----------
