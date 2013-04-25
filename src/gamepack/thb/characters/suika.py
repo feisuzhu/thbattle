@@ -42,7 +42,6 @@ class GreatLandscapeHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'calcdistance':
             act, dist = arg
-            if not isinstance(act, LaunchCard): return act
             card = act.card
             if card.is_card(AttackCard):
                 src = act.source
@@ -52,8 +51,9 @@ class GreatLandscapeHandler(EventHandler):
                     if issubclass(s, WeaponSkill):
                         return arg
 
-                act.distance += src.maxlife - src.life
-                
+                correction = src.maxlife - src.life
+                for p in dist:
+                    dist[p] -= correction
         return arg
 
 class WineGod(Skill):

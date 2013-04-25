@@ -20,8 +20,6 @@ class Envy(TreatAsSkill):
         return True
 
 class EnvyRecycleAction(UserAction):
-    distance = 1
-
     def __init__(self, source, target, card):
         self.source = source
         self.target = target
@@ -33,9 +31,10 @@ class EnvyRecycleAction(UserAction):
         migrate_cards([card], self.source.cards)
         return True
 
-    def is_valid(self):
-        return validate_distance(self, [self.target])
-
+class EnvyRecycle(DummyCard):
+    associated_action = DummyAction
+    distance = 1
+    target = t_One
 
 class EnvyHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -47,15 +46,14 @@ class EnvyHandler(EventHandler):
         
         src = act.source
         tgt = act.target
-        
-        recycle = EnvyRecycleAction(src, tgt, card)
-        if not recycle.is_valid(): return act
-        
+
+        if not LaunchCard(src, [tgt], EnvyRecycle()).is_valid(): return act
+
         if not user_choose_option(self, src): return act
         
         g = Game.getgame()
-        g.process_action(recycle)
-
+        g.process_action(EnvyRecycleAction(src, tgt, card))
+        
         return act
 
 @register_character

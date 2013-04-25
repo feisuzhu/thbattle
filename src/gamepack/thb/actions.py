@@ -175,28 +175,6 @@ def skill_wrap_by_class(actor, skill_list, cards):
         return None
 
 
-def calc_distance(act):
-    g = Game.getgame()
-    pl = [p for p in g.players if not p.dead]
-    src = act.source
-    loc = pl.index(src)
-    n = len(pl)
-    dist = {
-        p: min(abs(i), n-abs(i))
-        for p, i in zip(pl, xrange(-loc, -loc+n))
-    }
-
-    g.emit_event('calcdistance', (act, dist))
-    g.emit_event('post_calcdistance', (act, dist))
-    return dist
-
-
-def validate_distance(act, players):
-    dist = calc_distance(act)
-    distance = act.distance
-    return all([dist[p] <= distance for p in players])
-
-
 def shuffle_here():
     from .cards import CardList, VirtualCard
     g = Game.getgame()
@@ -649,8 +627,28 @@ class LaunchCard(GenericAction, LaunchCardAction):
         return True
 
     def validate_distance(self):
-        self.distance = getattr(self.card, 'distance', 1000)
-        return validate_distance(self, self.target_list)
+        dist = self.calc_base_distance()
+        g = Game.getgame()
+
+        g.emit_event('calcdistance', (self, dist))
+        card_dist = getattr(self.card, 'distance', 1000)
+        for p in dist:
+            dist[p] -= card_dist
+        g.emit_event('post_calcdistance', (self, dist))
+
+        return all([dist[p] <= 0 for p in self.target_list])
+
+    def calc_base_distance(self):
+        g = Game.getgame()
+        pl = [p for p in g.players if not p.dead]
+        src = self.source
+        loc = pl.index(src)
+        n = len(pl)
+        dist = {
+            p: min(abs(i), n-abs(i))
+            for p, i in zip(pl, xrange(-loc, -loc+n))
+        }
+        return dist
 
 
 class ActionStageLaunchCard(LaunchCard):
