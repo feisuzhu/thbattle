@@ -7,9 +7,7 @@ from .. import thb3v3, thbidentity, thbkof, thbraid
 from game.autoenv import Game
 G = Game.getgame
 
-import types
 from resource import resource as gres
-from client.ui import resource as cres
 
 from utils import DataHolder, BatchList
 from types import FunctionType
@@ -70,7 +68,6 @@ def property(f):
 # -----COMMON FUNCTIONS-----
 def my_turn():
     g = G()
-    me = g.me
 
     try:
         act = g.action_stack[-1]
@@ -134,7 +131,8 @@ class THBattle:
     name = u'符斗祭 - 3v3 - 休闲'
     logo = gres.thblogo_3v3
 
-    from .view import THBattleUI as ui_class
+    from .view import THBattleUI
+    ui_class = THBattleUI
 
     T = thb3v3.Identity.TYPE
     identity_table = {
@@ -160,7 +158,8 @@ class THBattleKOF:
     name = u'符斗祭 - KOF模式'
     logo = gres.thblogo_kof
 
-    from .view import THBattleKOFUI as ui_class
+    from .view import THBattleKOFUI
+    ui_class = THBattleKOFUI
 
     T = thbkof.Identity.TYPE
     identity_table = {
@@ -187,7 +186,8 @@ class THBattleIdentity:
     name = u'符斗祭 - 标准8人身份场'
     logo = gres.thblogo_8id
 
-    from .view import THBattleIdentityUI as ui_class
+    from .view import THBattleIdentityUI
+    ui_class = THBattleIdentityUI
 
     T = thbidentity.Identity.TYPE
     identity_table = {
@@ -213,7 +213,8 @@ class THBattleIdentity5:
     name = u'符斗祭 - 标准5人身份场'
     logo = gres.thblogo_5id
 
-    from .view import THBattleIdentity5UI as ui_class
+    from .view import THBattleIdentity5UI
+    ui_class = THBattleIdentity5UI
 
     T = thbidentity.Identity.TYPE
     identity_table = {
@@ -245,7 +246,8 @@ class THBattleRaid:
     name = u'符斗祭 - 异变模式'
     logo = gres.thblogo_raid
 
-    from .view import THBattleRaidUI as ui_class
+    from .view import THBattleRaidUI
+    ui_class = THBattleRaidUI
 
     T = thbraid.Identity.TYPE
     identity_table = {
@@ -341,7 +343,6 @@ class Cooperation:
         return (True, u'合作愉快~')
 
     def effect_string(act):
-        s = u'、'.join(card_desc(c) for c in act.card.associated_cards)
         return u'|G【%s】|r与|G【%s】|r相互合作，交换了手牌。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
@@ -824,7 +825,6 @@ class RejectCard:
 class RejectHandler:
     # choose_card meta
     def choose_card_text(g, act, cards):
-        from ..cards import Reject
         c = act.target_act.associated_card
         name = c.ui_meta.name
 
@@ -920,7 +920,6 @@ class NazrinRodCard:
         u'出牌阶段使用，从牌堆摸两张牌。'
     )
     def is_action_valid(g, cl, target_list):
-        t = target_list[0]
         return (True, u'看看能找到什么好东西~')
 
 class SinsackCard:
@@ -946,7 +945,6 @@ class Sinsack:
             return u'罪袋终于找到了机会，将|G【%s】|r推倒了…' % tgt.ui_meta.char_name
 
 def equip_iav(g, cl, target_list):
-    t = target_list[0]
     return (True, u'配上好装备，不再掉节操！')
 
 class OpticalCloakCard:
@@ -1077,7 +1075,6 @@ class DuelCard:
         if not target_list:
             return (False, u'请选择弹幕战的目标')
 
-        target= target_list[0]
         return (True, u'来，战个痛快！')
 
 class MapCannonCard:
@@ -1250,7 +1247,6 @@ class GungnirSkill:
     name = u'冈格尼尔'
 
     def clickable(game):
-        me = game.me
         try:
             act = game.action_stack[-1]
             if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.DollControl)):
@@ -1283,7 +1279,6 @@ class GungnirSkill:
     def effect_string(act):
         # for LaunchCard.effect_string
         source = act.source
-        card = act.card
         target = act.target
         s = u'|G【%s】|r发动了|G冈格尼尔|r之枪，将两张牌当作|G弹幕|r对|G【%s】|r使用。' % (
             source.ui_meta.char_name,
@@ -1338,7 +1333,6 @@ class LaevateinSkill:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
-        card = act.card
         tl = BatchList(act.target_list)
 
         return u'|G【%s】|r不顾危险发动了|G莱瓦汀|r，火焰立刻扑向了对|G【%s】|r！' % (
@@ -2182,7 +2176,7 @@ class EnvyHandler:
 
 class EnvyRecycleAction:
     def effect_string(act):
-        return u'但|G【%s】|r觉得那张牌还不错，就收了起来。' % (
+        return u'|G【%s】|r：“喂喂这么好的牌扔掉不觉得可惜么？不要嫉妒我。”' % (
             act.source.ui_meta.char_name
         )
 
@@ -2215,7 +2209,6 @@ class Mijincihangzhan:
 class MijincihangzhanAttack:
     def effect_string_apply(act):
         src = act.source
-        tgt = act.target
         return u'|G【%s】|r在弹幕中注入了妖力，弹幕形成了一个巨大的光刃，怕是不能轻易地闪开的！' % (
             src.ui_meta.char_name,
         )
@@ -2287,7 +2280,6 @@ class Find:
         # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
-        target = act.target
         s = u'|G【%s】|r发动了寻找技能，换掉了%d张牌。' % (
             source.ui_meta.char_name,
             len(card.associated_cards),
@@ -2541,7 +2533,6 @@ class DollCrusader:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
-        card = act.card
         target = act.target
         s = u'|G【%s】|r突然向|G【%s】|r射出魔法丝线，将她当作玩偶一样玩弄了起来！' % (
             source.ui_meta.char_name,
@@ -3040,7 +3031,6 @@ class Tribute:
         if not cl: return (False, u'请选择要给出的牌')
         if len(cl) != 1: return (False, u'只能选择一张手牌')
 
-        from ..cards import CardList
         if not cl[0].resides_in.type in ('handcard', 'showncard'):
             return (False, u'只能选择手牌！')
 
@@ -3191,8 +3181,6 @@ class FirstAid:
     name = u'急救'
 
     def clickable(game):
-        me = game.me
-
         try:
             act = game.action_stack[-1]
         except IndexError:
@@ -3205,7 +3193,6 @@ class FirstAid:
 
     def is_complete(g, cl):
         skill = cl[0]
-        me = g.me
         acards = skill.associated_cards
         C = cards.Card
         if len(acards) != 1 or acards[0].suit not in (C.DIAMOND, C.HEART):
@@ -3411,7 +3398,6 @@ class FlowerQueen:
 
     def is_complete(g, cl):
         skill = cl[0]
-        me = g.me
         acards = skill.associated_cards
         if len(acards) != 1 or acards[0].suit != cards.Card.CLUB:
             return (False, u'请选择1张草花色牌！')
@@ -3814,8 +3800,6 @@ class AutumnFeast:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
-        card = act.card
-        target = act.target
         return (
             u'|G【%s】|r：麻薯年年有，今年特别多！'
         ) % (
@@ -3863,7 +3847,6 @@ class Taichi:
     name = u'太极'
 
     def clickable(game):
-        me = game.me
         try:
             act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
@@ -3883,7 +3866,7 @@ class Taichi:
     def is_complete(g, cl):
         skill = cl[0]
         cl = skill.associated_cards
-        from ..cards import Card, AttackCard, GrazeCard
+        from ..cards import AttackCard, GrazeCard
         if len(cl) != 1 or not (cl[0].is_card(AttackCard) or cl[0].is_card(GrazeCard)):
             return (False, u'请选择一张【弹幕】或者【擦弹】！')
         return (True, u'动之则分，静之则合。无过不及，随曲就伸')
@@ -3899,8 +3882,6 @@ class Taichi:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
-        card = act.card
-        target = act.target
         return (
             u'动之则分，静之则合。无过不及，随曲就伸……|G【%s】|r凭|G太极|r之势，轻松应对。'
         ) % (
@@ -3981,7 +3962,7 @@ class Drunkard:
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
         cl = skill.associated_cards
-        from ..cards import Card, CardList
+        from ..cards import Card
         if not (
             cl and len(cl) == 1 and
             cl[0].color == Card.BLACK and
@@ -3992,8 +3973,6 @@ class Drunkard:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
-        card = act.card
-        target = act.target
         s = u'|G【%s】|r不知从哪里拿出一瓶酒，大口喝下。' % (
             source.ui_meta.char_name,
         )
@@ -4349,8 +4328,6 @@ class DrawingLotAction:
 class DrawingLot:
     name = u'御神签'
     def clickable(g):
-        me = g.me
-
         try:
             act = g.action_stack[-1]
         except IndexError:

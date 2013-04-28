@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import Game
+from .baseclasses import Character, register_character
+from ..actions import EventHandler, UserAction, migrate_cards, LaunchCard, user_choose_option
+from ..cards import Card, TreatAsSkill, DemolitionCard, DummyCard, Demolition
 
-
-class EnvyAction(Demolition): pass
 
 class Envy(TreatAsSkill):
     treat_as = DemolitionCard
-    associated_action = EnvyAction
 
     def check(self):
         cards = self.associated_cards
@@ -18,6 +16,7 @@ class Envy(TreatAsSkill):
         if not c.resides_in.type in ('handcard', 'showncard', 'equips'): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         return True
+
 
 class EnvyRecycleAction(UserAction):
     def __init__(self, source, target, card):
@@ -31,29 +30,31 @@ class EnvyRecycleAction(UserAction):
         migrate_cards([card], self.source.cards)
         return True
 
+
 class EnvyRecycle(DummyCard):
-    associated_action = DummyAction
     distance = 1
-    target = t_One
+
 
 class EnvyHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
-        if not isinstance(act, EnvyAction): return act
-        
+        if not isinstance(act, Demolition): return act
+        if not act.associated_card.is_card(Envy): return act
         self.card = card = act.card
+
         if card.suit != Card.DIAMOND: return act
-        
+
         src = act.source
         tgt = act.target
 
-        if not LaunchCard(src, [tgt], EnvyRecycle()).is_valid(): return act
+        dist = LaunchCard.calc_distance(src, EnvyRecycle())
+        if not dist[tgt] <= 0: return act
 
         if not user_choose_option(self, src): return act
-        
+
         g = Game.getgame()
         g.process_action(EnvyRecycleAction(src, tgt, card))
-        
+
         return act
 
 @register_character

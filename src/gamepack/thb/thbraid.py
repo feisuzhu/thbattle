@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow, GameException
+from game.autoenv import Game, EventHandler, GameEnded, PlayerList, InterruptActionFlow, GameException, sync_primitive
 
-from actions import *
-from cards import *
-from itertools import cycle
+from .actions import ActionStage, ActionStageLaunchCard, Damage, DrawCards
+from .actions import DropCards, GenericAction, LaunchCard, PlayerDeath
+from .actions import PlayerRevive, UserAction, BaseDamage, RevealIdentity
+from .actions import PlayerTurn, MaxLifeChange, action_eventhandlers
+from .actions import LifeLost
+from .actions import choose_individual_card, migrate_cards, user_choose_cards, user_choose_option
+
+from .cards import Skill, t_None
 from collections import defaultdict
-import random
 
-from utils import BatchList, check, CheckFailed, partition
+from utils import check, CheckFailed
 
-from .common import *
+from .common import PlayerIdentity, CharChoice, mixin_character
 
 import logging
 log = logging.getLogger('THBattleRaid')
@@ -30,8 +34,6 @@ class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
         if not isinstance(act, PlayerDeath): return act
-
-        from .actions import DrawCards, DropCards
 
         tgt = act.target
         g = Game.getgame()
@@ -350,7 +352,7 @@ class Identity(PlayerIdentity):
 
 class RaidLaunchCard(LaunchCard):
     @classmethod
-    def calc_base_distance(cls):
+    def calc_base_distance(cls, src):
         g = Game.getgame()
         return { p: 1 for p in g.players }
 
@@ -390,7 +392,7 @@ class THBattleRaid(Game):
 
     def game_start(g):
         # game started, init state
-        from cards import Card, CardList
+        from cards import CardList
 
         g.action_types[LaunchCard] = RaidLaunchCard
         g.action_types[ActionStageLaunchCard] = RaidActionStageLaunchCard

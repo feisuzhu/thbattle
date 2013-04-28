@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import Game, EventHandler, Action, GameError, PlayerList, sync_primitive
 
-from network import Endpoint
-import random
-
 from functools import wraps
 from collections import defaultdict
 
@@ -604,7 +601,6 @@ class LaunchCard(GenericAction, LaunchCardAction):
             log.debug('LaunchCard.tl_valid FALSE')
             return False
 
-        g = Game.getgame()
         card = self.card
         if not card:
             log.debug('LaunchCard.card FALSE')
@@ -613,7 +609,7 @@ class LaunchCard(GenericAction, LaunchCardAction):
         src = self.source
 
         dist = self.calc_distance(src, card)
-        if not all([dist[p] <= 0 for p in self.target_list])
+        if not all([dist[p] <= 0 for p in self.target_list]):
             log.debug('LaunchCard: does not fulfill distance constraint')
             return False
 
@@ -632,7 +628,7 @@ class LaunchCard(GenericAction, LaunchCardAction):
 
     @classmethod
     def calc_distance(cls, source, card):
-        dist = cls.calc_base_distance()
+        dist = cls.calc_base_distance(source)
         g = Game.getgame()
 
         g.emit_event('calcdistance', (source, card, dist))
@@ -644,10 +640,9 @@ class LaunchCard(GenericAction, LaunchCardAction):
         return dist
 
     @classmethod
-    def calc_base_distance(cls):
+    def calc_base_distance(cls, src):
         g = Game.getgame()
         pl = [p for p in g.players if not p.dead]
-        src = self.source
         loc = pl.index(src)
         n = len(pl)
         dist = {

@@ -31,7 +31,7 @@ class DeathHandler(EventHandler):
         if evt_type != 'action_after': return act
         if not isinstance(act, PlayerDeath): return act
         tgt = act.target
-        
+
         g = Game.getgame()
 
         # see if game ended
@@ -70,7 +70,7 @@ class THBattle(Game):
         self.deck = Deck()
 
         ehclasses = list(action_eventhandlers) + self.game_ehs.values()
-        
+
         for i, p in enumerate(self.players):
             p.cards = CardList(p, 'handcard') # Cards in hand
             p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
@@ -81,7 +81,7 @@ class THBattle(Game):
             p.showncardlists = [p.showncards, p.fatetell]
 
             p.tags = defaultdict(int)
-            
+
             p.dead = False
             p.identity = Identity()
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
@@ -130,7 +130,7 @@ class THBattle(Game):
 
         self.emit_event('game_roll_result', first)
         # ----
-        
+
         first_index = self.players.index(first)
         n = len(self.order_list)
         order = [self.players[(first_index + i) % n] for i in self.order_list]
@@ -154,7 +154,7 @@ class THBattle(Game):
                 check(not c.chosen)
                 c.chosen = p
             except CheckFailed:
-                # first non-chosen char 
+                # first non-chosen char
                 for c in choice:
                     if not c.chosen:
                         c.chosen = p
@@ -211,7 +211,7 @@ class THBattle(Game):
                         self.process_action(PlayerTurn(p))
                     except InterruptActionFlow:
                         pass
-        
+
         except GameEnded:
             pass
 
