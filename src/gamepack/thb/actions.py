@@ -591,7 +591,9 @@ class LaunchCard(GenericAction, LaunchCardAction):
             self.card_action = a
             a.associated_card = card
             a.target_list = target_list
+            # <TODO>: this is obvioulsly not right
             a.force_fire()  # For Exinwan, see UserAction.force_fire
+            # should be fixed </TODO>
             g.process_action(a)
             return True
 
@@ -608,12 +610,14 @@ class LaunchCard(GenericAction, LaunchCardAction):
             log.debug('LaunchCard.card FALSE')
             return False
 
-        if not self.validate_distance():
+        src = self.source
+
+        dist = self.calc_distance(src, card)
+        if not all([dist[p] <= 0 for p in self.target_list])
             log.debug('LaunchCard: does not fulfill distance constraint')
             return False
 
         cls = card.associated_action
-        src = self.source
 
         tl = self.target_list
         target = tl[0] if tl else src
@@ -626,19 +630,21 @@ class LaunchCard(GenericAction, LaunchCardAction):
 
         return True
 
-    def validate_distance(self):
-        dist = self.calc_base_distance()
+    @classmethod
+    def calc_distance(cls, source, card):
+        dist = cls.calc_base_distance()
         g = Game.getgame()
 
-        g.emit_event('calcdistance', (self, dist))
-        card_dist = getattr(self.card, 'distance', 1000)
+        g.emit_event('calcdistance', (source, card, dist))
+        card_dist = getattr(card, 'distance', 1000)
         for p in dist:
             dist[p] -= card_dist
-        g.emit_event('post_calcdistance', (self, dist))
+        g.emit_event('post_calcdistance', (source, card, dist))
 
-        return all([dist[p] <= 0 for p in self.target_list])
+        return dist
 
-    def calc_base_distance(self):
+    @classmethod
+    def calc_base_distance(cls):
         g = Game.getgame()
         pl = [p for p in g.players if not p.dead]
         src = self.source

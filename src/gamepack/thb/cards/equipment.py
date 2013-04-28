@@ -97,13 +97,13 @@ class UFODistanceHandler(EventHandler):
     def handle(self, evt_type, arg):
         if not evt_type == 'calcdistance': return arg
 
-        act, dist = arg
-        src = act.source
+        src, card, dist = arg
         for s in src.skills:
             if not issubclass(s, RedUFOSkill): continue
             incr = s.increment
+            incr = incr(src) if callable(incr) else incr
             for p in dist:
-                dist[p] -= incr(source) if callable(incr) else incr
+                dist[p] -= incr
 
         for p in dist:
             for s in p.skills:

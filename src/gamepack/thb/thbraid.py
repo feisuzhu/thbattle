@@ -349,7 +349,8 @@ class Identity(PlayerIdentity):
 
 
 class RaidLaunchCard(LaunchCard):
-    def calc_base_distance(self):
+    @classmethod
+    def calc_base_distance(cls):
         g = Game.getgame()
         return { p: 1 for p in g.players }
 

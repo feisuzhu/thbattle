@@ -21,9 +21,9 @@ class PerfectFreeze(TreatAsSkill):
 class PerfectFreezeHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'calcdistance':
-            act, dist = arg
-            if not act.source.has_skill(PerfectFreeze): return arg
-            if not act.card.is_card(FrozenFrogCard): return arg
+            src, card, dist = arg
+            if not src.has_skill(PerfectFreeze): return arg
+            if not card.is_card(FrozenFrogCard): return arg
             for p in dist:
                 dist[p] -= 1
 

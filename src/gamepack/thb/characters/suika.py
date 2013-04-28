@@ -41,10 +41,8 @@ class GreatLandscape(Skill):
 class GreatLandscapeHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'calcdistance':
-            act, dist = arg
-            card = act.card
+            src, card, dist = arg
             if card.is_card(AttackCard):
-                src = act.source
                 if not src.has_skill(GreatLandscape): return arg
 
                 for s in src.skills:

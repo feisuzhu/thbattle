@@ -50,12 +50,10 @@ class AttackCardHandler(EventHandler):
                     act.source.tags['attack_num'] -= 1
 
         elif evt_type == 'calcdistance':
-            lc, dist = act
-            card = lc.card
+            src, card, dist = act
             from .definition import AttackCard
             if card.is_card(AttackCard):
                 from .equipment import WeaponSkill
-                src = lc.source
 
                 l = [s.range - 1 for s in src.skills if issubclass(s, WeaponSkill)]
                 if not l: return act
@@ -72,7 +70,7 @@ class AttackCardHandler(EventHandler):
                 tl = lc.target_list
                 if src.tags['freeattack'] >= src.tags['turn_count']:
                     return act
-                
+
                 if src.tags['attack_num'] <= 0:
                     return (lc, False)
 

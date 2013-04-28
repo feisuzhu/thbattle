@@ -22,7 +22,13 @@ class DummyCard:
     target = t_None
     category = ('dummy', )
 
+    def __init__(self, suit=NOTSET, number=0, resides_in=None, **kwargs):
+        Card.__init__(self, suit, number, resides_in)
+        self.__dict__.update(kwargs)
+
+
 from . import basic
+
 
 class AttackCard:
     associated_action = basic.Attack
@@ -30,20 +36,24 @@ class AttackCard:
     category = ('basic', )
     distance = 1
 
+
 class GrazeCard:
     associated_action = None
     target = t_None
     category = ('basic', )
+
 
 class HealCard:
     associated_action = basic.Heal
     target = t_Self
     category = ('basic', )
 
+
 class WineCard:
     associated_action = basic.Wine
     target = t_Self
     category = ('basic', )
+
 
 class ExinwanCard:
     associated_action = basic.Exinwan
@@ -53,6 +63,7 @@ class ExinwanCard:
 # --------------------------------------------------
 
 from . import spellcard
+
 
 class DemolitionCard:
     associated_action = spellcard.Demolition
