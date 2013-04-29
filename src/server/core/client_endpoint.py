@@ -40,15 +40,6 @@ class Client(Endpoint, Greenlet):
         self.gdevent = Event()
         self.observers = BatchList()
 
-        import socket
-        try:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
-            sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
-            sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 6)
-            sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
-        except:
-            pass
-
     def _run(self):
         cmds = {}
         self.account = None
@@ -250,7 +241,7 @@ class Client(Endpoint, Greenlet):
         acc = self.account
         if not acc:
             return Endpoint.__repr__(self)
-        
+
         return '%s:%s:%s' % (
             self.__class__.__name__,
             self.address[0],

@@ -1,6 +1,4 @@
-import gevent
-from gevent import Greenlet, Timeout, socket, coros
-from gevent.queue import Queue
+from gevent import Timeout, socket, coros
 import simplejson as json
 import logging
 
@@ -65,19 +63,35 @@ class Endpoint(object):
 
         f = self.sockfile
         while True:
-            #with Timeout(timeout, None):
             try:
-                s = f.readline(1048576)
-                if s == '':
+                s = None
+                with Timeout(5, False):
+                    s = f.readline(1048576)
+
+                if s is None:
+                    self.write(['heartbeat', None])
+                    continue
+
+                elif s == '':
                     self.close()
                     raise EndpointDied()
+
                 if Endpoint.ENDPOINT_DEBUG:
                     log.debug("<<RECV %s" % s[:-1])
+
                 d = json.loads(s)
+                try:
+                    if d[0] == 'heartbeat':
+                        continue
+                except:
+                    pass
+
                 return d
-            except json.JSONDecodeError as e:
+
+            except json.JSONDecodeError:
                 self.write(['bad_format', None])
                 continue
-            except IOError as e:
+
+            except IOError:
                 self.close()
                 raise EndpointDied()
