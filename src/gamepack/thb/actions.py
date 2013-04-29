@@ -44,7 +44,6 @@ def hookable(func):
 
 
 def user_choose_cards_logic(input, act, target, categories=None):
-    from utils import check, CheckFailed
     g = Game.getgame()
 
     try:
@@ -78,7 +77,8 @@ def user_choose_cards_logic(input, act, target, categories=None):
 
         log.debug('user_choose_cards: %s %s %s', repr(act), target.__class__.__name__, repr(cards))
         return cards
-    except CheckFailed as e:
+
+    except CheckFailed:
         log.debug('user_choose_cards FAILED: %s %s', repr(act), target.__class__.__name__)
         return None
 
@@ -95,7 +95,6 @@ def user_choose_players_logic(input, act, target, candidates):
         _, _, pids = input
         check(pids)
         pl = [g.player_fromid(i) for i in pids]
-        from game import AbstractPlayer
         check(all(p in candidates for p in pl))
         pl, valid = act.choose_player_target(pl)
         check(valid)
@@ -168,12 +167,12 @@ def skill_wrap_by_class(actor, skill_list, cards):
         cards[0].move_to(actor.cards)
         return cards[0]
 
-    except CheckFailed as e:
+    except CheckFailed:
         return None
 
 
 def shuffle_here():
-    from .cards import CardList, VirtualCard
+    from .cards import VirtualCard
     g = Game.getgame()
     g.emit_event('shuffle_cards', True)
     for p in g.players:
@@ -248,14 +247,9 @@ def choose_peer_card(source, target, categories):
 def choose_individual_card_logic(input, source, cards):
     try:
         cid = input
-        g = Game.getgame()
-
         check(isinstance(cid, int))
-
         cards = [c for c in cards if c.syncid == cid]
-
         check(len(cards)) # Invalid id
-
         return cards[0]
 
     except CheckFailed:
@@ -307,9 +301,7 @@ class PlayerDeath(GenericAction):
         tgt = self.target
         g = Game.getgame()
         tgt.dead = True
-        src = self.source or self.target
         others = g.players.exclude(tgt)
-        from .cards import VirtualCard
         from .actions import DropCards
         lists = [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]
         lists.extend(tgt.showncardlists)
@@ -402,7 +394,6 @@ class BaseDamage(GenericAction):
 
     def apply_action(self):
         tgt = self.target
-        g = Game.getgame()
         tgt.life -= self.amount
         return True
 
@@ -451,17 +442,7 @@ class DropCards(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-
         cards = self.cards
-
-        from .cards import VirtualCard
-        #self.cards_before_unwrap = cards
-
-        #migrate_cards([c for c in cards if c.is_card(VirtualCard)], None)
-
-        #self.cards = cards = VirtualCard.unwrap(cards)
-        self.cards = cards
-
         assert all(c.resides_in.owner in (target, None) for c in cards), 'WTF?!'
         migrate_cards(cards, g.deck.droppedcards, unwrap=True)
 
@@ -508,7 +489,6 @@ class DropCardStage(GenericAction):
     def apply_action(self):
         target = self.target
         if target.dead: return False
-        life = target.life
         n = self.dropn
         if n <= 0: return True
 
@@ -660,6 +640,7 @@ class ActionStage(GenericAction):
 
     def __init__(self, target):
         self.target = target
+        self.in_user_input = False
 
     def apply_action(self):
         g = Game.getgame()
@@ -670,8 +651,13 @@ class ActionStage(GenericAction):
 
         try:
             while not target.dead:
-                g.emit_event('action_stage_action', target)
-                input = target.user_input('action_stage_usecard')
+                try:
+                    self.in_user_input = True
+                    g.emit_event('action_stage_action', target)
+                    input = target.user_input('action_stage_usecard')
+                finally:
+                    self.in_user_input = False
+
                 check_type([[int, Ellipsis]] * 3, input)
 
                 skill_ids, card_ids, target_list = input
@@ -705,7 +691,7 @@ class ActionStage(GenericAction):
 
                 shuffle_here()
 
-        except CheckFailed as e:
+        except CheckFailed:
             pass
 
         return True
@@ -880,7 +866,6 @@ class Pindian(UserAction):
 
     @staticmethod
     def cond(cl):
-        from .cards import CardList
         return len(cl) == 1 and cl[0].resides_in.type in ('handcard', 'showncard')
 
     def is_valid(self):

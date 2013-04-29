@@ -79,6 +79,8 @@ def my_turn():
 
     if act.target is not g.me: return False
 
+    if not act.in_user_input: return False
+
     return True
 
 
@@ -4679,6 +4681,7 @@ class NeverNight:
 
     def clickable(g):
         me = g.me
+        if not my_turn(): return False
         if len(me.faiths) < 3: return False
         if limit1_skill_used('nevernight_tag'): return False
         return True

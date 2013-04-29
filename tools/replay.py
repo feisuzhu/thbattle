@@ -124,7 +124,10 @@ def get_synctag(ori):
         print '----- %d -----' % tag
 
     if options.break_at and tag == options.break_at:
-        raise Exception('break!')
+        if options.catch:
+            import pdb; pdb.set_trace()
+        else:
+            raise Exception('break!')
 
     return tag
 
