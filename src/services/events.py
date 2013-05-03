@@ -14,7 +14,7 @@ from gevent import monkey
 monkey.patch_all()
 
 from gevent.event import Event
-from gevent import Timeout, Greenlet
+from gevent import Greenlet
 from bottle import route, run, request, response
 import pika
 import simplejson as json
@@ -52,7 +52,11 @@ class Interconnect(object):
     def connect(self):
         try:
             self.conn = conn = pika.BlockingConnection(
-                pika.connection.ConnectionParameters(host=options.rabbitmq_host, socket_timeout=6.0),
+                pika.connection.ConnectionParameters(
+                    host=options.rabbitmq_host,
+                    socket_timeout=6.0,
+                    heartbeat_interval=2,
+                )
             )
             self.chan = chan = conn.channel()
             chan.exchange_declare('thb_events', 'fanout')
@@ -85,7 +89,11 @@ class InterconnectHandler(Greenlet):
         try:
             self.conn = None
             conn = pika.BlockingConnection(
-                pika.connection.ConnectionParameters(host=options.rabbitmq_host, socket_timeout=6.0),
+                pika.connection.ConnectionParameters(
+                    host=options.rabbitmq_host,
+                    socket_timeout=6.0,
+                    heartbeat_interval=2,
+                ),
             )
             chan = conn.channel()
             chan.exchange_declare('thb_events', 'fanout')
@@ -101,7 +109,6 @@ class InterconnectHandler(Greenlet):
                 def _notify():
                     events_history.rotate()
                     events_history[0] = [[key, message], time.time()]
-                    encoded = json.dumps([key, message])
                     [evt.set() for evt in list(event_waiters)]
 
             for method, header, body in chan.consume(queue.method.queue):
