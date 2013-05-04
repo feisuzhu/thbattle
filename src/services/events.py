@@ -55,7 +55,6 @@ class Interconnect(object):
                 pika.connection.ConnectionParameters(
                     host=options.rabbitmq_host,
                     socket_timeout=6.0,
-                    heartbeat_interval=2,
                 )
             )
             self.chan = chan = conn.channel()
