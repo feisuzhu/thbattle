@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import gevent
 from gevent import Greenlet, Timeout
 from gevent.event import Event
 import gamehall as hall
 from network import Endpoint, EndpointDied
 import logging
-import sys
 import simplejson as json
 
 from collections import deque
@@ -135,6 +133,10 @@ class Client(Endpoint, Greenlet):
             self.write(['bye', None])
             self.close()
 
+        @handler('__any__')
+        def heartbeat(self, _):
+            pass
+
         @handler('hang', 'inroomwait', 'ready', 'ingame', 'observing')
         def chat(self, data):
             hall.chat(self, data)
@@ -153,7 +155,15 @@ class Client(Endpoint, Greenlet):
         self.state = 'connected'
         while True:
             try:
-                cmd, data = self.read()
+                hasdata = False
+                with Timeout(30, False):
+                    cmd, data = self.read()
+                    hasdata = True
+
+                if not hasdata:
+                    # client should send heartbeat periodically
+                    raise EndpointDied
+
                 f = cmds[self.state].get(cmd)
                 if not f:
                     f = cmds['__any__'].get(cmd)

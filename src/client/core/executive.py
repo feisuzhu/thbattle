@@ -2,9 +2,7 @@
 from server_endpoint import Server
 import sys
 import gevent
-from gevent import socket, Greenlet
-
-from utils import DataHolder
+from gevent import socket, Greenlet, Timeout
 
 from account import Account
 
@@ -166,7 +164,15 @@ class GameManager(Greenlet):
                 self.event_cb('server_connected', self)
 
         while True:
-            cmd, data = Executive.server.ctlcmds.get()
+            hascmd = False
+            with Timeout(10, False):
+                cmd, data = Executive.server.ctlcmds.get()
+                hascmd = True
+
+            if not hascmd:
+                Executive.server.write(['heartbeat', None])
+                continue
+
             h = handlers.get(cmd)
             if h:
                 f, _from, _to = h
@@ -300,12 +306,14 @@ class Executive(Greenlet):
 
         while True:
             self.event.wait()
+
             for _type, cb, args in self.msg_queue:
                 f = handlers.get(_type)
                 if f:
                     f(self, cb, *args)
                 else:
                     raise Exception('Executive: No such handler: %s' % _type)
+
             self.msg_queue = []
             self.event.clear()
 
