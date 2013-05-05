@@ -161,6 +161,7 @@ class Client(Endpoint, Greenlet):
                     hasdata = True
 
                 if not hasdata:
+                    self.close()
                     # client should send heartbeat periodically
                     raise EndpointDied
 

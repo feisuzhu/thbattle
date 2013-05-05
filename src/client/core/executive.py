@@ -2,7 +2,7 @@
 from server_endpoint import Server
 import sys
 import gevent
-from gevent import socket, Greenlet, Timeout
+from gevent import socket, Greenlet
 
 from account import Account
 
@@ -163,16 +163,14 @@ class GameManager(Greenlet):
             else:
                 self.event_cb('server_connected', self)
 
-        while True:
-            hascmd = False
-            with Timeout(10, False):
-                cmd, data = Executive.server.ctlcmds.get()
-                hascmd = True
-
-            if not hascmd:
+        @gevent.spawn
+        def beater():
+            while True:
+                gevent.sleep(10)
                 Executive.server.write(['heartbeat', None])
-                continue
 
+        while True:
+            cmd, data = Executive.server.ctlcmds.get()
             h = handlers.get(cmd)
             if h:
                 f, _from, _to = h
