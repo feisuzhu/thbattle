@@ -26,8 +26,8 @@ class EnvyRecycleAction(UserAction):
 
     def apply_action(self):
         card = self.card
-        assert card.resides_in.owner is None
-        migrate_cards([card], self.source.cards)
+        assert not card.resides_in or card.resides_in.owner is None
+        migrate_cards([card], self.source.cards, unwrap=True)
         return True
 
 
@@ -56,6 +56,7 @@ class EnvyHandler(EventHandler):
         g.process_action(EnvyRecycleAction(src, tgt, card))
 
         return act
+
 
 @register_character
 class Parsee(Character):
