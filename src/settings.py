@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 124'
+VERSION = 'THBATTLE V1.0b incr 125'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -125,7 +125,8 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
-水桥设定调整
+水桥的一处bug修复
+水桥设定调整(zhyk)
 游戏服务器迁到国内
 辉夜设定调整
 论坛互联
