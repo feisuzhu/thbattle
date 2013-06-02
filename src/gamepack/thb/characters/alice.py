@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler
+from baseclasses import Character, register_character
+from ..cards import Skill, TreatAsSkill, AttackCardHandler, DollControlCard, t_None
 
 
 class DollManipulation(Skill):
@@ -11,9 +11,9 @@ class DollManipulation(Skill):
 
 class DollManipulationHandler(EventHandler):
     execute_after = ('ElementalReactorHandler', )
+
     def handle(self, evt_type, tgt):
         if evt_type == 'action_stage_action':
-            tags = tgt.tags
             if not tgt.has_skill(DollManipulation): return tgt
             AttackCardHandler.set_freeattack(tgt)
 
@@ -22,15 +22,13 @@ class DollManipulationHandler(EventHandler):
 
 class DollCrusader(TreatAsSkill):
     treat_as = DollControlCard
+
     def check(self):
         cl = self.associated_cards
         if not cl and len(cl) == 1: return False
         c = cl[0]
-        if c.resides_in.type not in (
-            'handcard',
-            'showncard',
-            'equips',
-        ): return False
+        if c.resides_in.type not in ('cards', 'showncards', 'equips'):
+            return False
 
         cat = getattr(c, 'equipment_category', None)
         if cat == 'accessories': return True

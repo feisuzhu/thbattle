@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import Game, EventHandler, user_input
+from .baseclasses import Character, register_character
+from ..actions import UserAction, DropCards, Fatetell, Damage
+from ..actions import migrate_cards, user_choose_cards
+from ..cards import Skill, t_None
+from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+
 
 class Trial(Skill):
     associated_action = None
     target = t_None
 
+
 class Majesty(Skill):
     associated_action = None
     target = t_None
 
-class TrialAction(GenericAction):
+
+class TrialAction(UserAction):
     def __init__(self, source, target, ft, card):
         self.source, self.target, self.ft, self.card = \
             source, target, ft, card
@@ -24,8 +30,10 @@ class TrialAction(GenericAction):
         self.ft.card = c
         return True
 
+
 class TrialHandler(EventHandler):
     execute_before = ('YinYangOrbHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Fatetell):
             g = Game.getgame()
@@ -34,10 +42,10 @@ class TrialHandler(EventHandler):
                 if p.dead: continue
                 if not p.has_skill(Trial): continue
 
-                if not user_choose_option(self, p): return act
+                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                    return act
 
-                cats = [p.cards, p.showncards, p.equips]
-                cards = user_choose_cards(self, p, cats)
+                cards = user_choose_cards(self, p, ['cards', 'showncards', 'equips'])
                 if cards:
                     c = cards[0]
                     g.process_action(TrialAction(p, act.target, act, c))
@@ -47,17 +55,16 @@ class TrialHandler(EventHandler):
     def cond(self, cards):
         return len(cards) == 1
 
-class MajestyAction(GenericAction):
+
+class MajestyAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        cats = [
-            tgt.cards, tgt.showncards, tgt.equips
-        ]
-        c = choose_peer_card(src, tgt, cats)
+        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ['cards', 'showncards', 'equips']))
         if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)
         return True
+
 
 class MajestyHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -74,11 +81,13 @@ class MajestyHandler(EventHandler):
         if tgt.dead: return act
         if not tgt.has_skill(Majesty): return act
 
-        if not user_choose_option(self, tgt): return act
+        if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            return act
 
         Game.getgame().process_action(MajestyAction(tgt, src))
 
         return act
+
 
 @register_character
 class Shikieiki(Character):

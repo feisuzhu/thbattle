@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler
+from .baseclasses import Character, register_character
+from ..actions import ForEach, LaunchCard
+from ..cards import Skill, AttackCard, DollControlCard, RejectCard, InstantSpellCardAction
+
 
 class FlyingSkandaAction(ForEach):
     @property
@@ -18,6 +20,7 @@ class FlyingSkandaAction(ForEach):
         if any(t.dead for t in self.target_list):
             return False
         return True
+
 
 class FlyingSkanda(Skill):
     associated_action = FlyingSkandaAction
@@ -67,6 +70,7 @@ class FlyingSkandaHandler(EventHandler):
             if not act.card.is_card(FlyingSkanda): return act
             act.source.tags['flying_skanda'] = act.source.tags['turn_count']
         return act
+
 
 @register_character
 class Chen(Character):

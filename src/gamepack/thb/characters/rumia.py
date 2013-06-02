@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import DrawCards, PlayerTurn, UserAction
+from ..cards import Skill, BaseDuel, t_None, t_OtherN
+
 
 class DarknessDuel(BaseDuel):
     pass
+
 
 class DarknessAction(UserAction):
     def apply_action(self):
@@ -21,19 +24,24 @@ class DarknessAction(UserAction):
             return False
         return True
 
+
 class Darkness(Skill):
     associated_action = DarknessAction
     target = t_OtherN(2)
+
     def check(self):
         cl = self.associated_cards
         return cl and len(cl) == 1
+
 
 class Cheating(Skill):
     associated_action = None
     target = t_None
 
+
 class CheatingDrawCards(DrawCards):
     pass
+
 
 class CheatingHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -43,6 +51,7 @@ class CheatingHandler(EventHandler):
                 g = Game.getgame()
                 g.process_action(CheatingDrawCards(tgt, 1))
         return act
+
 
 @register_character
 class Rumia(Character):

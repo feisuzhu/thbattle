@@ -1,4 +1,17 @@
 # -*- coding: utf-8 -*-
+
+class Packet(list): # compare by identity list
+    __slots__ = ('scan_count')
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        return id(self) == id(other)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
 class DataHolder(object):
     def __data__(self):
         return self.__dict__
@@ -47,22 +60,6 @@ class BatchList(list):
         i = self.index(elem)
         n = len(self)
         return self.__class__((self*2)[i:i+n])
-
-
-class IRP(object):
-    '''I/O Request Packet'''
-    complete_tag = object()
-    def __init__(self):
-        from gevent.queue import Queue
-        self.queue = Queue()
-
-    def complete(self):
-        # from gevent_extension import the_hub
-        self.queue.put(self.complete_tag)
-        # the_hub.interrupt(self.queue.put, self.complete_tag)
-
-    def wait(self):
-        self.queue.get()
 
 
 class ScissorBox(object):
@@ -140,7 +137,7 @@ class Framebuffer(object):
                 gl.GL_COLOR_ATTACHMENT0_EXT,
                 t.target, t.id, 0,
             )
-        except gl.GLException as e:
+        except gl.GLException:
             # HACK: Some Intel card return errno == 1286L
             # which means GL_INVALID_FRAMEBUFFER_OPERATION_EXT
             # but IT ACTUALLY WORKS FINE!!
@@ -439,6 +436,7 @@ class DisplayList(object):
             gl.glDeleteLists(self._list_id, 1)
         except:
             pass
+
 
 def extendclass(clsname, bases, _dict):
     for cls in bases:

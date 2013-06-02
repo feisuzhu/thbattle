@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import Damage, DrawCards, GenericAction, UserAction, user_choose_players
+from ..cards import Skill, t_None, t_OtherOne
 
 
 class DrawingLotAction(UserAction):
@@ -11,7 +12,7 @@ class DrawingLotAction(UserAction):
         tags = src.tags
         tags['drawinglot_tag'] = tags['turn_count']
 
-        g  = Game.getgame()
+        g = Game.getgame()
         diff = max(p.life for p in g.players) - tgt.life
         diff = min(diff, 4)
         diff = max(diff, 1)
@@ -57,7 +58,7 @@ class MiracleHandler(EventHandler):
             if not tgt.has_skill(Miracle): return act
             if tgt.dead: return act
             g = Game.getgame()
-            
+
             candidates = [p for p in g.players if not p.dead]
             if not candidates: return act
             pl = user_choose_players(self, tgt, candidates)

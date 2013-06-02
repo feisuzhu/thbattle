@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game, user_input
+from .baseclasses import Character, register_character
+from ..actions import GenericAction, ActionStageLaunchCard, DrawCardStage
+from ..cards import ElementalReactorSkill, AttackCard, AttackCardHandler, BaseAttack, BaseDuel, Skill, t_None
+from ..inputlets import ChooseOptionInputlet
+
 
 class CriticalStrike(Skill):
     associated_action = None
@@ -28,7 +31,8 @@ class CriticalStrikeHandler(EventHandler):
             if act.cancelled: return act
             tgt = act.target
             if not tgt.has_skill(CriticalStrike): return act
-            if not user_choose_option(self, tgt): return act
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
 
             Game.getgame().process_action(CriticalStrikeAction(tgt, tgt))
 

@@ -1,42 +1,26 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import DrawCards, GenericAction, MaxLifeChange
+from ..cards import Card, Skill, TreatAsSkill, SoberUp, AttackCard, IbukiGourdCard, WineCard, WeaponSkill, WearEquipmentAction, t_None
+
 
 class Drunkard(TreatAsSkill):
     treat_as = WineCard
+
     def check(self):
         cl = self.associated_cards
         if not (cl and len(cl) == 1 and cl[0].color == Card.BLACK):
             return False
-        if cl[0].resides_in.type not in ('handcard', 'showncard', 'equips'):
+        if cl[0].resides_in.type not in ('cards', 'showncards', 'equips'):
             return False
         return True
 
-'''
-class DrunkardHandler(EventHandler):
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_can_fire':
-            act, valid = arg
-            if not isinstance(act, LaunchCard): return arg
-            c = act.card
-            if not c.is_card(Drunkard): return arg
-
-            src = act.source
-            if src.tags['turn_count'] <= src.tags['drunkard_tag']:
-                return (act, False)
-        elif evt_type == 'action_apply' and isinstance(arg, LaunchCard):
-            c = arg.card
-            if c.is_card(Drunkard):
-                src = arg.source
-                src.tags['drunkard_tag'] = src.tags['turn_count']
-
-        return arg
-'''
 
 class GreatLandscape(Skill):
     associated_action = None
     target = t_None
+
 
 class GreatLandscapeHandler(EventHandler):
     def handle(self, evt_type, arg):
@@ -54,13 +38,16 @@ class GreatLandscapeHandler(EventHandler):
                     dist[p] -= correction
         return arg
 
+
 class WineGod(Skill):
     associated_action = None
     target = t_None
 
+
 class WineDream(Skill):
     associated_action = None
     target = t_None
+
 
 class WineGodAwake(GenericAction):
     def apply_action(self):
@@ -70,6 +57,7 @@ class WineGodAwake(GenericAction):
         g = Game.getgame()
         g.process_action(MaxLifeChange(tgt, tgt, -1))
         return True
+
 
 class WineGodHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -82,6 +70,7 @@ class WineGodHandler(EventHandler):
             g.process_action(WineGodAwake(tgt, tgt))
         return act
 
+
 class WineDreamHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, SoberUp):
@@ -90,6 +79,7 @@ class WineDreamHandler(EventHandler):
             g = Game.getgame()
             g.process_action(DrawCards(src, 1))
         return act
+
 
 @register_character
 class Suika(Character):

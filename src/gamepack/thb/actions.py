@@ -1,125 +1,90 @@
 # All generic and cards' Actions, EventHandlers are here
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, PlayerList, sync_primitive
+from game.autoenv import Game, EventHandler, Action, GameError
+from game.autoenv import sync_primitive, user_input, InputTransaction
 
-from functools import wraps
-from collections import defaultdict
+from .inputlets import ActionInputlet
 
 from utils import check, check_type, CheckFailed, BatchList, group_by
 
 import logging
 log = logging.getLogger('THBattle_Actions')
 
+
 # ------------------------------------------
 # aux functions
 
-def _get_hooktable():
-    g = Game.getgame()
-    hooktable = getattr(g, '_hooktable', None)
-    if hooktable is None:
-        hooktable = defaultdict(list)
-        g._hooktable = hooktable
+def ask_for_action(initiator, actors, categories, candidates, trans=None):
+    # initiator: Action or EH requesting this
+    # actors: players involved
+    # categories: card categories, eg: ['cards', 'showncards']
+    # candidates: players can be selection target, eg: g.players
 
-    return hooktable
+    assert categories or candidates
+    assert actors
 
+    ilet = ActionInputlet(initiator, categories, candidates)
 
-def hookable(func):
-    @wraps(func)
-    def hooker(*args, **kwargs):
-        hooks = _get_hooktable()[func]
-        if not hooks:
-            return func(*args, **kwargs)
-        else:
-            return hooks[-1](func, *args, **kwargs)
-
-    def hook(hookfunc):
-        _get_hooktable()[func].append(hookfunc)
-
-    def unhook(hookfunc=None):
-        _get_hooktable()[func].remove(hookfunc)
-
-    hooker.hook = hook
-    hooker.unhook = unhook
-    return hooker
-
-
-def user_choose_cards_logic(input, act, target, categories=None):
-    g = Game.getgame()
-
-    try:
-        check_type([[int, Ellipsis]] * 3, input)
-
-        sid_list, cid_list, pid_list = input
-
-        cards = g.deck.lookupcards(cid_list)
-        check(len(cards) == len(cid_list)) # Invalid id
-
-        cs = set(cards)
-        check(len(cs) == len(cid_list)) # repeated ids
-
-        if not categories:
-            categories = [target.cards, target.showncards]
-
-        if sid_list:
-            check(all(cat.owner is target for cat in categories))
-            check(all(c.resides_in.owner is target for c in cards)) # Cards belong to target?
-
-            # associated_cards will be revealed here
-            c = skill_wrap(target, sid_list, cards)
-            check(c)
-            cards = [c]
-        else:
-            check(all(c.resides_in in categories for c in cards)) # Cards in desired categories?
-            if not getattr(act, 'no_reveal', False):
-                g.players.exclude(target).reveal(cards)
-
-        check(act.cond(cards))
-
-        log.debug('user_choose_cards: %s %s %s', repr(act), target.__class__.__name__, repr(cards))
-        return cards
-
-    except CheckFailed:
-        log.debug('user_choose_cards FAILED: %s %s', repr(act), target.__class__.__name__)
-        return None
-
-
-def user_choose_cards(act, target, categories=None):
-    input = target.user_input('choose_card_and_player', (act, [])) # list of card ids
-    return user_choose_cards_logic(input, act, target, categories)
-
-
-def user_choose_players_logic(input, act, target, candidates):
-    try:
+    @ilet.with_post_process
+    def process(actor, rst):
         g = Game.getgame()
-        check_type([[int, Ellipsis]] * 3, input)
-        _, _, pids = input
-        check(pids)
-        pl = [g.player_fromid(i) for i in pids]
-        check(all(p in candidates for p in pl))
-        pl, valid = act.choose_player_target(pl)
-        check(valid)
-        return pl
-    except CheckFailed:
+        try:
+            check(rst)
+            skills, cards, players = rst
+            if categories:
+                if skills:
+                    check(len(skills) == 1)
+                    # will reveal in skill_wrap
+                    check(initiator.cond([skill_wrap(actor, skills, cards)]))
+                else:
+                    g.players.reveal(cards)
+                    check(initiator.cond(cards))
+
+            if candidates:
+                players, valid = initiator.choose_player_target(players)
+                check(valid)
+
+            return skills, cards, players
+
+        except CheckFailed:
+            return None
+
+    p, rst = user_input(actors, ilet, type='any', trans=trans)
+    if rst:
+        skills, cards, players = rst
+        if skills:
+            cards = [skill_transform(p, skills, cards)]
+
+        if not cards and not players:
+            return p, None
+
+        return p, (cards, players)
+    else:
+        return None, None
+
+
+def user_choose_cards(initiator, actor, categories):
+    categories = categories or ['cards', 'showncards']
+    check_type([str, Ellipsis], categories)
+
+    _, rst = ask_for_action(initiator, [actor], categories, [])
+    if not rst:
         return None
 
-
-def user_choose_players(act, target, candidates):
-    input = target.user_input('choose_card_and_player', (act, candidates))
-    return user_choose_players_logic(input, act, target, candidates)
+    return rst[0]  # cards
 
 
-def user_choose_cards_and_players(act, target, categories=None, candidates=[]):
-    input = target.user_input('choose_card_and_player', (act, candidates))
-    cards = user_choose_cards_logic(input, act, target, categories)
-    if not cards: return None
-    pl = user_choose_players_logic(input, act, target, candidates)
-    if not pl: return None
-    return (cards, pl)
+def user_choose_players(initiator, actor, candidates):
+    _, rst = ask_for_action(initiator, [actor], [], candidates)
+    if not rst:
+        return None
+
+    return rst[1]  # players
 
 
-def random_choose_card(categories):
+def random_choose_card(cardlists):
     from itertools import chain
-    allcards = list(chain.from_iterable(categories))
+    allcards = list(chain.from_iterable(cardlists))
     if not allcards:
         return None
 
@@ -127,48 +92,41 @@ def random_choose_card(categories):
     c = g.random.choice(allcards)
     v = sync_primitive(c.syncid, g.players)
     cl = g.deck.lookupcards([v])
-    if len(cl)!=1:
-        print cl
     assert len(cl) == 1
     return cl[0]
 
 
-def skill_wrap(actor, sid_list, cards):
-    skill_list = []
-    try:
-        for skill_id in sid_list:
-            check(isinstance(skill_id, int))
-            check(0 <= skill_id < len(actor.skills))
-
-            skill_list.append(actor.skills[skill_id])
-
-        return skill_wrap_by_class(actor, skill_list, cards)
-
-    except CheckFailed:
-        return None
-
-
-def skill_wrap_by_class(actor, skill_list, cards):
+def skill_wrap(actor, skills, cards, no_reveal=False):
+    # no_reveal: for ui
     g = Game.getgame()
     try:
         check(all(c.resides_in.owner is actor for c in cards))
-        for skill_cls in skill_list:
+        for skill_cls in skills:
             check(skill_cls in actor.skills)
 
-            if not getattr(skill_cls, 'no_reveal', False):
+            if not no_reveal and not getattr(skill_cls, 'no_reveal', False):
                 g.players.exclude(actor).reveal(cards)
 
             card = skill_cls.wrap(cards, actor)
             check(card.check())
-            g.deck.register_vcard(card)
             cards = [card]
 
-        #migrate_cards(cards, actor.cards, False, True)
-        cards[0].move_to(actor.cards)
         return cards[0]
 
     except CheckFailed:
         return None
+
+
+def skill_transform(actor, skills, cards):
+    g = Game.getgame()
+    s = skill_wrap(actor, skills, cards)
+    if not s:
+        return None
+
+    g.deck.register_vcard(s)
+    # migrate_cards(cards, actor.cards, False, True)
+    s.move_to(actor.cards)
+    return s
 
 
 def shuffle_here():
@@ -179,7 +137,7 @@ def shuffle_here():
         assert all([
             not c.is_card(VirtualCard)
             for c in p.cards
-        ]), 'VirtualCard in handcard of %s !!!' % repr(p)
+        ]), 'VirtualCard in cards of %s !!!' % repr(p)
 
         g.deck.shuffle(p.cards)
 
@@ -209,75 +167,28 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
 
         if not no_event:
             act = g.action_stack[-1]
-            g.emit_event('card_migration', (act, l, cl, to)) # (action, cardlist, from, to)
+            g.emit_event('card_migration', (act, l, cl, to))  # (action, cardlist, from, to)
 
 migrate_cards.SINGLE_LAYER = 2
 
 
-def choose_peer_card_logic(input, source, target, categories):
-    assert all(c.owner is target for c in categories)
-    try:
-        check(sum(len(c) for c in categories)) # no cards at all
-
-        cid = input
-        g = Game.getgame()
-
-        check(isinstance(cid, int))
-
-        cards = g.deck.lookupcards((cid,))
-
-        check(len(cards) == 1) # Invalid id
-        card = cards[0]
-
-        check(card.resides_in.owner is target)
-        check(card.resides_in in categories)
-
-        return card
-
-    except CheckFailed:
-        return None
-
-
-@hookable
-def choose_peer_card(source, target, categories):
-    cid = source.user_input('choose_peer_card', (target, categories))
-    return choose_peer_card_logic(cid, source, target, categories)
-
-
-def choose_individual_card_logic(input, source, cards):
-    try:
-        cid = input
-        check(isinstance(cid, int))
-        cards = [c for c in cards if c.syncid == cid]
-        check(len(cards)) # Invalid id
-        return cards[0]
-
-    except CheckFailed:
-        return None
-
-
-@hookable
-def choose_individual_card(source, cards):
-    cid = source.user_input('choose_individual_card', cards)
-    return choose_individual_card_logic(cid, source, cards)
-
-
-@hookable
-def user_choose_option(act, tgt):
-    return tgt.user_input('choose_option', act)
-
-
 action_eventhandlers = set()
+
+
 def register_eh(cls):
     action_eventhandlers.add(cls)
     return cls
 
 # ------------------------------------------
 
+
 class GenericAction(Action): pass
+
+
 class LaunchCardAction(object): pass
 
-class UserAction(Action): # card/character skill actions
+
+class UserAction(Action):  # card/character skill actions
     def is_valid(self):
         if getattr(self, '_force_fire', False):
             return True
@@ -464,7 +375,7 @@ class UseCard(UserAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        cards = user_choose_cards(self, target)
+        cards = user_choose_cards(self, target, ['cards', 'showncards'])
 
         if not cards or len(cards) != 1:
             self.card = None
@@ -493,7 +404,7 @@ class DropCardStage(GenericAction):
         if n <= 0: return True
 
         g = Game.getgame()
-        cards = user_choose_cards(self, target)
+        cards = user_choose_cards(self, target, ['cards', 'showncards'])
         if cards:
             g.process_action(DropCards(target, cards=cards))
         else:
@@ -654,36 +565,20 @@ class ActionStage(GenericAction):
                 try:
                     self.in_user_input = True
                     g.emit_event('action_stage_action', target)
-                    input = target.user_input('action_stage_usecard')
+                    with InputTransaction('ActionStageAction', [target]) as trans:
+                        p, rst = ask_for_action(
+                            self, [target], ['cards', 'showncards'], g.players, trans
+                        )
+                    check(p is target)
                 finally:
                     self.in_user_input = False
 
-                check_type([[int, Ellipsis]] * 3, input)
+                cards, target_list = rst
+                g.players.reveal(cards)
+                card = cards[0]
+                from .cards import HiddenCard
+                assert not card.is_card(HiddenCard)
 
-                skill_ids, card_ids, target_list = input
-
-                if card_ids:
-                    cards = g.deck.lookupcards(card_ids)
-                    check(cards)
-                    check(all(c.resides_in.owner is target for c in cards))
-                else:
-                    cards = []
-
-                target_list = [g.player_fromid(i) for i in target_list]
-                from game import AbstractPlayer
-                check(all(isinstance(p, AbstractPlayer) for p in target_list))
-
-                # skill selected
-                if skill_ids:
-                    card = skill_wrap(target, skill_ids, cards)
-                    check(card)
-                else:
-                    check(len(cards) == 1)
-                    g.players.exclude(target).reveal(cards)
-                    card = cards[0]
-                    from .cards import HiddenCard
-                    assert not card.is_card(HiddenCard)
-                    check(card.resides_in in (target.cards, target.showncards))
                 if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
@@ -695,6 +590,20 @@ class ActionStage(GenericAction):
             pass
 
         return True
+
+    def cond(self, cl):
+        from .cards import Skill
+        tgt = self.target
+        if not len(cl) == 1:
+            return False
+
+        c = cl[0]
+        return (
+            c.is_card(Skill) or c.resides_in in (tgt.cards, tgt.showncards)
+        ) and (c.associated_action)
+
+    def choose_player_target(self, tl):
+        return tl, True
 
 
 class FatetellStage(GenericAction):
@@ -764,6 +673,7 @@ class LaunchFatetellCard(FatetellAction):
 class ForEach(UserAction):
     # action_cls == __subclass__.action_cls
     include_dead = False
+
     def prepare(self):
         pass
 
@@ -779,15 +689,20 @@ class ForEach(UserAction):
         source = self.source
         card = self.associated_card
         g = Game.getgame()
-        self.prepare()
-        for t in tl:
-            if t.dead and not self.include_dead:
-                continue
-            a = self.action_cls(source, t)
-            a.associated_card = card
-            a.parent_action = self
-            g.process_action(a)
-        self.cleanup()
+
+        try:
+            self.prepare()
+            for t in tl:
+                if t.dead and not self.include_dead:
+                    continue
+                a = self.action_cls(source, t)
+                a.associated_card = card
+                a.parent_action = self
+                g.process_action(a)
+
+        finally:
+            self.cleanup()
+
         return True
 
 
@@ -841,32 +756,34 @@ class Pindian(UserAction):
         tgt = self.target
         g = Game.getgame()
 
-        pl = PlayerList([src, tgt])
-        cl = [None, None]
+        pl = BatchList([src, tgt])
+        pindian_card = {src: None, tgt: None}
 
-        def process(p, input):
-            card = user_choose_cards_logic(input, self, p, [p.cards, p.showncards])
-            if not card:
-                card = random_choose_card([p.cards, p.showncards])
-            else:
-                card = card[0]
+        with InputTransaction('Pindian', pl) as trans:
+            while pl:
+                p, rst = ask_for_action(self, pl, ['cards', 'showncards'], [], trans)
+                if not p: break
+                (card, ), _ = rst
+                pindian_card[p] = card
+                g.emit_event('pindian_card_chosen', (p, card))
 
-            cl[pl.index(p)] = card
-            g.emit_event('pindian_card_chosen', (p, card))
+            # not chosen
+            for p in pl:
+                pindian_card[p] = card = random_choose_card([p.cards, p.showncards])
+                g.emit_event('pindian_card_chosen', (p, card))
 
-            return card
+        g.players.reveal([pindian_card[src], pindian_card[tgt]])
+        g.process_action(DropCards(src, [pindian_card[src]]))
+        g.process_action(DropCards(pl[1], [pindian_card[tgt]]))
 
-        pl.user_input_all('choose_card_and_player', process, (self, []))
-
-        g.players.reveal(cl)
-        g.process_action(DropCards(pl[0], [cl[0]]))
-        g.process_action(DropCards(pl[1], [cl[1]]))
-
-        return cl[0].number > cl[1].number
+        return pindian_card[src].number > pindian_card[tgt].number
 
     @staticmethod
     def cond(cl):
-        return len(cl) == 1 and cl[0].resides_in.type in ('handcard', 'showncard')
+        from .cards import Skill
+        return len(cl) == 1 and \
+            (not cl[0].is_card(Skill)) and \
+            cl[0].resides_in.type in ('cards', 'showncards')
 
     def is_valid(self):
         src = self.source

@@ -1,121 +1,157 @@
 # -*- coding: utf-8 -*-
-import gevent
-from gevent import Greenlet, getcurrent
-from gevent.queue import Queue
-from gevent.select import select
-from game import GameError, EventHandler, Action, TimeLimitExceeded
-from client_endpoint import Client, EndpointDied
-import game
 
-from utils import BatchList, DataHolder
+# -- stdlib --
+from collections import OrderedDict
+from copy import copy
 import logging
-
 log = logging.getLogger('Game_Server')
 
-class PlayerList(BatchList):
 
-    def user_input_any(self, tag, expects, attachment=None, timeout=15):
-        g = Game.getgame()
-        st = g.get_synctag()
-        tagstr = 'inputany_%s_%d' % (tag, st)
+# -- third party --
+from gevent import Greenlet, getcurrent
+import gevent
 
-        wait_queue = Queue(20)
-        pl = PlayerList(p for p in self if not p.dropped)
-        n = len(pl)
-        def waiter(p):
+# -- own --
+from network.server import EndpointDied
+from game import TimeLimitExceeded, InputTransaction
+from utils import waitany
+from network.common import GamedataMixin
+import game
+
+# -- code --
+
+
+def user_input(players, inputlet, timeout=15, type='single', trans=None):
+    '''
+    Type can be 'single', 'all' or 'any'
+    '''
+    assert type in ('single', 'all', 'any')
+    assert not type == 'single' or len(players) == 1
+
+    g = Game.getgame()
+    inputlet.timeout = timeout
+    players = players[:]
+
+    if not trans:
+        with InputTransaction(inputlet.tag(), players) as trans:
+            return user_input(players, inputlet, timeout, type, trans)
+
+    t = {'single': '', 'all': '&', 'any': '|'}[type]
+    tag = 'I{0}:{1}:'.format(t, inputlet.tag())
+
+    ilets = {p: copy(inputlet) for p in players}
+    for p in players:
+        ilets[p].actor = p
+
+    results = {p: None for p in players}
+    synctags = {p: g.get_synctag() for p in players}
+
+    evmap = {p.client.gdevent: p for p in players}
+
+    def get_input():
+        # should be [tag, <Data for Inputlet.parse>]
+        # tag likes 'I?:ChooseOption:2345'
+
+        # try for data in buffer
+        for p in players:
             try:
-                tle = TimeLimitExceeded(timeout+10)
-                tle.start()
+                _, rst = p.client.gexpect(tag + str(synctags[p]), blocking=False)
+                if rst is not GamedataMixin.NODATA:
+                    return p, rst
+            except EndpointDied:
+                return p, None
 
-                data = p.client.gexpect(tagstr)
-                wait_queue.put((p, data))
-            except (TimeLimitExceeded, EndpointDied) as e:
-                if isinstance(e, TimeLimitExceeded) and e is not tle:
-                    raise
-                wait_queue.put((p, None))
-            finally:
-                tle.cancel()
+        # wait for new data
+        ev = waitany([p.client.gdevent for p in players])
+        assert ev
 
-        for p in pl:
-            gevent.spawn(waiter, p)
-
-        for i in xrange(n):
-            p, data = wait_queue.get()
-            if expects(p, data):
-                break
-        else:
-            p = None
-
-        if p is None:
-            rst_send = rst = [None, None]
-        else:
-            rst = [p, data]
-            rst_send = [g.get_playerid(p), data]
-
-        g.players.client.gwrite(tagstr + '_resp', rst_send)
-        return rst
-
-    def user_input_all(self, tag, process, attachment=None, timeout=15):
-        g = Game.getgame()
-        st = g.get_synctag()
-        workers = BatchList()
+        p = evmap[ev]
         try:
-            def worker(p, i):
-                retry = 0
-                while True:
-                    input = p.user_input(
-                        tag, attachment=attachment, timeout=timeout,
-                        g=g, st=100000 + st*1000 + i*10 + retry,
-                    )
+            _, rst = p.client.gexpect(tag + str(synctags[p]), blocking=False)
+        except EndpointDied:
+            return p, None
 
-                    try:
-                        input = process(p, input)
-                    except ValueError:
-                        retry += 1
-                        if retry >= 3:
-                            input = None
-                            break
+        return p, rst
 
-                        continue
+    orig_players = players[:]
+    idata = []
 
-                    break
+    with TimeLimitExceeded(timeout + 5, False):
+        inputany_player = None
 
-            for i, p in enumerate(self):
-                w = gevent.spawn(worker, p, i)
-                w.game = g
-                workers.append(w)
+        for p in players:
+            g.emit_event('user_input_start', (trans, ilets[p]))
 
-            workers.join()
-        finally:
-            workers.kill()
+        while players:
+            p, data = get_input()
+            idata.append((p, data))
+            type != 'any' and g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
+
+            my = ilets[p]
+
+            try:
+                rst = my.parse(data)
+            except:
+                log.info('user_input: exception in .process()', exc_info=1)
+                # ----- FOR DEBUG -----
+                if g.IS_DEBUG:
+                    raise
+                # ----- END FOR DEBUG -----
+                rst = None
+
+            rst = my.post_process(p, rst)
+
+            g.emit_event('user_input_finish', (trans, my, rst))
+
+            players.remove(p)
+            results[p] = rst
+
+            if type == 'any' and rst is not None:
+                inputany_player = p
+                for _p, data in idata:
+                    g.players.client.gwrite('R{}{}'.format(tag, synctags[_p]), data)
+
+                for _p in players:
+                    g.emit_event('user_input_finish', (trans, ilets[_p], None))
+
+                del players[:]
+                break
+
+    # no body responds positive to 'any' input, should notify all
+    if type == 'any' and not inputany_player:
+        assert len(idata) == len(orig_players)
+        for p, data in idata:
+            g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
+
+    # timed-out players
+    for p in players:
+        g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), None)
+
+    if type == 'single':
+        return results[orig_players[0]]
+
+    elif type == 'any':
+        if not inputany_player:
+            return None, None
+
+        return inputany_player, results[inputany_player]
+
+    elif type == 'all':
+        return OrderedDict([(p, results[p]) for p in orig_players])
+
+    assert False, 'WTF?!'
 
 
 class Player(game.AbstractPlayer):
     dropped = False
+
     def __init__(self, client):
         self.client = client
 
     def reveal(self, obj_list):
         g = Game.getgame()
         st = g.get_synctag()
-        self.client.gwrite('object_sync_%d' % st, obj_list)
-
-    def user_input(self, tag, attachment=None, timeout=15, g=None, st=None):
-        g = g if g else Game.getgame()
-        st = st if st else g.get_synctag()
-
-        try:
-            # The ultimate timeout
-            with TimeLimitExceeded(timeout+10):
-                input = self.client.gexpect('input_%s_%d' % (tag, st))
-        except (TimeLimitExceeded, EndpointDied):
-            # Player hit the red line, he's DEAD.
-            #import gamehall as hall
-            #hall.exit_game(self.client)
-            input = None
-        pl = PlayerList(g.players[:])
-        pl.client.gwrite('input_%s_%d' % (tag, st), input) # tell other players
-        return input
+        self.client.gwrite('Sync:%d' % st, obj_list)
 
     def __data__(self):
         if self.dropped:
@@ -134,6 +170,7 @@ class Player(game.AbstractPlayer):
     @property
     def account(self):
         return self.client.account
+
 
 class Game(Greenlet, game.Game):
     suicide = False
@@ -177,7 +214,7 @@ class Game(Greenlet, game.Game):
     @staticmethod
     def getgame():
         return getcurrent().game
-    
+
     def __repr__(self):
         try:
             gid = str(self.gameid)
@@ -192,38 +229,7 @@ class Game(Greenlet, game.Game):
             return
 
         self.synctag += 1
-        import sys
-        if 0: # FOR DEBUG
-            t = self.synctag
-            expects = [
-                set([('reveal', 25, t), ('reveal', 165, t)]),
-                set([('reveal', 165, t), ('reveal', 25, t)]),
-                set([('user_input', 35, t), ('user_input', 170, t)]),
-                set([('user_input', 170, t), ('user_input', 35, t)]),
-            ]
-
-            try:
-                raise Exception
-            except:
-                f = sys.exc_info()[2].tb_frame.f_back
-
-            info = (f.f_code.co_name, f.f_lineno, t)
-            l = self.players.client.gexpect('synctag_debug')
-            l = [tuple(i) for i in l]
-            sl = set(l)
-            if len(sl) != 1 and sl not in expects:
-                print 'SYNC_DEBUG', info, l
-                self.players.client.gwrite('in_sync', False)
-            else:
-                self.players.client.gwrite('in_sync', True)
         return self.synctag
 
     def pause(self, time):
         gevent.sleep(time)
-
-
-class EventHandler(EventHandler):
-    game_class = Game
-
-class Action(Action):
-    game_class = Game

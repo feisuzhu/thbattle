@@ -13,17 +13,143 @@ import gzip
 import gevent
 from gevent import Greenlet
 from gevent.event import Event
-from gevent.queue import Queue
 import simplejson as json
 import pika
 
 # -- own --
 from network import Endpoint
-from utils import DataHolder, classmix, BatchList, instantiate, surpress_and_restart, swallow
+from network.server import Client as ClientEndpoint, DroppedClient
+from utils import BatchList, surpress_and_restart, swallow, instantiate
 from options import options
-from settings import VERSION, ServerList
+from settings import VERSION
+from account import Account
 
+# -- code --
 log = logging.getLogger('GameHall')
+
+# mute pika loggers
+pika.channel.LOGGER.setLevel(logging.CRITICAL)
+pika.connection.LOGGER.setLevel(logging.CRITICAL)
+pika.adapters.blocking_connection.LOGGER.setLevel(logging.CRITICAL)
+
+
+class Client(ClientEndpoint):
+    def handle_command(self, cmd, data):
+        f = getattr(self, 'command_' + str(cmd), None)
+        if not f:
+            log.debug('No command %s', cmd)
+            self.write(['invalid_command', [cmd, data]])
+            return
+
+        for_state = getattr(f, 'for_state', None)
+        if for_state and self.state not in for_state:
+            log.debug('Command %s is for state %s, called in %s', cmd, for_state, self.state)
+            self.write(['invalid_command', [cmd, data]])
+            return
+
+        f(data)
+
+    def handle_drop(self):
+        if self.state not in ('connected', 'hang'):
+            exit_game(self, drops=True)
+
+        if self.state != 'connected':
+            user_exit(self)
+
+    def for_state(*state):
+        def register(f):
+            f.for_state = state
+            return f
+
+        return register
+
+    # --------- Handlers ---------
+    @for_state('connected')
+    def command_auth(self, cred):
+        if self.account:
+            self.write(['invalid_command', ['auth', '']])
+            return
+
+        login, password = cred
+        acc = Account.authenticate(login, password)
+        if acc:
+            self.account = acc
+            if not acc.available():
+                self.write(['auth_result', 'not_available'])
+                self.close()
+            else:
+                self.write(['auth_result', 'success'])
+                self.account = acc
+                new_user(self)
+
+        else:
+            self.write(['auth_result', 'invalid_credential'])
+
+    @for_state('hang')
+    def command_create_game(self, arg):
+        _type, name = arg
+        g = create_game(self, _type, name)
+        join_game(self, g.gameid)
+
+    @for_state('hang')
+    def command_join_game(self, gameid):
+        join_game(self, gameid)
+
+    @for_state('hang')
+    def command_get_hallinfo(self, _):
+        send_hallinfo(self)
+
+    @for_state('hang')
+    def command_quick_start_game(self, _):
+        quick_start_game(self)
+
+    @for_state('hang')
+    def command_observe_user(self, uid):
+        observe_user(self, uid)
+
+    @for_state('inroomwait', 'ready', 'ingame')
+    def command_observe_grant(self, rst):
+        observe_grant(self, rst)
+
+    @for_state('hang')
+    def command_query_gameinfo(self, gid):
+        query_gameinfo(self, gid)
+
+    @for_state('inroomwait')
+    def command_get_ready(self, _):
+        get_ready(self)
+
+    @for_state('inroomwait', 'ready', 'ingame', 'observing')
+    def command_exit_game(self, _):
+        exit_game(self)
+
+    @for_state('inroomwait', 'ready')
+    def command_kick_user(self, uid):
+        kick_user(self, uid)
+
+    @for_state('inroomwait')
+    def command_change_location(self, loc):
+        change_location(self, loc)
+
+    @for_state('ready')
+    def command_cancel_ready(self, _):
+        cancel_ready(self)
+
+    def command_heartbeat(self, _):
+        pass
+
+    @for_state('hang', 'inroomwait', 'ready', 'ingame', 'observing')
+    def command_chat(self, data):
+        chat(self, data)
+
+    @for_state('hang', 'inroomwait', 'ready', 'ingame', 'observing')
+    def command_speaker(self, data):
+        speaker(self, data)
+
+    # --------- End handlers ---------
+
+    del for_state
+
 
 '''
 User state machine:
@@ -36,9 +162,9 @@ User state machine:
 
 # should use WeakSet or WeakValueDictionary,
 # but this works fine, not touching it.
-games = {} # all games
-users = {} # all users
-dropped_users = {} # passively dropped users
+games = {}  # all games
+users = {}  # all users
+dropped_users = {}  # passively dropped users
 evt_datachange = Event()
 
 
@@ -144,15 +270,13 @@ else:
 @gevent.spawn
 def gamehall_status_updator():
     last_update = time.time()
-    timeout = None
     evt = evt_datachange
     time_limit = 1
     while True:
-        flag = evt.wait()
+        evt.wait()
         t = time.time()
         delta = t - last_update
         if delta > time_limit:
-            timeout = None
             last_update = t
             for u in users.values():
                 if u.state == 'hang':
@@ -167,6 +291,7 @@ def gamehall_status_updator():
             gevent.sleep(time_limit - delta)
 
 
+@instantiate
 class PlayerPlaceHolder(object):
 
     def __data__(self):
@@ -175,13 +300,12 @@ class PlayerPlaceHolder(object):
             account=None,
         )
 
+    @instantiate
     class client(object):
         state = 'left'
         observers = BatchList()
         raw_write = write = lambda *a: False
-    client = client()
 
-PlayerPlaceHolder = PlayerPlaceHolder()
 
 def new_user(user):
     uid = user.account.userid
@@ -205,7 +329,6 @@ def new_user(user):
     if uid in dropped_users:
         log.info(u'%s rejoining dropped game' % user.account.username)
         old = dropped_users[uid]
-        from client_endpoint import DroppedClient
         assert isinstance(old, DroppedClient), 'Arghhhhh'
 
         g = user.current_game = old.current_game
@@ -223,7 +346,7 @@ def new_user(user):
         p.client = user
         p.dropped = False
 
-        acc = user.account = old.account
+        user.account = old.account
 
         user.write(['game_joined', g])
         user.write(['game_started', g.players_original])
@@ -246,7 +369,7 @@ def user_exit(user):
 
 
 def _notify_playerchange(game):
-    from client_endpoint import Client
+    from network.server import Client
     s = Client.encode(['player_change', game.players])
     for cl in game.players.client:
         cl.raw_write(s)
@@ -261,22 +384,22 @@ def query_gameinfo(user, gid):
 def _next_free_slot(game):
     try:
         return game.players.index(PlayerPlaceHolder)
-    except ValueError as e:
+    except ValueError:
         return None
 
 
 def create_game(user, gametype, gamename):
     from gamepack import gamemodes
-    from game_server import PlayerList
     if not gametype in gamemodes:
         user.write(['gamehall_error', 'gametype_not_exist'])
         return
+
     g = gamemodes[gametype]()
     g.game_started = False
     g.game_name = gamename
-    g.players = PlayerList([PlayerPlaceHolder] * g.n_persons)
+    g.players = BatchList([PlayerPlaceHolder] * g.n_persons)
     g.players_original = None
-    g.rndseed = random.randint(1, 27814431486575L)
+    g.rndseed = random.randint(1, 10 ** 20)
     g.random = random.Random(g.rndseed)
     g.banlist = defaultdict(set)
     gid = new_gameid()
@@ -356,9 +479,6 @@ def kick_user(user, uid):
 
 
 def exit_game(user, drops=False):
-    from .game_server import Player
-    from client_endpoint import DroppedClient
-
     if user.state == 'observing':
         tgt = user.observing
         tgt.observers.remove(user)
@@ -384,7 +504,7 @@ def exit_game(user, drops=False):
                 else:
                     p.fleed = False
 
-            p.client.gbreak() # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
+            p.client.gbreak()  # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
 
             p.dropped = True
             dummy = DroppedClient(g.players[i].client)
@@ -437,7 +557,7 @@ def exit_game(user, drops=False):
 
 
 def join_game(user, gameid):
-    if user.state == 'hang' and games.has_key(gameid):
+    if user.state == 'hang' and gameid in games:
         g = games[gameid]
         if len(g.banlist[user]) >= 3:
             user.write(['gamehall_error', 'banned'])
@@ -485,7 +605,7 @@ def _observe_user(user, other):
     user.current_game = g
     user.observing = other
     user.write(['game_joined', g])
-    user.gclear() # clear stale gamedata
+    user.gclear()  # clear stale gamedata
     #_notify_playerchange(g)
     pl = g.players if not g.players_original else g.players_original
     evt_datachange.set()
@@ -496,8 +616,11 @@ def _observe_user(user, other):
 
 
 observe_table = defaultdict(set)
+
+
 def observe_user(user, other_userid):
     other = users.get(other_userid, None)
+
     if not other:
         user.write(['gamehall_error', 'no_such_user'])
         return
@@ -557,7 +680,7 @@ def start_game(g):
 
 
 def end_game(g):
-    from .game_server import Player, PlayerList
+    from .game_server import Player
 
     log.info("end game")
     pl = g.players
@@ -600,12 +723,12 @@ def end_game(g):
             pl[i] = PlayerPlaceHolder
     del games[g.gameid]
     ng = create_game(None, g.__class__.__name__, g.game_name)
-    ng.players = PlayerList(
+    ng.players = BatchList([
         Player(p.client)
         if p is not PlayerPlaceHolder
         else PlayerPlaceHolder
         for p in pl
-    )
+    ])
     for cl in pl.client:
         cl.write(['end_game', None])
         cl.write(['game_joined', ng])
@@ -625,17 +748,17 @@ def end_game(g):
 def chat(user, msg):
     def worker():
         packed = (user.account.username, msg)
-        if user.state == 'hang': # hall chat
+        if user.state == 'hang':  # hall chat
             for u in users.values():
                 if u.state == 'hang':
                     u.write(['chat_msg', packed])
 
-        elif user.state in ('inroomwait', 'ready', 'ingame', 'observing'): # room chat
+        elif user.state in ('inroomwait', 'ready', 'ingame', 'observing'):  # room chat
             ul = user.current_game.players.client
             obl = BatchList()
             map(obl.__iadd__, ul.observers)
             _type = 'ob_msg' if user.state == 'observing' else 'chat_msg'
-            ul.write([_type, packed]) # should be here?
+            ul.write([_type, packed])  # should be here?
             obl.write([_type, packed])
 
     gevent.spawn(worker)

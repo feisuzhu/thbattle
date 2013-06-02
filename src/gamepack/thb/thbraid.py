@@ -1,29 +1,36 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, GameEnded, PlayerList, InterruptActionFlow, GameException, sync_primitive
+import random
+import logging
+
+from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, GameException, user_input, InputTransaction
 
 from .actions import ActionStage, ActionStageLaunchCard, Damage, DrawCards
 from .actions import DropCards, GenericAction, LaunchCard, PlayerDeath
 from .actions import PlayerRevive, UserAction, BaseDamage, RevealIdentity
 from .actions import PlayerTurn, MaxLifeChange, action_eventhandlers
 from .actions import LifeLost
-from .actions import choose_individual_card, migrate_cards, user_choose_cards, user_choose_option
+from .actions import migrate_cards, user_choose_cards
+
+from .inputlets import ChooseOptionInputlet, ChooseIndividualCardInputlet, ChooseGirlInputlet
 
 from .cards import Skill, t_None
 from collections import defaultdict
 
-from utils import check, CheckFailed
+from .common import PlayerIdentity, CharChoice, mixin_character, get_seed_for
 
-from .common import PlayerIdentity, CharChoice, mixin_character
+from utils import BatchList
 
-import logging
 log = logging.getLogger('THBattleRaid')
 
 _game_ehs = {}
+_game_actions = {}
+
+
 def game_eh(cls):
     _game_ehs[cls.__name__] = cls
     return cls
 
-_game_actions = {}
+
 def game_action(cls):
     _game_actions[cls.__name__] = cls
     return cls
@@ -50,7 +57,7 @@ class DeathHandler(EventHandler):
 
         if tgt in g.attackers:
             for p in [p for p in g.attackers if not p.dead]:
-                if p.user_input('choose_option', self):
+                if user_input([p], ChooseOptionInputlet(self, (False, True))):
                     g.process_action(DrawCards(p, 1))
 
         return act
@@ -64,7 +71,7 @@ def use_faith(target, amount=1):
         return
 
     for i in xrange(amount):
-        c = choose_individual_card(target, target.faiths)
+        c = user_input([target], ChooseIndividualCardInputlet(None, target.faiths))
         if not c: break
         g.process_action(DropCards(target, [c]))
         amount -= 1
@@ -122,7 +129,7 @@ class CooperationAction(UserAction):
 
         migrate_cards([skill], tgt.showncards, unwrap=True)
 
-        returned = user_choose_cards(self, tgt)
+        returned = user_choose_cards(self, tgt, ['cards', 'showncards'])
         if not returned:
             returned = (list(tgt.showncards) + list(tgt.cards))[:self.ncards]
 
@@ -155,7 +162,7 @@ class Cooperation(Skill):
         if not cl: return False
         if not len(cl) <= 2: return False
         return all(c.resides_in and c.resides_in.type in (
-            'handcard', 'showncard',
+            'cards', 'showncards',
         ) for c in cl)
 
 
@@ -189,6 +196,7 @@ class ProtectionAction(GenericAction):
 class ProtectionHandler(EventHandler):
     execute_before = ('WineHandler', )
     execute_after = ('RepentanceStickHandler', )
+
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstance(act, Damage): return act
@@ -208,7 +216,7 @@ class ProtectionHandler(EventHandler):
 
         pl = [p for p in pl if not p.dead and len(p.faiths) and p.has_skill(Protection)]
         for p in pl:
-            if user_choose_option(self, p):
+            if user_input([p], ChooseOptionInputlet(self, (False, True))):
                 g.process_action(ProtectionAction(p, act))
                 break
 
@@ -235,6 +243,7 @@ class ParryAction(GenericAction):
 @game_eh
 class ParryHandler(EventHandler):
     execute_before = ('ProtectionHandler', )
+
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstance(act, Damage): return act
@@ -243,7 +252,8 @@ class ParryHandler(EventHandler):
         if not len(tgt.faiths) >= 2: return act
         if not (act.amount >= 2 or tgt.life <= act.amount): return act
 
-        if not tgt.user_input('choose_option', self): return act
+        if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            return act
 
         g = Game.getgame()
         g.process_action(ParryAction(tgt, act))
@@ -291,6 +301,7 @@ class OneUpAction(UserAction):
 
 class OneUp(Skill):
     associated_action = OneUpAction
+
     def target(self, g, src, tl):
         attackers = g.attackers
         tl = [p for p in tl if p.dead and p in attackers]
@@ -307,7 +318,7 @@ class FaithExchange(UserAction):
         g = Game.getgame()
         n = 0
         for i in xrange(len(tgt.faiths)):
-            c = choose_individual_card(tgt, tgt.faiths)
+            c = user_input([tgt], ChooseIndividualCardInputlet(None, tgt.faiths))
             if not c: break
             migrate_cards([c], tgt.showncards)
             n += 1
@@ -317,7 +328,7 @@ class FaithExchange(UserAction):
 
         self.amount = n
 
-        cards = user_choose_cards(self, tgt)
+        cards = user_choose_cards(self, tgt, ['cards', 'showncards'])
         if not cards:
             cards = list(tgt.showncards)[:self.amount]
 
@@ -354,7 +365,7 @@ class RaidLaunchCard(LaunchCard):
     @classmethod
     def calc_base_distance(cls, src):
         g = Game.getgame()
-        return { p: 1 for p in g.players }
+        return {p: 1 for p in g.players}
 
 
 class RaidActionStageLaunchCard(RaidLaunchCard, ActionStageLaunchCard):
@@ -400,8 +411,8 @@ class THBattleRaid(Game):
         ehclasses = g.ehclasses = []
 
         for p in g.players:
-            p.cards = CardList(p, 'handcard')  # Cards in hand
-            p.showncards = CardList(p, 'showncard')  # Cards which are shown to the others, treated as 'Cards in hand'
+            p.cards = CardList(p, 'cards')  # Cards in hand
+            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
             p.equips = CardList(p, 'equips')  # Equipments
             p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
             p.faiths = CardList(p, 'faiths')  # 'faith' cards
@@ -410,13 +421,13 @@ class THBattleRaid(Game):
             p.showncardlists = [p.showncards, p.faiths, p.fatetell]  # cardlists should shown to others
 
             p.tags = defaultdict(int)
-            p.tags['faithcounter'] = True
+            p.tags['faithcounter'] = True  # for ui
 
             p.dead = False
 
         # reveal identities
         mutant = g.mutant = g.players[0]
-        attackers = g.attackers = PlayerList(g.players[1:])
+        attackers = g.attackers = BatchList(g.players[1:])
 
         mutant.identity = Identity()
         mutant.identity.type = Identity.TYPE.MUTANT
@@ -429,56 +440,26 @@ class THBattleRaid(Game):
 
             g.process_action(RevealIdentity(p, g.players))
 
-        # choose girl init
-        chosen_girls = []
-        pl = PlayerList(g.players)
-        def process(p, cid):
-            try:
-                check(isinstance(cid, int))
-                check(0 <= cid < len(choice))
-                c = choice[cid]
-                if c.chosen:
-                    raise ValueError
-
-                c.chosen = p
-                chosen_girls.append(c)
-                g.emit_event('girl_chosen', c)
-                pl.remove(p)
-                return c
-
-            except CheckFailed:
-                raise ValueError
-
         # mutant's choose
         from characters import ex_characters as ex_chars
 
-        choice = [CharChoice(cls, cid) for cid, cls in enumerate(ex_chars)]
-
-        g.emit_event('choose_girl_begin', ([mutant], choice))
-        PlayerList([mutant]).user_input_all('choose_girl', process, choice, timeout=5)
-
-        if not chosen_girls:
-            # didn't choose
-            c = choice[0]
+        choices = [CharChoice(cls) for cls in ex_chars]
+        mapping = {mutant: choices}
+        with InputTransaction('ChooseGirl', [mutant], mapping=mapping) as trans:
+            c = user_input([mutant], ChooseGirlInputlet(g, mapping), timeout=5, trans=trans)
+            c = c or choices[0]
             c.chosen = mutant
-            g.emit_event('girl_chosen', c)
-            pl.remove(mutant)
-        else:
-            c = chosen_girls.pop()
+            trans.notify('girl_chosen', c)
 
-        assert c.chosen is mutant
+            # mix it in advance
+            # so the others could see it
 
-        # mix it in advance
-        # so the others could see it
+            mixin_character(mutant, c.char_cls)
+            mutant.skills = list(mutant.skills)  # make it instance variable
+            ehclasses.extend(mutant.eventhandlers_required)
 
-        mixin_character(mutant, c.char_cls)
-        mutant.skills = list(mutant.skills)  # make it instance variable
-        ehclasses.extend(mutant.eventhandlers_required)
-
-        mutant.life = mutant.maxlife
-        mutant.morphed = False
-
-        g.emit_event('choose_girl_end', None)
+            mutant.life = mutant.maxlife
+            mutant.morphed = False
 
         # init deck & mutant's initial equip
         # (SinsackCard, SPADE, 1)
@@ -493,41 +474,25 @@ class THBattleRaid(Game):
 
         # attackers' choose
         from characters import characters as chars
+        chars = chars[:]
+        seed = get_seed_for(g.players)
+        random.Random(seed).shuffle(chars)
 
-        if Game.SERVER_SIDE:
-            choice = [
-                CharChoice(cls, cid) for cid, cls in
-                enumerate(g.random.sample(chars, 16))
-            ]
-
-        elif Game.CLIENT_SIDE:
-            choice = [
-                CharChoice(None, i)
-                for i in xrange(16)
-            ]
+        for p in g.attackers:
+            p.choices = [CharChoice(cls) for cls in chars[:5]]
+            del chars[:5]
 
         # -----------
-
-        g.players.reveal(choice)
-        g.emit_event('choose_girl_begin', (attackers, choice))
-        attackers.user_input_all('choose_girl', process, choice, timeout=30)
-        g.emit_event('choose_girl_end', None)
-
-        # if there's any person didn't make a choice -->
-        if pl:
-            choice = [c for c in choice if not c.chosen]
-            sample = sync_primitive(
-                g.random.sample(xrange(len(choice)), len(pl)), g.players
-            )
-            for p, i in zip(pl, sample):
-                c = choice[i]
-                c.chosen = p
-                chosen_girls.append(c)
-                g.emit_event('girl_chosen', c)
+        mapping = {p: p.choices for p in g.attackers}
+        with InputTransaction('ChooseGirl', g.attackers, mapping=mapping) as trans:
+            ilet = ChooseGirlInputlet(g, mapping)
+            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', rst) or rst)
+            result = user_input(g.attackers, ilet, 30, 'all', trans)
 
         # mix char class with player -->
-        for c in chosen_girls:
-            p = c.chosen
+        for p in g.attackers:
+            c = result[p] or CharChoice(chars.pop())
+            c.chosen = p
             mixin_character(p, c.char_cls)
             p.skills = list(p.skills)  # make it instance variable
             p.skills.extend([
@@ -564,15 +529,14 @@ class THBattleRaid(Game):
                         p.tags['action'] = True
 
                     while True:
-                        avail = PlayerList([p for p in attackers if p.tags['action'] and not p.dead])
+                        avail = BatchList([p for p in attackers if p.tags['action'] and not p.dead])
                         if not avail:
                             break
 
-                        p, _ = avail.user_input_any(
-                            tag='choose_option',
-                            expects=lambda p, data: bool(data),
-                            attachment=RequestAction,
-                            timeout=15,
+                        p, _ = user_input(
+                            avail,
+                            ChooseOptionInputlet(RequestAction, (None, True)),
+                            type='any'
                         )
 
                         p = p or avail[0]
@@ -644,15 +608,14 @@ class THBattleRaid(Game):
                     pass
 
                 while True:
-                    avail = PlayerList([p for p in attackers if p.tags['action'] and not p.dead])
+                    avail = BatchList([p for p in attackers if p.tags['action'] and not p.dead])
                     if not avail:
                         break
 
-                    p, _ = avail.user_input_any(
-                        tag='choose_option',
-                        expects=lambda p, data: bool(data),
-                        attachment=RequestAction,
-                        timeout=15,
+                    p, _ = user_input(
+                        avail,
+                        ChooseOptionInputlet(RequestAction, (None, True)),
+                        type='any'
                     )
 
                     p = p or avail[0]

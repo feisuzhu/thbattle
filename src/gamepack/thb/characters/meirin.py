@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game, user_input
+from .baseclasses import Character, register_character
+from ..actions import DropCards, GenericAction, MaxLifeChange, random_choose_card, PlayerTurn
+from ..cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, t_None, TreatAsSkill
+from ..inputlets import ChooseOptionInputlet
+
 
 class LoongPunch(Skill):
     associated_action = None
     target = t_None
+
 
 class Taichi(TreatAsSkill):
     @property
@@ -25,12 +29,14 @@ class Taichi(TreatAsSkill):
         c = cl[0]
         if not (c.is_card(AttackCard) or c.is_card(GrazeCard)): return False
         return c.resides_in and c.resides_in.type in (
-            'handcard', 'showncard',
+            'cards', 'showncards',
         )
+
 
 class RiverBehind(Skill):
     associated_action = None
     target = t_None
+
 
 class LoongPunchAction(GenericAction):
     def __init__(self, source, target, _type):
@@ -47,8 +53,10 @@ class LoongPunchAction(GenericAction):
         g.process_action(DropCards(tgt, [c]))
         return True
 
+
 class LoongPunchHandler(EventHandler):
     execute_after = ('DeathSickleHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, BaseAttack):
             self.do_effect(act.source, act.target, 'attack')
@@ -64,9 +72,11 @@ class LoongPunchHandler(EventHandler):
     def do_effect(self, src, tgt, _type):
         if not src.has_skill(LoongPunch): return
         if not (tgt.cards or tgt.showncards): return
-        if not user_choose_option(self, src): return
+        if not user_input([src], ChooseOptionInputlet(self, (False, True))): return
+
         g = Game.getgame()
         g.process_action(LoongPunchAction(src, tgt, _type))
+
 
 class RiverBehindAwake(GenericAction):
     def apply_action(self):
@@ -78,6 +88,7 @@ class RiverBehindAwake(GenericAction):
         g.process_action(MaxLifeChange(tgt, tgt, -1))
         return True
 
+
 class RiverBehindHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
@@ -87,6 +98,7 @@ class RiverBehindHandler(EventHandler):
             if tgt.life <= 2 and tgt.life <= min(p.life for p in g.players if not p.dead):
                 g.process_action(RiverBehindAwake(tgt, tgt))
         return act
+
 
 @register_character
 class Meirin(Character):

@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler
+from .baseclasses import Character, register_character
+from ..cards import Card, FrozenFrogCard, TreatAsSkill
 
 
 class PerfectFreeze(TreatAsSkill):
     treat_as = FrozenFrogCard
+
     def check(self):
         cl = self.associated_cards
         if not (cl and len(cl) == 1): return False
         c = cl[0]
         if not c.resides_in.type in (
-            'handcard', 'showncard', 'equips'
+            'cards', 'showncards', 'equips'
         ): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         if 'skill' in c.category: return False

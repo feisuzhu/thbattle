@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
-
+from game.autoenv import EventHandler, Game, user_input
+from .baseclasses import Character, register_character
+from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction
+from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack
+from ..inputlets import ChooseIndividualCardInputlet
 from utils import classmix
 
 
@@ -57,11 +58,11 @@ class MijincihangzhanDuelMixin(object):
             dmg = (dmg[1], dmg[0])
             if d[1].has_skill(Nitoryuu):
                 if not (
-                    g.process_action(basic.UseAttack(d[0])) and
-                    g.process_action(basic.UseAttack(d[0]))
+                    g.process_action(UseAttack(d[0])) and
+                    g.process_action(UseAttack(d[0]))
                 ): break
             else:
-                if not g.process_action(basic.UseAttack(d[0])): break
+                if not g.process_action(UseAttack(d[0])): break
 
         dact = Damage(d[1], d[0], amount=dmg[1])
         dact.associated_action = self
@@ -88,17 +89,19 @@ class YoumuWearEquipmentAction(UserAction):
         if cat == 'weapon':
             weapons = [e for e in equips if e.equipment_category == 'weapon']
             if len(weapons) > 1:
-                e = choose_individual_card(target, weapons)
-                if not e: e = weapons[0]
+                e = user_input(
+                    [target],
+                    ChooseIndividualCardInputlet(self, weapons),
+                ) or random_choose_card(weapons)
                 g.process_action(DropCards(target, [e]))
                 weapons.remove(e)
 
             weapons.append(card)
-            cls = [e.__class__ for e in weapons]
-            l = [HakuroukenCard, RoukankenCard]
-            l_r = [RoukankenCard, HakuroukenCard]
-            if (cls == l or cls == l_r) and not target.has_skill(Xianshiwangzhi):
+            cls = set([i.__class__ for i in weapons])
+            l = set([HakuroukenCard, RoukankenCard])
+            if cls == l and not target.has_skill(Xianshiwangzhi):
                 g.process_action(XianshiwangzhiAwake(target, target))
+
         else:
             for oc in equips:
                 if oc.equipment_category == cat:
@@ -111,6 +114,7 @@ class YoumuWearEquipmentAction(UserAction):
 class YoumuHandler(EventHandler):
     execute_before = ('ScarletRhapsodySwordHandler', )
     execute_after = ('AttackCardHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
             if isinstance(act, Attack):

@@ -66,5 +66,8 @@ for _ in xrange(int(N)):
 
 print 'done'
 
+import signal
+#signal.alarm(2)
+
 for i in l:
     i.join()

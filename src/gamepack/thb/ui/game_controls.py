@@ -1,17 +1,28 @@
 # -*- coding: utf-8 -*-
-from client.ui.base import Control, ui_message
-from client.ui.controls import *
+
+from pyglet.gl import GL_CLIENT_VERTEX_ARRAY_BIT, GL_QUADS, GL_T2F_C4F_N3F_V3F, GL_T4F_V4F
+from pyglet.gl import GLfloat, glColor3f, glColor4f, glDrawArrays, glInterleavedArrays
+from pyglet.gl import glLoadIdentity, glPopClientAttrib, glPopMatrix, glPushClientAttrib
+from pyglet.gl import glPushMatrix, glRotatef, glScalef, glTranslatef
+
+from client.ui.base import Control
+
+from client.ui.controls import AbstractInterp, BalloonPrompt, Button, ChainInterp, Colors
+from client.ui.controls import CosineInterp, FixedInterp, Frame, ImageButton, InterpDesc
+from client.ui.controls import LinearInterp, Panel, ShadowedLabel, SineInterp, getinterp
+
 from client.ui.resource import resource as common_res
 from resource import resource as game_res
-from client.ui import shaders
 from game.autoenv import Game
 from .. import actions
+from ..cards import CardList
 
-from utils import partition, flatten
+from utils import flatten, rectv2f, rrectv2f
 
 import pyglet
 
 HAVE_FBO = pyglet.gl.gl_info.have_extension('GL_EXT_framebuffer_object')
+
 
 class CardSprite(Control, BalloonPrompt):
     x = InterpDesc('_x')
@@ -30,7 +41,7 @@ class CardSprite(Control, BalloonPrompt):
         self._w, self._h = 91, 125
         self.shine = False
         self.gray = False
-        self.x, self.y,  = x, y
+        self.x, self.y = x, y
         self.shine_alpha = 0.0
         self.alpha = 1.0
         self.card = card
@@ -59,8 +70,8 @@ class CardSprite(Control, BalloonPrompt):
                 vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
 
                 n, s = cs.number, cs.suit
-                if n: vertices += game_res.cardnum[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)
-                if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
+                if n: vertices += game_res.cardnum[s % 2 * 13 + n - 1].get_t2c4n3v3_vertices(c, ax + 5, ay + 105)
+                if s: vertices += game_res.suit[s - 1].get_t2c4n3v3_vertices(c, ax + 6, ay + 94)
 
                 c = (1, 1, 1, aa)
 
@@ -77,11 +88,11 @@ class CardSprite(Control, BalloonPrompt):
                     c = (1., 1., 1., a)
                 vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
                 resides_in = cs.card.resides_in
-                if resides_in and resides_in.type == 'showncard':
+                if resides_in and resides_in.type == 'showncards':
                     vertices += game_res.card_showncardtag.get_t2c4n3v3_vertices(c, ax, ay)
 
                 n, s = cs.number, cs.suit
-                if n: vertices += game_res.cardnum[s%2*13 + n-1].get_t2c4n3v3_vertices(c, ax+5, ay+105)
+                if n: vertices += game_res.cardnum[s % 2 * 13 + n - 1].get_t2c4n3v3_vertices(c, ax + 5, ay + 105)
                 if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
 
                 vertices += game_res.card_shinesoft.get_t2c4n3v3_vertices(
@@ -149,12 +160,14 @@ class CardSprite(Control, BalloonPrompt):
     def _end_ft_anim(self, _self, desc):
         self.ft_anim = False
 
+
 @staticmethod
 def cardarea_batch_draw(cl):
     csl = []
     for c in cl:
         csl += c.control_list
     CardSprite.batch_draw(csl)
+
 
 class HandCardArea(Control):
     def __init__(self, fold_size=5, *args, **kwargs):
@@ -193,6 +206,7 @@ class HandCardArea(Control):
     )
 
 HandCardArea.register_event_type('on_selection_change')
+
 
 class PortraitCardArea(Control):
     def hit_test(self, x, y):
@@ -286,6 +300,7 @@ class DropCardArea(Control):
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
+
 class Ray(Control):
     scale = InterpDesc('_scale')
     alpha = InterpDesc('_alpha')
@@ -310,11 +325,12 @@ class Ray(Control):
         glScalef(self.scale, 1., 1.)
         glTranslatef(0., -common_res.ray.height/2, 0.)
         glColor4f(1., 1., 1., self.alpha)
-        common_res.ray.blit(0,0)
+        common_res.ray.blit(0, 0)
         glPopMatrix()
 
     def hit_test(self, x, y):
         return False
+
 
 class SkillSelectionBox(Control):
     class SkillButton(Button):
@@ -327,7 +343,6 @@ class SkillSelectionBox(Control):
             self.update()
 
         def on_click(self):
-            buttons = self.parent.buttons
             if self.selected:
                 self.parent.selection.remove(self.sid)
                 self.color = Colors.blue
@@ -372,10 +387,12 @@ class SkillSelectionBox(Control):
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
+
 class SmallCardSprite(Control, BalloonPrompt):
     width, height = 33, 46
     x = InterpDesc('_x')
     y = InterpDesc('_y')
+
     def __init__(self, card, x=0.0, y=0.0, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self._w, self._h = 33, 46
@@ -402,14 +419,15 @@ class SmallCardSprite(Control, BalloonPrompt):
             ssuit = game_res.smallsuit
             snum = game_res.smallnum
 
-            if n == 10: # special case
-                #g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
-                #g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
-                vertices += snum[s%2*14 + 10].get_t4f_v4f_vertices(ax-1, ay+31)
-                vertices += snum[s%2*14 + 0].get_t4f_v4f_vertices(ax+3, ay+31)
+            if n == 10:  # special case
+                # g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
+                # g[1].blit(5+g[1].vertices[0], 33+g[1].vertices[1])
+                vertices += snum[s % 2 * 14 + 10].get_t4f_v4f_vertices(ax - 1, ay + 31)
+                vertices += snum[s % 2 * 14 + 0].get_t4f_v4f_vertices(ax + 3, ay + 31)
             else:
-                vertices += snum[s%2*14 + n].get_t4f_v4f_vertices(ax+1, ay+31)
-            vertices += ssuit[s-1].get_t4f_v4f_vertices(ax+1, ay+22)
+                vertices += snum[s % 2 * 14 + n].get_t4f_v4f_vertices(ax + 1, ay + 31)
+
+            vertices += ssuit[s - 1].get_t4f_v4f_vertices(ax + 1, ay + 22)
 
             if cs.selected:
                 vertices += game_res.scardframe_selected.get_t4f_v4f_vertices(ax, ay)
@@ -427,6 +445,7 @@ class SmallCardSprite(Control, BalloonPrompt):
 
         glPopClientAttrib()
         glPopMatrix()
+
 
 class EquipCardArea(Control):
     def __init__(self, fold_size=4, *args, **kwargs):
@@ -456,7 +475,7 @@ class EquipCardArea(Control):
         if not self.selectable: return
         c = self.control_frompoint1(x, y)
         if c:
-            s = c.selected = not c.selected
+            c.selected = not c.selected
             self.dispatch_event('on_selection_change')
 
     def clear_selection(self):
@@ -473,17 +492,10 @@ class EquipCardArea(Control):
     )
 EquipCardArea.register_event_type('on_selection_change')
 
-class ShownCardPanel(Panel):
-    from ..cards.base import CardList
-    lookup = {
-        'handcard': u'手牌区',
-        'showncard': u'明牌区',
-        'equips': u'装备区',
-        'fatetell': u'判定区',
-        'faiths': u'信仰',
-    }
 
+class ShownCardPanel(Panel):
     current = None
+
     def __init__(self, player, *a, **k):
         self.player = player
         ShownCardPanel.current = self
@@ -502,7 +514,7 @@ class ShownCardPanel(Panel):
         for cat in reversed(categories):
 
             ShadowedLabel(
-                text=self.lookup[cat.type], x=30, y=y+62+145*i, font_size=12,
+                text=CardList.ui_meta.lookup[cat.type], x=30, y=y+62+145*i, font_size=12,
                 color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 130),
                 anchor_x='left', anchor_y='center', batch=lbls,
             )
@@ -595,7 +607,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         w, h = self.width, self.height
 
         self.identity_btn = b = Button(
-            u'？', parent = self,
+            u'？', parent=self,
             x=w-42-4, y=h-24-10-18,
             width=42, height=18,
         )
@@ -630,7 +642,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             w, h = self.width, self.height
             x += w + 1
             y -= 27
-            for a in self.taganims: # they are pyglet.sprite.Sprite instances
+            for a in self.taganims:  # they are pyglet.sprite.Sprite instances
                 x -= 27
                 a.set_position(x, y)
 
@@ -639,7 +651,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             w, h = self.width, self.height
             x += w + 6
             y += 142
-            for a in self.taganims: # they are pyglet.sprite.Sprite instances
+            for a in self.taganims:  # they are pyglet.sprite.Sprite instances
                 a.set_position(x, y)
                 x += 27
 
@@ -648,7 +660,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             w, h = self.width, self.height
             x += w + 3
             y += 1
-            for a in self.taganims: # they are pyglet.sprite.Sprite instances
+            for a in self.taganims:  # they are pyglet.sprite.Sprite instances
                 a.set_position(x, y)
                 y += 27
 
@@ -657,7 +669,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             w, h = self.width, self.height
             x -= 28
             y += 1
-            for a in self.taganims: # they are pyglet.sprite.Sprite instances
+            for a in self.taganims:  # they are pyglet.sprite.Sprite instances
                 a.set_position(x, y)
                 y += 27
 
@@ -674,11 +686,11 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             x=self.width - 22, y=90,
         )
 
-        @showncard_btn.event
+        @showncard_btn.event  # noqa
         def on_click():
             p = self.player
             if not p: return
-            if not hasattr(p, 'showncardlists'): return # before the 'real' game_start
+            if not hasattr(p, 'showncardlists'): return  # before the 'real' game_start
             last = ShownCardPanel.current
             if last:
                 last.delete()
@@ -710,7 +722,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                 self.init_balloon(meta.description, (2, 74, 145, 96))
                 self._last_balloon = meta.description
 
-        self.bot_reserve=74
+        self.bot_reserve = 74
         self.gray_tex = None
         Frame.update(self)
         self.update_position()
@@ -862,7 +874,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
                         x + w - 34 + ox + i*14,
                         y + 68
                     ))
-            except AttributeError as e:
+            except AttributeError:
                 pass
 
         if vertices:
@@ -921,6 +933,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         tx = SineInterp(self.x, x, 1)
         ty = SineInterp(self.y, y, 1)
         pca = self.portcard_area
+
         def _update(dt):
             if tx.finished:
                 pyglet.clock.unschedule(_update)

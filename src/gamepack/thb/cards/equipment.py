@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from .base import *
-from ..actions import *
+#from .base import *
+from game.autoenv import Game, EventHandler, user_input, GameError
+from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DummyAction, DropCardStage, MaxLifeChange
+from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card
+from .base import Card, Skill, TreatAsSkill, t_None, t_OtherOne, t_OtherLessEqThanN
+from ..inputlets import ChooseOptionInputlet, ChooseIndividualCardInputlet, ChoosePeerCardInputlet
 
-from . import basic, spellcard, base
+from . import basic, spellcard
 
 from utils import check, CheckFailed, classmix
 
@@ -70,7 +74,8 @@ class OpticalCloakHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, BaseUseGraze):
             target = act.target
             if not target.has_skill(OpticalCloakSkill): return act
-            if not user_choose_option(self, target): return act
+            if not user_input([target], ChooseOptionInputlet(self, (False, True))):
+                return act
             g = Game.getgame()
             oc = OpticalCloak(target, target)
             if g.process_action(oc):
@@ -184,7 +189,6 @@ class ElementalReactorHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'action_stage_action':
             tgt = arg
-            tags = tgt.tags
             if not tgt.has_skill(ElementalReactorSkill): return arg
             basic.AttackCardHandler.set_freeattack(tgt)
 
@@ -222,11 +226,7 @@ class RoukankenHandler(EventHandler):
             if not src.has_skill(RoukankenSkill): return act
             if atk.succeeded: return act
 
-            cats = [
-                src.cards,
-                src.showncards,
-            ]
-            cards = user_choose_cards(self, src, cats)
+            cards = user_choose_cards(self, src, ['cards', 'showncards'])
             g = Game.getgame()
 
             if not cards: return act
@@ -246,7 +246,7 @@ class GungnirSkill(TreatAsSkill, WeaponSkill):
     treat_as = Card.card_classes['AttackCard'] # arghhhhh, nasty circular references!
     def check(self):
         cl = self.associated_cards
-        cat = ('handcard', 'showncard')
+        cat = ('cards', 'showncards')
         if not all(c.resides_in.type in cat for c in cl): return False
         return len(cl) == 2
 
@@ -296,7 +296,7 @@ class TridentHandler(EventHandler):
                     if c.equipment_category in ('greenufo', 'redufo')
                 ]
                 if ufos:
-                    card = choose_individual_card(act.source, ufos)
+                    card = user_input([act.source], ChooseIndividualCardInputlet(self, ufos))
                     if card:
                         g = Game.getgame()
                         g.process_action(DropCards(target=target, cards=[card]))
@@ -313,16 +313,19 @@ class RepentanceStick(GenericAction):
     def apply_action(self):
         src, tgt = self.source, self.target
         g = Game.getgame()
-        cats = [
-            tgt.cards, tgt.showncards,
-            tgt.equips, tgt.fatetell,
-        ]
+
+        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        cats = [getattr(tgt, i) for i in catnames]
+
         l = []
         for i in xrange(2):
             if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell):
                 break
 
-            card = choose_peer_card(src, tgt, cats)
+            card = user_input(
+                [src], ChoosePeerCardInputlet(self, tgt, catnames)
+            )
+
             if not card:
                 card = random_choose_card(cats)
             if card:
@@ -345,7 +348,10 @@ class RepentanceStickHandler(EventHandler):
                 if not isinstance(pa, basic.BaseAttack): return act
                 if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell):
                     return act
-                if not user_choose_option(self, src): return act
+
+                if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+                    return act
+
                 g.process_action(RepentanceStick(src, tgt))
                 act.cancelled = True
 
@@ -427,8 +433,9 @@ class HouraiJewelHandler(EventHandler):
             src = act.source
             if not src.has_skill(HouraiJewelSkill): return act
             if isinstance(act, HouraiJewelAttack): return act
-            if user_choose_option(self, src):
+            if user_input([src], ChooseOptionInputlet(self, (False, True))):
                 act.__class__ = HouraiJewelAttack
+
         return act
 
 
@@ -512,8 +519,11 @@ class SaigyouBranchHandler(EventHandler):
                 # target's own Reject
                 return act
 
-            if not user_choose_option(self, tgt): return act
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
+
             Game.getgame().process_action(SaigyouBranch(tgt, act))
+
         return act
 
 class FlirtingSwordSkill(WeaponSkill):
@@ -521,12 +531,13 @@ class FlirtingSwordSkill(WeaponSkill):
     associated_action = None
     target = t_None
 
+
 class FlirtingSword(GenericAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
 
-        cards = user_choose_cards(self, tgt)
+        cards = user_choose_cards(self, tgt, ['cards', 'showncards'])
         g = Game.getgame()
         if cards:
             self.peer_action = 'drop'
@@ -540,6 +551,7 @@ class FlirtingSword(GenericAction):
     def cond(self, cards):
         return len(cards) == 1
 
+
 @register_eh
 class FlirtingSwordHandler(EventHandler):
     # BUG WITH OUT THIS LINE:
@@ -552,11 +564,14 @@ class FlirtingSwordHandler(EventHandler):
             if act.cancelled: return act
             src = act.source
             if not src.has_skill(FlirtingSwordSkill): return act
-            if not user_choose_option(self, src): return act
+
+            if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+                return act
 
             Game.getgame().process_action(FlirtingSword(src, act.target))
 
         return act
+
 
 class AyaRoundfan(GenericAction):
     def apply_action(self):
@@ -565,13 +580,14 @@ class AyaRoundfan(GenericAction):
 
         g = Game.getgame()
 
-        equip = choose_peer_card(src, tgt, [tgt.equips])
+        equip = user_input([src], ChoosePeerCardInputlet(self, tgt, ['equips']))
         if not equip:
             equip = random_choose_card([tgt.equips])
         g.process_action(DropCards(tgt, [equip]))
         self.card = equip
 
         return True
+
 
 class AyaRoundfanSkill(WeaponSkill):
     range = 3
@@ -586,7 +602,7 @@ class AyaRoundfanHandler(EventHandler):
             src = act.source
             tgt = act.target
             if src.has_skill(AyaRoundfanSkill) and tgt.equips:
-                cards = user_choose_cards(self, src)
+                cards = user_choose_cards(self, src, ['cards', 'showncards'])
                 if not cards: return act
                 g = Game.getgame()
                 g.process_action(DropCards(src, cards))
@@ -595,7 +611,7 @@ class AyaRoundfanHandler(EventHandler):
 
     def cond(self, cards):
         if not len(cards) == 1: return False
-        return cards[0].resides_in.type in ('handcard', 'showncard')
+        return cards[0].resides_in.type in ('cards', 'showncards')
 
 
 class ScarletRhapsodySword(Damage):
@@ -614,12 +630,7 @@ class ScarletRhapsodySwordAttack(basic.Attack):
         if not src.has_skill(ScarletRhapsodySwordSkill): return False
 
         g = Game.getgame()
-        cats = [
-            src.cards,
-            src.showncards,
-            src.equips,
-        ]
-        cards = user_choose_cards(self, src, cats)
+        cards = user_choose_cards(self, src, ['cards', 'showncards', 'equips'])
         if cards:
             g.process_action(DropCards(src, cards))
             dmg = ScarletRhapsodySword(src, tgt, amount=self.damage)
@@ -632,7 +643,7 @@ class ScarletRhapsodySwordAttack(basic.Attack):
         if not len(cards) == 2: return False
 
         if any(c.resides_in.type not in (
-            'handcard', 'showncard', 'equips'
+            'cards', 'showncards', 'equips'
         ) for c in cards): return False
 
         from ..cards import ScarletRhapsodySwordCard as SRSC
@@ -749,7 +760,8 @@ class YinYangOrbHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, Fatetell):
             tgt = act.target
             if not tgt.has_skill(YinYangOrbSkill): return act
-            if not user_choose_option(self, tgt): return act
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
 
             g = Game.getgame()
             g.process_action(YinYangOrb(act))
@@ -853,7 +865,7 @@ class GrimoireSkill(TreatAsSkill, WeaponSkill):
     def check(self):
         cl = self.associated_cards
         if not len(cl) == 1: return False
-        if not cl[0].resides_in.type in ('handcard', 'showncard', 'equips'):
+        if not cl[0].resides_in.type in ('cards', 'showncards', 'equips'):
             return False
         if not cl[0].suit: return False
         return True

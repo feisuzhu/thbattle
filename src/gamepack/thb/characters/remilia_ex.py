@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+
+from game.autoenv import Game, EventHandler, user_input
+from .baseclasses import Character, register_ex_character
+
+from ..actions import UserAction, DropCards, LifeLost, LaunchCard, ForEach, DrawCards, ActionStage, DropCardStage, ask_for_action
+from ..actions import random_choose_card, user_choose_cards
+from ..cards import Card, Skill, InevitableAttack, AttackCard, DelayedLaunchCard
+from ..cards import t_OtherOne, t_None, t_All, VirtualCard
+from ..inputlets import ChoosePeerCardInputlet
 
 from ..thbraid import use_faith
 
@@ -24,13 +30,7 @@ class HeartBreak(Skill):
     associated_action = HeartBreakAction
     target = t_OtherOne
 
-    @property
-    def color(self):
-        return Card.RED
-
-    @color.setter
-    def color(self, val):
-        pass
+    color = property(lambda _: Card.RED).setter(lambda _, v: None)
 
     def is_card(self, cls):
         if issubclass(AttackCard, cls): return True
@@ -53,10 +53,11 @@ class NeverNightAction(UserAction):
                 if p.faiths:
                     g.process_action(DropCards(p, p.faiths))
             else:
-                cats = [p.cards, p.showncards, p.equips]
-                c = choose_peer_card(src, p, cats)
-                if not c:
-                    c = random_choose_card(cats)
+
+                catnames = ('cards', 'showncards', 'equips')
+                cats = [getattr(p, i) for i in catnames]
+                c = user_input([src], ChoosePeerCardInputlet(self, p, catnames))
+                c = c or random_choose_card(cats)
 
                 g.players.reveal(c)
 
@@ -91,7 +92,7 @@ class ScarletFogEffect(UserAction):
             if LaunchCard(p, [t], atkcard).can_fire():
                 pl.append(t)
 
-        rst = user_choose_cards_and_players(self, p, [p.cards, p.showncards], pl)
+        _, rst = ask_for_action(self, [p], ['cards', 'showncards'], pl)
         if rst:
             c = rst[0][0]; t = rst[1][0]
             g.process_action(LaunchCard(p, [t], c))
@@ -112,6 +113,7 @@ class ScarletFogEffect(UserAction):
 
 class ScarletFogAction(ForEach):
     action_cls = ScarletFogEffect
+
     def prepare(self):
         src = self.source
         tags = src.tags
@@ -125,6 +127,7 @@ class ScarletFogAction(ForEach):
 class ScarletFog(Skill):
     associated_action = ScarletFogAction
     target = t_All
+
     def check(self):
         cl = self.associated_cards
         if not len(cl) == 1: return False
@@ -141,6 +144,7 @@ class QueenOfMidnight(Skill):
 
 class QueenOfMidnightHandler(EventHandler):
     execute_after = ('SealingArrayHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
             g = Game.getgame()
@@ -169,7 +173,7 @@ class SeptetHandler(EventHandler):
             tgt = act.target
             if not tgt.has_skill(Septet): return act
             self.action = act
-            cl = user_choose_cards(self, src, [src.cards, src.showncards])
+            cl = user_choose_cards(self, src, ['cards', 'showncards'])
             g = Game.getgame()
             if cl:
                 g.process_action(DropCards(src, cl))

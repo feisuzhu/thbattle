@@ -57,6 +57,7 @@ class ServerNames:
     localhost = u'本机'
     lake = u'雾之湖'
     forest= u'魔法之森'
+    hakurei = u'博丽神社'
 
 
 class ServerList:

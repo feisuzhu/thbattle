@@ -1,36 +1,44 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import register_character, Character
+from ..actions import BaseDamage, GenericAction, TryRevive
+from ..cards import Attack, AttackCard, Card, GrazeCard, Skill, t_None, t_OtherOne
+from utils import classmix
+
 
 class FlowerQueen(Skill):
     associated_action = Attack
     target = t_OtherOne
     distance = 1
+
     def check(self):
         cl = self.associated_cards
         if not cl or len(cl) != 1: return False
         c = cl[0]
         if not c.suit == Card.CLUB: return False
         return c.resides_in and c.resides_in.type in (
-            'handcard', 'showncard', 'equips',
+            'cards', 'showncards', 'equips',
         )
 
     def is_card(self, cls):
         if issubclass(AttackCard, cls) or issubclass(GrazeCard, cls): return True
         return isinstance(self, cls)
 
+
 class MagicCannon(Skill):
     associated_action = None
     target = t_None
+
 
 class PerfectKill(Skill):
     associated_action = None
     target = t_None
     distance = 1
 
+
 class MagicCannonAttack(Attack):
     pass
+
 
 class PerfectKillAction(GenericAction):
     def __init__(self, source, target, act):
@@ -44,6 +52,7 @@ class PerfectKillAction(GenericAction):
 
 class YuukaHandler(EventHandler):
     execute_before = ('ScarletRhapsodySwordHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Attack):
             c = getattr(act, 'associated_card', None)

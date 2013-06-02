@@ -7,8 +7,7 @@ sys.path.append('../src')
 
 import simplejson as json
 
-from utils import hook
-import traceback
+from utils import hook, BatchList
 
 import gzip
 from game import autoenv
@@ -16,7 +15,7 @@ autoenv.init('Client')
 # autoenv.init('Server')
 from account.freeplay import Account
 from game.autoenv import Game
-from client.core import PeerPlayer, TheLittleBrother, PlayerList
+from client.core import PeerPlayer, TheLittleBrother
 Game.CLIENT_SIDE = 'blah'  # Hack: not loading ui resource
 from gamepack import gamemodes
 
@@ -28,7 +27,7 @@ parser.add_argument('--catch', action='store_true', default=False)
 parser.add_argument('--log', type=str, default='DEBUG')
 parser.add_argument('--break-at', type=int, default=0)
 parser.add_argument('--print-synctag', action='store_true', default=False)
-parser.add_argument('--action-singlestep',  default=0)
+parser.add_argument('--action-singlestep', default=0)
 options = parser.parse_args()
 
 import logging
@@ -53,12 +52,17 @@ class MockServer(object):
             log.info('Game data exhausted, exiting...')
             sys.exit(0)
 
+        glob = False
+        if tag.endswith('*'):
+            tag = tag[:-1]
+            glob = True
+
         missed = False
         for i, d in enumerate(self.gdlist):
-            if d[0] == tag:
+            if d[0] == tag or (glob and d[0].startswith(tag)):
                 log.info('GAME_READ: %s', repr(d))
                 del self.gdlist[i]
-                return d[1]
+                return d
             if not missed:
                 log.info('GAME_DATA_MISS: %s', repr(d))
                 missed = True
@@ -87,8 +91,8 @@ while True:
     print last
 
 mode = last
-data.pop(0) # seed
-data.pop(0) # server data
+data.pop(0)  # seed
+data.pop(0)  # server data
 
 loc = options.location
 gdlist = json.loads(data.pop(0))[loc]
@@ -103,12 +107,13 @@ GameMode = gamemodes[mode]
 
 players = [PeerPlayer() for i in xrange(GameMode.n_persons)]
 players[loc].__class__ = TheLittleBrother
+players[loc].server = server
 
 for p in players:
     p.account = Account.authenticate('Proton', '123')
 
 g = GameMode()
-g.players = PlayerList(players)
+g.players = BatchList(players)
 g.me = players[loc]
 
 

@@ -1,25 +1,31 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow
-from game import TimeLimitExceeded
-
-from actions import *
-from itertools import cycle
-from collections import defaultdict
 import random
 
-from utils import BatchList, check, CheckFailed, classmix, Enum
+from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, user_input, InputTransaction
 
-from .common import *
+from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity
+from .actions import action_eventhandlers
+
+from itertools import cycle
+from collections import defaultdict
+
+from utils import BatchList, Enum
+
+from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice, mixin_character
+from .inputlets import ChooseGirlInputlet
 
 import logging
 log = logging.getLogger('THBattle')
 
 _game_ehs = {}
+_game_actions = {}
+
+
 def game_eh(cls):
     _game_ehs[cls.__name__] = cls
     return cls
 
-_game_actions = {}
+
 def game_action(cls):
     _game_actions[cls.__name__] = cls
     return cls
@@ -30,7 +36,6 @@ class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
         if not isinstance(act, PlayerDeath): return act
-        tgt = act.target
 
         g = Game.getgame()
 
@@ -47,7 +52,7 @@ class DeathHandler(EventHandler):
         return act
 
 
-class ActFirst(object): # for choose_option
+class ActFirst(object):  # for choose_option
     pass
 
 
@@ -57,26 +62,27 @@ class Identity(PlayerIdentity):
         HAKUREI = 1
         MORIYA = 2
 
+
 class THBattle(Game):
     n_persons = 6
     game_ehs = _game_ehs
     game_actions = _game_actions
     order_list = (0, 5, 3, 4, 2, 1)
 
-    def game_start(self):
+    def game_start(g):
         # game started, init state
-        from cards import Card, Deck, CardList
+        from cards import Deck, CardList
 
-        self.deck = Deck()
+        g.deck = Deck()
 
-        ehclasses = list(action_eventhandlers) + self.game_ehs.values()
+        ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
-        for i, p in enumerate(self.players):
-            p.cards = CardList(p, 'handcard') # Cards in hand
-            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips') # Equipments
-            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special') # used on special purpose
+        for i, p in enumerate(g.players):
+            p.cards = CardList(p, 'cards')  # Cards in hand
+            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+            p.equips = CardList(p, 'equips')  # Equipments
+            p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+            p.special = CardList(p, 'special')  # used on special purpose
 
             p.showncardlists = [p.showncards, p.fatetell]
 
@@ -84,10 +90,10 @@ class THBattle(Game):
 
             p.dead = False
             p.identity = Identity()
-            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
+            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i % 2]
 
-        self.forces = forces = BatchList([PlayerList(), PlayerList()])
-        for i, p in enumerate(self.players):
+        g.forces = forces = BatchList([BatchList(), BatchList()])
+        for i, p in enumerate(g.players):
             f = i % 2
             p.force = f
             forces[f].append(p)
@@ -96,44 +102,33 @@ class THBattle(Game):
         from characters import characters as chars
         from characters.akari import Akari
 
+        seed = get_seed_for(g.players)
+        chars = chars[:]
+        random.Random(seed).shuffle(chars)
+        choices = [CharChoice(cls) for cls in chars[:16]]
+        del chars[:16]
+
+        for c in choices[-4:]:
+            c.char_cls = Akari
+
         if Game.SERVER_SIDE:
-            choice = [
-                CharChoice(cls, cid)
-                for cls, cid in zip(self.random.sample(chars, 16), xrange(16))
-            ]
+            for c, cls in zip(choices[-4:], g.random.sample(chars, 4)):  # yes, must random.sample
+                c.real_cls = cls
 
-            for c in self.random.sample(choice, 4):
-                c.real_cls = c.char_cls
-                c.char_cls = Akari
-
-        elif Game.CLIENT_SIDE:
-            choice = [
-                CharChoice(None, i)
-                for i in xrange(16)
-            ]
-
-        # -----------
-
-        self.players.reveal(choice)
-
-        # roll
-        roll = range(len(self.players))
-        self.random.shuffle(roll)
-        pl = self.players
+        # ----- roll ------
+        roll = range(len(g.players))
+        g.random.shuffle(roll)
+        pl = g.players
         roll = sync_primitive(roll, pl)
-
         roll = [pl[i] for i in roll]
-
-        self.emit_event('game_roll', roll)
-
+        g.emit_event('game_roll', roll)
         first = roll[0]
-
-        self.emit_event('game_roll_result', first)
+        g.emit_event('game_roll_result', first)
         # ----
 
-        first_index = self.players.index(first)
-        n = len(self.order_list)
-        order = [self.players[(first_index + i) % n] for i in self.order_list]
+        first_index = g.players.index(first)
+        n = len(g.order_list)
+        order = [g.players[(first_index + i) % n] for i in g.order_list]
 
         def mix(p, c):
             # mix char class with player -->
@@ -144,78 +139,67 @@ class THBattle(Game):
 
         # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
         akaris = []
-        self.emit_event('choose_girl_begin', (self.players, choice))
-        for i, p in enumerate(order):
-            cid = p.user_input('choose_girl', choice, timeout=(n-i+1)*5)
-            try:
-                check(isinstance(cid, int))
-                check(0 <= cid < len(choice))
-                c = choice[cid]
-                check(not c.chosen)
+        mapping = {p: choices for p in g.players}
+        with InputTransaction('ChooseGirl', g.players, mapping=mapping) as trans:
+            for p in order:
+                c = user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+                c = c or [_c for _c in choices if not _c.chosen][0]
                 c.chosen = p
-            except CheckFailed:
-                # first non-chosen char
-                for c in choice:
-                    if not c.chosen:
-                        c.chosen = p
-                        break
 
-            if issubclass(c.char_cls, Akari):
-                akaris.append((p, c))
-            else:
-                mix(p, c)
+                if issubclass(c.char_cls, Akari):
+                    akaris.append((p, c))
+                else:
+                    mix(p, c)
 
-            self.emit_event('girl_chosen', c)
-
-        self.emit_event('choose_girl_end', None)
+                trans.notify('girl_chosen', c)
 
         # reveal akaris
         if akaris:
             for p, c in akaris:
                 c.char_cls = c.real_cls
 
-            self.players.reveal([i[1] for i in akaris])
+            g.players.reveal([i[1] for i in akaris])
 
             for p, c in akaris:
                 mix(p, c)
 
         first_actor = first
 
-        self.event_handlers = EventHandler.make_list(ehclasses)
+        g.event_handlers = EventHandler.make_list(ehclasses)
 
         # -------
         log.info(u'>> Game info: ')
         log.info(u'>> First: %s:%s ', first.char_cls.__name__, Identity.TYPE.rlookup(first.identity.type))
-        for p in self.players:
+        for p in g.players:
             log.info(u'>> Player: %s:%s %s', p.char_cls.__name__, Identity.TYPE.rlookup(p.identity.type), p.account.username)
 
         # -------
 
         try:
-            pl = self.players
+            pl = g.players
             for p in pl:
-                self.process_action(RevealIdentity(p, pl))
+                g.process_action(RevealIdentity(p, pl))
 
-            self.emit_event('game_begin', self)
+            g.emit_event('game_begin', g)
 
-            for p in self.players:
-                self.process_action(DrawCards(p, amount=3 if p is first_actor else 4))
+            for p in g.players:
+                g.process_action(DrawCards(p, amount=3 if p is first_actor else 4))
 
-            pl = self.players.rotate_to(first_actor)
+            pl = g.players.rotate_to(first_actor)
 
             for i, p in enumerate(cycle(pl)):
                 if i >= 6000: break
                 if not p.dead:
-                    self.emit_event('player_turn', p)
+                    g.emit_event('player_turn', p)
                     try:
-                        self.process_action(PlayerTurn(p))
+                        g.process_action(PlayerTurn(p))
                     except InterruptActionFlow:
                         pass
 
         except GameEnded:
             pass
 
-        log.info(u'>> Winner: %s', Identity.TYPE.rlookup(self.winners[0].identity.type))
+        log.info(u'>> Winner: %s', Identity.TYPE.rlookup(g.winners[0].identity.type))
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)

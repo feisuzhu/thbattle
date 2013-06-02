@@ -1,6 +1,5 @@
 import logging
 from gevent import Timeout
-from utils import DataHolder
 from contextlib import contextmanager
 
 log = logging.getLogger('Game')
@@ -55,6 +54,7 @@ class TimeLimitExceeded(Timeout):
 
 class GameException(Exception):
     __metaclass__ = GameObjectMeta
+
     def __init__(self, msg=None, **kwargs):
         Exception.__init__(self, msg)
         self.__dict__.update(kwargs)
@@ -75,6 +75,7 @@ class InterruptActionFlow(GameException):
 class EventHandler(GameObject):
     execute_before = tuple()
     execute_after = tuple()
+
     def handle(self, evt_type, data):
         raise GameError('Override handle function to implement EventHandler logics!')
 
@@ -101,7 +102,7 @@ class EventHandler(GameObject):
 
         for cls in rest:
             eh = cls()
-            eh.execute_before = set(eh.execute_before) & allnames # make it instance var
+            eh.execute_before = set(eh.execute_before) & allnames  # make it instance var
             eh.execute_after = set(eh.execute_after) & allnames
             table[cls.__name__] = eh
 
@@ -114,13 +115,12 @@ class EventHandler(GameObject):
                 table[after].execute_before.add(clsname)
 
         l = table.values()
-        l.sort(key=lambda v: v.__class__.__name__) # must sync between server and client
+        l.sort(key=lambda v: v.__class__.__name__)  # must sync between server and client
 
         toposorted = []
         while l:
             deferred = []
             commit = []
-            added = False
             for eh in l:
                 if not eh.execute_after:
                     for b in eh.execute_before:
@@ -143,9 +143,8 @@ class EventHandler(GameObject):
 
     @staticmethod
     def _dump_eh_dependency_graph():
-        from game import all_gameobjects as A
         from game.autoenv import EventHandler
-        ehs = set([i for i in A if issubclass(i, EventHandler)])
+        ehs = set([i for i in all_gameobjects if issubclass(i, EventHandler)])
         ehs.remove(EventHandler)
         dependencies = set()
         for eh in ehs:
@@ -171,13 +170,13 @@ class Action(GameObject):
 
     def __new__(cls, *a, **k):
         try:
-            g = cls.game_class.getgame()
+            g = Game.getgame()
             actual_cls = g.action_types.get(cls, cls)
         except:
             g = None
             actual_cls = cls
 
-        obj = object.__new__(actual_cls, *a, **k)
+        obj = GameObject.__new__(actual_cls, *a, **k)
 
         if g:
             for hook in reversed(g._action_hooks):
@@ -193,7 +192,7 @@ class Action(GameObject):
         '''
         Return true if the action can be fired.
         '''
-        _self, rst = self.game_class.getgame().emit_event('action_can_fire', (self, self.is_valid()))
+        _self, rst = Game.getgame().emit_event('action_can_fire', (self, self.is_valid()))
         assert _self is self, "You can't replace action in 'action_can_fire' event!"
         return rst
 
@@ -217,9 +216,6 @@ class AbstractPlayer(GameObject):
     def reveal(self, obj_list):
         raise GameError('Abstract')
 
-    def user_input(self, tag, attachment=None, timeout=15):
-        raise GameError('Abstract')
-
     def __repr__(self):
         return self.__class__.__name__
 
@@ -236,6 +232,8 @@ class Game(GameObject):
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
     # event_handlers = []
+    IS_DEBUG = False
+
     def __init__(self):
         self.event_handlers = []
         self.action_stack = []
@@ -278,7 +276,8 @@ class Game(GameObject):
 
     @staticmethod
     def getgame():
-        raise GameError('Abstract')
+        from .autoenv import Game
+        return Game.getgame()
 
     def process_action(self, action):
         '''
@@ -393,3 +392,95 @@ def sync_primitive(val, to):
         v = SyncPrimitive(val)
         to.reveal(v)
         return v.value
+
+
+class Inputlet(GameObject):
+    RETRY = object()
+    '''
+    NOTICE: Inputlet instance variable should
+            not be used as side channel for infomation
+            passing in game logic code.
+    '''
+    def __init__(self, initiator, *args, **kwargs):
+        self.initiator = initiator
+        self.init(*args, **kwargs)
+
+    @classmethod
+    def tag(cls):
+        clsname = cls.__name__
+        assert clsname.endswith('Inputlet')
+        return clsname[:-8]
+
+    def init(self):
+        pass
+
+    def parse(self, data):
+        '''
+        Process parsed data, return result,
+        return value of this func will be the return value
+        of user_input func.
+        '''
+        return None
+
+    def post_process(self, actor, args):
+        '''
+        This method is called after self.parse succeeded,
+        so game logic may have chance to transform (and validate)
+        input result before input process finishes.
+        '''
+        return args
+
+    def with_post_process(self, f):
+        '''
+        Helper method, to make this possible
+        @ilet.with_post_process
+        def process(args):
+            ...
+        '''
+        self.post_process = f
+        return f
+
+    def data(self):
+        '''
+        Encode self, used for reconstrcting
+        inputlet state from the other end.
+        Will be fed into self.process() of the other end.
+        '''
+        return None
+
+    def __repr__(self):
+        return '<I:{}>'.format(self.tag())
+
+
+class InputTransaction(object):
+    def __init__(self, name, involved, **kwargs):
+        self.name = name
+        self.involved = involved[:]
+        self.__dict__.update(kwargs)
+
+    def __enter__(self):
+        return self.begin()
+
+    def begin(self):
+        from game.autoenv import Game
+        g = Game.getgame()
+        g.emit_event('user_input_transaction_begin', self)
+        return self
+
+    def __exit__(self, *excinfo):
+        self.end()
+        return False
+
+    def end(self):
+        from game.autoenv import Game
+        g = Game.getgame()
+        g.emit_event('user_input_transaction_end', self)
+
+    def notify(self, evt_name, arg):
+        '''
+        Event For UI
+        '''
+        Game.getgame().emit_event('user_input_transaction_feedback', (self, evt_name, arg))
+
+    def __repr__(self):
+        return '<T:{}>'.format(self.name)

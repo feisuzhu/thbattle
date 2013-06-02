@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import ActionStage, FatetellStage, GenericAction
+from ..cards import Skill, Attack, AttackCard, WearEquipmentAction, t_None, t_OtherOne
 
 
 class FlyingKnife(Skill):
     associated_action = Attack
     target = t_OtherOne
+
     def check(self):
-        p = self.player
         cards = self.associated_cards
         if len(cards) != 1: return False
         c = cards[0]
         if not c.resides_in: return False
-        if not c.resides_in.type in ('handcard', 'showncard', 'equips'): return False
+        if not c.resides_in.type in ('cards', 'showncards', 'equips'): return False
         act = c.associated_action
         if not (act and issubclass(act, WearEquipmentAction)): return False
         return True

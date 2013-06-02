@@ -169,12 +169,6 @@ class DonationBoxCard:
     category = ('spellcard', 'instant_spellcard')
 
 
-class LotteryCard:
-    associated_action = spellcard.Lottery
-    target = t_OneOrNone
-    category = ('spellcard', 'instant_spellcard')
-
-
 # --------------------------------------------------
 
 from . import equipment

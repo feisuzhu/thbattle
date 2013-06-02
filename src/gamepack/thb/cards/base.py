@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck classes
 
-from game.autoenv import Game, GameError, sync_primitive, GameObject
+from game.autoenv import Game, GameError, GameObject
 import random
 import logging
+from ..common import get_seed_for
+
 log = logging.getLogger('THBattle_Cards')
-
-from utils import BatchList
-
-from .. import actions
 
 
 class Card(GameObject):
@@ -165,8 +163,8 @@ from collections import deque
 class CardList(GameObject, deque):
     DECKCARD = 'deckcard'
     DROPPEDCARD = 'droppedcard'
-    HANDCARD = 'handcard'
-    SHOWNCARD = 'showncard'
+    CARDS = 'cards'
+    SHOWNCARDS = 'showncards'
     EQUIPS = 'equips'
     FATETELL = 'fatetell'
     SPECIAL = 'special'
@@ -242,13 +240,8 @@ class Deck(GameObject):
         return sid
 
     def shuffle(self, cl):
-        if Game.SERVER_SIDE:
-            seed = long(Game.getgame().random.randint(1, 27814431486575L))
-        else:
-            seed = 0L
-
         owner = cl.owner
-        seed = sync_primitive(seed, owner)
+        seed = get_seed_for(owner)
 
         if seed:  # cardlist owner & server
             shuffler = random.Random(seed)

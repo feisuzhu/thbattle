@@ -44,7 +44,6 @@ import sys
 
 from game.autoenv import Game
 from options import options
-if Game.CLIENT_SIDE or options.testing:
-    register_character(dummy.Dummy)
+options.testing and register_character(dummy.Dummy)
 
 del sys, Game, options

@@ -99,7 +99,8 @@ if sys.platform == 'win32':
     DirectSoundAudioPlayer._update_buffer_size = 44800 * 2 // 8
 
 if sys.platform.startswith('linux') and options.dump_gameobj:
-    import atexit, game
+    import atexit
+    import game
     atexit.register(game.GameObjectMeta._dump_gameobject_hierarchy)
     atexit.register(game.EventHandler._dump_eh_dependency_graph)
 
@@ -110,6 +111,11 @@ try:
 except:
     import pyglet
     pyglet.app.exit()
+
+    if options.fastjoin:
+        import pdb
+        pdb.post_mortem()
+
     Executive.call('app_exit')
     raise
 

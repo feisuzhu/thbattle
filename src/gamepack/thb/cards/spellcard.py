@@ -1,40 +1,46 @@
 # -*- coding: utf-8 -*-
 
-from ..actions import *
+from game.autoenv import Game, EventHandler, user_input, InputTransaction
 from . import basic
-from . import base
+from ..actions import random_choose_card, register_eh, migrate_cards, ask_for_action
+from ..actions import user_choose_cards
+from ..actions import GenericAction, UserAction, LaunchCardAction, DropCards, DropUsedCard
+from ..actions import DrawCards, Fatetell, ActionStage, Damage, ForEach
+from ..actions import LaunchCard, DrawCardStage
+from ..inputlets import ChoosePeerCardInputlet, ChooseIndividualCardInputlet
 
-from game.autoenv import PlayerList
+from utils import check, CheckFailed, BatchList
+
 
 class SpellCardAction(UserAction): pass
+
+
 class InstantSpellCardAction(SpellCardAction): pass
+
+
 class NonResponsiveInstantSpellCardAction(InstantSpellCardAction): pass
+
 
 class Demolition(InstantSpellCardAction):
     # 城管执法
 
     def apply_action(self):
         g = Game.getgame()
-        source = self.source
-        target = self.target
+        src = self.source
+        tgt = self.target
 
-        #cards = random_choose_card(target, target.cards, 1)
-        categories = [
-            target.cards,
-            target.showncards,
-            target.equips,
-            target.fatetell,
-        ]
-        card = choose_peer_card(source, target, categories)
+        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        cats = [getattr(tgt, i) for i in catnames]
+        card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         if not card:
-            card = random_choose_card(categories)
+            card = random_choose_card(cats)
             if not card:
                 return False
 
         self.card = card
-        g.players.exclude(target).reveal(card)
+        g.players.exclude(tgt).reveal(card)
         g.process_action(
-            DropCards(target=target, cards=[card])
+            DropCards(target=tgt, cards=[card])
         )
         return True
 
@@ -78,59 +84,19 @@ class RejectHandler(EventHandler):
                 return act
 
             g = Game.getgame()
-            self.target_act = act # for ui
+            self.target_act = act  # for ui
 
-            pl = PlayerList(p for p in g.players if not g.dead)
-            p, input = pl.user_input_any(
-                'choose_card_and_player_reject', self._expects, (self, [])
-            )
+            pl = BatchList(p for p in g.players if not p.dead)
 
+            p, rst = ask_for_action(self, pl, ['cards', 'showncards'], [])
             if not p: return act
-
-            sid_list, cid_list, _ = input
-            cards = g.deck.lookupcards(cid_list)
-
-            if sid_list: # skill selected
-                card = skill_wrap(p, sid_list, cards)
-            else:
-                card = cards[0]
-
-            g.players.exclude(p).reveal(card)
-
-            if not (card and self.cond([card])):
-                return act
-
-            g.process_action(LaunchReject(p, act, card))
+            cards, _ = rst
+            assert cards and self.cond(cards)
+            g.process_action(LaunchReject(p, act, cards[0]))
 
         return act
 
-    def _expects(self, p, input):
-        from utils import check, CheckFailed
-        try:
-            check_type([[int, Ellipsis], [int, Ellipsis], []], input)
-
-            sid_list, cid_list, _ = input
-
-            g = Game.getgame()
-            cards = g.deck.lookupcards(cid_list)
-            check(cards)
-
-            if sid_list:
-                check(len(sid_list) == 1) # FIXME: HACK, but seems enough
-                sid = sid_list[0]
-                check(0 <= sid < len(p.skills))
-                skill_cls = p.skills[sid]
-                card = skill_cls.wrap(cards, p)
-            else:
-                card = cards[0]
-                check(card in p.cards or card in p.showncards)
-
-            return True
-        except CheckFailed as e:
-            return False
-
     def cond(self, cardlist):
-        from utils import check, CheckFailed
         from .. import cards
         try:
             check(len(cardlist) == 1)
@@ -140,12 +106,11 @@ class RejectHandler(EventHandler):
             return False
 
 
-class DelayedSpellCardAction(SpellCardAction): pass # 延时SC
+class DelayedSpellCardAction(SpellCardAction): pass  # 延时SC
 
 
 class DelayedLaunchCard(UserAction):
     def apply_action(self):
-        g = Game.getgame()
         card = self.associated_card
         action = card.delayed_action
         assert issubclass(action, DelayedSpellCardAction)
@@ -224,7 +189,6 @@ class Sinsack(DelayedSpellCardAction):
         else:
             pl = g.players
             stop = pl.index(target)
-            n = len(pl)
             next = stop - len(pl) + 1
             while next < stop:
                 if not pl[next].dead:
@@ -237,25 +201,20 @@ class YukariDimension(InstantSpellCardAction):
     # 紫的隙间
 
     def apply_action(self):
-        g = Game.getgame()
-        source = self.source
-        target = self.target
+        src = self.source
+        tgt = self.target
 
-        categories = [
-            target.cards,
-            target.showncards,
-            target.equips,
-            target.fatetell,
-        ]
-        card = choose_peer_card(source, target, categories)
+        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        cats = [getattr(tgt, i) for i in catnames]
+        card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         if not card:
-            card = random_choose_card(categories)
+            card = random_choose_card(cats)
             if not card:
                 return False
 
         self.card = card
-        source.reveal(card)
-        migrate_cards([card], source.cards, unwrap=True)
+        src.reveal(card)
+        migrate_cards([card], src.cards, unwrap=True)
         return True
 
 
@@ -339,8 +298,10 @@ class FeastEffect(InstantSpellCardAction):
             g.process_action(basic.Wine(src, tgt))
         return True
 
+
 class Feast(ForEach):
     action_cls = FeastEffect
+
 
 class HarvestEffect(InstantSpellCardAction):
     # 五谷丰登 效果
@@ -349,38 +310,45 @@ class HarvestEffect(InstantSpellCardAction):
         cards = self.parent_action.cards
         cards_avail = [c for c in cards if c.resides_in is g.deck.special]
         if not cards_avail: return False
-        cmap = {c.syncid:c for c in cards_avail}
         tgt = self.target
-        cid = tgt.user_input('harvest_choose', cards_avail)
-        card = cmap.get(cid)
-        if not card:
-            card = random_choose_card([cards_avail])
+
+        card = user_input(
+            [tgt],
+            ChooseIndividualCardInputlet(self, cards_avail),
+            trans=self.parent_action.trans,
+        ) or random_choose_card([cards_avail])
+
         migrate_cards([card], tgt.cards)
-        g.emit_event('harvest_choose', card)
+        self.parent_action.trans.notify('harvest_choose', card)
         self.card = card
         return True
 
+
 class Harvest(ForEach):
     action_cls = HarvestEffect
+
     def prepare(self):
         tl = self.target_list
         g = Game.getgame()
         cards = g.deck.getcards(len(tl))
         g.players.reveal(cards)
         migrate_cards(cards, g.deck.special)
-        g.emit_event('harvest_cards', cards)
+        trans = InputTransaction('HarvestChoose', g.players, cards=cards)
+        trans.begin()
         self.cards = cards
+        self.trans = trans
 
     def cleanup(self):
         g = Game.getgame()
+        self.trans.end()
         g.emit_event('harvest_finish', self)
         dropped = g.deck.droppedcards
         migrate_cards([c for c in self.cards if c.resides_in is g.deck.special], dropped)
 
+
 class Camera(InstantSpellCardAction):
     # 文文的相机
     def apply_action(self):
-        src = self.source
         tgt = self.target
 
         cards = list(tgt.cards)[:2]
@@ -390,6 +358,7 @@ class Camera(InstantSpellCardAction):
 
         return True
 
+
 class DollControl(InstantSpellCardAction):
     def apply_action(self):
         tl = self.target_list
@@ -397,11 +366,7 @@ class DollControl(InstantSpellCardAction):
         src = self.source
 
         controllee, attackee = tl
-        cats = [
-            controllee.cards,
-            controllee.showncards,
-        ]
-        cards = user_choose_cards(self, controllee, cats)
+        cards = user_choose_cards(self, controllee, ['cards', 'showncards'])
         g = Game.getgame()
 
         if cards:
@@ -413,7 +378,6 @@ class DollControl(InstantSpellCardAction):
         return True
 
     def cond(self, cl):
-        from .definition import AttackCard
         if len(cl) != 1: return False
         if not cl[0].associated_action: return False
         if issubclass(cl[0].associated_action, basic.Attack): return True
@@ -426,12 +390,9 @@ class DonationBoxEffect(InstantSpellCardAction):
         src = self.source
         g = Game.getgame()
 
-        cats = [
-            t.cards,
-            t.showncards,
-            t.equips,
-        ]
-        cards = user_choose_cards(self, t, cats)
+        catnames = ['cards', 'showncards', 'equips']
+        cats = [getattr(t, i) for i in catnames]
+        cards = user_choose_cards(self, t, catnames)
         if not cards:
             cards = [random_choose_card(cats)]
 
@@ -443,7 +404,7 @@ class DonationBoxEffect(InstantSpellCardAction):
 
     def cond(self, cards):
         return len(cards) == 1 and cards[0].resides_in.type in (
-            'handcard', 'showncard', 'equips'
+            'cards', 'showncards', 'equips'
         )
 
     def is_valid(self):
@@ -454,6 +415,7 @@ class DonationBoxEffect(InstantSpellCardAction):
 
 class DonationBox(ForEach):
     action_cls = DonationBoxEffect
+
     def is_valid(self):
         tl = self.target_list
         if not 0 < len(tl) <= 2: return False
@@ -495,100 +457,3 @@ class FrozenFrogHandler(EventHandler):
                 del tgt.tags['freezed']
                 act.cancelled = True
         return act
-
-
-class LotteryHeart(GenericAction):
-    def apply_action(self):
-        tgt = self.target
-        g = Game.getgame()
-        candidates = [
-            p for p in g.players
-            if (p.cards or p.showncards or p.equips or p.fatetell) and not p.dead
-        ]
-        pl = user_choose_players(self, tgt, candidates)
-        if not pl:
-            return True
-
-        p = pl[0]
-
-        cats = [p.cards, p.showncards, p.equips, p.fatetell]
-        card = choose_peer_card(tgt, p, cats)
-        if not card:
-            return True
-
-        tgt.reveal(card)
-        migrate_cards([card], tgt.cards, unwrap=True)
-        return True
-
-    def choose_player_target(self, pl):
-        return (pl[-1:], True)
-
-
-class LotteryDiamond(GenericAction):
-    def apply_action(self):
-        tgt = self.target
-        g = Game.getgame()
-
-        cards = user_choose_cards(self, tgt, [tgt.cards, tgt.showncards])
-        if not cards:
-            return True
-
-        g.process_action(DropCards(tgt, cards))
-        g.process_action(DrawCards(tgt, len(cards)))
-
-        return True
-
-    def cond(self, cards):
-        return len(cards) <= 2
-
-
-class LotteryClub(GenericAction):
-    def apply_action(self):
-        tgt = self.target
-        cats = [tgt.cards, tgt.showncards, tgt.equips]
-        if not any(cats):
-            return True
-
-        cards = user_choose_cards(self, tgt, cats)
-        if not cards:
-            cards = [random_choose_card(cats)]
-
-        g = Game.getgame()
-        g.players.reveal(cards)
-        g.process_action(DropCards(tgt, cards))
-        return True
-
-    def cond(self, cards):
-        return len(cards) == 1
-
-
-class LotterySpade(GenericAction):
-    def apply_action(self):
-        tgt = self.target
-        Game.getgame().process_action(LifeLost(tgt, tgt, 1))
-        return True
-
-
-class Lottery(InstantSpellCardAction):
-    # 御神签
-    mapping = {
-        base.Card.HEART: LotteryHeart,
-        base.Card.DIAMOND: LotteryDiamond,
-        base.Card.CLUB: LotteryClub,
-        base.Card.SPADE: LotterySpade,
-    }
-    def apply_action(self):
-        src = self.source
-        g = Game.getgame()
-        g.process_action(DrawCards(src, 1))
-        if not self.target_list:
-            return True
-
-        for tgt in self.target_list:
-            ft = TurnOverCard(tgt, lambda card: True)
-            g.process_action(ft)
-            suit = ft.card.suit
-            ActionClass = self.mapping[suit]
-            g.process_action(ActionClass(src, tgt))
-
-        return True

@@ -65,7 +65,10 @@ def property(f):
     f._is_property = True
     return f
 
-# -----COMMON FUNCTIONS-----
+
+# -----BEGIN COMMON FUNCTIONS-----
+
+
 def my_turn():
     g = G()
 
@@ -106,6 +109,7 @@ ftstring = {
 }
 del C
 
+
 def card_desc(c):
     suit = ftstring.get(c.suit, u'|r错误')
     num = ' A23456789_JQK'[c.number]
@@ -114,7 +118,7 @@ def card_desc(c):
 
 
 def build_handcard(cardcls):
-    cl = cards.CardList(G().me, 'handcard')
+    cl = cards.CardList(G().me, 'cards')
     c = cardcls()
     c.move_to(cl)
     return c
@@ -124,10 +128,12 @@ def build_handcard(cardcls):
 # -----BEGIN THB3v3 UI META-----
 __metaclass__ = gen_metafunc(thb3v3)
 
+
 class ActFirst:
     # choose_option meta
     choose_option_buttons = ((u'先出牌', True), (u'弃权', False))
     choose_option_prompt = u'你要首先出牌吗（可以转让给己方阵营的其他玩家）？'
+
 
 class THBattle:
     name = u'符斗祭 - 3v3 - 休闲'
@@ -156,6 +162,7 @@ class THBattle:
 # -----BEGIN THBKOF UI META-----
 __metaclass__ = gen_metafunc(thbkof)
 
+
 class THBattleKOF:
     name = u'符斗祭 - KOF模式'
     logo = gres.thblogo_kof
@@ -183,6 +190,7 @@ class THBattleKOF:
 
 # -----BEGIN THBIdentity UI META-----
 __metaclass__ = gen_metafunc(thbidentity)
+
 
 class THBattleIdentity:
     name = u'符斗祭 - 标准8人身份场'
@@ -274,7 +282,7 @@ class THBattleRaid:
         u"|R距离|r：所有人之间的默认距离为1\n"
         u"\n"
         u"|R出牌顺序|r：\n"
-        u"(解决者1->异变->解决者2->异变->解决者3->异变)->……\n"
+        u"(异变->解决者1->异变->解决者2->异变->解决者3)->……\n"
         u"异变变身后, 立即终止卡牌结算，从异变开始：\n"
         u"(异变->解决者1->解决者2->解决者3)->……\n"
         u"解决者们可以任意决定行动顺序，但是每轮一个解决者仅能行动一次。\n"
@@ -336,7 +344,7 @@ class Cooperation:
         if len(acards) > 2:
             return (False, u'最多选择两张')
 
-        if any(c.resides_in.type not in ('handcard', 'showncard') for c in acards):
+        if any(c.resides_in.type not in ('cards', 'showncards') for c in acards):
             return (False, u'只能选择手牌！')
 
         if len(target_list) != 1:
@@ -369,6 +377,7 @@ class ProtectionAction:
 class ProtectionHandler:
     # choose_option
     choose_option_buttons = ((u'保护', True), (u'不保护', False))
+
     def choose_option_prompt(act):
         return u'你要使用1点信仰承受此次的%d点伤害吗？' % act.dmgact.amount
 
@@ -437,7 +446,7 @@ class FaithExchange:
 
 class RequestAction:
     # choose_option
-    choose_option_buttons = ((u'行动', True), (u'等一下', False))
+    choose_option_buttons = ((u'行动', True), (u'等一下', None))
     choose_option_prompt = u'你要行动吗？'
 
 # -----END THBRaid UI META-----
@@ -464,6 +473,7 @@ class DropCardStage:
 
 class Damage:
     update_portrait = True
+
     def effect_string(act):
         s, t = act.source, act.target
         if s:
@@ -478,6 +488,7 @@ class Damage:
 
 class LifeLost:
     update_portrait = True
+
     def effect_string(act):
         return u'|G【%s】|r流失了%d点体力。' % (
             act.target.ui_meta.char_name, act.amount
@@ -509,6 +520,7 @@ class LaunchCard:
 class PlayerDeath:
     barrier = True
     update_portrait = True
+
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|rMISS了。' % (
@@ -519,6 +531,7 @@ class PlayerDeath:
 class PlayerRevive:
     barrier = True
     update_portrait = True
+
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|r重新回到了场上。' % (
@@ -563,6 +576,7 @@ class RevealIdentity:
             Game.getgame().ui_meta.identity_table[i.type],
         )
 
+
 class Pindian:
     # choose_card meta
     def choose_card_text(g, act, cards):
@@ -587,6 +601,17 @@ class Pindian:
 
 # -----BEGIN CARDS UI META-----
 __metaclass__ = gen_metafunc(cards)
+
+
+class CardList:
+    lookup = {
+        'cards': u'手牌区',
+        'showncards': u'明牌区',
+        'equips': u'装备区',
+        'fatetell': u'判定区',
+        'faiths': u'信仰',
+    }
+
 
 class HiddenCard:
     # action_stage meta
@@ -659,7 +684,7 @@ class WineRevive:
 
 class ExinwanCard:
     # action_stage meta
-    name =u'恶心丸'
+    name = u'恶心丸'
     image = gres.card_exinwan
     description = (
         u'|R恶心丸|r\n\n'
@@ -687,6 +712,7 @@ class ExinwanEffect:
 class UseGraze:
     # choose_card meta
     image = gres.card_graze
+
     def choose_card_text(g, act, cards):
         if act.cond(cards):
             return (True, u'我闪！')
@@ -705,6 +731,7 @@ class UseGraze:
 class LaunchGraze:
     # choose_card meta
     image = gres.card_graze
+
     def choose_card_text(g, act, cards):
         if act.cond(cards):
             return (True, u'我闪！')
@@ -795,7 +822,7 @@ class DemolitionCard:
         if not target_list:
             return (False, u'请选择拆除目标')
 
-        target= target_list[0]
+        target = target_list[0]
         if not len(target.cards) + len(target.showncards) + len(target.equips) + len(target.fatetell):
             return (False, u'这货已经没有牌了')
         else:
@@ -820,6 +847,7 @@ class RejectCard:
         u'|R好人卡|r\n\n'
         u'目标符卡对目标角色生效前，对目标符卡使用。抵消该符卡对其指定的一名目标角色产生的效果。'
     )
+
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动出好人卡')
 
@@ -875,6 +903,7 @@ class SealingArrayCard:
 
         return (True, u'画个圈圈诅咒你！')
 
+
 class SealingArray:
     def effect_string(act):
         tgt = act.target
@@ -882,6 +911,7 @@ class SealingArray:
             return u'|G【%s】|r被困在了封魔阵中' % tgt.ui_meta.char_name
         else:
             return u'封魔阵没有布置完善，|G【%s】|r侥幸逃了出来' % tgt.ui_meta.char_name
+
 
 class FrozenFrogCard:
     # action_stage meta
@@ -904,6 +934,7 @@ class FrozenFrogCard:
 
         return (True, u'伸手党什么的，冻住就好了！')
 
+
 class FrozenFrog:
     def effect_string(act):
         tgt = act.target
@@ -911,6 +942,7 @@ class FrozenFrog:
             return u'|G【%s】|r被冻住了……' % tgt.ui_meta.char_name
         else:
             return u'幻想乡今天大晴，|G【%s】|r没有被冻住~' % tgt.ui_meta.char_name
+
 
 class NazrinRodCard:
     # action_stage meta
@@ -921,8 +953,10 @@ class NazrinRodCard:
         u'非延时符卡\n'
         u'出牌阶段使用，从牌堆摸两张牌。'
     )
+
     def is_action_valid(g, cl, target_list):
         return (True, u'看看能找到什么好东西~')
+
 
 class SinsackCard:
     # action_stage meta
@@ -940,14 +974,17 @@ class SinsackCard:
     def is_action_valid(g, cl, target_list):
         return (True, u'别来找我！')
 
+
 class Sinsack:
     def effect_string(act):
         tgt = act.target
         if act.succeeded:
             return u'罪袋终于找到了机会，将|G【%s】|r推倒了…' % tgt.ui_meta.char_name
 
+
 def equip_iav(g, cl, target_list):
     return (True, u'配上好装备，不再掉节操！')
+
 
 class OpticalCloakCard:
     # action_stage meta
@@ -961,6 +998,7 @@ class OpticalCloakCard:
 
     is_action_valid = equip_iav
 
+
 class OpticalCloakSkill:
     # Skill
     name = u'光学迷彩'
@@ -971,10 +1009,12 @@ class OpticalCloakSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class OpticalCloakHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【光学迷彩】吗？'
+
 
 class OpticalCloak:
     def effect_string_before(act):
@@ -996,6 +1036,8 @@ ufo_desc = (
     u'|B|R>> |r绿色UFO为防守用，当其它玩家计算和你的距离时,在原有的基础上增加相应距离。\n'
     u'|B|R>> |r你可以同时装备两种UFO'
 )
+
+
 class GreenUFOCard:
     # action_stage meta
     name = u'绿色UFO'
@@ -1004,6 +1046,7 @@ class GreenUFOCard:
     description = ufo_desc % name
 
     is_action_valid = equip_iav
+
 
 class GreenUFOSkill:
     # Skill
@@ -1016,6 +1059,7 @@ class GreenUFOSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class RedUFOCard:
     # action_stage meta
     name = u'红色UFO'
@@ -1024,6 +1068,7 @@ class RedUFOCard:
     description = ufo_desc % name
 
     is_action_valid = equip_iav
+
 
 class RedUFOSkill:
     # Skill
@@ -1035,6 +1080,7 @@ class RedUFOSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class YukariDimensionCard:
     # action_stage meta
@@ -1050,11 +1096,12 @@ class YukariDimensionCard:
         if not target_list:
             return (False, u'请选择目标')
 
-        target= target_list[0]
+        target = target_list[0]
         if not (target.cards or target.showncards or target.equips or target.fatetell):
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'请把胖次给我！')
+
 
 class YukariDimension:
     def effect_string(act):
@@ -1065,6 +1112,7 @@ class YukariDimension:
                 tgt.ui_meta.char_name
             )
 
+
 class DuelCard:
     # action_stage meta
     image = gres.card_duel
@@ -1073,11 +1121,13 @@ class DuelCard:
         u'|R弹幕战|r\n\n'
         u'出牌阶段对(除自己外)任意一名玩家使用，由目标角色先开始，你和他（她）轮流打出一张【弹幕】，【弹幕战】对首先不出【弹幕】的一方造成1点伤害；另一方成为此伤害的来源。'
     )
+
     def is_action_valid(g, cl, target_list):
         if not target_list:
             return (False, u'请选择弹幕战的目标')
 
         return (True, u'来，战个痛快！')
+
 
 class MapCannonCard:
     image = gres.card_mapcannon
@@ -1090,6 +1140,7 @@ class MapCannonCard:
     def is_action_valid(g, cl, target_list):
         return (True, u'一个都不能跑！')
 
+
 class SinsackCarnivalCard:
     image = gres.card_sinsackcarnival
     name = u'罪袋狂欢'
@@ -1097,8 +1148,10 @@ class SinsackCarnivalCard:
         u'|R罪袋狂欢|r\n\n'
         u'出牌阶段使用,(除自己外)所有玩家各需出一张【弹幕】，没有【弹幕】（或不出）的玩家受到一点伤害。'
     )
+
     def is_action_valid(g, cl, target_list):
         return (True, u'罪袋们来送水啦！')
+
 
 class HakuroukenCard:
     # action_stage meta
@@ -1111,6 +1164,7 @@ class HakuroukenCard:
     )
     is_action_valid = equip_iav
 
+
 class HakuroukenSkill:
     # Skill
     name = u'白楼剑'
@@ -1121,6 +1175,7 @@ class HakuroukenSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class Hakurouken:
     def effect_string_apply(act):
         a = act.action
@@ -1129,6 +1184,7 @@ class Hakurouken:
             src.ui_meta.char_name,
             tgt.ui_meta.char_name,
         )
+
 
 class ElementalReactorCard:
     # action_stage meta
@@ -1200,6 +1256,7 @@ class RoukankenCard:
     )
     is_action_valid = equip_iav
 
+
 class RoukankenSkill:
     # Skill
     name = u'楼观剑'
@@ -1209,6 +1266,7 @@ class RoukankenSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class RoukankenHandler:
     # choose_card
@@ -1301,6 +1359,7 @@ class LaevateinCard:
 
     is_action_valid = equip_iav
 
+
 class LaevateinSkill:
     # Skill
     name = u'莱瓦汀'
@@ -1342,6 +1401,7 @@ class LaevateinSkill:
             u'】|r、|G【'.join(tl.ui_meta.char_name),
         )
 
+
 class TridentCard:
     # action_stage meta
     name = u"三叉戟"
@@ -1352,8 +1412,8 @@ class TridentCard:
         u'攻击范围5，你使用【弹幕】对一名角色造成伤害时，你可以弃掉对方装备区里的一个UFO。'
     )
 
-
     is_action_valid = equip_iav
+
 
 class TridentSkill:
     # Skill
@@ -1364,6 +1424,7 @@ class TridentSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class RepentanceStickCard:
     # action_stage meta
@@ -1377,6 +1438,7 @@ class RepentanceStickCard:
 
     is_action_valid = equip_iav
 
+
 class RepentanceStickSkill:
     # Skill
     name = u'悔悟棒'
@@ -1387,10 +1449,12 @@ class RepentanceStickSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class RepentanceStickHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【悔悟棒】吗？'
+
 
 class RepentanceStick:
     def effect_string_before(act):
@@ -1409,6 +1473,7 @@ class RepentanceStick:
             u'|r和|G'.join(cl.ui_meta.name)
         )
 
+
 class FeastCard:
     # action_stage meta
     image = gres.card_feast
@@ -1420,6 +1485,7 @@ class FeastCard:
 
     def is_action_valid(g, cl, target_list):
         return (True, u'开宴啦~~')
+
 
 class HarvestCard:
     # action_stage meta
@@ -1433,6 +1499,7 @@ class HarvestCard:
     def is_action_valid(g, cl, target_list):
         return (True, u'麻薯会有的，节操是没有的！')
 
+
 class HarvestEffect:
     def effect_string(act):
         if not act.succeeded: return None
@@ -1443,11 +1510,13 @@ class HarvestEffect:
             c.ui_meta.name,
         )
 
+
 class MaidenCostumeEffect:
     def effect_string(act):
         return u'|G【%s】|r美美的穿着巫女服，却在危险来到的时候踩到了裙边……' % (
             act.target.ui_meta.char_name,
         )
+
 
 class MaidenCostumeCard:
     # action_stage meta
@@ -1468,6 +1537,7 @@ class MaidenCostumeCard:
             return (True, u'真的要自己穿上吗？')
         return (True, u'\腋/！')
 
+
 class MaidenCostumeSkill:
     # Skill
     name = u'巫女服'
@@ -1477,6 +1547,7 @@ class MaidenCostumeSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class IbukiGourdCard:
     # action_stage meta
@@ -1489,6 +1560,7 @@ class IbukiGourdCard:
         u'当装备在进攻马位置。在装备、失去装备及回合结束时获得|B喝醉|r状态'
     )
 
+
 class IbukiGourdSkill:
     # Skill
     name = u'伊吹瓢'
@@ -1498,6 +1570,7 @@ class IbukiGourdSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class HouraiJewelCard:
     # action_stage meta
@@ -1513,6 +1586,7 @@ class HouraiJewelCard:
 
     is_action_valid = equip_iav
 
+
 class HouraiJewelSkill:
     # Skill
     name = u'蓬莱玉枝'
@@ -1523,10 +1597,12 @@ class HouraiJewelSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class HouraiJewelHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【蓬莱玉枝】吗？'
+
 
 class HouraiJewelAttack:
     def effect_string_apply(act):
@@ -1536,6 +1612,7 @@ class HouraiJewelAttack:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
 
 class SaigyouBranchCard:
     # action_stage meta
@@ -1548,6 +1625,7 @@ class SaigyouBranchCard:
     )
     is_action_valid = equip_iav
 
+
 class SaigyouBranchSkill:
     # Skill
     name = u'西行妖'
@@ -1558,10 +1636,12 @@ class SaigyouBranchSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class SaigyouBranchHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【西行妖枝条】吗？'
+
 
 class SaigyouBranch:
     def effect_string_before(act):
@@ -1580,6 +1660,7 @@ class SaigyouBranch:
                 act.source.ui_meta.char_name,
             )
 
+
 class FlirtingSwordCard:
     # action_stage meta
     name = u'调教剑'
@@ -1591,6 +1672,7 @@ class FlirtingSwordCard:
     )
     is_action_valid = equip_iav
 
+
 class FlirtingSwordSkill:
     # Skill
     name = u'调教剑'
@@ -1600,6 +1682,7 @@ class FlirtingSwordSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class FlirtingSword:
     # choose_card
@@ -1633,10 +1716,12 @@ class FlirtingSword:
                 act.source.ui_meta.char_name,
             )
 
+
 class FlirtingSwordHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【调教剑】吗？'
+
 
 class CameraCard:
     # action_stage meta
@@ -1657,6 +1742,7 @@ class CameraCard:
 
         return (True, u'摄影的境界，你们这些玩器材的永远都不会懂！')
 
+
 class AyaRoundfanCard:
     # action_stage meta
     name = u'团扇'
@@ -1668,6 +1754,7 @@ class AyaRoundfanCard:
     )
     is_action_valid = equip_iav
 
+
 class AyaRoundfanSkill:
     # Skill
     name = u'团扇'
@@ -1678,6 +1765,7 @@ class AyaRoundfanSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class AyaRoundfanHandler:
     # choose_card
     def choose_card_text(g, act, cards):
@@ -1685,6 +1773,7 @@ class AyaRoundfanHandler:
             return (True, u'这种妨碍拍摄的东西，统统脱掉！')
         else:
             return (False, u'请弃掉一张手牌发动团扇（否则不发动）')
+
 
 class AyaRoundfan:
     def effect_string_before(act):
@@ -1702,6 +1791,7 @@ class AyaRoundfan:
             act.card.ui_meta.name,
         )
 
+
 class ScarletRhapsodySwordCard:
     # action_stage meta
     name = u'绯想之剑'
@@ -1713,6 +1803,7 @@ class ScarletRhapsodySwordCard:
     )
     is_action_valid = equip_iav
 
+
 class ScarletRhapsodySwordSkill:
     # Skill
     name = u'绯想之剑'
@@ -1723,6 +1814,7 @@ class ScarletRhapsodySwordSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class ScarletRhapsodySwordAttack:
     # choose_card
     def choose_card_text(g, act, cards):
@@ -1730,6 +1822,7 @@ class ScarletRhapsodySwordAttack:
             return (True, u'闪过头了！')
         else:
             return (False, u'请弃掉两张牌发动绯想之剑（否则不发动）')
+
 
 class ScarletRhapsodySword:
     def effect_string_before(act):
@@ -1740,6 +1833,7 @@ class ScarletRhapsodySword:
         ) % (
             tn, sn
         )
+
 
 class DeathSickleCard:
     # action_stage meta
@@ -1752,6 +1846,7 @@ class DeathSickleCard:
     )
     is_action_valid = equip_iav
 
+
 class DeathSickleSkill:
     # Skill
     name = u'死神之镰'
@@ -1762,6 +1857,7 @@ class DeathSickleSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class DeathSickle:
     def effect_string(act):
         return (
@@ -1771,6 +1867,7 @@ class DeathSickle:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
 
 class KeystoneCard:
     # action_stage meta
@@ -1784,6 +1881,7 @@ class KeystoneCard:
     )
     is_action_valid = equip_iav
 
+
 class KeystoneSkill:
     # Skill
     name = u'要石'
@@ -1794,11 +1892,13 @@ class KeystoneSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class Keystone:
     def effect_string(act):
         return u'|G【%s】|r站在|G要石|r上，照着|G罪袋|r的脸一脚踹了下去！' % (
             act.target.ui_meta.char_name
         )
+
 
 class WitchBroomCard:
     # action_stage meta
@@ -1811,9 +1911,11 @@ class WitchBroomCard:
         u'特殊的红色UFO装备，距离-2'
     )
 
+
 class WitchBroomSkill:
     # Skill
     no_display = True
+
 
 class YinYangOrbCard:
     # action_stage meta
@@ -1826,6 +1928,7 @@ class YinYangOrbCard:
     )
     is_action_valid = equip_iav
 
+
 class YinYangOrbSkill:
     # Skill
     name = u'阴阳玉'
@@ -1836,10 +1939,12 @@ class YinYangOrbSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class YinYangOrbHandler:
     # choose_option
     choose_option_buttons = ((u'替换', True), (u'不替换', False))
     choose_option_prompt = u'你要使用【阴阳玉】替换当前的判定牌吗？'
+
 
 class YinYangOrb:
     def effect_string(act):
@@ -1848,6 +1953,7 @@ class YinYangOrb:
         ) % (
             act.target.ui_meta.char_name,
         )
+
 
 class SuwakoHatCard:
     # action_stage meta
@@ -1860,6 +1966,7 @@ class SuwakoHatCard:
     )
     is_action_valid = equip_iav
 
+
 class SuwakoHatSkill:
     # Skill
     name = u'青蛙帽'
@@ -1869,6 +1976,7 @@ class SuwakoHatSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class YoumuPhantomCard:
     # action_stage meta
@@ -1882,6 +1990,7 @@ class YoumuPhantomCard:
 
     is_action_valid = equip_iav
 
+
 class YoumuPhantomSkill:
     # Skill
     name = u'半灵'
@@ -1891,6 +2000,7 @@ class YoumuPhantomSkill:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class IceWingCard:
     # action_stage meta
@@ -1904,6 +2014,7 @@ class IceWingCard:
 
     is_action_valid = equip_iav
 
+
 class IceWingSkill:
     # Skill
     name = u'⑨的翅膀'
@@ -1914,12 +2025,14 @@ class IceWingSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class IceWing:
     def effect_string(act):
         return u'|G【%s】|r借着|G⑨的翅膀|r飞了出来，|G%s|r没起到什么作用' % (
             act.target.ui_meta.char_name,
             act.action.associated_card.ui_meta.name,
         )
+
 
 class GrimoireCard:
     # action_stage meta
@@ -1935,6 +2048,7 @@ class GrimoireCard:
         u'|B|R>> |r弃牌为梅花：视为发动【地图炮】'
     )
     is_action_valid = equip_iav
+
 
 class GrimoireSkill:
     # Skill
@@ -1981,6 +2095,7 @@ class GrimoireSkill:
             card.lookup_tbl[card.associated_cards[0].suit].ui_meta.name
         )
 
+
 class DollControlCard:
     # action_stage meta
     name = u'人形操控'
@@ -2011,6 +2126,7 @@ class DollControlCard:
             if not lc.can_fire():
                 return (False, u'被控者无法向目标出【弹幕】！')
             return (True, u'乖，听话！')
+
 
 class DollControl:
     # choose card meta
@@ -2049,6 +2165,7 @@ class DonationBoxCard:
 
         return (True, u'纳奉！纳奉！')
 
+
 class DonationBoxEffect:
     # choose card meta
     def choose_card_text(g, act, cards):
@@ -2057,67 +2174,11 @@ class DonationBoxEffect:
         else:
             return (False, u'请选择一张牌（否则会随机选择一张）')
 
-
-class LotteryCard:
-    # action_stage meta
-    name = u'御神签'
-    image = gres.card_lottery
-    description = (
-        u'|R御神签|r\n\n'
-        u'符卡，你可以选择1名玩家作为目标（或不选）。当你使用此符卡时，你摸一张牌。若选择了目标，则目标翻开牌堆顶的一张牌：\n'
-        u'|B|R>> |r红桃：目标可以将场上的任意一张牌收入手牌\n'
-        u'|B|R>> |r方片：目标可以弃置至多2张手牌，并且摸相同数量的牌\n'
-        u'|B|R>> |r草花：目标须弃置一张牌\n'
-        u'|B|R>> |r黑桃：目标流失1点体力'
-    )
-
-    def is_action_valid(g, cl, tl):
-        n = len(tl)
-        if n == 0:
-            return (True, u'请选择目标（或者不选）')
-
-        return (True, u'运气也是实力的一部分！')
-
-
-class LotteryHeart:
-    # choose_players
-    def target(pl):
-        if not pl:
-            return (True, u'御神签效果：请选择1玩家，抽取一张牌(或不选)')
-
-        return (True, u'收集信仰！')
-
-    def effect_string_apply(act):
-        return u'大吉！'
-
-
-class LotteryDiamond:
-    # choose card meta
-    def choose_card_text(g, act, cards):
-        return (True, u'御神签效果：请选择至多2张手牌换走（或不选）')
-
-    def effect_string_apply(act):
-        return u'小吉！'
-
-
-class LotteryClub:
-    # choose card meta
-    def choose_card_text(g, act, cards):
-        return (True, u'御神签效果：请选择1张牌弃置')
-
-    def effect_string_apply(act):
-        return u'小凶！'
-
-
-class LotterySpade:
-    def effect_string_apply(act):
-        return u'大凶！'
-
-
 # -----END CARDS UI META-----
 
 # -----BEGIN CHARACTERS UI META-----
 __metaclass__ = gen_metafunc(characters.parsee)
+
 
 class Parsee:
     # Character
@@ -2127,6 +2188,7 @@ class Parsee:
         u'|DB地壳下的嫉妒心 水桥帕露西 体力：4|r\n\n'
         u'|G嫉妒|r：出牌阶段，你可以将一张黑色牌当做【城管执法】使用，若以此法使一名距离1以内角色的一张方片牌进入弃牌堆，你可以获得之。'
     )
+
 
 class Envy:
     # Skill
@@ -2170,11 +2232,13 @@ class Envy:
         )
         return s
 
+
 class EnvyHandler:
     choose_option_buttons = ((u'获得', True), (u'不获得', False))
 
     def choose_option_prompt(act):
         return u'你要获得【%s】吗？' % act.card.ui_meta.name
+
 
 class EnvyRecycleAction:
     def effect_string(act):
@@ -2185,6 +2249,7 @@ class EnvyRecycleAction:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.youmu)
+
 
 class Youmu:
     # Character
@@ -2198,6 +2263,7 @@ class Youmu:
         u'|G现世妄执|r：|B觉醒技|r，同时装备了楼观剑与白楼剑获得此技能（卸掉/更换装备不会失去）。一回合内你可以使用两张【弹幕】。'
     )
 
+
 class Mijincihangzhan:
     # Skill
     name = u'迷津慈航斩'
@@ -2208,12 +2274,14 @@ class Mijincihangzhan:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class MijincihangzhanAttack:
     def effect_string_apply(act):
         src = act.source
         return u'|G【%s】|r在弹幕中注入了妖力，弹幕形成了一个巨大的光刃，怕是不能轻易地闪开的！' % (
             src.ui_meta.char_name,
         )
+
 
 class Nitoryuu:
     # Skill
@@ -2224,6 +2292,7 @@ class Nitoryuu:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class Xianshiwangzhi:
     # Skill
@@ -2239,6 +2308,7 @@ class Xianshiwangzhi:
 # ----------
 __metaclass__ = gen_metafunc(characters.koakuma)
 
+
 class Koakuma:
     # Character
     char_name = u'小恶魔'
@@ -2247,6 +2317,7 @@ class Koakuma:
         u'|DB图书管理员 小恶魔 体力：4|r\n\n'
         u'|G寻找|r：出牌阶段，你可以弃掉任意数量的牌，然后摸取等量的牌。每回合里，你最多可以使用一次寻找。'
     )
+
 
 class Find:
     # Skill
@@ -2291,6 +2362,7 @@ class Find:
 # ----------
 __metaclass__ = gen_metafunc(characters.marisa)
 
+
 class Marisa:
     # Character
     char_name = u'雾雨魔理沙'
@@ -2300,6 +2372,7 @@ class Marisa:
         u'|G借走|r：摸牌阶段，你可以放弃摸牌，然后从至多两名角色的手牌里各抽取一张牌，置入你的明牌区。\n\n'
         u'|G极限火花|r：你可以使用两张【擦弹】作为一张无距离限制的【弹幕】使用或打出。'
     )
+
 
 class MasterSpark:
     # Skill
@@ -2313,17 +2386,18 @@ class MasterSpark:
         except IndexError:
             return False
 
-        if act.target is not me: return False
+        # if act.target is not me: return False  # act may has no 'target' attrib
         if not (me.cards or me.showncards): return False
 
         if isinstance(act, actions.ActionStage):
-            return True
+            if act.target is me:
+                return True
 
         if isinstance(act, (cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
-            return True
+            if act.target is me:
+                return True
 
         return False
-
 
     def is_complete(g, cl):
         cl = cl[0].associated_cards
@@ -2349,6 +2423,7 @@ class MasterSpark:
             act.target.ui_meta.char_name,
         )
 
+
 class Borrow:
     # Skill
     name = u'借走'
@@ -2358,6 +2433,7 @@ class Borrow:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class BorrowHandler:
     # choose_option
@@ -2371,6 +2447,7 @@ class BorrowHandler:
 
         return (True, u'哎哎，什么还不还的~')
 
+
 class BorrowAction:
     def effect_string(act):
         return u'大盗|G【%s】|r又跑出来“|G借走|r”了|G【%s】|r的牌。' % (
@@ -2381,6 +2458,7 @@ class BorrowAction:
 # ----------
 __metaclass__ = gen_metafunc(characters.daiyousei)
 
+
 class Daiyousei:
     # Character
     char_name = u'大妖精'
@@ -2390,6 +2468,7 @@ class Daiyousei:
         u'|G支援|r：出牌阶段，你可以将任意数量的除了判定区外的牌以任意分配方式交给其他角色，若你于此阶段中给出的牌张数达到或超过3张时，你回复1点体力。\n\n'
         u'|G卖萌|r：摸牌阶段，你可以摸 2+当前损失的体力数 的牌。'
     )
+
 
 class SupportSkill:
     # Skill
@@ -2428,6 +2507,7 @@ class SupportSkill:
             act.target.ui_meta.char_name,
         )
 
+
 class Moe:
     # Skill
     name = u'卖萌'
@@ -2437,6 +2517,7 @@ class Moe:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class MoeDrawCard:
     def effect_string(act):
@@ -2448,6 +2529,7 @@ class MoeDrawCard:
 # ----------
 __metaclass__ = gen_metafunc(characters.flandre)
 
+
 class Flandre:
     # Character
     char_name = u'芙兰朵露'
@@ -2456,6 +2538,7 @@ class Flandre:
         u'|DB玩坏你哦 芙兰朵露 体力：4|r\n\n'
         u'|G狂咲|r：在你的摸牌阶段，如果你选择只摸一张牌，那么在你的出牌阶段你可以出任意张【弹幕】，并且【弹幕】和【弹幕战】的伤害为2点，但是对同一目标只能使用一张【弹幕】。'
     )
+
 
 class CriticalStrike:
     # Skill
@@ -2467,10 +2550,12 @@ class CriticalStrike:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class CriticalStrikeHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【狂咲】吗？'
+
 
 class CriticalStrikeAction:
     def effect_string(act):
@@ -2480,6 +2565,7 @@ class CriticalStrikeAction:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.alice)
+
 
 class Alice:
     # Character
@@ -2491,6 +2577,7 @@ class Alice:
         u'|G玩偶十字军|r：出牌阶段，你可以将你的饰品作为【人形操控】使用。'
     )
 
+
 class DollManipulation:
     # Skill
     name = u'人形操演'
@@ -2500,6 +2587,7 @@ class DollManipulation:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class DollCrusader:
     # Skill
@@ -2513,12 +2601,10 @@ class DollCrusader:
         except IndexError:
             return False
 
-        if isinstance(act, actions.ActionStage) and \
-            act.target is me and \
-            (me.cards or me.showncards or me.equips):
-            return True
-
-        return False
+        cond = isinstance(act, actions.ActionStage)
+        cond = cond and act.target is me
+        cond = cond and (me.cards or me.showncards or me.equips)
+        return bool(cond)
 
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
@@ -2545,6 +2631,7 @@ class DollCrusader:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.nazrin)
+
 
 class Nazrin:
     # Character
@@ -2604,6 +2691,7 @@ class Agile:
                 return (False, u'请选择一张黑色的牌！')
             return (True, u'这种三脚猫的弹幕，想要打中我是不可能的啦~')
 
+
 class TreasureHunt:
     def effect_string(act):
         if act.succeeded:
@@ -2619,6 +2707,7 @@ class TreasureHunt:
 # ----------
 __metaclass__ = gen_metafunc(characters.yugi)
 
+
 class Yugi:
     # Character
     char_name = u'星熊勇仪'
@@ -2629,6 +2718,7 @@ class Yugi:
         u'|G强袭|r：你与其他玩家结算距离时始终-1\n\n'
         u'|G怪力|r：你对别的角色出【弹幕】时可以选择做一次判定：若判定牌为红色花色，则此【弹幕】不可回避，直接命中；若判定牌为黑色花色，则此【弹幕】可回避，但如果对方没有出【擦弹】，则命中后可以选择弃掉对方一张牌。'
     )
+
 
 class AssaultSkill:
     # Skill
@@ -2668,6 +2758,7 @@ class AssaultSkill:
         )
 '''
 
+
 class FreakingPowerSkill:
     # Skill
     name = u'怪力'
@@ -2678,12 +2769,14 @@ class FreakingPowerSkill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class FreakingPower:
     def effect_string_before(act):
         return u'|G【%s】|r稍微认真了一下，弹幕以惊人的速度冲向|G【%s】|r' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
 
 class YugiHandler:
     # choose_option
@@ -2692,6 +2785,7 @@ class YugiHandler:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.patchouli)
+
 
 class Library:
     # Skill
@@ -2703,11 +2797,13 @@ class Library:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class LibraryDrawCards:
     def effect_string(act):
         return u'|G【%s】|r发动了|G图书|r技能，摸1张牌。' % (
             act.source.ui_meta.char_name,
         )
+
 
 class Knowledge:
     # Skill
@@ -2719,11 +2815,13 @@ class Knowledge:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class KnowledgeAction:
     def effect_string(act):
         return u'|G【%s】|r一眼就看穿了这张符卡，直接挡下。' % (
             act.source.ui_meta.char_name,
         )
+
 
 class Patchouli:
     # Character
@@ -2738,6 +2836,7 @@ class Patchouli:
 # ----------
 __metaclass__ = gen_metafunc(characters.tewi)
 
+
 class Luck:
     # Skill
     name = u'幸运'
@@ -2748,11 +2847,13 @@ class Luck:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class LuckDrawCards:
     def effect_string(act):
         return u'|G【%s】|r觉得手上没有牌就输了，于是又摸了2张牌。' % (
             act.source.ui_meta.char_name,
         )
+
 
 class Tewi:
     # Character
@@ -2863,7 +2964,7 @@ class Tribute:
         if len(cl) != 1: return (False, u'只能选择一张手牌')
 
         from ..cards import CardList
-        if not cl[0].resides_in.type in ('handcard', 'showncard'):
+        if not cl[0].resides_in.type in ('cards', 'showncards'):
             return (False, u'只能选择手牌！')
 
         if len(tl) != 1 or not tl[0].has_skill(characters.reimu_old.TributeTarget):
@@ -2894,6 +2995,7 @@ class Reimu:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.cirno)
+
 
 class PerfectFreeze:
     # Skill
@@ -2948,6 +3050,7 @@ class PerfectFreeze:
             target.ui_meta.char_name,
         )
 
+
 class Cirno:
     # Character
     char_name = u'琪露诺'
@@ -2959,6 +3062,7 @@ class Cirno:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.reimu)
+
 
 class Flight:
     # Skill
@@ -2976,7 +3080,7 @@ class SpiritualAttack:
     name = u'灵击'
 
     def clickable(game):
-        return True # FIXME: !!!!!!
+        return True  # FIXME: !!!!!!
 
     def is_complete(g, cl):
         skill = cl[0]
@@ -2998,6 +3102,7 @@ class SpiritualAttack:
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动使用灵击')
 
+
 class TributeTarget:
     # Skill
     name = u'纳奉'
@@ -3007,6 +3112,7 @@ class TributeTarget:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class Tribute:
     # Skill
@@ -3033,7 +3139,7 @@ class Tribute:
         if not cl: return (False, u'请选择要给出的牌')
         if len(cl) != 1: return (False, u'只能选择一张手牌')
 
-        if not cl[0].resides_in.type in ('handcard', 'showncard'):
+        if not cl[0].resides_in.type in ('cards', 'showncards'):
             return (False, u'只能选择手牌！')
 
         if len(tl) != 1 or not tl[0].has_skill(characters.reimu.TributeTarget):
@@ -3050,6 +3156,7 @@ class Tribute:
             act.target.ui_meta.char_name,
         )
 
+
 class Reimu:
     # Character
     char_name = u'博丽灵梦'
@@ -3065,6 +3172,7 @@ class Reimu:
 # ----------
 __metaclass__ = gen_metafunc(characters.kogasa)
 
+
 class Jolly:
     # Skill
     name = u'愉快'
@@ -3074,6 +3182,7 @@ class Jolly:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class JollyDrawCard:
     def effect_string(act):
@@ -3140,6 +3249,7 @@ class SurpriseSkill:
             act.target.ui_meta.char_name,
         )
 
+
 class Surprise:
     # choose_option
     choose_option_buttons = (
@@ -3165,6 +3275,7 @@ class Surprise:
         else:
             return u'似乎没有什么效果'
 
+
 class Kogasa:
     # Character
     char_name = u'多多良小伞'
@@ -3177,6 +3288,7 @@ class Kogasa:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.eirin)
+
 
 class FirstAid:
     # Skill
@@ -3201,6 +3313,7 @@ class FirstAid:
             return (False, u'请选择一张红色牌！')
 
         return (True, u'k看不到@#@#￥@#￥')
+
 
 class Medic:
     # Skill
@@ -3247,6 +3360,7 @@ class Medic:
             act.target.ui_meta.char_name,
         )
 
+
 class Eirin:
     # Character
     char_name = u'八意永琳'
@@ -3260,6 +3374,7 @@ class Eirin:
 # ----------
 __metaclass__ = gen_metafunc(characters.shikieiki)
 
+
 class Trial:
     # Skill
     name = u'审判'
@@ -3270,6 +3385,7 @@ class Trial:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class TrialAction:
     def effect_string(act):
         return u'幻想乡各地巫女妖怪纷纷表示坚决拥护|G【%s】|r将|G【%s】|r的判定结果修改为%s的有关决定！' % (
@@ -3277,6 +3393,7 @@ class TrialAction:
             act.target.ui_meta.char_name,
             card_desc(act.card)
         )
+
 
 class Majesty:
     # Skill
@@ -3288,12 +3405,14 @@ class Majesty:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class MajestyAction:
     def effect_string(act):
         return u'|G【%s】|r脸上挂满黑线，收走了|G【%s】|r的一张牌作为罚款' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
 
 class TrialHandler:
     # choose_option
@@ -3307,10 +3426,12 @@ class TrialHandler:
         else:
             return (False, u'请选择一张牌代替当前的判定牌')
 
+
 class MajestyHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【威严】吗？'
+
 
 class Shikieiki:
     # Character
@@ -3325,6 +3446,7 @@ class Shikieiki:
 # ----------
 __metaclass__ = gen_metafunc(characters.tenshi)
 
+
 class Masochist:
     # Skill
     name = u'抖Ｍ'
@@ -3335,10 +3457,12 @@ class Masochist:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class MasochistHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【抖Ｍ】吗？'
+
 
 class MasochistAction:
     # choose_card
@@ -3359,6 +3483,7 @@ class MasochistAction:
             act.target.ui_meta.char_name,
         )
 
+
 class Hermit:
     # Skill
     name = u'天人'
@@ -3368,6 +3493,7 @@ class Hermit:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class Tenshi:
     # Character
@@ -3381,6 +3507,7 @@ class Tenshi:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.yuuka)
+
 
 class FlowerQueen:
     # Skill
@@ -3415,7 +3542,8 @@ class FlowerQueen:
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
-        return None # FIXME
+        return None  # FIXME
+
 
 class MagicCannon:
     # Skill
@@ -3427,6 +3555,7 @@ class MagicCannon:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class MagicCannonAttack:
     def effect_string_apply(act):
         return (
@@ -3434,6 +3563,7 @@ class MagicCannonAttack:
         ) % (
             act.target.ui_meta.char_name,
         )
+
 
 class PerfectKill:
     # Skill
@@ -3445,6 +3575,7 @@ class PerfectKill:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class PerfectKillAction:
     def effect_string(act):
         return (
@@ -3452,6 +3583,7 @@ class PerfectKillAction:
         ) % (
             act.source.ui_meta.char_name,
         )
+
 
 class Yuuka:
     # Character
@@ -3466,6 +3598,7 @@ class Yuuka:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.rumia)
+
 
 class Darkness:
     # Skill
@@ -3524,9 +3657,11 @@ class Cheating:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class CheatingDrawCards:
     def effect_string(act):
         return u'突然不知道是谁把太阳挡住了。等到大家回过神来，赫然发现牌堆里少了一张牌！'
+
 
 class Rumia:
     # Character
@@ -3540,6 +3675,7 @@ class Rumia:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.rinnosuke)
+
 
 class Netoru:
     # Skill
@@ -3582,6 +3718,7 @@ class Netoru:
             act.target.ui_meta.char_name,
         )
 
+
 class Psychopath:
     # Skill
     name = u'变态'
@@ -3592,6 +3729,7 @@ class Psychopath:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class PsychopathDrawCards:
     def effect_string(act):
         return (
@@ -3600,6 +3738,7 @@ class PsychopathDrawCards:
             act.target.ui_meta.char_name,
             act.amount,
         )
+
 
 class Rinnosuke:
     # Character
@@ -3614,6 +3753,7 @@ class Rinnosuke:
 # ----------
 __metaclass__ = gen_metafunc(characters.ran)
 
+
 class Prophet:
     # Skill
     name = u'神算'
@@ -3623,6 +3763,7 @@ class Prophet:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class ExtremeIntelligence:
     # Skill
@@ -3634,10 +3775,12 @@ class ExtremeIntelligence:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class ProphetHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【神算】吗？'
+
 
 class ProphetAction:
     def effect_string_before(act):
@@ -3645,10 +3788,12 @@ class ProphetAction:
             act.target.ui_meta.char_name,
         )
 
+
 class ExtremeIntelligenceHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【极智】吗？'
+
 
 class ExtremeIntelligenceAction:
     # choose_card
@@ -3666,6 +3811,7 @@ class ExtremeIntelligenceAction:
             act.source.ui_meta.char_name,
         )
 
+
 class NakedFox:
     # Skill
     name = u'素裸'
@@ -3676,6 +3822,7 @@ class NakedFox:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class NakedFoxAction:
     def effect_string_before(act):
         if act.dmgamount <= 1:
@@ -3684,6 +3831,7 @@ class NakedFoxAction:
             s = u'符卡飞到了|G【%s】|r毛茸茸的大尾巴里，恩……似乎还是有点疼……'
 
         return s % act.target.ui_meta.char_name
+
 
 class Ran:
     # Character
@@ -3698,6 +3846,7 @@ class Ran:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.remilia)
+
 
 class SpearTheGungnir:
     # Skill
@@ -3834,6 +3983,7 @@ class Minoriko:
 # ----------
 __metaclass__ = gen_metafunc(characters.meirin)
 
+
 class RiverBehind:
     # Skill
     name = u'背水'
@@ -3843,6 +3993,7 @@ class RiverBehind:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class Taichi:
     # Skill
@@ -3911,10 +4062,10 @@ class LoongPunchHandler:
 class LoongPunchAction:
     def effect_string_before(act):
         if act.type == 'attack':
-            return u'|G【%s】|r将内力灌入拳中向|G【%s】|r击出，拳未至，气先行，|G【%s】|r的一张手牌被震飞！' % (
+            return u'|G【%s】|r闪过了|G弹幕|r，却没有闪过|G【%s】|r的拳劲，一张手牌被|G【%s】|r震飞！' % (
+                act.target.ui_meta.char_name,
                 act.source.ui_meta.char_name,
-                act.target.ui_meta.char_name,
-                act.target.ui_meta.char_name,
+                act.source.ui_meta.char_name,
             )
         if act.type == 'graze':
             return u'|G【%s】|r擦过弹幕，随即以拳劲沿着弹幕轨迹回震，|G【%s】|r措手不及，一张手牌掉在了地上。' % (
@@ -3944,6 +4095,7 @@ class Meirin:
 # ----------
 __metaclass__ = gen_metafunc(characters.suika)
 
+
 class Drunkard:
     # Skill
     name = u'酒鬼'
@@ -3968,7 +4120,7 @@ class Drunkard:
         if not (
             cl and len(cl) == 1 and
             cl[0].color == Card.BLACK and
-            cl[0].resides_in.type in ('handcard', 'showncard', 'equips')
+            cl[0].resides_in.type in ('cards', 'showncards', 'equips')
         ): return (False, u'请选择一张黑色牌！')
         return (True, u'常在地狱走，怎能没有二锅头！')
 
@@ -3980,6 +4132,7 @@ class Drunkard:
         )
         return s
 
+
 class GreatLandscape:
     # Skill
     name = u'大江山'
@@ -3989,6 +4142,7 @@ class GreatLandscape:
 
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
+
 
 class WineGod:
     # Skill
@@ -4000,6 +4154,7 @@ class WineGod:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class WineDream:
     # Skill
     name = u'醉梦'
@@ -4010,11 +4165,13 @@ class WineDream:
     def is_action_valid(g, cl, target_list):
         return (False, 'BUG!')
 
+
 class WineGodAwake:
     def effect_string_before(act):
         return u'|G【%s】|r找到了自己的本命酒胡芦……喂这样喝没问题吗？' % (
             act.target.ui_meta.char_name,
         )
+
 
 class Suika:
     # Character
@@ -4030,6 +4187,7 @@ class Suika:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.chen)
+
 
 class FlyingSkanda:
     # Skill
@@ -4063,7 +4221,6 @@ class FlyingSkanda:
 
             return (False, u'请选择一张【弹幕】或者除【人形操控】与【好人卡】之外的非延时符卡！')
 
-
         if len(target_list) != 2:
             return (False, u'请选择目标（2名玩家）')
 
@@ -4089,6 +4246,7 @@ class FlyingSkanda:
             u'】|r、|G【'.join(tl.ui_meta.char_name),
         )
 
+
 class Chen:
     # Character
     char_name = u'橙'
@@ -4100,6 +4258,7 @@ class Chen:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.yukari)
+
 
 class Realm:
     # Skill
@@ -4162,6 +4321,7 @@ class RealmSkipAction:
         return u'|G【%s】|r发动了|G境界|r，跳过了出牌阶段，并移动了场上的卡牌。' % (
             act.target.ui_meta.char_name,
         )
+
 
 class RealmSkipActionHandler:
     # choose_card meta
@@ -4229,6 +4389,7 @@ del options
 
 # ----------
 __metaclass__ = gen_metafunc(characters.sakuya)
+
 
 class Sakuya:
     # Character
@@ -4308,6 +4469,7 @@ class LunaClock:
 # ----------
 __metaclass__ = gen_metafunc(characters.sanae)
 
+
 class Sanae:
     # Character
     char_name = u'东风谷早苗'
@@ -4329,6 +4491,7 @@ class DrawingLotAction:
 
 class DrawingLot:
     name = u'御神签'
+
     def clickable(g):
         try:
             act = g.action_stack[-1]
@@ -4350,7 +4513,6 @@ class DrawingLot:
             act.target.ui_meta.char_name,
         )
 
-
     def is_action_valid(g, cl, tl):
         if cl[0].associated_cards:
             return (False, u'请不要选择牌！')
@@ -4361,6 +4523,7 @@ class DrawingLot:
 class Miracle:
     # Skill
     name = u'奇迹'
+
     def clickable(game):
         return False
 
@@ -4388,6 +4551,7 @@ class MiracleHandler:
 # ----------
 __metaclass__ = gen_metafunc(characters.akari)
 
+
 class Akari:
     # Character
     char_name = u'随机角色'
@@ -4399,6 +4563,7 @@ class Akari:
 
 # ----------
 __metaclass__ = gen_metafunc(characters.seiga)
+
 
 class Seiga:
     # Character
@@ -4412,30 +4577,6 @@ class Seiga:
 
         # u'|G穿墙|r：当你成为可指向多人的卡牌、技能的目标时，你可以使该效果无效并摸一张牌。'
     )
-
-
-class Passthru:
-    # Skill
-    name = u'穿墙'
-
-    def clickable(g):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
-
-
-class PassthruAction:
-    def effect_string(act):
-        return u'|G【%s】|r发动了|G穿墙|r技能，跳过了卡牌效果，并摸1张牌。' % (
-            act.source.ui_meta.char_name,
-        )
-
-
-class PassthruHandler:
-    # choose_option meta
-    choose_option_buttons = ((u'跳过并摸牌', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【穿墙】技能吗？'
 
 
 class HeterodoxyHandler:
@@ -4452,8 +4593,8 @@ class HeterodoxySkipAction:
 
 
 class HeterodoxyAction:
-   def ray(act):
-       return [(act.source, act.target_list[0])]
+    def ray(act):
+        return [(act.source, act.target_list[0])]
 
 
 class Heterodoxy:
@@ -4480,7 +4621,7 @@ class Heterodoxy:
 
         card = acards[0]
 
-        if card.resides_in.type not in ('handcard', 'showncard'):
+        if card.resides_in.type not in ('cards', 'showncards'):
             return (False, u'请选择一张手牌!')
 
         if card.is_card(cards.Skill):
@@ -4502,6 +4643,7 @@ class Heterodoxy:
 
 #-----------
 __metaclass__ = gen_metafunc(characters.kaguya)
+
 
 class Kaguya:
     # Character
@@ -4560,6 +4702,7 @@ class DilemmaHealAction:
 class DilemmaHandler:
     # choose_option meta
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
+
     def choose_option_prompt(act):
         _type = {
             'positive': u'正面效果',
@@ -4597,6 +4740,7 @@ class ImperishableNight:
 class ImperishableNightHandler:
     # choose_option meta
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
+
     def choose_option_prompt(act):
         prompt = u'你要发动【永夜】吗（对%s）？'
         return prompt % act.target.ui_meta.char_name
@@ -4648,6 +4792,7 @@ class RemiliaEx2:
 class HeartBreak:
     # Skill
     name = u'碎心'
+
     def effect_string(act):
         return u'|G【%s】|r将信仰灌注在神枪里，向|G【%s】|r使用了|G碎心|r。' % (
             act.source.ui_meta.char_name,
@@ -4672,6 +4817,7 @@ class HeartBreak:
 class NeverNight:
     # Skill
     name = u'不夜城'
+
     def effect_string(act):
         tl = BatchList(act.target_list)
         return u'|G【%s】|r使用了3点信仰，向|G【%s】|r使用了|G不夜城|r。' % (
@@ -4714,6 +4860,7 @@ class ScarletFogEffect:
 class ScarletFog:
     # Skill
     name = u'红雾'
+
     def effect_string(act):
         tl = BatchList(act.target_list)
         return u'|G【%s】|r向|G【%s】|r发动了|G红雾|r！' % (
@@ -4733,7 +4880,7 @@ class ScarletFog:
 
         card = acards[0]
 
-        if card.color != cards.Card.RED or card.resides_in.type not in ('handcard', 'showncard'):
+        if card.color != cards.Card.RED or card.resides_in.type not in ('cards', 'showncards'):
             return (False, u'请选择一张红色的手牌!')
 
         if card.is_card(cards.Skill):
@@ -4771,11 +4918,14 @@ class SeptetHandler:
 
 # -----BEGIN TAGS UI META-----
 tags = {}
+
+
 def tag_metafunc(clsname, bases, _dict):
     data = DataHolder.parse(_dict)
     tags[clsname] = data
 
 __metaclass__ = tag_metafunc
+
 
 class attack_num:
     tag_anim = lambda p: gres.tag_attacked

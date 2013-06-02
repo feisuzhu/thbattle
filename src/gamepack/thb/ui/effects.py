@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.base import *
-from client.ui.base import ui_schedule
-from client.ui.base.interp import *
-from client.ui.controls import *
+from client.ui.base.interp import LinearInterp
+from client.ui.controls import BalloonPrompt, Colors, Control, Panel, ShadowedLabel, SmallProgressBar
 from client.ui.soundmgr import SoundManager
 
 from client.ui.resource import resource as common_res
 from resource import resource as gres
 
-from .game_controls import *
+from .game_controls import CardSprite, SmallCardSprite
 
 import pyglet
-from pyglet.gl import *
 
-from ..actions import *
-from ..cards import *
+from ..actions import Action, ActionStage, BaseFatetell, Damage, LaunchCard, Pindian, PlayerDeath, PlayerTurn, UserAction
+from ..cards import VirtualCard, RejectHandler
+from ..inputlets import ActionInputlet
+
 from game.autoenv import Game
 
 from functools import partial
@@ -51,9 +50,8 @@ class TagAnim(Control, BalloonPrompt):
         self.x, self.y = x, y
 
 
-def card_migration_effects(self, args): # here self is the SimpleGameUI instance
+def card_migration_effects(self, args):  # here self is the SimpleGameUI instance
     act, cards, _from, to = args
-    deck = self.game.deck
     g = self.game
     handcard_update = False
     dropcard_update = False
@@ -64,14 +62,14 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     # --- src ---
     rawcards = [c for c in cards if not c.is_card(VirtualCard)]
 
-    if _from.type == 'equips': # equip area
+    if _from.type == 'equips':  # equip area
         equips = self.player2portrait(_from.owner).equipcard_area
         for cs in equips.cards[:]:
             if cs.associated_card in cards:
                 cs.delete()
         equips.update()
 
-    if _from.type == 'fatetell': # fatetell tag
+    if _from.type == 'fatetell':  # fatetell tag
         port = self.player2portrait(_from.owner)
         taganims = port.taganims
         for a in [t for t in taganims if hasattr(t, 'for_fatetell_card')]:
@@ -80,7 +78,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
                 taganims.remove(a)
         port.tagarrange()
 
-    if to is None: return # not supposed to have visual effects
+    if to is None: return  # not supposed to have visual effects
 
     hca_mapping = {cs.associated_card: (cs, i) for i, cs in enumerate(self.handcard_area.control_list)}
     dca_mapping = {cs.associated_card: (cs, i+100) for i, cs in enumerate(self.dropcard_area.control_list)}
@@ -122,17 +120,16 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
 
     if pca: pca.arrange()
 
-
     # --- dest ---
 
-    if to.type == 'equips': # equip area
+    if to.type == 'equips':  # equip area
         equips = self.player2portrait(to.owner).equipcard_area
         for c in cards:
             cs = SmallCardSprite(c, parent=equips, x=0, y=0)
             cs.associated_card = c
         equips.update()
 
-    if to.type == 'fatetell': # fatetell tag
+    if to.type == 'fatetell':  # fatetell tag
         port = self.player2portrait(to.owner)
         taganims = port.taganims
         for c in cards:
@@ -146,7 +143,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             port.taganims.append(a)
         port.tagarrange()
 
-    if to.owner is g.me and to.type in ('handcard', 'showncard'):
+    if to.owner is g.me and to.type in ('cards', 'showncards'):
         handcard_update = True
         hca = self.handcard_area
         for cs in csl:
@@ -159,7 +156,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
             ca = self.dropcard_area
             if isinstance(act, BaseFatetell):
                 assert len(csl) == 1
-                csl[0].gray = not act.succeeded # may be race condition
+                csl[0].gray = not act.succeeded  # may be race condition
                 csl[0].do_fatetell_anim()
             else:
                 gray = not isinstance(act, (
@@ -182,6 +179,7 @@ def card_migration_effects(self, args): # here self is the SimpleGameUI instance
     if handcard_update: self.handcard_area.update()
     if dropcard_update: self.dropcard_area.update()
 
+
 def damage_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
@@ -192,7 +190,7 @@ def damage_effect(self, act):
 def _update_tags(self, p):
     port = self.player2portrait(p)
     taganims = port.taganims
-    old = {a.for_tag:a for a in taganims if hasattr(a, 'for_tag')}
+    old = {a.for_tag: a for a in taganims if hasattr(a, 'for_tag')}
     old_tags = set(old.keys())
     new_tags = set()
 
@@ -218,7 +216,7 @@ def _update_tags(self, p):
         taganims.remove(old[t])
 
     # for t in new_tags - old_tags: # to be added
-    for t in updated_tags | (new_tags - old_tags): # to be added
+    for t in updated_tags | (new_tags - old_tags):  # to be added
         a = TagAnim(
             tags_meta[t].tag_anim(p),
             0, 0,
@@ -249,7 +247,7 @@ def player_turn_effect(self, act):
     if not hasattr(self, 'turn_frame') or not self.turn_frame:
         self.turn_frame = LoopingAnim(
             common_res.turn_frame,
-            batch = self.animations
+            batch=self.animations
         )
     self.turn_frame.position = (port.x - 6, port.y - 4)
     self.prompt_raw('--------------------\n')
@@ -303,13 +301,13 @@ class UIPindianEffect(Panel):
 
         self.lbls = batch = pyglet.graphics.Batch()
 
-        self.srclbl = lbl = ShadowedLabel(
-            text=src.ui_meta.char_name, x=20+91//2, y=165, font_size=12, 
+        self.srclbl = ShadowedLabel(
+            text=src.ui_meta.char_name, x=20+91//2, y=165, font_size=12,
             color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom', batch=batch
         )
 
-        self.tgtlbl = lbl = ShadowedLabel(
+        self.tgtlbl = ShadowedLabel(
             text=tgt.ui_meta.char_name, x=20+91+20+91//2, y=165, font_size=12,
             color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom', batch=batch
@@ -359,7 +357,9 @@ def input_snd_prompt():
 
 
 input_snd_enabled = True
-def user_input_effects(self, irp):
+
+
+def user_input_effects(self, ilet):
     global input_snd_enabled
     import sys
     if sys.platform == 'win32':
@@ -368,18 +368,19 @@ def user_input_effects(self, irp):
         from client.ui.base.baseclasses import main_window
         if u.GetForegroundWindow() != main_window._hwnd:
             u.FlashWindow(main_window._hwnd, 1)
-    
+
     g = Game.getgame()
     if getattr(g, 'current_turn', None) is not g.me:
         input_snd_enabled = True
 
     # HACK
     if input_snd_enabled:
-        if irp.tag != 'choose_card_and_player_reject':
+        if isinstance(ilet, ActionInputlet) and isinstance(ilet.initiator, RejectHandler):
             input_snd_prompt()
-        
+
     if getattr(g, 'current_turn', None) is g.me:
         input_snd_enabled = False
+
 
 mapping_actions = ddict(dict, {
     'before': {
@@ -416,29 +417,30 @@ def action_effects(_type, self, act):
         cls = cls.__base__
 
 
-def user_input_start_effects(self, input):
+def user_input_start_effects(self, arg):
+    trans, ilet = arg
     cturn = getattr(self, 'current_turn', None)
 
-    if input.tag == 'action_stage_usecard':
+    if trans.name == 'ActionStageAction':
         self.dropcard_area.fade()
-    
-    if input.tag == 'choose_girl':
-        self.prompt(u'|R%s|r正在选择……' % input.player.account.username)
 
-    p = input.player
+    if trans.name == 'ChooseGirl':
+        self.prompt(u'|R%s|r正在选择……' % ilet.actor.account.username)
+
+    p = ilet.actor
     port = self.player2portrait(p)
     if p is not cturn:
         # drawing turn frame
         port.actor_frame = LoopingAnim(
             common_res.actor_frame,
             x=port.x - 6, y=port.y - 4,
-            batch = self.animations
+            batch=self.animations
         )
 
     pbar = SmallProgressBar(
-        parent = self,
-        x = port.x, y = port.y - 15,
-        width = port.width,
+        parent=self,
+        x=port.x, y=port.y - 15,
+        width=port.width,
         # all animations have zindex 2,
         # turn/target frame will overdrawn on this
         # if zindex<2
@@ -446,14 +448,16 @@ def user_input_start_effects(self, input):
     )
 
     pbar.value = LinearInterp(
-        1.0, 0.0, input.timeout,
+        1.0, 0.0, ilet.timeout,
         on_done=lambda self, desc: self.delete(),
     )
     port.actor_pbar = pbar
 
 
-def user_input_finish_effects(self, input):
-    p = input.player
+def user_input_finish_effects(self, arg):
+    trans, ilet, rst = arg
+    p = ilet.actor
+
     port = self.player2portrait(p)
     if getattr(port, 'actor_frame', False):
         port.actor_frame.delete()
@@ -462,6 +466,7 @@ def user_input_finish_effects(self, input):
     if getattr(port, 'actor_pbar', False):
         port.actor_pbar.delete()
         port.actor_pbar = None
+
 
 def game_roll_prompt(self, pl):
     self.prompt(u'Roll点顺序：')

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import logging
+log = logging.getLogger('thb.common')
 
 from game.autoenv import Game, sync_primitive
 
@@ -19,27 +21,29 @@ def mixin_character(player, char_cls):
 
 
 class CharChoice(object):
-    chosen = None
     real_cls = None
-    def __init__(self, char_cls, cid):
+    chosen = False
+
+    def __init__(self, char_cls):
         self.char_cls = char_cls
-        self.cid = cid
 
     def __data__(self):
-        return dict(
-            char_cls=self.char_cls.__name__,
-            cid=self.cid,
-        )
+        return self.char_cls.__name__
 
     def sync(self, data):
         from .characters import characters as chars
         from .characters.akari import Akari
+        log.warning("Calling %s", data)
         for cls in [Akari] + chars:
-            if cls.__name__ == data['char_cls']:
+            if cls.__name__ == data:
                 self.char_cls = cls
                 break
         else:
+            log.warning("Can't find %s", data)
             self.char_cls = None
+
+    def __repr__(self):
+        return '<Choice: {}>'.format('None' if not self.char_cls else self.char_cls.__name__)
 
 
 class PlayerIdentity(object):
@@ -66,3 +70,12 @@ class PlayerIdentity(object):
         return self._type
 
     type = property(get_type, set_type)
+
+
+def get_seed_for(p):
+    if Game.SERVER_SIDE:
+        seed = long(Game.getgame().random.randint(1, 10 ** 20))
+    else:
+        seed = 0L
+
+    return sync_primitive(seed, p)

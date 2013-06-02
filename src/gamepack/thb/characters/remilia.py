@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game, user_input
+from .baseclasses import Character, register_character
+from ..actions import Damage, GenericAction
+from ..cards import Skill, t_None, InevitableAttack, Attack, Heal, Card
+from ..inputlets import ChooseOptionInputlet
 
 
 class SpearTheGungnir(Skill):
@@ -26,11 +28,12 @@ class SpearTheGungnirHandler(EventHandler):
         'HakuroukenEffectHandler',
         'HouraiJewelHandler',
     )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Attack):
             src = act.source
             if not src.has_skill(SpearTheGungnir): return act
-            if isinstance(act, InevitableAttack): return act 
+            if isinstance(act, InevitableAttack): return act
 
             tgt = act.target
 
@@ -39,7 +42,7 @@ class SpearTheGungnirHandler(EventHandler):
                 if len(tgt.cards) + len(tgt.showncards) < len(src.cards) + len(src.showncards): break
                 return act
 
-            if user_choose_option(self, act.source):
+            if user_input([act.source], ChooseOptionInputlet(self, (False, True))):
                 Game.getgame().process_action(SpearTheGungnirAction(act))
 
         return act

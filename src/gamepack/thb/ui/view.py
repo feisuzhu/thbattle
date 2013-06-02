@@ -1,38 +1,36 @@
 # -*- coding: utf-8 -*-
-import pyglet
-from pyglet.gl import *
-from pyglet import graphics
-from pyglet.window import mouse
-from client.ui.base import Control, ui_message, Overlay, process_msg
-from client.ui.controls import *
-from client.ui.resource import resource as common_res
-from client.ui import shaders
-from client.ui.soundmgr import SoundManager
-
-from resource import resource as gres
-from utils import IRP, hook
-
-from .game_controls import *
-
-from game.autoenv import EventHandler, Action, GameError
-
 import logging
 log = logging.getLogger('THBattleUI')
 
-import effects, inputs
+import gevent
+from gevent.event import Event
 
+import pyglet
+from pyglet.gl import glColor3f, glRectf
+
+from game.autoenv import Game, EventHandler
 from .. import actions
+
+from client.ui.base import Control, ui_message, Overlay, process_msg, ui_schedule
+from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPrompt
+from client.ui.soundmgr import SoundManager
+from .game_controls import HandCardArea, PortraitCardArea, DropCardArea, Ray, GameCharacterPortrait, SkillSelectionBox
+from resource import resource as gres
+import effects
+import inputs
+
+from utils import rect_to_dict as r2d
 
 
 class UIEventHook(EventHandler):
     @classmethod
-    def evt_user_input(cls, input):
-        irp = IRP()
-        irp.__dict__.update(input.__dict__)
-        ui_message('evt_user_input', irp)
-        irp.wait()
-        input.input = irp.input
-        return input
+    def evt_user_input(cls, arg):
+        trans, ilet = arg
+        evt = Event()
+        ilet.event = evt
+        ui_message('evt_user_input', arg)
+        evt.wait()
+        return ilet
 
     @classmethod
     def evt_shuffle_cards(cls, args):
@@ -51,16 +49,15 @@ class UIEventHook(EventHandler):
 
     @classmethod
     def ui_barrier_schedule(cls, cb, *args, **kwargs):
-        irp = IRP()
+        evt = Event()
 
         def ui_callback():
             cb(*args, **kwargs)
-            irp.complete()
+            evt.set()
 
         ui_schedule(ui_callback)
-        import gevent
         gevent.sleep(0.02)
-        irp.wait()
+        evt.wait()
 
     # evt_user_input_timeout, InputControllers handle this
 
@@ -87,7 +84,7 @@ class DeckIndicator(Control):
             return
 
         glColor3f(*[i/255.0 for i in Colors.blue.light])
-        glRectf(0, 0,  w, h)
+        glRectf(0, 0, w, h)
         glColor3f(*[i/255.0 for i in Colors.blue.heavy])
         glRectf(0, h, w, 0)
 
@@ -100,14 +97,16 @@ class DeckIndicator(Control):
             with nums[0].owner:
                 for i, ch in enumerate(seq):
                     n = ord(ch) - ord('0')
-                    #x, y = w - 34 + ox + i*14, 68
+                    # x, y = w - 34 + ox + i*14, 68
                     nums[n].blit_nobind(ox + i*14, oy)
-        except AttributeError as e:
+
+        except AttributeError:
             pass
 
 
 class ResultPanel(Panel):
     fill_color = (1.0, 1.0, 0.9, 0.5)
+
     def __init__(self, g, *a, **k):
         Panel.__init__(self, width=550, height=340, zindex=10000, *a, **k)
         parent = self.parent
@@ -256,7 +255,7 @@ class THBattleUI(Control):
             c.player = p
             c.update()
 
-        ports[0].equipcard_area.selectable = True # it's TheChosenOne
+        ports[0].equipcard_area.selectable = True  # it's TheChosenOne
 
         self.begin_select_player()
         self.end_select_player()
@@ -295,10 +294,12 @@ class THBattleUI(Control):
 
     PORT_UPDATE_MESSAGES = {
         'evt_game_begin',
-        'evt_girl_chosen',
-        'evt_girl_chosen_end',
         'evt_kof_next_character',
     }
+
+    def update_portraits(self):
+        for port in self.char_portraits:
+            port.update()
 
     def on_message(self, _type, *args):
         if _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
@@ -308,13 +309,12 @@ class THBattleUI(Control):
             for i, pd in enumerate(args[0]):
                 p = self.game.players[i]
                 port = self.player2portrait(p)
-                port.dropped = (pd['state'] in { 'dropped', 'fleed' })
+                port.dropped = (pd['state'] in ('dropped', 'fleed'))
                 port.fleed = (pd['state'] == 'fleed')
                 port.update()
 
         elif _type in self.PORT_UPDATE_MESSAGES:
-            for port in self.char_portraits:
-                port.update()
+            self.update_portraits()
 
         elif _type == 'evt_action_after':
             act = args[0]

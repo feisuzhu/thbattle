@@ -1,44 +1,44 @@
 # -*- coding: utf-8 -*-
-import pyglet
-from pyglet.gl import *
-from pyglet import graphics
-from pyglet.window import mouse
-from client.ui import shaders
-from client.ui.base import ui_message, ui_schedule
-from client.ui.controls import *
-from client.ui.resource import resource as common_res
-from resource import resource as gres
-import itertools
-
-from .game_controls import *
-
-from gamepack.thb import actions as thbactions, cards as thbcards
-from game.autoenv import Game
-
-from utils import DataHolder, BatchList, IRP
-
 import logging
 log = logging.getLogger('THBattleUI_Input')
+import itertools
 
-class Dummy(object):
-    '''
-    Make the view think the input request will get processed.
-    '''
-    parent = None
-    def __init__(*a, **k):
+import pyglet
+
+from game.autoenv import Game
+from client.core import TheChosenOne
+from gamepack.thb import actions as thbactions
+from gamepack.thb.cards import CardList, RejectHandler
+
+from client.ui.controls import AbstractInterp, BalloonPrompt, BigProgressBar
+from client.ui.controls import Button, ConfirmButtons, Control, getinterp
+from client.ui.controls import ImageButton, ImageSelector, InterpDesc, LinearInterp
+from client.ui.controls import Panel, ShadowedLabel, SineInterp
+from client.ui.resource import resource as common_res
+from .game_controls import DropCardArea, CardSprite
+
+
+class InputHandler(object):
+    def process_user_input_start(self, ilet):
+        pass
+
+    def process_user_input(self, ilet):
+        pass
+
+    def process_user_input_finish(self, ilet, rst):
         pass
 
     def cleanup(self):
         pass
 
 
-class UISelectTarget(Control):
+class UISelectTarget(Control, InputHandler):
 
-    def __init__(self, irp, *a, **k):
+    def __init__(self, trans, *a, **k):
         Control.__init__(self, *a, **k)
         parent = self.parent
-        self.irp = irp
-        assert isinstance(irp, IRP)
+        self.trans = trans
+        self.inputlet = None
 
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
@@ -46,25 +46,12 @@ class UISelectTarget(Control):
             parent=self, x=259, y=4, width=165, height=24,
             buttons=((u'确定', True), (u'结束', False))
         )
-        self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
-        b.value = LinearInterp(
-            1.0, 0.0, irp.timeout,
-            on_done=lambda *a: self.cleanup()
-        )
-
-        self.label = lbl = ShadowedLabel(
+        self.progress_bar = BigProgressBar(parent=self, x=0, y=0, width=250)
+        self.label = ShadowedLabel(
             text=u"HEY SOMETHING'S WRONG", x=125, y=28, font_size=12,
             color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 179),
             anchor_x='center', anchor_y='bottom',
         )
-
-        @self.confirmbtn.event
-        def on_confirm(is_ok):
-            irp = self.irp
-            irp.input = self.get_result() if is_ok else None
-            irp.complete()
-            #self.cleanup()
-            return
 
         def dispatch_selection_change():
             self.confirmbtn.buttons[0].state = Button.DISABLED
@@ -80,6 +67,19 @@ class UISelectTarget(Control):
 
         #dispatch_selection_change() # the clear_selection thing will trigger this
 
+    def process_user_input(self, ilet):
+        @self.confirmbtn.event
+        def on_confirm(is_ok):
+            is_ok and ilet.set_result(*self.get_result())
+            ilet.done()
+
+        self.progress_bar.value = LinearInterp(
+            1.0, 0.0, ilet.timeout,
+            on_done=lambda *a: on_confirm(False)
+        )
+
+        self.inputlet = ilet
+
     def set_text(self, text):
         self.label.text = text
 
@@ -87,27 +87,13 @@ class UISelectTarget(Control):
         # subclasses should surpress it
         self.set_valid()
 
-    def get_result(self): # override this to customize
-        #return (skills, players, cards)
+    def get_result(self):  # override this to customize
         parent = self.parent
-        g = Game.getgame()
-        skills = g.me.skills
-
-        sid_list = [
-            skills.index(s)
-            for s in parent.get_selected_skills()
+        return [
+            parent.get_selected_skills(),
+            parent.get_selected_cards(),
+            parent.get_selected_players(),
         ]
-
-        cid_list = [
-            c.syncid
-            for c in parent.get_selected_cards()
-        ]
-
-        pid_list = [
-            g.get_playerid(p)
-            for p in parent.get_selected_players()
-        ]
-        return [sid_list, cid_list, pid_list]
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
@@ -116,31 +102,26 @@ class UISelectTarget(Control):
         p = self.parent
         p.end_select_player()
         p.pop_handlers()
-        self.irp.complete()
-        self.delete()
 
     def set_valid(self):
         self.confirmbtn.buttons[0].state = Button.NORMAL
 
     def draw(self):
         self.draw_subcontrols()
-        from client.ui import shaders
         self.label.draw()
 
-    def on_message(self, _type, *args):
-        if _type in ('evt_user_input_timeout', 'evt_user_input_finish'):
-            if args[0].player is Game.getgame().me:
-                self.cleanup()
 
-
-class BaseUIChooseCardAndPlayer(UISelectTarget):
+class UIDoPassiveAction(UISelectTarget):
     _auto_chosen = False
     _snd_prompt = False
-    def __init__(self, irp, *a, **k):
-        action, candidates = irp.attachment
-        self.action = action
 
-        if self.for_reject:
+    def process_user_input(self, ilet):
+        UISelectTarget.process_user_input(self, ilet)
+
+        initiator = ilet.initiator
+        candidates = ilet.candidates
+
+        if isinstance(initiator, RejectHandler):
             ori = self.set_valid
             self._sv_val = False
 
@@ -155,31 +136,36 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
 
             pyglet.clock.schedule_once(delay, 0.5)
 
-        UISelectTarget.__init__(self, irp, *a, **k)
         if candidates:
             parent = self.parent
             g = Game.getgame()
             disables = [p for p in g.players if p not in candidates]
             parent.begin_select_player(disables)
 
+        self.dispatch_event('on_selection_change')
+
     def on_selection_change(self):
         try:
-            act, candidates = self.irp.attachment
+            ilet = self.inputlet
+            if not ilet: return
+
+            initiator = ilet.initiator
+            candidates = ilet.candidates
 
             g = Game.getgame()
             parent = self.parent
             if not parent: return
 
-            cond = getattr(act, 'cond', False)
+            cond = getattr(initiator, 'cond', False)
 
-            while self.for_reject:
+            while isinstance(initiator, RejectHandler):
                 self._sv_val = False
                 self.set_text(u'自动结算好人卡…')
                 if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
                     from gamepack.thb.characters import reimu
-                    if not (isinstance(g.me, reimu.Reimu) and not g.me.dead): # HACK: but it works fine
-                        self.irp.input = None
-                        self.irp.complete()
+                    if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
+                        ilet.done()
+                        end_transaction(self.trans)
                         return
 
                 # HACK
@@ -222,7 +208,7 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                             return
 
                 c = cond(cards)
-                c1, text = act.ui_meta.choose_card_text(g, act, cards)
+                c1, text = initiator.ui_meta.choose_card_text(g, initiator, cards)
                 assert c == c1
                 self.set_text(text)
 
@@ -230,9 +216,9 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
 
             if candidates:
                 players = parent.get_selected_players()
-                players, valid = act.choose_player_target(players)
+                players, valid = initiator.choose_player_target(players)
                 try:
-                    valid1, reason = act.ui_meta.target(players)
+                    valid1, reason = initiator.ui_meta.target(players)
                     assert bool(valid) == bool(valid1)
                 except Exception as e:
                     log.exception(e)
@@ -242,9 +228,9 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
                 if not valid: return
 
             self.set_valid()
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
 
     def cleanup(self):
         try:
@@ -257,18 +243,11 @@ class BaseUIChooseCardAndPlayer(UISelectTarget):
             pass
         UISelectTarget.cleanup(self)
 
-class UIChooseCardAndPlayer(BaseUIChooseCardAndPlayer):
-    for_reject = False
-
-class UIChooseCardAndPlayerReject(BaseUIChooseCardAndPlayer):
-    for_reject = True
 
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
     #def get_result(self):
     #    pass
-    def __init__(self, *a, **k):
-        UISelectTarget.__init__(self, *a, **k)
 
     def on_selection_change(self):
         parent = self.parent
@@ -355,6 +334,7 @@ class UIDoActionStage(UISelectTarget):
 class GirlSelector(ImageSelector, BalloonPrompt):
     x = InterpDesc('_x')
     y = InterpDesc('_y')
+
     def __init__(self, choice, group, x=0, y=0, *a, **k):
 
         self.choice = choice
@@ -375,16 +355,19 @@ class GirlSelector(ImageSelector, BalloonPrompt):
         self.init_balloon(meta.description)
 
 
-class UIChooseGirl(Panel):
-    def __init__(self, attachment, *a, **k):
+class UIChooseGirl(Panel, InputHandler):
+    def __init__(self, trans, *a, **k):
+        self.trans = trans
+        g = Game.getgame()
+        choices = trans.mapping[g.me]
+
         w, h = 500 + 1*160, 390 + 1*113
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
         pw, ph = p.width, p.height
         self.x, self.y = (pw-w)/2, (ph-h)/2
-        self.irp = None
-        self.can_select = False
-        choices = self.choices = [c for c in attachment if c.char_cls and not getattr(c, 'chosen', False)]
+        self.inputlet = None
+        choices = self.choices = [c for c in choices if c.char_cls and not getattr(c, 'chosen', False)]
         self.selectors = selectors = []
         for i, c in enumerate(choices):
             y, x = divmod(i, 4)
@@ -394,40 +377,25 @@ class UIChooseGirl(Panel):
             @gs.event
             def on_dblclick(gs=gs):
                 c = gs.choice
-                if not c.chosen and self.can_select:
-                    irp = self.irp
-                    assert irp
-                    irp.input = c.cid
-                    irp.complete()
+                ilet = self.inputlet
+                if not c.chosen and ilet:
+                    ilet.set_choice(c)
+                    ilet.done()
                     self.end_selection()
 
             selectors.append(gs)
 
+    def process_user_input(self, ilet):
+        self.inputlet = ilet
+        self.begin_selection()
 
-    def on_message(self, _evt, *args):
-        if _evt == 'evt_user_input':
-            irp = args[0]
-            tag = irp.tag
-            if tag == 'choose_girl':
-                assert self.irp is None
-                self.irp = irp
-                self.begin_selection()
+    def on_girl_chosen(self, choice):
+        for c in self.selectors:
+            if c.choice is choice:
+                c.disable()
+                break
 
-        elif _evt == 'evt_choose_girl_end':
-            self.cleanup()
-
-        elif _evt == 'evt_girl_chosen':
-            choice = args[0]
-            for c in self.selectors:
-                if c.choice is choice:
-                    c.disable()
-                    break
-
-    def cleanup(self):
-        if self.irp:
-            self.irp.input = None
-            self.irp.complete()
-        self.delete()
+        self.parent.update_portraits()
 
     def begin_selection(self):
         self.pbar = BigProgressBar(
@@ -435,54 +403,42 @@ class UIChooseGirl(Panel):
         )
 
         def on_done(*a):
-            self.irp.input = None
-            self.irp.complete()
+            self.inputlet.done()
             self.end_selection()
 
         self.pbar.value = LinearInterp(
-            1.0, 0.0, self.irp.timeout,
+            1.0, 0.0, self.inputlet.timeout,
             on_done=on_done,
         )
-        self.can_select = True
 
     def end_selection(self):
-        self.can_select = False
-        self.irp = None
+        self.inputlet = None
         self.pbar.delete()
 
-def choose_girl_event_handler(data, parent):
-    pl, choices = data
-    if Game.getgame().me in pl:
-        UIChooseGirl(choices, parent=parent)
 
-class UIChoosePeerCard(Panel):
-    lookup = {
-        'handcard': u'手牌区',
-        'showncard': u'明牌区',
-        'equips': u'装备区',
-        'fatetell': u'判定区',
-    }
+class UIChoosePeerCard(Panel, InputHandler):
+    def __init__(self, trans, *a, **k):
+        self.trans = trans
+        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
 
-    def __init__(self, irp, *a, **k):
-        self.irp = irp
-        target, categories = irp.attachment
+    def process_user_input(self, ilet):
+        target = ilet.target
+        categories = [getattr(target, i) for i in ilet.categories]
+
         h = 40 + len(categories)*145 + 10
         w = 100 + 6*93.0+30
         self.lbls = lbls = pyglet.graphics.Batch()
 
-        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
-
         y = 40
-
         i = 0
         for cat in reversed(categories):
             if not len(cat):
-                h -= 145 # no cards in this category
+                h -= 145  # no cards in this category
                 continue
 
             ShadowedLabel(
-                text=self.lookup[cat.type], font_size=12,
-                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230), 
+                text=CardList.ui_meta.lookup[cat.type], font_size=12,
+                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
                 x=30, y=y+62+145*i, anchor_x='left', anchor_y='center',
                 batch=lbls,
             )
@@ -496,11 +452,13 @@ class UIChoosePeerCard(Panel):
             for c in cat:
                 cs = CardSprite(c, parent=ca)
                 cs.associated_card = c
+
                 @cs.event
                 def on_mouse_dblclick(x, y, btn, mod, cs=cs):
-                    irp = self.irp
-                    irp.input = cs.associated_card.syncid
-                    self.cleanup()
+                    ilet.set_card(cs.associated_card)
+                    ilet.done()
+                    end_transaction(self.trans)
+
             ca.update()
             i += 1
 
@@ -513,7 +471,7 @@ class UIChoosePeerCard(Panel):
             parent=self, x=(w-250)//2, y=7, width=250
         )
         b.value = LinearInterp(
-            1.0, 0.0, irp.timeout,
+            1.0, 0.0, ilet.timeout,
             on_done=lambda *a: self.cleanup()
         )
 
@@ -525,94 +483,75 @@ class UIChoosePeerCard(Panel):
 
         @btn.event
         def on_click():
-            self.irp.input = None
-            self.cleanup()
+            ilet.done()
 
     def draw(self):
         Panel.draw(self)
         self.lbls.draw()
 
-    def cleanup(self):
-        self.irp.complete()
-        self.delete()
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_user_input_timeout':
-            self.cleanup()
+class UIChooseOption(Control, InputHandler):
 
-
-class UIChooseOption(Control):
-
-    def __init__(self, irp, *a, **k):
+    def __init__(self, trans, *a, **k):
         Control.__init__(self, *a, **k)
-        parent = self.parent
-        self.irp = irp
-        assert isinstance(irp, IRP)
+        self.trans = trans
 
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
+    def process_user_input(self, ilet):
         try:
-            ui_meta = irp.attachment.ui_meta
+            ui_meta = ilet.initiator.ui_meta
             choose_option_buttons = ui_meta.choose_option_buttons
             choose_option_prompt = ui_meta.choose_option_prompt
             if callable(choose_option_prompt):
-                choose_option_prompt = choose_option_prompt(irp.attachment)
+                choose_option_prompt = choose_option_prompt(ilet.initiator)
 
         except AttributeError:
             choose_option_buttons = ((u'确定', True), (u'结束', False))
             choose_option_prompt = u'UIChooseOption: %s missing ui_meta' % (
-                irp.attachment.__class__.__name__
+                ilet.initiator.__class__.__name__
             )
 
         self.confirmbtn = ConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
             buttons=choose_option_buttons
-            #buttons=((u'出牌', True), (u'取消出牌', False))
         )
         self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
         b.value = LinearInterp(
-            1.0, 0.0, irp.timeout,
-            on_done=lambda *a: self.cleanup()
+            1.0, 0.0, ilet.timeout,
+            on_done=lambda *a: on_confirm(None)
         )
-        self.label = lbl = ShadowedLabel(
-            text=choose_option_prompt, x=125, y=28, font_size=12, 
+        self.label = ShadowedLabel(
+            text=choose_option_prompt, x=125, y=28, font_size=12,
             color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 179),
             thin_shadow=False, anchor_x='center', anchor_y='bottom',
         )
 
         @self.confirmbtn.event
         def on_confirm(val):
-            irp = self.irp
-            irp.input = val
-            irp.complete()
-            self.cleanup()
-            return
+            ilet.set_option(val)
+            ilet.done()
+            end_transaction(self.trans)
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
 
-    def cleanup(self):
-        self.irp.complete()
-        self.delete()
-
     def draw(self):
         self.draw_subcontrols()
-        from client.ui import shaders
         self.label.draw()
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_user_input_timeout':
-            self.cleanup()
 
-class UIChooseIndividualCard(Panel):
-    def __init__(self, irp, *a, **k):
-        self.irp = irp
-        cards = irp.attachment
+class UIChooseIndividualCard(Panel, InputHandler):
+    def __init__(self, trans, *a, **k):
+        self.trans = trans
+        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
+
+    def process_user_input(self, ilet):
+        cards = ilet.cards
+
         cw = min(6, len(cards)) * 93
         h = 30 + 145 + 10
         w = 30 + cw + 30
-
-        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
 
         ca = DropCardArea(
             parent=self,
@@ -620,18 +559,21 @@ class UIChooseIndividualCard(Panel):
             fold_size=6,
             width=cw, height=125,
         )
+
         for c in cards:
             cs = CardSprite(c, parent=ca)
             cs.associated_card = c
+
             @cs.event
             def on_mouse_dblclick(x, y, btn, mod, cs=cs):
-                irp = self.irp
-                irp.input = cs.associated_card.syncid
-                self.cleanup()
+                ilet.set_card(cs.associated_card)
+                ilet.done()
+                end_transaction(self.trans)
+
         ca.update()
 
         p = self.parent
-        self.x, self.y = (p.width - w)//2, (p.height -h)//2
+        self.x, self.y = (p.width - w)//2, (p.height - h)//2
         self.width, self.height = w, h
         self.update()
 
@@ -643,23 +585,20 @@ class UIChooseIndividualCard(Panel):
 
         @btn.event
         def on_click():
-            self.irp.input = None
-            self.cleanup()
+            ilet.done()
+            end_transaction(self.trans)
 
-    def cleanup(self):
-        self.irp.complete()
-        self.delete()
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_user_input_timeout':
-            self.cleanup()
+class UIHarvestChoose(Panel, InputHandler):
+    def __init__(self, trans, *a, **k):
+        self.trans = trans
+        cards = trans.cards
+        self.inputlet = None
 
-class UIHarvestChoose(Panel):
-    def __init__(self, cards, *a, **k):
-        w = 20 + (91+10)*4 + 20
+        w = 20 + (91 + 10) * 4 + 20
         h = 20 + 125 + 20 + 125 + 20 + 20
 
-        self.lbl = lbl = ShadowedLabel(
+        self.lbl = ShadowedLabel(
             text=u"等待玩家的其他操作", x=w//2, y=300, font_size=12,
             color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom'
@@ -672,57 +611,50 @@ class UIHarvestChoose(Panel):
         self.update()
 
         self.mapping = mapping = {}
-        self.irp = None
         for i, c in enumerate(cards):
             y, x = divmod(i, 4)
-            x, y = 20 + (91+10)*x, 20 +(125+20)*(1-y)
+            x, y = 20 + (91 + 10) * x, 20 + (125 + 20) * (1 - y)
             cs = CardSprite(c, parent=self, x=x, y=y)
             cs.associated_card = c
             mapping[id(c)] = cs
+
             @cs.event
             def on_mouse_dblclick(x, y, button, modifier, cs=cs):
-                if not cs.gray:
-                    irp = self.irp
-                    if irp:
-                        irp.input = cs.associated_card.syncid
-                        irp.complete()
-                        self.irp = None
+                if cs.gray: return
+                ilet = self.inputlet
+                if not ilet: return
+                ilet.set_card(cs.associated_card)
+                ilet.done()
 
     def draw(self):
         Panel.draw(self)
         self.lbl.draw()
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_harvest_finish':
-            self.cleanup()
-        elif _type == 'evt_user_input_start':
-            irp = args[0]
-            if irp.tag == 'harvest_choose':
-                self.lbl.text = u'等待%s选择卡牌' % (irp.player.ui_meta.char_name)
-                self.lbl.color = (255, 255, 160, 255)
-        elif _type == 'evt_user_input_finish':
-            irp = args[0]
-            if irp.tag == 'harvest_choose':
-                self.lbl.text = u'等待玩家的其他操作'
-                self.lbl.color = (255, 255, 160, 255)
+    def process_user_input_start(self, ilet):
+        self.lbl.text = u'等待%s选择卡牌' % (ilet.actor.ui_meta.char_name)
+        self.lbl.color = (255, 255, 160, 255)
 
-        elif _type == 'evt_user_input':
-            irp = args[0]
-            if irp.tag == 'harvest_choose':
-                self.irp = irp
-                self.lbl.text = u'请你选择一张卡牌'
-                self.lbl.color = (160, 251, 255, 255)
-        elif _type == 'evt_harvest_choose':
-            self.mapping[id(args[0])].gray = True
+    def process_user_input(self, ilet):
+        assert ilet.actor is Game.getgame().me
+        self.inputlet = ilet
+        self.lbl.text = u'请你选择一张卡牌'
+        self.lbl.color = (160, 251, 255, 255)
+
+    def process_user_input_finish(self, ilet, rst):
+        self.lbl.text = u'等待玩家的其他操作'
+        self.lbl.color = (255, 255, 160, 255)
+        self.inputlet = None
+
+    def on_harvest_choose(self, card):
+        self.mapping[id(card)].gray = True
 
     def cleanup(self):
-        if self.irp:
-            self.irp.complete()
-        self.delete()
+        pass
 
 
 class Dragger(Control):
     dragging = False
+
     def __init__(self, *a, **k):
         Control.__init__(self, *a, **k)
         self.width, self.height = self.expected_size()
@@ -733,7 +665,6 @@ class Dragger(Control):
             (cls.item_width + 4) * cls.cols,
             (cls.item_height + 15) * cls.rows,
         )
-
 
     def update(self):
         for j, l in enumerate(reversed(self.sprites)):
@@ -798,18 +729,23 @@ class RanProphetControl(Dragger):
     item_width, item_height = 91, 125
 
 
-class UIRanProphet(Panel):
-    def __init__(self, irp, parent, *a, **k):
-        self.irp = irp
-        cards = irp.attachment
+class UIRanProphet(Panel, InputHandler):
+    def __init__(self, trans, parent, *a, **k):
+        Panel.__init__(
+            self, x=100, y=100, width=100, height=100, zindex=5, parent=parent,
+            *a, **k
+        )
+        self.trans = trans
+
+    def process_user_input(self, ilet):
+        cards = ilet.cards
 
         w, h = RanProphetControl.expected_size()
         w = 100 + w + 20
         h = 60 + h + 50
 
-        x, y = (parent.width - w)//2, (parent.height - h)//2
-
         lbls = pyglet.graphics.Batch()
+
         def lbl(text, x, y):
             ShadowedLabel(
                 text=text, x=x, y=y, font_size=12,
@@ -823,42 +759,31 @@ class UIRanProphet(Panel):
         lbl(u'请拖动调整牌的位置', w//2, h-25)
         self.lbls = lbls
 
-        Panel.__init__(
-            self, x=x, y=y, width=w, height=h, zindex=5, parent=parent,
-            *a, **k
-        )
+        parent = self.parent
+        self.x, self.y = (parent.width - w)//2, (parent.height - h)//2
+        self.width, self.height = w, h
+        self.update()
 
         self.rpc = rpc = RanProphetControl(parent=self, x=100, y=60)
         for i, c in enumerate(cards):
             cs = CardSprite(c, parent=rpc)
             cs.associated_card = c
-            cs.card_index = i
+
         rpc.init()
 
         btn = Button(parent=self, caption=u'调整完成', x=w-120, y=15, width=100, height=30)
+
         @btn.event
         def on_click():
-            self.cleanup()
+            up, down = self.rpc.get_result()
+            up = [c.associated_card for c in up]
+            down = [c.associated_card for c in down]
+            ilet.set_result(up, down)
+            ilet.done()
+            end_transaction(self.trans)
 
-        b = BigProgressBar(
-            parent=self, x=100, y=15, width=250,
-        )
-        b.value = LinearInterp(
-            1.0, 0.0, irp.timeout,
-            on_done=self.cleanup,
-        )
-
-    def on_message(self, _type, *args):
-        if _type == 'evt_user_input_timeout':
-            self.cleanup()
-
-    def cleanup(self, *a, **k):
-        up, down = self.rpc.get_result()
-        up = [c.card_index for c in up]
-        down = [c.card_index for c in down]
-        self.irp.input = [up, down]
-        self.irp.complete()
-        self.delete()
+        b = BigProgressBar(parent=self, x=100, y=15, width=250)
+        b.value = LinearInterp(1.0, 0.0, ilet.timeout, on_done=on_click)
 
     def draw(self):
         Panel.draw(self)
@@ -870,20 +795,21 @@ class KOFSorterControl(Dragger):
     item_width, item_height = 145, 96
 
     def update_sprite(self, c, i, j):
-        if i >= 3:
-            c.disable()
-        else:
-            c.enable()
+        c.disable() if i >= 3 else c.enable()
 
 
-class UIKOFCharacterSorter(Panel):
-    def __init__(self, irp, parent, *a, **k):
-        self.irp = irp
+class UIKOFCharacterSorter(Panel, InputHandler):
+    def __init__(self, trans, parent, *a, **k):
+        self.trans = trans
+        Panel.__init__(
+            self, x=100, y=100, width=100, height=100, zindex=5, parent=parent,
+            *a, **k
+        )
+
+    def process_user_input(self, ilet):
         g = Game.getgame()
-        me = irp.player
-        assert me is g.me
-        choices = me.choices
-        choices = [choices[i] for i in me._perm]
+        me = g.me
+        choices = ilet.mapping[me]
         for i, c in enumerate(choices):
             c._choice_index = i
 
@@ -891,9 +817,8 @@ class UIKOFCharacterSorter(Panel):
         w = 20 + w + 20
         h = 60 + h + 50
 
-        x, y = (parent.width - w)//2, (parent.height - h)//2
-
         lbls = pyglet.graphics.Batch()
+
         def lbl(text, x, y):
             ShadowedLabel(
                 text=text, font_size=12, x=x, y=y,
@@ -904,10 +829,10 @@ class UIKOFCharacterSorter(Panel):
         lbl(u'请拖动调整角色的出场顺序', w//2, h-25)
         self.lbls = lbls
 
-        Panel.__init__(
-            self, x=x, y=y, width=w, height=h, zindex=5, parent=parent,
-            *a, **k
-        )
+        parent = self.parent
+        self.x, self.y = (parent.width - w)//2, (parent.height - h)//2
+        self.width, self.height = w, h
+        self.update()
 
         self.sorter = sorter = KOFSorterControl(parent=self, x=20, y=60)
         selectors = []
@@ -918,83 +843,109 @@ class UIKOFCharacterSorter(Panel):
         sorter.init()
 
         btn = Button(parent=self, caption=u'调整完成', x=w-120, y=15, width=100, height=30)
+
         @btn.event
-        def on_click():
-            self.cleanup()
+        def on_click(*a, **k):
+            gslist, = self.sorter.get_result()
+            index = [c.choice._choice_index for c in gslist]
+            ilet.set_result(index)
+            ilet.done()
+            end_transaction(self.trans)
 
-        b = BigProgressBar(
-            parent=self, x=100, y=15, width=250,
-        )
-        b.value = LinearInterp(
-            1.0, 0.0, irp.timeout,
-            on_done=self.cleanup,
-        )
+        b = BigProgressBar(parent=self, x=100, y=15, width=250)
+        b.value = LinearInterp(1.0, 0.0, ilet.timeout, on_done=on_click)
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_user_input_timeout':
-            self.cleanup()
-
-    def cleanup(self, *a, **k):
-        gslist, = self.sorter.get_result()
-        choices = [c.choice for c in gslist]
-        index = [c._choice_index for c in choices]
-        self.irp.input = index
-        self.irp.complete()
-        self.delete()
+    def cleanup(self):
+        pass
 
     def draw(self):
         Panel.draw(self)
         self.lbls.draw()
 
-mapping = dict(
-    choose_card_and_player=UIChooseCardAndPlayer,
-    choose_card_and_player_reject=UIChooseCardAndPlayerReject,
-    action_stage_usecard=UIDoActionStage,
-    choose_girl=Dummy,
-    choose_peer_card=UIChoosePeerCard,
-    choose_option=UIChooseOption,
-    choose_individual_card=UIChooseIndividualCard,
-    harvest_choose=Dummy,
-    ran_prophet=UIRanProphet,
-    kof_sort_characters=UIKOFCharacterSorter,
-)
 
-mapping_all = dict(
-)
+mapping = {
+    'Action': UIDoPassiveAction,
+    'ActionStageAction': UIDoActionStage,
+    'ChooseGirl': UIChooseGirl,
+    'ChoosePeerCard': UIChoosePeerCard,
+    'ChooseOption': UIChooseOption,
+    'ChooseIndividualCard': UIChooseIndividualCard,
+    'HarvestChoose': UIHarvestChoose,
+    'Prophet': UIRanProphet,
+    'KOFSort': UIKOFCharacterSorter,
+}
 
-mapping_event = dict(
-    harvest_cards=UIHarvestChoose,
-    choose_girl_begin=choose_girl_event_handler,
-)
 
-def afk_autocomplete(_, view, ctrl):
-    # if view.afk and ctrl is not deleted:
-    if view.afk and ctrl.parent:
-        ctrl.cleanup()
+input_handler_mapping = {}  # InputTransaction -> UIControl instance
 
-def handle_event(self, _type, data):
-    if _type == 'user_input':
-        irp = data
-        itype = irp.tag
-        cls = mapping.get(itype)
-        if cls:
-            ctrl = cls(irp, parent=self)
-            pyglet.clock.schedule_once(afk_autocomplete, 2, self, ctrl)
-        else:
-            log.error('No appropriate input handler!')
-            irp.input = None
-            irp.complete()
+
+def end_transaction(trans):
+    ui = input_handler_mapping.pop(trans, None)
+    ui and ui.cleanup()
+    ui and ui.delete()
+
+
+def handle_event(self, _type, arg):
+    if not isinstance(Game.getgame().me, TheChosenOne):
+        # do nothing if observing
+        pass
+
+    elif _type == 'user_input_transaction_begin':
+        trans = arg
+        g = Game.getgame()
+        if g.me not in trans.involved:
+            return
+
+        last = input_handler_mapping.pop(trans, None)
+        last and log.error('WTF?! InputTransaction reentrancy')
+        last and last.cleanup()
+
+        cls = mapping.get(trans.name, None)
+        if not cls:
+            log.error('No appropriate input handler for %s !' % trans.name)
+            end_transaction(trans)
+            return
+
+        this = cls(trans, parent=self)
+        input_handler_mapping[trans] = this
+
+    elif _type == 'user_input_transaction_end':
+        end_transaction(arg)
+
+    elif _type == 'user_input':
+        trans, ilet = arg
+        ui = input_handler_mapping.get(trans, None)
+        if not ui:
+            log.error('WTF: no associated transaction')
+            return
+
+        def afk_autocomplete(*a):
+            self.afk and done()
+
+        def done():
+            pyglet.clock.unschedule(afk_autocomplete)
+            ilet.event.set()
+
+        ilet.done = done
+        pyglet.clock.schedule_once(afk_autocomplete, 2)
+        ui.process_user_input(ilet)
 
     elif _type == 'user_input_start':
         self.update_skillbox()
+        trans, ilet = arg
+        ui = input_handler_mapping.get(trans, None)
+        if not ui: return
+        ui.process_user_input_start(ilet)
 
-    elif _type == 'user_input_all_begin':
-        pl, tag, attachment = data
-        cls = mapping_all.get(tag)
-        if cls and Game.getgame().me in pl:
-            ctrl = cls(attachment=attachment, parent=self)
-            pyglet.clock.schedule_once(afk_autocomplete, 2, self, ctrl)
-    else:
-        cls = mapping_event.get(_type)
-        if cls:
-            cls(data, parent=self)
+    elif _type == 'user_input_finish':
+        self.update_skillbox()
+        trans, ilet, rst = arg
+        ui = input_handler_mapping.get(trans, None)
+        if not ui: return
+        ui.process_user_input_finish(ilet, rst)
+
+    elif _type == 'user_input_transaction_feedback':
+        trans, evt_name, v = arg
+        ui = input_handler_mapping.get(trans, None)
+        if not ui: return
+        getattr(ui, 'on_' + evt_name)(v)

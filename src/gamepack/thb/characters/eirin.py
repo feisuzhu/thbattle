@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from .baseclasses import Character, register_character
+from ..cards import Card, Heal, HealCard, Skill, t_None, t_One
+
 
 class FirstAid(Skill):
     associated_action = None
     target = t_None
+
     def check(self):
         cl = self.associated_cards
         if not cl or len(cl) != 1: return False
@@ -13,14 +14,16 @@ class FirstAid(Skill):
         return bool(
             c.resides_in and
             c.resides_in.type in (
-                'handcard', 'showncard',
+                'cards', 'showncards',
                 'equips',
             ) and
             c.suit in (Card.HEART, Card.DIAMOND)
         )
+
     def is_card(self, cls):
         if issubclass(HealCard, cls): return True
         return isinstance(self, cls)
+
 
 class EirinHeal(Heal):
     def apply_action(self):
@@ -34,17 +37,20 @@ class EirinHeal(Heal):
             return False
         return True
 
+
 class Medic(Skill):
     associated_action = EirinHeal
     target = t_One
+
     def check(self):
         cl = self.associated_cards
         if bool(
             cl and len(cl) == 1 and
             cl[0].resides_in and
-            cl[0].resides_in.type in ('handcard', 'showncard')
+            cl[0].resides_in.type in ('cards', 'showncards')
         ): return True
         return False
+
 
 @register_character
 class Eirin(Character):

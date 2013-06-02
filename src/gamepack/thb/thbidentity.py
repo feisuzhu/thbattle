@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow
+import random
+from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, user_input, InputTransaction
 
-from actions import *
+from .actions import PlayerTurn, PlayerDeath, DrawCards, DropCards, RevealIdentity
+from .actions import action_eventhandlers
 from itertools import cycle
 from collections import defaultdict
 
-from utils import BatchList, check, CheckFailed
-
-from .common import *
+from .common import PlayerIdentity, sync_primitive, CharChoice, get_seed_for, mixin_character
+from .inputlets import ChooseGirlInputlet
 
 import logging
 log = logging.getLogger('THBattleIdentity')
-
 _game_ehs = {}
+_game_actions = {}
+
+
 def game_eh(cls):
     _game_ehs[cls.__name__] = cls
     return cls
 
-_game_actions = {}
+
 def game_action(cls):
     _game_actions[cls.__name__] = cls
     return cls
@@ -47,6 +50,7 @@ class DeathHandler(EventHandler):
 
         # see if game ended
         T = Identity.TYPE
+
         def build():
             deads = defaultdict(list)
             for p in g.players:
@@ -109,22 +113,20 @@ class THBattleIdentity(Game):
 
     def game_start(g):
         # game started, init state
-        from cards import Card, Deck, CardList
+        from cards import Deck, CardList
 
         g.deck = Deck()
 
         ehclasses = list(action_eventhandlers) + _game_ehs.values()
 
-        np = g.n_persons
-
         for p in g.players:
-            p.cards = CardList(p, 'handcard') # Cards in hand
-            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips') # Equipments
-            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special') # used on special purpose
+            p.cards = CardList(p, 'cards')  # Cards in hand
+            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+            p.equips = CardList(p, 'equips')  # Equipments
+            p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+            p.special = CardList(p, 'special')  # used on special purpose
 
-            p.showncardlists = [p.showncards, p.fatetell] # cardlists should shown to others
+            p.showncardlists = [p.showncards, p.fatetell]  # cardlists should shown to others
 
             p.tags = defaultdict(int)
 
@@ -132,113 +134,56 @@ class THBattleIdentity(Game):
 
         # choose girls init -->
         from characters import characters as chars
+        chars = chars[:]
+        if Game.CLIENT_SIDE:
+            chars = [None] * len(chars)
 
-        if Game.SERVER_SIDE:
-            choice = [
-                CharChoice(cls, cid)
-                for cls, cid in zip(g.random.sample(chars, 3*np+2), xrange(3*np+2))
-            ]
-        elif Game.CLIENT_SIDE:
-            choice = [
-                CharChoice(None, i)
-                for i in xrange(3*np+2)
-            ]
-
-        chosen_girls = []
-        pl = PlayerList(g.players)
-        def process(p, cid):
-            try:
-                retry = p._retry
-            except AttributeError:
-                retry = 3
-
-            retry -= 1
-            try:
-                check(isinstance(cid, int))
-                i = p._choose_tag
-                if p is boss:
-                    assert p is pl[-1]
-                    check(i*3 <= cid< (i+1)*3+2)
-                else:
-                    check(i*3 <= cid < (i+1)*3)
-                c = choice[cid]
-                if c.chosen and retry > 0:
-                    p._retry = retry
-                    raise ValueError
-                c.chosen = p
-                chosen_girls.append(c)
-                g.emit_event('girl_chosen', c)
-                pl.remove(p)
-                return c
-
-            except CheckFailed as e:
-                return None
-
-            finally:
-                try:
-                    del p._retry
-                    del p._choose_tag
-                except AttributeError:
-                    pass
+        g.random.shuffle(chars)
 
         # choose boss
         idx = sync_primitive(g.random.randrange(len(g.players)), g.players)
-        pl[-1], pl[idx] = pl[idx], pl[-1]
-        boss = g.boss = pl[-1]
+        boss = g.boss = g.players[idx]
 
         boss.identity = Identity()
         boss.identity.type = Identity.TYPE.BOSS
 
         g.process_action(RevealIdentity(boss, g.players))
 
-        for i, p in enumerate(pl):
-            p._choose_tag = i
-            p.reveal(choice[i*3:(i+1)*3])
+        boss.choices = [CharChoice(c) for c in chars[:4]]
+        del chars[:4]
 
-        boss.reveal(choice[-2:])
+        for p in g.players.exclude(boss):
+            p.choices = [CharChoice(c) for c in chars[:3]]
+            del chars[:3]
 
-        g.emit_event('choose_girl_begin', ([boss], choice))
-        PlayerList([boss]).user_input_all('choose_girl', process, choice, timeout=30)
+        for p in g.players:
+            p.reveal(p.choices)
 
-        if not chosen_girls:
-            # didn't choose
-            offs = sync_primitive(g.random.randrange(5), g.players)
-            c = choice[(len(pl)-1)*3+offs]
+        mapping = {boss: boss.choices}
+        with InputTransaction('ChooseGirl', [boss], mapping=mapping) as trans:
+            c = user_input([boss], ChooseGirlInputlet(g, mapping), 30, 'single', trans)
+
+            c = c or CharChoice(chars.pop())
             c.chosen = boss
-            g.emit_event('girl_chosen', c)
-            pl.remove(boss)
-        else:
-            c = chosen_girls.pop()
+            g.players.reveal(c)
+            trans.notify('girl_chosen', c)
 
-        assert c.chosen is boss
+            # mix it in advance
+            # so the others could see it
 
-        g.players.reveal(c)
+            mixin_character(boss, c.char_cls)
+            boss.skills = list(boss.skills)  # make it instance variable
+            ehclasses.extend(boss.eventhandlers_required)
 
-        # mix it in advance
-        # so the others could see it
+            # boss's hp bonus
+            if len(g.players) > 5:
+                boss.maxlife += 1
 
-        mixin_character(boss, c.char_cls)
-        boss.skills = list(boss.skills) # make it instance variable
-        ehclasses.extend(boss.eventhandlers_required)
-
-        # boss's hp bonus
-        if len(g.players) > 5:
-            boss.maxlife += 1
-
-        boss.life = boss.maxlife
-
-        g.emit_event('choose_girl_end', None)
+            boss.life = boss.maxlife
 
         # reseat
-        opl = g.players
-        loc = range(len(opl))
-        g.random.shuffle(loc)
-        loc = sync_primitive(loc, opl)
-        npl = opl[:]
-        for i, l in zip(range(len(opl)), loc):
-            npl[i] = opl[l]
-        g.players[:] = npl
-
+        seed = get_seed_for(g.players)
+        random.Random(seed).shuffle(g.players)
         g.emit_event('reseat', None)
 
         # tell the others their own identity
@@ -252,29 +197,26 @@ class THBattleIdentity(Game):
             g.process_action(RevealIdentity(p, p))
 
         pl = g.players.exclude(boss)
-        g.emit_event('choose_girl_begin', (pl, choice))
-        pl.user_input_all('choose_girl', process, choice, timeout=30)
-        g.emit_event('choose_girl_end', None)
+        mapping = {p: p.choices for p in pl}  # CAUTION, DICT HERE
+        with InputTransaction('ChooseGirl', pl, mapping=mapping) as trans:
+            ilet = ChooseGirlInputlet(g, mapping)
+            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', rst) or rst)
+            result = user_input(pl, ilet, type='all', trans=trans)
 
-        # now you can have them all.
-        g.players.reveal(choice)
+        # not enough chars for random, reuse unselected
+        for p in pl:
+            if result[p]: result[p].chosen = p
+            chars.extend([i.char_cls for i in p.choices if not i.chosen])
 
-        # if there's any person didn't make a choice -->
-        # FIXME: this can choose girl from the other force!
-        if pl:
-            choice = [c for c in choice if not c.chosen]
-            sample = sync_primitive(
-                g.random.sample(xrange(len(choice)), len(pl)), g.players
-            )
-            for p, i in zip(pl, sample):
-                c = choice[i]
-                c.chosen = p
-                chosen_girls.append(c)
-                g.emit_event('girl_chosen', c)
+        seed = get_seed_for(g.players)
+        random.Random(seed).shuffle(chars)
 
         # mix char class with player -->
-        for c in chosen_girls:
-            p = c.chosen
+        for p in pl:
+            c = result[p]
+            c = c or CharChoice(chars.pop())
+            g.players.reveal(c)
+
             mixin_character(p, c.char_cls)
             p.skills = list(p.skills)  # make it instance variable
             p.life = p.maxlife
@@ -303,6 +245,7 @@ class THBattleIdentity(Game):
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)
+
 
 class THBattleIdentity5(THBattleIdentity):
     n_persons = 5

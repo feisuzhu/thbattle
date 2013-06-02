@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import Game
+from .baseclasses import Character, register_character
+from ..actions import DrawCards, UserAction
+from ..cards import Skill, t_Self
+
 
 class FindAction(UserAction):
     def apply_action(self):
@@ -22,20 +24,24 @@ class FindAction(UserAction):
                 return False
 
             return True
-        except AttributeError: # well, some cards are skill?
+
+        except AttributeError:  # well, some cards are skill?
             return False
+
 
 class Find(Skill):
     associated_action = FindAction
     target = t_Self
+
     def check(self):
         cl = self.associated_cards
         return cl and all(
             c.resides_in and
             c.resides_in.type in (
-                'handcard', 'showncard', 'equips'
+                'cards', 'showncards', 'equips'
             ) for c in self.associated_cards
         )
+
 
 @register_character
 class Koakuma(Character):

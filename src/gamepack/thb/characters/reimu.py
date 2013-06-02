@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import migrate_cards, PlayerRevive, UserAction
+from ..cards import Card, Skill, TreatAsSkill, RejectCard, GreenUFOSkill, UFOSkill, t_None
 
 
 class Flight(GreenUFOSkill):
@@ -16,6 +17,7 @@ class Flight(GreenUFOSkill):
 
 class SpiritualAttack(TreatAsSkill):
     treat_as = RejectCard
+
     def check(self):
         cl = self.associated_cards
         if cl and len(cl) == 1 and cl[0].color == Card.RED:
@@ -51,11 +53,12 @@ class Tribute(Skill):
     associated_action = TributeAction
     no_drop = True
     no_reveal = True
+
     def check(self):
         cl = self.associated_cards
         rst = cl and len(cl) == 1 and (
             cl[0].resides_in and
-            cl[0].resides_in.type in ('handcard', 'showncard')
+            cl[0].resides_in.type in ('cards', 'showncards')
         )
         return rst
 
@@ -79,12 +82,12 @@ class TributeHandler(EventHandler):
                 self.add()
             else:
                 self.remove()
-        
+
         elif evt_type == 'action_after' and isinstance(arg, PlayerRevive):
             self.add()
-            
+
         return arg
-    
+
     def add(self):
         g = Game.getgame()
         for p in g.players:

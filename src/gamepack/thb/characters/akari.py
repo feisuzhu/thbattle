@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from baseclasses import *
+from baseclasses import Character
+
 
 class Akari(Character):
     # dummy player for hidden choices

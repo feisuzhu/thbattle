@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game
+from game.autoenv import Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import EventHandler, UserAction, migrate_cards, LaunchCard, user_choose_option
+from ..actions import EventHandler, UserAction, migrate_cards, LaunchCard
 from ..cards import Card, TreatAsSkill, DemolitionCard, DummyCard, Demolition
+
+from ..inputlets import ChooseOptionInputlet
 
 
 class Envy(TreatAsSkill):
@@ -13,7 +15,7 @@ class Envy(TreatAsSkill):
         if len(cards) != 1: return False
         c = cards[0]
         if not c.resides_in: return False
-        if not c.resides_in.type in ('handcard', 'showncard', 'equips'): return False
+        if not c.resides_in.type in ('cards', 'showncards', 'equips'): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         return True
 
@@ -50,7 +52,8 @@ class EnvyHandler(EventHandler):
         dist = LaunchCard.calc_distance(src, EnvyRecycle())
         if not dist[tgt] <= 0: return act
 
-        if not user_choose_option(self, src): return act
+        if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+            return act
 
         g = Game.getgame()
         g.process_action(EnvyRecycleAction(src, tgt, card))

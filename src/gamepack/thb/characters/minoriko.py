@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import LaunchCard, DrawCardStage, migrate_cards
+from ..cards import Harvest, HarvestCard, Skill, t_AllInclusive, t_None, Card
+
 
 class Foison(Skill):
     associated_action = None
     target = t_None
 
+
 class FoisonDrawCardStage(DrawCardStage):
     def apply_action(self):
         self.amount = max(self.amount, 5 - len(self.target.cards) - len(self.target.showncards))
         return DrawCardStage.apply_action(self)
+
 
 class FoisonHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -19,6 +23,7 @@ class FoisonHandler(EventHandler):
             if tgt.has_skill(Foison):
                 act.__class__ = FoisonDrawCardStage
         return act
+
 
 class AutumnFeastAction(Harvest):
     def apply_action(self):
@@ -32,18 +37,22 @@ class AutumnFeastAction(Harvest):
             return False
         return Harvest.is_valid(self)
 
+
 class AutumnFeast(Skill):
     associated_action = AutumnFeastAction
     target = t_AllInclusive
+
     def check(self):
         cl = self.associated_cards
         if cl and len(cl) == 2 and all(c.color == Card.RED for c in cl):
             return True
         return False
 
+
 class AkiTribute(Skill):
     associated_action = None
     target = t_None
+
 
 class AkiTributeHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -72,6 +81,7 @@ class AkiTributeHandler(EventHandler):
             ], p.showncards)
 
         return act
+
 
 @register_character
 class Minoriko(Character):

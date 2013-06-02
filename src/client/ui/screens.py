@@ -8,19 +8,21 @@ import shlex
 
 # -- third party --
 import pyglet
-from pyglet.gl import *
+from pyglet.gl import glClear, glClearColor, glColor3f, glColor4f, GL_COLOR_BUFFER_BIT, glRectf
 
 # -- own --
-from client.ui.base import *
-from client.ui.base import ui_message, ui_schedule
-from client.ui.controls import *
-from client.ui.soundmgr import SoundManager
+from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
+from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
+from client.ui.controls import BalloonPrompt, Button, Colors, ConfirmBox, Frame
+from client.ui.controls import ImageButton, ImageSelector, ListView, Panel
+from client.ui.controls import PasswordTextBox, PlayerPortrait, ShadowedLabel
+from client.ui.controls import TextArea, TextBox
 from client.ui.resource import resource as common_res
+from client.ui.soundmgr import SoundManager
+
 from client.core import Executive
-from pyglet.text import Label
-from utils import Rect, rect_to_dict as r2d, BatchList, textsnap
+from utils import rect_to_dict as r2d, textsnap
 from user_settings import UserSettings
-from . import commands
 from account import Account
 from settings import ServerNames
 
@@ -148,16 +150,16 @@ class Screen(Overlay):
 
 class UpdateScreen(Screen):
     trans = dict(
-        update_begin = lambda: u'|W开始更新……|r',
-        up2date = lambda: u'|W已经是最新版本了|r',
-        delete_file = lambda fn: u'|W删除：|LB%s|r' % fn,
-        download_file = lambda fn: u'|W下载：|LB%s|r' % fn,
-        download_complete= lambda fn: u'|W下载完成：|LB%s|r' % fn,
-        write_failed = lambda fn: u'|R无法写入：|LB%s|r' % fn,
-        update_finished = lambda: u'|W更新完成|r',
-        http_error = lambda code, url: u'|RHTTP错误： %d %s|r' % (code, url),
-        network_error = lambda: u'|R网络错误|r',
-        io_error = lambda: u'|R系统错误|r', # WHATEVER
+        update_begin=lambda: u'|W开始更新……|r',
+        up2date=lambda: u'|W已经是最新版本了|r',
+        delete_file=lambda fn: u'|W删除：|LB%s|r' % fn,
+        download_file=lambda fn: u'|W下载：|LB%s|r' % fn,
+        download_complete=lambda fn: u'|W下载完成：|LB%s|r' % fn,
+        write_failed=lambda fn: u'|R无法写入：|LB%s|r' % fn,
+        update_finished=lambda: u'|W更新完成|r',
+        http_error=lambda code, url: u'|RHTTP错误： %d %s|r' % (code, url),
+        network_error=lambda: u'|R网络错误|r',
+        io_error=lambda: u'|R系统错误|r',  # WHATEVER
     )
 
     def __init__(self, *args, **kwargs):
@@ -177,10 +179,11 @@ class UpdateScreen(Screen):
         glClear(GL_COLOR_BUFFER_BIT)
         self.draw_subcontrols()
 
+
 class ServerSelectScreen(Screen):
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.buttons  = buttons = []
+        self.buttons = buttons = []
         from settings import ServerList as sl, NOTICE
 
         class BalloonImageButton(ImageButton, BalloonPrompt):
@@ -188,6 +191,7 @@ class ServerSelectScreen(Screen):
 
         class NoticePanel(Panel):
             fill_color = (1.0, 1.0, 0.9, 0.5)
+
             def __init__(self, text, *a, **k):
                 Panel.__init__(self, *a, **k)
                 self.zindex = 100
@@ -205,6 +209,7 @@ class ServerSelectScreen(Screen):
                     x=(w-120)//2, y=20,
                     width=120, height=40,
                 )
+
                 @btn.event
                 def on_click():
                     self.delete()
@@ -291,7 +296,7 @@ class LoginScreen(Screen):
             def L(text, x, y, *a, **k):
                 self.add_label(
                     text, x=x, y=y,
-                    font_size=9,color=(0,0,0,255),
+                    font_size=9, color=(0, 0, 0, 255),
                     bold=True, anchor_x='left', anchor_y='bottom',
                     *a, **k
                 )
@@ -325,9 +330,10 @@ class LoginScreen(Screen):
             def on_enter():
                 self.do_login()
 
-            @self.btn_reg.event
+            @self.btn_reg.event  # noqa
             def on_click():
-                import sys, os
+                import sys
+                import os
                 if sys.platform == 'win32':
                     os.startfile('http://www.thbattle.net', 'open')
                 elif sys.platform.startswith('linux'):
@@ -336,7 +342,6 @@ class LoginScreen(Screen):
         def do_login(self):
             u, pwd = self.txt_username.text, self.txt_pwd.text
             Executive.call('auth', ui_message, [u, pwd])
-
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
@@ -371,6 +376,7 @@ class LoginScreen(Screen):
     def on_switch(self):
         SoundManager.switch_bgm(common_res.bgm_hall)
 
+
 class GameHallScreen(Screen):
     class GameList(Frame):
         class CreateGamePanel(Panel):
@@ -394,7 +400,7 @@ class GameHallScreen(Screen):
                 txtbox = self.txtgamename = TextBox(
                     parent=self, x=95, y=270, width=420, height=22,
                 )
-                uname = Executive.account.username
+                uname = Executive.gamemgr.account.username
 
                 f = pyglet.font.load('AncientPix', 9)
 
@@ -408,7 +414,7 @@ class GameHallScreen(Screen):
                 ShadowedLabel(
                     u'创建游戏房间', font_size=12, x=275, y=306,
                     anchor_x='center', anchor_y='bottom',
-                    color = Colors.green.heavy + (255, ),
+                    color=Colors.green.heavy + (255, ),
                     shadow_color=(207, 240, 156, 204),
                     thin_shadow=True, batch=batch,
                 ),
@@ -447,7 +453,7 @@ class GameHallScreen(Screen):
                     roomname = textsnap(txtbox.text, f, 200)
                     Executive.call('create_game', ui_message, [gtype, roomname])
 
-                @btncancel.event
+                @btncancel.event  # noqa
                 def on_click():
                     self.delete()
 
@@ -495,7 +501,7 @@ class GameHallScreen(Screen):
                     gid, ul = args[0]
                     if gid != self.game_id: return
 
-                    ul = [i for i in ul if i['state'] not in { 'dropped', 'fleed' }]
+                    ul = [i for i in ul if i['state'] not in ('dropped', 'fleed')]
 
                     for i, p in enumerate(ul):
                         y, x = divmod(i, 5)
@@ -535,16 +541,15 @@ class GameHallScreen(Screen):
             self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=690-180, y=6, width=70, height=20)
             self.btn_refresh = Button(parent=self, caption=u'刷新列表', x=690-90, y=6, width=70, height=20)
 
-
             @self.btn_create.event
             def on_click():
                 self.CreateGamePanel(parent=self.overlay)
 
-            @self.btn_quickstart.event
+            @self.btn_quickstart.event  # noqa
             def on_click():
                 Executive.call('quick_start_game', ui_message, 'THBattle')
 
-            @self.btn_refresh.event
+            @self.btn_refresh.event  # noqa
             def on_click():
                 Executive.call('get_hallinfo', ui_message, None)
 
@@ -556,7 +561,6 @@ class GameHallScreen(Screen):
                     self.ObserveGamePanel(li.game_id, parent=self.overlay)
                 else:
                     Executive.call('join_game', ui_message, li.game_id)
-
 
         def on_message(self, _type, *args):
             if _type == 'current_games':
@@ -646,6 +650,7 @@ class GameHallScreen(Screen):
                     except Exception as e:
                         import traceback
                         traceback.print_exc(e)
+
                 ta.text = u'|R无法显示新闻！|r'
 
             from settings import HALL_NOTICE_URL
@@ -663,7 +668,7 @@ class GameHallScreen(Screen):
 
         def on_message(self, _type, *args):
             if _type == 'your_account':
-                acc = Executive.account
+                acc = Executive.gamemgr.account
                 ta = self.textarea
                 ta.text = u'\u200b'
                 f = u'|c0000ffff%s：|r %s\n'
@@ -698,7 +703,7 @@ class GameHallScreen(Screen):
             GameScreen(args[0]).switch()
 
         elif _type == 'gamehall_error':
-            log.error('GameHall Error: %s' % args[0]) # TODO
+            log.error('GameHall Error: %s' % args[0])  # TODO
             mapping = {
                 'cant_join_game': u'无法加入游戏！'
             }
@@ -713,7 +718,7 @@ class GameHallScreen(Screen):
 
     def draw(self):
         #glColor3f(.9, .9, .9)
-        glColor3f(1,1,1)
+        glColor3f(1, 1, 1)
         self.bg.blit(0, 0)
         self.draw_subcontrols()
 
@@ -723,6 +728,7 @@ class GameHallScreen(Screen):
 
 class GameScreen(Screen):
     flash_alpha = InterpDesc('_flash_alpha')
+
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
@@ -842,7 +848,7 @@ class GameScreen(Screen):
         self.gameui = self.ui_class(
             parent=False, game=game,
             **r2d((0, 0, 820, 720))
-        ) # add when game starts
+        )  # add when game starts
 
         self.events_box = GameScreen.EventsBox(parent=self)
         self.chat_box = GameScreen.ChatBox(parent=self)
@@ -888,7 +894,7 @@ class GameScreen(Screen):
         elif _type == 'game_joined':
             # last game ended, this is the auto
             # created game
-            self.game = game = args[0]
+            self.game = args[0]
             self.panel.btn_getready.state = Button.NORMAL
             self.gameui = self.ui_class(
                 parent=False, game=self.game,

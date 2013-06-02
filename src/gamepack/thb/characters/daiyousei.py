@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import ActionStage, DrawCardStage, migrate_cards, UserAction
+from ..cards import Skill, Heal, t_None, t_OtherOne
+
 
 class Support(UserAction):
     def apply_action(self):
@@ -25,20 +27,24 @@ class SupportSkill(Skill):
     target = t_OtherOne
     no_drop = True
     no_reveal = True
+
     def check(self):
         cl = self.associated_cards
         return cl and all(
             c.resides_in and
-            c.resides_in.type in ('handcard', 'showncard', 'equips')
+            c.resides_in.type in ('cards', 'showncards', 'equips')
             for c in cl
         )
+
 
 class Moe(Skill):
     associated_action = None
     target = t_None
 
+
 class MoeDrawCard(DrawCardStage):
     pass
+
 
 class DaiyouseiHandler(EventHandler):
     # Well, well, things are getting messy
@@ -54,6 +60,7 @@ class DaiyouseiHandler(EventHandler):
                 if tgt.has_skill(SupportSkill):
                     tgt.tags['daiyousei_spnum'] = 0
         return act
+
 
 @register_character
 class Daiyousei(Character):

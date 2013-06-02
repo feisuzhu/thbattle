@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ..actions import *
-from .base import *
+from game.autoenv import Game, EventHandler
+from ..actions import UserAction, Damage, ActionStage, ActionStageLaunchCard, LaunchCardAction, LaunchCard, DropUsedCard, DropCards, UseCard, GenericAction, PlayerTurn
+from ..actions import register_eh, user_choose_cards
 
 class BasicAction(UserAction): pass # attack, graze, heal
 
@@ -67,7 +68,6 @@ class AttackCardHandler(EventHandler):
             from .definition import AttackCard
             if lc.card.is_card(AttackCard):
                 src = lc.source
-                tl = lc.target_list
                 if src.tags['freeattack'] >= src.tags['turn_count']:
                     return act
 
@@ -143,7 +143,7 @@ class LaunchHeal(UserAction, LaunchCardAction):
     def apply_action(self):
         g = Game.getgame()
         src = self.source
-        cards = user_choose_cards(self, src)
+        cards = user_choose_cards(self, src, ['cards', 'showncards'])
         if not cards:
             self.card = None
             return False
@@ -242,13 +242,7 @@ class ExinwanEffect(GenericAction):
         if target.dead:
             return False
 
-        cats = [
-            target.cards,
-            target.showncards,
-            target.equips,
-        ]
-
-        cards = user_choose_cards(self, target, cats)
+        cards = user_choose_cards(self, target, ['cards', 'showncards', 'equips'])
 
         if cards:
             g.process_action(DropCards(target=target, cards=cards))
@@ -275,8 +269,8 @@ class ExinwanHandler(EventHandler):
 
         elif evt_type == 'action_after' and isinstance(act, DropCards):
             from .definition import ExinwanCard
-            from .base import CardList, VirtualCard
-            typelist = ('handcard', 'showncard', 'equips')
+            from .base import VirtualCard
+            typelist = ('cards', 'showncards', 'equips')
             cards = [c for c in act.cards if getattr(c, 'exinwan_lastin', None) in typelist]
             cards = VirtualCard.unwrap(cards)
             cards = [c for c in cards if c.is_card(ExinwanCard)]

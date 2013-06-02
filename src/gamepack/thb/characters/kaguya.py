@@ -1,6 +1,12 @@
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+# -*- coding: utf-8 -*-
+
+from game.autoenv import Game, EventHandler, user_input
+from .baseclasses import Character, register_character
+from ..actions import UserAction, LaunchCard, Damage, DrawCards, LaunchCardAction, LifeLost
+from ..actions import user_choose_cards, migrate_cards, skill_transform
+from ..cards import Skill, t_None, Card, SealingArrayCard, TreatAsSkill, VirtualCard, Heal
+from ..inputlets import ChooseOptionInputlet
+
 
 
 class Dilemma(Skill):
@@ -13,8 +19,7 @@ class DilemmaDamageAction(UserAction):
         src = self.source
         tgt = self.target
 
-        cats = [tgt.cards, tgt.showncards, tgt.equips]
-        cards = user_choose_cards(self, tgt, cats)
+        cards = user_choose_cards(self, tgt, ['cards', 'showncards', 'equips'])
         g = Game.getgame()
         if cards:
             self.peer_action = 'card'
@@ -30,7 +35,7 @@ class DilemmaDamageAction(UserAction):
         if len(cards) != 1: return False
         card = cards[0]
         if not card.resides_in.type in (
-            'handcard', 'showncard', 'equips'
+            'cards', 'showncards', 'equips'
         ): return False
 
         return card.suit == Card.DIAMOND
@@ -56,7 +61,8 @@ class DilemmaHandler(EventHandler):
         if not src: return act
 
         self.dilemma_type = 'negative' if isinstance(act, Damage) else 'positive'
-        if not user_choose_option(self, tgt): return act
+        if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            return act
 
         g = Game.getgame()
         if isinstance(act, Damage):
@@ -105,13 +111,13 @@ class ImperishableNightHandler(EventHandler):
             if not p.has_skill(ImperishableNight): continue
             if p is g.current_turn: continue
 
-            if not user_choose_option(self, p): continue
+            if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                continue
 
-            cats = [p.cards, p.showncards, p.equips]
-            cards = user_choose_cards(self, p, cats)
+            cards = user_choose_cards(self, p, ['cards', 'showncards', 'equips'])
 
             if cards:
-                skill = skill_wrap_by_class(p, [ImperishableNight], cards)
+                skill = skill_transform(p, [ImperishableNight], cards)
                 assert skill  # should not fail
                 rst = g.process_action(LaunchCard(p, [tgt], skill))
                 assert rst
@@ -122,7 +128,7 @@ class ImperishableNightHandler(EventHandler):
         if len(cards) != 1: return False
         card = cards[0]
         if not card.resides_in.type in (
-            'handcard', 'showncard', 'equips'
+            'cards', 'showncards', 'equips'
         ): return False
         if 'skill' in card.category: return False
         if card.color != Card.RED: return False

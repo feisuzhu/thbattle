@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import DrawCards, UserAction
+from ..cards import Skill, Heal, t_None, t_OtherOne
+
 
 class Psychopath(Skill):
     associated_action = None
     target = t_None
+
 
 class NetoruAction(UserAction):
     def apply_action(self):
@@ -25,19 +28,23 @@ class NetoruAction(UserAction):
             return False
         return not (tgt.dead or tgt.life >= tgt.maxlife)
 
+
 class Netoru(Skill):
     associated_action = NetoruAction
     target = t_OtherOne
+
     def check(self):
         cl = self.associated_cards
         return cl and len(cl) == 2 and all(
             c.resides_in and
-            c.resides_in.type in ('handcard', 'showncard')
+            c.resides_in.type in ('cards', 'showncards')
             for c in cl
         )
 
+
 class PsychopathDrawCards(DrawCards):
     pass
+
 
 class PsychopathHandler(EventHandler):
     def handle(self, evt_type, args):
@@ -49,6 +56,7 @@ class PsychopathHandler(EventHandler):
                     g = Game.getgame()
                     g.process_action(PsychopathDrawCards(src, len(cards)*2))
         return args
+
 
 @register_character
 class Rinnosuke(Character):

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from .. import cards
 from game.autoenv import GameObject
 
 characters = []
 ex_characters = []
+
 
 class Character(GameObject):
     # skills = []
@@ -15,6 +15,9 @@ class Character(GameObject):
         return [s for s in self.skills if issubclass(s, skill)]
 
     has_skill = get_skills
+
+    def __repr__(self):
+        return '<Char: {}>'.format(self.__class__.__name__)
 
 
 def register_character(cls):

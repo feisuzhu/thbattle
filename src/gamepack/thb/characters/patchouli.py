@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game
+from .baseclasses import Character, register_character
+from ..actions import DrawCards, ForEach, GenericAction, LaunchCard
+from ..cards import Card, Skill, RejectCard, InstantSpellCardAction, Reject, SpellCardAction, t_None
+
 
 class Library(Skill):
     associated_action = None
     target = t_None
 
+
 class Knowledge(Skill):
     associated_action = None
     target = t_None
 
+
 class LibraryDrawCards(DrawCards):
     pass
+
 
 class KnowledgeAction(GenericAction):
     def __init__(self, act):
@@ -23,8 +28,10 @@ class KnowledgeAction(GenericAction):
         self.action.cancelled = True
         return True
 
+
 class PatchouliHandler(EventHandler):
     execute_before = ('RejectHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
 
@@ -57,6 +64,7 @@ class PatchouliHandler(EventHandler):
                     return act
 
         return act
+
 
 @register_character
 class Patchouli(Character):

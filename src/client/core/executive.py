@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-from server_endpoint import Server
+from network.client import Server
 import sys
 import gevent
 from gevent import socket, Greenlet
 
 from account import Account
+from utils import BatchList
 
 import logging
 log = logging.getLogger('Executive')
@@ -26,6 +27,7 @@ class GameManager(Greenlet):
     def _run(self):
         from gamepack import gamemodes
         handlers = {}
+
         def handler(_from, _to):
             def register(f):
                 handlers[f.__name__] = (f, _from, _to)
@@ -41,7 +43,7 @@ class GameManager(Greenlet):
                     for i, pl in enumerate(self.game.players):
                         if pl.account.userid != acc.userid: continue
                         data1.append(p)
-                        self.game.players[i].dropped = (p['state'] in { 'dropped', 'fleed' })
+                        self.game.players[i].dropped = (p['state'] in ('dropped', 'fleed'))
 
                 self.event_cb('player_change', data1)
             else:
@@ -55,15 +57,16 @@ class GameManager(Greenlet):
                 self.last_game.get()
                 self.last_game = None
 
-            from client.core import PeerPlayer, TheChosenOne, PlayerList
+            from client.core import PeerPlayer, TheChosenOne
             pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
-            me = TheChosenOne()
+            me = TheChosenOne(Executive.server)
+            me.account = self.account
             i = pid.index(me.account.userid)
             pl[i] = me
             g = self.game
             g.me = me
-            g.players = PlayerList(pl)
+            g.players = BatchList(pl)
             #g.start()
             log.info('=======GAME STARTED: %d=======' % g.gameid)
             log.info(g)
@@ -89,14 +92,15 @@ class GameManager(Greenlet):
                 self.last_game = None
 
             tgtid, pldata = data
-            from client.core import PeerPlayer, PlayerList, TheLittleBrother
+            from client.core import PeerPlayer, TheLittleBrother
             pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
             i = pid.index(tgtid)
             g = self.game
-            g.players = PlayerList(pl)
+            g.players = BatchList(pl)
             g.me = g.players[i]
             g.me.__class__ = TheLittleBrother
+            g.me.server = Executive.server
             #g.start()
             log.info('=======OBSERVE STARTED=======')
             log.info(g)
@@ -151,7 +155,7 @@ class GameManager(Greenlet):
 
         @handler(('hang',), None)
         def your_account(self, accdata):
-            Executive.account = acc = Account.parse(accdata)
+            self.account = acc = Account.parse(accdata)
             self.event_cb('your_account', acc)
 
         @handler(None, None)
@@ -197,7 +201,7 @@ class Executive(Greenlet):
         # Called with these args:
         # callback('message', *results)
         self.default_callback = lambda *a, **k: False
-        self.state = 'initial' # initial connected
+        self.state = 'initial'  # initial connected
 
     def call(self, _type, cb=None, *args):
         if not cb:
@@ -207,6 +211,7 @@ class Executive(Greenlet):
 
     def _run(self):
         handlers = {}
+
         def handler(f):
             handlers[f.__name__] = f
 
@@ -216,7 +221,6 @@ class Executive(Greenlet):
 
         @handler
         def connect_server(self, cb, addr, event_cb):
-            from client.core import TheChosenOne
             if not self.state == 'initial':
                 cb('server_already_connected')
                 return
@@ -225,9 +229,9 @@ class Executive(Greenlet):
                 svr = Server.spawn(s, 'TheChosenOne')
                 self.server = svr
                 self.state = 'connected'
-                self.gm_greenlet = GameManager()
-                self.gm_greenlet.start()
-                self.gm_greenlet.event_cb = event_cb
+                self.gamemgr = GameManager()
+                self.gamemgr.start()
+                self.gamemgr.event_cb = event_cb
 
                 svr.link_exception(lambda *a: event_cb('server_dropped'))
 
@@ -243,8 +247,8 @@ class Executive(Greenlet):
             else:
                 self.server.close()
                 self.state = 'initial'
-                self.gm_greenlet.kill()
-                self.server = self.gm_greenlet = None
+                self.gamemgr.kill()
+                self.server = self.gamemgr = None
                 cb('disconnected')
 
         @handler
@@ -292,12 +296,21 @@ class Executive(Greenlet):
             return wrapper
         ops = [
             # FIXME: the quick start thing should be done at client
-            'register',     'create_game',      'join_game',
-            'get_hallinfo', 'quick_start_game', #'auth',
-            'get_ready',    'exit_game',        'cancel_ready',
-            'chat',         'speaker',          'change_location',
-            'kick_user',    'observe_user',     'query_gameinfo',
+            'cancel_ready',
+            'change_location',
+            'chat',
+            'create_game',
+            'exit_game',
+            'get_hallinfo',
+            'get_ready',
+            'join_game',
+            'kick_user',
             'observe_grant',
+            'observe_user',
+            'query_gameinfo',
+            'quick_start_game',
+            'register',
+            'speaker',
         ]
         for op in ops:
             handler(simple_gm_op(op))

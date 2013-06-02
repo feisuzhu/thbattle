@@ -1,17 +1,28 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+
+from game.autoenv import Game, EventHandler, user_input
+from .baseclasses import Character, register_character
+from ..actions import Damage, DrawCards, DrawCardStage, migrate_cards, random_choose_card, UserAction, user_choose_players
+from ..cards import Card, Skill, t_None, t_One, t_OtherOne
+from ..inputlets import ChooseOptionInputlet
+
 
 class Jolly(Skill):
     associated_action = None
     target = t_None
 
+
 class Surprise(UserAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
-        suit = user_choose_option(self, tgt)
+        options = (
+            Card.SPADE, Card.HEART,
+            Card.CLUB, Card.DIAMOND,
+        )
+
+        suit = user_input([tgt], ChooseOptionInputlet(self, options))
+
         card = random_choose_card([src.cards, src.showncards])
         src.tags['surprise_tag'] = src.tags['turn_count']
         assert card
@@ -41,11 +52,14 @@ class Surprise(UserAction):
             return False
         return True
 
+
 class SurpriseSkill(Skill):
     associated_action = Surprise
     target = t_OtherOne
+
     def check(self):
         return not self.associated_cards
+
 
 class JollyDrawCard(DrawCards):
     def __init__(self, source, target):
@@ -53,8 +67,10 @@ class JollyDrawCard(DrawCards):
         self.target = target
         self.amount = 1
 
+
 class JollyHandler(EventHandler):
     choose_player_target = t_One
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, DrawCardStage):
             tgt = act.target
@@ -77,6 +93,7 @@ class JollyHandler(EventHandler):
     def choose_player_target(self, tl):
         if not tl: return (tl, False)
         return (tl[-1:], True)
+
 
 @register_character
 class Kogasa(Character):

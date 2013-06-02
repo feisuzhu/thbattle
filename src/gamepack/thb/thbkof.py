@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError, GameEnded, PlayerList, InterruptActionFlow
-from game import TimeLimitExceeded
-
-from actions import *
+import random
 from itertools import cycle
 from collections import defaultdict
-
-from utils import BatchList, check, CheckFailed, classmix, Enum
-
-from .common import *
-
 import logging
-log = logging.getLogger('THBattle')
 
+from utils import Enum
+
+from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, InputTransaction, user_input
+from game import sync_primitive
+
+from .common import PlayerIdentity, CharChoice, mixin_character, get_seed_for
+
+from .actions import PlayerDeath, UserAction, PlayerTurn, DrawCards, RevealIdentity
+from .actions import action_eventhandlers
+
+from .inputlets import ChooseGirlInputlet, KOFSortInputlet
+
+log = logging.getLogger('THBattle')
 _game_ehs = {}
+
+
 def game_eh(cls):
     _game_ehs[cls.__name__] = cls
     return cls
@@ -54,10 +60,10 @@ class DeathHandler(EventHandler):
 @game_eh
 class KOFCharacterSwitchHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_stage_action' or \
-            (evt_type in { 'action_before', 'action_after' } and isinstance(act, PlayerTurn)):
-                self.do_switch()
-
+        cond = evt_type in ('action_before', 'action_after')
+        cond = cond and isinstance(act, PlayerTurn)
+        cond = cond or evt_type == 'action_stage_action'
+        cond and self.do_switch()
         return act
 
     @staticmethod
@@ -83,21 +89,21 @@ class THBattleKOF(Game):
     n_persons = 2
     game_ehs = _game_ehs
 
-    def game_start(self):
+    def game_start(g):
         # game started, init state
 
-        from cards import Card, Deck, CardList
+        from cards import Deck, CardList
 
-        self.deck = Deck()
+        g.deck = Deck()
 
-        self.ehclasses = []
+        g.ehclasses = []
 
-        for i, p in enumerate(self.players):
-            p.cards = CardList(p, 'handcard') # Cards in hand
-            p.showncards = CardList(p, 'showncard') # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips') # Equipments
-            p.fatetell = CardList(p, 'fatetell') # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special') # used on special purpose
+        for i, p in enumerate(g.players):
+            p.cards = CardList(p, 'cards')  # Cards in hand
+            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+            p.equips = CardList(p, 'equips')  # Equipments
+            p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+            p.special = CardList(p, 'special')  # used on special purpose
 
             p.showncardlists = [p.showncards, p.fatetell]
 
@@ -105,127 +111,103 @@ class THBattleKOF(Game):
 
             p.dead = False
             p.identity = Identity()
-            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i%2]
+            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i % 2]
 
         # choose girls -->
         from characters import characters as chars
         from characters.akari import Akari
 
-        _chars = self.random.sample(chars, 10)
+        _chars = g.random.sample(chars, 10)
         if Game.SERVER_SIDE:
-            choice = [
-                CharChoice(cls, cid)
-                for cls, cid in zip(_chars[-10:], xrange(10))
-            ]
+            choice = [CharChoice(cls) for cls in _chars[-10:]]
 
-            for c in self.random.sample(choice, 4):
+            for c in g.random.sample(choice, 4):
                 c.real_cls = c.char_cls
                 c.char_cls = Akari
 
         elif Game.CLIENT_SIDE:
-            choice = [
-                CharChoice(None, i)
-                for i in xrange(10)
-            ]
+            choice = [CharChoice(None) for i in xrange(10)]
 
         # -----------
 
-        self.players.reveal(choice)
+        g.players.reveal(choice)
 
         # roll
-        roll = range(len(self.players))
-        self.random.shuffle(roll)
-        pl = self.players
+        roll = range(len(g.players))
+        g.random.shuffle(roll)
+        pl = g.players
         roll = sync_primitive(roll, pl)
 
         roll = [pl[i] for i in roll]
 
-        self.emit_event('game_roll', roll)
+        g.emit_event('game_roll', roll)
 
         first = roll[0]
         second = roll[1]
 
-        self.emit_event('game_roll_result', first)
+        g.emit_event('game_roll_result', first)
         # ----
 
         # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
         akaris = []
-        self.emit_event('choose_girl_begin', (self.players, choice))
 
         A, B = first, second
         order = [A, B, B, A, A, B, B, A, A, B]
         A.choices = []
         B.choices = []
+        choice_mapping = {A: choice, B: choice}
         del A, B
 
-        for i, p in enumerate(order):
-            cid = p.user_input('choose_girl', choice, timeout=10)
-            try:
-                check(isinstance(cid, int))
-                check(0 <= cid < len(choice))
-                c = choice[cid]
-                check(not c.chosen)
+        with InputTransaction('ChooseGirl', g.players, mapping=choice_mapping) as trans:
+            for p in order:
+                c = user_input([p], ChooseGirlInputlet(g, choice_mapping), 10, 'single', trans)
+                if not c:
+                    # first non-chosen char
+                    for c in choice:
+                        if not c.chosen:
+                            c.chosen = p
+                            break
+
+                if issubclass(c.char_cls, Akari):
+                    akaris.append((p, c))
+
                 c.chosen = p
-            except CheckFailed:
-                # first non-chosen char
-                for c in choice:
-                    if not c.chosen:
-                        c.chosen = p
-                        break
+                p.choices.append(c)
 
-            if issubclass(c.char_cls, Akari):
-                akaris.append((p, c))
-
-            p.choices.append(c)
-
-            self.emit_event('girl_chosen', c)
-
-        self.emit_event('choose_girl_end', None)
+                trans.notify('girl_chosen', c)
 
         # reveal akaris for themselves
         for p, c in akaris:
             c.char_cls = c.real_cls
             p.reveal(c)
 
-        for p in self.players:
-            perm = range(5)
-            self.random.shuffle(perm)
-            perm = sync_primitive(perm, p)
-            p._perm = perm
+        for p in g.players:
+            seed = get_seed_for(p)
+            random.Random(seed).shuffle(p.choices)
 
-        def process(p, input):
-            try:
-                check(input)
-                check_type([int, Ellipsis], input)
-                check(len(set(input)) == len(input))
-                check(all(0 <= i < 5 for i in input))
-                p._perm_input = input
-            except CheckFailed:
-                p._perm_input = range(5)
+        mapping = {first: first.choices, second: second.choices}
+        rst = user_input(g.players, KOFSortInputlet(g, mapping), timeout=30, type='all')
 
-        self.players.user_input_all('kof_sort_characters', process, None, 30)
-
-        for p in self.players:
+        for p in g.players:
             perm = p.choices
-            perm = [perm[i] for i in p._perm]
-            perm = [perm[i] for i in p._perm_input[:3]]
+            perm = [perm[i] for i in rst[p][:3]]
             p.characters = [c.char_cls for c in perm]
             del p.choices
 
-        self.next_character(first)
-        self.next_character(second)
+        g.next_character(first)
+        g.next_character(second)
 
-        self.update_event_handlers()
+        g.update_event_handlers()
 
         try:
-            pl = self.players
+            pl = g.players
             for p in pl:
-                self.process_action(RevealIdentity(p, pl))
+                g.process_action(RevealIdentity(p, pl))
 
-            self.emit_event('game_begin', self)
+            g.emit_event('game_begin', g)
 
             for p in pl:
-                self.process_action(DrawCards(p, amount=3 if p is second else 4))
+                g.process_action(DrawCards(p, amount=3 if p is second else 4))
 
             for i, p in enumerate(cycle([second, first])):
                 if i >= 6000: break
@@ -236,8 +218,8 @@ class THBattleKOF(Game):
                 assert not p.dead
 
                 try:
-                    self.emit_event('player_turn', p)
-                    self.process_action(PlayerTurn(p))
+                    g.emit_event('player_turn', p)
+                    g.process_action(PlayerTurn(p))
                 except InterruptActionFlow:
                     pass
 
@@ -254,7 +236,7 @@ class THBattleKOF(Game):
 
     def next_character(self, p):
         assert p.characters
-        char = CharChoice(p.characters.pop(0), 0)
+        char = CharChoice(p.characters.pop(0))
         self.players.reveal(char)
         cls = char.char_cls
 
@@ -277,4 +259,3 @@ class THBattleKOF(Game):
                     pass
 
         ehs.extend(p.eventhandlers_required)
-

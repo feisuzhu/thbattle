@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
+from game.autoenv import EventHandler, Game, user_input
+from .baseclasses import Character, register_character
+from ..actions import DrawCardStage, GenericAction, migrate_cards, random_choose_card, user_choose_players
+from ..cards import Skill, Attack, AttackCard, GrazeCard, t_None, t_OtherOne
+from ..inputlets import ChooseOptionInputlet
+
 
 class Borrow(Skill):
     associated_action = None
     target = t_None
+
 
 class BorrowAction(GenericAction):
     def __init__(self, source, target_list):
@@ -25,13 +29,15 @@ class BorrowAction(GenericAction):
 
 class BorrowHandler(EventHandler):
     execute_after = ('FrozenFrogHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
             if act.cancelled: return act
             tgt = act.target
             if tgt.dead: return act
             if not tgt.has_skill(Borrow): return act
-            if not user_choose_option(self, tgt): return act
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
 
             g = Game.getgame()
             pl = [p for p in g.players if not p.dead and (p.cards or p.showncards)]
@@ -53,6 +59,7 @@ class BorrowHandler(EventHandler):
             return (tl, False)
 
         return (tl[:2], True)
+
 
 class MasterSpark(Skill):
     associated_action = Attack

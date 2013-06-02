@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import *
-from ..actions import *
-from ..cards import *
-from utils import check, check_type, CheckFailed
+from game.autoenv import Game, EventHandler, user_input
+from .baseclasses import Character, register_character
+from ..actions import GenericAction, Damage, user_choose_cards
+from ..actions import DropCards, PlayerTurn
+from ..cards import Skill, t_None, InstantSpellCardAction, Reject, SpellCardAction
+from ..inputlets import ProphetInputlet, ChooseOptionInputlet
 
 
 class Prophet(Skill):
     associated_action = None
     target = t_None
 
+
 class ExtremeIntelligence(Skill):
     associated_action = None
     target = t_None
+
 
 class ProphetAction(GenericAction):
     def apply_action(self):
@@ -23,41 +27,33 @@ class ProphetAction(GenericAction):
         assert cards == g.deck.getcards(n)
 
         tgt.reveal(cards)
-        rst = tgt.user_input('ran_prophet', cards, timeout=40)
-        if not rst: return False
-        try:
-            check_type([[int, Ellipsis]]*2, rst)
-            upcards = rst[0]
-            downcards = rst[1]
-            check(sorted(upcards+downcards) == range(n))
-        except CheckFailed as e:
-            try:
-                print 'RAN PROPHET:', upcards, downcards
-            except:
-                pass
-            return act
+
+        upcards, downcards = user_input([tgt], ProphetInputlet(self, cards))
 
         deck = g.deck.cards
-        for i, j in enumerate(downcards):
-            deck[i] = cards[j]
+        for i, c in enumerate(downcards):
+            deck[i] = c
         deck.rotate(-len(downcards))
-        for i, j in enumerate(upcards):
-            deck[i] = cards[j]
 
-        cl = [cards[i] for i in upcards]
-        assert g.deck.getcards(len(upcards)) == cl
+        for i, c in enumerate(upcards):
+            deck[i] = c
+
+        assert g.deck.getcards(len(upcards)) == upcards
 
         return True
+
 
 class ProphetHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             tgt = act.target
             if not tgt.has_skill(Prophet): return act
-            if not user_choose_option(self, tgt): return act
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
             Game.getgame().process_action(ProphetAction(tgt, tgt))
 
         return act
+
 
 class ExtremeIntelligenceAction(GenericAction):
     def __init__(self, source, target, act):
@@ -66,7 +62,7 @@ class ExtremeIntelligenceAction(GenericAction):
 
     def apply_action(self):
         p = self.source
-        cards = user_choose_cards(self, p, [p.cards, p.showncards, p.equips])
+        cards = user_choose_cards(self, p, ['cards', 'showncards', 'equips'])
         if not cards: return False
         p.tags['ran_ei_tag'] = p.tags['turn_count'] + 1
         g = Game.getgame()
@@ -95,6 +91,7 @@ class ExtremeIntelligenceAction(GenericAction):
     def cond(self, cl):
         return len(cl) == 1
 
+
 class ExtremeIntelligenceHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, InstantSpellCardAction):
@@ -113,25 +110,29 @@ class ExtremeIntelligenceHandler(EventHandler):
                     tl = [act.target]
                 if any(t.dead for t in tl): return act
 
-                if not user_choose_option(self, p): continue
+                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                    continue
 
                 g.process_action(ExtremeIntelligenceAction(p, act.target, act))
 
         return act
 
+
 class NakedFox(Skill):
     associated_action = None
     target = t_None
+
 
 class NakedFoxAction(GenericAction):
     def __init__(self, dmg):
         self.source = self.target = dmg.target
         self.dmgact = dmg
-        self.dmgamount = dmg.amount # for UI
+        self.dmgamount = dmg.amount  # for UI
 
     def apply_action(self):
         self.dmgact.amount -= 1
         return True
+
 
 class NakedFoxHandler(EventHandler):
     def handle(self, evt_type, act):
@@ -148,6 +149,7 @@ class NakedFoxHandler(EventHandler):
             return act
 
         return act
+
 
 @register_character
 class Ran(Character):
