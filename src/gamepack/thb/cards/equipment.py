@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-#from .base import *
 from game.autoenv import Game, EventHandler, user_input, GameError
 from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DummyAction, DropCardStage, MaxLifeChange
 from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card
@@ -10,6 +9,7 @@ from ..inputlets import ChooseOptionInputlet, ChooseIndividualCardInputlet, Choo
 from . import basic, spellcard
 
 from utils import check, CheckFailed, classmix
+
 
 class WearEquipmentAction(UserAction):
     def apply_action(self):
@@ -24,6 +24,7 @@ class WearEquipmentAction(UserAction):
                 break
         migrate_cards([card], target.equips)
         return True
+
 
 @register_eh
 class EquipmentTransferHandler(EventHandler):
@@ -49,7 +50,7 @@ class ShieldSkill(Skill):
     target = t_None
 
 
-class OpticalCloakSkill(ShieldSkill): # just a tag
+class OpticalCloakSkill(ShieldSkill):  # just a tag
     pass
 
 
@@ -87,15 +88,19 @@ class OpticalCloakHandler(EventHandler):
             return act
         return act
 
+
 class UFOSkill(Skill):
     associated_action = None
     target = t_None
 
+
 class GreenUFOSkill(UFOSkill):
     increment = 1
 
+
 class RedUFOSkill(UFOSkill):
     increment = 1
+
 
 @register_eh
 class UFODistanceHandler(EventHandler):
@@ -165,6 +170,7 @@ class HakuroukenEffectHandler(EventHandler):
         'HouraiJewelHandler',
         'SpearTheGungnirHandler',
     )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             if hasattr(act, 'hakurouken_tag'):
@@ -186,6 +192,7 @@ class ElementalReactorSkill(WeaponSkill):
 @register_eh
 class ElementalReactorHandler(EventHandler):
     execute_after = ('EquipmentTransferHandler', )
+
     def handle(self, evt_type, arg):
         if evt_type == 'action_stage_action':
             tgt = arg
@@ -211,12 +218,15 @@ class RoukankenSkill(WeaponSkill):
     associated_action = None
     target = t_None
 
+
 class RoukankenLaunchAttack(LaunchCard):
     pass
+
 
 @register_eh
 class RoukankenHandler(EventHandler):
     execute_after = ('WineHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, LaunchCard):
             src, tgt = act.source, act.target
@@ -243,7 +253,8 @@ class RoukankenHandler(EventHandler):
 class GungnirSkill(TreatAsSkill, WeaponSkill):
     target = t_OtherOne
     range = 3
-    treat_as = Card.card_classes['AttackCard'] # arghhhhh, nasty circular references!
+    treat_as = Card.card_classes['AttackCard']  # arghhhhh, nasty circular references!
+
     def check(self):
         cl = self.associated_cards
         cat = ('cards', 'showncards')
@@ -260,6 +271,7 @@ class LaevateinSkill(WeaponSkill):
     distance = 1
     associated_action = Laevatein
     target = t_OtherLessEqThanN(3)
+
     def check(self):
         try:
             cl = self.associated_cards
@@ -335,9 +347,11 @@ class RepentanceStick(GenericAction):
         self.cards = l
         return True
 
+
 @register_eh
 class RepentanceStickHandler(EventHandler):
     execute_before = ('WineHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
             if act.cancelled: return act
@@ -357,8 +371,10 @@ class RepentanceStickHandler(EventHandler):
 
         return act
 
+
 class MaidenCostumeSkill(ShieldSkill):
     pass
+
 
 class MaidenCostumeEffect(spellcard.NonResponsiveInstantSpellCardAction):
     def apply_action(self):
@@ -368,9 +384,11 @@ class MaidenCostumeEffect(spellcard.NonResponsiveInstantSpellCardAction):
         g.process_action(dmg)
         return True
 
+
 @register_eh
 class MaidenCostumeHandler(EventHandler):
     execute_before = ('RejectHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SinsackCarnivalEffect):
             target = act.target
@@ -381,12 +399,15 @@ class MaidenCostumeHandler(EventHandler):
                 Game.getgame().process_action(nact)
         return act
 
+
 class IbukiGourdSkill(RedUFOSkill):
     increment = 0
+
 
 @register_eh
 class IbukiGourdHandler(EventHandler):
     execute_after = ('WineHandler', )
+
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, PlayerTurn):
             target = arg.target
@@ -420,7 +441,7 @@ class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
 
 
 class HouraiJewelSkill(WeaponSkill):
-    associated_action =  None
+    associated_action = None
     target = t_None
     range = 1
 
@@ -428,6 +449,7 @@ class HouraiJewelSkill(WeaponSkill):
 @register_eh
 class HouraiJewelHandler(EventHandler):
     execute_before = ('RejectHandler', 'WineHandler')  # wine does not affect this.
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.Attack):
             src = act.source
@@ -503,21 +525,22 @@ class SaigyouBranch(FatetellAction):
         else:
             return False
 
+
 class SaigyouBranchSkill(ShieldSkill):
     pass
+
 
 @register_eh
 class SaigyouBranchHandler(EventHandler):
     execute_before = ('RejectHandler', )
     execute_after = ('HouraiJewelHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SpellCardAction):
             src, tgt = act.source, act.target
             if not tgt.has_skill(SaigyouBranchSkill): return act
             if act.cancelled: return act
-            if isinstance(act, spellcard.Reject) and src == tgt:
-                # target's own Reject
-                return act
+            if isinstance(act, spellcard.Reject): return act  # can't respond to reject
 
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
@@ -525,6 +548,7 @@ class SaigyouBranchHandler(EventHandler):
             Game.getgame().process_action(SaigyouBranch(tgt, act))
 
         return act
+
 
 class FlirtingSwordSkill(WeaponSkill):
     range = 2
@@ -537,7 +561,7 @@ class FlirtingSword(GenericAction):
         src = self.source
         tgt = self.target
 
-        cards = user_choose_cards(self, tgt, ['cards', 'showncards'])
+        cards = user_choose_cards(self, tgt, ('cards', 'showncards'))
         g = Game.getgame()
         if cards:
             self.peer_action = 'drop'
@@ -549,7 +573,8 @@ class FlirtingSword(GenericAction):
         return True
 
     def cond(self, cards):
-        return len(cards) == 1
+        tgt = self.target
+        return len(cards) == 1 and cards[0].resides_in in (tgt.cards, tgt.showncards)
 
 
 @register_eh
@@ -559,6 +584,7 @@ class FlirtingSwordHandler(EventHandler):
     # then src drops Gourd,
     # but Attack.damage == 1, Wine tag preserved.
     execute_before = ('WineHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, basic.BaseAttack):
             if act.cancelled: return act
@@ -593,6 +619,7 @@ class AyaRoundfanSkill(WeaponSkill):
     range = 3
     associated_action = None
     target = t_None
+
 
 @register_eh
 class AyaRoundfanHandler(EventHandler):
@@ -673,10 +700,12 @@ class ScarletRhapsodySwordHandler(EventHandler):
 
         return act
 
+
 class DeathSickleSkill(WeaponSkill):
     range = 2
     associated_action = None
     target = t_None
+
 
 class DeathSickle(GenericAction):
     def __init__(self, act):
@@ -687,9 +716,11 @@ class DeathSickle(GenericAction):
         self.action.damage += 1
         return True
 
+
 @register_eh
 class DeathSickleHandler(EventHandler):
     execute_after = ('HakuroukenEffectHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             src, tgt = act.source, act.target
@@ -699,8 +730,10 @@ class DeathSickleHandler(EventHandler):
 
         return act
 
+
 class KeystoneSkill(GreenUFOSkill):
     increment = 1
+
 
 class Keystone(GenericAction):
     def __init__(self, act):
@@ -712,9 +745,11 @@ class Keystone(GenericAction):
         self.action.cancelled = True
         return True
 
+
 @register_eh
 class KeystoneHandler(EventHandler):
     execute_before = ('SaigyouBranchHandler', 'RejectHandler')
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.Sinsack):
             tgt = act.target
@@ -723,12 +758,15 @@ class KeystoneHandler(EventHandler):
 
         return act
 
+
 class WitchBroomSkill(RedUFOSkill):
     increment = 2
+
 
 class AccessoriesSkill(Skill):
     associated_action = None
     target = t_None
+
 
 class YinYangOrb(GenericAction):
     def __init__(self, ft):
@@ -751,8 +789,10 @@ class YinYangOrb(GenericAction):
 
         return True
 
+
 class YinYangOrbSkill(AccessoriesSkill):
     pass
+
 
 @register_eh
 class YinYangOrbHandler(EventHandler):
@@ -767,6 +807,7 @@ class YinYangOrbHandler(EventHandler):
             g.process_action(YinYangOrb(act))
 
         return act
+
 
 class SuwakoHatSkill(AccessoriesSkill):
     pass
@@ -835,6 +876,7 @@ class IceWing(GenericAction):
 class IceWingHandler(EventHandler):
     execute_before = ('RejectHandler', 'SaigyouBranchHandler')
     _effect_cls = spellcard.SealingArray, spellcard.FrozenFrog
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, self._effect_cls):
             if act.target.has_skill(IceWingSkill):
@@ -847,7 +889,7 @@ class GrimoireSkill(TreatAsSkill, WeaponSkill):
     range = 1
     from .base import Card
     lookup_tbl = {
-        Card.SPADE: Card.card_classes['SinsackCarnivalCard'], # again...
+        Card.SPADE: Card.card_classes['SinsackCarnivalCard'],  # again...
         Card.HEART: Card.card_classes['FeastCard'],
         Card.CLUB: Card.card_classes['MapCannonCard'],
         Card.DIAMOND: Card.card_classes['HarvestCard'],

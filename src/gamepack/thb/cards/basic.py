@@ -4,7 +4,9 @@ from game.autoenv import Game, EventHandler
 from ..actions import UserAction, Damage, ActionStage, ActionStageLaunchCard, LaunchCardAction, LaunchCard, DropUsedCard, DropCards, UseCard, GenericAction, PlayerTurn
 from ..actions import register_eh, user_choose_cards
 
-class BasicAction(UserAction): pass # attack, graze, heal
+
+class BasicAction(UserAction): pass  # attack, graze, heal
+
 
 class BaseAttack(UserAction):
 

@@ -3,7 +3,7 @@ from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import DropCards, GenericAction, MaxLifeChange, random_choose_card, PlayerTurn
 from ..cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, t_None, TreatAsSkill
-from ..inputlets import ChooseOptionInputlet
+from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 class LoongPunch(Skill):
@@ -46,8 +46,10 @@ class LoongPunchAction(GenericAction):
 
     def apply_action(self):
         g = Game.getgame()
+        src = self.source
         tgt = self.target
-        c = random_choose_card([tgt.cards, tgt.showncards])
+        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
+        c = c or random_choose_card([tgt.cards, tgt.showncards])
         if not c: return False
         g.players.exclude(tgt).reveal(c)
         g.process_action(DropCards(tgt, [c]))
@@ -58,15 +60,14 @@ class LoongPunchHandler(EventHandler):
     execute_after = ('DeathSickleHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, BaseAttack):
-            self.do_effect(act.source, act.target, 'attack')
-        elif evt_type == 'action_after' and isinstance(act, LaunchGraze):
+        if evt_type == 'action_after' and isinstance(act, LaunchGraze):
             if not act.succeeded: return act
             g = Game.getgame()
             pact = g.action_stack[-1]
             if not isinstance(pact, BaseAttack): return act
-            assert pact.target is act.target
+            self.do_effect(pact.source, pact.target, 'attack')
             self.do_effect(pact.target, pact.source, 'graze')
+
         return act
 
     def do_effect(self, src, tgt, _type):

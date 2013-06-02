@@ -4,7 +4,7 @@ from .baseclasses import Character, register_character
 from ..actions import UserAction, GenericAction, FatetellStage, DropCards, DrawCardStage, LaunchCard, ActionStage, DropCardStage
 from ..actions import user_choose_cards, random_choose_card, migrate_cards, ask_for_action
 from ..cards import Skill, t_None
-from ..inputlets import ChooseIndividualCardInputlet, ChooseOptionInputlet
+from ..inputlets import ChooseIndividualCardInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 class Realm(Skill):
@@ -62,7 +62,8 @@ class RealmSkipDrawCard(GenericAction):
         tgt = self.target
 
         for p in self.pl:
-            c = random_choose_card([p.cards, p.showncards])
+            c = user_input([tgt], ChoosePeerCardInputlet(self, p, ('cards', 'showncards')))
+            c = c or random_choose_card([p.cards, p.showncards])
             if not c: continue
             tgt.reveal(c)
             migrate_cards([c], tgt.cards)

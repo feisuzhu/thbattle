@@ -2,9 +2,10 @@
 
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import Damage, DrawCards, DrawCardStage, migrate_cards, random_choose_card, UserAction, user_choose_players
+from ..actions import Damage, DrawCards, DrawCardStage, migrate_cards
+from ..actions import random_choose_card, UserAction, user_choose_players
 from ..cards import Card, Skill, t_None, t_One, t_OtherOne
-from ..inputlets import ChooseOptionInputlet
+from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 class Jolly(Skill):
@@ -22,8 +23,9 @@ class Surprise(UserAction):
         )
 
         suit = user_input([tgt], ChooseOptionInputlet(self, options))
+        card = user_input([tgt], ChoosePeerCardInputlet(self, src, ('cards', 'showncards')))
+        card = card or random_choose_card([src.cards, src.showncards])
 
-        card = random_choose_card([src.cards, src.showncards])
         src.tags['surprise_tag'] = src.tags['turn_count']
         assert card
         g = Game.getgame()

@@ -375,7 +375,7 @@ class UseCard(UserAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        cards = user_choose_cards(self, target, ['cards', 'showncards'])
+        cards = user_choose_cards(self, target, ('cards', 'showncards'))
 
         if not cards or len(cards) != 1:
             self.card = None

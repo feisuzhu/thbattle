@@ -3,7 +3,7 @@ from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import DrawCardStage, GenericAction, migrate_cards, random_choose_card, user_choose_players
 from ..cards import Skill, Attack, AttackCard, GrazeCard, t_None, t_OtherOne
-from ..inputlets import ChooseOptionInputlet
+from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 class Borrow(Skill):
@@ -19,7 +19,8 @@ class BorrowAction(GenericAction):
     def apply_action(self):
         src = self.source
         for p in self.target_list:
-            c = random_choose_card([p.cards, p.showncards])
+            c = user_input([src], ChoosePeerCardInputlet(self, p, ('cards', 'showncards')))
+            c = c or random_choose_card([p.cards, p.showncards])
             if not c: continue
             Game.getgame().players.exclude(p).reveal(c)
             migrate_cards([c], src.showncards)
