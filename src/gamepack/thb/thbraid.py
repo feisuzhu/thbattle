@@ -533,22 +533,22 @@ class THBattleRaid(Game):
                         if not avail:
                             break
 
-                        p, _ = user_input(
-                            avail,
-                            ChooseOptionInputlet(RequestAction, (None, True)),
-                            type='any'
-                        )
-
-                        p = p or avail[0]
-
-                        p.tags['action'] = False
                         try:
-                            g.process_action(PlayerTurn(p))
+                            g.process_action(PlayerTurn(mutant))
                         except InterruptActionFlow:
                             pass
 
+                        p, _ = user_input(
+                            avail,
+                            ChooseOptionInputlet(RequestAction, (None, True)),
+                            type='any',
+                        )
+
+                        p = p or avail[0]
+                        p.tags['action'] = False
+
                         try:
-                            g.process_action(PlayerTurn(mutant))
+                            g.process_action(PlayerTurn(p))
                         except InterruptActionFlow:
                             pass
 
