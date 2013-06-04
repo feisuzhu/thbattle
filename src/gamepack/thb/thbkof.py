@@ -51,8 +51,7 @@ class DeathHandler(EventHandler):
 
         if tgt is g.current_turn:
             for a in reversed(g.action_stack):
-                if isinstance(a, UserAction):
-                    a.interrupt_after_me()
+                isinstance(a, UserAction) and a.interrupt_after_me()
 
         return act
 

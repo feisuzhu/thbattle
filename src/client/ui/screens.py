@@ -877,7 +877,6 @@ class GameScreen(Screen):
             self.gameui.init()
             self.add_control(self.gameui)
             self.game.start()
-            # utils.hub_interrupt(self.game.start)
 
         elif _type == 'end_game':
             self.remove_control(self.gameui)

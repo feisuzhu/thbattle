@@ -230,19 +230,20 @@ class BaseDuel(UserAction):
         source = self.source
         target = self.target
 
-        d = (source, target)
-        dmg = (self.source_damage, self.target_damage)
+        s, t = source, target
+        sd, td = self.source_damage, self.target_damage
         while True:
-            d = (d[1], d[0])
-            dmg = (dmg[1], dmg[0])
-            if not g.process_action(basic.UseAttack(d[0])): break
+            if t.dead: break
+            if not g.process_action(basic.UseAttack(t)): break
+            s, t = t, s
+            sd, td = td, sd
 
-        if not d[0].dead:
-            dact = Damage(d[1], d[0], amount=dmg[1])
+        if not t.dead:
+            dact = Damage(s, t, amount=sd)
             dact.associated_action = self
             g.process_action(dact)
 
-        return d[1] is source
+        return s is source
 
 
 class Duel(BaseDuel, InstantSpellCardAction):

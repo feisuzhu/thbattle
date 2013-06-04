@@ -2,9 +2,10 @@
 # Cards and Deck definition
 
 #from .base import *
-from .base import Card, t_None, t_One, t_Self, t_OtherOne, t_All, t_AllInclusive, t_OneOrNone, t_OtherLessEqThanN
+from .base import Card, t_None, t_One, t_Self, t_OtherOne, t_All, t_AllInclusive, t_OtherLessEqThanN
 
 from game import GameObjectMeta
+
 
 def card_meta(clsname, bases, _dict):
     for a in ('associated_action', 'target', 'category'):
@@ -17,6 +18,7 @@ def card_meta(clsname, bases, _dict):
 __metaclass__ = card_meta
 
 # ==================================================
+
 
 class DummyCard:
     associated_action = None
@@ -173,12 +175,14 @@ class DonationBoxCard:
 
 from . import equipment
 
+
 class OpticalCloakCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.OpticalCloakSkill
     equipment_category = 'shield'
+
 
 class GreenUFOCard:
     associated_action = equipment.WearEquipmentAction
@@ -187,12 +191,14 @@ class GreenUFOCard:
     equipment_skill = equipment.GreenUFOSkill
     equipment_category = 'greenufo'
 
+
 class RedUFOCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.RedUFOSkill
     equipment_category = 'redufo'
+
 
 class HakuroukenCard:
     associated_action = equipment.WearEquipmentAction
@@ -201,12 +207,14 @@ class HakuroukenCard:
     equipment_skill = equipment.HakuroukenSkill
     equipment_category = 'weapon'
 
+
 class ElementalReactorCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.ElementalReactorSkill
     equipment_category = 'weapon'
+
 
 class UmbrellaCard:
     associated_action = equipment.WearEquipmentAction
@@ -215,12 +223,14 @@ class UmbrellaCard:
     equipment_skill = equipment.UmbrellaSkill
     equipment_category = 'shield'
 
+
 class RoukankenCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.RoukankenSkill
     equipment_category = 'weapon'
+
 
 class GungnirCard:
     associated_action = equipment.WearEquipmentAction
@@ -229,12 +239,14 @@ class GungnirCard:
     equipment_skill = equipment.GungnirSkill
     equipment_category = 'weapon'
 
+
 class LaevateinCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.LaevateinSkill
     equipment_category = 'weapon'
+
 
 class TridentCard:
     associated_action = equipment.WearEquipmentAction
@@ -243,12 +255,14 @@ class TridentCard:
     equipment_skill = equipment.TridentSkill
     equipment_category = 'weapon'
 
+
 class RepentanceStickCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.RepentanceStickSkill
     equipment_category = 'weapon'
+
 
 class MaidenCostumeCard:
     associated_action = equipment.WearEquipmentAction
@@ -258,12 +272,14 @@ class MaidenCostumeCard:
     equipment_category = 'shield'
     distance = 2
 
+
 class IbukiGourdCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.IbukiGourdSkill
     equipment_category = 'redufo'
+
 
 class HouraiJewelCard:
     associated_action = equipment.WearEquipmentAction
@@ -272,12 +288,14 @@ class HouraiJewelCard:
     equipment_skill = equipment.HouraiJewelSkill
     equipment_category = 'weapon'
 
+
 class SaigyouBranchCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.SaigyouBranchSkill
     equipment_category = 'shield'
+
 
 class FlirtingSwordCard:
     associated_action = equipment.WearEquipmentAction
@@ -286,12 +304,14 @@ class FlirtingSwordCard:
     equipment_skill = equipment.FlirtingSwordSkill
     equipment_category = 'weapon'
 
+
 class AyaRoundfanCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.AyaRoundfanSkill
     equipment_category = 'weapon'
+
 
 class ScarletRhapsodySwordCard:
     associated_action = equipment.WearEquipmentAction
@@ -300,12 +320,14 @@ class ScarletRhapsodySwordCard:
     equipment_skill = equipment.ScarletRhapsodySwordSkill
     equipment_category = 'weapon'
 
+
 class DeathSickleCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.DeathSickleSkill
     equipment_category = 'weapon'
+
 
 class KeystoneCard:
     associated_action = equipment.WearEquipmentAction
@@ -314,12 +336,14 @@ class KeystoneCard:
     equipment_skill = equipment.KeystoneSkill
     equipment_category = 'greenufo'
 
+
 class WitchBroomCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.WitchBroomSkill
     equipment_category = 'redufo'
+
 
 class YinYangOrbCard:
     associated_action = equipment.WearEquipmentAction
@@ -328,12 +352,14 @@ class YinYangOrbCard:
     equipment_skill = equipment.YinYangOrbSkill
     equipment_category = 'accessories'
 
+
 class SuwakoHatCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.SuwakoHatSkill
     equipment_category = 'accessories'
+
 
 class YoumuPhantomCard:
     associated_action = equipment.WearEquipmentAction
@@ -342,12 +368,14 @@ class YoumuPhantomCard:
     equipment_skill = equipment.YoumuPhantomSkill
     equipment_category = 'accessories'
 
+
 class IceWingCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', )
     equipment_skill = equipment.IceWingSkill
     equipment_category = 'accessories'
+
 
 class GrimoireCard:
     associated_action = equipment.WearEquipmentAction

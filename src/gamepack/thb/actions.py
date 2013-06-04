@@ -189,22 +189,7 @@ class LaunchCardAction(object): pass
 
 
 class UserAction(Action):  # card/character skill actions
-    def is_valid(self):
-        if getattr(self, '_force_fire', False):
-            return True
-
-        if self.source and self.source.dead:
-            return False
-
-        if self.target and self.target.dead:
-            return False
-
-        return True
-
-    def force_fire(self):
-        # Fire action regardless player status
-        # for Exinwan only, do not use on other purpose
-        self._force_fire = True
+    pass
 
 
 class PlayerDeath(GenericAction):
@@ -479,9 +464,6 @@ class LaunchCard(GenericAction, LaunchCardAction):
             self.card_action = a
             a.associated_card = card
             a.target_list = target_list
-            # <TODO>: this is obvioulsly not right
-            a.force_fire()  # For Exinwan, see UserAction.force_fire
-            # should be fixed </TODO>
             g.process_action(a)
             return True
 
