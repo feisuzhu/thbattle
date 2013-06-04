@@ -478,28 +478,16 @@ class UmbrellaEffect(GenericAction):
 class UmbrellaHandler(EventHandler):
     # 紫的阳伞
     execute_before = ('RejectHandler', )
-    blocks = (
-        spellcard.MapCannonEffect,
-        spellcard.SinsackCarnivalEffect,
-        spellcard.Duel,
-        HouraiJewelAttack,
-    )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before':
-            if isinstance(act, self.blocks):
-                if not act.target.has_skill(UmbrellaSkill): return act
+        if evt_type == 'action_before' and isinstance(act, Damage):
+            if not act.target.has_skill(UmbrellaSkill): return act
+            g = Game.getgame()
+            pact = g.action_stack[-1]
+
+            if isinstance(pact, spellcard.SpellCardAction):
                 act.cancelled = True
-                Game.getgame().process_action(UmbrellaEffect(act))
-
-            elif isinstance(act, Damage):
-                if not act.target.has_skill(UmbrellaSkill): return act
-                g = Game.getgame()
-                pact = g.action_stack[-1]
-
-                if isinstance(pact, spellcard.SpellCardAction):
-                    act.cancelled = True
-                    Game.getgame().process_action(UmbrellaEffect(pact))
+                Game.getgame().process_action(UmbrellaEffect(pact))
 
         return act
 
