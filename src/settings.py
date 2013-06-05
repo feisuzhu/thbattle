@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 125'
+VERSION = 'THBATTLE V1.0b incr 130'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -126,19 +126,11 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
-水桥的一处bug修复
-水桥设定调整(zhyk)
-游戏服务器迁到国内
-辉夜设定调整
-论坛互联
-新人物：蓬莱山辉夜（zhyk）
-八云紫 & 霍青娥 技能调整：不再可以使用装备牌发动技能
-文本框可以选择文字复制了。（zhyk）
-聊天框内可以使用命令（目前只有 /vol ，设置音量使用）（zhyk）
-聊天框保存聊天记录（zhyk）
-莫名其妙卡顿bug修复
-异变模式。
-早苗设定调整，各种bug修复……
-bug修复，复制/粘贴支持（感谢zhyk提供补丁）
+异变模式：解决者选人模式变更，1阶段修改为异变先行动
+异变模式：牌堆内移除八卦炉
+阳伞：现在不会直接令可能造成伤害的符卡无效化
+小伞、美玲和紫的技能现在可以选择明牌区的牌
+美玲设定调整
+西行妖设定调整：现在不可以响应好人卡
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
 '''.strip()
