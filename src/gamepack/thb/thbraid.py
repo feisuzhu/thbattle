@@ -464,10 +464,10 @@ class THBattleRaid(Game):
         # init deck & mutant's initial equip
         # (SinsackCard, SPADE, 1)
         # (SinsackCard, HEART, Q)
-        from cards import Deck, SinsackCard, card_definition
+        from cards import Deck, SinsackCard, ElementalReactorCard, card_definition
         raid_carddef = [
             carddef for carddef in card_definition
-            if carddef[0] is not SinsackCard
+            if carddef[0] not in (SinsackCard, ElementalReactorCard)
         ]
 
         g.deck = Deck(raid_carddef)
