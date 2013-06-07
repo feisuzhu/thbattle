@@ -92,6 +92,10 @@ class ScarletFogEffect(UserAction):
             if LaunchCard(p, [t], atkcard).can_fire():
                 pl.append(t)
 
+        if not pl:
+            g.process_action(LifeLost(p, p, 1))
+            return True
+
         _, rst = ask_for_action(self, [p], ['cards', 'showncards'], pl)
         if rst:
             c = rst[0][0]; t = rst[1][0]

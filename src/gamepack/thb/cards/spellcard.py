@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from game.autoenv import Game, EventHandler, user_input, InputTransaction
+from game import sync_primitive
 from . import basic
 from ..actions import random_choose_card, register_eh, migrate_cards, ask_for_action
 from ..actions import user_choose_cards
@@ -9,7 +10,7 @@ from ..actions import DrawCards, Fatetell, ActionStage, Damage, ForEach
 from ..actions import LaunchCard, DrawCardStage
 from ..inputlets import ChoosePeerCardInputlet, ChooseIndividualCardInputlet
 
-from utils import check, CheckFailed, BatchList
+from utils import check, CheckFailed, BatchList, flatten
 
 
 class SpellCardAction(UserAction): pass
@@ -84,6 +85,28 @@ class RejectHandler(EventHandler):
                 return act
 
             g = Game.getgame()
+
+            has_reject = False
+            while g.SERVER_SIDE:
+                from ..characters.reimu import Reimu
+                for p in g.players:
+                    if isinstance(p, Reimu):
+                        has_reject = True
+                        break
+
+                if has_reject: break
+
+                from .definition import RejectCard
+                for c in flatten([[p.cards, p.showncards] for p in g.players]):
+                    if isinstance(c, RejectCard):
+                        has_reject = True
+                        break
+
+                break
+
+            has_reject = sync_primitive(has_reject, g.players)
+            if not has_reject: return act
+
             self.target_act = act  # for ui
 
             pl = BatchList(p for p in g.players if not p.dead)

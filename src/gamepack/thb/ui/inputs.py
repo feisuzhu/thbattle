@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+import math
 import logging
 log = logging.getLogger('THBattleUI_Input')
-import itertools
 
 import pyglet
 
@@ -72,6 +72,7 @@ class UISelectTarget(Control, InputHandler):
         def on_confirm(is_ok):
             is_ok and ilet.set_result(*self.get_result())
             ilet.done()
+            end_transaction(self.trans)
 
         self.progress_bar.value = LinearInterp(
             1.0, 0.0, ilet.timeout,
@@ -121,6 +122,7 @@ class UIDoPassiveAction(UISelectTarget):
         initiator = ilet.initiator
         candidates = ilet.candidates
 
+        g = Game.getgame()
         if isinstance(initiator, RejectHandler):
             ori = self.set_valid
             self._sv_val = False
@@ -134,11 +136,10 @@ class UIDoPassiveAction(UISelectTarget):
                 self.set_valid = ori
                 if self._sv_val: ori()
 
-            pyglet.clock.schedule_once(delay, 0.5)
+            pyglet.clock.schedule_once(delay, 0.1 + 0.2 * math.sqrt(g.players.index(g.me)))
 
         if candidates:
             parent = self.parent
-            g = Game.getgame()
             disables = [p for p in g.players if p not in candidates]
             parent.begin_select_player(disables)
 
@@ -157,24 +158,6 @@ class UIDoPassiveAction(UISelectTarget):
             if not parent: return
 
             cond = getattr(initiator, 'cond', False)
-
-            while isinstance(initiator, RejectHandler):
-                self._sv_val = False
-                self.set_text(u'自动结算好人卡…')
-                if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
-                    from gamepack.thb.characters import reimu
-                    if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
-                        ilet.done()
-                        end_transaction(self.trans)
-                        return
-
-                # HACK
-                if not self._snd_prompt:
-                    from .effects import input_snd_prompt
-                    input_snd_prompt()
-                    self._snd_prompt = True
-
-                break
 
             if cond:
                 if not self._auto_chosen:
@@ -648,9 +631,6 @@ class UIHarvestChoose(Panel, InputHandler):
     def on_harvest_choose(self, card):
         self.mapping[id(card)].gray = True
 
-    def cleanup(self):
-        pass
-
 
 class Dragger(Control):
     dragging = False
@@ -854,9 +834,6 @@ class UIKOFCharacterSorter(Panel, InputHandler):
 
         b = BigProgressBar(parent=self, x=100, y=15, width=250)
         b.value = LinearInterp(1.0, 0.0, ilet.timeout, on_done=on_click)
-
-    def cleanup(self):
-        pass
 
     def draw(self):
         Panel.draw(self)

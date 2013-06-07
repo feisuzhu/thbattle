@@ -74,7 +74,6 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
         return p, rst
 
     orig_players = players[:]
-    idata = []
 
     with TimeLimitExceeded(timeout + 5, False):
         inputany_player = None
@@ -84,8 +83,7 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
 
         while players:
             p, data = get_input()
-            idata.append((p, data))
-            type != 'any' and g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
+            g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
 
             my = ilets[p]
 
@@ -108,23 +106,11 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
 
             if type == 'any' and rst is not None:
                 inputany_player = p
-                for _p, data in idata:
-                    g.players.client.gwrite('R{}{}'.format(tag, synctags[_p]), data)
-
-                for _p in players:
-                    g.emit_event('user_input_finish', (trans, ilets[_p], None))
-
-                del players[:]
                 break
-
-    # no body responds positive to 'any' input, should notify all
-    if type == 'any' and not inputany_player:
-        assert len(idata) == len(orig_players)
-        for p, data in idata:
-            g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
 
     # timed-out players
     for p in players:
+        g.emit_event('user_input_finish', (trans, ilets[p], None))
         g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), None)
 
     if type == 'single':

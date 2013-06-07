@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+from functools import wraps
+from collections import deque
 
-class Packet(list): # compare by identity list
+
+class Packet(list):  # compare by identity list
     __slots__ = ('scan_count')
+
     def __hash__(self):
         return id(self)
 
@@ -64,6 +68,7 @@ class BatchList(list):
 
 class ScissorBox(object):
     exc = Exception('ScissorBox Invalid')
+
     def __init__(self, con, x, y, w, h):
         ax, ay = con.abs_coords()
         self.box = (x+ax, y+ay, w, h)
@@ -92,11 +97,14 @@ class ScissorBox(object):
         if not self.nb:
             raise self.exc
 
+
 class CheckFailed(Exception): pass
+
 
 def check(b):
     if not b:
         raise CheckFailed
+
 
 def check_type(pattern, obj):
     if isinstance(pattern, (list, tuple)):
@@ -112,8 +120,10 @@ def check_type(pattern, obj):
     else:
         check(isinstance(obj, pattern))
 
+
 class Framebuffer(object):
     current_fbo = None
+
     def __init__(self, texture=None):
         from pyglet import gl
         fbo_id = gl.GLuint(0)
@@ -213,6 +223,7 @@ class Framebuffer(object):
         args = tuple(src_box) + tuple(dst_box) + (mask, _filter)
         gl.glBlitFramebufferEXT(*args)
 
+
 def dilate(im, color):
     import pyglet
     w, h = im.width, im.height
@@ -222,6 +233,7 @@ def dilate(im, color):
     class accesser(object):
         def __init__(self, arr):
             self.arr = arr
+
         def __getitem__(self, val):
             x, y = val
             if not (0 <= x < w and 0 <= y < h):
@@ -254,10 +266,11 @@ def dilate(im, color):
     return new
 
 TRANS = {
-    124: 101, #LOAD_FAST: LOAD_NAME,
-    125: 90, #STORE_FAST: STORE_NAME,
-    126: 91, #DELETE_FAST: DELETE_NAME,
+    124: 101,  # LOAD_FAST: LOAD_NAME,
+    125: 90,  # STORE_FAST: STORE_NAME,
+    126: 91,  # DELETE_FAST: DELETE_NAME,
 }
+
 
 def pinnable(*scopevars):
     def _pinnable(f):
@@ -280,17 +293,17 @@ def pinnable(*scopevars):
             op = bcode[i]
             nop = TRANS.get(op, op)
             i += 1
-            if op >= 90: # HAVE_ARGUMENT
-                if op in (124, 125, 126): # (LOAD|STORE|DELETE)_FAST opcodes
+            if op >= 90:  # HAVE_ARGUMENT
+                if op in (124, 125, 126):  # (LOAD|STORE|DELETE)_FAST opcodes
                     nbcode.append(nop)
                     arg = bcode[i] + (bcode[i+1] << 8)
                     arg += len_names
                     nbcode.extend([arg & 255, (arg >> 8) & 255])
-                elif op == 116: # LOAD_GLOBAL
+                elif op == 116:  # LOAD_GLOBAL
                     arg = bcode[i] + (bcode[i+1] << 8)
                     gname = names[arg]
                     if gname in scopevars:
-                        nbcode.append(101) # LOAD_NAME
+                        nbcode.append(101)  # LOAD_NAME
                     else:
                         nbcode.append(nop)
                     nbcode.extend(bcode[i:i+2])
@@ -303,13 +316,14 @@ def pinnable(*scopevars):
 
         nbcode = ''.join(chr(i) for i in nbcode)
         newco = type(c)(
-            0, 0, c.co_stacksize, c.co_flags & (~2), # CO_NEWLOCALS
+            0, 0, c.co_stacksize, c.co_flags & (~2),  # CO_NEWLOCALS
             nbcode, c.co_consts, names + vnames,
             tuple(), c.co_filename, '<pinnable %s>' % f.__name__,
             c.co_firstlineno, c.co_lnotab
         )
         return newco
     return _pinnable
+
 
 def remove_dups(s):
     seen = set()
@@ -318,9 +332,11 @@ def remove_dups(s):
             yield i
             seen.add(i)
 
+
 @property
 def __mixins(self):
     return self.__class__.__bases__
+
 
 def __prev_mixin(self, this):
     mixins = self.mixins
@@ -335,7 +351,7 @@ def __prev_mixin(self, this):
 
     return mixins[i]
 
-cls_cache = {}
+
 def classmix(*_classes):
     classes = []
     for c in _classes:
@@ -361,18 +377,21 @@ def classmix(*_classes):
     cls_cache[classes] = new_cls
     return new_cls
 
-from functools import wraps
+cls_cache = {}
+
 
 def hook(module):
     def inner(hooker):
         funcname = hooker.__name__
         hookee = getattr(module, funcname)
+
         @wraps(hookee)
         def real_hooker(*args, **kwargs):
             return hooker(hookee, *args, **kwargs)
         setattr(module, funcname, real_hooker)
         return real_hooker
     return inner
+
 
 def gif_to_animation(giffile):
     import pyglet
@@ -408,8 +427,10 @@ def gif_to_animation(giffile):
 
     return anim
 
+
 class DisplayList(object):
     compiled = False
+
     def __init__(self):
         from pyglet import gl
         self._list_id = gl.glGenLists(1)
@@ -470,6 +491,7 @@ def partition(pred, l):
 
 import functools
 
+
 def track(f):
     @functools.wraps(f)
     def _wrapper(*a, **k):
@@ -511,9 +533,10 @@ class Enum(object):
 
 def flatten(l):
     rst = []
+
     def _flatten(sl):
         for i in sl:
-            if isinstance(i, (list, tuple)):
+            if isinstance(i, (list, tuple, deque)):
                 _flatten(i)
             else:
                 rst.append(i)
