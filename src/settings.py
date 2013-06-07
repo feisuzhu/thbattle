@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 def makedict(clsname, bases, _dict):
     try:
         del _dict['__module__']
@@ -29,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 130'
+VERSION = 'THBATTLE V1.0b incr 131'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -56,7 +57,7 @@ class ServerNames:
     forum = u'论坛'
     localhost = u'本机'
     lake = u'雾之湖'
-    forest= u'魔法之森'
+    forest = u'魔法之森'
     hakurei = u'博丽神社'
 
 
@@ -76,8 +77,8 @@ class ServerList:
                 u'|R|B注意：这是测试服务器，并不保证稳定、与正常服务器的同步！|r\n\n'
                 u'|DB服务器地址： %s|r'
             ) % repr(address)
-            x=893
-            y=404
+            x = 893
+            y = 404
 
     if options.freeplay or IS_PROTON:
         class localhost:
@@ -85,8 +86,8 @@ class ServerList:
             description = (
                 u'|R你自己的本机服务器|r'
             )
-            x=893
-            y=504
+            x = 893
+            y = 504
 
     class lake:
         address = ('cngame.thbattle.net', 9999)
@@ -96,8 +97,8 @@ class ServerList:
             u'另外，请不要把青蛙带到这里来。这不是规定，只是一个建议。\n\n'
             u'|DB服务器地址： %s|r'
         ) % repr(address)
-        x=570
-        y=470
+        x = 570
+        y = 470
 
     class forest:
         address = ('cngame.thbattle.net', 9999)
@@ -107,8 +108,8 @@ class ServerList:
             u'旁边有一个神奇的物品店，只是店主有点变态。\n\n'
             u'|DB服务器地址： %s|r'
         ) % repr(address)
-        x=379
-        y=286
+        x = 379
+        y = 286
 
     del IS_PROTON
 
