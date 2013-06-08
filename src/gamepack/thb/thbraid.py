@@ -529,14 +529,14 @@ class THBattleRaid(Game):
                         p.tags['action'] = True
 
                     while True:
-                        avail = BatchList([p for p in attackers if p.tags['action'] and not p.dead])
-                        if not avail:
-                            break
-
                         try:
                             g.process_action(PlayerTurn(mutant))
                         except InterruptActionFlow:
                             pass
+
+                        avail = BatchList([p for p in attackers if p.tags['action'] and not p.dead])
+                        if not avail:
+                            break
 
                         p, _ = user_input(
                             avail,
@@ -551,6 +551,9 @@ class THBattleRaid(Game):
                             g.process_action(PlayerTurn(p))
                         except InterruptActionFlow:
                             pass
+
+                        if not [p for p in attackers if p.tags['action'] and not p.dead]:
+                            break
 
             except MutantMorph:
                 pass

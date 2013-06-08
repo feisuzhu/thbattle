@@ -6,7 +6,6 @@ log = logging.getLogger('THBattleUI_Input')
 import pyglet
 
 from game.autoenv import Game
-from client.core import TheChosenOne
 from gamepack.thb import actions as thbactions
 from gamepack.thb.cards import CardList, RejectHandler
 
@@ -36,12 +35,14 @@ class UISelectTarget(Control, InputHandler):
 
     def __init__(self, trans, *a, **k):
         Control.__init__(self, *a, **k)
-        parent = self.parent
         self.trans = trans
         self.inputlet = None
+        self.label = None
 
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
+    def process_user_input(self, ilet):
+        parent = self.parent
         self.confirmbtn = ConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
             buttons=((u'确定', True), (u'结束', False))
@@ -67,7 +68,6 @@ class UISelectTarget(Control, InputHandler):
 
         #dispatch_selection_change() # the clear_selection thing will trigger this
 
-    def process_user_input(self, ilet):
         @self.confirmbtn.event
         def on_confirm(is_ok):
             is_ok and ilet.set_result(*self.get_result())
@@ -100,6 +100,7 @@ class UISelectTarget(Control, InputHandler):
         return self.control_frompoint1(x, y)
 
     def cleanup(self):
+        if not self.label: return  # processed user_input
         p = self.parent
         p.end_select_player()
         p.pop_handlers()
@@ -109,7 +110,8 @@ class UISelectTarget(Control, InputHandler):
 
     def draw(self):
         self.draw_subcontrols()
-        self.label.draw()
+        lbl = self.label
+        lbl and lbl.draw()
 
 
 class UIDoPassiveAction(UISelectTarget):
@@ -402,6 +404,7 @@ class UIChooseGirl(Panel, InputHandler):
 class UIChoosePeerCard(Panel, InputHandler):
     def __init__(self, trans, *a, **k):
         self.trans = trans
+        self.lbls = pyglet.graphics.Batch()
         Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
 
     def process_user_input(self, ilet):
@@ -410,7 +413,6 @@ class UIChoosePeerCard(Panel, InputHandler):
 
         h = 40 + len(categories)*145 + 10
         w = 100 + 6*93.0+30
-        self.lbls = lbls = pyglet.graphics.Batch()
 
         y = 40
         i = 0
@@ -423,7 +425,7 @@ class UIChoosePeerCard(Panel, InputHandler):
                 text=CardList.ui_meta.lookup[cat.type], font_size=12,
                 color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
                 x=30, y=y+62+145*i, anchor_x='left', anchor_y='center',
-                batch=lbls,
+                batch=self.lbls,
             )
 
             ca = DropCardArea(
@@ -478,6 +480,7 @@ class UIChooseOption(Control, InputHandler):
     def __init__(self, trans, *a, **k):
         Control.__init__(self, *a, **k)
         self.trans = trans
+        self.label = None
 
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
@@ -521,7 +524,8 @@ class UIChooseOption(Control, InputHandler):
 
     def draw(self):
         self.draw_subcontrols()
-        self.label.draw()
+        lbl = self.label
+        lbl and lbl.draw()
 
 
 class UIChooseIndividualCard(Panel, InputHandler):
@@ -712,9 +716,10 @@ class RanProphetControl(Dragger):
 class UIRanProphet(Panel, InputHandler):
     def __init__(self, trans, parent, *a, **k):
         Panel.__init__(
-            self, x=100, y=100, width=100, height=100, zindex=5, parent=parent,
+            self, x=1, y=1, width=1, height=1, zindex=5, parent=parent,
             *a, **k
         )
+        self.lbls = pyglet.graphics.Batch()
         self.trans = trans
 
     def process_user_input(self, ilet):
@@ -724,20 +729,17 @@ class UIRanProphet(Panel, InputHandler):
         w = 100 + w + 20
         h = 60 + h + 50
 
-        lbls = pyglet.graphics.Batch()
-
         def lbl(text, x, y):
             ShadowedLabel(
                 text=text, x=x, y=y, font_size=12,
                 anchor_x='center', anchor_y='center',
                 color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
-                batch=lbls,
+                batch=self.lbls,
             )
 
         lbl(u'牌堆底', 50, 122)
         lbl(u'牌堆顶', 50, 277)
         lbl(u'请拖动调整牌的位置', w//2, h-25)
-        self.lbls = lbls
 
         parent = self.parent
         self.x, self.y = (parent.width - w)//2, (parent.height - h)//2
@@ -754,7 +756,7 @@ class UIRanProphet(Panel, InputHandler):
         btn = Button(parent=self, caption=u'调整完成', x=w-120, y=15, width=100, height=30)
 
         @btn.event
-        def on_click():
+        def on_click(*a):
             up, down = self.rpc.get_result()
             up = [c.associated_card for c in up]
             down = [c.associated_card for c in down]
@@ -781,8 +783,9 @@ class KOFSorterControl(Dragger):
 class UIKOFCharacterSorter(Panel, InputHandler):
     def __init__(self, trans, parent, *a, **k):
         self.trans = trans
+        self.lbls = pyglet.graphics.Batch()
         Panel.__init__(
-            self, x=100, y=100, width=100, height=100, zindex=5, parent=parent,
+            self, x=1, y=1, width=1, height=1, zindex=5, parent=parent,
             *a, **k
         )
 
@@ -797,17 +800,14 @@ class UIKOFCharacterSorter(Panel, InputHandler):
         w = 20 + w + 20
         h = 60 + h + 50
 
-        lbls = pyglet.graphics.Batch()
-
         def lbl(text, x, y):
             ShadowedLabel(
                 text=text, font_size=12, x=x, y=y,
                 color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 190),
-                anchor_x='center', anchor_y='center', batch=lbls,
+                anchor_x='center', anchor_y='center', batch=self.lbls,
             )
 
         lbl(u'请拖动调整角色的出场顺序', w//2, h-25)
-        self.lbls = lbls
 
         parent = self.parent
         self.x, self.y = (parent.width - w)//2, (parent.height - h)//2
@@ -863,11 +863,7 @@ def end_transaction(trans):
 
 
 def handle_event(self, _type, arg):
-    if not isinstance(Game.getgame().me, TheChosenOne):
-        # do nothing if observing
-        pass
-
-    elif _type == 'user_input_transaction_begin':
+    if _type == 'user_input_transaction_begin':
         trans = arg
         g = Game.getgame()
         if g.me not in trans.involved:
