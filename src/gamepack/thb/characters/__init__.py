@@ -1,49 +1,54 @@
 # -*- coding: utf-8 -*-
 # Character definitions are here.
 
-from baseclasses import *
+import baseclasses
 
-import parsee
-import youmu
-import koakuma
-import marisa
-import daiyousei
-import flandre
-import alice
-import nazrin
-import yugi
-import patchouli
-import tewi
-import reimu
-import kogasa
-import eirin
-import shikieiki
-import tenshi
-import rumia
-import yuuka
-import rinnosuke
-import ran
-import remilia
-import minoriko
-import meirin
-import suika
-import chen
-import yukari
-import cirno
-import sakuya
-import sanae
-import seiga
-import kaguya
+import parsee  # noqa
+import youmu  # noqa
+import koakuma  # noqa
+import marisa  # noqa
+import daiyousei  # noqa
+import flandre  # noqa
+import alice  # noqa
+import nazrin  # noqa
+import yugi  # noqa
+import patchouli  # noqa
+import tewi  # noqa
+import reimu  # noqa
+import kogasa  # noqa
+import eirin  # noqa
+import shikieiki  # noqa
+import tenshi  # noqa
+import rumia  # noqa
+import yuuka  # noqa
+import rinnosuke  # noqa
+import ran  # noqa
+import remilia  # noqa
+import minoriko  # noqa
+import meirin  # noqa
+import suika  # noqa
+import chen  # noqa
+import yukari  # noqa
+import cirno  # noqa
+import sakuya  # noqa
+import sanae  # noqa
+import seiga  # noqa
+import kaguya  # noqa
 
-import remilia_ex
+import remilia_ex  # noqa
 
-import dummy
-import akari
+import dummy  # noqa
+import akari  # noqa
 
 import sys
 
 from game.autoenv import Game
 from options import options
-options.testing and register_character(dummy.Dummy)
+options.testing and baseclasses.register_character(dummy.Dummy)
+
+characters = baseclasses.characters
+characters.sort(key=lambda i: i.__name__)
+characters = tuple(characters)
+del baseclasses.characters
 
 del sys, Game, options

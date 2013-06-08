@@ -34,13 +34,12 @@ class CharChoice(object):
         from .characters import characters as chars
         from .characters.akari import Akari
         log.warning("Calling %s", data)
-        for cls in [Akari] + chars:
-            if cls.__name__ == data:
-                self.char_cls = cls
-                break
-        else:
-            log.warning("Can't find %s", data)
-            self.char_cls = None
+
+        if data == 'Akari':
+            self.char_cls = Akari
+            return
+
+        self.char_cls = [cls for cls in chars if cls.__name__ == data][0]
 
     def __repr__(self):
         return '<Choice: {}>'.format('None' if not self.char_cls else self.char_cls.__name__)

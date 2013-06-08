@@ -103,7 +103,7 @@ class THBattle(Game):
         from characters.akari import Akari
 
         seed = get_seed_for(g.players)
-        chars = chars[:]
+        chars = list(chars)
         random.Random(seed).shuffle(chars)
         choices = [CharChoice(cls) for cls in chars[:16]]
         del chars[:16]

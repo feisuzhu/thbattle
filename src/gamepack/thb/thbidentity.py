@@ -134,7 +134,7 @@ class THBattleIdentity(Game):
 
         # choose girls init -->
         from characters import characters as chars
-        chars = chars[:]
+        chars = list(chars)
         if Game.CLIENT_SIDE:
             chars = [None] * len(chars)
 

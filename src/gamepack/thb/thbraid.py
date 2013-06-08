@@ -474,7 +474,7 @@ class THBattleRaid(Game):
 
         # attackers' choose
         from characters import characters as chars
-        chars = chars[:]
+        chars = list(chars)
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)
 

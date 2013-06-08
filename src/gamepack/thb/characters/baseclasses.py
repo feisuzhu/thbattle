@@ -24,6 +24,7 @@ def register_character(cls):
     characters.append(cls)
     return cls
 
+
 def register_ex_character(cls):
     ex_characters.append(cls)
     return cls
