@@ -32,7 +32,7 @@ class GamedataMixin(object):
     def gexpect(self, tag, blocking=True):
         try:
             assert not self._in_gexpect, 'NOT REENTRANT'
-            blocking and log.info('GAME_EXPECT: %s', repr(tag))
+            blocking and log.debug('GAME_EXPECT: %s', repr(tag))
             l = self.gdqueue
             e = self.gdevent
 
@@ -44,13 +44,13 @@ class GamedataMixin(object):
             while True:
                 for i, packet in enumerate(l):
                     if packet[0] == tag or (glob and packet[0].startswith(tag)):
-                        log.info('GAME_READ: %s', repr(packet))
+                        log.debug('GAME_READ: %s', repr(packet))
                         del l[i]
                         return packet
 
                     else:
                         if blocking:
-                            log.info('GAME_DATA_MISS: %s', repr(packet))
+                            log.debug('GAME_DATA_MISS: %s', repr(packet))
                             log.debug('EXPECTS: %s, GAME: %s', tag, getcurrent())
 
                 e.clear()
