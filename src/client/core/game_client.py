@@ -96,11 +96,8 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
             results[p] = rst
 
             if type == 'any' and rst is not None:
+                assert not inputany_player
                 inputany_player = p
-                for _p in players:
-                    g.emit_event('user_input_finish', (trans, ilets[_p], None))
-
-                break
 
     finally:
         inputproc and inputproc.kill()

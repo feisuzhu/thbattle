@@ -37,7 +37,9 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                     # will reveal in skill_wrap
                     check(initiator.cond([skill_wrap(actor, skills, cards)]))
                 else:
-                    g.players.reveal(cards)
+                    if not getattr(initiator, 'no_reveal', False):
+                        g.players.reveal(cards)
+
                     check(initiator.cond(cards))
 
             if candidates:

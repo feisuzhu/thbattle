@@ -33,7 +33,6 @@ class CharChoice(object):
     def sync(self, data):
         from .characters import characters as chars
         from .characters.akari import Akari
-        log.warning("Calling %s", data)
 
         if data == 'Akari':
             self.char_cls = Akari

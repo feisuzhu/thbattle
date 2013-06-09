@@ -51,4 +51,9 @@ characters.sort(key=lambda i: i.__name__)
 characters = tuple(characters)
 del baseclasses.characters
 
+ex_characters = baseclasses.ex_characters
+ex_characters.sort(key=lambda i: i.__name__)
+ex_characters = tuple(ex_characters)
+del baseclasses.ex_characters
+
 del sys, Game, options
