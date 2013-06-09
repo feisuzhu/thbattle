@@ -449,6 +449,13 @@ class RequestAction:
     choose_option_buttons = ((u'行动', True), (u'等一下', None))
     choose_option_prompt = u'你要行动吗？'
 
+
+class GetFaith:
+    # choose_option
+    choose_option_buttons = ((u'我要信仰', True), (u'给其他人', None))
+    choose_option_prompt = u'你要获得一点信仰吗（只有一人可以获得）？'
+
+
 # -----END THBRaid UI META-----
 
 # -----BEGIN ACTIONS UI META-----

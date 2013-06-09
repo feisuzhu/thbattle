@@ -376,6 +376,10 @@ class RequestAction(object):  # for choose_option
     pass
 
 
+class GetFaith(object):  # for choose_option
+    pass
+
+
 class MutantMorph(GameException):
     pass
 
@@ -524,7 +528,18 @@ class THBattleRaid(Game):
                 for i in xrange(500):
                     g.process_action(CollectFaith(mutant, mutant, 1))
 
+                    avail = [p for p in attackers if not p.dead and len(p.faiths) < 5]
+                    if avail:
+                        p, _ = user_input(
+                            avail,
+                            ChooseOptionInputlet(GetFaith, (None, True)),
+                            type='any',
+                        )
+                        p = p or avail[0]
+                        g.process_action(CollectFaith(p, p, 1))
+
                     g.emit_event('round_start', False)
+
                     for p in attackers:
                         p.tags['action'] = True
 
@@ -601,7 +616,18 @@ class THBattleRaid(Game):
             for i in xrange(500):
                 g.process_action(CollectFaith(mutant, mutant, 1))
 
+                avail = [p for p in attackers if not p.dead and len(p.faiths) < 5]
+                if avail:
+                    p, _ = user_input(
+                        avail,
+                        ChooseOptionInputlet(GetFaith, (None, True)),
+                        type='any',
+                    )
+                    p = p or avail[0]
+                    g.process_action(CollectFaith(p, p, 1))
+
                 g.emit_event('round_start', False)
+
                 for p in attackers:
                     p.tags['action'] = True
 
