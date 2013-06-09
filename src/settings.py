@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 132'
+VERSION = 'THBATTLE V1.0b incr 133'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -127,6 +127,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+异变模式：解决者现在跟异变一样，在回合开始前可以获得一点信仰
 异变模式：解决者选人模式变更，1阶段修改为异变先行动
 异变模式：牌堆内移除八卦炉
 阳伞：现在不会直接令可能造成伤害的符卡无效化
