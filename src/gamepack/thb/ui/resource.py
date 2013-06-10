@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, dummy, img, img_grid, img_with_grayed, sound, subdir, texture
+from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, dummy, img, img_grid, img_with_grayed, sound, subdir, texture, define_atlas
 from options import options
 import os
 
 respath = os.path.join(os.path.dirname(__file__), 'res')
+define_atlas('portrait', (1024, 2048))
 
 
 class ui_meta(_ResourceDesc):

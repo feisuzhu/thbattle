@@ -2,10 +2,9 @@ import pyglet
 from pyglet.resource import Loader
 import zipfile
 
-from client.ui.resloader import *
+from client.ui.resloader import anim, bgm, get_atlas, img, imgdata_grid, img_grid, Resource, sound, subdir, texture
 from client.ui.resloader import _ResourceDesc
 import os
-
 
 respath = os.path.join(os.path.dirname(__file__), 'res')
 
@@ -22,8 +21,9 @@ del fontzip, ldr
 
 class white(_ResourceDesc):
     __slots__ = ('name', )
+
     def load(self, loader):
-        atlas = Resource.get_atlas()
+        atlas = get_atlas()
         white = atlas.add(pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64))
         c = white.tex_coords
         f = c[0:3]; t = c[6:9]
