@@ -31,9 +31,7 @@ class Surprise(UserAction):
         g = Game.getgame()
         g.players.exclude(src).reveal(card)
         if card.suit != suit:
-            dmg = Damage(src, tgt)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(Damage(src, tgt))
             rst = True
         else:
             rst = False

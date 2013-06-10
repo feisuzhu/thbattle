@@ -198,9 +198,7 @@ class Sinsack(DelayedSpellCardAction):
         ft = Fatetell(target, lambda card: card.suit == Card.SPADE and 1 <= card.number <= 8)
         g.process_action(ft)
         if ft.succeeded:
-            dmg = Damage(None, target, amount=3)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(Damage(None, target, amount=3))
             return True
         return False
 
@@ -262,9 +260,7 @@ class BaseDuel(UserAction):
             sd, td = td, sd
 
         if not t.dead:
-            dact = Damage(s, t, amount=sd)
-            dact.associated_action = self
-            g.process_action(dact)
+            g.process_action(Damage(s, t, amount=sd))
 
         return s is source
 
@@ -280,9 +276,7 @@ class MapCannonEffect(InstantSpellCardAction):
         source, target = self.source, self.target
         graze_action = basic.UseGraze(target)
         if not g.process_action(graze_action):
-            dmg = Damage(source, target, amount=1)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(Damage(source, target, amount=1))
             return True
         else:
             return False
@@ -299,9 +293,7 @@ class SinsackCarnivalEffect(InstantSpellCardAction):
         source, target = self.source, self.target
         use_action = basic.UseAttack(target)
         if not g.process_action(use_action):
-            dmg = Damage(source, target, amount=1)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(Damage(source, target, amount=1))
             return True
         else:
             return False

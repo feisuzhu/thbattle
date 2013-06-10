@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
-from client.ui.resloader import *
-from client.ui.resloader import _ResourceDesc
+
+from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, dummy, img, img_grid, img_with_grayed, sound, subdir, texture
 from options import options
 import os
 
 respath = os.path.join(os.path.dirname(__file__), 'res')
 
+
 class ui_meta(_ResourceDesc):
     __slots__ = ('name', )
+
     def load(self, loader):
-        import gamepack.thb.ui.ui_meta
+        import gamepack.thb.ui.ui_meta  # noqa
 
 
 resource = Resource(respath, [
@@ -35,7 +37,7 @@ resource = Resource(respath, [
         'scarletrhapsodysword', 'deathsickle', 'keystone', 'witchbroom',
         'yinyangorb', 'suwakohat', 'phantom', 'icewing', 'grimoire',
         'dollcontrol', 'donationbox', 'frozenfrog', 'lottery',
-        
+
         'opticalcloak_small', 'greenufo_small', 'redufo_small',
         'hakurouken_small', 'reactor_small', 'umbrella_small',
         'roukanken_small', 'gungnir_small', 'laevatein_small',
@@ -74,7 +76,7 @@ resource = Resource(respath, [
         'tenshi', 'rumia', 'yuuka', 'rinnosuke', 'ran',
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
         'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
-        'seiga', 'kaguya',
+        'seiga', 'kaguya', 'momiji',
 
         'remilia_ex', 'remilia_ex2',
     ]],

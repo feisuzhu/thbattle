@@ -34,6 +34,7 @@ import sakuya  # noqa
 import sanae  # noqa
 import seiga  # noqa
 import kaguya  # noqa
+import momiji  # noqa
 
 import remilia_ex  # noqa
 

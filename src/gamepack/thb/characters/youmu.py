@@ -64,9 +64,7 @@ class MijincihangzhanDuelMixin(object):
             else:
                 if not g.process_action(UseAttack(d[0])): break
 
-        dact = Damage(d[1], d[0], amount=dmg[1])
-        dact.associated_action = self
-        g.process_action(dact)
+        g.process_action(Damage(d[1], d[0], amount=dmg[1]))
         return d[1] is source
 
 

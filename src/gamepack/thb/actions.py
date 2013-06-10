@@ -66,7 +66,6 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
 
 
 def user_choose_cards(initiator, actor, categories):
-    categories = categories or ['cards', 'showncards']
     check_type([str, Ellipsis], categories)
 
     _, rst = ask_for_action(initiator, [actor], categories, [])

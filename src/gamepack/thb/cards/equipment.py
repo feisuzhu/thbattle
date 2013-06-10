@@ -379,9 +379,7 @@ class MaidenCostumeSkill(ShieldSkill):
 class MaidenCostumeEffect(spellcard.NonResponsiveInstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
-        dmg = Damage(source=self.source, target=self.target)
-        dmg.associated_action = self
-        g.process_action(dmg)
+        g.process_action(Damage(source=self.source, target=self.target))
         return True
 
 
@@ -434,9 +432,7 @@ class IbukiGourdHandler(EventHandler):
 class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
-        dmg = Damage(self.source, self.target)
-        dmg.associated_action = self
-        g.process_action(dmg)
+        g.process_action(Damage(self.source, self.target))
         return True
 
 
@@ -456,7 +452,7 @@ class HouraiJewelHandler(EventHandler):
             if not src.has_skill(HouraiJewelSkill): return act
             if isinstance(act, HouraiJewelAttack): return act
             if user_input([src], ChooseOptionInputlet(self, (False, True))):
-                act.__class__ = HouraiJewelAttack
+                act.__class__ = classmix(HouraiJewelAttack, act.__class__)
 
         return act
 
@@ -648,9 +644,7 @@ class ScarletRhapsodySwordAttack(basic.Attack):
         cards = user_choose_cards(self, src, ['cards', 'showncards', 'equips'])
         if cards:
             g.process_action(DropCards(src, cards))
-            dmg = ScarletRhapsodySword(src, tgt, amount=self.damage)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(ScarletRhapsodySword(src, tgt, amount=self.damage))
             return True
         return False
 
