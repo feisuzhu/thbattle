@@ -243,6 +243,7 @@ class ParryAction(GenericAction):
 @game_eh
 class ParryHandler(EventHandler):
     execute_before = ('ProtectionHandler', )
+    execute_after = ('RepentanceStickHandler', )
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
