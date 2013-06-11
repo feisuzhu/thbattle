@@ -242,7 +242,7 @@ class ExinwanEffect(GenericAction):
         if target.dead:
             return False
 
-        cards = user_choose_cards(self, target, ['cards', 'showncards', 'equips'])
+        cards = user_choose_cards(self, target, ('cards', 'showncards', 'equips'))
 
         if cards:
             g.process_action(DropCards(target=target, cards=cards))

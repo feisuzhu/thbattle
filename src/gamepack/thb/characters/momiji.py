@@ -29,9 +29,8 @@ class SentryHandler(EventHandler):
                     # Attack
                     pass
 
-            elif pcard.is_card(AttackCard):
+            elif pcard.is_card(AttackCard) and isinstance(pact, BaseAttack):
                 # Sentry fire
-                assert isinstance(pact, BaseAttack)
                 for p in g.players:
                     if p.dead: continue
                     if not p.has_skill(Sentry): continue
@@ -45,6 +44,7 @@ class SentryHandler(EventHandler):
                     if not cl: continue
                     c = SentryAttack.wrap(cl, p)
                     c.target_damage = act
+                    c.resides_in = p.cards
                     g.process_action(LaunchCard(p, [tgt], c))
             else:
                 return act
@@ -63,6 +63,7 @@ class SentryHandler(EventHandler):
 class SentryAttack(VirtualCard):
     associated_action = Attack
     target = t_OtherOne
+    category = ('basic', )
 
     def is_card(self, cls):
         from ..cards import AttackCard
