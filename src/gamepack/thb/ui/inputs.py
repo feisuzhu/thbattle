@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
-import math
+
+import itertools
 import logging
+import math
+import random
+
 log = logging.getLogger('THBattleUI_Input')
 
 import pyglet
@@ -117,6 +121,7 @@ class UISelectTarget(Control, InputHandler):
 class UIDoPassiveAction(UISelectTarget):
     _auto_chosen = False
     _snd_prompt = False
+    _in_auto_reject_delay = False
 
     def process_user_input(self, ilet):
         UISelectTarget.process_user_input(self, ilet)
@@ -151,6 +156,7 @@ class UIDoPassiveAction(UISelectTarget):
         try:
             ilet = self.inputlet
             if not ilet: return
+            if self._in_auto_reject_delay: return
 
             initiator = ilet.initiator
             candidates = ilet.candidates
@@ -160,6 +166,29 @@ class UIDoPassiveAction(UISelectTarget):
             if not parent: return
 
             cond = getattr(initiator, 'cond', False)
+
+            if isinstance(initiator, RejectHandler):
+                self._sv_val = False
+                self.set_text(u'自动结算好人卡…')
+                if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
+                    from gamepack.thb.characters import reimu
+                    if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
+                        self._in_auto_reject_delay = True
+                        v = 0.3 - math.log(random.random())
+                        self.set_text(u'自动结算好人卡(%.2f秒)' % v)
+
+                        def complete(*a):
+                            ilet.done()
+                            end_transaction(self.trans)
+
+                        pyglet.clock.schedule_once(complete, v)
+                        return
+
+                # HACK
+                if not self._snd_prompt:
+                    from .effects import input_snd_prompt
+                    input_snd_prompt()
+                    self._snd_prompt = True
 
             if cond:
                 if not self._auto_chosen:
