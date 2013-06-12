@@ -25,6 +25,10 @@ class DummyCard:
     target = t_None
     category = ('dummy', )
 
+    def __init__(self, suit=Card.NOTSET, number=0, resides_in=None, **kwargs):
+        Card.__init__(self, suit, number, resides_in)
+        self.__dict__.update(kwargs)
+
 
 from . import basic
 

@@ -3,7 +3,7 @@
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
 from ..actions import user_choose_cards, Damage, LaunchCard
-from ..cards import Card, AttackCard, BaseAttack, Attack, Skill, t_None, t_OtherOne, VirtualCard
+from ..cards import Card, AttackCard, DummyCard, BaseAttack, Attack, Skill, t_None, t_OtherOne, VirtualCard
 from ..inputlets import ChooseOptionInputlet
 
 
@@ -19,8 +19,7 @@ class SentryHandler(EventHandler):
             if pcard.is_card(SentryAttack):
                 # Sentry effect
                 src = pact.source
-                assert src.has_skill(Sentry)
-                if user_input([src], ChooseOptionInputlet(self, (False, True))):
+                if not src.dead and user_input([src], ChooseOptionInputlet(self, (False, True))):
                     # Guard
                     dmg = pcard.target_damage
                     dmg.amount = max(0, dmg.amount - 1)
@@ -38,7 +37,7 @@ class SentryHandler(EventHandler):
 
                     tgt = pact.source
                     self.target = tgt  # for ui
-                    dist = LaunchCard.calc_distance(p, AttackCard())
+                    dist = LaunchCard.calc_distance(p, DummyCard(distance=2))
                     if not dist[tgt] <= 0: continue
                     cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
                     if not cl: continue
