@@ -26,6 +26,7 @@ class Client(Endpoint, GamedataMixin, Greenlet):
         self.observers = BatchList()
         self.init_gamedata_mixin()
         self.gdhistory = []
+        self.usergdhistory = []
 
     def _run(self):
         self.account = None
@@ -59,6 +60,11 @@ class Client(Endpoint, GamedataMixin, Greenlet):
 
         # client died, do clean ups
         self.handle_drop()
+
+    def gexpect(self, tag, blocking=True):
+        tag, data = GamedataMixin.gexpect(self, tag, blocking)
+        tag and self.usergdhistory.append((self.player_index, tag, data))
+        return tag, data
 
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
