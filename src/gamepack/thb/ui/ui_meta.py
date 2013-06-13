@@ -1313,12 +1313,13 @@ class GungnirSkill:
     # Skill
     name = u'冈格尼尔'
 
-    def clickable(game):
+    def clickable(g):
         try:
-            act = game.action_stack[-1]
-            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.DollControl)):
+            act = g.hybrid_stack[-1]
+            if act.cond([cards.GungnirSkill(g.me)]):
                 return True
-        except IndexError:
+
+        except (IndexError, AttributeError):
             pass
 
         return False
@@ -1379,8 +1380,10 @@ class LaevateinSkill:
                 cl = list(me.cards) + list(me.showncards)
                 if len(cl) == 1 and isinstance(cl[0], cards.AttackCard):
                     return True
+
         except IndexError:
             pass
+
         return False
 
     def is_action_valid(g, cl, target_list):
@@ -2078,6 +2081,7 @@ class GrimoireSkill:
 
         except IndexError:
             pass
+
         return False
 
     def is_action_valid(g, cl, target_list):
@@ -2204,12 +2208,7 @@ class Envy:
     def clickable(game):
         me = game.me
 
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
-            return False
-
-        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+        if my_turn() and (me.cards or me.showncards or me.equips):
             return True
 
         return False
@@ -2332,15 +2331,10 @@ class Find:
 
     def clickable(game):
         me = game.me
-        if me.tags.get('find_tag', 0) >= me.tags.get('turn_count', 0):
+        if limit1_skill_used('find_tag'):
             return False
 
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
-            return False
-
-        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+        if my_turn() and (me.cards or me.showncards or me.equips):
             return True
 
         return False
@@ -2385,24 +2379,19 @@ class MasterSpark:
     # Skill
     name = u'极限火花'
 
-    def clickable(game):
-        me = game.me
-
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
-            return False
-
-        # if act.target is not me: return False  # act may has no 'target' attrib
+    def clickable(g):
+        me = g.me
         if not (me.cards or me.showncards): return False
 
-        if isinstance(act, actions.ActionStage):
-            if act.target is me:
-                return True
+        try:
+            act = g.hybrid_stack[-1]
+            if act.cond([characters.marisa.MasterSpark(me)]):
+                act = g.action_stack[-1]
+                if act.target is me:
+                    return True
 
-        if isinstance(act, (cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
-            if act.target is me:
-                return True
+        except (IndexError, AttributeError):
+            pass
 
         return False
 
@@ -4416,22 +4405,17 @@ class FlyingKnife:
     def clickable(g):
         me = g.me
 
-        try:
-            act = g.action_stack[-1]
-        except IndexError:
-            return False
-
         if not (me.cards or me.showncards or me.equips): return False
-        if act.target is not g.me: return False
 
         try:
-            if act.cond([build_handcard(cards.AttackCard)]):
-                return True
-        except:
-            pass
+            act = g.hybrid_stack[-1]
+            if act.cond([characters.sakuya.FlyingKnife(me)]):
+                act = g.action_stack[-1]
+                if act.target is g.me:
+                    return True
 
-        if isinstance(act, actions.ActionStage):
-            return True
+        except (IndexError, AttributeError):
+            pass
 
         return False
 
@@ -4500,19 +4484,10 @@ class DrawingLot:
     name = u'御神签'
 
     def clickable(g):
-        try:
-            act = g.action_stack[-1]
-        except IndexError:
-            return False
+        if my_turn() and not limit1_skill_used('drawinglot_tag'):
+            return True
 
-        if not isinstance(act, actions.ActionStage):
-            return False
-
-        if act.target is not g.me: return False
-        t = act.target.tags
-        if t['turn_count'] <= t['drawinglot_tag']: return False
-
-        return True
+        return False
 
     def effect_string(act):
         return u'|G【%s】|r给|G【%s】|r抽了一签……' % (
