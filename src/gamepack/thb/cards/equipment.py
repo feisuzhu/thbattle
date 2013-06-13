@@ -641,7 +641,7 @@ class ScarletRhapsodySwordAttack(basic.Attack):
         if not src.has_skill(ScarletRhapsodySwordSkill): return False
 
         g = Game.getgame()
-        cards = user_choose_cards(self, src, ['cards', 'showncards', 'equips'])
+        cards = user_choose_cards(self, src, ('cards', 'showncards', 'equips'))
         if cards:
             g.process_action(DropCards(src, cards))
             g.process_action(ScarletRhapsodySword(src, tgt, amount=self.damage))

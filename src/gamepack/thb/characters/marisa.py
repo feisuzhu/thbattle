@@ -14,6 +14,7 @@ class Borrow(Skill):
 class BorrowAction(GenericAction):
     def __init__(self, source, target_list):
         self.source = source
+        self.target = None
         self.target_list = target_list
 
     def apply_action(self):
