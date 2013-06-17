@@ -3,7 +3,7 @@
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
 from ..actions import user_choose_cards, Damage, LaunchCard
-from ..cards import Card, AttackCard, DummyCard, BaseAttack, Attack, Skill, t_None, t_OtherOne, VirtualCard
+from ..cards import Card, AttackCard, RedUFOSkill, BaseAttack, Attack, Skill, t_None, t_OtherOne, VirtualCard
 from ..inputlets import ChooseOptionInputlet
 
 
@@ -37,7 +37,7 @@ class SentryHandler(EventHandler):
 
                     tgt = pact.source
                     self.target = tgt  # for ui
-                    dist = LaunchCard.calc_distance(p, DummyCard(distance=2))
+                    dist = LaunchCard.calc_distance(p, AttackCard())
                     if not dist[tgt] <= 0: continue
                     cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
                     if not cl: continue
@@ -75,8 +75,12 @@ class Sentry(Skill):
     target = t_None
 
 
+class SharpEye(RedUFOSkill):
+    increment = 1
+
+
 @register_character
 class Momiji(Character):
-    skills = [Sentry]
+    skills = [Sentry, SharpEye]
     eventhandlers_required = [SentryHandler]
     maxlife = 4

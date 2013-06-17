@@ -1009,12 +1009,8 @@ class OpticalCloakCard:
 class OpticalCloakSkill:
     # Skill
     name = u'光学迷彩'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class OpticalCloakHandler:
@@ -1059,12 +1055,8 @@ class GreenUFOSkill:
     # Skill
     name = u'绿色UFO'
     no_display = True
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class RedUFOCard:
@@ -1081,12 +1073,8 @@ class RedUFOSkill:
     # Skill
     name = u'红色UFO'
     no_display = True
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class YukariDimensionCard:
@@ -1175,12 +1163,8 @@ class HakuroukenCard:
 class HakuroukenSkill:
     # Skill
     name = u'白楼剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Hakurouken:
@@ -1209,12 +1193,8 @@ class ElementalReactorCard:
 class ElementalReactorSkill:
     # Skill
     name = u'八卦炉'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class UmbrellaCard:
@@ -1233,12 +1213,8 @@ class UmbrellaCard:
 class UmbrellaSkill:
     # Skill
     name = u'紫的阳伞'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class UmbrellaEffect:
@@ -1267,12 +1243,8 @@ class RoukankenCard:
 class RoukankenSkill:
     # Skill
     name = u'楼观剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class RoukankenHandler:
@@ -1428,12 +1400,8 @@ class TridentCard:
 class TridentSkill:
     # Skill
     name = u"三叉戟"
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class RepentanceStickCard:
@@ -1452,12 +1420,8 @@ class RepentanceStickCard:
 class RepentanceStickSkill:
     # Skill
     name = u'悔悟棒'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class RepentanceStickHandler:
@@ -1551,12 +1515,8 @@ class MaidenCostumeCard:
 class MaidenCostumeSkill:
     # Skill
     name = u'巫女服'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class IbukiGourdCard:
@@ -1574,12 +1534,8 @@ class IbukiGourdCard:
 class IbukiGourdSkill:
     # Skill
     name = u'伊吹瓢'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class HouraiJewelCard:
@@ -1600,12 +1556,8 @@ class HouraiJewelCard:
 class HouraiJewelSkill:
     # Skill
     name = u'蓬莱玉枝'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class HouraiJewelHandler:
@@ -1639,12 +1591,8 @@ class SaigyouBranchCard:
 class SaigyouBranchSkill:
     # Skill
     name = u'西行妖'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class SaigyouBranchHandler:
@@ -1686,12 +1634,8 @@ class FlirtingSwordCard:
 class FlirtingSwordSkill:
     # Skill
     name = u'调教剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class FlirtingSword:
@@ -1768,12 +1712,8 @@ class AyaRoundfanCard:
 class AyaRoundfanSkill:
     # Skill
     name = u'团扇'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class AyaRoundfanHandler:
@@ -1817,12 +1757,8 @@ class ScarletRhapsodySwordCard:
 class ScarletRhapsodySwordSkill:
     # Skill
     name = u'绯想之剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class ScarletRhapsodySwordAttack:
@@ -1860,12 +1796,8 @@ class DeathSickleCard:
 class DeathSickleSkill:
     # Skill
     name = u'死神之镰'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class DeathSickle:
@@ -1895,12 +1827,8 @@ class KeystoneCard:
 class KeystoneSkill:
     # Skill
     name = u'要石'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Keystone:
@@ -1942,12 +1870,8 @@ class YinYangOrbCard:
 class YinYangOrbSkill:
     # Skill
     name = u'阴阳玉'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class YinYangOrbHandler:
@@ -1980,12 +1904,8 @@ class SuwakoHatCard:
 class SuwakoHatSkill:
     # Skill
     name = u'青蛙帽'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class YoumuPhantomCard:
@@ -2004,12 +1924,8 @@ class YoumuPhantomCard:
 class YoumuPhantomSkill:
     # Skill
     name = u'半灵'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class IceWingCard:
@@ -2028,12 +1944,8 @@ class IceWingCard:
 class IceWingSkill:
     # Skill
     name = u'⑨的翅膀'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class IceWing:
@@ -2273,12 +2185,8 @@ class Youmu:
 class Mijincihangzhan:
     # Skill
     name = u'迷津慈航斩'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MijincihangzhanAttack:
@@ -2292,23 +2200,15 @@ class MijincihangzhanAttack:
 class Nitoryuu:
     # Skill
     name = u'二刀流'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Xianshiwangzhi:
     # Skill
     name = u'现世妄执'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 # ----------
@@ -2423,12 +2323,8 @@ class MasterSpark:
 class Borrow:
     # Skill
     name = u'借走'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class BorrowHandler:
@@ -2507,12 +2403,8 @@ class SupportSkill:
 class Moe:
     # Skill
     name = u'卖萌'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MoeDrawCard:
@@ -2539,12 +2431,8 @@ class Flandre:
 class CriticalStrike:
     # Skill
     name = u'狂咲'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class CriticalStrikeHandler:
@@ -2577,12 +2465,8 @@ class Alice:
 class DollManipulation:
     # Skill
     name = u'人形操演'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class DollCrusader:
@@ -2643,12 +2527,8 @@ class Nazrin:
 class TreasureHuntSkill:
     # Skill
     name = u'探宝'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class TreasureHuntHandler:
@@ -2719,51 +2599,16 @@ class Yugi:
 class AssaultSkill:
     # Skill
     name = u'强袭'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
-
-'''
-    def clickable(game):
-        me = game.me
-        if me.tags.get('yugi_assault', 0) >= me.tags.get('turn_count', 0):
-            return False
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
-            return False
-
-        return isinstance(act, actions.ActionStage)
-
-    def is_action_valid(g, cl, target_list):
-        if not target_list:
-            return (False, u'请选择强袭的目标，以及一张武器牌或者【酒】（不选自己会受到1点伤害）')
-
-        if g.me is target_list[0]:
-            return (False, u'不可以对自己发动')
-        else:
-            return (True, u'[不知道该说什么，先这样吧]')
-
-    def effect_string(act):
-        return u'|G【%s】|r向|G【%s】|r发动了|G强袭|r技能' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
-        )
-'''
+    no_display = False
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class FreakingPowerSkill:
     # Skill
     name = u'怪力'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class FreakingPower:
@@ -2786,12 +2631,8 @@ __metaclass__ = gen_metafunc(characters.patchouli)
 class Library:
     # Skill
     name = u'图书'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class LibraryDrawCards:
@@ -2804,12 +2645,8 @@ class LibraryDrawCards:
 class Knowledge:
     # Skill
     name = u'博学'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class KnowledgeAction:
@@ -2836,12 +2673,8 @@ __metaclass__ = gen_metafunc(characters.tewi)
 class Luck:
     # Skill
     name = u'幸运'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class LuckDrawCards:
@@ -2918,22 +2751,17 @@ class SealingArraySkill:
 class Flight:
     # Skill
     name = u'飞行'
+    no_display = False
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
 
 class TributeTarget:
     # Skill
     name = u'纳奉'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
 
 class Tribute:
     # Skill
@@ -3064,13 +2892,8 @@ __metaclass__ = gen_metafunc(characters.reimu)
 class Flight:
     # Skill
     name = u'飞行'
-    no_display = False
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class SpiritualAttack:
@@ -3115,12 +2938,8 @@ class SpiritualAttack:
 class TributeTarget:
     # Skill
     name = u'纳奉'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Tribute:
@@ -3185,12 +3004,8 @@ __metaclass__ = gen_metafunc(characters.kogasa)
 class Jolly:
     # Skill
     name = u'愉快'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class JollyDrawCard:
@@ -3387,12 +3202,8 @@ __metaclass__ = gen_metafunc(characters.shikieiki)
 class Trial:
     # Skill
     name = u'审判'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class TrialAction:
@@ -3407,12 +3218,8 @@ class TrialAction:
 class Majesty:
     # Skill
     name = u'威严'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MajestyAction:
@@ -3459,12 +3266,8 @@ __metaclass__ = gen_metafunc(characters.tenshi)
 class Masochist:
     # Skill
     name = u'抖Ｍ'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MasochistHandler:
@@ -3496,12 +3299,8 @@ class MasochistAction:
 class Hermit:
     # Skill
     name = u'天人'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Tenshi:
@@ -3557,12 +3356,8 @@ class FlowerQueen:
 class MagicCannon:
     # Skill
     name = u'魔炮'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MagicCannonAttack:
@@ -3577,12 +3372,8 @@ class MagicCannonAttack:
 class PerfectKill:
     # Skill
     name = u'完杀'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class PerfectKillAction:
@@ -3659,12 +3450,8 @@ class DarknessAction:
 class Cheating:
     # Skill
     name = u'作弊'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class CheatingDrawCards:
@@ -3731,12 +3518,8 @@ class Netoru:
 class Psychopath:
     # Skill
     name = u'变态'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class PsychopathDrawCards:
@@ -3766,23 +3549,15 @@ __metaclass__ = gen_metafunc(characters.ran)
 class Prophet:
     # Skill
     name = u'神算'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class ExtremeIntelligence:
     # Skill
     name = u'极智'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class ProphetHandler:
@@ -3824,12 +3599,8 @@ class ExtremeIntelligenceAction:
 class NakedFox:
     # Skill
     name = u'素裸'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class NakedFoxAction:
@@ -3860,12 +3631,8 @@ __metaclass__ = gen_metafunc(characters.remilia)
 class SpearTheGungnir:
     # Skill
     name = u'神枪'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class SpearTheGungnirAction:
@@ -3885,12 +3652,8 @@ class SpearTheGungnirHandler:
 class VampireKiss:
     # Skill
     name = u'红魔之吻'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class VampireKissAction:
@@ -3919,12 +3682,8 @@ __metaclass__ = gen_metafunc(characters.minoriko)
 class Foison:
     # Skill
     name = u'丰收'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class FoisonDrawCardStage:
@@ -3970,12 +3729,8 @@ class AutumnFeast:
 class AkiTribute:
     # Skill
     name = u'上贡'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Minoriko:
@@ -3996,12 +3751,8 @@ __metaclass__ = gen_metafunc(characters.meirin)
 class RiverBehind:
     # Skill
     name = u'背水'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Taichi:
@@ -4054,12 +3805,8 @@ class Taichi:
 class LoongPunch:
     # Skill
     name = u'龙拳'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class LoongPunchHandler:
@@ -4145,34 +3892,22 @@ class Drunkard:
 class GreatLandscape:
     # Skill
     name = u'大江山'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class WineGod:
     # Skill
     name = u'醉神'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class WineDream:
     # Skill
     name = u'醉梦'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class WineGodAwake:
@@ -4272,12 +4007,8 @@ __metaclass__ = gen_metafunc(characters.yukari)
 class Realm:
     # Skill
     name = u'境界'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class RealmSkipFatetell:
@@ -4463,12 +4194,8 @@ class FlyingKnife:
 class LunaClock:
     # Skill
     name = u'月时计'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 # ----------
 __metaclass__ = gen_metafunc(characters.sanae)
@@ -4518,12 +4245,8 @@ class DrawingLot:
 class Miracle:
     # Skill
     name = u'奇迹'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MiracleAction:
@@ -4654,12 +4377,8 @@ class Kaguya:
 class Dilemma:
     # Skill
     name = u'难题'
-
-    def clickable(g):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class DilemmaDamageAction:
@@ -4709,6 +4428,8 @@ class DilemmaHandler:
 class ImperishableNight:
     # Skill
     name = u'永夜'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
     @property
     def image(c):
@@ -4718,12 +4439,6 @@ class ImperishableNight:
     description = (
         u'|G【蓬莱山辉夜】|r的技能产生的【封魔阵】'
     )
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG')
 
     def effect_string(act):
         return u'|G【%s】|r对|G【%s】|r使用了|G永夜|r。' % (
@@ -4758,19 +4473,24 @@ class Momiji:
     port_image = gres.momiji_port
     description = (
         u'|DB山中的千里眼 犬走椛 体力：4|r\n\n'
-        u'|G哨戒|r：当其他玩家（记作A）使用弹幕并对另一玩家（记作B）造成伤害时，若A与你的距离在2以内，你可以使用一张弹幕或梅花色牌作为弹幕对A使用。若此弹幕造成伤害，你可以防止此伤害，并且使B受到的伤害-1。'
+        u'|G哨戒|r：当其他玩家（记作A）使用弹幕并对另一玩家（记作B）造成伤害时，若A在你的攻击距离内，你可以使用一张弹幕或梅花色牌作为弹幕对A使用。若此弹幕造成伤害，你可以防止此伤害，并且使B受到的伤害-1。\n\n'
+        u'|G千里眼|r：你与其他玩家结算距离时始终-1'
     )
 
 
 class Sentry:
     # Skill
     name = u'哨戒'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
-    def clickable(g):
-        return False
 
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+class SharpEye:
+    # Skill
+    name = u'千里眼'
+    no_display = False
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class SentryAttack:
