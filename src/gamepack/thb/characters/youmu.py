@@ -90,7 +90,7 @@ class YoumuWearEquipmentAction(UserAction):
                 e = user_input(
                     [target],
                     ChooseIndividualCardInputlet(self, weapons),
-                ) or random_choose_card(weapons)
+                ) or random_choose_card([weapons])
                 g.process_action(DropCards(target, [e]))
                 weapons.remove(e)
 
@@ -105,6 +105,7 @@ class YoumuWearEquipmentAction(UserAction):
                 if oc.equipment_category == cat:
                     g.process_action(DropCards(target, [oc]))
                     break
+
         migrate_cards([card], target.equips)
         return True
 
