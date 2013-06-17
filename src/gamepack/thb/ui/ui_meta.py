@@ -2914,6 +2914,7 @@ class SealingArraySkill:
             target.ui_meta.char_name,
         )
 
+
 class Flight:
     # Skill
     name = u'飞行'
@@ -3075,8 +3076,20 @@ class Flight:
 class SpiritualAttack:
     name = u'灵击'
 
-    def clickable(game):
-        return True  # FIXME: !!!!!!
+    def clickable(g):
+        me = g.me
+
+        if not (me.cards or me.showncards): return False
+
+        try:
+            act = g.hybrid_stack[-1]
+            if act.cond([characters.reimu.SpiritualAttack(me)]):
+                return True
+
+        except (IndexError, AttributeError):
+            pass
+
+        return False
 
     def is_complete(g, cl):
         skill = cl[0]

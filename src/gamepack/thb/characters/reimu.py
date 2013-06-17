@@ -22,6 +22,7 @@ class SpiritualAttack(TreatAsSkill):
         cl = self.associated_cards
         if cl and len(cl) == 1 and cl[0].color == Card.RED:
             return True
+
         return False
 
 

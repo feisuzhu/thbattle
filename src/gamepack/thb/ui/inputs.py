@@ -184,12 +184,6 @@ class UIDoPassiveAction(UISelectTarget):
                         pyglet.clock.schedule_once(complete, v)
                         return
 
-                # HACK
-                if not self._snd_prompt:
-                    from .effects import input_snd_prompt
-                    input_snd_prompt()
-                    self._snd_prompt = True
-
             if cond:
                 if not self._auto_chosen:
                     self._auto_chosen = True
@@ -915,10 +909,13 @@ def handle_event(self, _type, arg):
         end_transaction(arg)
 
     elif _type == 'user_input':
+        from .effects import input_snd_prompt
+        input_snd_prompt()
+
         trans, ilet = arg
         ui = input_handler_mapping.get(trans, None)
         if not ui:
-            log.error('WTF: no associated transaction')
+            log.error('WTF: no associated transaction', exc_info=True)
             return
 
         def afk_autocomplete(*a):

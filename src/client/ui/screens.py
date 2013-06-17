@@ -905,12 +905,18 @@ class GameScreen(Screen):
             self.events_box.clear()
 
         elif _type == 'game_crashed':
-            ConfirmBox(u'游戏逻辑已经崩溃，请退出房间！\n这是不正常的状态，你可以报告bug。', parent=self)
+            ConfirmBox(
+                u'游戏逻辑已经崩溃，请退出房间！\n'
+                u'这是不正常的状态，你可以报告bug。\n'
+                u'游戏ID：%d' % self.game.gameid,
+                parent=self
+            )
 
         elif _type == 'observe_request':
             uid, uname = args[0]
             box = ConfirmBox(
-                u'玩家 %s 希望旁观你的游戏，是否允许？\n旁观玩家可以看到你的手牌。' % uname,
+                u'玩家 %s 希望旁观你的游戏，是否允许？\n'
+                u'旁观玩家可以看到你的手牌。' % uname,
                 parent=self, buttons=((u'允许', True), (u'不允许', False)), default=False
             )
 

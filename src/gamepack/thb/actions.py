@@ -403,11 +403,15 @@ class DropCardStage(GenericAction):
         return True
 
     def cond(self, cards):
-        t = self.target
+        tgt = self.target
         if not len(cards) == self.dropn:
             return False
 
-        if not all(c.resides_in in (t.cards, t.showncards) for c in cards):
+        if not all(c.resides_in in (tgt.cards, tgt.showncards) for c in cards):
+            return False
+
+        from .cards import Skill
+        if any(c.is_card(Skill) for c in cards):
             return False
 
         return True
