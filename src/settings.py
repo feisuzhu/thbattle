@@ -42,7 +42,7 @@ import re
 UPDATE_IGNORES = re.compile(r'''
           ^current_version$
         | ^update_info\.json$
-        | ^client_log\.txt$
+        | ^client_log\.txt\.gz$
         | ^.+\.py[co]$
         | ^.*~$
         | ^.*_custom\..{2,4}$

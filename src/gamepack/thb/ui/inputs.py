@@ -886,9 +886,9 @@ def end_transaction(trans):
 
 
 def handle_event(self, _type, arg):
+    g = Game.getgame()
     if _type == 'user_input_transaction_begin':
         trans = arg
-        g = Game.getgame()
         if g.me not in trans.involved:
             return
 
@@ -915,7 +915,9 @@ def handle_event(self, _type, arg):
         trans, ilet = arg
         ui = input_handler_mapping.get(trans, None)
         if not ui:
-            log.error('WTF: no associated transaction', exc_info=True)
+            log.error('WTF: no associated transaction')
+            log.error('trans: %r  ilet: %r', trans, ilet)
+            log.error('hybrid_stack: %r', g.hybrid_stack)
             return
 
         def afk_autocomplete(*a):
@@ -930,15 +932,15 @@ def handle_event(self, _type, arg):
         ui.process_user_input(ilet)
 
     elif _type == 'user_input_start':
-        self.update_skillbox()
         trans, ilet = arg
+        ilet.actor is g.me and self.update_skillbox()
         ui = input_handler_mapping.get(trans, None)
         if not ui: return
         ui.process_user_input_start(ilet)
 
     elif _type == 'user_input_finish':
-        self.update_skillbox()
         trans, ilet, rst = arg
+        ilet.actor is g.me and self.update_skillbox()
         ui = input_handler_mapping.get(trans, None)
         if not ui: return
         ui.process_user_input_finish(ilet, rst)

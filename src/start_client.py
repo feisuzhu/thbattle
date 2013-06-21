@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import threading
-import logging, sys
+import logging
+import sys
 import argparse
+import gzip
 
 reload(sys)
 sys.setdefaultencoding(sys.getfilesystemencoding())
@@ -20,11 +21,10 @@ options = parser.parse_args()
 import options as opmodule
 opmodule.options = options
 
-from utils import hook
 
 class Tee(object):
     def __init__(self):
-        self.logfile = f = open('client_log.txt', 'a')
+        self.logfile = f = gzip.open('client_log.txt.gz', 'a')
         import datetime
         f.write(
             '\n' + datetime.datetime.now().strftime("%Y-%m-%d %H:%M") +
@@ -54,6 +54,7 @@ if not sys.platform.startswith('linux'):
 
     # HACK: resolve domain in parallel
     import threading
+
     class ResolveIt(threading.Thread):
         def __init__(self, host):
             threading.Thread.__init__(self)
@@ -75,7 +76,6 @@ if not sys.platform.startswith('linux'):
         thread.start()
 
 
-import gevent
 from gevent import monkey
 monkey.patch_socket()
 
@@ -122,6 +122,7 @@ except:
 
 if sys.platform == 'win32':
     import traceback
+
     def msgbox_error(exc_type, exc_value, exc_traceback):
         excstr = u"".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
         import ctypes
