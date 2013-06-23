@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 138'
+VERSION = 'THBATTLE V1.0b incr 139'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -127,6 +127,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新人物：小野塚小町
 犬走椛设定调整
 新人物：犬走椛
 异变模式：解决者现在跟异变一样，在回合开始前可以获得一点信仰
