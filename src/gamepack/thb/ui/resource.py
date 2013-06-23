@@ -62,6 +62,7 @@ resource = Resource(respath, [
     anim('tag_sealarray', [83]*36, True),
     anim('tag_wine', [150]*3, True),
     anim('tag_lunaclock', [200]*10, True),
+    img('tag_riverside'),
     img('tag_action'),
     img('tag_attacked'),
     img('tag_flandrecs'),
@@ -77,7 +78,7 @@ resource = Resource(respath, [
         'tenshi', 'rumia', 'yuuka', 'rinnosuke', 'ran',
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
         'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
-        'seiga', 'kaguya', 'momiji',
+        'seiga', 'kaguya', 'momiji', 'komachi',
 
         'remilia_ex', 'remilia_ex2',
     ]],

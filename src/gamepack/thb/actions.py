@@ -173,12 +173,10 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
 migrate_cards.SINGLE_LAYER = 2
 
 
-action_eventhandlers = set()
-
-
 def register_eh(cls):
     action_eventhandlers.add(cls)
     return cls
+action_eventhandlers = set()
 
 # ------------------------------------------
 

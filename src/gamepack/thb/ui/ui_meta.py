@@ -3224,7 +3224,7 @@ class Majesty:
 
 class MajestyAction:
     def effect_string(act):
-        return u'|G【%s】|r脸上挂满黑线，收走了|G【%s】|r的一张牌作为罚款' % (
+        return u'|G【%s】|r脸上挂满黑线，收走了|G【%s】|r的一张牌填补自己的|G威严|r。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
@@ -4511,6 +4511,96 @@ class SentryHandler:
             return (False, u'请选择一张弹幕或者草花色牌发动哨戒(对%s)' % act.target.ui_meta.char_name)
 
 
+#-----------
+__metaclass__ = gen_metafunc(characters.komachi)
+
+
+class Komachi:
+    # Character
+    char_name = u'小野塚小町'
+    port_image = gres.komachi_port
+    description = (
+        u'|DB乳不巨何以聚人心 小野塚小町 体力：4|r\n\n'
+        u'|G彼岸|r：出牌阶段，你可以弃置一张牌并指定一名角色，你与其距离视为1直到回合结束。若该角色为全场体力最少的角色（或之一），你可以弃置其一张牌或摸一张牌。每阶段限一次。\n\n'
+        u'|G归航|r：|B觉醒技|r，回合开始阶段，若你的体力值低于手牌数且小于等于2时，你需失去一点体力上限并回复一点体力，永久性获得技能|R渡钱|r。\n\n'
+        u'|R渡钱|r：你对距离为1的角色造成一次伤害后，你可以获得其一张牌。'
+    )
+
+
+class Riverside:
+    # Skill
+    name = u'彼岸'
+
+    def clickable(g):
+        if not my_turn(): return False
+        if limit1_skill_used('riverside_tag'): return False
+
+        me = g.me
+        return bool(me.cards or me.showncards or me.equips)
+
+    def is_action_valid(g, cl, tl):
+        acards = cl[0].associated_cards
+        if (not acards) or len(acards) != 1:
+            return (False, u'请选择一张牌')
+
+        card = acards[0]
+
+        if card.resides_in.type not in ('cards', 'showncards', 'equips'):
+            return (False, u'WTF?!')
+
+        if card.is_card(cards.Skill):
+            return (False, u'你不可以像这样组合技能')
+
+        return (True, u'近一点~再近一点~~')
+
+    def effect_string(act):
+        return u'|G【%s】|r对|G【%s】|r使用了|G彼岸|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name
+        )
+
+
+class RiversideAction:
+    # choose_option meta
+    choose_option_buttons = ((u'弃置一张牌', 'drop'), (u'摸一张牌', 'draw'))
+    choose_option_prompt = u'彼岸：你希望发动的效果？'
+
+
+class ReturningAwake:
+    def effect_string(act):
+        return u'|G【%s】|r：“啊啊不能再偷懒啦！要被四季大人说教啦！”' % (
+            act.target.ui_meta.char_name,
+        )
+
+
+class Returning:
+    # Skill
+    name = u'归航'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class FerryFee:
+    # Skill
+    name = u'渡钱'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class FerryFeeEffect:
+    def effect_string(act):
+        return u'|G【%s】|r收走了|G【%s】|r的一张牌作为|G渡钱|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
+class FerryFeeHandler:
+    # choose_option meta
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动渡钱吗？'
+
+
 # ----------
 __metaclass__ = gen_metafunc(characters.remilia_ex)
 
@@ -4728,5 +4818,11 @@ class action:
     tag_anim = lambda p: gres.tag_action
     display = lambda p, v: v
     description = u'可以行动'
+
+
+class riverside_target:
+    tag_anim = lambda p: gres.tag_riverside
+    display = lambda p, v: v
+    description = u'被指定为彼岸的目标'
 
 # -----END TAGS UI META-----

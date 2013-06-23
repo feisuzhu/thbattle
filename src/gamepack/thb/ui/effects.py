@@ -251,7 +251,8 @@ def player_turn_effect(self, act):
         )
     self.turn_frame.position = (port.x - 6, port.y - 4)
     self.prompt_raw('--------------------\n')
-    _update_tags(self, p)
+    for _p in Game.getgame().players:
+        _update_tags(self, _p)
 
 
 def player_death_update(self, act):
