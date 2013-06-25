@@ -441,8 +441,11 @@ def get_ready(user):
     g = user.current_game
     _notify_playerchange(g)
     if all(p.client.state == 'ready' for p in g.players):
-        log.info("game starting")
-        g.start()
+        if not g.started:
+            # race condition here.
+            # wrap in 'if g.started' to prevent double starting.
+            log.info("game starting")
+            g.start()
 
     else:
         evt_datachange.set()
