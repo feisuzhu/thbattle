@@ -81,7 +81,7 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
             try:
                 rst = my.parse(data)
             except:
-                log.info('user_input: exception in .process()', exc_info=1)
+                log.error('user_input: exception in .process()', exc_info=1)
                 # ----- FOR DEBUG -----
                 if g.IS_DEBUG:
                     raise

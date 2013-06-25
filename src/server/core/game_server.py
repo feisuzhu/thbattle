@@ -3,6 +3,7 @@
 # -- stdlib --
 from collections import OrderedDict
 from copy import copy
+import time
 import logging
 log = logging.getLogger('Game_Server')
 
@@ -75,14 +76,20 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
 
     orig_players = players[:]
 
-    with TimeLimitExceeded(timeout + 5, False):
+    till = time.time() + timeout + 5
+    try:
         inputany_player = None
 
         for p in players:
             g.emit_event('user_input_start', (trans, ilets[p]))
 
         while players:
-            p, data = get_input()
+            # NOTICE: This is a must.
+            # TLE would be raised at other part (notably my.post_process) in the original solution
+            # (wrapping large parts of code in 'with TimeLimitExceeded(): ...')
+            with TimeLimitExceeded(max(till - time.time(), 0)):
+                p, data = get_input()
+
             g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
 
             my = ilets[p]
@@ -90,7 +97,7 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
             try:
                 rst = my.parse(data)
             except:
-                log.info('user_input: exception in .process()', exc_info=1)
+                log.error('user_input: exception in .process()', exc_info=1)
                 # ----- FOR DEBUG -----
                 if g.IS_DEBUG:
                     raise
@@ -107,6 +114,9 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
             if type == 'any' and rst is not None:
                 inputany_player = p
                 break
+
+    except TimeLimitExceeded:
+        pass
 
     # timed-out players
     for p in players:

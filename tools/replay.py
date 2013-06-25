@@ -68,6 +68,10 @@ class MockServer(object):
                 missed = True
 
         log.info('GAME_DATA_MISS!!')
+        log.info('Remaining game data:')
+        for i in self.gdlist:
+            log.info(repr(i))
+
         sys.exit(1)
 
     def gwrite(self, tag, data):
