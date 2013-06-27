@@ -15,7 +15,7 @@ class RiversideAction(UserAction):
         tgt.tags['riverside_target'] = True
         minhp = min([p.life for p in g.players if not p.dead])
         if tgt.life == minhp:
-            has_card = src.cards or src.showncards or src.equips
+            has_card = tgt.cards or tgt.showncards or tgt.equips
             if has_card and user_input([src], ChooseOptionInputlet(self, ('drop', 'draw'))) == 'drop':
                 self.action = 'drop'
                 catnames = ('cards', 'showncards', 'equips')

@@ -38,15 +38,17 @@ class BorrowHandler(EventHandler):
             tgt = act.target
             if tgt.dead: return act
             if not tgt.has_skill(Borrow): return act
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                return act
 
             g = Game.getgame()
-            pl = [p for p in g.players if not p.dead and (p.cards or p.showncards)]
-            try:
-                pl.remove(tgt)
-            except ValueError:
-                pass
+            pl = [
+                p for p in g.players
+                if p is not tgt and not p.dead and (p.cards or p.showncards)
+            ]
+
+            if not pl: return act
+
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
 
             pl = user_choose_players(self, tgt, pl)
 

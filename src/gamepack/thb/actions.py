@@ -153,6 +153,7 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
         for c in l:
             if unwrap and c.is_card(VirtualCard):
                 c.move_to(None)
+                c.resides_in = to  # resides_in should be consistent with normal cards
                 migrate_cards(
                     c.associated_cards,
                     to,
