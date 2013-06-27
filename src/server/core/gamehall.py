@@ -19,7 +19,7 @@ import pika
 # -- own --
 from network import Endpoint
 from network.server import Client as ClientEndpoint, DroppedClient
-from utils import BatchList, surpress_and_restart, swallow, instantiate
+from utils import BatchList, surpress_and_restart, swallow, instantiate, log_failure
 from options import options
 from settings import VERSION
 from account import Account
@@ -242,6 +242,7 @@ if options.interconnect:
 
                     if topic == 'speaker':
                         @gevent.spawn
+                        @log_failure(log)
                         def speaker(body=body, node=node):
                             node = node if node != options.node else ''
                             body.insert(0, node)
@@ -268,6 +269,7 @@ else:
 
 
 @gevent.spawn
+@log_failure(log)
 def gamehall_status_updator():
     last_update = time.time()
     evt = evt_datachange
@@ -749,6 +751,7 @@ def end_game(g):
 
 
 def chat(user, msg):
+    @log_failure(log)
     def worker():
         packed = (user.account.username, msg)
         if user.state == 'hang':  # hall chat

@@ -11,7 +11,7 @@ import simplejson as json
 # -- own --
 from .common import GamedataMixin
 from network import Endpoint, EndpointDied
-from utils import BatchList
+from utils import BatchList, log_failure
 
 # -- code --
 
@@ -28,6 +28,7 @@ class Client(Endpoint, GamedataMixin, Greenlet):
         self.gdhistory = []
         self.usergdhistory = []
 
+    @log_failure(log)
     def _run(self):
         self.account = None
 

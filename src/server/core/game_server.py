@@ -15,7 +15,7 @@ import gevent
 # -- own --
 from network.server import EndpointDied
 from game import TimeLimitExceeded, InputTransaction
-from utils import waitany
+from utils import waitany, log_failure
 from network.common import GamedataMixin
 import game
 
@@ -199,6 +199,7 @@ class Game(Greenlet, game.Game):
         game.Game.__init__(self)
         self.players = []
 
+    @log_failure(log)
     def _run(self):
         from server.core import gamehall as hall
         self.synctag = 0
