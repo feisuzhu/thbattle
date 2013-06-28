@@ -31,7 +31,8 @@ class RiversideAction(UserAction):
 
     def is_valid(self):
         src = self.source
-        assert src.has_skill(Riverside)
+        # Fire with Exinwan -> dead -> skills cleared -> assertion fail
+        # assert src.has_skill(Riverside)
         return not src.tags['riverside_tag'] >= src.tags['turn_count']
 
 

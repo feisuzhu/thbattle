@@ -62,7 +62,7 @@ class ExtremeIntelligenceAction(GenericAction):
 
     def apply_action(self):
         p = self.source
-        cards = user_choose_cards(self, p, ['cards', 'showncards', 'equips'])
+        cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
         if not cards: return False
         p.tags['ran_ei_tag'] = p.tags['turn_count'] + 1
         g = Game.getgame()
@@ -83,7 +83,7 @@ class ExtremeIntelligenceAction(GenericAction):
         except AttributeError:
             pass
 
-        nact.associated_card = cards[0]
+        nact.associated_card = ExtremeIntelligence.wrap(cards, p)
 
         g.process_action(nact)
         return True

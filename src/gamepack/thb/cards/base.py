@@ -119,7 +119,7 @@ class VirtualCard(Card):
             'vcard': True,
         }
 
-    def check(self): # override this
+    def check(self):  # override this
         return False
 
     @classmethod
@@ -160,6 +160,7 @@ class VirtualCard(Card):
 
 from collections import deque
 
+
 class CardList(GameObject, deque):
     DECKCARD = 'deckcard'
     DROPPEDCARD = 'droppedcard'
@@ -169,6 +170,7 @@ class CardList(GameObject, deque):
     FATETELL = 'fatetell'
     SPECIAL = 'special'
     FAITHS = 'faiths'
+
     def __init__(self, owner, type):
         self.owner = owner
         self.type = type
@@ -264,7 +266,7 @@ class Skill(VirtualCard):
         self.associated_cards = []
         VirtualCard.__init__(self, player)
 
-    def check(self): # override this
+    def check(self):  # override this
         return False
 
     # target = xxx
