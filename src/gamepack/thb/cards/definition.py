@@ -183,7 +183,7 @@ from . import equipment
 class OpticalCloakCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'shield')
     equipment_skill = equipment.OpticalCloakSkill
     equipment_category = 'shield'
 
@@ -191,7 +191,7 @@ class OpticalCloakCard:
 class GreenUFOCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'greenufo')
     equipment_skill = equipment.GreenUFOSkill
     equipment_category = 'greenufo'
 
@@ -199,7 +199,7 @@ class GreenUFOCard:
 class RedUFOCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'redufo')
     equipment_skill = equipment.RedUFOSkill
     equipment_category = 'redufo'
 
@@ -207,7 +207,7 @@ class RedUFOCard:
 class HakuroukenCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.HakuroukenSkill
     equipment_category = 'weapon'
 
@@ -215,7 +215,7 @@ class HakuroukenCard:
 class ElementalReactorCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.ElementalReactorSkill
     equipment_category = 'weapon'
 
@@ -223,7 +223,7 @@ class ElementalReactorCard:
 class UmbrellaCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'shield')
     equipment_skill = equipment.UmbrellaSkill
     equipment_category = 'shield'
 
@@ -231,7 +231,7 @@ class UmbrellaCard:
 class RoukankenCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.RoukankenSkill
     equipment_category = 'weapon'
 
@@ -239,7 +239,7 @@ class RoukankenCard:
 class GungnirCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.GungnirSkill
     equipment_category = 'weapon'
 
@@ -247,7 +247,7 @@ class GungnirCard:
 class LaevateinCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.LaevateinSkill
     equipment_category = 'weapon'
 
@@ -255,7 +255,7 @@ class LaevateinCard:
 class TridentCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.TridentSkill
     equipment_category = 'weapon'
 
@@ -263,7 +263,7 @@ class TridentCard:
 class RepentanceStickCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.RepentanceStickSkill
     equipment_category = 'weapon'
 
@@ -271,7 +271,7 @@ class RepentanceStickCard:
 class MaidenCostumeCard:
     associated_action = equipment.WearEquipmentAction
     target = t_One
-    category = ('equipment', )
+    category = ('equipment', 'shield')
     equipment_skill = equipment.MaidenCostumeSkill
     equipment_category = 'shield'
     distance = 2
@@ -280,7 +280,7 @@ class MaidenCostumeCard:
 class IbukiGourdCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'redufo')
     equipment_skill = equipment.IbukiGourdSkill
     equipment_category = 'redufo'
 
@@ -288,7 +288,7 @@ class IbukiGourdCard:
 class HouraiJewelCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.HouraiJewelSkill
     equipment_category = 'weapon'
 
@@ -296,7 +296,7 @@ class HouraiJewelCard:
 class SaigyouBranchCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'shield')
     equipment_skill = equipment.SaigyouBranchSkill
     equipment_category = 'shield'
 
@@ -304,7 +304,7 @@ class SaigyouBranchCard:
 class FlirtingSwordCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.FlirtingSwordSkill
     equipment_category = 'weapon'
 
@@ -312,7 +312,7 @@ class FlirtingSwordCard:
 class AyaRoundfanCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.AyaRoundfanSkill
     equipment_category = 'weapon'
 
@@ -320,7 +320,7 @@ class AyaRoundfanCard:
 class ScarletRhapsodySwordCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.ScarletRhapsodySwordSkill
     equipment_category = 'weapon'
 
@@ -328,7 +328,7 @@ class ScarletRhapsodySwordCard:
 class DeathSickleCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.DeathSickleSkill
     equipment_category = 'weapon'
 
@@ -336,7 +336,7 @@ class DeathSickleCard:
 class KeystoneCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'greenufo')
     equipment_skill = equipment.KeystoneSkill
     equipment_category = 'greenufo'
 
@@ -344,7 +344,7 @@ class KeystoneCard:
 class WitchBroomCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'redufo')
     equipment_skill = equipment.WitchBroomSkill
     equipment_category = 'redufo'
 
@@ -352,7 +352,7 @@ class WitchBroomCard:
 class YinYangOrbCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'accessories')
     equipment_skill = equipment.YinYangOrbSkill
     equipment_category = 'accessories'
 
@@ -360,7 +360,7 @@ class YinYangOrbCard:
 class SuwakoHatCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'accessories')
     equipment_skill = equipment.SuwakoHatSkill
     equipment_category = 'accessories'
 
@@ -368,7 +368,7 @@ class SuwakoHatCard:
 class YoumuPhantomCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'accessories')
     equipment_skill = equipment.YoumuPhantomSkill
     equipment_category = 'accessories'
 
@@ -376,7 +376,7 @@ class YoumuPhantomCard:
 class IceWingCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'accessories')
     equipment_skill = equipment.IceWingSkill
     equipment_category = 'accessories'
 
@@ -384,7 +384,7 @@ class IceWingCard:
 class GrimoireCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', )
+    category = ('equipment', 'weapon')
     equipment_skill = equipment.GrimoireSkill
     equipment_category = 'weapon'
 

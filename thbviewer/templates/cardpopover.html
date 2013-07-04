@@ -1,0 +1,22 @@
+<div class="popover card-popover {{ placement }}" ng-class="{ in: isOpen(), fade: animation() }">
+  <div class="arrow"></div>
+  <div class="popover-inner">
+    <h3 class="popover-title">{{ card.name }}</h3>
+    <div class="popover-content">
+      <table>
+        <tbody>
+          <tr>
+            <td class='header'>卡牌效果</td>
+            <td class='content' ng-bind-html-unsafe="card.description"></td>
+          </tr>
+          <tr>
+            <td class='header'>卡牌种类</td>
+            <td class='content'>
+              <span class="label label-info" ng-repeat="cat in card.categories">{{ cat }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

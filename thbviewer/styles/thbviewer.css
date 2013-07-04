@@ -1,0 +1,148 @@
+body {
+    background-color: black;
+    background-image: url("../images/backdrop.jpg");
+    background-repeat: no-repeat;
+}
+
+.view {
+    background-color: rgba(255, 255, 230, 0.4);
+    border: #315597 2px solid;
+    min-height: 500px;
+}
+
+.card-list-item {
+    display: inline-block;
+    margin: 4px;
+    position: relative;
+    width: 103px;
+    height: 137px;
+}
+
+.card-list-item img.cardpic {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    z-index: 1;
+}
+
+.card-list-item img.shine {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    z-index: 2;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.6s;
+    -webkit-transition: opacity 0.6s;
+}
+
+.card-list-item img.shine:hover {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    z-index: 2;
+    opacity: 1.0;
+    transition: opacity 0s;
+    -webkit-transition: opacity 0s;
+}
+
+
+.pic-list-item {
+    display: inline-block;
+    margin: 6px;
+    position: relative;
+    width: 167px;
+    height: 120px;
+}
+
+.pic-list-item img.pic {
+    position: absolute;
+    left: 11px;
+    bottom: 11px;
+    z-index: 1;
+}
+
+.pic-list-item img.shine {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    z-index: 2;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.6s;
+    -webkit-transition: opacity 0.6s;
+}
+
+.pic-list-item img.shine:hover {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    z-index: 2;
+    opacity: 1.0;
+    transition: opacity 0s;
+    -webkit-transition: opacity 0s;
+}
+
+.popover {
+    max-width: 450px;
+    width: 450px;
+}
+
+.popover td.header {
+    white-space: nowrap;
+}
+
+.popover .bold {
+    font-weight: bold;
+}
+
+.popover .italic {
+    font-style: italic;
+}
+
+.popover .underline {
+    text-decoration: underline;
+}
+
+.popover .shortcut-r {
+    color: #FF3535;
+}
+
+.popover .shortcut-g {
+    color: #208020;
+}
+
+.popover .shortcut-y {
+    color: #FFFF30;
+}
+
+.popover .shortcut-lb {
+    color: #90DCE8;
+}
+
+.popover .shortcut-db {
+    color: #000060;
+}
+
+.popover .shortcut-w {
+    color: #FFFFFF;
+}
+
+.popover td {
+    padding:2px;
+    border: black 1px solid;
+    margin: 0;
+}
+
+.logo {
+    margin: 42px auto 0px;
+    width: 450px;
+}
+
+.label {
+    margin: 2px;
+}
+
+.charlife {
+    margin: 1px;
+}

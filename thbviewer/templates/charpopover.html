@@ -1,0 +1,28 @@
+<div class="popover char-popover {{ placement }}" ng-class="{ in: isOpen(), fade: animation() }">
+  <div class="arrow"></div>
+  <div class="popover-inner">
+    <h3 class="popover-title">{{ character.name }}</h3>
+    <div class="popover-content">
+      <table>
+        <tbody>
+          <tr>
+            <td class='header'>体力</td>
+            <td class='content'>
+                <img src="images/life.png" class="charlife" alt="" ng-repeat="i in times(character.maxlife)" />
+            </td>
+          </tr>
+          <tr>
+            <td class='header'>角色设定</td>
+            <td class='content' ng-bind-html-unsafe="character.description"></td>
+          </tr>
+          <tr>
+            <td class='header'>角色定位</td>
+            <td class='content'>
+              <span class="label label-info" ng-repeat="pos in character.positions">{{ pos }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

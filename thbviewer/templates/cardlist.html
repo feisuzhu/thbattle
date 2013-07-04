@@ -1,0 +1,4 @@
+<div ng-repeat="item in items" class="card-list-item">
+    <img ng-src="{{ options.resourceUrl }}/{{ item.image }}" alt="{{ item.name }}" class="cardpic" />
+    <img ng-src="{{ options.resourceUrl }}/card_shinesoft.png" class="shine" cardpopover="{{ item.token }}" cardpopover-placement="top"/>
+</div>

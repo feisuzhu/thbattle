@@ -11,8 +11,9 @@ from resource import resource as gres
 
 from utils import DataHolder, BatchList
 from types import FunctionType
+from collections import OrderedDict
 
-metadata = {}
+metadata = OrderedDict()
 
 
 class UIMetaAccesser(object):
@@ -138,6 +139,16 @@ class ActFirst:
 class THBattle:
     name = u'符斗祭 - 3v3 - 休闲'
     logo = gres.thblogo_3v3
+    description = (
+        u'|R游戏人数|r：6人\n'
+        u'\n'
+        u'阵营分为|!B博丽|r和|!O守矢|r，每个阵营3名玩家，交错入座。\n'
+        u'由ROLL点最高的人开始，按照顺时针1-2-2-1的方式选将。\n'
+        u'选将完成由ROLL点最高的玩家开始行动。\n'
+        u'ROLL点最高的玩家开局摸3张牌，其余玩家开局摸4张牌。\n'
+        u'\n'
+        u'|R胜利条件|r：击坠所有对方阵营玩家。'
+    )
 
     from .view import THBattleUI
     ui_class = THBattleUI
@@ -166,6 +177,17 @@ __metaclass__ = gen_metafunc(thbkof)
 class THBattleKOF:
     name = u'符斗祭 - KOF模式'
     logo = gres.thblogo_kof
+    description = (
+        u'|R游戏人数|r：2人\n'
+        u'\n'
+        u'|R选将模式|r：选将按照1-2-2-2-2-1来选择。\n'
+        u'\n'
+        u'|R决定出场顺序|r：选好角色后，进行排序。拖动角色可以进行排序，左边3名为出场角色，越靠左的最先出场（注意：当把一个角色拖到另一个角色左边时，靠右的角色会被顶下去）\n'
+        u'\n'
+        u'|R游戏过程|r：选好角色后，将会翻开第一个角色进行对决，其他角色为隐藏，中途不能调换顺序。当有一方角色MISS后，需弃置所有的牌（手牌、装备牌、判定区的牌），然后翻开下一个角色，摸4张牌。\n'
+        u'\n'
+        u'|R胜利条件|r：当其中一方3名角色全部MISS，判对方胜出'
+    )
 
     from .view import THBattleKOFUI
     ui_class = THBattleKOFUI
@@ -195,6 +217,21 @@ __metaclass__ = gen_metafunc(thbidentity)
 class THBattleIdentity:
     name = u'符斗祭 - 标准8人身份场'
     logo = gres.thblogo_8id
+    description = (
+        u'|R游戏人数|r：8人\n'
+        u'\n'
+        u'|R身份分配|r：1|!RBOSS|r、2|!O道中|r、1|!G黑幕|r、4|!B城管|r\n'
+        u'\n'
+        u'|!RBOSS|r：|!RBOSS|r的体力上限+1。游戏开局时展示身份。胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        u'\n'
+        u'|!O道中|r：胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        u'\n'
+        u'|!B城管|r：胜利条件为击坠|!RBOSS|r。当|!B城管|rMISS时，击坠者摸3张牌。\n'
+        u'\n'
+        u'|!G黑幕|r：胜利条件为在除了|!RBOSS|r的其他人都MISS的状况下击坠|!RBOSS|r。\n'
+        u'\n'
+        u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
+    )
 
     from .view import THBattleIdentityUI
     ui_class = THBattleIdentityUI
@@ -222,6 +259,21 @@ class THBattleIdentity:
 class THBattleIdentity5:
     name = u'符斗祭 - 标准5人身份场'
     logo = gres.thblogo_5id
+    description = (
+        u'|R游戏人数|r：5人\n'
+        u'\n'
+        u'|R身份分配|r：1|!RBOSS|r、1|!O道中|r、1|!G黑幕|r、2|!B城管|r\n'
+        u'\n'
+        u'|!RBOSS|r：游戏开局时展示身份。胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        u'\n'
+        u'|!O道中|r：胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        u'\n'
+        u'|!B城管|r：胜利条件为击坠|!RBOSS|r。当|!B城管|rMISS时，击坠者摸3张牌。\n'
+        u'\n'
+        u'|!G黑幕|r：胜利条件为在除了|!RBOSS|r的其他人都MISS的状况下击坠|!RBOSS|r。\n'
+        u'\n'
+        u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
+    )
 
     from .view import THBattleIdentity5UI
     ui_class = THBattleIdentity5UI
@@ -290,7 +342,7 @@ class THBattleRaid:
         u"\n"
         u"|R异变变身|r：当1阶段的异变体力值变化成小于等于默认体力上限的一半时，变身成2阶段，获得2阶段技能，体力上限减少默认体力上限的一半，弃置判定区的所有牌。异变变身时，所有解决者各获得1点信仰。\n"
         u"\n"
-        u"|R卡牌|r：牌堆中没有【罪袋】\n"
+        u"|R卡牌|r：牌堆中没有【罪袋】和【八卦炉】\n"
         u"\n"
         u"|R摸牌|r：游戏开始时，3个解决者每人摸4张牌，异变摸6张。当任意解决者阵亡时，弃置所有信仰，其他存活的解决者可以选择立即在牌堆里摸1张牌。\n"
         u"\n"
