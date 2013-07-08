@@ -15,6 +15,12 @@
               <span class="label label-info" ng-repeat="cat in card.categories">{{ cat }}</span>
             </td>
           </tr>
+          <tr>
+            <td class='header'>花色/数量</td>
+            <td class='content'>
+              <span class="label label-inverse" ng-repeat="sn in card.deck">{{ sn }}</span>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

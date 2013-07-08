@@ -8,8 +8,9 @@ import pyglet
 pyglet.options['shadow_window'] = False
 
 import simplejson as json
-from game import autoenv
+from unidecode import unidecode
 
+from game import autoenv
 autoenv.init('Client')
 
 sys.modules['gamepack.thb.ui.resource'] = sys.modules['__main__']  # dark art
@@ -129,6 +130,26 @@ excludes = [
     cards.DummyCard,
 ]
 
+
+def snstring(suit, num):
+    num = ' A23456789_JQK'[num]
+    if num == '_': num = '10'
+    return ftstring[suit] + num
+
+ftstring = {
+    cards.Card.SPADE: u'♠',
+    cards.Card.HEART: u'♡',
+    cards.Card.CLUB: u'♣',
+    cards.Card.DIAMOND: u'♢',
+}
+
+
+def find_cards(cardcls):
+    lst = [(n, s) for (cls, s, n) in cards.card_definition if cls is cardcls]
+    lst.sort()
+    return [snstring(s, n) for n, s in lst]
+
+
 for k, v in metadata.iteritems():
     if not issubclass(k, cards.Card): continue
     if issubclass(k, cards.VirtualCard): continue
@@ -139,6 +160,8 @@ for k, v in metadata.iteritems():
         "name": v['name'],
         "categories": conv_card_category(k.category),
         "description": to_html(v['description']),
+        "fulltextindex": unidecode(v['description']).replace(' ', '').lower(),
+        "deck": find_cards(k),
     })
 
 
@@ -158,6 +181,7 @@ for k, v in metadata.iteritems():
         "name": v['char_name'],
         "maxlife": k.maxlife,
         "description": to_html(v['description']),
+        "fulltextindex": unidecode(v['description']).replace(' ', '').lower(),
         "positions": ("暂缺",),
     })
 
