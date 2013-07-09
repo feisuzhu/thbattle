@@ -100,7 +100,9 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
                 inputany_player = p
 
     finally:
-        inputproc and inputproc.kill()
+        if inputproc:
+            inputproc.kill()
+            inputproc.join()
 
     if type == 'single':
         return results[orig_players[0]]

@@ -2,7 +2,6 @@
 import logging
 log = logging.getLogger('THBattleUI')
 
-import gevent
 from gevent.event import Event
 
 import pyglet
@@ -11,7 +10,7 @@ from pyglet.gl import glColor3f, glRectf
 from game.autoenv import Game, EventHandler
 from .. import actions
 
-from client.ui.base import Control, ui_message, Overlay, process_msg, ui_schedule
+from client.ui.base import Control, Overlay, process_msg
 from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPrompt
 from client.ui.soundmgr import SoundManager
 from .game_controls import HandCardArea, PortraitCardArea, DropCardArea, Ray, GameCharacterPortrait, SkillSelectionBox
@@ -28,38 +27,9 @@ class UIEventHook(EventHandler):
         trans, ilet = arg
         evt = Event()
         ilet.event = evt
-        ui_message('evt_user_input', arg)
+        process_msg(('evt_user_input', arg))
         evt.wait()
         return ilet
-
-    @classmethod
-    def evt_shuffle_cards(cls, args):
-        cls.ui_barrier_schedule(lambda: None)
-        return args
-
-    @classmethod
-    def evt_action_after(cls, act):
-        if hasattr(act, 'ui_meta'):
-            if getattr(act.ui_meta, 'barrier', False):
-                cls.ui_barrier_schedule(process_msg, ('evt_action_after', act))
-                return act
-
-        ui_message('evt_action_after', act)
-        return act
-
-    @classmethod
-    def ui_barrier_schedule(cls, cb, *args, **kwargs):
-        evt = Event()
-
-        def ui_callback():
-            cb(*args, **kwargs)
-            evt.set()
-
-        ui_schedule(ui_callback)
-        gevent.sleep(0.02)
-        evt.wait()
-
-    # evt_user_input_timeout, InputControllers handle this
 
     @classmethod
     def handle(cls, evt, data):
@@ -67,7 +37,7 @@ class UIEventHook(EventHandler):
         try:
             f = getattr(cls, name)
         except AttributeError:
-            ui_message(name, data)
+            process_msg((name, data))
             return data
 
         rst = f(data)
