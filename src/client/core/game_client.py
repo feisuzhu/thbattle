@@ -54,6 +54,9 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
     synctags_r = {v: k for k, v in synctags.items()}
 
     try:
+        for p in players:
+            g.emit_event('user_input_start', (trans, ilets[p]))
+
         inputproc = None
         if g.me in players:  # me involved
             if isinstance(g.me, TheChosenOne):  # Not observer or other things
@@ -61,9 +64,6 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
 
         orig_players = players[:]
         inputany_player = None
-
-        for p in players:
-            g.emit_event('user_input_start', (trans, ilets[p]))
 
         while players:
             # should be [tag, <Data for Inputlet.parse>]
