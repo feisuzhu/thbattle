@@ -42,12 +42,13 @@ class EnvyHandler(EventHandler):
         if evt_type != 'action_after': return act
         if not isinstance(act, Demolition): return act
         if not act.associated_card.is_card(Envy): return act
-        self.card = card = act.card
-
-        if card.suit != Card.DIAMOND: return act
 
         src = act.source
         tgt = act.target
+        self.card = card = act.card
+
+        if src.dead: return act
+        if card.suit != Card.DIAMOND: return act
 
         dist = LaunchCard.calc_distance(src, EnvyRecycle())
         if not dist[tgt] <= 0: return act
