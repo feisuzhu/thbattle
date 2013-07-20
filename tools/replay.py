@@ -119,6 +119,7 @@ for p in players:
 g = GameMode()
 g.players = BatchList(players)
 g.me = players[loc]
+g.replay_file = options.replay_file
 
 
 @hook(g)

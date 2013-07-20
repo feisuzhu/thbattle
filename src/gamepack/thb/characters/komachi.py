@@ -70,6 +70,10 @@ class ReturningAwake(GenericAction):
         tgt.skills.append(FerryFee)
         g.process_action(MaxLifeChange(tgt, tgt, -1))
         g.process_action(Heal(tgt, tgt, 1))
+
+        with open('/dev/shm/komachistat', 'a') as f:
+            f.write(str(g.gameid) + '\n')
+
         return True
 
 
