@@ -268,7 +268,6 @@ class Laevatein(ForEach):
 
 class LaevateinSkill(WeaponSkill):
     range = 4
-    distance = 1
     associated_action = Laevatein
     target = t_OtherLessEqThanN(3)
 
@@ -289,6 +288,13 @@ class LaevateinSkill(WeaponSkill):
         from ..cards import AttackCard
         if issubclass(AttackCard, cls): return True
         return isinstance(self, cls)
+
+    @property
+    def distance(self):
+        try:
+            return max(1, self.associated_cards[0].distance)
+        except:
+            return 1
 
 
 class TridentSkill(WeaponSkill):

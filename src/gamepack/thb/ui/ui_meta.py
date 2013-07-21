@@ -1402,7 +1402,7 @@ class LaevateinSkill:
             act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 cl = list(me.cards) + list(me.showncards)
-                if len(cl) == 1 and isinstance(cl[0], cards.AttackCard):
+                if len(cl) == 1:
                     return True
 
         except IndexError:
@@ -2037,7 +2037,10 @@ class GrimoireSkill:
         try:
             act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
-                if me.tags.get('attack_num', 0):
+                if me.tags['freeattack'] >= me.tags['turn_count']:
+                    return True
+
+                if me.tags['attack_num'] > 0:
                     return True
 
                 if me.has_skill(cards.ElementalReactorSkill):
@@ -4876,5 +4879,11 @@ class riverside_target:
     tag_anim = lambda p: gres.tag_riverside
     display = lambda p, v: v
     description = u'被指定为彼岸的目标'
+
+
+class ran_ei:
+    tag_anim = lambda p: gres.tag_ran_ei
+    display = lambda p, v: v < p.tags['turn_count'] + 1
+    description = u'还可以发动【极智】'
 
 # -----END TAGS UI META-----

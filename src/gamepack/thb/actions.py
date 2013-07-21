@@ -1,6 +1,7 @@
-# All generic and cards' Actions, EventHandlers are here
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError
+
+# All generic and cards' Actions, EventHandlers are here
+from game.autoenv import Game, EventHandler, Action
 from game.autoenv import sync_primitive, user_input, InputTransaction
 
 from .inputlets import ActionInputlet
@@ -33,7 +34,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
             skills, cards, players = rst
             if categories:
                 if skills:
-                    check(len(skills) == 1)
+                    # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
                     check(initiator.cond([skill_wrap(actor, skills, cards)]))
                 else:
@@ -128,19 +129,6 @@ def skill_transform(actor, skills, cards):
     # migrate_cards(cards, actor.cards, False, True)
     s.move_to(actor.cards)
     return s
-
-
-def shuffle_here():
-    from .cards import VirtualCard
-    g = Game.getgame()
-    g.emit_event('shuffle_cards', True)
-    for p in g.players:
-        assert all([
-            not c.is_card(VirtualCard)
-            for c in p.cards
-        ]), 'VirtualCard in cards of %s !!!' % repr(p)
-
-        g.deck.shuffle(p.cards)
 
 
 def migrate_cards(cards, to, unwrap=False, no_event=False):
@@ -452,12 +440,6 @@ class LaunchCard(GenericAction, LaunchCardAction):
         target_list = self.target_list
         if not card: return False
 
-        # special case for debug
-        from .cards import HiddenCard
-        if card.is_card(HiddenCard):
-            raise GameError('launch hidden card')
-        # ----------------------
-
         action = card.associated_action
         if not getattr(card, 'no_drop', False):
             g.process_action(DropUsedCard(self.source, cards=[card]))
@@ -533,6 +515,34 @@ class ActionStageLaunchCard(LaunchCard):
     pass
 
 
+@register_eh
+class ShuffleHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if evt_type == 'action_stage_action':
+            self.do_shuffle()
+
+        elif evt_type in ('action_before', 'action_after') and isinstance(arg, ActionStage):
+            self.do_shuffle()
+
+        elif evt_type == 'card_migration':
+            act, cl, _from, to = arg
+            to.owner and to.type == 'cards' and self.do_shuffle([to.owner])
+
+        return arg
+
+    def do_shuffle(self, pl=None):
+        from .cards import VirtualCard
+        g = Game.getgame()
+
+        for p in pl or g.players:
+            if not p.cards: continue
+            if any([c.is_card(VirtualCard) for c in p.cards]):
+                log.warning('VirtualCard in cards of %s, not shuffling.' % repr(p))
+                continue
+
+            g.deck.shuffle(p.cards)
+
+
 class ActionStage(GenericAction):
 
     def __init__(self, target):
@@ -544,8 +554,6 @@ class ActionStage(GenericAction):
         target = self.target
         if target.dead: return False
 
-        shuffle_here()
-
         try:
             while not target.dead:
                 try:
@@ -553,7 +561,7 @@ class ActionStage(GenericAction):
                     g.emit_event('action_stage_action', target)
                     with InputTransaction('ActionStageAction', [target]) as trans:
                         p, rst = ask_for_action(
-                            self, [target], ['cards', 'showncards'], g.players, trans
+                            self, [target], ('cards', 'showncards'), g.players, trans
                         )
                     check(p is target)
                 finally:
@@ -562,15 +570,11 @@ class ActionStage(GenericAction):
                 cards, target_list = rst
                 g.players.reveal(cards)
                 card = cards[0]
-                from .cards import HiddenCard
-                assert not card.is_card(HiddenCard)
 
                 if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
                     break
-
-                shuffle_here()
 
         except CheckFailed:
             pass

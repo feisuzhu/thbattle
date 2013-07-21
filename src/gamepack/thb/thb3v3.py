@@ -99,20 +99,24 @@ class THBattle(Game):
             forces[f].append(p)
 
         # choose girls -->
-        from characters import characters as chars
-        from characters.akari import Akari
+        from . import characters
+        chars = list(characters.characters)
 
         seed = get_seed_for(g.players)
-        chars = list(chars)
         random.Random(seed).shuffle(chars)
-        choices = [CharChoice(cls) for cls in chars[:16]]
-        del chars[:16]
 
-        for c in choices[-4:]:
-            c.char_cls = Akari
+        # ANCHOR(test)
+        chars.extend([
+        ])
+
+        choices = [CharChoice(cls) for cls in chars[-16:]]
+        del chars[-16:]
+
+        for c in choices[:4]:
+            c.char_cls = characters.akari.Akari
 
         if Game.SERVER_SIDE:
-            for c, cls in zip(choices[-4:], g.random.sample(chars, 4)):  # yes, must random.sample
+            for c, cls in zip(choices[:4], g.random.sample(chars, 4)):  # yes, must random.sample
                 c.real_cls = cls
 
         # ----- roll ------
@@ -146,7 +150,7 @@ class THBattle(Game):
                 c = c or [_c for _c in choices if not _c.chosen][0]
                 c.chosen = p
 
-                if issubclass(c.char_cls, Akari):
+                if issubclass(c.char_cls, characters.akari.Akari):
                     akaris.append((p, c))
                 else:
                     mix(p, c)
