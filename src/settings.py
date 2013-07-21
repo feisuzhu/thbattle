@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 141'
+VERSION = 'THBATTLE V1.0b incr 142'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -127,6 +127,9 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+各种bug修复，小调整
+妖梦：现在觉醒会有额外的效果->提升一点体力上限并回复一点体力
+新的小恶魔头像（画师：渚FUN、TI）
 新人物：小野塚小町
 犬走椛设定调整
 新人物：犬走椛
