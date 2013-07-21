@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction
-from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack
+from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction, MaxLifeChange
+from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack, Heal
 from ..inputlets import ChooseIndividualCardInputlet
 from utils import classmix
 
@@ -70,9 +70,12 @@ class MijincihangzhanDuelMixin(object):
 
 class XianshiwangzhiAwake(GenericAction):
     def apply_action(self):
+        g = Game.getgame()
         tgt = self.target
         tgt.skills.append(Xianshiwangzhi)
         tgt.tags['attack_num'] += 1
+        g.process_action(MaxLifeChange(tgt, tgt, 1))
+        g.process_action(Heal(tgt, tgt, 1))
         return True
 
 
