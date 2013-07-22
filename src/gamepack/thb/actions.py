@@ -4,7 +4,7 @@
 from game.autoenv import Game, EventHandler, Action
 from game.autoenv import sync_primitive, user_input, InputTransaction
 
-from .inputlets import ActionInputlet
+from .inputlets import ActionInputlet, ChoosePeerCardInputlet
 
 from utils import check, check_type, CheckFailed, BatchList, group_by
 
@@ -524,13 +524,20 @@ class ShuffleHandler(EventHandler):
         elif evt_type in ('action_before', 'action_after') and isinstance(arg, ActionStage):
             self.do_shuffle()
 
-        elif evt_type == 'card_migration':
-            act, cl, _from, to = arg
-            to.owner and to.type == 'cards' and self.do_shuffle([to.owner])
+        elif evt_type == 'user_input_start':
+            trans, ilet = arg
+            if isinstance(ilet, ChoosePeerCardInputlet):
+                self.do_shuffle([ilet.target])
+
+        # <!-- This causes severe problems, do not use -->
+        # elif evt_type == 'card_migration':
+        #     act, cl, _from, to = arg
+        #     to.owner and to.type == 'cards' and self.do_shuffle([to.owner])
 
         return arg
 
-    def do_shuffle(self, pl=None):
+    @staticmethod
+    def do_shuffle(pl=None):
         from .cards import VirtualCard
         g = Game.getgame()
 
