@@ -4,6 +4,7 @@
 *.pyo
 current_version
 update_info.json
+client_log.txt
 client_log.txt.gz
 user_settings.json
 s

@@ -2,7 +2,6 @@
 import logging
 import sys
 import argparse
-import gzip
 
 reload(sys)
 sys.setdefaultencoding(sys.getfilesystemencoding())
@@ -24,18 +23,22 @@ opmodule.options = options
 
 class Tee(object):
     def __init__(self):
-        self.logfile = f = gzip.open('client_log.txt.gz', 'a')
+        self.logfile = f = open('client_log.txt', 'a')
+        self.history = []
         import datetime
-        f.write(
+        s = (
             '\n' + datetime.datetime.now().strftime("%Y-%m-%d %H:%M") +
             '\n==============================================\n'
         )
+        self.history.append(s)
+        f.write(s)
 
     def write(self, v):
         sys.__stdout__.write(v)
+        self.history.append(v)
         self.logfile.write(v.encode('utf-8'))
 
-sys.stderr = sys.stdout = Tee()
+tee = sys.stderr = sys.stdout = Tee()
 
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(getattr(logging, options.log.upper()))
@@ -66,8 +69,10 @@ if not sys.platform.startswith('linux'):
             socket.gethostbyname(host)
 
     domains = [
+        'www.thbattle.net',
         'update.thbattle.net',
         'game.thbattle.net',
+        'cngame.thbattle.net',
         'feisuzhu.xen.prgmr.com',
     ]
     for host in domains:
@@ -104,6 +109,29 @@ if sys.platform.startswith('linux') and options.dump_gameobj:
     atexit.register(game.GameObjectMeta._dump_gameobject_hierarchy)
     atexit.register(game.EventHandler._dump_eh_dependency_graph)
 
+
+def do_crashreport():
+    import requests
+    import zlib
+    import traceback
+
+    if True or not options.freeplay:
+        try:
+            from game.autoenv import Game
+            g = Game.getgame()
+            gameid = g.gameid
+        except:
+            gameid = 0
+
+        s = u''.join(tee.history)
+        s += u'\n\n' + traceback.format_exc()
+        content = zlib.compress(s.encode('utf-8'))
+        requests.post(
+            'http://www.thbattle.net/interconnect/crashreport',
+            data={'gameid': gameid}, files={'file': content},
+        )
+
+
 from client.ui.entry import start_ui
 
 try:
@@ -117,10 +145,13 @@ except:
         pdb.post_mortem()
 
     Executive.call('app_exit')
+    log.error(u'游戏崩溃，正在报告bug，请稍等下……')
+    do_crashreport()
+
     raise
 
 
-if sys.platform == 'win32':
+if False and sys.platform == 'win32':
     import traceback
 
     def msgbox_error(exc_type, exc_value, exc_traceback):

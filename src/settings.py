@@ -43,6 +43,7 @@ UPDATE_IGNORES = re.compile(r'''
           ^current_version$
         | ^update_info\.json$
         | ^client_log\.txt\.gz$
+        | ^client_log\.txt$
         | ^.+\.py[co]$
         | ^.*~$
         | ^.*_custom\..{2,4}$

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from network.client import Server
-import sys
 import gevent
 from gevent import socket, Greenlet
 
@@ -74,6 +73,8 @@ class GameManager(Greenlet):
             @g.link_exception
             def crash(*a):
                 self.event_cb('game_crashed', g)
+                from __main__ import do_crashreport
+                gevent.spawn(do_crashreport)
 
             @g.link_value
             def finish(*a):
@@ -217,7 +218,7 @@ class Executive(Greenlet):
 
         @handler
         def app_exit(self, cb):
-            sys.exit()
+            raise gevent.GreenletExit
 
         @handler
         def connect_server(self, cb, addr, event_cb):
