@@ -591,4 +591,8 @@ card_definition = [
     (RedUFOCard, DIAMOND, K),
 ]
 
+# ANCHOR(card)
+# card_definition = [
+# ] * 1000
+
 del J, Q, K

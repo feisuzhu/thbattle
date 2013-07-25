@@ -114,7 +114,7 @@ class YoumuWearEquipmentAction(UserAction):
 
 
 class YoumuHandler(EventHandler):
-    execute_before = ('ScarletRhapsodySwordHandler', )
+    execute_before = ('ScarletRhapsodySwordHandler', 'HouraiJewelHandler')
     execute_after = ('AttackCardHandler', )
 
     def handle(self, evt_type, act):
