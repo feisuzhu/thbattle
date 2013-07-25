@@ -42,7 +42,7 @@ tee = sys.stderr = sys.stdout = Tee()
 
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(getattr(logging, options.log.upper()))
-log = logging.getLogger('__main__')
+log = logging.getLogger('start_client')
 
 # gevent: do not patch dns, they fail on windows
 # monkey.patch_socket(dns=False) won't work since
@@ -115,7 +115,7 @@ def do_crashreport():
     import zlib
     import traceback
 
-    if True or not options.freeplay:
+    if not options.freeplay:
         try:
             from game.autoenv import Game
             g = Game.getgame()

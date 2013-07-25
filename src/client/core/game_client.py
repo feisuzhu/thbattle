@@ -41,6 +41,8 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
     for p in players:
         ilets[p].actor = p
 
+    inputproc = None
+
     def input_func(st):
         my = ilets[g.me]
         with TimeLimitExceeded(timeout + 1, False):
@@ -57,7 +59,6 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
         for p in players:
             g.emit_event('user_input_start', (trans, ilets[p]))
 
-        inputproc = None
         if g.me in players:  # me involved
             if isinstance(g.me, TheChosenOne):  # Not observer or other things
                 inputproc = gevent.spawn(input_func, synctags[g.me])
