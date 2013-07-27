@@ -50,6 +50,8 @@ class MockServer(object):
         log.info('GAME_EXPECT: %s', repr(tag))
         if not self.gdlist:
             log.info('Game data exhausted, exiting...')
+            if options.catch:
+                import pdb; pdb.set_trace()
             sys.exit(0)
 
         glob = False

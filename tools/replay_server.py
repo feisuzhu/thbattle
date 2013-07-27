@@ -35,7 +35,7 @@ from utils import BatchList
 # -- code --
 parser = ArgumentParser()
 parser.add_argument('replay_file', type=str)
-parser.add_argument('--break', type=int, default=0)
+parser.add_argument('--catch', action='store_true')
 
 options = parser.parse_args()
 
@@ -43,6 +43,9 @@ options = parser.parse_args()
 def ask_for_feed(player_index, tag):
     if not gdlist:
         log.warning('Game data exhausted.')
+        if options.catch:
+            import pdb; pdb.set_trace()
+
         sys.exit(0)
 
     data = gdlist[0]
