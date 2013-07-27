@@ -116,6 +116,10 @@ def do_crashreport():
     import traceback
 
     if not options.freeplay:
+        s = u''.join(tee.history)
+        s += u'\n\n' + traceback.format_exc()
+        content = zlib.compress(s.encode('utf-8'))
+
         try:
             from game.autoenv import Game
             g = Game.getgame()
@@ -123,9 +127,6 @@ def do_crashreport():
         except:
             gameid = 0
 
-        s = u''.join(tee.history)
-        s += u'\n\n' + traceback.format_exc()
-        content = zlib.compress(s.encode('utf-8'))
         requests.post(
             'http://www.thbattle.net/interconnect/crashreport',
             data={'gameid': gameid}, files={'file': content},
