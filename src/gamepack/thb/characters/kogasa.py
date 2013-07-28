@@ -36,10 +36,6 @@ class Surprise(UserAction):
         else:
             rst = False
 
-        # Kogasa surprises Shikieiki, Shikieiki use Majesty to get card,
-        # triggers shuffling. So reveal it again.
-        g.players.exclude(src).reveal(card)
-
         if not tgt.dead:
             migrate_cards([card], tgt.cards)
 

@@ -324,7 +324,7 @@ class HarvestEffect(InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         cards = self.parent_action.cards
-        cards_avail = [c for c in cards if c.resides_in is g.deck.special]
+        cards_avail = [c for c in cards if c.resides_in is g.deck.disputed]
         if not cards_avail: return False
         tgt = self.target
 
@@ -335,6 +335,7 @@ class HarvestEffect(InstantSpellCardAction):
         ) or random_choose_card([cards_avail])
 
         migrate_cards([card], tgt.cards)
+
         self.parent_action.trans.notify('harvest_choose', card)
         self.card = card
         return True
@@ -348,7 +349,7 @@ class Harvest(ForEach):
         g = Game.getgame()
         cards = g.deck.getcards(len(tl))
         g.players.reveal(cards)
-        migrate_cards(cards, g.deck.special)
+        migrate_cards(cards, g.deck.disputed)
         trans = InputTransaction('HarvestChoose', g.players, cards=cards)
         trans.begin()
         self.cards = cards
@@ -359,7 +360,7 @@ class Harvest(ForEach):
         self.trans.end()
         g.emit_event('harvest_finish', self)
         dropped = g.deck.droppedcards
-        migrate_cards([c for c in self.cards if c.resides_in is g.deck.special], dropped)
+        migrate_cards([c for c in self.cards if c.resides_in is g.deck.disputed], dropped)
 
 
 class Camera(InstantSpellCardAction):

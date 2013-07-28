@@ -77,7 +77,7 @@ class AkiTributeHandler(EventHandler):
             p = pl[0]
             migrate_cards([
                 c for c in act.cards
-                if c.resides_in is g.deck.special
+                if c.resides_in is g.deck.disputed
             ], p.showncards)
 
         return act

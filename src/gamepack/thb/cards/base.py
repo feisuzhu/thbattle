@@ -19,6 +19,18 @@ class Card(GameObject):
     RED = 5
     BLACK = 6
 
+    SUIT_REV = {
+        0: '?',
+        1: 'SPADE', 2: 'HEART',
+        3: 'CLUB', 4: 'DIAMOND',
+    }
+
+    NUM_REV = {
+        0: '?', 1: 'A', 2: '2', 3: '3', 4: '4',
+        5: '5', 6: '6', 7: '7', 8: '8', 9: '9',
+        10: '10', 11: 'J', 12: 'Q', 13: 'K',
+    }
+
     _color = None
     card_classes = {}
 
@@ -50,8 +62,16 @@ class Card(GameObject):
         if data['syncid'] != self.syncid:
             logging.error(
                 'CardOOS: server: %s, %d, %d, syncid=%d; client: %s, %d, %d, syncid=%d',
-                data['type'], data['suit'], data['number'], data['syncid'],
-                self.__class__.__name__, self.suit, self.number, self.syncid,
+
+                data['type'],
+                self.SUIT_REV.get(data['suit'], data['suit']),
+                self.NUM_REV.get(data['number'], data['number']),
+                data['syncid'],
+
+                self.__class__.__name__,
+                self.SUIT_REV.get(self.suit),
+                self.NUM_REV.get(self.number),
+                self.syncid,
             )
             raise GameError('Card: out of sync')
 
@@ -63,20 +83,24 @@ class Card(GameObject):
         self.number = data['number']
 
     def move_to(self, resides_in):
-        try:
-            self.resides_in.remove(self)
-        except (AttributeError, ValueError):
-            pass
-
+        self.detach()
         if resides_in is not None:
             resides_in.append(self)
 
         self.resides_in = resides_in
 
+    def detach(self):
+        try:
+            self.resides_in.remove(self)
+        except (AttributeError, ValueError):
+            pass
+
     def __repr__(self):
-        return u'%s(%d, %d) at 0x%x' % (
-            self.__class__.__name__, self.suit, self.number,
-            id(self),
+        return u"{name}({suit}, {num}{detached})".format(
+            name=self.__class__.__name__,
+            suit=self.SUIT_REV.get(self.suit, self.suit),
+            num=self. NUM_REV.get(self.number, self.number),
+            detached=u', detached' if self.resides_in and self not in self.resides_in else u''
         )
 
     def is_card(self, cls):
@@ -110,7 +134,7 @@ class VirtualCard(Card):
         self.player = player
         self.suit = Card.NOTSET
         self.number = 0
-        self.resides_in = player.special
+        self.resides_in = player.cards
 
     def __data__(self):
         return {
@@ -189,7 +213,7 @@ class Deck(GameObject):
         self.cards_record = {}
         self.vcards_record = WeakValueDictionary()
         self.droppedcards = CardList(None, 'droppedcard')
-        self.special = CardList(None, 'special')
+        self.disputed = CardList(None, 'disputed')
         cards = CardList(None, 'deckcard')
         self.cards = cards
         cards.extend(

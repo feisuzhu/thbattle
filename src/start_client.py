@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import sys
+import os
 import argparse
 
 reload(sys)
@@ -19,6 +20,7 @@ options = parser.parse_args()
 
 import options as opmodule
 opmodule.options = options
+IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
 
 
 class Tee(object):
@@ -42,6 +44,23 @@ tee = sys.stderr = sys.stdout = Tee()
 
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(getattr(logging, options.log.upper()))
+
+if IS_PROTON:
+    from colorlog import ColoredFormatter
+
+    formatter = ColoredFormatter(
+        "%(log_color)s%(message)s%(reset)s",
+        log_colors={
+            'CRITICAL': 'bold_red',
+            'ERROR': 'red',
+            'WARNING': 'yellow',
+            'INFO': 'green',
+            'DEBUG': 'blue',
+        }
+    )
+
+    logging.getLogger().handlers[0].setFormatter(formatter)
+
 log = logging.getLogger('start_client')
 
 # gevent: do not patch dns, they fail on windows

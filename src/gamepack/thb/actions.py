@@ -95,10 +95,12 @@ def random_choose_card(cardlists):
     v = sync_primitive(c.syncid, g.players)
     cl = g.deck.lookupcards([v])
     assert len(cl) == 1
-    return cl[0]
+    c = cl[0]
+    c.detach()
+    return c
 
 
-def skill_wrap(actor, skills, cards, no_reveal=False):
+def skill_wrap(actor, skills, cards, no_reveal=False, detach=False):
     # no_reveal: for ui
     g = Game.getgame()
     try:
@@ -108,6 +110,8 @@ def skill_wrap(actor, skills, cards, no_reveal=False):
 
             if not no_reveal and not getattr(skill_cls, 'no_reveal', False):
                 g.players.exclude(actor).reveal(cards)
+
+            detach and [c.detach() for c in cards]
 
             card = skill_cls.wrap(cards, actor)
             check(card.check())
@@ -121,13 +125,13 @@ def skill_wrap(actor, skills, cards, no_reveal=False):
 
 def skill_transform(actor, skills, cards):
     g = Game.getgame()
-    s = skill_wrap(actor, skills, cards)
+    s = skill_wrap(actor, skills, cards, detach=True)
     if not s:
         return None
 
     g.deck.register_vcard(s)
     # migrate_cards(cards, actor.cards, False, True)
-    s.move_to(actor.cards)
+    # s.move_to(actor.cards)
     return s
 
 
@@ -140,8 +144,8 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
         cl = l[0].resides_in
         for c in l:
             if unwrap and c.is_card(VirtualCard):
-                c.move_to(None)
-                c.resides_in = to  # resides_in should be consistent with normal cards
+                # c.move_to(None)
+                c.detach()  # resides_in should be consistent with normal cards
                 migrate_cards(
                     c.associated_cards,
                     to,
