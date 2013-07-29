@@ -62,10 +62,7 @@ class OpticalCloak(FatetellAction):
         ft = Fatetell(target, lambda card: card.suit in (Card.HEART, Card.DIAMOND))
         g.process_action(ft)
         self.fatetell_card = ft.card
-        if ft.succeeded:
-            return True
-        else:
-            return False
+        return bool(ft.succeeded)
 
 
 @register_eh
@@ -770,7 +767,7 @@ class YinYangOrb(GenericAction):
             if e.is_card(YinYangOrbCard):
                 g = Game.getgame()
                 g.process_action(DropCards(tgt, [e]))
-                ft.card = e
+                ft.set_card(e)
                 break
         else:
             raise GameError('Player has YinYangOrb skill but no equip!')
@@ -785,7 +782,7 @@ class YinYangOrbSkill(AccessoriesSkill):
 @register_eh
 class YinYangOrbHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, Fatetell):
+        if evt_type == 'fatetell':
             tgt = act.target
             if not tgt.has_skill(YinYangOrbSkill): return act
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):

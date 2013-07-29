@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import UserAction, DropCards, Fatetell, Damage
+from ..actions import UserAction, DropCards, Damage
 from ..actions import migrate_cards, user_choose_cards
 from ..cards import Skill, t_None
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -27,7 +28,7 @@ class TrialAction(UserAction):
         c = self.card
         g.players.exclude(self.source).reveal(c)
         g.process_action(DropCards(self.source, [c]))
-        self.ft.card = c
+        self.ft.set_card(c)
         return True
 
 
@@ -35,7 +36,7 @@ class TrialHandler(EventHandler):
     execute_before = ('YinYangOrbHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, Fatetell):
+        if evt_type == 'fatetell':
             g = Game.getgame()
             pl = g.players.rotate_to(act.target)
             for p in pl:
@@ -45,7 +46,7 @@ class TrialHandler(EventHandler):
                 if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                     return act
 
-                cards = user_choose_cards(self, p, ['cards', 'showncards', 'equips'])
+                cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
                 if cards:
                     c = cards[0]
                     g.process_action(TrialAction(p, act.target, act, c))
@@ -59,7 +60,7 @@ class TrialHandler(EventHandler):
 class MajestyAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ['cards', 'showncards', 'equips']))
+        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
         if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)

@@ -634,19 +634,24 @@ class BaseFatetell(GenericAction):
         g.players.reveal(card)
         self.card = card
         migrate_cards([card], g.deck.droppedcards)
-        return True
+        g.emit_event(self.type, self)
+        return self.succeeded
+
+    def set_card(self, card):
+        self.card = card
 
     @property
     def succeeded(self):
+        # This is necessary, for ui
         return self.cond(self.card)
 
 
 class Fatetell(BaseFatetell):
-    pass
+    type = 'fatetell'
 
 
 class TurnOverCard(BaseFatetell):
-    pass
+    type = 'turnover'
 
 
 class FatetellAction(GenericAction): pass
