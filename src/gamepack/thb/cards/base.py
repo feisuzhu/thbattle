@@ -100,7 +100,7 @@ class Card(GameObject):
             name=self.__class__.__name__,
             suit=self.SUIT_REV.get(self.suit, self.suit),
             num=self. NUM_REV.get(self.number, self.number),
-            detached=u', detached' if self.resides_in and self not in self.resides_in else u''
+            detached=u', detached' if self.resides_in is not None and self not in self.resides_in else u''
         )
 
     def is_card(self, cls):

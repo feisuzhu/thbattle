@@ -16,7 +16,7 @@ class FlowerQueen(Skill):
         if not cl or len(cl) != 1: return False
         c = cl[0]
         if not c.suit == Card.CLUB: return False
-        return c.resides_in and c.resides_in.type in (
+        return c.resides_in is not None and c.resides_in.type in (
             'cards', 'showncards', 'equips',
         )
 

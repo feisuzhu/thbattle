@@ -12,7 +12,7 @@ class FirstAid(Skill):
         if not cl or len(cl) != 1: return False
         c = cl[0]
         return bool(
-            c.resides_in and
+            c.resides_in is not None and
             c.resides_in.type in (
                 'cards', 'showncards',
                 'equips',
@@ -46,7 +46,7 @@ class Medic(Skill):
         cl = self.associated_cards
         if bool(
             cl and len(cl) == 1 and
-            cl[0].resides_in and
+            cl[0].resides_in is not None and
             cl[0].resides_in.type in ('cards', 'showncards')
         ): return True
         return False

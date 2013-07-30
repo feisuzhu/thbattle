@@ -58,7 +58,7 @@ class Tribute(Skill):
     def check(self):
         cl = self.associated_cards
         rst = cl and len(cl) == 1 and (
-            cl[0].resides_in and
+            cl[0].resides_in is not None and
             cl[0].resides_in.type in ('cards', 'showncards')
         )
         return rst

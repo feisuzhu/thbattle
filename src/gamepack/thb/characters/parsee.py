@@ -14,7 +14,7 @@ class Envy(TreatAsSkill):
         cards = self.associated_cards
         if len(cards) != 1: return False
         c = cards[0]
-        if not c.resides_in: return False
+        if c.resides_in is None: return False
         if not c.resides_in.type in ('cards', 'showncards', 'equips'): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         return True

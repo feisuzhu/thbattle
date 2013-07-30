@@ -36,7 +36,7 @@ class Netoru(Skill):
     def check(self):
         cl = self.associated_cards
         return cl and len(cl) == 2 and all(
-            c.resides_in and
+            c.resides_in is not None and
             c.resides_in.type in ('cards', 'showncards')
             for c in cl
         )

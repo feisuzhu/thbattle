@@ -98,7 +98,7 @@ class ImperishableNightHandler(EventHandler):
             rawcards = [card]
 
         if not all(
-            not c.resides_in or c.resides_in.type == 'droppedcard'
+            c.resides_in is None or c.resides_in.type == 'droppedcard'
             for c in rawcards
         ): return act
 
