@@ -221,6 +221,9 @@ def speaker():
 def crashreport():
     gameid = int(request.forms.get('gameid', 0))
     if time.time() - gameid_last_see[gameid] < 300: return ''
+    if gameid:
+        gameid_last_see[gameid] = time.time()
+
     f = request.files.get('file')
     if not f: return ''
 

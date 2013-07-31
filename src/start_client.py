@@ -134,6 +134,9 @@ def do_crashreport():
     import zlib
     import traceback
 
+    import pyglet.info
+    pyglet.info.dump()
+
     if not options.freeplay:
         s = u''.join(tee.history)
         s += u'\n\n' + traceback.format_exc()
