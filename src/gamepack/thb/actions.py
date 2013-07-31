@@ -111,10 +111,11 @@ def skill_wrap(actor, skills, cards, no_reveal=False, detach=False):
             if not no_reveal and not getattr(skill_cls, 'no_reveal', False):
                 g.players.exclude(actor).reveal(cards)
 
-            detach and [c.detach() for c in cards]
-
             card = skill_cls.wrap(cards, actor)
             check(card.check())
+
+            detach and [c.detach() for c in cards]
+
             cards = [card]
 
         return cards[0]
