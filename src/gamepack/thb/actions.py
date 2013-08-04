@@ -139,7 +139,7 @@ def skill_transform(actor, skills, cards):
 def migrate_cards(cards, to, unwrap=False, no_event=False):
     g = Game.getgame()
     from .cards import VirtualCard
-    groups = group_by(cards, lambda c: c if c.is_card(VirtualCard) else c.resides_in)
+    groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
 
     for l in groups:
         cl = l[0].resides_in
