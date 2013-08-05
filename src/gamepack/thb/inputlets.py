@@ -14,7 +14,7 @@ from utils import check, check_type, CheckFailed
 # -- code --
 
 class ChooseOptionInputlet(Inputlet):
-    def init(self, options=(False, True)):
+    def init(self, options):
         self.options = options
         self.result = None
 

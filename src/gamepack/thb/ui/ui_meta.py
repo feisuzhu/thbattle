@@ -1084,6 +1084,31 @@ class OpticalCloak:
             return u'但是被看穿了…'
 
 
+class MomijiShieldCard:
+    # action_stage meta
+    name = u'天狗盾'
+    image = gres.card_momijishield
+    image_small = gres.card_momijishield_small
+    description = (
+        u'|R天狗盾|r\n\n'
+        u'装备后，黑色【弹幕】对你无效。'
+    )
+
+    is_action_valid = equip_iav
+
+
+class MomijiShieldSkill:
+    # Skill
+    name = u'天狗盾'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class MomijiShield:
+    def effect_string(act):
+        return u'被|G天狗盾|r挡下了…'
+
+
 ufo_desc = (
     u'|R%s|r\n\n'
     u'UFO用来改变自己与其他玩家之间的距离。\n'
@@ -1200,33 +1225,28 @@ class SinsackCarnivalCard:
         return (True, u'罪袋们来送水啦！')
 
 
-class HakuroukenCard:
+class RoukankenCard:
     # action_stage meta
-    name = u'白楼剑'
-    image = gres.card_hakurouken
-    image_small = gres.card_hakurouken_small
+    name = u'楼观剑'
+    image = gres.card_roukanken
+    image_small = gres.card_roukanken_small
     description = (
-        u'|R白楼剑|r\n\n'
-        u'攻击范围2，每当你使用【弹幕】攻击一名角色时，无视该角色的防具。'
+        u'|R楼观剑|r\n\n'
+        u'攻击范围3，每当你使用【弹幕】攻击一名角色时，无视该角色的防具。'
     )
     is_action_valid = equip_iav
 
 
-class HakuroukenSkill:
+class RoukankenSkill:
     # Skill
-    name = u'白楼剑'
+    name = u'楼观剑'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
-class Hakurouken:
+class Roukanken:
     def effect_string_apply(act):
-        a = act.action
-        src, tgt = a.source, a.target
-        return u'|G【%s】|r祭起了|G白楼剑|r，直斩|G【%s】|r的魂魄！' % (
-            src.ui_meta.char_name,
-            tgt.ui_meta.char_name,
-        )
+        return u'没有什么防具是|G楼观剑|r斩不断的！'
 
 
 class ElementalReactorCard:
@@ -1277,46 +1297,6 @@ class UmbrellaEffect:
         return u'|G【%s】|r受到的%s效果被|G阳伞|r挡下了' % (
             act.target.ui_meta.char_name,
             s,
-        )
-
-
-class RoukankenCard:
-    # action_stage meta
-    name = u'楼观剑'
-    image = gres.card_roukanken
-    image_small = gres.card_roukanken_small
-    description = (
-        u'|R楼观剑|r\n\n'
-        u'攻击范围3，当你使用的【弹幕】被抵消时，你可以立即对相同的目标再使用一张【弹幕】。'
-    )
-    is_action_valid = equip_iav
-
-
-class RoukankenSkill:
-    # Skill
-    name = u'楼观剑'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
-class RoukankenHandler:
-    # choose_card
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'再来一刀！')
-        else:
-            return (False, u'请使用【弹幕】发动楼观剑……')
-
-
-class RoukankenLaunchAttack:
-    def effect_string_before(act):
-        return (
-            u'虽然上一刀落空了，但是|G楼观剑|r的气势并未褪去。' +
-            u'|G【%s】|r调整了姿势，再次向|G【%s】|r出刀！'
-        ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
-
         )
 
 
@@ -1379,22 +1359,22 @@ class GungnirSkill:
         return s
 
 
-class LaevateinCard:
+class ScarletRhapsodyCard:
     # action_stage meta
-    name = u'莱瓦汀'
-    image = gres.card_laevatein
-    image_small = gres.card_laevatein_small
+    name = u'绯想之剑'
+    image = gres.card_scarletrhapsodysword
+    image_small = gres.card_scarletrhapsodysword_small
     description = (
-        u'|R莱瓦汀|r\n\n'
+        u'|R绯想之剑|r\n\n'
         u'攻击范围4，当你使用的【弹幕】是你的最后一张手牌时，你可以为这张【弹幕】指定至多三名目标，然后依次结算之。'
     )
 
     is_action_valid = equip_iav
 
 
-class LaevateinSkill:
+class ScarletRhapsodySkill:
     # Skill
-    name = u'莱瓦汀'
+    name = u'绯想之剑'
 
     def clickable(game):
         me = game.me
@@ -1412,7 +1392,7 @@ class LaevateinSkill:
 
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
-        assert skill.is_card(cards.LaevateinSkill)
+        assert skill.is_card(cards.ScarletRhapsodySkill)
         acards = skill.associated_cards
         if not (len(acards) == 1 and acards[0].is_card(cards.AttackCard)):
             return (False, u'请选择你的最后一张【弹幕】！')
@@ -1423,37 +1403,17 @@ class LaevateinSkill:
             if g.me in target_list:
                 return (True, u'您真的要自残么？！')
             else:
-                return (True, u'觉醒吧，禁忌的炎之魔剑！')
+                return (True, u'全人类的绯想天！')
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
         tl = BatchList(act.target_list)
 
-        return u'|G【%s】|r不顾危险发动了|G莱瓦汀|r，火焰立刻扑向了对|G【%s】|r！' % (
+        return u'全人类的绯想天！|G【%s】|r表示不能只打一个！|G【%s】|r！' % (
             source.ui_meta.char_name,
             u'】|r、|G【'.join(tl.ui_meta.char_name),
         )
-
-
-class TridentCard:
-    # action_stage meta
-    name = u"三叉戟"
-    image = gres.card_trident
-    image_small = gres.card_trident_small
-    description = (
-        u'|R三叉戟|r\n\n'
-        u'攻击范围5，你使用【弹幕】对一名角色造成伤害时，你可以弃掉对方装备区里的一个UFO。'
-    )
-
-    is_action_valid = equip_iav
-
-
-class TridentSkill:
-    # Skill
-    name = u"三叉戟"
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 class RepentanceStickCard:
@@ -1650,13 +1610,13 @@ class SaigyouBranchSkill:
 class SaigyouBranchHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【西行妖枝条】吗？'
+    choose_option_prompt = u'你要发动【西行妖】吗？'
 
 
 class SaigyouBranch:
     def effect_string_before(act):
         return (
-            u'|G西行妖|r的枝条受到了|G【%s】|r春度的滋养，' +
+            u'|G西行妖|r的枝条受到了|G【%s】|r春度的滋养，'
             u'在关键时刻突然撑出一片结界，试图将符卡挡下！'
         ) % (
             act.source.ui_meta.char_name,
@@ -1671,36 +1631,38 @@ class SaigyouBranch:
             )
 
 
-class FlirtingSwordCard:
+class HakuroukenCard:
     # action_stage meta
-    name = u'调教剑'
-    image = gres.card_flirtingsword
-    image_small = gres.card_flirtingsword_small
+    name = u'白楼剑'
+    image = gres.card_hakurouken
+    image_small = gres.card_hakurouken_small
     description = (
-        u'|R调教剑|r\n\n'
-        u'攻击范围2，你使用【弹幕】，指定了一名角色为目标后，你可以令对方选择一项：自己弃一张手牌或让你从牌堆摸一张牌。'
+        u'|R白楼剑|r\n\n'
+        u'攻击范围2，当你使用【弹幕】指定了一名角色为目标后，若此弹幕为黑色，你可以令对方选择一项：\n'
+        u'|B|R>> |r弃一张手牌\n'
+        u'|B|R>> |r你摸一张牌'
     )
     is_action_valid = equip_iav
 
 
-class FlirtingSwordSkill:
+class HakuroukenSkill:
     # Skill
-    name = u'调教剑'
+    name = u'白楼剑'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
-class FlirtingSword:
+class Hakurouken:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'才……才不给你机会呢！')
+            return (True, u'弃置这张牌')
         else:
             return (False, u'请弃掉一张牌（否则对方摸一张牌）')
 
     def effect_string_before(act):
         return (
-            u'|G【%s】|r拿起了|G调教剑|r，对着|G【%s】|r做起了啪啪啪的事！'
+            u'|G【%s】|r祭起了|G白楼剑|r，试图斩断|G【%s】|r的迷惘！'
         ) % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
@@ -1708,45 +1670,15 @@ class FlirtingSword:
 
     def effect_string(act):
         if act.peer_action == 'drop':
-            return (
-                u'但是|G【%s】|r不太情愿，拿起一张牌甩在了|G【%s】|r的脸上！'
-            ) % (
-                act.target.ui_meta.char_name,
-                act.source.ui_meta.char_name,
-            )
+            return u'|G【%s】|r弃置了一张牌。' % act.target.ui_meta.char_name
         else:
-            return (
-                u'|G【%s】|r被（哗）后，|G【%s】|r居然摆着人生赢家的姿态摸了一张牌！'
-            ) % (
-                act.target.ui_meta.char_name,
-                act.source.ui_meta.char_name,
-            )
+            return u'|G【%s】|r摸了一张牌。' % act.source.ui_meta.char_name
 
 
-class FlirtingSwordHandler:
+class HakuroukenHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【调教剑】吗？'
-
-
-class CameraCard:
-    # action_stage meta
-    name = u'相机'
-    image = gres.card_camera
-    description = (
-        u'|R相机|r\n\n'
-        u'将除了你之外的任意一名玩家的2张手牌置入明牌区'
-    )
-
-    def is_action_valid(g, cl, tl):
-        if not tl:
-            return (False, u'请选择目标')
-        t = tl[0]
-
-        if not t.cards:
-            return (True, u'这货已经没有隐藏的手牌了')
-
-        return (True, u'摄影的境界，你们这些玩器材的永远都不会懂！')
+    choose_option_prompt = u'你要发动【白楼剑】吗？'
 
 
 class AyaRoundfanCard:
@@ -1756,7 +1688,7 @@ class AyaRoundfanCard:
     image_small = gres.card_ayaroundfan_small
     description = (
         u'|R团扇|r\n\n'
-        u'攻击距离3，当你使用【弹幕】命中时，可以弃一张手牌，卸掉目标的一件装备。'
+        u'攻击距离5，当你使用【弹幕】命中时，可以弃一张手牌，卸掉目标的一件装备。'
     )
     is_action_valid = equip_iav
 
@@ -1794,43 +1726,72 @@ class AyaRoundfan:
         )
 
 
-class ScarletRhapsodySwordCard:
+class NenshaPhoneCard:
     # action_stage meta
-    name = u'绯想之剑'
-    image = gres.card_scarletrhapsodysword
-    image_small = gres.card_scarletrhapsodysword_small
+    name = u'念写机'
+    image = gres.card_ayaroundfan
+    image_small = gres.card_ayaroundfan_small
     description = (
-        u'|R绯想之剑|r\n\n'
-        u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），强制命中对方，对方无法闪避（则【弹幕】依然造成伤害）。'
+        u'|R念写机|r\n\n'
+        u'攻击距离4，当你使用【弹幕】命中时，可以将目标的两张手牌置入明牌区。'
     )
     is_action_valid = equip_iav
 
 
-class ScarletRhapsodySwordSkill:
+class NenshaPhoneSkill:
     # Skill
-    name = u'绯想之剑'
+    name = u'念写机'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
-class ScarletRhapsodySwordAttack:
+class NenshaPhoneHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【念写机】吗？'
+
+
+class NenshaPhone:
+    def effect_string(act):
+        return (
+            u'|G【%s】|r表示，将|G【%s】|r推倒后拍摄胖次，是记者的自我修养中不可或缺的一部分。'
+        ) % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
+class LaevateinCard:
+    # action_stage meta
+    name = u'莱瓦汀'
+    image = gres.card_laevatein
+    image_small = gres.card_laevatein_small
+    description = (
+        u'|R莱瓦汀|r\n\n'
+        u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），使此【弹幕】强制命中对方，无法闪避。'
+    )
+    is_action_valid = equip_iav
+
+
+class LaevateinSkill:
+    # Skill
+    name = u'莱瓦汀'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class LaevateinAttack:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'闪过头了！')
+            return (True, u'灭世之炎岂能轻易闪过！')
         else:
-            return (False, u'请弃掉两张牌发动绯想之剑（否则不发动）')
+            return (False, u'请弃掉两张牌发动莱瓦汀（否则不发动）')
 
 
-class ScarletRhapsodySword:
+class Laevatein:
     def effect_string_before(act):
-        sn, tn = act.source.ui_meta.char_name, act.target.ui_meta.char_name
-        return (
-            u'但是弱点早已被|G绯想之剑|r看穿，在|G【%s】|r还未' +
-            u'停稳脚步时，|G【%s】|r给了她精准的一击！'
-        ) % (
-            tn, sn
-        )
+        return u'|G莱瓦汀|r能像这样轻易闪过？能就不科学了！'
 
 
 class DeathSickleCard:
@@ -1840,7 +1801,7 @@ class DeathSickleCard:
     image_small = gres.card_deathsickle_small
     description = (
         u'|R死神之镰|r\n\n'
-        u'攻击范围2，锁定技，当你使用的【弹幕】时，若指定的目标没有手牌，结算时伤害+1。'
+        u'攻击范围2，|B锁定技|r，当你使用的【弹幕】时，若指定的目标没有手牌，结算时伤害+1。'
     )
     is_action_valid = equip_iav
 

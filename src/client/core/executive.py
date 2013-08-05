@@ -73,8 +73,6 @@ class GameManager(Greenlet):
             @g.link_exception
             def crash(*a):
                 self.event_cb('game_crashed', g)
-                from __main__ import do_crashreport
-                gevent.spawn(do_crashreport)
 
             @g.link_value
             def finish(*a):

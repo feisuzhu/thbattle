@@ -363,19 +363,6 @@ class Harvest(ForEach):
         migrate_cards([c for c in self.cards if c.resides_in is g.deck.disputed], dropped)
 
 
-class Camera(InstantSpellCardAction):
-    # 文文的相机
-    def apply_action(self):
-        tgt = self.target
-
-        cards = list(tgt.cards)[:2]
-        g = Game.getgame()
-        g.players.exclude(tgt).reveal(cards)
-        migrate_cards(cards, tgt.showncards)
-
-        return True
-
-
 class DollControl(InstantSpellCardAction):
     def apply_action(self):
         tl = self.target_list

@@ -148,12 +148,6 @@ class HarvestCard:
     category = ('spellcard', 'instant_spellcard')
 
 
-class CameraCard:
-    associated_action = spellcard.Camera
-    target = t_OtherOne
-    category = ('spellcard', 'instant_spellcard')
-
-
 class DollControlCard:
     associated_action = spellcard.DollControl
 
@@ -178,6 +172,14 @@ class DonationBoxCard:
 # --------------------------------------------------
 
 from . import equipment
+
+
+class MomijiShieldCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_Self
+    category = ('equipment', 'shield')
+    equipment_skill = equipment.MomijiShieldSkill
+    equipment_category = 'shield'
 
 
 class OpticalCloakCard:
@@ -252,11 +254,11 @@ class LaevateinCard:
     equipment_category = 'weapon'
 
 
-class TridentCard:
+class NenshaPhoneCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', 'weapon')
-    equipment_skill = equipment.TridentSkill
+    equipment_skill = equipment.NenshaPhoneSkill
     equipment_category = 'weapon'
 
 
@@ -301,14 +303,6 @@ class SaigyouBranchCard:
     equipment_category = 'shield'
 
 
-class FlirtingSwordCard:
-    associated_action = equipment.WearEquipmentAction
-    target = t_Self
-    category = ('equipment', 'weapon')
-    equipment_skill = equipment.FlirtingSwordSkill
-    equipment_category = 'weapon'
-
-
 class AyaRoundfanCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
@@ -317,11 +311,11 @@ class AyaRoundfanCard:
     equipment_category = 'weapon'
 
 
-class ScarletRhapsodySwordCard:
+class ScarletRhapsodyCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', 'weapon')
-    equipment_skill = equipment.ScarletRhapsodySwordSkill
+    equipment_skill = equipment.ScarletRhapsodySkill
     equipment_category = 'weapon'
 
 
@@ -393,206 +387,172 @@ class GrimoireCard:
 __metaclass__ = type
 
 SPADE, HEART, CLUB, DIAMOND = Card.SPADE, Card.HEART, Card.CLUB, Card.DIAMOND
-J, Q, K = 11, 12, 13
+A, J, Q, K = 1, 11, 12, 13
 
 card_definition = [
     # ======= Spade =======
-    (SinsackCard, SPADE, 1),
-    (FlirtingSwordCard, SPADE, 2),
-    (YukariDimensionCard, SPADE, 3),
-    (YukariDimensionCard, SPADE, 4),
-    (RoukankenCard, SPADE, 5),
-    (HakuroukenCard, SPADE, 6),
-    (AttackCard, SPADE, 7),
-    (AttackCard, SPADE, 8),
-    (AttackCard, SPADE, 9),
-    (AttackCard, SPADE, 10),
-    (YukariDimensionCard, SPADE, J),
-    (GungnirCard, SPADE, Q),
-    (RedUFOCard, SPADE, K),
-
-    (DuelCard, SPADE, 1),
-    (OpticalCloakCard, SPADE, 2),
-    (DemolitionCard, SPADE, 3),
-    (DemolitionCard, SPADE, 4),
-    (GreenUFOCard, SPADE, 5),
-    (SealingArrayCard, SPADE, 6),
+    (SinsackCard, SPADE, A),
+    (DeathSickleCard, SPADE, 2),
+    (RepentanceStickCard, SPADE, 3),
+    (RoukankenCard, SPADE, 4),
+    (HakuroukenCard, SPADE, 5),
+    (GungnirCard, SPADE, 6),
     (SinsackCarnivalCard, SPADE, 7),
-    (AttackCard, SPADE, 8),
-    (AttackCard, SPADE, 9),
-    (AttackCard, SPADE, 10),
-    (RejectCard, SPADE, J),
-    (DemolitionCard, SPADE, Q),
-    (SinsackCarnivalCard, SPADE, K),
+    (SinsackCarnivalCard, SPADE, 8),
+    (SealingArrayCard, SPADE, 9),
+    (SealingArrayCard, SPADE, 10),
+    (AttackCard, SPADE, J),
+    (AttackCard, SPADE, Q),
+    (KeystoneCard, SPADE, K),
 
-    (RepentanceStickCard, SPADE, 2),
-    # (LotteryCard, SPADE, J),
-    (YinYangOrbCard, SPADE, K),
-
-    (DeathSickleCard, SPADE, 1),
-    (UmbrellaCard, SPADE, 2),
-    (WineCard, SPADE, 3),
+    (DuelCard, SPADE, A),
+    (RejectCard, SPADE, 2),
+    (AttackCard, SPADE, 3),
     (AttackCard, SPADE, 4),
-    (AttackCard, SPADE, 5),
-    (AttackCard, SPADE, 6),
+    (YukariDimensionCard, SPADE, 5),
+    (YukariDimensionCard, SPADE, 6),
     (AttackCard, SPADE, 7),
     (AttackCard, SPADE, 8),
     (WineCard, SPADE, 9),
-    (FrozenFrogCard, SPADE, 10),
-    (KeystoneCard, SPADE, J),
-    (IceWingCard, SPADE, Q),
-    (RejectCard, SPADE, K),
+    (AttackCard, SPADE, 10),
+    (AttackCard, SPADE, J),
+    (RejectCard, SPADE, Q),
+    (WitchBroomCard, SPADE, K),
 
-    # =======  Heart =======
-    (MapCannonCard, HEART, 1),
-    (GrazeCard, HEART, 2),
+    (DonationBoxCard, SPADE, A),
+    (OpticalCloakCard, SPADE, 2),
+    (DemolitionCard, SPADE, 3),
+    (DemolitionCard, SPADE, 4),
+    (AttackCard, SPADE, 8),
+    (IceWingCard, SPADE, 9),
+    (AttackCard, SPADE, 10),
+    (DonationBoxCard, SPADE, J),
+    (AttackCard, SPADE, Q),
+    (YinYangOrbCard, SPADE, K),
+
+    # ======= Heart =======
+    (FeastCard, HEART, A),
+    (MaidenCostumeCard, HEART, 2),
+    (HarvestCard, HEART, 3),
+    (HarvestCard, HEART, 4),
+    (AyaRoundfanCard, HEART, 5),
+    (AttackCard, HEART, 6),
+    (NazrinRodCard, HEART, 7),
+    (NazrinRodCard, HEART, 8),
+    (NazrinRodCard, HEART, 9),
+    (SealingArrayCard, HEART, 10),
+    (AttackCard, HEART, J),
+    (DemolitionCard, HEART, Q),
+    (GreenUFOCard, HEART, K),
+
+    (MapCannonCard, HEART, A),
+    (RejectCard, HEART, 2),
     (HealCard, HEART, 3),
     (HealCard, HEART, 4),
-    (TridentCard, HEART, 5),
+    (HealCard, HEART, 5),
     (HealCard, HEART, 6),
     (HealCard, HEART, 7),
     (HealCard, HEART, 8),
     (HealCard, HEART, 9),
     (AttackCard, HEART, 10),
     (AttackCard, HEART, J),
-    (HealCard, HEART, Q),
-    (GrazeCard, HEART, K),
-
-    (FeastCard, HEART, 1),
-    (GrazeCard, HEART, 2),
-    (HarvestCard, HEART, 3),
-    (HarvestCard, HEART, 4),
-    (RedUFOCard, HEART, 5),
-    (SealingArrayCard, HEART, 6),
-    (NazrinRodCard, HEART, 7),
-    (NazrinRodCard, HEART, 8),
-    (NazrinRodCard, HEART, 9),
-    (AttackCard, HEART, 10),
-    (NazrinRodCard, HEART, J),
-    (DemolitionCard, HEART, Q),
-    (GreenUFOCard, HEART, K),
-
-    (DonationBoxCard, HEART, 7),
-    (MaidenCostumeCard, HEART, 10),
-    (YinYangOrbCard, HEART, J),
-    # (LotteryCard, HEART, J),
-    (SinsackCard, HEART, Q),
-    (YinYangOrbCard, HEART, K),
-
-    (RejectCard, HEART, 1),
-    (CameraCard, HEART, 2),
-    (CameraCard, HEART, 3),
-    (AttackCard, HEART, 4),
-    (HealCard, HEART, 5),
-    (HealCard, HEART, 6),
-    (AttackCard, HEART, 7),
-    (GrazeCard, HEART, 8),
-    (GrazeCard, HEART, 9),
-    (GrazeCard, HEART, 10),
-    (AttackCard, HEART, J),
-    (GrazeCard, HEART, Q),
+    (AttackCard, HEART, Q),
     (RejectCard, HEART, K),
 
+    (SinsackCard, HEART, A),
+    (GrazeCard, HEART, 2),
+    (GrazeCard, HEART, 3),
+    (GrazeCard, HEART, 4),
+    (HealCard, HEART, 8),
+    (GrazeCard, HEART, 9),
+    (GrazeCard, HEART, 10),
+    (GrazeCard, HEART, J),
+    (GrazeCard, HEART, Q),
+    (YinYangOrbCard, HEART, K),
+
     # ======= Club =======
-    (ElementalReactorCard, CLUB, 1),
+    (SuwakoHatCard, CLUB, A),
+    (MomijiShieldCard, CLUB, 2),
+    (AttackCard, CLUB, 3),
+    (DemolitionCard, CLUB, 4),
+    (AttackCard, CLUB, 5),
+    (AttackCard, CLUB, 6),
+    (SinsackCarnivalCard, CLUB, 7),
+    (AttackCard, CLUB, 8),
+    (WineCard, CLUB, 9),
+    (AttackCard, CLUB, 10),
+    (AttackCard, CLUB, J),
+    (ExinwanCard, CLUB, Q),
+    (GreenUFOCard, CLUB, K),
+
+    (DuelCard, CLUB, A),
     (AttackCard, CLUB, 2),
     (AttackCard, CLUB, 3),
     (AttackCard, CLUB, 4),
-    (AttackCard, CLUB, 5),
-    (AttackCard, CLUB, 6),
+    (FrozenFrogCard, CLUB, 5),
+    (FrozenFrogCard, CLUB, 6),
     (AttackCard, CLUB, 7),
-    (AttackCard, CLUB, 8),
-    (AttackCard, CLUB, 9),
-    (AttackCard, CLUB, 10),
-    (AttackCard, CLUB, J),
-    (DollControlCard, CLUB, Q),
-    (DollControlCard, CLUB, K),
-
-    (DuelCard, CLUB, 1),
-    (OpticalCloakCard, CLUB, 2),
-    (DemolitionCard, CLUB, 3),
-    (DemolitionCard, CLUB, 4),
-    (GreenUFOCard, CLUB, 5),
-    (SealingArrayCard, CLUB, 6),
-    (SinsackCarnivalCard, CLUB, 7),
-    (AttackCard, CLUB, 8),
-    (AttackCard, CLUB, 9),
+    (DemolitionCard, CLUB, 8),
+    (WineCard, CLUB, 9),
     (AttackCard, CLUB, 10),
     (AttackCard, CLUB, J),
     (RejectCard, CLUB, Q),
-    (RejectCard, CLUB, K),
+    (RedUFOCard, CLUB, K),
 
-    (SaigyouBranchCard, CLUB, 2),
-    (FrozenFrogCard, CLUB, 3),
-    (ExinwanCard, CLUB, 10),
-    (ExinwanCard, CLUB, J),
-    (ExinwanCard, CLUB, Q),
-
-    (YoumuPhantomCard, CLUB, 1),
-    (SuwakoHatCard, CLUB, 2),
-    (WineCard, CLUB, 3),
-    (FrozenFrogCard, CLUB, 4),
-    (AttackCard, CLUB, 5),
-    (AttackCard, CLUB, 6),
-    (AttackCard, CLUB, 7),
+    (YoumuPhantomCard, CLUB, A),
+    (UmbrellaCard, CLUB, 2),
+    (AttackCard, CLUB, 3),
+    (AttackCard, CLUB, 4),
     (AttackCard, CLUB, 8),
-    (WineCard, CLUB, 9),
-    (IbukiGourdCard, CLUB, 10),
-    (DonationBoxCard, CLUB, J),
-    (DonationBoxCard, CLUB, Q),
-    (WitchBroomCard, CLUB, K),
+    (IbukiGourdCard, CLUB, 9),
+    (AttackCard, CLUB, 10),
+    (AttackCard, CLUB, J),
+    (SaigyouBranchCard, CLUB, Q),
+    (DollControlCard, CLUB, K),
 
     # ======= Diamond =======
-    (ElementalReactorCard, DIAMOND, 1),
-    (GrazeCard, DIAMOND, 2),
-    (YukariDimensionCard, DIAMOND, 3),
-    (YukariDimensionCard, DIAMOND, 4),
-    (ScarletRhapsodySwordCard, DIAMOND, 5),
-    (AttackCard, DIAMOND, 6),
-    (AttackCard, DIAMOND, 7),
-    (AttackCard, DIAMOND, 8),
-    (AttackCard, DIAMOND, 9),
-    (AttackCard, DIAMOND, 10),
-    (GrazeCard, DIAMOND, J),
-    (HealCard, DIAMOND, Q),
-    (AttackCard, DIAMOND, K),
-
-    (DuelCard, DIAMOND, 1),
+    (ElementalReactorCard, DIAMOND, A),
     (GrazeCard, DIAMOND, 2),
     (GrazeCard, DIAMOND, 3),
     (GrazeCard, DIAMOND, 4),
-    (GrazeCard, DIAMOND, 5),
+    (ScarletRhapsodyCard, DIAMOND, 5),
     (GrazeCard, DIAMOND, 6),
     (GrazeCard, DIAMOND, 7),
     (GrazeCard, DIAMOND, 8),
     (GrazeCard, DIAMOND, 9),
-    (GrazeCard, DIAMOND, 10),
-    (GrazeCard, DIAMOND, J),
-    (LaevateinCard, DIAMOND, Q),
+    (NenshaPhoneCard, DIAMOND, 10),
+    (LaevateinCard, DIAMOND, J),
+    (GrimoireCard, DIAMOND, Q),
     (GreenUFOCard, DIAMOND, K),
 
-    (ExinwanCard, DIAMOND, 5),
-    (MaidenCostumeCard, DIAMOND, 10),
-    (HouraiJewelCard, DIAMOND, J),
-    (RejectCard, DIAMOND, Q),
-
-    (AyaRoundfanCard, DIAMOND, 1),
-    (HealCard, DIAMOND, 2),
+    (DuelCard, DIAMOND, A),
+    (GrazeCard, DIAMOND, 2),
     (HealCard, DIAMOND, 3),
+    (HealCard, DIAMOND, 4),
+    (YukariDimensionCard, DIAMOND, 5),
+    (YukariDimensionCard, DIAMOND, 6),
+    (AttackCard, DIAMOND, 7),
+    (AttackCard, DIAMOND, 8),
+    (WineCard, DIAMOND, 9),
+    (AttackCard, DIAMOND, 10),
+    (ExinwanCard, DIAMOND, J),
+    (RejectCard, DIAMOND, Q),
+    (RedUFOCard, DIAMOND, K),
+
+    (HouraiJewelCard, DIAMOND, A),
+    (GrazeCard, DIAMOND, 2),
+    (AttackCard, DIAMOND, 3),
     (AttackCard, DIAMOND, 4),
-    (AttackCard, DIAMOND, 5),
-    (GrazeCard, DIAMOND, 6),
-    (GrazeCard, DIAMOND, 7),
     (GrazeCard, DIAMOND, 8),
     (WineCard, DIAMOND, 9),
     (GrazeCard, DIAMOND, 10),
     (GrazeCard, DIAMOND, J),
-    (GrimoireCard, DIAMOND, Q),
-    (RedUFOCard, DIAMOND, K),
+    (HealCard, DIAMOND, Q),
+    (DollControlCard, DIAMOND, K),
 ]
 
 # ANCHOR(card)
 # card_definition = [
 # ] * 1000
 
-del J, Q, K
+del A, J, Q, K

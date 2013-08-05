@@ -4,7 +4,7 @@ from game.autoenv import Game, EventHandler, user_input, GameError
 from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DummyAction, DropCardStage, MaxLifeChange
 from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card
 from .base import Card, Skill, TreatAsSkill, t_None, t_OtherOne, t_OtherLessEqThanN
-from ..inputlets import ChooseOptionInputlet, ChooseIndividualCardInputlet, ChoosePeerCardInputlet
+from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 from . import basic, spellcard
 
@@ -86,6 +86,33 @@ class OpticalCloakHandler(EventHandler):
         return act
 
 
+class MomijiShieldSkill(ShieldSkill):
+    pass
+
+
+class MomijiShield(GenericAction):
+    def __init__(self, act):
+        self.action = act
+        self.source = self.target = act.target
+
+    def apply_action(self):
+        self.action.cancelled = True
+        return True
+
+
+@register_eh
+class MomijiShieldHandler(EventHandler):
+    def handle(self, evt_type, act):
+        from .basic import BaseAttack
+        if not (evt_type == 'action_before' and isinstance(act, BaseAttack)): return act
+        tgt = act.target
+        if not tgt.has_skill(MomijiShieldSkill): return act
+        if not act.associated_card == Card.BLACK: return act
+        g = Game.getgame()
+        g.process_action(MomijiShield(act))
+        return act
+
+
 class UFOSkill(Skill):
     associated_action = None
     target = t_None
@@ -125,14 +152,13 @@ class WeaponSkill(Skill):
     range = 1
 
 
-class HakuroukenSkill(WeaponSkill):
+class RoukankenSkill(WeaponSkill):
     associated_action = None
     target = t_None
-    range = 2
+    range = 3
 
 
-class Hakurouken(GenericAction):
-    # 白楼剑
+class Roukanken(GenericAction):
     def __init__(self, act):
         assert isinstance(act, basic.BaseAttack)
         self.action = act
@@ -160,7 +186,7 @@ class Hakurouken(GenericAction):
 
 
 @register_eh
-class HakuroukenEffectHandler(EventHandler):
+class RoukankenEffectHandler(EventHandler):
     execute_before = (
         'OpticalCloakHandler',
         'SaigyouBranchHandler',
@@ -174,9 +200,43 @@ class HakuroukenEffectHandler(EventHandler):
                 return act
             act.hakurouken_tag = True
             source = act.source
-            if source.has_skill(HakuroukenSkill):
-                act = Hakurouken(act)
+            if source.has_skill(RoukankenSkill):
+                act = Roukanken(act)
                 return act
+        return act
+
+
+class NenshaPhoneSkill(WeaponSkill):
+    associated_action = None
+    target = t_None
+    range = 4
+
+
+class NenshaPhone(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+
+        cards = list(tgt.cards)[:2]
+        g = Game.getgame()
+        g.players.exclude(tgt).reveal(cards)
+        migrate_cards(cards, tgt.showncards)
+
+        return True
+
+
+@register_eh
+class NenshaPhoneHandler(EventHandler):
+    def handle(self, evt_type, act):
+        from .basic import BaseAttack
+        if not evt_type == 'action_after': return act
+        if not isinstance(act, BaseAttack): return act
+        if not act.succeeded: return act
+        src = act.source
+        tgt = act.target
+        if not src.has_skill(NenshaPhoneSkill): return act
+        if not user_input([src], ChooseOptionInputlet(self, (False, True))): return act
+        g = Game.getgame()
+        g.process_action(NenshaPhone(src, tgt))
         return act
 
 
@@ -210,43 +270,6 @@ class ElementalReactorHandler(EventHandler):
         return arg
 
 
-class RoukankenSkill(WeaponSkill):
-    range = 3
-    associated_action = None
-    target = t_None
-
-
-class RoukankenLaunchAttack(LaunchCard):
-    pass
-
-
-@register_eh
-class RoukankenHandler(EventHandler):
-    execute_after = ('WineHandler', )
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, LaunchCard):
-            src, tgt = act.source, act.target
-            if not act.succeeded: return act
-            atk = act.card_action
-            if not isinstance(atk, basic.Attack): return act
-            if not src.has_skill(RoukankenSkill): return act
-            if atk.succeeded: return act
-
-            cards = user_choose_cards(self, src, ['cards', 'showncards'])
-            g = Game.getgame()
-
-            if not cards: return act
-
-            g.process_action(RoukankenLaunchAttack(src, [tgt], cards[0]))
-
-        return act
-
-    def cond(self, cl):
-        from .definition import AttackCard
-        return bool(cl) and len(cl) == 1 and cl[0].is_card(AttackCard)
-
-
 class GungnirSkill(TreatAsSkill, WeaponSkill):
     target = t_OtherOne
     range = 3
@@ -259,13 +282,13 @@ class GungnirSkill(TreatAsSkill, WeaponSkill):
         return len(cl) == 2
 
 
-class Laevatein(ForEach):
+class ScarletRhapsody(ForEach):
     action_cls = basic.Attack
 
 
-class LaevateinSkill(WeaponSkill):
+class ScarletRhapsodySkill(WeaponSkill):
     range = 4
-    associated_action = Laevatein
+    associated_action = ScarletRhapsody
     target = t_OtherLessEqThanN(3)
 
     def check(self):
@@ -292,30 +315,6 @@ class LaevateinSkill(WeaponSkill):
             return max(1, self.associated_cards[0].distance)
         except:
             return 1
-
-
-class TridentSkill(WeaponSkill):
-    range = 5
-    associated_action = None
-    target = t_None
-
-
-@register_eh
-class TridentHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
-            if act.succeeded and act.source.has_skill(TridentSkill):
-                target = act.target
-                ufos = [
-                    c for c in target.equips
-                    if c.equipment_category in ('greenufo', 'redufo')
-                ]
-                if ufos:
-                    card = user_input([act.source], ChooseIndividualCardInputlet(self, ufos))
-                    if card:
-                        g = Game.getgame()
-                        g.process_action(DropCards(target=target, cards=[card]))
-        return act
 
 
 class RepentanceStickSkill(WeaponSkill):
@@ -537,13 +536,13 @@ class SaigyouBranchHandler(EventHandler):
         return act
 
 
-class FlirtingSwordSkill(WeaponSkill):
+class HakuroukenSkill(WeaponSkill):
     range = 2
     associated_action = None
     target = t_None
 
 
-class FlirtingSword(GenericAction):
+class Hakurouken(GenericAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -565,9 +564,9 @@ class FlirtingSword(GenericAction):
 
 
 @register_eh
-class FlirtingSwordHandler(EventHandler):
+class HakuroukenHandler(EventHandler):
     # BUG WITH OUT THIS LINE:
-    # src equips [Gourd, FlirtingSword], tgt drops Exwinwan
+    # src equips [Gourd, Hakurouken], tgt drops Exinwan
     # then src drops Gourd,
     # but Attack.damage == 1, Wine tag preserved.
     execute_before = ('WineHandler', )
@@ -576,12 +575,14 @@ class FlirtingSwordHandler(EventHandler):
         if evt_type == 'action_apply' and isinstance(act, basic.BaseAttack):
             if act.cancelled: return act
             src = act.source
-            if not src.has_skill(FlirtingSwordSkill): return act
+            if not src.has_skill(HakuroukenSkill): return act
+            card = act.associated_card
+            if not card.color == Card.BLACK: return act
 
             if not user_input([src], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            Game.getgame().process_action(FlirtingSword(src, act.target))
+            Game.getgame().process_action(Hakurouken(src, act.target))
 
         return act
 
@@ -603,7 +604,7 @@ class AyaRoundfan(GenericAction):
 
 
 class AyaRoundfanSkill(WeaponSkill):
-    range = 3
+    range = 5
     associated_action = None
     target = t_None
 
@@ -628,26 +629,26 @@ class AyaRoundfanHandler(EventHandler):
         return cards[0].resides_in.type in ('cards', 'showncards')
 
 
-class ScarletRhapsodySword(Damage):
+class Laevatein(Damage):
     pass
 
 
-class ScarletRhapsodySwordAttack(basic.Attack):
+class LaevateinAttack(basic.Attack):
     def apply_action(self):
-        cls = self.prev_mixin(ScarletRhapsodySwordAttack)
+        cls = self.prev_mixin(LaevateinAttack)
         rst = cls.apply_action(self)
 
         if rst: return True
 
         src = self.source
         tgt = self.target
-        if not src.has_skill(ScarletRhapsodySwordSkill): return False
+        if not src.has_skill(LaevateinSkill): return False
 
         g = Game.getgame()
         cards = user_choose_cards(self, src, ('cards', 'showncards', 'equips'))
         if cards:
             g.process_action(DropCards(src, cards))
-            g.process_action(ScarletRhapsodySword(src, tgt, amount=self.damage))
+            g.process_action(Laevatein(src, tgt, amount=self.damage))
             return True
         return False
 
@@ -658,30 +659,30 @@ class ScarletRhapsodySwordAttack(basic.Attack):
             'cards', 'showncards', 'equips'
         ) for c in cards): return False
 
-        from ..cards import ScarletRhapsodySwordCard as SRSC
+        from ..cards import LaevateinCard
         if any(
-            c.resides_in.type == 'equips' and c.is_card(SRSC)
+            c.resides_in.type == 'equips' and c.is_card(LaevateinCard)
             for c in cards
         ): return False
 
         return True
 
 
-class ScarletRhapsodySwordSkill(WeaponSkill):
+class LaevateinSkill(WeaponSkill):
     range = 3
     associated_action = None
     target = t_None
 
 
 @register_eh
-class ScarletRhapsodySwordHandler(EventHandler):
+class LaevateinHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
-            if isinstance(act, ScarletRhapsodySwordAttack): return act
+            if isinstance(act, LaevateinAttack): return act
             src = act.source
             if not src: return act
-            if not src.has_skill(ScarletRhapsodySwordSkill): return act
-            act.__class__ = classmix(ScarletRhapsodySwordAttack, act.__class__)
+            if not src.has_skill(LaevateinSkill): return act
+            act.__class__ = classmix(LaevateinAttack, act.__class__)
 
         return act
 
@@ -704,7 +705,7 @@ class DeathSickle(GenericAction):
 
 @register_eh
 class DeathSickleHandler(EventHandler):
-    execute_after = ('HakuroukenEffectHandler', )
+    execute_after = ('RoukankenEffectHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
