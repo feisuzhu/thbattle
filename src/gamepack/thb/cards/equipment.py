@@ -102,14 +102,17 @@ class MomijiShield(GenericAction):
 
 @register_eh
 class MomijiShieldHandler(EventHandler):
+    execute_before = ('HouraiJewelHandler', )
+
     def handle(self, evt_type, act):
         from .basic import BaseAttack
         if not (evt_type == 'action_before' and isinstance(act, BaseAttack)): return act
         tgt = act.target
         if not tgt.has_skill(MomijiShieldSkill): return act
-        if not act.associated_card == Card.BLACK: return act
+        if not act.associated_card.color == Card.BLACK: return act
         g = Game.getgame()
         g.process_action(MomijiShield(act))
+
         return act
 
 

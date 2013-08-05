@@ -1558,8 +1558,8 @@ class HouraiJewelCard:
     description = (
         u'|R蓬莱玉枝|r\n\n'
         u'攻击范围1，当使用【弹幕】时可以选择发动。发动后【弹幕】带有符卡性质，可以被【好人卡】抵消，不可以使用【擦弹】躲过。\n'
-        u'|R>> |r计算在出【弹幕】的次数内。\n'
-        u'|R>> |r蓬莱玉枝造成的伤害为固定的1点'
+        u'|B|R>> |r计算在出【弹幕】的次数内。\n'
+        u'|B|R>> |r蓬莱玉枝造成的伤害为固定的1点'
     )
 
     is_action_valid = equip_iav
@@ -1729,8 +1729,8 @@ class AyaRoundfan:
 class NenshaPhoneCard:
     # action_stage meta
     name = u'念写机'
-    image = gres.card_ayaroundfan
-    image_small = gres.card_ayaroundfan_small
+    image = gres.card_nenshaphone
+    image_small = gres.card_nenshaphone_small
     description = (
         u'|R念写机|r\n\n'
         u'攻击距离4，当你使用【弹幕】命中时，可以将目标的两张手牌置入明牌区。'
