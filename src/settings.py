@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 151'
+VERSION = 'THBATTLE V1.0b incr 152'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -128,6 +128,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+bug修复
 牌堆重制
 各种bug修复，小调整
 妖梦：现在觉醒会有额外的效果->提升一点体力上限并回复一点体力
