@@ -191,6 +191,7 @@ class Roukanken(GenericAction):
 @register_eh
 class RoukankenEffectHandler(EventHandler):
     execute_before = (
+        'MomijiShieldCard',
         'OpticalCloakHandler',
         'SaigyouBranchHandler',
         'HouraiJewelHandler',
