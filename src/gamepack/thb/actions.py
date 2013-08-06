@@ -382,7 +382,7 @@ class DropCardStage(GenericAction):
         if n <= 0: return True
 
         g = Game.getgame()
-        cards = user_choose_cards(self, target, ['cards', 'showncards'])
+        cards = user_choose_cards(self, target, ('cards', 'showncards'))
         if cards:
             g.process_action(DropCards(target, cards=cards))
         else:

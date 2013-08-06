@@ -2,7 +2,7 @@
 
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import Damage, DrawCards, DrawCardStage, migrate_cards
+from ..actions import Damage, DrawCards, DrawCardStage, migrate_cards, DropCards
 from ..actions import random_choose_card, UserAction, user_choose_players
 from ..cards import Card, Skill, t_None, t_One, t_OtherOne
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -38,6 +38,8 @@ class Surprise(UserAction):
 
         if not tgt.dead:
             migrate_cards([card], tgt.cards)
+        else:
+            g.process_action(DropCards(src, [card]))
 
         g.process_action(DrawCards(src, 1))
 
