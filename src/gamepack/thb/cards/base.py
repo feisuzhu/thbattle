@@ -228,12 +228,16 @@ class Deck(GameObject):
             dcl = self.droppedcards
 
             assert all(not c.is_card(VirtualCard) for c in dcl)
-            l = [c.__class__(c.suit, c.number, cl) for c in dcl]
+            dropped = list(dcl)
+
             dcl.clear()
-            dcl.extend(l)
-            self.shuffle(dcl)
-            cl.extend(dcl)
-            dcl.clear()
+            dcl.extend(dropped[-10:])
+
+            tmpcl = CardList(None, 'temp')
+            l = [c.__class__(c.suit, c.number, cl) for c in dropped[:-10]]
+            tmpcl.extend(l)
+            self.shuffle(tmpcl)
+            cl.extend(tmpcl)
 
         cl = self.cards
         rst = []
