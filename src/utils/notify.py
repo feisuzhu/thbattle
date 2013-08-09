@@ -85,6 +85,11 @@ if os.name == 'nt' or platform.system() == 'Windows':
             data.uFlags = NIF_INFO
             data.dwInfoFlags = NIIF_INFO
 
+            def remove_icon():
+                windll.shell32.Shell_NotifyIconW(NIM_DELETE, byref(data))
+            import atexit
+            atexit.register(remove_icon)
+
         data.szInfoTitle = unicode(title)[:63]
         data.szInfo = unicode(msg)[:255]
         windll.shell32.Shell_NotifyIconW(NIM_MODIFY, byref(data))
