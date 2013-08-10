@@ -1,27 +1,24 @@
 # -*- coding: utf-8 -*-
+
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
 from ..actions import ActionStage, FatetellStage, GenericAction
-from ..cards import Skill, Attack, AttackCard, WearEquipmentAction, t_None, t_OtherOne
+from ..cards import Skill, AttackCard, WearEquipmentAction, TreatAsSkill, t_None
 
 
-class FlyingKnife(Skill):
-    associated_action = Attack
-    target = t_OtherOne
+class FlyingKnife(TreatAsSkill):
+    treat_as = AttackCard
+    distance = 99999
 
     def check(self):
         cards = self.associated_cards
         if len(cards) != 1: return False
         c = cards[0]
-        if not c.resides_in: return False
+        if c.resides_in is None: return False
         if not c.resides_in.type in ('cards', 'showncards', 'equips'): return False
         act = c.associated_action
         if not (act and issubclass(act, WearEquipmentAction)): return False
         return True
-
-    def is_card(self, cls):
-        if issubclass(AttackCard, cls): return True
-        return isinstance(self, cls)
 
 
 class LunaClockActionStage(GenericAction):

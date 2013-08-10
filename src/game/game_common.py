@@ -237,6 +237,7 @@ class Game(GameObject):
     def __init__(self):
         self.event_handlers = []
         self.action_stack = []
+        self.hybrid_stack = []
         self.action_types = {}
         self._action_hooks = []
 
@@ -265,7 +266,12 @@ class Game(GameObject):
             action_event = False
 
         for evt in self.event_handlers:
-            data = evt.handle(evt_type, data)
+            try:
+                self.hybrid_stack.append(evt)
+                data = evt.handle(evt_type, data)
+            finally:
+                assert evt is self.hybrid_stack.pop()
+
             if data is None:
                 log.debug('EventHandler %s returned None' % evt.__class__.__name__)
 
@@ -313,10 +319,12 @@ class Game(GameObject):
             assert not action.cancelled
             try:
                 self.action_stack.append(action)
+                self.hybrid_stack.append(action)
                 rst = action.apply_action()
             finally:
                 _a = self.action_stack.pop()
-                assert _a is action
+                _b = self.hybrid_stack.pop()
+                assert _a is _b is action
 
                 # If exception occurs here,
                 # the action should be abandoned,

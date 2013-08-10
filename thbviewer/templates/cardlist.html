@@ -1,0 +1,7 @@
+<div class="searchbox">
+    <input type="text" ng-model="keyword" placeholder="搜索，中文/拼音都可以" />
+</div>
+<div ng-repeat="item in items | filter:keyword" class="card-list-item">
+    <img ng-src="{{ options.resourceUrl }}/{{ item.image }}" alt="{{ item.name }}" class="cardpic" />
+    <img ng-src="{{ options.resourceUrl }}/card_shinesoft.png" class="shine" cardpopover="{{ item.token }}" cardpopover-placement="top"/>
+</div>

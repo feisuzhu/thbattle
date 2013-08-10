@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from network.client import Server
-import sys
 import gevent
 from gevent import socket, Greenlet
 
@@ -217,7 +216,7 @@ class Executive(Greenlet):
 
         @handler
         def app_exit(self, cb):
-            sys.exit()
+            raise gevent.GreenletExit
 
         @handler
         def connect_server(self, cb, addr, event_cb):

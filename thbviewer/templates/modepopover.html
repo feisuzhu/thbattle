@@ -1,0 +1,7 @@
+<div class="popover mode-popover {{ placement }}" ng-class="{ in: isOpen(), fade: animation() }">
+  <div class="arrow"></div>
+  <div class="popover-inner">
+    <h3 class="popover-title">{{ mode.name }}</h3>
+    <div class="popover-content" ng-bind-html-unsafe="mode.description"></div>
+  </div>
+</div>

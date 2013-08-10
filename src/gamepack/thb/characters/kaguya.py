@@ -8,7 +8,6 @@ from ..cards import Skill, t_None, Card, SealingArrayCard, TreatAsSkill, Virtual
 from ..inputlets import ChooseOptionInputlet
 
 
-
 class Dilemma(Skill):
     associated_action = None
     target = t_None
@@ -19,7 +18,7 @@ class DilemmaDamageAction(UserAction):
         src = self.source
         tgt = self.target
 
-        cards = user_choose_cards(self, tgt, ['cards', 'showncards', 'equips'])
+        cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
         g = Game.getgame()
         if cards:
             self.peer_action = 'card'
@@ -50,6 +49,7 @@ class DilemmaHealAction(DrawCards):
 
 class DilemmaHandler(EventHandler):
     execute_after = ('DyingHandler', )
+
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
         if not isinstance(act, (Damage, Heal)): return act
@@ -75,6 +75,7 @@ class DilemmaHandler(EventHandler):
 
 class ImperishableNight(TreatAsSkill):
     treat_as = SealingArrayCard
+
     def check(self):
         return Game.getgame().current_turn is not self.player
 
@@ -88,7 +89,7 @@ class ImperishableNightHandler(EventHandler):
 
         card = act.card
         if not card: return act
-        if 'basic' not in card.category : return act
+        if 'basic' not in card.category: return act
         if card.color != Card.RED: return act
 
         if card.is_card(VirtualCard):
@@ -97,7 +98,7 @@ class ImperishableNightHandler(EventHandler):
             rawcards = [card]
 
         if not all(
-            not c.resides_in or c.resides_in.type == 'droppedcard'
+            c.resides_in is None or c.resides_in.type == 'droppedcard'
             for c in rawcards
         ): return act
 

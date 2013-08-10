@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 133'
+VERSION = 'THBATTLE V1.0b incr 153'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -42,6 +42,7 @@ import re
 UPDATE_IGNORES = re.compile(r'''
           ^current_version$
         | ^update_info\.json$
+        | ^client_log\.txt\.gz$
         | ^client_log\.txt$
         | ^.+\.py[co]$
         | ^.*~$
@@ -127,6 +128,14 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+bug修复
+牌堆重制
+各种bug修复，小调整
+妖梦：现在觉醒会有额外的效果->提升一点体力上限并回复一点体力
+新的小恶魔头像（画师：渚FUN、TI）
+新人物：小野塚小町
+犬走椛设定调整
+新人物：犬走椛
 异变模式：解决者现在跟异变一样，在回合开始前可以获得一点信仰
 异变模式：解决者选人模式变更，1阶段修改为异变先行动
 异变模式：牌堆内移除八卦炉

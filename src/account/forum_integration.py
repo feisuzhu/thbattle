@@ -4,6 +4,8 @@
 from collections import defaultdict
 from options import options
 from contextlib import contextmanager
+import logging
+log = logging.getLogger('forum_integration')
 
 # -- third party --
 from gevent.queue import Queue
@@ -11,6 +13,7 @@ import gevent
 
 # -- own --
 from .base import server_side_only
+from utils import log_failure
 
 
 # -- globals --
@@ -90,6 +93,7 @@ class Account(object):
     @server_side_only
     def add_credit(self, type, amount):
         @gevent.spawn
+        @log_failure(log)
         def worker():
             with member_client_pool() as cli:
                 rst = cli.add_credit(self.userid, type, amount)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import threading
-import logging, sys
+import logging
+import sys
+import os
 import argparse
 
 reload(sys)
@@ -19,27 +20,48 @@ options = parser.parse_args()
 
 import options as opmodule
 opmodule.options = options
+IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
 
-from utils import hook
 
 class Tee(object):
     def __init__(self):
         self.logfile = f = open('client_log.txt', 'a')
+        self.history = []
         import datetime
-        f.write(
+        s = (
             '\n' + datetime.datetime.now().strftime("%Y-%m-%d %H:%M") +
             '\n==============================================\n'
         )
+        self.history.append(s)
+        f.write(s)
 
     def write(self, v):
         sys.__stdout__.write(v)
+        self.history.append(v)
         self.logfile.write(v.encode('utf-8'))
 
-sys.stderr = sys.stdout = Tee()
+tee = sys.stderr = sys.stdout = Tee()
 
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(getattr(logging, options.log.upper()))
-log = logging.getLogger('__main__')
+
+if IS_PROTON:
+    from colorlog import ColoredFormatter
+
+    formatter = ColoredFormatter(
+        "%(log_color)s%(message)s%(reset)s",
+        log_colors={
+            'CRITICAL': 'bold_red',
+            'ERROR': 'red',
+            'WARNING': 'yellow',
+            'INFO': 'green',
+            'DEBUG': 'blue',
+        }
+    )
+
+    logging.getLogger().handlers[0].setFormatter(formatter)
+
+log = logging.getLogger('start_client')
 
 # gevent: do not patch dns, they fail on windows
 # monkey.patch_socket(dns=False) won't work since
@@ -54,6 +76,7 @@ if not sys.platform.startswith('linux'):
 
     # HACK: resolve domain in parallel
     import threading
+
     class ResolveIt(threading.Thread):
         def __init__(self, host):
             threading.Thread.__init__(self)
@@ -65,8 +88,10 @@ if not sys.platform.startswith('linux'):
             socket.gethostbyname(host)
 
     domains = [
+        'www.thbattle.net',
         'update.thbattle.net',
         'game.thbattle.net',
+        'cngame.thbattle.net',
         'feisuzhu.xen.prgmr.com',
     ]
     for host in domains:
@@ -75,7 +100,6 @@ if not sys.platform.startswith('linux'):
         thread.start()
 
 
-import gevent
 from gevent import monkey
 monkey.patch_socket()
 
@@ -104,6 +128,33 @@ if sys.platform.startswith('linux') and options.dump_gameobj:
     atexit.register(game.GameObjectMeta._dump_gameobject_hierarchy)
     atexit.register(game.EventHandler._dump_eh_dependency_graph)
 
+
+def do_crashreport():
+    import requests
+    import zlib
+    import traceback
+
+    import pyglet.info
+    pyglet.info.dump()
+
+    if not options.freeplay:
+        s = u''.join(tee.history)
+        s += u'\n\n' + traceback.format_exc()
+        content = zlib.compress(s.encode('utf-8'))
+
+        try:
+            from game.autoenv import Game
+            g = Game.getgame()
+            gameid = g.gameid
+        except:
+            gameid = 0
+
+        requests.post(
+            'http://www.thbattle.net/interconnect/crashreport',
+            data={'gameid': gameid}, files={'file': content},
+        )
+
+
 from client.ui.entry import start_ui
 
 try:
@@ -117,11 +168,15 @@ except:
         pdb.post_mortem()
 
     Executive.call('app_exit')
+    log.error(u'游戏崩溃，正在报告bug，请稍等下……')
+    do_crashreport()
+
     raise
 
 
-if sys.platform == 'win32':
+if False and sys.platform == 'win32':
     import traceback
+
     def msgbox_error(exc_type, exc_value, exc_traceback):
         excstr = u"".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
         import ctypes

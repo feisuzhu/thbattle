@@ -11,7 +11,7 @@ from client.ui.controls import AbstractInterp, BalloonPrompt, Button, ChainInter
 from client.ui.controls import CosineInterp, FixedInterp, Frame, ImageButton, InterpDesc
 from client.ui.controls import LinearInterp, Panel, ShadowedLabel, SineInterp, getinterp
 
-from client.ui.resource import resource as common_res
+from client.ui.resource import resource as common_res, get_atlas
 from resource import resource as game_res
 from game.autoenv import Game
 from .. import actions
@@ -105,7 +105,7 @@ class CardSprite(Control, BalloonPrompt):
             buf[:] = vertices
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
             glInterleavedArrays(GL_T2F_C4F_N3F_V3F, 0, buf)
-            with game_res.get_atlas('card').texture:
+            with get_atlas('card').texture:
                 glDrawArrays(GL_QUADS, 0, n/12)
             glPopClientAttrib()
 
@@ -440,7 +440,7 @@ class SmallCardSprite(Control, BalloonPrompt):
         glColor3f(1., 1., 1.)
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         glInterleavedArrays(GL_T4F_V4F, 0, buf)
-        with game_res.get_atlas('card').texture:
+        with get_atlas('card').texture:
             glDrawArrays(GL_QUADS, 0, n/8)
 
         glPopClientAttrib()

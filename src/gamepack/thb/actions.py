@@ -1,9 +1,10 @@
-# All generic and cards' Actions, EventHandlers are here
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, Action, GameError
+
+# All generic and cards' Actions, EventHandlers are here
+from game.autoenv import Game, EventHandler, Action
 from game.autoenv import sync_primitive, user_input, InputTransaction
 
-from .inputlets import ActionInputlet
+from .inputlets import ActionInputlet, ChoosePeerCardInputlet
 
 from utils import check, check_type, CheckFailed, BatchList, group_by
 
@@ -33,7 +34,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
             skills, cards, players = rst
             if categories:
                 if skills:
-                    check(len(skills) == 1)
+                    # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
                     check(initiator.cond([skill_wrap(actor, skills, cards)]))
                 else:
@@ -66,7 +67,6 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
 
 
 def user_choose_cards(initiator, actor, categories):
-    categories = categories or ['cards', 'showncards']
     check_type([str, Ellipsis], categories)
 
     _, rst = ask_for_action(initiator, [actor], categories, [])
@@ -95,10 +95,12 @@ def random_choose_card(cardlists):
     v = sync_primitive(c.syncid, g.players)
     cl = g.deck.lookupcards([v])
     assert len(cl) == 1
-    return cl[0]
+    c = cl[0]
+    c.detach()
+    return c
 
 
-def skill_wrap(actor, skills, cards, no_reveal=False):
+def skill_wrap(actor, skills, cards, no_reveal=False, detach=False):
     # no_reveal: for ui
     g = Game.getgame()
     try:
@@ -111,6 +113,9 @@ def skill_wrap(actor, skills, cards, no_reveal=False):
 
             card = skill_cls.wrap(cards, actor)
             check(card.check())
+
+            detach and [c.detach() for c in cards]
+
             cards = [card]
 
         return cards[0]
@@ -121,39 +126,27 @@ def skill_wrap(actor, skills, cards, no_reveal=False):
 
 def skill_transform(actor, skills, cards):
     g = Game.getgame()
-    s = skill_wrap(actor, skills, cards)
+    s = skill_wrap(actor, skills, cards, detach=True)
     if not s:
         return None
 
     g.deck.register_vcard(s)
     # migrate_cards(cards, actor.cards, False, True)
-    s.move_to(actor.cards)
+    # s.move_to(actor.cards)
     return s
-
-
-def shuffle_here():
-    from .cards import VirtualCard
-    g = Game.getgame()
-    g.emit_event('shuffle_cards', True)
-    for p in g.players:
-        assert all([
-            not c.is_card(VirtualCard)
-            for c in p.cards
-        ]), 'VirtualCard in cards of %s !!!' % repr(p)
-
-        g.deck.shuffle(p.cards)
 
 
 def migrate_cards(cards, to, unwrap=False, no_event=False):
     g = Game.getgame()
     from .cards import VirtualCard
-    groups = group_by(cards, lambda c: c if c.is_card(VirtualCard) else c.resides_in)
+    groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
 
     for l in groups:
         cl = l[0].resides_in
         for c in l:
             if unwrap and c.is_card(VirtualCard):
-                c.move_to(None)
+                # c.move_to(None)
+                c.detach()  # resides_in should be consistent with normal cards
                 migrate_cards(
                     c.associated_cards,
                     to,
@@ -174,12 +167,10 @@ def migrate_cards(cards, to, unwrap=False, no_event=False):
 migrate_cards.SINGLE_LAYER = 2
 
 
-action_eventhandlers = set()
-
-
 def register_eh(cls):
     action_eventhandlers.add(cls)
     return cls
+action_eventhandlers = set()
 
 # ------------------------------------------
 
@@ -391,7 +382,7 @@ class DropCardStage(GenericAction):
         if n <= 0: return True
 
         g = Game.getgame()
-        cards = user_choose_cards(self, target, ['cards', 'showncards'])
+        cards = user_choose_cards(self, target, ('cards', 'showncards'))
         if cards:
             g.process_action(DropCards(target, cards=cards))
         else:
@@ -404,11 +395,15 @@ class DropCardStage(GenericAction):
         return True
 
     def cond(self, cards):
-        t = self.target
+        tgt = self.target
         if not len(cards) == self.dropn:
             return False
 
-        if not all(c.resides_in in (t.cards, t.showncards) for c in cards):
+        if not all(c.resides_in in (tgt.cards, tgt.showncards) for c in cards):
+            return False
+
+        from .cards import Skill
+        if any(c.is_card(Skill) for c in cards):
             return False
 
         return True
@@ -449,12 +444,6 @@ class LaunchCard(GenericAction, LaunchCardAction):
         card = self.card
         target_list = self.target_list
         if not card: return False
-
-        # special case for debug
-        from .cards import HiddenCard
-        if card.is_card(HiddenCard):
-            raise GameError('launch hidden card')
-        # ----------------------
 
         action = card.associated_action
         if not getattr(card, 'no_drop', False):
@@ -531,6 +520,41 @@ class ActionStageLaunchCard(LaunchCard):
     pass
 
 
+@register_eh
+class ShuffleHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if evt_type == 'action_stage_action':
+            self.do_shuffle()
+
+        elif evt_type in ('action_before', 'action_after') and isinstance(arg, ActionStage):
+            self.do_shuffle()
+
+        elif evt_type == 'user_input_start':
+            trans, ilet = arg
+            if isinstance(ilet, ChoosePeerCardInputlet):
+                self.do_shuffle([ilet.target])
+
+        # <!-- This causes severe problems, do not use -->
+        # elif evt_type == 'card_migration':
+        #     act, cl, _from, to = arg
+        #     to.owner and to.type == 'cards' and self.do_shuffle([to.owner])
+
+        return arg
+
+    @staticmethod
+    def do_shuffle(pl=None):
+        from .cards import VirtualCard
+        g = Game.getgame()
+
+        for p in pl or g.players:
+            if not p.cards: continue
+            if any([c.is_card(VirtualCard) for c in p.cards]):
+                log.warning('VirtualCard in cards of %s, not shuffling.' % repr(p))
+                continue
+
+            g.deck.shuffle(p.cards)
+
+
 class ActionStage(GenericAction):
 
     def __init__(self, target):
@@ -542,8 +566,6 @@ class ActionStage(GenericAction):
         target = self.target
         if target.dead: return False
 
-        shuffle_here()
-
         try:
             while not target.dead:
                 try:
@@ -551,7 +573,7 @@ class ActionStage(GenericAction):
                     g.emit_event('action_stage_action', target)
                     with InputTransaction('ActionStageAction', [target]) as trans:
                         p, rst = ask_for_action(
-                            self, [target], ['cards', 'showncards'], g.players, trans
+                            self, [target], ('cards', 'showncards'), g.players, trans
                         )
                     check(p is target)
                 finally:
@@ -560,15 +582,11 @@ class ActionStage(GenericAction):
                 cards, target_list = rst
                 g.players.reveal(cards)
                 card = cards[0]
-                from .cards import HiddenCard
-                assert not card.is_card(HiddenCard)
 
                 if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
                     break
-
-                shuffle_here()
 
         except CheckFailed:
             pass
@@ -617,19 +635,24 @@ class BaseFatetell(GenericAction):
         g.players.reveal(card)
         self.card = card
         migrate_cards([card], g.deck.droppedcards)
-        return True
+        g.emit_event(self.type, self)
+        return self.succeeded
+
+    def set_card(self, card):
+        self.card = card
 
     @property
     def succeeded(self):
+        # This is necessary, for ui
         return self.cond(self.card)
 
 
 class Fatetell(BaseFatetell):
-    pass
+    type = 'fatetell'
 
 
 class TurnOverCard(BaseFatetell):
-    pass
+    type = 'turnover'
 
 
 class FatetellAction(GenericAction): pass

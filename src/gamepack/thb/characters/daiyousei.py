@@ -31,7 +31,7 @@ class SupportSkill(Skill):
     def check(self):
         cl = self.associated_cards
         return cl and all(
-            c.resides_in and
+            c.resides_in is not None and
             c.resides_in.type in ('cards', 'showncards', 'equips')
             for c in cl
         )

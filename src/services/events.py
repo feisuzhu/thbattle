@@ -4,9 +4,11 @@ import sys
 import argparse
 from urllib import unquote
 import atexit
-from collections import deque
+from collections import deque, defaultdict
 import time
 import logging
+import zlib
+import subprocess
 
 # -- third party --
 import gevent
@@ -213,6 +215,37 @@ def speaker():
     Interconnect.publish('speaker', [username, message])
 
     return 'true'
+
+
+@route('/interconnect/crashreport', method='POST')
+def crashreport():
+    gameid = int(request.forms.get('gameid', 0))
+    if time.time() - gameid_last_see[gameid] < 300: return ''
+    if gameid:
+        gameid_last_see[gameid] = time.time()
+
+    f = request.files.get('file')
+    if not f: return ''
+
+    content = f.file.read()
+    content = zlib.decompress(content)
+
+    @gevent.spawn
+    def sendmail(content=content):
+        cmd = '''mail -s 'THB Crash Report #%d' -a 'From: crashreport@thbattle.net' %s'''
+        mailer = subprocess.Popen(cmd % (gameid, 'feisuzhu@163.com'), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        mailer.stdin.write(content)
+        mailer.stdin.close()
+        mailer.stdout.close()
+
+        # mailer = subprocess.Popen(cmd % (gameid, 'proton@zhihu.com'), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        # mailer.stdin.write(content)
+        # mailer.stdin.close()
+        # mailer.stdout.close()
+
+    return ''
+
+gameid_last_see = defaultdict(int)
 
 
 run(server='gevent', host=options.host, port=options.port)

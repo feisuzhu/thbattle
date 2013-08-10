@@ -2,79 +2,75 @@
 #!/usr/bbin/python2
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import sys
 sys.path.append('../src')
-
 import random
-import gevent
-from gevent import Greenlet
-from gevent.queue import Queue
-
-from game import autoenv
-autoenv.init('Server')
-
-from game.autoenv import Game
-from server.core import Player, PlayerList
-
-from network import EndpointDied
-
-from account.freeplay import Account
-
-import simplejson as json
+import gzip
 
 import logging
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger('ReplayServer')
 
-
 from argparse import ArgumentParser
 
+# -- third party --
+import gevent
+from gevent.queue import Queue
+from gevent.event import Event
+import simplejson as json
+
+# -- own --
+from game import autoenv
+autoenv.init('Server')
+
+from server.core import Player
+from network import EndpointDied
+from network.common import GamedataMixin
+from account.freeplay import Account
+from utils import BatchList
+
+
+# -- code --
 parser = ArgumentParser()
 parser.add_argument('replay_file', type=str)
-parser.add_argument('--break', type=int, default=0)
+parser.add_argument('--catch', action='store_true')
 
 options = parser.parse_args()
 
 
-class DataSource(Greenlet):
-    def __init__(self, gdlist):
-        Greenlet.__init__(self)
-        self.gdlist = gdlist
-        self.channel = Queue(100000)
-        indexes = [i[0] for i in gdlist]
-        cnt = [indexes.count(i) for i in xrange(10)]
-        self.data_count = cnt
+def ask_for_feed(player_index, tag):
+    if not gdlist:
+        log.warning('Game data exhausted.')
+        if options.catch:
+            import pdb; pdb.set_trace()
 
-    def _run(self):
-        cnt = self.data_count
-        data = self.gdlist.pop(0)
-        for idx, tag, retchannel in self.channel:
-            if not self.gdlist or not cnt[idx]:
-                retchannel.put(EndpointDied)
+        sys.exit(0)
 
-            if tuple(data[:2]) == (idx, tag):
-                retchannel.put(data[2])
-                data = self.gdlist.pop(0)
-            else:
-                log.info('!! Req:%s, Has:%s', repr((idx, tag)), repr(data[:2]))
-                self.channel.put((idx, tag, retchannel))
+    data = gdlist[0]
+    if tuple(data[:2]) == (player_index, tag):
+        gdlist.pop(0)
+        return data[1:]
 
-    def ask_for_feed(self, player_index, tag, retchannel):
-        self.channel.put((player_index, tag, retchannel))
-        return retchannel.get()
+    return None, GamedataMixin.NODATA
+
+gdlist = []
 
 
 class MockClient(object):
-    def __init__(self, player_index, datasource):
+    def __init__(self, player_index):
         self.player_index = player_index
-        self.datasource = datasource
         self.account = Account.authenticate('Proton', '123')
         self.observers = []
         self._channel = Queue(0)
+        e = Event()
+        e.set()
+        self.gdevent = e
 
-    def gexpect(self, tag):
-        data = self.datasource.ask_for_feed(self.player_index, tag, self._channel)
+    def gexpect(self, tag, blocking=True):
+        assert not blocking
+        data = ask_for_feed(self.player_index, tag)
         if data is EndpointDied:
             raise EndpointDied
         log.info('GAME_EXPECT[%d]: %s, return %s', self.player_index, repr(tag), repr(data))
@@ -89,8 +85,10 @@ class MockClient(object):
     def gclear(self):
         pass
 
-
-data = open(options.replay_file, 'r').read().split('\n')
+if options.replay_file.endswith('.gz'):
+    data = gzip.open(options.replay_file, 'r').read().split('\n')
+else:
+    data = open(options.replay_file, 'r').read().split('\n')
 
 while data[0].startswith('#'):
     print data.pop(0)
@@ -100,15 +98,12 @@ rndseed = long(data.pop(0))
 
 gdlist = json.loads(data.pop(0))
 
-datasource = DataSource(gdlist)
-datasource.start()
-
 from gamepack import gamemodes
 
 mode = gamemodes[mode]
 
-clients = [MockClient(i, datasource) for i in xrange(mode.n_persons)]
-players = PlayerList([Player(i) for i in clients])
+clients = [MockClient(i) for i in xrange(mode.n_persons)]
+players = BatchList([Player(i) for i in clients])
 
 g = mode()
 g.players = players

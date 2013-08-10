@@ -161,7 +161,7 @@ class Cooperation(Skill):
         cl = self.associated_cards
         if not cl: return False
         if not len(cl) <= 2: return False
-        return all(c.resides_in and c.resides_in.type in (
+        return all(c.resides_in is not None and c.resides_in.type in (
             'cards', 'showncards',
         ) for c in cl)
 
@@ -243,6 +243,7 @@ class ParryAction(GenericAction):
 @game_eh
 class ParryHandler(EventHandler):
     execute_before = ('ProtectionHandler', )
+    execute_after = ('RepentanceStickHandler', )
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act

@@ -50,6 +50,8 @@ class MockServer(object):
         log.info('GAME_EXPECT: %s', repr(tag))
         if not self.gdlist:
             log.info('Game data exhausted, exiting...')
+            if options.catch:
+                import pdb; pdb.set_trace()
             sys.exit(0)
 
         glob = False
@@ -68,6 +70,10 @@ class MockServer(object):
                 missed = True
 
         log.info('GAME_DATA_MISS!!')
+        log.info('Remaining game data:')
+        for i in self.gdlist:
+            log.info(repr(i))
+
         sys.exit(1)
 
     def gwrite(self, tag, data):
@@ -115,6 +121,7 @@ for p in players:
 g = GameMode()
 g.players = BatchList(players)
 g.me = players[loc]
+g.replay_file = options.replay_file
 
 
 @hook(g)

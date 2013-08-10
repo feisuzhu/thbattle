@@ -1,4 +1,4 @@
-from thb import *
+from thb import *  # noqa
 from collections import OrderedDict
 
 gamemodes = OrderedDict()
@@ -15,5 +15,6 @@ for g in l:
 
 del l, g, OrderedDict
 
+
 def init_ui_resources():
-    import gamepack.thb.ui
+    import gamepack.thb.ui.resource  # noqa

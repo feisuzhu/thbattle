@@ -10,14 +10,17 @@ from gevent import getcurrent
 from gevent.event import Event
 
 # -- own --
-from utils import Packet
+from utils import Packet, instantiate
 from .endpoint import EndpointDied
 
 # -- code --
 
 
 class GamedataMixin(object):
-    NODATA = object()
+    @instantiate
+    class NODATA(object):
+        def __repr__(self):
+            return 'NODATA'
 
     def init_gamedata_mixin(self):
         self.gdqueue = deque(maxlen=100000)

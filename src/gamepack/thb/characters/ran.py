@@ -28,7 +28,7 @@ class ProphetAction(GenericAction):
 
         tgt.reveal(cards)
 
-        upcards, downcards = user_input([tgt], ProphetInputlet(self, cards))
+        upcards, downcards = user_input([tgt], ProphetInputlet(self, cards)) or [range(n), []]
 
         deck = g.deck.cards
         for i, c in enumerate(downcards):
@@ -62,9 +62,9 @@ class ExtremeIntelligenceAction(GenericAction):
 
     def apply_action(self):
         p = self.source
-        cards = user_choose_cards(self, p, ['cards', 'showncards', 'equips'])
+        cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
         if not cards: return False
-        p.tags['ran_ei_tag'] = p.tags['turn_count'] + 1
+        p.tags['ran_ei'] = p.tags['turn_count'] + 1
         g = Game.getgame()
         g.process_action(DropCards(p, cards))
 
@@ -83,7 +83,7 @@ class ExtremeIntelligenceAction(GenericAction):
         except AttributeError:
             pass
 
-        nact.associated_card = cards[0]
+        nact.associated_card = ExtremeIntelligence.wrap(cards, p)
 
         g.process_action(nact)
         return True
@@ -102,7 +102,7 @@ class ExtremeIntelligenceHandler(EventHandler):
             for p in g.players.exclude(target):
                 if p.dead: continue
                 if not p.has_skill(ExtremeIntelligence): continue
-                if p.tags['ran_ei_tag'] >= p.tags['turn_count'] + 1: continue
+                if p.tags['ran_ei'] >= p.tags['turn_count'] + 1: continue
 
                 try:
                     tl = act.target_list
@@ -114,6 +114,12 @@ class ExtremeIntelligenceHandler(EventHandler):
                     continue
 
                 g.process_action(ExtremeIntelligenceAction(p, act.target, act))
+
+        elif evt_type == 'game_begin':
+            g = Game.getgame()
+            for p in g.players:
+                if isinstance(p, Ran):
+                    p.tags['ran_ei'] = 0  # for ui
 
         return act
 

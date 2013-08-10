@@ -28,18 +28,16 @@ class Surprise(UserAction):
 
         src.tags['surprise_tag'] = src.tags['turn_count']
         assert card
+
         g = Game.getgame()
         g.players.exclude(src).reveal(card)
+        migrate_cards([card], tgt.showncards)
+
         if card.suit != suit:
-            dmg = Damage(src, tgt)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(Damage(src, tgt))
             rst = True
         else:
             rst = False
-
-        if not tgt.dead:
-            migrate_cards([card], tgt.cards)
 
         g.process_action(DrawCards(src, 1))
 

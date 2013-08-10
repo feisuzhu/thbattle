@@ -198,9 +198,7 @@ class Sinsack(DelayedSpellCardAction):
         ft = Fatetell(target, lambda card: card.suit == Card.SPADE and 1 <= card.number <= 8)
         g.process_action(ft)
         if ft.succeeded:
-            dmg = Damage(None, target, amount=3)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(Damage(None, target, amount=3))
             return True
         return False
 
@@ -262,9 +260,7 @@ class BaseDuel(UserAction):
             sd, td = td, sd
 
         if not t.dead:
-            dact = Damage(s, t, amount=sd)
-            dact.associated_action = self
-            g.process_action(dact)
+            g.process_action(Damage(s, t, amount=sd))
 
         return s is source
 
@@ -280,9 +276,7 @@ class MapCannonEffect(InstantSpellCardAction):
         source, target = self.source, self.target
         graze_action = basic.UseGraze(target)
         if not g.process_action(graze_action):
-            dmg = Damage(source, target, amount=1)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(Damage(source, target, amount=1))
             return True
         else:
             return False
@@ -299,9 +293,7 @@ class SinsackCarnivalEffect(InstantSpellCardAction):
         source, target = self.source, self.target
         use_action = basic.UseAttack(target)
         if not g.process_action(use_action):
-            dmg = Damage(source, target, amount=1)
-            dmg.associated_action = self
-            g.process_action(dmg)
+            g.process_action(Damage(source, target, amount=1))
             return True
         else:
             return False
@@ -332,7 +324,7 @@ class HarvestEffect(InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         cards = self.parent_action.cards
-        cards_avail = [c for c in cards if c.resides_in is g.deck.special]
+        cards_avail = [c for c in cards if c.resides_in is g.deck.disputed]
         if not cards_avail: return False
         tgt = self.target
 
@@ -343,6 +335,7 @@ class HarvestEffect(InstantSpellCardAction):
         ) or random_choose_card([cards_avail])
 
         migrate_cards([card], tgt.cards)
+
         self.parent_action.trans.notify('harvest_choose', card)
         self.card = card
         return True
@@ -356,7 +349,7 @@ class Harvest(ForEach):
         g = Game.getgame()
         cards = g.deck.getcards(len(tl))
         g.players.reveal(cards)
-        migrate_cards(cards, g.deck.special)
+        migrate_cards(cards, g.deck.disputed)
         trans = InputTransaction('HarvestChoose', g.players, cards=cards)
         trans.begin()
         self.cards = cards
@@ -367,20 +360,7 @@ class Harvest(ForEach):
         self.trans.end()
         g.emit_event('harvest_finish', self)
         dropped = g.deck.droppedcards
-        migrate_cards([c for c in self.cards if c.resides_in is g.deck.special], dropped)
-
-
-class Camera(InstantSpellCardAction):
-    # 文文的相机
-    def apply_action(self):
-        tgt = self.target
-
-        cards = list(tgt.cards)[:2]
-        g = Game.getgame()
-        g.players.exclude(tgt).reveal(cards)
-        migrate_cards(cards, tgt.showncards)
-
-        return True
+        migrate_cards([c for c in self.cards if c.resides_in is g.deck.disputed], dropped)
 
 
 class DollControl(InstantSpellCardAction):

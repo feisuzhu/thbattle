@@ -20,6 +20,7 @@ MAIN = gevent.getcurrent()
 from gevent import signal as sig
 import signal
 
+
 def _exit_handler(*a, **k):
     gevent.kill(MAIN, SystemExit)
 sig(signal.SIGTERM, _exit_handler)
@@ -51,8 +52,6 @@ autoenv.init('Server')
 
 import settings
 
-from network import Endpoint
-#Endpoint.ENDPOINT_DEBUG = True
 
 class ServerLogFormatter(logging.Formatter):
     def format(self, rec):
@@ -62,7 +61,7 @@ class ServerLogFormatter(logging.Formatter):
             s.append('>>>>>>' + '-' * 74)
             s.append(self._format(rec))
             import traceback
-            s.append(u''.join(traceback.format_exception(*sys.exc_info())).strip())
+            s.append(u''.join(traceback.format_exception(*rec.exc_info)).strip())
             s.append('<<<<<<' + '-' * 74)
             return u'\n'.join(s)
         else:

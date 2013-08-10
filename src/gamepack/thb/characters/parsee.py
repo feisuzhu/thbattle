@@ -14,7 +14,7 @@ class Envy(TreatAsSkill):
         cards = self.associated_cards
         if len(cards) != 1: return False
         c = cards[0]
-        if not c.resides_in: return False
+        if c.resides_in is None: return False
         if not c.resides_in.type in ('cards', 'showncards', 'equips'): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         return True
@@ -42,12 +42,13 @@ class EnvyHandler(EventHandler):
         if evt_type != 'action_after': return act
         if not isinstance(act, Demolition): return act
         if not act.associated_card.is_card(Envy): return act
-        self.card = card = act.card
-
-        if card.suit != Card.DIAMOND: return act
 
         src = act.source
         tgt = act.target
+        self.card = card = act.card
+
+        if src.dead: return act
+        if card.suit != Card.DIAMOND: return act
 
         dist = LaunchCard.calc_distance(src, EnvyRecycle())
         if not dist[tgt] <= 0: return act

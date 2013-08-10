@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction
-from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack
+from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction, MaxLifeChange
+from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack, Heal
 from ..inputlets import ChooseIndividualCardInputlet
 from utils import classmix
 
@@ -64,17 +64,18 @@ class MijincihangzhanDuelMixin(object):
             else:
                 if not g.process_action(UseAttack(d[0])): break
 
-        dact = Damage(d[1], d[0], amount=dmg[1])
-        dact.associated_action = self
-        g.process_action(dact)
+        g.process_action(Damage(d[1], d[0], amount=dmg[1]))
         return d[1] is source
 
 
 class XianshiwangzhiAwake(GenericAction):
     def apply_action(self):
+        g = Game.getgame()
         tgt = self.target
         tgt.skills.append(Xianshiwangzhi)
         tgt.tags['attack_num'] += 1
+        g.process_action(MaxLifeChange(tgt, tgt, 1))
+        g.process_action(Heal(tgt, tgt, 1))
         return True
 
 
@@ -92,7 +93,7 @@ class YoumuWearEquipmentAction(UserAction):
                 e = user_input(
                     [target],
                     ChooseIndividualCardInputlet(self, weapons),
-                ) or random_choose_card(weapons)
+                ) or random_choose_card([weapons])
                 g.process_action(DropCards(target, [e]))
                 weapons.remove(e)
 
@@ -107,12 +108,13 @@ class YoumuWearEquipmentAction(UserAction):
                 if oc.equipment_category == cat:
                     g.process_action(DropCards(target, [oc]))
                     break
+
         migrate_cards([card], target.equips)
         return True
 
 
 class YoumuHandler(EventHandler):
-    execute_before = ('ScarletRhapsodySwordHandler', )
+    execute_before = ('ScarletRhapsodySwordHandler', 'HouraiJewelHandler')
     execute_after = ('AttackCardHandler', )
 
     def handle(self, evt_type, act):

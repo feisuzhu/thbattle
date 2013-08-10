@@ -41,6 +41,8 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
     for p in players:
         ilets[p].actor = p
 
+    inputproc = None
+
     def input_func(st):
         my = ilets[g.me]
         with TimeLimitExceeded(timeout + 1, False):
@@ -54,16 +56,15 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
     synctags_r = {v: k for k, v in synctags.items()}
 
     try:
-        inputproc = None
+        for p in players:
+            g.emit_event('user_input_start', (trans, ilets[p]))
+
         if g.me in players:  # me involved
             if isinstance(g.me, TheChosenOne):  # Not observer or other things
                 inputproc = gevent.spawn(input_func, synctags[g.me])
 
         orig_players = players[:]
         inputany_player = None
-
-        for p in players:
-            g.emit_event('user_input_start', (trans, ilets[p]))
 
         while players:
             # should be [tag, <Data for Inputlet.parse>]
@@ -81,7 +82,7 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
             try:
                 rst = my.parse(data)
             except:
-                log.info('user_input: exception in .process()', exc_info=1)
+                log.error('user_input: exception in .process()', exc_info=1)
                 # ----- FOR DEBUG -----
                 if g.IS_DEBUG:
                     raise
@@ -100,7 +101,9 @@ def user_input(players, inputlet, timeout=15, type='single', trans=None):
                 inputany_player = p
 
     finally:
-        inputproc and inputproc.kill()
+        if inputproc:
+            inputproc.kill()
+            inputproc.join()
 
     if type == 'single':
         return results[orig_players[0]]

@@ -1218,7 +1218,7 @@ class TextArea(Control):
             (r'\|b', set_attrib('bold', False)),
             (r'\|I', set_attrib('italic', True)),
             (r'\|i', set_attrib('italic', False)),
-            (r'\|U', set_attrib('underline', (0,0,0,255))),
+            (r'\|U', set_attrib('underline', (0, 0, 0, 255))),
             (r'\|u', set_attrib('underline', None)),
             (r'\|\|', insert_pipe),
             (r'\|r', restore),
@@ -1231,6 +1231,11 @@ class TextArea(Control):
             (r'\|DB', set_attrib('color', (0x00, 0x00, 0x60, 0xff))),
             (r'\|W', set_attrib('color', (0xff, 0xff, 0xff, 0xff))),
 
+            # for thbviewer
+            (r'\|!R', set_attrib('color', (0xff, 0x35, 0x35, 0xff))),
+            (r'\|!G', set_attrib('color', (0x20, 0x80, 0x20, 0xff))),
+            (r'\|!O', set_attrib('color', (0xff, 0xcc, 0x77, 0xff))),
+            (r'\|!B', set_attrib('color', (0x00, 0x00, 0x60, 0xff))),
         ])
 
         l = self.layout

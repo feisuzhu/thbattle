@@ -592,3 +592,17 @@ def swallow(f):
             pass
 
     return wrapper
+
+
+def log_failure(logger):
+    def decorate(f):
+        def wrapper(*a, **k):
+            try:
+                return f(*a, **k)
+            except Exception as e:
+                logger.exception(e)
+                raise
+
+        return wrapper
+
+    return decorate

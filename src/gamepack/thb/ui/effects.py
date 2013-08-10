@@ -104,7 +104,7 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
 
         # others
         if not pca:
-            if _from.type in ('deckcard', 'droppedcard') or not _from.owner:
+            if _from.type in ('deckcard', 'droppedcard', 'disputed') or not _from.owner:
                 pca = self.deck_area
             #elif not _from.owner:
             #    break
@@ -151,7 +151,7 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
             cs.gray = False
 
     else:
-        if to.type == 'droppedcard':
+        if to.type in ('droppedcard', 'disputed'):
             dropcard_update = True
             ca = self.dropcard_area
             if isinstance(act, BaseFatetell):
@@ -161,7 +161,7 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
             else:
                 gray = not isinstance(act, (
                     actions.DropUsedCard,
-                ))
+                )) and not to.type == 'disputed'
                 for cs in csl:
                     cs.gray = gray
             csl.migrate_to(ca)
@@ -251,7 +251,8 @@ def player_turn_effect(self, act):
         )
     self.turn_frame.position = (port.x - 6, port.y - 4)
     self.prompt_raw('--------------------\n')
-    _update_tags(self, p)
+    for _p in Game.getgame().players:
+        _update_tags(self, _p)
 
 
 def player_death_update(self, act):

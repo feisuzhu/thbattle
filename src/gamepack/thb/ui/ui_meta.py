@@ -11,8 +11,9 @@ from resource import resource as gres
 
 from utils import DataHolder, BatchList
 from types import FunctionType
+from collections import OrderedDict
 
-metadata = {}
+metadata = OrderedDict()
 
 
 class UIMetaAccesser(object):
@@ -138,6 +139,16 @@ class ActFirst:
 class THBattle:
     name = u'符斗祭 - 3v3 - 休闲'
     logo = gres.thblogo_3v3
+    description = (
+        u'|R游戏人数|r：6人\n'
+        u'\n'
+        u'阵营分为|!B博丽|r和|!O守矢|r，每个阵营3名玩家，交错入座。\n'
+        u'由ROLL点最高的人开始，按照顺时针1-2-2-1的方式选将。\n'
+        u'选将完成由ROLL点最高的玩家开始行动。\n'
+        u'ROLL点最高的玩家开局摸3张牌，其余玩家开局摸4张牌。\n'
+        u'\n'
+        u'|R胜利条件|r：击坠所有对方阵营玩家。'
+    )
 
     from .view import THBattleUI
     ui_class = THBattleUI
@@ -166,6 +177,17 @@ __metaclass__ = gen_metafunc(thbkof)
 class THBattleKOF:
     name = u'符斗祭 - KOF模式'
     logo = gres.thblogo_kof
+    description = (
+        u'|R游戏人数|r：2人\n'
+        u'\n'
+        u'|R选将模式|r：选将按照1-2-2-2-2-1来选择。\n'
+        u'\n'
+        u'|R决定出场顺序|r：选好角色后，进行排序。拖动角色可以进行排序，左边3名为出场角色，越靠左的最先出场（注意：当把一个角色拖到另一个角色左边时，靠右的角色会被顶下去）\n'
+        u'\n'
+        u'|R游戏过程|r：选好角色后，将会翻开第一个角色进行对决，其他角色为隐藏，中途不能调换顺序。当有一方角色MISS后，需弃置所有的牌（手牌、装备牌、判定区的牌），然后翻开下一个角色，摸4张牌。\n'
+        u'\n'
+        u'|R胜利条件|r：当其中一方3名角色全部MISS，判对方胜出'
+    )
 
     from .view import THBattleKOFUI
     ui_class = THBattleKOFUI
@@ -195,6 +217,21 @@ __metaclass__ = gen_metafunc(thbidentity)
 class THBattleIdentity:
     name = u'符斗祭 - 标准8人身份场'
     logo = gres.thblogo_8id
+    description = (
+        u'|R游戏人数|r：8人\n'
+        u'\n'
+        u'|R身份分配|r：1|!RBOSS|r、2|!O道中|r、1|!G黑幕|r、4|!B城管|r\n'
+        u'\n'
+        u'|!RBOSS|r：|!RBOSS|r的体力上限+1。游戏开局时展示身份。胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        u'\n'
+        u'|!O道中|r：胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        u'\n'
+        u'|!B城管|r：胜利条件为击坠|!RBOSS|r。当|!B城管|rMISS时，击坠者摸3张牌。\n'
+        u'\n'
+        u'|!G黑幕|r：胜利条件为在除了|!RBOSS|r的其他人都MISS的状况下击坠|!RBOSS|r。\n'
+        u'\n'
+        u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
+    )
 
     from .view import THBattleIdentityUI
     ui_class = THBattleIdentityUI
@@ -222,6 +259,21 @@ class THBattleIdentity:
 class THBattleIdentity5:
     name = u'符斗祭 - 标准5人身份场'
     logo = gres.thblogo_5id
+    description = (
+        u'|R游戏人数|r：5人\n'
+        u'\n'
+        u'|R身份分配|r：1|!RBOSS|r、1|!O道中|r、1|!G黑幕|r、2|!B城管|r\n'
+        u'\n'
+        u'|!RBOSS|r：游戏开局时展示身份。胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        u'\n'
+        u'|!O道中|r：胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        u'\n'
+        u'|!B城管|r：胜利条件为击坠|!RBOSS|r。当|!B城管|rMISS时，击坠者摸3张牌。\n'
+        u'\n'
+        u'|!G黑幕|r：胜利条件为在除了|!RBOSS|r的其他人都MISS的状况下击坠|!RBOSS|r。\n'
+        u'\n'
+        u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
+    )
 
     from .view import THBattleIdentity5UI
     ui_class = THBattleIdentity5UI
@@ -290,7 +342,7 @@ class THBattleRaid:
         u"\n"
         u"|R异变变身|r：当1阶段的异变体力值变化成小于等于默认体力上限的一半时，变身成2阶段，获得2阶段技能，体力上限减少默认体力上限的一半，弃置判定区的所有牌。异变变身时，所有解决者各获得1点信仰。\n"
         u"\n"
-        u"|R卡牌|r：牌堆中没有【罪袋】\n"
+        u"|R卡牌|r：牌堆中没有【罪袋】和【八卦炉】\n"
         u"\n"
         u"|R摸牌|r：游戏开始时，3个解决者每人摸4张牌，异变摸6张。当任意解决者阵亡时，弃置所有信仰，其他存活的解决者可以选择立即在牌堆里摸1张牌。\n"
         u"\n"
@@ -1009,12 +1061,8 @@ class OpticalCloakCard:
 class OpticalCloakSkill:
     # Skill
     name = u'光学迷彩'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class OpticalCloakHandler:
@@ -1034,6 +1082,31 @@ class OpticalCloak:
             return u'效果拔群！'
         else:
             return u'但是被看穿了…'
+
+
+class MomijiShieldCard:
+    # action_stage meta
+    name = u'天狗盾'
+    image = gres.card_momijishield
+    image_small = gres.card_momijishield_small
+    description = (
+        u'|R天狗盾|r\n\n'
+        u'装备后，黑色【弹幕】对你无效。'
+    )
+
+    is_action_valid = equip_iav
+
+
+class MomijiShieldSkill:
+    # Skill
+    name = u'天狗盾'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class MomijiShield:
+    def effect_string(act):
+        return u'被|G天狗盾|r挡下了…'
 
 
 ufo_desc = (
@@ -1059,12 +1132,8 @@ class GreenUFOSkill:
     # Skill
     name = u'绿色UFO'
     no_display = True
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class RedUFOCard:
@@ -1081,12 +1150,8 @@ class RedUFOSkill:
     # Skill
     name = u'红色UFO'
     no_display = True
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class YukariDimensionCard:
@@ -1160,37 +1225,28 @@ class SinsackCarnivalCard:
         return (True, u'罪袋们来送水啦！')
 
 
-class HakuroukenCard:
+class RoukankenCard:
     # action_stage meta
-    name = u'白楼剑'
-    image = gres.card_hakurouken
-    image_small = gres.card_hakurouken_small
+    name = u'楼观剑'
+    image = gres.card_roukanken
+    image_small = gres.card_roukanken_small
     description = (
-        u'|R白楼剑|r\n\n'
-        u'攻击范围2，每当你使用【弹幕】攻击一名角色时，无视该角色的防具。'
+        u'|R楼观剑|r\n\n'
+        u'攻击范围3，每当你使用【弹幕】攻击一名角色时，无视该角色的防具。'
     )
     is_action_valid = equip_iav
 
 
-class HakuroukenSkill:
+class RoukankenSkill:
     # Skill
-    name = u'白楼剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    name = u'楼观剑'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
-class Hakurouken:
+class Roukanken:
     def effect_string_apply(act):
-        a = act.action
-        src, tgt = a.source, a.target
-        return u'|G【%s】|r祭起了|G白楼剑|r，直斩|G【%s】|r的魂魄！' % (
-            src.ui_meta.char_name,
-            tgt.ui_meta.char_name,
-        )
+        return u'没有什么防具是|G楼观剑|r斩不断的！'
 
 
 class ElementalReactorCard:
@@ -1209,12 +1265,8 @@ class ElementalReactorCard:
 class ElementalReactorSkill:
     # Skill
     name = u'八卦炉'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class UmbrellaCard:
@@ -1233,12 +1285,8 @@ class UmbrellaCard:
 class UmbrellaSkill:
     # Skill
     name = u'紫的阳伞'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class UmbrellaEffect:
@@ -1249,50 +1297,6 @@ class UmbrellaEffect:
         return u'|G【%s】|r受到的%s效果被|G阳伞|r挡下了' % (
             act.target.ui_meta.char_name,
             s,
-        )
-
-
-class RoukankenCard:
-    # action_stage meta
-    name = u'楼观剑'
-    image = gres.card_roukanken
-    image_small = gres.card_roukanken_small
-    description = (
-        u'|R楼观剑|r\n\n'
-        u'攻击范围3，当你使用的【弹幕】被抵消时，你可以立即对相同的目标再使用一张【弹幕】。'
-    )
-    is_action_valid = equip_iav
-
-
-class RoukankenSkill:
-    # Skill
-    name = u'楼观剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
-
-
-class RoukankenHandler:
-    # choose_card
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'再来一刀！')
-        else:
-            return (False, u'请使用【弹幕】发动楼观剑……')
-
-
-class RoukankenLaunchAttack:
-    def effect_string_before(act):
-        return (
-            u'虽然上一刀落空了，但是|G楼观剑|r的气势并未褪去。' +
-            u'|G【%s】|r调整了姿势，再次向|G【%s】|r出刀！'
-        ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
-
         )
 
 
@@ -1313,12 +1317,13 @@ class GungnirSkill:
     # Skill
     name = u'冈格尼尔'
 
-    def clickable(game):
+    def clickable(g):
         try:
-            act = game.action_stack[-1]
-            if isinstance(act, (actions.ActionStage, cards.UseAttack, cards.DollControl)):
+            act = g.hybrid_stack[-1]
+            if act.cond([cards.GungnirSkill(g.me)]):
                 return True
-        except IndexError:
+
+        except (IndexError, AttributeError):
             pass
 
         return False
@@ -1354,22 +1359,22 @@ class GungnirSkill:
         return s
 
 
-class LaevateinCard:
+class ScarletRhapsodyCard:
     # action_stage meta
-    name = u'莱瓦汀'
-    image = gres.card_laevatein
-    image_small = gres.card_laevatein_small
+    name = u'绯想之剑'
+    image = gres.card_scarletrhapsodysword
+    image_small = gres.card_scarletrhapsodysword_small
     description = (
-        u'|R莱瓦汀|r\n\n'
+        u'|R绯想之剑|r\n\n'
         u'攻击范围4，当你使用的【弹幕】是你的最后一张手牌时，你可以为这张【弹幕】指定至多三名目标，然后依次结算之。'
     )
 
     is_action_valid = equip_iav
 
 
-class LaevateinSkill:
+class ScarletRhapsodySkill:
     # Skill
-    name = u'莱瓦汀'
+    name = u'绯想之剑'
 
     def clickable(game):
         me = game.me
@@ -1377,15 +1382,17 @@ class LaevateinSkill:
             act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 cl = list(me.cards) + list(me.showncards)
-                if len(cl) == 1 and isinstance(cl[0], cards.AttackCard):
+                if len(cl) == 1:
                     return True
+
         except IndexError:
             pass
+
         return False
 
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
-        assert skill.is_card(cards.LaevateinSkill)
+        assert skill.is_card(cards.ScarletRhapsodySkill)
         acards = skill.associated_cards
         if not (len(acards) == 1 and acards[0].is_card(cards.AttackCard)):
             return (False, u'请选择你的最后一张【弹幕】！')
@@ -1396,41 +1403,17 @@ class LaevateinSkill:
             if g.me in target_list:
                 return (True, u'您真的要自残么？！')
             else:
-                return (True, u'觉醒吧，禁忌的炎之魔剑！')
+                return (True, u'全人类的绯想天！')
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
         tl = BatchList(act.target_list)
 
-        return u'|G【%s】|r不顾危险发动了|G莱瓦汀|r，火焰立刻扑向了对|G【%s】|r！' % (
+        return u'全人类的绯想天！|G【%s】|r表示不能只打一个！|G【%s】|r！' % (
             source.ui_meta.char_name,
             u'】|r、|G【'.join(tl.ui_meta.char_name),
         )
-
-
-class TridentCard:
-    # action_stage meta
-    name = u"三叉戟"
-    image = gres.card_trident
-    image_small = gres.card_trident_small
-    description = (
-        u'|R三叉戟|r\n\n'
-        u'攻击范围5，你使用【弹幕】对一名角色造成伤害时，你可以弃掉对方装备区里的一个UFO。'
-    )
-
-    is_action_valid = equip_iav
-
-
-class TridentSkill:
-    # Skill
-    name = u"三叉戟"
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
 
 
 class RepentanceStickCard:
@@ -1449,12 +1432,8 @@ class RepentanceStickCard:
 class RepentanceStickSkill:
     # Skill
     name = u'悔悟棒'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class RepentanceStickHandler:
@@ -1548,12 +1527,8 @@ class MaidenCostumeCard:
 class MaidenCostumeSkill:
     # Skill
     name = u'巫女服'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class IbukiGourdCard:
@@ -1571,12 +1546,8 @@ class IbukiGourdCard:
 class IbukiGourdSkill:
     # Skill
     name = u'伊吹瓢'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class HouraiJewelCard:
@@ -1587,8 +1558,8 @@ class HouraiJewelCard:
     description = (
         u'|R蓬莱玉枝|r\n\n'
         u'攻击范围1，当使用【弹幕】时可以选择发动。发动后【弹幕】带有符卡性质，可以被【好人卡】抵消，不可以使用【擦弹】躲过。\n'
-        u'|R>> |r计算在出【弹幕】的次数内。\n'
-        u'|R>> |r蓬莱玉枝造成的伤害为固定的1点'
+        u'|B|R>> |r计算在出【弹幕】的次数内。\n'
+        u'|B|R>> |r蓬莱玉枝造成的伤害为固定的1点'
     )
 
     is_action_valid = equip_iav
@@ -1597,12 +1568,8 @@ class HouraiJewelCard:
 class HouraiJewelSkill:
     # Skill
     name = u'蓬莱玉枝'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class HouraiJewelHandler:
@@ -1636,24 +1603,20 @@ class SaigyouBranchCard:
 class SaigyouBranchSkill:
     # Skill
     name = u'西行妖'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class SaigyouBranchHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【西行妖枝条】吗？'
+    choose_option_prompt = u'你要发动【西行妖】吗？'
 
 
 class SaigyouBranch:
     def effect_string_before(act):
         return (
-            u'|G西行妖|r的枝条受到了|G【%s】|r春度的滋养，' +
+            u'|G西行妖|r的枝条受到了|G【%s】|r春度的滋养，'
             u'在关键时刻突然撑出一片结界，试图将符卡挡下！'
         ) % (
             act.source.ui_meta.char_name,
@@ -1668,40 +1631,38 @@ class SaigyouBranch:
             )
 
 
-class FlirtingSwordCard:
+class HakuroukenCard:
     # action_stage meta
-    name = u'调教剑'
-    image = gres.card_flirtingsword
-    image_small = gres.card_flirtingsword_small
+    name = u'白楼剑'
+    image = gres.card_hakurouken
+    image_small = gres.card_hakurouken_small
     description = (
-        u'|R调教剑|r\n\n'
-        u'攻击范围2，你使用【弹幕】，指定了一名角色为目标后，你可以令对方选择一项：自己弃一张手牌或让你从牌堆摸一张牌。'
+        u'|R白楼剑|r\n\n'
+        u'攻击范围2，当你使用【弹幕】指定了一名角色为目标后，若此弹幕为黑色，你可以令对方选择一项：\n'
+        u'|B|R>> |r弃一张手牌\n'
+        u'|B|R>> |r你摸一张牌'
     )
     is_action_valid = equip_iav
 
 
-class FlirtingSwordSkill:
+class HakuroukenSkill:
     # Skill
-    name = u'调教剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    name = u'白楼剑'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
-class FlirtingSword:
+class Hakurouken:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'才……才不给你机会呢！')
+            return (True, u'弃置这张牌')
         else:
             return (False, u'请弃掉一张牌（否则对方摸一张牌）')
 
     def effect_string_before(act):
         return (
-            u'|G【%s】|r拿起了|G调教剑|r，对着|G【%s】|r做起了啪啪啪的事！'
+            u'|G【%s】|r祭起了|G白楼剑|r，试图斩断|G【%s】|r的迷惘！'
         ) % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
@@ -1709,45 +1670,15 @@ class FlirtingSword:
 
     def effect_string(act):
         if act.peer_action == 'drop':
-            return (
-                u'但是|G【%s】|r不太情愿，拿起一张牌甩在了|G【%s】|r的脸上！'
-            ) % (
-                act.target.ui_meta.char_name,
-                act.source.ui_meta.char_name,
-            )
+            return u'|G【%s】|r弃置了一张牌。' % act.target.ui_meta.char_name
         else:
-            return (
-                u'|G【%s】|r被（哗）后，|G【%s】|r居然摆着人生赢家的姿态摸了一张牌！'
-            ) % (
-                act.target.ui_meta.char_name,
-                act.source.ui_meta.char_name,
-            )
+            return u'|G【%s】|r摸了一张牌。' % act.source.ui_meta.char_name
 
 
-class FlirtingSwordHandler:
+class HakuroukenHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【调教剑】吗？'
-
-
-class CameraCard:
-    # action_stage meta
-    name = u'相机'
-    image = gres.card_camera
-    description = (
-        u'|R相机|r\n\n'
-        u'将除了你之外的任意一名玩家的2张手牌置入明牌区'
-    )
-
-    def is_action_valid(g, cl, tl):
-        if not tl:
-            return (False, u'请选择目标')
-        t = tl[0]
-
-        if not t.cards:
-            return (True, u'这货已经没有隐藏的手牌了')
-
-        return (True, u'摄影的境界，你们这些玩器材的永远都不会懂！')
+    choose_option_prompt = u'你要发动【白楼剑】吗？'
 
 
 class AyaRoundfanCard:
@@ -1757,7 +1688,7 @@ class AyaRoundfanCard:
     image_small = gres.card_ayaroundfan_small
     description = (
         u'|R团扇|r\n\n'
-        u'攻击距离3，当你使用【弹幕】命中时，可以弃一张手牌，卸掉目标的一件装备。'
+        u'攻击距离5，当你使用【弹幕】命中时，可以弃一张手牌，卸掉目标的一件装备。'
     )
     is_action_valid = equip_iav
 
@@ -1765,12 +1696,8 @@ class AyaRoundfanCard:
 class AyaRoundfanSkill:
     # Skill
     name = u'团扇'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class AyaRoundfanHandler:
@@ -1799,47 +1726,72 @@ class AyaRoundfan:
         )
 
 
-class ScarletRhapsodySwordCard:
+class NenshaPhoneCard:
     # action_stage meta
-    name = u'绯想之剑'
-    image = gres.card_scarletrhapsodysword
-    image_small = gres.card_scarletrhapsodysword_small
+    name = u'念写机'
+    image = gres.card_nenshaphone
+    image_small = gres.card_nenshaphone_small
     description = (
-        u'|R绯想之剑|r\n\n'
-        u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），强制命中对方，对方无法闪避（则【弹幕】依然造成伤害）。'
+        u'|R念写机|r\n\n'
+        u'攻击距离4，当你使用【弹幕】命中时，可以将目标的两张手牌置入明牌区。'
     )
     is_action_valid = equip_iav
 
 
-class ScarletRhapsodySwordSkill:
+class NenshaPhoneSkill:
     # Skill
-    name = u'绯想之剑'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    name = u'念写机'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
-class ScarletRhapsodySwordAttack:
+class NenshaPhoneHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【念写机】吗？'
+
+
+class NenshaPhone:
+    def effect_string(act):
+        return (
+            u'|G【%s】|r表示，将|G【%s】|r推倒后拍摄胖次，是记者的自我修养中不可或缺的一部分。'
+        ) % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
+class LaevateinCard:
+    # action_stage meta
+    name = u'莱瓦汀'
+    image = gres.card_laevatein
+    image_small = gres.card_laevatein_small
+    description = (
+        u'|R莱瓦汀|r\n\n'
+        u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），使此【弹幕】强制命中对方，无法闪避。'
+    )
+    is_action_valid = equip_iav
+
+
+class LaevateinSkill:
+    # Skill
+    name = u'莱瓦汀'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class LaevateinAttack:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'闪过头了！')
+            return (True, u'灭世之炎岂能轻易闪过！')
         else:
-            return (False, u'请弃掉两张牌发动绯想之剑（否则不发动）')
+            return (False, u'请弃掉两张牌发动莱瓦汀（否则不发动）')
 
 
-class ScarletRhapsodySword:
+class Laevatein:
     def effect_string_before(act):
-        sn, tn = act.source.ui_meta.char_name, act.target.ui_meta.char_name
-        return (
-            u'但是弱点早已被|G绯想之剑|r看穿，在|G【%s】|r还未' +
-            u'停稳脚步时，|G【%s】|r给了她精准的一击！'
-        ) % (
-            tn, sn
-        )
+        return u'|G莱瓦汀|r能像这样轻易闪过？能就不科学了！'
 
 
 class DeathSickleCard:
@@ -1849,7 +1801,7 @@ class DeathSickleCard:
     image_small = gres.card_deathsickle_small
     description = (
         u'|R死神之镰|r\n\n'
-        u'攻击范围2，锁定技，当你使用的【弹幕】时，若指定的目标没有手牌，结算时伤害+1。'
+        u'攻击范围2，|B锁定技|r，当你使用的【弹幕】时，若指定的目标没有手牌，结算时伤害+1。'
     )
     is_action_valid = equip_iav
 
@@ -1857,12 +1809,8 @@ class DeathSickleCard:
 class DeathSickleSkill:
     # Skill
     name = u'死神之镰'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class DeathSickle:
@@ -1892,12 +1840,8 @@ class KeystoneCard:
 class KeystoneSkill:
     # Skill
     name = u'要石'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Keystone:
@@ -1939,12 +1883,8 @@ class YinYangOrbCard:
 class YinYangOrbSkill:
     # Skill
     name = u'阴阳玉'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class YinYangOrbHandler:
@@ -1977,12 +1917,8 @@ class SuwakoHatCard:
 class SuwakoHatSkill:
     # Skill
     name = u'青蛙帽'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class YoumuPhantomCard:
@@ -2001,12 +1937,8 @@ class YoumuPhantomCard:
 class YoumuPhantomSkill:
     # Skill
     name = u'半灵'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class IceWingCard:
@@ -2025,12 +1957,8 @@ class IceWingCard:
 class IceWingSkill:
     # Skill
     name = u'⑨的翅膀'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class IceWing:
@@ -2070,7 +1998,10 @@ class GrimoireSkill:
         try:
             act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
-                if me.tags.get('attack_num', 0):
+                if me.tags['freeattack'] >= me.tags['turn_count']:
+                    return True
+
+                if me.tags['attack_num'] > 0:
                     return True
 
                 if me.has_skill(cards.ElementalReactorSkill):
@@ -2078,6 +2009,7 @@ class GrimoireSkill:
 
         except IndexError:
             pass
+
         return False
 
     def is_action_valid(g, cl, target_list):
@@ -2204,12 +2136,7 @@ class Envy:
     def clickable(game):
         me = game.me
 
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
-            return False
-
-        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+        if my_turn() and (me.cards or me.showncards or me.equips):
             return True
 
         return False
@@ -2263,23 +2190,19 @@ class Youmu:
     char_name = u'魂魄妖梦'
     port_image = gres.youmu_port
     description = (
-        u'|DB半分虚幻的庭师 魂魄妖梦 体力：4|r\n\n'
+        u'|DB半分虚幻的厨师 魂魄妖梦 体力：4|r\n\n'
         u'|G迷津慈航斩|r：|B锁定技|r，你使用【弹幕】时，目标角色需连续使用两张【擦弹】才能抵消；与你进行【弹幕战】的角色每次需连续打出两张【弹幕】。\n\n'
         u'|G二刀流|r：你可以同时装备两把武器。同时装备时，攻击距离加成按其中较低者计算，武器技能同时有效。\n'
         u'|B|R>> |r成为【人形操控】目标并且不出【弹幕】的话，两把武器会被一起拿走\n\n'
-        u'|G现世妄执|r：|B觉醒技|r，同时装备了楼观剑与白楼剑获得此技能（卸掉/更换装备不会失去）。一回合内你可以使用两张【弹幕】。'
+        u'|R现世妄执|r：|B觉醒技|r，当你同时装备了楼观剑与白楼剑时，你需提高一点体力上限并回复一点体力，获得此技能（卸掉/更换装备不会失去）。一回合内你可以使用两张【弹幕】。'
     )
 
 
 class Mijincihangzhan:
     # Skill
     name = u'迷津慈航斩'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MijincihangzhanAttack:
@@ -2293,23 +2216,15 @@ class MijincihangzhanAttack:
 class Nitoryuu:
     # Skill
     name = u'二刀流'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Xianshiwangzhi:
     # Skill
     name = u'现世妄执'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 # ----------
@@ -2332,15 +2247,10 @@ class Find:
 
     def clickable(game):
         me = game.me
-        if me.tags.get('find_tag', 0) >= me.tags.get('turn_count', 0):
+        if limit1_skill_used('find_tag'):
             return False
 
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
-            return False
-
-        if isinstance(act, actions.ActionStage) and (me.cards or me.showncards or me.equips):
+        if my_turn() and (me.cards or me.showncards or me.equips):
             return True
 
         return False
@@ -2385,24 +2295,19 @@ class MasterSpark:
     # Skill
     name = u'极限火花'
 
-    def clickable(game):
-        me = game.me
-
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
-            return False
-
-        # if act.target is not me: return False  # act may has no 'target' attrib
+    def clickable(g):
+        me = g.me
         if not (me.cards or me.showncards): return False
 
-        if isinstance(act, actions.ActionStage):
-            if act.target is me:
-                return True
+        try:
+            act = g.hybrid_stack[-1]
+            if act.cond([characters.marisa.MasterSpark(me)]):
+                act = g.action_stack[-1]
+                if act.target is me:
+                    return True
 
-        if isinstance(act, (cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
-            if act.target is me:
-                return True
+        except (IndexError, AttributeError):
+            pass
 
         return False
 
@@ -2434,12 +2339,8 @@ class MasterSpark:
 class Borrow:
     # Skill
     name = u'借走'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class BorrowHandler:
@@ -2518,12 +2419,8 @@ class SupportSkill:
 class Moe:
     # Skill
     name = u'卖萌'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MoeDrawCard:
@@ -2550,12 +2447,8 @@ class Flandre:
 class CriticalStrike:
     # Skill
     name = u'狂咲'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class CriticalStrikeHandler:
@@ -2588,12 +2481,8 @@ class Alice:
 class DollManipulation:
     # Skill
     name = u'人形操演'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class DollCrusader:
@@ -2647,19 +2536,15 @@ class Nazrin:
     description = (
         u'|DB探宝的小小大将 娜滋琳 体力：3|r\n\n'
         u'|G轻敏|r：你可以将你的黑色手牌当作【擦弹】使用或打出。\n\n'
-        u'|G探宝|r：回合开始阶段，你可以进行判定：若为黑色，立即获得此牌，并且可以继续发动探宝；直到出现红色牌为止。'
+        u'|G探宝|r：回合开始阶段，你可以进行判定。判定结束后，若为黑色，你获得此判定牌，并且可以继续发动探宝。'
     )
 
 
 class TreasureHuntSkill:
     # Skill
     name = u'探宝'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class TreasureHuntHandler:
@@ -2730,51 +2615,16 @@ class Yugi:
 class AssaultSkill:
     # Skill
     name = u'强袭'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
-
-'''
-    def clickable(game):
-        me = game.me
-        if me.tags.get('yugi_assault', 0) >= me.tags.get('turn_count', 0):
-            return False
-        try:
-            act = game.action_stack[-1]
-        except IndexError:
-            return False
-
-        return isinstance(act, actions.ActionStage)
-
-    def is_action_valid(g, cl, target_list):
-        if not target_list:
-            return (False, u'请选择强袭的目标，以及一张武器牌或者【酒】（不选自己会受到1点伤害）')
-
-        if g.me is target_list[0]:
-            return (False, u'不可以对自己发动')
-        else:
-            return (True, u'[不知道该说什么，先这样吧]')
-
-    def effect_string(act):
-        return u'|G【%s】|r向|G【%s】|r发动了|G强袭|r技能' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
-        )
-'''
+    no_display = False
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class FreakingPowerSkill:
     # Skill
     name = u'怪力'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class FreakingPower:
@@ -2797,12 +2647,8 @@ __metaclass__ = gen_metafunc(characters.patchouli)
 class Library:
     # Skill
     name = u'图书'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class LibraryDrawCards:
@@ -2815,12 +2661,8 @@ class LibraryDrawCards:
 class Knowledge:
     # Skill
     name = u'博学'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class KnowledgeAction:
@@ -2847,12 +2689,8 @@ __metaclass__ = gen_metafunc(characters.tewi)
 class Luck:
     # Skill
     name = u'幸运'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class LuckDrawCards:
@@ -2925,25 +2763,21 @@ class SealingArraySkill:
             target.ui_meta.char_name,
         )
 
+
 class Flight:
     # Skill
     name = u'飞行'
+    no_display = False
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
 
 class TributeTarget:
     # Skill
     name = u'纳奉'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
 
 class Tribute:
     # Skill
@@ -3074,20 +2908,27 @@ __metaclass__ = gen_metafunc(characters.reimu)
 class Flight:
     # Skill
     name = u'飞行'
-    no_display = False
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class SpiritualAttack:
     name = u'灵击'
 
-    def clickable(game):
-        return True  # FIXME: !!!!!!
+    def clickable(g):
+        me = g.me
+
+        if not (me.cards or me.showncards): return False
+
+        try:
+            act = g.hybrid_stack[-1]
+            if act.cond([characters.reimu.SpiritualAttack(me)]):
+                return True
+
+        except (IndexError, AttributeError):
+            pass
+
+        return False
 
     def is_complete(g, cl):
         skill = cl[0]
@@ -3113,12 +2954,8 @@ class SpiritualAttack:
 class TributeTarget:
     # Skill
     name = u'纳奉'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Tribute:
@@ -3183,12 +3020,8 @@ __metaclass__ = gen_metafunc(characters.kogasa)
 class Jolly:
     # Skill
     name = u'愉快'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class JollyDrawCard:
@@ -3289,7 +3122,7 @@ class Kogasa:
     port_image = gres.kogasa_port
     description = (
         u'|DB愉快的遗忘之伞 多多良小伞 体力：3|r\n\n'
-        u'|G惊吓|r：出牌阶段，你可以指定另一名角色选择一种花色，抽取你的一张手牌并亮出，若此牌与所选花色不吻合，则你对该角色造成1点伤害。然后不论结果，该角色都获得此牌，你摸一张牌。每回合限用一次。\n\n'
+        u'|G惊吓|r：出牌阶段，你可以指定另一名角色选择一种花色，抽取你的一张手牌，该角色将这张牌加入明牌区。若此牌与所选花色不吻合，则你对该角色造成1点伤害。无论结果如何，你摸一张牌。每阶段限用一次。\n\n'
         u'|G愉快|r：摸牌阶段摸牌后，你可以指定一人摸1张牌。'
     )
 
@@ -3385,12 +3218,8 @@ __metaclass__ = gen_metafunc(characters.shikieiki)
 class Trial:
     # Skill
     name = u'审判'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class TrialAction:
@@ -3405,17 +3234,13 @@ class TrialAction:
 class Majesty:
     # Skill
     name = u'威严'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MajestyAction:
     def effect_string(act):
-        return u'|G【%s】|r脸上挂满黑线，收走了|G【%s】|r的一张牌作为罚款' % (
+        return u'|G【%s】|r脸上挂满黑线，收走了|G【%s】|r的一张牌填补自己的|G威严|r。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
@@ -3457,12 +3282,8 @@ __metaclass__ = gen_metafunc(characters.tenshi)
 class Masochist:
     # Skill
     name = u'抖Ｍ'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MasochistHandler:
@@ -3494,12 +3315,8 @@ class MasochistAction:
 class Hermit:
     # Skill
     name = u'天人'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Tenshi:
@@ -3555,12 +3372,8 @@ class FlowerQueen:
 class MagicCannon:
     # Skill
     name = u'魔炮'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MagicCannonAttack:
@@ -3575,12 +3388,8 @@ class MagicCannonAttack:
 class PerfectKill:
     # Skill
     name = u'完杀'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class PerfectKillAction:
@@ -3657,12 +3466,8 @@ class DarknessAction:
 class Cheating:
     # Skill
     name = u'作弊'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class CheatingDrawCards:
@@ -3729,12 +3534,8 @@ class Netoru:
 class Psychopath:
     # Skill
     name = u'变态'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class PsychopathDrawCards:
@@ -3764,23 +3565,15 @@ __metaclass__ = gen_metafunc(characters.ran)
 class Prophet:
     # Skill
     name = u'神算'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class ExtremeIntelligence:
     # Skill
     name = u'极智'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class ProphetHandler:
@@ -3822,12 +3615,8 @@ class ExtremeIntelligenceAction:
 class NakedFox:
     # Skill
     name = u'素裸'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class NakedFoxAction:
@@ -3858,12 +3647,8 @@ __metaclass__ = gen_metafunc(characters.remilia)
 class SpearTheGungnir:
     # Skill
     name = u'神枪'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class SpearTheGungnirAction:
@@ -3883,12 +3668,8 @@ class SpearTheGungnirHandler:
 class VampireKiss:
     # Skill
     name = u'红魔之吻'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class VampireKissAction:
@@ -3917,12 +3698,8 @@ __metaclass__ = gen_metafunc(characters.minoriko)
 class Foison:
     # Skill
     name = u'丰收'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class FoisonDrawCardStage:
@@ -3968,12 +3745,8 @@ class AutumnFeast:
 class AkiTribute:
     # Skill
     name = u'上贡'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Minoriko:
@@ -3994,12 +3767,8 @@ __metaclass__ = gen_metafunc(characters.meirin)
 class RiverBehind:
     # Skill
     name = u'背水'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class Taichi:
@@ -4052,12 +3821,8 @@ class Taichi:
 class LoongPunch:
     # Skill
     name = u'龙拳'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class LoongPunchHandler:
@@ -4143,34 +3908,22 @@ class Drunkard:
 class GreatLandscape:
     # Skill
     name = u'大江山'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class WineGod:
     # Skill
     name = u'醉神'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class WineDream:
     # Skill
     name = u'醉梦'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, 'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class WineGodAwake:
@@ -4270,12 +4023,8 @@ __metaclass__ = gen_metafunc(characters.yukari)
 class Realm:
     # Skill
     name = u'境界'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class RealmSkipFatetell:
@@ -4416,22 +4165,17 @@ class FlyingKnife:
     def clickable(g):
         me = g.me
 
-        try:
-            act = g.action_stack[-1]
-        except IndexError:
-            return False
-
         if not (me.cards or me.showncards or me.equips): return False
-        if act.target is not g.me: return False
 
         try:
-            if act.cond([build_handcard(cards.AttackCard)]):
-                return True
-        except:
-            pass
+            act = g.hybrid_stack[-1]
+            if act.cond([characters.sakuya.FlyingKnife(me)]):
+                act = g.action_stack[-1]
+                if act.target is g.me:
+                    return True
 
-        if isinstance(act, actions.ActionStage):
-            return True
+        except (IndexError, AttributeError):
+            pass
 
         return False
 
@@ -4466,12 +4210,8 @@ class FlyingKnife:
 class LunaClock:
     # Skill
     name = u'月时计'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 # ----------
 __metaclass__ = gen_metafunc(characters.sanae)
@@ -4500,19 +4240,10 @@ class DrawingLot:
     name = u'御神签'
 
     def clickable(g):
-        try:
-            act = g.action_stack[-1]
-        except IndexError:
-            return False
+        if my_turn() and not limit1_skill_used('drawinglot_tag'):
+            return True
 
-        if not isinstance(act, actions.ActionStage):
-            return False
-
-        if act.target is not g.me: return False
-        t = act.target.tags
-        if t['turn_count'] <= t['drawinglot_tag']: return False
-
-        return True
+        return False
 
     def effect_string(act):
         return u'|G【%s】|r给|G【%s】|r抽了一签……' % (
@@ -4530,12 +4261,8 @@ class DrawingLot:
 class Miracle:
     # Skill
     name = u'奇迹'
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class MiracleAction:
@@ -4666,12 +4393,8 @@ class Kaguya:
 class Dilemma:
     # Skill
     name = u'难题'
-
-    def clickable(g):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG!')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class DilemmaDamageAction:
@@ -4721,6 +4444,8 @@ class DilemmaHandler:
 class ImperishableNight:
     # Skill
     name = u'永夜'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
     @property
     def image(c):
@@ -4730,12 +4455,6 @@ class ImperishableNight:
     description = (
         u'|G【蓬莱山辉夜】|r的技能产生的【封魔阵】'
     )
-
-    def clickable(game):
-        return False
-
-    def is_action_valid(g, cl, target_list):
-        return (False, u'BUG')
 
     def effect_string(act):
         return u'|G【%s】|r对|G【%s】|r使用了|G永夜|r。' % (
@@ -4758,6 +4477,144 @@ class ImperishableNightHandler:
             return (True, u'陷入永夜吧！')
         else:
             return (False, u'请选择一张红色的基本牌或装备牌')
+
+
+#-----------
+__metaclass__ = gen_metafunc(characters.momiji)
+
+
+class Momiji:
+    # Character
+    char_name = u'犬走椛'
+    port_image = gres.momiji_port
+    description = (
+        u'|DB山中的千里眼 犬走椛 体力：4|r\n\n'
+        u'|G哨戒|r：当其他玩家（记作A）使用弹幕并对另一玩家（记作B）造成伤害时，若A在你的攻击距离内，你可以使用一张弹幕或梅花色牌作为弹幕对A使用。若此弹幕造成伤害，你可以防止此伤害，并且使B受到的伤害-1。\n\n'
+        u'|G千里眼|r：你与其他玩家结算距离时始终-1'
+    )
+
+
+class Sentry:
+    # Skill
+    name = u'哨戒'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class SharpEye:
+    # Skill
+    name = u'千里眼'
+    no_display = False
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class SentryAttack:
+    # Skill
+    name = u'哨戒'
+
+
+class SentryHandler:
+    # choose_option meta
+    choose_option_buttons = ((u'保护', True), (u'伤害', False))
+    choose_option_prompt = u'你希望发动的效果？'
+
+    # choose_card meta
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'吃我大弹幕啦！(对%s发动哨戒)' % act.target.ui_meta.char_name)
+        else:
+            return (False, u'请选择一张弹幕或者草花色牌发动哨戒(对%s)' % act.target.ui_meta.char_name)
+
+
+#-----------
+__metaclass__ = gen_metafunc(characters.komachi)
+
+
+class Komachi:
+    # Character
+    char_name = u'小野塚小町'
+    port_image = gres.komachi_port
+    description = (
+        u'|DB乳不巨何以聚人心 小野塚小町 体力：4|r\n\n'
+        u'|G彼岸|r：出牌阶段，你可以弃置一张牌并指定一名角色，你与其距离视为1直到回合结束。若该角色为全场体力最少的角色（或之一），你可以弃置其一张牌或摸一张牌。每阶段限一次。\n\n'
+        u'|G归航|r：|B觉醒技|r，回合开始阶段，若你的体力值低于手牌数且小于等于2时，你需失去一点体力上限并回复一点体力，永久性获得技能|R渡钱|r。\n\n'
+        u'|R渡钱|r：你对距离为1的角色造成一次伤害后，你可以获得其一张牌。'
+    )
+
+
+class Riverside:
+    # Skill
+    name = u'彼岸'
+
+    def clickable(g):
+        if not my_turn(): return False
+        if limit1_skill_used('riverside_tag'): return False
+
+        me = g.me
+        return bool(me.cards or me.showncards or me.equips)
+
+    def is_action_valid(g, cl, tl):
+        acards = cl[0].associated_cards
+        if (not acards) or len(acards) != 1:
+            return (False, u'请选择一张牌')
+
+        card = acards[0]
+
+        if card.resides_in.type not in ('cards', 'showncards', 'equips'):
+            return (False, u'WTF?!')
+
+        if card.is_card(cards.Skill):
+            return (False, u'你不可以像这样组合技能')
+
+        return (True, u'近一点~再近一点~~')
+
+    def effect_string(act):
+        return u'|G【%s】|r对|G【%s】|r使用了|G彼岸|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name
+        )
+
+
+class RiversideAction:
+    # choose_option meta
+    choose_option_buttons = ((u'弃置一张牌', 'drop'), (u'摸一张牌', 'draw'))
+    choose_option_prompt = u'彼岸：你希望发动的效果？'
+
+
+class ReturningAwake:
+    def effect_string(act):
+        return u'|G【%s】|r：“啊啊不能再偷懒啦！要被四季大人说教啦！”' % (
+            act.target.ui_meta.char_name,
+        )
+
+
+class Returning:
+    # Skill
+    name = u'归航'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class FerryFee:
+    # Skill
+    name = u'渡钱'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class FerryFeeEffect:
+    def effect_string(act):
+        return u'|G【%s】|r收走了|G【%s】|r的一张牌作为|G渡钱|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
+class FerryFeeHandler:
+    # choose_option meta
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动渡钱吗？'
 
 
 # ----------
@@ -4977,5 +4834,17 @@ class action:
     tag_anim = lambda p: gres.tag_action
     display = lambda p, v: v
     description = u'可以行动'
+
+
+class riverside_target:
+    tag_anim = lambda p: gres.tag_riverside
+    display = lambda p, v: v
+    description = u'被指定为彼岸的目标'
+
+
+class ran_ei:
+    tag_anim = lambda p: gres.tag_ran_ei
+    display = lambda p, v: v < p.tags['turn_count'] + 1
+    description = u'还可以发动【极智】'
 
 # -----END TAGS UI META-----

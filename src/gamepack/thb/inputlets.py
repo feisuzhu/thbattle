@@ -14,7 +14,7 @@ from utils import check, check_type, CheckFailed
 # -- code --
 
 class ChooseOptionInputlet(Inputlet):
-    def init(self, options=(False, True)):
+    def init(self, options):
         self.options = options
         self.result = None
 
@@ -125,6 +125,13 @@ class ChooseIndividualCardInputlet(Inputlet):
         assert c in self.cards
         self.selected = c
 
+    def post_process(self, actor, card):
+        if card:
+            log.debug('ChooseIndividualCardInputlet: detaching %r!', card)
+            card.detach()
+
+        return card
+
 
 class ChoosePeerCardInputlet(Inputlet):
     def init(self, target, categories):
@@ -166,6 +173,13 @@ class ChoosePeerCardInputlet(Inputlet):
     def set_card(self, c):
         assert c.resides_in.type in self.categories
         self.selected = c
+
+    def post_process(self, actor, card):
+        if card:
+            log.debug('ChoosePeerCardInputlet: detaching %r!', card)
+            card.detach()
+
+        return card
 
 
 class ProphetInputlet(Inputlet):
