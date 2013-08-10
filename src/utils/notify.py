@@ -13,9 +13,9 @@ def notify(title, msg, level = BASIC):
 __all__ = ['notify']
 
 try:
-    from pynotify import *
-    init('thbattle')
-    n = Notification('None')
+    import pynotify
+    pynotify.init('thbattle')
+    n = pynotify.Notification('None')
     def _notify(title, msg):
         n.update(title, msg)
         n.show()
