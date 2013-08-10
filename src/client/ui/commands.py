@@ -90,6 +90,20 @@ def vol(val):
         SoundManager.set_volume(val / 100.0)
         return u'音量已设置为 %d' % val
 
+@command(u'设置提醒显示级别', u'off     禁用提醒\nbasic   启用基本提醒\nspeaker 为文文新闻显示提醒')
+@argtypes(str)
+@argdesc(u'<off||basic||speaker>')
+def notify(val):
+    from utils.notify import NONE, BASIC, SPEAKER
+    try:
+        level = { 'off': NONE, 'basic': BASIC, 'speaker': SPEAKER }[val]
+    except KeyError:
+        return registered_commands['?']('notify')
+        
+    from user_settings import UserSettings as us
+    us.notify_level = level
+
+    return u'提醒级别已变更为%s。' % val
 
 @command(u'帮助', u'查看命令的帮助', cmd='?')
 @argtypes(str)
