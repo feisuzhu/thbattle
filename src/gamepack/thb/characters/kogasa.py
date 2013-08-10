@@ -31,7 +31,7 @@ class Surprise(UserAction):
 
         g = Game.getgame()
         g.players.exclude(src).reveal(card)
-        migrate_cards([card], tgt.cards)
+        migrate_cards([card], tgt.showncards)
 
         if card.suit != suit:
             g.process_action(Damage(src, tgt))
