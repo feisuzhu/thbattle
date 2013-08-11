@@ -40,6 +40,9 @@ def handle_chat(_type, args):
 
     elif _type == 'speaker_msg':
         node, uname, msg = args[0]
+        from utils.notify import notify, SPEAKER
+        notify(u'东方符斗祭 - 『文々。新闻』',
+               u'%s: %s' % (uname, msg), level = SPEAKER)
         node = node and '|G%s' % ServerNames.get(node, node)
         uname = uname.replace('|', '||')
         return u'%s|ccc3299ff『文々。新闻』|cff0000ff%s|r： %s\n' % (node, uname, msg)
@@ -790,15 +793,19 @@ class GameScreen(Screen):
                 }
 
             orig_players = players()
+            full = True
+
             for i, p in enumerate(pl):
                 accdata = p['account']
                 acc = Account.parse(accdata) if accdata else None
+                if not accdata: full = False
 
                 port = self.portraits[i]
                 port.account = acc
                 port.ready = (p['state'] == 'ready')
 
                 port.update()
+
             curr_players = players()
 
             for player in (orig_players - curr_players):
@@ -810,6 +817,11 @@ class GameScreen(Screen):
                 self.parent.chat_box.append(
                     u'|B|R>> |r玩家|c0000ffff|B%s|r已进入游戏\n' % player
                 )
+
+            if not self.ready and full and orig_players != curr_players:
+                from utils import notify
+                notify(u'东方符斗祭 - 满员提醒', u'房间已满员，请准备。')
+
 
     class EventsBox(Frame):
         def __init__(self, parent):
@@ -873,6 +885,8 @@ class GameScreen(Screen):
             self.chat_box.append(rst)
 
         elif _type == 'game_started':
+            from utils import notify
+            notify(u'东方符斗祭 - 游戏提醒', u'游戏已开始，请注意。')
             self.remove_control(self.panel)
             self.gameui.init()
             self.add_control(self.gameui)
