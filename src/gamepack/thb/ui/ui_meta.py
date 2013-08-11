@@ -1410,9 +1410,10 @@ class ScarletRhapsodySkill:
         source = act.source
         tl = BatchList(act.target_list)
 
-        return u'全人类的绯想天！|G【%s】|r表示不能只打一个！|G【%s】|r！' % (
+        return u'全人类的绯想天，当然不能只打一个！于是|G【%s】|r选了|G【%s】|r一共%d个目标！' % (
             source.ui_meta.char_name,
             u'】|r、|G【'.join(tl.ui_meta.char_name),
+            len(tl),
         )
 
 

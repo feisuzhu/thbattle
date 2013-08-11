@@ -196,6 +196,7 @@ class RoukankenEffectHandler(EventHandler):
         'SaigyouBranchHandler',
         'HouraiJewelHandler',
         'SpearTheGungnirHandler',
+        'HakuroukenHandler',
     )
 
     def handle(self, evt_type, act):
@@ -573,10 +574,10 @@ class HakuroukenHandler(EventHandler):
     # src equips [Gourd, Hakurouken], tgt drops Exinwan
     # then src drops Gourd,
     # but Attack.damage == 1, Wine tag preserved.
-    execute_before = ('WineHandler', )
+    execute_before = ('WineHandler', 'MomijiShieldHandler')
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, basic.BaseAttack):
+        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
             if act.cancelled: return act
             src = act.source
             if not src.has_skill(HakuroukenSkill): return act

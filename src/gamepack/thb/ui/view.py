@@ -2,6 +2,7 @@
 import logging
 log = logging.getLogger('THBattleUI')
 
+import gevent
 from gevent.event import Event
 
 import pyglet
@@ -17,6 +18,7 @@ from .game_controls import HandCardArea, PortraitCardArea, DropCardArea, Ray, Ga
 from resource import resource as gres
 import effects
 import inputs
+import random
 
 from utils import rect_to_dict as r2d
 
@@ -38,6 +40,7 @@ class UIEventHook(EventHandler):
             f = getattr(cls, name)
         except AttributeError:
             process_msg((name, data))
+            random.random() < 0.005 and gevent.sleep(0)
             return data
 
         rst = f(data)
