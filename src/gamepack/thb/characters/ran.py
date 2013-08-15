@@ -28,7 +28,7 @@ class ProphetAction(GenericAction):
 
         tgt.reveal(cards)
 
-        upcards, downcards = user_input([tgt], ProphetInputlet(self, cards)) or [range(n), []]
+        upcards, downcards = user_input([tgt], ProphetInputlet(self, cards), timeout=45) or [range(n), []]
 
         deck = g.deck.cards
         for i, c in enumerate(downcards):
