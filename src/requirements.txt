@@ -1,0 +1,11 @@
+gevent
+pyglet
+simplejson
+colorlog
+requests
+python-openal
+pika
+msgpack-python
+MySQL-python
+SQLAlchemy
+PIL

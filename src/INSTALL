@@ -1,0 +1,6 @@
+python deps: in requrements.txt
+
+libopenal
+libevent required by gevent
+PIL with zlib & jpeg support
+
