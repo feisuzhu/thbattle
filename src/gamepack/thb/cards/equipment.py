@@ -3,7 +3,7 @@
 from game.autoenv import Game, EventHandler, user_input, GameError
 from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DummyAction, DropCardStage, MaxLifeChange
 from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card
-from .base import Card, Skill, TreatAsSkill, t_None, t_OtherOne, t_OtherLessEqThanN
+from .base import Card, VirtualCard, Skill, TreatAsSkill, t_None, t_OtherOne, t_OtherLessEqThanN
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 from . import basic, spellcard
@@ -304,7 +304,13 @@ class ScarletRhapsodySkill(WeaponSkill):
             from .definition import AttackCard
             check(card.is_card(AttackCard))
             target = card.resides_in.owner
-            check(len(target.cards) + len(target.showncards) == 1)
+
+            # FIXME: not quite right here...
+            #        'detached' quirk !!!!
+            raw = VirtualCard.unwrap([card])
+            expected = len(raw) - sum([c.detached for c in raw])
+
+            check(len(target.cards) + len(target.showncards) == expected)
             return True
         except CheckFailed:
             return False
