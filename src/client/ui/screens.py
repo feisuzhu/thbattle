@@ -42,7 +42,7 @@ def handle_chat(_type, args):
         node, uname, msg = args[0]
         from utils.notify import notify, SPEAKER
         notify(u'东方符斗祭 - 『文々。新闻』',
-               u'%s: %s' % (uname, msg), level = SPEAKER)
+               u'%s: %s' % (uname, msg), level=SPEAKER)
         node = node and '|G%s' % ServerNames.get(node, node)
         uname = uname.replace('|', '||')
         return u'%s|ccc3299ff『文々。新闻』|cff0000ff%s|r： %s\n' % (node, uname, msg)
@@ -822,7 +822,6 @@ class GameScreen(Screen):
                 from utils import notify
                 notify(u'东方符斗祭 - 满员提醒', u'房间已满员，请准备。')
 
-
     class EventsBox(Frame):
         def __init__(self, parent):
             Frame.__init__(
@@ -883,6 +882,7 @@ class GameScreen(Screen):
         rst = handle_chat(_type, args)
         if rst:
             self.chat_box.append(rst)
+            return
 
         elif _type == 'game_started':
             from utils import notify
@@ -939,6 +939,18 @@ class GameScreen(Screen):
             @box.event
             def on_confirm(val, uid=uid):
                 Executive.call('observe_grant', ui_message, [uid, val])
+
+        elif _type == 'observer_enter':
+            obuid, obname, uname = args[0]
+            self.chat_box.append(
+                u'|B|R>> |r|c0000ffff%s|r[|c9100ffff%d|r]|r趴在了|c0000ffff%s|r身后\n' % (obname, obuid, uname)
+            )
+
+        elif _type == 'observer_leave':
+            obuid, obname, uname = args[0]
+            self.chat_box.append(
+                u'|B|R>> |r|c0000ffff%s|r飘走了\n' % obname
+            )
 
         else:
             Screen.on_message(self, _type, *args)

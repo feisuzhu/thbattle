@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.base import *
 from client.ui.soundmgr import SoundManager
+from client.core import Executive
 
 registered_commands = {}
+
 
 def command(name, help, cmd=None):
     def decorate(f):
@@ -25,7 +26,7 @@ def argdesc(*desclist):
 
 def argtypes(*types):
     def decorate(f):
-        f.argtypes= types
+        f.argtypes = types
         return f
 
     return decorate
@@ -60,13 +61,14 @@ def process_command(arglist):
         except:
             prompt = registered_commands['?'](cmdname)
             break
-        
+
         prompt = cmd(*al)
         break
 
     return u'|R%s|R\n' % prompt
 
 # -----------------------------------
+
 
 @command(u'设置音量', u'音量可以是 on、off 和 0-100 之间的整数')
 @argtypes(str)
@@ -90,20 +92,22 @@ def vol(val):
         SoundManager.set_volume(val / 100.0)
         return u'音量已设置为 %d' % val
 
+
 @command(u'设置提醒显示级别', u'off     禁用提醒\nbasic   启用基本提醒\nspeaker 为文文新闻显示提醒')
 @argtypes(str)
 @argdesc(u'<off||basic||speaker>')
 def notify(val):
     from utils.notify import NONE, BASIC, SPEAKER
     try:
-        level = { 'off': NONE, 'basic': BASIC, 'speaker': SPEAKER }[val]
+        level = {'off': NONE, 'basic': BASIC, 'speaker': SPEAKER}[val]
     except KeyError:
         return registered_commands['?']('notify')
-        
+
     from user_settings import UserSettings as us
     us.notify_level = level
 
     return u'提醒级别已变更为%s。' % val
+
 
 @command(u'帮助', u'查看命令的帮助', cmd='?')
 @argtypes(str)
@@ -116,3 +120,11 @@ def help(cmdname):
         help = [cmd.commandname, cmd.commandhelp]
         help.append(u'/%s ' % cmdname + u' '.join(cmd.argdesc))
         return u'\n'.join(help)
+
+
+@command(u'踢出观战玩家', '踢出观战玩家')
+@argtypes(int)
+@argdesc(u'<uid>')
+def kickob(uid):
+    Executive.call('kick_observer', None, uid)
+    return u'指令已发出'

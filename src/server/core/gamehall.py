@@ -127,6 +127,10 @@ class Client(ClientEndpoint):
     def command_kick_user(self, uid):
         kick_user(self, uid)
 
+    @for_state('inroomwait', 'ready', 'ingame')
+    def command_kick_observer(self, uid):
+        kick_observer(self, uid)
+
     @for_state('inroomwait')
     def command_change_location(self, loc):
         change_location(self, loc)
@@ -483,14 +487,36 @@ def kick_user(user, uid):
         exit_game(u)
 
 
+def kick_observer(user, uid):
+    g = user.current_game
+    ob = users.get(uid, None)
+    if not (ob and ob.state == 'observing'):
+        return
+
+    if g is not ob.current_game:
+        return
+
+    exit_game(ob)
+
+
 def exit_game(user, drops=False):
     if user.state == 'observing':
         tgt = user.observing
         tgt.observers.remove(user)
         user.state = 'hang'
         user.observing = None
+        user.current_game = None
         user.gclear()
         user.write(['game_left', None])
+
+        @gevent.spawn
+        def notify_observer_leave(user=user, observee=tgt):
+            g = tgt.current_game
+            ul = g.players.client
+            info = [user.account.userid, user.account.username, observee.account.username]
+            ul.write(['observer_leave', info])
+            for obl in ul.observers:
+                obl and obl.write(['observer_leave', info])
 
     elif user.state != 'hang':
         g = user.current_game
@@ -593,31 +619,39 @@ def quick_start_game(user):
     user.write(['gamehall_error', 'cant_join_game'])
 
 
-def _observe_user(user, other):
-    if not other:
+def _observe_user(user, observee):
+    if not observee:
         user.write(['gamehall_error', 'no_such_user'])
         return
 
-    if other.state not in ('ingame', 'inroomwait', 'ready'):
+    if observee.state not in ('ingame', 'inroomwait', 'ready'):
         user.write(['gamehall_error', 'user_not_ingame'])
         return
 
-    g = other.current_game
-    other.observers.append(user)
+    g = observee.current_game
+    observee.observers.append(user)
 
     log.info("observe game")
     user.state = 'observing'
     user.current_game = g
-    user.observing = other
+    user.observing = observee
     user.write(['game_joined', g])
     user.gclear()  # clear stale gamedata
     #_notify_playerchange(g)
     pl = g.players if not g.players_original else g.players_original
     evt_datachange.set()
 
+    @gevent.spawn
+    def notify_observer():
+        ul = g.players.client
+        info = [user.account.userid, user.account.username, observee.account.username]
+        ul.write(['observer_enter', info])
+        for obl in ul.observers:
+            obl and obl.write(['observer_enter', info])
+
     if g.started:
-        user.write(['observe_started', [other.account.userid, pl]])
-        other.replay(user)
+        user.write(['observe_started', [observee.account.userid, pl]])
+        observee.replay(user)
 
 
 observe_table = defaultdict(set)
@@ -751,6 +785,7 @@ def end_game(g):
 
 
 def chat(user, msg):
+    @gevent.spawn
     @log_failure(log)
     def worker():
         packed = (user.account.username, msg)
@@ -766,8 +801,6 @@ def chat(user, msg):
             _type = 'ob_msg' if user.state == 'observing' else 'chat_msg'
             ul.write([_type, packed])  # should be here?
             obl.write([_type, packed])
-
-    gevent.spawn(worker)
 
 
 def speaker(user, msg):

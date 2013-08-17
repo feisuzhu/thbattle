@@ -304,6 +304,7 @@ class Executive(Greenlet):
             'get_ready',
             'join_game',
             'kick_user',
+            'kick_observer',
             'observe_grant',
             'observe_user',
             'query_gameinfo',
