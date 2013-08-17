@@ -122,7 +122,7 @@ def help(cmdname):
         return u'\n'.join(help)
 
 
-@command(u'踢出观战玩家', '踢出观战玩家')
+@command(u'踢出观战玩家', u'踢出观战玩家')
 @argtypes(int)
 @argdesc(u'<uid>')
 def kickob(uid):
