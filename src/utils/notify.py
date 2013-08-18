@@ -11,11 +11,14 @@ def _notify(title, msg):
 try:
     import pynotify
     pynotify.init('thbattle')
+    n = pynotify.Notification('None')
 
     def _notify(title, msg):  # noqa
-        n = pynotify.Notification('None')
-        n.update(title, msg)
-        n.show()
+        try:
+            n.update(title, msg)
+            n.show()
+        except:
+            pass
 
 except ImportError:
     pass
