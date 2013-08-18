@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 156'
+VERSION = 'THBATTLE V1.0b incr 157'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -128,6 +128,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+魔理莎重制
 小伞调整，bug修复，游戏开局提示(zhyk)
 bug修复
 牌堆重制
