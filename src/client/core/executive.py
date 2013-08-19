@@ -116,7 +116,7 @@ class GameManager(Greenlet):
 
             self.event_cb('game_started', g)
 
-        @handler(('hang',), 'inroom')
+        @handler(('hang', 'inroom'), 'inroom')
         def game_joined(self, data):
             self.game = gamemodes[data['type']]()
             self.game.gameid = int(data['id'])
