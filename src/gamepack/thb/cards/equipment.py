@@ -238,6 +238,8 @@ class NenshaPhoneHandler(EventHandler):
         if not act.succeeded: return act
         src = act.source
         tgt = act.target
+        if tgt.dead: return act
+        if not tgt.cards: return act
         if not src.has_skill(NenshaPhoneSkill): return act
         if not user_input([src], ChooseOptionInputlet(self, (False, True))): return act
         g = Game.getgame()
