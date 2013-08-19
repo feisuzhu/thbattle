@@ -131,7 +131,7 @@ class Client(ClientEndpoint):
     def command_kick_observer(self, uid):
         kick_observer(self, uid)
 
-    @for_state('inroomwait')
+    @for_state('inroomwait', 'observing')
     def command_change_location(self, loc):
         change_location(self, loc)
 
@@ -469,10 +469,12 @@ def change_location(user, loc):
     if (not 0 <= loc < len(g.players)) or (pl[loc] is not PlayerPlaceHolder):
         user.write(['change_loc_failed', None])
         return
-    i = pl.client.index(user)
-    pl[loc], pl[i] = pl[i], pl[loc]
-    _notify_playerchange(g)
-
+    if user.state == 'observing':
+        join_game(user, g.gameid, loc)
+    else:        
+        i = pl.client.index(user)
+        pl[loc], pl[i] = pl[i], pl[loc]
+        _notify_playerchange(g)
 
 def kick_user(user, uid):
     g = user.current_game
@@ -587,16 +589,30 @@ def exit_game(user, drops=False):
         user.write(['gamehall_error', 'not_in_a_game'])
 
 
-def join_game(user, gameid):
+def join_game(user, gameid, slot = None):
     if user.state == 'hang' and gameid in games:
         g = games[gameid]
+    elif user.state == 'observing':
+        g = user.current_game
+        g = g if g.gameid == gameid else None
+
+    if g is not None:
         if len(g.banlist[user]) >= 3:
             user.write(['gamehall_error', 'banned'])
             return
 
         log.info("join game")
-        slot = _next_free_slot(g)
+
+        if slot is None:
+            slot = _next_free_slot(g)
+        elif g.players[slot] is not PlayerPlaceHolder:
+            slot = None
+        
         if slot is not None:
+            if user.state == 'observing':
+                user.observing.observers.remove(user)
+                user.observing = None
+
             user.state = 'inroomwait'
             user.current_game = g
             from .game_server import Player
