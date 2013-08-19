@@ -260,7 +260,7 @@ class UIDoActionStage(UISelectTarget):
     def on_selection_change(self):
         parent = self.parent
         skills = parent.get_selected_skills()
-        cards = parent.get_selected_cards()
+        cards = rawcards = parent.get_selected_cards()
 
         g = Game.getgame()
 
@@ -284,59 +284,65 @@ class UIDoActionStage(UISelectTarget):
 
                 cards = [skill_cls.wrap(cards, g.me)]
 
-        if cards:
-            while True:
-                if len(cards) != 1: break
+        if not cards:
+            self.set_text(u'请出牌…')
+            parent.end_select_player()
+            return
 
-                card = cards[0]
+        if len(cards) != 1:
+            self.set_text(u'请选择一张牌使用')
+            parent.end_select_player()
+            return
 
-                from ..cards import VirtualCard
-                if not (
-                    card.is_card(VirtualCard) or
-                    card.resides_in in (g.me.cards, g.me.showncards)
-                ): break
+        card = cards[0]
 
-                target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())
-                if target_list is not None:
-                    parent.set_selected_players(target_list)
-                    disables = []
-                    # if card.target in (thbcards.t_One, thbcards.t_OtherOne):
-                    if card.target.__name__ in ('t_One', 't_OtherOne'):
-                        for p in g.players:
-                            act = thbactions.ActionStageLaunchCard(g.me, [p], card)
-                            if not act.can_fire():
-                                disables.append(p)
-
-                    parent.begin_select_player(disables)
-                    for i in disables:
-                        try:
-                            target_list.remove(i)
-                        except ValueError:
-                            pass
-
-                try:
-                    rst, reason = card.ui_meta.is_action_valid(g, cards, target_list)
-                except Exception as e:
-                    log.exception(e)
-                    rst, reason = (True, u'[card.ui_meta.is_action_valid错误]')
-
-                self.set_text(reason)
-                if rst:
-                    if tl_valid:
-                        act = thbactions.ActionStageLaunchCard(g.me, target_list, card)
-                        if act.can_fire():
-                            self.set_valid()
-                        else:
-                            self.set_text(u'您不能这样出牌')
-                    else:
-                        self.set_text(u'您选择的目标不符合规则')
+        from ..cards import VirtualCard
+        if not card.is_card(VirtualCard):
+            if not card.resides_in in (g.me.cards, g.me.showncards):
+                self.set_text(u'您选择的牌不符合出牌规则')
+                parent.end_select_player()
                 return
 
-            self.set_text(u'您选择的牌不符合出牌规则')
-        else:
-            self.set_text(u'请出牌…')
+        target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())
+        if target_list is not None:
+            parent.set_selected_players(target_list)
+            disables = []
+            # if card.target in (thbcards.t_One, thbcards.t_OtherOne):
+            if card.target.__name__ in ('t_One', 't_OtherOne'):
+                for p in g.players:
+                    act = thbactions.ActionStageLaunchCard(g.me, [p], card)
+                    if not act.can_fire():
+                        disables.append(p)
 
-        parent.end_select_player()
+            parent.begin_select_player(disables)
+            for i in disables:
+                try:
+                    target_list.remove(i)
+                except ValueError:
+                    pass
+
+        try:
+            rst, reason = card.ui_meta.is_action_valid(g, cards, target_list)
+        except Exception as e:
+            log.exception(e)
+            rst, reason = (True, u'[card.ui_meta.is_action_valid错误]')
+
+        self.set_text(reason)
+        if not rst:
+            return
+
+        if tl_valid:
+            act = thbactions.ActionStageLaunchCard(g.me, target_list, card)
+
+            if skills:
+                card = thbactions.skill_wrap(g.me, skills, rawcards, no_reveal=True)
+
+            if card and act.can_fire():
+                self.set_valid()
+            else:
+                self.set_text(u'您不能这样出牌')
+        else:
+            self.set_text(u'您选择的目标不符合规则')
 
 
 class GirlSelector(ImageSelector, BalloonPrompt):

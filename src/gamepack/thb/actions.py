@@ -36,7 +36,8 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                 if skills:
                     # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
-                    check(initiator.cond([skill_wrap(actor, skills, cards)]))
+                    skill = skill_wrap(actor, skills, cards)
+                    check(skill and initiator.cond([skill]))
                 else:
                     if not getattr(initiator, 'no_reveal', False):
                         g.players.reveal(cards)
@@ -595,6 +596,8 @@ class ActionStage(GenericAction):
 
     def cond(self, cl):
         from .cards import Skill
+        if not cl: return False
+
         tgt = self.target
         if not len(cl) == 1:
             return False

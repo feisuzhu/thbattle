@@ -2315,6 +2315,10 @@ class Borrow:
         return True
 
     def is_action_valid(g, cl, target_list):
+        skill = cl[0]
+        if skill.associated_cards:
+            return (False, u'请不要选择牌!')
+
         if len(target_list) != 1:
             return (False, u'请选择1名玩家')
 
