@@ -1,19 +1,26 @@
 # -*- coding: utf-8 -*-
+
 import pyglet
-from pyglet.gl import *
-from pyglet import graphics
 from pyglet.window import mouse, key
 from pyglet.graphics import OrderedGroup
 from pyglet.sprite import Sprite
-from client.ui import shaders
-from client.ui.base import *
+from client.ui.base import Overlay, Control
 from client.ui.base import ui_message, ui_schedule
-from client.ui.base.shader import ShaderGroup, ShaderUniformGroup
-from client.ui.base.interp import *
+from client.ui.base.interp import InterpDesc, LinearInterp
 from client.ui.resource import resource as common_res
 from client.core import Executive
-from utils import Rect, textsnap, flatten, rectv2f, rrectv2f
+from utils import textsnap, flatten, rectv2f, rrectv2f
 from utils import pyperclip, instantiate
+
+from pyglet.gl import glEnd, glBegin, gl_info, glRectf, glEnable, glColor3f
+from pyglet.gl import glColor4f, glDisable, glScissor, glVertex2f, glLineWidth
+from pyglet.gl import glPopAttrib, glPopMatrix, glDrawArrays, glPushAttrib
+from pyglet.gl import glPushMatrix, glTranslatef, glBindTexture, glLoadIdentity
+from pyglet.gl import glCopyTexImage2D, glPopClientAttrib, glPushClientAttrib
+from pyglet.gl import glInterleavedArrays
+
+from pyglet.gl import GLfloat, GL_RGBA, GL_LINES, GL_QUADS, GL_T4F_V4F, GL_ENABLE_BIT
+from pyglet.gl import GL_TEXTURE_2D, GL_SCISSOR_TEST, GL_CLIENT_VERTEX_ARRAY_BIT
 
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
@@ -21,6 +28,7 @@ KEYMOD_MASK = key.MOD_CTRL | key.MOD_ALT | key.MOD_SHIFT
 
 import logging
 log = logging.getLogger('UI_Controls')
+
 
 class Colors:
     @instantiate
@@ -99,18 +107,18 @@ class Colors:
     class gray:
         # Frame
         close_btn = property(lambda _: common_res.buttons.close_blue)
-        btn_frame  =  104, 104, 104
-        caption  =  81, 81, 81
-        caption_shadow  =  237, 237, 237
-        fill_botline  =  229, 229, 229
-        fill_down  =  199, 199, 199
-        fill_medline  =  191, 191, 191
-        fill_up  =  182, 182, 182
-        frame  =  81, 81, 81
-        heavy  =  134, 134, 134
-        light  =  199, 199, 199
-        medium  =  180, 180, 180
-        text  =  81, 81, 81
+        btn_frame = 104, 104, 104
+        caption = 81, 81, 81
+        caption_shadow = 237, 237, 237
+        fill_botline = 229, 229, 229
+        fill_down = 199, 199, 199
+        fill_medline = 191, 191, 191
+        fill_up = 182, 182, 182
+        frame = 81, 81, 81
+        heavy = 134, 134, 134
+        light = 199, 199, 199
+        medium = 180, 180, 180
+        text = 81, 81, 81
 
     @staticmethod
     def get4f(c):
@@ -122,10 +130,10 @@ class Colors:
 
 
 class Button(Control):
-    NORMAL=0
-    HOVER=1
-    PRESSED=2
-    DISABLED=3
+    NORMAL = 0
+    HOVER = 1
+    PRESSED = 2
+    DISABLED = 3
 
     hover_alpha = InterpDesc('_hv')
 
@@ -172,7 +180,7 @@ class Button(Control):
         )
 
         self.hilight_vl = batch.add(4, GL_QUADS, None,
-            ('v2f', (ax, ay,  ax + w, ay,  ax + w, ay + h, ax, ay + h)),
+            ('v2f', (ax, ay, ax + w, ay, ax + w, ay + h, ax, ay + h)),
             ('c4f/stream', [0.0] * (4 * 4)),
         )
 
@@ -204,7 +212,7 @@ class Button(Control):
                 hilight = (0., 0., 0., .25)
             else:
                 a = b.hover_alpha
-                if a: # HOVER, or HOVER -> NORMAL
+                if a:  # HOVER, or HOVER -> NORMAL
                     hilight = (1.0, 1.0, .843, a)
 
             b.hilight_vl.colors[:] = hilight * 4
@@ -223,7 +231,7 @@ class Button(Control):
                 glRectf(0, 0, self.width, self.height)
             else:
                 a = self.hover_alpha
-                if a: # HOVER, or HOVER -> NORMAL
+                if a:  # HOVER, or HOVER -> NORMAL
                     glColor4f(1.0, 1.0, .843, a)
                     glRectf(0, 0, self.width, self.height)
 
@@ -279,10 +287,10 @@ class Button(Control):
 
 
 class ImageButton(Control):
-    NORMAL=0
-    HOVER=1
-    PRESSED=2
-    DISABLED=3
+    NORMAL = 0
+    HOVER = 1
+    PRESSED = 2
+    DISABLED = 3
 
     hover_alpha = InterpDesc('_hv')
 
@@ -305,6 +313,7 @@ class ImageButton(Control):
         glEnable(GL_TEXTURE_2D)
 
         tex = [None]
+
         def blit(btn, idx):
             img = btn.images[idx]
             t = getattr(img, 'owner', img)
@@ -322,14 +331,13 @@ class ImageButton(Control):
                 else:
                     blit(btn, 0)
                     a = btn.hover_alpha
-                    if a: # HOVER, or HOVER -> NORMAL
+                    if a:  # HOVER, or HOVER -> NORMAL
                         glColor4f(1.0, 1.0, 1.0, a)
                         blit(btn, 1)
                         glColor3f(1, 1, 1)
 
         glPopAttrib()
         glPopMatrix()
-
 
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
@@ -370,6 +378,7 @@ class ImageButton(Control):
 Button.register_event_type('on_click')
 ImageButton.register_event_type('on_click')
 
+
 def batch_drawlabel(lbls):
     s = set([l.batch for l in lbls])
     if len(s) == 1:
@@ -389,6 +398,7 @@ def batch_drawlabel(lbls):
             l.batch = batch
             l.end_update()
     batch.draw()
+
 
 def batch_drawsprite(sprites):
     s = list(set([l.batch for l in sprites]))
@@ -414,6 +424,7 @@ class Frame(Control):
     frame_group = OrderedGroup(100)
     labels_group = OrderedGroup(150)
     top_group = OrderedGroup(1000)
+
     def __init__(self, caption='Frame', color=Colors.green,
                  bot_reserve=10, bg=None, thin_shadow=False,
                  *args, **kwargs):
@@ -474,7 +485,7 @@ class Frame(Control):
         ax, ay = self.abs_coords()
         self._batch = batch
 
-        r = self.bot_reserve; w = self.width; h = self.height
+        r = self.bot_reserve
         self.bgsprite = Sprite(common_res.white, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
         self.update_bg()
 
@@ -486,7 +497,7 @@ class Frame(Control):
             if lbl.batch is not batch:
                 lbl.batch = batch
 
-        shadow_arg = {'italic': True} if self.thin_shadow else {'italic':True, 'bold': True}
+        shadow_arg = {'italic': True} if self.thin_shadow else {'italic': True, 'bold': True}
 
         self.caption_shadow_lbl = pyglet.text.Label(
             u'', u'AncientPix', 9,
@@ -572,7 +583,7 @@ class Frame(Control):
 
     @staticmethod
     def batch_draw(dlgs):
-        glColor3f(1,1,1)
+        glColor3f(1, 1, 1)
         glPushMatrix()
         glLoadIdentity()
 
@@ -682,6 +693,7 @@ class Dialog(Frame):
             x=self.width-18, y=self.height-19,
         )
         self.dragging = False
+
         @self.btn_close.event
         def on_click():
             self.close()
@@ -729,6 +741,7 @@ class BalloonPrompt(object):
     balloon_panel = None
     balloon_cursorloc = (0, 0)
     balloon_width = 288
+
     def init_balloon(self, text, region=None, width=288):
         self.balloon_text = text
         self.balloon_region = region
@@ -833,9 +846,9 @@ class TextBox(Control):
         Control.__init__(self, can_focus=True, *args, **kwargs)
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text), dict(
-                color=(0, 0, 0, 255),
-                font_name=font_name,
-                font_size=9,
+            color=(0, 0, 0, 255),
+            font_name=font_name,
+            font_size=9,
         ))
 
         self.color = color
@@ -977,6 +990,7 @@ class PlayerPortrait(Frame):
         )
 
         self.buttons = []
+
         def btn(caption, command, x, y, w, h):
             btn = Button(
                 caption, parent=self,
@@ -1002,7 +1016,7 @@ class PlayerPortrait(Frame):
                 'kick_user', ui_message, self.userid
             )
 
-        btn(u'换位', change_loc , 90, 55, 32, 20)
+        btn(u'换位', change_loc, 90, 55, 32, 20)
         btn(u'请离', kick, 90, 80, 32, 20)
 
     def update(self):
@@ -1082,8 +1096,8 @@ class PlayerPortrait(Frame):
 
         if not acc: return
 
-        c = self.color.caption + (255,)
         f = pyglet.font.load('AncientPix', 9)
+
         def L(text, loc):
             text = textsnap(text, f, self.width - 8 - 4)
             C = Colors.get4i
@@ -1124,14 +1138,13 @@ class PlayerPortrait(Frame):
 
 
 class TextArea(Control):
-    WRAP_HACK = True
 
     def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
 
         width, height = self.width, self.height
 
-        self.document = doc = pyglet.text.document.FormattedDocument(u'')
+        self.document = pyglet.text.document.FormattedDocument(u'')
         self.default_attrib = dict(
             font_size=font_size, font_name=font,
             bold=False, italic=False,
@@ -1193,8 +1206,6 @@ class TextArea(Control):
             else:
                 self.pos_table.append(pos + len(text) - len(tok))
             self.loc_table.append(len(doc.text))
-            if self.WRAP_HACK:
-                tok = u'\u200b'.join(tok) + u'\u200b'
             doc.insert_text(len(doc.text), tok, attrib)
 
         def color(s, tok):
@@ -1292,7 +1303,7 @@ class TextArea(Control):
         return True
 
     def on_key_press(self, symbol, modifiers):
-        def get_pos(loc, left = True):
+        def get_pos(loc, left=True):
             import bisect
             if left:
                 bisect = bisect.bisect_left
@@ -1303,9 +1314,8 @@ class TextArea(Control):
             if idx < 0: idx = 0
 
             loc_diff = loc - self.loc_table[idx]
-            pos_diff = loc_diff / 2 if self.WRAP_HACK else loc_diff
 
-            return self.pos_table[idx] + pos_diff, idx
+            return self.pos_table[idx] + loc_diff, idx
 
         if modifiers & KEYMOD_MASK == key.MOD_CTRL:
             if symbol == key.A:
@@ -1317,8 +1327,7 @@ class TextArea(Control):
                 start = self.layout.selection_start
                 end = self.layout.selection_end
                 if start != end:
-                    step = 2 if self.WRAP_HACK else 1
-                    pyperclip.copy(self.document.text[start:end:step])
+                    pyperclip.copy(self.document.text[start:end])
                 return pyglet.event.EVENT_HANDLED
 
         elif modifiers & KEYMOD_MASK == (key.MOD_CTRL | key.MOD_SHIFT):
@@ -1400,21 +1409,21 @@ class ListItem(object):
         if o: o.delete()
         self.labels[index] = Label(
             text=val, font_name='AncientPix', font_size=9,
-            anchor_x='left', anchor_y = 'top', color=c,
+            anchor_x='left', anchor_y='top', color=c,
             batch=p.batch,
         )
+
 
 class ListHeader(object):
     def __init__(self, p):
         self.parent = p
         from pyglet.text import Label
         cols = p.columns
-        labels = []
         batch = pyglet.graphics.Batch()
         _x = 2
         c = p.color.heavy + (255,)
         for name, width in cols:
-            lbl = Label(
+            Label(
                 name, anchor_x='left', anchor_y='bottom',
                 x=_x, y=5, color=c, font_name='AncientPix', font_size=12,
                 batch=batch
@@ -1424,7 +1433,6 @@ class ListHeader(object):
 
     def draw(self):
         p = self.parent
-        hh = p.header_height
         c = [i/255.0 for i in p.color.light]
         glColor3f(*c)
         glRectf(0, 0, p.width, p.header_height)
@@ -1436,11 +1444,13 @@ class ListHeader(object):
         glEnd()
         self.batch.draw()
 
+
 class ListView(Control):
     li_class = ListItem
     lh_class = ListHeader
     header_height = 25
     line_height = 17
+
     def __init__(self, color=Colors.green, *a, **k):
         Control.__init__(self, *a, **k)
         self.color = color
@@ -1492,7 +1502,7 @@ class ListView(Control):
     view_y = property(_get_view_y, _set_view_y)
 
     def draw(self):
-        glColor3f(1,1,1)
+        glColor3f(1, 1, 1)
 
         hh = self.header_height
         client_height = self.height - hh
@@ -1529,12 +1539,12 @@ class ListView(Control):
         i = (h + vy - y) / lh
         n = len(self.items)
         if 0 <= i < n:
-            cs = self.cur_select
-            if cs is not None and 0 <= cs < n:
-                item = self.items[cs]
+            # cs = self.cur_select
+            # if cs is not None and 0 <= cs < n:
+            #     item = self.items[cs]
             self.dispatch_event(evt_type, self.items[i])
             self.cur_select = i
-            item = self.items[i]
+            # item = self.items[i]
             self.need_refresh = True
 
     on_mouse_click = lambda self, *a: self._mouse_click('on_item_select', *a)
@@ -1543,8 +1553,10 @@ class ListView(Control):
 ListView.register_event_type('on_item_select')
 ListView.register_event_type('on_item_dblclick')
 
+
 class ProgressBar(Control):
     value = InterpDesc('_value')
+
     def __init__(self, *a, **k):
         Control.__init__(self, *a, **k)
         self.value = 1.0
@@ -1566,7 +1578,7 @@ class ProgressBar(Control):
         value = self.value
         width, height = self.width, self.height
 
-        glColor3f(1,1,1)
+        glColor3f(1, 1, 1)
         tex = self.pic_frame[0].owner
         with tex:
             self._drawit(0, 0, width, *self.pic_frame)
@@ -1621,6 +1633,7 @@ class ConfirmButtons(Control):
                 caption=p, color=color,
             )
             btn.retval = v
+
             @btn.event
             def on_click(btn=btn):
                 self.confirm(btn.retval)
@@ -1662,12 +1675,14 @@ class ConfirmButtons(Control):
 
 ConfirmButtons.register_event_type('on_confirm')
 
+
 class ConfirmBox(Dialog):
     class Presets:
         OK = ((u'确定', True), )
         OKCancel = ((u'确定', True), (u'取消', False))
 
     _default_value = object()
+
     def __init__(self, text=u'Yoo~', caption=u'信息',
                  buttons=Presets.OK, default=_default_value, *a, **k):
 
@@ -1677,7 +1692,7 @@ class ConfirmBox(Dialog):
             text, font_name=u'AncientPix', font_size=9,
             x=0, y=0, anchor_x='center', anchor_y='bottom',
             width=1000, multiline=True,
-            color=(0,0,0,255)
+            color=(0, 0, 0, 255)
         )
         w, h = lbl.content_width, lbl.content_height
         dw, dh = max(w, ConfirmButtons.calc_width(buttons))+50, h+24+33+20*2
@@ -1692,7 +1707,7 @@ class ConfirmBox(Dialog):
 
         self.add_label(
             text, dw // 2, 33 + 20, anchor_x='center', anchor_y='bottom',
-            font_size=9, width=w, multiline=True, color=(0,0,0,255)
+            font_size=9, width=w, multiline=True, color=(0, 0, 0, 255)
         )
 
         self.confirm_btns = btn = ConfirmButtons(buttons, parent=self, color=self.color)
@@ -1704,7 +1719,6 @@ class ConfirmBox(Dialog):
             self.delete()
         btn.x, btn.y = (dw - btn.width)/2, 5
 
-
     def delete(self):
         self.dispatch_event('on_confirm', self.value)
         Dialog.delete(self)
@@ -1714,6 +1728,7 @@ class ConfirmBox(Dialog):
 
 
 ConfirmBox.register_event_type('on_confirm')
+
 
 class Panel(Control):
     fill_color = (1.0, 1.0, 0.8, 0.0)
@@ -1738,15 +1753,16 @@ class Panel(Control):
             y1 = 0
             x2 = blurtex.width
             y2 = blurtex.height
+
             array = (GLfloat * 32)(
-                 t[0],  t[1],  t[2],  1.,
-                 x1,    y1,    0,     1.,
-                 t[3],  t[4],  t[5],  1.,
-                 x2,    y1,    0,     1.,
-                 t[6],  t[7],  t[8],  1.,
-                 x2,    y2,    0,     1.,
-                 t[9],  t[10], t[11], 1.,
-                 x1,    y2,    0,     1.
+                t[0],  t[1],  t[2],  1.,
+                x1,    y1,    0,     1.,
+                t[3],  t[4],  t[5],  1.,
+                x2,    y1,    0,     1.,
+                t[6],  t[7],  t[8],  1.,
+                x2,    y2,    0,     1.,
+                t[9],  t[10], t[11], 1.,
+                x1,    y2,    0,     1.,
             )
             self._blurtex_array = array
         else:
@@ -1805,6 +1821,7 @@ class Panel(Control):
 
 class ImageSelector(Control, BalloonPrompt):
     hover_alpha = InterpDesc('_hover_alpha')
+
     def __init__(self, image, group, *a, **k):
         Control.__init__(
             self, width=145, height=98,

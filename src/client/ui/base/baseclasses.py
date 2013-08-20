@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
 import pyglet
 
-from pyglet.gl import *
+from pyglet.gl import glBlendFunc, glClearColor, glEnable, glLoadIdentity, glMatrixMode, glOrtho
+from pyglet.gl import glPolygonMode, glPopMatrix, glPushMatrix, glTranslatef, glViewport
+from pyglet.gl import GL_BACK, GL_BLEND, GL_FILL, GL_FRONT, GL_LINE, GL_MODELVIEW
+from pyglet.gl import GL_ONE_MINUS_SRC_ALPHA, GL_PROJECTION, GL_SRC_ALPHA
 
-import types
 from time import time
-from utils import rect_to_dict as r2d, Rect
 
 from functools import partial
 
 WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 720
 
+main_window = None
+sched_queue = []
+
 from utils import hook
 
 import logging
 log = logging.getLogger('UI_Baseclasses')
 
-
-import pyglet_extension # just init it
 
 class Control(pyglet.event.EventDispatcher):
     def __init__(self, x=0, y=0, width=0, height=0,
@@ -46,15 +48,19 @@ class Control(pyglet.event.EventDispatcher):
     def _set_w(self, v):
         self._w = v
         self.dispatch_event('on_resize', self._w, self._h)
+
     def _get_w(self):
         return self._w
+
     width = property(_get_w, _set_w)
 
     def _set_h(self, v):
         self._h = v
         self.dispatch_event('on_resize', self._w, self._h)
+
     def _get_h(self):
         return self._h
+
     height = property(_get_h, _set_h)
 
     def add_control(self, c):
@@ -112,7 +118,8 @@ class Control(pyglet.event.EventDispatcher):
             glLoadIdentity()
             x, y = c.abs_coords()
             glTranslatef(x, y, 0)
-            rst = c.draw()
+            c.draw()
+
         glPopMatrix()
 
     def draw(self):
@@ -186,6 +193,7 @@ class Control(pyglet.event.EventDispatcher):
 
     xy = property(lambda self: (self.x, self.y))
 
+
 class Overlay(Control):
     '''
     Represents current screen
@@ -193,7 +201,9 @@ class Overlay(Control):
     class DummyOverlay(object):
         def dispatch_event(*args):
             pass
+
     cur_overlay = DummyOverlay()
+
     def __init__(self, *args, **kwargs):
         Control.__init__(
             self, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, parent=False
@@ -201,17 +211,17 @@ class Overlay(Control):
         self.__dict__.update(kwargs)
         self.last_mouse_press = [  # WONTFIX: Button combinations not supported.
             None,
-            (0.0, None, 0.0, 0.0), # (time(), self._control_hit, x, y) LEFT
-            (0.0, None, 0.0, 0.0), # MIDDLE
-            None,                  # Not used
-            (0.0, None, 0.0, 0.0), # RIGHT
+            (0.0, None, 0.0, 0.0),  # (time(), self._control_hit, x, y) LEFT
+            (0.0, None, 0.0, 0.0),  # MIDDLE
+            None,                   # Not used
+            (0.0, None, 0.0, 0.0),  # RIGHT
         ]
         self.last_mouse_release = [
             None,
-            (0.0, None, 0.0, 0.0), # (time(), self._control_hit, x, y) LEFT
-            (0.0, None, 0.0, 0.0), # MIDDLE
-            None,                  # Not used
-            (0.0, None, 0.0, 0.0), # RIGHT
+            (0.0, None, 0.0, 0.0),  # (time(), self._control_hit, x, y) LEFT
+            (0.0, None, 0.0, 0.0),  # MIDDLE
+            None,                   # Not used
+            (0.0, None, 0.0, 0.0),  # RIGHT
         ]
         self.current_focus = None
         self._capture_events = {}
@@ -244,6 +254,7 @@ class Overlay(Control):
 
     def _position_events(self, _type, x, y, *args):
         cap_list = self._capture_events.setdefault(_type, [])[:]
+
         def dispatch(this, lx, ly):
             # Top most control get event
             c = this.control_frompoint1(lx, ly)
@@ -263,8 +274,8 @@ class Overlay(Control):
                     if _type == 'on_mouse_press':
                         this.set_focus()
             else:
-                dispatch(c, lx - c.x, ly - c.y) # TODO: not recursive
-                if not c in cap_list: # do not redispatch the same event
+                dispatch(c, lx - c.x, ly - c.y)  # TODO: not recursive
+                if not c in cap_list:  # do not redispatch the same event
                     c.dispatch_event(_type, lx - c.x, ly - c.y, *args)
 
         # capturing events
@@ -288,9 +299,9 @@ class Overlay(Control):
             self._position_events('on_mouse_click', x, y, button, modifier)
 
         # double click
-        if cr[0]-lr[0] < 0.2: # time limit
-            if abs(cr[2] - lr[2]) + abs(cr[3] - lr[3]) < 4: # shift limit
-                if cr[1] == lr[1]: # Control limit
+        if cr[0]-lr[0] < 0.2:  # time limit
+            if abs(cr[2] - lr[2]) + abs(cr[3] - lr[3]) < 4:  # shift limit
+                if cr[1] == lr[1]:  # Control limit
                     self._position_events('on_mouse_dblclick', x, y, button, modifier)
 
     on_mouse_motion = lambda self, *args: self._position_events('on_mouse_motion', *args)
@@ -344,26 +355,26 @@ Control.register_event_type('on_resize')
 Overlay.register_event_type('on_switch')
 Overlay.register_event_type('on_switchout')
 
+
 def init_gui():
     global main_window, sched_queue, current_time, fps_limit
-    import threading
 
     config = pyglet.gl.Config(
-        double_buffer = True,
-        buffer_size = 32,
-        aux_buffers = 0,
-        sample_buffers = 0,
-        samples = 0,
-        red_size = 8,
-        green_size = 8,
-        blue_size = 8,
-        alpha_size = 8,
-        depth_size = 0,
-        stencil_size = 0,
-        accum_red_size = 0,
-        accum_green_size = 0,
-        accum_blue_size = 0,
-        accum_alpha_size = 0,
+        double_buffer=True,
+        buffer_size=32,
+        aux_buffers=0,
+        sample_buffers=0,
+        samples=0,
+        red_size=8,
+        green_size=8,
+        blue_size=8,
+        alpha_size=8,
+        depth_size=0,
+        stencil_size=0,
+        accum_red_size=0,
+        accum_green_size=0,
+        accum_blue_size=0,
+        accum_alpha_size=0,
     )
 
     main_window = pyglet.window.Window(
@@ -404,9 +415,7 @@ def init_gui():
     @main_window.event
     def on_draw():
         global current_time
-        t = time()
-        dt = t - current_time
-        current_time = t
+        current_time = time()
         Overlay.cur_overlay.draw()
         fps.draw()
 
@@ -437,25 +446,17 @@ def init_gui():
 
         sched_queue = []
 
-
     pyglet.clock.schedule_interval(_dispatch_msg, delay)
 
-    # if gc runs in the game thread,
-    # thing related to graphic will be recycled,
-    # thus freeing OpenGL resource from THE OTHER thread,
-    # whoop, segfaults.
-    # will this is perhaps naive approach
-    import gc
-    gc.disable()
-    pyglet.clock.schedule_interval_soft(lambda dt: gc.collect(0), 1)
-    pyglet.clock.schedule_interval_soft(lambda dt: gc.collect(2), 7)
 
 def ui_schedule(func, *args, **kwargs):
     global sched_queue
     sched_queue.append(partial(func, *args, **kwargs))
 
+
 def process_msg(args):
     Overlay.cur_overlay.dispatch_message(args)
+
 
 def ui_message(*args):
     '''

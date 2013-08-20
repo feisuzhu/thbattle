@@ -6,10 +6,12 @@ from pyglet.gl import glLoadIdentity, glPopClientAttrib, glPopMatrix, glPushClie
 from pyglet.gl import glPushMatrix, glRotatef, glScalef, glTranslatef
 
 from client.ui.base import Control
+from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractInterp
+from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineInterp
 
-from client.ui.controls import AbstractInterp, BalloonPrompt, Button, ChainInterp, Colors
-from client.ui.controls import CosineInterp, FixedInterp, Frame, ImageButton, InterpDesc
-from client.ui.controls import LinearInterp, Panel, ShadowedLabel, SineInterp, getinterp
+from client.ui.controls import Frame, Panel, Button, Colors, ImageButton
+from client.ui.controls import BalloonPrompt, ShadowedLabel
+
 
 from client.ui.resource import resource as common_res, get_atlas
 from resource import resource as game_res

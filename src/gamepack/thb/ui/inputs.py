@@ -13,10 +13,13 @@ from game.autoenv import Game
 from gamepack.thb import actions as thbactions
 from gamepack.thb.cards import CardList, RejectHandler
 
-from client.ui.controls import AbstractInterp, BalloonPrompt, BigProgressBar
-from client.ui.controls import Button, ConfirmButtons, Control, getinterp
-from client.ui.controls import ImageButton, ImageSelector, InterpDesc, LinearInterp
-from client.ui.controls import Panel, ShadowedLabel, SineInterp
+from client.ui.controls import BalloonPrompt, BigProgressBar
+from client.ui.controls import Button, ConfirmButtons, Control
+from client.ui.controls import ImageButton, ImageSelector
+from client.ui.controls import Panel, ShadowedLabel
+
+from client.ui.base.interp import AbstractInterp, getinterp, InterpDesc, LinearInterp, SineInterp
+
 from client.ui.resource import resource as common_res
 from .game_controls import DropCardArea, CardSprite
 
