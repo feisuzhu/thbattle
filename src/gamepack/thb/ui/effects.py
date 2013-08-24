@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from client.ui.base.interp import LinearInterp
-from client.ui.controls import BalloonPrompt, Colors, Control, Panel, ShadowedLabel, SmallProgressBar
+from client.ui.controls import BalloonPrompt, Colors, Control, Panel, SmallProgressBar
 from client.ui.soundmgr import SoundManager
 
 from client.ui.resource import resource as common_res
@@ -10,6 +10,7 @@ from resource import resource as gres
 from .game_controls import CardSprite, SmallCardSprite
 
 import pyglet
+from pyglet.text import Label
 
 from ..actions import Action, ActionStage, BaseFatetell, Damage, LaunchCard, Pindian, PlayerDeath, PlayerTurn, UserAction
 from ..cards import VirtualCard, RejectHandler
@@ -302,15 +303,15 @@ class UIPindianEffect(Panel):
 
         self.lbls = batch = pyglet.graphics.Batch()
 
-        self.srclbl = ShadowedLabel(
+        self.srclbl = Label(
             text=src.ui_meta.char_name, x=20+91//2, y=165, font_size=12,
-            color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
+            color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom', batch=batch
         )
 
-        self.tgtlbl = ShadowedLabel(
+        self.tgtlbl = Label(
             text=tgt.ui_meta.char_name, x=20+91+20+91//2, y=165, font_size=12,
-            color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
+            color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom', batch=batch
         )
 

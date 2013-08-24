@@ -10,7 +10,7 @@ from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractIn
 from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineInterp
 
 from client.ui.controls import Frame, Panel, Button, Colors, ImageButton
-from client.ui.controls import BalloonPrompt, ShadowedLabel
+from client.ui.controls import BalloonPrompt
 
 
 from client.ui.resource import resource as common_res, get_atlas
@@ -22,6 +22,7 @@ from ..cards import CardList
 from utils import flatten, rectv2f, rrectv2f
 
 import pyglet
+from pyglet.text import Label
 
 HAVE_FBO = pyglet.gl.gl_info.have_extension('GL_EXT_framebuffer_object')
 
@@ -515,9 +516,9 @@ class ShownCardPanel(Panel):
         i = 0
         for cat in reversed(categories):
 
-            ShadowedLabel(
+            Label(
                 text=CardList.ui_meta.lookup[cat.type], x=30, y=y+62+145*i, font_size=12,
-                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 130),
+                color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 130),
                 anchor_x='left', anchor_y='center', batch=lbls,
             )
             ca = DropCardArea(
@@ -586,7 +587,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
             font_size=9,
             anchor_x='left', anchor_y='top',
             color=(255, 255, 255, 255),
-            shadow='thin', shadow_color=(0, 0, 0, 179),
+            shadow=(1, 0, 0, 0, 179),
         )
 
         from .view import THBattleUI
@@ -811,9 +812,7 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         ])
 
     def set_charname(self, char_name):
-        s = u'\u200b'.join(char_name)
-        self.charname_lbl.text = s
-        self.charname_lbl._shadow.text = s
+        self.charname_lbl.text = char_name
 
     @property
     def disabled(self):

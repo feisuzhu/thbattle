@@ -9,13 +9,14 @@ import shlex
 # -- third party --
 import pyglet
 from pyglet.gl import glClear, glClearColor, glColor3f, glColor4f, GL_COLOR_BUFFER_BIT, glRectf
+from pyglet.text import Label
 
 # -- own --
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPrompt, Button, Colors, ConfirmBox, Frame
 from client.ui.controls import ImageButton, ImageSelector, ListView, Panel
-from client.ui.controls import PasswordTextBox, PlayerPortrait, ShadowedLabel
+from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox
 from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
@@ -414,19 +415,19 @@ class GameHallScreen(Screen):
                 txtbox.text = uname + u'的游戏'
 
                 self.labels = batch = pyglet.graphics.Batch()
-                ShadowedLabel(
+                Label(
                     u'创建游戏房间', font_size=12, x=275, y=306,
                     anchor_x='center', anchor_y='bottom',
                     color=Colors.green.heavy + (255, ),
-                    shadow_color=(207, 240, 156, 204),
-                    thin_shadow=True, batch=batch,
+                    shadow=(1, 207, 240, 156, 204),
+                    batch=batch,
                 ),
-                ShadowedLabel(
+                Label(
                     u'房间名称：', font_size=9, x=30, y=275,
                     anchor_x='left', anchor_y='bottom',
                     color=Colors.green.heavy + (255, ),
-                    shadow_color=(207, 240, 156, 204),
-                    thin_shadow=True, batch=batch,
+                    shadow=(1, 207, 240, 156, 204),
+                    batch=batch,
                 )
 
                 from gamepack import gamemodes as modes
@@ -481,11 +482,11 @@ class GameHallScreen(Screen):
 
                 self.labels = pyglet.graphics.Batch()
 
-                ShadowedLabel(
+                Label(
                     u'旁观游戏', font_size=12, x=275, y=306,
                     anchor_x='center', anchor_y='bottom',
                     color=Colors.green.heavy + (255, ),
-                    shadow_color=(207, 240, 156, 204),
+                    shadow=(2, 207, 240, 156, 204),
                     thin_shadow=True, batch=self.labels,
                 )
 

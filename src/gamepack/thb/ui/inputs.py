@@ -13,10 +13,12 @@ from game.autoenv import Game
 from gamepack.thb import actions as thbactions
 from gamepack.thb.cards import CardList, RejectHandler
 
+from pyglet.text import Label
+
 from client.ui.controls import BalloonPrompt, BigProgressBar
 from client.ui.controls import Button, ConfirmButtons, Control
 from client.ui.controls import ImageButton, ImageSelector
-from client.ui.controls import Panel, ShadowedLabel
+from client.ui.controls import Panel
 
 from client.ui.base.interp import AbstractInterp, getinterp, InterpDesc, LinearInterp, SineInterp
 
@@ -55,9 +57,9 @@ class UISelectTarget(Control, InputHandler):
             buttons=((u'确定', True), (u'结束', False))
         )
         self.progress_bar = BigProgressBar(parent=self, x=0, y=0, width=250)
-        self.label = ShadowedLabel(
+        self.label = Label(
             text=u"HEY SOMETHING'S WRONG", x=125, y=28, font_size=12,
-            color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 179),
+            color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 179),
             anchor_x='center', anchor_y='bottom',
         )
 
@@ -453,9 +455,9 @@ class UIChoosePeerCard(Panel, InputHandler):
                 h -= 145  # no cards in this category
                 continue
 
-            ShadowedLabel(
+            Label(
                 text=CardList.ui_meta.lookup[cat.type], font_size=12,
-                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
+                color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
                 x=30, y=y+62+145*i, anchor_x='left', anchor_y='center',
                 batch=self.lbls,
             )
@@ -539,10 +541,10 @@ class UIChooseOption(Control, InputHandler):
             1.0, 0.0, ilet.timeout,
             on_done=lambda *a: on_confirm(None)
         )
-        self.label = ShadowedLabel(
+        self.label = Label(
             text=choose_option_prompt, x=125, y=28, font_size=12,
-            color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 179),
-            thin_shadow=False, anchor_x='center', anchor_y='bottom',
+            color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 179),
+            anchor_x='center', anchor_y='bottom',
         )
 
         @self.confirmbtn.event
@@ -617,9 +619,9 @@ class UIHarvestChoose(Panel, InputHandler):
         w = 20 + (91 + 10) * 4 + 20
         h = 20 + 125 + 20 + 125 + 20 + 20
 
-        self.lbl = ShadowedLabel(
+        self.lbl = Label(
             text=u"等待玩家的其他操作", x=w//2, y=300, font_size=12,
-            color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
+            color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom'
         )
 
@@ -762,10 +764,10 @@ class UIRanProphet(Panel, InputHandler):
         h = 60 + h + 50
 
         def lbl(text, x, y):
-            ShadowedLabel(
+            Label(
                 text=text, x=x, y=y, font_size=12,
                 anchor_x='center', anchor_y='center',
-                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 230),
+                color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
                 batch=self.lbls,
             )
 
@@ -833,9 +835,9 @@ class UIKOFCharacterSorter(Panel, InputHandler):
         h = 60 + h + 50
 
         def lbl(text, x, y):
-            ShadowedLabel(
+            Label(
                 text=text, font_size=12, x=x, y=y,
-                color=(255, 255, 160, 255), shadow_color=(0, 0, 0, 190),
+                color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 190),
                 anchor_x='center', anchor_y='center', batch=self.lbls,
             )
 

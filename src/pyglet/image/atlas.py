@@ -63,10 +63,12 @@ __version__ = '$Id: $'
 
 import pyglet
 
+
 class AllocatorException(Exception):
     '''The allocator does not have sufficient free space for the requested
     image size.'''
     pass
+
 
 class _Strip(object):
     def __init__(self, y, max_height):
@@ -86,6 +88,7 @@ class _Strip(object):
 
     def compact(self):
         self.max_height = self.y2 - self.y
+
 
 class Allocator(object):
     '''Rectangular area allocation algorithm.
@@ -142,8 +145,7 @@ class Allocator(object):
             self.strips.append(newstrip)
             return newstrip.add(width, height)
 
-        raise AllocatorException('No more space in %r for box %dx%d' % (
-                self, width, height))
+        raise AllocatorException('No more space in %r for box %dx%d' % (self, width, height))
 
     def get_usage(self):
         '''Get the fraction of area already allocated.
@@ -168,6 +170,7 @@ class Allocator(object):
         possible_area = self.strips[-1].y2 * self.width
         return 1.0 - self.used_area / float(possible_area)
 
+
 class TextureAtlas(object):
     '''Collection of images within a texture.
     '''
@@ -182,7 +185,7 @@ class TextureAtlas(object):
 
         '''
         self.texture = pyglet.image.Texture.create(
-            width, height, pyglet.gl.GL_RGBA, rectangle=True)
+            width, height, pyglet.gl.GL_RGBA, rectangle=False)
         self.allocator = Allocator(width, height)
 
     def add(self, img):
@@ -207,6 +210,7 @@ class TextureAtlas(object):
         self.texture.blit_into(img, x, y, 0)
         region = self.texture.get_region(x, y, img.width, img.height)
         return region
+
 
 class TextureBin(object):
     '''Collection of texture atlases.

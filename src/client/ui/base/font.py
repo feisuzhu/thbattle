@@ -2,7 +2,7 @@
 
 import pyglet
 from pyglet.gl import GL_ALPHA, GL_TEXTURE_2D
-from pyglet.font.base import GlyphRenderer, Font, FontException
+from pyglet.font.base import GlyphRenderer, Font
 from math import ceil
 import Image
 
@@ -10,28 +10,29 @@ import Image
 class AncientPixGlyphRenderer(GlyphRenderer):
     gbk_cols = 191
     gbk_rows = 126
+
     def __init__(self, font):
         GlyphRenderer.__init__(self, font)
         self.font = font
 
     def render(self, text):
+        glyph = self.render_char(text, 0)
+        thin = self.render_char(text, 1)
+        thick = self.render_char(text, 2)
+        glyph.shadows = [None, thin, thick]
+        return glyph
+
+    def render_char(self, text, type):
         char = u'⑨' if self.font.password else text[0]
         asc = ord(char)
         font = self.font
-        if font.italic:
-            if font.bold:
-                suffix = 'SHADOWTHICK'
-            else:
-                suffix = 'SHADOWTHIN'
-        else:
-            suffix = 'BLOAT'
+        suffix = ('BLOAT', 'SHADOWTHIN', 'SHADOWTHICK')[type]
 
         if font.size == 9:
             suffix = '12' + suffix
         else:
             suffix = '16' + suffix
 
-    
         if char in u'♠♡♣♢':
             # special case for suits
             i = u'♠♡♣♢'.index(char)
@@ -45,10 +46,10 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             glyph = font.create_glyph(grid[i])
             glyph.set_bearings(1, -2, h + 1)
             return glyph
-        
+
         elif char == u'\u200b':
             glyph = font.create_glyph(
-                pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64)
+                pyglet.image.ImageData(1, 1, 'RGBA', '\xFF'*4)
             )
             glyph.set_bearings(0, 0, 0)
             glyph.vertices = (0, 0, 0, 0)
@@ -67,11 +68,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             i = Image.fromstring('1', (w, h), data).convert('L')
             bbox = i.getbbox()
             if bbox:
-                adj = 2
-                if font.italic:
-                    adj -= 1
-                    if font.bold:
-                        adj -= 1
+                adj = 2 - type  # normal = 0, thinshadow = 1, thickshadow = 2
                 bbox = (bbox[0] - adj, 0, bbox[2] + adj, h)
                 i = i.crop(bbox)
                 w = bbox[2] - bbox[0]
@@ -93,7 +90,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             i = Image.fromstring('1', (w, h), data).convert('L')
 
         ii = i
-        if self.font.bold and not self.font.italic:
+        if self.font.bold:
             ii = Image.new('L', (w, h))
             ii.paste(i, (1, 0))
             ii.paste(i, (0, 0), i)
@@ -103,13 +100,14 @@ class AncientPixGlyphRenderer(GlyphRenderer):
         glyph.set_bearings(2, -2, w - 4 + 1)
         t = list(glyph.tex_coords)
         glyph.tex_coords = t[9:12] + t[6:9] + t[3:6] + t[:3]
+        glyph.character = char
         return glyph
 
 
 class AncientPixFont(Font):
     glyph_renderer_class = AncientPixGlyphRenderer
     texture_width = 1024
-    texture_height = 1024
+    texture_height = 2048
     _font_texture = []
 
     @property
@@ -152,7 +150,7 @@ class AncientPixFont(Font):
 
         self._size = size
         self.bold = bold
-        self.italic = italic
+        self.italic = False
 
         self.password = (name == 'AncientPixPassword')
 

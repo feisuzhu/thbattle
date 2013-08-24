@@ -79,11 +79,13 @@ __version__ = '$Id: $'
 import os.path
 
 import pyglet
-from pyglet.text import layout, document, caret
+from pyglet.text import layout, document, caret  # noqa
+
 
 class DocumentDecodeException(Exception):
     '''An error occurred decoding document text.'''
     pass
+
 
 class DocumentDecoder(object):
     '''Abstract document decoder.
@@ -102,6 +104,7 @@ class DocumentDecoder(object):
         :rtype: `AbstractDocument`
         '''
         raise NotImplementedError('abstract')
+
 
 def get_decoder(filename, mimetype=None):
     '''Get a document decoder for the given filename and MIME type.
@@ -148,6 +151,7 @@ def get_decoder(filename, mimetype=None):
     else:
         raise DocumentDecodeException('Unknown format "%s"' % mimetype)
 
+
 def load(filename, file=None, mimetype=None):
     '''Load a document from a file.
 
@@ -170,6 +174,7 @@ def load(filename, file=None, mimetype=None):
     location = pyglet.resource.FileLocation(os.path.dirname(filename))
     return decoder.decode(file.read(), location)
 
+
 def decode_html(text, location=None):
     '''Create a document directly from some HTML formatted text.
 
@@ -185,6 +190,7 @@ def decode_html(text, location=None):
     decoder = get_decoder(None, 'text/html')
     return decoder.decode(text, location)
 
+
 def decode_attributed(text):
     '''Create a document directly from some attributed text.
 
@@ -199,6 +205,7 @@ def decode_attributed(text):
     decoder = get_decoder(None, 'text/vnd.pyglet-attributed')
     return decoder.decode(text)
 
+
 def decode_text(text):
     '''Create a document directly from some plain text.
 
@@ -210,6 +217,7 @@ def decode_text(text):
     '''
     decoder = get_decoder(None, 'text/plain')
     return decoder.decode(text)
+
 
 class DocumentLabel(layout.TextLayout):
     '''Base label class.
@@ -288,6 +296,16 @@ class DocumentLabel(layout.TextLayout):
 
     :type: (int, int, int, int)
     ''')
+
+    def _get_shadow(self):
+        return self.document.get_style('shadow')
+
+    def _set_shadow(self, shadow):
+        self.document.set_style(0, len(self.document.text),
+                                {'shadow': shadow})
+
+    shadow = property(_get_shadow, _set_shadow,
+                     doc='''Text shadow.''')
 
     def _get_font_name(self):
         return self.document.get_style('font_name')
@@ -372,12 +390,14 @@ class DocumentLabel(layout.TextLayout):
         '''
         self.document.set_style(0, len(self.document.text), {name: value})
 
+
 class Label(DocumentLabel):
     '''Plain text label.
     '''
     def __init__(self, text='',
                  font_name=None, font_size=None, bold=False, italic=False,
                  color=(255, 255, 255, 255),
+                 shadow=(0, 0, 0, 0, 0),
                  x=0, y=0, width=None, height=None,
                  anchor_x='left', anchor_y='baseline',
                  halign='left',
@@ -397,7 +417,9 @@ class Label(DocumentLabel):
             `italic` : bool
                 Italic font style.
             `color` : (int, int, int, int)
-                Font colour, as RGBA components in range [0, 255].
+                Font color, as RGBA components in range [0, 255].
+            `shadow` : (int, int, int, int, int)
+                Shadow color, type, R, G, B, A.
             `x` : int
                 X coordinate of the label.
             `y` : int
@@ -438,8 +460,10 @@ class Label(DocumentLabel):
             'bold': bold,
             'italic': italic,
             'color': color,
+            'shadow': shadow,
             'halign': halign,
         })
+
 
 class HTMLLabel(DocumentLabel):
     '''HTML formatted text label.

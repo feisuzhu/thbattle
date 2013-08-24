@@ -137,6 +137,8 @@ def do_crashreport():
     if not options.freeplay:
         s = u''.join(tee.history)
         s += u'\n\n' + traceback.format_exc()
+        import pyglet.info
+        s += u'\n\n\n' + pyglet.info.dump()
         content = zlib.compress(s.encode('utf-8'))
 
         try:
@@ -169,23 +171,6 @@ except:
     do_crashreport()
 
     raise
-
-
-if False and sys.platform == 'win32':
-    import traceback
-
-    def msgbox_error(exc_type, exc_value, exc_traceback):
-        excstr = u"".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-        import ctypes
-        ctypes.windll.user32.MessageBoxW(
-            0,  # HWND
-            unicode(excstr),  # Text
-            u'错误：请将这个截图并放到论坛的bug区里！',  # Caption
-            16,  # Flags, MB_ICONERROR
-        )
-
-    traceback.print_exception = msgbox_error  # for greenlet failures
-    sys.excepthook = msgbox_error
 
 
 Executive.call('app_exit')

@@ -154,7 +154,13 @@ __version__ = '$Id: $'
 import re
 import sys
 
-from pyglet.gl import *
+from pyglet.gl import glEnable, glDisable, glBlendFunc, glClipPlane
+from pyglet.gl import glPopAttrib, glPushAttrib, glTranslatef, glBindTexture
+from pyglet.gl import GL_BLEND, GLdouble, GL_LINES, GL_QUADS, GL_SRC_ALPHA
+from pyglet.gl import GL_ENABLE_BIT, GL_TEXTURE_2D, GL_CLIP_PLANE0, GL_CLIP_PLANE1
+from pyglet.gl import GL_CLIP_PLANE2, GL_CLIP_PLANE3, GL_CURRENT_BIT
+from pyglet.gl import GL_TRANSFORM_BIT, GL_ONE_MINUS_SRC_ALPHA
+
 from pyglet import event
 from pyglet import graphics
 from pyglet.text import runlist
@@ -164,6 +170,7 @@ from pyglet.font.base import _grapheme_break
 _is_epydoc = hasattr(sys, 'is_epydoc') and sys.is_epydoc
 
 _distance_re = re.compile(r'([-0-9.]+)([a-zA-Z]+)')
+
 
 def _parse_distance(distance, dpi):
     '''Parse a distance string and return corresponding distance in pixels as
@@ -195,6 +202,7 @@ def _parse_distance(distance, dpi):
         return int(value * dpi * 0.393700787)
     else:
         assert False, 'Unknown distance unit %s' % unit
+
 
 class _Line(object):
     align = 'left'
@@ -236,21 +244,25 @@ class _Line(object):
         for box in self.boxes:
             box.delete(layout)
 
+
 class _LayoutContext(object):
-    def __init__(self, layout, document, colors_iter, background_iter):
+    def __init__(self, layout, document, colors_iter, shadow_iter, background_iter):
         self.colors_iter = colors_iter
         underline_iter = document.get_style_runs('underline')
-        self.decoration_iter = runlist.ZipRunIterator(
-            (background_iter,
-             underline_iter))
+        self.shadow_iter = shadow_iter
+        self.decoration_iter = runlist.ZipRunIterator((
+            background_iter, underline_iter,
+        ))
         self.baseline_iter = runlist.FilteredRunIterator(
             document.get_style_runs('baseline'),
             lambda value: value is not None, 0)
 
+
 class _StaticLayoutContext(_LayoutContext):
-    def __init__(self, layout, document, colors_iter, background_iter):
+    def __init__(self, layout, document, colors_iter, shadow_iter, background_iter):
         super(_StaticLayoutContext, self).__init__(layout, document,
-                                                  colors_iter, background_iter)
+                                                  colors_iter, shadow_iter,
+                                                  background_iter)
         self.vertex_lists = layout._vertex_lists
         self.boxes = layout._boxes
 
@@ -260,6 +272,7 @@ class _StaticLayoutContext(_LayoutContext):
     def add_box(self, box):
         self.boxes.append(box)
 
+
 class _IncrementalLayoutContext(_LayoutContext):
     line = None
 
@@ -268,6 +281,7 @@ class _IncrementalLayoutContext(_LayoutContext):
 
     def add_box(self, box):
         pass
+
 
 class _AbstractBox(object):
     owner = None
@@ -289,6 +303,7 @@ class _AbstractBox(object):
 
     def get_point_in_box(self, position):
         raise NotImplementedError('abstract')
+
 
 class _GlyphBox(_AbstractBox):
     def __init__(self, owner, font, glyphs, advance):
@@ -326,8 +341,18 @@ class _GlyphBox(_AbstractBox):
         n_glyphs = self.length
         vertices = []
         tex_coords = []
+        colors = []
+        shadow_vertices = []
+        shadow_tex_coords = []
+        shadow_colors = []
+        n_shadows = 0
         x1 = x
-        for start, end, baseline in context.baseline_iter.ranges(i, i+n_glyphs):
+        iterator = runlist.ZipRunIterator((
+            context.baseline_iter,
+            context.colors_iter,
+            context.shadow_iter,
+        ))
+        for start, end, (baseline, color, shadow) in iterator.ranges(i, i+n_glyphs):
             baseline = layout._parse_distance(baseline)
             assert len(self.glyphs[start - i:end - i]) == end - start
             for kern, glyph in self.glyphs[start - i:end - i]:
@@ -340,14 +365,39 @@ class _GlyphBox(_AbstractBox):
                 vertices.extend([v0, v1, v2, v1, v2, v3, v0, v3])
                 t = glyph.tex_coords
                 tex_coords.extend(t)
+
+                if shadow is not None:
+                    # XXX: This assumes shadow glyphs are in the
+                    #      same owner with normal glyph
+                    stype = shadow[0]
+                    if stype:
+                        scolor = shadow[1:]
+                        assert len(scolor) == 4
+                        sglyph = glyph.shadows[stype]
+
+                        v0, v1, v2, v3 = sglyph.vertices
+                        v0 += x1
+                        v2 += x1
+                        v1 += y + baseline
+                        v3 += y + baseline
+                        shadow_vertices.extend([v0, v1, v2, v1, v2, v3, v0, v3])
+                        t = sglyph.tex_coords
+                        shadow_tex_coords.extend(t)
+                        shadow_colors.extend(scolor * 4)
+
+                        n_shadows += 1
+
                 x1 += glyph.advance
 
-        # Text color
-        colors = []
-        for start, end, color in context.colors_iter.ranges(i, i+n_glyphs):
-            if color is None:
-                color = (0, 0, 0, 255)
+            color = color or (0, 0, 0, 255)
             colors.extend(color * ((end - start) * 4))
+
+        if n_shadows:
+            slist = layout.batch.add(n_shadows * 4, GL_QUADS, group,
+                ('v2f/dynamic', shadow_vertices),
+                ('t3f/dynamic', shadow_tex_coords),
+                ('c4B/dynamic', shadow_colors))
+            context.add_list(slist)
 
         list = layout.batch.add(n_glyphs * 4, GL_QUADS, group,
             ('v2f/dynamic', vertices),
@@ -365,11 +415,11 @@ class _GlyphBox(_AbstractBox):
         background_colors = []
         underline_vertices = []
         underline_colors = []
+
         y1 = y + self.descent + baseline
         y2 = y + self.ascent + baseline
         x1 = x
-        for start, end, decoration in \
-                context.decoration_iter.ranges(i, i+n_glyphs):
+        for start, end, decoration in context.decoration_iter.ranges(i, i+n_glyphs):
             bg, underline = decoration
             x2 = x1
             for kern, glyph in self.glyphs[start - i:end - i]:
@@ -429,6 +479,7 @@ class _GlyphBox(_AbstractBox):
     def __repr__(self):
         return '_GlyphBox(%r)' % self.glyphs
 
+
 class _InlineElementBox(_AbstractBox):
     def __init__(self, element):
         '''Create a glyph run holding a single element.
@@ -463,6 +514,7 @@ class _InlineElementBox(_AbstractBox):
 
     def __repr__(self):
         return '_InlineElementBox(%r)' % self.element
+
 
 class _InvalidRange(object):
     def __init__(self):
@@ -511,6 +563,7 @@ class _InvalidRange(object):
 #   foreground_decoration_group
 #                       TextLayoutForegroundDecorationGroup(OrderedGroup(2))
 
+
 class TextLayoutGroup(graphics.Group):
     '''Top-level rendering group for `TextLayout`.
 
@@ -525,6 +578,7 @@ class TextLayoutGroup(graphics.Group):
 
     def unset_state(self):
         glPopAttrib()
+
 
 class ScrollableTextLayoutGroup(graphics.Group):
     '''Top-level rendering group for `ScrollableTextLayout`.
@@ -634,6 +688,7 @@ class ScrollableTextLayoutGroup(graphics.Group):
     def __hash__(self):
         return id(self)
 
+
 class TextLayoutForegroundGroup(graphics.OrderedGroup):
     '''Rendering group for foreground elements (glyphs) in all text layouts.
 
@@ -643,6 +698,7 @@ class TextLayoutForegroundGroup(graphics.OrderedGroup):
         glEnable(GL_TEXTURE_2D)
 
     # unset_state not needed, as parent group will pop enable bit
+
 
 class TextLayoutForegroundDecorationGroup(graphics.OrderedGroup):
     '''Rendering group for decorative elements (e.g., glyph underlines) in all
@@ -654,6 +710,7 @@ class TextLayoutForegroundDecorationGroup(graphics.OrderedGroup):
         glDisable(GL_TEXTURE_2D)
 
     # unset_state not needed, as parent group will pop enable bit
+
 
 class TextLayoutTextureGroup(graphics.Group):
     '''Rendering group for a glyph texture in all text layouts.
@@ -685,6 +742,7 @@ class TextLayoutTextureGroup(graphics.Group):
         return '%s(%d, %r)' % (self.__class__.__name__,
                                self.texture.id,
                                self.parent)
+
 
 class TextLayout(object):
     '''Lay out and display documents.
@@ -894,6 +952,7 @@ class TextLayout(object):
         lines = self._get_lines()
 
         colors_iter = self._document.get_style_runs('color')
+        shadow_iter = self._document.get_style_runs('shadow')
         background_iter = self._document.get_style_runs('background_color')
 
         if self._origin_layout:
@@ -903,7 +962,7 @@ class TextLayout(object):
             top = self._get_top(lines)
 
         context = _StaticLayoutContext(self, self._document,
-                                       colors_iter, background_iter)
+                                       colors_iter, shadow_iter, background_iter)
         for line in lines:
             self._create_vertex_lists(left + line.x, top + line.y,
                                       line.start, line.boxes, context)
@@ -1106,8 +1165,7 @@ class TextLayout(object):
             # Iterate over glyphs in this owner run.  `text` is the
             # corresponding character data for the glyph, and is used to find
             # whitespace and newlines.
-            for (text, glyph) in zip(self.document.text[start:end],
-                                     glyphs[start:end]):
+            for (text, glyph) in zip(self.document.text[start:end], glyphs[start:end]):
                 if nokern:
                     kern = 0
                     nokern = False
@@ -1137,8 +1195,7 @@ class TextLayout(object):
 
                     owner_accum.append((kern, glyph))
                     owner_accum_commit.extend(owner_accum)
-                    owner_accum_commit_width += owner_accum_width + \
-                        glyph.advance + kern
+                    owner_accum_commit_width += owner_accum_width + glyph.advance + kern
                     eol_ws += glyph.advance + kern
 
                     owner_accum = []
@@ -1159,20 +1216,20 @@ class TextLayout(object):
                         # line width or a newline was encountered.  Either
                         # way, the current line must be flushed.
 
-                        if new_line:
-                            # Forced newline.  Commit everything pending
-                            # without exception.
-                            for run in run_accum:
-                                line.add_box(run)
-                            run_accum = []
-                            run_accum_width = 0
-                            owner_accum_commit.extend(owner_accum)
-                            owner_accum_commit_width += owner_accum_width
-                            owner_accum = []
-                            owner_accum_width = 0
+                        for run in run_accum:
+                            line.add_box(run)
+                        run_accum = []
+                        run_accum_width = 0
+                        owner_accum_commit.extend(owner_accum)
+                        owner_accum_commit_width += owner_accum_width
+                        owner_accum = []
+                        owner_accum_width = 0
 
+                        if new_line:
                             line.length += 1
                             next_start = index + 1
+                        else:
+                            next_start = index
 
                         # Create the _GlyphBox for the committed glyphs in the
                         # current owner.
@@ -1222,8 +1279,7 @@ class TextLayout(object):
                                 nokern = True
 
                             x = run_accum_width + owner_accum_width
-                            width = (self._width -
-                                     line.margin_left - line.margin_right)
+                            width = (self._width - line.margin_left - line.margin_right)
 
                     if isinstance(glyph, _AbstractBox):
                         # Glyph is already in a box. XXX Ignore kern?
@@ -1236,8 +1292,7 @@ class TextLayout(object):
                         line.margin_left += \
                             self._parse_distance(indent_iterator[next_start])
                         if width is not None:
-                            width = (self._width -
-                                     line.margin_left - line.margin_right)
+                            width = (self._width - line.margin_left - line.margin_right)
                     elif not new_line:
                         # If the glyph was any non-whitespace, non-newline
                         # character, add it to the pending run.
@@ -1382,6 +1437,7 @@ class TextLayout(object):
             i += box.length
 
     _x = 0
+
     def _set_x(self, x):
         if self._boxes:
             self._x = x
@@ -1407,6 +1463,7 @@ class TextLayout(object):
     ''')
 
     _y = 0
+
     def _set_y(self, y):
         if self._boxes:
             self._y = y
@@ -1432,6 +1489,7 @@ class TextLayout(object):
     ''')
 
     _width = None
+
     def _set_width(self, width):
         self._width = width
         self._update()
@@ -1448,6 +1506,7 @@ class TextLayout(object):
     ''')
 
     _height = None
+
     def _set_height(self, height):
         self._height = height
         self._update()
@@ -1462,6 +1521,7 @@ class TextLayout(object):
     ''')
 
     _multiline = False
+
     def _set_multiline(self, multiline):
         self._multiline = multiline
         self._update()
@@ -1479,6 +1539,7 @@ class TextLayout(object):
     ''')
 
     _anchor_x = 'left'
+
     def _set_anchor_x(self, anchor_x):
         self._anchor_x = anchor_x
         self._update()
@@ -1507,6 +1568,7 @@ class TextLayout(object):
     ''')
 
     _anchor_y = 'bottom'
+
     def _set_anchor_y(self, anchor_y):
         self._anchor_y = anchor_y
         self._update()
@@ -1540,6 +1602,7 @@ class TextLayout(object):
     ''')
 
     _content_valign = 'top'
+
     def _set_content_valign(self, content_valign):
         self._content_valign = content_valign
         self._update()
@@ -1569,6 +1632,7 @@ class TextLayout(object):
 
     :type: str
     ''')
+
 
 class ScrollableTextLayout(TextLayout):
     '''Display text in a scrollable viewport.
@@ -1695,6 +1759,7 @@ class ScrollableTextLayout(TextLayout):
     :type: int
     ''')
 
+
 class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
     '''Displayed text suitable for interactive editing and/or scrolling
     large documents.
@@ -1798,10 +1863,7 @@ class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
         self._update()
 
     def on_style_text(self, start, end, attributes):
-        if ('font_name' in attributes or
-            'font_size' in attributes or
-            'bold' in attributes or
-            'italic' in attributes):
+        if set(('font_name', 'font_size', 'bold', 'italic')) & set(attributes):
             self.invalid_glyphs.invalidate(start, end)
         elif False:  # Attributes that change flow
             self.invalid_flow.invalidate(start, end)
@@ -1929,9 +1991,10 @@ class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
                 old_line.delete(self)
                 old_line_width = old_line.width + old_line.margin_left
                 new_line_width = line.width + line.margin_left
-                if (old_line_width == self.content_width and
-                    new_line_width < old_line_width):
-                    content_width_invalid = True
+                content_width_invalid = (
+                    old_line_width == self.content_width and
+                    new_line_width < old_line_width
+                )
                 self.lines[line_index] = line
                 self.invalid_lines.invalidate(line_index, line_index + 1)
             except IndexError:
@@ -2011,6 +2074,7 @@ class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
             return
 
         colors_iter = self.document.get_style_runs('color')
+        shadow_iter = self.document.get_style_runs('shadow')
         background_iter = self.document.get_style_runs('background_color')
         if self._selection_end - self._selection_start > 0:
             colors_iter = runlist.OverriddenRunIterator(
@@ -2018,6 +2082,11 @@ class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
                 self._selection_start,
                 self._selection_end,
                 self._selection_color)
+            shadow_iter = runlist.OverriddenRunIterator(
+                shadow_iter,
+                self._selection_start,
+                self._selection_end,
+                None)
             background_iter = runlist.OverriddenRunIterator(
                 background_iter,
                 self._selection_start,
@@ -2025,7 +2094,8 @@ class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
                 self._selection_background_color)
 
         context = _IncrementalLayoutContext(self, self._document,
-                                            colors_iter, background_iter)
+                                            colors_iter, shadow_iter,
+                                            background_iter)
 
         for line in self.lines[invalid_start:invalid_end]:
             line.delete(self)
@@ -2354,7 +2424,7 @@ class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
         if y1 > self.view_y:
             self.view_y = y1
         elif y2 < self.view_y - self.height:
-            self.view_y = y2  + self.height
+            self.view_y = y2 + self.height
 
     def ensure_x_visible(self, x):
         '''Adjust `view_x` so that the given X coordinate is visible.
@@ -2389,4 +2459,3 @@ class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
             '''
 
 IncrementalTextLayout.register_event_type('on_layout_update')
-

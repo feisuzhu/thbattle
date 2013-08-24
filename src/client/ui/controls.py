@@ -497,19 +497,15 @@ class Frame(Control):
             if lbl.batch is not batch:
                 lbl.batch = batch
 
-        shadow_arg = {'italic': True} if self.thin_shadow else {'italic': True, 'bold': True}
-
-        self.caption_shadow_lbl = pyglet.text.Label(
-            u'', u'AncientPix', 9,
-            color=self.color.caption_shadow + (255,),
-            x=20, y=self.height - 20,
-            anchor_x='left', anchor_y='bottom',
-            batch=batch, group=self.frame_group, **shadow_arg
-        )
+        if self.thin_shadow:
+            shadow = (1, ) + self.color.caption_shadow + (255,)
+        else:
+            shadow = (2, ) + self.color.caption_shadow + (255,)
 
         self.caption_lbl = pyglet.text.Label(
             u'', u'AncientPix', 9,
             color=self.color.caption + (255,),
+            shadow=shadow,
             anchor_x='left', anchor_y='bottom',
             batch=batch, group=self.labels_group,
         )
@@ -547,7 +543,8 @@ class Frame(Control):
             [frame] * 8,  # border
         ])
 
-        self.caption_shadow_lbl.color = C(c.caption_shadow)
+        t = 1 if self.thin_shadow else 2
+        self.caption_lbl.shadow = (t,) + C(c.caption_shadow)
         self.caption_lbl.color = C(c.caption)
 
     def set_position(self, x, y):
@@ -561,24 +558,17 @@ class Frame(Control):
         self._update_labels()
 
         cap = self.caption_lbl
-        shadow = self.caption_shadow_lbl
 
         cap.begin_update()
         cap.x = ax + 20
         cap.y = ay + self.height - 20
         cap.end_update()
 
-        shadow.begin_update()
-        shadow.x = ax + 20
-        shadow.y = ay + self.height - 20
-        shadow.end_update()
-
     def set_caption(self, cap):
         f = pyglet.font.load('AncientPix', 9)
         cap = textsnap(cap, f, self.width - 20 - 4)
 
         self.caption = cap
-        self.caption_shadow_lbl.text = cap
         self.caption_lbl.text = cap
 
     @staticmethod
@@ -610,7 +600,7 @@ class Frame(Control):
         map(cl.extend, [d.control_list for d in dlgs])
         Control.do_draw(cl)
 
-    def add_label(self, text, x, y, shadow=None, shadow_color=None, *a, **k):
+    def add_label(self, text, x, y, *a, **k):
         ax, ay = self.abs_coords()
         l = pyglet.text.Label(
             text, x=ax+x, y=ay+y,
@@ -622,37 +612,6 @@ class Frame(Control):
         l._ox = x
         l._oy = y
         self._labels.append(l)
-
-        if not shadow:
-            return l
-
-        elif shadow == 'thin':
-            k['italic'] = True
-
-        elif shadow == 'thick':
-            k['italic'] = True
-            k['bold'] = True
-
-        else:
-            raise TypeError('shadow type?')
-
-        try:
-            del k['color']
-        except:
-            pass
-
-        s = pyglet.text.Label(
-            text, x=ax+x, y=ay+y,
-            font_name='AncientPix',
-            batch=self._batch, group=self.frame_group,
-            color=shadow_color,
-            *a, **k
-        )
-        s._parent = self
-        s._ox = x
-        s._oy = y
-        l._shadow = s
-        self._labels.append(s)
 
         return l
 
@@ -1102,13 +1061,13 @@ class PlayerPortrait(Frame):
             text = textsnap(text, f, self.width - 8 - 4)
             C = Colors.get4i
             ccap = C(self.color.caption)
-            ccapshadow = C(self.color.caption_shadow)
+            ccapshadow = (1,) + C(self.color.caption_shadow)
 
             self.accinfo_labels.append(self.add_label(
                 text, x=8, y=47-15*loc,
                 anchor_x='left', anchor_y='top',
                 font_size=9, color=ccap,
-                shadow='thin', shadow_color=ccapshadow,
+                shadow=ccapshadow,
             ))
 
         L(acc.other['title'], 0)
@@ -1146,9 +1105,13 @@ class TextArea(Control):
 
         self.document = pyglet.text.document.FormattedDocument(u'')
         self.default_attrib = dict(
-            font_size=font_size, font_name=font,
-            bold=False, italic=False,
-            underline=None, color=(0, 0, 0, 255),
+            font_size=font_size,
+            font_name=font,
+            bold=False,
+            italic=False,
+            underline=None,
+            color=(0, 0, 0, 255),
+            shadow=(0, 0, 0, 0, 0),
         )
 
         self.layout = pyglet.text.layout.IncrementalTextLayout(
@@ -1218,6 +1181,21 @@ class TextArea(Control):
             )
             attrib['color'] = color
 
+        def shadow(s, tok):
+            c = tok[3:]
+            shadow = (
+                int(tok[2]),
+                int(c[0:2], 16),
+                int(c[2:4], 16),
+                int(c[4:6], 16),
+                int(c[6:8], 16),
+            )
+            attrib['shadow'] = shadow
+
+        def hidden(s, tok):
+            color(s, '|c000000ff')
+            shadow(s, '|s2000000ff')
+
         def insert_pipe(s, tok):
             instext(s, '|')
 
@@ -1225,12 +1203,14 @@ class TextArea(Control):
         scanner = re.Scanner([
             (r'[^|]+', instext),
             (r'\|c[A-Fa-f0-9]{8}', color),
+            (r'\|s[12][A-Fa-f0-9]{8}', shadow),
             (r'\|B', set_attrib('bold', True)),
             (r'\|b', set_attrib('bold', False)),
             (r'\|I', set_attrib('italic', True)),
             (r'\|i', set_attrib('italic', False)),
             (r'\|U', set_attrib('underline', (0, 0, 0, 255))),
             (r'\|u', set_attrib('underline', None)),
+            (r'\|H', hidden),
             (r'\|\|', insert_pipe),
             (r'\|r', restore),
 
@@ -1691,10 +1671,10 @@ class ConfirmBox(Dialog):
         lbl = pyglet.text.Label(
             text, font_name=u'AncientPix', font_size=9,
             x=0, y=0, anchor_x='center', anchor_y='bottom',
-            width=1000, multiline=True,
+            width=10000, multiline=True,
             color=(0, 0, 0, 255)
         )
-        w, h = lbl.content_width, lbl.content_height
+        w, h = lbl.content_width + 1, lbl.content_height
         dw, dh = max(w, ConfirmButtons.calc_width(buttons))+50, h+24+33+20*2
         Dialog.__init__(
             self, caption, width=dw, height=dh,
@@ -1887,94 +1867,3 @@ class ImageSelector(Control, BalloonPrompt):
 
 ImageSelector.register_event_type('on_select')
 ImageSelector.register_event_type('on_dblclick')
-
-
-class ShadowedLabel(object):
-    text_group = OrderedGroup(62)
-    shadow_group = OrderedGroup(61)
-
-    def __init__(self, text, x, y, anchor_x='left', anchor_y='bottom',
-                 font_size=12, color=(0, 0, 0, 255), thin_shadow=False,
-                 shadow_color=(255, 255, 255, 255), batch=None):
-
-        self._own_batch = False
-        if not batch:
-            batch = pyglet.graphics.Batch()
-            self._own_batch = True
-
-        self._batch = batch
-
-        shadow_args = {'italic': True} if thin_shadow else {'italic': True, 'bold': True}
-
-        self.shadow_lbl = pyglet.text.Label(
-            text=text, x=x, y=y,
-            anchor_x=anchor_x, anchor_y=anchor_y,
-            font_name='AncientPix', font_size=font_size,
-            color=shadow_color, batch=batch, group=self.shadow_group,
-            **shadow_args
-        )
-
-        self.txt_lbl = pyglet.text.Label(
-            text=text, x=x, y=y,
-            anchor_x=anchor_x, anchor_y=anchor_y,
-            font_name='AncientPix', font_size=font_size,
-            color=color, batch=batch, group=self.text_group,
-        )
-
-    def begin_update(self):
-        self.shadow_lbl.begin_update()
-        self.txt_lbl.begin_update()
-
-    def end_update(self):
-        self.shadow_lbl.end_update()
-        self.txt_lbl.end_update()
-
-    @property
-    def color(self):
-        return self.txt_lbl.color
-
-    @color.setter
-    def color(self, v):
-        self.txt_lbl.color = v
-
-    @property
-    def shadow_color(self):
-        return self.txt_lbl.color
-
-    @shadow_color.setter
-    def shadow_color(self, v):
-        self.shadow_lbl.color = v
-
-    @property
-    def batch(self):
-        return self._batch
-
-    @batch.setter
-    def batch(self, v):
-        self._batch = v
-        self._own_batch = False
-
-    def draw(self):
-        if self._own_batch:
-            self.batch.draw()
-        else:
-            raise Exception("please use your batch to draw!")
-
-    def _lbl_property(name):
-        def _getter(self):
-            return getattr(self.txt_lbl, name)
-
-        def _setter(self, v):
-            self.begin_update()
-            setattr(self.txt_lbl, name, v)
-            setattr(self.shadow_lbl, name, v)
-            self.end_update()
-
-        return property(_getter, _setter)
-
-    x = _lbl_property('x')
-    y = _lbl_property('y')
-    anchor_x = _lbl_property('anchor_x')
-    anchor_y = _lbl_property('anchor_y')
-    text = _lbl_property('text')
-    font_size = _lbl_property('font_size')
