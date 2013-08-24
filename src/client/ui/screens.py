@@ -487,7 +487,7 @@ class GameHallScreen(Screen):
                     anchor_x='center', anchor_y='bottom',
                     color=Colors.green.heavy + (255, ),
                     shadow=(2, 207, 240, 156, 204),
-                    thin_shadow=True, batch=self.labels,
+                    batch=self.labels,
                 )
 
                 @btncancel.event
