@@ -128,6 +128,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新的大妖精头像（画师：渚FUN）
 新的八云紫头像（画师：渚FUN）
 魔理沙bug修复
 魔理沙重制
