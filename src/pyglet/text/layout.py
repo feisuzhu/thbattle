@@ -1162,6 +1162,8 @@ class TextLayout(object):
             # Current glyph index
             index = start
 
+            from unicodedata import category as unicat
+
             # Iterate over glyphs in this owner run.  `text` is the
             # corresponding character data for the glyph, and is used to find
             # whitespace and newlines.
@@ -1172,7 +1174,7 @@ class TextLayout(object):
                 else:
                     kern = self._parse_distance(kerning_iterator[index])
 
-                if text in u'\u0020\u200b\t':
+                if text in u'\u0020\u200b\t' or unicat(text) == 'Zs':
                     # Whitespace: commit pending runs to this line.
                     for run in run_accum:
                         line.add_box(run)
@@ -1209,27 +1211,39 @@ class TextLayout(object):
                     # breakpoint).
                     next_start = index
                 else:
-                    new_paragraph = text in u'\n\u2029'
-                    new_line = (text == u'\u2028') or new_paragraph
-                    if (wrap and x + kern + glyph.advance >= width) or new_line:
-                        # Either the pending runs have overflowed the allowed
-                        # line width or a newline was encountered.  Either
-                        # way, the current line must be flushed.
-
+                    new_paragraph = text == '\n' or unicat(text) == 'Zp'
+                    new_line = unicat(text) == 'Zl' or new_paragraph
+                    if unicat(text) == 'Lo':
                         for run in run_accum:
                             line.add_box(run)
                         run_accum = []
                         run_accum_width = 0
                         owner_accum_commit.extend(owner_accum)
                         owner_accum_commit_width += owner_accum_width
+                        eol_ws = 0
                         owner_accum = []
                         owner_accum_width = 0
+                        next_start = index
+
+                    if (wrap and x + kern + glyph.advance > width) or new_line:
+                        # Either the pending runs have overflowed the allowed
+                        # line width or a newline was encountered.  Either
+                        # way, the current line must be flushed.
 
                         if new_line:
+                            # Forced newline.  Commit everything pending
+                            # without exception.
+                            for run in run_accum:
+                                line.add_box(run)
+                            run_accum = []
+                            run_accum_width = 0
+                            owner_accum_commit.extend(owner_accum)
+                            owner_accum_commit_width += owner_accum_width
+                            owner_accum = []
+                            owner_accum_width = 0
+
                             line.length += 1
                             next_start = index + 1
-                        else:
-                            next_start = index
 
                         # Create the _GlyphBox for the committed glyphs in the
                         # current owner.
@@ -1299,9 +1313,22 @@ class TextLayout(object):
                         owner_accum.append((kern, glyph))
                         owner_accum_width += glyph.advance + kern
                         x += glyph.advance + kern
+                    
                     index += 1
                     eol_ws = 0
-
+                    
+                    if unicat(text) == 'Lo':
+                        for run in run_accum:
+                            line.add_box(run)
+                        run_accum = []
+                        run_accum_width = 0
+                        owner_accum_commit.extend(owner_accum)
+                        owner_accum_commit_width += owner_accum_width
+                        eol_ws = 0
+                        owner_accum = []
+                        owner_accum_width = 0
+                        next_start = index
+                    
             # The owner run is finished; create GlyphBoxes for the committed
             # and pending glyphs.
             if owner_accum_commit:
