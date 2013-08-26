@@ -3,6 +3,7 @@ import logging
 import sys
 import os
 import argparse
+import tempfile
 
 reload(sys)
 sys.setdefaultencoding(sys.getfilesystemencoding())
@@ -25,7 +26,7 @@ IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
 
 class Tee(object):
     def __init__(self):
-        self.logfile = f = open('client_log.txt', 'a')
+        self.logfile = f = open('client_log.txt', 'a+')
         self.history = []
         import datetime
         s = (
@@ -42,8 +43,18 @@ class Tee(object):
 
 tee = sys.stderr = sys.stdout = Tee()
 
-logging.basicConfig(stream=sys.stdout)
-logging.getLogger().setLevel(getattr(logging, options.log.upper()))
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+hldr = logging.StreamHandler(tee)
+hldr.setLevel(getattr(logging, options.log.upper()))
+root.addHandler(hldr)
+
+debug_log_fd, _ = tempfile.mkstemp()
+debug_log_file = os.fdopen(debug_log_fd, 'a+')
+hldr = logging.StreamHandler(debug_log_file)
+hldr.setLevel(logging.DEBUG)
+root.addHandler(hldr)
+
 
 if IS_PROTON:
     from colorlog import ColoredFormatter
@@ -134,11 +145,14 @@ def do_crashreport():
     import zlib
     import traceback
 
-    if not options.freeplay:
+    if True or not options.freeplay:
         s = u''.join(tee.history)
-        s += u'\n\n' + traceback.format_exc()
+        s += u'\n\n\nException:\n' + '=' * 80 + '\n' + traceback.format_exc()
         import pyglet.info
-        s += u'\n\n\n' + pyglet.info.dump()
+        s += u'\n\n\nPyglet info:\n' + pyglet.info.dump()
+        debug_log_file.seek(0)
+        debug_log = debug_log_file.read()
+        s += u'\n\n\nDebug log:\n' + '=' * 80 + '\n' + debug_log
         content = zlib.compress(s.encode('utf-8'))
 
         try:

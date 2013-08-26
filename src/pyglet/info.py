@@ -45,7 +45,7 @@ __version__ = '$Id: $'
 
 
 def _print(*args):
-    _dumped.append(u' '.join(args))
+    _dumped.append(u' '.join([str(i) for i in args]))
 _dumped = []
 
 

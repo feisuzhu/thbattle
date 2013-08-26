@@ -2,7 +2,10 @@
 
 from client.ui.soundmgr import SoundManager
 from client.core import Executive
+import gevent
+import logging
 
+log = logging.getLogger('commands')
 registered_commands = {}
 
 
@@ -128,3 +131,13 @@ def help(cmdname):
 def kickob(uid):
     Executive.call('kick_observer', None, uid)
     return u'指令已发出'
+
+
+@command(u'主动报告bug', u'主动报告bug')
+@argtypes()
+@argdesc()
+def bugreport():
+    from __main__ import do_crashreport
+    log.info('Actively filed bug report')
+    gevent.spawn(do_crashreport)
+    return u'已经发送了bug报告'
