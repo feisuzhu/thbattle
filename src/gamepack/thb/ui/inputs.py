@@ -900,6 +900,7 @@ def handle_event(self, _type, arg):
     g = Game.getgame()
     if _type == 'user_input_transaction_begin':
         trans = arg
+        log.debug('Processing user_input_transaction_begin: %s', trans)
         if g.me not in trans.involved:
             return
 
@@ -915,20 +916,25 @@ def handle_event(self, _type, arg):
 
         this = cls(trans, parent=self)
         input_handler_mapping[trans] = this
+        log.debug('End processing user_input_transaction_begin')
 
     elif _type == 'user_input_transaction_end':
+        log.debug('Processing user_input_transaction_end: %s', arg)
         end_transaction(arg)
+        log.debug('End processing user_input_transaction_end')
 
     elif _type == 'user_input':
         from .effects import input_snd_prompt
         input_snd_prompt()
 
         trans, ilet = arg
+        log.debug('Processing user_input: %s', trans)
         ui = input_handler_mapping.get(trans, None)
         if not ui:
             log.error('WTF: no associated transaction')
             log.error('trans: %r  ilet: %r', trans, ilet)
             log.error('hybrid_stack: %r', g.hybrid_stack)
+            log.debug('Error processing user_input: %s', trans)
             return
 
         def afk_autocomplete(*a):
@@ -937,10 +943,12 @@ def handle_event(self, _type, arg):
         def done():
             pyglet.clock.unschedule(afk_autocomplete)
             ilet.event.set()
+            log.debug('End processing user_input: %s', trans)
 
         ilet.done = done
         pyglet.clock.schedule_once(afk_autocomplete, 2)
         ui.process_user_input(ilet)
+        log.debug('Processing user_input: %s scheduled', trans)
 
     elif _type == 'user_input_start':
         trans, ilet = arg
