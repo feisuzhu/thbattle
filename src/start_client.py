@@ -3,7 +3,7 @@ import logging
 import sys
 import os
 import argparse
-import tempfile
+import cStringIO
 
 reload(sys)
 sys.setdefaultencoding(sys.getfilesystemencoding())
@@ -49,8 +49,7 @@ hldr = logging.StreamHandler(tee)
 hldr.setLevel(getattr(logging, options.log.upper()))
 root.addHandler(hldr)
 
-debug_log_fd, _ = tempfile.mkstemp()
-debug_log_file = os.fdopen(debug_log_fd, 'a+')
+debug_log_file = cStringIO.StringIO()
 hldr = logging.StreamHandler(debug_log_file)
 hldr.setLevel(logging.DEBUG)
 root.addHandler(hldr)
