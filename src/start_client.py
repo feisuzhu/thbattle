@@ -140,7 +140,7 @@ if sys.platform.startswith('linux') and options.dump_gameobj:
     atexit.register(game.EventHandler._dump_eh_dependency_graph)
 
 
-def do_crashreport():
+def do_crashreport(active=False):
     import requests
     import zlib
     import traceback
@@ -164,7 +164,7 @@ def do_crashreport():
 
         requests.post(
             'http://www.thbattle.net/interconnect/crashreport',
-            data={'gameid': gameid}, files={'file': content},
+            data={'gameid': gameid, 'active': int(active)}, files={'file': content},
         )
 
 

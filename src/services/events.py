@@ -220,7 +220,8 @@ def speaker():
 @route('/interconnect/crashreport', method='POST')
 def crashreport():
     gameid = int(request.forms.get('gameid', 0))
-    if time.time() - gameid_last_see[gameid] < 300: return ''
+    active = int(request.forms.get('active', 0))
+    if time.time() - gameid_last_see[gameid] < 300 and not active: return ''
     if gameid:
         gameid_last_see[gameid] = time.time()
 
@@ -232,8 +233,11 @@ def crashreport():
 
     @gevent.spawn
     def sendmail(content=content):
-        cmd = '''mail -s 'THB Crash Report #%d' -a 'From: crashreport@thbattle.net' %s'''
-        mailer = subprocess.Popen(cmd % (gameid, 'feisuzhu@163.com'), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        cmd = '''mail -s 'THB Crash Report%s #%d' -a 'From: crashreport@thbattle.net' %s'''
+        mailer = subprocess.Popen(
+            cmd % (' (Active)' if active else '', gameid, 'feisuzhu@163.com'),
+            shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        )
         mailer.stdin.write(content)
         mailer.stdin.close()
         mailer.stdout.close()
