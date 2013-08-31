@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, dummy, img, img_grid, img_with_grayed, sound, subdir, texture, define_atlas
-from options import options
+from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, img, img_grid, img_with_grayed, sound, subdir, texture, define_atlas
 import os
 
 respath = os.path.join(os.path.dirname(__file__), 'res')
@@ -86,7 +85,7 @@ resource = Resource(respath, [
         'remilia_ex', 'remilia_ex2',
     ]],
 
-    img_with_grayed('dummy_port', 'portrait') if options.testing else dummy(),
+    img_with_grayed('dummy_port', 'portrait'),
 
     img_with_grayed('hp', 'portrait'),
     img_with_grayed('hp_bg', 'portrait'),

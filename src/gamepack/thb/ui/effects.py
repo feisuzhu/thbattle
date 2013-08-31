@@ -5,7 +5,7 @@ from client.ui.controls import BalloonPrompt, Colors, Control, Panel, SmallProgr
 from client.ui.soundmgr import SoundManager
 
 from client.ui.resource import resource as common_res
-from resource import resource as gres
+from gamepack.thb.ui.resource import resource as gres
 
 from .game_controls import CardSprite, SmallCardSprite
 
@@ -197,7 +197,7 @@ def _update_tags(self, p):
 
     updated_tags = set()
 
-    from .ui_meta import tags as tags_meta
+    from .ui_meta.tags import tags as tags_meta
 
     for t in list(p.tags):
         meta = tags_meta.get(t)

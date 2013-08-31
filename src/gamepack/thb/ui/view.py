@@ -15,7 +15,7 @@ from client.ui.base import Control, Overlay, process_msg
 from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPrompt
 from client.ui.soundmgr import SoundManager
 from .game_controls import HandCardArea, PortraitCardArea, DropCardArea, Ray, GameCharacterPortrait, SkillSelectionBox
-from resource import resource as gres
+from gamepack.thb.ui.resource import resource as gres
 import effects
 import inputs
 import random

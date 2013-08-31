@@ -24,7 +24,7 @@ class attrname(object):
 resource = attrname()
 
 
-from gamepack.thb.ui.ui_meta import metadata
+from gamepack.thb.ui.ui_meta.common import metadata
 from gamepack.thb import cards
 from gamepack.thb import characters
 from game.autoenv import Game
