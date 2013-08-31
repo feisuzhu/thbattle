@@ -144,27 +144,40 @@ def do_crashreport(active=False):
     import zlib
     import traceback
 
-    if True or not options.freeplay:
-        s = u''.join(tee.history)
-        s += u'\n\n\nException:\n' + '=' * 80 + '\n' + traceback.format_exc()
-        import pyglet.info
-        s += u'\n\n\nPyglet info:\n' + pyglet.info.dump()
-        debug_log_file.seek(0)
-        debug_log = debug_log_file.read()
-        s += u'\n\n\nDebug log:\n' + '=' * 80 + '\n' + debug_log
-        content = zlib.compress(s.encode('utf-8'))
+    s = u''.join(tee.history)
+    s += u'\n\n\nException:\n' + '=' * 80 + '\n' + traceback.format_exc()
+    import pyglet.info
+    s += u'\n\n\nPyglet info:\n' + pyglet.info.dump()
+    debug_log_file.seek(0)
+    debug_log = debug_log_file.read()
+    s += u'\n\n\nDebug log:\n' + '=' * 80 + '\n' + debug_log
+    content = zlib.compress(s.encode('utf-8'))
 
-        try:
-            from game.autoenv import Game
-            g = Game.getgame()
-            gameid = g.gameid
-        except:
-            gameid = 0
+    try:
+        from game.autoenv import Game
+        g = Game.getgame()
+        gameid = g.gameid
+    except:
+        gameid = 0
 
-        requests.post(
-            'http://www.thbattle.net/interconnect/crashreport',
-            data={'gameid': gameid, 'active': int(active)}, files={'file': content},
-        )
+    try:
+        from client.core import Executive
+        userid = Executive.gamemgr.account.userid
+        username = Executive.gamemgr.account.username
+    except:
+        userid = 0
+        username = u'unknown'
+
+    requests.post(
+        'http://www.thbattle.net/interconnect/crashreport',
+        data={
+            'gameid': gameid,
+            'active': int(active),
+            'userid': userid,
+            'username': username,
+        },
+        files={'file': content},
+    )
 
 
 from client.ui.entry import start_ui
