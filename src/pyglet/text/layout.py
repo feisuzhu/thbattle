@@ -1174,7 +1174,9 @@ class TextLayout(object):
                 else:
                     kern = self._parse_distance(kerning_iterator[index])
 
-                if text in u'\u0020\u200b\t' or unicat(text) == 'Zs':
+                textcat = unicat(text)
+
+                if text in u'\u0020\u200b\t' or textcat == 'Zs':
                     # Whitespace: commit pending runs to this line.
                     for run in run_accum:
                         line.add_box(run)
@@ -1211,9 +1213,9 @@ class TextLayout(object):
                     # breakpoint).
                     next_start = index
                 else:
-                    new_paragraph = text == '\n' or unicat(text) == 'Zp'
-                    new_line = unicat(text) == 'Zl' or new_paragraph
-                    if unicat(text) == 'Lo':
+                    new_paragraph = text == '\n' or textcat == 'Zp'
+                    new_line = textcat == 'Zl' or new_paragraph
+                    if textcat == 'Lo':  # non-letter character
                         for run in run_accum:
                             line.add_box(run)
                         run_accum = []
@@ -1259,6 +1261,21 @@ class TextLayout(object):
                             # line-height.
                             line.ascent = font.ascent
                             line.descent = font.descent
+
+                        if not new_line and not line.boxes:
+                            # Force newline.
+                            for run in run_accum:
+                                line.add_box(run)
+                            run_accum = []
+                            run_accum_width = 0
+                            owner_accum_commit.extend(owner_accum)
+                            owner_accum_commit_width += owner_accum_width
+                            owner_accum = []
+                            owner_accum_width = 0
+
+                            eol_ws = 0
+                            next_start = index
+
 
                         # Flush the line, unless nothing got committed, in
                         # which case it's a really long string of glyphs
@@ -1317,7 +1334,8 @@ class TextLayout(object):
                     index += 1
                     eol_ws = 0
                     
-                    if unicat(text) == 'Lo':
+                    if textcat == 'Lo' or textcat[0] in 'MPS':
+                        # non-letter character, mark, symbol, punctuation
                         for run in run_accum:
                             line.add_box(run)
                         run_accum = []
