@@ -1,58 +1,58 @@
-#include <stdio.h>
-#include <stdlib.h>
+ï»¿#include <stdlib.h>
+#include <tchar.h>
 #include <windows.h>
 
-const char *ERROR_PROMPT = (
-    "ÓÎÏ·±ÀÀ£ÁË£¡\n"
-    "\n"
-    "´íÎó±¨¸æÓ¦¸ÃÒÑ¾­×Ô¶¯·¢ËÍÁË£¬ÇëÄÍĞÄµÈµÈ°É¡­¡­\n"
-    "Èç¹ûÓÎÏ·²»Í£µÄ±ÀÀ££¬ÇëÈ·ÈÏÊÇ²»ÊÇÏÔ¿¨Çı¶¯³ÌĞòµÄÎÊÌâ£¬ÊÔ×Å¸üĞÂÒ»ÏÂÏÔ¿¨Çı¶¯³ÌĞò¡£\n"
-    "nVIDIA¿¨£ºhttp://www.nvidia.cn/Download/index.aspx?lang=cn\n"
-    "AMD¿¨£ºhttp://support.amd.com/us/gpudownload/Pages/index.aspx\n"
-    "\n"
-    "Èç¹ûÒÔÇ°ÄÜÕı³£ÓÎÏ·µ«ÊÇÍ»È»Íæ²»ÁËÁË£¬ÇëÖ´ĞĞÒ»ÏÂÓÎÏ·Ä¿Â¼ÖĞµÄupdate.bat£¬\n"
-    "È»ºóÔÙ´ò¿ªÓÎÏ·¡£\n"
-    "\n"
-    "ÈÔÈ»²»ĞĞµÄ»°£¬ÇëÈ¥http://www.thbattle.net·¢Ìû±§Ô¹£¡£¡"
-);
+LPCTSTR ERROR_PROMPT =
+    _T("æ¸¸æˆå´©æºƒäº†ï¼\n")
+    _T("\n")
+    _T("é”™è¯¯æŠ¥å‘Šåº”è¯¥å·²ç»è‡ªåŠ¨å‘é€äº†ï¼Œè¯·è€å¿ƒç­‰ç­‰å§â€¦â€¦\n")
+    _T("å¦‚æœæ¸¸æˆä¸åœçš„å´©æºƒï¼Œè¯·ç¡®è®¤æ˜¯ä¸æ˜¯æ˜¾å¡é©±åŠ¨ç¨‹åºçš„é—®é¢˜ï¼Œè¯•ç€æ›´æ–°ä¸€ä¸‹æ˜¾å¡é©±åŠ¨ç¨‹åºã€‚\n")
+    _T("nVIDIAå¡ï¼šhttp://www.nvidia.cn/Download/index.aspx?lang=cn\n")
+    _T("AMDå¡ï¼šhttp://support.amd.com/us/gpudownload/Pages/index.aspx\n")
+    _T("\n")
+    _T("å¦‚æœä»¥å‰èƒ½æ­£å¸¸æ¸¸æˆä½†æ˜¯çªç„¶ç©ä¸äº†äº†ï¼Œè¯·æ‰§è¡Œä¸€ä¸‹æ¸¸æˆç›®å½•ä¸­çš„update.batï¼Œ\n")
+    _T("ç„¶åå†æ‰“å¼€æ¸¸æˆã€‚\n")
+    _T("\n")
+    _T("ä»ç„¶ä¸è¡Œçš„è¯ï¼Œè¯·å»http://www.thbattle.netå‘å¸–æŠ±æ€¨ï¼ï¼")
+;
 
-
-int execute(const char *app, const char* args)
+int execute(LPCTSTR app, LPCTSTR cargs)
 {
     PROCESS_INFORMATION pinfo;
-    STARTUPINFO sinfo;
+    STARTUPINFO sinfo = { sizeof(sinfo) };
     BOOL rst;
     DWORD exitcode = 1;
-    
-    ZeroMemory(&sinfo, sizeof(sinfo));
-    sinfo.cb = sizeof(sinfo);
-    
+
+    LPTSTR args = _tcsdup(cargs);
     rst = CreateProcess(app, args, NULL, NULL, FALSE, 0, NULL, NULL, &sinfo, &pinfo);
+    free(args);
+
     if(!rst) {
         return 1;
     }
+    CloseHandle(pinfo.hThread);
     WaitForSingleObject(pinfo.hProcess, INFINITE);
     GetExitCodeProcess(pinfo.hProcess, &exitcode);
-    
+    CloseHandle(pinfo.hProcess);
     return exitcode;
 }
 
 
-int __stdcall WinMain(HINSTANCE hInstance,
+int __stdcall _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
 {
     int rst;
-    rst = execute("Python27\\pythonw.exe", "pythonw.exe");
+    rst = execute(_T("Python27\\pythonw.exe"), _T("pythonw.exe"));
     if(rst) {
         // failed, install vcredist
-        execute("Python27\\vcredist_x86.exe", "vcredist_x86.exe");
+        execute(_T("Python27\\vcredist_x86.exe"), _T("vcredist_x86.exe"));
     }
-    rst = execute("Python27\\pythonw.exe", "pythonw.exe src\\start_client.py");
+    rst = execute(_T("Python27\\pythonw.exe"), _T("pythonw.exe src\\start_client.py"));
     if(rst) {
-        ShellExecute(0, "open", "update.bat", NULL, NULL, 0);
-        MessageBox(NULL, ERROR_PROMPT, "ÓÎÏ·±ÀÀ£ÁË", MB_ICONINFORMATION);
+        ShellExecute(0, _T("open"), _T("update.bat"), NULL, NULL, 0);
+        MessageBox(NULL, ERROR_PROMPT, _T("æ¸¸æˆå´©æºƒäº†"), MB_ICONINFORMATION);
     }
     return 0;
 }

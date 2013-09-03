@@ -29,12 +29,16 @@ def start_ui():
     # then resources will be loaded at a different thread,
     # resulting white planes.
     # UPDATE: no more threading now, but retain notice above.
-    from client.ui import resource
+    from client.ui.resource import resource
     import gamepack
     gamepack.init_ui_resources()
 
     from client.ui.resloader import Resource
     Resource.load_resources()
+
+    from client.ui.base.baseclasses import main_window
+    main_window.set_icon(resource.icon)
+    main_window.set_visible(True)
 
     # custom errcheck
     import pyglet.gl.lib as gllib
