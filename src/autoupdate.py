@@ -1,9 +1,13 @@
+# -*- coding: utf-8 -*-
+
 import gevent
+import random
 import gevent.queue
 import urllib2
 from zlib import crc32
 import simplejson as json
-import sys, os
+import sys
+import os
 from urlparse import urljoin
 from StringIO import StringIO
 from gzip import GzipFile
@@ -15,6 +19,20 @@ import settings
 
 ignores = settings.UPDATE_IGNORES
 VERSION = settings.VERSION
+
+
+def _clean_dir(base):
+    for path, _, names in os.walk(base):
+        for name in names:
+            if not name.endswith('.purge'):
+                continue
+
+            fn = os.path.join(path, name)
+            try:
+                os.unlink(fn)
+            except OSError:
+                pass
+
 
 def build_hash(base):
     my_hash = {}
@@ -30,8 +48,10 @@ def build_hash(base):
                 my_hash[rfn.replace('\\', '/')] = h
     return my_hash
 
+
 def version_string(hash):
     return str(crc32(str(sorted(hash.values()))))
+
 
 def write_metadata(base):
     h = build_hash(base)
@@ -40,6 +60,7 @@ def write_metadata(base):
 
     with open('current_version', 'w') as f:
         f.write(version_string(h))
+
 
 def do_update(base, update_url, cb=lambda *a, **k: False):
 
@@ -63,6 +84,7 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
 
         latest_ver = gevent.spawn(worker, urljoin(update_url, 'current_version'))
 
+        _clean_dir(base)
         my_hash = build_hash(base)
         my_ver = version_string(my_hash)
 
@@ -82,7 +104,7 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
             ffn = os.path.join(base, fn)
             cb('delete_file', fn)
             log.info('delete file %s', fn)
-            try: os.unlink(ffn)
+            try: os.rename(ffn, ffn + '.%d.purge' % random.randint(0, 10000))
             except OSError: pass
 
         queue = gevent.queue.Queue(1000000)
@@ -111,12 +133,10 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
                             os.makedirs(os.path.dirname(ffn))
                         except OSError:
                             pass
-                        
-                        if ffn.endswith('.exe'):
-                            try:
-                                os.rename(ffn, ffn + '.old')
-                            except OSError:
-                                pass
+
+                        try: os.rename(ffn, ffn + '.%d.purge' % random.randint(0, 10000))
+                        except OSError: pass
+
                         with open(ffn, 'wb') as f:
                             f.write(d)
                     except EnvironmentError:
