@@ -111,6 +111,12 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
                             os.makedirs(os.path.dirname(ffn))
                         except OSError:
                             pass
+                        
+                        if ffn.endswith('.exe'):
+                            try:
+                                os.rename(ffn, ffn + '.old')
+                            except OSError:
+                                pass
                         with open(ffn, 'wb') as f:
                             f.write(d)
                     except EnvironmentError:
