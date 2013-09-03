@@ -379,7 +379,7 @@ def init_gui():
 
     main_window = pyglet.window.Window(
         width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption=u'东方符斗祭',
-        config=config,
+        config=config, visible=False
     )
     sched_queue = []
 
