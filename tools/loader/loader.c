@@ -49,7 +49,7 @@ int __stdcall _tWinMain(HINSTANCE hInstance,
         // failed, install vcredist
         execute(_T("Python27\\vcredist_x86.exe"), _T("vcredist_x86.exe"));
     }
-    rst = execute(_T("Python27\\pythonw.exe"), _T("pythonw.exe src\\start_client.py"));
+    rst = execute(_T("Python27\\pythonw.exe"), _T("Python27\\pythonw.exe src\\start_client.py"));
     if(rst) {
         ShellExecute(0, _T("open"), _T("update.bat"), NULL, NULL, 0);
         MessageBox(NULL, ERROR_PROMPT, _T("游戏崩溃了"), MB_ICONINFORMATION);
