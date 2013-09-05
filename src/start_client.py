@@ -80,23 +80,56 @@ log = logging.getLogger('start_client')
 import socket
 from gevent import socket as gsock
 
-if not sys.platform.startswith('linux'):
-    gsock.getaddrinfo = socket.getaddrinfo
-    gsock.gethostbyname = socket.gethostbyname
-
-    # HACK: resolve domain in parallel
+if True or not sys.platform.startswith('linux'):
     import threading
+    from functools import partial
 
-    class ResolveIt(threading.Thread):
-        def __init__(self, host):
-            threading.Thread.__init__(self)
-            self.host = host
+    def cached(f):
+        results = {}
+        lock = threading.Lock()
+        def wrap(*a, **v):
+            # can't cache for named args
+            if v:
+                return f(*a, **v)
 
-        def run(self):
-            host = self.host
-            socket.getaddrinfo(host, 80)
-            socket.gethostbyname(host)
+            with lock:
+                if a not in results:
+                    results[a] = f(*a)
 
+            return results[a]
+
+        return wrap
+
+    def cache(f, *a, **v):
+        for i in range(5):
+            try:
+                f(*a, **v)
+            except Exception as e:
+                print 'Cache:', e
+            else:
+                return True
+        return False
+    
+    from multiprocessing.pool import ThreadPool
+    import gevent
+    pool = ThreadPool(20)
+    
+    def sync(f, *a, **v):
+        r = pool.apply_async(f, a, v)
+        while not r.ready():
+            gevent.sleep(0.1)
+        return r.get()
+
+    def sync_cached(f):
+        c = cached(f)
+        return partial(sync, c), c
+
+    gsock.getaddrinfo, getaddrinfo = sync_cached(socket.getaddrinfo)
+    gsock.gethostbyname, gethostbyname = sync_cached(socket.gethostbyname)
+
+    def caddrinfo(host):
+        getaddrinfo(host, 80, 0, gsock.SOCK_STREAM)
+    
     domains = [
         'www.thbattle.net',
         'update.thbattle.net',
@@ -104,10 +137,9 @@ if not sys.platform.startswith('linux'):
         'cngame.thbattle.net',
         'feisuzhu.xen.prgmr.com',
     ]
-    for host in domains:
-        thread = ResolveIt(host)
-        thread.daemon = True
-        thread.start()
+
+    pool.map_async(partial(cache, caddrinfo), domains)
+    pool.map_async(partial(cache, gethostbyname), domains)
 
 
 from gevent import monkey
