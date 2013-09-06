@@ -98,6 +98,13 @@ if True or not sys.platform.startswith('linux'):
 
             return results[a]
 
+        def cached_result(a, v):
+            if v:
+                raise NotImplementedError
+            return results[a]
+
+        wrap.cached = cached_result
+
         return wrap
 
     def cache(f, *a, **v):
@@ -112,9 +119,9 @@ if True or not sys.platform.startswith('linux'):
     
     from multiprocessing.pool import ThreadPool
     import gevent
-    pool = ThreadPool(20)
+    pool = ThreadPool(12)
     
-    def sync(f, *a, **v):
+    def sync(f, a, v):
         r = pool.apply_async(f, a, v)
         while not r.ready():
             gevent.sleep(0.1)
@@ -122,7 +129,12 @@ if True or not sys.platform.startswith('linux'):
 
     def sync_cached(f):
         c = cached(f)
-        return partial(sync, c), c
+        def wrap(*a, **v):
+            try:
+                return c.cached(a, v)  # never block
+            except:
+                return sync(f, a, v)  # will start a thread
+        return wrap, c
 
     gsock.getaddrinfo, getaddrinfo = sync_cached(socket.getaddrinfo)
     gsock.gethostbyname, gethostbyname = sync_cached(socket.gethostbyname)
