@@ -19,7 +19,7 @@ from account import Account
 # -- code --
 
 
-def user_input(players, inputlet, timeout=15, type='single', trans=None):
+def user_input(players, inputlet, timeout=25, type='single', trans=None):
     '''
     Type can be 'single', 'all' or 'any'
     '''
