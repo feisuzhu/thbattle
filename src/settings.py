@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 158'
+VERSION = 'THBATTLE V1.0b incr 159'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -128,6 +128,8 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+出牌时间调整为25秒
+新的小町头像（画师：渚FUN）
 新的八意永琳头像（画师：渚FUN）
 新的大妖精头像（画师：渚FUN）
 新的八云紫头像（画师：渚FUN）
