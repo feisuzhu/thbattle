@@ -938,6 +938,9 @@ class PlayerPortrait(Frame):
     def __init__(self, player_name, color=Colors.blue, *args, **kwargs):
         self.account = None
         self.ready = False
+        from base.baseclasses import main_window
+        self.window = main_window
+        self.hand_cursor = self.window.get_system_mouse_cursor('hand')
         self.accinfo_labels = []
 
         self.player_name = player_name
@@ -963,20 +966,30 @@ class PlayerPortrait(Frame):
             def on_click(btn=btn, cmd=command):
                 cmd()
 
-        def change_loc():
-            Executive.call(
-                'change_location', ui_message,
-                self.parent.portraits.index(self)
-            )
+        # btn(u'换位', self._change_loc, 90, 55, 32, 20)
+        # btn(u'请离', self._kick, 90, 80, 32, 20)
+        btn(u'请离', self._kick, 90, 55, 32, 20)
 
-        def kick():
-            if not self.userid: return
-            Executive.call(
-                'kick_user', ui_message, self.userid
-            )
+    def _change_loc(self):
+        Executive.call(
+            'change_location', ui_message,
+            self.parent.portraits.index(self)
+        )
 
-        btn(u'换位', change_loc, 90, 55, 32, 20)
-        btn(u'请离', kick, 90, 80, 32, 20)
+    def _kick(self):
+        if not self.userid: return
+        Executive.call(
+            'kick_user', ui_message, self.userid
+        )
+
+    def on_mouse_enter(self, x, y):
+        self.account or self.window.set_mouse_cursor(self.hand_cursor)
+
+    def on_mouse_leave(self, x, y):
+        self.window.set_mouse_cursor(None)
+
+    def on_mouse_release(self, x, y, button, modifier):
+        self._change_loc()
 
     def update(self):
         acc = self.account
