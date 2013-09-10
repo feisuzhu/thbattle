@@ -9,7 +9,7 @@ from client.ui.base import ui_message, ui_schedule
 from client.ui.base.interp import InterpDesc, LinearInterp
 from client.ui.resource import resource as common_res
 from client.core import Executive
-from utils import textsnap, flatten, rectv2f, rrectv2f
+from utils import textsnap, flatten, rectv2f, rrectv2f, inpoly
 from utils import pyperclip, instantiate
 
 from pyglet.gl import glEnd, glBegin, gl_info, glRectf, glEnable, glColor3f
@@ -695,15 +695,22 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 
-class BalloonPrompt(object):
+class BalloonPromptMixin(object):
     balloon_inited = False
     balloon_panel = None
     balloon_cursorloc = (0, 0)
     balloon_width = 288
+    balloon_state = 'hidden'
 
-    def init_balloon(self, text, region=None, width=288):
+    def init_balloon(self, text, region=None, width=288, polygon=None):
         self.balloon_text = text
-        self.balloon_region = region
+        if region:
+            x, y, w, h = region
+            x1, y1 = x + w, y + h
+            self.balloon_polygon = ((x, y), (x1, y), (x1, y1), (x, y1))
+        else:
+            self.balloon_polygon = polygon
+
         self.balloon_width = width
 
         if not self.balloon_inited:
@@ -714,12 +721,12 @@ class BalloonPrompt(object):
                 on_mouse_enter=self.balloon_on_mouse_enter,
                 on_mouse_leave=self.balloon_on_mouse_leave,
             )
-            self.balloon_state = 'hidden'
         else:
             if self.balloon_state == 'shown':
                 self.balloon_panel.delete()
                 del self.balloon_panel
-                self.balloon_state = 'hidden'
+
+        self.balloon_state = 'hidden'
 
     def balloon_on_mouse_motion(self, x, y, dx, dy, *a):
         ax, ay = self.abs_coords()
@@ -728,12 +735,9 @@ class BalloonPrompt(object):
 
         self.balloon_cursorloc = (ax, ay)
 
-        r = self.balloon_region
-        if r:
-            x1, y1, w, h = r
-            x2 = x1 + w
-            y2 = y1 + h
-            if x1 <= x <= x2 and y1 <= y <= y2:
+        poly = self.balloon_polygon
+        if poly:
+            if inpoly(x, y, poly):
                 self.balloon_on_mouse_enter(x, y)
             else:
                 self.balloon_on_mouse_leave(x, y)
@@ -769,7 +773,7 @@ class BalloonPrompt(object):
     def balloon_on_mouse_leave(self, x, y):
         if self.balloon_state == 'ticking':
             pyglet.clock.unschedule(self.balloon_show)
-        if self.balloon_state == 'shown':
+        elif self.balloon_state == 'shown':
             self.balloon_panel.delete()
             del self.balloon_panel
         self.balloon_state = 'hidden'
@@ -777,6 +781,7 @@ class BalloonPrompt(object):
     def balloon_show(self, dt):
         if self.balloon_state == 'shown': return
         if Overlay.cur_overlay != self.balloon_overlay: return
+        if not self.balloon_text: return
 
         self.balloon_state = 'shown'
 
@@ -1812,7 +1817,7 @@ class Panel(Control):
         self.draw_subcontrols()
 
 
-class ImageSelector(Control, BalloonPrompt):
+class ImageSelector(Control, BalloonPromptMixin):
     hover_alpha = InterpDesc('_hover_alpha')
 
     def __init__(self, image, group, *a, **k):

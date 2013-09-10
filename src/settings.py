@@ -62,6 +62,14 @@ class ServerNames:
     hakurei = u'博丽神社'
 
 
+def _get_box(vlist):
+    xl = [i[0] for i in vlist]
+    yl = [i[1] for i in vlist]
+    x0, x1 = min(xl) - 5, max(xl) + 10
+    y0, y1 = min(yl) - 5, max(yl) + 10
+    return x0, y0, x1 - x0, y1 - y0
+
+
 class ServerList:
     import os
     IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
@@ -69,8 +77,12 @@ class ServerList:
 
     if options.testing or IS_PROTON:
         class hakurei:
-            name = u'博丽神社'
             address = ('cngame.thbattle.net', 8999)
+            polygon = [
+                (878, 423), (829, 409), (760, 376), (748, 346), (787, 329),
+                (863, 313), (929, 322), (970, 330), (992, 366), (968, 399),
+            ]
+            box = _get_box(polygon)
             description = (
                 u'|R没什么香火钱 博丽神社|r\n\n'
                 u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
@@ -78,39 +90,46 @@ class ServerList:
                 u'|R|B注意：这是测试服务器，并不保证稳定、与正常服务器的同步！|r\n\n'
                 u'|DB服务器地址： %s|r'
             ) % repr(address)
-            x = 893
-            y = 404
 
     if options.freeplay or IS_PROTON:
         class localhost:
             address = ('127.0.0.1', 9999)
+            polygon = [
+                (891, 704), (839, 707), (740, 601), (749, 575), (834, 570),
+                (947, 576), (986, 597), (991, 675), (964, 696),
+            ]
+            box = _get_box(polygon)
             description = (
                 u'|R你自己的本机服务器|r'
             )
-            x = 893
-            y = 504
 
     class lake:
         address = ('cngame.thbattle.net', 9999)
+        polygon = [
+            (569, 510), (514, 501), (489, 474), (514, 449), (585, 439),
+            (647, 447), (670, 457), (671, 487), (628, 504),
+        ]
+        box = _get_box(polygon)
         description = (
             u'|R这里没有青蛙 雾之湖|r\n\n'
             u'一个让人开心的地方。只是游客普遍反应，游玩结束后会感到自己的智商被拉低了一个档次。'
             u'另外，请不要把青蛙带到这里来。这不是规定，只是一个建议。\n\n'
             u'|DB服务器地址： %s|r'
         ) % repr(address)
-        x = 570
-        y = 470
 
     class forest:
         address = ('cngame.thbattle.net', 9999)
+        polygon = [
+            (360, 415), (237, 380), (197, 309), (222, 199), (285, 159),
+            (397, 150), (524, 168), (611, 256), (592, 318), (536, 359),
+        ]
+        box = _get_box(polygon)
         description = (
             u'|R光明牛奶指定销售地点 魔法之森|r\n\n'
             u'森林里好玩的东西很多，比如被捉弄什么的。'
             u'旁边有一个神奇的物品店，只是店主有点变态。\n\n'
             u'|DB服务器地址： %s|r'
         ) % repr(address)
-        x = 379
-        y = 286
 
     del IS_PROTON
 

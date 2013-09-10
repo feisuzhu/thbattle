@@ -38,6 +38,7 @@ resource = Resource(respath, [
     texture('bg_gamehall'),
     texture('bg_ingame'),
     texture('worldmap'),
+    texture('worldmap_shadow'),
     texture('bg_gamelist'),
     texture('bg_eventsbox'),
     texture('bg_chatbox'),

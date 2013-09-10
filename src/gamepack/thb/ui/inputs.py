@@ -15,7 +15,7 @@ from gamepack.thb.cards import CardList, RejectHandler
 
 from pyglet.text import Label
 
-from client.ui.controls import BalloonPrompt, BigProgressBar
+from client.ui.controls import BalloonPromptMixin, BigProgressBar
 from client.ui.controls import Button, ConfirmButtons, Control
 from client.ui.controls import ImageButton, ImageSelector
 from client.ui.controls import Panel
@@ -350,7 +350,7 @@ class UIDoActionStage(UISelectTarget):
             self.set_text(u'您选择的目标不符合规则')
 
 
-class GirlSelector(ImageSelector, BalloonPrompt):
+class GirlSelector(ImageSelector, BalloonPromptMixin):
     x = InterpDesc('_x')
     y = InterpDesc('_y')
 

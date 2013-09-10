@@ -14,7 +14,7 @@ from pyglet.text import Label
 # -- own --
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
-from client.ui.controls import BalloonPrompt, Button, Colors, ConfirmBox, Frame
+from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame
 from client.ui.controls import ImageButton, ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox
@@ -22,7 +22,7 @@ from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
 
 from client.core import Executive
-from utils import rect_to_dict as r2d, textsnap
+from utils import rect_to_dict as r2d, textsnap, inpoly
 from user_settings import UserSettings
 from account import Account
 from settings import ServerNames
@@ -184,14 +184,18 @@ class UpdateScreen(Screen):
         self.draw_subcontrols()
 
 
-class ServerSelectScreen(Screen):
+class ServerSelectScreen(Screen, BalloonPromptMixin):
+    hl_alpha = InterpDesc('_hl_alpha')
+
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.buttons = buttons = []
-        from settings import ServerList as sl, NOTICE
-
-        class BalloonImageButton(ImageButton, BalloonPrompt):
-            pass
+        from settings import ServerList, NOTICE
+        self.servers = ServerList
+        self.disable_click = False
+        self.highlight = None
+        self.hldraw = None
+        self.hl_alpha = 0
+        self.hlhit = False
 
         class NoticePanel(Panel):
             fill_color = (1.0, 1.0, 0.9, 0.5)
@@ -218,15 +222,6 @@ class ServerSelectScreen(Screen):
                 def on_click():
                     self.delete()
 
-        for s in sl.values():
-            btn = BalloonImageButton(
-                common_res.buttons.serverbtn,
-                parent=self, x=s['x'], y=s['y'],
-            )
-            btn.init_balloon(s['description'])
-            btn.set_handler('on_click', lambda s=s: self.do_connect(s['address']))
-            buttons.append(btn)
-
         NoticePanel(
             NOTICE,
             parent=self,
@@ -248,22 +243,49 @@ class ServerSelectScreen(Screen):
             SoundManager.mute()
 
     def do_connect(self, addr):
-        for b in self.buttons:
-            b.state = Button.DISABLED
+        self.disable_click = True
         Executive.call('connect_server', ui_message, addr, ui_message)
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        Screen.on_mouse_motion(self, x, y, dx, dy)
+
+        for s in self.servers.values():
+            if inpoly(x, y, s['polygon']):
+                self.hl_alpha = 1
+                if self.highlight is not s:
+                    self.highlight = s
+                    self.init_balloon(s['description'], polygon=s['polygon'])
+                    x, y, w, h = s['box']
+                    tex = common_res.worldmap_shadow.get_region(x, y, w, h)
+                    self.hldraw = (x, y, tex)
+
+                break
+        else:
+            if self.highlight:
+                self.highlight = None
+                self.hl_alpha = LinearInterp(1.0, 0, 0.3)
+                self.init_balloon('', (0, 0, 0, 0))
+
+        # Overlays are on their own.
+        BalloonPromptMixin.balloon_on_mouse_motion(self, x, y, dx, dy)
+
+    def on_mouse_release(self, x, y, button, modifiers):
+        Screen.on_mouse_release(self, x, y, button, modifiers)
+
+        if self.highlight and not self.disable_click:
+            self.disable_click = True
+            self.do_connect(self.highlight['address'])
 
     def on_message(self, _type, *args):
         if _type == 'server_connected':
             login = LoginScreen()
             login.switch()
         elif _type == 'server_connect_failed':
-            for b in self.buttons:
-                b.state = Button.NORMAL
+            self.disable_click = False
             log.error('Server connect failed.')
             ConfirmBox(u'服务器连接失败！', parent=self)
         elif _type == 'version_mismatch':
-            for b in self.buttons:
-                b.state = Button.NORMAL
+            self.disable_click = False
             log.error('Version mismatch')
             ConfirmBox(u'您的版本与服务器版本不符，无法进行游戏！', parent=self)
         else:
@@ -273,19 +295,24 @@ class ServerSelectScreen(Screen):
         #glColor3f(0.9, 0.9, 0.9)
         glColor3f(1, 1, 1)
         common_res.worldmap.blit(0, 0)
+        hla = self.hl_alpha
+        if hla and not self.disable_click:
+            x, y, tex = self.hldraw
+            glColor4f(1, 1, 1, hla)
+            tex.blit(x, y)
+
         self.draw_subcontrols()
 
     def on_switch(self):
         SoundManager.switch_bgm(common_res.bgm_hall)
         from options import options
 
-        if options.testing:
-            ConfirmBox(
-                u'测试模式开启，现在可以登陆测试服务器。\n'
-                u'测试模式下可能无法登陆正常服务器，\n'
-                u'测试服务器也会随时重新启动。',
-                parent=self, zindex=99999,
-            )
+        options.testing and ConfirmBox(
+            u'测试模式开启，现在可以登陆测试服务器。\n'
+            u'测试模式下可能无法登陆正常服务器，\n'
+            u'测试服务器也会随时重新启动。',
+            parent=self, zindex=99999,
+        )
 
 
 class LoginScreen(Screen):
