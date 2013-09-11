@@ -241,6 +241,9 @@ except:
     do_crashreport()
 
     raise
-
+finally:
+    # stop all async works.
+    pool.terminate()
+    pool.join()
 
 Executive.call('app_exit')
