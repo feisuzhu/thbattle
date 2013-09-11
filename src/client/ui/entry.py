@@ -40,6 +40,9 @@ def start_ui():
     main_window.set_icon(resource.icon)
     main_window.set_visible(True)
 
+    if sys.platform == 'win32':
+        win_before_taskbar()  # window will on top of taskbar when active
+
     # custom errcheck
     import pyglet.gl.lib as gllib
     orig_errcheck = gllib.errcheck
@@ -116,3 +119,20 @@ def start_ui():
         pyglet.app.win32.Win32EventLoop._next_idle_time = None
 
     pyglet.app.run()
+
+
+def win_before_taskbar():
+    from pyglet.window.win32 import Win32EventHandler, _user32, constants as c
+    hwnd = main_window._hwnd
+
+    def setzorder(wnd, flag=c.SWP_NOMOVE | c.SWP_NOSIZE | c.SWP_NOACTIVATE):
+        _user32.SetWindowPos(hwnd, wnd, 0, 0, 0, 0, flag)
+
+    def event_activate(msg, wParam, lParam):
+        if wParam & 0xFFFF:  # activate
+            setzorder(c.HWND_TOPMOST)
+        else:  #deactivate
+            setzorder(_user32.GetForegroundWindow())
+
+    main_window._event_handlers[c.WM_ACTIVATE] = event_activate
+    setzorder(c.HWND_TOPMOST)

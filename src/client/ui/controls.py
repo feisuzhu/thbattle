@@ -955,6 +955,19 @@ class PlayerPortrait(Frame):
             thin_shadow=True,
             *args, **kwargs
         )
+        sensor = SensorLayer(self)
+
+        @sensor.event
+        def on_mouse_enter(x, y):
+            self.account or self.window.set_mouse_cursor(self.hand_cursor)
+
+        @sensor.event
+        def on_mouse_leave(x, y):
+            self.window.set_mouse_cursor(None)
+
+        @sensor.event
+        def on_mouse_release(x, y, button, modifier):
+            self._change_loc()
 
         self.buttons = []
 
@@ -986,15 +999,6 @@ class PlayerPortrait(Frame):
         Executive.call(
             'kick_user', ui_message, self.userid
         )
-
-    def on_mouse_enter(self, x, y):
-        self.account or self.window.set_mouse_cursor(self.hand_cursor)
-
-    def on_mouse_leave(self, x, y):
-        self.window.set_mouse_cursor(None)
-
-    def on_mouse_release(self, x, y, button, modifier):
-        self._change_loc()
 
     def update(self):
         acc = self.account
@@ -1885,3 +1889,8 @@ class ImageSelector(Control, BalloonPromptMixin):
 
 ImageSelector.register_event_type('on_select')
 ImageSelector.register_event_type('on_dblclick')
+
+
+class SensorLayer(Control):
+    def __init__(self, p, *a, **k):
+        Control.__init__(self, 0, 0, p.width, p.height, *a, parent = p, **k)
