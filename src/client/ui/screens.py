@@ -15,7 +15,7 @@ from pyglet.text import Label
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame
-from client.ui.controls import ImageButton, ImageSelector, ListView, Panel
+from client.ui.controls import ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox, SensorLayer
 from client.ui.resource import resource as common_res
@@ -184,18 +184,11 @@ class UpdateScreen(Screen):
         self.draw_subcontrols()
 
 
-class ServerSelectScreen(Screen, BalloonPromptMixin):
-    hl_alpha = InterpDesc('_hl_alpha')
+class ServerSelectScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
         from settings import ServerList, NOTICE
-        self.servers = ServerList
-        self.disable_click = False
-        self.highlight = None
-        self.hldraw = None
-        self.hl_alpha = 0
-        self.hlhit = False
 
         class NoticePanel(Panel):
             fill_color = (1.0, 1.0, 0.9, 0.5)
@@ -222,35 +215,56 @@ class ServerSelectScreen(Screen, BalloonPromptMixin):
                 def on_click():
                     self.delete()
 
-        sensor = SensorLayer(self)
+        screen = self
 
-        @sensor.event
-        def on_mouse_motion(x, y, dx, dy):
-            for s in self.servers.values():
-                if inpoly(x, y, s['polygon']):
-                    self.hl_alpha = 1
-                    if self.highlight is not s:
-                        self.highlight = s
-                        self.init_balloon(s['description'], polygon=s['polygon'])
-                        x, y, w, h = s['box']
-                        tex = common_res.worldmap_shadow.get_region(x, y, w, h)
-                        self.hldraw = (x, y, tex)
+        class HighlightLayer(SensorLayer, BalloonPromptMixin):
+            zindex = 0
+            hl_alpha = InterpDesc('_hl_alpha')
 
-                    break
-            else:
-                if self.highlight:
-                    self.highlight = None
-                    self.hl_alpha = LinearInterp(1.0, 0, 0.3)
-                self.init_balloon('', (0, 0, 0, 0))
+            def __init__(self, *a, **k):
+                SensorLayer.__init__(self, *a, **k)
+                BalloonPromptMixin.__init__(self)
+                self.disable_click = False
+                self.highlight = None
+                self.hldraw = None
+                self.hl_alpha = 0
+                self.hlhit = False
 
-            # Overlays are on their own.
-            BalloonPromptMixin.balloon_on_mouse_motion(self, x, y, dx, dy)
+            def on_mouse_motion(self, x, y, dx, dy):
+                for s in ServerList.values():
+                    if inpoly(x, y, s['polygon']):
+                        self.hl_alpha = 1
+                        if self.highlight is not s:
+                            self.highlight = s
+                            self.init_balloon(s['description'], polygon=s['polygon'])
+                            x, y, w, h = s['box']
+                            tex = common_res.worldmap_shadow.get_region(x, y, w, h)
+                            self.hldraw = (x, y, tex)
 
-        @sensor.event
-        def on_mouse_release(x, y, button, modifiers):
-            if self.highlight and not self.disable_click:
-                self.disable_click = True
-                self.do_connect(self.highlight['address'])
+                        break
+                else:
+                    if self.highlight:
+                        self.highlight = None
+                        self.hl_alpha = LinearInterp(1.0, 0, 0.3)
+                    self.init_balloon('', (0, 0, 0, 0))
+
+                # Overlays are on their own.
+                BalloonPromptMixin.balloon_on_mouse_motion(self, x, y, dx, dy)
+
+            def on_mouse_release(self, x, y, button, modifiers):
+                if self.highlight and not self.disable_click:
+                    self.disable_click = True
+                    screen.do_connect(self.highlight['address'])
+
+            def enable_click(self):
+                self.disable_click = False
+
+            def draw(self):
+                hla = self.hl_alpha
+                if hla and not self.disable_click:
+                    x, y, tex = self.hldraw
+                    glColor4f(1, 1, 1, hla)
+                    tex.blit(x, y)
 
         NoticePanel(
             NOTICE,
@@ -258,6 +272,8 @@ class ServerSelectScreen(Screen, BalloonPromptMixin):
             width=800, height=600,
             x=(self.width-800)//2, y=(self.height-600)//2
         )
+
+        self.highlight_layer = HighlightLayer(parent=self)
 
         mute = Button(
             u'静音',
@@ -273,7 +289,6 @@ class ServerSelectScreen(Screen, BalloonPromptMixin):
             SoundManager.mute()
 
     def do_connect(self, addr):
-        self.disable_click = True
         Executive.call('connect_server', ui_message, addr, ui_message)
 
     def on_message(self, _type, *args):
@@ -281,11 +296,11 @@ class ServerSelectScreen(Screen, BalloonPromptMixin):
             login = LoginScreen()
             login.switch()
         elif _type == 'server_connect_failed':
-            self.disable_click = False
+            self.highlight_layer.enable_click()
             log.error('Server connect failed.')
             ConfirmBox(u'服务器连接失败！', parent=self)
         elif _type == 'version_mismatch':
-            self.disable_click = False
+            self.highlight_layer.enable_click()
             log.error('Version mismatch')
             ConfirmBox(u'您的版本与服务器版本不符，无法进行游戏！', parent=self)
         else:
@@ -295,12 +310,6 @@ class ServerSelectScreen(Screen, BalloonPromptMixin):
         #glColor3f(0.9, 0.9, 0.9)
         glColor3f(1, 1, 1)
         common_res.worldmap.blit(0, 0)
-        hla = self.hl_alpha
-        if hla and not self.disable_click:
-            x, y, tex = self.hldraw
-            glColor4f(1, 1, 1, hla)
-            tex.blit(x, y)
-
         self.draw_subcontrols()
 
     def on_switch(self):

@@ -1892,5 +1892,9 @@ ImageSelector.register_event_type('on_dblclick')
 
 
 class SensorLayer(Control):
-    def __init__(self, p, *a, **k):
-        Control.__init__(self, 0, 0, p.width, p.height, *a, parent = p, **k)
+    def __init__(self, parent, *a, **k):
+        Control.__init__(self,
+            parent=parent,
+            x=0, y=0, width=parent.width, height=parent.height,
+            *a, **k
+        )

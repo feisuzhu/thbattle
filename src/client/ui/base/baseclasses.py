@@ -89,14 +89,13 @@ class Control(pyglet.event.EventDispatcher):
         l = self.controls_frompoint(x, y)
         # l.sort(key=lambda c: c.zindex, reverse=True)
         l.sort(key=lambda c: c.zindex)
-        l.reverse()
         while l:
-            c = l[0]
+            c = l[-1]
             rst = c.hit_test(x-c.x, y-c.y)
             if rst:
                 return c
             else:
-                del l[0]
+                del l[-1]
                 continue
         else:
             return None
