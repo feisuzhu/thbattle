@@ -248,9 +248,6 @@ class ServerSelectScreen(Screen):
                         self.hl_alpha = LinearInterp(1.0, 0, 0.3)
                     self.init_balloon('', (0, 0, 0, 0))
 
-                # Overlays are on their own.
-                BalloonPromptMixin.balloon_on_mouse_motion(self, x, y, dx, dy)
-
             def on_mouse_release(self, x, y, button, modifiers):
                 if self.highlight and not self.disable_click:
                     self.disable_click = True
