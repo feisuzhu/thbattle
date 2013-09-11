@@ -22,7 +22,7 @@ from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
 
 from client.core import Executive
-from utils import rect_to_dict as r2d, textsnap, inpoly
+from utils import rect_to_dict as r2d, textsnap, inpoly, openurl
 from user_settings import UserSettings
 from account import Account
 from settings import ServerNames
@@ -369,12 +369,7 @@ class LoginScreen(Screen):
 
             @self.btn_reg.event  # noqa
             def on_click():
-                import sys
-                import os
-                if sys.platform == 'win32':
-                    os.startfile('http://www.thbattle.net', 'open')
-                elif sys.platform.startswith('linux'):
-                    os.system('xdg-open http://www.thbattle.net')
+                openurl('http://www.thbattle.net')
 
         def do_login(self):
             u, pwd = self.txt_username.text, self.txt_pwd.text
@@ -727,6 +722,14 @@ class GameHallScreen(Screen):
         self.playerlist = GameHallScreen.OnlineUsers(parent=self)
         self.noticebox = GameHallScreen.NoticeBox(parent=self)
         self.statusbox = GameHallScreen.StatusBox(parent=self)
+
+        b = Button(parent=self,
+            x=750, y=660, width=80, height=35,
+            color=Colors.orange, caption=u'卡牌查看器',
+        )
+        @b.event
+        def on_click():
+            openurl('http://setting.thbattle.net')
 
         Executive.call('get_hallinfo', ui_message, None)
 

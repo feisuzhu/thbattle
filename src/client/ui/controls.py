@@ -221,19 +221,8 @@ class Button(Control):
         glPopMatrix()
 
     def draw(self):
-        glColor3f(1.0, 1.0, 1.0)
-        if self.state == Button.DISABLED:
-            self._dl_gray()
-        else:
-            self._dl()
-            if self.state == Button.PRESSED:
-                glColor4f(0, 0, 0, .25)
-                glRectf(0, 0, self.width, self.height)
-            else:
-                a = self.hover_alpha
-                if a:  # HOVER, or HOVER -> NORMAL
-                    glColor4f(1.0, 1.0, .843, a)
-                    glRectf(0, 0, self.width, self.height)
+        glColor3f(1.0, 0.0, 0.0)
+        glRectf(0, 0, self.width, self.height)
 
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
