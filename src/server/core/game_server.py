@@ -65,10 +65,15 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
         # wait for new data
         ev = waitany([p.client.gdevent for p in players])
         assert ev
+        assert ev.is_set()
 
         p = evmap[ev]
         try:
             _, rst = p.client.gexpect(tag + str(synctags[p]), blocking=False)
+            # NOTE: NODATA could pop up here. Didn't figure out why.
+            if rst is GamedataMixin.NODATA:
+                return get_input()  # start over
+
         except EndpointDied:
             return p, None
 
