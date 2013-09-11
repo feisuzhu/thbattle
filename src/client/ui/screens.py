@@ -17,7 +17,7 @@ from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame
 from client.ui.controls import ImageButton, ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
-from client.ui.controls import TextArea, TextBox
+from client.ui.controls import TextArea, TextBox, SensorLayer
 from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
 
@@ -222,6 +222,36 @@ class ServerSelectScreen(Screen, BalloonPromptMixin):
                 def on_click():
                     self.delete()
 
+        sensor = SensorLayer(self)
+
+        @sensor.event
+        def on_mouse_motion(x, y, dx, dy):
+            for s in self.servers.values():
+                if inpoly(x, y, s['polygon']):
+                    self.hl_alpha = 1
+                    if self.highlight is not s:
+                        self.highlight = s
+                        self.init_balloon(s['description'], polygon=s['polygon'])
+                        x, y, w, h = s['box']
+                        tex = common_res.worldmap_shadow.get_region(x, y, w, h)
+                        self.hldraw = (x, y, tex)
+
+                    break
+            else:
+                if self.highlight:
+                    self.highlight = None
+                    self.hl_alpha = LinearInterp(1.0, 0, 0.3)
+                self.init_balloon('', (0, 0, 0, 0))
+
+            # Overlays are on their own.
+            BalloonPromptMixin.balloon_on_mouse_motion(self, x, y, dx, dy)
+
+        @sensor.event
+        def on_mouse_release(x, y, button, modifiers):
+            if self.highlight and not self.disable_click:
+                self.disable_click = True
+                self.do_connect(self.highlight['address'])
+
         NoticePanel(
             NOTICE,
             parent=self,
@@ -245,36 +275,6 @@ class ServerSelectScreen(Screen, BalloonPromptMixin):
     def do_connect(self, addr):
         self.disable_click = True
         Executive.call('connect_server', ui_message, addr, ui_message)
-
-    def on_mouse_motion(self, x, y, dx, dy):
-        Screen.on_mouse_motion(self, x, y, dx, dy)
-
-        for s in self.servers.values():
-            if inpoly(x, y, s['polygon']):
-                self.hl_alpha = 1
-                if self.highlight is not s:
-                    self.highlight = s
-                    self.init_balloon(s['description'], polygon=s['polygon'])
-                    x, y, w, h = s['box']
-                    tex = common_res.worldmap_shadow.get_region(x, y, w, h)
-                    self.hldraw = (x, y, tex)
-
-                break
-        else:
-            if self.highlight:
-                self.highlight = None
-                self.hl_alpha = LinearInterp(1.0, 0, 0.3)
-                self.init_balloon('', (0, 0, 0, 0))
-
-        # Overlays are on their own.
-        BalloonPromptMixin.balloon_on_mouse_motion(self, x, y, dx, dy)
-
-    def on_mouse_release(self, x, y, button, modifiers):
-        Screen.on_mouse_release(self, x, y, button, modifiers)
-
-        if self.highlight and not self.disable_click:
-            self.disable_click = True
-            self.do_connect(self.highlight['address'])
 
     def on_message(self, _type, *args):
         if _type == 'server_connected':
