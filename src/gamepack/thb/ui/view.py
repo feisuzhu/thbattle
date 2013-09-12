@@ -12,7 +12,7 @@ from game.autoenv import Game, EventHandler
 from .. import actions
 
 from client.ui.base import Control, Overlay, process_msg
-from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPrompt
+from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPromptMixin
 from client.ui.soundmgr import SoundManager
 from .game_controls import HandCardArea, PortraitCardArea, DropCardArea, Ray, GameCharacterPortrait, SkillSelectionBox
 from gamepack.thb.ui.resource import resource as gres
@@ -119,7 +119,7 @@ class ResultPanel(Panel):
         self.pic.blit(self.width - pic.width - 10, self.height - pic.height - 10)
 
 
-class GameIntroIcon(Control, BalloonPrompt):
+class GameIntroIcon(Control, BalloonPromptMixin):
     def __init__(self, game, *a, **k):
         Control.__init__(self, *a, **k)
         intro = getattr(game.ui_meta, 'description', None)

@@ -14,15 +14,15 @@ from pyglet.text import Label
 # -- own --
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
-from client.ui.controls import BalloonPrompt, Button, Colors, ConfirmBox, Frame
-from client.ui.controls import ImageButton, ImageSelector, ListView, Panel
+from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame
+from client.ui.controls import ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
-from client.ui.controls import TextArea, TextBox
+from client.ui.controls import TextArea, TextBox, SensorLayer
 from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
 
 from client.core import Executive
-from utils import rect_to_dict as r2d, textsnap
+from utils import rect_to_dict as r2d, textsnap, inpoly, openurl
 from user_settings import UserSettings
 from account import Account
 from settings import ServerNames
@@ -185,13 +185,10 @@ class UpdateScreen(Screen):
 
 
 class ServerSelectScreen(Screen):
+
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.buttons = buttons = []
-        from settings import ServerList as sl, NOTICE
-
-        class BalloonImageButton(ImageButton, BalloonPrompt):
-            pass
+        from settings import ServerList, NOTICE
 
         class NoticePanel(Panel):
             fill_color = (1.0, 1.0, 0.9, 0.5)
@@ -218,14 +215,53 @@ class ServerSelectScreen(Screen):
                 def on_click():
                     self.delete()
 
-        for s in sl.values():
-            btn = BalloonImageButton(
-                common_res.buttons.serverbtn,
-                parent=self, x=s['x'], y=s['y'],
-            )
-            btn.init_balloon(s['description'])
-            btn.set_handler('on_click', lambda s=s: self.do_connect(s['address']))
-            buttons.append(btn)
+        screen = self
+
+        class HighlightLayer(SensorLayer, BalloonPromptMixin):
+            zindex = 0
+            hl_alpha = InterpDesc('_hl_alpha')
+
+            def __init__(self, *a, **k):
+                SensorLayer.__init__(self, *a, **k)
+                BalloonPromptMixin.__init__(self)
+                self.disable_click = False
+                self.highlight = None
+                self.hldraw = None
+                self.hl_alpha = 0
+                self.hlhit = False
+
+            def on_mouse_motion(self, x, y, dx, dy):
+                for s in ServerList.values():
+                    if inpoly(x, y, s['polygon']):
+                        self.hl_alpha = 1
+                        if self.highlight is not s:
+                            self.highlight = s
+                            self.init_balloon(s['description'], polygon=s['polygon'])
+                            x, y, w, h = s['box']
+                            tex = common_res.worldmap_shadow.get_region(x, y, w, h)
+                            self.hldraw = (x, y, tex)
+
+                        break
+                else:
+                    if self.highlight:
+                        self.highlight = None
+                        self.hl_alpha = LinearInterp(1.0, 0, 0.3)
+                    self.init_balloon('', (0, 0, 0, 0))
+
+            def on_mouse_release(self, x, y, button, modifiers):
+                if self.highlight and not self.disable_click:
+                    self.disable_click = True
+                    screen.do_connect(self.highlight['address'])
+
+            def enable_click(self):
+                self.disable_click = False
+
+            def draw(self):
+                hla = self.hl_alpha
+                if hla and not self.disable_click:
+                    x, y, tex = self.hldraw
+                    glColor4f(1, 1, 1, hla)
+                    tex.blit(x, y)
 
         NoticePanel(
             NOTICE,
@@ -233,6 +269,8 @@ class ServerSelectScreen(Screen):
             width=800, height=600,
             x=(self.width-800)//2, y=(self.height-600)//2
         )
+
+        self.highlight_layer = HighlightLayer(parent=self)
 
         mute = Button(
             u'静音',
@@ -248,8 +286,6 @@ class ServerSelectScreen(Screen):
             SoundManager.mute()
 
     def do_connect(self, addr):
-        for b in self.buttons:
-            b.state = Button.DISABLED
         Executive.call('connect_server', ui_message, addr, ui_message)
 
     def on_message(self, _type, *args):
@@ -257,13 +293,11 @@ class ServerSelectScreen(Screen):
             login = LoginScreen()
             login.switch()
         elif _type == 'server_connect_failed':
-            for b in self.buttons:
-                b.state = Button.NORMAL
+            self.highlight_layer.enable_click()
             log.error('Server connect failed.')
             ConfirmBox(u'服务器连接失败！', parent=self)
         elif _type == 'version_mismatch':
-            for b in self.buttons:
-                b.state = Button.NORMAL
+            self.highlight_layer.enable_click()
             log.error('Version mismatch')
             ConfirmBox(u'您的版本与服务器版本不符，无法进行游戏！', parent=self)
         else:
@@ -279,13 +313,12 @@ class ServerSelectScreen(Screen):
         SoundManager.switch_bgm(common_res.bgm_hall)
         from options import options
 
-        if options.testing:
-            ConfirmBox(
-                u'测试模式开启，现在可以登陆测试服务器。\n'
-                u'测试模式下可能无法登陆正常服务器，\n'
-                u'测试服务器也会随时重新启动。',
-                parent=self, zindex=99999,
-            )
+        options.testing and ConfirmBox(
+            u'测试模式开启，现在可以登陆测试服务器。\n'
+            u'测试模式下可能无法登陆正常服务器，\n'
+            u'测试服务器也会随时重新启动。',
+            parent=self, zindex=99999,
+        )
 
 
 class LoginScreen(Screen):
@@ -336,12 +369,7 @@ class LoginScreen(Screen):
 
             @self.btn_reg.event  # noqa
             def on_click():
-                import sys
-                import os
-                if sys.platform == 'win32':
-                    os.startfile('http://www.thbattle.net', 'open')
-                elif sys.platform.startswith('linux'):
-                    os.system('xdg-open http://www.thbattle.net')
+                openurl('http://www.thbattle.net')
 
         def do_login(self):
             u, pwd = self.txt_username.text, self.txt_pwd.text
@@ -694,6 +722,14 @@ class GameHallScreen(Screen):
         self.playerlist = GameHallScreen.OnlineUsers(parent=self)
         self.noticebox = GameHallScreen.NoticeBox(parent=self)
         self.statusbox = GameHallScreen.StatusBox(parent=self)
+
+        b = Button(parent=self,
+            x=750, y=660, width=80, height=35,
+            color=Colors.orange, caption=u'卡牌查看器',
+        )
+        @b.event
+        def on_click():
+            openurl('http://setting.thbattle.net')
 
         Executive.call('get_hallinfo', ui_message, None)
 

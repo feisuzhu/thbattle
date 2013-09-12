@@ -35,6 +35,7 @@ class GamedataMixin(object):
     def gexpect(self, tag, blocking=True):
         try:
             assert not self._in_gexpect, 'NOT REENTRANT'
+            self._in_gexpect = True
             blocking and log.debug('GAME_EXPECT: %s', repr(tag))
             l = self.gdqueue
             e = self.gdevent

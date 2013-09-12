@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from client.ui.base.interp import LinearInterp
-from client.ui.controls import BalloonPrompt, Colors, Control, Panel, SmallProgressBar
+from client.ui.controls import BalloonPromptMixin, Colors, Control, Panel, SmallProgressBar
 from client.ui.soundmgr import SoundManager
 
 from client.ui.resource import resource as common_res
@@ -37,7 +37,7 @@ class OneShotAnim(Sprite):
 LoopingAnim = Sprite
 
 
-class TagAnim(Control, BalloonPrompt):
+class TagAnim(Control, BalloonPromptMixin):
     def __init__(self, img, x, y, text, *a, **k):
         Control.__init__(self, x=x, y=y, width=25, height=25, *a, **k)
         self.image = img

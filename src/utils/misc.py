@@ -606,3 +606,14 @@ def log_failure(logger):
         return wrapper
 
     return decorate
+
+
+def openurl(url):
+    import sys
+    import os
+
+    if sys.platform == 'win32':
+        os.startfile(url, 'open')
+
+    elif sys.platform.startswith('linux'):
+        os.system("xdg-open '%s'" % url)

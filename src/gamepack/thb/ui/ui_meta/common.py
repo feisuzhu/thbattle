@@ -55,7 +55,7 @@ def gen_metafunc(_for):
     return metafunc
 
 
-def property(f):
+def meta_property(f):
     f._is_property = True
     return f
 

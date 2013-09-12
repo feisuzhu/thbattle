@@ -10,7 +10,7 @@ from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractIn
 from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineInterp
 
 from client.ui.controls import Frame, Panel, Button, Colors, ImageButton
-from client.ui.controls import BalloonPrompt
+from client.ui.controls import BalloonPromptMixin
 
 
 from client.ui.resource import resource as common_res, get_atlas
@@ -27,7 +27,7 @@ from pyglet.text import Label
 HAVE_FBO = pyglet.gl.gl_info.have_extension('GL_EXT_framebuffer_object')
 
 
-class CardSprite(Control, BalloonPrompt):
+class CardSprite(Control, BalloonPromptMixin):
     x = InterpDesc('_x')
     y = InterpDesc('_y')
     back_scale = InterpDesc('_bs')
@@ -391,7 +391,7 @@ class SkillSelectionBox(Control):
         return self.control_frompoint1(x, y)
 
 
-class SmallCardSprite(Control, BalloonPrompt):
+class SmallCardSprite(Control, BalloonPromptMixin):
     width, height = 33, 46
     x = InterpDesc('_x')
     y = InterpDesc('_y')
@@ -557,7 +557,7 @@ class ShownCardPanel(Panel):
         ShownCardPanel.current = None
 
 
-class GameCharacterPortrait(Frame, BalloonPrompt):
+class GameCharacterPortrait(Frame, BalloonPromptMixin):
     dropped = False
     fleed = False
     actor_frame = None
