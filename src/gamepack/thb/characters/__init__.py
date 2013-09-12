@@ -39,6 +39,11 @@ import komachi  # noqa
 
 import remilia_ex  # noqa
 
+# testing
+import mokou1
+import mokou2
+
+# special
 import dummy  # noqa
 import akari  # noqa
 
