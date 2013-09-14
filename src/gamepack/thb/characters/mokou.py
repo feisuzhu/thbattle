@@ -39,7 +39,6 @@ class RebornAction(UserAction):
         tgt = self.target
         g = Game.getgame()
         g.process_action(Heal(tgt, tgt))
-        g.process_action(DropCards(tgt, tgt.fatetell))
         return True
 
 
