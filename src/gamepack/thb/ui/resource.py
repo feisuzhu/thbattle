@@ -80,7 +80,7 @@ resource = Resource(respath, [
         'tenshi', 'rumia', 'yuuka', 'rinnosuke', 'ran',
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
         'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
-        'seiga', 'kaguya', 'momiji', 'komachi',
+        'seiga', 'kaguya', 'momiji', 'komachi', 'mokou',
 
         'remilia_ex', 'remilia_ex2',
     ]],

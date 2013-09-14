@@ -115,12 +115,8 @@ class THBattleKOF(Game):
         # choose girls -->
         from characters import characters as chars
         from characters.akari import Akari
-        from characters.mokou1 import Mokou as Mokou1
-        from characters.mokou2 import Mokou as Mokou2
 
         _chars = g.random.sample(chars, 10)
-        _chars.append(Mokou1)
-        _chars.append(Mokou2)
         if Game.SERVER_SIDE:
             choice = [CharChoice(cls) for cls in _chars[-10:]]
 
