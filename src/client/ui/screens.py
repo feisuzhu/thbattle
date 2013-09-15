@@ -226,6 +226,9 @@ class ServerSelectScreen(Screen):
             def __init__(self, *a, **k):
                 SensorLayer.__init__(self, *a, **k)
                 BalloonPromptMixin.__init__(self)
+                from base.baseclasses import main_window
+                self.window = main_window
+                self.hand_cursor = self.window.get_system_mouse_cursor('hand')
                 self.worldmap_shadow = common_res.worldmap_shadow.get()
                 self.disable_click = False
                 self.highlight = None
@@ -243,12 +246,15 @@ class ServerSelectScreen(Screen):
                             x, y, w, h = s['box']
                             tex = self.worldmap_shadow.get_region(x, y, w, h)
                             self.hldraw = (x, y, tex)
+                            self.window.set_mouse_cursor(self.hand_cursor)
 
                         break
                 else:
                     if self.highlight:
                         self.highlight = None
                         self.hl_alpha = LinearInterp(1.0, 0, 0.3)
+                        self.window.set_mouse_cursor(None)
+
                     self.init_balloon('', (0, 0, 0, 0))
 
             def on_mouse_release(self, x, y, button, modifiers):
