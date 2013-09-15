@@ -732,12 +732,12 @@ class BalloonPromptMixin(object):
                 self.balloon_on_mouse_leave(x, y)
 
         b = self.balloon_panel
-        if b:
-            b.x, b.y = self._balloon_getloc(ax, ay)
+        b and self.balloon_setloc()
 
-    def _balloon_getloc(self, x, y):
+    def balloon_setloc(self):
         b = self.balloon_panel
         o = Overlay.cur_overlay
+        x, y = self.balloon_cursorloc
         ow, oh = o.width, o.height
         bw, bh = b.width, b.height
 
@@ -751,29 +751,38 @@ class BalloonPromptMixin(object):
         else:
             y -= bh + 10
 
-        return (x, y)
+        b.x = x
+        b.y = y
 
     def balloon_on_mouse_enter(self, x, y):
         if self.balloon_state == 'hidden':
             self.balloon_state = 'ticking'
             self.balloon_overlay = Overlay.cur_overlay
-            pyglet.clock.schedule_once(self.balloon_show, 0.8)
+            pyglet.clock.schedule_once(self._balloon_show, 0.8)
 
     def balloon_on_mouse_leave(self, x, y):
         if self.balloon_state == 'ticking':
-            pyglet.clock.unschedule(self.balloon_show)
+            pyglet.clock.unschedule(self._balloon_show)
         elif self.balloon_state == 'shown':
             self.balloon_panel.delete()
             del self.balloon_panel
         self.balloon_state = 'hidden'
 
-    def balloon_show(self, dt):
+    def _balloon_show(self, dt):
         if self.balloon_state == 'shown': return
         if Overlay.cur_overlay != self.balloon_overlay: return
         if not self.balloon_text: return
 
         self.balloon_state = 'shown'
+        panel = self.balloon_show()
+        self.balloon_panel = panel
+        self.balloon_setloc()
 
+        @panel.event
+        def on_mouse_enter(x, y, panel=panel):
+            panel.delete()
+
+    def balloon_show(self):
         width = self.balloon_width
         ta = TextArea(parent=None, x=2, y=2, width=width, height=100)
         ta.append(self.balloon_text)
@@ -783,13 +792,8 @@ class BalloonPromptMixin(object):
         panel = Panel(parent=Overlay.cur_overlay, x=0, y=0, width=width+4, height=h+4, zindex=999999)
         panel.add_control(ta)
         panel.fill_color = (1.0, 1.0, 0.9, 0.5)
-        self.balloon_panel = panel
 
-        @panel.event
-        def on_mouse_enter(x, y, panel=panel):
-            panel.delete()
-
-        panel.x, panel.y = self._balloon_getloc(*self.balloon_cursorloc)
+        return panel
 
 
 class TextBox(Control):
@@ -1109,7 +1113,7 @@ class PlayerPortrait(Frame):
 
 class TextArea(Control):
 
-    def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):
+    def __init__(self, font=u'AncientPix', font_size=9, default_attrib={}, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
 
         width, height = self.width, self.height
@@ -1124,6 +1128,8 @@ class TextArea(Control):
             color=(0, 0, 0, 255),
             shadow=(0, 0, 0, 0, 0),
         )
+
+        self.default_attrib.update(default_attrib)
 
         self.layout = pyglet.text.layout.IncrementalTextLayout(
             self.document, width-8, height-8, multiline=True

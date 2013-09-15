@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, img, img_grid, img_with_grayed, sound, subdir, texture, define_atlas
+from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, img, img_grid, img_with_grayed, sound, subdir, texture, define_atlas, lazytexture
 import os
 
 respath = os.path.join(os.path.dirname(__file__), 'res')
@@ -83,6 +83,10 @@ resource = Resource(respath, [
         'seiga', 'kaguya', 'momiji', 'komachi', 'mokou',
 
         'remilia_ex', 'remilia_ex2',
+    ]],
+
+    [lazytexture('%s_figure' % p) for p in [
+        'daiyousei', 'eirin', 'koakuma', 'yukari', 'komachi',
     ]],
 
     img_with_grayed('dummy_port', 'portrait'),

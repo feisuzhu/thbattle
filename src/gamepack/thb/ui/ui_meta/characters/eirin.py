@@ -85,6 +85,7 @@ class Eirin:
     # Character
     char_name = u'八意永琳'
     port_image = gres.eirin_port
+    figure_image = gres.eirin_figure
     description = (
         u'|DB街中的药贩 八意永琳 体力：3|r\n\n'
         u'|G医者|r：出牌阶段，你可以主动弃掉一张手牌，令任一目标角色回复1点体力。每回合限一次。\n\n'

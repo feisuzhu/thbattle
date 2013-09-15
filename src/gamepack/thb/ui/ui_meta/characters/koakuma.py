@@ -12,6 +12,7 @@ class Koakuma:
     # Character
     char_name = u'小恶魔'
     port_image = gres.koakuma_port
+    figure_image = gres.koakuma_figure
     description = (
         u'|DB图书管理员 小恶魔 体力：4|r\n\n'
         u'|G寻找|r：出牌阶段，你可以弃掉任意数量的牌，然后摸取等量的牌。每回合里，你最多可以使用一次寻找。'

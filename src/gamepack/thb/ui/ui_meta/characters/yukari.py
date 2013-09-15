@@ -108,6 +108,7 @@ class Yukari:
     # Character
     char_name = u'八云紫'
     port_image = gres.yukari_port
+    figure_image = gres.yukari_figure
     description = (
         u'|DB永远17岁 八云紫 体力：4|r\n\n'
         u'|G境界|r：你可以弃置一张手牌跳过你的一个阶段（回合开始和回合结束阶段除外）\n'

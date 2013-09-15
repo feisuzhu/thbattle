@@ -13,6 +13,7 @@ class Daiyousei:
     # Character
     char_name = u'大妖精'
     port_image = gres.daiyousei_port
+    figure_image = gres.daiyousei_figure
     description = (
         u'|DB全身萌点的保姆 大妖精 体力：3|r\n\n'
         u'|G支援|r：出牌阶段，你可以将任意数量的除了判定区外的牌以任意分配方式交给其他角色，若你于此阶段中给出的牌张数达到或超过3张时，你回复1点体力。\n\n'
