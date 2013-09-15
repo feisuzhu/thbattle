@@ -64,7 +64,7 @@ class Shikieiki:
     char_name = u'四季映姬'
     port_image = gres.shikieiki_port
     description = (
-        u'|DB乐园的最高裁判长 四季映姬 体力：3|r\n\n'
+        u'|DB胸不平何以平天下 四季映姬 体力：3|r\n\n'
         u'|G审判|r：在任意角色的判定牌生效前，你可以打出一张牌代替之。\n\n'
         u'|G威严|r：可以立即从对你造成伤害的来源处获得一张牌。'
     )
