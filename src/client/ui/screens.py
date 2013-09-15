@@ -188,6 +188,8 @@ class ServerSelectScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
+        self.worldmap = common_res.worldmap.get()
+
         from settings import ServerList, NOTICE
 
         class NoticePanel(Panel):
@@ -224,6 +226,7 @@ class ServerSelectScreen(Screen):
             def __init__(self, *a, **k):
                 SensorLayer.__init__(self, *a, **k)
                 BalloonPromptMixin.__init__(self)
+                self.worldmap_shadow = common_res.worldmap_shadow.get()
                 self.disable_click = False
                 self.highlight = None
                 self.hldraw = None
@@ -238,7 +241,7 @@ class ServerSelectScreen(Screen):
                             self.highlight = s
                             self.init_balloon(s['description'], polygon=s['polygon'])
                             x, y, w, h = s['box']
-                            tex = common_res.worldmap_shadow.get_region(x, y, w, h)
+                            tex = self.worldmap_shadow.get_region(x, y, w, h)
                             self.hldraw = (x, y, tex)
 
                         break
@@ -306,7 +309,7 @@ class ServerSelectScreen(Screen):
     def draw(self):
         #glColor3f(0.9, 0.9, 0.9)
         glColor3f(1, 1, 1)
-        common_res.worldmap.blit(0, 0)
+        self.worldmap.blit(0, 0)
         self.draw_subcontrols()
 
     def on_switch(self):
@@ -377,7 +380,7 @@ class LoginScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.bg = common_res.bg_login
+        self.bg = common_res.bg_login.get()
         self.bg_alpha = LinearInterp(0, 1.0, 1.5)
         self.dialog = LoginScreen.LoginDialog(parent=self)
 
@@ -557,7 +560,7 @@ class GameHallScreen(Screen):
             Frame.__init__(
                 self, parent=p, caption=u'当前大厅内的游戏',
                 x=35, y=220, width=700, height=420,
-                bot_reserve=30, bg=common_res.bg_gamelist,
+                bot_reserve=30, bg=common_res.bg_gamelist.get(),
             )
 
             gl = self.gamelist = ListView(parent=self, x=2, y=30, width=696, height=420-30-25)
@@ -713,7 +716,7 @@ class GameHallScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.bg = common_res.bg_gamehall
+        self.bg = common_res.bg_gamehall.get()
 
         self.gamelist = self.GameList(self)
 
@@ -727,6 +730,7 @@ class GameHallScreen(Screen):
             x=750, y=660, width=80, height=35,
             color=Colors.orange, caption=u'卡牌查看器',
         )
+
         @b.event
         def on_click():
             openurl('http://setting.thbattle.net')
@@ -865,7 +869,7 @@ class GameScreen(Screen):
                 self, parent=parent,
                 caption=u'游戏信息',
                 x=820, y=350, width=204, height=370,
-                bot_reserve=0, bg=common_res.bg_eventsbox,
+                bot_reserve=0, bg=common_res.bg_eventsbox.get(),
             )
             self.box = TextArea(
                 parent=self, x=2, y=2, width=200, height=370-24-2
@@ -882,13 +886,13 @@ class GameScreen(Screen):
             ChatBoxFrame.__init__(
                 self, parent=parent,
                 x=820, y=0, width=204, height=352,
-                bg=common_res.bg_chatbox,
+                bg=common_res.bg_chatbox.get(),
             )
 
     def __init__(self, game, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
 
-        self.backdrop = common_res.bg_ingame
+        self.backdrop = common_res.bg_ingame.get()
         self.flash_alpha = 0.0
 
         self.game = game
@@ -951,7 +955,7 @@ class GameScreen(Screen):
                 **r2d((0, 0, 820, 720))
             )
             SoundManager.switch_bgm(common_res.bgm_hall)
-            self.backdrop = common_res.bg_ingame
+            self.backdrop = common_res.bg_ingame.get()
             self.set_color(Colors.green)
             self.events_box.clear()
 

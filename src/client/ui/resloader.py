@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+
 import pyglet
 from pyglet.resource import Loader
 import os
 from utils import flatten
-import Image
+from PIL import Image
+import weakref
 
 
 def get_atlas(atlas_name='__default__', atlas_size=(1024, 1024)):
@@ -129,6 +132,31 @@ class texture(_ResourceDesc):
 
     def load(self, loader):
         return loader.texture(self.name + '.png')
+
+
+class _LazyTexture(object):
+    _DEAD = lambda: 0
+
+    def __init__(self, loader, name):
+        self.loader = loader
+        self.name = name
+        self.reference = weakref.ref(self._DEAD)
+
+    def get(self):
+        obj = self.reference()
+        if obj not in (None, self._DEAD):
+            return obj
+
+        obj = self.loader.texture(self.name + '.png')
+        self.reference = weakref.ref(obj)
+        return obj
+
+
+class lazytexture(_ResourceDesc):
+    __slots__ = ('name', )
+
+    def load(self, loader):
+        return _LazyTexture(loader, self.name)
 
 
 class bgm(_ResourceDesc):
