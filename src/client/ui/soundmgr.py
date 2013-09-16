@@ -10,6 +10,7 @@ from utils import instantiate
 @instantiate
 class SoundManager(object):
     volume_factor = InterpDesc('_volume_factor')  # 音量系数
+
     def __init__(self):
         self.cur_bgm = None
         self.bgm_next = None
@@ -81,6 +82,9 @@ class SoundManager(object):
     def set_volume(self, vol):
         self.volume = vol
         self._set_vol()
+
+    def get_volume(self):
+        return self.volume * self.volume_factor
 
     def _set_vol(self, _=None):
         self.bgm_player.volume = self.volume_factor * self.volume

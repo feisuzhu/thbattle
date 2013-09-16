@@ -14,7 +14,7 @@ from pyglet.text import Label
 # -- own --
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
-from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame
+from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame, VolumeTuner
 from client.ui.controls import ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox, SensorLayer
@@ -281,18 +281,7 @@ class ServerSelectScreen(Screen):
 
         self.highlight_layer = HighlightLayer(parent=self)
 
-        mute = Button(
-            u'静音',
-            parent=self,
-            x=self.width-90, y=60,
-            width=60, height=30,
-            color=Colors.orange,
-        )
-
-        @mute.event
-        def on_click():
-            mute.delete()
-            SoundManager.mute()
+        VolumeTuner(parent=self, x=self.width - 90, y=60)
 
     def do_connect(self, addr):
         Executive.call('connect_server', ui_message, addr, ui_message)
@@ -732,6 +721,8 @@ class GameHallScreen(Screen):
         self.noticebox = GameHallScreen.NoticeBox(parent=self)
         self.statusbox = GameHallScreen.StatusBox(parent=self)
 
+        VolumeTuner(parent=self, x=850, y=660)
+
         b = Button(parent=self,
             x=750, y=660, width=80, height=35,
             color=Colors.orange, caption=u'卡牌查看器',
@@ -915,6 +906,8 @@ class GameScreen(Screen):
             parent=self, caption=u'退出房间', zindex=1,
             **r2d((730, 670, 75, 25))
         )
+
+        VolumeTuner(parent=self, x=690, y=665)
 
         @self.btn_exit.event
         def on_click():

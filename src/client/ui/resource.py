@@ -46,6 +46,9 @@ resource = Resource(respath, [
     img('imagesel_shine'),
     imgdata('icon'),
 
+    img('speaker'),
+    img('speaker_off'),
+
     anim('actor_frame', [50] * 9, True),
     anim('turn_frame', [50] * 9, True),
 

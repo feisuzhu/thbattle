@@ -1893,3 +1893,44 @@ class SensorLayer(Control):
             x=0, y=0, width=parent.width, height=parent.height,
             *a, **k
         )
+
+
+class VolumeTuner(Control, BalloonPromptMixin):
+    def __init__(self, *a, **k):
+        Control.__init__(self, width=32, height=32, zindex=99999, *a, **k)
+        self.init_balloon(
+            u'|DB调节音量的图标|r\n'
+            u'\n'
+            u'单击切换静音和有声音\n'
+            u'鼠标滚轮调整音量大小'
+        )
+
+    def draw(self):
+        glColor4f(1, 1, 1, 1)
+        with common_res.speaker.owner:
+            glColor4f(1, 1, 1, 1)
+            common_res.speaker_off.blit_nobind(0, 0)
+            from client.ui.soundmgr import SoundManager
+            glColor4f(1, 1, 1, SoundManager.get_volume())
+            common_res.speaker.blit_nobind(0, 0)
+
+    def on_mouse_click(self, x, y, button, modifier):
+        from client.ui.soundmgr import SoundManager
+        vol = SoundManager.get_volume()
+        if vol > 0:
+            SoundManager.mute()
+        else:
+            SoundManager.unmute()
+
+    def on_mouse_scroll(self, x, y, dx, dy):
+        from client.ui.soundmgr import SoundManager
+        vol = SoundManager.get_volume()
+        vol += 0.1 * dy
+        vol = min(1.0, vol)
+        vol = max(0.0, vol)
+
+        if vol:
+            SoundManager.unmute()
+            SoundManager.set_volume(vol)
+        else:
+            SoundManager.mute()
