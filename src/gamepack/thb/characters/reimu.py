@@ -20,10 +20,15 @@ class SpiritualAttack(TreatAsSkill):
 
     def check(self):
         cl = self.associated_cards
-        if cl and len(cl) == 1 and cl[0].color == Card.RED:
-            return True
+        if not(cl and len(cl) == 1 and cl[0].color == Card.RED):
+            return False
+        
+        c = cl[0]
+        if c.resides_in is None or c.resides_in.type not in (
+            'cards', 'showncards'
+        ): return False
 
-        return False
+        return True
 
 
 class TributeTarget(Skill):
