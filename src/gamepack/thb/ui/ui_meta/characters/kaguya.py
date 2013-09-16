@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, meta_property
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
 from gamepack.thb.ui.resource import resource as gres
 
@@ -76,7 +76,7 @@ class ImperishableNight:
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
-    @property
+    @meta_property
     def image(c):
         return c.associated_cards[0].ui_meta.image
 

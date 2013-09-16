@@ -289,8 +289,11 @@ class RunIterator(AbstractRunIterator):
         self.start, self.end, self.value = self.next()
 
     def __getitem__(self, index):
-        while index >= self.end:
-            self.start, self.end, self.value = self.next()
+        try:
+            while index >= self.end:
+                self.start, self.end, self.value = self.next()
+        except StopIteration:
+            pass
         return self.value
 
     def ranges(self, start, end):

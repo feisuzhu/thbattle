@@ -3,14 +3,14 @@
 from pyglet.gl import GL_CLIENT_VERTEX_ARRAY_BIT, GL_QUADS, GL_T2F_C4F_N3F_V3F, GL_T4F_V4F
 from pyglet.gl import GLfloat, glColor3f, glColor4f, glDrawArrays, glInterleavedArrays
 from pyglet.gl import glLoadIdentity, glPopClientAttrib, glPopMatrix, glPushClientAttrib
-from pyglet.gl import glPushMatrix, glRotatef, glScalef, glTranslatef
+from pyglet.gl import glPushMatrix, glRotatef, glScalef, glTranslatef, glRectf
 
 from client.ui.base import Control
 from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractInterp
 from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineInterp
 
-from client.ui.controls import Frame, Panel, Button, Colors, ImageButton
-from client.ui.controls import BalloonPrompt
+from client.ui.controls import Frame, Panel, Button, Colors, ImageButton, TextArea
+from client.ui.controls import BalloonPromptMixin
 
 
 from client.ui.resource import resource as common_res, get_atlas
@@ -27,7 +27,7 @@ from pyglet.text import Label
 HAVE_FBO = pyglet.gl.gl_info.have_extension('GL_EXT_framebuffer_object')
 
 
-class CardSprite(Control, BalloonPrompt):
+class CardSprite(Control, BalloonPromptMixin):
     x = InterpDesc('_x')
     y = InterpDesc('_y')
     back_scale = InterpDesc('_bs')
@@ -391,7 +391,7 @@ class SkillSelectionBox(Control):
         return self.control_frompoint1(x, y)
 
 
-class SmallCardSprite(Control, BalloonPrompt):
+class SmallCardSprite(Control, BalloonPromptMixin):
     width, height = 33, 46
     x = InterpDesc('_x')
     y = InterpDesc('_y')
@@ -557,7 +557,61 @@ class ShownCardPanel(Panel):
         ShownCardPanel.current = None
 
 
-class GameCharacterPortrait(Frame, BalloonPrompt):
+class _CharacterFigure(Control):
+    def __init__(self, texture, prompt, parent, *a, **k):
+        self.texture = texture
+        self.prompt = prompt
+
+        width = texture.width
+        height = texture.height
+
+        x = (parent.width - width) // 2
+        y = (parent.height - height) // 2
+
+        self._x = x
+        self._y = y
+
+        Control.__init__(self, *a, x=x, y=y, width=width, height=height, parent=parent, zindex=999999, **k)
+
+        ta = TextArea(
+            parent=self,
+            # font_size=12,
+            x=2, y=2, width=width, height=100,
+        )
+
+        ta.append(prompt)
+        h = ta.content_height
+        ta.height = h
+        self.ta_height = h
+
+    def draw(self):
+        glColor3f(1, 1, 1)
+        self.texture.blit(0, 0)
+        glColor4f(1, 1, 1, 0.65)
+        glRectf(0, 0, self.width, self.ta_height)
+        self.draw_subcontrols()
+
+    def hit_test(self, x, y):
+        return self.control_frompoint1(x, y)
+
+    @property
+    def x(self):
+        return self._x
+
+    @x.setter
+    def x(self, v):
+        pass
+
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, v):
+        pass
+
+
+class GameCharacterPortrait(Frame, BalloonPromptMixin):
     dropped = False
     fleed = False
     actor_frame = None
@@ -731,6 +785,19 @@ class GameCharacterPortrait(Frame, BalloonPrompt):
         self.update_position()
         self.update_color()
         self.tagarrange()
+
+    def balloon_show(self):
+        try:
+            meta = self.player.ui_meta
+            figure_image = meta.figure_image
+        except:
+            return BalloonPromptMixin.balloon_show(self)
+
+        return _CharacterFigure(
+            figure_image.get(),
+            meta.description,
+            parent=self.parent,
+        )
 
     @property
     def color(self):

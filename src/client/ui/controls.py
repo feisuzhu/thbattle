@@ -9,7 +9,7 @@ from client.ui.base import ui_message, ui_schedule
 from client.ui.base.interp import InterpDesc, LinearInterp
 from client.ui.resource import resource as common_res
 from client.core import Executive
-from utils import textsnap, flatten, rectv2f, rrectv2f
+from utils import textsnap, flatten, rectv2f, rrectv2f, inpoly
 from utils import pyperclip, instantiate
 
 from pyglet.gl import glEnd, glBegin, gl_info, glRectf, glEnable, glColor3f
@@ -221,19 +221,8 @@ class Button(Control):
         glPopMatrix()
 
     def draw(self):
-        glColor3f(1.0, 1.0, 1.0)
-        if self.state == Button.DISABLED:
-            self._dl_gray()
-        else:
-            self._dl()
-            if self.state == Button.PRESSED:
-                glColor4f(0, 0, 0, .25)
-                glRectf(0, 0, self.width, self.height)
-            else:
-                a = self.hover_alpha
-                if a:  # HOVER, or HOVER -> NORMAL
-                    glColor4f(1.0, 1.0, .843, a)
-                    glRectf(0, 0, self.width, self.height)
+        glColor3f(1.0, 0.0, 0.0)
+        glRectf(0, 0, self.width, self.height)
 
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
@@ -695,15 +684,22 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 
-class BalloonPrompt(object):
+class BalloonPromptMixin(object):
     balloon_inited = False
     balloon_panel = None
     balloon_cursorloc = (0, 0)
     balloon_width = 288
+    balloon_state = 'hidden'
 
-    def init_balloon(self, text, region=None, width=288):
+    def init_balloon(self, text, region=None, width=288, polygon=None):
         self.balloon_text = text
-        self.balloon_region = region
+        if region:
+            x, y, w, h = region
+            x1, y1 = x + w, y + h
+            self.balloon_polygon = ((x, y), (x1, y), (x1, y1), (x, y1))
+        else:
+            self.balloon_polygon = polygon
+
         self.balloon_width = width
 
         if not self.balloon_inited:
@@ -714,12 +710,12 @@ class BalloonPrompt(object):
                 on_mouse_enter=self.balloon_on_mouse_enter,
                 on_mouse_leave=self.balloon_on_mouse_leave,
             )
-            self.balloon_state = 'hidden'
         else:
             if self.balloon_state == 'shown':
                 self.balloon_panel.delete()
                 del self.balloon_panel
-                self.balloon_state = 'hidden'
+
+        self.balloon_state = 'hidden'
 
     def balloon_on_mouse_motion(self, x, y, dx, dy, *a):
         ax, ay = self.abs_coords()
@@ -728,23 +724,20 @@ class BalloonPrompt(object):
 
         self.balloon_cursorloc = (ax, ay)
 
-        r = self.balloon_region
-        if r:
-            x1, y1, w, h = r
-            x2 = x1 + w
-            y2 = y1 + h
-            if x1 <= x <= x2 and y1 <= y <= y2:
+        poly = self.balloon_polygon
+        if poly:
+            if inpoly(x, y, poly):
                 self.balloon_on_mouse_enter(x, y)
             else:
                 self.balloon_on_mouse_leave(x, y)
 
         b = self.balloon_panel
-        if b:
-            b.x, b.y = self._balloon_getloc(ax, ay)
+        b and self.balloon_setloc()
 
-    def _balloon_getloc(self, x, y):
+    def balloon_setloc(self):
         b = self.balloon_panel
         o = Overlay.cur_overlay
+        x, y = self.balloon_cursorloc
         ow, oh = o.width, o.height
         bw, bh = b.width, b.height
 
@@ -758,28 +751,38 @@ class BalloonPrompt(object):
         else:
             y -= bh + 10
 
-        return (x, y)
+        b.x = x
+        b.y = y
 
     def balloon_on_mouse_enter(self, x, y):
         if self.balloon_state == 'hidden':
             self.balloon_state = 'ticking'
             self.balloon_overlay = Overlay.cur_overlay
-            pyglet.clock.schedule_once(self.balloon_show, 0.8)
+            pyglet.clock.schedule_once(self._balloon_show, 0.8)
 
     def balloon_on_mouse_leave(self, x, y):
         if self.balloon_state == 'ticking':
-            pyglet.clock.unschedule(self.balloon_show)
-        if self.balloon_state == 'shown':
+            pyglet.clock.unschedule(self._balloon_show)
+        elif self.balloon_state == 'shown':
             self.balloon_panel.delete()
             del self.balloon_panel
         self.balloon_state = 'hidden'
 
-    def balloon_show(self, dt):
+    def _balloon_show(self, dt):
         if self.balloon_state == 'shown': return
         if Overlay.cur_overlay != self.balloon_overlay: return
+        if not self.balloon_text: return
 
         self.balloon_state = 'shown'
+        panel = self.balloon_show()
+        self.balloon_panel = panel
+        self.balloon_setloc()
 
+        @panel.event
+        def on_mouse_enter(x, y, panel=panel):
+            panel.delete()
+
+    def balloon_show(self):
         width = self.balloon_width
         ta = TextArea(parent=None, x=2, y=2, width=width, height=100)
         ta.append(self.balloon_text)
@@ -789,13 +792,8 @@ class BalloonPrompt(object):
         panel = Panel(parent=Overlay.cur_overlay, x=0, y=0, width=width+4, height=h+4, zindex=999999)
         panel.add_control(ta)
         panel.fill_color = (1.0, 1.0, 0.9, 0.5)
-        self.balloon_panel = panel
 
-        @panel.event
-        def on_mouse_enter(x, y, panel=panel):
-            panel.delete()
-
-        panel.x, panel.y = self._balloon_getloc(*self.balloon_cursorloc)
+        return panel
 
 
 class TextBox(Control):
@@ -938,6 +936,9 @@ class PlayerPortrait(Frame):
     def __init__(self, player_name, color=Colors.blue, *args, **kwargs):
         self.account = None
         self.ready = False
+        from base.baseclasses import main_window
+        self.window = main_window
+        self.hand_cursor = self.window.get_system_mouse_cursor('hand')
         self.accinfo_labels = []
 
         self.player_name = player_name
@@ -947,6 +948,19 @@ class PlayerPortrait(Frame):
             thin_shadow=True,
             *args, **kwargs
         )
+        sensor = SensorLayer(self)
+
+        @sensor.event
+        def on_mouse_enter(x, y):
+            self.account or self.window.set_mouse_cursor(self.hand_cursor)
+
+        @sensor.event
+        def on_mouse_leave(x, y):
+            self.window.set_mouse_cursor(None)
+
+        @sensor.event
+        def on_mouse_release(x, y, button, modifier):
+            self._change_loc()
 
         self.buttons = []
 
@@ -963,20 +977,21 @@ class PlayerPortrait(Frame):
             def on_click(btn=btn, cmd=command):
                 cmd()
 
-        def change_loc():
-            Executive.call(
-                'change_location', ui_message,
-                self.parent.portraits.index(self)
-            )
+        # btn(u'换位', self._change_loc, 90, 55, 32, 20)
+        # btn(u'请离', self._kick, 90, 80, 32, 20)
+        btn(u'请离', self._kick, 90, 55, 32, 20)
 
-        def kick():
-            if not self.userid: return
-            Executive.call(
-                'kick_user', ui_message, self.userid
-            )
+    def _change_loc(self):
+        Executive.call(
+            'change_location', ui_message,
+            self.parent.portraits.index(self)
+        )
 
-        btn(u'换位', change_loc, 90, 55, 32, 20)
-        btn(u'请离', kick, 90, 80, 32, 20)
+    def _kick(self):
+        if not self.userid: return
+        Executive.call(
+            'kick_user', ui_message, self.userid
+        )
 
     def update(self):
         acc = self.account
@@ -1098,7 +1113,7 @@ class PlayerPortrait(Frame):
 
 class TextArea(Control):
 
-    def __init__(self, font=u'AncientPix', font_size=9, *args, **kwargs):
+    def __init__(self, font=u'AncientPix', font_size=9, default_attrib={}, *args, **kwargs):
         Control.__init__(self, can_focus=True, *args, **kwargs)
 
         width, height = self.width, self.height
@@ -1113,6 +1128,8 @@ class TextArea(Control):
             color=(0, 0, 0, 255),
             shadow=(0, 0, 0, 0, 0),
         )
+
+        self.default_attrib.update(default_attrib)
 
         self.layout = pyglet.text.layout.IncrementalTextLayout(
             self.document, width-8, height-8, multiline=True
@@ -1799,7 +1816,7 @@ class Panel(Control):
         self.draw_subcontrols()
 
 
-class ImageSelector(Control, BalloonPrompt):
+class ImageSelector(Control, BalloonPromptMixin):
     hover_alpha = InterpDesc('_hover_alpha')
 
     def __init__(self, image, group, *a, **k):
@@ -1867,3 +1884,12 @@ class ImageSelector(Control, BalloonPrompt):
 
 ImageSelector.register_event_type('on_select')
 ImageSelector.register_event_type('on_dblclick')
+
+
+class SensorLayer(Control):
+    def __init__(self, parent, *a, **k):
+        Control.__init__(self,
+            parent=parent,
+            x=0, y=0, width=parent.width, height=parent.height,
+            *a, **k
+        )

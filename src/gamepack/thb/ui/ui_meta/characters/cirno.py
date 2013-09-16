@@ -2,7 +2,7 @@
 
 from gamepack.thb import cards
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn, meta_property
 from gamepack.thb.ui.resource import resource as gres
 
 __metaclass__ = gen_metafunc(characters.cirno)
@@ -12,7 +12,7 @@ class PerfectFreeze:
     # Skill
     name = u'完美冻结'
 
-    @property
+    @meta_property
     def image(c):
         return c.associated_cards[0].ui_meta.image
 

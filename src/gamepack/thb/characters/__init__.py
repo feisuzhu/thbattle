@@ -36,9 +36,11 @@ import seiga  # noqa
 import kaguya  # noqa
 import momiji  # noqa
 import komachi  # noqa
+import mokou  # noqa
 
 import remilia_ex  # noqa
 
+# special
 import dummy  # noqa
 import akari  # noqa
 

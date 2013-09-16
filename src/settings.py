@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 158'
+VERSION = 'THBATTLE V1.0b incr 161'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -62,6 +62,14 @@ class ServerNames:
     hakurei = u'博丽神社'
 
 
+def _get_box(vlist):
+    xl = [i[0] for i in vlist]
+    yl = [i[1] for i in vlist]
+    x0, x1 = min(xl) - 5, max(xl) + 10
+    y0, y1 = min(yl) - 5, max(yl) + 10
+    return x0, y0, x1 - x0, y1 - y0
+
+
 class ServerList:
     import os
     IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
@@ -69,8 +77,12 @@ class ServerList:
 
     if options.testing or IS_PROTON:
         class hakurei:
-            name = u'博丽神社'
             address = ('cngame.thbattle.net', 8999)
+            polygon = [
+                (878, 423), (829, 409), (760, 376), (748, 346), (787, 329),
+                (863, 313), (929, 322), (970, 330), (992, 366), (968, 399),
+            ]
+            box = _get_box(polygon)
             description = (
                 u'|R没什么香火钱 博丽神社|r\n\n'
                 u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
@@ -78,39 +90,46 @@ class ServerList:
                 u'|R|B注意：这是测试服务器，并不保证稳定、与正常服务器的同步！|r\n\n'
                 u'|DB服务器地址： %s|r'
             ) % repr(address)
-            x = 893
-            y = 404
 
     if options.freeplay or IS_PROTON:
         class localhost:
             address = ('127.0.0.1', 9999)
+            polygon = [
+                (891, 704), (839, 707), (740, 601), (749, 575), (834, 570),
+                (947, 576), (986, 597), (991, 675), (964, 696),
+            ]
+            box = _get_box(polygon)
             description = (
                 u'|R你自己的本机服务器|r'
             )
-            x = 893
-            y = 504
 
     class lake:
         address = ('cngame.thbattle.net', 9999)
+        polygon = [
+            (569, 510), (514, 501), (489, 474), (514, 449), (585, 439),
+            (647, 447), (670, 457), (671, 487), (628, 504),
+        ]
+        box = _get_box(polygon)
         description = (
             u'|R这里没有青蛙 雾之湖|r\n\n'
             u'一个让人开心的地方。只是游客普遍反应，游玩结束后会感到自己的智商被拉低了一个档次。'
             u'另外，请不要把青蛙带到这里来。这不是规定，只是一个建议。\n\n'
             u'|DB服务器地址： %s|r'
         ) % repr(address)
-        x = 570
-        y = 470
 
     class forest:
         address = ('cngame.thbattle.net', 9999)
+        polygon = [
+            (360, 415), (237, 380), (197, 309), (222, 199), (285, 159),
+            (397, 150), (524, 168), (611, 256), (592, 318), (536, 359),
+        ]
+        box = _get_box(polygon)
         description = (
             u'|R光明牛奶指定销售地点 魔法之森|r\n\n'
             u'森林里好玩的东西很多，比如被捉弄什么的。'
             u'旁边有一个神奇的物品店，只是店主有点变态。\n\n'
             u'|DB服务器地址： %s|r'
         ) % repr(address)
-        x = 379
-        y = 286
 
     del IS_PROTON
 
@@ -121,20 +140,18 @@ NOTICE = u'''
 图片素材大多来自于互联网，如果其中有你的作品，请联系我。
 Proton制作
 
-|R请点击地图上的两个蓝点进入游戏。实际上是同一个服务器。|r
+|R请点击地图上的区域进入游戏。实际上是同一个服务器。|r
 如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。
 
 |B游戏论坛：|r
 http://www.thbattle.net
 
 |B最近更新情况：|r
-新的八意永琳头像（画师：渚FUN）
-新的大妖精头像（画师：渚FUN）
-新的八云紫头像（画师：渚FUN）
-魔理沙bug修复
-魔理沙重制
+新人物：藤原妹红
+出牌时间调整为25秒
+新头像（小町、八意永琳、大妖精、八云紫，画师：渚FUN）
+魔理沙重制，bug修复
 小伞调整，bug修复，游戏开局提示(zhyk)
-bug修复
 牌堆重制
 各种bug修复，小调整
 妖梦：现在觉醒会有额外的效果->提升一点体力上限并回复一点体力
@@ -142,12 +159,5 @@ bug修复
 新人物：小野塚小町
 犬走椛设定调整
 新人物：犬走椛
-异变模式：解决者现在跟异变一样，在回合开始前可以获得一点信仰
-异变模式：解决者选人模式变更，1阶段修改为异变先行动
-异变模式：牌堆内移除八卦炉
-阳伞：现在不会直接令可能造成伤害的符卡无效化
-小伞、美玲和紫的技能现在可以选择明牌区的牌
-美玲设定调整
-西行妖设定调整：现在不可以响应好人卡
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
 '''.strip()

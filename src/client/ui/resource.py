@@ -2,7 +2,7 @@ import pyglet
 from pyglet.resource import Loader
 import zipfile
 
-from client.ui.resloader import anim, bgm, get_atlas, img, imgdata_grid, img_grid, Resource, sound, subdir, texture
+from client.ui.resloader import anim, bgm, get_atlas, img, imgdata_grid, img_grid, Resource, sound, subdir, texture, imgdata, lazytexture
 from client.ui.resloader import _ResourceDesc
 import os
 
@@ -34,15 +34,17 @@ class white(_ResourceDesc):
 resource = Resource(respath, [
     bgm('bgm_hall'),
 
-    texture('bg_login'),
-    texture('bg_gamehall'),
-    texture('bg_ingame'),
-    texture('worldmap'),
-    texture('bg_gamelist'),
-    texture('bg_eventsbox'),
-    texture('bg_chatbox'),
+    lazytexture('bg_login'),
+    lazytexture('bg_gamehall'),
+    lazytexture('bg_ingame'),
+    lazytexture('worldmap'),
+    lazytexture('worldmap_shadow'),
+    lazytexture('bg_gamelist'),
+    lazytexture('bg_eventsbox'),
+    lazytexture('bg_chatbox'),
 
     img('imagesel_shine'),
+    imgdata('icon'),
 
     anim('actor_frame', [50] * 9, True),
     anim('turn_frame', [50] * 9, True),

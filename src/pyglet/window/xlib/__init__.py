@@ -1256,8 +1256,7 @@ class XlibWindow(BaseWindow):
                 text = None
             else:
                 for char in text:
-                    if char and unicodedata.category(char) == 'Cc' and \
-                            char != '\r':
+                    if unicodedata.category(char) == 'Cc' and char != '\r':
                         text = None
 
         symbol = symbol.value
@@ -1282,9 +1281,9 @@ class XlibWindow(BaseWindow):
         if filtered:
             # The event was filtered, text must be ignored, but the symbol is
             # still good.
-            return None, symbol, filtered
+            return None, None #symbol
 
-        return text, symbol, filtered
+        return text, symbol
 
     def _event_text_motion(self, symbol, modifiers):
         if modifiers & key.MOD_ALT:
@@ -1312,8 +1311,7 @@ class XlibWindow(BaseWindow):
                     continue
                 if ev.xkey.keycode == auto_event.xkey.keycode:
                     # Found a key repeat: dispatch EVENT_TEXT* event
-                    text, symbol, filtered = self._event_text_symbol(auto_event)
-                    if filtered: return
+                    text, symbol = self._event_text_symbol(auto_event)
                     modifiers = self._translate_modifiers(ev.xkey.state)
                     modifiers_ctrl = modifiers & (key.MOD_CTRL | key.MOD_ALT)
                     motion = self._event_text_motion(symbol, modifiers)
@@ -1338,8 +1336,7 @@ class XlibWindow(BaseWindow):
             for auto_event in reversed(saved):
                 xlib.XPutBackEvent(self._x_display, byref(auto_event))
 
-        text, symbol, filtered = self._event_text_symbol(ev)
-        if filtered: return
+        text, symbol = self._event_text_symbol(ev)
 
         modifiers = self._translate_modifiers(ev.xkey.state)
         modifiers_ctrl = modifiers & (key.MOD_CTRL | key.MOD_ALT)

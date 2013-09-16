@@ -2,6 +2,7 @@
 *~
 *.pyc
 *.pyo
+*.orig
 current_version
 update_info.json
 client_log.txt
