@@ -31,7 +31,12 @@ class Darkness(Skill):
 
     def check(self):
         cl = self.associated_cards
-        return cl and len(cl) == 1
+        if not(cl and len(cl) == 1): return False
+        c = cl[0]
+        if c.resides_in is None or c.resides_in.type not in (
+            'cards', 'showncards', 'equips'
+        ): return False
+        return True
 
 
 class Cheating(Skill):

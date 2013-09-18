@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
-from ..actions import DrawCards
+from ..actions import DrawCards, PlayerRevive
 from ..cards import Skill, t_None
 
 
@@ -19,7 +19,13 @@ class LuckHandler(EventHandler):
         if evt_type == 'card_migration':
             act, l, _from, to = arg  # (action, cardlist, from, to)
             p = _from.owner
-            if p and p.has_skill(Luck) and not p.dead and not (p.cards or p.showncards):
+        elif evt_type == 'action_after' and isinstance(arg, PlayerRevive):
+            p = arg.target
+        else:
+            p = None
+       
+        if p and p.has_skill(Luck) and not p.dead:
+            if not (p.cards or p.showncards):
                 Game.getgame().process_action(LuckDrawCards(p, 2))
         return arg
 
