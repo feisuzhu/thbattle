@@ -730,7 +730,7 @@ class GameHallScreen(Screen):
 
         @b.event
         def on_click():
-            openurl('http://setting.thbattle.net')
+            openurl('http://thb.io')
 
         Executive.call('get_hallinfo', ui_message, None)
 
