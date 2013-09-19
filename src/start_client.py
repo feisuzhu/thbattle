@@ -16,6 +16,7 @@ parser.add_argument('--freeplay', action='store_true')
 parser.add_argument('--fastjoin', action='store_true')
 parser.add_argument('--dump-gameobj', action='store_true')
 parser.add_argument('--log', default='INFO')
+parser.add_argument('--no-crashreport', action='store_true')
 
 options = parser.parse_args()
 
@@ -140,6 +141,7 @@ if sys.platform.startswith('linux') and options.dump_gameobj:
 
 
 def do_crashreport(active=False):
+    if options.no_crashreport: return
     import requests
     import zlib
     import traceback
