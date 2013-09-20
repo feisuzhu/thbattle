@@ -39,6 +39,7 @@ class GamedataMixin(object):
             blocking and log.debug('GAME_EXPECT: %s', repr(tag))
             l = self.gdqueue
             e = self.gdevent
+            e.clear()
 
             glob = False
             if tag.endswith('*'):
