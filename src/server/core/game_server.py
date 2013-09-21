@@ -70,7 +70,14 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
         p = evmap[ev]
         try:
             _, rst = p.client.gexpect(tag + str(synctags[p]), blocking=False)
-            assert rst is not GamedataMixin.NODATA
+            if rst is GamedataMixin.NODATA:
+                # debug code
+                _g = Game.getgame()
+                _pl = _g.players
+                log.error('-----NODATA ERROR-----')
+                for _p in _pl:
+                    log.error('%r:%r:%r' % (_p, _p.client.gdevent.is_set(), list(_p.client.gdqueue)))
+                log.error('----------------------')
 
         except EndpointDied:
             return p, None

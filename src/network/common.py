@@ -54,9 +54,8 @@ class GamedataMixin(object):
                         return packet
 
                     else:
-                        if blocking:
-                            log.debug('GAME_DATA_MISS: %s', repr(packet))
-                            log.debug('EXPECTS: %s, GAME: %s', tag, getcurrent())
+                        log.info('GAME_DATA_MISS: %s', repr(packet))
+                        log.info('EXPECTS: %s, GAME: %s', tag, getcurrent())
 
                 e.clear()
                 if blocking:
