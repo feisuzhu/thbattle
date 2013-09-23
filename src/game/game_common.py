@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 import logging
+import gevent
 from gevent import Timeout
 from contextlib import contextmanager
 
@@ -253,6 +256,7 @@ class Game(GameObject):
         Fire an event, all relevant event handlers will see this,
         data can be modified.
         '''
+        gevent.sleep(0)  # prevent buggy logic code blocking scheduling
         if isinstance(data, (list, tuple, str, unicode)):
             s = data
         else:

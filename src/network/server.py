@@ -41,7 +41,7 @@ class Client(Endpoint, GamedataMixin, Greenlet):
         while True:
             try:
                 hasdata = False
-                with Timeout(30, False):
+                with Timeout(90, False):
                     cmd, data = self.read()
                     hasdata = True
 
