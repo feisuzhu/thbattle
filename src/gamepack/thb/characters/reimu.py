@@ -22,7 +22,7 @@ class SpiritualAttack(TreatAsSkill):
         cl = self.associated_cards
         if not(cl and len(cl) == 1 and cl[0].color == Card.RED):
             return False
-        
+
         c = cl[0]
         if c.resides_in is None or c.resides_in.type not in (
             'cards', 'showncards'
@@ -48,10 +48,14 @@ class TributeAction(UserAction):
 
     def is_valid(self):
         p = self.source
+
         if p.tags.get('turn_count', 0) <= p.tags.get('tribute_tag', 0):
             return False
-        if self.target.dead:
-            return False
+
+        tgt = self.target
+
+        if tgt.dead: return False
+        if len(tgt.cards) + len(tgt.showncards) >= tgt.maxlife: return False
         return True
 
 

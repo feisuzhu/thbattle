@@ -96,6 +96,9 @@ class Tribute:
         if len(tl) != 1 or not tl[0].has_skill(characters.reimu.TributeTarget):
             return (False, u'请选择一只灵梦')
 
+        if len(tl[0].cards) + len(tl[0].showncards) >= tl[0].maxlife:
+            return (False, u'灵梦的塞钱箱满了')
+
         return (True, u'塞钱……会发生什么呢？')
 
     def effect_string(act):
@@ -116,5 +119,5 @@ class Reimu:
         u'|DB节操满地跑的城管 博丽灵梦 体力：3|r\n\n'
         u'|G灵击|r：你可以将你的任意一张红色手牌当【好人卡】使用。\n\n'
         u'|G飞行|r：锁定技，当你没有装备任何UFO时，其他玩家对你结算距离时始终+1\n\n'
-        u'|G纳奉|r：任何人都可以在自己的出牌阶段给你一张手牌。'
+        u'|G纳奉|r：在其他玩家的回合，若你的手牌数小于最大体力值，该玩家可以在自己的出牌阶段给你一张手牌。每阶段限一次。'
     )
