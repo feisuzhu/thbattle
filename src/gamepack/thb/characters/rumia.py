@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
-from ..actions import DrawCards, PlayerTurn, UserAction
-from ..cards import Skill, BaseDuel, t_None, t_OtherN
+from ..actions import DrawCards, PlayerTurn, UserAction, user_choose_cards, LaunchCard, Damage
+from ..cards import Skill, BaseDuel, t_None, t_OtherN, AttackCard
 
 
 class DarknessDuel(BaseDuel):
@@ -11,17 +11,36 @@ class DarknessDuel(BaseDuel):
 
 class DarknessAction(UserAction):
     def apply_action(self):
-        tl = self.target_list
+        attacker, victim = self.target_list
+        src = self.source
         g = Game.getgame()
         tags = self.source.tags
         tags['darkness_tag'] = tags['turn_count']
-        g.process_action(DarknessDuel(tl[1], tl[0]))
+
+        cards = user_choose_cards(self, attacker, ('cards', 'showncards'))
+        if cards:
+            c = cards[0]
+            g.process_action(LaunchCard(attacker, [victim], c))
+        else:
+            g.process_action(Damage(src, attacker, 1))
+
+        return True
+
+    def cond(self, cl):
+        if len(cl) != 1: return False
+        c = cl[0]
+        if not c.is_card(AttackCard): return False
         return True
 
     def is_valid(self):
         tags = self.source.tags
         if tags['turn_count'] <= tags['darkness_tag']:
             return False
+
+        attacker, victim = self.target_list
+        if not LaunchCard(attacker, [victim], AttackCard()).can_fire():
+            return False
+
         return True
 
 

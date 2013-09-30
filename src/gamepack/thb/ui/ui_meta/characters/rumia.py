@@ -33,9 +33,9 @@ class Darkness:
             return (False, u'请选择一张牌')
 
         if not len(tl):
-            return (False, u'请选择第一名玩家（先出弹幕）')
+            return (False, u'请选择第一名玩家（向第二名玩家出【弹幕】）')
         elif len(tl) == 1:
-            return (False, u'请选择第二名玩家（后出弹幕）')
+            return (False, u'请选择第二名玩家（【弹幕】的目标）')
         else:
             return (True, u'你们的关系…是~这样吗？')
 
@@ -52,7 +52,13 @@ class DarknessAction:
     def ray(act):
         src = act.source
         tl = act.target_list
-        return [(src, tl[1]), (tl[1], tl[0])]
+        return [(src, tl[0]), (tl[0], tl[1])]
+
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'使用【弹幕】')
+        else:
+            return (False, u'请使用一张【弹幕】（否则受到一点伤害）')
 
 
 class Cheating:
@@ -73,6 +79,6 @@ class Rumia:
     port_image = gres.rumia_port
     description = (
         u'|DB宵暗的妖怪 露米娅 体力：3|r\n\n'
-        u'|G黑暗|r：出牌阶段，你可以弃一张牌并选择除你以外的两名角色。若如此做，视为由你选择的其中一名角色对另一名角色使用一张【弹幕战】。额外的，此【弹幕战】属于人物技能，不是符卡效果。\n\n'
+        u'|G黑暗|r：出牌阶段，你可以弃一张牌并选择除你以外的两名角色。若如此做，则第一名玩家需向第二名玩家使用【弹幕】，若第一名玩家不这样做，则受到来自你的一点伤害。\n\n'
         u'|G作弊|r：弃牌阶段后，你摸一张牌。'
     )
