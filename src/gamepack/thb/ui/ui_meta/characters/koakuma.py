@@ -15,7 +15,8 @@ class Koakuma:
     figure_image = gres.koakuma_figure
     description = (
         u'|DB图书管理员 小恶魔 体力：4|r\n\n'
-        u'|G寻找|r：出牌阶段，你可以弃掉任意数量的牌，然后摸取等量的牌。每回合里，你最多可以使用一次寻找。'
+        u'|G寻找|r：出牌阶段，你可以弃掉任意数量的牌，然后摸取等量的牌。每回合里，你最多可以使用一次寻找。\n\n'
+        u'|DB（画师：渚FUN，Takibi）|r'
     )
 
 
