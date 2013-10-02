@@ -189,7 +189,7 @@ class UIDoPassiveAction(UISelectTarget):
                         pyglet.clock.schedule_once(complete, v)
                         return
 
-            if cond:
+            if ilet.categories:
                 if not self._auto_chosen:
                     self._auto_chosen = True
                     from itertools import chain

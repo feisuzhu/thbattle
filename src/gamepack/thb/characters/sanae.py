@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
+
+from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import Damage, DrawCards, GenericAction, UserAction, user_choose_players
-from ..cards import Skill, t_None, t_OtherOne
+from ..actions import Damage, DrawCards, DropCards, GenericAction, UserAction, user_choose_players, user_choose_cards
+from ..cards import Skill, t_None, t_OtherOne, Attack
+from ..inputlets import ChooseOptionInputlet
 
 
 class DrawingLotAction(UserAction):
@@ -41,13 +43,47 @@ class Miracle(Skill):
 
 
 class MiracleAction(GenericAction):
+    amount = -1
+
     def apply_action(self):
-        src = self.source
         tgt = self.target
-        amount = min(src.maxlife - src.life, 4)
+        amount = tgt.maxlife - tgt.life
         self.amount = amount
+        self._do_effect(tgt)
+
         g = Game.getgame()
-        g.process_action(DrawCards(tgt, amount))
+        minlife = min([p.life for p in g.players if not p.dead])
+        if not tgt.life == minlife: return True
+
+        candidates = [p for p in g.players if p is not tgt and not p.dead]
+        pl = user_choose_players(self, tgt, candidates)
+        if not pl: return True
+
+        self._do_effect(pl[0])
+        return True
+
+    def _do_effect(self, p):
+        g = Game.getgame()
+        amount = self.amount
+        allcards = list(p.showncards) + list(p.cards) + list(p.equips)
+        if len(allcards) <= amount:
+            cards = allcards
+        else:
+            cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
+            cards = cards or allcards[:amount]
+
+        g.players.reveal(cards)
+
+        g.process_action(DropCards(p, cards))
+        g.process_action(DrawCards(p, amount))
+
+    def choose_player_target(self, tl):
+        if not tl: return (tl, False)
+        return (tl[-1:], True)
+
+    def cond(self, cl):
+        if len(cl) != self.amount: return False
+        if any(['skill' in c.category for c in cl]): return False
         return True
 
 
@@ -57,20 +93,17 @@ class MiracleHandler(EventHandler):
             tgt = act.target
             if not tgt.has_skill(Miracle): return act
             if tgt.dead: return act
-            g = Game.getgame()
 
-            candidates = [p for p in g.players if not p.dead]
-            if not candidates: return act
-            pl = user_choose_players(self, tgt, candidates)
-            if not pl: return act
             g = Game.getgame()
-            g.process_action(MiracleAction(tgt, pl[0]))
+            pact = g.action_stack[-1]
+            if not isinstance(pact, Attack): return act
+
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            g.process_action(MiracleAction(tgt, tgt))
 
         return act
-
-    def choose_player_target(self, tl):
-        if not tl: return (tl, False)
-        return (tl[-1:], True)
 
 
 @register_character
