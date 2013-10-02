@@ -422,7 +422,9 @@ class UIChooseGirl(Panel, InputHandler):
         )
 
         def on_done(*a):
-            self.inputlet.done()
+            # self.inputlet.done()
+            # FIXME: blindly did this.
+            self.inputlet and self.inputlet.done()
             self.end_selection()
 
         self.pbar.value = LinearInterp(

@@ -374,12 +374,18 @@ def user_exit(user):
     evt_datachange.set()
 
 
-def _notify_playerchange(game):
-    from network.server import Client
-    s = Client.encode(['player_change', game.players])
-    for cl in game.players.client:
-        cl.raw_write(s)
-        if cl.observers: cl.observers.raw_write(s)
+def _notify_playerchange(g):
+    @gevent.spawn
+    def notify_playerchage_worker():
+        try:
+            from network.server import Client
+            s = Client.encode(['player_change', g.players])
+            for cl in g.players.client:
+                cl.raw_write(s)
+                if cl.observers: cl.observers.raw_write(s)
+
+        except Exception as e:
+            log.warning('Exception in _notify_playerchange: %s', e.__class__.__name__)
 
 
 def query_gameinfo(user, gid):
@@ -471,10 +477,11 @@ def change_location(user, loc):
         return
     if user.state == 'observing':
         join_game(user, g.gameid, loc)
-    else:        
+    else:
         i = pl.client.index(user)
         pl[loc], pl[i] = pl[i], pl[loc]
         _notify_playerchange(g)
+
 
 def kick_user(user, uid):
     g = user.current_game
@@ -589,7 +596,7 @@ def exit_game(user, drops=False):
         user.write(['gamehall_error', 'not_in_a_game'])
 
 
-def join_game(user, gameid, slot = None):
+def join_game(user, gameid, slot=None):
     if user.state == 'hang' and gameid in games:
         g = games[gameid]
     elif user.state == 'observing':
@@ -607,7 +614,7 @@ def join_game(user, gameid, slot = None):
             slot = _next_free_slot(g)
         elif g.players[slot] is not PlayerPlaceHolder:
             slot = None
-        
+
         if slot is not None:
             if user.state == 'observing':
                 user.observing.observers.remove(user)
