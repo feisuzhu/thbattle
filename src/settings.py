@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 162'
+VERSION = 'THBATTLE V1.0b incr 163'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -147,17 +147,9 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
-新人物：藤原妹红
+人物强度调整（露米娅、早苗、灵梦，具体调整请看论坛帖子）
+新人物：藤原妹红(zhyk)
 出牌时间调整为25秒
 新头像（小町、八意永琳、大妖精、八云紫，画师：渚FUN）
-魔理沙重制，bug修复
-小伞调整，bug修复，游戏开局提示(zhyk)
-牌堆重制
-各种bug修复，小调整
-妖梦：现在觉醒会有额外的效果->提升一点体力上限并回复一点体力
-新的小恶魔头像（画师：渚FUN、TI）
-新人物：小野塚小町
-犬走椛设定调整
-新人物：犬走椛
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
 '''.strip()
