@@ -133,7 +133,9 @@ class THBattleIdentity(Game):
             p.dead = False
 
         # choose girls init -->
-        from characters import characters as chars
+        from .characters import characters as chars
+        from .characters.akari import Akari
+
         chars = list(chars)
         if Game.CLIENT_SIDE:
             chars = [None] * len(chars)
@@ -150,10 +152,12 @@ class THBattleIdentity(Game):
         g.process_action(RevealIdentity(boss, g.players))
 
         boss.choices = [CharChoice(c) for c in chars[:4]]
+        boss.choices.append(CharChoice(Akari))
         del chars[:4]
 
         for p in g.players.exclude(boss):
             p.choices = [CharChoice(c) for c in chars[:3]]
+            p.choices.append(CharChoice(Akari))
             del chars[:3]
 
         for p in g.players:
@@ -163,10 +167,14 @@ class THBattleIdentity(Game):
         with InputTransaction('ChooseGirl', [boss], mapping=mapping) as trans:
             c = user_input([boss], ChooseGirlInputlet(g, mapping), 30, 'single', trans)
 
-            c = c or CharChoice(chars.pop())
+            c = c or boss.choices[-1]
             c.chosen = boss
             g.players.reveal(c)
             trans.notify('girl_chosen', c)
+
+            if c.char_cls is Akari:
+                c = CharChoice(chars.pop())
+                g.players.reveal(c)
 
             # mix it in advance
             # so the others could see it
@@ -214,8 +222,12 @@ class THBattleIdentity(Game):
         # mix char class with player -->
         for p in pl:
             c = result[p]
-            c = c or CharChoice(chars.pop())
+            c = c or p.choices[-1]
             g.players.reveal(c)
+
+            if c.char_cls is Akari:
+                c = CharChoice(chars.pop())
+                g.players.reveal(c)
 
             mixin_character(p, c.char_cls)
             p.skills = list(p.skills)  # make it instance variable
