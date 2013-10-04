@@ -11,10 +11,10 @@ __metaclass__ = gen_metafunc(characters.nazrin)
 
 class Nazrin:
     # Character
-    char_name = u'娜滋琳'
+    char_name = u'纳兹琳'
     port_image = gres.nazrin_port
     description = (
-        u'|DB探宝的小小大将 娜滋琳 体力：3|r\n\n'
+        u'|DB探宝的小小大将 纳兹琳 体力：3|r\n\n'
         u'|G轻敏|r：你可以将你的黑色手牌当作【擦弹】使用或打出。\n\n'
         u'|G探宝|r：回合开始阶段，你可以进行判定。判定结束后，若为黑色，你获得此判定牌，并且可以继续发动探宝。'
     )
