@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+from weakref import WeakSet
 from collections import defaultdict
 import atexit
 import logging
@@ -11,8 +12,9 @@ import gzip
 
 # -- third party --
 import gevent
-from gevent import Greenlet
+from gevent import Greenlet, Timeout
 from gevent.event import Event
+from gevent.queue import Queue
 import simplejson as json
 import pika
 
@@ -34,9 +36,26 @@ pika.adapters.blocking_connection.LOGGER.setLevel(logging.CRITICAL)
 
 
 class Client(ClientEndpoint):
+    def __init__(self, *a, **k):
+        ClientEndpoint.__init__(self, *a, **k)
+        self.cmd_listeners = defaultdict(WeakSet)
+
+    def listen_command(self, *cmds):
+        listeners_set = self.cmd_listeners
+        q = Queue(100)
+        for cmd in cmds:
+            listeners_set[cmd].add(q)
+
+        return q
+
     def handle_command(self, cmd, data):
         f = getattr(self, 'command_' + str(cmd), None)
         if not f:
+            listeners = self.cmd_listeners[cmd]
+            if listeners:
+                [l.put(data) for l in listeners]
+                return
+
             log.debug('No command %s', cmd)
             self.write(['invalid_command', [cmd, data]])
             return
@@ -106,10 +125,6 @@ class Client(ClientEndpoint):
     @for_state('hang')
     def command_observe_user(self, uid):
         observe_user(self, uid)
-
-    @for_state('inroomwait', 'ready', 'ingame')
-    def command_observe_grant(self, rst):
-        observe_grant(self, rst)
 
     @for_state('hang')
     def command_query_gameinfo(self, gid):
@@ -677,9 +692,6 @@ def _observe_user(user, observee):
         observee.replay(user)
 
 
-observe_table = defaultdict(set)
-
-
 def observe_user(user, other_userid):
     other = users.get(other_userid, None)
 
@@ -691,25 +703,42 @@ def observe_user(user, other_userid):
         user.write(['gamehall_error', 'user_not_ingame'])
         return
 
-    observe_table[other_userid].add(user.account.userid)
-    other.write(['observe_request', [user.account.userid, user.account.username]])
+    @gevent.spawn
+    def worker():
+        with Timeout(20, False):
+            rst = None
+            other.write(['observe_request', [user.account.userid, user.account.username]])
+            chan = other.listen_command('observe_grant')
+            while True:
+                rst = chan.get()
+                if rst is None:
+                    return
 
+                try:
+                    ob_id, grant = rst
+                except:
+                    continue
 
-def observe_grant(user, rst):
-    try:
-        ob_id, grant = rst
-    except:
-        return
+                if ob_id != user.account.userid:
+                    continue
 
-    l = observe_table[user.account.userid]
-    if ob_id in l:
-        l.remove(ob_id)
-        ob = users.get(ob_id, None)
-        if not (ob and ob.state == 'hang'): return
+                break
+
+        if not rst:
+            return
+
+        if not user.state == 'hang':
+            return
+
+        if other.state not in ('ingame', 'inroom', 'ready'):
+            return
+
         if grant:
-            _observe_user(ob, user)
+            _observe_user(user, other)
         else:
-            ob.write(['observe_refused', user.account.username])
+            user.write(['observe_refused', other.account.username])
+
+    worker.gr_name = 'OB:[%r] -> [%r]' % (user, other)
 
 
 def send_hallinfo(user):

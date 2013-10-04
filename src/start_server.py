@@ -75,10 +75,13 @@ class ServerLogFormatter(logging.Formatter):
         except:
             g = gevent.getcurrent()
 
+        gr_name = getattr(g, 'gr_name', None) or repr(g)
+        gr_name = 'MAIN' if g is MAIN else gr_name
+
         return u'[%s %s %s] %s' % (
             rec.levelname[0],
             time.strftime('%y%m%d %H:%M:%S'),
-            'MAIN' if g is MAIN else repr(g).decode('utf-8'),
+            gr_name.decode('utf-8'),
             rec.msg % rec.args if isinstance(rec.msg, basestring) else repr((rec.msg, rec.args)),
         )
 
