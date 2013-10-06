@@ -17,7 +17,7 @@ class ActFirst:
 
 
 class THBattle:
-    name = u'符斗祭 - 3v3 - 休闲'
+    name = u'符斗祭 - 3v3'
     logo = gres.thblogo_3v3
     description = (
         u'|R游戏人数|r：6人\n'

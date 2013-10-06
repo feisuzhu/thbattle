@@ -148,6 +148,23 @@ class Screen(Overlay):
     def on_message(self, _type, *args):
         if _type == 'server_dropped':
             ConfirmBox(u'已经与服务器断开链接，请重新启动游戏！', parent=Screen.cur_overlay)
+
+        elif _type == 'invite_request':
+            uid, uname, gid, gtype = args[0]
+            from gamepack import gamemodes as modes
+
+            gtype = modes.get(gtype, None)
+            gtype = gtype and gtype.ui_meta.name
+
+            box = ConfirmBox(
+                u'%s 邀请你一起玩 %s 模式' % (uname, gtype),
+                parent=self, buttons=((u'确定', True), (u'取消', False)), default=False
+            )
+
+            @box.event
+            def on_confirm(val, uid=uid):
+                Executive.call('invite_grant', ui_message, [gid, val])
+
         else:
             Overlay.on_message(self, _type, *args)
 
@@ -770,11 +787,71 @@ class GameHallScreen(Screen):
 class GameScreen(Screen):
     flash_alpha = InterpDesc('_flash_alpha')
 
+    class InvitePanel(Panel):
+        def __init__(self, game_id, *a, **k):
+            Panel.__init__(
+                self, width=550, height=340,
+                zindex=10000,
+                *a, **k
+            )
+            self.game_id = game_id
+            self.x = (self.overlay.width - 550) // 2
+            self.y = (self.overlay.height - 340) // 2
+
+            self.btncancel = btncancel = Button(
+                u'关闭', parent=self, x=440, y=25, width=90, height=40
+            )
+
+            self.labels = pyglet.graphics.Batch()
+
+            Label(
+                u'邀请游戏', font_size=12, x=275, y=306,
+                anchor_x='center', anchor_y='bottom',
+                color=Colors.green.heavy + (255, ),
+                shadow=(2, 207, 240, 156, 204),
+                batch=self.labels,
+            )
+
+            @btncancel.event
+            def on_click():
+                self.delete()
+
+            Executive.call('get_hallinfo', ui_message, None)
+
+        def draw(self):
+            Panel.draw(self)
+            self.labels.draw()
+
+        def on_message(self, _type, *args):
+            if _type == 'current_users':
+                ul = args[0]
+                ul = [(uid, uname) for uid, uname, state in ul if state in ('hang', 'observing')]
+
+                for i, (uid, uname) in enumerate(ul):
+                    y, x = divmod(i, 5)
+                    x, y = 30 + 100*x, 250 - 60*y
+                    s = Button(
+                        uname,
+                        color=Colors.orange,
+                        parent=self, x=x, y=y,
+                        width=95, height=30,
+                    )
+
+                    @s.event
+                    def on_click(s=s, uid=uid, un=uname):
+                        Executive.call('invite_user', ui_message, uid)
+                        self.overlay.chat_box.append(u'|R已经邀请了%s，请等待回应……|r\n' % un)
+                        s.state = Button.DISABLED
+
     class RoomControlPanel(Control):
         def __init__(self, parent=None):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
             self.btn_getready = Button(
                 parent=self, caption=u'准备', **r2d((360, 80, 100, 35))
+            )
+
+            self.btn_invite = Button(
+                parent=self, caption=u'邀请', **r2d((360, 40, 100, 35))
             )
 
             self.ready = False
@@ -803,6 +880,10 @@ class GameScreen(Screen):
                     self.ready = True
                     self.btn_getready.caption = u'取消准备'
                     self.btn_getready.update()
+
+            @self.btn_invite.event  # noqa
+            def on_click():
+                GameScreen.InvitePanel(self.parent.game.gameid, parent=self)
 
         def draw(self):
             self.draw_subcontrols()

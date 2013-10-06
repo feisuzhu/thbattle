@@ -114,7 +114,6 @@ class Client(ClientEndpoint):
     def command_join_game(self, gameid):
         join_game(self, gameid)
 
-    @for_state('hang')
     def command_get_hallinfo(self, _):
         send_hallinfo(self)
 
@@ -141,6 +140,10 @@ class Client(ClientEndpoint):
     @for_state('inroomwait', 'ready')
     def command_kick_user(self, uid):
         kick_user(self, uid)
+
+    @for_state('inroomwait', 'ready')
+    def command_invite_user(self, uid):
+        invite_user(self, uid)
 
     @for_state('inroomwait', 'ready', 'ingame')
     def command_kick_observer(self, uid):
@@ -405,7 +408,7 @@ def _notify_playerchange(g):
 
 def query_gameinfo(user, gid):
     g = games.get(gid, None)
-    if g: user.write(['gameinfo', [gid, g.players]])
+    g and user.write(['gameinfo', [gid, g.players]])
 
 
 def _next_free_slot(game):
@@ -467,15 +470,13 @@ def get_ready(user):
     user.state = 'ready'
     g = user.current_game
     _notify_playerchange(g)
+    evt_datachange.set()
     if all(p.client.state == 'ready' for p in g.players):
         if not g.started:
             # race condition here.
             # wrap in 'if g.started' to prevent double starting.
             log.info("game starting")
             g.start()
-
-    else:
-        evt_datachange.set()
 
 
 def cancel_ready(user):
@@ -739,6 +740,64 @@ def observe_user(user, other_userid):
             user.write(['observe_refused', other.account.username])
 
     worker.gr_name = 'OB:[%r] -> [%r]' % (user, other)
+
+
+def invite_user(user, other_userid):
+    other = users.get(other_userid, None)
+
+    if not (other and other.state in ('hang', 'observing')):
+        user.write(['gamehall_error', 'user_not_found'])
+        return
+
+    g = user.current_game
+
+    @gevent.spawn
+    def worker():
+        with Timeout(20, False):
+            other.write(['invite_request', [
+                user.account.userid,
+                user.account.username,
+                g.gameid,
+                g.__class__.__name__,
+            ]])
+
+            rst = None
+            chan = other.listen_command('invite_grant')
+            gid = grant = 0
+
+            while True:
+                rst = chan.get()
+                if rst is None:
+                    return
+
+                try:
+                    gid, grant = rst
+                except:
+                    continue
+
+                if gid != g.gameid:
+                    continue
+
+                break
+
+        if not (grant and gid in games and not g.started and other.state != 'ingame'):
+            # granted, game not cancelled or started
+            return
+
+        if _next_free_slot(g) is None:
+            # no free space
+            return
+
+        if other.state == 'observing':
+            exit_game(other)
+
+        if other.state in ('inroomwait', 'ready') and other.current_game is g:
+            # same game
+            return
+
+        join_game(other, gid)
+
+    worker.gr_name = 'Invite:[%r] -> [%r]' % (user, other)
 
 
 def send_hallinfo(user):

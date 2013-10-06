@@ -152,7 +152,7 @@ class GameManager(Greenlet):
             else:
                 self.event_cb('auth_failure', status)
 
-        @handler(('hang',), None)
+        @handler(None, None)
         def your_account(self, accdata):
             self.account = acc = Account.parse(accdata)
             self.event_cb('your_account', acc)
@@ -307,6 +307,8 @@ class Executive(Greenlet):
             'kick_observer',
             'observe_grant',
             'observe_user',
+            'invite_user',
+            'invite_grant',
             'query_gameinfo',
             'quick_start_game',
             'register',
