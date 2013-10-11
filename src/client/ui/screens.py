@@ -156,14 +156,20 @@ class Screen(Overlay):
             gtype = modes.get(gtype, None)
             gtype = gtype and gtype.ui_meta.name
 
+            invite_text = u'%s 邀请你一起玩 %s 模式' % (uname, gtype),
+
+            from utils import notify
+            notify(u'东方符斗祭 - 邀请提醒', invite_text)
+
             box = ConfirmBox(
-                u'%s 邀请你一起玩 %s 模式' % (uname, gtype),
+                invite_text,
                 parent=self, buttons=((u'确定', True), (u'取消', False)), default=False
             )
 
             @box.event
             def on_confirm(val, uid=uid):
                 Executive.call('invite_grant', ui_message, [gid, val])
+
 
         else:
             Overlay.on_message(self, _type, *args)
