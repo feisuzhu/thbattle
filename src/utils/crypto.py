@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import M2Crypto
 from cStringIO import StringIO
 
 IV = 'The init vector.'
@@ -10,6 +9,7 @@ def _aes_op(data, key, op):
     assert len(key) == 32  # 256 bits
 
     buf = StringIO()
+    import M2Crypto
     c = M2Crypto.EVP.Cipher('aes_256_cbc', key, IV, op)
 
     buf.write(c.update(data))
