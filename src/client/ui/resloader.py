@@ -2,8 +2,10 @@
 
 import pyglet
 from pyglet.resource import Loader
+from cStringIO import StringIO
 import os
-from utils import flatten
+import hashlib
+from utils import flatten, aes_decrypt
 from PIL import Image
 import weakref
 
@@ -134,13 +136,14 @@ class texture(_ResourceDesc):
         return loader.texture(self.name + '.png')
 
 
-class _LazyTexture(object):
+class lazytexture(_ResourceDesc):
+    __slots__ = ('name', )
     _DEAD = lambda: 0
 
-    def __init__(self, loader, name):
+    def load(self, loader):
         self.loader = loader
-        self.name = name
         self.reference = weakref.ref(self._DEAD)
+        return self
 
     def get(self):
         obj = self.reference()
@@ -152,18 +155,56 @@ class _LazyTexture(object):
         return obj
 
 
-class lazytexture(_ResourceDesc):
-    __slots__ = ('name', )
+class encrypted_texture(_ResourceDesc):
+    __slots__ = ('name',)
 
     def load(self, loader):
-        return _LazyTexture(loader, self.name)
+        self.loader = loader
+        self.reference = None
+        self.decrypted = False
+        hint = self.loader.file(self.name + '.hint').read()
+        self.hint = hint
+        return self
+
+    def decrypt(self, passphrase):
+        if self.reference:
+            return False
+
+        hint = self.hint.decode('base64')
+        key = hashlib.sha256(passphrase).digest()
+        hint2 = hashlib.sha256(key).digest()
+        if hint != hint2:
+            return False
+
+        f = self.loader.file(self.name + '_encrypted.bin')
+        dec = StringIO()
+        data = aes_decrypt(f.read(), key)
+        assert data.startswith('\x89PNG')
+        dec.write(data)
+        dec.seek(0)
+
+        tex = pyglet.image.load('foo.png', file=dec)
+        self.reference = tex
+        self.decrypted = True
+        return True
+
+    def get(self):
+        if not self.reference:
+            raise Exception('Not decrypted!')
+
+        return self.reference
 
 
 class bgm(_ResourceDesc):
     __slots__ = ('name', )
 
     def load(self, loader):
-        return lambda: loader.media(loader.filename(self.name + '.ogg'))
+        self.loader = loader
+        return self
+
+    def __call__(self):
+        loader = self.loader
+        return loader.media(loader.filename(self.name + '.ogg'))
 
 
 class sound(_ResourceDesc):

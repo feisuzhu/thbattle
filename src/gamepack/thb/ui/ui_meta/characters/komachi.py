@@ -16,6 +16,7 @@ class Komachi:
     char_name = u'小野塚小町'
     port_image = gres.komachi_port
     figure_image = gres.komachi_figure
+    figure_image_alter = gres.komachi_figure_alter
     description = (
         u'|DB乳不巨何以聚人心 小野塚小町 体力：4|r\n\n'
         u'|G彼岸|r：出牌阶段，你可以弃置一张牌并指定一名角色，你与其距离视为1直到回合结束。若该角色为全场体力最少的角色（或之一），你可以弃置其一张牌或摸一张牌。每阶段限一次。\n\n'

@@ -15,6 +15,7 @@ from client.ui.base import Control, Overlay, process_msg
 from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPromptMixin
 from client.ui.soundmgr import SoundManager
 from .game_controls import HandCardArea, PortraitCardArea, DropCardArea, Ray, GameCharacterPortrait, SkillSelectionBox
+from client.ui.resource import resource as cres
 from gamepack.thb.ui.resource import resource as gres
 import effects
 import inputs
@@ -153,8 +154,9 @@ class THBattleUI(Control):
         self.game = game
         game.event_observer = UIEventHook
 
-        Control.__init__(self, *a, **k)
+        Control.__init__(self, can_focus=True, *a, **k)
 
+        self.keystrokes = '\x00'
         self.char_portraits = None
 
         self.deck_indicator = DeckIndicator(
@@ -308,6 +310,24 @@ class THBattleUI(Control):
         if _type.startswith('evt_'):
             effects.handle_event(self, _type[4:], args[0])
             inputs.handle_event(self, _type[4:], args[0])
+
+    def on_text(self, text):
+        # The easter egg
+        ks = self.keystrokes
+        ks = (ks + text)[:40]
+        self.keystrokes = ks
+
+        from gamepack.thb.characters import characters as chars
+
+        for c in chars:
+            try:
+                alter = c.ui_meta.figure_image_alter
+            except:
+                continue
+
+            for i in xrange(len(ks)):
+                if alter.decrypt(ks[-i:]):
+                    SoundManager.play(cres.sound.input)
 
     def draw(self):
         self.draw_subcontrols()

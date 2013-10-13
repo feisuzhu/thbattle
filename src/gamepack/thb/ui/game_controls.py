@@ -793,6 +793,14 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
         except:
             return BalloonPromptMixin.balloon_show(self)
 
+        try:
+            figure_image_alter = meta.figure_image_alter
+            if figure_image_alter.decrypted:
+                figure_image = figure_image_alter
+
+        except:
+            pass
+
         return _CharacterFigure(
             figure_image.get(),
             meta.description,
