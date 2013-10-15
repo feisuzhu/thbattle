@@ -48,14 +48,17 @@ class GamedataMixin(object):
 
             while True:
                 for i, packet in enumerate(l):
+                    if isinstance(packet, EndpointDied):
+                        raise packet
+
                     if packet[0] == tag or (glob and packet[0].startswith(tag)):
                         log.debug('GAME_READ: %s', repr(packet))
                         del l[i]
                         return packet
 
                     else:
-                        log.info('GAME_DATA_MISS: %s', repr(packet))
-                        log.info('EXPECTS: %s, GAME: %s', tag, getcurrent())
+                        log.debug('GAME_DATA_MISS: %s', repr(packet))
+                        log.debug('EXPECTS: %s, GAME: %s', tag, getcurrent())
 
                 e.clear()
                 if blocking:

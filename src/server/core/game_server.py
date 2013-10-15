@@ -10,13 +10,13 @@ log = logging.getLogger('Game_Server')
 
 # -- third party --
 from gevent import Greenlet, getcurrent
+from gevent.pool import Group as GreenletGroup
 import gevent
 
 # -- own --
 from network.server import EndpointDied
 from game import TimeLimitExceeded, InputTransaction
 from utils import waitany, log_failure
-from network.common import GamedataMixin
 import game
 
 # -- code --
@@ -47,42 +47,36 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     results = {p: None for p in players}
     synctags = {p: g.get_synctag() for p in players}
 
-    evmap = {p.client.gdevent: p for p in players}
-
     def get_input():
         # should be [tag, <Data for Inputlet.parse>]
         # tag likes 'I?:ChooseOption:2345'
 
         # try for data in buffer
-        for p in players:
-            try:
-                _, rst = p.client.gexpect(tag + str(synctags[p]), blocking=False)
-                if rst is not GamedataMixin.NODATA:
-                    return p, rst
-            except EndpointDied:
-                return p, None
 
-        # wait for new data
-        ev = waitany([p.client.gdevent for p in players])
-        assert ev
-        assert ev.is_set()
-
-        p = evmap[ev]
         try:
-            _, rst = p.client.gexpect(tag + str(synctags[p]), blocking=False)
-            if rst is GamedataMixin.NODATA:
-                # debug code
-                _g = Game.getgame()
-                _pl = _g.players
-                log.error('-----NODATA ERROR-----')
-                for _p in _pl:
-                    log.error('%r:%r:%r' % (_p, _p.client.gdevent.is_set(), list(_p.client.gdqueue)))
-                log.error('----------------------')
+            gr = GreenletGroup()
 
-        except EndpointDied:
-            return p, None
+            def worker(p):
+                try:
+                    _, rst = p.client.gexpect(tag + str(synctags[p]))
+                    return rst
+                except EndpointDied:
+                    return None
 
-        return p, rst
+            for p in players:
+                w = gr.spawn(worker, p)
+                w.player = p
+
+            w = waitany(gr)
+
+            try:
+                rst = w.get()
+                return w.player, rst
+            except:
+                return w.player, None
+
+        finally:
+            gr.kill()
 
     orig_players = players[:]
 
@@ -99,6 +93,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             # (wrapping large parts of code in 'with TimeLimitExceeded(): ...')
             with TimeLimitExceeded(max(till - time.time(), 0)):
                 p, data = get_input()
+                print 'GET_INPUT', p, data
 
             g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
 
