@@ -449,6 +449,12 @@ class LaunchCard(GenericAction, LaunchCardAction):
         action = card.associated_action
         if not getattr(card, 'no_drop', False):
             g.process_action(DropUsedCard(self.source, cards=[card]))
+        else:
+            # cards are detached here, denotes disputed state.
+            # can cause problems when skill declares 'no_drop'
+            # so revert the detached state.
+            from .cards import VirtualCard
+            [c.attach() for c in VirtualCard.unwrap([card])]
 
         if action:
             target = target_list[0] if target_list else self.source

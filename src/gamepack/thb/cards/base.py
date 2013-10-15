@@ -95,6 +95,10 @@ class Card(GameObject):
         except (AttributeError, ValueError):
             pass
 
+    def attach(self):
+        if self not in self.resides_in:
+            self.resides_in.append(self)
+
     @property
     def detached(self):
         return self.resides_in is not None and self not in self.resides_in
@@ -151,15 +155,17 @@ class VirtualCard(Card):
         return False
 
     @classmethod
-    def unwrap(cls, vcard):
+    def unwrap(cls, vcards):
         l = []
-        sl = vcard[:]
+        sl = vcards[:]
+
         while sl:
             s = sl.pop()
             try:
                 sl.extend(s.associated_cards)
             except AttributeError:
                 l.append(s)
+
         return l
 
     @classmethod

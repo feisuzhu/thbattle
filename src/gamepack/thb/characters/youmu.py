@@ -1,31 +1,11 @@
 # -*- coding: utf-8 -*-
+
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction, MaxLifeChange
-from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack, Heal
+from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack, Heal, t_Self
 from ..inputlets import ChooseIndividualCardInputlet
 from utils import classmix
-
-
-class Mijincihangzhan(Skill):
-    # 迷津慈航斩
-    # compulsory skill, just a tag.
-    associated_action = None
-    target = t_None
-
-
-class Nitoryuu(Skill):
-    # 二刀流
-    # compulsory skill, just a tag.
-    associated_action = None
-    target = t_None
-
-
-class Xianshiwangzhi(Skill):
-    # 现世妄执
-    # compulsory skill, just a tag.
-    associated_action = None
-    target = t_None
 
 
 class MijincihangzhanAttack(Attack):
@@ -91,8 +71,7 @@ class YoumuWearEquipmentAction(UserAction):
             weapons = [e for e in equips if e.equipment_category == 'weapon']
             if len(weapons) > 1:
                 e = user_input(
-                    [target],
-                    ChooseIndividualCardInputlet(self, weapons),
+                    [target], ChooseIndividualCardInputlet(self, weapons),
                 ) or random_choose_card([weapons])
                 g.process_action(DropCards(target, [e]))
                 weapons.remove(e)
@@ -134,6 +113,41 @@ class YoumuHandler(EventHandler):
                 a.tags['attack_num'] += 1
 
         return act
+
+
+class NitoryuuDropWeapon(UserAction):
+    def apply_action(self):
+        tgt = self.target
+        equips = tgt.equips
+        weapons = [e for e in equips if e.equipment_category == 'weapon']
+        e = user_input(
+            [tgt], ChooseIndividualCardInputlet(self, weapons),
+        ) or random_choose_card([weapons])
+        g = Game.getgame()
+        g.process_action(DropCards(tgt, [e]))
+
+        return True
+
+
+class Mijincihangzhan(Skill):
+    # 迷津慈航斩
+    associated_action = None
+    target = t_None
+
+
+class Nitoryuu(Skill):
+    # 二刀流
+    associated_action = NitoryuuDropWeapon
+    target = t_Self
+
+    def check(self):
+        return not self.associated_cards
+
+
+class Xianshiwangzhi(Skill):
+    # 现世妄执
+    associated_action = None
+    target = t_None
 
 
 @register_character
