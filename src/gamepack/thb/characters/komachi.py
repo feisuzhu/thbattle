@@ -118,6 +118,7 @@ class FerryFeeHandler(EventHandler):
             src = act.source
             tgt = act.target
             if not (src and src.has_skill(FerryFee)): return act
+            if not (tgt.cards or tgt.showncards or tgt.equips): return act
             dist = LaunchCard.calc_distance(src, FerryFee(src))
             if not dist.get(tgt, 10000) <= 0: return act
             if user_input([src], ChooseOptionInputlet(self, (False, True))):
