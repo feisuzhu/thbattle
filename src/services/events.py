@@ -242,7 +242,7 @@ def crashreport():
             username=username,
             userid=userid,
         )
-        cmd = '''mail -s '%s' -a 'From: crashreport@thbattle.net' %s'''
+        cmd = '''mail -s '%s' -r crashreport@thbattle.net %s'''
         mailer = subprocess.Popen(
             cmd % (subject, 'feisuzhu@163.com'),
             shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
