@@ -166,6 +166,10 @@ class GameManager(Greenlet):
             else:
                 self.event_cb('server_connected', self)
 
+        @handler(None, None)
+        def ping(self, _):
+            Executive.server.write(['pong', True])
+
         @gevent.spawn
         def beater():
             while True:

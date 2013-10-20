@@ -7,14 +7,6 @@ from gevent.server import StreamServer
 import logging
 import sys
 
-'''
-# --- for dbg
-from gevent import signal as sig
-import signal
-sig(signal.SIGUSR1, lambda: False)
-# -----------
-'''
-
 MAIN = gevent.getcurrent()
 
 from gevent import signal as sig

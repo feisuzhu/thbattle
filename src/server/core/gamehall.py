@@ -14,7 +14,8 @@ import gzip
 import gevent
 from gevent import Greenlet, Timeout
 from gevent.event import Event
-from gevent.queue import Queue
+from gevent.queue import Queue, Empty as QueueEmpty
+from gevent.pool import Group as GreenletGroup
 import simplejson as json
 import pika
 
@@ -432,6 +433,7 @@ def create_game(user, gametype, gamename):
     g.rndseed = random.randint(1, 10 ** 20)
     g.random = random.Random(g.rndseed)
     g.banlist = defaultdict(set)
+    g.gr_group = GreenletGroup()
     gid = new_gameid()
     g.gameid = gid
     games[gid] = g
@@ -618,6 +620,8 @@ def join_game(user, gameid, slot=None):
     elif user.state == 'observing':
         g = user.current_game
         g = g if g.gameid == gameid else None
+    else:
+        return
 
     if g is not None:
         if len(g.banlist[user]) >= 3:
@@ -896,9 +900,21 @@ def end_game(g):
 
 
 def chat(user, msg):
-    @gevent.spawn
     @log_failure(log)
     def worker():
+        if msg.startswith('!!') and (options.freeplay or user.userid in (2,)):
+            # admin commands
+            cmd = msg[2:]
+            if cmd == 'stacktrace':
+                admin_stacktrace(user.current_game)
+                return
+            elif cmd == 'clearzombies':
+                admin_clearzombies()
+                return
+            elif cmd == 'ping':
+                admin_ping(user)
+                return
+
         packed = (user.account.username, msg)
         if user.state == 'hang':  # hall chat
             for u in users.values():
@@ -912,6 +928,9 @@ def chat(user, msg):
             _type = 'ob_msg' if user.state == 'observing' else 'chat_msg'
             ul.write([_type, packed])  # should be here?
             obl.write([_type, packed])
+
+    worker.gr_name = 'chat worker for %s' % user.account.username
+    gevent.spawn(worker)
 
 
 def speaker(user, msg):
@@ -936,7 +955,48 @@ def system_msg(msg):
 def admin_clearzombies():
     for i, u in users.items():
         if u.ready():
+            log.info('Clear zombie: %r', u)
             del users[i]
+
+
+def admin_stacktrace(g):
+    log.info('>>>>> GAME STACKTRACE <<<<<')
+
+    def logtraceback(gr):
+        import traceback
+        log.info('----- %r -----\n%s', gr, ''.join(traceback.format_stack(gr.gr_frame)))
+
+    logtraceback(g)
+    [logtraceback(i) for i in g.gr_group]
+
+    for cl in g.players.client:
+        if isinstance(cl, Client):
+            logtraceback(cl)
+
+    log.info('===========================')
+
+
+def admin_ping(user):
+    g = getattr(user, 'current_game', None)
+    if g:
+        clients = [c for c in g.players.client if isinstance(c, Client)]
+    else:
+        clients = users.values()
+
+    def ping(p):
+        chan = p.listen_command('pong')
+        b4 = time.time()
+        p.write(['ping', None])
+        try:
+            chan.get(timeout=5)
+            t = time.time() - b4
+            t *= 1000
+            user.write(['system_msg', [None, u'%s %fms' % (p.account.username, t)]])
+        except QueueEmpty:
+            user.write(['system_msg', [None, u'%s 超时' % p.account.username]])
+
+    for p in clients:
+        gevent.spawn(ping, p)
 
 
 @atexit.register

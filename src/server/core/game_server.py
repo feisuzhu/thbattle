@@ -10,7 +10,6 @@ log = logging.getLogger('Game_Server')
 
 # -- third party --
 from gevent import Greenlet, getcurrent
-from gevent.pool import Group as GreenletGroup
 import gevent
 
 # -- own --
@@ -54,18 +53,20 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
         # try for data in buffer
 
         try:
-            gr = GreenletGroup()
+            gr = g.gr_group
 
-            def worker(p):
+            def get_input_waiter(p, t):
                 try:
-                    _, rst = p.client.gexpect(tag + str(synctags[p]))
+                    _, rst = p.client.gexpect(t)
                     return rst
                 except EndpointDied:
                     return None
 
             for p in players:
-                w = gr.spawn(worker, p)
+                t = tag + str(synctags[p])
+                w = gr.spawn(get_input_waiter, p, t)
                 w.player = p
+                w.gr_name = 'get_input_waiter: p=%r, tag=%s' % (p, t)
 
             w = waitany(gr)
 
@@ -93,7 +94,6 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             # (wrapping large parts of code in 'with TimeLimitExceeded(): ...')
             with TimeLimitExceeded(max(till - time.time(), 0)):
                 p, data = get_input()
-                print 'GET_INPUT', p, data
 
             g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
 

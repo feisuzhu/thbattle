@@ -189,7 +189,12 @@ class THBattleKOF(Game):
 
         for p in g.players:
             perm = p.choices
-            perm = [perm[i] for i in rst[p][:3]]
+            perm = [   # weird snap for debug
+                perm[i]
+                for i in
+                rst[p]
+                [:3]
+            ]
             p.characters = [c.char_cls for c in perm]
             del p.choices
 

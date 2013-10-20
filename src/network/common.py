@@ -60,10 +60,11 @@ class GamedataMixin(object):
                         log.debug('GAME_DATA_MISS: %s', repr(packet))
                         log.debug('EXPECTS: %s, GAME: %s', tag, getcurrent())
 
-                e.clear()
                 if blocking:
-                    e.wait()
+                    e.wait(timeout=5)
+                    e.clear()
                 else:
+                    e.clear()
                     return None, self.NODATA
         finally:
             self._in_gexpect = False
