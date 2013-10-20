@@ -902,7 +902,7 @@ def end_game(g):
 def chat(user, msg):
     @log_failure(log)
     def worker():
-        if msg.startswith('!!') and (options.freeplay or user.userid in (2,)):
+        if msg.startswith('!!') and (options.freeplay or user.account.userid in (2,)):
             # admin commands
             cmd = msg[2:]
             if cmd == 'stacktrace':
