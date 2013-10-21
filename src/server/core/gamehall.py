@@ -15,7 +15,6 @@ import gevent
 from gevent import Greenlet, Timeout
 from gevent.event import Event
 from gevent.queue import Queue, Empty as QueueEmpty
-from gevent.pool import Group as GreenletGroup
 import simplejson as json
 import pika
 
@@ -433,7 +432,7 @@ def create_game(user, gametype, gamename):
     g.rndseed = random.randint(1, 10 ** 20)
     g.random = random.Random(g.rndseed)
     g.banlist = defaultdict(set)
-    g.gr_group = GreenletGroup()
+    g.gr_groups = WeakSet()
     gid = new_gameid()
     g.gameid = gid
     games[gid] = g
@@ -967,7 +966,9 @@ def admin_stacktrace(g):
         log.info('----- %r -----\n%s', gr, ''.join(traceback.format_stack(gr.gr_frame)))
 
     logtraceback(g)
-    [logtraceback(i) for i in g.gr_group]
+    for i in g.gr_groups:
+        for j in i:
+            logtraceback(j)
 
     for cl in g.players.client:
         if isinstance(cl, Client):

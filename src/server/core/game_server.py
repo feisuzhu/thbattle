@@ -10,6 +10,7 @@ log = logging.getLogger('Game_Server')
 
 # -- third party --
 from gevent import Greenlet, getcurrent
+from gevent.pool import Group as GreenletGroup
 import gevent
 
 # -- own --
@@ -46,44 +47,30 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     results = {p: None for p in players}
     synctags = {p: g.get_synctag() for p in players}
 
-    def get_input():
-        # should be [tag, <Data for Inputlet.parse>]
-        # tag likes 'I?:ChooseOption:2345'
-
-        # try for data in buffer
-
-        try:
-            gr = g.gr_group
-
-            def get_input_waiter(p, t):
-                try:
-                    _, rst = p.client.gexpect(t)
-                    return rst
-                except EndpointDied:
-                    return None
-
-            for p in players:
-                t = tag + str(synctags[p])
-                w = gr.spawn(get_input_waiter, p, t)
-                w.player = p
-                w.gr_name = 'get_input_waiter: p=%r, tag=%s' % (p, t)
-
-            w = waitany(gr)
-
-            try:
-                rst = w.get()
-                return w.player, rst
-            except:
-                return w.player, None
-
-        finally:
-            gr.kill()
-
     orig_players = players[:]
+    input_group = GreenletGroup()
+    g.gr_groups.add(input_group)
+    _input_group = set()
 
     till = time.time() + timeout + 5
     try:
         inputany_player = None
+
+        def get_input_waiter(p, t):
+            try:
+                # should be [tag, <Data for Inputlet.parse>]
+                # tag likes 'I?:ChooseOption:2345'
+                tag, rst = p.client.gexpect(t)
+                return rst
+            except EndpointDied:
+                return None
+
+        for p in players:
+            t = tag + str(synctags[p])
+            w = input_group.spawn(get_input_waiter, p, t)
+            _input_group.add(w)
+            w.player = p
+            w.gr_name = 'get_input_waiter: p=%r, tag=%s' % (p, t)
 
         for p in players:
             g.emit_event('user_input_start', (trans, ilets[p]))
@@ -93,7 +80,13 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             # TLE would be raised at other part (notably my.post_process) in the original solution
             # (wrapping large parts of code in 'with TimeLimitExceeded(): ...')
             with TimeLimitExceeded(max(till - time.time(), 0)):
-                p, data = get_input()
+                w = waitany(_input_group)
+                _input_group.discard(w)
+                try:
+                    rst = w.get()
+                    p, data = w.player, rst
+                except:
+                    p, data = w.player, None
 
             g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
 
@@ -122,6 +115,9 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
     except TimeLimitExceeded:
         pass
+
+    finally:
+        input_group.kill()
 
     # timed-out players
     for p in players:
