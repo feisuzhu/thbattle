@@ -170,7 +170,6 @@ class Screen(Overlay):
             def on_confirm(val, uid=uid):
                 Executive.call('invite_grant', ui_message, [gid, val])
 
-
         else:
             Overlay.on_message(self, _type, *args)
 
@@ -434,13 +433,14 @@ class GameHallScreen(Screen):
     class GameList(Frame):
         class CreateGamePanel(Panel):
             def __init__(self, *a, **k):
+                w, h = 550, 485
                 Panel.__init__(
-                    self, width=550, height=340,
+                    self, width=w, height=h,
                     zindex=1000,
                     *a, **k
                 )
-                self.x = (self.overlay.width - 550) // 2
-                self.y = (self.overlay.height - 340) // 2
+                self.x = (self.overlay.width - w) // 2
+                self.y = (self.overlay.height - h) // 2
 
                 self.btncreate = btncreate = Button(
                     u'创建游戏', parent=self, x=440, y=75, width=90, height=40
@@ -451,7 +451,7 @@ class GameHallScreen(Screen):
                 btncreate.state = Button.DISABLED
 
                 txtbox = self.txtgamename = TextBox(
-                    parent=self, x=95, y=270, width=420, height=22,
+                    parent=self, x=95, y=395, width=420, height=22,
                 )
                 uname = Executive.gamemgr.account.username
 
@@ -465,14 +465,14 @@ class GameHallScreen(Screen):
 
                 self.labels = batch = pyglet.graphics.Batch()
                 Label(
-                    u'创建游戏房间', font_size=12, x=275, y=306,
+                    u'创建游戏房间', font_size=12, x=275, y=431,
                     anchor_x='center', anchor_y='bottom',
                     color=Colors.green.heavy + (255, ),
                     shadow=(1, 207, 240, 156, 204),
                     batch=batch,
                 ),
                 Label(
-                    u'房间名称：', font_size=9, x=30, y=275,
+                    u'房间名称：', font_size=9, x=30, y=400,
                     anchor_x='left', anchor_y='bottom',
                     color=Colors.green.heavy + (255, ),
                     shadow=(1, 207, 240, 156, 204),
@@ -488,7 +488,7 @@ class GameHallScreen(Screen):
 
                 for i, (gname, gcls) in enumerate(modes.items()):
                     y, x = divmod(i, 3)
-                    x, y = 30 + 170*x, 150 - 125*y
+                    x, y = 30 + 170*x, 275 - 125*y
                     s = ImageSelector(
                         gcls.ui_meta.logo, selectors,
                         parent=self, x=x, y=y

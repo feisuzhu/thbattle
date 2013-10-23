@@ -743,13 +743,21 @@ class BalloonPromptMixin(object):
 
         if x*2 <= ow:
             x += 10
+            if x + bw > ow:
+                x = ow - bw
         else:
             x -= bw + 10
+            if x < 0:
+                x = 0
 
         if y*2 <= oh:
             y += 10
+            if y + bh > oh:
+                y = oh - bh
         else:
             y -= bh + 10
+            if y < 0:
+                y = 0
 
         b.x = x
         b.y = y
