@@ -52,10 +52,6 @@ class DeathHandler(EventHandler):
         return act
 
 
-class ActFirst(object):  # for choose_option
-    pass
-
-
 class Identity(PlayerIdentity):
     class TYPE(Enum):
         HIDDEN = 0

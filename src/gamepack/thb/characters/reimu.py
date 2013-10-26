@@ -87,7 +87,7 @@ class TributeHandler(EventHandler):
         if evt_type == 'game_begin':
             self.add()
 
-        elif evt_type == 'kof_next_character':
+        elif evt_type == 'switch_character':
             if any(p.has_skill(TributeTarget) for p in Game.getgame().players):
                 self.add()
             else:

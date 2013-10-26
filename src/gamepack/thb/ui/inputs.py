@@ -377,6 +377,8 @@ class GirlSelector(ImageSelector, BalloonPromptMixin):
 class UIChooseGirl(Panel, InputHandler):
     def __init__(self, trans, *a, **k):
         self.trans = trans
+        self.pbar = None
+
         g = Game.getgame()
         choices = trans.mapping[g.me]
 
@@ -417,6 +419,7 @@ class UIChooseGirl(Panel, InputHandler):
         self.parent.update_portraits()
 
     def begin_selection(self):
+        self.pbar and self.pbar.delete()
         self.pbar = BigProgressBar(
             parent=self, x=(self.width-250)//2, y=9, width=250,
         )

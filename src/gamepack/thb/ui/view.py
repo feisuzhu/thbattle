@@ -240,6 +240,11 @@ class THBattleUI(Control):
 
         SoundManager.switch_bgm(gres.bgm_game)
 
+        self.more_init()
+
+    def more_init(self):
+        pass
+
     def player2portrait(self, p):
         for port in self.char_portraits:
             if port.player == p:
@@ -269,7 +274,7 @@ class THBattleUI(Control):
 
     PORT_UPDATE_MESSAGES = {
         'evt_game_begin',
-        'evt_kof_next_character',
+        'evt_switch_character',
     }
 
     def update_portraits(self):
@@ -307,9 +312,14 @@ class THBattleUI(Control):
                 for p in pl:
                     self.player2portrait(p).update()
 
+        self.more_on_message(_type, args)
+
         if _type.startswith('evt_'):
             effects.handle_event(self, _type[4:], args[0])
             inputs.handle_event(self, _type[4:], args[0])
+
+    def more_on_message(self, _type, args):
+        pass
 
     def on_text(self, text):
         # The easter egg
@@ -493,14 +503,48 @@ class THBattleRaidUI(THBattleUI):
 
     gcp_location = [
         (3, 1, 'me', Colors.blue),
-        (669, 270, 'left', Colors.blue),
-        (455, 520, 'bottom', Colors.blue),
-        (215, 520, 'bottom', Colors.blue),
-    ]
-
-    gcp_location = [
-        (3, 1, 'me', Colors.blue),
         (669, 315, 'left', Colors.blue),
         (335, 520, 'bottom', Colors.blue),
         (3, 315, 'right', Colors.blue),
     ]
+
+
+class THBattleFaithUI(THBattleUI):
+    portrait_location = [
+        (60, 300, Colors.blue),
+        (250, 450, Colors.blue),
+        (450, 450, Colors.blue),
+        (640, 300, Colors.blue),
+        (450, 150, Colors.blue),
+        (250, 150, Colors.blue),
+    ]
+
+    gcp_location = [
+        (3, 1, 'me', Colors.blue),
+        (669, 280, 'left', Colors.blue),
+        (155+180+180, 520, 'bottom', Colors.blue),
+        (155+180, 520, 'bottom', Colors.blue),
+        (155, 520, 'bottom', Colors.blue),
+        (3, 280, 'right', Colors.blue),
+    ]
+
+    def more_init(self):
+        self.remaining_indicator = TextArea(
+            parent=self, x=25, y=620, width=100, height=50, font_size=12,
+        )
+
+    def more_on_message(self, _type, args):
+        if _type in ('evt_switch_character', 'evt_action_stage_action'):
+            try:
+                hakurei, moriya = self.game.forces
+            except:
+                return
+
+            h, m = len(hakurei.pool) - 1, len(moriya.pool) - 1
+            if h < 0 or m < 0:
+                return
+
+            self.remaining_indicator.text = (
+                u'|s1e5effbff|c315597ff博丽：%d 人|r\n'
+                u'|s1886666ff|W守矢：%d 人|r'
+            ) % (h, m)

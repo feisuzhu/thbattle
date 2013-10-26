@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof
+from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith
 from gamepack.thb.ui.resource import resource as gres
 
 from .common import gen_metafunc, card_desc, my_turn
@@ -8,12 +8,6 @@ from .common import limit1_skill_used, passive_clickable, passive_is_action_vali
 
 # -----BEGIN THB3v3 UI META-----
 __metaclass__ = gen_metafunc(thb3v3)
-
-
-class ActFirst:
-    # choose_option meta
-    choose_option_buttons = ((u'先出牌', True), (u'弃权', False))
-    choose_option_prompt = u'你要首先出牌吗（可以转让给己方阵营的其他玩家）？'
 
 
 class THBattle:
@@ -387,3 +381,49 @@ class GetFaith:
     choose_option_prompt = u'你要获得一点信仰吗（只有一人可以获得）？'
 
 # -----END THBRaid UI META-----
+
+# -----BEGIN THBFaith UI META-----
+__metaclass__ = gen_metafunc(thbfaith)
+
+
+class THBattleFaith:
+    name = u'符斗祭 - 信仰争夺战'
+    logo = gres.thblogo_faith
+    description = (
+        u'|R游戏人数|r：6人\n'
+        u'\n'
+        u'|G游戏开始|r：游戏开始时，随机向在场玩家分配6张身份牌：3|!B博丽|r，3|!O守矢|r，双方对立。若出现同一方阵营座次连续三人的情况，则第三人须与下一名座次的玩家交换身份牌。\n'
+        u'\n'
+        u'|G选将阶段|r：共发给每人4张角色牌，其中一张为暗置。每名玩家选择其中一张作为出场角色，再选择一张作为备用角色（不得查看暗置角色牌）。将三张备用角色牌置于一旁作为备用角色。\n'
+        u'\n'
+        u'|G游戏开始|r：游戏开始时，所有角色摸4张牌，此时除首先行动的玩家均可以进行一次弃置4张牌并重新摸4张牌的操作。\n'
+        u'\n'
+        u'|G玩家死亡|r：当一名玩家死亡时，改玩家需弃置其所有的牌，然后弃置该玩家全部区域内的牌。从剩余的备用角色中选择一名作为出场角色并明示之，之后摸4张牌。此时该角色可以弃置全部的4张牌并重新摸4张牌。玩家死亡不执行任何奖惩。\n'
+        u'\n'
+        u'|G胜负条件|r：当一方死亡角色数到达三名，或投降时，该方判负。'
+    )
+
+    from gamepack.thb.ui.view import THBattleFaithUI as ui_class  # noqa
+
+    T = thbfaith.Identity.TYPE
+    identity_table = {
+        T.HIDDEN: u'？',
+        T.HAKUREI: u'博丽',
+        T.MORIYA: u'守矢'
+    }
+
+    identity_color = {
+        T.HIDDEN: u'blue',
+        T.HAKUREI: u'blue',
+        T.MORIYA: u'orange'
+    }
+
+    del T
+
+
+class DeathHandler:  # noqa
+    # choose_option
+    choose_option_buttons = ((u'全部换走', True), (u'不用换', False))
+    choose_option_prompt = u'你要将摸到的牌全部换掉吗？'
+
+# -----END THB3v3 UI META-----

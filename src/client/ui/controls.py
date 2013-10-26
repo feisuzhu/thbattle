@@ -1150,6 +1150,7 @@ class TextArea(Control):
         self.loc_table = []
 
         self._text = u''
+
         self.caret = pyglet.text.caret.Caret(self.layout)
 
         self.set_handlers(self.caret)

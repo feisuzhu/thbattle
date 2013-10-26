@@ -491,7 +491,7 @@ def game_roll_prompt(self, pl):
 
 
 def game_roll_result_prompt(self, p):
-    self.prompt(u'由|R%s|r首先选将、行动' % p.account.username)
+    self.prompt(u'|R%s|r点数最大' % p.account.username)
 
 
 def reseat_effects(self, _):

@@ -1015,8 +1015,8 @@ class GameScreen(Screen):
             from utils import notify
             notify(u'东方符斗祭 - 游戏提醒', u'游戏已开始，请注意。')
             self.remove_control(self.panel)
-            self.gameui.init()
             self.add_control(self.gameui)
+            self.gameui.init()
             self.game.start()
 
         elif _type == 'end_game':
