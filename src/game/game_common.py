@@ -170,7 +170,6 @@ class EventHandler(GameObject):
 class Action(GameObject):
     cancelled = False
     done = False
-    _interrupt_after_me = False
 
     def __new__(cls, *a, **k):
         try:
@@ -208,9 +207,6 @@ class Action(GameObject):
         Return True if this action is complete and ready to fire.
         '''
         return True
-
-    def interrupt_after_me(self):
-        self._interrupt_after_me = True
 
     def __repr__(self):
         return self.__class__.__name__
@@ -346,9 +342,6 @@ class Game(GameObject):
 
             rst = action.succeeded
             action.done = True
-
-            if action._interrupt_after_me:
-                raise InterruptActionFlow
 
         return rst
 

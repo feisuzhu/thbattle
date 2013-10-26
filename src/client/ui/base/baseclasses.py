@@ -180,6 +180,9 @@ class Control(pyglet.event.EventDispatcher):
         return (ax, ay)
 
     def migrate_to(self, new_parent):
+        if self in new_parent.control_list:
+            return
+
         ax, ay = self.abs_coords()
         npax, npay = new_parent.abs_coords()
         self.delete()

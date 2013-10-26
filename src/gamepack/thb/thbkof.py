@@ -11,7 +11,7 @@ from game import sync_primitive
 
 from .common import PlayerIdentity, CharChoice, mixin_character, get_seed_for
 
-from .actions import PlayerDeath, UserAction, PlayerTurn, DrawCards, RevealIdentity
+from .actions import PlayerDeath, PlayerTurn, DrawCards, RevealIdentity
 from .actions import action_eventhandlers
 
 from .inputlets import ChooseGirlInputlet, KOFSortInputlet
@@ -50,8 +50,7 @@ class DeathHandler(EventHandler):
             raise GameEnded
 
         if tgt is g.current_turn:
-            for a in reversed(g.action_stack):
-                isinstance(a, UserAction) and a.interrupt_after_me()
+            raise InterruptActionFlow
 
         return act
 
@@ -74,7 +73,7 @@ class KOFCharacterSwitchHandler(EventHandler):
             g.update_event_handlers()
             p.dead = False
             g.process_action(DrawCards(p, 4))
-            g.emit_event('kof_next_character', p)
+            g.emit_event('switch_character', p)
 
 
 class Identity(PlayerIdentity):
@@ -230,18 +229,18 @@ class THBattleKOF(Game):
         except GameEnded:
             pass
 
-    def can_leave(self, p):
+    def can_leave(g, p):
         return False
 
-    def update_event_handlers(self):
-        ehclasses = list(action_eventhandlers) + self.game_ehs.values()
-        ehclasses += self.ehclasses
-        self.event_handlers = EventHandler.make_list(ehclasses)
+    def update_event_handlers(g):
+        ehclasses = list(action_eventhandlers) + g.game_ehs.values()
+        ehclasses += g.ehclasses
+        g.event_handlers = EventHandler.make_list(ehclasses)
 
-    def next_character(self, p):
+    def next_character(g, p):
         assert p.characters
         char = CharChoice(p.characters.pop(0))
-        self.players.reveal(char)
+        g.players.reveal(char)
         cls = char.char_cls
 
         # mix char class with player -->
@@ -254,7 +253,7 @@ class THBattleKOF(Game):
         for k in list(tags):
             del tags[k]
 
-        ehs = self.ehclasses
+        ehs = g.ehclasses
         if old:
             for eh in old.eventhandlers_required:
                 try:

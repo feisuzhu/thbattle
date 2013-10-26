@@ -26,6 +26,8 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     assert type in ('single', 'all', 'any')
     assert not type == 'single' or len(players) == 1
 
+    timeout = max(0, timeout)
+
     g = Game.getgame()
     inputlet.timeout = timeout
     players = players[:]

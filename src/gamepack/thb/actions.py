@@ -32,6 +32,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         try:
             check(rst)
             skills, cards, players = rst
+            [check(not c.detached) for c in cards]
             if categories:
                 if skills:
                     # check(len(skills) == 1)  # why? disabling it.
@@ -61,6 +62,8 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
 
         if not cards and not players:
             return p, None
+
+        [c.detach() for c in cards]
 
         return p, (cards, players)
     else:
@@ -447,25 +450,33 @@ class LaunchCard(GenericAction, LaunchCardAction):
         if not card: return False
 
         action = card.associated_action
-        if not getattr(card, 'no_drop', False):
-            g.process_action(DropUsedCard(self.source, cards=[card]))
-        else:
-            # cards are detached here, denotes disputed state.
-            # can cause problems when skill declares 'no_drop'
-            # so revert the detached state.
-            from .cards import VirtualCard
-            [c.attach() for c in VirtualCard.unwrap([card])]
+        if not action: return False
 
-        if action:
+        try:
             target = target_list[0] if target_list else self.source
             a = action(source=self.source, target=target)
             self.card_action = a
             a.associated_card = card
             a.target_list = target_list
-            g.process_action(a)
-            return True
 
-        return False
+            card.detach()
+            g.emit_event('before_launch_card', self)
+            g.process_action(a)
+        finally:
+            if card.detached:
+                # card/skill still in disputed state,
+                # means no actions have done anything to the card/skill,
+                # drop it
+                if not getattr(card, 'no_drop', False):
+                    g.process_action(DropUsedCard(self.source, cards=[card]))
+                else:
+                    # cards are detached here, denotes disputed state.
+                    # can cause problems when skill declares 'no_drop'
+                    # so revert the detached state.
+                    from .cards import VirtualCard
+                    [c.attach() for c in VirtualCard.unwrap([card])]
+
+        return True
 
     def is_valid(self):
         if not self.tl_valid:

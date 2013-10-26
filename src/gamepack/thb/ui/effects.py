@@ -51,6 +51,18 @@ class TagAnim(Control, BalloonPromptMixin):
         self.x, self.y = x, y
 
 
+def before_launch_card_effects(self, act):
+    from .. import actions
+    card_migration_effects(
+        self, (
+            actions.DropUsedCard(act.source, [act.card]),
+            VirtualCard.unwrap([act.card]),
+            act.source.cards,
+            self.game.deck.droppedcards,
+        )
+    )
+
+
 def card_migration_effects(self, args):  # here self is the SimpleGameUI instance
     act, cards, _from, to = args
     g = self.game
@@ -118,8 +130,9 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
         csl.append(cs)
 
     csl.sort(key=lambda cs: cs.sort_idx)
+    csl.update()
 
-    if pca: pca.arrange()
+    pca and pca.arrange()
 
     # --- dest ---
 
@@ -177,8 +190,8 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
             for cs in csl:
                 cs.delete()
 
-    if handcard_update: self.handcard_area.update()
-    if dropcard_update: self.dropcard_area.update()
+    handcard_update and self.handcard_area.update()
+    dropcard_update and self.dropcard_area.update()
 
 
 def damage_effect(self, act):
@@ -511,6 +524,7 @@ mapping_events = ddict(bool, {
     'user_input': user_input_effects,
     'user_input_finish': user_input_finish_effects,
     'card_migration': card_migration_effects,
+    'before_launch_card': before_launch_card_effects,
     'game_roll': game_roll_prompt,
     'game_roll_result': game_roll_result_prompt,
     'reseat': reseat_effects,
