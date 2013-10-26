@@ -23,7 +23,7 @@ if not sys.platform.startswith('linux'):
 from options import options
 
 if options.testing:
-    UPDATE_URL = 'http://feisuzhu.xen.prgmr.com/testing/'
+    UPDATE_URL = 'http://misc.thbattle.net/testing/'
 else:
     UPDATE_URL = 'http://update.thbattle.net/'
 
@@ -77,7 +77,7 @@ class ServerList:
 
     if options.testing or IS_PROTON:
         class hakurei:
-            address = ('cngame.thbattle.net', 8999)
+            address = ('game.thbattle.net', 8999)
             polygon = [
                 (878, 423), (829, 409), (760, 376), (748, 346), (787, 329),
                 (863, 313), (929, 322), (970, 330), (992, 366), (968, 399),
