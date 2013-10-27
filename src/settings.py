@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 168'
+VERSION = 'THBATTLE V1.0b incr 169'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -147,6 +147,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新模式：信（xue）仰（zhan）之（dao）战（di）
 妖梦设定调整：如果装备了两把武器，现在可以主动弃置一把
 好人卡bug修复
 人物强度调整（露米娅、早苗、灵梦，具体调整请看论坛帖子）
