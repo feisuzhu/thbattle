@@ -72,8 +72,18 @@ class RedrawCards(UserAction):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
-        migrate_cards(tgt.cards, g.deck.droppedcards)
-        g.process_action(DrawCards(tgt, 4))
+
+        # Fire events after job done.
+        # Looks like atomic.
+
+        oldcards = list(tgt.cards)
+        migrate_cards(tgt.cards, g.deck.droppedcards, no_event=True)
+        cards = g.deck.getcards(4)
+        tgt.reveal(cards)
+        migrate_cards(cards, tgt.cards, no_event=True)
+
+        g.emit_event('card_migration', (self, oldcards, tgt.cards, g.deck.droppedcards))
+        g.emit_event('card_migration', (self, cards, g.deck.cards, tgt.cards))
 
         return True
 
@@ -203,12 +213,6 @@ class THBattleFaith(Game):
 
         g.update_event_handlers()
 
-        # -------
-        # log.info(u'>> Game info: ')
-        # log.info(u'>> First: %s:%s ', first.char_cls.__name__, Identity.TYPE.rlookup(first.identity.type))
-        # for p in g.players:
-        # -------
-
         try:
             pl = g.players
             for p in pl:
@@ -217,7 +221,7 @@ class THBattleFaith(Game):
             g.emit_event('game_begin', g)
 
             for p in g.players:
-                g.process_action(DrawCards(p, amount=3 if p is first else 4))
+                g.process_action(DrawCards(p, amount=4))
 
             pl = g.players.rotate_to(first)
 
@@ -242,7 +246,7 @@ class THBattleFaith(Game):
         log.info(u'>> Winner: %s', Identity.TYPE.rlookup(g.winners[0].identity.type))
 
     def can_leave(g, p):
-        return getattr(p, 'dead', False)
+        return False
 
     def update_event_handlers(g):
         ehclasses = list(action_eventhandlers) + g.game_ehs.values()

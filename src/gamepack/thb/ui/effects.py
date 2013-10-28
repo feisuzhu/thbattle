@@ -21,7 +21,7 @@ from game.autoenv import Game
 from functools import partial
 from collections import defaultdict as ddict
 
-from utils import BatchList
+from utils import BatchList, group_by
 
 from pyglet.sprite import Sprite
 
@@ -53,14 +53,16 @@ class TagAnim(Control, BalloonPromptMixin):
 
 def before_launch_card_effects(self, act):
     from .. import actions
-    card_migration_effects(
-        self, (
-            actions.DropUsedCard(act.source, [act.card]),
-            VirtualCard.unwrap([act.card]),
-            act.source.cards,
-            self.game.deck.droppedcards,
+    rawcards = VirtualCard.unwrap([act.card])
+    for cards in group_by(rawcards, lambda c: id(c.resides_in)):
+        card_migration_effects(
+            self, (
+                actions.DropUsedCard(act.source, [act.card]),
+                cards,
+                cards[0].resides_in,
+                self.game.deck.droppedcards,
+            )
         )
-    )
 
 
 def card_migration_effects(self, args):  # here self is the SimpleGameUI instance

@@ -21,9 +21,11 @@ class LuckHandler(EventHandler):
             p = _from.owner
         elif evt_type == 'action_after' and isinstance(arg, PlayerRevive):
             p = arg.target
+        elif evt_type == 'before_launch_card':
+            p = arg.source
         else:
             p = None
-       
+
         if p and p.has_skill(Luck) and not p.dead:
             if not (p.cards or p.showncards):
                 Game.getgame().process_action(LuckDrawCards(p, 2))

@@ -637,9 +637,10 @@ class FatetellStage(GenericAction):
         target = self.target
         if target.dead: return False
         ft_cards = target.fatetell
-        for card in reversed(list(ft_cards)):  # what comes last, launches first.
-            if not target.dead:
-                g.process_action(LaunchFatetellCard(target, card))
+        while ft_cards:
+            if target.dead: break
+            card = ft_cards[-1]  # what comes last, launches first.
+            g.process_action(LaunchFatetellCard(target, card))
 
         return True
 

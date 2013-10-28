@@ -3,6 +3,7 @@
 from game.autoenv import Game, EventHandler, user_input, InputTransaction
 from game import sync_primitive
 from . import basic
+from .base import VirtualCard
 from ..actions import random_choose_card, register_eh, migrate_cards, ask_for_action
 from ..actions import user_choose_cards
 from ..actions import GenericAction, UserAction, LaunchCardAction, DropCards, DropUsedCard
@@ -71,8 +72,9 @@ class LaunchReject(GenericAction, LaunchCardAction):
         action = Reject(source=self.source, target_act=self.target_act)
         action.associated_card = self.card
         g = Game.getgame()
-        g.process_action(DropUsedCard(self.source, [self.card]))
+        assert self.card.detached
         g.process_action(action)
+        g.process_action(DropUsedCard(self.source, [self.card]))
         return True
 
 
@@ -394,7 +396,7 @@ class DonationBoxEffect(InstantSpellCardAction):
         src = self.source
         g = Game.getgame()
 
-        catnames = ['cards', 'showncards', 'equips']
+        catnames = ('cards', 'showncards', 'equips')
         cats = [getattr(t, i) for i in catnames]
         cards = user_choose_cards(self, t, catnames)
         if not cards:
@@ -409,7 +411,7 @@ class DonationBoxEffect(InstantSpellCardAction):
     def cond(self, cards):
         return len(cards) == 1 and cards[0].resides_in.type in (
             'cards', 'showncards', 'equips'
-        )
+        ) and not isinstance(cards[0], VirtualCard)
 
     def is_valid(self):
         t = self.target

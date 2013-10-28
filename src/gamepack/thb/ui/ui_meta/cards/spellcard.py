@@ -349,9 +349,6 @@ class DonationBoxCard:
         if not n:
             return (False, u'请选择1-2名玩家')
 
-        #if g.me in tl:
-        #    return (False, u'你不能选择自己作为目标')
-
         for t in tl:
             if not (t.cards or t.showncards or t.equips):
                 return (False, u'目标没有可以给你的牌')
