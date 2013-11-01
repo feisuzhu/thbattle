@@ -107,6 +107,11 @@ class THBattleFaith(Game):
 
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
+        # reseat
+        seed = get_seed_for(g.players)
+        random.Random(seed).shuffle(g.players)
+        g.emit_event('reseat', None)
+
         H, M = Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA
         L = [[H, H, M, M, H, M], [H, M, H, M, H, M]]
         rnd = random.Random(get_seed_for(g.players))
