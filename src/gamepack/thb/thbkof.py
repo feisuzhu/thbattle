@@ -9,10 +9,12 @@ from utils import Enum
 from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, InputTransaction, user_input
 from game import sync_primitive
 
-from .common import PlayerIdentity, CharChoice, mixin_character, get_seed_for
+from .common import PlayerIdentity, CharChoice, get_seed_for
 
 from .actions import PlayerDeath, PlayerTurn, DrawCards, RevealIdentity
 from .actions import action_eventhandlers
+
+from .characters.baseclasses import mixin_character
 
 from .inputlets import ChooseGirlInputlet, KOFSortInputlet
 
@@ -69,11 +71,8 @@ class KOFCharacterSwitchHandler(EventHandler):
         g = Game.getgame()
 
         for p in [p for p in g.players if p.dead and p.characters]:
-            g.next_character(p)
-            g.update_event_handlers()
-            p.dead = False
-            g.process_action(DrawCards(p, 4))
-            g.emit_event('switch_character', p)
+            new = g.next_character(p)
+            g.process_action(DrawCards(new, 4))
 
 
 class Identity(PlayerIdentity):
@@ -90,24 +89,13 @@ class THBattleKOF(Game):
     def game_start(g):
         # game started, init state
 
-        from cards import Deck, CardList
+        from cards import Deck
 
         g.deck = Deck()
 
         g.ehclasses = []
 
         for i, p in enumerate(g.players):
-            p.cards = CardList(p, 'cards')  # Cards in hand
-            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips')  # Equipments
-            p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special')  # used on special purpose
-
-            p.showncardlists = [p.showncards, p.fatetell]
-
-            p.tags = defaultdict(int)
-
-            p.dead = False
             p.identity = Identity()
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i % 2]
 
@@ -197,10 +185,10 @@ class THBattleKOF(Game):
             p.characters = [c.char_cls for c in perm]
             del p.choices
 
-        g.next_character(first)
-        g.next_character(second)
+        first = g.next_character(first)
+        second = g.next_character(second)
 
-        g.update_event_handlers()
+        order = [0, 1] if first is g.players[0] else [1, 0]
 
         try:
             pl = g.players
@@ -212,7 +200,8 @@ class THBattleKOF(Game):
             for p in pl:
                 g.process_action(DrawCards(p, amount=3 if p is second else 4))
 
-            for i, p in enumerate(cycle([second, first])):
+            for i, idx in enumerate(cycle(order)):
+                p = g.players[idx]
                 if i >= 6000: break
                 if p.dead:
                     assert p.characters  # if not holds true, DeathHandler should end game.
@@ -244,21 +233,34 @@ class THBattleKOF(Game):
         cls = char.char_cls
 
         # mix char class with player -->
-        old = mixin_character(p, cls)
-        p.skills = list(cls.skills)  # make it instance variable
-        p.maxlife = cls.maxlife
-        p.life = cls.maxlife
-        tags = p.tags
-
-        for k in list(tags):
-            del tags[k]
+        new, old_cls = mixin_character(p, cls)
+        g.decorate(new)
+        g.players.replace(p, new)
 
         ehs = g.ehclasses
-        if old:
-            for eh in old.eventhandlers_required:
+        if old_cls:
+            for eh in old_cls.eventhandlers_required:
                 try:
                     ehs.remove(eh)
                 except ValueError:
                     pass
 
-        ehs.extend(p.eventhandlers_required)
+        ehs.extend(cls.eventhandlers_required)
+        g.update_event_handlers()
+
+        g.emit_event('switch_character', new)
+
+        return new
+
+    def decorate(g, p):
+        from .cards import CardList
+        from .characters.baseclasses import Character
+        assert isinstance(p, Character)
+
+        p.cards = CardList(p, 'cards')  # Cards in hand
+        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips = CardList(p, 'equips')  # Equipments
+        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+        p.special = CardList(p, 'special')  # used on special purpose
+        p.showncardlists = [p.showncards, p.fatetell]
+        p.tags = defaultdict(int)

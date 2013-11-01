@@ -7,12 +7,14 @@ from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, use
 from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction
 from .actions import action_eventhandlers, migrate_cards
 
+from .characters.baseclasses import mixin_character
+
 from itertools import cycle
 from collections import defaultdict
 
 from utils import BatchList, Enum
 
-from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice, mixin_character
+from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 
 import logging
@@ -45,25 +47,22 @@ class DeathHandler(EventHandler):
 
         g = Game.getgame()
 
-        for p in [p for p in g.players if p.dead]:
-            pool = p.force.pool
-            assert pool
+        pool = tgt.force.pool
+        assert pool
 
-            mapping = {p: pool}
-            with InputTransaction('ChooseGirl', [p], mapping=mapping) as trans:
-                c = user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
-                c = c or [_c for _c in pool if not _c.chosen][0]
-                c.chosen = p
-                pool.remove(c)
-                trans.notify('girl_chosen', c)
+        mapping = {tgt: pool}
+        with InputTransaction('ChooseGirl', [tgt], mapping=mapping) as trans:
+            c = user_input([tgt], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+            c = c or [_c for _c in pool if not _c.chosen][0]
+            c.chosen = tgt
+            pool.remove(c)
+            trans.notify('girl_chosen', c)
 
-            p.dead = False
-            g.switch_character(p, c)
-            g.update_event_handlers()
-            g.process_action(DrawCards(p, 4))
+        tgt = g.switch_character(tgt, c)
+        g.process_action(DrawCards(tgt, 4))
 
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                g.process_action(RedrawCards(p, p))
+        if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g.process_action(RedrawCards(tgt, tgt))
 
         return act
 
@@ -102,21 +101,11 @@ class THBattleFaith(Game):
 
     def game_start(g):
         # game started, init state
-        from cards import Deck, CardList
+        from cards import Deck
 
         g.deck = Deck()
 
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
-
-        for i, p in enumerate(g.players):
-            p.cards = CardList(p, 'cards')  # Cards in hand
-            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips')  # Equipments
-            p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special')  # used on special purpose
-            p.showncardlists = [p.showncards, p.fatetell]
-            p.tags = defaultdict(int)
-            p.dead = False
 
         H, M = Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA
         L = [[H, H, M, M, H, M], [H, M, H, M, H, M]]
@@ -211,27 +200,34 @@ class THBattleFaith(Game):
             p.force.pool.append(b)
             del p.choices_chosen
 
-        g.update_event_handlers()
+        for p in g.players:
+            if p.player is first:
+                first = p
+                break
 
         try:
             pl = g.players
+            first_index = pl.index(first)
+            order = BatchList(range(len(pl))).rotate_to(first_index)
+
             for p in pl:
                 g.process_action(RevealIdentity(p, pl))
 
             g.emit_event('game_begin', g)
 
-            for p in g.players:
+            for p in pl:
                 g.process_action(DrawCards(p, amount=4))
 
             pl = g.players.rotate_to(first)
-
             rst = user_input(pl[1:], ChooseOptionInputlet(DeathHandler(), (False, True)), type='all')
 
-            for p in pl[1:]:
+            for i in pl[1:]:
                 rst[p] and g.process_action(RedrawCards(p, p))
 
-            for i, p in enumerate(cycle(pl)):
+            pl = g.players
+            for i, idx in enumerate(cycle(order)):
                 if i >= 6000: break
+                p = pl[idx]
                 if p.dead: continue
 
                 g.emit_event('player_turn', p)
@@ -262,22 +258,32 @@ class THBattleFaith(Game):
         log.info(u'>> NewCharacter: %s %s', Identity.TYPE.rlookup(p.identity.type), cls.__name__)
 
         # mix char class with player -->
-        old = mixin_character(p, cls)
-        p.skills = list(cls.skills)  # make it instance variable
-        p.maxlife = cls.maxlife
-        p.life = cls.maxlife
-        tags = p.tags
-
-        for k in list(tags):
-            del tags[k]
+        old = p
+        p, oldcls = mixin_character(p, cls)
+        g.decorate(p)
+        g.players.replace(old, p)
 
         ehs = g.ehclasses
-        if old:
-            for eh in old.eventhandlers_required:
+        if oldcls:
+            for eh in oldcls.eventhandlers_required:
                 try:
                     ehs.remove(eh)
                 except ValueError:
                     pass
 
         ehs.extend(p.eventhandlers_required)
+
+        g.update_event_handlers()
         g.emit_event('switch_character', p)
+
+        return p
+
+    def decorate(g, p):
+        from cards import CardList
+        p.cards = CardList(p, 'cards')  # Cards in hand
+        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips = CardList(p, 'equips')  # Equipments
+        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+        p.special = CardList(p, 'special')  # used on special purpose
+        p.showncardlists = [p.showncards, p.fatetell]
+        p.tags = defaultdict(int)

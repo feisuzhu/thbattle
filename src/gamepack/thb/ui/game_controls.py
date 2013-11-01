@@ -619,6 +619,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
     def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', *args, **kwargs):
         self.player = None
+        self.character = None
         self._disabled = False
         self._selected = False
         self.taganims = []
@@ -745,13 +746,13 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
         @showncard_btn.event  # noqa
         def on_click():
-            p = self.player
+            p = self.character
             if not p: return
-            if not hasattr(p, 'showncardlists'): return  # before the 'real' game_start
+            if not p.showncardlists: return  # before the 'real' game_start
             last = ShownCardPanel.current
             if last:
                 last.delete()
-                if last.player is p:
+                if last.character is p:
                     return
             ShownCardPanel(p, parent=self.view)
 
@@ -769,9 +770,10 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             nick = prefix + nick
 
         self.caption = nick
-        meta = getattr(p, 'ui_meta', None)
+        char = self.character
 
-        if meta:
+        if char:
+            meta = char.ui_meta
             self.bg = meta.port_image
             self.update_bg()
             self.set_charname(meta.char_name)
@@ -788,7 +790,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
     def balloon_show(self):
         try:
-            meta = self.player.ui_meta
+            meta = self.character.ui_meta
             figure_image = meta.figure_image
         except:
             return BalloonPromptMixin.balloon_show(self)
@@ -809,23 +811,20 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
     @property
     def color(self):
-        if not self.player:
+        if not self.character:
             return self._color
 
-        dead = getattr(self.player, 'dead', False)
-        if dead:
+        if self.character.dead:
             return Colors.gray
 
         return self._color
 
     @property
     def bg(self):
-        if not self.player:
+        if not self.character:
             return self._bg
 
-        dead = getattr(self.player, 'dead', False)
-
-        if dead:
+        if self.character.dead:
             return self._bg.grayed
 
         return self._bg
@@ -914,23 +913,23 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         vertices = []
         for port in gcps:
-            p = port.player
-            if not getattr(p, 'ui_meta', False): continue
+            char = port.character
+            if not char: continue
 
             hp = game_res.hp; hp_bg = game_res.hp_bg
-            if getattr(p, 'dead', False):
+            if char.dead:
                 hp = hp.grayed
                 hp_bg = hp_bg.grayed
 
             # hp bar
             w = hp.width
             x = port.x; y = port.y
-            for i in xrange(getattr(p, 'maxlife', 0)):
+            for i in xrange(char.maxlife):
                 vertices.extend(
                     hp_bg.get_t4f_v4f_vertices(5+x+i*w, 56+y)
                 )
 
-            for i in xrange(max(getattr(p, 'life', 0), 0)):
+            for i in xrange(max(char.life, 0)):
                 vertices.extend(
                     hp.get_t4f_v4f_vertices(5+x+i*w, 56+y)
                 )
@@ -938,20 +937,19 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
         nums = game_res.num
         for port in gcps:
             x, y, w, h = port.x, port.y, port.width, port.height
-            p = port.player
-            try:
-                n = len(p.cards) + len(p.showncards)
-                seq = str(n)
-                ox = (32 - len(seq)*14)//2
-                for i, ch in enumerate(seq):
-                    n = ord(ch) - ord('0')
-                    #x, y = w - 34 + ox + i*14, 68
-                    vertices.extend(nums[n].get_t4f_v4f_vertices(
-                        x + w - 34 + ox + i*14,
-                        y + 68
-                    ))
-            except AttributeError:
-                pass
+            char = port.character
+            if not char: continue
+
+            n = len(char.cards) + len(char.showncards)
+            seq = str(n)
+            ox = (32 - len(seq)*14)//2
+            for i, ch in enumerate(seq):
+                n = ord(ch) - ord('0')
+                #x, y = w - 34 + ox + i*14, 68
+                vertices.extend(nums[n].get_t4f_v4f_vertices(
+                    x + w - 34 + ox + i*14,
+                    y + 68
+                ))
 
         if vertices:
             with nums[0].owner:
@@ -994,7 +992,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             act = args[0]
             g = Game.getgame()
             me = g.me
-            if (act.target is self.player) and (me in act.to if isinstance(act.to, list) else me is act.to):
+            if (act.target in (self.player, self.character)) and (me in act.to if isinstance(act.to, list) else me is act.to):
                 btn = self.identity_btn
                 tbl = g.ui_meta.identity_table
                 colortbl = g.ui_meta.identity_color
@@ -1004,6 +1002,11 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
                 btn.update()
                 self.set_color(color)
                 # self.update()
+        elif _type == 'evt_switch_character':
+            p = args[0]
+            if p.player is self.player:
+                self.character = p
+                self.update()
 
     def animate_to(self, x, y):
         tx = SineInterp(self.x, x, 1)

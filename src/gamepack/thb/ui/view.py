@@ -246,6 +246,10 @@ class THBattleUI(Control):
         pass
 
     def player2portrait(self, p):
+        from gamepack.thb.characters.baseclasses import Character
+        if isinstance(p, Character):
+            p = p.player
+
         for port in self.char_portraits:
             if port.player == p:
                 break
@@ -413,14 +417,16 @@ class THBattleUI(Control):
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1_recursive(x, y)
         if isinstance(c, GameCharacterPortrait) and self.selecting_player and not c.disabled:
+            char = c.character
+            if not char: return True
             sel = c.selected
             psel = self.selected_players
             if sel:
                 c.selected = False
-                psel.remove(c.player)
+                psel.remove(char)
             else:
                 c.selected = True
-                psel.append(c.player)
+                psel.append(char)
             self.dispatch_event('on_selection_change')
         return True
 

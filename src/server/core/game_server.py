@@ -143,6 +143,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
 class Player(game.AbstractPlayer):
     dropped = False
+    fleed = False
 
     def __init__(self, client):
         self.client = client
@@ -151,6 +152,19 @@ class Player(game.AbstractPlayer):
         g = Game.getgame()
         st = g.get_synctag()
         self.client.gwrite('Sync:%d' % st, obj_list)
+
+    def set_dropped(self, v=True):
+        self.dropped = v
+
+    def set_fleed(self, v=True):
+        self.fleed = v
+
+    def set_client(self, v):
+        self.client = v
+
+    def reconnect(self, client):
+        self.client = client
+        self.dropped = False
 
     def __data__(self):
         if self.dropped:

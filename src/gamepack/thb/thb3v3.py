@@ -6,12 +6,14 @@ from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, use
 from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity
 from .actions import action_eventhandlers
 
+from .characters.baseclasses import mixin_character
+
 from itertools import cycle
 from collections import defaultdict
 
 from utils import BatchList, Enum
 
-from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice, mixin_character
+from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from .inputlets import ChooseGirlInputlet
 
 import logging
@@ -67,24 +69,13 @@ class THBattle(Game):
 
     def game_start(g):
         # game started, init state
-        from cards import Deck, CardList
+        from cards import Deck
 
         g.deck = Deck()
 
-        ehclasses = list(action_eventhandlers) + g.game_ehs.values()
+        g.ehclasses = ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
         for i, p in enumerate(g.players):
-            p.cards = CardList(p, 'cards')  # Cards in hand
-            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips')  # Equipments
-            p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special')  # used on special purpose
-
-            p.showncardlists = [p.showncards, p.fatetell]
-
-            p.tags = defaultdict(int)
-
-            p.dead = False
             p.identity = Identity()
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i % 2]
 
@@ -130,13 +121,6 @@ class THBattle(Game):
         n = len(g.order_list)
         order = [g.players[(first_index + i) % n] for i in g.order_list]
 
-        def mix(p, c):
-            # mix char class with player -->
-            mixin_character(p, c.char_cls)
-            p.skills = list(p.skills)  # make it instance variable
-            p.life = p.maxlife
-            ehclasses.extend(p.eventhandlers_required)
-
         # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
         akaris = []
         mapping = {p: choices for p in g.players}
@@ -149,7 +133,7 @@ class THBattle(Game):
                 if issubclass(c.char_cls, characters.akari.Akari):
                     akaris.append((p, c))
                 else:
-                    mix(p, c)
+                    g.set_character(p, c.char_cls)
 
                 trans.notify('girl_chosen', c)
 
@@ -161,19 +145,16 @@ class THBattle(Game):
             g.players.reveal([i[1] for i in akaris])
 
             for p, c in akaris:
-                mix(p, c)
-
-        first_actor = first
+                g.set_character(p, c.char_cls)
 
         g.event_handlers = EventHandler.make_list(ehclasses)
 
         # -------
-        log.info(u'>> Game info: ')
-        log.info(u'>> First: %s:%s ', first.char_cls.__name__, Identity.TYPE.rlookup(first.identity.type))
         for p in g.players:
-            log.info(u'>> Player: %s:%s %s', p.char_cls.__name__, Identity.TYPE.rlookup(p.identity.type), p.account.username)
-
+            log.info(u'>> Player: %s:%s %s', p.__class__.__name__, Identity.TYPE.rlookup(p.identity.type), p.account.username)
         # -------
+
+        first = g.players[first_index]
 
         try:
             pl = g.players
@@ -183,9 +164,9 @@ class THBattle(Game):
             g.emit_event('game_begin', g)
 
             for p in g.players:
-                g.process_action(DrawCards(p, amount=3 if p is first_actor else 4))
+                g.process_action(DrawCards(p, amount=3 if p is first else 4))
 
-            pl = g.players.rotate_to(first_actor)
+            pl = g.players.rotate_to(first)
 
             for i, p in enumerate(cycle(pl)):
                 if i >= 6000: break
@@ -203,3 +184,29 @@ class THBattle(Game):
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)
+
+    def set_character(g, p, cls):
+        # mix char class with player -->
+        new, old_cls = mixin_character(p, cls)
+        g.decorate(new)
+        g.players.replace(p, new)
+        g.forces[0].replace(p, new)
+        g.forces[1].replace(p, new)
+        assert not old_cls
+        ehs = g.ehclasses
+        ehs.extend(cls.eventhandlers_required)
+        g.emit_event('switch_character', new)
+        return new
+
+    def decorate(g, p):
+        from .cards import CardList
+        from .characters.baseclasses import Character
+        assert isinstance(p, Character)
+
+        p.cards = CardList(p, 'cards')  # Cards in hand
+        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips = CardList(p, 'equips')  # Equipments
+        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+        p.special = CardList(p, 'special')  # used on special purpose
+        p.showncardlists = [p.showncards, p.fatetell]
+        p.tags = defaultdict(int)

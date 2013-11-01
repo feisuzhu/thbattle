@@ -367,8 +367,7 @@ def new_user(user):
         else:
             assert False, 'Oops'
 
-        p.client = user
-        p.dropped = False
+        p.reconnect(user)
 
         user.account = old.account
 
@@ -449,7 +448,7 @@ def _archive_game(g):
 
     data.append('# ' + ', '.join([
         p.account.username.encode('utf-8')
-        for p in g.players
+        for p in g.players_original
     ]))
 
     data.append('# Ver: ' + VERSION)
@@ -553,21 +552,21 @@ def exit_game(user, drops=False):
             log.info('player dropped')
             if g.can_leave(p):
                 user.write(['game_left', None])
-                p.fleed = False
+                p.set_fleed(False)
             else:
                 if not drops:
                     user.write(['fleed', None])
-                    p.fleed = True
+                    p.set_fleed(True)
                 else:
-                    p.fleed = False
+                    p.set_fleed(False)
 
             p.client.gbreak()  # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
 
-            p.dropped = True
+            p.set_dropped()
             dummy = DroppedClient(g.players[i].client)
             if drops:
                 dropped_users[p.client.account.userid] = dummy
-            p.client = dummy
+            p.set_client(dummy)
         else:
             log.info('player leave')
             g.players[i] = PlayerPlaceHolder
@@ -577,6 +576,7 @@ def exit_game(user, drops=False):
             ob.write(['game_left', None])
             ob.state = 'hang'
             ob.observing = None
+
         user.observers[:] = []
 
         user.state = 'hang'
@@ -874,6 +874,7 @@ def end_game(g):
     for i, p in enumerate(pl):
         if p.dropped:
             pl[i] = PlayerPlaceHolder
+
     del games[g.gameid]
     ng = create_game(None, g.__class__.__name__, g.game_name)
     ng.players = BatchList([

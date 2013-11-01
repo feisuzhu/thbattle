@@ -97,9 +97,10 @@ class GameManager(Greenlet):
             i = pid.index(tgtid)
             g = self.game
             g.players = BatchList(pl)
-            g.me = g.players[i]
-            g.me.__class__ = TheLittleBrother
-            g.me.server = Executive.server
+            me = g.players[i]
+            me.__class__ = TheLittleBrother
+            me.server = Executive.server
+            g.me = me
             #g.start()
             log.info('=======OBSERVE STARTED=======')
             log.info(g)

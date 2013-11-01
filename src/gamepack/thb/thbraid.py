@@ -10,13 +10,14 @@ from .actions import PlayerRevive, UserAction, BaseDamage, RevealIdentity
 from .actions import PlayerTurn, MaxLifeChange, action_eventhandlers
 from .actions import LifeLost
 from .actions import migrate_cards, user_choose_cards
+from .characters.baseclasses import mixin_character
 
 from .inputlets import ChooseOptionInputlet, ChooseIndividualCardInputlet, ChooseGirlInputlet
 
 from .cards import Skill, t_None
 from collections import defaultdict
 
-from .common import PlayerIdentity, CharChoice, mixin_character, get_seed_for
+from .common import PlayerIdentity, CharChoice, get_seed_for
 
 from utils import BatchList
 
@@ -408,27 +409,11 @@ class THBattleRaid(Game):
 
     def game_start(g):
         # game started, init state
-        from cards import CardList
 
         g.action_types[LaunchCard] = RaidLaunchCard
         g.action_types[ActionStageLaunchCard] = RaidActionStageLaunchCard
 
-        ehclasses = g.ehclasses = []
-
-        for p in g.players:
-            p.cards = CardList(p, 'cards')  # Cards in hand
-            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips')  # Equipments
-            p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-            p.faiths = CardList(p, 'faiths')  # 'faith' cards
-            p.special = CardList(p, 'special')  # used on special purpose
-
-            p.showncardlists = [p.showncards, p.faiths, p.fatetell]  # cardlists should shown to others
-
-            p.tags = defaultdict(int)
-            p.tags['faithcounter'] = True  # for ui
-
-            p.dead = False
+        g.ehclasses = []
 
         # reveal identities
         mutant = g.mutant = g.players[0]
@@ -459,9 +444,7 @@ class THBattleRaid(Game):
             # mix it in advance
             # so the others could see it
 
-            mixin_character(mutant, c.char_cls)
-            mutant.skills = list(mutant.skills)  # make it instance variable
-            ehclasses.extend(mutant.eventhandlers_required)
+            g.mutant = mutant = g.switch_character(mutant, c.char_cls)
 
             mutant.life = mutant.maxlife
             mutant.morphed = False
@@ -498,14 +481,11 @@ class THBattleRaid(Game):
         for p in g.attackers:
             c = result[p] or CharChoice(chars.pop())
             c.chosen = p
-            mixin_character(p, c.char_cls)
-            p.skills = list(p.skills)  # make it instance variable
+            p = g.switch_character(p, c.char_cls)
             p.skills.extend([
                 Cooperation, Protection,
                 Parry, OneUp,
             ])
-            p.life = p.maxlife
-            ehclasses.extend(p.eventhandlers_required)
 
         g.update_event_handlers()
 
@@ -513,9 +493,9 @@ class THBattleRaid(Game):
 
         # -------
         log.info(u'>> Game info: ')
-        log.info(u'>> Mutant: %s', mutant.char_cls.__name__)
+        log.info(u'>> Mutant: %s', mutant.__class__.__name__)
         for p in attackers:
-            log.info(u'>> Attacker: %s', p.char_cls.__name__)
+            log.info(u'>> Attacker: %s', p.__class__.__name__)
 
         # -------
 
@@ -600,7 +580,7 @@ class THBattleRaid(Game):
             )
             mutant.morphed = True
 
-            mixin_character(mutant, stage2)
+            mutant.__class__ = stage2
 
             g.update_event_handlers()
 
@@ -665,7 +645,42 @@ class THBattleRaid(Game):
     def can_leave(self, p):
         return False
 
+    def switch_character(g, p, cls):
+        old = p
+        p, oldcls = mixin_character(p, cls)
+        g.decorate(p)
+        g.players.replace(old, p)
+        g.attackers.replace(old, p)
+
+        ehs = g.ehclasses
+        if oldcls:
+            for eh in oldcls.eventhandlers_required:
+                try:
+                    ehs.remove(eh)
+                except ValueError:
+                    pass
+
+        ehs = g.ehclasses
+        ehs.extend(p.eventhandlers_required)
+        g.emit_event('switch_character', p)
+
+        return p
+
     def update_event_handlers(self):
         ehclasses = list(action_eventhandlers) + self.game_ehs.values()
         ehclasses += self.ehclasses
         self.event_handlers = EventHandler.make_list(ehclasses)
+
+    def decorate(self, p):
+        from cards import CardList
+        p.cards = CardList(p, 'cards')  # Cards in hand
+        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips = CardList(p, 'equips')  # Equipments
+        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+        p.faiths = CardList(p, 'faiths')  # 'faith' cards
+        p.special = CardList(p, 'special')  # used on special purpose
+
+        p.showncardlists = [p.showncards, p.faiths, p.fatetell]  # cardlists should shown to others
+
+        p.tags = defaultdict(int)
+        p.tags['faithcounter'] = True  # for ui

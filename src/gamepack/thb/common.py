@@ -5,21 +5,6 @@ log = logging.getLogger('thb.common')
 from game.autoenv import Game, sync_primitive
 
 
-def mixin_character(player, char_cls):
-    from utils import classmix
-    pcls = player.__class__
-    if hasattr(pcls, 'mixins'):
-        old = player.char_cls
-        player.char_cls = char_cls
-        player.__class__ = classmix(player.base_cls, char_cls)
-        return old
-    else:
-        player.base_cls = pcls
-        player.char_cls = char_cls
-        player.__class__ = classmix(pcls, char_cls)
-        return None
-
-
 class CharChoice(object):
     real_cls = None
     chosen = False

@@ -65,6 +65,12 @@ class BatchList(list):
         n = len(self)
         return self.__class__((self*2)[i:i+n])
 
+    def replace(self, old, new):
+        try:
+            self[self.index(old)] = new
+        except ValueError:
+            pass
+
 
 class ScissorBox(object):
     exc = Exception('ScissorBox Invalid')

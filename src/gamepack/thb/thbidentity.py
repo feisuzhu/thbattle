@@ -4,10 +4,12 @@ from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, use
 
 from .actions import PlayerTurn, PlayerDeath, DrawCards, DropCards, RevealIdentity
 from .actions import action_eventhandlers
+from .characters.baseclasses import mixin_character
+
 from itertools import cycle
 from collections import defaultdict
 
-from .common import PlayerIdentity, sync_primitive, CharChoice, get_seed_for, mixin_character
+from .common import PlayerIdentity, sync_primitive, CharChoice, get_seed_for
 from .inputlets import ChooseGirlInputlet
 
 import logging
@@ -113,24 +115,11 @@ class THBattleIdentity(Game):
 
     def game_start(g):
         # game started, init state
-        from cards import Deck, CardList
+        from cards import Deck
 
         g.deck = Deck()
 
-        ehclasses = list(action_eventhandlers) + _game_ehs.values()
-
-        for p in g.players:
-            p.cards = CardList(p, 'cards')  # Cards in hand
-            p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-            p.equips = CardList(p, 'equips')  # Equipments
-            p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-            p.special = CardList(p, 'special')  # used on special purpose
-
-            p.showncardlists = [p.showncards, p.fatetell]  # cardlists should shown to others
-
-            p.tags = defaultdict(int)
-
-            p.dead = False
+        g.ehclasses = ehclasses = list(action_eventhandlers) + _game_ehs.values()
 
         # choose girls init -->
         from .characters import characters as chars
@@ -179,9 +168,7 @@ class THBattleIdentity(Game):
             # mix it in advance
             # so the others could see it
 
-            mixin_character(boss, c.char_cls)
-            boss.skills = list(boss.skills)  # make it instance variable
-            ehclasses.extend(boss.eventhandlers_required)
+            boss = g.switch_character(boss, c.char_cls)
 
             # boss's hp bonus
             if len(g.players) > 5:
@@ -229,10 +216,7 @@ class THBattleIdentity(Game):
                 c = CharChoice(chars.pop())
                 g.players.reveal(c)
 
-            mixin_character(p, c.char_cls)
-            p.skills = list(p.skills)  # make it instance variable
-            p.life = p.maxlife
-            ehclasses.extend(p.eventhandlers_required)
+            p = g.switch_character(p, c.char_cls)
 
         g.event_handlers = EventHandler.make_list(ehclasses)
 
@@ -257,6 +241,30 @@ class THBattleIdentity(Game):
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)
+
+    def switch_character(g, p, cls):
+        # mix char class with player -->
+        old = p
+        p, oldcls = mixin_character(p, cls)
+        g.decorate(p)
+        g.players.replace(old, p)
+
+        ehs = g.ehclasses
+        assert not oldcls
+        ehs.extend(p.eventhandlers_required)
+        g.emit_event('switch_character', p)
+
+        return p
+
+    def decorate(self, p):
+        from cards import CardList
+        p.cards = CardList(p, 'cards')  # Cards in hand
+        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips = CardList(p, 'equips')  # Equipments
+        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
+        p.special = CardList(p, 'special')  # used on special purpose
+        p.showncardlists = [p.showncards, p.fatetell]  # cardlists should shown to others
+        p.tags = defaultdict(int)
 
 
 class THBattleIdentity5(THBattleIdentity):

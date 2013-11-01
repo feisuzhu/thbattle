@@ -62,7 +62,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             g.emit_event('user_input_start', (trans, ilets[p]))
 
         if g.me in players:  # me involved
-            if isinstance(g.me, TheChosenOne):  # Not observer or other things
+            if not g.me.is_observer:  # Not observer or other things
                 inputproc = gevent.spawn(input_func, synctags[g.me])
 
         orig_players = players[:]
@@ -124,6 +124,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
 class TheChosenOne(game.AbstractPlayer):
     dropped = False
+    is_observer = False
 
     def __init__(self, server):
         self.server = server
@@ -147,6 +148,7 @@ class TheChosenOne(game.AbstractPlayer):
 
 class PeerPlayer(game.AbstractPlayer):
     dropped = False
+    is_observer = False
 
     def __init__(self):
         game.AbstractPlayer.__init__(self)
@@ -171,6 +173,7 @@ class PeerPlayer(game.AbstractPlayer):
 
 class TheLittleBrother(PeerPlayer):
     # Big brother is watching you!
+    is_observer = True
     reveal = TheChosenOne.reveal.im_func
 
 
@@ -219,3 +222,19 @@ class Game(Greenlet, game.Game):
 
     def pause(self, time):
         gevent.sleep(time)
+
+    def _get_me(self):
+        me = self._me
+        for i in self.players:
+            if i is me:
+                return i
+
+            if getattr(i, 'player', 0) is me:
+                return i
+
+        raise AttributeError('WTF?!')
+
+    def _set_me(self, me):
+        self._me = me
+
+    me = property(_get_me, _set_me)
