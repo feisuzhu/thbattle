@@ -19,6 +19,7 @@ from utils import log_failure
 # -- globals --
 _member_client = None
 _cli_pool = None
+_try_counter = 10032
 
 
 # -- code --
@@ -42,6 +43,7 @@ def member_client_pool():
 
 
 class Account(object):
+    is_guest = False
 
     @classmethod
     @server_side_only
@@ -53,7 +55,11 @@ class Account(object):
             except ValueError:
                 uid = None
 
-            if uid:
+            if uid == -1:
+                acc = cls()
+                acc._fill_trygame()
+                return acc
+            elif uid:
                 member = cli.validate_by_uid(uid, password)
             else:
                 member = cli.validate_by_username(username, password)
@@ -87,11 +93,39 @@ class Account(object):
         )
 
     @server_side_only
+    def _fill_trygame(self):
+        global _try_counter
+        c = _try_counter
+        _try_counter += 1
+
+        self.username = u'毛玉' + str(c)
+        self.status = 0
+        self.userid = -c
+
+        from urlparse import urljoin
+        from settings import ACCOUNT_FORUMURL
+
+        self.other = defaultdict(
+            lambda: None,
+            title=u'不愿注册的毛玉',
+            avatar=urljoin(
+                ACCOUNT_FORUMURL,
+                '/maoyu.png'
+            ),
+            credits=-998,
+            games=0,
+            drops=0,
+        )
+
+    @server_side_only
     def available(self):
         return self.status != -1
 
     @server_side_only
     def add_credit(self, type, amount):
+        if self.userid < 0:
+            return
+
         @gevent.spawn
         @log_failure(log)
         def worker():
@@ -103,7 +137,7 @@ class Account(object):
     def parse(cls, data):
         acc = cls()
         mode, acc.userid, acc.username, other = data
-        acc.other = defaultdict(lambda:None, other)
+        acc.other = defaultdict(lambda: None, other)
         assert mode == 'forum'
         return acc
 

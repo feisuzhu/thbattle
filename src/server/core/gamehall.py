@@ -746,6 +746,10 @@ def observe_user(user, other_userid):
 
 
 def invite_user(user, other_userid):
+    if user.account.userid < 0:
+        gevent.spawn(user.write, ['system_msg', [None, u'毛玉不能使用邀请功能']])
+        return
+
     other = users.get(other_userid, None)
 
     if not (other and other.state in ('hang', 'observing')):

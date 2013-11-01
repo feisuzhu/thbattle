@@ -400,6 +400,27 @@ class LoginScreen(Screen):
         self.bg = common_res.bg_login.get()
         self.bg_alpha = LinearInterp(0, 1.0, 1.5)
         self.dialog = LoginScreen.LoginDialog(parent=self)
+        try_game = Button(
+            parent=self, caption=u'试玩',
+            x=750, y=50, width=100, height=30, color=Colors.orange,
+        )
+
+        @try_game.event
+        def on_click():
+            text = (
+                u'试玩的玩家有以下限制：\n'
+                u'\n'
+                u'随机的id，不记录游戏数和节操\n'
+                u'固定的头像、自定义签名\n'
+                u'无法使用文文新闻和邀请功能\n'
+                u'无法断线重连'
+            )
+
+            confirm = ConfirmBox(text, buttons=ConfirmBox.Presets.OKCancel, parent=self)
+
+            @confirm.event
+            def on_confirm(val):
+                val and Executive.call('auth', ui_message, ['-1', 'guest'])
 
     def on_message(self, _type, *args):
         if _type == 'auth_success':
