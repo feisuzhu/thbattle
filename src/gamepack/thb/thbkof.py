@@ -198,7 +198,7 @@ class THBattleKOF(Game):
             g.emit_event('game_begin', g)
 
             for p in pl:
-                g.process_action(DrawCards(p, amount=3 if p is second else 4))
+                g.process_action(DrawCards(p, amount=3 if p is first else 4))
 
             for i, idx in enumerate(cycle(order)):
                 p = g.players[idx]

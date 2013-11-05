@@ -88,10 +88,12 @@ class TributeHandler(EventHandler):
             self.add()
 
         elif evt_type == 'switch_character':
-            if any(p.has_skill(TributeTarget) for p in Game.getgame().players):
-                self.add()
-            else:
-                self.remove()
+            cond = any([
+                isinstance(p, Character) and p.has_skill(TributeTarget)
+                for p in Game.getgame().players
+            ])
+
+            self.add() if cond else self.remove()
 
         elif evt_type == 'action_after' and isinstance(arg, PlayerRevive):
             self.add()
@@ -101,12 +103,15 @@ class TributeHandler(EventHandler):
     def add(self):
         g = Game.getgame()
         for p in g.players:
-            if not p.has_skill(TributeTarget) and not p.has_skill(Tribute):
+            if not isinstance(p, Character): continue
+            if p.has_skill(TributeTarget): continue
+            if not p.has_skill(Tribute):
                 p.skills.append(Tribute)
 
     def remove(self):
         g = Game.getgame()
         for p in g.players:
+            if not isinstance(p, Character): continue
             try:
                 p.skills.remove(Tribute)
             except ValueError:
