@@ -4,8 +4,8 @@ simplejson
 colorlog
 requests
 python-openal
-pika
 msgpack-python
 MySQL-python
 SQLAlchemy
+redis
 PIL

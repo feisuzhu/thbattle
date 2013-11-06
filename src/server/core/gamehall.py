@@ -16,23 +16,18 @@ from gevent import Greenlet, Timeout
 from gevent.event import Event
 from gevent.queue import Queue, Empty as QueueEmpty
 import simplejson as json
-import pika
+import redis
 
 # -- own --
 from network import Endpoint
 from network.server import Client as ClientEndpoint, DroppedClient
-from utils import BatchList, surpress_and_restart, swallow, instantiate, log_failure
+from utils import BatchList, surpress_and_restart, log_failure, instantiate
 from options import options
 from settings import VERSION
 from account import Account
 
 # -- code --
 log = logging.getLogger('GameHall')
-
-# mute pika loggers
-pika.channel.LOGGER.setLevel(logging.CRITICAL)
-pika.connection.LOGGER.setLevel(logging.CRITICAL)
-pika.adapters.blocking_connection.LOGGER.setLevel(logging.CRITICAL)
 
 
 class Client(ClientEndpoint):
@@ -207,76 +202,41 @@ def new_gameid():
 
 
 if options.interconnect:
-    @instantiate
-    class Interconnect(object):
-        def __init__(self):
-            self.conn = None
-            self.chan = None
-            self.connect()
+    interconnect_pub = redis.Redis(host=options.redis, port=options.redis_port)
+    interconnect_sub = redis.Redis(host=options.redis, port=options.redis_port)
 
-        def connect(self):
-            try:
-                self.conn = conn = pika.BlockingConnection(
-                    pika.connection.ConnectionParameters(host=options.rabbitmq_host),
-                )
-                self.chan = chan = conn.channel()
-                chan.exchange_declare('thb_events', 'fanout')
-            except:
-                log.error('error connecting rabbitmq', exc_info=True)
-                self.conn = self.chan = None
-
-        def publish(self, key, body):
-            try:
-                self.chan.basic_publish(
-                    'thb_events', '%s:%s' % (options.node, key),
-                    Endpoint.encode(body),
-                )
-            except:
-                log.error('error publishing', exc_info=True)
-                swallow(self.shutdown)()
-                self.connect()
-
-        def shutdown(self):
-            self.chan.close()
-            self.conn.close()
-
-    atexit.register(Interconnect.shutdown)
+    def interconnect_publish(topic, data):
+        interconnect_pub.publish(
+            'thb.{}.{}'.format(options.node, topic),
+            Endpoint.encode(data),
+        )
 
     class InterconnectHandler(Greenlet):
         @surpress_and_restart
         def _run(self):
             try:
-                conn = chan = None
-                conn = pika.BlockingConnection()
-                chan = conn.channel()
-                chan.exchange_declare('thb_events', 'fanout')
-                queue = chan.queue_declare(
-                    exclusive=True,
-                    auto_delete=True,
-                    arguments={'x-message-ttl': 1000},
-                )
-                chan.queue_bind(queue.method.queue, 'thb_events')
+                sub = interconnect_sub.pubsub()
+                sub.psubscribe('thb.*')
 
-                for method, header, body in chan.consume(queue.method.queue):
-                    chan.basic_ack(method.delivery_tag)
-                    body = json.loads(body)
-                    node, topic = method.routing_key.split(':')
+                for msg in sub.listen():
+                    if msg['type'] not in ('message', 'pmessage'):
+                        continue
+
+                    _, node, topic = msg['channel'].split('.')[:3]
+                    message = json.loads(msg['data'])
 
                     if topic == 'speaker':
                         @gevent.spawn
                         @log_failure(log)
-                        def speaker(body=body, node=node):
+                        def speaker(message=message, node=node):
                             node = node if node != options.node else ''
-                            body.insert(0, node)
+                            message.insert(0, node)
                             for u in users.values():
                                 # u.write(['speaker_msg', [user.account.username, msg]])
-                                # u.write(['speaker_msg', ['%s(%s)' % (body[0], options.node), body[1]]])
-                                u.write(['speaker_msg', body])
-
+                                # u.write(['speaker_msg', ['%s(%s)' % (message[0], options.node), message[1]]])
+                                u.write(['speaker_msg', message])
             finally:
                 gevent.sleep(1)
-                chan and swallow(chan.close)()
-                conn and swallow(conn.close)()
 
         def __repr__(self):
             return self.__class__.__name__
@@ -284,10 +244,8 @@ if options.interconnect:
     InterconnectHandler = InterconnectHandler.spawn()
 
 else:
-    @instantiate
-    class Interconnect(object):
-        def publish(self, key, body):
-            pass
+    def interconnect_publish(self, key, body):
+        pass
 
 
 @gevent.spawn
@@ -306,8 +264,8 @@ def gamehall_status_updator():
                 if u.state == 'hang':
                     send_hallinfo(u)
 
-            Interconnect.publish('current_users', users.values())
-            Interconnect.publish('current_games', games.values())
+            interconnect_publish('current_users', users.values())
+            interconnect_publish('current_games', games.values())
 
             evt.clear()
 
@@ -943,7 +901,7 @@ def speaker(user, msg):
             user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
         else:
             user.account.add_credit('credits', -10)
-            Interconnect.publish('speaker', [user.account.username, msg])
+            interconnect_publish('speaker', [user.account.username, msg])
 
     log.info(u'Speaker: %s', msg)
     gevent.spawn(worker)

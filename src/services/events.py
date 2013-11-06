@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+
+from gevent import monkey
+monkey.patch_all()
+
 # -- stdlib --
 import sys
 import argparse
 from urllib import unquote
-import atexit
 from collections import deque, defaultdict
 import time
 import logging
@@ -12,98 +15,53 @@ import subprocess
 
 # -- third party --
 import gevent
-from gevent import monkey
-monkey.patch_all()
-
 from gevent.event import Event
 from gevent import Greenlet
 from bottle import route, run, request, response
-import pika
 import simplejson as json
+import redis
 
 # -- own --
-from utils import instantiate, swallow, surpress_and_restart
-from utils.rpc import RPCClient
 from network import Endpoint
+from utils import surpress_and_restart
+from utils.rpc import RPCClient
 
 
 # -- code --
 parser = argparse.ArgumentParser(sys.argv[0])
 parser.add_argument('--host', default='127.0.0.1')
 parser.add_argument('--port', type=int, default=7001)
-parser.add_argument('--rabbitmq-host', default='localhost')
+parser.add_argument('--redis', default='localhost')
+parser.add_argument('--redis-port', default=6379)
+parser.add_argument('--member-service', default='localhost')
 parser.add_argument('--discuz-cookiepre', default='VfKd_')
 options = parser.parse_args()
 
 
-member_service = RPCClient(('127.0.0.1', 7000), timeout=2)
+member_service = RPCClient((options.member_service, 7000), timeout=2)
 current_users = {}
 event_waiters = set()
 events_history = deque([[None, 0]] * 100)
 
 logging.basicConfig()
 
-
-@instantiate
-class Interconnect(object):
-    def __init__(self):
-        self.conn = None
-        self.chan = None
-        self.connect()
-
-    def connect(self):
-        try:
-            self.conn = conn = pika.BlockingConnection(
-                pika.connection.ConnectionParameters(
-                    host=options.rabbitmq_host,
-                    socket_timeout=6.0,
-                )
-            )
-            self.chan = chan = conn.channel()
-            chan.exchange_declare('thb_events', 'fanout')
-        except:
-            logging.error('error connecting rabbitmq', exc_info=True)
-            self.conn = self.chan = None
-
-    def publish(self, key, body):
-        try:
-            self.chan.basic_publish(
-                'thb_events', '%s:%s' % ('forum', key),
-                Endpoint.encode(body),
-            )
-
-        except:
-            logging.error('error publishing', exc_info=True)
-            swallow(self.shutdown)()
-            self.connect()
-
-    def shutdown(self):
-        self.conn and swallow(self.conn.close)()
+interconnect_pub = redis.Redis(host=options.redis, port=options.redis_port)
+interconnect_sub = redis.Redis(host=options.redis, port=options.redis_port)
 
 
-atexit.register(Interconnect.shutdown)
+def interconnect_publish(topic, data):
+    interconnect_pub.publish(
+        'thb.forum.{}'.format(topic),
+        Endpoint.encode(data),
+    )
 
 
 class InterconnectHandler(Greenlet):
     @surpress_and_restart
     def _run(self):
         try:
-            self.conn = None
-            conn = pika.BlockingConnection(
-                pika.connection.ConnectionParameters(
-                    host=options.rabbitmq_host,
-                    socket_timeout=6.0,
-                    heartbeat_interval=2,
-                ),
-            )
-            chan = conn.channel()
-            chan.exchange_declare('thb_events', 'fanout')
-            queue = chan.queue_declare(
-                exclusive=True,
-                auto_delete=True,
-                arguments={'x-message-ttl': 1000},
-            )
-            chan.queue_bind(queue.method.queue, 'thb_events')
+            sub = interconnect_sub.pubsub()
+            sub.psubscribe('thb.*')
 
             def notify(key, message):
                 @gevent.spawn
@@ -112,11 +70,12 @@ class InterconnectHandler(Greenlet):
                     events_history[0] = [[key, message], time.time()]
                     [evt.set() for evt in list(event_waiters)]
 
-            for method, header, body in chan.consume(queue.method.queue):
-                chan.basic_ack(method.delivery_tag)
-                message = json.loads(body)
-                key = method.routing_key
-                node, topic = key.split(':')
+            for msg in sub.listen():
+                if msg['type'] not in ('message', 'pmessage'):
+                    continue
+
+                _, node, topic = msg['channel'].split('.')[:3]
+                message = json.loads(msg['data'])
 
                 if topic == 'current_users':
                     # [[node, username, state], ...]
@@ -140,7 +99,6 @@ class InterconnectHandler(Greenlet):
                     notify('speaker', message)
 
         finally:
-            self.conn and swallow(conn.close)()
             gevent.sleep(1)
 
     def __repr__(self):
@@ -212,7 +170,7 @@ def speaker():
     username = member['username'].decode('utf-8', 'ignore')
     member_service.add_credit(member['uid'], 'credits', -10)
 
-    Interconnect.publish('speaker', [username, message])
+    interconnect_publish('speaker', [username, message])
 
     return 'true'
 
