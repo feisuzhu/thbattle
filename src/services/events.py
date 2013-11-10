@@ -16,15 +16,12 @@ import subprocess
 # -- third party --
 import gevent
 from gevent.event import Event
-from gevent import Greenlet
 from bottle import route, run, request, response
 import simplejson as json
-import redis
 
 # -- own --
-from network import Endpoint
-from utils import surpress_and_restart
 from utils.rpc import RPCClient
+from utils.interconnect import Interconnect
 
 
 # -- code --
@@ -45,66 +42,39 @@ events_history = deque([[None, 0]] * 100)
 
 logging.basicConfig()
 
-interconnect_pub = redis.Redis(host=options.redis, port=options.redis_port)
-interconnect_sub = redis.Redis(host=options.redis, port=options.redis_port)
+
+class Interconnect(Interconnect):
+    def on_message(self, node, topic, message):
+        if topic == 'current_users':
+            # [[node, username, state], ...]
+            current_users[node] = [
+                (node, i[1], i[2]) for i in message
+            ]
+            rst = []
+            map(rst.__iadd__, current_users.values())
+            self.notify('current_users', rst)
+
+        elif topic == 'shutdown':
+            # not implemented yet
+            current_users[node] = []
+            rst = []
+            map(rst.__iadd__, current_users.values())
+            self.notify('current_users', rst)
+
+        if topic == 'speaker':
+            # [node, username, content]
+            message.insert(0, node)
+            self.notify('speaker', message)
+
+    def notify(self, key, message):
+        @gevent.spawn
+        def _notify():
+            events_history.rotate()
+            events_history[0] = [[key, message], time.time()]
+            [evt.set() for evt in list(event_waiters)]
 
 
-def interconnect_publish(topic, data):
-    interconnect_pub.publish(
-        'thb.forum.{}'.format(topic),
-        Endpoint.encode(data),
-    )
-
-
-class InterconnectHandler(Greenlet):
-    @surpress_and_restart
-    def _run(self):
-        try:
-            sub = interconnect_sub.pubsub()
-            sub.psubscribe('thb.*')
-
-            def notify(key, message):
-                @gevent.spawn
-                def _notify():
-                    events_history.rotate()
-                    events_history[0] = [[key, message], time.time()]
-                    [evt.set() for evt in list(event_waiters)]
-
-            for msg in sub.listen():
-                if msg['type'] not in ('message', 'pmessage'):
-                    continue
-
-                _, node, topic = msg['channel'].split('.')[:3]
-                message = json.loads(msg['data'])
-
-                if topic == 'current_users':
-                    # [[node, username, state], ...]
-                    current_users[node] = [
-                        (node, i[1], i[2]) for i in message
-                    ]
-                    rst = []
-                    map(rst.__iadd__, current_users.values())
-                    notify('current_users', rst)
-
-                elif topic == 'shutdown':
-                    # not implemented yet
-                    current_users[node] = []
-                    rst = []
-                    map(rst.__iadd__, current_users.values())
-                    notify('current_users', rst)
-
-                if topic == 'speaker':
-                    # [node, username, content]
-                    message.insert(0, node)
-                    notify('speaker', message)
-
-        finally:
-            gevent.sleep(1)
-
-    def __repr__(self):
-        return self.__class__.__name__
-
-InterconnectHandler = InterconnectHandler.spawn()
+Interconnect = Interconnect.spawn('forum', options.redis, options.redis_port)
 
 
 @route('/interconnect/onlineusers')
@@ -170,7 +140,7 @@ def speaker():
     username = member['username'].decode('utf-8', 'ignore')
     member_service.add_credit(member['uid'], 'credits', -10)
 
-    interconnect_publish('speaker', [username, message])
+    Interconnect.publish('speaker', [username, message])
 
     return 'true'
 

@@ -16,12 +16,11 @@ from gevent import Greenlet, Timeout
 from gevent.event import Event
 from gevent.queue import Queue, Empty as QueueEmpty
 import simplejson as json
-import redis
 
 # -- own --
-from network import Endpoint
 from network.server import Client as ClientEndpoint, DroppedClient
-from utils import BatchList, surpress_and_restart, log_failure, instantiate
+from utils import BatchList, log_failure, instantiate
+from utils.interconnect import Interconnect
 from options import options
 from settings import VERSION
 from account import Account
@@ -202,50 +201,27 @@ def new_gameid():
 
 
 if options.interconnect:
-    interconnect_pub = redis.Redis(host=options.redis, port=options.redis_port)
-    interconnect_sub = redis.Redis(host=options.redis, port=options.redis_port)
+    class InterconnectHandler(Interconnect):
+        def on_message(self, node, topic, message):
+            if topic == 'speaker':
+                @gevent.spawn
+                @log_failure(log)
+                def speaker(message=message, node=node):
+                    node = node if node != options.node else ''
+                    message.insert(0, node)
+                    for u in users.values():
+                        # u.write(['speaker_msg', [user.account.username, msg]])
+                        # u.write(['speaker_msg', ['%s(%s)' % (message[0], options.node), message[1]]])
+                        u.write(['speaker_msg', message])
 
-    def interconnect_publish(topic, data):
-        interconnect_pub.publish(
-            'thb.{}.{}'.format(options.node, topic),
-            Endpoint.encode(data),
-        )
-
-    class InterconnectHandler(Greenlet):
-        @surpress_and_restart
-        def _run(self):
-            try:
-                sub = interconnect_sub.pubsub()
-                sub.psubscribe('thb.*')
-
-                for msg in sub.listen():
-                    if msg['type'] not in ('message', 'pmessage'):
-                        continue
-
-                    _, node, topic = msg['channel'].split('.')[:3]
-                    message = json.loads(msg['data'])
-
-                    if topic == 'speaker':
-                        @gevent.spawn
-                        @log_failure(log)
-                        def speaker(message=message, node=node):
-                            node = node if node != options.node else ''
-                            message.insert(0, node)
-                            for u in users.values():
-                                # u.write(['speaker_msg', [user.account.username, msg]])
-                                # u.write(['speaker_msg', ['%s(%s)' % (message[0], options.node), message[1]]])
-                                u.write(['speaker_msg', message])
-            finally:
-                gevent.sleep(1)
-
-        def __repr__(self):
-            return self.__class__.__name__
-
-    InterconnectHandler = InterconnectHandler.spawn()
+    Interconnect = InterconnectHandler.spawn(options.node, options.redis, options.redis_port)
 
 else:
-    def interconnect_publish(self, key, body):
-        pass
+    class DummyInterconnect(object):
+        def publish(self, key, message):
+            pass
+
+    Interconnect = DummyInterconnect()
 
 
 @gevent.spawn
@@ -264,8 +240,8 @@ def gamehall_status_updator():
                 if u.state == 'hang':
                     send_hallinfo(u)
 
-            interconnect_publish('current_users', users.values())
-            interconnect_publish('current_games', games.values())
+            Interconnect.publish('current_users', users.values())
+            Interconnect.publish('current_games', games.values())
 
             evt.clear()
 
@@ -901,7 +877,7 @@ def speaker(user, msg):
             user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
         else:
             user.account.add_credit('credits', -10)
-            interconnect_publish('speaker', [user.account.username, msg])
+            Interconnect.publish('speaker', [user.account.username, msg])
 
     log.info(u'Speaker: %s', msg)
     gevent.spawn(worker)

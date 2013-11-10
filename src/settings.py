@@ -60,6 +60,7 @@ class ServerNames:
     lake = u'雾之湖'
     forest = u'魔法之森'
     hakurei = u'博丽神社'
+    aya = u'文文专访'
 
 
 def _get_box(vlist):
