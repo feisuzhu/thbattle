@@ -68,7 +68,7 @@ class QQBot(object):
 
             assert captcha.ok
 
-            vc = self.on_captcha(captcha.content)
+            vc, vctag = self.on_captcha(captcha.content)
 
         hexuin = hexuin.replace('\\x', '').decode('hex')
         log.debug('Do stage1 login...')
@@ -89,7 +89,7 @@ class QQBot(object):
         if state == 4:
             # captcha wrong
             log.error('Captcha wrong, stage1 login failed.')
-            self.on_captcha_wrong()
+            self.on_captcha_wrong(vctag)
             return False
         elif state != 0:
             raise Exception(msg)
@@ -562,7 +562,7 @@ class QQBot(object):
         cache[(group_id, uin)] = rst
         return rst
 
-    def _uin2account(self, uin, type, cache):
+    def _uin2account(self, uin, type, cache, verifysession='', code='', vctag=0):
         uin = int(uin)
         cache = self.cache[cache]
         if uin in cache:
@@ -571,10 +571,10 @@ class QQBot(object):
         session = self.session
         params = {
             'tuin': uin,
-            'verifysession': '',
+            'verifysession': verifysession,
             'type': type,
             'vfwebqq': self.vfwebqq,
-            'code': '',
+            'code': code,
             't': int(time.time() * 1000),
         }
 
@@ -587,11 +587,23 @@ class QQBot(object):
         assert resp.ok
 
         rst = json.loads(resp.content)
+        rcode = rst['retcode']
 
-        assert rst['retcode'] == 0
+        if rcode == 0:
+            cache[uin] = rst['result']['account']
+            return rst['result']['account']
+        elif rcode in (1000, 1001):
+            # captcha needed
+            if rcode == 1001:
+                self.on_captcha_wrong(vctag)
 
-        cache[uin] = rst['result']['account']
-        return rst['result']['account']
+            privsess = requests.session()
+            captcha = privsess.get('http://captcha.qq.com/getimage', params={'aid': self.appid})
+            verifysession = privsess.cookies['verifysession']
+            vc, vctag = self.on_captcha(captcha.content)
+            return self._uin2account(uin, type, cache, verifysession, vc, vctag)
+        else:
+            assert False, 'Unexpected retcode %d' % rcode
 
     uin2qq = lambda self, uin: self._uin2account(uin, 1, 'uin2qq')
     gcode2groupnum = lambda self, gcode: self._uin2account(gcode, 4, 'gcode2groupnum')

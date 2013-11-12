@@ -4,6 +4,8 @@ import gevent
 from gevent import monkey
 monkey.patch_all()
 
+import random
+import re
 from gevent.pool import Pool
 from gevent.coros import RLock
 from gevent.queue import Queue
@@ -110,14 +112,14 @@ class Aya(QQBot):
 
         if captcha:
             self.captcha = captcha
-            return captcha['text']
+            return captcha['text'], captcha
 
         sys.exit(1)
 
-    def on_captcha_wrong(self):
+    def on_captcha_wrong(self, tag):
         log.info('Captcha wrong!')
         dbccli = DBCClient(options.dbc_username, options.dbc_password)
-        dbccli.report(self.captcha['captcha'])
+        dbccli.report(tag['captcha'])
 
     def polling_hook(self, f, v):
         pool.apply_async(f, (v,))
@@ -171,7 +173,7 @@ class Aya(QQBot):
                 dao.set_group_off(gnum)
                 pool.apply_async(self.send_group_message, (msg['from_uin'], u'哼，不理你们了。管理员叫我我才回来。哼。'))
 
-        elif content.startswith('`'):
+        elif content[0] in (u'`', u'•'):
             pool.apply_async(self.do_speaker, (msg['send_uin'], content[1:], msg['from_uin']))
 
     def on_system_message(self, msg):
@@ -224,6 +226,11 @@ class Aya(QQBot):
             self.delete_friend(uin)
             self.refresh_buddy_list()
             return
+
+        foo = str(random.randint(0x10000000, 0xffffffff))
+        content = content.replace('||', foo)
+        content = re.sub(r'([\r\n]|\|(c[A-Fa-f0-9]{8}|s[12][A-Fa-f0-9]{8}|[BbIiUuHrRGYW]|LB|DB|![RGOB]))', '', content)
+        content = content.replace(foo, '||')
 
         with member_client_pool() as cli:
             member = cli.get_user_info(uid)

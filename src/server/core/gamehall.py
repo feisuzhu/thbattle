@@ -14,6 +14,7 @@ import gzip
 import gevent
 from gevent import Greenlet, Timeout
 from gevent.event import Event
+from gevent.pool import Pool
 from gevent.queue import Queue, Empty as QueueEmpty
 import simplejson as json
 
@@ -204,15 +205,9 @@ if options.interconnect:
     class InterconnectHandler(Interconnect):
         def on_message(self, node, topic, message):
             if topic == 'speaker':
-                @gevent.spawn
-                @log_failure(log)
-                def speaker(message=message, node=node):
-                    node = node if node != options.node else ''
-                    message.insert(0, node)
-                    for u in users.values():
-                        # u.write(['speaker_msg', [user.account.username, msg]])
-                        # u.write(['speaker_msg', ['%s(%s)' % (message[0], options.node), message[1]]])
-                        u.write(['speaker_msg', message])
+                node = node if node != options.node else ''
+                message.insert(0, node)
+                Pool(5).map_async(lambda u: u.write(['speaker_msg', message]), users.values())
 
     Interconnect = InterconnectHandler.spawn(options.node, options.redis, options.redis_port)
 
@@ -236,9 +231,9 @@ def gamehall_status_updator():
         delta = t - last_update
         if delta > time_limit:
             last_update = t
-            for u in users.values():
-                if u.state == 'hang':
-                    send_hallinfo(u)
+
+            ul = [u for u in users.values() if u.state == 'hang']
+            Pool(5).map_async(send_hallinfo, ul)
 
             Interconnect.publish('current_users', users.values())
             Interconnect.publish('current_games', games.values())
