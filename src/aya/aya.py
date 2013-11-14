@@ -157,6 +157,8 @@ class Aya(QQBot):
 
     def on_group_message(self, msg):
         content = self._plaintext(msg['content']).strip()
+        if not content:
+            return
 
         if content.startswith(u'呼叫文文'):
             pool.apply_async(self.send_group_message, (msg['from_uin'], u'文文在哦'))

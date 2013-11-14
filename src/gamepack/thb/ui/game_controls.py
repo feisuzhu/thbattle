@@ -499,11 +499,11 @@ EquipCardArea.register_event_type('on_selection_change')
 class ShownCardPanel(Panel):
     current = None
 
-    def __init__(self, player, *a, **k):
-        self.player = player
+    def __init__(self, character, *a, **k):
+        self.character = character
         ShownCardPanel.current = self
 
-        categories = player.showncardlists
+        categories = character.showncardlists
 
         h = 30 + len(categories)*145 + 10
         w = 100 + 6*93.0+30
@@ -754,6 +754,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
                 last.delete()
                 if last.character is p:
                     return
+
             ShownCardPanel(p, parent=self.view)
 
     def update(self):
