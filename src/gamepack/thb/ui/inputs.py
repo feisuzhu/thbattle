@@ -36,6 +36,9 @@ class InputHandler(object):
     def process_user_input_finish(self, ilet, rst):
         pass
 
+    def delete(self):
+        pass
+
     def cleanup(self):
         pass
 
@@ -697,6 +700,8 @@ class Dragger(Control):
                 cs.y = SineInterp(cs.y, ny, 0.3)
                 self.update_sprite(cs, i, j)
 
+        self.dispatch_event('on_update')
+
     def update_sprite(self, cs, i, j):
         pass
 
@@ -745,6 +750,8 @@ class Dragger(Control):
 
     def get_result(self):
         return self.sprites
+
+Dragger.register_event_type('on_update')
 
 
 class RanProphetControl(Dragger):
@@ -879,16 +886,95 @@ class UIKOFCharacterSorter(Panel, InputHandler):
         self.lbls.draw()
 
 
+class KokoroHopeMaskControl(Dragger):
+    cols, rows = 4, 2
+    item_width, item_height = 91, 125
+
+
+class UIKokoroHomeMask(Panel, InputHandler):
+    def __init__(self, trans, parent, *a, **k):
+        Panel.__init__(
+            self, x=1, y=1, width=1, height=1, zindex=5, parent=parent,
+            *a, **k
+        )
+        self.lbls = pyglet.graphics.Batch()
+        self.trans = trans
+
+    def process_user_input(self, ilet):
+        cards = ilet.cards
+
+        w, h = KokoroHopeMaskControl.expected_size()
+        w = 100 + w + 20
+        h = 60 + h + 50
+
+        def lbl(text, x, y):
+            Label(
+                text=text, x=x, y=y, font_size=12,
+                anchor_x='center', anchor_y='center',
+                color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
+                batch=self.lbls,
+            )
+
+        lbl(u'请拖动调整牌的位置，获得的牌必须是同花色的', w//2, h-25)
+        lbl(u'牌堆顶', 50, 277)
+        lbl(u'展示并获得', 50, 122)
+
+        parent = self.parent
+        self.x, self.y = (parent.width - w)//2, (parent.height - h)//2
+        self.width, self.height = w, h
+        self.update()
+
+        self.ctrl = ctrl = KokoroHopeMaskControl(parent=self, x=100, y=60)
+        for i, c in enumerate(cards):
+            cs = CardSprite(c, parent=ctrl)
+            cs.associated_card = c
+
+        ctrl.init()
+
+        btn = Button(parent=self, caption=u'完成', x=w-120, y=15, width=100, height=30)
+
+        @btn.event
+        def on_click(*a):
+            putback, acquire = self.ctrl.get_result()
+            putback = [c.associated_card for c in putback]
+            acquire = [c.associated_card for c in acquire]
+            ilet.set_result(putback, acquire)
+            ilet.done()
+            end_transaction(self.trans)
+
+        @ctrl.event
+        def on_update():
+            putback, acquire = self.ctrl.get_result()
+            putback = [c.associated_card for c in putback]
+            acquire = [c.associated_card for c in acquire]
+            if ilet.is_valid(putback, acquire):
+                btn.state = Button.NORMAL
+            else:
+                btn.state = Button.DISABLED
+
+        b = BigProgressBar(parent=self, x=100, y=15, width=250)
+        b.value = LinearInterp(1.0, 0.0, ilet.timeout, on_done=on_click)
+
+    def draw(self):
+        Panel.draw(self)
+        self.lbls.draw()
+
+
 mapping = {
+    # InputTransaction name -> Handler class
     'Action': UIDoPassiveAction,
     'ActionStageAction': UIDoActionStage,
     'ChooseGirl': UIChooseGirl,
     'ChoosePeerCard': UIChoosePeerCard,
     'ChooseOption': UIChooseOption,
     'ChooseIndividualCard': UIChooseIndividualCard,
-    'HarvestChoose': UIHarvestChoose,
-    'Prophet': UIRanProphet,
+
     'KOFSort': UIKOFCharacterSorter,
+
+    'HarvestChoose': UIHarvestChoose,
+
+    'Prophet': UIRanProphet,
+    'HopeMask': UIKokoroHomeMask,
 }
 
 

@@ -35,3 +35,4 @@ from . import yugi  # noqa
 from . import yukari  # noqa
 from . import yuuka  # noqa
 from . import mokou  # noqa
+from . import kokoro  # noqa

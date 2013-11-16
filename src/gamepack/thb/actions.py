@@ -4,7 +4,7 @@
 from game.autoenv import Game, EventHandler, Action
 from game.autoenv import sync_primitive, user_input, InputTransaction
 
-from .inputlets import ActionInputlet, ChoosePeerCardInputlet
+from .inputlets import ActionInputlet, ChoosePeerCardInputlet, ChooseOptionInputlet
 
 from utils import check, check_type, CheckFailed, BatchList, group_by
 
@@ -839,3 +839,24 @@ class DyingHandler(EventHandler):
         g.process_action(PlayerDeath(src, tgt))
 
         return act
+
+
+class ShowCards(GenericAction):
+    def __init__(self, target, cards):
+        self.source = self.target = target
+        self.cards = cards
+
+    def apply_action(self):
+        if not self.cards:
+            return False
+
+        g = Game.getgame()
+        cards = self.cards
+        g.players.reveal(cards)
+        g.emit_event('showcards', (self.target, cards))
+        # user_input(
+        #     [p for p in g.players if not p.dead],
+        #     ChooseOptionInputlet(self, (True,)),
+        #     type='all', timeout=1,
+        # )  # just a delay
+        return True

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from client.ui.base.interp import LinearInterp
-from client.ui.controls import BalloonPromptMixin, Colors, Control, Panel, SmallProgressBar
+from client.ui.controls import BalloonPromptMixin, Colors, Control, Panel, SmallProgressBar, Button
 from client.ui.soundmgr import SoundManager
 
 from client.ui.resource import resource as common_res
@@ -518,6 +518,55 @@ def mutant_morph_effects(self, mutant):
     SoundManager.instant_switch_bgm(meta.bgm)
 
 
+class UIShowCardsEffect(Panel):
+    def __init__(self, target, cards, *a, **k):
+        Panel.__init__(
+            self, x=1, y=1, width=1, height=1, zindex=5,
+            *a, **k
+        )
+        self.lbls = lbls = pyglet.graphics.Batch()
+
+        w, h = 95 * len(cards), 125
+        w = 30 + w + 30
+        h = 60 + h + 50
+
+        def lbl(text, x, y):
+            Label(
+                text=text, x=x, y=y, font_size=12,
+                anchor_x='center', anchor_y='center',
+                color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
+                batch=lbls,
+            )
+
+        lbl(u'%s展示的牌' % target.ui_meta.char_name, w//2, h-25)
+
+        parent = self.parent
+        self.x, self.y = (parent.width - w)//2, (parent.height - h)//2
+        self.width, self.height = w, h
+        self.update()
+
+        for i, c in enumerate(cards):
+            cs = CardSprite(c, parent=self, x=30 + 95 * i, y=60)
+            cs.associated_card = c
+
+        btn = Button(parent=self, caption=u'看完了', x=w-122, y=15, width=100, height=30)
+
+        @btn.event
+        def on_click(*a):
+            self.delete()
+
+        pyglet.clock.schedule_once(lambda _: self.delete(), 0.5 + len(cards) * 1.2)
+
+    def draw(self):
+        Panel.draw(self)
+        self.lbls.draw()
+
+
+def showcards_effect(self, arg):
+    target, cards = arg
+    UIShowCardsEffect(target, cards, parent=self)
+
+
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),
     'action_apply': partial(action_effects, 'apply'),
@@ -531,6 +580,7 @@ mapping_events = ddict(bool, {
     'game_roll_result': game_roll_result_prompt,
     'reseat': reseat_effects,
     'mutant_morph': mutant_morph_effects,
+    'showcards': showcards_effect,
 })
 
 

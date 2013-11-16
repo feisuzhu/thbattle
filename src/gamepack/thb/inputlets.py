@@ -295,3 +295,55 @@ class KOFSortInputlet(Inputlet):
     def set_result(self, result):
         assert set(result) == set(range(self.num))
         self.result = result
+
+
+class HopeMaskInputlet(Inputlet):
+    '''For Kokoro'''
+    def init(self, cards):
+        self.cards = cards
+        self.putback = []
+        self.acquire = []
+
+    def parse(self, data):
+        try:
+            check_type([[int, Ellipsis]] * 2, data)
+            putback = data[0]
+            acquire = data[1]
+            check(sorted(putback+acquire) == range(len(self.cards)))
+
+            cards = self.cards
+            putback = [cards[i] for i in putback]
+            acquire = [cards[i] for i in acquire]
+            check(self.is_valid(putback, acquire))
+
+        except CheckFailed:
+            return [self.cards, []]
+
+        return [putback, acquire]
+
+    def is_valid(self, putback, acquire):
+        if not set(self.cards) == set(putback + acquire):
+            return False
+
+        if acquire:
+            suit = acquire[0].suit
+            if not all([c.suit == suit for c in acquire]):
+                return False
+
+        return True
+
+    def data(self):
+        cards = self.cards
+        putback = self.putback
+        acquire = self.acquire
+        if not set(cards) == set(putback + acquire):
+            return [range(len(self.cards)), []]
+
+        putback = [cards.index(c) for c in putback]
+        acquire = [cards.index(c) for c in acquire]
+        return [putback, acquire]
+
+    def set_result(self, putback, acquire):
+        assert self.is_valid(putback, acquire)
+        self.putback = putback
+        self.acquire = acquire

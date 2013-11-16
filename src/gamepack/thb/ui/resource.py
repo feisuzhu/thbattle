@@ -81,12 +81,14 @@ resource = Resource(respath, [
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
         'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
         'seiga', 'kaguya', 'momiji', 'komachi', 'mokou',
+        'kokoro',
 
         'remilia_ex', 'remilia_ex2',
     ]],
 
     [lazytexture('%s_figure' % p) for p in [
         'daiyousei', 'eirin', 'koakuma', 'yukari', 'komachi',
+        'kokoro',
     ]],
 
     [encrypted_texture('%s_figure_alter' % p) for p in [
