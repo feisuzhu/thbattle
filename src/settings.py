@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 174'
+VERSION = 'THBATTLE V1.0b incr 176'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -148,6 +148,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新人物：秦心（画师：Takibi）
 新模式：信（xue）仰（zhan）之（dao）战（di）
 妖梦设定调整：如果装备了两把武器，现在可以主动弃置一把
 好人卡bug修复
