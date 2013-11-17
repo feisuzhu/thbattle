@@ -141,16 +141,16 @@ class QQBot(object):
         self.login()
 
         # poll
-        payload = {
-            'clientid': self.clientid,
-            'psessionid': self.psessionid,
-            'key': '',
-            'ptwebqq': self.ptwebqq,
-        }
-
         log.debug('Logged in. Begin polling...')
 
         while True:
+            payload = {
+                'clientid': self.clientid,
+                'psessionid': self.psessionid,
+                'key': '',
+                'ptwebqq': self.ptwebqq,
+            }
+
             rst = session.post(
                 'http://d.web2.qq.com/channel/poll2', data={'r': json.dumps(payload)},
                 headers={'Referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v}
@@ -167,11 +167,9 @@ class QQBot(object):
 
             elif code == 116:
                 log.debug('Refresh ptwebqq')
-                new = rst['p']
-                self.ptwebqq = new
-                payload['ptwebqq'] = new
+                self.ptwebqq = rst['p']
 
-            elif code == 121:
+            elif code in (103, 109, 121, 100006, 100001):
                 # {u'retcode': 121, u't': u'0'}
                 log.debug('Need relogin')
                 self.login()
