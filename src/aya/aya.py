@@ -39,6 +39,8 @@ options = parser.parse_args()
 log = logging.getLogger('Aya')
 pool = Pool(5)
 
+Interconnect = None
+
 
 @contextmanager
 def member_client_pool():
@@ -137,7 +139,7 @@ class Aya(QQBot):
             Pool(2).map_async(self.uin2qq, [i['uin'] for i in aya.buddy_list])
 
         global Interconnect
-        Interconnect = Interconnect.spawn('aya', options.redis, options.redis_port)
+        Interconnect = AyaInterconnect.spawn('aya', options.redis, options.redis_port)
 
     def on_sess_message(self, msg):
         text = (
@@ -244,7 +246,7 @@ class Aya(QQBot):
             Interconnect.publish('speaker', [member['username'], content])
 
 
-class Interconnect(InterconnectBase):
+class AyaInterconnect(InterconnectBase):
     lock = None
 
     def on_message(self, node, topic, message):
