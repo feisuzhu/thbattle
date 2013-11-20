@@ -139,7 +139,8 @@ class Aya(QQBot):
             Pool(2).map_async(self.uin2qq, [i['uin'] for i in aya.buddy_list])
 
         global Interconnect
-        Interconnect = AyaInterconnect.spawn('aya', options.redis, options.redis_port)
+        if not Interconnect:
+            Interconnect = AyaInterconnect.spawn('aya', options.redis, options.redis_port)
 
     def on_sess_message(self, msg):
         text = (
