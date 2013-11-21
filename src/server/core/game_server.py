@@ -54,7 +54,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     g.gr_groups.add(input_group)
     _input_group = set()
 
-    till = time.time() + timeout + 5
+    till = time.time() + timeout + 5 - 10
     try:
         inputany_player = None
 
@@ -123,7 +123,11 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
     # timed-out players
     for p in players:
-        g.emit_event('user_input_finish', (trans, ilets[p], None))
+        my = ilets[p]
+        rst = my.parse(None)
+        rst = my.post_process(p, rst)
+        results[p] = rst
+        g.emit_event('user_input_finish', (trans, my, rst))
         g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), None)
 
     if type == 'single':
