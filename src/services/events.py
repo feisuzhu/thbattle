@@ -164,12 +164,12 @@ def crashreport():
 
     @gevent.spawn
     def sendmail(content=content):
-        subject = 'THB Crash Report{active} #{gameid}, reported by {username}[{userid}]'.format(
+        subject = u'THB Crash Report{active} #{gameid}, reported by {username}[{userid}]'.format(
             gameid=gameid,
             active=' (Active)' if active else '',
             username=username,
             userid=userid,
-        )
+        ).encode('utf-8')
         cmd = '''mail -s '%s' -a 'From: crashreport@thbattle.net' %s'''
         mailer = subprocess.Popen(
             cmd % (subject, 'feisuzhu@163.com'),
