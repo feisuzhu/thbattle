@@ -38,17 +38,15 @@ class HopeMaskHandler:
 
 class HopeMaskAction:
     def effect_string_before(act):
-        return u'|G【%s】|r发动了|G希望之面|r。' % (act.source.ui_meta.char_name)
+        return u'|G【%s】|r挑选面具中……' % (act.source.ui_meta.char_name)
 
     def effect_string(act):
         if not len(act.acquire):
             return None
 
         s = u'、'.join([card_desc(c) for c in act.acquire])
-        return u'|G【%s】|r展示并获得了%d张牌：%s' % (
-            act.source.ui_meta.char_name,
-            len(act.acquire),
-            s,
+        return u'|G【%s】|r拿起了%s，贴在了自己的脸上。' % (
+            act.source.ui_meta.char_name, s,
         )
 
 
@@ -95,8 +93,11 @@ class DarkNoh:
         source = act.source
         card = act.card
         target = act.target
-        return u'|G【%s】|r使用|G%s|r对|G【%s】|r发动了|G暗黑能乐|r。' % (
-            source.ui_meta.char_name,
-            card.associated_cards[0].ui_meta.name,
-            target.ui_meta.char_name,
-        )
+        return [
+            u'|G【%s】|r：“这点失控还不够，让你的所有感情也一起爆发吧！”' % source.ui_meta.char_name,
+            u'|G【%s】|r使用|G%s|r对|G【%s】|r发动了|G暗黑能乐|r。' % (
+                source.ui_meta.char_name,
+                card.associated_cards[0].ui_meta.name,
+                target.ui_meta.char_name,
+            )
+        ]

@@ -290,7 +290,10 @@ def _aese(_type, self, act):
     if not prompt: return
     s = prompt(act)
     if s is not None:
-        self.prompt(s)
+        if isinstance(s, (tuple, list)):
+            [self.prompt(i) for i in s]
+        else:
+            self.prompt(s)
 
 
 action_effect_string_before = partial(_aese, 'effect_string_before')

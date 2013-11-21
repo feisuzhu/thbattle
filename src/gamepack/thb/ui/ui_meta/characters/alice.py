@@ -31,6 +31,7 @@ class DollManipulation:
 class DollCrusader:
     # Skill
     name = u'玩偶十字军'
+    custom_ray = True
 
     def clickable(game):
         me = game.me
