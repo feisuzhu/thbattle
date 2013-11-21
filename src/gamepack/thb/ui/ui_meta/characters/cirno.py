@@ -66,7 +66,9 @@ class Cirno:
     # Character
     char_name = u'琪露诺'
     port_image = gres.cirno_port
+    figure_image = gres.cirno_figure
     description = (
         u'|DB跟青蛙过不去的笨蛋 琪露诺 体力：4|r\n\n'
-        u'|G完美冻结|r：出牌阶段，可以将你的任意一张黑色的基本牌或装备牌当【冻青蛙】使用；你可以对与你距离2以内的角色使用【冻青蛙】。'
+        u'|G完美冻结|r：出牌阶段，可以将你的任意一张黑色的基本牌或装备牌当【冻青蛙】使用；你可以对与你距离2以内的角色使用【冻青蛙】。\n\n'
+        u'|DB（画师：渚FUN）|r'
     )
