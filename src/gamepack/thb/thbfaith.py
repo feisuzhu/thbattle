@@ -226,7 +226,7 @@ class THBattleFaith(Game):
             pl = g.players.rotate_to(first)
             rst = user_input(pl[1:], ChooseOptionInputlet(DeathHandler(), (False, True)), type='all')
 
-            for i in pl[1:]:
+            for p in pl[1:]:
                 rst.get(p) and g.process_action(RedrawCards(p, p))
 
             pl = g.players
