@@ -3,6 +3,7 @@
 from gevent import monkey
 monkey.patch_all()
 
+
 # -- stdlib --
 import sys
 import argparse
@@ -11,7 +12,10 @@ from collections import deque, defaultdict
 import time
 import logging
 import zlib
-import subprocess
+import smtplib
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.Utils import formatdate
 
 # -- third party --
 import gevent
@@ -145,6 +149,18 @@ def speaker():
     return 'true'
 
 
+def send_mail(send_from, send_to, subject, text, files=[], server="localhost"):
+    msg = MIMEMultipart()
+    msg['From'] = send_from
+    msg['To'] = send_to
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = subject
+    msg.attach(MIMEText(text))
+    smtp = smtplib.SMTP(server)
+    smtp.sendmail(send_from, send_to, msg.as_string())
+    smtp.close()
+
+
 @route('/interconnect/crashreport', method='POST')
 def crashreport():
     gameid = int(request.forms.get('gameid', 0))
@@ -170,19 +186,13 @@ def crashreport():
             username=username,
             userid=userid,
         ).encode('utf-8')
-        cmd = '''mail -s '%s' -a 'From: crashreport@thbattle.net' %s'''
-        mailer = subprocess.Popen(
-            cmd % (subject, 'feisuzhu@163.com'),
-            shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-        )
-        mailer.stdin.write(content)
-        mailer.stdin.close()
-        mailer.stdout.close()
 
-        # mailer = subprocess.Popen(cmd % (gameid, 'proton@zhihu.com'), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        # mailer.stdin.write(content)
-        # mailer.stdin.close()
-        # mailer.stdout.close()
+        send_mail(
+            send_from='crashreport@thbattle.net',
+            send_to='feisuzhu@163.com',
+            subject=subject,
+            text=content,
+        )
 
     return ''
 
