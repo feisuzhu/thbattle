@@ -54,7 +54,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     g.gr_groups.add(input_group)
     _input_group = set()
 
-    till = time.time() + timeout + 5 - 10
+    till = time.time() + timeout + 5
     try:
         inputany_player = None
 
