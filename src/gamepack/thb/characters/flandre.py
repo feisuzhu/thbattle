@@ -25,6 +25,9 @@ class CriticalStrikeHandler(EventHandler):
         'FrozenFrogHandler',
         'ElementalReactorHandler',
     )
+    execute_before = (
+        'MomijiShieldHandler',
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
