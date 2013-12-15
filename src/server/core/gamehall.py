@@ -623,6 +623,9 @@ def _observe_user(user, observee):
     if g.started:
         user.write(['observe_started', [observee.account.userid, pl]])
         observee.replay(user)
+    else:
+        # send room player data to the observer
+        user.write(['player_change', pl])
 
 
 def observe_user(user, other_userid):
