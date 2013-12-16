@@ -674,6 +674,22 @@ class QQBot(object):
 
     @staticmethod
     def _buddylist_hash(qq, ptwebqq):
+        a = [0] * 4
+        for i, v in enumerate(ptwebqq):
+            a[i % 4] ^= ord(v)
+
+        qq = int(qq)
+        d = [
+            qq >> 24 & 255 ^ ord('E'),
+            qq >> 16 & 255 ^ ord('C'),
+            qq >> 8 & 255 ^ ord('O'),
+            qq & 255 ^ ord('K'),
+        ]
+        j = ''.join([chr(a[s >> 1] if s % 2 == 0 else d[s >> 1]) for s in xrange(8)])
+        return j.encode('hex').upper()
+
+    @staticmethod
+    def _buddylist_hash_old(qq, ptwebqq):
         L = list(struct.unpack('BBBB', struct.pack('>I', int(qq))))
         T = [ord(i) for i in ptwebqq]
         V = [(0, len(T) - 1)]
