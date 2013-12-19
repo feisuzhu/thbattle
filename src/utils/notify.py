@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 NONE = 0
-BASIC = 1
+BASIC = 0.5
+AT = 1
 SPEAKER = 2
 
 
@@ -103,6 +104,10 @@ def notify(title, msg, level=BASIC):
     from user_settings import UserSettings as us
     if level <= us.notify_level:
         _notify(title, msg)
+        if us.sound_notify:
+            from client.ui.soundmgr import SoundManager
+            from client.ui.resource import resource as cres
 
+            SoundManager.play(cres.sound.input)
 
-__all__ = ['notify', 'NONE', 'BASIC', 'SPEAKER']
+__all__ = ['notify', 'NONE', 'BASIC', 'SPEAKER', 'AT']
