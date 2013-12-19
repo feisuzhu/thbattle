@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 NONE = 0
 BASIC = 1
-SPEAKER = 2
+AT = 2
+SPEAKER = 3
 
 
 def _notify(title, msg):
@@ -105,4 +106,4 @@ def notify(title, msg, level=BASIC):
         _notify(title, msg)
 
 
-__all__ = ['notify', 'NONE', 'BASIC', 'SPEAKER']
+__all__ = ['notify', 'NONE', 'BASIC', 'SPEAKER', 'AT']

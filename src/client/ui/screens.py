@@ -29,15 +29,21 @@ from settings import ServerNames
 
 
 def handle_chat(_type, args):
-    if _type == 'chat_msg':
+    if _type in ('chat_msg', 'ob_msg'):
         uname, msg = args[0]
         uname = uname.replace('|', '||')
-        return u'|cff0000ff%s|r： %s\n' % (uname, msg)
+        
+        if not hasattr(handle_chat, 'at_name'):
+            handle_chat.at_name = '@' + Executive.gamemgr.account.username
 
-    elif _type == 'ob_msg':
-        uname, msg = args[0]
-        uname = uname.replace('|', '||')
-        return u'|c9f5f9fff%s|r： %s\n' % (uname, msg)
+        if msg.find(handle_chat.at_name) != -1:
+            from utils.notify import notify, AT
+            
+            notify(u'东方符斗祭 - 有人@您哦',
+                   u'%s: %s' % (uname, msg), level = AT)
+
+        style = '|cff0000ff' if _type == 'chat_msg' else '|c9f5f9fff'
+        return u'%s%s|r：%s\n' % (style, uname, msg)
 
     elif _type == 'speaker_msg':
         node, uname, msg = args[0]
