@@ -34,7 +34,7 @@ def handle_chat(_type, args):
         uname = uname.replace('|', '||')
         
         if not hasattr(handle_chat, 'at_name'):
-            handle_chat.at_name = '@' + Executive.gamemgr.account.username
+            handle_chat.at_name = u'@' + Executive.gamemgr.account.username
 
         if handle_chat.at_name in msg.split():
             from utils.notify import notify, AT
