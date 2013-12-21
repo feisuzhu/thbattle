@@ -36,7 +36,7 @@ def handle_chat(_type, args):
         if not hasattr(handle_chat, 'at_name'):
             handle_chat.at_name = '@' + Executive.gamemgr.account.username
 
-        if msg.find(handle_chat.at_name) != -1:
+        if handle_chat.at_name in msg.split():
             from utils.notify import notify, AT
             
             notify(u'东方符斗祭 - 有人@您哦',
