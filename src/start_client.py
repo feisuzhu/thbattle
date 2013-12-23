@@ -16,6 +16,7 @@ parser.add_argument('--freeplay', action='store_true')
 parser.add_argument('--fastjoin', action='store_true')
 parser.add_argument('--dump-gameobj', action='store_true')
 parser.add_argument('--log', default='INFO')
+parser.add_argument('--color-log', action='store_true')
 parser.add_argument('--no-crashreport', action='store_true')
 
 options = parser.parse_args()
@@ -56,7 +57,7 @@ hldr.setLevel(logging.DEBUG)
 root.addHandler(hldr)
 
 
-if IS_PROTON:
+if IS_PROTON or options.color_log:
     from colorlog import ColoredFormatter
 
     formatter = ColoredFormatter(
