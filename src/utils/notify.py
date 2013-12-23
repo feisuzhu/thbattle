@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 NONE = 0
-BASIC = 1
-AT = 2
-SPEAKER = 3
+BASIC = 0.5
+AT = 1
+SPEAKER = 2
 
 
 def _notify(title, msg):
