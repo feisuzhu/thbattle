@@ -47,7 +47,9 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
     def input_func(st):
         my = ilets[g.me]
-        with TimeLimitExceeded(timeout + 1, False):
+        delay = .5 if type == 'any' else 0
+        gevent.sleep(delay)
+        with TimeLimitExceeded(timeout + 1 - delay, False):
             _, my = g.emit_event('user_input', (trans, my))
 
         g.me.server.gwrite(tag + str(st), my.data())
