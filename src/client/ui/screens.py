@@ -27,18 +27,20 @@ from user_settings import UserSettings
 from account import Account
 from settings import ServerNames
 
+def my_name():
+    global my_name
+    name = Executive.gamemgr.account.username
+    my_name = lambda: name
+    return my_name()
 
 def handle_chat(_type, args):
     if _type in ('chat_msg', 'ob_msg'):
         uname, msg = args[0]
         uname = uname.replace('|', '||')
         
-        if not hasattr(handle_chat, 'at_name'):
-            handle_chat.at_name = u'@' + Executive.gamemgr.account.username
-
-        if handle_chat.at_name in msg.split():
+        if ('@' + my_name()) in msg.split():
             from utils.notify import notify, AT
-            
+
             notify(u'东方符斗祭 - 有人@您哦',
                    u'%s: %s' % (uname, msg), level = AT)
 
@@ -936,6 +938,9 @@ class GameScreen(Screen):
                 self.btn_getready.caption = u'准备'
                 self.btn_getready.state = Button.NORMAL
 
+                for p in self.portraits:
+                    p.account = None
+
         def update_portrait(self, pl):
             def players():
                 return {
@@ -971,8 +976,9 @@ class GameScreen(Screen):
                 )
 
             if not self.ready and full and orig_players != curr_players:
-                from utils import notify
-                notify(u'东方符斗祭 - 满员提醒', u'房间已满员，请准备。')
+                if my_name() in curr_players:
+                    from utils import notify
+                    notify(u'东方符斗祭 - 满员提醒', u'房间已满员，请准备。')
 
     class EventsBox(Frame):
         def __init__(self, parent):
