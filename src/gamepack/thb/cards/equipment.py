@@ -781,6 +781,7 @@ class YinYangOrb(GenericAction):
             if e.is_card(YinYangOrbCard):
                 g = Game.getgame()
                 g.process_action(DropCards(tgt, [e]))
+                self.card = e
                 ft.set_card(e)
                 break
         else:

@@ -646,9 +646,10 @@ class FatetellStage(GenericAction):
 
 
 class BaseFatetell(GenericAction):
-    def __init__(self, target, cond):
+    def __init__(self, target, cond, act = None):
         self.target = target
         self.cond = cond
+        self.action = act or Game.getgame().hybrid_stack[-1]
 
     def apply_action(self):
         g = Game.getgame()
