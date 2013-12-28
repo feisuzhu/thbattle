@@ -65,6 +65,8 @@ class Agile:
 
 
 class TreasureHunt:
+    name = u'探宝'
+    
     def effect_string(act):
         if act.succeeded:
             return u'|G【%s】|r找到了|G%s|r' % (
