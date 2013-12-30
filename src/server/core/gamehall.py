@@ -666,7 +666,7 @@ def observe_user(user, other_userid):
         if not user.state == 'hang':
             return
 
-        if other.state not in ('ingame', 'inroom', 'ready'):
+        if other.state not in ('ingame', 'inroomwait', 'ready'):
             return
 
         if grant:
