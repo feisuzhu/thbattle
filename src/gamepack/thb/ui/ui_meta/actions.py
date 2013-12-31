@@ -93,16 +93,6 @@ class PlayerRevive:
         )
 
 
-class Fatetell:
-    def effect_string(act):
-        return None
-        tgt = act.target
-        return u'|G【%s】|r进行了一次判定，判定结果为%s' % (
-            tgt.ui_meta.char_name,
-            card_desc(act.card)
-        )
-
-
 class TurnOverCard:
     def effect_string(act):
         tgt = act.target
