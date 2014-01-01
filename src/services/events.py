@@ -194,6 +194,13 @@ def crashreport():
             text=content,
         )
 
+        send_mail(
+            send_from='crashreport@thbattle.net',
+            send_to='zhykzhykzhyk@163.com',
+            subject=subject,
+            text=content,
+        )
+
     return ''
 
 gameid_last_see = defaultdict(int)
