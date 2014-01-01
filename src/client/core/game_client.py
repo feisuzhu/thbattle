@@ -98,6 +98,10 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             players.remove(p)
             results[p] = rst
 
+            # also remove from synctags
+            del synctags_r[st]
+            del synctags[p]
+
             if type == 'any' and rst is not None:
                 assert not inputany_player
                 inputany_player = p
