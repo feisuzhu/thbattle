@@ -62,12 +62,8 @@ class ExtremeIntelligenceAction(GenericAction):
 
     def apply_action(self):
         p = self.source
-        cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-        if not cards: return False
         p.tags['ran_ei'] = p.tags['turn_count'] + 1
         g = Game.getgame()
-        g.process_action(DropCards(p, cards))
-
         act = self.action
         nact = act.__class__(source=p, target=act.target)
         try:
@@ -83,13 +79,14 @@ class ExtremeIntelligenceAction(GenericAction):
         except AttributeError:
             pass
 
-        nact.associated_card = ExtremeIntelligence.wrap(cards, p)
+        try:
+            # this action should preseve the associated card
+            nact.associated_card = act.associated_card
+        except AttributeError:
+            pass
 
         g.process_action(nact)
         return True
-
-    def cond(self, cl):
-        return len(cl) == 1
 
 
 class ExtremeIntelligenceHandler(EventHandler):
@@ -112,8 +109,14 @@ class ExtremeIntelligenceHandler(EventHandler):
 
                 if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                     continue
-
-                g.process_action(ExtremeIntelligenceAction(p, act.target, act))
+                
+                cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
+                
+                if cards:
+                    nact = ExtremeIntelligenceAction(p, act.target, act)
+                    nact.associated_card = cards
+                    g.process_action(DropCards(p, cards))
+                    g.process_action(nact)
 
         elif evt_type == 'game_begin':
             g = Game.getgame()
@@ -123,6 +126,8 @@ class ExtremeIntelligenceHandler(EventHandler):
 
         return act
 
+    def cond(self, cl):
+        return len(cl) == 1
 
 class NakedFox(Skill):
     associated_action = None

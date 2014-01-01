@@ -40,8 +40,6 @@ class ExtremeIntelligenceHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【极智】吗？'
 
-
-class ExtremeIntelligenceAction:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -49,6 +47,8 @@ class ExtremeIntelligenceAction:
         else:
             return (False, u'请选择1张牌弃置')
 
+
+class ExtremeIntelligenceAction:
     def effect_string_before(act):
         return (
             u'|G【%s】|r刚松了一口气，却看见一张一模一样的符卡从|G【%s】|r的方向飞来！'
