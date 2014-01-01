@@ -5,6 +5,7 @@ import logging
 log = logging.getLogger('UI_Screens')
 from collections import deque
 import shlex
+import re
 
 # -- third party --
 import pyglet
