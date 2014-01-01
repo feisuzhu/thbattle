@@ -27,18 +27,14 @@ from user_settings import UserSettings
 from account import Account
 from settings import ServerNames
 
-def my_name():
-    global my_name
-    name = Executive.gamemgr.account.username
-    my_name = lambda: name
-    return my_name()
+RE_AT = re.compile(ur'@([^@ ]+)')
 
 def handle_chat(_type, args):
     if _type in ('chat_msg', 'ob_msg'):
         uname, msg = args[0]
         uname = uname.replace('|', '||')
         
-        if ('@' + my_name()) in msg.split():
+        if Executive.gamemgr.account.username in RE_AT.findall(msg):
             from utils.notify import notify, AT
 
             notify(u'东方符斗祭 - 有人@您哦',
@@ -976,7 +972,7 @@ class GameScreen(Screen):
                 )
 
             if not self.ready and full and orig_players != curr_players:
-                if my_name() in curr_players:
+                if Executive.gamemgr.account.username in curr_players:
                     from utils import notify
                     notify(u'东方符斗祭 - 满员提醒', u'房间已满员，请准备。')
 
