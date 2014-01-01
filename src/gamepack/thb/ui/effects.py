@@ -570,10 +570,42 @@ def showcards_effect(self, arg):
     UIShowCardsEffect(target, cards, parent=self)
 
 
+def fatetell_effect(self, act):
+    g = Game.getgame()
+    from gamepack.thb.ui.ui_meta.common import card_desc
+
+    act_name = None
+
+    try:
+        card = act.action.associated_card
+        act_name = card.ui_meta.name
+    except AttributeError:
+        pass
+
+    try:
+        act_name = act.action.ui_meta.name
+    except AttributeError:
+        pass
+
+    if act_name:
+        prompt = u'|G【%s】|r为|R%s|r进行了一次判定，结果为%s。' % (
+            act.target.ui_meta.char_name,
+            act_name,
+            card_desc(act.card)
+        )
+    else:
+        prompt = u'|G【%s】|r进行了一次判定，结果为%s。' % (
+            act.target.ui_meta.char_name,
+            card_desc(act.card)
+        )
+
+    self.prompt(prompt)
+
 mapping_events = ddict(bool, {
     'action_before': partial(action_effects, 'before'),
     'action_apply': partial(action_effects, 'apply'),
     'action_after': partial(action_effects, 'after'),
+    'fatetell': fatetell_effect,
     'user_input_start': user_input_start_effects,
     'user_input': user_input_effects,
     'user_input_finish': user_input_finish_effects,
