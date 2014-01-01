@@ -96,17 +96,29 @@ def vol(val):
         return u'音量已设置为 %d' % val
 
 
-@command(u'设置提醒显示级别', u'off     禁用提醒\nbasic   启用基本提醒\nspeaker 为文文新闻显示提醒')
+@command(u'设置提醒显示级别', u'off     禁用提醒\nbasic   启用基本提醒\nat      启用@提醒\nspeaker 为文文新闻显示提醒\nsound   启用声音提醒\nnosound 禁用声音提醒')
 @argtypes(str)
-@argdesc(u'<off||basic||speaker>')
+@argdesc(u'<off||basic||at||speaker||sound||nosound>')
 def notify(val):
-    from utils.notify import NONE, BASIC, SPEAKER
+    from user_settings import UserSettings as us
+    
+    if val == 'sound':
+        us.sound_notify = True
+        return u'声音提醒已启用。'
+    
+    if val == 'nosound':
+        us.sound_notify = False
+        return u'声音提醒已禁用。'
+
+    from utils.notify import NONE, BASIC, AT, SPEAKER
     try:
-        level = {'off': NONE, 'basic': BASIC, 'speaker': SPEAKER}[val]
+        level = {'off'    : NONE, 
+                 'basic'  : BASIC,
+                 'at'     : AT,
+                 'speaker': SPEAKER}[val]
     except KeyError:
         return registered_commands['?']('notify')
 
-    from user_settings import UserSettings as us
     us.notify_level = level
 
     return u'提醒级别已变更为%s。' % val

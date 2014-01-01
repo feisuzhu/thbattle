@@ -5,6 +5,7 @@ import logging
 log = logging.getLogger('UI_Screens')
 from collections import deque
 import shlex
+import re
 
 # -- third party --
 import pyglet
@@ -27,17 +28,21 @@ from user_settings import UserSettings
 from account import Account
 from settings import ServerNames
 
+RE_AT = re.compile(ur'@([^@ ]+)')
 
 def handle_chat(_type, args):
-    if _type == 'chat_msg':
+    if _type in ('chat_msg', 'ob_msg'):
         uname, msg = args[0]
         uname = uname.replace('|', '||')
-        return u'|cff0000ff%s|r： %s\n' % (uname, msg)
+        
+        if Executive.gamemgr.account.username in RE_AT.findall(msg):
+            from utils.notify import notify, AT
 
-    elif _type == 'ob_msg':
-        uname, msg = args[0]
-        uname = uname.replace('|', '||')
-        return u'|c9f5f9fff%s|r： %s\n' % (uname, msg)
+            notify(u'东方符斗祭 - 有人@您哦',
+                   u'%s: %s' % (uname, msg), level = AT)
+
+        style = '|cff0000ff' if _type == 'chat_msg' else '|c9f5f9fff'
+        return u'%s%s|r：%s\n' % (style, uname, msg)
 
     elif _type == 'speaker_msg':
         node, uname, msg = args[0]
@@ -930,6 +935,9 @@ class GameScreen(Screen):
                 self.btn_getready.caption = u'准备'
                 self.btn_getready.state = Button.NORMAL
 
+                for p in self.portraits:
+                    p.account = None
+
         def update_portrait(self, pl):
             def players():
                 return {
@@ -965,8 +973,9 @@ class GameScreen(Screen):
                 )
 
             if not self.ready and full and orig_players != curr_players:
-                from utils import notify
-                notify(u'东方符斗祭 - 满员提醒', u'房间已满员，请准备。')
+                if Executive.gamemgr.account.username in curr_players:
+                    from utils import notify
+                    notify(u'东方符斗祭 - 满员提醒', u'房间已满员，请准备。')
 
     class EventsBox(Frame):
         def __init__(self, parent):
