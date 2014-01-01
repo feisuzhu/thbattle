@@ -4,7 +4,7 @@
 from game.autoenv import Game, EventHandler, Action
 from game.autoenv import sync_primitive, user_input, InputTransaction
 
-from .inputlets import ActionInputlet, ChoosePeerCardInputlet, ChooseOptionInputlet
+from .inputlets import ActionInputlet, ChoosePeerCardInputlet
 
 from utils import check, check_type, CheckFailed, BatchList, group_by
 
@@ -646,10 +646,10 @@ class FatetellStage(GenericAction):
 
 
 class BaseFatetell(GenericAction):
-    def __init__(self, target, cond, act = None):
+    def __init__(self, target, cond):
         self.target = target
         self.cond = cond
-        self.action = act or Game.getgame().hybrid_stack[-1]
+        self.initiator = Game.getgame().hybrid_stack[-1]
 
     def apply_action(self):
         g = Game.getgame()

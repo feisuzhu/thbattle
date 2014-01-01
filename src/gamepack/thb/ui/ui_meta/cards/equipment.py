@@ -44,8 +44,8 @@ class OpticalCloakHandler:
 
 
 class OpticalCloak:
-    name = u'光学迷彩'
-    
+    fatetell_display_name = u'光学迷彩'
+
     def effect_string_before(act):
         return u'|G【%s】|r祭起了|G光学迷彩|r…' % (
             act.target.ui_meta.char_name,
@@ -481,8 +481,8 @@ class SaigyouBranchHandler:
 
 
 class SaigyouBranch:
-    name = u'西行妖'
-    
+    fatetell_display_name = u'西行妖'
+
     def effect_string_before(act):
         return (
             u'|G西行妖|r的枝条受到了|G【%s】|r春度的滋养，'
@@ -765,7 +765,7 @@ class YinYangOrbHandler:
 class YinYangOrb:
     def effect_string(act):
         return (
-            u'|G【%s】|r用%s代替了她的判定牌'
+            u'|G【%s】|r用|G%s|r代替了她的判定牌'
         ) % (
             act.target.ui_meta.char_name,
             card_desc(act.card),

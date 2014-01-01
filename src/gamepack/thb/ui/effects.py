@@ -571,7 +571,6 @@ def showcards_effect(self, arg):
 
 
 def fatetell_effect(self, act):
-    g = Game.getgame()
     from gamepack.thb.ui.ui_meta.common import card_desc
 
     act_name = None
@@ -583,12 +582,12 @@ def fatetell_effect(self, act):
         pass
 
     try:
-        act_name = act.action.ui_meta.name
+        act_name = act.initiator.ui_meta.fatetell_display_name
     except AttributeError:
         pass
 
     if act_name:
-        prompt = u'|G【%s】|r为|R%s|r进行了一次判定，结果为%s。' % (
+        prompt = u'|G【%s】进行了一次判定（|G%s|r），结果为%s。' % (
             act.target.ui_meta.char_name,
             act_name,
             card_desc(act.card)
