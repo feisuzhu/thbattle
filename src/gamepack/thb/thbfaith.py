@@ -15,7 +15,7 @@ from collections import defaultdict
 from utils import BatchList, Enum
 
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
-from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet
+from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
 
 import logging
 log = logging.getLogger('THBattle')
@@ -174,29 +174,11 @@ class THBattleFaith(Game):
             p.reveal(c)
 
         mapping = {p: p.choices for p in g.players}
-        remaining = {p: 2 for p in g.players}
 
-        deadline = time.time() + 30
-        with InputTransaction('ChooseGirl', g.players, mapping=mapping) as trans:
-            while True:
-                pl = [p for p in g.players if remaining[p]]
-                if not pl: break
-
-                p, c = user_input(
-                    pl, ChooseGirlInputlet(g, mapping),
-                    timeout=deadline - time.time(),
-                    trans=trans, type='any'
-                )
-                p = p or pl[0]
-
-                c = c or [_c for _c in p.choices if not _c.chosen][0]
-                c.chosen = p
-                p.choices.remove(c)
-                p.choices_chosen.append(c)
-                remaining[p] -= 1
-
-                trans.notify('girl_chosen', c)
-
+        rst = user_input(g.players, SortCharacterInputlet(g, mapping, 2), timeout=30, type='all')
+        for p in g.players:
+            p.choices_chosen = [mapping[p][i] for i in rst[p][:2]]
+        
         for p in g.players:
             a, b = p.choices_chosen
             b.chosen = None
