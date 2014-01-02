@@ -16,7 +16,7 @@ from .actions import action_eventhandlers
 
 from .characters.baseclasses import mixin_character
 
-from .inputlets import ChooseGirlInputlet, KOFSortInputlet
+from .inputlets import ChooseGirlInputlet, SortCharacterInputlet
 
 log = logging.getLogger('THBattle')
 _game_ehs = {}
@@ -172,7 +172,7 @@ class THBattleKOF(Game):
             random.Random(seed).shuffle(p.choices)
 
         mapping = {first: first.choices, second: second.choices}
-        rst = user_input(g.players, KOFSortInputlet(g, mapping), timeout=30, type='all')
+        rst = user_input(g.players, SortCharacterInputlet(g, mapping, 3), timeout=30, type='all')
 
         for p in g.players:
             perm = p.choices

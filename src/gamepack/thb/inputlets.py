@@ -265,15 +265,16 @@ class ChooseGirlInputlet(Inputlet):
         self.choice = choice
 
 
-class KOFSortInputlet(Inputlet):
-    def init(self, mapping):
+class SortCharacterInputlet(Inputlet):
+    def init(self, mapping, limit = None):
         # mapping = {
-        #     A: [ list of CharChoices ],
-        #     B: [ list of CharChoices ],
+        #   Player1: [CharChoice1, ...],
+        #   ...
         # }
         s = set([len(l) for l in mapping.values()])
         assert(len(s) == 1)
         self.num = s.pop()
+        self.limit = limit if self.num >= limit else self.num
         self.mapping = mapping
         self.result = None
 

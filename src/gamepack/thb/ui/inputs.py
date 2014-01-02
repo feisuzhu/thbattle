@@ -683,13 +683,13 @@ class Dragger(Control):
 
     def __init__(self, *a, **k):
         Control.__init__(self, *a, **k)
-        self.width, self.height = self.expected_size()
+        self.width, self.height = self.expected_size(self.rows, self.cols)
 
     @classmethod
-    def expected_size(cls):
+    def expected_size(cls, rows = None, cols = None):
         return (
-            (cls.item_width + 4) * cls.cols,
-            (cls.item_height + 15) * cls.rows,
+            (cls.item_width + 4) * (cols or cls.cols),
+            (cls.item_height + 15) * (rows or cls.rows),
         )
 
     def update(self):
@@ -818,15 +818,19 @@ class UIRanProphet(Panel, InputHandler):
         self.lbls.draw()
 
 
-class KOFSorterControl(Dragger):
-    cols, rows = 5, 1
+class CharacterSorterControl(Dragger):
+    rows = 1
     item_width, item_height = 145, 96
 
+    def __init__(self, total, limit, *a, **k):
+        Dragger.__init__(self, *a, cols = total, **k)
+        self.limit = limit
+
     def update_sprite(self, c, i, j):
-        c.disable() if i >= 3 else c.enable()
+        c.disable() if i >= self.limit else c.enable()
 
 
-class UIKOFCharacterSorter(Panel, InputHandler):
+class UICharacterSorter(Panel, InputHandler):
     def __init__(self, trans, parent, *a, **k):
         self.trans = trans
         self.lbls = pyglet.graphics.Batch()
@@ -842,7 +846,7 @@ class UIKOFCharacterSorter(Panel, InputHandler):
         for i, c in enumerate(choices):
             c._choice_index = i
 
-        w, h = KOFSorterControl.expected_size()
+        w, h = CharacterSorterControl.expected_size(1, ilet.num)
         w = 20 + w + 20
         h = 60 + h + 50
 
@@ -860,7 +864,10 @@ class UIKOFCharacterSorter(Panel, InputHandler):
         self.width, self.height = w, h
         self.update()
 
-        self.sorter = sorter = KOFSorterControl(parent=self, x=20, y=60)
+        self.sorter = sorter = CharacterSorterControl(
+            ilet.num, ilet.limit,
+            parent=self, x=20, y=60
+        )
         selectors = []
         for i, c in enumerate(choices):
             selectors.append(
@@ -969,7 +976,7 @@ mapping = {
     'ChooseOption': UIChooseOption,
     'ChooseIndividualCard': UIChooseIndividualCard,
 
-    'KOFSort': UIKOFCharacterSorter,
+    'SortCharacter': UICharacterSorter,
 
     'HarvestChoose': UIHarvestChoose,
 
