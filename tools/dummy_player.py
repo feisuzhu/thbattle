@@ -17,6 +17,7 @@ types = {
     'id8': 'THBattleIdentity',
     'kof': 'THBattleKOF',
     'raid': 'THBattleRaid',
+    'faith': 'THBattleFaith',
 }
 
 argv = sys.argv[1:]
@@ -32,6 +33,7 @@ en = lambda d: dumps(d) + '\n'
 
 l = []
 
+
 def create():
     s = socket.socket()
     s.connect(('127.0.0.1', 9999))
@@ -40,6 +42,7 @@ def create():
     s.sendall(en(['get_ready', None])); gevent.sleep(0.05)
 
     while s.recv(100): pass
+
 
 def join():
     s = socket.socket()
@@ -50,14 +53,13 @@ def join():
 
     while s.recv(100): pass
 
+
 if not no_create:
     print 'create'
     for _ in xrange(int(N)):
         l.append(gevent.spawn(create))
 
     gevent.sleep(1.0)
-
-
 
 print 'join'
 for _ in xrange(int(N)):
@@ -66,8 +68,8 @@ for _ in xrange(int(N)):
 
 print 'done'
 
-import signal
-#signal.alarm(2)
+# import signal
+# signal.alarm(2)
 
 for i in l:
     i.join()
