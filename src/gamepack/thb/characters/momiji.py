@@ -41,7 +41,7 @@ class SentryHandler(EventHandler):
                     tgt = pact.source
                     self.target = tgt  # for ui
                     dist = LaunchCard.calc_distance(p, AttackCard())
-                    if not dist[tgt] <= 0: continue
+                    if dist.get(tgt, 1) > 0: continue
                     cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
                     if not cl: continue
                     c = SentryAttack.wrap(cl, p)
