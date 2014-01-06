@@ -42,7 +42,7 @@ try:
     l = len(coef)//2
     fshader = FragmentShader(
         src % '\n'.join(
-            's += texture2D(tex, vec2(xy.x+(%d.0/size[0]), xy.y)) * %f;' % (i, v)
+            's += texture2D(tex, vec2(xy.x+(%d.0/float(size[0])), xy.y)) * %f;' % (i, v)
             for i, v in zip(xrange(-l, l+1), coef)
         )
     )
@@ -50,7 +50,7 @@ try:
 
     fshader = FragmentShader(
         src % '\n'.join(
-            's += texture2D(tex, vec2(xy.x, xy.y+(%d.0/size[1]))) * %f;' % (i, v)
+            's += texture2D(tex, vec2(xy.x, xy.y+(%d.0/float(size[1])))) * %f;' % (i, v)
             for i, v in zip(xrange(-l, l+1), coef)
         )
     )
