@@ -942,10 +942,6 @@ class UIKokoroHomeMask(Panel, InputHandler):
 
         @btn.event
         def on_click(*a):
-            putback, acquire = self.ctrl.get_result()
-            putback = [c.associated_card for c in putback]
-            acquire = [c.associated_card for c in acquire]
-            ilet.set_result(putback, acquire)
             ilet.done()
             end_transaction(self.trans)
 
@@ -955,6 +951,7 @@ class UIKokoroHomeMask(Panel, InputHandler):
             putback = [c.associated_card for c in putback]
             acquire = [c.associated_card for c in acquire]
             if ilet.is_valid(putback, acquire):
+                ilet.set_result(putback, acquire)
                 btn.state = Button.NORMAL
             else:
                 btn.state = Button.DISABLED
