@@ -576,7 +576,7 @@ def fatetell_effect(self, act):
     act_name = None
 
     try:
-        card = act.action.associated_card
+        card = act.initiator.associated_card
         act_name = card.ui_meta.name
     except AttributeError:
         pass
@@ -587,7 +587,7 @@ def fatetell_effect(self, act):
         pass
 
     if act_name:
-        prompt = u'|G【%s】进行了一次判定（|G%s|r），结果为%s。' % (
+        prompt = u'|G【%s】|r进行了一次判定（|G%s|r），结果为%s。' % (
             act.target.ui_meta.char_name,
             act_name,
             card_desc(act.card)
