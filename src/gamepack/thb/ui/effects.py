@@ -576,7 +576,7 @@ def fatetell_effect(self, act):
     act_name = None
 
     try:
-        card = act.action.associated_card
+        card = act.initiator.associated_card
         act_name = card.ui_meta.name
     except AttributeError:
         pass
