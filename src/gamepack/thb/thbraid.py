@@ -462,7 +462,9 @@ class THBattleRaid(Game):
 
         # attackers' choose
         from characters import characters as chars
+        from characters.kokoro import Kokoro
         chars = list(chars)
+        chars.remove(Kokoro)
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)
 
