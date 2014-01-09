@@ -315,7 +315,6 @@ class HopeMaskInputlet(Inputlet):
             cards = self.cards
             putback = [cards[i] for i in putback]
             acquire = [cards[i] for i in acquire]
-            check(self.is_valid(putback, acquire))
 
         except CheckFailed:
             return [self.cards, []]
@@ -348,3 +347,15 @@ class HopeMaskInputlet(Inputlet):
         assert self.is_valid(putback, acquire)
         self.putback = putback
         self.acquire = acquire
+    
+    def post_process(self, actor, rst):
+        g = Game.getgame()
+        putback, acquire = rst
+        g.players.exclude(actor).reveal(acquire)
+
+        try:
+            check(self.is_valid(putback, acquire))
+        except CheckFailed:
+            return [self.cards, []]
+
+        return rst
