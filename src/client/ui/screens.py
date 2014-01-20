@@ -79,6 +79,7 @@ class ChatBoxFrame(Frame):
         )
         self.history_cursor = -1
         self.last_input = u''
+        self.box.text = u'|R输入/?可以查看可用命令|r\n'
 
         @self.inputbox.event
         def on_text_motion(motion):
