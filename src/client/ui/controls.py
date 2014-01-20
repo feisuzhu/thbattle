@@ -1258,6 +1258,7 @@ class TextArea(Control):
         l = self.layout
 
         bottom = (-l.view_y + l.height >= l.content_height)
+        view_y = l.view_y
 
         l.begin_update()
         toks, reminder = scanner.scan(text)
@@ -1267,6 +1268,8 @@ class TextArea(Control):
         l.end_update()
         if bottom:
             l.view_y = -l.content_height
+        else:
+            l.view_y = view_y
         self._text += text
 
     text = property(_gettext, _settext)
