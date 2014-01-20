@@ -55,6 +55,10 @@ def process_command(arglist):
             prompt = _format_all_commands()
             break
 
+        if not al and cmdname == '?':
+            prompt = u'\n'.join((cmd(None), cmd('?')))
+            break
+
         if len(al) != len(cmd.argdesc):
             prompt = registered_commands['?'](cmdname)
             break
@@ -126,7 +130,7 @@ def notify(val):
 
 @command(u'帮助', u'查看命令的帮助', cmd='?')
 @argtypes(str)
-@argdesc(u'<命令>')
+@argdesc(u'[<命令>]')
 def help(cmdname):
     cmd = registered_commands.get(cmdname)
     if not cmd:
