@@ -137,7 +137,7 @@ def help(cmdname):
         return u'\n'.join(help)
 
 
-@command(u'踢出观战玩家', u'踢出观战玩家')
+@command(u'踢出观战玩家', u'uid为观战玩家[]中的数字id')
 @argtypes(int)
 @argdesc(u'<uid>')
 def kickob(uid):
@@ -145,7 +145,7 @@ def kickob(uid):
     return u'指令已发出'
 
 
-@command(u'主动报告bug', u'主动报告bug')
+@command(u'报告bug', u'遇到错误时，你可以用此命令主动报告bug')
 @argtypes()
 @argdesc()
 def bugreport():
@@ -153,3 +153,17 @@ def bugreport():
     log.info('Actively filed bug report')
     gevent.spawn(do_crashreport, active=True)
     return u'已经发送了bug报告'
+
+@command(u'开启/关闭游戏邀请', u'on      开启邀请\noff     关闭邀请')
+@argtypes(str)
+@argdesc(u'<on||off>')
+def invite(onoff):
+    from user_settings import UserSettings as us
+    if onoff == 'on':
+        us.no_invite = False
+        return u'邀请已开启，之后可以再次收到邀请'
+    elif onoff == 'off':
+        us.no_invite = True
+        return u'邀请已关闭，之后不会再收到邀请'
+    else:
+        return registered_commands['?']('invite')

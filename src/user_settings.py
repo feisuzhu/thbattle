@@ -52,4 +52,7 @@ UserSettings.add_setting('sound_notify', True)
 
 UserSettings.load()
 
+# reset at start
+UserSettings.add_setting('no_invite', False)
+
 atexit.register(UserSettings.save)
