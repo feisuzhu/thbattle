@@ -635,6 +635,9 @@ def observe_user(user, other_userid):
         user.write(['gamehall_error', 'no_such_user'])
         return
 
+    if other.state == 'observing':
+        other = other.observing
+
     if other.state not in ('ingame', 'inroomwait', 'ready'):
         user.write(['gamehall_error', 'user_not_ingame'])
         return

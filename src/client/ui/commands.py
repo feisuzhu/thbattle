@@ -171,3 +171,11 @@ def invite(onoff):
         return u'邀请已关闭，之后不会再收到邀请'
     else:
         return registered_commands['?']('invite')
+
+@command(u'观战', u'只能在大厅内使用，uid为右侧玩家列表中[]内的数字id')
+@argtypes(int)
+@argdesc(u'<uid>')
+def ob(uid):
+    from client.ui.base import ui_message
+    Executive.call('observe_user', ui_message, uid)
+    return u'已经向[%d]发送了旁观请求，请等待回应……' % uid
