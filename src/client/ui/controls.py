@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pyglet
+import gevent
 from pyglet.window import mouse, key
 from pyglet.graphics import OrderedGroup
 from pyglet.sprite import Sprite
@@ -645,6 +646,10 @@ class Dialog(Frame):
         @self.btn_close.event
         def on_click():
             self.close()
+
+        timeout = getattr(self, 'timeout', None)
+        if timeout:
+            gevent.spawn_later(timeout, self.close)
 
     @staticmethod
     def batch_draw(dlgs):
