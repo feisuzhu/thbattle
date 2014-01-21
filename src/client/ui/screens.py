@@ -156,10 +156,12 @@ class Screen(Overlay):
             ConfirmBox(u'已经与服务器断开链接，请重新启动游戏！', parent=Screen.cur_overlay)
 
         elif _type == 'invite_request':
-            from user_settings import UserSettings as us
-            if us.no_invite: return
-
             uid, uname, gid, gtype = args[0]
+            from user_settings import UserSettings as us
+            if us.no_invite:
+                Executive.call('invite_grant', ui_message, [gid, False])
+                return
+
             from gamepack import gamemodes as modes
 
             gtype = modes.get(gtype, None)
