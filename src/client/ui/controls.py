@@ -1963,9 +1963,6 @@ class VolumeTuner(Control, BalloonPromptMixin):
             SoundManager.mute()
 
 
-def tbproperty(f):
-    return property(f, lambda *a:None)
-
 class ToggleButton(Button):
     DEFAULT_COLORS=(Colors.blue, Colors.orange)
 
@@ -1983,17 +1980,17 @@ class ToggleButton(Button):
         self._value = value
         self.update()
 
-    @tbproperty
+    @property
     def color(self):
         return self.colors[self.value]
+
+    @color.setter
+    def color(self, value): pass
 
     def on_click(self):
         self.value = not self.value
 
 class NoInviteButton(ToggleButton):
-    def __init__(self, *a, **k):
-        ToggleButton.__init__(self, *a, **k)
-   
     @property
     def value(self):
         from user_settings import UserSettings as us
@@ -2005,7 +2002,10 @@ class NoInviteButton(ToggleButton):
         us.no_invite = not value
         self.update()
 
-    @tbproperty
+    @property
     def caption(self):
         return '邀请：%s' % ('关闭', '开启')[self.value]
+
+    @caption.setter
+    def caption(self, value): pass
 
