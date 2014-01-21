@@ -171,7 +171,7 @@ class Screen(Overlay):
             notify(u'东方符斗祭 - 邀请提醒', invite_text)
 
             box = ConfirmBox(
-                invite_text,
+                invite_text, timeout=20,
                 parent=self, buttons=((u'确定', True), (u'取消', False)), default=False
             )
 
@@ -1093,7 +1093,7 @@ class GameScreen(Screen):
             uid, uname = args[0]
             box = ConfirmBox(
                 u'玩家 %s 希望旁观你的游戏，是否允许？\n'
-                u'旁观玩家可以看到你的手牌。' % uname,
+                u'旁观玩家可以看到你的手牌。' % uname, timeout=20,
                 parent=self, buttons=((u'允许', True), (u'不允许', False)), default=False
             )
 
