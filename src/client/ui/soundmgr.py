@@ -3,6 +3,7 @@
 import pyglet
 from pyglet.media import Player, ManagedSoundPlayer
 from .base.interp import InterpDesc, LinearInterp
+from user_settings import UserSettings
 
 from utils import instantiate
 
@@ -16,7 +17,6 @@ class SoundManager(object):
         self.bgm_next = None
         self.bgm_switching = False
         self.bgm_player = Player()
-        self.volume = 1.0  # 音量
         self.bgm_player.eos_action = Player.EOS_LOOP
         self.muted = False
 
@@ -78,6 +78,14 @@ class SoundManager(object):
         player.volume = self.volume
         player.queue(snd)
         player.play()
+
+    @property
+    def volume(self):
+        return UserSettings.volume
+
+    @volume.setter
+    def volume(self, value):
+        UserSettings.volume = value
 
     def set_volume(self, vol):
         self.volume = vol
