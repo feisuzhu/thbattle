@@ -179,12 +179,12 @@ class THBattleUI(Control):
 
         self.btn_afk = ToggleButton(
             parent=self, caption=u'让⑨帮你玩', zindex=1,
-            **r2d((730, 610, 75, 25))
+            **r2d((730, 620, 75, 25))
         )
 
         self.gameintro_icon = GameIntroIcon(
             parent=self, game=game,
-            **r2d((780, 580, 25, 25))
+            **r2d((690, 630, 25, 25))
         )
 
         @self.handcard_area.event
