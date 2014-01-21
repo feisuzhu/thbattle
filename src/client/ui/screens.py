@@ -15,7 +15,7 @@ from pyglet.text import Label
 # -- own --
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
-from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame, VolumeTuner
+from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
 from client.ui.controls import ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox, SensorLayer
@@ -777,6 +777,7 @@ class GameHallScreen(Screen):
         self.statusbox = GameHallScreen.StatusBox(parent=self)
 
         VolumeTuner(parent=self, x=850, y=660)
+        NoInviteButton(parent=self, x=654, y=660, width=80, height=35)
 
         b = Button(parent=self,
             x=750, y=660, width=80, height=35,
@@ -1028,6 +1029,9 @@ class GameScreen(Screen):
         self.btn_exit = Button(
             parent=self, caption=u'退出房间', zindex=1,
             **r2d((730, 670, 75, 25))
+        )
+        self.btn_no_invite = NoInviteButton(
+            parent=self, zindex=1, **r2d((730, 640, 75, 25))
         )
 
         VolumeTuner(parent=self, x=690, y=665)

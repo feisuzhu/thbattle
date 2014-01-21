@@ -272,6 +272,7 @@ class Button(Control):
 
     def _set_color(self, val):
         self._color = val
+        self.update()
 
     color = property(_get_color, _set_color)
 
@@ -1960,3 +1961,51 @@ class VolumeTuner(Control, BalloonPromptMixin):
             SoundManager.set_volume(vol)
         else:
             SoundManager.mute()
+
+
+def tbproperty(f):
+    return property(f, lambda *a:None)
+
+class ToggleButton(Button):
+    DEFAULT_COLORS=(Colors.blue, Colors.orange)
+
+    def __init__(self, caption='Button', colors=DEFAULT_COLORS, *a, **k):
+        self._value = False
+        Button.__init__(self, caption, colors[self.value], *a, **k)
+        self.colors = colors
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+        self.update()
+
+    @tbproperty
+    def color(self):
+        return self.colors[self.value]
+
+    def on_click(self):
+        self.value = not self.value
+
+class NoInviteButton(ToggleButton):
+    def __init__(self, *a, **k):
+        ToggleButton.__init__(self, *a, **k)
+   
+    @property
+    def value(self):
+        from user_settings import UserSettings as us
+        return not us.no_invite
+
+    @value.setter
+    def value(self, value):
+        from user_settings import UserSettings as us
+        us.no_invite = not value
+        self.update()
+
+    @tbproperty
+    def caption(self):
+        return '邀请：%s' % ('关闭', '开启')[self.value]
+
