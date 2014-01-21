@@ -2009,3 +2009,8 @@ class NoInviteButton(ToggleButton):
     @caption.setter
     def caption(self, value): pass
 
+    @staticmethod
+    def batch_draw(btns):
+        for b in btns:
+            b._batch = None
+            Button.batch_draw([b])
