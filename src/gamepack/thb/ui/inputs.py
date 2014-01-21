@@ -57,7 +57,8 @@ class UISelectTarget(Control, InputHandler):
         parent = self.parent
         self.confirmbtn = ConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
-            buttons=((u'确定', True), (u'结束', False))
+            buttons=((u'确定', True), (u'结束', False)),
+            delay=0.5
         )
         self.progress_bar = BigProgressBar(parent=self, x=0, y=0, width=250)
         self.label = Label(
@@ -542,7 +543,7 @@ class UIChooseOption(Control, InputHandler):
 
         self.confirmbtn = ConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
-            buttons=choose_option_buttons
+            buttons=choose_option_buttons, delay=0.5
         )
         self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
         b.value = LinearInterp(

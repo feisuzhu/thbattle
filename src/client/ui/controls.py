@@ -343,13 +343,10 @@ class ImageButton(Control):
                 self.state = Button.PRESSED
 
     def on_mouse_release(self, x, y, button, modifier):
-        if self.state != Button.DISABLED:
+        if self.state == Button.PRESSED:
             if button == mouse.LEFT:
                 self.state = Button.HOVER
-
-    def on_mouse_click(self, x, y, button, modifier):
-        if self.state != Button.DISABLED:
-            self.dispatch_event('on_click')
+                self.dispatch_event('on_click')
 
     def _get_state(self):
         return self._state
@@ -1632,7 +1629,7 @@ class SmallProgressBar(ProgressBar):
 
 class ConfirmButtons(Control):
     def __init__(self, buttons=((u'确定', True), (u'取消', False)),
-                 color=Colors.green, *a, **k):
+                 color=Colors.green, delay=0, *a, **k):
         Control.__init__(self, *a, **k)
         self.buttons = bl = []
 
@@ -1655,6 +1652,10 @@ class ConfirmButtons(Control):
             bl.append(btn)
             loc += w + 6
 
+        if delay:
+           self.disable()
+           gevent.spawn_later(delay, self.enable)
+
         self.width, self.height = loc - 6, 24
 
     def confirm(self, val):
@@ -1670,6 +1671,14 @@ class ConfirmButtons(Control):
     def update(self):
         for b in self.buttons:
             b.update()
+
+    def disable(self):
+        for b in self.buttons:
+            b.state = Button.DISABLED
+
+    def enable(self):
+        for b in self.buttons:
+            b.state = Button.NORMAL
 
     @classmethod
     def _get_widths(cls, buttons):
