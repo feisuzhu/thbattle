@@ -165,10 +165,10 @@ def invite(onoff):
     from user_settings import UserSettings as us
     if onoff == 'on':
         us.no_invite = False
-        return u'邀请已开启，之后可以再次收到邀请'
+        return u'邀请已开启，其他玩家可以邀请你一起游戏。'
     elif onoff == 'off':
         us.no_invite = True
-        return u'邀请已关闭，之后不会再收到邀请'
+        return u'邀请已关闭，其他玩家邀请你时会自动拒绝，不会有提示。'
     else:
         return registered_commands['?']('invite')
 
