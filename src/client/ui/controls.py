@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pyglet
+import gevent
 from pyglet.window import mouse, key
 from pyglet.graphics import OrderedGroup
 from pyglet.sprite import Sprite
@@ -271,6 +272,7 @@ class Button(Control):
 
     def _set_color(self, val):
         self._color = val
+        self.update()
 
     color = property(_get_color, _set_color)
 
@@ -342,13 +344,10 @@ class ImageButton(Control):
                 self.state = Button.PRESSED
 
     def on_mouse_release(self, x, y, button, modifier):
-        if self.state != Button.DISABLED:
+        if self.state == Button.PRESSED:
             if button == mouse.LEFT:
                 self.state = Button.HOVER
-
-    def on_mouse_click(self, x, y, button, modifier):
-        if self.state != Button.DISABLED:
-            self.dispatch_event('on_click')
+                self.dispatch_event('on_click')
 
     def _get_state(self):
         return self._state
@@ -645,6 +644,10 @@ class Dialog(Frame):
         @self.btn_close.event
         def on_click():
             self.close()
+
+        timeout = getattr(self, 'timeout', None)
+        if timeout:
+            gevent.spawn_later(timeout, self.close)
 
     @staticmethod
     def batch_draw(dlgs):
@@ -1258,6 +1261,7 @@ class TextArea(Control):
         l = self.layout
 
         bottom = (-l.view_y + l.height >= l.content_height)
+        view_y = l.view_y
 
         l.begin_update()
         toks, reminder = scanner.scan(text)
@@ -1267,6 +1271,8 @@ class TextArea(Control):
         l.end_update()
         if bottom:
             l.view_y = -l.content_height
+        else:
+            l.view_y = view_y
         self._text += text
 
     text = property(_gettext, _settext)
@@ -1624,7 +1630,7 @@ class SmallProgressBar(ProgressBar):
 
 class ConfirmButtons(Control):
     def __init__(self, buttons=((u'确定', True), (u'取消', False)),
-                 color=Colors.green, *a, **k):
+                 color=Colors.green, delay=0, *a, **k):
         Control.__init__(self, *a, **k)
         self.buttons = bl = []
 
@@ -1647,6 +1653,10 @@ class ConfirmButtons(Control):
             bl.append(btn)
             loc += w + 6
 
+        if delay:
+           self.disable()
+           gevent.spawn_later(delay, self.enable)
+
         self.width, self.height = loc - 6, 24
 
     def confirm(self, val):
@@ -1662,6 +1672,14 @@ class ConfirmButtons(Control):
     def update(self):
         for b in self.buttons:
             b.update()
+
+    def disable(self):
+        for b in self.buttons:
+            b.state = Button.DISABLED
+
+    def enable(self):
+        for b in self.buttons:
+            b.state = Button.NORMAL
 
     @classmethod
     def _get_widths(cls, buttons):
@@ -1943,3 +1961,56 @@ class VolumeTuner(Control, BalloonPromptMixin):
             SoundManager.set_volume(vol)
         else:
             SoundManager.mute()
+
+
+class ToggleButton(Button):
+    DEFAULT_COLORS=(Colors.blue, Colors.orange)
+
+    def __init__(self, caption='Button', colors=DEFAULT_COLORS, *a, **k):
+        self._value = False
+        Button.__init__(self, caption, colors[self.value], *a, **k)
+        self.colors = colors
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+        self.update()
+
+    @property
+    def color(self):
+        return self.colors[self.value]
+
+    @color.setter
+    def color(self, value): pass
+
+    def on_click(self):
+        self.value = not self.value
+
+class NoInviteButton(ToggleButton):
+    @property
+    def value(self):
+        from user_settings import UserSettings as us
+        return not us.no_invite
+
+    @value.setter
+    def value(self, value):
+        from user_settings import UserSettings as us
+        us.no_invite = not value
+        self.update()
+
+    @property
+    def caption(self):
+        return '邀请：%s' % ('关闭', '开启')[self.value]
+
+    @caption.setter
+    def caption(self, value): pass
+
+    @staticmethod
+    def batch_draw(btns):
+        for b in btns:
+            b._batch = None
+            Button.batch_draw([b])

@@ -15,7 +15,7 @@ from pyglet.text import Label
 # -- own --
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
-from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame, VolumeTuner
+from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
 from client.ui.controls import ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox, SensorLayer
@@ -79,6 +79,7 @@ class ChatBoxFrame(Frame):
         )
         self.history_cursor = -1
         self.last_input = u''
+        self.box.text = u'|R输入/?可以查看可用命令|r\n'
 
         @self.inputbox.event
         def on_text_motion(motion):
@@ -156,6 +157,11 @@ class Screen(Overlay):
 
         elif _type == 'invite_request':
             uid, uname, gid, gtype = args[0]
+            from user_settings import UserSettings as us
+            if us.no_invite:
+                Executive.call('invite_grant', ui_message, [gid, False])
+                return
+
             from gamepack import gamemodes as modes
 
             gtype = modes.get(gtype, None)
@@ -167,7 +173,7 @@ class Screen(Overlay):
             notify(u'东方符斗祭 - 邀请提醒', invite_text)
 
             box = ConfirmBox(
-                invite_text,
+                invite_text, timeout=20,
                 parent=self, buttons=((u'确定', True), (u'取消', False)), default=False
             )
 
@@ -771,6 +777,7 @@ class GameHallScreen(Screen):
         self.statusbox = GameHallScreen.StatusBox(parent=self)
 
         VolumeTuner(parent=self, x=850, y=660)
+        NoInviteButton(parent=self, x=654, y=660, width=80, height=35)
 
         b = Button(parent=self,
             x=750, y=660, width=80, height=35,
@@ -1021,10 +1028,13 @@ class GameScreen(Screen):
         self.panel = GameScreen.RoomControlPanel(parent=self)
         self.btn_exit = Button(
             parent=self, caption=u'退出房间', zindex=1,
-            **r2d((730, 670, 75, 25))
+            **r2d((730, 680, 75, 25))
+        )
+        self.btn_no_invite = NoInviteButton(
+            parent=self, zindex=1, **r2d((730, 650, 75, 25))
         )
 
-        VolumeTuner(parent=self, x=690, y=665)
+        VolumeTuner(parent=self, x=690, y=670)
 
         @self.btn_exit.event
         def on_click():
@@ -1089,7 +1099,7 @@ class GameScreen(Screen):
             uid, uname = args[0]
             box = ConfirmBox(
                 u'玩家 %s 希望旁观你的游戏，是否允许？\n'
-                u'旁观玩家可以看到你的手牌。' % uname,
+                u'旁观玩家可以看到你的手牌。' % uname, timeout=20,
                 parent=self, buttons=((u'允许', True), (u'不允许', False)), default=False
             )
 

@@ -49,7 +49,11 @@ UserSettings = UserSettings()
 UserSettings.add_setting('last_id', u'无名の罪袋')
 UserSettings.add_setting('notify_level', 1)
 UserSettings.add_setting('sound_notify', True)
+UserSettings.add_setting('volume', 1.0)
 
 UserSettings.load()
+
+# reset at start
+UserSettings.add_setting('no_invite', False)
 
 atexit.register(UserSettings.save)

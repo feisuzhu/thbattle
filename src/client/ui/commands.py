@@ -55,6 +55,10 @@ def process_command(arglist):
             prompt = _format_all_commands()
             break
 
+        if not al and cmdname == '?':
+            prompt = u'\n'.join((cmd(None), cmd('?')))
+            break
+
         if len(al) != len(cmd.argdesc):
             prompt = registered_commands['?'](cmdname)
             break
@@ -126,7 +130,7 @@ def notify(val):
 
 @command(u'帮助', u'查看命令的帮助', cmd='?')
 @argtypes(str)
-@argdesc(u'<命令>')
+@argdesc(u'[<命令>]')
 def help(cmdname):
     cmd = registered_commands.get(cmdname)
     if not cmd:
@@ -137,7 +141,7 @@ def help(cmdname):
         return u'\n'.join(help)
 
 
-@command(u'踢出观战玩家', u'踢出观战玩家')
+@command(u'踢出观战玩家', u'uid为观战玩家[]中的数字id')
 @argtypes(int)
 @argdesc(u'<uid>')
 def kickob(uid):
@@ -145,7 +149,7 @@ def kickob(uid):
     return u'指令已发出'
 
 
-@command(u'主动报告bug', u'主动报告bug')
+@command(u'报告bug', u'遇到错误时，你可以用此命令主动报告bug')
 @argtypes()
 @argdesc()
 def bugreport():
@@ -153,3 +157,25 @@ def bugreport():
     log.info('Actively filed bug report')
     gevent.spawn(do_crashreport, active=True)
     return u'已经发送了bug报告'
+
+@command(u'开启/关闭游戏邀请', u'on      开启邀请\noff     关闭邀请')
+@argtypes(str)
+@argdesc(u'<on||off>')
+def invite(onoff):
+    from user_settings import UserSettings as us
+    if onoff == 'on':
+        us.no_invite = False
+        return u'邀请已开启，其他玩家可以邀请你一起游戏。'
+    elif onoff == 'off':
+        us.no_invite = True
+        return u'邀请已关闭，其他玩家邀请你时会自动拒绝，不会有提示。'
+    else:
+        return registered_commands['?']('invite')
+
+@command(u'观战', u'只能在大厅内使用，uid为右侧玩家列表中[]内的数字id')
+@argtypes(int)
+@argdesc(u'<uid>')
+def ob(uid):
+    from client.ui.base import ui_message
+    Executive.call('observe_user', ui_message, uid)
+    return u'已经向[%d]发送了旁观请求，请等待回应……' % uid
