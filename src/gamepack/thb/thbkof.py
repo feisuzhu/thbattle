@@ -206,6 +206,7 @@ class THBattleKOF(Game):
                 if p.dead:
                     assert p.characters  # if not holds true, DeathHandler should end game.
                     KOFCharacterSwitchHandler.do_switch()
+                    p = g.players[idx]  # player changed
 
                 assert not p.dead
 
