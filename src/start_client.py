@@ -187,6 +187,11 @@ from client.ui.entry import start_ui
 
 try:
     start_ui()
+except KeyboardInterrupt:
+    import pyglet
+    pyglet.app.exit()
+    Executive.call('app_exit')
+    raise
 except:
     import pyglet
     pyglet.app.exit()
