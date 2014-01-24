@@ -30,16 +30,16 @@ from settings import ServerNames
 
 RE_AT = re.compile(ur'@([^@ ]+)')
 
+
 def handle_chat(_type, args):
     if _type in ('chat_msg', 'ob_msg'):
         uname, msg = args[0]
         uname = uname.replace('|', '||')
-        
+
         if Executive.gamemgr.account.username in RE_AT.findall(msg):
             from utils.notify import notify, AT
 
-            notify(u'东方符斗祭 - 有人@您哦',
-                   u'%s: %s' % (uname, msg), level = AT)
+            notify(u'东方符斗祭 - 有人@您哦', u'%s: %s' % (uname, msg), level=AT)
 
         style = '|cff0000ff' if _type == 'chat_msg' else '|c9f5f9fff'
         return u'%s%s|r：%s\n' % (style, uname, msg)

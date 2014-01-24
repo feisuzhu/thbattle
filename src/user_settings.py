@@ -1,16 +1,26 @@
 # -*- coding: utf-8 -*-
 
-import logging
-log = logging.getLogger('user_settings')
-
-from utils import instantiate
-import simplejson as json
-import os.path
-
+from weakref import WeakSet
 import atexit
+import logging
+import os.path
+import simplejson as json
+
+log = logging.getLogger('user_settings')
 
 
 class UserSettings(dict):
+    __slots__ = ()
+
+    def __init__(self):
+        dict.__init__(self)
+        self['__observers__'] = WeakSet()
+
+    def __setitem__(self, k, v):
+        dict.__setitem__(self, k, v)
+        for ob in self['__observers__']:
+            ob(k, v)
+
     def __getattr__(self, name):
         try:
             return self[name]
@@ -23,9 +33,14 @@ class UserSettings(dict):
     def add_setting(self, name, default):
         self[name] = default
 
+    def add_observer(self, ob):
+        self['__observers__'].add(ob)
+
     def save(self):
         with open(self._get_conf_name(), 'w') as f:
-            f.write(json.dumps(self))
+            d = dict(self)
+            d.pop('__observers__')
+            f.write(json.dumps(d))
 
     def load(self):
         conf = self._get_conf_name()
@@ -36,8 +51,8 @@ class UserSettings(dict):
             with open(conf, 'r') as f:
                 self.update(json.loads(f.read()))
 
-        except Exception as e:
-            log.exception(e)
+        except:
+            log.exception('Error loading conf')
 
     def _get_conf_name(self):
         import settings

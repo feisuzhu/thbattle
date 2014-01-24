@@ -674,6 +674,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
         @b.event
         def on_click():
+            # TODO: Replace with OptionButton
             g = Game.getgame()
             tbl = g.ui_meta.identity_table
             colortbl = g.ui_meta.identity_color

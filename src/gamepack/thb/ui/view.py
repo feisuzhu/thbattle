@@ -12,7 +12,7 @@ from game.autoenv import Game, EventHandler
 from .. import actions
 
 from client.ui.base import Control, Overlay, process_msg
-from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPromptMixin, ToggleButton
+from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPromptMixin, OptionButton
 from client.ui.soundmgr import SoundManager
 from .game_controls import HandCardArea, PortraitCardArea, DropCardArea, Ray, GameCharacterPortrait, SkillSelectionBox
 from client.ui.resource import resource as cres
@@ -149,10 +149,6 @@ class THBattleUI(Control):
         (155, 520, 'bottom', Colors.blue),
         (3, 280, 'right', Colors.orange),
     ]
-    
-    @property
-    def afk(self):
-        return self.btn_afk.value
 
     def __init__(self, game, *a, **k):
         self.game = game
@@ -177,9 +173,11 @@ class THBattleUI(Control):
             x=self.width//2, y=self.height//2, zindex=4,
         )
 
-        self.btn_afk = ToggleButton(
-            parent=self, caption=u'让⑨帮你玩', zindex=1,
-            **r2d((730, 620, 75, 25))
+        self.btn_afk = OptionButton(
+            parent=self, zindex=1, conf=(
+                (u'让⑨帮你玩', Colors.blue, False),
+                (u'⑨在帮你玩', Colors.orange, True),
+            ), **r2d((730, 620, 75, 25))
         )
 
         self.gameintro_icon = GameIntroIcon(
@@ -210,6 +208,10 @@ class THBattleUI(Control):
 
         self.animations = Animations(parent=self)
         self.selecting_player = 0
+
+    @property
+    def afk(self):
+        return self.btn_afk.value
 
     def init(self):
         ports = self.char_portraits = [

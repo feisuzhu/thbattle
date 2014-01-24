@@ -23,6 +23,7 @@ from pyglet.gl import glInterleavedArrays
 from pyglet.gl import GLfloat, GL_RGBA, GL_LINES, GL_QUADS, GL_T4F_V4F, GL_ENABLE_BIT
 from pyglet.gl import GL_TEXTURE_2D, GL_SCISSOR_TEST, GL_CLIENT_VERTEX_ARRAY_BIT
 
+from collections import namedtuple
 
 HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
 KEYMOD_MASK = key.MOD_CTRL | key.MOD_ALT | key.MOD_SHIFT
@@ -443,9 +444,9 @@ class Frame(Control):
     def update(self):
         self.set_caption(self.caption)
 
-        #Frame.update_color(self)
-        #Frame.update_position(self)
-        #Frame.update_bg(self)
+        # Frame.update_color(self)
+        # Frame.update_position(self)
+        # Frame.update_bg(self)
 
         self.update_color()
         self.update_position()
@@ -1654,8 +1655,8 @@ class ConfirmButtons(Control):
             loc += w + 6
 
         if delay:
-           self.disable()
-           gevent.spawn_later(delay, self.enable)
+            self.disable()
+            gevent.spawn_later(delay, self.enable)
 
         self.width, self.height = loc - 6, 24
 
@@ -1963,13 +1964,22 @@ class VolumeTuner(Control, BalloonPromptMixin):
             SoundManager.mute()
 
 
-class ToggleButton(Button):
-    DEFAULT_COLORS=(Colors.blue, Colors.orange)
+class OptionButton(Button):
+    Conf = namedtuple('OptionButtonConfiguration', 'caption color value')
+    DEFAULT_CONF = (
+        (u'关闭', Colors.blue, False),
+        (u'打开', Colors.orange, True),
+    )
+    _DEFAULT = object()
 
-    def __init__(self, caption='Button', colors=DEFAULT_COLORS, *a, **k):
-        self._value = False
-        Button.__init__(self, caption, colors[self.value], *a, **k)
-        self.colors = colors
+    def __init__(self, conf=None, default_value=_DEFAULT, *a, **k):
+        self.conf = conf = [self.Conf(*i) for i in conf or self.DEFAULT_CONF]
+        self.confidx = confidx = {c.value: i for i, c in enumerate(conf)}
+        i = confidx.get(default_value, conf[0].value)
+        self.index = i
+        c = conf[i]
+        self._value = c.value
+        Button.__init__(self, c.caption, c.color, *a, **k)
 
     @property
     def value(self):
@@ -1977,40 +1987,43 @@ class ToggleButton(Button):
 
     @value.setter
     def value(self, value):
+        if value == self._value:
+            return
+
         self._value = value
+        self.option_update()
+        self.dispatch_event('on_value_changed', value)
+
+    def option_update(self):
+        i = self.confidx[self.value]
+        c = self.conf[i]
+        self.caption = c.caption
+        self.color = c.color
+        self.index = i
         self.update()
-
-    @property
-    def color(self):
-        return self.colors[self.value]
-
-    @color.setter
-    def color(self, value): pass
 
     def on_click(self):
-        self.value = not self.value
+        i = (self.index + 1) % len(self.conf)
+        self.index = i
+        self.value = self.conf[i].value
 
-class NoInviteButton(ToggleButton):
-    @property
-    def value(self):
+OptionButton.register_event_type('on_value_changed')
+
+
+class NoInviteButton(OptionButton):
+    def __init__(self, *a, **k):
+        from user_settings import UserSettings
+        conf = (
+            (u'邀请已关闭', Colors.blue, True),
+            (u'邀请已开启', Colors.orange, False),
+        )
+        OptionButton.__init__(self, conf=conf, default_value=UserSettings.no_invite, *a, **k)
+        UserSettings.add_observer(self)
+
+    def __call__(self, k, v):
+        if k == 'no_invite':
+            self.value = v
+
+    def on_value_changed(self, value):
         from user_settings import UserSettings as us
-        return not us.no_invite
-
-    @value.setter
-    def value(self, value):
-        from user_settings import UserSettings as us
-        us.no_invite = not value
-        self.update()
-
-    @property
-    def caption(self):
-        return '邀请：%s' % ('关闭', '开启')[self.value]
-
-    @caption.setter
-    def caption(self, value): pass
-
-    @staticmethod
-    def batch_draw(btns):
-        for b in btns:
-            b._batch = None
-            Button.batch_draw([b])
+        us.no_invite = value
