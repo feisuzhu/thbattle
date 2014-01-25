@@ -1,32 +1,30 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+
+# -- third party --
 from pyglet.gl import GL_CLIENT_VERTEX_ARRAY_BIT, GL_QUADS, GL_T2F_C4F_N3F_V3F, GL_T4F_V4F
 from pyglet.gl import GLfloat, glColor3f, glColor4f, glDrawArrays, glInterleavedArrays
 from pyglet.gl import glLoadIdentity, glPopClientAttrib, glPopMatrix, glPushClientAttrib
 from pyglet.gl import glPushMatrix, glRotatef, glScalef, glTranslatef, glRectf
+from pyglet.text import Label
+import pyglet
 
+# -- own --
+from ..cards import CardList
 from client.ui.base import Control
-from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractInterp
 from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineInterp
-
-from client.ui.controls import Frame, Panel, Button, Colors, ImageButton, TextArea, OptionButton
+from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractInterp
 from client.ui.controls import BalloonPromptMixin
-
-
+from client.ui.controls import Frame, Panel, Button, Colors, ImageButton, TextArea, OptionButton
 from client.ui.resource import resource as common_res, get_atlas
-from resource import resource as game_res
 from game.autoenv import Game
 from .. import actions
-from ..cards import CardList
-
+from resource import resource as game_res
 from utils import flatten, rectv2f, rrectv2f
 
-import pyglet
-from pyglet.text import Label
 
-HAVE_FBO = pyglet.gl.gl_info.have_extension('GL_EXT_framebuffer_object')
-
-
+# -- code --
 class CardSprite(Control, BalloonPromptMixin):
     x = InterpDesc('_x')
     y = InterpDesc('_y')
@@ -176,14 +174,15 @@ class HandCardArea(Control):
     def __init__(self, fold_size=5, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.fold_size = fold_size
+        self.view = kwargs['parent']
 
     batch_draw = cardarea_batch_draw
 
     def update(self):
         fsz = self.fold_size
         n = len(self.control_list)
-        width = min(fsz*93.0+42, n*93.0)
-        step = (width - 91)/(n-1) if n > 1 else 0
+        width = min(fsz * 93.0 + 42, n * 93.0)
+        step = (width - 91)/(n - 1) if n > 1 else 0
         for i, c in enumerate(self.control_list):
             c.zindex = i
             try:
@@ -196,19 +195,16 @@ class HandCardArea(Control):
     def toggle(self, c, t):
         s = c.hca_selected = not c.hca_selected
         c.y = SineInterp(c.y, 20 if s else 0, t)
-        self.dispatch_event('on_selection_change')
+        self.view.notify('selection_change')
 
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
-        if c:
-            self.toggle(c, 0.1)
+        c and self.toggle(c, 0.1)
 
     cards = property(
         lambda self: self.control_list,
         lambda self, x: setattr(self, 'control_list', x)
     )
-
-HandCardArea.register_event_type('on_selection_change')
 
 
 class PortraitCardArea(Control):
@@ -337,12 +333,15 @@ class Ray(Control):
 
 class SkillSelectionBox(Control):
     class SkillButton(Button):
-        def __init__(self, enable, sid, *a, **k):
-            Button.__init__(self, width=71, height=20, *a, **k)
+        def __init__(self, skill, sid, enable, view, *a, **k):
+            Button.__init__(self, skill.ui_meta.name, width=71, height=20, *a, **k)
             self.selected = False
             self.state = Button.NORMAL if enable else Button.DISABLED
             self.color = Colors.blue
+            self.skill = skill
             self.sid = sid
+            self.view = view
+            self.params_ui = None
             self.update()
 
         def on_click(self):
@@ -351,29 +350,39 @@ class SkillSelectionBox(Control):
                 self.color = Colors.blue
                 self.selected = False
                 self.update()
+                ui = self.params_ui
+                ui and ui.delete()
+
             else:
                 self.color = Colors.orange
                 self.update()
                 self.parent.selection.append(self.sid)
                 self.selected = True
+                pui = getattr(self.skill.ui_meta, 'params_ui', None)
+                if pui:
+                    self.params_ui = pui(parent=self.view)
 
-            self.parent.parent.dispatch_event('on_selection_change')
+            self.view.notify('selection_change')
+
+        def delete(self):
+            self.params_ui and self.params_ui.delete()
+            Button.delete(self)
 
     def __init__(self, *a, **k):
         Control.__init__(self, *a, **k)
         self.selection = []
 
     def set_skills(self, lst):
-        # lst = (('name1', sid1, enable), ('name2', sid2, enable), ...)
+        # lst = ((skill1, sid1, enable), (skill2, sid2, enable), ...)
         y = self.height
         for b in self.buttons[:]:
             b.delete()
 
         assert not self.buttons
 
-        for nam, sid, enable in lst:
+        for skill, sid, enable in lst:
             y -= 22
-            SkillSelectionBox.SkillButton(enable, sid, nam, parent=self, x=0, y=y)
+            SkillSelectionBox.SkillButton(skill, sid, enable, self.parent, parent=self, x=0, y=y)
 
         self.selection = []
 
@@ -451,11 +460,12 @@ class SmallCardSprite(Control, BalloonPromptMixin):
 
 
 class EquipCardArea(Control):
-    def __init__(self, fold_size=4, *args, **kwargs):
+    def __init__(self, fold_size=4, view=None, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
         self.width, self.height = 35*4, 46
         self.fold_size = fold_size
         self.selectable = False
+        self.view = view
 
     @staticmethod
     def batch_draw(cl):
@@ -468,7 +478,7 @@ class EquipCardArea(Control):
         fsz = self.fold_size
         n = len(self.control_list)
         width = min(fsz*35.0, n*35.0)
-        step = int((width - 34)/(n-1)) if n > 1 else 0
+        step = int((width - 34) / (n - 1)) if n > 1 else 0
         for i, c in enumerate(self.control_list):
             c.zindex = i
             c.x = SineInterp(c.x, 2 + step * i, 0.4)
@@ -479,12 +489,13 @@ class EquipCardArea(Control):
         c = self.control_frompoint1(x, y)
         if c:
             c.selected = not c.selected
-            self.dispatch_event('on_selection_change')
+            self.view and self.view.notify('selection_change')
 
     def clear_selection(self):
         for c in self.control_list:
             c.selected = False
-        self.dispatch_event('on_selection_change')
+
+        self.view and self.view.notify('selection_change')
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)
@@ -493,7 +504,6 @@ class EquipCardArea(Control):
         lambda self: self.control_list,
         lambda self, x: setattr(self, 'control_list', x)
     )
-EquipCardArea.register_event_type('on_selection_change')
 
 
 class ShownCardPanel(Panel):
@@ -617,16 +627,16 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
     actor_frame = None
     turn_frame = None
 
-    def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', game=None, *args, **kwargs):
-        self.player = None
+    def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', *args, **kwargs):
+        self.bg = None
         self.character = None
+        self._color = color
         self._disabled = False
+        self._last_balloon = None
+        self.player = None
         self._selected = False
         self.taganims = []
         self.tag_placement = tag_placement
-        self._color = color
-        self.bg = None
-        self._last_balloon = None
 
         Frame.__init__(
             self, width=149, height=195,
@@ -634,6 +644,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             thin_shadow=True,
             **kwargs
         )
+        self.view = view = self.parent
         self.x, self.y = x, y
 
         self.charname_lbl = self.add_label(
@@ -645,27 +656,20 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             shadow=(1, 0, 0, 0, 179),
         )
 
-        from .view import THBattleUI
-        v = self.parent
-        while not isinstance(v, THBattleUI):
-            v = v.parent
-        self.view = v
-
         self.portcard_area = PortraitCardArea(
-            parent=self.view,
+            parent=view,
             x=self.x, y=self.y,
             width=self.width, height=self.height,
             zindex=100,
         )
         self.equipcard_area = EquipCardArea(
-            parent=self,
-            x=3, y=6,
+            view=view, parent=self, x=3, y=6,
         )
 
         w, h = self.width, self.height
 
-        tbl = game.ui_meta.identity_table
-        colortbl = game.ui_meta.identity_color
+        tbl = view.game.ui_meta.identity_table
+        colortbl = view.game.ui_meta.identity_color
         conf = [(tbl[k], getattr(Colors, colortbl[k]), k) for k in tbl]
 
         self.identity_btn = b = OptionButton(
@@ -677,10 +681,6 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
         @b.event
         def on_value_changed(v):
             self.set_color(b.color)
-
-        @self.equipcard_area.event
-        def on_selection_change():
-            self.view.dispatch_event('on_selection_change')
 
         def tagarrange_bottom():
             x, y = self.x, self.y

@@ -31,13 +31,13 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         g = Game.getgame()
         try:
             check(rst)
-            skills, cards, players = rst
+            skills, cards, players, params = rst
             [check(not c.detached) for c in cards]
             if categories:
                 if skills:
                     # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
-                    skill = skill_wrap(actor, skills, cards)
+                    skill = skill_wrap(actor, skills, cards, params)
                     check(skill and initiator.cond([skill]))
                 else:
                     if not getattr(initiator, 'no_reveal', False):
@@ -49,16 +49,16 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                 players, valid = initiator.choose_player_target(players)
                 check(valid)
 
-            return skills, cards, players
+            return skills, cards, players, params
 
         except CheckFailed:
             return None
 
     p, rst = user_input(actors, ilet, type='any', trans=trans)
     if rst:
-        skills, cards, players = rst
+        skills, cards, players, params = rst
         if skills:
-            cards = [skill_transform(p, skills, cards)]
+            cards = [skill_transform(p, skills, cards, params)]
 
         if not cards and not players:
             return p, None
@@ -104,7 +104,7 @@ def random_choose_card(cardlists):
     return c
 
 
-def skill_wrap(actor, skills, cards, no_reveal=False, detach=False):
+def skill_wrap(actor, skills, cards, params, no_reveal=False, detach=False):
     # no_reveal: for ui
     g = Game.getgame()
     try:
@@ -115,7 +115,7 @@ def skill_wrap(actor, skills, cards, no_reveal=False, detach=False):
             if not no_reveal and not getattr(skill_cls, 'no_reveal', False):
                 g.players.exclude(actor).reveal(cards)
 
-            card = skill_cls.wrap(cards, actor)
+            card = skill_cls.wrap(cards, actor, params)
             check(card.check())
 
             detach and [c.detach() for c in cards]
@@ -128,9 +128,9 @@ def skill_wrap(actor, skills, cards, no_reveal=False, detach=False):
         return None
 
 
-def skill_transform(actor, skills, cards):
+def skill_transform(actor, skills, cards, params):
     g = Game.getgame()
-    s = skill_wrap(actor, skills, cards, detach=True)
+    s = skill_wrap(actor, skills, cards, params, detach=True)
     if not s:
         return None
 
@@ -587,8 +587,8 @@ class ActionStage(GenericAction):
         try:
             while not target.dead:
                 try:
-                    self.in_user_input = True
                     g.emit_event('action_stage_action', target)
+                    self.in_user_input = True
                     with InputTransaction('ActionStageAction', [target]) as trans:
                         p, rst = ask_for_action(
                             self, [target], ('cards', 'showncards'), g.players, trans
@@ -790,7 +790,7 @@ class Pindian(UserAction):
 
         with InputTransaction('Pindian', pl) as trans:
             while pl:
-                p, rst = ask_for_action(self, pl, ['cards', 'showncards'], [], trans)
+                p, rst = ask_for_action(self, pl, ('cards', 'showncards'), (), trans)
                 if not p: break
                 (card, ), _ = rst
                 pindian_card[p] = card

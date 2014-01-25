@@ -113,7 +113,7 @@ class RejectHandler(EventHandler):
 
             pl = BatchList(p for p in g.players if not p.dead)
 
-            p, rst = ask_for_action(self, pl, ['cards', 'showncards'], [])
+            p, rst = ask_for_action(self, pl, ('cards', 'showncards'), [])
             if not p: return act
             cards, _ = rst
             assert cards and self.cond(cards)

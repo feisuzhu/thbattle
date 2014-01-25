@@ -115,10 +115,10 @@ class ImperishableNightHandler(EventHandler):
             if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                 continue
 
-            cards = user_choose_cards(self, p, ['cards', 'showncards', 'equips'])
+            cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
 
             if cards:
-                skill = skill_transform(p, [ImperishableNight], cards)
+                skill = skill_transform(p, [ImperishableNight], cards, {})
                 assert skill  # should not fail
                 rst = g.process_action(LaunchCard(p, [tgt], skill))
                 assert rst

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+
+from collections import deque, defaultdict
 from functools import wraps
-from collections import deque
 
 
 class Packet(list):  # compare by identity list
@@ -91,8 +92,7 @@ class ScissorBox(object):
         ob = list(ob)
         box = [int(i) for i in self.box]
         nb = Rect(*ob).intersect(Rect(*box))
-        if nb:
-            glScissor(nb.x, nb.y, nb.width, nb.height)
+        nb and glScissor(nb.x, nb.y, nb.width, nb.height)
         self.ob, self.nb = ob, nb
         return self
 
@@ -108,7 +108,8 @@ class ScissorBox(object):
             raise self.exc
 
 
-class CheckFailed(Exception): pass
+class CheckFailed(Exception):
+    pass
 
 
 def check(b):
@@ -116,10 +117,13 @@ def check(b):
         raise CheckFailed
 
 
+_ = Ellipsis
+
+
 def check_type(pattern, obj):
     if isinstance(pattern, (list, tuple)):
         check(isinstance(obj, (list, tuple)))
-        if len(pattern) == 2 and pattern[-1] is Ellipsis:
+        if len(pattern) == 2 and pattern[-1] is _:
             cls = pattern[0]
             for v in obj:
                 check(isinstance(v, cls))
@@ -627,3 +631,23 @@ def openurl(url):
 
     elif sys.platform.startswith('linux'):
         os.system("xdg-open '%s'" % url)
+
+
+class Observable(object):
+    def _get_ob_dict(self):
+        obdict = getattr(self, '_ob_dict', None)
+
+        if obdict is None:
+            obdict = self._ob_dict = defaultdict(set)
+
+        return obdict
+
+    def add_observer(self, event, callable):
+        self._get_ob_dict()[event].add(callable)
+
+    def remove_observer(self, event, callable):
+        self._get_ob_dict()[event].discard(callable)
+
+    def notify(self, event, *a, **k):
+        for cb in self._get_ob_dict()[event]:
+            cb(*a, **k)

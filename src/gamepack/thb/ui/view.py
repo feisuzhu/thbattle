@@ -1,27 +1,32 @@
 # -*- coding: utf-8 -*-
+
+# -- stdlib --
 import logging
-log = logging.getLogger('THBattleUI')
-
-import gevent
-from gevent.event import Event
-
-import pyglet
-from pyglet.gl import glColor3f, glRectf
-
-from game.autoenv import Game, EventHandler
-from .. import actions
-
-from client.ui.base import Control, Overlay, process_msg
-from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPromptMixin, OptionButton
-from client.ui.soundmgr import SoundManager
-from .game_controls import HandCardArea, PortraitCardArea, DropCardArea, Ray, GameCharacterPortrait, SkillSelectionBox
-from client.ui.resource import resource as cres
-from gamepack.thb.ui.resource import resource as gres
-import effects
-import inputs
 import random
 
+# -- third party --
+from gevent.event import Event
+from pyglet.gl import glColor3f, glRectf
+import gevent
+import pyglet
+
+# -- own --
+from client.ui.base import Control, Overlay, process_msg
+from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPromptMixin, OptionButton
+from client.ui.resource import resource as cres
+from client.ui.soundmgr import SoundManager
+from game.autoenv import Game, EventHandler
+from .game_controls import HandCardArea, PortraitCardArea, DropCardArea
+from .game_controls import Ray, GameCharacterPortrait, SkillSelectionBox
+from gamepack.thb.ui.resource import resource as gres
+from .. import actions
+from . import effects
+from . import inputs
 from utils import rect_to_dict as r2d
+from utils.misc import Observable
+
+# -- code --
+log = logging.getLogger('THBattleUI')
 
 
 class UIEventHook(EventHandler):
@@ -66,8 +71,8 @@ class DeckIndicator(Control):
         try:
             nums = gres.num
             seq = str(n)
-            ox = (w - len(seq)*14)//2
-            oy = (h - nums[0].height)//2
+            ox = (w - len(seq)*14) // 2
+            oy = (h - nums[0].height) // 2
             with nums[0].owner:
                 for i, ch in enumerate(seq):
                     n = ord(ch) - ord('0')
@@ -131,7 +136,7 @@ class GameIntroIcon(Control, BalloonPromptMixin):
         gres.tag_gameintro.blit(0, 0)
 
 
-class THBattleUI(Control):
+class THBattleUI(Control, Observable):
     portrait_location = [
         (60, 300, Colors.blue),
         (250, 450, Colors.orange),
@@ -144,8 +149,8 @@ class THBattleUI(Control):
     gcp_location = [
         (3, 1, 'me', Colors.blue),
         (669, 280, 'left', Colors.orange),
-        (155+180+180, 520, 'bottom', Colors.blue),
-        (155+180, 520, 'bottom', Colors.orange),
+        (155 + 180 + 180, 520, 'bottom', Colors.blue),
+        (155 + 180, 520, 'bottom', Colors.orange),
         (155, 520, 'bottom', Colors.blue),
         (3, 280, 'right', Colors.orange),
     ]
@@ -164,7 +169,7 @@ class THBattleUI(Control):
         )
 
         self.handcard_area = HandCardArea(
-            parent=self, x=238, y=9, zindex=3,
+            parent=self, view=self, x=238, y=9, zindex=3,
             width=93*5+42, height=145,
         )
 
@@ -185,10 +190,6 @@ class THBattleUI(Control):
             **r2d((690, 630, 25, 25))
         )
 
-        @self.handcard_area.event
-        def on_selection_change():
-            self.dispatch_event('on_selection_change')
-
         self.dropcard_area = DropCardArea(
             parent=self, x=0, y=324, zindex=3,
             width=820, height=125,
@@ -208,6 +209,7 @@ class THBattleUI(Control):
 
         self.animations = Animations(parent=self)
         self.selecting_player = 0
+        self.action_params = {}
 
     @property
     def afk(self):
@@ -216,7 +218,7 @@ class THBattleUI(Control):
     def init(self):
         ports = self.char_portraits = [
             GameCharacterPortrait(parent=self, color=color,
-                x=x, y=y, tag_placement=tp, game=self.game)
+                x=x, y=y, tag_placement=tp)
             for x, y, tp, color in self.gcp_location[:len(self.game.players)]
         ]
 
@@ -254,24 +256,21 @@ class THBattleUI(Control):
             raise ValueError(p)
         return port
 
-    def update_skillbox(self):
+    def refresh_input_state(self):
+        self.action_params = {}
+
         g = self.game
         skills = getattr(g.me, 'skills', None)
-        if skills is None:
-            # before girl chosen
-            return
+        if skills is not None:
+            skills = [
+                (s, i, s.ui_meta.clickable(g))
+                for i, s in enumerate(skills)
+                if not getattr(s.ui_meta, 'no_display', False)
+            ]
 
-        skills = [
-            (i, s, s.ui_meta.clickable(g))
-            for i, s in enumerate(skills)
-            if not getattr(s.ui_meta, 'no_display', False)
-        ]
+            skills.sort(key=lambda i: -i[2])
 
-        skills.sort(key=lambda i: -i[2])
-
-        self.skill_box.set_skills(
-            (s.ui_meta.name, i, e) for i, s, e in skills
-        )
+            self.skill_box.set_skills(skills)
 
     PORT_UPDATE_MESSAGES = {
         'evt_game_begin',
@@ -411,6 +410,9 @@ class THBattleUI(Control):
             skills[i] for i in self.skill_box.get_selected_index()
         ], key=lambda s: s.sort_index)
 
+    def get_action_params(self):
+        return self.action_params
+
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1_recursive(x, y)
         if isinstance(c, GameCharacterPortrait) and self.selecting_player and not c.disabled:
@@ -424,7 +426,7 @@ class THBattleUI(Control):
             else:
                 c.selected = True
                 psel.append(char)
-            self.dispatch_event('on_selection_change')
+            self.notify('selection_change')
         return True
 
     def get_game_screen(self):
@@ -434,9 +436,6 @@ class THBattleUI(Control):
     @staticmethod
     def show_result(g):
         ResultPanel(g, parent=Overlay.cur_overlay)
-
-
-THBattleUI.register_event_type('on_selection_change')
 
 
 class THBattleIdentityUI(THBattleUI):

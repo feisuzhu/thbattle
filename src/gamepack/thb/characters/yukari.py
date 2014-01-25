@@ -84,7 +84,7 @@ class RealmSkipDrawCardHandler(EventHandler):
 
             pl = [p for p in g.players if not p.dead and (p.cards or p.showncards)]
 
-            _, rst = ask_for_action(self, [tgt], ['cards', 'showncards', 'equips'], pl)
+            _, rst = ask_for_action(self, [tgt], ('cards', 'showncards', 'equips'), pl)
             if not rst: return act
 
             cl, pl = rst
@@ -164,7 +164,7 @@ class RealmSkipActionHandler(EventHandler):
 
             pl = [p for p in g.players if not p.dead]
 
-            _, rst = ask_for_action(self, [tgt], ['cards', 'showncards', 'equips'], pl)
+            _, rst = ask_for_action(self, [tgt], ('cards', 'showncards', 'equips'), pl)
             if not rst: return act
             cl, pl = rst
             if len(pl) != 2: return act

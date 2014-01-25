@@ -138,16 +138,15 @@ class texture(_ResourceDesc):
 
 class lazytexture(_ResourceDesc):
     __slots__ = ('name', )
-    _DEAD = lambda: 0
 
     def load(self, loader):
         self.loader = loader
-        self.reference = weakref.ref(self._DEAD)
+        self.reference = weakref.ref(lambda: 0)  # make a dead ref
         return self
 
     def get(self):
         obj = self.reference()
-        if obj not in (None, self._DEAD):
+        if obj is not None:
             return obj
 
         obj = self.loader.texture(self.name + '.png')

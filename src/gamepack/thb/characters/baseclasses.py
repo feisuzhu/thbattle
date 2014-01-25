@@ -3,10 +3,13 @@
 from game.autoenv import GameObject
 
 characters = []
-ex_characters = []
+raid_characters = []
+id8exclusive_characters = []
 
 
 class Character(GameObject):
+    character_classes = {}
+
     def __init__(self, player):
         self.player = player
 
@@ -27,14 +30,20 @@ class Character(GameObject):
             assert not hasattr(self.player, k)
 
 
-def register_character(cls):
-    characters.append(cls)
-    return cls
+def _reg_to(l):
+    def register(cls):
+        l.append(cls)
+        Character.character_classes[cls.__name__] = cls
+        return cls
+
+    return register
 
 
-def register_ex_character(cls):
-    ex_characters.append(cls)
-    return cls
+register_character = _reg_to(characters)
+register_raid_character = _reg_to(raid_characters)
+register_id8exclusive_character = _reg_to(id8exclusive_characters)
+
+register_special_character = _reg_to([])
 
 
 def mixin_character(player, char_cls):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from weakref import WeakSet
+from utils.misc import Observable
 import atexit
 import logging
 import os.path
@@ -9,17 +9,12 @@ import simplejson as json
 log = logging.getLogger('user_settings')
 
 
-class UserSettings(dict):
-    __slots__ = ()
-
-    def __init__(self):
-        dict.__init__(self)
-        self['__observers__'] = WeakSet()
+class UserSettings(dict, Observable):
+    __slots__ = ('_ob_dict', )
 
     def __setitem__(self, k, v):
         dict.__setitem__(self, k, v)
-        for ob in self['__observers__']:
-            ob(k, v)
+        self.notify('setting_change', k, v)
 
     def __getattr__(self, name):
         try:
@@ -28,19 +23,18 @@ class UserSettings(dict):
             raise AttributeError
 
     def __setattr__(self, name, v):
+        if name.startswith('_'):
+            dict.__setattr__(self, name, v)
+            return
+
         self[name] = v
 
     def add_setting(self, name, default):
         self[name] = default
 
-    def add_observer(self, ob):
-        self['__observers__'].add(ob)
-
     def save(self):
         with open(self._get_conf_name(), 'w') as f:
-            d = dict(self)
-            d.pop('__observers__')
-            f.write(json.dumps(d))
+            f.write(json.dumps(self))
 
     def load(self):
         conf = self._get_conf_name()
@@ -69,6 +63,6 @@ UserSettings.add_setting('volume', 1.0)
 UserSettings.load()
 
 # reset at start
-UserSettings.add_setting('no_invite', False)
+UserSettings.no_invite = False
 
 atexit.register(UserSettings.save)

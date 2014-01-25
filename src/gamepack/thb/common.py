@@ -16,14 +16,8 @@ class CharChoice(object):
         return self.char_cls.__name__
 
     def sync(self, data):
-        from .characters import characters as chars
-        from .characters.akari import Akari
-
-        if data == 'Akari':
-            self.char_cls = Akari
-            return
-
-        self.char_cls = [cls for cls in chars if cls.__name__ == data][0]
+        from .characters.baseclasses import Character
+        self.char_cls = Character.character_classes[data]
 
     def __repr__(self):
         return '<Choice: {}>'.format('None' if not self.char_cls else self.char_cls.__name__)

@@ -40,9 +40,16 @@ class ActionInputlet(Inputlet):
         self.skills = []
         self.cards = []
         self.players = []
+        self.params = {}
 
     def parse(self, data):
-        # data = [[skill_index1, ...], [card_syncid1, ...], [player_id1, ...]]
+        # data = [
+        #     [skill_index1, ...],
+        #     [card_syncid1, ...],
+        #     [player_id1, ...],
+        #     {'action_param1': 'AttackCard'},
+        # ]
+
         actor = self.actor
         g = Game.getgame()
         categories = self.categories
@@ -52,11 +59,13 @@ class ActionInputlet(Inputlet):
         skills = []
         cards = []
         players = []
+        params = {}
 
+        _ = Ellipsis
         try:
-            check_type([[int, Ellipsis]] * 3, data)
+            check_type([[int, _]] * 3 + [dict], data)
 
-            sid_list, cid_list, pid_list = data
+            sid_list, cid_list, pid_list, params = data
 
             if candidates:
                 check(candidates)
@@ -76,13 +85,12 @@ class ActionInputlet(Inputlet):
                     check(all(cat.owner is actor for cat in categories))
                     check(all(c.resides_in.owner is actor for c in cards))  # Cards belong to actor?
                     for skill_id in sid_list:
-                        check(isinstance(skill_id, int))
                         check(0 <= skill_id < len(actor.skills))
                     skills = [actor.skills[i] for i in sid_list]
                 else:
                     check(all(c.resides_in in categories for c in cards))  # Cards in desired categories?
 
-            return [skills, cards, players]
+            return [skills, cards, players, params]
 
         except CheckFailed:
             return None
@@ -93,12 +101,13 @@ class ActionInputlet(Inputlet):
         sid_list = [actor_skills.index(s) for s in self.skills]
         cid_list = [c.syncid for c in self.cards]
         pid_list = [g.get_playerid(p) for p in self.players]
-        return [sid_list, cid_list, pid_list]
+        return [sid_list, cid_list, pid_list, self.params]
 
-    def set_result(self, skills, cards, players):
+    def set_result(self, skills, cards, players, params=None):
         self.skills = skills
         self.cards = cards
         self.players = players
+        self.params = params or {}
 
 
 class ChooseIndividualCardInputlet(Inputlet):
@@ -190,11 +199,12 @@ class ProphetInputlet(Inputlet):
         self.downcards = []
 
     def parse(self, data):
+        _ = Ellipsis
         try:
-            check_type([[int, Ellipsis]] * 2, data)
+            check_type([[int, _]] * 2, data)
             upcards = data[0]
             downcards = data[1]
-            check(sorted(upcards+downcards) == range(len(self.cards)))
+            check(sorted(upcards + downcards) == range(len(self.cards)))
         except CheckFailed:
             return [self.cards, []]
 
@@ -216,8 +226,7 @@ class ProphetInputlet(Inputlet):
         return [upcards, downcards]
 
     def set_result(self, upcards, downcards):
-        cards = self.cards
-        assert set(cards) == set(upcards + downcards)
+        assert set(self.cards) == set(upcards + downcards)
         self.upcards = upcards
         self.downcards = downcards
 
@@ -257,7 +266,7 @@ class ChooseGirlInputlet(Inputlet):
         try:
             return self.mapping[self.actor].index(self.choice)
         except:
-            log.error('WTF?!', exc_info=1)
+            log.exception('WTF?!')
             return None
 
     def set_choice(self, choice):
@@ -266,7 +275,7 @@ class ChooseGirlInputlet(Inputlet):
 
 
 class SortCharacterInputlet(Inputlet):
-    def init(self, mapping, limit = None):
+    def init(self, mapping, limit=None):
         # mapping = {
         #   Player1: [CharChoice1, ...],
         #   ...
@@ -306,8 +315,9 @@ class HopeMaskInputlet(Inputlet):
         self.acquire = []
 
     def parse(self, data):
+        _ = Ellipsis
         try:
-            check_type([[int, Ellipsis]] * 2, data)
+            check_type([[int, _]] * 2, data)
             putback = data[0]
             acquire = data[1]
             check(sorted(putback+acquire) == range(len(self.cards)))
@@ -347,7 +357,7 @@ class HopeMaskInputlet(Inputlet):
         assert self.is_valid(putback, acquire)
         self.putback = putback
         self.acquire = acquire
-    
+
     def post_process(self, actor, rst):
         g = Game.getgame()
         putback, acquire = rst

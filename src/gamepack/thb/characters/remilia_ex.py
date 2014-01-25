@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_ex_character
+from .baseclasses import Character, register_raid_character
 
 from ..actions import UserAction, DropCards, LifeLost, LaunchCard, ForEach, DrawCards, ActionStage, DropCardStage, ask_for_action
 from ..actions import random_choose_card, user_choose_cards
@@ -96,7 +96,7 @@ class ScarletFogEffect(UserAction):
             g.process_action(LifeLost(p, p, 1))
             return True
 
-        _, rst = ask_for_action(self, [p], ['cards', 'showncards'], pl)
+        _, rst = ask_for_action(self, (p, ), ('cards', 'showncards'), pl)
         if rst:
             c = rst[0][0]; t = rst[1][0]
             g.process_action(LaunchCard(p, [t], c))
@@ -214,7 +214,7 @@ class RemiliaEx2(Character):
     ]
 
 
-@register_ex_character
+@register_raid_character
 class RemiliaEx(Character):
     maxlife = 6
     skills = [NeverNight, SpearTheGungnir, VampireKiss]

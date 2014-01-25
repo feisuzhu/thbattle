@@ -50,11 +50,13 @@ class UISelectTarget(Control, InputHandler):
         self.trans = trans
         self.inputlet = None
         self.label = None
+        self.action_params = {}
+        self.view = self.parent
 
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
     def process_user_input(self, ilet):
-        parent = self.parent
+        view = self.view
         self.confirmbtn = ConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
             buttons=((u'确定', True), (u'结束', False)),
@@ -67,19 +69,13 @@ class UISelectTarget(Control, InputHandler):
             anchor_x='center', anchor_y='bottom',
         )
 
-        def dispatch_selection_change():
-            self.confirmbtn.buttons[0].state = Button.DISABLED
-            self.on_selection_change()
-
-        parent.push_handlers(
-            on_selection_change=dispatch_selection_change
-        )
+        view.add_observer('selection_change', self._on_selection_change)
 
         g = Game.getgame()
-        port = parent.player2portrait(g.me)
+        port = view.player2portrait(g.me)
         port.equipcard_area.clear_selection()
 
-        #dispatch_selection_change() # the clear_selection thing will trigger this
+        # view.notify('selection_change') # the clear_selection thing will trigger this
 
         @self.confirmbtn.event
         def on_confirm(is_ok):
@@ -97,16 +93,21 @@ class UISelectTarget(Control, InputHandler):
     def set_text(self, text):
         self.label.text = text
 
+    def _on_selection_change(self):
+        self.set_valid(False)
+        self.on_selection_change()
+
     def on_selection_change(self):
         # subclasses should surpress it
         self.set_valid()
 
     def get_result(self):  # override this to customize
-        parent = self.parent
+        view = self.view
         return [
-            parent.get_selected_skills(),
-            parent.get_selected_cards(),
-            parent.get_selected_players(),
+            view.get_selected_skills(),
+            view.get_selected_cards(),
+            view.get_selected_players(),
+            view.get_action_params(),
         ]
 
     def hit_test(self, x, y):
@@ -114,17 +115,19 @@ class UISelectTarget(Control, InputHandler):
 
     def cleanup(self):
         if not self.label: return  # processed user_input
-        p = self.parent
-        p.end_select_player()
-        p.pop_handlers()
+        self.view.end_select_player()
 
-    def set_valid(self):
-        self.confirmbtn.buttons[0].state = Button.NORMAL
+    def set_valid(self, valid=True):
+        self.confirmbtn.buttons[0].state = Button.NORMAL if valid else Button.DISABLED
 
     def draw(self):
         self.draw_subcontrols()
         lbl = self.label
         lbl and lbl.draw()
+
+    def delete(self):
+        self.view.remove_observer('selection_change', self._on_selection_change)
+        super(UISelectTarget, self).delete()
 
 
 class UIDoPassiveAction(UISelectTarget):
@@ -143,7 +146,7 @@ class UIDoPassiveAction(UISelectTarget):
             ori = self.set_valid
             self._sv_val = False
 
-            def reject_sv():
+            def reject_sv(valid=False):
                 self._sv_val = True
 
             self.set_valid = reject_sv
@@ -159,7 +162,7 @@ class UIDoPassiveAction(UISelectTarget):
             disables = [p for p in g.players if p not in candidates]
             parent.begin_select_player(disables)
 
-        self.dispatch_event('on_selection_change')
+        self.view.notify('selection_change')
 
     def on_selection_change(self):
         try:
@@ -171,8 +174,8 @@ class UIDoPassiveAction(UISelectTarget):
             candidates = ilet.candidates
 
             g = Game.getgame()
-            parent = self.parent
-            if not parent: return
+            view = self.parent
+            if not view: return
 
             cond = getattr(initiator, 'cond', False)
 
@@ -199,26 +202,28 @@ class UIDoPassiveAction(UISelectTarget):
                     from itertools import chain
                     for c in chain(g.me.showncards, g.me.cards):
                         if not cond([c]): continue
-                        hca = parent.handcard_area
+                        hca = view.handcard_area
                         for cs in hca.cards:
                             if cs.associated_card == c:
                                 break
                         else:
                             raise Exception('WTF?!')
+
                         hca.toggle(cs, 0.3)
                         return
 
-                skills = parent.get_selected_skills()
-                cards = parent.get_selected_cards()
+                skills = view.get_selected_skills()
+                cards = view.get_selected_cards()
+                params = view.get_action_params()
+
                 if skills:
                     for skill_cls in skills:
-                        cards = [skill_cls.wrap(cards, g.me)]
+                        cards = [skill_cls.wrap(cards, g.me, params)]
                         try:
                             rst, reason = cards[0].ui_meta.is_complete(g, cards)
-                        except Exception as e:
+                        except:
                             rst, reason = False, u'[card.ui_meta.is_complete错误]'
-                            import traceback
-                            traceback.print_exc()
+                            log.exception('card.ui_meta.is_complete error')
 
                         if not rst:
                             self.set_text(reason)
@@ -232,22 +237,22 @@ class UIDoPassiveAction(UISelectTarget):
                 if not c: return
 
             if candidates:
-                players = parent.get_selected_players()
+                players = view.get_selected_players()
                 players, valid = initiator.choose_player_target(players)
                 try:
                     valid1, reason = initiator.ui_meta.target(players)
                     assert bool(valid) == bool(valid1)
-                except Exception as e:
-                    log.exception(e)
+                except:
+                    log.exception('act.ui_meta.target error')
                     valid1, reason = valid, u'[act.ui_meta.target错误]'
-                parent.set_selected_players(players)
+
+                view.set_selected_players(players)
                 self.set_text(reason)
                 if not valid: return
 
             self.set_valid()
-        except Exception:
-            import traceback
-            traceback.print_exc()
+        except:
+            log.exception('on_selection_change')
 
     def cleanup(self):
         try:
@@ -267,14 +272,15 @@ class UIDoActionStage(UISelectTarget):
     #    pass
 
     def on_selection_change(self):
-        parent = self.parent
-        skills = parent.get_selected_skills()
-        cards = rawcards = parent.get_selected_cards()
+        view = self.parent
+        skills = view.get_selected_skills()
+        cards = rawcards = view.get_selected_cards()
+        params = view.get_action_params()
 
         g = Game.getgame()
 
         if skills:
-            cards = [skills[0].wrap(cards, g.me)]
+            cards = [skills[0].wrap(cards, g.me, params)]
             for skill_cls in skills[1:]:
                 try:
                     isc = getattr(cards[0].ui_meta, 'is_complete', None)
@@ -285,22 +291,21 @@ class UIDoActionStage(UISelectTarget):
                     if not rst:
                         self.set_text(reason)
                         return
-                except Exception as e:
+                except:
                     self.set_text(u'[card.ui_meta.is_complete错误]')
-                    import traceback
-                    traceback.print_exc()
+                    log.exception('card.ui_meta.is_complete error')
                     return
 
-                cards = [skill_cls.wrap(cards, g.me)]
+                cards = [skill_cls.wrap(cards, g.me, params)]
 
         if not cards:
             self.set_text(u'请出牌…')
-            parent.end_select_player()
+            view.end_select_player()
             return
 
         if len(cards) != 1:
             self.set_text(u'请选择一张牌使用')
-            parent.end_select_player()
+            view.end_select_player()
             return
 
         card = cards[0]
@@ -309,12 +314,12 @@ class UIDoActionStage(UISelectTarget):
         if not card.is_card(VirtualCard):
             if not card.resides_in in (g.me.cards, g.me.showncards):
                 self.set_text(u'您选择的牌不符合出牌规则')
-                parent.end_select_player()
+                view.end_select_player()
                 return
 
-        target_list, tl_valid = card.target(g, g.me, parent.get_selected_players())
+        target_list, tl_valid = card.target(g, g.me, view.get_selected_players())
         if target_list is not None:
-            parent.set_selected_players(target_list)
+            view.set_selected_players(target_list)
             disables = []
             # if card.target in (thbcards.t_One, thbcards.t_OtherOne):
             if card.target.__name__ in ('t_One', 't_OtherOne'):
@@ -323,7 +328,7 @@ class UIDoActionStage(UISelectTarget):
                     if not act.can_fire():
                         disables.append(p)
 
-            parent.begin_select_player(disables)
+            view.begin_select_player(disables)
             for i in disables:
                 try:
                     target_list.remove(i)
@@ -344,7 +349,7 @@ class UIDoActionStage(UISelectTarget):
             act = thbactions.ActionStageLaunchCard(g.me, target_list, card)
 
             if skills:
-                card = thbactions.skill_wrap(g.me, skills, rawcards, no_reveal=True)
+                card = thbactions.skill_wrap(g.me, skills, rawcards, params, no_reveal=True)
 
             if card and act.can_fire():
                 self.set_valid()
@@ -390,13 +395,13 @@ class UIChooseGirl(Panel, InputHandler):
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
         pw, ph = p.width, p.height
-        self.x, self.y = (pw-w)/2, (ph-h)/2
+        self.x, self.y = (pw - w)/2, (ph - h)/2
         self.inputlet = None
         choices = self.choices = [c for c in choices if c.char_cls and not getattr(c, 'chosen', False)]
         self.selectors = selectors = []
         for i, c in enumerate(choices):
             y, x = divmod(i, 4)
-            x, y = 15 + 160*x, 45 + 113*(3-y)
+            x, y = 15 + 160*x, 45 + 113*(3 - y)
             gs = GirlSelector(c, selectors, parent=self, x=x, y=y)
 
             @gs.event
@@ -687,7 +692,7 @@ class Dragger(Control):
         self.width, self.height = self.expected_size(self.rows, self.cols)
 
     @classmethod
-    def expected_size(cls, rows = None, cols = None):
+    def expected_size(cls, rows=None, cols=None):
         return (
             (cls.item_width + 4) * (cols or cls.cols),
             (cls.item_height + 15) * (rows or cls.rows),
@@ -824,7 +829,7 @@ class CharacterSorterControl(Dragger):
     item_width, item_height = 145, 96
 
     def __init__(self, total, limit, *a, **k):
-        Dragger.__init__(self, *a, cols = total, **k)
+        Dragger.__init__(self, *a, cols=total, **k)
         self.limit = limit
 
     def update_sprite(self, c, i, j):
@@ -923,7 +928,7 @@ class UIKokoroHomeMask(Panel, InputHandler):
                 batch=self.lbls,
             )
 
-        lbl(u'请拖动调整牌的位置，获得的牌必须是同花色的', w//2, h-25)
+        lbl(u'请拖动调整牌的位置，获得的牌必须是同花色的', w // 2, h - 25)
         lbl(u'牌堆顶', 50, 277)
         lbl(u'展示并获得', 50, 122)
 
@@ -1048,14 +1053,14 @@ def handle_event(self, _type, arg):
 
     elif _type == 'user_input_start':
         trans, ilet = arg
-        ilet.actor is g.me and self.update_skillbox()
+        ilet.actor is g.me and self.refresh_input_state()
         ui = input_handler_mapping.get(trans, None)
         if not ui: return
         ui.process_user_input_start(ilet)
 
     elif _type == 'user_input_finish':
         trans, ilet, rst = arg
-        ilet.actor is g.me and self.update_skillbox()
+        ilet.actor is g.me and self.refresh_input_state()
         ui = input_handler_mapping.get(trans, None)
         if not ui: return
         ui.process_user_input_finish(ilet, rst)

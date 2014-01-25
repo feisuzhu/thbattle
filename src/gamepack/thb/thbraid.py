@@ -431,9 +431,9 @@ class THBattleRaid(Game):
             g.process_action(RevealIdentity(p, g.players))
 
         # mutant's choose
-        from characters import ex_characters as ex_chars
+        from characters import raid_characters as raid_chars
 
-        choices = [CharChoice(cls) for cls in ex_chars]
+        choices = [CharChoice(cls) for cls in raid_chars]
         mapping = {mutant: choices}
         with InputTransaction('ChooseGirl', [mutant], mapping=mapping) as trans:
             c = user_input([mutant], ChooseGirlInputlet(g, mapping), timeout=5, trans=trans)

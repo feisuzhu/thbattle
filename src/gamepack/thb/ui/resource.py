@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, img, img_grid, img_with_grayed, sound, subdir, texture, define_atlas, lazytexture, encrypted_texture
+from client.ui.resloader import Resource, _ResourceDesc
+from client.ui.resloader import anim, bgm, define_atlas, encrypted_texture
+from client.ui.resloader import img, img_grid, img_with_grayed, lazytexture
+from client.ui.resloader import sound, subdir, texture
 import os
 
 respath = os.path.join(os.path.dirname(__file__), 'res')
@@ -81,7 +84,7 @@ resource = Resource(respath, [
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
         'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
         'seiga', 'kaguya', 'momiji', 'komachi', 'mokou',
-        'kokoro',
+        'kokoro', 'mamizou',
 
         'remilia_ex', 'remilia_ex2',
     ]],

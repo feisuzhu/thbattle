@@ -126,6 +126,11 @@ class THBattleIdentity(Game):
         from .characters.akari import Akari
 
         chars = list(chars)
+        if g.n_persons == 8:
+            from .characters import id8exclusive_characters as excl
+            # id8 exclusive chars
+            chars += excl
+
         if Game.CLIENT_SIDE:
             chars = [None] * len(chars)
 
@@ -171,7 +176,7 @@ class THBattleIdentity(Game):
             boss = g.switch_character(boss, c.char_cls)
 
             # boss's hp bonus
-            if len(g.players) > 5:
+            if g.n_persons > 5:
                 boss.maxlife += 1
 
             boss.life = boss.maxlife

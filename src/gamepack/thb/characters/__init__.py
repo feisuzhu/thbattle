@@ -38,6 +38,7 @@ import momiji  # noqa
 import komachi  # noqa
 import mokou  # noqa
 import kokoro  # noqa
+import mamizou  # noqa
 
 import remilia_ex  # noqa
 
@@ -51,14 +52,11 @@ from game.autoenv import Game
 from options import options
 options.testing and baseclasses.register_character(dummy.Dummy)
 
-characters = baseclasses.characters
-characters.sort(key=lambda i: i.__name__)
-characters = tuple(characters)
+characters = tuple(sorted(baseclasses.characters, key=lambda i: i.__name__))
+raid_characters = tuple(sorted(baseclasses.raid_characters, key=lambda i: i.__name__))
+id8exclusive_characters = tuple(sorted(baseclasses.id8exclusive_characters, key=lambda i: i.__name__))
 del baseclasses.characters
-
-ex_characters = baseclasses.ex_characters
-ex_characters.sort(key=lambda i: i.__name__)
-ex_characters = tuple(ex_characters)
-del baseclasses.ex_characters
+del baseclasses.raid_characters
+del baseclasses.id8exclusive_characters
 
 del sys, Game, options

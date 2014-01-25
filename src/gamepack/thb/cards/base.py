@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck classes
 
-from game.autoenv import Game, GameError, GameObject
-import random
-import logging
+from collections import deque
 from ..common import get_seed_for
+from game.autoenv import Game, GameError, GameObject
+from weakref import WeakValueDictionary
+import logging
+import random
 
 log = logging.getLogger('THBattle_Cards')
 
@@ -143,12 +145,14 @@ class VirtualCard(Card):
         self.suit = Card.NOTSET
         self.number = 0
         self.resides_in = player.cards
+        self.action_params = {}
 
     def __data__(self):
         return {
             'class': self.__class__.__name__,
             'syncid': self.syncid,
             'vcard': True,
+            'params': self.action_params,
         }
 
     def check(self):  # override this
@@ -169,7 +173,7 @@ class VirtualCard(Card):
         return l
 
     @classmethod
-    def wrap(cls, cl, player):
+    def wrap(cls, cl, player, params=None):
         vc = cls(player)
         if not cl:
             vc.associated_cards = []
@@ -185,14 +189,14 @@ class VirtualCard(Card):
 
         vc.suit, vc.number, vc.color = suit, num, color
         vc.associated_cards = cl[:]
+        vc.action_params = params or {}
         return vc
 
     def sync(self, data):
         assert data['vcard']
         assert self.__class__.__name__ == data['class']
         assert self.syncid == data['syncid']
-
-from collections import deque
+        assert self.action_params == data['params']
 
 
 class CardList(GameObject, deque):
@@ -219,7 +223,6 @@ class Deck(GameObject):
         if not card_definition:
             from .definition import card_definition
 
-        from weakref import WeakValueDictionary
         self.cards_record = {}
         self.vcards_record = WeakValueDictionary()
         self.droppedcards = CardList(None, 'droppedcard')
@@ -262,7 +265,7 @@ class Deck(GameObject):
         vcr = self.vcards_record
         for cid in idlist:
             c = vcr.get(cid, None) or cr.get(cid, None)
-            if c: l.append(c)
+            c and l.append(c)
 
         return l
 

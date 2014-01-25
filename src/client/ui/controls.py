@@ -13,7 +13,7 @@ from client.core import Executive
 from utils import textsnap, flatten, rectv2f, rrectv2f, inpoly
 from utils import pyperclip, instantiate
 
-from pyglet.gl import glEnd, glBegin, gl_info, glRectf, glEnable, glColor3f
+from pyglet.gl import glEnd, glBegin, glRectf, glEnable, glColor3f
 from pyglet.gl import glColor4f, glDisable, glScissor, glVertex2f, glLineWidth
 from pyglet.gl import glPopAttrib, glPopMatrix, glDrawArrays, glPushAttrib
 from pyglet.gl import glPushMatrix, glTranslatef, glBindTexture, glLoadIdentity
@@ -25,7 +25,6 @@ from pyglet.gl import GL_TEXTURE_2D, GL_SCISSOR_TEST, GL_CLIENT_VERTEX_ARRAY_BIT
 
 from collections import namedtuple
 
-HAVE_FBO = gl_info.have_extension('GL_EXT_framebuffer_object')
 KEYMOD_MASK = key.MOD_CTRL | key.MOD_ALT | key.MOD_SHIFT
 
 import logging
@@ -2025,7 +2024,7 @@ class NoInviteButton(OptionButton):
             (u'邀请已开启', Colors.orange, False),
         )
         OptionButton.__init__(self, conf=conf, default_value=UserSettings.no_invite, *a, **k)
-        UserSettings.add_observer(self)
+        UserSettings.add_observer('setting_change', self)
 
     def __call__(self, k, v):
         if k == 'no_invite':
@@ -2034,3 +2033,8 @@ class NoInviteButton(OptionButton):
     def on_value_changed(self, value):
         from user_settings import UserSettings as us
         us.no_invite = value
+
+    def delete(self):
+        from user_settings import UserSettings
+        UserSettings.remove_observer('setting_change', self)
+        OptionButton.delete(self)
