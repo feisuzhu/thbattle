@@ -9,7 +9,7 @@ from client.ui.base import Control
 from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractInterp
 from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineInterp
 
-from client.ui.controls import Frame, Panel, Button, Colors, ImageButton, TextArea
+from client.ui.controls import Frame, Panel, Button, Colors, ImageButton, TextArea, OptionButton
 from client.ui.controls import BalloonPromptMixin
 
 
@@ -617,7 +617,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
     actor_frame = None
     turn_frame = None
 
-    def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', *args, **kwargs):
+    def __init__(self, x=0.0, y=0.0, color=Colors.blue, tag_placement='me', game=None, *args, **kwargs):
         self.player = None
         self.character = None
         self._disabled = False
@@ -664,33 +664,19 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
         w, h = self.width, self.height
 
-        self.identity_btn = b = Button(
-            u'？', parent=self,
+        tbl = game.ui_meta.identity_table
+        colortbl = game.ui_meta.identity_color
+        conf = [(tbl[k], getattr(Colors, colortbl[k]), k) for k in tbl]
+
+        self.identity_btn = b = OptionButton(
+            conf=conf, default=0, parent=self,
             x=w-42-4, y=h-24-10-18,
             width=42, height=18,
         )
 
-        self.cur_idtag = 0
-
         @b.event
-        def on_click():
-            # TODO: Replace with OptionButton
-            g = Game.getgame()
-            tbl = g.ui_meta.identity_table
-            colortbl = g.ui_meta.identity_color
-            keys = tbl.keys()
-            try:
-                i = (keys.index(self.cur_idtag) + 1) % len(keys)
-            except ValueError:
-                i = 0
-            next = keys[i]
-            b.caption = tbl[next]
-            color = getattr(Colors, colortbl[next])
-            b.color = color
-            self.set_color(color)
-            b.update()
-            self.update()
-            self.cur_idtag = next
+        def on_value_changed(v):
+            self.set_color(b.color)
 
         @self.equipcard_area.event
         def on_selection_change():
@@ -762,7 +748,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
         p = self.player
         if not p: return
 
-        nick = p.account.username
+        nick = u"<%s>" % p.account.username
         if self.dropped:
             if self.fleed:
                 prefix = u'(逃跑)'
@@ -996,13 +982,9 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             me = g.me
             if (act.target in (self.player, self.character)) and (me in act.to if isinstance(act.to, list) else me is act.to):
                 btn = self.identity_btn
-                tbl = g.ui_meta.identity_table
-                colortbl = g.ui_meta.identity_color
-                color = getattr(Colors, colortbl[act.target.identity.type])
-                btn.caption = tbl[act.target.identity.type]
+                btn.value = act.target.identity.type
                 btn.state = Button.DISABLED
                 btn.update()
-                self.set_color(color)
                 # self.update()
         elif _type == 'evt_switch_character':
             p = args[0]

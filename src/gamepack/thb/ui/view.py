@@ -215,7 +215,8 @@ class THBattleUI(Control):
 
     def init(self):
         ports = self.char_portraits = [
-            GameCharacterPortrait(parent=self, color=color, x=x, y=y, tag_placement=tp)
+            GameCharacterPortrait(parent=self, color=color,
+                x=x, y=y, tag_placement=tp, game=self.game)
             for x, y, tp, color in self.gcp_location[:len(self.game.players)]
         ]
 
