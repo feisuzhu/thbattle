@@ -215,6 +215,7 @@ class Game(Greenlet, game.Game):
         #return getcurrent()
 
     def get_synctag(self):
+        assert gevent.getcurrent() is self
         self.synctag += 1
         return self.synctag
 

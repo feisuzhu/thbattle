@@ -27,6 +27,8 @@ class Server(Endpoint, GamedataMixin, Greenlet):
             if cmd == 'gamedata':
                 self.gamedata(data)
             else:
+                if cmd in ('game_started', 'observe_started'):
+                    self.gclear()
                 self.ctlcmds.put([cmd, data])
 
     def gwrite(self, tag, data):

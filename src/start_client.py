@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import logging
 import sys
 import os
@@ -113,7 +113,7 @@ if not sys.platform.startswith('linux'):
 
 
 from gevent import monkey
-monkey.patch_socket()
+monkey.patch_all()
 
 
 from game import autoenv
