@@ -97,9 +97,9 @@ class Identity(PlayerIdentity):
     class TYPE:
         HIDDEN = 0
         ATTACKER = 1
-        BOSS = 2
-        ACCOMPLICE = 3
-        CURTAIN = 4
+        BOSS = 4
+        ACCOMPLICE = 2
+        CURTAIN = 3
 
 
 class THBattleIdentity(Game):

@@ -470,6 +470,8 @@ class Frame(Control):
 
         self.bgsprite.image = bg
 
+    def on_resize(self, w, h): self.update_bg()
+
     def _fill_batch(self, batch):
         ax, ay = self.abs_coords()
         self._batch = batch
@@ -612,6 +614,11 @@ class Frame(Control):
             self._labels.remove(shadow)
             shadow.delete()
 
+    def set_label_position(self, l, x, y):
+        l._ox = x
+        l._oy = y
+        self._update_labels()
+
     def _update_labels(self):
         ax, ay = self.abs_coords()
         for l in self._labels:
@@ -649,6 +656,10 @@ class Dialog(Frame):
         timeout = getattr(self, 'timeout', None)
         if timeout:
             gevent.spawn_later(timeout, self.close)
+
+    def on_resize(self, w, h):
+        super(Dialog, self).on_resize(w, h)
+        self.btn_close.x, self.btn_close.y = w-18, h-19
 
     @staticmethod
     def batch_draw(dlgs):
@@ -1710,30 +1721,26 @@ class ConfirmBox(Dialog):
 
     def __init__(self, text=u'Yoo~', caption=u'信息',
                  buttons=Presets.OK, default=_default_value, *a, **k):
+        Dialog.__init__(
+            self, caption, width=300,
+            bot_reserve=33, *a, **k
+        )
 
-        # FIXME: this label is just for calculating width and height
-        # should not be like this
-        lbl = pyglet.text.Label(
-            text, font_name=u'AncientPix', font_size=9,
-            x=0, y=0, anchor_x='center', anchor_y='bottom',
-            width=10000, multiline=True,
-            color=(0, 0, 0, 255)
+        lbl = self.add_label(
+            text, 0, 33 + 20, anchor_x='center', anchor_y='bottom',
+            font_size=9, width=10000, multiline=True, color=(0, 0, 0, 255)
         )
         w, h = lbl.content_width + 1, lbl.content_height
         dw, dh = max(w, ConfirmButtons.calc_width(buttons))+50, h+24+33+20*2
-        Dialog.__init__(
-            self, caption, width=dw, height=dh,
-            bot_reserve=33, *a, **k
-        )
+        self.width, self.height = dw, dh
+        lbl.begin_update()
+        lbl.width = w
+        self.set_label_position(lbl, dw//2, 33 + 20)
+        lbl.end_update()
 
         p = self.parent
         pw, ph = p.width, p.height
         self.set_position((pw - dw)/2, (ph - dh)/2)
-
-        self.add_label(
-            text, dw // 2, 33 + 20, anchor_x='center', anchor_y='bottom',
-            font_size=9, width=w, multiline=True, color=(0, 0, 0, 255)
-        )
 
         self.confirm_btns = btn = ConfirmButtons(buttons, parent=self, color=self.color)
         self.value = buttons[0][1] if default is self._default_value else default
