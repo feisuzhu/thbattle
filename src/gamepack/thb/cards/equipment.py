@@ -305,14 +305,14 @@ class ScarletRhapsodySkill(WeaponSkill):
             card = cl[0]
             from .definition import AttackCard
             check(card.is_card(AttackCard))
-            target = card.resides_in.owner
+            tgt = card.resides_in.owner
 
-            # FIXME: not quite right here...
-            #        'detached' quirk !!!!
             raw = VirtualCard.unwrap([card])
-            expected = len(raw) - sum([c.detached for c in raw])
-
-            check(len(target.cards) + len(target.showncards) == expected)
+            check(len(raw) == 1)
+            check(raw[0].resides_in in (tgt.cards, tgt.showncards))
+            cards = set(tgt.cards) | set(tgt.showncards)
+            check(cards <= set(raw))
+            
             return True
         except CheckFailed:
             return False
