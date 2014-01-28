@@ -42,6 +42,36 @@ class InputHandler(object):
     def cleanup(self):
         pass
 
+class UIActionConfirmButtons(ConfirmButtons):
+    DEFAULT_BUTTONS=((u'确定', True), (u'结束', False))
+    def __init__(self, buttons=DEFAULT_BUTTONS, delay=0.5, **k):
+        self._valid = True
+        ConfirmButtons.__init__(self, buttons=buttons, delay=delay, **k)
+
+    def update(self):
+        for b in self.buttons:
+            b.state = Button.DISABLED if self.disabled else Button.NORMAL
+
+        if not self.valid:
+            self.buttons[0].state = Button.DISABLED
+
+    @property
+    def valid(self):
+        return self._valid
+
+    @valid.setter
+    def valid(self, valid):
+        self._valid = valid
+        self.update()
+
+    def disable(self):
+        self.disabled = True
+        self.update()
+
+    def enable(self):
+        self.disabled = False
+        self.update()
+
 
 class UISelectTarget(Control, InputHandler):
 
@@ -57,10 +87,8 @@ class UISelectTarget(Control, InputHandler):
 
     def process_user_input(self, ilet):
         view = self.view
-        self.confirmbtn = ConfirmButtons(
+        self.confirmbtn = UIActionConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
-            buttons=((u'确定', True), (u'结束', False)),
-            delay=0.5
         )
         self.progress_bar = BigProgressBar(parent=self, x=0, y=0, width=250)
         self.label = Label(
@@ -118,7 +146,7 @@ class UISelectTarget(Control, InputHandler):
         self.view.end_select_player()
 
     def set_valid(self, valid=True):
-        self.confirmbtn.buttons[0].state = Button.NORMAL if valid else Button.DISABLED
+        self.confirmbtn.valid = valid
 
     def draw(self):
         self.draw_subcontrols()
@@ -546,9 +574,9 @@ class UIChooseOption(Control, InputHandler):
                 ilet.initiator.__class__.__name__
             )
 
-        self.confirmbtn = ConfirmButtons(
+        self.confirmbtn = UIActionConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
-            buttons=choose_option_buttons, delay=0.5
+            buttons=choose_option_buttons,
         )
         self.progress_bar = b = BigProgressBar(parent=self, x=0, y=0, width=250)
         b.value = LinearInterp(
