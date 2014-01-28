@@ -33,7 +33,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
     g = Game.getgame()
     inputlet.timeout = timeout
-    players = players[:]
+    players = list(players)
 
     if not trans:
         with InputTransaction(inputlet.tag(), players) as trans:
