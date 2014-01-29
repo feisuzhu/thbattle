@@ -108,7 +108,7 @@ _card_category = {
     'basic': u'基本牌',
     'spellcard': u'符卡',
     'delayed_spellcard': u'延时符卡',
-    'instant_spellcard': u'立即符卡',
+    'instant_spellcard': u'非延时符卡',
     'equipment': u'装备',
     'weapon': u'武器',
     'shield': u'防具',

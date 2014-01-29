@@ -77,37 +77,6 @@ class BatchList(list):
             pass
 
 
-class ScissorBox(object):
-    exc = Exception('ScissorBox Invalid')
-
-    def __init__(self, con, x, y, w, h):
-        ax, ay = con.abs_coords()
-        self.box = (x+ax, y+ay, w, h)
-
-    def __enter__(self):
-        from utils import Rect
-        from pyglet.gl import GLint, glGetIntegerv, GL_SCISSOR_BOX, glScissor
-        ob = (GLint*4)()
-        glGetIntegerv(GL_SCISSOR_BOX, ob)
-        ob = list(ob)
-        box = [int(i) for i in self.box]
-        nb = Rect(*ob).intersect(Rect(*box))
-        nb and glScissor(nb.x, nb.y, nb.width, nb.height)
-        self.ob, self.nb = ob, nb
-        return self
-
-    def __exit__(self, exc_type, exc_value, tb):
-        if exc_value is self.exc:
-            return True
-        else:
-            from pyglet.gl import glScissor
-            glScissor(*self.ob)
-
-    def break_if_invalid(self):
-        if not self.nb:
-            raise self.exc
-
-
 class CheckFailed(Exception):
     pass
 
