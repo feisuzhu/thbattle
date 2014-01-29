@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 
 
+def rect_to_dict(rect):
+    x, y, w, h = rect
+    return dict(
+        x=x, y=y,
+        width=w, height=h,
+    )
+
+
 def rectv2f(x, y, w, h, ax=0, ay=0):
     x1, y1 = x + w, y + h
     return [ax+x, ay+y, ax+x1, ay+y, ax+x1, ay+y1, ax+x, ay+y1]
