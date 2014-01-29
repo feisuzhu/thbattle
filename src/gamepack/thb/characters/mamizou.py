@@ -17,16 +17,16 @@ class Morphing(TreatAsSkill):
 
         if not all(
             c.resides_in is not None and
-            c.resides_in.type in (
-                'cards', 'showncards', 'equips'
-            ) for c in cl
+            c.resides_in.type in ('cards', 'showncards')
+            for c in cl
         ): return False
 
         return self.is_morph_valid()
 
     def is_morph_valid(self):
         cls = self.get_morph_cls()
-        if not cls: return False
+        if not cls or 'delayed_spellcard' in cls.category:
+            return False
 
         cl = self.associated_cards
         cats = set(cl[0].category)
@@ -35,7 +35,7 @@ class Morphing(TreatAsSkill):
         if 'skill' in cats:
             return False
 
-        if not cats & set(cls.category) & {'basic', 'instant_spellcard'}:
+        if not cats & set(cls.category) & {'basic', 'spellcard'}:
             return False
 
         return True

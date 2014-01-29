@@ -39,9 +39,13 @@ class MorphingCardSelectionUI(Panel):
         if 'skill' in cats:
             return
 
-        cats = cats & {'basic', 'instant_spellcard'}
+        cats = cats & {'basic', 'spellcard'}
         if not cats:
             return
+
+        if 'spellcard' in cats:
+            cats.discard('spellcard')
+            cats.add('instant_spellcard')
 
         classes = [
             cls for cls in cards.Card.card_classes.values()
@@ -105,8 +109,8 @@ class Morphing:
         skill = cl[0]
         assert skill.is_card(characters.mamizou.Morphing)
         cl = skill.associated_cards
-        if len(cl) != 2:
-            return (False, u'请选择两张牌！')
+        if len(cl) != 2 or any([c.resides_in.type not in ('cards', 'showncards') for c in cl]):
+            return (False, u'请选择两张手牌！')
 
         cls = skill.get_morph_cls()
         if not cls:
