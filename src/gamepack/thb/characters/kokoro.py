@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from ..actions import UserAction, ActionStage, ShowCards, DropCards
 from ..actions import migrate_cards, user_choose_cards
 from ..cards import Card, Skill, t_None, t_OtherOne
@@ -117,7 +117,7 @@ class DarkNoh(Skill):
         return True
 
 
-@register_character
+@register_character_to(('-raid', ))
 class Kokoro(Character):
     skills = [HopeMask, DarkNoh]
     eventhandlers_required = [HopeMaskHandler]

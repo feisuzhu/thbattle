@@ -404,6 +404,7 @@ class MutantMorphHandler(EventHandler):
 
 class THBattleRaid(Game):
     n_persons = 4
+    categories = ('raid', )
     game_actions = _game_actions
     game_ehs = _game_ehs
 
@@ -461,10 +462,8 @@ class THBattleRaid(Game):
         g.deck = Deck(raid_carddef)
 
         # attackers' choose
-        from characters import characters as chars
-        from characters.kokoro import Kokoro
-        chars = list(chars)
-        chars.remove(Kokoro)
+        from characters import get_characters
+        chars = get_characters(g.categories)
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)
 
