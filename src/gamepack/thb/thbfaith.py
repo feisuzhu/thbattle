@@ -96,6 +96,7 @@ class Identity(PlayerIdentity):
 
 class THBattleFaith(Game):
     n_persons = 6
+    categories = ('faith', )
     game_ehs = _game_ehs
     game_actions = _game_actions
 
@@ -153,7 +154,7 @@ class THBattleFaith(Game):
 
         # choose girls -->
         from . import characters
-        chars = list(characters.characters)
+        chars = characters.get_characters(g.categories)
         g.random.shuffle(chars)
 
         if Game.SERVER_SIDE:

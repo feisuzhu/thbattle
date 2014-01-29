@@ -104,6 +104,7 @@ class Identity(PlayerIdentity):
 
 class THBattleIdentity(Game):
     n_persons = 8
+    categories = ('id', 'id8')
     game_actions = _game_actions
     T = Identity.TYPE
     identities = [
@@ -122,14 +123,9 @@ class THBattleIdentity(Game):
         g.ehclasses = ehclasses = list(action_eventhandlers) + _game_ehs.values()
 
         # choose girls init -->
-        from .characters import characters as chars
+        from .characters import get_characters
+        chars = get_characters(g.categories)
         from .characters.akari import Akari
-
-        chars = list(chars)
-        if g.n_persons == 8:
-            from .characters import id8exclusive_characters as excl
-            # id8 exclusive chars
-            chars += excl
 
         if Game.CLIENT_SIDE:
             chars = [None] * len(chars)
@@ -274,6 +270,7 @@ class THBattleIdentity(Game):
 
 class THBattleIdentity5(THBattleIdentity):
     n_persons = 5
+    categories = ('id', 'id5')
     T = Identity.TYPE
 
     identities = [

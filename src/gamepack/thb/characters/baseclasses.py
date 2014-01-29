@@ -5,6 +5,11 @@ from game.autoenv import GameObject
 characters = []
 raid_characters = []
 id8exclusive_characters = []
+categories = {
+    'all': characters,
+    'raid_ex': raid_characters,
+    'id8': id8exclusive_characters,
+}
 
 
 class Character(GameObject):
@@ -39,11 +44,48 @@ def _reg_to(l):
     return register
 
 
-register_character = _reg_to(characters)
-register_raid_character = _reg_to(raid_characters)
-register_id8exclusive_character = _reg_to(id8exclusive_characters)
+def register_character_to(cats=(), all=None):
+    if all is None:
+        if cats and not cats[0].startswith('-'):
+            all = False
+        else:
+            all = True
 
-register_special_character = _reg_to([])
+    if all:
+        cats += ('all', )
+
+    lists = [categories.setdefault(c, []) for c in cats]
+
+    def register(cls):
+        Character.character_classes[cls.__name__] = cls
+        for l in lists:
+            l.append(cls)
+        return cls
+
+    return register
+
+chars_cache = { }
+
+def get_characters(cats=(), all=True):
+    cats = frozenset(cats)
+    if all:
+        cats |= set(['all'])
+
+    if cats in chars_cache:
+        return list(chars_cache[cats])
+
+    chars = set()
+    chars.update(*[categories.get(c, []) for c in cats])
+    chars.difference_update(*[categories.get('-' + c, []) for c in cats])
+    chars=tuple(sorted(chars, key=lambda i: i.__name__))
+    chars_cache[cats] = chars
+    return list(chars)
+
+register_character = register_character_to(())
+register_raid_character = register_character_to(('raid_ex', ))
+register_id8exclusive_character = register_character_to(('id8', ))
+
+register_special_character = register_character_to(('special', ))
 
 
 def mixin_character(player, char_cls):
