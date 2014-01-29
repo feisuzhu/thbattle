@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 180'
+VERSION = 'THBATTLE V1.0b incr 181'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -148,6 +148,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+大狸子相关bug修复
 新人物：大狸子（人物设计：鵺子丶爱丽丝）
 新人物：秦心（画师：Takibi）
 新模式：信（xue）仰（zhan）之（dao）战（di）
