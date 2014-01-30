@@ -117,7 +117,7 @@ class DarkNoh(Skill):
         return True
 
 
-@register_character_to(('-raid', ))
+@register_character_to('common', '-raid')
 class Kokoro(Character):
     skills = [HopeMask, DarkNoh]
     eventhandlers_required = [HopeMaskHandler]

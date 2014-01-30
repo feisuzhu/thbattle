@@ -404,7 +404,6 @@ class MutantMorphHandler(EventHandler):
 
 class THBattleRaid(Game):
     n_persons = 4
-    categories = ('raid', )
     game_actions = _game_actions
     game_ehs = _game_ehs
 
@@ -431,8 +430,10 @@ class THBattleRaid(Game):
 
             g.process_action(RevealIdentity(p, g.players))
 
+        from characters import get_characters
+
         # mutant's choose
-        from characters import raid_characters as raid_chars
+        raid_chars = get_characters('raid_ex', '-common')
 
         choices = [CharChoice(cls) for cls in raid_chars]
         mapping = {mutant: choices}
@@ -462,8 +463,7 @@ class THBattleRaid(Game):
         g.deck = Deck(raid_carddef)
 
         # attackers' choose
-        from characters import get_characters
-        chars = get_characters(g.categories)
+        chars = get_characters('raid')
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)
 

@@ -1,63 +1,50 @@
 # -*- coding: utf-8 -*-
 # Character definitions are here.
+# flake8: noqa
 
 import baseclasses
 
-import parsee  # noqa
-import youmu  # noqa
-import koakuma  # noqa
-import marisa  # noqa
-import daiyousei  # noqa
-import flandre  # noqa
-import alice  # noqa
-import nazrin  # noqa
-import yugi  # noqa
-import patchouli  # noqa
-import tewi  # noqa
-import reimu  # noqa
-import kogasa  # noqa
-import eirin  # noqa
-import shikieiki  # noqa
-import tenshi  # noqa
-import rumia  # noqa
-import yuuka  # noqa
-import rinnosuke  # noqa
-import ran  # noqa
-import remilia  # noqa
-import minoriko  # noqa
-import meirin  # noqa
-import suika  # noqa
-import chen  # noqa
-import yukari  # noqa
-import cirno  # noqa
-import sakuya  # noqa
-import sanae  # noqa
-import seiga  # noqa
-import kaguya  # noqa
-import momiji  # noqa
-import komachi  # noqa
-import mokou  # noqa
-import kokoro  # noqa
-import mamizou  # noqa
+import parsee
+import youmu
+import koakuma
+import marisa
+import daiyousei
+import flandre
+import alice
+import nazrin
+import yugi
+import patchouli
+import tewi
+import reimu
+import kogasa
+import eirin
+import shikieiki
+import tenshi
+import rumia
+import yuuka
+import rinnosuke
+import ran
+import remilia
+import minoriko
+import meirin
+import suika
+import chen
+import yukari
+import cirno
+import sakuya
+import sanae
+import seiga
+import kaguya
+import momiji
+import komachi
+import mokou
+import kokoro
+import mamizou
 
-import remilia_ex  # noqa
+import remilia_ex
 
 # special
-import dummy  # noqa
-import akari  # noqa
-
-import sys
-
-from game.autoenv import Game
-from options import options
-options.testing and baseclasses.register_character(dummy.Dummy)
+import dummy
+import akari
 
 from baseclasses import get_characters
-characters = tuple(sorted(baseclasses.characters, key=lambda i: i.__name__))
-raid_characters = tuple(sorted(baseclasses.raid_characters, key=lambda i: i.__name__))
-id8exclusive_characters = tuple(sorted(baseclasses.id8exclusive_characters, key=lambda i: i.__name__))
-del baseclasses.characters
-del baseclasses.raid_characters
-del baseclasses.id8exclusive_characters
-
-del sys, Game, options

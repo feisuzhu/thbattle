@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_raid_character
+from .baseclasses import Character, register_character_to
 
 from ..actions import UserAction, DropCards, LifeLost, LaunchCard, ForEach, DrawCards, ActionStage, DropCardStage, ask_for_action
 from ..actions import random_choose_card, user_choose_cards
@@ -214,7 +214,7 @@ class RemiliaEx2(Character):
     ]
 
 
-@register_raid_character
+@register_character_to('raid_ex')
 class RemiliaEx(Character):
     maxlife = 6
     skills = [NeverNight, SpearTheGungnir, VampireKiss]

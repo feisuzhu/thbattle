@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..actions import ActionStageLaunchCard
-from .baseclasses import Character, register_id8exclusive_character
+from .baseclasses import Character, register_character_to
 from ..cards import Card, TreatAsSkill, DummyCard
 from game.autoenv import EventHandler
 
@@ -65,7 +65,7 @@ class MorphingHandler(EventHandler):
         return arg
 
 
-@register_id8exclusive_character
+@register_character_to('id8')
 class Mamizou(Character):
     skills = [Morphing]
     eventhandlers_required = [MorphingHandler]

@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
-import random
-import time
 
-from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, user_input, InputTransaction
-
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction
-from .actions import action_eventhandlers, migrate_cards
-
-from .characters.baseclasses import mixin_character
-
-from itertools import cycle
+# -- stdlib --
 from collections import defaultdict
+from itertools import cycle
+import logging
+import random
 
+# -- third party --
+
+# -- own --
+from .actions import action_eventhandlers, migrate_cards
+from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction
+from .characters.baseclasses import mixin_character
+from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
+from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, user_input, InputTransaction
+from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
 from utils import BatchList, Enum
 
-from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
-from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
-
-import logging
+# -- code --
 log = logging.getLogger('THBattle')
 
 _game_ehs = {}
@@ -96,7 +96,6 @@ class Identity(PlayerIdentity):
 
 class THBattleFaith(Game):
     n_persons = 6
-    categories = ('faith', )
     game_ehs = _game_ehs
     game_actions = _game_actions
 
@@ -154,7 +153,7 @@ class THBattleFaith(Game):
 
         # choose girls -->
         from . import characters
-        chars = characters.get_characters(g.categories)
+        chars = characters.get_characters('faith')
         g.random.shuffle(chars)
 
         if Game.SERVER_SIDE:
@@ -179,7 +178,7 @@ class THBattleFaith(Game):
         rst = user_input(g.players, SortCharacterInputlet(g, mapping, 2), timeout=30, type='all')
         for p in g.players:
             p.choices_chosen = [mapping[p][i] for i in rst[p][:2]]
-        
+
         for p in g.players:
             a, b = p.choices_chosen
             b.chosen = None

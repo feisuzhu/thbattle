@@ -63,7 +63,6 @@ class Identity(PlayerIdentity):
 
 class THBattle(Game):
     n_persons = 6
-    categories = ('3v3', )
     game_ehs = _game_ehs
     game_actions = _game_actions
     order_list = (0, 5, 3, 4, 2, 1)
@@ -88,7 +87,7 @@ class THBattle(Game):
 
         # choose girls -->
         from . import characters
-        chars = characters.get_characters(g.categories)
+        chars = characters.get_characters('3v3')
 
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)

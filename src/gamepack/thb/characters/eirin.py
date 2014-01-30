@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from ..cards import Card, Heal, HealCard, Skill, t_None, t_One
 
 
@@ -13,10 +13,7 @@ class FirstAid(Skill):
         c = cl[0]
         return bool(
             c.resides_in is not None and
-            c.resides_in.type in (
-                'cards', 'showncards',
-                'equips',
-            ) and
+            c.resides_in.type in ('cards', 'showncards', 'equips') and
             c.suit in (Card.HEART, Card.DIAMOND)
         )
 
@@ -52,7 +49,7 @@ class Medic(Skill):
         return False
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Eirin(Character):
     skills = [Medic, FirstAid]
     eventhandlers_required = []

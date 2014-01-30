@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import Character, register_special_character
+
+from .baseclasses import Character, register_character_to
 
 
-@register_special_character
+@register_character_to('special')
 class Akari(Character):
     # dummy player for hidden choices
     skills = []
