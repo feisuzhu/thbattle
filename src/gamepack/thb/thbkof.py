@@ -84,6 +84,7 @@ class Identity(PlayerIdentity):
 
 class THBattleKOF(Game):
     n_persons = 2
+    categories = ('kof', )
     game_ehs = _game_ehs
 
     def game_start(g):
@@ -100,7 +101,9 @@ class THBattleKOF(Game):
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i % 2]
 
         # choose girls -->
-        from characters import characters as chars
+        from characters import get_characters 
+        chars = get_characters(g.categories)
+
         from characters.akari import Akari
 
         _chars = g.random.sample(chars, 10)

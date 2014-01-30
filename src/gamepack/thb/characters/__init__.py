@@ -52,6 +52,7 @@ from game.autoenv import Game
 from options import options
 options.testing and baseclasses.register_character(dummy.Dummy)
 
+from baseclasses import get_characters
 characters = tuple(sorted(baseclasses.characters, key=lambda i: i.__name__))
 raid_characters = tuple(sorted(baseclasses.raid_characters, key=lambda i: i.__name__))
 id8exclusive_characters = tuple(sorted(baseclasses.id8exclusive_characters, key=lambda i: i.__name__))
