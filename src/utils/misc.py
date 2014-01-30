@@ -316,25 +316,6 @@ def remove_dups(s):
             seen.add(i)
 
 
-@property
-def __mixins(self):
-    return self.__class__.__bases__
-
-
-def __prev_mixin(self, this):
-    mixins = self.mixins
-
-    try:
-        i = mixins.index(this) + 1
-    except ValueError:
-        return None
-
-    if i >= len(mixins):
-        return None
-
-    return mixins[i]
-
-
 def classmix(*_classes):
     classes = []
     for c in _classes:
@@ -348,15 +329,7 @@ def classmix(*_classes):
     if cached: return cached
 
     clsname = ', '.join(cls.__name__ for cls in classes)
-    new_cls = type(
-        'Mixed(%s)' % clsname,
-        classes,
-        {
-            'mixins': __mixins,
-            'prev_mixin': __prev_mixin,
-            '_is_mixedclass': True,
-        }
-    )
+    new_cls = type('Mixed(%s)' % clsname, classes, {'_is_mixedclass': True})
     cls_cache[classes] = new_cls
     return new_cls
 

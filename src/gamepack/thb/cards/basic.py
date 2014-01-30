@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from game.autoenv import Game, EventHandler
-from ..actions import UserAction, Damage, ActionStage, ActionStageLaunchCard, LaunchCardAction, LaunchCard, DropUsedCard, DropCards, UseCard, GenericAction, PlayerTurn
+from ..actions import ActionStage, ActionStageLaunchCard, Damage, DropCards
+from ..actions import DropUsedCard, GenericAction, LaunchCard, LaunchCardAction
+from ..actions import PlayerTurn, UseCard, UserAction
 from ..actions import register_eh, user_choose_cards
 
 
-class BasicAction(UserAction): pass  # attack, graze, heal
+class BasicAction(UserAction):
+    pass
 
 
 class BaseAttack(UserAction):
@@ -18,15 +21,19 @@ class BaseAttack(UserAction):
     def apply_action(self):
         g = Game.getgame()
         source, target = self.source, self.target
-        graze_action = LaunchGraze(target)
-        if not g.process_action(graze_action):
+        rst = g.process_action(LaunchGraze(target))
+        self1, rst = g.emit_event('attack_aftergraze', (self, not rst))
+        assert self1 is self
+        assert rst in (False, True)
+        if rst:
             g.process_action(Damage(source, target, amount=self.damage))
             return True
         else:
             return False
 
 
-class Attack(BaseAttack, BasicAction): pass
+class Attack(BaseAttack, BasicAction):
+    pass
 
 
 class InevitableAttack(Attack):

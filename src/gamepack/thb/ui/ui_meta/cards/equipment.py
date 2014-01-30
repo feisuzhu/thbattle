@@ -649,7 +649,7 @@ class LaevateinSkill:
     is_action_valid = passive_is_action_valid
 
 
-class LaevateinAttack:
+class LaevateinHandler:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -660,7 +660,7 @@ class LaevateinAttack:
 
 class Laevatein:
     def effect_string_before(act):
-        return u'|G莱瓦汀|r能像这样轻易闪过？能就不科学了！'
+        return u'|G莱瓦汀|r的灭世之炎岂能轻易闪过！'
 
 
 class DeathSickleCard:

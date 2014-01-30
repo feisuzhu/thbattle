@@ -312,7 +312,7 @@ class ScarletRhapsodySkill(WeaponSkill):
             check(raw[0].resides_in in (tgt.cards, tgt.showncards))
             cards = set(tgt.cards) | set(tgt.showncards)
             check(cards <= set(raw))
-            
+
             return True
         except CheckFailed:
             return False
@@ -642,28 +642,41 @@ class AyaRoundfanHandler(EventHandler):
         return cards[0].resides_in.type in ('cards', 'showncards')
 
 
-class Laevatein(Damage):
-    pass
-
-
-class LaevateinAttack(basic.Attack):
+class Laevatein(UserAction):
     def apply_action(self):
-        cls = self.prev_mixin(LaevateinAttack)
-        rst = cls.apply_action(self)
+        return True  # logic handled in LaevateinHandler
 
-        if rst: return True
 
-        src = self.source
-        tgt = self.target
-        if not src.has_skill(LaevateinSkill): return False
+class LaevateinSkill(WeaponSkill):
+    range = 3
+    associated_action = None
+    target = t_None
 
-        g = Game.getgame()
-        cards = user_choose_cards(self, src, ('cards', 'showncards', 'equips'))
-        if cards:
+
+@register_eh
+class LaevateinHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if evt_type == 'attack_aftergraze':
+            act, succeed = arg
+            assert isinstance(act, basic.BaseAttack)
+            if succeed:
+                return arg
+
+            src = act.source
+            tgt = act.target
+            if not src or not src.has_skill(LaevateinSkill):
+                return arg
+
+            g = Game.getgame()
+            cards = user_choose_cards(self, src, ('cards', 'showncards', 'equips'))
+            if not cards:
+                return arg
+
             g.process_action(DropCards(src, cards))
-            g.process_action(Laevatein(src, tgt, amount=self.damage))
-            return True
-        return False
+            g.process_action(Laevatein(src, tgt))
+            return act, True
+
+        return arg
 
     def cond(self, cards):
         if not len(cards) == 2: return False
@@ -679,25 +692,6 @@ class LaevateinAttack(basic.Attack):
         ): return False
 
         return True
-
-
-class LaevateinSkill(WeaponSkill):
-    range = 3
-    associated_action = None
-    target = t_None
-
-
-@register_eh
-class LaevateinHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
-            if isinstance(act, LaevateinAttack): return act
-            src = act.source
-            if not src: return act
-            if not src.has_skill(LaevateinSkill): return act
-            act.__class__ = classmix(LaevateinAttack, act.__class__)
-
-        return act
 
 
 class DeathSickleSkill(WeaponSkill):
