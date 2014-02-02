@@ -33,17 +33,23 @@ class Character(GameObject):
 
 
 def register_character_to(*cats):
-    cats = [characters_by_category[c] for c in set(cats)]
+    sets = [characters_by_category[c] for c in set(cats)]
 
     def register(cls):
         Character.character_classes[cls.__name__] = cls
-        [s.add(cls) for s in cats]
+        [s.add(cls) for s in sets]
+        cls.categories = cats
         return cls
 
     return register
 
 register_character = register_character_to('common')
 
+if options.testing:
+    register_testing_character = register_character
+else:
+    register_testing_character = lambda x: x
+    
 
 def get_characters(*cats, **kwargs):
     cats = set(cats)
@@ -51,8 +57,6 @@ def get_characters(*cats, **kwargs):
         cats.discard('-common')
     else:
         cats.add('common')
-
-    options.testing and cats.add('testing')
 
     chars = set()
     chars.update(*[characters_by_category[c] for c in cats])
