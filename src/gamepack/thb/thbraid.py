@@ -507,6 +507,8 @@ class THBattleRaid(Game):
 
             # stage 1
             try:
+                skip_mutant = False
+
                 for i in xrange(500):
                     g.process_action(CollectFaith(mutant, mutant, 1))
 
@@ -526,13 +528,17 @@ class THBattleRaid(Game):
                         p.tags['action'] = True
 
                     while True:
-                        try:
-                            g.process_action(PlayerTurn(mutant))
-                        except InterruptActionFlow:
-                            pass
+                        if skip_mutant:
+                            skip_mutant = False
+                        else:
+                            try:
+                                g.process_action(PlayerTurn(mutant))
+                            except InterruptActionFlow:
+                                pass
 
                         avail = BatchList([p for p in attackers if p.tags['action'] and not p.dead])
                         if not avail:
+                            skip_mutant = True
                             break
 
                         p, _ = user_input(
