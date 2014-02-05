@@ -50,7 +50,7 @@ class GameManager(Greenlet):
 
         @handler(('inroom',), 'ingame')
         def game_started(self, pldata):
-            Executive.server.gclear()
+            #Executive.server.gclear()
             if self.last_game:
                 self.last_game.kill(ForcedKill)
                 self.last_game.get()
@@ -84,7 +84,7 @@ class GameManager(Greenlet):
 
         @handler(('inroom',), 'ingame')
         def observe_started(self, data):
-            Executive.server.gclear()
+            #Executive.server.gclear()
             if self.last_game:
                 self.last_game.kill(ForcedKill)
                 self.last_game.get()
