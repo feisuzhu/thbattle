@@ -45,11 +45,11 @@ class DeathHandler(EventHandler):
         force1, force2 = g.forces
         if all(p.dead or p.dropped for p in force1):
             g.winners = force2[:]
-            raise GameEnded
+            g.game_end()
 
         if all(p.dead or p.dropped for p in force2):
             g.winners = force1[:]
-            raise GameEnded
+            g.game_end()
 
         return act
 
@@ -156,29 +156,26 @@ class THBattle(Game):
 
         first = g.players[first_index]
 
-        try:
-            pl = g.players
-            for p in pl:
-                g.process_action(RevealIdentity(p, pl))
+        pl = g.players
+        for p in pl:
+            g.process_action(RevealIdentity(p, pl))
 
-            g.emit_event('game_begin', g)
+        g.emit_event('game_begin', g)
 
-            for p in g.players:
-                g.process_action(DrawCards(p, amount=3 if p is first else 4))
+        for p in g.players:
+            g.process_action(DrawCards(p, amount=3 if p is first else 4))
 
-            pl = g.players.rotate_to(first)
+        pl = g.players.rotate_to(first)
 
-            for i, p in enumerate(cycle(pl)):
-                if i >= 6000: break
-                if not p.dead:
-                    g.emit_event('player_turn', p)
-                    try:
-                        g.process_action(PlayerTurn(p))
-                    except InterruptActionFlow:
-                        pass
+        for i, p in enumerate(cycle(pl)):
+            if i >= 6000: break
+            if not p.dead:
+                g.emit_event('player_turn', p)
+                try:
+                    g.process_action(PlayerTurn(p))
+                except InterruptActionFlow:
+                    pass
 
-        except GameEnded:
-            pass
 
         log.info(u'>> Winner: %s', Identity.TYPE.rlookup(g.winners[0].identity.type))
 

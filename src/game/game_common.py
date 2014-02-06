@@ -239,6 +239,7 @@ class Game(GameObject):
         self.action_stack = []
         self.hybrid_stack = []
         self.action_types = {}
+        self.ended = False
         self._action_hooks = []
 
     def game_start(self):
@@ -247,6 +248,10 @@ class Game(GameObject):
         GameModes should override this.
         '''
         raise GameError('Override this function to implement Game logics!')
+
+    def game_end(self):
+        self.ended = True
+        raise GameEnded
 
     def emit_event(self, evt_type, data):
         '''
@@ -290,6 +295,7 @@ class Game(GameObject):
         '''
         Process an action
         '''
+        if self.ended: return False
 
         if action.done:
             log.debug('action already done %s' % action.__class__.__name__)

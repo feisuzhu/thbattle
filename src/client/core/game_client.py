@@ -12,7 +12,7 @@ from gevent import Greenlet
 
 # -- own --
 import game
-from game import TimeLimitExceeded, InputTransaction
+from game import TimeLimitExceeded, InputTransaction, GameEnded
 from utils import BatchList
 from account import Account
 
@@ -207,7 +207,12 @@ class Game(Greenlet, game.Game):
     def _run(self):
         self.synctag = 0
         Game.thegame = self
-        self.game_start()
+        try:
+            self.game_start()
+        except GameEnded:
+            pass
+
+        assert self.ended
 
     @classmethod
     def getgame(cls):
