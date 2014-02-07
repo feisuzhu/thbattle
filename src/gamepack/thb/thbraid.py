@@ -19,7 +19,7 @@ from collections import defaultdict
 
 from .common import PlayerIdentity, CharChoice, get_seed_for
 
-from utils import BatchList
+from utils import BatchList, Enum
 
 log = logging.getLogger('THBattleRaid')
 
@@ -357,7 +357,7 @@ class FaithExchangeHandler(EventHandler):
 
 class Identity(PlayerIdentity):
     # 异变 解决者
-    class TYPE:
+    class TYPE(Enum):
         HIDDEN = 0
         MUTANT = 1
         ATTACKER = 2
@@ -635,9 +635,6 @@ class THBattleRaid(Game):
                     g.process_action(PlayerTurn(p))
                 except InterruptActionFlow:
                     pass
-
-        winner_force = 'Mutant' if g.winners == [mutant] else 'Attackers'
-        log.info(u'>> Winner: %s', winner_force)
 
     def can_leave(self, p):
         return False

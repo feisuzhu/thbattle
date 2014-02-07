@@ -223,8 +223,6 @@ class THBattleFaith(Game):
                 pass
 
 
-        log.info(u'>> Winner: %s', Identity.TYPE.rlookup(g.winners[0].identity.type))
-
     def can_leave(g, p):
         return False
 

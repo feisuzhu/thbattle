@@ -8,6 +8,7 @@ from .characters.baseclasses import mixin_character
 
 from itertools import cycle
 from collections import defaultdict
+from utils import Enum
 
 from .common import PlayerIdentity, sync_primitive, CharChoice, get_seed_for
 from .inputlets import ChooseGirlInputlet
@@ -94,7 +95,7 @@ class DeathHandler(EventHandler):
 
 class Identity(PlayerIdentity):
     # 城管 BOSS 道中 黑幕
-    class TYPE:
+    class TYPE(Enum):
         HIDDEN = 0
         ATTACKER = 1
         BOSS = 4

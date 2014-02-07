@@ -251,6 +251,13 @@ class Game(GameObject):
 
     def game_end(self):
         self.ended = True
+        try:
+            winner = self.winners[0].identity
+        except:
+            winner = None
+
+        log.info(u'>> Winner: %s', winner)
+        
         raise GameEnded
 
     def emit_event(self, evt_type, data):

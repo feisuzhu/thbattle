@@ -3,6 +3,7 @@ import logging
 log = logging.getLogger('thb.common')
 
 from game.autoenv import Game, sync_primitive
+from utils import Enum
 
 
 class CharChoice(object):
@@ -29,6 +30,9 @@ class PlayerIdentity(object):
 
     def __data__(self):
         return ['identity', self.type]
+
+    def __str__(self):
+        return self.TYPE.rlookup(self.type)
 
     def sync(self, data):
         assert data[0] == 'identity'
