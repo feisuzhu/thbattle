@@ -39,18 +39,21 @@ ACCOUNT_FORUMURL = 'http://www.thbattle.net'
 
 import re
 
-UPDATE_IGNORES = re.compile(r'''
-          ^current_version$
-        | ^update_info\.json$
-        | ^client_log\.txt\.gz$
-        | ^client_log\.txt$
-        | ^.+\.py[co]$
-        | ^.*~$
-        | ^.*_custom\..{2,4}$
-        | ^user_settings.json$
-        | ^cc?$
-        | ^[sd]$
-        | ^\.
+UPDATE_IGNORES = re.compile(r'''^(
+          current_version
+        | .*_custom\..{2,4}
+        | .*~
+        | .+\.py[co]
+        | OGLdpf\.log
+        | [sd]
+        | \.
+        | \.txt
+        | cc?
+        | client_log\.txt
+        | client_log\.txt\.gz
+        | update_info\.json
+        | user_settings.json
+        )$
 ''', re.VERBOSE)
 
 
