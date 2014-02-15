@@ -1,15 +1,33 @@
 # -*- coding: utf-8 -*-
 
-import json
-import time
-import struct
-import random
-import logging
-import requests
-import itertools
+from gevent.socket import socket as gsock
+from socket import socket
+if gsock is not socket:
+    from gevent import monkey
+    monkey.patch_all()
+
+from gevent.pool import Pool
+from gevent.event import Event
+
 from collections import defaultdict
+from cStringIO import StringIO
+import itertools
+import json
+import logging
+import random
+import re
+import requests
+import struct
+import time
 
 log = logging.getLogger('QQBot')
+
+UA_STRING = (
+    'Mozilla/5.0 (X11; Linux x86_64) '
+    'AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Ubuntu Chromium/28.0.1500.71 '
+    'Chrome/28.0.1500.71 Safari/537.36'
+)
 
 
 class QQBot(object):
@@ -18,6 +36,7 @@ class QQBot(object):
         self.password = password
         self.logged_in = False
         self.tick = itertools.count(random.randrange(20000000, 30000000))
+        self.cface_tick = itertools.count(1)
         self.clientid = random.randrange(30000000, 100000000)
         self.v = v  # nonsense, copied from smartqq
         self.appid = appid  # nonsense, copied from smartqq
@@ -29,16 +48,37 @@ class QQBot(object):
         self.buddy_list = []
 
         self.cache = defaultdict(dict)
-
         self.session = requests.session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/28.0.1500.71 Chrome/28.0.1500.71 Safari/537.36'
-        })
 
-        self.init()
+        self.pool = Pool(10)
+        self.ready = Event()
+
+        self.pool.spawn(self.init)
 
     def init(self):
-        pass
+        self.ready.clear()
+        self.login()
+        self.pool.spawn(self.loop)
+
+        p = Pool(5)
+        p.map(lambda f: f(), [
+            self.refresh_buddy_list,
+            self.refresh_group_list,
+        ])
+        self.ready.set()
+
+        p.map_async(self.gcode2groupnum, [g['code'] for g in self.group_list])
+        p.map_async(self.uin2qq, [i['uin'] for i in self.buddy_list])
+
+    def shutdown(self):
+        self.ready.clear()
+        self.pool.kill()
+
+    def join(self):
+        self.pool.join()
+
+    def wait_ready(self):
+        self.ready.wait()
 
     def _stage1_login(self):
         self.group_list[:] = []
@@ -102,29 +142,32 @@ class QQBot(object):
         return True
 
     def _stage2_login(self):
-        session = self.session
-        payload = json.dumps({
+
+        log.debug('Do stage2 login...')
+
+        rst = self.call_server('d:login2', {
             'status': 'online',
             'ptwebqq': self.ptwebqq,
             'clientid': self.clientid,
             'psessionid': '',
         })
 
-        log.debug('Do stage2 login...')
-        rst = session.post(
-            'http://d.web2.qq.com/channel/login2', data={'r': payload},
-            headers={
-                'Referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=2' % self.v,
-                'Origin': 'http://d.web2.qq.com',
-            },
-        )
+        rst = rst['result']
+        self.vfwebqq = rst['vfwebqq']
+        self.psessionid = rst['psessionid']
+        self.status = rst['status']
 
-        result = json.loads(rst.content)['result']
-        self.vfwebqq = result['vfwebqq']
-        self.psessionid = result['psessionid']
-        self.status = result['status']
+        # should be in separate func
+        rst = self.call_server('d:get_gface_sig2', method='get',
+            clientid=self.clientid,
+            psessionid=self.psessionid,
+        )['result']
+
+        self.gface_key = rst['gface_key']
+        self.gface_sig = rst['gface_sig']
 
     def login(self):
+        self.logged_in = False
         while True:
             if self._stage1_login():
                 break
@@ -132,33 +175,20 @@ class QQBot(object):
         self._stage2_login()
 
         self.logged_in = True
-        self.on_login()
 
     def loop(self):
-        session = self.session
-
-        # login
-        self.login()
-
         # poll
         log.debug('Logged in. Begin polling...')
 
         while True:
-            payload = {
+            self.ready.wait()
+
+            rst = self.call_server('d:poll2', {
                 'clientid': self.clientid,
                 'psessionid': self.psessionid,
                 'key': '',
                 'ptwebqq': self.ptwebqq,
-            }
-
-            rst = session.post(
-                'http://d.web2.qq.com/channel/poll2', data={'r': json.dumps(payload)},
-                headers={'Referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v}
-            )
-
-            assert rst.ok
-
-            rst = json.loads(rst.content)
+            })
 
             code = int(rst['retcode'])
 
@@ -172,7 +202,9 @@ class QQBot(object):
             elif code in (103, 109, 121, 100006, 100001):
                 # {u'retcode': 121, u't': u'0'}
                 log.debug('Need relogin')
+                self.ready.clear()
                 self.login()
+                self.ready.set()
 
             # elif code == 109:
             #     log.warning('Unknown code 109: %r', rst)
@@ -183,35 +215,17 @@ class QQBot(object):
                     t = m['poll_type']
                     v = m['value']
                     f = getattr(self, 'on_' + t, None)
-                    if f:
-                        self.polling_hook(f, v)
-                    else:
-                        log.warning('Unhandled event: <%s> = %r', t, v)
+                    self.pool.spawn(f, v) if f else log.warning('Unhandled event: <%s> = %r', t, v)
 
             else:
                 log.error('Unknown retcode: %r', rst)
-
-    def polling_hook(self, f, v):
-        f(v)
 
     def refresh_group_list(self):
         assert self.logged_in
         log.debug('Refreshing group info...')
 
-        session = self.session
-        payload = {'vfwebqq': self.vfwebqq}
-        rst = session.post(
-            'http://s.web2.qq.com/api/get_group_name_list_mask2',
-            data={'r': json.dumps(payload)},
-            headers={
-                'Origin': 'http://s.web2.qq.com',
-                'Referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v,
-            }
-        )
+        rst = self.call_server('s:get_group_name_list_mask2', {'vfwebqq': self.vfwebqq})
 
-        assert rst.ok
-
-        rst = json.loads(rst.content)
         if int(rst['retcode']) != 0:
             log.error('Error %r', rst)
             return
@@ -223,26 +237,13 @@ class QQBot(object):
         assert self.logged_in
         log.debug('Refreshing buddy info...')
 
-        session = self.session
-
         # should use original ptwebqq
-        payload = {
+
+        rst = self.call_server('s:get_user_friends2', {
             'vfwebqq': self.vfwebqq,
             'hash': self._buddylist_hash(self.qq, self.original_ptwebqq),
-        }
+        })
 
-        rst = session.post(
-            'http://s.web2.qq.com/api/get_user_friends2',
-            data={'r': json.dumps(payload)},
-            headers={
-                'Origin': 'http://s.web2.qq.com',
-                'Referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v,
-            }
-        )
-
-        assert rst.ok
-
-        rst = json.loads(rst.content)
         if int(rst['retcode']) != 0:
             log.error('Error %r', rst)
             return
@@ -252,7 +253,7 @@ class QQBot(object):
         return self.buddy_list
 
     def get_group_info_ext(self, gcode):
-        assert self.logged_in
+        self.ready.wait()
 
         cache = self.cache['group_info_ext']
         if gcode in cache:
@@ -260,25 +261,13 @@ class QQBot(object):
 
         log.debug('Getting ext group info for gcode %d...', gcode)
 
-        session = self.session
-        params = {
-            'gcode': gcode,
-            'vfwebqq': self.vfwebqq,
-            'cb': 'undefined',
-            't': int(time.time() * 1000),
-        }
-
-        rst = session.get(
-            'http://s.web2.qq.com/api/get_group_info_ext2', params=params,
-            headers={
-                'Origin': 'http://s.web2.qq.com',
-                'Referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v,
-            }
+        rst = self.call_server('s:get_group_info_ext2', method='get',
+            gcode=gcode,
+            vfwebqq=self.vfwebqq,
+            cb='undefined',
+            t=int(time.time() * 1000),
         )
 
-        assert rst.ok
-
-        rst = json.loads(rst.content)
         if int(rst['retcode']) != 0:
             log.error('Error %r', rst)
             return
@@ -287,6 +276,7 @@ class QQBot(object):
         return rst['result']
 
     def get_group_superusers_uin(self, gcode):
+        self.ready.wait()
         ginfo = self.get_group_info_ext(gcode)
         l = [ginfo['ginfo']['owner']]
         for m in ginfo['ginfo']['members']:
@@ -432,16 +422,20 @@ class QQBot(object):
 
     # ----------------
 
-    def send_buddy_message(self, uin, message, font=None):
-        log.info('send_buddy_message(%d, %r)', uin, message)
+    def _format_message(self, message, font=None):
         font = font or {
             'name': u'宋体',
             'size': 10,
             'style': [0, 0, 0],
             'color': '000000',
         }
+        return [message, '', ['font', font]]
+
+    def send_buddy_message(self, uin, message, font=None):
+        self.ready.wait()
+        log.info('send_buddy_message(%d, %r)', uin, message)
         msg_id = self.tick.next()
-        content = [message, font]
+        content = self._format_message(message, font)
 
         payload = {
             'to': uin,
@@ -452,26 +446,13 @@ class QQBot(object):
             'psessionid': self.psessionid,
         }
 
-        session = self.session
-        session.post(
-            'http://d.web2.qq.com/channel/send_buddy_msg2',
-            data={'r': json.dumps(payload), 'clientid': self.clientid, 'psessionid': self.psessionid},
-            headers={
-                'Origin': 'http://d.web2.qq.com',
-                'Referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v,
-            }
-        )
+        self.call_server('d:send_buddy_msg2', payload, clientid=self.clientid, psessionid=self.psessionid)
 
     def send_group_message(self, group_uin, message, font=None):
         log.info('send_group_message(%d, %r)', group_uin, message)
-        font = font or {
-            'name': u'宋体',
-            'size': 10,
-            'style': [0, 0, 0],
-            'color': '000000',
-        }
+        self.ready.wait()
         msg_id = self.tick.next()
-        content = [message, font]
+        content = self._format_message(message, font)
 
         payload = {
             'group_uin': group_uin,
@@ -481,28 +462,61 @@ class QQBot(object):
             'psessionid': self.psessionid,
         }
 
-        session = self.session
+        self.call_server('d:send_qun_msg2', payload, clientid=self.clientid, psessionid=self.psessionid)
 
-        session.post(
-            'http://d.web2.qq.com/channel/send_qun_msg2',
-            data={'r': json.dumps(payload), 'clientid': self.clientid, 'psessionid': self.psessionid},
+    def send_group_picture(self, group_uin, filename, data=None, file=None):
+        fileobj = file or (StringIO(data) if data else open(filename, 'rb'))
+        self.ready.wait()
+
+        payload = {
+            'from': 'control',
+            'f': 'EQQ.Model.ChatMsg.callbackSendPicGroup',
+            'vfwebqq': self.vfwebqq,
+            'fileid': self.cface_tick.next(),
+        }
+
+        resp = self.session.post(
+            'http://up.web2.qq.com/cgi-bin/cface_upload',
+            params={'time': int(time.time() * 1000)}, data=payload,
+            files={'custom_face': (filename, fileobj)},
             headers={
-                'Origin': 'http://d.web2.qq.com',
-                'Referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v,
-            }
+                'Origin': 'http://web2.qq.com',
+                'Referer': 'http://web2.qq.com/webqq.html',
+                'User-Agent': UA_STRING,
+            },
         )
+        fileobj.close()
 
-    def send_sess_message(self, group_id, uin, message, font=None):
-        # NOTE: group_id(==group_uin), gcode, and group number is not the same thing
-        log.info('send_sess_message(%d, %d, %r)', group_id, uin, message)
-        font = font or {
+        cfaceid = re.findall(r'''['"]msg['"]: *['"]([^'"]+)['"] *}''', resp.content)[0]
+        cfaceid = cfaceid.split()[0]
+
+        font = {
             'name': u'宋体',
             'size': 10,
             'style': [0, 0, 0],
             'color': '000000',
         }
         msg_id = self.tick.next()
-        content = [message, font]
+        content = [['cface', 'group', cfaceid], '\n', ['font', font]]
+
+        payload = {
+            'group_uin': group_uin,
+            'content': json.dumps(content),
+            'msg_id': msg_id,
+            'clientid': str(self.clientid),
+            'psessionid': self.psessionid,
+            'key': self.gface_key,
+            'sig': self.gface_sig,
+        }
+
+        self.call_server('d:send_qun_msg2', payload, clientid=self.clientid, psessionid=self.psessionid)
+
+    def send_sess_message(self, group_id, uin, message, font=None):
+        # NOTE: group_id(==group_uin), gcode, and group number is not the same thing
+        log.info('send_sess_message(%d, %d, %r)', group_id, uin, message)
+        self.ready.wait()
+        msg_id = self.tick.next()
+        content = self._format_message(message, font)
 
         gsig = self._get_c2cmsg_sig(group_id, uin)
 
@@ -517,15 +531,7 @@ class QQBot(object):
             'to': uin,
         }
 
-        session = self.session
-        session.post(
-            'http://d.web2.qq.com/channel/send_sess_msg2',
-            data={'r': json.dumps(payload), 'clientid': self.clientid, 'psessionid': self.psessionid},
-            headers={
-                'Origin': 'http://d.web2.qq.com',
-                'Referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v,
-            }
-        )
+        self.call_server('d:send_sess_msg2', payload, clientid=self.clientid, psessionid=self.psessionid)
 
     def _get_c2cmsg_sig(self, group_id, uin):
         cache = self.cache['c2cmsg']
@@ -533,25 +539,17 @@ class QQBot(object):
             return cache[(group_id, uin)]
 
         log.debug('Getting c2cmsg sig for group=%d, uin=%d', group_id, uin)
+        self.ready.wait()
 
-        params = {
-            'id': group_id,
-            'to_uin': uin,
-            'service_type': 0,
-            'clientid': self.clientid,
-            'psessionid': self.psessionid,
-            't': int(time.time()*1000),
-        }
-
-        resp = self.session.get(
-            'http://d.web2.qq.com/channel/get_c2cmsg_sig2', params=params,
-            headers={
-                'Origin': 'http://d.web2.qq.com',
-                'Referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=3' % self.v,
-            }
+        rst = self.call_server('d:get_c2cmsg_sig2', method='get',
+            id=group_id,
+            to_uin=uin,
+            service_type=0,
+            clientid=self.clientid,
+            psessionid=self.psessionid,
+            t=int(time.time()*1000),
         )
 
-        rst = json.loads(resp.content)
         if rst['retcode']:
             log.error('Error in get_c2cmsg_sig: %r', rst)
             return ''
@@ -566,25 +564,15 @@ class QQBot(object):
         if uin in cache:
             return cache[uin]
 
-        session = self.session
-        params = {
-            'tuin': uin,
-            'verifysession': verifysession,
-            'type': type,
-            'vfwebqq': self.vfwebqq,
-            'code': code,
-            't': int(time.time() * 1000),
-        }
-
-        resp = session.get(
-            'http://s.web2.qq.com/api/get_friend_uin2',
-            params=params,
-            headers={'Referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=1' % self.v},
+        rst = self.call_server('s:get_friend_uin2', method='get',
+            tuin=uin,
+            verifysession=verifysession,
+            type=type,
+            vfwebqq=self.vfwebqq,
+            code=code,
+            t=int(time.time() * 1000),
         )
 
-        assert resp.ok
-
-        rst = json.loads(resp.content)
         rcode = rst['retcode']
 
         if rcode == 0:
@@ -595,63 +583,119 @@ class QQBot(object):
             if rcode == 1001:
                 self.on_captcha_wrong(vctag)
 
-            privsess = requests.session()
-            captcha = privsess.get('http://captcha.qq.com/getimage', params={'aid': self.appid})
-            verifysession = privsess.cookies['verifysession']
-            vc, vctag = self.on_captcha(captcha.content)
+            verifysession, vc, vctag = self._new_verify_session()
             return self._uin2account(uin, type, cache, verifysession, vc, vctag)
         else:
             assert False, 'Unexpected retcode %d' % rcode
+
+    def _new_verify_session(self):
+        privsess = requests.session()
+        captcha = privsess.get('http://captcha.qq.com/getimage', params={'aid': self.appid})
+        verifysession = privsess.cookies['verifysession']
+        vc, vctag = self.on_captcha(captcha.content)
+        return verifysession, vc, vctag
 
     uin2qq = lambda self, uin: self._uin2account(uin, 1, 'uin2qq')
     gcode2groupnum = lambda self, gcode: self._uin2account(gcode, 4, 'gcode2groupnum')
 
     def allow_friend_request(self, qq):
         log.info(u'Accepting friend request: %d', qq)
-        payload = {
+        self.ready.wait()
+        self.call_server('s:allow_and_add2', {
             'account': qq,
             'gid': 0,
             'mname': '',
             'vfwebqq': self.vfwebqq,
-        }
-
-        self.session.post(
-            'http://s.web2.qq.com/api/allow_and_add2',
-            data={'r': json.dumps(payload)},
-            headers={'Referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=1' % self.v},
-        )
+        })
 
     def deny_friend_request(self, qq, reason=''):
         log.info(u'Denying friend request: %d, %s', qq, reason)
-        payload = {
+        self.ready.wait()
+        self.call_server('s:deny_added_request2', {
             'account': qq,
             'msg': reason,
             'vfwebqq': self.vfwebqq,
-        }
-
-        self.session.post(
-            'http://s.web2.qq.com/api/deny_added_request2',
-            data={'r': json.dumps(payload)},
-            headers={'Referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=1' % self.v},
-        )
+        })
 
     def delete_friend(self, uin):
         log.info(u'Deleting friend: %d', self.uin2qq(uin))
+        self.ready.wait()
         try:
             del self.cache['uin2qq'][uin]
         except:
             pass
 
-        payload = {
-            'tuin': uin,
-            'delType': 2,
+        self.call_server('s:delete_friend', tuin=uin, delType=2, vfwebqq=self.vfwebqq)
+
+    def search_and_add(self, qq, verify_msg):
+        log.info(u'Search and add: %d', qq)
+        self.ready.wait()
+        verifysession, vc, vctag = self._new_verify_session()
+
+        rst = self.call_server('s:search_qq_by_uin2', method='get',
+            tuin=qq,
+            verifysession=verifysession,
+            code=vc,
+            vfwebqq=self.vfwebqq,
+            t=int(time.time() * 1000),
+        )
+
+        if rst['result'] in (1000, 1001, 100000):
+            # Wrong captcha? perhaps.
+            # Not reporting wrong captcha for safety
+            time.sleep(1)
+            return self.search_qq_by_uin2(qq, verify_msg)
+
+        token = rst['result']['token']
+
+        rst = self.call_server('s:add_need_verify2', {
+            'account': qq,
+            'myallow': 1,
+            'groupid': 1,
+            'msg': verify_msg,
+            'token': token,
             'vfwebqq': self.vfwebqq,
+        })
+
+    def call_server(self, api, r=None, method='post', **payloads):
+        ns, api_name = api.split(':')
+        conf = {
+            'd': {
+                'url': 'http://d.web2.qq.com/channel/{api_name}',
+                'referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=1' % self.v,
+                'origin': 'http://d.web2.qq.com',
+            },
+            's': {
+                'url': 'http://s.web2.qq.com/api/{api_name}',
+                'referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=1' % self.v,
+                'origin': 'http://s.web2.qq.com',
+            },
+        }[ns]
+        req = {}
+        r and req.update({'r': json.dumps(r, ensure_ascii=False)})
+        req.update(payloads)
+
+        headers = {
+            'Referer': conf['referer'],
+            'Origin': conf['origin'],
+            'User-Agent': UA_STRING,
         }
 
-        self.session.post(
-            'http://s.web2.qq.com/api/delete_friend', data=payload,
-            headers={'Referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=1' % self.v},
-        )
+        if method == 'post':
+            resp = self.session.post(
+                conf['url'].format(api_name=api_name),
+                data=req, headers=headers,
+            )
+        elif method == 'get':
+            resp = self.session.get(
+                conf['url'].format(api_name=api_name),
+                params=req, headers=headers,
+            )
+
+        if not resp.ok:
+            raise Exception('Failed server call: %s' % resp.content)
+
+        return json.loads(resp.content)
 
     # ----------------
 

@@ -123,25 +123,6 @@ class Aya(QQBot):
         dbccli = DBCClient(options.dbc_username, options.dbc_password)
         dbccli.report(tag['captcha'])
 
-    def polling_hook(self, f, v):
-        pool.apply_async(f, (v,))
-
-    def on_login(self):
-        refresh = pool.map_async(lambda f: f(), [
-            self.refresh_buddy_list,
-            self.refresh_group_list,
-        ])
-
-        @pool.apply_async
-        def _():
-            refresh.get()
-            Pool(2).map_async(self.gcode2groupnum, [g['code'] for g in aya.group_list])
-            Pool(2).map_async(self.uin2qq, [i['uin'] for i in aya.buddy_list])
-
-        global Interconnect
-        if not Interconnect:
-            Interconnect = AyaInterconnect.spawn('aya', options.redis, options.redis_port)
-
     def on_sess_message(self, msg):
         text = (
             u'文文不认识你，不会理你哦。\n'
@@ -216,7 +197,7 @@ class Aya(QQBot):
             return success()
 
     def do_speaker(self, uin, content, group_uin=None):
-        fail_text = u'文文不认识你，才不帮你发新闻呢。'
+        fail_text = u'文文不认识你，才不帮你发新闻呢。想跟文文做朋友么？悄悄地告诉文文吧。'
         insufficient_funds_text = u'你的节操掉了一地，才不帮你发新闻呢。'
         friend_uins = [i['uin'] for i in self.buddy_list]
         if uin not in friend_uins:
@@ -286,4 +267,6 @@ from gevent.backdoor import BackdoorServer
 gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
 
 aya = Aya(options.qq, options.password)
-aya.loop()
+aya.wait_ready()
+Interconnect = AyaInterconnect.spawn('aya', options.redis, options.redis_port)
+aya.join()
