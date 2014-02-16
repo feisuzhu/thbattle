@@ -2,7 +2,7 @@
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
 from ..actions import GenericAction, Damage, user_choose_cards
-from ..actions import DropCards, PlayerTurn
+from ..actions import ask_for_drop, PlayerTurn
 from ..cards import Skill, t_None, InstantSpellCardAction, Reject, SpellCardAction
 from ..inputlets import ProphetInputlet, ChooseOptionInputlet
 
@@ -62,11 +62,11 @@ class ExtremeIntelligenceAction(GenericAction):
 
     def apply_action(self):
         p = self.source
-        cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-        if not cards: return False
+        drop = ask_for_drop(self, p, ('cards', 'showncards', 'equips'))
+        if not drop: return False
         p.tags['ran_ei'] = p.tags['turn_count'] + 1
         g = Game.getgame()
-        g.process_action(DropCards(p, cards))
+        g.process_action(drop)
 
         act = self.action
         nact = act.__class__(source=p, target=act.target)
@@ -83,7 +83,10 @@ class ExtremeIntelligenceAction(GenericAction):
         except AttributeError:
             pass
 
-        nact.associated_card = ExtremeIntelligence.wrap(cards, p)
+        try:
+            nact.associated_card = act.associated_card
+        except AttributeError:
+            pass
 
         g.process_action(nact)
         return True

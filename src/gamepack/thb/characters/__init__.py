@@ -40,6 +40,7 @@ import komachi
 import mokou
 import kokoro
 import mamizou
+import kanako
 
 import remilia_ex
 

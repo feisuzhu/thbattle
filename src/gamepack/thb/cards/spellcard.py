@@ -61,7 +61,7 @@ class Reject(InstantSpellCardAction):
         return True
 
 
-class LaunchReject(GenericAction, LaunchCardAction):
+class LaunchReject(LaunchCardAction):
     def __init__(self, source, target_act, card):
         self.source = source
         self.target_act = target_act
@@ -76,6 +76,9 @@ class LaunchReject(GenericAction, LaunchCardAction):
         g.process_action(DropUsedCard(self.source, [self.card]))
         g.process_action(action)
         return True
+
+    def is_valid(self):
+        return Reject(self.source, self.target_act).can_fire()
 
 
 @register_eh
@@ -113,11 +116,10 @@ class RejectHandler(EventHandler):
 
             pl = BatchList(p for p in g.players if not p.dead)
 
-            p, rst = ask_for_action(self, pl, ('cards', 'showncards'), [])
-            if not p: return act
-            cards, _ = rst
-            assert cards and self.cond(cards)
-            g.process_action(LaunchReject(p, act, cards[0]))
+            action = lambda p, cl, pl: LaunchReject(p, act, cl[0])
+            rst = ask_for_action(self, action, pl, ('cards', 'showncards'), [])
+            if not rst: return act
+            g.process_action(rst)
 
         return act
 
@@ -371,13 +373,14 @@ class DollControl(InstantSpellCardAction):
         assert len(tl) == 2
         src = self.source
 
-        controllee, attackee = tl
-        cards = user_choose_cards(self, controllee, ['cards', 'showncards'])
         g = Game.getgame()
 
-        if cards:
-            g.players.reveal(cards)
-            g.process_action(LaunchCard(controllee, [attackee], cards[0]))
+        controllee, attackee = tl
+        action = lambda p, cl, pl: LaunchCard(controllee, [attackee], cl[0])
+        action = ask_for_action(self, action, ['cards', 'showncards'], g.players)
+
+        if action:
+            g.process_action(action)
         else:
             l = [e for e in controllee.equips if e.equipment_category == 'weapon']
             migrate_cards(l, src.cards)
@@ -385,9 +388,15 @@ class DollControl(InstantSpellCardAction):
 
     def cond(self, cl):
         if len(cl) != 1: return False
-        if not cl[0].associated_action: return False
-        if issubclass(cl[0].associated_action, basic.Attack): return True
-        return False
+        from .basic import AttackCard
+        return cl[0].is_card(AttackCard)
+
+    def choose_player_target(self, tl):
+        _, attackee = self.target_list
+        if not tl:
+            return ([attackee], True)
+
+        return (tl, attackee in tl)
 
 
 class DonationBoxEffect(InstantSpellCardAction):

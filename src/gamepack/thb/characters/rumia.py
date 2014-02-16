@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
-from ..actions import DrawCards, PlayerTurn, UserAction, user_choose_cards, LaunchCard, Damage
+from ..actions import DrawCards, PlayerTurn, UserAction, ask_for_action, LaunchCard, Damage
 from ..cards import Skill, BaseDuel, t_None, t_OtherN, AttackCard
 
 
@@ -17,10 +17,10 @@ class DarknessAction(UserAction):
         tags = self.source.tags
         tags['darkness_tag'] = tags['turn_count']
 
-        cards = user_choose_cards(self, attacker, ('cards', 'showncards'))
-        if cards:
-            c = cards[0]
-            g.process_action(LaunchCard(attacker, [victim], c))
+        action = lambda p, cl, pl: LaunchCard(attacker, [victim], cl[0])
+        action = ask_for_action(self, action, [attacker], ('cards', 'showncards'), [])
+        if action:
+            g.process_action(action)
         else:
             g.process_action(Damage(src, attacker, 1))
 
@@ -42,6 +42,13 @@ class DarknessAction(UserAction):
             return False
 
         return True
+        
+    def choose_player_target(self, tl):
+        _, victim = self.target_list
+        if not tl:
+            return ([victim], True)
+
+        return (tl, victim in tl)
 
 
 class Darkness(Skill):

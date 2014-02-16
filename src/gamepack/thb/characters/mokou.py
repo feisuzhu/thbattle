@@ -3,7 +3,7 @@
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
 from ..actions import UserAction, FatetellStage, DropCards, DrawCards, LifeLost, PlayerTurn
-from ..actions import user_choose_cards
+from ..actions import ask_for_drop
 from ..cards import Card, Skill, t_None
 from ..cards.basic import Heal
 from ..inputlets import ChooseOptionInputlet
@@ -60,10 +60,10 @@ class RebornHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             self.target = tgt = act.target
             if not tgt.has_skill(Reborn): return act
-            cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-            if cards:
+            drop = ask_for_drop(self, tgt, ('cards', 'showncards', 'equips'))
+            if drop:
                 g = Game.getgame()
-                g.process_action(DropCards(tgt, cards))
+                g.process_action(drop)
                 g.process_action(RebornAction(tgt))
 
         return act
