@@ -28,7 +28,7 @@ class MasochistAction(UserAction):
         while n > 0:
             pl = [p for p in g.players if not p.dead]
             pl.remove(tgt)
-            _, rst = ask_for_action(self, [tgt], ('cards',), pl)
+            _, rst = ask_for_action(self, None, [tgt], ('cards',), pl)
             if not rst: return True
             cl, pl = rst
             pl[0].reveal(cl)

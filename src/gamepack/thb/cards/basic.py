@@ -4,7 +4,7 @@ from game.autoenv import Game, EventHandler
 from ..actions import ActionStage, ActionStageLaunchCard, Damage, DropCards
 from ..actions import DropUsedCard, GenericAction, LaunchCard, LaunchCardAction
 from ..actions import PlayerTurn, UseCard, UserAction
-from ..actions import register_eh, user_choose_cards
+from ..actions import register_eh, ask_for_action, ask_for_drop
 
 
 class BasicAction(UserAction):
@@ -131,8 +131,32 @@ class UseGraze(BaseUseGraze):
     pass
 
 
-class LaunchGraze(BaseUseGraze, LaunchCardAction):
-    pass
+class LaunchGraze(GenericAction):
+    def __init__(self, target):
+        self.source = self.target = target
+
+    def apply_action(self):
+        g = Game.getgame()
+        src = self.source
+        
+        action = lambda p, cl, pl: LaunchCardAction(src, cl[0])
+        action = ask_for_action(self, action, [src], ['cards', 'showncards'], [])
+        if not action:
+            self.card = None
+            return False
+        else:
+            self.card = action.card
+            g.process_action(action)
+            return True
+
+    def cond(self, cl):
+        from .. import cards
+        t = self.target
+        return (
+            len(cl) == 1 and
+            cl[0].is_card(cards.GrazeCard) and
+            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
+        )
 
 
 class UseAttack(UseCard):
@@ -146,18 +170,25 @@ class UseAttack(UseCard):
         )
 
 
-class LaunchHeal(UserAction, LaunchCardAction):
+class LaunchHealAction(LaunchCardAction):
+    def __init__(self, source, target, card):
+        self.source = source
+        self.target = target
+        self.card = card
+
+class LaunchHeal(GenericAction):
     def apply_action(self):
         g = Game.getgame()
         src = self.source
-        cards = user_choose_cards(self, src, ['cards', 'showncards'])
-        if not cards:
+        
+        action = lambda p, cl, pl: LaunchCardAction(src, tgt, cl[0])
+        action = ask_for_action(self, action, [src], ['cards', 'showncards'], [])
+        if not action:
             self.card = None
             return False
         else:
-            self.card = cards[0]
-            drop = DropUsedCard(src, cards=cards)
-            g.process_action(drop)
+            self.card = action.card
+            g.process_action(action)
             return True
 
     def cond(self, cl):
@@ -249,10 +280,10 @@ class ExinwanEffect(GenericAction):
         if target.dead:
             return False
 
-        cards = user_choose_cards(self, target, ('cards', 'showncards', 'equips'))
+        drop = ask_for_drop(self, target, ('cards', 'showncards', 'equips'))
 
-        if cards:
-            g.process_action(DropCards(target=target, cards=cards))
+        if drop:
+            g.process_action(drop)
         else:
             g.process_action(Damage(source=None, target=target))
 

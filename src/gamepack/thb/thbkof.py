@@ -101,11 +101,13 @@ class THBattleKOF(Game):
 
         # choose girls -->
         from characters import get_characters
+        from characters.kanako import Kanako
         chars = get_characters('kof')
 
         from characters.akari import Akari
 
         _chars = g.random.sample(chars, 10)
+        _chars.append(Kanako)
         if Game.SERVER_SIDE:
             choice = [CharChoice(cls) for cls in _chars[-10:]]
 
