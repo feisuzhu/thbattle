@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import Character, register_character_to
+from .baseclasses import Character, register_testing_character
 
 
-@register_character_to('testing')
+@register_testing_character
 class Dummy(Character):
     skills = []
     eventhandlers_required = []
