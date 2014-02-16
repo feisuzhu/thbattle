@@ -327,9 +327,9 @@ class THBattleUI(Control, Observable):
         ks = (ks + text)[:40]
         self.keystrokes = ks
 
-        from gamepack.thb.characters import characters as chars
+        from gamepack.thb.characters import Character
 
-        for c in chars:
+        for c in Character.character_classes.itervalues():
             try:
                 alter = c.ui_meta.figure_image_alter
             except:

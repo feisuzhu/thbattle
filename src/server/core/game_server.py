@@ -15,7 +15,7 @@ import gevent
 
 # -- own --
 from network.server import EndpointDied
-from game import TimeLimitExceeded, InputTransaction
+from game import TimeLimitExceeded, InputTransaction, GameEnded
 from utils import waitany, log_failure
 import game
 
@@ -226,8 +226,14 @@ class Game(Greenlet, game.Game):
         self.synctag = 0
         self.game = getcurrent()
         hall.start_game(self)
-        self.game_start()
-        hall.end_game(self)
+        try:
+            self.game_start()
+        except GameEnded:
+            pass
+        finally:
+            hall.end_game(self)
+
+        assert self.ended
 
     @staticmethod
     def getgame():

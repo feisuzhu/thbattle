@@ -19,7 +19,7 @@ from collections import defaultdict
 
 from .common import PlayerIdentity, CharChoice, get_seed_for
 
-from utils import BatchList
+from utils import BatchList, Enum
 
 log = logging.getLogger('THBattleRaid')
 
@@ -49,12 +49,12 @@ class DeathHandler(EventHandler):
         # attackers' win
         if tgt is g.mutant:
             g.winners = g.attackers
-            raise GameEnded
+            g.game_end()
 
         # mutant's win
         if all(p.dead for p in g.attackers):
             g.winners = [g.mutant]
-            raise GameEnded
+            g.game_end()
 
         if tgt in g.attackers:
             for p in [p for p in g.attackers if not p.dead]:
@@ -357,7 +357,7 @@ class FaithExchangeHandler(EventHandler):
 
 class Identity(PlayerIdentity):
     # 异变 解决者
-    class TYPE:
+    class TYPE(Enum):
         HIDDEN = 0
         MUTANT = 1
         ATTACKER = 2
@@ -500,101 +500,12 @@ class THBattleRaid(Game):
 
         # -------
 
+        g.process_action(DrawCards(mutant, amount=6))
+        for p in attackers:
+            g.process_action(DrawCards(p, amount=4))
+
+        # stage 1
         try:
-            g.process_action(DrawCards(mutant, amount=6))
-            for p in attackers:
-                g.process_action(DrawCards(p, amount=4))
-
-            # stage 1
-            try:
-                for i in xrange(500):
-                    g.process_action(CollectFaith(mutant, mutant, 1))
-
-                    avail = [p for p in attackers if not p.dead and len(p.faiths) < 5]
-                    if avail:
-                        p, _ = user_input(
-                            avail,
-                            ChooseOptionInputlet(GetFaith, (None, True)),
-                            type='any',
-                        )
-                        p = p or avail[0]
-                        g.process_action(CollectFaith(p, p, 1))
-
-                    g.emit_event('round_start', False)
-
-                    for p in attackers:
-                        p.tags['action'] = True
-
-                    while True:
-                        try:
-                            g.process_action(PlayerTurn(mutant))
-                        except InterruptActionFlow:
-                            pass
-
-                        avail = BatchList([p for p in attackers if p.tags['action'] and not p.dead])
-                        if not avail:
-                            break
-
-                        p, _ = user_input(
-                            avail,
-                            ChooseOptionInputlet(RequestAction, (None, True)),
-                            type='any',
-                        )
-
-                        p = p or avail[0]
-                        p.tags['action'] = False
-
-                        try:
-                            g.process_action(PlayerTurn(p))
-                        except InterruptActionFlow:
-                            pass
-
-                        if not [p for p in attackers if p.tags['action'] and not p.dead]:
-                            break
-
-            except MutantMorph:
-                pass
-
-            # morphing
-            stage1 = mutant.__class__
-            stage2 = stage1.stage2
-
-            for s in stage1.skills:
-                try:
-                    mutant.skills.remove(s)
-                except ValueError:
-                    pass
-
-            mutant.skills.extend(stage2.skills)
-
-            ehclasses = g.ehclasses
-            for s in stage1.eventhandlers_required:
-                try:
-                    ehclasses.remove(s)
-                except ValueError:
-                    pass
-
-            ehclasses.extend(stage2.eventhandlers_required)
-
-            g.process_action(
-                MaxLifeChange(mutant, mutant, -(stage1.maxlife // 2))
-            )
-            mutant.morphed = True
-
-            mutant.__class__ = stage2
-
-            g.update_event_handlers()
-
-            for p in attackers:
-                g.process_action(CollectFaith(p, p, 1))
-
-            g.process_action(DropCards(mutant, mutant.fatetell))
-
-            g.emit_event('mutant_morph', mutant)
-
-            g.pause(4)
-
-            # stage 2
             for i in xrange(500):
                 g.process_action(CollectFaith(mutant, mutant, 1))
 
@@ -613,12 +524,12 @@ class THBattleRaid(Game):
                 for p in attackers:
                     p.tags['action'] = True
 
-                try:
-                    g.process_action(PlayerTurn(mutant))
-                except InterruptActionFlow:
-                    pass
-
                 while True:
+                    try:
+                        g.process_action(PlayerTurn(mutant))
+                    except InterruptActionFlow:
+                        pass
+
                     avail = BatchList([p for p in attackers if p.tags['action'] and not p.dead])
                     if not avail:
                         break
@@ -626,22 +537,104 @@ class THBattleRaid(Game):
                     p, _ = user_input(
                         avail,
                         ChooseOptionInputlet(RequestAction, (None, True)),
-                        type='any'
+                        type='any',
                     )
 
                     p = p or avail[0]
-
                     p.tags['action'] = False
+
                     try:
                         g.process_action(PlayerTurn(p))
                     except InterruptActionFlow:
                         pass
 
-        except GameEnded:
+                    if not [p for p in attackers if p.tags['action'] and not p.dead]:
+                        break
+
+        except MutantMorph:
             pass
 
-        winner_force = 'Mutant' if g.winners == [mutant] else 'Attackers'
-        log.info(u'>> Winner: %s', winner_force)
+        # morphing
+        stage1 = mutant.__class__
+        stage2 = stage1.stage2
+
+        for s in stage1.skills:
+            try:
+                mutant.skills.remove(s)
+            except ValueError:
+                pass
+
+        mutant.skills.extend(stage2.skills)
+
+        ehclasses = g.ehclasses
+        for s in stage1.eventhandlers_required:
+            try:
+                ehclasses.remove(s)
+            except ValueError:
+                pass
+
+        ehclasses.extend(stage2.eventhandlers_required)
+
+        g.process_action(
+            MaxLifeChange(mutant, mutant, -(stage1.maxlife // 2))
+        )
+        mutant.morphed = True
+
+        mutant.__class__ = stage2
+
+        g.update_event_handlers()
+
+        for p in attackers:
+            g.process_action(CollectFaith(p, p, 1))
+
+        g.process_action(DropCards(mutant, mutant.fatetell))
+
+        g.emit_event('mutant_morph', mutant)
+
+        g.pause(4)
+
+        # stage 2
+        for i in xrange(500):
+            g.process_action(CollectFaith(mutant, mutant, 1))
+
+            avail = [p for p in attackers if not p.dead and len(p.faiths) < 5]
+            if avail:
+                p, _ = user_input(
+                    avail,
+                    ChooseOptionInputlet(GetFaith, (None, True)),
+                    type='any',
+                )
+                p = p or avail[0]
+                g.process_action(CollectFaith(p, p, 1))
+
+            g.emit_event('round_start', False)
+
+            for p in attackers:
+                p.tags['action'] = True
+
+            try:
+                g.process_action(PlayerTurn(mutant))
+            except InterruptActionFlow:
+                pass
+
+            while True:
+                avail = BatchList([p for p in attackers if p.tags['action'] and not p.dead])
+                if not avail:
+                    break
+
+                p, _ = user_input(
+                    avail,
+                    ChooseOptionInputlet(RequestAction, (None, True)),
+                    type='any'
+                )
+
+                p = p or avail[0]
+
+                p.tags['action'] = False
+                try:
+                    g.process_action(PlayerTurn(p))
+                except InterruptActionFlow:
+                    pass
 
     def can_leave(self, p):
         return False

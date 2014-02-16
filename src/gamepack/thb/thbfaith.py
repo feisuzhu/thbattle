@@ -43,7 +43,7 @@ class DeathHandler(EventHandler):
             forces = g.forces[:]
             forces.remove(force)
             g.winners = forces[0][:]
-            raise GameEnded
+            g.game_end()
 
         g = Game.getgame()
 
@@ -192,41 +192,36 @@ class THBattleFaith(Game):
                 first = p
                 break
 
-        try:
-            pl = g.players
-            first_index = pl.index(first)
-            order = BatchList(range(len(pl))).rotate_to(first_index)
+        pl = g.players
+        first_index = pl.index(first)
+        order = BatchList(range(len(pl))).rotate_to(first_index)
 
-            for p in pl:
-                g.process_action(RevealIdentity(p, pl))
+        for p in pl:
+            g.process_action(RevealIdentity(p, pl))
 
-            g.emit_event('game_begin', g)
+        g.emit_event('game_begin', g)
 
-            for p in pl:
-                g.process_action(DrawCards(p, amount=4))
+        for p in pl:
+            g.process_action(DrawCards(p, amount=4))
 
-            pl = g.players.rotate_to(first)
-            rst = user_input(pl[1:], ChooseOptionInputlet(DeathHandler(), (False, True)), type='all')
+        pl = g.players.rotate_to(first)
+        rst = user_input(pl[1:], ChooseOptionInputlet(DeathHandler(), (False, True)), type='all')
 
-            for p in pl[1:]:
-                rst.get(p) and g.process_action(RedrawCards(p, p))
+        for p in pl[1:]:
+            rst.get(p) and g.process_action(RedrawCards(p, p))
 
-            pl = g.players
-            for i, idx in enumerate(cycle(order)):
-                if i >= 6000: break
-                p = pl[idx]
-                if p.dead: continue
+        pl = g.players
+        for i, idx in enumerate(cycle(order)):
+            if i >= 6000: break
+            p = pl[idx]
+            if p.dead: continue
 
-                g.emit_event('player_turn', p)
-                try:
-                    g.process_action(PlayerTurn(p))
-                except InterruptActionFlow:
-                    pass
+            g.emit_event('player_turn', p)
+            try:
+                g.process_action(PlayerTurn(p))
+            except InterruptActionFlow:
+                pass
 
-        except GameEnded:
-            pass
-
-        log.info(u'>> Winner: %s', Identity.TYPE.rlookup(g.winners[0].identity.type))
 
     def can_leave(g, p):
         return False

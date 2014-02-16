@@ -8,6 +8,7 @@ from .characters.baseclasses import mixin_character
 
 from itertools import cycle
 from collections import defaultdict
+from utils import Enum
 
 from .common import PlayerIdentity, sync_primitive, CharChoice, get_seed_for
 from .inputlets import ChooseGirlInputlet
@@ -68,7 +69,7 @@ class DeathHandler(EventHandler):
 
             if survivors[0].identity.type == T.CURTAIN:
                 g.winners = survivors[:]
-                raise GameEnded
+                g.game_end()
 
         deads = build()
 
@@ -79,7 +80,7 @@ class DeathHandler(EventHandler):
                 pl.reveal([p.identity for p in g.players])
 
                 g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
-                raise GameEnded
+                g.game_end()
 
         # attackers' win
         if len(deads[T.BOSS]):
@@ -87,14 +88,14 @@ class DeathHandler(EventHandler):
             pl.reveal([p.identity for p in g.players])
 
             g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
-            raise GameEnded
+            g.game_end()
 
         return act
 
 
 class Identity(PlayerIdentity):
     # 城管 BOSS 道中 黑幕
-    class TYPE:
+    class TYPE(Enum):
         HIDDEN = 0
         ATTACKER = 1
         BOSS = 4
@@ -223,23 +224,20 @@ class THBattleIdentity(Game):
 
         g.emit_event('game_begin', g)
 
-        try:
-            for p in g.players:
-                g.process_action(DrawCards(p, amount=4))
+        for p in g.players:
+            g.process_action(DrawCards(p, amount=4))
 
-            pl = g.players.rotate_to(boss)
+        pl = g.players.rotate_to(boss)
 
-            for i, p in enumerate(cycle(pl)):
-                if i >= 6000: break
-                if not p.dead:
-                    try:
-                        g.process_action(PlayerTurn(p))
-                    except InterruptActionFlow:
-                        pass
+        for i, p in enumerate(cycle(pl)):
+            if i >= 6000: break
+            if not p.dead:
+                try:
+                    g.process_action(PlayerTurn(p))
+                except InterruptActionFlow:
+                    pass
 
-        except GameEnded:
-            pass
-
+    
     def can_leave(self, p):
         return getattr(p, 'dead', False)
 

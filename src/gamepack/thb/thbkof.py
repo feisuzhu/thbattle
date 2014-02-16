@@ -40,16 +40,16 @@ class DeathHandler(EventHandler):
             pl = g.players[:]
             pl.remove(tgt)
             g.winners = pl
-            raise GameEnded
+            g.game_end()
 
         pl = g.players
         if pl[0].dropped:
             g.winners = [pl[1]]
-            raise GameEnded
+            g.game_end()
 
         if pl[1].dropped:
             g.winners = [pl[0]]
-            raise GameEnded
+            g.game_end()
 
         if tgt is g.current_turn:
             raise InterruptActionFlow
@@ -192,35 +192,32 @@ class THBattleKOF(Game):
 
         order = [0, 1] if first is g.players[0] else [1, 0]
 
-        try:
-            pl = g.players
-            for p in pl:
-                g.process_action(RevealIdentity(p, pl))
+        pl = g.players
+        for p in pl:
+            g.process_action(RevealIdentity(p, pl))
 
-            g.emit_event('game_begin', g)
+        g.emit_event('game_begin', g)
 
-            for p in pl:
-                g.process_action(DrawCards(p, amount=3 if p is first else 4))
+        for p in pl:
+            g.process_action(DrawCards(p, amount=3 if p is first else 4))
 
-            for i, idx in enumerate(cycle(order)):
-                p = g.players[idx]
-                if i >= 6000: break
-                if p.dead:
-                    assert p.characters  # if not holds true, DeathHandler should end game.
-                    KOFCharacterSwitchHandler.do_switch()
-                    p = g.players[idx]  # player changed
+        for i, idx in enumerate(cycle(order)):
+            p = g.players[idx]
+            if i >= 6000: break
+            if p.dead:
+                assert p.characters  # if not holds true, DeathHandler should end game.
+                KOFCharacterSwitchHandler.do_switch()
+                p = g.players[idx]  # player changed
 
-                assert not p.dead
+            assert not p.dead
 
-                try:
-                    g.emit_event('player_turn', p)
-                    g.process_action(PlayerTurn(p))
-                except InterruptActionFlow:
-                    pass
+            try:
+                g.emit_event('player_turn', p)
+                g.process_action(PlayerTurn(p))
+            except InterruptActionFlow:
+                pass
 
-        except GameEnded:
-            pass
-
+    
     def can_leave(g, p):
         return False
 
