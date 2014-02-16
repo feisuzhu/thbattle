@@ -2,7 +2,7 @@
 
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import Damage, DrawCards, DropCards, GenericAction, UserAction, user_choose_players, user_choose_cards
+from ..actions import Damage, DrawCards, ActiveDropCards, GenericAction, UserAction, user_choose_players, ask_for_drop
 from ..cards import Skill, t_None, t_OtherOne, Attack
 from ..inputlets import ChooseOptionInputlet
 
@@ -69,12 +69,12 @@ class MiracleAction(GenericAction):
         if len(allcards) <= amount:
             cards = allcards
         else:
-            cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-            cards = cards or allcards[:amount]
+            drop = ask_for_drop(self, p, ('cards', 'showncards', 'equips'))
+            cards = drop.cards if drop else allcards[:amount]
 
         g.players.reveal(cards)
 
-        g.process_action(DropCards(p, cards))
+        g.process_action(ActiveDropCards(p, cards))
         g.process_action(DrawCards(p, amount))
 
     def choose_player_target(self, tl):

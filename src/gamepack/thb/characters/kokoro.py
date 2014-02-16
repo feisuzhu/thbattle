@@ -2,8 +2,8 @@
 
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character_to
-from ..actions import UserAction, ActionStage, ShowCards, DropCards
-from ..actions import migrate_cards, user_choose_cards
+from ..actions import UserAction, ActionStage, ShowCards, ActiveDropCards
+from ..actions import migrate_cards, ask_for_drop
 from ..cards import Card, Skill, t_None, t_OtherOne
 from ..inputlets import ChooseOptionInputlet, HopeMaskInputlet
 
@@ -64,18 +64,19 @@ class DarkNohAction(UserAction):
         self.n = n = len(tgt.cards) + len(tgt.showncards) - tgt.life
         if n <= 0: return True
 
-        cards = user_choose_cards(self, tgt, ('cards', 'showncards'))
-        if not cards:
+        action = ask_for_drop(self, tgt, ('cards', 'showncards'))
+        
+        if not action:
+            # FIXME: may select cards that cannot be drop
             cl = list(tgt.cards) + list(tgt.showncards)
             try:
                 cl.remove(card)
             except:
                 pass
 
-            cards = cl[:n]
+            action = ActiveDropCards(tgt, cl[:n])
 
-        g.players.reveal(cards)
-        g.process_action(DropCards(tgt, cards))
+        g.process_action(action)
 
         return True
 

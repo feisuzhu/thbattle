@@ -15,8 +15,9 @@ log = logging.getLogger('THBattle_Actions')
 # ------------------------------------------
 # aux functions
 
-def ask_for_action(initiator, actors, categories, candidates, trans=None):
+def user_input_action(initiator, action, actors, categories, candidates, trans=None):
     # initiator: Action or EH requesting this
+    # action: pending action, eg: lambda p, cl, pl: act(p, cl, pl)
     # actors: players involved
     # categories: card categories, eg: ['cards', 'showncards']
     # candidates: players can be selection target, eg: g.players
@@ -24,7 +25,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
     assert categories or candidates
     assert actors
 
-    ilet = ActionInputlet(initiator, categories, candidates)
+    ilet = ActionInputlet(initiator, action, categories, candidates)
 
     @ilet.with_post_process
     def process(actor, rst):
@@ -33,21 +34,26 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
             check(rst)
             skills, cards, players, params = rst
             [check(not c.detached) for c in cards]
+            acards = cards
             if categories:
                 if skills:
                     # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
                     skill = skill_wrap(actor, skills, cards, params)
                     check(skill and initiator.cond([skill]))
+                    acards = [skill]
                 else:
                     if not getattr(initiator, 'no_reveal', False):
                         g.players.reveal(cards)
 
-                    check(initiator.cond(cards))
+                    check(initiator.cond(acards))
 
             if candidates:
                 players, valid = initiator.choose_player_target(players)
                 check(valid)
+
+            act = action(actor, acards, players)
+            check(act.can_fire())
 
             return skills, cards, players, params
 
@@ -60,28 +66,40 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         if skills:
             cards = [skill_transform(p, skills, cards, params)]
 
-        if not cards and not players:
-            return p, None
-
         [c.detach() for c in cards]
-
-        return p, (cards, players)
+        
+        return action(p, cards, players)
     else:
+        return None
+
+class DummyAction(Action):
+    def __init__(self, source, cards, target_list):
+        self.source = source
+        self.cards = cards
+        self.target_list = target_list
+        self.target = target_list[0] if target_list else source
+
+def ask_for_action(initiator, actors, categories, candidates, trans=None):
+    act = user_input_action(initiator, DummyAction, actors, categories, cadidates, trans)
+    if not act:
         return None, None
 
+    if act.cards or act.target_list:
+        return act.source, (act.cards, act.target_list)
 
-def user_choose_cards(initiator, actor, categories):
+    return act.source, None
+
+def user_choose_cards(initiator, actor, categories, trans=None):
     check_type([str, Ellipsis], categories)
 
-    _, rst = ask_for_action(initiator, [actor], categories, [])
+    _, rst = ask_for_action(initiator, [actor], categories, [], trans)
     if not rst:
         return None
 
     return rst[0]  # cards
 
-
-def user_choose_players(initiator, actor, candidates):
-    _, rst = ask_for_action(initiator, [actor], [], candidates)
+def user_choose_players(initiator, actor, candidates, trans=None):
+    _, rst = ask_for_action(initiator, [actor], [], candidates, trans)
     if not rst:
         return None
 
@@ -182,9 +200,6 @@ action_eventhandlers = set()
 class GenericAction(Action): pass
 
 
-class LaunchCardAction(object): pass
-
-
 class UserAction(Action):  # card/character skill actions
     pass
 
@@ -262,10 +277,6 @@ class TryRevive(GenericAction):
             while True:
                 act = LaunchHeal(p, tgt)
                 if g.process_action(act):
-                    card = act.card
-                    if not card: continue
-                    from .cards import Heal
-                    g.process_action(Heal(p, tgt))
                     if tgt.life > 0:
                         tgt.tags['in_tryrevive'] = False
                         return True
@@ -341,13 +352,42 @@ class DropCards(GenericAction):
 
         return True
 
-    def is_valid(self):
-        return True
 
+class ActiveDropCards(DropCards):
+    def is_valid(self):
+        from .cards import VirtualCard
+        return len(self.cards) > 0 and all(
+            [not isinstance(c, VirtualCard) for c in self.cards]
+        )
+
+
+def ask_for_drop(initiator, actor, categories):
+    check_type([str, Ellipsis], categories)
+
+    action = lambda p, cl, pl: ActiveDropCards(p, cl)
+    return user_input_action(initiator, action, [actor], categories, [])
 
 class DropUsedCard(DropCards):
-    pass
+    def __init___(self, target, cards):
+        self.source = self.target = target
+        self.cards = cards
 
+    def is_valid(self):
+        return len(self.cards) == 1
+
+
+class LaunchCardAction(GenericAction):
+    def __init__(self, target, card):
+        self.source = self.target = target
+        self.card = card
+
+    def apply_action(self):
+        g = Game.getgame()
+        return g.process_action(DropUsedCard(self.target, [self.card]))
+
+
+class UseCardAction(DropUsedCard):
+    pass
 
 class UseCard(UserAction):
     def __init__(self, target):
@@ -357,14 +397,14 @@ class UseCard(UserAction):
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        cards = user_choose_cards(self, target, ('cards', 'showncards'))
+        action = lambda p, cl, pl: UseCardAction(p, cl)
+        drop = user_input_action(self, action, [target], ('cards', 'showncards'), [])
 
-        if not cards or len(cards) != 1:
+        if not drop:
             self.card = None
             return False
         else:
-            self.card = cards[0]
-            drop = DropUsedCard(target, cards=cards)
+            self.card = drop.cards[0]
             g.process_action(drop)
             return True
 
@@ -386,10 +426,12 @@ class DropCardStage(GenericAction):
         if n <= 0: return True
 
         g = Game.getgame()
-        cards = user_choose_cards(self, target, ('cards', 'showncards'))
-        if cards:
-            g.process_action(DropCards(target, cards=cards))
+        drop = ask_for_drop(self, target, ('cards', 'showncards'))
+        if drop:
+            cards = drop.cards
+            g.process_action(drop)
         else:
+            # FIXME: may select cards that cannot be drop
             from itertools import chain
             cards = list(chain(target.cards, target.showncards))[min(-n, 0):]
             g.players.exclude(target).reveal(cards)
@@ -437,7 +479,7 @@ class DrawCardStage(DrawCards):
     pass
 
 
-class LaunchCard(GenericAction, LaunchCardAction):
+class LaunchCard(LaunchCardAction):
     def __init__(self, source, target_list, card):
         tl, tl_valid = card.target(Game.getgame(), source, target_list)
         self.source, self.target_list, self.card, self.tl_valid = source, tl, card, tl_valid
@@ -590,18 +632,16 @@ class ActionStage(GenericAction):
                     g.emit_event('action_stage_action', target)
                     self.in_user_input = True
                     with InputTransaction('ActionStageAction', [target]) as trans:
-                        p, rst = ask_for_action(
-                            self, [target], ('cards', 'showncards'), g.players, trans
+                        action = lambda p, cl, pl: ActionStageLaunchCard(target, pl, cl[0])
+                        action = user_input_action(
+                            self, action, [target], ('cards', 'showncards'), g.players, trans
                         )
-                    check(p is target)
+
+                    if not action: break
                 finally:
                     self.in_user_input = False
 
-                cards, target_list = rst
-                g.players.reveal(cards)
-                card = cards[0]
-
-                if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
+                if not g.process_action(action):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
                     break
@@ -789,29 +829,29 @@ class Pindian(UserAction):
         pindian_card = {src: None, tgt: None}
 
         with InputTransaction('Pindian', pl) as trans:
-            while pl:
-                p, rst = ask_for_action(self, pl, ('cards', 'showncards'), (), trans)
-                if not p: break
-                (card, ), _ = rst
-                pindian_card[p] = card
-                g.emit_event('pindian_card_chosen', (p, card))
-
-            # not chosen
             for p in pl:
-                pindian_card[p] = card = random_choose_card([p.cards, p.showncards])
+                cards = user_choose_cards(self, p, ('cards', 'showncards'), trans)
+                if cards:
+                    assert len(cards) == 1
+                    card = cards[0]
+                else:
+                    # not chosen
+                    card = random_choose_card([p.cards, p.showncards])
+
+                pindian_card[p] = card
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
         g.process_action(DropCards(src, [pindian_card[src]]))
-        g.process_action(DropCards(pl[1], [pindian_card[tgt]]))
+        g.process_action(DropCards(tgt, [pindian_card[tgt]]))
 
         return pindian_card[src].number > pindian_card[tgt].number
 
     @staticmethod
     def cond(cl):
-        from .cards import Skill
+        from .cards import VirtualCard
         return len(cl) == 1 and \
-            (not cl[0].is_card(Skill)) and \
+            (not cl[0].is_card(VirtualCard)) and \
             cl[0].resides_in.type in ('cards', 'showncards')
 
     def is_valid(self):

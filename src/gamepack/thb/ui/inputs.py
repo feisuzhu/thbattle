@@ -200,6 +200,9 @@ class UIDoPassiveAction(UISelectTarget):
 
             initiator = ilet.initiator
             candidates = ilet.candidates
+            action = ilet.action
+            cards = []
+            players = []
 
             g = Game.getgame()
             view = self.parent
@@ -277,6 +280,11 @@ class UIDoPassiveAction(UISelectTarget):
                 view.set_selected_players(players)
                 self.set_text(reason)
                 if not valid: return
+
+            if action:
+                if not action(g.me, cards, players).can_fire():
+                    self.set_text(u'你不能这样出牌。')
+                    return
 
             self.set_valid()
         except:

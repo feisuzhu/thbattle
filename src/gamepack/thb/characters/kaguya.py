@@ -3,7 +3,7 @@
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
 from ..actions import UserAction, LaunchCard, Damage, DrawCards, LaunchCardAction, LifeLost
-from ..actions import user_choose_cards, migrate_cards, skill_transform
+from ..actions import user_choose_cards, migrate_cards, skill_transform, user_input_action
 from ..cards import Skill, t_None, Card, SealingArrayCard, TreatAsSkill, VirtualCard, Heal
 from ..inputlets import ChooseOptionInputlet
 
@@ -115,13 +115,14 @@ class ImperishableNightHandler(EventHandler):
             if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                 continue
 
-            cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
+            def action(p, cl, pl):
+                skill = skill_transform(p, [ImperishableNight], cl, {})
+                return LaunchCard(p, [tgt], skill)
+                
+            action = user_input_action(self, action, [p], ('cards', 'showncards', 'equips'), [])
 
-            if cards:
-                skill = skill_transform(p, [ImperishableNight], cards, {})
-                assert skill  # should not fail
-                rst = g.process_action(LaunchCard(p, [tgt], skill))
-                assert rst
+            if action:
+                g.process_action(action)
 
         return act
 

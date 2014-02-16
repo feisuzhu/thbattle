@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import UserAction, GenericAction, FatetellStage, DropCards, DrawCardStage, LaunchCard, ActionStage, DropCardStage
-from ..actions import user_choose_cards, random_choose_card, migrate_cards, ask_for_action
+from ..actions import UserAction, GenericAction, FatetellStage, DropCards, DrawCardStage, LaunchCard, ActionStage, DropCardStage, ActiveDropCards
+from ..actions import user_choose_cards, random_choose_card, migrate_cards, user_input_action
 from ..cards import Skill, t_None
 from ..inputlets import ChooseIndividualCardInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
 
@@ -12,13 +12,29 @@ class Realm(Skill):
     target = t_None
 
 
-class RealmSkipFatetell(UserAction):
-    def __init__(self, target, fts):
+class RealmAction(UserAction):
+    def __init__(self, target, stage, pl):
         self.source = self.target = target
-        self.fts = fts
+        self.stage = stage
+        self.cards = cards
+        self.pl = pl
 
     def apply_action(self):
-        self.fts.cancelled = True
+        g = Game.getgame()
+        g.process_action(ActiveDropCards(self.target, self.cards))
+        self.stage.cancelled = True
+        return True
+
+    def is_valid(self):
+        return ActiveDropCards(self.target, self.cards).can_fire()
+
+def user_input_realm_action(self, act, stage, tgt, candidates=[]):
+    action = lambda p, cl, pl: act(tgt, cl, stage, pl)
+    return user_input_action(self, action, [tgt], ['cards', 'showncards'], candidates)
+
+class RealmSkipFatetell(RealmAction):
+    def apply_action(self):
+        RealmAction.apply_action(self)
         tgt = self.target
         if not tgt.fatetell: return True
         card = user_input([tgt], ChooseIndividualCardInputlet(self, tgt.fatetell))
@@ -33,12 +49,10 @@ class RealmSkipFatetellHandler(EventHandler):
             if not tgt.has_skill(Realm): return act
             if not tgt.fatetell: return act
 
-            cl = user_choose_cards(self, tgt, ['cards', 'showncards', 'equips'])
-            if not cl: return act
-
-            g = Game.getgame()
-            g.process_action(DropCards(tgt, cl))
-            g.process_action(RealmSkipFatetell(tgt, act))
+            action = user_input_realm_action(self, RealmSkipFatetell, act, tgt)
+            
+            if action:
+                Game.getgame().process_action(action)
 
         return act
 
@@ -51,14 +65,9 @@ class RealmSkipFatetellHandler(EventHandler):
         return True
 
 
-class RealmSkipDrawCard(GenericAction):
-    def __init__(self, target, dcs, pl):
-        self.source = self.target = target
-        self.dcs = dcs
-        self.pl = pl
-
+class RealmSkipDrawCard(RealmAction):
     def apply_action(self):
-        self.dcs.cancelled = True
+        RealmAction.apply_action(self)
         tgt = self.target
 
         for p in self.pl:
@@ -84,14 +93,10 @@ class RealmSkipDrawCardHandler(EventHandler):
 
             pl = [p for p in g.players if not p.dead and (p.cards or p.showncards)]
 
-            _, rst = ask_for_action(self, [tgt], ('cards', 'showncards', 'equips'), pl)
-            if not rst: return act
+            action = user_input_realm_action(self, RealmSkipDrawCard, act, tgt, pl)
 
-            cl, pl = rst
-
-            g = Game.getgame()
-            g.process_action(DropCards(tgt, cl))
-            g.process_action(RealmSkipDrawCard(tgt, act, pl))
+            if action:
+                g.process_action(action)
 
         return act
 
@@ -104,20 +109,20 @@ class RealmSkipDrawCardHandler(EventHandler):
         return True
 
     def choose_player_target(self, tl):
+        try:
+            tl.remove(self.target)
+        except:
+            pass
+
         if not tl:
             return (tl, False)
 
         return (tl[:2], True)
 
 
-class RealmSkipAction(UserAction):
-    def __init__(self, target, act, pl):
-        self.source = self.target = target
-        self.act = act
-        self.pl = pl
-
+class RealmSkipAction(RealmAction):
     def apply_action(self):
-        self.act.cancelled = True
+        RealmAction.apply_action(self)
         _from, _to = self.pl
         tgt = self.target
         from itertools import chain
@@ -164,13 +169,10 @@ class RealmSkipActionHandler(EventHandler):
 
             pl = [p for p in g.players if not p.dead]
 
-            _, rst = ask_for_action(self, [tgt], ('cards', 'showncards', 'equips'), pl)
-            if not rst: return act
-            cl, pl = rst
-            if len(pl) != 2: return act
+            action = user_input_realm_action(self, RealmSkipAction, act, tgt, pl)
 
-            g.process_action(DropCards(tgt, cl))
-            g.process_action(RealmSkipAction(tgt, act, pl))
+            if action:
+                g.process_action(action)
 
         return act
 
@@ -189,15 +191,8 @@ class RealmSkipActionHandler(EventHandler):
         return (tl[:2], bool(len(tl) == 2 and (tl[0].equips or tl[0].fatetell)))
 
 
-class RealmSkipDropCard(UserAction):
-    def __init__(self, target, fts):
-        self.source = self.target = target
-        self.fts = fts
-
-    def apply_action(self):
-        self.fts.cancelled = True
-        return True
-
+class RealmSkipDropCard(RealmAction):
+    pass
 
 class RealmSkipDropCardHandler(EventHandler):
     execute_after = ('SuwakoHatHandler',)
@@ -208,12 +203,10 @@ class RealmSkipDropCardHandler(EventHandler):
             self.target = tgt = act.target
             if not tgt.has_skill(Realm): return act
 
-            cl = user_choose_cards(self, tgt, ['cards', 'showncards', 'equips'])
-            if not cl: return act
-
-            g = Game.getgame()
-            g.process_action(DropCards(tgt, cl))
-            g.process_action(RealmSkipDropCard(tgt, act))
+            action = user_input_realm_action(self, RealmSkipDropCard, act, tgt)
+            
+            if action:
+                Game.getgame().process_action(action)
 
         return act
 

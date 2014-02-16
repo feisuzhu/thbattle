@@ -3,8 +3,8 @@
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character_to
 
-from ..actions import UserAction, DropCards, LifeLost, LaunchCard, ForEach, DrawCards, ActionStage, DropCardStage, ask_for_action
-from ..actions import random_choose_card, user_choose_cards
+from ..actions import UserAction, DropCards, LifeLost, LaunchCard, ForEach, DrawCards, ActionStage, DropCardStage, user_input_action
+from ..actions import random_choose_card, user_choose_cards, ask_for_drop
 from ..cards import Card, Skill, InevitableAttack, AttackCard, DelayedLaunchCard
 from ..cards import t_OtherOne, t_None, t_All, VirtualCard
 from ..inputlets import ChoosePeerCardInputlet
@@ -96,10 +96,10 @@ class ScarletFogEffect(UserAction):
             g.process_action(LifeLost(p, p, 1))
             return True
 
-        _, rst = ask_for_action(self, (p, ), ('cards', 'showncards'), pl)
-        if rst:
-            c = rst[0][0]; t = rst[1][0]
-            g.process_action(LaunchCard(p, [t], c))
+        action = lambda p, cl, pl: LaunchCard(p, pl, cl[0])
+        action = user_input_action(self, action, (p, ), ('cards', 'showncards'), pl)
+        if action:
+            g.process_action(action)
         else:
             g.process_action(LifeLost(p, p, 1))
 
@@ -177,10 +177,10 @@ class SeptetHandler(EventHandler):
             tgt = act.target
             if not tgt.has_skill(Septet): return act
             self.action = act
-            cl = user_choose_cards(self, src, ['cards', 'showncards'])
+            drop = ask_for_drop(self, src, ['cards', 'showncards'])
             g = Game.getgame()
-            if cl:
-                g.process_action(DropCards(src, cl))
+            if drop:
+                g.process_action(drop)
             else:
                 g.process_action(DropCards(tgt, [act.associated_card]))
 

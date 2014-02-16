@@ -2,7 +2,7 @@
 
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import user_choose_cards, Damage, LaunchCard
+from ..actions import user_input_action, Damage, LaunchCard
 from ..cards import Card, AttackCard, RedUFOSkill, BaseAttack, Attack, Skill, t_None, t_OtherOne, VirtualCard
 from ..inputlets import ChooseOptionInputlet
 
@@ -42,12 +42,16 @@ class SentryHandler(EventHandler):
                     self.target = tgt  # for ui
                     dist = LaunchCard.calc_distance(p, AttackCard())
                     if dist.get(tgt, 1) > 0: continue
-                    cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-                    if not cl: continue
-                    c = SentryAttack.wrap(cl, p)
-                    c.target_damage = act
-                    c.resides_in = p.cards
-                    g.process_action(LaunchCard(p, [tgt], c))
+
+                    def action(p, cl, pl):
+                        c = SentryAttack.wrap(cl, p)
+                        c.target_damage = act
+                        c.resides_in = p.cards
+                        return LaunchCard(p, [tgt], c)
+                    
+                    action = user_input_action(self, action, [p], ('cards', 'showncards', 'equips'), [])
+                    if not action: continue
+                    g.process_action(action)
             else:
                 return act
 
