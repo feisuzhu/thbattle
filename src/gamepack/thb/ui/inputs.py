@@ -42,8 +42,10 @@ class InputHandler(object):
     def cleanup(self):
         pass
 
+
 class UIActionConfirmButtons(ConfirmButtons):
-    DEFAULT_BUTTONS=((u'确定', True), (u'结束', False))
+    DEFAULT_BUTTONS = ((u'确定', True), (u'结束', False))
+
     def __init__(self, buttons=DEFAULT_BUTTONS, delay=0.5, **k):
         self._valid = True
         ConfirmButtons.__init__(self, buttons=buttons, delay=delay, **k)
@@ -117,6 +119,8 @@ class UISelectTarget(Control, InputHandler):
         )
 
         self.inputlet = ilet
+
+        # TODO: grey out locked cards
 
     def set_text(self, text):
         self.label.text = text
@@ -200,17 +204,19 @@ class UIDoPassiveAction(UISelectTarget):
 
             initiator = ilet.initiator
             candidates = ilet.candidates
+            locked_cards = ilet.locked_cards
 
             g = Game.getgame()
             view = self.parent
             if not view: return
 
-            cond = getattr(initiator, 'cond', False)
+            cond = initiator.cond
 
             if isinstance(initiator, RejectHandler):
                 self._sv_val = False
                 self.set_text(u'自动结算好人卡…')
-                if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
+                if not any([c not in locked_cards and cond([c])
+                            for c in itertools.chain(g.me.cards, g.me.showncards)]):
                     from gamepack.thb.characters import reimu
                     if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
                         self._in_auto_reject_delay = True
@@ -229,6 +235,7 @@ class UIDoPassiveAction(UISelectTarget):
                     self._auto_chosen = True
                     from itertools import chain
                     for c in chain(g.me.showncards, g.me.cards):
+                        if c in locked_cards: continue
                         if not cond([c]): continue
                         hca = view.handcard_area
                         for cs in hca.cards:
@@ -243,6 +250,10 @@ class UIDoPassiveAction(UISelectTarget):
                 skills = view.get_selected_skills()
                 cards = view.get_selected_cards()
                 params = view.get_action_params()
+
+                if set(cards) & set(locked_cards):
+                    self.set_text(u'选择了被锁定的牌')
+                    return
 
                 if skills:
                     for skill_cls in skills:
