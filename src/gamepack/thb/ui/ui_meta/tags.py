@@ -73,4 +73,10 @@ class ran_ei:
     display = lambda p, v: v < p.tags['turn_count'] + 1
     description = u'还可以发动【极智】'
 
+
+class divinity_target:
+    tag_anim = lambda p: gres.tag_action
+    display = lambda p, v: v
+    description = u'被神威震慑的动弹不得'
+
 # -----END TAGS UI META-----

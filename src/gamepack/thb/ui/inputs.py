@@ -200,6 +200,9 @@ class UIDoPassiveAction(UISelectTarget):
 
             initiator = ilet.initiator
             candidates = ilet.candidates
+            action = ilet.action
+            cards = []
+            players = []
 
             g = Game.getgame()
             view = self.parent
@@ -277,6 +280,16 @@ class UIDoPassiveAction(UISelectTarget):
                 view.set_selected_players(players)
                 self.set_text(reason)
                 if not valid: return
+
+            try:
+                valid, reason = g.ui_can_fire(action(g.me, cards, players))
+            except:
+                log.exception('g.ui_can_fire error')
+                valid, reason = valid, u'[g.ui_can_fire错误]'
+                
+            if not valid:
+                self.set_text(reason or u'你不能这样出牌。')
+                return
 
             self.set_valid()
         except:
@@ -382,7 +395,13 @@ class UIDoActionStage(UISelectTarget):
             if card and act.can_fire():
                 self.set_valid()
             else:
-                self.set_text(u'您不能这样出牌')
+                try:
+                    valid, reason = g.ui_can_fire(act)
+                except:
+                    log.exception('g.ui_can_fire error')
+                    valid, reason = valid, u'[g.ui_can_fire错误]'
+
+                self.set_text(reason or u'您不能这样出牌')
         else:
             self.set_text(u'您选择的目标不符合规则')
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from game.autoenv import Game, EventHandler, user_input, GameError
-from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DummyAction, DropCardStage, MaxLifeChange
+from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DummyAction, DropCardStage, MaxLifeChange, ask_for_drop
 from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card
 from .base import Card, VirtualCard, Skill, TreatAsSkill, t_None, t_OtherOne, t_OtherLessEqThanN
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -318,9 +318,11 @@ class ScarletRhapsodySkill(WeaponSkill):
             return False
 
     def is_card(self, cls):
-        from ..cards import AttackCard
-        if issubclass(AttackCard, cls): return True
-        return isinstance(self, cls)
+        if isinstance(self, cls): return True
+
+        cl = self.associated_cards
+        if cl:
+            return cl[0].is_card(cls)
 
     @property
     def distance(self):
@@ -560,11 +562,11 @@ class Hakurouken(GenericAction):
         src = self.source
         tgt = self.target
 
-        cards = user_choose_cards(self, tgt, ('cards', 'showncards'))
+        action = ask_for_drop(self, tgt, ('cards', 'showncards'))
         g = Game.getgame()
-        if cards:
+        if action:
             self.peer_action = 'drop'
-            g.process_action(DropCards(tgt, cards))
+            g.process_action(action)
         else:
             self.peer_action = 'draw'
             g.process_action(DrawCards(src, 1))
@@ -630,10 +632,10 @@ class AyaRoundfanHandler(EventHandler):
             src = act.source
             tgt = act.target
             if src.has_skill(AyaRoundfanSkill) and tgt.equips:
-                cards = user_choose_cards(self, src, ['cards', 'showncards'])
-                if not cards: return act
+                action = ask_for_drop(self, src, ['cards', 'showncards'])
+                if not action: return act
                 g = Game.getgame()
-                g.process_action(DropCards(src, cards))
+                g.process_action(action)
                 g.process_action(AyaRoundfan(src, tgt))
         return act
 
@@ -668,11 +670,11 @@ class LaevateinHandler(EventHandler):
                 return arg
 
             g = Game.getgame()
-            cards = user_choose_cards(self, src, ('cards', 'showncards', 'equips'))
-            if not cards:
+            drop = ask_for_drop(self, src, ('cards', 'showncards', 'equips'))
+            if not drop:
                 return arg
 
-            g.process_action(DropCards(src, cards))
+            g.process_action(drop)
             g.process_action(Laevatein(src, tgt))
             return act, True
 

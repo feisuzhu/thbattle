@@ -903,3 +903,11 @@ class GrimoireSkill:
             source.ui_meta.char_name,
             card.lookup_tbl[card.associated_cards[0].suit].ui_meta.name
         )
+
+
+class GrimoireHandler:
+    def reason_cannot_fire(evt, act):
+        if evt.reason == 'attack':
+            return u'你已经用过【弹幕】了。'
+
+        return u'你已经发动过【魔导书】了。'

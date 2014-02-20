@@ -30,6 +30,9 @@ class CriticalStrikeHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【狂咲】吗？'
 
+    def reason_cannot_fire(evt, act):
+        return u'你已经用过【弹幕】了。'
+
 
 class CriticalStrikeAction:
     def effect_string(act):

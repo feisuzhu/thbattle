@@ -2,9 +2,9 @@
 
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import UserAction, DropCards, Damage
-from ..actions import migrate_cards, user_choose_cards
-from ..cards import Skill, t_None
+from ..actions import UserAction, DropCards, Damage, UseCardAction
+from ..actions import migrate_cards, user_input_action
+from ..cards import Skill, t_None, VirtualCard
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -27,9 +27,12 @@ class TrialAction(UserAction):
         g = Game.getgame()
         c = self.card
         g.players.exclude(self.source).reveal(c)
-        g.process_action(DropCards(self.source, [c]))
+        g.process_action(UseCardAction(self.source, [c]))
         self.ft.set_card(c)
         return True
+
+    def is_valid(self):
+        return UseCardAction(self.source, [self.card]).can_fire()
 
 
 class TrialHandler(EventHandler):
@@ -46,15 +49,16 @@ class TrialHandler(EventHandler):
                 if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                     return act
 
-                cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-                if cards:
-                    c = cards[0]
-                    g.process_action(TrialAction(p, act.target, act, c))
+                action = lambda p, cl, pl: TrialAction(p, act.target, act, cl[0])
+
+                action = user_input_action(self, action, [p], ('cards', 'showncards', 'equips'), [])
+                if action:
+                    g.process_action(action)
 
         return act
 
     def cond(self, cards):
-        return len(cards) == 1
+        return len(cards) == 1 and not cards[0].is_card(VirtualCard)
 
 
 class MajestyAction(UserAction):

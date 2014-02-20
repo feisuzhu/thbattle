@@ -121,6 +121,9 @@ class Morphing:
 
         return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
 
+    def reason_cannot_fire(evt, act):
+        return u'你已经用过【变化】了。'
+
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
