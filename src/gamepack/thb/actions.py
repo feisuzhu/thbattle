@@ -15,17 +15,17 @@ log = logging.getLogger('THBattle_Actions')
 # ------------------------------------------
 # aux functions
 
-def ask_for_action(initiator, actors, categories, candidates, locked_cards, trans=None):
+def ask_for_action(initiator, actors, categories, candidates, usage, trans=None):
     # initiator: Action or EH requesting this
     # actors: players involved
     # categories: card categories, eg: ['cards', 'showncards']
     # candidates: players can be selection target, eg: g.players
-    # locked_cards: cards cannot be selected
+    # usage: launch, use, drop, handover. tuple.
 
     assert categories or candidates
     assert actors
 
-    ilet = ActionInputlet(initiator, categories, candidates, locked_cards)
+    ilet = ActionInputlet(initiator, categories, candidates)
 
     @ilet.with_post_process
     def process(actor, rst):
@@ -35,17 +35,25 @@ def ask_for_action(initiator, actors, categories, candidates, locked_cards, tran
             skills, cards, players, params = rst
             [check(not c.detached) for c in cards]
             if categories:
-                check(not (set(locked_cards) & set(cards)))
                 if skills:
                     # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
                     skill = skill_wrap(actor, skills, cards, params)
-                    check(skill and initiator.cond([skill]))
+                    check(skill)
+                    wrapped = [skill]
                 else:
                     if not getattr(initiator, 'no_reveal', False):
                         g.players.reveal(cards)
 
-                    check(initiator.cond(cards))
+                    wrapped = cards
+
+                i_, a_, cl_, pl_, permitted = g.emit_event(
+                    'action_limit', (ilet, actor, wrapped, players, True)
+                )
+                assert (i_, a_, cl_, pl_) == (ilet, actor, wrapped, players)
+
+                check(permitted)
+                check(initiator.cond(wrapped))
 
             if candidates:
                 players, valid = initiator.choose_player_target(players)
@@ -73,15 +81,10 @@ def ask_for_action(initiator, actors, categories, candidates, locked_cards, tran
 
 
 def user_choose_cards(initiator, actor, categories, usage=('launch', 'use', 'drop')):
-    # usage: launch, use, drop, handover
     check_type([str, Ellipsis], categories)
     check_type([str, Ellipsis], usage)
 
-    g = Game.getgame()
-    _, usage_, locked_cards = g.emit_event('query_locked_cards', (initiator, usage, []))
-    assert usage_ == usage
-
-    _, rst = ask_for_action(initiator, [actor], categories, [], locked_cards)
+    _, rst = ask_for_action(initiator, [actor], categories, (), usage)
     if not rst:
         return None
 
@@ -89,7 +92,7 @@ def user_choose_cards(initiator, actor, categories, usage=('launch', 'use', 'dro
 
 
 def user_choose_players(initiator, actor, candidates):
-    _, rst = ask_for_action(initiator, [actor], [], candidates, [])
+    _, rst = ask_for_action(initiator, [actor], (), candidates, ())
     if not rst:
         return None
 

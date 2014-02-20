@@ -33,10 +33,9 @@ class ChooseOptionInputlet(Inputlet):
 
 
 class ActionInputlet(Inputlet):
-    def init(self, categories, candidates, locked_cards):
+    def init(self, categories, candidates):
         self.categories = categories
         self.candidates = candidates
-        self.locked_cards = locked_cards
 
         self.skills = []
         self.cards = []
