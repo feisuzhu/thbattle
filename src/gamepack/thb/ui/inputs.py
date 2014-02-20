@@ -42,8 +42,10 @@ class InputHandler(object):
     def cleanup(self):
         pass
 
+
 class UIActionConfirmButtons(ConfirmButtons):
-    DEFAULT_BUTTONS=((u'确定', True), (u'结束', False))
+    DEFAULT_BUTTONS = ((u'确定', True), (u'结束', False))
+
     def __init__(self, buttons=DEFAULT_BUTTONS, delay=0.5, **k):
         self._valid = True
         ConfirmButtons.__init__(self, buttons=buttons, delay=delay, **k)
@@ -205,12 +207,12 @@ class UIDoPassiveAction(UISelectTarget):
             view = self.parent
             if not view: return
 
-            cond = getattr(initiator, 'cond', False)
+            cond = initiator.cond
 
             if isinstance(initiator, RejectHandler):
                 self._sv_val = False
                 self.set_text(u'自动结算好人卡…')
-                if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
+                if not any([cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)]):
                     from gamepack.thb.characters import reimu
                     if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
                         self._in_auto_reject_delay = True
@@ -277,6 +279,18 @@ class UIDoPassiveAction(UISelectTarget):
                 view.set_selected_players(players)
                 self.set_text(reason)
                 if not valid: return
+
+            _, _, _, _, permitted = g.emit_event('action_limit', (
+                ilet,
+                g.me,
+                cards if ilet.categories else (),
+                players if candidates else (),
+                True,
+            ))
+
+            if not permitted:
+                self.set_text(u'您不能这样出牌')
+                return
 
             self.set_valid()
         except:
