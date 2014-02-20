@@ -181,7 +181,7 @@ class LaunchHeal(GenericAction):
         g = Game.getgame()
         src = self.source
         
-        action = lambda p, cl, pl: LaunchCardAction(src, tgt, cl[0])
+        action = lambda p, cl, pl: LaunchCardAction(src, self.target, cl[0])
         action = user_input_action(self, action, [src], ['cards', 'showncards'], [])
         if not action:
             self.card = None

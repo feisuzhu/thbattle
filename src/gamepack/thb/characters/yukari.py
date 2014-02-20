@@ -13,7 +13,7 @@ class Realm(Skill):
 
 
 class RealmAction(UserAction):
-    def __init__(self, target, stage, pl):
+    def __init__(self, target, cards, stage, pl):
         self.source = self.target = target
         self.stage = stage
         self.cards = cards

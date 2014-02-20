@@ -72,8 +72,8 @@ class SentryAttack(VirtualCard):
     category = ('basic', )
 
     def is_card(self, cls):
-        from ..cards import AttackCard
-        if issubclass(AttackCard, cls): return True
+        cl = self.associated_cards
+        if cl and cl[0].is_card(cls): return True
         return isinstance(self, cls)
 
 

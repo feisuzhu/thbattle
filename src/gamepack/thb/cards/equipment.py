@@ -318,9 +318,11 @@ class ScarletRhapsodySkill(WeaponSkill):
             return False
 
     def is_card(self, cls):
-        from ..cards import AttackCard
-        if issubclass(AttackCard, cls): return True
-        return isinstance(self, cls)
+        if isinstance(self, cls): return True
+
+        cl = self.associated_cards
+        if cl:
+            return cl[0].is_card(cls)
 
     @property
     def distance(self):
