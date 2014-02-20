@@ -25,6 +25,11 @@ class AttackCard:
         return (True, u'来一发！')
 
 
+class AttackCardHandler:
+    def reason_cannot_fire(evt, act):
+        return u'你已经用过【弹幕】了。'
+
+
 class GrazeCard:
     # action_stage meta
     name = u'擦弹'

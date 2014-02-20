@@ -282,8 +282,9 @@ class UIDoPassiveAction(UISelectTarget):
                 if not valid: return
 
             if action:
-                if not action(g.me, cards, players).can_fire():
-                    self.set_text(u'你不能这样出牌。')
+                valid, reason = g.ui_can_fire(action(g.me, cards, players))
+                if not valid:
+                    self.set_text(reason or u'你不能这样出牌。')
                     return
 
             self.set_valid()
@@ -390,7 +391,9 @@ class UIDoActionStage(UISelectTarget):
             if card and act.can_fire():
                 self.set_valid()
             else:
-                self.set_text(u'您不能这样出牌')
+                valid, reason = g.ui_can_fire(act)
+                assert not valid
+                self.set_text(reason or u'您不能这样出牌')
         else:
             self.set_text(u'您选择的目标不符合规则')
 

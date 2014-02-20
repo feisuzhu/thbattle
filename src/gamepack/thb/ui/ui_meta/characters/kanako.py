@@ -49,6 +49,9 @@ class DivinityHandler:
     choose_option_buttons = ((u'不发动', 0), (u'1', 1), (u'2', 2))
     choose_option_prompt = u'少摸X张牌，发动【神威】'
 
+    def reason_cannot_fire(evt, act):
+        return u'你被【神威】怔住了，不能使用或打出手牌。'
+
 
 class DivinityAction:
     def effect_string(act):
@@ -60,6 +63,6 @@ class DivinityAction:
 
 
 class KanakoFaith:
-    name = '信仰'
+    name = u'信仰'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

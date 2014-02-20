@@ -240,6 +240,7 @@ class Game(GameObject):
         self.hybrid_stack = []
         self.action_types = {}
         self.ended = False
+        self.hook = lambda a,b,c,d: d
         self._action_hooks = []
 
     def game_start(self):
@@ -278,10 +279,12 @@ class Game(GameObject):
         else:
             action_event = False
 
+        hook = self.hook
+
         for evt in self.event_handlers:
             try:
                 self.hybrid_stack.append(evt)
-                data = evt.handle(evt_type, data)
+                data = hook(evt, evt_type, data, evt.handle(evt_type, data))
             finally:
                 assert evt is self.hybrid_stack.pop()
 
@@ -375,6 +378,27 @@ class Game(GameObject):
     def get_synctag(self):
         raise GameError('Abstract')
 
+    def ui_can_fire(self, act):
+        reason_evt = []
+
+        def hook(evt, evt_type, data, value):
+            if evt_type != 'action_can_fire':
+                return value
+
+            if data[1] and not value[1]:
+                reason_evt.append(evt)
+
+            return value
+
+        with self.handler_hook(hook):
+            valid = act.can_fire()
+
+        if valid or not reason_evt:
+            return valid, ''
+
+        evt = reason_evt.pop()
+        return valid, evt.ui_meta.reason_cannot_fire(evt, act)
+
     @contextmanager
     def action_hook(self, hook):
         ''' Dark art, do not use '''
@@ -384,6 +408,16 @@ class Game(GameObject):
         finally:
             expected_hook = self._action_hooks.pop()
             assert expected_hook is hook
+    
+    @contextmanager
+    def handler_hook(self, hook):
+        try:
+            origin = self.hook
+            self.hook = hook
+            yield
+        finally:
+            assert self.hook is hook
+            self.hook = origin
 
 
 class SyncPrimitive(GameObject):

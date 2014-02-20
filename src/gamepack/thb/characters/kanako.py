@@ -143,10 +143,12 @@ class KanakoFaithHandler(EventHandler):
             if isinstance(act, Damage):
                 src = act.source
                 tgt = act.target
-                if src is tgt: return act
+                if not src or src is tgt: return act
                 if not src.has_skill(KanakoFaith): return act
-                if Game.getgame().current_turn is not src: return act
-                Game.getgame().process_action(KanakoFaithAction(src, src))
+
+                g = Game.getgame()
+                if g.current_turn is not src: return act
+                g.process_action(KanakoFaithAction(src, src))
             
             elif isinstance(act, ActionStage):
                 tgt = act.target
