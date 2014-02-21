@@ -460,8 +460,9 @@ class LaunchCard(GenericAction, LaunchCardAction):
             a.target_list = target_list
 
             card.detach()
+            self.action = a
             g.emit_event('before_launch_card', self)
-            g.process_action(a)
+            g.process_action(self.action)
         finally:
             if card.detached:
                 # card/skill still in disputed state,
@@ -795,6 +796,7 @@ class Pindian(UserAction):
                 (card, ), _ = rst
                 pindian_card[p] = card
                 g.emit_event('pindian_card_chosen', (p, card))
+                pl.remove(p)
 
             # not chosen
             for p in pl:
@@ -803,7 +805,7 @@ class Pindian(UserAction):
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
         g.process_action(DropCards(src, [pindian_card[src]]))
-        g.process_action(DropCards(pl[1], [pindian_card[tgt]]))
+        g.process_action(DropCards(tgt, [pindian_card[tgt]]))
 
         return pindian_card[src].number > pindian_card[tgt].number
 
