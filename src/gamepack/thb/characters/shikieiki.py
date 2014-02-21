@@ -53,6 +53,7 @@ class TrialHandler(EventHandler):
 
         return act
 
+    usage = 'use'
     def cond(self, cards):
         return len(cards) == 1
 

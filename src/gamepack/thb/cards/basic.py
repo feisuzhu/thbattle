@@ -132,7 +132,7 @@ class UseGraze(BaseUseGraze):
 
 
 class LaunchGraze(BaseUseGraze, LaunchCardAction):
-    pass
+    usage = 'launch'
 
 
 class UseAttack(UseCard):
@@ -160,6 +160,7 @@ class LaunchHeal(UserAction, LaunchCardAction):
             g.process_action(drop)
             return True
 
+    usage = 'launch'
     def cond(self, cl):
         from .. import cards
         t = self.source
@@ -258,6 +259,7 @@ class ExinwanEffect(GenericAction):
 
         return True
 
+    usage = 'drop'
     def cond(self, cards):
         if len(cards) != 2: return False
         from .base import Skill

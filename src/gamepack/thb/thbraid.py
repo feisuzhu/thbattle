@@ -143,6 +143,7 @@ class CooperationAction(UserAction):
         tags = self.source.tags
         return tags['turn_count'] > tags['cooperation_tag']
 
+    usage = 'handover'
     def cond(self, cl):
         if not len(cl) == self.ncards: return False
         tgt = self.target
@@ -152,6 +153,7 @@ class CooperationAction(UserAction):
 class Cooperation(Skill):
     associated_action = CooperationAction
     no_drop = True
+    usage = 'handover'
 
     def target(self, g, src, tl):
         attackers = g.attackers
@@ -339,6 +341,7 @@ class FaithExchange(UserAction):
 
         return True
 
+    usage = 'store'
     def cond(self, cl):
         return len(cl) == self.amount
 

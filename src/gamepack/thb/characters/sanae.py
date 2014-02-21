@@ -81,6 +81,7 @@ class MiracleAction(GenericAction):
         if not tl: return (tl, False)
         return (tl[-1:], True)
 
+    usage = 'drop'
     def cond(self, cl):
         if len(cl) != self.amount: return False
         if any(['skill' in c.category for c in cl]): return False

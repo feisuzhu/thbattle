@@ -30,6 +30,7 @@ class DilemmaDamageAction(UserAction):
 
         return True
 
+    usage = 'handover'
     def cond(self, cards):
         if len(cards) != 1: return False
         card = cards[0]
@@ -125,6 +126,7 @@ class ImperishableNightHandler(EventHandler):
 
         return act
 
+    usage = 'launch'
     def cond(self, cards):
         if len(cards) != 1: return False
         card = cards[0]

@@ -42,8 +42,10 @@ class InputHandler(object):
     def cleanup(self):
         pass
 
+
 class UIActionConfirmButtons(ConfirmButtons):
-    DEFAULT_BUTTONS=((u'确定', True), (u'结束', False))
+    DEFAULT_BUTTONS = ((u'确定', True), (u'结束', False))
+
     def __init__(self, buttons=DEFAULT_BUTTONS, delay=0.5, **k):
         self._valid = True
         ConfirmButtons.__init__(self, buttons=buttons, delay=delay, **k)
@@ -205,12 +207,13 @@ class UIDoPassiveAction(UISelectTarget):
             view = self.parent
             if not view: return
 
-            cond = getattr(initiator, 'cond', False)
+            cond = initiator.cond
+            usage = getattr(initiator, 'usage', 'none')
 
             if isinstance(initiator, RejectHandler):
                 self._sv_val = False
                 self.set_text(u'自动结算好人卡…')
-                if not any(cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)):
+                if not any([cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)]):
                     from gamepack.thb.characters import reimu
                     if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
                         self._in_auto_reject_delay = True
@@ -257,6 +260,8 @@ class UIDoPassiveAction(UISelectTarget):
                             self.set_text(reason)
                             return
 
+                    usage = thbactions.skill_usage(usage, cards[0])
+
                 c = cond(cards)
                 c1, text = initiator.ui_meta.choose_card_text(g, initiator, cards)
                 assert c == c1
@@ -277,6 +282,22 @@ class UIDoPassiveAction(UISelectTarget):
                 view.set_selected_players(players)
                 self.set_text(reason)
                 if not valid: return
+
+            arg = thbactions.ActionLimitEventParameter(
+                ilet=ilet, actor=g.me,
+                cards=cards if ilet.categories else (),
+                players=players if candidates else (),
+                usage=usage
+            )
+
+            assert not (arg.usage == 'none' and arg.cards)
+
+            arg2, permitted = g.emit_event('action_limit', (arg, True))
+            assert arg == arg2
+
+            if not permitted:
+                self.set_text(u'您不能这样出牌')
+                return
 
             self.set_valid()
         except:
@@ -373,18 +394,33 @@ class UIDoActionStage(UISelectTarget):
         if not rst:
             return
 
-        if tl_valid:
-            act = thbactions.ActionStageLaunchCard(g.me, target_list, card)
-
-            if skills:
-                card = thbactions.skill_wrap(g.me, skills, rawcards, params, no_reveal=True)
-
-            if card and act.can_fire():
-                self.set_valid()
-            else:
-                self.set_text(u'您不能这样出牌')
-        else:
+        if not tl_valid:
             self.set_text(u'您选择的目标不符合规则')
+            return
+
+        act = thbactions.ActionStageLaunchCard(g.me, target_list, card)
+
+        if skills:
+            card = thbactions.skill_wrap(g.me, skills, rawcards, params, no_reveal=True)
+
+        if card:
+            arg = thbactions.ActionLimitEventParameter(
+                ilet=self.inputlet, actor=g.me,
+                cards=[card],
+                players=target_list,
+                usage=thbactions.skill_usage('launch', card)
+            )
+
+            assert not (arg.usage == 'none' and rawcards)
+
+            arg2, permitted = g.emit_event('action_limit', (arg, True))
+            assert arg == arg2
+
+            if permitted and act.can_fire():
+                self.set_valid()
+                return
+
+        self.set_text(u'您不能这样出牌')
 
 
 class GirlSelector(ImageSelector, BalloonPromptMixin):

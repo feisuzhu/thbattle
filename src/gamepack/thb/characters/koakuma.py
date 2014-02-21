@@ -32,6 +32,7 @@ class FindAction(UserAction):
 class Find(Skill):
     associated_action = FindAction
     target = t_Self
+    usage = 'drop'
 
     def check(self):
         cl = self.associated_cards

@@ -79,6 +79,7 @@ class DarkNohAction(UserAction):
 
         return True
 
+    usage = 'drop'
     def cond(self, cards):
         if len(cards) != self.n or self.card in cards:
             return False
@@ -106,6 +107,7 @@ class DarkNoh(Skill):
     no_drop = True
     associated_action = DarkNohAction
     target = t_OtherOne
+    usage = 'handover'
 
     def check(self):
         cards = self.associated_cards

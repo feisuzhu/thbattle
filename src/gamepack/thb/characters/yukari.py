@@ -42,6 +42,7 @@ class RealmSkipFatetellHandler(EventHandler):
 
         return act
 
+    usage = 'drop'
     def cond(self, cl):
         if len(cl) != 1: return False
         t = self.target
@@ -95,6 +96,7 @@ class RealmSkipDrawCardHandler(EventHandler):
 
         return act
 
+    usage = 'drop'
     def cond(self, cl):
         if len(cl) != 1: return False
         t = self.target
@@ -174,6 +176,7 @@ class RealmSkipActionHandler(EventHandler):
 
         return act
 
+    usage = 'drop'
     def cond(self, cl):
         if len(cl) != 1: return False
         t = self.target
@@ -217,6 +220,7 @@ class RealmSkipDropCardHandler(EventHandler):
 
         return act
 
+    usage = 'drop'
     def cond(self, cl):
         if len(cl) != 1: return False
         t = self.target
