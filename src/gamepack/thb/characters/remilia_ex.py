@@ -105,6 +105,7 @@ class ScarletFogEffect(UserAction):
 
         return True
 
+    usage = 'launch'
     def cond(self, cl):
         return len(cl) == 1 and cl[0].is_card(AttackCard)
 
@@ -131,6 +132,7 @@ class ScarletFogAction(ForEach):
 class ScarletFog(Skill):
     associated_action = ScarletFogAction
     target = t_All
+    usage = 'drop'
 
     def check(self):
         cl = self.associated_cards
@@ -186,6 +188,7 @@ class SeptetHandler(EventHandler):
 
         return act
 
+    usage = 'drop'
     def cond(self, cl):
         if not len(cl) == 1: return False
         c = cl[0]

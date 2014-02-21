@@ -37,6 +37,7 @@ class MasochistAction(UserAction):
 
         return True
 
+    usage = 'handover'
     def cond(self, cl):
         cards = self.cards
         return all(c in cards for c in cl)

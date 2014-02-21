@@ -68,6 +68,7 @@ class RebornHandler(EventHandler):
 
         return act
 
+    usage = 'drop'
     def cond(self, cards):
         if len(cards) != self.target.life: return False
 

@@ -121,6 +121,7 @@ class RejectHandler(EventHandler):
 
         return act
 
+    usage = 'launch'
     def cond(self, cardlist):
         from .. import cards
         try:
@@ -383,6 +384,7 @@ class DollControl(InstantSpellCardAction):
             migrate_cards(l, src.cards)
         return True
 
+    usage = 'launch'
     def cond(self, cl):
         if len(cl) != 1: return False
         if not cl[0].associated_action: return False
@@ -408,6 +410,7 @@ class DonationBoxEffect(InstantSpellCardAction):
 
         return True
 
+    usage = 'handover'
     def cond(self, cards):
         return len(cards) == 1 and cards[0].resides_in.type in (
             'cards', 'showncards', 'equips'

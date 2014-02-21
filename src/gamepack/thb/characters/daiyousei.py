@@ -25,6 +25,7 @@ class Support(UserAction):
 class SupportSkill(Skill):
     associated_action = Support
     target = t_OtherOne
+    usage = 'handover'
     no_drop = True
     no_reveal = True
 

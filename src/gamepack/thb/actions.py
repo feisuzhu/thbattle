@@ -11,6 +11,12 @@ from utils import check, check_type, CheckFailed, BatchList, group_by
 import logging
 log = logging.getLogger('THBattle_Actions')
 
+from collections import namedtuple
+ActionLimitEventParameter = namedtuple(
+    'ActionLimitEventParameter', 
+    'ilet actor cards players usage'
+)
+
 
 # ------------------------------------------
 # aux functions
@@ -29,6 +35,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
     @ilet.with_post_process
     def process(actor, rst):
         g = Game.getgame()
+        usage = getattr(initiator, 'usage', 'none')
         try:
             check(rst)
             skills, cards, players, params = rst
@@ -38,16 +45,31 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                     # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
                     skill = skill_wrap(actor, skills, cards, params)
-                    check(skill and initiator.cond([skill]))
+                    check(skill)
+                    wrapped = [skill]
+                    
+                    usage = skill_usage(usage, skill)
                 else:
                     if not getattr(initiator, 'no_reveal', False):
                         g.players.reveal(cards)
 
-                    check(initiator.cond(cards))
+                    wrapped = cards
+            
+                check(initiator.cond(wrapped))
+                assert not (usage == 'none' and cards)  # should not pass check
 
             if candidates:
                 players, valid = initiator.choose_player_target(players)
                 check(valid)
+
+            arg = ActionLimitEventParameter(
+                ilet=ilet, actor=actor, cards=wrapped,
+                players=players, usage=usage
+            )
+            arg2, permitted = g.emit_event('action_limit', (arg, True))
+            assert arg == arg2
+
+            check(permitted)
 
             return skills, cards, players, params
 
@@ -70,18 +92,18 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         return None, None
 
 
-def user_choose_cards(initiator, actor, categories):
+def user_choose_cards(initiator, actor, categories, trans=None):
     check_type([str, Ellipsis], categories)
 
-    _, rst = ask_for_action(initiator, [actor], categories, [])
+    _, rst = ask_for_action(initiator, [actor], categories, (), trans)
     if not rst:
         return None
 
     return rst[0]  # cards
 
 
-def user_choose_players(initiator, actor, candidates):
-    _, rst = ask_for_action(initiator, [actor], [], candidates)
+def user_choose_players(initiator, actor, candidates, trans=None):
+    _, rst = ask_for_action(initiator, [actor], (), candidates, (), trans)
     if not rst:
         return None
 
@@ -102,6 +124,22 @@ def random_choose_card(cardlists):
     c = cl[0]
     c.detach()
     return c
+
+
+def skill_usage(usage, skill):
+    from gamepack.thb.cards import TreatAsSkill, VirtualCard
+    
+    if usage != 'launch':
+        return usage
+
+    if not skill.is_card(VirtualCard):
+        return 'launch'
+
+    if isinstance(skill, TreatAsSkill):
+        if not issubclass(skill.treat_as, VirtualCard):
+            return 'launch'
+
+    return getattr(skill, 'usage', 'none')
 
 
 def skill_wrap(actor, skills, cards, params, no_reveal=False, detach=False):
@@ -367,6 +405,10 @@ class UseCard(UserAction):
             drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True
+    
+    usage = 'use'
+    def cond(self, cl):
+        raise NotImplementedError
 
     @property
     def cards(self):
@@ -398,6 +440,7 @@ class DropCardStage(GenericAction):
         self.cards = cards
         return True
 
+    usage = 'drop'
     def cond(self, cards):
         tgt = self.target
         if not len(cards) == self.dropn:
@@ -611,6 +654,7 @@ class ActionStage(GenericAction):
 
         return True
 
+    usage = 'launch'
     def cond(self, cl):
         from .cards import Skill
         if not cl: return False
@@ -789,24 +833,23 @@ class Pindian(UserAction):
         pindian_card = {src: None, tgt: None}
 
         with InputTransaction('Pindian', pl) as trans:
-            while pl:
-                p, rst = ask_for_action(self, pl, ('cards', 'showncards'), (), trans)
-                if not p: break
-                (card, ), _ = rst
-                pindian_card[p] = card
-                g.emit_event('pindian_card_chosen', (p, card))
-
-            # not chosen
             for p in pl:
-                pindian_card[p] = card = random_choose_card([p.cards, p.showncards])
+                cards = user_choose_cards(self, p, ('cards', 'showncards'), trans)
+                if cards:
+                    card = cards[0]
+                else:
+                    card = random_choose_card([p.cards, p.showncards])
+                
+                pindian_card[p] = card
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
         g.process_action(DropCards(src, [pindian_card[src]]))
-        g.process_action(DropCards(pl[1], [pindian_card[tgt]]))
+        g.process_action(DropCards(tgt, [pindian_card[tgt]]))
 
         return pindian_card[src].number > pindian_card[tgt].number
 
+    usage = 'pindian'
     @staticmethod
     def cond(cl):
         from .cards import Skill

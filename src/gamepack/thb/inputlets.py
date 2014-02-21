@@ -282,10 +282,10 @@ class SortCharacterInputlet(Inputlet):
         # }
         s = set([len(l) for l in mapping.values()])
         assert(len(s) == 1)
-        self.num = s.pop()
-        self.limit = limit if self.num >= limit else self.num
+        self.num = n = s.pop()
+        self.limit = limit if n >= limit else n
         self.mapping = mapping
-        self.result = None
+        self.result = range(n)
 
     def parse(self, data):
         n = self.num

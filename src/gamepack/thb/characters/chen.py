@@ -24,6 +24,7 @@ class FlyingSkandaAction(ForEach):
 
 class FlyingSkanda(Skill):
     associated_action = FlyingSkandaAction
+    usage = 'launch'
 
     def target(self, g, source, tl):
         cl = self.associated_cards

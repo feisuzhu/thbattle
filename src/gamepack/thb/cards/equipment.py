@@ -297,6 +297,7 @@ class ScarletRhapsodySkill(WeaponSkill):
     range = 4
     associated_action = ScarletRhapsody
     target = t_OtherLessEqThanN(3)
+    usage = 'launch'
 
     def check(self):
         try:
@@ -571,6 +572,7 @@ class Hakurouken(GenericAction):
 
         return True
 
+    usage = 'drop'
     def cond(self, cards):
         tgt = self.target
         return len(cards) == 1 and cards[0].resides_in in (tgt.cards, tgt.showncards)
@@ -637,6 +639,7 @@ class AyaRoundfanHandler(EventHandler):
                 g.process_action(AyaRoundfan(src, tgt))
         return act
 
+    usage = 'drop'
     def cond(self, cards):
         if not len(cards) == 1: return False
         return cards[0].resides_in.type in ('cards', 'showncards')
@@ -677,7 +680,8 @@ class LaevateinHandler(EventHandler):
             return act, True
 
         return arg
-
+    
+    usage = 'drop'
     def cond(self, cards):
         if not len(cards) == 2: return False
 

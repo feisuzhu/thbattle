@@ -41,6 +41,7 @@ class AutumnFeastAction(Harvest):
 class AutumnFeast(Skill):
     associated_action = AutumnFeastAction
     target = t_AllInclusive
+    usage = 'launch'
 
     def check(self):
         cl = self.associated_cards

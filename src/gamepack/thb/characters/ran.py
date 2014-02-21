@@ -83,11 +83,15 @@ class ExtremeIntelligenceAction(GenericAction):
         except AttributeError:
             pass
 
-        nact.associated_card = ExtremeIntelligence.wrap(cards, p)
+        try:
+            nact.associated_card = act.associated_card
+        except AttributeError:
+            pass
 
         g.process_action(nact)
         return True
 
+    usage = 'drop'
     def cond(self, cl):
         return len(cl) == 1
 
