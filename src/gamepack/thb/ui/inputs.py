@@ -1001,6 +1001,7 @@ class UIKokoroHomeMask(Panel, InputHandler):
 mapping = {
     # InputTransaction name -> Handler class
     'Action': UIDoPassiveAction,
+    'Pindian': UIDoPassiveAction,
     'ActionStageAction': UIDoActionStage,
     'ChooseGirl': UIChooseGirl,
     'ChoosePeerCard': UIChoosePeerCard,
