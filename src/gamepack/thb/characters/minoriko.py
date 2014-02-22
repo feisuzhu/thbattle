@@ -41,6 +41,7 @@ class AutumnFeastAction(Harvest):
 class AutumnFeast(Skill):
     associated_action = AutumnFeastAction
     target = t_AllInclusive
+    usage = 'launch'
 
     def check(self):
         cl = self.associated_cards
@@ -56,18 +57,17 @@ class AkiTribute(Skill):
 
 class AkiTributeHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, LaunchCard):
+        if evt_type == 'choose_target':
+            act, tl = arg = act
             card = act.card
-            if not card.is_card(HarvestCard): return act
-            g = Game.getgame()
-            pl = [p for p in g.players if p.has_skill(AkiTribute) and not p.dead]
+            if not card.is_card(HarvestCard): return arg
+            pl = [p for p in tl if p.has_skill(AkiTribute) and not p.dead]
             assert len(pl) <= 1, 'Multiple AkiTributes!'
-            if not pl: return act
+            if not pl: return arg
             p = pl[0]
-            tl = act.target_list
-            if not p in tl: return act
             tl.remove(p)
             tl.insert(0, p)
+            return act, tl
 
         elif evt_type == 'harvest_finish':
             g = Game.getgame()

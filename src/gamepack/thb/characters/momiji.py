@@ -12,6 +12,7 @@ class SentryHandler(EventHandler):
         'RepentanceStickHandler',
         'UmbrellaHandler',
     )
+    card_usage = 'launch'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
@@ -66,10 +67,11 @@ class SentryAttack(VirtualCard):
     associated_action = Attack
     target = t_OtherOne
     category = ('basic', )
+    usage = 'launch'
 
     def is_card(self, cls):
-        from ..cards import AttackCard
-        if issubclass(AttackCard, cls): return True
+        cl = self.associated_cards
+        if cl and cl[0].is_card(cls): return True
         return isinstance(self, cls)
 
 

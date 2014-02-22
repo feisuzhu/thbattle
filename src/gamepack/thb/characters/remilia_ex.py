@@ -80,6 +80,8 @@ class NeverNight(Skill):
 
 
 class ScarletFogEffect(UserAction):
+    card_usage = 'launch'
+
     def apply_action(self):
         g = Game.getgame()
         p = self.target
@@ -131,6 +133,7 @@ class ScarletFogAction(ForEach):
 class ScarletFog(Skill):
     associated_action = ScarletFogAction
     target = t_All
+    usage = 'drop'
 
     def check(self):
         cl = self.associated_cards
@@ -171,6 +174,8 @@ class Septet(Skill):
 
 
 class SeptetHandler(EventHandler):
+    card_usage = 'drop'
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, DelayedLaunchCard):
             src = act.source

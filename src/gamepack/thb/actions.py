@@ -11,6 +11,12 @@ from utils import check, check_type, CheckFailed, BatchList, group_by
 import logging
 log = logging.getLogger('THBattle_Actions')
 
+from collections import namedtuple
+ActionLimitParams = namedtuple(
+    'ActionLimitParams',
+    'ilet actor cards players usage'
+)
+
 
 # ------------------------------------------
 # aux functions
@@ -29,6 +35,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
     @ilet.with_post_process
     def process(actor, rst):
         g = Game.getgame()
+        usage = getattr(initiator, 'card_usage', 'none')
         try:
             check(rst)
             skills, cards, players, params = rst
@@ -38,16 +45,32 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                     # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
                     skill = skill_wrap(actor, skills, cards, params)
-                    check(skill and initiator.cond([skill]))
+                    check(skill)
+                    wrapped = [skill]
+                    usage = skill.usage if usage == 'launch' else usage
                 else:
                     if not getattr(initiator, 'no_reveal', False):
                         g.players.reveal(cards)
 
-                    check(initiator.cond(cards))
+                    wrapped = cards
+
+                check(initiator.cond(wrapped))
+                assert not (usage == 'none' and cards)  # should not pass check
+            else:
+                wrapped = []
 
             if candidates:
                 players, valid = initiator.choose_player_target(players)
                 check(valid)
+
+            arg = ActionLimitParams(
+                ilet=ilet, actor=actor, cards=wrapped,
+                players=players, usage=usage
+            )
+            arg2, permitted = g.emit_event('action_limit', (arg, True))
+            assert arg == arg2
+
+            check(permitted)
 
             return skills, cards, players, params
 
@@ -70,18 +93,18 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         return None, None
 
 
-def user_choose_cards(initiator, actor, categories):
+def user_choose_cards(initiator, actor, categories, trans=None):
     check_type([str, Ellipsis], categories)
 
-    _, rst = ask_for_action(initiator, [actor], categories, [])
+    _, rst = ask_for_action(initiator, [actor], categories, (), trans)
     if not rst:
         return None
 
     return rst[0]  # cards
 
 
-def user_choose_players(initiator, actor, candidates):
-    _, rst = ask_for_action(initiator, [actor], [], candidates)
+def user_choose_players(initiator, actor, candidates, trans=None):
+    _, rst = ask_for_action(initiator, [actor], (), candidates, trans)
     if not rst:
         return None
 
@@ -260,12 +283,7 @@ class TryRevive(GenericAction):
         from .cards import LaunchHeal
         for p in pl:
             while True:
-                act = LaunchHeal(p, tgt)
-                if g.process_action(act):
-                    card = act.card
-                    if not card: continue
-                    from .cards import Heal
-                    g.process_action(Heal(p, tgt))
+                if g.process_action(LaunchHeal(p, tgt)):
                     if tgt.life > 0:
                         tgt.tags['in_tryrevive'] = False
                         return True
@@ -350,6 +368,9 @@ class DropUsedCard(DropCards):
 
 
 class UseCard(UserAction):
+    card_usage = 'use'
+    # launch_action = None
+
     def __init__(self, target):
         self.source = self.target = target
         # self.cond = __subclass__.cond
@@ -362,18 +383,24 @@ class UseCard(UserAction):
         if not cards or len(cards) != 1:
             self.card = None
             return False
+
+        elif self.card_usage == 'launch':
+            self.card = cards[0]
+            return launch_card(self, [self.target], self.launch_action)
+
         else:
             self.card = cards[0]
             drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True
 
-    @property
-    def cards(self):
-        raise Exception('obsolete')  # fail fast
+    def cond(self, cl):
+        raise NotImplementedError
 
 
 class DropCardStage(GenericAction):
+    card_usage = 'drop'
+
     def __init__(self, target):
         self.source = self.target = target
         self.dropn = len(target.cards) + len(target.showncards) - target.life
@@ -437,6 +464,49 @@ class DrawCardStage(DrawCards):
     pass
 
 
+def launch_card(lca, target_list, action):
+    assert isinstance(lca, LaunchCardAction)
+
+    g = Game.getgame()
+    src = lca.source
+    card = lca.card
+    try:
+        card.detach()
+        _, tl = g.emit_event('choose_target', (lca, target_list))
+        assert _ is lca
+
+        if isinstance(action, Action):
+            a = action
+        else:
+            assert issubclass(action, UserAction)
+
+            tgt = tl[0] if tl else src
+            a = action(source=src, target=tgt)
+            a.target_list = tl
+
+        a.associated_card = card
+        lca.card_action = a
+
+        _ = g.emit_event('post_choose_target', (lca, tl))
+        assert _ == (lca, tl)
+
+        return g.process_action(a)
+    finally:
+
+        if card.detached:
+            # card/skill still in disputed state,
+            # means no actions have done anything to the card/skill,
+            # drop it
+            if not getattr(card, 'no_drop', False):
+                g.process_action(DropUsedCard(src, cards=[card]))
+            else:
+                # cards are detached here, denotes disputed state.
+                # can cause problems when skill declares 'no_drop'
+                # so revert the detached state.
+                from .cards import VirtualCard
+                [c.attach() for c in VirtualCard.unwrap([card])]
+
+
 class LaunchCard(GenericAction, LaunchCardAction):
     def __init__(self, source, target_list, card):
         tl, tl_valid = card.target(Game.getgame(), source, target_list)
@@ -444,38 +514,14 @@ class LaunchCard(GenericAction, LaunchCardAction):
         self.target = target_list[0] if target_list else source
 
     def apply_action(self):
-        g = Game.getgame()
         card = self.card
-        target_list = self.target_list
+        tl = self.target_list
         if not card: return False
 
         action = card.associated_action
         if not action: return False
 
-        try:
-            target = target_list[0] if target_list else self.source
-            a = action(source=self.source, target=target)
-            self.card_action = a
-            a.associated_card = card
-            a.target_list = target_list
-
-            card.detach()
-            g.emit_event('before_launch_card', self)
-            g.process_action(a)
-        finally:
-            if card.detached:
-                # card/skill still in disputed state,
-                # means no actions have done anything to the card/skill,
-                # drop it
-                if not getattr(card, 'no_drop', False):
-                    g.process_action(DropUsedCard(self.source, cards=[card]))
-                else:
-                    # cards are detached here, denotes disputed state.
-                    # can cause problems when skill declares 'no_drop'
-                    # so revert the detached state.
-                    from .cards import VirtualCard
-                    [c.attach() for c in VirtualCard.unwrap([card])]
-
+        launch_card(self, tl, action)
         return True
 
     def is_valid(self):
@@ -574,6 +620,7 @@ class ShuffleHandler(EventHandler):
 
 
 class ActionStage(GenericAction):
+    card_usage = 'launch'
 
     def __init__(self, target):
         self.target = target
@@ -775,6 +822,7 @@ class RevealIdentity(GenericAction):
 
 class Pindian(UserAction):
     no_reveal = True
+    card_usage = 'pindian'
 
     def __init__(self, source, target):
         self.source = source
@@ -785,25 +833,25 @@ class Pindian(UserAction):
         tgt = self.target
         g = Game.getgame()
 
-        pl = BatchList([src, tgt])
+        pl = BatchList([tgt, src])
         pindian_card = {src: None, tgt: None}
 
         with InputTransaction('Pindian', pl) as trans:
-            while pl:
-                p, rst = ask_for_action(self, pl, ('cards', 'showncards'), (), trans)
-                if not p: break
-                (card, ), _ = rst
-                pindian_card[p] = card
-                g.emit_event('pindian_card_chosen', (p, card))
-
-            # not chosen
             for p in pl:
-                pindian_card[p] = card = random_choose_card([p.cards, p.showncards])
+                cards = user_choose_cards(self, p, ('cards', 'showncards'), trans)
+                if cards:
+                    card = cards[0]
+                else:
+                    card = random_choose_card([p.cards, p.showncards])
+
+                pindian_card[p] = card
+                card.detach()
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
+        g.emit_event('pindian_card_revealed', self)  # for ui.
         g.process_action(DropCards(src, [pindian_card[src]]))
-        g.process_action(DropCards(pl[1], [pindian_card[tgt]]))
+        g.process_action(DropCards(tgt, [pindian_card[tgt]]))
 
         return pindian_card[src].number > pindian_card[tgt].number
 

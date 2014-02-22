@@ -18,5 +18,5 @@ key = hashlib.sha256(options.passphrase).digest()
 hint = hashlib.sha256(key).digest().encode('base64')
 
 enc = aes_encrypt(data, key)
-open(options.filename + '_encrypted.bin', 'wb').write(enc)
-open(options.filename + '.hint', 'wb').write(hint)
+open(fn + '_encrypted.bin', 'wb').write(enc)
+open(fn + '.hint', 'wb').write(hint)

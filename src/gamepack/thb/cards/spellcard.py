@@ -6,21 +6,24 @@ from . import basic
 from .base import VirtualCard
 from ..actions import random_choose_card, register_eh, migrate_cards, ask_for_action
 from ..actions import user_choose_cards
-from ..actions import GenericAction, UserAction, LaunchCardAction, DropCards, DropUsedCard
+from ..actions import GenericAction, UserAction, LaunchCardAction, DropCards
 from ..actions import DrawCards, Fatetell, ActionStage, Damage, ForEach
-from ..actions import LaunchCard, DrawCardStage
+from ..actions import LaunchCard, DrawCardStage, launch_card
 from ..inputlets import ChoosePeerCardInputlet, ChooseIndividualCardInputlet
 
 from utils import check, CheckFailed, BatchList, flatten
 
 
-class SpellCardAction(UserAction): pass
+class SpellCardAction(UserAction):
+    pass
 
 
-class InstantSpellCardAction(SpellCardAction): pass
+class InstantSpellCardAction(SpellCardAction):
+    pass
 
 
-class NonResponsiveInstantSpellCardAction(InstantSpellCardAction): pass
+class NonResponsiveInstantSpellCardAction(InstantSpellCardAction):
+    pass
 
 
 class Demolition(InstantSpellCardAction):
@@ -70,16 +73,14 @@ class LaunchReject(GenericAction, LaunchCardAction):
 
     def apply_action(self):
         action = Reject(source=self.source, target_act=self.target_act)
-        action.associated_card = self.card
-        g = Game.getgame()
-        # Please: keep the line below here, before its next line
-        g.process_action(DropUsedCard(self.source, [self.card]))
-        g.process_action(action)
+        launch_card(self, [], action)
         return True
 
 
 @register_eh
 class RejectHandler(EventHandler):
+    card_usage = 'launch'
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, SpellCardAction):
             if act.cancelled: return act  # some other thing have done the job
@@ -366,6 +367,8 @@ class Harvest(ForEach):
 
 
 class DollControl(InstantSpellCardAction):
+    card_usage = 'launch'
+
     def apply_action(self):
         tl = self.target_list
         assert len(tl) == 2
@@ -391,6 +394,8 @@ class DollControl(InstantSpellCardAction):
 
 
 class DonationBoxEffect(InstantSpellCardAction):
+    card_usage = 'handover'
+
     def apply_action(self):
         t = self.target
         src = self.source

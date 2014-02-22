@@ -55,6 +55,7 @@ class RiversideHandler(EventHandler):
 class Riverside(Skill):
     associated_action = RiversideAction
     target = t_OtherOne
+    usage = 'drop'
 
     def check(self):
         cl = self.associated_cards

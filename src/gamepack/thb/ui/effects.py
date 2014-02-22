@@ -51,8 +51,9 @@ class TagAnim(Control, BalloonPromptMixin):
         self.x, self.y = x, y
 
 
-def before_launch_card_effects(self, act):
+def before_launch_card_effects(self, arg):
     from .. import actions
+    act = arg[0]
     rawcards = VirtualCard.unwrap([act.card])
     for cards in group_by(rawcards, lambda c: id(c.resides_in)):
         card_migration_effects(
@@ -360,12 +361,26 @@ class UIPindianEffect(Panel):
 
             pyglet.clock.schedule_once(lambda *a: self.delete(), 2)
 
+        elif _type == 'evt_pindian_card_revealed':
+            self.srccs.update()
+            self.tgtcs.update()
+
         elif _type == 'evt_pindian_card_chosen':
             p, card = args[0]
             if p is self.action.source:
                 self.srccs = CardSprite(card, parent=self, x=20, y=20)
             else:
                 self.tgtcs = CardSprite(card, parent=self, x=20+91+20, y=20)
+        
+            from .. import actions
+            card_migration_effects(
+                self.parent, (
+                    actions.DropUsedCard(p, [card]),
+                    [card],
+                    card.resides_in,
+                    self.parent.game.deck.droppedcards,
+                )
+            )
 
 
 def pindian_effect(self, act):
@@ -609,7 +624,7 @@ mapping_events = ddict(bool, {
     'user_input': user_input_effects,
     'user_input_finish': user_input_finish_effects,
     'card_migration': card_migration_effects,
-    'before_launch_card': before_launch_card_effects,
+    'choose_target': before_launch_card_effects,
     'game_roll': game_roll_prompt,
     'game_roll_result': game_roll_result_prompt,
     'reseat': reseat_effects,

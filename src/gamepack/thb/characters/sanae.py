@@ -44,6 +44,7 @@ class Miracle(Skill):
 
 class MiracleAction(GenericAction):
     amount = -1
+    card_usage = 'drop'
 
     def apply_action(self):
         tgt = self.target

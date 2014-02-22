@@ -10,6 +10,8 @@ class DarknessDuel(BaseDuel):
 
 
 class DarknessAction(UserAction):
+    card_usage = 'launch'
+
     def apply_action(self):
         attacker, victim = self.target_list
         src = self.source
@@ -47,6 +49,7 @@ class DarknessAction(UserAction):
 class Darkness(Skill):
     associated_action = DarknessAction
     target = t_OtherN(2)
+    usage = 'drop'
 
     def check(self):
         cl = self.associated_cards

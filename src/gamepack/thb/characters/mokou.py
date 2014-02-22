@@ -56,6 +56,8 @@ class AshesHandler(EventHandler):
 
 
 class RebornHandler(EventHandler):
+    card_usage = 'drop'
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             self.target = tgt = act.target

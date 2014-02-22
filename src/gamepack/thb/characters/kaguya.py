@@ -14,6 +14,8 @@ class Dilemma(Skill):
 
 
 class DilemmaDamageAction(UserAction):
+    card_usage = 'handover'
+
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -81,6 +83,8 @@ class ImperishableNight(TreatAsSkill):
 
 
 class ImperishableNightHandler(EventHandler):
+    card_usage = 'launch'
+
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
         if not isinstance(act, LaunchCardAction): return act

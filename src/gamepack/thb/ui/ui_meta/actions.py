@@ -9,6 +9,13 @@ from .common import gen_metafunc, card_desc, G
 __metaclass__ = gen_metafunc(actions)
 
 
+class DrawCards:
+    def effect_string(act):
+        return u'|G【%s】|r摸了%d张牌。' % (
+            act.target.ui_meta.char_name, act.amount,
+        )
+
+
 class DropCardStage:
     # choose_card meta
     def choose_card_text(g, act, cards):

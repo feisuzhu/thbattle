@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import random
 
-from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, user_input, InputTransaction
+from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 
 from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity
 from .actions import action_eventhandlers
@@ -151,7 +151,12 @@ class THBattle(Game):
 
         # -------
         for p in g.players:
-            log.info(u'>> Player: %s:%s %s', p.__class__.__name__, Identity.TYPE.rlookup(p.identity.type), p.account.username)
+            log.info(
+                u'>> Player: %s:%s %s',
+                p.__class__.__name__,
+                Identity.TYPE.rlookup(p.identity.type),
+                p.account.username,
+            )
         # -------
 
         first = g.players[first_index]
@@ -175,7 +180,6 @@ class THBattle(Game):
                     g.process_action(PlayerTurn(p))
                 except InterruptActionFlow:
                     pass
-
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)
