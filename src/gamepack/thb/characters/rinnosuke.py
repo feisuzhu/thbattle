@@ -32,6 +32,7 @@ class NetoruAction(UserAction):
 class Netoru(Skill):
     associated_action = NetoruAction
     target = t_OtherOne
+    usage = 'drop'
 
     def check(self):
         cl = self.associated_cards

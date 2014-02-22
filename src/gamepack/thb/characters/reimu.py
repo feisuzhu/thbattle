@@ -63,6 +63,7 @@ class Tribute(Skill):
     associated_action = TributeAction
     no_drop = True
     no_reveal = True
+    usage = 'handover'
 
     def check(self):
         cl = self.associated_cards

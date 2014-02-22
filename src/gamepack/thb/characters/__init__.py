@@ -41,6 +41,7 @@ import mokou
 import kokoro
 import mamizou
 import seija
+import kanako
 
 import remilia_ex
 
