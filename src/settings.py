@@ -46,14 +46,14 @@ UPDATE_IGNORES = re.compile(r'''^(
         | .+\.py[co]
         | OGLdpf\.log
         | [sd]
-        | \.
+        | \..*
         | \.txt
         | cc?
         | client_log\.txt
         | client_log\.txt\.gz
         | update_info\.json
         | user_settings.json
-        )$
+    )$
 ''', re.VERBOSE)
 
 
