@@ -34,6 +34,7 @@ class TrialAction(UserAction):
 
 class TrialHandler(EventHandler):
     execute_before = ('YinYangOrbHandler', )
+    card_usage = 'use'
 
     def handle(self, evt_type, act):
         if evt_type == 'fatetell':

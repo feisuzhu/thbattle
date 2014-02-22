@@ -119,6 +119,8 @@ class CollectFaithHandler(EventHandler):
 
 
 class CooperationAction(UserAction):
+    card_usage = 'handover'
+
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -152,6 +154,7 @@ class CooperationAction(UserAction):
 class Cooperation(Skill):
     associated_action = CooperationAction
     no_drop = True
+    usage = 'handover'
 
     def target(self, g, src, tl):
         attackers = g.attackers
@@ -315,6 +318,8 @@ class OneUp(Skill):
 
 
 class FaithExchange(UserAction):
+    card_usage = 'move_out'
+
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()

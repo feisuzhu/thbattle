@@ -80,6 +80,8 @@ class LaunchReject(GenericAction, LaunchCardAction):
 
 @register_eh
 class RejectHandler(EventHandler):
+    card_usage = 'launch'
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, SpellCardAction):
             if act.cancelled: return act  # some other thing have done the job
@@ -366,6 +368,8 @@ class Harvest(ForEach):
 
 
 class DollControl(InstantSpellCardAction):
+    card_usage = 'launch'
+
     def apply_action(self):
         tl = self.target_list
         assert len(tl) == 2
@@ -391,6 +395,8 @@ class DollControl(InstantSpellCardAction):
 
 
 class DonationBoxEffect(InstantSpellCardAction):
+    card_usage = 'handover'
+
     def apply_action(self):
         t = self.target
         src = self.source

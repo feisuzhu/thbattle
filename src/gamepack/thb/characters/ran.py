@@ -56,6 +56,8 @@ class ProphetHandler(EventHandler):
 
 
 class ExtremeIntelligenceAction(GenericAction):
+    card_usage = 'drop'
+
     def __init__(self, source, target, act):
         self.source, self.target, self.action = \
             source, act.target, act
@@ -83,7 +85,10 @@ class ExtremeIntelligenceAction(GenericAction):
         except AttributeError:
             pass
 
-        nact.associated_card = ExtremeIntelligence.wrap(cards, p)
+        try:
+            nact.associated_card = act.associated_card
+        except AttributeError:
+            pass
 
         g.process_action(nact)
         return True

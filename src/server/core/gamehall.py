@@ -12,7 +12,7 @@ import gzip
 
 # -- third party --
 import gevent
-from gevent import Greenlet, Timeout
+from gevent import Timeout
 from gevent.event import Event
 from gevent.pool import Pool
 from gevent.queue import Queue, Empty as QueueEmpty
@@ -814,7 +814,11 @@ def end_game(g):
         if p.dropped:
             pl[i] = PlayerPlaceHolder
 
-    del games[g.gameid]
+    try:
+        del games[g.gameid]
+    except:
+        pass
+
     ng = create_game(None, g.__class__.__name__, g.game_name)
     ng.players = BatchList([
         Player(p.client)

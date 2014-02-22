@@ -51,6 +51,8 @@ class HopeMask(Skill):
 
 
 class DarkNohAction(UserAction):
+    card_usage = 'drop'
+
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -106,6 +108,7 @@ class DarkNoh(Skill):
     no_drop = True
     associated_action = DarkNohAction
     target = t_OtherOne
+    usage = 'handover'
 
     def check(self):
         cards = self.associated_cards

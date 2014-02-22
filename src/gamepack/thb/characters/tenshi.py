@@ -14,6 +14,7 @@ class Masochist(Skill):
 
 class MasochistAction(UserAction):
     no_reveal = True
+    card_usage = 'handover'
 
     def __init__(self, target, n):
         self.source, self.target, self.amount = target, target, n

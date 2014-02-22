@@ -316,7 +316,8 @@ class Skill(VirtualCard):
 
 
 class TreatAsSkill(Skill):
-    treat_as = None
+    treat_as = None  # can't be VirtualCard here
+    usage = 'launch'
 
     @property
     def category(self):

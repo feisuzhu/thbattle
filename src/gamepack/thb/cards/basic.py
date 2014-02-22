@@ -132,7 +132,7 @@ class UseGraze(BaseUseGraze):
 
 
 class LaunchGraze(BaseUseGraze, LaunchCardAction):
-    pass
+    card_usage = 'launch'
 
 
 class UseAttack(UseCard):
@@ -147,6 +147,8 @@ class UseAttack(UseCard):
 
 
 class LaunchHeal(UserAction, LaunchCardAction):
+    card_usage = 'launch'
+
     def apply_action(self):
         g = Game.getgame()
         src = self.source
@@ -242,6 +244,7 @@ class Exinwan(BasicAction):
 
 class ExinwanEffect(GenericAction):
     # 恶心丸
+    card_usage = 'drop'
 
     def apply_action(self):
         g = Game.getgame()

@@ -37,3 +37,5 @@ from . import yuuka  # noqa
 from . import mokou  # noqa
 from . import kokoro  # noqa
 from . import mamizou  # noqa
+from . import seija
+from . import kanako  # noqa

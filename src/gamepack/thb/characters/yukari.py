@@ -27,6 +27,8 @@ class RealmSkipFatetell(UserAction):
 
 
 class RealmSkipFatetellHandler(EventHandler):
+    card_usage = 'drop'
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             self.target = tgt = act.target
@@ -73,6 +75,7 @@ class RealmSkipDrawCard(GenericAction):
 
 class RealmSkipDrawCardHandler(EventHandler):
     execute_after = ('FrozenFrogHandler', )
+    card_usage = 'drop'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
@@ -153,6 +156,7 @@ class RealmSkipAction(UserAction):
 
 class RealmSkipActionHandler(EventHandler):
     execute_after = ('SealingArrayHandler', )
+    card_usage = 'drop'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
@@ -201,6 +205,7 @@ class RealmSkipDropCard(UserAction):
 
 class RealmSkipDropCardHandler(EventHandler):
     execute_after = ('SuwakoHatHandler',)
+    card_usage = 'drop'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DropCardStage):

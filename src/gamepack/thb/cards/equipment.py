@@ -297,6 +297,7 @@ class ScarletRhapsodySkill(WeaponSkill):
     range = 4
     associated_action = ScarletRhapsody
     target = t_OtherLessEqThanN(3)
+    usage = 'launch'
 
     def check(self):
         try:
@@ -556,6 +557,8 @@ class HakuroukenSkill(WeaponSkill):
 
 
 class Hakurouken(GenericAction):
+    card_usage = 'drop'
+
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -624,6 +627,8 @@ class AyaRoundfanSkill(WeaponSkill):
 
 @register_eh
 class AyaRoundfanHandler(EventHandler):
+    card_usage = 'drop'
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
             if not act.succeeded: return act
@@ -655,6 +660,8 @@ class LaevateinSkill(WeaponSkill):
 
 @register_eh
 class LaevateinHandler(EventHandler):
+    card_usage = 'drop'
+
     def handle(self, evt_type, arg):
         if evt_type == 'attack_aftergraze':
             act, succeed = arg

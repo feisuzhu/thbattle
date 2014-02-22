@@ -241,6 +241,7 @@ class Game(GameObject):
         self.action_types = {}
         self.ended = False
         self._action_hooks = []
+        self.winners = []
 
     def game_start(self):
         '''
@@ -257,7 +258,7 @@ class Game(GameObject):
             winner = None
 
         log.info(u'>> Winner: %s', winner)
-        
+
         raise GameEnded
 
     def emit_event(self, evt_type, data):

@@ -10,6 +10,7 @@ class FlowerQueen(Skill):
     associated_action = Attack
     target = t_OtherOne
     distance = 1
+    usage = 'launch'
 
     def check(self):
         cl = self.associated_cards
