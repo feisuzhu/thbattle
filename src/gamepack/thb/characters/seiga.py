@@ -72,6 +72,7 @@ class HeterodoxyAction(UserAction):
 class Heterodoxy(Skill):
     no_drop = True
     associated_action = HeterodoxyAction
+    usage = 'handover'
 
     def check(self):
         cl = self.associated_cards

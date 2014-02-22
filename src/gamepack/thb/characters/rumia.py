@@ -26,6 +26,7 @@ class DarknessAction(UserAction):
 
         return True
 
+    usage = 'launch'
     def cond(self, cl):
         if len(cl) != 1: return False
         c = cl[0]
@@ -47,6 +48,7 @@ class DarknessAction(UserAction):
 class Darkness(Skill):
     associated_action = DarknessAction
     target = t_OtherN(2)
+    usage = 'drop'
 
     def check(self):
         cl = self.associated_cards

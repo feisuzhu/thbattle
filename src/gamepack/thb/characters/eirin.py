@@ -38,6 +38,7 @@ class EirinHeal(Heal):
 class Medic(Skill):
     associated_action = EirinHeal
     target = t_One
+    usage = 'drop'
 
     def check(self):
         cl = self.associated_cards
