@@ -94,6 +94,8 @@ class THBattle(Game):
 
         # ANCHOR(test)
         chars.extend([
+            characters.seija.Seija,
+            characters.kanako.Kanako,
         ])
 
         choices = [CharChoice(cls) for cls in chars[-16:]]
