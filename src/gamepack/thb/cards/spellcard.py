@@ -6,21 +6,24 @@ from . import basic
 from .base import VirtualCard
 from ..actions import random_choose_card, register_eh, migrate_cards, ask_for_action
 from ..actions import user_choose_cards
-from ..actions import GenericAction, UserAction, LaunchCardAction, DropCards, DropUsedCard
+from ..actions import GenericAction, UserAction, LaunchCardAction, DropCards
 from ..actions import DrawCards, Fatetell, ActionStage, Damage, ForEach
-from ..actions import LaunchCard, DrawCardStage
+from ..actions import LaunchCard, DrawCardStage, launch_card
 from ..inputlets import ChoosePeerCardInputlet, ChooseIndividualCardInputlet
 
 from utils import check, CheckFailed, BatchList, flatten
 
 
-class SpellCardAction(UserAction): pass
+class SpellCardAction(UserAction):
+    pass
 
 
-class InstantSpellCardAction(SpellCardAction): pass
+class InstantSpellCardAction(SpellCardAction):
+    pass
 
 
-class NonResponsiveInstantSpellCardAction(InstantSpellCardAction): pass
+class NonResponsiveInstantSpellCardAction(InstantSpellCardAction):
+    pass
 
 
 class Demolition(InstantSpellCardAction):
@@ -70,11 +73,7 @@ class LaunchReject(GenericAction, LaunchCardAction):
 
     def apply_action(self):
         action = Reject(source=self.source, target_act=self.target_act)
-        action.associated_card = self.card
-        g = Game.getgame()
-        # Please: keep the line below here, before its next line
-        g.process_action(DropUsedCard(self.source, [self.card]))
-        g.process_action(action)
+        launch_card(self, [], action)
         return True
 
 

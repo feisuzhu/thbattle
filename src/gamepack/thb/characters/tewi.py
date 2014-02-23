@@ -21,8 +21,8 @@ class LuckHandler(EventHandler):
             p = _from.owner
         elif evt_type == 'action_after' and isinstance(arg, PlayerRevive):
             p = arg.target
-        elif evt_type == 'before_launch_card':
-            p = arg.source
+        elif evt_type == 'choose_target':
+            p = arg[0].source
         else:
             p = None
 

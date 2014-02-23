@@ -102,7 +102,7 @@ def user_choose_cards(initiator, actor, categories, trans=None):
 
 
 def user_choose_players(initiator, actor, candidates, trans=None):
-    _, rst = ask_for_action(initiator, [actor], (), candidates, (), trans)
+    _, rst = ask_for_action(initiator, [actor], (), candidates, trans)
     if not rst:
         return None
 
@@ -281,12 +281,7 @@ class TryRevive(GenericAction):
         from .cards import LaunchHeal
         for p in pl:
             while True:
-                act = LaunchHeal(p, tgt)
-                if g.process_action(act):
-                    card = act.card
-                    if not card: continue
-                    from .cards import Heal
-                    g.process_action(Heal(p, tgt))
+                if g.process_action(LaunchHeal(p, tgt)):
                     if tgt.life > 0:
                         tgt.tags['in_tryrevive'] = False
                         return True
@@ -372,6 +367,7 @@ class DropUsedCard(DropCards):
 
 class UseCard(UserAction):
     card_usage = 'use'
+    # launch_action = None
 
     def __init__(self, target):
         self.source = self.target = target
@@ -385,6 +381,11 @@ class UseCard(UserAction):
         if not cards or len(cards) != 1:
             self.card = None
             return False
+
+        elif self.card_usage == 'launch':
+            self.card = cards[0]
+            return launch_card(self, [self.target], self.launch_action)
+
         else:
             self.card = cards[0]
             drop = DropUsedCard(target, cards=cards)
@@ -393,10 +394,6 @@ class UseCard(UserAction):
 
     def cond(self, cl):
         raise NotImplementedError
-
-    @property
-    def cards(self):
-        raise Exception('obsolete')  # fail fast
 
 
 class DropCardStage(GenericAction):
@@ -465,6 +462,49 @@ class DrawCardStage(DrawCards):
     pass
 
 
+def launch_card(lca, target_list, action):
+    assert isinstance(lca, LaunchCardAction)
+
+    g = Game.getgame()
+    src = lca.source
+    card = lca.card
+    try:
+        card.detach()
+        _, tl = g.emit_event('choose_target', (lca, target_list))
+        assert _ is lca
+
+        if isinstance(action, Action):
+            a = action
+        else:
+            assert issubclass(action, UserAction)
+
+            tgt = tl[0] if tl else src
+            a = action(source=src, target=tgt)
+            a.target_list = tl
+
+        a.associated_card = card
+        lca.card_action = a
+
+        _ = g.emit_event('post_choose_target', (lca, tl))
+        assert _ == (lca, tl)
+
+        return g.process_action(a)
+    finally:
+
+        if card.detached:
+            # card/skill still in disputed state,
+            # means no actions have done anything to the card/skill,
+            # drop it
+            if not getattr(card, 'no_drop', False):
+                g.process_action(DropUsedCard(src, cards=[card]))
+            else:
+                # cards are detached here, denotes disputed state.
+                # can cause problems when skill declares 'no_drop'
+                # so revert the detached state.
+                from .cards import VirtualCard
+                [c.attach() for c in VirtualCard.unwrap([card])]
+
+
 class LaunchCard(GenericAction, LaunchCardAction):
     def __init__(self, source, target_list, card):
         tl, tl_valid = card.target(Game.getgame(), source, target_list)
@@ -472,40 +512,14 @@ class LaunchCard(GenericAction, LaunchCardAction):
         self.target = target_list[0] if target_list else source
 
     def apply_action(self):
-        g = Game.getgame()
         card = self.card
-        target_list = self.target_list
+        tl = self.target_list
         if not card: return False
 
         action = card.associated_action
         if not action: return False
 
-        try:
-            target = target_list[0] if target_list else self.source
-            a = action(source=self.source, target=target)
-            self.card_action = a
-            a.associated_card = card
-            a.target_list = target_list
-
-            card.detach()
-            self.action = a
-            g.emit_event('before_launch_card', self)
-            assert self.action is a
-            g.process_action(a)
-        finally:
-            if card.detached:
-                # card/skill still in disputed state,
-                # means no actions have done anything to the card/skill,
-                # drop it
-                if not getattr(card, 'no_drop', False):
-                    g.process_action(DropUsedCard(self.source, cards=[card]))
-                else:
-                    # cards are detached here, denotes disputed state.
-                    # can cause problems when skill declares 'no_drop'
-                    # so revert the detached state.
-                    from .cards import VirtualCard
-                    [c.attach() for c in VirtualCard.unwrap([card])]
-
+        launch_card(self, tl, action)
         return True
 
     def is_valid(self):
