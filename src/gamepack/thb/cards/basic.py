@@ -4,7 +4,7 @@ from game.autoenv import Game, EventHandler
 from ..actions import ActionStage, ActionStageLaunchCard, Damage, DropCards
 from ..actions import DropUsedCard, GenericAction, LaunchCard, LaunchCardAction
 from ..actions import PlayerTurn, UseCard, UserAction
-from ..actions import register_eh, user_choose_cards
+from ..actions import register_eh, user_choose_cards, launch_card
 
 
 class BasicAction(UserAction):
@@ -116,6 +116,12 @@ class Heal(BasicAction):
         return not tgt.dead and tgt.life < tgt.maxlife
 
 
+class GrazeAction(BasicAction):
+    need_target = False
+
+    def apply_action(self):
+        return True
+
 class BaseUseGraze(UseCard):
     def cond(self, cl):
         from .. import cards
@@ -133,6 +139,7 @@ class UseGraze(BaseUseGraze):
 
 class LaunchGraze(BaseUseGraze, LaunchCardAction):
     card_usage = 'launch'
+    launch_action = GrazeAction
 
 
 class UseAttack(UseCard):
@@ -158,8 +165,8 @@ class LaunchHeal(UserAction, LaunchCardAction):
             return False
         else:
             self.card = cards[0]
-            drop = DropUsedCard(src, cards=cards)
-            g.process_action(drop)
+            tgt = self.target
+            launch_card(self, [tgt], Heal(source=src, target=tgt))
             return True
 
     def cond(self, cl):
@@ -201,24 +208,21 @@ class WineRevive(GenericAction):
 class WineHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
-            src = act.source
-            g = Game.getgame()
-            for pact in reversed(g.action_stack):
-                if isinstance(pact, LaunchCard):
-                    break
-            else:
-                return act
-
+            pact = getattr(act, 'parent_action', act)
             if getattr(pact, 'in_wine', False):
                 act.damage += 1
 
-        elif evt_type == 'action_before' and isinstance(act, LaunchCard):
+        elif evt_type == 'post_choose_target':
+            act, tl = arg = act
+
             from ..cards import AttackCard
             if act.card.is_card(AttackCard):
                 src = act.source
                 if src.tags['wine']:
                     Game.getgame().process_action(SoberUp(src, src))
-                    act.in_wine = True
+                    act.card_action.in_wine = True
+
+            return arg
 
         elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             src = act.target

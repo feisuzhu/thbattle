@@ -8,7 +8,7 @@ from ..actions import random_choose_card, register_eh, migrate_cards, ask_for_ac
 from ..actions import user_choose_cards
 from ..actions import GenericAction, UserAction, LaunchCardAction, DropCards, DropUsedCard
 from ..actions import DrawCards, Fatetell, ActionStage, Damage, ForEach
-from ..actions import LaunchCard, DrawCardStage
+from ..actions import LaunchCard, DrawCardStage, launch_card
 from ..inputlets import ChoosePeerCardInputlet, ChooseIndividualCardInputlet
 
 from utils import check, CheckFailed, BatchList, flatten
@@ -60,6 +60,14 @@ class Reject(InstantSpellCardAction):
         self.target_act.cancelled = True
         return True
 
+    def retarget(self, initiator, tl):
+        assert not tl
+        self.target_act = target_act = initiator.target_act
+        if not target_act:
+            return False
+
+        self.target = target_act.target
+        return True
 
 class LaunchReject(GenericAction, LaunchCardAction):
     def __init__(self, source, target_act, card):
@@ -70,11 +78,7 @@ class LaunchReject(GenericAction, LaunchCardAction):
 
     def apply_action(self):
         action = Reject(source=self.source, target_act=self.target_act)
-        action.associated_card = self.card
-        g = Game.getgame()
-        # Please: keep the line below here, before its next line
-        g.process_action(DropUsedCard(self.source, [self.card]))
-        g.process_action(action)
+        launch_card(self, [], action)
         return True
 
 

@@ -33,6 +33,13 @@ class PatchouliHandler(EventHandler):
     execute_before = ('RejectHandler', )
 
     def handle(self, evt_type, act):
+        if evt_type == 'choose_target':
+            act, tl = arg = act
+            if 'instant_spellcard' in act.card.category:
+                Game.getgame().process_action(LibraryDrawCards(src, 1))
+
+            return arg
+
         if evt_type == 'action_before':
 
             if isinstance(act, SpellCardAction) and not act.cancelled:
@@ -41,27 +48,6 @@ class PatchouliHandler(EventHandler):
                     c = getattr(act, 'associated_card', None)
                     if c and c.suit == Card.SPADE and not c.is_card(RejectCard):
                         Game.getgame().process_action(KnowledgeAction(act))
-
-            try:
-                src = act.source
-            except AttributeError:
-                return act
-
-            if not src or not src.has_skill(Library): return act
-
-            if isinstance(act, Reject):
-                Game.getgame().process_action(LibraryDrawCards(src, 1))
-                return act
-
-            if isinstance(act, LaunchCard):
-                aact = act.card.associated_action
-                if issubclass(aact, InstantSpellCardAction):
-                    Game.getgame().process_action(LibraryDrawCards(src, 1))
-                    return act
-
-                if issubclass(aact, ForEach) and issubclass(aact.action_cls, InstantSpellCardAction):
-                    Game.getgame().process_action(LibraryDrawCards(src, 1))
-                    return act
 
         return act
 
