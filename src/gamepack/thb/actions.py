@@ -56,6 +56,8 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
 
                 check(initiator.cond(wrapped))
                 assert not (usage == 'none' and cards)  # should not pass check
+            else:
+                wrapped = []
 
             if candidates:
                 players, valid = initiator.choose_player_target(players)
