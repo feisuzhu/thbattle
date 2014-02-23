@@ -96,6 +96,11 @@ class ReversalHandler(EventHandler):
         'YugiHandler',
     )
 
+    execute_after = (
+        'DeathSickleHandler',
+        'RoukankenEffectHandler',
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
             src = act.source

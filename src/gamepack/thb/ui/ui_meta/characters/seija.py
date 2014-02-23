@@ -47,9 +47,13 @@ class Incite:
                 return True
         except IndexError:
             pass
+
         return False
 
     def is_action_valid(g, cl, tl):
+        if cl[0].associated_cards:
+            return (False, u'请不要选择牌！')
+
         if not len(tl):
             return (False, u'请选择第一名玩家（【拼点】的对象）')
         elif len(tl) == 1:
@@ -60,11 +64,17 @@ class Incite:
     def effect_string(act):
         src = act.source
         tgt, victim = act.target_list
-        return u'|G【%s】|r一脸坏笑，对|G【%s】|r说：“你知道吗，|G【%s】|r刚才看了你的胖次，蓝白条，赞！”' % (
-            src.ui_meta.char_name,
-            tgt.ui_meta.char_name,
-            victim.ui_meta.char_name,
-        )
+        if victim is src:
+            return u'|G【%s】|r一脸坏笑，对|G【%s】|r说：“那个啥…… 蓝白条，赞！”' % (
+                src.ui_meta.char_name,
+                tgt.ui_meta.char_name,
+            )
+        else:
+            return u'|G【%s】|r一脸坏笑，对|G【%s】|r说：“你知道吗，|G【%s】|r刚才看了你的胖次，蓝白条，赞！”' % (
+                src.ui_meta.char_name,
+                tgt.ui_meta.char_name,
+                victim.ui_meta.char_name,
+            )
 
 
 class InciteAction:
@@ -91,9 +101,9 @@ class ReversalDuel:
     name = u'逆转'
 
     def effect_string(act):
-        return u'|G【%s】|r对|G【%s】|r使用了|G弹幕战|r。' % (
-            act.source.ui_meta.char_name,
+        return u'|G【%s】|r对|G【%s】|r：“你敢打我脸，我就赶打回去！”' % (
             act.target.ui_meta.char_name,
+            act.source.ui_meta.char_name,
         )
 
 

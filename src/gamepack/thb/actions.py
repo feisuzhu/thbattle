@@ -47,7 +47,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                     skill = skill_wrap(actor, skills, cards, params)
                     check(skill)
                     wrapped = [skill]
-                    usage = skill.usage if usage == 'launch' else usage
+                    usage = getattr(skill, 'usage', 'none') if usage == 'launch' else usage
                 else:
                     if not getattr(initiator, 'no_reveal', False):
                         g.players.reveal(cards)
@@ -848,6 +848,7 @@ class Pindian(UserAction):
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
+        g.emit_event('pindian_card_revealed', self)  # for ui.
         g.process_action(DropCards(tgt, [pindian_card[tgt]]))
         g.process_action(DropCards(src, [pindian_card[src]]))
 

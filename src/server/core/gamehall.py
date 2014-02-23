@@ -819,6 +819,9 @@ def end_game(g):
     except:
         pass
 
+    if all_dropped:
+        return
+
     ng = create_game(None, g.__class__.__name__, g.game_name)
     ng.players = BatchList([
         Player(p.client)

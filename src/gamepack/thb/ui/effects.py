@@ -361,6 +361,10 @@ class UIPindianEffect(Panel):
 
             pyglet.clock.schedule_once(lambda *a: self.delete(), 2)
 
+        elif _type == 'pindian_card_revealed':
+            self.srccs.update()
+            self.tgtcs.update()
+
         elif _type == 'evt_pindian_card_chosen':
             p, card = args[0]
             if p is self.action.source:

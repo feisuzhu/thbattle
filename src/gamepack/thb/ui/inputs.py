@@ -260,7 +260,7 @@ class UIDoPassiveAction(UISelectTarget):
                             self.set_text(reason)
                             return
 
-                    usage = cards[0].usage if usage == 'launch' else usage
+                    usage = getattr(cards[0], 'usage', 'none') if usage == 'launch' else usage
 
                 c = cond(cards)
                 c1, text = initiator.ui_meta.choose_card_text(g, initiator, cards)
@@ -408,7 +408,7 @@ class UIDoActionStage(UISelectTarget):
                 ilet=self.inputlet, actor=g.me,
                 cards=[card],
                 players=target_list,
-                usage=card.usage if card.is_card(VirtualCard) else 'launch',
+                usage=getattr(card, 'usage', 'none') if card.is_card(VirtualCard) else 'launch',
             )
 
             assert not (arg.usage == 'none' and rawcards)
