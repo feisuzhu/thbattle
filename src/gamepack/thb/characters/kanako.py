@@ -65,6 +65,8 @@ class OnbashiraTarget(GenericAction):
 
 
 class OnbashiraHandler(EventHandler):
+    execute_before = ('SourceHandler', )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, DrawCardStage):
             if act.cancelled: return act
@@ -100,27 +102,30 @@ class OnbashiraHandler(EventHandler):
 
             return act
 
-        elif evt_type == 'action_apply' and isinstance(act, LaunchCard):
+        elif evt_type == 'post_choose_target':
+            act, tl = arg = act
             src = act.source
             g = Game.getgame()
-            if src is not g.current_turn: return act
-            if not src.has_skill(Onbashira): return act
+            if src is not g.current_turn: return arg
+            if not src.has_skill(Onbashira): return arg
 
             dlvl = src.tags['divinity']
-            if not dlvl > 0: return act
+            if not dlvl > 0: return arg
 
             if not act.card.is_card(AttackCard):
-                if act.card.is_card(RejectCard): return act
+                if act.card.is_card(RejectCard): return arg
                 aact = getattr(act.card, 'associated_action', None)
                 if not issubclass(aact, InstantSpellCardAction):
-                    if not issubclass(aact, ForEach): return act
+                    if not issubclass(aact, ForEach): return arg
                     if not issubclass(aact.action_cls, InstantSpellCardAction):
-                        return act
-                    if len(act.target_list) != 1: return act
+                        return arg
+                    if len(tl) != 1: return arg
 
-            for tgt in act.target_list or act.target:
+            for tgt in tl:
                 if tgt is not src:
                     g.process_action(OnbashiraTarget(src, tgt, src.tags['divinity']))
+
+            return arg
 
         return act
 

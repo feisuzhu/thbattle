@@ -51,8 +51,9 @@ class TagAnim(Control, BalloonPromptMixin):
         self.x, self.y = x, y
 
 
-def before_launch_card_effects(self, act):
+def before_launch_card_effects(self, arg):
     from .. import actions
+    act = arg[0]
     rawcards = VirtualCard.unwrap([act.card])
     for cards in group_by(rawcards, lambda c: id(c.resides_in)):
         card_migration_effects(
@@ -609,7 +610,7 @@ mapping_events = ddict(bool, {
     'user_input': user_input_effects,
     'user_input_finish': user_input_finish_effects,
     'card_migration': card_migration_effects,
-    'before_launch_card': before_launch_card_effects,
+    'choose_target': before_launch_card_effects,
     'game_roll': game_roll_prompt,
     'game_roll_result': game_roll_result_prompt,
     'reseat': reseat_effects,
