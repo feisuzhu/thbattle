@@ -35,6 +35,7 @@ class Card(GameObject):
 
     _color = None
     card_classes = {}
+    usage = 'launch'
 
     def __init__(self, suit=NOTSET, number=0, resides_in=None):
         self.syncid = 0  # Deck will touch this
@@ -139,6 +140,7 @@ class VirtualCard(Card):
 
     sort_index = 0
     syncid = 0
+    usage = 'none'
 
     def __init__(self, player):
         self.player = player

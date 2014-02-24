@@ -35,6 +35,11 @@ class PatchouliHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'choose_target':
             act, tl = arg = act
+            src = act.source
+
+            if not src.has_skill(Library):
+                return arg
+
             if 'instant_spellcard' in act.card.category:
                 Game.getgame().process_action(LibraryDrawCards(src, 1))
 

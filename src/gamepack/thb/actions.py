@@ -47,7 +47,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                     skill = skill_wrap(actor, skills, cards, params)
                     check(skill)
                     wrapped = [skill]
-                    usage = getattr(skill, 'usage', 'none') if usage == 'launch' else usage
+                    usage = skill.usage if usage == 'launch' else usage
                 else:
                     if not getattr(initiator, 'no_reveal', False):
                         g.players.reveal(cards)
