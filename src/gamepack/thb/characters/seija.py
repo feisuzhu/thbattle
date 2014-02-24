@@ -67,6 +67,8 @@ class Incite(Skill):
     usage = 'none'
 
     def target(self, g, source, tl):
+        tl = [t for t in tl if not t.dead]
+
         if not tl or tl[0] is source:
             return ([], False)
 
