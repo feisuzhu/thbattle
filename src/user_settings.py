@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from utils.misc import Observable
+from utils.crypto import simple_encrypt
 import atexit
 import logging
 import os.path
@@ -56,6 +57,7 @@ class UserSettings(dict, Observable):
 UserSettings = UserSettings()
 
 UserSettings.add_setting('last_id', u'无名の罪袋')
+UserSettings.add_setting('saved_passwd', simple_encrypt(''))
 UserSettings.add_setting('notify_level', 1)
 UserSettings.add_setting('sound_notify', True)
 UserSettings.add_setting('volume', 1.0)

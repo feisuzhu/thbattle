@@ -46,6 +46,8 @@ resource = Resource(respath, [
     img('imagesel_shine'),
     imgdata('icon'),
 
+    img('check'),
+
     img('speaker'),
     img('speaker_off'),
 
