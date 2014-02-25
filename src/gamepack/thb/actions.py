@@ -845,12 +845,13 @@ class Pindian(UserAction):
                     card = random_choose_card([p.cards, p.showncards])
 
                 pindian_card[p] = card
+                card.detach()
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
         g.emit_event('pindian_card_revealed', self)  # for ui.
-        g.process_action(DropCards(tgt, [pindian_card[tgt]]))
         g.process_action(DropCards(src, [pindian_card[src]]))
+        g.process_action(DropCards(tgt, [pindian_card[tgt]]))
 
         return pindian_card[src].number > pindian_card[tgt].number
 
