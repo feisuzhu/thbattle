@@ -722,11 +722,16 @@ class DeathSickleHandler(EventHandler):
     execute_after = ('RoukankenEffectHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
-            src, tgt = act.source, act.target
-            if tgt.cards or tgt.showncards: return act
-            if not src.has_skill(DeathSickleSkill): return act
-            Game.getgame().process_action(DeathSickle(act))
+        if evt_type == 'action_apply' and isinstance(act, Damage):
+            from .basic import Attack
+            g = Game.getgame()
+            pact = g.action_stack[-1]
+            if not isinstance(pact, Attack): return act
+            src = act.source
+            if not src or not src.has_skill(DeathSickleSkill): return act
+            tgt = act.target
+            if len(tgt.cards) + len(tgt.showncards) == 0:
+                act.amount += 1
 
         return act
 
