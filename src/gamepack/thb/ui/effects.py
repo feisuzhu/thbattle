@@ -361,7 +361,7 @@ class UIPindianEffect(Panel):
 
             pyglet.clock.schedule_once(lambda *a: self.delete(), 2)
 
-        elif _type == 'pindian_card_revealed':
+        elif _type == 'evt_pindian_card_revealed':
             self.srccs.update()
             self.tgtcs.update()
 
@@ -371,6 +371,16 @@ class UIPindianEffect(Panel):
                 self.srccs = CardSprite(card, parent=self, x=20, y=20)
             else:
                 self.tgtcs = CardSprite(card, parent=self, x=20+91+20, y=20)
+        
+            from .. import actions
+            card_migration_effects(
+                self.parent, (
+                    actions.DropUsedCard(p, [card]),
+                    [card],
+                    card.resides_in,
+                    self.parent.game.deck.droppedcards,
+                )
+            )
 
 
 def pindian_effect(self, act):
