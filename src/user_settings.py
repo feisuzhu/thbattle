@@ -28,7 +28,7 @@ class UserSettings(dict, Observable):
                 except:
                     return ''
                 
-                v = v[8:] if v.startswith(_enc_head) else ''
+                v = v[len(_enc_head):] if v.startswith(_enc_head) else ''
 
             return v
 
