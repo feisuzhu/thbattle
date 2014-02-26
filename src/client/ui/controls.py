@@ -228,24 +228,29 @@ class Button(Control):
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
             self.state = Button.HOVER
-
+        return pyglet.event.EVENT_HANDLED
+    
     def on_mouse_leave(self, x, y):
         if self.state != Button.DISABLED:
             self.state = Button.NORMAL
+        return pyglet.event.EVENT_HANDLED
 
     def on_mouse_press(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             if button == mouse.LEFT:
                 self.state = Button.PRESSED
+        return pyglet.event.EVENT_HANDLED
 
     def on_mouse_release(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             if button == mouse.LEFT:
                 self.state = Button.HOVER
+        return pyglet.event.EVENT_HANDLED
 
     def on_mouse_click(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             self.dispatch_event('on_click')
+        return pyglet.event.EVENT_HANDLED
 
     def _get_state(self):
         return self._state
@@ -2045,12 +2050,28 @@ class CheckBox(Control):
             (u'', Colors.blue, False),
             (u'', Colors.orange, True),
         )
-        Control.__init__(self, width=30, height=30, *a, **k)
+        Control.__init__(self, width=30, height=26, *a, **k)
+       
+        self.label = label = pyglet.text.Label(
+            self.caption, u'AncientPix', 9,
+            color=(0, 0, 0, 255),
+            x=24, y=5,
+            anchor_x='left', anchor_y='bottom',
+        )
+
+        self.width = 30 + label.content_width
+
         self.opt = OptionButton(
             parent=self, conf=conf, x=2, y=2,
             width=16, height=16, value=value
         )
         self.image = common_res.check
+        
+        sensor = SensorLayer(self, zindex=1)
+        sensor.event(self.opt.on_mouse_enter)
+        sensor.event(self.opt.on_mouse_leave)
+        sensor.event(self.opt.on_mouse_click)
+        sensor.event(self.opt.on_mouse_release)
 
     @property
     def value(self):
@@ -2064,3 +2085,4 @@ class CheckBox(Control):
             a = 2 * self.opt.hover_alpha
         glColor4f(1, 1, 1, a)
         self.image.blit(0, 0)
+        self.label.draw()

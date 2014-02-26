@@ -276,15 +276,18 @@ class Overlay(Control):
                     if _type == 'on_mouse_press':
                         this.set_focus()
             else:
-                dispatch(c, lx - c.x, ly - c.y)  # TODO: not recursive
+                if dispatch(c, lx - c.x, ly - c.y):  # TODO: not recursive
+                    return True
                 if not c in cap_list:  # do not redispatch the same event
-                    c.dispatch_event(_type, lx - c.x, ly - c.y, *args)
+                    return c.dispatch_event(_type, lx - c.x, ly - c.y, *args)
 
         # capturing events
         for con in cap_list:
             ax, ay = con.abs_coords()
-            con.dispatch_event(_type, x-ax, y-ay, *args)
-        dispatch(self, x, y)
+            if con.dispatch_event(_type, x-ax, y-ay, *args):
+                return True
+        
+        return dispatch(self, x, y)
 
     def on_mouse_press(self, x, y, button, modifier):
         self.last_mouse_press[button] = (time(), self._control_hit, x, y)
