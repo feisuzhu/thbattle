@@ -228,24 +228,29 @@ class Button(Control):
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
             self.state = Button.HOVER
-
+        return pyglet.event.EVENT_HANDLED
+    
     def on_mouse_leave(self, x, y):
         if self.state != Button.DISABLED:
             self.state = Button.NORMAL
+        return pyglet.event.EVENT_HANDLED
 
     def on_mouse_press(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             if button == mouse.LEFT:
                 self.state = Button.PRESSED
+        return pyglet.event.EVENT_HANDLED
 
     def on_mouse_release(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             if button == mouse.LEFT:
                 self.state = Button.HOVER
+        return pyglet.event.EVENT_HANDLED
 
     def on_mouse_click(self, x, y, button, modifier):
         if self.state != Button.DISABLED:
             self.dispatch_event('on_click')
+        return pyglet.event.EVENT_HANDLED
 
     def _get_state(self):
         return self._state
@@ -1978,10 +1983,10 @@ class OptionButton(Button):
     )
     _DEFAULT = object()
 
-    def __init__(self, conf=None, default_value=_DEFAULT, *a, **k):
+    def __init__(self, conf=None, value=_DEFAULT, *a, **k):
         self.conf = conf = [self.Conf(*i) for i in conf or self.DEFAULT_CONF]
         self.confidx = confidx = {c.value: i for i, c in enumerate(conf)}
-        i = confidx.get(default_value, conf[0].value)
+        i = confidx.get(value, conf[0].value)
         self.index = i
         c = conf[i]
         self._value = c.value
@@ -2023,7 +2028,7 @@ class NoInviteButton(OptionButton):
             (u'邀请已关闭', Colors.blue, True),
             (u'邀请已开启', Colors.orange, False),
         )
-        OptionButton.__init__(self, conf=conf, default_value=UserSettings.no_invite, *a, **k)
+        OptionButton.__init__(self, conf=conf, value=UserSettings.no_invite, *a, **k)
         UserSettings.add_observer('setting_change', self)
 
     def __call__(self, k, v):
@@ -2038,3 +2043,46 @@ class NoInviteButton(OptionButton):
         from user_settings import UserSettings
         UserSettings.remove_observer('setting_change', self)
         OptionButton.delete(self)
+
+class CheckBox(Control):
+    def __init__(self, value=False, *a, **k):
+        conf = (
+            (u'', Colors.blue, False),
+            (u'', Colors.orange, True),
+        )
+        Control.__init__(self, width=30, height=26, *a, **k)
+       
+        self.label = label = pyglet.text.Label(
+            self.caption, u'AncientPix', 9,
+            color=(0, 0, 0, 255),
+            x=24, y=5,
+            anchor_x='left', anchor_y='bottom',
+        )
+
+        self.width = 30 + label.content_width
+
+        self.opt = OptionButton(
+            parent=self, conf=conf, x=2, y=2,
+            width=16, height=16, value=value
+        )
+        self.image = common_res.check
+        
+        sensor = SensorLayer(self, zindex=1)
+        sensor.event(self.opt.on_mouse_enter)
+        sensor.event(self.opt.on_mouse_leave)
+        sensor.event(self.opt.on_mouse_click)
+        sensor.event(self.opt.on_mouse_release)
+
+    @property
+    def value(self):
+        return self.opt.value
+
+    def draw(self):
+        self.draw_subcontrols()
+        if self.opt.value:
+            a = 1 - self.opt.hover_alpha
+        else:
+            a = 2 * self.opt.hover_alpha
+        glColor4f(1, 1, 1, a)
+        self.image.blit(0, 0)
+        self.label.draw()

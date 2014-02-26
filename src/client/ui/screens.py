@@ -18,12 +18,13 @@ from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
 from client.ui.controls import ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
-from client.ui.controls import TextArea, TextBox, SensorLayer
+from client.ui.controls import TextArea, TextBox, SensorLayer, CheckBox
 from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
 
 from client.core import Executive
 from utils import rect_to_dict as r2d, textsnap, inpoly, openurl
+from utils.crypto import simple_encrypt, simple_decrypt
 from user_settings import UserSettings
 from account import Account
 from settings import ServerNames
@@ -378,7 +379,11 @@ class LoginScreen(Screen):
             )
             self.txt_pwd = PasswordTextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
-                text='',
+                text=simple_decrypt(UserSettings.saved_passwd),
+            )
+            self.chk_savepwd = CheckBox(
+                parent=self, x=60, y=52, caption=u'记住密码',
+                value=bool(UserSettings.saved_passwd),
             )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',
@@ -435,7 +440,11 @@ class LoginScreen(Screen):
 
     def on_message(self, _type, *args):
         if _type == 'auth_success':
-            UserSettings.last_id = self.dialog.txt_username.text
+            dlg = self.dialog
+            UserSettings.last_id = dlg.txt_username.text
+            UserSettings.saved_passwd = simple_encrypt(
+                    dlg.txt_pwd.text if dlg.chk_savepwd.value else ''
+            )
             GameHallScreen().switch()
 
         elif _type == 'auth_failure':
