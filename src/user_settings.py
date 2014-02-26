@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from utils.misc import Observable 
-from utils.crypto import simple_encrypt, simple_decrypt
-import hashlib
+from utils.misc import Observable
+from utils.crypto import simple_encrypt
 import atexit
 import logging
 import os.path
@@ -10,10 +9,9 @@ import simplejson as json
 
 log = logging.getLogger('user_settings')
 
-_enc_head = 'ENC_HEAD'
 
 class UserSettings(dict, Observable):
-    __slots__ = ('_ob_dict', '_enc')
+    __slots__ = ('_ob_dict', )
 
     def __setitem__(self, k, v):
         dict.__setitem__(self, k, v)
@@ -21,39 +19,19 @@ class UserSettings(dict, Observable):
 
     def __getattr__(self, name):
         try:
-            v = self[name]
-            if name in self._enc:
-                try:
-                    v = simple_decrypt(v)
-                except:
-                    return ''
-                
-                v = v[len(_enc_head):] if v.startswith(_enc_head) else ''
-
-            return v
-
+            return self[name]
         except KeyError:
             raise AttributeError
-
-    def __init__(self):
-        super(type(self), self).__init__()
-        self._enc = set()
 
     def __setattr__(self, name, v):
         if name.startswith('_'):
             dict.__setattr__(self, name, v)
-            return 
-        
-        if name in self._enc:
-            v = simple_encrypt(_enc_head + str(v))
+            return
 
         self[name] = v
 
-    def add_setting(self, name, default, encrypted=False):
-        if encrypted:
-            self._enc.add(name)
-
-        setattr(self, name, default)
+    def add_setting(self, name, default):
+        self[name] = default
 
     def save(self):
         with open(self._get_conf_name(), 'w') as f:
@@ -79,7 +57,7 @@ class UserSettings(dict, Observable):
 UserSettings = UserSettings()
 
 UserSettings.add_setting('last_id', u'无名の罪袋')
-UserSettings.add_setting('saved_passwd', '', encrypted=True)
+UserSettings.add_setting('saved_passwd', simple_encrypt(''))
 UserSettings.add_setting('notify_level', 1)
 UserSettings.add_setting('sound_notify', True)
 UserSettings.add_setting('volume', 1.0)

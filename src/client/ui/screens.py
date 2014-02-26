@@ -24,6 +24,7 @@ from client.ui.soundmgr import SoundManager
 
 from client.core import Executive
 from utils import rect_to_dict as r2d, textsnap, inpoly, openurl
+from utils.crypto import simple_encrypt, simple_decrypt
 from user_settings import UserSettings
 from account import Account
 from settings import ServerNames
@@ -378,7 +379,7 @@ class LoginScreen(Screen):
             )
             self.txt_pwd = PasswordTextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
-                text=UserSettings.saved_passwd,
+                text=simple_decrypt(UserSettings.saved_passwd),
             )
             self.chk_savepwd = CheckBox(
                 parent=self, x=60, y=52, caption=u'记住密码',
@@ -441,8 +442,9 @@ class LoginScreen(Screen):
         if _type == 'auth_success':
             dlg = self.dialog
             UserSettings.last_id = dlg.txt_username.text
-            UserSettings.saved_passwd = dlg.txt_pwd.text \
-                    if dlg.chk_savepwd.value else ''
+            UserSettings.saved_passwd = simple_encrypt(
+                    dlg.txt_pwd.text if dlg.chk_savepwd.value else ''
+            )
             GameHallScreen().switch()
 
         elif _type == 'auth_failure':

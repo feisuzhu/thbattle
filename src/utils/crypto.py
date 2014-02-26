@@ -24,8 +24,17 @@ def aes_encrypt(data, key):
 def aes_decrypt(data, key):
     return _aes_op(data, key, 0)
 
+import hashlib
+_simple_key = hashlib.sha256('zheshijintiandeqiaokelijianpan').digest()
+_enc_head = 'ENC_HEAD'
+
 def simple_encrypt(data):
-    return data.encode('base64')
+    return aes_encrypt(_enc_head + str(data), _simple_key).encode('base64')
 
 def simple_decrypt(data):
-    return data.decode('base64')
+    try:
+        v = aes_decrypt(data.decode('base64'), _simple_key)
+        assert v.startswith(_enc_head)
+        return v[len(_enc_head):]
+    except:
+        return ''
