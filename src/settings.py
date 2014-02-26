@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 182'
+VERSION = 'THBATTLE V1.0b incr 183'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -151,6 +151,10 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新人物：鬼人正邪、八坂神奈子（开发：zhyk）
+新头像：帕秋莉（画师：渚FUN）
+大狸子现在在除了KOF之外的所有模式可用
+----
 大狸子相关bug修复
 新人物：大狸子（人物设计：鵺子丶爱丽丝）
 新人物：秦心（画师：Takibi）
@@ -158,7 +162,7 @@ http://www.thbattle.net
 妖梦设定调整：如果装备了两把武器，现在可以主动弃置一把
 好人卡bug修复
 人物强度调整（露米娅、早苗、灵梦，具体调整请看论坛帖子）
-新人物：藤原妹红(zhyk)
+新人物：藤原妹红(开发：zhyk)
 出牌时间调整为25秒
 新头像（小町、八意永琳、大妖精、八云紫，画师：渚FUN）
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
