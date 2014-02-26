@@ -65,7 +65,7 @@ class MorphingHandler(EventHandler):
         return arg
 
 
-@register_character_to('id8')
+@register_character_to('common', '-kof')
 class Mamizou(Character):
     skills = [Morphing]
     eventhandlers_required = [MorphingHandler]
