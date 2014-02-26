@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from utils.misc import Observable 
-from utils.crypto import aes_encrypt, aes_decrypt
+from utils.crypto import simple_encrypt, simple_decrypt
 import hashlib
 import atexit
 import logging
@@ -10,7 +10,6 @@ import simplejson as json
 
 log = logging.getLogger('user_settings')
 
-_crypto_key = hashlib.sha256('zheshijintiandeqiaokelijianpan').digest()
 _enc_head = 'ENC_HEAD'
 
 class UserSettings(dict, Observable):
@@ -25,7 +24,7 @@ class UserSettings(dict, Observable):
             v = self[name]
             if name in self._enc:
                 try:
-                    v = aes_decrypt(v.decode('base64'), _crypto_key)
+                    v = simple_decrypt(v)
                 except:
                     return ''
                 
@@ -46,7 +45,7 @@ class UserSettings(dict, Observable):
             return 
         
         if name in self._enc:
-            v = aes_encrypt(_enc_head + str(v), _crypto_key).encode('base64')
+            v = simple_encrypt(_enc_head + str(v))
 
         self[name] = v
 

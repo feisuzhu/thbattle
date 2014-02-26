@@ -23,3 +23,9 @@ def aes_encrypt(data, key):
 
 def aes_decrypt(data, key):
     return _aes_op(data, key, 0)
+
+def simple_encrypt(data):
+    return data.encode('base64')
+
+def simple_decrypt(data):
+    return data.decode('base64')
