@@ -18,7 +18,7 @@ from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
 from client.ui.controls import ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
-from client.ui.controls import TextArea, TextBox, SensorLayer
+from client.ui.controls import TextArea, TextBox, SensorLayer, CheckBox
 from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
 
@@ -380,6 +380,13 @@ class LoginScreen(Screen):
                 parent=self, x=438-350, y=246-165, width=220, height=20,
                 text=UserSettings.saved_passwd,
             )
+            self.chk_savepwd = CheckBox(
+                parent=self, x=20, y=54,
+                value=bool(UserSettings.saved_passwd),
+            )
+            self.add_label(u'记住密码', x=48, y=59,
+                color=(0, 0, 0, 255), font_size=9
+            )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',
                 x=50, y=10, width=100, height=30
@@ -435,7 +442,10 @@ class LoginScreen(Screen):
 
     def on_message(self, _type, *args):
         if _type == 'auth_success':
-            UserSettings.last_id = self.dialog.txt_username.text
+            dlg = self.dialog
+            UserSettings.last_id = dlg.txt_username.text
+            UserSettings.saved_passwd = dlg.txt_pwd.text \
+                    if dlg.chk_savepwd.value else ''
             GameHallScreen().switch()
 
         elif _type == 'auth_failure':

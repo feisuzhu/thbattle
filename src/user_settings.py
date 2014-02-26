@@ -26,7 +26,7 @@ class UserSettings(dict, Observable):
             if name in self._enc:
                 try:
                     v = aes_decrypt(v.decode('base64'), _crypto_key)
-                except UnicodeDecodeError:
+                except:
                     return ''
                 
                 v = v[8:] if v.startswith(_enc_head) else ''
@@ -46,7 +46,7 @@ class UserSettings(dict, Observable):
             return 
         
         if name in self._enc:
-            v = aes_encrypt(_enc_head + v, _crypto_key).encode('base64')
+            v = aes_encrypt(_enc_head + str(v), _crypto_key).encode('base64')
 
         self[name] = v
 
@@ -63,7 +63,6 @@ class UserSettings(dict, Observable):
     def load(self):
         conf = self._get_conf_name()
         if not os.path.exists(conf):
-            print self
             return
 
         try:
@@ -72,8 +71,6 @@ class UserSettings(dict, Observable):
 
         except:
             log.exception('Error loading conf')
-
-        print self
 
     def _get_conf_name(self):
         import settings

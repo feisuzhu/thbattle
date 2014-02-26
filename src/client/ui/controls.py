@@ -1978,10 +1978,10 @@ class OptionButton(Button):
     )
     _DEFAULT = object()
 
-    def __init__(self, conf=None, default_value=_DEFAULT, *a, **k):
+    def __init__(self, conf=None, value=_DEFAULT, *a, **k):
         self.conf = conf = [self.Conf(*i) for i in conf or self.DEFAULT_CONF]
         self.confidx = confidx = {c.value: i for i, c in enumerate(conf)}
-        i = confidx.get(default_value, conf[0].value)
+        i = confidx.get(value, conf[0].value)
         self.index = i
         c = conf[i]
         self._value = c.value
@@ -2023,7 +2023,7 @@ class NoInviteButton(OptionButton):
             (u'邀请已关闭', Colors.blue, True),
             (u'邀请已开启', Colors.orange, False),
         )
-        OptionButton.__init__(self, conf=conf, default_value=UserSettings.no_invite, *a, **k)
+        OptionButton.__init__(self, conf=conf, value=UserSettings.no_invite, *a, **k)
         UserSettings.add_observer('setting_change', self)
 
     def __call__(self, k, v):
@@ -2038,3 +2038,29 @@ class NoInviteButton(OptionButton):
         from user_settings import UserSettings
         UserSettings.remove_observer('setting_change', self)
         OptionButton.delete(self)
+
+class CheckBox(Control):
+    def __init__(self, value=False, *a, **k):
+        conf = (
+            (u'', Colors.blue, False),
+            (u'', Colors.orange, True),
+        )
+        Control.__init__(self, width=30, height=30, *a, **k)
+        self.opt = OptionButton(
+            parent=self, conf=conf, x=2, y=2,
+            width=16, height=16, value=value
+        )
+        self.image = common_res.check
+
+    @property
+    def value(self):
+        return self.opt.value
+
+    def draw(self):
+        self.draw_subcontrols()
+        if self.opt.value:
+            a = 1 - self.opt.hover_alpha
+        else:
+            a = 2 * self.opt.hover_alpha
+        glColor4f(1, 1, 1, a)
+        self.image.blit(0, 0)
