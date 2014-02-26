@@ -209,6 +209,7 @@ class UIDoPassiveAction(UISelectTarget):
 
             cond = initiator.cond
             usage = getattr(initiator, 'card_usage', 'none')
+            rawcards = view.get_selected_cards()
 
             if isinstance(initiator, RejectHandler):
                 self._sv_val = False
@@ -290,7 +291,7 @@ class UIDoPassiveAction(UISelectTarget):
                 usage=usage
             )
 
-            assert not (arg.usage == 'none' and arg.cards)
+            assert not (usage == 'none' and rawcards)
 
             arg2, permitted = g.emit_event('action_limit', (arg, True))
             assert arg == arg2

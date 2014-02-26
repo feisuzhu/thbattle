@@ -6,6 +6,7 @@ from ..cards import Card, Heal, HealCard, Skill, t_None, t_One
 class FirstAid(Skill):
     associated_action = None
     target = t_None
+    usage = 'launch'
 
     def check(self):
         cl = self.associated_cards
