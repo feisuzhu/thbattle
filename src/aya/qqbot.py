@@ -51,14 +51,15 @@ class QQBot(object):
         self.session = requests.session()
 
         self.pool = Pool(10)
+        self.corepool = Pool(3)
         self.ready = Event()
 
-        self.pool.spawn(self.init)
+        self.corepool.spawn(self.init)
 
     def init(self):
         self.ready.clear()
         self.login()
-        self.pool.spawn(self.loop)
+        self.corepool.spawn(self.loop)
 
         p = Pool(5)
         p.map(lambda f: f(), [
@@ -75,7 +76,7 @@ class QQBot(object):
         self.pool.kill()
 
     def join(self):
-        self.pool.join()
+        self.corepool.join()
 
     def wait_ready(self):
         self.ready.wait()
