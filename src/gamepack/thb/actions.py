@@ -373,23 +373,27 @@ class UseCard(UserAction):
 
     def __init__(self, target):
         self.source = self.target = target
+        self.card = None
         # self.cond = __subclass__.cond
 
     def apply_action(self):
         g = Game.getgame()
         target = self.target
-        cards = user_choose_cards(self, target, ('cards', 'showncards'))
 
-        if not cards or len(cards) != 1:
-            self.card = None
-            return False
-
-        elif self.card_usage == 'launch':
+        if not self.card:  # ask if not already provided
+            cards = user_choose_cards(self, target, ('cards', 'showncards'))
+            if not cards or len(cards) != 1:
+                self.card = None
+                return False
+            
             self.card = cards[0]
-            return launch_card(self, [self.target], self.launch_action)
+
+        if self.card_usage == 'launch':
+            tgt = self.target
+            act = self.launch_action(source=tgt, target=tgt)
+            return launch_card(self, [], act)
 
         else:
-            self.card = cards[0]
             drop = DropUsedCard(target, cards=cards)
             g.process_action(drop)
             return True

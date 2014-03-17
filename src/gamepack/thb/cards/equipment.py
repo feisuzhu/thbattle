@@ -50,8 +50,11 @@ class ShieldSkill(Skill):
     target = t_None
 
 
-class OpticalCloakSkill(ShieldSkill):  # just a tag
-    pass
+class OpticalCloakSkill(TreatAsSkill, ShieldSkill):  # just a tag
+    treat_as = Card.card_classes['GrazeCard']
+
+    def check(self):
+        return False
 
 
 class OpticalCloak(FatetellAction):
@@ -69,20 +72,18 @@ class OpticalCloak(FatetellAction):
 class OpticalCloakHandler(EventHandler):
     def handle(self, evt_type, act):
         from .basic import BaseUseGraze
-        if evt_type == 'action_before' and isinstance(act, BaseUseGraze):
-            target = act.target
-            if not target.has_skill(OpticalCloakSkill): return act
-            if not user_input([target], ChooseOptionInputlet(self, (False, True))):
+        if evt_type == 'action_apply' and isinstance(act, BaseUseGraze):
+            tgt = act.target
+            if not tgt.has_skill(OpticalCloakSkill): return act
+            if act.card: return act
+           
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
+            
             g = Game.getgame()
-            oc = OpticalCloak(target, target)
-            if g.process_action(oc):
-                act.__class__ = classmix(DummyAction, act.__class__)
-                act.result = True
-                ocs = OpticalCloakSkill(target)
-                ocs.associated_cards = [oc.fatetell_card]
-                act.card = ocs  # UseCard attribute
-            return act
+            if g.process_action(OpticalCloak(tgt, tgt)):
+                act.card = OpticalCloakSkill(tgt)
+        
         return act
 
 
@@ -504,6 +505,13 @@ class UmbrellaHandler(EventHandler):
         return act
 
 
+class SaigyouBranchSkill(TreatAsSkill, ShieldSkill):
+    treat_as = Card.card_classes['RejectCard']
+
+    def check(self):
+        return False
+
+
 class SaigyouBranch(FatetellAction):
     def __init__(self, source, act):
         self.source = source
@@ -518,16 +526,11 @@ class SaigyouBranch(FatetellAction):
         ft = Fatetell(src, lambda card: 9 <= card.number <= 13)
         g.process_action(ft)
         if ft.succeeded:
-            rej = spellcard.Reject(src, act)
-            rej.associated_card = SaigyouBranchSkill(src)
+            rej = spellcard.LaunchReject(src, act, SaigyouBranchSkill(src))
             g.process_action(rej)
             return True
         else:
             return False
-
-
-class SaigyouBranchSkill(ShieldSkill):
-    pass
 
 
 @register_eh
