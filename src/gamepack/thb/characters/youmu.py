@@ -9,20 +9,7 @@ from utils import classmix
 
 
 class MijincihangzhanAttack(Attack):
-    def apply_action(self):
-        g = Game.getgame()
-        source, target = self.source, self.target
-
-        for i in xrange(2):
-            graze_action = LaunchGraze(target)
-            if not g.process_action(graze_action):
-                break
-        else:
-            return False
-
-        g.process_action(Damage(source, target, amount=self.damage))
-        return True
-
+    pass
 
 class MijincihangzhanDuelMixin(object):
     # 迷津慈航斩 弹幕战
@@ -101,6 +88,7 @@ class YoumuHandler(EventHandler):
             if isinstance(act, Attack):
                 if not act.source.has_skill(Mijincihangzhan): return act
                 act.__class__ = classmix(MijincihangzhanAttack, act.__class__)
+                act.graze_count = 0
             elif isinstance(act, BaseDuel):
                 if not isinstance(act, MijincihangzhanDuelMixin):
                     act.__class__ = classmix(MijincihangzhanDuelMixin, act.__class__)
@@ -111,6 +99,14 @@ class YoumuHandler(EventHandler):
                 a = act.target
                 if not a.has_skill(Xianshiwangzhi): return act
                 a.tags['attack_num'] += 1
+
+        elif evt_type == 'attack_aftergraze':
+            act, rst = arg = act
+            if rst: return arg
+            if not isinstance(act, MijincihangzhanAttack): return arg
+
+            g = Game.getgame() 
+            return act, not g.process_action(LaunchGraze(act.target))
 
         return act
 
