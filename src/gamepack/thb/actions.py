@@ -394,7 +394,7 @@ class UseCard(UserAction):
             return launch_card(self, [], act)
 
         else:
-            drop = DropUsedCard(target, cards=cards)
+            drop = DropUsedCard(target, cards=[self.card])
             g.process_action(drop)
             return True
 
