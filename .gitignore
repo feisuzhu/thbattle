@@ -14,3 +14,5 @@ cc
 d
 tags
 components
+/start_*.bat
+/start_[^.]+

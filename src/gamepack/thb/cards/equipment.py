@@ -722,7 +722,7 @@ class DeathSickle(GenericAction):
 
 @register_eh
 class DeathSickleHandler(EventHandler):
-    execute_after = ('RoukankenEffectHandler', )
+    execute_before = ('WineHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, Damage):
