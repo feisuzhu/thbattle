@@ -51,9 +51,6 @@ class DeathHandler(EventHandler):
             g.winners = [pl[0]]
             g.game_end()
 
-        if tgt is g.current_turn:
-            raise InterruptActionFlow
-
         return act
 
 
@@ -238,13 +235,6 @@ class THBattleKOF(Game):
         g.players.replace(p, new)
 
         ehs = g.ehclasses
-        if old_cls:
-            for eh in old_cls.eventhandlers_required:
-                try:
-                    ehs.remove(eh)
-                except ValueError:
-                    pass
-
         ehs.extend(cls.eventhandlers_required)
         g.update_event_handlers()
 

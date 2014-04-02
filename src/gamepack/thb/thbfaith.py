@@ -248,13 +248,6 @@ class THBattleFaith(Game):
         g.forces[1].replace(old, p)
 
         ehs = g.ehclasses
-        if oldcls:
-            for eh in oldcls.eventhandlers_required:
-                try:
-                    ehs.remove(eh)
-                except ValueError:
-                    pass
-
         ehs.extend(p.eventhandlers_required)
 
         g.update_event_handlers()
