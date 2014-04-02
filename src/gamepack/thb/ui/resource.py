@@ -84,7 +84,7 @@ resource = Resource(respath, [
         'remilia', 'minoriko', 'meirin', 'suika', 'chen',
         'yukari', 'cirno', 'sakuya', 'sanae', 'akari',
         'seiga', 'kaguya', 'momiji', 'komachi', 'mokou',
-        'kokoro', 'mamizou', 'seija', 'kanako',
+        'kokoro', 'mamizou', 'seija', 'kanako', 'medicine',
 
         'remilia_ex', 'remilia_ex2',
     ]],
