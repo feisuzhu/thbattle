@@ -11,7 +11,7 @@ __metaclass__ = gen_metafunc(characters.medicine)
 class Medicine:
     # Character
     char_name = u'梅蒂欣'
-    port_image = gres.dummy_port
+    port_image = gres.medicine_port
     description = (
         u'|DB 小小的甜蜜毒药 梅蒂欣 体力：3|r\n\n'
         u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张黑色牌，令该角色获得|G喝醉|r状态。若该角色在该回合结束阶段开始时处于|G喝醉|r状态，其失去|G喝醉|r状态并选择一项：①弃置一张手牌并令你摸一张牌；②受到一点无来源伤害。\n\n'
