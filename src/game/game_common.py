@@ -242,6 +242,7 @@ class Game(GameObject):
         self.ended = False
         self._action_hooks = []
         self.winners = []
+        self.turn_count = 0
 
     def game_start(self):
         '''

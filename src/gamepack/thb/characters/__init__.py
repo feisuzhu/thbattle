@@ -42,6 +42,7 @@ import kokoro
 import mamizou
 import seija
 import kanako
+import medicine
 
 import remilia_ex
 

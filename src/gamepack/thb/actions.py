@@ -794,8 +794,9 @@ class PlayerTurn(GenericAction):
         g = Game.getgame()
         p = self.target
         p.tags['turn_count'] += 1
+        g.turn_count += 1
         g.current_turn = p
-
+        
         g.process_action(FatetellStage(p))
         g.process_action(DrawCardStage(p))
         g.process_action(ActionStage(p))

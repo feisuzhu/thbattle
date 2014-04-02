@@ -652,14 +652,6 @@ class THBattleRaid(Game):
         g.attackers.replace(old, p)
 
         ehs = g.ehclasses
-        if oldcls:
-            for eh in oldcls.eventhandlers_required:
-                try:
-                    ehs.remove(eh)
-                except ValueError:
-                    pass
-
-        ehs = g.ehclasses
         ehs.extend(p.eventhandlers_required)
         g.emit_event('switch_character', p)
 
