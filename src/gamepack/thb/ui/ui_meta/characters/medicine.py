@@ -27,12 +27,29 @@ class Ciguatera:
 
 
 class CiguateraAction:
-    pass
+    def effect_string_before(act):
+        return u'|G【%s】|r对|G【%s】|r使用了|G神经之毒|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name
+        )
 
 
 class CiguateraTurnEnd:
     def choose_card_text(g, act, cards):
-        return act.cond(cards), u'受到一点无来源伤害，或者弃置一张手牌并让【%s】摸一张牌' % act.source.ui_meta.char_name
+        return act.cond(cards), u'受到一点无来源伤害，或者弃置一张手牌并让【%s】摸一张牌' % act.target.ui_meta.char_name
+
+    def effect_string_before(act):
+        return u'|G【%s】|r受到|G【%s】|r的|G神经之毒|r爆发了。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name
+        )
+
+    def effect_string(act):
+        if act.card:
+            return u'|G【%s】|r弃掉了%s。' % (
+                act.source.ui_meta.char_name,
+                card_desc(act.card)
+            )
 
 
 class CiguateraHandler:
@@ -48,7 +65,15 @@ class Melancholy:
 
 
 class MelancholyAction:
-    pass
+    def effect_string_before(act):
+        return u'|G【%s】|r对|G【%s】|r使用了|G忧郁之毒|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name
+        )
+
+    def effect_string(act):
+        return (u'|G【%s】|r陷入了忧郁。' if act.effective 
+                else u'但|G【%s】|r缓了过来。' ) % act.target.ui_meta.char_name
 
 
 class MelancholyHandler:

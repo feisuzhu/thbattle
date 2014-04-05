@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..actions import Damage, DrawCardStage, DrawCards, DropCards, FatetellStage, DropCardStage
+from ..actions import Damage, DrawCardStage, DrawCards, DropCards, FatetellStage, PlayerTurn
 from ..actions import UserAction, GenericAction, user_choose_cards, ShowCards
 from ..cards import Wine, Skill, t_None, Card, SoberUp, VirtualCard
 from ..inputlets import ChooseOptionInputlet
@@ -13,13 +13,20 @@ class Ciguatera(Skill):
 
 
 class CiguateraAction(UserAction):
+    def __init__(self, source, target, cards):
+        self.source = source
+        self.target = target
+        self.cards = cards
+
     def apply_action(self):
         tgt = self.target
+        src = self.source
         g = Game.getgame()
+        g.process_action(DropCards(src, self.cards))
         g.process_action(Wine(tgt, tgt))
         tags = tgt.tags
         tags['ciguatera_tag'] = g.turn_count
-        tags['ciguatera_src'] = self.source
+        tags['ciguatera_src'] = src
 
         return True
 
@@ -31,20 +38,23 @@ class CiguateraTurnEnd(GenericAction):
         src = self.source
         tgt = self.target
         g = Game.getgame()
-        g.process_action(SoberUp(tgt, tgt))
+        g.process_action(SoberUp(src, src))
         
-        draw = DrawCards(src, amount=1)
+        draw = DrawCards(tgt, amount=1)
         
         if draw.can_fire():
-            cards = user_choose_cards(self, tgt, ('cards', 'showncards'))
+            cards = user_choose_cards(self, src, ('cards', 'showncards'))
         else:
             cards = None
 
         if cards:
-            g.process_action(DropCards(tgt, cards))
+            assert len(cards) == 1
+            self.card = cards[0]
+            g.process_action(DropCards(src, cards))
             g.process_action(draw)
         else:
-            g.process_action(Damage(None, tgt))
+            self.card = None
+            g.process_action(Damage(None, src))
 
         return True
 
@@ -52,13 +62,11 @@ class CiguateraTurnEnd(GenericAction):
         return len(cl) == 1
 
     def is_valid(self):
-        return self.target.tags.get('wine', False)
+        return self.source.tags.get('wine', False)
 
 
 class CiguateraHandler(EventHandler):
     card_usage = 'drop'
-    execute_before = ('LunaClockHandler', )
-    execute_after = ('TreasureHuntHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
@@ -69,16 +77,15 @@ class CiguateraHandler(EventHandler):
 
                 cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
                 if cards:
-                    g.process_action(DropCards(p, cards))
-                    g.process_action(CiguateraAction(p, act.target))
+                    g.process_action(CiguateraAction(p, act.target, cards))
 
-        if evt_type == 'action_after' and isinstance(act, DropCardStage):
+        if evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
             tags = tgt.tags
             g = Game.getgame()
             if tags.get('ciguatera_tag') == g.turn_count:
                 src = tgt.tags['ciguatera_src']
-                g.process_action(CiguateraTurnEnd(src, tgt))
+                g.process_action(CiguateraTurnEnd(tgt, src))
 
         return act
 
@@ -109,6 +116,10 @@ class MelancholyAction(GenericAction):
         g.process_action(ShowCards(src, draw.cards))
         if [c for c in draw.cards if c.suit != Card.CLUB]:  # any non-club
             tgt.tags['melancholy_tag'] = g.turn_count
+            self.effective = True
+
+        else:
+            self.effective = False
 
         return True 
 

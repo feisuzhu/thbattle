@@ -37,6 +37,8 @@ class LunaClock(Skill):
 
 
 class LunaClockHandler(EventHandler):
+    execute_after = ('CiguateraHandler', )
+    
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             src = act.target
