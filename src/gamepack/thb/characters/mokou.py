@@ -43,6 +43,8 @@ class RebornAction(UserAction):
 
 
 class AshesHandler(EventHandler):
+    execute_before = ('CiguateraHandler', )
+    
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
@@ -56,8 +58,9 @@ class AshesHandler(EventHandler):
 
 
 class RebornHandler(EventHandler):
+    execute_before = ('CiguateraHandler', )
     card_usage = 'drop'
-
+    
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             self.target = tgt = act.target

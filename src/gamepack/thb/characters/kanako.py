@@ -65,6 +65,7 @@ class OnbashiraTarget(GenericAction):
 
 
 class OnbashiraHandler(EventHandler):
+    execute_after = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, DrawCardStage):

@@ -64,7 +64,7 @@ class action:
 
 class riverside_target:
     tag_anim = lambda p: gres.tag_riverside
-    display = lambda p, v: v
+    display = lambda p, v: v == G().turn_count
     description = u'被指定为彼岸的目标'
 
 

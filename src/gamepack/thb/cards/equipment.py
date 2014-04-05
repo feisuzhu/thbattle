@@ -421,7 +421,7 @@ class IbukiGourdSkill(RedUFOSkill):
 
 @register_eh
 class IbukiGourdHandler(EventHandler):
-    execute_after = ('WineHandler', )
+    execute_after = ('WineHandler', 'CiguateraHandler', )
 
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, PlayerTurn):

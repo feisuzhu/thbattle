@@ -27,6 +27,7 @@ class RealmSkipFatetell(UserAction):
 
 
 class RealmSkipFatetellHandler(EventHandler):
+    execute_after = ('CiguateraHandler', )
     card_usage = 'drop'
 
     def handle(self, evt_type, act):

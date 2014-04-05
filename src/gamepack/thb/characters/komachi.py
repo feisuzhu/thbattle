@@ -12,7 +12,7 @@ class RiversideAction(UserAction):
         src = self.source
         tgt = self.target
         src.tags['riverside_tag'] = src.tags['turn_count']
-        tgt.tags['riverside_target'] = True
+        tgt.tags['riverside_target'] = g.turn_count
         minhp = min([p.life for p in g.players if not p.dead])
         if tgt.life == minhp:
             has_card = tgt.cards or tgt.showncards or tgt.equips
@@ -42,12 +42,8 @@ class RiversideHandler(EventHandler):
             src, card, dist = arg
             if not src.has_skill(Riverside): return arg
             for p in dist:
-                if p.tags['riverside_target']:
+                if p.tags.get('riverside_target') == g.turn_count:
                     dist[p] -= 10000
-
-        elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
-            for p in Game.getgame().players:
-                p.tags['riverside_target'] = False
 
         return arg
 

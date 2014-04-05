@@ -71,6 +71,8 @@ class CheatingDrawCards(DrawCards):
 
 
 class CheatingHandler(EventHandler):
+    execute_before = ('CiguateraHandler', )
+    
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
