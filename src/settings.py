@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 187'
+VERSION = 'THBATTLE V1.0b incr 189'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
