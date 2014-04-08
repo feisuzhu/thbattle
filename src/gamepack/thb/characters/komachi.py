@@ -41,8 +41,10 @@ class RiversideHandler(EventHandler):
         if evt_type == 'calcdistance':
             src, card, dist = arg
             if not src.has_skill(Riverside): return arg
+            
+            turn_count = Game.getgame().turn_count
             for p in dist:
-                if p.tags.get('riverside_target') == g.turn_count:
+                if p.tags.get('riverside_target') == turn_count:
                     dist[p] -= 10000
 
         return arg
