@@ -11,6 +11,7 @@ __metaclass__ = gen_metafunc(characters.seija)
 
 
 class InciteAttack:
+    name = u'挑拨'
     def effect_string(act):
         return u'|G【%s】|r立刻将|G弹幕|r甩在了|G【%s】|r的脸上：“看也就看了，能别说么？”' % (
             act.source.ui_meta.char_name,
@@ -19,6 +20,7 @@ class InciteAttack:
 
 
 class InciteFailAttack:
+    name = u'挑拨'
     def effect_string(act):
         return u'|G【%s】|r立刻将|G弹幕|r甩在了|G【%s】|r的脸上：“你怎么知道是蓝白条的？”' % (
             act.source.ui_meta.char_name,
