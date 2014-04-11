@@ -115,6 +115,7 @@ class OnbashiraHandler(EventHandler):
             if not act.card.is_card(AttackCard):
                 if act.card.is_card(RejectCard): return arg
                 aact = getattr(act.card, 'associated_action', None)
+                if not aact: return arg
                 if not issubclass(aact, InstantSpellCardAction):
                     if not issubclass(aact, ForEach): return arg
                     if not issubclass(aact.action_cls, InstantSpellCardAction):
