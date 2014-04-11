@@ -23,7 +23,7 @@ class BorrowAction(UserAction):
 
         c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
         c = c or random_choose_card([tgt.cards, tgt.showncards])
-        if not c: return
+        if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)
         src.tags['borrow_tag'] = src.tags['turn_count']
