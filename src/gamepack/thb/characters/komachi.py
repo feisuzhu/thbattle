@@ -68,7 +68,6 @@ class ReturningAwake(GenericAction):
         tgt.skills.remove(Returning)
         tgt.skills.append(FerryFee)
         g.process_action(MaxLifeChange(tgt, tgt, -1))
-        g.process_action(Heal(tgt, tgt, 1))
 
         return True
 
