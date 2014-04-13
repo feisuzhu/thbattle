@@ -3,7 +3,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction, MaxLifeChange, MigrateCardsTransaction
-from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack, Heal, t_Self
+from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack, Heal, t_Self, AttackCardHandler
 from ..inputlets import ChooseIndividualCardInputlet
 from utils import classmix
 
@@ -63,13 +63,6 @@ class YoumuWearEquipmentAction(UserAction):
                         [target], ChooseIndividualCardInputlet(self, weapons),
                     ) or random_choose_card([weapons])
                     migrate_cards([e], g.deck.droppedcards, trans=trans)
-                    weapons.remove(e)
-
-                weapons.append(card)
-                cls = set([i.__class__ for i in weapons])
-                l = set([HakuroukenCard, RoukankenCard])
-                if cls == l and not target.has_skill(Xianshiwangzhi):
-                    g.process_action(XianshiwangzhiAwake(target, target))
 
             else:
                 for oc in equips:
@@ -98,10 +91,28 @@ class YoumuHandler(EventHandler):
             elif isinstance(act, WearEquipmentAction):
                 if not act.source.has_skill(Nitoryuu): return act
                 act.__class__ = YoumuWearEquipmentAction
-            elif isinstance(act, ActionStage):
-                a = act.target
-                if not a.has_skill(Xianshiwangzhi): return act
-                a.tags['attack_num'] += 1
+
+        elif evt_type == 'action_apply' and isinstance(act, ActionStage):
+            p = act.target
+            p.tags['attack_num'] += p.tags.get('nitoryuu_tag', False)
+
+        elif evt_type == 'card_migration':
+            def weapons(cards):
+                return [c for c in cards
+                        if c.equipment_category == 'weapon']
+
+            act, cards, _from, to = arg = act
+
+            for cl in (_from, to):
+                if cl.type != 'equips': continue
+                p = cl.owner
+                if p.has_skill(Nitoryuu):
+                    active = len(weapons(p.equips)) >= 2
+                    oactive = p.tags.get('nitoryuu_tag', False)
+                    p.tags['attack_num'] += active - oactive
+                    p.tags['nitoryuu_tag'] = active
+
+            return arg
 
         elif evt_type == 'attack_aftergraze':
             act, rst = arg = act
@@ -126,6 +137,9 @@ class NitoryuuDropWeapon(UserAction):
         g.process_action(DropCards(tgt, [e]))
 
         return True
+
+    def is_valid(self):
+        return self.source.tags.get('nitoryuu_tag', False)
 
 
 class Mijincihangzhan(Skill):
