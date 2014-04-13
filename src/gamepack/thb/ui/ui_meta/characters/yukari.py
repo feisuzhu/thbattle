@@ -27,7 +27,7 @@ class RealmSkipFatetellHandler:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'跳过判定阶段，并弃置一张判定区内的牌')
+            return (True, u'跳过判定阶段')
         else:
             return (False, u'请弃置一张手牌，跳过判定阶段')
 
@@ -112,8 +112,7 @@ class Yukari:
     description = (
         u'|DB永远17岁 八云紫 体力：4|r\n\n'
         u'|G境界|r：你可以弃置一张手牌跳过你的一个阶段（回合开始和回合结束阶段除外）\n'
-        u'|B|R>>|r 若你跳过判定阶段，你可以弃置你的判定区里的一张牌\n'
         u'|B|R>>|r 若你跳过摸牌阶段，你可以获得任意1～2名角色的一张手牌；\n'
-        u'|B|R>>|r 若你跳过出牌阶段，你可以将一名角色装备区或判定区的一张牌移动到另一名角色的装备区或判定区相同位置（不可替换原装备）或交给其他任意一名角色。\n\n'
+        u'|B|R>>|r 若你跳过出牌阶段，你可以将一名角色装备区或判定区的一张牌移动到另一名角色（不包括自己）的装备区或判定区相同位置（不可替换原装备）或交给其他任意一名角色。\n\n'
         u'|DB（画师：渚FUN）|r'
     )
