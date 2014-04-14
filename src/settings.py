@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 192'
+VERSION = 'THBATTLE V1.0b incr 193'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -151,6 +151,8 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+紫设定调整：跳判定不再能弃置判定牌，跳出牌不能将卡牌移给自己
+小町设定调整：觉醒不再回复残机
 灵梦设定调整：取消【纳奉】技能
 新人物：梅蒂欣（开发：zhyk）
 新人物：鬼人正邪、八坂神奈子（开发：zhyk）
