@@ -62,8 +62,11 @@ class LaunchCard:
         c = act.card
         from gamepack.thb.cards import Skill
         if isinstance(c, Skill):
-            return c.ui_meta.effect_string(act)
-        elif c:
+            effect_string = getattr(c.ui_meta, 'effect_string', None)
+            if effect_string:
+                return effect_string(act)
+        
+        if c:
             return u'|G【%s】|r对|G【%s】|r使用了|G%s|r。' % (
                 s.ui_meta.char_name,
                 u'】|r、|G【'.join(tl.ui_meta.char_name),
