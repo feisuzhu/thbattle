@@ -19,10 +19,6 @@ class RealmSkipFatetell(UserAction):
 
     def apply_action(self):
         self.fts.cancelled = True
-        #tgt = self.target
-        #if not tgt.fatetell: return True
-        #card = user_input([tgt], ChooseIndividualCardInputlet(self, tgt.fatetell))
-        #card and Game.getgame().process_action(DropCards(tgt, [card]))
         return True
 
 
@@ -191,13 +187,7 @@ class RealmSkipActionHandler(EventHandler):
         if not tl:
             return (tl, False)
 
-        if not (tl[0].equips or tl[0].fatetell):
-            return ([], False)
-
-        if len(tl) > 2: tl = [tl[0], tl[-1]]
-        if tl[-1] is self.target: tl.pop()
-
-        return tl, len(tl) == 2
+        return (tl[:2], bool(len(tl) == 2 and (tl[0].equips or tl[0].fatetell)))
 
 
 class RealmSkipDropCard(UserAction):
