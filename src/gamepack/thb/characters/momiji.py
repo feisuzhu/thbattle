@@ -47,7 +47,6 @@ class SentryHandler(EventHandler):
                     if not cl: continue
                     c = SentryAttack.wrap(cl, p)
                     c.target_damage = act
-                    c.resides_in = p.cards
                     g.process_action(LaunchCard(p, [tgt], c))
             else:
                 return act
@@ -63,16 +62,8 @@ class SentryHandler(EventHandler):
         return True
 
 
-class SentryAttack(VirtualCard):
-    associated_action = Attack
-    target = t_OtherOne
-    category = ('basic', )
-    usage = 'launch'
-
-    def is_card(self, cls):
-        cl = self.associated_cards
-        if cl and cl[0].is_card(cls): return True
-        return isinstance(self, cls)
+class SentryAttack(TreatAsSkill):
+    treat_as = AttackCard
 
 
 class Sentry(Skill):
