@@ -3,7 +3,7 @@
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
 from ..actions import user_choose_cards, Damage, LaunchCard
-from ..cards import Card, AttackCard, RedUFOSkill, BaseAttack, Attack, Skill, t_None, t_OtherOne, VirtualCard
+from ..cards import Card, AttackCard, RedUFOSkill, BaseAttack, Attack, Skill, t_None, t_OtherOne, TreatAsSkill
 from ..inputlets import ChooseOptionInputlet
 
 
