@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 193'
+VERSION = 'THBATTLE V1.0b incr 194'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -151,14 +151,15 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
-紫设定调整：跳判定不再能弃置判定牌，跳出牌不能将卡牌移给自己
+犬走椛相关bug修复
+紫设定调整：跳判定不再能弃置判定牌
 小町设定调整：觉醒不再回复残机
 灵梦设定调整：取消【纳奉】技能
 新人物：梅蒂欣（开发：zhyk）
+----
 新人物：鬼人正邪、八坂神奈子（开发：zhyk）
 新头像：帕秋莉（画师：渚FUN）
 大狸子现在在除了KOF之外的所有模式可用
-----
 大狸子相关bug修复
 新人物：大狸子（人物设计：鵺子丶爱丽丝）
 新人物：秦心（画师：Takibi）
