@@ -10,7 +10,7 @@ import random
 
 # -- own --
 from .actions import action_eventhandlers, migrate_cards
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction
+from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction, MigrateCardsTransaction
 from .characters.baseclasses import mixin_character
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, user_input, InputTransaction
@@ -72,18 +72,13 @@ class RedrawCards(UserAction):
         tgt = self.target
         g = Game.getgame()
 
-        # Fire events after job done.
-        # Looks like atomic.
-
-        oldcards = list(tgt.cards)
-        migrate_cards(tgt.cards, g.deck.droppedcards, no_event=True)
-        cards = g.deck.getcards(4)
-        tgt.reveal(cards)
-        migrate_cards(cards, tgt.cards, no_event=True)
-
-        g.emit_event('card_migration', (self, oldcards, tgt.cards, g.deck.droppedcards))
-        g.emit_event('card_migration', (self, cards, g.deck.cards, tgt.cards))
-
+        with MigrateCardsTransaction() as trans:
+            migrate_cards(tgt.cards, g.deck.droppedcards, trans=trans)
+            
+            cards = g.deck.getcards(4)
+            tgt.reveal(cards)
+            migrate_cards(cards, tgt.cards, trans=trans)
+        
         return True
 
 

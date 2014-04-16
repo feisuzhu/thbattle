@@ -141,7 +141,8 @@ def skill_wrap(actor, skills, cards, params, no_reveal=False, detach=False):
             card = skill_cls.wrap(cards, actor, params)
             check(card.check())
 
-            detach and [c.detach() for c in cards]
+            if detach and not getattr(skill_cls, 'no_drop', False):
+                for c in cards: c.detach()
 
             cards = [card]
 
@@ -163,35 +164,70 @@ def skill_transform(actor, skills, cards, params):
     return s
 
 
-def migrate_cards(cards, to, unwrap=False, no_event=False):
+class MigrateCardsTransaction(object):
+    def __init__(self):
+        self.action = Game.getgame().action_stack[-1]
+        self.movements = []
+
+    def move(self, cards, _from, to, detach=False):
+        self.movements.append((cards, _from, to, detach))
+
+    def __iter__(self):
+        return iter(self.movements)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *excinfo):
+        self.commit()
+
+    def commit(self):
+        g = Game.getgame()
+        
+        for cards, _from, to, detach in self.movements:
+            if to is not None and not detach:
+                for c in cards: c.move_to(to)
+            else:
+                for c in cards: c.detach()
+
+        for cards, _from, to, _ in self.movements:
+            if to is not None:
+                g.emit_event('card_migration', (self.action, cards, _from, to))
+
+        g.emit_event('post_card_migration', self)
+
+
+def migrate_cards(cards, to, unwrap=False, trans=None):
+    if not trans:
+        with MigrateCardsTransaction() as trans:
+            migrate_cards(cards, to, unwrap, trans)
+        return
+
     g = Game.getgame()
     from .cards import VirtualCard
     groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
 
     for l in groups:
         cl = l[0].resides_in
-        for c in l:
-            if unwrap and c.is_card(VirtualCard):
-                # c.move_to(None)
-                c.detach()  # resides_in should be consistent with normal cards
-                migrate_cards(
-                    c.associated_cards,
-                    to,
-                    unwrap != migrate_cards.SINGLE_LAYER,
-                    no_event
-                )
-            else:
-                c.move_to(to)
-                if c.is_card(VirtualCard):
-                    assert c.resides_in.owner
-                    sp = c.resides_in.owner.special
-                    migrate_cards(c.associated_cards, sp, False, no_event)
+        if l[0].is_card(VirtualCard):
+            assert len(l) == 1
+            trans.move(l, cl, to, unwrap)
+            if to: migrate_cards(
+                l[0].associated_cards,
+                to if unwrap else to.owner.special,
+                unwrap if type(unwrap) is bool else unwrap - 1,
+                trans
+            )
+        
+        else:
+            trans.move(l, cl, to)
 
-        if not no_event:
-            act = g.action_stack[-1]
-            g.emit_event('card_migration', (act, l, cl, to))  # (action, cardlist, from, to)
 
-migrate_cards.SINGLE_LAYER = 2
+def detach_cards(cards, trans=None):
+    migrate_cards(cards, None, trans=trans)
+
+
+migrate_cards.SINGLE_LAYER = 1
 
 
 def register_eh(cls):
@@ -475,7 +511,7 @@ def launch_card(lca, target_list, action):
     src = lca.source
     card = lca.card
     try:
-        card.detach()
+        detach_cards([card])
         _, tl = g.emit_event('choose_target', (lca, target_list))
         assert _ is lca
 
@@ -504,11 +540,8 @@ def launch_card(lca, target_list, action):
             if not getattr(card, 'no_drop', False):
                 g.process_action(DropUsedCard(src, cards=[card]))
             else:
-                # cards are detached here, denotes disputed state.
-                # can cause problems when skill declares 'no_drop'
-                # so revert the detached state.
                 from .cards import VirtualCard
-                [c.attach() for c in VirtualCard.unwrap([card])]
+                assert not [c for c in VirtualCard.unwrap([card]) if c.detached]
 
 
 class LaunchCard(GenericAction, LaunchCardAction):
@@ -850,7 +883,7 @@ class Pindian(UserAction):
                     card = random_choose_card([p.cards, p.showncards])
 
                 pindian_card[p] = card
-                card.detach()
+                detach_cards([card])
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])

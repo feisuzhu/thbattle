@@ -2,7 +2,7 @@
 
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction, MaxLifeChange
+from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction, MaxLifeChange, MigrateCardsTransaction
 from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack, Heal, t_Self
 from ..inputlets import ChooseIndividualCardInputlet
 from utils import classmix
@@ -54,28 +54,31 @@ class YoumuWearEquipmentAction(UserAction):
         equips = target.equips
         g = Game.getgame()
         cat = card.equipment_category
-        if cat == 'weapon':
-            weapons = [e for e in equips if e.equipment_category == 'weapon']
-            if len(weapons) > 1:
-                e = user_input(
-                    [target], ChooseIndividualCardInputlet(self, weapons),
-                ) or random_choose_card([weapons])
-                g.process_action(DropCards(target, [e]))
-                weapons.remove(e)
 
-            weapons.append(card)
-            cls = set([i.__class__ for i in weapons])
-            l = set([HakuroukenCard, RoukankenCard])
-            if cls == l and not target.has_skill(Xianshiwangzhi):
-                g.process_action(XianshiwangzhiAwake(target, target))
+        with MigrateCardsTransaction() as trans:
+            if cat == 'weapon':
+                weapons = [e for e in equips if e.equipment_category == 'weapon']
+                if len(weapons) > 1:
+                    e = user_input(
+                        [target], ChooseIndividualCardInputlet(self, weapons),
+                    ) or random_choose_card([weapons])
+                    migrate_cards([e], g.deck.droppedcards, trans=trans)
+                    weapons.remove(e)
 
-        else:
-            for oc in equips:
-                if oc.equipment_category == cat:
-                    g.process_action(DropCards(target, [oc]))
-                    break
+                weapons.append(card)
+                cls = set([i.__class__ for i in weapons])
+                l = set([HakuroukenCard, RoukankenCard])
+                if cls == l and not target.has_skill(Xianshiwangzhi):
+                    g.process_action(XianshiwangzhiAwake(target, target))
 
-        migrate_cards([card], target.equips)
+            else:
+                for oc in equips:
+                    if oc.equipment_category == cat:
+                        migrate_cards([oc], g.deck.droppedcards, trans=trans)
+                        break
+
+            migrate_cards([card], target.equips, trans=trans)
+
         return True
 
 

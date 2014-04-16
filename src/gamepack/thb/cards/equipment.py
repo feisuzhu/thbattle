@@ -2,7 +2,7 @@
 
 from game.autoenv import Game, EventHandler, user_input, GameError
 from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DummyAction, DropCardStage, MaxLifeChange
-from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card
+from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card, MigrateCardsTransaction
 from .base import Card, VirtualCard, Skill, TreatAsSkill, t_None, t_OtherOne, t_OtherLessEqThanN
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
@@ -18,11 +18,14 @@ class WearEquipmentAction(UserAction):
         target = self.target
         equips = target.equips
         g = Game.getgame()
-        for oc in equips:
-            if oc.equipment_category == card.equipment_category:
-                g.process_action(DropCards(target, [oc]))
-                break
-        migrate_cards([card], target.equips)
+        
+        with MigrateCardsTransaction() as trans:
+            for oc in equips:
+                if oc.equipment_category == card.equipment_category:
+                    migrate_cards([oc], g.deck.droppedcards, trans=trans)
+                    break
+            migrate_cards([card], target.equips, trans)
+
         return True
 
 
