@@ -139,12 +139,11 @@ class RealmSkipAction(UserAction):
 
         elif card.resides_in is _from.equips:
             cats = set([c.equipment_category for c in _to.equips])
-            migrate_cards([card], _to.cards)
-            if card.equipment_category not in cats:
-                if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                    Game.getgame().process_action(
-                        LaunchCard(_to, [_to], card)
-                    )
+            if (card.equipment_category not in cats and
+                user_input([tgt], ChooseOptionInputlet(self, (False, True)))):
+                migrate_cards([card], _to.equips)
+            else:
+                migrate_cards([card], _to.cards)
         else:
             assert False, 'WTF?!'
 
