@@ -52,7 +52,7 @@ class LittleLegionHandler(EventHandler):
             g.process_action(LittleLegionDrawCards(src, 1))
 
         elif evt_type == 'post_card_migration':
-            pl = set([_from.owner for _, _from, _, _ in arg
+            pl = set([_from.owner for _, _from, _ in arg
                       if _from is not None and _from.type == 'equips'])
             pl = [p for p in pl if p.has_skill(LittleLegion) and not p.dead]
 
