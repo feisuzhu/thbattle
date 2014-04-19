@@ -528,8 +528,10 @@ def launch_card(lca, target_list, action):
     src = lca.source
     card = lca.card
     try:
-        if not getattr(card, 'no_move', False):
-            detach_cards([card])
+        if not getattr(card, 'no_drop', False):
+            detach_cards([card])  # emit events
+        else:
+            card.detach()
 
         _, tl = g.emit_event('choose_target', (lca, target_list))
         assert _ is lca
