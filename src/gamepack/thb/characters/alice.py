@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, user_input, Game
 from baseclasses import Character, register_character
-from ..actions import DrawCards, UserAction, ActionStageLaunchCard, DropCardStage, user_choose_players, DropCards
+from ..actions import DrawCards, UserAction, ActionStageLaunchCard, DropCardStage, user_choose_players, DropCards, random_choose_card
 from ..cards import Skill, TreatAsSkill, AttackCardHandler, DollControlCard, t_None
 from ..inputlets import ChoosePeerCardInputlet, ChooseOptionInputlet
 
@@ -132,6 +132,6 @@ class DollCrusaderHandler(EventHandler):
 
 @register_character
 class Alice(Character):
-    skills = [LittleLegion, MaidensBunraku, DollCrusader]
-    eventhandlers_required = [LittleLegionHandler, MaidensBunrakuHandler, DollCrusaderHandler]
+    skills = [LittleLegion, MaidensBunraku]
+    eventhandlers_required = [LittleLegionHandler, MaidensBunrakuHandler]
     maxlife = 3
