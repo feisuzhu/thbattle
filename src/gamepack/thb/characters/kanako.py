@@ -122,6 +122,9 @@ class OnbashiraHandler(EventHandler):
                         return arg
                     if len(tl) != 1: return arg
 
+                else:
+                    tl = tl[:1]  # only the first one should be the target
+
             for tgt in tl:
                 if tgt is not src:
                     g.process_action(OnbashiraTarget(src, tgt, src.tags['divinity']))
