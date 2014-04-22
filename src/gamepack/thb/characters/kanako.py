@@ -15,7 +15,7 @@ class Onbashira(RedUFOSkill):
     @staticmethod
     def increment(src):
         if Game.getgame().current_turn is not src: return 0
-        return src.tags.get('divinity', 0)
+        return src.tags.get('onbashira', 0)
 
 
 class OnbashiraAction(GenericAction):
@@ -25,7 +25,7 @@ class OnbashiraAction(GenericAction):
 
     def apply_action(self):
         tags = self.target.tags
-        tags['divinity'] = self.amount
+        tags['onbashira'] = self.amount
         return True
 
 
@@ -47,7 +47,7 @@ class OnbashiraTarget(GenericAction):
             g.process_action(DropCards(tgt, cards=cards))
         else:
             self.cards = None
-            self.target.tags['divinity_target'] = True
+            self.target.tags['onbashira_target'] = True
 
         return True
 
@@ -81,9 +81,9 @@ class OnbashiraHandler(EventHandler):
         elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
             if tgt.has_skill(Onbashira):
-                tgt.tags['divinity'] = 0
+                tgt.tags['onbashira'] = 0
             for p in Game.getgame().players:
-                p.tags['divinity_target'] = False
+                p.tags['onbashira_target'] = False
 
         elif evt_type == 'action_limit':
             arg, permitted = act
@@ -95,7 +95,7 @@ class OnbashiraHandler(EventHandler):
             if not p or not p.has_skill(Onbashira): return act
 
             src = arg.actor
-            if src.tags.get('divinity_target'):
+            if src.tags.get('onbashira_target'):
                 cards = VirtualCard.unwrap(arg.cards)
                 zone = src.cards, src.showncards
                 return arg, all([c.resides_in not in zone for c in cards])
@@ -109,7 +109,7 @@ class OnbashiraHandler(EventHandler):
             if src is not g.current_turn: return arg
             if not src.has_skill(Onbashira): return arg
 
-            dlvl = src.tags['divinity']
+            dlvl = src.tags['onbashira']
             if not dlvl > 0: return arg
 
             if not act.card.is_card(AttackCard):
@@ -127,7 +127,7 @@ class OnbashiraHandler(EventHandler):
 
             for tgt in tl:
                 if tgt is not src:
-                    g.process_action(OnbashiraTarget(src, tgt, src.tags['divinity']))
+                    g.process_action(OnbashiraTarget(src, tgt, src.tags['onbashira']))
 
             return arg
 

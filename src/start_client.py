@@ -105,9 +105,7 @@ if not sys.platform.startswith('linux'):
     domains = [
         'www.thbattle.net',
         'update.thbattle.net',
-        'game.thbattle.net',
         'cngame.thbattle.net',
-        'feisuzhu.xen.prgmr.com',
     ]
     for host in domains:
         thread = ResolveIt(host)

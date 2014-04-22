@@ -351,7 +351,7 @@ def hook(module):
 
 def gif_to_animation(giffile):
     import pyglet
-    import Image
+    from PIL import Image
 
     im = Image.open(giffile)
 

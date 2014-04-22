@@ -185,7 +185,7 @@ class MigrateCardsTransaction(object):
         g = Game.getgame()
         DETACHED = migrate_cards.DETACHED
         act = self.action
-        
+
         for cards, _from, to in self.movements:
             if to is not DETACHED:
                 for c in cards: c.move_to(to)
@@ -209,7 +209,7 @@ def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
     groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
 
     DETACHED = migrate_cards.DETACHED
-    detaching = to is DETACHED 
+    detaching = to is DETACHED
 
     for l in groups:
         if detached:
@@ -228,7 +228,7 @@ def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
                 detached,
                 trans
             )
-        
+
         else:
             trans.move(l, cl, to)
 
@@ -438,7 +438,7 @@ class UseCard(UserAction):
             if not cards or len(cards) != 1:
                 self.card = None
                 return False
-            
+
             self.card = cards[0]
 
         if self.card_usage == 'launch':
@@ -851,7 +851,7 @@ class PlayerTurn(GenericAction):
         p.tags['turn_count'] += 1
         g.turn_count += 1
         g.current_turn = p
-        
+
         g.process_action(FatetellStage(p))
         g.process_action(DrawCardStage(p))
         g.process_action(ActionStage(p))

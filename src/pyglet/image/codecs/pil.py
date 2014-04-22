@@ -44,7 +44,7 @@ from pyglet.gl import *
 from pyglet.image import *
 from pyglet.image.codecs import *
 
-import Image
+from PIL import Image
 
 class PILImageDecoder(ImageDecoder):
     def get_file_extensions(self):

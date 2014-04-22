@@ -4,7 +4,7 @@ import pyglet
 from pyglet.gl import GL_ALPHA, GL_TEXTURE_2D
 from pyglet.font.base import GlyphRenderer, Font
 from math import ceil
-import Image
+from PIL import Image
 
 
 class AncientPixGlyphRenderer(GlyphRenderer):

@@ -42,7 +42,7 @@ class LittleLegionHandler(EventHandler):
         if evt_type == 'choose_target':
             lca, tl = arg
             if 'equipment' not in lca.card.category: return arg
-            
+
             src = lca.source
             if src.dead or not src.has_skill(LittleLegion): return arg
             if not user_input([src], ChooseOptionInputlet(self, (False, True))):
@@ -77,7 +77,7 @@ class LittleLegionHandler(EventHandler):
         tgt = tl[0]
         if tgt is self.source:
             return [], False
-        
+
         return ([tgt], bool(tgt.equips or tgt.cards or tgt.showncards))
 
 
