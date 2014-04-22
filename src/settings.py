@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 197'
+VERSION = 'THBATTLE V1.0b incr 198'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -151,6 +151,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+妖梦技能调整：觉醒技效果并入二刀流
 爱丽丝重制，技能调整
 犬走椛相关bug修复
 紫设定调整：跳判定不再能弃置判定牌
