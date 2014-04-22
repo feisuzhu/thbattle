@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import ctypes
-ctypes.cdll.avbin  # force avbin load
+try:
+    ctypes.cdll.avbin  # force avbin load
+except:
+    pass
 
 import logging
 import sys
