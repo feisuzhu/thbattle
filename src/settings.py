@@ -52,7 +52,7 @@ UPDATE_IGNORES = re.compile(r'''^(
         | client_log\.txt
         | client_log\.txt\.gz
         | update_info\.json
-        | user_settings.json
+        | user_settings\.json
     )$
 ''', re.VERBOSE)
 
