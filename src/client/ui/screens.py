@@ -383,7 +383,7 @@ class LoginScreen(Screen):
             )
             self.chk_savepwd = CheckBox(
                 parent=self, x=438-350, y=56, caption=u'记住密码',
-                value=bool(UserSettings.saved_passwd),
+                value=bool(self.txt_pwd.text),
             )
             self.btn_login = Button(
                 parent=self, caption=u'进入幻想乡',
