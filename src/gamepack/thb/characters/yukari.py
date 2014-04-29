@@ -186,7 +186,8 @@ class RealmSkipActionHandler(EventHandler):
         if not tl:
             return (tl, False)
 
-        return (tl[:2], bool(len(tl) == 2 and (tl[0].equips or tl[0].fatetell)))
+        tl = tl[:2]
+        return (tl, bool(len(tl) == 2 and (tl[0].equips or tl[0].fatetell)))
 
 
 class RealmSkipDropCard(UserAction):
