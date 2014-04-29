@@ -201,6 +201,7 @@ class UIDoPassiveAction(UISelectTarget):
             if self._in_auto_reject_delay: return
 
             initiator = ilet.initiator
+            categories = ilet.categories
             candidates = ilet.candidates
 
             g = Game.getgame()
@@ -209,7 +210,6 @@ class UIDoPassiveAction(UISelectTarget):
 
             cond = initiator.cond
             usage = getattr(initiator, 'card_usage', 'none')
-            rawcards = view.get_selected_cards()
 
             if isinstance(initiator, RejectHandler):
                 self._sv_val = False
@@ -228,7 +228,7 @@ class UIDoPassiveAction(UISelectTarget):
                         pyglet.clock.schedule_once(complete, v)
                         return
 
-            if ilet.categories:
+            if categories:
                 if not self._auto_chosen:
                     self._auto_chosen = True
                     from itertools import chain
@@ -245,7 +245,7 @@ class UIDoPassiveAction(UISelectTarget):
                         return
 
                 skills = view.get_selected_skills()
-                cards = view.get_selected_cards()
+                cards = rawcards = view.get_selected_cards()
                 params = view.get_action_params()
 
                 if skills:
@@ -286,12 +286,12 @@ class UIDoPassiveAction(UISelectTarget):
 
             arg = thbactions.ActionLimitParams(
                 ilet=ilet, actor=g.me,
-                cards=cards if ilet.categories else (),
+                cards=cards if categories else (),
                 players=players if candidates else (),
                 usage=usage
             )
 
-            assert not (usage == 'none' and rawcards)
+            assert not (categories and usage == 'none' and rawcards)
 
             arg2, permitted = g.emit_event('action_limit', (arg, True))
             assert arg == arg2
