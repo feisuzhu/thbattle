@@ -75,7 +75,7 @@ class CiguateraHandler(EventHandler):
                 if p.dead: continue
                 if not p.has_skill(Ciguatera): continue
 
-                cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
+                cards = user_choose_cards(self, p, ('cards', 'showncards'))
                 if cards:
                     g.process_action(CiguateraAction(p, act.target, cards))
 
@@ -93,7 +93,7 @@ class CiguateraHandler(EventHandler):
         if len(cl) != 1:
             return False
 
-        return cl[0].color == Card.BLACK
+        return cl[0].resides_in.type in ('cards', 'showncards')
 
 
 class Melancholy(Skill):

@@ -14,7 +14,7 @@ class Medicine:
     port_image = gres.medicine_port
     description = (
         u'|DB 小小的甜蜜毒药 梅蒂欣 体力：3|r\n\n'
-        u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张黑色牌，令该角色获得|G喝醉|r状态。若该角色在该回合结束阶段开始时处于|G喝醉|r状态，其失去|G喝醉|r状态并选择一项：①弃置一张手牌并令你摸一张牌；②受到一点无来源伤害。\n\n'
+        u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张手牌，令该角色获得|G喝醉|r状态。若该角色在该回合结束阶段开始时处于|G喝醉|r状态，其失去|G喝醉|r状态并选择一项：①弃置一张手牌并令你摸一张牌；②受到一点无来源伤害。\n\n'
         u'|G忧郁之毒|r：每当你受到X点有来源的伤害后，你可以摸X张牌并展示，若其中至少一张不为梅花，伤害来源无法使用或打出手牌直到该回合结束。'
     )
 
@@ -54,7 +54,7 @@ class CiguateraTurnEnd:
 
 class CiguateraHandler:
     def choose_card_text(g, act, cards):
-        return act.cond(cards), u'弃置一张黑色牌，发动【神经之毒】'
+        return act.cond(cards), u'弃置一张手牌，发动【神经之毒】'
 
 
 class Melancholy:

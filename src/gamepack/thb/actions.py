@@ -950,6 +950,21 @@ class DyingHandler(EventHandler):
         return act
 
 
+@register_eh
+class CardUsageHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_limit':
+            arg, permitted = act
+            if not permitted: return act
+
+            if arg.usage != 'drop': return act
+
+            from .cards import VirtualCard
+            return arg, not any([c.is_card(VirtualCard) for c in arg.cards])
+                    
+        return act
+
+
 class ShowCards(GenericAction):
     def __init__(self, target, cards):
         self.source = self.target = target
