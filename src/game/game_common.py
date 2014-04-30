@@ -30,6 +30,17 @@ class GameObjectMeta(type):
 
         return cls
 
+    def __getattribute__(cls, name):
+        value = type.__getattribute__(cls, name)
+        if isinstance(value, classmethod):
+            try:
+                rep_class = cls.rep_class(cls)
+                return lambda *a, **k: value.__get__(None, rep_class)
+            except:
+                pass
+
+        return value
+
     @staticmethod
     def _dump_gameobject_hierarchy():
         with open('/dev/shm/gomap.dot', 'w') as f:
@@ -186,6 +197,14 @@ class Action(GameObject):
                 obj = hook(obj)
 
         return obj
+
+    @staticmethod
+    def rep_class(cls):
+        try:
+            g = Game.getgame()
+            return g.action_types.get(cls, cls)
+        except:
+            return cls
 
     def __init__(self, source, target):
         self.source = source
