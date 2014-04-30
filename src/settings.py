@@ -30,7 +30,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 199'
+VERSION = 'THBATTLE V1.0b incr 200'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -151,6 +151,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+天子、梅蒂欣、妹红、正邪、橙：技能、设定调整
 妖梦技能调整：觉醒技效果并入二刀流
 爱丽丝重制，技能调整
 犬走椛相关bug修复
