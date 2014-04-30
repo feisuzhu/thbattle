@@ -523,6 +523,14 @@ def group_by(l, keyfunc):
     return grouped
 
 
+def filter_out(l, func):
+    filtered = []
+    reserved = []
+    [(filtered if func(x) else reserved).append(x) for x in l]
+    l[:] = reserved
+    return filtered
+
+
 def instantiate(cls):
     return cls()
 

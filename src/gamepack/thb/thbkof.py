@@ -4,7 +4,7 @@ from itertools import cycle
 from collections import defaultdict
 import logging
 
-from utils import Enum
+from utils import Enum, filter_out
 
 from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, InputTransaction, user_input
 from game import sync_primitive
@@ -100,9 +100,13 @@ class THBattleKOF(Game):
         from characters import get_characters
         chars = get_characters('kof')
 
-        from characters.akari import Akari
+        testing = []
+        testing = filter_out(chars, lambda c: c.__name__ in testing)
 
         _chars = g.random.sample(chars, 10)
+        _chars.extend(testing)
+        
+        from characters.akari import Akari
         if Game.SERVER_SIDE:
             choice = [CharChoice(cls) for cls in _chars[-10:]]
 

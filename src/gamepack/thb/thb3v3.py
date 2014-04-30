@@ -11,7 +11,7 @@ from .characters.baseclasses import mixin_character
 from itertools import cycle
 from collections import defaultdict
 
-from utils import BatchList, Enum
+from utils import BatchList, Enum, filter_out
 
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from .inputlets import ChooseGirlInputlet
@@ -93,11 +93,12 @@ class THBattle(Game):
         random.Random(seed).shuffle(chars)
 
         # ANCHOR(test)
-        chars.extend([
-        ])
+        testing = []
+        testing = filter_out(chars, lambda c: c.__name__ in testing)
+        chars.extend(testing)
 
         choices = [CharChoice(cls) for cls in chars[-16:]]
-        del chars[-16:]
+        del chars[-12:]
 
         for c in choices[:4]:
             c.char_cls = characters.akari.Akari
