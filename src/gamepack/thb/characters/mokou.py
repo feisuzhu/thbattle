@@ -82,9 +82,6 @@ class RebornHandler(EventHandler):
             if not card.resides_in.type in ('cards', 'showncards', 'equips'):
                 return False
 
-            if not bool(set(card.category) & {'basic', 'equipment'}):
-                return False
-
         return True
 
 

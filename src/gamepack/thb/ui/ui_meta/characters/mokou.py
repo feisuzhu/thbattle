@@ -15,7 +15,7 @@ class Mokou:
     description = (
         u'|DBFFF团资深团员 藤原妹红 体力：4|r\n\n'
         u'|G浴火|r：回合结束阶段，你可以流失一点体力，摸2张牌。\n\n'
-        u'|G重生|r：回合开始阶段，你可以弃置X张红色基本牌或装备牌并回复一点体力（X为你的当前体力值）。'
+        u'|G重生|r：回合开始阶段，你可以弃置X张红色牌并回复一点体力（X为你的当前体力值）。'
     )
 
 
@@ -59,4 +59,4 @@ class RebornHandler:
         if act.cond(cards):
             return (True, u'弃置这些牌并回复1点体力')
         else:
-            return (False, u'重生：选择%d张红色基本牌/装备牌弃置并回复一点体力' % act.target.life)
+            return (False, u'重生：选择%d张红色牌弃置并回复一点体力' % act.target.life)
