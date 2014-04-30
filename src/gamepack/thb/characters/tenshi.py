@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import Game, EventHandler, user_input
-from ..actions import UserAction, DrawCards, Damage, Fatetell
-from ..actions import ask_for_action, migrate_cards
-from ..cards import Skill, t_None
+from ..actions import UserAction, DrawCards, Damage, Fatetell, LaunchCard
+from ..actions import ask_for_action, migrate_cards, GenericAction
+from ..cards import Skill, t_None, Card
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
 
@@ -65,26 +65,47 @@ class MasochistHandler(EventHandler):
         return act
 
 
-class Hermit(Skill):
+class ScarletPerception(Skill):
+    distance = 1
     associated_action = None
     target = t_None
 
 
-class HermitHandler(EventHandler):
+class ScarletPerceptionAction(GenericAction):
+    def __init__(self, source, target, card):
+        self.source = source
+        self.target = target
+        self.card = card
+
+    def apply_action(self):
+        migrate_cards([self.card], self.source.cards)
+        return True
+
+
+class ScarletPerceptionHandler(EventHandler):
     execute_before = ('YinYangOrbHandler', )
     execute_after = ('TrialHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Fatetell):
             tgt = act.target
-            if not tgt.has_skill(Hermit): return act
-            migrate_cards([act.card], tgt.cards)
+            if act.card.color != Card.RED: return act
+
+            g = Game.getgame()
+            pl = [p for p in g.players if p.has_skill(ScarletPerception) and not p.dead]
+            assert len(pl) <= 1
+
+            if pl:
+                p = pl[0]
+                dist = LaunchCard.calc_distance(p, ScarletPerception(p))
+                if dist.get(tgt, 1) <= 0:
+                    g.process_action(ScarletPerceptionAction(p, tgt, act.card))
 
         return act
 
 
 @register_character
 class Tenshi(Character):
-    skills = [Masochist, Hermit]
-    eventhandlers_required = [MasochistHandler, HermitHandler]
+    skills = [Masochist, ScarletPerception]
+    eventhandlers_required = [MasochistHandler, ScarletPerceptionHandler]
     maxlife = 3

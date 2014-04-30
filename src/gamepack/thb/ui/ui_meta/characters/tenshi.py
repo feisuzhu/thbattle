@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, card_desc
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
 from gamepack.thb.ui.resource import resource as gres
 
@@ -41,11 +41,19 @@ class MasochistAction:
         )
 
 
-class Hermit:
+class ScarletPerception:
     # Skill
-    name = u'天人'
+    name = u'绯想'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
+
+
+class ScarletPerceptionAction:
+    def effect_string(act):
+        return u'|G【%s】|r获得了%s' % (
+            act.source.ui_meta.char_name,
+            card_desc(act.card)
+        )
 
 
 class Tenshi:
@@ -55,5 +63,5 @@ class Tenshi:
     description = (
         u'|DB有顶天的大M子 比那名居天子 体力：3|r\n\n'
         u'|G抖Ｍ|r：每当你受到X点伤害，你可以摸X*2张牌，然后将这些牌分配给任意的角色。\n\n'
-        u'|G天人|r：在你的判定结束后，你获得该判定牌。'
+        u'|G绯想|r：与你距离为1以内的角色的红色判定牌进入弃牌堆后，你获得之。'
     )
