@@ -68,11 +68,43 @@ class FlyingSkanda:
         )
 
 
+class Shikigami:
+    # Skill
+    name = u'式神'
+    def clickable(game):
+        me = game.me
+        if me.tags.get('shikigami_tag'): return False
+        try:
+            act = game.action_stack[-1]
+            if isinstance(act, actions.ActionStage) and act.target is me:
+                return True
+        except IndexError:
+            pass
+        return False
+
+    def is_action_valid(g, cl, tl):
+        skill = cl[0]
+        cl = skill.associated_cards
+        if cl:
+            return (False, u'请不要选择牌')
+
+        if not tl:
+            return (False, u'请选择一名玩家')
+        else:
+            return (True, u'发动【式神】')
+
+
+class ShikigamiAction:
+    choose_option_buttons = ((u'摸2张牌', False), (u'回复1点体力', True))
+    choose_option_prompt = u'请为受到的【式神】选择效果'
+
+
 class Chen:
     # Character
     char_name = u'橙'
     port_image = gres.chen_port
     description = (
         u'|DB凶兆的黑喵 橙 体力：4|r\n\n'
-        u'|G飞翔韦驮天|r：出牌阶段，你使用的一张【弹幕】或除了【人形操控】与【好人卡】之外的非延时性单体符卡可以额外指定一个目标。每阶段限一次。'
+        u'|G飞翔韦驮天|r：出牌阶段，你使用的一张【弹幕】或除了【人形操控】与【好人卡】之外的非延时性单体符卡可以额外指定一个目标。每阶段限一次。\n\n'
+        u'|G式神|r：|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：摸2张牌或回复一点体力。直到你的下个回合开始，你和该角色可以于自己的回合内对对方攻击范围内的角色使用【弹幕】。'
     )

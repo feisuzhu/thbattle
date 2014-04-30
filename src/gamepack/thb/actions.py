@@ -627,6 +627,14 @@ class LaunchCard(GenericAction, LaunchCardAction):
         return dist
 
     @classmethod
+    def calc_raw_distance(cls, source, card):
+        dist = cls.calc_base_distance(source)
+        g = Game.getgame()
+
+        g.emit_event('calcdistance', (source, card, dist))
+        return dist
+
+    @classmethod
     def calc_base_distance(cls, src):
         g = Game.getgame()
         pl = [p for p in g.players if not p.dead]

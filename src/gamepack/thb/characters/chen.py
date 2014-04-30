@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler
+from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import ForEach, LaunchCard
-from ..cards import Skill, AttackCard, DollControlCard, RejectCard, InstantSpellCardAction
+from ..actions import ForEach, LaunchCard, DrawCards, UserAction
+from ..inputlets import ChooseOptionInputlet
+from ..cards import Skill, AttackCard, DollControlCard, RejectCard, InstantSpellCardAction, t_OtherOne, Heal
 
 
 class FlyingSkandaAction(ForEach):
@@ -73,8 +74,65 @@ class FlyingSkandaHandler(EventHandler):
         return act
 
 
+class ShikigamiAction(UserAction):
+    def apply_action(self):
+        tgt = self.target
+        src = self.source
+
+        g = Game.getgame()
+
+        if tgt.life < tgt.maxlife and user_input([tgt],
+            ChooseOptionInputlet(self, (False, True))
+        ):
+            g.process_action(Heal(src, tgt))
+        else:
+            g.process_action(DrawCards(tgt, 2))
+
+        tgt.tags['shikigami_target'] = src
+        src.tags['shikigami_target'] = tgt
+        src.tags['shikigami_tag'] = src.tags['turn_count']
+        
+        return True
+
+    def is_valid(self):
+        return 'shikigami_tag' not in self.source.tags
+
+
+class Shikigami(Skill):
+    associated_action = ShikigamiAction
+    target = t_OtherOne
+
+    def check(self):
+        return not self.associated_cards
+
+
+class ShikigamiHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if evt_type == 'post_calcdistance':
+            src, card, dist = arg
+            if not card.is_card(AttackCard): return arg
+
+            tgt = src.tags.get('shikigami_target')
+            if not tgt or tgt.dead: return arg
+
+            g = Game.getgame()
+            if g.current_turn is not src: return arg
+
+            origin = src if 'shikigami_tag' in src.tags else tgt
+            if origin.tags['shikigami_tag'] != origin.tags['turn_count']:
+                return arg
+
+            dist2 = LaunchCard.calc_raw_distance(tgt, AttackCard())
+
+            for k in dist2:
+                if dist[k] > 0 and dist2[k] <= 1:
+                    dist[k] = 0
+
+        return arg
+
+
 @register_character
 class Chen(Character):
-    skills = [FlyingSkanda]
-    eventhandlers_required = [FlyingSkandaHandler]
+    skills = [FlyingSkanda, Shikigami]
+    eventhandlers_required = [FlyingSkandaHandler, ShikigamiHandler]
     maxlife = 4
