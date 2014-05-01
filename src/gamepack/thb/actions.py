@@ -966,9 +966,16 @@ class CardUsageHandler(EventHandler):
             if not permitted: return act
 
             if arg.usage != 'drop': return act
+            cards = arg.cards
+            if getattr(arg.ilet.initiator, 'card_usage', None) == 'launch':
+                assert len(cards) == 1
+                while getattr(cards[0], 'usage', None) != 'drop':
+                    assert len(cards) == 1
+                    cards = cards[0].associated_cards
+                cards = cards[0].associated_cards
 
             from .cards import VirtualCard
-            return arg, not any([c.is_card(VirtualCard) for c in arg.cards])
+            return arg, not any([c.is_card(VirtualCard) for c in cards])
                     
         return act
 
