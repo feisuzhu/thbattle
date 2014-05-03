@@ -49,6 +49,11 @@ class Demolition(InstantSpellCardAction):
         )
         return True
 
+    def is_valid(self):
+        tgt = self.target
+        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        return bool([getattr(tgt, i) for i in catnames])
+
 
 class Reject(InstantSpellCardAction):
     # 好人卡
@@ -241,6 +246,11 @@ class YukariDimension(InstantSpellCardAction):
         migrate_cards([card], src.cards, unwrap=True)
         return True
 
+    def is_valid(self):
+        tgt = self.target
+        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        return bool([getattr(tgt, i) for i in catnames])
+
 
 class BaseDuel(UserAction):
     # 弹幕战
@@ -342,6 +352,15 @@ class HarvestEffect(InstantSpellCardAction):
         self.parent_action.trans.notify('harvest_choose', card)
         self.card = card
         return True
+
+    def is_valid(self):
+        try:
+            cards = self.parent_action.cards
+        except:
+            return False
+
+        g = Game.getgame()
+        return bool([c for c in cards if c.resides_in is g.deck.disputed])
 
 
 class Harvest(ForEach):
