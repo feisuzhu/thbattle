@@ -108,12 +108,14 @@ class ExtremeIntelligenceHandler(EventHandler):
                 if p.dead: continue
                 if not p.has_skill(ExtremeIntelligence): continue
                 if p.tags['ran_ei'] >= p.tags['turn_count'] + 1: continue
-
+                
                 try:
                     tl = act.target_list
                 except AttributeError:
                     tl = [act.target]
                 if any(t.dead for t in tl): return act
+            
+                if not act.can_fire(): return act  # act cannot fire again
 
                 if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                     continue
