@@ -6,7 +6,6 @@ import argparse
 import hashlib
 import time
 from base64 import b64encode, b64decode
-from functools import partial
 
 # -- third party --
 from sqlalchemy import create_engine, text as sq_text
@@ -25,19 +24,8 @@ CREDITS_MAPPING = {
 
 
 # -- code --
-parser = argparse.ArgumentParser(sys.argv[0])
-parser.add_argument('--host', default='127.0.0.1')
-parser.add_argument('--port', type=int, default=7000)
-parser.add_argument('--connect-str', default='mysql://root@localhost/ultrax?charset=utf8')
-parser.add_argument('--discuz-dbpre', default='pre_')
-parser.add_argument('--discuz-authkey', default='Proton rocks')
-options = parser.parse_args()
-
-engine = create_engine(
-    options.connect_str,
-    encoding='utf-8',
-    convert_unicode=True,
-)
+options = None
+engine = None
 
 text = lambda t: sq_text(t.replace('cdb_', options.discuz_dbpre))
 
@@ -137,7 +125,7 @@ class MemberService(RPCService):
             WHERE uid=:uid
         '''), uid=int(uid)).fetchone()
 
-        mfield= engine.execute(text('''
+        mfield = engine.execute(text('''
             SELECT * FROM cdb_common_member_field_forum
             WHERE uid=:uid
         '''), uid=int(uid)).fetchone()
@@ -222,5 +210,25 @@ class MemberService(RPCService):
         return self.get_user_info(uid)
 
 
-server = StreamServer((options.host, options.port), MemberService.spawn, None)
-server.serve_forever()
+def main():
+    global options, engine
+    parser = argparse.ArgumentParser(sys.argv[0])
+    parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--port', type=int, default=7000)
+    parser.add_argument('--connect-str', default='mysql://root@localhost/ultrax?charset=utf8')
+    parser.add_argument('--discuz-dbpre', default='pre_')
+    parser.add_argument('--discuz-authkey', default='Proton rocks')
+    options = parser.parse_args()
+
+    engine = create_engine(
+        options.connect_str,
+        encoding='utf-8',
+        convert_unicode=True,
+    )
+
+    server = StreamServer((options.host, options.port), MemberService.spawn, None)
+    server.serve_forever()
+
+
+if __name__ == '__main__':
+    main()

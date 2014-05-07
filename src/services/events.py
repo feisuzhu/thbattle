@@ -29,20 +29,13 @@ from utils.interconnect import Interconnect
 
 
 # -- code --
-parser = argparse.ArgumentParser(sys.argv[0])
-parser.add_argument('--host', default='127.0.0.1')
-parser.add_argument('--port', type=int, default=7001)
-parser.add_argument('--redis', default='localhost')
-parser.add_argument('--redis-port', default=6379)
-parser.add_argument('--member-service', default='localhost')
-parser.add_argument('--discuz-cookiepre', default='VfKd_')
-options = parser.parse_args()
-
-
-member_service = RPCClient((options.member_service, 7000), timeout=2)
+member_service = None
+options = None
 current_users = {}
 event_waiters = set()
-events_history = deque([[None, 0]] * 100)
+events_history = deque([[None, 0]] * 1000)
+gameid_last_see = defaultdict(int)
+interconnect = None
 
 logging.basicConfig()
 
@@ -76,9 +69,6 @@ class Interconnect(Interconnect):
             events_history.rotate()
             events_history[0] = [[key, message], time.time()]
             [evt.set() for evt in list(event_waiters)]
-
-
-Interconnect = Interconnect.spawn('forum', options.redis, options.redis_port)
 
 
 @route('/interconnect/onlineusers')
@@ -144,7 +134,7 @@ def speaker():
     username = member['username'].decode('utf-8', 'ignore')
     member_service.add_credit(member['uid'], 'credits', -10)
 
-    Interconnect.publish('speaker', [username, message])
+    interconnect.publish('speaker', [username, message])
 
     return 'true'
 
@@ -203,7 +193,22 @@ def crashreport():
 
     return ''
 
-gameid_last_see = defaultdict(int)
 
+def main():
+    global options, member_service, interconnect
+    parser = argparse.ArgumentParser(sys.argv[0])
+    parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--port', type=int, default=7001)
+    parser.add_argument('--redis', default='localhost')
+    parser.add_argument('--redis-port', default=6379)
+    parser.add_argument('--member-service', default='localhost')
+    parser.add_argument('--discuz-cookiepre', default='VfKd_')
+    options = parser.parse_args()
 
-run(server='gevent', host=options.host, port=options.port)
+    member_service = RPCClient((options.member_service, 7000), timeout=2)
+    interconnect = Interconnect.spawn('forum', options.redis, options.redis_port)
+
+    run(server='gevent', host=options.host, port=options.port)
+
+if __name__ == '__main__':
+    main()
