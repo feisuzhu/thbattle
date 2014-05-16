@@ -267,6 +267,6 @@ from gevent.backdoor import BackdoorServer
 gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
 
 aya = Aya(options.qq, options.password)
-aya.wait_ready()
+# aya.wait_ready()
 Interconnect = AyaInterconnect.spawn('aya', options.redis, options.redis_port)
 aya.join()

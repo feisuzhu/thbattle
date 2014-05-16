@@ -54,7 +54,8 @@ class QQBot(object):
         self.corepool = Pool(3)
         self.ready = Event()
 
-        self.corepool.spawn(self.init)
+        # self.corepool.spawn(self.init)
+        self.init()
 
     def init(self):
         self.ready.clear()
@@ -74,6 +75,7 @@ class QQBot(object):
     def shutdown(self):
         self.ready.clear()
         self.pool.kill()
+        self.corepool.kill()
 
     def join(self):
         self.corepool.join()
@@ -202,6 +204,7 @@ class QQBot(object):
 
             elif code in (103, 109, 121, 100006, 100001):
                 # {u'retcode': 121, u't': u'0'}
+                raise Exception('Goes wrong, just fail.')
                 log.debug('Need relogin')
                 self.ready.clear()
                 self.login()
@@ -219,6 +222,7 @@ class QQBot(object):
                     self.pool.spawn(f, v) if f else log.warning('Unhandled event: <%s> = %r', t, v)
 
             else:
+                raise Exception('Goes wrong, just fail.')
                 log.error('Unknown retcode: %r', rst)
 
     def refresh_group_list(self):
