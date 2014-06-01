@@ -108,14 +108,20 @@ class UISelectTarget(Control, InputHandler):
         # view.notify('selection_change') # the clear_selection thing will trigger this
 
         @self.confirmbtn.event
-        def on_confirm(is_ok):
-            is_ok and ilet.set_result(*self.get_result())
+        def on_confirm(is_ok, force=False):
+            if is_ok:
+                ilet.set_result(*self.get_result())
+
+            elif not force and view.get_selected_skills():
+                view.reset_selected_skills()
+                return
+
             ilet.done()
             end_transaction(self.trans)
 
         self.progress_bar.value = LinearInterp(
             1.0, 0.0, ilet.timeout,
-            on_done=lambda *a: on_confirm(False)
+            on_done=lambda *a: on_confirm(False, force=True)
         )
 
         self.inputlet = ilet

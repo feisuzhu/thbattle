@@ -410,6 +410,10 @@ class THBattleUI(Control, Observable):
             skills[i] for i in self.skill_box.get_selected_index()
         ], key=lambda s: s.sort_index)
 
+    
+    def reset_selected_skills(self):
+        self.skill_box.reset()
+
     def get_action_params(self):
         return self.action_params
 

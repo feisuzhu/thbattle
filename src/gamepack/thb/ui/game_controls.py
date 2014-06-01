@@ -335,7 +335,7 @@ class SkillSelectionBox(Control):
     class SkillButton(Button):
         def __init__(self, skill, sid, enable, view, *a, **k):
             Button.__init__(self, skill.ui_meta.name, width=71, height=20, *a, **k)
-            self.selected = False
+            self._selected = False
             self.state = Button.NORMAL if enable else Button.DISABLED
             self.color = Colors.blue
             self.skill = skill
@@ -344,24 +344,33 @@ class SkillSelectionBox(Control):
             self.params_ui = None
             self.update()
 
-        def on_click(self):
-            if self.selected:
+        @property
+        def selected(self):
+            return self._selected
+
+        @selected.setter
+        def selected(self, value):
+            value = bool(value)
+            if value == self._selected: return
+            if value:
+                self.color = Colors.orange
+                self.update()
+                self.parent.selection.append(self.sid)
+                self._selected = True
+                pui = getattr(self.skill.ui_meta, 'params_ui', None)
+                if pui:
+                    self.params_ui = pui(parent=self.view)
+            
+            else:
                 self.parent.selection.remove(self.sid)
                 self.color = Colors.blue
-                self.selected = False
+                self._selected = False
                 self.update()
                 ui = self.params_ui
                 ui and ui.delete()
 
-            else:
-                self.color = Colors.orange
-                self.update()
-                self.parent.selection.append(self.sid)
-                self.selected = True
-                pui = getattr(self.skill.ui_meta, 'params_ui', None)
-                if pui:
-                    self.params_ui = pui(parent=self.view)
-
+        def on_click(self):
+            self.selected = not self.selected
             self.view.notify('selection_change')
 
         def delete(self):
@@ -392,6 +401,12 @@ class SkillSelectionBox(Control):
 
     def get_selected_index(self):
         return self.selection
+
+    def reset(self):
+        for c in self.buttons:
+            c.selected = False
+
+        self.parent.notify('selection_change')
 
     def draw(self):
         self.draw_subcontrols()
