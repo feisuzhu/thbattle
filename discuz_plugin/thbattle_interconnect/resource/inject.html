@@ -29,7 +29,8 @@ THB = {
         box.append(jq('<span class="source"></span>').text(THB.servers[data[0]]));
         box.append(jq('<span class="tag">『文々。新闻』</span>'));
         box.append(jq('<span class="username"></span>').text(data[1]));
-        box.append(jq('<span class="content"></span>').text('： ' + data[2]));
+        var msg = data[2].replace(/([\r\n]|\|(c[A-Fa-f0-9]{8}|s[12][A-Fa-f0-9]{8}|[BbIiUuHrRGYW]|LB|DB|![RGOB]))/g, ' ');
+        box.append(jq('<span class="content"></span>').text('： ' + msg));
         box.append('<br />');
     },
 

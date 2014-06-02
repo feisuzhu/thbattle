@@ -209,7 +209,7 @@ if options.interconnect:
                 message.insert(0, node)
                 Pool(5).map_async(lambda u: u.write(['speaker_msg', message]), users.values())
 
-    Interconnect = InterconnectHandler.spawn(options.node, options.redis, options.redis_port)
+    Interconnect = InterconnectHandler.spawn(options.node, options.redis_url)
 
 else:
     class DummyInterconnect(object):

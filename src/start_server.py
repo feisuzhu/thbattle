@@ -37,8 +37,7 @@ def start_server():
     parser.add_argument('--gidfile', default='')
     parser.add_argument('--archive-path', default='')
     parser.add_argument('--interconnect', action='store_true', default=False)
-    parser.add_argument('--redis', default='localhost')
-    parser.add_argument('--redis-port', default=6379)
+    parser.add_argument('--redis-url', default='redis://localhost:6379')
     parser.add_argument('--member-service', default='localhost:7000')
     options = parser.parse_args()
 

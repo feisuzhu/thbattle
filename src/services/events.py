@@ -199,14 +199,13 @@ def main():
     parser = argparse.ArgumentParser(sys.argv[0])
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=7001)
-    parser.add_argument('--redis', default='localhost')
-    parser.add_argument('--redis-port', default=6379)
+    parser.add_argument('--redis-url', default='redis://localhost:6379')
     parser.add_argument('--member-service', default='localhost')
     parser.add_argument('--discuz-cookiepre', default='VfKd_')
     options = parser.parse_args()
 
     member_service = RPCClient((options.member_service, 7000), timeout=2)
-    interconnect = Interconnect.spawn('forum', options.redis, options.redis_port)
+    interconnect = Interconnect.spawn('forum', options.redis_url)
 
     run(server='gevent', host=options.host, port=options.port)
 

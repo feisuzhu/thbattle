@@ -9,11 +9,11 @@ import simplejson as json
 
 
 class Interconnect(Greenlet):
-    def __init__(self, node, host, port):
+    def __init__(self, node, url):
         Greenlet.__init__(self)
         self.node = node
-        self.pub = redis.Redis(host=host, port=port)
-        self.sub = redis.Redis(host=host, port=port)
+        self.pub = redis.from_url(url)
+        self.sub = redis.from_url(url)
 
     @surpress_and_restart
     def _run(self):

@@ -722,7 +722,7 @@ class QQBot(object):
         return u''.join(l)
 
     @staticmethod
-    def _buddylist_hash(qq, ptwebqq):
+    def _buddylist_hash_old(qq, ptwebqq):
         a = [0] * 4
         for i, v in enumerate(ptwebqq):
             a[i % 4] ^= ord(v)
@@ -738,7 +738,7 @@ class QQBot(object):
         return j.encode('hex').upper()
 
     @staticmethod
-    def _buddylist_hash_old(qq, ptwebqq):
+    def _buddylist_hash(qq, ptwebqq):
         L = list(struct.unpack('BBBB', struct.pack('>I', int(qq))))
         T = [ord(i) for i in ptwebqq]
         V = [(0, len(T) - 1)]
@@ -776,6 +776,7 @@ class QQBot(object):
 
         V = struct.pack('BBBB', *L).encode('hex').upper()
         return V
+
 
 # group admin kicks you
 # <sys_g_msg> =

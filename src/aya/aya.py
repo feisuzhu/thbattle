@@ -31,8 +31,7 @@ parser.add_argument('--qq', type=int)
 parser.add_argument('--password')
 parser.add_argument('--dbc-username')
 parser.add_argument('--dbc-password')
-parser.add_argument('--redis', default='localhost')
-parser.add_argument('--redis-port', default=6379)
+parser.add_argument('--redis-url', default='redis://localhost:6379')
 parser.add_argument('--member-service', default='localhost')
 options = parser.parse_args()
 
@@ -63,7 +62,7 @@ _cli_pool = None
 
 class AyaDAO(object):
     def __init__(self):
-        self.redis = redis.Redis(options.redis, options.redis_port)
+        self.redis = redis.from_url(options.redis_url)
 
     def get_binding(self, qq):
         rst = self.redis.hget('aya:binding', int(qq))
@@ -213,11 +212,6 @@ class Aya(QQBot):
             self.refresh_buddy_list()
             return
 
-        foo = str(random.randint(0x10000000, 0xffffffff))
-        content = content.replace('||', foo)
-        content = re.sub(r'([\r\n]|\|(c[A-Fa-f0-9]{8}|s[12][A-Fa-f0-9]{8}|[BbIiUuHrRGYW]|LB|DB|![RGOB]))', '', content)
-        content = content.replace(foo, '||')
-
         with member_client_pool() as cli:
             member = cli.get_user_info(uid)
             if member['credits'] < 10:
@@ -235,6 +229,11 @@ class AyaInterconnect(InterconnectBase):
         if topic == 'speaker':
             from settings import ServerNames
             username, content = message
+
+            foo = str(random.randint(0x10000000, 0xffffffff))
+            content = content.replace('||', foo)
+            content = re.sub(r'([\r\n]|\|(c[A-Fa-f0-9]{8}|s[12][A-Fa-f0-9]{8}|[BbIiUuHrRGYW]|LB|DB|![RGOB]))', '', content)
+            content = content.replace(foo, '||')
 
             send = u'{}『文々。新闻』{}： {}'.format(
                 ServerNames.get(node, node), username, content,
@@ -268,5 +267,5 @@ gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
 
 aya = Aya(options.qq, options.password)
 # aya.wait_ready()
-Interconnect = AyaInterconnect.spawn('aya', options.redis, options.redis_port)
+Interconnect = AyaInterconnect.spawn('aya', options.redis_url)
 aya.join()
