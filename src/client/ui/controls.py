@@ -130,21 +130,68 @@ class Colors:
         return c + (255, )
 
 
-class Button(Control):
+class AbstractButton(Control):
     NORMAL = 0
     HOVER = 1
     PRESSED = 2
     DISABLED = 3
-
+    
     hover_alpha = InterpDesc('_hv')
 
+    def __init__(self, *a, **k):
+        Control.__init__(self, *a, **k)
+        self._state = Button.NORMAL
+        self.hover_alpha = 0.0
+
+    def on_mouse_enter(self, x, y):
+        if self.state != Button.DISABLED:
+            self.state = Button.HOVER
+        return pyglet.event.EVENT_HANDLED
+
+    def on_mouse_leave(self, x, y):
+        if self.state != Button.DISABLED:
+            self.state = Button.NORMAL
+        return pyglet.event.EVENT_HANDLED
+
+    def on_mouse_press(self, x, y, button, modifier):
+        if self.state != Button.DISABLED:
+            if button == mouse.LEFT:
+                self.state = Button.PRESSED
+        return pyglet.event.EVENT_HANDLED
+
+    def on_mouse_release(self, x, y, button, modifier):
+        if self.state == Button.PRESSED:
+            if button == mouse.LEFT:
+                self.state = Button.HOVER
+                self.dispatch_event('on_click')
+        return pyglet.event.EVENT_HANDLED
+
+    def on_mouse_click(self, x, y, button, modifier):
+        return pyglet.event.EVENT_HANDLED
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, val):
+        last = self._state
+        self._state = val
+        if val == Button.HOVER:
+            self.hover_alpha = .25
+        elif last == Button.HOVER and val == Button.NORMAL:
+            self.hover_alpha = LinearInterp(
+                .25, 0, .17
+            )
+        else:
+            self.update()
+
+
+class Button(AbstractButton):
     def __init__(self, caption='Button', color=Colors.green, *args, **kwargs):
-        Control.__init__(self, *args, **kwargs)
+        AbstractButton.__init__(self, *args, **kwargs)
         self._batch = None
         self.caption = caption
-        self._state = Button.NORMAL
-        self.state = Button.NORMAL
-        self.hover_alpha = 0.0
 
         self.need_update = True
         self.color = color
@@ -224,51 +271,7 @@ class Button(Control):
     def draw(self):
         glColor3f(1.0, 0.0, 0.0)
         glRectf(0, 0, self.width, self.height)
-
-    def on_mouse_enter(self, x, y):
-        if self.state != Button.DISABLED:
-            self.state = Button.HOVER
-        return pyglet.event.EVENT_HANDLED
-
-    def on_mouse_leave(self, x, y):
-        if self.state != Button.DISABLED:
-            self.state = Button.NORMAL
-        return pyglet.event.EVENT_HANDLED
-
-    def on_mouse_press(self, x, y, button, modifier):
-        if self.state != Button.DISABLED:
-            if button == mouse.LEFT:
-                self.state = Button.PRESSED
-        return pyglet.event.EVENT_HANDLED
-
-    def on_mouse_release(self, x, y, button, modifier):
-        if self.state != Button.DISABLED:
-            if button == mouse.LEFT:
-                self.state = Button.HOVER
-        return pyglet.event.EVENT_HANDLED
-
-    def on_mouse_click(self, x, y, button, modifier):
-        if self.state != Button.DISABLED:
-            self.dispatch_event('on_click')
-        return pyglet.event.EVENT_HANDLED
-
-    def _get_state(self):
-        return self._state
-
-    def _set_state(self, val):
-        last = self._state
-        self._state = val
-        if val == Button.HOVER:
-            self.hover_alpha = .25
-        elif last == Button.HOVER and val == Button.NORMAL:
-            self.hover_alpha = LinearInterp(
-                .25, 0, .17
-            )
-        else:
-            self.update()
-
-    state = property(_get_state, _set_state)
-
+    
     def _get_color(self):
         if self._state == Button.DISABLED:
             return Colors.gray
@@ -282,20 +285,10 @@ class Button(Control):
     color = property(_get_color, _set_color)
 
 
-class ImageButton(Control):
-    NORMAL = 0
-    HOVER = 1
-    PRESSED = 2
-    DISABLED = 3
-
-    hover_alpha = InterpDesc('_hv')
-
+class ImageButton(AbstractButton):
     def __init__(self, images, *args, **kwargs):
-        Control.__init__(self, *args, **kwargs)
+        AbstractButton.__init__(self, *args, **kwargs)
         self.images = images
-        self._state = Button.NORMAL
-        self.state = Button.NORMAL
-        self.hover_alpha = 0.0
         self.width = images[0].width
         self.height = images[0].height
 
@@ -335,42 +328,7 @@ class ImageButton(Control):
         glPopAttrib()
         glPopMatrix()
 
-    def on_mouse_enter(self, x, y):
-        if self.state != Button.DISABLED:
-            self.state = Button.HOVER
-
-    def on_mouse_leave(self, x, y):
-        if self.state != Button.DISABLED:
-            self.state = Button.NORMAL
-
-    def on_mouse_press(self, x, y, button, modifier):
-        if self.state != Button.DISABLED:
-            if button == mouse.LEFT:
-                self.state = Button.PRESSED
-
-    def on_mouse_release(self, x, y, button, modifier):
-        if self.state == Button.PRESSED:
-            if button == mouse.LEFT:
-                self.state = Button.HOVER
-                self.dispatch_event('on_click')
-
-    def _get_state(self):
-        return self._state
-
-    def _set_state(self, val):
-        last = self._state
-        self._state = val
-        if val == Button.HOVER:
-            self.hover_alpha = 1.
-        elif last == Button.HOVER and val == Button.NORMAL:
-            self.hover_alpha = LinearInterp(
-                1., 0, .3
-            )
-    state = property(_get_state, _set_state)
-
-Button.register_event_type('on_click')
-ImageButton.register_event_type('on_click')
-
+AbstractButton.register_event_type('on_click')
 
 def batch_drawlabel(lbls):
     s = set([l.batch for l in lbls])
