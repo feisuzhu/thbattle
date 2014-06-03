@@ -91,7 +91,7 @@ resource = Resource(respath, [
 
     [lazytexture('%s_figure' % p) for p in [
         'daiyousei', 'eirin', 'koakuma', 'yukari', 'komachi',
-        'kokoro', 'cirno', 'patchouli',
+        'kokoro', 'cirno', 'patchouli', 'yugi',
     ]],
 
     [encrypted_texture('%s_figure_alter' % p) for p in [
