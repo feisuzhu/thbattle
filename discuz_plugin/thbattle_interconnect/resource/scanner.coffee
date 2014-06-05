@@ -28,24 +28,26 @@ msg = (raw_msg) ->
   rgba_string = (c) -> "rgba(#{c.r},#{c.g},#{c.b},#{c.a})"
 
   color = (tok) ->
-    attrib.color = rgba (parseInt(tok[i..i+1], 16) for i in [2..8] by 2)...
+    color = (parseInt(tok[i..i+1], 16) for i in [2..8] by 2)
+    attrib.color = rgba color...
 
   shadow = (tok) ->
-    attrib.shadow = rgba (parseInt(tok[i..i+1], 16) for i in [3..9] by 2)...
+    color = (parseInt(tok[i..i+1], 16) for i in [3..9] by 2)
+    attrib.shadow = rgba color...
     attrib.shadow.level = parseInt(tok[2])
 
   ins_text = (text) ->
     if text
-      css = {}
-      css['font-weight'] = 'bold' if attrib.bold
-      css['font-style'] = 'italic' if attrib.italic
-      css['text-decoration'] = 'underline' if attrib.underline
-      css['color'] = rgba_string(attrib.color) if attrib.color
-      css['text-shadow'] = "0 0 #{.3*attrib.shadow.level}em
-                            #{rgba_string(attrib.shadow)}" if attrib.shadow
       span = jq '<span></span>'
         .text text
-        .css css
+        .css {
+          'font-weight':     'bold'       if attrib.bold
+          'font-style':      'italic'     if attrib.italic
+          'text-decoration': 'underline'  if attrib.underline
+          'color': rgba_string(attrib.color) if attrib.color
+          'text-shadow': "0 0 #{.3*attrib.shadow.level}em
+                          #{rgba_string(attrib.shadow)}" if attrib.shadow
+        }
       box.append span
 
   commands =
@@ -61,6 +63,7 @@ msg = (raw_msg) ->
       color '|c000000ff'
       shadow '|s2000000ff'
     'r': restore
+    '|': -> ins_text '|'
     # shortcuts
     R:  -> color '|cff3535ff'
     G:  -> color '|c208020ff'
@@ -77,9 +80,7 @@ msg = (raw_msg) ->
   while (match = scanner.exec raw_msg)
     ins_text(raw_msg[last...match.index])
     last = scanner.lastIndex
-    name = null
-    for m in match[1..]
-      name = name || m
+    name = match[1..].reduce (x, y) -> x || y
     commands[name](match[0])
 
   ins_text(raw_msg[last..])

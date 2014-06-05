@@ -3,7 +3,7 @@
   var msg;
 
   msg = function(raw_msg) {
-    var attrib, box, color, commands, default_attrib, ins_text, last, m, match, name, restore, rgba, rgba_string, scanner, shadow, _i, _len, _ref;
+    var attrib, box, color, commands, default_attrib, ins_text, last, match, name, restore, rgba, rgba_string, scanner, shadow;
     box = jq('<span class="content">：</span>');
     scanner = /\|(c)[A-Fa-f0-9]{8}|\|(s)[12][A-Fa-f0-9]{8}|\|([BbIiUurH|RGYW]|[LD]B)|\|(\![RGOB])/g;
     default_attrib = {
@@ -31,47 +31,39 @@
     };
     color = function(tok) {
       var i;
-      return attrib.color = rgba.apply(null, (function() {
+      color = (function() {
         var _i, _results;
         _results = [];
         for (i = _i = 2; _i <= 8; i = _i += 2) {
           _results.push(parseInt(tok.slice(i, +(i + 1) + 1 || 9e9), 16));
         }
         return _results;
-      })());
+      })();
+      return attrib.color = rgba.apply(null, color);
     };
     shadow = function(tok) {
       var i;
-      attrib.shadow = rgba.apply(null, (function() {
+      color = (function() {
         var _i, _results;
         _results = [];
         for (i = _i = 3; _i <= 9; i = _i += 2) {
           _results.push(parseInt(tok.slice(i, +(i + 1) + 1 || 9e9), 16));
         }
         return _results;
-      })());
+      })();
+      attrib.shadow = rgba.apply(null, color);
       return attrib.shadow.level = parseInt(tok[2]);
     };
     ins_text = function(text) {
-      var css, span;
+      var span;
       if (text) {
-        css = {};
-        if (attrib.bold) {
-          css['font-weight'] = 'bold';
-        }
-        if (attrib.italic) {
-          css['font-style'] = 'italic';
-        }
-        if (attrib.underline) {
-          css['text-decoration'] = 'underline';
-        }
-        if (attrib.color) {
-          css['color'] = rgba_string(attrib.color);
-        }
-        if (attrib.shadow) {
-          css['text-shadow'] = "0 0 " + (.3 * attrib.shadow.level) + "em " + (rgba_string(attrib.shadow));
-        }
-        span = jq('<span></span>').text(text).css(css);
+        span = jq('<span></span>').text(text).css({
+          'font-weight': attrib.bold ? 'bold' : void 0,
+          'font-style': attrib.italic ? 'italic' : void 0,
+          'text-decoration': attrib.underline ? 'underline' : void 0,
+          'color': attrib.color ? rgba_string(attrib.color) : void 0,
+          'text-shadow': attrib.shadow ? "0 0 " + (.3 * attrib.shadow.level) + "em " + (rgba_string(attrib.shadow)) : void 0
+        });
         return box.append(span);
       }
     };
@@ -101,6 +93,9 @@
         return shadow('|s2000000ff');
       },
       'r': restore,
+      '|': function() {
+        return ins_text('|');
+      },
       R: function() {
         return color('|cff3535ff');
       },
@@ -136,12 +131,9 @@
     while ((match = scanner.exec(raw_msg))) {
       ins_text(raw_msg.slice(last, match.index));
       last = scanner.lastIndex;
-      name = null;
-      _ref = match.slice(1);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        m = _ref[_i];
-        name = name || m;
-      }
+      name = match.slice(1).reduce(function(x, y) {
+        return x || y;
+      });
       commands[name](match[0]);
     }
     return ins_text(raw_msg.slice(last));
