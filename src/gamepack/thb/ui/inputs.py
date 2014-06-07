@@ -461,8 +461,12 @@ class UIChooseGirl(Panel, InputHandler):
 
         g = Game.getgame()
         choices = trans.mapping[g.me]
+        n_choices = len(choices)
 
-        w, h = 500 + 1*160, 390 + 1*113
+        cols = 5 if n_choices > 16 else 4
+        rows = max((n_choices - 1) / cols + 1, 4)
+        
+        w, h = 20 + cols*160, 51 + rows*113
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
         pw, ph = p.width, p.height
@@ -471,8 +475,8 @@ class UIChooseGirl(Panel, InputHandler):
         choices = self.choices = [c for c in choices if c.char_cls and not getattr(c, 'chosen', False)]
         self.selectors = selectors = []
         for i, c in enumerate(choices):
-            y, x = divmod(i, 4)
-            x, y = 15 + 160*x, 45 + 113*(3 - y)
+            y, x = divmod(i, cols)
+            x, y = 15 + 160*x, 45 + 113*(rows - 1 - y)
             gs = GirlSelector(c, selectors, parent=self, x=x, y=y)
 
             @gs.event
