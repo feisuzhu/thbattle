@@ -441,6 +441,24 @@ class THBattleUI(Control, Observable):
     def show_result(g):
         ResultPanel(g, parent=Overlay.cur_overlay)
 
+class THBattleCP3UI(THBattleUI):
+    portrait_location = [
+        (60, 300, Colors.blue),
+        (250, 450, Colors.orange),
+        (450, 450, Colors.green),
+        (640, 300, Colors.blue),
+        (450, 150, Colors.orange),
+        (250, 150, Colors.green),
+    ]
+
+    gcp_location = [
+        (3, 1, 'me', Colors.blue),
+        (669, 280, 'left', Colors.orange),
+        (155 + 180 + 180, 520, 'bottom', Colors.green),
+        (155 + 180, 520, 'bottom', Colors.blue),
+        (155, 520, 'bottom', Colors.orange),
+        (3, 280, 'right', Colors.green),
+    ]
 
 class THBattleIdentityUI(THBattleUI):
     portrait_location = [

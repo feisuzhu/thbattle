@@ -49,7 +49,7 @@ __metaclass__ = gen_metafunc(thbcp3)
 
 class THBattleCP3:
     name = u'符斗祭 - CP大战'
-    logo = gres.thblogo_3v3
+    logo = gres.thblogo_cp3
     description = (
         u'|R游戏人数|r：6人\n'
         u'\n'
@@ -61,7 +61,7 @@ class THBattleCP3:
         u'|R胜利条件|r：击坠所有其它阵营玩家。'
     )
 
-    from gamepack.thb.ui.view import THBattleUI as ui_class  # noqa
+    from gamepack.thb.ui.view import THBattleCP3UI as ui_class  # noqa
 
     T = thbcp3.Identity.TYPE
     identity_table = {
