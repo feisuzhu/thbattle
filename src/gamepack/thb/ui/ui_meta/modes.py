@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith
+from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith, thbcp3
 from gamepack.thb.ui.resource import resource as gres
 
 from .common import gen_metafunc, card_desc, my_turn
@@ -42,6 +42,46 @@ class THBattle:
     del T
 
 # -----END THB3v3 UI META-----
+
+# -----BEGIN THBCP3 UI META-----
+__metaclass__ = gen_metafunc(thbcp3)
+
+
+class THBattleCP3:
+    name = u'符斗祭 - CP大战'
+    logo = gres.thblogo_3v3
+    description = (
+        u'|R游戏人数|r：6人\n'
+        u'\n'
+        u'阵营分为3对CP，每个阵营2名玩家，交错入座。\n'
+        u'由ROLL点最高的人开始，按照顺时针顺序选将。\n'
+        u'选将完成由ROLL点最高的玩家开始行动。\n'
+        u'ROLL点最高的玩家开局摸3张牌，其余玩家开局摸4张牌。\n'
+        u'\n'
+        u'|R胜利条件|r：击坠所有其它阵营玩家。'
+    )
+
+    from gamepack.thb.ui.view import THBattleUI as ui_class  # noqa
+
+    T = thbcp3.Identity.TYPE
+    identity_table = {
+        T.HIDDEN: u'？',
+        T.CP_A: u'CP A',
+        T.CP_B: u'CP B',
+        T.CP_C: u'CP C',
+    }
+
+    identity_color = {
+        T.HIDDEN: u'blue',
+        T.CP_A: u'blue',
+        T.CP_B: u'orange',
+        T.CP_C: u'green',
+    }
+
+    del T
+
+# -----END THBCP3 UI META-----
+
 
 # -----BEGIN THBKOF UI META-----
 __metaclass__ = gen_metafunc(thbkof)
