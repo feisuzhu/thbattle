@@ -2030,6 +2030,7 @@ class CheckBox(Control):
         sensor.event(self.opt.on_mouse_enter)
         sensor.event(self.opt.on_mouse_leave)
         sensor.event(self.opt.on_mouse_click)
+        sensor.event(self.opt.on_mouse_press)
         sensor.event(self.opt.on_mouse_release)
 
     @property
