@@ -60,15 +60,19 @@ class WineGodAwake(GenericAction):
 
 
 class WineGodHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, WearEquipmentAction):
-            card = act.associated_card
-            if not card.is_card(IbukiGourdCard): return act
-            tgt = act.target
-            if not tgt.has_skill(WineGod): return act
-            g = Game.getgame()
-            g.process_action(WineGodAwake(tgt, tgt))
-        return act
+    def handle(self, evt_type, arg):
+        if evt_type == 'card_migration':
+            act, cl, _from, to = arg
+
+            if to.type != 'equips': return arg
+            tgt = to.owner
+            if not tgt.has_skill(WineGod): return arg
+
+            if any(c.is_card(IbukiGourdCard) for c in cl):
+                g = Game.getgame()
+                g.process_action(WineGodAwake(tgt, tgt))
+
+        return arg
 
 
 class WineDreamHandler(EventHandler):
