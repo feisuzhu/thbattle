@@ -435,16 +435,14 @@ class IbukiGourdHandler(EventHandler):
         elif evt_type == 'card_migration':
             from .definition import IbukiGourdCard
             act, cl, _from, to = arg
-            if any(c.is_card(IbukiGourdCard) for c in cl):
-                target = None
-                if _from.type == 'equips':
-                    target = _from.owner
-                elif to.type == 'equips':
-                    target = to.owner
 
-                if target:
-                    g = Game.getgame()
-                    g.process_action(basic.Wine(target, target))
+            if any(c.is_card(IbukiGourdCard) for c in cl):
+                g = Game.getgame()    
+
+                for cl in (_from, to):
+                    if cl.type == 'equips':
+                        tgt = cl.owner
+                        g.process_action(basic.Wine(tgt, tgt))
 
         return arg
 
