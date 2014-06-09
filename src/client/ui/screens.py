@@ -527,8 +527,17 @@ class GameHallScreen(Screen):
                 def on_select():
                     btncreate.state = Button.NORMAL
 
+                n_hidden = 0
+
+                from options import options
+
                 for i, (gname, gcls) in enumerate(modes.items()):
-                    y, x = divmod(i, 3)
+                    if not options.show_hidden_modes:
+                        if getattr(gcls.ui_meta, 'hidden', False):
+                            n_hidden += 1
+                            continue
+
+                    y, x = divmod(i - n_hidden, 3)
                     x, y = 30 + 170*x, 275 - 125*y
                     s = ImageSelector(
                         gcls.ui_meta.logo, selectors,

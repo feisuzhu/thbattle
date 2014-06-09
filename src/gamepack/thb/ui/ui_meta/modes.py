@@ -50,6 +50,7 @@ __metaclass__ = gen_metafunc(thbcp3)
 class THBattleCP3:
     name = u'符斗祭 - CP大战'
     logo = gres.thblogo_cp3
+    hidden = True
     description = (
         u'|R游戏人数|r：6人\n'
         u'\n'
