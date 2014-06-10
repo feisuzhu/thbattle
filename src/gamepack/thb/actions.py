@@ -241,6 +241,9 @@ class _MigrateCardsDetached(object):
     owner = None
     type = 'detached'
 
+    def __repr__(self):
+        return 'DETACHED'
+
 
 migrate_cards.SINGLE_LAYER = 1
 migrate_cards.DETACHED = _MigrateCardsDetached()
