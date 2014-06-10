@@ -186,6 +186,8 @@ class AbstractButton(Control):
         else:
             self.update()
 
+    def update(self): pass
+
 
 class Button(AbstractButton):
     def __init__(self, caption='Button', color=Colors.green, *args, **kwargs):
