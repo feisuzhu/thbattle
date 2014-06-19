@@ -52,7 +52,7 @@ class Demolition(InstantSpellCardAction):
     def is_valid(self):
         tgt = self.target
         catnames = ['cards', 'showncards', 'equips', 'fatetell']
-        return bool([getattr(tgt, i) for i in catnames])
+        return any(getattr(tgt, i) for i in catnames)
 
 
 class Reject(InstantSpellCardAction):
@@ -249,7 +249,7 @@ class YukariDimension(InstantSpellCardAction):
     def is_valid(self):
         tgt = self.target
         catnames = ['cards', 'showncards', 'equips', 'fatetell']
-        return bool([getattr(tgt, i) for i in catnames])
+        return any(getattr(tgt, i) for i in catnames)
 
 
 class BaseDuel(UserAction):
