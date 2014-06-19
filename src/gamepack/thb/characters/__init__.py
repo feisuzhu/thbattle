@@ -43,6 +43,7 @@ import mamizou
 import seija
 import kanako
 import medicine
+import aya
 
 import remilia_ex
 

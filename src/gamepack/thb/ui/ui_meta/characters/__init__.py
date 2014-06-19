@@ -40,3 +40,4 @@ from . import mamizou  # noqa
 from . import seija
 from . import kanako  # noqa
 from . import medicine  # noqa
+from . import aya  # noqa
