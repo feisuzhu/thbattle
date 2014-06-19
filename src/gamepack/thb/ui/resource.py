@@ -74,6 +74,7 @@ resource = Resource(respath, [
     img('tag_gameintro'),
     img('tag_sinsack'),
     img('tag_ran_ei'),
+    img('tag_aya_range_max'),
     img_grid('tag_faiths', 1, 7),
 
     [img_with_grayed('%s_port' % p, 'portrait') for p in [

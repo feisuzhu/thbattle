@@ -73,4 +73,10 @@ class ran_ei:
     display = lambda p, v: v < p.tags['turn_count'] + 1
     description = u'还可以发动【极智】'
 
+
+class aya_range_max:
+    tag_anim = lambda p: gres.tag_aya_range_max
+    display = lambda p, v: v and p is G().current_turn
+    description = u'使用的下一张牌不受距离限制'
+
 # -----END TAGS UI META-----
