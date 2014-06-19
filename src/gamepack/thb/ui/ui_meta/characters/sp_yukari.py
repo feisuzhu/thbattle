@@ -45,9 +45,10 @@ class SpiritingAway:
 class SpYukari:
     # Character
     char_name = u'SP八云紫'
-    port_image = gres.yukari_port
-    figure_image = gres.yukari_figure
+    port_image = gres.sp_yukari_port
+    figure_image = gres.sp_yukari_figure
     description = (
         u'|DB神隐的主犯 八云紫 体力：4|r\n\n'
-        u'|G神隐|r：出牌阶段限两次，你可以将任意角色区域内的一张牌移出游戏。你的回合结束阶段，那名玩家获得那张牌。'
+        u'|G神隐|r：出牌阶段限两次，你可以将任意角色区域内的一张牌移出游戏。你的回合结束阶段，那名玩家获得那张牌。\n\n'
+        u'|DB（画师：Vivicat From 东方梦斗符）|r'
     )
