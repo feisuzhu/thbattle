@@ -23,7 +23,7 @@ from client.ui.controls import Panel
 from client.ui.base.interp import AbstractInterp, getinterp, InterpDesc, LinearInterp, SineInterp
 
 from client.ui.resource import resource as common_res
-from .game_controls import DropCardArea, CardSprite
+from .game_controls import DropCardArea, CardSprite, CardSelectionPanel
 
 
 class InputHandler(object):
@@ -78,7 +78,7 @@ class UIActionConfirmButtons(ConfirmButtons):
 class UISelectTarget(Control, InputHandler):
 
     def __init__(self, trans, *a, **k):
-        Control.__init__(self, *a, **k)
+        Control.__init__(self, zindex=15, *a, **k)
         self.trans = trans
         self.inputlet = None
         self.label = None
@@ -524,78 +524,49 @@ class UIChooseGirl(Panel, InputHandler):
         self.pbar.delete()
 
 
-class UIChoosePeerCard(Panel, InputHandler):
+class UIChoosePeerCard(CardSelectionPanel, InputHandler):
     def __init__(self, trans, *a, **k):
         self.trans = trans
         self.lbls = pyglet.graphics.Batch()
-        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
+        CardSelectionPanel.__init__(self, zindex=5, *a, **k)
 
     def process_user_input(self, ilet):
+        self.ilet = ilet
         target = ilet.target
         categories = [getattr(target, i) for i in ilet.categories]
 
-        h = 40 + len(categories)*145 + 10
-        w = 100 + 6*93.0+30
+        card_lists = [
+            (CardList.ui_meta.lookup[cat], getattr(target, cat))
+            for cat in ilet.categories
+        ]
 
-        y = 40
-        i = 0
-        for cat in reversed(categories):
-            if not len(cat):
-                h -= 145  # no cards in this category
-                continue
-
-            Label(
-                text=CardList.ui_meta.lookup[cat.type], font_size=12,
-                color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
-                x=30, y=y+62+145*i, anchor_x='left', anchor_y='center',
-                batch=self.lbls,
-            )
-
-            ca = DropCardArea(
-                parent=self,
-                x=100, y=y+145*i,
-                fold_size=6,
-                width=6*93, height=125,
-            )
-            for c in cat:
-                cs = CardSprite(c, parent=ca)
-                cs.associated_card = c
-
-                @cs.event
-                def on_mouse_dblclick(x, y, btn, mod, cs=cs):
-                    ilet.set_card(cs.associated_card)
-                    ilet.done()
-                    end_transaction(self.trans)
-
-            ca.update()
-            i += 1
-
-        p = self.parent
-        self.x, self.y = (p.width - w)//2, (p.height - h)//2
-        self.width, self.height = w, h
-        self.update()
-
+        self.init(card_lists)
+        
         self.progress_bar = b = BigProgressBar(
-            parent=self, x=(w-250)//2, y=7, width=250
+            parent=self, x=(self.width-250)//2, y=7, width=250
         )
         b.value = LinearInterp(
             1.0, 0.0, ilet.timeout,
             on_done=lambda *a: self.cleanup()
         )
 
-        btn = ImageButton(
-            common_res.buttons.close_blue,
-            parent=self,
-            x=w-20, y=h-20,
-        )
-
-        @btn.event
-        def on_click():
-            ilet.done()
-
     def draw(self):
         Panel.draw(self)
         self.lbls.draw()
+
+    def delete(self):
+        try:
+            self.ilet.done()
+        except AttributeError:
+            pass
+
+        super(UIChoosePeerCard, self).delete()
+
+    def on_confirm(self, cs):
+        ilet = self.ilet
+        ilet.set_card(cs.associated_card)
+        ilet.done()
+        end_transaction(self.trans)
 
 
 class UIChooseOption(Control, InputHandler):

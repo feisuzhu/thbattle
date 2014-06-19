@@ -44,6 +44,7 @@ class CardSprite(Control, BalloonPromptMixin):
         self.gray = False
         self.x, self.y = x, y
         self.shine_alpha = 0.0
+        self.selected = False
         self.alpha = 1.0
         self.card = card
 
@@ -95,9 +96,14 @@ class CardSprite(Control, BalloonPromptMixin):
                 n, s = cs.number, cs.suit
                 if n: vertices += game_res.cardnum[s % 2 * 13 + n - 1].get_t2c4n3v3_vertices(c, ax + 5, ay + 105)
                 if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
+                
+                if cs.selected:
+                    c = (0., 0., 2., 1.0)
+                else:
+                    c = (1., 1., 1., cs.shine_alpha)
 
                 vertices += game_res.card_shinesoft.get_t2c4n3v3_vertices(
-                    (1., 1., 1., cs.shine_alpha), ax-6, ay-6
+                    c, ax-6, ay-6
                 )
 
         if vertices:
@@ -521,42 +527,73 @@ class EquipCardArea(Control):
     )
 
 
-class ShownCardPanel(Panel):
-    current = None
+class CardSelectionPanel(Panel):
+    NONE = 0
+    SINGLE = 1
+    MULTIPLE = 2
 
-    def __init__(self, character, *a, **k):
-        self.character = character
-        ShownCardPanel.current = self
-
-        categories = character.showncardlists
-
-        h = 30 + len(categories)*145 + 10
-        w = 100 + 6*93.0+30
+    def __init__(self, selection_mode=0, *a, **k):
+        self.selection_mode = selection_mode
         self.lbls = lbls = pyglet.graphics.Batch()
+        self.selection = []
+        Panel.__init__(self, width=1, height=1, *a, **k)
 
-        Panel.__init__(self, width=1, height=1, zindex=5, *a, **k)
-
-        y = 30
-
+    '''
+    card_lists = [
+        (cl_name, cl),
+        ...
+    ]
+    '''
+    def init(self, card_lists, compat=True, multiline=False):
+        y = 40
+        h = y + 10
+        w = 100 + 6*93.0+30
         i = 0
-        for cat in reversed(categories):
+        for name, cl in reversed(card_lists):
+            if not cl:
+                if compat: continue
+                if multiline:
+                    i += 1
+                    h += 125
 
+            for sindex in reversed(xrange(0, len(cl), 6)):
+                if multiline:
+                    cat = cl[sindex:sindex+6]
+                else:
+                    cat = cl
+
+                ca = DropCardArea(
+                    parent=self,
+                    x=100, y=y+145*i,
+                    fold_size=6,
+                    width=6*93, height=145,
+                )
+                
+                def register_events(cs):
+                    @cs.event
+                    def on_mouse_click(*v, **k):
+                        self.toggle_selection(cs)
+
+                    @cs.event
+                    def on_mouse_dblclick(*v, **k):
+                        self.dispatch_event('on_confirm', cs)
+
+                for c in cat:
+                    cs = CardSprite(c, parent=ca)
+                    cs.associated_card = c
+                    register_events(cs)
+
+                ca.update()
+                i += 1
+                h += 145
+
+                if not multiline: break
+            
             Label(
-                text=CardList.ui_meta.lookup[cat.type], x=30, y=y+62+145*i, font_size=12,
+                text=name, x=30, y=y+62+145*(i-1), font_size=12,
                 color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 130),
-                anchor_x='left', anchor_y='center', batch=lbls,
+                anchor_x='left', anchor_y='center', batch=self.lbls,
             )
-            ca = DropCardArea(
-                parent=self,
-                x=100, y=y+145*i,
-                fold_size=6,
-                width=6*93, height=125,
-            )
-            for c in cat:
-                cs = CardSprite(c, parent=ca)
-                cs.associated_card = c
-            ca.update()
-            i += 1
 
         p = self.parent
         self.x, self.y = (p.width - w)//2, (p.height - h)//2
@@ -566,6 +603,7 @@ class ShownCardPanel(Panel):
         btn = ImageButton(
             common_res.buttons.close_blue,
             parent=self,
+            anchor_x='right', anchor_y='top',
             x=w-20, y=h-20,
         )
 
@@ -573,12 +611,49 @@ class ShownCardPanel(Panel):
         def on_click():
             self.delete()
 
+    def toggle_selection(self, cs):
+        if not cs.selected:
+            mode = self.selection_mode
+            if mode == CardSelectionPanel.NONE: return
+            if mode == CardSelectionPanel.SINGLE:
+                for c in self.selection:
+                    c.selected = False
+                self.selection[:] = []
+
+            self.selection.append(cs)
+            cs.selected = True
+
+        else:
+            self.selection.remove(cs)
+            cs.selected = False
+
+        self.dispatch_event('on_selection_change')
+
     def draw(self):
         Panel.draw(self)
         self.lbls.draw()
 
+CardSelectionPanel.register_event_type('on_confirm')
+CardSelectionPanel.register_event_type('on_selection_change')
+
+    
+class ShownCardPanel(CardSelectionPanel):
+    current = None
+
+    def __init__(self, character, *a, **k):
+        self.character = character
+        ShownCardPanel.current = self
+
+        card_lists = [
+            (CardList.ui_meta.lookup[cat.type], cat)
+            for cat in character.showncardlists
+        ]
+        
+        CardSelectionPanel.__init__(self, zindex=5, *a, **k)
+        self.init(card_lists)
+
     def delete(self):
-        Panel.delete(self)
+        super(ShownCardPanel, self).delete()
         ShownCardPanel.current = None
 
 
