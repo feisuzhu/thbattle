@@ -3,6 +3,7 @@
 from gamepack.thb import cards, characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, my_turn
 from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.game_controls import CardSelectionPanel
 from client.ui.controls import Panel, Colors, Button
 from utils import BatchList
 
@@ -10,83 +11,91 @@ from utils import BatchList
 __metaclass__ = gen_metafunc(characters.mamizou)
 
 
-class MorphingCardSelectionUI(Panel):
+card_categories = {
+    cat: [
+        cls() for cls in cards.Card.card_classes.values()
+        if cat in cls.category
+    ] for cat in ('basic', 'instant_spellcard')
+}
+
+cat_names = (
+    ('basic', u'基本牌'),
+    ('instant_spellcard', u'符卡')
+)
+
+
+class MorphingCardSelectionUI(CardSelectionPanel):
     def __init__(self, parent, *a, **k):
-        w, h = 480, 300  # 15 + (70+5)*6 + 15, 15 + (25+2) * 10 + 15
-        x = (parent.width - w) // 2
-        y = (parent.height - h) // 2
-        Panel.__init__(self, x=x, y=y, width=w, height=h, parent=parent, zindex=10, *a, **k)
+        CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)
         self.view = view = parent
         view.add_observer('selection_change', self.on_selection_change)
-        self.buttons = {}
+        self.panel = None
         self.on_selection_change()
 
     def on_selection_change(self):
         view = self.view
         params = view.get_action_params()
-        selection = cards.Card.card_classes.get(params.get('mamizou_morphing'))
-
-        self.buttons = buttons = {}
-        [b.delete() for b in self.control_list[:]]
-
         cl = view.get_selected_cards()
+
+        def cancel():
+            if self.panel:
+                self.panel.delete()
+                self.panel = None
+                try:
+                    del params['mamizou_morphing']
+                except:
+                    pass
+
         if len(cl) != 2:
-            return
+            return cancel()
 
         cats = set(cl[0].category)
         cats.update(cl[1].category)
 
         if 'skill' in cats:
-            return
+            return cancel()
 
         cats = cats & {'basic', 'spellcard'}
         if not cats:
+            return cancel()
+
+        if self.panel:
             return
 
         if 'spellcard' in cats:
             cats.discard('spellcard')
             cats.add('instant_spellcard')
 
-        classes = [
-            cls for cls in cards.Card.card_classes.values()
-            if set(cls.category) & cats
+        card_lists = [
+            (name, card_categories[cat])
+            for cat, name in cat_names
+            if cat in cats
         ]
+        self.panel = panel = CardSelectionPanel(
+                parent=self.parent, zindex=10,
+                selection_mode=CardSelectionPanel.SINGLE,
+        )
+        panel.init(card_lists, multiline=len(card_lists) < 2)
 
-        for i, cls in enumerate(classes):
-            y, x = divmod(i, 6)
-            b = Button(
-                cls.ui_meta.name,
-                parent=self, color=self.category_color(cls.category),
-                x=15 + 75 * x, y=300 - 15 - (y+1)*27, width=70, height=25,
-            )
+        @panel.event
+        def on_selection_change():
+            if panel.selection:
+                card = panel.selection[0].associated_card
+                params['mamizou_morphing'] = card.__class__.__name__
+            else:
+                try:
+                    del params['mamizou_morphing']
+                except:
+                    pass
 
-            b.cls = cls
-            buttons[cls] = b
-
-            if selection is cls:
-                b.color = Colors.orange
-
-            @b.event
-            def on_click(b=b):
-                selection = cards.Card.card_classes.get(params.get('mamizou_morphing'))
-                if b.cls is selection:
-                    return
-
-                clsname = b.cls.__name__
-                last = self.buttons.get(selection)
-                if last:
-                    last.color = self.category_color(last.cls.category)
-
-                b.color = Colors.orange
-                params['mamizou_morphing'] = clsname
-                self.view.notify('selection_change')
+            self.view.notify('selection_change')
 
     def delete(self):
-        self.view.remove_observer('selection_change', self.on_selection_change)
-        Panel.delete(self)
+        if self.panel:
+            self.panel.delete()
 
-    def category_color(self, category):
-        return Colors.blue if 'basic' in category else Colors.green
+        self.view.remove_observer('selection_change', self.on_selection_change)
+        super(MorphingCardSelectionUI, self).delete()
 
 
 class Morphing:
