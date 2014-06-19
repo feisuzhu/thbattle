@@ -15,6 +15,9 @@ class CardList:
         'equips': u'装备区',
         'fatetell': u'判定区',
         'faiths': u'信仰',
+
+        # for skills
+        'yukari_dimension': u'隙间',
     }
 
 

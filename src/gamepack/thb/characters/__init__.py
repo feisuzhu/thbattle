@@ -44,6 +44,7 @@ import seija
 import kanako
 import medicine
 import aya
+import sp_yukari
 
 import remilia_ex
 
