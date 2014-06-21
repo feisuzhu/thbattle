@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from ..actions import PlayerTurn, DrawCards, UserAction
 from ..inputlets import ChooseOptionInputlet
 from ..cards import Skill, VirtualCard, TreatAsSkill, t_None
@@ -67,7 +67,7 @@ class UltimateSpeedHandler(EventHandler):
         return arg
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Aya(Character):
     skills = [UltimateSpeed]
     eventhandlers_required = [UltimateSpeedHandler]
