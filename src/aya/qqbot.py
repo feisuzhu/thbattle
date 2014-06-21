@@ -89,18 +89,37 @@ class QQBot(object):
         self.cache = defaultdict(dict)
 
         session = self.session
+        log.debug('Querying login_sig')
+        sigpage = session.get('https://ui.ptlogin2.qq.com/cgi-bin/login', params={
+            'daid': '164',
+            'target': 'self',
+            'style': '5',
+            'mibao_css': 'm_webqq',
+            'appid': '1003903',
+            'enable_qlogin': '0',
+            'no_verifyimg': '1',
+            's_url': 'http://web2.qq.com/loginproxy.html',
+            'f_url': 'loginerroralert',
+            'strong_login': '1',
+            'login_state': '10',
+            't': '20140612002',
+        }).content
+        self.login_sig = re.findall(r'var g_login_sig=encodeURIComponent\("(.+?)"\);', sigpage)
+
         log.debug('Querying for captcha...')
         check = session.get('https://ssl.ptlogin2.qq.com/check', params={
             'uin': self.qq, 'appid': self.appid,
             'u1': 'http://w.qq.com/proxy.html',
             'js_ver': 10051,
+            'login_sig': self.login_sig,
             'js_type': 0,
             'r': random.random(),
         })
 
         assert check.ok
 
-        state, vc, hexuin = self._jsonp2list(check.content)
+        check_rst = self._jsonp2list(check.content)
+        state, vc, hexuin, _unknown = check_rst
 
         if state == '1':
             # needs captcha
@@ -722,7 +741,7 @@ class QQBot(object):
         return u''.join(l)
 
     @staticmethod
-    def _buddylist_hash_old(qq, ptwebqq):
+    def _buddylist_hash_older(qq, ptwebqq):
         a = [0] * 4
         for i, v in enumerate(ptwebqq):
             a[i % 4] ^= ord(v)
@@ -738,7 +757,7 @@ class QQBot(object):
         return j.encode('hex').upper()
 
     @staticmethod
-    def _buddylist_hash(qq, ptwebqq):
+    def _buddylist_hash_old(qq, ptwebqq):
         L = list(struct.unpack('BBBB', struct.pack('>I', int(qq))))
         T = [ord(i) for i in ptwebqq]
         V = [(0, len(T) - 1)]
@@ -776,6 +795,24 @@ class QQBot(object):
 
         V = struct.pack('BBBB', *L).encode('hex').upper()
         return V
+
+    @staticmethod
+    def _buddylist_hash(qq, ptwebqq):
+        b = str(qq)
+        j = ptwebqq
+
+        a = j + 'password error'
+        i = ''
+        while True:
+            if len(i) < len(a):
+                i += b
+                if len(i) == len(a):
+                    break
+            else:
+                i = i[:len(a)]
+                break
+
+        return ''.join([chr(ord(i_) ^ ord(a_)) for i_, a_ in zip(i, a)]).encode('hex').upper()
 
 
 # group admin kicks you
