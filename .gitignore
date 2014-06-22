@@ -30,8 +30,6 @@ d
 develop-eggs/
 dist/
 eggs/
-lib/
-lib64/
 parts/
 pip-delete-this-directory.txt
 pip-log.txt
