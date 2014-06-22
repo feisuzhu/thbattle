@@ -111,7 +111,7 @@ class ResultPanel(Panel):
             self.pic = gres.lose
 
         close = Button(
-            u'关闭', parent=self, x=440, y=25, width=90, height=40
+            u'关闭', parent=self, x=440, y=25, width=90, height=40, zindex=10,
         )
 
         @close.event
@@ -357,9 +357,9 @@ class THBattleUI(Control, Observable):
         self.parent.events_box.append(s)
 
     def begin_select_player(self, disables=[]):
-        #if self.selecting_player: return
+        # if self.selecting_player: return
         self.selecting_player = True
-        #self.selected_players = []
+        # self.selected_players = []
         for p in self.game.players:
             port = self.player2portrait(p)
 
@@ -410,7 +410,6 @@ class THBattleUI(Control, Observable):
             skills[i] for i in self.skill_box.get_selected_index()
         ], key=lambda s: s.sort_index)
 
-    
     def reset_selected_skills(self):
         self.skill_box.reset()
 
@@ -441,6 +440,7 @@ class THBattleUI(Control, Observable):
     def show_result(g):
         ResultPanel(g, parent=Overlay.cur_overlay)
 
+
 class THBattleCP3UI(THBattleUI):
     portrait_location = [
         (60, 300, Colors.blue),
@@ -459,6 +459,7 @@ class THBattleCP3UI(THBattleUI):
         (155, 520, 'bottom', Colors.orange),
         (3, 280, 'right', Colors.green),
     ]
+
 
 class THBattleIdentityUI(THBattleUI):
     portrait_location = [
