@@ -248,7 +248,10 @@ class QQBot(object):
         assert self.logged_in
         log.debug('Refreshing group info...')
 
-        rst = self.call_server('s:get_group_name_list_mask2', {'vfwebqq': self.vfwebqq})
+        rst = self.call_server('s:get_group_name_list_mask2', {
+            'vfwebqq': self.vfwebqq,
+            'hash': self._buddylist_hash(self.qq, self.original_ptwebqq),
+        })
 
         if int(rst['retcode']) != 0:
             log.error('Error %r', rst)
