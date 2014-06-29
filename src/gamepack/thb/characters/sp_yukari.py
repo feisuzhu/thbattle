@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, PlayerDeath, DropCardStage
+from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, PlayerDeath, DropCardStage, random_choose_card
 from ..inputlets import ChoosePeerCardInputlet
 from ..cards import Skill, t_One, CardList
 
