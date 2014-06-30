@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import actions
-from gamepack.thb import cards
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, card_desc
 from gamepack.thb.ui.resource import resource as gres
-from utils import BatchList
 
 __metaclass__ = gen_metafunc(characters.sp_yukari)
 
@@ -40,6 +40,22 @@ class SpiritingAway:
             return (False, u'这货已经没有牌了')
 
         return (True, u'发动【神隐】')
+
+
+class SpiritingAwayAction:
+
+    def effect_string(act):
+        words = (
+            u'17岁就是17岁，后面没有零几个月！',
+            u'叫紫妹就对了，紫妈算什么！',
+            u'信不信我把你的脸按到键盘上！',
+        )
+        return u'|G【{source}】|r：“{word}”（|G{target}|r的{card}不见了）'.format(
+            source=act.source.ui_meta.char_name,
+            target=act.target.ui_meta.char_name,
+            word=random.choice(words),
+            card=card_desc(act.card),
+        )
 
 
 class SpYukari:
