@@ -9,7 +9,6 @@ def makedict(clsname, bases, _dict):
 
     return _dict
 
-#__metaclass__ = lambda clsname, bases, _dict: _dict
 __metaclass__ = makedict
 
 import os
@@ -30,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 204'
+VERSION = 'THBATTLE V1.0b incr 205'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
