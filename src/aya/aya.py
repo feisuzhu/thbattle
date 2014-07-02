@@ -144,7 +144,9 @@ class Aya(QQBot):
             return
 
         if content.startswith(u'呼叫文文'):
-            pool.apply_async(self.send_group_message, (msg['from_uin'], u'文文在哦'))
+            gnum = self.gcode2groupnum(msg['group_code'])
+            words = u'文文在哦' if dao.is_group_on(gnum) else u'哼，有人不让文文说话……'
+            pool.apply_async(self.send_group_message, (msg['from_uin'], words))
 
         elif content == u'文文on':
             superusers = self.get_group_superusers_uin(msg['group_code'])
