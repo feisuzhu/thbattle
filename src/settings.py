@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 206'
+VERSION = 'THBATTLE V1.0b incr 207'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -150,6 +150,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+射命丸文技能调整
 新人物：射命丸文（画师：渚FUN）、SP八云紫（画师：Vivicat From 东方梦斗符）（开发：zhyk）
 修复了与八云紫移动伊吹瓢相关的bug
 天子、梅蒂欣、妹红、正邪、橙：技能、设定调整
