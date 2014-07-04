@@ -204,7 +204,6 @@ def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
             migrate_cards(cards, to, unwrap, detached, trans)
         return
 
-    g = Game.getgame()
     from .cards import VirtualCard
     groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
 
@@ -267,11 +266,11 @@ class UserAction(Action):  # card/character skill actions
     pass
 
 
-class PlayerDeath(GenericAction):
+class DeadDropCards(GenericAction):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
-        tgt.dead = True
+
         others = g.players.exclude(tgt)
         from .actions import DropCards
         lists = [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]
@@ -282,6 +281,15 @@ class PlayerDeath(GenericAction):
             g.process_action(DropCards(tgt, cl))
             assert not cl
 
+        return True
+
+
+class PlayerDeath(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        tgt.dead = True
+        g = Game.getgame()
+        g.process_action(DeadDropCards(tgt, tgt))
         tgt.skills[:] = []
         return True
 
@@ -644,8 +652,8 @@ class LaunchCard(GenericAction, LaunchCardAction):
         loc = pl.index(src)
         n = len(pl)
         dist = {
-            p: min(abs(i), n-abs(i))
-            for p, i in zip(pl, xrange(-loc, -loc+n))
+            p: min(abs(i), n - abs(i))
+            for p, i in zip(pl, xrange(-loc, -loc + n))
         }
         return dist
 
@@ -979,7 +987,7 @@ class CardUsageHandler(EventHandler):
 
             from .cards import VirtualCard
             return arg, not any([c.is_card(VirtualCard) for c in cards])
-                    
+
         return act
 
 

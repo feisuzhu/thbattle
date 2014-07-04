@@ -50,7 +50,6 @@ __metaclass__ = gen_metafunc(thbcp3)
 class THBattleCP3:
     name = u'符斗祭 - CP大战'
     logo = gres.thblogo_cp3
-    hidden = True
     description = (
         u'|R游戏人数|r：6人\n'
         u'\n'
@@ -58,6 +57,7 @@ class THBattleCP3:
         u'由ROLL点最高的人开始，按照顺时针顺序选将。\n'
         u'选将完成由ROLL点最高的玩家开始行动。\n'
         u'ROLL点最高的玩家开局摸3张牌，其余玩家开局摸4张牌。\n'
+        u'当一名玩家被击坠时，将其全部手牌与装备交给其CP。\n'
         u'\n'
         u'|R胜利条件|r：击坠所有其它阵营玩家。'
     )

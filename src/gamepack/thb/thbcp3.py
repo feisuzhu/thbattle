@@ -3,8 +3,8 @@ import random
 
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity
-from .actions import action_eventhandlers
+from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, DeadDropCards
+from .actions import action_eventhandlers, migrate_cards
 
 from .characters.baseclasses import mixin_character
 
@@ -36,19 +36,33 @@ def game_action(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type != 'action_after': return act
-        if not isinstance(act, PlayerDeath): return act
+        if evt_type == 'action_before' and isinstance(act, DeadDropCards):
+            tgt = act.target
+            g = Game.getgame()
 
-        g = Game.getgame()
+            cp = [p for p in g.forces[tgt.force] if not p.dead]
+            if not cp: return act
 
-        # see if game ended
-        alive = [p.force for p in g.players
-                 if not (p.dead or p.dropped)]
+            assert len(cp) == 1
+            cp = cp[0]
+            cards = []
+            for cl in (tgt.cards, tgt.showncards, tgt.equips):
+                cards.extend(cl)
 
-        if len(set(alive)) == 1:
-            g.winners = g.forces[alive[0]][:]
-            g.game_end()
-        
+            cp.reveal(cards)
+            migrate_cards(cards, cp.cards)
+
+        elif evt_type == 'action_after' and isinstance(act, PlayerDeath):
+            g = Game.getgame()
+
+            # see if game ended
+            alive = [p.force for p in g.players
+                     if not (p.dead or p.dropped)]
+
+            if len(set(alive)) == 1:
+                g.winners = g.forces[alive[0]][:]
+                g.game_end()
+
         return act
 
 

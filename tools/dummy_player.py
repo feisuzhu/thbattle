@@ -13,6 +13,7 @@ import sys
 
 types = {
     '3v3': 'THBattle',
+    'cp3': 'THBattleCP3',
     'id5': 'THBattleIdentity5',
     'id8': 'THBattleIdentity',
     'kof': 'THBattleKOF',
