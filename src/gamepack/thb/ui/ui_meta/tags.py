@@ -74,9 +74,9 @@ class ran_ei:
     description = u'还可以发动【极智】'
 
 
-class aya_range_max:
+class aya_count:
     tag_anim = lambda p: gres.tag_aya_range_max
-    display = lambda p, v: v and p is G().current_turn
-    description = u'使用的下一张牌不受距离限制'
+    display = lambda p, v: v >= 2 and p is G().current_turn
+    description = u'使用卡牌时不受距离限制'
 
 # -----END TAGS UI META-----
