@@ -15,7 +15,7 @@ class Envy(TreatAsSkill):
         if len(cards) != 1: return False
         c = cards[0]
         if c.resides_in is None: return False
-        if not c.resides_in.type in ('cards', 'showncards', 'equips'): return False
+        if c.resides_in.type not in ('cards', 'showncards', 'equips'): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         return True
 
@@ -42,6 +42,7 @@ class EnvyHandler(EventHandler):
         if evt_type != 'action_after': return act
         if not isinstance(act, Demolition): return act
         if not act.associated_card.is_card(Envy): return act
+        if not act.source.has_skill(Envy): return act
 
         src = act.source
         tgt = act.target
