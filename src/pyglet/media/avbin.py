@@ -105,6 +105,8 @@ class _AVbinStreamInfoVideo(ctypes.Structure):
         ('height', ctypes.c_uint),
         ('sample_aspect_num', ctypes.c_int),
         ('sample_aspect_den', ctypes.c_int),
+        ('frame_rate_num', ctypes.c_int),
+        ('frame_rate_den', ctypes.c_int),
     ]
 
 class _AVbinStreamInfoAudio(ctypes.Structure):
