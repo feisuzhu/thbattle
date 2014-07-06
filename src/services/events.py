@@ -194,6 +194,23 @@ def crashreport():
     return ''
 
 
+@route('/interconnect/unsubscribe/<address>')
+def unsubscribe(address):
+    return '''
+        你(%s)以后不想再收到有关符斗祭的消息了么……确定的话点
+        <a href="/interconnect/unsubscribe/%s/confirm">这里</a>
+    ''' % (address, address)
+
+
+@route('/interconnect/unsubscribe/<address>/confirm')
+def unsubscribe_confirm(address):
+    with open(options.unsubscribe_list, 'a') as f:
+        f.write(address)
+        f.write('\n')
+
+    return '以后不会再收到东方符斗祭的邮件'
+
+
 def main():
     global options, member_service, interconnect
     parser = argparse.ArgumentParser(sys.argv[0])
@@ -202,6 +219,7 @@ def main():
     parser.add_argument('--redis-url', default='redis://localhost:6379')
     parser.add_argument('--member-service', default='localhost')
     parser.add_argument('--discuz-cookiepre', default='VfKd_')
+    parser.add_argument('--unsubscribe-list', default='/var/log/thb/unsubscribe.lst')
     options = parser.parse_args()
 
     member_service = RPCClient((options.member_service, 7000), timeout=2)
