@@ -128,6 +128,7 @@ class Account(object):
             credits=-998,
             games=0,
             drops=0,
+            badges=[],
         )
 
     @server_side_only
