@@ -75,7 +75,7 @@ def _get_box(vlist):
 
 class ServerList:
     import os
-    IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
+    IS_PROTON = hasattr(os, 'uname') and ''.join(os.uname()).startswith('LinuxProton')
     del os
 
     if options.testing or IS_PROTON:

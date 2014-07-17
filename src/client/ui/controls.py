@@ -1,33 +1,36 @@
 # -*- coding: utf-8 -*-
 
-import pyglet
-import gevent
-from pyglet.window import mouse, key
+# -- stdlib --
+from collections import namedtuple
+import logging
+
+# -- third party --
+from pyglet.gl import GL_TEXTURE_2D, GL_SCISSOR_TEST, GL_CLIENT_VERTEX_ARRAY_BIT
+from pyglet.gl import GLfloat, GL_RGBA, GL_LINES, GL_QUADS, GL_T4F_V4F, GL_ENABLE_BIT
+from pyglet.gl import glColor4f, glDisable, glScissor, glVertex2f, glLineWidth
+from pyglet.gl import glCopyTexImage2D, glPopClientAttrib, glPushClientAttrib
+from pyglet.gl import glEnd, glBegin, glRectf, glEnable, glColor3f
+from pyglet.gl import glInterleavedArrays
+from pyglet.gl import glPopAttrib, glPopMatrix, glDrawArrays, glPushAttrib
+from pyglet.gl import glPushMatrix, glTranslatef, glBindTexture, glLoadIdentity
 from pyglet.graphics import OrderedGroup
 from pyglet.sprite import Sprite
+from pyglet.window import mouse, key
+import gevent
+import pyglet
+
+# -- own --
+from client.core import Executive
+from client.ui import ui_meta as client_ui_meta
 from client.ui.base import Overlay, Control
 from client.ui.base import ui_message, ui_schedule
 from client.ui.base.interp import InterpDesc, LinearInterp
-from client.ui.resource import resource as common_res
-from client.core import Executive
-from utils import textsnap, flatten, rectv2f, rrectv2f, inpoly
+from client.ui.resource import resource as cres
 from utils import pyperclip, instantiate
+from utils import textsnap, flatten, rectv2f, rrectv2f, inpoly
 
-from pyglet.gl import glEnd, glBegin, glRectf, glEnable, glColor3f
-from pyglet.gl import glColor4f, glDisable, glScissor, glVertex2f, glLineWidth
-from pyglet.gl import glPopAttrib, glPopMatrix, glDrawArrays, glPushAttrib
-from pyglet.gl import glPushMatrix, glTranslatef, glBindTexture, glLoadIdentity
-from pyglet.gl import glCopyTexImage2D, glPopClientAttrib, glPushClientAttrib
-from pyglet.gl import glInterleavedArrays
-
-from pyglet.gl import GLfloat, GL_RGBA, GL_LINES, GL_QUADS, GL_T4F_V4F, GL_ENABLE_BIT
-from pyglet.gl import GL_TEXTURE_2D, GL_SCISSOR_TEST, GL_CLIENT_VERTEX_ARRAY_BIT
-
-from collections import namedtuple
-
+# -- code --
 KEYMOD_MASK = key.MOD_CTRL | key.MOD_ALT | key.MOD_SHIFT
-
-import logging
 log = logging.getLogger('UI_Controls')
 
 
@@ -41,7 +44,7 @@ class Colors:
         light = 206, 239, 156
         caption = 255, 255, 255
         caption_shadow = heavy
-        close_btn = property(lambda _: common_res.buttons.close_green)
+        close_btn = property(lambda _: cres.buttons.close_green)
         # Button
         btn_frame = heavy
         fill_up = 173, 207, 140
@@ -59,7 +62,7 @@ class Colors:
         light = 254, 221, 206
         caption = 255, 255, 255
         caption_shadow = frame
-        close_btn = property(lambda _: common_res.buttons.close_red)
+        close_btn = property(lambda _: cres.buttons.close_red)
         # Button
         btn_frame = frame
         fill_up = 0xee, 0x89, 0x78
@@ -77,7 +80,7 @@ class Colors:
         light = 0xa3, 0xd1, 0xfa
         caption = frame
         caption_shadow = 0xe5, 0xef, 0xfb
-        close_btn = property(lambda _: common_res.buttons.close_blue)
+        close_btn = property(lambda _: cres.buttons.close_blue)
         # Button
         btn_frame = 0x54, 0x67, 0xa6
         fill_up = 0x90, 0xbf, 0xef
@@ -95,7 +98,7 @@ class Colors:
         light = 0xff, 0xee, 0xaa
         caption = 255, 255, 255
         caption_shadow = frame
-        close_btn = property(lambda _: common_res.buttons.close_orange)
+        close_btn = property(lambda _: cres.buttons.close_orange)
         # Button
         btn_frame = frame
         fill_up = medium
@@ -107,7 +110,7 @@ class Colors:
     @instantiate
     class gray:
         # Frame
-        close_btn = property(lambda _: common_res.buttons.close_blue)
+        close_btn = property(lambda _: cres.buttons.close_blue)
         btn_frame = 104, 104, 104
         caption = 81, 81, 81
         caption_shadow = 237, 237, 237
@@ -135,7 +138,7 @@ class AbstractButton(Control):
     HOVER = 1
     PRESSED = 2
     DISABLED = 3
-    
+
     hover_alpha = InterpDesc('_hv')
 
     def __init__(self, *a, **k):
@@ -273,7 +276,7 @@ class Button(AbstractButton):
     def draw(self):
         glColor3f(1.0, 0.0, 0.0)
         glRectf(0, 0, self.width, self.height)
-    
+
     def _get_color(self):
         if self._state == Button.DISABLED:
             return Colors.gray
@@ -331,6 +334,7 @@ class ImageButton(AbstractButton):
         glPopMatrix()
 
 AbstractButton.register_event_type('on_click')
+
 
 def batch_drawlabel(lbls):
     s = set([l.batch for l in lbls])
@@ -429,8 +433,8 @@ class Frame(Control):
                 bg = bg.get_region(0, 0, _w, _h)
         else:
             # HACK
-            bg = common_res.white.get_region(0, 0, _w, _h)
-            bg.tex_coords = common_res.white.tex_coords
+            bg = cres.white.get_region(0, 0, _w, _h)
+            bg.tex_coords = cres.white.tex_coords
 
         self.bgsprite.image = bg
 
@@ -441,7 +445,7 @@ class Frame(Control):
         self._batch = batch
 
         r = self.bot_reserve
-        self.bgsprite = Sprite(common_res.white, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
+        self.bgsprite = Sprite(cres.white, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
         self.update_bg()
 
         self.framevlist = batch.add(20, GL_QUADS, self.frame_group,
@@ -663,14 +667,17 @@ Dialog.register_event_type('on_close')
 Dialog.register_event_type('on_destroy')
 
 
-class BalloonPromptMixin(object):
-    balloon_inited = False
-    balloon_panel = None
-    balloon_cursorloc = (0, 0)
-    balloon_width = 288
-    balloon_state = 'hidden'
+class BalloonPrompt(object):
+    def __init__(self, control, balloon_show_func=None):
+        self.balloon_inited    = False
+        self.balloon_panel     = None
+        self.balloon_cursorloc = (0, 0)
+        self.balloon_width     = 288
+        self.balloon_state     = 'hidden'
+        self.control           = control
+        self.balloon_show_func = balloon_show_func or self.balloon_show
 
-    def init_balloon(self, text, region=None, width=288, polygon=None):
+    def set_balloon(self, text, region=None, width=288, polygon=None):
         self.balloon_text = text
         if region:
             x, y, w, h = region
@@ -683,7 +690,7 @@ class BalloonPromptMixin(object):
 
         if not self.balloon_inited:
             self.balloon_inited = True
-            self.push_handlers(
+            self.control.push_handlers(
                 on_mouse_motion=self.balloon_on_mouse_motion,
                 on_mouse_drag=self.balloon_on_mouse_motion,
                 on_mouse_enter=self.balloon_on_mouse_enter,
@@ -697,7 +704,7 @@ class BalloonPromptMixin(object):
         self.balloon_state = 'hidden'
 
     def balloon_on_mouse_motion(self, x, y, dx, dy, *a):
-        ax, ay = self.abs_coords()
+        ax, ay = self.control.abs_coords()
         ax += x
         ay += y
 
@@ -752,7 +759,7 @@ class BalloonPromptMixin(object):
             pyglet.clock.unschedule(self._balloon_show)
         elif self.balloon_state == 'shown':
             self.balloon_panel.delete()
-            del self.balloon_panel
+            self.balloon_panel = None
         self.balloon_state = 'hidden'
 
     def _balloon_show(self, dt):
@@ -761,7 +768,7 @@ class BalloonPromptMixin(object):
         if not self.balloon_text: return
 
         self.balloon_state = 'shown'
-        panel = self.balloon_show()
+        panel = self.balloon_show_func()
         self.balloon_panel = panel
         self.balloon_setloc()
 
@@ -830,7 +837,6 @@ class TextBox(Control):
     text = property(_gettext, _settext)
 
     def draw(self):
-        #ui_utils.border(0, 0, self.width, self.height)
         w, h = self.width, self.height
         border = [i/255.0 for i in self.color.heavy]
         fill = [i/255.0 for i in self.color.light]
@@ -919,6 +925,21 @@ class PasswordTextBox(TextBox):
         TextBox.__init__(self, font_name='AncientPixPassword', *a, **k)
 
 
+class BadgeIcon(Control):
+    def __init__(self, img, x, y, text, *a, **k):
+        Control.__init__(self, x=x, y=y, width=20, height=20, *a, **k)
+        self.image = img
+        self.sprite = Sprite(img)
+        balloon = BalloonPrompt(self)
+        balloon.set_balloon(text)
+
+    def draw(self):
+        self.sprite.draw()
+
+    def set_position(self, x, y):
+        self.x, self.y = x, y
+
+
 class PlayerPortrait(Frame):
     def __init__(self, player_name, color=Colors.blue, *args, **kwargs):
         self.account = None
@@ -927,6 +948,7 @@ class PlayerPortrait(Frame):
         self.window = main_window
         self.hand_cursor = self.window.get_system_mouse_cursor('hand')
         self.accinfo_labels = []
+        self.badge_icons = []
 
         self.player_name = player_name
         Frame.__init__(
@@ -964,8 +986,6 @@ class PlayerPortrait(Frame):
             def on_click(btn=btn, cmd=command):
                 cmd()
 
-        # btn(u'换位', self._change_loc, 90, 55, 32, 20)
-        # btn(u'请离', self._kick, 90, 80, 32, 20)
         btn(u'请离', self._kick, 90, 55, 32, 20)
 
     def _change_loc(self):
@@ -995,6 +1015,12 @@ class PlayerPortrait(Frame):
             self.remove_label(l)
 
         self.accinfo_labels = []
+
+        for i in self.badge_icons:
+            i.delete()
+
+        self.badge_icons = []
+
         self.avatar = None
 
         self.set_caption(name)
@@ -1078,13 +1104,32 @@ class PlayerPortrait(Frame):
         dr = int(100*d/g) if d else 0
         L(u'游戏数：%d(%d%%)' % (g, dr), 2)
 
+        def B(loc, badge_name):
+            badge = client_ui_meta.badges.get(badge_name)
+
+            if not badge:
+                log.warning('No such badge: %s', badge_name)
+                return
+
+            if loc > 2:
+                loc += 2
+
+            y, x = divmod(loc, 5)
+
+            self.badge_icons.append(BadgeIcon(
+                badge.badge_anim,
+                128 - 30 - 22 * (4 - x), 55 + 22 * y,
+                badge.badge_text,
+                parent=self,
+            ))
+
+        [B(i, v) for i, v in enumerate(acc.other['badges'])]
+
     def draw(self):
         PlayerPortrait.draw(self)
         if self.avatar:
             self.avatar.draw()
 
-        #for b in self.buttons:
-        #    b.do_draw()
         Button.batch_draw(self.buttons)
 
     @staticmethod
@@ -1354,7 +1399,6 @@ class ListItem(object):
         self.labels = [None] * n
         self._data = [''] * n
         self.idx = i
-        #self.data = ['Yoo~'] * n
 
     def _set_data(self, val):
         val = list(val)
@@ -1496,7 +1540,7 @@ class ListView(Control):
         client_height = self.height - hh
         vy = self.view_y
 
-        #glPushMatrix()
+        # glPushMatrix()
         glTranslatef(0, client_height + vy, 0)
         glEnable(GL_SCISSOR_TEST)
         ax, ay = self.abs_coords()
@@ -1515,7 +1559,7 @@ class ListView(Control):
         glTranslatef(0, -vy, 0)
         self.header.draw()
 
-        #glPopMatrix()
+        # glPopMatrix()
 
     def on_mouse_scroll(self, x, y, dx, dy):
         self.view_y -= dy * 40
@@ -1564,7 +1608,7 @@ class ProgressBar(Control):
 
     def draw(self):
         value = self.value
-        width, height = self.width, self.height
+        width = self.width
 
         glColor3f(1, 1, 1)
         tex = self.pic_frame[0].owner
@@ -1580,12 +1624,12 @@ class BigProgressBar(ProgressBar):
 
     @property
     def pic_frame(self):
-        r = common_res.pbar
+        r = cres.pbar
         return r.bfl, r.bfm, r.bfr
 
     @property
     def pic_core(self):
-        r = common_res.pbar
+        r = cres.pbar
         return r.bl, r.bm, r.br
 
 
@@ -1595,12 +1639,12 @@ class SmallProgressBar(ProgressBar):
 
     @property
     def pic_frame(self):
-        r = common_res.pbar
+        r = cres.pbar
         return r.sfl, r.sfm, r.sfr
 
     @property
     def pic_core(self):
-        r = common_res.pbar
+        r = cres.pbar
         return r.sl, r.sm, r.sr
 
 
@@ -1815,7 +1859,7 @@ class Panel(Control):
         self.draw_subcontrols()
 
 
-class ImageSelector(Control, BalloonPromptMixin):
+class ImageSelector(Control):
     hover_alpha = InterpDesc('_hover_alpha')
 
     def __init__(self, image, group, *a, **k):
@@ -1829,6 +1873,7 @@ class ImageSelector(Control, BalloonPromptMixin):
         self.hover_alpha = 0.0
         self.image = image
         self.group = group
+        self.balloon = BalloonPrompt(self)
 
     def on_mouse_enter(self, x, y):
         self.hover_alpha = 0.4
@@ -1860,7 +1905,7 @@ class ImageSelector(Control, BalloonPromptMixin):
         glRectf(0, self.height, self.width, 0)
 
         if self.selected:
-            common_res.imagesel_shine.blit(-11, -11)
+            cres.imagesel_shine.blit(-11, -11)
 
         a = self.hover_alpha
         if a:
@@ -1894,10 +1939,11 @@ class SensorLayer(Control):
         )
 
 
-class VolumeTuner(Control, BalloonPromptMixin):
+class VolumeTuner(Control):
     def __init__(self, *a, **k):
         Control.__init__(self, width=32, height=32, zindex=99999, *a, **k)
-        self.init_balloon(
+        balloon = BalloonPrompt(self)
+        balloon.set_balloon(
             u'|DB调节音量的图标|r\n'
             u'\n'
             u'单击切换静音和有声音\n'
@@ -1906,12 +1952,12 @@ class VolumeTuner(Control, BalloonPromptMixin):
 
     def draw(self):
         glColor4f(1, 1, 1, 1)
-        with common_res.speaker.owner:
+        with cres.speaker.owner:
             glColor4f(1, 1, 1, 1)
-            common_res.speaker_off.blit_nobind(0, 0)
+            cres.speaker_off.blit_nobind(0, 0)
             from client.ui.soundmgr import SoundManager
             glColor4f(1, 1, 1, SoundManager.get_volume())
-            common_res.speaker.blit_nobind(0, 0)
+            cres.speaker.blit_nobind(0, 0)
 
     def on_mouse_click(self, x, y, button, modifier):
         from client.ui.soundmgr import SoundManager
@@ -2026,7 +2072,7 @@ class CheckBox(Control):
             parent=self, conf=conf, x=0, y=0,
             width=16, height=16, value=value
         )
-        self.image = common_res.check
+        self.image = cres.check
 
         sensor = SensorLayer(self, zindex=1)
         sensor.event(self.opt.on_mouse_enter)

@@ -3,43 +3,30 @@
 # -- stdlib --
 from collections import defaultdict
 from options import options
-from contextlib import contextmanager
 import logging
 log = logging.getLogger('forum_integration')
 
 # -- third party --
-from gevent.queue import Queue
 import gevent
 
 # -- own --
 from .base import server_side_only
 from utils import log_failure
+from utils.misc import GenericPool
 
 
 # -- globals --
-_member_client = None
-_cli_pool = None
 _try_counter = 10032
 
 
 # -- code --
-@contextmanager
-def member_client_pool():
-    global _cli_pool
+def clipool_factory():
+    from utils.rpc import RPCClient
+    host, port = options.member_service.split(':')
+    port = int(port)
+    return RPCClient((host, port), timeout=6)
 
-    if not _cli_pool:
-        from utils.rpc import RPCClient
-        host, port = options.member_service.split(':')
-        port = int(port)
-        _cli_pool = Queue(10)
-        for i in xrange(10):
-            _cli_pool.put(RPCClient((host, port), timeout=6))
-
-    try:
-        cli = _cli_pool.get()
-        yield cli
-    finally:
-        _cli_pool.put(cli)
+clipool = GenericPool(clipool_factory, 10)
 
 
 class Account(object):
@@ -48,7 +35,19 @@ class Account(object):
     @classmethod
     @server_side_only
     def authenticate(cls, username, password):
-        with member_client_pool() as cli:
+        # acc = cls()
+        # acc._fill_account({
+        #     'username': 'Protonoooo',
+        #     'uid': 1,
+        #     'status': 1,
+        #     'title': 'nyan',
+        #     'credits': 1,
+        #     'games': 1,
+        #     'drops': 1,
+        # })
+        # return acc
+
+        with clipool() as cli:
             try:
                 uid = int(username)
                 uid = uid if uid < 100000 else None
@@ -79,6 +78,19 @@ class Account(object):
 
         from urlparse import urljoin
         from settings import ACCOUNT_FORUMURL
+        from server import userdata
+        from server.userdata.tables import Badges
+
+        if self.userid > 0:
+            badges = userdata.session.query(Badges.badge) \
+                .filter_by(uid=self.userid) \
+                .order_by(Badges.id.desc()) \
+                .all()
+
+            badges = [i for i, in badges]
+            userdata.session.remove()
+        else:
+            badges = []
 
         self.other = defaultdict(
             lambda: None,
@@ -90,6 +102,7 @@ class Account(object):
             credits=data['credits'],
             games=data['games'],
             drops=data['drops'],
+            badges=badges,
         )
 
     @server_side_only
@@ -129,7 +142,7 @@ class Account(object):
         @gevent.spawn
         @log_failure(log)
         def worker():
-            with member_client_pool() as cli:
+            with clipool() as cli:
                 rst = cli.add_credit(self.userid, type, amount)
                 rst and self._fill_account(rst)
 

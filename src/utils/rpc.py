@@ -5,7 +5,6 @@ import traceback
 from functools import partial
 
 # -- third party --
-import gevent
 from gevent import Timeout
 from gevent import socket, Greenlet
 from gevent.coros import RLock

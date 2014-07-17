@@ -72,12 +72,15 @@ resource = Resource(respath, [
         img_grid('serverbtn', 1, 4),
     ]),
 
-
     subdir('sound', [
         sound('input'),
     ]),
 
     imgdata_grid('suit12', 1, 4), imgdata_grid('suit16', 1, 4),
+
+    subdir('badges', [
+        img('dev'),
+    ]),
 
     white('white'),
 ])

@@ -55,16 +55,16 @@ resource = Resource(respath, [
     ]],
 
 
-    img('scardframe_normal', 'card'),
+    img('scardframe_normal',   'card'),
     img('scardframe_selected', 'card'),
 
-    img_grid('cardnum', 2, 13, 'card'),
-    img_grid('suit', 1, 4, 'card'),
-    img_grid('smallsuit', 1, 4, 'card'),
-    img_grid('smallnum', 2, 14, 'card'),
+    img_grid('cardnum',   2, 13, 'card'),
+    img_grid('suit',      1, 4,  'card'),
+    img_grid('smallsuit', 1, 4,  'card'),
+    img_grid('smallnum',  2, 14, 'card'),
 
-    anim('tag_sealarray', [83]*36, True),
-    anim('tag_wine', [150]*3, True),
+    anim('tag_sealarray', [83]*36,  True),
+    anim('tag_wine',      [150]*3,  True),
     anim('tag_lunaclock', [200]*10, True),
     img('tag_riverside'),
     img('tag_action'),
@@ -102,7 +102,7 @@ resource = Resource(respath, [
 
     img_with_grayed('dummy_port', 'portrait'),
 
-    img_with_grayed('hp', 'portrait'),
+    img_with_grayed('hp',    'portrait'),
     img_with_grayed('hp_bg', 'portrait'),
 
     img_grid('num', 1, 10, 'portrait'),

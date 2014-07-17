@@ -11,30 +11,30 @@ from pyglet.text import Label
 import pyglet
 
 # -- own --
+from .. import actions
 from ..cards import CardList
 from client.ui.base import Control
 from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineInterp
 from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractInterp
-from client.ui.controls import BalloonPromptMixin
+from client.ui.controls import BalloonPrompt
 from client.ui.controls import Frame, Panel, Button, Colors, ImageButton, TextArea, OptionButton
 from client.ui.resource import resource as common_res, get_atlas
 from game.autoenv import Game
-from .. import actions
 from resource import resource as game_res
 from utils import flatten, rectv2f, rrectv2f
 
 
 # -- code --
-class CardSprite(Control, BalloonPromptMixin):
-    x = InterpDesc('_x')
-    y = InterpDesc('_y')
-    back_scale = InterpDesc('_bs')
-    question_scale = InterpDesc('_qs')
-    ftanim_alpha = InterpDesc('_fta')
+class CardSprite(Control):
+    x                = InterpDesc('_x')
+    y                = InterpDesc('_y')
+    back_scale       = InterpDesc('_bs')
+    question_scale   = InterpDesc('_qs')
+    ftanim_alpha     = InterpDesc('_fta')
     ftanim_cardalpha = InterpDesc('_ftca')
-    shine_alpha = InterpDesc('_shine_alpha')
-    alpha = InterpDesc('_alpha')
-    width, height = 91, 125
+    shine_alpha      = InterpDesc('_shine_alpha')
+    alpha            = InterpDesc('_alpha')
+    width, height    = 91, 125
 
     def __init__(self, card, x=0.0, y=0.0, *args, **kwargs):
         Control.__init__(self, *args, **kwargs)
@@ -49,6 +49,7 @@ class CardSprite(Control, BalloonPromptMixin):
         self.card = card
 
         self.ft_anim = False
+        self.balloon = BalloonPrompt(self)
 
         self.update()
 
@@ -96,7 +97,7 @@ class CardSprite(Control, BalloonPromptMixin):
                 n, s = cs.number, cs.suit
                 if n: vertices += game_res.cardnum[s % 2 * 13 + n - 1].get_t2c4n3v3_vertices(c, ax + 5, ay + 105)
                 if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
-                
+
                 if cs.selected:
                     c = (0., 0., 2., 1.0)
                 else:
@@ -127,7 +128,7 @@ class CardSprite(Control, BalloonPromptMixin):
         self.number, self.suit = card.number, card.suit
 
         t = getattr(meta, 'description', None)
-        if t: self.init_balloon(t)
+        t and self.balloon.set_balloon(t)
 
     def on_mouse_enter(self, x, y):
         self.shine_alpha = 1.0
@@ -366,7 +367,7 @@ class SkillSelectionBox(Control):
                 pui = getattr(self.skill.ui_meta, 'params_ui', None)
                 if pui:
                     self.params_ui = pui(parent=self.view)
-            
+
             else:
                 self.parent.selection.remove(self.sid)
                 self.color = Colors.blue
@@ -421,7 +422,7 @@ class SkillSelectionBox(Control):
         return self.control_frompoint1(x, y)
 
 
-class SmallCardSprite(Control, BalloonPromptMixin):
+class SmallCardSprite(Control):
     width, height = 33, 46
     x = InterpDesc('_x')
     y = InterpDesc('_y')
@@ -435,7 +436,8 @@ class SmallCardSprite(Control, BalloonPromptMixin):
         self.card = card
 
         self.img = card.ui_meta.image_small
-        self.init_balloon(card.ui_meta.description)
+        self.balloon = balloon = BalloonPrompt(self)
+        balloon.set_balloon(card.ui_meta.description)
 
     @staticmethod
     def batch_draw(csl):
@@ -534,7 +536,7 @@ class CardSelectionPanel(Panel):
 
     def __init__(self, selection_mode=0, *a, **k):
         self.selection_mode = selection_mode
-        self.lbls = lbls = pyglet.graphics.Batch()
+        self.lbls = pyglet.graphics.Batch()
         self.selection = []
         Panel.__init__(self, width=1, height=1, *a, **k)
 
@@ -568,7 +570,7 @@ class CardSelectionPanel(Panel):
                     fold_size=6,
                     width=6*93, height=145,
                 )
-                
+
                 def register_events(cs):
                     @cs.event
                     def on_mouse_click(*v, **k):
@@ -588,7 +590,7 @@ class CardSelectionPanel(Panel):
                 h += 145
 
                 if not multiline: break
-            
+
             Label(
                 text=name, x=30, y=y+62+145*(i-1), font_size=12,
                 color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 130),
@@ -636,7 +638,7 @@ class CardSelectionPanel(Panel):
 CardSelectionPanel.register_event_type('on_confirm')
 CardSelectionPanel.register_event_type('on_selection_change')
 
-    
+
 class ShownCardPanel(CardSelectionPanel):
     current = None
 
@@ -648,7 +650,7 @@ class ShownCardPanel(CardSelectionPanel):
             (CardList.ui_meta.lookup[cat.type], cat)
             for cat in character.showncardlists
         ]
-        
+
         CardSelectionPanel.__init__(self, zindex=5, *a, **k)
         self.init(card_lists)
 
@@ -711,7 +713,7 @@ class _CharacterFigure(Control):
         pass
 
 
-class GameCharacterPortrait(Frame, BalloonPromptMixin):
+class GameCharacterPortrait(Frame):
     dropped = False
     fleed = False
     actor_frame = None
@@ -734,6 +736,8 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             thin_shadow=True,
             **kwargs
         )
+        self.balloon = BalloonPrompt(self, self.balloon_show)
+
         self.view = view = self.parent
         self.x, self.y = x, y
 
@@ -774,7 +778,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
         def tagarrange_bottom():
             x, y = self.x, self.y
-            w, h = self.width, self.height
+            w = self.width
             x += w + 1
             y -= 27
             for a in self.taganims:  # they are pyglet.sprite.Sprite instances
@@ -783,7 +787,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
         def tagarrange_me():
             x, y = self.x, self.y
-            w, h = self.width, self.height
+            w = self.width
             x += w + 6
             y += 142
             for a in self.taganims:  # they are pyglet.sprite.Sprite instances
@@ -792,7 +796,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
         def tagarrange_right():
             x, y = self.x, self.y
-            w, h = self.width, self.height
+            w = self.width
             x += w + 3
             y += 1
             for a in self.taganims:  # they are pyglet.sprite.Sprite instances
@@ -801,7 +805,6 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
         def tagarrange_left():
             x, y = self.x, self.y
-            w, h = self.width, self.height
             x -= 28
             y += 1
             for a in self.taganims:  # they are pyglet.sprite.Sprite instances
@@ -856,7 +859,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             self.update_bg()
             self.set_charname(meta.char_name)
             if self._last_balloon != meta.description:
-                self.init_balloon(meta.description, (2, 74, 145, 96))
+                self.balloon.set_balloon(meta.description, (2, 74, 145, 96))
                 self._last_balloon = meta.description
 
         self.bot_reserve = 74
@@ -871,7 +874,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             meta = self.character.ui_meta
             figure_image = meta.figure_image
         except:
-            return BalloonPromptMixin.balloon_show(self)
+            return self.balloon.balloon_show()
 
         try:
             figure_image_alter = meta.figure_image_alter
@@ -1014,7 +1017,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
 
         nums = game_res.num
         for port in gcps:
-            x, y, w, h = port.x, port.y, port.width, port.height
+            x, y, w = port.x, port.y, port.width
             char = port.character
             if not char: continue
 
@@ -1023,7 +1026,7 @@ class GameCharacterPortrait(Frame, BalloonPromptMixin):
             ox = (32 - len(seq)*14)//2
             for i, ch in enumerate(seq):
                 n = ord(ch) - ord('0')
-                #x, y = w - 34 + ox + i*14, 68
+                # x, y = w - 34 + ox + i*14, 68
                 vertices.extend(nums[n].get_t4f_v4f_vertices(
                     x + w - 34 + ox + i*14,
                     y + 68

@@ -14,9 +14,12 @@ from gevent.pool import Group as GreenletGroup
 import gevent
 
 # -- own --
-from network.server import EndpointDied
 from game import TimeLimitExceeded, InputTransaction, GameEnded
+from network.server import EndpointDied
+from server import userdata
+from server.userdata.tables import Badges
 from utils import waitany, log_failure
+
 import game
 
 # -- code --

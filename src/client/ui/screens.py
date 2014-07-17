@@ -15,7 +15,7 @@ from pyglet.text import Label
 # -- own --
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
-from client.ui.controls import BalloonPromptMixin, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
+from client.ui.controls import BalloonPrompt, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
 from client.ui.controls import ImageSelector, ListView, Panel
 from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox, SensorLayer, CheckBox
@@ -253,13 +253,13 @@ class ServerSelectScreen(Screen):
 
         screen = self
 
-        class HighlightLayer(SensorLayer, BalloonPromptMixin):
+        class HighlightLayer(SensorLayer):
             zindex = 0
             hl_alpha = InterpDesc('_hl_alpha')
 
             def __init__(self, *a, **k):
                 SensorLayer.__init__(self, *a, **k)
-                BalloonPromptMixin.__init__(self)
+                self.balloon = BalloonPrompt(self)
                 from base.baseclasses import main_window
                 self.window = main_window
                 self.hand_cursor = self.window.get_system_mouse_cursor('hand')
@@ -276,7 +276,7 @@ class ServerSelectScreen(Screen):
                         self.hl_alpha = 1
                         if self.highlight is not s:
                             self.highlight = s
-                            self.init_balloon(s['description'], polygon=s['polygon'])
+                            self.balloon.set_balloon(s['description'], polygon=s['polygon'])
                             x, y, w, h = s['box']
                             tex = self.worldmap_shadow.get_region(x, y, w, h)
                             self.hldraw = (x, y, tex)
@@ -289,7 +289,7 @@ class ServerSelectScreen(Screen):
                         self.hl_alpha = LinearInterp(1.0, 0, 0.3)
                         self.window.set_mouse_cursor(None)
 
-                    self.init_balloon('', (0, 0, 0, 0))
+                    self.balloon.set_balloon('', (0, 0, 0, 0))
 
             def on_mouse_release(self, x, y, button, modifiers):
                 if self.highlight and not self.disable_click:
@@ -336,7 +336,7 @@ class ServerSelectScreen(Screen):
             Screen.on_message(self, _type, *args)
 
     def draw(self):
-        #glColor3f(0.9, 0.9, 0.9)
+        # glColor3f(0.9, 0.9, 0.9)
         glColor3f(1, 1, 1)
         self.worldmap.blit(0, 0)
         self.draw_subcontrols()
@@ -544,7 +544,7 @@ class GameHallScreen(Screen):
                         parent=self, x=x, y=y
                     )
                     intro = getattr(gcls.ui_meta, 'description', None)
-                    intro and s.init_balloon(intro, width=480)
+                    intro and s.balloon.set_balloon(intro, width=480)
                     s.gametype = gname
                     s.event(on_select)
                     selectors.append(s)
@@ -660,7 +660,7 @@ class GameHallScreen(Screen):
             def on_item_dblclick(li):
                 # TODO:
                 if li.started:
-                    #Executive.call('observe_user', ui_message, li.game_id)
+                    # Executive.call('observe_user', ui_message, li.game_id)
                     self.ObserveGamePanel(li.game_id, parent=self.overlay)
                 else:
                     Executive.call('join_game', ui_message, li.game_id)
@@ -697,7 +697,7 @@ class GameHallScreen(Screen):
         def __init__(self, parent):
             ChatBoxFrame.__init__(
                 self, parent=parent,
-                #x=35, y=20, width=700, height=180,
+                # x=35, y=20, width=700, height=180,
                 x=35+255, y=20, width=700-255, height=180,
             )
 
@@ -832,7 +832,7 @@ class GameHallScreen(Screen):
             Screen.on_message(self, _type, *args)
 
     def draw(self):
-        #glColor3f(.9, .9, .9)
+        # glColor3f(.9, .9, .9)
         glColor3f(1, 1, 1)
         self.bg.blit(0, 0)
         self.draw_subcontrols()
@@ -933,7 +933,7 @@ class GameScreen(Screen):
                     self.btn_getready.update()
                 else:
                     Executive.call('get_ready', ui_message, [])
-                    #self.btn_getready.state = Button.DISABLED
+                    # self.btn_getready.state = Button.DISABLED
                     self.ready = True
                     self.btn_getready.caption = u'取消准备'
                     self.btn_getready.update()

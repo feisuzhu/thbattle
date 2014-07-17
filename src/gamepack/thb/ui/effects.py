@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from client.ui.base.interp import LinearInterp
-from client.ui.controls import BalloonPromptMixin, Colors, Control, Panel, SmallProgressBar, Button
+from client.ui.controls import BalloonPrompt, Colors, Control, Panel, SmallProgressBar, Button
 from client.ui.soundmgr import SoundManager
 
 from client.ui.resource import resource as common_res
@@ -37,12 +37,13 @@ class OneShotAnim(Sprite):
 LoopingAnim = Sprite
 
 
-class TagAnim(Control, BalloonPromptMixin):
+class TagAnim(Control):
     def __init__(self, img, x, y, text, *a, **k):
         Control.__init__(self, x=x, y=y, width=25, height=25, *a, **k)
         self.image = img
         self.sprite = LoopingAnim(img)
-        self.init_balloon(text)
+        balloon = BalloonPrompt(self)
+        balloon.set_balloon(text)
 
     def draw(self):
         self.sprite.draw()
@@ -122,8 +123,8 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
         if not pca:
             if _from.type in ('deckcard', 'droppedcard', 'disputed') or not _from.owner:
                 pca = self.deck_area
-            #elif not _from.owner:
-            #    break
+            # elif not _from.owner:
+            #     break
             else:
                 pca = self.player2portrait(_from.owner).portcard_area
 
@@ -371,7 +372,7 @@ class UIPindianEffect(Panel):
                 self.srccs = CardSprite(card, parent=self, x=20, y=20)
             else:
                 self.tgtcs = CardSprite(card, parent=self, x=20+91+20, y=20)
-        
+
             from .. import actions
             card_migration_effects(
                 self.parent, (

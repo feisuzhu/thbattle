@@ -59,7 +59,7 @@ def process_command(arglist):
             prompt = u'\n'.join((cmd(None), cmd('?')))
             break
 
-        if len(al) != len(cmd.argdesc):
+        if len(al) != len(cmd.argtypes):
             prompt = registered_commands['?'](cmdname)
             break
 
@@ -158,6 +158,7 @@ def bugreport():
     gevent.spawn(do_crashreport, active=True)
     return u'已经发送了bug报告'
 
+
 @command(u'开启/关闭游戏邀请', u'on      开启邀请\noff     关闭邀请')
 @argtypes(str)
 @argdesc(u'<on||off>')
@@ -172,6 +173,7 @@ def invite(onoff):
     else:
         return registered_commands['?']('invite')
 
+
 @command(u'观战', u'只能在大厅内使用，uid为右侧玩家列表中[]内的数字id')
 @argtypes(int)
 @argdesc(u'<uid>')
@@ -179,3 +181,12 @@ def ob(uid):
     from client.ui.base import ui_message
     Executive.call('observe_user', ui_message, uid)
     return u'已经向[%d]发送了旁观请求，请等待回应……' % uid
+
+
+@command(u'调试用', u'开发者使用的功能，玩家可以忽略')
+@argtypes(str, str)
+@argdesc(u'<key>', u'<val>')
+def dbgval(key, val):
+    from utils.misc import dbgvals
+    dbgvals[key] = val
+    return u'Done'

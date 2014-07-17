@@ -3,6 +3,7 @@
 from .base import server_side_only
 from collections import defaultdict
 
+
 class Account(object):
 
     @classmethod
@@ -14,10 +15,11 @@ class Account(object):
             acc.other = defaultdict(
                 lambda: None,
                 title=u'野生的THB玩家',
-                avatar=None,
+                avatar='http://www.thbattle.net/maoyu.png',
                 credits=998,
                 games=1,
                 drops=0,
+                badges=['dev'],
             )
             return acc
 
@@ -38,9 +40,10 @@ class Account(object):
         acc.other = defaultdict(
             lambda: None,
             title=u'野生的THB玩家',
-            avatar=None,
+            avatar='http://www.thbattle.net/maoyu.png',
             credits=998,
             games=1,
+            badges=['dev'],
         )
         assert mode == 'freeplay'
         return acc

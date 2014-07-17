@@ -1,7 +1,18 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 from collections import deque, defaultdict
+from contextlib import contextmanager
 from functools import wraps
+
+# -- third party --
+from gevent.queue import Queue
+
+# -- own --
+
+
+# -- code --
+dbgvals = {}
 
 
 class Packet(list):  # compare by identity list
@@ -601,3 +612,36 @@ class Observable(object):
     def notify(self, event, *a, **k):
         for cb in self._get_ob_dict()[event]:
             cb(*a, **k)
+
+
+class GenericPool(object):
+    def __init__(self, factory, size, container_class=Queue):
+        self.factory = factory
+        self.size = size
+        self.container = container_class(size)
+        self.inited = False
+
+    def __call__(self):
+        @contextmanager
+        def manager():
+            container = self.container
+
+            if not self.inited:
+                for i in xrange(self.size):
+                    container.put(self.factory())
+
+                self.inited = True
+
+            try:
+                item = container.get()
+                yield item
+            except:
+                item = self.factory()
+                raise
+            finally:
+                try:
+                    container.put_nowait(item)
+                except:
+                    pass
+
+        return manager()

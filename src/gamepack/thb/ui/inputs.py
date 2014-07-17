@@ -15,7 +15,7 @@ from gamepack.thb.cards import CardList, RejectHandler
 
 from pyglet.text import Label
 
-from client.ui.controls import BalloonPromptMixin, BigProgressBar
+from client.ui.controls import BigProgressBar
 from client.ui.controls import Button, ConfirmButtons, Control
 from client.ui.controls import ImageButton, ImageSelector
 from client.ui.controls import Panel
@@ -324,8 +324,8 @@ class UIDoPassiveAction(UISelectTarget):
 
 class UIDoActionStage(UISelectTarget):
     # for actions.ActionStage
-    #def get_result(self):
-    #    pass
+    # def get_result(self):
+    #     pass
 
     def on_selection_change(self):
         view = self.parent
@@ -368,7 +368,7 @@ class UIDoActionStage(UISelectTarget):
 
         from ..cards import VirtualCard
         if not card.is_card(VirtualCard):
-            if not card.resides_in in (g.me.cards, g.me.showncards):
+            if card.resides_in not in (g.me.cards, g.me.showncards):
                 self.set_text(u'您选择的牌不符合出牌规则')
                 view.end_select_player()
                 return
@@ -430,7 +430,7 @@ class UIDoActionStage(UISelectTarget):
         self.set_text(u'您不能这样出牌')
 
 
-class GirlSelector(ImageSelector, BalloonPromptMixin):
+class GirlSelector(ImageSelector):
     x = InterpDesc('_x')
     y = InterpDesc('_y')
 
@@ -451,7 +451,7 @@ class GirlSelector(ImageSelector, BalloonPromptMixin):
             *a, **k
         )
 
-        self.init_balloon(meta.description)
+        self.balloon.set_balloon(meta.description)
 
 
 class UIChooseGirl(Panel, InputHandler):
@@ -465,7 +465,7 @@ class UIChooseGirl(Panel, InputHandler):
 
         cols = 5 if n_choices > 16 else 4
         rows = max((n_choices - 1) / cols + 1, 4)
-        
+
         w, h = 20 + cols*160, 51 + rows*113
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
@@ -533,7 +533,6 @@ class UIChoosePeerCard(CardSelectionPanel, InputHandler):
     def process_user_input(self, ilet):
         self.ilet = ilet
         target = ilet.target
-        categories = [getattr(target, i) for i in ilet.categories]
 
         card_lists = [
             (CardList.ui_meta.lookup[cat], getattr(target, cat))
@@ -541,7 +540,7 @@ class UIChoosePeerCard(CardSelectionPanel, InputHandler):
         ]
 
         self.init(card_lists)
-        
+
         self.progress_bar = b = BigProgressBar(
             parent=self, x=(self.width-250)//2, y=7, width=250
         )

@@ -12,7 +12,7 @@ import pyglet
 
 # -- own --
 from client.ui.base import Control, Overlay, process_msg
-from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPromptMixin, OptionButton
+from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPrompt, OptionButton
 from client.ui.resource import resource as cres
 from client.ui.soundmgr import SoundManager
 from game.autoenv import Game, EventHandler
@@ -125,11 +125,13 @@ class ResultPanel(Panel):
         self.pic.blit(self.width - pic.width - 10, self.height - pic.height - 10)
 
 
-class GameIntroIcon(Control, BalloonPromptMixin):
+class GameIntroIcon(Control):
     def __init__(self, game, *a, **k):
         Control.__init__(self, *a, **k)
         intro = getattr(game.ui_meta, 'description', None)
-        intro and self.init_balloon(intro, width=480)
+        if intro:
+            balloon = BalloonPrompt(self)
+            balloon.set_balloon(intro, width=480)
 
     def draw(self):
         glColor3f(1, 1, 1)
@@ -386,7 +388,7 @@ class THBattleUI(Control, Observable):
         self.selected_players = players[:]
 
     def end_select_player(self):
-        #if not self.selecting_player: return
+        # if not self.selecting_player: return
         self.selecting_player = False
         self.selected_players = []
         for p in self.char_portraits:
