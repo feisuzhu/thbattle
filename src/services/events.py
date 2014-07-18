@@ -140,12 +140,15 @@ def speaker():
 
 
 def send_mail(send_from, send_to, subject, text, files=[], server="localhost"):
-    msg = MIMEMultipart()
+    msg = MIMEMultipart('alternative')
+    msg.set_charset('utf-8')
     msg['From'] = send_from
     msg['To'] = send_to
     msg['Date'] = formatdate(localtime=True)
     msg['Subject'] = subject
-    msg.attach(MIMEText(text))
+    part = MIMEText(text)
+    part.set_charset('utf-8')
+    msg.attach(part)
     smtp = smtplib.SMTP(server)
     smtp.sendmail(send_from, send_to, msg.as_string())
     smtp.close()
