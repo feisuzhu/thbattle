@@ -28,25 +28,26 @@ class Packet(list):  # compare by identity list
         return not self.__eq__(other)
 
 
-class DataHolder(object):
-    def __data__(self):
-        return self.__dict__
+class ObjectDict(dict):
+    __slots__ = ()
 
-    @staticmethod
-    def parse(dd):
-        new = DataHolder()
-        for k, v in dd.items():
-            if isinstance(v, dict):
-                setattr(new, k, DataHolder.parse(v))
-            elif isinstance(v, (list, tuple, set, frozenset)):
-                setattr(new, k, type(v)(
-                    DataHolder.parse(lv) if isinstance(lv, dict) else lv
-                    for lv in v
-                ))
-            else:
-                setattr(new, k, v)
+    def __getattr__(self, k):
+        try:
+            return self[k]
+        except KeyError:
+            raise AttributeError
 
-        return new
+    def __setattr__(self, k, v):
+        self[k] = v
+
+    @classmethod
+    def parse(cls, data):
+        if isinstance(data, dict):
+            return cls({k: cls.parse(v) for k, v in data.items()})
+        elif isinstance(data, (BatchList, list, tuple, set, frozenset)):
+            return type(data)([cls.parse(v) for v in data])
+
+        return data
 
 
 class BatchList(list):

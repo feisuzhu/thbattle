@@ -18,12 +18,13 @@ from pyglet.sprite import Sprite
 from pyglet.window import mouse, key
 import gevent
 import pyglet
+import requests
 
 # -- own --
 from client.core import Executive
 from client.ui import ui_meta as client_ui_meta
 from client.ui.base import Overlay, Control
-from client.ui.base import ui_message, ui_schedule
+from client.ui.base import ui_message
 from client.ui.base.interp import InterpDesc, LinearInterp
 from client.ui.resource import resource as cres
 from utils import pyperclip, instantiate
@@ -1025,11 +1026,7 @@ class PlayerPortrait(Frame):
 
         self.set_caption(name)
 
-        if acc:
-            avurl = acc.other['avatar']
-        else:
-            avurl = None
-
+        avurl = acc.other['avatar'] if acc else None
         if avurl:
             img = self.cached_avatar.get(avurl, None)
             if img:
@@ -1038,35 +1035,40 @@ class PlayerPortrait(Frame):
                 sprite._parent = self
                 self.avatar = sprite
             else:
-                def callback(rst):
-                    if rst:
-                        resp, data = rst
+                @gevent.spawn
+                def callback(avurl=avurl):
+                    resp = requests.get(avurl)
+                    if not resp.ok:
+                        log.warning('Avatar fetch not ok: %s -> %s', resp.status_code, avurl)
+                        return
 
-                        if data.startswith('GIF'):
-                            fn = 'foo.gif'
-                        elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
-                            fn = 'foo.jpg'
-                        elif data.startswith('\x89PNG'):
-                            fn = 'foo.png'
+                    data = resp.content
+                    if data.startswith('GIF'):
+                        fn = 'foo.gif'
+                    elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
+                        fn = 'foo.jpg'
+                    elif data.startswith('\x89PNG'):
+                        fn = 'foo.png'
 
-                        from StringIO import StringIO
-                        f = StringIO(data)
+                    from StringIO import StringIO
+                    f = StringIO(data)
 
-                        try:
-                            if fn == 'foo.gif':
-                                from utils import gif_to_animation
-                                img = gif_to_animation(f)
-                            else:
-                                img = pyglet.image.load(fn, file=f)
-                                img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
-                        except:
-                            img = False
+                    try:
+                        if fn == 'foo.gif':
+                            from utils import gif_to_animation
+                            img = gif_to_animation(f)
+                        else:
+                            img = pyglet.image.load(fn, file=f)
+                            img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
+                    except:
+                        log.exception('Loading avatar')
+                        img = False
 
-                        sprite = False
-                        if img:
-                            sprite = pyglet.sprite.Sprite(img, x=64, y=150)
-                            sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
-                            sprite._parent = self
+                    sprite = False
+                    if img:
+                        sprite = pyglet.sprite.Sprite(img, x=64, y=150)
+                        sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
+                        sprite._parent = self
 
                     else:
                         img = sprite = False
@@ -1074,10 +1076,7 @@ class PlayerPortrait(Frame):
                     self.cached_avatar[avurl] = img
                     self.avatar = sprite
 
-                    if sprite:
-                        ui_schedule(self.update)
-
-                Executive.call('fetch_resource', callback, avurl)
+                    sprite and self.update()
 
         Frame.update(self)
 

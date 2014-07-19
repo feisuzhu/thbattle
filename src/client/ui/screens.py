@@ -8,9 +8,11 @@ import shlex
 import re
 
 # -- third party --
-import pyglet
 from pyglet.gl import glClear, glClearColor, glColor3f, glColor4f, GL_COLOR_BUFFER_BIT, glRectf
 from pyglet.text import Label
+import gevent
+import pyglet
+import requests
 
 # -- own --
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
@@ -744,20 +746,14 @@ class GameHallScreen(Screen):
             )
             ta.text = u'正在获取最新新闻……'
 
-            def update(rst):
-                if rst:
-                    _, content = rst
-                    try:
-                        ta.text = content.decode('utf-8')
-                        return
-                    except Exception as e:
-                        import traceback
-                        traceback.print_exc(e)
-
-                ta.text = u'|R无法显示新闻！|r'
-
-            from settings import HALL_NOTICE_URL
-            Executive.call('fetch_resource', update, HALL_NOTICE_URL)
+            @gevent.spawn
+            def update():
+                from settings import HALL_NOTICE_URL
+                resp = requests.get(HALL_NOTICE_URL)
+                if resp.ok:
+                    ta.text = resp.content.decode('utf-8')
+                else:
+                    ta.text = u'|R无法显示新闻！|r'
 
     class StatusBox(Frame):
         def __init__(self, parent):

@@ -1,9 +1,41 @@
 # -*- coding: utf-8 -*-
 
-from pyglet.gl import *
+
+# -- stdlib --
+from ctypes import create_string_buffer
+from ctypes import POINTER, byref, cast, pointer
+
+# -- third party --
+from pyglet.gl import GLException
+from pyglet.gl import GL_COMPILE_STATUS
+from pyglet.gl import GL_FRAGMENT_SHADER_ARB
+from pyglet.gl import GL_LINK_STATUS
+from pyglet.gl import GL_VERTEX_SHADER_ARB
+from pyglet.gl import GLint
+from pyglet.gl import GLsizei
+from pyglet.gl import c_char
+from pyglet.gl import glAttachObjectARB
+from pyglet.gl import glCompileShader
+from pyglet.gl import glCreateProgramObjectARB
+from pyglet.gl import glCreateShaderObjectARB
+from pyglet.gl import glGetAttribLocationARB
+from pyglet.gl import glGetInfoLogARB
+from pyglet.gl import glGetProgramiv
+from pyglet.gl import glGetShaderiv
+from pyglet.gl import glGetUniformLocationARB
+from pyglet.gl import glLinkProgram
+from pyglet.gl import glShaderSourceARB
+from pyglet.gl import glUseProgramObjectARB
+from pyglet.gl import gl_info
 import pyglet
 
-class ShaderError(Exception): pass
+# -- own --
+
+
+# -- code --
+class ShaderError(Exception):
+    pass
+
 
 def _get_infolog(oid):
     buffer = create_string_buffer(3000)
@@ -16,7 +48,9 @@ def _get_infolog(oid):
     )
     return buffer.value
 
+
 HAVE_SHADER = gl_info.have_extension('GL_ARB_shader_objects')
+
 
 class _Shader(object):
     def __new__(cls, *a):
@@ -53,11 +87,14 @@ class _Shader(object):
 
         self.sid = sid
 
+
 class VertexShader(_Shader):
     shader_type = GL_VERTEX_SHADER_ARB
 
+
 class FragmentShader(_Shader):
     shader_type = GL_FRAGMENT_SHADER_ARB
+
 
 class _UniformAccesser(object):
     def __init__(self, prg):
@@ -86,7 +123,7 @@ class _UniformAccesser(object):
             value = (value, )
 
         t = type(value[0])
-        t = {int:'i', float:'f'}.get(t)
+        t = {int: 'i', float: 'f'}.get(t)
         if not t:
             raise ShaderError('Unknown variable type!')
 
@@ -96,6 +133,7 @@ class _UniformAccesser(object):
         func = getattr(gl, fn)
 
         func(loc, *value)
+
 
 class _AttributeAccesser(object):
     def __init__(self, prg):
@@ -112,11 +150,12 @@ class _AttributeAccesser(object):
 
         return loc
 
+
 class _DummyShaderProgram(object):
     def __init__(self, *a):
-        from utils import DataHolder
-        self.uniform = DataHolder()
-        self.attrib = DataHolder()
+        from utils import ObjectDict
+        self.uniform = ObjectDict()
+        self.attrib = ObjectDict()
 
     def use(self):
         pass
@@ -136,8 +175,10 @@ class _DummyShaderProgram(object):
 
 DummyShader = _DummyShaderProgram()
 
+
 class ShaderProgram(object):
     shader_stack = []
+
     def __new__(cls, *a):
         if HAVE_SHADER:
             return object.__new__(cls, *a)
@@ -149,9 +190,6 @@ class ShaderProgram(object):
         try:
             pid = glCreateProgramObjectARB()
         except GLException:
-            pass
-
-        if not pid:
             raise ShaderError("Can't create program object!")
 
         for s in shaders:
@@ -162,7 +200,7 @@ class ShaderProgram(object):
         v = GLint(0)
         glGetProgramiv(pid, GL_LINK_STATUS, byref(v))
         if not v:
-            log = _get_infolog(sid)
+            log = _get_infolog(pid)
             e = ShaderError("Error linking program!")
             e.infolog = log
             raise e
@@ -197,6 +235,7 @@ class ShaderProgram(object):
     def __exit__(self, exc_type, exc_value, tb):
         self.unuse()
 
+
 class ShaderGroup(pyglet.graphics.Group):
     def __init__(self, shader, parent=None):
         pyglet.graphics.Group.__init__(self, parent)
@@ -220,6 +259,7 @@ class ShaderGroup(pyglet.graphics.Group):
 
     def __repr__(self):
         return '%s(%d)' % (self.__class__.__name__, self.shader)
+
 
 class ShaderUniformGroup(pyglet.graphics.Group):
     def __init__(self, args, parent):

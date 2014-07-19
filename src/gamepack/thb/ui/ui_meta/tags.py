@@ -4,14 +4,15 @@ from gamepack.thb.ui.resource import resource as gres
 from gamepack.thb import cards
 
 from .common import G
-from utils import DataHolder
+from utils import ObjectDict
 
 # -----BEGIN TAGS UI META-----
 tags = {}
 
 
 def tag_metafunc(clsname, bases, _dict):
-    data = DataHolder.parse(_dict)
+    _dict.pop('__module__')
+    data = ObjectDict.parse(_dict)
     tags[clsname] = data
 
 __metaclass__ = tag_metafunc

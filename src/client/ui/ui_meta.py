@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from utils import DataHolder
+from utils import ObjectDict
 from .resource import resource as cres
 
 # -----BEGIN BADGES UI META-----
@@ -8,7 +8,8 @@ badges = {}
 
 
 def badge_metafunc(clsname, bases, _dict):
-    data = DataHolder.parse(_dict)
+    _dict.pop('__module__')
+    data = ObjectDict.parse(_dict)
     badges[clsname] = data
 
 __metaclass__ = badge_metafunc

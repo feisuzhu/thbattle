@@ -66,7 +66,7 @@ class GameManager(Greenlet):
             g = self.game
             g.me = me
             g.players = BatchList(pl)
-            #g.start()
+            # g.start()
             log.info('=======GAME STARTED: %d=======' % g.gameid)
             log.info(g)
 
@@ -101,7 +101,7 @@ class GameManager(Greenlet):
             me.__class__ = TheLittleBrother
             me.server = Executive.server
             g.me = me
-            #g.start()
+            # g.start()
             log.info('=======OBSERVE STARTED=======')
             log.info(g)
 
@@ -239,7 +239,7 @@ class Executive(Greenlet):
 
                 svr.link_exception(lambda *a: event_cb('server_dropped'))
 
-                #cb('server_connected', svr)
+                # cb('server_connected', svr)
             except:
                 cb('server_connect_failed', None)
 
@@ -273,21 +273,6 @@ class Executive(Greenlet):
                 cb('general_failure', 'Connect first!')
                 return
             self.server.write(['auth', arg])
-
-        @handler
-        def fetch_resource(self, cb, url):
-            def worker():
-                import urllib2
-                from client.ui.base import ui_schedule
-                try:
-                    resp = urllib2.urlopen(url)
-                    data = resp.read()
-                except:
-                    ui_schedule(cb, False)
-                    return
-
-                ui_schedule(cb, (resp, data))
-            gevent.spawn(worker)
 
         # @handler def register(...): ...
         def simple_gm_op(_type):
