@@ -80,6 +80,12 @@ resource = Resource(respath, [
 
     subdir('badges', [
         img('dev'),
+        img('dsb_bronze'),
+        img('dsb_gold'),
+        img('dsb_silver'),
+        img('jcb_bronze'),
+        img('jcb_gold'),
+        img('jcb_silver'),
     ]),
 
     white('white'),
