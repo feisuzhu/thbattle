@@ -13,15 +13,22 @@ from unidecode import unidecode
 from game import autoenv
 autoenv.init('Client')
 
+sys.modules['client.ui.resource']       = sys.modules['__main__']  # dark art
 sys.modules['gamepack.thb.ui.resource'] = sys.modules['__main__']  # dark art
 
 
 class attrname(object):
+    def __init__(self, name):
+        self.name = name
+
     def __getattr__(self, name):
-        return name
+        return attrname(name)
+
+    def __str__(self):
+        return self.name
 
 
-resource = attrname()
+resource = attrname('resource')
 
 
 from gamepack.thb.ui.ui_meta.common import metadata
@@ -31,7 +38,7 @@ from game.autoenv import Game
 
 
 def to_html(text):
-    result = []
+    result   = []
     tagstack = []
 
     def push(klass):
@@ -69,23 +76,24 @@ def to_html(text):
 
     scanner = re.Scanner([
         (r'[^|]+', instext),
+
         (r'\|c[A-Fa-f0-9]{8}', color),
-        (r'\|B', push('bold')),
-        (r'\|b', error),
-        (r'\|I', push('italic')),
-        (r'\|i', error),
-        (r'\|U', push('underline')),
-        (r'\|u', error),
+        (r'\|B',  push('bold')),
+        (r'\|b',  error),
+        (r'\|I',  push('italic')),
+        (r'\|i',  error),
+        (r'\|U',  push('underline')),
+        (r'\|u',  error),
         (r'\|\|', insert_pipe),
-        (r'\|r', restore),
+        (r'\|r',  restore),
 
         # shortcuts
-        (r'\|R', push('shortcut-r')),
-        (r'\|G', push('shortcut-g')),
-        (r'\|Y', push('shortcut-y')),
+        (r'\|R',  push('shortcut-r')),
+        (r'\|G',  push('shortcut-g')),
+        (r'\|Y',  push('shortcut-y')),
         (r'\|LB', push('shortcut-lb')),
         (r'\|DB', push('shortcut-db')),
-        (r'\|W', push('shortcut-w')),
+        (r'\|W',  push('shortcut-w')),
 
         # thbviewer labels
         (r'\|!R', label('important')),
@@ -95,8 +103,7 @@ def to_html(text):
     ])
 
     toks, reminder = scanner.scan(text)
-    if reminder:
-        instext(None, reminder)
+    reminder and instext(None, reminder)
 
     return u''.join(result)
 
@@ -104,24 +111,25 @@ def to_html(text):
 def conv_card_category(t):
     return tuple([_card_category[i] for i in t])
 
+
 _card_category = {
-    'basic': u'基本牌',
-    'spellcard': u'符卡',
+    'basic':             u'基本牌',
+    'spellcard':         u'符卡',
     'delayed_spellcard': u'延时符卡',
     'instant_spellcard': u'非延时符卡',
-    'equipment': u'装备',
-    'weapon': u'武器',
-    'shield': u'防具',
-    'redufo': u'红色UFO',
-    'greenufo': u'绿色UFO',
-    'accessories': u'饰品',
+    'equipment':         u'装备',
+    'weapon':            u'武器',
+    'shield':            u'防具',
+    'redufo':            u'红色UFO',
+    'greenufo':          u'绿色UFO',
+    'accessories':       u'饰品',
 }
 
 
 result = {
-    'Cards': [],
+    'Cards':      [],
     'Characters': [],
-    'Modes': [],
+    'Modes':      [],
 }
 
 #  --- Cards ---
@@ -137,9 +145,9 @@ def snstring(suit, num):
     return ftstring[suit] + num
 
 ftstring = {
-    cards.Card.SPADE: u'♠',
-    cards.Card.HEART: u'♡',
-    cards.Card.CLUB: u'♣',
+    cards.Card.SPADE:   u'♠',
+    cards.Card.HEART:   u'♡',
+    cards.Card.CLUB:    u'♣',
     cards.Card.DIAMOND: u'♢',
 }
 
@@ -155,13 +163,13 @@ for k, v in metadata.iteritems():
     if issubclass(k, cards.VirtualCard): continue
     if k in excludes: continue
     result['Cards'].append({
-        "token": k.__name__,
-        "image": "{}.png".format(v['image']),
-        "name": v['name'],
-        "categories": conv_card_category(k.category),
-        "description": to_html(v['description']),
+        "token":         k.__name__,
+        "image":         "{}.png".format(v['image']),
+        "name":          v['name'],
+        "categories":    conv_card_category(k.category),
+        "description":   to_html(v['description']),
         "fulltextindex": unidecode(v['description']).replace(' ', '').lower(),
-        "deck": find_cards(k),
+        "deck":          find_cards(k),
     })
 
 
@@ -176,13 +184,13 @@ for k, v in metadata.iteritems():
     if not issubclass(k, characters.baseclasses.Character): continue
     if k in excludes: continue
     result['Characters'].append({
-        "token": k.__name__,
-        "image": "{}.png".format(v['port_image']),
-        "name": v['char_name'],
-        "maxlife": k.maxlife,
-        "description": to_html(v['description']),
+        "token":         k.__name__,
+        "image":         "{}.png".format(v['port_image']),
+        "name":          v['char_name'],
+        "maxlife":       k.maxlife,
+        "description":   to_html(v['description']),
         "fulltextindex": unidecode(v['description']).replace(' ', '').lower(),
-        "positions": ("暂缺",),
+        "positions":     ("暂缺",),
     })
 
 
@@ -190,9 +198,9 @@ for k, v in metadata.iteritems():
 for k, v in metadata.iteritems():
     if not issubclass(k, Game): continue
     result['Modes'].append({
-        "token": k.__name__,
-        "image": "{}.png".format(v['logo']),
-        "name": v['name'],
+        "token":       k.__name__,
+        "image":       "{}.png".format(v['logo']),
+        "name":        v['name'],
         "description": to_html(v.get('description', u'暂缺')),
     })
 

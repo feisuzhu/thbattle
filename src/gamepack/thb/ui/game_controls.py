@@ -18,7 +18,8 @@ from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineI
 from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractInterp
 from client.ui.controls import BalloonPrompt
 from client.ui.controls import Frame, Panel, Button, Colors, ImageButton, TextArea, OptionButton
-from client.ui.resource import resource as common_res, get_atlas
+from client.ui.resloader import get_atlas
+from client.ui.resource import resource as common_res
 from game.autoenv import Game
 from resource import resource as game_res
 from utils import flatten, rectv2f, rrectv2f

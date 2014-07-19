@@ -15,6 +15,7 @@ install_requires = [
     'redis',
     'requests',
     'simplejson',
+    'unidecode',
 ]
 
 entry_points = {
