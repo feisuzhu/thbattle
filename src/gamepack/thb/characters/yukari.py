@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import UserAction, GenericAction, FatetellStage, DropCards, DrawCardStage, LaunchCard, ActionStage, DropCardStage
+from ..actions import UserAction, GenericAction, FatetellStage, DropCards, DrawCardStage, ActionStage, DropCardStage
 from ..actions import user_choose_cards, random_choose_card, migrate_cards, ask_for_action
 from ..cards import Skill, t_None
 from ..inputlets import ChooseIndividualCardInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -9,6 +9,7 @@ from ..inputlets import ChooseIndividualCardInputlet, ChooseOptionInputlet, Choo
 
 class Realm(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
@@ -139,11 +140,9 @@ class RealmSkipAction(UserAction):
 
         elif card.resides_in is _from.equips:
             cats = set([c.equipment_category for c in _to.equips])
-            if (card.equipment_category not in cats and
-                user_input([tgt], ChooseOptionInputlet(self, (False, True)))):
-                migrate_cards([card], _to.equips)
-            else:
-                migrate_cards([card], _to.cards)
+            to_equips = card.equipment_category not in cats
+            to_equips = to_equips and user_input([tgt], ChooseOptionInputlet(self, (False, True)))
+            migrate_cards([card], _to.equips if to_equips else _to.cards)
         else:
             assert False, 'WTF?!'
 

@@ -3,10 +3,11 @@
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
 from ..actions import ActionStage, FatetellStage, GenericAction
-from ..cards import Skill, AttackCard, WearEquipmentAction, TreatAsSkill, t_None
+from ..cards import Skill, AttackCard, WearEquipmentAction, TreatAs, t_None
 
 
-class FlyingKnife(TreatAsSkill):
+class FlyingKnife(Skill, TreatAs):
+    skill_category = ('character', 'active')
     treat_as = AttackCard
     distance = 99999
 
@@ -15,7 +16,7 @@ class FlyingKnife(TreatAsSkill):
         if len(cards) != 1: return False
         c = cards[0]
         if c.resides_in is None: return False
-        if not c.resides_in.type in ('cards', 'showncards', 'equips'): return False
+        if c.resides_in.type not in ('cards', 'showncards', 'equips'): return False
         act = c.associated_action
         if not (act and issubclass(act, WearEquipmentAction)): return False
         return True
@@ -33,12 +34,13 @@ class LunaClockActionStage(GenericAction):
 
 class LunaClock(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
 class LunaClockHandler(EventHandler):
     execute_after = ('CiguateraHandler', )
-    
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             src = act.target

@@ -2,11 +2,11 @@
 from game.autoenv import Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import UserAction, migrate_cards, random_choose_card, LaunchCard
-from ..cards import Skill, AttackCard, t_OtherOne, TreatAsSkill
+from ..cards import Skill, AttackCard, t_OtherOne, TreatAs, VirtualCard
 from ..inputlets import ChoosePeerCardInputlet
 
 
-class Daze(TreatAsSkill):
+class Daze(VirtualCard, TreatAs):
     treat_as = AttackCard
     distance = 99999
 
@@ -46,6 +46,7 @@ class BorrowAction(UserAction):
 
 class Borrow(Skill):
     associated_action = BorrowAction
+    skill_category = ('character', 'active')
     target = t_OtherOne
 
     def check(self):

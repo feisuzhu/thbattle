@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
-from ..actions import LaunchCard, DrawCardStage, migrate_cards
+from ..actions import DrawCardStage, migrate_cards
 from ..cards import Harvest, HarvestCard, Skill, t_AllInclusive, t_None, Card
 
 
 class Foison(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
@@ -40,6 +41,7 @@ class AutumnFeastAction(Harvest):
 
 class AutumnFeast(Skill):
     associated_action = AutumnFeastAction
+    skill_category = ('character', 'active')
     target = t_AllInclusive
     usage = 'launch'
 
@@ -52,6 +54,7 @@ class AutumnFeast(Skill):
 
 class AkiTribute(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 

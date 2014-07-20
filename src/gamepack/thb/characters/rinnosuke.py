@@ -7,6 +7,7 @@ from ..cards import Skill, Heal, t_None, t_OtherOne
 
 class Psychopath(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
@@ -31,6 +32,7 @@ class NetoruAction(UserAction):
 
 class Netoru(Skill):
     associated_action = NetoruAction
+    skill_category = ('character', 'active')
     target = t_OtherOne
     usage = 'drop'
 

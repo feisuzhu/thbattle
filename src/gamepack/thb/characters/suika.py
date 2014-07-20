@@ -2,10 +2,11 @@
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
 from ..actions import DrawCards, GenericAction, MaxLifeChange
-from ..cards import Card, Skill, TreatAsSkill, SoberUp, AttackCard, IbukiGourdCard, WineCard, WeaponSkill, WearEquipmentAction, t_None
+from ..cards import Card, Skill, TreatAs, SoberUp, AttackCard, IbukiGourdCard, WineCard, WeaponSkill, t_None
 
 
-class Drunkard(TreatAsSkill):
+class Drunkard(Skill, TreatAs):
+    skill_category = ('character', 'active')
     treat_as = WineCard
 
     def check(self):
@@ -19,6 +20,7 @@ class Drunkard(TreatAsSkill):
 
 class GreatLandscape(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
@@ -41,11 +43,13 @@ class GreatLandscapeHandler(EventHandler):
 
 class WineGod(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'awake')
     target = t_None
 
 
 class WineDream(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
@@ -89,7 +93,6 @@ class WineDreamHandler(EventHandler):
 class Suika(Character):
     skills = [GreatLandscape, Drunkard, WineGod]
     eventhandlers_required = [
-        #DrunkardHandler,
         GreatLandscapeHandler,
         WineGodHandler,
         WineDreamHandler

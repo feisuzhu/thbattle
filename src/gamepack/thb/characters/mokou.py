@@ -11,11 +11,13 @@ from ..inputlets import ChooseOptionInputlet
 
 class Ashes(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
 class Reborn(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
@@ -44,7 +46,7 @@ class RebornAction(UserAction):
 
 class AshesHandler(EventHandler):
     execute_before = ('CiguateraHandler', )
-    
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
@@ -60,7 +62,7 @@ class AshesHandler(EventHandler):
 class RebornHandler(EventHandler):
     execute_before = ('CiguateraHandler', )
     card_usage = 'drop'
-    
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             self.target = tgt = act.target
@@ -74,12 +76,14 @@ class RebornHandler(EventHandler):
         return act
 
     def cond(self, cards):
-        if len(cards) != self.target.life: return False
+        if len(cards) != self.target.life:
+            return False
 
         for card in cards:
-            if card.color != Card.RED: return False
+            if card.color != Card.RED:
+                return False
 
-            if not card.resides_in.type in ('cards', 'showncards', 'equips'):
+            if card.resides_in.type not in ('cards', 'showncards', 'equips'):
                 return False
 
         return True

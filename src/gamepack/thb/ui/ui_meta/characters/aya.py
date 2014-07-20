@@ -17,7 +17,7 @@ class UltimateSpeed:
 
 class UltimateSpeedAction:
     def effect_string(act):
-        return u'|G【%s】|r：哼哼，你已经跟不上我的速度了吧~' % (
+        return u'|G【%s】|r：“哼哼，你已经跟不上我的速度了吧～”' % (
             act.source.ui_meta.char_name,
         )
 

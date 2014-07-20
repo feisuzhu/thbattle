@@ -143,17 +143,18 @@ class VirtualCard(Card):
     usage = 'none'
 
     def __init__(self, player):
-        self.player = player
-        self.suit = Card.NOTSET
-        self.number = 0
-        self.resides_in = player.cards
-        self.action_params = {}
+        self.player           = player
+        self.suit             = Card.NOTSET
+        self.number           = 0
+        self.associated_cards = []
+        self.resides_in       = player.cards
+        self.action_params    = {}
 
     def __data__(self):
         return {
-            'class': self.__class__.__name__,
+            'class':  self.__class__.__name__,
             'syncid': self.syncid,
-            'vcard': True,
+            'vcard':  True,
             'params': self.action_params,
         }
 
@@ -306,7 +307,6 @@ class Skill(VirtualCard):
 
     def __init__(self, player):
         assert player is not None
-        self.associated_cards = []
         VirtualCard.__init__(self, player)
 
     def check(self):  # override this
@@ -317,7 +317,7 @@ class Skill(VirtualCard):
     # instance var: associated_cards = xxx
 
 
-class TreatAsSkill(Skill):
+class TreatAs(object):
     treat_as = None  # can't be VirtualCard here
     usage = 'launch'
 

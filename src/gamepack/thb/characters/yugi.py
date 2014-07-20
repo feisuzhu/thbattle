@@ -8,11 +8,13 @@ from utils import classmix
 
 
 class AssaultSkill(RedUFOSkill):
+    skill_category = ('character', 'passive', 'compulsory')
     increment = 1
 
 
 class FreakingPowerSkill(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 

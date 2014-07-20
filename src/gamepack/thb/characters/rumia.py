@@ -48,6 +48,7 @@ class DarknessAction(UserAction):
 
 class Darkness(Skill):
     associated_action = DarknessAction
+    skill_category = ('character', 'active')
     target = t_OtherN(2)
     usage = 'drop'
 
@@ -63,6 +64,7 @@ class Darkness(Skill):
 
 class Cheating(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
@@ -72,7 +74,7 @@ class CheatingDrawCards(DrawCards):
 
 class CheatingHandler(EventHandler):
     execute_before = ('CiguateraHandler', )
-    
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target

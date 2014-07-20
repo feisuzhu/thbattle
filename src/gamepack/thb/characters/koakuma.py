@@ -11,7 +11,7 @@ class FindAction(UserAction):
         cards = self.associated_card.associated_cards
         n = len(cards)
         # card will be dropped at LaunchCard
-        #g.process_action(DropCards(self.target, cards))
+        # g.process_action(DropCards(self.target, cards))
         tgt = self.target
         g.process_action(DrawCards(tgt, n))
         tgt.tags['find_tag'] = tgt.tags['turn_count']
@@ -31,6 +31,7 @@ class FindAction(UserAction):
 
 class Find(Skill):
     associated_action = FindAction
+    skill_category = ('character', 'active')
     target = t_Self
     usage = 'drop'
 

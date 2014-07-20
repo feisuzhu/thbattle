@@ -24,6 +24,7 @@ class Support(UserAction):
 
 class SupportSkill(Skill):
     associated_action = Support
+    skill_category = ('character', 'active')
     target = t_OtherOne
     usage = 'handover'
     no_drop = True
@@ -40,6 +41,7 @@ class SupportSkill(Skill):
 
 class Moe(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 

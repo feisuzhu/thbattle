@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, user_input, Game
 from baseclasses import Character, register_character
-from ..actions import DrawCards, UserAction, ActionStageLaunchCard, DropCardStage, user_choose_players, DropCards, random_choose_card
-from ..cards import Skill, TreatAsSkill, AttackCardHandler, DollControlCard, t_None
+from ..actions import DrawCards, UserAction, DropCardStage, user_choose_players, DropCards, random_choose_card
+from ..cards import Skill, t_None
 from ..inputlets import ChoosePeerCardInputlet, ChooseOptionInputlet
 
 
 class LittleLegion(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 
@@ -83,6 +84,7 @@ class LittleLegionHandler(EventHandler):
 
 class MaidensBunraku(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 
@@ -95,39 +97,6 @@ class MaidensBunrakuHandler(EventHandler):
             act.dropn -= amount if amount > 1 else 1
 
         return act
-
-
-class DollCrusader(TreatAsSkill):
-    treat_as = DollControlCard
-
-    def check(self):
-        cl = self.associated_cards
-        if not cl and len(cl) == 1: return False
-        c = cl[0]
-        if c.resides_in.type not in ('cards', 'showncards', 'equips'):
-            return False
-
-        return 'instant_spellcard' in c.category
-
-
-class DollCrusaderHandler(EventHandler):
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_after' and isinstance(arg, ActionStageLaunchCard):
-            c = arg.card
-            if c.is_card(DollCrusader):
-                src = arg.source
-                src.tags['alice_doll_tag'] = src.tags['turn_count']
-
-        elif evt_type == 'action_can_fire':
-            act, valid = arg
-            if isinstance(act, ActionStageLaunchCard):
-                c = act.card
-                if c.is_card(DollCrusader):
-                    t = act.source.tags
-                    if t['alice_doll_tag'] >= t['turn_count']:
-                        return act, False
-
-        return arg
 
 
 @register_character

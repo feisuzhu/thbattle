@@ -2,13 +2,14 @@
 from game.autoenv import Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import EventHandler, UserAction, migrate_cards, LaunchCard
-from ..cards import Card, TreatAsSkill, DemolitionCard, DummyCard, Demolition
+from ..cards import Card, Skill, TreatAs, DemolitionCard, DummyCard, Demolition
 
 from ..inputlets import ChooseOptionInputlet
 
 
-class Envy(TreatAsSkill):
+class Envy(Skill, TreatAs):
     treat_as = DemolitionCard
+    skill_category = ('character', 'active')
 
     def check(self):
         cards = self.associated_cards

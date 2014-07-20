@@ -2,14 +2,15 @@
 
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import ActionStage, Damage, DropCards, GenericAction, migrate_cards, random_choose_card, UserAction, MaxLifeChange, MigrateCardsTransaction
-from ..cards import Skill, Attack, LaunchGraze, HakuroukenCard, RoukankenCard, WearEquipmentAction, BaseDuel, t_None, UseAttack, Heal, t_Self, AttackCardHandler
+from ..actions import ActionStage, Damage, DropCards, migrate_cards, random_choose_card, UserAction, MigrateCardsTransaction
+from ..cards import Skill, Attack, LaunchGraze, WearEquipmentAction, BaseDuel, t_None, UseAttack, t_Self
 from ..inputlets import ChooseIndividualCardInputlet
 from utils import classmix
 
 
 class MijincihangzhanAttack(Attack):
     pass
+
 
 class MijincihangzhanDuelMixin(object):
     # 迷津慈航斩 弹幕战
@@ -33,17 +34,6 @@ class MijincihangzhanDuelMixin(object):
 
         g.process_action(Damage(d[1], d[0], amount=dmg[1]))
         return d[1] is source
-
-
-class XianshiwangzhiAwake(GenericAction):
-    def apply_action(self):
-        g = Game.getgame()
-        tgt = self.target
-        tgt.skills.append(Xianshiwangzhi)
-        tgt.tags['attack_num'] += 1
-        g.process_action(MaxLifeChange(tgt, tgt, 1))
-        g.process_action(Heal(tgt, tgt, 1))
-        return True
 
 
 class YoumuWearEquipmentAction(UserAction):
@@ -119,7 +109,7 @@ class YoumuHandler(EventHandler):
             if rst: return arg
             if not isinstance(act, MijincihangzhanAttack): return arg
 
-            g = Game.getgame() 
+            g = Game.getgame()
             return act, not g.process_action(LaunchGraze(act.target))
 
         return act
@@ -145,22 +135,18 @@ class NitoryuuDropWeapon(UserAction):
 class Mijincihangzhan(Skill):
     # 迷津慈航斩
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
 class Nitoryuu(Skill):
     # 二刀流
     associated_action = NitoryuuDropWeapon
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_Self
 
     def check(self):
         return not self.associated_cards
-
-
-class Xianshiwangzhi(Skill):
-    # 现世妄执
-    associated_action = None
-    target = t_None
 
 
 @register_character

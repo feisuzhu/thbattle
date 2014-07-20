@@ -8,6 +8,7 @@ from utils import classmix
 
 class FlowerQueen(Skill):
     associated_action = Attack
+    skill_category = ('character', 'active', 'passive')
     target = t_OtherOne
     distance = 1
     usage = 'launch'
@@ -28,11 +29,13 @@ class FlowerQueen(Skill):
 
 class MagicCannon(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
 class PerfectKill(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
     distance = 1
 

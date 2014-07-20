@@ -2,10 +2,12 @@
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
 from ..actions import migrate_cards, PlayerRevive, UserAction
-from ..cards import Card, Skill, TreatAsSkill, RejectCard, GreenUFOSkill, UFOSkill, t_None
+from ..cards import Card, Skill, TreatAs, RejectCard, GreenUFOSkill, UFOSkill, t_None
 
 
 class Flight(GreenUFOSkill):
+    skill_category = ('character', 'passive', 'compulsory')
+
     @staticmethod
     def increment(src):
         for c in src.equips:
@@ -15,7 +17,8 @@ class Flight(GreenUFOSkill):
         return 1
 
 
-class SpiritualAttack(TreatAsSkill):
+class SpiritualAttack(Skill, TreatAs):
+    skill_category = ('character', 'active')
     treat_as = RejectCard
 
     def check(self):
@@ -33,6 +36,7 @@ class SpiritualAttack(TreatAsSkill):
 
 class TributeTarget(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
@@ -61,6 +65,7 @@ class TributeAction(UserAction):
 
 class Tribute(Skill):
     associated_action = TributeAction
+    skill_category = ('active',)
     no_drop = True
     no_reveal = True
     usage = 'handover'
@@ -121,7 +126,7 @@ class TributeHandler(EventHandler):
 
 @register_character
 class Reimu(Character):
-    #skills = [SealingArraySkill, Flight, TributeTarget]
+    # skills = [SealingArraySkill, Flight, TributeTarget]
     skills = [SpiritualAttack, Flight]
     eventhandlers_required = []
     maxlife = 3

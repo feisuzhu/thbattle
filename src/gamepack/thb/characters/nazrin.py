@@ -2,7 +2,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import FatetellAction, Fatetell, FatetellStage, migrate_cards
-from ..cards import Card, Skill, TreatAsSkill, GrazeCard, t_None
+from ..cards import Card, Skill, TreatAs, GrazeCard, t_None
 from ..inputlets import ChooseOptionInputlet
 
 
@@ -21,12 +21,13 @@ class TreasureHunt(FatetellAction):
 
 class TreasureHuntSkill(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
 class TreasureHuntHandler(EventHandler):
     execute_before = ('CiguateraHandler', )
-    
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             tgt = act.target
@@ -40,7 +41,8 @@ class TreasureHuntHandler(EventHandler):
         return act
 
 
-class Agile(TreatAsSkill):
+class Agile(Skill, TreatAs):
+    skill_category = ('character', 'passive')
     treat_as = GrazeCard
 
     def check(self):

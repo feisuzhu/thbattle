@@ -9,11 +9,13 @@ from ..inputlets import ProphetInputlet, ChooseOptionInputlet
 
 class Prophet(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
 class ExtremeIntelligence(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
@@ -105,17 +107,25 @@ class ExtremeIntelligenceHandler(EventHandler):
             target = g.current_turn
 
             for p in g.players.exclude(target):
-                if p.dead: continue
-                if not p.has_skill(ExtremeIntelligence): continue
-                if p.tags['ran_ei'] >= p.tags['turn_count'] + 1: continue
-                
+                if p.dead:
+                    continue
+
+                if not p.has_skill(ExtremeIntelligence):
+                    continue
+
+                if p.tags['ran_ei'] >= p.tags['turn_count'] + 1:
+                    continue
+
                 try:
                     tl = act.target_list
                 except AttributeError:
                     tl = [act.target]
-                if any(t.dead for t in tl): return act
-            
-                if not act.can_fire(): return act  # act cannot fire again
+
+                if any(t.dead for t in tl):
+                    return act
+
+                if not act.can_fire():
+                    return act  # act cannot fire again
 
                 if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                     continue
@@ -133,6 +143,7 @@ class ExtremeIntelligenceHandler(EventHandler):
 
 class NakedFox(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 

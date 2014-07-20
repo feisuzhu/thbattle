@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
 from ..actions import DrawCards, UserAction, LaunchCard, Pindian
-from ..cards import Skill, t_None, AttackCard, DuelCard, TreatAsSkill, BaseAttack
+from ..cards import Skill, t_None, AttackCard, DuelCard, VirtualCard, TreatAs, BaseAttack
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
 
 
-class InciteAttack(TreatAsSkill):
+class InciteAttack(VirtualCard, TreatAs):
     treat_as = AttackCard
 
     def check(self):
         return not self.associated_cards
 
 
-class InciteFailAttack(TreatAsSkill):
+class InciteFailAttack(VirtualCard, TreatAs):
     treat_as = AttackCard
     distance = 99999
 
@@ -64,6 +64,7 @@ class InciteAction(UserAction):
 
 class Incite(Skill):
     associated_action = InciteAction
+    skill_category = ('character', 'active')
     usage = 'none'
 
     def target(self, g, source, tl):
@@ -81,10 +82,11 @@ class Incite(Skill):
 
 class Reversal(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 
-class ReversalDuel(TreatAsSkill):
+class ReversalDuel(VirtualCard, TreatAs):
     treat_as = DuelCard
 
     def check(self):
@@ -109,8 +111,10 @@ class ReversalHandler(EventHandler):
             tgt = act.target
             g = Game.getgame()
 
-            #if tgt is g.current_turn: return act
-            if not tgt.has_skill(Reversal): return act
+            # if tgt is g.current_turn: return act
+            if not tgt.has_skill(Reversal):
+                return act
+
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 

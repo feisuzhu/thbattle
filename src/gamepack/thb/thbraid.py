@@ -2,7 +2,7 @@
 import random
 import logging
 
-from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, GameException, user_input, InputTransaction
+from game.autoenv import Game, EventHandler, InterruptActionFlow, GameException, user_input, InputTransaction
 
 from .actions import ActionStage, ActionStageLaunchCard, Damage, DrawCards
 from .actions import DropCards, GenericAction, LaunchCard, PlayerDeath
@@ -153,6 +153,7 @@ class CooperationAction(UserAction):
 
 class Cooperation(Skill):
     associated_action = CooperationAction
+    skill_category = ('active',)
     no_drop = True
     usage = 'handover'
 
@@ -172,6 +173,7 @@ class Cooperation(Skill):
 
 class Protection(Skill):
     associated_action = None
+    skill_category = ('passive',)
     target = t_None
 
 
@@ -229,6 +231,7 @@ class ProtectionHandler(EventHandler):
 
 class Parry(Skill):
     associated_action = None
+    skill_category = ('passive',)
     target = t_None
 
 
@@ -306,6 +309,7 @@ class OneUpAction(UserAction):
 
 class OneUp(Skill):
     associated_action = OneUpAction
+    skill_category = ('active',)
 
     def target(self, g, src, tl):
         attackers = g.attackers
@@ -553,6 +557,7 @@ class THBattleRaid(Game):
                     except InterruptActionFlow:
                         pass
 
+                    del p  # mute linter
                     if not [p for p in attackers if p.tags['action'] and not p.dead]:
                         break
 

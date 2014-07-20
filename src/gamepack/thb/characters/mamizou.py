@@ -2,11 +2,12 @@
 
 from ..actions import ActionStageLaunchCard
 from .baseclasses import Character, register_character_to
-from ..cards import Card, TreatAsSkill, DummyCard
+from ..cards import Card, Skill, TreatAs, DummyCard
 from game.autoenv import EventHandler
 
 
-class Morphing(TreatAsSkill):
+class Morphing(Skill, TreatAs):
+    skill_category = ('character', 'active')
 
     @property
     def treat_as(self):

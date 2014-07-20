@@ -10,6 +10,7 @@ from game.autoenv import EventHandler, Game, user_input
 
 class Onbashira(RedUFOSkill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
     @staticmethod
@@ -136,6 +137,7 @@ class OnbashiraHandler(EventHandler):
 
 class KanakoFaith(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 

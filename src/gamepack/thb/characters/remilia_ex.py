@@ -28,6 +28,7 @@ class HeartBreakAction(InevitableAttack):
 
 class HeartBreak(Skill):
     associated_action = HeartBreakAction
+    skill_category = ('character', 'active')
     target = t_OtherOne
 
     color = property(lambda _: Card.RED).setter(lambda _, v: None)
@@ -72,6 +73,7 @@ class NeverNightAction(UserAction):
 
 class NeverNight(Skill):
     associated_action = NeverNightAction
+    skill_category = ('character', 'active')
     target = t_All
 
     def check(self):
@@ -132,6 +134,7 @@ class ScarletFogAction(ForEach):
 
 class ScarletFog(Skill):
     associated_action = ScarletFogAction
+    skill_category = ('character', 'active')
     target = t_All
     usage = 'drop'
 
@@ -146,6 +149,7 @@ class ScarletFog(Skill):
 
 class QueenOfMidnight(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
@@ -170,6 +174,7 @@ class QueenOfMidnightHandler(EventHandler):
 
 class Septet(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 

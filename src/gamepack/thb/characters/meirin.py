@@ -2,16 +2,19 @@
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import DropCards, GenericAction, MaxLifeChange, random_choose_card, PlayerTurn
-from ..cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, t_None, TreatAsSkill
+from ..cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, t_None, TreatAs
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 class LoongPunch(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
-class Taichi(TreatAsSkill):
+class Taichi(Skill, TreatAs):
+    skill_category = ('character', 'active', 'passive')
+
     @property
     def treat_as(self):
         cl = self.associated_cards
@@ -35,6 +38,7 @@ class Taichi(TreatAsSkill):
 
 class RiverBehind(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'awake')
     target = t_None
 
 

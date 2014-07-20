@@ -8,6 +8,7 @@ from ..inputlets import ChooseOptionInputlet
 
 class CriticalStrike(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 

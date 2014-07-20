@@ -72,6 +72,7 @@ class HeterodoxyAction(UserAction):
 class Heterodoxy(Skill):
     no_drop = True
     associated_action = HeterodoxyAction
+    skill_category = ('character', 'active')
     usage = 'handover'
 
     def check(self):

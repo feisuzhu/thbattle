@@ -30,6 +30,7 @@ class DrawingLotAction(UserAction):
 
 class DrawingLot(Skill):
     associated_action = DrawingLotAction
+    skill_category = ('character', 'active')
     target = t_OtherOne
 
     def check(self):
@@ -39,6 +40,7 @@ class DrawingLot(Skill):
 
 class Miracle(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 

@@ -7,6 +7,7 @@ from ..cards import Skill, t_None
 
 class Luck(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 

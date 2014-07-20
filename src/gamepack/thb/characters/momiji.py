@@ -3,7 +3,7 @@
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
 from ..actions import user_choose_cards, Damage, LaunchCard
-from ..cards import Card, AttackCard, RedUFOSkill, BaseAttack, Attack, Skill, t_None, t_OtherOne, TreatAsSkill
+from ..cards import Card, AttackCard, RedUFOSkill, BaseAttack, Skill, t_None, TreatAs, VirtualCard
 from ..inputlets import ChooseOptionInputlet
 
 
@@ -62,16 +62,18 @@ class SentryHandler(EventHandler):
         return True
 
 
-class SentryAttack(TreatAsSkill):
+class SentryAttack(VirtualCard, TreatAs):
     treat_as = AttackCard
 
 
 class Sentry(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 
 class SharpEye(RedUFOSkill):
+    skill_category = ('character', 'passive', 'compulsory')
     increment = 1
 
 

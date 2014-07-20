@@ -8,6 +8,7 @@ from ..inputlets import ChooseOptionInputlet
 
 class SpearTheGungnir(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
@@ -50,6 +51,7 @@ class SpearTheGungnirHandler(EventHandler):
 
 class VampireKiss(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 

@@ -9,6 +9,7 @@ from .baseclasses import Character, register_character
 
 class Masochist(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 
@@ -68,6 +69,7 @@ class MasochistHandler(EventHandler):
 class ScarletPerception(Skill):
     distance = 1
     associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 

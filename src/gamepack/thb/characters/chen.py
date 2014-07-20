@@ -25,6 +25,7 @@ class FlyingSkandaAction(ForEach):
 
 class FlyingSkanda(Skill):
     associated_action = FlyingSkandaAction
+    skill_category = ('character', 'active')
     usage = 'launch'
 
     def target(self, g, source, tl):
@@ -91,7 +92,7 @@ class ShikigamiAction(UserAction):
         tgt.tags['shikigami_target'] = src
         src.tags['shikigami_target'] = tgt
         src.tags['shikigami_tag'] = src.tags['turn_count']
-        
+
         return True
 
     def is_valid(self):
@@ -100,6 +101,7 @@ class ShikigamiAction(UserAction):
 
 class Shikigami(Skill):
     associated_action = ShikigamiAction
+    skill_category = ('character', 'active', 'once')
     target = t_OtherOne
 
     def check(self):

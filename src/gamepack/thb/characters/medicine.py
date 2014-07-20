@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..actions import Damage, DrawCardStage, DrawCards, DropCards, FatetellStage, PlayerTurn
+from ..actions import Damage, DrawCards, DropCards, FatetellStage, PlayerTurn
 from ..actions import UserAction, GenericAction, user_choose_cards, ShowCards
 from ..cards import Wine, Skill, t_None, Card, SoberUp, VirtualCard
 from ..inputlets import ChooseOptionInputlet
@@ -9,6 +9,7 @@ from game.autoenv import EventHandler, Game, user_input
 
 class Ciguatera(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
@@ -39,9 +40,9 @@ class CiguateraTurnEnd(GenericAction):
         tgt = self.target
         g = Game.getgame()
         g.process_action(SoberUp(src, src))
-        
+
         draw = DrawCards(tgt, amount=1)
-        
+
         if draw.can_fire():
             cards = user_choose_cards(self, src, ('cards', 'showncards'))
         else:
@@ -98,6 +99,7 @@ class CiguateraHandler(EventHandler):
 
 class Melancholy(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 
@@ -121,7 +123,7 @@ class MelancholyAction(GenericAction):
         else:
             self.effective = False
 
-        return True 
+        return True
 
 
 class MelancholyHandler(EventHandler):
@@ -151,6 +153,7 @@ class MelancholyHandler(EventHandler):
                 return arg, all([c.resides_in not in zone for c in cards])
 
         return act
+
 
 @register_character
 class Medicine(Character):

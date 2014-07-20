@@ -47,6 +47,7 @@ class SpiritingAwayAction(UserAction):
 
 class SpiritingAway(Skill):
     associated_action = SpiritingAwayAction
+    skill_category = ('character', 'active')
     target = t_One
 
     def check(self):

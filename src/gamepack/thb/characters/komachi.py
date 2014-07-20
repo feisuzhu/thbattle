@@ -2,7 +2,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange, migrate_cards, PlayerTurn, random_choose_card, UserAction
-from ..cards import Skill, t_None, t_OtherOne, Heal
+from ..cards import Skill, t_None, t_OtherOne
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -40,8 +40,9 @@ class RiversideHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'calcdistance':
             src, card, dist = arg
-            if not src.has_skill(Riverside): return arg
-            
+            if not src.has_skill(Riverside):
+                return arg
+
             turn_count = Game.getgame().turn_count
             for p in dist:
                 if p.tags.get('riverside_target') == turn_count:
@@ -52,6 +53,7 @@ class RiversideHandler(EventHandler):
 
 class Riverside(Skill):
     associated_action = RiversideAction
+    skill_category = ('character', 'active')
     target = t_OtherOne
     usage = 'drop'
 
@@ -87,11 +89,13 @@ class ReturningHandler(EventHandler):
 
 class Returning(Skill):
     associated_action = None
+    skill_category = ('character', 'passive', 'awake')
     target = t_None
 
 
 class FerryFee(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
     distance = 1
 

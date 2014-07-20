@@ -5,6 +5,7 @@ from ..cards import Card, Heal, HealCard, Skill, t_None, t_One
 
 class FirstAid(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
     usage = 'launch'
 
@@ -38,6 +39,7 @@ class EirinHeal(Heal):
 
 class Medic(Skill):
     associated_action = EirinHeal
+    skill_category = ('character', 'active')
     target = t_One
     usage = 'drop'
 

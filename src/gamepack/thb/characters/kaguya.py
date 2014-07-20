@@ -4,12 +4,13 @@ from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
 from ..actions import UserAction, LaunchCard, Damage, DrawCards, LaunchCardAction, LifeLost
 from ..actions import user_choose_cards, migrate_cards, skill_transform
-from ..cards import Skill, t_None, Card, SealingArrayCard, TreatAsSkill, VirtualCard, Heal
+from ..cards import Skill, t_None, Card, SealingArrayCard, TreatAs, VirtualCard, Heal
 from ..inputlets import ChooseOptionInputlet
 
 
 class Dilemma(Skill):
     associated_action = None
+    skill_category = ('character', 'passive')
     target = t_None
 
 
@@ -35,7 +36,7 @@ class DilemmaDamageAction(UserAction):
     def cond(self, cards):
         if len(cards) != 1: return False
         card = cards[0]
-        if not card.resides_in.type in (
+        if card.resides_in.type not in (
             'cards', 'showncards', 'equips'
         ): return False
 
@@ -75,8 +76,9 @@ class DilemmaHandler(EventHandler):
         return act
 
 
-class ImperishableNight(TreatAsSkill):
+class ImperishableNight(Skill, TreatAs):
     treat_as = SealingArrayCard
+    skill_category = ('character', 'active')
 
     def check(self):
         return Game.getgame().current_turn is not self.player
@@ -132,7 +134,7 @@ class ImperishableNightHandler(EventHandler):
     def cond(self, cards):
         if len(cards) != 1: return False
         card = cards[0]
-        if not card.resides_in.type in (
+        if card.resides_in.type not in (
             'cards', 'showncards', 'equips'
         ): return False
         if 'skill' in card.category: return False

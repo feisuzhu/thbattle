@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from game.autoenv import Game, EventHandler, user_input, GameError
-from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DummyAction, DropCardStage, MaxLifeChange
+from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DropCardStage, MaxLifeChange
 from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card, MigrateCardsTransaction
-from .base import Card, VirtualCard, Skill, TreatAsSkill, t_None, t_OtherOne, t_OtherLessEqThanN
+from .base import Card, VirtualCard, Skill, TreatAs, t_None, t_OtherOne, t_OtherLessEqThanN
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 from . import basic, spellcard
@@ -18,7 +18,7 @@ class WearEquipmentAction(UserAction):
         target = self.target
         equips = target.equips
         g = Game.getgame()
-        
+
         with MigrateCardsTransaction() as trans:
             for oc in equips:
                 if oc.equipment_category == card.equipment_category:
@@ -53,8 +53,9 @@ class ShieldSkill(Skill):
     target = t_None
 
 
-class OpticalCloakSkill(TreatAsSkill, ShieldSkill):  # just a tag
+class OpticalCloakSkill(ShieldSkill, TreatAs):  # just a tag
     treat_as = Card.card_classes['GrazeCard']
+    skill_category = ('equip', 'passive')
 
     def check(self):
         return False
@@ -79,19 +80,19 @@ class OpticalCloakHandler(EventHandler):
             tgt = act.target
             if not tgt.has_skill(OpticalCloakSkill): return act
             if act.card: return act
-           
+
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
-            
+
             g = Game.getgame()
             if g.process_action(OpticalCloak(tgt, tgt)):
                 act.card = OpticalCloakSkill(tgt)
-        
+
         return act
 
 
 class MomijiShieldSkill(ShieldSkill):
-    pass
+    skill_category = ('equip', 'passive')
 
 
 class MomijiShield(GenericAction):
@@ -122,6 +123,7 @@ class MomijiShieldHandler(EventHandler):
 
 class UFOSkill(Skill):
     associated_action = None
+    skill_category = ('equip', 'passive')
     target = t_None
 
 
@@ -161,6 +163,7 @@ class WeaponSkill(Skill):
 
 class RoukankenSkill(WeaponSkill):
     associated_action = None
+    skill_category = ('equip', 'passive')
     target = t_None
     range = 3
 
@@ -217,6 +220,7 @@ class RoukankenEffectHandler(EventHandler):
 
 class NenshaPhoneSkill(WeaponSkill):
     associated_action = None
+    skill_category = ('equip', 'active')
     target = t_None
     range = 4
 
@@ -253,6 +257,7 @@ class NenshaPhoneHandler(EventHandler):
 
 class ElementalReactorSkill(WeaponSkill):
     associated_action = None
+    skill_category = ('equip', 'passive')
     target = t_None
     range = 1
 
@@ -281,8 +286,9 @@ class ElementalReactorHandler(EventHandler):
         return arg
 
 
-class GungnirSkill(TreatAsSkill, WeaponSkill):
+class GungnirSkill(WeaponSkill, TreatAs):
     target = t_OtherOne
+    skill_category = ('equip', 'active')
     range = 3
     treat_as = Card.card_classes['AttackCard']  # arghhhhh, nasty circular references!
 
@@ -300,6 +306,7 @@ class ScarletRhapsody(ForEach):
 class ScarletRhapsodySkill(WeaponSkill):
     range = 4
     associated_action = ScarletRhapsody
+    skill_category = ('equip', 'active')
     target = t_OtherLessEqThanN(3)
     usage = 'launch'
 
@@ -337,6 +344,7 @@ class ScarletRhapsodySkill(WeaponSkill):
 
 class RepentanceStickSkill(WeaponSkill):
     range = 2
+    skill_category = ('equip', 'active')
     associated_action = None
     target = t_None
 
@@ -393,7 +401,7 @@ class RepentanceStickHandler(EventHandler):
 
 
 class MaidenCostumeSkill(ShieldSkill):
-    pass
+    skill_category = ('equip', 'passive')
 
 
 class MaidenCostumeEffect(spellcard.NonResponsiveInstantSpellCardAction):
@@ -419,6 +427,7 @@ class MaidenCostumeHandler(EventHandler):
 
 
 class IbukiGourdSkill(RedUFOSkill):
+    skill_category = ('equip', 'passive')
     increment = 0
 
 
@@ -437,7 +446,7 @@ class IbukiGourdHandler(EventHandler):
             act, cl, _from, to = arg
 
             if any(c.is_card(IbukiGourdCard) for c in cl):
-                g = Game.getgame()    
+                g = Game.getgame()
 
                 for cl in (_from, to):
                     if cl.type == 'equips':
@@ -456,6 +465,7 @@ class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
 
 class HouraiJewelSkill(WeaponSkill):
     associated_action = None
+    skill_category = ('equip', 'active')
     target = t_None
     range = 1
 
@@ -476,7 +486,7 @@ class HouraiJewelHandler(EventHandler):
 
 
 class UmbrellaSkill(ShieldSkill):
-    pass
+    skill_category = ('equip', 'passive')
 
 
 class UmbrellaEffect(GenericAction):
@@ -506,8 +516,9 @@ class UmbrellaHandler(EventHandler):
         return act
 
 
-class SaigyouBranchSkill(TreatAsSkill, ShieldSkill):
+class SaigyouBranchSkill(ShieldSkill, TreatAs):
     treat_as = Card.card_classes['RejectCard']
+    skill_category = ('equip', 'passive')
 
     def check(self):
         return False
@@ -541,7 +552,7 @@ class SaigyouBranchHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SpellCardAction):
-            src, tgt = act.source, act.target
+            tgt = act.target
             if not tgt.has_skill(SaigyouBranchSkill): return act
             if act.cancelled: return act
             if isinstance(act, spellcard.Reject): return act  # can't respond to reject
@@ -556,6 +567,7 @@ class SaigyouBranchHandler(EventHandler):
 
 class HakuroukenSkill(WeaponSkill):
     range = 2
+    skill_category = ('equip', 'passive')
     associated_action = None
     target = t_None
 
@@ -625,6 +637,7 @@ class AyaRoundfan(GenericAction):
 
 class AyaRoundfanSkill(WeaponSkill):
     range = 5
+    skill_category = ('equip', 'passive')
     associated_action = None
     target = t_None
 
@@ -658,6 +671,7 @@ class Laevatein(UserAction):
 
 class LaevateinSkill(WeaponSkill):
     range = 3
+    skill_category = ('equip', 'active')
     associated_action = None
     target = t_None
 
@@ -707,6 +721,7 @@ class LaevateinHandler(EventHandler):
 
 class DeathSickleSkill(WeaponSkill):
     range = 2
+    skill_category = ('equip', 'passive')
     associated_action = None
     target = t_None
 
@@ -741,6 +756,7 @@ class DeathSickleHandler(EventHandler):
 
 
 class KeystoneSkill(GreenUFOSkill):
+    skill_category = ('equip', 'passive')
     increment = 1
 
 
@@ -769,6 +785,7 @@ class KeystoneHandler(EventHandler):
 
 
 class WitchBroomSkill(RedUFOSkill):
+    skill_category = ('equip', 'active')
     increment = 2
 
 
@@ -801,7 +818,7 @@ class YinYangOrb(GenericAction):
 
 
 class YinYangOrbSkill(AccessoriesSkill):
-    pass
+    skill_category = ('equip', 'passive')
 
 
 @register_eh
@@ -820,7 +837,7 @@ class YinYangOrbHandler(EventHandler):
 
 
 class SuwakoHatSkill(AccessoriesSkill):
-    pass
+    skill_category = ('equip', 'passive')
 
 
 @register_eh
@@ -834,7 +851,7 @@ class SuwakoHatHandler(EventHandler):
 
 
 class YoumuPhantomSkill(AccessoriesSkill):
-    pass
+    skill_category = ('equip', 'passive')
 
 
 @register_eh
@@ -868,7 +885,7 @@ class YoumuPhantomHandler(EventHandler):
 
 
 class IceWingSkill(AccessoriesSkill):
-    pass
+    skill_category = ('equip', 'passive')
 
 
 class IceWing(GenericAction):
@@ -895,7 +912,8 @@ class IceWingHandler(EventHandler):
         return act
 
 
-class GrimoireSkill(TreatAsSkill, WeaponSkill):
+class GrimoireSkill(WeaponSkill, TreatAs):
+    skill_category = ('equip', 'active')
     range = 1
     from .base import Card
     lookup_tbl = {

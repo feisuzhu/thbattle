@@ -47,6 +47,7 @@ class HopeMaskHandler(EventHandler):
 
 class HopeMask(Skill):
     associated_action = None
+    skill_category = ('character', 'active')
     target = t_None
 
 
@@ -107,6 +108,7 @@ class DarkNohAction(UserAction):
 class DarkNoh(Skill):
     no_drop = True
     associated_action = DarkNohAction
+    skill_category = ('character', 'active')
     target = t_OtherOne
     usage = 'handover'
 
@@ -115,7 +117,7 @@ class DarkNoh(Skill):
         if len(cards) != 1: return False
         c = cards[0]
         if c.resides_in is None: return False
-        if not c.resides_in.type in ('cards', 'showncards', 'equips'): return False
+        if c.resides_in.type not in ('cards', 'showncards', 'equips'): return False
         if c.suit not in (Card.SPADE, Card.CLUB): return False
         return True
 
