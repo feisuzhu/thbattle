@@ -39,3 +39,4 @@ tags
 update_info.json
 user_settings.json
 var/
+*.purge

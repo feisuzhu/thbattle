@@ -129,14 +129,14 @@ class ChatBoxFrame(Frame):
             if text.startswith(u'`') and len(text) > 1:
                 text = text[1:]
                 if not text: return
-                Executive.call('speaker', ui_message, text)
+                Executive.speaker(text)
             elif text.startswith(u'/'):
                 from . import commands
                 cmdline = shlex.split(text[1:])
                 msg = commands.process_command(cmdline)
                 msg and self.append(msg)
             else:
-                Executive.call('chat', ui_message, text)
+                Executive.chat(text)
 
     def append(self, v):
         self.box.append(v)
@@ -162,7 +162,7 @@ class Screen(Overlay):
             uid, uname, gid, gtype = args[0]
             from user_settings import UserSettings as us
             if us.no_invite:
-                Executive.call('invite_grant', ui_message, [gid, False])
+                Executive.invite_grant(gid, False)
                 return
 
             from gamepack import gamemodes as modes
@@ -182,7 +182,7 @@ class Screen(Overlay):
 
             @box.event
             def on_confirm(val, uid=uid):
-                Executive.call('invite_grant', ui_message, [gid, val])
+                Executive.invite_grant(gid, val)
 
         else:
             Overlay.on_message(self, _type, *args)
@@ -253,8 +253,6 @@ class ServerSelectScreen(Screen):
                 def on_click():
                     self.delete()
 
-        screen = self
-
         class HighlightLayer(SensorLayer):
             zindex = 0
             hl_alpha = InterpDesc('_hl_alpha')
@@ -296,7 +294,7 @@ class ServerSelectScreen(Screen):
             def on_mouse_release(self, x, y, button, modifiers):
                 if self.highlight and not self.disable_click:
                     self.disable_click = True
-                    screen.do_connect(self.highlight['address'])
+                    Executive.connect_server(self.highlight['address'], ui_message)
 
             def enable_click(self):
                 self.disable_click = False
@@ -319,21 +317,21 @@ class ServerSelectScreen(Screen):
 
         VolumeTuner(parent=self, x=self.width - 90, y=60)
 
-    def do_connect(self, addr):
-        Executive.call('connect_server', ui_message, addr, ui_message)
-
     def on_message(self, _type, *args):
         if _type == 'server_connected':
             login = LoginScreen()
             login.switch()
+
         elif _type == 'server_connect_failed':
             self.highlight_layer.enable_click()
             log.error('Server connect failed.')
             ConfirmBox(u'服务器连接失败！', parent=self)
+
         elif _type == 'version_mismatch':
             self.highlight_layer.enable_click()
             log.error('Version mismatch')
             ConfirmBox(u'您的版本与服务器版本不符，无法进行游戏！', parent=self)
+
         else:
             Screen.on_message(self, _type, *args)
 
@@ -411,7 +409,7 @@ class LoginScreen(Screen):
 
         def do_login(self):
             u, pwd = self.txt_username.text, self.txt_pwd.text
-            Executive.call('auth', ui_message, [u, pwd])
+            Executive.auth(u, pwd)
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
@@ -438,7 +436,7 @@ class LoginScreen(Screen):
 
             @confirm.event
             def on_confirm(val):
-                val and Executive.call('auth', ui_message, ['-1', 'guest'])
+                val and Executive.auth('-1', 'guest')
 
     def on_message(self, _type, *args):
         if _type == 'auth_success':
@@ -556,7 +554,7 @@ class GameHallScreen(Screen):
                     gtype = ImageSelector.get_selected(selectors).gametype
                     f = pyglet.font.load('AncientPix', 9)
                     roomname = textsnap(txtbox.text, f, 200)
-                    Executive.call('create_game', ui_message, [gtype, roomname])
+                    Executive.create_game(gtype, roomname)
 
                 @btncancel.event  # noqa
                 def on_click():
@@ -595,7 +593,7 @@ class GameHallScreen(Screen):
                 def on_click():
                     self.delete()
 
-                Executive.call('query_gameinfo', ui_message, game_id)
+                Executive.query_gameinfo(game_id)
 
             def draw(self):
                 Panel.draw(self)
@@ -622,7 +620,7 @@ class GameHallScreen(Screen):
 
                         @s.event
                         def on_click(uid=acc.userid, un=acc.username):
-                            Executive.call('observe_user', ui_message, uid)
+                            Executive.observe_user(uid)
                             self.overlay.chat_box.append(u'|R已经向%s发送了旁观请求，请等待回应……|r\n' % un)
                             self.delete()
 
@@ -652,20 +650,18 @@ class GameHallScreen(Screen):
 
             @self.btn_quickstart.event  # noqa
             def on_click():
-                Executive.call('quick_start_game', ui_message, 'THBattle')
+                Executive.quick_start_game('THBattle')
 
             @self.btn_refresh.event  # noqa
             def on_click():
-                Executive.call('get_hallinfo', ui_message, None)
+                Executive.get_hallinfo(None)
 
             @self.gamelist.event
             def on_item_dblclick(li):
-                # TODO:
                 if li.started:
-                    # Executive.call('observe_user', ui_message, li.game_id)
                     self.ObserveGamePanel(li.game_id, parent=self.overlay)
                 else:
-                    Executive.call('join_game', ui_message, li.game_id)
+                    Executive.join_game(li.game_id)
 
         def on_message(self, _type, *args):
             if _type == 'current_games':
@@ -802,7 +798,7 @@ class GameHallScreen(Screen):
         def on_click():
             openurl('http://thb.io')
 
-        Executive.call('get_hallinfo', ui_message, None)
+        Executive.get_hallinfo()
 
     def on_message(self, _type, *args):
         rst = handle_chat(_type, args)
@@ -869,7 +865,7 @@ class GameScreen(Screen):
             def on_click():
                 self.delete()
 
-            Executive.call('get_hallinfo', ui_message, None)
+            Executive.get_hallinfo()
 
         def draw(self):
             Panel.draw(self)
@@ -892,7 +888,7 @@ class GameScreen(Screen):
 
                     @s.event
                     def on_click(s=s, uid=uid, un=uname):
-                        Executive.call('invite_user', ui_message, uid)
+                        Executive.invite_user(uid)
                         self.overlay.chat_box.append(u'|R已经邀请了%s，请等待回应……|r\n' % un)
                         s.state = Button.DISABLED
 
@@ -923,12 +919,12 @@ class GameScreen(Screen):
             @self.btn_getready.event
             def on_click():
                 if self.ready:
-                    Executive.call('cancel_ready', ui_message, [])
+                    Executive.cancel_ready()
                     self.ready = False
                     self.btn_getready.caption = u'准备'
                     self.btn_getready.update()
                 else:
-                    Executive.call('get_ready', ui_message, [])
+                    Executive.get_ready()
                     # self.btn_getready.state = Button.DISABLED
                     self.ready = True
                     self.btn_getready.caption = u'取消准备'
@@ -1056,8 +1052,7 @@ class GameScreen(Screen):
 
             @box.event
             def on_confirm(val):
-                if val:
-                    Executive.call('exit_game', ui_message, [])
+                val and Executive.exit_game()
 
     def on_message(self, _type, *args):
         rst = handle_chat(_type, args)
@@ -1119,7 +1114,7 @@ class GameScreen(Screen):
 
             @box.event
             def on_confirm(val, uid=uid):
-                Executive.call('observe_grant', ui_message, [uid, val])
+                Executive.observe_grant(uid, val)
 
         elif _type == 'observer_enter':
             obuid, obname, uname = args[0]

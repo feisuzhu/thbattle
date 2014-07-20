@@ -123,8 +123,6 @@ def start_client():
     from game import autoenv
     autoenv.init('Client')
 
-    from client.core import Executive
-
     import pyglet
 
     pyglet.options['audio'] = ('directsound', 'openal', 'alsa', 'silent')
@@ -192,7 +190,6 @@ def start_client():
     except KeyboardInterrupt:
         import pyglet
         pyglet.app.exit()
-        Executive.call('app_exit')
         raise
     except:
         import pyglet
@@ -202,13 +199,10 @@ def start_client():
             import pdb
             pdb.post_mortem()
 
-        Executive.call('app_exit')
         log.error(u'游戏崩溃，正在报告bug，请稍等下……')
         do_crashreport()
 
         raise
-
-    Executive.call('app_exit')
 
 
 if __name__ == '__main__':

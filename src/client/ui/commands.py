@@ -145,7 +145,7 @@ def help(cmdname):
 @argtypes(int)
 @argdesc(u'<uid>')
 def kickob(uid):
-    Executive.call('kick_observer', None, uid)
+    Executive.kick_observer(uid)
     return u'指令已发出'
 
 
@@ -178,8 +178,7 @@ def invite(onoff):
 @argtypes(int)
 @argdesc(u'<uid>')
 def ob(uid):
-    from client.ui.base import ui_message
-    Executive.call('observe_user', ui_message, uid)
+    Executive.observe_user(uid)
     return u'已经向[%d]发送了旁观请求，请等待回应……' % uid
 
 

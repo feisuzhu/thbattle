@@ -417,6 +417,9 @@ class SyncPrimitive(GameObject):
     def __data__(self):
         return self.value
 
+    def __repr__(self):
+        return self.value.__repr__()
+
 
 def sync_primitive(val, to):
     if not to:  # sync to nobody

@@ -61,7 +61,18 @@ class Client(ClientEndpoint):
             self.write(['invalid_command', [cmd, data]])
             return
 
-        f(data)
+        if not isinstance(data, (list, tuple)):
+            log.error('Malformed command: %s %s', cmd, data)
+            return
+
+        n = f.__code__.co_argcount - 1
+        if n != len(data):
+            log.debug(
+                'Command "%s" argcount mismatch, expect %s, got %s',
+                cmd, n, len(data)
+            )
+        else:
+            f(*data)
 
     def handle_drop(self):
         if self.state not in ('connected', 'hang'):
@@ -79,12 +90,11 @@ class Client(ClientEndpoint):
 
     # --------- Handlers ---------
     @for_state('connected')
-    def command_auth(self, cred):
+    def command_auth(self, login, password):
         if self.account:
             self.write(['invalid_command', ['auth', '']])
             return
 
-        login, password = cred
         acc = Account.authenticate(login, password)
         if acc:
             self.account = acc
@@ -100,8 +110,7 @@ class Client(ClientEndpoint):
             self.write(['auth_result', 'invalid_credential'])
 
     @for_state('hang')
-    def command_create_game(self, arg):
-        _type, name = arg
+    def command_create_game(self, _type, name):
         g = create_game(self, _type, name)
         join_game(self, g.gameid)
 
@@ -109,11 +118,11 @@ class Client(ClientEndpoint):
     def command_join_game(self, gameid):
         join_game(self, gameid)
 
-    def command_get_hallinfo(self, _):
+    def command_get_hallinfo(self):
         send_hallinfo(self)
 
     @for_state('hang')
-    def command_quick_start_game(self, _):
+    def command_quick_start_game(self, gamemode):
         quick_start_game(self)
 
     @for_state('hang')
@@ -125,11 +134,11 @@ class Client(ClientEndpoint):
         query_gameinfo(self, gid)
 
     @for_state('inroomwait')
-    def command_get_ready(self, _):
+    def command_get_ready(self):
         get_ready(self)
 
     @for_state('inroomwait', 'ready', 'ingame', 'observing')
-    def command_exit_game(self, _):
+    def command_exit_game(self):
         exit_game(self)
 
     @for_state('inroomwait', 'ready')
@@ -149,19 +158,19 @@ class Client(ClientEndpoint):
         change_location(self, loc)
 
     @for_state('ready')
-    def command_cancel_ready(self, _):
+    def command_cancel_ready(self):
         cancel_ready(self)
 
-    def command_heartbeat(self, _):
+    def command_heartbeat(self):
         pass
 
     @for_state('hang', 'inroomwait', 'ready', 'ingame', 'observing')
-    def command_chat(self, data):
-        chat(self, data)
+    def command_chat(self, text):
+        chat(self, text)
 
     @for_state('hang', 'inroomwait', 'ready', 'ingame', 'observing')
-    def command_speaker(self, data):
-        speaker(self, data)
+    def command_speaker(self, text):
+        speaker(self, text)
 
     # --------- End handlers ---------
 
@@ -267,8 +276,8 @@ def new_user(user):
         # squeeze the original one out
         log.info('%s has been sqeezed out' % user.account.username)
         old = users[uid]
-        #if old.state not in('connected', 'hang'):
-        #    exit_game(old, drops=True)
+        # if old.state not in('connected', 'hang'):
+        #     exit_game(old, drops=True)
         old.write(['others_logged_in', None])
         old.close()
 
@@ -348,7 +357,7 @@ def _next_free_slot(game):
 
 def create_game(user, gametype, gamename):
     from gamepack import gamemodes
-    if not gametype in gamemodes:
+    if gametype not in gamemodes:
         user.write(['gamehall_error', 'gametype_not_exist'])
         return
 
@@ -532,10 +541,7 @@ def exit_game(user, drops=False):
                     pass
 
             g.suicide = True  # game will kill itself in get_synctag()
-            try:
-                del games[g.gameid]
-            except:
-                pass
+            games.pop(g.gameid, None)
 
         evt_datachange.set()
     else:
@@ -608,7 +614,7 @@ def _observe_user(user, observee):
     user.observing = observee
     user.write(['game_joined', g])
     user.gclear()  # clear stale gamedata
-    #_notify_playerchange(g)
+    # _notify_playerchange(g)
     pl = g.players if not g.players_original else g.players_original
     evt_datachange.set()
 

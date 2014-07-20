@@ -1,29 +1,39 @@
 # -*- coding: utf-8 -*-
-from network.client import Server
-import gevent
-from gevent import socket, Greenlet
 
-from account import Account
-from utils import BatchList
-
+# -- stdlib --
 import logging
+
+# -- third party --
+from gevent import socket, Greenlet
+import gevent
+
+# -- own --
+from account import Account
+from network.client import Server
+from utils import BatchList, instantiate
+
+# -- code --
 log = logging.getLogger('Executive')
 
 
-class ForcedKill(gevent.GreenletExit): pass
+class ForcedKill(gevent.GreenletExit):
+    pass
 
 
 class GameManager(Greenlet):
     '''
     Handles server messages, all game related operations.
     '''
-    def __init__(self):
+    def __init__(self, event_cb):
         Greenlet.__init__(self)
-        self.state = 'connected'
-        self.game = None
+        self.state     = 'connected'
+        self.game      = None
         self.last_game = None
+        self.event_cb  = event_cb
 
     def _run(self):
+        self.link_exception(lambda *a: self.event_cb('server_dropped'))
+
         from gamepack import gamemodes
         handlers = {}
 
@@ -163,19 +173,19 @@ class GameManager(Greenlet):
             from settings import VERSION
             if ver != VERSION:
                 self.event_cb('version_mismatch')
-                Executive.call('disconnect')
+                Executive.disconnect()
             else:
                 self.event_cb('server_connected', self)
 
         @handler(None, None)
         def ping(self, _):
-            Executive.server.write(['pong', True])
+            Executive.pong()
 
         @gevent.spawn
         def beater():
             while True:
                 gevent.sleep(10)
-                Executive.server.write(['heartbeat', None])
+                Executive.heartbeat()
 
         while True:
             cmd, data = Executive.server.ctlcmds.get()
@@ -190,134 +200,79 @@ class GameManager(Greenlet):
                 self.event_cb(cmd, data)
 
 
-class Executive(Greenlet):
-    '''
-    Handles UI commands
-    '''
+@instantiate
+class Executive(object):
     def __init__(self):
-        Greenlet.__init__(self)
-        # from utils import ITIEvent
-        # self.event = ITIEvent()
-        from gevent.event import Event
-        self.event = Event()
-        self.msg_queue = []
-        # This callback is called when executive completed a request
-        # Called with these args:
-        # callback('message', *results)
-        self.default_callback = lambda *a, **k: False
         self.state = 'initial'  # initial connected
 
-    def call(self, _type, cb=None, *args):
-        if not cb:
-            cb = self.default_callback
-        self.msg_queue.append((_type, cb, args))
-        self.event.set()
+    def connect_server(self, addr, event_cb):
+        if not self.state == 'initial':
+            return 'server_already_connected'
 
-    def _run(self):
-        handlers = {}
+        try:
+            s = socket.create_connection(addr)
+            svr = Server.spawn(s, addr)
+            svr.link_exception(lambda *a: event_cb('server_dropped'))
+            self.server = svr
+            self.state = 'connected'
+            self.gamemgr = GameManager(event_cb)
+            self.gamemgr.start()
+            return None
 
-        def handler(f):
-            handlers[f.__name__] = f
+            # return 'server_connected'
+        except:
+            log.exception('Error connecting server')
+            return 'server_connect_failed'
 
-        @handler
-        def app_exit(self, cb):
-            raise gevent.GreenletExit
+    def disconnect(self):
+        if self.state != 'connected':
+            return 'not_connected'
+        else:
+            self.server.close()
+            self.state = 'initial'
+            self.gamemgr.kill()
+            self.server = self.gamemgr = None
+            return 'disconnected'
 
-        @handler
-        def connect_server(self, cb, addr, event_cb):
-            if not self.state == 'initial':
-                cb('server_already_connected')
-                return
-            try:
-                s = socket.create_connection(addr)
-                svr = Server.spawn(s, 'TheChosenOne')
-                self.server = svr
-                self.state = 'connected'
-                self.gamemgr = GameManager()
-                self.gamemgr.start()
-                self.gamemgr.event_cb = event_cb
+    def update(self, update_cb):
+        import autoupdate as au
+        from options import options
+        import settings
+        if not options.no_update:
+            base = settings.UPDATE_BASE
+            url = settings.UPDATE_URL
+            return au.do_update(base, url, update_cb)
+        else:
+            return 'update_disabled'
 
-                svr.link_exception(lambda *a: event_cb('server_dropped'))
-
-                # cb('server_connected', svr)
-            except:
-                cb('server_connect_failed', None)
-
-        @handler
-        def disconnect(self, cb):
-            if self.state != 'connected':
-                cb('not_connected')
-                return
-            else:
-                self.server.close()
-                self.state = 'initial'
-                self.gamemgr.kill()
-                self.server = self.gamemgr = None
-                cb('disconnected')
-
-        @handler
-        def update(self, cb, update_cb):
-            import autoupdate as au
-            from options import options
-            import settings
-            if not options.no_update:
-                base = settings.UPDATE_BASE
-                url = settings.UPDATE_URL
-                gevent.spawn(lambda: cb(au.do_update(base, url, update_cb)))
-            else:
-                cb('update_disabled')
-
-        @handler
-        def auth(self, cb, arg):
+    def _simple_gm_op(_type):
+        def wrapper(self, *args):
             if not (self.state == 'connected'):
-                cb('general_failure', 'Connect first!')
-                return
-            self.server.write(['auth', arg])
+                return 'connect_first'
 
-        # @handler def register(...): ...
-        def simple_gm_op(_type):
-            def wrapper(self, cb, *args):
-                if not (self.state == 'connected'):
-                    cb('general_failure', 'Connect first!')
-                    return
-                self.server.write([_type, args[0]])
-            wrapper.__name__ = _type
-            return wrapper
-        ops = [
-            # FIXME: the quick start thing should be done at client
-            'cancel_ready',
-            'change_location',
-            'chat',
-            'create_game',
-            'exit_game',
-            'get_hallinfo',
-            'get_ready',
-            'join_game',
-            'kick_user',
-            'kick_observer',
-            'observe_grant',
-            'observe_user',
-            'invite_user',
-            'invite_grant',
-            'query_gameinfo',
-            'quick_start_game',
-            'register',
-            'speaker',
-        ]
-        for op in ops:
-            handler(simple_gm_op(op))
+            self.server.write([_type, args])
+        wrapper.__name__ = _type
+        return wrapper
 
-        while True:
-            self.event.wait()
+    auth             = _simple_gm_op('auth')
+    cancel_ready     = _simple_gm_op('cancel_ready')
+    change_location  = _simple_gm_op('change_location')
+    chat             = _simple_gm_op('chat')
+    create_game      = _simple_gm_op('create_game')
+    exit_game        = _simple_gm_op('exit_game')
+    get_hallinfo     = _simple_gm_op('get_hallinfo')
+    get_ready        = _simple_gm_op('get_ready')
+    heartbeat        = _simple_gm_op('heartbeat')
+    invite_grant     = _simple_gm_op('invite_grant')
+    invite_user      = _simple_gm_op('invite_user')
+    join_game        = _simple_gm_op('join_game')
+    kick_observer    = _simple_gm_op('kick_observer')
+    kick_user        = _simple_gm_op('kick_user')
+    observe_grant    = _simple_gm_op('observe_grant')
+    observe_user     = _simple_gm_op('observe_user')
+    pong             = _simple_gm_op('pong')
+    query_gameinfo   = _simple_gm_op('query_gameinfo')
+    quick_start_game = _simple_gm_op('quick_start_game')
+    speaker          = _simple_gm_op('speaker')
 
-            for _type, cb, args in self.msg_queue:
-                f = handlers.get(_type)
-                if f:
-                    f(self, cb, *args)
-                else:
-                    raise Exception('Executive: No such handler: %s' % _type)
-
-            self.msg_queue = []
-            self.event.clear()
-
-Executive = Executive.spawn()
+    del _simple_gm_op

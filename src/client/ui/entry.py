@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
-import threading
-import sys, os
+import sys
+import os
 
 from utils import hook
 
+import gevent
+
 import logging
 log = logging.getLogger('UI_Entry')
+
 
 def start_ui():
     # ATI workarounds
     import pyglet
     from pyglet import gl
+
     @hook(gl)
     def glDrawArrays(ori, *a, **k):
         from pyglet.gl import glBegin, glEnd, GL_QUADS
@@ -20,7 +24,7 @@ def start_ui():
 
     # ---------------
 
-    from client.ui.base import init_gui, ui_schedule, ui_message
+    from client.ui.base import init_gui, ui_message
 
     init_gui()
 
@@ -42,9 +46,9 @@ def start_ui():
 
     # custom errcheck
     import pyglet.gl.lib as gllib
-    orig_errcheck = gllib.errcheck
 
     import ctypes
+
     def my_errcheck(result, func, arguments):
         from pyglet import gl
         error = gl.glGetError()
@@ -59,10 +63,12 @@ def start_ui():
     # ------------------------------------
 
     from screens import UpdateScreen, ServerSelectScreen
+    from client.ui.controls import ConfirmBox
+    from client.core import Executive
+    from options import options
 
     us = UpdateScreen()
     us.switch()
-    from client.core import Executive
     sss = ServerSelectScreen()
 
     errmsgs = {
@@ -70,45 +76,36 @@ def start_ui():
         'error': u'更新过程出现错误，您可能无法正常进行游戏！',
     }
 
-    def display_box(msg):
-        from client.ui.controls import ConfirmBox
-        b = ConfirmBox(msg, parent=us)
-        @b.event
-        def on_confirm(val):
-            sss.switch()
+    @gevent.spawn
+    def do_update():
+        msg = Executive.update(us.update_message)
 
-    def update_callback(msg):
-        # executes in logic thread
-        # well, intented to be
-        # ui and logic now run in the same thread.
-
-        from options import options
         if msg == 'up2date':
-            ui_schedule(sss.switch)
+            sss.switch()
         elif msg == 'update_disabled' and options.fastjoin:
-            import gevent
+            @gevent.spawn
             def func():
                 from client.ui.soundmgr import SoundManager
                 SoundManager.mute()
                 gevent.sleep(0.3)
-                ui_schedule(sss.switch)
+                sss.switch()
                 gevent.sleep(0.3)
-                Executive.call('connect_server', ui_message, ('127.0.0.1', 9999), ui_message)
+                Executive.connect_server(('127.0.0.1', 9999), ui_message)
                 gevent.sleep(0.3)
-                Executive.call('auth', ui_message, ['Proton1', 'abcde'])
+                Executive.auth('Proton1', 'abcde')
                 gevent.sleep(0.3)
-                Executive.call('quick_start_game', ui_message, 'THBattle')
+                Executive.quick_start_game('THBattle')
                 gevent.sleep(0.3)
-                Executive.call('get_ready', ui_message, [])
+                Executive.get_ready()
 
-            gevent.spawn(func)
-                
         elif msg in errmsgs:
-            ui_schedule(display_box, errmsgs[msg])
+            b = ConfirmBox(errmsgs[msg], parent=us)
+
+            @b.event
+            def on_confirm(val):
+                sss.switch()
         else:
             os.execv(sys.executable, [sys.executable] + sys.argv)
-
-    Executive.call('update', update_callback, lambda *a: ui_schedule(us.update_message, *a))
 
     # workaround for pyglet's bug
     if sys.platform == 'win32':

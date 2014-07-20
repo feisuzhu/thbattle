@@ -970,7 +970,9 @@ class PlayerPortrait(Frame):
 
         @sensor.event
         def on_mouse_release(x, y, button, modifier):
-            self._change_loc()
+            Executive.change_location(
+                self.parent.portraits.index(self)
+            )
 
         self.buttons = []
 
@@ -987,19 +989,7 @@ class PlayerPortrait(Frame):
             def on_click(btn=btn, cmd=command):
                 cmd()
 
-        btn(u'请离', self._kick, 90, 55, 32, 20)
-
-    def _change_loc(self):
-        Executive.call(
-            'change_location', ui_message,
-            self.parent.portraits.index(self)
-        )
-
-    def _kick(self):
-        if not self.userid: return
-        Executive.call(
-            'kick_user', ui_message, self.userid
-        )
+        btn(u'请离', lambda: self.userid and Executive.kick_user(self.userid), 90, 55, 32, 20)
 
     def update(self):
         acc = self.account
