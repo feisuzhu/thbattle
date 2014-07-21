@@ -21,6 +21,7 @@ def forum_noti():
     parser.add_argument('--connect-str', default='mysql://root@localhost/ultrax?charset=utf8')
     parser.add_argument('--discuz-dbpre', default='pre_')
     parser.add_argument('--forums', default='2,36,38,40,78,82')
+    parser.add_argument('--forums-thread-only', default='78')
     options = parser.parse_args()
 
     text = lambda t: sq_text(t.replace('cdb_', options.discuz_dbpre))
@@ -46,6 +47,8 @@ def forum_noti():
     post_template = u'|G{user}|r在|G{forum}|r发表了新主题|G{subject}|r：{excerpt}'
     reply_template = u'|G{user}|r回复了|G{forum}|r的主题|G{subject}|r：{excerpt}'
 
+    threads_only = set(map(int, options.forums_thread_only.split(',')))
+
     while True:
         time.sleep(5)
         posts = engine.execute(text('''
@@ -59,6 +62,9 @@ def forum_noti():
             continue
 
         for p in posts:
+            if not p.first and p.fid in threads_only:
+                continue
+
             t = engine.execute(text('''
                 SELECT * FROM cdb_forum_thread
                 WHERE tid = :tid
