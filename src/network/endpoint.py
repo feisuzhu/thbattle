@@ -4,8 +4,10 @@ import logging
 
 log = logging.getLogger("Endpoint")
 
+
 class EndpointDied(Exception):
     pass
+
 
 class Endpoint(object):
 
@@ -13,11 +15,11 @@ class Endpoint(object):
 
     def __init__(self, sock, address):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        self.sock = sock
-        self.sockfile = sock.makefile()
-        self.writelock = coros.RLock()
-        self.address = address
-        self.link_state = 'connected' # or disconnected
+        self.sock       = sock
+        self.sockfile   = sock.makefile()
+        self.writelock  = coros.RLock()
+        self.address    = address
+        self.link_state = 'connected'  # or disconnected
 
     def __repr__(self):
         return '%s:%s:%s' % (

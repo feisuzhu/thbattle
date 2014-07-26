@@ -220,7 +220,7 @@ class Executive(object):
             return None
 
             # return 'server_connected'
-        except:
+        except Exception:
             log.exception('Error connecting server')
             return 'server_connect_failed'
 
@@ -245,7 +245,7 @@ class Executive(object):
         else:
             return 'update_disabled'
 
-    def _simple_gm_op(_type):
+    def _simple_op(_type):
         def wrapper(self, *args):
             if not (self.state == 'connected'):
                 return 'connect_first'
@@ -254,25 +254,24 @@ class Executive(object):
         wrapper.__name__ = _type
         return wrapper
 
-    auth             = _simple_gm_op('auth')
-    cancel_ready     = _simple_gm_op('cancel_ready')
-    change_location  = _simple_gm_op('change_location')
-    chat             = _simple_gm_op('chat')
-    create_game      = _simple_gm_op('create_game')
-    exit_game        = _simple_gm_op('exit_game')
-    get_hallinfo     = _simple_gm_op('get_hallinfo')
-    get_ready        = _simple_gm_op('get_ready')
-    heartbeat        = _simple_gm_op('heartbeat')
-    invite_grant     = _simple_gm_op('invite_grant')
-    invite_user      = _simple_gm_op('invite_user')
-    join_game        = _simple_gm_op('join_game')
-    kick_observer    = _simple_gm_op('kick_observer')
-    kick_user        = _simple_gm_op('kick_user')
-    observe_grant    = _simple_gm_op('observe_grant')
-    observe_user     = _simple_gm_op('observe_user')
-    pong             = _simple_gm_op('pong')
-    query_gameinfo   = _simple_gm_op('query_gameinfo')
-    quick_start_game = _simple_gm_op('quick_start_game')
-    speaker          = _simple_gm_op('speaker')
+    auth            = _simple_op('auth')
+    cancel_ready    = _simple_op('cancel_ready')
+    change_location = _simple_op('change_location')
+    chat            = _simple_op('chat')
+    create_game     = _simple_op('create_game')
+    exit_game       = _simple_op('exit_game')
+    get_lobbyinfo   = _simple_op('get_lobbyinfo')
+    get_ready       = _simple_op('get_ready')
+    heartbeat       = _simple_op('heartbeat')
+    invite_grant    = _simple_op('invite_grant')
+    invite_user     = _simple_op('invite_user')
+    join_game       = _simple_op('join_game')
+    kick_observer   = _simple_op('kick_observer')
+    kick_user       = _simple_op('kick_user')
+    observe_grant   = _simple_op('observe_grant')
+    observe_user    = _simple_op('observe_user')
+    pong            = _simple_op('pong')
+    query_gameinfo  = _simple_op('query_gameinfo')
+    speaker         = _simple_op('speaker')
 
-    del _simple_gm_op
+    del _simple_op

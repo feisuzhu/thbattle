@@ -6,7 +6,9 @@ from contextlib import contextmanager
 from functools import wraps
 
 # -- third party --
+from gevent.coros import Semaphore
 from gevent.queue import Queue
+import gevent
 
 # -- own --
 
@@ -646,3 +648,38 @@ class GenericPool(object):
                     pass
 
         return manager()
+
+
+def debounce(seconds):
+    def decorate(f):
+        lock = Semaphore(1)
+
+        def bouncer(fire, *a, **k):
+            gevent.sleep(seconds)
+            wrapper.last = None
+            fire and f(*a, **k)
+
+        @wraps(f)
+        def wrapper(*a, **k):
+            rst = lock.acquire(blocking=False)
+            if not rst:
+                return
+
+            try:
+                run = False
+                if wrapper.last is None:
+                    wrapper.last = gevent.spawn(bouncer, False)
+                    run = True
+                else:
+                    wrapper.last.kill()
+                    wrapper.last = gevent.spawn(bouncer, True, *a, **k)
+            finally:
+                lock.release()
+
+            run and f(*a, **k)
+
+        wrapper.last = None
+        wrapper.__name__ == f.__name__
+        return wrapper
+
+    return decorate

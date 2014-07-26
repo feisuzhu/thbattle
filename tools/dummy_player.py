@@ -12,12 +12,12 @@ names = itertools.cycle(names)
 import sys
 
 types = {
-    '3v3': 'THBattle',
-    'cp3': 'THBattleCP3',
-    'id5': 'THBattleIdentity5',
-    'id8': 'THBattleIdentity',
-    'kof': 'THBattleKOF',
-    'raid': 'THBattleRaid',
+    '3v3':   'THBattle',
+    'cp3':   'THBattleCP3',
+    'id5':   'THBattleIdentity5',
+    'id8':   'THBattleIdentity',
+    'kof':   'THBattleKOF',
+    'raid':  'THBattleRaid',
     'faith': 'THBattleFaith',
 }
 
@@ -40,7 +40,7 @@ def create():
     s.connect(('127.0.0.1', 9999))
     s.sendall(en(['auth', [names.next(), '']])); gevent.sleep(0.05)
     s.sendall(en(['create_game', [t, u'我们是机器人哈哈哈']])); gevent.sleep(0.05)
-    s.sendall(en(['get_ready', None])); gevent.sleep(0.05)
+    s.sendall(en(['get_ready', []])); gevent.sleep(0.05)
 
     while s.recv(100): pass
 
@@ -49,8 +49,8 @@ def join():
     s = socket.socket()
     s.connect(('127.0.0.1', 9999))
     s.sendall(en(['auth', [names.next(), '']])); gevent.sleep(0.05)
-    s.sendall(en(['quick_start_game', 'nyan'])); gevent.sleep(0.05)
-    s.sendall(en(['get_ready', None])); gevent.sleep(0.05)
+    s.sendall(en(['quick_start_game', []])); gevent.sleep(0.05)
+    s.sendall(en(['get_ready', []])); gevent.sleep(0.05)
 
     while s.recv(100): pass
 

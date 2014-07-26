@@ -60,10 +60,3 @@ class Nitoryuu:
         return u'|G【%s】|r弃置了自己的一把武器' % (
             act.target.ui_meta.char_name,
         )
-
-
-class Xianshiwangzhi:
-    # Skill
-    name = u'现世妄执'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid

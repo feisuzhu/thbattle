@@ -1,2 +1,2 @@
-from game_server import *
-from gamehall import *
+from game_server import *  # noqa
+from lobby import *  # noqa

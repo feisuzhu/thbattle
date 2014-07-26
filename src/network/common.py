@@ -83,6 +83,6 @@ class GamedataMixin(object):
         # Explanation:
         # Well, when sb. exit game in input state,
         # the others must wait until his timeout exceeded.
-        # called by gamehall.exit_game to break such condition.
+        # called by lobby.exit_game to break such condition.
         self.gdqueue.append(EndpointDied())
         self.gdevent.set()

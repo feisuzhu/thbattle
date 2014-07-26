@@ -7,7 +7,6 @@ import time
 import logging
 log = logging.getLogger('Game_Server')
 
-
 # -- third party --
 from gevent import Greenlet, getcurrent
 from gevent.pool import Group as GreenletGroup
@@ -16,8 +15,6 @@ import gevent
 # -- own --
 from game import TimeLimitExceeded, InputTransaction, GameEnded
 from network.server import EndpointDied
-from server import userdata
-from server.userdata.tables import Badges
 from utils import waitany, log_failure
 
 import game
@@ -175,10 +172,7 @@ class Player(game.AbstractPlayer):
 
     def __data__(self):
         if self.dropped:
-            if self.fleed:
-                state = 'fleed'
-            else:
-                state = 'dropped'
+            state = 'fleed' if self.fleed else 'dropped'
         else:
             state = self.client.state
 
@@ -208,33 +202,22 @@ class Game(Greenlet, game.Game):
     CLIENT_SIDE = False
     SERVER_SIDE = True
 
-    def __data__(self):
-        from .gamehall import PlayerPlaceHolder as pph
-        return dict(
-            id=self.gameid,
-            type=self.__class__.__name__,
-            started=self.game_started,
-            name=self.game_name,
-            nplayers=sum(not (p is pph or p.dropped) for p in self.players),
-        )
-
     def __init__(self):
         Greenlet.__init__(self)
         game.Game.__init__(self)
-        self.players = []
 
     @log_failure(log)
     def _run(self):
-        from server.core import gamehall as hall
+        from server.core import lobby
         self.synctag = 0
         self.game = getcurrent()
-        hall.start_game(self)
+        lobby.start_game(self.manager)
         try:
             self.game_start()
         except GameEnded:
             pass
         finally:
-            hall.end_game(self)
+            lobby.end_game(self.manager)
 
         assert self.ended
 

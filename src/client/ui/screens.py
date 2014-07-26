@@ -294,7 +294,7 @@ class ServerSelectScreen(Screen):
             def on_mouse_release(self, x, y, button, modifiers):
                 if self.highlight and not self.disable_click:
                     self.disable_click = True
-                    Executive.connect_server(self.highlight['address'], ui_message)
+                    self.on_message(Executive.connect_server(self.highlight['address'], ui_message))
 
             def enable_click(self):
                 self.disable_click = False
@@ -633,16 +633,16 @@ class GameHallScreen(Screen):
 
             gl = self.gamelist = ListView(parent=self, x=2, y=30, width=696, height=420-30-25)
             gl.set_columns([
-                (u'No.', 100),
+                (u'No.',      100),
                 (u'游戏名称', 200),
                 (u'游戏类型', 200),
-                (u'人数', 50),
+                (u'人数',     50),
                 (u'当前状态', 80),
             ])
 
-            self.btn_create = Button(parent=self, caption=u'创建游戏', x=690-270, y=6, width=70, height=20)
+            self.btn_create     = Button(parent=self, caption=u'创建游戏', x=690-270, y=6, width=70, height=20)
             self.btn_quickstart = Button(parent=self, caption=u'快速加入', x=690-180, y=6, width=70, height=20)
-            self.btn_refresh = Button(parent=self, caption=u'刷新列表', x=690-90, y=6, width=70, height=20)
+            self.btn_refresh    = Button(parent=self, caption=u'刷新列表', x=690-90,  y=6, width=70, height=20)
 
             @self.btn_create.event
             def on_click():
@@ -650,11 +650,11 @@ class GameHallScreen(Screen):
 
             @self.btn_quickstart.event  # noqa
             def on_click():
-                Executive.quick_start_game('THBattle')
+                Executive.quick_start_game()
 
             @self.btn_refresh.event  # noqa
             def on_click():
-                Executive.get_hallinfo(None)
+                Executive.get_lobbyinfo()
 
             @self.gamelist.event
             def on_item_dblclick(li):
@@ -682,11 +682,8 @@ class GameHallScreen(Screen):
                         gi['id'],
                         gi['name'],
                         gname,
-                        '%d/%d' % (
-                            gi['nplayers'],
-                            n_persons,
-                        ),
-                        [u'等待中', u'游戏中'][gi['started']]
+                        '%d/%d' % (gi['nplayers'], n_persons),
+                        [u'等待中', u'游戏中'][gi['started']],
                     ], color=(0, 0, 0, 255) if gi['started'] else (0xef, 0x75, 0x45, 0xff))
                     li.game_id = gi['id']
                     li.started = gi['started']
@@ -713,11 +710,11 @@ class GameHallScreen(Screen):
 
         def on_message(self, _type, *args):
             lookup = {
-                'hang': u'|c0000ffff游戏大厅|r',
-                'ingame': u'|G游戏中|r',
+                'hang':       u'|c0000ffff游戏大厅|r',
+                'ingame':     u'|G游戏中|r',
                 'inroomwait': u'|R在房间中|r',
-                'ready': u'|c9f5f9fff准备状态|r',
-                'observing': u'|LB观战中|r',
+                'ready':      u'|c9f5f9fff准备状态|r',
+                'observing':  u'|LB观战中|r',
             }
             if _type == 'current_users':
                 users = args[0]
@@ -725,11 +722,17 @@ class GameHallScreen(Screen):
                 box.text = u'\u200b'
                 self.caption = u'当前在线玩家：%d' % len(users)
                 self.update()
-                t = u'\n'.join(
-                    u'%s([|c9100ffff%s|r], %s)' % (username.replace('|', '||'), uid, lookup.get(state, state))
-                    for uid, username, state in users
-                )
-                box.append(t)
+                rst = []
+                for u in users:
+                    acc = Account.parse(u['account'])
+                    username = acc.username.replace('|', '||')
+                    rst.append(u'%s([|c9100ffff%s|r], %s)' % (
+                        username.replace('|', '||'),
+                        acc.userid,
+                        lookup.get(u['state'], u['state']),
+                    ))
+
+                box.append('\n'.join(rst))
 
     class NoticeBox(Frame):
         def __init__(self, parent):
@@ -798,7 +801,7 @@ class GameHallScreen(Screen):
         def on_click():
             openurl('http://thb.io')
 
-        Executive.get_hallinfo()
+        Executive.get_lobbyinfo()
 
     def on_message(self, _type, *args):
         rst = handle_chat(_type, args)
@@ -809,8 +812,8 @@ class GameHallScreen(Screen):
         elif _type == 'game_joined':
             GameScreen(args[0]).switch()
 
-        elif _type == 'gamehall_error':
-            log.error('GameHall Error: %s' % args[0])  # TODO
+        elif _type == 'lobby_error':
+            log.error('Lobby error: %s' % args[0])  # TODO
             mapping = {
                 'cant_join_game': u'无法加入游戏！'
             }
@@ -865,7 +868,7 @@ class GameScreen(Screen):
             def on_click():
                 self.delete()
 
-            Executive.get_hallinfo()
+            Executive.get_lobbyinfo()
 
         def draw(self):
             Panel.draw(self)
@@ -874,20 +877,20 @@ class GameScreen(Screen):
         def on_message(self, _type, *args):
             if _type == 'current_users':
                 ul = args[0]
-                ul = [(uid, uname) for uid, uname, state in ul if state in ('hang', 'observing')]
+                ul = [Account.parse(u['account']) for u in ul if u['state'] in ('hang', 'observing')]
 
-                for i, (uid, uname) in enumerate(ul):
+                for i, u in enumerate(ul):
                     y, x = divmod(i, 5)
-                    x, y = 30 + 100*x, 250 - 60*y
+                    x, y = 30 + 100 * x, 250 - 35 * y
                     s = Button(
-                        uname,
+                        u.username,
                         color=Colors.orange,
                         parent=self, x=x, y=y,
                         width=95, height=30,
                     )
 
                     @s.event
-                    def on_click(s=s, uid=uid, un=uname):
+                    def on_click(s=s, uid=u.userid, un=u.username):
                         Executive.invite_user(uid)
                         self.overlay.chat_box.append(u'|R已经邀请了%s，请等待回应……|r\n' % un)
                         s.state = Button.DISABLED
@@ -942,9 +945,11 @@ class GameScreen(Screen):
                 self.update_portrait(args[0])
             elif _type == 'kick_request':
                 u1, u2, count = args[0]
+                u1 = Account.parse(u1['account'])
+                u2 = Account.parse(u2['account'])
                 self.parent.chat_box.append(
                     u'|B|R>> |c0000ffff%s|r希望|c0000ffff|B%s|r离开游戏，已有%d人请求\n' % (
-                        u1[1], u2[1], count
+                        u1.username, u2.username, count
                     )
                 )
             elif _type == 'game_joined':

@@ -94,7 +94,7 @@ def start_ui():
                 gevent.sleep(0.3)
                 Executive.auth('Proton1', 'abcde')
                 gevent.sleep(0.3)
-                Executive.quick_start_game('THBattle')
+                Executive.quick_start_game()
                 gevent.sleep(0.3)
                 Executive.get_ready()
 

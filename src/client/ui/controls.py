@@ -1011,9 +1011,7 @@ class PlayerPortrait(Frame):
             i.delete()
 
         self.badge_icons = []
-
         self.avatar = None
-
         self.set_caption(name)
 
         avurl = acc.other['avatar'] if acc else None
@@ -1070,7 +1068,8 @@ class PlayerPortrait(Frame):
 
         Frame.update(self)
 
-        if not acc: return
+        if not acc:
+            return
 
         f = pyglet.font.load('AncientPix', 9)
 

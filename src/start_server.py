@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import sys
+reload(sys)
+sys.setdefaultencoding(sys.getfilesystemencoding())
+
 import gevent
 from gevent import monkey
 monkey.patch_all()
@@ -7,7 +11,6 @@ monkey.patch_all()
 from gevent.server import StreamServer
 
 import logging
-import sys
 
 MAIN = gevent.getcurrent()
 

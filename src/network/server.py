@@ -6,7 +6,6 @@ log = logging.getLogger("Client")
 
 # -- third party --
 from gevent import Greenlet, Timeout
-import simplejson as json
 
 # -- own --
 from .common import GamedataMixin
@@ -25,8 +24,6 @@ class Client(Endpoint, GamedataMixin, Greenlet):
         Greenlet.__init__(self)
         self.observers = BatchList()
         self.init_gamedata_mixin()
-        self.gdhistory = []
-        self.usergdhistory = []
 
     @log_failure(log)
     def _run(self):
@@ -62,24 +59,11 @@ class Client(Endpoint, GamedataMixin, Greenlet):
         # client died, do clean ups
         self.handle_drop()
 
-    def gexpect(self, tag, blocking=True):
-        tag, data = GamedataMixin.gexpect(self, tag, blocking)
-        tag and self.usergdhistory.append((self.player_index, tag, data))
-        return tag, data
+    def handle_command(self, cmd, data):
+        raise NotImplementedError
 
-    def gwrite(self, tag, data):
-        log.debug('GAME_WRITE: %s', repr([tag, data]))
-        encoded = self.encode(['gamedata', [tag, data]])
-        self.raw_write(encoded)
-        self.gdhistory.append([tag, json.loads(self.encode(data))])
-        self.observers and self.observers.raw_write(encoded)
-
-    def replay(self, ob):
-        for data in self.gdhistory:
-            ob.raw_write(json.dumps(['gamedata', data]) + '\n')
-
-    def __data__(self):
-        return [self.account.userid, self.account.username, self.state]
+    def handle_drop(self):
+        raise NotImplementedError
 
     def close(self):
         Endpoint.close(self)
@@ -95,24 +79,3 @@ class Client(Endpoint, GamedataMixin, Greenlet):
             self.address[0],
             acc.username.encode('utf-8'),
         )
-
-
-class DroppedClient(Endpoint):
-    read = write = raw_write = gclear = lambda *a, **k: None
-
-    def __init__(self, client=None):
-        client and self.__dict__.update(client.__dict__)
-
-    def gwrite(self, tag, data):
-        self.gdhistory.append([tag, json.loads(self.encode(data))])
-
-    def gexpect(self, tag, blocking=True):
-        raise EndpointDied
-
-    @property
-    def state(self):
-        return 'dropped'
-
-    @state.setter
-    def state(self, val):
-        pass
