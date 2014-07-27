@@ -24,7 +24,6 @@ import requests
 from client.core import Executive
 from client.ui import ui_meta as client_ui_meta
 from client.ui.base import Overlay, Control
-from client.ui.base import ui_message
 from client.ui.base.interp import InterpDesc, LinearInterp
 from client.ui.resource import resource as cres
 from utils import pyperclip, instantiate
@@ -39,91 +38,95 @@ class Colors:
     @instantiate
     class green:
         # Frame
-        frame = 49, 69, 99
-        heavy = 66, 138, 115
-        medium = 140, 186, 140
-        light = 206, 239, 156
-        caption = 255, 255, 255
+        frame          = 49,  69,  99
+        heavy          = 66,  138, 115
+        medium         = 140, 186, 140
+        light          = 206, 239, 156
+        caption        = 255, 255, 255
         caption_shadow = heavy
-        close_btn = property(lambda _: cres.buttons.close_green)
+        close_btn      = property(lambda _: cres.buttons.close_green)
+
         # Button
-        btn_frame = heavy
-        fill_up = 173, 207, 140
-        fill_medline = 173, 223, 156
-        fill_down = 189, 223, 156
-        fill_botline = 222, 239, 206
-        text = frame
+        btn_frame      = heavy
+        fill_up        = 173, 207, 140
+        fill_medline   = 173, 223, 156
+        fill_down      = 189, 223, 156
+        fill_botline   = 222, 239, 206
+        text           = frame
 
     @instantiate
     class red:
         # Frame
-        frame = 171, 68, 81
-        medium = 0xff, 0x9f, 0x8c
-        heavy = frame
-        light = 254, 221, 206
-        caption = 255, 255, 255
+        frame          = 171,  68,   81
+        medium         = 0xff, 0x9f, 0x8c
+        heavy          = frame
+        light          = 254,  221,  206
+        caption        = 255,  255,  255
         caption_shadow = frame
-        close_btn = property(lambda _: cres.buttons.close_red)
+        close_btn      = property(lambda _: cres.buttons.close_red)
+
         # Button
-        btn_frame = frame
-        fill_up = 0xee, 0x89, 0x78
-        fill_medline = fill_up
-        fill_down = 0xf7, 0x9c, 0x8c
-        fill_botline = fill_down
-        text = frame
+        btn_frame      = frame
+        fill_up        = 0xee, 0x89, 0x78
+        fill_medline   = fill_up
+        fill_down      = 0xf7, 0x9c, 0x8c
+        fill_botline   = fill_down
+        text           = frame
 
     @instantiate
     class blue:
         # Frame
-        frame = 0x31, 0x55, 0x97
-        medium = 0x90, 0xbc, 0xed
-        heavy = 0x64, 0x8a, 0xd0
-        light = 0xa3, 0xd1, 0xfa
-        caption = frame
+        frame          = 0x31, 0x55, 0x97
+        medium         = 0x90, 0xbc, 0xed
+        heavy          = 0x64, 0x8a, 0xd0
+        light          = 0xa3, 0xd1, 0xfa
+        caption        = frame
         caption_shadow = 0xe5, 0xef, 0xfb
-        close_btn = property(lambda _: cres.buttons.close_blue)
+        close_btn      = property(lambda _: cres.buttons.close_blue)
+
         # Button
-        btn_frame = 0x54, 0x67, 0xa6
-        fill_up = 0x90, 0xbf, 0xef
-        fill_down = 0xa3, 0xd1, 0xfa
-        fill_medline = 0x9a, 0xc8, 0xf5
-        fill_botline = 0xc5, 0xf2, 0xff
-        text = frame
+        btn_frame      = 0x54, 0x67, 0xa6
+        fill_up        = 0x90, 0xbf, 0xef
+        fill_down      = 0xa3, 0xd1, 0xfa
+        fill_medline   = 0x9a, 0xc8, 0xf5
+        fill_botline   = 0xc5, 0xf2, 0xff
+        text           = frame
 
     @instantiate
     class orange:
         # Frame
-        frame = 0x88, 0x66, 0x66
-        medium = 0xff, 0xcc, 0x77
-        heavy = frame
-        light = 0xff, 0xee, 0xaa
-        caption = 255, 255, 255
+        frame          = 0x88, 0x66, 0x66
+        medium         = 0xff, 0xcc, 0x77
+        heavy          = frame
+        light          = 0xff, 0xee, 0xaa
+        caption        = 255,  255,  255
         caption_shadow = frame
-        close_btn = property(lambda _: cres.buttons.close_orange)
+        close_btn      = property(lambda _: cres.buttons.close_orange)
+
         # Button
-        btn_frame = frame
-        fill_up = medium
-        fill_medline = fill_up
-        fill_down = 0xff, 0xdd, 0x88
-        fill_botline = light
-        text = frame
+        btn_frame      = frame
+        fill_up        = medium
+        fill_medline   = fill_up
+        fill_down      = 0xff, 0xdd, 0x88
+        fill_botline   = light
+        text           = frame
 
     @instantiate
     class gray:
         # Frame
-        close_btn = property(lambda _: cres.buttons.close_blue)
-        btn_frame = 104, 104, 104
-        caption = 81, 81, 81
+        close_btn      = property(lambda _: cres.buttons.close_blue)
+        btn_frame      = 104, 104, 104
+        caption        = 81,  81,  81
         caption_shadow = 237, 237, 237
-        fill_botline = 229, 229, 229
-        fill_down = 199, 199, 199
-        fill_medline = 191, 191, 191
-        fill_up = 182, 182, 182
-        frame = 81, 81, 81
-        heavy = 134, 134, 134
-        light = 199, 199, 199
-        medium = 180, 180, 180
-        text = 81, 81, 81
+        fill_botline   = 229, 229, 229
+        fill_down      = 199, 199, 199
+        fill_medline   = 191, 191, 191
+        fill_up        = 182, 182, 182
+        frame          = 81,  81,  81
+        heavy          = 134, 134, 134
+        light          = 199, 199, 199
+        medium         = 180, 180, 180
+        text           = 81,  81,  81
 
     @staticmethod
     def get4f(c):
@@ -135,9 +138,9 @@ class Colors:
 
 
 class AbstractButton(Control):
-    NORMAL = 0
-    HOVER = 1
-    PRESSED = 2
+    NORMAL   = 0
+    HOVER    = 1
+    PRESSED  = 2
     DISABLED = 3
 
     hover_alpha = InterpDesc('_hv')
@@ -623,8 +626,7 @@ class Dialog(Frame):
             self.close()
 
         timeout = getattr(self, 'timeout', None)
-        if timeout:
-            gevent.spawn_later(timeout, self.close)
+        self.close_later = timeout and gevent.spawn_later(timeout, self.close)
 
     def on_resize(self, w, h):
         super(Dialog, self).on_resize(w, h)
@@ -659,6 +661,10 @@ class Dialog(Frame):
         if not self._cancel_close:
             self.delete()
             self.dispatch_event('on_destroy')
+
+    def delete(self):
+        self.close_later and self.close_later.kill()
+        Frame.delete(self)
 
     def cancel_close(self):
         self._cancel_close = True
@@ -1710,7 +1716,7 @@ ConfirmButtons.register_event_type('on_confirm')
 
 class ConfirmBox(Dialog):
     class Presets:
-        OK = ((u'确定', True), )
+        OK       = ((u'确定', True), )
         OKCancel = ((u'确定', True), (u'取消', False))
 
     _default_value = object()
@@ -2019,7 +2025,7 @@ class NoInviteButton(OptionButton):
     def __init__(self, *a, **k):
         from user_settings import UserSettings
         conf = (
-            (u'邀请已关闭', Colors.blue, True),
+            (u'邀请已关闭', Colors.blue,   True),
             (u'邀请已开启', Colors.orange, False),
         )
         OptionButton.__init__(self, conf=conf, value=UserSettings.no_invite, *a, **k)
