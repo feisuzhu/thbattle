@@ -75,12 +75,13 @@ class Identity(PlayerIdentity):
 
 
 class THBattleCP3(Game):
-    n_persons = 6
-    game_ehs = _game_ehs
+    n_persons    = 6
+    game_ehs     = _game_ehs
     game_actions = _game_actions
-    order_list = (0, 5, 4, 3, 2, 1)
+    params_def   = {}
+    order_list   = (0, 5, 4, 3, 2, 1)
 
-    def game_start(g):
+    def game_start(g, params):
         # game started, init state
         from cards import Deck
 

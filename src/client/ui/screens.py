@@ -15,21 +15,21 @@ import pyglet
 import requests
 
 # -- own --
+from account import Account
+from client.core import Executive
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPrompt, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
-from client.ui.controls import ImageSelector, ListView, Panel
+from client.ui.controls import ImageSelector, ListView, Panel, OptionButtonGroup
 from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox, SensorLayer, CheckBox
 from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
-
-from client.core import Executive
+from settings import ServerNames
+from user_settings import UserSettings
 from utils import rect_to_dict as r2d, textsnap, inpoly, openurl
 from utils.crypto import simple_encrypt, simple_decrypt
-from user_settings import UserSettings
-from account import Account
-from settings import ServerNames
+from utils.misc import BatchList
 
 RE_AT = re.compile(ur'@([^@ ]+)')
 
@@ -896,6 +896,40 @@ class GameScreen(Screen):
                         s.state = Button.DISABLED
 
     class RoomControlPanel(Control):
+        class GameParamsPanel(Control):
+            def __init__(self, params_disp, parent=None):
+                Control.__init__(self, parent=parent, **r2d((5, 34, 350, 120)))
+                self.labels = lbls = BatchList()
+                self.param_btns = btns = {}
+
+                for i, (k, d) in enumerate(params_disp.items()):
+                    lbls.append(Label(
+                        d['desc'], x=0, y=(2 - i) * 30 + 5, font_size=9,
+                        color=Colors.get4i(Colors.blue.caption),
+                        shadow=(2, 255, 255, 255, 255)
+                    ))
+
+                    og = OptionButtonGroup(
+                        parent=self, x=98, y=(2 - i) * 30, buttons=d['options'],
+                    )
+
+                    @og.event
+                    def on_option(v, k=k):
+                        Executive.set_game_param(k, v)
+                        return True
+
+                    btns[k] = og
+
+            def draw(self):
+                glColor3f(1, 1, 1)
+                Control.draw(self)
+                self.labels.draw()
+
+            def on_message(self, _type, *args):
+                if _type == 'game_params':
+                    for k, v in args[0].items():
+                        self.param_btns[k].set_value(v)
+
         def __init__(self, parent=None):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
             self.btn_getready = Button(
@@ -905,6 +939,8 @@ class GameScreen(Screen):
             self.btn_invite = Button(
                 parent=self, caption=u'邀请', **r2d((360, 40, 100, 35))
             )
+
+            self.game_params_panel = self.GameParamsPanel(self.parent.game.ui_meta.params_disp, parent=self)
 
             self.ready = False
 
@@ -959,6 +995,17 @@ class GameScreen(Screen):
 
                 for p in self.portraits:
                     p.account = None
+
+            elif _type == 'set_game_param':
+                u, k, v = args[0]
+                u = Account.parse(u['account'])
+                disp = self.parent.game.ui_meta.params_disp[k]
+                lookup = {v: s for s, v in disp['options']}
+                self.parent.chat_box.append(
+                    u'|B|R>> |c0000ffff%s|r已经将|c0000ffff%s|r设定为|c0000ffff%s|r，请重新准备。\n' % (
+                        u.username, disp['desc'], lookup[v],
+                    )
+                )
 
         def update_portrait(self, pl):
             def players():

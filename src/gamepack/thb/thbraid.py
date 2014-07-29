@@ -412,11 +412,12 @@ class MutantMorphHandler(EventHandler):
 
 
 class THBattleRaid(Game):
-    n_persons = 4
+    n_persons    = 4
     game_actions = _game_actions
-    game_ehs = _game_ehs
+    game_ehs     = _game_ehs
+    params_def   = {}
 
-    def game_start(g):
+    def game_start(g, params):
         # game started, init state
 
         g.action_types[LaunchCard] = RaidLaunchCard

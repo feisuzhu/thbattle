@@ -4,7 +4,6 @@ from gamepack.thb import cards, characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, my_turn
 from gamepack.thb.ui.resource import resource as gres
 from gamepack.thb.ui.game_controls import CardSelectionPanel
-from client.ui.controls import Panel, Colors, Button
 from utils import BatchList
 
 
@@ -72,8 +71,8 @@ class MorphingCardSelectionUI(CardSelectionPanel):
             if cat in cats
         ]
         self.panel = panel = CardSelectionPanel(
-                parent=self.parent, zindex=10,
-                selection_mode=CardSelectionPanel.SINGLE,
+            parent=self.parent, zindex=10,
+            selection_mode=CardSelectionPanel.SINGLE,
         )
         panel.init(card_lists, multiline=len(card_lists) < 2)
 
@@ -153,6 +152,6 @@ class Mamizou:
     description = (
         u'|DB大狸子 二岩猯藏 体力：4|r\n\n'
         u'|G变化|r：出牌阶段限一次，你将两张手牌当做任何一张基本牌或非延时符卡使用。按此法使用的两张牌中至少有一张必须和你声明的牌类别一致。\n\n'
-        u'|RKOF模式不可用\n\n|r'
+        u'|RKOF不平衡角色\n\n'
         u'|DB（人物设计：鵺子丶爱丽丝）|r'
     )

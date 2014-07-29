@@ -13,7 +13,7 @@ from .actions import action_eventhandlers, migrate_cards
 from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction, MigrateCardsTransaction
 from .characters.baseclasses import mixin_character
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
-from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, user_input, InputTransaction
+from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
 from utils import BatchList, Enum
 
@@ -74,11 +74,10 @@ class RedrawCards(UserAction):
 
         with MigrateCardsTransaction() as trans:
             migrate_cards(tgt.cards, g.deck.droppedcards, trans=trans)
-            
             cards = g.deck.getcards(4)
             tgt.reveal(cards)
             migrate_cards(cards, tgt.cards, trans=trans)
-        
+
         return True
 
 
@@ -90,11 +89,12 @@ class Identity(PlayerIdentity):
 
 
 class THBattleFaith(Game):
-    n_persons = 6
-    game_ehs = _game_ehs
+    n_persons    = 6
+    game_ehs     = _game_ehs
     game_actions = _game_actions
+    params_def   = {}
 
-    def game_start(g):
+    def game_start(g, params):
         # game started, init state
         from cards import Deck
 
@@ -120,10 +120,10 @@ class THBattleFaith(Game):
             p.identity.type = identity
             g.process_action(RevealIdentity(p, g.players))
 
-        force_hakurei = BatchList()
-        force_moriya = BatchList()
+        force_hakurei      = BatchList()
+        force_moriya       = BatchList()
         force_hakurei.pool = []
-        force_moriya.pool = []
+        force_moriya.pool  = []
 
         for p in g.players:
             if p.identity.type == Identity.TYPE.HAKUREI:
@@ -217,7 +217,6 @@ class THBattleFaith(Game):
             except InterruptActionFlow:
                 pass
 
-
     def can_leave(g, p):
         return False
 
@@ -252,10 +251,10 @@ class THBattleFaith(Game):
 
     def decorate(g, p):
         from cards import CardList
-        p.cards = CardList(p, 'cards')  # Cards in hand
-        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-        p.equips = CardList(p, 'equips')  # Equipments
-        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-        p.special = CardList(p, 'special')  # used on special purpose
+        p.cards          = CardList(p, 'cards')       # Cards in hand
+        p.showncards     = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips         = CardList(p, 'equips')      # Equipments
+        p.fatetell       = CardList(p, 'fatetell')    # Cards in the Fatetell Zone
+        p.special        = CardList(p, 'special')     # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
-        p.tags = defaultdict(int)
+        p.tags           = defaultdict(int)

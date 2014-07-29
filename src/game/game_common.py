@@ -252,6 +252,7 @@ class Game(GameObject):
     '''
     # event_handlers = []
     IS_DEBUG = False
+    params_def = {}
 
     def __init__(self):
         self.event_handlers = []
@@ -263,7 +264,7 @@ class Game(GameObject):
         self.winners = []
         self.turn_count = 0
 
-    def game_start(self):
+    def game_start(g, params):
         '''
         Game logic goes here.
         GameModes should override this.
@@ -345,11 +346,6 @@ class Game(GameObject):
             rst = False
         else:
             log.debug('applying action %s' % action.__class__.__name__)
-                #, src=%d, dst=%d' % (
-                #action.__class__.__name__,
-                #self.players.index(action.source) if hasattr(action, 'source') else -1,
-                #self.players.index(action.target),
-            #))
             action = self.emit_event('action_apply', action)
             assert not action.cancelled
             try:

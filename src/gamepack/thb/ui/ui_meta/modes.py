@@ -23,6 +23,7 @@ class THBattle:
         u'\n'
         u'|R胜利条件|r：击坠所有对方阵营玩家。'
     )
+    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleUI as ui_class  # noqa
 
@@ -61,22 +62,23 @@ class THBattleCP3:
         u'\n'
         u'|R胜利条件|r：击坠所有其它阵营玩家。'
     )
+    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleCP3UI as ui_class  # noqa
 
     T = thbcp3.Identity.TYPE
     identity_table = {
         T.HIDDEN: u'？',
-        T.CP_A: u'CP A',
-        T.CP_B: u'CP B',
-        T.CP_C: u'CP C',
+        T.CP_A:   u'CP A',
+        T.CP_B:   u'CP B',
+        T.CP_C:   u'CP C',
     }
 
     identity_color = {
         T.HIDDEN: u'blue',
-        T.CP_A: u'blue',
-        T.CP_B: u'orange',
-        T.CP_C: u'green',
+        T.CP_A:   u'blue',
+        T.CP_B:   u'orange',
+        T.CP_C:   u'green',
     }
 
     del T
@@ -103,20 +105,30 @@ class THBattleKOF:
         u'|R胜利条件|r：当其中一方3名角色全部MISS，判对方胜出'
     )
 
+    params_disp = {
+        'no_imba': {
+            'desc': u'不平衡角色',
+            'options': [
+                (u'禁用', True),
+                (u'允许', False),
+            ],
+        },
+    }
+
     from gamepack.thb.ui.view import THBattleKOFUI
     ui_class = THBattleKOFUI
 
     T = thbkof.Identity.TYPE
     identity_table = {
-        T.HIDDEN: u'？',
+        T.HIDDEN:  u'？',
         T.HAKUREI: u'博丽',
-        T.MORIYA: u'守矢'
+        T.MORIYA:  u'守矢'
     }
 
     identity_color = {
-        T.HIDDEN: u'blue',
+        T.HIDDEN:  u'blue',
         T.HAKUREI: u'blue',
-        T.MORIYA: u'orange'
+        T.MORIYA:  u'orange'
     }
 
     del T
@@ -146,25 +158,26 @@ class THBattleIdentity:
         u'\n'
         u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
     )
+    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleIdentityUI
     ui_class = THBattleIdentityUI
 
     T = thbidentity.Identity.TYPE
     identity_table = {
-        T.HIDDEN: u'？',
-        T.ATTACKER: u'城管',
-        T.BOSS: u'BOSS',
+        T.HIDDEN:     u'？',
+        T.ATTACKER:   u'城管',
+        T.BOSS:       u'BOSS',
         T.ACCOMPLICE: u'道中',
-        T.CURTAIN: u'黑幕',
+        T.CURTAIN:    u'黑幕',
     }
 
     identity_color = {
-        T.HIDDEN: u'blue',
-        T.ATTACKER: u'blue',
-        T.BOSS: u'red',
+        T.HIDDEN:     u'blue',
+        T.ATTACKER:   u'blue',
+        T.BOSS:       u'red',
         T.ACCOMPLICE: u'orange',
-        T.CURTAIN: u'green',
+        T.CURTAIN:    u'green',
     }
 
     del T
@@ -194,19 +207,19 @@ class THBattleIdentity5:
 
     T = thbidentity.Identity.TYPE
     identity_table = {
-        T.HIDDEN: u'？',
-        T.ATTACKER: u'城管',
-        T.BOSS: u'BOSS',
+        T.HIDDEN:     u'？',
+        T.ATTACKER:   u'城管',
+        T.BOSS:       u'BOSS',
         T.ACCOMPLICE: u'道中',
-        T.CURTAIN: u'黑幕',
+        T.CURTAIN:    u'黑幕',
     }
 
     identity_color = {
-        T.HIDDEN: u'blue',
-        T.ATTACKER: u'blue',
-        T.BOSS: u'red',
+        T.HIDDEN:     u'blue',
+        T.ATTACKER:   u'blue',
+        T.BOSS:       u'red',
         T.ACCOMPLICE: u'orange',
-        T.CURTAIN: u'green',
+        T.CURTAIN:    u'green',
     }
 
     del T
@@ -221,20 +234,21 @@ __metaclass__ = gen_metafunc(thbraid)
 class THBattleRaid:
     name = u'符斗祭 - 异变模式'
     logo = gres.thblogo_raid
+    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleRaidUI
     ui_class = THBattleRaidUI
 
     T = thbraid.Identity.TYPE
     identity_table = {
-        T.HIDDEN: u'？',
-        T.MUTANT: u'异变',
+        T.HIDDEN:   u'？',
+        T.MUTANT:   u'异变',
         T.ATTACKER: u'解决者',
     }
 
     identity_color = {
-        T.HIDDEN: u'blue',
-        T.MUTANT: u'red',
+        T.HIDDEN:   u'blue',
+        T.MUTANT:   u'red',
         T.ATTACKER: u'blue',
     }
 
@@ -443,20 +457,21 @@ class THBattleFaith:
         u'\n'
         u'|G胜负条件|r：当一方死亡角色数到达三名，或投降时，该方判负。'
     )
+    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleFaithUI as ui_class  # noqa
 
     T = thbfaith.Identity.TYPE
     identity_table = {
-        T.HIDDEN: u'？',
+        T.HIDDEN:  u'？',
         T.HAKUREI: u'博丽',
-        T.MORIYA: u'守矢'
+        T.MORIYA:  u'守矢'
     }
 
     identity_color = {
-        T.HIDDEN: u'blue',
+        T.HIDDEN:  u'blue',
         T.HAKUREI: u'blue',
-        T.MORIYA: u'orange'
+        T.MORIYA:  u'orange'
     }
 
     del T
@@ -465,6 +480,6 @@ class THBattleFaith:
 class DeathHandler:  # noqa
     # choose_option
     choose_option_buttons = ((u'全部换走', True), (u'不用换', False))
-    choose_option_prompt = u'你要将摸到的牌全部换掉吗？'
+    choose_option_prompt  = u'你要将摸到的牌全部换掉吗？'
 
 # -----END THB3v3 UI META-----

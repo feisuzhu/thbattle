@@ -59,7 +59,8 @@ class GameManager(Greenlet):
                 self.event_cb('player_change', data)
 
         @handler(('inroom',), 'ingame')
-        def game_started(self, pldata):
+        def game_started(self, data):
+            params, pldata = data
             Executive.server.gclear()
             if self.last_game:
                 self.last_game.kill(ForcedKill)
@@ -75,8 +76,9 @@ class GameManager(Greenlet):
             pl[i] = me
             g = self.game
             g.me = me
+            g.game_params = params
             g.players = BatchList(pl)
-            # g.start()
+            # g.start()  Starts by UI
             log.info('=======GAME STARTED: %d=======' % g.gameid)
             log.info(g)
 
@@ -100,7 +102,7 @@ class GameManager(Greenlet):
                 self.last_game.get()
                 self.last_game = None
 
-            tgtid, pldata = data
+            params, tgtid, pldata = data
             from client.core import PeerPlayer, TheLittleBrother
             pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
@@ -111,7 +113,8 @@ class GameManager(Greenlet):
             me.__class__ = TheLittleBrother
             me.server = Executive.server
             g.me = me
-            # g.start()
+            g.game_params = params
+            # g.start()  Starts by UI
             log.info('=======OBSERVE STARTED=======')
             log.info(g)
 
@@ -254,24 +257,26 @@ class Executive(object):
         wrapper.__name__ = _type
         return wrapper
 
-    auth            = _simple_op('auth')
-    cancel_ready    = _simple_op('cancel_ready')
-    change_location = _simple_op('change_location')
-    chat            = _simple_op('chat')
-    create_game     = _simple_op('create_game')
-    exit_game       = _simple_op('exit_game')
-    get_lobbyinfo   = _simple_op('get_lobbyinfo')
-    get_ready       = _simple_op('get_ready')
-    heartbeat       = _simple_op('heartbeat')
-    invite_grant    = _simple_op('invite_grant')
-    invite_user     = _simple_op('invite_user')
-    join_game       = _simple_op('join_game')
-    kick_observer   = _simple_op('kick_observer')
-    kick_user       = _simple_op('kick_user')
-    observe_grant   = _simple_op('observe_grant')
-    observe_user    = _simple_op('observe_user')
-    pong            = _simple_op('pong')
-    query_gameinfo  = _simple_op('query_gameinfo')
-    speaker         = _simple_op('speaker')
+    auth             = _simple_op('auth')
+    cancel_ready     = _simple_op('cancel_ready')
+    change_location  = _simple_op('change_location')
+    chat             = _simple_op('chat')
+    create_game      = _simple_op('create_game')
+    exit_game        = _simple_op('exit_game')
+    get_lobbyinfo    = _simple_op('get_lobbyinfo')
+    get_ready        = _simple_op('get_ready')
+    heartbeat        = _simple_op('heartbeat')
+    invite_grant     = _simple_op('invite_grant')
+    invite_user      = _simple_op('invite_user')
+    join_game        = _simple_op('join_game')
+    kick_observer    = _simple_op('kick_observer')
+    kick_user        = _simple_op('kick_user')
+    observe_grant    = _simple_op('observe_grant')
+    observe_user     = _simple_op('observe_user')
+    pong             = _simple_op('pong')
+    query_gameinfo   = _simple_op('query_gameinfo')
+    quick_start_game = _simple_op('quick_start_game')
+    set_game_param   = _simple_op('set_game_param')
+    speaker          = _simple_op('speaker')
 
     del _simple_op

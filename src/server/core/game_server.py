@@ -213,7 +213,7 @@ class Game(Greenlet, game.Game):
         self.game = getcurrent()
         lobby.start_game(self.manager)
         try:
-            self.game_start()
+            self.game_start(self.manager.game_params)
         except GameEnded:
             pass
         finally:

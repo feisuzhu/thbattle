@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import random
-from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, user_input, InputTransaction
+from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 
 from .actions import PlayerTurn, PlayerDeath, DrawCards, DropCards, RevealIdentity
 from .actions import action_eventhandlers
@@ -107,6 +107,7 @@ class THBattleIdentity(Game):
     n_persons = 8
     character_categories = ('id', 'id8')
     game_actions = _game_actions
+    params_def = {}
     T = Identity.TYPE
     identities = [
         T.ATTACKER, T.ATTACKER, T.ATTACKER, T.ATTACKER,
@@ -115,7 +116,7 @@ class THBattleIdentity(Game):
     ]
     del T
 
-    def game_start(g):
+    def game_start(g, params):
         # game started, init state
         from cards import Deck
 
@@ -237,7 +238,6 @@ class THBattleIdentity(Game):
                 except InterruptActionFlow:
                     pass
 
-    
     def can_leave(self, p):
         return getattr(p, 'dead', False)
 

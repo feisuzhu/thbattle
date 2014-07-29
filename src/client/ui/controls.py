@@ -193,7 +193,8 @@ class AbstractButton(Control):
         else:
             self.update()
 
-    def update(self): pass
+    def update(self):
+        pass
 
 
 class Button(AbstractButton):
@@ -1642,11 +1643,12 @@ class SmallProgressBar(ProgressBar):
         return r.sl, r.sm, r.sr
 
 
-class ConfirmButtons(Control):
+class ButtonArray(Control):
     def __init__(self, buttons=((u'确定', True), (u'取消', False)),
-                 color=Colors.green, delay=0, *a, **k):
+                 color=Colors.green, delay=0, min_width=0, *a, **k):
         Control.__init__(self, *a, **k)
         self.buttons = bl = []
+        self.min_width = min_width
 
         wl = self._get_widths(buttons)
 
@@ -1662,7 +1664,7 @@ class ConfirmButtons(Control):
 
             @btn.event
             def on_click(btn=btn):
-                self.confirm(btn.retval)
+                self.on_button_click(btn)
 
             bl.append(btn)
             loc += w + 6
@@ -1673,9 +1675,8 @@ class ConfirmButtons(Control):
 
         self.width, self.height = loc - 6, 24
 
-    def confirm(self, val):
-        self.value = val
-        self.dispatch_event('on_confirm', val)
+    def on_button_click(self, btn, v):
+        pass
 
     def draw(self):
         self.draw_subcontrols()
@@ -1695,21 +1696,53 @@ class ConfirmButtons(Control):
         for b in self.buttons:
             b.state = Button.NORMAL
 
-    @classmethod
-    def _get_widths(cls, buttons):
-        if len(buttons) > 2:
-            wl = [len(b[0])*16 + 20 for b in buttons]
-        else:
-            wl = [max(len(b[0])*16 + 20, 80) for b in buttons]
-
+    def _get_widths(self, buttons):
+        w = self.min_width
+        wl = [max(len(b[0]) * 16 + 20, w) for b in buttons]
         return wl
 
-    @classmethod
-    def calc_width(cls, buttons):
-        wl = cls._get_widths(buttons)
+    def calc_width(self, buttons):
+        wl = self._get_widths(buttons)
         n = len(wl)
         return sum(wl) + (n-1)*6
 
+
+class OptionButtonGroup(ButtonArray):
+    def __init__(self, buttons, delay=0, *a, **k):
+        ButtonArray.__init__(self, buttons, color=Colors.blue, delay=delay, *a, **k)
+        self.value = buttons[0][1]
+        self.buttons[0].color = Colors.orange
+
+    def on_button_click(self, btn):
+        self.dispatch_event('on_option', btn.retval)
+
+    def on_option(self, v):
+        self.set_value(v)
+
+    def set_value(self, v):
+        for b in self.buttons:
+            b.color = Colors.blue
+
+        for b in self.buttons:
+            if b.retval == v:
+                self.value = v
+                b.color = Colors.orange
+                break
+        else:
+            raise ValueError
+
+
+OptionButtonGroup.register_event_type('on_option')
+
+
+class ConfirmButtons(ButtonArray):
+    def __init__(self, *a, **k):
+        k.setdefault('min_width', 80)
+        ButtonArray.__init__(self, *a, **k)
+
+    def on_button_click(self, btn):
+        self.value = btn.retval
+        self.dispatch_event('on_confirm', self.value)
 
 ConfirmButtons.register_event_type('on_confirm')
 
@@ -1732,8 +1765,16 @@ class ConfirmBox(Dialog):
             text, 0, 33 + 20, anchor_x='center', anchor_y='bottom',
             font_size=9, width=10000, multiline=True, color=(0, 0, 0, 255)
         )
+        self.confirm_btns = btn = ConfirmButtons(buttons, parent=self, color=self.color)
+        self.value = buttons[0][1] if default is self._default_value else default
+
+        @btn.event
+        def on_confirm(val):
+            self.value = val
+            self.delete()
+
         w, h = lbl.content_width + 1, lbl.content_height
-        dw, dh = max(w, ConfirmButtons.calc_width(buttons))+50, h+24+33+20*2
+        dw, dh = max(w, btn.calc_width(buttons))+50, h+24+33+20*2
         self.width, self.height = dw, dh
         lbl.begin_update()
         lbl.width = w
@@ -1744,13 +1785,6 @@ class ConfirmBox(Dialog):
         pw, ph = p.width, p.height
         self.set_position((pw - dw)/2, (ph - dh)/2)
 
-        self.confirm_btns = btn = ConfirmButtons(buttons, parent=self, color=self.color)
-        self.value = buttons[0][1] if default is self._default_value else default
-
-        @btn.event
-        def on_confirm(val):
-            self.value = val
-            self.delete()
         btn.x, btn.y = (dw - btn.width)/2, 5
 
     def delete(self):

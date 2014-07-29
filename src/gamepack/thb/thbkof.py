@@ -6,7 +6,7 @@ import logging
 
 from utils import Enum, filter_out
 
-from game.autoenv import Game, EventHandler, GameEnded, InterruptActionFlow, InputTransaction, user_input
+from game.autoenv import Game, EventHandler, InterruptActionFlow, InputTransaction, user_input
 from game import sync_primitive
 
 from .common import PlayerIdentity, CharChoice, get_seed_for
@@ -80,12 +80,14 @@ class Identity(PlayerIdentity):
 
 
 class THBattleKOF(Game):
-    n_persons = 2
-    game_ehs = _game_ehs
+    n_persons  = 2
+    game_ehs   = _game_ehs
+    params_def = {
+        'no_imba': (True, False),
+    }
 
-    def game_start(g):
+    def game_start(g, params):
         # game started, init state
-
         from cards import Deck
 
         g.deck = Deck()
@@ -98,14 +100,14 @@ class THBattleKOF(Game):
 
         # choose girls -->
         from characters import get_characters
-        chars = get_characters('kof')
+        chars = get_characters('kof' if params['no_imba'] else 'kofall')
 
         testing = []
         testing = filter_out(chars, lambda c: c.__name__ in testing)
 
         _chars = g.random.sample(chars, 10)
         _chars.extend(testing)
-        
+
         from characters.akari import Akari
         if Game.SERVER_SIDE:
             choice = [CharChoice(cls) for cls in _chars[-10:]]
@@ -218,7 +220,6 @@ class THBattleKOF(Game):
             except InterruptActionFlow:
                 pass
 
-    
     def can_leave(g, p):
         return False
 

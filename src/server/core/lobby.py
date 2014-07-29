@@ -12,7 +12,6 @@ import time
 
 # -- third party --
 from gevent import Timeout
-from gevent.event import Event
 from gevent.pool import Pool
 from gevent.queue import Queue, Empty as QueueEmpty
 import gevent
@@ -164,6 +163,10 @@ class Client(ClientEndpoint):
     def command_get_ready(self):
         lobby.get_ready(self)
 
+    @for_state('inroomwait')
+    def command_set_game_param(self, key, value):
+        lobby.set_game_param(self, key, value)
+
     @for_state('inroomwait', 'ready', 'ingame', 'observing')
     def command_exit_game(self):
         lobby.exit_game(self)
@@ -203,7 +206,7 @@ class Client(ClientEndpoint):
     # --------- End handlers ---------
 
 
-class DroppedClient(object):
+class DroppedClient(Client):
     read = write = raw_write = gclear = lambda *a, **k: None
 
     def __init__(self, client=None):
@@ -248,7 +251,6 @@ class Lobby(object):
         self.games = {}  # all games
         self.users = {}  # all users
         self.dropped_users = {}  # passively dropped users
-        self.evt_datachange = Event()
         self.current_gid = current_gid
 
     def new_gid(self):
@@ -285,15 +287,13 @@ class Lobby(object):
 
         elif uid in self.dropped_users:
             log.info(u'%s rejoining dropped game' % user.account.username)
-            old = self.dropped_users[uid]
+            old = self.dropped_users.pop(uid)
             assert isinstance(old, DroppedClient), 'Arghhhhh'
 
             self.send_lobbyinfo(user)
 
             manager = GameManager.get_by_user(old)
             manager.reconnect(user)
-
-            self.dropped_users.pop(uid, 0)
 
         self.users[uid] = user
 
@@ -423,7 +423,7 @@ class Lobby(object):
         elif user.state != 'hang':
             dummy = manager.exit_game(user, is_drop)
 
-            if is_drop:
+            if is_drop and user.state == 'ingame':
                 self.dropped_users[user.account.userid] = dummy
 
             user.state = 'hang'
@@ -447,6 +447,14 @@ class Lobby(object):
             self.refresh_status()
         elif user.state == 'observing':
             self.join_game(user, manager.gameid, loc)
+
+    def set_game_param(self, user, key, value):
+        if user.state != 'inroomwait':
+            return
+
+        manager = GameManager.get_by_user(user)
+        manager.set_game_param(user, key, value)
+        self.refresh_status()
 
     def kick_user(self, user, uid):
         other = self.users.get(uid)
@@ -692,6 +700,7 @@ class GameManager(object):
         self.banlist      = defaultdict(set)
         self.gameid       = gid
         self.gamecls      = gamecls
+        self.game_params  = {k: v[0] for k, v in gamecls.params_def.items()}
 
         g.gameid    = gid
         g.manager   = self
@@ -706,6 +715,7 @@ class GameManager(object):
             'started':  self.game_started,
             'name':     self.game_name,
             'nplayers': len(self.get_online_users()),
+            'params':   self.game_params,
         }
 
     @classmethod
@@ -791,6 +801,37 @@ class GameManager(object):
         user.state = 'inroomwait'
         self.notify_playerchange()
 
+    def set_game_param(self, user, key, value):
+        if user.state != 'inroomwait':
+            return
+
+        if user not in self.users:
+            log.error('User not in this game!')
+            return
+
+        cls = self.gamecls
+        if key not in cls.params_def:
+            log.error('Invalid option "%s"', key)
+            return
+
+        if value not in cls.params_def[key]:
+            log.error('Invalid value "%s" for key "%s"', value, key)
+            return
+
+        if self.game_params[key] == value:
+            return
+
+        self.game_params[key] = value
+
+        for u in self.users:
+            if u.state == 'ready':
+                self.cancel_ready(u)
+
+            u.write(['set_game_param', [user, key, value]])
+            u.write(['game_params', self.game_params])
+
+        self.notify_playerchange()
+
     def change_location(self, user, loc):
         if user.state not in ('inroomwait', ):
             return
@@ -873,7 +914,7 @@ class GameManager(object):
                 obl and obl.write(['observer_enter', info])
 
         if g.started:
-            user.write(['observe_started', [observee.account.userid, self.users]])
+            user.write(['observe_started', [self.game_params, observee.account.userid, self.users]])
             self.replay(user, observee)
         else:
             self.notify_playerchange()
@@ -920,11 +961,11 @@ class GameManager(object):
 
         self.start_time = time.time()
         for u in self.users:
-            u.write(["game_started", g.players])
+            u.write(["game_started", [self.game_params, g.players]])
             u.gclear()
             if u.observers:
                 u.observers.gclear()
-                u.observers.write(['observe_started', [u.account.userid, g.players]])
+                u.observers.write(['observe_started', [self.game_params, u.account.userid, g.players], self.game_params])
             u.state = 'ingame'
 
     def record_gamedata(self, user, tag, data):
@@ -970,7 +1011,7 @@ class GameManager(object):
         # Can't use g.players
         from server.core.game_server import Player
         players = BatchList([Player(u) for u in self.users])
-        new.write(['game_started', players])
+        new.write(['game_started', [self.game_params, players]])
 
         self.replay(new, new)
 

@@ -11,17 +11,17 @@ import gevent
 import pyglet
 
 # -- own --
+from . import effects
+from . import inputs
+from .. import actions
+from .game_controls import HandCardArea, PortraitCardArea, DropCardArea
+from .game_controls import Ray, GameCharacterPortrait, SkillSelectionBox
 from client.ui.base import Control, Overlay, process_msg
 from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPrompt, OptionButton
 from client.ui.resource import resource as cres
 from client.ui.soundmgr import SoundManager
 from game.autoenv import Game, EventHandler
-from .game_controls import HandCardArea, PortraitCardArea, DropCardArea
-from .game_controls import Ray, GameCharacterPortrait, SkillSelectionBox
 from gamepack.thb.ui.resource import resource as gres
-from .. import actions
-from . import effects
-from . import inputs
 from utils import rect_to_dict as r2d
 from utils.misc import Observable
 
@@ -445,7 +445,7 @@ class THBattleUI(Control, Observable):
 
 class THBattleCP3UI(THBattleUI):
     portrait_location = [
-        (60, 300, Colors.blue),
+        (60,  300, Colors.blue),
         (250, 450, Colors.orange),
         (450, 450, Colors.green),
         (640, 300, Colors.blue),
@@ -454,12 +454,12 @@ class THBattleCP3UI(THBattleUI):
     ]
 
     gcp_location = [
-        (3, 1, 'me', Colors.blue),
-        (669, 280, 'left', Colors.orange),
-        (155 + 180 + 180, 520, 'bottom', Colors.green),
-        (155 + 180, 520, 'bottom', Colors.blue),
+        (3,   1,   'me',     Colors.blue),
+        (669, 280, 'left',   Colors.orange),
+        (515, 520, 'bottom', Colors.green),
+        (335, 520, 'bottom', Colors.blue),
         (155, 520, 'bottom', Colors.orange),
-        (3, 280, 'right', Colors.green),
+        (3,   280, 'right',  Colors.green),
     ]
 
 
@@ -477,14 +477,14 @@ class THBattleIdentityUI(THBattleUI):
     ]
 
     gcp_location = [
-        (3, 1, 'me', Colors.blue),
-        (669, 210, 'left', Colors.blue),
-        (669, 420, 'left', Colors.blue),
+        (3,   1,   'me',     Colors.blue),
+        (669, 210, 'left',   Colors.blue),
+        (669, 420, 'left',   Colors.blue),
         (505, 520, 'bottom', Colors.blue),
         (335, 520, 'bottom', Colors.blue),
         (165, 520, 'bottom', Colors.blue),
-        (3, 420, 'right', Colors.blue),
-        (3, 210, 'right', Colors.blue),
+        (3,   420, 'right',  Colors.blue),
+        (3,   210, 'right',  Colors.blue),
     ]
 
 
@@ -499,11 +499,11 @@ class THBattleIdentity5UI(THBattleIdentityUI):
     ]
 
     gcp_location = [
-        (3, 1, 'me', Colors.blue),
-        (669, 270, 'left', Colors.blue),
+        (3,   1,   'me',     Colors.blue),
+        (669, 270, 'left',   Colors.blue),
         (455, 520, 'bottom', Colors.blue),
         (215, 520, 'bottom', Colors.blue),
-        (3, 270, 'right', Colors.blue),
+        (3,   270, 'right',  Colors.blue),
     ]
 
 
@@ -514,7 +514,7 @@ class THBattleKOFUI(THBattleUI):
     ]
 
     gcp_location = [
-        (3, 1, 'me', Colors.blue),
+        (3,   1,   'me',     Colors.blue),
         (335, 520, 'bottom', Colors.orange),
     ]
 
@@ -522,23 +522,22 @@ class THBattleKOFUI(THBattleUI):
 class THBattleRaidUI(THBattleUI):
     portrait_location = [
         (380, 450, Colors.red),
-
         (190, 150, Colors.blue),
         (380, 150, Colors.blue),
         (570, 150, Colors.blue),
     ]
 
     gcp_location = [
-        (3, 1, 'me', Colors.blue),
-        (669, 315, 'left', Colors.blue),
+        (3,   1,   'me',     Colors.blue),
+        (669, 315, 'left',   Colors.blue),
         (335, 520, 'bottom', Colors.blue),
-        (3, 315, 'right', Colors.blue),
+        (3,   315, 'right',  Colors.blue),
     ]
 
 
 class THBattleFaithUI(THBattleUI):
     portrait_location = [
-        (60, 300, Colors.blue),
+        (60,  300, Colors.blue),
         (250, 450, Colors.blue),
         (450, 450, Colors.blue),
         (640, 300, Colors.blue),
@@ -547,12 +546,12 @@ class THBattleFaithUI(THBattleUI):
     ]
 
     gcp_location = [
-        (3, 1, 'me', Colors.blue),
-        (669, 280, 'left', Colors.blue),
-        (155+180+180, 520, 'bottom', Colors.blue),
-        (155+180, 520, 'bottom', Colors.blue),
+        (3,   1,   'me',     Colors.blue),
+        (669, 280, 'left',   Colors.blue),
+        (515, 520, 'bottom', Colors.blue),
+        (335, 520, 'bottom', Colors.blue),
         (155, 520, 'bottom', Colors.blue),
-        (3, 280, 'right', Colors.blue),
+        (3,   280, 'right',  Colors.blue),
     ]
 
     def more_init(self):

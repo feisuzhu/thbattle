@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import Game
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from ..actions import DrawCards, UserAction
 from ..cards import Skill, t_Self
 
@@ -45,7 +45,7 @@ class Find(Skill):
         )
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Koakuma(Character):
     skills = [Find]
     eventhandlers_required = []

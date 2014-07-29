@@ -203,12 +203,13 @@ class Game(Greenlet, game.Game):
         Greenlet.__init__(self)
         game.Game.__init__(self)
         self.players = BatchList()
+        self.game_params = {}
 
     def _run(self):
         self.synctag = 0
         Game.thegame = self
         try:
-            self.game_start()
+            self.game_start(self.game_params)
         except GameEnded:
             pass
 
@@ -217,7 +218,6 @@ class Game(Greenlet, game.Game):
     @classmethod
     def getgame(cls):
         return cls.thegame
-        #return getcurrent()
 
     def get_synctag(self):
         self.synctag += 1
