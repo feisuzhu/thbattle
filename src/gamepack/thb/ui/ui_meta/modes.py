@@ -457,7 +457,15 @@ class THBattleFaith:
         u'\n'
         u'|G胜负条件|r：当一方死亡角色数到达三名，或投降时，该方判负。'
     )
-    params_disp = {}
+    params_disp = {
+        'random_seat': {
+            'desc': u'随机位置阵营',
+            'options': [
+                (u'随机', True),
+                (u'固定', False),
+            ],
+        },
+    }
 
     from gamepack.thb.ui.view import THBattleFaithUI as ui_class  # noqa
 

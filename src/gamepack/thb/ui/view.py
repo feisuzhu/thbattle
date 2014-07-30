@@ -140,7 +140,7 @@ class GameIntroIcon(Control):
 
 class THBattleUI(Control, Observable):
     portrait_location = [
-        (60, 300, Colors.blue),
+        (60,  300, Colors.blue),
         (250, 450, Colors.orange),
         (450, 450, Colors.blue),
         (640, 300, Colors.orange),
@@ -149,12 +149,12 @@ class THBattleUI(Control, Observable):
     ]
 
     gcp_location = [
-        (3, 1, 'me', Colors.blue),
-        (669, 280, 'left', Colors.orange),
-        (155 + 180 + 180, 520, 'bottom', Colors.blue),
-        (155 + 180, 520, 'bottom', Colors.orange),
+        (3,   1,   'me',     Colors.blue),
+        (669, 280, 'left',   Colors.orange),
+        (515, 520, 'bottom', Colors.blue),
+        (335, 520, 'bottom', Colors.orange),
         (155, 520, 'bottom', Colors.blue),
-        (3, 280, 'right', Colors.orange),
+        (3,   280, 'right',  Colors.orange),
     ]
 
     def __init__(self, game, *a, **k):
@@ -538,11 +538,11 @@ class THBattleRaidUI(THBattleUI):
 class THBattleFaithUI(THBattleUI):
     portrait_location = [
         (60,  300, Colors.blue),
-        (250, 450, Colors.blue),
+        (250, 450, Colors.orange),
         (450, 450, Colors.blue),
-        (640, 300, Colors.blue),
+        (640, 300, Colors.orange),
         (450, 150, Colors.blue),
-        (250, 150, Colors.blue),
+        (250, 150, Colors.orange),
     ]
 
     gcp_location = [

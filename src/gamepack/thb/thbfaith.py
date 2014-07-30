@@ -92,7 +92,9 @@ class THBattleFaith(Game):
     n_persons    = 6
     game_ehs     = _game_ehs
     game_actions = _game_actions
-    params_def   = {}
+    params_def   = {
+        'random_seat': (True, False),
+    }
 
     def game_start(g, params):
         # game started, init state
@@ -102,18 +104,23 @@ class THBattleFaith(Game):
 
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
-        # reseat
-        seed = get_seed_for(g.players)
-        random.Random(seed).shuffle(g.players)
-        g.emit_event('reseat', None)
-
         H, M = Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA
-        L = [[H, H, M, M, H, M], [H, M, H, M, H, M]]
-        rnd = random.Random(get_seed_for(g.players))
-        L = rnd.choice(L) * 2
-        s = rnd.randrange(0, 6)
-        idlist = L[s:s+6]
-        del H, M, L, s, rnd
+        if params['random_seat']:
+            # reseat
+            seed = get_seed_for(g.players)
+            random.Random(seed).shuffle(g.players)
+            g.emit_event('reseat', None)
+
+            L = [[H, H, M, M, H, M], [H, M, H, M, H, M]]
+            rnd = random.Random(get_seed_for(g.players))
+            L = rnd.choice(L) * 2
+            s = rnd.randrange(0, 6)
+            idlist = L[s:s+6]
+            del L, s, rnd
+        else:
+            idlist = [H, M, H, M, H, M]
+
+        del H, M
 
         for p, identity in zip(g.players, idlist):
             p.identity = Identity()
