@@ -683,3 +683,41 @@ def debounce(seconds):
         return wrapper
 
     return decorate
+
+
+class ThrottleState(object):
+    __slots__ = ('running', 'pending', 'args')
+
+    def __init__(self):
+        self.running = self.pending = False
+
+
+def throttle(seconds):
+    def decorate(f):
+        state = ThrottleState()
+
+        def after():
+            gevent.sleep(seconds)
+            if state.pending:
+                state.pending = False
+                a, k = state.args
+                gevent.spawn(after)
+                f(*a, **k)
+
+            else:
+                state.running = False
+
+        @wraps(f)
+        def wrapper(*a, **k):
+            if state.running:
+                state.pending = True
+                state.args = (a, k)
+
+            else:
+                state.running = True
+                gevent.spawn(after)
+                f(*a, **k)
+
+        return wrapper
+
+    return decorate

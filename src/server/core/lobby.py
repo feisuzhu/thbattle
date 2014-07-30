@@ -25,7 +25,7 @@ from options import options
 from settings import VERSION
 from utils import BatchList, log_failure, instantiate
 from utils.interconnect import Interconnect
-from utils.misc import debounce
+from utils.misc import throttle
 
 # -- code --
 log = logging.getLogger('Lobby')
@@ -257,7 +257,7 @@ class Lobby(object):
         self.current_gid += 1
         return self.current_gid
 
-    @debounce(1.5)
+    @throttle(1.5)
     def refresh_status(self):
         ul = [u for u in self.users.values() if u.state == 'hang']
         Pool(5).map_async(self.send_lobbyinfo, ul)
@@ -726,7 +726,7 @@ class GameManager(object):
         g = self.game
         user.write(['gameinfo', [g.gameid, g.players]])
 
-    @debounce(0.1)
+    @throttle(0.1)
     def notify_playerchange(self):
         @gevent.spawn
         def notify():
