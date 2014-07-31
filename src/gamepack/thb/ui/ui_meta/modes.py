@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith, thbcp3
+from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith, thbcp3, thb2v2
 from gamepack.thb.ui.resource import resource as gres
 
 from .common import gen_metafunc, card_desc, my_turn
@@ -490,4 +490,63 @@ class DeathHandler:  # noqa
     choose_option_buttons = ((u'全部换走', True), (u'不用换', False))
     choose_option_prompt  = u'你要将摸到的牌全部换掉吗？'
 
-# -----END THB3v3 UI META-----
+# -----END THBFaith UI META-----
+
+# -----BEGIN THBFaith UI META-----
+__metaclass__ = gen_metafunc(thb2v2)
+
+
+class THBattle2v2:
+    name = u'符斗祭 - 2v2'
+    logo = gres.kokoro_port
+    description = (
+        u'|R游戏人数|r：4人\n'
+        u'\n'
+        u'|G座次|r：\n'
+        u'创建房间时可选固定阵容或随机阵容。\n'
+        u'Roll点，由点数最高的玩家为1号位，然后对面点数最大的为2号位，按1-2-2-1的顺序逆时针行动。\n'
+        u'\n'
+        u'|G选将|r：\n'
+        u'从角色堆里选出20名角色，由1号位开始，每人选择Ban掉其中一个角色。\n'
+        u'每人随机从剩下的卡牌中获得4张角色卡作为备选（其中一张为阿卡林）\n'
+        u'玩家可以选择其中一名角色进行游戏\n'
+        u'\n'
+        u'|G行动和胜利条件|r：\n'
+        u'选择角色完毕后，每人摸4张牌。由一号位开始逆时针行动。\n'
+        u'一名角色阵亡后，队友可以选择获得其所有牌或摸两张牌。\n'
+        u'当一方所有的角色都阵亡时，游戏结束，另一方获胜。\n'
+    )
+    params_disp = {
+        'random_force': {
+            'desc': u'随机阵营',
+            'options': [
+                (u'随机', True),
+                (u'固定', False),
+            ],
+        },
+    }
+
+    from gamepack.thb.ui.view import THBattle2v2UI as ui_class  # noqa
+
+    T = thbfaith.Identity.TYPE
+    identity_table = {
+        T.HIDDEN:  u'？',
+        T.HAKUREI: u'博丽',
+        T.MORIYA:  u'守矢'
+    }
+
+    identity_color = {
+        T.HIDDEN:  u'blue',
+        T.HAKUREI: u'blue',
+        T.MORIYA:  u'orange'
+    }
+
+    del T
+
+
+class HeritageHandler:
+    # choose_option
+    choose_option_buttons = ((u'获取队友的所有牌', 'inherit'), (u'摸两张牌', 'draw'))
+    choose_option_prompt  = u'队友MISS，请选择你的动作'
+
+# -----END THBFaith UI META-----

@@ -204,10 +204,10 @@ class THBattle(Game):
         from .characters.baseclasses import Character
         assert isinstance(p, Character)
 
-        p.cards = CardList(p, 'cards')  # Cards in hand
-        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-        p.equips = CardList(p, 'equips')  # Equipments
-        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-        p.special = CardList(p, 'special')  # used on special purpose
+        p.cards          = CardList(p, 'cards')       # Cards in hand
+        p.showncards     = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips         = CardList(p, 'equips')      # Equipments
+        p.fatetell       = CardList(p, 'fatetell')    # Cards in the Fatetell Zone
+        p.special        = CardList(p, 'special')     # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
-        p.tags = defaultdict(int)
+        p.tags           = defaultdict(int)

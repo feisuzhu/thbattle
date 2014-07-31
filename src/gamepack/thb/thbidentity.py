@@ -203,8 +203,13 @@ class THBattleIdentity(Game):
 
         # not enough chars for random, reuse unselected
         for p in pl:
-            if result[p]: result[p].chosen = p
-            chars.extend([i.char_cls for i in p.choices if not i.chosen and i.char_cls is not Akari])
+            if result[p]:
+                result[p].chosen = p
+
+            chars.extend([
+                i.char_cls for i in p.choices
+                if not i.chosen and i.char_cls is not Akari
+            ])
 
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)

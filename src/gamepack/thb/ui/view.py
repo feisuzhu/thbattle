@@ -574,3 +574,19 @@ class THBattleFaithUI(THBattleUI):
                 u'|s1e5effbff|c315597ff博丽：%d 人|r\n'
                 u'|s1886666ff|W守矢：%d 人|r'
             ) % (h, m)
+
+
+class THBattle2v2UI(THBattleUI):
+    portrait_location = [
+        (250, 450, Colors.blue),
+        (450, 450, Colors.blue),
+        (450, 150, Colors.orange),
+        (250, 150, Colors.orange),
+    ]
+
+    gcp_location = [
+        (3,   1,   'me',     Colors.blue),
+        (669, 270, 'left',   Colors.blue),
+        (335, 520, 'bottom', Colors.blue),
+        (3,   270, 'right',  Colors.blue),
+    ]

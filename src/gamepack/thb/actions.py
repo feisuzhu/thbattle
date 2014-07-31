@@ -256,10 +256,12 @@ action_eventhandlers = set()
 # ------------------------------------------
 
 
-class GenericAction(Action): pass
+class GenericAction(Action):
+    pass
 
 
-class LaunchCardAction(object): pass
+class LaunchCardAction(object):
+    pass
 
 
 class UserAction(Action):  # card/character skill actions

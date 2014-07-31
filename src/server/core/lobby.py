@@ -138,7 +138,7 @@ class Client(ClientEndpoint):
     @for_state('hang')
     def command_create_game(self, _type, name):
         manager = lobby.create_game(self, _type, name)
-        lobby.join_game(self, manager.gameid)
+        manager and lobby.join_game(self, manager.gameid)
 
     @for_state('hang')
     def command_quick_start_game(self):
@@ -381,7 +381,7 @@ class Lobby(object):
             return
 
         for manager in self.games.values():
-            if manager.next_free_slot():
+            if manager.next_free_slot() is not None:
                 self.join_game(user, manager.gameid)
                 return
         else:
@@ -965,7 +965,7 @@ class GameManager(object):
             u.gclear()
             if u.observers:
                 u.observers.gclear()
-                u.observers.write(['observe_started', [self.game_params, u.account.userid, g.players], self.game_params])
+                u.observers.write(['observe_started', [self.game_params, u.account.userid, g.players]])
             u.state = 'ingame'
 
     def record_gamedata(self, user, tag, data):

@@ -10,6 +10,7 @@ l = [
     THBattleRaid,
     THBattleFaith,
     THBattleCP3,
+    THBattle2v2,
 ]
 
 for g in l:

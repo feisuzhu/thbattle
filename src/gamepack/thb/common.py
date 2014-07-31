@@ -3,25 +3,28 @@ import logging
 log = logging.getLogger('thb.common')
 
 from game.autoenv import Game, sync_primitive
-from utils import Enum
 
 
 class CharChoice(object):
     real_cls = None
     chosen = False
 
-    def __init__(self, char_cls):
+    def __init__(self, char_cls, as_akari=False):
         self.char_cls = char_cls
+        self.as_akari = as_akari
 
     def __data__(self):
-        return self.char_cls.__name__
+        return self.char_cls.__name__ if not self.as_akari else 'Akari'
 
     def sync(self, data):
         from .characters.baseclasses import Character
         self.char_cls = Character.character_classes[data]
 
     def __repr__(self):
-        return '<Choice: {}>'.format('None' if not self.char_cls else self.char_cls.__name__)
+        return '<Choice: {}{}>'.format(
+            'None' if not self.char_cls else self.char_cls.__name__,
+            '[Akari]' if self.as_akari else '',
+        )
 
 
 class PlayerIdentity(object):
