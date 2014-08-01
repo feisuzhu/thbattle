@@ -18,6 +18,7 @@ from .cards import Skill, t_None
 from collections import defaultdict
 
 from .common import PlayerIdentity, CharChoice, get_seed_for
+from .params import RandomSeat
 
 from utils import BatchList, Enum
 
@@ -415,7 +416,9 @@ class THBattleRaid(Game):
     n_persons    = 4
     game_actions = _game_actions
     game_ehs     = _game_ehs
-    params_def   = {}
+    params_def   = [
+        RandomSeat(False),
+    ]
 
     def game_start(g, params):
         # game started, init state
@@ -424,6 +427,11 @@ class THBattleRaid(Game):
         g.action_types[ActionStageLaunchCard] = RaidActionStageLaunchCard
 
         g.ehclasses = []
+
+        if params[RandomSeat]:
+            seed = get_seed_for(g.players)
+            random.Random(seed).shuffle(g.players)
+            g.emit_event('reseat', None)
 
         # reveal identities
         mutant = g.mutant = g.players[0]

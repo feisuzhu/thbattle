@@ -18,6 +18,8 @@ from .characters.baseclasses import mixin_character
 
 from .inputlets import ChooseGirlInputlet, SortCharacterInputlet
 
+from .params import NoImbaCharacters
+
 log = logging.getLogger('THBattle')
 _game_ehs = {}
 
@@ -82,9 +84,9 @@ class Identity(PlayerIdentity):
 class THBattleKOF(Game):
     n_persons  = 2
     game_ehs   = _game_ehs
-    params_def = {
-        'no_imba': (True, False),
-    }
+    params_def = [
+        NoImbaCharacters(True),
+    ]
 
     def game_start(g, params):
         # game started, init state
@@ -100,7 +102,7 @@ class THBattleKOF(Game):
 
         # choose girls -->
         from characters import get_characters
-        chars = get_characters('kof' if params['no_imba'] else 'kofall')
+        chars = get_characters('kof' if params[NoImbaCharacters] else 'kofall')
 
         testing = []
         testing = filter_out(chars, lambda c: c.__name__ in testing)

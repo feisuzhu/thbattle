@@ -15,6 +15,7 @@ from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 from utils.misc import Enum, BatchList
+from .params import RandomSeat
 import logging
 
 # -- code --
@@ -100,9 +101,9 @@ class THBattle2v2(Game):
     n_persons    = 4
     game_ehs     = _game_ehs
     game_actions = _game_actions
-    params_def   = {
-        'random_force': (True, False),
-    }
+    params_def   = [
+        RandomSeat(True),
+    ]
 
     def game_start(g, params):
         # game started, init state
@@ -112,7 +113,7 @@ class THBattle2v2(Game):
 
         g.ehclasses = ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
-        if params['random_force']:
+        if params[RandomSeat]:
             seed = get_seed_for(g.players)
             random.Random(seed).shuffle(g.players)
 

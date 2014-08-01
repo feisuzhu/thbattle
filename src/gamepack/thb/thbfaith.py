@@ -15,6 +15,7 @@ from .characters.baseclasses import mixin_character
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
+from .params import RandomSeat
 from utils import BatchList, Enum
 
 # -- code --
@@ -92,9 +93,9 @@ class THBattleFaith(Game):
     n_persons    = 6
     game_ehs     = _game_ehs
     game_actions = _game_actions
-    params_def   = {
-        'random_seat': (True, False),
-    }
+    params_def   = [
+        RandomSeat(True),
+    ]
 
     def game_start(g, params):
         # game started, init state
@@ -105,7 +106,7 @@ class THBattleFaith(Game):
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
         H, M = Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA
-        if params['random_seat']:
+        if params[RandomSeat]:
             # reseat
             seed = get_seed_for(g.players)
             random.Random(seed).shuffle(g.players)

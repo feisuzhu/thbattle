@@ -792,8 +792,8 @@ class GameHallScreen(Screen):
         VolumeTuner(parent=self, x=850, y=660)
         NoInviteButton(parent=self, x=654, y=660, width=80, height=35)
 
-        b = Button(parent=self,
-            x=750, y=660, width=80, height=35,
+        b = Button(
+            parent=self, x=750, y=660, width=80, height=35,
             color=Colors.orange, caption=u'卡牌查看器',
         )
 
@@ -897,28 +897,28 @@ class GameScreen(Screen):
 
     class RoomControlPanel(Control):
         class GameParamsPanel(Control):
-            def __init__(self, params_disp, parent=None):
+            def __init__(self, params_def, parent=None):
                 Control.__init__(self, parent=parent, **r2d((5, 34, 350, 120)))
                 self.labels = lbls = BatchList()
                 self.param_btns = btns = {}
 
-                for i, (k, d) in enumerate(params_disp.items()):
+                for i, p in enumerate(params_def):
                     lbls.append(Label(
-                        d['desc'], x=0, y=(2 - i) * 30 + 5, font_size=9,
+                        p.ui_meta.description, x=0, y=(2 - i) * 30 + 5, font_size=9,
                         color=Colors.get4i(Colors.blue.caption),
                         shadow=(2, 255, 255, 255, 255)
                     ))
 
                     og = OptionButtonGroup(
-                        parent=self, x=98, y=(2 - i) * 30, buttons=d['options'],
+                        parent=self, x=98, y=(2 - i) * 30, buttons=p.ui_meta.options,
                     )
 
                     @og.event
-                    def on_option(v, k=k):
+                    def on_option(v, k=str(p.__class__)):
                         Executive.set_game_param(k, v)
                         return True
 
-                    btns[k] = og
+                    btns[p.__class__] = og
 
             def draw(self):
                 glColor3f(1, 1, 1)
@@ -940,7 +940,7 @@ class GameScreen(Screen):
                 parent=self, caption=u'邀请', **r2d((360, 40, 100, 35))
             )
 
-            self.game_params_panel = self.GameParamsPanel(self.parent.game.ui_meta.params_disp, parent=self)
+            self.game_params_panel = self.GameParamsPanel(self.parent.game.params_def, parent=self)
 
             self.ready = False
 
@@ -999,11 +999,11 @@ class GameScreen(Screen):
             elif _type == 'set_game_param':
                 u, k, v = args[0]
                 u = Account.parse(u['account'])
-                disp = self.parent.game.ui_meta.params_disp[k]
-                lookup = {v: s for s, v in disp['options']}
+                param = {p.__class__: p for p in self.parent.game.params_def}[k]
+                lookup = {v: s for s, v in param.ui_meta.options}
                 self.parent.chat_box.append(
                     u'|B|R>> |c0000ffff%s|r已经将|c0000ffff%s|r设定为|c0000ffff%s|r，请重新准备。\n' % (
-                        u.username, disp['desc'], lookup[v],
+                        u.username, param.ui_meta.description, lookup[v],
                     )
                 )
 
