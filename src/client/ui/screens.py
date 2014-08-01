@@ -957,17 +957,11 @@ class GameScreen(Screen):
 
             @self.btn_getready.event
             def on_click():
+                self.btn_getready.state = Button.DISABLED
                 if self.ready:
                     Executive.cancel_ready()
-                    self.ready = False
-                    self.btn_getready.caption = u'准备'
-                    self.btn_getready.update()
                 else:
                     Executive.get_ready()
-                    # self.btn_getready.state = Button.DISABLED
-                    self.ready = True
-                    self.btn_getready.caption = u'取消准备'
-                    self.btn_getready.update()
 
             @self.btn_invite.event  # noqa
             def on_click():
@@ -975,6 +969,17 @@ class GameScreen(Screen):
 
         def draw(self):
             self.draw_subcontrols()
+
+        def update_ready_btn(self):
+            if self.ready:
+                self.ready = True
+                self.btn_getready.caption = u'取消准备'
+            else:
+                self.ready = False
+                self.btn_getready.caption = u'准备'
+
+            self.btn_getready.state = Button.NORMAL
+            self.btn_getready.update()
 
         def on_message(self, _type, *args):
             if _type == 'player_change':
@@ -990,8 +995,7 @@ class GameScreen(Screen):
                 )
             elif _type == 'game_joined':
                 self.ready = False
-                self.btn_getready.caption = u'准备'
-                self.btn_getready.state = Button.NORMAL
+                self.update_ready_btn()
 
                 for p in self.portraits:
                     p.account = None
@@ -1017,11 +1021,16 @@ class GameScreen(Screen):
 
             orig_players = players()
             full = True
+            my_uid = Executive.gamemgr.account.userid
 
             for i, p in enumerate(pl):
                 accdata = p['account']
                 acc = Account.parse(accdata) if accdata else None
                 if not accdata: full = False
+
+                if acc and acc.userid == my_uid:
+                    self.ready = p['state'] == 'ready'
+                    self.update_ready_btn()
 
                 port = self.portraits[i]
                 port.account = acc
