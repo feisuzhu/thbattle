@@ -135,6 +135,7 @@ class GameManager(Greenlet):
             self.game = gamemodes[data['type']]()
             self.game.gameid = int(data['id'])
             self.event_cb('game_joined', self.game)
+            self.event_cb('game_params', data['params'])
 
         @handler(('ingame',), 'hang')
         def fleed(self, data):
