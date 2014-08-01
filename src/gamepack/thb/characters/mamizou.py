@@ -6,7 +6,7 @@ from ..cards import Card, Skill, TreatAs, DummyCard
 from game.autoenv import EventHandler
 
 
-class Morphing(Skill, TreatAs):
+class Morphing(TreatAs, Skill):
     skill_category = ('character', 'active')
 
     @property

@@ -6,7 +6,7 @@ from ..actions import ActionStage, FatetellStage, GenericAction
 from ..cards import Skill, AttackCard, WearEquipmentAction, TreatAs, t_None
 
 
-class FlyingKnife(Skill, TreatAs):
+class FlyingKnife(TreatAs, Skill):
     skill_category = ('character', 'active')
     treat_as = AttackCard
     distance = 99999

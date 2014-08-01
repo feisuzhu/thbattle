@@ -4,7 +4,7 @@ from .baseclasses import Character, register_character
 from ..cards import Card, FrozenFrogCard, Skill, TreatAs
 
 
-class PerfectFreeze(Skill, TreatAs):
+class PerfectFreeze(TreatAs, Skill):
     treat_as = FrozenFrogCard
     skill_category = ('character', 'active')
 

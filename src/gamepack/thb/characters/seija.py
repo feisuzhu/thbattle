@@ -7,14 +7,14 @@ from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
 
 
-class InciteAttack(VirtualCard, TreatAs):
+class InciteAttack(TreatAs, VirtualCard):
     treat_as = AttackCard
 
     def check(self):
         return not self.associated_cards
 
 
-class InciteFailAttack(VirtualCard, TreatAs):
+class InciteFailAttack(TreatAs, VirtualCard):
     treat_as = AttackCard
     distance = 99999
 
@@ -86,7 +86,7 @@ class Reversal(Skill):
     target = t_None
 
 
-class ReversalDuel(VirtualCard, TreatAs):
+class ReversalDuel(TreatAs, VirtualCard):
     treat_as = DuelCard
 
     def check(self):

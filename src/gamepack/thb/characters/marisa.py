@@ -6,7 +6,7 @@ from ..cards import Skill, AttackCard, t_OtherOne, TreatAs, VirtualCard
 from ..inputlets import ChoosePeerCardInputlet
 
 
-class Daze(VirtualCard, TreatAs):
+class Daze(TreatAs, VirtualCard):
     treat_as = AttackCard
     distance = 99999
 

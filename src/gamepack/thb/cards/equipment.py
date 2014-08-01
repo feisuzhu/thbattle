@@ -53,7 +53,7 @@ class ShieldSkill(Skill):
     target = t_None
 
 
-class OpticalCloakSkill(ShieldSkill, TreatAs):  # just a tag
+class OpticalCloakSkill(TreatAs, ShieldSkill):  # just a tag
     treat_as = Card.card_classes['GrazeCard']
     skill_category = ('equip', 'passive')
 
@@ -286,7 +286,7 @@ class ElementalReactorHandler(EventHandler):
         return arg
 
 
-class GungnirSkill(WeaponSkill, TreatAs):
+class GungnirSkill(TreatAs, WeaponSkill):
     target = t_OtherOne
     skill_category = ('equip', 'active')
     range = 3
@@ -516,7 +516,7 @@ class UmbrellaHandler(EventHandler):
         return act
 
 
-class SaigyouBranchSkill(ShieldSkill, TreatAs):
+class SaigyouBranchSkill(TreatAs, ShieldSkill):
     treat_as = Card.card_classes['RejectCard']
     skill_category = ('equip', 'passive')
 
@@ -912,7 +912,7 @@ class IceWingHandler(EventHandler):
         return act
 
 
-class GrimoireSkill(WeaponSkill, TreatAs):
+class GrimoireSkill(TreatAs, WeaponSkill):
     skill_category = ('equip', 'active')
     range = 1
     from .base import Card

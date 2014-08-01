@@ -41,7 +41,7 @@ class TreasureHuntHandler(EventHandler):
         return act
 
 
-class Agile(Skill, TreatAs):
+class Agile(TreatAs, Skill):
     skill_category = ('character', 'passive')
     treat_as = GrazeCard
 

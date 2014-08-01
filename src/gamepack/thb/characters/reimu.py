@@ -17,7 +17,7 @@ class Flight(GreenUFOSkill):
         return 1
 
 
-class SpiritualAttack(Skill, TreatAs):
+class SpiritualAttack(TreatAs, Skill):
     skill_category = ('character', 'active')
     treat_as = RejectCard
 

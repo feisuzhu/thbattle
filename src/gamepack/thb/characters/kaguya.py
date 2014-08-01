@@ -76,7 +76,7 @@ class DilemmaHandler(EventHandler):
         return act
 
 
-class ImperishableNight(Skill, TreatAs):
+class ImperishableNight(TreatAs, Skill):
     treat_as = SealingArrayCard
     skill_category = ('character', 'active')
 

@@ -5,7 +5,7 @@ from ..actions import DrawCards, GenericAction, MaxLifeChange
 from ..cards import Card, Skill, TreatAs, SoberUp, AttackCard, IbukiGourdCard, WineCard, WeaponSkill, t_None
 
 
-class Drunkard(Skill, TreatAs):
+class Drunkard(TreatAs, Skill):
     skill_category = ('character', 'active')
     treat_as = WineCard
 

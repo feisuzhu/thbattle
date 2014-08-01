@@ -7,7 +7,7 @@ from ..cards import Card, Skill, TreatAs, DemolitionCard, DummyCard, Demolition
 from ..inputlets import ChooseOptionInputlet
 
 
-class Envy(Skill, TreatAs):
+class Envy(TreatAs, Skill):
     treat_as = DemolitionCard
     skill_category = ('character', 'active')
 

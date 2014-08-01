@@ -12,7 +12,7 @@ class LoongPunch(Skill):
     target = t_None
 
 
-class Taichi(Skill, TreatAs):
+class Taichi(TreatAs, Skill):
     skill_category = ('character', 'active', 'passive')
 
     @property

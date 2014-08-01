@@ -62,7 +62,7 @@ class SentryHandler(EventHandler):
         return True
 
 
-class SentryAttack(VirtualCard, TreatAs):
+class SentryAttack(TreatAs, VirtualCard):
     treat_as = AttackCard
 
 
