@@ -342,12 +342,15 @@ class Lobby(object):
         self.refresh_status()
 
     def clear_observers(self, user):
-        for ob in user.observers:
-            ob.write(['game_left', None])
+        obs = user.observers[:]
+        user.observers[:] = []
+
+        for ob in obs:
             ob.state = 'hang'
             ob.observing = None
 
-        user.observers[:] = []
+        for ob in obs:
+            ob.write(['game_left', None])
 
     def try_remove_empty_game(self, manager):
         if manager.gameid not in self.games:
@@ -893,9 +896,10 @@ class GameManager(object):
         assert observee in self.users
         assert user.state == 'hang'
 
+        log.info("observe game")
+
         observee.observers.append(user)
 
-        log.info("observe game")
         user.state = 'observing'
         user.current_game = self
         user.observing = observee
