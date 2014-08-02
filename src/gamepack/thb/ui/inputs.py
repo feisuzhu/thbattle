@@ -48,6 +48,7 @@ class UIActionConfirmButtons(ConfirmButtons):
 
     def __init__(self, buttons=DEFAULT_BUTTONS, delay=0.5, **k):
         self._valid = True
+        k.setdefault('min_width', 10)
         ConfirmButtons.__init__(self, buttons=buttons, delay=delay, **k)
 
     def update(self):
