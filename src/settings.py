@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 208'
+VERSION = 'THBATTLE V1.0b incr 209'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -150,6 +150,10 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新模式：2v2
+KOF模式加入“允许不平衡角色”选项
+信仰争夺战、异变模式现在可以选择随机/固定座位阵营
+勋章系统
 射命丸文技能调整
 新人物：射命丸文（画师：渚FUN）、SP八云紫（画师：Vivicat From 东方梦斗符）（开发：zhyk）
 修复了与八云紫移动伊吹瓢相关的bug
