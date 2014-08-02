@@ -707,7 +707,7 @@ class BalloonPrompt(object):
         else:
             if self.balloon_state == 'shown':
                 self.balloon_panel.delete()
-                del self.balloon_panel
+                self.balloon_panel = None
 
         self.balloon_state = 'hidden'
 
