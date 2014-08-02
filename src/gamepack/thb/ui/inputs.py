@@ -466,7 +466,7 @@ class UIChooseGirl(Panel, InputHandler):
         cols = 5 if n_choices > 16 else 4
         rows = max((n_choices - 1) / cols + 1, 4)
 
-        w, h = 20 + cols*160, 51 + rows*113
+        w, h = 20 + cols*160, 51 + rows*113 + 30
         Panel.__init__(self, width=w, height=h, zindex=5, *a, **k)
         p = self.parent
         pw, ph = p.width, p.height
@@ -490,8 +490,19 @@ class UIChooseGirl(Panel, InputHandler):
 
             selectors.append(gs)
 
+        self.label = Label(
+            text='', x=w//2, y=51+rows*113, font_size=12,
+            color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
+            anchor_x='center', anchor_y='bottom'
+        )
+
+    def draw(self):
+        Panel.draw(self)
+        self.label.draw()
+
     def process_user_input(self, ilet):
         self.inputlet = ilet
+        self.label.text = getattr(ilet.initiator.ui_meta, 'choose_girl_text', u'')
         self.begin_selection()
 
     def on_girl_chosen(self, choice):

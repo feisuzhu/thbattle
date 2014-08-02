@@ -23,7 +23,6 @@ class THBattle:
         u'\n'
         u'|R胜利条件|r：击坠所有对方阵营玩家。'
     )
-    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleUI as ui_class  # noqa
 
@@ -62,7 +61,6 @@ class THBattleCP3:
         u'\n'
         u'|R胜利条件|r：击坠所有其它阵营玩家。'
     )
-    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleCP3UI as ui_class  # noqa
 
@@ -104,16 +102,6 @@ class THBattleKOF:
         u'\n'
         u'|R胜利条件|r：当其中一方3名角色全部MISS，判对方胜出'
     )
-
-    params_disp = {
-        'no_imba': {
-            'desc': u'不平衡角色',
-            'options': [
-                (u'禁用', True),
-                (u'允许', False),
-            ],
-        },
-    }
 
     from gamepack.thb.ui.view import THBattleKOFUI
     ui_class = THBattleKOFUI
@@ -158,7 +146,6 @@ class THBattleIdentity:
         u'\n'
         u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
     )
-    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleIdentityUI
     ui_class = THBattleIdentityUI
@@ -234,7 +221,6 @@ __metaclass__ = gen_metafunc(thbraid)
 class THBattleRaid:
     name = u'符斗祭 - 异变模式'
     logo = gres.thblogo_raid
-    params_disp = {}
 
     from gamepack.thb.ui.view import THBattleRaidUI
     ui_class = THBattleRaidUI
@@ -457,15 +443,6 @@ class THBattleFaith:
         u'\n'
         u'|G胜负条件|r：当一方死亡角色数到达三名，或投降时，该方判负。'
     )
-    params_disp = {
-        'random_seat': {
-            'desc': u'随机位置阵营',
-            'options': [
-                (u'随机', True),
-                (u'固定', False),
-            ],
-        },
-    }
 
     from gamepack.thb.ui.view import THBattleFaithUI as ui_class  # noqa
 
@@ -516,15 +493,6 @@ class THBattle2v2:
         u'一名角色阵亡后，队友可以选择获得其所有牌或摸两张牌。\n'
         u'当一方所有的角色都阵亡时，游戏结束，另一方获胜。\n'
     )
-    params_disp = {
-        'random_force': {
-            'desc': u'随机阵营',
-            'options': [
-                (u'随机', True),
-                (u'固定', False),
-            ],
-        },
-    }
 
     from gamepack.thb.ui.view import THBattle2v2UI as ui_class  # noqa
 
@@ -542,6 +510,10 @@ class THBattle2v2:
     }
 
     del T
+
+
+class THBattle2v2Ban:
+    choose_girl_text = u'请选择不希望出现在选人画面中的人物'
 
 
 class HeritageHandler:

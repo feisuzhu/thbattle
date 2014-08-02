@@ -97,6 +97,10 @@ class Identity(PlayerIdentity):
         MORIYA = 2
 
 
+class THBattle2v2Ban(object):
+    pass
+
+
 class THBattle2v2(Game):
     n_persons    = 4
     game_ehs     = _game_ehs
@@ -162,7 +166,7 @@ class THBattle2v2(Game):
         mapping = {p: choices for p in g.players}
         with InputTransaction('ChooseGirl', g.players, mapping=mapping) as trans:
             for p in g.players:
-                c = user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+                c = user_input([p], ChooseGirlInputlet(THBattle2v2Ban(), mapping), timeout=30, trans=trans)
                 c = c or [_c for _c in choices if not _c.chosen][0]
                 c.chosen = p
                 banned.add(c.char_cls)
