@@ -21,7 +21,7 @@ resource = Resource(respath, [
     bgm('bgm_game'),
 
     [img_with_grayed('thblogo_' + i) for i in [
-        '3v3', '8id', '5id', 'kof', 'raid', 'faith', 'cp3'
+        '3v3', '8id', '5id', 'kof', 'raid', 'faith', 'cp3', '2v2',
     ]],
 
     img('win'), img('lose'),

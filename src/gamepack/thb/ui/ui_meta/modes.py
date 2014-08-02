@@ -475,7 +475,7 @@ __metaclass__ = gen_metafunc(thb2v2)
 
 class THBattle2v2:
     name = u'符斗祭 - 2v2'
-    logo = gres.kokoro_port
+    logo = gres.thblogo_2v2
     description = (
         u'|R游戏人数|r：4人\n'
         u'\n'
