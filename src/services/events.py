@@ -45,7 +45,7 @@ class Interconnect(Interconnect):
         if topic == 'current_users':
             # [[node, username, state], ...]
             current_users[node] = [
-                (node, i[1], i[2]) for i in message
+                (node, i['account'][2], i['state']) for i in message
             ]
             rst = []
             map(rst.__iadd__, current_users.values())
