@@ -1,31 +1,34 @@
 # -*- coding: utf-8 -*-
 
+# -- prioritized --
 import gevent
 from gevent import monkey
 monkey.patch_all()
 
-import random
-import re
-from gevent.pool import Pool
-from gevent.coros import RLock
-from gevent.queue import Queue
+# -- stdlib --
 from cStringIO import StringIO
-from deathbycaptcha import SocketClient as DBCClient
-from qqbot import QQBot
+from functools import partial
 import argparse
 import logging
-import redis
+import random
+import re
 import sys
-from functools import partial
-from contextlib import contextmanager
 
-from utils.interconnect import Interconnect as InterconnectBase
+# -- third party --
+from gevent.backdoor import BackdoorServer
+from gevent.coros import RLock
+from gevent.pool import Pool
+import redis
+
+# -- own --
+from deathbycaptcha import SocketClient as DBCClient
+from qqbot import QQBot
 from utils import check, CheckFailed
+from utils.interconnect import Interconnect
+from utils.misc import GenericPool
 
-# import httplib
-# httplib.HTTPConnection.debuglevel = 1
 
-
+# -- code --
 parser = argparse.ArgumentParser('aya')
 parser.add_argument('--qq', type=int)
 parser.add_argument('--password')
@@ -38,26 +41,15 @@ options = parser.parse_args()
 log = logging.getLogger('Aya')
 pool = Pool(5)
 
-Interconnect = None
+interconnect = None
+aya = None
 
 
-@contextmanager
-def member_client_pool():
-    global _cli_pool
+def clipool_factory():
+    from utils.rpc import RPCClient
+    return RPCClient((options.member_service, 7000), timeout=6)
 
-    if not _cli_pool:
-        from utils.rpc import RPCClient
-        _cli_pool = Queue(5)
-        for i in xrange(5):
-            _cli_pool.put(RPCClient((options.member_service, 7000), timeout=6))
-
-    try:
-        cli = _cli_pool.get()
-        yield cli
-    finally:
-        _cli_pool.put(cli)
-
-_cli_pool = None
+member_client_pool = GenericPool(clipool_factory, 10)
 
 
 class AyaDAO(object):
@@ -221,10 +213,10 @@ class Aya(QQBot):
                 return
 
             cli.add_credit(uid, 'credits', -10)
-            Interconnect.publish('speaker', [member['username'], content])
+            interconnect.publish('speaker', [member['username'], content])
 
 
-class AyaInterconnect(InterconnectBase):
+class AyaInterconnect(Interconnect):
     lock = None
 
     def on_message(self, node, topic, message):
@@ -259,15 +251,20 @@ class AyaInterconnect(InterconnectBase):
             self.lock = lock
 
         with lock:
-            return InterconnectBase.publish(self, topic, data)
+            return Interconnect.publish(self, topic, data)
 
 
-logging.basicConfig(level=logging.DEBUG)
+def main():
+    global interconnect, aya
+    logging.basicConfig(level=logging.DEBUG)
 
-from gevent.backdoor import BackdoorServer
-gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
+    gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
 
-aya = Aya(options.qq, options.password)
-# aya.wait_ready()
-Interconnect = AyaInterconnect.spawn('aya', options.redis_url)
-aya.join()
+    aya = Aya(options.qq, options.password)
+    # aya.wait_ready()
+    interconnect = AyaInterconnect.spawn('aya', options.redis_url)
+    aya.join()
+
+
+if __name__ == '__main__':
+    main()

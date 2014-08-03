@@ -24,6 +24,7 @@ entry_points = {
         'start_client = start_client:start_client',
         'services_events = services.events:main',
         'services_member = services.member:main',
+        'aya = aya.aya:main',
     ]
 }
 
