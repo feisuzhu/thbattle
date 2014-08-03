@@ -1162,7 +1162,7 @@ class GameScreen(Screen):
                 u'游戏ID：%d' % self.game.gameid,
                 parent=self
             )
-            from __main__ import do_crashreport
+            from crashreport import do_crashreport
             do_crashreport()
 
         elif _type == 'observe_request':

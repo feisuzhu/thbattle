@@ -153,7 +153,7 @@ def kickob(uid):
 @argtypes()
 @argdesc()
 def bugreport():
-    from __main__ import do_crashreport
+    from crashreport import do_crashreport
     log.info('Actively filed bug report')
     gevent.spawn(do_crashreport, active=True)
     return u'已经发送了bug报告'
