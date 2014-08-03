@@ -399,7 +399,7 @@ class Lobby(object):
         if not all_dropped:
             bonus = manager.get_bonus()
 
-            for u, (t, v) in bonus.items():
+            for u, t, v in bonus:
                 u.account.add_credit(t, v)
 
         for u in manager.users:
@@ -1079,16 +1079,16 @@ class GameManager(object):
         winners = g.winners
         bonus = g.n_persons * 5 / len(winners) if winners else 0
 
-        rst = defaultdict(list)
+        rst = []
 
         for p in g.players:
             u = p.client
-            rst[u].append(('games', 1))
+            rst.append((u, 'games', 1))
             if p.dropped and p.fleed:
-                rst[u].append(('drops', 1))
+                rst.append((u, 'drops', 1))
             else:
                 s = 5 + bonus if p in winners else 5
-                rst[u].append(('credits', int(s * rate)))
+                rst.append((u, 'credits', int(s * rate)))
 
         return rst
 
