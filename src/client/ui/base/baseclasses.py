@@ -278,7 +278,7 @@ class Overlay(Control):
             else:
                 if dispatch(c, lx - c.x, ly - c.y):  # TODO: not recursive
                     return True
-                if not c in cap_list:  # do not redispatch the same event
+                if c not in cap_list:  # do not redispatch the same event
                     return c.dispatch_event(_type, lx - c.x, ly - c.y, *args)
 
         # capturing events
@@ -286,7 +286,7 @@ class Overlay(Control):
             ax, ay = con.abs_coords()
             if con.dispatch_event(_type, x-ax, y-ay, *args):
                 return True
-        
+
         return dispatch(self, x, y)
 
     def on_mouse_press(self, x, y, button, modifier):
@@ -403,7 +403,7 @@ def init_gui():
     glClearColor(1, 1, 1, 1)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    #glEnable(GL_SCISSOR_TEST)
+    # glEnable(GL_SCISSOR_TEST)
     glPolygonMode(GL_FRONT, GL_FILL)
     glPolygonMode(GL_BACK, GL_LINE)
 

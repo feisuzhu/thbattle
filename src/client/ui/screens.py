@@ -294,7 +294,7 @@ class ServerSelectScreen(Screen):
             def on_mouse_release(self, x, y, button, modifiers):
                 if self.highlight and not self.disable_click:
                     self.disable_click = True
-                    self.on_message(Executive.connect_server(self.highlight['address'], ui_message))
+                    ui_message(Executive.connect_server(self.highlight['address'], ui_message))
 
             def enable_click(self):
                 self.disable_click = False
