@@ -107,7 +107,7 @@ class THBattleIdentity(Game):
     n_persons = 8
     character_categories = ('id', 'id8')
     game_actions = _game_actions
-    params_def = []
+    params_def = {}
     T = Identity.TYPE
     identities = [
         T.ATTACKER, T.ATTACKER, T.ATTACKER, T.ATTACKER,

@@ -25,7 +25,7 @@ from options import options
 from settings import VERSION
 from utils import BatchList, log_failure, instantiate
 from utils.interconnect import Interconnect
-from utils.misc import throttle, KeyedDict
+from utils.misc import throttle
 
 # -- code --
 log = logging.getLogger('Lobby')
@@ -703,7 +703,7 @@ class GameManager(object):
         self.banlist      = defaultdict(set)
         self.gameid       = gid
         self.gamecls      = gamecls
-        self.game_params  = KeyedDict({p.__class__: p.default_value for p in gamecls.params_def})
+        self.game_params  = {k: v[0] for k, v in gamecls.params_def.items()}
 
         g.gameid    = gid
         g.manager   = self
@@ -812,11 +812,12 @@ class GameManager(object):
             log.error('User not in this game!')
             return
 
-        if key not in self.game_params:
+        cls = self.gamecls
+        if key not in cls.params_def:
             log.error('Invalid option "%s"', key)
             return
 
-        if value not in self.game_params.get_key(key).options:
+        if value not in cls.params_def[key]:
             log.error('Invalid value "%s" for key "%s"', value, key)
             return
 

@@ -721,38 +721,3 @@ def throttle(seconds):
         return wrapper
 
     return decorate
-
-
-class KeyedDict(dict):
-    def get_key(self, key):
-        return self._keys[key]
-
-    def __new__(cls, *a, **k):
-        return dict.__new__(cls)
-
-    def __init__(self, *a, **k):
-        dict.__init__(self)
-        self._keys = {}
-        if a:
-            self.update(a[0])
-
-        if k:
-            self.update(k)
-
-    def update(self, other):
-        for k, v in other.iteritems():
-            self[k] = v
-
-    def __getitem__(self, key):
-        return dict.__getitem__(self, str(key))
-
-    def __setitem__(self, key, value):
-        self._keys.setdefault(str(key), key)
-        return dict.__setitem__(self, str(key), value)
-
-    def __delitem__(self, key):
-        del self._keys[str(key)]
-        return dict.__delitem__(self, str(key))
-
-    def __contains__(self, key):
-        return dict.__contains__(self, str(key))

@@ -15,7 +15,6 @@ from utils import BatchList, Enum, filter_out
 
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from .inputlets import ChooseGirlInputlet
-from .params import RandomSeat
 
 import logging
 log = logging.getLogger('THBattle')
@@ -66,9 +65,9 @@ class THBattle(Game):
     n_persons    = 6
     game_ehs     = _game_ehs
     game_actions = _game_actions
-    params_def   = [
-        RandomSeat(False),
-    ]
+    params_def   = {
+        'random_seat': (False, True),
+    }
     order_list   = (0, 5, 3, 4, 2, 1)
 
     def game_start(g, params):
@@ -79,11 +78,10 @@ class THBattle(Game):
 
         g.ehclasses = ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
-        if params[RandomSeat]:
-            # reseat
+        if params['random_seat']:
             seed = get_seed_for(g.players)
             random.Random(seed).shuffle(g.players)
-            g.emit_event('reseat', None)
+            g.emit_event('reseat')
 
         for i, p in enumerate(g.players):
             p.identity = Identity()
