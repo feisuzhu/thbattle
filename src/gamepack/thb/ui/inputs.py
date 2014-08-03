@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import itertools
 import logging
 import math
 import random
 
-log = logging.getLogger('THBattleUI_Input')
-
+# -- third party --
+from pyglet.text import Label
 import pyglet
 
-from game.autoenv import Game
-from gamepack.thb import actions as thbactions
-from gamepack.thb.cards import CardList, RejectHandler
-
-from pyglet.text import Label
-
+# -- own --
+from .game_controls import DropCardArea, CardSprite, CardSelectionPanel
+from client.ui.base.interp import AbstractInterp, getinterp, InterpDesc, LinearInterp, SineInterp
 from client.ui.controls import BigProgressBar
 from client.ui.controls import Button, ConfirmButtons, Control
 from client.ui.controls import ImageButton, ImageSelector
 from client.ui.controls import Panel
-
-from client.ui.base.interp import AbstractInterp, getinterp, InterpDesc, LinearInterp, SineInterp
-
 from client.ui.resource import resource as common_res
-from .game_controls import DropCardArea, CardSprite, CardSelectionPanel
+from game.autoenv import Game
+from gamepack.thb import actions as thbactions
+from gamepack.thb.cards import CardList, RejectHandler
+
+# -- code --
+log = logging.getLogger('THBattleUI_Input')
 
 
 class InputHandler(object):
@@ -48,7 +48,7 @@ class UIActionConfirmButtons(ConfirmButtons):
 
     def __init__(self, buttons=DEFAULT_BUTTONS, delay=0.5, **k):
         self._valid = True
-        k.setdefault('min_width', 10)
+        k.setdefault('min_width', 80 if len(buttons) <= 2 else 20)
         ConfirmButtons.__init__(self, buttons=buttons, delay=delay, **k)
 
     def update(self):
