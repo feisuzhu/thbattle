@@ -57,7 +57,7 @@ class DeathHandler(EventHandler):
             c = c or [_c for _c in pool if not _c.chosen][0]
             c.chosen = tgt
             pool.remove(c)
-            trans.notify('girl_chosen', c)
+            trans.notify('girl_chosen', (tgt, c))
 
         tgt = g.switch_character(tgt, c)
         g.process_action(DrawCards(tgt, 4))

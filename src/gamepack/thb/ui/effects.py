@@ -460,9 +460,6 @@ def user_input_start_effects(self, arg):
     if trans.name == 'ActionStageAction':
         self.dropcard_area.fade()
 
-    if trans.name == 'ChooseGirl':
-        self.prompt(u'|R%s|r正在选择……' % ilet.actor.account.username)
-
     p = ilet.actor
     port = self.player2portrait(p)
     if p is not cturn:

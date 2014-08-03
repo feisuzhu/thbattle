@@ -167,7 +167,7 @@ class THBattleKOF(Game):
                 c.chosen = p
                 p.choices.append(c)
 
-                trans.notify('girl_chosen', c)
+                trans.notify('girl_chosen', (p, c))
 
         # reveal akaris for themselves
         for p, c in akaris:

@@ -512,10 +512,6 @@ class THBattle2v2:
     del T
 
 
-class THBattle2v2Ban:
-    choose_girl_text = u'请选择不希望出现在选人画面中的人物'
-
-
 class HeritageHandler:
     # choose_option
     choose_option_buttons = ((u'获取队友的所有牌', 'inherit'), (u'摸两张牌', 'draw'))

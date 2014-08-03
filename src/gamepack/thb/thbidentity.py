@@ -162,7 +162,7 @@ class THBattleIdentity(Game):
             c = c or boss.choices[-1]
             c.chosen = boss
             g.players.reveal(c)
-            trans.notify('girl_chosen', c)
+            trans.notify('girl_chosen', (boss, c))
 
             if c.char_cls is Akari:
                 c = CharChoice(chars.pop())
@@ -198,7 +198,7 @@ class THBattleIdentity(Game):
         mapping = {p: p.choices for p in pl}  # CAUTION, DICT HERE
         with InputTransaction('ChooseGirl', pl, mapping=mapping) as trans:
             ilet = ChooseGirlInputlet(g, mapping)
-            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', rst) or rst)
+            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
             result = user_input(pl, ilet, type='all', trans=trans)
 
         # not enough chars for random, reuse unselected

@@ -455,10 +455,11 @@ class GirlSelector(ImageSelector):
         self.balloon.set_balloon(meta.description)
 
 
-class UIChooseGirl(Panel, InputHandler):
+class UIBaseChooseGirl(Panel, InputHandler):
     def __init__(self, trans, *a, **k):
         self.trans = trans
         self.pbar = None
+        self.selecting = False
 
         g = Game.getgame()
         choices = trans.mapping[g.me]
@@ -492,7 +493,7 @@ class UIChooseGirl(Panel, InputHandler):
             selectors.append(gs)
 
         self.label = Label(
-            text='', x=w//2, y=51+rows*113, font_size=12,
+            text='等待其他玩家操作', x=w//2, y=51+rows*113, font_size=12,
             color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom'
         )
@@ -501,12 +502,8 @@ class UIChooseGirl(Panel, InputHandler):
         Panel.draw(self)
         self.label.draw()
 
-    def process_user_input(self, ilet):
-        self.inputlet = ilet
-        self.label.text = getattr(ilet.initiator.ui_meta, 'choose_girl_text', u'')
-        self.begin_selection()
-
-    def on_girl_chosen(self, choice):
+    def on_girl_chosen(self, arg):
+        actor, choice = arg
         for c in self.selectors:
             if c.choice is choice:
                 c.disable()
@@ -515,6 +512,7 @@ class UIChooseGirl(Panel, InputHandler):
         self.parent.update_portraits()
 
     def begin_selection(self):
+        self.selecting = True
         self.pbar and self.pbar.delete()
         self.pbar = BigProgressBar(
             parent=self, x=(self.width-250)//2, y=9, width=250,
@@ -533,7 +531,67 @@ class UIChooseGirl(Panel, InputHandler):
 
     def end_selection(self):
         self.inputlet = None
+        self.selecting = False
         self.pbar.delete()
+
+
+class UIChooseGirl(UIBaseChooseGirl):
+
+    def process_user_input_start(self, ilet):
+        self.inputlet = ilet
+        self.label.color = (255, 255, 160, 255)
+        self.label.text = u'等待%s选择角色' % (ilet.actor.account.username)
+        self.parent.prompt(u'|R%s|r正在选择……' % ilet.actor.account.username)
+
+    def process_user_input(self, ilet):
+        assert ilet.actor is Game.getgame().me
+        self.inputlet = ilet
+        self.label.text = u'请你选择一名角色'
+        self.label.color = (160, 251, 255, 255)
+        self.begin_selection()
+
+    def process_user_input_finish(self, ilet, rst):
+        if not self.selecting:
+            self.label.text = u'等待其他玩家操作'
+            self.label.color = (255, 255, 160, 255)
+            self.inputlet = None
+
+    def on_girl_chosen(self, arg):
+        UIBaseChooseGirl.on_girl_chosen(self, arg)
+        actor, choice = arg
+        choice.char_cls and self.parent.prompt(u'|R%s|r选择了|G【%s】|r' % (
+            actor.account.username,
+            choice.char_cls.ui_meta.char_name,
+        ))
+
+
+class UIBanGirl(UIBaseChooseGirl):
+
+    def process_user_input_start(self, ilet):
+        self.inputlet = ilet
+        self.label.color = (255, 255, 160, 255)
+        self.label.text = u'等待%s选择不能出场的角色' % (ilet.actor.account.username)
+        self.parent.prompt(u'|R%s|r正在BAN……' % ilet.actor.account.username)
+
+    def process_user_input(self, ilet):
+        assert ilet.actor is Game.getgame().me
+        self.inputlet = ilet
+        self.label.text = u'请你选择不能出场的角色'
+        self.label.color = (160, 251, 255, 255)
+        self.begin_selection()
+
+    def process_user_input_finish(self, ilet, rst):
+        self.label.text = u'等待其他玩家操作'
+        self.label.color = (255, 255, 160, 255)
+        self.inputlet = None
+
+    def on_girl_chosen(self, arg):
+        UIBaseChooseGirl.on_girl_chosen(self, arg)
+        actor, choice = arg
+        choice.char_cls and self.parent.prompt(u'|R%s|rBAN掉了|G【%s】|r' % (
+            actor.account.username,
+            choice.char_cls.ui_meta.char_name,
+        ))
 
 
 class UIChoosePeerCard(CardSelectionPanel, InputHandler):
@@ -691,7 +749,7 @@ class UIHarvestChoose(Panel, InputHandler):
         h = 20 + 125 + 20 + 125 + 20 + 20
 
         self.lbl = Label(
-            text=u"等待玩家的其他操作", x=w//2, y=300, font_size=12,
+            text=u"等待其他玩家操作", x=w//2, y=300, font_size=12,
             color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
             anchor_x='center', anchor_y='bottom'
         )
@@ -733,7 +791,7 @@ class UIHarvestChoose(Panel, InputHandler):
         self.lbl.color = (160, 251, 255, 255)
 
     def process_user_input_finish(self, ilet, rst):
-        self.lbl.text = u'等待玩家的其他操作'
+        self.lbl.text = u'等待其他玩家操作'
         self.lbl.color = (255, 255, 160, 255)
         self.inputlet = None
 
@@ -1029,20 +1087,22 @@ class UIKokoroHomeMask(Panel, InputHandler):
 
 mapping = {
     # InputTransaction name -> Handler class
-    'Action': UIDoPassiveAction,
-    'Pindian': UIDoPassiveAction,
-    'ActionStageAction': UIDoActionStage,
-    'ChooseGirl': UIChooseGirl,
-    'ChoosePeerCard': UIChoosePeerCard,
-    'ChooseOption': UIChooseOption,
+
+    'Action':               UIDoPassiveAction,
+    'Pindian':              UIDoPassiveAction,
+    'ActionStageAction':    UIDoActionStage,
+    'ChooseGirl':           UIChooseGirl,
+    'BanGirl':              UIBanGirl,
+    'ChoosePeerCard':       UIChoosePeerCard,
+    'ChooseOption':         UIChooseOption,
     'ChooseIndividualCard': UIChooseIndividualCard,
 
-    'SortCharacter': UICharacterSorter,
+    'SortCharacter':        UICharacterSorter,
 
-    'HarvestChoose': UIHarvestChoose,
+    'HarvestChoose':        UIHarvestChoose,
 
-    'Prophet': UIRanProphet,
-    'HopeMask': UIKokoroHomeMask,
+    'Prophet':              UIRanProphet,
+    'HopeMask':             UIKokoroHomeMask,
 }
 
 

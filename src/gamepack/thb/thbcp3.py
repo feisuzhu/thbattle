@@ -151,7 +151,7 @@ class THBattleCP3(Game):
                 else:
                     g.set_character(p, c.char_cls)
 
-                trans.notify('girl_chosen', c)
+                trans.notify('girl_chosen', (p, c))
 
         # reveal akaris
         if akaris:

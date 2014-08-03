@@ -459,7 +459,7 @@ class THBattleRaid(Game):
             c = user_input([mutant], ChooseGirlInputlet(g, mapping), timeout=5, trans=trans)
             c = c or choices[0]
             c.chosen = mutant
-            trans.notify('girl_chosen', c)
+            trans.notify('girl_chosen', (mutant, c))
 
             # mix it in advance
             # so the others could see it
@@ -493,7 +493,7 @@ class THBattleRaid(Game):
         mapping = {p: p.choices for p in g.attackers}
         with InputTransaction('ChooseGirl', g.attackers, mapping=mapping) as trans:
             ilet = ChooseGirlInputlet(g, mapping)
-            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', rst) or rst)
+            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
             result = user_input(g.attackers, ilet, 30, 'all', trans)
 
         # mix char class with player -->
