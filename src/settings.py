@@ -29,7 +29,7 @@ else:
 if sys.platform.startswith('linux'):
     UPDATE_URL += 'src/'
 
-VERSION = 'THBATTLE V1.0b incr 209'
+VERSION = 'THBATTLE V1.0b incr 210'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -57,12 +57,12 @@ UPDATE_IGNORES = re.compile(r'''^(
 
 
 class ServerNames:
-    forum = u'论坛'
+    forum     = u'论坛'
     localhost = u'本机'
-    lake = u'雾之湖'
-    forest = u'魔法之森'
-    hakurei = u'博丽神社'
-    aya = u'文文专访'
+    lake      = u'雾之湖'
+    forest    = u'魔法之森'
+    hakurei   = u'博丽神社'
+    aya       = u'文文专访'
 
 
 def _get_box(vlist):
