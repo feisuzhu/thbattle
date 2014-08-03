@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict
+
 from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith, thbcp3, thb2v2
 from gamepack.thb.ui.resource import resource as gres
 
@@ -534,15 +536,22 @@ class THBattle2v2:
         u'当一方所有的角色都阵亡时，游戏结束，另一方获胜。\n'
     )
 
-    params_disp = {
-        'random_force': {
+    params_disp = OrderedDict((
+        ('random_force', {
             'desc': u'随机阵营',
             'options': [
                 (u'随机', True),
                 (u'固定', False),
             ],
-        },
-    }
+        }),
+        ('draw_extra_card', {
+            'desc': u'摸牌数量',
+            'options': [
+                (u'2张', False),
+                (u'3张', True),
+            ],
+        }),
+    ))
 
     from gamepack.thb.ui.view import THBattle2v2UI as ui_class  # noqa
 

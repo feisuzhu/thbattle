@@ -8,7 +8,7 @@ from collections import defaultdict
 # -- third party --
 
 # -- own --
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, DeadDropCards
+from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, DeadDropCards, DrawCardStage
 from .actions import action_eventhandlers, migrate_cards, MigrateCardsTransaction
 from .characters.baseclasses import mixin_character
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
@@ -89,6 +89,22 @@ class HeritageHandler(EventHandler):
         return act
 
 
+@game_eh
+class ExtraCardHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type != 'action_before':
+            return act
+
+        if not isinstance(act, DrawCardStage):
+            return act
+
+        g = Game.getgame()
+        if g.draw_extra_card:
+            act.amount += 1
+
+        return act
+
+
 class Identity(PlayerIdentity):
     class TYPE(Enum):
         HIDDEN = 0
@@ -101,7 +117,8 @@ class THBattle2v2(Game):
     game_ehs     = _game_ehs
     game_actions = _game_actions
     params_def   = {
-        'random_force': (True, False),
+        'random_force':    (True, False),
+        'draw_extra_card': (False, True),
     }
 
     def game_start(g, params):
@@ -115,6 +132,8 @@ class THBattle2v2(Game):
         if params['random_force']:
             seed = get_seed_for(g.players)
             random.Random(seed).shuffle(g.players)
+
+        g.draw_extra_card = params['draw_extra_card']
 
         f1 = BatchList()
         f2 = BatchList()
