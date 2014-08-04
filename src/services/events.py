@@ -8,7 +8,7 @@ monkey.patch_all()
 import sys
 import argparse
 from urllib import unquote
-from collections import deque, defaultdict
+from collections import deque
 import time
 import logging
 import zlib
@@ -34,7 +34,6 @@ options = None
 current_users = {}
 event_waiters = set()
 events_history = deque([[None, 0]] * 1000)
-gameid_last_see = defaultdict(int)
 interconnect = None
 
 logging.basicConfig()
@@ -160,10 +159,6 @@ def crashreport():
     active = int(request.forms.get('active', 0))
     userid = int(request.forms.get('userid', 0))
     username = unicode(request.forms.get('username', 'unknown'), 'utf-8')
-
-    if time.time() - gameid_last_see[gameid] < 300 and not active: return ''
-    if gameid:
-        gameid_last_see[gameid] = time.time()
 
     f = request.files.get('file')
     if not f: return ''

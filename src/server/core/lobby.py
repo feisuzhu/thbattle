@@ -766,6 +766,7 @@ class GameManager(object):
         data.append('# Time: start = %d, end = %d, elapsed = %d' % (s, e, e - s))
 
         data.append(self.gamecls.__name__)
+        data.append(self.game_params)
         data.append(str(g.rndseed))
         data.append(json.dumps(self.usergdhistory))
         data.append(json.dumps(self.gdhistory))
