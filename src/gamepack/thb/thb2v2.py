@@ -74,7 +74,6 @@ class HeritageHandler(EventHandler):
 
         if user_input([other], ChooseOptionInputlet(self, ('inherit', 'draw'))) == 'inherit':
             lists = [tgt.cards, tgt.showncards, tgt.equips]
-            lists.extend(tgt.showncardlists)
             with MigrateCardsTransaction() as trans:
                 for cl in lists:
                     if not cl: continue
@@ -82,7 +81,6 @@ class HeritageHandler(EventHandler):
                     other.reveal(cl)
                     migrate_cards(cl, other.cards, unwrap=True, trans=trans)
 
-            act.cancelled = True
         else:
             g.process_action(DrawCards(other, 2))
 
