@@ -81,7 +81,7 @@ class THBattle(Game):
         if params['random_seat']:
             seed = get_seed_for(g.players)
             random.Random(seed).shuffle(g.players)
-            g.emit_event('reseat')
+            g.emit_event('reseat', None)
 
         for i, p in enumerate(g.players):
             p.identity = Identity()

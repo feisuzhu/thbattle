@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import random
 import logging
 
@@ -430,7 +431,7 @@ class THBattleRaid(Game):
         if params['random_seat']:
             seed = get_seed_for(g.players)
             random.Random(seed).shuffle(g.players)
-            g.emit_event('reseat')
+            g.emit_event('reseat', None)
 
         # reveal identities
         mutant = g.mutant = g.players[0]
