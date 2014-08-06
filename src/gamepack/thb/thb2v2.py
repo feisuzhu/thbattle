@@ -149,16 +149,15 @@ class THBattle2v2(Game):
             g.process_action(RevealIdentity(p, pl))
 
         # ----- roll ------
-        roll = g.random.choice((
-            (0, 2, 3, 1), (0, 3, 2, 1),
-            (1, 2, 3, 0), (1, 3, 2, 0),
-            (2, 0, 1, 3), (2, 1, 0, 3),
-            (3, 0, 1, 2), (3, 1, 0, 2),
-        ))
-        pl = g.players
+        roll = range(len(pl))
+        g.random.shuffle(roll)
         roll = sync_primitive(roll, pl)
         roll = [pl[i] for i in roll]
         g.emit_event('game_roll', roll)
+        for i in range(1, 3):
+            if roll[i].force == roll[0].force:
+                roll.append(roll.pop(i))
+
         g.players[:] = roll
         g.emit_event('game_roll_result', g.players[0])
         g.emit_event('reseat', None)
