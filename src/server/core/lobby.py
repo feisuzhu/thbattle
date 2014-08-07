@@ -416,6 +416,7 @@ class Lobby(object):
         for u in manager.users:
             self.join_game(u, new_mgr.gameid)
 
+        new_mgr.update_game_param(manager.game_params)
         self.refresh_status()
 
     def exit_game(self, user, is_drop=False):
@@ -839,6 +840,11 @@ class GameManager(object):
             u.write(['set_game_param', [user, key, value]])
             u.write(['game_params', self.game_params])
 
+        self.notify_playerchange()
+
+    def update_game_param(self, params):
+        self.game_params.update(params)
+        self.users.write(['game_params', self.game_params])
         self.notify_playerchange()
 
     def change_location(self, user, loc):
