@@ -20,11 +20,12 @@ install_requires = [
 
 entry_points = {
     'console_scripts': [
-        'start_server = start_server:start_server',
-        'start_client = start_client:start_client',
+        'aya = aya.aya:main',
+        'forum_noti = aya.forum_noti:forum_noti',
         'services_events = services.events:main',
         'services_member = services.member:main',
-        'aya = aya.aya:main',
+        'start_client = start_client:start_client',
+        'start_server = start_server:start_server',
     ]
 }
 

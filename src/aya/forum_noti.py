@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+# -- prioritized --
+import sys
+reload(sys)
+sys.setdefaultencoding(sys.getfilesystemencoding())
+
 # -- stdlib --
 import HTMLParser
 import argparse
@@ -96,7 +101,4 @@ def forum_noti():
 
 
 if __name__ == '__main__':
-    import sys
-    reload(sys)
-    sys.setdefaultencoding(sys.getfilesystemencoding())
     forum_noti()
