@@ -676,7 +676,12 @@ class Lobby(object):
         for p in clients:
             gevent.spawn(ping, p)
 
-last_gid = int(open(options.gidfile, 'r').read()) if options.gidfile else 0
+
+if options.gidfile and os.path.exists(options.gidfile):
+    last_gid = int(open(options.gidfile, 'r').read())
+else:
+    last_gid = 0
+
 lobby = Lobby(last_gid)
 
 
