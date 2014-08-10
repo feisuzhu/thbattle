@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from ..cards import Card, FrozenFrogCard, Skill, TreatAs
 
 
@@ -32,7 +32,7 @@ class PerfectFreezeHandler(EventHandler):
         return arg
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Cirno(Character):
     skills = [PerfectFreeze]
     eventhandlers_required = [PerfectFreezeHandler]
