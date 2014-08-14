@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from collections import deque, defaultdict
+from collections import deque
 from contextlib import contextmanager
 from functools import wraps
 
@@ -597,24 +597,21 @@ def openurl(url):
         os.system("xdg-open '%s'" % url)
 
 
-class Observable(object):
-    def _get_ob_dict(self):
-        obdict = getattr(self, '_ob_dict', None)
+class ObservableEvent(object):
+    def __init__(self):
+        self.listeners = set()
 
-        if obdict is None:
-            obdict = self._ob_dict = defaultdict(set)
+    def __iadd__(self, ob):
+        self.listeners.add(ob)
+        return self
 
-        return obdict
+    def __isub__(self, ob):
+        self.listeners.discard(ob)
+        return self
 
-    def add_observer(self, event, callable):
-        self._get_ob_dict()[event].add(callable)
-
-    def remove_observer(self, event, callable):
-        self._get_ob_dict()[event].discard(callable)
-
-    def notify(self, event, *a, **k):
-        for cb in self._get_ob_dict()[event]:
-            cb(*a, **k)
+    def notify(self, *a, **k):
+        for ob in self.listeners:
+            ob(*a, **k)
 
 
 class GenericPool(object):

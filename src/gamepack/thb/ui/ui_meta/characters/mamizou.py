@@ -27,7 +27,7 @@ class MorphingCardSelectionUI(CardSelectionPanel):
     def __init__(self, parent, *a, **k):
         CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)
         self.view = view = parent
-        view.add_observer('selection_change', self.on_selection_change)
+        view.selection_change += self.on_selection_change
         self.panel = None
         self.on_selection_change()
 
@@ -87,13 +87,13 @@ class MorphingCardSelectionUI(CardSelectionPanel):
                 except:
                     pass
 
-            self.view.notify('selection_change')
+            self.view.selection_change.notify()
 
     def delete(self):
         if self.panel:
             self.panel.delete()
 
-        self.view.remove_observer('selection_change', self.on_selection_change)
+        self.view.selection_change -= self.on_selection_change
         super(MorphingCardSelectionUI, self).delete()
 
 

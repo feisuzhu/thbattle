@@ -100,13 +100,13 @@ class UISelectTarget(Control, InputHandler):
             anchor_x='center', anchor_y='bottom',
         )
 
-        view.add_observer('selection_change', self._on_selection_change)
+        view.selection_change += self._on_selection_change
 
         g = Game.getgame()
         port = view.player2portrait(g.me)
         port.equipcard_area.clear_selection()
 
-        # view.notify('selection_change') # the clear_selection thing will trigger this
+        # view.notify.selection_change.notify() # the clear_selection thing will trigger this
 
         @self.confirmbtn.event
         def on_confirm(is_ok, force=False):
@@ -163,7 +163,7 @@ class UISelectTarget(Control, InputHandler):
         lbl and lbl.draw()
 
     def delete(self):
-        self.view.remove_observer('selection_change', self._on_selection_change)
+        self.view.selection_change -= self._on_selection_change
         super(UISelectTarget, self).delete()
 
 
@@ -199,7 +199,7 @@ class UIDoPassiveAction(UISelectTarget):
             disables = [p for p in g.players if p not in candidates]
             parent.begin_select_player(disables)
 
-        self.view.notify('selection_change')
+        self.view.selection_change.notify()
 
     def on_selection_change(self):
         try:

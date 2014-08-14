@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from utils.misc import Observable
+from utils.misc import ObservableEvent
 from utils.crypto import simple_encrypt
 import atexit
 import logging
@@ -10,12 +10,16 @@ import simplejson as json
 log = logging.getLogger('user_settings')
 
 
-class UserSettings(dict, Observable):
-    __slots__ = ('_ob_dict', )
+class UserSettings(dict):
+    __slots__ = ('setting_change', )
+
+    def __init__(self, *a, **k):
+        dict.__init__(self, *a, **k)
+        dict.__setattr__(self, 'setting_change', ObservableEvent())
 
     def __setitem__(self, k, v):
         dict.__setitem__(self, k, v)
-        self.notify('setting_change', k, v)
+        self.setting_change.notify(k, v)
 
     def __getattr__(self, name):
         try:
@@ -24,7 +28,7 @@ class UserSettings(dict, Observable):
             raise AttributeError
 
     def __setattr__(self, name, v):
-        if name.startswith('_'):
+        if name == 'setting_change':
             dict.__setattr__(self, name, v)
             return
 

@@ -23,7 +23,7 @@ from client.ui.soundmgr import SoundManager
 from game.autoenv import Game, EventHandler
 from gamepack.thb.ui.resource import resource as gres
 from utils import rect_to_dict as r2d
-from utils.misc import Observable
+from utils.misc import ObservableEvent
 
 # -- code --
 log = logging.getLogger('THBattleUI')
@@ -138,7 +138,7 @@ class GameIntroIcon(Control):
         gres.tag_gameintro.blit(0, 0)
 
 
-class THBattleUI(Control, Observable):
+class THBattleUI(Control):
     portrait_location = [
         (60,  300, Colors.blue),
         (250, 450, Colors.orange),
@@ -158,6 +158,8 @@ class THBattleUI(Control, Observable):
     ]
 
     def __init__(self, game, *a, **k):
+        self.selection_change = ObservableEvent()
+
         self.game = game
         game.event_observer = UIEventHook
 
@@ -431,7 +433,8 @@ class THBattleUI(Control, Observable):
             else:
                 c.selected = True
                 psel.append(char)
-            self.notify('selection_change')
+
+            self.selection_change.notify()
         return True
 
     def get_game_screen(self):

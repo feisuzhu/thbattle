@@ -203,7 +203,7 @@ class HandCardArea(Control):
     def toggle(self, c, t):
         s = c.hca_selected = not c.hca_selected
         c.y = SineInterp(c.y, 20 if s else 0, t)
-        self.view.notify('selection_change')
+        self.view.selection_change.notify()
 
     def on_mouse_click(self, x, y, button, modifier):
         c = self.control_frompoint1(x, y)
@@ -379,7 +379,7 @@ class SkillSelectionBox(Control):
 
         def on_click(self):
             self.selected = not self.selected
-            self.view.notify('selection_change')
+            self.view.selection_change.notify()
 
         def delete(self):
             self.params_ui and self.params_ui.delete()
@@ -414,7 +414,7 @@ class SkillSelectionBox(Control):
         for c in self.buttons:
             c.selected = False
 
-        self.parent.notify('selection_change')
+        self.parent.selection_change.notify()
 
     def draw(self):
         self.draw_subcontrols()
@@ -513,13 +513,13 @@ class EquipCardArea(Control):
         c = self.control_frompoint1(x, y)
         if c:
             c.selected = not c.selected
-            self.view and self.view.notify('selection_change')
+            self.view and self.view.selection_change.notify()
 
     def clear_selection(self):
         for c in self.control_list:
             c.selected = False
 
-        self.view and self.view.notify('selection_change')
+        self.view and self.view.selection_change.notify()
 
     def hit_test(self, x, y):
         return self.control_frompoint1(x, y)

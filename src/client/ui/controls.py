@@ -2069,7 +2069,7 @@ class NoInviteButton(OptionButton):
             (u'邀请已开启', Colors.orange, False),
         )
         OptionButton.__init__(self, conf=conf, value=UserSettings.no_invite, *a, **k)
-        UserSettings.add_observer('setting_change', self)
+        UserSettings.setting_change += self
 
     def __call__(self, k, v):
         if k == 'no_invite':
@@ -2081,7 +2081,7 @@ class NoInviteButton(OptionButton):
 
     def delete(self):
         from user_settings import UserSettings
-        UserSettings.remove_observer('setting_change', self)
+        UserSettings.setting_change -= self
         OptionButton.delete(self)
 
 
