@@ -199,6 +199,7 @@ class Control(pyglet.event.EventDispatcher):
 class Overlay(Control):
     '''
     Represents current screen
+    FIXME: Should be called Scene
     '''
     class DummyOverlay(object):
         def dispatch_event(*args):

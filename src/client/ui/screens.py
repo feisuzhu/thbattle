@@ -84,6 +84,8 @@ class ChatBoxFrame(Frame):
         self.last_input = u''
         self.box.text = u'|R输入/?可以查看可用命令|r\n'
 
+        self.set_capture('on_text')
+
         @self.inputbox.event
         def on_text_motion(motion):
             hist = self.history
@@ -151,6 +153,11 @@ class ChatBoxFrame(Frame):
     def set_color(self, color):
         Frame.set_color(self, color)
         self.inputbox.color = color
+
+    def on_text(self, text):
+        if text == '\r' and self.overlay.current_focus is not self.inputbox:
+            self.inputbox.text = u''
+            self.inputbox.set_focus()
 
 
 class Screen(Overlay):
