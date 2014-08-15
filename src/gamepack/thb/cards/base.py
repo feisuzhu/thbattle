@@ -323,7 +323,7 @@ class TreatAs(object):
 
     @property
     def category(self):
-        return ('skill', ) + self.treat_as.category
+        return ('skill', 'treat_as') + self.treat_as.category
 
     def check(self):
         return False
@@ -332,12 +332,8 @@ class TreatAs(object):
         if issubclass(self.treat_as, cls): return True
         return isinstance(self, cls)
 
-    def __getattribute__(self, name):
-        try:
-            return object.__getattribute__(self, name)
-        except AttributeError:
-            tr = object.__getattribute__(self, 'treat_as')
-            return getattr(tr, name)
+    def __getattr__(self, name):
+        return getattr(self.treat_as, name)
 
 
 # card targets:

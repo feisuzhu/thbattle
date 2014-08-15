@@ -306,6 +306,7 @@ class ScarletRhapsody(ForEach):
 class ScarletRhapsodySkill(WeaponSkill):
     range = 4
     associated_action = ScarletRhapsody
+    category = ('skill', 'treat_as', 'basic')
     skill_category = ('equip', 'active')
     target = t_OtherLessEqThanN(3)
     usage = 'launch'
