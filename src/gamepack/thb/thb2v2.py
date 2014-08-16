@@ -14,7 +14,7 @@ from .characters.baseclasses import mixin_character
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
-from utils.misc import Enum, BatchList
+from utils.misc import Enum, BatchList, filter_out
 import logging
 
 # -- code --
@@ -170,7 +170,12 @@ class THBattle2v2(Game):
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)
 
-        chars = chars[:20]
+        # ANCHOR(test)
+        testing = []
+        testing = filter_out(chars, lambda c: c.__name__ in testing)
+        chars.extend(testing)
+
+        chars = chars[-20:]
         choices = [CharChoice(cls) for cls in chars]
 
         banned = set()
