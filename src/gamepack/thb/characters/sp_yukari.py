@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, PlayerDeath, DropCardStage, random_choose_card
+from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, PlayerDeath, random_choose_card
 from ..inputlets import ChoosePeerCardInputlet
 from ..cards import Skill, t_One, CardList
 
@@ -72,7 +72,7 @@ class SpiritingAwayHandler(EventHandler):
                     g.process_action(DropCards(p, cl))
                     p.showncardlists.remove(cl)
 
-        elif evt_type == 'action_after' and isinstance(arg, DropCardStage):
+        elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
             if not arg.target.has_skill(SpiritingAway):
                 return arg
 
