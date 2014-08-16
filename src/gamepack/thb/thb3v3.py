@@ -93,6 +93,10 @@ class THBattle(Game):
             p.force = f
             forces[f].append(p)
 
+        pl = g.players
+        for p in pl:
+            g.process_action(RevealIdentity(p, pl))
+
         # choose girls -->
         from . import characters
         chars = characters.get_characters('3v3')
@@ -169,10 +173,6 @@ class THBattle(Game):
         # -------
 
         first = g.players[first_index]
-
-        pl = g.players
-        for p in pl:
-            g.process_action(RevealIdentity(p, pl))
 
         g.emit_event('game_begin', g)
 
