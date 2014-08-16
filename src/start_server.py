@@ -42,7 +42,6 @@ def start_server():
     parser.add_argument('--interconnect', action='store_true', default=False)
     parser.add_argument('--redis-url', default='redis://localhost:6379')
     parser.add_argument('--member-service', default='localhost:7000')
-    parser.add_argument('--userdata-dburl', default='sqlite:////dev/shm/thb.userdata.db')
     options = parser.parse_args()
 
     import options as opmodule

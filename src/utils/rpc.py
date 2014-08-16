@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import traceback
 from functools import partial
+import logging
+import traceback
 
 # -- third party --
 from gevent import Timeout
@@ -18,6 +19,8 @@ from .misc import swallow
 REQUEST = 1
 RESPONSE = 2
 EXCEPTION = 3
+
+log = logging.getLogger('rpc')
 
 
 class RPCError(Exception):
@@ -112,13 +115,16 @@ class RPCService(Greenlet):
                 f = getattr(self, method, None)
 
                 if not f:
+                    log.error('Calling undefined method %s.%s', self.__class__.__name__, method)
                     msgpack.pack([EXCEPTION, 'NoSuchMethod', ''], sock)
                     continue
 
                 try:
                     ret = f(*args, **kwargs)
+                    log.info('Calling method %s.%s success', self.__class__.__name__, method)
                     rst = [RESPONSE, ret]
                 except Exception as e:
+                    log.exception('Calling method %s.%s FAIL', self.__class__.__name__, method)
                     rst = [EXCEPTION, e.__class__.__name__, traceback.format_exc()]
 
                 msgpack.pack(rst, sock)

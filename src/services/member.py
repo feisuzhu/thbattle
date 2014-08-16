@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import sys
+from base64 import b64encode, b64decode
 import argparse
 import hashlib
+import logging
+import sys
 import time
-from base64 import b64encode, b64decode
 
 # -- third party --
-from sqlalchemy import create_engine, text as sq_text
 from gevent.server import StreamServer
+from sqlalchemy import Column, Integer, String, Float, Index, DateTime
+from sqlalchemy import create_engine, text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, scoped_session
+
 
 # -- own --
 from utils.rpc import RPCService
@@ -24,11 +29,51 @@ CREDITS_MAPPING = {
 
 
 # -- code --
+Model = declarative_base()
+
 options = None
-engine = None
+session = None
 
-text = lambda t: sq_text(t.replace('cdb_', options.discuz_dbpre))
 
+class Badges(Model):
+    __tablename__ = 'thb_badges'
+
+    id    = Column(Integer, primary_key=True)
+    uid   = Column(Integer, nullable=False)
+    badge = Column(String(32), nullable=False)
+
+
+class PeerRating(Model):
+    __tablename__ = 'thb_peer_rating'
+
+    id   = Column(Integer, primary_key=True)
+    gid  = Column(Integer, nullable=False)    # game id
+    uid1 = Column(Integer, nullable=False)    # user 1 (thinks)
+    uid2 = Column(Integer, nullable=False)    # user 2
+    vote = Column(Integer, nullable=False)    # played (well -> 1, sucks -> -1)
+
+    __table_args__ = (
+        Index('peer_rating_uniq', 'gid', 'uid1', 'uid2', unique=True),
+    )
+
+
+class PlayerRank(Model):
+    # computed from PeerRating, using PageRank.
+    __tablename__ = 'thb_player_rank'
+    uid   = Column(Integer, primary_key=True)
+    score = Column(Float, nullable=False)
+
+
+class GameResult(Model):
+    __tablename__ = 'thb_game_result'
+    gid     = Column(Integer, primary_key=True)
+    mode    = Column(String(20), nullable=False)  # 'THBattleFaith'
+    players = Column(String(120), nullable=False)  # '2,123,43534,1231,345,144'
+    winner  = Column(String(60), nullable=False)  # '2,123,144'
+    time    = Column(DateTime(True), nullable=False)  # datetime.isoformat()
+
+
+# other things: game items, hidden character availability, etc.
 
 def md5(s):
     return hashlib.md5(s).hexdigest()
@@ -107,28 +152,37 @@ def authdecode(encrypted, saltkey):
 
 class MemberService(RPCService):
     def get_user_info(self, uid):
-        member = engine.execute(text('''
-            SELECT * FROM cdb_common_member
+        member = session.execute(text('''
+            SELECT * FROM pre_common_member
             WHERE uid=:uid
-        '''), uid=int(uid)).fetchone()
+        '''), {'uid': int(uid)}).fetchone()
 
         if not member:
             return {}
 
-        ucmember = engine.execute(text('''
-            SELECT * FROM cdb_ucenter_members
+        ucmember = session.execute(text('''
+            SELECT * FROM pre_ucenter_members
             WHERE uid=:uid
-        '''), uid=uid).fetchone()
+        '''), {'uid': int(uid)}).fetchone()
 
-        mcount = engine.execute(text('''
-            SELECT * FROM cdb_common_member_count
+        mcount = session.execute(text('''
+            SELECT * FROM pre_common_member_count
             WHERE uid=:uid
-        '''), uid=int(uid)).fetchone()
+        '''), {'uid': int(uid)}).fetchone()
 
-        mfield = engine.execute(text('''
-            SELECT * FROM cdb_common_member_field_forum
+        mfield = session.execute(text('''
+            SELECT * FROM pre_common_member_field_forum
             WHERE uid=:uid
-        '''), uid=int(uid)).fetchone()
+        '''), {'uid': int(uid)}).fetchone()
+
+        badges = session.query(Badges.badge) \
+            .filter_by(uid=int(uid)) \
+            .order_by(Badges.id.desc()) \
+            .all()
+
+        badges = [i for i, in badges]
+
+        session.remove()
 
         rst = {
             'uid': int(uid),
@@ -138,6 +192,7 @@ class MemberService(RPCService):
             'ucsalt': ucmember.salt,
             'status': member.status,
             'title': mfield.customstatus,
+            'badges': badges,
         }
 
         for k, v in CREDITS_MAPPING.items():
@@ -166,10 +221,10 @@ class MemberService(RPCService):
         if isinstance(password, unicode):
             password = password.encode('utf-8')
 
-        ucmember = engine.execute(text('''
-            select * from cdb_ucenter_members
+        ucmember = session.execute(text('''
+            select * from pre_ucenter_members
             where username=:username
-        '''), username=username).fetchone()
+        '''), {'username': username}).fetchone()
 
         if not ucmember:
             return {}
@@ -201,30 +256,35 @@ class MemberService(RPCService):
             return {}
 
         # be aware of sql injection
-        engine.execute(text('''
-            UPDATE cdb_common_member_count
+        session.execute(text('''
+            UPDATE pre_common_member_count
             SET %s = %s + :amount
             WHERE uid=:uid
-        ''' % (field, field)), amount=amount, uid=uid)
+        ''' % (field, field)), {'amount': int(amount), 'uid': int(uid)})
 
         return self.get_user_info(uid)
 
 
 def main():
-    global options, engine
+    global options, session
     parser = argparse.ArgumentParser(sys.argv[0])
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=7000)
     parser.add_argument('--connect-str', default='mysql://root@localhost/ultrax?charset=utf8')
-    parser.add_argument('--discuz-dbpre', default='pre_')
     parser.add_argument('--discuz-authkey', default='Proton rocks')
+    parser.add_argument('--log', default='ERROR')
     options = parser.parse_args()
+
+    logging.basicConfig(level=options.log.upper())
 
     engine = create_engine(
         options.connect_str,
         encoding='utf-8',
         convert_unicode=True,
     )
+    Model.metadata.create_all(engine)
+
+    session = scoped_session(sessionmaker(bind=engine))
 
     server = StreamServer((options.host, options.port), MemberService.spawn, None)
     server.serve_forever()

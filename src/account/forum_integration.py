@@ -78,19 +78,6 @@ class Account(object):
 
         from urlparse import urljoin
         from settings import ACCOUNT_FORUMURL
-        from server import userdata
-        from server.userdata.tables import Badges
-
-        if self.userid > 0:
-            badges = userdata.session.query(Badges.badge) \
-                .filter_by(uid=self.userid) \
-                .order_by(Badges.id.desc()) \
-                .all()
-
-            badges = [i for i, in badges]
-            userdata.session.remove()
-        else:
-            badges = []
 
         self.other = defaultdict(
             lambda: None,
@@ -102,7 +89,7 @@ class Account(object):
             credits=data['credits'],
             games=data['games'],
             drops=data['drops'],
-            badges=badges,
+            badges=data['badges'],
         )
 
     @server_side_only
