@@ -237,12 +237,14 @@ class QQBot(object):
                 for m in messages:
                     t = m['poll_type']
                     v = m['value']
-                    f = getattr(self, 'on_' + t, None)
-                    self.pool.spawn(f, v) if f else log.warning('Unhandled event: <%s> = %r', t, v)
+                    self.pool.spawn(getattr(self, 'on_' + t, self.unhandled_event), v)
 
             else:
                 raise Exception('Goes wrong, just fail.')
                 log.error('Unknown retcode: %r', rst)
+
+    def unhandled_event(self, type, value):
+        log.warning('Unhandled event: <%s> = %r', type, value)
 
     def refresh_group_list(self):
         assert self.logged_in

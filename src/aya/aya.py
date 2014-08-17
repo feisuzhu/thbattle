@@ -156,6 +156,8 @@ class Aya(QQBot):
             pool.apply_async(self.do_speaker, (msg['send_uin'], content[1:], msg['from_uin']))
 
     def on_system_message(self, msg):
+        pool.apply_async(self.refresh_group_list)
+
         if msg['type'] == 'verify_required':
             qq = self.uin2qq(msg['from_uin'])
 
@@ -188,6 +190,9 @@ class Aya(QQBot):
             dao.set_binding(qq, uid)
 
             return success()
+
+        else:
+            self.unhandled_event('system_message', msg)
 
     def do_speaker(self, uin, content, group_uin=None):
         fail_text = u'文文不认识你，才不帮你发新闻呢。想跟文文做朋友么？悄悄地告诉文文吧。'
