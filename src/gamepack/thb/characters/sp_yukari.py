@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, PlayerDeath, random_choose_card
+from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, PlayerDeath, random_choose_card, GenericAction
 from ..inputlets import ChoosePeerCardInputlet
 from ..cards import Skill, t_One, CardList
 
@@ -45,6 +45,16 @@ class SpiritingAwayAction(UserAction):
         return self.source.tags['spirit_away_tag'] < 2
 
 
+class SpiritingAwayReturningAction(GenericAction):
+    def apply_action(self):
+        g = Game.getgame()
+        for p in g.players:
+            cl = getattr(p, 'yukari_dimension', None)
+            cl and migrate_cards(cl, p.cards, unwrap=True)
+
+        return True
+
+
 class SpiritingAway(Skill):
     associated_action = SpiritingAwayAction
     skill_category = ('character', 'active')
@@ -73,13 +83,12 @@ class SpiritingAwayHandler(EventHandler):
                     p.showncardlists.remove(cl)
 
         elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
-            if not arg.target.has_skill(SpiritingAway):
+            tgt = arg.target
+            if not tgt.has_skill(SpiritingAway):
                 return arg
 
             g = Game.getgame()
-            for p in g.players:
-                cl = getattr(p, 'yukari_dimension', None)
-                cl and migrate_cards(cl, p.cards, unwrap=True)
+            g.process_action(SpiritingAwayReturningAction(tgt, tgt))
 
         return arg
 
