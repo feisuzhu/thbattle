@@ -80,7 +80,7 @@ class ExtremeIntelligenceAction(GenericAction):
             pass
 
         try:
-            # this is for actions triggered by ForEach action.
+            # HACK: This is for actions triggered by ForEach action.
             # Well, actually it's for Harvest since only this
             # uses the attrib
             nact.parent_action = act.parent_action

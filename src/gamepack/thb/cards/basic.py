@@ -2,7 +2,7 @@
 
 from game.autoenv import Game, EventHandler
 from ..actions import ActionStage, ActionStageLaunchCard, Damage, DropCards
-from ..actions import GenericAction, LaunchCardAction
+from ..actions import ForEach, GenericAction, LaunchCardAction
 from ..actions import PlayerTurn, UseCard, UserAction
 from ..actions import register_eh, user_choose_cards, launch_card
 
@@ -47,7 +47,7 @@ class InevitableAttack(Attack):
 @register_eh
 class AttackCardHandler(EventHandler):
     def handle(self, evt_type, act):
-        #if evt_type == 'action_before' and isinstance(act, PlayerTurn):
+        # if evt_type == 'action_before' and isinstance(act, PlayerTurn):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
             act.target.tags['attack_num'] = 1
 
@@ -207,7 +207,7 @@ class WineRevive(GenericAction):
 class WineHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
-            pact = getattr(act, 'parent_action', act)
+            pact = ForEach.get_actual_action(act) or act
             if getattr(pact, 'in_wine', False):
                 act.damage += 1
 

@@ -20,10 +20,8 @@ class MijincihangzhanDuelMixin(object):
         target = self.target
 
         d = (source, target)
-        dmg = (self.source_damage, self.target_damage)
         while True:
             d = (d[1], d[0])
-            dmg = (dmg[1], dmg[0])
             if d[1].has_skill(Nitoryuu):
                 if not (
                     g.process_action(UseAttack(d[0])) and
@@ -32,7 +30,7 @@ class MijincihangzhanDuelMixin(object):
             else:
                 if not g.process_action(UseAttack(d[0])): break
 
-        g.process_action(Damage(d[1], d[0], amount=dmg[1]))
+        g.process_action(Damage(d[1], d[0], amount=1))
         return d[1] is source
 
 

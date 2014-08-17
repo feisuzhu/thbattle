@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import migrate_cards, GenericAction, LaunchCard, UserAction
+from ..actions import migrate_cards, GenericAction, LaunchCard, UserAction, ForEach
 from ..cards import AttackCard, AttackCardHandler, Skill
 from ..inputlets import ChooseOptionInputlet
 
@@ -15,7 +15,7 @@ class HeterodoxyHandler(EventHandler):
     execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and hasattr(act, 'parent_action'):
+        if evt_type == 'action_before' and ForEach.get_actual_action(act):
             tgt = act.target
             if not tgt.has_skill(Heterodoxy): return act
 

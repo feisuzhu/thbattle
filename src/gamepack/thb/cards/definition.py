@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck definition
 
-#from .base import *
+# from .base import *
 from .base import Card, t_None, t_One, t_Self, t_OtherOne, t_All, t_AllInclusive, t_OtherLessEqThanN
 
 from game import GameObjectMeta
@@ -552,7 +552,7 @@ card_definition = [
 ]
 
 # ANCHOR(card)
-# card_definition = [
-# ] * 1000
+card_definition = [
+] * 1000 or card_definition
 
 del A, J, Q, K

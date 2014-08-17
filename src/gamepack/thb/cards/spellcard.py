@@ -254,10 +254,9 @@ class YukariDimension(InstantSpellCardAction):
 
 class BaseDuel(UserAction):
     # 弹幕战
-    def __init__(self, source, target, damage=1):
+    def __init__(self, source, target):
         self.source = source
         self.target = target
-        self.source_damage = self.target_damage = damage
 
     def apply_action(self):
         g = Game.getgame()
@@ -265,15 +264,13 @@ class BaseDuel(UserAction):
         target = self.target
 
         s, t = source, target
-        sd, td = self.source_damage, self.target_damage
         while True:
             if t.dead: break
             if not g.process_action(basic.UseAttack(t)): break
             s, t = t, s
-            sd, td = td, sd
 
         if not t.dead:
-            g.process_action(Damage(s, t, amount=sd))
+            g.process_action(Damage(s, t, amount=1))
 
         return s is source
 
@@ -336,7 +333,8 @@ class HarvestEffect(InstantSpellCardAction):
     # 五谷丰登 效果
     def apply_action(self):
         g = Game.getgame()
-        cards = self.parent_action.cards
+        pact = ForEach.get_actual_action(self)
+        cards = pact.cards
         cards_avail = [c for c in cards if c.resides_in is g.deck.disputed]
         if not cards_avail: return False
         tgt = self.target
@@ -344,18 +342,18 @@ class HarvestEffect(InstantSpellCardAction):
         card = user_input(
             [tgt],
             ChooseIndividualCardInputlet(self, cards_avail),
-            trans=self.parent_action.trans,
+            trans=pact.trans,
         ) or random_choose_card([cards_avail])
 
         migrate_cards([card], tgt.cards)
 
-        self.parent_action.trans.notify('harvest_choose', card)
+        pact.trans.notify('harvest_choose', card)
         self.card = card
         return True
 
     def is_valid(self):
         try:
-            cards = self.parent_action.cards
+            cards = ForEach.get_actual_action(self).cards
         except:
             return False
 

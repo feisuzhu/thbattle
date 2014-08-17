@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
 from gamepack.thb import cards
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn, build_handcard
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
 from gamepack.thb.ui.resource import resource as gres
 
@@ -16,21 +15,26 @@ class FlowerQueen:
 
     def clickable(game):
         me = game.me
+        if my_turn():
+            return False
+
+        if not (me.cards or me.showncards):
+            return False
+
         try:
             act = game.action_stack[-1]
-            if isinstance(act, actions.ActionStage) and act.target is me:
-                return True
-            if isinstance(act, (cards.UseAttack, cards.BaseUseGraze, cards.DollControl)):
-                return True
-        except IndexError:
+            return act.cond([build_handcard(cards.AttackCard)])
+        except:
             pass
+
         return False
 
     def is_complete(g, cl):
         skill = cl[0]
         acards = skill.associated_cards
-        if len(acards) != 1 or acards[0].suit != cards.Card.CLUB:
-            return (False, u'请选择1张草花色牌！')
+        if len(acards) != 1:
+            return (False, u'请选择1张牌！')
+
         return (True, u'反正这条也看不到，偷个懒~~~')
 
     def is_action_valid(g, cl, target_list, is_complete=is_complete):
@@ -46,36 +50,52 @@ class FlowerQueen:
         return None  # FIXME
 
 
-class MagicCannon:
+class ReversedScales:
     # Skill
-    name = u'魔炮'
+    name = u'逆鳞'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
-class MagicCannonAttack:
+class Sadist:
+    # Skill
+    name = u'抖Ｓ'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class ReversedScalesAction:
     def effect_string_apply(act):
         return (
-            u'|G【%s】|r已经做好了迎接弹幕的准备，谁知冲过来的竟是一束|G魔炮|r！'
+            u'|G【%s】|r：“来正面上我啊！”'
         ) % (
             act.target.ui_meta.char_name,
         )
 
 
-class PerfectKill:
-    # Skill
-    name = u'完杀'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
-class PerfectKillAction:
-    def effect_string(act):
+class SadistAction:
+    def effect_string_apply(act):
         return (
-            u'在场的人无不被|G【%s】|r的气场镇住，竟连上前递|G麻薯|r的勇气都没有了！'
+            u'|G【%s】|r又看了看|G【%s】|r：“你也要尝试一下么！”'
         ) % (
             act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
         )
+
+
+class SadistHandler:
+    # choose_card
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'发动【抖Ｓ】')
+        else:
+            return (False, u'【抖Ｓ】：请弃置一张牌')
+
+    def target(pl):
+        if not pl:
+            return (False, u'【抖Ｓ】：请选择1名玩家')
+
+        return (True, u'发动【抖Ｓ】')
 
 
 class Yuuka:
@@ -83,8 +103,9 @@ class Yuuka:
     char_name = u'风见幽香'
     port_image = gres.yuuka_port
     description = (
-        u'|DB四季的鲜花之主 风见幽香 体力：3|r\n\n'
-        u'|G花王|r：你的所有的梅花牌都可以当做【弹幕】和【擦弹】使用或打出。\n\n'
-        u'|G魔炮|r：锁定技，你在使用红色的【弹幕】时伤害+1\n\n'
-        u'|G完杀|r：锁定技，由你击杀的玩家只能由你的和被击杀玩家的【麻薯】救起。'
+        u'|DB四季的鲜花之主 风见幽香 体力：4|r\n\n'
+        u'|G逆鳞|r：|B锁定技|r，其他角色对你使用的单体非延时符卡均视为|G弹幕战|r。\n\n'
+        u'|G花王|r：在你的回合外，你可以将任意一张手牌当做|G弹幕|r使用或打出。\n\n'
+        u'|G抖Ｓ|r：在你的回合内，当你击坠一名角色后，可以弃置一张手牌，对被击坠角色距离为1的一名角色造成2点伤害。\n\n'
+        u'|RKOF不平衡角色'
     )

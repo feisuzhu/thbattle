@@ -1,86 +1,148 @@
 # -*- coding: utf-8 -*-
+
+from ..actions import ForEach, DropCards, Damage, UserAction, PlayerDeath, LaunchCard, ask_for_action
+from ..cards import AttackCard, Duel, Skill, TreatAs, InstantSpellCardAction, DummyCard, VirtualCard, Reject
+from ..cards import t_None
+from .baseclasses import register_character_to, Character
 from game.autoenv import EventHandler, Game
-from .baseclasses import register_character, Character
-from ..actions import BaseDamage, GenericAction, TryRevive
-from ..cards import Attack, AttackCard, Card, GrazeCard, Skill, t_None, t_OtherOne
-from utils import classmix
 
 
-class FlowerQueen(Skill):
-    associated_action = Attack
-    skill_category = ('character', 'active', 'passive')
-    target = t_OtherOne
-    distance = 1
-    usage = 'launch'
+class ReversedScales(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
+    target = t_None
+
+
+class FlowerQueen(TreatAs, Skill):
+    treat_as = AttackCard
+    skill_category = ('character', 'passive')
 
     def check(self):
         cl = self.associated_cards
-        if not cl or len(cl) != 1: return False
-        c = cl[0]
-        if not c.suit == Card.CLUB: return False
-        return c.resides_in is not None and c.resides_in.type in (
-            'cards', 'showncards', 'equips',
-        )
+        if not cl or len(cl) != 1:
+            return False
 
-    def is_card(self, cls):
-        if issubclass(AttackCard, cls) or issubclass(GrazeCard, cls): return True
-        return isinstance(self, cls)
+        if Game.getgame().current_turn is self.player:
+            return False
+
+        return cl[0].resides_in.type in ('cards', 'showncards')
 
 
-class MagicCannon(Skill):
+class Sadist(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ('character', 'passive')
     target = t_None
 
 
-class PerfectKill(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
-    target = t_None
-    distance = 1
-
-
-class MagicCannonAttack(Attack):
-    pass
-
-
-class PerfectKillAction(GenericAction):
-    def __init__(self, source, target, act):
-        self.source, self.target, self.act = \
-            source, target, act
+class ReversedScalesAction(UserAction):
+    def __init__(self, target, action):
+        self.source = target
+        self.target = target
+        self.action = action
 
     def apply_action(self):
-        self.act.asklist = [self.source, self.target]
+        self.action.__class__ = Duel
         return True
 
 
-class YuukaHandler(EventHandler):
-    execute_before = ('ScarletRhapsodySwordHandler', )
+class ReversedScalesHandler(EventHandler):
+    execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, Attack):
-            c = getattr(act, 'associated_card', None)
-            if not c: return act
-            src = act.source
-            if not src.has_skill(MagicCannon): return act
-            if c.color == Card.RED:
-                act.damage += 1
-                act.__class__ = classmix(MagicCannonAttack, act.__class__)
+        if evt_type != 'action_before':
+            return act
 
-        elif evt_type == 'action_before' and isinstance(act, TryRevive):
-            g = Game.getgame()
-            dmg = act.dmgact
-            assert isinstance(dmg, BaseDamage)
-            src = dmg.source
-            tgt = dmg.target
-            if src != tgt and src and src.has_skill(PerfectKill):
-                g.process_action(PerfectKillAction(src, dmg.target, act))
+        if not isinstance(act, InstantSpellCardAction):
+            return act
+
+        if isinstance(act, Reject):
+            # HACK
+            return act
+
+        if ForEach.get_actual_action(act):
+            return act
+
+        src = act.source
+        tgt = act.target
+
+        if not src or tgt is src:
+            return act
+
+        if not tgt.has_skill(ReversedScales):
+            return act
+
+        g = Game.getgame()
+        g.process_action(ReversedScalesAction(tgt, act))
 
         return act
 
 
-@register_character
+class SadistAction(UserAction):
+    def __init__(self, source, target, cards):
+        self.source = source
+        self.target = target
+        self.cards = cards
+
+    def apply_action(self):
+        src = self.source
+        tgt = self.target
+        g = Game.getgame()
+        g.process_action(DropCards(src, self.cards))
+        g.process_action(Damage(src, tgt, 2))
+
+        return True
+
+
+class SadistHandler(EventHandler):
+    card_usage = 'drop'
+
+    def handle(self, evt_type, act):
+        if evt_type != 'action_after':
+            return act
+
+        if not isinstance(act, PlayerDeath):
+            return act
+
+        src = act.source
+        tgt = act.target
+        g = Game.getgame()
+
+        if not src or src is tgt:
+            return act
+
+        if not src.has_skill(Sadist):
+            return act
+
+        if g.current_turn is not src:
+            return act
+
+        dist = LaunchCard.calc_distance(tgt, DummyCard(distance=1))
+        candidates = [k for k, v in dist.items() if v <= 0]
+
+        if not candidates:
+            return act
+
+        p, rst = ask_for_action(self, [src], ('cards', 'showncards'), candidates)
+        if not p:
+            return act
+
+        assert p is src
+
+        cards, pl = rst
+
+        g.process_action(SadistAction(src, pl[0], cards))
+
+        return act
+
+    def cond(self, cl):
+        return len(cl) == 1 and not cl[0].is_card(VirtualCard)
+
+    def choose_player_target(self, pl):
+        return pl[-1:], len(pl)
+
+
+@register_character_to('common', '-kof')
 class Yuuka(Character):
-    skills = [FlowerQueen, MagicCannon, PerfectKill]
-    eventhandlers_required = [YuukaHandler]
-    maxlife = 3
+    skills = [ReversedScales, FlowerQueen, Sadist]
+    eventhandlers_required = [ReversedScalesHandler, SadistHandler]
+    maxlife = 4

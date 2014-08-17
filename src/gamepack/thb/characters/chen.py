@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
 from ..actions import ForEach, LaunchCard, DrawCards, UserAction
@@ -21,6 +22,9 @@ class FlyingSkandaAction(ForEach):
         if any(t.dead for t in self.target_list):
             return False
         return True
+
+    def get_actual_action(self, act):
+        return None
 
 
 class FlyingSkanda(Skill):

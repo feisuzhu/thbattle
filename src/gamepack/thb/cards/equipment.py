@@ -423,7 +423,8 @@ class MaidenCostumeHandler(EventHandler):
                 act.cancelled = True
                 nact = MaidenCostumeEffect(source=act.source, target=target)
                 nact.associated_card = act.associated_card
-                Game.getgame().process_action(nact)
+                return nact
+                # Game.getgame().process_action(nact)
         return act
 
 

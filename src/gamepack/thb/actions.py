@@ -650,7 +650,7 @@ class LaunchCard(GenericAction, LaunchCardAction):
     @classmethod
     def calc_base_distance(cls, src):
         g = Game.getgame()
-        pl = [p for p in g.players if not p.dead]
+        pl = [p for p in g.players if not p.dead or p is src]
         loc = pl.index(src)
         n = len(pl)
         dist = {
@@ -860,6 +860,11 @@ class ForEach(UserAction):
             self.cleanup()
 
         return True
+
+    @classmethod
+    def get_actual_action(self, act):
+        assert isinstance(act, Action)
+        return getattr(act, 'parent_action', None)
 
 
 class PlayerTurn(GenericAction):
