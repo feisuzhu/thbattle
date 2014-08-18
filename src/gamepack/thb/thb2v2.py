@@ -15,6 +15,7 @@ from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 from utils.misc import Enum, BatchList, filter_out
+import settings
 import logging
 
 # -- code --
@@ -171,7 +172,7 @@ class THBattle2v2(Game):
         random.Random(seed).shuffle(chars)
 
         # ANCHOR(test)
-        testing = []
+        testing = list(settings.TESTING_CHARACTERS)
         testing = filter_out(chars, lambda c: c.__name__ in testing)
         chars.extend(testing)
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import random
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
+import settings
 
 from .actions import PlayerTurn, PlayerDeath, DrawCards, DropCards, RevealIdentity
 from .actions import action_eventhandlers
@@ -8,7 +9,7 @@ from .characters.baseclasses import mixin_character
 
 from itertools import cycle
 from collections import defaultdict
-from utils import Enum
+from utils import Enum, filter_out
 
 from .common import PlayerIdentity, sync_primitive, CharChoice, get_seed_for
 from .inputlets import ChooseGirlInputlet
@@ -129,6 +130,12 @@ class THBattleIdentity(Game):
         chars = get_characters(*g.character_categories)
         from .characters.akari import Akari
 
+        # ANCHOR(test)
+        testing = list(settings.TESTING_CHARACTERS)
+        testing = filter_out(chars, lambda c: c.__name__ in testing)
+        chars = g.random.sample(chars, 4 * g.n_persons + 2 - len(testing))
+        chars.extend(testing)
+
         if Game.CLIENT_SIDE:
             chars = [None] * len(chars)
 
@@ -195,6 +202,7 @@ class THBattleIdentity(Game):
             g.process_action(RevealIdentity(p, p))
 
         pl = g.players.exclude(boss)
+
         mapping = {p: p.choices for p in pl}  # CAUTION, DICT HERE
         with InputTransaction('ChooseGirl', pl, mapping=mapping) as trans:
             ilet = ChooseGirlInputlet(g, mapping)

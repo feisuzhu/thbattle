@@ -15,6 +15,7 @@ from utils import BatchList, Enum, filter_out
 
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from .inputlets import ChooseGirlInputlet
+import settings
 
 import logging
 log = logging.getLogger('THBattle')
@@ -105,7 +106,7 @@ class THBattle(Game):
         random.Random(seed).shuffle(chars)
 
         # ANCHOR(test)
-        testing = []
+        testing = list(settings.TESTING_CHARACTERS)
         testing = filter_out(chars, lambda c: c.__name__ in testing)
         chars.extend(testing)
 

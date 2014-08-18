@@ -3,6 +3,7 @@ import random
 from itertools import cycle
 from collections import defaultdict
 import logging
+import settings
 
 from utils import Enum, filter_out
 
@@ -102,7 +103,7 @@ class THBattleKOF(Game):
         from characters import get_characters
         chars = get_characters('kof' if params['no_imba'] else 'kofall')
 
-        testing = []
+        testing = list(settings.TESTING_CHARACTERS)
         testing = filter_out(chars, lambda c: c.__name__ in testing)
 
         _chars = g.random.sample(chars, 10)

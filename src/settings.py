@@ -36,6 +36,8 @@ HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 ACCOUNT_MODULE = 'freeplay' if options.freeplay else 'forum_integration'
 ACCOUNT_FORUMURL = 'http://www.thbattle.net'
 
+TESTING_CHARACTERS = ()
+
 import re
 
 UPDATE_IGNORES = re.compile(r'''^(

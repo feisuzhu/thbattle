@@ -15,7 +15,9 @@ from .characters.baseclasses import mixin_character
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
-from utils import BatchList, Enum
+from utils import BatchList, Enum, filter_out
+
+import settings
 
 # -- code --
 log = logging.getLogger('THBattle')
@@ -157,6 +159,12 @@ class THBattleFaith(Game):
         from . import characters
         chars = characters.get_characters('faith')
         g.random.shuffle(chars)
+
+        # ANCHOR(test)
+        testing = list(settings.TESTING_CHARACTERS)
+        testing = filter_out(chars, lambda c: c.__name__ in testing)
+        chars = g.random.sample(chars, 30 - len(testing))
+        chars.extend(testing)
 
         if Game.SERVER_SIDE:
             choices = [CharChoice(cls) for cls in chars[-24:]]
