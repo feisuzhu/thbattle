@@ -36,7 +36,7 @@ def _clean_dir(base):
 
 def build_hash(base):
     my_hash = {}
-    for path, _, names in os.walk(base):
+    for path, _, names in os.walk(base, followlinks=True):
         for name in names:
             if ignores.match(name):
                 # file in exclude list
