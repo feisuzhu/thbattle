@@ -3,7 +3,6 @@ from . import alice  # noqa
 from . import chen  # noqa
 from . import cirno  # noqa
 from . import daiyousei  # noqa
-from . import dummy  # noqa
 from . import eirin  # noqa
 from . import flandre  # noqa
 from . import kaguya  # noqa
@@ -37,7 +36,7 @@ from . import yuuka  # noqa
 from . import mokou  # noqa
 from . import kokoro  # noqa
 from . import mamizou  # noqa
-from . import seija
+from . import seija  # noqa
 from . import kanako  # noqa
 from . import medicine  # noqa
 from . import aya  # noqa

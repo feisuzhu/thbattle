@@ -49,7 +49,6 @@ import sp_yukari
 import remilia_ex
 
 # special
-import dummy
 import akari
 
 from baseclasses import get_characters

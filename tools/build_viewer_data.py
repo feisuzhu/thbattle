@@ -175,7 +175,6 @@ for k, v in metadata.iteritems():
 
 #  --- Characters ---
 excludes = [
-    characters.dummy.Dummy,
     characters.remilia_ex.RemiliaEx2,
     characters.akari.Akari,
 ]

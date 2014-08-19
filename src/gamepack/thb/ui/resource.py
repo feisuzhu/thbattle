@@ -100,8 +100,6 @@ resource = Resource(respath, [
         'komachi', 'patchouli',
     ]],
 
-    img_with_grayed('dummy_port', 'portrait'),
-
     img_with_grayed('hp',    'portrait'),
     img_with_grayed('hp_bg', 'portrait'),
 

@@ -45,11 +45,6 @@ def register_character_to(*cats):
 
 register_character = register_character_to('common')
 
-if options.testing:
-    register_testing_character = register_character
-else:
-    register_testing_character = lambda x: x
-    
 
 def get_characters(*cats, **kwargs):
     cats = set(cats)
