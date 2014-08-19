@@ -538,7 +538,6 @@ class UIBaseChooseGirl(Panel, InputHandler):
 class UIChooseGirl(UIBaseChooseGirl):
 
     def process_user_input_start(self, ilet):
-        self.inputlet = ilet
         self.label.color = (255, 255, 160, 255)
         self.label.text = u'等待%s选择角色' % (ilet.actor.account.username)
         self.parent.prompt(u'|R%s|r正在选择……' % ilet.actor.account.username)
@@ -568,7 +567,6 @@ class UIChooseGirl(UIBaseChooseGirl):
 class UIBanGirl(UIBaseChooseGirl):
 
     def process_user_input_start(self, ilet):
-        self.inputlet = ilet
         self.label.color = (255, 255, 160, 255)
         self.label.text = u'等待%s选择不能出场的角色' % (ilet.actor.account.username)
         self.parent.prompt(u'|R%s|r正在BAN……' % ilet.actor.account.username)
