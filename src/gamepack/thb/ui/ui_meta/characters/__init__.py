@@ -4,6 +4,7 @@ from . import chen  # noqa
 from . import cirno  # noqa
 from . import daiyousei  # noqa
 from . import eirin  # noqa
+from . import flandre  # noqa
 from . import kaguya  # noqa
 from . import koakuma  # noqa
 from . import kogasa  # noqa

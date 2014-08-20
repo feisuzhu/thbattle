@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import GenericAction, ActionStageLaunchCard, DrawCardStage
+from ..actions import GenericAction, ActionStageLaunchCard, DrawCardStage, Damage
 from ..cards import ElementalReactorSkill, AttackCard, AttackCardHandler, BaseAttack, BaseDuel, Skill, t_None
 from ..inputlets import ChooseOptionInputlet
 
@@ -25,6 +26,7 @@ class CriticalStrikeHandler(EventHandler):
         'AttackCardHandler',
         'FrozenFrogHandler',
         'ElementalReactorHandler',
+        'ReversedScalesHandler',
     )
     execute_before = (
         'MomijiShieldHandler',
@@ -42,18 +44,29 @@ class CriticalStrikeHandler(EventHandler):
 
             act.amount = max(0, act.amount - 1)
 
-        elif evt_type == 'action_apply' and isinstance(act, (BaseAttack, BaseDuel)):
+        elif evt_type == 'action_apply' and isinstance(act, BaseAttack):
             src = act.source
-            st = src.tags
-            if not st['flan_cs'] >= st['turn_count']: return act
-            if not Game.getgame().current_turn is src: return act
-            if not src.has_skill(CriticalStrike): return act
+            tags = src.tags
+            if not self.in_critical_strike(src):
+                return act
+
             tgt = act.target
             if isinstance(act, BaseAttack):
-                st['flan_targets'].append(tgt)
+                tags['flan_targets'].append(tgt)
                 act.damage += 1
-            elif isinstance(act, BaseDuel):
-                act.source_damage += 1
+
+        elif evt_type == 'action_before' and isinstance(act, Damage):
+            g = Game.getgame()
+            pact = g.action_stack[-1]
+            if not isinstance(pact, BaseDuel):
+                return act
+
+            src, tgt = act.source, act.target
+
+            if not self.in_critical_strike(src):
+                return act
+
+            act.amount += 1
 
         elif evt_type == 'action_can_fire':
             arg = act
@@ -62,8 +75,7 @@ class CriticalStrikeHandler(EventHandler):
             c = act.card
             src = act.source
             tags = src.tags
-            if not src.has_skill(CriticalStrike): return arg
-            if not tags['flan_cs'] >= tags['turn_count']: return arg
+            if not self.in_critical_strike(src): return arg
             if not c.is_card(AttackCard): return arg
             if src.has_skill(ElementalReactorSkill): return arg
             if set(act.target_list) & set(tags['flan_targets']):
@@ -73,12 +85,18 @@ class CriticalStrikeHandler(EventHandler):
 
         elif evt_type == 'action_stage_action':
             tgt = act
-            tags = tgt.tags
-            if not tgt.has_skill(CriticalStrike): return act
-            if not tags['flan_cs'] >= tags['turn_count']: return act
+            if not self.in_critical_strike(tgt): return act
             AttackCardHandler.set_freeattack(tgt)
 
         return act
+
+    def in_critical_strike(self, p):
+        tags = p.tags
+        return (
+            tags['flan_cs'] >= tags['turn_count'] and
+            Game.getgame().current_turn is p and
+            p.has_skill(CriticalStrike)
+        )
 
 
 @register_character

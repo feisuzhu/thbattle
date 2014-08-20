@@ -17,6 +17,7 @@ import tewi
 import reimu
 import kogasa
 import eirin
+import flandre
 import shikieiki
 import tenshi
 import rumia
