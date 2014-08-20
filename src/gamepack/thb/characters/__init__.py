@@ -9,7 +9,6 @@ import youmu
 import koakuma
 import marisa
 import daiyousei
-import flandre
 import alice
 import nazrin
 import yugi
@@ -45,6 +44,7 @@ import kanako
 import medicine
 import aya
 import sp_yukari
+import sp_flandre
 
 import remilia_ex
 
