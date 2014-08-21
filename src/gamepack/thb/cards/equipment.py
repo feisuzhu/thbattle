@@ -492,11 +492,13 @@ class UmbrellaSkill(ShieldSkill):
 
 
 class UmbrellaEffect(GenericAction):
-    def __init__(self, act):
-        self.source = self.target = act.target
+    def __init__(self, act, damage_act):
+        self.source = self.target = damage_act.target
         self.action = act
+        self.damage_act = damage_act
 
     def apply_action(self):
+        self.damage_act.cancelled = True
         return True
 
 
@@ -512,8 +514,7 @@ class UmbrellaHandler(EventHandler):
             pact = g.action_stack[-1]
 
             if isinstance(pact, spellcard.SpellCardAction):
-                act.cancelled = True
-                Game.getgame().process_action(UmbrellaEffect(pact))
+                Game.getgame().process_action(UmbrellaEffect(pact, act))
 
         return act
 

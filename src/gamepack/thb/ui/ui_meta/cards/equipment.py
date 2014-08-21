@@ -195,11 +195,16 @@ class UmbrellaSkill:
 class UmbrellaEffect:
     def effect_string_before(act):
         a = act.action
+        dmg = act.damage_act
         card = getattr(a, 'associated_card', None)
-        s = u'|G%s|r' % card.ui_meta.name if card else u''
+        if card and card.associated_action and isinstance(a, card.associated_action):
+            # Some skills changes action
+            s = u'|G%s|r' % card.ui_meta.name
+        else:
+            s = u''
+
         return u'|G【%s】|r受到的%s效果被|G阳伞|r挡下了' % (
-            act.target.ui_meta.char_name,
-            s,
+            dmg.target.ui_meta.char_name, s,
         )
 
 
