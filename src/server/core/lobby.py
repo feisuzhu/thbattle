@@ -43,6 +43,9 @@ class Client(ClientEndpoint):
             state=self.state,
         )
 
+    def __eq__(self, other):
+        return self.account is other.account
+
     def listen_command(self, *cmds):
         listeners_set = self.cmd_listeners
         q = Queue(100)
