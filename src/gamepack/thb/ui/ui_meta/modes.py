@@ -168,7 +168,15 @@ class THBattleIdentity:
         u'\n'
         u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
     )
-    params_disp = {}
+    params_disp = {
+        'double_curtain': {
+            'desc': u'双黑幕',
+            'options': [
+                (u'禁用', False),
+                (u'启用', True),
+            ],
+        },
+    }
 
     from gamepack.thb.ui.view import THBattleIdentityUI
     ui_class = THBattleIdentityUI

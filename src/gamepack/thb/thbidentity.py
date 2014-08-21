@@ -108,7 +108,9 @@ class THBattleIdentity(Game):
     n_persons = 8
     character_categories = ('id', 'id8')
     game_actions = _game_actions
-    params_def = {}
+    params_def = {
+        'double_curtain': (False, True)
+    }
     T = Identity.TYPE
     identities = [
         T.ATTACKER, T.ATTACKER, T.ATTACKER, T.ATTACKER,
@@ -125,6 +127,9 @@ class THBattleIdentity(Game):
 
         g.ehclasses = ehclasses = list(action_eventhandlers) + _game_ehs.values()
 
+        if params['double_curtain']:
+            g.identities = g.identities[1:] + g.identities[-1:]
+
         # choose girls init -->
         from .characters import get_characters
         chars = get_characters(*g.character_categories)
@@ -133,15 +138,28 @@ class THBattleIdentity(Game):
         # ANCHOR(test)
         testing = list(settings.TESTING_CHARACTERS)
         testing = filter_out(chars, lambda c: c.__name__ in testing)
-        chars = g.random.sample(chars, 4 * g.n_persons + 2 - len(testing))
-        chars.extend(testing)
 
-        if Game.CLIENT_SIDE:
-            chars = [None] * len(chars)
+        def choosed(char):
+            try:
+                chars.remove(char)
+            except:
+                pass
 
-        g.random.shuffle(chars)
+            try:
+                testing.remove(char)
+            except:
+                pass
+
+        def random_char():
+            return g.random.choice(testing + chars)
 
         # choose boss
+        candidates = g.random.sample(chars, 4)
+        candidates.extend(testing)
+
+        if Game.CLIENT_SIDE:
+            candidates = [None] * len(candidates)
+
         idx = sync_primitive(g.random.randrange(len(g.players)), g.players)
         boss = g.boss = g.players[idx]
 
@@ -150,17 +168,9 @@ class THBattleIdentity(Game):
 
         g.process_action(RevealIdentity(boss, g.players))
 
-        boss.choices = [CharChoice(c) for c in chars[:4]]
+        boss.choices = [CharChoice(c) for c in candidates]
         boss.choices.append(CharChoice(Akari))
-        del chars[:4]
-
-        for p in g.players.exclude(boss):
-            p.choices = [CharChoice(c) for c in chars[:3]]
-            p.choices.append(CharChoice(Akari))
-            del chars[:3]
-
-        for p in g.players:
-            p.reveal(p.choices)
+        boss.reveal(boss.choices)
 
         mapping = {boss: boss.choices}
         with InputTransaction('ChooseGirl', [boss], mapping=mapping) as trans:
@@ -172,8 +182,10 @@ class THBattleIdentity(Game):
             trans.notify('girl_chosen', (boss, c))
 
             if c.char_cls is Akari:
-                c = CharChoice(chars.pop())
+                c = CharChoice(random_char())
                 g.players.reveal(c)
+
+            choosed(c.char_cls)
 
             # mix it in advance
             # so the others could see it
@@ -201,7 +213,22 @@ class THBattleIdentity(Game):
                 p.identity.type = id
             g.process_action(RevealIdentity(p, p))
 
+        # others choose girls
         pl = g.players.exclude(boss)
+
+        candidates = g.random.sample(chars, 3*len(pl) - len(testing))
+        candidates.extend(testing)
+        g.random.shuffle(candidates)
+
+        if Game.CLIENT_SIDE:
+            candidates = [None] * len(candidates)
+
+        del c
+        for p in pl:
+            p.choices = [CharChoice(c) for c in candidates[:3]]
+            p.choices.append(CharChoice(Akari))
+            p.reveal(p.choices)
+            del candidates[:3]
 
         mapping = {p: p.choices for p in pl}  # CAUTION, DICT HERE
         with InputTransaction('ChooseGirl', pl, mapping=mapping) as trans:
@@ -213,14 +240,7 @@ class THBattleIdentity(Game):
         for p in pl:
             if result[p]:
                 result[p].chosen = p
-
-            chars.extend([
-                i.char_cls for i in p.choices
-                if not i.chosen and i.char_cls is not Akari
-            ])
-
-        seed = get_seed_for(g.players)
-        random.Random(seed).shuffle(chars)
+                choosed(result[p].char_cls)
 
         # mix char class with player -->
         for p in pl:
@@ -229,9 +249,10 @@ class THBattleIdentity(Game):
             g.players.reveal(c)
 
             if c.char_cls is Akari:
-                c = CharChoice(chars.pop())
+                c = CharChoice(random_char())
                 g.players.reveal(c)
 
+            choosed(c.char_cls)
             p = g.switch_character(p, c.char_cls)
 
         g.event_handlers = EventHandler.make_list(ehclasses)
@@ -282,6 +303,7 @@ class THBattleIdentity(Game):
 class THBattleIdentity5(THBattleIdentity):
     n_persons = 5
     character_categories = ('id', 'id5')
+    params_def = {}
     T = Identity.TYPE
 
     identities = [
