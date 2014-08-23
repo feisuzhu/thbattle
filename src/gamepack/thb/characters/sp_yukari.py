@@ -65,6 +65,8 @@ class SpiritingAway(Skill):
 
 
 class SpiritingAwayHandler(EventHandler):
+    execute_before = ('DeathHandler', )
+
     def handle(self, evt_type, arg):
         if evt_type == 'action_apply' and isinstance(arg, PlayerTurn):
             tgt = arg.target

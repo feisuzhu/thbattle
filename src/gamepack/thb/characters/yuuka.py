@@ -95,6 +95,7 @@ class SadistAction(UserAction):
 
 class SadistHandler(EventHandler):
     card_usage = 'drop'
+    execute_after = ('DeathHandler', )
 
     def handle(self, evt_type, act):
         if evt_type != 'action_after':
