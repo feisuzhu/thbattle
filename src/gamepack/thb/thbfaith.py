@@ -10,7 +10,7 @@ import random
 
 # -- own --
 from .actions import action_eventhandlers, migrate_cards
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction, MigrateCardsTransaction
+from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction, MigrateCardsTransaction, DeadDropCards
 from .characters.baseclasses import mixin_character
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
@@ -34,37 +34,37 @@ def game_eh(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type != 'action_after': return act
-        if not isinstance(act, PlayerDeath): return act
+        if evt_type == 'action_before' and isinstance(act, DeadDropCards):
+            g = Game.getgame()
 
-        g = Game.getgame()
+            tgt = act.target
+            force = tgt.force
+            if len(force.pool) <= 1:
+                forces = g.forces[:]
+                forces.remove(force)
+                g.winners = forces[0][:]
+                g.game_end()
 
-        tgt = act.target
-        force = tgt.force
-        if len(force.pool) <= 1:
-            forces = g.forces[:]
-            forces.remove(force)
-            g.winners = forces[0][:]
-            g.game_end()
+        elif evt_type == 'action_after' and isinstance(act, PlayerDeath):
+            g = Game.getgame()
 
-        g = Game.getgame()
+            tgt = act.target
+            pool = tgt.force.pool
+            assert pool
 
-        pool = tgt.force.pool
-        assert pool
+            mapping = {tgt: pool}
+            with InputTransaction('ChooseGirl', [tgt], mapping=mapping) as trans:
+                c = user_input([tgt], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+                c = c or [_c for _c in pool if not _c.chosen][0]
+                c.chosen = tgt
+                pool.remove(c)
+                trans.notify('girl_chosen', (tgt, c))
 
-        mapping = {tgt: pool}
-        with InputTransaction('ChooseGirl', [tgt], mapping=mapping) as trans:
-            c = user_input([tgt], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
-            c = c or [_c for _c in pool if not _c.chosen][0]
-            c.chosen = tgt
-            pool.remove(c)
-            trans.notify('girl_chosen', (tgt, c))
+            tgt = g.switch_character(tgt, c)
+            g.process_action(DrawCards(tgt, 4))
 
-        tgt = g.switch_character(tgt, c)
-        g.process_action(DrawCards(tgt, 4))
-
-        if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-            g.process_action(RedrawCards(tgt, tgt))
+            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                g.process_action(RedrawCards(tgt, tgt))
 
         return act
 

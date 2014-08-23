@@ -8,7 +8,7 @@ from collections import defaultdict
 # -- third party --
 
 # -- own --
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, DeadDropCards, DrawCardStage
+from .actions import DrawCards, PlayerTurn, RevealIdentity, DeadDropCards, DrawCardStage
 from .actions import action_eventhandlers, migrate_cards, MigrateCardsTransaction
 from .characters.baseclasses import mixin_character
 from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
@@ -38,8 +38,8 @@ def game_action(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type != 'action_after': return act
-        if not isinstance(act, PlayerDeath): return act
+        if evt_type != 'action_before': return act
+        if not isinstance(act, DeadDropCards): return act
 
         g = Game.getgame()
 
@@ -58,6 +58,8 @@ class DeathHandler(EventHandler):
 
 @game_eh
 class HeritageHandler(EventHandler):
+    execute_after = ('DeathHandler', )
+
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstance(act, DeadDropCards): return act

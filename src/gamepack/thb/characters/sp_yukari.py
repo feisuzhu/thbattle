@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game, user_input
 from .baseclasses import Character, register_character
-from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, PlayerDeath, random_choose_card, GenericAction
+from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, DeadDropCards, random_choose_card, GenericAction
 from ..inputlets import ChoosePeerCardInputlet
 from ..cards import Skill, t_One, CardList
 
@@ -65,17 +65,16 @@ class SpiritingAway(Skill):
 
 
 class SpiritingAwayHandler(EventHandler):
-    execute_before = ('DeathHandler', )
-
     def handle(self, evt_type, arg):
         if evt_type == 'action_apply' and isinstance(arg, PlayerTurn):
             tgt = arg.target
             if tgt.has_skill(SpiritingAway):
                 tgt.tags['spirit_away_tag'] = 0
 
-        elif evt_type == 'action_after' and isinstance(arg, PlayerDeath):
+        elif evt_type == 'action_after' and isinstance(arg, DeadDropCards):
             g = Game.getgame()
-            if g.current_turn.has_skill(SpiritingAway):
+
+            if not arg.target.has_skill(SpiritingAway):
                 return arg
 
             for p in g.players:

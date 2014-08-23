@@ -12,7 +12,7 @@ from game import sync_primitive
 
 from .common import PlayerIdentity, CharChoice, get_seed_for
 
-from .actions import PlayerDeath, PlayerTurn, DrawCards, RevealIdentity
+from .actions import DeadDropCards, PlayerTurn, DrawCards, RevealIdentity
 from .actions import action_eventhandlers
 
 from .characters.baseclasses import mixin_character
@@ -31,8 +31,8 @@ def game_eh(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type != 'action_after': return act
-        if not isinstance(act, PlayerDeath): return act
+        if evt_type != 'action_before': return act
+        if not isinstance(act, DeadDropCards): return act
         tgt = act.target
 
         g = Game.getgame()

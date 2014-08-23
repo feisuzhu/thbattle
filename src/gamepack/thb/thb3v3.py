@@ -3,7 +3,7 @@ import random
 
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity
+from .actions import DeadDropCards, DrawCards, PlayerTurn, RevealIdentity
 from .actions import action_eventhandlers
 
 from .characters.baseclasses import mixin_character
@@ -37,8 +37,8 @@ def game_action(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type != 'action_after': return act
-        if not isinstance(act, PlayerDeath): return act
+        if evt_type != 'action_before': return act
+        if not isinstance(act, DeadDropCards): return act
 
         g = Game.getgame()
 

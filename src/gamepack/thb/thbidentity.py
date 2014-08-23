@@ -3,7 +3,7 @@ import random
 from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
 import settings
 
-from .actions import PlayerTurn, PlayerDeath, DrawCards, DropCards, RevealIdentity
+from .actions import PlayerTurn, PlayerDeath, DrawCards, DropCards, RevealIdentity, DeadDropCards
 from .actions import action_eventhandlers
 from .characters.baseclasses import mixin_character
 
@@ -33,12 +33,10 @@ def game_action(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if not isinstance(act, PlayerDeath): return act
-
-        T = Identity.TYPE
-        if evt_type == 'action_apply':
-            tgt = act.target
+        if evt_type == 'action_before' and isinstance(act, DeadDropCards):
+            T = Identity.TYPE
             g = Game.getgame()
+            tgt = act.target
 
             g.process_action(RevealIdentity(tgt, g.players))
 
@@ -74,18 +72,24 @@ class DeathHandler(EventHandler):
                 g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
                 g.game_end()
 
-        elif evt_type == 'action_after':
-            if act.source:
-                src = act.source
-                if tgt.identity.type == Identity.TYPE.ATTACKER:
+        elif evt_type == 'action_after' and isinstance(act, PlayerDeath):
+            T = Identity.TYPE
+            g = Game.getgame()
+            tgt = act.target
+            src = act.source
+
+            if src:
+                if tgt.identity.type == T.ATTACKER:
                     g.process_action(DrawCards(src, 3))
-                elif tgt.identity.type == Identity.TYPE.ACCOMPLICE:
-                    if src.identity.type == Identity.TYPE.BOSS:
-                        if src.cards:
-                            g.players.exclude(src).reveal(list(src.cards))
-                            g.process_action(DropCards(src, src.cards))
-                        if src.showncards: g.process_action(DropCards(src, src.showncards))
-                        if src.equips: g.process_action(DropCards(src, src.equips))
+                elif tgt.identity.type == T.ACCOMPLICE:
+                    if src.identity.type == T.BOSS:
+                        g.players.exclude(src).reveal(list(src.cards))
+
+                        cards = []
+                        cards.extend(src.cards)
+                        cards.extend(src.showncards)
+                        cards.extend(src.equips)
+                        cards and g.process_action(DropCards(src, cards))
 
         return act
 

@@ -9,7 +9,7 @@ from .actions import ActionStage, ActionStageLaunchCard, Damage, DrawCards
 from .actions import DropCards, GenericAction, LaunchCard, PlayerDeath
 from .actions import PlayerRevive, UserAction, BaseDamage, RevealIdentity
 from .actions import PlayerTurn, MaxLifeChange, action_eventhandlers
-from .actions import LifeLost
+from .actions import LifeLost, DeadDropCards
 from .actions import migrate_cards, user_choose_cards
 from .characters.baseclasses import mixin_character
 
@@ -41,26 +41,28 @@ def game_action(cls):
 @game_eh
 class DeathHandler(EventHandler):
     def handle(self, evt_type, act):
-        if not evt_type == 'action_after': return act
-        if not isinstance(act, PlayerDeath): return act
+        if evt_type == 'action_before' and isinstance(act, DeadDropCards):
+            tgt = act.target
+            g = Game.getgame()
 
-        tgt = act.target
-        g = Game.getgame()
+            # attackers' win
+            if tgt is g.mutant:
+                g.winners = g.attackers
+                g.game_end()
 
-        # attackers' win
-        if tgt is g.mutant:
-            g.winners = g.attackers
-            g.game_end()
+            # mutant's win
+            if all(p.dead for p in g.attackers):
+                g.winners = [g.mutant]
+                g.game_end()
 
-        # mutant's win
-        if all(p.dead for p in g.attackers):
-            g.winners = [g.mutant]
-            g.game_end()
+        elif evt_type == 'action_after' and isinstance(act, PlayerDeath):
+            tgt = act.target
+            g = Game.getgame()
 
-        if tgt in g.attackers:
-            for p in [p for p in g.attackers if not p.dead]:
-                if user_input([p], ChooseOptionInputlet(self, (False, True))):
-                    g.process_action(DrawCards(p, 1))
+            if tgt in g.attackers:
+                for p in [p for p in g.attackers if not p.dead]:
+                    if user_input([p], ChooseOptionInputlet(self, (False, True))):
+                        g.process_action(DrawCards(p, 1))
 
         return act
 
