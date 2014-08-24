@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from ..actions import ForEach, DropCards, Damage, UserAction, PlayerDeath, LaunchCard, ask_for_action
-from ..cards import AttackCard, Duel, Skill, TreatAs, InstantSpellCardAction, DummyCard, VirtualCard, Reject
+from ..actions import ForEach, DropCards, Damage, UserAction, PlayerDeath, LaunchCard, ask_for_action, DeadDropCards
+from ..cards import AttackCard, Duel, Skill, TreatAs, InstantSpellCardAction, VirtualCard, Reject
 from ..cards import t_None
 from .baseclasses import register_character_to, Character
 from game.autoenv import EventHandler, Game
@@ -29,6 +29,7 @@ class FlowerQueen(TreatAs, Skill):
 
 
 class Sadist(Skill):
+    distance = 1
     associated_action = None
     skill_category = ('character', 'passive')
     target = t_None
@@ -84,11 +85,8 @@ class SadistAction(UserAction):
         self.cards = cards
 
     def apply_action(self):
-        src = self.source
-        tgt = self.target
         g = Game.getgame()
-        g.process_action(DropCards(src, self.cards))
-        g.process_action(Damage(src, tgt, 2))
+        g.process_action(DropCards(self.source, self.cards))
 
         return True
 
@@ -98,40 +96,40 @@ class SadistHandler(EventHandler):
     execute_after = ('DeathHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type != 'action_after':
-            return act
+        if evt_type == 'action_after' and isinstance(act, PlayerDeath):
+            tgt = act.target.tags.get('sadist_target')
+            tgt and Game.getgame().process_action(Damage(act.source, tgt, 2))
 
-        if not isinstance(act, PlayerDeath):
-            return act
+        elif evt_type == 'action_before' and isinstance(act, DeadDropCards):
+            g = Game.getgame()
+            src = g.action_stack[-1].source  # source of PlayerDeath
+            tgt = act.target
 
-        src = act.source
-        tgt = act.target
-        g = Game.getgame()
+            if not src or src is tgt:
+                return act
 
-        if not src or src is tgt:
-            return act
+            if not src.has_skill(Sadist):
+                return act
 
-        if not src.has_skill(Sadist):
-            return act
+            if g.current_turn is not src:
+                return act
 
-        if g.current_turn is not src:
-            return act
+            dist = LaunchCard.calc_distance(tgt, Sadist(src))
+            candidates = [k for k, v in dist.items() if v <= 0]
 
-        dist = LaunchCard.calc_distance(tgt, DummyCard(distance=1))
-        candidates = [k for k, v in dist.items() if v <= 0]
+            if not candidates:
+                return act
 
-        if not candidates:
-            return act
+            p, rst = ask_for_action(self, [src], ('cards', 'showncards'), candidates)
+            if not p:
+                return act
 
-        p, rst = ask_for_action(self, [src], ('cards', 'showncards'), candidates)
-        if not p:
-            return act
+            assert p is src
 
-        assert p is src
+            cards, pl = rst
 
-        cards, pl = rst
-
-        g.process_action(SadistAction(src, pl[0], cards))
+            g.process_action(SadistAction(src, pl[0], cards))
+            tgt.tags['sadist_target'] = pl[0]
 
         return act
 

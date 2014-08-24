@@ -58,7 +58,7 @@ class DeathHandler(EventHandler):
 
 @game_eh
 class HeritageHandler(EventHandler):
-    execute_after = ('DeathHandler', )
+    execute_after = ('DeathHandler', 'SadistHandler')
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
