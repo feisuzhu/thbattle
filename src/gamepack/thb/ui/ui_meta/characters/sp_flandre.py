@@ -29,6 +29,22 @@ class DestructionImpulse:
     is_action_valid = passive_is_action_valid
 
 
+class DestructionImpulseAction:
+    def effect_string_before(act):
+        if act.source is act.target:
+            s = u'没有人愿意陪|G【%s】|r一起玩，|G【%s】|r很伤心。' % (
+                act.source.ui_meta.char_name,
+                act.source.ui_meta.char_name,
+            )
+        else:
+            s = u'|G【%s】|r：“其他人都很忙的样子诶，那|G【%s】|r来陪我玩好不好？”' % (
+                act.source.ui_meta.char_name,
+                act.target.ui_meta.char_name,
+            )
+
+        return s
+
+
 class DestructionImpulseHandler:
     def choose_card_text(g, act, cards):
         if cards:
@@ -55,3 +71,10 @@ class FourOfAKindHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【四重存在】吗？'
+
+
+class FourOfAKindAction:
+    def effect_string(act):
+        return u'|G【%s】|r发动了|G四重存在|r，防止了此次伤害。' % (
+            act.target.ui_meta.char_name,
+        )
