@@ -127,7 +127,7 @@ class THBattleIdentity(Game):
 
         g.ehclasses = ehclasses = list(action_eventhandlers) + _game_ehs.values()
 
-        if params['double_curtain']:
+        if params.get('double_curtain'):
             g.identities = g.identities[1:] + g.identities[-1:]
 
         # choose girls init -->
