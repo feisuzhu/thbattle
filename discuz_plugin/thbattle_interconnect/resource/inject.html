@@ -68,7 +68,9 @@ THB = {
         THB.pullEvents();
     }
 };
-
+</script>
+<script src="/source/plugin/thbattle_interconnect/resource/scanner.js"></script>
+<script>
 jq(function() {
     jq('.toggler').click(function(e) {
         jq(jq(this).attr('toggle')).fadeToggle(200);
@@ -83,9 +85,8 @@ jq(function() {
 
     THB.init();
 });
-
 </script>
-<script src="/source/plugin/thbattle_interconnect/resource/scanner.js"></script>
+
 <style type="text/css">
 #thb_online .cl li {
     float: left;
