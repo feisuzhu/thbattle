@@ -17,7 +17,10 @@ import sys
 UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
 UPDATE_BASE = os.path.dirname(UPDATE_BASE)
 
+EMERGENCY_UPDATE_URL = 'http://update.thbattle.net/'
+
 UPDATE_PREFIX = 'src/' if sys.platform.startswith('linux') else ''
+
 
 from options import options
 

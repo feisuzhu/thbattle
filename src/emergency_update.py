@@ -22,6 +22,6 @@ import gevent
 from gevent import monkey
 monkey.patch_socket()
 
-rst = gevent.spawn(autoupdate.do_update, settings.UPDATE_BASE, settings.ServerList['lake']['update_url'], cb).get()
+rst = gevent.spawn(autoupdate.do_update, settings.UPDATE_BASE, settings.EMERGENCY_UPDATE_URL, cb).get()
 
 print 'Result:', rst
