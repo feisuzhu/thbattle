@@ -7,6 +7,7 @@ sys.setdefaultencoding(sys.getfilesystemencoding())
 import autoupdate
 import settings
 
+
 def cb(*a):
     print a
 
@@ -21,6 +22,6 @@ import gevent
 from gevent import monkey
 monkey.patch_socket()
 
-rst = gevent.spawn(autoupdate.do_update, settings.UPDATE_BASE, settings.UPDATE_URL, cb).get()
+rst = gevent.spawn(autoupdate.do_update, settings.UPDATE_BASE, settings.ServerList['lake']['update_url'], cb).get()
 
 print 'Result:', rst

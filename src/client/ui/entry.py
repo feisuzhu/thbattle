@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-import os
 
 from utils import hook
 
@@ -62,50 +61,32 @@ def start_ui():
     gllib.errcheck = my_errcheck
     # ------------------------------------
 
-    from screens import UpdateScreen, ServerSelectScreen
-    from client.ui.controls import ConfirmBox
+    from screens import ServerSelectScreen
     from client.core import Executive
     from options import options
 
-    us = UpdateScreen()
-    us.switch()
     sss = ServerSelectScreen()
 
-    errmsgs = {
-        'update_disabled': u'自动更新已被禁止',
-        'error': u'更新过程出现错误，您可能无法正常进行游戏！',
-    }
-
-    @gevent.spawn
-    def do_update():
-        msg = Executive.update(us.update_message)
-
-        if msg == 'up2date':
+    if options.fastjoin:
+        @gevent.spawn
+        def func():
+            from client.ui.soundmgr import SoundManager
+            SoundManager.mute()
+            gevent.sleep(0.3)
             sss.switch()
-        elif msg == 'update_disabled' and options.fastjoin:
-            @gevent.spawn
-            def func():
-                from client.ui.soundmgr import SoundManager
-                SoundManager.mute()
-                gevent.sleep(0.3)
-                sss.switch()
-                gevent.sleep(0.3)
-                Executive.connect_server(('127.0.0.1', 9999), ui_message)
-                gevent.sleep(0.3)
-                Executive.auth('Proton1', 'abcde')
-                gevent.sleep(0.3)
-                Executive.quick_start_game()
-                gevent.sleep(0.3)
-                Executive.get_ready()
+            gevent.sleep(0.3)
+            Executive.connect_server(('127.0.0.1', 9999), ui_message)
+            gevent.sleep(0.3)
+            Executive.auth('Proton1', 'abcde')
+            gevent.sleep(0.3)
+            Executive.quick_start_game()
+            gevent.sleep(0.3)
+            Executive.get_ready()
 
-        elif msg in errmsgs:
-            b = ConfirmBox(errmsgs[msg], parent=us)
+    else:
+        sss.switch()
 
-            @b.event
-            def on_confirm(val):
-                sss.switch()
-        else:
-            os.execv(sys.executable, [sys.executable] + sys.argv)
+    # os.execv(sys.executable, [sys.executable] + sys.argv)
 
     # workaround for pyglet's bug
     if sys.platform == 'win32':

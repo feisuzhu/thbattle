@@ -63,11 +63,12 @@ def write_metadata(base):
 
 
 def do_update(base, update_url, cb=lambda *a, **k: False):
+    base = os.path.join(base, settings.UPDATE_PREFIX)
+    update_url = urljoin(update_url, settings.UPDATE_PREFIX)
 
     try:
         remote = urllib2.build_opener()
         remote.addheaders = [('User-Agent', VERSION), ('Accept-Encoding', 'gzip')]
-        cb('update_begin')
 
         me = gevent.getcurrent()
 
@@ -95,6 +96,10 @@ def do_update(base, update_url, cb=lambda *a, **k: False):
             cb('up2date')
             return 'up2date'
 
+        if cb('need_update') == 'cancel':
+            return 'cancelled'
+
+        cb('update_begin')
         latest_hash = json.loads(worker(urljoin(update_url, 'update_info.json')))
 
         files_delete = set(my_hash) - set(latest_hash)

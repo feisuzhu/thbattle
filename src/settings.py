@@ -15,9 +15,9 @@ import os
 
 import sys
 UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
+UPDATE_BASE = os.path.dirname(UPDATE_BASE)
 
-if not sys.platform.startswith('linux'):
-    UPDATE_BASE = os.path.dirname(UPDATE_BASE)
+UPDATE_PREFIX = 'src/' if sys.platform.startswith('linux') else ''
 
 from options import options
 
@@ -25,9 +25,6 @@ if options.testing:
     UPDATE_URL = 'http://misc.thbattle.net/testing/'
 else:
     UPDATE_URL = 'http://update.thbattle.net/'
-
-if sys.platform.startswith('linux'):
-    UPDATE_URL += 'src/'
 
 VERSION = 'THBATTLE V1.0b incr 212'
 

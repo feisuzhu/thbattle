@@ -301,7 +301,59 @@ class ServerSelectScreen(Screen):
             def on_mouse_release(self, x, y, button, modifiers):
                 if self.highlight and not self.disable_click:
                     self.disable_click = True
-                    ui_message(Executive.connect_server(self.highlight['address'], ui_message))
+                    self.select_server(self.highlight)
+
+            def select_server(self, server):
+                us = UpdateScreen()
+
+                def update_cb(msg, *args):
+                    if msg == 'need_update':
+                        confirm = ConfirmBox(
+                            u'是否进行更新？', u'有更新',
+                            ConfirmBox.Presets.OKCancel,
+                            parent=self.parent
+                        )
+
+                        from gevent.event import Event
+                        ev = Event()
+                        result = []
+
+                        @confirm.event
+                        def on_confirm(val):
+                            if val:
+                                us.switch()
+                                result.append(None)
+                            else:
+                                result.append('cancel')  # cancel update
+
+                            ev.set()
+
+                        ev.wait()
+                        return result[0]
+
+                    else:
+                        return us.update_message(msg, *args)
+
+                g = gevent.spawn(Executive.update, update_cb)
+
+                @g.link
+                def link(_):
+                    result = g.value
+
+                    if result == 'updated':
+                        import os
+                        import sys
+                        os.execv(sys.executable, [sys.executable] + sys.argv)
+
+                    elif result == 'error':
+                        self.parent.switch()
+                        ConfirmBox(u'更新失败，请重试', parent=self.parent)
+                        self.enable_click()
+
+                    else:
+                        ui_message(Executive.connect_server(
+                            server['address'], ui_message
+                        ))
 
             def enable_click(self):
                 self.disable_click = False
@@ -799,8 +851,8 @@ class GameHallScreen(Screen):
         VolumeTuner(parent=self, x=850, y=660)
         NoInviteButton(parent=self, x=654, y=660, width=80, height=35)
 
-        b = Button(parent=self,
-            x=750, y=660, width=80, height=35,
+        b = Button(
+            parent=self, x=750, y=660, width=80, height=35,
             color=Colors.orange, caption=u'卡牌查看器',
         )
 
