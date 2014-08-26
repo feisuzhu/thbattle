@@ -4,6 +4,7 @@ import gevent
 import random
 import gevent.queue
 import urllib2
+import threading
 from zlib import crc32
 import simplejson as json
 import sys
@@ -36,16 +37,25 @@ def _clean_dir(base):
 
 def build_hash(base):
     my_hash = {}
-    for path, _, names in os.walk(base, followlinks=True):
-        for name in names:
-            if ignores.match(name):
-                # file in exclude list
-                continue
-            fn = os.path.join(path, name)
-            rfn = os.path.relpath(fn, base)
-            with open(fn, 'rb') as f:
-                h = crc32(f.read())
-                my_hash[rfn.replace('\\', '/')] = h
+
+    def run():
+        for path, _, names in os.walk(base, followlinks=True):
+            for name in names:
+                if ignores.match(name):
+                    # file in exclude list
+                    continue
+                fn = os.path.join(path, name)
+                rfn = os.path.relpath(fn, base)
+                with open(fn, 'rb') as f:
+                    h = crc32(f.read())
+                    my_hash[rfn.replace('\\', '/')] = h
+
+    thread = threading.Thread(target=run)
+    thread.start()
+
+    while thread.isAlive():
+        gevent.sleep(0.1)
+
     return my_hash
 
 
