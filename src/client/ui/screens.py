@@ -865,6 +865,18 @@ class GameHallScreen(Screen):
         def on_click():
             openurl('http://thb.io')
 
+        del on_click
+
+        b = Button(
+            parent=self, x=35, y=660, width=80, height=35,
+            color=Colors.orange, caption=u'切换服务器',
+        )
+
+        @b.event
+        def on_click():
+            Executive.disconnect()
+            ServerSelectScreen().switch()
+
         Executive.get_lobbyinfo()
 
     def on_message(self, _type, *args):

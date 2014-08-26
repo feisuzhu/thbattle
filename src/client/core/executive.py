@@ -193,6 +193,10 @@ class GameManager(Greenlet):
 
         while True:
             cmd, data = Executive.server.ctlcmds.get()
+            if cmd == 'shutdown':
+                beater.kill()
+                break
+
             h = handlers.get(cmd)
             if h:
                 f, _from, _to = h
@@ -217,8 +221,7 @@ class Executive(object):
             self.state = 'connecting'
             s = socket.create_connection(addr)
             self.server = svr = Server.spawn(s, addr)
-            self.dropped = lambda *a: event_cb('server_dropped')
-            svr.link_exception(self.dropped)
+            svr.link_exception(lambda *a: event_cb('server_dropped'))
             self.gamemgr = GameManager(event_cb)
             self.state = 'connected'
             self.gamemgr.start()
@@ -234,16 +237,19 @@ class Executive(object):
             return 'not_connected'
         else:
             self.state = 'dying'
-            self.server.unlink(self.dropped)
+            loop = gevent.getcurrent() is self.gamemgr
 
             @gevent.spawn
             def kill():
-                self.server.close()
-                self.gamemgr.kill()
+                self.server.kill()
+                self.server.join()
+                self.server.ctlcmds.put(['shutdown', None])
+                self.gamemgr.join()
                 self.server = self.gamemgr = None
                 self.state = 'initial'
 
-            kill.join()
+            if not loop:
+                kill.join()
 
             return 'disconnected'
 
