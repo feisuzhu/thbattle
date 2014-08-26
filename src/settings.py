@@ -21,11 +21,6 @@ UPDATE_PREFIX = 'src/' if sys.platform.startswith('linux') else ''
 
 from options import options
 
-if options.testing:
-    UPDATE_URL = 'http://misc.thbattle.net/testing/'
-else:
-    UPDATE_URL = 'http://update.thbattle.net/'
-
 VERSION = 'THBATTLE V1.0b incr 212'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
@@ -77,25 +72,26 @@ class ServerList:
     IS_PROTON = hasattr(os, 'uname') and ''.join(os.uname()).startswith('LinuxProton')
     del os
 
-    if options.testing or IS_PROTON:
-        class hakurei:
-            address = ('game.thbattle.net', 8999)
-            polygon = [
-                (878, 423), (829, 409), (760, 376), (748, 346), (787, 329),
-                (863, 313), (929, 322), (970, 330), (992, 366), (968, 399),
-            ]
-            box = _get_box(polygon)
-            description = (
-                u'|R没什么香火钱 博丽神社|r\n\n'
-                u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
-                u'出手大方的话，说不定会欣赏到博丽神社历代传下来的10万元COS哦。\n\n'
-                u'|R|B注意：这是测试服务器，并不保证稳定、与正常服务器的同步！|r\n\n'
-                u'|DB服务器地址： %s|r'
-            ) % repr(address)
+    class hakurei:
+        address = ('game.thbattle.net', 8999)
+        update_url = 'http://misc.thbattle.net/testing/'
+        polygon = [
+            (878, 423), (829, 409), (760, 376), (748, 346), (787, 329),
+            (863, 313), (929, 322), (970, 330), (992, 366), (968, 399),
+        ]
+        box = _get_box(polygon)
+        description = (
+            u'|R没什么香火钱 博丽神社|r\n\n'
+            u'冷清的神社，不过很欢迎大家去玩的，更欢迎随手塞一点香火钱！'
+            u'出手大方的话，说不定会欣赏到博丽神社历代传下来的10万元COS哦。\n\n'
+            u'|R|B注意：这是测试服务器，并不保证稳定、与正常服务器的同步！|r\n\n'
+            u'|DB服务器地址： %s|r'
+        ) % repr(address)
 
     if options.freeplay or IS_PROTON:
         class localhost:
             address = ('127.0.0.1', 9999)
+            update_url = None
             polygon = [
                 (891, 704), (839, 707), (740, 601), (749, 575), (834, 570),
                 (947, 576), (986, 597), (991, 675), (964, 696),
@@ -107,6 +103,7 @@ class ServerList:
 
     class lake:
         address = ('cngame.thbattle.net', 9999)
+        update_url = 'http://update.thbattle.net/'
         polygon = [
             (569, 510), (514, 501), (489, 474), (514, 449), (585, 439),
             (647, 447), (670, 457), (671, 487), (628, 504),
@@ -121,6 +118,7 @@ class ServerList:
 
     class forest:
         address = ('cngame.thbattle.net', 9999)
+        update_url = 'http://update.thbattle.net/'
         polygon = [
             (360, 415), (237, 380), (197, 309), (222, 199), (285, 159),
             (397, 150), (524, 168), (611, 256), (592, 318), (536, 359),

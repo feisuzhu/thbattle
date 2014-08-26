@@ -238,13 +238,12 @@ class Executive(object):
             self.server = self.gamemgr = None
             return 'disconnected'
 
-    def update(self, update_cb):
+    def update(self, url, update_cb):
         import autoupdate as au
         from options import options
         import settings
-        if not options.no_update:
+        if url and not options.no_update:
             base = settings.UPDATE_BASE
-            url = settings.UPDATE_URL
             return au.do_update(base, url, update_cb)
         else:
             return 'update_disabled'

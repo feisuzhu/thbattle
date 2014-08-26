@@ -334,7 +334,7 @@ class ServerSelectScreen(Screen):
                     else:
                         return us.update_message(msg, *args)
 
-                g = gevent.spawn(Executive.update, update_cb)
+                g = gevent.spawn(Executive.update, server['update_url'], update_cb)
 
                 @g.link
                 def link(_):
