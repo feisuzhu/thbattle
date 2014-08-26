@@ -163,7 +163,12 @@ class ChatBoxFrame(Frame):
 class Screen(Overlay):
     def on_message(self, _type, *args):
         if _type == 'server_dropped':
-            ConfirmBox(u'已经与服务器断开链接，请重新启动游戏！', parent=Screen.cur_overlay)
+            c = ConfirmBox(u'已经与服务器断开链接，请重新启动游戏！', parent=Screen.cur_overlay)
+
+            @c.event
+            def on_confirm(v):
+                Executive.disconnect()
+                ServerSelectScreen().switch()
 
         elif _type == 'invite_request':
             uid, uname, gid, gtype = args[0]

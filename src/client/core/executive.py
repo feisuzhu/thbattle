@@ -214,12 +214,13 @@ class Executive(object):
             return 'server_already_connected'
 
         try:
+            self.state = 'connecting'
             s = socket.create_connection(addr)
-            svr = Server.spawn(s, addr)
-            svr.link_exception(lambda *a: event_cb('server_dropped'))
-            self.server = svr
-            self.state = 'connected'
+            self.server = svr = Server.spawn(s, addr)
+            self.dropped = lambda *a: event_cb('server_dropped')
+            svr.link_exception(self.dropped)
             self.gamemgr = GameManager(event_cb)
+            self.state = 'connected'
             self.gamemgr.start()
             return None
 
@@ -232,10 +233,18 @@ class Executive(object):
         if self.state != 'connected':
             return 'not_connected'
         else:
-            self.server.close()
-            self.state = 'initial'
-            self.gamemgr.kill()
-            self.server = self.gamemgr = None
+            self.state = 'dying'
+            self.server.unlink(self.dropped)
+
+            @gevent.spawn
+            def kill():
+                self.server.close()
+                self.gamemgr.kill()
+                self.server = self.gamemgr = None
+                self.state = 'initial'
+
+            kill.join()
+
             return 'disconnected'
 
     def update(self, url, update_cb):
