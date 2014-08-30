@@ -338,10 +338,7 @@ class Lobby(object):
 
         log.info("join game")
 
-        if user.state == 'observing':
-            manager.observe_leave(user)
-
-        manager.join_game(user, slot)
+        manager.join_game(user, slot, observing=user.state == 'observing')
         self.refresh_status()
 
     def clear_observers(self, user):
@@ -732,6 +729,12 @@ class GameManager(object):
 
     @classmethod
     def get_by_user(cls, user):
+        '''
+        Get GameManager object for user.
+
+        :rtype: GameManager
+        '''
+
         return user.current_game
 
     def send_gameinfo(self, user):
@@ -887,7 +890,7 @@ class GameManager(object):
 
         return True
 
-    def observe_leave(self, user):
+    def observe_leave(self, user, no_move=False):
         assert user.state == 'observing'
 
         tgt = user.observing
@@ -896,13 +899,12 @@ class GameManager(object):
         user.observing = None
         user.current_game = None
         user.gclear()
-        user.write(['game_left', None])
+        no_move or user.write(['game_left', None])
 
         @gevent.spawn
-        def notify_observer_leave(user=user, observee=tgt):
-            manager = GameManager.get_by_user(observee)
-            ul = manager.users
-            info = [user.account.userid, user.account.username, observee.account.username]
+        def notify_observer_leave():
+            ul = self.users
+            info = [user.account.userid, user.account.username, tgt.account.username]
             ul.write(['observer_leave', info])
             for obl in ul.observers:
                 obl and obl.write(['observer_leave', info])
@@ -941,9 +943,9 @@ class GameManager(object):
     def is_banned(self, user):
         return len(self.banlist[user]) >= self.game.n_persons // 2
 
-    def join_game(self, user, slot):
+    def join_game(self, user, slot, observing=False):
         assert user not in self.users
-        assert user.state == 'hang'
+        assert user.state == ('observing' if observing else 'hang')
 
         if slot is None:
             slot = self.next_free_slot()
@@ -953,9 +955,14 @@ class GameManager(object):
         if slot is None:
             return
 
-        user.state = 'inroomwait'
-        user.current_game = self
         self.users[slot] = user
+
+        if observing:
+            origin = self.get_by_user(user)
+            origin.observe_leave(user, no_move=origin is self)
+
+        user.current_game = self
+        user.state = 'inroomwait'
         user.write(['game_joined', self])
         if user.observers:
             for ob in user.observers:
