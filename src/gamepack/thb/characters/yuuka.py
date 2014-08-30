@@ -3,8 +3,9 @@
 from ..actions import ForEach, DropCards, Damage, UserAction, PlayerDeath, LaunchCard, ask_for_action, DeadDropCards
 from ..cards import AttackCard, Duel, Skill, TreatAs, InstantSpellCardAction, VirtualCard, Reject
 from ..cards import t_None
+from ..inputlets import ChooseOptionInputlet
 from .baseclasses import register_character_to, Character
-from game.autoenv import EventHandler, Game
+from game.autoenv import EventHandler, Game, user_input
 
 
 class ReversedScales(Skill):
@@ -72,6 +73,9 @@ class ReversedScalesHandler(EventHandler):
         if not tgt.has_skill(ReversedScales):
             return act
 
+        if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            return act
+
         g = Game.getgame()
         g.process_action(ReversedScalesAction(tgt, act))
 
@@ -109,9 +113,6 @@ class SadistHandler(EventHandler):
                 return act
 
             if not src.has_skill(Sadist):
-                return act
-
-            if g.current_turn is not src:
                 return act
 
             dist = LaunchCard.calc_distance(tgt, Sadist(src))
