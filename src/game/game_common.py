@@ -279,6 +279,7 @@ class Game(GameObject):
             winner = None
 
         log.info(u'>> Winner: %s', winner)
+        gevent.sleep(2)
 
         raise GameEnded
 
