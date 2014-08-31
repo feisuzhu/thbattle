@@ -24,7 +24,7 @@ UPDATE_PREFIX = 'src/' if sys.platform.startswith('linux') else ''
 
 from options import options
 
-VERSION = 'THBATTLE V1.0b incr 212'
+VERSION = 'THBATTLE V1.0b incr 213'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -150,6 +150,10 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新人物：SP芙兰朵露
+旧人物推重：风见幽香
+身份场双黑幕模式
+更容易的测试服务器切换
 新模式：2v2
 KOF模式加入“允许不平衡角色”选项
 信仰争夺战、异变模式现在可以选择随机/固定座位阵营
