@@ -321,8 +321,7 @@ class ScarletRhapsodySkill(WeaponSkill):
             tgt = card.resides_in.owner
 
             raw = VirtualCard.unwrap([card])
-            check(len(raw) == 1)
-            check(raw[0].resides_in in (tgt.cards, tgt.showncards))
+            check(all(r.resides_in in (tgt.cards, tgt.showncards) for r in raw))
             cards = set(tgt.cards) | set(tgt.showncards)
             check(cards <= set(raw))
 

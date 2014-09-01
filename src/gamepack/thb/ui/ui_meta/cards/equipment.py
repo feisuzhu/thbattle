@@ -292,9 +292,7 @@ class ScarletRhapsodySkill:
         try:
             act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
-                cl = list(me.cards) + list(me.showncards)
-                if len(cl) == 1:
-                    return True
+                return act.target is me
 
         except IndexError:
             pass
@@ -304,8 +302,7 @@ class ScarletRhapsodySkill:
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
         assert skill.is_card(cards.ScarletRhapsodySkill)
-        acards = skill.associated_cards
-        if not (len(acards) == 1 and acards[0].is_card(cards.AttackCard)):
+        if not skill.check():
             return (False, u'请选择你的最后一张【弹幕】！')
         else:
             if not target_list:
