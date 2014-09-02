@@ -20,7 +20,7 @@ from client.core import Executive
 from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPrompt, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
-from client.ui.controls import ImageSelector, ListView, Panel, OptionButtonGroup
+from client.ui.controls import ImageSelector, ListView, Panel, OptionButtonGroup, LoadingWindow
 from client.ui.controls import PasswordTextBox, PlayerPortrait
 from client.ui.controls import TextArea, TextBox, SensorLayer, CheckBox
 from client.ui.resource import resource as common_res
@@ -311,8 +311,12 @@ class ServerSelectScreen(Screen):
             def select_server(self, server):
                 us = UpdateScreen()
 
+                lw = LoadingWindow(u'正在检查更新', parent=self.parent)
+
                 def update_cb(msg, *args):
                     if msg == 'need_update':
+                        lw.done()
+
                         confirm = ConfirmBox(
                             u'是否进行更新？', u'有更新',
                             ConfirmBox.Presets.OKCancel,
@@ -344,6 +348,7 @@ class ServerSelectScreen(Screen):
                 @g.link
                 def link(_):
                     result = g.value
+                    lw.done()
 
                     if result == 'updated':
                         import os
@@ -356,9 +361,11 @@ class ServerSelectScreen(Screen):
                         self.enable_click()
 
                     else:
+                        lw2 = LoadingWindow(u'正在连接服务器', parent=self.parent)
                         ui_message(Executive.connect_server(
                             server['address'], ui_message
                         ))
+                        lw2.done()
 
             def enable_click(self):
                 self.disable_click = False
@@ -473,14 +480,21 @@ class LoginScreen(Screen):
 
         def do_login(self):
             u, pwd = self.txt_username.text, self.txt_pwd.text
+            self.parent.start_login()
             Executive.auth(u, pwd)
+
+        def disable(self):
+            self.btn_login.state = Button.DISABLED
+
+        def enable(self):
+            self.btn_login.state = Button.NORMAL
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
         self.bg = common_res.bg_login.get()
         self.bg_alpha = LinearInterp(0, 1.0, 1.5)
         self.dialog = LoginScreen.LoginDialog(parent=self)
-        try_game = Button(
+        self.btn_try = try_game = Button(
             parent=self, caption=u'试玩',
             x=750, y=50, width=100, height=30, color=Colors.orange,
         )
@@ -500,6 +514,7 @@ class LoginScreen(Screen):
 
             @confirm.event
             def on_confirm(val):
+                self.start_login()
                 val and Executive.auth('-1', 'guest')
 
     def on_message(self, _type, *args):
@@ -513,6 +528,7 @@ class LoginScreen(Screen):
 
         elif _type == 'auth_failure':
             log.error('Auth failure')
+            self.done_login()
             status = args[0]
             tbl = dict(
                 not_available=u'您的帐号目前不可用，请联系管理员询问！',
@@ -529,6 +545,16 @@ class LoginScreen(Screen):
         glColor4f(1, 1, 1, self.bg_alpha.value)
         self.bg.blit(0, 0)
         self.draw_subcontrols()
+
+    def start_login(self):
+        self.loading = LoadingWindow(u'正在验证用户', parent=self)
+        self.btn_try.state = Button.DISABLED
+        self.dialog.disable()
+
+    def done_login(self):
+        self.loading.done()
+        self.btn_try.state = Button.NORMAL
+        self.dialog.enable()
 
     def on_switch(self):
         SoundManager.switch_bgm(common_res.bgm_hall)

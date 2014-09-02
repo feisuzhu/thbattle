@@ -222,7 +222,8 @@ class Button(AbstractButton):
             down, down, up, up, [heavy]*4
         ])
 
-        batch.add(8, GL_QUADS, None,
+        batch.add(
+            8, GL_QUADS, None,
             ('v2f', flatten([
                 rectv2f(.5, .5, w-.5, h-.5, ax, ay),
                 rrectv2f(.5, .5, w-.5, h-.5, ax, ay),
@@ -237,7 +238,8 @@ class Button(AbstractButton):
             anchor_x='center', anchor_y='center', batch=batch
         )
 
-        self.hilight_vl = batch.add(4, GL_QUADS, None,
+        self.hilight_vl = batch.add(
+            4, GL_QUADS, None,
             ('v2f', (ax, ay, ax + w, ay, ax + w, ay + h, ax, ay + h)),
             ('c4f/stream', [0.0] * (4 * 4)),
         )
@@ -428,7 +430,7 @@ class Frame(Control):
 
     def update_bg(self):
         bg = getattr(self, 'bg', None)
-        r = self.bot_reserve; w = self.width; h = self.height
+        r, w, h = self.bot_reserve, self.width, self.height
         _w = w - 2
         _h = h - 24 - r
         if bg:
@@ -453,7 +455,8 @@ class Frame(Control):
         self.bgsprite = Sprite(cres.white, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
         self.update_bg()
 
-        self.framevlist = batch.add(20, GL_QUADS, self.frame_group,
+        self.framevlist = batch.add(
+            20, GL_QUADS, self.frame_group,
             'v2f', 'c4B',
         )
 
@@ -480,7 +483,7 @@ class Frame(Control):
 
     def _get_frame_v2f(self):
         ax, ay = self.abs_coords()
-        w = self.width; h = self.height; r = self.bot_reserve
+        w, h, r = self.width, self.height, self.bot_reserve
         return flatten([
             rectv2f(ax+.5, ay+h-24+.5, w-.5, 24-.5),  # title bar
             rectv2f(ax+.5, ay+.5, w-.5, r-.5),  # bot reserve
@@ -512,7 +515,7 @@ class Frame(Control):
         self.caption_lbl.color = C(c.caption)
 
     def set_position(self, x, y):
-        self.x = x; self.y = y
+        self.x, self.y = x, y
         self.update_position()
 
     def update_position(self):
@@ -609,7 +612,7 @@ class Frame(Control):
 
 class Dialog(Frame):
     no_move = False
-    next_zindex = 1
+    next_zindex = 10
 
     def __init__(self, *a, **k):
         Frame.__init__(self, *a, **k)
@@ -1804,6 +1807,45 @@ class ConfirmBox(Dialog):
 ConfirmBox.register_event_type('on_confirm')
 
 
+class LoadingWindow(Dialog):
+    def __init__(self, text=u'Yoo~', caption=u'请稍候...',
+                 *a, **k):
+        Dialog.__init__(
+            self, caption, width=300, bot_reserve=0, *a, **k
+        )
+
+        self._done = False
+        self.btn_close.delete()
+
+        lbl = self.add_label(
+            text, 0, 20, anchor_x='center', anchor_y='bottom',
+            font_size=9, width=10000, multiline=True, color=(0, 0, 0, 255)
+        )
+
+        w, h = lbl.content_width + 1, lbl.content_height
+        dw, dh = w+50, h+24+20*2
+        self.width, self.height = dw, dh
+        lbl.begin_update()
+        lbl.width = w
+        self.set_label_position(lbl, dw//2, 20)
+        lbl.end_update()
+
+        p = self.parent
+        pw, ph = p.width, p.height
+        self.set_position((pw - dw)/2, (ph - dh)/2)
+
+    def done(self):
+        if not self._done:
+            self._done = True
+            self.delete()
+
+    def is_done(self):
+        return self._done
+
+    def on_move(self, x, y):
+        pass
+
+
 class Panel(Control):
     fill_color = (1.0, 1.0, 0.8, 0.0)
 
@@ -1966,9 +2008,9 @@ ImageSelector.register_event_type('on_dblclick')
 
 class SensorLayer(Control):
     def __init__(self, parent, *a, **k):
-        Control.__init__(self,
-            parent=parent,
-            x=0, y=0, width=parent.width, height=parent.height,
+        Control.__init__(
+            self, parent=parent, x=0, y=0,
+            width=parent.width, height=parent.height,
             *a, **k
         )
 
