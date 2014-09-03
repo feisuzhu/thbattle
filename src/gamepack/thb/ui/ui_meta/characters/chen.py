@@ -71,6 +71,7 @@ class FlyingSkanda:
 class Shikigami:
     # Skill
     name = u'式神'
+
     def clickable(game):
         me = game.me
         if me.tags.get('shikigami_tag'): return False
@@ -106,5 +107,6 @@ class Chen:
     description = (
         u'|DB凶兆的黑喵 橙 体力：4|r\n\n'
         u'|G飞翔韦驮天|r：出牌阶段，你使用的一张【弹幕】或除了【人形操控】与【好人卡】之外的非延时性单体符卡可以额外指定一个目标。每阶段限一次。\n\n'
-        u'|G式神|r：|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：摸2张牌或回复一点体力。直到你的下个回合开始，你和该角色可以于自己的回合内对对方攻击范围内的角色使用【弹幕】。'
+        u'|G式神|r：|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：摸2张牌或回复一点体力。直到你的下个回合开始，你和该角色可以于自己的回合内对对方攻击范围内的角色使用【弹幕】。\n\n'
+        u'|DB（画师：Pixiv ID 24291834）|r'
     )

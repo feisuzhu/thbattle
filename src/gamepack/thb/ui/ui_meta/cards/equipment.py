@@ -24,7 +24,8 @@ class OpticalCloakCard:
     image_small = gres.card_opticalcloak_small
     description = (
         u'|R光学迷彩|r\n\n'
-        u'装备【光学迷彩】后，每次需要出【擦弹】时（例如受到【弹幕】或【地图炮】攻击时），可以选择判定，若判定结果为红色花色（红桃或方块），则等效于出了一张【擦弹】；否则需再出【擦弹】。'
+        u'装备【光学迷彩】后，每次需要出【擦弹】时（例如受到【弹幕】或【地图炮】攻击时），可以选择判定，若判定结果为红色花色（红桃或方块），则等效于出了一张【擦弹】；否则需再出【擦弹】。\n\n'
+        u'|DB（画师：人人网 邵思雯）|r'
     )
 
     is_action_valid = equip_iav
@@ -159,7 +160,8 @@ class ElementalReactorCard:
     image_small = gres.card_reactor_small
     description = (
         u'|R八卦炉|r\n\n'
-        u'攻击范围1，出牌阶段可以使用任意张【弹幕】。'
+        u'攻击范围1，出牌阶段可以使用任意张【弹幕】。\n\n'
+        u'|DB（画师：Pixiv UID 2022150）|r'
     )
 
     is_action_valid = equip_iav
@@ -179,7 +181,8 @@ class UmbrellaCard:
     image_small = gres.card_umbrella_small
     description = (
         u'|R阳伞|r\n\n'
-        u'装备后符卡造成的伤害对你无效。'
+        u'装备后符卡造成的伤害对你无效。\n\n'
+        u'|DB（画师：Pixiv ID 5676304）|r'
     )
 
     is_action_valid = equip_iav
@@ -411,7 +414,8 @@ class IbukiGourdCard:
     is_action_valid = equip_iav
     description = (
         u'|R伊吹瓢|r\n\n'
-        u'当装备在进攻马位置。在装备、失去装备及回合结束时获得|B喝醉|r状态'
+        u'当装备在进攻马位置。在装备、失去装备及回合结束时获得|B喝醉|r状态\n\n'
+        u'|DB（画师：Pixiv ID 4578556）|r'
     )
 
 
@@ -431,7 +435,8 @@ class HouraiJewelCard:
         u'|R蓬莱玉枝|r\n\n'
         u'攻击范围1，当使用【弹幕】时可以选择发动。发动后【弹幕】带有符卡性质，可以被【好人卡】抵消，不可以使用【擦弹】躲过。\n'
         u'|B|R>> |r计算在出【弹幕】的次数内。\n'
-        u'|B|R>> |r蓬莱玉枝造成的伤害为固定的1点'
+        u'|B|R>> |r蓬莱玉枝造成的伤害为固定的1点\n\n'
+        u'|DB（画师：Pixiv ID 12657794）|r'
     )
 
     is_action_valid = equip_iav
@@ -642,7 +647,8 @@ class LaevateinCard:
     image_small = gres.card_laevatein_small
     description = (
         u'|R莱瓦汀|r\n\n'
-        u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），使此【弹幕】强制命中对方，无法闪避。'
+        u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），使此【弹幕】强制命中对方，无法闪避。\n\n'
+        u'|DB（画师：Danbooru post 1240565）|r'
     )
     is_action_valid = equip_iav
 
@@ -733,7 +739,8 @@ class WitchBroomCard:
     is_action_valid = equip_iav
     description = (
         u'|R魔女扫把|r\n\n'
-        u'特殊的红色UFO装备，距离-2'
+        u'特殊的红色UFO装备，距离-2\n\n'
+        u'|DB（画师：Pixiv UID 286832）|r'
     )
 
 
@@ -784,7 +791,8 @@ class SuwakoHatCard:
     image_small = gres.card_suwakohat_small
     description = (
         u'|R青蛙帽|r\n\n'
-        u'装备后，手牌上限+2'
+        u'装备后，手牌上限+2\n\n'
+        u'|DB（画师：Pixiv ID 9552727）|r'
     )
     is_action_valid = equip_iav
 
@@ -803,7 +811,8 @@ class YoumuPhantomCard:
     image_small = gres.card_phantom_small
     description = (
         u'|R半灵|r\n\n'
-        u'装备时增加一点体力上限，当失去装备区里的【半灵】时，回复一点体力。'
+        u'装备时增加一点体力上限，当失去装备区里的【半灵】时，回复一点体力。\n\n'
+        u'|DB（画师：Pixiv ID 376712）|r'
     )
 
     is_action_valid = equip_iav

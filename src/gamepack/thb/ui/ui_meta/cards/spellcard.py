@@ -14,7 +14,8 @@ class DemolitionCard:
     name = u'城管执法'
     description = (
         u'|R城管执法|r\n\n'
-        u'出牌阶段对(除自己外)任意一名玩家使用，随机抽取并弃掉对方一张手牌，或选择并弃掉一张对方面前的牌(包括装备、明牌区和判定区内延时类符卡)。'
+        u'出牌阶段对(除自己外)任意一名玩家使用，随机抽取并弃掉对方一张手牌，或选择并弃掉一张对方面前的牌(包括装备、明牌区和判定区内延时类符卡)。\n\n'
+        u'|DB（画师：Pixiv ID 557324）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -121,7 +122,8 @@ class FrozenFrogCard:
         u'|R冻青蛙|r\n\n'
         u'延时类符卡\n'
         u'出牌阶段对任意一名玩家使用,将此牌置于目标玩家判定区,对方在其摸牌阶段需判定——如果判定结果不为黑桃，则该回合跳过摸牌阶段。无论判定是否成功，弃掉该【冻青蛙】。\n'
-        u'|B|R>> |r仅当需要开始进行【冻青蛙】的判定时,才能使用【好人卡】抵消之(抵消后弃掉【冻青蛙】)。'
+        u'|B|R>> |r仅当需要开始进行【冻青蛙】的判定时,才能使用【好人卡】抵消之(抵消后弃掉【冻青蛙】)。\n\n'
+        u'|DB（画师：Pixiv ID 无限轨道A）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -167,7 +169,8 @@ class SinsackCard:
         u'延时类符卡\n'
         u'出牌阶段使用,将【罪袋】横置于自己面前:\n'
         u'|B|R>> |r【罪袋】将一直放在那里直到这回合结束,当自己下回合进入回合开始阶段时,自己需要判定——若判定结果为黑桃1~黑桃8的牌,视为被【罪袋】推倒,受到3点伤害,并将【罪袋】弃掉;否则,将【罪袋】传给右边的玩家,右边的玩家在他/她的回合开始阶段需要做同样的判定,以此类推,直到【罪袋】生效为止,弃掉【罪袋】。\n'
-        u'|B|R>> |r仅当需要开始进行【罪袋】的判定时,才能使用【好人卡】抵消之,但抵消后不弃掉【罪袋】,而是将之传递给下家。'
+        u'|B|R>> |r仅当需要开始进行【罪袋】的判定时,才能使用【好人卡】抵消之,但抵消后不弃掉【罪袋】,而是将之传递给下家。\n\n'
+        u'|DB（画师：Pixiv UID 193851）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -188,7 +191,8 @@ class YukariDimensionCard:
 
     description = (
         u'|R隙间|r\n\n'
-        u'出牌阶段对距离为1的一名玩家使用，随机抽取并获得对方一张手牌，或选择并获得一张对方面前的牌(包括装备、明牌区内的牌和判定区的延时类符卡)。'
+        u'出牌阶段对距离为1的一名玩家使用，随机抽取并获得对方一张手牌，或选择并获得一张对方面前的牌(包括装备、明牌区内的牌和判定区的延时类符卡)。\n\n'
+        u'|DB（画师：Pixiv ID 7334440）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -218,7 +222,8 @@ class DuelCard:
     name = u'弹幕战'
     description = (
         u'|R弹幕战|r\n\n'
-        u'出牌阶段对(除自己外)任意一名玩家使用，由目标角色先开始，你和他（她）轮流打出一张【弹幕】，【弹幕战】对首先不出【弹幕】的一方造成1点伤害；另一方成为此伤害的来源。'
+        u'出牌阶段对(除自己外)任意一名玩家使用，由目标角色先开始，你和他（她）轮流打出一张【弹幕】，【弹幕战】对首先不出【弹幕】的一方造成1点伤害；另一方成为此伤害的来源。\n\n'
+        u'|DB（画师：Pixiv ID 8092636）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -233,7 +238,8 @@ class MapCannonCard:
     name = u'地图炮'
     description = (
         u'|R地图炮|r\n\n'
-        u'按行动顺序结算，除非目标角色打出一张【擦弹】，否则该角色受到【地图炮】对其造成的1点伤害。'
+        u'按行动顺序结算，除非目标角色打出一张【擦弹】，否则该角色受到【地图炮】对其造成的1点伤害。\n\n'
+        u'|DB（画师：Pixiv ID 24801096）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -245,7 +251,8 @@ class SinsackCarnivalCard:
     name = u'罪袋狂欢'
     description = (
         u'|R罪袋狂欢|r\n\n'
-        u'出牌阶段使用,(除自己外)所有玩家各需出一张【弹幕】，没有【弹幕】（或不出）的玩家受到一点伤害。'
+        u'出牌阶段使用，所有其他玩家需打出一张【弹幕】，否则受到一点伤害。\n\n'
+        u'|DB（画师：Pixiv UID 146732）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -258,7 +265,8 @@ class FeastCard:
     name = u'宴会'
     description = (
         u'|R宴会|r\n\n'
-        u'对所有玩家生效，每一个体力不满的玩家回复一点体力，满体力玩家获得|B喝醉|r状态。'
+        u'对所有玩家生效，每一个体力不满的玩家回复一点体力，满体力玩家获得|B喝醉|r状态。\n\n'
+        u'|DB（画师：Pixiv ID 8218978）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -271,7 +279,8 @@ class HarvestCard:
     name = u'五谷丰登'
     description = (
         u'|R五谷丰登|r\n\n'
-        u'你从牌堆顶亮出等同于现存角色数量的牌，然后所有角色按行动顺序结算，选择并获得这些牌中的一张。'
+        u'你从牌堆顶亮出等同于现存角色数量的牌，然后所有角色按行动顺序结算，选择并获得这些牌中的一张。\n\n'
+        u'|DB（画师：牛肉かしら）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -295,7 +304,8 @@ class DollControlCard:
     image = gres.card_dollcontrol
     description = (
         u'|R人形操控|r\n\n'
-        u'对装备有武器的玩家使用，令其使用一张【弹幕】攻击另一名指定玩家，否则将武器交给自己。'
+        u'对装备有武器的玩家使用，令其使用一张【弹幕】攻击另一名指定玩家，否则将武器交给自己。\n\n'
+        u'|DB（画师：Pixiv UID 2957827）|r'
     )
     custom_ray = True
 
@@ -341,7 +351,8 @@ class DonationBoxCard:
     image = gres.card_donationbox
     description = (
         u'|R塞钱箱|r\n\n'
-        u'指定1-2名有手牌或装备的玩家，被指定玩家必须选择一张手牌或装备牌置入你的明牌区。'
+        u'指定1-2名有手牌或装备的玩家，被指定玩家必须选择一张手牌或装备牌置入你的明牌区。\n\n'
+        u'|DB（画师：Pixiv ID 4104174）|r'
     )
 
     def is_action_valid(g, cl, tl):

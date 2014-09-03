@@ -28,5 +28,6 @@ class Tewi:
     port_image = gres.tewi_port
     description = (
         u'|DB幸运的腹黑兔子 因幡帝 体力：4|r\n\n'
-        u'|G幸运|r：|B锁定技|r，当你的手牌数为0时，立即摸2张牌。'
+        u'|G幸运|r：|B锁定技|r，当你的手牌数为0时，立即摸2张牌。\n\n'
+        u'|DB（画师：Pixiv UID 654238）|r'
     )

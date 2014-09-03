@@ -32,7 +32,8 @@ class GrazeCard:
     description = (
         u'|R擦弹|r\n\n'
         u'当你受到【弹幕】的攻击时，你可以使用一张【擦弹】来抵消【弹幕】的效果。\n'
-        u'|B|R>> |r【擦弹】通常情况下只能在回合外使用或打出。\n'
+        u'|B|R>> |r【擦弹】通常情况下只能在回合外使用或打出。\n\n'
+        u'|DB（画师：Pixiv ID 8692732）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -74,7 +75,8 @@ class ExinwanCard:
         u'|R恶心丸|r\n\n'
         u'主动使用时没有额外效果。当该牌以任意的方式由手牌/明牌区进入弃牌堆时，引发弃牌动作的玩家需要选择其中一项执行：\n'
         u'|B|R>> |r受到一点伤害，无来源\n'
-        u'|B|R>> |r弃两张牌'
+        u'|B|R>> |r弃两张牌\n\n'
+        u'|DB（画师：Pixiv ID 1203877）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -157,7 +159,8 @@ class HealCard:
         u'【麻薯】能在两种情况下使用：\n'
         u'1、在你的出牌阶段，你可以使用它来回复你的1点体力。\n'
         u'2、当有角色处于濒死状态时，你可以对该角色使用【麻薯】，防止该角色的死亡。\n'
-        u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。'
+        u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。\n\n'
+        u'|DB（画师：http://seiga.nicovideo.jp/seiga/im3031795）|r'
     )
 
     def is_action_valid(g, cl, target_list):

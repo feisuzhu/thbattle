@@ -15,7 +15,8 @@ class Medicine:
     description = (
         u'|DB 小小的甜蜜毒药 梅蒂欣 体力：3|r\n\n'
         u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张手牌，令该角色获得|G喝醉|r状态。若该角色在该回合结束阶段开始时处于|G喝醉|r状态，其失去|G喝醉|r状态并选择一项：①弃置一张手牌并令你摸一张牌；②受到一点无来源伤害。\n\n'
-        u'|G忧郁之毒|r：每当你受到X点有来源的伤害后，你可以摸X张牌并展示，若其中至少一张不为梅花，伤害来源无法使用或打出手牌直到该回合结束。'
+        u'|G忧郁之毒|r：每当你受到X点有来源的伤害后，你可以摸X张牌并展示，若其中至少一张不为梅花，伤害来源无法使用或打出手牌直到该回合结束。\n\n'
+        u'|DB（画师：Pixiv ID 38268080）|r'
     )
 
 
@@ -72,12 +73,11 @@ class MelancholyAction:
         )
 
     def effect_string(act):
-        return (u'|G【%s】|r陷入了忧郁。' if act.effective 
-                else u'但|G【%s】|r缓了过来。' ) % act.target.ui_meta.char_name
+        return (u'|G【%s】|r陷入了忧郁。' if act.effective
+                else u'但|G【%s】|r缓了过来。') % act.target.ui_meta.char_name
 
 
 class MelancholyHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'是否发动【忧郁之毒】'
-
