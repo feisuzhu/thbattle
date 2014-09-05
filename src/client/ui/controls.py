@@ -1981,38 +1981,49 @@ class VolumeTuner(Control):
             u'|DB调节音量的图标|r\n'
             u'\n'
             u'单击切换静音和有声音\n'
-            u'鼠标滚轮调整音量大小'
+            u'鼠标滚轮调整BGM音量大小\n'
+            u'按住Ctrl+鼠标滚轮调整效果音大小'
         )
 
     def draw(self):
         glColor4f(1, 1, 1, 1)
-        with cres.speaker.owner:
-            glColor4f(1, 1, 1, 1)
-            cres.speaker_off.blit_nobind(0, 0)
+        with cres.bgm_volume.owner:
             from client.ui.soundmgr import SoundManager
-            glColor4f(1, 1, 1, SoundManager.get_volume())
-            cres.speaker.blit_nobind(0, 0)
+            if SoundManager.muted:
+                glColor4f(1, 1, 1, 1)
+                cres.vol_mute.blit_nobind(0, 0)
+            else:
+                glColor4f(1, 1, 1, SoundManager.bgm_volume)
+                cres.bgm_volume.blit_nobind(0, 0)
+                glColor4f(1, 1, 1, SoundManager.se_volume)
+                cres.se_volume.blit_nobind(0, 0)
+                glColor4f(1, 1, 1, 1)
+                cres.vol_icon.blit_nobind(0, 0)
 
     def on_mouse_click(self, x, y, button, modifier):
         from client.ui.soundmgr import SoundManager
-        vol = SoundManager.get_volume()
-        if vol > 0:
-            SoundManager.mute()
-        else:
+        if SoundManager.muted:
             SoundManager.unmute()
+        else:
+            SoundManager.mute()
 
     def on_mouse_scroll(self, x, y, dx, dy):
         from client.ui.soundmgr import SoundManager
-        vol = SoundManager.get_volume()
-        vol += 0.1 * dy
+        key_state = self.overlay.key_state
+
+        is_se = key_state[key.LCTRL] or key_state[key.RCTRL]
+
+        vol = SoundManager.se_volume if is_se else SoundManager.bgm_volume
+        vol += 0.1 * dy / abs(dy)
         vol = min(1.0, vol)
         vol = max(0.0, vol)
 
         if vol:
             SoundManager.unmute()
-            SoundManager.set_volume(vol)
-        else:
-            SoundManager.mute()
+            if is_se:
+                SoundManager.se_volume = vol
+            else:
+                SoundManager.bgm_volume = vol
 
 
 class OptionButton(Button):

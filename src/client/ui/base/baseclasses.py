@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
+
 import pyglet
 
 from pyglet.gl import glBlendFunc, glClearColor, glEnable, glLoadIdentity, glMatrixMode, glOrtho
@@ -229,6 +231,8 @@ class Overlay(Control):
         self.current_focus = None
         self._capture_events = {}
 
+        self.key_state = defaultdict(bool)
+
     def draw(self):
         main_window.clear()
         self.draw_subcontrols()
@@ -322,8 +326,14 @@ class Overlay(Control):
         if self.current_focus:
             self.current_focus.dispatch_event(_type, *args)
 
-    on_key_press = lambda self, *args: self._text_events('on_key_press', *args)
-    on_key_release = lambda self, *args: self._text_events('on_key_release', *args)
+    def on_key_press(self, symbol, modifiers):
+        self.key_state[symbol] = True
+        return self._text_events('on_key_press', symbol, modifiers)
+
+    def on_key_release(self, symbol, modifiers):
+        self.key_state[symbol] = False
+        return self._text_events('on_key_release', symbol, modifiers)
+
     on_text = lambda self, *args: self._text_events('on_text', *args)
     on_text_motion = lambda self, *args: self._text_events('on_text_motion', *args)
     on_text_motion_select = lambda self, *args: self._text_events('on_text_motion_select', *args)

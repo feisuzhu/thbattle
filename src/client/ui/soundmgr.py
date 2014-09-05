@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+from collections import defaultdict
+
+# -- third party --
 import pyglet
 from pyglet.media import Player, ManagedSoundPlayer
+
+# -- own --
 from .base.interp import InterpDesc, LinearInterp
 from user_settings import UserSettings
-
 from utils import instantiate
 
 
+# -- code --
 @instantiate
 class SoundManager(object):
     volume_factor = InterpDesc('_volume_factor')  # 音量系数
@@ -18,6 +24,7 @@ class SoundManager(object):
         self.bgm_switching = False
         self.bgm_player = Player()
         self.bgm_player.eos_action = Player.EOS_LOOP
+        self.se_players = defaultdict(Player)
         self.muted = False
 
     def switch_bgm(self, bgm):
@@ -72,27 +79,38 @@ class SoundManager(object):
         self.muted = False
         self.bgm_next and self.instant_switch_bgm(self.bgm_next)
 
-    def play(self, snd):
+    def play(self, snd, queue=None):
         if self.muted: return
-        player = ManagedSoundPlayer()
-        player.volume = self.volume
-        player.queue(snd)
-        player.play()
+
+        if queue is None:
+            player = ManagedSoundPlayer()
+            player.volume = self.se_volume
+            player.queue(snd)
+            player.play()
+        else:
+            player = self.se_players[queue]
+            player.volume = self.se_volume
+            player.queue(snd)
 
     @property
-    def volume(self):
-        return UserSettings.volume
+    def bgm_volume(self):
+        return UserSettings.bgm_volume
 
-    @volume.setter
-    def volume(self, value):
-        UserSettings.volume = value
-
-    def set_volume(self, vol):
-        self.volume = vol
+    @bgm_volume.setter
+    def bgm_volume(self, value):
+        UserSettings.bgm_volume = value
         self._set_vol()
 
-    def get_volume(self):
-        return self.volume * self.volume_factor
+    @property
+    def se_volume(self):
+        return UserSettings.se_volume
+
+    @se_volume.setter
+    def se_volume(self, value):
+        UserSettings.se_volume = value
+        self._set_vol()
 
     def _set_vol(self, _=None):
-        self.bgm_player.volume = self.volume_factor * self.volume
+        self.bgm_player.volume = self.volume_factor * self.bgm_volume
+        for p in self.se_players.values():
+            p.volume = self.volume_factor * self.se_volume

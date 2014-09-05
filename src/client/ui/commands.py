@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.soundmgr import SoundManager
 from client.core import Executive
 import gevent
 import logging
@@ -75,29 +74,6 @@ def process_command(arglist):
     return u'|R%s|R\n' % prompt
 
 # -----------------------------------
-
-
-@command(u'设置音量', u'音量可以是 on、off 和 0-100 之间的整数')
-@argtypes(str)
-@argdesc(u'<音量>')
-def vol(val):
-    if val == 'on':
-        val = 100
-    elif val == 'off':
-        val = 0
-    elif val.isdigit():
-        val = min(int(val), 100)
-        val = max(val, 0)
-    else:
-        return registered_commands['?']('vol')
-
-    if not val:
-        SoundManager.mute()
-        return u'已静音。'
-    else:
-        SoundManager.unmute()
-        SoundManager.set_volume(val / 100.0)
-        return u'音量已设置为 %d' % val
 
 
 @command(u'设置提醒显示级别', u'off     禁用提醒\nbasic   启用基本提醒\nat      启用@提醒\nspeaker 为文文新闻显示提醒\nsound   启用声音提醒\nnosound 禁用声音提醒')

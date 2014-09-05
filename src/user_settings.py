@@ -64,7 +64,8 @@ UserSettings.add_setting('last_id', u'无名の罪袋')
 UserSettings.add_setting('saved_passwd', simple_encrypt(''))
 UserSettings.add_setting('notify_level', 1)
 UserSettings.add_setting('sound_notify', True)
-UserSettings.add_setting('volume', 1.0)
+UserSettings.add_setting('bgm_volume', 1.0)
+UserSettings.add_setting('se_volume', 1.0)
 
 UserSettings.load()
 

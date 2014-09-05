@@ -48,8 +48,10 @@ resource = Resource(respath, [
 
     img('check'),
 
-    img('speaker'),
-    img('speaker_off'),
+    img('bgm_volume'),
+    img('se_volume'),
+    img('vol_icon'),
+    img('vol_mute'),
 
     anim('actor_frame', [50] * 9, True),
     anim('turn_frame', [50] * 9, True),
