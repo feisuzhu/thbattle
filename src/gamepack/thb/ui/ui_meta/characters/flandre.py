@@ -12,10 +12,11 @@ class Flandre:
     # Character
     char_name = u'芙兰朵露'
     port_image = gres.flandre_port
+    miss_sound_effect = gres.cv.flandre_miss
     description = (
         u'|DB恶魔之妹 芙兰朵露 体力：4|r\n\n'
         u'|G狂咲|r：在你的摸牌阶段，如果你选择只摸一张牌，那么在你的出牌阶段你可以出任意张【弹幕】，并且【弹幕】和【弹幕战】的伤害为2点，但是对同一目标只能使用一张【弹幕】。\n\n'
-        u'|DB（画师：Pixiv ID 10701033）|r'
+        u'|DB（画师：Pixiv ID 10701033，CV：shoulei小N）|r'
     )
 
 
@@ -37,3 +38,6 @@ class CriticalStrikeAction:
         return u'|G【%s】|r突然呵呵一笑，进入了黑化状态！' % (
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.flandre_cs

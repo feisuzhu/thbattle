@@ -21,6 +21,9 @@ class UltimateSpeedAction:
             act.source.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.aya_ultimatespeed
+
 
 class Aya:
     # Character
@@ -30,5 +33,5 @@ class Aya:
     description = (
         u'|DB幻想乡最速 射命丸文 体力：4|r\n\n'
         u'|G最速|r：|B锁定技|r，你在回合内使用第二张牌时，你摸一张牌且在本回合使用卡牌时无距离限制。\n\n'
-        u'|DB（画师：渚FUN）|r'
+        u'|DB（画师：渚FUN，CV：君寻）|r'
     )

@@ -48,13 +48,17 @@ class WineCard:
         u'|R酒|r\n\n'
         u'使用后获得|B喝醉|r状态。\n'
         u'|B喝醉|r状态下，使用【弹幕】命中后伤害+1，受到致命伤害时伤害-1。\n'
-        u'|B|R>> |r效果触发或者轮到自己的行动回合时须弃掉|B喝醉|r状态。'
+        u'|B|R>> |r效果触发或者轮到自己的行动回合时须弃掉|B喝醉|r状态。\n\n'
+        u'|DB（CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
         if g.me.tags.get('wine', False):
             return (True, u'你已经醉了，还要再喝吗？')
         return (True, u'青岛啤酒，神主也爱喝！')
+
+    def sound_effect(act):
+        return gres.cv.card_wine
 
 
 class Wine:
@@ -160,7 +164,7 @@ class HealCard:
         u'1、在你的出牌阶段，你可以使用它来回复你的1点体力。\n'
         u'2、当有角色处于濒死状态时，你可以对该角色使用【麻薯】，防止该角色的死亡。\n'
         u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。\n\n'
-        u'|DB（画师：http://seiga.nicovideo.jp/seiga/im3031795）|r'
+        u'|DB（画师：http://seiga.nicovideo.jp/seiga/im3031795，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -170,6 +174,9 @@ class HealCard:
             return (False, u'您已经吃饱了')
         else:
             return (True, u'来一口，精神焕发！')
+
+    def sound_effect(act):
+        return gres.cv.card_heal
 
 
 class LaunchHeal:

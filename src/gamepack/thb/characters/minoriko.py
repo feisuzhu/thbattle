@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from game.autoenv import EventHandler, Game
 from .baseclasses import Character, register_character
-from ..actions import DrawCardStage, migrate_cards
+from ..actions import UserAction, DrawCardStage, migrate_cards
 from ..cards import Harvest, HarvestCard, Skill, t_AllInclusive, t_None, Card
 
 
@@ -58,6 +58,16 @@ class AkiTribute(Skill):
     target = t_None
 
 
+class AkiTributeCollectCard(UserAction):
+    def __init__(self, target, cards):
+        self.source = self.target = target
+        self.cards = cards
+
+    def apply_action(self):
+        migrate_cards(self.cards, self.target.showncards)
+        return True
+
+
 class AkiTributeHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'choose_target':
@@ -78,10 +88,10 @@ class AkiTributeHandler(EventHandler):
             assert len(pl) <= 1, 'Multiple AkiTributes!'
             if not pl: return act
             p = pl[0]
-            migrate_cards([
+            g.process_action(AkiTributeCollectCard(p, [
                 c for c in act.cards
                 if c.resides_in is g.deck.disputed
-            ], p.showncards)
+            ]))
 
         return act
 

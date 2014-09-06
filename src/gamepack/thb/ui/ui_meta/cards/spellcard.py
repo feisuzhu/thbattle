@@ -170,11 +170,14 @@ class SinsackCard:
         u'出牌阶段使用,将【罪袋】横置于自己面前:\n'
         u'|B|R>> |r【罪袋】将一直放在那里直到这回合结束,当自己下回合进入回合开始阶段时,自己需要判定——若判定结果为黑桃1~黑桃8的牌,视为被【罪袋】推倒,受到3点伤害,并将【罪袋】弃掉;否则,将【罪袋】传给右边的玩家,右边的玩家在他/她的回合开始阶段需要做同样的判定,以此类推,直到【罪袋】生效为止,弃掉【罪袋】。\n'
         u'|B|R>> |r仅当需要开始进行【罪袋】的判定时,才能使用【好人卡】抵消之,但抵消后不弃掉【罪袋】,而是将之传递给下家。\n\n'
-        u'|DB（画师：Pixiv UID 193851）|r'
+        u'|DB（画师：Pixiv UID 193851，CV：VV/大白）|r'
     )
 
     def is_action_valid(g, cl, target_list):
         return (True, u'别来找我！')
+
+    def sound_effect(act):
+        return gres.cv.card_sinsack
 
 
 class Sinsack:
@@ -182,6 +185,10 @@ class Sinsack:
         tgt = act.target
         if act.succeeded:
             return u'罪袋终于找到了机会，将|G【%s】|r推倒了…' % tgt.ui_meta.char_name
+
+    def sound_effect_after(act):
+        if act.succeeded:
+            return gres.cv.card_sinsack_effect
 
 
 class YukariDimensionCard:
@@ -192,7 +199,7 @@ class YukariDimensionCard:
     description = (
         u'|R隙间|r\n\n'
         u'出牌阶段对距离为1的一名玩家使用，随机抽取并获得对方一张手牌，或选择并获得一张对方面前的牌(包括装备、明牌区内的牌和判定区的延时类符卡)。\n\n'
-        u'|DB（画师：Pixiv ID 7334440）|r'
+        u'|DB（画师：Pixiv ID 7334440，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -204,6 +211,9 @@ class YukariDimensionCard:
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'请把胖次给我！')
+
+    def sound_effect(act):
+        return gres.cv.card_dimension
 
 
 class YukariDimension:

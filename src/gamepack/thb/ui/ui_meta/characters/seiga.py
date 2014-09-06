@@ -12,12 +12,13 @@ class Seiga:
     # Character
     char_name = u'霍青娥'
     port_image = gres.seiga_port
+    miss_sound_effect = gres.cv.seiga_miss
     description = (
         u'|DB僵尸别跑 霍青娥 体力：4|r\n\n'
         u'|G邪仙|r：你的回合内，你可以将一张可以主动发动的手牌交给任意一名玩家，并以该玩家的身份立即使用。\n'
         u'|B|R>> |r以此方法使用弹幕时，弹幕的“一回合一次”的限制由你来承担\n'
         u'|B|R>> |r在结算的过程中，你可以选择跳过指向多人的卡牌效果结算。\n\n'
-        u'|DB（画师：Pixiv ID 21105887）|r'
+        u'|DB（画师：Pixiv ID 21105887，CV：小羽）|r'
 
         # u'|G穿墙|r：当你成为可指向多人的卡牌、技能的目标时，你可以使该效果无效并摸一张牌。'
     )
@@ -84,3 +85,6 @@ class Heterodoxy:
         # can't reach here
         # return (True, u'僵尸什么的最萌了！')
         # orig
+
+    def sound_effect(act):
+        return gres.cv.seiga_heterodoxy

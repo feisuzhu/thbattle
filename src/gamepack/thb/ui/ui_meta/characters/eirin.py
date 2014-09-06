@@ -34,6 +34,9 @@ class FirstAid:
 
         return (True, u'k看不到@#@#￥@#￥')
 
+    def sound_effect(act):
+        return gres.cv.eirin_firstaid
+
 
 class Medic:
     # Skill
@@ -80,16 +83,20 @@ class Medic:
             act.target.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.eirin_medic
+
 
 class Eirin:
     # Character
     char_name = u'八意永琳'
     port_image = gres.eirin_port
     figure_image = gres.eirin_figure
+    miss_sound_effect = gres.cv.eirin_miss
     description = (
         u'|DB街中的药贩 八意永琳 体力：3|r\n\n'
         u'|G医者|r：出牌阶段，你可以主动弃掉一张手牌，令任一目标角色回复1点体力。每回合限一次。\n\n'
         u'|G急救|r：当任意人进入濒死状态时，你可以将你的红色手牌或装备牌当做【麻薯】使用。\n\n'
         u'|RKOF不平衡角色\n\n'
-        u'|DB（画师：渚FUN）|r'
+        u'|DB（画师：渚FUN，CV：VV）|r'
     )

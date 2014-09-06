@@ -48,7 +48,6 @@ class SpiritingAwayAction:
         words = (
             u'17岁就是17岁，后面没有零几个月！',
             u'叫紫妹就对了，紫妈算什么！',
-            u'信不信我把你的脸按到键盘上！',
         )
         # return u'|G【{source}】|r：“{word}”（|G{target}|r的{card}不见了）'.format(
         return u'|G【{source}】|r：“{word}”（|G{target}|r的一张牌不见了）'.format(
@@ -58,15 +57,22 @@ class SpiritingAwayAction:
             # card=card_desc(act.card),
         )
 
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.spyukari_spiritaway1,
+            gres.cv.spyukari_spiritaway2,
+        ])
+
 
 class SpYukari:
     # Character
     char_name = u'SP八云紫'
     port_image = gres.sp_yukari_port
     figure_image = gres.sp_yukari_figure
+    miss_sound_effect = gres.cv.spyukari_miss
     description = (
         u'|DB神隐的主犯 八云紫 体力：4|r\n\n'
         u'|G神隐|r：出牌阶段限两次，你可以将任意角色区域内的一张牌移出游戏。你的回合结束阶段，那名玩家获得那张牌。\n'
         u'|B|R>> |r你可以观看由|G神隐|r移出的牌。\n\n'
-        u'|DB（画师：Vivicat from 幻想梦斗符）|r'
+        u'|DB（画师：Vivicat from 幻想梦斗符，CV：VV）|r'
     )

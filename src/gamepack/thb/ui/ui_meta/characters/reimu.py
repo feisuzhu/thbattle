@@ -57,6 +57,9 @@ class SpiritualAttack:
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动使用灵击')
 
+    def sound_effect(act):
+        return gres.cv.reimu_sa
+
 
 class TributeTarget:
     # Skill
@@ -115,9 +118,10 @@ class Reimu:
     # Character
     char_name = u'博丽灵梦'
     port_image = gres.reimu_port
+    miss_sound_effect = gres.cv.reimu_miss
     description = (
         u'|DB节操满地跑的城管 博丽灵梦 体力：3|r\n\n'
         u'|G灵击|r：你可以将你的任意一张红色手牌当【好人卡】使用。\n\n'
         u'|G飞行|r：锁定技，当你没有装备任何UFO时，其他玩家对你结算距离时始终+1\n\n'
-        u'|DB（画师：Pixiv ID 18697741）|r'
+        u'|DB（画师：Pixiv ID 18697741，CV：shoulei小N）|r'
     )

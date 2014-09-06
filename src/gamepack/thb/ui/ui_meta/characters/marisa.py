@@ -12,10 +12,11 @@ class Marisa:
     # Character
     char_name = u'雾雨魔理沙'
     port_image = gres.marisa_port
+    miss_sound_effect = gres.cv.marisa_miss
     description = (
         u'|DB绝非普通的强盗少女 雾雨魔理沙 体力：4|r\n\n'
         u'|G借走|r：出牌阶段，你可以获得一名角色的一张牌，视为该角色对你使用了一张【弹幕】，每阶段限一次。\n\n'
-        u'|DB（画师：Pixiv ID 3812034）|r'
+        u'|DB（画师：Pixiv ID 3812034，CV：君寻）|r'
     )
 
 
@@ -62,3 +63,6 @@ class Borrow:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.marisa_borrow

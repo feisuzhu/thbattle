@@ -23,6 +23,9 @@ class FoisonDrawCardStage:
             act.amount,
         )
 
+    def sound_effect(act):
+        return gres.cv.minoriko_foison
+
 
 class AutumnFeast:
     # Skill
@@ -55,6 +58,9 @@ class AutumnFeast:
             source.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.minoriko_autumnfeast
+
 
 class AkiTribute:
     # Skill
@@ -63,14 +69,20 @@ class AkiTribute:
     is_action_valid = passive_is_action_valid
 
 
+class AkiTributeCollectCard:
+    def sound_effect(act):
+        return gres.cv.minoriko_akitribute
+
+
 class Minoriko:
     # Character
     char_name = u'秋穰子'
     port_image = gres.minoriko_port
+    miss_sound_effect = gres.cv.minoriko_miss
     description = (
         u'|DB没人气的丰收神 秋穰子 体力：3|r\n\n'
         u'|G丰收|r：|B锁定技|r，摸牌阶段摸牌后，若你的手牌数不足5张，你可以补至5张。\n\n'
         u'|G秋祭|r：你可以将两张红色的手牌或装备牌当作【五谷丰登】使用。一回合限一次。\n\n'
         u'|G上贡|r：|B锁定技|r，任何人使用【五谷丰登】时，你首先拿牌。在【五谷丰登】结算完毕后，若仍有牌没有被拿走，你将这些牌收入明牌区。\n\n'
-        u'|DB（画师：Pixiv ID 5931998）|r'
+        u'|DB（画师：Pixiv ID 5931998，CV：VV）|r'
     )

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, meta_property
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
@@ -12,11 +14,12 @@ class Kaguya:
     # Character
     char_name = u'蓬莱山辉夜'
     port_image = gres.kaguya_port
+    miss_sound_effect = gres.cv.kaguya_miss
     description = (
         u'|DB永远的公主殿下 蓬莱山辉夜 体力：3|r\n\n'
         u'|G难题|r：一名角色每次令你回复一点体力时，你可以令该角色摸一张牌；你每受到一次伤害后，可令伤害来源交给你一张方片牌，否则其失去一点体力。\n\n'
         u'|G永夜|r：在你的回合外，当一名角色的一张红色基本牌因使用进入弃牌堆时，你可以将一张红色基本牌/装备牌置于该角色的判定区视为【封魔阵】。\n\n'
-        u'|DB（画师：Pixiv UID 334389）|r'
+        u'|DB（画师：Pixiv UID 334389，CV：shourei小N）|r'
     )
 
 
@@ -50,6 +53,12 @@ class DilemmaDamageAction:
         # elif act.peer_action == 'life':
         #     <handled by LifeLost>
 
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.kaguya_dilemma1,
+            gres.cv.kaguya_dilemma2,
+        ])
+
 
 class DilemmaHealAction:
     def effect_string(act):
@@ -57,6 +66,12 @@ class DilemmaHealAction:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.kaguya_dilemma1,
+            gres.cv.kaguya_dilemma2,
+        ])
 
 
 class DilemmaHandler:
@@ -91,6 +106,9 @@ class ImperishableNight:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name
         )
+
+    def sound_effect(act):
+        return gres.cv.kaguya_inight
 
 
 class ImperishableNightHandler:

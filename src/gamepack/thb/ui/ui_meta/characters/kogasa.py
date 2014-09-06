@@ -26,6 +26,9 @@ class JollyDrawCard:
             act.amount,
         )
 
+    def sound_effect(act):
+        return gres.cv.kogasa_jolly
+
 
 class JollyHandler:
     def choose_card_text(g, act, cards):
@@ -69,7 +72,7 @@ class SurpriseSkill:
         if len(cl[0].associated_cards):
             return (False, u'请不要选择牌！')
 
-        #return (True, u'(´・ω・`)')
+        # return (True, u'(´・ω・`)')
         return (True, u'\ ( °▽ °) /')
 
     def effect_string(act):
@@ -82,6 +85,9 @@ class SurpriseSkill:
             act.target.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.kogasa_surprise
 
 
 class Surprise:
@@ -114,9 +120,10 @@ class Kogasa:
     # Character
     char_name = u'多多良小伞'
     port_image = gres.kogasa_port
+    miss_sound_effect = gres.cv.kogasa_miss
     description = (
         u'|DB愉快的遗忘之伞 多多良小伞 体力：3|r\n\n'
         u'|G惊吓|r：出牌阶段，你可以指定另一名角色选择一种花色，抽取你的一张手牌，该角色将这张牌加入明牌区。若此牌与所选花色不吻合，则你对该角色造成1点伤害。无论结果如何，你摸一张牌。每阶段限用一次。\n\n'
         u'|G愉快|r：摸牌阶段摸牌后，你可以指定一人摸1张牌。\n\n'
-        u'|DB（画师：Pixiv ID 6893110）|r'
+        u'|DB（画师：Pixiv ID 6893110，CV：VV）|r'
     )

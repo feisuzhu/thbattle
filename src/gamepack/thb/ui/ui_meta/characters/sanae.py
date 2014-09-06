@@ -13,11 +13,12 @@ class Sanae:
     # Character
     char_name = u'东风谷早苗'
     port_image = gres.sanae_port
+    miss_sound_effect = gres.cv.sanae_miss
     description = (
         u'|DB常识满满的现人神 东风谷早苗 体力：3|r\n\n'
         u'|G御神签|r：出牌阶段，你可以指定一名其他角色，然后让其摸取等同于其残机数与场上残机数最多的角色的残机数之差的牌（至多4张，至少1张）。每阶段限一次。\n\n'
         u'|G奇迹|r：当你受到一次【弹幕】的伤害后，你可以弃置X张牌（不足则全弃）然后摸X张牌。若你的体力为全场最少的角色或之一，你可以令一名其他角色也如此做。（X为你已损失的体力值）\n\n'
-        u'|DB（画师：Pixiv ID 8684643）|r'
+        u'|DB（画师：Pixiv ID 8684643，CV：VV）|r'
     )
 
 
@@ -27,6 +28,9 @@ class DrawingLotAction:
             act.target.ui_meta.char_name,
             act.amount,
         )
+
+    def sound_effect(act):
+        return gres.cv.sanae_drawinglot
 
 
 class DrawingLot:
@@ -63,6 +67,9 @@ class MiracleAction:
         return u'|G【%s】|r说，要有|G奇迹！' % (
             act.source.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.sanae_miracle
 
     # choose_players
     def target(pl):

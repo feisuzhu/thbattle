@@ -74,12 +74,35 @@ class LaunchCard:
             act.card.ui_meta.name
         )
 
+    def sound_effect(act):
+        c = act.card
+        if not c:
+            return
+
+        meta = getattr(c, 'ui_meta', None)
+        se = getattr(meta, 'sound_effect', None)
+        return se and se(act)
+
     def ray(act):
         if getattr(act.card.ui_meta, 'custom_ray', False):
             return []
 
         s = act.source
         return [(s, t) for t in act.target_list]
+
+
+class UseCard:
+    def sound_effect_after(act):
+        c = act.card
+        if not c:
+            return
+
+        if act.card_usage not in ('use', 'launch'):
+            return
+
+        meta = getattr(c, 'ui_meta', None)
+        se = getattr(meta, 'sound_effect', None)
+        return se and se(act)
 
 
 class PlayerDeath:
@@ -91,6 +114,10 @@ class PlayerDeath:
         return u'|G【%s】|rMISS了。' % (
             tgt.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        meta = act.target.ui_meta
+        return getattr(meta, 'miss_sound_effect', None)
 
 
 class PlayerRevive:

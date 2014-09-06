@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
@@ -21,6 +23,12 @@ class LibraryDrawCards:
             act.source.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.patchouli_library1,
+            gres.cv.patchouli_library2,
+        ])
+
 
 class Knowledge:
     # Skill
@@ -35,6 +43,9 @@ class KnowledgeAction:
             act.source.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.patchouli_knowledge
+
 
 class Patchouli:
     # Character
@@ -42,9 +53,10 @@ class Patchouli:
     port_image = gres.patchouli_port
     figure_image = gres.patchouli_figure
     figure_image_alter = gres.patchouli_figure_alter
+    miss_sound_effect = gres.cv.patchouli_miss
     description = (
         u'|DB不动的大图书馆 帕秋莉 体力：3|r\n\n'
         u'|G图书|r：|B锁定技|r，每当你使用了一张非延时符卡时，你摸一张牌。\n\n'
         u'|G博学|r：|B锁定技|r，黑桃色符卡对你无效。\n\n'
-        u'|DB（画师：渚FUN）|r'
+        u'|DB（画师：渚FUN，CV：shoulei小N）|r'
     )

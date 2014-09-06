@@ -1204,6 +1204,7 @@ class GameScreen(Screen):
             self.add_control(self.gameui)
             self.gameui.init()
             self.game.start()
+            SoundManager.se_suppress()
 
         elif _type == 'end_game':
             self.remove_control(self.gameui)

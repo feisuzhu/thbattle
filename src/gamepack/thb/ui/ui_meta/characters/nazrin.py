@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import cards
 from gamepack.thb import characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
@@ -13,11 +15,12 @@ class Nazrin:
     # Character
     char_name = u'纳兹琳'
     port_image = gres.nazrin_port
+    miss_sound_effect = gres.cv.nazrin_miss
     description = (
         u'|DB探宝的小小大将 纳兹琳 体力：3|r\n\n'
         u'|G轻敏|r：你可以将你的黑色手牌当作【擦弹】使用或打出。\n\n'
         u'|G探宝|r：回合开始阶段，你可以进行判定。判定结束后，若为黑色，你获得此判定牌，并且可以继续发动探宝。\n\n'
-        u'|DB（画师：Pixiv ID 3378132）|r'
+        u'|DB（画师：Pixiv ID 3378132，CV：小羽）|r'
     )
 
 
@@ -64,6 +67,12 @@ class Agile:
                 return (False, u'请选择一张黑色的牌！')
             return (True, u'这种三脚猫的弹幕，想要打中我是不可能的啦~')
 
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.nazrin_agile1,
+            gres.cv.nazrin_agile2,
+        ])
+
 
 class TreasureHunt:
     fatetell_display_name = u'探宝'
@@ -78,3 +87,10 @@ class TreasureHunt:
             return u'|G【%s】|r什么也没有找到…' % (
                 act.target.ui_meta.char_name,
             )
+
+    def sound_effect(act):
+        tgt = act.target
+        t = tgt.tags
+        if not t['__treasure_hunt_se'] >= t['turn_count']:
+            t['__treasure_hunt_se'] = t['turn_count']
+            return gres.cv.nazrin_treasurehunt

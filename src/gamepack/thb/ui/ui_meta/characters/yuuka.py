@@ -49,6 +49,9 @@ class FlowerQueen:
         # for LaunchCard.ui_meta.effect_string
         return None  # FIXME
 
+    def sound_effect(act):
+        return gres.cv.yuuka_flowerqueen
+
 
 class ReversedScales:
     # Skill
@@ -72,6 +75,9 @@ class ReversedScalesAction:
             act.target.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.yuuka_rs
+
 
 class SadistAction:
     def effect_string_apply(act):
@@ -81,6 +87,9 @@ class SadistAction:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.yuuka_sadist
 
 
 class SadistHandler:
@@ -108,11 +117,12 @@ class Yuuka:
     # Character
     char_name = u'风见幽香'
     port_image = gres.yuuka_port
+    miss_sound_effect = gres.cv.yuuka_miss
     description = (
         u'|DB四季的鲜花之主 风见幽香 体力：4|r\n\n'
         u'|G逆鳞|r：其他角色对你使用的单体非延时符卡，你可以将其视为|G弹幕战|r。\n\n'
         u'|G花王|r：在你的回合外，你可以将任意一张手牌当做|G弹幕|r使用或打出。\n\n'
         u'|G抖Ｓ|r：当你击坠一名角色时，你可以弃置一张手牌并指定与其距离为1的一名其他角色；该角色被击坠后，你对指定的角色造成2点伤害。\n\n'
         u'|RKOF不平衡角色\n\n'
-        u'|DB（画师：Pixiv ID 38165143）|r'
+        u'|DB（画师：Pixiv ID 38165143，CV：VV）|r'
     )

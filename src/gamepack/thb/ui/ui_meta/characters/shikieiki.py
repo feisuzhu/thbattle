@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
@@ -24,6 +26,12 @@ class TrialAction:
             card_desc(act.card)
         )
 
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.shikieiki_trial1,
+            gres.cv.shikieiki_trial2,
+        ])
+
 
 class Majesty:
     # Skill
@@ -38,6 +46,9 @@ class MajestyAction:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.shikieiki_majesty
 
 
 class TrialHandler:
@@ -63,9 +74,10 @@ class Shikieiki:
     # Character
     char_name = u'四季映姬'
     port_image = gres.shikieiki_port
+    miss_sound_effect = gres.cv.shikieiki_miss
     description = (
         u'|DB胸不平何以平天下 四季映姬 体力：3|r\n\n'
         u'|G审判|r：在任意角色的判定牌生效前，你可以打出一张牌代替之。\n\n'
         u'|G威严|r：可以立即从对你造成伤害的来源处获得一张牌。\n\n'
-        u'|DB（画师：Pixiv UID 409282）|r'
+        u'|DB（画师：Pixiv UID 409282，CV：shourei小N）|r'
     )

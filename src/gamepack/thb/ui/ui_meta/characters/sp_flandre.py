@@ -13,12 +13,12 @@ class SpFlandre:
     char_name = u'SP芙兰朵露'
     port_image = gres.sp_flandre_port
     figure_image = gres.sp_flandre_figure
+    miss_sound_effect = gres.cv.spflandre_miss
     description = (
         u'|DB玩坏你哦 SP芙兰朵露 体力：4|r\n\n'
         u'|G破坏冲动|r：|B锁定技|r，回合结束阶段开始时，若你本回合内没有造成过伤害，你失去一点体力并对距离1以内的一名角色造成一点伤害。\n\n'
         u'|G四重存在|r：当你受到一次伤害时，你可以减少一点体力上限来防止该伤害。|B锁定技|r，当你的体力上限为1时，你造成的伤害+1。\n\n'
-
-        u'|DB（画师：Vivicat from 幻想梦斗符）|r'
+        u'|DB（画师：Vivicat from 幻想梦斗符，CV：shoulei小N）|r'
     )
 
 
@@ -43,6 +43,9 @@ class DestructionImpulseAction:
             )
 
         return s
+
+    def sound_effect(act):
+        return gres.cv.spflandre_destructionimpulse
 
 
 class DestructionImpulseHandler:
@@ -78,3 +81,6 @@ class FourOfAKindAction:
         return u'|G【%s】|r发动了|G四重存在|r，防止了此次伤害。' % (
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.spflandre_fourofakind

@@ -472,7 +472,8 @@ class SaigyouBranchCard:
     image_small = gres.card_saigyoubranch_small
     description = (
         u'|R西行妖|r\n\n'
-        u'每当你成为其他人符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张【好人卡】。'
+        u'每当你成为其他人符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张【好人卡】。\n\n'
+        u'|DB（CV：VV）|r'
     )
     is_action_valid = equip_iav
 
@@ -508,6 +509,9 @@ class SaigyouBranch:
             ) % (
                 act.source.ui_meta.char_name,
             )
+
+    def sound_effect(act):
+        return gres.cv.card_saigyoubranch
 
 
 class HakuroukenCard:
@@ -648,7 +652,7 @@ class LaevateinCard:
     description = (
         u'|R莱瓦汀|r\n\n'
         u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），使此【弹幕】强制命中对方，无法闪避。\n\n'
-        u'|DB（画师：Danbooru post 1240565）|r'
+        u'|DB（画师：Danbooru post 1240565，CV：VV）|r'
     )
     is_action_valid = equip_iav
 
@@ -672,6 +676,9 @@ class LaevateinHandler:
 class Laevatein:
     def effect_string_before(act):
         return u'|G莱瓦汀|r的灭世之炎岂能轻易闪过！'
+
+    def sound_effect(act):
+        return gres.cv.card_laevatein
 
 
 class DeathSickleCard:
@@ -712,7 +719,8 @@ class KeystoneCard:
     description = (
         u'|R要石|r\n\n'
         u'特殊的绿色UFO装备，距离+1\n'
-        u'装备后不受【罪袋】的影响'
+        u'装备后不受【罪袋】的影响\n\n'
+        u'|DB（CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
 
@@ -729,6 +737,9 @@ class Keystone:
         return u'|G【%s】|r站在|G要石|r上，照着|G罪袋|r的脸一脚踹了下去！' % (
             act.target.ui_meta.char_name
         )
+
+    def sound_effect(act):
+        return gres.cv.card_keystone
 
 
 class WitchBroomCard:
@@ -792,7 +803,7 @@ class SuwakoHatCard:
     description = (
         u'|R青蛙帽|r\n\n'
         u'装备后，手牌上限+2\n\n'
-        u'|DB（画师：Pixiv ID 9552727）|r'
+        u'|DB（画师：Pixiv ID 9552727，CV：VV）|r'
     )
     is_action_valid = equip_iav
 
@@ -802,6 +813,11 @@ class SuwakoHatSkill:
     name = u'青蛙帽'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
+
+
+class SuwakoHatEffect:
+    def sound_effect(act):
+        return gres.cv.card_suwakohat
 
 
 class YoumuPhantomCard:
@@ -864,7 +880,8 @@ class GrimoireCard:
         u'|B|R>> |r弃牌为红桃：视为发动【宴会】\n'
         u'|B|R>> |r弃牌为方片：视为发动【五谷丰登】\n'
         u'|B|R>> |r弃牌为黑桃：视为发动【罪袋狂欢】\n'
-        u'|B|R>> |r弃牌为梅花：视为发动【地图炮】'
+        u'|B|R>> |r弃牌为梅花：视为发动【地图炮】\n\n'
+        u'|DB（CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
 
@@ -917,3 +934,6 @@ class GrimoireSkill:
             source.ui_meta.char_name,
             card.lookup_tbl[card.associated_cards[0].suit].ui_meta.name
         )
+
+    def sound_effect(act):
+        return gres.cv.card_grimoire

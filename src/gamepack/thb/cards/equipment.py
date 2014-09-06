@@ -843,13 +843,24 @@ class SuwakoHatSkill(AccessoriesSkill):
     skill_category = ('equip', 'passive')
 
 
+class SuwakoHatEffect(UserAction):
+    def __init__(self, target, dcs):
+        self.source = self.target = target
+        self.dcs = dcs
+
+    def apply_action(self):
+        self.dcs.dropn = max(self.dcs.dropn - 2, 0)
+        return True
+
+
 @register_eh
 class SuwakoHatHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DropCardStage):
             tgt = act.target
             if tgt.has_skill(SuwakoHatSkill):
-                act.dropn = max(act.dropn - 2, 0)
+                Game.getgame().process_action(SuwakoHatEffect(tgt, act))
+
         return act
 
 

@@ -2,6 +2,7 @@
 
 # -- stdlib --
 from collections import defaultdict
+import time
 
 # -- third party --
 import pyglet
@@ -26,6 +27,7 @@ class SoundManager(object):
         self.bgm_player.eos_action = Player.EOS_LOOP
         self.se_players = defaultdict(Player)
         self.muted = False
+        self._se_suppress = time.time()
 
     def switch_bgm(self, bgm):
         if self.muted:
@@ -82,15 +84,22 @@ class SoundManager(object):
     def play(self, snd, queue=None):
         if self.muted: return
 
+        t = time.time()
+        if t - self._se_suppress < 1:
+            self._se_suppress = t
+            return
+
         if queue is None:
             player = ManagedSoundPlayer()
-            player.volume = self.se_volume
-            player.queue(snd)
-            player.play()
         else:
             player = self.se_players[queue]
-            player.volume = self.se_volume
-            player.queue(snd)
+
+        player.volume = self.se_volume
+        player.queue(snd)
+        player.play()
+
+    def se_suppress(self):
+        self._se_suppress = time.time()
 
     @property
     def bgm_volume(self):

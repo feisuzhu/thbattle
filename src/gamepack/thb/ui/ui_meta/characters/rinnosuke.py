@@ -50,6 +50,9 @@ class Netoru:
             act.target.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.rinnosuke_nitoru
+
 
 class Psychopath:
     # Skill
@@ -67,14 +70,18 @@ class PsychopathDrawCards:
             act.amount,
         )
 
+    def sound_effect(act):
+        return gres.cv.rinnosuke_psycopath
+
 
 class Rinnosuke:
     # Character
     char_name = u'森近霖之助'
     port_image = gres.rinnosuke_port
+    miss_sound_effect = gres.cv.rinnosuke_miss
     description = (
         u'|DB变态出没注意 森近霖之助 体力：3|r\n\n'
         u'|G变态|r：当你失去一张装备区里的牌时，你可以立即摸两张牌。\n\n'
         u'|G寝取|r：出牌阶段，你可以弃两张手牌并指定一名除了你之外的受伤的角色：你和目标角色各回复1点体力。每回合限用一次。\n\n'
-        u'|DB（画师：Pixiv ID 1666615）|r'
+        u'|DB（画师：Pixiv ID 1666615，CV：大白）|r'
     )

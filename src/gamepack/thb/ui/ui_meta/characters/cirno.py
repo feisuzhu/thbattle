@@ -61,12 +61,16 @@ class PerfectFreeze:
             target.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.cirno_perfectfreeze
+
 
 class Cirno:
     # Character
     char_name = u'琪露诺'
     port_image = gres.cirno_port
     figure_image = gres.cirno_figure
+    miss_sound_effect = gres.cv.cirno_miss
     description = (
         u'|DB跟青蛙过不去的笨蛋 琪露诺 体力：4|r\n'
         u'\n'
@@ -74,5 +78,5 @@ class Cirno:
         u'\n'
         u'|RKOF不平衡角色\n'
         u'\n'
-        u'|DB（画师：渚FUN）|r'
+        u'|DB（画师：渚FUN，CV：君寻）|r'
     )

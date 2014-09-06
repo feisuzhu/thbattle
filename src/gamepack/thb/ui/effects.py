@@ -312,6 +312,22 @@ def action_effect_before(self, act):
             self.ray(f, t)
 
 
+def action_effect_apply(self, act):
+    action_effect_string_apply(self, act)
+    if hasattr(act, 'ui_meta'):
+        se = getattr(act.ui_meta, 'sound_effect', None)
+        se = se and se(act)
+        se and SoundManager.play(se, 'cv')
+
+
+def action_effect_after(self, act):
+    action_effect_string_after(self, act)
+    if hasattr(act, 'ui_meta'):
+        se = getattr(act.ui_meta, 'sound_effect_after', None)
+        se = se and se(act)
+        se and SoundManager.play(se, 'cv')
+
+
 class UIPindianEffect(Panel):
     def __init__(self, act, *a, **k):
         w = 20 + 91 + 20 + 91 + 20
@@ -420,21 +436,21 @@ def user_input_effects(self, ilet):
 
 mapping_actions = ddict(dict, {
     'before': {
-        Pindian: pindian_effect,
+        Pindian:     pindian_effect,
         ActionStage: action_stage_effect_before,
-        PlayerTurn: player_turn_effect,
-        Action: action_effect_before,
+        PlayerTurn:  player_turn_effect,
+        Action:      action_effect_before,
     },
     'apply': {
-        Action: action_effect_string_apply,
+        Action: action_effect_apply,
         Damage: damage_effect,
     },
     'after': {
         PlayerDeath: player_death_update,
-        LaunchCard: after_launch_effect,
+        LaunchCard:  after_launch_effect,
         ActionStage: action_stage_effect_after,
-        PlayerTurn: player_turn_after_update,
-        Action: action_effect_string_after,
+        PlayerTurn:  player_turn_after_update,
+        Action:      action_effect_after,
     }
 })
 
@@ -449,7 +465,7 @@ def action_effects(_type, self, act):
 
     while cls is not object:
         f = mapping_actions[_type].get(cls)
-        if f: f(self, act)
+        f and f(self, act)
         cls = cls.__base__
 
 
@@ -614,20 +630,20 @@ def fatetell_effect(self, act):
     self.prompt(prompt)
 
 mapping_events = ddict(bool, {
-    'action_before': partial(action_effects, 'before'),
-    'action_apply': partial(action_effects, 'apply'),
-    'action_after': partial(action_effects, 'after'),
-    'fatetell': fatetell_effect,
-    'user_input_start': user_input_start_effects,
-    'user_input': user_input_effects,
+    'action_before':     partial(action_effects, 'before'),
+    'action_apply':      partial(action_effects, 'apply'),
+    'action_after':      partial(action_effects, 'after'),
+    'fatetell':          fatetell_effect,
+    'user_input_start':  user_input_start_effects,
+    'user_input':        user_input_effects,
     'user_input_finish': user_input_finish_effects,
-    'card_migration': card_migration_effects,
-    'choose_target': before_launch_card_effects,
-    'game_roll': game_roll_prompt,
-    'game_roll_result': game_roll_result_prompt,
-    'reseat': reseat_effects,
-    'mutant_morph': mutant_morph_effects,
-    'showcards': showcards_effect,
+    'card_migration':    card_migration_effects,
+    'choose_target':     before_launch_card_effects,
+    'game_roll':         game_roll_prompt,
+    'game_roll_result':  game_roll_result_prompt,
+    'reseat':            reseat_effects,
+    'mutant_morph':      mutant_morph_effects,
+    'showcards':         showcards_effect,
 })
 
 
