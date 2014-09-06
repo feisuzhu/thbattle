@@ -83,15 +83,15 @@ class ReversedScalesHandler(EventHandler):
 
 
 class SadistAction(UserAction):
-    def __init__(self, source, target, cards):
+    def __init__(self, source, target):
         self.source = source
         self.target = target
-        self.cards = cards
 
     def apply_action(self):
         g = Game.getgame()
-        g.process_action(DropCards(self.source, self.cards))
-
+        src, tgt = self.source, self.target
+        tgt.tags['sadist_target'] = False
+        g.process_action(Damage(src, tgt, 2))
         return True
 
 
@@ -102,7 +102,7 @@ class SadistHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerDeath):
             tgt = act.target.tags.get('sadist_target')
-            tgt and Game.getgame().process_action(Damage(act.source, tgt, 2))
+            tgt and Game.getgame().process_action(SadistAction(act.source, tgt))
 
         elif evt_type == 'action_before' and isinstance(act, DeadDropCards):
             g = Game.getgame()
@@ -116,7 +116,7 @@ class SadistHandler(EventHandler):
                 return act
 
             dist = LaunchCard.calc_distance(tgt, Sadist(src))
-            candidates = [k for k, v in dist.items() if v <= 0]
+            candidates = [k for k, v in dist.items() if v <= 0 and k is not tgt]
 
             if not candidates:
                 return act
@@ -129,7 +129,7 @@ class SadistHandler(EventHandler):
 
             cards, pl = rst
 
-            g.process_action(SadistAction(src, pl[0], cards))
+            g.process_action(DropCards(src, cards))
             tgt.tags['sadist_target'] = pl[0]
 
         return act
