@@ -38,19 +38,13 @@ class ProphetAction:
         return gres.cv.ran_prophet
 
 
-class ExtremeIntelligenceHandler:
-    # choose_option
-    choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【极智】吗？'
-
-
 class ExtremeIntelligenceAction:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
             return (True, u'再来！')
         else:
-            return (False, u'请选择1张牌弃置')
+            return (False, u'弃置1张牌并发动【极智】')
 
     def effect_string_before(act):
         return (

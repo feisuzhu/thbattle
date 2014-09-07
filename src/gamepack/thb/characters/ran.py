@@ -64,11 +64,16 @@ class ExtremeIntelligenceAction(GenericAction):
         self.source, self.target, self.action = \
             source, act.target, act
 
-    def apply_action(self):
+    def activate_action(self):
         p = self.source
-        cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
+        self.cards = cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
         if not cards: return False
         p.tags['ran_ei'] = p.tags['turn_count'] + 1
+        return True
+
+    def apply_action(self):
+        p = self.source
+        cards = self.cards
         g = Game.getgame()
         g.process_action(DropCards(p, cards))
 
@@ -127,10 +132,10 @@ class ExtremeIntelligenceHandler(EventHandler):
                 if not act.can_fire():
                     return act  # act cannot fire again
 
-                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
-                    continue
+                nact = ExtremeIntelligenceAction(p, act.target, act)
 
-                g.process_action(ExtremeIntelligenceAction(p, act.target, act))
+                if nact.activate_action():
+                    g.process_action(nact)
 
         elif evt_type == 'game_begin':
             g = Game.getgame()
