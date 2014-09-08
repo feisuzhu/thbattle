@@ -31,7 +31,8 @@ HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 ACCOUNT_MODULE = 'freeplay' if options.freeplay else 'forum_integration'
 ACCOUNT_FORUMURL = 'http://www.thbattle.net'
 
-TESTING_CHARACTERS = ()
+TESTING_CHARACTERS = (
+)
 
 import re
 
@@ -150,7 +151,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
-|B卡牌/人物配音：感谢 VV、shoulei小N、大白、君寻、小羽 帮助配音|r
+|B卡牌/人物配音：感谢 VV、shourei小N、大白、君寻、小羽、简翎 帮助配音|r
 风见幽香bug修复
 新人物：SP芙兰朵露
 旧人物推重：风见幽香

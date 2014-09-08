@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import cards
 from gamepack.thb import characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
@@ -13,11 +15,12 @@ class Sakuya:
     # Character
     char_name = u'十六夜咲夜'
     port_image = gres.sakuya_port
+    miss_sound_effect = gres.cv.sakuya_miss
     description = (
         u'|DB完全潇洒的PAD长 十六夜咲夜 体力：4|r\n\n'
         u'|G月时计|r：|B锁定技|r，在你的判定阶段开始前，你执行一个额外的出牌阶段。\n\n'
         u'|G飞刀|r：你可以将一张装备牌当【弹幕】使用或打出。你以此法使用【弹幕】时无距离限制。\n\n'
-        u'|DB（画师：Danbooru post 137925）|r'
+        u'|DB（画师：Danbooru post 137925，CV：VV）|r'
     )
 
 
@@ -68,6 +71,17 @@ class FlyingKnife:
             target.ui_meta.char_name,
         )
         return s
+
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.sakuya_knife1,
+            gres.cv.sakuya_knife2,
+        ])
+
+
+class LunaClockActionStage:
+    def sound_effect(act):
+        return gres.cv.sakuya_lunaclock
 
 
 class LunaClock:

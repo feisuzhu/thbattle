@@ -65,6 +65,9 @@ class Taichi:
             source.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.meirin_taichi
+
 
 class LoongPunch:
     # Skill
@@ -93,6 +96,9 @@ class LoongPunchAction:
                 act.target.ui_meta.char_name,
             )
 
+    def sound_effect(act):
+        return gres.cv.meirin_loongpunch
+
 
 class RiverBehindAwake:
     def effect_string_before(act):
@@ -100,15 +106,19 @@ class RiverBehindAwake:
             act.target.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.meirin_rb
+
 
 class Meirin:
     # Character
     char_name = u'红美铃'
     port_image = gres.meirin_port
+    miss_sound_effect = (gres.cv.meirin_miss1, gres.cv.meirin_miss2)
     description = (
         u'|DB我只打盹我不翘班 红美铃 体力：4|r\n\n'
         u'|G龙拳|r：每当你使用【弹幕】被【擦弹】抵消或使用【擦弹】抵消【弹幕】时，你可以弃置对方的一张手牌。\n\n'
         u'|G背水|r：|B觉醒技|r，回合开始阶段，当你的体力为2或者更少，并且是全场最低时，损失一点体力上限，同时获得|R太极|r技能。\n\n'
         u'|R太极|r：你可将【弹幕】作为【擦弹】，【擦弹】作为【弹幕】使用或打出。\n\n'
-        u'|DB（画师：Pixiv ID 23001419）|r'
+        u'|DB（画师：Pixiv ID 23001419，CV：小羽）|r'
     )

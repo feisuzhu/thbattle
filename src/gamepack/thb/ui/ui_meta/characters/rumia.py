@@ -47,6 +47,9 @@ class Darkness:
             act.target_list[1].ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.rumia_darkness
+
 
 class DarknessAction:
     def ray(act):
@@ -72,14 +75,18 @@ class CheatingDrawCards:
     def effect_string(act):
         return u'突然不知道是谁把太阳挡住了。等到大家回过神来，赫然发现牌堆里少了一张牌！'
 
+    def sound_effect(act):
+        return gres.cv.rumia_cheat
+
 
 class Rumia:
     # Character
     char_name = u'露米娅'
     port_image = gres.rumia_port
+    miss_sound_effect = gres.cv.rumia_miss
     description = (
         u'|DB宵暗的妖怪 露米娅 体力：3|r\n\n'
         u'|G黑暗|r：出牌阶段，你可以弃置一张牌，指定一名其他角色。该角色需对由你指定的在其攻击范围内的另一名角色使用一张【弹幕】，否则受到一点你所造成的伤害。每阶段限一次。\n\n'
         u'|G作弊|r：弃牌阶段后，你摸一张牌。\n\n'
-        u'|DB（画师：Pixiv ID 20850081）|r'
+        u'|DB（画师：Pixiv ID 20850081，CV：小羽）|r'
     )

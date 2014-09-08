@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import actions
 from utils import BatchList
 
@@ -117,7 +119,11 @@ class PlayerDeath:
 
     def sound_effect(act):
         meta = act.target.ui_meta
-        return getattr(meta, 'miss_sound_effect', None)
+        se = getattr(meta, 'miss_sound_effect', None)
+        if isinstance(se, (list, tuple)):
+            return random.choice(se)
+        else:
+            return se
 
 
 class PlayerRevive:

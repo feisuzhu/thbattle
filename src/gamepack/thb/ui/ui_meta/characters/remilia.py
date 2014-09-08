@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import random
-
 from gamepack.thb import characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
@@ -25,10 +23,7 @@ class SpearTheGungnirAction:
         )
 
     def sound_effect(act):
-        return random.choice([
-            gres.cv.remilia_spearthegungnir1,
-            gres.cv.remilia_spearthegungnir2,
-        ])
+        return gres.cv.remilia_stg
 
 
 class SpearTheGungnirHandler:

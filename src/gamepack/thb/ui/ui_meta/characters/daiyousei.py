@@ -14,11 +14,12 @@ class Daiyousei:
     char_name = u'大妖精'
     port_image = gres.daiyousei_port
     figure_image = gres.daiyousei_figure
+    miss_sound_effect = gres.cv.daiyousei_miss
     description = (
         u'|DB全身萌点的保姆 大妖精 体力：3|r\n\n'
         u'|G支援|r：出牌阶段，你可以将任意数量的除了判定区外的牌以任意分配方式交给其他角色，若你于此阶段中给出的牌张数达到或超过3张时，你回复1点体力。\n\n'
         u'|G卖萌|r：摸牌阶段，你可以摸 2+当前损失的体力数 的牌。\n\n'
-        u'|DB（画师：渚FUN）|r'
+        u'|DB（画师：渚FUN，CV：简翎）|r'
     )
 
 
@@ -59,6 +60,9 @@ class SupportSkill:
             act.target.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.daiyousei_support
+
 
 class Moe:
     # Skill
@@ -73,5 +77,8 @@ class MoeDrawCard:
             act.target.ui_meta.char_name,
             act.amount,
         )
+
+    def sound_effect(act):
+        return gres.cv.daiyousei_moe
 
 # ----------
