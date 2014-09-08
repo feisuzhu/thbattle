@@ -4,7 +4,7 @@ from game.autoenv import Game, EventHandler
 from ..actions import ActionStage, ActionStageLaunchCard, Damage, DropCards
 from ..actions import ForEach, GenericAction, LaunchCardAction
 from ..actions import PlayerTurn, UseCard, UserAction
-from ..actions import register_eh, user_choose_cards, launch_card
+from ..actions import register_eh, user_choose_cards, LaunchCard
 
 
 class BasicAction(UserAction):
@@ -153,20 +153,20 @@ class UseAttack(UseCard):
         )
 
 
-class LaunchHeal(UserAction, LaunchCardAction):
+class AskForHeal(GenericAction):
     card_usage = 'launch'
 
     def apply_action(self):
         src = self.source
         cards = user_choose_cards(self, src, ('cards', 'showncards'))
         if not cards:
-            self.card = None
             return False
-        else:
-            self.card = cards[0]
-            tgt = self.target
-            launch_card(self, [tgt], Heal)
-            return True
+
+        c = cards[0]
+        tgt = self.target
+        g = Game.getgame()
+        g.process_action(LaunchCard(src, [tgt], c, action=c.associated_action or Heal))
+        return True
 
     def cond(self, cl):
         from .. import cards

@@ -345,10 +345,10 @@ class TryRevive(GenericAction):
         tgt.tags['in_tryrevive'] = True
         g = Game.getgame()
         pl = self.asklist
-        from .cards import LaunchHeal
+        from .cards import AskForHeal
         for p in pl:
             while True:
-                if g.process_action(LaunchHeal(p, tgt)):
+                if g.process_action(AskForHeal(p, tgt)):
                     if tgt.life > 0:
                         tgt.tags['in_tryrevive'] = False
                         return True
@@ -585,8 +585,15 @@ def launch_card(lca, target_list, action):
 
 
 class LaunchCard(GenericAction, LaunchCardAction):
-    def __init__(self, source, target_list, card):
-        tl, tl_valid = card.target(Game.getgame(), source, target_list)
+    def __init__(self, source, target_list, card, action=None, bypass_check=False):
+        self.force_action = action
+        bypass_check = bool(action) or bypass_check
+        self.bypass_check = bypass_check
+        if bypass_check:
+            tl, tl_valid = target_list, True
+        else:
+            tl, tl_valid = card.target(Game.getgame(), source, target_list)
+
         self.source, self.target_list, self.card, self.tl_valid = source, tl, card, tl_valid
         self.target = target_list[0] if target_list else source
 
@@ -595,13 +602,16 @@ class LaunchCard(GenericAction, LaunchCardAction):
         tl = self.target_list
         if not card: return False
 
-        action = card.associated_action
+        action = self.force_action or card.associated_action
         if not action: return False
 
         launch_card(self, tl, action)
         return True
 
     def is_valid(self):
+        if self.bypass_check:
+            return True
+
         if not self.tl_valid:
             log.debug('LaunchCard.tl_valid FALSE')
             return False

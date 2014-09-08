@@ -179,20 +179,13 @@ class HealCard:
         return gres.cv.card_heal
 
 
-class LaunchHeal:
+class AskForHeal:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
             return (True, u'神说，你不能在这里MISS(对%s使用)' % act.target.ui_meta.char_name)
         else:
             return (False, u'请选择一张【麻薯】(对%s使用)…' % act.target.ui_meta.char_name)
-
-    def effect_string(act):
-        if act.succeeded:
-            return u'|G【%s】|r对|G【%s】|r使用了|G麻薯|r。' % (
-                act.source.ui_meta.char_name,
-                act.target.ui_meta.char_name,
-            )
 
 
 class Heal:

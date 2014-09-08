@@ -20,7 +20,7 @@ class FirstAid:
         except IndexError:
             return False
 
-        if isinstance(act, cards.LaunchHeal):
+        if isinstance(act, cards.AskForHeal):
             return True
 
         return False
