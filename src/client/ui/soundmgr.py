@@ -82,12 +82,12 @@ class SoundManager(object):
         self.bgm_next and self.instant_switch_bgm(self.bgm_next)
 
     def play(self, snd, queue=None):
-        if self.muted: return
-
         t = time.time()
-        if t - self._se_suppress < 1:
+        if t - self._se_suppress < 3:
             self._se_suppress = t
             return
+
+        if self.muted: return
 
         if queue is None:
             player = ManagedSoundPlayer()
