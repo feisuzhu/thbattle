@@ -94,9 +94,6 @@ class SoundManager(object):
         else:
             player = self.se_players[queue]
 
-        if player.playing:
-            self.se_suppress()
-
         player.volume = self.se_volume
         player.queue(snd)
         player.play()
