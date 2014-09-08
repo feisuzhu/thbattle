@@ -543,7 +543,7 @@ def launch_card(lca, target_list, action):
     drop = card.usage == 'drop'
     try:
         if drop:  # should drop before action
-            g.process_action(DropUsedCard(src, cards=[card]))
+            g.process_action(DropCards(src, cards=[card]))
 
         elif not getattr(card, 'no_drop', False):
             detach_cards([card])  # emit events
@@ -572,12 +572,12 @@ def launch_card(lca, target_list, action):
         return g.process_action(a)
     finally:
 
-        if card.detached:
+        if not drop and card.detached:
             # card/skill still in disputed state,
             # means no actions have done anything to the card/skill,
             # drop it
             if not getattr(card, 'no_drop', False):
-                g.process_action(DropUsedCard(src, cards=[card], detached=not drop))
+                g.process_action(DropUsedCard(src, cards=[card], detached=True))
             else:
                 from .cards import VirtualCard
                 for c in VirtualCard.unwrap([card]):
