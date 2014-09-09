@@ -548,9 +548,10 @@ class CardSelectionPanel(Panel):
     ]
     '''
     def init(self, card_lists, compat=True, multiline=False):
+        name_width = 100 if any(cl[0] for cl in card_lists) else 0
         y = 40
         h = y + 10
-        w = 100 + 6*93.0+30
+        w = name_width + 6*93.0+30
         i = 0
         for name, cl in reversed(card_lists):
             if not cl:
@@ -567,7 +568,7 @@ class CardSelectionPanel(Panel):
 
                 ca = DropCardArea(
                     parent=self,
-                    x=100, y=y+145*i,
+                    x=name_width, y=y+145*i,
                     fold_size=6,
                     width=6*93, height=145,
                 )
@@ -592,7 +593,7 @@ class CardSelectionPanel(Panel):
 
                 if not multiline: break
 
-            Label(
+            name and Label(
                 text=name, x=30, y=y+62+145*(i-1), font_size=12,
                 color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 130),
                 anchor_x='left', anchor_y='center', batch=self.lbls,
@@ -959,7 +960,7 @@ class GameCharacterPortrait(Frame):
         Frame.update_color(self)
         C = Colors.get4i
         c = self.color
-        heavy = C(c.heavy); light = C(c.light)
+        heavy, light = C(c.heavy), C(c.light)
         self._gcp_framevlist.colors = flatten([
             [255, 255, 255, 255] * 4,  # equip box
             [heavy] * 4,  # equip box border
@@ -998,14 +999,14 @@ class GameCharacterPortrait(Frame):
             char = port.character
             if not char: continue
 
-            hp = game_res.hp; hp_bg = game_res.hp_bg
+            hp, hp_bg = game_res.hp, game_res.hp_bg
             if char.dead:
                 hp = hp.grayed
                 hp_bg = hp_bg.grayed
 
             # hp bar
             w = hp.width
-            x = port.x; y = port.y
+            x, y = port.x, port.y
             for i in xrange(char.maxlife):
                 vertices.extend(
                     hp_bg.get_t4f_v4f_vertices(5+x+i*w, 56+y)
