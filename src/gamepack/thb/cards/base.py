@@ -178,6 +178,8 @@ class VirtualCard(Card):
     @classmethod
     def wrap(cls, cl, player, params=None):
         vc = cls(player)
+        vc.action_params = params or {}
+
         if not cl:
             vc.associated_cards = []
             return vc
@@ -192,7 +194,6 @@ class VirtualCard(Card):
 
         vc.suit, vc.number, vc.color = suit, num, color
         vc.associated_cards = cl[:]
-        vc.action_params = params or {}
         return vc
 
     def sync(self, data):
