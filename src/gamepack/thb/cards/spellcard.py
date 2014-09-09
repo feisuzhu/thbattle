@@ -52,7 +52,7 @@ class Demolition(InstantSpellCardAction):
     def is_valid(self):
         tgt = self.target
         catnames = ['cards', 'showncards', 'equips', 'fatetell']
-        return any(getattr(tgt, i) for i in catnames)
+        return not tgt.dead and any(getattr(tgt, i) for i in catnames)
 
 
 class Reject(InstantSpellCardAction):
@@ -154,7 +154,7 @@ class DelayedLaunchCard(UserAction):
     def is_valid(self):
         if not self.associated_card: return False
         if not len(self.target_list) == 1: return False
-        return True
+        return not self.target.dead
 
 
 class SealingArray(DelayedSpellCardAction):
@@ -247,9 +247,12 @@ class YukariDimension(InstantSpellCardAction):
         return True
 
     def is_valid(self):
+        if self.source.dead:
+            return False
+
         tgt = self.target
         catnames = ['cards', 'showncards', 'equips', 'fatetell']
-        return any(getattr(tgt, i) for i in catnames)
+        return not tgt.dead and any(getattr(tgt, i) for i in catnames)
 
 
 class BaseDuel(UserAction):
@@ -274,6 +277,9 @@ class BaseDuel(UserAction):
 
         return s is source
 
+    def is_valid(self):
+        return not self.target.dead
+
 
 class Duel(BaseDuel, InstantSpellCardAction):
     pass
@@ -290,6 +296,9 @@ class MapCannonEffect(InstantSpellCardAction):
             return True
         else:
             return False
+
+    def is_valid(self):
+        return not self.target.dead
 
 
 class MapCannon(ForEach):
@@ -308,6 +317,9 @@ class SinsackCarnivalEffect(InstantSpellCardAction):
         else:
             return False
 
+    def is_valid(self):
+        return not self.target.dead
+
 
 class SinsackCarnival(ForEach):
     action_cls = SinsackCarnivalEffect
@@ -323,6 +335,9 @@ class FeastEffect(InstantSpellCardAction):
         else:
             g.process_action(basic.Wine(src, tgt))
         return True
+
+    def is_valid(self):
+        return not self.target.dead
 
 
 class Feast(ForEach):
@@ -355,6 +370,9 @@ class HarvestEffect(InstantSpellCardAction):
         try:
             cards = ForEach.get_actual_action(self).cards
         except:
+            return False
+
+        if self.target.dead:
             return False
 
         g = Game.getgame()
@@ -409,6 +427,9 @@ class DollControl(InstantSpellCardAction):
         if issubclass(cl[0].associated_action, basic.Attack): return True
         return False
 
+    def is_valid(self):
+        return not self.target.dead
+
 
 class DonationBoxEffect(InstantSpellCardAction):
     card_usage = 'handover'
@@ -437,6 +458,7 @@ class DonationBoxEffect(InstantSpellCardAction):
 
     def is_valid(self):
         t = self.target
+        if t.dead or self.source.dead: return False
         if t.cards or t.showncards or t.equips: return True
         return False
 

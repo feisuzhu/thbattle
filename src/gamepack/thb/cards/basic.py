@@ -31,6 +31,9 @@ class BaseAttack(UserAction):
         else:
             return False
 
+    def is_valid(self):
+        return not self.target.dead
+
 
 class Attack(BaseAttack, BasicAction):
     pass
@@ -183,6 +186,9 @@ class Wine(BasicAction):
         self.target.tags['wine'] = True
         return True
 
+    def is_valid(self):
+        return not self.target.dead
+
 
 class SoberUp(GenericAction):
     def apply_action(self):
@@ -269,6 +275,9 @@ class ExinwanEffect(GenericAction):
         from .base import Skill
         if any(isinstance(c, Skill) for c in cards): return False
         return True
+
+    def is_valid(self):
+        return not self.target.dead
 
 
 @register_eh

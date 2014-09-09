@@ -199,6 +199,10 @@ class MigrateCardsTransaction(object):
 
 
 def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
+    if to.owner and to.owner.dead:
+        # do not migrate cards to dead character
+        return
+
     if not trans:
         with MigrateCardsTransaction() as trans:
             migrate_cards(cards, to, unwrap, detached, trans)
@@ -373,6 +377,9 @@ class BaseDamage(GenericAction):
         tgt.life -= self.amount
         return True
 
+    def is_valid(self):
+        return not self.target.dead
+
 
 class Damage(BaseDamage):
     pass
@@ -406,6 +413,9 @@ class MaxLifeChange(GenericAction):
         assert tgt.maxlife or tgt.dead
 
         return True
+
+    def is_valid(self):
+        return not self.target.dead
 
 
 # ---------------------------------------------------
