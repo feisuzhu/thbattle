@@ -2,6 +2,7 @@
 
 # -- stdlib --
 from base64 import b64encode, b64decode
+from functools import wraps
 import argparse
 import hashlib
 import logging
@@ -151,6 +152,19 @@ def authdecode(encrypted, saltkey):
 
 
 class MemberService(RPCService):
+    def clear_session(f):
+        @wraps(f)
+        def wrapper(*a, **k):
+            try:
+                return f(*a, **k)
+            finally:
+                session.rollback()
+                session.remove()
+
+        wrapper.__name__ = f.__name__
+        return wrapper
+
+    @clear_session
     def get_user_info(self, uid):
         member = session.execute(text('''
             SELECT * FROM pre_common_member
@@ -182,8 +196,6 @@ class MemberService(RPCService):
 
         badges = [i for i, in badges]
 
-        session.remove()
-
         rst = {
             'uid': int(uid),
             'username': member.username,
@@ -200,6 +212,7 @@ class MemberService(RPCService):
 
         return rst
 
+    @clear_session
     def validate_by_uid(self, uid, password):
         info = self.get_user_info(uid)
 
@@ -214,6 +227,7 @@ class MemberService(RPCService):
 
         return info
 
+    @clear_session
     def validate_by_username(self, username, password):
         if isinstance(username, unicode):
             username = username.encode('utf-8')
@@ -236,6 +250,7 @@ class MemberService(RPCService):
 
         return info
 
+    @clear_session
     def validate_by_cookie(self, auth, saltkey):
         rst = authdecode(auth, saltkey)
         if not rst:
@@ -250,6 +265,7 @@ class MemberService(RPCService):
 
         return info
 
+    @clear_session
     def add_credit(self, uid, type, amount):
         field = CREDITS_MAPPING.get(type)
         if not type:
@@ -263,6 +279,8 @@ class MemberService(RPCService):
         ''' % (field, field)), {'amount': int(amount), 'uid': int(uid)})
 
         return self.get_user_info(uid)
+
+    del clear_session
 
 
 def main():
