@@ -167,6 +167,7 @@ def skill_transform(actor, skills, cards, params):
 class MigrateCardsTransaction(object):
     def __init__(self):
         self.action = Game.getgame().action_stack[-1]
+        self.cancelled = False
         self.movements = []
 
     def move(self, cards, _from, to):
@@ -179,7 +180,10 @@ class MigrateCardsTransaction(object):
         return self
 
     def __exit__(self, *excinfo):
-        self.commit()
+        if not self.cancelled:
+            self.commit()
+        else:
+            log.debug('migrate_cards cancelled: %s', self.movements)
 
     def commit(self):
         g = Game.getgame()
@@ -199,13 +203,14 @@ class MigrateCardsTransaction(object):
 
 
 def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
-    if to.owner and to.owner.dead:
-        # do not migrate cards to dead character
-        return
-
     if not trans:
         with MigrateCardsTransaction() as trans:
             migrate_cards(cards, to, unwrap, detached, trans)
+            return not trans.cancelled
+
+    if to.owner and to.owner.dead:
+        # do not migrate cards to dead character
+        trans.cancelled = True
         return
 
     from .cards import VirtualCard
