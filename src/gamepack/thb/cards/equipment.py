@@ -22,9 +22,9 @@ class WearEquipmentAction(UserAction):
         with MigrateCardsTransaction() as trans:
             for oc in equips:
                 if oc.equipment_category == card.equipment_category:
-                    migrate_cards([oc], g.deck.droppedcards, trans=trans)
+                    migrate_cards([oc], g.deck.droppedcards, unwrap=True, trans=trans)
                     break
-            migrate_cards([card], target.equips, trans)
+            migrate_cards([card], target.equips, trans=trans)
 
         return True
 
