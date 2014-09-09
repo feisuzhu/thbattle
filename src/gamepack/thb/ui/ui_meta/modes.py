@@ -2,10 +2,12 @@
 
 from collections import OrderedDict
 
-from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith, thbcp3, thb2v2
+from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith, thbcp3, thb2v2, thbdebug
+from gamepack.thb.cards import Card
 from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.game_controls import CardSelectionPanel
 
-from .common import gen_metafunc, card_desc, my_turn
+from .common import gen_metafunc, card_desc, my_turn, meta_property
 from .common import limit1_skill_used, passive_clickable, passive_is_action_valid
 
 # -----BEGIN THB3v3 UI META-----
@@ -585,3 +587,104 @@ class HeritageHandler:
     choose_option_prompt  = u'队友MISS，请选择你的动作'
 
 # -----END THBFaith UI META-----
+
+__metaclass__ = gen_metafunc(thbdebug)
+
+
+class DebugUseCardSelectionUI(CardSelectionPanel):
+    def __init__(self, parent, *a, **k):
+        CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)
+        self.view = view = parent
+        view.selection_change += self.on_selection_change
+        self.panel = None
+        self.on_selection_change()
+
+    def on_selection_change(self):
+        view = self.view
+        params = view.get_action_params()
+
+        def cancel():
+            if self.panel:
+                self.panel.delete()
+                self.panel = None
+                try:
+                    del params['debug_card']
+                except:
+                    pass
+
+        if self.panel:
+            return
+
+        cl = [c() for c in Card.card_classes.values() if c is not Card.card_classes['DummyCard']]
+        card_lists = [('', cl[i:i+12]) for i in xrange(0, len(cl), 12)]
+        self.panel = panel = CardSelectionPanel(
+            parent=self.parent, zindex=10,
+            selection_mode=CardSelectionPanel.SINGLE,
+        )
+        panel.init(card_lists, multiline=False)
+
+        @panel.event
+        def on_selection_change():
+            if panel.selection:
+                card = panel.selection[0].associated_card
+                params['debug_card'] = card.__class__.__name__
+            else:
+                try:
+                    del params['debug_card']
+                except:
+                    pass
+
+            self.view.selection_change.notify()
+
+    def delete(self):
+        if self.panel:
+            self.panel.delete()
+
+        self.view.selection_change -= self.on_selection_change
+        CardSelectionPanel.delete(self)
+
+
+class DebugUseCard:
+    # Skill
+    name = u'转化'
+    params_ui = DebugUseCardSelectionUI
+
+    @meta_property
+    def image(c):
+        return c.treat_as.ui_meta.image
+
+    @meta_property
+    def image_small(c):
+        return c.treat_as.ui_meta.image_small
+
+    description = u'DEBUG'
+
+    def clickable(game):
+        return True
+
+    def is_action_valid(g, cl, target_list):
+        skill = cl[0]
+        try:
+            skill.treat_as.ui_meta
+        except:
+            return False, u'Dummy'
+
+        return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
+
+    def is_complete(g, cl):
+        return True, u'XXX'
+
+
+class DebugDecMaxLife:
+    # Skill
+    name = u'减上限'
+
+    def clickable(g):
+        return True
+
+    def is_action_valid(g, cl, target_list):
+        acards = cl[0].associated_cards
+        if len(acards):
+            return (False, u'请不要选择牌！')
+
+        return (True, u'XXX')
