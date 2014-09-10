@@ -44,6 +44,7 @@ resource = Resource(respath, [
     lazytexture('bg_chatbox'),
 
     img('imagesel_shine'),
+    img('imagesel_ban'),
     imgdata('icon'),
 
     img('check'),

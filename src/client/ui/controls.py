@@ -1938,7 +1938,7 @@ class Panel(Control):
 class ImageSelector(Control):
     hover_alpha = InterpDesc('_hover_alpha')
 
-    def __init__(self, image, group, *a, **k):
+    def __init__(self, image, group, hover_pic=None, *a, **k):
         Control.__init__(
             self, width=145, height=98,
             *a, **k
@@ -1950,6 +1950,7 @@ class ImageSelector(Control):
         self.image = image
         self.group = group
         self.balloon = BalloonPrompt(self)
+        self.hover_pic = hover_pic
 
     def on_mouse_enter(self, x, y):
         self.hover_alpha = 0.4
@@ -1985,8 +1986,12 @@ class ImageSelector(Control):
 
         a = self.hover_alpha
         if a:
-            glColor4f(1, 1, 0.8, a)
-            glRectf(0, 0, self.width, self.height)
+            if self.hover_pic:
+                glColor4f(1, 1, 1, a)
+                self.hover_pic.blit(0, 0)
+            else:
+                glColor4f(1, 1, 0.8, a)
+                glRectf(0, 0, self.width, self.height)
 
     def disable(self):
         self.disabled = True

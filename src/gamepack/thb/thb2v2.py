@@ -207,6 +207,8 @@ class THBattle2v2(Game):
 
             p.reveal(p.choices)
 
+        g.pause(1)
+
         mapping = {p: p.choices for p in g.players}
         with InputTransaction('ChooseGirl', g.players, mapping=mapping) as trans:
             ilet = ChooseGirlInputlet(g, mapping)

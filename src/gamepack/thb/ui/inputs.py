@@ -17,7 +17,7 @@ from client.ui.controls import BigProgressBar
 from client.ui.controls import Button, ConfirmButtons, Control
 from client.ui.controls import ImageButton, ImageSelector
 from client.ui.controls import Panel
-from client.ui.resource import resource as common_res
+from client.ui.resource import resource as cres
 from game.autoenv import Game
 from gamepack.thb import actions as thbactions
 from gamepack.thb.cards import CardList, RejectHandler
@@ -446,16 +446,16 @@ class GirlSelector(ImageSelector):
 
         self.x = x
         self.y = y
-
         ImageSelector.__init__(
-            self, pimg, group,
-            *a, **k
+            self, pimg, group, *a, **k
         )
 
         self.balloon.set_balloon(meta.description)
 
 
 class UIBaseChooseGirl(Panel, InputHandler):
+    hover_pic = None
+
     def __init__(self, trans, *a, **k):
         self.trans = trans
         self.pbar = None
@@ -479,7 +479,7 @@ class UIBaseChooseGirl(Panel, InputHandler):
         for i, c in enumerate(choices):
             y, x = divmod(i, cols)
             x, y = 15 + 160*x, 45 + 113*(rows - 1 - y)
-            gs = GirlSelector(c, selectors, parent=self, x=x, y=y)
+            gs = GirlSelector(c, selectors, parent=self, hover_pic=self.hover_pic, x=x, y=y)
 
             @gs.event
             def on_dblclick(gs=gs):
@@ -536,6 +536,7 @@ class UIBaseChooseGirl(Panel, InputHandler):
 
 
 class UIChooseGirl(UIBaseChooseGirl):
+    hover_pic = None
 
     def process_user_input_start(self, ilet):
         self.label.color = (255, 255, 160, 255)
@@ -565,6 +566,7 @@ class UIChooseGirl(UIBaseChooseGirl):
 
 
 class UIBanGirl(UIBaseChooseGirl):
+    hover_pic = cres.imagesel_ban
 
     def process_user_input_start(self, ilet):
         self.label.color = (255, 255, 160, 255)
@@ -726,7 +728,7 @@ class UIChooseIndividualCard(Panel, InputHandler):
         self.update()
 
         btn = ImageButton(
-            common_res.buttons.close_blue,
+            cres.buttons.close_blue,
             parent=self,
             x=w-20, y=h-20,
         )
