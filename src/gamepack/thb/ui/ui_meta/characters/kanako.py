@@ -12,13 +12,14 @@ class Kanako:
     # Character
     char_name = u'八坂神奈子'
     port_image = gres.kanako_port
+    miss_sound_effect = gres.cv.kanako_miss
     description = (
         u'|DB妖怪山上的神明 八坂神奈子 体力：4|r\n\n'
         u'|G御柱：|r摸牌阶段，你可以少摸X张牌（X最大为2）发动。你获得以下技能直到回合结束：\n'
         u'|B|R>> |r你与其他玩家结算距离时始终-X\n'
         u'|B|R>> |r当一名其他角色成为你使用的 非延时符卡的唯一目标 或 弹幕目标 时，该角色需弃置X张牌，否则不能使用或打出手牌直到回合结束。\n\n'
         u'|G信仰|r：|B锁定技|r，若你在出牌阶段内对其他角色造成过伤害，出牌阶段结束时你摸一张牌。\n\n'
-        u'|DB（画师：yandre.re/post/show/196410）|r'
+        u'|DB（画师：yandre.re/post/show/196410，CV：北斗夜）|r'
     )
 
 
@@ -50,6 +51,9 @@ class OnbashiraTarget:
         else:
             return u'|G【%s】|r惊呆了。' % act.target.ui_meta.char_name
 
+    def sound_effect(act):
+        return gres.cv.kanako_onbashira_effect
+
 
 class OnbashiraHandler:
     # choose_option
@@ -65,6 +69,9 @@ class OnbashiraAction:
                 u'零一两三'[act.amount],
             )
 
+    def sound_effect(act):
+        return gres.cv.kanako_onbashira
+
 
 class KanakoFaith:
     name = u'信仰'
@@ -77,3 +84,6 @@ class KanakoFaithDrawCards:
         return u'|G【%s】|r：“嘛，只要御柱仍的勤快，|G信仰|r什么总是有的～”' % (
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.kanako_faith

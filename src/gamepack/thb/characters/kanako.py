@@ -20,13 +20,15 @@ class Onbashira(RedUFOSkill):
 
 
 class OnbashiraAction(GenericAction):
-    def __init__(self, target, amount):
+    def __init__(self, target, amount, dcs):
         self.source = self.target = target
         self.amount = amount
+        self.dcs = dcs
 
     def apply_action(self):
         tags = self.target.tags
         tags['onbashira'] = self.amount
+        self.dcs.amount = max(0, self.dcs.amount - self.amount)
         return True
 
 
@@ -74,10 +76,8 @@ class OnbashiraHandler(EventHandler):
             tgt = act.target
             if not tgt.has_skill(Onbashira): return act
             rst = user_input([tgt], ChooseOptionInputlet(self, (0, 1, 2)))
-
-            if not rst: rst = 0
-            Game.getgame().process_action(OnbashiraAction(tgt, rst))
-            act.amount = max(0, act.amount - rst)
+            if not rst: return act
+            Game.getgame().process_action(OnbashiraAction(tgt, rst, act))
 
         elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target

@@ -132,6 +132,7 @@ resource = Resource(respath, [
         'eirin_firstaid', 'eirin_medic', 'eirin_miss',
         'flandre_cs', 'flandre_miss',
         'kaguya_dilemma1', 'kaguya_dilemma2', 'kaguya_inight', 'kaguya_miss',
+        'kanako_faith', 'kanako_onbashira_effect', 'kanako_onbashira', 'kanako_miss',
         'koakuma_find', 'koakuma_miss',
         'kogasa_jolly', 'kogasa_miss', 'kogasa_surprise',
         'marisa_borrow', 'marisa_miss',
@@ -152,7 +153,9 @@ resource = Resource(respath, [
         'spflandre_destructionimpulse', 'spflandre_fourofakind', 'spflandre_miss',
         'spyukari_miss', 'spyukari_spiritaway1', 'spyukari_spiritaway2',
         'suika_drunkard', 'suika_miss', 'suika_winegod',
+        'tewi_lucky', 'tewi_miss',
         'youmu_miss', 'youmu_mjchz', 'youmu_nitoryuu',
+        'yugi_fp1', 'yugi_fp2', 'yugi_miss',
         'yuuka_flowerqueen', 'yuuka_miss', 'yuuka_rs', 'yuuka_sadist',
     ]]),
 

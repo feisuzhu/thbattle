@@ -21,13 +21,17 @@ class LuckDrawCards:
             act.source.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.tewi_lucky
+
 
 class Tewi:
     # Character
     char_name = u'因幡帝'
     port_image = gres.tewi_port
+    miss_sound_effect = gres.cv.tewi_miss
     description = (
         u'|DB幸运的腹黑兔子 因幡帝 体力：4|r\n\n'
         u'|G幸运|r：|B锁定技|r，当你的手牌数为0时，立即摸2张牌。\n\n'
-        u'|DB（画师：Pixiv UID 654238）|r'
+        u'|DB（画师：Pixiv UID 654238，CV：北斗夜）|r'
     )
