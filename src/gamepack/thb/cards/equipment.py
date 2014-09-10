@@ -752,7 +752,7 @@ class DeathSickleHandler(EventHandler):
             if not src or not src.has_skill(DeathSickleSkill): return act
             tgt = act.target
             if len(tgt.cards) + len(tgt.showncards) == 0:
-                act.amount += 1
+                g.process_action(DeathSickle(act))
 
         return act
 

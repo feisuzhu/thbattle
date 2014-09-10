@@ -48,7 +48,8 @@ class YugiHandler(EventHandler):
 
         elif evt_type == 'action_after' and hasattr(act, 'yugifptag'):
             if not act.succeeded: return act
-            src = act.source; tgt = act.target
+            src, tgt = act.source, act.target
+            if tgt.dead: return act
             g = Game.getgame()
             catnames = ('cards', 'showncards', 'equips')
             card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))

@@ -116,7 +116,7 @@ class SadistHandler(EventHandler):
                 return act
 
             dist = LaunchCard.calc_distance(tgt, Sadist(src))
-            candidates = [k for k, v in dist.items() if v <= 0 and k is not tgt]
+            candidates = [k for k, v in dist.items() if v <= 0 and k not in (src, tgt)]
 
             if not candidates:
                 return act
