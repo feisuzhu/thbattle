@@ -24,7 +24,7 @@ UPDATE_PREFIX = 'src/' if sys.platform.startswith('linux') else ''
 
 from options import options
 
-VERSION = 'THBATTLE V1.0b incr 216'
+VERSION = 'THBATTLE V1.0b incr 217'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -151,7 +151,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
-|B卡牌/人物配音：感谢 VV、shourei小N、大白、君寻、小羽、简翎 帮助配音|r
+卡牌/人物配音：感谢 VV、shourei小N、大白、君寻、小羽、简翎、北斗夜 帮助配音，感谢 相沢加奈 在早期所作的支持和推动。
 使用技能弃置恶心丸时，立即触发恶心丸效果。
 风见幽香bug修复
 新人物：SP芙兰朵露
