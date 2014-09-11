@@ -24,7 +24,7 @@ UPDATE_PREFIX = 'src/' if sys.platform.startswith('linux') else ''
 
 from options import options
 
-VERSION = 'THBATTLE V1.0b incr 218'
+VERSION = 'THBATTLE V1.0b incr 219'
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
