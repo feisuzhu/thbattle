@@ -734,7 +734,7 @@ class DeathSickle(GenericAction):
         self.source, self.target = act.source, act.target
 
     def apply_action(self):
-        self.action.damage += 1
+        self.action.amount += 1
         return True
 
 
