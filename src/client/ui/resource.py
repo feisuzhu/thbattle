@@ -81,15 +81,16 @@ resource = Resource(respath, [
 
     imgdata_grid('suit12', 1, 4), imgdata_grid('suit16', 1, 4),
 
-    subdir('badges', [
-        img('dev'),
-        img('dsb_bronze'),
-        img('dsb_gold'),
-        img('dsb_silver'),
-        img('jcb_bronze'),
-        img('jcb_gold'),
-        img('jcb_silver'),
-    ]),
+    subdir('badges', [img(i) for i in [
+        'dev',
+        'dsb_bronze',
+        'dsb_gold',
+        'dsb_silver',
+        'jcb_bronze',
+        'jcb_gold',
+        'jcb_silver',
+        'contributor',
+    ]]),
 
     white('white'),
 ])

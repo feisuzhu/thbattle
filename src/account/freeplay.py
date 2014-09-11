@@ -19,7 +19,7 @@ class Account(object):
                 credits=998,
                 games=1,
                 drops=0,
-                badges=['dev'],
+                badges=['dev', 'contributor'],
             )
             return acc
 
@@ -43,7 +43,7 @@ class Account(object):
             avatar='http://www.thbattle.net/maoyu.png',
             credits=998,
             games=1,
-            badges=['dev'],
+            badges=['dev', 'contributor'],
         )
         assert mode == 'freeplay'
         return acc

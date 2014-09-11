@@ -110,6 +110,14 @@ class dsb_2_bronze:
     badge_text = u'第二届大师杯季军'
 
 
+class contributor:
+    badge_anim = cres.badges.contributor
+    badge_text = (
+        u'|B符斗祭贡献者|r\n\n'
+        u'在官方发起的公开任务中积极参与并做出贡献的玩家'
+    )
+
+
 '''
 badge_text = u'大师の期末考状元'
 badge_text = u'大师の考题状元'
