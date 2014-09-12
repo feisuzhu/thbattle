@@ -120,10 +120,13 @@ resource = Resource(respath, [
         'card_heal',
         'card_keystone',
         'card_laevatein',
+        'card_nazrinrod',
+        'card_reject',
         'card_saigyoubranch',
         'card_sinsack',
         'card_sinsack_effect',
         'card_sinsackcarnival',
+        'card_srs',
         'card_suwakohat',
         'card_wine',
 

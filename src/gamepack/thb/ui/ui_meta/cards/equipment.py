@@ -277,7 +277,8 @@ class ScarletRhapsodyCard:
     image_small = gres.card_scarletrhapsodysword_small
     description = (
         u'|R绯想之剑|r\n\n'
-        u'攻击范围4，当你使用的【弹幕】是你的最后一张手牌时，你可以为这张【弹幕】指定至多三名目标，然后依次结算之。'
+        u'攻击范围4，当你使用的【弹幕】是你的最后一张手牌时，你可以为这张【弹幕】指定至多三名目标，然后依次结算之。\n\n'
+        u'|DB（CV：VV）'
     )
 
     is_action_valid = equip_iav
@@ -323,6 +324,9 @@ class ScarletRhapsodySkill:
             u'】|r、|G【'.join(tl.ui_meta.char_name),
             len(tl),
         )
+
+    def sound_effect(act):
+        return gres.cv.card_srs
 
 
 class RepentanceStickCard:

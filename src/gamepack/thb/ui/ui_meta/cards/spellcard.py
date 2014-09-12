@@ -45,7 +45,8 @@ class RejectCard:
     image = gres.card_reject
     description = (
         u'|R好人卡|r\n\n'
-        u'目标符卡对目标角色生效前，对目标符卡使用。抵消该符卡对其指定的一名目标角色产生的效果。'
+        u'目标符卡对目标角色生效前，对目标符卡使用。抵消该符卡对其指定的一名目标角色产生的效果。\n\n'
+        u'|DB（CV：VV）'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -80,6 +81,9 @@ class Reject:
 
     def ray(act):
         return [(act.source, act.target)]
+
+    def sound_effect(act):
+        return gres.cv.card_reject
 
 
 class SealingArrayCard:
@@ -152,11 +156,15 @@ class NazrinRodCard:
     description = (
         u'|R寻龙尺|r\n\n'
         u'非延时符卡\n'
-        u'出牌阶段使用，从牌堆摸两张牌。'
+        u'出牌阶段使用，从牌堆摸两张牌。\n\n'
+        u'|DB（CV：VV）'
     )
 
     def is_action_valid(g, cl, target_list):
         return (True, u'看看能找到什么好东西~')
+
+    def sound_effect(act):
+        return gres.cv.card_nazrinrod
 
 
 class SinsackCard:
@@ -263,7 +271,7 @@ class SinsackCarnivalCard:
     description = (
         u'|R罪袋狂欢|r\n\n'
         u'出牌阶段使用，所有其他玩家需打出一张【弹幕】，否则受到一点伤害。\n\n'
-        u'|DB（画师：Pixiv UID 146732）|r'
+        u'|DB（画师：Pixiv UID 146732，CV：大白）|r'
     )
 
     def is_action_valid(g, cl, target_list):
