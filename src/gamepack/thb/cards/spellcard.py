@@ -197,6 +197,10 @@ class NazrinRod(InstantSpellCardAction):
         return True
 
 
+class SinsackDamage(Damage):
+    pass
+
+
 class Sinsack(DelayedSpellCardAction):
     # 罪袋
     def apply_action(self):
@@ -206,7 +210,7 @@ class Sinsack(DelayedSpellCardAction):
         ft = Fatetell(target, lambda card: card.suit == Card.SPADE and 1 <= card.number <= 8)
         g.process_action(ft)
         if ft.succeeded:
-            g.process_action(Damage(None, target, amount=3))
+            g.process_action(SinsackDamage(None, target, amount=3))
             return True
         return False
 

@@ -186,9 +186,10 @@ class Sinsack:
         if act.succeeded:
             return u'罪袋终于找到了机会，将|G【%s】|r推倒了…' % tgt.ui_meta.char_name
 
-    def sound_effect_after(act):
-        if act.succeeded:
-            return gres.cv.card_sinsack_effect
+
+class SinsackDamage:
+    def sound_effect(act):
+        return gres.cv.card_sinsack_effect
 
 
 class YukariDimensionCard:
@@ -267,6 +268,9 @@ class SinsackCarnivalCard:
 
     def is_action_valid(g, cl, target_list):
         return (True, u'罪袋们来送水啦！')
+
+    def sound_effect(act):
+        return gres.cv.card_sinsackcarnival
 
 
 class FeastCard:

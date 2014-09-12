@@ -123,6 +123,7 @@ resource = Resource(respath, [
         'card_saigyoubranch',
         'card_sinsack',
         'card_sinsack_effect',
+        'card_sinsackcarnival',
         'card_suwakohat',
         'card_wine',
 
