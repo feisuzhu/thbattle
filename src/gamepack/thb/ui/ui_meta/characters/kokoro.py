@@ -20,7 +20,7 @@ class Kokoro:
         u'|G希望之面|r：出牌阶段开始时。你可以观看牌堆顶1+X张牌，然后展示并获得其中任意数量的同一种花色的牌，其余以任意顺序置于牌堆顶（X为你已损失的体力值）。\n\n'
         u'|G暗黑能乐|r：出牌阶段，你可以将一张黑色牌置于体力不低于你的其他角色的明牌区，该角色需弃置除获得的牌以外的手牌直至手牌数等于其当前体力值。每阶段限一次。\n\n'
         u'|R异变模式不可用|r\n\n'
-        u'|DB（画师：Takibi）|r'
+        u'|DB（画师：Takibi，CV：小羽）|r'
     )
 
 
@@ -49,6 +49,9 @@ class HopeMaskAction:
         return u'|G【%s】|r拿起了%s，贴在了自己的脸上。' % (
             act.source.ui_meta.char_name, s,
         )
+
+    def sound_effect(act):
+        return gres.cv.kokoro_hopemask
 
 
 class DarkNohAction:
@@ -102,3 +105,6 @@ class DarkNoh:
                 target.ui_meta.char_name,
             )
         ]
+
+    def sound_effect(act):
+        return gres.cv.kokoro_darknoh

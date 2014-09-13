@@ -867,6 +867,10 @@ class YoumuPhantomSkill(AccessoriesSkill):
     skill_category = ('equip', 'passive')
 
 
+class YoumuPhantomHeal(basic.Heal):
+    pass
+
+
 @register_eh
 class YoumuPhantomHandler(EventHandler):
     def handle(self, evt_type, arg):
@@ -881,13 +885,11 @@ class YoumuPhantomHandler(EventHandler):
         if _from is not None and _from.type == 'equips':
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
-                    from .basic import Heal
-
                     owner = _from.owner
 
                     g.process_action(MaxLifeChange(owner, owner, -1))
                     if not owner.dead:
-                        g.process_action(Heal(owner, owner))
+                        g.process_action(YoumuPhantomHeal(owner, owner))
 
         if to is not None and to.type == 'equips':
             for c in cards:

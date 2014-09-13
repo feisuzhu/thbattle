@@ -689,7 +689,8 @@ class DeathSickleCard:
     image_small = gres.card_deathsickle_small
     description = (
         u'|R死神之镰|r\n\n'
-        u'攻击范围2，|B锁定技|r，当你使用的【弹幕】造成伤害时，若目标没有手牌，此【弹幕】的伤害+1。'
+        u'攻击范围2，|B锁定技|r，当你使用的【弹幕】造成伤害时，若目标没有手牌，此【弹幕】的伤害+1。\n\n'
+        u'|DB（CV：小羽）|r'
     )
     is_action_valid = equip_iav
 
@@ -710,6 +711,9 @@ class DeathSickle:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.card_deathsickle
 
 
 class KeystoneCard:
@@ -829,7 +833,7 @@ class YoumuPhantomCard:
     description = (
         u'|R半灵|r\n\n'
         u'装备时增加一点体力上限，当失去装备区里的【半灵】时，回复一点体力。\n\n'
-        u'|DB（画师：Pixiv ID 376712）|r'
+        u'|DB（画师：Pixiv ID 376712，CV：小羽）|r'
     )
 
     is_action_valid = equip_iav
@@ -840,6 +844,11 @@ class YoumuPhantomSkill:
     name = u'半灵'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
+
+
+class YoumuPhantomHeal:
+    def sound_effect(act):
+        return gres.cv.card_phantom
 
 
 class IceWingCard:

@@ -157,7 +157,7 @@ class NazrinRodCard:
         u'|R寻龙尺|r\n\n'
         u'非延时符卡\n'
         u'出牌阶段使用，从牌堆摸两张牌。\n\n'
-        u'|DB（CV：VV）'
+        u'|DB（CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -242,7 +242,7 @@ class DuelCard:
     description = (
         u'|R弹幕战|r\n\n'
         u'出牌阶段对(除自己外)任意一名玩家使用，由目标角色先开始，你和他（她）轮流打出一张【弹幕】，【弹幕战】对首先不出【弹幕】的一方造成1点伤害；另一方成为此伤害的来源。\n\n'
-        u'|DB（画师：Pixiv ID 8092636）|r'
+        u'|DB（画师：Pixiv ID 8092636，CV：小羽）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -250,6 +250,9 @@ class DuelCard:
             return (False, u'请选择弹幕战的目标')
 
         return (True, u'来，战个痛快！')
+
+    def sound_effect(act):
+        return gres.cv.card_duel
 
 
 class MapCannonCard:

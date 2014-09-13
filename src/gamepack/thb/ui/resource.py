@@ -115,12 +115,15 @@ resource = Resource(respath, [
     ]),
 
     subdir('cv', [sound(i) for i in [
+        'card_deathsickle',
         'card_dimension',
+        'card_duel',
         'card_grimoire',
         'card_heal',
         'card_keystone',
         'card_laevatein',
         'card_nazrinrod',
+        'card_phantom',
         'card_reject',
         'card_saigyoubranch',
         'card_sinsack',
@@ -130,6 +133,7 @@ resource = Resource(respath, [
         'card_suwakohat',
         'card_wine',
 
+        'alice_legion', 'alice_miss',
         'aya_ultimatespeed', 'aya_miss',
         'cirno_miss', 'cirno_perfectfreeze',
         'daiyousei_miss', 'daiyousei_moe', 'daiyousei_support',
@@ -139,6 +143,7 @@ resource = Resource(respath, [
         'kanako_faith', 'kanako_onbashira_effect', 'kanako_onbashira', 'kanako_miss',
         'koakuma_find', 'koakuma_miss',
         'kogasa_jolly', 'kogasa_miss', 'kogasa_surprise',
+        'kokoro_darknoh', 'kokoro_hopemask',
         'marisa_borrow', 'marisa_miss',
         'meirin_loongpunch', 'meirin_miss1', 'meirin_miss2', 'meirin_rb', 'meirin_taichi',
         'minoriko_akitribute', 'minoriko_autumnfeast', 'minoriko_foison', 'minoriko_miss',
