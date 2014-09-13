@@ -40,6 +40,9 @@ class MasochistAction:
             act.target.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.tenshi_masochist
+
 
 class ScarletPerception:
     # Skill
@@ -55,14 +58,18 @@ class ScarletPerceptionAction:
             card_desc(act.card)
         )
 
+    def sound_effect(act):
+        return gres.cv.tenshi_sp
+
 
 class Tenshi:
     # Character
     char_name = u'比那名居天子'
     port_image = gres.tenshi_port
+    miss_sound_effect = gres.cv.tenshi_miss
     description = (
         u'|DB有顶天的大M子 比那名居天子 体力：3|r\n\n'
         u'|G抖Ｍ|r：每当你受到X点伤害，你可以摸X*2张牌，然后将这些牌分配给任意的角色。\n\n'
         u'|G绯想|r：与你距离为1以内的角色的红色判定牌进入弃牌堆后，你获得之。\n\n'
-        u'|DB（画师：Danbooru post 482239）|r'
+        u'|DB（画师：Danbooru post 482239，CV：VV）|r'
     )

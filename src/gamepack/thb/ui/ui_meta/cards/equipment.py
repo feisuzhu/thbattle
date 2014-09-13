@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import actions
 from gamepack.thb import cards
 
@@ -572,7 +574,8 @@ class AyaRoundfanCard:
     image_small = gres.card_ayaroundfan_small
     description = (
         u'|R团扇|r\n\n'
-        u'攻击距离5，当你使用【弹幕】命中时，可以弃一张手牌，卸掉目标的一件装备。'
+        u'攻击距离5，当你使用【弹幕】命中时，可以弃一张手牌，卸掉目标的一件装备。\n\n'
+        u'|DB（CV：VV）|r'
     )
     is_action_valid = equip_iav
 
@@ -608,6 +611,12 @@ class AyaRoundfan:
             act.target.ui_meta.char_name,
             act.card.ui_meta.name,
         )
+
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.card_roundfan1,
+            gres.cv.card_roundfan2,
+        ])
 
 
 class NenshaPhoneCard:
