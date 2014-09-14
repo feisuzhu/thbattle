@@ -62,7 +62,7 @@ def start_client():
     import socket
     from gevent import socket as gsock
 
-    if not sys.platform.startswith('linux'):
+    if False:
         gsock.getaddrinfo = socket.getaddrinfo
         gsock.gethostbyname = socket.gethostbyname
 
