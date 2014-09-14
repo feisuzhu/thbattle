@@ -13,9 +13,8 @@ from gevent.event import Event
 from utils import Packet, instantiate
 from .endpoint import EndpointDied
 
+
 # -- code --
-
-
 class GamedataMixin(object):
     @instantiate
     class NODATA(object):

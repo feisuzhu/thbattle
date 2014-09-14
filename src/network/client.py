@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from gevent import Greenlet
-from gevent.queue import Queue
+from gevent.queue import Channel
 from network import Endpoint
 import logging
 
@@ -17,7 +17,7 @@ class Server(Endpoint, GamedataMixin, Greenlet):
     def __init__(self, sock, addr):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
-        self.ctlcmds = Queue(0)
+        self.ctlcmds = Channel()
         self.userid = 0
         self.init_gamedata_mixin()
 

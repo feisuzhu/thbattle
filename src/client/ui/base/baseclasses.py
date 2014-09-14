@@ -453,7 +453,7 @@ def init_gui():
         import gevent
 
         # give logics a chance to run
-        gevent.sleep(0)
+        gevent.sleep(0.001)
 
         if not sched_queue: return
 

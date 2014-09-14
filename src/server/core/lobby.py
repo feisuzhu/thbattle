@@ -101,7 +101,7 @@ class Client(ClientEndpoint):
         return tag, data
 
     def gwrite(self, tag, data):
-        log.debug('GAME_WRITE: %s', repr([tag, data]))
+        log.debug('GAME_WRITE: %s -> %s', self.account.username, repr([tag, data]))
 
         manager = GameManager.get_by_user(self)
         manager.record_gamedata(self, tag, json.loads(self.encode(data)))

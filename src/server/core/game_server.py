@@ -15,7 +15,7 @@ import gevent
 # -- own --
 from game import TimeLimitExceeded, InputTransaction, GameEnded
 from network.server import EndpointDied
-from utils import waitany, log_failure
+from utils import log_failure
 
 import game
 
@@ -82,8 +82,10 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             # TLE would be raised at other part (notably my.post_process) in the original solution
             # (wrapping large parts of code in 'with TimeLimitExceeded(): ...')
             with TimeLimitExceeded(max(till - time.time(), 0)):
-                w = waitany(_input_group)
-                _input_group.discard(w)
+                for w in gevent.iwait(_input_group):
+                    _input_group.discard(w)
+                    break
+
                 try:
                     rst = w.get()
                     p, data = w.player, rst
