@@ -229,6 +229,7 @@ class Executive(object):
 
             # return 'server_connected'
         except Exception:
+            self.state = 'initial'
             log.exception('Error connecting server')
             return 'server_connect_failed'
 
