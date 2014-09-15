@@ -15,7 +15,7 @@ class DemolitionCard:
     description = (
         u'|R城管执法|r\n\n'
         u'出牌阶段对(除自己外)任意一名玩家使用，随机抽取并弃掉对方一张手牌，或选择并弃掉一张对方面前的牌(包括装备、明牌区和判定区内延时类符卡)。\n\n'
-        u'|DB（画师：Pixiv ID 557324）|r'
+        u'|DB（画师：Pixiv ID 557324，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -27,6 +27,9 @@ class DemolitionCard:
             return (False, u'这货已经没有牌了')
         else:
             return (True, u'嗯，你的牌太多了')
+
+    def sound_effect(act):
+        return gres.cv.card_demolition
 
 
 class Demolition:
@@ -127,7 +130,7 @@ class FrozenFrogCard:
         u'延时类符卡\n'
         u'出牌阶段对任意一名玩家使用,将此牌置于目标玩家判定区,对方在其摸牌阶段需判定——如果判定结果不为黑桃，则该回合跳过摸牌阶段。无论判定是否成功，弃掉该【冻青蛙】。\n'
         u'|B|R>> |r仅当需要开始进行【冻青蛙】的判定时,才能使用【好人卡】抵消之(抵消后弃掉【冻青蛙】)。\n\n'
-        u'|DB（画师：Pixiv ID 无限轨道A）|r'
+        u'|DB（画师：Pixiv ID 无限轨道A，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -138,6 +141,9 @@ class FrozenFrogCard:
             return (False, u'你不能跟自己过不去啊！')
 
         return (True, u'伸手党什么的，冻住就好了！')
+
+    def sound_effect(act):
+        return gres.cv.card_frozenfrog
 
 
 class FrozenFrog:
@@ -377,7 +383,7 @@ class DonationBoxCard:
     description = (
         u'|R塞钱箱|r\n\n'
         u'指定1-2名有手牌或装备的玩家，被指定玩家必须选择一张手牌或装备牌置入你的明牌区。\n\n'
-        u'|DB（画师：Pixiv ID 4104174）|r'
+        u'|DB（画师：Pixiv ID 4104174，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, tl):
@@ -390,6 +396,9 @@ class DonationBoxCard:
                 return (False, u'目标没有可以给你的牌')
 
         return (True, u'纳奉！纳奉！')
+
+    def sound_effect(act):
+        return gres.cv.card_donationbox
 
 
 class DonationBoxEffect:

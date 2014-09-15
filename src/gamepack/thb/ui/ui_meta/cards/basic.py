@@ -80,7 +80,7 @@ class ExinwanCard:
         u'主动使用时没有额外效果。当该牌以任意的方式由手牌/明牌区进入弃牌堆时，引发弃牌动作的玩家需要选择其中一项执行：\n'
         u'|B|R>> |r受到一点伤害，无来源\n'
         u'|B|R>> |r弃两张牌\n\n'
-        u'|DB（画师：Pixiv ID 1203877）|r'
+        u'|DB（画师：Pixiv ID 1203877，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -97,6 +97,9 @@ class ExinwanEffect:
 
     def effect_string_before(act):
         return u'|G【%s】|r被恶心到了！' % act.target.ui_meta.char_name
+
+    def sound_effect(act):
+        return gres.cv.card_exinwan
 
 
 class UseGraze:

@@ -116,13 +116,18 @@ resource = Resource(respath, [
 
     subdir('cv', [sound(i) for i in [
         'card_deathsickle',
+        'card_demolition',
         'card_dimension',
+        'card_donationbox',
         'card_duel',
+        'card_exinwan',
+        'card_frozenfrog',
         'card_grimoire',
         'card_heal',
         'card_keystone',
         'card_laevatein',
         'card_nazrinrod',
+        'card_opticalcloak',
         'card_phantom',
         'card_reject',
         'card_roundfan1', 'card_roundfan2',
@@ -148,6 +153,7 @@ resource = Resource(respath, [
         'marisa_borrow', 'marisa_miss',
         'meirin_loongpunch', 'meirin_miss1', 'meirin_miss2', 'meirin_rb', 'meirin_taichi',
         'minoriko_akitribute', 'minoriko_autumnfeast', 'minoriko_foison', 'minoriko_miss',
+        'mokou_ashes', 'mokou_miss', 'mokou_reborn',
         'momiji_miss', 'momiji_sentry1', 'momiji_sentry2',
         'nazrin_agile1', 'nazrin_agile2', 'nazrin_miss', 'nazrin_treasurehunt',
         'patchouli_knowledge', 'patchouli_library1', 'patchouli_library2', 'patchouli_miss',
@@ -168,6 +174,7 @@ resource = Resource(respath, [
         'youmu_miss', 'youmu_mjchz', 'youmu_nitoryuu',
         'yugi_fp1', 'yugi_fp2', 'yugi_miss',
         'yuuka_flowerqueen', 'yuuka_miss', 'yuuka_rs', 'yuuka_sadist',
+
     ]]),
 
     ui_meta('thb_uimeta'),

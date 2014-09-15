@@ -27,7 +27,7 @@ class OpticalCloakCard:
     description = (
         u'|R光学迷彩|r\n\n'
         u'装备【光学迷彩】后，每次需要出【擦弹】时（例如受到【弹幕】或【地图炮】攻击时），可以选择判定，若判定结果为红色花色（红桃或方块），则等效于出了一张【擦弹】；否则需再出【擦弹】。\n\n'
-        u'|DB（画师：人人网 邵思雯）|r'
+        u'|DB（画师：人人网 邵思雯，CV：shourei小N）|r'
     )
 
     is_action_valid = equip_iav
@@ -59,6 +59,10 @@ class OpticalCloak:
             return u'效果拔群！'
         else:
             return u'但是被看穿了…'
+
+    def sound_effect_after(act):
+        if act.succeeded:
+            return gres.cv.card_opticalcloak
 
 
 class MomijiShieldCard:
