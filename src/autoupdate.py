@@ -4,7 +4,6 @@ import gevent
 import random
 import gevent.queue
 import urllib2
-import threading
 from zlib import crc32
 import simplejson as json
 import sys
@@ -36,9 +35,8 @@ def _clean_dir(base):
 
 
 def build_hash(base):
-    my_hash = {}
-
     def run():
+        my_hash = {}
         for path, _, names in os.walk(base, followlinks=True):
             for name in names:
                 if ignores.match(name):
@@ -50,13 +48,10 @@ def build_hash(base):
                     h = crc32(f.read())
                     my_hash[rfn.replace('\\', '/')] = h
 
-    thread = threading.Thread(target=run)
-    thread.start()
+        return my_hash
 
-    while thread.isAlive():
-        gevent.sleep(0.1)
-
-    return my_hash
+    from gevent.hub import get_hub
+    return get_hub().threadpool.apply(run)
 
 
 def version_string(hash):

@@ -26,8 +26,8 @@ log = logging.getLogger('UI_Baseclasses')
 
 class Control(pyglet.event.EventDispatcher):
     def __init__(self, x=0, y=0, width=0, height=0,
-                zindex=0, parent=None, can_focus=False, manual_draw=False,
-                *args, **kwargs):
+                 zindex=0, parent=None, can_focus=False, manual_draw=False,
+                 *args, **kwargs):
 
         self.__dict__.update({
             'parent': parent,
@@ -72,10 +72,17 @@ class Control(pyglet.event.EventDispatcher):
 
     def remove_control(self, c):
         self.control_list.remove(c)
+
         c.parent = None
         c.overlay = None
 
     def delete(self):
+        # cleanup captures
+        if self.overlay:
+            for l in self.overlay._capture_events.values():
+                if self in l:
+                    l.remove(self)
+
         if self.parent:
             self.parent.remove_control(self)
 
@@ -107,7 +114,9 @@ class Control(pyglet.event.EventDispatcher):
         while True:
             c1 = c.control_frompoint1(x, y)
             if not c1: return c
-            x -= c1.x; y -= c1.y; c = c1
+            x -= c1.x
+            y -= c1.y
+            c = c1
 
     def hit_test(self, x, y):
         return True
@@ -168,6 +177,9 @@ class Control(pyglet.event.EventDispatcher):
 
     def release_capture(self, *evts):
         o = self.overlay
+        if not o:
+            return
+
         for e in evts:
             l = o._capture_events.get(e)
             if l:
