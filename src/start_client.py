@@ -55,40 +55,6 @@ def start_client():
 
     log = logging.getLogger('start_client')
 
-    # gevent: do not patch dns, they fail on windows
-    # monkey.patch_socket(dns=False) won't work since
-    # socket.create_connection internally references
-    # gevents' getaddrinfo
-    import socket
-    from gevent import socket as gsock
-
-    if False:
-        gsock.getaddrinfo = socket.getaddrinfo
-        gsock.gethostbyname = socket.gethostbyname
-
-        # HACK: resolve domain in parallel
-        import threading
-
-        class ResolveIt(threading.Thread):
-            def __init__(self, host):
-                threading.Thread.__init__(self)
-                self.host = host
-
-            def run(self):
-                host = self.host
-                socket.getaddrinfo(host, 80)
-                socket.gethostbyname(host)
-
-        domains = [
-            'www.thbattle.net',
-            'update.thbattle.net',
-            'cngame.thbattle.net',
-        ]
-        for host in domains:
-            thread = ResolveIt(host)
-            thread.daemon = True
-            thread.start()
-
     from gevent import monkey
     monkey.patch_socket()
     monkey.patch_os()
