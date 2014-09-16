@@ -150,6 +150,7 @@ resource = Resource(respath, [
         'koakuma_find', 'koakuma_miss',
         'kogasa_jolly', 'kogasa_miss', 'kogasa_surprise',
         'kokoro_darknoh', 'kokoro_hopemask',
+        'komachi_awake', 'komachi_ferryfee', 'komachi_miss', 'komachi_riverside',
         'marisa_borrow', 'marisa_miss',
         'meirin_loongpunch', 'meirin_miss1', 'meirin_miss2', 'meirin_rb', 'meirin_taichi',
         'minoriko_akitribute', 'minoriko_autumnfeast', 'minoriko_foison', 'minoriko_miss',
@@ -165,6 +166,7 @@ resource = Resource(respath, [
         'sakuya_knife1', 'sakuya_knife2', 'sakuya_lunaclock', 'sakuya_miss',
         'sanae_drawinglot', 'sanae_miracle', 'sanae_miss',
         'seiga_heterodoxy', 'seiga_miss',
+        'seija_incite1', 'seija_incite2', 'seija_miss', 'seija_reversal',
         'shikieiki_trial1', 'shikieiki_trial2', 'shikieiki_majesty', 'shikieiki_miss',
         'spflandre_destructionimpulse', 'spflandre_fourofakind', 'spflandre_miss',
         'spyukari_miss', 'spyukari_spiritaway1', 'spyukari_spiritaway2',
@@ -174,7 +176,6 @@ resource = Resource(respath, [
         'youmu_miss', 'youmu_mjchz', 'youmu_nitoryuu',
         'yugi_fp1', 'yugi_fp2', 'yugi_miss',
         'yuuka_flowerqueen', 'yuuka_miss', 'yuuka_rs', 'yuuka_sadist',
-
     ]]),
 
     ui_meta('thb_uimeta'),

@@ -17,12 +17,13 @@ class Komachi:
     port_image = gres.komachi_port
     figure_image = gres.komachi_figure
     figure_image_alter = gres.komachi_figure_alter
+    miss_sound_effect = gres.cv.komachi_miss
     description = (
         u'|DB乳不巨何以聚人心 小野塚小町 体力：4|r\n\n'
         u'|G彼岸|r：出牌阶段，你可以弃置一张牌并指定一名角色，你与其距离视为1直到回合结束。若该角色为全场体力最少的角色（或之一），你可以弃置其一张牌或摸一张牌。每阶段限一次。\n\n'
         u'|G归航|r：|B觉醒技|r，回合开始阶段，若你的体力值低于手牌数且小于等于2，你失去一点体力上限并获得技能|R渡钱|r。\n\n'
         u'|R渡钱|r：你对距离为1的角色造成一次伤害后，你可以获得其一张牌。\n\n'
-        u'|DB（画师：渚FUN）|r'
+        u'|DB（画师：渚FUN，CV：VV）|r'
     )
 
 
@@ -58,6 +59,9 @@ class Riverside:
             act.target.ui_meta.char_name
         )
 
+    def sound_effect(act):
+        return gres.cv.komachi_riverside
+
 
 class RiversideAction:
     # choose_option meta
@@ -70,6 +74,9 @@ class ReturningAwake:
         return u'|G【%s】|r：“啊啊不能再偷懒啦！要被四季大人说教啦！”' % (
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.komachi_awake
 
 
 class Returning:
@@ -92,6 +99,9 @@ class FerryFeeEffect:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.komachi_ferryfee
 
 
 class FerryFeeHandler:

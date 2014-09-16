@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from gamepack.thb import actions
 from gamepack.thb import characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
@@ -80,6 +82,12 @@ class Incite:
                 victim.ui_meta.char_name,
             )
 
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.seija_incite1,
+            gres.cv.seija_incite2,
+        ])
+
 
 class InciteAction:
     # choose_option
@@ -110,6 +118,9 @@ class ReversalDuel:
             act.source.ui_meta.char_name,
         )
 
+    def sound_effect(act):
+        return gres.cv.seija_reversal
+
 
 class ReversalHandler:
     # choose_option
@@ -121,9 +132,10 @@ class Seija:
     # Character
     char_name = u'鬼人正邪'
     port_image = gres.seija_port
+    miss_sound_effect = gres.cv.seija_miss
     description = (
         u'|DB逆袭的天邪鬼 鬼人正邪 体力：3|r\n\n'
         u'|G挑拨|r：出牌阶段，你可以与一名角色拼点，若你赢，视为该角色对其攻击范围内一名由你指定的角色使用了一张【弹幕】。若你没赢，该角色可以视为对你使用了一张【弹幕】。每阶段限一次。\n\n'
         u'|G逆转|r：你受到【弹幕】效果时，你可以摸一张牌，然后若此时你的手牌数大于该角色，此弹幕对你无效并视为该角色对你使用了一张【弹幕战】。\n\n'
-        u'|DB（画师：Pixiv ID 37885158）|r'
+        u'|DB（画师：Pixiv ID 37885158，CV：北斗夜）|r'
     )
