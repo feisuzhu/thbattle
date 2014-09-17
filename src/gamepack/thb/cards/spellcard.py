@@ -6,9 +6,9 @@ from . import basic
 from .base import VirtualCard
 from ..actions import random_choose_card, register_eh, migrate_cards, ask_for_action
 from ..actions import user_choose_cards
-from ..actions import GenericAction, UserAction, LaunchCardAction, DropCards
+from ..actions import UserAction, DropCards
 from ..actions import DrawCards, Fatetell, ActionStage, Damage, ForEach
-from ..actions import LaunchCard, DrawCardStage, launch_card
+from ..actions import LaunchCard, DrawCardStage
 from ..inputlets import ChoosePeerCardInputlet, ChooseIndividualCardInputlet
 
 from utils import check, CheckFailed, BatchList, flatten
@@ -69,19 +69,6 @@ class Reject(InstantSpellCardAction):
         return True
 
 
-class LaunchReject(GenericAction, LaunchCardAction):
-    def __init__(self, source, target_act, card):
-        self.source = source
-        self.target_act = target_act
-        self.target = target_act.target
-        self.card = card
-
-    def apply_action(self):
-        action = Reject(source=self.source, target_act=self.target_act)
-        launch_card(self, [], action)
-        return True
-
-
 @register_eh
 class RejectHandler(EventHandler):
     card_usage = 'launch'
@@ -123,7 +110,7 @@ class RejectHandler(EventHandler):
             if not p: return act
             cards, _ = rst
             assert cards and self.cond(cards)
-            g.process_action(LaunchReject(p, act, cards[0]))
+            g.process_action(LaunchCard(p, [act.target], cards[0], Reject(p, act)))
 
         return act
 

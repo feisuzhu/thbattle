@@ -93,13 +93,13 @@ class LaunchCard:
         return [(s, t) for t in act.target_list]
 
 
-class UseCard:
+class AskForCard:
     def sound_effect_after(act):
         c = act.card
         if not c:
             return
 
-        if act.card_usage not in ('use', 'launch'):
+        if act.card_usage != 'use':
             return
 
         meta = getattr(c, 'ui_meta', None)

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from game.autoenv import Game, EventHandler
-from ..actions import ActionStage, ActionStageLaunchCard, Damage, DropCards
-from ..actions import ForEach, GenericAction, LaunchCardAction
-from ..actions import PlayerTurn, UseCard, UserAction
+from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, DropUsedCard
+from ..actions import ForEach, GenericAction
+from ..actions import PlayerTurn, UserAction
 from ..actions import register_eh, user_choose_cards, LaunchCard
 
 
@@ -125,60 +125,56 @@ class GrazeAction(BasicAction):
         return True
 
 
-class BaseUseGraze(UseCard):
-    def cond(self, cl):
+class UseAttack(AskForCard):
+    card_usage = 'use'
+
+    def __init__(self, target):
         from .. import cards
-        t = self.target
-        return (
-            len(cl) == 1 and
-            cl[0].is_card(cards.GrazeCard) and
-            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
-        )
+        AskForCard.__init__(self, target, target, cards.AttackCard)
+
+    def process_card(self, card):
+        g = Game.getgame()
+        g.process_action(DropUsedCard(self.target, cards=[self.card]))
+        return True
+
+
+class BaseUseGraze(AskForCard):
+    def __init__(self, target):
+        from .. import cards
+        AskForCard.__init__(self, target, target, cards.GrazeCard)
 
 
 class UseGraze(BaseUseGraze):
-    pass
+    card_usage = 'use'
 
-
-class LaunchGraze(BaseUseGraze, LaunchCardAction):
-    card_usage = 'launch'
-    launch_action = GrazeAction
-
-
-class UseAttack(UseCard):
-    def cond(self, cl):
-        from .. import cards
-        t = self.target
-        return (
-            len(cl) == 1 and
-            cl[0].is_card(cards.AttackCard) and
-            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
-        )
-
-
-class AskForHeal(GenericAction):
-    card_usage = 'launch'
-
-    def apply_action(self):
-        src = self.source
-        cards = user_choose_cards(self, src, ('cards', 'showncards'))
-        if not cards:
-            return False
-
-        c = cards[0]
-        tgt = self.target
+    def process_card(self, card):
         g = Game.getgame()
-        g.process_action(LaunchCard(src, [tgt], c, action=c.associated_action or Heal))
+        g.process_action(DropUsedCard(self.target, cards=[self.card]))
         return True
 
-    def cond(self, cl):
+
+class LaunchGraze(BaseUseGraze):
+    card_usage = 'launch'
+
+    def process_card(self, card):
+        g = Game.getgame()
+        tgt = self.target
+        g.process_action(LaunchCard(tgt, [tgt], card, GrazeAction))
+        return True
+
+
+class AskForHeal(AskForCard):
+    card_usage = 'launch'
+
+    def __init__(self, source, target):
         from .. import cards
-        t = self.source
-        return (
-            len(cl) == 1 and
-            cl[0].is_card(cards.HealCard) and
-            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
-        )
+        AskForCard.__init__(self, source, target, cards.HealCard)
+
+    def process_card(self, card):
+        g = Game.getgame()
+        src, tgt = self.source, self.target
+        g.process_action(LaunchCard(tgt, [src], card, card.associated_action or Heal))
+        return True
 
 
 class Wine(BasicAction):

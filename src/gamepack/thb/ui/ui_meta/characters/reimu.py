@@ -60,6 +60,9 @@ class SpiritualAttack:
     def sound_effect(act):
         return gres.cv.reimu_sa
 
+    def effect_string(act):
+        return cards.RejectCard.ui_meta.effect_string(act)
+
 
 class TributeTarget:
     # Skill

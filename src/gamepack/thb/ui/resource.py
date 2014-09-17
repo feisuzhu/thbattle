@@ -156,7 +156,7 @@ resource = Resource(respath, [
         'minoriko_akitribute', 'minoriko_autumnfeast', 'minoriko_foison', 'minoriko_miss',
         'mokou_ashes', 'mokou_miss', 'mokou_reborn',
         'momiji_miss', 'momiji_sentry1', 'momiji_sentry2',
-        'nazrin_agile1', 'nazrin_agile2', 'nazrin_miss', 'nazrin_treasurehunt',
+        'nazrin_agile', 'nazrin_miss', 'nazrin_treasurehunt',
         'patchouli_knowledge', 'patchouli_library1', 'patchouli_library2', 'patchouli_miss',
         'ran_ei', 'ran_miss', 'ran_prophet',
         'reimu_miss', 'reimu_sa',

@@ -2,7 +2,7 @@
 
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import UserAction, LaunchCard, Damage, DrawCards, LaunchCardAction, LifeLost
+from ..actions import UserAction, LaunchCard, Damage, DrawCards, LifeLost
 from ..actions import user_choose_cards, migrate_cards, skill_transform
 from ..cards import Skill, t_None, Card, SealingArrayCard, TreatAs, VirtualCard, Heal
 from ..inputlets import ChooseOptionInputlet
@@ -89,7 +89,7 @@ class ImperishableNightHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
-        if not isinstance(act, LaunchCardAction): return act
+        if not isinstance(act, LaunchCard): return act
 
         g = Game.getgame()
 

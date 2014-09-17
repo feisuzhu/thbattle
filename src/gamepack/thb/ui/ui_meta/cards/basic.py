@@ -39,6 +39,12 @@ class GrazeCard:
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动使用擦弹')
 
+    def effect_string(act):
+        return u'|G【%s】|r使用了|G%s|r。' % (
+            act.source.ui_meta.char_name,
+            act.card.ui_meta.name
+        )
+
 
 class WineCard:
     # action_stage meta
@@ -104,7 +110,6 @@ class ExinwanEffect:
 
 class UseGraze:
     # choose_card meta
-    image = gres.card_graze
 
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -123,21 +128,12 @@ class UseGraze:
 
 class LaunchGraze:
     # choose_card meta
-    image = gres.card_graze
 
     def choose_card_text(g, act, cards):
         if act.cond(cards):
             return (True, u'我闪！')
         else:
             return (False, u'请使用一张【擦弹】抵消【弹幕】效果…')
-
-    def effect_string(act):
-        if not act.succeeded: return None
-        t = act.target
-        return u'|G【%s】|r使用了|G%s|r。' % (
-            t.ui_meta.char_name,
-            act.card.ui_meta.name,
-        )
 
 
 class UseAttack:
@@ -186,9 +182,9 @@ class AskForHeal:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'神说，你不能在这里MISS(对%s使用)' % act.target.ui_meta.char_name)
+            return (True, u'神说，你不能在这里MISS(对%s使用)' % act.source.ui_meta.char_name)
         else:
-            return (False, u'请选择一张【麻薯】(对%s使用)…' % act.target.ui_meta.char_name)
+            return (False, u'请选择一张【麻薯】(对%s使用)…' % act.source.ui_meta.char_name)
 
 
 class Heal:

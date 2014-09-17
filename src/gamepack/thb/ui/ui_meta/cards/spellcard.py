@@ -55,6 +55,17 @@ class RejectCard:
     def is_action_valid(g, cl, target_list):
         return (False, u'你不能主动出好人卡')
 
+    def effect_string(act):
+        return u'|G【%s】|r为|G【%s】|r受到的|G%s|r使用了|G%s|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+            act.force_action.target_act.associated_card.ui_meta.name,
+            act.card.ui_meta.name,
+        )
+
+    def sound_effect(act):
+        return gres.cv.card_reject
+
 
 class RejectHandler:
     # choose_card meta
@@ -71,22 +82,6 @@ class RejectHandler:
             return (True, u'对不起，你是一个好人(%s)' % s)
         else:
             return (False, u'请选择一张好人卡（%s)' % s)
-
-
-class Reject:
-    def effect_string_before(act):
-        return u'|G【%s】|r为|G【%s】|r受到的|G%s|r使用了|G%s|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
-            act.target_act.associated_card.ui_meta.name,
-            act.associated_card.ui_meta.name,
-        )
-
-    def ray(act):
-        return [(act.source, act.target)]
-
-    def sound_effect(act):
-        return gres.cv.card_reject
 
 
 class SealingArrayCard:

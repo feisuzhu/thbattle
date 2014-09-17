@@ -540,8 +540,10 @@ class SaigyouBranch(FatetellAction):
         ft = Fatetell(src, lambda card: 9 <= card.number <= 13)
         g.process_action(ft)
         if ft.succeeded:
-            rej = spellcard.LaunchReject(src, act, SaigyouBranchSkill(src))
-            g.process_action(rej)
+            # rej = spellcard.LaunchReject(src, act, SaigyouBranchSkill(src))
+            g.process_action(LaunchCard(
+                src, [act.target], SaigyouBranchSkill(src), spellcard.Reject(src, act)
+            ))
             return True
         else:
             return False

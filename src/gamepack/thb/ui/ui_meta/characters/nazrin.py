@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import random
-
 from gamepack.thb import cards
 from gamepack.thb import characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
@@ -68,10 +66,7 @@ class Agile:
             return (True, u'这种三脚猫的弹幕，想要打中我是不可能的啦~')
 
     def sound_effect(act):
-        return random.choice([
-            gres.cv.nazrin_agile1,
-            gres.cv.nazrin_agile2,
-        ])
+        return gres.cv.nazrin_agile
 
 
 class TreasureHunt:

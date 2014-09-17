@@ -39,6 +39,12 @@ class OpticalCloakSkill:
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
+    def sound_effect(act):
+        return gres.cv.card_opticalcloak
+
+    def effect_string(act):
+        return cards.GrazeCard.ui_meta.effect_string(act)
+
 
 class OpticalCloakHandler:
     # choose_option
@@ -59,10 +65,6 @@ class OpticalCloak:
             return u'效果拔群！'
         else:
             return u'但是被看穿了…'
-
-    def sound_effect_after(act):
-        if act.succeeded:
-            return gres.cv.card_opticalcloak
 
 
 class MomijiShieldCard:
@@ -491,6 +493,9 @@ class SaigyouBranchSkill:
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
+    def sound_effect(act):
+        return gres.cv.card_saigyoubranch
+
 
 class SaigyouBranchHandler:
     # choose_option
@@ -516,9 +521,6 @@ class SaigyouBranch:
             ) % (
                 act.source.ui_meta.char_name,
             )
-
-    def sound_effect(act):
-        return gres.cv.card_saigyoubranch
 
 
 class HakuroukenCard:
