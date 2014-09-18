@@ -1,176 +1,94 @@
 # -*- coding: utf-8 -*-
 
-import gevent
-import random
-import gevent.queue
-import urllib2
-from zlib import crc32
-import simplejson as json
-import sys
-import os
-from urlparse import urljoin
-from StringIO import StringIO
-from gzip import GzipFile
+# update-url: points to git repo
+# server has version, and a branch name(eg 'production', 'testing').
+# client always tracks corresponding branch.
+#
+# replay: saves current commit sha1 as version.
+# when playing, switch to that version.
 
+# -- stdlib --
+from threading import RLock
 import logging
+
+# -- third party --
+from gevent.hub import get_hub
+import gevent
+import pygit2
+
+# -- own --
+
+# -- code --
 log = logging.getLogger('autoupdate')
 
-import settings
 
-ignores = settings.UPDATE_IGNORES
-VERSION = settings.VERSION
+class Autoupdate(object):
+    def __init__(self, base):
+        self.base = base
 
+    def update(self):
+        repo = pygit2.Repository(self.base)
+        hub = get_hub()
+        noti = hub.loop.async()
+        lock = RLock()
+        stats = []
 
-def _clean_dir(base):
-    for path, _, names in os.walk(base):
-        for name in names:
-            if not name.endswith('.purge'):
-                continue
+        def progress(s):
+            with lock:
+                stats.append(s)
+                noti.send()
 
-            fn = os.path.join(path, name)
+        remote = repo.remotes[0]
+        remote.transfer_progress = progress
+
+        def do_fetch():
             try:
-                os.unlink(fn)
-            except OSError:
-                pass
-
-
-def build_hash(base):
-    def run():
-        my_hash = {}
-        for path, _, names in os.walk(base, followlinks=True):
-            for name in names:
-                if ignores.match(name):
-                    # file in exclude list
-                    continue
-                fn = os.path.join(path, name)
-                rfn = os.path.relpath(fn, base)
-                with open(fn, 'rb') as f:
-                    h = crc32(f.read())
-                    my_hash[rfn.replace('\\', '/')] = h
-
-        return my_hash
-
-    from gevent.hub import get_hub
-    return get_hub().threadpool.apply(run)
-
-
-def version_string(hash):
-    return str(crc32(str(sorted(hash.values()))))
-
-
-def write_metadata(base):
-    h = build_hash(base)
-    with open('update_info.json', 'w') as f:
-        f.write(json.dumps(h, encoding=sys.getfilesystemencoding(), indent='    '))
-
-    with open('current_version', 'w') as f:
-        f.write(version_string(h))
-
-
-def do_update(base, update_url, cb=lambda *a, **k: False):
-    base = os.path.join(base, settings.UPDATE_PREFIX)
-    update_url = urljoin(update_url, settings.UPDATE_PREFIX)
-
-    try:
-        remote = urllib2.build_opener()
-        remote.addheaders = [('User-Agent', VERSION), ('Accept-Encoding', 'gzip')]
-
-        me = gevent.getcurrent()
-
-        def worker(url):
-            try:
-                resp = remote.open(url)
-                rst = resp.read()
-                if resp.headers.get('Content-Encoding') == 'gzip':
-                    rst = GzipFile(fileobj=StringIO(rst), mode='rb').read()
-                resp.close()
-                return rst
+                return remote.fetch()
             except Exception as e:
-                me.kill(e)
+                return e
 
-        latest_ver = gevent.spawn(worker, urljoin(update_url, 'current_version'))
+        fetch = hub.threadpool.spawn(do_fetch)
 
-        _clean_dir(base)
-        my_hash = build_hash(base)
-        my_ver = version_string(my_hash)
+        while True:
+            noti_w = gevent.spawn(lambda: hub.wait(noti))
+            for r in gevent.iwait([noti_w, fetch]):
+                break
 
-        latest_ver = latest_ver.get().strip()
+            noti_w.kill()
 
-        if my_ver == latest_ver:
-            log.info('game up to date')
-            cb('up2date')
-            return 'up2date'
+            if r is fetch:
+                rst = r.get()
+                if isinstance(rst, Exception):
+                    raise rst
+                else:
+                    yield rst
+                    return
 
-        if cb('need_update') == 'cancel':
-            return 'cancelled'
+            v = None
+            with lock:
+                if stats:
+                    v = stats[-1]
 
-        cb('update_begin')
-        latest_hash = json.loads(worker(urljoin(update_url, 'update_info.json')))
+                stats[:] = []
 
-        files_delete = set(my_hash) - set(latest_hash)
-        files_update = set(latest_hash.items()) - set(my_hash.items())
+            if v:
+                yield v
 
-        for fn in files_delete:
-            ffn = os.path.join(base, fn)
-            cb('delete_file', fn)
-            log.info('delete file %s', fn)
-            try: os.rename(ffn, ffn + '.%d.purge' % random.randint(0, 10000))
-            except OSError: pass
+    def switch(self, version):
+        repo = pygit2.Repository(self.base)
+        try:
+            desired = repo.revparse_single(version)
+        except KeyError:
+            return False
 
-        queue = gevent.queue.Queue(1000000)
-        for fn, _ in files_update:
-            suburl = fn.replace('\\', '/')
-            queue.put(
-                (urljoin(update_url, suburl), fn)
-            )
+        repo.reset(desired.id, pygit2.GIT_RESET_HARD)
+        return True
 
-        def retrieve_worker():
-            try:
-                while True:
-                    url, fn = queue.get_nowait()
-                    log.info('update %s' % fn)
-                    cb('download_file', fn)
-                    resp = remote.open(url)
-                    d = resp.read()
-                    if resp.headers.get('Content-Encoding') == 'gzip':
-                        d = GzipFile(fileobj=StringIO(d), mode='rb').read()
-
-                    resp.close()
-                    cb('download_complete', fn)
-                    ffn = os.path.join(base, fn)
-                    try:
-                        try:
-                            os.makedirs(os.path.dirname(ffn))
-                        except OSError:
-                            pass
-
-                        try: os.rename(ffn, ffn + '.%d.purge' % random.randint(0, 10000))
-                        except OSError: pass
-
-                        with open(ffn, 'wb') as f:
-                            f.write(d)
-                    except EnvironmentError:
-                        cb('write_failed', fn)
-            except gevent.queue.Empty:
-                pass
-
-            except Exception as e:
-                me.kill(e)
-
-        workers = [gevent.spawn(retrieve_worker) for i in range(4)]
-        for w in workers: w.join()
-
-        cb('update_finished')
-
-        return 'updated'
-
-    except urllib2.HTTPError as e:
-        cb('http_error', e.getcode(), e.geturl())
-
-    except urllib2.URLError as e:
-        cb('network_error')
-
-    except IOError as e:
-        cb('io_error')
-
-    return 'error'
+    def is_version_match(self, version):
+        repo = pygit2.Repository(self.base)
+        try:
+            current = repo.revparse_single('HEAD')
+            desired = repo.revparse_single(version)
+            return current.id == desired.id
+        except KeyError:
+            return False

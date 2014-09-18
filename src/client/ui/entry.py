@@ -61,13 +61,13 @@ def start_ui():
     gllib.errcheck = my_errcheck
     # ------------------------------------
 
-    from screens import ServerSelectScreen
+    from screens import UpdateScreen, ServerSelectScreen
     from client.core import Executive
     from options import options
 
-    sss = ServerSelectScreen()
-
     if options.fastjoin:
+        sss = ServerSelectScreen()
+
         @gevent.spawn
         def func():
             from client.ui.soundmgr import SoundManager
@@ -84,7 +84,8 @@ def start_ui():
             Executive.get_ready()
 
     else:
-        sss.switch()
+        us = UpdateScreen()
+        us.switch()
 
     # os.execv(sys.executable, [sys.executable] + sys.argv)
 

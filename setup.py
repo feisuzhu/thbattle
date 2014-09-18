@@ -12,6 +12,7 @@ install_requires = [
     'colorlog',
     'gevent==1.0.1',
     'msgpack-python',
+    'pygit2>=0.21.0',
     'redis',
     'requests',
     'simplejson',
