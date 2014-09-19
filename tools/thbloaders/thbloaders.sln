@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thblauncher", "thblauncher\thblauncher.vcxproj", "{CD1EB454-F6C2-4391-8AC8-90E7A7190911}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thbrescue", "thbrescue\thbrescue.vcxproj", "{109FB470-E197-4676-8D2F-C38F205AA5FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CD1EB454-F6C2-4391-8AC8-90E7A7190911}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CD1EB454-F6C2-4391-8AC8-90E7A7190911}.Debug|Win32.Build.0 = Debug|Win32
+		{CD1EB454-F6C2-4391-8AC8-90E7A7190911}.Release|Win32.ActiveCfg = Release|Win32
+		{CD1EB454-F6C2-4391-8AC8-90E7A7190911}.Release|Win32.Build.0 = Release|Win32
+		{109FB470-E197-4676-8D2F-C38F205AA5FF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{109FB470-E197-4676-8D2F-C38F205AA5FF}.Debug|Win32.Build.0 = Debug|Win32
+		{109FB470-E197-4676-8D2F-C38F205AA5FF}.Release|Win32.ActiveCfg = Release|Win32
+		{109FB470-E197-4676-8D2F-C38F205AA5FF}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
