@@ -201,19 +201,6 @@ class Screen(Overlay):
 
 
 class UpdateScreen(Screen):
-    trans = dict(
-        update_begin=lambda: u'|W开始更新……|r',
-        up2date=lambda: u'|W已经是最新版本了|r',
-        delete_file=lambda fn: u'|W删除：|LB%s|r' % fn,
-        download_file=lambda fn: u'|W下载：|LB%s|r' % fn,
-        download_complete=lambda fn: u'|W下载完成：|LB%s|r' % fn,
-        write_failed=lambda fn: u'|R无法写入：|LB%s|r' % fn,
-        update_finished=lambda: u'|W更新完成|r',
-        http_error=lambda code, url: u'|RHTTP错误： %d %s|r' % (code, url),
-        network_error=lambda: u'|R网络错误|r',
-        io_error=lambda: u'|R系统错误|r',  # WHATEVER
-    )
-
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
         ta = TextArea(
@@ -221,15 +208,61 @@ class UpdateScreen(Screen):
             x=(self.width-600)//2, y=(self.height-450)//2
         )
         self.textarea = ta
+        self.update_gr = None
 
-    def update_message(self, msg, *args):
-        msg = self.trans[msg](*args)
-        self.textarea.append(msg + '\n')
+    def update_message(self, msg, arg):
+        ta = self.textarea
+        if msg == 'error':
+            ta.append(u'|W更新出错：\n|R%s|r\n' % str(arg))
+            return
+
+        progress = self.format_progress(arg)
+        if not progress:
+            return
+
+        if msg == 'logic_progress':
+            ta.append(u'|W游戏更新：|LB%s|r\n' % progress)
+        elif msg == 'interpreter_progress':
+            ta.append(u'|W解释器更新：|LB%s|r\n' % progress)
+
+    def format_progress(self, stat):
+        if not stat.total_objects:
+            return ''
+
+        if stat.indexed_deltas:
+            return ''
+
+        return u'{}% ({}/{}), {:.2f} KiB'.format(
+            int(100.0 * stat.received_objects / stat.total_objects),
+            stat.received_objects,
+            stat.total_objects,
+            stat.received_bytes / 1024.0,
+        )
 
     def draw(self):
         glClearColor(0.0, 0.0, 0.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
         self.draw_subcontrols()
+
+    def on_switch(self):
+        self.textarea.append(u'|W正在更新……|r\n')
+
+        def do_update():
+            rst = Executive.update(self.update_message)
+            box = None
+            if rst == 'update_disabled':
+                box = ConfirmBox(u'自动更新已经禁用', parent=self)
+            elif rst == 'error':
+                box = ConfirmBox(u'更新过程出现错误，你可能不能正常游戏！', parent=self)
+
+            if box:
+                @box.event
+                def on_confirm(v):
+                    ServerSelectScreen().switch()
+            else:
+                ServerSelectScreen().switch()
+
+        self.update_gr = gevent.spawn(do_update)
 
 
 class ServerSelectScreen(Screen):
@@ -309,63 +342,31 @@ class ServerSelectScreen(Screen):
                     self.select_server(self.highlight)
 
             def select_server(self, server):
-                us = UpdateScreen()
+                def confirm(text, buttons):
+                    from gevent.event import AsyncResult
+                    rst = AsyncResult()
+                    box = ConfirmBox(text, u'自动更新', buttons, parent=self.parent)
 
-                lw = LoadingWindow(u'正在检查更新', parent=self.parent)
+                    @box.event
+                    def on_confirm(val):
+                        rst.set(val)
+                    return rst.get()
 
-                def update_cb(msg, *args):
-                    if msg == 'need_update':
-                        lw.done()
+                @gevent.spawn
+                def work():
+                    if not Executive.is_version_match(server['branch']):
+                        if confirm(u'你的游戏没有切换到最新版上，要切换吗？', ConfirmBox.Presets.OKCancel):
+                            Executive.switch_version(server['branch'])
+                            import os
+                            import sys
+                            os.execv(sys.executable, [sys.executable] + sys.argv)
+                            assert False, 'WTF'
 
-                        confirm = ConfirmBox(
-                            u'是否进行更新？', u'有更新',
-                            ConfirmBox.Presets.OKCancel,
-                            parent=self.parent
-                        )
-
-                        from gevent.event import Event
-                        ev = Event()
-                        result = []
-
-                        @confirm.event
-                        def on_confirm(val):
-                            if val:
-                                us.switch()
-                                result.append(None)
-                            else:
-                                result.append('cancel')  # cancel update
-
-                            ev.set()
-
-                        ev.wait()
-                        return result[0]
-
-                    else:
-                        return us.update_message(msg, *args)
-
-                g = gevent.spawn(Executive.update, server['update_url'], update_cb)
-
-                @g.link
-                def link(_):
-                    result = g.value
-                    lw.done()
-
-                    if result == 'updated':
-                        import os
-                        import sys
-                        os.execv(sys.executable, [sys.executable] + sys.argv)
-
-                    elif result == 'error':
-                        self.parent.switch()
-                        ConfirmBox(u'更新失败，请重试', parent=self.parent)
-                        self.enable_click()
-
-                    else:
-                        lw2 = LoadingWindow(u'正在连接服务器', parent=self.parent)
-                        ui_message(Executive.connect_server(
-                            server['address'], ui_message
-                        ))
-                        lw2.done()
+                    lw2 = LoadingWindow(u'正在连接服务器', parent=self.parent)
+                    ui_message(Executive.connect_server(
+                        server['address'], ui_message
+                    ))
+                    lw2.done()
 
             def enable_click(self):
                 self.disable_click = False

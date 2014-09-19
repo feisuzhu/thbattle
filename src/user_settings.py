@@ -54,8 +54,7 @@ class UserSettings(dict):
             log.exception('Error loading conf')
 
     def _get_conf_name(self):
-        import settings
-        return os.path.join(settings.UPDATE_BASE, 'user_settings.json')
+        return 'user_settings.json'
 
 
 UserSettings = UserSettings()

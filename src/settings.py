@@ -1,30 +1,20 @@
 # -*- coding: utf-8 -*-
 
-
-def makedict(clsname, bases, _dict):
-    try:
-        del _dict['__module__']
-    except KeyError:
-        pass
-
-    return _dict
-
-__metaclass__ = makedict
-
+from options import options
+import sys
 import os
 
-import sys
-UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
-UPDATE_BASE = os.path.dirname(UPDATE_BASE)
-
-EMERGENCY_UPDATE_URL = 'http://update.thbattle.net/'
-
-UPDATE_PREFIX = 'src/' if sys.platform.startswith('linux') else ''
+__metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
-from options import options
+# -- begin settings --
+VERSION = 'THBATTLE V1.0b incr 223'
 
-VERSION = 'THBATTLE V1.0b incr 222'
+LOGIC_UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
+INTERPRETER_UPDATE_BASE = None
+
+if sys.platform == 'win32':
+    INTERPRETER_UPDATE_BASE = os.path.dirname(sys.executable)
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
@@ -33,25 +23,6 @@ ACCOUNT_FORUMURL = 'http://www.thbattle.net'
 
 TESTING_CHARACTERS = (
 )
-
-import re
-
-UPDATE_IGNORES = re.compile(r'''^(
-          current_version
-        | .*_custom\..{2,4}
-        | .*~
-        | .+\.py[co]
-        | OGLdpf\.log
-        | [sd]
-        | \..*
-        | \.txt
-        | cc?
-        | client_log\.txt
-        | client_log\.txt\.gz
-        | update_info\.json
-        | user_settings\.json
-    )$
-''', re.VERBOSE)
 
 
 class ServerNames:
@@ -78,7 +49,7 @@ class ServerList:
 
     class hakurei:
         address = ('game.thbattle.net', 8999)
-        update_url = 'http://misc.thbattle.net/testing/'
+        branch = 'origin/testing'
         polygon = [
             (878, 423), (829, 409), (760, 376), (748, 346), (787, 329),
             (863, 313), (929, 322), (970, 330), (992, 366), (968, 399),
@@ -95,6 +66,7 @@ class ServerList:
     if options.freeplay or IS_PROTON:
         class localhost:
             address = ('127.0.0.1', 9999)
+            branch = 'HEAD'
             update_url = None
             polygon = [
                 (891, 704), (839, 707), (740, 601), (749, 575), (834, 570),
@@ -107,7 +79,7 @@ class ServerList:
 
     class lake:
         address = ('cngame.thbattle.net', 9999)
-        update_url = 'http://update.thbattle.net/'
+        branch = 'origin/production'
         polygon = [
             (569, 510), (514, 501), (489, 474), (514, 449), (585, 439),
             (647, 447), (670, 457), (671, 487), (628, 504),
@@ -122,7 +94,7 @@ class ServerList:
 
     class forest:
         address = ('cngame.thbattle.net', 9999)
-        update_url = 'http://update.thbattle.net/'
+        branch = 'origin/production'
         polygon = [
             (360, 415), (237, 380), (197, 309), (222, 199), (285, 159),
             (397, 150), (524, 168), (611, 256), (592, 318), (536, 359),
@@ -136,6 +108,7 @@ class ServerList:
         ) % repr(address)
 
     del IS_PROTON
+
 
 NOTICE = u'''
 东方符斗祭 测试版

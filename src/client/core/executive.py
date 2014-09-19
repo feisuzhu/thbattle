@@ -5,10 +5,12 @@ import logging
 
 # -- third party --
 from gevent import socket, Greenlet
+from gevent.pool import Pool
 import gevent
 
 # -- own --
 from account import Account
+from autoupdate import Autoupdate
 from network.client import Server
 from utils import BatchList, instantiate
 
@@ -254,15 +256,43 @@ class Executive(object):
 
             return 'disconnected'
 
-    def update(self, url, update_cb):
-        import autoupdate as au
+    def update(self, update_cb):
         from options import options
         import settings
-        if url and not options.no_update:
-            base = settings.UPDATE_BASE
-            return au.do_update(base, url, update_cb)
-        else:
+        if options.no_update:
             return 'update_disabled'
+
+        errord = [False]
+
+        def do_update(name, path):
+            up = Autoupdate(path)
+            try:
+                for p in up.update():
+                    update_cb(name, p)
+            except Exception as e:
+                log.exception(e)
+                errord[0] = True
+                update_cb('error', e)
+
+        pool = Pool(2)
+
+        pool.spawn(do_update, 'logic_progress', settings.LOGIC_UPDATE_BASE)
+        if settings.INTERPRETER_UPDATE_BASE:
+            pool.spawn(do_update, 'interpreter_progress', settings.INTERPRETER_UPDATE_BASE)
+
+        pool.join()
+
+        return 'updated' if not errord[0] else 'error'
+
+    def switch_version(self, version):
+        import settings
+        up = Autoupdate(settings.LOGIC_UPDATE_BASE)
+        return up.switch(version)
+
+    def is_version_match(self, version):
+        import settings
+        up = Autoupdate(settings.LOGIC_UPDATE_BASE)
+        return up.is_version_match(version)
 
     def _simple_op(_type):
         def wrapper(self, *args):
