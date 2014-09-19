@@ -6,6 +6,8 @@ from gamepack.thb.ui.ui_meta.common import gen_metafunc
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
 from gamepack.thb.ui.resource import resource as gres
 
+import time
+
 __metaclass__ = gen_metafunc(characters.rinnosuke)
 
 
@@ -71,7 +73,11 @@ class PsychopathDrawCards:
         )
 
     def sound_effect(act):
-        return gres.cv.rinnosuke_psycopath
+        tgt = act.target
+        t = tgt.tags
+        if time.time() - t['__psycopath_lastplay'] > 10:
+            t['__psycopath_lastplay'] = time.time()
+            return gres.cv.rinnosuke_psycopath
 
 
 class Rinnosuke:
