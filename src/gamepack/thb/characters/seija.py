@@ -98,18 +98,15 @@ class ReversalHandler(EventHandler):
         'HouraiJewelHandler',
         'RejectHandler',
         'YugiHandler',
-        'RoukankenEffectHandler',
     )
 
     execute_after = (
         'DeathSickleHandler',
+        'RoukankenEffectHandler',
     )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
-            if hasattr(act, 'roukanken_tag'):
-                return act
-
             src = act.source
             tgt = act.target
             g = Game.getgame()
