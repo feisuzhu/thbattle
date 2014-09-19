@@ -11,7 +11,6 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 VERSION = 'THBATTLE V1.0b incr 221'
 
 LOGIC_UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
-LOGIC_UPDATE_BASE = os.path.dirname(LOGIC_UPDATE_BASE)
 
 INTERPRETER_UPDATE_BASE = None
 

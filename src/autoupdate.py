@@ -61,7 +61,6 @@ class Autoupdate(object):
                 if isinstance(rst, Exception):
                     raise rst
                 else:
-                    yield rst
                     return
 
             v = None
