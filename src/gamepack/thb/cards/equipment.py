@@ -208,8 +208,12 @@ class RoukankenEffectHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
-            if hasattr(act, 'hakurouken_tag'):
+            if act.cancelled:
                 return act
+
+            if hasattr(act, 'roukanken_tag'):
+                return act
+
             act.hakurouken_tag = True
             source = act.source
             if source.has_skill(RoukankenSkill):
