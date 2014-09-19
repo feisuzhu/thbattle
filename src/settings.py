@@ -10,11 +10,12 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 # -- begin settings --
 VERSION = 'THBATTLE V1.0b incr 223'
 
-LOGIC_UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
+CWD = os.getcwd()
+LOGIC_UPDATE_BASE = os.path.relpath(os.path.dirname(os.path.realpath(__file__)), CWD)
 INTERPRETER_UPDATE_BASE = None
 
 if sys.platform == 'win32':
-    INTERPRETER_UPDATE_BASE = os.path.dirname(sys.executable)
+    INTERPRETER_UPDATE_BASE = os.path.relpath(os.path.dirname(sys.executable), CWD)
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
