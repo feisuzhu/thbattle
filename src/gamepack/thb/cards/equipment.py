@@ -214,7 +214,7 @@ class RoukankenEffectHandler(EventHandler):
             if hasattr(act, 'roukanken_tag'):
                 return act
 
-            act.hakurouken_tag = True
+            act.roukanken_tag = True
             source = act.source
             if source.has_skill(RoukankenSkill):
                 act = Roukanken(act)
