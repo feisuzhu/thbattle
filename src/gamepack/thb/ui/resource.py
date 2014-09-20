@@ -151,6 +151,7 @@ resource = Resource(respath, [
         'kogasa_jolly', 'kogasa_miss', 'kogasa_surprise',
         'kokoro_darknoh', 'kokoro_hopemask',
         'komachi_awake', 'komachi_ferryfee', 'komachi_miss', 'komachi_riverside',
+        'mamizou_morph', 'mamizou_miss',
         'marisa_borrow', 'marisa_miss',
         'meirin_loongpunch', 'meirin_miss1', 'meirin_miss2', 'meirin_rb', 'meirin_taichi',
         'minoriko_akitribute', 'minoriko_autumnfeast', 'minoriko_foison', 'minoriko_miss',

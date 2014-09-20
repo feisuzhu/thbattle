@@ -144,14 +144,18 @@ class Morphing:
 
         return s
 
+    def sound_effect(act):
+        return gres.cv.mamizou_morph
+
 
 class Mamizou:
     # Character
     char_name = u'二岩猯藏'
     port_image = gres.mamizou_port
+    miss_sound_effect = gres.cv.mamizou_miss
     description = (
         u'|DB大狸子 二岩猯藏 体力：4|r\n\n'
         u'|G变化|r：出牌阶段限一次，你将两张手牌当做任何一张基本牌或非延时符卡使用。按此法使用的两张牌中至少有一张必须和你声明的牌类别一致。\n\n'
         u'|RKOF不平衡角色\n\n'
-        u'|DB（人物设计：鵺子丶爱丽丝， 画师：Pixiv ID 36199915）|r'
+        u'|DB（人物设计：鵺子丶爱丽丝， 画师：Pixiv ID 36199915，CV：shourei小N）|r'
     )
