@@ -91,6 +91,9 @@ class MomijiShield:
     def effect_string(act):
         return u'被|G天狗盾|r挡下了…'
 
+    def sound_effect(act):
+        return gres.cv.card_momijishield
+
 
 ufo_desc = (
     u'|R%s|r\n\n'
@@ -160,6 +163,9 @@ class Roukanken:
     def effect_string_apply(act):
         return u'没有什么防具是|G楼观剑|r斩不断的！'
 
+    def sound_effect(act):
+        return gres.cv.card_roukanken
+
 
 class ElementalReactorCard:
     # action_stage meta
@@ -217,6 +223,9 @@ class UmbrellaEffect:
         return u'|G【%s】|r受到的%s效果被|G阳伞|r挡下了' % (
             dmg.target.ui_meta.char_name, s,
         )
+
+    def sound_effect(act):
+        return gres.cv.card_umbrella
 
 
 class GungnirCard:
@@ -658,6 +667,9 @@ class NenshaPhone:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.card_nenshaphone
 
 
 class LaevateinCard:
