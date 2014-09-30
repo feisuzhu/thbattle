@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+
 from game.autoenv import Game, EventHandler, user_input
 from .baseclasses import Character, register_character
-from ..actions import migrate_cards, GenericAction, LaunchCard, UserAction, ForEach
+from ..actions import GenericAction, LaunchCard, UserAction, ForEach
 from ..cards import AttackCard, AttackCardHandler, Skill
 from ..inputlets import ChooseOptionInputlet
 
@@ -44,15 +45,11 @@ class HeterodoxyAction(UserAction):
         tgts = self.target_list[1:]
 
         g.players.reveal(card)
-        migrate_cards([self.associated_card], victim.cards, unwrap=migrate_cards.SINGLE_LAYER)
+        card.move_to(victim.cards)  # HACK: Silently, no events
+        # migrate_cards([self.associated_card], victim.cards, unwrap=migrate_cards.SINGLE_LAYER)
 
         if card.is_card(AttackCard):
             src.tags['attack_num'] -= 1
-
-        # Conflict with Kanako's Virtue
-        if card.resides_in is not victim.cards:
-            return False
-        # ----
 
         lc = LaunchCard(victim, tgts, card)
 
