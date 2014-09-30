@@ -77,7 +77,7 @@ class Shikieiki:
     miss_sound_effect = gres.cv.shikieiki_miss
     description = (
         u'|DB胸不平何以平天下 四季映姬 体力：3|r\n\n'
-        u'|G审判|r：在任意角色的判定牌生效前，你可以打出一张牌代替之。\n\n'
-        u'|G威严|r：可以立即从对你造成伤害的来源处获得一张牌。\n\n'
+        u'|G审判|r：在一名角色的判定牌生效前，你可以打出一张牌代替之。\n\n'
+        u'|G威严|r：当你受到一次伤害后，你可以获得伤害来源的一张牌。\n\n'
         u'|DB（画师：Pixiv UID 409282，CV：shourei小N）|r'
     )

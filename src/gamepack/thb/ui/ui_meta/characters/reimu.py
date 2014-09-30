@@ -124,7 +124,7 @@ class Reimu:
     miss_sound_effect = gres.cv.reimu_miss
     description = (
         u'|DB节操满地跑的城管 博丽灵梦 体力：3|r\n\n'
-        u'|G灵击|r：你可以将你的任意一张红色手牌当【好人卡】使用。\n\n'
-        u'|G飞行|r：锁定技，当你没有装备任何UFO时，其他玩家对你结算距离时始终+1\n\n'
+        u'|G灵击|r：你可以将一张红色手牌当【好人卡】使用。\n\n'
+        u'|G飞行|r：|B锁定技|r，若你没有装备任何UFO，其他玩家与你计算距离时始终+1。\n\n'
         u'|DB（画师：Pixiv ID 18697741，CV：shourei小N）|r'
     )
