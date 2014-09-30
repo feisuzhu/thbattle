@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+
 from game.autoenv import Game
 from .baseclasses import Character, register_character_to
-from ..actions import DrawCards, UserAction
+from ..actions import DrawCards, UserAction, ttags
 from ..cards import Skill, t_Self
 
 
@@ -14,13 +15,13 @@ class FindAction(UserAction):
         # g.process_action(DropCards(self.target, cards))
         tgt = self.target
         g.process_action(DrawCards(tgt, n))
-        tgt.tags['find_tag'] = tgt.tags['turn_count']
+        ttags(tgt)['find'] = True
         return True
 
     def is_valid(self):
         try:
             p = self.target
-            if p.tags.get('turn_count', 0) <= p.tags.get('find_tag', 0):
+            if ttags(p)['find']:
                 return False
 
             return True

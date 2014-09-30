@@ -1,116 +1,138 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import Game
 from .baseclasses import Character, register_character
-from ..actions import Damage, DrawCards, DropCards, GenericAction, UserAction, user_choose_players, user_choose_cards
-from ..cards import Skill, t_None, t_OtherOne, Attack
-from ..inputlets import ChooseOptionInputlet
+from ..actions import DrawCards, GenericAction, UserAction, user_choose_players, user_choose_cards, ttags, random_choose_card, migrate_cards
+from ..cards import Skill, Heal, t_Self, VirtualCard
 
 
-class DrawingLotAction(UserAction):
+class MiracleHeal(Heal):
+    pass
+
+
+class MiracleAction(UserAction):
     def apply_action(self):
-        src = self.source
         tgt = self.target
-        tags = src.tags
-        tags['drawinglot_tag'] = tags['turn_count']
-
         g = Game.getgame()
-        diff = max(p.life for p in g.players) - tgt.life
-        diff = min(diff, 4)
-        diff = max(diff, 1)
+        g.process_action(DrawCards(tgt, 1))
+        ttags(tgt)['miracle_times'] += 1
+        if ttags(tgt)['miracle_times'] == 3:
+            candidates = [p for p in g.players if not p.dead and p.life < p.maxlife]
+            if candidates:
+                beneficiery, = user_choose_players(self, tgt, candidates) or (None,)
+                if beneficiery:
+                    g.process_action(MiracleHeal(tgt, beneficiery))
 
-        g.process_action(DrawCards(tgt, amount=diff))
-        self.amount = diff
+        return True
+
+    def choose_player_target(self, tl):
+        return tl[-1:], bool(tl)
+
+    def cond(self, cl):
         return True
 
     def is_valid(self):
-        tags = self.source.tags
-        return tags['turn_count'] > tags['drawinglot_tag']
-
-
-class DrawingLot(Skill):
-    associated_action = DrawingLotAction
-    skill_category = ('character', 'active')
-    target = t_OtherOne
-
-    def check(self):
-        if self.associated_cards: return False
-        return True
+        tgt = self.target
+        return len(self.associated_card.associated_cards) == ttags(tgt)['miracle_times'] + 1
 
 
 class Miracle(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive')
-    target = t_None
+    associated_action = MiracleAction
+    skill_category = ('character', 'active')
+    target = t_Self
+    usage = 'drop'
+
+    def check(self):
+        cl = self.associated_cards
+        return cl and all(
+            c.resides_in is not None and
+            c.resides_in.type in (
+                'cards', 'showncards', 'equips'
+            ) for c in self.associated_cards
+        )
 
 
-class MiracleAction(GenericAction):
-    amount = -1
-    card_usage = 'drop'
+class SanaeFaithCollectCardAction(GenericAction):
+    card_usage = 'handover'
+    no_reveal = True
 
     def apply_action(self):
-        tgt = self.target
-        amount = tgt.maxlife - tgt.life
-        self.amount = amount
-        self._do_effect(tgt)
+        src, tgt = self.source, self.target
+        cards = user_choose_cards(self, tgt, ('cards', 'showncards'))
+        c = cards[0] if cards else random_choose_card([tgt.cards, tgt.showncards])
+        src.reveal(c)
+        migrate_cards([c], src.cards)
 
-        g = Game.getgame()
-        minlife = min([p.life for p in g.players if not p.dead])
-        if not tgt.life == minlife: return True
-
-        candidates = [p for p in g.players if p is not tgt and not p.dead]
-        pl = user_choose_players(self, tgt, candidates)
-        if not pl: return True
-
-        self._do_effect(pl[0])
         return True
-
-    def _do_effect(self, p):
-        g = Game.getgame()
-        amount = self.amount
-        allcards = list(p.showncards) + list(p.cards) + list(p.equips)
-        if len(allcards) <= amount:
-            cards = allcards
-        else:
-            cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-            cards = cards or allcards[:amount]
-
-        g.players.reveal(cards)
-
-        g.process_action(DropCards(p, cards))
-        g.process_action(DrawCards(p, amount))
-
-    def choose_player_target(self, tl):
-        if not tl: return (tl, False)
-        return (tl[-1:], True)
 
     def cond(self, cl):
-        if len(cl) != self.amount: return False
-        if any(['skill' in c.category for c in cl]): return False
+        return len(cl) == 1 and \
+            cl[0].resides_in.type in ('cards', 'showncards') and \
+            not cl[0].is_card(VirtualCard)
+
+
+class SanaeFaithReturnCardAction(GenericAction):
+    card_usage = 'handover'
+    no_reveal = True
+
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        cards = user_choose_cards(self, src, ('cards', 'showncards', 'equips'))
+        c = cards[0] if cards else random_choose_card([src.cards, src.showncards, src.equips])
+        if not c:
+            return False
+
+        tgt.reveal(c)
+        migrate_cards([c], tgt.cards)
+
         return True
 
+    def cond(self, cl):
+        return len(cl) == 1 and not cl[0].is_card(VirtualCard)
 
-class MiracleHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, Damage):
-            tgt = act.target
-            if not tgt.has_skill(Miracle): return act
-            if tgt.dead: return act
 
-            g = Game.getgame()
-            pact = g.action_stack[-1]
-            if not isinstance(pact, Attack): return act
+class SanaeFaithAction(UserAction):
+    def apply_action(self):
+        src = self.source
+        tl = self.target_list
+        g = Game.getgame()
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                return act
+        for p in tl:
+            g.process_action(SanaeFaithCollectCardAction(src, p))
 
-            g.process_action(MiracleAction(tgt, tgt))
+        for p in tl:
+            g.process_action(SanaeFaithReturnCardAction(src, p))
 
-        return act
+        ttags(src)['faith'] = True
+
+        return True
+
+    def is_valid(self):
+        src = self.source
+        return not ttags(src)['faith']
+
+
+class SanaeFaith(Skill):
+    associated_action = SanaeFaithAction
+    skill_category = ('character', 'active')
+    usage = 'launch'
+
+    @staticmethod
+    def target(g, source, tl):
+        tl = [t for t in tl if not t.dead and (t.cards or t.showncards)]
+        try:
+            tl.remove(source)
+        except ValueError:
+            pass
+
+        return (tl[:2], bool(len(tl)))
+
+    def check(self):
+        return not self.associated_cards
 
 
 @register_character
 class Sanae(Character):
-    skills = [DrawingLot, Miracle]
-    eventhandlers_required = [MiracleHandler]
+    skills = [Miracle, SanaeFaith]
+    eventhandlers_required = []
     maxlife = 3

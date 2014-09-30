@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from gamepack.thb import characters
+from gamepack.thb.actions import ttags
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
 from gamepack.thb.ui.resource import resource as gres
 
 __metaclass__ = gen_metafunc(characters.koakuma)
@@ -27,7 +27,7 @@ class Find:
 
     def clickable(game):
         me = game.me
-        if limit1_skill_used('find_tag'):
+        if ttags(me)['find']:
             return False
 
         if my_turn() and (me.cards or me.showncards or me.equips):

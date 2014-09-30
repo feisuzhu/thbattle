@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
-# All generic and cards' Actions, EventHandlers are here
+# -- stdlib --
+from collections import defaultdict, namedtuple
+import logging
+
+# -- third party --
+
+# -- own --
+from .inputlets import ActionInputlet, ChoosePeerCardInputlet
 from game.autoenv import Game, EventHandler, Action
 from game.autoenv import sync_primitive, user_input, InputTransaction
-
-from .inputlets import ActionInputlet, ChoosePeerCardInputlet
-
 from utils import check, check_type, CheckFailed, BatchList, group_by
 
-import logging
+# -- code --
 log = logging.getLogger('THBattle_Actions')
-
-from collections import namedtuple
 ActionLimitParams = namedtuple(
     'ActionLimitParams',
     'ilet actor cards players usage'
@@ -20,7 +22,6 @@ ActionLimitParams = namedtuple(
 
 # ------------------------------------------
 # aux functions
-from collections import defaultdict  # temp, cherry picked
 def ttags(actor):
     tags = actor.tags
     tc = tags['turn_count']

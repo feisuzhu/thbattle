@@ -1,182 +1,112 @@
 # -*- coding: utf-8 -*-
-from ..actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards
-from ..actions import ForEach, GenericAction, PlayerTurn, UserAction, user_choose_cards
-from ..cards import AttackCard, InstantSpellCardAction, RedUFOSkill, RejectCard
-from ..cards import Skill, VirtualCard, t_None
-from ..inputlets import ChooseOptionInputlet
+
+from ..actions import DrawCardStage, DrawCards, DropCards, ask_for_action
+from ..actions import UserAction, ttags
+from ..cards import Skill, t_None
 from .baseclasses import Character, register_character
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import EventHandler, Game
 
 
-class Onbashira(RedUFOSkill):
-    associated_action = None
-    skill_category = ('character', 'active')
-    target = t_None
-
-    @staticmethod
-    def increment(src):
-        if Game.getgame().current_turn is not src: return 0
-        return src.tags.get('onbashira', 0)
+class DivinityDrawCardStage(DrawCardStage):
+    pass
 
 
-class OnbashiraAction(GenericAction):
-    def __init__(self, target, amount, dcs):
-        self.source = self.target = target
-        self.amount = amount
-        self.dcs = dcs
-
-    def apply_action(self):
-        tags = self.target.tags
-        tags['onbashira'] = self.amount
-        self.dcs.amount = max(0, self.dcs.amount - self.amount)
-        return True
-
-
-class OnbashiraTarget(GenericAction):
-    card_usage = 'drop'
-
-    def __init__(self, source, target, amount):
-        self.source = source
-        self.target = target
-        self.amount = amount
-
-    def apply_action(self):
-        tgt = self.target
-        cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-
-        if cards:
-            self.cards = cards
-            g = Game.getgame()
-            g.process_action(DropCards(tgt, cards=cards))
-        else:
-            self.cards = None
-            self.target.tags['onbashira_target'] = True
-
-        return True
-
-    def cond(self, cl):
-        if len(cl) != self.amount: return False
-
-        t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards, t.equips):
-            return False
-
-        return True
-
-    def is_valid(self):
-        return self.amount > 0
-
-
-class OnbashiraHandler(EventHandler):
-    execute_after = ('CiguateraHandler', )
-
+class DivinityHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, DrawCardStage):
-            if act.cancelled: return act
+        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
             tgt = act.target
-            if not tgt.has_skill(Onbashira): return act
-            rst = user_input([tgt], ChooseOptionInputlet(self, (0, 1, 2)))
-            if not rst: return act
-            Game.getgame().process_action(OnbashiraAction(tgt, rst, act))
+            if not tgt.has_skill(Divinity):
+                return act
 
-        elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
-            tgt = act.target
-            if tgt.has_skill(Onbashira):
-                tgt.tags['onbashira'] = 0
-            for p in Game.getgame().players:
-                p.tags['onbashira_target'] = False
-
-        elif evt_type == 'action_limit':
-            arg, permitted = act
-            if not permitted: return act
-            if arg.usage not in ('use', 'launch'): return act
-
-            g = Game.getgame()
-            p = g.current_turn
-            if not p or not p.has_skill(Onbashira): return act
-
-            src = arg.actor
-            if src.tags.get('onbashira_target'):
-                cards = VirtualCard.unwrap(arg.cards)
-                zone = src.cards, src.showncards
-                return arg, all([c.resides_in not in zone for c in cards])
-
-            return act
-
-        elif evt_type == 'post_choose_target':
-            act, tl = arg = act
-            src = act.source
-            g = Game.getgame()
-            if src is not g.current_turn: return arg
-            if not src.has_skill(Onbashira): return arg
-
-            dlvl = src.tags['onbashira']
-            if not dlvl > 0: return arg
-
-            if not act.card.is_card(AttackCard):
-                if act.card.is_card(RejectCard): return arg
-                aact = getattr(act.card, 'associated_action', None)
-                if not aact: return arg
-                if not issubclass(aact, InstantSpellCardAction):
-                    if not issubclass(aact, ForEach): return arg
-                    if not issubclass(aact.action_cls, InstantSpellCardAction):
-                        return arg
-                    if len(tl) != 1: return arg
-
-                else:
-                    tl = tl[:1]  # only the first one should be the target
-
-            for tgt in tl:
-                if tgt is not src:
-                    g.process_action(OnbashiraTarget(src, tgt, src.tags['onbashira']))
-
-            return arg
+            act.__class__ = DivinityDrawCardStage
+            act.amount = min(tgt.life, 4)
 
         return act
 
 
-class KanakoFaith(Skill):
+class Divinity(Skill):
     associated_action = None
     skill_category = ('character', 'passive')
     target = t_None
 
 
-class KanakoFaithAction(UserAction):
+class VirtueAction(UserAction):
+
+    def __init__(self, source, target, cards):
+        self.source = source
+        self.target = target
+        self.cards = cards
+
     def apply_action(self):
-        tags = self.target.tags
-        tags['kanako_faith'] = tags['turn_count']
+        src, tgt = self.source, self.target
+        g = Game.getgame()
+        g.process_action(DropCards(src, self.cards))
+        g.process_action(DrawCards(tgt, 1))
+        ttags(g.current_turn)['virtue'] = True
         return True
 
 
-class KanakoFaithDrawCards(DrawCards):
-    pass
+class VirtueHandler(EventHandler):
+    card_usage = 'drop'
+
+    def handle(self, evt_type, arg):
+        if evt_type == 'card_migration':
+            act, cards, _from, to = arg
+            if isinstance(act, DrawCardStage):
+                return arg
+
+            if not to or not to.owner:
+                return arg
+
+            if to.type not in ('cards', 'showncards', 'equips'):
+                return arg
+
+            src = to.owner
+
+            if _from and _from.owner is src:
+                return arg
+
+            if not src.has_skill(Virtue):
+                return arg
+
+            g = Game.getgame()
+
+            if not hasattr(g, 'current_turn'):
+                return arg
+
+            if ttags(g.current_turn)['virtue']:
+                return arg
+
+            g = Game.getgame()
+            pl = [p for p in g.players if not p.dead and p is not src]
+            _, rst = ask_for_action(self, [src], ('cards', 'showncards'), pl)
+            if not rst:
+                return arg
+
+            cl, pl = rst
+
+            g.process_action(VirtueAction(src, pl[0], cl))
+
+        return arg
+
+    def cond(self, cl):
+        return len(cl) == 1 and cl[0].resides_in.type in ('cards', 'showncards')
+
+    def choose_player_target(self, tl):
+        if not tl:
+            return (tl, False)
+
+        return (tl[-1:], True)
 
 
-class KanakoFaithHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after':
-            if isinstance(act, Damage):
-                src = act.source
-                tgt = act.target
-                if not src or src is tgt: return act
-                if not src.has_skill(KanakoFaith): return act
-
-                g = Game.getgame()
-                if g.current_turn is not src: return act
-                g.process_action(KanakoFaithAction(src, src))
-
-            elif isinstance(act, ActionStage):
-                tgt = act.target
-                if not tgt.has_skill(KanakoFaith): return act
-                if not tgt.tags['kanako_faith'] >= tgt.tags['turn_count']:
-                    return act
-                Game.getgame().process_action(KanakoFaithDrawCards(tgt, 1))
-
-        return act
+class Virtue(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
 
 
 @register_character
 class Kanako(Character):
-    skills = [Onbashira, KanakoFaith]
-    eventhandlers_required = [OnbashiraHandler, KanakoFaithHandler]
+    skills = [Divinity, Virtue]
+    eventhandlers_required = [DivinityHandler, VirtueHandler]
     maxlife = 4

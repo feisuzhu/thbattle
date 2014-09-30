@@ -49,6 +49,11 @@ class HeterodoxyAction(UserAction):
         if card.is_card(AttackCard):
             src.tags['attack_num'] -= 1
 
+        # Conflict with Kanako's Virtue
+        if card.resides_in is not victim.cards:
+            return False
+        # ----
+
         lc = LaunchCard(victim, tgts, card)
 
         g = Game.getgame()
