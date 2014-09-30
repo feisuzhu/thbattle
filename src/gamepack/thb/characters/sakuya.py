@@ -28,7 +28,7 @@ class LunaDialActionStage(GenericAction):
         tags['lunadial'] = True
         Game.getgame().process_action(ActionStage(self.target))
         tags['lunadial'] = False
-        tags['turn_count'] += 1
+        # tags['turn_count'] += 1
         return True
 
 
