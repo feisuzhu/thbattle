@@ -18,8 +18,8 @@ class Sakuya:
     miss_sound_effect = gres.cv.sakuya_miss
     description = (
         u'|DB完全潇洒的PAD长 十六夜咲夜 体力：4|r\n\n'
-        u'|G月时计|r：|B锁定技|r，在你的判定阶段开始前，你执行一个额外的出牌阶段。\n\n'
-        u'|G飞刀|r：你可以将一张装备牌当【弹幕】使用或打出。你以此法使用【弹幕】时无距离限制。\n\n'
+        u'|G月时计|r：|B锁定技|r，准备阶段开始时，你执行一个额外的出牌阶段。\n\n'
+        u'|G飞刀|r：你可以将一张装备牌当【弹幕】使用或打出。按此法使用的【弹幕】无距离限制。\n\n'
         u'|DB（画师：Danbooru post 137925，CV：VV）|r'
     )
 

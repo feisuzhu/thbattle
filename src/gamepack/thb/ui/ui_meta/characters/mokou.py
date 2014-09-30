@@ -15,8 +15,8 @@ class Mokou:
     miss_sound_effect = gres.cv.mokou_miss
     description = (
         u'|DBFFF团资深团员 藤原妹红 体力：4|r\n\n'
-        u'|G浴火|r：回合结束阶段，你可以流失一点体力，摸2张牌。\n\n'
-        u'|G重生|r：回合开始阶段，你可以弃置X张红色牌并回复一点体力（X为你的当前体力值）。\n\n'
+        u'|G浴火|r：结束阶段开始时，你可以失去1点体力，然后摸两张牌。\n\n'
+        u'|G重生|r：准备阶段开始时，你可以弃置X张红色牌，然后回复1点体力。（X为你的当前体力值）\n\n'
         u'|DB（画师：Pixiv UID 150460，CV：小羽）|r'
     )
 
