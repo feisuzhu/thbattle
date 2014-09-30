@@ -24,7 +24,7 @@ class Sakuya:
     )
 
 
-class FlyingKnife:
+class Dagger:
     # Skill
     name = u'飞刀'
 
@@ -35,7 +35,7 @@ class FlyingKnife:
 
         try:
             act = g.hybrid_stack[-1]
-            if act.cond([characters.sakuya.FlyingKnife(me)]):
+            if act.cond([characters.sakuya.Dagger(me)]):
                 act = g.action_stack[-1]
                 if act.target is g.me:
                     return True
@@ -47,7 +47,7 @@ class FlyingKnife:
 
     def is_complete(g, cl):
         skill = cl[0]
-        assert skill.is_card(characters.sakuya.FlyingKnife)
+        assert skill.is_card(characters.sakuya.Dagger)
         cl = skill.associated_cards
         if len(cl) != 1 or not issubclass(cl[0].associated_action, cards.WearEquipmentAction):
             return (False, u'请选择一张装备牌！')
@@ -74,17 +74,17 @@ class FlyingKnife:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.sakuya_knife1,
-            gres.cv.sakuya_knife2,
+            gres.cv.sakuya_dagger1,
+            gres.cv.sakuya_dagger2,
         ])
 
 
-class LunaClockActionStage:
+class LunaDialActionStage:
     def sound_effect(act):
-        return gres.cv.sakuya_lunaclock
+        return gres.cv.sakuya_lunadial
 
 
-class LunaClock:
+class LunaDial:
     # Skill
     name = u'月时计'
     clickable = passive_clickable

@@ -42,8 +42,8 @@ class flan_cs:
     description = u'玩坏你哦！'
 
 
-class lunaclock:
-    tag_anim = lambda p: gres.tag_lunaclock
+class lunadial:
+    tag_anim = lambda p: gres.tag_lunadial
     display = lambda p, v: v and G().current_turn is p
     description = u'咲夜的时间！'
 

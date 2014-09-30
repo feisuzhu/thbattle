@@ -69,7 +69,7 @@ resource = Resource(respath, [
 
     anim('tag_sealarray', [83]*36,  True),
     anim('tag_wine',      [150]*3,  True),
-    anim('tag_lunaclock', [200]*10, True),
+    anim('tag_lunadial',  [200]*10, True),
     img('tag_riverside'),
     img('tag_action'),
     img('tag_attacked'),
@@ -184,7 +184,7 @@ resource = Resource(respath, [
         'remilia_miss', 'remilia_stg', 'remilia_vampirekiss',
         'rinnosuke_miss', 'rinnosuke_nitoru', 'rinnosuke_psycopath',
         'rumia_cheat', 'rumia_darkness', 'rumia_miss',
-        'sakuya_knife1', 'sakuya_knife2', 'sakuya_lunaclock', 'sakuya_miss',
+        'sakuya_dagger1', 'sakuya_dagger2', 'sakuya_lunadial', 'sakuya_miss',
         'sanae_drawinglot', 'sanae_miracle', 'sanae_miss',
         'seiga_heterodoxy', 'seiga_miss',
         'seija_incite1', 'seija_incite2', 'seija_miss', 'seija_reversal',

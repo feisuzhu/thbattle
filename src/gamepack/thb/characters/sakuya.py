@@ -6,7 +6,7 @@ from ..actions import ActionStage, FatetellStage, GenericAction
 from ..cards import Skill, AttackCard, WearEquipmentAction, TreatAs, t_None
 
 
-class FlyingKnife(TreatAs, Skill):
+class Dagger(TreatAs, Skill):
     skill_category = ('character', 'active')
     treat_as = AttackCard
     distance = 99999
@@ -22,35 +22,35 @@ class FlyingKnife(TreatAs, Skill):
         return True
 
 
-class LunaClockActionStage(GenericAction):
+class LunaDialActionStage(GenericAction):
     def apply_action(self):
         tags = self.target.tags
-        tags['lunaclock'] = True
+        tags['lunadial'] = True
         Game.getgame().process_action(ActionStage(self.target))
-        tags['lunaclock'] = False
+        tags['lunadial'] = False
         tags['turn_count'] += 1
         return True
 
 
-class LunaClock(Skill):
+class LunaDial(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
-class LunaClockHandler(EventHandler):
+class LunaDialHandler(EventHandler):
     execute_after = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             src = act.target
-            if not src.has_skill(LunaClock): return act
-            Game.getgame().process_action(LunaClockActionStage(src, src))
+            if not src.has_skill(LunaDial): return act
+            Game.getgame().process_action(LunaDialActionStage(src, src))
         return act
 
 
 @register_character
 class Sakuya(Character):
-    skills = [FlyingKnife, LunaClock]
-    eventhandlers_required = [LunaClockHandler]
+    skills = [Dagger, LunaDial]
+    eventhandlers_required = [LunaDialHandler]
     maxlife = 4
