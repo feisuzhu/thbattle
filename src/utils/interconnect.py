@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import redis
-import gevent
+# -- stdlib --
+# -- third party --
 from gevent import Greenlet
-from network import Endpoint
-from .misc import surpress_and_restart
+import gevent
+import redis
 import simplejson as json
 
+# -- own --
+from misc import surpress_and_restart
+from network import Endpoint
 
+
+# -- code --
 class Interconnect(Greenlet):
     def __init__(self, node, url):
         Greenlet.__init__(self)

@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
+
+# -- stdlib --
+from collections import defaultdict
+import logging
+
+# -- third party --
+# -- own --
+from actions import DeadDropCards, DrawCards, PlayerDeath, PlayerTurn, RevealIdentity, action_eventhandlers
+from actions import migrate_cards
+from characters.baseclasses import mixin_character
+from common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
+from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from inputlets import ChooseGirlInputlet
+from itertools import cycle
+from utils import BatchList, Enum, filter_out
 import random
 
-from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
-
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, DeadDropCards
-from .actions import action_eventhandlers, migrate_cards
-
-from .characters.baseclasses import mixin_character
-
-from itertools import cycle
-from collections import defaultdict
-
-from utils import BatchList, Enum, filter_out
-
-from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
-from .inputlets import ChooseGirlInputlet
-
-import logging
+# -- code --
 log = logging.getLogger('THBattleCP3')
 
 _game_ehs = {}

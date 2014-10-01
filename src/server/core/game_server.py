@@ -3,9 +3,8 @@
 # -- stdlib --
 from collections import OrderedDict
 from copy import copy
-import time
 import logging
-log = logging.getLogger('Game_Server')
+import time
 
 # -- third party --
 from gevent import Greenlet, getcurrent
@@ -13,13 +12,13 @@ from gevent.pool import Group as GreenletGroup
 import gevent
 
 # -- own --
-from game import TimeLimitExceeded, InputTransaction, GameEnded
+from game import GameEnded, InputTransaction, TimeLimitExceeded
 from network.server import EndpointDied
 from utils import log_failure
-
 import game
 
 # -- code --
+log = logging.getLogger('Game_Server')
 
 
 def user_input(players, inputlet, timeout=25, type='single', trans=None):

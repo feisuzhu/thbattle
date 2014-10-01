@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 from cStringIO import StringIO
 
+# -- third party --
+# -- own --
+# -- code --
 IV = 'The init vector.'
 
 
@@ -28,8 +32,10 @@ import hashlib
 _simple_key = hashlib.sha256('zheshijintiandeqiaokelijianpan').digest()
 _enc_head = 'ENC_HEAD'
 
+
 def simple_encrypt(data):
     return aes_encrypt(_enc_head + str(data), _simple_key).encode('base64')
+
 
 def simple_decrypt(data):
     try:
