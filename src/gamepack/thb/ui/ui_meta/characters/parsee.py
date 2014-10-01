@@ -12,10 +12,11 @@ class Parsee:
     # Character
     char_name = u'水桥帕露西'
     port_image = gres.parsee_port
+    miss_sound_effect = gres.cv.parsee_miss
     description = (
         u'|DB地壳下的嫉妒心 水桥帕露西 体力：4|r\n\n'
         u'|G嫉妒|r：出牌阶段，你可以将一张黑色牌当【城管执法】使用，若以此法使一名距离1以内角色的一张方片牌进入弃牌堆，你可以获得之。\n\n'
-        u'|DB（画师：Pixiv ID 2872076）|r'
+        u'|DB（画师：Pixiv ID 2872076，CV：小羽）|r'
     )
 
 
@@ -55,6 +56,9 @@ class Envy:
             target.ui_meta.char_name,
         )
         return s
+
+    def sound_effect(act):
+        return gres.cv.parsee_envy
 
 
 class EnvyHandler:

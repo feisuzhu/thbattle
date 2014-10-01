@@ -67,6 +67,9 @@ class FlyingSkanda:
             u'】|r、|G【'.join(tl.ui_meta.char_name),
         )
 
+    def sound_effect(act):
+        return gres.cv.chen_skanda
+
 
 class Shikigami:
     # Skill
@@ -94,6 +97,9 @@ class Shikigami:
         else:
             return (True, u'发动【式神】')
 
+    def sound_effect(act):
+        return gres.cv.chen_shikigami
+
 
 class ShikigamiAction:
     choose_option_buttons = ((u'摸2张牌', False), (u'回复1点体力', True))
@@ -104,9 +110,10 @@ class Chen:
     # Character
     char_name = u'橙'
     port_image = gres.chen_port
+    miss_sound_effect = gres.cv.chen_miss
     description = (
         u'|DB凶兆的黑喵 橙 体力：4|r\n\n'
         u'|G飞翔韦驮天|r：出牌阶段限一次，你使用【弹幕】或除了【人形操控】以外的非延时单体符卡时，可以额外指定一个目标。\n\n'
         u'|G式神|r：|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：摸2张牌或回复一点体力。直到你的下个回合开始，你和该角色可以于自己的回合内对对方攻击范围内的角色使用【弹幕】。\n\n'
-        u'|DB（画师：Pixiv ID 24291834）|r'
+        u'|DB（画师：Pixiv ID 24291834，CV：shourei小N）|r'
     )

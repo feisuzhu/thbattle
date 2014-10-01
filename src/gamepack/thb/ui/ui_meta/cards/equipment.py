@@ -353,7 +353,8 @@ class RepentanceStickCard:
     image_small = gres.card_repentancestick_small
     description = (
         u'|R悔悟棒|r\n\n'
-        u'攻击范围2，当你使用【弹幕】造成伤害时，你可以防止此伤害，改为弃置该目标角色的两张牌（弃完第一张再弃第二张）。'
+        u'攻击范围2，当你使用【弹幕】造成伤害时，你可以防止此伤害，改为弃置该目标角色的两张牌（弃完第一张再弃第二张）。\n\n'
+        u'|DB（CV：shourei小N）|r'
     )
 
     is_action_valid = equip_iav
@@ -388,6 +389,9 @@ class RepentanceStick:
             act.target.ui_meta.char_name,
             u'|r和|G'.join(cl.ui_meta.name)
         )
+
+    def sound_effect(act):
+        return gres.cv.card_repentancestick
 
 
 class MaidenCostumeEffect:
@@ -541,7 +545,8 @@ class HakuroukenCard:
         u'|R白楼剑|r\n\n'
         u'攻击范围2，当你使用【弹幕】指定了一名角色为目标后，若此弹幕为黑色，你可以令对方选择一项：\n'
         u'|B|R>> |r弃一张手牌\n'
-        u'|B|R>> |r你摸一张牌'
+        u'|B|R>> |r你摸一张牌\n\n'
+        u'|DB（CV：小羽）|r'
     )
     is_action_valid = equip_iav
 
@@ -574,6 +579,9 @@ class Hakurouken:
             return u'|G【%s】|r弃置了一张牌。' % act.target.ui_meta.char_name
         else:
             return u'|G【%s】|r摸了一张牌。' % act.source.ui_meta.char_name
+
+    def sound_effect(act):
+        return gres.cv.card_hakurouken
 
 
 class HakuroukenHandler:

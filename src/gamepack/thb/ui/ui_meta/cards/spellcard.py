@@ -93,7 +93,8 @@ class SealingArrayCard:
         u'|R封魔阵|r\n\n'
         u'延时类符卡\n'
         u'出牌阶段对任意一名玩家使用,将此牌置于目标玩家判定区,对方在其判定阶段需判定——如果判定结果为红桃，则照常行动，弃掉【封魔阵】；如果判定结果不是红桃，则该回合跳过出牌阶段（照常摸牌和弃牌），弃掉【封魔阵】。\n'
-        u'|B|R>> |r仅当需要开始进行【封魔阵】的判定时,才能使用【好人卡】抵消之(抵消后弃掉【封魔阵】)。'
+        u'|B|R>> |r仅当需要开始进行【封魔阵】的判定时,才能使用【好人卡】抵消之(抵消后弃掉【封魔阵】)。\n\n'
+        u'|DB（CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -104,6 +105,9 @@ class SealingArrayCard:
             return (False, u'你不能跟自己过不去啊！')
 
         return (True, u'画个圈圈诅咒你！')
+
+    def sound_effect(act):
+        return gres.cv.card_sealarray
 
 
 class SealingArray:
@@ -331,7 +335,7 @@ class DollControlCard:
     description = (
         u'|R人形操控|r\n\n'
         u'对装备有武器的玩家使用，令其使用一张【弹幕】攻击另一名指定玩家，否则将武器交给自己。\n\n'
-        u'|DB（画师：Pixiv UID 2957827）|r'
+        u'|DB（画师：Pixiv UID 2957827，CV：小羽）|r'
     )
     custom_ray = True
 
@@ -355,6 +359,9 @@ class DollControlCard:
             if not lc.can_fire():
                 return (False, u'被控者无法向目标出【弹幕】！')
             return (True, u'乖，听话！')
+
+    def sound_effect(act):
+        return gres.cv.card_dollcontrol
 
 
 class DollControl:
