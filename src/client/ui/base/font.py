@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import pyglet
-from pyglet.gl import GL_ALPHA, GL_TEXTURE_2D
-from pyglet.font.base import GlyphRenderer, Font
+# -- stdlib --
 from math import ceil
+
+# -- third party --
 from PIL import Image
+from pyglet.font.base import Font, GlyphRenderer
+import pyglet
+
+# -- own --
+# -- code --
 
 
 class AncientPixGlyphRenderer(GlyphRenderer):
@@ -95,7 +100,10 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             ii.paste(i, (1, 0))
             ii.paste(i, (0, 0), i)
 
-        img = pyglet.image.ImageData(w, h, 'A', ii.tostring())
+        white = Image.new('L', ii.size, 255)
+        final = Image.merge('RGBA', (white, white, white, ii))
+
+        img = pyglet.image.ImageData(w, h, 'RGBA', final.tostring())
         glyph = self.font.create_glyph(img)
         glyph.set_bearings(2, -2, w - 4 + 1)
         t = list(glyph.tex_coords)
@@ -113,11 +121,7 @@ class AncientPixFont(Font):
     @property
     def textures(self):
         if not AncientPixFont._font_texture:
-            AncientPixFont._font_texture = [
-                self.texture_class.create_for_size(
-                    GL_TEXTURE_2D, self.texture_width, self.texture_height, GL_ALPHA,
-                )
-            ]
+            AncientPixFont._font_texture = [self.texture_class.create(self.texture_width, self.texture_height)]
 
         return self._font_texture
 
