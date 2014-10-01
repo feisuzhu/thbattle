@@ -49,7 +49,7 @@ class ServerList:
     del os
 
     class hakurei:
-        address = ('game.thbattle.net', 8999)
+        address = ('cngame.thbattle.net', 8999)
         branch = 'origin/testing'
         polygon = [
             (878, 423), (829, 409), (760, 376), (748, 346), (787, 329),
