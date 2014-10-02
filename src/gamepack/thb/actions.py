@@ -785,6 +785,22 @@ class ActionStage(GenericAction):
         return tl, True
 
 
+class PrepareStage(GenericAction):
+    def __init__(self, target):
+        self.target = target
+
+    def apply_action(self):
+        return True
+
+
+class FinalStage(GenericAction):
+    def __init__(self, target):
+        self.target = target
+
+    def apply_action(self):
+        return True
+
+
 class FatetellStage(GenericAction):
     def __init__(self, target):
         self.target = target
@@ -908,10 +924,12 @@ class PlayerTurn(GenericAction):
         g.turn_count += 1
         g.current_turn = p
 
+        g.process_action(PrepareStage(p))
         g.process_action(FatetellStage(p))
         g.process_action(DrawCardStage(p))
         g.process_action(ActionStage(p))
         g.process_action(DropCardStage(p))
+        g.process_action(FinalStage(p))
 
         return True
 

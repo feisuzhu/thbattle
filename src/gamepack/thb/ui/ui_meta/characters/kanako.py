@@ -15,8 +15,8 @@ class Kanako:
     miss_sound_effect = gres.cv.kanako_miss
     description = (
         u'|DB山丘与湖泊的化身 八坂神奈子 体力：4|r\n\n'
-        u'|G神威|r：|B锁定技|r，摸牌阶段你摸X张牌（X为你的当前体力值，且最大为4）\n\n'
-        u'|G神德|r：每名角色的回合限一次，你因为摸牌阶段摸牌以外的原因获得牌时，你可以弃置一张手牌并令一名其他角色摸一张牌。\n\n'
+        u'|G神威|r：回合开始阶段，你可以摸X张牌，然后弃置等量的牌（X为你的当前体力值，且至多为4）。\n\n'
+        u'|G神德|r：每名角色的回合限一次，你因为摸牌阶段以及|G神威|r摸牌以外的原因获得牌时，你可以弃置一张手牌并令一名其他角色摸一张牌。\n\n'
         u'|DB（画师：yandre.re/post/show/196410）|r'
     )
 
@@ -26,6 +26,21 @@ class Divinity:
     name = u'神威'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
+
+
+class DivinityHandler:
+    # choose_option meta
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【神威】吗？'
+
+
+class DivinityAction:
+    # choose_card meta
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'神威：弃置这些牌')
+        else:
+            return (False, u'神威：请弃置%d张牌' % act.amount)
 
 
 class Virtue:

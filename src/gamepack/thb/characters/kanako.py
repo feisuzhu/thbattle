@@ -1,25 +1,62 @@
 # -*- coding: utf-8 -*-
 
-from ..actions import DrawCardStage, DrawCards, DropCards, ask_for_action
-from ..actions import UserAction, ttags
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DrawCardStage, DrawCards, DropCards, PrepareStage, UserAction, ask_for_action
+from ..actions import ttags, user_choose_cards, user_input
 from ..cards import Skill, t_None
+from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
 
 
-class DivinityDrawCardStage(DrawCardStage):
+# -- code --
+class DivinityDrawCards(DrawCards):
     pass
+
+
+class DivinityAction(UserAction):
+    card_usage = 'drop'
+
+    def apply_action(self):
+        g = Game.getgame()
+        tgt = self.target
+        self.amount = min(tgt.life, 4)
+        g.process_action(DivinityDrawCards(tgt, self.amount))
+        cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
+        cl = cl or (list(tgt.showncards) + list(tgt.cards) + list(tgt.equips))[:self.amount]
+        g.process_action(DropCards(tgt, cl))
+        return True
+
+    def cond(self, cl):
+        if not len(cl) == self.amount:
+            return False
+
+        tgt = self.target
+
+        if not all(c.resides_in in (tgt.cards, tgt.showncards, tgt.equips) for c in cl):
+            return False
+
+        from ..cards import VirtualCard
+        if any(c.is_card(VirtualCard) for c in cl):
+            return False
+
+        return True
 
 
 class DivinityHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
+        if evt_type == 'action_apply' and isinstance(act, PrepareStage):
             tgt = act.target
             if not tgt.has_skill(Divinity):
                 return act
 
-            act.__class__ = DivinityDrawCardStage
-            act.amount = min(tgt.life, 4)
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            g = Game.getgame()
+            g.process_action(DivinityAction(tgt, tgt))
 
         return act
 
@@ -52,7 +89,7 @@ class VirtueHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'card_migration':
             act, cards, _from, to = arg
-            if isinstance(act, DrawCardStage):
+            if isinstance(act, (DrawCardStage, DivinityDrawCards)):
                 return arg
 
             if not to or not to.owner:
