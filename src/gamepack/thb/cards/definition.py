@@ -553,13 +553,6 @@ card_definition = [
 
 # ANCHOR(card)
 card_definition = [
-    (AttackCard, DIAMOND, 4),
-    (AttackCard, DIAMOND, 4),
-    (AttackCard, DIAMOND, 4),
-    (GrazeCard, DIAMOND, 8),
-    (GrazeCard, DIAMOND, 8),
-    (GrazeCard, DIAMOND, 8),
-    (ElementalReactorCard, 1, 1),
 ] * 1000 or card_definition
 
 del A, J, Q, K
