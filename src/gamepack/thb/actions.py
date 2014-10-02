@@ -20,6 +20,12 @@ ActionLimitParams = namedtuple(
 
 # ------------------------------------------
 # aux functions
+from collections import defaultdict  # temp, cherry picked
+def ttags(actor):
+    tags = actor.tags
+    tc = tags['turn_count']
+    return tags.setdefault('turn_tags:%s' % tc, defaultdict(int))
+
 
 def ask_for_action(initiator, actors, categories, candidates, trans=None):
     # initiator: Action or EH requesting this
