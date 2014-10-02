@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+import random
+
+# -- third party --
+# -- own --
 from gamepack.thb import cards
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, card_desc
 from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc
 
-
+# -- code --
 __metaclass__ = gen_metafunc(cards)
 
 
@@ -266,11 +271,14 @@ class MapCannonCard:
     description = (
         u'|R地图炮|r\n\n'
         u'按行动顺序结算，除非目标角色打出一张【擦弹】，否则该角色受到【地图炮】对其造成的1点伤害。\n\n'
-        u'|DB（画师：Pixiv ID 24801096）|r'
+        u'|DB（画师：Pixiv ID 24801096，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
         return (True, u'一个都不能跑！')
+
+    def sound_effect(act):
+        return gres.cv.card_mapcannon
 
 
 class SinsackCarnivalCard:
@@ -296,11 +304,18 @@ class FeastCard:
     description = (
         u'|R宴会|r\n\n'
         u'对所有玩家生效，每一个体力不满的玩家回复一点体力，满体力玩家获得|B喝醉|r状态。\n\n'
-        u'|DB（画师：Pixiv ID 8218978）|r'
+        u'|DB（画师：Pixiv ID 8218978，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
         return (True, u'开宴啦~~')
+
+    def sound_effect(act):
+        return random.choice([
+            gres.cv.card_feast1,
+            gres.cv.card_feast2,
+            gres.cv.card_feast3,
+        ])
 
 
 class HarvestCard:
@@ -310,11 +325,14 @@ class HarvestCard:
     description = (
         u'|R五谷丰登|r\n\n'
         u'你从牌堆顶亮出等同于现存角色数量的牌，然后所有角色按行动顺序结算，选择并获得这些牌中的一张。\n\n'
-        u'|DB（画师：牛肉かしら）|r'
+        u'|DB（画师：牛肉かしら，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
         return (True, u'麻薯会有的，节操是没有的！')
+
+    def sound_effect(act):
+        return gres.cv.card_harvest
 
 
 class HarvestEffect:

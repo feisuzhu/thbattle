@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler
-from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, DropUsedCard
-from ..actions import ForEach, GenericAction
-from ..actions import PlayerTurn, UserAction
-from ..actions import register_eh, user_choose_cards, LaunchCard
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards
+from ..actions import DropUsedCard, ForEach, GenericAction, LaunchCard, PlayerTurn, UserAction
+from ..actions import register_eh, ttags, user_choose_cards
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class BasicAction(UserAction):
     pass
 
@@ -58,7 +61,9 @@ class AttackCardHandler(EventHandler):
             if isinstance(act, ActionStageLaunchCard):
                 from .definition import AttackCard
                 if act.card.is_card(AttackCard):
-                    act.source.tags['attack_num'] -= 1
+                    src = act.source
+                    ttags(src)['__attack_graze_count'] += 1  # for sound effect
+                    src.tags['attack_num'] -= 1
 
         elif evt_type == 'calcdistance':
             src, card, dist = act

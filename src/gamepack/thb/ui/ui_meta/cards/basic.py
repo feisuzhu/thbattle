@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, cards
+from gamepack.thb.actions import ttags
 from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import G, gen_metafunc
 
+# -- code --
 __metaclass__ = gen_metafunc(cards)
 
 
@@ -15,7 +20,8 @@ class AttackCard:
         u'|R弹幕|r\n\n'
         u'你的出牌阶段，对除你外，你攻击范围内的一名角色使用，效果是对该角色造成1点伤害。\n'
         u'|B|R>> |r游戏开始时你的攻击范围是1。\n'
-        u'|B|R>> |r每个出牌阶段你只能使用一张【弹幕】。'
+        u'|B|R>> |r每个出牌阶段你只能使用一张【弹幕】。\n\n'
+        u'|DB（CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -23,6 +29,22 @@ class AttackCard:
             return (False, u'请选择弹幕的目标')
 
         return (True, u'来一发！')
+
+    def sound_effect(act):
+        if not isinstance(act, actions.LaunchCard):
+            return gres.cv.card_attack1
+
+        current = G().current_turn
+
+        if act.source is not current:
+            return gres.cv.card_attack1
+
+        return [
+            gres.cv.card_attack1,
+            gres.cv.card_attack2,
+            gres.cv.card_attack3,
+            gres.cv.card_attack4,
+        ][ttags(current)['__attack_graze_count'] % 4]
 
 
 class GrazeCard:
@@ -33,7 +55,7 @@ class GrazeCard:
         u'|R擦弹|r\n\n'
         u'当你受到【弹幕】的攻击时，你可以使用一张【擦弹】来抵消【弹幕】的效果。\n'
         u'|B|R>> |r【擦弹】通常情况下只能在回合外使用或打出。\n\n'
-        u'|DB（画师：Pixiv ID 8692732）|r'
+        u'|DB（画师：Pixiv ID 8692732，CV：小羽）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -44,6 +66,19 @@ class GrazeCard:
             act.source.ui_meta.char_name,
             act.card.ui_meta.name
         )
+
+    def sound_effect(act):
+        if not isinstance(act, actions.LaunchCard):
+            return gres.cv.card_graze1
+
+        current = G().current_turn
+
+        return [
+            gres.cv.card_graze1,
+            gres.cv.card_graze2,
+            gres.cv.card_graze3,
+            gres.cv.card_graze4,
+        ][ttags(current)['__attack_graze_count'] % 4 - 1]
 
 
 class WineCard:

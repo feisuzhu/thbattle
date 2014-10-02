@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import random
 
-from gamepack.thb import actions
-from gamepack.thb import cards
-
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, card_desc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-
+# -- third party --
+# -- own --
+from gamepack.thb import actions, cards
+from gamepack.thb.actions import ttags
 from gamepack.thb.ui.resource import resource as gres
-
-
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable, passive_is_action_valid
 from utils import BatchList
+
+# -- code --
 __metaclass__ = gen_metafunc(cards)
 
 
@@ -285,6 +285,9 @@ class GungnirSkill:
             target.ui_meta.char_name,
         )
         return s
+
+    def sound_effect(act):
+        return cards.AttackCard.ui_meta.sound_effect(act)
 
 
 class ScarletRhapsodyCard:
@@ -893,7 +896,8 @@ class IceWingCard:
     image_small = gres.card_icewing_small
     description = (
         u'|R⑨的翅膀|r\n\n'
-        u'装备后不受【封魔阵】和【冻青蛙】的影响。'
+        u'装备后不受【封魔阵】和【冻青蛙】的影响。\n\n'
+        u'|DB（CV：VV）|r'
     )
 
     is_action_valid = equip_iav
@@ -912,6 +916,14 @@ class IceWing:
             act.target.ui_meta.char_name,
             act.action.associated_card.ui_meta.name,
         )
+
+    def sound_effect(act):
+        tgt = act.target
+        if ttags(tgt)['__icewing_se']:
+            return None
+
+        ttags(tgt)['__icewing_se'] = True
+        return gres.cv.card_icewing
 
 
 class GrimoireCard:

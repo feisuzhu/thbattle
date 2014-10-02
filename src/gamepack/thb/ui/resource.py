@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.resloader import Resource, _ResourceDesc
-from client.ui.resloader import anim, bgm, define_atlas, encrypted_texture
-from client.ui.resloader import img, img_grid, img_with_grayed, lazytexture
-from client.ui.resloader import sound, subdir, texture
+# -- stdlib --
 import os
 
+# -- third party --
+# -- own --
+from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, define_atlas, encrypted_texture
+from client.ui.resloader import img, img_grid, img_with_grayed, lazytexture, sound, subdir, texture
+
+
+# -- code --
 respath = os.path.join(os.path.dirname(__file__), 'res')
 define_atlas('portrait', (1024, 2048))
 
@@ -115,6 +119,7 @@ resource = Resource(respath, [
     ]),
 
     subdir('cv', [sound(i) for i in [
+        'card_attack1', 'card_attack2', 'card_attack3', 'card_attack4',
         'card_deathsickle',
         'card_demolition',
         'card_dimension',
@@ -122,12 +127,17 @@ resource = Resource(respath, [
         'card_donationbox',
         'card_duel',
         'card_exinwan',
+        'card_feast1', 'card_feast2', 'card_feast3',
         'card_frozenfrog',
+        'card_graze1', 'card_graze2', 'card_graze3', 'card_graze4',
         'card_grimoire',
         'card_hakurouken',
+        'card_harvest',
         'card_heal',
+        'card_icewing',
         'card_keystone',
         'card_laevatein',
+        'card_mapcannon',
         'card_momijishield',
         'card_nazrinrod',
         'card_nenshaphone',
