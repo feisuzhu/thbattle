@@ -13,7 +13,7 @@ import time
 # -- third party --
 from gevent import Timeout
 from gevent.pool import Pool
-from gevent.queue import Queue, Empty as QueueEmpty
+from gevent.queue import Empty as QueueEmpty, Queue
 import gevent
 import simplejson as json
 
@@ -23,8 +23,7 @@ from network.endpoint import EndpointDied
 from network.server import Client as ClientEndpoint
 from options import options
 from settings import VERSION
-from utils import BatchList, log_failure, instantiate
-from utils.interconnect import Interconnect
+from utils import BatchList, instantiate, log_failure
 from utils.misc import throttle
 
 # -- code --
@@ -1135,6 +1134,8 @@ class GameManager(object):
 
 
 if options.interconnect:
+    from utils.interconnect import Interconnect
+
     class InterconnectHandler(Interconnect):
         def on_message(self, node, topic, message):
             if topic == 'speaker':
