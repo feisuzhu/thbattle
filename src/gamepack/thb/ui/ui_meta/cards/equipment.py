@@ -354,7 +354,7 @@ class RepentanceStickCard:
     description = (
         u'|R悔悟棒|r\n\n'
         u'攻击范围2，装备后：当你使用【弹幕】造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
-		u'|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌\n\n'
+	u'|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌\n\n'
     )
 
     is_action_valid = equip_iav
