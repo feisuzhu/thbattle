@@ -3,10 +3,9 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCardStage, DrawCards, DropCards, UserAction, ask_for_action
-from ..actions import ttags, user_choose_cards, user_input
+from ..actions import DrawCardStage, DrawCards, DropCards, UserAction, ask_for_action, ttags
+from ..actions import user_choose_cards
 from ..cards import Skill, t_None
-from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
 
@@ -53,8 +52,8 @@ class DivinityHandler(EventHandler):
             if not tgt.has_skill(Divinity):
                 return act
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                return act
+            # if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            #     return act
 
             g = Game.getgame()
             g.process_action(DivinityAction(tgt, tgt))
