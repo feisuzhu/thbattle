@@ -1,38 +1,36 @@
-
-#!/usr/bbin/python2
 # -*- coding: utf-8 -*-
 
-# -- stdlib --
+# -- prioritized --
 import sys
 sys.path.append('../src')
-import random
-import gzip
+from game import autoenv
+autoenv.init('Server')
 
+# -- stdlib --
+from argparse import ArgumentParser
+from weakref import WeakSet
+import gzip
 import logging
+import random
+
+# -- third party --
+from gevent.event import Event
+from gevent.queue import Queue
+import gevent
+import simplejson as json
+
+# -- own --
+from account.freeplay import Account
+from network import EndpointDied
+from network.common import GamedataMixin
+from server.core import Player
+from utils import BatchList
+
+# -- code --
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(logging.DEBUG)
 log = logging.getLogger('ReplayServer')
 
-from argparse import ArgumentParser
-
-# -- third party --
-import gevent
-from gevent.queue import Queue
-from gevent.event import Event
-import simplejson as json
-
-# -- own --
-from game import autoenv
-autoenv.init('Server')
-
-from server.core import Player
-from network import EndpointDied
-from network.common import GamedataMixin
-from account.freeplay import Account
-from utils import BatchList
-
-
-# -- code --
 parser = ArgumentParser()
 parser.add_argument('replay_file', type=str)
 parser.add_argument('--catch', action='store_true')
@@ -52,10 +50,13 @@ def ask_for_feed(player_index, tag):
     if tuple(data[:2]) == (player_index, tag):
         gdlist.pop(0)
         return data[1:]
-
-    return None, GamedataMixin.NODATA
+    elif (player_index, tag) not in gdlist_tag:
+        return EndpointDied
+    else:
+        return None, GamedataMixin.NODATA
 
 gdlist = []
+gdlist_tag = set()
 
 
 class MockClient(object):
@@ -69,12 +70,18 @@ class MockClient(object):
         self.gdevent = e
 
     def gexpect(self, tag, blocking=True):
-        assert not blocking
-        data = ask_for_feed(self.player_index, tag)
-        if data is EndpointDied:
-            raise EndpointDied
-        log.info('GAME_EXPECT[%d]: %s, return %s', self.player_index, repr(tag), repr(data))
-        return data
+        while True:
+            data = ask_for_feed(self.player_index, tag)
+            if data is EndpointDied:
+                raise EndpointDied
+
+            if data == (None, GamedataMixin.NODATA):
+                gevent.sleep(0.1)  # just poll
+                continue
+
+            log.info('GAME_EXPECT[%d]: %s, return %s', self.player_index, repr(tag), repr(data))
+
+            return data
 
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE[%d]: %s', self.player_index, repr([tag, data]))
@@ -94,9 +101,12 @@ while data[0].startswith('#'):
     print data.pop(0)
 
 mode = data.pop(0)
+params = json.loads(data.pop(0))
 rndseed = long(data.pop(0))
 
 gdlist = json.loads(data.pop(0))
+gdlist_tag = set(tuple(i[:2]) for i in gdlist)
+print gdlist_tag
 
 from gamepack import gamemodes
 
@@ -108,6 +118,10 @@ players = BatchList([Player(i) for i in clients])
 g = mode()
 g.players = players
 g.rndseed = rndseed
+g.synctag = 0
 g.random = random.Random(rndseed)
+g.game_params = params
+g.gr_groups = WeakSet()
+g.game = g
 gevent.getcurrent().game = g
-g._run()
+g.game_start(params)

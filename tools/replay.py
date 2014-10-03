@@ -1,25 +1,30 @@
-
 #!/usr/bbin/python2
 # -*- coding: utf-8 -*-
 
+# -- prioritized --
 import sys
 sys.path.append('../src')
-
-import simplejson as json
-
-from utils import hook, BatchList
-
-import gzip
 from game import autoenv
 autoenv.init('Client')
-# autoenv.init('Server')
-from account.freeplay import Account
 from game.autoenv import Game
-from client.core import PeerPlayer, TheLittleBrother
 Game.CLIENT_SIDE = 'blah'  # Hack: not loading ui resource
-from gamepack import gamemodes
 
+# -- stdlib --
 from argparse import ArgumentParser
+import gzip
+import logging
+import pdb
+
+# -- third party --
+import simplejson as json
+
+# -- own --
+from account.freeplay import Account
+from client.core import PeerPlayer, TheLittleBrother
+from gamepack import gamemodes
+from utils import BatchList, hook
+
+# -- code --
 parser = ArgumentParser()
 parser.add_argument('replay_file', type=str)
 parser.add_argument('location', type=int)
@@ -30,7 +35,6 @@ parser.add_argument('--print-synctag', action='store_true', default=False)
 parser.add_argument('--action-singlestep', default=0)
 options = parser.parse_args()
 
-import logging
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger().setLevel(getattr(logging, options.log.upper()))
 log = logging.getLogger('Replay')
@@ -97,6 +101,7 @@ while True:
     print last
 
 mode = last
+params = json.loads(data.pop(0))
 data.pop(0)  # seed
 data.pop(0)  # server data
 
@@ -120,6 +125,7 @@ for p in players:
 
 g = GameMode()
 g.players = BatchList(players)
+g.game_params = params
 g.me = players[loc]
 g.replay_file = options.replay_file
 
@@ -137,7 +143,7 @@ def get_synctag(ori):
 
     if options.break_at and tag == options.break_at:
         if options.catch:
-            import pdb; pdb.set_trace()
+            pdb.set_trace()
         else:
             raise Exception('break!')
 
@@ -157,6 +163,6 @@ try:
     g._run()
 except Exception as e:
     if not isinstance(e, SystemExit) and options.catch:
-        import pdb; pdb.post_mortem()
+        pdb.post_mortem()
 
     raise
