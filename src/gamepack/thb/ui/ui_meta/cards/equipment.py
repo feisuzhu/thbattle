@@ -26,7 +26,7 @@ class OpticalCloakCard:
     image_small = gres.card_opticalcloak_small
     description = (
         u'|R光学迷彩|r\n\n'
-        u'装备【光学迷彩】后，每次需要出【擦弹】时（例如受到【弹幕】或【地图炮】攻击时），可以选择判定，若判定结果为红色花色（红桃或方块），则等效于出了一张【擦弹】；否则需再出【擦弹】。\n\n'
+        u'装备后:当你需要使用或打出【擦弹】时，可以进行一次判定，若结果为红，视为你使用或打出了一张【擦弹】。\n\n'
         u'|DB（画师：人人网 邵思雯，CV：shourei小N）|r'
     )
 
@@ -74,7 +74,7 @@ class MomijiShieldCard:
     image_small = gres.card_momijishield_small
     description = (
         u'|R天狗盾|r\n\n'
-        u'装备后，黑色【弹幕】对你无效。'
+        u'装备后：黑色【弹幕】对你无效。'
     )
 
     is_action_valid = equip_iav
@@ -97,9 +97,9 @@ class MomijiShield:
 
 ufo_desc = (
     u'|R%s|r\n\n'
-    u'UFO用来改变自己与其他玩家之间的距离。\n'
-    u'|B|R>> |r红色UFO为进攻用，当你计算和其它玩家的距离时,在原有的基础上减少相应距离，若结果小于1则依然视为1。\n'
-    u'|B|R>> |r绿色UFO为防守用，当其它玩家计算和你的距离时,在原有的基础上增加相应距离。\n'
+    u'UFO用来改变自己与其他角色之间的距离。\n'
+    u'|B|R>> |r红色UFO为进攻用，当你计算和其他角色的距离时,在原有的基础上减少相应距离。两名角色之间的距离至少为1。\n'
+    u'|B|R>> |r绿色UFO为防守用，当其他角色计算和你的距离时,在原有的基础上增加相应距离。\n'
     u'|B|R>> |r你可以同时装备两种UFO'
 )
 
@@ -147,7 +147,7 @@ class RoukankenCard:
     image_small = gres.card_roukanken_small
     description = (
         u'|R楼观剑|r\n\n'
-        u'攻击范围3，每当你使用【弹幕】攻击一名角色时，无视该角色的防具。'
+        u'攻击范围3，装备后：你使用的【弹幕】无视防具。'
     )
     is_action_valid = equip_iav
 
@@ -174,7 +174,7 @@ class ElementalReactorCard:
     image_small = gres.card_reactor_small
     description = (
         u'|R八卦炉|r\n\n'
-        u'攻击范围1，出牌阶段可以使用任意张【弹幕】。\n\n'
+        u'攻击范围1，装备后：出牌阶段你可以使用任意张【弹幕】。\n\n'
         u'|DB（画师：Pixiv UID 2022150）|r'
     )
 
@@ -195,7 +195,7 @@ class UmbrellaCard:
     image_small = gres.card_umbrella_small
     description = (
         u'|R阳伞|r\n\n'
-        u'装备后符卡造成的伤害对你无效。\n\n'
+        u'装备后：符卡造成的伤害对你无效。\n\n'
         u'|DB（画师：Pixiv ID 5676304）|r'
     )
 
@@ -235,7 +235,7 @@ class GungnirCard:
     image_small = gres.card_gungnir_small
     description = (
         u'|R冈格尼尔|r\n\n'
-        u'攻击范围3，当你需要使用或打出一张【弹幕】时，你可以将两张手牌当一张【弹幕】来使用或打出。'
+        u'攻击范围3，装备后：你可以将两张手牌当【弹幕】使用或打出。'
     )
 
     is_action_valid = equip_iav
@@ -294,7 +294,7 @@ class ScarletRhapsodyCard:
     image_small = gres.card_scarletrhapsodysword_small
     description = (
         u'|R绯想之剑|r\n\n'
-        u'攻击范围4，当你使用的【弹幕】是你的最后一张手牌时，你可以为这张【弹幕】指定至多三名目标，然后依次结算之。\n\n'
+        u'攻击范围4，装备后：当你使用的【弹幕】是你的最后一张手牌时，你可以为此【弹幕】指定至多三名目标。\n\n'
         u'|DB（CV：VV）'
     )
 
@@ -353,7 +353,8 @@ class RepentanceStickCard:
     image_small = gres.card_repentancestick_small
     description = (
         u'|R悔悟棒|r\n\n'
-        u'攻击范围2，当你使用【弹幕】造成伤害时，你可以防止此伤害，改为弃置该目标角色的两张牌（弃完第一张再弃第二张）。'
+        u'攻击范围2，装备后：当你使用【弹幕】造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
+		u'|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌\n\n'
     )
 
     is_action_valid = equip_iav
@@ -404,8 +405,8 @@ class MaidenCostumeCard:
     image_small = gres.card_maidencostume_small
     description = (
         u'|R巫女服|r\n\n'
-        u'距离限制2，你可以将这张牌置于任意一名处于距离内的玩家的装备区里。\n'
-        u'受到【罪袋狂欢】效果时，无法回避。'
+        u'对距离2以内的一名角色使用\n'
+        u'装备后：你无法响应【罪袋狂欢】。'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -432,7 +433,7 @@ class IbukiGourdCard:
     is_action_valid = equip_iav
     description = (
         u'|R伊吹瓢|r\n\n'
-        u'当装备在进攻马位置。在装备、失去装备及回合结束时获得|B喝醉|r状态\n\n'
+        u'装备后：获得喝醉状态，并在之后失去该装备时及每个结束阶段开始时获得|B喝醉|r状态。\n\n'
         u'|DB（画师：Pixiv ID 4578556）|r'
     )
 
@@ -451,9 +452,8 @@ class HouraiJewelCard:
     image_small = gres.card_houraijewel_small
     description = (
         u'|R蓬莱玉枝|r\n\n'
-        u'攻击范围1，当使用【弹幕】时可以选择发动。发动后【弹幕】带有符卡性质，可以被【好人卡】抵消，不可以使用【擦弹】躲过。\n'
-        u'|B|R>> |r计算在出【弹幕】的次数内。\n'
-        u'|B|R>> |r蓬莱玉枝造成的伤害为固定的1点\n\n'
+        u'攻击范围1，装备后：你使用的【弹幕】只能用【好人卡】抵消，按此法使用的弹幕伤害固定为1。\n'
+        u'|B|R>> |r计算在出【弹幕】的次数内。\n\n'
         u'|DB（画师：Pixiv ID 12657794）|r'
     )
 
@@ -490,7 +490,7 @@ class SaigyouBranchCard:
     image_small = gres.card_saigyoubranch_small
     description = (
         u'|R西行妖|r\n\n'
-        u'每当你成为其他人符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张【好人卡】。\n\n'
+        u'装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张【好人卡】。\n\n'
         u'|DB（CV：VV）|r'
     )
     is_action_valid = equip_iav
@@ -539,9 +539,9 @@ class HakuroukenCard:
     image_small = gres.card_hakurouken_small
     description = (
         u'|R白楼剑|r\n\n'
-        u'攻击范围2，当你使用【弹幕】指定了一名角色为目标后，若此弹幕为黑色，你可以令对方选择一项：\n'
-        u'|B|R>> |r弃一张手牌\n'
-        u'|B|R>> |r你摸一张牌'
+        u'攻击范围2，装备后：当你使用的黑色【弹幕】指定一名目标角色后，你可以令其选择一项：\n'
+        u'|B|R>> |r弃置一张手牌\n'
+        u'|B|R>> |r令你摸一张牌'
     )
     is_action_valid = equip_iav
 
@@ -589,7 +589,7 @@ class AyaRoundfanCard:
     image_small = gres.card_ayaroundfan_small
     description = (
         u'|R团扇|r\n\n'
-        u'攻击距离5，当你使用【弹幕】命中时，可以弃一张手牌，卸掉目标的一件装备。\n\n'
+        u'攻击距离5，装备后：当你使用的【弹幕】对目标角色造成伤害时，你可以弃置一张手牌，然后弃置其装备区里的一张牌。\n\n'
         u'|DB（CV：VV）|r'
     )
     is_action_valid = equip_iav
@@ -641,7 +641,7 @@ class NenshaPhoneCard:
     image_small = gres.card_nenshaphone_small
     description = (
         u'|R念写机|r\n\n'
-        u'攻击距离4，当你使用【弹幕】命中时，可以将目标的两张手牌置入明牌区。'
+        u'攻击距离4，装备后：当你使用的【弹幕】对目标角色造成伤害后，可以将其两张手牌置入明牌区。'
     )
     is_action_valid = equip_iav
 
@@ -679,7 +679,7 @@ class LaevateinCard:
     image_small = gres.card_laevatein_small
     description = (
         u'|R莱瓦汀|r\n\n'
-        u'攻击距离3，目标角色使用【擦弹】抵消你使用【弹幕】的效果时，你可以弃两张牌（可以是手牌也可以是自己的其它装备牌），使此【弹幕】强制命中对方，无法闪避。\n\n'
+        u'攻击距离3，装备后：当你使用的【弹幕】被目标角色使用的【擦弹】抵消时，你可以弃置两张牌，令此【弹幕】依然生效。\n\n'
         u'|DB（画师：Danbooru post 1240565，CV：VV）|r'
     )
     is_action_valid = equip_iav
@@ -716,7 +716,7 @@ class DeathSickleCard:
     image_small = gres.card_deathsickle_small
     description = (
         u'|R死神之镰|r\n\n'
-        u'攻击范围2，|B锁定技|r，当你使用的【弹幕】造成伤害时，若目标没有手牌，此【弹幕】的伤害+1。\n\n'
+        u'攻击范围2，装备后：当你使用的【弹幕】对目标角色造成伤害时，若其没有手牌，此伤害+1。\n\n'
         u'|DB（CV：小羽）|r'
     )
     is_action_valid = equip_iav
@@ -751,7 +751,7 @@ class KeystoneCard:
     description = (
         u'|R要石|r\n\n'
         u'特殊的绿色UFO装备，距离+1\n'
-        u'装备后不受【罪袋】的影响\n\n'
+        u'装备后跳过【罪袋】对你的结算。\n\n'
         u'|DB（CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
@@ -782,7 +782,7 @@ class WitchBroomCard:
     is_action_valid = equip_iav
     description = (
         u'|R魔女扫把|r\n\n'
-        u'特殊的红色UFO装备，距离-2\n\n'
+        u'特殊的红色UFO装备，距离-2。\n\n'
         u'|DB（画师：Pixiv UID 286832）|r'
     )
 
@@ -799,7 +799,7 @@ class YinYangOrbCard:
     image_small = gres.card_yinyangorb_small
     description = (
         u'|R阴阳玉|r\n\n'
-        u'当你的判定牌即将生效时，可以用装备着的【阴阳玉】代替判定牌生效。'
+        u'装备后：在你的判定牌生效前，你可以打出【阴阳玉】代替之。'
     )
     is_action_valid = equip_iav
 
@@ -834,7 +834,7 @@ class SuwakoHatCard:
     image_small = gres.card_suwakohat_small
     description = (
         u'|R青蛙帽|r\n\n'
-        u'装备后，手牌上限+2\n\n'
+        u'装备后：手牌上限+2\n\n'
         u'|DB（画师：Pixiv ID 9552727，CV：VV）|r'
     )
     is_action_valid = equip_iav
@@ -859,7 +859,7 @@ class YoumuPhantomCard:
     image_small = gres.card_phantom_small
     description = (
         u'|R半灵|r\n\n'
-        u'装备时增加一点体力上限，当失去装备区里的【半灵】时，回复一点体力。\n\n'
+        u'装备后：增加1点体力上限，当失去装备区里的【半灵】时，你回复1点体力。\n\n'
         u'|DB（画师：Pixiv ID 376712，CV：小羽）|r'
     )
 
@@ -885,7 +885,7 @@ class IceWingCard:
     image_small = gres.card_icewing_small
     description = (
         u'|R⑨的翅膀|r\n\n'
-        u'装备后不受【封魔阵】和【冻青蛙】的影响。'
+        u'装备后：【封魔阵】和【冻青蛙】对你无效。'
     )
 
     is_action_valid = equip_iav
@@ -913,11 +913,7 @@ class GrimoireCard:
     image_small = gres.card_grimoire_small
     description = (
         u'|R魔导书|r\n\n'
-        u'攻击距离1，当在你的出牌阶段仍然可以使用【弹幕】时，你可以弃一张牌，发动魔导书，并且计入【弹幕】的使用次数，一回合限一次。\n'
-        u'|B|R>> |r弃牌为红桃：视为发动【宴会】\n'
-        u'|B|R>> |r弃牌为方片：视为发动【五谷丰登】\n'
-        u'|B|R>> |r弃牌为黑桃：视为发动【罪袋狂欢】\n'
-        u'|B|R>> |r弃牌为梅花：视为发动【地图炮】\n\n'
+        u'攻击距离1，装备后：出牌阶段限一次，若你于你的出牌阶段还未使用过【弹幕】，你可以消耗一次本回合使用【弹幕】的次数并将一张牌按照以下规则使用：黑桃当【罪袋狂欢】，红桃当【宴会】，梅花当【地图炮】，方片当【五谷丰登】。\n'
         u'|DB（CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
