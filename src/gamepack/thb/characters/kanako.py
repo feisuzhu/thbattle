@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCardStage, DrawCards, DropCards, PrepareStage, UserAction, ask_for_action
+from ..actions import DrawCardStage, DrawCards, DropCards, UserAction, ask_for_action
 from ..actions import ttags, user_choose_cards, user_input
 from ..cards import Skill, t_None
 from ..inputlets import ChooseOptionInputlet
@@ -26,6 +26,7 @@ class DivinityAction(UserAction):
         g.process_action(DivinityDrawCards(tgt, self.amount))
         cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
         cl = cl or (list(tgt.showncards) + list(tgt.cards) + list(tgt.equips))[:self.amount]
+        g.players.reveal(cl)
         g.process_action(DropCards(tgt, cl))
         return True
 
@@ -47,7 +48,7 @@ class DivinityAction(UserAction):
 
 class DivinityHandler(EventHandler):
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, PrepareStage):
+        if evt_type == 'action_apply' and isinstance(act, DrawCardStage):
             tgt = act.target
             if not tgt.has_skill(Divinity):
                 return act
