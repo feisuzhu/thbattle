@@ -1009,7 +1009,8 @@ class GameManager(object):
     def squeeze_out(self, old, new):
         old.write(['others_logged_in', None])
         old.close()  # this forces a drop, will call exit_game
-        self.reconnect(new)
+        if old.state == 'ingame':
+            self.reconnect(new)
 
     def reconnect(self, new):
         g = self.game
