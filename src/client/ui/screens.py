@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import logging
-log = logging.getLogger('UI_Screens')
 from collections import deque
-import shlex
+import logging
 import re
+import shlex
 
 # -- third party --
-from pyglet.gl import glClear, glClearColor, glColor3f, glColor4f, GL_COLOR_BUFFER_BIT, glRectf
+from pyglet.gl import GL_COLOR_BUFFER_BIT, glClear, glClearColor, glColor3f, glColor4f, glRectf
 from pyglet.text import Label
 import gevent
 import pyglet
@@ -17,21 +16,24 @@ import requests
 # -- own --
 from account import Account
 from client.core import Executive
-from client.ui.base import WINDOW_WIDTH, WINDOW_HEIGHT, Control, Overlay, ui_message
+from client.ui.base import Control, Overlay, WINDOW_HEIGHT, WINDOW_WIDTH, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
-from client.ui.controls import BalloonPrompt, Button, Colors, ConfirmBox, Frame, VolumeTuner, NoInviteButton
-from client.ui.controls import ImageSelector, ListView, Panel, OptionButtonGroup, LoadingWindow
-from client.ui.controls import PasswordTextBox, PlayerPortrait
-from client.ui.controls import TextArea, TextBox, SensorLayer, CheckBox
+from client.ui.controls import BalloonPrompt, Button, CheckBox, Colors, ConfirmBox, Frame
+from client.ui.controls import ImageSelector, ListView, LoadingWindow, NoInviteButton
+from client.ui.controls import OptionButtonGroup, Panel, PasswordTextBox, PlayerPortrait
+from client.ui.controls import SensorLayer, TextArea, TextBox, VolumeTuner
 from client.ui.resource import resource as common_res
 from client.ui.soundmgr import SoundManager
+from options import options
 from settings import ServerNames
 from user_settings import UserSettings
-from utils import rect_to_dict as r2d, textsnap, inpoly, openurl
-from utils.crypto import simple_encrypt, simple_decrypt
+from utils import inpoly, openurl, rect_to_dict as r2d, textsnap
+from utils.crypto import simple_decrypt, simple_encrypt
 from utils.misc import BatchList
 
+# -- code --
 RE_AT = re.compile(ur'@([^@ ]+)')
+log = logging.getLogger('UI_Screens')
 
 
 def handle_chat(_type, args):
@@ -354,7 +356,7 @@ class ServerSelectScreen(Screen):
 
                 @gevent.spawn
                 def work():
-                    if not Executive.is_version_match(server['branch']):
+                    if not options.no_update and not Executive.is_version_match(server['branch']):
                         if confirm(u'你的游戏没有切换到最新版上，要切换吗？', ConfirmBox.Presets.OKCancel):
                             Executive.switch_version(server['branch'])
                             import os

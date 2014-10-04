@@ -95,7 +95,7 @@ class Client(ClientEndpoint):
         tag, data = ClientEndpoint.gexpect(self, tag, blocking)
         if tag:
             manager = GameManager.get_by_user(self)
-            manager.record_user_gamedata(self, tag, json.loads(self.encode(data)))
+            manager.record_user_gamedata(self, tag, data)
 
         return tag, data
 
@@ -103,7 +103,7 @@ class Client(ClientEndpoint):
         log.debug('GAME_WRITE: %s -> %s', self.account.username, repr([tag, data]))
 
         manager = GameManager.get_by_user(self)
-        manager.record_gamedata(self, tag, json.loads(self.encode(data)))
+        manager.record_gamedata(self, tag, data)
 
         encoded = self.encode(['gamedata', [tag, data]])
         self.raw_write(encoded)
@@ -222,7 +222,7 @@ class DroppedClient(Client):
 
     def gwrite(self, tag, data):
         manager = GameManager.get_by_user(self)
-        manager.record_gamedata(self, tag, json.loads(self.encode(data)))
+        manager.record_gamedata(self, tag, data)
 
     def gexpect(self, tag, blocking=True):
         raise EndpointDied
@@ -267,8 +267,8 @@ class Lobby(object):
         interconnect.publish('current_games', self.games.values())
 
     def send_lobbyinfo(self, user):
-        user.write(['current_games', self.games.values()])
-        user.write(['current_users', self.users.values()])
+        user.write(['current_games', self.games.values()], Client.FMT_COMPRESSED)
+        user.write(['current_users', self.users.values()], Client.FMT_COMPRESSED)
         user.write(['your_account', user.account])
 
     def user_join(self, user):
@@ -712,7 +712,7 @@ class GameManager(object):
 
         g.gameid    = gid
         g.manager   = self
-        g.rndseed   = random.randint(1, 10 ** 20)
+        g.rndseed   = random.getrandbits(63)
         g.random    = random.Random(g.rndseed)
         g.gr_groups = WeakSet()
 
@@ -995,16 +995,16 @@ class GameManager(object):
 
     def record_gamedata(self, user, tag, data):
         idx = self.users.index(user)
-        self.gdhistory[idx].append((tag, data))
+        self.gdhistory[idx].append((tag, Client.decode(Client.encode(data))))
 
     def record_user_gamedata(self, user, tag, data):
         idx = self.users.index(user)
-        self.usergdhistory.append((idx, tag, data))
+        self.usergdhistory.append((idx, tag, Client.decode(Client.encode(data))))
 
     def replay(self, observer, observee):
         idx = self.users.index(observee)
         for data in self.gdhistory[idx]:
-            observer.raw_write(json.dumps(['gamedata', data]) + '\n')
+            observer.write(['gamedata', data])
 
     def squeeze_out(self, old, new):
         old.write(['others_logged_in', None])

@@ -8,7 +8,7 @@ import redis
 import simplejson as json
 
 # -- own --
-from misc import surpress_and_restart
+from .misc import surpress_and_restart
 from network import Endpoint
 
 
@@ -44,7 +44,7 @@ class Interconnect(Greenlet):
     def publish(self, topic, data):
         self.pub.publish(
             'thb.{}.{}'.format(self.node, topic),
-            Endpoint.encode(data),
+            Endpoint.encode(data, Endpoint.FMT_RAW_JSON),
         )
 
     def __repr__(self):

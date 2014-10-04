@@ -58,7 +58,7 @@ class PlayerIdentity(object):
 
 def get_seed_for(p):
     if Game.SERVER_SIDE:
-        seed = long(Game.getgame().random.randint(1, 10 ** 20))
+        seed = Game.getgame().random.getrandbits(63)
     else:
         seed = 0L
 

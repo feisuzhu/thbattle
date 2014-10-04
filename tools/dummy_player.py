@@ -1,16 +1,19 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 
-import gevent
-from gevent import socket
-from simplejson import dumps
-
-names = ['Reimu', 'Marisa', 'Sakuya', 'Youmu', 'Sanae', 'Yuyuko', 'Alice', 'Patchouli']
+# -- stdlib --
 import itertools
-names = itertools.cycle(names)
-
 import sys
 
+# -- third party --
+from gevent import socket
+import gevent
+import msgpack
+
+# -- own --
+# -- code --
+names = ['Reimu', 'Marisa', 'Sakuya', 'Youmu', 'Sanae', 'Yuyuko', 'Alice', 'Patchouli']
+names = itertools.cycle(names)
 types = {
     '3v3':   'THBattle',
     'cp3':   'THBattleCP3',
@@ -31,7 +34,12 @@ t = types[t]
 no_create = n < 0
 n = abs(n)
 
-en = lambda d: dumps(d) + '\n'
+# en = lambda d: dumps(d) + '\n'
+
+
+def en(d):
+    return msgpack.packb([1, d])
+
 
 l = []
 
