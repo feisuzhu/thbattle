@@ -415,14 +415,6 @@ class ServerSelectScreen(Screen):
 
     def on_switch(self):
         SoundManager.switch_bgm(common_res.bgm_hall)
-        from options import options
-
-        options.testing and ConfirmBox(
-            u'测试模式开启，现在可以登陆测试服务器。\n'
-            u'测试模式下可能无法登陆正常服务器，\n'
-            u'测试服务器也会随时重新启动。',
-            parent=self, zindex=99999,
-        )
 
 
 class LoginScreen(Screen):

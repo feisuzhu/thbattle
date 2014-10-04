@@ -32,7 +32,6 @@ def start_server():
     parser.add_argument('node', type=str)
     parser.add_argument('--port', default=9999, type=int)
     parser.add_argument('--backdoor-port', default=19999, type=int)
-    parser.add_argument('--testing', action='store_true')
     parser.add_argument('--no-backdoor', action='store_true')
     parser.add_argument('--freeplay', action='store_true')
     parser.add_argument('--log', default='INFO')
