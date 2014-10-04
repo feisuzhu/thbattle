@@ -70,6 +70,16 @@ def start_client():
     if not options.with_gl_errcheck:
         pyglet.options['debug_gl'] = False
 
+    from pyglet.gl import gl_info
+    if gl_info.get_renderer() == 'GDI Generic':
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            u'你好像没有安装显卡驱动……？这样游戏是跑不起来的。快去安装！',
+            u'需要显卡驱动',
+            16,
+        )
+        sys.exit(0)
+
     if sys.platform == 'win32':
         from pyglet.media.drivers.directsound import DirectSoundAudioPlayer
         DirectSoundAudioPlayer._buffer_size = 44800 * 2
