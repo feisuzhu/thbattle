@@ -35,7 +35,7 @@ class Endpoint(object):
     def __init__(self, sock, address):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.read       = sock.recv
-        sock.write      = sock.send
+        sock.write      = sock.sendall
 
         self.sock       = sock
         self.unpacker   = msgpack.Unpacker(sock, encoding='utf-8')

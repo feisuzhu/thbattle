@@ -69,7 +69,7 @@ class RPCClient(object):
 
                 s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 s.read = s.recv
-                s.write = s.send
+                s.write = s.sendall
                 self.unpacker = msgpack.Unpacker(s)
                 self.sock = s
 
@@ -104,7 +104,7 @@ class RPCService(Greenlet):
             sock = self.sock
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             sock.read = sock.recv
-            sock.write = sock.send
+            sock.write = sock.sendall
             unpacker = msgpack.Unpacker(sock)
             for req in unpacker:
                 if not req[0] == REQUEST:
