@@ -4,7 +4,6 @@
 from collections import OrderedDict
 from copy import copy
 import logging
-import time
 
 # -- third party --
 from gevent import Greenlet, getcurrent
@@ -53,7 +52,6 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     g.gr_groups.add(input_group)
     _input_group = set()
 
-    till = time.time() + timeout + 5
     try:
         inputany_player = None
 
@@ -76,20 +74,12 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
         for p in players:
             g.emit_event('user_input_start', (trans, ilets[p]))
 
-        while players:
-            # NOTICE: This is a must.
-            # TLE would be raised at other part (notably my.post_process) in the original solution
-            # (wrapping large parts of code in 'with TimeLimitExceeded(): ...')
-            with TimeLimitExceeded(max(till - time.time(), 0)):
-                for w in gevent.iwait(_input_group):
-                    _input_group.discard(w)
-                    break
-
-                try:
-                    rst = w.get()
-                    p, data = w.player, rst
-                except:
-                    p, data = w.player, None
+        for w in gevent.iwait(_input_group, timeout=timeout + 5):
+            try:
+                rst = w.get()
+                p, data = w.player, rst
+            except:
+                p, data = w.player, None
 
             g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
 
