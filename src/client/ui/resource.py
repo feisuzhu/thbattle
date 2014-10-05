@@ -1,10 +1,18 @@
-import pyglet
-from pyglet.resource import Loader
+# -*- coding: utf-8 -*-
+
+# -- stdlib --
+import os
 import zipfile
 
-from client.ui.resloader import anim, bgm, get_atlas, img, imgdata_grid, img_grid, Resource, sound, subdir, texture, imgdata, lazytexture
-from client.ui.resloader import _ResourceDesc
-import os
+# -- third party --
+from pyglet.resource import Loader
+import pyglet
+
+# -- own --
+from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, get_atlas, img, img_grid
+from client.ui.resloader import imgdata, imgdata_grid, lazytexture, sound, subdir, texture
+
+# -- code --
 
 respath = os.path.join(os.path.dirname(__file__), 'res')
 
@@ -72,7 +80,7 @@ resource = Resource(respath, [
             for t in ('blue', 'red', 'green', 'orange')
         ],
         img_grid('port_showncard', 1, 4),
-        img_grid('serverbtn', 1, 4),
+        img_grid('replay', 1, 4),
     ]),
 
     subdir('sound', [

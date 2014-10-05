@@ -19,10 +19,10 @@ from client.core import Executive
 from client.ui.base import Control, Overlay, WINDOW_HEIGHT, WINDOW_WIDTH, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPrompt, Button, CheckBox, Colors, ConfirmBox, Frame
-from client.ui.controls import ImageSelector, ListView, LoadingWindow, NoInviteButton
+from client.ui.controls import ImageButton, ImageSelector, ListView, LoadingWindow, NoInviteButton
 from client.ui.controls import OptionButtonGroup, Panel, PasswordTextBox, PlayerPortrait
 from client.ui.controls import SensorLayer, TextArea, TextBox, VolumeTuner
-from client.ui.resource import resource as common_res
+from client.ui.resource import resource as cres
 from client.ui.soundmgr import SoundManager
 from options import options
 from settings import ServerNames
@@ -66,7 +66,7 @@ def handle_chat(_type, args):
         return None
 
 
-class ChatBoxFrame(Frame):
+class ChatBox(Frame):
     history_limit = 1000
     history = deque([None] * history_limit)
 
@@ -271,7 +271,7 @@ class ServerSelectScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.worldmap = common_res.worldmap.get()
+        self.worldmap = cres.worldmap.get()
 
         from settings import ServerList, NOTICE
 
@@ -310,7 +310,7 @@ class ServerSelectScreen(Screen):
                 from base.baseclasses import main_window
                 self.window = main_window
                 self.hand_cursor = self.window.get_system_mouse_cursor('hand')
-                self.worldmap_shadow = common_res.worldmap_shadow.get()
+                self.worldmap_shadow = cres.worldmap_shadow.get()
                 self.disable_click = False
                 self.highlight = None
                 self.hldraw = None
@@ -390,6 +390,7 @@ class ServerSelectScreen(Screen):
         self.highlight_layer = HighlightLayer(parent=self)
 
         VolumeTuner(parent=self, x=self.width - 90, y=60)
+        ImageButton(cres.buttons.replay, 1, parent=self, x=self.width - 220, y=60, zindex=1)
 
     def on_message(self, _type, *args):
         if _type == 'server_connected':
@@ -416,7 +417,7 @@ class ServerSelectScreen(Screen):
         self.draw_subcontrols()
 
     def on_switch(self):
-        SoundManager.switch_bgm(common_res.bgm_hall)
+        SoundManager.switch_bgm(cres.bgm_hall)
 
 
 class LoginScreen(Screen):
@@ -486,7 +487,7 @@ class LoginScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.bg = common_res.bg_login.get()
+        self.bg = cres.bg_login.get()
         self.bg_alpha = LinearInterp(0, 1.0, 1.5)
         self.dialog = LoginScreen.LoginDialog(parent=self)
         self.btn_try = try_game = Button(
@@ -552,7 +553,7 @@ class LoginScreen(Screen):
         self.dialog.enable()
 
     def on_switch(self):
-        SoundManager.switch_bgm(common_res.bgm_hall)
+        SoundManager.switch_bgm(cres.bgm_hall)
 
 
 class GameHallScreen(Screen):
@@ -713,7 +714,7 @@ class GameHallScreen(Screen):
             Frame.__init__(
                 self, parent=p, caption=u'当前大厅内的游戏',
                 x=35, y=220, width=700, height=420,
-                bot_reserve=30, bg=common_res.bg_gamelist.get(),
+                bot_reserve=30, bg=cres.bg_gamelist.get(),
             )
 
             gl = self.gamelist = ListView(parent=self, x=2, y=30, width=696, height=420-30-25)
@@ -772,14 +773,6 @@ class GameHallScreen(Screen):
                     ], color=(0, 0, 0, 255) if gi['started'] else (0xef, 0x75, 0x45, 0xff))
                     li.game_id = gi['id']
                     li.started = gi['started']
-
-    class ChatBox(ChatBoxFrame):
-        def __init__(self, parent):
-            ChatBoxFrame.__init__(
-                self, parent=parent,
-                # x=35, y=20, width=700, height=180,
-                x=35+255, y=20, width=700-255, height=180,
-            )
 
     class OnlineUsers(Frame):
         def __init__(self, parent):
@@ -864,11 +857,11 @@ class GameHallScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.bg = common_res.bg_gamehall.get()
+        self.bg = cres.bg_gamehall.get()
 
         self.gamelist = self.GameList(self)
 
-        chat = self.chat_box = GameHallScreen.ChatBox(parent=self)
+        chat = self.chat_box = ChatBox(parent=self, x=35+255, y=20, width=700-255, height=180)
         chat.text = u'您现在处于游戏大厅！\n'
         self.playerlist = GameHallScreen.OnlineUsers(parent=self)
         self.noticebox = GameHallScreen.NoticeBox(parent=self)
@@ -930,7 +923,21 @@ class GameHallScreen(Screen):
         self.draw_subcontrols()
 
     def on_switch(self):
-        SoundManager.switch_bgm(common_res.bgm_hall)
+        SoundManager.switch_bgm(cres.bgm_hall)
+
+
+class GameEventsBox(Frame):
+    def __init__(self, parent, **k):
+        Frame.__init__(self, parent=parent, caption=u'游戏信息', bot_reserve=0, **k)
+        self.box = TextArea(
+            parent=self, x=2, y=2, width=200, height=370-24-2
+        )
+
+    def append(self, v):
+        self.box.append(v)
+
+    def clear(self):
+        self.box.text = u'\u200b'
 
 
 class GameScreen(Screen):
@@ -1152,36 +1159,10 @@ class GameScreen(Screen):
                     from utils import notify
                     notify(u'东方符斗祭 - 满员提醒', u'房间已满员，请准备。')
 
-    class EventsBox(Frame):
-        def __init__(self, parent):
-            Frame.__init__(
-                self, parent=parent,
-                caption=u'游戏信息',
-                x=820, y=350, width=204, height=370,
-                bot_reserve=0, bg=common_res.bg_eventsbox.get(),
-            )
-            self.box = TextArea(
-                parent=self, x=2, y=2, width=200, height=370-24-2
-            )
-
-        def append(self, v):
-            self.box.append(v)
-
-        def clear(self):
-            self.box.text = u'\u200b'
-
-    class ChatBox(ChatBoxFrame):
-        def __init__(self, parent):
-            ChatBoxFrame.__init__(
-                self, parent=parent,
-                x=820, y=0, width=204, height=352,
-                bg=common_res.bg_chatbox.get(),
-            )
-
     def __init__(self, game, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
 
-        self.backdrop = common_res.bg_ingame.get()
+        self.backdrop = cres.bg_ingame.get()
         self.flash_alpha = 0.0
 
         self.game = game
@@ -1191,8 +1172,14 @@ class GameScreen(Screen):
             **r2d((0, 0, 820, 720))
         )  # add when game starts
 
-        self.events_box = GameScreen.EventsBox(parent=self)
-        self.chat_box = GameScreen.ChatBox(parent=self)
+        self.events_box = GameEventsBox(
+            parent=self, x=820, y=350, width=204, height=370,
+            bg=cres.bg_eventsbox.get(),
+        )
+        self.chat_box = ChatBox(
+            parent=self, x=820, y=0, width=204, height=352,
+            bg=cres.bg_chatbox.get(),
+        )
         self.panel = GameScreen.RoomControlPanel(parent=self)
         self.btn_exit = Button(
             parent=self, caption=u'退出房间', zindex=1,
@@ -1248,8 +1235,8 @@ class GameScreen(Screen):
                 parent=False, game=self.game,
                 **r2d((0, 0, 820, 720))
             )
-            SoundManager.switch_bgm(common_res.bgm_hall)
-            self.backdrop = common_res.bg_ingame.get()
+            SoundManager.switch_bgm(cres.bgm_hall)
+            self.backdrop = cres.bg_ingame.get()
             self.set_color(Colors.green)
             self.events_box.clear()
 
@@ -1312,4 +1299,81 @@ class GameScreen(Screen):
         self.chat_box.set_color(color)
 
     def on_switch(self):
-        SoundManager.switch_bgm(common_res.bgm_hall)
+        SoundManager.switch_bgm(cres.bgm_hall)
+
+
+class ReplayScreen(Screen):
+    flash_alpha = InterpDesc('_flash_alpha')
+
+    class ReplayPanel(Frame):
+        def __init__(self, **k):
+            Frame.__init__(self, caption=u'Replay控制', bot_reserve=33, **k)
+
+    def __init__(self, game, *args, **kwargs):
+        Screen.__init__(self, *args, **kwargs)
+
+        self.backdrop = cres.bg_ingame.get()
+        self.flash_alpha = 0.0
+
+        self.game = game
+        self.ui_class = game.ui_meta.ui_class
+        self.gameui = self.ui_class(
+            parent=False, game=game,
+            **r2d((0, 0, 820, 720))
+        )  # add when game starts
+
+        self.events_box = GameEventsBox(
+            parent=self, x=820, y=150, width=204, height=570,
+            bg=cres.bg_eventsbox.get(),
+        )
+        self.replay_panel = ReplayScreen.ReplayPanel(
+            parent=self, x=820, y=0, width=204, height=152,
+        )
+
+        VolumeTuner(parent=self, x=690, y=670)
+
+    def on_message(self, _type, *args):
+        if _type == 'game_started':
+            from utils import notify
+            notify(u'东方符斗祭 - 游戏提醒', u'游戏已开始，请注意。')
+            self.remove_control(self.panel)
+            self.add_control(self.gameui)
+            self.gameui.init()
+            self.game.start()
+            SoundManager.se_suppress()
+
+        elif _type == 'end_game':
+            self.remove_control(self.gameui)
+            self.add_control(self.panel)
+            g = args[0]
+
+        elif _type == 'client_game_finished':
+            g = args[0]
+            g.ui_meta.ui_class.show_result(g)
+
+        else:
+            Screen.on_message(self, _type, *args)
+
+    def draw(self):
+        glColor3f(1, 1, 1)
+        self.backdrop.blit(0, 0)
+        glColor4f(0, 0, 0, .5)
+        glRectf(0, 0, 1000, 138)
+        glColor3f(0.1922, 0.2706, 0.3882)
+        glRectf(0, 138, 1000, 140)
+        glColor3f(1, 1, 1)
+        self.draw_subcontrols()
+        fa = self.flash_alpha
+        if fa:
+            glColor4f(1, 1, 1, fa)
+            glRectf(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+
+    def set_flash(self, duration):
+        self.flash_alpha = CosineInterp(1.0, 0.0, duration)
+
+    def set_color(self, color):
+        self.events_box.set_color(color)
+        self.replay_panel.set_color(color)
+
+    def on_switch(self):
+        SoundManager.switch_bgm(cres.bgm_hall)

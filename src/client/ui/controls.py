@@ -145,10 +145,11 @@ class AbstractButton(Control):
 
     hover_alpha = InterpDesc('_hv')
 
-    def __init__(self, *a, **k):
+    def __init__(self, max_hover_alpha=0.25, *a, **k):
         Control.__init__(self, *a, **k)
         self._state = Button.NORMAL
         self.hover_alpha = 0.0
+        self.max_hover_alpha = max_hover_alpha
 
     def on_mouse_enter(self, x, y):
         if self.state != Button.DISABLED:
@@ -185,10 +186,10 @@ class AbstractButton(Control):
         last = self._state
         self._state = val
         if val == Button.HOVER:
-            self.hover_alpha = .25
+            self.hover_alpha = self.max_hover_alpha
         elif last == Button.HOVER and val == Button.NORMAL:
             self.hover_alpha = LinearInterp(
-                .25, 0, .17
+                self.max_hover_alpha, 0, .17
             )
         else:
             self.update()
