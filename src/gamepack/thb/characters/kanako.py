@@ -15,6 +15,10 @@ class DivinityDrawCards(DrawCards):
     pass
 
 
+class DivinityDropCards(DropCards):
+    pass
+
+
 class DivinityAction(UserAction):
     card_usage = 'drop'
 
@@ -26,7 +30,7 @@ class DivinityAction(UserAction):
         cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
         cl = cl or (list(tgt.showncards) + list(tgt.cards) + list(tgt.equips))[:self.amount]
         g.players.reveal(cl)
-        g.process_action(DropCards(tgt, cl))
+        g.process_action(DivinityDropCards(tgt, cl))
         return True
 
     def cond(self, cl):

@@ -29,7 +29,10 @@ class Miracle:
         return my_turn()
 
     def effect_string(act):
-        return u'早苗 奇迹'
+        return u'|G【%s】|r发动了|G奇迹|r，弃置了%d张牌' % (
+            act.source.ui_meta.char_name,
+            len(act.card.associated_cards),
+        )
 
     def is_action_valid(g, cl, tl):
         cards = cl[0].associated_cards
@@ -60,7 +63,10 @@ class SanaeFaith:
         return my_turn() and not ttags(g.me)['faith']
 
     def effect_string(act):
-        return u'早苗 信仰'
+        return u'|G【%s】|r的|G信仰|r大作战！向%s收集了信仰！' % (
+            act.source.ui_meta.char_name,
+            u'、'.join([u'|G【%s】|r' % p.ui_meta.char_name for p in act.target_list]),
+        )
 
     def is_action_valid(g, cl, tl):
         cards = cl[0].associated_cards

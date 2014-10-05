@@ -20,8 +20,7 @@ class Kanako:
         u'|DB山丘与湖泊的化身 八坂神奈子 体力：4|r\n\n'
         u'|G神威|r：|B锁定技|r，摸牌阶段开始时，你摸X张牌，然后弃置等量的牌（X为你的当前体力值，且至多为4）。\n\n'
         u'|G神德|r：每名角色的回合限一次，你在自己的摸牌阶段以外获得牌时，你可以弃置一张手牌并令一名其他角色摸一张牌。\n\n'
-
-        u'|DB（画师：yandre.re/post/show/196410）|r'
+        u'|DB（画师：yandre.re/post/show/196410，CV：北斗夜）|r'
     )
 
 
@@ -36,6 +35,20 @@ class Divinity:
 #     # choose_option meta
 #     choose_option_buttons = ((u'发动', True), (u'不发动', False))
 #     choose_option_prompt = u'你要发动【神威】吗？'
+
+class DivinityDrawCards:
+    def effect_string(act):
+        return u'|G【%s】|r发动了|G神威|r，摸了%d张牌。' % (
+            act.target.ui_meta.char_name, act.amount,
+        )
+
+
+class DivinityDropCards:
+    def effect_string(act):
+        return u'|G【%s】|r弃置了%d张牌。' % (
+            act.target.ui_meta.char_name,
+            len(act.cards),
+        )
 
 
 class DivinityAction:
@@ -68,4 +81,7 @@ class VirtueHandler:
 
 class VirtueAction:
     def effect_string_before(act):
-        return u'kanako 神德'
+        return u'|G【%s】|r发动了|G神德|r，目标是|G【%s】|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
