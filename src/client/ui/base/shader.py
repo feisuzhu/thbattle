@@ -1,32 +1,15 @@
 # -*- coding: utf-8 -*-
 
-
 # -- stdlib --
-from ctypes import create_string_buffer
-from ctypes import POINTER, byref, cast, pointer
+from ctypes import POINTER, byref, cast, create_string_buffer, pointer
 
 # -- third party --
-from pyglet.gl import GLException
-from pyglet.gl import GL_COMPILE_STATUS
-from pyglet.gl import GL_FRAGMENT_SHADER_ARB
-from pyglet.gl import GL_LINK_STATUS
-from pyglet.gl import GL_VERTEX_SHADER_ARB
-from pyglet.gl import GLint
-from pyglet.gl import GLsizei
-from pyglet.gl import c_char
-from pyglet.gl import glAttachObjectARB
-from pyglet.gl import glCompileShader
-from pyglet.gl import glCreateProgramObjectARB
-from pyglet.gl import glCreateShaderObjectARB
-from pyglet.gl import glGetAttribLocationARB
-from pyglet.gl import glGetInfoLogARB
-from pyglet.gl import glGetProgramiv
-from pyglet.gl import glGetShaderiv
-from pyglet.gl import glGetUniformLocationARB
-from pyglet.gl import glLinkProgram
-from pyglet.gl import glShaderSourceARB
-from pyglet.gl import glUseProgramObjectARB
-from pyglet.gl import gl_info
+from pyglet.gl import GLException, GL_COMPILE_STATUS, GL_FRAGMENT_SHADER_ARB, GL_LINK_STATUS
+from pyglet.gl import GL_VERTEX_SHADER_ARB, GLint, GLsizei, c_char, glAttachObjectARB
+from pyglet.gl import glCompileShader, glCreateProgramObjectARB, glCreateShaderObjectARB
+from pyglet.gl import glGetAttribLocationARB, glGetInfoLogARB, glGetProgramiv, glGetShaderiv
+from pyglet.gl import glGetUniformLocationARB, glLinkProgram, glShaderSourceARB
+from pyglet.gl import glUseProgramObjectARB, gl_info
 import pyglet
 
 # -- own --

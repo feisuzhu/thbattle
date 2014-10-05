@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character
-from ..actions import UserAction, LaunchCard, Damage, DrawCards, LifeLost
-from ..actions import user_choose_cards, migrate_cards, skill_transform
-from ..cards import Skill, t_None, Card, SealingArrayCard, TreatAs, VirtualCard, Heal
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DrawCards, LaunchCard, LifeLost, UserAction, migrate_cards
+from ..actions import skill_transform, user_choose_cards
+from ..cards import Card, Heal, SealingArrayCard, Skill, TreatAs, VirtualCard, t_None
 from ..inputlets import ChooseOptionInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class Dilemma(Skill):
     associated_action = None
     skill_category = ('character', 'passive')

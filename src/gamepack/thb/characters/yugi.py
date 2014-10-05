@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, user_input, Game
-from .baseclasses import Character, register_character
+
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import DropCards, Fatetell, FatetellAction
-from ..cards import Card, RedUFOSkill, Skill, t_None, BaseAttack, InevitableAttack
+from ..cards import BaseAttack, Card, InevitableAttack, RedUFOSkill, Skill, t_None
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 from utils import classmix
 
 
+# -- code --
 class AssaultSkill(RedUFOSkill):
     skill_category = ('character', 'passive', 'compulsory')
     increment = 1

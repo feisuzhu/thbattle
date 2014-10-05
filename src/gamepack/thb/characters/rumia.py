@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DrawCards, LaunchCard, PlayerTurn, UserAction, user_choose_cards
+from ..cards import AttackCard, BaseDuel, Skill, t_None, t_OtherN
 from .baseclasses import Character, register_character
-from ..actions import DrawCards, PlayerTurn, UserAction, user_choose_cards, LaunchCard, Damage
-from ..cards import Skill, BaseDuel, t_None, t_OtherN, AttackCard
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class DarknessDuel(BaseDuel):
     pass
 

@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck classes
 
+# -- stdlib --
 from collections import deque
-from ..common import get_seed_for
-from game.autoenv import Game, GameError, GameObject
 from weakref import WeakValueDictionary
 import logging
 import random
 
+# -- third party --
+# -- own --
+from ..common import get_seed_for
+from game.autoenv import Game, GameError, GameObject
+
+# -- code --
 log = logging.getLogger('THBattle_Cards')
 
 

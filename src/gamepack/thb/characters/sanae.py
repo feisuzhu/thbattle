@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DrawCards, GenericAction, UserAction, migrate_cards, random_choose_card, ttags
+from ..actions import user_choose_cards, user_choose_players
+from ..cards import Heal, Skill, VirtualCard, t_Self
 from .baseclasses import Character, register_character
-from ..actions import DrawCards, GenericAction, UserAction, user_choose_players, user_choose_cards, ttags, random_choose_card, migrate_cards
-from ..cards import Skill, Heal, t_Self, VirtualCard
+from game.autoenv import Game
 
 
+# -- code --
 class MiracleHeal(Heal):
     pass
 

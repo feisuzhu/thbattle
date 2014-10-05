@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
-from .baseclasses import Character, register_character
+
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import DrawCards, PlayerRevive
 from ..cards import Skill, t_None
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class Luck(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')

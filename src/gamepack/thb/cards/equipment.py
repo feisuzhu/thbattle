@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input, GameError
-from ..actions import UserAction, DropCards, FatetellAction, Fatetell, GenericAction, LaunchCard, ForEach, Damage, PlayerTurn, DrawCards, DropCardStage, MaxLifeChange
-from ..actions import migrate_cards, register_eh, user_choose_cards, random_choose_card, MigrateCardsTransaction
-from .base import Card, VirtualCard, Skill, TreatAs, t_None, t_OtherOne, t_OtherLessEqThanN
-from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-
+# -- stdlib --
+# -- third party --
+# -- own --
 from . import basic, spellcard
+from ..actions import Damage, DrawCards, DropCardStage, DropCards, Fatetell, FatetellAction, ForEach
+from ..actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction, PlayerTurn
+from ..actions import UserAction, migrate_cards, random_choose_card, register_eh, user_choose_cards
+from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from .base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN, t_OtherOne
+from game.autoenv import EventHandler, Game, GameError, user_input
+from utils import CheckFailed, check, classmix
 
-from utils import check, CheckFailed, classmix
 
-
+# -- code --
 class WearEquipmentAction(UserAction):
     def apply_action(self):
         g = Game.getgame()

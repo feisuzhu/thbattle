@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import ActionStage, Damage, DropCards, migrate_cards, random_choose_card, UserAction, MigrateCardsTransaction
-from ..cards import Skill, Attack, LaunchGraze, WearEquipmentAction, BaseDuel, t_None, UseAttack, t_Self
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import ActionStage, Damage, DropCards, MigrateCardsTransaction, UserAction
+from ..actions import migrate_cards, random_choose_card
+from ..cards import Attack, BaseDuel, LaunchGraze, Skill, UseAttack, WearEquipmentAction, t_None
+from ..cards import t_Self
 from ..inputlets import ChooseIndividualCardInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 from utils import classmix
 
 
+# -- code --
 class MijincihangzhanAttack(Attack):
     pass
 

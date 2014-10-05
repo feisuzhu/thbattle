@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import FatetellAction, Fatetell, FatetellStage, migrate_cards
-from ..cards import Card, Skill, TreatAs, GrazeCard, t_None
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Fatetell, FatetellAction, FatetellStage, migrate_cards
+from ..cards import Card, GrazeCard, Skill, TreatAs, t_None
 from ..inputlets import ChooseOptionInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class TreasureHunt(FatetellAction):
     def apply_action(self):
         tgt = self.target

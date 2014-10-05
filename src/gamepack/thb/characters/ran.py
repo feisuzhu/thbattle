@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, user_input
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DropCards, GenericAction, PlayerTurn, user_choose_cards
+from ..cards import InstantSpellCardAction, Reject, Skill, SpellCardAction, t_None
+from ..inputlets import ChooseOptionInputlet, ProphetInputlet
 from .baseclasses import Character, register_character
-from ..actions import GenericAction, Damage, user_choose_cards
-from ..actions import DropCards, PlayerTurn
-from ..cards import Skill, t_None, InstantSpellCardAction, Reject, SpellCardAction
-from ..inputlets import ProphetInputlet, ChooseOptionInputlet
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class Prophet(Skill):
     associated_action = None
     skill_category = ('character', 'active')

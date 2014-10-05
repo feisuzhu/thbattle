@@ -1,26 +1,28 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict
 
+# -- stdlib --
+from collections import defaultdict
+from functools import partial
+from time import time
+import logging
+
+# -- third party --
+from pyglet.gl import GL_BACK, GL_BLEND, GL_FILL, GL_FRONT, GL_LINE, GL_MODELVIEW
+from pyglet.gl import GL_ONE_MINUS_SRC_ALPHA, GL_PROJECTION, GL_SRC_ALPHA, glBlendFunc, glClearColor
+from pyglet.gl import glEnable, glLoadIdentity, glMatrixMode, glOrtho, glPolygonMode, glPopMatrix
+from pyglet.gl import glPushMatrix, glTranslatef, glViewport
 import pyglet
 
-from pyglet.gl import glBlendFunc, glClearColor, glEnable, glLoadIdentity, glMatrixMode, glOrtho
-from pyglet.gl import glPolygonMode, glPopMatrix, glPushMatrix, glTranslatef, glViewport
-from pyglet.gl import GL_BACK, GL_BLEND, GL_FILL, GL_FRONT, GL_LINE, GL_MODELVIEW
-from pyglet.gl import GL_ONE_MINUS_SRC_ALPHA, GL_PROJECTION, GL_SRC_ALPHA
+# -- own --
+from utils import hook
 
-from time import time
-
-from functools import partial
-
+# -- code --
 WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 720
 
 main_window = None
 sched_queue = []
 
-from utils import hook
-
-import logging
 log = logging.getLogger('UI_Baseclasses')
 
 

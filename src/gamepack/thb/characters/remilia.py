@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
+
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import Damage, GenericAction
-from ..cards import Skill, t_None, InevitableAttack, Attack, Heal, Card
+from ..cards import Attack, Card, Heal, InevitableAttack, Skill, t_None
 from ..inputlets import ChooseOptionInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class SpearTheGungnir(Skill):
     associated_action = None
     skill_category = ('character', 'active')

@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import PlayerRevive, UserAction, migrate_cards
+from ..cards import Card, GreenUFOSkill, RejectCard, Skill, TreatAs, UFOSkill, t_None
 from .baseclasses import Character, register_character
-from ..actions import migrate_cards, PlayerRevive, UserAction
-from ..cards import Card, Skill, TreatAs, RejectCard, GreenUFOSkill, UFOSkill, t_None
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class Flight(GreenUFOSkill):
     skill_category = ('character', 'passive', 'compulsory')
 

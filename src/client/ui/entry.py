@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
+
+# -- stdlib --
+import logging
 import sys
 
-from utils import hook
-
+# -- third party --
 import gevent
 
-import logging
+# -- own --
+from utils import hook
+
+# -- code --
 log = logging.getLogger('UI_Entry')
 
 

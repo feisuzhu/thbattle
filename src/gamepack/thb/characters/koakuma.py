@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game
-from .baseclasses import Character, register_character_to
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import DrawCards, UserAction, ttags
 from ..cards import Skill, t_Self
+from .baseclasses import Character, register_character_to
+from game.autoenv import Game
 
 
+# -- code --
 class FindAction(UserAction):
     def apply_action(self):
         g = Game.getgame()

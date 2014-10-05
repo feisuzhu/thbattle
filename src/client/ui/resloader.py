@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import pyglet
-from pyglet.resource import Loader
+# -- stdlib --
 from cStringIO import StringIO
-import os
 import hashlib
-from utils import flatten, aes_decrypt
-from PIL import Image
+import os
 import weakref
 
+# -- third party --
+from PIL import Image
+from pyglet.resource import Loader
+import pyglet
 
+# -- own --
+from utils import aes_decrypt, flatten
+
+
+# -- code --
 def get_atlas(atlas_name='__default__', atlas_size=(1024, 1024)):
     atlas = atlases.get(atlas_name)
     if not atlas:

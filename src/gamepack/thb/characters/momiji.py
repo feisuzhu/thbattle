@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character
-from ..actions import user_choose_cards, Damage, LaunchCard
-from ..cards import Card, AttackCard, RedUFOSkill, BaseAttack, Skill, t_None, TreatAs, VirtualCard
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, LaunchCard, user_choose_cards
+from ..cards import AttackCard, BaseAttack, Card, RedUFOSkill, Skill, TreatAs, VirtualCard, t_None
 from ..inputlets import ChooseOptionInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class SentryHandler(EventHandler):
     execute_after = (
         'RepentanceStickHandler',

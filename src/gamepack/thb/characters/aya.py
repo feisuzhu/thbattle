@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
-from .baseclasses import Character, register_character_to
-from ..actions import PlayerTurn, DrawCards, UserAction
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DrawCards, PlayerTurn, UserAction
 from ..cards import Skill, t_None
+from .baseclasses import Character, register_character_to
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class UltimateSpeed(Skill):
     associated_action = None
     skill_category = ('character', 'passive')

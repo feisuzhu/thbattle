@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character
-from ..actions import GenericAction, LaunchCard, UserAction, ForEach
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import ForEach, GenericAction, LaunchCard, UserAction
 from ..cards import AttackCard, AttackCardHandler, Skill
 from ..inputlets import ChooseOptionInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class HeterodoxySkipAction(GenericAction):
     def apply_action(self):
         return True

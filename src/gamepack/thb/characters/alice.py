@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, user_input, Game
-from baseclasses import Character, register_character
-from ..actions import DrawCards, UserAction, DropCardStage, user_choose_players, DropCards, random_choose_card
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DrawCards, DropCardStage, DropCards, UserAction, random_choose_card
+from ..actions import user_choose_players
 from ..cards import Skill, t_None
-from ..inputlets import ChoosePeerCardInputlet, ChooseOptionInputlet
+from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class LittleLegion(Skill):
     associated_action = None
     skill_category = ('character', 'passive')

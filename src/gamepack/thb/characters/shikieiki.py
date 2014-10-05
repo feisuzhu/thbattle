@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character
-from ..actions import UserAction, DropCards, Damage
-from ..actions import migrate_cards, user_choose_cards
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DropCards, UserAction, migrate_cards, user_choose_cards
 from ..cards import Skill, t_None
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class Trial(Skill):
     associated_action = None
     skill_category = ('character', 'active')

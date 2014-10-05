@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
-from .baseclasses import Character, register_character_to
+
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..cards import Card, Heal, HealCard, Skill, t_None, t_One
+from .baseclasses import Character, register_character_to
 
 
+# -- code --
 class FirstAid(Skill):
     associated_action = None
     skill_category = ('character', 'active')

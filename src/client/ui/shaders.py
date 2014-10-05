@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from base.shader import *
-from pyglet.gl import gl_info
-
-have = gl_info.have_version
-
+# -- stdlib --
 import logging
 
+# -- third party --
+from pyglet.gl import gl_info
+
+# -- own --
+from base.shader import DummyShader, FragmentShader, ShaderError, ShaderProgram
+
+# -- code --
+have = gl_info.have_version
 log = logging.getLogger('shaders')
 
 
@@ -17,7 +21,7 @@ def _get_gaussian_coef(radius):
     f = lambda x: 0.5*erfc(-x*a)
 
     l = [f(0.5 + i) - f(-0.5 + i) for i in xrange(radius+1)]
-    l = [i for i in l if i>0.01]
+    l = [i for i in l if i > 0.01]
     l1 = l[1:]
     l1.reverse()
     l = l1 + l

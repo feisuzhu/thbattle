@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
-from ..actions import Damage, DrawCards, DropCards, FatetellStage, PlayerTurn
-from ..actions import UserAction, GenericAction, user_choose_cards, ShowCards
-from ..cards import Wine, Skill, t_None, Card, SoberUp, VirtualCard
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction, PlayerTurn
+from ..actions import ShowCards, UserAction, user_choose_cards
+from ..cards import Card, Skill, SoberUp, VirtualCard, Wine, t_None
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class Ciguatera(Skill):
     associated_action = None
     skill_category = ('character', 'active')

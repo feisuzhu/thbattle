@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import DropCards, GenericAction, MaxLifeChange, random_choose_card, PlayerTurn
-from ..cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, t_None, TreatAs
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DropCards, GenericAction, MaxLifeChange, PlayerTurn, random_choose_card
+from ..cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, TreatAs
+from ..cards import t_None
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class LoongPunch(Skill):
     associated_action = None
     skill_category = ('character', 'active')

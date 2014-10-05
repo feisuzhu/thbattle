@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character
-from ..actions import Damage, DrawCards, DrawCardStage, migrate_cards
-from ..actions import random_choose_card, UserAction, user_choose_players
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DrawCardStage, DrawCards, UserAction, migrate_cards
+from ..actions import random_choose_card, user_choose_players
 from ..cards import Card, Skill, t_None, t_One, t_OtherOne
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class Jolly(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')

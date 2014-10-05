@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import UserAction, migrate_cards, random_choose_card, LaunchCard
-from ..cards import Skill, AttackCard, t_OtherOne, TreatAs, VirtualCard
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import LaunchCard, UserAction, migrate_cards, random_choose_card
+from ..cards import AttackCard, Skill, TreatAs, VirtualCard, t_OtherOne
 from ..inputlets import ChoosePeerCardInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import Game, user_input
 
 
+# -- code --
 class Daze(TreatAs, VirtualCard):
     treat_as = AttackCard
     distance = 99999

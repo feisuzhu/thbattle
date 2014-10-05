@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # Cards and Deck definition
 
-# from .base import *
-from .base import Card, t_None, t_One, t_Self, t_OtherOne, t_All, t_AllInclusive, t_OtherLessEqThanN
-
+# -- stdlib --
+# -- third party --
+# -- own --
+from .base import Card, t_All, t_AllInclusive, t_None, t_One, t_OtherLessEqThanN, t_OtherOne, t_Self
 from game import GameObjectMeta
 
 
+# -- code --
 def card_meta(clsname, bases, _dict):
     for a in ('associated_action', 'target', 'category'):
         assert a in _dict

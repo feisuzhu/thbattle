@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import GameObject
-from options import options
+# -- stdlib --
 from collections import defaultdict
 
+# -- third party --
+# -- own --
+from game.autoenv import GameObject
+
+# -- code --
 # common, id5, id8, raid, raid_ex, faith, kof, 3v3, testing
 # -id5, -id8, ...
 characters_by_category = defaultdict(set)

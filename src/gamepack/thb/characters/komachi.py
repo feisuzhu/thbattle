@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange, migrate_cards, PlayerTurn, random_choose_card, UserAction
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange
+from ..actions import PlayerTurn, UserAction, migrate_cards, random_choose_card
 from ..cards import Skill, t_None, t_OtherOne
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class RiversideAction(UserAction):
     def apply_action(self):
         g = Game.getgame()

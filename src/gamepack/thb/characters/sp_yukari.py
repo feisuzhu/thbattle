@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import DropCards, UserAction, migrate_cards, PlayerTurn, DeadDropCards, random_choose_card, GenericAction
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DeadDropCards, DropCards, GenericAction, PlayerTurn, UserAction, migrate_cards
+from ..actions import random_choose_card
+from ..cards import CardList, Skill, t_One
 from ..inputlets import ChoosePeerCardInputlet
-from ..cards import Skill, t_One, CardList
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class SpiritingAwayAction(UserAction):
     def apply_action(self):
         tgt = self.target

@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import ActionStageLaunchCard
+from ..cards import Card, DummyCard, Skill, TreatAs
 from .baseclasses import Character, register_character_to
-from ..cards import Card, Skill, TreatAs, DummyCard
 from game.autoenv import EventHandler
 
 
+# -- code --
 class Morphing(TreatAs, Skill):
     skill_category = ('character', 'active')
 

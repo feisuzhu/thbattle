@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character_to
-from ..actions import UserAction, ActionStage, ShowCards, DropCards
-from ..actions import migrate_cards, user_choose_cards
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import ActionStage, DropCards, ShowCards, UserAction, migrate_cards
+from ..actions import user_choose_cards
 from ..cards import Card, Skill, t_None, t_OtherOne
 from ..inputlets import ChooseOptionInputlet, HopeMaskInputlet
+from .baseclasses import Character, register_character_to
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class HopeMaskAction(UserAction):
     def apply_action(self):
         tgt = self.target

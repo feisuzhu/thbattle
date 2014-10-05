@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character_to
-
-from ..actions import UserAction, DropCards, LifeLost, LaunchCard, ForEach, DrawCards, ActionStage, DropCardStage, ask_for_action
-from ..actions import random_choose_card, user_choose_cards
-from ..cards import Card, Skill, InevitableAttack, AttackCard, DelayedLaunchCard
-from ..cards import t_OtherOne, t_None, t_All, VirtualCard
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import ActionStage, DrawCards, DropCardStage, DropCards, ForEach, LaunchCard
+from ..actions import LifeLost, UserAction, ask_for_action, random_choose_card, user_choose_cards
+from ..cards import AttackCard, Card, DelayedLaunchCard, InevitableAttack, Skill, VirtualCard, t_All
+from ..cards import t_None, t_OtherOne
 from ..inputlets import ChoosePeerCardInputlet
-
 from ..thbraid import use_faith
+from .baseclasses import Character, register_character_to
+from .remilia import SpearTheGungnir, SpearTheGungnirHandler, VampireKiss, VampireKissHandler
+from game.autoenv import EventHandler, Game, user_input
 
-from .remilia import SpearTheGungnir, SpearTheGungnirHandler
-from .remilia import VampireKiss, VampireKissHandler
 
-
+# -- code --
 class HeartBreakAction(InevitableAttack):
     def __init__(self, source, target):
         self.source = source

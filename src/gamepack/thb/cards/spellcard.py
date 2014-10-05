@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import Game, EventHandler, user_input, InputTransaction
-from game import sync_primitive
+# -- stdlib --
+# -- third party --
+# -- own --
 from . import basic
+from ..actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards, Fatetell, ForEach
+from ..actions import LaunchCard, UserAction, ask_for_action, migrate_cards, random_choose_card
+from ..actions import register_eh, user_choose_cards
+from ..inputlets import ChooseIndividualCardInputlet, ChoosePeerCardInputlet
 from .base import VirtualCard
-from ..actions import random_choose_card, register_eh, migrate_cards, ask_for_action
-from ..actions import user_choose_cards
-from ..actions import UserAction, DropCards
-from ..actions import DrawCards, Fatetell, ActionStage, Damage, ForEach
-from ..actions import LaunchCard, DrawCardStage
-from ..inputlets import ChoosePeerCardInputlet, ChooseIndividualCardInputlet
-
-from utils import check, CheckFailed, BatchList, flatten
+from game import sync_primitive
+from game.autoenv import EventHandler, Game, InputTransaction, user_input
+from utils import BatchList, CheckFailed, check, flatten
 
 
+# -- code --
 class SpellCardAction(UserAction):
     pass
 

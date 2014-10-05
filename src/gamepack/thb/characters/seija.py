@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from ..actions import DrawCards, UserAction, LaunchCard, Pindian
-from ..cards import Skill, t_None, AttackCard, DuelCard, VirtualCard, TreatAs, BaseAttack
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DrawCards, LaunchCard, Pindian, UserAction
+from ..cards import AttackCard, BaseAttack, DuelCard, Skill, TreatAs, VirtualCard, t_None
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class InciteAttack(TreatAs, VirtualCard):
     treat_as = AttackCard
 

@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import EventHandler, UserAction, migrate_cards, LaunchCard
-from ..cards import Card, Skill, TreatAs, DemolitionCard, DummyCard, Demolition
 
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import EventHandler, LaunchCard, UserAction, migrate_cards
+from ..cards import Card, Demolition, DemolitionCard, DummyCard, Skill, TreatAs
 from ..inputlets import ChooseOptionInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import Game, user_input
 
 
+# -- code --
 class Envy(TreatAs, Skill):
     treat_as = DemolitionCard
     skill_category = ('character', 'active')

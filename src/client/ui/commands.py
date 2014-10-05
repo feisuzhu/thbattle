@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from client.core import Executive
-import gevent
+# -- stdlib --
 import logging
 
+# -- third party --
+import gevent
+
+# -- own --
+from client.core import Executive
+
+# -- code --
 log = logging.getLogger('commands')
 registered_commands = {}
 

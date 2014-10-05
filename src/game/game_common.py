@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import logging
-import gevent
-import random
-from gevent import Timeout
+# -- stdlib --
 from contextlib import contextmanager
+import logging
+import random
 
+# -- third party --
+from gevent import Timeout
+import gevent
+
+# -- own --
+# -- code --
 log = logging.getLogger('Game')
 
 intern('action_can_fire')

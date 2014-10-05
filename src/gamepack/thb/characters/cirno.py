@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler
-from .baseclasses import Character, register_character_to
+
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..cards import Card, FrozenFrogCard, Skill, TreatAs
+from .baseclasses import Character, register_character_to
+from game.autoenv import EventHandler
 
 
+# -- code --
 class PerfectFreeze(TreatAs, Skill):
     treat_as = FrozenFrogCard
     skill_category = ('character', 'active')

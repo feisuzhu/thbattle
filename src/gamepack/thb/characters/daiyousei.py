@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import ActionStage, DrawCardStage, UserAction, migrate_cards
+from ..cards import Heal, Skill, t_None, t_OtherOne
 from .baseclasses import Character, register_character
-from ..actions import ActionStage, DrawCardStage, migrate_cards, UserAction
-from ..cards import Skill, Heal, t_None, t_OtherOne
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class Support(UserAction):
     def apply_action(self):
         cl = self.associated_card.associated_cards

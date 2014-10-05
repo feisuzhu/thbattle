@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import ForEach, LaunchCard, DrawCards, UserAction
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DrawCards, ForEach, LaunchCard, UserAction
+from ..cards import AttackCard, DollControlCard, Heal, InstantSpellCardAction, RejectCard, Skill
+from ..cards import t_OtherOne
 from ..inputlets import ChooseOptionInputlet
-from ..cards import Skill, AttackCard, DollControlCard, RejectCard, InstantSpellCardAction, t_OtherOne, Heal
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class FlyingSkandaAction(ForEach):
     @property
     def action_cls(self):

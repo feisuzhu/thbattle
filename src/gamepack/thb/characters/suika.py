@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
-from .baseclasses import Character, register_character
+
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import DrawCards, GenericAction, MaxLifeChange
-from ..cards import Card, Skill, TreatAs, SoberUp, AttackCard, IbukiGourdCard, WineCard, WeaponSkill, t_None
+from ..cards import AttackCard, Card, IbukiGourdCard, Skill, SoberUp, TreatAs, WeaponSkill, WineCard
+from ..cards import t_None
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class Drunkard(TreatAs, Skill):
     skill_category = ('character', 'active')
     treat_as = WineCard

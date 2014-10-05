@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from .baseclasses import Character, register_character_to
 
 
+# -- code --
 @register_character_to('special')
 class Akari(Character):
     # dummy player for hidden choices

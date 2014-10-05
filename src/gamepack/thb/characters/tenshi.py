@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, user_input
-from ..actions import UserAction, DrawCards, Damage, Fatetell, LaunchCard
-from ..actions import ask_for_action, migrate_cards, GenericAction
-from ..cards import Skill, t_None, Card
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DrawCards, Fatetell, GenericAction, LaunchCard, UserAction
+from ..actions import ask_for_action, migrate_cards
+from ..cards import Card, Skill, t_None
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class Masochist(Skill):
     associated_action = None
     skill_category = ('character', 'passive')

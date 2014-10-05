@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
-from .baseclasses import Character, register_character
+
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import DrawCards, GenericAction
-from ..cards import Card, Skill, RejectCard, SpellCardAction, t_None
+from ..cards import Card, RejectCard, Skill, SpellCardAction, t_None
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class Library(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')

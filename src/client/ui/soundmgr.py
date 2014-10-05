@@ -5,8 +5,8 @@ from collections import defaultdict
 import time
 
 # -- third party --
+from pyglet.media import ManagedSoundPlayer, Player
 import pyglet
-from pyglet.media import Player, ManagedSoundPlayer
 
 # -- own --
 from .base.interp import InterpDesc, LinearInterp

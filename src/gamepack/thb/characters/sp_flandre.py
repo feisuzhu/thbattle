@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import Damage, PlayerTurn, LaunchCard, user_choose_players, MaxLifeChange, GenericAction, LifeLost
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
+from ..actions import user_choose_players
 from ..cards import Skill, t_None
 from ..inputlets import ChooseOptionInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class DestructionImpulse(Skill):
     distance = 1
     associated_action = None

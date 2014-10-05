@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
-from .baseclasses import Character, register_character
+
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import DrawCards, UserAction
-from ..cards import Skill, Heal, t_None, t_OtherOne
+from ..cards import Heal, Skill, t_None, t_OtherOne
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class Psychopath(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')

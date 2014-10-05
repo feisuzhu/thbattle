@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import EventHandler, Game
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import DrawCardStage, UserAction, migrate_cards
+from ..cards import Card, Harvest, HarvestCard, Skill, t_AllInclusive, t_None
 from .baseclasses import Character, register_character
-from ..actions import UserAction, DrawCardStage, migrate_cards
-from ..cards import Harvest, HarvestCard, Skill, t_AllInclusive, t_None, Card
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class Foison(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')

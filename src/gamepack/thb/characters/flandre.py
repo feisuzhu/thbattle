@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import EventHandler, Game, user_input
-from .baseclasses import Character, register_character
-from ..actions import GenericAction, ActionStageLaunchCard, DrawCardStage, Damage
-from ..cards import ElementalReactorSkill, AttackCard, AttackCardHandler, BaseAttack, BaseDuel, Skill, t_None
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction
+from ..cards import AttackCard, AttackCardHandler, BaseAttack, BaseDuel, ElementalReactorSkill
+from ..cards import Skill, t_None
 from ..inputlets import ChooseOptionInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class CriticalStrike(Skill):
     associated_action = None
     skill_category = ('character', 'active')

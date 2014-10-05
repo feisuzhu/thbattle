@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
-from game.autoenv import Game, EventHandler, user_input
-from .baseclasses import Character, register_character
-from ..actions import UserAction, GenericAction, FatetellStage, DropCards, DrawCardStage, ActionStage, DropCardStage
-from ..actions import user_choose_cards, random_choose_card, migrate_cards, ask_for_action
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import ActionStage, DrawCardStage, DropCardStage, DropCards, FatetellStage
+from ..actions import GenericAction, UserAction, ask_for_action, migrate_cards, random_choose_card
+from ..actions import user_choose_cards
 from ..cards import Skill, t_None
 from ..inputlets import ChooseIndividualCardInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class Realm(Skill):
     associated_action = None
     skill_category = ('character', 'active')

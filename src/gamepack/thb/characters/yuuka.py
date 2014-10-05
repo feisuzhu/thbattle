@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from ..actions import ForEach, DropCards, Damage, UserAction, PlayerDeath, LaunchCard, ask_for_action, DeadDropCards
-from ..cards import AttackCard, Duel, Skill, TreatAs, InstantSpellCardAction, VirtualCard, Reject
+# -- stdlib --
+# -- third party --
+# -- own --
+from ..actions import Damage, DeadDropCards, DropCards, ForEach, LaunchCard, PlayerDeath, UserAction
+from ..actions import ask_for_action
+from ..cards import AttackCard, Duel, InstantSpellCardAction, Reject, Skill, TreatAs, VirtualCard
 from ..cards import t_None
 from ..inputlets import ChooseOptionInputlet
-from .baseclasses import register_character_to, Character
+from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
 
 
+# -- code --
 class ReversedScales(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')

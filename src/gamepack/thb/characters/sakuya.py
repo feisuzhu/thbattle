@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from game.autoenv import EventHandler, Game
-from .baseclasses import Character, register_character
+# -- stdlib --
+# -- third party --
+# -- own --
 from ..actions import ActionStage, FatetellStage, GenericAction
-from ..cards import Skill, AttackCard, WearEquipmentAction, TreatAs, t_None
+from ..cards import AttackCard, Skill, TreatAs, WearEquipmentAction, t_None
+from .baseclasses import Character, register_character
+from game.autoenv import EventHandler, Game
 
 
+# -- code --
 class Dagger(TreatAs, Skill):
     skill_category = ('character', 'active')
     treat_as = AttackCard
