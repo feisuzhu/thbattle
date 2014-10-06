@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 225'
+VERSION = 'THBATTLE V1.0b incr 226'
 
 CWD = os.getcwd()
 LOGIC_UPDATE_BASE = os.path.relpath(os.path.dirname(os.path.realpath(__file__)), CWD)
@@ -125,6 +125,7 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+Replay功能上线！
 新人物：东风谷早苗（推重）、八坂神奈子（推重）
 卡牌/人物配音：感谢 VV、shourei小N、大白、君寻、小羽、简翎、北斗夜、小舞 帮助配音，感谢 相沢加奈 在早期所作的支持和推动。
 使用技能弃置恶心丸时，立即触发恶心丸效果。
