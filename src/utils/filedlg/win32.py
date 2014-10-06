@@ -71,7 +71,7 @@ class OPENFILENAME(Structure):
     ]
 
 
-def _do_open_dlg(func, title, filters, flags):
+def _do_open_dlg(func, window, title, filters, flags):
     assert isinstance(title, unicode)
 
     buf = create_unicode_buffer(1024)
@@ -82,6 +82,9 @@ def _do_open_dlg(func, title, filters, flags):
     ofn.nMaxFile = 1024
     ofn.lpstrTitle = c_wchar_p(title)
     ofn.flags = flags
+    
+    if window:
+        ofn.hwndOwner = window._hwnd
 
     filters = flatten(filters) or [u'All files(*.*)', u'*.*']
     assert all([isinstance(i, unicode) for i in filters])
@@ -99,19 +102,19 @@ def _do_open_dlg(func, title, filters, flags):
         return rst
 
 
-def get_open_file_name(title, filters, flags=None):
+def get_open_file_name(window, title, filters, flags=None):
     flags = flags or OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR
     try:
         wd = os.getcwd()
-        return _do_open_dlg(windll.comdlg32.GetOpenFileNameW, title, filters, flags)
+        return _do_open_dlg(windll.comdlg32.GetOpenFileNameW, window, title, filters, flags)
     finally:
         os.chdir(wd)
 
 
-def get_save_file_name(title, filters, flags=None):
+def get_save_file_name(window, title, filters, flags=None):
     flags = flags or OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_OVERWRITEPROMPT
     try:
         wd = os.getcwd()
-        return _do_open_dlg(windll.comdlg32.GetSaveFileNameW, title, filters, flags)
+        return _do_open_dlg(windll.comdlg32.GetSaveFileNameW, window, title, filters, flags)
     finally:
         os.chdir(wd)

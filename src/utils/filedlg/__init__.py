@@ -17,8 +17,8 @@ __all__ = [
 if sys.platform == 'win32':
     from .win32 import get_open_file_name as win32_gofn, get_save_file_name as win32_gsfn
 
-    def _do_open(func, title, filters):
-        rst = gevent.get_hub().threadpool.spawn(func, title, filters)
+    def _do_open(func, window, title, filters):
+        rst = gevent.get_hub().threadpool.spawn(func, window, title, filters)
         return rst.get()
 
     get_open_file_name = partial(_do_open, win32_gofn)

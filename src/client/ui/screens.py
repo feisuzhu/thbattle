@@ -291,7 +291,8 @@ class ReplayButton(ImageButton):
 
         @gevent.spawn
         def replay():
-            filename = get_open_file_name(u'打开Replay', [(u'THB Replay 文件', u'*.thbrep')])
+            from base.baseclasses import main_window
+            filename = get_open_file_name(main_window, u'打开Replay', [(u'THB Replay 文件', u'*.thbrep')])
             if not filename:
                 self.state = ImageButton.NORMAL
                 return
@@ -1277,7 +1278,7 @@ class GameScreen(Screen):
 
                 @gevent.spawn
                 def save():
-                    filename = get_save_file_name(u'保存Replay', [(u'THB Replay 文件', u'*.thbrep')])
+                    filename = get_save_file_name(None, u'保存Replay', [(u'THB Replay 文件', u'*.thbrep')])
                     if not filename.endswith('.thbrep'):
                         filename += '.thbrep'
 
