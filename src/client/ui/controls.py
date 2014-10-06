@@ -1859,7 +1859,7 @@ class Panel(Control):
     def update(self):
         w, h = int(self.width), int(self.height)
 
-        from shaders import HAVE_SHADER
+        from .base.shader import HAVE_SHADER
         if HAVE_SHADER:
             blurtex = pyglet.image.Texture.create(w, h)
 
