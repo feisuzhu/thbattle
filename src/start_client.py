@@ -36,6 +36,10 @@ def start_client():
 
     crashreport.install_tee(options.log.upper())
 
+    if options.no_update:
+        import autoupdate
+        autoupdate.Autoupdate = autoupdate.DummyAutoupdate
+
     if IS_PROTON or options.color_log:
         from colorlog import ColoredFormatter
 
@@ -57,6 +61,7 @@ def start_client():
     from gevent import monkey
     monkey.patch_socket()
     monkey.patch_os()
+    monkey.patch_select()
 
     from game import autoenv
     autoenv.init('Client')

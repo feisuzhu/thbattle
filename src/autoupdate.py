@@ -91,3 +91,36 @@ class Autoupdate(object):
             return current.id == desired.id
         except KeyError:
             return False
+
+    def get_current_version(self):
+        repo = pygit2.Repository(self.base)
+        current = repo.revparse_single('HEAD')
+        return current.id.hex
+
+    def is_version_present(self, version):
+        repo = pygit2.Repository(self.base)
+        try:
+            repo.revparse_single(version)
+            return True
+        except KeyError:
+            return False
+
+
+class DummyAutoupdate(object):
+    def __init__(self, base):
+        self.base = base
+
+    def update(self):
+        yield
+
+    def switch(self, version):
+        return True
+
+    def is_version_match(self, version):
+        return True
+
+    def get_current_version(self):
+        return 'dummy_autoupdate_version'
+
+    def is_version_present(self, version):
+        return True

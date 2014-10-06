@@ -2,9 +2,11 @@
 
 # -- stdlib --
 import logging
+import re
 
 # -- third party --
 from gevent import Greenlet, socket
+from gevent.event import Event
 from gevent.pool import Pool
 from gevent.queue import Channel
 import gevent
@@ -15,6 +17,7 @@ from autoupdate import Autoupdate
 from endpoint import Endpoint
 from game import Gamedata
 from utils import BatchList, instantiate
+from .replay import Replay
 
 # -- code --
 log = logging.getLogger('Executive')
@@ -30,7 +33,7 @@ class Server(Endpoint, Greenlet):
         Greenlet.__init__(self)
         self.ctlcmds = Channel()
         self.userid = 0
-        self.gamedata = Gamedata()
+        self.gamedata = Gamedata(recording=True)
 
     def _run(self):
         while True:
@@ -47,12 +50,61 @@ class Server(Endpoint, Greenlet):
         return self.gamedata.gbreak()
 
     def gclear(self):
-        self.gamedata = Gamedata()
+        self.gamedata = Gamedata(recording=True)
 
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
         encoded = self.encode(['gamedata', [tag, data]])
         self.raw_write(encoded)
+
+
+class ReplayEndpoint(object):
+    def __init__(self, replay):
+        self.gdlist = list(replay.gamedata)
+        self.delay = 1.0
+        self.running = Event()
+        self.running.set()
+
+    def gexpect(self, tag):
+        if not self.gdlist:
+            gevent.sleep(3)
+            raise ForcedKill
+
+        glob = False
+        if tag.endswith('*'):
+            tag = tag[:-1]
+            glob = True
+
+        for i, d in enumerate(self.gdlist):
+            if d[0] == tag or (glob and d[0].startswith(tag)):
+                del self.gdlist[i]
+                if re.match(r'^RI[\|&]?:', tag):  # HACK, if user_input
+                    gevent.sleep(self.delay)
+                    self.running.wait()
+                return d
+
+        gevent.sleep(3)
+        raise ForcedKill
+
+    def gwrite(self, tag, data):
+        pass
+
+    def gclear(self):
+        pass
+
+    def gbreak(self):
+        pass
+
+    def adjust_delay(self, n):
+        d = max(self.delay + n, 0.2)
+        self.delay = d
+        return d
+
+    def pause(self):
+        self.running.clear()
+
+    def resume(self):
+        self.running.set()
 
 
 class ForcedKill(gevent.GreenletExit):
@@ -65,10 +117,12 @@ class GameManager(Greenlet):
     '''
     def __init__(self, event_cb):
         Greenlet.__init__(self)
-        self.state     = 'connected'
-        self.game      = None
-        self.last_game = None
-        self.event_cb  = event_cb
+        self.state          = 'connected'
+        self.game           = None
+        self.last_game      = None
+        self.last_game_info = None
+        self.last_replay    = None
+        self.event_cb       = event_cb
 
     def _run(self):
         self.link_exception(lambda *a: self.event_cb('server_dropped'))
@@ -121,6 +175,8 @@ class GameManager(Greenlet):
             log.info('=======GAME STARTED: %d=======' % g.gameid)
             log.info(g)
 
+            self.last_game_info = params, i, pldata
+
             @g.link_exception
             def crash(*a):
                 self.event_cb('game_crashed', g)
@@ -142,6 +198,7 @@ class GameManager(Greenlet):
                 self.last_game = None
 
             params, tgtid, pldata = data
+            self.last_game_info = data
             from client.core import PeerPlayer, TheLittleBrother
             pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
@@ -194,9 +251,20 @@ class GameManager(Greenlet):
 
         @handler(('ingame',), 'hang')
         def end_game(self, data):
-            self.event_cb('end_game', self.game)
+            g = self.game
+            self.event_cb('end_game', g)
             log.info('=======GAME ENDED=======')
-            self.last_game = self.game
+            self.last_game = g
+
+            rep = Replay()
+            rep.client_version = Executive.get_current_version()
+            rep.game_mode = g.__class__.__name__
+            params, tgtid, pldata = self.last_game_info
+            rep.game_params = params
+            rep.me_index = tgtid
+            rep.users = pldata
+            rep.gamedata = Executive.server.gamedata.history
+            self.last_replay = rep
 
         @handler(('connected',), None)
         def auth_result(self, status):
@@ -330,6 +398,67 @@ class Executive(object):
         import settings
         up = Autoupdate(settings.LOGIC_UPDATE_BASE)
         return up.is_version_match(version)
+
+    def get_current_version(self):
+        import settings
+        up = Autoupdate(settings.LOGIC_UPDATE_BASE)
+        return up.get_current_version()
+
+    def is_version_present(self, version):
+        import settings
+        up = Autoupdate(settings.LOGIC_UPDATE_BASE)
+        return up.is_version_present(version)
+
+    def save_replay(self, filename):
+        with open(filename, 'wb') as f:
+            f.write(self.gamemgr.last_replay.dumps())
+
+    def start_replay(self, rep, event_cb):
+        assert self.state == 'initial'
+
+        from client.core import PeerPlayer, TheLittleBrother
+        from gamepack import gamemodes
+
+        self.server = ReplayEndpoint(rep)
+        g = gamemodes[rep.game_mode]()
+
+        pl = [PeerPlayer.parse(i) for i in rep.users]
+
+        g.players = BatchList(pl)
+        me = g.players[rep.me_index]
+        me.__class__ = TheLittleBrother
+        me.server = self.server
+        g.me = me
+        g.game_params = rep.game_params
+        log.info('=======REPLAY STARTED=======')
+
+        # g.start()  Starts by UI
+
+        @g.link_exception
+        def crash(*a):
+            event_cb('game_crashed', g)
+
+        @g.link_value
+        def finish(*a):
+            v = g.get()
+            if not isinstance(v, ForcedKill):
+                event_cb('client_game_finished', g)
+
+            event_cb('end_game', g)
+
+        return g
+
+    def replay_adjust_delay(self, n):
+        assert isinstance(self.server, ReplayEndpoint)
+        return self.server.adjust_delay(n)
+
+    def replay_pause(self):
+        assert isinstance(self.server, ReplayEndpoint)
+        return self.server.pause()
+
+    def replay_resume(self):
+        assert isinstance(self.server, ReplayEndpoint)
+        return self.server.resume()
 
     def _simple_op(_type):
         def wrapper(self, *args):

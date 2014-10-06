@@ -542,9 +542,11 @@ class Gamedata(object):
         def __repr__(self):
             return 'NODATA'
 
-    def __init__(self):
+    def __init__(self, recording=False):
         self.gdqueue = deque(maxlen=100000)
         self.gdevent = Event()
+        self.recording = recording
+        self.history = []
         self._in_gexpect = False
 
     def feed(self, data):
@@ -574,6 +576,7 @@ class Gamedata(object):
                     if packet[0] == tag or (glob and packet[0].startswith(tag)):
                         log.debug('GAME_READ: %s', repr(packet))
                         del l[i]
+                        self.recording and self.history.append(packet)
                         return packet
 
                     else:

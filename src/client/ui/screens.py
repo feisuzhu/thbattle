@@ -3,8 +3,10 @@
 # -- stdlib --
 from collections import deque
 import logging
+import os
 import re
 import shlex
+import sys
 
 # -- third party --
 from pyglet.gl import GL_COLOR_BUFFER_BIT, glClear, glClearColor, glColor3f, glColor4f, glRectf
@@ -15,7 +17,8 @@ import requests
 
 # -- own --
 from account import Account
-from client.core import Executive
+from client.core.executive import Executive
+from client.core.replay import Replay
 from client.ui.base import Control, Overlay, WINDOW_HEIGHT, WINDOW_WIDTH, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPrompt, Button, CheckBox, Colors, ConfirmBox, Frame
@@ -29,6 +32,7 @@ from settings import ServerNames
 from user_settings import UserSettings
 from utils import inpoly, openurl, rect_to_dict as r2d, textsnap
 from utils.crypto import simple_decrypt, simple_encrypt
+from utils.filedlg import get_open_file_name, get_save_file_name
 from utils.misc import BatchList
 
 # -- code --
@@ -64,6 +68,17 @@ def handle_chat(_type, args):
 
     else:
         return None
+
+
+def confirm(text, title, buttons):
+    from gevent.event import AsyncResult
+    rst = AsyncResult()
+    box = ConfirmBox(text, title, buttons, parent=Overlay.cur_overlay)
+
+    @box.event
+    def on_confirm(val):
+        rst.set(val)
+    return rst.get()
 
 
 class ChatBox(Frame):
@@ -267,6 +282,49 @@ class UpdateScreen(Screen):
         self.update_gr = gevent.spawn(do_update)
 
 
+class ReplayButton(ImageButton):
+    def __init__(self, **k):
+        ImageButton.__init__(self, cres.buttons.replay, 1, **k)
+
+    def on_click(self):
+        self.state = ImageButton.DISABLED
+
+        @gevent.spawn
+        def replay():
+            filename = get_open_file_name(u'打开Replay', [(u'THB Replay 文件', u'*.thbrep')])
+            if not filename:
+                self.state = ImageButton.NORMAL
+                return
+
+            try:
+                rep = Replay.loads(open(filename, 'rb').read())
+            except Exception as e:
+                log.exception(e)
+                ConfirmBox(u'打开Replay失败！', u'Replay', parent=Overlay.cur_overlay)
+                self.state = ImageButton.NORMAL
+                return
+
+            if not Executive.is_version_present(rep.client_version):
+                ConfirmBox(
+                    u'Replay中的客户端版本在本地没有找到，请确认是否更新到最新的客户端！', u'Replay',
+                    parent=Overlay.cur_overlay,
+                )
+                self.state = ImageButton.NORMAL
+                return
+
+            if not Executive.is_version_match(rep.client_version):
+                if confirm(u'你的游戏没有切换到相应的版本上，要切换吗？', u'Replay', ConfirmBox.Presets.OKCancel):
+                    Executive.switch_version(rep.client_version)
+                    os.execv(sys.executable, [sys.executable] + sys.argv)
+                    assert False, 'WTF'
+                else:
+                    self.state = ImageButton.NORMAL
+                    return
+
+            g = Executive.start_replay(rep, ui_message)
+            ReplayScreen(g, rep).switch()
+
+
 class ServerSelectScreen(Screen):
 
     def __init__(self, *args, **kwargs):
@@ -344,20 +402,10 @@ class ServerSelectScreen(Screen):
                     self.select_server(self.highlight)
 
             def select_server(self, server):
-                def confirm(text, buttons):
-                    from gevent.event import AsyncResult
-                    rst = AsyncResult()
-                    box = ConfirmBox(text, u'自动更新', buttons, parent=self.parent)
-
-                    @box.event
-                    def on_confirm(val):
-                        rst.set(val)
-                    return rst.get()
-
                 @gevent.spawn
                 def work():
                     if not options.no_update and not Executive.is_version_match(server['branch']):
-                        if confirm(u'你的游戏没有切换到最新版上，要切换吗？', ConfirmBox.Presets.OKCancel):
+                        if confirm(u'你的游戏没有切换到最新版上，要切换吗？', u'自动更新', ConfirmBox.Presets.OKCancel):
                             Executive.switch_version(server['branch'])
                             import os
                             import sys
@@ -390,7 +438,7 @@ class ServerSelectScreen(Screen):
         self.highlight_layer = HighlightLayer(parent=self)
 
         VolumeTuner(parent=self, x=self.width - 90, y=60)
-        ImageButton(cres.buttons.replay, 1, parent=self, x=self.width - 220, y=60, zindex=1)
+        ReplayButton(parent=self, x=self.width - 220, y=60, zindex=1)
 
     def on_message(self, _type, *args):
         if _type == 'server_connected':
@@ -927,10 +975,11 @@ class GameHallScreen(Screen):
 
 
 class GameEventsBox(Frame):
-    def __init__(self, parent, **k):
-        Frame.__init__(self, parent=parent, caption=u'游戏信息', bot_reserve=0, **k)
+    def __init__(self, parent, width, height, **k):
+        Frame.__init__(self, parent=parent, caption=u'游戏信息', bot_reserve=0, width=width, height=height, **k)
         self.box = TextArea(
-            parent=self, x=2, y=2, width=200, height=370-24-2
+            parent=self, x=2, y=2,
+            width=width - 4, height=height - 24 - 2,
         )
 
     def append(self, v):
@@ -1219,6 +1268,21 @@ class GameScreen(Screen):
             self.add_control(self.panel)
             g = args[0]
 
+            box = ConfirmBox(u'要保存这场游戏的Replay吗？', buttons=ConfirmBox.Presets.OKCancel, parent=self)
+
+            @box.event
+            def on_confirm(v):
+                if not v:
+                    return
+
+                @gevent.spawn
+                def save():
+                    filename = get_save_file_name(u'保存Replay', [(u'THB Replay 文件', u'*.thbrep')])
+                    if not filename.endswith('.thbrep'):
+                        filename += '.thbrep'
+
+                    Executive.save_replay(filename)
+
         elif _type == 'client_game_finished':
             g = args[0]
             g.ui_meta.ui_class.show_result(g)
@@ -1307,9 +1371,81 @@ class ReplayScreen(Screen):
 
     class ReplayPanel(Frame):
         def __init__(self, **k):
-            Frame.__init__(self, caption=u'Replay控制', bot_reserve=33, **k)
+            Frame.__init__(self, caption=u'Replay控制', **k)
 
-    def __init__(self, game, *args, **kwargs):
+            self.btn_start = Button(u'开始', parent=self, color=Colors.orange, x=15, y=65, width=80, height=24)
+            self.btn_pause = Button(u'暂停', parent=self, color=Colors.blue, x=15 + 80 + 15, y=65, width=80, height=24)
+            self.btn_brake = Button(u'减速', parent=self, x=15, y=25, width=80, height=24)
+            self.btn_accel = Button(u'加速', parent=self, x=15 + 80 + 15, y=25, width=80, height=24)
+
+            self.paused = False
+
+            v = Executive.replay_adjust_delay(0)
+            self.delay_lbl = self.add_label(
+                u'当前延迟：%s秒' % v,
+                x=15, y=105, font_size=9, color=(0, 0, 0, 255),
+                anchor_x='left', anchor_y='bottom',
+            )
+
+            self.btn_start.event('on_click')(self.start)
+            self.btn_pause.event('on_click')(self.pause)
+            self.btn_brake.event('on_click')(self.brake)
+            self.btn_accel.event('on_click')(self.accel)
+
+        def start(self):
+            self.parent.start_replay()
+            self.btn_start.state = Button.DISABLED
+
+        def pause(self):
+            if self.paused:
+                print 'resume'
+                Executive.replay_resume()
+                self.btn_pause.caption = u'暂停'
+                self.paused = False
+            else:
+                Executive.replay_pause()
+                self.btn_pause.caption = u'恢复'
+                self.paused = True
+
+            self.btn_pause.update()
+
+        def brake(self):
+            v = Executive.replay_adjust_delay(0.1)
+            self.delay_lbl.text = u'当前延迟：%s秒' % v
+
+        def accel(self):
+            v = Executive.replay_adjust_delay(-0.1)
+            self.delay_lbl.text = u'当前延迟：%s秒' % v
+
+    class Portraits(Control):
+
+        def __init__(self, parent=None):
+            Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
+            l = []
+
+            class MyPP(PlayerPortrait):
+                # this class is INTENTIONALLY put here
+                # to make cached avatars get gc'd
+                cached_avatar = {}
+
+            for x, y, color in parent.ui_class.portrait_location:
+                l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
+
+            self.portraits = l
+
+        def draw(self):
+            self.draw_subcontrols()
+
+        def update_portrait(self, pl):
+            for i, p in enumerate(pl):
+                accdata = p['account']
+                acc = Account.parse(accdata) if accdata else None
+                port = self.portraits[i]
+                port.account = acc
+                port.ready = True
+                port.update()
+
+    def __init__(self, game, replay, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
 
         self.backdrop = cres.bg_ingame.get()
@@ -1329,28 +1465,23 @@ class ReplayScreen(Screen):
         self.replay_panel = ReplayScreen.ReplayPanel(
             parent=self, x=820, y=0, width=204, height=152,
         )
+        self.portraits = ReplayScreen.Portraits(parent=self)
+        self.portraits.update_portrait(replay.users)
 
         VolumeTuner(parent=self, x=690, y=670)
 
+    def start_replay(self):
+        self.portraits.delete()
+        self.add_control(self.gameui)
+        self.gameui.init()
+        self.game.start()
+
     def on_message(self, _type, *args):
-        if _type == 'game_started':
-            from utils import notify
-            notify(u'东方符斗祭 - 游戏提醒', u'游戏已开始，请注意。')
-            self.remove_control(self.panel)
-            self.add_control(self.gameui)
-            self.gameui.init()
-            self.game.start()
-            SoundManager.se_suppress()
-
-        elif _type == 'end_game':
-            self.remove_control(self.gameui)
-            self.add_control(self.panel)
+        if _type in ('client_game_finished', 'end_game'):
             g = args[0]
-
-        elif _type == 'client_game_finished':
-            g = args[0]
-            g.ui_meta.ui_class.show_result(g)
-
+            ServerSelectScreen().switch()
+            if _type == 'client_game_finished':
+                g.ui_meta.ui_class.show_result(g)
         else:
             Screen.on_message(self, _type, *args)
 
