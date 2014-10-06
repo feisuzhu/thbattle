@@ -87,7 +87,7 @@ class ResultPanel(Panel):
     fill_color = (1.0, 1.0, 0.9, 0.5)
 
     def __init__(self, g, *a, **k):
-        Panel.__init__(self, width=550, height=340, zindex=10000, *a, **k)
+        Panel.__init__(self, width=550, height=340, zindex=15, *a, **k)
         parent = self.parent
         self.x = (parent.width - 550) // 2
         self.y = (parent.height - 340) // 2
@@ -222,7 +222,7 @@ class THBattleUI(Control):
     def init(self):
         ports = self.char_portraits = [
             GameCharacterPortrait(parent=self, color=color,
-                x=x, y=y, tag_placement=tp)
+                                  x=x, y=y, tag_placement=tp)
             for x, y, tp, color in self.gcp_location[:len(self.game.players)]
         ]
 

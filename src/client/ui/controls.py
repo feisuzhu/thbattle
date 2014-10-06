@@ -613,7 +613,7 @@ class Frame(Control):
 
 class Dialog(Frame):
     no_move = False
-    next_zindex = 10
+    next_zindex = 20
 
     def __init__(self, *a, **k):
         Frame.__init__(self, *a, **k)
