@@ -11,7 +11,7 @@ import random
 import time
 
 # -- third party --
-from gevent import Timeout
+from gevent import Greenlet, Timeout
 from gevent.pool import Pool
 from gevent.queue import Empty as QueueEmpty, Queue
 import gevent
@@ -19,8 +19,8 @@ import simplejson as json
 
 # -- own --
 from account import Account
-from network.endpoint import EndpointDied
-from network.server import Client as ClientEndpoint
+from endpoint import Endpoint, EndpointDied
+from game import Gamedata
 from options import options
 from settings import VERSION
 from utils import BatchList, instantiate, log_failure
@@ -30,11 +30,66 @@ from utils.misc import throttle
 log = logging.getLogger('Lobby')
 
 
-class Client(ClientEndpoint):
-    def __init__(self, *a, **k):
-        ClientEndpoint.__init__(self, *a, **k)
+__all__ = ['Client']
+
+
+class Client(Endpoint, Greenlet):
+    def __init__(self, sock, addr):
+        Endpoint.__init__(self, sock, addr)
+        Greenlet.__init__(self)
+        self.observers = BatchList()
+        self.gamedata = Gamedata()
         self.cmd_listeners = defaultdict(WeakSet)
         self.current_game = None
+
+    @log_failure(log)
+    def _run(self):
+        self.account = None
+
+        # ----- Banner -----
+        from settings import VERSION
+        self.write(['thbattle_greeting', VERSION])
+        # ------------------
+
+        self.state = 'connected'
+        while True:
+            try:
+                hasdata = False
+                with Timeout(90, False):
+                    cmd, data = self.read()
+                    hasdata = True
+
+                if not hasdata:
+                    self.close()
+                    # client should send heartbeat periodically
+                    raise EndpointDied
+
+                if cmd == 'gamedata':
+                    self.gamedata.feed(data)
+                else:
+                    self.handle_command(cmd, data)
+
+            except EndpointDied:
+                self.gbreak()
+                break
+
+        # client died, do clean ups
+        self.handle_drop()
+
+    def close(self):
+        Endpoint.close(self)
+        self.kill(EndpointDied)
+
+    def __repr__(self):
+        acc = self.account
+        if not acc:
+            return Endpoint.__repr__(self)
+
+        return '%s:%s:%s' % (
+            self.__class__.__name__,
+            self.address[0],
+            acc.username.encode('utf-8'),
+        )
 
     def __data__(self):
         return dict(
@@ -92,7 +147,7 @@ class Client(ClientEndpoint):
             lobby.user_leave(self)
 
     def gexpect(self, tag, blocking=True):
-        tag, data = ClientEndpoint.gexpect(self, tag, blocking)
+        tag, data = self.gamedata.gexpect(tag, blocking)
         if tag:
             manager = GameManager.get_by_user(self)
             manager.record_user_gamedata(self, tag, data)
@@ -108,6 +163,12 @@ class Client(ClientEndpoint):
         encoded = self.encode(['gamedata', [tag, data]])
         self.raw_write(encoded)
         self.observers and self.observers.raw_write(encoded)
+
+    def gbreak(self):
+        return self.gamedata.gbreak()
+
+    def gclear(self):
+        self.gamedata = Gamedata()
 
     def for_state(*state):
         def register(f):
@@ -744,7 +805,6 @@ class GameManager(object):
     def notify_playerchange(self):
         @gevent.spawn
         def notify():
-            from network.server import Client
             from server.core.game_server import Player
 
             pl = self.game.players if self.game_started else map(Player, self.users)

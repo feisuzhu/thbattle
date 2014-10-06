@@ -11,8 +11,8 @@ from gevent.pool import Group as GreenletGroup
 import gevent
 
 # -- own --
+from endpoint import EndpointDied
 from game import GameEnded, InputTransaction, TimeLimitExceeded
-from network.server import EndpointDied
 from utils import log_failure
 import game
 
@@ -199,7 +199,7 @@ class Game(Greenlet, game.Game):
 
     @log_failure(log)
     def _run(self):
-        from server.core import lobby
+        from server.core.lobby import lobby
         self.synctag = 0
         self.game = getcurrent()
         lobby.start_game(self.manager)

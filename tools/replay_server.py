@@ -21,8 +21,8 @@ import simplejson as json
 
 # -- own --
 from account.freeplay import Account
-from network import EndpointDied
-from network.common import GamedataMixin
+from endpoint import EndpointDied
+from game import Gamedata
 from server.core import Player
 from utils import BatchList
 
@@ -53,7 +53,7 @@ def ask_for_feed(player_index, tag):
     elif (player_index, tag) not in gdlist_tag:
         return EndpointDied
     else:
-        return None, GamedataMixin.NODATA
+        return None, Gamedata.NODATA
 
 gdlist = []
 gdlist_tag = set()
@@ -75,7 +75,7 @@ class MockClient(object):
             if data is EndpointDied:
                 raise EndpointDied
 
-            if data == (None, GamedataMixin.NODATA):
+            if data == (None, Gamedata.NODATA):
                 gevent.sleep(0.1)  # just poll
                 continue
 

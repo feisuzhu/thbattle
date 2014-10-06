@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import logging
-log = logging.getLogger('mock')
-
-from utils import hook
-from gevent.event import Event
-from network import Endpoint
-import simplejson as json
 import re
+
+# -- third party --
+from gevent.event import Event
+import simplejson as json
+
+# -- own --
+from endpoint import Endpoint
+from utils import hook
+
+# -- code --
+log = logging.getLogger('mock')
 
 
 class MockConnection(object):
@@ -50,7 +56,6 @@ class MockConnection(object):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
         encoded = Endpoint.encode(data)
         self.gdhistory.append([tag, json.loads(encoded)])
-
 
     def gclear(self):
         assert self.exhausted

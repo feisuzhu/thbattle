@@ -4,18 +4,55 @@
 import logging
 
 # -- third party --
-from gevent import socket, Greenlet
+from gevent import Greenlet, socket
 from gevent.pool import Pool
+from gevent.queue import Channel
 import gevent
 
 # -- own --
 from account import Account
 from autoupdate import Autoupdate
-from network.client import Server
+from endpoint import Endpoint
+from game import Gamedata
 from utils import BatchList, instantiate
 
 # -- code --
 log = logging.getLogger('Executive')
+
+
+class Server(Endpoint, Greenlet):
+    '''
+    Used at client side, to represent server
+    '''
+
+    def __init__(self, sock, addr):
+        Endpoint.__init__(self, sock, addr)
+        Greenlet.__init__(self)
+        self.ctlcmds = Channel()
+        self.userid = 0
+        self.gamedata = Gamedata()
+
+    def _run(self):
+        while True:
+            cmd, data = self.read()
+            if cmd == 'gamedata':
+                self.gamedata.feed(data)
+            else:
+                self.ctlcmds.put([cmd, data])
+
+    def gexpect(self, tag, blocking=True):
+        return self.gamedata.gexpect(tag, blocking)
+
+    def gbreak(self):
+        return self.gamedata.gbreak()
+
+    def gclear(self):
+        self.gamedata = Gamedata()
+
+    def gwrite(self, tag, data):
+        log.debug('GAME_WRITE: %s', repr([tag, data]))
+        encoded = self.encode(['gamedata', [tag, data]])
+        self.raw_write(encoded)
 
 
 class ForcedKill(gevent.GreenletExit):

@@ -9,7 +9,7 @@ import simplejson as json
 
 # -- own --
 from .misc import surpress_and_restart
-from network import Endpoint
+from endpoint import Endpoint
 
 
 # -- code --
