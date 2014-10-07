@@ -2,55 +2,27 @@
 
 # -- stdlib --
 import logging
-import random
 
 # -- third party --
-from gevent.event import Event
 from pyglet.gl import glColor3f, glRectf
-import gevent
 import pyglet
 
 # -- own --
-from . import effects
-from . import inputs
+from . import effects, inputs
 from .. import actions
-from .game_controls import HandCardArea, PortraitCardArea, DropCardArea
-from .game_controls import Ray, GameCharacterPortrait, SkillSelectionBox
-from client.ui.base import Control, Overlay, process_msg
-from client.ui.controls import Colors, Panel, TextArea, Button, BalloonPrompt, OptionButton
+from .game_controls import DropCardArea, GameCharacterPortrait, HandCardArea, PortraitCardArea, Ray
+from .game_controls import SkillSelectionBox
+from client.ui.base import Control, Overlay
+from client.ui.controls import BalloonPrompt, Button, Colors, OptionButton, Panel, TextArea
 from client.ui.resource import resource as cres
 from client.ui.soundmgr import SoundManager
-from game.autoenv import Game, EventHandler
+from game.autoenv import Game
 from gamepack.thb.ui.resource import resource as gres
 from utils import rect_to_dict as r2d
 from utils.misc import ObservableEvent
 
 # -- code --
 log = logging.getLogger('THBattleUI')
-
-
-class UIEventHook(EventHandler):
-    @classmethod
-    def evt_user_input(cls, arg):
-        trans, ilet = arg
-        evt = Event()
-        ilet.event = evt
-        process_msg(('evt_user_input', arg))
-        evt.wait()
-        return ilet
-
-    @classmethod
-    def handle(cls, evt, data):
-        name = 'evt_%s' % evt
-        try:
-            f = getattr(cls, name)
-        except AttributeError:
-            process_msg((name, data))
-            random.random() < 0.005 and gevent.sleep(0)
-            return data
-
-        rst = f(data)
-        return rst
 
 
 class DeckIndicator(Control):
@@ -161,7 +133,6 @@ class THBattleUI(Control):
         self.selection_change = ObservableEvent()
 
         self.game = game
-        game.event_observer = UIEventHook
 
         Control.__init__(self, can_focus=True, *a, **k)
 

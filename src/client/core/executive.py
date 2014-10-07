@@ -2,11 +2,9 @@
 
 # -- stdlib --
 import logging
-import re
 
 # -- third party --
 from gevent import Greenlet, socket
-from gevent.event import Event
 from gevent.pool import Pool
 from gevent.queue import Channel
 import gevent
@@ -61,9 +59,6 @@ class Server(Endpoint, Greenlet):
 class ReplayEndpoint(object):
     def __init__(self, replay):
         self.gdlist = list(replay.gamedata)
-        self.delay = 1.0
-        self.running = Event()
-        self.running.set()
 
     def gexpect(self, tag):
         if not self.gdlist:
@@ -78,9 +73,6 @@ class ReplayEndpoint(object):
         for i, d in enumerate(self.gdlist):
             if d[0] == tag or (glob and d[0].startswith(tag)):
                 del self.gdlist[i]
-                if re.match(r'^RI[\|&]?:', tag):  # HACK, if user_input
-                    gevent.sleep(self.delay)
-                    self.running.wait()
                 return d
 
         gevent.sleep(3)
@@ -94,17 +86,6 @@ class ReplayEndpoint(object):
 
     def gbreak(self):
         pass
-
-    def adjust_delay(self, n):
-        d = max(self.delay + n, 0.2)
-        self.delay = d
-        return d
-
-    def pause(self):
-        self.running.clear()
-
-    def resume(self):
-        self.running.set()
 
 
 class ForcedKill(gevent.GreenletExit):
@@ -447,18 +428,6 @@ class Executive(object):
             event_cb('end_game', g)
 
         return g
-
-    def replay_adjust_delay(self, n):
-        assert isinstance(self.server, ReplayEndpoint)
-        return self.server.adjust_delay(n)
-
-    def replay_pause(self):
-        assert isinstance(self.server, ReplayEndpoint)
-        return self.server.pause()
-
-    def replay_resume(self):
-        assert isinstance(self.server, ReplayEndpoint)
-        return self.server.resume()
 
     def _simple_op(_type):
         def wrapper(self, *args):

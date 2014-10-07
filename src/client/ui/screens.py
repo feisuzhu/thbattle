@@ -4,11 +4,13 @@
 from collections import deque
 import logging
 import os
+import random
 import re
 import shlex
 import sys
 
 # -- third party --
+from gevent.event import Event
 from pyglet.gl import GL_COLOR_BUFFER_BIT, glClear, glClearColor, glColor3f, glColor4f, glRectf
 from pyglet.text import Label
 import gevent
@@ -19,7 +21,7 @@ import requests
 from account import Account
 from client.core.executive import Executive
 from client.core.replay import Replay
-from client.ui.base import Control, Overlay, WINDOW_HEIGHT, WINDOW_WIDTH, ui_message
+from client.ui.base import Control, Overlay, WINDOW_HEIGHT, WINDOW_WIDTH, process_msg, ui_message
 from client.ui.base.interp import CosineInterp, InterpDesc, LinearInterp
 from client.ui.controls import BalloonPrompt, Button, CheckBox, Colors, ConfirmBox, Frame
 from client.ui.controls import ImageButton, ImageSelector, ListView, LoadingWindow, NoInviteButton
@@ -27,6 +29,7 @@ from client.ui.controls import OptionButtonGroup, Panel, PasswordTextBox, Player
 from client.ui.controls import SensorLayer, TextArea, TextBox, VolumeTuner
 from client.ui.resource import resource as cres
 from client.ui.soundmgr import SoundManager
+from game.autoenv import EventHandler
 from options import options
 from settings import ServerNames
 from user_settings import UserSettings
@@ -990,6 +993,32 @@ class GameEventsBox(Frame):
         self.box.text = u'\u200b'
 
 
+class UIEventHook(EventHandler):
+    def __init__(self, gameui):
+        EventHandler.__init__(self)
+        self.gameui = gameui
+
+    def evt_user_input(self, arg):
+        trans, ilet = arg
+        evt = Event()
+        ilet.event = evt
+        process_msg(('evt_user_input', arg))
+        evt.wait()
+        return ilet
+
+    def handle(self, evt, data):
+        name = 'evt_%s' % evt
+        try:
+            f = getattr(self, name)
+        except AttributeError:
+            process_msg((name, data))
+            random.random() < 0.005 and gevent.sleep(0)
+            return data
+
+        rst = f(data)
+        return rst
+
+
 class GameScreen(Screen):
     flash_alpha = InterpDesc('_flash_alpha')
 
@@ -1221,6 +1250,7 @@ class GameScreen(Screen):
             parent=False, game=game,
             **r2d((0, 0, 820, 720))
         )  # add when game starts
+        game.event_observer = UIEventHook(self.gameui)
 
         self.events_box = GameEventsBox(
             parent=self, x=820, y=350, width=204, height=370,
@@ -1379,11 +1409,13 @@ class ReplayScreen(Screen):
             self.btn_brake = Button(u'减速', parent=self, x=15, y=25, width=80, height=24)
             self.btn_accel = Button(u'加速', parent=self, x=15 + 80 + 15, y=25, width=80, height=24)
 
+            self.delay = 2.0
             self.paused = False
+            self.running = Event()
+            self.running.set()
 
-            v = Executive.replay_adjust_delay(0)
             self.delay_lbl = self.add_label(
-                u'当前延迟：%s秒' % v,
+                u'当前延迟：%s秒' % self.delay,
                 x=15, y=105, font_size=9, color=(0, 0, 0, 255),
                 anchor_x='left', anchor_y='bottom',
             )
@@ -1399,24 +1431,27 @@ class ReplayScreen(Screen):
 
         def pause(self):
             if self.paused:
-                print 'resume'
-                Executive.replay_resume()
+                self.running.set()
                 self.btn_pause.caption = u'暂停'
                 self.paused = False
             else:
-                Executive.replay_pause()
+                self.running.clear()
                 self.btn_pause.caption = u'恢复'
                 self.paused = True
 
             self.btn_pause.update()
 
         def brake(self):
-            v = Executive.replay_adjust_delay(0.1)
-            self.delay_lbl.text = u'当前延迟：%s秒' % v
+            self.delay += 0.1
+            self.delay_lbl.text = u'当前延迟：%s秒' % self.delay
 
         def accel(self):
-            v = Executive.replay_adjust_delay(-0.1)
-            self.delay_lbl.text = u'当前延迟：%s秒' % v
+            self.delay = max(self.delay - 0.1, 0.2)
+            self.delay_lbl.text = u'当前延迟：%s秒' % self.delay
+
+        def handle_delay(self, _):
+            gevent.sleep(self.delay)
+            self.running.wait()
 
     class Portraits(Control):
 
@@ -1459,6 +1494,8 @@ class ReplayScreen(Screen):
             **r2d((0, 0, 820, 720))
         )  # add when game starts
 
+        game.event_observer = UIEventHook(self.gameui)
+
         self.events_box = GameEventsBox(
             parent=self, x=820, y=150, width=204, height=570,
             bg=cres.bg_eventsbox.get(),
@@ -1466,6 +1503,9 @@ class ReplayScreen(Screen):
         self.replay_panel = ReplayScreen.ReplayPanel(
             parent=self, x=820, y=0, width=204, height=152,
         )
+
+        game.event_observer.evt_user_input_begin_wait_resp = self.replay_panel.handle_delay
+
         self.portraits = ReplayScreen.Portraits(parent=self)
         self.portraits.update_portrait(replay.users)
 

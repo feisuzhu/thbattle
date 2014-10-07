@@ -3,7 +3,7 @@ from game_common import GameError, GameEnded, sync_primitive, InterruptActionFlo
 from gevent import Greenlet
 
 
-class Game(Game, Greenlet):
+class Game(Greenlet, Game):
     pass
 
 

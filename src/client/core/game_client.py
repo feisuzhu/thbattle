@@ -68,6 +68,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
         orig_players = players[:]
         inputany_player = None
 
+        g.emit_event('user_input_begin_wait_resp', trans)  # for replay speed control
         while players:
             # should be [tag, <Data for Inputlet.parse>]
             # tag likes 'RI?:ChooseOption:2345'
@@ -105,6 +106,8 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             if type == 'any' and rst is not None:
                 assert not inputany_player
                 inputany_player = p
+
+        g.emit_event('user_input_end_wait_resp', trans)  # for replay speed control
 
     finally:
         if inputproc:
