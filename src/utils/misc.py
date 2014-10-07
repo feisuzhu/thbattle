@@ -610,7 +610,7 @@ class ObservableEvent(object):
         return self
 
     def notify(self, *a, **k):
-        for ob in self.listeners:
+        for ob in list(self.listeners):
             ob(*a, **k)
 
 

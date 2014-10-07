@@ -191,6 +191,11 @@ class THBattleUI(Control):
         return self.btn_afk.value
 
     def init(self):
+        self.game_event = ObservableEvent()
+        self.process_game_event = self.game_event.notify
+
+        self.game_event += self.on_game_event
+
         ports = self.char_portraits = [
             GameCharacterPortrait(parent=self, color=color,
                                   x=x, y=y, tag_placement=tp)
@@ -200,6 +205,7 @@ class THBattleUI(Control):
         pl = self.game.players
         shift = pl.index(self.game.me)
         for i, c in enumerate(ports):
+            self.game_event += c.on_game_event
             p = pl[(shift + i) % self.game.n_persons]
             c.player = p
             c.update()
@@ -247,20 +253,12 @@ class THBattleUI(Control):
 
             self.skill_box.set_skills(skills)
 
-    PORT_UPDATE_MESSAGES = {
-        'evt_game_begin',
-        'evt_switch_character',
-    }
-
     def update_portraits(self):
         for port in self.char_portraits:
             port.update()
 
     def on_message(self, _type, *args):
-        if _type == 'evt_action_before' and isinstance(args[0], actions.PlayerTurn):
-            self.current_turn = args[0].target
-
-        elif _type == 'player_change':
+        if _type == 'player_change':
             for i, pd in enumerate(args[0]):
                 p = self.game.players[i]
                 port = self.player2portrait(p)
@@ -268,11 +266,15 @@ class THBattleUI(Control):
                 port.fleed = (pd['state'] == 'fleed')
                 port.update()
 
-        elif _type in self.PORT_UPDATE_MESSAGES:
+    def on_game_event(self, evt_type, arg):
+        if evt_type == 'action_before' and isinstance(arg, actions.PlayerTurn):
+            self.current_turn = arg.target
+
+        elif evt_type in ('game_begin', 'switch_character'):
             self.update_portraits()
 
-        elif _type == 'evt_action_after':
-            act = args[0]
+        elif evt_type == 'action_after':
+            act = arg
             meta = getattr(act, 'ui_meta', None)
             if meta and getattr(meta, 'update_portrait', None):
                 pl = set()
@@ -287,11 +289,8 @@ class THBattleUI(Control):
                 for p in pl:
                     self.player2portrait(p).update()
 
-        self.more_on_message(_type, args)
-
-        if _type.startswith('evt_'):
-            effects.handle_event(self, _type[4:], args[0])
-            inputs.handle_event(self, _type[4:], args[0])
+        effects.handle_event(self, evt_type, arg)
+        inputs.handle_event(self, evt_type, arg)
 
     def more_on_message(self, _type, args):
         pass
@@ -532,9 +531,10 @@ class THBattleFaithUI(THBattleUI):
         self.remaining_indicator = TextArea(
             parent=self, x=25, y=620, width=100, height=50, font_size=12,
         )
+        self.game_event += self.handle_remaining_indicator
 
-    def more_on_message(self, _type, args):
-        if _type in ('evt_switch_character', 'evt_action_stage_action'):
+    def handle_remaining_indicator(self, evt_type, arg):
+        if evt_type in ('switch_character', 'action_stage_action'):
             try:
                 hakurei, moriya = self.game.forces
             except:

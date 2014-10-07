@@ -1070,9 +1070,9 @@ class GameCharacterPortrait(Frame):
     def tagarrange(self):
         self._tagarrange_funcs[self.tag_placement]()
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_action_after' and isinstance(args[0], actions.RevealIdentity):
-            act = args[0]
+    def on_game_event(self, evt_type, arg):
+        if evt_type == 'action_after' and isinstance(arg, actions.RevealIdentity):
+            act = arg
             g = Game.getgame()
             me = g.me
             if (act.target in (self.player, self.character)) and (me in act.to if isinstance(act.to, list) else me is act.to):
@@ -1081,8 +1081,9 @@ class GameCharacterPortrait(Frame):
                 btn.state = Button.DISABLED
                 btn.update()
                 # self.update()
-        elif _type == 'evt_switch_character':
-            p = args[0]
+
+        elif evt_type == 'switch_character':
+            p = arg
             if p.player is self.player:
                 self.character = p
                 self.update()

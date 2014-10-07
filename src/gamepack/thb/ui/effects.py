@@ -357,13 +357,15 @@ class UIPindianEffect(Panel):
         self.width, self.height = w, h
         self.update()
 
+        parent.game_event += self.on_game_event
+
     def draw(self):
         Panel.draw(self)
         self.lbls.draw()
 
-    def on_message(self, _type, *args):
-        if _type == 'evt_action_after' and isinstance(args[0], Pindian):
-            rst = args[0].succeeded
+    def on_game_event(self, evt_type, arg):
+        if evt_type == 'action_after' and isinstance(arg, Pindian):
+            rst = arg.succeeded
             if rst:
                 self.tgtcs.gray = True
                 self.srclbl.color = (80, 255, 80, 255)
@@ -378,12 +380,12 @@ class UIPindianEffect(Panel):
 
             pyglet.clock.schedule_once(lambda *a: self.delete(), 2)
 
-        elif _type == 'evt_pindian_card_revealed':
+        elif evt_type == 'pindian_card_revealed':
             self.srccs.update()
             self.tgtcs.update()
 
-        elif _type == 'evt_pindian_card_chosen':
-            p, card = args[0]
+        elif evt_type == 'pindian_card_chosen':
+            p, card = arg
             if p is self.action.source:
                 self.srccs = CardSprite(card, parent=self, x=20, y=20)
             else:
@@ -398,6 +400,10 @@ class UIPindianEffect(Panel):
                     self.parent.game.deck.droppedcards,
                 )
             )
+
+    def delete(self):
+        self.parent.game_event -= self.on_game_event
+        Panel.delete(self)
 
 
 def pindian_effect(self, act):
