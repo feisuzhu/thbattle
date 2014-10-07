@@ -668,7 +668,9 @@ class Dialog(Frame):
             self.dispatch_event('on_destroy')
 
     def delete(self):
-        self.close_later and self.close_later.kill()
+        if gevent.getcurrent() is not self.close_later:
+            self.close_later and self.close_later.kill()
+
         Frame.delete(self)
 
     def cancel_close(self):
