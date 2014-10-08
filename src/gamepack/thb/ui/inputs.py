@@ -8,6 +8,8 @@ import random
 
 # -- third party --
 from pyglet.text import Label
+from gevent.event import Event
+import gevent
 import pyglet
 
 # -- own --
@@ -20,7 +22,7 @@ from client.ui.controls import Panel
 from client.ui.resource import resource as cres
 from game.autoenv import Game
 from gamepack.thb import actions as thbactions
-from gamepack.thb.cards import CardList, RejectHandler
+from gamepack.thb.cards import CardList
 
 # -- code --
 log = logging.getLogger('THBattleUI_Input')
@@ -169,34 +171,15 @@ class UISelectTarget(Control, InputHandler):
 
 class UIDoPassiveAction(UISelectTarget):
     _auto_chosen = False
-    _snd_prompt = False
-    _in_auto_reject_delay = False
 
     def process_user_input(self, ilet):
         UISelectTarget.process_user_input(self, ilet)
 
-        initiator = ilet.initiator
-        candidates = ilet.candidates
-
         g = Game.getgame()
-        if isinstance(initiator, RejectHandler):
-            ori = self.set_valid
-            self._sv_val = False
 
-            def reject_sv(valid=False):
-                self._sv_val = True
-
-            self.set_valid = reject_sv
-
-            def delay(dt):
-                self.set_valid = ori
-                if self._sv_val: ori()
-
-            pyglet.clock.schedule_once(delay, 0.1 + 0.2 * math.sqrt(g.players.index(g.me)))
-
-        if candidates:
+        if ilet.candidates:
             parent = self.parent
-            disables = [p for p in g.players if p not in candidates]
+            disables = [p for p in g.players if p not in ilet.candidates]
             parent.begin_select_player(disables)
 
         self.view.selection_change.notify()
@@ -205,111 +188,214 @@ class UIDoPassiveAction(UISelectTarget):
         try:
             ilet = self.inputlet
             if not ilet: return
-            if self._in_auto_reject_delay: return
 
-            initiator = ilet.initiator
-            categories = ilet.categories
-            candidates = ilet.candidates
-
-            g = Game.getgame()
             view = self.parent
             if not view: return
 
-            cond = initiator.cond
-            usage = getattr(initiator, 'card_usage', 'none')
+            usage, cards, players = 'none', (), ()
 
-            if isinstance(initiator, RejectHandler):
-                self._sv_val = False
-                self.set_text(u'自动结算好人卡…')
-                if not any([cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)]):
-                    from gamepack.thb.characters import reimu
-                    if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
-                        self._in_auto_reject_delay = True
-                        v = 0.3 - math.log(random.random())
-                        self.set_text(u'自动结算好人卡(%.2f秒)' % v)
+            if ilet.categories:
+                rst = self.handle_card_selection(view, ilet)
+                if not rst:
+                    return
 
-                        def complete(*a):
-                            ilet.done()
-                            end_transaction(self.trans)
+                usage, cards = rst
 
-                        pyglet.clock.schedule_once(complete, v)
-                        return
+            if ilet.candidates:
+                rst = self.handle_player_selection(view, ilet)
+                if not rst:
+                    return
 
-            if categories:
-                if not self._auto_chosen:
-                    self._auto_chosen = True
-                    from itertools import chain
-                    for c in chain(g.me.showncards, g.me.cards):
-                        if not cond([c]): continue
-                        hca = view.handcard_area
-                        for cs in hca.cards:
-                            if cs.associated_card == c:
-                                break
-                        else:
-                            raise Exception('WTF?!')
+                players = rst
 
-                        hca.toggle(cs, 0.3)
-                        return
-
-                skills = view.get_selected_skills()
-                cards = rawcards = view.get_selected_cards()
-                params = view.get_action_params()
-
-                if skills:
-                    for skill_cls in skills:
-                        cards = [skill_cls.wrap(cards, g.me, params)]
-                        try:
-                            rst, reason = cards[0].ui_meta.is_complete(g, cards)
-                        except:
-                            rst, reason = False, u'[card.ui_meta.is_complete错误]'
-                            log.exception('card.ui_meta.is_complete error')
-
-                        if not rst:
-                            self.set_text(reason)
-                            return
-
-                    usage = cards[0].usage if usage == 'launch' else usage
-
-                c = cond(cards)
-                c1, text = initiator.ui_meta.choose_card_text(g, initiator, cards)
-                assert c == c1
-                self.set_text(text)
-
-                if not c: return
-
-            if candidates:
-                players = view.get_selected_players()
-                players, valid = initiator.choose_player_target(players)
-                try:
-                    valid1, reason = initiator.ui_meta.target(players)
-                    assert bool(valid) == bool(valid1)
-                except:
-                    log.exception('act.ui_meta.target error')
-                    valid1, reason = valid, u'[act.ui_meta.target错误]'
-
-                view.set_selected_players(players)
-                self.set_text(reason)
-                if not valid: return
-
-            arg = thbactions.ActionLimitParams(
-                ilet=ilet, actor=g.me,
-                cards=cards if categories else (),
-                players=players if candidates else (),
-                usage=usage
-            )
-
-            assert not (categories and usage == 'none' and rawcards)
-
-            arg2, permitted = g.emit_event('action_limit', (arg, True))
-            assert arg == arg2
-
-            if not permitted:
-                self.set_text(u'您不能这样出牌')
+            if not self.handle_action_limit(view, ilet, usage, cards, players):
                 return
 
             self.set_valid()
         except:
             log.exception('on_selection_change')
+
+    def handle_card_selection(self, view, ilet):
+        usage = getattr(ilet.initiator, 'card_usage', 'none')
+        g = Game.getgame()
+
+        if not self._auto_chosen:
+            self._auto_chosen = True
+            from itertools import chain
+            for c in chain(g.me.showncards, g.me.cards):
+                if not ilet.initiator.cond([c]): continue
+                hca = view.handcard_area
+                for cs in hca.cards:
+                    if cs.associated_card == c:
+                        break
+                else:
+                    raise Exception('WTF?!')
+
+                hca.toggle(cs, 0.3)
+                return
+
+        skills = view.get_selected_skills()
+        cards = view.get_selected_cards()
+        params = view.get_action_params()
+        g = Game.getgame()
+
+        if skills:
+            for skill_cls in skills:
+                cards = [skill_cls.wrap(cards, g.me, params)]
+                try:
+                    rst, reason = cards[0].ui_meta.is_complete(g, cards)
+                except:
+                    rst, reason = False, u'[card.ui_meta.is_complete错误]'
+                    log.exception('card.ui_meta.is_complete error')
+
+                if not rst:
+                    self.set_text(reason)
+                    return
+
+                usage = cards[0].usage if usage == 'launch' else usage
+
+        c = ilet.initiator.cond(cards)
+        c1, text = ilet.initiator.ui_meta.choose_card_text(g, ilet.initiator, cards)
+        assert c == c1
+        self.set_text(text)
+
+        if not c:
+            return
+
+        return usage, cards
+
+    def handle_player_selection(self, view, ilet):
+        players = view.get_selected_players()
+        players, valid = ilet.initiator.choose_player_target(players)
+        try:
+            valid1, reason = ilet.initiator.ui_meta.target(players)
+            assert bool(valid) == bool(valid1)
+        except:
+            log.exception('act.ui_meta.target error')
+            valid1, reason = valid, u'[act.ui_meta.target错误]'
+
+        view.set_selected_players(players)
+        self.set_text(reason)
+
+        return players if valid else None
+
+    def handle_action_limit(self, view, ilet, usage, cards, players):
+        g = Game.getgame()
+        arg = thbactions.ActionLimitParams(
+            ilet=ilet, actor=g.me,
+            cards=cards, players=players, usage=usage,
+        )
+
+        arg2, permitted = g.emit_event('action_limit', (arg, True))
+        assert arg == arg2
+
+        if not permitted:
+            self.set_text(u'您不能这样出牌')
+            return False
+
+        return True
+
+    def cleanup(self):
+        try:
+            hca = self.parent.handcard_area
+            for cs in hca.control_list:
+                if cs.hca_selected:
+                    hca.toggle(cs, 0.3)
+        except AttributeError:
+            # parent is none, self already deleted
+            pass
+        UISelectTarget.cleanup(self)
+
+
+class UIDoRejectCardResponse(UIDoPassiveAction):
+    _auto_chosen = False
+    _in_auto_reject_delay = False
+
+    def process_user_input(self, ilet):
+        # Override
+        view = self.view
+        buttons = ((u'确定', 'use'), (u'结束', 'cancel'))
+        target_act = ilet.initiator.target_act
+        pact = thbactions.ForEach.get_actual_action(target_act)
+
+        g = Game.getgame()
+
+        if pact:
+            if g.me.tags['__reject_dontcare'] is pact:
+                ilet.done()
+                end_transaction(self.trans)
+                return
+
+            buttons = ((u'确定', 'fire'), (u'结束', 'cancel'), (u'此次不再使用', 'dontcare'))
+
+        self.confirmbtn = UIActionConfirmButtons(
+            parent=self, x=259, y=4, width=165, height=24, buttons=buttons,
+        )
+
+        self.progress_bar = BigProgressBar(parent=self, x=0, y=0, width=250)
+        self.label = Label(
+            text=u"HEY SOMETHING'S WRONG", x=125, y=28, font_size=12,
+            color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 179),
+            anchor_x='center', anchor_y='bottom',
+        )
+
+        view.selection_change += self._on_selection_change
+
+        port = view.player2portrait(g.me)
+        port.equipcard_area.clear_selection()
+
+        # view.notify.selection_change.notify() # the clear_selection thing will trigger this
+
+        @self.confirmbtn.event
+        def on_confirm(v, force=False):
+            if v == 'fire':
+                ilet.set_result(*self.get_result())
+
+            elif v == 'cancel' and not force and view.get_selected_skills():
+                view.reset_selected_skills()
+                return
+
+            elif v == 'dontcare':
+                g.me.tags['__reject_dontcare'] = pact
+
+            ilet.done()
+            end_transaction(self.trans)
+
+        self.progress_bar.value = LinearInterp(
+            1.0, 0.0, ilet.timeout,
+            on_done=lambda *a: on_confirm('cancel', force=True)
+        )
+
+        self.inputlet = ilet
+        assert not ilet.candidates
+
+        self.set_valid_waiter = ev = Event()
+        g = Game.getgame()
+        gevent.spawn_later(0.1 + 0.2 * math.sqrt(g.players.index(g.me)), ev.set)
+
+        self.set_text(u'自动结算好人卡…')
+        if not any([ilet.initiator.cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)]):
+            from gamepack.thb.characters import reimu
+            if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
+                self._in_auto_reject_delay = True
+                v = 0.3 - math.log(random.random())
+                self.set_text(u'自动结算好人卡(%.2f秒)' % v)
+                gevent.spawn_later(v, lambda: [ilet.done(), end_transaction(self.trans)])
+
+        self.view.selection_change.notify()
+
+    def set_valid(self, v=True):
+        if v:
+            @gevent.spawn
+            def sv():
+                self.set_valid_waiter.wait()
+                UIDoPassiveAction.set_valid(self)
+        else:
+            UIDoPassiveAction.set_valid(self, False)
+
+    def on_selection_change(self):
+        if self._in_auto_reject_delay: return
+        UIDoPassiveAction.on_selection_change(self)
 
     def cleanup(self):
         try:
@@ -1089,6 +1175,7 @@ mapping = {
     # InputTransaction name -> Handler class
 
     'Action':               UIDoPassiveAction,
+    'AskForRejectAction':   UIDoRejectCardResponse,
     'Pindian':              UIDoPassiveAction,
     'ActionStageAction':    UIDoActionStage,
     'ChooseGirl':           UIChooseGirl,
