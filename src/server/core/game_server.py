@@ -14,6 +14,7 @@ import gevent
 from endpoint import EndpointDied
 from game import GameEnded, InputTransaction, TimeLimitExceeded
 from utils import log_failure
+from utils.gevent_ext import iwait
 import game
 
 # -- code --
@@ -74,7 +75,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
         for p in players:
             g.emit_event('user_input_start', (trans, ilets[p]))
 
-        for w in gevent.iwait(_input_group, timeout=timeout + 5):
+        for w in iwait(_input_group, timeout=timeout + 5):
             try:
                 rst = w.get()
                 p, data = w.player, rst
