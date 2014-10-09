@@ -918,11 +918,11 @@ class GameHallScreen(Screen):
         self.noticebox = GameHallScreen.NoticeBox(parent=self)
         self.statusbox = GameHallScreen.StatusBox(parent=self)
 
-        VolumeTuner(parent=self, x=850, y=660)
-        NoInviteButton(parent=self, x=654, y=660, width=80, height=35)
+        VolumeTuner(parent=self, x=850, y=650)
+        NoInviteButton(parent=self, x=654, y=650, width=80, height=35)
 
         b = Button(
-            parent=self, x=750, y=660, width=80, height=35,
+            parent=self, x=750, y=650, width=80, height=35,
             color=Colors.orange, caption=u'卡牌查看器',
         )
 
@@ -933,7 +933,7 @@ class GameHallScreen(Screen):
         del on_click
 
         b = Button(
-            parent=self, x=35, y=660, width=80, height=35,
+            parent=self, x=35, y=650, width=80, height=35,
             color=Colors.orange, caption=u'切换服务器',
         )
 
@@ -1104,7 +1104,7 @@ class GameScreen(Screen):
                         self.param_btns[k].set_value(v)
 
         def __init__(self, parent=None):
-            Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
+            Control.__init__(self, parent=parent, **r2d((0, 0, 820, 700)))
             self.btn_getready = Button(
                 parent=self, caption=u'准备', **r2d((360, 80, 100, 35))
             )
@@ -1238,28 +1238,28 @@ class GameScreen(Screen):
         self.ui_class = game.ui_meta.ui_class
         self.gameui = self.ui_class(
             parent=False, game=game,
-            **r2d((0, 0, 820, 720))
+            **r2d((0, 0, 820, 700))
         )  # add when game starts
         game.event_observer = UIEventHook(self.gameui)
 
         self.events_box = GameEventsBox(
-            parent=self, x=820, y=350, width=204, height=370,
+            parent=self, x=820, y=340, width=204, height=360,
             bg=cres.bg_eventsbox.get(),
         )
         self.chat_box = ChatBox(
-            parent=self, x=820, y=0, width=204, height=352,
+            parent=self, x=820, y=0, width=204, height=342,
             bg=cres.bg_chatbox.get(),
         )
         self.panel = GameScreen.RoomControlPanel(parent=self)
         self.btn_exit = Button(
             parent=self, caption=u'退出房间', zindex=1,
-            **r2d((730, 680, 75, 25))
+            **r2d((730, 660, 75, 25))
         )
         self.btn_no_invite = NoInviteButton(
-            parent=self, zindex=1, **r2d((730, 650, 75, 25))
+            parent=self, zindex=1, **r2d((730, 630, 75, 25))
         )
 
-        VolumeTuner(parent=self, x=690, y=670)
+        VolumeTuner(parent=self, x=690, y=660)
 
         @self.btn_exit.event
         def on_click():
@@ -1448,7 +1448,7 @@ class ReplayScreen(Screen):
     class Portraits(Control):
 
         def __init__(self, parent=None):
-            Control.__init__(self, parent=parent, **r2d((0, 0, 820, 720)))
+            Control.__init__(self, parent=parent, **r2d((0, 0, 820, 700)))
             l = []
 
             class MyPP(PlayerPortrait):
@@ -1483,11 +1483,11 @@ class ReplayScreen(Screen):
         self.ui_class = game.ui_meta.ui_class
         self.gameui = self.ui_class(
             parent=False, game=game,
-            **r2d((0, 0, 820, 720))
+            **r2d((0, 0, 820, 700))
         )  # add when game starts
 
         self.events_box = GameEventsBox(
-            parent=self, x=820, y=150, width=204, height=570,
+            parent=self, x=820, y=150, width=204, height=550,
             bg=cres.bg_eventsbox.get(),
         )
         self.replay_panel = ReplayScreen.ReplayPanel(
@@ -1497,7 +1497,7 @@ class ReplayScreen(Screen):
         self.portraits = ReplayScreen.Portraits(parent=self)
         self.portraits.update_portrait(replay.users)
 
-        VolumeTuner(parent=self, x=690, y=670)
+        VolumeTuner(parent=self, x=690, y=660)
 
     def start_replay(self):
         self.portraits.delete()

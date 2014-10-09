@@ -18,7 +18,7 @@ from utils import hook
 
 # -- code --
 WINDOW_WIDTH = 1024
-WINDOW_HEIGHT = 720
+WINDOW_HEIGHT = 700
 
 main_window = None
 sched_queue = []

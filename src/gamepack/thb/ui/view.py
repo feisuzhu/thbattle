@@ -112,20 +112,20 @@ class GameIntroIcon(Control):
 
 class THBattleUI(Control):
     portrait_location = [
-        (60,  300, Colors.blue),
-        (250, 450, Colors.orange),
-        (450, 450, Colors.blue),
-        (640, 300, Colors.orange),
-        (450, 150, Colors.blue),
-        (250, 150, Colors.orange),
+        (60,  290, Colors.blue),
+        (250, 440, Colors.orange),
+        (450, 440, Colors.blue),
+        (640, 290, Colors.orange),
+        (450, 140, Colors.blue),
+        (250, 140, Colors.orange),
     ]
 
     gcp_location = [
         (3,   1,   'me',     Colors.blue),
         (669, 280, 'left',   Colors.orange),
-        (515, 520, 'bottom', Colors.blue),
-        (335, 520, 'bottom', Colors.orange),
-        (155, 520, 'bottom', Colors.blue),
+        (515, 500, 'bottom', Colors.blue),
+        (335, 500, 'bottom', Colors.orange),
+        (155, 500, 'bottom', Colors.blue),
         (3,   280, 'right',  Colors.orange),
     ]
 
@@ -140,7 +140,7 @@ class THBattleUI(Control):
         self.char_portraits = None
 
         self.deck_indicator = DeckIndicator(
-            parent=self, x=30, y=680, width=50, height=25,
+            parent=self, x=30, y=660, width=50, height=25,
         )
 
         self.handcard_area = HandCardArea(
@@ -157,7 +157,7 @@ class THBattleUI(Control):
             parent=self, zindex=1, conf=(
                 (u'让⑨帮你玩', Colors.blue, False),
                 (u'⑨在帮你玩', Colors.orange, True),
-            ), **r2d((730, 620, 75, 25))
+            ), **r2d((30, 625, 75, 25))
         )
 
         self.gameintro_icon = GameIntroIcon(
@@ -418,44 +418,44 @@ class THBattleUI(Control):
 
 class THBattleCP3UI(THBattleUI):
     portrait_location = [
-        (60,  300, Colors.blue),
-        (250, 450, Colors.orange),
-        (450, 450, Colors.green),
-        (640, 300, Colors.blue),
-        (450, 150, Colors.orange),
-        (250, 150, Colors.green),
+        (60,  290, Colors.blue),
+        (250, 440, Colors.orange),
+        (450, 440, Colors.green),
+        (640, 290, Colors.blue),
+        (450, 140, Colors.orange),
+        (250, 140, Colors.green),
     ]
 
     gcp_location = [
         (3,   1,   'me',     Colors.blue),
         (669, 280, 'left',   Colors.orange),
-        (515, 520, 'bottom', Colors.green),
-        (335, 520, 'bottom', Colors.blue),
-        (155, 520, 'bottom', Colors.orange),
+        (515, 500, 'bottom', Colors.green),
+        (335, 500, 'bottom', Colors.blue),
+        (155, 500, 'bottom', Colors.orange),
         (3,   280, 'right',  Colors.green),
     ]
 
 
 class THBattleIdentityUI(THBattleUI):
     portrait_location = [
-        (150, 430, Colors.blue),
-        (290, 430, Colors.blue),
-        (430, 430, Colors.blue),
-        (570, 430, Colors.blue),
+        (150, 420, Colors.blue),
+        (290, 420, Colors.blue),
+        (430, 420, Colors.blue),
+        (570, 420, Colors.blue),
 
-        (150, 170, Colors.blue),
-        (290, 170, Colors.blue),
-        (430, 170, Colors.blue),
-        (570, 170, Colors.blue),
+        (150, 160, Colors.blue),
+        (290, 160, Colors.blue),
+        (430, 160, Colors.blue),
+        (570, 160, Colors.blue),
     ]
 
     gcp_location = [
         (3,   1,   'me',     Colors.blue),
         (669, 210, 'left',   Colors.blue),
         (669, 420, 'left',   Colors.blue),
-        (505, 520, 'bottom', Colors.blue),
-        (335, 520, 'bottom', Colors.blue),
-        (165, 520, 'bottom', Colors.blue),
+        (505, 500, 'bottom', Colors.blue),
+        (335, 500, 'bottom', Colors.blue),
+        (165, 500, 'bottom', Colors.blue),
         (3,   420, 'right',  Colors.blue),
         (3,   210, 'right',  Colors.blue),
     ]
@@ -463,27 +463,27 @@ class THBattleIdentityUI(THBattleUI):
 
 class THBattleIdentity5UI(THBattleIdentityUI):
     portrait_location = [
-        (290, 450, Colors.blue),
-        (490, 450, Colors.blue),
+        (290, 440, Colors.blue),
+        (490, 440, Colors.blue),
 
-        (190, 150, Colors.blue),
-        (380, 150, Colors.blue),
-        (570, 150, Colors.blue),
+        (190, 140, Colors.blue),
+        (380, 140, Colors.blue),
+        (570, 140, Colors.blue),
     ]
 
     gcp_location = [
         (3,   1,   'me',     Colors.blue),
         (669, 270, 'left',   Colors.blue),
-        (455, 520, 'bottom', Colors.blue),
-        (215, 520, 'bottom', Colors.blue),
+        (455, 500, 'bottom', Colors.blue),
+        (215, 500, 'bottom', Colors.blue),
         (3,   270, 'right',  Colors.blue),
     ]
 
 
 class THBattleKOFUI(THBattleUI):
     portrait_location = [
-        (250, 300, Colors.orange),
-        (450, 300, Colors.blue),
+        (250, 290, Colors.orange),
+        (450, 290, Colors.blue),
     ]
 
     gcp_location = [
@@ -494,36 +494,36 @@ class THBattleKOFUI(THBattleUI):
 
 class THBattleRaidUI(THBattleUI):
     portrait_location = [
-        (380, 450, Colors.red),
-        (190, 150, Colors.blue),
-        (380, 150, Colors.blue),
-        (570, 150, Colors.blue),
+        (380, 440, Colors.red),
+        (190, 140, Colors.blue),
+        (380, 140, Colors.blue),
+        (570, 140, Colors.blue),
     ]
 
     gcp_location = [
         (3,   1,   'me',     Colors.blue),
         (669, 315, 'left',   Colors.blue),
-        (335, 520, 'bottom', Colors.blue),
+        (335, 500, 'bottom', Colors.blue),
         (3,   315, 'right',  Colors.blue),
     ]
 
 
 class THBattleFaithUI(THBattleUI):
     portrait_location = [
-        (60,  300, Colors.blue),
-        (250, 450, Colors.orange),
-        (450, 450, Colors.blue),
-        (640, 300, Colors.orange),
-        (450, 150, Colors.blue),
-        (250, 150, Colors.orange),
+        (60,  290, Colors.blue),
+        (250, 440, Colors.orange),
+        (450, 440, Colors.blue),
+        (640, 290, Colors.orange),
+        (450, 140, Colors.blue),
+        (250, 140, Colors.orange),
     ]
 
     gcp_location = [
         (3,   1,   'me',     Colors.blue),
         (669, 280, 'left',   Colors.blue),
-        (515, 520, 'bottom', Colors.blue),
-        (335, 520, 'bottom', Colors.blue),
-        (155, 520, 'bottom', Colors.blue),
+        (515, 500, 'bottom', Colors.blue),
+        (335, 500, 'bottom', Colors.blue),
+        (155, 500, 'bottom', Colors.blue),
         (3,   280, 'right',  Colors.blue),
     ]
 
@@ -552,15 +552,15 @@ class THBattleFaithUI(THBattleUI):
 
 class THBattle2v2UI(THBattleUI):
     portrait_location = [
-        (250, 450, Colors.blue),
-        (450, 450, Colors.blue),
-        (450, 150, Colors.orange),
-        (250, 150, Colors.orange),
+        (250, 440, Colors.blue),
+        (450, 440, Colors.blue),
+        (450, 140, Colors.orange),
+        (250, 140, Colors.orange),
     ]
 
     gcp_location = [
         (3,   1,   'me',     Colors.blue),
         (669, 270, 'left',   Colors.blue),
-        (335, 520, 'bottom', Colors.blue),
+        (335, 500, 'bottom', Colors.blue),
         (3,   270, 'right',  Colors.blue),
     ]
