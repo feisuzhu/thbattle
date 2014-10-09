@@ -402,7 +402,9 @@ class UIPindianEffect(Panel):
             )
 
     def delete(self):
-        self.parent.game_event -= self.on_game_event
+        if self.parent:
+            self.parent.game_event -= self.on_game_event
+
         Panel.delete(self)
 
 

@@ -529,7 +529,7 @@ class THBattleFaithUI(THBattleUI):
 
     def more_init(self):
         self.remaining_indicator = TextArea(
-            parent=self, x=25, y=620, width=100, height=50, font_size=12,
+            parent=self, x=25, y=560, width=100, height=50, font_size=12,
         )
         self.game_event += self.handle_remaining_indicator
 
