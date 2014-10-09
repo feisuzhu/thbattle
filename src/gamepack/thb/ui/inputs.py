@@ -314,7 +314,7 @@ class UIDoRejectCardResponse(UIDoPassiveAction):
     def process_user_input(self, ilet):
         # Override
         view = self.view
-        buttons = ((u'确定', 'use'), (u'结束', 'cancel'))
+        buttons = ((u'确定', 'fire'), (u'结束', 'cancel'))
         target_act = ilet.initiator.target_act
         pact = thbactions.ForEach.get_actual_action(target_act)
 
