@@ -6,7 +6,7 @@
 from ..actions import DrawCardStage, DrawCards, DropCards, UserAction, ask_for_action, ttags
 from ..actions import user_choose_cards
 from ..cards import Skill, t_None
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game
 
 
@@ -146,7 +146,7 @@ class Virtue(Skill):
     target = t_None
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Kanako(Character):
     skills = [Divinity, Virtue]
     eventhandlers_required = [DivinityHandler, VirtueHandler]
