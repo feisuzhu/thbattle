@@ -10,7 +10,7 @@ THBViewer.config(function($routeProvider) {
 
 
 THBViewer.constant("options", {
-    resourceUrl: "http://update.thbattle.net/src/gamepack/thb/ui/res",
+    resourceUrl: "http://thb.io/rsrc",
     dataUrl: "/thbviewer.json"
 });
 
