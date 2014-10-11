@@ -57,8 +57,9 @@ class Server(Endpoint, Greenlet):
 
 
 class ReplayEndpoint(object):
-    def __init__(self, replay):
+    def __init__(self, replay, game):
         self.gdlist = list(replay.gamedata)
+        self.game = game
 
     def gexpect(self, tag):
         if not self.gdlist:
@@ -86,6 +87,9 @@ class ReplayEndpoint(object):
 
     def gbreak(self):
         pass
+
+    def end_replay(self):
+        self.game.kill()
 
 
 class ForcedKill(gevent.GreenletExit):
@@ -397,11 +401,13 @@ class Executive(object):
     def start_replay(self, rep, event_cb):
         assert self.state == 'initial'
 
+        self.state = 'replay'
+
         from client.core import PeerPlayer, TheLittleBrother
         from gamepack import gamemodes
 
-        self.server = ReplayEndpoint(rep)
         g = gamemodes[rep.game_mode]()
+        self.server = ReplayEndpoint(rep, g)
 
         pl = [PeerPlayer.parse(i) for i in rep.users]
 
@@ -417,10 +423,12 @@ class Executive(object):
 
         @g.link_exception
         def crash(*a):
+            self.state = 'initial'
             event_cb('game_crashed', g)
 
         @g.link_value
         def finish(*a):
+            self.state = 'initial'
             v = g.get()
             if not isinstance(v, ForcedKill):
                 event_cb('client_game_finished', g)
@@ -428,6 +436,11 @@ class Executive(object):
             event_cb('end_game', g)
 
         return g
+
+    def end_replay(self):
+        assert self.state == 'replay'
+        self.server.end_replay()
+        self.server = None
 
     def _simple_op(_type):
         def wrapper(self, *args):

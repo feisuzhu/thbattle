@@ -1486,6 +1486,11 @@ class ReplayScreen(Screen):
             **r2d((0, 0, 820, 700))
         )  # add when game starts
 
+        Button(
+            parent=self, caption=u'结束Replay', zindex=1,
+            **r2d((730, 660, 75, 25))
+        ).event('on_click')(self.end_replay)
+
         self.events_box = GameEventsBox(
             parent=self, x=820, y=150, width=204, height=550,
             bg=cres.bg_eventsbox.get(),
@@ -1507,6 +1512,10 @@ class ReplayScreen(Screen):
         g.event_observer = UIEventHook(self.gameui)
         g.event_observer.evt_user_input_begin_wait_resp = self.replay_panel.handle_delay
         g.start()
+
+    def end_replay(self):
+        Executive.end_replay()
+        ServerSelectScreen().switch()
 
     def on_message(self, _type, *args):
         if _type in ('client_game_finished', 'end_game'):
