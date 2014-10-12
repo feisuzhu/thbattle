@@ -21,7 +21,7 @@ class Kanako:
         u'|G神威|r：|B锁定技|r，摸牌阶段开始时，你摸X张牌，然后弃置等量的牌（X为你的当前体力值，且至多为4）。\n\n'
         u'|G神德|r：每名角色的回合限一次，你在自己的摸牌阶段以外获得牌时，你可以弃置一张手牌并令一名其他角色摸一张牌。\n\n'
         u'|RKOF不平衡角色\n\n'
-        u'|DB（画师：Pixiv ID 6725408，CV：北斗夜）|r'
+        u'|DB（画师：Pixiv ID 6725408，CV：北斗夜/VV）|r'
     )
 
 
@@ -42,6 +42,9 @@ class DivinityDrawCards:
         return u'|G【%s】|r发动了|G神威|r，摸了%d张牌。' % (
             act.target.ui_meta.char_name, act.amount,
         )
+
+    def sound_effect(act):
+        return gres.cv.kanako_divinity
 
 
 class DivinityDropCards:
@@ -86,3 +89,6 @@ class VirtueAction:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return gres.cv.kanako_virtue

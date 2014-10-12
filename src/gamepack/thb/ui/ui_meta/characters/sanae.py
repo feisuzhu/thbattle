@@ -75,6 +75,9 @@ class SanaeFaith:
 
         return (True, u'团队需要信仰！')
 
+    def sound_effect(act):
+        return gres.cv.sanae_faith
+
 
 class SanaeFaithCollectCardAction:
     # choose_card meta
