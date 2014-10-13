@@ -328,7 +328,7 @@ class THBattleUI(Control):
         self.prompt_raw(u'|B|cff0000ff>> |r' + unicode(s) + u'\n')
 
     def prompt_raw(self, s):
-        self.parent.events_box.append(s)
+        self.parent and self.parent.events_box.append(s)
 
     def begin_select_player(self, disables=[]):
         # if self.selecting_player: return
@@ -488,7 +488,7 @@ class THBattleKOFUI(THBattleUI):
 
     gcp_location = [
         (3,   1,   'me',     Colors.blue),
-        (335, 520, 'bottom', Colors.orange),
+        (335, 500, 'bottom', Colors.orange),
     ]
 
 

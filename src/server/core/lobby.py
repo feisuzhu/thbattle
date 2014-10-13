@@ -346,7 +346,7 @@ class Lobby(object):
             user.account = old.account
 
             manager = GameManager.get_by_user(old)
-            manager.squeeze_out(old, user)
+            manager and manager.squeeze_out(old, user)
 
         elif uid in self.dropped_users:
             log.info(u'%s rejoining dropped game' % user.account.username)
