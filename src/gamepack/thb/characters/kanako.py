@@ -96,7 +96,7 @@ class VirtueHandler(EventHandler):
             if isinstance(act, (DrawCardStage, DivinityDrawCards)):
                 return arg
 
-            if not to or not to.owner:
+            if to is None or not to.owner:
                 return arg
 
             if to.type not in ('cards', 'showncards', 'equips'):
@@ -104,7 +104,7 @@ class VirtueHandler(EventHandler):
 
             src = to.owner
 
-            if _from and _from.owner is src:
+            if _from is not None and _from.owner is src:
                 return arg
 
             if not src.has_skill(Virtue):

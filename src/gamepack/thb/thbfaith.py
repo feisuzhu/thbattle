@@ -61,10 +61,16 @@ class DeathHandler(EventHandler):
                 trans.notify('girl_chosen', (tgt, c))
 
             tgt = g.switch_character(tgt, c)
-            g.process_action(DrawCards(tgt, 4))
+            
+            c = getattr(g, 'current_turn', None)
+            try:
+                g.current_turn = None
+                g.process_action(DrawCards(tgt, 4))
 
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                g.process_action(RedrawCards(tgt, tgt))
+                if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                    g.process_action(RedrawCards(tgt, tgt))
+            finally:
+                g.current_turn = c
 
         return act
 
