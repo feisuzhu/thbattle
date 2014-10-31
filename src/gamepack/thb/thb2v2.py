@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import random
-from itertools import cycle
 from collections import defaultdict
+from itertools import cycle
+import logging
+import random
 
 # -- third party --
-
 # -- own --
-from .actions import DrawCards, PlayerTurn, RevealIdentity, DeadDropCards, DrawCardStage
-from .actions import action_eventhandlers, migrate_cards, MigrateCardsTransaction
+from .actions import DeadDropCards, DistributeCards, DrawCardStage, DrawCards
+from .actions import MigrateCardsTransaction, PlayerTurn, RevealIdentity, action_eventhandlers
+from .actions import migrate_cards
 from .characters.baseclasses import mixin_character
-from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
+from .common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet
-from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
-from utils.misc import Enum, BatchList, filter_out
+from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from utils.misc import BatchList, Enum, filter_out
 import settings
-import logging
 
 # -- code --
 log = logging.getLogger('THBattle2v2')
@@ -242,7 +242,7 @@ class THBattle2v2(Game):
         g.emit_event('game_begin', g)
 
         for p in g.players:
-            g.process_action(DrawCards(p, amount=4))
+            g.process_action(DistributeCards(p, amount=4))
 
         for i, p in enumerate(cycle(pl)):
             if i >= 6000: break

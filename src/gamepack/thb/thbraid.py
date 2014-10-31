@@ -1,27 +1,25 @@
 # -*- coding: utf-8 -*-
 
-import random
-import logging
-
-from game.autoenv import Game, EventHandler, InterruptActionFlow, GameException, user_input, InputTransaction
-
-from .actions import ActionStage, ActionStageLaunchCard, Damage, DrawCards
-from .actions import DropCards, GenericAction, LaunchCard, PlayerDeath
-from .actions import PlayerRevive, UserAction, BaseDamage, RevealIdentity
-from .actions import PlayerTurn, MaxLifeChange, action_eventhandlers
-from .actions import LifeLost, DeadDropCards
-from .actions import migrate_cards, user_choose_cards
-from .characters.baseclasses import mixin_character
-
-from .inputlets import ChooseOptionInputlet, ChooseIndividualCardInputlet, ChooseGirlInputlet
-
-from .cards import Skill, t_None
+# -- stdlib --
 from collections import defaultdict
+import logging
+import random
 
-from .common import PlayerIdentity, CharChoice, get_seed_for
-
+# -- third party --
+# -- own --
+from .actions import ActionStage, ActionStageLaunchCard, BaseDamage, Damage, DeadDropCards
+from .actions import DistributeCards, DrawCards, DropCards, GenericAction, LaunchCard, LifeLost
+from .actions import MaxLifeChange, PlayerDeath, PlayerRevive, PlayerTurn, RevealIdentity
+from .actions import UserAction, action_eventhandlers, migrate_cards, user_choose_cards
+from .cards import Skill, t_None
+from .characters.baseclasses import mixin_character
+from .common import CharChoice, PlayerIdentity, get_seed_for
+from .inputlets import ChooseGirlInputlet, ChooseIndividualCardInputlet, ChooseOptionInputlet
+from game.autoenv import EventHandler, Game, GameException, InputTransaction, InterruptActionFlow
+from game.autoenv import user_input
 from utils import BatchList, Enum
 
+# -- code --
 log = logging.getLogger('THBattleRaid')
 
 _game_ehs = {}
@@ -520,9 +518,9 @@ class THBattleRaid(Game):
 
         # -------
 
-        g.process_action(DrawCards(mutant, amount=6))
+        g.process_action(DistributeCards(mutant, amount=6))
         for p in attackers:
-            g.process_action(DrawCards(p, amount=4))
+            g.process_action(DistributeCards(p, amount=4))
 
         # stage 1
         try:

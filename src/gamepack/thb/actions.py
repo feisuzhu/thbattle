@@ -528,7 +528,7 @@ class DropCardStage(GenericAction):
         return True
 
 
-class DrawCards(GenericAction):
+class BaseDrawCards(GenericAction):
     def __init__(self, target, amount=2):
         self.source = self.target = target
         self.amount = amount
@@ -546,6 +546,14 @@ class DrawCards(GenericAction):
 
     def is_valid(self):
         return not self.target.dead
+
+
+class DrawCards(BaseDrawCards):
+    pass
+
+
+class DistributeCards(BaseDrawCards):
+    pass
 
 
 class DrawCardStage(DrawCards):

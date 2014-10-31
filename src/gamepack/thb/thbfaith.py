@@ -7,16 +7,14 @@ import logging
 import random
 
 # -- third party --
-
 # -- own --
-from .actions import action_eventhandlers, migrate_cards
-from .actions import PlayerDeath, DrawCards, PlayerTurn, RevealIdentity, UserAction, MigrateCardsTransaction, DeadDropCards
+from .actions import DeadDropCards, DistributeCards, MigrateCardsTransaction, PlayerDeath
+from .actions import PlayerTurn, RevealIdentity, UserAction, action_eventhandlers, migrate_cards
 from .characters.baseclasses import mixin_character
-from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
-from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
+from .common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
 from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
+from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
 from utils import BatchList, Enum, filter_out
-
 import settings
 
 # -- code --
@@ -61,16 +59,13 @@ class DeathHandler(EventHandler):
                 trans.notify('girl_chosen', (tgt, c))
 
             tgt = g.switch_character(tgt, c)
-            
-            c = getattr(g, 'current_turn', None)
-            try:
-                g.current_turn = None
-                g.process_action(DrawCards(tgt, 4))
 
-                if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                    g.process_action(RedrawCards(tgt, tgt))
-            finally:
-                g.current_turn = c
+            c = getattr(g, 'current_turn', None)
+
+            g.process_action(DistributeCards(tgt, 4))
+
+            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                g.process_action(RedrawCards(tgt, tgt))
 
         return act
 
@@ -218,7 +213,7 @@ class THBattleFaith(Game):
         g.emit_event('game_begin', g)
 
         for p in pl:
-            g.process_action(DrawCards(p, amount=4))
+            g.process_action(DistributeCards(p, amount=4))
 
         pl = g.players.rotate_to(first)
         rst = user_input(pl[1:], ChooseOptionInputlet(DeathHandler(), (False, True)), type='all')

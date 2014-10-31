@@ -3,8 +3,8 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCardStage, DrawCards, DropCards, UserAction, ask_for_action, ttags
-from ..actions import user_choose_cards
+from ..actions import DistributeCards, DrawCardStage, DrawCards, DropCards, UserAction
+from ..actions import ask_for_action, ttags, user_choose_cards
 from ..cards import Skill, t_None
 from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game
@@ -93,7 +93,7 @@ class VirtueHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'card_migration':
             act, cards, _from, to = arg
-            if isinstance(act, (DrawCardStage, DivinityDrawCards)):
+            if isinstance(act, (DistributeCards, DrawCardStage, DivinityDrawCards)):
                 return arg
 
             if to is None or not to.owner:

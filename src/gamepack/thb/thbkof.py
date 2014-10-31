@@ -12,7 +12,7 @@ from game import sync_primitive
 
 from .common import PlayerIdentity, CharChoice, get_seed_for
 
-from .actions import DeadDropCards, PlayerTurn, DrawCards, RevealIdentity
+from .actions import DeadDropCards, PlayerTurn, DistributeCards, RevealIdentity
 from .actions import action_eventhandlers
 
 from .characters.baseclasses import mixin_character
@@ -70,7 +70,7 @@ class KOFCharacterSwitchHandler(EventHandler):
 
         for p in [p for p in g.players if p.dead and p.characters]:
             new = g.next_character(p)
-            g.process_action(DrawCards(new, 4))
+            g.process_action(DistributeCards(new, 4))
 
 
 class Identity(PlayerIdentity):
@@ -203,7 +203,7 @@ class THBattleKOF(Game):
         g.emit_event('game_begin', g)
 
         for p in pl:
-            g.process_action(DrawCards(p, amount=3 if p is first else 4))
+            g.process_action(DistributeCards(p, amount=3 if p is first else 4))
 
         for i, idx in enumerate(cycle(order)):
             p = g.players[idx]
