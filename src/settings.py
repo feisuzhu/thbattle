@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 229'
+VERSION = 'THBATTLE V1.0b incr 230'
 
 CWD = os.getcwd()
 LOGIC_UPDATE_BASE = os.path.relpath(os.path.dirname(os.path.realpath(__file__)), CWD)
