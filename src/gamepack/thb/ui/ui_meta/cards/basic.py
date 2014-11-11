@@ -55,7 +55,7 @@ class GrazeCard:
         u'|R擦弹|r\n\n'
         u'当你受到【弹幕】的攻击时，你可以使用一张【擦弹】来抵消【弹幕】的效果。\n'
         u'|B|R>> |r默认情况下，【擦弹】只能在回合外使用或打出。\n\n'
-        u'|DB（画师：Pixiv ID 8692732，CV：小羽）|r'
+        u'|DB（画师：霏茶，CV：小羽）|r'
     )
 
     def is_action_valid(g, cl, target_list):
