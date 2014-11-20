@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, cards, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
-
+# -- code --
 __metaclass__ = gen_metafunc(characters.reimu)
 
 
@@ -58,7 +57,7 @@ class SpiritualAttack:
         return (False, u'你不能主动使用灵击')
 
     def sound_effect(act):
-        return gres.cv.reimu_sa
+        return 'thb-cv-reimu_sa'
 
     def effect_string(act):
         return cards.RejectCard.ui_meta.effect_string(act)
@@ -120,8 +119,8 @@ class Tribute:
 class Reimu:
     # Character
     char_name = u'博丽灵梦'
-    port_image = gres.reimu_port
-    miss_sound_effect = gres.cv.reimu_miss
+    port_image = 'thb-portrait-reimu'
+    miss_sound_effect = 'thb-cv-reimu_miss'
     description = (
         u'|DB节操满地跑的城管 博丽灵梦 体力：3|r\n\n'
         u'|G灵击|r：你可以将一张红色手牌当【好人卡】使用。\n\n'

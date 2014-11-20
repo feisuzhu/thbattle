@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.ran)
 
 
@@ -35,7 +37,7 @@ class ProphetAction:
         )
 
     def sound_effect(act):
-        return gres.cv.ran_prophet
+        return 'thb-cv-ran_prophet'
 
 
 class ExtremeIntelligenceAction:
@@ -55,7 +57,7 @@ class ExtremeIntelligenceAction:
         )
 
     def sound_effect(act):
-        return gres.cv.ran_ei
+        return 'thb-cv-ran_ei'
 
 
 class NakedFox:
@@ -78,8 +80,8 @@ class NakedFoxAction:
 class Ran:
     # Character
     char_name = u'八云蓝'
-    port_image = gres.ran_port
-    miss_sound_effect = gres.cv.ran_miss
+    port_image = 'thb-portrait-ran'
+    miss_sound_effect = 'thb-cv-ran_miss'
     description = (
         u'|DB天河一号的核心 八云蓝 体力：3|r\n\n'
         u'|G神算|r：准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序的置于牌堆顶，其余以任意顺序置于牌堆底。（X为场上存活角色的数量，且至多为5）\n\n'

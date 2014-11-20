@@ -6,7 +6,6 @@ import random
 # -- third party --
 # -- own --
 from gamepack.thb import cards
-from gamepack.thb.ui.resource import resource as gres
 from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc
 
 # -- code --
@@ -15,7 +14,7 @@ __metaclass__ = gen_metafunc(cards)
 
 class DemolitionCard:
     # action_stage meta
-    image = gres.card_demolition
+    image = 'thb-card-demolition'
     name = u'城管执法'
     description = (
         u'|R城管执法|r\n\n'
@@ -34,7 +33,7 @@ class DemolitionCard:
             return (True, u'嗯，你的牌太多了')
 
     def sound_effect(act):
-        return gres.cv.card_demolition
+        return 'thb-cv-card_demolition'
 
 
 class Demolition:
@@ -50,7 +49,7 @@ class Demolition:
 class RejectCard:
     # action_stage meta
     name = u'好人卡'
-    image = gres.card_reject
+    image = 'thb-card-reject'
     description = (
         u'|R好人卡|r\n\n'
         u'一张符卡对一名目标角色生效前，你可以使用此牌来抵消该符卡对其目标角色产生的效果。\n\n'
@@ -69,7 +68,7 @@ class RejectCard:
         )
 
     def sound_effect(act):
-        return gres.cv.card_reject
+        return 'thb-cv-card_reject'
 
 
 class RejectHandler:
@@ -92,8 +91,8 @@ class RejectHandler:
 class SealingArrayCard:
     # action_stage meta
     name = u'封魔阵'
-    image = gres.card_sealarray
-    tag_anim = lambda c: gres.tag_sealarray
+    image = 'thb-card-sealarray'
+    tag_anim = lambda c: 'thb-tag-sealarray'
     description = (
         u'|R封魔阵|r\n\n'
         u'延时类符卡\n'
@@ -112,7 +111,7 @@ class SealingArrayCard:
         return (True, u'画个圈圈诅咒你！')
 
     def sound_effect(act):
-        return gres.cv.card_sealarray
+        return 'thb-cv-card_sealarray'
 
 
 class SealingArray:
@@ -127,8 +126,8 @@ class SealingArray:
 class FrozenFrogCard:
     # action_stage meta
     name = u'冻青蛙'
-    image = gres.card_frozenfrog
-    tag_anim = lambda c: gres.tag_frozenfrog
+    image = 'thb-card-frozenfrog'
+    tag_anim = lambda c: 'thb-tag-frozenfrog'
     description = (
         u'|R冻青蛙|r\n\n'
         u'延时类符卡\n'
@@ -147,7 +146,7 @@ class FrozenFrogCard:
         return (True, u'伸手党什么的，冻住就好了！')
 
     def sound_effect(act):
-        return gres.cv.card_frozenfrog
+        return 'thb-cv-card_frozenfrog'
 
 
 class FrozenFrog:
@@ -162,7 +161,7 @@ class FrozenFrog:
 class NazrinRodCard:
     # action_stage meta
     name = u'寻龙尺'
-    image = gres.card_nazrinrod
+    image = 'thb-card-nazrinrod'
     description = (
         u'|R寻龙尺|r\n\n'
         u'非延时符卡\n'
@@ -174,14 +173,14 @@ class NazrinRodCard:
         return (True, u'看看能找到什么好东西~')
 
     def sound_effect(act):
-        return gres.cv.card_nazrinrod
+        return 'thb-cv-card_nazrinrod'
 
 
 class SinsackCard:
     # action_stage meta
     name = u'罪袋'
-    image = gres.card_sinsack
-    tag_anim = lambda c: gres.tag_sinsack
+    image = 'thb-card-sinsack'
+    tag_anim = lambda c: 'thb-tag-sinsack'
     description = (
         u'|R罪袋|r\n\n'
         u'延时类符卡\n'
@@ -196,7 +195,7 @@ class SinsackCard:
         return (True, u'别来找我！')
 
     def sound_effect(act):
-        return gres.cv.card_sinsack
+        return 'thb-cv-card_sinsack'
 
 
 class Sinsack:
@@ -208,12 +207,12 @@ class Sinsack:
 
 class SinsackDamage:
     def sound_effect(act):
-        return gres.cv.card_sinsack_effect
+        return 'thb-cv-card_sinsack_effect'
 
 
 class YukariDimensionCard:
     # action_stage meta
-    image = gres.card_yukaridimension
+    image = 'thb-card-yukaridimension'
     name = u'隙间'
 
     description = (
@@ -233,7 +232,7 @@ class YukariDimensionCard:
             return (True, u'请把胖次给我！')
 
     def sound_effect(act):
-        return gres.cv.card_dimension
+        return 'thb-cv-card_dimension'
 
 
 class YukariDimension:
@@ -248,7 +247,7 @@ class YukariDimension:
 
 class DuelCard:
     # action_stage meta
-    image = gres.card_duel
+    image = 'thb-card-duel'
     name = u'弹幕战'
     description = (
         u'|R弹幕战|r\n\n'
@@ -263,11 +262,11 @@ class DuelCard:
         return (True, u'来，战个痛快！')
 
     def sound_effect(act):
-        return gres.cv.card_duel
+        return 'thb-cv-card_duel'
 
 
 class MapCannonCard:
-    image = gres.card_mapcannon
+    image = 'thb-card-mapcannon'
     name = u'地图炮'
     description = (
         u'|R地图炮|r\n\n'
@@ -280,11 +279,11 @@ class MapCannonCard:
         return (True, u'一个都不能跑！')
 
     def sound_effect(act):
-        return gres.cv.card_mapcannon
+        return 'thb-cv-card_mapcannon'
 
 
 class SinsackCarnivalCard:
-    image = gres.card_sinsackcarnival
+    image = 'thb-card-sinsackcarnival'
     name = u'罪袋狂欢'
     description = (
         u'|R罪袋狂欢|r\n\n'
@@ -297,12 +296,12 @@ class SinsackCarnivalCard:
         return (True, u'罪袋们来送水啦！')
 
     def sound_effect(act):
-        return gres.cv.card_sinsackcarnival
+        return 'thb-cv-card_sinsackcarnival'
 
 
 class FeastCard:
     # action_stage meta
-    image = gres.card_feast
+    image = 'thb-card-feast'
     name = u'宴会'
     description = (
         u'|R宴会|r\n\n'
@@ -316,15 +315,15 @@ class FeastCard:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.card_feast1,
-            gres.cv.card_feast2,
-            gres.cv.card_feast3,
+            'thb-cv-card_feast1',
+            'thb-cv-card_feast2',
+            'thb-cv-card_feast3',
         ])
 
 
 class HarvestCard:
     # action_stage meta
-    image = gres.card_harvest
+    image = 'thb-card-harvest'
     name = u'五谷丰登'
     description = (
         u'|R五谷丰登|r\n\n'
@@ -337,7 +336,7 @@ class HarvestCard:
         return (True, u'麻薯会有的，节操是没有的！')
 
     def sound_effect(act):
-        return gres.cv.card_harvest
+        return 'thb-cv-card_harvest'
 
 
 class HarvestEffect:
@@ -354,7 +353,7 @@ class HarvestEffect:
 class DollControlCard:
     # action_stage meta
     name = u'人形操控'
-    image = gres.card_dollcontrol
+    image = 'thb-card-dollcontrol'
     description = (
         u'|R人形操控|r\n\n'
         u'出牌阶段，对装备区内有武器牌的一名其他角色使用，令其选择一项：对其攻击范围内一名由你指定的角色使用一张【弹幕】，或将武器交给你。\n\n'
@@ -384,7 +383,7 @@ class DollControlCard:
             return (True, u'乖，听话！')
 
     def sound_effect(act):
-        return gres.cv.card_dollcontrol
+        return 'thb-cv-card_dollcontrol'
 
 
 class DollControl:
@@ -404,7 +403,7 @@ class DollControl:
 class DonationBoxCard:
     # action_stage meta
     name = u'塞钱箱'
-    image = gres.card_donationbox
+    image = 'thb-card-donationbox'
     description = (
         u'|R塞钱箱|r\n\n'
         u'群体符卡\n'
@@ -424,7 +423,7 @@ class DonationBoxCard:
         return (True, u'纳奉！纳奉！')
 
     def sound_effect(act):
-        return gres.cv.card_donationbox
+        return 'thb-cv-card_donationbox'
 
 
 class DonationBoxEffect:

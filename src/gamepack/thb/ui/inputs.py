@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # -- stdlib --
 import itertools
 import logging
@@ -7,22 +6,20 @@ import math
 import random
 
 # -- third party --
-from pyglet.text import Label
 from gevent.event import Event
+from pyglet.text import Label
 import gevent
 import pyglet
 
 # -- own --
-from .game_controls import DropCardArea, CardSprite, CardSelectionPanel
-from client.ui.base.interp import AbstractInterp, getinterp, InterpDesc, LinearInterp, SineInterp
-from client.ui.controls import BigProgressBar
-from client.ui.controls import Button, ConfirmButtons, Control
-from client.ui.controls import ImageButton, ImageSelector
-from client.ui.controls import Panel
-from client.ui.resource import resource as cres
+from .game_controls import CardSelectionPanel, CardSprite, DropCardArea
+from client.ui.base.interp import AbstractInterp, InterpDesc, LinearInterp, SineInterp, getinterp
+from client.ui.controls import BigProgressBar, Button, ConfirmButtons, Control, ImageButton
+from client.ui.controls import ImageSelector, Panel
+from client.ui.resloader import L
 from game.autoenv import Game
 from gamepack.thb import actions as thbactions
-from gamepack.thb.cards import CardList
+from gamepack.thb.cards import Card, CardList
 
 # -- code --
 log = logging.getLogger('THBattleUI_Input')
@@ -526,7 +523,7 @@ class GirlSelector(ImageSelector):
         self.choice = choice
         cc = choice.char_cls
         meta = cc.ui_meta
-        pimg = meta.port_image
+        pimg = L(meta.port_image)
         self.char_name = meta.char_name
         self.char_maxlife = cc.maxlife
 
@@ -652,7 +649,7 @@ class UIChooseGirl(UIBaseChooseGirl):
 
 
 class UIBanGirl(UIBaseChooseGirl):
-    hover_pic = cres.imagesel_ban
+    hover_pic = L('c-imagesel_ban')
 
     def process_user_input_start(self, ilet):
         self.label.color = (255, 255, 160, 255)
@@ -814,7 +811,7 @@ class UIChooseIndividualCard(Panel, InputHandler):
         self.update()
 
         btn = ImageButton(
-            cres.buttons.close_blue,
+            L('c-buttons-close_blue'),
             parent=self,
             x=w-20, y=h-20,
         )
@@ -1169,6 +1166,145 @@ class UIKokoroHomeMask(Panel, InputHandler):
     def draw(self):
         Panel.draw(self)
         self.lbls.draw()
+
+
+class UIMorphingCardSelection(CardSelectionPanel):
+    def __init__(self, parent, *a, **k):
+        CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)
+        self.view = view = parent
+        view.selection_change += self.on_selection_change
+        self.panel = None
+        self.on_selection_change()
+
+    def on_selection_change(self):
+        view = self.view
+        params = view.get_action_params()
+        cl = view.get_selected_cards()
+
+        def cancel():
+            if self.panel:
+                self.panel.delete()
+                self.panel = None
+                try:
+                    del params['mamizou_morphing']
+                except:
+                    pass
+
+        if len(cl) != 2:
+            return cancel()
+
+        cats = set(cl[0].category)
+        cats.update(cl[1].category)
+
+        if 'skill' in cats:
+            return cancel()
+
+        cats = cats & {'basic', 'spellcard'}
+        if not cats:
+            return cancel()
+
+        if self.panel:
+            return
+
+        if 'spellcard' in cats:
+            cats.discard('spellcard')
+            cats.add('instant_spellcard')
+
+        card_categories = {
+            cat: [
+                cls() for cls in Card.card_classes.values()
+                if cat in cls.category
+            ] for cat in ('basic', 'instant_spellcard')
+        }
+
+        cat_names = (
+            ('basic', u'基本牌'),
+            ('instant_spellcard', u'符卡')
+        )
+
+        card_lists = [
+            (name, card_categories[cat])
+            for cat, name in cat_names
+            if cat in cats
+        ]
+        self.panel = panel = CardSelectionPanel(
+            parent=self.parent, zindex=10,
+            selection_mode=CardSelectionPanel.SINGLE,
+        )
+        panel.init(card_lists, multiline=len(card_lists) < 2)
+
+        @panel.event
+        def on_selection_change():
+            if panel.selection:
+                card = panel.selection[0].associated_card
+                params['mamizou_morphing'] = card.__class__.__name__
+            else:
+                try:
+                    del params['mamizou_morphing']
+                except:
+                    pass
+
+            self.view.selection_change.notify()
+
+    def delete(self):
+        if self.panel:
+            self.panel.delete()
+
+        self.view.selection_change -= self.on_selection_change
+        super(UIMorphingCardSelection, self).delete()
+
+
+class UIDebugUseCardSelection(CardSelectionPanel):
+    def __init__(self, parent, *a, **k):
+        CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)
+        self.view = view = parent
+        view.selection_change += self.on_selection_change
+        self.panel = None
+        self.on_selection_change()
+
+    def on_selection_change(self):
+        view = self.view
+        params = view.get_action_params()
+
+        def cancel():
+            if self.panel:
+                self.panel.delete()
+                self.panel = None
+                try:
+                    del params['debug_card']
+                except:
+                    pass
+
+        if self.panel:
+            return
+
+        cl = [c() for c in Card.card_classes.values() if c is not Card.card_classes['DummyCard']]
+        card_lists = [('', cl[i:i+12]) for i in xrange(0, len(cl), 12)]
+        self.panel = panel = CardSelectionPanel(
+            parent=self.parent, zindex=10,
+            selection_mode=CardSelectionPanel.SINGLE,
+        )
+        panel.init(card_lists, multiline=False)
+
+        @panel.event
+        def on_selection_change():
+            if panel.selection:
+                card = panel.selection[0].associated_card
+                params['debug_card'] = card.__class__.__name__
+            else:
+                try:
+                    del params['debug_card']
+                except:
+                    pass
+
+            self.view.selection_change.notify()
+
+    def delete(self):
+        if self.panel:
+            self.panel.delete()
+
+        self.view.selection_change -= self.on_selection_change
+        CardSelectionPanel.delete(self)
 
 
 mapping = {

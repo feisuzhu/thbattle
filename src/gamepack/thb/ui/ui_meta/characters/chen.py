@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import cards
-from gamepack.thb import characters
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, cards, characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.resource import resource as gres
 from utils import BatchList
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.chen)
 
 
@@ -68,7 +69,7 @@ class FlyingSkanda:
         )
 
     def sound_effect(act):
-        return gres.cv.chen_skanda
+        return 'thb-cv-chen_skanda'
 
 
 class Shikigami:
@@ -98,7 +99,7 @@ class Shikigami:
             return (True, u'发动【式神】')
 
     def sound_effect(act):
-        return gres.cv.chen_shikigami
+        return 'thb-cv-chen_shikigami'
 
 
 class ShikigamiAction:
@@ -109,8 +110,8 @@ class ShikigamiAction:
 class Chen:
     # Character
     char_name = u'橙'
-    port_image = gres.chen_port
-    miss_sound_effect = gres.cv.chen_miss
+    port_image = 'thb-portrait-chen'
+    miss_sound_effect = 'thb-cv-chen_miss'
     description = (
         u'|DB凶兆的黑喵 橙 体力：4|r\n\n'
         u'|G飞翔韦驮天|r：出牌阶段限一次，你使用【弹幕】或除了【人形操控】以外的非延时单体符卡时，可以额外指定一个目标。\n\n'

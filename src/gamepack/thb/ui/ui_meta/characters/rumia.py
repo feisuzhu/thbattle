@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.rumia)
 
 
@@ -48,7 +49,7 @@ class Darkness:
         )
 
     def sound_effect(act):
-        return gres.cv.rumia_darkness
+        return 'thb-cv-rumia_darkness'
 
 
 class DarknessAction:
@@ -76,14 +77,14 @@ class CheatingDrawCards:
         return u'突然不知道是谁把太阳挡住了。等到大家回过神来，赫然发现牌堆里少了一张牌！'
 
     def sound_effect(act):
-        return gres.cv.rumia_cheat
+        return 'thb-cv-rumia_cheat'
 
 
 class Rumia:
     # Character
     char_name = u'露米娅'
-    port_image = gres.rumia_port
-    miss_sound_effect = gres.cv.rumia_miss
+    port_image = 'thb-portrait-rumia'
+    miss_sound_effect = 'thb-cv-rumia_miss'
     description = (
         u'|DB宵暗的妖怪 露米娅 体力：3|r\n\n'
         u'|G黑暗|r：出牌阶段限一次，你可以弃置一张牌并指定一名其他角色。该角色需对由你指定的在其攻击范围内的另一名其他角色使用一张【弹幕】，否则你对其造成1点伤害。\n\n'

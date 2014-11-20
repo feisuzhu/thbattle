@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn, build_handcard
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
+from gamepack.thb.ui.ui_meta.common import build_handcard, gen_metafunc, my_turn, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.yuuka)
 
 
@@ -50,7 +52,7 @@ class FlowerQueen:
         return None  # FIXME
 
     def sound_effect(act):
-        return gres.cv.yuuka_flowerqueen
+        return 'thb-cv-yuuka_flowerqueen'
 
 
 class ReversedScales:
@@ -76,7 +78,7 @@ class ReversedScalesAction:
         )
 
     def sound_effect(act):
-        return gres.cv.yuuka_rs
+        return 'thb-cv-yuuka_rs'
 
 
 class SadistAction:
@@ -89,7 +91,7 @@ class SadistAction:
         )
 
     def sound_effect(act):
-        return gres.cv.yuuka_sadist
+        return 'thb-cv-yuuka_sadist'
 
 
 class SadistHandler:
@@ -116,8 +118,8 @@ class ReversedScalesHandler:
 class Yuuka:
     # Character
     char_name = u'风见幽香'
-    port_image = gres.yuuka_port
-    miss_sound_effect = gres.cv.yuuka_miss
+    port_image = 'thb-portrait-yuuka'
+    miss_sound_effect = 'thb-cv-yuuka_miss'
     description = (
         u'|DB四季的鲜花之主 风见幽香 体力：4|r\n\n'
         u'|G逆鳞|r：其他角色对你使用的单体非延时符卡，你可以将其视为|G弹幕战|r。\n\n'

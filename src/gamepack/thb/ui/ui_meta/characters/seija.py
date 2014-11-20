@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import random
 
-from gamepack.thb import actions
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
-from gamepack.thb.ui.resource import resource as gres
+# -- third party --
+# -- own --
+from gamepack.thb import actions, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.seija)
 
 
@@ -84,8 +85,8 @@ class Incite:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.seija_incite1,
-            gres.cv.seija_incite2,
+            'thb-cv-seija_incite1',
+            'thb-cv-seija_incite2',
         ])
 
 
@@ -119,7 +120,7 @@ class ReversalDuel:
         )
 
     def sound_effect(act):
-        return gres.cv.seija_reversal
+        return 'thb-cv-seija_reversal'
 
 
 class ReversalHandler:
@@ -131,8 +132,8 @@ class ReversalHandler:
 class Seija:
     # Character
     char_name = u'鬼人正邪'
-    port_image = gres.seija_port
-    miss_sound_effect = gres.cv.seija_miss
+    port_image = 'thb-portrait-seija'
+    miss_sound_effect = 'thb-cv-seija_miss'
     description = (
         u'|DB逆袭的天邪鬼 鬼人正邪 体力：3|r\n\n'
         u'|G挑拨|r：出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内一名由你指定的另一名角色使用了一张【弹幕】。若你没赢，该角色可以视为对你使用了一张【弹幕】。\n\n'

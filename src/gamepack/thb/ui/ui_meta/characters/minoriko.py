@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, my_turn
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
-from gamepack.thb.ui.resource import resource as gres
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.minoriko)
 
 
@@ -24,7 +26,7 @@ class FoisonDrawCardStage:
         )
 
     def sound_effect(act):
-        return gres.cv.minoriko_foison
+        return 'thb-cv-minoriko_foison'
 
 
 class AutumnFeast:
@@ -59,7 +61,7 @@ class AutumnFeast:
         )
 
     def sound_effect(act):
-        return gres.cv.minoriko_autumnfeast
+        return 'thb-cv-minoriko_autumnfeast'
 
 
 class AkiTribute:
@@ -71,14 +73,14 @@ class AkiTribute:
 
 class AkiTributeCollectCard:
     def sound_effect(act):
-        return gres.cv.minoriko_akitribute
+        return 'thb-cv-minoriko_akitribute'
 
 
 class Minoriko:
     # Character
     char_name = u'秋穰子'
-    port_image = gres.minoriko_port
-    miss_sound_effect = gres.cv.minoriko_miss
+    port_image = 'thb-portrait-minoriko'
+    miss_sound_effect = 'thb-cv-minoriko_miss'
     description = (
         u'|DB没人气的丰收神 秋穰子 体力：3|r\n\n'
         u'|G丰收|r：|B锁定技|r，摸牌阶段摸牌后，若你的手牌数不足5张，你可以补至5张。\n\n'

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
-
+# -- stdlib --
 import time
 
+# -- third party --
+# -- own --
+from gamepack.thb import actions, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+
+# -- code --
 __metaclass__ = gen_metafunc(characters.rinnosuke)
 
 
@@ -53,7 +54,7 @@ class Netoru:
         )
 
     def sound_effect(act):
-        return gres.cv.rinnosuke_nitoru
+        return 'thb-cv-rinnosuke_nitoru'
 
 
 class Psychopath:
@@ -77,14 +78,14 @@ class PsychopathDrawCards:
         t = tgt.tags
         if time.time() - t['__psycopath_lastplay'] > 10:
             t['__psycopath_lastplay'] = time.time()
-            return gres.cv.rinnosuke_psycopath
+            return 'thb-cv-rinnosuke_psycopath'
 
 
 class Rinnosuke:
     # Character
     char_name = u'森近霖之助'
-    port_image = gres.rinnosuke_port
-    miss_sound_effect = gres.cv.rinnosuke_miss
+    port_image = 'thb-portrait-rinnosuke'
+    miss_sound_effect = 'thb-cv-rinnosuke_miss'
     description = (
         u'|DB变态出没注意 森近霖之助 体力：3|r\n\n'
         u'|G变态|r：|B锁定技|r，当你失去一张装备区里的牌时，你摸两张牌。\n\n'

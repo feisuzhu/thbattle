@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, cards, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
-
+# -- code --
 __metaclass__ = gen_metafunc(characters.kogasa)
 
 
@@ -27,7 +26,7 @@ class JollyDrawCard:
         )
 
     def sound_effect(act):
-        return gres.cv.kogasa_jolly
+        return 'thb-cv-kogasa_jolly'
 
 
 class JollyHandler:
@@ -87,7 +86,7 @@ class SurpriseSkill:
         )
 
     def sound_effect(act):
-        return gres.cv.kogasa_surprise
+        return 'thb-cv-kogasa_surprise'
 
 
 class Surprise:
@@ -119,8 +118,8 @@ class Surprise:
 class Kogasa:
     # Character
     char_name = u'多多良小伞'
-    port_image = gres.kogasa_port
-    miss_sound_effect = gres.cv.kogasa_miss
+    port_image = 'thb-portrait-kogasa'
+    miss_sound_effect = 'thb-cv-kogasa_miss'
     description = (
         u'|DB愉快的遗忘之伞 多多良小伞 体力：3|r\n\n'
         u'|G惊吓|r：出牌阶段限一次，你可以选择一名其他角色，该角色选择一种花色后获得你的一张手牌并将其置入明牌区，若此牌与所选花色不同，则你对该角色造成1点伤害。无论结果如何，你摸一张牌。\n\n'

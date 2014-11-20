@@ -7,8 +7,8 @@ import random
 # -- own --
 from gamepack.thb import actions, cards
 from gamepack.thb.actions import ttags
-from gamepack.thb.ui.resource import resource as gres
-from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable, passive_is_action_valid
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 from utils import BatchList
 
 # -- code --
@@ -22,8 +22,8 @@ def equip_iav(g, cl, target_list):
 class OpticalCloakCard:
     # action_stage meta
     name = u'光学迷彩'
-    image = gres.card_opticalcloak
-    image_small = gres.card_opticalcloak_small
+    image = 'thb-card-opticalcloak'
+    image_small = 'thb-card-small-opticalcloak'
     description = (
         u'|R光学迷彩|r\n\n'
         u'装备后:当你需要使用或打出【擦弹】时，可以进行一次判定，若结果为红，视为你使用或打出了一张【擦弹】。\n\n'
@@ -40,7 +40,7 @@ class OpticalCloakSkill:
     is_action_valid = passive_is_action_valid
 
     def sound_effect(act):
-        return gres.cv.card_opticalcloak
+        return 'thb-cv-card_opticalcloak'
 
     def effect_string(act):
         return cards.GrazeCard.ui_meta.effect_string(act)
@@ -70,8 +70,8 @@ class OpticalCloak:
 class MomijiShieldCard:
     # action_stage meta
     name = u'天狗盾'
-    image = gres.card_momijishield
-    image_small = gres.card_momijishield_small
+    image = 'thb-card-momijishield'
+    image_small = 'thb-card-small-momijishield'
     description = (
         u'|R天狗盾|r\n\n'
         u'装备后：黑色【弹幕】对你无效。'
@@ -92,7 +92,7 @@ class MomijiShield:
         return u'被|G天狗盾|r挡下了…'
 
     def sound_effect(act):
-        return gres.cv.card_momijishield
+        return 'thb-cv-card_momijishield'
 
 
 ufo_desc = (
@@ -107,8 +107,8 @@ ufo_desc = (
 class GreenUFOCard:
     # action_stage meta
     name = u'绿色UFO'
-    image = gres.card_greenufo
-    image_small = gres.card_greenufo_small
+    image = 'thb-card-greenufo'
+    image_small = 'thb-card-small-greenufo'
     description = ufo_desc % name
 
     is_action_valid = equip_iav
@@ -125,8 +125,8 @@ class GreenUFOSkill:
 class RedUFOCard:
     # action_stage meta
     name = u'红色UFO'
-    image = gres.card_redufo
-    image_small = gres.card_redufo_small
+    image = 'thb-card-redufo'
+    image_small = 'thb-card-small-redufo'
     description = ufo_desc % name
 
     is_action_valid = equip_iav
@@ -143,8 +143,8 @@ class RedUFOSkill:
 class RoukankenCard:
     # action_stage meta
     name = u'楼观剑'
-    image = gres.card_roukanken
-    image_small = gres.card_roukanken_small
+    image = 'thb-card-roukanken'
+    image_small = 'thb-card-small-roukanken'
     description = (
         u'|R楼观剑|r\n\n'
         u'攻击范围3，装备后：你使用的【弹幕】无视防具。'
@@ -164,14 +164,14 @@ class Roukanken:
         return u'没有什么防具是|G楼观剑|r斩不断的！'
 
     def sound_effect(act):
-        return gres.cv.card_roukanken
+        return 'thb-cv-card_roukanken'
 
 
 class ElementalReactorCard:
     # action_stage meta
     name = u'八卦炉'
-    image = gres.card_reactor
-    image_small = gres.card_reactor_small
+    image = 'thb-card-reactor'
+    image_small = 'thb-card-small-reactor'
     description = (
         u'|R八卦炉|r\n\n'
         u'攻击范围1，装备后：出牌阶段你可以使用任意张【弹幕】。\n\n'
@@ -191,8 +191,8 @@ class ElementalReactorSkill:
 class UmbrellaCard:
     # action_stage meta
     name = u'阳伞'
-    image = gres.card_umbrella
-    image_small = gres.card_umbrella_small
+    image = 'thb-card-umbrella'
+    image_small = 'thb-card-small-umbrella'
     description = (
         u'|R阳伞|r\n\n'
         u'装备后：符卡造成的伤害对你无效。\n\n'
@@ -225,14 +225,14 @@ class UmbrellaEffect:
         )
 
     def sound_effect(act):
-        return gres.cv.card_umbrella
+        return 'thb-cv-card_umbrella'
 
 
 class GungnirCard:
     # action_stage meta
     name = u'冈格尼尔'
-    image = gres.card_gungnir
-    image_small = gres.card_gungnir_small
+    image = 'thb-card-gungnir'
+    image_small = 'thb-card-small-gungnir'
     description = (
         u'|R冈格尼尔|r\n\n'
         u'攻击范围3，装备后：你可以将两张手牌当【弹幕】使用或打出。'
@@ -293,8 +293,8 @@ class GungnirSkill:
 class ScarletRhapsodyCard:
     # action_stage meta
     name = u'绯想之剑'
-    image = gres.card_scarletrhapsodysword
-    image_small = gres.card_scarletrhapsodysword_small
+    image = 'thb-card-scarletrhapsodysword'
+    image_small = 'thb-card-small-scarletrhapsodysword'
     description = (
         u'|R绯想之剑|r\n\n'
         u'攻击范围4，装备后：当你使用的【弹幕】是你的最后一张手牌时，你可以为此【弹幕】指定至多三名目标。\n\n'
@@ -346,14 +346,14 @@ class ScarletRhapsodySkill:
         )
 
     def sound_effect(act):
-        return gres.cv.card_srs
+        return 'thb-cv-card_srs'
 
 
 class RepentanceStickCard:
     # action_stage meta
     name = u'悔悟棒'
-    image = gres.card_repentancestick
-    image_small = gres.card_repentancestick_small
+    image = 'thb-card-repentancestick'
+    image_small = 'thb-card-small-repentancestick'
     description = (
         u'|R悔悟棒|r\n\n'
         u'攻击范围2，装备后：当你使用【弹幕】造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
@@ -395,7 +395,7 @@ class RepentanceStick:
         )
 
     def sound_effect(act):
-        return gres.cv.card_repentancestick
+        return 'thb-cv-card_repentancestick'
 
 
 class MaidenCostumeEffect:
@@ -408,8 +408,8 @@ class MaidenCostumeEffect:
 class MaidenCostumeCard:
     # action_stage meta
     name = u'巫女服'
-    image = gres.card_maidencostume
-    image_small = gres.card_maidencostume_small
+    image = 'thb-card-maidencostume'
+    image_small = 'thb-card-small-maidencostume'
     description = (
         u'|R巫女服|r\n\n'
         u'对距离2以内的一名角色使用\n'
@@ -435,8 +435,8 @@ class MaidenCostumeSkill:
 class IbukiGourdCard:
     # action_stage meta
     name = u'伊吹瓢'
-    image = gres.card_ibukigourd
-    image_small = gres.card_ibukigourd_small
+    image = 'thb-card-ibukigourd'
+    image_small = 'thb-card-small-ibukigourd'
     is_action_valid = equip_iav
     description = (
         u'|R伊吹瓢|r\n\n'
@@ -455,8 +455,8 @@ class IbukiGourdSkill:
 class HouraiJewelCard:
     # action_stage meta
     name = u'蓬莱玉枝'
-    image = gres.card_houraijewel
-    image_small = gres.card_houraijewel_small
+    image = 'thb-card-houraijewel'
+    image_small = 'thb-card-small-houraijewel'
     description = (
         u'|R蓬莱玉枝|r\n\n'
         u'攻击范围1，装备后：你使用的【弹幕】只能用【好人卡】抵消，按此法使用的弹幕伤害固定为1。\n'
@@ -493,8 +493,8 @@ class HouraiJewelAttack:
 class SaigyouBranchCard:
     # action_stage meta
     name = u'西行妖'
-    image = gres.card_saigyoubranch
-    image_small = gres.card_saigyoubranch_small
+    image = 'thb-card-saigyoubranch'
+    image_small = 'thb-card-small-saigyoubranch'
     description = (
         u'|R西行妖|r\n\n'
         u'装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张【好人卡】。\n\n'
@@ -510,7 +510,7 @@ class SaigyouBranchSkill:
     is_action_valid = passive_is_action_valid
 
     def sound_effect(act):
-        return gres.cv.card_saigyoubranch
+        return 'thb-cv-card_saigyoubranch'
 
 
 class SaigyouBranchHandler:
@@ -542,8 +542,8 @@ class SaigyouBranch:
 class HakuroukenCard:
     # action_stage meta
     name = u'白楼剑'
-    image = gres.card_hakurouken
-    image_small = gres.card_hakurouken_small
+    image = 'thb-card-hakurouken'
+    image_small = 'thb-card-small-hakurouken'
     description = (
         u'|R白楼剑|r\n\n'
         u'攻击范围2，装备后：当你使用的黑色【弹幕】指定一名目标角色后，你可以令其选择一项：\n'
@@ -584,7 +584,7 @@ class Hakurouken:
             return u'|G【%s】|r摸了一张牌。' % act.source.ui_meta.char_name
 
     def sound_effect(act):
-        return gres.cv.card_hakurouken
+        return 'thb-cv-card_hakurouken'
 
 
 class HakuroukenHandler:
@@ -596,8 +596,8 @@ class HakuroukenHandler:
 class AyaRoundfanCard:
     # action_stage meta
     name = u'团扇'
-    image = gres.card_ayaroundfan
-    image_small = gres.card_ayaroundfan_small
+    image = 'thb-card-ayaroundfan'
+    image_small = 'thb-card-small-ayaroundfan'
     description = (
         u'|R团扇|r\n\n'
         u'攻击距离5，装备后：当你使用的【弹幕】对目标角色造成伤害时，你可以弃置一张手牌，然后弃置其装备区里的一张牌。\n\n'
@@ -640,16 +640,16 @@ class AyaRoundfan:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.card_roundfan1,
-            gres.cv.card_roundfan2,
+            'thb-cv-card_roundfan1',
+            'thb-cv-card_roundfan2',
         ])
 
 
 class NenshaPhoneCard:
     # action_stage meta
     name = u'念写机'
-    image = gres.card_nenshaphone
-    image_small = gres.card_nenshaphone_small
+    image = 'thb-card-nenshaphone'
+    image_small = 'thb-card-small-nenshaphone'
     description = (
         u'|R念写机|r\n\n'
         u'攻击距离4，装备后：当你使用的【弹幕】对目标角色造成伤害后，可以将其两张手牌置入明牌区。'
@@ -680,14 +680,14 @@ class NenshaPhone:
         )
 
     def sound_effect(act):
-        return gres.cv.card_nenshaphone
+        return 'thb-cv-card_nenshaphone'
 
 
 class LaevateinCard:
     # action_stage meta
     name = u'莱瓦汀'
-    image = gres.card_laevatein
-    image_small = gres.card_laevatein_small
+    image = 'thb-card-laevatein'
+    image_small = 'thb-card-small-laevatein'
     description = (
         u'|R莱瓦汀|r\n\n'
         u'攻击距离3，装备后：当你使用的【弹幕】被目标角色使用的【擦弹】抵消时，你可以弃置两张牌，令此【弹幕】依然生效。\n\n'
@@ -717,14 +717,14 @@ class Laevatein:
         return u'|G莱瓦汀|r的灭世之炎岂能轻易闪过！'
 
     def sound_effect(act):
-        return gres.cv.card_laevatein
+        return 'thb-cv-card_laevatein'
 
 
 class DeathSickleCard:
     # action_stage meta
     name = u'死神之镰'
-    image = gres.card_deathsickle
-    image_small = gres.card_deathsickle_small
+    image = 'thb-card-deathsickle'
+    image_small = 'thb-card-small-deathsickle'
     description = (
         u'|R死神之镰|r\n\n'
         u'攻击范围2，装备后：当你使用的【弹幕】对目标角色造成伤害时，若其没有手牌，此伤害+1。\n\n'
@@ -751,14 +751,14 @@ class DeathSickle:
         )
 
     def sound_effect(act):
-        return gres.cv.card_deathsickle
+        return 'thb-cv-card_deathsickle'
 
 
 class KeystoneCard:
     # action_stage meta
     name = u'要石'
-    image = gres.card_keystone
-    image_small = gres.card_keystone_small
+    image = 'thb-card-keystone'
+    image_small = 'thb-card-small-keystone'
     description = (
         u'|R要石|r\n\n'
         u'特殊的绿色UFO装备，距离+1\n'
@@ -782,14 +782,14 @@ class Keystone:
         )
 
     def sound_effect(act):
-        return gres.cv.card_keystone
+        return 'thb-cv-card_keystone'
 
 
 class WitchBroomCard:
     # action_stage meta
     name = u'魔女扫把'
-    image = gres.card_witchbroom
-    image_small = gres.card_witchbroom_small
+    image = 'thb-card-witchbroom'
+    image_small = 'thb-card-small-witchbroom'
     is_action_valid = equip_iav
     description = (
         u'|R魔女扫把|r\n\n'
@@ -806,8 +806,8 @@ class WitchBroomSkill:
 class YinYangOrbCard:
     # action_stage meta
     name = u'阴阳玉'
-    image = gres.card_yinyangorb
-    image_small = gres.card_yinyangorb_small
+    image = 'thb-card-yinyangorb'
+    image_small = 'thb-card-small-yinyangorb'
     description = (
         u'|R阴阳玉|r\n\n'
         u'装备后：在你的判定牌生效前，你可以打出【阴阳玉】代替之。'
@@ -841,8 +841,8 @@ class YinYangOrb:
 class SuwakoHatCard:
     # action_stage meta
     name = u'青蛙帽'
-    image = gres.card_suwakohat
-    image_small = gres.card_suwakohat_small
+    image = 'thb-card-suwakohat'
+    image_small = 'thb-card-small-suwakohat'
     description = (
         u'|R青蛙帽|r\n\n'
         u'装备后：手牌上限+2\n\n'
@@ -860,14 +860,14 @@ class SuwakoHatSkill:
 
 class SuwakoHatEffect:
     def sound_effect(act):
-        return gres.cv.card_suwakohat
+        return 'thb-cv-card_suwakohat'
 
 
 class YoumuPhantomCard:
     # action_stage meta
     name = u'半灵'
-    image = gres.card_phantom
-    image_small = gres.card_phantom_small
+    image = 'thb-card-phantom'
+    image_small = 'thb-card-small-phantom'
     description = (
         u'|R半灵|r\n\n'
         u'装备后：增加1点体力上限，当失去装备区里的【半灵】时，你回复1点体力。\n\n'
@@ -886,14 +886,14 @@ class YoumuPhantomSkill:
 
 class YoumuPhantomHeal:
     def sound_effect(act):
-        return gres.cv.card_phantom
+        return 'thb-cv-card_phantom'
 
 
 class IceWingCard:
     # action_stage meta
     name = u'⑨的翅膀'
-    image = gres.card_icewing
-    image_small = gres.card_icewing_small
+    image = 'thb-card-icewing'
+    image_small = 'thb-card-small-icewing'
     description = (
         u'|R⑨的翅膀|r\n\n'
         u'装备后：【封魔阵】和【冻青蛙】对你无效。\n\n'
@@ -923,14 +923,14 @@ class IceWing:
             return None
 
         ttags(tgt)['__icewing_se'] = True
-        return gres.cv.card_icewing
+        return 'thb-cv-card_icewing'
 
 
 class GrimoireCard:
     # action_stage meta
     name = u'魔导书'
-    image = gres.card_grimoire
-    image_small = gres.card_grimoire_small
+    image = 'thb-card-grimoire'
+    image_small = 'thb-card-small-grimoire'
     description = (
         u'|R魔导书|r\n\n'
         u'攻击距离1，装备后：出牌阶段限一次，若你于你的出牌阶段还未使用过【弹幕】，你可以消耗一次本回合使用【弹幕】的次数并将一张牌按照以下规则使用：\n'
@@ -993,4 +993,4 @@ class GrimoireSkill:
         )
 
     def sound_effect(act):
-        return gres.cv.card_grimoire
+        return 'thb-cv-card_grimoire'

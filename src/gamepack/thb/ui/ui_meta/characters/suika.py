@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.suika)
 
 
@@ -46,7 +47,7 @@ class Drunkard:
         return s
 
     def sound_effect(act):
-        return gres.cv.suika_drunkard
+        return 'thb-cv-suika_drunkard'
 
 
 class GreatLandscape:
@@ -77,14 +78,14 @@ class WineGodAwake:
         )
 
     def sound_effect(act):
-        return gres.cv.suika_winegod
+        return 'thb-cv-suika_winegod'
 
 
 class Suika:
     # Character
     char_name = u'伊吹萃香'
-    port_image = gres.suika_port
-    miss_sound_effect = gres.cv.suika_miss
+    port_image = 'thb-portrait-suika'
+    miss_sound_effect = 'thb-cv-suika_miss'
     description = (
         u'|DB小小的酒鬼夜行 伊吹萃香 体力：4|r\n\n'
         u'|G大江山|r：|B锁定技|r，若你没有装备武器牌，你的攻击范围始终+X。（X为你已损失的体力数）\n\n'

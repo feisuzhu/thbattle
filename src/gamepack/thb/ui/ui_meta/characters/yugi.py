@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import random
 
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.yugi)
 
 
 class Yugi:
     # Character
     char_name = u'星熊勇仪'
-    port_image = gres.yugi_port
-    figure_image = gres.yugi_figure
-    miss_sound_effect = gres.cv.yugi_miss
+    port_image = 'thb-portrait-yugi'
+    figure_image = 'thb-figure-yugi'
+    miss_sound_effect = 'thb-cv-yugi_miss'
     description = (
         u'|DB人所谈论的怪力乱神 星熊勇仪 体力：4|r\n\n'
         # u'|G强袭|r：你可以自损1点体力，或者使用一张武器牌/【酒】，对任意一名在你的攻击范围内的玩家造成一点伤害。\n\n'
@@ -51,8 +53,8 @@ class FreakingPower:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.yugi_fp1,
-            gres.cv.yugi_fp2,
+            'thb-cv-yugi_fp1',
+            'thb-cv-yugi_fp2',
         ])
 
 

@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.youmu)
 
 
 class Youmu:
     # Character
     char_name = u'魂魄妖梦'
-    port_image = gres.youmu_port
-    miss_sound_effect = gres.cv.youmu_miss
+    port_image = 'thb-portrait-youmu'
+    miss_sound_effect = 'thb-cv-youmu_miss'
     description = (
         u'|DB半分虚幻的厨师 魂魄妖梦 体力：4|r\n\n'
         u'|G迷津慈航斩|r：|B锁定技|r，你使用的【弹幕】目标角色需连续使用两张【擦弹】才能抵消；与你进行【弹幕战】的角色每次需连续打出两张【弹幕】。\n\n'
@@ -39,7 +42,7 @@ class MijincihangzhanAttack:
         )
 
     def sound_effect(act):
-        return gres.cv.youmu_mjchz
+        return 'thb-cv-youmu_mjchz'
 
 
 class YoumuWearEquipmentAction:
@@ -49,7 +52,7 @@ class YoumuWearEquipmentAction:
         equips = tgt.equips
         cat = card.equipment_category
         if cat == 'weapon' and [e for e in equips if e.equipment_category == 'weapon']:
-            return gres.cv.youmu_nitoryuu
+            return 'thb-cv-youmu_nitoryuu'
 
 
 class Nitoryuu:

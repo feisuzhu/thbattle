@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 from collections import OrderedDict
 
-from gamepack.thb import thb3v3, thbidentity, thbraid, thbkof, thbfaith, thbcp3, thb2v2, thbdebug
-from gamepack.thb.cards import Card
-from gamepack.thb.ui.resource import resource as gres
-from gamepack.thb.ui.game_controls import CardSelectionPanel
-
-from .common import gen_metafunc, card_desc, my_turn, meta_property
-from .common import limit1_skill_used, passive_clickable, passive_is_action_valid
+# -- third party --
+# -- own --
+from .common import card_desc, gen_metafunc, limit1_skill_used, meta_property, my_turn
+from .common import passive_clickable, passive_is_action_valid
+from gamepack.thb import thb2v2, thb3v3, thbcp3, thbdebug, thbfaith, thbidentity, thbkof, thbraid
 
 # -----BEGIN THB3v3 UI META-----
 __metaclass__ = gen_metafunc(thb3v3)
@@ -16,7 +15,7 @@ __metaclass__ = gen_metafunc(thb3v3)
 
 class THBattle:
     name = u'符斗祭 - 3v3'
-    logo = gres.thblogo_3v3
+    logo = 'thb-modelogo-3v3'
     description = (
         u'|R游戏人数|r：6人\n'
         u'\n'
@@ -37,7 +36,9 @@ class THBattle:
         },
     }
 
-    from gamepack.thb.ui.view import THBattleUI as ui_class  # noqa
+    def ui_class():
+        from gamepack.thb.ui.view import THBattleUI
+        return THBattleUI
 
     T = thb3v3.Identity.TYPE
     identity_table = {
@@ -62,7 +63,7 @@ __metaclass__ = gen_metafunc(thbcp3)
 
 class THBattleCP3:
     name = u'符斗祭 - CP大战'
-    logo = gres.thblogo_cp3
+    logo = 'thb-modelogo-cp3'
     description = (
         u'|R游戏人数|r：6人\n'
         u'\n'
@@ -76,7 +77,9 @@ class THBattleCP3:
     )
     params_disp = {}
 
-    from gamepack.thb.ui.view import THBattleCP3UI as ui_class  # noqa
+    def ui_class():
+        from gamepack.thb.ui.view import THBattleCP3UI
+        return THBattleCP3UI
 
     T = thbcp3.Identity.TYPE
     identity_table = {
@@ -104,7 +107,7 @@ __metaclass__ = gen_metafunc(thbkof)
 
 class THBattleKOF:
     name = u'符斗祭 - KOF模式'
-    logo = gres.thblogo_kof
+    logo = 'thb-modelogo-kof'
     description = (
         u'|R游戏人数|r：2人\n'
         u'\n'
@@ -127,8 +130,9 @@ class THBattleKOF:
         },
     }
 
-    from gamepack.thb.ui.view import THBattleKOFUI
-    ui_class = THBattleKOFUI
+    def ui_class():
+        from gamepack.thb.ui.view import THBattleKOFUI
+        return THBattleKOFUI
 
     T = thbkof.Identity.TYPE
     identity_table = {
@@ -154,7 +158,7 @@ __metaclass__ = gen_metafunc(thbidentity)
 
 class THBattleIdentity:
     name = u'符斗祭 - 标准8人身份场'
-    logo = gres.thblogo_8id
+    logo = 'thb-modelogo-8id'
     description = (
         u'|R游戏人数|r：8人\n'
         u'\n'
@@ -180,8 +184,9 @@ class THBattleIdentity:
         },
     }
 
-    from gamepack.thb.ui.view import THBattleIdentityUI
-    ui_class = THBattleIdentityUI
+    def ui_class():
+        from gamepack.thb.ui.view import THBattleIdentityUI
+        return THBattleIdentityUI
 
     T = thbidentity.Identity.TYPE
     identity_table = {
@@ -205,7 +210,7 @@ class THBattleIdentity:
 
 class THBattleIdentity5:
     name = u'符斗祭 - 标准5人身份场'
-    logo = gres.thblogo_5id
+    logo = 'thb-modelogo-5id'
     description = (
         u'|R游戏人数|r：5人\n'
         u'\n'
@@ -223,8 +228,9 @@ class THBattleIdentity5:
     )
     params_disp = {}
 
-    from gamepack.thb.ui.view import THBattleIdentity5UI
-    ui_class = THBattleIdentity5UI
+    def ui_class():
+        from gamepack.thb.ui.view import THBattleIdentity5UI
+        return THBattleIdentity5UI
 
     T = thbidentity.Identity.TYPE
     identity_table = {
@@ -254,7 +260,7 @@ __metaclass__ = gen_metafunc(thbraid)
 
 class THBattleRaid:
     name = u'符斗祭 - 异变模式'
-    logo = gres.thblogo_raid
+    logo = 'thb-modelogo-raid'
     params_disp = {
         'random_seat': {
             'desc': u'随机座位阵营',
@@ -265,8 +271,9 @@ class THBattleRaid:
         },
     }
 
-    from gamepack.thb.ui.view import THBattleRaidUI
-    ui_class = THBattleRaidUI
+    def ui_class():
+        from gamepack.thb.ui.view import THBattleRaidUI
+        return THBattleRaidUI
 
     T = thbraid.Identity.TYPE
     identity_table = {
@@ -472,7 +479,7 @@ __metaclass__ = gen_metafunc(thbfaith)
 
 class THBattleFaith:
     name = u'符斗祭 - 信仰争夺战'
-    logo = gres.thblogo_faith
+    logo = 'thb-modelogo-faith'
     description = (
         u'|R游戏人数|r：6人\n'
         u'\n'
@@ -496,7 +503,9 @@ class THBattleFaith:
         },
     }
 
-    from gamepack.thb.ui.view import THBattleFaithUI as ui_class  # noqa
+    def ui_class():
+        from gamepack.thb.ui.view import THBattleFaithUI
+        return THBattleFaithUI
 
     T = thbfaith.Identity.TYPE
     identity_table = {
@@ -527,7 +536,7 @@ __metaclass__ = gen_metafunc(thb2v2)
 
 class THBattle2v2:
     name = u'符斗祭 - 2v2'
-    logo = gres.thblogo_2v2
+    logo = 'thb-modelogo-2v2'
     description = (
         u'|R游戏人数|r：4人\n'
         u'\n'
@@ -563,7 +572,9 @@ class THBattle2v2:
         }),
     ))
 
-    from gamepack.thb.ui.view import THBattle2v2UI as ui_class  # noqa
+    def ui_class():
+        from gamepack.thb.ui.view import THBattle2v2UI
+        return THBattle2v2UI
 
     T = thbfaith.Identity.TYPE
     identity_table = {
@@ -591,63 +602,14 @@ class HeritageHandler:
 __metaclass__ = gen_metafunc(thbdebug)
 
 
-class DebugUseCardSelectionUI(CardSelectionPanel):
-    def __init__(self, parent, *a, **k):
-        CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)
-        self.view = view = parent
-        view.selection_change += self.on_selection_change
-        self.panel = None
-        self.on_selection_change()
-
-    def on_selection_change(self):
-        view = self.view
-        params = view.get_action_params()
-
-        def cancel():
-            if self.panel:
-                self.panel.delete()
-                self.panel = None
-                try:
-                    del params['debug_card']
-                except:
-                    pass
-
-        if self.panel:
-            return
-
-        cl = [c() for c in Card.card_classes.values() if c is not Card.card_classes['DummyCard']]
-        card_lists = [('', cl[i:i+12]) for i in xrange(0, len(cl), 12)]
-        self.panel = panel = CardSelectionPanel(
-            parent=self.parent, zindex=10,
-            selection_mode=CardSelectionPanel.SINGLE,
-        )
-        panel.init(card_lists, multiline=False)
-
-        @panel.event
-        def on_selection_change():
-            if panel.selection:
-                card = panel.selection[0].associated_card
-                params['debug_card'] = card.__class__.__name__
-            else:
-                try:
-                    del params['debug_card']
-                except:
-                    pass
-
-            self.view.selection_change.notify()
-
-    def delete(self):
-        if self.panel:
-            self.panel.delete()
-
-        self.view.selection_change -= self.on_selection_change
-        CardSelectionPanel.delete(self)
-
-
 class DebugUseCard:
     # Skill
     name = u'转化'
-    params_ui = DebugUseCardSelectionUI
+
+    @meta_property
+    def params_ui(self):
+        from gamepack.thb.ui.inputs import UIDebugUseCardSelection
+        return UIDebugUseCardSelection
 
     @meta_property
     def image(c):

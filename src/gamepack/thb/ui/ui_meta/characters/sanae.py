@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
 from gamepack.thb.actions import ttags
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
-from gamepack.thb.ui.resource import resource as gres
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.sanae)
 
 
 class Sanae:
     # Character
     char_name = u'东风谷早苗'
-    port_image = gres.sanae_port
-    miss_sound_effect = gres.cv.sanae_miss
+    port_image = 'thb-portrait-sanae'
+    miss_sound_effect = 'thb-cv-sanae_miss'
     description = (
         u'|DB常识满满的现人神 东风谷早苗 体力：3|r\n\n'
         u'|G奇迹|r：出牌阶段，你可以弃置X张牌并摸一张牌。若你以此法弃置的手牌数累计大于3张，你可以令一名角色回复一点体力。（X为你本回合发动|G奇迹|r的次数）\n'
@@ -44,7 +47,7 @@ class Miracle:
         return (True, u'奇迹是存在的！')
 
     def sound_effect(act):
-        return gres.cv.sanae_miracle
+        return 'thb-cv-sanae_miracle'
 
 
 class MiracleAction:
@@ -76,7 +79,7 @@ class SanaeFaith:
         return (True, u'团队需要信仰！')
 
     def sound_effect(act):
-        return gres.cv.sanae_faith
+        return 'thb-cv-sanae_faith'
 
 
 class SanaeFaithCollectCardAction:

@@ -4,7 +4,6 @@
 # -- third party --
 # -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.resource import resource as gres
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
 # -- code --
@@ -14,8 +13,8 @@ __metaclass__ = gen_metafunc(characters.kanako)
 class Kanako:
     # Character
     char_name = u'八坂神奈子'
-    port_image = gres.kanako_port
-    miss_sound_effect = gres.cv.kanako_miss
+    port_image = 'thb-portrait-kanako'
+    miss_sound_effect = 'thb-cv-kanako_miss'
     description = (
         u'|DB山丘与湖泊的化身 八坂神奈子 体力：4|r\n\n'
         u'|G神威|r：|B锁定技|r，摸牌阶段开始时，你摸X张牌，然后弃置等量的牌（X为你的当前体力值，且至多为4）。\n\n'
@@ -44,7 +43,7 @@ class DivinityDrawCards:
         )
 
     def sound_effect(act):
-        return gres.cv.kanako_divinity
+        return 'thb-cv-kanako_divinity'
 
 
 class DivinityDropCards:
@@ -91,4 +90,4 @@ class VirtueAction:
         )
 
     def sound_effect(act):
-        return gres.cv.kanako_virtue
+        return 'thb-cv-kanako_virtue'

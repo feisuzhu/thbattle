@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb.ui.resource import resource as gres
-from gamepack.thb import cards
-
+# -- stdlib --
+# -- third party --
+# -- own --
 from .common import G
+from gamepack.thb import cards
 from utils import ObjectDict
 
 # -----BEGIN TAGS UI META-----
@@ -19,7 +20,7 @@ __metaclass__ = tag_metafunc
 
 
 class attack_num:
-    tag_anim = lambda p: gres.tag_attacked
+    tag_anim = lambda p: 'thb-tag-attacked'
 
     def display(p, v):
         if cards.AttackCardHandler.is_freeattack(p):
@@ -31,19 +32,19 @@ class attack_num:
 
 
 class wine:
-    tag_anim = lambda p: gres.tag_wine
+    tag_anim = lambda p: 'thb-tag-wine'
     display = lambda p, v: v
     description = u'喝醉了…'
 
 
 class flan_cs:
-    tag_anim = lambda p: gres.tag_flandrecs
+    tag_anim = lambda p: 'thb-tag-flandrecs'
     display = lambda p, v: v >= p.tags['turn_count'] and G().current_turn is p
     description = u'玩坏你哦！'
 
 
 class lunadial:
-    tag_anim = lambda p: gres.tag_lunadial
+    tag_anim = lambda p: 'thb-tag-lunadial'
     display = lambda p, v: v and G().current_turn is p
     description = u'咲夜的时间！'
 
@@ -51,32 +52,32 @@ class lunadial:
 class faithcounter:
     def tag_anim(p):
         n = min(len(p.faiths), 6)
-        return gres.tag_faiths[n]
+        return 'thb-tag-faiths@%d' % n
 
     display = lambda p, v: v
     description = u'信仰数'
 
 
 class action:
-    tag_anim = lambda p: gres.tag_action
+    tag_anim = lambda p: 'thb-tag-action'
     display = lambda p, v: v
     description = u'可以行动'
 
 
 class riverside_target:
-    tag_anim = lambda p: gres.tag_riverside
+    tag_anim = lambda p: 'thb-tag-riverside'
     display = lambda p, v: v == G().turn_count
     description = u'被指定为彼岸的目标'
 
 
 class ran_ei:
-    tag_anim = lambda p: gres.tag_ran_ei
+    tag_anim = lambda p: 'thb-tag-ran_ei'
     display = lambda p, v: v < p.tags['turn_count'] + 1
     description = u'还可以发动【极智】'
 
 
 class aya_count:
-    tag_anim = lambda p: gres.tag_aya_range_max
+    tag_anim = lambda p: 'thb-tag-aya_range_max'
     display = lambda p, v: v >= 2 and p is G().current_turn
     description = u'使用卡牌时不受距离限制'
 

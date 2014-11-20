@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, card_desc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.medicine)
 
 
 class Medicine:
     # Character
     char_name = u'梅蒂欣'
-    port_image = gres.medicine_port
-    miss_sound_effect = gres.cv.medicine_miss
+    port_image = 'thb-portrait-medicine'
+    miss_sound_effect = 'thb-cv-medicine_miss'
     description = (
         u'|DB 小小的甜蜜毒药 梅蒂欣 体力：3|r\n\n'
         u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张手牌，令该角色获得喝醉状态。若该角色在该回合结束阶段开始时仍处于喝醉状态，其失去喝醉状态并选择一项：弃置一张手牌并令你摸一张牌或受到一点无来源伤害。\n\n'
@@ -36,7 +39,7 @@ class CiguateraAction:
         )
 
     def sound_effect(act):
-        return gres.cv.medicine_ciguatera
+        return 'thb-cv-medicine_ciguatera'
 
 
 class CiguateraTurnEnd:
@@ -81,7 +84,7 @@ class MelancholyAction:
                 else u'但|G【%s】|r缓了过来。') % act.target.ui_meta.char_name
 
     def sound_effect(act):
-        return gres.cv.medicine_melancholy
+        return 'thb-cv-medicine_melancholy'
 
 
 class MelancholyHandler:

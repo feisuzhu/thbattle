@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb import characters
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
-from gamepack.thb.ui.resource import resource as gres
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.seiga)
 
 
 class Seiga:
     # Character
     char_name = u'霍青娥'
-    port_image = gres.seiga_port
-    miss_sound_effect = gres.cv.seiga_miss
+    port_image = 'thb-portrait-seiga'
+    miss_sound_effect = 'thb-cv-seiga_miss'
     description = (
         u'|DB僵尸别跑 霍青娥 体力：4|r\n\n'
         u'|G邪仙|r：出牌阶段，你可以将一张可以主动发动的手牌，在合法的情况下，以一名其他玩家的身份使用。\n'
@@ -85,4 +87,4 @@ class Heterodoxy:
         # orig
 
     def sound_effect(act):
-        return gres.cv.seiga_heterodoxy
+        return 'thb-cv-seiga_heterodoxy'

@@ -5,7 +5,6 @@
 # -- own --
 from gamepack.thb import actions, cards
 from gamepack.thb.actions import ttags
-from gamepack.thb.ui.resource import resource as gres
 from gamepack.thb.ui.ui_meta.common import G, gen_metafunc
 
 # -- code --
@@ -14,7 +13,7 @@ __metaclass__ = gen_metafunc(cards)
 
 class AttackCard:
     # action_stage meta
-    image = gres.card_attack
+    image = 'thb-card-attack'
     name = u'弹幕'
     description = (
         u'|R弹幕|r\n\n'
@@ -32,25 +31,25 @@ class AttackCard:
 
     def sound_effect(act):
         if not isinstance(act, actions.LaunchCard):
-            return gres.cv.card_attack1
+            return 'thb-cv-card_attack1'
 
         current = G().current_turn
 
         if act.source is not current:
-            return gres.cv.card_attack1
+            return 'thb-cv-card_attack1'
 
         return [
-            gres.cv.card_attack1,
-            gres.cv.card_attack2,
-            gres.cv.card_attack3,
-            gres.cv.card_attack4,
+            'thb-cv-card_attack1',
+            'thb-cv-card_attack2',
+            'thb-cv-card_attack3',
+            'thb-cv-card_attack4',
         ][ttags(current)['__attack_graze_count'] % 4]
 
 
 class GrazeCard:
     # action_stage meta
     name = u'擦弹'
-    image = gres.card_graze
+    image = 'thb-card-graze'
     description = (
         u'|R擦弹|r\n\n'
         u'当你受到【弹幕】的攻击时，你可以使用一张【擦弹】来抵消【弹幕】的效果。\n'
@@ -69,22 +68,22 @@ class GrazeCard:
 
     def sound_effect(act):
         if not isinstance(act, actions.LaunchCard):
-            return gres.cv.card_graze1
+            return 'thb-cv-card_graze1'
 
         current = G().current_turn
 
         return [
-            gres.cv.card_graze1,
-            gres.cv.card_graze2,
-            gres.cv.card_graze3,
-            gres.cv.card_graze4,
+            'thb-cv-card_graze1',
+            'thb-cv-card_graze2',
+            'thb-cv-card_graze3',
+            'thb-cv-card_graze4',
         ][ttags(current)['__attack_graze_count'] % 4 - 1]
 
 
 class WineCard:
     # action_stage meta
     name = u'酒'
-    image = gres.card_wine
+    image = 'thb-card-wine'
     description = (
         u'|R酒|r\n\n'
         u'出牌阶段，对自己使用。使用后获得|B喝醉|r状态。\n'
@@ -100,7 +99,7 @@ class WineCard:
         return (True, u'青岛啤酒，神主也爱喝！')
 
     def sound_effect(act):
-        return gres.cv.card_wine
+        return 'thb-cv-card_wine'
 
 
 class Wine:
@@ -116,7 +115,7 @@ class WineRevive:
 class ExinwanCard:
     # action_stage meta
     name = u'恶心丸'
-    image = gres.card_exinwan
+    image = 'thb-card-exinwan'
     description = (
         u'|R恶心丸|r\n\n'
         u'出牌阶段，对自己使用。使用时没有额外效果。当此牌以任意的方式进入弃牌堆时，引发弃牌动作的角色需选择其中一项执行：\n'
@@ -142,7 +141,7 @@ class ExinwanEffect:
         return u'|G【%s】|r被恶心到了！' % act.target.ui_meta.char_name
 
     def sound_effect(act):
-        return gres.cv.card_exinwan
+        return 'thb-cv-card_exinwan'
 
 
 class UseGraze:
@@ -192,7 +191,7 @@ class UseAttack:
 
 class HealCard:
     # action_stage meta
-    image = gres.card_heal
+    image = 'thb-card-heal'
     name = u'麻薯'
     description = (
         u'|R麻薯|r\n\n'
@@ -212,7 +211,7 @@ class HealCard:
             return (True, u'来一口，精神焕发！')
 
     def sound_effect(act):
-        return gres.cv.card_heal
+        return 'thb-cv-card_heal'
 
 
 class AskForHeal:

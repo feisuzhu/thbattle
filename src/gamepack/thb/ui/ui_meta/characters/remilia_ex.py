@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, my_turn
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
-from gamepack.thb.ui.resource import resource as gres
 from utils import BatchList
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.remilia_ex)
 
 
@@ -30,18 +31,18 @@ remilia_ex_description = (
 class RemiliaEx:
     # Character
     char_name = u'异·蕾米莉亚'
-    port_image = gres.remilia_ex_port
+    port_image = 'thb-portrait-remilia_ex'
     description = remilia_ex_description
 
 
 class RemiliaEx2:
     # Character
     char_name = u'异·蕾米莉亚'
-    port_image = gres.remilia_ex2_port
+    port_image = 'thb-portrait-remilia_ex2'
     description = remilia_ex_description
 
-    wallpaper = gres.remilia_ex_wallpaper
-    bgm = gres.bgm_remilia_ex
+    wallpaper = 'thb-remilia_ex_wallpaper'
+    bgm = 'thb-bgm_remilia_ex'
     color_scheme = 'red'
 
 

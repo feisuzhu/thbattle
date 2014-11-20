@@ -26,7 +26,7 @@ from client.ui.controls import BalloonPrompt, Button, CheckBox, Colors, ConfirmB
 from client.ui.controls import ImageButton, ImageSelector, ListView, LoadingWindow, NoInviteButton
 from client.ui.controls import OptionButtonGroup, Panel, PasswordTextBox, PlayerPortrait
 from client.ui.controls import SensorLayer, TextArea, TextBox, VolumeTuner
-from client.ui.resource import resource as cres
+from client.ui.resloader import L
 from client.ui.soundmgr import SoundManager
 from game.autoenv import EventHandler
 from options import options
@@ -37,6 +37,7 @@ from utils.crypto import simple_decrypt, simple_encrypt
 from utils.filedlg import get_open_file_name, get_save_file_name
 from utils.misc import BatchList
 
+# -- code --
 # -- code --
 RE_AT = re.compile(ur'@([^@ ]+)')
 log = logging.getLogger('UI_Screens')
@@ -286,7 +287,7 @@ class UpdateScreen(Screen):
 
 class ReplayButton(ImageButton):
     def __init__(self, **k):
-        ImageButton.__init__(self, cres.buttons.replay, 1, **k)
+        ImageButton.__init__(self, L('c-buttons-replay'), 1, **k)
 
     def on_click(self):
         self.state = ImageButton.DISABLED
@@ -332,7 +333,7 @@ class ServerSelectScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.worldmap = cres.worldmap.get()
+        self.worldmap = L('c-worldmap')
 
         from settings import ServerList, NOTICE
 
@@ -371,7 +372,7 @@ class ServerSelectScreen(Screen):
                 from base.baseclasses import main_window
                 self.window = main_window
                 self.hand_cursor = self.window.get_system_mouse_cursor('hand')
-                self.worldmap_shadow = cres.worldmap_shadow.get()
+                self.worldmap_shadow = L('c-worldmap_shadow')
                 self.disable_click = False
                 self.highlight = None
                 self.hldraw = None
@@ -468,7 +469,7 @@ class ServerSelectScreen(Screen):
         self.draw_subcontrols()
 
     def on_switch(self):
-        SoundManager.switch_bgm(cres.bgm_hall)
+        SoundManager.switch_bgm('c-bgm_hall')
 
 
 class LoginScreen(Screen):
@@ -480,7 +481,7 @@ class LoginScreen(Screen):
                 bot_reserve=50, *a, **k
             )
 
-            def L(text, x, y, *a, **k):
+            def Lbl(text, x, y, *a, **k):
                 self.add_label(
                     text, x=x, y=y,
                     font_size=9, color=(0, 0, 0, 255),
@@ -488,8 +489,8 @@ class LoginScreen(Screen):
                     *a, **k
                 )
 
-            L(u'用户名：', 368 - 350, 286 - 165)
-            L(u'密码：', 368 - 350, 250 - 165)
+            Lbl(u'用户名：', 368 - 350, 286 - 165)
+            Lbl(u'密码：', 368 - 350, 250 - 165)
 
             self.txt_username = TextBox(
                 parent=self, x=438-350, y=282-165, width=220, height=20,
@@ -538,7 +539,7 @@ class LoginScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.bg = cres.bg_login.get()
+        self.bg = L('c-bg_login')
         self.bg_alpha = LinearInterp(0, 1.0, 1.5)
         self.dialog = LoginScreen.LoginDialog(parent=self)
         self.btn_try = try_game = Button(
@@ -604,7 +605,7 @@ class LoginScreen(Screen):
         self.dialog.enable()
 
     def on_switch(self):
-        SoundManager.switch_bgm(cres.bgm_hall)
+        SoundManager.switch_bgm('c-bgm_hall')
 
 
 class GameHallScreen(Screen):
@@ -677,7 +678,7 @@ class GameHallScreen(Screen):
                     y, x = divmod(i - n_hidden, 3)
                     x, y = 30 + 170*x, 275 - 125*y
                     s = ImageSelector(
-                        gcls.ui_meta.logo, selectors,
+                        L(gcls.ui_meta.logo), selectors,
                         parent=self, x=x, y=y
                     )
                     intro = getattr(gcls.ui_meta, 'description', None)
@@ -765,7 +766,7 @@ class GameHallScreen(Screen):
             Frame.__init__(
                 self, parent=p, caption=u'当前大厅内的游戏',
                 x=35, y=220, width=700, height=420,
-                bot_reserve=30, bg=cres.bg_gamelist.get(),
+                bot_reserve=30, bg=L('c-bg_gamelist'),
             )
 
             gl = self.gamelist = ListView(parent=self, x=2, y=30, width=696, height=420-30-25)
@@ -908,7 +909,7 @@ class GameHallScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.bg = cres.bg_gamehall.get()
+        self.bg = L('c-bg_gamehall')
 
         self.gamelist = self.GameList(self)
 
@@ -974,7 +975,7 @@ class GameHallScreen(Screen):
         self.draw_subcontrols()
 
     def on_switch(self):
-        SoundManager.switch_bgm(cres.bgm_hall)
+        SoundManager.switch_bgm('c-bgm_hall')
 
 
 class GameEventsBox(Frame):
@@ -1231,11 +1232,11 @@ class GameScreen(Screen):
     def __init__(self, game, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
 
-        self.backdrop = cres.bg_ingame.get()
+        self.backdrop = L('c-bg_ingame')
         self.flash_alpha = 0.0
 
         self.game = game
-        self.ui_class = game.ui_meta.ui_class
+        self.ui_class = game.ui_meta.ui_class()
         self.gameui = self.ui_class(
             parent=False, game=game,
             **r2d((0, 0, 820, 700))
@@ -1244,11 +1245,11 @@ class GameScreen(Screen):
 
         self.events_box = GameEventsBox(
             parent=self, x=820, y=340, width=204, height=360,
-            bg=cres.bg_eventsbox.get(),
+            bg=L('c-bg_eventsbox'),
         )
         self.chat_box = ChatBox(
             parent=self, x=820, y=0, width=204, height=342,
-            bg=cres.bg_chatbox.get(),
+            bg=L('c-bg_chatbox'),
         )
         self.panel = GameScreen.RoomControlPanel(parent=self)
         self.btn_exit = Button(
@@ -1308,7 +1309,7 @@ class GameScreen(Screen):
 
         elif _type == 'client_game_finished':
             g = args[0]
-            g.ui_meta.ui_class.show_result(g)
+            g.ui_meta.ui_class().show_result(g)
 
         elif _type in ('game_left', 'fleed'):
             GameHallScreen().switch()
@@ -1322,8 +1323,8 @@ class GameScreen(Screen):
                 parent=False, game=self.game,
                 **r2d((0, 0, 820, 720))
             )
-            SoundManager.switch_bgm(cres.bgm_hall)
-            self.backdrop = cres.bg_ingame.get()
+            SoundManager.switch_bgm('c-bgm_hall')
+            self.backdrop = L('c-bg_ingame')
             self.set_color(Colors.green)
             self.events_box.clear()
 
@@ -1386,7 +1387,7 @@ class GameScreen(Screen):
         self.chat_box.set_color(color)
 
     def on_switch(self):
-        SoundManager.switch_bgm(cres.bgm_hall)
+        SoundManager.switch_bgm('c-bgm_hall')
 
 
 class ReplayScreen(Screen):
@@ -1456,7 +1457,7 @@ class ReplayScreen(Screen):
                 # to make cached avatars get gc'd
                 cached_avatar = {}
 
-            for x, y, color in parent.ui_class.portrait_location:
+            for x, y, color in parent.ui_class().portrait_location:
                 l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
 
             self.portraits = l
@@ -1476,11 +1477,11 @@ class ReplayScreen(Screen):
     def __init__(self, game, replay, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
 
-        self.backdrop = cres.bg_ingame.get()
+        self.backdrop = L('c-bg_ingame')
         self.flash_alpha = 0.0
 
         self.game = game
-        self.ui_class = game.ui_meta.ui_class
+        self.ui_class = game.ui_meta.ui_class()
         self.gameui = self.ui_class(
             parent=False, game=game,
             **r2d((0, 0, 820, 700))
@@ -1493,7 +1494,7 @@ class ReplayScreen(Screen):
 
         self.events_box = GameEventsBox(
             parent=self, x=820, y=150, width=204, height=550,
-            bg=cres.bg_eventsbox.get(),
+            bg=L('c-bg_eventsbox'),
         )
         self.replay_panel = ReplayScreen.ReplayPanel(
             parent=self, x=820, y=0, width=204, height=152,
@@ -1522,7 +1523,7 @@ class ReplayScreen(Screen):
             g = args[0]
             ServerSelectScreen().switch()
             if _type == 'client_game_finished':
-                g.ui_meta.ui_class.show_result(g)
+                g.ui_meta.ui_class().show_result(g)
         else:
             Screen.on_message(self, _type, *args)
 
@@ -1548,4 +1549,4 @@ class ReplayScreen(Screen):
         self.replay_panel.set_color(color)
 
     def on_switch(self):
-        SoundManager.switch_bgm(cres.bgm_hall)
+        SoundManager.switch_bgm('c-bgm_hall')

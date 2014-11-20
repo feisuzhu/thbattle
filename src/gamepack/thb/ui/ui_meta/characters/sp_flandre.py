@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.sp_flandre)
 
 
 class SpFlandre:
     # Character
     char_name = u'SP芙兰朵露'
-    port_image = gres.sp_flandre_port
-    figure_image = gres.sp_flandre_figure
-    miss_sound_effect = gres.cv.spflandre_miss
+    port_image = 'thb-portrait-sp_flandre'
+    figure_image = 'thb-figure-sp_flandre'
+    miss_sound_effect = 'thb-cv-spflandre_miss'
     description = (
         u'|DB玩坏你哦 SP芙兰朵露 体力：4|r\n\n'
         u'|G破坏冲动|r：|B锁定技|r，结束阶段开始时，若你本回合内没有造成过伤害，你失去1点体力并对距离1以内的一名角色造成1点伤害。\n\n'
@@ -45,7 +47,7 @@ class DestructionImpulseAction:
         return s
 
     def sound_effect(act):
-        return gres.cv.spflandre_destructionimpulse
+        return 'thb-cv-spflandre_destructionimpulse'
 
 
 class DestructionImpulseHandler:
@@ -83,4 +85,4 @@ class FourOfAKindAction:
         )
 
     def sound_effect(act):
-        return gres.cv.spflandre_fourofakind
+        return 'thb-cv-spflandre_fourofakind'

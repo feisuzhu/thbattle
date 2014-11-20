@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, card_desc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.tenshi)
 
 
@@ -41,7 +44,7 @@ class MasochistAction:
         )
 
     def sound_effect(act):
-        return gres.cv.tenshi_masochist
+        return 'thb-cv-tenshi_masochist'
 
 
 class ScarletPerception:
@@ -59,14 +62,14 @@ class ScarletPerceptionAction:
         )
 
     def sound_effect(act):
-        return gres.cv.tenshi_sp
+        return 'thb-cv-tenshi_sp'
 
 
 class Tenshi:
     # Character
     char_name = u'比那名居天子'
-    port_image = gres.tenshi_port
-    miss_sound_effect = gres.cv.tenshi_miss
+    port_image = 'thb-portrait-tenshi'
+    miss_sound_effect = 'thb-cv-tenshi_miss'
     description = (
         u'|DB有顶天的大M子 比那名居天子 体力：3|r\n\n'
         u'|G抖Ｍ|r：当你受到1点伤害后，你可以观看牌堆顶的两张牌，将其中一张交给一名角色，然后将另一张交给一名角色。\n\n'

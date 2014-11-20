@@ -1,104 +1,99 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import os
 import zipfile
 
 # -- third party --
-from pyglet.resource import Loader
 import pyglet
 
 # -- own --
-from client.ui.resloader import Resource, _ResourceDesc, anim, bgm, get_atlas, img, img_grid
-from client.ui.resloader import imgdata, imgdata_grid, lazytexture, sound, subdir, texture
+from client.ui.resloader import resloader, loader, inventory, get_atlas
+
 
 # -- code --
-
-respath = os.path.join(os.path.dirname(__file__), 'res')
-
-# special case for font
-ldr = Loader(respath)
-fontzip = zipfile.ZipFile(ldr.file('font.zip'))
-font = {
-    fn: fontzip.open(fn).read()
-    for fn in fontzip.namelist()
-}
-fontzip.close()
-del fontzip, ldr
+@resloader('.zip')
+def font(path):
+    fontzip = zipfile.ZipFile(loader.file(path, 'rb'))
+    font = {
+        fn: fontzip.open(fn).read()
+        for fn in fontzip.namelist()
+    }
+    fontzip.close()
+    return font
 
 
-class white(_ResourceDesc):
-    __slots__ = ('name', )
-
-    def load(self, loader):
-        atlas = get_atlas()
-        white = atlas.add(pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64))
-        c = white.tex_coords
-        f = c[0:3]; t = c[6:9]
-        white.tex_coords = ((f[0] + t[0]) / 2, (f[1] + t[1]) / 2, 0) * 4
-        return white
+@resloader('')
+def white(path):
+    atlas = get_atlas()
+    white = atlas.add(pyglet.image.ImageData(4, 4, 'RGBA', '\xFF'*64))
+    c = white.tex_coords
+    f = c[0:3]; t = c[6:9]
+    white.tex_coords = ((f[0] + t[0]) / 2, (f[1] + t[1]) / 2, 0) * 4
+    return white
 
 
-resource = Resource(respath, [
-    bgm('bgm_hall'),
+inventory.update({
+    'c-bgm_hall':               ['bgm'],
 
-    lazytexture('bg_login'),
-    lazytexture('bg_gamehall'),
-    lazytexture('bg_ingame'),
-    lazytexture('worldmap'),
-    lazytexture('worldmap_shadow'),
-    lazytexture('bg_gamelist'),
-    lazytexture('bg_eventsbox'),
-    lazytexture('bg_chatbox'),
+    'c-bg_login':               ['lazytexture'],
+    'c-bg_gamehall':            ['lazytexture'],
+    'c-bg_ingame':              ['lazytexture'],
+    'c-worldmap':               ['lazytexture'],
+    'c-worldmap_shadow':        ['lazytexture'],
+    'c-bg_gamelist':            ['lazytexture'],
+    'c-bg_eventsbox':           ['lazytexture'],
+    'c-bg_chatbox':             ['lazytexture'],
 
-    img('imagesel_shine'),
-    img('imagesel_ban'),
-    imgdata('icon'),
+    'c-imagesel_shine':         ['img'],
+    'c-imagesel_ban':           ['img'],
+    'c-icon':                   ['imgdata'],
 
-    img('check'),
+    'c-check':                  ['img'],
 
-    img('bgm_volume'),
-    img('se_volume'),
-    img('vol_icon'),
-    img('vol_mute'),
+    'c-bgm_volume':             ['img'],
+    'c-se_volume':              ['img'],
+    'c-vol_icon':               ['img'],
+    'c-vol_mute':               ['img'],
 
-    anim('actor_frame', [50] * 9, True),
-    anim('turn_frame', [50] * 9, True),
+    'c-actor_frame':            ['anim', [50] * 9, True],
+    'c-turn_frame':             ['anim', [50] * 9, True],
 
-    texture('ray'),
+    'c-ray':                    ['texture'],
 
-    subdir('pbar', [img(i) for i in [
-        'bl', 'bm', 'br',
-        'bfl', 'bfm', 'bfr',
-        'sl', 'sm', 'sr',
-        'sfl', 'sfm', 'sfr',
-    ]]),
+    'c-pbar-bl':                ['img'],
+    'c-pbar-bm':                ['img'],
+    'c-pbar-br':                ['img'],
+    'c-pbar-bfl':               ['img'],
+    'c-pbar-bfm':               ['img'],
+    'c-pbar-bfr':               ['img'],
+    'c-pbar-sl':                ['img'],
+    'c-pbar-sm':                ['img'],
+    'c-pbar-sr':                ['img'],
+    'c-pbar-sfl':               ['img'],
+    'c-pbar-sfm':               ['img'],
+    'c-pbar-sfr':               ['img'],
 
-    subdir('buttons', [
-        [
-            img_grid('close_' + t, 1, 4)
-            for t in ('blue', 'red', 'green', 'orange')
-        ],
-        img_grid('port_showncard', 1, 4),
-        img_grid('replay', 1, 4),
-    ]),
+    'c-buttons-close_blue':     ['img_grid', 1, 4],
+    'c-buttons-close_red':      ['img_grid', 1, 4],
+    'c-buttons-close_green':    ['img_grid', 1, 4],
+    'c-buttons-close_orange':   ['img_grid', 1, 4],
+    'c-buttons-port_showncard': ['img_grid', 1, 4],
+    'c-buttons-replay':         ['img_grid', 1, 4],
 
-    subdir('sound', [
-        sound('input'),
-    ]),
+    'c-sound-input':            ['sound'],
 
-    imgdata_grid('suit12', 1, 4), imgdata_grid('suit16', 1, 4),
+    'c-suit12':                 ['imgdata_grid', 1, 4],
+    'c-suit16':                 ['imgdata_grid', 1, 4],
 
-    subdir('badges', [img(i) for i in [
-        'dev',
-        'dsb_bronze',
-        'dsb_gold',
-        'dsb_silver',
-        'jcb_bronze',
-        'jcb_gold',
-        'jcb_silver',
-        'contributor',
-    ]]),
+    'c-badges-dev':             ['img'],
+    'c-badges-dsb_bronze':      ['img'],
+    'c-badges-dsb_gold':        ['img'],
+    'c-badges-dsb_silver':      ['img'],
+    'c-badges-jcb_bronze':      ['img'],
+    'c-badges-jcb_gold':        ['img'],
+    'c-badges-jcb_silver':      ['img'],
+    'c-badges-contributor':     ['img'],
 
-    white('white'),
-])
+    'c-white':                  ['white'],
+    'c-font':                   ['font'],
+})

@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb import characters
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
-from gamepack.thb.ui.resource import resource as gres
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.parsee)
 
 
 class Parsee:
     # Character
     char_name = u'水桥帕露西'
-    port_image = gres.parsee_port
-    miss_sound_effect = gres.cv.parsee_miss
+    port_image = 'thb-portrait-parsee'
+    miss_sound_effect = 'thb-cv-parsee_miss'
     description = (
         u'|DB地壳下的嫉妒心 水桥帕露西 体力：4|r\n\n'
         u'|G嫉妒|r：出牌阶段，你可以将一张黑色牌当【城管执法】使用，若以此法使一名距离1以内角色的一张方片牌进入弃牌堆，你可以获得之。\n\n'
@@ -58,7 +60,7 @@ class Envy:
         return s
 
     def sound_effect(act):
-        return gres.cv.parsee_envy
+        return 'thb-cv-parsee_envy'
 
 
 class EnvyHandler:

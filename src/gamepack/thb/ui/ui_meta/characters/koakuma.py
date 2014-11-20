@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
 from gamepack.thb.actions import ttags
 from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
-from gamepack.thb.ui.resource import resource as gres
+
+# -- code --
 
 __metaclass__ = gen_metafunc(characters.koakuma)
 
@@ -11,9 +15,9 @@ __metaclass__ = gen_metafunc(characters.koakuma)
 class Koakuma:
     # Character
     char_name = u'小恶魔'
-    port_image = gres.koakuma_port
-    figure_image = gres.koakuma_figure
-    miss_sound_effect = gres.cv.koakuma_miss
+    port_image = 'thb-portrait-koakuma'
+    figure_image = 'thb-figure-koakuma'
+    miss_sound_effect = 'thb-cv-koakuma_miss'
     description = (
         u'|DB图书管理员 小恶魔 体力：4|r\n\n'
         u'|G寻找|r：出牌阶段限一次，你可以弃置任意数量的牌，然后摸等量的牌。\n\n'
@@ -57,4 +61,4 @@ class Find:
         return s
 
     def sound_effect(act):
-        return gres.cv.koakuma_find
+        return 'thb-cv-koakuma_find'

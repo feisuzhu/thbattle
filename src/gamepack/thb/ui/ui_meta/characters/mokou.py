@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.mokou)
 
 
 class Mokou:
     # Character
     char_name = u'藤原妹红'
-    port_image = gres.mokou_port
-    miss_sound_effect = gres.cv.mokou_miss
+    port_image = 'thb-portrait-mokou'
+    miss_sound_effect = 'thb-cv-mokou_miss'
     description = (
         u'|DBFFF团资深团员 藤原妹红 体力：4|r\n\n'
         u'|G浴火|r：结束阶段开始时，你可以失去1点体力，然后摸两张牌。\n\n'
@@ -35,7 +37,7 @@ class AshesAction:
         )
 
     def sound_effect(act):
-        return gres.cv.mokou_ashes
+        return 'thb-cv-mokou_ashes'
 
 
 class AshesHandler:
@@ -58,7 +60,7 @@ class RebornAction:
         )
 
     def sound_effect(act):
-        return gres.cv.mokou_reborn
+        return 'thb-cv-mokou_reborn'
 
 
 class RebornHandler:

@@ -106,8 +106,7 @@ def notify(title, msg, level=BASIC):
         _notify(title, msg)
         if us.sound_notify:
             from client.ui.soundmgr import SoundManager
-            from client.ui.resource import resource as cres
 
-            SoundManager.play(cres.sound.input)
+            SoundManager.play('c-sound-input')
 
 __all__ = ['notify', 'NONE', 'BASIC', 'SPEAKER', 'AT']

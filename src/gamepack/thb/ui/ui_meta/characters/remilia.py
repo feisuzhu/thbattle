@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.remilia)
 
 
@@ -23,7 +25,7 @@ class SpearTheGungnirAction:
         )
 
     def sound_effect(act):
-        return gres.cv.remilia_stg
+        return 'thb-cv-remilia_stg'
 
 
 class SpearTheGungnirHandler:
@@ -46,14 +48,14 @@ class VampireKissAction:
         )
 
     def sound_effect(act):
-        return gres.cv.remilia_vampirekiss
+        return 'thb-cv-remilia_vampirekiss'
 
 
 class Remilia:
     # Character
     char_name = u'蕾米莉亚'
-    port_image = gres.remilia_port
-    miss_sound_effect = gres.cv.remilia_miss
+    port_image = 'thb-portrait-remilia'
+    miss_sound_effect = 'thb-cv-remilia_miss'
     description = (
         u'|DB永远幼小的红月 蕾米莉亚 体力：4|r\n\n'
         u'|G神枪|r：出现以下情况之一，你可以令你的【弹幕】不能被【擦弹】抵消：\n'

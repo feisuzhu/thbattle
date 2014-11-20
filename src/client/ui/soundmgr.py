@@ -10,6 +10,7 @@ import pyglet
 
 # -- own --
 from .base.interp import InterpDesc, LinearInterp
+from client.ui.resloader import L
 from user_settings import UserSettings
 from utils import instantiate
 
@@ -38,7 +39,7 @@ class SoundManager(object):
             self.instant_switch_bgm(bgm)
             return
 
-        if bgm is self.cur_bgm:
+        if bgm == self.cur_bgm:
             return
 
         self.volume_factor = LinearInterp(1.0, 0.0, 1.0)
@@ -52,7 +53,7 @@ class SoundManager(object):
     def _bgm_fade_out_done(self, _=None):
         pyglet.clock.unschedule(self._set_vol)
         self.bgm_player.next()
-        self.bgm_player.queue(self.bgm_next())
+        self.bgm_player.queue(L(self.bgm_next))
         self.volume_factor = 1.0
         self._set_vol()
         self.bgm_player.play()
@@ -95,7 +96,7 @@ class SoundManager(object):
             player = self.se_players[queue]
 
         player.volume = self.se_volume
-        player.queue(snd)
+        player.queue(L(snd))
         player.play()
 
     def se_suppress(self):

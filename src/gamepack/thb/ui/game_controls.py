@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-
 # -- third party --
-from pyglet.gl import GL_CLIENT_VERTEX_ARRAY_BIT, GL_QUADS, GL_T2F_C4F_N3F_V3F, GL_T4F_V4F
-from pyglet.gl import GLfloat, glColor3f, glColor4f, glDrawArrays, glInterleavedArrays
-from pyglet.gl import glLoadIdentity, glPopClientAttrib, glPopMatrix, glPushClientAttrib
-from pyglet.gl import glPushMatrix, glRotatef, glScalef, glTranslatef, glRectf
+from pyglet.gl import GL_CLIENT_VERTEX_ARRAY_BIT, GL_QUADS, GL_T2F_C4F_N3F_V3F, GL_T4F_V4F, GLfloat
+from pyglet.gl import glColor3f, glColor4f, glDrawArrays, glInterleavedArrays, glLoadIdentity
+from pyglet.gl import glPopClientAttrib, glPopMatrix, glPushClientAttrib, glPushMatrix, glRectf
+from pyglet.gl import glRotatef, glScalef, glTranslatef
 from pyglet.text import Label
 import pyglet
 
@@ -14,14 +13,12 @@ import pyglet
 from .. import actions
 from ..cards import CardList
 from client.ui.base import Control
-from client.ui.base.interp import CosineInterp, FixedInterp, LinearInterp, SineInterp
-from client.ui.base.interp import getinterp, InterpDesc, ChainInterp, AbstractInterp
-from client.ui.controls import BalloonPrompt
-from client.ui.controls import Frame, Panel, Button, Colors, ImageButton, TextArea, OptionButton
-from client.ui.resloader import get_atlas
-from client.ui.resource import resource as common_res
+from client.ui.base.interp import AbstractInterp, ChainInterp, CosineInterp, FixedInterp, InterpDesc
+from client.ui.base.interp import LinearInterp, SineInterp, getinterp
+from client.ui.controls import BalloonPrompt, Button, Colors, Frame, ImageButton, OptionButton
+from client.ui.controls import Panel, TextArea
+from client.ui.resloader import L, get_atlas
 from game.autoenv import Game
-from resource import resource as game_res
 from utils import flatten, rectv2f, rrectv2f
 
 
@@ -74,16 +71,16 @@ class CardSprite(Control):
                 vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
 
                 n, s = cs.number, cs.suit
-                if n: vertices += game_res.cardnum[s % 2 * 13 + n - 1].get_t2c4n3v3_vertices(c, ax + 5, ay + 105)
-                if s: vertices += game_res.suit[s - 1].get_t2c4n3v3_vertices(c, ax + 6, ay + 94)
+                if n: vertices += L('thb-cardnum')[s % 2 * 13 + n - 1].get_t2c4n3v3_vertices(c, ax + 5, ay + 105)
+                if s: vertices += L('thb-suit')[s - 1].get_t2c4n3v3_vertices(c, ax + 6, ay + 94)
 
                 c = (1, 1, 1, aa)
 
                 if qs:
-                    vertices += game_res.card_question.get_t2c4n3v3_vertices(c, ax+(1-qs)*45, ay, 0, qs*91)
+                    vertices += L('thb-card-question').get_t2c4n3v3_vertices(c, ax+(1-qs)*45, ay, 0, qs*91)
 
                 if bs:
-                    vertices += game_res.card_hidden.get_t2c4n3v3_vertices(c, ax+(1-bs)*45, ay, 0, bs*91)
+                    vertices += L('thb-card-hidden').get_t2c4n3v3_vertices(c, ax+(1-bs)*45, ay, 0, bs*91)
             else:
                 a = cs.alpha
                 if cs.gray:
@@ -93,20 +90,18 @@ class CardSprite(Control):
                 vertices += cs.img.get_t2c4n3v3_vertices(c, ax, ay)
                 resides_in = cs.card.resides_in
                 if resides_in and resides_in.type == 'showncards':
-                    vertices += game_res.card_showncardtag.get_t2c4n3v3_vertices(c, ax, ay)
+                    vertices += L('thb-card-showncardtag').get_t2c4n3v3_vertices(c, ax, ay)
 
                 n, s = cs.number, cs.suit
-                if n: vertices += game_res.cardnum[s % 2 * 13 + n - 1].get_t2c4n3v3_vertices(c, ax + 5, ay + 105)
-                if s: vertices += game_res.suit[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
+                if n: vertices += L('thb-cardnum')[s % 2 * 13 + n - 1].get_t2c4n3v3_vertices(c, ax + 5, ay + 105)
+                if s: vertices += L('thb-suit')[s-1].get_t2c4n3v3_vertices(c, ax+6, ay+94)
 
                 if cs.selected:
                     c = (0., 0., 2., 1.0)
                 else:
                     c = (1., 1., 1., cs.shine_alpha)
 
-                vertices += game_res.card_shinesoft.get_t2c4n3v3_vertices(
-                    c, ax-6, ay-6
-                )
+                vertices += L('thb-card-shinesoft').get_t2c4n3v3_vertices(c, ax-6, ay-6)
 
         if vertices:
             n = len(vertices)
@@ -124,7 +119,7 @@ class CardSprite(Control):
         card = self.card
         meta = card.ui_meta
 
-        self.img = meta.image
+        self.img = L(meta.image)
 
         self.number, self.suit = card.number, card.suit
 
@@ -317,7 +312,7 @@ class Ray(Control):
         from math import sqrt, atan2, pi
         self.x, self.y = x0, y0
         dx, dy = x1 - x0, y1 - y0
-        scale = sqrt(dx*dx+dy*dy) / common_res.ray.width
+        scale = sqrt(dx*dx+dy*dy) / L('c-ray').width
         self.angle = atan2(dy, dx) / pi * 180
         self.scale = SineInterp(0.0, scale, 0.4)
         self.alpha = ChainInterp(
@@ -327,12 +322,13 @@ class Ray(Control):
         )
 
     def draw(self):
+        ray = L('c-ray')
         glPushMatrix()
         glRotatef(self.angle, 0., 0., 1.)
         glScalef(self.scale, 1., 1.)
-        glTranslatef(0., -common_res.ray.height/2, 0.)
+        glTranslatef(0., -ray.height/2, 0.)
         glColor4f(1., 1., 1., self.alpha)
-        common_res.ray.blit(0, 0)
+        ray.blit(0, 0)
         glPopMatrix()
 
     def hit_test(self, x, y):
@@ -436,7 +432,7 @@ class SmallCardSprite(Control):
         self.hover = False
         self.card = card
 
-        self.img = card.ui_meta.image_small
+        self.img = L(card.ui_meta.image_small)
         self.balloon = balloon = BalloonPrompt(self)
         balloon.set_balloon(card.ui_meta.description)
 
@@ -452,8 +448,8 @@ class SmallCardSprite(Control):
             s = cs.card.suit
             n = cs.card.number
 
-            ssuit = game_res.smallsuit
-            snum = game_res.smallnum
+            ssuit = L('thb-smallsuit')
+            snum = L('thb-smallnum')
 
             if n == 10:  # special case
                 # g[0].blit(1+g[0].vertices[0], 33+g[0].vertices[1])
@@ -466,9 +462,9 @@ class SmallCardSprite(Control):
             vertices += ssuit[s - 1].get_t4f_v4f_vertices(ax + 1, ay + 22)
 
             if cs.selected:
-                vertices += game_res.scardframe_selected.get_t4f_v4f_vertices(ax, ay)
+                vertices += L('thb-card-small-selected').get_t4f_v4f_vertices(ax, ay)
             else:
-                vertices += game_res.scardframe_normal.get_t4f_v4f_vertices(ax, ay)
+                vertices += L('thb-card-small-frame').get_t4f_v4f_vertices(ax, ay)
 
         n = len(vertices)
         buf = (GLfloat*n)()
@@ -605,7 +601,7 @@ class CardSelectionPanel(Panel):
         self.update()
 
         btn = ImageButton(
-            common_res.buttons.close_blue,
+            L('c-buttons-close_blue'),
             parent=self,
             anchor_x='right', anchor_y='top',
             x=w-20, y=h-20,
@@ -821,7 +817,7 @@ class GameCharacterPortrait(Frame):
         }
 
         showncard_btn = ImageButton(
-            common_res.buttons.port_showncard,
+            L('c-buttons-port_showncard'),
             parent=self,
             x=self.width - 22, y=90,
         )
@@ -857,7 +853,7 @@ class GameCharacterPortrait(Frame):
 
         if char:
             meta = char.ui_meta
-            self.bg = meta.port_image
+            self.bg = L(meta.port_image)
             self.update_bg()
             self.set_charname(meta.char_name)
             if self._last_balloon != meta.description:
@@ -874,12 +870,12 @@ class GameCharacterPortrait(Frame):
     def balloon_show(self):
         try:
             meta = self.character.ui_meta
-            figure_image = meta.figure_image
+            figure_image = L(meta.figure_image)
         except:
             return self.balloon.balloon_show()
 
         try:
-            figure_image_alter = meta.figure_image_alter
+            figure_image_alter = L(meta.figure_image_alter)
             if figure_image_alter.decrypted:
                 figure_image = figure_image_alter
 
@@ -887,7 +883,7 @@ class GameCharacterPortrait(Frame):
             pass
 
         return _CharacterFigure(
-            figure_image.get(),
+            figure_image,
             meta.description,
             parent=self.parent,
         )
@@ -999,7 +995,7 @@ class GameCharacterPortrait(Frame):
             char = port.character
             if not char: continue
 
-            hp, hp_bg = game_res.hp, game_res.hp_bg
+            hp, hp_bg = L('thb-hp'), L('thb-hp_bg')
             if char.dead:
                 hp = hp.grayed
                 hp_bg = hp_bg.grayed
@@ -1017,7 +1013,7 @@ class GameCharacterPortrait(Frame):
                     hp.get_t4f_v4f_vertices(5+x+i*w, 56+y)
                 )
 
-        nums = game_res.num
+        nums = L('thb-num')
         for port in gcps:
             x, y, w = port.x, port.y, port.width
             char = port.character

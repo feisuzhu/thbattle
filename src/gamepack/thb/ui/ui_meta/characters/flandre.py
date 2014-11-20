@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.flandre)
 
 
 class Flandre:
     # Character
     char_name = u'芙兰朵露'
-    port_image = gres.flandre_port
-    miss_sound_effect = gres.cv.flandre_miss
+    port_image = 'thb-portrait-flandre'
+    miss_sound_effect = 'thb-cv-flandre_miss'
     description = (
         u'|DB恶魔之妹 芙兰朵露 体力：4|r\n\n'
         u'|G狂咲|r：摸牌阶段，你可以少摸一张牌，若如此做，你获得以下技能直到回合结束：你可以对任意其他角色各使用一张【弹幕】，且使用的【弹幕】和【弹幕战】（你为伤害来源时）造成的伤害+1。 \n\n'
@@ -40,4 +42,4 @@ class CriticalStrikeAction:
         )
 
     def sound_effect(act):
-        return gres.cv.flandre_cs
+        return 'thb-cv-flandre_cs'

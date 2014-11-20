@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-
+# -- stdlib --
 import random
 
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.ui_meta.common import card_desc
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.shikieiki)
 
 
@@ -28,8 +29,8 @@ class TrialAction:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.shikieiki_trial1,
-            gres.cv.shikieiki_trial2,
+            'thb-cv-shikieiki_trial1',
+            'thb-cv-shikieiki_trial2',
         ])
 
 
@@ -48,7 +49,7 @@ class MajestyAction:
         )
 
     def sound_effect(act):
-        return gres.cv.shikieiki_majesty
+        return 'thb-cv-shikieiki_majesty'
 
 
 class TrialHandler:
@@ -73,8 +74,8 @@ class MajestyHandler:
 class Shikieiki:
     # Character
     char_name = u'四季映姬'
-    port_image = gres.shikieiki_port
-    miss_sound_effect = gres.cv.shikieiki_miss
+    port_image = 'thb-portrait-shikieiki'
+    miss_sound_effect = 'thb-cv-shikieiki_miss'
     description = (
         u'|DB胸不平何以平天下 四季映姬 体力：3|r\n\n'
         u'|G审判|r：在一名角色的判定牌生效前，你可以打出一张牌代替之。\n\n'

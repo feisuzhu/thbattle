@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import random
 
-from gamepack.thb import actions
-from gamepack.thb import characters
+# -- third party --
+# -- own --
+from gamepack.thb import actions, characters
 from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.resource import resource as gres
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.sp_yukari)
 
 
@@ -59,17 +61,17 @@ class SpiritingAwayAction:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.spyukari_spiritaway1,
-            gres.cv.spyukari_spiritaway2,
+            'thb-cv-spyukari_spiritaway1',
+            'thb-cv-spyukari_spiritaway2',
         ])
 
 
 class SpYukari:
     # Character
     char_name = u'SP八云紫'
-    port_image = gres.sp_yukari_port
-    figure_image = gres.sp_yukari_figure
-    miss_sound_effect = gres.cv.spyukari_miss
+    port_image = 'thb-portrait-sp_yukari'
+    figure_image = 'thb-figure-sp_yukari'
+    miss_sound_effect = 'thb-cv-spyukari_miss'
     description = (
         u'|DB神隐的主犯 八云紫 体力：4|r\n\n'
         u'|G神隐|r：出牌阶段限两次，你可以将任意角色区域内的一张牌移出游戏。你的结束阶段，这些角色获得自己被移出游戏的牌。\n'

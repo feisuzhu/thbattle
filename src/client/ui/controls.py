@@ -5,17 +5,15 @@ from collections import namedtuple
 import logging
 
 # -- third party --
-from pyglet.gl import GL_TEXTURE_2D, GL_SCISSOR_TEST, GL_CLIENT_VERTEX_ARRAY_BIT
-from pyglet.gl import GLfloat, GL_RGBA, GL_LINES, GL_QUADS, GL_T4F_V4F, GL_ENABLE_BIT
-from pyglet.gl import glColor4f, glDisable, glScissor, glVertex2f, glLineWidth
-from pyglet.gl import glCopyTexImage2D, glPopClientAttrib, glPushClientAttrib
-from pyglet.gl import glEnd, glBegin, glRectf, glEnable, glColor3f
-from pyglet.gl import glInterleavedArrays
-from pyglet.gl import glPopAttrib, glPopMatrix, glDrawArrays, glPushAttrib
-from pyglet.gl import glPushMatrix, glTranslatef, glBindTexture, glLoadIdentity
+from pyglet.gl import GL_CLIENT_VERTEX_ARRAY_BIT, GL_ENABLE_BIT, GL_LINES, GL_QUADS, GL_RGBA
+from pyglet.gl import GL_SCISSOR_TEST, GL_T4F_V4F, GL_TEXTURE_2D, GLfloat, glBegin, glBindTexture
+from pyglet.gl import glColor3f, glColor4f, glCopyTexImage2D, glDisable, glDrawArrays, glEnable
+from pyglet.gl import glEnd, glInterleavedArrays, glLineWidth, glLoadIdentity, glPopAttrib
+from pyglet.gl import glPopClientAttrib, glPopMatrix, glPushAttrib, glPushClientAttrib, glPushMatrix
+from pyglet.gl import glRectf, glScissor, glTranslatef, glVertex2f
 from pyglet.graphics import OrderedGroup
 from pyglet.sprite import Sprite
-from pyglet.window import mouse, key
+from pyglet.window import key, mouse
 import gevent
 import pyglet
 import requests
@@ -23,12 +21,12 @@ import requests
 # -- own --
 from client.core import Executive
 from client.ui import ui_meta as client_ui_meta
-from client.ui.base import Overlay, Control
+from client.ui.base import Control, Overlay
 from client.ui.base.interp import InterpDesc, LinearInterp
-from client.ui.resource import resource as cres
-from utils import pyperclip, instantiate
-from utils import textsnap, flatten, rectv2f, rrectv2f, inpoly
+from client.ui.resloader import L
+from utils import flatten, inpoly, instantiate, pyperclip, rectv2f, rrectv2f, textsnap
 
+# -- code --
 # -- code --
 KEYMOD_MASK = key.MOD_CTRL | key.MOD_ALT | key.MOD_SHIFT
 log = logging.getLogger('UI_Controls')
@@ -44,7 +42,7 @@ class Colors:
         light          = 206, 239, 156
         caption        = 255, 255, 255
         caption_shadow = heavy
-        close_btn      = property(lambda _: cres.buttons.close_green)
+        close_btn      = L('c-buttons-close_green')
 
         # Button
         btn_frame      = heavy
@@ -63,7 +61,7 @@ class Colors:
         light          = 254,  221,  206
         caption        = 255,  255,  255
         caption_shadow = frame
-        close_btn      = property(lambda _: cres.buttons.close_red)
+        close_btn      = L('c-buttons-close_red')
 
         # Button
         btn_frame      = frame
@@ -82,7 +80,7 @@ class Colors:
         light          = 0xa3, 0xd1, 0xfa
         caption        = frame
         caption_shadow = 0xe5, 0xef, 0xfb
-        close_btn      = property(lambda _: cres.buttons.close_blue)
+        close_btn      = L('c-buttons-close_blue')
 
         # Button
         btn_frame      = 0x54, 0x67, 0xa6
@@ -101,7 +99,7 @@ class Colors:
         light          = 0xff, 0xee, 0xaa
         caption        = 255,  255,  255
         caption_shadow = frame
-        close_btn      = property(lambda _: cres.buttons.close_orange)
+        close_btn      = L('c-buttons-close_orange')
 
         # Button
         btn_frame      = frame
@@ -114,7 +112,7 @@ class Colors:
     @instantiate
     class gray:
         # Frame
-        close_btn      = property(lambda _: cres.buttons.close_blue)
+        close_btn      = L('c-buttons-close_blue')
         btn_frame      = 104, 104, 104
         caption        = 81,  81,  81
         caption_shadow = 237, 237, 237
@@ -441,8 +439,9 @@ class Frame(Control):
                 bg = bg.get_region(0, 0, _w, _h)
         else:
             # HACK
-            bg = cres.white.get_region(0, 0, _w, _h)
-            bg.tex_coords = cres.white.tex_coords
+            white = L('c-white')
+            bg = white.get_region(0, 0, _w, _h)
+            bg.tex_coords = white.tex_coords
 
         self.bgsprite.image = bg
 
@@ -453,7 +452,7 @@ class Frame(Control):
         self._batch = batch
 
         r = self.bot_reserve
-        self.bgsprite = Sprite(cres.white, x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
+        self.bgsprite = Sprite(L('c-white'), x=ax+2, y=ax+r, batch=batch, group=self.bg_group)
         self.update_bg()
 
         self.framevlist = batch.add(
@@ -1086,7 +1085,7 @@ class PlayerPortrait(Frame):
 
         f = pyglet.font.load('AncientPix', 9)
 
-        def L(text, loc):
+        def Lbl(text, loc):
             text = textsnap(text, f, self.width - 8 - 4)
             C = Colors.get4i
             ccap = C(self.color.caption)
@@ -1099,11 +1098,11 @@ class PlayerPortrait(Frame):
                 shadow=ccapshadow,
             ))
 
-        L(acc.other['title'], 0)
-        L(u'节操： %d' % acc.other['credits'], 1)
+        Lbl(acc.other['title'], 0)
+        Lbl(u'节操： %d' % acc.other['credits'], 1)
         g, d = acc.other['games'], acc.other['drops']
         dr = int(100*d/g) if d else 0
-        L(u'游戏数：%d(%d%%)' % (g, dr), 2)
+        Lbl(u'游戏数：%d(%d%%)' % (g, dr), 2)
 
         def B(loc, badge_name):
             badge = client_ui_meta.badges.get(badge_name)
@@ -1118,7 +1117,7 @@ class PlayerPortrait(Frame):
             y, x = divmod(loc, 5)
 
             self.badge_icons.append(BadgeIcon(
-                badge.badge_anim,
+                L(badge.badge_anim),
                 128 - 30 - 22 * (4 - x), 55 + 22 * y,
                 badge.badge_text,
                 parent=self,
@@ -1631,13 +1630,19 @@ class BigProgressBar(ProgressBar):
 
     @property
     def pic_frame(self):
-        r = cres.pbar
-        return r.bfl, r.bfm, r.bfr
+        return [
+            L('c-pbar-bfl'),
+            L('c-pbar-bfm'),
+            L('c-pbar-bfr'),
+        ]
 
     @property
     def pic_core(self):
-        r = cres.pbar
-        return r.bl, r.bm, r.br
+        return [
+            L('c-pbar-bl'),
+            L('c-pbar-bm'),
+            L('c-pbar-br'),
+        ]
 
 
 class SmallProgressBar(ProgressBar):
@@ -1646,13 +1651,19 @@ class SmallProgressBar(ProgressBar):
 
     @property
     def pic_frame(self):
-        r = cres.pbar
-        return r.sfl, r.sfm, r.sfr
+        return [
+            L('c-pbar-sfl'),
+            L('c-pbar-sfm'),
+            L('c-pbar-sfr'),
+        ]
 
     @property
     def pic_core(self):
-        r = cres.pbar
-        return r.sl, r.sm, r.sr
+        return [
+            L('c-pbar-sl'),
+            L('c-pbar-sm'),
+            L('c-pbar-sr'),
+        ]
 
 
 class ButtonArray(Control):
@@ -1985,7 +1996,7 @@ class ImageSelector(Control):
         glRectf(0, self.height, self.width, 0)
 
         if self.selected:
-            cres.imagesel_shine.blit(-11, -11)
+            L('c-imagesel_shine').blit(-11, -11)
 
         a = self.hover_alpha
         if a:
@@ -2037,18 +2048,22 @@ class VolumeTuner(Control):
 
     def draw(self):
         glColor4f(1, 1, 1, 1)
-        with cres.bgm_volume.owner:
+        bgm_volume = L('c-bgm_volume')
+        with bgm_volume.owner:
             from client.ui.soundmgr import SoundManager
             if SoundManager.muted:
+                vol_mute = L('c-vol_mute')
                 glColor4f(1, 1, 1, 1)
-                cres.vol_mute.blit_nobind(0, 0)
+                vol_mute.blit_nobind(0, 0)
             else:
+                se_volume = L('c-se_volume')
+                vol_icon = L('c-vol_icon')
                 glColor4f(1, 1, 1, SoundManager.bgm_volume)
-                cres.bgm_volume.blit_nobind(0, 0)
+                bgm_volume.blit_nobind(0, 0)
                 glColor4f(1, 1, 1, SoundManager.se_volume)
-                cres.se_volume.blit_nobind(0, 0)
+                se_volume.blit_nobind(0, 0)
                 glColor4f(1, 1, 1, 1)
-                cres.vol_icon.blit_nobind(0, 0)
+                vol_icon.blit_nobind(0, 0)
 
     def on_mouse_click(self, x, y, button, modifier):
         from client.ui.soundmgr import SoundManager
@@ -2167,7 +2182,7 @@ class CheckBox(Control):
             parent=self, conf=conf, x=0, y=0,
             width=16, height=16, value=value
         )
-        self.image = cres.check
+        self.image = L('c-check')
 
         sensor = SensorLayer(self, zindex=1)
         sensor.event(self.opt.on_mouse_enter)

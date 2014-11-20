@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import random
 
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.sakuya)
 
 
 class Sakuya:
     # Character
     char_name = u'十六夜咲夜'
-    port_image = gres.sakuya_port
-    miss_sound_effect = gres.cv.sakuya_miss
+    port_image = 'thb-portrait-sakuya'
+    miss_sound_effect = 'thb-cv-sakuya_miss'
     description = (
         u'|DB完全潇洒的PAD长 十六夜咲夜 体力：4|r\n\n'
         u'|G月时计|r：|B锁定技|r，准备阶段开始时，你执行一个额外的出牌阶段。\n\n'
@@ -74,14 +75,14 @@ class Dagger:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.sakuya_dagger1,
-            gres.cv.sakuya_dagger2,
+            'thb-cv-sakuya_dagger1',
+            'thb-cv-sakuya_dagger2',
         ])
 
 
 class LunaDialActionStage:
     def sound_effect(act):
-        return gres.cv.sakuya_lunadial
+        return 'thb-cv-sakuya_lunadial'
 
 
 class LunaDial:

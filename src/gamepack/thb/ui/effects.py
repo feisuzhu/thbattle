@@ -1,31 +1,29 @@
 # -*- coding: utf-8 -*-
 
-from client.ui.base.interp import LinearInterp
-from client.ui.controls import BalloonPrompt, Colors, Control, Panel, SmallProgressBar, Button
-from client.ui.soundmgr import SoundManager
-
-from client.ui.resource import resource as common_res
-from gamepack.thb.ui.resource import resource as gres
-
-from .game_controls import CardSprite, SmallCardSprite
-
-import pyglet
-from pyglet.text import Label
-
-from ..actions import Action, ActionStage, BaseFatetell, Damage, LaunchCard, Pindian, PlayerDeath, PlayerTurn, UserAction
-from ..cards import VirtualCard, RejectHandler
-from ..inputlets import ActionInputlet
-
-from game.autoenv import Game
-
-from functools import partial
+# -- stdlib --
 from collections import defaultdict as ddict
+from functools import partial
+import logging
 
+# -- third party --
+from pyglet.sprite import Sprite
+from pyglet.text import Label
+import pyglet
+
+# -- own --
+from ..actions import Action, ActionStage, BaseFatetell, Damage, LaunchCard, Pindian, PlayerDeath
+from ..actions import PlayerTurn, UserAction
+from ..cards import RejectHandler, VirtualCard
+from ..inputlets import ActionInputlet
+from .game_controls import CardSprite, SmallCardSprite
+from client.ui.base.interp import LinearInterp
+from client.ui.controls import BalloonPrompt, Button, Colors, Control, Panel, SmallProgressBar
+from client.ui.resloader import L
+from client.ui.soundmgr import SoundManager
+from game.autoenv import Game
 from utils import BatchList, group_by
 
-from pyglet.sprite import Sprite
-
-import logging
+# -- code --
 log = logging.getLogger('THBattleUI_Effects')
 
 
@@ -152,7 +150,7 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
         taganims = port.taganims
         for c in cards:
             a = TagAnim(
-                c.ui_meta.tag_anim(c),
+                L(c.ui_meta.tag_anim(c)),
                 0, 0,
                 c.ui_meta.description,
                 parent=self,
@@ -201,8 +199,8 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
 def damage_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
-    OneShotAnim(gres.hurt, x=port.x, y=port.y, batch=self.animations)
-    SoundManager.play(gres.sound.hit)
+    OneShotAnim(L('thb-hurt'), x=port.x, y=port.y, batch=self.animations)
+    SoundManager.play('thb-sound-hit')
 
 
 def _update_tags(self, p):
@@ -236,7 +234,7 @@ def _update_tags(self, p):
     # for t in new_tags - old_tags: # to be added
     for t in updated_tags | (new_tags - old_tags):  # to be added
         a = TagAnim(
-            tags_meta[t].tag_anim(p),
+            L(tags_meta[t].tag_anim(p)),
             0, 0,
             tags_meta[t].description,
             parent=self,
@@ -264,7 +262,7 @@ def player_turn_effect(self, act):
     port = self.player2portrait(p)
     if not hasattr(self, 'turn_frame') or not self.turn_frame:
         self.turn_frame = LoopingAnim(
-            common_res.turn_frame,
+            L('c-turn_frame'),
             batch=self.animations
         )
     self.turn_frame.position = (port.x - 6, port.y - 4)
@@ -413,7 +411,7 @@ def pindian_effect(self, act):
 
 
 def input_snd_prompt():
-    SoundManager.play(common_res.sound.input)
+    SoundManager.play('c-sound-input')
 
 
 input_snd_enabled = True
@@ -489,7 +487,7 @@ def user_input_start_effects(self, arg):
     if p is not cturn:
         # drawing turn frame
         port.actor_frame = LoopingAnim(
-            common_res.actor_frame,
+            L('c-actor_frame'),
             x=port.x - 6, y=port.y - 4,
             batch=self.animations
         )

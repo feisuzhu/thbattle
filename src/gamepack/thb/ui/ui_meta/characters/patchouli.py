@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import random
 
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.patchouli)
 
 
@@ -25,8 +27,8 @@ class LibraryDrawCards:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.patchouli_library1,
-            gres.cv.patchouli_library2,
+            'thb-cv-patchouli_library1',
+            'thb-cv-patchouli_library2',
         ])
 
 
@@ -44,16 +46,16 @@ class KnowledgeAction:
         )
 
     def sound_effect(act):
-        return gres.cv.patchouli_knowledge
+        return 'thb-cv-patchouli_knowledge'
 
 
 class Patchouli:
     # Character
     char_name = u'帕秋莉'
-    port_image = gres.patchouli_port
-    figure_image = gres.patchouli_figure
-    figure_image_alter = gres.patchouli_figure_alter
-    miss_sound_effect = gres.cv.patchouli_miss
+    port_image = 'thb-portrait-patchouli'
+    figure_image = 'thb-figure-patchouli'
+    figure_image_alter = 'thb-figure-patchouli_alter'
+    miss_sound_effect = 'thb-cv-patchouli_miss'
     description = (
         u'|DB不动的大图书馆 帕秋莉 体力：3|r\n\n'
         u'|G图书|r：|B锁定技|r，当你使用一张非延时符卡时，你摸一张牌。\n\n'

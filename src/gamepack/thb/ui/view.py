@@ -14,10 +14,9 @@ from .game_controls import DropCardArea, GameCharacterPortrait, HandCardArea, Po
 from .game_controls import SkillSelectionBox
 from client.ui.base import Control, Overlay
 from client.ui.controls import BalloonPrompt, Button, Colors, OptionButton, Panel, TextArea
-from client.ui.resource import resource as cres
+from client.ui.resloader import L
 from client.ui.soundmgr import SoundManager
 from game.autoenv import Game
-from gamepack.thb.ui.resource import resource as gres
 from utils import rect_to_dict as r2d
 from utils.misc import ObservableEvent
 
@@ -41,7 +40,7 @@ class DeckIndicator(Control):
 
         glColor3f(1, 1, 1)
         try:
-            nums = gres.num
+            nums = L('thb-num')
             seq = str(n)
             ox = (w - len(seq)*14) // 2
             oy = (h - nums[0].height) // 2
@@ -78,9 +77,9 @@ class ResultPanel(Panel):
             ta.append(s)
 
         if g.me in winners:
-            self.pic = gres.win
+            self.pic = L('thb-win')
         else:
-            self.pic = gres.lose
+            self.pic = L('thb-lose')
 
         close = Button(
             u'关闭', parent=self, x=440, y=25, width=90, height=40, zindex=10,
@@ -107,7 +106,7 @@ class GameIntroIcon(Control):
 
     def draw(self):
         glColor3f(1, 1, 1)
-        gres.tag_gameintro.blit(0, 0)
+        L('thb-tag-gameintro').blit(0, 0)
 
 
 class THBattleUI(Control):
@@ -218,7 +217,7 @@ class THBattleUI(Control):
             parent=self, x=161, y=9, width=70, height=22*6-4
         )
 
-        SoundManager.switch_bgm(gres.bgm_game)
+        SoundManager.switch_bgm('thb-bgm_game')
 
         self.more_init()
 
@@ -311,7 +310,7 @@ class THBattleUI(Control):
 
             for i in xrange(len(ks)):
                 if alter.decrypt(ks[-i:]):
-                    SoundManager.play(cres.sound.input)
+                    SoundManager.play('c-sound-input')
 
     def draw(self):
         self.draw_subcontrols()

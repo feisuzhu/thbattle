@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.daiyousei)
 
 
 class Daiyousei:
     # Character
     char_name = u'大妖精'
-    port_image = gres.daiyousei_port
-    figure_image = gres.daiyousei_figure
-    miss_sound_effect = gres.cv.daiyousei_miss
+    port_image = 'thb-portrait-daiyousei'
+    figure_image = 'thb-figure-daiyousei'
+    miss_sound_effect = 'thb-cv-daiyousei_miss'
     description = (
         u'|DB全身萌点的保姆 大妖精 体力：3|r\n\n'
         u'|G支援|r：出牌阶段，你可以将任意数量的牌交给其他角色，若此阶段你给出的牌张数达到3张或更多时，你回复1点体力。\n\n'
@@ -61,7 +62,7 @@ class SupportSkill:
         )
 
     def sound_effect(act):
-        return gres.cv.daiyousei_support
+        return 'thb-cv-daiyousei_support'
 
 
 class Moe:
@@ -79,6 +80,6 @@ class MoeDrawCard:
         )
 
     def sound_effect(act):
-        return gres.cv.daiyousei_moe
+        return 'thb-cv-daiyousei_moe'
 
 # ----------

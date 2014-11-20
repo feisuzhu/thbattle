@@ -1,20 +1,23 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import random
 
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, meta_property
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, meta_property, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.kaguya)
 
 
 class Kaguya:
     # Character
     char_name = u'蓬莱山辉夜'
-    port_image = gres.kaguya_port
-    miss_sound_effect = gres.cv.kaguya_miss
+    port_image = 'thb-portrait-kaguya'
+    miss_sound_effect = 'thb-cv-kaguya_miss'
     description = (
         u'|DB永远的公主殿下 蓬莱山辉夜 体力：3|r\n\n'
         u'|G难题|r：一名角色令你回复一点体力时，你可以令该角色摸一张牌；每当你受到一次伤害后，你可以令伤害来源交给你一张方片牌，否则其失去1点体力。\n\n'
@@ -55,8 +58,8 @@ class DilemmaDamageAction:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.kaguya_dilemma1,
-            gres.cv.kaguya_dilemma2,
+            'thb-cv-kaguya_dilemma1',
+            'thb-cv-kaguya_dilemma2',
         ])
 
 
@@ -69,8 +72,8 @@ class DilemmaHealAction:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.kaguya_dilemma1,
-            gres.cv.kaguya_dilemma2,
+            'thb-cv-kaguya_dilemma1',
+            'thb-cv-kaguya_dilemma2',
         ])
 
 
@@ -96,7 +99,7 @@ class ImperishableNight:
     def image(c):
         return c.associated_cards[0].ui_meta.image
 
-    tag_anim = lambda c: gres.tag_sealarray
+    tag_anim = lambda c: 'thb-tag-sealarray'
     description = (
         u'|G【蓬莱山辉夜】|r的技能产生的【封魔阵】'
     )
@@ -108,7 +111,7 @@ class ImperishableNight:
         )
 
     def sound_effect(act):
-        return gres.cv.kaguya_inight
+        return 'thb-cv-kaguya_inight'
 
 
 class ImperishableNightHandler:

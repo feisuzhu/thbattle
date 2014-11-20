@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import time
 
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.alice)
 
 
 class Alice:
     # Character
     char_name = u'爱丽丝'
-    port_image = gres.alice_port
-    miss_sound_effect = gres.cv.alice_miss
+    port_image = 'thb-portrait-alice'
+    miss_sound_effect = 'thb-cv-alice_miss'
     description = (
         u'|DB七色的人偶使 爱丽丝 体力：3|r\n\n'
         u'|G小小军势|r：当你使用装备牌时，你可以摸一张牌。当你失去装备牌区的牌后，你可以弃置其它角色的一张牌。\n\n'
@@ -35,7 +37,7 @@ class LittleLegionDrawCards:
         tags = act.source.tags
         if time.time() - tags['__legion_lastplay'] > 10:
             tags['__legion_lastplay'] = time.time()
-            return gres.cv.alice_legion
+            return 'thb-cv-alice_legion'
 
 
 class LittleLegionAction:
@@ -49,7 +51,7 @@ class LittleLegionAction:
         tags = act.source.tags
         if time.time() - tags['__legion_lastplay'] > 10:
             tags['__legion_lastplay'] = time.time()
-            return gres.cv.alice_legion
+            return 'thb-cv-alice_legion'
 
 
 class LittleLegionHandler:

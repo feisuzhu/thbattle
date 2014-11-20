@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn, meta_property
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, meta_property, my_turn
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.cirno)
 
 
@@ -16,7 +18,7 @@ class PerfectFreeze:
     def image(c):
         return c.associated_cards[0].ui_meta.image
 
-    tag_anim = lambda c: gres.tag_frozenfrog
+    tag_anim = lambda c: 'thb-tag-frozenfrog'
     description = (
         u'|G【琪露诺】|r的技能产生的|G冻青蛙|r'
     )
@@ -62,15 +64,15 @@ class PerfectFreeze:
         )
 
     def sound_effect(act):
-        return gres.cv.cirno_perfectfreeze
+        return 'thb-cv-cirno_perfectfreeze'
 
 
 class Cirno:
     # Character
     char_name = u'琪露诺'
-    port_image = gres.cirno_port
-    figure_image = gres.cirno_figure
-    miss_sound_effect = gres.cv.cirno_miss
+    port_image = 'thb-portrait-cirno'
+    figure_image = 'thb-figure-cirno'
+    miss_sound_effect = 'thb-cv-cirno_miss'
     description = (
         u'|DB跟青蛙过不去的笨蛋 琪露诺 体力：4|r\n'
         u'\n'

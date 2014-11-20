@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 from utils import BatchList
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.yukari)
 
 
@@ -107,8 +109,8 @@ class RealmSkipDropCardHandler:
 class Yukari:
     # Character
     char_name = u'八云紫'
-    port_image = gres.yukari_port
-    figure_image = gres.yukari_figure
+    port_image = 'thb-portrait-yukari'
+    figure_image = 'thb-figure-yukari'
     description = (
         u'|DB永远17岁 八云紫 体力：4|r\n\n'
         u'|G境界|r：你可以弃置一张手牌并跳过你的一个阶段（准备阶段和结束阶段除外）\n'

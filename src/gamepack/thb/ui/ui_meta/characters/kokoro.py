@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
-from gamepack.thb.ui.ui_meta.common import card_desc, limit1_skill_used
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, limit1_skill_used, my_turn
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.kokoro)
 
 
 class Kokoro:
     # Character
     char_name = u'秦心'
-    port_image = gres.kokoro_port
-    figure_image = gres.kokoro_figure
-    miss_sound_effect = gres.cv.kokoro_miss
+    port_image = 'thb-portrait-kokoro'
+    figure_image = 'thb-figure-kokoro'
+    miss_sound_effect = 'thb-cv-kokoro_miss'
     description = (
         u'|DB表情丰富的扑克脸 秦心 体力：3|r\n\n'
         u'|G希望之面|r：出牌阶段开始时。你可以观看牌堆顶1+X张牌，然后展示并获得其中任意数量的同一种花色的牌，其余以任意顺序置于牌堆顶。（X为你已损失的体力值）\n\n'
@@ -52,7 +53,7 @@ class HopeMaskAction:
         )
 
     def sound_effect(act):
-        return gres.cv.kokoro_hopemask
+        return 'thb-cv-kokoro_hopemask'
 
 
 class DarkNohAction:
@@ -108,4 +109,4 @@ class DarkNoh:
         ]
 
     def sound_effect(act):
-        return gres.cv.kokoro_darknoh
+        return 'thb-cv-kokoro_darknoh'

@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.nazrin)
 
 
 class Nazrin:
     # Character
     char_name = u'纳兹琳'
-    port_image = gres.nazrin_port
-    miss_sound_effect = gres.cv.nazrin_miss
+    port_image = 'thb-portrait-nazrin'
+    miss_sound_effect = 'thb-cv-nazrin_miss'
     description = (
         u'|DB探宝的小小大将 纳兹琳 体力：3|r\n\n'
         u'|G轻敏|r:你可以将一张黑色手牌当【擦弹】使用或打出。\n\n'
@@ -66,7 +67,7 @@ class Agile:
             return (True, u'这种三脚猫的弹幕，想要打中我是不可能的啦~')
 
     def sound_effect(act):
-        return gres.cv.nazrin_agile
+        return 'thb-cv-nazrin_agile'
 
 
 class TreasureHunt:
@@ -88,4 +89,4 @@ class TreasureHunt:
         t = tgt.tags
         if not t['__treasure_hunt_se'] >= t['turn_count']:
             t['__treasure_hunt_se'] = t['turn_count']
-            return gres.cv.nazrin_treasurehunt
+            return 'thb-cv-nazrin_treasurehunt'

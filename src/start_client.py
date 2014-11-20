@@ -32,6 +32,7 @@ def start_client():
 
     import options as opmodule
     opmodule.options = options
+
     IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
 
     crashreport.install_tee(options.log.upper())

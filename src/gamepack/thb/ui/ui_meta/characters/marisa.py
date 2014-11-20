@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, my_turn
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.marisa)
 
 
 class Marisa:
     # Character
     char_name = u'雾雨魔理沙'
-    port_image = gres.marisa_port
-    miss_sound_effect = gres.cv.marisa_miss
+    port_image = 'thb-portrait-marisa'
+    miss_sound_effect = 'thb-cv-marisa_miss'
     description = (
         u'|DB绝非普通的强盗少女 雾雨魔理沙 体力：4|r\n\n'
         u'|G借走|r：出牌阶段限一次，你可以获得一名其他角色的一张牌，然后视为该角色对你使用了一张【弹幕】。\n\n'
@@ -65,4 +67,4 @@ class Borrow:
         )
 
     def sound_effect(act):
-        return gres.cv.marisa_borrow
+        return 'thb-cv-marisa_borrow'

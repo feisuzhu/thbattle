@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.ui_meta.common import build_handcard
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, cards, characters
+from gamepack.thb.ui.ui_meta.common import build_handcard, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
-
+# -- code --
 __metaclass__ = gen_metafunc(characters.meirin)
 
 
@@ -66,7 +65,7 @@ class Taichi:
         )
 
     def sound_effect(act):
-        return gres.cv.meirin_taichi
+        return 'thb-cv-meirin_taichi'
 
 
 class LoongPunch:
@@ -97,7 +96,7 @@ class LoongPunchAction:
             )
 
     def sound_effect(act):
-        return gres.cv.meirin_loongpunch
+        return 'thb-cv-meirin_loongpunch'
 
 
 class RiverBehindAwake:
@@ -107,14 +106,14 @@ class RiverBehindAwake:
         )
 
     def sound_effect(act):
-        return gres.cv.meirin_rb
+        return 'thb-cv-meirin_rb'
 
 
 class Meirin:
     # Character
     char_name = u'红美铃'
-    port_image = gres.meirin_port
-    miss_sound_effect = (gres.cv.meirin_miss1, gres.cv.meirin_miss2)
+    port_image = 'thb-portrait-meirin'
+    miss_sound_effect = ('thb-cv-meirin_miss1', 'thb-cv-meirin_miss2')
     description = (
         u'|DB我只打盹我不翘班 红美铃 体力：4|r\n\n'
         u'|G龙拳|r：每当你使用【弹幕】被【擦弹】抵消或使用【擦弹】抵消【弹幕】时，你可以弃置对方的一张手牌。\n\n'

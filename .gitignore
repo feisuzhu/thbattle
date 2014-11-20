@@ -20,7 +20,7 @@ Thumbs.db
 [._]s[a-w][a-z]
 bin/
 build/
-c
+a
 cc
 client_log.txt
 client_log.txt.gz

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import actions
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
-from gamepack.thb.ui.resource import resource as gres
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import actions, cards, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.eirin)
 
 
@@ -35,7 +35,7 @@ class FirstAid:
         return (True, u'k看不到@#@#￥@#￥')
 
     def sound_effect(act):
-        return gres.cv.eirin_firstaid
+        return 'thb-cv-eirin_firstaid'
 
 
 class Medic:
@@ -84,15 +84,15 @@ class Medic:
         )
 
     def sound_effect(act):
-        return gres.cv.eirin_medic
+        return 'thb-cv-eirin_medic'
 
 
 class Eirin:
     # Character
     char_name = u'八意永琳'
-    port_image = gres.eirin_port
-    figure_image = gres.eirin_figure
-    miss_sound_effect = gres.cv.eirin_miss
+    port_image = 'thb-portrait-eirin'
+    figure_image = 'thb-figure-eirin'
+    miss_sound_effect = 'thb-cv-eirin_miss'
     description = (
         u'|DB街中的药贩 八意永琳 体力：3|r\n\n'
         u'|G医者|r：出牌阶段限一次，你可以弃置一张手牌并令一名已受伤的角色回复1点体力。\n\n'

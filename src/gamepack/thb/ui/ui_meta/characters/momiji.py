@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 import random
 
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.momiji)
 
 
 class Momiji:
     # Character
     char_name = u'犬走椛'
-    port_image = gres.momiji_port
-    miss_sound_effect = gres.cv.momiji_miss
+    port_image = 'thb-portrait-momiji'
+    miss_sound_effect = 'thb-cv-momiji_miss'
     description = (
         u'|DB山中的千里眼 犬走椛 体力：4|r\n\n'
         u'|G哨戒|r：当一名其他角色（记作A）使用弹幕对另一角色（记作B）造成伤害时，若A在你的攻击范围内，你可以对A使用一张【弹幕】，或将一张梅花牌当【弹幕】对A使用。此【弹幕】造成伤害时，你可以防止此伤害，并且令B此次受到的伤害-1。\n\n'
@@ -44,8 +46,8 @@ class SentryAttack:
 
     def sound_effect(act):
         return random.choice([
-            gres.cv.momiji_sentry1,
-            gres.cv.momiji_sentry2,
+            'thb-cv-momiji_sentry1',
+            'thb-cv-momiji_sentry2',
         ])
 
 

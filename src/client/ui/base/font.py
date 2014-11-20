@@ -9,9 +9,10 @@ from pyglet.font.base import Font, GlyphRenderer
 import pyglet
 
 # -- own --
+from client.ui.resloader import L
+
+
 # -- code --
-
-
 class AncientPixGlyphRenderer(GlyphRenderer):
     gbk_cols = 191
     gbk_rows = 126
@@ -43,10 +44,10 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             i = u'♠♡♣♢'.index(char)
             if font.size == 9:
                 h = 12
-                grid = font.suit12
+                grid = L('c-suit12')
             else:
                 h = 16
-                grid = font.suit16
+                grid = L('c-suit16')
 
             glyph = font.create_glyph(grid[i])
             glyph.set_bearings(1, -2, h + 1)
@@ -67,7 +68,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             h += 4
             datasz = int(ceil(w/8.))*h
 
-            fontdata = self.font.fontdata['ASC%s' % suffix]
+            fontdata = L('c-font')['ASC%s' % suffix]
             loc = asc * datasz
             data = fontdata[loc:loc+datasz]
             i = Image.fromstring('1', (w, h), data).convert('L')
@@ -90,7 +91,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             col = (256 + ord(gbk[1]) - 0x40) & 0xff
             loc = rol * self.gbk_cols + col
             loc *= datasz
-            fontdata = self.font.fontdata['GBK%s' % suffix]
+            fontdata = L('c-font')['GBK%s' % suffix]
             data = fontdata[loc:loc+datasz]
             i = Image.fromstring('1', (w, h), data).convert('L')
 
@@ -128,24 +129,6 @@ class AncientPixFont(Font):
     @textures.setter
     def textures(self, val):
         pass
-
-    @property
-    def fontdata(self):
-        # Lazy loading
-        from ..resource import font as fontdata
-        return fontdata
-
-    @property
-    def suit12(self):
-        # Lazy loading
-        from ..resource import resource
-        return resource.suit12
-
-    @property
-    def suit16(self):
-        # Lazy loading
-        from ..resource import resource
-        return resource.suit16
 
     def __init__(self, name, size, bold=False, italic=False, dpi=None):
         Font.__init__(self)

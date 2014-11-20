@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
+# -- third party --
+# -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc
-from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.resource import resource as gres
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
+# -- code --
 __metaclass__ = gen_metafunc(characters.aya)
 
 
@@ -22,15 +24,15 @@ class UltimateSpeedAction:
         )
 
     def sound_effect(act):
-        return gres.cv.aya_ultimatespeed
+        return 'thb-cv-aya_ultimatespeed'
 
 
 class Aya:
     # Character
     char_name = u'射命丸文'
-    port_image = gres.aya_port
-    figure_image = gres.aya_figure
-    miss_sound_effect = gres.cv.aya_miss
+    port_image = 'thb-portrait-aya'
+    figure_image = 'thb-figure-aya'
+    miss_sound_effect = 'thb-cv-aya_miss'
     description = (
         u'|DB幻想乡最速 射命丸文 体力：4|r\n\n'
         u'|G最速|r：|B锁定技|r，你在回合内使用第二张牌时，你摸一张牌且在本回合使用卡牌时无距离限制。\n\n'

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from gamepack.thb import cards
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
+# -- stdlib --
+# -- third party --
+# -- own --
+from gamepack.thb import cards, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, my_turn
 from gamepack.thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
-from gamepack.thb.ui.ui_meta.common import limit1_skill_used
-from gamepack.thb.ui.resource import resource as gres
+
+# -- code --
 
 
 __metaclass__ = gen_metafunc(characters.komachi)
@@ -14,10 +16,10 @@ __metaclass__ = gen_metafunc(characters.komachi)
 class Komachi:
     # Character
     char_name = u'小野塚小町'
-    port_image = gres.komachi_port
-    figure_image = gres.komachi_figure
-    figure_image_alter = gres.komachi_figure_alter
-    miss_sound_effect = gres.cv.komachi_miss
+    port_image = 'thb-portrait-komachi'
+    figure_image = 'thb-figure-komachi'
+    figure_image_alter = 'thb-figure-komachi_alter'
+    miss_sound_effect = 'thb-cv-komachi_miss'
     description = (
         u'|DB乳不巨何以聚人心 小野塚小町 体力：4|r\n\n'
         u'|G彼岸|r：出牌阶段限一次，你可以弃置一张牌并指定一名角色，你与其距离视为1直到回合结束。若该角色为全场体力最少的角色（或之一），你可以弃置其一张牌或摸一张牌。\n\n'
@@ -60,7 +62,7 @@ class Riverside:
         )
 
     def sound_effect(act):
-        return gres.cv.komachi_riverside
+        return 'thb-cv-komachi_riverside'
 
 
 class RiversideAction:
@@ -76,7 +78,7 @@ class ReturningAwake:
         )
 
     def sound_effect(act):
-        return gres.cv.komachi_awake
+        return 'thb-cv-komachi_awake'
 
 
 class Returning:
@@ -101,7 +103,7 @@ class FerryFeeEffect:
         )
 
     def sound_effect(act):
-        return gres.cv.komachi_ferryfee
+        return 'thb-cv-komachi_ferryfee'
 
 
 class FerryFeeHandler:
