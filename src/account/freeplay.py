@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from .base import server_side_only
+# -- stdlib --
 from collections import defaultdict
+import random
+
+# -- third party --
+# -- own --
+from .base import server_side_only
 
 
+# -- code --
 class Account(object):
 
     @classmethod
@@ -11,7 +17,7 @@ class Account(object):
         if len(username) > 0:
             acc = cls()
             acc.username = username
-            acc.userid = 1 if username == 'Proton' else id(acc)
+            acc.userid = 1 if username == 'Proton' else random.randint(10, 100000)
             acc.other = defaultdict(
                 lambda: None,
                 title=u'野生的THB玩家',
@@ -33,20 +39,14 @@ class Account(object):
     def add_credit(self, type, amount):
         pass
 
+    # mock forum_integration
     @classmethod
     def parse(cls, data):
         acc = cls()
-        mode, acc.userid, acc.username = data
-        acc.other = defaultdict(
-            lambda: None,
-            title=u'野生的THB玩家',
-            avatar='http://www.thbattle.net/maoyu.png',
-            credits=998,
-            games=1,
-            badges=['dev', 'contributor'],
-        )
-        assert mode == 'freeplay'
+        mode, acc.userid, acc.username, other = data
+        acc.other = defaultdict(lambda: None, other)
+        assert mode == 'forum'
         return acc
 
     def __data__(self):
-        return ['freeplay', self.userid, self.username]
+        return ['forum', self.userid, self.username, self.other]
