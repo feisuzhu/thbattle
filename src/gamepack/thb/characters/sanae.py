@@ -3,11 +3,12 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, GenericAction, UserAction, migrate_cards, random_choose_card, ttags
-from ..actions import user_choose_cards, user_choose_players
-from ..cards import Heal, Skill, VirtualCard, t_Self
-from .baseclasses import Character, register_character
-from game.autoenv import Game
+from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import DrawCards, ForEach, GenericAction, UserAction, migrate_cards
+from gamepack.thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
+from gamepack.thb.cards import Heal, Skill, VirtualCard, t_Self
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -20,8 +21,11 @@ class MiracleAction(UserAction):
         tgt = self.target
         g = Game.getgame()
         g.process_action(DrawCards(tgt, 1))
-        ttags(tgt)['miracle_times'] += 1
-        if ttags(tgt)['miracle_times'] == 3:
+        c = self.associated_card.associated_cards[0]
+        cats = ttags(tgt).setdefault('miracle_categories', {})
+        cats.add((set(c.category) & {'basic', 'spellcard', 'equipment'}).pop())
+
+        if len(cats) == 3:
             candidates = [p for p in g.players if not p.dead and p.life < p.maxlife]
             if candidates:
                 beneficiery, = user_choose_players(self, tgt, candidates) or (None,)
@@ -38,7 +42,21 @@ class MiracleAction(UserAction):
 
     def is_valid(self):
         tgt = self.target
-        return len(self.associated_card.associated_cards) == ttags(tgt)['miracle_times'] + 1
+        cl = self.associated_card.associated_cards
+        if len(cl) != 1:
+            return False
+
+        c = cl[0]
+
+        category = set(c.category) & {'basic', 'spellcard', 'equipment'}
+
+        if not category:
+            return False
+
+        category = category.pop()
+        miracle_categories = ttags(tgt).setdefault('miracle_categories', set())
+
+        return category not in miracle_categories
 
 
 class Miracle(Skill):
@@ -136,8 +154,44 @@ class SanaeFaith(Skill):
         return not self.associated_cards
 
 
+class GodDescendant(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+
+
+class GodDescendantSkipAction(UserAction):
+    def __init__(self, source, target, act):
+        self.source = source
+        self.target = target
+        self.action = act
+
+    def apply_action(self):
+        g = Game.getgame()
+        tgt = self.target
+        g.process_action(DrawCards(tgt, 1))
+        self.action.cancelled = True
+        return True
+
+
+class GodDescendantHandler(EventHandler):
+    execute_after = ('MaidenCostumeHandler', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and ForEach.get_actual_action(act):
+            g = Game.getgame()
+            tgt = act.target
+            if not tgt.has_skill(GodDescendant): return act
+
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            g.process_action(GodDescendantSkipAction(tgt, tgt, act))
+
+        return act
+
+
 @register_character
 class Sanae(Character):
-    skills = [Miracle, SanaeFaith]
-    eventhandlers_required = []
+    skills = [Miracle, SanaeFaith, GodDescendant]
+    eventhandlers_required = [GodDescendantHandler]
     maxlife = 3

@@ -334,6 +334,8 @@ inventory.update({
     'thb-cv-sanae_miracle':                ['sound'],
     'thb-cv-sanae_miss':                   ['sound'],
     'thb-cv-sanae_faith':                  ['sound'],
+    'thb-cv-sanae_goddescendant1':         ['sound'],
+    'thb-cv-sanae_goddescendant2':         ['sound'],
     'thb-cv-seiga_heterodoxy':             ['sound'],
     'thb-cv-seiga_miss':                   ['sound'],
     'thb-cv-seija_incite1':                ['sound'],
