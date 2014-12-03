@@ -81,4 +81,10 @@ class aya_count:
     display = lambda p, v: v >= 2 and p is G().current_turn
     description = u'使用卡牌时不受距离限制'
 
+
+class exterminate:
+    tag_anim = lambda p: 'thb-tag-flandre_exterminate'
+    display = lambda p, v: v
+    description = u'毁灭：无法使用人物技能'
+
 # -----END TAGS UI META-----

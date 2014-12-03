@@ -718,3 +718,33 @@ def throttle(seconds):
         return wrapper
 
     return decorate
+
+
+def hookable(f):
+    funcs = []
+
+    def callnext(marker, *a, **k):
+        if marker + 1 >= len(funcs):
+            return f(*a, **k)
+
+        return funcs[marker + 1](callnext, marker + 1, *a, **k)
+
+    @wraps(f)
+    def wrapper(*a, **k):
+        return callnext(-1, *a, **k)
+
+    def hook(f1):
+        if f1 not in funcs:
+            funcs.insert(0, f1)
+
+    def unhook(f1):
+        try:
+            funcs.remove(f1)
+        except:
+            pass
+
+    wrapper.__name__ = f.__name__
+    wrapper.hook = hook
+    wrapper.unhook = unhook
+
+    return wrapper

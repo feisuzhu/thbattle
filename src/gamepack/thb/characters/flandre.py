@@ -3,12 +3,13 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction
-from ..cards import AttackCard, AttackCardHandler, BaseAttack, BaseDuel, ElementalReactorSkill
-from ..cards import Skill, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction
+from gamepack.thb.actions import PlayerTurn, ttags
+from gamepack.thb.cards import AttackCard, AttackCardHandler, BaseAttack, BaseDuel, DuelCard
+from gamepack.thb.cards import ElementalReactorSkill, Skill, UserAction, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -21,7 +22,7 @@ class CriticalStrike(Skill):
 class CriticalStrikeAction(GenericAction):
     def apply_action(self):
         tgt = self.target
-        tgt.tags['flan_cs'] = tgt.tags['turn_count']
+        ttags(tgt)['flan_cs'] = True
         tgt.tags['flan_targets'] = []
         return True
 
@@ -96,16 +97,74 @@ class CriticalStrikeHandler(EventHandler):
         return act
 
     def in_critical_strike(self, p):
-        tags = p.tags
         return (
-            tags['flan_cs'] >= tags['turn_count'] and
+            ttags(p)['flan_cs'] and
             Game.getgame().current_turn is p and
             p.has_skill(CriticalStrike)
         )
 
 
+class Exterminate(Skill):
+    associated_action = None
+    skill_category = ('character', 'active')
+    target = t_None
+
+
+class ExterminateAction(UserAction):
+
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        tgt.tags['exterminate'] = src
+        return True
+
+
+class ExterminateHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if evt_type == 'choose_target':
+            act, tl = arg
+            src = act.source
+            g = Game.getgame()
+
+            if not src.has_skill(Exterminate):
+                return arg
+
+            c = act.card
+            if not c.is_card(AttackCard) and not c.is_card(DuelCard):
+                return arg
+
+            for p in g.players:
+                p.has_skill.hook(self.has_skill_hook)
+
+            for tgt in tl:
+                g.process_action(ExterminateAction(src, tgt))
+
+        elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
+            g = Game.getgame()
+            for p in g.players:
+                p.tags.pop('exterminate', '')
+
+        return arg
+
+    def has_skill_hook(self, callnext, marker, tgt, skill):
+        g = Game.getgame()
+        if self not in g.event_handlers:
+            # clean up
+            for p in g.players:
+                p.tags.pop('exterminate', '')
+                p.has_skill.unhook(self.has_skill_hook)
+
+            return callnext(marker, tgt, skill)
+
+        src = tgt.tags['exterminate']
+        if src and src.has_skill(Exterminate):
+            if 'character' in skill.skill_category:
+                return False
+
+        return callnext(marker, tgt, skill)
+
+
 @register_character
 class Flandre(Character):
-    skills = [CriticalStrike]
-    eventhandlers_required = [CriticalStrikeHandler]
+    skills = [CriticalStrike, Exterminate]
+    eventhandlers_required = [CriticalStrikeHandler, ExterminateHandler]
     maxlife = 4

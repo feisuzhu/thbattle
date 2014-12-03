@@ -119,6 +119,7 @@ inventory.update({
     'thb-tag-action':                      ['img'],
     'thb-tag-attacked':                    ['img'],
     'thb-tag-flandrecs':                   ['img'],
+    'thb-tag-flandre_exterminate':         ['img'],
     'thb-tag-frozenfrog':                  ['img'],
     'thb-tag-gameintro':                   ['img'],
     'thb-tag-sinsack':                     ['img'],

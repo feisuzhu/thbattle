@@ -294,13 +294,13 @@ class THBattleIdentity(Game):
 
     def decorate(self, p):
         from cards import CardList
-        p.cards = CardList(p, 'cards')  # Cards in hand
-        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-        p.equips = CardList(p, 'equips')  # Equipments
-        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-        p.special = CardList(p, 'special')  # used on special purpose
+        p.cards          = CardList(p, 'cards')        # Cards in hand
+        p.showncards     = CardList(p, 'showncards')   # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips         = CardList(p, 'equips')       # Equipments
+        p.fatetell       = CardList(p, 'fatetell')     # Cards in the Fatetell Zone
+        p.special        = CardList(p, 'special')      # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]  # cardlists should shown to others
-        p.tags = defaultdict(int)
+        p.tags           = defaultdict(int)
 
 
 class THBattleIdentity5(THBattleIdentity):

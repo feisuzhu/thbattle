@@ -6,6 +6,7 @@ from collections import defaultdict
 # -- third party --
 # -- own --
 from game.autoenv import GameObject
+from utils import hookable
 
 # -- code --
 # common, id5, id8, raid, raid_ex, faith, kof, 3v3, testing
@@ -22,7 +23,7 @@ class Character(GameObject):
     def get_skills(self, skill):
         return [s for s in self.skills if issubclass(s, skill)]
 
-    has_skill = get_skills
+    has_skill = hookable(get_skills)
 
     def __repr__(self):
         return '<Char: {}>'.format(self.__class__.__name__)

@@ -238,6 +238,10 @@ class UIDoPassiveAction(UISelectTarget):
 
         if skills:
             for skill_cls in skills:
+                if not g.me.has_skill(skill_cls):
+                    self.set_text(u'您不能这样出牌')
+                    return
+
                 cards = [skill_cls.wrap(cards, g.me, params)]
                 try:
                     rst, reason = cards[0].ui_meta.is_complete(g, cards)
@@ -420,6 +424,10 @@ class UIDoActionStage(UISelectTarget):
         g = Game.getgame()
 
         if skills:
+            if not all([g.me.has_skill(s) for s in skills]):
+                self.set_text(u'您不能这样出牌')
+                return
+
             cards = [skills[0].wrap(cards, g.me, params)]
             for skill_cls in skills[1:]:
                 try:

@@ -51,6 +51,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                 if skills:
                     # check(len(skills) == 1)  # why? disabling it.
                     # will reveal in skill_wrap
+                    [check(actor.has_skill(s)) for s in skills]  # has_skill may be hooked
                     skill = skill_wrap(actor, skills, cards, params)
                     check(skill)
                     wrapped = [skill]
@@ -305,6 +306,7 @@ class PlayerDeath(GenericAction):
         g = Game.getgame()
         g.process_action(DeadDropCards(tgt, tgt))
         tgt.skills[:] = []
+        tgt.tags.clear()
         return True
 
 
