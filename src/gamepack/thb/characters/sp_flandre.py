@@ -3,11 +3,11 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
-from ..actions import user_choose_players
-from ..cards import Skill, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
+from gamepack.thb.actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
+from gamepack.thb.actions import user_choose_players, ttags
+from gamepack.thb.cards import Skill, t_None
+from gamepack.thb.inputlets import ChooseOptionInputlet
+from gamepack.thb.characters.baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
 
 
@@ -41,19 +41,25 @@ class DestructionImpulseHandler(EventHandler):
             if not src.has_skill(DestructionImpulse): return act
 
             g = Game.getgame()
-            src.tags['destruction_tag'] = g.turn_count
+            ttags(src)['destruction_tag'] = True
 
         elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
             if not tgt.has_skill(DestructionImpulse): return act
 
             g = Game.getgame()
-            if tgt.tags['destruction_tag'] >= g.turn_count: return act
+            if ttags(tgt)['destruction_tag']: return act
 
             dist = LaunchCard.calc_distance(tgt, DestructionImpulse(tgt))
-            candidates = [p for p, d in dist.items() if d <= 0]
-            pl = user_choose_players(self, tgt, candidates)
-            p = pl[0] if pl else tgt
+            dist.pop(tgt, '')
+            nearest = min(dist.values())
+            candidates = [p for p, d in dist.items() if d == nearest]
+
+            if len(candidates) > 1:
+                pl = user_choose_players(self, tgt, candidates)
+                p = pl[0] if pl else candidates[0]
+            else:
+                p = candidates[0]
 
             g.process_action(DestructionImpulseAction(tgt, p))
 

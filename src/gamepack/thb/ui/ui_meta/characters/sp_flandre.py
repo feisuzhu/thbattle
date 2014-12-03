@@ -18,7 +18,7 @@ class SpFlandre:
     miss_sound_effect = 'thb-cv-spflandre_miss'
     description = (
         u'|DB玩坏你哦 SP芙兰朵露 体力：4|r\n\n'
-        u'|G破坏冲动|r：|B锁定技|r，结束阶段开始时，若你本回合内没有造成过伤害，你失去1点体力并对距离1以内的一名角色造成1点伤害。\n\n'
+        u'|G破坏冲动|r：|B锁定技|r，结束阶段开始时，若你本回合内没有造成过伤害，你失去1点体力并对最近的一名其他角色造成1点伤害。\n\n'
         u'|G四重存在|r：当你受到一次伤害时，你可以减少1点体力上限来防止该伤害。|B锁定技|r，当你的体力上限为1时，你造成的伤害+1。\n\n'
         u'|DB（画师：Vivicat from 幻想梦斗符，CV：shourei小N）|r'
     )
@@ -33,18 +33,10 @@ class DestructionImpulse:
 
 class DestructionImpulseAction:
     def effect_string_before(act):
-        if act.source is act.target:
-            s = u'没有人愿意陪|G【%s】|r一起玩，|G【%s】|r很伤心。' % (
-                act.source.ui_meta.char_name,
-                act.source.ui_meta.char_name,
-            )
-        else:
-            s = u'|G【%s】|r：“其他人都很忙的样子诶，那|G【%s】|r来陪我玩好不好？”' % (
-                act.source.ui_meta.char_name,
-                act.target.ui_meta.char_name,
-            )
-
-        return s
+        return u'|G【%s】|r：“|G【%s】|r来陪我玩好不好？”' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
 
     def sound_effect(act):
         return 'thb-cv-spflandre_destructionimpulse'
@@ -60,7 +52,7 @@ class DestructionImpulseHandler:
     # choose_players
     def target(pl):
         if not pl:
-            return (False, u'请选择1名距离1以内的玩家，对其造成一点伤害')
+            return (False, u'请选择1名距离最近的玩家，对其造成一点伤害')
 
         return (True, u'玩坏你哦')
 
