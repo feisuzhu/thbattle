@@ -3,10 +3,6 @@
 *.pyc
 *.pyo
 OGLdpf.log
-s
-d
 *.txt
-c
-cc
 client_log.txt
 user_settings.json
