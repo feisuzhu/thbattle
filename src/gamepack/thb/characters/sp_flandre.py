@@ -56,6 +56,7 @@ class DestructionImpulseHandler(EventHandler):
             candidates = [p for p, d in dist.items() if d == nearest]
 
             if len(candidates) > 1:
+                candidates = [p for p in g.players if p in candidates]  # order matters
                 pl = user_choose_players(self, tgt, candidates)
                 p = pl[0] if pl else candidates[0]
             else:
