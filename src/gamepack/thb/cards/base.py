@@ -69,7 +69,7 @@ class Card(GameObject):
     def sync(self, data):  # this only executes at client side, let it crash.
         if data['syncid'] != self.syncid:
             logging.error(
-                'CardOOS: server: %s, %d, %d, syncid=%d; client: %s, %d, %d, syncid=%d',
+                'CardOOS: server: %s, %s, %s, syncid=%d; client: %s, %s, %s, syncid=%d',
 
                 data['type'],
                 self.SUIT_REV.get(data['suit'], data['suit']),
