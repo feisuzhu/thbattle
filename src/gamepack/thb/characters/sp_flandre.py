@@ -113,7 +113,7 @@ class FourOfAKindHandler(EventHandler):
 
             if not src: return act
             if not src.has_skill(FourOfAKind): return act
-            if src.maxlife == 1:
+            if src.life == 1:
                 act.amount += 1
 
         return act
