@@ -177,6 +177,12 @@ class THBattleUI(Control):
                     width=0, height=0, zindex=2,
                     **k
                 )
+                self.animations = []
+
+            def delete(self):
+                Control.delete(self)
+                for a in self.animations:
+                    a.delete()
 
             def hit_test(self, x, y):
                 return False

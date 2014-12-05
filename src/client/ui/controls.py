@@ -607,6 +607,7 @@ class Frame(Control):
         Control.delete(self)
         for l in self._labels:
             l.delete()
+        self.bgsprite.delete()
         self.caption_lbl.delete()
 
 
@@ -949,6 +950,10 @@ class BadgeIcon(Control):
     def draw(self):
         self.sprite.draw()
 
+    def delete(self):
+        Control.delete(self)
+        self.sprite.delete()
+
     def set_position(self, x, y):
         self.x, self.y = x, y
 
@@ -1023,6 +1028,7 @@ class PlayerPortrait(Frame):
             i.delete()
 
         self.badge_icons = []
+        self.avatar.delete()
         self.avatar = None
         self.set_caption(name)
 
@@ -1074,6 +1080,9 @@ class PlayerPortrait(Frame):
                         img = sprite = False
 
                     self.cached_avatar[avurl] = img
+
+                    if self.avatar:
+                        self.avatar.delete()
                     self.avatar = sprite
 
                     sprite and self.update()
