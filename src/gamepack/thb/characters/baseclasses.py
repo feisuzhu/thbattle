@@ -6,7 +6,6 @@ from collections import defaultdict
 # -- third party --
 # -- own --
 from game.autoenv import GameObject
-from utils import hookable
 
 # -- code --
 # common, id5, id8, raid, raid_ex, faith, kof, 3v3, testing
@@ -19,11 +18,23 @@ class Character(GameObject):
 
     def __init__(self, player):
         self.player = player
+        self.disabled_skills = defaultdict(set)
 
     def get_skills(self, skill):
         return [s for s in self.skills if issubclass(s, skill)]
 
-    has_skill = hookable(get_skills)
+    def has_skill(self, skill):
+        for l in self.disabled_skills.values():
+            if skill in l:
+                return False
+
+        return self.get_skills(skill)
+
+    def disable_skill(self, skill, reason):
+        self.disabled_skills[reason].add(skill)
+
+    def reenable_skill(self, reason):
+        self.disabled_skills.pop(reason, '')
 
     def __repr__(self):
         return '<Char: {}>'.format(self.__class__.__name__)

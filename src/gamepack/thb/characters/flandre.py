@@ -5,7 +5,7 @@
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction
-from gamepack.thb.actions import PlayerTurn, ttags
+from gamepack.thb.actions import PlayerDeath, PlayerTurn, ttags
 from gamepack.thb.cards import AttackCard, AttackCardHandler, BaseAttack, BaseDuel, DuelCard
 from gamepack.thb.cards import ElementalReactorSkill, Skill, UserAction, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
@@ -113,8 +113,12 @@ class Exterminate(Skill):
 class ExterminateAction(UserAction):
 
     def apply_action(self):
-        src, tgt = self.source, self.target
-        tgt.tags['exterminate'] = src
+        tgt = self.target
+        tgt.tags['exterminate'] = True
+        for s in tgt.skills:
+            if 'character' in s.skill_category:
+                tgt.disable_skill(s, 'exterminate')
+
         return True
 
 
@@ -132,35 +136,18 @@ class ExterminateHandler(EventHandler):
             if not c.is_card(AttackCard) and not c.is_card(DuelCard):
                 return arg
 
-            for p in g.players:
-                p.has_skill.hook(self.has_skill_hook)
-
             for tgt in tl:
                 g.process_action(ExterminateAction(src, tgt))
 
-        elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
+        elif ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
+              (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):
+
             g = Game.getgame()
             for p in g.players:
-                p.tags.pop('exterminate', '')
+                if p.tags.pop('exterminate', ''):
+                    p.reenable_skill('exterminate')
 
         return arg
-
-    def has_skill_hook(self, callnext, marker, tgt, skill):
-        g = Game.getgame()
-        if self not in g.event_handlers:
-            # clean up
-            for p in g.players:
-                p.tags.pop('exterminate', '')
-                p.has_skill.unhook(self.has_skill_hook)
-
-            return callnext(marker, tgt, skill)
-
-        src = tgt.tags['exterminate']
-        if src and src.has_skill(Exterminate):
-            if 'character' in skill.skill_category:
-                return False
-
-        return callnext(marker, tgt, skill)
 
 
 @register_character
