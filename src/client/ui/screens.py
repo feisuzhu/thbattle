@@ -1457,7 +1457,7 @@ class ReplayScreen(Screen):
                 # to make cached avatars get gc'd
                 cached_avatar = {}
 
-            for x, y, color in parent.ui_class().portrait_location:
+            for x, y, color in parent.ui_class.portrait_location:
                 l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
 
             self.portraits = l
