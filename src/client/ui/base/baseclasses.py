@@ -85,6 +85,11 @@ class Control(pyglet.event.EventDispatcher):
                 if self in l:
                     l.remove(self)
 
+        for c in self.control_list[:]:
+            c.delete()
+
+        assert not self.control_list
+
         if self.parent:
             self.parent.remove_control(self)
 
