@@ -164,7 +164,7 @@ for k, v in metadata.iteritems():
     if k in excludes: continue
     result['Cards'].append({
         "token":         k.__name__,
-        "image":         "{}.png".format(v['image']),
+        "image":         "{}.png".format(v['image'].replace('-', '/')),
         "name":          v['name'],
         "categories":    conv_card_category(k.category),
         "description":   to_html(v['description']),
@@ -184,7 +184,7 @@ for k, v in metadata.iteritems():
     if k in excludes: continue
     result['Characters'].append({
         "token":         k.__name__,
-        "image":         "{}.png".format(v['port_image']),
+        "image":         "{}.png".format(v['port_image'].replace('-', '/')),
         "name":          v['char_name'],
         "maxlife":       k.maxlife,
         "description":   to_html(v['description']),
@@ -198,7 +198,7 @@ for k, v in metadata.iteritems():
     if not issubclass(k, Game): continue
     result['Modes'].append({
         "token":       k.__name__,
-        "image":       "{}.png".format(v['logo']),
+        "image":       "{}.png".format(v['logo'].replace('-', '/')),
         "name":        v['name'],
         "description": to_html(v.get('description', u'暂缺')),
     })
