@@ -41,7 +41,10 @@ class LoopingAnim(Sprite):
             pass
 
     def delete(self):
-        self.batch.animations.remove(self)
+        try:
+            self.batch.animations.remove(self)
+        except:
+            pass
         Sprite.delete(self)
 
 
