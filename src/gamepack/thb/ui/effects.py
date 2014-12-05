@@ -32,7 +32,13 @@ class OneShotAnim(Sprite):
         self.delete()
 
 
-LoopingAnim = Sprite
+class LoopingAnim(Sprite):
+    def __init__(self, *a, **k):
+        Sprite.__init__(self, *a, **k)
+        try:
+            self.batch.animations.append(self)
+        except:
+            pass
 
 
 class TagAnim(Control):
@@ -45,6 +51,10 @@ class TagAnim(Control):
 
     def draw(self):
         self.sprite.draw()
+
+    def delete(self):
+        super(self, TagAnim).delete()
+        self.sprite.delete()
 
     def set_position(self, x, y):
         self.x, self.y = x, y
