@@ -52,7 +52,11 @@ class DestructionImpulseHandler(EventHandler):
 
             dist = LaunchCard.calc_distance(tgt, DestructionImpulse(tgt))
             dist.pop(tgt, '')
-            nearest = min([i if i > 0 else 0 for i in dist.values()])
+
+            for k in dist:
+                dist[k] = max(dist[k], 0)
+
+            nearest = min(dist.values())
             candidates = [p for p, d in dist.items() if d == nearest]
 
             if len(candidates) > 1:
