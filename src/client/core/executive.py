@@ -172,7 +172,7 @@ class GameManager(Greenlet):
                 if not isinstance(v, ForcedKill):
                     self.event_cb('client_game_finished', g)
 
-            self.event_cb('game_started', g)
+            self.event_cb('game_started', (g, params, pldata))
 
         @handler(('inroom',), 'ingame')
         def observe_started(self, data):
@@ -209,7 +209,7 @@ class GameManager(Greenlet):
                 if not isinstance(v, ForcedKill):
                     self.event_cb('client_game_finished', g)
 
-            self.event_cb('game_started', g)
+            self.event_cb('game_started', (g, params, pldata))
 
         @handler(('hang', 'inroom'), 'inroom')
         def game_joined(self, data):
@@ -261,8 +261,9 @@ class GameManager(Greenlet):
 
         @handler(None, None)
         def your_account(self, accdata):
-            self.account = acc = Account.parse(accdata)
-            self.event_cb('your_account', acc)
+            self.accdata = accdata
+            self.account = Account.parse(accdata)
+            self.event_cb('your_account', accdata)
 
         @handler(None, None)
         def thbattle_greeting(self, ver):

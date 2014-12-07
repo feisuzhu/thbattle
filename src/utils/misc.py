@@ -6,13 +6,11 @@ from contextlib import contextmanager
 from functools import wraps
 
 # -- third party --
-from gevent.coros import Semaphore
+from gevent.lock import Semaphore
 from gevent.queue import Queue
 import gevent
 
 # -- own --
-
-
 # -- code --
 dbgvals = {}
 

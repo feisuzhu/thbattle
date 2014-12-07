@@ -41,19 +41,11 @@ def install_tee(level):
     root.addHandler(hldr)
 
 
-def do_crashreport(active=False):
+def _send_crashreport(text, active):
     import requests
     import zlib
-    import traceback
 
-    s = u''.join(tee.history)
-    s += u'\n\n\nException:\n' + '=' * 80 + '\n' + traceback.format_exc()
-    import pyglet.info
-    s += u'\n\n\nPyglet info:\n' + pyglet.info.dump()
-    debug_logfile.seek(0)
-    debug_log = debug_logfile.read()
-    s += u'\n\n\nDebug log:\n' + '=' * 80 + '\n' + debug_log
-    content = zlib.compress(s.encode('utf-8'))
+    content = zlib.compress(text.encode('utf-8'))
 
     try:
         from game.autoenv import Game
@@ -80,3 +72,21 @@ def do_crashreport(active=False):
         },
         files={'file': content},
     )
+
+
+def do_crashreport(active=False):
+    import traceback
+    s = u''.join(tee.history)
+    s += u'\n\n\nException:\n' + '=' * 80 + '\n' + traceback.format_exc()
+    import pyglet.info
+    s += u'\n\n\nPyglet info:\n' + pyglet.info.dump()
+    debug_logfile.seek(0)
+    debug_log = debug_logfile.read()
+    s += u'\n\n\nDebug log:\n' + '=' * 80 + '\n' + debug_log
+    _send_crashreport(s, active)
+
+
+def do_crashreport_unity(active=False):
+    import traceback
+    s = u'\n\n\nException:\n' + '=' * 80 + '\n' + traceback.format_exc()
+    _send_crashreport(s, active)
