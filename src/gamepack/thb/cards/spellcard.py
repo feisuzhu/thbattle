@@ -297,6 +297,7 @@ class MapCannonEffect(InstantSpellCardAction):
 
 class MapCannon(ForEach):
     action_cls = MapCannonEffect
+    group_effect = True
 
 
 class SinsackCarnivalEffect(InstantSpellCardAction):
@@ -317,6 +318,7 @@ class SinsackCarnivalEffect(InstantSpellCardAction):
 
 class SinsackCarnival(ForEach):
     action_cls = SinsackCarnivalEffect
+    group_effect = True
 
 
 class FeastEffect(InstantSpellCardAction):
@@ -336,6 +338,7 @@ class FeastEffect(InstantSpellCardAction):
 
 class Feast(ForEach):
     action_cls = FeastEffect
+    group_effect = True
 
 
 class HarvestEffect(InstantSpellCardAction):
@@ -375,6 +378,7 @@ class HarvestEffect(InstantSpellCardAction):
 
 class Harvest(ForEach):
     action_cls = HarvestEffect
+    group_effect = True
 
     def prepare(self):
         tl = self.target_list

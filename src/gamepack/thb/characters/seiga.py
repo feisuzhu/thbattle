@@ -20,7 +20,7 @@ class HeterodoxyHandler(EventHandler):
     execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and ForEach.get_actual_action(act):
+        if evt_type == 'action_before' and ForEach.is_group(act):
             tgt = act.target
             if not tgt.has_skill(Heterodoxy): return act
 

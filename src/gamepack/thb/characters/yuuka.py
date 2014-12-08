@@ -66,7 +66,7 @@ class ReversedScalesHandler(EventHandler):
             # HACK
             return act
 
-        if ForEach.get_actual_action(act):
+        if ForEach.is_group(act):
             return act
 
         src = act.source

@@ -906,6 +906,10 @@ class ForEach(UserAction):
         assert isinstance(act, Action)
         return getattr(act, 'parent_action', None)
 
+    @classmethod
+    def is_group(self, act):
+        return getattr(self.get_actual_action(act), 'group_effect', False)
+
 
 class PlayerTurn(GenericAction):
     def __init__(self, target):
