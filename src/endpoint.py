@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import json
 import logging
 import zlib
 
 # -- third party --
 from gevent import coros, socket
 import msgpack
-import simplejson as json
 
 # -- own --
 # -- code --
-
 log = logging.getLogger("Endpoint")
 
 

@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from utils.misc import ObservableEvent
-from utils.crypto import simple_encrypt
+# -- stdlib --
 import atexit
+import json
 import logging
 import os.path
-import simplejson as json
 
+# -- third party --
+# -- own --
+from utils.crypto import simple_encrypt
+from utils.misc import ObservableEvent
+
+# -- code --
 log = logging.getLogger('user_settings')
 
 

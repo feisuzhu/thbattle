@@ -15,7 +15,6 @@ install_requires = [
     'pygit2>=0.21.3',
     'redis',
     'requests',
-    'simplejson',
     'unidecode',
 ]
 

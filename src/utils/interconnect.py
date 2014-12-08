@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import json
+
 # -- third party --
 from gevent import Greenlet
 import gevent
 import redis
-import simplejson as json
 
 # -- own --
 from .misc import surpress_and_restart

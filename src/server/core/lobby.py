@@ -5,6 +5,7 @@ from collections import defaultdict
 from weakref import WeakSet
 import atexit
 import gzip
+import json
 import logging
 import os
 import random
@@ -15,7 +16,6 @@ from gevent import Greenlet, Timeout
 from gevent.pool import Pool
 from gevent.queue import Empty as QueueEmpty, Queue
 import gevent
-import simplejson as json
 
 # -- own --
 from account import Account
@@ -28,8 +28,6 @@ from utils.misc import throttle
 
 # -- code --
 log = logging.getLogger('Lobby')
-
-
 __all__ = ['Client']
 
 

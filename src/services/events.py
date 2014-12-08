@@ -11,6 +11,7 @@ from email.MIMEText import MIMEText
 from email.Utils import formatdate
 from urllib import unquote
 import argparse
+import json
 import logging
 import smtplib
 import sys
@@ -21,7 +22,6 @@ import zlib
 from bottle import request, response, route, run
 from gevent.event import Event
 import gevent
-import simplejson as json
 
 # -- own --
 from utils.interconnect import Interconnect
