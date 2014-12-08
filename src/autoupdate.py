@@ -14,7 +14,6 @@ import logging
 # -- third party --
 from gevent.hub import get_hub
 import gevent
-import pygit2
 
 # -- own --
 
@@ -27,6 +26,7 @@ class Autoupdate(object):
         self.base = base
 
     def update(self):
+        import pygit2
         repo = pygit2.Repository(self.base)
         hub = get_hub()
         noti = hub.loop.async()
@@ -74,6 +74,7 @@ class Autoupdate(object):
                 yield v
 
     def switch(self, version):
+        import pygit2
         repo = pygit2.Repository(self.base)
         try:
             desired = repo.revparse_single(version)
@@ -84,6 +85,7 @@ class Autoupdate(object):
         return True
 
     def is_version_match(self, version):
+        import pygit2
         repo = pygit2.Repository(self.base)
         try:
             current = repo.revparse_single('HEAD')
@@ -93,11 +95,13 @@ class Autoupdate(object):
             return False
 
     def get_current_version(self):
+        import pygit2
         repo = pygit2.Repository(self.base)
         current = repo.revparse_single('HEAD')
         return current.id.hex
 
     def is_version_present(self, version):
+        import pygit2
         repo = pygit2.Repository(self.base)
         try:
             repo.revparse_single(version)
