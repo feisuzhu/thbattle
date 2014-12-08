@@ -112,6 +112,10 @@ class UnityHub(gevent.hub.Hub):
             # fuck
             pass
 
+from gevent.resolver_ares import Resolver
+hub = gevent.hub.get_hub()
+hub.resolver = Resolver(hub=hub)
+
 
 class UnityLogStream(object):
     def write(self, data):
