@@ -4,7 +4,6 @@
 from cStringIO import StringIO
 import hashlib
 import os
-import re
 
 # -- third party --
 from PIL import Image
@@ -172,9 +171,10 @@ def sound(path):
 
 
 def L(name):
-    if re.match(r'@\d+$', name):
-        n, idx = name.split('|')
-        return L(n)[int(idx)]
+    r = name.split('@')
+    if len(r) > 1:
+        import operator
+        return reduce(operator.getitem, map(int, r[1:]), L(r[0]))
 
     res = resources.get(name)
     if res:
