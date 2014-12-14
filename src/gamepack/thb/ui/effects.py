@@ -569,7 +569,7 @@ def mutant_morph_effects(self, mutant):
 
     gs.set_flash(5.0)
     gs.set_color(getattr(Colors, meta.color_scheme))
-    gs.backdrop = meta.wallpaper
+    gs.backdrop = L(meta.wallpaper)
     SoundManager.instant_switch_bgm(meta.bgm)
 
 
