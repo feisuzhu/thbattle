@@ -54,11 +54,10 @@ class Patchouli:
     char_name = u'帕秋莉'
     port_image = 'thb-portrait-patchouli'
     figure_image = 'thb-figure-patchouli'
-    figure_image_alter = 'thb-figure-patchouli_alter'
     miss_sound_effect = 'thb-cv-patchouli_miss'
     description = (
         u'|DB不动的大图书馆 帕秋莉 体力：3|r\n\n'
         u'|G图书|r：|B锁定技|r，当你使用一张非延时符卡时，你摸一张牌。\n\n'
         u'|G博学|r：|B锁定技|r，黑桃符卡对你无效。\n\n'
-        u'|DB（画师：渚FUN，CV：shourei小N）|r'
+        u'|DB（画师：ideolo@NEKO WORKi，CV：shourei小N）|r'
     )

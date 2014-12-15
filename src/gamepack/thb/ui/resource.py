@@ -185,6 +185,9 @@ inventory.update({
     'thb-figure-aya':                      ['lazytexture'],
     'thb-figure-sp_yukari':                ['lazytexture'],
     'thb-figure-sp_flandre':               ['lazytexture'],
+    'thb-figure-sakuya':                   ['lazytexture'],
+    'thb-figure-alice':                    ['lazytexture'],
+    'thb-figure-kogasa':                   ['lazytexture'],
 
     'thb-figure-komachi_alter':            ['encrypted_texture'],
     'thb-figure-patchouli_alter':          ['encrypted_texture'],

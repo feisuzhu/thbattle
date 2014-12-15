@@ -16,12 +16,13 @@ class Alice:
     # Character
     char_name = u'爱丽丝'
     port_image = 'thb-portrait-alice'
+    figure_image = 'thb-figure-alice'
     miss_sound_effect = 'thb-cv-alice_miss'
     description = (
         u'|DB七色的人偶使 爱丽丝 体力：3|r\n\n'
         u'|G小小军势|r：当你使用装备牌时，你可以摸一张牌。当你失去装备牌区的牌后，你可以弃置其它角色的一张牌。\n\n'
         u'|G少女文乐|r：|B锁定技|r，你的手牌上限+X（X为你装备区牌数量的一半，向上取整且至少为1）。\n\n'
-        u'|DB（画师：Pixiv ID 28669466，CV：小舞）|r'
+        u'|DB（画师：ideolo@NEKO WORKi，CV：小舞）|r'
     )
 
 
