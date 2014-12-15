@@ -877,7 +877,7 @@ class GameCharacterPortrait(Frame):
         try:
             figure_image_alter = L(meta.figure_image_alter)
             if figure_image_alter.decrypted:
-                figure_image = figure_image_alter
+                figure_image = figure_image_alter.reference
 
         except:
             pass

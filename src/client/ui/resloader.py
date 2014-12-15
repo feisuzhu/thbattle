@@ -136,7 +136,7 @@ class EncryptedTexture(object):
         if hint != hint2:
             return False
 
-        f = self.loader.file(self.path + '_encrypted.bin', 'rb')
+        f = loader.file(self.path + '_encrypted.bin', 'rb')
         dec = StringIO()
         data = aes_decrypt(f.read(), key)
         assert data.startswith('\x89PNG')

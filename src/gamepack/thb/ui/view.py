@@ -315,7 +315,7 @@ class THBattleUI(Control):
                 continue
 
             for i in xrange(len(ks)):
-                if alter.decrypt(ks[-i:]):
+                if L(alter).decrypt(ks[-i:]):
                     SoundManager.play('c-sound-input')
 
     def draw(self):
