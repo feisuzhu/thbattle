@@ -26,7 +26,7 @@ class MiracleAction(UserAction):
         cats.add((set(c.category) & {'basic', 'spellcard', 'equipment'}).pop())
 
         if len(cats) == 3:
-            candidates = [p for p in g.players if not p.dead and p.life < p.maxlife]
+            candidates = [p for p in g.players if not p.dead and p.life < p.maxlife and p is not tgt]
             if candidates:
                 beneficiery, = user_choose_players(self, tgt, candidates) or (None,)
                 if beneficiery:
@@ -166,10 +166,20 @@ class GodDescendantSkipAction(UserAction):
         self.action = act
 
     def apply_action(self):
+        self.action.cancelled = True
+        return True
+
+
+class GodDescendantDrawAction(UserAction):
+    def __init__(self, source, target, act):
+        self.source = source
+        self.target = target
+        self.action = act
+
+    def apply_action(self):
         g = Game.getgame()
         tgt = self.target
         g.process_action(DrawCards(tgt, 1))
-        self.action.cancelled = True
         return True
 
 
@@ -182,10 +192,12 @@ class GodDescendantHandler(EventHandler):
             tgt = act.target
             if not tgt.has_skill(GodDescendant): return act
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                return act
+            opt = user_input([tgt], ChooseOptionInputlet(self, ('skip', 'draw', None)))
 
-            g.process_action(GodDescendantSkipAction(tgt, tgt, act))
+            if opt == 'skip':
+                g.process_action(GodDescendantSkipAction(tgt, tgt, act))
+            elif opt == 'draw':
+                g.process_action(GodDescendantDrawAction(tgt, tgt, act))
 
         return act
 
