@@ -3,25 +3,19 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DeadDropCards, DropCards, ForEach, LaunchCard, PlayerDeath, UserAction
-from ..actions import ask_for_action
-from ..cards import AttackCard, Duel, InstantSpellCardAction, Reject, Skill, TreatAs, VirtualCard
-from ..cards import t_None
+from ..actions import Damage, ForEach, LaunchCard, PlayerDeath, UserAction, user_choose_players
+from ..cards import AttackCard, Duel, InstantSpellCardAction, Reject, Skill, TreatAs, t_None
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
 
 
 # -- code --
-class ReversedScales(Skill):
+class ReversedScales(TreatAs, Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')
     target = t_None
-
-
-class FlowerQueen(TreatAs, Skill):
     treat_as = AttackCard
-    skill_category = ('character', 'passive')
 
     def check(self):
         cl = self.associated_cards
@@ -96,7 +90,7 @@ class SadistAction(UserAction):
         g = Game.getgame()
         src, tgt = self.source, self.target
         tgt.tags['sadist_target'] = False
-        g.process_action(Damage(src, tgt, 2))
+        g.process_action(Damage(src, tgt, 1))
         return True
 
 
@@ -106,12 +100,22 @@ class SadistHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerDeath):
-            tgt = act.target.tags.get('sadist_target')
-            tgt and Game.getgame().process_action(SadistAction(act.source, tgt))
+            src = act.source
+            if not src or not src.has_skill(Sadist):
+                return act
 
-        elif evt_type == 'action_before' and isinstance(act, DeadDropCards):
-            g = Game.getgame()
-            src = g.action_stack[-1].source  # source of PlayerDeath
+            dist = LaunchCard.calc_distance(src, AttackCard())
+            candidates = [k for k, v in dist.items() if v <= 0 and k is not src]
+
+            if not candidates:
+                return act
+
+            pl = user_choose_players(self, src, candidates)
+            if pl:
+                Game.getgame().process_action(SadistAction(src, pl[0]))
+
+        elif evt_type == 'action_apply' and isinstance(act, Damage):
+            src = act.source
             tgt = act.target
 
             if not src or src is tgt:
@@ -120,27 +124,10 @@ class SadistHandler(EventHandler):
             if not src.has_skill(Sadist):
                 return act
 
-            dist = LaunchCard.calc_distance(tgt, Sadist(src))
-            candidates = [k for k, v in dist.items() if v <= 0 and k not in (src, tgt)]
-
-            if not candidates:
-                return act
-
-            p, rst = ask_for_action(self, [src], ('cards', 'showncards'), candidates)
-            if not p:
-                return act
-
-            assert p is src
-
-            cards, pl = rst
-
-            g.process_action(DropCards(src, cards))
-            tgt.tags['sadist_target'] = pl[0]
+            if tgt.life == 1:
+                act.amount += 1
 
         return act
-
-    def cond(self, cl):
-        return len(cl) == 1 and not cl[0].is_card(VirtualCard)
 
     def choose_player_target(self, pl):
         return pl[-1:], len(pl)
@@ -148,6 +135,6 @@ class SadistHandler(EventHandler):
 
 @register_character_to('common', '-kof')
 class Yuuka(Character):
-    skills = [ReversedScales, FlowerQueen, Sadist]
+    skills = [ReversedScales, Sadist]
     eventhandlers_required = [ReversedScalesHandler, SadistHandler]
     maxlife = 4

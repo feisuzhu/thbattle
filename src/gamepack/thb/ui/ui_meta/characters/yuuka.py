@@ -11,9 +11,9 @@ from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 __metaclass__ = gen_metafunc(characters.yuuka)
 
 
-class FlowerQueen:
+class ReversedScales:
     # Skill
-    name = u'花王'
+    name = u'逆鳞'
 
     def clickable(game):
         me = game.me
@@ -55,16 +55,9 @@ class FlowerQueen:
         return 'thb-cv-yuuka_flowerqueen'
 
 
-class ReversedScales:
-    # Skill
-    name = u'逆鳞'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
 class Sadist:
     # Skill
-    name = u'抖Ｓ'
+    name = u'施虐'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -98,15 +91,15 @@ class SadistHandler:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'发动【抖Ｓ】')
+            return (True, u'发动【施虐】')
         else:
-            return (False, u'【抖Ｓ】：请弃置一张牌')
+            return (False, u'【施虐】：请弃置一张牌')
 
     def target(pl):
         if not pl:
-            return (False, u'【抖Ｓ】：请选择1名玩家')
+            return (False, u'【施虐】：请选择1名玩家')
 
-        return (True, u'发动【抖Ｓ】')
+        return (True, u'发动【施虐】')
 
 
 class ReversedScalesHandler:
@@ -122,9 +115,8 @@ class Yuuka:
     miss_sound_effect = 'thb-cv-yuuka_miss'
     description = (
         u'|DB四季的鲜花之主 风见幽香 体力：4|r\n\n'
-        u'|G逆鳞|r：其他角色对你使用的单体非延时符卡，你可以将其视为|G弹幕战|r。\n\n'
-        u'|G花王|r：你的回合外，你可以将一张手牌当|G弹幕|r使用或打出。\n\n'
-        u'|G抖Ｓ|r：当你击坠一名角色时，你可以弃置一张手牌并指定与其距离为1的一名其他角色；该角色被击坠后，你对指定的角色造成2点伤害。\n\n'
+        u'|G逆鳞|r：其他角色对你使用的非群体非延时符卡，你可以将其视为|G弹幕战|r；你的回合外，你可以将一张手牌当|G弹幕|r使用或打出。\n\n'
+        u'|G施虐|r：当你击坠一名角色时，你可以对你攻击范围内的一名角色造成一点伤害。|B锁定技|r，你对残机数为1的其它角色造成的伤害+1。\n\n'
         u'|RKOF不平衡角色\n\n'
         u'|DB（画师：Pixiv ID 38165143，CV：VV）|r'
     )
