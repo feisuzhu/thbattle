@@ -71,7 +71,7 @@ class AttackCardHandler(EventHandler):
             if card.is_card(AttackCard):
                 from .equipment import WeaponSkill
 
-                l = [s.range - 1 for s in src.skills if issubclass(s, WeaponSkill)]
+                l = [s.range - 1 for s in src.skills if issubclass(s, WeaponSkill) and src.has_skill(s)]
                 if not l: return act
                 l = min(l)
 
