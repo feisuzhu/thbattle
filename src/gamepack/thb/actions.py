@@ -50,10 +50,13 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
             if categories:
                 if skills:
                     # check(len(skills) == 1)  # why? disabling it.
-                    # will reveal in skill_wrap
                     [check(actor.has_skill(s)) for s in skills]  # has_skill may be hooked
+
+                    if not all([getattr(s, 'no_reveal', False) for s in skills]):
+                        g.players.reveal(cards)
+
                     skill = skill_wrap(actor, skills, cards, params)
-                    check(skill)
+                    check(skill_check(skill))
                     wrapped = [skill]
                     usage = skill.usage if usage == 'launch' else usage
                 else:
@@ -61,6 +64,9 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                         g.players.reveal(cards)
 
                     wrapped = cards
+
+                if not getattr(wrapped, 'no_drop', False):
+                    [c.detach() for c in cards]
 
                 check(initiator.cond(wrapped))
                 assert not (usage == 'none' and cards)  # should not pass check
@@ -89,7 +95,9 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
     if rst:
         skills, cards, players, params = rst
         if skills:
-            cards = [skill_transform(p, skills, cards, params)]
+            card = skill_wrap(p, skills, cards, params)
+            Game.getgame().deck.register_vcard(card)
+            cards = [card]
 
         if not cards and not players:
             return p, None
@@ -135,41 +143,29 @@ def random_choose_card(cardlists):
     return c
 
 
-def skill_wrap(actor, skills, cards, params, no_reveal=False, detach=False):
-    # no_reveal: for ui
-    g = Game.getgame()
+def skill_wrap(actor, skills, cards, params):
+    for skill_cls in skills:
+        card = skill_cls.wrap(cards, actor, params)
+        cards = [card]
+
+    return cards[0]
+
+
+def skill_check(wrapped):
+    from gamepack.thb.cards.base import Skill
     try:
-        check(all(c.resides_in.owner is actor for c in cards))
-        for skill_cls in skills:
-            check(skill_cls in actor.skills)
+        check(wrapped.check())
+        for c in wrapped.associated_cards:
+            if isinstance(c, Skill):
+                check(c.actor is wrapped.player)
+                check(skill_check(c))
+            else:
+                check(c.resides_in.owner is wrapped.player)
 
-            if not no_reveal and not getattr(skill_cls, 'no_reveal', False):
-                g.players.exclude(actor).reveal(cards)
-
-            card = skill_cls.wrap(cards, actor, params)
-            check(card.check())
-
-            if detach and not getattr(skill_cls, 'no_drop', False):
-                for c in cards: c.detach()
-
-            cards = [card]
-
-        return cards[0]
+        return True
 
     except CheckFailed:
-        return None
-
-
-def skill_transform(actor, skills, cards, params):
-    g = Game.getgame()
-    s = skill_wrap(actor, skills, cards, params, detach=True)
-    if not s:
-        return None
-
-    g.deck.register_vcard(s)
-    # migrate_cards(cards, actor.cards, False, True)
-    # s.move_to(actor.cards)
-    return s
+        return False
 
 
 class MigrateCardsTransaction(object):

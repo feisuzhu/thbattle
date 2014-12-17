@@ -500,7 +500,8 @@ class UIDoActionStage(UISelectTarget):
         act = thbactions.ActionStageLaunchCard(g.me, target_list, card)
 
         if skills:
-            card = thbactions.skill_wrap(g.me, skills, rawcards, params, no_reveal=True)
+            card = thbactions.skill_wrap(g.me, skills, rawcards, params)
+            card = card if thbactions.skill_check(card) else None
 
         if card:
             arg = thbactions.ActionLimitParams(
