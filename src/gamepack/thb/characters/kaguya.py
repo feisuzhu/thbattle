@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import Damage, DrawCards, LaunchCard, LifeLost, UserAction, migrate_cards
-from ..actions import skill_transform, user_choose_cards
+from ..actions import skill_check, skill_wrap, user_choose_cards
 from ..cards import Card, Heal, SealingArrayCard, Skill, TreatAs, VirtualCard, t_None
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
@@ -128,8 +128,10 @@ class ImperishableNightHandler(EventHandler):
             cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
 
             if cards:
-                skill = skill_transform(p, [ImperishableNight], cards, {})
-                assert skill  # should not fail
+                g.players.reveal(cards)
+                skill = skill_wrap(p, [ImperishableNight], cards, {})
+                assert skill_check(skill)  # should not fail
+                g.deck.register_vcard(skill)
                 rst = g.process_action(LaunchCard(p, [tgt], skill))
                 assert rst
 
