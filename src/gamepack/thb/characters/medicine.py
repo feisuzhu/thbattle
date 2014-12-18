@@ -108,6 +108,11 @@ class Melancholy(Skill):
     target = t_None
 
 
+class MelancholyPoison(VirtualCard):
+    associated_action = None
+    target = t_None
+
+
 class MelancholyAction(GenericAction):
     def __init__(self, source, target, amount):
         self.source = source
@@ -132,8 +137,9 @@ class MelancholyAction(GenericAction):
 
 
 class MelancholyHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, Damage):
+    def handle(self, evt_type, arg):
+        if evt_type == 'action_after' and isinstance(arg, Damage):
+            act = arg
             tgt = act.target
             src = act.source
 
@@ -145,19 +151,21 @@ class MelancholyHandler(EventHandler):
 
             Game.getgame().process_action(MelancholyAction(tgt, src, amount=act.amount))
 
-        elif evt_type == 'action_limit':
-            arg, permitted = act
-            if not permitted: return act
-            if arg.usage not in ('use', 'launch'): return act
+        elif evt_type == 'action_transform':
+            if arg.usage not in ('use', 'launch'):
+                return arg
 
             src = arg.actor
             g = Game.getgame()
             if src.tags.get('melancholy_tag') == g.turn_count:
                 cards = VirtualCard.unwrap(arg.cards)
                 zone = src.cards, src.showncards
-                return arg, all([c.resides_in not in zone for c in cards])
+                for c in cards:
+                    if c.resides_in in zone:
+                        arg.cards = [MelancholyPoison(arg.actor)]
+                        return arg
 
-        return act
+        return arg
 
 
 @register_character

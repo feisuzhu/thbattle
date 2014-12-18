@@ -146,6 +146,7 @@ class UFODistanceHandler(EventHandler):
         src, card, dist = arg
         for s in src.skills:
             if not issubclass(s, RedUFOSkill): continue
+            if not src.has_skill(s): continue
             incr = s.increment
             incr = incr(src) if callable(incr) else incr
             for p in dist:
@@ -154,6 +155,7 @@ class UFODistanceHandler(EventHandler):
         for p in dist:
             for s in p.skills:
                 if not issubclass(s, GreenUFOSkill): continue
+                if not src.has_skill(s): continue
                 incr = s.increment
                 dist[p] += incr(p) if callable(incr) else incr
 
