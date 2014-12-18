@@ -72,6 +72,16 @@ class Melancholy:
     is_action_valid = passive_is_action_valid
 
 
+class MelancholyPoison:
+    name = u'忧郁之毒(效果)'
+
+    def is_complete(g, cl):
+        return (False, u'忧郁之毒：无法使用或打出手牌直到该回合结束')
+
+    def is_action_valid(g, cl, target_list):
+        return (False, u'忧郁之毒：无法使用或打出手牌直到该回合结束')
+
+
 class MelancholyAction:
     def effect_string_before(act):
         return u'|G【%s】|r对|G【%s】|r使用了|G忧郁之毒|r。' % (

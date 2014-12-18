@@ -1,1 +1,1 @@
-from . import actions, tags, cards, characters, modes  # noqa
+from . import actions, cards, characters, inputlets, modes, tags  # noqa

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 import logging
 
 # -- third party --
@@ -14,10 +14,17 @@ from utils import check, check_type, CheckFailed, BatchList, group_by
 
 # -- code --
 log = logging.getLogger('THBattle_Actions')
-ActionLimitParams = namedtuple(
-    'ActionLimitParams',
-    'ilet actor cards players usage'
-)
+
+
+class ActionTransform(object):
+    __slots__ = ('ilet', 'actor', 'cards', 'players', 'usage')
+
+    def __init__(self, ilet, actor, cards, players, usage):
+        self.ilet = ilet
+        self.actor = actor
+        self.cards = cards
+        self.players = players
+        self.usage = usage
 
 
 # ------------------------------------------
@@ -26,6 +33,17 @@ def ttags(actor):
     tags = actor.tags
     tc = tags['turn_count']
     return tags.setdefault('turn_tags:%s' % tc, defaultdict(int))
+
+
+def handle_action_transform(g, actor, ilet, cards, usage, players):
+    g = Game.getgame()
+    requested = ActionTransform(
+        ilet=ilet, actor=actor,
+        cards=cards, players=players, usage=usage,
+    )
+
+    transformed = g.emit_event('action_transform', requested)
+    return transformed.cards, transformed.players
 
 
 def ask_for_action(initiator, actors, categories, candidates, trans=None):
@@ -37,6 +55,8 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
     assert categories or candidates
     assert actors
 
+    from gamepack.thb.cards import VirtualCard
+
     ilet = ActionInputlet(initiator, categories, candidates)
 
     @ilet.with_post_process
@@ -45,64 +65,61 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         usage = getattr(initiator, 'card_usage', 'none')
         try:
             check(rst)
-            skills, cards, players, params = rst
-            [check(not c.detached) for c in cards]
+            skills, rawcards, players, params = rst
+            [check(not c.detached) for c in rawcards]
+            [check(actor.has_skill(s)) for s in skills]  # has_skill may be hooked
+
+            if skills:
+                cards = [skill_wrap(actor, skills, rawcards, params)]
+                usage = cards[0].usage if usage == 'launch' else usage
+            else:
+                cards = rawcards
+                usage = 'launch'
+
+            cards, players = handle_action_transform(g, actor, ilet, cards, usage, players)
+
             if categories:
-                if skills:
-                    # check(len(skills) == 1)  # why? disabling it.
-                    [check(actor.has_skill(s)) for s in skills]  # has_skill may be hooked
+                if len(cards) == 1 and cards[0].is_card(VirtualCard):
+                    def walk(c):
+                        if not c.is_card(VirtualCard): return
+                        if getattr(c, 'no_reveal', False): return
 
-                    if not all([getattr(s, 'no_reveal', False) for s in skills]):
-                        g.players.reveal(cards)
+                        g.players.reveal(c.associated_cards)
+                        for c1 in c.associated_cards:
+                            walk(c1)
 
-                    skill = skill_wrap(actor, skills, cards, params)
-                    check(skill_check(skill))
-                    wrapped = [skill]
-                    usage = skill.usage if usage == 'launch' else usage
+                    walk(cards[0])
+                    check(skill_check(cards[0]))
+
                 else:
                     if not getattr(initiator, 'no_reveal', False):
                         g.players.reveal(cards)
 
-                    wrapped = cards
-
-                if not getattr(wrapped, 'no_drop', False):
-                    [c.detach() for c in cards]
-
-                check(initiator.cond(wrapped))
+                check(initiator.cond(cards))
                 assert not (usage == 'none' and cards)  # should not pass check
             else:
-                wrapped = []
+                cards = []
 
             if candidates:
                 players, valid = initiator.choose_player_target(players)
                 check(valid)
 
-            arg = ActionLimitParams(
-                ilet=ilet, actor=actor, cards=wrapped,
-                players=players, usage=usage
-            )
-            arg2, permitted = g.emit_event('action_limit', (arg, True))
-            assert arg == arg2
-
-            check(permitted)
-
-            return skills, cards, players, params
+            return cards, players, params
 
         except CheckFailed:
             return None
 
     p, rst = user_input(actors, ilet, type='any', trans=trans)
     if rst:
-        skills, cards, players, params = rst
-        if skills:
-            card = skill_wrap(p, skills, cards, params)
-            Game.getgame().deck.register_vcard(card)
-            cards = [card]
+        cards, players, params = rst
+
+        if len(cards) == 1 and cards[0].is_card(VirtualCard):
+            Game.getgame().deck.register_vcard(cards[0])
 
         if not cards and not players:
             return p, None
 
-        [c.detach() for c in cards]
+        [c.detach() for c in VirtualCard.unwrap(cards)]
 
         return p, (cards, players)
     else:
@@ -144,6 +161,7 @@ def random_choose_card(cardlists):
 
 
 def skill_wrap(actor, skills, cards, params):
+    assert skills
     for skill_cls in skills:
         card = skill_cls.wrap(cards, actor, params)
         cards = [card]
@@ -153,10 +171,11 @@ def skill_wrap(actor, skills, cards, params):
 
 def skill_check(wrapped):
     from gamepack.thb.cards.base import Skill
+
     try:
         check(wrapped.check())
         for c in wrapped.associated_cards:
-            if isinstance(c, Skill):
+            if c.is_card(Skill):
                 check(c.actor is wrapped.player)
                 check(skill_check(c))
             else:
@@ -1018,12 +1037,10 @@ class DyingHandler(EventHandler):
 
 @register_eh
 class CardUsageHandler(EventHandler):
-    def handle(self, evt_type, act):
-        if evt_type == 'action_limit':
-            arg, permitted = act
-            if not permitted: return act
-
-            if arg.usage != 'drop': return act
+    def handle(self, evt_type, arg):
+        # FIXME: action_limit -> action_transform, modified without knowing what it does
+        if evt_type == 'action_transform':
+            if arg.usage != 'drop': return arg
             cards = arg.cards
             if getattr(arg.ilet.initiator, 'card_usage', None) == 'launch':
                 assert len(cards) == 1
@@ -1033,9 +1050,10 @@ class CardUsageHandler(EventHandler):
                 cards = cards[0].associated_cards
 
             from .cards import VirtualCard
-            return arg, not any([c.is_card(VirtualCard) for c in cards])
+            if any([c.is_card(VirtualCard) for c in cards]):
+                arg.cards = []
 
-        return act
+        return arg
 
 
 class ShowCards(GenericAction):
