@@ -149,11 +149,12 @@ class VirtualCard(Card):
 
     def __init__(self, player):
         self.player           = player
-        self.suit             = Card.NOTSET
-        self.number           = 0
         self.associated_cards = []
         self.resides_in       = player.cards
         self.action_params    = {}
+        self._suit            = None
+        self._number          = None
+        self._color           = None
 
     def __data__(self):
         return {
@@ -184,22 +185,47 @@ class VirtualCard(Card):
     def wrap(cls, cl, player, params=None):
         vc = cls(player)
         vc.action_params = params or {}
-
-        if not cl:
-            vc.associated_cards = []
-            return vc
-
-        suit = cl[0].suit if len(cl) == 1 else Card.NOTSET
-
-        color = set([c.color for c in cl])
-        color = color.pop() if len(color) == 1 else Card.NOTSET
-
-        num = set([c.number for c in cl])
-        num = num.pop() if len(num) == 1 else Card.NOTSET
-
-        vc.suit, vc.number, vc.color = suit, num, color
         vc.associated_cards = cl[:]
         return vc
+
+    def get_color(self):
+        if self._color is not None:
+            return self._color
+
+        color = set([c.color for c in self.associated_cards])
+        color = color.pop() if len(color) == 1 else Card.NOTSET
+        return color
+
+    def set_color(self, v):
+        self._color = v
+
+    color = property(get_color, set_color)
+
+    def get_number(self):
+        if self._number is not None:
+            return self._number
+
+        num = set([c.number for c in self.associated_cards])
+        num = num.pop() if len(num) == 1 else Card.NOTSET
+        return num
+
+    def set_number(self, v):
+        self._number = v
+
+    number = property(get_number, set_number)
+
+    def get_suit(self):
+        if self._suit is not None:
+            return self._suit
+
+        cl = self.associated_cards
+        suit = cl[0].suit if len(cl) == 1 else Card.NOTSET
+        return suit
+
+    def set_suit(self, v):
+        self._suit = v
+
+    suit = property(get_suit, set_suit)
 
     def sync(self, data):
         assert data['vcard']

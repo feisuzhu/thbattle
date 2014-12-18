@@ -84,11 +84,12 @@ class UISelectTarget(Control, InputHandler):
         self.label = None
         self.action_params = {}
         self.view = self.parent
-
         self.x, self.y, self.width, self.height = (285, 162, 531, 58)
 
     def process_user_input(self, ilet):
         view = self.view
+        self.inputlet = ilet
+
         self.confirmbtn = UIActionConfirmButtons(
             parent=self, x=259, y=4, width=165, height=24,
         )
@@ -105,7 +106,7 @@ class UISelectTarget(Control, InputHandler):
         port = view.player2portrait(g.me)
         port.equipcard_area.clear_selection()
 
-        # view.notify.selection_change.notify() # the clear_selection thing will trigger this
+        # view.selection_change.notify()  # the clear_selection thing will trigger this
 
         @self.confirmbtn.event
         def on_confirm(is_ok, force=False):
@@ -123,8 +124,6 @@ class UISelectTarget(Control, InputHandler):
             1.0, 0.0, ilet.timeout,
             on_done=lambda *a: on_confirm(False, force=True)
         )
-
-        self.inputlet = ilet
 
     def set_text(self, text):
         self.label.text = text
@@ -169,132 +168,40 @@ class UISelectTarget(Control, InputHandler):
 class UIDoPassiveAction(UISelectTarget):
     _auto_chosen = False
 
-    def process_user_input(self, ilet):
-        UISelectTarget.process_user_input(self, ilet)
-
-        g = Game.getgame()
-
-        if ilet.candidates:
-            parent = self.parent
-            disables = [p for p in g.players if p not in ilet.candidates]
-            parent.begin_select_player(disables)
-
-        self.view.selection_change.notify()
-
     def on_selection_change(self):
-        try:
-            ilet = self.inputlet
-            if not ilet: return
-
-            view = self.parent
-            if not view: return
-
-            usage, cards, players = 'none', (), ()
-
-            if ilet.categories:
-                rst = self.handle_card_selection(view, ilet)
-                if not rst:
-                    return
-
-                usage, cards = rst
-
-            if ilet.candidates:
-                rst = self.handle_player_selection(view, ilet)
-                if not rst:
-                    return
-
-                players = rst
-
-            if not self.handle_action_limit(view, ilet, usage, cards, players):
-                return
-
-            self.set_valid()
-        except:
-            log.exception('on_selection_change')
-
-    def handle_card_selection(self, view, ilet):
-        usage = getattr(ilet.initiator, 'card_usage', 'none')
         g = Game.getgame()
+        ilet = self.inputlet
+        if not ilet: return
 
-        if not self._auto_chosen:
+        view = self.parent
+        if not view: return
+
+        if ilet.categories and not self._auto_chosen:
             self._auto_chosen = True
-            from itertools import chain
-            for c in chain(g.me.showncards, g.me.cards):
-                if not ilet.initiator.cond([c]): continue
+            c = ilet.ui_meta.passive_action_recommend(g, ilet)
+            if c:
                 hca = view.handcard_area
                 for cs in hca.cards:
                     if cs.associated_card == c:
-                        break
-                else:
-                    raise Exception('WTF?!')
+                        hca.toggle(cs, 0.3)
+                        return
 
-                hca.toggle(cs, 0.3)
-                return
-
+        view = self.parent
         skills = view.get_selected_skills()
-        cards = view.get_selected_cards()
+        rawcards = view.get_selected_cards()
         params = view.get_action_params()
-        g = Game.getgame()
-
-        if skills:
-            for skill_cls in skills:
-                if not g.me.has_skill(skill_cls):
-                    self.set_text(u'您不能这样出牌')
-                    return
-
-                cards = [skill_cls.wrap(cards, g.me, params)]
-                try:
-                    rst, reason = cards[0].ui_meta.is_complete(g, cards)
-                except:
-                    rst, reason = False, u'[card.ui_meta.is_complete错误]'
-                    log.exception('card.ui_meta.is_complete error')
-
-                if not rst:
-                    self.set_text(reason)
-                    return
-
-                usage = cards[0].usage if usage == 'launch' else usage
-
-        c = ilet.initiator.cond(cards)
-        c1, text = ilet.initiator.ui_meta.choose_card_text(g, ilet.initiator, cards)
-        assert c == c1
-        self.set_text(text)
-
-        if not c:
-            return
-
-        return usage, cards
-
-    def handle_player_selection(self, view, ilet):
         players = view.get_selected_players()
-        players, valid = ilet.initiator.choose_player_target(players)
-        try:
-            valid1, reason = ilet.initiator.ui_meta.target(players)
-            assert bool(valid) == bool(valid1)
-        except:
-            log.exception('act.ui_meta.target error')
-            valid1, reason = valid, u'[act.ui_meta.target错误]'
+        ilet = self.inputlet
 
-        view.set_selected_players(players)
-        self.set_text(reason)
+        rst = ilet.ui_meta.passive_action_disp(g, ilet, skills, rawcards, params, players)
 
-        return players if valid else None
-
-    def handle_action_limit(self, view, ilet, usage, cards, players):
-        g = Game.getgame()
-        arg = thbactions.ActionLimitParams(
-            ilet=ilet, actor=g.me,
-            cards=cards, players=players, usage=usage,
-        )
-
-        arg2, permitted = g.emit_event('action_limit', (arg, True))
-        assert arg == arg2
-
-        if not permitted:
-            self.set_text(u'您不能这样出牌')
-            return False
-
-        return True
+        rst.valid and self.set_valid()
+        self.set_text(rst.prompt)
+        if rst.pl_selecting:
+            view.begin_select_player(rst.pl_disabled)
+            view.set_selected_players(rst.pl_selected)
+        else:
+            view.end_select_player()
 
     def cleanup(self):
         try:
@@ -411,116 +318,28 @@ class UIDoRejectCardResponse(UIDoPassiveAction):
 
 
 class UIDoActionStage(UISelectTarget):
-    # for actions.ActionStage
-    # def get_result(self):
-    #     pass
-
     def on_selection_change(self):
-        view = self.parent
-        skills = view.get_selected_skills()
-        cards = rawcards = view.get_selected_cards()
-        params = view.get_action_params()
+        ilet = self.inputlet
+        if not ilet: return
 
+        view = self.parent
+        if not view: return
+
+        skills = view.get_selected_skills()
+        rawcards = view.get_selected_cards()
+        params = view.get_action_params()
+        players = view.get_selected_players()
         g = Game.getgame()
 
-        if skills:
-            if not all([g.me.has_skill(s) for s in skills]):
-                self.set_text(u'您不能这样出牌')
-                return
+        rst = ilet.ui_meta.active_action_disp(g, ilet, skills, rawcards, params, players)
 
-            cards = [skills[0].wrap(cards, g.me, params)]
-            for skill_cls in skills[1:]:
-                try:
-                    isc = getattr(cards[0].ui_meta, 'is_complete', None)
-                    if not isc:
-                        self.set_text(u'您不能像这样组合技能')
-                        return
-                    rst, reason = isc(g, cards)
-                    if not rst:
-                        self.set_text(reason)
-                        return
-                except:
-                    self.set_text(u'[card.ui_meta.is_complete错误]')
-                    log.exception('card.ui_meta.is_complete error')
-                    return
-
-                cards = [skill_cls.wrap(cards, g.me, params)]
-
-        if not cards:
-            self.set_text(u'请出牌…')
+        rst.valid and self.set_valid()
+        self.set_text(rst.prompt)
+        if rst.pl_selecting:
+            view.begin_select_player(rst.pl_disabled)
+            view.set_selected_players(rst.pl_selected)
+        else:
             view.end_select_player()
-            return
-
-        if len(cards) != 1:
-            self.set_text(u'请选择一张牌使用')
-            view.end_select_player()
-            return
-
-        card = cards[0]
-
-        from ..cards import VirtualCard
-        if not card.is_card(VirtualCard):
-            if card.resides_in not in (g.me.cards, g.me.showncards):
-                self.set_text(u'您选择的牌不符合出牌规则')
-                view.end_select_player()
-                return
-
-        target_list, tl_valid = card.target(g, g.me, view.get_selected_players())
-        if target_list is not None:
-            view.set_selected_players(target_list)
-            disables = []
-            # if card.target in (thbcards.t_One, thbcards.t_OtherOne):
-            if card.target.__name__ in ('t_One', 't_OtherOne'):
-                for p in g.players:
-                    act = thbactions.ActionStageLaunchCard(g.me, [p], card)
-                    if not act.can_fire():
-                        disables.append(p)
-
-            view.begin_select_player(disables)
-            for i in disables:
-                try:
-                    target_list.remove(i)
-                except ValueError:
-                    pass
-
-        try:
-            rst, reason = card.ui_meta.is_action_valid(g, cards, target_list)
-        except Exception as e:
-            log.exception(e)
-            rst, reason = (True, u'[card.ui_meta.is_action_valid错误]')
-
-        self.set_text(reason)
-        if not rst:
-            return
-
-        if not tl_valid:
-            self.set_text(u'您选择的目标不符合规则')
-            return
-
-        act = thbactions.ActionStageLaunchCard(g.me, target_list, card)
-
-        if skills:
-            card = thbactions.skill_wrap(g.me, skills, rawcards, params)
-            card = card if thbactions.skill_check(card) else None
-
-        if card:
-            arg = thbactions.ActionLimitParams(
-                ilet=self.inputlet, actor=g.me,
-                cards=[card],
-                players=target_list,
-                usage=card.usage,
-            )
-
-            assert not (arg.usage == 'none' and rawcards)
-
-            arg2, permitted = g.emit_event('action_limit', (arg, True))
-            assert arg == arg2
-
-            if permitted and act.can_fire():
-                self.set_valid()
-                return
-
-        self.set_text(u'您不能这样出牌')
 
 
 class GirlSelector(ImageSelector):
