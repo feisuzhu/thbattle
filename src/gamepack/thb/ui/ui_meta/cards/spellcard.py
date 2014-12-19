@@ -406,7 +406,7 @@ class DonationBoxCard:
     image = 'thb-card-donationbox'
     description = (
         u'|R塞钱箱|r\n\n'
-        u'群体符卡\n'
+        u'非延时符卡\n'
         u'出牌阶段，对至多两名其他角色使用，目标角色需将自己的一张牌置入你的明牌区。\n\n'
         u'|DB（画师：Pixiv ID 4104174，CV：shourei小N）|r'
     )
