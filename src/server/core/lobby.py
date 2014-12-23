@@ -1165,10 +1165,11 @@ class GameManager(object):
             u = p.client
             rst.append((u, 'games', 1))
             if p.dropped and p.fleed:
-                rst.append((u, 'drops', 1))
+                if not options.no_counting_flee:
+                    rst.append((u, 'drops', 1))
             else:
                 s = 5 + bonus if p in winners else 5
-                rst.append((u, 'credits', int(s * rate)))
+                rst.append((u, 'credits', int(s * rate * options.credit_multiplier)))
 
         return rst
 

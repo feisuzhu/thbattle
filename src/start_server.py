@@ -37,6 +37,8 @@ def start_server():
     parser.add_argument('--log', default='INFO')
     parser.add_argument('--logfile', default='')
     parser.add_argument('--gidfile', default='')
+    parser.add_argument('--credit-multiplier', type=float, default=1)
+    parser.add_argument('--no-counting-flee', action='store_true')
     parser.add_argument('--archive-path', default='')
     parser.add_argument('--interconnect', action='store_true', default=False)
     parser.add_argument('--redis-url', default='redis://localhost:6379')
