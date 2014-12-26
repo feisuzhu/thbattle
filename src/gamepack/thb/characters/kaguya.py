@@ -82,7 +82,7 @@ class DilemmaHandler(EventHandler):
 
 class ImperishableNight(TreatAs, Skill):
     treat_as = SealingArrayCard
-    skill_category = ('character', 'active')
+    skill_category = ('character', 'passive')
 
     def check(self):
         return Game.getgame().current_turn is not self.player

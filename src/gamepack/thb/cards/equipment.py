@@ -229,7 +229,7 @@ class RoukankenEffectHandler(EventHandler):
 
 class NenshaPhoneSkill(WeaponSkill):
     associated_action = None
-    skill_category = ('equip', 'active')
+    skill_category = ('equip', 'passive')
     target = t_None
     range = 4
 
@@ -353,7 +353,7 @@ class ScarletRhapsodySkill(WeaponSkill):
 
 class RepentanceStickSkill(WeaponSkill):
     range = 2
-    skill_category = ('equip', 'active')
+    skill_category = ('equip', 'passive')
     associated_action = None
     target = t_None
 
@@ -475,7 +475,7 @@ class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
 
 class HouraiJewelSkill(WeaponSkill):
     associated_action = None
-    skill_category = ('equip', 'active')
+    skill_category = ('equip', 'passive')
     target = t_None
     range = 1
 
@@ -684,7 +684,7 @@ class Laevatein(UserAction):
 
 class LaevateinSkill(WeaponSkill):
     range = 3
-    skill_category = ('equip', 'active')
+    skill_category = ('equip', 'passive')
     associated_action = None
     target = t_None
 
@@ -798,7 +798,7 @@ class KeystoneHandler(EventHandler):
 
 
 class WitchBroomSkill(RedUFOSkill):
-    skill_category = ('equip', 'active')
+    skill_category = ('equip', 'passive')
     increment = 2
 
 

@@ -15,7 +15,7 @@ from gamepack.thb.inputlets import ChooseOptionInputlet
 # -- code --
 class CriticalStrike(Skill):
     associated_action = None
-    skill_category = ('character', 'active')
+    skill_category = ('character', 'passive')
     target = t_None
 
 
@@ -106,7 +106,7 @@ class CriticalStrikeHandler(EventHandler):
 
 class Exterminate(Skill):
     associated_action = None
-    skill_category = ('character', 'active')
+    skill_category = ('character', 'passive')
     target = t_None
 
 

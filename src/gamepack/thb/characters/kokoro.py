@@ -51,7 +51,7 @@ class HopeMaskHandler(EventHandler):
 
 class HopeMask(Skill):
     associated_action = None
-    skill_category = ('character', 'active')
+    skill_category = ('character', 'passive')
     target = t_None
 
 

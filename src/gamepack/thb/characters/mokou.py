@@ -15,13 +15,13 @@ from game.autoenv import EventHandler, Game, user_input
 # -- code --
 class Ashes(Skill):
     associated_action = None
-    skill_category = ('character', 'active')
+    skill_category = ('character', 'passive')
     target = t_None
 
 
 class Reborn(Skill):
     associated_action = None
-    skill_category = ('character', 'active')
+    skill_category = ('character', 'passive')
     target = t_None
 
 

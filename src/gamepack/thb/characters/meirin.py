@@ -14,12 +14,12 @@ from game.autoenv import EventHandler, Game, user_input
 # -- code --
 class LoongPunch(Skill):
     associated_action = None
-    skill_category = ('character', 'active')
+    skill_category = ('character', 'passive')
     target = t_None
 
 
 class Taichi(TreatAs, Skill):
-    skill_category = ('character', 'active', 'passive')
+    skill_category = ('character', 'active')
 
     @property
     def treat_as(self):

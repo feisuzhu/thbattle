@@ -146,7 +146,7 @@ class Mijincihangzhan(Skill):
 class Nitoryuu(Skill):
     # 二刀流
     associated_action = NitoryuuDropWeapon
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ('character', 'active', 'compulsory')
     target = t_Self
 
     def check(self):
