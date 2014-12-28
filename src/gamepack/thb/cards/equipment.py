@@ -22,7 +22,7 @@ class WearEquipmentAction(UserAction):
         equips = target.equips
         g = Game.getgame()
 
-        with MigrateCardsTransaction() as trans:
+        with MigrateCardsTransaction(self) as trans:
             for oc in equips:
                 if oc.equipment_category == card.equipment_category:
                     migrate_cards([oc], g.deck.droppedcards, unwrap=True, trans=trans)

@@ -119,7 +119,8 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         if not cards and not players:
             return p, None
 
-        [c.detach() for c in VirtualCard.unwrap(cards)]
+        g = Game.getgame()
+        g.deck.detach(cards)
 
         return p, (cards, players)
     else:
@@ -155,9 +156,8 @@ def random_choose_card(cardlists):
     v = sync_primitive(c.syncid, g.players)
     cl = g.deck.lookupcards([v])
     assert len(cl) == 1
-    c = cl[0]
-    c.detach()
-    return c
+    g.deck.detach(cl)
+    return cl[0]
 
 
 def skill_wrap(actor, skills, cards, params):
@@ -188,8 +188,8 @@ def skill_check(wrapped):
 
 
 class MigrateCardsTransaction(object):
-    def __init__(self):
-        self.action = Game.getgame().action_stack[-1]
+    def __init__(self, action):
+        self.action = action
         self.cancelled = False
         self.movements = []
 
@@ -210,25 +210,20 @@ class MigrateCardsTransaction(object):
 
     def commit(self):
         g = Game.getgame()
-        DETACHED = migrate_cards.DETACHED
         act = self.action
 
         for cards, _from, to in self.movements:
-            if to is not DETACHED:
-                for c in cards: c.move_to(to)
-            else:
-                for c in cards: c.detach()
-
-        for cards, _from, to in self.movements:
+            for c in cards: c.move_to(to)
             g.emit_event('card_migration', (act, cards, _from, to))
 
-        g.emit_event('post_card_migration', self)
+        g.emit_event('card_migration_transaction_end', self)
 
 
-def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
+def migrate_cards(cards, to, unwrap=False, trans=None):
     if not trans:
-        with MigrateCardsTransaction() as trans:
-            migrate_cards(cards, to, unwrap, detached, trans)
+        g = Game.getgame()
+        with MigrateCardsTransaction(g.action_stack[-1]) as trans:
+            migrate_cards(cards, to, unwrap, trans)
             return not trans.cancelled
 
     if to.owner and to.owner.dead:
@@ -239,45 +234,23 @@ def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
     from .cards import VirtualCard
     groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
 
-    DETACHED = migrate_cards.DETACHED
-    detaching = to is DETACHED
-
     for l in groups:
-        if detached:
-            assert not [c for c in l if not c.detached]
-            cl = DETACHED
-        else:
-            cl = l[0].resides_in
+        cl = l[0].resides_in
 
         if l[0].is_card(VirtualCard):
             assert len(l) == 1
-            trans.move(l, cl, DETACHED if unwrap else to)
+            trans.move(l, cl, None if unwrap else to)
             migrate_cards(
                 l[0].associated_cards,
-                to if unwrap or detaching else to.owner.special,
-                unwrap if type(unwrap) is bool else unwrap - 1,
-                detached,
+                to if unwrap else to.owner.special,
+                unwrap if unwrap in (False, True) else max(unwrap - 1, 0),
                 trans
             )
 
         else:
             trans.move(l, cl, to)
 
-
-def detach_cards(cards, trans=None):
-    migrate_cards(cards, migrate_cards.DETACHED, trans=trans)
-
-
-class _MigrateCardsDetached(object):
-    owner = None
-    type = 'detached'
-
-    def __repr__(self):
-        return 'DETACHED'
-
-
 migrate_cards.SINGLE_LAYER = 1
-migrate_cards.DETACHED = _MigrateCardsDetached()
 
 
 def register_eh(cls):
@@ -446,17 +419,16 @@ class MaxLifeChange(GenericAction):
 # ---------------------------------------------------
 
 class DropCards(GenericAction):
-    def __init__(self, target, cards, detached=False):
+    def __init__(self, target, cards):
         self.target = target
         self.cards = cards
-        self.detached = detached
 
     def apply_action(self):
         g = Game.getgame()
         target = self.target
         cards = self.cards
         assert all(c.resides_in.owner in (target, None) for c in cards), 'WTF?!'
-        migrate_cards(cards, g.deck.droppedcards, unwrap=True, detached=self.detached)
+        migrate_cards(cards, g.deck.droppedcards, unwrap=True)
 
         return True
 
@@ -605,12 +577,8 @@ class LaunchCard(GenericAction):
         try:
             if drop:  # should drop before action
                 g.process_action(DropCards(src, cards=[card]))
-
-            elif not getattr(card, 'no_drop', False):
-                detach_cards([card])  # emit events
-
             else:
-                card.detach()
+                g.deck.detach([card])
 
             _, tl = g.emit_event('choose_target', (self, target_list))
             assert _ is self
@@ -640,11 +608,7 @@ class LaunchCard(GenericAction):
                 # means no actions have done anything to the card/skill,
                 # drop it
                 if not getattr(card, 'no_drop', False):
-                    g.process_action(DropUsedCard(src, cards=[card], detached=True))
-                else:
-                    from .cards import VirtualCard
-                    for c in VirtualCard.unwrap([card]):
-                        if c.detached: c.attach()
+                    g.process_action(DropUsedCard(src, cards=[card]))
 
         return True
 
@@ -769,6 +733,10 @@ class ActionStage(GenericAction):
         try:
             while not target.dead:
                 try:
+                    # defensive mechanism:
+                    #     detached cards should not cross this line,
+                    g.deck.reattach()
+
                     g.emit_event('action_stage_action', target)
                     self.in_user_input = True
                     with InputTransaction('ActionStageAction', [target]) as trans:
@@ -979,7 +947,7 @@ class Pindian(UserAction):
         g = Game.getgame()
 
         pl = BatchList([tgt, src])
-        pindian_card = {src: None, tgt: None}
+        pdcard = {src: None, tgt: None}
 
         with InputTransaction('Pindian', pl) as trans:
             for p in pl:
@@ -989,16 +957,16 @@ class Pindian(UserAction):
                 else:
                     card = random_choose_card([p.cards, p.showncards])
 
-                pindian_card[p] = card
-                detach_cards([card])
+                pdcard[p] = card
+                g.deck.detach([card])
                 g.emit_event('pindian_card_chosen', (p, card))
 
-        g.players.reveal([pindian_card[src], pindian_card[tgt]])
+        g.players.reveal([pdcard[src], pdcard[tgt]])
         g.emit_event('pindian_card_revealed', self)  # for ui.
-        g.process_action(DropCards(src, [pindian_card[src]], detached=True))
-        g.process_action(DropCards(tgt, [pindian_card[tgt]], detached=True))
 
-        return pindian_card[src].number > pindian_card[tgt].number
+        migrate_cards([pdcard[src], pdcard[tgt]], g.deck.droppedcards, True)
+
+        return pdcard[src].number > pdcard[tgt].number
 
     @staticmethod
     def cond(cl):

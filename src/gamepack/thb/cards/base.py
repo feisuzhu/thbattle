@@ -264,6 +264,8 @@ class Deck(GameObject):
         self.disputed = CardList(None, 'disputed')
         cards = CardList(None, 'deckcard')
         self.cards = cards
+
+        self.detached = []  # not a CardList
         cards.extend(
             cls(suit, n, cards)
             for cls, suit, n in card_definition
@@ -332,6 +334,22 @@ class Deck(GameObject):
         for c in cl:
             c.syncid = 0
             self.register_card(c)
+
+    def detach(self, cl):
+        for c in cl:
+            if c.is_card(VirtualCard):
+                self.detach(c.associated_cards)
+            else:
+                self.detached.append(c)
+
+            c.detach()
+
+    def reattach(self):
+        for c in self.detached:
+            if c.detached:
+                c.attach()
+
+        self.detached[:] = []
 
 
 class Skill(VirtualCard):
