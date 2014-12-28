@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-
+# -- third party --
 # -- own --
-from ..actions import BaseFatetell, DropUsedCard
-from ..cards import VirtualCard
+from gamepack.thb import actions
+from gamepack.thb.actions import BaseFatetell, DropUsedCard
+from gamepack.thb.cards import VirtualCard
+from utils import group_by
 
 # -- code --
+
 
 # MigrateOpcode:
 NOP        = 0  # No operation. never used.
@@ -18,19 +21,21 @@ FADE       = 5  # Fade CardSprite, arg: CardSprite, no ret val.
 GRAY       = 6  # Set CardSprite gray, arg: CardSprite, no ret val.
 UNGRAY     = 7  # Unset CardSprite gray, arg: CardSprite, no ret val.
 FATETELL   = 8  # Play Fatetell animation, arg: CardSprite, no ret val.
-AREA_HAND  = 9
-AREA_DECK  = 10
-AREA_DROP  = 11
-AREA_PORT0 = 12
-AREA_PORT1 = 13
-AREA_PORT2 = 14
-AREA_PORT3 = 15
-AREA_PORT4 = 16
-AREA_PORT5 = 17
-AREA_PORT6 = 18
-AREA_PORT7 = 19
-AREA_PORT8 = 20
-AREA_PORT9 = 21
+SHOW       = 9
+UNSHOW     = 10
+AREA_HAND  = 11
+AREA_DECK  = 12
+AREA_DROP  = 13
+AREA_PORT0 = 14
+AREA_PORT1 = 15
+AREA_PORT2 = 16
+AREA_PORT3 = 17
+AREA_PORT4 = 18
+AREA_PORT5 = 19
+AREA_PORT6 = 20
+AREA_PORT7 = 21
+AREA_PORT8 = 22
+AREA_PORT9 = 23
 
 
 def _dbgprint(ins):
@@ -66,21 +71,27 @@ def card_migration_instructions(g, args):
             raise ValueError
 
     # -- card actions --
+    if _from is g.me.showncards and to is not g.me.showncards:
+        tail = [DUP, UNSHOW]
+    elif _from is not g.me.showncards and to is g.me.showncards:
+        tail = [DUP, SHOW]
+    else:
+        tail = []
+
     if to.owner is g.me and to.type in ('cards', 'showncards'):
-        tail = [DUP, UNGRAY, AREA_HAND, MOVE]
+        tail += [DUP, UNGRAY, AREA_HAND, MOVE]
     else:
         if to.type in ('droppedcard', 'disputed'):
             if isinstance(act, BaseFatetell):
-                tail = [DUP, DUP, UNGRAY if act.succeeded else GRAY, FATETELL, AREA_DROP, MOVE]
+                tail += [DUP, DUP, UNGRAY if act.succeeded else GRAY, FATETELL, AREA_DROP, MOVE]
             else:
                 gray = not isinstance(act, DropUsedCard) and not to.type == 'disputed'
-                tail = [DUP, GRAY if gray else UNGRAY, AREA_DROP, MOVE]
+                tail += [DUP, GRAY if gray else UNGRAY, AREA_DROP, MOVE]
 
         elif to.owner:
-            tail = [DUP, DUP, UNGRAY, FADE, AREA_PORT0 + _(to), MOVE]
+            tail += [DUP, DUP, UNGRAY, FADE, AREA_PORT0 + _(to), MOVE]
         else:
-            # tail = [DUP, DUP, UNGRAY, FADE, AREA_DECK, MOVE]
-            return ops  # no animation
+            return []  # no animation
 
     # -- sprites --
     rawcards = [c for c in cards if not c.is_card(VirtualCard)]
@@ -97,3 +108,36 @@ def card_migration_instructions(g, args):
 
     # _dbgprint(ops)
     return ops
+
+
+def drop_cards_card_migration_instructions(g, cards):
+    rawcards = VirtualCard.unwrap(cards)
+    rst = []
+
+    for cards in group_by(rawcards, lambda c: id(c.resides_in)):
+        rst += card_migration_instructions(
+            g, (
+                actions.DropUsedCard(None, None),
+                cards,
+                cards[0].resides_in,
+                g.deck.droppedcards,
+            )
+        )
+
+    return rst
+
+
+def get_display_tags(p):
+    from gamepack.thb.ui.ui_meta.tags import tags as tags_meta
+
+    rst = []
+
+    for t in list(p.tags):
+        meta = tags_meta.get(t)
+        if meta and meta.display(p, p.tags[t]):
+            rst.append(meta.tag_anim(p))
+
+    for c in list(p.fatetell):
+        rst.append(c.ui_meta.tag_anim(c))
+
+    return rst
