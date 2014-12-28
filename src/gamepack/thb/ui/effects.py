@@ -11,8 +11,8 @@ from pyglet.text import Label
 import pyglet
 
 # -- own --
-from ..actions import Action, ActionStage, BaseFatetell, Damage, LaunchCard, Pindian, PlayerDeath
-from ..actions import PlayerTurn, UserAction
+from ..actions import Action, ActionStage, BaseFatetell, Damage, Fatetell, LaunchCard, Pindian
+from ..actions import PlayerDeath, PlayerTurn, UserAction
 from ..cards import RejectHandler, VirtualCard
 from ..inputlets import ActionInputlet
 from .game_controls import CardSprite, SmallCardSprite
@@ -623,34 +623,8 @@ def showcards_effect(self, arg):
 
 
 def fatetell_effect(self, act):
-    from gamepack.thb.ui.ui_meta.common import card_desc
+    self.prompt(Fatetell.ui_meta.fatetell_prompt_string(act))
 
-    act_name = None
-
-    try:
-        card = act.initiator.associated_card
-        act_name = card.ui_meta.name
-    except AttributeError:
-        pass
-
-    try:
-        act_name = act.initiator.ui_meta.fatetell_display_name
-    except AttributeError:
-        pass
-
-    if act_name:
-        prompt = u'|G【%s】|r进行了一次判定（|G%s|r），结果为%s。' % (
-            act.target.ui_meta.char_name,
-            act_name,
-            card_desc(act.card)
-        )
-    else:
-        prompt = u'|G【%s】|r进行了一次判定，结果为%s。' % (
-            act.target.ui_meta.char_name,
-            card_desc(act.card)
-        )
-
-    self.prompt(prompt)
 
 mapping_events = ddict(bool, {
     'action_before':     partial(action_effects, 'before'),

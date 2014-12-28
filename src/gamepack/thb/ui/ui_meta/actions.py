@@ -183,4 +183,37 @@ class Pindian:
             winner.ui_meta.char_name
         )
 
+
+class Fatetell:
+
+    def fatetell_prompt_string(act):
+        from gamepack.thb.ui.ui_meta.common import card_desc
+
+        act_name = None
+
+        try:
+            card = act.initiator.associated_card
+            act_name = card.ui_meta.name
+        except AttributeError:
+            pass
+
+        try:
+            act_name = act.initiator.ui_meta.fatetell_display_name
+        except AttributeError:
+            pass
+
+        if act_name:
+            prompt = u'|G【%s】|r进行了一次判定（|G%s|r），结果为%s。' % (
+                act.target.ui_meta.char_name,
+                act_name,
+                card_desc(act.card)
+            )
+        else:
+            prompt = u'|G【%s】|r进行了一次判定，结果为%s。' % (
+                act.target.ui_meta.char_name,
+                card_desc(act.card)
+            )
+
+        return prompt
+
 # -----END ACTIONS UI META-----
