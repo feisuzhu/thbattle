@@ -14,11 +14,7 @@ __metaclass__ = gen_metafunc(characters.mamizou)
 class Morphing:
     # Skill
     name = u'变化'
-
-    @meta_property
-    def params_ui(self):
-        from gamepack.thb.ui.inputs import UIMorphingCardSelection
-        return UIMorphingCardSelection
+    params_ui = 'UIMorphingCardSelection'
 
     def clickable(game):
         me = game.me

@@ -997,88 +997,55 @@ class UIKokoroHomeMask(Panel, InputHandler):
 
 
 class UIMorphingCardSelection(CardSelectionPanel):
+    last_cards = None
+
     def __init__(self, parent, *a, **k):
         CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)
         self.view = view = parent
-        view.selection_change += self.on_selection_change
+        view.selection_change += self.on_view_selection_change
         self.panel = None
-        self.on_selection_change()
+        self.on_view_selection_change()
+
+    def on_view_selection_change(self):
+        view = self.view
+        cl = view.get_selected_cards()
+
+        if cl == self.last_cards: return
+        self.last_cards = cl
+
+        from gamepack.thb.characters.mamizou import Morphing
+
+        cards = Morphing.list_morph_cards(cl)
+        card_lists = []
+
+        l = [c for c in cards if 'basic' in c.category]
+        l and card_lists.append(('基本牌', l))
+
+        l = [c for c in cards if 'instant_spellcard' in c.category]
+        l and card_lists.append(('符卡', l))
+
+        self.selection_mode = CardSelectionPanel.SINGLE
+        self.init(card_lists, multiline=len(card_lists) < 2)
 
     def on_selection_change(self):
         view = self.view
         params = view.get_action_params()
-        cl = view.get_selected_cards()
+        if self.selection:
+            card = self.selection[0].associated_card
+            params['mamizou_morphing'] = card.__class__.__name__
+        else:
+            try:
+                del params['mamizou_morphing']
+            except:
+                pass
 
-        def cancel():
-            if self.panel:
-                self.panel.delete()
-                self.panel = None
-                try:
-                    del params['mamizou_morphing']
-                except:
-                    pass
-
-        if len(cl) != 2:
-            return cancel()
-
-        cats = set(cl[0].category)
-        cats.update(cl[1].category)
-
-        if 'skill' in cats:
-            return cancel()
-
-        cats = cats & {'basic', 'spellcard'}
-        if not cats:
-            return cancel()
-
-        if self.panel:
-            return
-
-        if 'spellcard' in cats:
-            cats.discard('spellcard')
-            cats.add('instant_spellcard')
-
-        card_categories = {
-            cat: [
-                cls() for cls in Card.card_classes.values()
-                if cat in cls.category
-            ] for cat in ('basic', 'instant_spellcard')
-        }
-
-        cat_names = (
-            ('basic', u'基本牌'),
-            ('instant_spellcard', u'符卡')
-        )
-
-        card_lists = [
-            (name, card_categories[cat])
-            for cat, name in cat_names
-            if cat in cats
-        ]
-        self.panel = panel = CardSelectionPanel(
-            parent=self.parent, zindex=10,
-            selection_mode=CardSelectionPanel.SINGLE,
-        )
-        panel.init(card_lists, multiline=len(card_lists) < 2)
-
-        @panel.event
-        def on_selection_change():
-            if panel.selection:
-                card = panel.selection[0].associated_card
-                params['mamizou_morphing'] = card.__class__.__name__
-            else:
-                try:
-                    del params['mamizou_morphing']
-                except:
-                    pass
-
-            self.view.selection_change.notify()
+        view.selection_change.notify()
 
     def delete(self):
         if self.panel:
             self.panel.delete()
 
-        self.view.selection_change -= self.on_selection_change
+        self.view.selection_change -= self.on_view_selection_change
         super(UIMorphingCardSelection, self).delete()
 
 

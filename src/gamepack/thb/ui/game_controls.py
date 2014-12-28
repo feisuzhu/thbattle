@@ -363,7 +363,8 @@ class SkillSelectionBox(Control):
                 self._selected = True
                 pui = getattr(self.skill.ui_meta, 'params_ui', None)
                 if pui:
-                    self.params_ui = pui(parent=self.view)
+                    from gamepack.thb.ui import inputs
+                    self.params_ui = getattr(inputs, pui)(parent=self.view)
 
             else:
                 self.parent.selection.remove(self.sid)
@@ -544,6 +545,11 @@ class CardSelectionPanel(Panel):
     ]
     '''
     def init(self, card_lists, compat=True, multiline=False):
+        for c in self.control_list[:]:
+            c.delete()
+
+        self.lbls = pyglet.graphics.Batch()
+
         name_width = 100 if any(cl[0] for cl in card_lists) else 0
         y = 40
         h = y + 10

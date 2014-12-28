@@ -49,6 +49,39 @@ class Morphing(TreatAs, Skill):
         params = getattr(self, 'action_params', {})
         return Card.card_classes.get(params.get('mamizou_morphing'))
 
+    @classmethod
+    def list_morph_cards(cls, cl):
+        if len(cl) != 2:
+            return []
+
+        cats = set(cl[0].category)
+        cats.update(cl[1].category)
+        if 'skill' in cats:
+            return []
+
+        cats &= {'basic', 'spellcard'}
+
+        if not cats:
+            return []
+
+        if 'spellcard' in cats:
+            cats.discard('spellcard')
+            cats.add('instant_spellcard')
+
+        rst = [c() for c in Card.card_classes.values() if set(c.category) & cats]
+
+        def rank(c):
+            cat = (set(c.category) & cats).pop()
+            if cat == 'basic':
+                return 1
+            elif cat == 'instant_spellcard':
+                return 2
+            else:
+                return 100
+
+        rst.sort(key=rank)
+        return rst
+
 
 class MorphingHandler(EventHandler):
     def handle(self, evt_type, arg):

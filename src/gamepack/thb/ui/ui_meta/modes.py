@@ -299,11 +299,7 @@ __metaclass__ = gen_metafunc(thbdebug)
 class DebugUseCard:
     # Skill
     name = u'转化'
-
-    @meta_property
-    def params_ui(self):
-        from gamepack.thb.ui.inputs import UIDebugUseCardSelection
-        return UIDebugUseCardSelection
+    params_ui = 'UIDebugUseCardSelection'
 
     @meta_property
     def image(c):
