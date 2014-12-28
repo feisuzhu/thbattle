@@ -55,6 +55,7 @@ class Remilia:
     # Character
     char_name = u'蕾米莉亚'
     port_image = 'thb-portrait-remilia'
+    figure_image = 'thb-figure-remilia'
     miss_sound_effect = 'thb-cv-remilia_miss'
     description = (
         u'|DB永远幼小的红月 蕾米莉亚 体力：4|r\n\n'
@@ -62,5 +63,5 @@ class Remilia:
         u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
         u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。\n\n'
         u'|G红魔之吻|r：|B锁定技|r，当你使用红色【弹幕】对一名其他角色造成伤害后，你回复1点体力。\n\n'
-        u'|DB（画师：Pixiv ID 23780313，CV：VV）|r'
+        u'|DB（画师：小D@星の妄想乡，CV：VV）|r'
     )
