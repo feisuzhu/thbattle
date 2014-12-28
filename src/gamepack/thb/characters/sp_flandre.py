@@ -58,9 +58,9 @@ class DestructionImpulseHandler(EventHandler):
 
             nearest = min(dist.values())
             candidates = [p for p, d in dist.items() if d == nearest]
+            candidates = [p for p in g.players if p in candidates]  # order matters
 
             if len(candidates) > 1:
-                candidates = [p for p in g.players if p in candidates]  # order matters
                 pl = user_choose_players(self, tgt, candidates)
                 p = pl[0] if pl else candidates[0]
             else:
@@ -109,6 +109,8 @@ class FourOfAKindHandler(EventHandler):
 
             tgt = act.target
             if not tgt.has_skill(FourOfAKind): return act
+            if not act.amount <= tgt.life: return act
+
             if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 g = Game.getgame()
                 g.process_action(FourOfAKindAction(tgt, act))
@@ -118,6 +120,15 @@ class FourOfAKindHandler(EventHandler):
 
             if not src: return act
             if not src.has_skill(FourOfAKind): return act
+
+            g = Game.getgame()
+
+            for a in reversed(g.action_stack):
+                if isinstance(a, LaunchCard):
+                    break
+            else:
+                return act
+
             if src.life == 1:
                 act.amount += 1
 
