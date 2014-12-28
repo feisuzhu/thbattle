@@ -12,9 +12,7 @@ from game.autoenv import EventHandler, Game, user_input
 
 # -- code --
 class ReversedScales(TreatAs, Skill):
-    associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
-    target = t_None
+    skill_category = ('character', 'active', 'compulsory')
     treat_as = AttackCard
 
     def check(self):

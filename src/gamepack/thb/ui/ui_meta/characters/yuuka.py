@@ -49,7 +49,7 @@ class ReversedScales:
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
-        return None  # FIXME
+        return u'|G【%s】|r用和善的眼神看了|G【%s】|r一眼。'
 
     def sound_effect(act):
         return 'thb-cv-yuuka_flowerqueen'
