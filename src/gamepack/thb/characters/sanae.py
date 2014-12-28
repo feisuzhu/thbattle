@@ -202,7 +202,7 @@ class GodDescendantHandler(EventHandler):
         return act
 
 
-@register_character
+# @register_character
 class Sanae(Character):
     skills = [Miracle, SanaeFaith, GodDescendant]
     eventhandlers_required = [GodDescendantHandler]
