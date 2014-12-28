@@ -38,12 +38,14 @@ class AttackCard:
         if act.source is not current:
             return 'thb-cv-card_attack1'
 
+        ttags(current)['__attack_graze_count'] += 1
+
         return [
             'thb-cv-card_attack1',
             'thb-cv-card_attack2',
             'thb-cv-card_attack3',
             'thb-cv-card_attack4',
-        ][ttags(current)['__attack_graze_count'] % 4]
+        ][ttags(current)['__attack_graze_count'] % 4 - 1]
 
 
 class GrazeCard:
@@ -71,6 +73,9 @@ class GrazeCard:
             return 'thb-cv-card_graze1'
 
         current = G().current_turn
+
+        if act.source is not current:
+            return 'thb-cv-card_graze1'
 
         return [
             'thb-cv-card_graze1',

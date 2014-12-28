@@ -62,7 +62,6 @@ class AttackCardHandler(EventHandler):
                 from .definition import AttackCard
                 if act.card.is_card(AttackCard):
                     src = act.source
-                    ttags(src)['__attack_graze_count'] += 1  # for sound effect
                     src.tags['attack_num'] -= 1
 
         elif evt_type == 'calcdistance':
