@@ -77,7 +77,7 @@ class HeritageHandler(EventHandler):
 
         if user_input([other], ChooseOptionInputlet(self, ('inherit', 'draw'))) == 'inherit':
             lists = [tgt.cards, tgt.showncards, tgt.equips]
-            with MigrateCardsTransaction(self) as trans:
+            with MigrateCardsTransaction() as trans:
                 for cl in lists:
                     if not cl: continue
                     cl = list(cl)

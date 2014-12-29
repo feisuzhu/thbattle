@@ -137,7 +137,7 @@ class ChooseIndividualCardInputlet(Inputlet):
     def post_process(self, actor, card):
         if card:
             log.debug('ChooseIndividualCardInputlet: detaching %r!', card)
-            Game.getgame().deck.detach([card])
+            card.detach()
 
         return card
 
@@ -186,7 +186,7 @@ class ChoosePeerCardInputlet(Inputlet):
     def post_process(self, actor, card):
         if card:
             log.debug('ChoosePeerCardInputlet: detaching %r!', card)
-            Game.getgame().deck.detach([card])
+            card.detach()
 
         return card
 

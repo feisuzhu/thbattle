@@ -27,7 +27,6 @@ class DarknessAction(UserAction):
         cards = user_choose_cards(self, attacker, ('cards', 'showncards'))
         if cards:
             c = cards[0]
-            print c
             g.process_action(LaunchCard(attacker, [victim], c))
         else:
             g.process_action(Damage(src, attacker, 1))

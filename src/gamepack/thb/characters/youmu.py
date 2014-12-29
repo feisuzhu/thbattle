@@ -49,7 +49,7 @@ class YoumuWearEquipmentAction(UserAction):
         g = Game.getgame()
         cat = card.equipment_category
 
-        with MigrateCardsTransaction(self) as trans:
+        with MigrateCardsTransaction() as trans:
             if cat == 'weapon':
                 weapons = [e for e in equips if e.equipment_category == 'weapon']
                 if len(weapons) > 1:

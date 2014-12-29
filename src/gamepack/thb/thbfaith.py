@@ -75,7 +75,7 @@ class RedrawCards(UserAction):
         tgt = self.target
         g = Game.getgame()
 
-        with MigrateCardsTransaction(self) as trans:
+        with MigrateCardsTransaction() as trans:
             migrate_cards(tgt.cards, g.deck.droppedcards, trans=trans)
             cards = g.deck.getcards(4)
             tgt.reveal(cards)
