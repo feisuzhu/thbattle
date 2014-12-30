@@ -45,7 +45,7 @@ class DarknessAction(UserAction):
             return False
 
         attacker, victim = self.target_list
-        if not LaunchCard(attacker, [victim], self.card).can_fire():
+        if not LaunchCard(attacker, [victim], AttackCard()).can_fire():
             return False
 
         return True
@@ -86,7 +86,6 @@ class CheatingHandler(EventHandler):
             if tgt.has_skill(Cheating) and not tgt.dead:
                 g = Game.getgame()
                 g.process_action(CheatingDrawCards(tgt, 1))
-
         return act
 
 
