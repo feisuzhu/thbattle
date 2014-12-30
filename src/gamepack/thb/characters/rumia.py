@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import Damage, DrawCards, LaunchCard, PlayerTurn, UserAction, user_choose_cards
-from ..cards import AttackCard, BaseDuel, Skill, t_None, t_OtherN
+from ..cards import AttackCard, BaseDuel, Skill, t_None, t_OtherN, Attack
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
 
@@ -36,8 +36,11 @@ class DarknessAction(UserAction):
     def cond(self, cl):
         if len(cl) != 1: return False
         c = cl[0]
-        if not c.is_card(AttackCard): return False
-        return True
+        if not c.associated_action: return False
+        if not issubclass(c.associated_action, Attack): return False
+
+        attacker, victim = self.target_list
+        return LaunchCard(attacker, [victim], c).can_fire()
 
     def is_valid(self):
         tags = self.source.tags
