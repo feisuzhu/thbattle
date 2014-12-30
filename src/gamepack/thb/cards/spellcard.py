@@ -421,9 +421,12 @@ class DollControl(InstantSpellCardAction):
 
     def cond(self, cl):
         if len(cl) != 1: return False
-        if not cl[0].associated_action: return False
-        if issubclass(cl[0].associated_action, basic.Attack): return True
-        return False
+        c = cl[0]
+        if not c.associated_action: return False
+        if not issubclass(c.associated_action, basic.Attack): return False
+
+        attacker, victim = self.target_list
+        return LaunchCard(attacker, [victim], c).can_fire()
 
     def is_valid(self):
         return not self.target.dead
