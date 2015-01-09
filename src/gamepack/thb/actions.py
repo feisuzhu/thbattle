@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import logging
 
 # -- third party --
@@ -708,10 +708,10 @@ class LaunchCard(GenericAction):
         pl = [p for p in g.players if not p.dead or p is src]
         loc = pl.index(src)
         n = len(pl)
-        dist = {
-            p: min(abs(i), n - abs(i))
+        dist = OrderedDict([
+            (p, min(abs(i), n - abs(i)))
             for p, i in zip(pl, xrange(-loc, -loc + n))
-        }
+        ])
         return dist
 
 

@@ -46,6 +46,7 @@ import medicine
 import aya
 import sp_yukari
 import sp_flandre
+import reisen
 
 import remilia_ex
 

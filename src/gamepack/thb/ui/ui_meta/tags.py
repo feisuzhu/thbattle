@@ -87,4 +87,10 @@ class exterminate:
     display = lambda p, v: v
     description = u'毁灭：无法使用人物技能'
 
+
+class reisen_discarder:
+    tag_anim = lambda p: 'thb-tag-reisen_discarder'
+    display = lambda p, v: v
+    description = u'丧心：下一个出牌阶段只能使用弹幕，且只能对最近的角色使用弹幕'
+
 # -----END TAGS UI META-----
