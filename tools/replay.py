@@ -1,4 +1,3 @@
-#!/usr/bbin/python2
 # -*- coding: utf-8 -*-
 
 # -- prioritized --
@@ -12,12 +11,11 @@ Game.CLIENT_SIDE = 'blah'  # Hack: not loading ui resource
 # -- stdlib --
 from argparse import ArgumentParser
 import gzip
+import json
 import logging
 import pdb
 
 # -- third party --
-import simplejson as json
-
 # -- own --
 from account.freeplay import Account
 from client.core import PeerPlayer, TheLittleBrother

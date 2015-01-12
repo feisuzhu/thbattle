@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # -- prioritized --
-import sys
-sys.path.append('../src')
 from game import autoenv
 autoenv.init('Server')
 
@@ -10,14 +8,15 @@ autoenv.init('Server')
 from argparse import ArgumentParser
 from weakref import WeakSet
 import gzip
+import json
 import logging
 import random
+import sys
 
 # -- third party --
 from gevent.event import Event
 from gevent.queue import Queue
 import gevent
-import simplejson as json
 
 # -- own --
 from account.freeplay import Account

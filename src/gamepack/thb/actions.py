@@ -176,7 +176,7 @@ def skill_check(wrapped):
         check(wrapped.check())
         for c in wrapped.associated_cards:
             if c.is_card(Skill):
-                check(c.actor is wrapped.player)
+                check(c.player is wrapped.player)
                 check(skill_check(c))
             else:
                 check(c.resides_in.owner is wrapped.player)

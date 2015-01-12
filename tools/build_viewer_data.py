@@ -7,7 +7,7 @@ import re
 import pyglet
 pyglet.options['shadow_window'] = False
 
-import simplejson as json
+import json
 from unidecode import unidecode
 
 from game import autoenv

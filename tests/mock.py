@@ -6,7 +6,7 @@ import re
 
 # -- third party --
 from gevent.event import Event
-import simplejson as json
+import json
 
 # -- own --
 from endpoint import Endpoint
