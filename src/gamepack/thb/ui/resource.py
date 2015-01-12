@@ -19,7 +19,6 @@ inventory.update({
     'thb-modelogo-kof':                    ['img'],
     'thb-modelogo-raid':                   ['img'],
     'thb-modelogo-faith':                  ['img'],
-    'thb-modelogo-cp3':                    ['img'],
     'thb-modelogo-2v2':                    ['img'],
 
     'thb-win':                             ['img'],

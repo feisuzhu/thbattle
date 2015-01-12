@@ -9,7 +9,6 @@ l = [
     THBattleIdentity,
     THBattleRaid,
     THBattleFaith,
-    THBattleCP3,
     THBattle2v2,
 ]
 

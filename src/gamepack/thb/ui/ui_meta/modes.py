@@ -7,7 +7,8 @@ from collections import OrderedDict
 # -- own --
 from .common import card_desc, gen_metafunc, limit1_skill_used, meta_property, my_turn
 from .common import passive_clickable, passive_is_action_valid
-from gamepack.thb import thb2v2, thb3v3, thbcp3, thbdebug, thbfaith, thbidentity, thbkof, thbraid
+from gamepack.thb import thb2v2, thb3v3, thbdebug, thbfaith, thbidentity, thbkof
+from gamepack.thb import thbraid
 
 # -----BEGIN THB3v3 UI META-----
 __metaclass__ = gen_metafunc(thb3v3)
@@ -56,49 +57,6 @@ class THBattle:
     del T
 
 # -----END THB3v3 UI META-----
-
-# -----BEGIN THBCP3 UI META-----
-__metaclass__ = gen_metafunc(thbcp3)
-
-
-class THBattleCP3:
-    name = u'符斗祭 - CP大战'
-    logo = 'thb-modelogo-cp3'
-    description = (
-        u'|R游戏人数|r：6人\n'
-        u'\n'
-        u'阵营分为3对CP，每个阵营2名玩家，交错入座。\n'
-        u'由ROLL点最高的人开始，按照顺时针顺序选将。\n'
-        u'选将完成由ROLL点最高的玩家开始行动。\n'
-        u'ROLL点最高的玩家开局摸3张牌，其余玩家开局摸4张牌。\n'
-        u'当一名玩家被击坠时，将其全部手牌与装备交给其CP。\n'
-        u'\n'
-        u'|R胜利条件|r：击坠所有其它阵营玩家。'
-    )
-    params_disp = {}
-
-    def ui_class():
-        from gamepack.thb.ui.view import THBattleCP3UI
-        return THBattleCP3UI
-
-    T = thbcp3.Identity.TYPE
-    identity_table = {
-        T.HIDDEN: u'？',
-        T.CP_A:   u'CP A',
-        T.CP_B:   u'CP B',
-        T.CP_C:   u'CP C',
-    }
-
-    identity_color = {
-        T.HIDDEN: u'blue',
-        T.CP_A:   u'blue',
-        T.CP_B:   u'orange',
-        T.CP_C:   u'green',
-    }
-
-    del T
-
-# -----END THBCP3 UI META-----
 
 
 # -----BEGIN THBKOF UI META-----

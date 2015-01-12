@@ -421,26 +421,6 @@ class THBattleUI(Control):
         ResultPanel(g, parent=Overlay.cur_overlay)
 
 
-class THBattleCP3UI(THBattleUI):
-    portrait_location = [
-        (60,  290, Colors.blue),
-        (250, 440, Colors.orange),
-        (450, 440, Colors.green),
-        (640, 290, Colors.blue),
-        (450, 140, Colors.orange),
-        (250, 140, Colors.green),
-    ]
-
-    gcp_location = [
-        (3,   1,   'me',     Colors.blue),
-        (669, 280, 'left',   Colors.orange),
-        (515, 500, 'bottom', Colors.green),
-        (335, 500, 'bottom', Colors.blue),
-        (155, 500, 'bottom', Colors.orange),
-        (3,   280, 'right',  Colors.green),
-    ]
-
-
 class THBattleIdentityUI(THBattleUI):
     portrait_location = [
         (150, 420, Colors.blue),
