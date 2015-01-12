@@ -8,8 +8,8 @@ from collections import defaultdict
 from game.autoenv import GameObject
 
 # -- code --
-# common, id5, id8, raid, raid_ex, faith, kof, 3v3, testing
-# -id5, -id8, ...
+# common, id8, raid, raid_ex, faith, kof, 3v3, testing
+# -id8, ...
 characters_by_category = defaultdict(set)
 
 

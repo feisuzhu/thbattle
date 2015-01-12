@@ -301,17 +301,3 @@ class THBattleIdentity(Game):
         p.special        = CardList(p, 'special')      # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]  # cardlists should shown to others
         p.tags           = defaultdict(int)
-
-
-class THBattleIdentity5(THBattleIdentity):
-    n_persons = 5
-    character_categories = ('id', 'id5')
-    params_def = {}
-    T = Identity.TYPE
-
-    identities = [
-        T.ATTACKER, T.ATTACKER,
-        T.ACCOMPLICE,
-        T.CURTAIN,
-    ]
-    del T

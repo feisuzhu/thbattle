@@ -15,7 +15,6 @@ inventory.update({
 
     'thb-modelogo-3v3':                    ['img'],
     'thb-modelogo-8id':                    ['img'],
-    'thb-modelogo-5id':                    ['img'],
     'thb-modelogo-kof':                    ['img'],
     'thb-modelogo-raid':                   ['img'],
     'thb-modelogo-faith':                  ['img'],

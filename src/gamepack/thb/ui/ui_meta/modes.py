@@ -165,50 +165,6 @@ class THBattleIdentity:
 
     del T
 
-
-class THBattleIdentity5:
-    name = u'符斗祭 - 标准5人身份场'
-    logo = 'thb-modelogo-5id'
-    description = (
-        u'|R游戏人数|r：5人\n'
-        u'\n'
-        u'|R身份分配|r：1|!RBOSS|r、1|!O道中|r、1|!G黑幕|r、2|!B城管|r\n'
-        u'\n'
-        u'|!RBOSS|r：游戏开局时展示身份。胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
-        u'\n'
-        u'|!O道中|r：胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
-        u'\n'
-        u'|!B城管|r：胜利条件为击坠|!RBOSS|r。当|!B城管|rMISS时，击坠者摸3张牌。\n'
-        u'\n'
-        u'|!G黑幕|r：胜利条件为在除了|!RBOSS|r的其他人都MISS的状况下击坠|!RBOSS|r。\n'
-        u'\n'
-        u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
-    )
-    params_disp = {}
-
-    def ui_class():
-        from gamepack.thb.ui.view import THBattleIdentity5UI
-        return THBattleIdentity5UI
-
-    T = thbidentity.Identity.TYPE
-    identity_table = {
-        T.HIDDEN:     u'？',
-        T.ATTACKER:   u'城管',
-        T.BOSS:       u'BOSS',
-        T.ACCOMPLICE: u'道中',
-        T.CURTAIN:    u'黑幕',
-    }
-
-    identity_color = {
-        T.HIDDEN:     u'blue',
-        T.ATTACKER:   u'blue',
-        T.BOSS:       u'red',
-        T.ACCOMPLICE: u'orange',
-        T.CURTAIN:    u'green',
-    }
-
-    del T
-
 # -----END THBIdentity UI META-----
 
 

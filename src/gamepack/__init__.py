@@ -5,7 +5,6 @@ gamemodes = OrderedDict()
 l = [
     THBattle,
     THBattleKOF,
-    THBattleIdentity5,
     THBattleIdentity,
     THBattleRaid,
     THBattleFaith,
