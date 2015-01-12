@@ -10,7 +10,7 @@ log = logging.getLogger('forum_integration')
 import gevent
 
 # -- own --
-from .base import server_side_only
+from .base import server_side_only, AccountBase
 from utils import log_failure
 from utils.misc import GenericPool
 
@@ -29,24 +29,12 @@ def clipool_factory():
 clipool = GenericPool(clipool_factory, 10)
 
 
-class Account(object):
+class Account(AccountBase):
     is_guest = False
 
     @classmethod
     @server_side_only
     def authenticate(cls, username, password):
-        # acc = cls()
-        # acc._fill_account({
-        #     'username': 'Protonoooo',
-        #     'uid': 1,
-        #     'status': 1,
-        #     'title': 'nyan',
-        #     'credits': 1,
-        #     'games': 1,
-        #     'drops': 1,
-        # })
-        # return acc
-
         with clipool() as cli:
             try:
                 uid = int(username)
@@ -133,16 +121,3 @@ class Account(object):
             with clipool() as cli:
                 rst = cli.add_credit(self.userid, type, amount)
                 rst and self._fill_account(rst)
-
-    @classmethod
-    def parse(cls, data):
-        acc = cls()
-        mode, acc.userid, acc.username, other = data
-        acc.other = defaultdict(lambda: None, other)
-        assert mode == 'forum'
-        return acc
-
-    def __data__(self):
-        return ['forum', self.userid, self.username, self.other]
-
-__all__ = ['Account']

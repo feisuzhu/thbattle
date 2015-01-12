@@ -6,11 +6,11 @@ import random
 
 # -- third party --
 # -- own --
-from .base import server_side_only
+from .base import server_side_only, AccountBase
 
 
 # -- code --
-class Account(object):
+class Account(AccountBase):
 
     @classmethod
     def authenticate(cls, username, password):
@@ -38,15 +38,3 @@ class Account(object):
     @server_side_only
     def add_credit(self, type, amount):
         pass
-
-    # mock forum_integration
-    @classmethod
-    def parse(cls, data):
-        acc = cls()
-        mode, acc.userid, acc.username, other = data
-        acc.other = defaultdict(lambda: None, other)
-        assert mode == 'forum'
-        return acc
-
-    def __data__(self):
-        return ['forum', self.userid, self.username, self.other]

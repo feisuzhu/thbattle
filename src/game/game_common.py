@@ -249,6 +249,14 @@ class AbstractPlayer(GameObject):
         return self.__class__.__name__
 
 
+class NPC(object):
+    __slots__ = ('name', 'input_handler')
+
+    def __init__(self, name, input_handler):
+        self.name = name
+        self.input_handler = input_handler
+
+
 class Game(GameObject):
     '''
     The Game class, all game mode derives from this.
@@ -257,12 +265,14 @@ class Game(GameObject):
     Instance variables:
         players: list(Players)
         event_handlers: list(EventHandler)
+        npc_players: list(NPC)
 
         and all game related vars, eg. tags used by [EventHandler]s and [Action]s
     '''
     # event_handlers = []
     IS_DEBUG = False
     params_def = {}
+    npc_players = []
 
     def __init__(self):
         self.event_handlers = []

@@ -60,8 +60,13 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             try:
                 # should be [tag, <Data for Inputlet.parse>]
                 # tag likes 'I?:ChooseOption:2345'
-                tag, rst = p.client.gexpect(t)
-                return rst
+                if p.is_npc:
+                    ilet = ilets[p]
+                    p.handle_user_input(trans, ilet)
+                    return ilet.data()
+                else:
+                    tag, rst = p.client.gexpect(t)
+                    return rst
             except EndpointDied:
                 return None
 
@@ -70,6 +75,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             w = input_group.spawn(get_input_waiter, p, t)
             _input_group.add(w)
             w.player = p
+            w.game = g  # for Game.getgame()
             w.gr_name = 'get_input_waiter: p=%r, tag=%s' % (p, t)
 
         for p in players:
@@ -139,7 +145,8 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
 class Player(game.AbstractPlayer):
     dropped = False
-    fleed = False
+    fleed   = False
+    is_npc  = False
 
     def __init__(self, client):
         self.client = client
@@ -176,6 +183,32 @@ class Player(game.AbstractPlayer):
     @property
     def account(self):
         return self.client.account
+
+
+class NPCPlayer(game.AbstractPlayer):
+    dropped = False
+    fleed   = False
+    is_npc  = True
+
+    def __init__(self, client, input_handler):
+        self.client = client
+        self.handle_user_input = input_handler
+
+    def __data__(self):
+        return dict(
+            account=self.client.account,
+            state='ingame',
+        )
+
+    def reveal(self, obj_list):
+        Game.getgame().get_synctag()
+
+    @property
+    def account(self):
+        return self.client.account
+
+    def handle_user_input(self, trans, ilet):
+        raise Exception('WTF?!')
 
 
 class Game(Greenlet, game.Game):

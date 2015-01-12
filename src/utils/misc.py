@@ -90,6 +90,11 @@ class BatchList(list):
         except ValueError:
             pass
 
+    def sibling(self, me, offset=1):
+        i = self.index(me)
+        n = len(self)
+        return self[(i + offset) % n]
+
 
 class CheckFailed(Exception):
     pass

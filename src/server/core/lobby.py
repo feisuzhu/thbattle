@@ -295,6 +295,26 @@ class DroppedClient(Client):
         pass
 
 
+class NPCClient(Client):
+    read = write = raw_write = gclear = lambda *a, **k: None
+    state = property(lambda: 'ingame')
+
+    def __init__(self, name):
+        acc = Account.build_npc_account(name)
+        self.account = acc
+
+    def __data__(self):
+        return dict(
+            account=self.account,
+            state='ingame',
+        )
+
+    def gwrite(self, tag, data):
+        pass
+
+    def gexpect(self, tag, blocking=True):
+        raise Exception('Should not be called!')
+
 '''
 User state machine:
      [Observing]     --------------<------------<-----------
@@ -992,13 +1012,13 @@ class GameManager(object):
                 obl and obl.write(['observer_enter', info])
 
         if g.started:
-            user.write(['observe_started', [self.game_params, observee.account.userid, self.users]])
+            user.write(['observe_started', [self.game_params, observee.account.userid, self.build_initial_players()]])
             self.replay(user, observee)
         else:
             self.notify_playerchange()
 
     def is_banned(self, user):
-        return len(self.banlist[user]) >= self.game.n_persons // 2
+        return len(self.banlist[user]) >= max(self.game.n_persons // 2, 1)
 
     def join_game(self, user, slot, observing=False):
         assert user not in self.users
@@ -1036,8 +1056,7 @@ class GameManager(object):
 
         self.game_started = True
 
-        from server.core.game_server import Player
-        g.players = BatchList([Player(u) for u in self.users])
+        g.players = self.build_initial_players()
 
         self.usergdhistory = []
         self.gdhistory     = [list() for p in self.users]
@@ -1050,6 +1069,14 @@ class GameManager(object):
                 u.observers.gclear()
                 u.observers.write(['observe_started', [self.game_params, u.account.userid, g.players]])
             u.state = 'ingame'
+
+    def build_initial_players(self):
+        from server.core.game_server import Player, NPCPlayer
+
+        pl = BatchList([Player(u) for u in self.users])
+        pl[:0] = [NPCPlayer(NPCClient(i.name), i.input_handler) for i in self.game.npc_players]
+
+        return pl
 
     def record_gamedata(self, user, tag, data):
         idx = self.users.index(user)
@@ -1092,9 +1119,7 @@ class GameManager(object):
         new.write(['game_joined',  self])
         self.notify_playerchange()
 
-        # Can't use g.players
-        from server.core.game_server import Player
-        players = BatchList([Player(u) for u in self.users])
+        players = self.build_initial_players()
         new.write(['game_started', [self.game_params, players]])
 
         self.replay(new, new)
@@ -1163,8 +1188,12 @@ class GameManager(object):
 
         for p in g.players:
             u = p.client
+
+            if isinstance(u, NPCClient):
+                continue
+
             rst.append((u, 'games', 1))
-            if p.dropped and p.fleed:
+            if p.dropped or p.fleed:
                 if not options.no_counting_flee:
                     rst.append((u, 'drops', 1))
             else:

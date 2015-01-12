@@ -90,7 +90,7 @@ class Endpoint(object):
                 return json.loads(data)
             else:
                 raise DecodeError
-        except (json.JSONDecodeError, msgpack.UnpackValueError):
+        except (ValueError, msgpack.UnpackValueError):
             raise DecodeError
 
     def raw_write(self, s):

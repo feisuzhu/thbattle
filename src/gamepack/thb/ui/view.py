@@ -201,17 +201,18 @@ class THBattleUI(Control):
 
         self.game_event += self.on_game_event
 
+        n = len(self.game.players)
         ports = self.char_portraits = [
             GameCharacterPortrait(parent=self, color=color,
                                   x=x, y=y, tag_placement=tp)
-            for x, y, tp, color in self.gcp_location[:len(self.game.players)]
+            for x, y, tp, color in self.gcp_location[:n]
         ]
 
         pl = self.game.players
         shift = pl.index(self.game.me)
         for i, c in enumerate(ports):
             self.game_event += c.on_game_event
-            p = pl[(shift + i) % self.game.n_persons]
+            p = pl[(shift + i) % n]
             c.player = p
             c.update()
 
