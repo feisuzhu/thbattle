@@ -21,7 +21,6 @@ import settings
 log = logging.getLogger('THBattle')
 
 _game_ehs = {}
-_game_actions = {}
 
 
 def game_eh(cls):
@@ -94,7 +93,6 @@ class Identity(PlayerIdentity):
 class THBattleFaith(Game):
     n_persons    = 6
     game_ehs     = _game_ehs
-    game_actions = _game_actions
     params_def   = {
         'random_seat': (True, False),
     }

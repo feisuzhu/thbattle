@@ -20,16 +20,10 @@ import settings
 # -- code --
 log = logging.getLogger('THBattleIdentity')
 _game_ehs = {}
-_game_actions = {}
 
 
 def game_eh(cls):
     _game_ehs[cls.__name__] = cls
-    return cls
-
-
-def game_action(cls):
-    _game_actions[cls.__name__] = cls
     return cls
 
 
@@ -110,7 +104,6 @@ class Identity(PlayerIdentity):
 class THBattleIdentity(Game):
     n_persons = 8
     character_categories = ('id', 'id8')
-    game_actions = _game_actions
     params_def = {
         'double_curtain': (False, True)
     }

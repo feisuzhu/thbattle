@@ -18,6 +18,7 @@ inventory.update({
     'thb-modelogo-kof':                    ['img'],
     'thb-modelogo-faith':                  ['img'],
     'thb-modelogo-2v2':                    ['img'],
+    'thb-modelogo-book':                   ['img'],
 
     'thb-win':                             ['img'],
     'thb-lose':                            ['img'],
@@ -121,8 +122,8 @@ inventory.update({
     'thb-tag-sinsack':                     ['img'],
     'thb-tag-ran_ei':                      ['img'],
     'thb-tag-aya_range_max':               ['img'],
-    'thb-tag-aya_range_max':               ['img'],
     'thb-tag-reisen_discarder':            ['img'],
+    'thb-tag-books':                       ['img_grid', 1, 7],
 
     'thb-portrait-parsee':                 ['img_with_grayed', 'portrait'],
     'thb-portrait-youmu':                  ['img_with_grayed', 'portrait'],

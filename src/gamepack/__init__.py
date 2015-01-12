@@ -8,6 +8,7 @@ l = [
     THBattleIdentity,
     THBattleFaith,
     THBattle2v2,
+    THBattleBook,
 ]
 
 for g in l:

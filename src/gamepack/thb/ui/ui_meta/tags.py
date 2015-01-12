@@ -49,6 +49,15 @@ class lunadial:
     description = u'咲夜的时间！'
 
 
+class books:
+    def tag_anim(p):
+        n = min(p.tags['books'], 6)
+        return 'thb-tag-books@%d' % n
+
+    display = lambda p, v: v
+    description = u'书的数量'
+
+
 class riverside_target:
     tag_anim = lambda p: 'thb-tag-riverside'
     display = lambda p, v: v == G().turn_count

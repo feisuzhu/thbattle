@@ -23,6 +23,7 @@ types = {
     'raid':  'THBattleRaid',
     'faith': 'THBattleFaith',
     '2v2':   'THBattle2v2',
+    'book':  'THBattleBook',
 }
 
 argv = sys.argv[1:]

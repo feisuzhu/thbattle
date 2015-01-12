@@ -21,16 +21,10 @@ import logging
 log = logging.getLogger('THBattle')
 
 _game_ehs = {}
-_game_actions = {}
 
 
 def game_eh(cls):
     _game_ehs[cls.__name__] = cls
-    return cls
-
-
-def game_action(cls):
-    _game_actions[cls.__name__] = cls
     return cls
 
 
@@ -65,7 +59,6 @@ class Identity(PlayerIdentity):
 class THBattle(Game):
     n_persons    = 6
     game_ehs     = _game_ehs
-    game_actions = _game_actions
     params_def   = {
         'random_seat': (False, True),
     }

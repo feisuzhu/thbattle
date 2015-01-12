@@ -24,6 +24,9 @@ class Character(GameObject):
         return [s for s in self.skills if issubclass(s, skill)]
 
     def has_skill(self, skill):
+        if self.dead:
+            return False
+
         for l in self.disabled_skills.values():
             if skill in l:
                 return False

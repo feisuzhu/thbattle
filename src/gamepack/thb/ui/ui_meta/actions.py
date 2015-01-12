@@ -108,7 +108,6 @@ class AskForCard:
 
 
 class PlayerDeath:
-    barrier = True
     update_portrait = True
 
     def effect_string(act):
@@ -127,7 +126,6 @@ class PlayerDeath:
 
 
 class PlayerRevive:
-    barrier = True
     update_portrait = True
 
     def effect_string(act):
