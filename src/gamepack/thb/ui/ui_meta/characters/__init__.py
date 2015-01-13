@@ -18,7 +18,6 @@ from . import parsee  # noqa
 from . import patchouli  # noqa
 from . import ran  # noqa
 from . import reimu  # noqa
-from . import remilia_ex  # noqa
 from . import remilia  # noqa
 from . import rinnosuke  # noqa
 from . import rumia  # noqa

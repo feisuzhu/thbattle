@@ -16,7 +16,6 @@ inventory.update({
     'thb-modelogo-3v3':                    ['img'],
     'thb-modelogo-8id':                    ['img'],
     'thb-modelogo-kof':                    ['img'],
-    'thb-modelogo-raid':                   ['img'],
     'thb-modelogo-faith':                  ['img'],
     'thb-modelogo-2v2':                    ['img'],
 
@@ -114,7 +113,6 @@ inventory.update({
     'thb-tag-wine':                        ['anim', [150] * 3,  True],
     'thb-tag-lunadial':                    ['anim', [200] * 10, True],
     'thb-tag-riverside':                   ['img'],
-    'thb-tag-action':                      ['img'],
     'thb-tag-attacked':                    ['img'],
     'thb-tag-flandrecs':                   ['img'],
     'thb-tag-flandre_exterminate':         ['img'],
@@ -124,7 +122,6 @@ inventory.update({
     'thb-tag-ran_ei':                      ['img'],
     'thb-tag-aya_range_max':               ['img'],
     'thb-tag-aya_range_max':               ['img'],
-    'thb-tag-faiths':                      ['img_grid', 1, 7],
     'thb-tag-reisen_discarder':            ['img'],
 
     'thb-portrait-parsee':                 ['img_with_grayed', 'portrait'],
@@ -171,8 +168,6 @@ inventory.update({
     'thb-portrait-sp_yukari':              ['img_with_grayed', 'portrait'],
     'thb-portrait-sp_flandre':             ['img_with_grayed', 'portrait'],
     'thb-portrait-reisen':                 ['img_with_grayed', 'portrait'],
-    'thb-portrait-remilia_ex':             ['img_with_grayed', 'portrait'],
-    'thb-portrait-remilia_ex2':            ['img_with_grayed', 'portrait'],
 
     'thb-figure-daiyousei':                ['lazytexture'],
     'thb-figure-eirin':                    ['lazytexture'],
@@ -199,10 +194,6 @@ inventory.update({
     'thb-hp_bg':                           ['img_with_grayed', 'portrait'],
 
     'thb-num':                             ['img_grid', 1, 10, 'portrait'],
-
-    'thb-remilia_ex_wallpaper':            ['texture'],
-
-    'thb-bgm_remilia_ex':                  ['bgm'],
 
     'thb-sound-hit':                       ['sound'],
 

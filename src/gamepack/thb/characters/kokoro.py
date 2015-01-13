@@ -7,7 +7,7 @@ from ..actions import ActionStage, DropCards, ShowCards, UserAction, migrate_car
 from ..actions import user_choose_cards
 from ..cards import Card, Skill, t_None, t_OtherOne
 from ..inputlets import ChooseOptionInputlet, HopeMaskInputlet
-from .baseclasses import Character, register_character_to
+from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
 
 
@@ -126,7 +126,7 @@ class DarkNoh(Skill):
         return True
 
 
-@register_character_to('common', '-raid')
+@register_character
 class Kokoro(Character):
     skills = [HopeMask, DarkNoh]
     eventhandlers_required = [HopeMaskHandler]

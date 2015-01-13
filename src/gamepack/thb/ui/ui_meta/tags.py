@@ -49,21 +49,6 @@ class lunadial:
     description = u'咲夜的时间！'
 
 
-class faithcounter:
-    def tag_anim(p):
-        n = min(len(p.faiths), 6)
-        return 'thb-tag-faiths@%d' % n
-
-    display = lambda p, v: v
-    description = u'信仰数'
-
-
-class action:
-    tag_anim = lambda p: 'thb-tag-action'
-    display = lambda p, v: v
-    description = u'可以行动'
-
-
 class riverside_target:
     tag_anim = lambda p: 'thb-tag-riverside'
     display = lambda p, v: v == G().turn_count
