@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import random
-
 # -- third party --
 # -- own --
 from gamepack.thb import characters
 from gamepack.thb.actions import ttags
-from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, my_turn, passive_clickable
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable
 from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
 # -- code --
@@ -18,13 +16,15 @@ class Sanae:
     # Character
     char_name = u'东风谷早苗'
     port_image = 'thb-portrait-sanae'
+    figure_image = 'thb-figure-sanae'
     miss_sound_effect = 'thb-cv-sanae_miss'
     description = (
         u'|DB常识满满的现人神 东风谷早苗 体力：3|r\n\n'
-        u'|G奇迹|r：你可以弃置一张与本回合已弃置过的牌类型均不同的牌，然后摸一张牌。若你以此法弃置了3张牌，你可以令其他一名角色回复一点体力。\n\n'
+        u'|G奇迹|r：出牌阶段，你可以弃置X张牌并摸一张牌。若X为3，你可以令一名角色回复一点体力。\n'
+        u'|B|R>> |rX为你本回合发动|G奇迹|r的次数，当你回合内第一次使用|G奇迹|r时，X为1，第二次为2，以此类推。\n\n'
         u'|G信仰|r：出牌阶段限一次，你可以令至多两名其他角色各交给你一张手牌，然后你交给其各一张牌。\n\n'
         u'|G神裔|r：当你成为群体符卡的目标后，你可以摸一张牌或跳过此次结算。\n\n'
-        u'|DB（画师：Pixiv ID 37694260，CV：VV）|r'
+        u'|DB（画师：小D@星の妄想乡，CV：VV）|r'
     )
 
 
@@ -35,21 +35,17 @@ class Miracle:
         return my_turn()
 
     def effect_string(act):
-        return u'|G【%s】|r发动了|G奇迹|r，弃置了%s' % (
-            act.target.ui_meta.char_name,
-            card_desc(act.card.associated_cards[0]),
+        return u'|G【%s】|r发动了|G奇迹|r，弃置了%d张牌' % (
+            act.source.ui_meta.char_name,
+            len(act.card.associated_cards),
         )
 
     def is_action_valid(g, cl, tl):
         cards = cl[0].associated_cards
-        if not cards:
-            return (False, u'请选择一张牌')
 
-        c = cards[0]
-
-        me = g.me
-        if set(c.category) & ttags(me).setdefault('miracle_categories', set()):
-            return (False, u'你已经弃置过相同类型的牌')
+        expected = ttags(g.me)['miracle_times'] + 1
+        if len(cards) != expected:
+            return (False, u'奇迹：请选择%d张牌！' % expected)
 
         return (True, u'奇迹是存在的！')
 
@@ -127,7 +123,7 @@ class GodDescendantSkipAction:
         )
 
     def sound_effect(act):
-        return 'thb-cv-sanae_goddescendant%d' % random.choice([1, 2])
+        return 'thb-cv-sanae_goddescendant1'
 
 
 class GodDescendantDrawAction:
@@ -138,4 +134,4 @@ class GodDescendantDrawAction:
         )
 
     def sound_effect(act):
-        return 'thb-cv-sanae_goddescendant%d' % random.choice([1, 2])
+        return 'thb-cv-sanae_goddescendant2'

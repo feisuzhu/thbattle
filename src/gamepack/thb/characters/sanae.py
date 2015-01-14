@@ -21,11 +21,10 @@ class MiracleAction(UserAction):
         tgt = self.target
         g = Game.getgame()
         g.process_action(DrawCards(tgt, 1))
-        c = self.associated_card.associated_cards[0]
-        cats = ttags(tgt).setdefault('miracle_categories', {})
-        cats.add((set(c.category) & {'basic', 'spellcard', 'equipment'}).pop())
 
-        if len(cats) == 3:
+        ttags(tgt)['miracle_times'] += 1
+
+        if ttags(tgt)['miracle_times'] == 3:
             candidates = [p for p in g.players if not p.dead and p.life < p.maxlife and p is not tgt]
             if candidates:
                 beneficiery, = user_choose_players(self, tgt, candidates) or (None,)
@@ -42,21 +41,7 @@ class MiracleAction(UserAction):
 
     def is_valid(self):
         tgt = self.target
-        cl = self.associated_card.associated_cards
-        if len(cl) != 1:
-            return False
-
-        c = cl[0]
-
-        category = set(c.category) & {'basic', 'spellcard', 'equipment'}
-
-        if not category:
-            return False
-
-        category = category.pop()
-        miracle_categories = ttags(tgt).setdefault('miracle_categories', set())
-
-        return category not in miracle_categories
+        return len(self.associated_card.associated_cards) == ttags(tgt)['miracle_times'] + 1
 
 
 class Miracle(Skill):
@@ -202,7 +187,7 @@ class GodDescendantHandler(EventHandler):
         return act
 
 
-# @register_character
+@register_character
 class Sanae(Character):
     skills = [Miracle, SanaeFaith, GodDescendant]
     eventhandlers_required = [GodDescendantHandler]
