@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 239'
+VERSION = 'THBATTLE V1.0b incr 240'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -117,27 +117,15 @@ NOTICE = u'''
 Proton制作
 
 |s2ff0000ff|W玩家大多在晚上8点之后进来玩，白天进来没人的话晚上再来试试～|r
-|s2ff0000ff|W如果提示更新失败，请试着运行一下游戏目录中的update.bat文件更新。|r
+|s2ff0000ff|W如果提示更新失败，请试着运行一下游戏目录中的rescue（妖梦图标）更新。|r
 
 |B游戏论坛：|r
 http://www.thbattle.net
 
 |B最近更新情况：|r
-东风谷早苗、芙兰朵露、SP芙兰朵露设定调整
-Replay功能上线！
-新人物：东风谷早苗（推重）、八坂神奈子（推重）
-卡牌/人物配音：感谢 VV、shourei小N、大白、君寻、小羽、简翎、北斗夜、小舞 帮助配音，感谢 相沢加奈 在早期所作的支持和推动。
-使用技能弃置恶心丸时，立即触发恶心丸效果。
-风见幽香bug修复
-新人物：SP芙兰朵露
-旧人物推重：风见幽香
-身份场双黑幕模式
-更容易的测试服务器切换
-新模式：2v2
-KOF模式加入“允许不平衡角色”选项
-信仰争夺战、异变模式现在可以选择随机/固定座位阵营
-勋章系统
-射命丸文技能调整
-新人物：射命丸文（画师：渚FUN）、SP八云紫（画师：Vivicat@幻想梦斗符）（开发：zhyk）
+新人物：铃仙
+新模式：抢书大作战
+东风谷早苗设定调整
+移除了没人玩的模式……
 |R帐号与论坛绑定，请使用论坛帐号登录游戏！|r
 '''.strip()
