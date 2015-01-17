@@ -308,7 +308,7 @@ class Game(GameObject):
         Fire an event, all relevant event handlers will see this,
         data can be modified.
         '''
-        random.random() < 0.01 and gevent.sleep(0)  # prevent buggy logic code blocking scheduling
+        random.random() < 0.01 and gevent.sleep(0.00001)  # prevent buggy logic code blocking scheduling
         if isinstance(data, (list, tuple, str, unicode)):
             s = data
         else:

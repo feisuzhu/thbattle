@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import DrawCards, GenericAction
-from ..cards import Card, RejectCard, Skill, SpellCardAction, t_None
+from ..cards import Card, Reject, RejectCard, Skill, SpellCardAction, t_None
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
 
@@ -36,12 +36,26 @@ class KnowledgeAction(GenericAction):
         return True
 
 
-class PatchouliHandler(EventHandler):
+class KnowledgeHandler(EventHandler):
     execute_before = ('RejectHandler', )
 
     def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, SpellCardAction) and not act.cancelled:
+            tgt = act.target
+            if tgt.has_skill(Knowledge):
+                c = getattr(act, 'associated_card', None)
+                if c and c.suit == Card.SPADE and not c.is_card(RejectCard):
+                    Game.getgame().process_action(KnowledgeAction(act))
+
+        return act
+
+
+class LibraryHandler(EventHandler):
+    execute_before = ('RejectHandler',)
+
+    def handle(self, evt_type, arg):
         if evt_type == 'choose_target':
-            act, tl = arg = act
+            act, tl = arg
             src = act.source
 
             if not src.has_skill(Library):
@@ -52,20 +66,28 @@ class PatchouliHandler(EventHandler):
 
             return arg
 
-        if evt_type == 'action_before':
+        elif evt_type == 'action_before' and isinstance(arg, Reject):
+            act = arg.target_act
+            src = act.source
+            if arg.source is src: return arg
+            if not src.has_skill(Library): return arg
 
-            if isinstance(act, SpellCardAction) and not act.cancelled:
-                tgt = act.target
-                if tgt.has_skill(Knowledge):
-                    c = getattr(act, 'associated_card', None)
-                    if c and c.suit == Card.SPADE and not c.is_card(RejectCard):
-                        Game.getgame().process_action(KnowledgeAction(act))
+            Game.getgame().process_action(LibraryDrawCards(src, 1))
 
-        return act
+            return arg
+
+        elif evt_type == 'calcdistance':
+            src, card, dist = arg
+            if not src.has_skill(Library): return arg
+            if 'spellcard' not in card.category: return arg
+            for p in dist:
+                dist[p] -= 10000
+
+        return arg
 
 
 @register_character
 class Patchouli(Character):
     skills = [Library, Knowledge]
-    eventhandlers_required = [PatchouliHandler]
+    eventhandlers_required = [LibraryHandler, KnowledgeHandler]
     maxlife = 3
