@@ -35,7 +35,7 @@ class Demolition(InstantSpellCardAction):
         src = self.source
         tgt = self.target
 
-        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
         card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         if not card:
@@ -52,7 +52,7 @@ class Demolition(InstantSpellCardAction):
 
     def is_valid(self):
         tgt = self.target
-        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        catnames = ('cards', 'showncards', 'equips', 'fatetell')
         return not tgt.dead and any(getattr(tgt, i) for i in catnames)
 
 

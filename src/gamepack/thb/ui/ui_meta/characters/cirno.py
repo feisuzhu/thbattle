@@ -3,8 +3,10 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from gamepack.thb import cards, characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, meta_property, my_turn
+from gamepack.thb import characters
+from gamepack.thb.actions import ttags
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, my_turn, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.cirno)
@@ -13,58 +15,70 @@ __metaclass__ = gen_metafunc(characters.cirno)
 class PerfectFreeze:
     # Skill
     name = u'完美冻结'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
-    @meta_property
-    def image(c):
-        return c.associated_cards[0].ui_meta.image
 
-    tag_anim = lambda c: 'thb-tag-frozenfrog'
-    description = (
-        u'|G【琪露诺】|r的技能产生的|G冻青蛙|r'
-    )
+class CirnoDropCards:
+    def effect_string(act):
+        return u'|G【%s】|r弃置了|G【%s】|r的%s。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+            card_desc(act.cards),
+        )
+
+
+class PerfectFreezeAction:
+    def effect_string_before(act):
+        return u'|G【%s】|r被冻伤了。' % act.target.ui_meta.char_name
+
+    def sound_effect(act):
+        return 'thb-cv-cirno_perfectfreeze'
+
+
+class PerfectFreezeHandler:
+    choose_option_prompt = u'你要发动【完美冻结】吗？'
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+
+
+class Bakadesu:
+    # Skill
+    name = u'最强'
 
     def clickable(game):
         me = game.me
-        if not my_turn():
+
+        if ttags(me)['bakadesu']:
             return False
 
-        if me.cards or me.showncards or me.equips:
-            return True
+        return my_turn()
 
-        return False
+    def is_action_valid(g, cl, tl):
+        if len(tl) != 1:
+            return (False, u'请选择嘲讽对象')
 
-    def is_action_valid(g, cl, target_list):
-        skill = cl[0]
-        cl = skill.associated_cards
-        if len(cl) != 1:
-            return (False, u'请选择一张牌！')
+        if len(cl[0].associated_cards):
+            return (False, u'请不要选择牌！')
 
-        c = cl[0]
-        if c.is_card(cards.Skill):
-            return (False, u'你不能像这样组合技能')
-
-        if c.suit in (cards.Card.SPADE, cards.Card.CLUB):
-            if set(c.category) & {'basic', 'equipment'}:
-                return (True, u'PERFECT FREEZE~')
-
-        return (False, u'请选择一张黑色的基本牌或装备牌！')
+        return (True, u'老娘最强！')
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
-        source = act.source
-        card = act.card
-        target = act.target
-        return (
-            u'|G【%s】|r发动了|G完美冻结|r技能，用|G%s|r' +
-            u'把|G【%s】|r装进了大冰块里！'
-        ) % (
-            source.ui_meta.char_name,
-            card.associated_cards[0].ui_meta.name,
-            target.ui_meta.char_name,
+        return u'|G【%s】|r双手叉腰，对着|G【%s】|r大喊：“老娘最强！”' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
         )
 
     def sound_effect(act):
         return 'thb-cv-cirno_perfectfreeze'
+
+
+class BakadesuAction:
+    def choose_card_text(g, act, cl):
+        if act.cond(cl):
+            return (True, u'啪！啪！啪！')
+        else:
+            return (False, u'请选择一张弹幕对【%s】使用' % act.source)
 
 
 class Cirno:
@@ -76,9 +90,11 @@ class Cirno:
     description = (
         u'|DB跟青蛙过不去的笨蛋 琪露诺 体力：4|r\n'
         u'\n'
-        u'|G完美冻结|r：出牌阶段，你可以将一张黑色牌当【冻青蛙】使用，此牌必须为基本牌或装备牌；你可以对与你距离2以内的角色使用【冻青蛙】。\n'
+        u'|G最强|r：出牌阶段限一次，你可以指定一名可以合法对你使用|G弹幕|r的角色，该角色选择一项：\n'
+        u'|B|R>> |r对你使用一张|G弹幕|r\n'
+        u'|B|R>> |r令你弃置其一张牌\n'
         u'\n'
-        u'|RKOF不平衡角色\n'
+        u'|G完美冻结|r：当你对一名角色造成伤害时，你可以防止此次伤害并弃置其一张手牌。若此时其手牌数小于其当前体力值，该角色失去一点体力。\n'
         u'\n'
         u'|DB（画师：渚FUN，CV：君寻）|r'
     )

@@ -28,9 +28,8 @@ class DropCardStage:
 
     def effect_string(act):
         if act.dropn > 0 and act.cards:
-            s = u'、'.join(card_desc(c) for c in act.cards)
             return u'|G【%s】|r弃掉了%d张牌：%s' % (
-                act.target.ui_meta.char_name, act.dropn, s,
+                act.target.ui_meta.char_name, act.dropn, card_desc(act.cards),
             )
 
 

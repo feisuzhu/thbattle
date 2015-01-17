@@ -3,42 +3,119 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..cards import Card, FrozenFrogCard, Skill, TreatAs
-from .baseclasses import Character, register_character_to
-from game.autoenv import EventHandler
+from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, DropCards, GenericAction, LaunchCard, LifeLost, UserAction
+from gamepack.thb.actions import random_choose_card, ttags, user_choose_cards
+from gamepack.thb.cards import AttackCard, Skill, t_None, t_OtherOne
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
-class PerfectFreeze(TreatAs, Skill):
-    treat_as = FrozenFrogCard
+class CirnoDropCards(GenericAction):
+    def __init__(self, source, target, cards):
+        self.source = source
+        self.target = target
+        self.cards = cards
+
+    def apply_action(self):
+        tgt = self.target
+        cards = self.cards
+
+        g = Game.getgame()
+        g.players.reveal(cards)
+        g.process_action(DropCards(target=tgt, cards=cards))
+        return True
+
+
+class BakadesuAction(UserAction):
+    card_usage = 'launch'
+
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        ttags(src)['bakadesu'] = True
+
+        cl = user_choose_cards(self, tgt, ('cards', 'showncards'))
+        g = Game.getgame()
+        if cl:
+            g.process_action(LaunchCard(tgt, [src], cl[0]))
+        else:
+            c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
+            c = c or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+            c and g.process_action(CirnoDropCards(src, tgt, [c]))
+
+        return True
+
+    def is_valid(self):
+        src, tgt = self.source, self.target
+        if not LaunchCard(tgt, [src], AttackCard()).can_fire():
+            return False
+
+        return not ttags(src)['bakadesu']
+
+    def cond(self, cl):
+        if len(cl) != 1:
+            return False
+        c = cl[0]
+
+        return c.is_card(AttackCard) and (
+            c.resides_in is not None and c.resides_in.type in ('cards', 'showncards')
+        )
+
+
+class Bakadesu(Skill):
+    associated_action = BakadesuAction
     skill_category = ('character', 'active')
+    target = t_OtherOne
 
     def check(self):
-        cl = self.associated_cards
-        if not (cl and len(cl) == 1): return False
-        c = cl[0]
-        if c.resides_in.type not in (
-            'cards', 'showncards', 'equips'
-        ): return False
-        if c.suit not in (Card.SPADE, Card.CLUB): return False
-        if 'skill' in c.category: return False
-        return bool(set(c.category) & {'basic', 'equipment'})
+        return not self.associated_cards
+
+
+class PerfectFreeze(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
+class PerfectFreezeAction(UserAction):
+    def __init__(self, source, target, damage):
+        self.source = source
+        self.target = target
+        self.damage = damage
+
+    def apply_action(self):
+        self.damage.cancelled = True
+
+        src, tgt = self.source, self.target
+        g = Game.getgame()
+        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
+        c = c or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+        c and g.process_action(CirnoDropCards(src, tgt, [c]))
+
+        if len(tgt.cards) + len(tgt.showncards) < tgt.life:
+            g.process_action(LifeLost(src, tgt, 1))
+
+        return True
 
 
 class PerfectFreezeHandler(EventHandler):
-    def handle(self, evt_type, arg):
-        if evt_type == 'calcdistance':
-            src, card, dist = arg
-            if not src.has_skill(PerfectFreeze): return arg
-            if not card.is_card(FrozenFrogCard): return arg
-            for p in dist:
-                dist[p] -= 1
+    execute_after = ('RepentanceStickHandler',)
 
-        return arg
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, Damage):
+            if act.cancelled: return act
+            src, tgt = act.source, act.target
+            if not (src and src.has_skill(PerfectFreeze)): return act
+            if not user_input([src], ChooseOptionInputlet(self, (False, True))): return act
+            g = Game.getgame()
+            g.process_action(PerfectFreezeAction(src, tgt, act))
+
+        return act
 
 
-@register_character_to('common', '-kof')
+@register_character
 class Cirno(Character):
-    skills = [PerfectFreeze]
+    skills = [Bakadesu, PerfectFreeze]
     eventhandlers_required = [PerfectFreezeHandler]
     maxlife = 4

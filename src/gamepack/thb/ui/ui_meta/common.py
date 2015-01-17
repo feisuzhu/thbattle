@@ -96,8 +96,11 @@ def passive_is_action_valid(g, cl, target_list):
 
 
 def card_desc(c):
+    if isinstance(c, (list, tuple)):
+        return u'、'.join([card_desc(i) for i in c])
+
     from gamepack.thb.cards import Card, HiddenCard
-    if c.is_card(HiddenCard): return u'牌'
+    if c.is_card(HiddenCard): return u'一张牌'
 
     if c.suit == Card.SPADE:
         suit = u'|r♠'

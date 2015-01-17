@@ -47,9 +47,8 @@ class HopeMaskAction:
         if not len(act.acquire):
             return None
 
-        s = u'、'.join([card_desc(c) for c in act.acquire])
         return u'|G【%s】|r拿起了%s，贴在了自己的脸上。' % (
-            act.source.ui_meta.char_name, s,
+            act.source.ui_meta.char_name, card_desc(act.acquire),
         )
 
     def sound_effect(act):
