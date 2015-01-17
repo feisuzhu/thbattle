@@ -5,7 +5,7 @@
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction
-from gamepack.thb.actions import PlayerDeath, PlayerTurn, ttags
+from gamepack.thb.actions import PlayerDeath, PlayerTurn, register_eh, ttags
 from gamepack.thb.cards import AttackCard, AttackCardHandler, BaseAttack, BaseDuel, DuelCard
 from gamepack.thb.cards import ElementalReactorSkill, Skill, UserAction, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
@@ -139,8 +139,14 @@ class ExterminateHandler(EventHandler):
             for tgt in tl:
                 g.process_action(ExterminateAction(src, tgt))
 
-        elif ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
-              (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):
+        return arg
+
+
+@register_eh
+class ExterminateFadeHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
+            (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):  # noqa
 
             g = Game.getgame()
             for p in g.players:
