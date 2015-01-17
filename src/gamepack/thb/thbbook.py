@@ -278,8 +278,7 @@ class THBattleBook(Game):
 
         testing = list(settings.TESTING_CHARACTERS)
         testing = filter_out(chars, lambda c: c.__name__ in testing)
-        chars = g.random.sample(chars, 30 - len(testing))
-        chars.extend(testing)
+        chars = g.random.sample(chars, 24)
 
         if Game.SERVER_SIDE:
             choices = [CharChoice(cls) for cls in chars[-20:]]
@@ -294,6 +293,7 @@ class THBattleBook(Game):
             akari = CharChoice(characters.akari.Akari)
             akari.real_cls = chars.pop()
             c.append(akari)
+            c.extend([CharChoice(cls) for cls in testing])
             p.choices = c
             p.reveal(c)
 
