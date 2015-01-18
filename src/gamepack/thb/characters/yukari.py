@@ -3,243 +3,105 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStage, DrawCardStage, DropCardStage, DropCards, FatetellStage
-from ..actions import GenericAction, UserAction, ask_for_action, migrate_cards, random_choose_card
-from ..actions import user_choose_cards
-from ..cards import Skill, t_None
-from ..inputlets import ChooseIndividualCardInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
+from ..actions import DeadDropCards, DropCards, GenericAction, PlayerTurn, UserAction, migrate_cards
+from ..actions import random_choose_card
+from ..cards import CardList, Skill, t_One
+from ..inputlets import ChoosePeerCardInputlet
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
 
 
 # -- code --
-class Realm(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive')
-    target = t_None
-
-
-class RealmSkipFatetell(UserAction):
-    def __init__(self, target, fts):
-        self.source = self.target = target
-        self.fts = fts
-
+class SpiritingAwayAction(UserAction):
     def apply_action(self):
-        self.fts.cancelled = True
-        return True
-
-
-class RealmSkipFatetellHandler(EventHandler):
-    execute_after = ('CiguateraHandler', )
-    card_usage = 'drop'
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, FatetellStage):
-            self.target = tgt = act.target
-            if not tgt.has_skill(Realm): return act
-            if not tgt.fatetell: return act
-
-            cl = user_choose_cards(self, tgt, ['cards', 'showncards', 'equips'])
-            if not cl: return act
-
-            g = Game.getgame()
-            g.process_action(DropCards(tgt, cl))
-            g.process_action(RealmSkipFatetell(tgt, act))
-
-        return act
-
-    def cond(self, cl):
-        if len(cl) != 1: return False
-        t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards):
-            return False
-
-        return True
-
-
-class RealmSkipDrawCard(GenericAction):
-    def __init__(self, target, dcs, pl):
-        self.source = self.target = target
-        self.dcs = dcs
-        self.pl = pl
-
-    def apply_action(self):
-        self.dcs.cancelled = True
         tgt = self.target
+        src = self.source
 
-        for p in self.pl:
-            c = user_input([tgt], ChoosePeerCardInputlet(self, p, ('cards', 'showncards')))
-            c = c or random_choose_card([p.cards, p.showncards])
-            if not c: continue
-            tgt.reveal(c)
-            migrate_cards([c], tgt.cards)
-
-        return True
-
-
-class RealmSkipDrawCardHandler(EventHandler):
-    execute_after = ('FrozenFrogHandler', )
-    card_usage = 'drop'
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
-            if act.cancelled: return act
-            self.target = tgt = act.target
-            if not tgt.has_skill(Realm): return act
-
-            g = Game.getgame()
-
-            pl = [p for p in g.players if not p.dead and (p.cards or p.showncards)]
-
-            _, rst = ask_for_action(self, [tgt], ('cards', 'showncards', 'equips'), pl)
-            if not rst: return act
-
-            cl, pl = rst
-
-            g = Game.getgame()
-            g.process_action(DropCards(tgt, cl))
-            g.process_action(RealmSkipDrawCard(tgt, act, pl))
-
-        return act
-
-    def cond(self, cl):
-        if len(cl) != 1: return False
-        t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards):
-            return False
-
-        return True
-
-    def choose_player_target(self, tl):
-        if not tl:
-            return (tl, False)
-
-        return (tl[:2], True)
-
-
-class RealmSkipAction(UserAction):
-    def __init__(self, target, act, pl):
-        self.source = self.target = target
-        self.act = act
-        self.pl = pl
-
-    def apply_action(self):
-        self.act.cancelled = True
-        _from, _to = self.pl
-        tgt = self.target
-        from itertools import chain
-        allcards = list(chain.from_iterable([_from.equips, _from.fatetell]))
-
-        if not allcards:
-            # Dropped by Exinwan
-            return False
-
-        card = user_input([tgt], ChooseIndividualCardInputlet(self, allcards))
+        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        cats = [getattr(tgt, i) for i in catnames]
+        card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+        card = card or random_choose_card(cats)
         if not card:
-            card = random_choose_card([_from.equips, _from.fatetell])
-
-        if card.resides_in is _from.fatetell:
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                migrate_cards([card], _to.fatetell)
-            else:
-                migrate_cards([card], _to.cards, unwrap=True)
-
-        elif card.resides_in is _from.equips:
-            cats = set([c.equipment_category for c in _to.equips])
-            to_equips = card.equipment_category not in cats
-            to_equips = to_equips and user_input([tgt], ChooseOptionInputlet(self, (False, True)))
-            migrate_cards([card], _to.equips if to_equips else _to.cards)
-        else:
-            assert False, 'WTF?!'
-
-        return True
-
-
-class RealmSkipActionHandler(EventHandler):
-    execute_after = ('SealingArrayHandler', )
-    card_usage = 'drop'
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, ActionStage):
-            self.target = tgt = act.target
-            if act.cancelled: return act
-            if not tgt.has_skill(Realm): return act
-
-            g = Game.getgame()
-
-            pl = [p for p in g.players if not p.dead]
-
-            _, rst = ask_for_action(self, [tgt], ('cards', 'showncards', 'equips'), pl)
-            if not rst: return act
-            cl, pl = rst
-            if len(pl) != 2: return act
-
-            g.process_action(DropCards(tgt, cl))
-            g.process_action(RealmSkipAction(tgt, act, pl))
-
-        return act
-
-    def cond(self, cl):
-        if len(cl) != 1: return False
-        t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards):
             return False
 
+        self.card = card
+        src.reveal(card)
+
+        src.tags['spirit_away_tag'] += 1
+
+        def spirited_away(p):
+            try:
+                return p.yukari_dimension
+            except AttributeError:
+                cl = CardList(p, 'yukari_dimension')
+                p.yukari_dimension = cl
+                p.showncardlists.append(cl)
+                return cl
+
+        migrate_cards([card], spirited_away(tgt))
+
         return True
 
-    def choose_player_target(self, tl):
-        if not tl:
-            return (tl, False)
+    def is_valid(self):
+        tgt = self.target
+        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        if not any(getattr(tgt, i) for i in catnames):
+            return False
 
-        tl = tl[:2]
-        return (tl, bool(len(tl) == 2 and (tl[0].equips or tl[0].fatetell)))
+        return self.source.tags['spirit_away_tag'] < 2
 
 
-class RealmSkipDropCard(UserAction):
-    def __init__(self, target, fts):
-        self.source = self.target = target
-        self.fts = fts
-
+class SpiritingAwayReturningAction(GenericAction):
     def apply_action(self):
-        self.fts.cancelled = True
+        g = Game.getgame()
+        for p in g.players:
+            cl = getattr(p, 'yukari_dimension', None)
+            cl and migrate_cards(cl, p.cards, unwrap=True)
+
         return True
 
 
-class RealmSkipDropCardHandler(EventHandler):
-    execute_after = ('SuwakoHatHandler',)
-    card_usage = 'drop'
+class SpiritingAway(Skill):
+    associated_action = SpiritingAwayAction
+    skill_category = ('character', 'active')
+    target = t_One
 
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DropCardStage):
-            if act.dropn < 1: return act
-            self.target = tgt = act.target
-            if not tgt.has_skill(Realm): return act
+    def check(self):
+        return not self.associated_cards
 
-            cl = user_choose_cards(self, tgt, ['cards', 'showncards', 'equips'])
-            if not cl: return act
+
+class SpiritingAwayHandler(EventHandler):
+    def handle(self, evt_type, arg):
+        if evt_type == 'action_apply' and isinstance(arg, PlayerTurn):
+            tgt = arg.target
+            if tgt.has_skill(SpiritingAway):
+                tgt.tags['spirit_away_tag'] = 0
+
+        elif evt_type == 'action_after' and isinstance(arg, DeadDropCards):
+            g = Game.getgame()
+
+            if not arg.target.has_skill(SpiritingAway):
+                return arg
+
+            for p in g.players:
+                cl = getattr(p, 'yukari_dimension', None)
+                if cl:
+                    g.process_action(DropCards(p, cl))
+                    p.showncardlists.remove(cl)
+
+        elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
+            tgt = arg.target
+            if not tgt.has_skill(SpiritingAway):
+                return arg
 
             g = Game.getgame()
-            g.process_action(DropCards(tgt, cl))
-            g.process_action(RealmSkipDropCard(tgt, act))
+            g.process_action(SpiritingAwayReturningAction(tgt, tgt))
 
-        return act
-
-    def cond(self, cl):
-        if len(cl) != 1: return False
-        t = self.target
-        if cl[0].resides_in not in (t.cards, t.showncards):
-            return False
-
-        return True
+        return arg
 
 
 @register_character
 class Yukari(Character):
-    skills = [Realm]
-    eventhandlers_required = [
-        RealmSkipFatetellHandler,
-        RealmSkipDrawCardHandler,
-        RealmSkipActionHandler,
-        RealmSkipDropCardHandler,
-    ]
+    skills = [SpiritingAway]
+    eventhandlers_required = [SpiritingAwayHandler]
     maxlife = 4

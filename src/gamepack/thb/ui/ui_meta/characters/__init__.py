@@ -39,6 +39,5 @@ from . import seija  # noqa
 from . import kanako  # noqa
 from . import medicine  # noqa
 from . import aya  # noqa
-from . import sp_yukari  # noqa
 from . import sp_flandre  # noqa
 from . import reisen  # noqa

@@ -1,109 +1,69 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
-from utils import BatchList
+from gamepack.thb import actions, characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.yukari)
 
 
-class Realm:
+class SpiritingAway:
     # Skill
-    name = u'境界'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
+    name = u'神隐'
 
+    def clickable(game):
+        me = game.me
+        if me.tags['spirit_away_tag'] >= 2: return False
+        try:
+            act = game.action_stack[-1]
+            if isinstance(act, actions.ActionStage) and act.target is me:
+                return True
+        except IndexError:
+            pass
+        return False
 
-class RealmSkipFatetell:
-    def effect_string_before(act):
-        return u'|G【%s】|r 发动了|G境界|r，跳过了判定阶段。' % (
-            act.target.ui_meta.char_name,
-        )
+    def is_action_valid(g, cl, tl):
+        skill = cl[0]
+        cl = skill.associated_cards
+        if cl:
+            return (False, u'请不要选择牌')
 
-
-class RealmSkipFatetellHandler:
-    # choose_card meta
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'跳过判定阶段')
-        else:
-            return (False, u'请弃置一张手牌，跳过判定阶段')
-
-
-class RealmSkipDrawCard:
-    def effect_string_before(act):
-        tl = BatchList(act.pl)
-        return u'|G【%s】|r发动了|G境界|r，跳过了摸牌阶段，并抽取了|G【%s】|r的手牌。' % (
-            act.target.ui_meta.char_name,
-            u'】|r和|G【'.join(tl.ui_meta.char_name),
-        )
-
-
-class RealmSkipDrawCardHandler:
-    # choose_card meta
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'跳过摸牌阶段，并获得任意1～2名角色的一张手牌')
-        else:
-            return (False, u'请弃置一张手牌，跳过摸牌阶段')
-
-    # choose_players
-    def target(tl):
         if not tl:
-            return (False, u'请选择1-2名其他玩家，随机出抽取一张手牌')
+            return (False, u'请选择一名玩家')
 
-        return (True, u'跳过摸牌阶段，并获得任意1～2名角色的一张手牌')
+        tgt = tl[0]
+        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        if not any(getattr(tgt, i) for i in catnames):
+            return (False, u'这货已经没有牌了')
+
+        return (True, u'发动【神隐】')
 
 
-class RealmSkipAction:
-    # choose_option meta
-    choose_option_buttons = ((u'相应区域', True), (u'手牌区', False))
-    choose_option_prompt = u'你要将这张卡牌移动到何处？'
+class SpiritingAwayAction:
 
-    def effect_string_before(act):
-        return u'|G【%s】|r发动了|G境界|r，跳过了出牌阶段，并移动了场上的卡牌。' % (
-            act.target.ui_meta.char_name,
+    def effect_string(act):
+        words = (
+            u'17岁就是17岁，后面没有零几个月！',
+            u'叫紫妹就对了，紫妈算什么！',
+        )
+        # return u'|G【{source}】|r：“{word}”（|G{target}|r的{card}不见了）'.format(
+        return u'|G【{source}】|r：“{word}”（|G{target}|r的一张牌不见了）'.format(
+            source=act.source.ui_meta.char_name,
+            target=act.target.ui_meta.char_name,
+            word=random.choice(words),
+            # card=card_desc(act.card),
         )
 
-
-class RealmSkipActionHandler:
-    # choose_card meta
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'跳过出牌阶段，并移动场上卡牌')
-        else:
-            return (False, u'请弃置一张手牌，跳过出牌阶段')
-
-    # choose_players
-    def target(tl):
-        if not tl:
-            return (False, u'[出牌]将第一名玩家的装备/判定牌移至第二名玩家的相应区域')
-
-        rst = bool(tl[0].equips or tl[0].fatetell)
-        if rst:
-            return (len(tl) == 2, u'[出牌]将第一名玩家的装备/判定牌移至第二名玩家的相应区域')
-        else:
-            return (False, u'第一名玩家没有牌可以让你移动！')
-
-
-class RealmSkipDropCard:
-    def effect_string_before(act):
-        return u'|G【%s】|r发动了|G境界|r，跳过了弃牌阶段。' % (
-            act.target.ui_meta.char_name,
-        )
-
-
-class RealmSkipDropCardHandler:
-    # choose_card meta
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'弃置一张牌，跳过弃牌阶段')
-        else:
-            return (False, u'弃置一张手牌，跳过弃牌阶段')
+    def sound_effect(act):
+        return random.choice([
+            'thb-cv-yukari_spiritaway1',
+            'thb-cv-yukari_spiritaway2',
+        ])
 
 
 class Yukari:
@@ -111,10 +71,10 @@ class Yukari:
     char_name = u'八云紫'
     port_image = 'thb-portrait-yukari'
     figure_image = 'thb-figure-yukari'
+    miss_sound_effect = 'thb-cv-yukari_miss'
     description = (
         u'|DB永远17岁 八云紫 体力：4|r\n\n'
-        u'|G境界|r：你可以弃置一张手牌并跳过你的一个阶段（准备阶段和结束阶段除外）\n'
-        u'|B|R>>|r 若你跳过摸牌阶段，你可以获得至多2名其他角色的各一张手牌；\n'
-        u'|B|R>>|r 若你跳过出牌阶段，你可以将场上的一张牌移动到另一名角色区域里的相应位置（不可替换原装备），或将其交给一名角色。\n\n'
-        u'|DB（画师：渚FUN）|r'
+        u'|G神隐|r：出牌阶段限两次，你可以将任意角色区域内的一张牌移出游戏。你的结束阶段，这些角色获得自己被移出游戏的牌。\n'
+        u'|B|R>> |r你可以观看由|G神隐|r移出的牌。\n\n'
+        u'|DB（画师：Vivicat@幻想梦斗符，CV：VV）|r'
     )
