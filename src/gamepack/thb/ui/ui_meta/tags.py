@@ -52,7 +52,7 @@ class lunadial:
 class books:
     def tag_anim(p):
         n = min(p.tags['books'], 6)
-        return 'thb-tag-books@%d' % n
+        return 'thb-tag-books@0%d' % n
 
     display = lambda p, v: v
     description = u'书的数量'

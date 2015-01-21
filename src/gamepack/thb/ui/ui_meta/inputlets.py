@@ -174,7 +174,9 @@ def action_disp_func(f):
 
 class ActionInputlet:
     @action_disp_func
-    def passive_action_disp(g, ilet, skills, rawcards, params, players):
+    def passive_action_disp(ilet, skills, rawcards, params, players):
+        g = Game.getgame()
+
         usage = getattr(ilet.initiator, 'card_usage', 'none')
 
         if skills:
@@ -189,7 +191,11 @@ class ActionInputlet:
 
         raise ActionDisplayResult(True, prompt_target or prompt_card, plsel, disables, players)
 
-    def passive_action_recommend(g, ilet):
+    def passive_action_recommend(ilet):
+        g = Game.getgame()
+
+        if not ilet.categories: return
+
         for c in g.me.showncards:
             if not ilet.initiator.cond([c]): continue
             return c
@@ -199,7 +205,9 @@ class ActionInputlet:
             return c
 
     @action_disp_func
-    def active_action_disp(g, ilet, skills, rawcards, params, players):
+    def active_action_disp(ilet, skills, rawcards, params, players):
+        g = Game.getgame()
+
         if not skills and not rawcards:
             raise ActionDisplayResult(False, u'请出牌…', False, [], [])
 

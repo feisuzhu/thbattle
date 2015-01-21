@@ -169,7 +169,6 @@ class UIDoPassiveAction(UISelectTarget):
     _auto_chosen = False
 
     def on_selection_change(self):
-        g = Game.getgame()
         ilet = self.inputlet
         if not ilet: return
 
@@ -178,7 +177,7 @@ class UIDoPassiveAction(UISelectTarget):
 
         if ilet.categories and not self._auto_chosen:
             self._auto_chosen = True
-            c = ilet.ui_meta.passive_action_recommend(g, ilet)
+            c = ilet.ui_meta.passive_action_recommend(ilet)
             if c:
                 hca = view.handcard_area
                 for cs in hca.cards:
@@ -193,7 +192,7 @@ class UIDoPassiveAction(UISelectTarget):
         players = view.get_selected_players()
         ilet = self.inputlet
 
-        rst = ilet.ui_meta.passive_action_disp(g, ilet, skills, rawcards, params, players)
+        rst = ilet.ui_meta.passive_action_disp(ilet, skills, rawcards, params, players)
 
         rst.valid and self.set_valid()
         self.set_text(rst.prompt)
@@ -329,9 +328,8 @@ class UIDoActionStage(UISelectTarget):
         rawcards = view.get_selected_cards()
         params = view.get_action_params()
         players = view.get_selected_players()
-        g = Game.getgame()
 
-        rst = ilet.ui_meta.active_action_disp(g, ilet, skills, rawcards, params, players)
+        rst = ilet.ui_meta.active_action_disp(ilet, skills, rawcards, params, players)
 
         rst.valid and self.set_valid()
         self.set_text(rst.prompt)
