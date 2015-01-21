@@ -486,12 +486,7 @@ class THBattleFaithUI(THBattleUI):
 
     def handle_remaining_indicator(self, evt_type, arg):
         if evt_type in ('switch_character', 'action_stage_action'):
-            try:
-                hakurei, moriya = self.game.forces
-            except:
-                return
-
-            h, m = len(hakurei.pool) - 1, len(moriya.pool) - 1
+            h, m = self.game.get_remaining_characters()
             if h < 0 or m < 0:
                 return
 

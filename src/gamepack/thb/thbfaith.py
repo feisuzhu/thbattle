@@ -272,3 +272,15 @@ class THBattleFaith(Game):
         p.special        = CardList(p, 'special')     # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
         p.tags           = defaultdict(int)
+
+    def get_remaining_characters(g):
+        try:
+            hakurei, moriya = g.forces
+        except:
+            return -1, -1
+
+        h, m = len(hakurei.pool) - 1, len(moriya.pool) - 1
+        if h < 0 or m < 0:
+            return -1, -1
+
+        return h, m
