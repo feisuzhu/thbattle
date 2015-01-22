@@ -964,6 +964,15 @@ class RevealIdentity(GenericAction):
         self.to.reveal(tgt.identity)
         return True
 
+    def can_see(self, ch):
+        if isinstance(self.to, (tuple, list)):
+            return ch in self.to
+        else:
+            return ch is self.to
+
+    def __repr__(self):
+        return u'Reveal(%s, %s)' % (self.target, self.to)
+
 
 class Pindian(UserAction):
     no_reveal = True

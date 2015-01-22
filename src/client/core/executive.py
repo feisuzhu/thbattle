@@ -55,6 +55,12 @@ class Server(Endpoint, Greenlet):
         encoded = self.encode(['gamedata', [tag, data]])
         self.raw_write(encoded)
 
+    def shutdown(self):
+        self.kill()
+        self.join()
+        self.ctlcmds.put(['shutdown', None])
+        self.close()
+
 
 class ReplayEndpoint(object):
     def __init__(self, replay, game):
@@ -172,7 +178,7 @@ class GameManager(Greenlet):
                 if not isinstance(v, ForcedKill):
                     self.event_cb('client_game_finished', g)
 
-            self.event_cb('game_started', (g, params, pldata))
+            self.event_cb('game_started', (g, params, pldata, g.players[:]))
 
         @handler(('inroom',), 'ingame')
         def observe_started(self, data):
@@ -209,7 +215,7 @@ class GameManager(Greenlet):
                 if not isinstance(v, ForcedKill):
                     self.event_cb('client_game_finished', g)
 
-            self.event_cb('game_started', (g, params, pldata))
+            self.event_cb('game_started', (g, params, pldata, g.players[:]))
 
         @handler(('hang', 'inroom'), 'inroom')
         def game_joined(self, data):
@@ -335,9 +341,7 @@ class Executive(object):
 
             @gevent.spawn
             def kill():
-                self.server.kill()
-                self.server.join()
-                self.server.ctlcmds.put(['shutdown', None])
+                self.server.shutdown()
                 self.gamemgr.join()
                 self.server = self.gamemgr = None
                 self.state = 'initial'

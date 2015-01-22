@@ -35,6 +35,7 @@ class DropCardStage:
 
 class Damage:
     update_portrait = True
+    play_sound_at_target = True
 
     def effect_string(act):
         s, t = act.source, act.target
@@ -47,9 +48,13 @@ class Damage:
                 t.ui_meta.char_name, act.amount
             )
 
+    def sound_effect(act):
+        return 'thb-sound-hit'
+
 
 class LifeLost:
     update_portrait = True
+    play_sound_at_target = True
 
     def effect_string(act):
         return u'|G【%s】|r流失了%d点体力。' % (

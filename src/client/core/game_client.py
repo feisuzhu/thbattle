@@ -159,6 +159,7 @@ class PeerPlayer(game.AbstractPlayer):
 
     def __init__(self):
         game.AbstractPlayer.__init__(self)
+        self.account = None
 
     def reveal(self, obj_list):
         # Peer player, won't reveal.
@@ -174,6 +175,9 @@ class PeerPlayer(game.AbstractPlayer):
         pp = cls()
         pp.update(data)
         return pp
+
+    def __repr__(self):
+        return u"PeerPlayer(%s)" % (self.account.username if self.account else None)
 
     # account = < set by update >
 

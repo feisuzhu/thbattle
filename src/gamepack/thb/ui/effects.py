@@ -217,7 +217,6 @@ def damage_effect(self, act):
     t = act.target
     port = self.player2portrait(t)
     OneShotAnim(L('thb-hurt'), x=port.x, y=port.y, batch=self.animations)
-    SoundManager.play('thb-sound-hit')
 
 
 def _update_tags(self, p):

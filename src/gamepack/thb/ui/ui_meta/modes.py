@@ -52,6 +52,7 @@ class THBattle:
         T.MORIYA: u'orange'
     }
 
+    IdentityType = T
     del T
 
 # -----END THB3v3 UI META-----
@@ -103,6 +104,7 @@ class THBattleKOF:
         T.MORIYA:  u'orange'
     }
 
+    IdentityType = T
     del T
 
 # -----END THB3v3 UI META-----
@@ -161,6 +163,7 @@ class THBattleIdentity:
         T.CURTAIN:    u'green',
     }
 
+    IdentityType = T
     del T
 
 # -----END THBIdentity UI META-----
@@ -213,6 +216,7 @@ class THBattleFaith:
         T.MORIYA:  u'orange'
     }
 
+    IdentityType = T
     del T
 
 
@@ -282,6 +286,7 @@ class THBattle2v2:
         T.MORIYA:  u'orange'
     }
 
+    IdentityType = T
     del T
 
 
@@ -398,6 +403,7 @@ class THBattleBook:
         T.ADMIN:   u'red',
     }
 
+    IdentityType = T
     del T
 
 

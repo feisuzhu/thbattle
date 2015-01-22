@@ -132,12 +132,15 @@ def get_display_tags(p):
 
     rst = []
 
-    for t in list(p.tags):
-        meta = tags_meta.get(t)
-        if meta and meta.display(p, p.tags[t]):
-            rst.append(meta.tag_anim(p))
+    try:
+        for t in list(p.tags):
+            meta = tags_meta.get(t)
+            if meta and meta.display(p, p.tags[t]):
+                rst.append(meta.tag_anim(p))
 
-    for c in list(p.fatetell):
-        rst.append(c.ui_meta.tag_anim(c))
+        for c in list(p.fatetell):
+            rst.append(c.ui_meta.tag_anim(c))
+    except AttributeError:
+        pass
 
     return rst
