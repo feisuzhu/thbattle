@@ -249,6 +249,11 @@ class AyaInterconnect(Interconnect):
                 for i in gids
             ])
 
+        elif topic == 'bugreport':
+            C = aya.qq2uin_bycache
+            aya.send_buddy_message(C(84065234), message)
+            aya.send_buddy_message(C(402796982), message)
+
     def publish(self, topic, data):
         lock = self.lock
         if not lock:

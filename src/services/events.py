@@ -191,6 +191,45 @@ def crashreport():
     return ''
 
 
+@route('/interconnect/bugreport', method='POST')
+def bugreport():
+    type = request.forms.get('type', u'Unspecified')
+    gameid = int(request.forms.get('gameid', 0))
+    userid = int(request.forms.get('userid', 0))
+    username = request.forms.get('username', u'毛玉')
+    text = request.forms.get('text', u'没有正文')
+
+    subject = u'[Bug][{type}] #{gameid} {username}({userid})'.format(
+        type=type, username=username, gameid=gameid, userid=userid,
+    ).encode('utf-8')
+
+    content = (
+        u'用户: {username}[{userid}]\n'
+        u'类型: {type}\n'
+        u'游戏ID: {gameid}\n'
+        u'正文: {text}'
+    ).format(
+        userid=userid, type=type, gameid=gameid,
+        username=username, text=text,
+    ).encode('utf-8')
+
+    interconnect.publish('bugreport', content)
+
+    send_mail(
+        send_from='bugreport@thbattle.net',
+        send_to='feisuzhu@163.com',
+        subject=subject,
+        text=content,
+    )
+
+    send_mail(
+        send_from='bugreport@thbattle.net',
+        send_to='zhykzhykzhyk@163.com',
+        subject=subject,
+        text=content,
+    )
+
+
 @route('/interconnect/unsubscribe/<address>')
 def unsubscribe(address):
     return '''

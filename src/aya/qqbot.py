@@ -587,12 +587,13 @@ class QQBot(object):
         cache[(group_id, uin)] = rst
         return rst
 
-    def _uin2account(self, uin, type, cache, verifysession='', code='', vctag=0):
+    def _uin2account(self, uin, type, cache, cache_rev, verifysession='', code='', vctag=0):
         uin = int(uin)
         cache = self.cache[cache]
         if uin in cache:
             return cache[uin]
 
+        cache_rev = self.cache[cache_rev]
         rst = self.call_server('s:get_friend_uin2', method='get',
             tuin=uin,
             verifysession=verifysession,
@@ -605,15 +606,17 @@ class QQBot(object):
         rcode = rst['retcode']
 
         if rcode == 0:
-            cache[uin] = rst['result']['account']
-            return rst['result']['account']
+            rst = rst['result']['account']
+            cache[uin] = rst
+            cache_rev[rst] = uin
+            return rst
         elif rcode in (1000, 1001):
             # captcha needed
             if rcode == 1001:
                 self.on_captcha_wrong(vctag)
 
             verifysession, vc, vctag = self._new_verify_session()
-            return self._uin2account(uin, type, cache, verifysession, vc, vctag)
+            return self._uin2account(uin, type, cache, cache_rev, verifysession, vc, vctag)
         else:
             assert False, 'Unexpected retcode %d' % rcode
 
@@ -624,8 +627,9 @@ class QQBot(object):
         vc, vctag = self.on_captcha(captcha.content)
         return verifysession, vc, vctag
 
-    uin2qq = lambda self, uin: self._uin2account(uin, 1, 'uin2qq')
-    gcode2groupnum = lambda self, gcode: self._uin2account(gcode, 4, 'gcode2groupnum')
+    uin2qq = lambda self, uin: self._uin2account(uin, 1, 'uin2qq', 'qq2uin')
+    gcode2groupnum = lambda self, gcode: self._uin2account(gcode, 4, 'gcode2groupnum', 'groupnum2gcode')
+    qq2uin_bycache = lambda self, qq: self.cache['qq2uin'].get(qq)
 
     def allow_friend_request(self, qq):
         log.info(u'Accepting friend request: %d', qq)
