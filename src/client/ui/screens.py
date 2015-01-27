@@ -923,9 +923,19 @@ class GameHallScreen(Screen):
         NoInviteButton(parent=self, x=654, y=650, width=80, height=35)
 
         b = Button(
+            parent=self, x=564, y=650, width=80, height=35,
+            color=Colors.orange, caption=u'加入QQ群',
+        )
+
+        @b.event
+        def on_click():
+            openurl('http://shang.qq.com/wpa/qunwpa?idkey=e25b8a940bf6e5409c48d7dac3681257c47b341c97b0d1d9c3b278d650aa8b0b')
+
+        b = Button(
             parent=self, x=750, y=650, width=80, height=35,
             color=Colors.orange, caption=u'卡牌查看器',
         )
+        del on_click
 
         @b.event
         def on_click():
