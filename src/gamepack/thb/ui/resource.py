@@ -250,6 +250,7 @@ inventory.update({
     'thb-cv-chen_miss':                    ['sound'],
     'thb-cv-chen_shikigami':               ['sound'],
     'thb-cv-chen_skanda':                  ['sound'],
+    'thb-cv-cirno_bakadesu':               ['sound'],
     'thb-cv-cirno_miss':                   ['sound'],
     'thb-cv-cirno_perfectfreeze':          ['sound'],
     'thb-cv-daiyousei_miss':               ['sound'],

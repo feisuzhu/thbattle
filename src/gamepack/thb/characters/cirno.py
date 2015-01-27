@@ -6,7 +6,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import Damage, DropCards, GenericAction, LaunchCard, LifeLost, UserAction
 from gamepack.thb.actions import random_choose_card, ttags, user_choose_cards
-from gamepack.thb.cards import AttackCard, Skill, t_None, t_OtherOne
+from gamepack.thb.cards import AttackCard, Skill, t_None, t_OtherOne, DuelCard
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
@@ -107,6 +107,19 @@ class PerfectFreezeHandler(EventHandler):
             if act.cancelled: return act
             src, tgt = act.source, act.target
             if not (src and src.has_skill(PerfectFreeze)): return act
+
+            g = Game.getgame()
+            for lc in reversed(g.action_stack):
+                if isinstance(lc, LaunchCard):
+                    break
+            else:
+                return act
+
+            if src is not lc.source: return act
+            c = lc.card
+            if not c.is_card(AttackCard) and not c.is_card(DuelCard):
+                return act
+
             if not user_input([src], ChooseOptionInputlet(self, (False, True))): return act
             g = Game.getgame()
             g.process_action(PerfectFreezeAction(src, tgt, act))

@@ -70,7 +70,7 @@ class Bakadesu:
         )
 
     def sound_effect(act):
-        return 'thb-cv-cirno_perfectfreeze'
+        return 'thb-cv-cirno_bakadesu'
 
 
 class BakadesuAction:
@@ -78,7 +78,7 @@ class BakadesuAction:
         if act.cond(cl):
             return (True, u'啪！啪！啪！')
         else:
-            return (False, u'请选择一张弹幕对【%s】使用' % act.source)
+            return (False, u'请选择一张弹幕对【%s】使用' % act.source.ui_meta.char_name)
 
 
 class Cirno:
@@ -94,7 +94,7 @@ class Cirno:
         u'|B|R>> |r对你使用一张|G弹幕|r\n'
         u'|B|R>> |r令你弃置其一张牌\n'
         u'\n'
-        u'|G完美冻结|r：当你对一名角色造成伤害时，你可以防止此次伤害并弃置其一张手牌。若此时其手牌数小于其当前体力值，该角色失去一点体力。\n'
+        u'|G完美冻结|r：当你使用|G弹幕|r或|G弹幕战|r对一名角色造成伤害时，你可以防止此次伤害并弃置其一张手牌。若此时其手牌数小于其当前体力值，该角色失去一点体力。\n'
         u'\n'
         u'|DB（画师：渚FUN，CV：君寻）|r'
     )

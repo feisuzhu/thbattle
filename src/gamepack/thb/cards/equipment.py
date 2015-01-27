@@ -363,7 +363,7 @@ class RepentanceStick(GenericAction):
         src, tgt = self.source, self.target
         g = Game.getgame()
 
-        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
 
         l = []
