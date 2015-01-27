@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import DrawCards, GenericAction
-from ..cards import Card, Reject, RejectCard, Skill, SpellCardAction, t_None
+from ..cards import Card, RejectCard, Skill, SpellCardAction, t_None
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
 
@@ -66,15 +66,15 @@ class LibraryHandler(EventHandler):
 
             return arg
 
-        elif evt_type == 'action_before' and isinstance(arg, Reject):
-            act = arg.target_act
-            src = act.source
-            if arg.source is src: return arg
-            if not src.has_skill(Library): return arg
+        # elif evt_type == 'action_before' and isinstance(arg, Reject):
+        #     act = arg.target_act
+        #     src = act.source
+        #     if arg.source is src: return arg
+        #     if not src.has_skill(Library): return arg
 
-            Game.getgame().process_action(LibraryDrawCards(src, 1))
+        #     Game.getgame().process_action(LibraryDrawCards(src, 1))
 
-            return arg
+        #     return arg
 
         elif evt_type == 'calcdistance':
             src, card, dist = arg
