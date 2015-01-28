@@ -362,6 +362,7 @@ class Lobby(object):
             log.info('%s has been squeezed out' % user.account.username)
             old = self.users[uid]
             user.account = old.account
+            old.close()  # this forces a drop, will call exit_game
 
             manager = GameManager.get_by_user(old)
             manager and manager.squeeze_out(old, user)
@@ -1093,7 +1094,6 @@ class GameManager(object):
 
     def squeeze_out(self, old, new):
         old.write(['others_logged_in', None])
-        old.close()  # this forces a drop, will call exit_game
         if old.state == 'ingame':
             self.reconnect(new)
 
