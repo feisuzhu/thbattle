@@ -186,6 +186,7 @@ inventory.update({
     'thb-figure-remilia':                  ['lazytexture'],
     'thb-figure-reisen':                   ['lazytexture'],
     'thb-figure-sanae':                    ['lazytexture'],
+    'thb-figure-mamizou':                  ['lazytexture'],
 
     'thb-figure-komachi_alter':            ['encrypted_texture'],
     'thb-figure-patchouli_alter':          ['encrypted_texture'],
