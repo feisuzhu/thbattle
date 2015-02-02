@@ -26,3 +26,12 @@ def get_revealed_identity_def(g, act, p, ch):
 
     t = act.target.identity.type
     return (g.ui_meta.IdentityType.rlookup(t).lower(), g.ui_meta.identity_table[t])
+
+
+def modename2display(modename):
+    from gamepack import gamemodes
+    gcls = gamemodes.get(modename)
+    if not gcls:
+        return u'未知模式'
+    else:
+        return gcls.ui_meta.name
