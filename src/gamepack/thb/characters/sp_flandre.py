@@ -101,7 +101,10 @@ class FourOfAKindAction(GenericAction):
 
 class FourOfAKindHandler(EventHandler):
     execute_before = ('ProtectionHandler', )
-    execute_after = ('RepentanceStickHandler', )
+    execute_after = (
+        'RepentanceStickHandler',
+        'DeathSickleHandler',
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
