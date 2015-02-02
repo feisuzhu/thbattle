@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 241'
+VERSION = 'THBATTLE V1.0b incr 242'
 
 CWD = os.getcwd()
 BASEDIR = LOGIC_UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
@@ -122,6 +122,9 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+抢书模式规则微调：持有书增加手牌上限，书可以抵挡致命伤害
+bug修复
+----------------------
 帕秋莉设定微调。
 琪露诺重置。
 SP八云紫代替了原八云紫，原八云紫乘隙间走了。
