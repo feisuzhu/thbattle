@@ -40,7 +40,7 @@ class BakadesuAction(UserAction):
         if cl:
             g.process_action(LaunchCard(tgt, [src], cl[0]))
         else:
-            c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
+            c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
             c = c or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
             c and g.process_action(CirnoDropCards(src, tgt, [c]))
 
