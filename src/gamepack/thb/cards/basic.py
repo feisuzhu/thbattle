@@ -5,7 +5,7 @@
 # -- own --
 from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards
 from ..actions import DropUsedCard, ForEach, GenericAction, LaunchCard, PlayerTurn, UserAction
-from ..actions import register_eh, ttags, user_choose_cards
+from ..actions import register_eh, user_choose_cards
 from game.autoenv import EventHandler, Game
 
 
@@ -234,7 +234,7 @@ class WineHandler(EventHandler):
             if src.tags['wine']:
                 Game.getgame().process_action(SoberUp(src, src))
 
-        elif evt_type == 'action_apply' and isinstance(act, Damage):
+        elif evt_type == 'action_before' and isinstance(act, Damage):
             if act.cancelled: return act
             if act.amount < 1: return act
             tgt = act.target

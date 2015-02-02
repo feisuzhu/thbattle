@@ -754,7 +754,7 @@ class DeathSickleHandler(EventHandler):
     execute_before = ('WineHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, Damage):
+        if evt_type == 'action_before' and isinstance(act, Damage):
             from .basic import Attack
             g = Game.getgame()
             pact = g.action_stack[-1]

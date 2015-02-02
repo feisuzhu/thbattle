@@ -359,7 +359,7 @@ class THBattleBook:
     description = (
         u'|R游戏人数|r：4人+1NPC\n'
         u'\n'
-        u'|G游戏目标|r：我方势力拿到尽量多的书\n'
+        u'|G游戏目标|r：己方势力拿到尽量多的书\n'
         u'\n'
         u'|G游戏开始|r：\n'
         u'|B|R>> |r游戏开始时，|G【小恶魔】|r会获得7个书的标记，体力和体力上限+4\n'
@@ -371,7 +371,12 @@ class THBattleBook:
         u'|B|R>> |r若该角色被你击坠，你获得该角色的所有书。\n'
         u'|B|R>> |r若该角色受到自己/无来源的伤害导致MISS，|G【小恶魔】|r获得该角色的所有书。\n'
         u'\n'
-        u'|G击坠结算|r：MISS的角色在轮到自己回合的时候重新回到场上，体力值回复2点，摸2张牌，并跳过所有阶段。\n'
+        u'|G与书相关的结算|r：\n'
+        u'|B|R>> |r由玩家控制的角色，每获得1本书，手牌上限+1，最大为3。\n'
+        u'\n'
+        u'|G击坠结算|r：\n'
+        u'|B|R>> |rMISS的角色在轮到自己回合的时候重新回到场上，体力值回复2点，摸2张牌，并跳过所有阶段。\n'
+        u'|B|R>> |r由玩家控制的角色受到有来源的致命伤害时，可以交出两本书并使伤害-1。\n'
         u'\n'
         u'|G胜利条件|r：\n'
         u'|B|R>> |r|G【小恶魔】|rMISS，此时持有书的数量多的势力胜利。\n'
@@ -407,10 +412,16 @@ class THBattleBook:
     del T
 
 
-class BookTransferHandler:  # noqa
+class BookTransferHandler:
     # choose_option
     choose_option_buttons = ((u'获得书', True), (u'留在原处', False))
     choose_option_prompt  = u'你要获得对方的书吗？'
+
+
+class BookShootdownCompromiseHandler:
+    # choose_option
+    choose_option_buttons = ((u'交出书减免伤害', True), (u'不要', False))
+    choose_option_prompt  = u'你要交出2本书并减免1点伤害吗？'
 
 
 class GrabBooks:
@@ -421,4 +432,11 @@ class GrabBooks:
             act.amount,
         )
 
-# -----END THBFaith UI META-----
+
+class BookShootdownCompromise:
+    def effect_string(act):
+        return u'|G【%s】|r交出了书，减免1点伤害。' % (
+            act.source.ui_meta.char_name,
+        )
+
+# -----END THBBook UI META-----

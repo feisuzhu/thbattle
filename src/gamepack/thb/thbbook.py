@@ -8,9 +8,9 @@ import random
 
 # -- third party --
 # -- own --
-from .actions import ActionStageLaunchCard, Damage, DistributeCards, DrawCards, PlayerDeath
-from .actions import PlayerRevive, PlayerTurn, RevealIdentity, UserAction, action_eventhandlers
-from .actions import skill_wrap
+from .actions import ActionStageLaunchCard, Damage, DistributeCards, DrawCards, DropCardStage
+from .actions import PlayerDeath, PlayerRevive, PlayerTurn, RevealIdentity, UserAction
+from .actions import action_eventhandlers, skill_wrap
 from .cards import AttackCard, DelayedSpellCardAction, DonationBoxCard, HealCard, NazrinRodCard
 from .characters.baseclasses import mixin_character
 from .characters.koakuma import Find
@@ -67,6 +67,51 @@ class VictoryHandler(EventHandler):
             elif books(moriya) >= g.total_books:
                 g.winners = moriya
                 g.game_end()
+
+        return act
+
+
+@game_eh
+class BookCardUpperLimitHandler(EventHandler):
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, DropCardStage):
+            tgt = act.target
+            g = Game.getgame()
+            if tgt is g.koakuma: return act
+            n = min(tgt.tags['books'], 3)
+            act.dropn = max(act.dropn - n, 0)
+
+        return act
+
+
+class BookShootdownCompromise(UserAction):
+    def __init__(self, dmg):
+        self.source = dmg.target
+        self.target = dmg.source
+        self.dmg = dmg
+
+    def apply_action(self):
+        g = Game.getgame()
+        src, tgt = self.source, self.target
+        g.process_action(GrabBooks(tgt, src, 2))
+        self.dmg.amount -= 1
+        return True
+
+
+@game_eh
+class BookShootdownCompromiseHandler(EventHandler):
+    execute_after = ('WineHandler', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, Damage):
+            tgt = act.target
+            if act.source is None: return act
+            if act.amount < tgt.life: return act
+            if tgt.tags['books'] < 2: return act
+            g = Game.getgame()
+            if tgt is g.koakuma: return act
+            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                g.process_action(BookShootdownCompromise(act))
 
         return act
 
