@@ -3,6 +3,7 @@
 # -- stdlib --
 from collections import defaultdict
 from functools import wraps
+import random
 
 # -- third party --
 # -- own --
@@ -36,7 +37,7 @@ class AccountBase(object):
     def build_npc_account(cls, name):
         acc = cls()
         acc.username = name
-        acc.userid = -1
+        acc.userid = -random.randrange(100000, 1000000)
 
         acc.other = defaultdict(
             lambda: None,
