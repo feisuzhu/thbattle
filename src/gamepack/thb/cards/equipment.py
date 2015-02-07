@@ -954,7 +954,7 @@ class GrimoireSkill(TreatAs, WeaponSkill):
     def treat_as(self):
         cl = self.associated_cards
         if not (cl and cl[0].suit):
-            from .definition import DummyCard
+            from .base import DummyCard
             return DummyCard
         return self.lookup_tbl[cl[0].suit]
 

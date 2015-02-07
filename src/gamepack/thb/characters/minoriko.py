@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import DrawCardStage, UserAction, migrate_cards
-from ..cards import Card, Harvest, HarvestCard, Skill, t_AllInclusive, t_None
+from ..cards import Card, Harvest, HarvestCard, Skill, TreatAs, t_None
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
 
@@ -44,11 +44,10 @@ class AutumnFeastAction(Harvest):
         return Harvest.is_valid(self)
 
 
-class AutumnFeast(Skill):
+class AutumnFeast(TreatAs, Skill):
+    treat_as = HarvestCard
     associated_action = AutumnFeastAction
     skill_category = ('character', 'active')
-    target = t_AllInclusive
-    usage = 'launch'
 
     def check(self):
         cl = self.associated_cards

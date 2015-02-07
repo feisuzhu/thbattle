@@ -4,7 +4,8 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from .base import Card, t_All, t_AllInclusive, t_None, t_One, t_OtherLessEqThanN, t_OtherOne, t_Self
+from .base import Card, PhysicalCard, t_All, t_AllInclusive, t_None, t_One, t_OtherLessEqThanN
+from .base import t_OtherOne, t_Self
 from game import GameObjectMeta
 
 
@@ -13,23 +14,13 @@ def card_meta(clsname, bases, _dict):
     for a in ('associated_action', 'target', 'category'):
         assert a in _dict
 
-    cls = GameObjectMeta(clsname, (Card,), _dict)
+    cls = GameObjectMeta(clsname, (PhysicalCard,), _dict)
     Card.card_classes[clsname] = cls
     return cls
 
 __metaclass__ = card_meta
 
 # ==================================================
-
-
-class DummyCard:
-    associated_action = None
-    target = t_None
-    category = ('dummy', )
-
-    def __init__(self, suit=Card.NOTSET, number=0, resides_in=None, **kwargs):
-        Card.__init__(self, suit, number, resides_in)
-        self.__dict__.update(kwargs)
 
 
 from . import basic

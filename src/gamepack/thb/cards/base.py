@@ -56,16 +56,6 @@ class Card(GameObject):
             syncid=self.syncid,
         )
 
-    def __eq__(self, other):
-        if not isinstance(other, Card): return False
-        return self.syncid == other.syncid
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return 84065234 + self.syncid
-
     def sync(self, data):  # this only executes at client side, let it crash.
         if data['syncid'] != self.syncid:
             logging.error(
@@ -138,11 +128,19 @@ class Card(GameObject):
         self._color = val
 
 
-class VirtualCard(Card):
-    __eq__ = object.__eq__
-    __ne__ = object.__ne__
-    __hash__ = object.__hash__
+class PhysicalCard(Card):
+    def __eq__(self, other):
+        if not isinstance(other, Card): return False
+        return self.syncid == other.syncid
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return 84065234 + self.syncid
+
+
+class VirtualCard(Card):
     sort_index = 0
     syncid = 0
     usage = 'none'
@@ -441,3 +439,13 @@ def t_OtherN(n):
 class HiddenCard(Card):  # special thing....
     associated_action = None
     target = t_None
+
+
+class DummyCard(Card):  # another special thing....
+    associated_action = None
+    target = t_None
+    category = ('dummy', )
+
+    def __init__(self, suit=Card.NOTSET, number=0, resides_in=None, **kwargs):
+        Card.__init__(self, suit, number, resides_in)
+        self.__dict__.update(kwargs)

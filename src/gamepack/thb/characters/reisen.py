@@ -6,7 +6,8 @@
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import ActionStageLaunchCard, Damage, DropCards, LaunchCard, PlayerTurn
 from gamepack.thb.actions import UserAction, user_choose_cards
-from gamepack.thb.cards import AttackCard, Card, DuelCard, Heal, HealCard, Skill, t_None
+from gamepack.thb.cards import AttackCard, Card, DuelCard, Heal, HealCard, PhysicalCard, Skill
+from gamepack.thb.cards import t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
@@ -73,7 +74,7 @@ class DiscarderHandler(EventHandler):
             if not src.has_skill(Discarder): return arg
 
             c = lc.card
-            if c.is_card(Skill) and 'treat_as' not in c.category: return arg
+            if not c.is_card(PhysicalCard): return arg
             if not c.is_card(AttackCard): return lc, False
 
             dist = LaunchCard.calc_distance(src, Discarder(src))
