@@ -367,7 +367,7 @@ class Lobby(object):
             manager = GameManager.get_by_user(old)
             manager and manager.squeeze_out(old, user)
 
-        elif uid in self.dropped_users:
+        if uid in self.dropped_users:
             log.info(u'%s rejoining dropped game' % user.account.username)
             old = self.dropped_users.pop(uid)
             assert isinstance(old, DroppedClient), 'Arghhhhh'
