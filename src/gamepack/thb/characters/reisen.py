@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import ActionStageLaunchCard, Damage, DropCards, LaunchCard, PlayerTurn
+from gamepack.thb.actions import Damage, DropCards, LaunchCard, PlayerTurn
 from gamepack.thb.actions import UserAction, user_choose_cards
 from gamepack.thb.cards import AttackCard, Card, DuelCard, Heal, HealCard, PhysicalCard, Skill
 from gamepack.thb.cards import t_None
@@ -68,10 +68,12 @@ class LunaticHandler(EventHandler):
 
 class DiscarderHandler(EventHandler):
     def handle(self, evt_type, arg):
-        if evt_type == 'action_can_fire' and isinstance(arg[0], ActionStageLaunchCard):
+        if evt_type == 'action_can_fire' and isinstance(arg[0], LaunchCard):
             lc, valid = arg
             src = lc.source
             if not src.has_skill(Discarder): return arg
+            g = Game.getgame()
+            if src is not g.current_turn: return arg
 
             c = lc.card
             if not c.is_card(PhysicalCard): return arg
