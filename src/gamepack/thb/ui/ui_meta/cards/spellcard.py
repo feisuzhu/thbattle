@@ -218,7 +218,7 @@ class YukariDimensionCard:
     description = (
         u'|R隙间|r\n\n'
         u'出牌阶段，对距离为1的一名其他角色使用，获得其区域内的一张牌。\n\n'
-        u'|DB（画师：Pixiv ID 7334440，CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
