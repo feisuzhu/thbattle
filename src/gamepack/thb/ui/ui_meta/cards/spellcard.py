@@ -2,6 +2,7 @@
 
 # -- stdlib --
 import random
+import itertools
 
 # -- third party --
 # -- own --
@@ -69,6 +70,17 @@ class RejectCard:
 
     def sound_effect(act):
         return 'thb-cv-card_reject'
+
+    def has_reject_card(p):
+        from gamepack.thb.cards import RejectCard
+        if any([c.is_card(RejectCard) for c in itertools.chain(p.cards, p.showncards)]):
+            return True
+
+        from gamepack.thb.characters import reimu
+        if isinstance(p, reimu.Reimu) and not p.dead:
+            return True
+
+        return False
 
 
 class RejectHandler:

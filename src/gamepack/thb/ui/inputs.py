@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
+
 # -- stdlib --
-import itertools
 import logging
 import math
-import random
 
 # -- third party --
 from gevent.event import Event
@@ -19,7 +18,8 @@ from client.ui.controls import ImageSelector, Panel
 from client.ui.resloader import L
 from game.autoenv import Game
 from gamepack.thb import actions as thbactions
-from gamepack.thb.cards import Card, CardList
+from gamepack.thb.cards import Card, CardList, RejectCard
+
 
 # -- code --
 log = logging.getLogger('THBattleUI_Input')
@@ -216,7 +216,6 @@ class UIDoPassiveAction(UISelectTarget):
 
 class UIDoRejectCardResponse(UIDoPassiveAction):
     _auto_chosen = False
-    _in_auto_reject_delay = False
 
     def process_user_input(self, ilet):
         # Override
@@ -281,13 +280,9 @@ class UIDoRejectCardResponse(UIDoPassiveAction):
         gevent.spawn_later(0.1 + 0.2 * math.sqrt(g.players.index(g.me)), ev.set)
 
         self.set_text(u'自动结算好人卡…')
-        if not any([ilet.initiator.cond([c]) for c in itertools.chain(g.me.cards, g.me.showncards)]):
-            from gamepack.thb.characters import reimu
-            if not (isinstance(g.me, reimu.Reimu) and not g.me.dead):  # HACK: but it works fine
-                self._in_auto_reject_delay = True
-                v = 0.3 - math.log(random.random())
-                self.set_text(u'自动结算好人卡(%.2f秒)' % v)
-                gevent.spawn_later(v, lambda: [ilet.done(), end_transaction(self.trans)])
+        if not RejectCard.ui_meta.has_reject_card(g.me):
+            ilet.done()
+            end_transaction(self.trans)
 
         self.view.selection_change.notify()
 
@@ -299,10 +294,6 @@ class UIDoRejectCardResponse(UIDoPassiveAction):
                 UIDoPassiveAction.set_valid(self)
         else:
             UIDoPassiveAction.set_valid(self, False)
-
-    def on_selection_change(self):
-        if self._in_auto_reject_delay: return
-        UIDoPassiveAction.on_selection_change(self)
 
     def cleanup(self):
         try:
