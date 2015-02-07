@@ -81,14 +81,21 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
         for p in players:
             g.emit_event('user_input_start', (trans, ilets[p]))
 
+        bottom_halves = []
+
+        def flush():
+            for t, data, trans, my, rst in bottom_halves:
+                g.players.client.gwrite(t, data)
+                g.emit_event('user_input_finish', (trans, my, rst))
+
+            bottom_halves[:] = []
+
         for w in iwait(_input_group, timeout=timeout + 5):
             try:
                 rst = w.get()
                 p, data = w.player, rst
             except:
                 p, data = w.player, None
-
-            g.players.client.gwrite('R{}{}'.format(tag, synctags[p]), data)
 
             my = ilets[p]
 
@@ -104,10 +111,15 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
             rst = my.post_process(p, rst)
 
-            g.emit_event('user_input_finish', (trans, my, rst))
+            bottom_halves.append((
+                'R{}{}'.format(tag, synctags[p]), data, trans, my, rst
+            ))
 
             players.remove(p)
             results[p] = rst
+
+            if type != 'any':
+                flush()
 
             if type == 'any' and rst is not None:
                 inputany_player = p
@@ -118,6 +130,9 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
     finally:
         input_group.kill()
+
+    # flush bottom halves
+    flush()
 
     # timed-out players
     for p in players:
