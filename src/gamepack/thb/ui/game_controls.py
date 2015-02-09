@@ -669,7 +669,7 @@ class _CharacterFigure(Control):
         self.prompt = prompt
 
         width = texture.width
-        height = texture.height
+        height = texture.height + 80
 
         x = (parent.width - width) // 2
         y = (parent.height - height) // 2
@@ -692,7 +692,7 @@ class _CharacterFigure(Control):
 
     def draw(self):
         glColor3f(1, 1, 1)
-        self.texture.blit(0, 0)
+        self.texture.blit(0, 80)
         glColor4f(1, 1, 1, 0.65)
         glRectf(0, 0, self.width, self.ta_height)
         self.draw_subcontrols()
