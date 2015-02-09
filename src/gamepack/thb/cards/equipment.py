@@ -660,16 +660,21 @@ class AyaRoundfanHandler(EventHandler):
     card_usage = 'drop'
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, basic.BaseAttack):
+        if evt_type == 'action_after' and isinstance(act, Damage):
             if not act.succeeded: return act
-            src = act.source
-            tgt = act.target
-            if src.has_skill(AyaRoundfanSkill) and tgt.equips:
-                cards = user_choose_cards(self, src, ['cards', 'showncards'])
-                if not cards: return act
-                g = Game.getgame()
-                g.process_action(DropCards(src, cards))
-                g.process_action(AyaRoundfan(src, tgt))
+            src, tgt = act.source, act.target
+            if not (src and src.has_skill(AyaRoundfanSkill) and tgt.equips): return act
+
+            g = Game.getgame()
+            pa = g.action_stack[-1]
+            if not isinstance(pa, basic.BaseAttack): return act
+
+            cards = user_choose_cards(self, src, ('cards', 'showncards'))
+            if not cards: return act
+            g = Game.getgame()
+            g.process_action(DropCards(src, cards))
+            g.process_action(AyaRoundfan(src, tgt))
+
         return act
 
     def cond(self, cards):
