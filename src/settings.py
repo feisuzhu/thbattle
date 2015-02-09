@@ -11,11 +11,14 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 VERSION = 'THBATTLE V1.0b incr 242'
 
 CWD = os.getcwd()
-BASEDIR = LOGIC_UPDATE_BASE = os.path.dirname(os.path.realpath(__file__))
-INTERPRETER_UPDATE_BASE = None
+BASEDIR = os.path.dirname(os.path.realpath(__file__))
 
 if sys.platform == 'win32':
-    INTERPRETER_UPDATE_BASE = os.path.dirname(sys.executable)
+    LOGIC_UPDATE_BASE = "src"
+    INTERPRETER_UPDATE_BASE = "Python27"
+else:
+    LOGIC_UPDATE_BASE = BASEDIR
+    INTERPRETER_UPDATE_BASE = None
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
