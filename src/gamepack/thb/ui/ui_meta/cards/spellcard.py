@@ -420,7 +420,7 @@ class DonationBoxCard:
         u'|R塞钱箱|r\n\n'
         u'非延时符卡\n'
         u'出牌阶段，对至多两名其他角色使用，目标角色需将自己的一张牌置入你的明牌区。\n\n'
-        u'|DB（画师：Pixiv ID 4104174，CV：shourei小N）|r'
+        u'|DB（画师：朱鹭子，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, tl):
