@@ -195,7 +195,7 @@ class UmbrellaCard:
     image_small = 'thb-card-small-umbrella'
     description = (
         u'|R阳伞|r\n\n'
-        u'装备后：符卡造成的伤害对你无效。\n\n'
+        u'装备后：符卡效果造成的伤害对你无效。\n\n'
         u'|DB（画师：Pixiv ID 5676304）|r'
     )
 
@@ -459,8 +459,7 @@ class HouraiJewelCard:
     image_small = 'thb-card-small-houraijewel'
     description = (
         u'|R蓬莱玉枝|r\n\n'
-        u'攻击范围1，装备后：你使用的【弹幕】只能用【好人卡】抵消，按此法使用的弹幕伤害固定为1。\n'
-        u'|B|R>> |r计算在出【弹幕】的次数内。\n\n'
+        u'攻击范围1。装备后，你使用的|G弹幕|r时，可以将弹幕的效果转化成如下的符卡效果：造成1点伤害。\n'
         u'|DB（画师：Pixiv ID 12657794）|r'
     )
 
