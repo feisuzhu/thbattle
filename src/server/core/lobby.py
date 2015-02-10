@@ -397,7 +397,7 @@ class Lobby(object):
 
         gid = self.new_gid()
         gamecls = gamemodes[gametype]
-        manager = GameManager(gid, gamecls, name)
+        manager = GameManager.create_game(gid, gamecls, name)
         self.games[gid] = manager
         log.info("Create game")
         self.refresh_status()
@@ -796,6 +796,16 @@ class GameManager(object):
         g.random    = random.Random(g.rndseed)
         g.gr_groups = WeakSet()
 
+    @classmethod
+    def create_game(cls, gid, gamecls, name):
+        manager = cls(gid, gamecls, name)
+        if manager.is_match():
+            gevent.spawn(lambda: interconnect.publish(
+                'speaker', [u'文文', u'“%s”房间已经建立，请相关玩家就位！' % manager.game_name]
+            ))
+
+        return manager
+
     def __data__(self):
         return {
             'id':       self.gameid,
@@ -864,6 +874,9 @@ class GameManager(object):
         f = gzip.open(os.path.join(options.archive_path, '%s-%s.gz' % (options.node, str(self.gameid))), 'wb')
         f.write('\n'.join(data))
         f.close()
+
+    def is_match(self):
+        return self.game_name.startswith(u'比赛 - ')
 
     def get_ready(self, user):
         if user.state not in ('inroomwait',):
@@ -1055,6 +1068,14 @@ class GameManager(object):
         assert ClientPlaceHolder not in self.users
         assert all([u.state == 'ready' for u in self.users])
 
+        if self.is_match():
+            gevent.spawn(lambda: interconnect.publish(
+                'speaker', [u'文文', u'“%s”开始了！参与玩家：%s' % (
+                    self.game_name,
+                    u'，'.join(self.users.account.username)
+                )]
+            ))
+
         self.game_started = True
 
         g.players = self.build_initial_players()
@@ -1162,6 +1183,14 @@ class GameManager(object):
         return rst
 
     def end_game(self):
+        if self.is_match() and not self.game.suicide:
+            gevent.spawn(lambda: interconnect.publish(
+                'speaker', [u'文文', u'“%s”结束了！获胜玩家：%s' % (
+                    self.game_name,
+                    u'，'.join(BatchList(self.game.winners).account.username)
+                )]
+            ))
+
         for u in self.users:
             u.write(['end_game', None])
             u.observers and u.observers.write(['end_game', None])
@@ -1171,6 +1200,11 @@ class GameManager(object):
         return [p for p in self.users if (p is not ClientPlaceHolder and not isinstance(p, DroppedClient))]
 
     def kill_game(self):
+        if self.is_match() and self.game.started:
+            gevent.spawn(lambda: interconnect.publish(
+                'speaker', [u'文文', u'“%s”意外终止了！' % self.game_name]
+            ))
+
         self.game.suicide = True  # game will kill itself in get_synctag()
 
     def get_bonus(self):
