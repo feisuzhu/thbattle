@@ -861,7 +861,7 @@ class GameManager(object):
         data.append(json.dumps(self.usergdhistory))
         data.append(json.dumps(self.gdhistory))
 
-        f = gzip.open(os.path.join(options.archive_path, str(self.gameid)) + '.gz', 'wb')
+        f = gzip.open(os.path.join(options.archive_path, '%s-%s.gz' % (options.node, str(self.gameid))), 'wb')
         f.write('\n'.join(data))
         f.close()
 

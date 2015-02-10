@@ -30,7 +30,9 @@ def start_server():
 
     parser = argparse.ArgumentParser(prog=sys.argv[0])
     parser.add_argument('node', type=str)
+    parser.add_argument('--host', default='0.0.0.0', type=str)
     parser.add_argument('--port', default=9999, type=int)
+    parser.add_argument('--backdoor-host', default='127.0.0.1', type=str)
     parser.add_argument('--backdoor-port', default=19999, type=int)
     parser.add_argument('--no-backdoor', action='store_true')
     parser.add_argument('--freeplay', action='store_true')
@@ -102,12 +104,12 @@ def start_server():
 
     if not options.no_backdoor:
         from gevent.backdoor import BackdoorServer
-        gevent.spawn(BackdoorServer(('127.0.0.1', options.backdoor_port)).serve_forever)
+        gevent.spawn(BackdoorServer((options.backdoor_host, options.backdoor_port)).serve_forever)
 
     from server.core import Client
 
     root.info('=' * 20 + settings.VERSION + '=' * 20)
-    server = StreamServer(('0.0.0.0', options.port), Client.spawn, None)
+    server = StreamServer((options.host, options.port), Client.spawn, None)
     server.serve_forever()
 
 
