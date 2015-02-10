@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 242'
+VERSION = 'THBATTLE V1.0b incr 243'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -125,6 +125,8 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+卡图立绘更新、bug修复
+----------------------
 抢书模式规则微调：持有书增加手牌上限，书可以抵挡致命伤害
 bug修复
 ----------------------
