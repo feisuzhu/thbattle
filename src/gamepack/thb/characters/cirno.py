@@ -90,7 +90,7 @@ class PerfectFreezeAction(UserAction):
         src, tgt = self.source, self.target
         g = Game.getgame()
         c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
-        c = c or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+        c = c or random_choose_card([tgt.cards, tgt.showncards])
         c and g.process_action(CirnoDropCards(src, tgt, [c]))
 
         if len(tgt.cards) + len(tgt.showncards) < tgt.life:
