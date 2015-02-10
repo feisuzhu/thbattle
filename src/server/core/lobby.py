@@ -1154,10 +1154,13 @@ class GameManager(object):
             i = g.players.client.index(user)
             p = g.players[i]
             log.info('player dropped')
-            if g.can_leave(p):
+            can_leave = g.can_leave(p)
+
+            if can_leave:
                 user.write(['game_left', None])
                 p.set_fleed(False)
             else:
+                p.set_dropped()
                 if not is_drop:
                     user.write(['fleed', None])
                     p.set_fleed(True)
@@ -1165,7 +1168,7 @@ class GameManager(object):
                     p.set_fleed(False)
 
             p.client.gbreak()  # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
-            p.set_dropped()
+
             dummy = DroppedClient(g.players[i].client)
             p.set_client(dummy)
             self.users.replace(user, dummy)
