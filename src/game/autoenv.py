@@ -21,7 +21,7 @@ def user_input(*a, **k):
 def init(place, custom=None):
     global Game, user_input
     if custom:
-        locals.update(custom)
+        locals().update(custom)
     elif place == 'Server':
         from server.core import Game as G, user_input as U
     elif place == 'Client':
@@ -29,5 +29,5 @@ def init(place, custom=None):
     else:
         raise Exception('Where am I?')
 
-    Game.__bases__ = (G,)
-    globals().update(locals())
+    Game.__bases__ = (custom['G'] if custom else G,)
+    globals().update(custom or locals())

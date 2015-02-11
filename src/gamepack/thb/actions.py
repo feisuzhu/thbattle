@@ -60,7 +60,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
     ilet = ActionInputlet(initiator, categories, candidates)
 
     @ilet.with_post_process
-    def process(actor, rst):
+    def process(actor, rst, no_reveal=False):
         g = Game.getgame()
         usage = getattr(initiator, 'card_usage', 'none')
         try:
@@ -82,7 +82,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                 if len(cards) == 1 and cards[0].is_card(VirtualCard):
                     def walk(c):
                         if not c.is_card(VirtualCard): return
-                        if getattr(c, 'no_reveal', False): return
+                        if getattr(c, 'no_reveal', False) or no_reveal: return
 
                         g.players.reveal(c.associated_cards)
                         for c1 in c.associated_cards:
@@ -92,7 +92,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                     check(skill_check(cards[0]))
 
                 else:
-                    if not getattr(initiator, 'no_reveal', False):
+                    if not getattr(initiator, 'no_reveal', False) and not no_reveal:
                         g.players.reveal(cards)
 
                 check(initiator.cond(cards))
