@@ -527,3 +527,14 @@ class THBattleBookUI(THBattleUI):
         (215, 500, 'bottom', Colors.blue),
         (3,   270, 'right',  Colors.blue),
     ]
+
+
+class THBattleNewbieUI(THBattleUI):
+    portrait_location = [
+        (380, 290, Colors.blue),
+    ]
+
+    gcp_location = [
+        (3,   1,   'me',     Colors.blue),
+        (335, 500, 'bottom', Colors.orange),
+    ]

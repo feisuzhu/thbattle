@@ -757,9 +757,10 @@ class ShuffleHandler(EventHandler):
 class ActionStage(GenericAction):
     card_usage = 'launch'
 
-    def __init__(self, target):
+    def __init__(self, target, one_shot=False):
         self.target = target
         self.in_user_input = False
+        self.one_shot = one_shot
 
     def apply_action(self):
         g = Game.getgame()
@@ -786,6 +787,9 @@ class ActionStage(GenericAction):
                 if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
+                    break
+
+                if self.one_shot:
                     break
 
         except CheckFailed:

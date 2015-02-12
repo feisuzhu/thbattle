@@ -19,6 +19,7 @@ inventory.update({
     'thb-modelogo-faith':                  ['img'],
     'thb-modelogo-2v2':                    ['img'],
     'thb-modelogo-book':                   ['img'],
+    'thb-modelogo-newbie':                 ['img'],
 
     'thb-win':                             ['img'],
     'thb-lose':                            ['img'],

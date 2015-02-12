@@ -6,6 +6,7 @@ import math
 
 # -- third party --
 from gevent.event import Event
+from pyglet.gl import glColor3f, glColor4f, glRectf
 from pyglet.text import Label
 import gevent
 import pyglet
@@ -14,7 +15,7 @@ import pyglet
 from .game_controls import CardSelectionPanel, CardSprite, DropCardArea
 from client.ui.base.interp import AbstractInterp, InterpDesc, LinearInterp, SineInterp, getinterp
 from client.ui.controls import BigProgressBar, Button, ConfirmButtons, Control, ImageButton
-from client.ui.controls import ImageSelector, Panel
+from client.ui.controls import ImageSelector, Panel, SmallProgressBar, TextArea
 from client.ui.resloader import L
 from game.autoenv import Game
 from gamepack.thb import actions as thbactions
@@ -1091,6 +1092,58 @@ class UIDebugUseCardSelection(CardSelectionPanel):
         CardSelectionPanel.delete(self)
 
 
+class UIGalgameDialog(Control, InputHandler):
+
+    def __init__(self, trans, parent, *a, **k):
+        y, w, h = (162, 531, 100)
+        x = (parent.width - w) // 2 + 30
+        Control.__init__(self, *a, x=x, y=y, width=w, height=h, zindex=999999, parent=parent, **k)
+        self.trans = trans
+        self.should_draw = False
+        self.lbls = pyglet.graphics.Batch()
+
+    def process_user_input(self, ilet):
+        meta = ilet.character.ui_meta
+        self.texture = L(meta.port_image)
+
+        Label(
+            text=meta.char_name, x=2, y=80, font_size=12,
+            anchor_x='left', anchor_y='bottom',
+            color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
+            batch=self.lbls,
+        )
+
+        ta = TextArea(
+            parent=self,
+            font_size=9,
+            x=0, y=0, width=self.width, height=80 - 2,
+        )
+
+        ta.append(ilet.dialog)
+
+        def on_mouse_press(*a, **k):
+            ilet.set_result(0)
+            ilet.done()
+            end_transaction(self.trans)
+
+        self.event(on_mouse_press)
+        ta.event(on_mouse_press)
+
+        self.should_draw = True
+
+        b = SmallProgressBar(parent=self, x=self.width - 140, y=0, width=140)
+        b.value = LinearInterp(1.0, 0.0, ilet.timeout)
+
+    def draw(self):
+        if not self.should_draw: return
+        glColor3f(1, 1, 1)
+        self.texture.blit(0, 100)
+        glColor4f(1, 1, 1, 0.65)
+        glRectf(0, 0, self.width, 100)
+        self.lbls.draw()
+        self.draw_subcontrols()
+
+
 mapping = {
     # InputTransaction name -> Handler class
 
@@ -1103,6 +1156,7 @@ mapping = {
     'ChoosePeerCard':       UIChoosePeerCard,
     'ChooseOption':         UIChooseOption,
     'ChooseIndividualCard': UIChooseIndividualCard,
+    'GalgameDialog':        UIGalgameDialog,
 
     'SortCharacter':        UICharacterSorter,
 

@@ -6,7 +6,7 @@ from collections import OrderedDict
 # -- third party --
 # -- own --
 from .common import gen_metafunc, meta_property
-from gamepack.thb import thb2v2, thb3v3, thbbook, thbdebug, thbfaith, thbidentity, thbkof
+from gamepack.thb import thb2v2, thb3v3, thbbook, thbdebug, thbfaith, thbidentity, thbkof, thbnewbie
 
 # -----BEGIN THB3v3 UI META-----
 __metaclass__ = gen_metafunc(thb3v3)
@@ -440,3 +440,39 @@ class BookShootdownCompromise:
         )
 
 # -----END THBBook UI META-----
+
+
+# -----BEGIN THBNewbie UI META-----
+__metaclass__ = gen_metafunc(thbnewbie)
+
+
+class THBattleNewbie:
+    name = u'符斗祭 - 琪露诺的完美THB教室'
+    logo = 'thb-modelogo-newbie'
+    params_disp = {}
+    description = (
+        u'|R游戏人数|r：1人+1NPC\n'
+        u'\n'
+        u'|G游戏目标|r：让琪露诺带你飞\n'
+        u'\n'
+        u'|G胜利条件|r：完整的完成教学，不掉线\n'
+        u'\n'
+    ).strip()
+
+    def ui_class():
+        from gamepack.thb.ui.view import THBattleNewbieUI
+        return THBattleNewbieUI
+
+    T = thbbook.Identity.TYPE
+    identity_table = {
+        T.HIDDEN:  u'？',
+    }
+
+    identity_color = {
+        T.HIDDEN:  u'blue',
+    }
+
+    IdentityType = T
+    del T
+
+# -----END THBNewbieUI META-----

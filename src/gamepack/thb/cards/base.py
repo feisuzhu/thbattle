@@ -263,8 +263,8 @@ class Deck(GameObject):
         cards = CardList(None, 'deckcard')
         self.cards = cards
         cards.extend(
-            cls(suit, n, cards)
-            for cls, suit, n in card_definition
+            cls(suit, rank, cards)
+            for cls, suit, rank in card_definition
         )
         self.shuffle(cards)
 
@@ -330,6 +330,13 @@ class Deck(GameObject):
         for c in cl:
             c.syncid = 0
             self.register_card(c)
+
+    def inject(self, cls, suit, rank):
+        cl = self.cards
+        c = cls(suit, rank, cl)
+        self.register_card(c)
+        cl.appendleft(c)
+        return c
 
 
 class Skill(VirtualCard):

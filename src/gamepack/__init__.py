@@ -9,6 +9,7 @@ l = [
     THBattleFaith,
     THBattle2v2,
     THBattleBook,
+    THBattleNewbie,
 ]
 
 for g in l:

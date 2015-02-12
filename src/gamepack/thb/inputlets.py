@@ -369,3 +369,21 @@ class HopeMaskInputlet(Inputlet):
             return [self.cards, []]
 
         return rst
+
+
+class GalgameDialogInputlet(Inputlet):
+    def init(self, character, dialog, voice):
+        self.character = character
+        self.dialog = dialog
+        self.result = None
+        self.voice = voice
+
+    def parse(self, data):
+        return data
+
+    def data(self):
+        return self.result
+
+    def set_result(self, value):
+        'For UI'
+        self.result = value
