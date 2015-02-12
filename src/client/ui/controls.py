@@ -1144,7 +1144,8 @@ class PlayerPortrait(Frame):
 
     def delete(self):
         Frame.delete(self)
-        self.avatar.delete()
+        if self.avatar:
+            self.avatar.delete()
 
     @staticmethod
     def batch_draw(pps):

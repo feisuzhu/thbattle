@@ -1511,7 +1511,7 @@ class ReplayScreen(Screen):
         )
 
         self.portraits = ReplayScreen.Portraits(parent=self)
-        self.portraits.update_portrait(replay.users)
+        self.portraits.update_portrait(replay.users[len(game.npc_players):])
 
         VolumeTuner(parent=self, x=690, y=660)
 
