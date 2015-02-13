@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, PlayerRevive
+from ..actions import DrawCards
 from ..cards import Skill, t_None
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
@@ -22,19 +22,19 @@ class LuckDrawCards(DrawCards):
 
 class LuckHandler(EventHandler):
     def handle(self, evt_type, arg):
-        if evt_type == 'card_migration':
-            act, l, _from, to = arg  # (action, cardlist, from, to)
-            p = _from.owner
-        elif evt_type == 'action_after' and isinstance(arg, PlayerRevive):
-            p = arg.target
-        elif evt_type == 'choose_target':
-            p = arg[0].source
-        else:
-            p = None
+        if evt_type != 'card_migration':
+            return arg
+
+        act, l, _from, to = arg  # (action, cardlist, from, to)
+        p = _from.owner
 
         if p and p.has_skill(Luck) and not p.dead:
+            if _from not in (p.cards, p.showncards):
+                return arg
+
             if not (p.cards or p.showncards):
                 Game.getgame().process_action(LuckDrawCards(p, 2))
+
         return arg
 
 
