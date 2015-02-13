@@ -786,6 +786,7 @@ class GameManager(object):
         self.game_started = False
         self.game_name    = name
         self.banlist      = defaultdict(set)
+        self.ob_banlist   = defaultdict(set)
         self.gameid       = gid
         self.gamecls      = gamecls
         self.game_params  = {k: v[0] for k, v in gamecls.params_def.items()}
@@ -966,8 +967,13 @@ class GameManager(object):
 
         bl = self.banlist[other]
         bl.add(user)
-        cl.write(['kick_request', [user, other, len(bl)]])
-        return len(bl) >= len(cl) // 2
+
+        s = Client.encode(['kick_request', [user, other, len(bl)]])
+        for cl in self.users:
+            cl.raw_write(s)
+            cl.observers and cl.observers.raw_write(s)
+
+        return len(bl) >= len(self.users) // 2
 
     def kick_observer(self, user, other):
         if user not in self.users:
@@ -979,13 +985,25 @@ class GameManager(object):
         if other.state != 'observing':
             return False
 
-        return True
+        bl = self.ob_banlist[other]
+        bl.add(user)
+
+        s = Client.encode(['ob_kick_request', [user, other, len(bl)]])
+        for cl in self.users:
+            cl.raw_write(s)
+            cl.observers and cl.observers.raw_write(s)
+
+        return len(bl) >= len(self.users) // 2
 
     def observe_leave(self, user, no_move=False):
         assert user.state == 'observing'
 
         tgt = user.observing
         tgt.observers.remove(user)
+        try:
+            del self.ob_banlist[user]
+        except KeyError:
+            pass
         user.state = 'hang'
         user.observing = None
         user.current_game = None

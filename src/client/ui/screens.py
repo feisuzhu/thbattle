@@ -1297,6 +1297,16 @@ class GameScreen(Screen):
             g.start()
             SoundManager.se_suppress()
 
+        elif _type == 'ob_kick_request':
+            u1, u2, count = args[0]
+            u1 = Account.parse(u1['account'])
+            u2 = Account.parse(u2['account'])
+            self.chat_box.append(
+                u'|B|R>> |c0000ffff%s|r希望|c0000ffff|B%s|r[|c9100ffff%d|r]离开游戏，已有%d人请求\n' % (
+                    u1.username, u2.username, u2.userid, count
+                )
+            )
+
         elif _type == 'end_game':
             self.remove_control(self.gameui)
             self.add_control(self.panel)

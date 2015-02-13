@@ -128,7 +128,9 @@ def help(cmdname):
 @argdesc(u'<uid>')
 def kickob(uid):
     Executive.kick_observer(uid)
-    return u'指令已发出'
+
+    # reply by server message later
+    return u''
 
 
 @command(u'报告bug', u'遇到错误时，你可以用此命令主动报告bug')
