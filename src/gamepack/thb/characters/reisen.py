@@ -84,7 +84,7 @@ class DiscarderHandler(EventHandler):
             nearest = max(min(dist.values()), 0)
             avail = {p for p in dist if dist[p] <= nearest}
 
-            if set(lc.target_list) & avail != set(lc.target_list):
+            if not set(lc.target_list) <= avail:
                 return lc, False
 
         elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
