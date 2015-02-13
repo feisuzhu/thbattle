@@ -72,7 +72,7 @@ if not no_create:
     for _ in xrange(int(N)):
         l.append(gevent.spawn(create))
 
-    gevent.sleep(1.0)
+    gevent.sleep(2.0)
 
 print 'join'
 for _ in xrange(int(N)):
