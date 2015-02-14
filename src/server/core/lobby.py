@@ -819,9 +819,9 @@ class GameManager(object):
     def create_game(cls, gid, gamecls, name):
         manager = cls(gid, gamecls, name)
         if manager.is_match():
-            gevent.spawn(lambda: interconnect.publish(
+            gevent.spawn(lambda: [gevent.sleep(3), interconnect.publish(
                 'speaker', [u'文文', u'“%s”房间已经建立，请相关玩家就位！' % manager.game_name]
-            ))
+            )])
 
         return manager
 
