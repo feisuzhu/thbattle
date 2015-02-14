@@ -756,6 +756,24 @@ class Lobby(object):
         for p in clients:
             gevent.spawn(ping, p)
 
+    def start_migration(self):
+        @gevent.spawn
+        def sysmsg():
+            while True:
+                users = BatchList(self.users.values())
+                users.write(['system_msg', [None, u'游戏已经更新，当前的游戏结束后将会被自动踢出，请更新后重新游戏']])
+                gevent.sleep(30)
+
+        @gevent.spawn
+        def kick():
+            gevent.sleep(30)
+            while True:
+                users = self.users.values()
+                for u in users:
+                    if u.state in ('hang', 'inroomwait', 'ready', 'connected'):
+                        u.close()
+
+                gevent.sleep(1)
 
 if options.gidfile and os.path.exists(options.gidfile):
     last_gid = int(open(options.gidfile, 'r').read())
