@@ -38,3 +38,7 @@ class Account(AccountBase):
     @server_side_only
     def add_credit(self, type, amount):
         pass
+
+    @server_side_only
+    def is_maoyu(self):
+        return False

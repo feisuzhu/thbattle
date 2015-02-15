@@ -693,6 +693,7 @@ class GameHallScreen(Screen):
                     f = pyglet.font.load('AncientPix', 9)
                     roomname = textsnap(txtbox.text, f, 200)
                     Executive.create_game(gtype, roomname)
+                    self.delete()
 
                 @btncancel.event  # noqa
                 def on_click():
@@ -967,7 +968,10 @@ class GameHallScreen(Screen):
         elif _type == 'lobby_error':
             log.error('Lobby error: %s' % args[0])  # TODO
             mapping = {
-                'cant_join_game': u'无法加入游戏！'
+                'cant_join_game': u'无法加入游戏',
+                'no_such_user': u'没有这个玩家',
+                'maoyu_limitation': u'您现在是毛玉（试玩玩家），不能这样做。\n毛玉只能玩练习模式和KOF模式。',
+                'banned': u'你已经被强制请离，不能重复进入',
             }
             ConfirmBox(mapping.get(args[0], args[0]), parent=self)
 

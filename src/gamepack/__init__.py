@@ -17,6 +17,11 @@ for g in l:
 
 del l, g, OrderedDict
 
+gamemodes_maoyu = {
+    'THBattleNewbie',
+    'THBattleKOF',
+}
+
 
 def init_ui_resources():
     import gamepack.thb.ui.resource  # noqa

@@ -121,3 +121,7 @@ class Account(AccountBase):
             with clipool() as cli:
                 rst = cli.add_credit(self.userid, type, amount)
                 rst and self._fill_account(rst)
+
+    @server_side_only
+    def is_maoyu(self):
+        return self.userid < 0

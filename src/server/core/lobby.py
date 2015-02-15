@@ -390,7 +390,11 @@ class Lobby(object):
         self.refresh_status()
 
     def create_game(self, user, gametype, name):
-        from gamepack import gamemodes
+        from gamepack import gamemodes, gamemodes_maoyu
+        if user.account.is_maoyu() and gametype not in gamemodes_maoyu:
+            user.write(['lobby_error', 'maoyu_limitation'])
+            return
+
         if gametype not in gamemodes:
             user.write(['lobby_error', 'gametype_not_exist'])
             return
@@ -409,6 +413,11 @@ class Lobby(object):
             manager = self.games[gameid]
         else:
             user.write(['lobby_error', 'cant_join_game'])
+            return
+
+        from gamepack import gamemodes_maoyu
+        if user.account.is_maoyu() and manager.gamecls.__name__ not in gamemodes_maoyu:
+            user.write(['lobby_error', 'maoyu_limitation'])
             return
 
         if manager.is_banned(user):
@@ -627,7 +636,7 @@ class Lobby(object):
         other = self.users.get(other_userid, None)
 
         if not (other and other.state in ('hang', 'observing')):
-            user.write(['lobby_error', 'user_not_found'])
+            user.write(['lobby_error', 'no_such_user'])
             return
 
         manager = GameManager.get_by_user(user)
