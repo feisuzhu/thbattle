@@ -16,26 +16,6 @@ from utils import instantiate
 
 
 # -- code --
-class SoundPlayer(Player):
-    def __init__(self, timeout=5):
-        Player.__init__(self)
-        self.time_queue = []
-        self.timeout = timeout
-
-    def queue(self, source):
-        cur = time.time()
-        self.time_queue.append(cur)
-        return Player.queue(self, source)
-
-    def on_eos(self):
-        # skip outdated sound
-        while time.time() - self.time_queue.pop(0) >= self.timeout:
-            self.next()
-            if not self.source:
-                # ran out of sources
-                break
-
-
 @instantiate
 class SoundManager(object):
     volume_factor = InterpDesc('_volume_factor')  # 音量系数
@@ -46,7 +26,7 @@ class SoundManager(object):
         self.bgm_switching = False
         self.bgm_player = Player()
         self.bgm_player.eos_action = Player.EOS_LOOP
-        self.se_players = defaultdict(SoundPlayer)
+        self.se_players = defaultdict(Player)
         self.muted = False
         self._se_suppress = time.time()
 
