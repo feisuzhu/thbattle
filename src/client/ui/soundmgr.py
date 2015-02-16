@@ -103,11 +103,7 @@ class SoundManager(object):
         self.bgm_next and self.instant_switch_bgm(self.bgm_next)
 
     def play(self, snd, queue=None):
-        t = time.time()
-        if t - self._se_suppress < 3:
-            self._se_suppress = t
-            return
-
+        if self._se_suppress: return
         if self.muted: return
 
         if queue is None:
@@ -120,7 +116,10 @@ class SoundManager(object):
         player.play()
 
     def se_suppress(self):
-        self._se_suppress = time.time()
+        self._se_suppress = True
+
+    def se_unsuppress(self):
+        self._se_suppress = False
 
     @property
     def bgm_volume(self):

@@ -894,6 +894,25 @@ class GameCharacterPortrait(Frame):
             parent=self.parent,
         )
 
+    def add_equip_sprites(self, cards):
+        equips = self.equipcard_area
+        for c in cards:
+            cs = SmallCardSprite(c, parent=equips, x=0, y=0)
+            cs.associated_card = c
+        equips.update()
+
+    def remove_equip_sprites(self, cards):
+        equips = self.equipcard_area
+        for cs in equips.cards[:]:
+            if cs.associated_card in cards:
+                cs.delete()
+        equips.update()
+
+    def clear_equip_sprites(self):
+        equips = self.equipcard_area
+        for cs in equips.cards[:]:
+            cs.delete()
+
     @property
     def color(self):
         if not self.character:
@@ -1078,17 +1097,25 @@ class GameCharacterPortrait(Frame):
             g = Game.getgame()
             me = g.me
             if (act.target in (self.player, self.character)) and (me in act.to if isinstance(act.to, list) else me is act.to):
-                btn = self.identity_btn
-                btn.value = act.target.identity.type
-                btn.state = Button.DISABLED
-                btn.update()
-                # self.update()
+                self.update_identity(self.character or self.player)
 
         elif evt_type == 'switch_character':
             p = arg
             if p.player is self.player:
                 self.character = p
                 self.update()
+
+    def update_identity(self, ch):
+        ident = getattr(ch, 'identity', None)
+        if not ident: return
+        if ident.type != ident.TYPE.HIDDEN:
+            btn = self.identity_btn
+            btn.value = ident.type
+            btn.state = Button.DISABLED
+            btn.update()
+
+    def set_character(self, ch):
+        self.character = ch
 
     def animate_to(self, x, y):
         tx = SineInterp(self.x, x, 1)

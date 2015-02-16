@@ -8,17 +8,18 @@ from pyglet.gl import glColor3f, glRectf
 import pyglet
 
 # -- own --
-from . import effects, inputs
-from .. import actions
-from .game_controls import DropCardArea, GameCharacterPortrait, HandCardArea, PortraitCardArea, Ray
-from .game_controls import SkillSelectionBox
 from client.ui.base import Control, Overlay
 from client.ui.controls import BalloonPrompt, Button, Colors, OptionButton, Panel, TextArea
 from client.ui.resloader import L
 from client.ui.soundmgr import SoundManager
 from game.autoenv import Game
+from gamepack.thb import actions
+from gamepack.thb.ui import effects, inputs
+from gamepack.thb.ui.game_controls import CardSprite, DropCardArea, GameCharacterPortrait
+from gamepack.thb.ui.game_controls import HandCardArea, PortraitCardArea, Ray, SkillSelectionBox
 from utils import rect_to_dict as r2d
 from utils.misc import ObservableEvent
+
 
 # -- code --
 log = logging.getLogger('THBattleUI')
@@ -196,6 +197,7 @@ class THBattleUI(Control):
         return self.btn_afk.value
 
     def init(self):
+        SoundManager.se_suppress()
         self.game_event = ObservableEvent()
         self.process_game_event = self.game_event.notify
 
@@ -231,6 +233,13 @@ class THBattleUI(Control):
     def more_init(self):
         pass
 
+    def set_live(self):
+        SoundManager.se_unsuppress()
+        self.update_portrait_hard()
+        self.update_handcard_area()
+        self.refresh_input_state()
+        effects.reseat_effects(self, None)
+
     def player2portrait(self, p):
         from gamepack.thb.characters.baseclasses import Character
         if isinstance(p, Character):
@@ -262,6 +271,34 @@ class THBattleUI(Control):
     def update_portraits(self):
         for port in self.char_portraits:
             port.update()
+
+    def update_portrait_hard(self):
+        from gamepack.thb.characters.baseclasses import Character
+        g = self.game
+        for p in g.players:
+            port = self.player2portrait(p)
+            isinstance(p, Character) and port.set_character(p)
+            port.update_identity(p)
+            port.clear_equip_sprites()
+            if not hasattr(p, 'equips'): continue
+            port.add_equip_sprites(p.equips)
+            port.update()
+
+    def update_handcard_area(self):
+        g = self.game
+        me = g.me
+        if not hasattr(me, 'cards'): return
+
+        hca = self.handcard_area
+
+        for c in hca.cards[:]:
+            c.delete()
+
+        for c in list(me.cards) + list(me.showncards):
+            cs = CardSprite(c, parent=hca)
+            cs.associated_card = c
+
+        hca.update()
 
     def on_message(self, _type, *args):
         if _type == 'player_change':

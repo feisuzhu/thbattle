@@ -10,12 +10,13 @@ from gevent.queue import Channel
 import gevent
 
 # -- own --
+from .replay import Replay
 from account import Account
 from autoupdate import Autoupdate
 from endpoint import Endpoint
 from game import Gamedata
 from utils import BatchList, instantiate
-from .replay import Replay
+
 
 # -- code --
 log = logging.getLogger('Executive')
@@ -54,6 +55,9 @@ class Server(Endpoint, Greenlet):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
         encoded = self.encode(['gamedata', [tag, data]])
         self.raw_write(encoded)
+
+    def wait_till_live(self):
+        self.gamedata.wait_empty()
 
     def shutdown(self):
         self.kill()

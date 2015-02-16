@@ -555,14 +555,17 @@ class Gamedata(object):
     def __init__(self, recording=False):
         self.gdqueue = deque(maxlen=100000)
         self.gdevent = Event()
+        self.gdempty = Event()
         self.recording = recording
         self.history = []
         self._in_gexpect = False
+        self.gdempty.set()
 
     def feed(self, data):
         p = Packet(data)
         self.gdqueue.append(p)
         self.gdevent.set()
+        self.gdempty.clear()
 
     def gexpect(self, tag, blocking=True):
         try:
@@ -571,6 +574,7 @@ class Gamedata(object):
             blocking and log.debug('GAME_EXPECT: %s', repr(tag))
             l = self.gdqueue
             e = self.gdevent
+            ee = self.gdempty
             e.clear()
 
             glob = False
@@ -593,6 +597,7 @@ class Gamedata(object):
                         log.debug('GAME_DATA_MISS: %s', repr(packet))
                         log.debug('EXPECTS: %s, GAME: %s', tag, getcurrent())
 
+                ee.set()
                 if blocking:
                     e.wait(timeout=5)
                     e.clear()
@@ -601,6 +606,9 @@ class Gamedata(object):
                     return None, self.NODATA
         finally:
             self._in_gexpect = False
+
+    def wait_empty(self):
+        self.gdempty.wait()
 
     def gbreak(self):
         # is it a hack?

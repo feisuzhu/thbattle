@@ -1011,6 +1011,7 @@ class UIEventHook(EventHandler):
     def __init__(self, gameui):
         EventHandler.__init__(self)
         self.gameui = gameui
+        self.live = False
 
     def evt_user_input(self, evt, arg):
         trans, ilet = arg
@@ -1021,7 +1022,11 @@ class UIEventHook(EventHandler):
         return ilet
 
     def handle(self, evt, data):
+        if not self.live: return data
         return getattr(self, 'evt_' + evt, self.gameui.process_game_event)(evt, data)
+
+    def set_live(self):
+        self.live = True
 
 
 class GameScreen(Screen):
@@ -1299,7 +1304,14 @@ class GameScreen(Screen):
             g = self.game
             g.event_observer = UIEventHook(self.gameui)
             g.start()
-            SoundManager.se_suppress()
+
+            @gevent.spawn
+            def wait_live():
+                g.me.server.wait_till_live()
+                gevent.sleep(0.1)
+                g.me.server.wait_till_live()
+                self.gameui.set_live()
+                g.event_observer.set_live()
 
         elif _type == 'ob_kick_request':
             u1, u2, count = args[0]

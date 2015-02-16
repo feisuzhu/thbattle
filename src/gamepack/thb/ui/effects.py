@@ -15,7 +15,7 @@ from ..actions import Action, ActionStage, BaseFatetell, Damage, Fatetell, Launc
 from ..actions import PlayerDeath, PlayerTurn, UserAction
 from ..cards import RejectHandler, VirtualCard
 from ..inputlets import ActionInputlet
-from .game_controls import CardSprite, SmallCardSprite
+from .game_controls import CardSprite
 from client.ui.base.interp import LinearInterp
 from client.ui.controls import BalloonPrompt, Button, Colors, Control, Panel, SmallProgressBar
 from client.ui.resloader import L
@@ -95,11 +95,8 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
     rawcards = [c for c in cards if not c.is_card(VirtualCard)]
 
     if _from.type == 'equips':  # equip area
-        equips = self.player2portrait(_from.owner).equipcard_area
-        for cs in equips.cards[:]:
-            if cs.associated_card in cards:
-                cs.delete()
-        equips.update()
+        port = self.player2portrait(_from.owner)
+        port.remove_equip_sprites(cards)
 
     if _from.type == 'fatetell':  # fatetell tag
         port = self.player2portrait(_from.owner)
@@ -156,11 +153,8 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
     # --- dest ---
 
     if to.type == 'equips':  # equip area
-        equips = self.player2portrait(to.owner).equipcard_area
-        for c in cards:
-            cs = SmallCardSprite(c, parent=equips, x=0, y=0)
-            cs.associated_card = c
-        equips.update()
+        port = self.player2portrait(to.owner)
+        port.add_equip_sprites(cards)
 
     if to.type == 'fatetell':  # fatetell tag
         port = self.player2portrait(to.owner)
