@@ -47,7 +47,16 @@ def walk_wrapped(cl, check_is_complete):
 
         if check_is_complete:
             try:
-                rst, reason = c.ui_meta.is_complete(g, [c])
+                is_complete = c.ui_meta.is_complete
+            except:
+                is_complete = None
+
+            if not is_complete:
+                # skills that cannot combined with other skill
+                raise ActionDisplayResult(False, u'您不能这样出牌', False, [], [])
+
+            try:
+                rst, reason = is_complete(g, [c])
             except:
                 log.exception('card.ui_meta.is_complete error')
                 raise ActionDisplayResult(False, u'[card.ui_meta.is_complete错误]', False, [], [])
