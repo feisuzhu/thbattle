@@ -391,7 +391,7 @@ class Lobby(object):
 
     def create_game(self, user, gametype, name):
         from gamepack import gamemodes, gamemodes_maoyu
-        if user.account.is_maoyu() and gametype not in gamemodes_maoyu:
+        if user and user.account.is_maoyu() and gametype not in gamemodes_maoyu:
             user.write(['lobby_error', 'maoyu_limitation'])
             return
 
