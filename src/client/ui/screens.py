@@ -1022,7 +1022,9 @@ class UIEventHook(EventHandler):
         return ilet
 
     def handle(self, evt, data):
-        if not self.live: return data
+        if not self.live and evt not in ('game_begin', 'switch_character', 'reseat'):
+            return data
+
         return getattr(self, 'evt_' + evt, self.gameui.process_game_event)(evt, data)
 
     def set_live(self):
@@ -1303,15 +1305,22 @@ class GameScreen(Screen):
             self.gameui.init()
             g = self.game
             g.event_observer = UIEventHook(self.gameui)
-            g.start()
 
             @gevent.spawn
-            def wait_live():
-                g.me.server.wait_till_live()
-                gevent.sleep(0.1)
-                g.me.server.wait_till_live()
-                self.gameui.set_live()
-                g.event_observer.set_live()
+            def start():
+                gevent.sleep(0.3)
+                svr = g.me.server
+                if svr.gamedata_piled():
+                    g.start()
+                    svr.wait_till_live()
+                    gevent.sleep(0.1)
+                    svr.wait_till_live()
+                    self.gameui.set_live()
+                    g.event_observer.set_live()
+                else:
+                    self.gameui.set_live()
+                    g.event_observer.set_live()
+                    g.start()
 
         elif _type == 'ob_kick_request':
             u1, u2, count = args[0]

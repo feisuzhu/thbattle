@@ -1118,6 +1118,7 @@ class GameCharacterPortrait(Frame):
         self.character = ch
 
     def animate_to(self, x, y):
+        if x == self.x and y == self.y: return
         tx = SineInterp(self.x, x, 1)
         ty = SineInterp(self.y, y, 1)
         pca = self.portcard_area

@@ -59,6 +59,9 @@ class Server(Endpoint, Greenlet):
     def wait_till_live(self):
         self.gamedata.wait_empty()
 
+    def gamedata_piled(self):
+        return len(self.gamedata.gdqueue) > 25
+
     def shutdown(self):
         self.kill()
         self.join()

@@ -235,10 +235,9 @@ class THBattleUI(Control):
 
     def set_live(self):
         SoundManager.se_unsuppress()
-        self.update_portrait_hard()
+        self.update_portraits_hard()
         self.update_handcard_area()
         self.refresh_input_state()
-        effects.reseat_effects(self, None)
 
     def player2portrait(self, p):
         from gamepack.thb.characters.baseclasses import Character
@@ -272,12 +271,10 @@ class THBattleUI(Control):
         for port in self.char_portraits:
             port.update()
 
-    def update_portrait_hard(self):
-        from gamepack.thb.characters.baseclasses import Character
+    def update_portraits_hard(self):
         g = self.game
         for p in g.players:
             port = self.player2portrait(p)
-            isinstance(p, Character) and port.set_character(p)
             port.update_identity(p)
             port.clear_equip_sprites()
             if not hasattr(p, 'equips'): continue
