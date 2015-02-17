@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import time
 
 # -- third party --
@@ -26,9 +27,9 @@ from settings import VERSION
 from utils import BatchList, instantiate, log_failure
 from utils.misc import throttle
 
+
 # -- code --
 log = logging.getLogger('Lobby')
-__all__ = ['Client']
 
 
 class Client(Endpoint, Greenlet):
@@ -333,6 +334,7 @@ class Lobby(object):
         self.users = {}  # all users
         self.dropped_users = {}  # passively dropped users
         self.current_gid = current_gid
+        self.admins = [2, 3044]
 
     def new_gid(self):
         self.current_gid += 1
@@ -401,7 +403,7 @@ class Lobby(object):
 
         gid = self.new_gid()
         gamecls = gamemodes[gametype]
-        manager = GameManager.create_game(gid, gamecls, name)
+        manager = GameManager(gid, gamecls, name)
         self.games[gid] = manager
         log.info("Create game")
         self.refresh_status()
@@ -461,6 +463,13 @@ class Lobby(object):
         manager.kill_game()
         self.games.pop(manager.gameid, None)
 
+    def force_end_game(self, manager):
+        for u in manager.get_online_users():
+            self.exit_game(u, is_drop=True)
+
+        self.try_remove_empty_game(manager)
+        self.refresh_status()
+
     def start_game(self, manager):
         log.info("game started")
         manager.start_game()
@@ -501,6 +510,8 @@ class Lobby(object):
             return
 
         new_mgr = self.create_game(None, manager.gamecls.__name__, manager.game_name)
+        manager.is_match and new_mgr.set_match(manager.match_users)
+
         for u in manager.users:
             self.join_game(u, new_mgr.gameid)
 
@@ -691,16 +702,8 @@ class Lobby(object):
         def worker():
             manager = GameManager.get_by_user(user)
 
-            if msg.startswith('!!') and (options.freeplay or user.account.userid in (2, 3044)):
-                # admin commands
-                cmd = msg[2:]
-                if cmd == 'stacktrace':
-                    manager.record_stacktrace()
-                elif cmd == 'clearzombies':
-                    self.clearzombies()
-                elif cmd == 'ping':
-                    self.ping(user)
-
+            if msg.startswith('!!') and (options.freeplay or user.account.userid in self.admins):
+                self.handle_admin_cmd(user, msg[2:])
                 return
 
             packed = (user.account.username, msg)
@@ -736,6 +739,42 @@ class Lobby(object):
         def worker():
             for u in self.users.values():
                 u.write(['system_msg', [None, msg]])
+
+    def handle_admin_cmd(self, user, cmd):
+        args = shlex.split(cmd)
+        cmd = args[0]
+        args = args[1:]
+
+        if cmd == 'stacktrace':
+            manager = GameManager.get_by_user(user)
+            manager.record_stacktrace()
+        elif cmd == 'clearzombies':
+            self.clearzombies()
+        elif cmd == 'ping':
+            self.ping(user)
+        elif cmd == 'start_migration':
+            self.start_migration()
+        elif cmd == 'kick':
+            uid, = args
+            self.force_disconnect(int(uid))
+        elif cmd == 'match':
+            self.setup_match(user, *args)
+        elif cmd == 'kill_game':
+            gid, = args
+            manager = self.games.get(int(gid))
+            manager and self.force_end_game(manager)
+        elif cmd == 'add_admin':
+            uid, = args
+            self.admins.append(int(uid))
+        elif cmd == 'remove_admin':
+            uid, = args
+            self.admins.remove(int(uid))
+
+        user.write(['system_msg', [None, u'成功的执行了管理命令']])
+
+    def force_disconnect(self, uid):
+        user = self.users.get(uid)
+        user and user.close()
 
     def clearzombies(self):
         for i, u in self.users.items():
@@ -784,6 +823,52 @@ class Lobby(object):
 
                 gevent.sleep(1)
 
+    def setup_match(self, operator, name, gametype, *players):
+        from gamepack import gamemodes
+        gid = self.new_gid()
+        gamecls = gamemodes[gametype]
+        if len(players) != gamecls.n_persons:
+            operator.write(['system_msg', [None, u'参赛人数不正确']])
+            return
+
+        manager = GameManager(gid, gamecls, name)
+        pl = []
+        for i in players:
+            try:
+                uid = int(i)
+            except:
+                uid = 100000
+
+            pl.append(uid if uid < 100000 else i)
+
+        manager.set_match(pl)
+        self.games[gid] = manager
+        log.info("Create game")
+
+        @gevent.spawn
+        def pull():
+            while gid in self.games:
+                users = self.users.values()
+                for u in users:
+                    if not (u.account.userid in pl or u.account.username in pl):
+                        continue
+
+                    already_in = GameManager.get_by_user(u) is manager
+                    if u.state == 'hang':
+                        self.join_game(u, gid)
+                    elif u.state in ('observing', 'ready', 'inroomwait') and not already_in:
+                        self.exit_game(u)
+                        gevent.sleep(1)
+                        self.join_game(u, gid)
+                    elif u.state == 'ingame' and not already_in:
+                        gevent.spawn(u.write, ['system_msg', [None, u'你有比赛房间，请尽快结束游戏参与比赛']])
+
+                gevent.sleep(30)
+
+        self.refresh_status()
+
+        return manager
+
 if options.gidfile and os.path.exists(options.gidfile):
     last_gid = int(open(options.gidfile, 'r').read())
 else:
@@ -817,22 +902,14 @@ class GameManager(object):
         self.gameid       = gid
         self.gamecls      = gamecls
         self.game_params  = {k: v[0] for k, v in gamecls.params_def.items()}
+        self.is_match     = False
+        self.match_users  = []
 
         g.gameid    = gid
         g.manager   = self
         g.rndseed   = random.getrandbits(63)
         g.random    = random.Random(g.rndseed)
         g.gr_groups = WeakSet()
-
-    @classmethod
-    def create_game(cls, gid, gamecls, name):
-        manager = cls(gid, gamecls, name)
-        if manager.is_match():
-            gevent.spawn(lambda: [gevent.sleep(3), interconnect.publish(
-                'speaker', [u'文文', u'“%s”房间已经建立，请相关玩家就位！' % manager.game_name]
-            )])
-
-        return manager
 
     def __data__(self):
         return {
@@ -857,6 +934,14 @@ class GameManager(object):
     def send_gameinfo(self, user):
         g = self.game
         user.write(['gameinfo', [g.gameid, g.players]])
+
+    def set_match(self, match_users):
+        self.is_match = True
+        self.match_users = match_users
+
+        gevent.spawn(lambda: [gevent.sleep(1), interconnect.publish(
+            'speaker', [u'文文', u'“%s”房间已经建立，请相关玩家就位！' % self.game_name]
+        )])
 
     @throttle(0.1)
     def notify_playerchange(self):
@@ -902,9 +987,6 @@ class GameManager(object):
         f = gzip.open(os.path.join(options.archive_path, '%s-%s.gz' % (options.node, str(self.gameid))), 'wb')
         f.write('\n'.join(data))
         f.close()
-
-    def is_match(self):
-        return self.game_name.startswith(u'比赛 - ')
 
     def get_ready(self, user):
         if user.state not in ('inroomwait',):
@@ -1077,6 +1159,9 @@ class GameManager(object):
             self.notify_playerchange()
 
     def is_banned(self, user):
+        if self.is_match:
+            return not (user.account.userid in self.match_users or user.account.username in self.match_users)
+
         return len(self.banlist[user]) >= max(self.game.n_persons // 2, 1)
 
     def join_game(self, user, slot, observing=False):
@@ -1113,7 +1198,7 @@ class GameManager(object):
         assert ClientPlaceHolder not in self.users
         assert all([u.state == 'ready' for u in self.users])
 
-        if self.is_match():
+        if self.is_match:
             gevent.spawn(lambda: interconnect.publish(
                 'speaker', [u'文文', u'“%s”开始了！参与玩家：%s' % (
                     self.game_name,
@@ -1231,7 +1316,7 @@ class GameManager(object):
         return rst
 
     def end_game(self):
-        if self.is_match() and not self.game.suicide:
+        if self.is_match and not self.game.suicide:
             gevent.spawn(lambda: interconnect.publish(
                 'speaker', [u'文文', u'“%s”结束了！获胜玩家：%s' % (
                     self.game_name,
@@ -1248,7 +1333,7 @@ class GameManager(object):
         return [p for p in self.users if (p is not ClientPlaceHolder and not isinstance(p, DroppedClient))]
 
     def kill_game(self):
-        if self.is_match() and self.game.started:
+        if self.is_match and self.game.started:
             gevent.spawn(lambda: interconnect.publish(
                 'speaker', [u'文文', u'“%s”意外终止了！' % self.game_name]
             ))
@@ -1302,7 +1387,6 @@ class GameManager(object):
                 logtraceback(cl)
 
         log.info('===========================')
-
 
 if options.interconnect:
     from utils.interconnect import Interconnect
