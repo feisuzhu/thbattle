@@ -968,7 +968,7 @@ class RevealIdentity(GenericAction):
         self.to.reveal(tgt.identity)
         return True
 
-    def can_see(self, ch):
+    def can_be_seen_by(self, ch):
         if isinstance(self.to, (tuple, list)):
             return ch in self.to
         else:

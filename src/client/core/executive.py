@@ -60,7 +60,7 @@ class Server(Endpoint, Greenlet):
         self.gamedata.wait_empty()
 
     def gamedata_piled(self):
-        return len(self.gamedata.gdqueue) > 25
+        return len(self.gamedata.gdqueue) > 60
 
     def shutdown(self):
         self.kill()

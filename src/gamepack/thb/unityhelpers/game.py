@@ -21,11 +21,18 @@ def get_revealed_identity_def(g, act, p, ch):
         return
 
     me = g.me
-    if not act.can_see(me):
+    if not act.can_be_seen_by(me):
         return
 
-    t = act.target.identity.type
-    return (g.ui_meta.IdentityType.rlookup(t).lower(), g.ui_meta.identity_table[t])
+    return lookup_identity(act.target)
+
+
+def lookup_identity(g, p):
+    try:
+        t = p.identity.type
+        return (g.ui_meta.IdentityType.rlookup(t).lower(), g.ui_meta.identity_table[t])
+    except AttributeError:
+        return None
 
 
 def modename2display(modename):

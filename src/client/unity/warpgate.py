@@ -68,6 +68,7 @@ class UnityUIEventHook(EventHandler):
         EventHandler.__init__(self)
         self.warpgate = warpgate
         self.game = game
+        self.live = False
 
     def evt_user_input(self, g, evt_name, arg):
         trans, ilet = arg
@@ -77,6 +78,9 @@ class UnityUIEventHook(EventHandler):
         return ilet
 
     def handle(self, evt, data):
+        if not self.live and evt not in ('game_begin', 'switch_character', 'reseat'):
+            return data
+
         handler = getattr(self, 'evt_' + evt, None)
         if handler:
             handler(self.game, evt, data)
@@ -87,6 +91,10 @@ class UnityUIEventHook(EventHandler):
             gevent.sleep(0.005)
 
         return data
+
+    def set_live(self):
+        self.warpgate.events.append(('game_event', self.game, 'game_live', None))
+        self.live = True
 
 
 @gevent.hub.set_hub
@@ -165,6 +173,29 @@ class ExecutiveWrapper(object):
 
     def ignite(self, g):
         g.event_observer = UnityUIEventHook(self.warpgate, g)
+
+        @gevent.spawn
+        def start():
+            gevent.sleep(0.3)
+            svr = g.me.server
+            if svr.gamedata_piled():
+                g.start()
+                svr.wait_till_live()
+                gevent.sleep(0.1)
+                svr.wait_till_live()
+                g.event_observer.set_live()
+            else:
+                g.event_observer.set_live()
+                g.start()
+
+        @gevent.spawn
+        def wait_live():
+            s = self.executive.server
+            s.wait_till_live()
+            gevent.sleep(0.1)
+            s.wait_till_live()
+            g.event_observer.set_live()
+
         g.start()
 
 
