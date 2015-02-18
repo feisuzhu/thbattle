@@ -24,7 +24,7 @@ def get_revealed_identity_def(g, act, p, ch):
     if not act.can_be_seen_by(me):
         return
 
-    return lookup_identity(act.target)
+    return lookup_identity(g, act.target)
 
 
 def lookup_identity(g, p):

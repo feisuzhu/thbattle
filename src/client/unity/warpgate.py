@@ -93,8 +93,8 @@ class UnityUIEventHook(EventHandler):
         return data
 
     def set_live(self):
-        self.warpgate.events.append(('game_event', self.game, 'game_live', None))
         self.live = True
+        self.warpgate.events.append(('game_event', self.game, 'game_live', None))
 
 
 @gevent.hub.set_hub
@@ -187,16 +187,6 @@ class ExecutiveWrapper(object):
             else:
                 g.event_observer.set_live()
                 g.start()
-
-        @gevent.spawn
-        def wait_live():
-            s = self.executive.server
-            s.wait_till_live()
-            gevent.sleep(0.1)
-            s.wait_till_live()
-            g.event_observer.set_live()
-
-        g.start()
 
 
 @instantiate

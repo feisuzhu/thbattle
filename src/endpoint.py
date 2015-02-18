@@ -103,7 +103,6 @@ class Endpoint(object):
             except IOError:
                 self.close()
         else:
-            log.debug('Write after disconnected: %r' % self.decode(s))
             return False
 
     def write(self, p, format=FMT_PACKED):
