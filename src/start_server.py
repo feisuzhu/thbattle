@@ -2,7 +2,7 @@
 
 import sys
 reload(sys)
-sys.setdefaultencoding(sys.getfilesystemencoding())
+sys.setdefaultencoding('utf-8')
 
 import gevent
 from gevent import monkey

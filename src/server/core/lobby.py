@@ -769,6 +769,8 @@ class Lobby(object):
         elif cmd == 'remove_admin':
             uid, = args
             self.admins.remove(int(uid))
+        else:
+            return
 
         user.write(['system_msg', [None, u'成功的执行了管理命令']])
 
