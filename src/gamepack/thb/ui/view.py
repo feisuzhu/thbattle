@@ -279,6 +279,7 @@ class THBattleUI(Control):
             port.clear_equip_sprites()
             if not hasattr(p, 'equips'): continue
             port.add_equip_sprites(p.equips)
+            effects.update_tags(self, p)
             port.update()
 
     def update_handcard_area(self):

@@ -98,15 +98,6 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
         port = self.player2portrait(_from.owner)
         port.remove_equip_sprites(cards)
 
-    if _from.type == 'fatetell':  # fatetell tag
-        port = self.player2portrait(_from.owner)
-        taganims = port.taganims
-        for a in [t for t in taganims if hasattr(t, 'for_fatetell_card')]:
-            if a.for_fatetell_card in cards:
-                a.delete()
-                taganims.remove(a)
-        port.tagarrange()
-
     if to is None: return  # not supposed to have visual effects
 
     hca_mapping = {cs.associated_card: (cs, i) for i, cs in enumerate(self.handcard_area.control_list)}
@@ -156,20 +147,6 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
         port = self.player2portrait(to.owner)
         port.add_equip_sprites(cards)
 
-    if to.type == 'fatetell':  # fatetell tag
-        port = self.player2portrait(to.owner)
-        taganims = port.taganims
-        for c in cards:
-            a = TagAnim(
-                L(c.ui_meta.tag_anim(c)),
-                0, 0,
-                c.ui_meta.description,
-                parent=self,
-            )
-            a.for_fatetell_card = c
-            port.taganims.append(a)
-        port.tagarrange()
-
     if to.owner is g.me and to.type in ('cards', 'showncards'):
         handcard_update = True
         hca = self.handcard_area
@@ -206,6 +183,14 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
     handcard_update and self.handcard_area.update()
     dropcard_update and self.dropcard_area.update()
 
+    if _from.type == 'fatetell':
+        port = self.player2portrait(_from.owner)
+        update_tags(self, _from.owner)
+
+    if to.type == 'fatetell':
+        port = self.player2portrait(to.owner)
+        update_tags(self, to.owner)
+
 
 def damage_effect(self, act):
     t = act.target
@@ -213,56 +198,50 @@ def damage_effect(self, act):
     OneShotAnim(L('thb-hurt'), x=port.x, y=port.y, batch=self.animations)
 
 
-def _update_tags(self, p):
+def update_tags(self, p):
     port = self.player2portrait(p)
     taganims = port.taganims
-    old = {a.for_tag: a for a in taganims if hasattr(a, 'for_tag')}
-    old_tags = set(old.keys())
-    new_tags = set()
 
-    updated_tags = set()
+    for t in taganims:
+        t.delete()
+
+    taganims[:] = []
 
     from .ui_meta.tags import tags as tags_meta
+
+    # --- fatetell card
+    ftcl = getattr(p, 'fatetell', ())
+    for c in ftcl:
+        a = TagAnim(
+            L(c.ui_meta.tag_anim(c)),
+            0, 0,
+            c.ui_meta.description,
+            parent=self,
+        )
+        taganims.append(a)
 
     for t in list(p.tags):
         meta = tags_meta.get(t)
         if meta and meta.display(p, p.tags[t]):
-            new_tags.add(t)
-
-    for t in old_tags:  # to be removed
-        if t in new_tags:
-            anim = tags_meta[t].tag_anim(p)
-            if old[t].image == anim:
-                continue
-            else:
-                updated_tags.add(t)
-                # fallthrough
-
-        old[t].delete()
-        taganims.remove(old[t])
-
-    # for t in new_tags - old_tags: # to be added
-    for t in updated_tags | (new_tags - old_tags):  # to be added
-        a = TagAnim(
-            L(tags_meta[t].tag_anim(p)),
-            0, 0,
-            tags_meta[t].description,
-            parent=self,
-        )
-        a.for_tag = t
-        taganims.append(a)
+            a = TagAnim(
+                L(tags_meta[t].tag_anim(p)),
+                0, 0,
+                tags_meta[t].description,
+                parent=self,
+            )
+            taganims.append(a)
 
     port.tagarrange()
 
 
 def after_launch_effect(self, act):
-    _update_tags(self, act.source)
+    update_tags(self, act.source)
     for p in act.target_list:
-        _update_tags(self, p)
+        update_tags(self, p)
 
 
 def action_stage_effect_before(self, act):
-    _update_tags(self, act.target)
+    update_tags(self, act.target)
 
 action_stage_effect_after = action_stage_effect_before
 
@@ -278,12 +257,12 @@ def player_turn_effect(self, act):
     self.turn_frame.position = (port.x - 6, port.y - 4)
     self.prompt_raw('--------------------\n')
     for _p in Game.getgame().players:
-        _update_tags(self, _p)
+        update_tags(self, _p)
 
 
 def player_death_update(self, act):
     self.player2portrait(act.target).update()
-    _update_tags(self, act.target)
+    update_tags(self, act.target)
 
 
 def player_turn_after_update(self, act):
@@ -477,7 +456,7 @@ def action_effects(_type, self, act):
     if isinstance(act, UserAction):
         g = self.game
         for p in g.players:
-            _update_tags(self, p)
+            update_tags(self, p)
 
     while cls is not object:
         f = mapping_actions[_type].get(cls)
