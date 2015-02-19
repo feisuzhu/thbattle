@@ -52,6 +52,12 @@ class InevitableAttack(Attack):
 
 @register_eh
 class AttackCardHandler(EventHandler):
+    interested = (
+        ('action_before', ActionStage),
+        ('action_apply', ActionStageLaunchCard),
+        'calcdistance', 'action_can_fire'
+    )
+
     def handle(self, evt_type, act):
         # if evt_type == 'action_before' and isinstance(act, PlayerTurn):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
@@ -211,6 +217,12 @@ class WineRevive(GenericAction):
 
 @register_eh
 class WineHandler(EventHandler):
+    interested = (
+        ('action_before', (BaseAttack, Damage)),
+        ('action_apply', PlayerTurn),
+        'post_choose_target',
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
             pact = ForEach.get_actual_action(act) or act
@@ -282,6 +294,11 @@ class ExinwanEffect(GenericAction):
 
 @register_eh
 class ExinwanHandler(EventHandler):
+    interested = (
+        ('action_before', DropCards),
+        ('action_after', DropCards),
+    )
+
     # 恶心丸
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DropCards):

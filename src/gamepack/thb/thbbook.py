@@ -35,6 +35,10 @@ def game_eh(cls):
 
 @game_eh
 class VictoryHandler(EventHandler):
+    interested = (
+        ('action_before', (PlayerDeath, Damage)),
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerDeath):
             g = Game.getgame()
@@ -73,6 +77,10 @@ class VictoryHandler(EventHandler):
 
 @game_eh
 class BookCardUpperLimitHandler(EventHandler):
+    interested = (
+        ('action_before', DropCardStage),
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DropCardStage):
             tgt = act.target
@@ -100,6 +108,10 @@ class BookShootdownCompromise(UserAction):
 
 @game_eh
 class BookShootdownCompromiseHandler(EventHandler):
+    interested = (
+        ('action_before', Damage),
+    )
+
     execute_after = ('WineHandler', )
 
     def handle(self, evt_type, act):
@@ -118,6 +130,11 @@ class BookShootdownCompromiseHandler(EventHandler):
 
 @game_eh
 class BookTransferHandler(EventHandler):
+    interested = (
+        ('action_after', Damage),
+        ('action_apply', PlayerDeath),
+    )
+
     execute_before = ('DyingHandler', 'VictoryHandler')
 
     def handle(self, evt_type, act):
@@ -143,6 +160,10 @@ class BookTransferHandler(EventHandler):
 
 @game_eh
 class InvalidateDelayedSpellcard(EventHandler):
+    interested = (
+        ('action_before', DelayedSpellCardAction),
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DelayedSpellCardAction):
             tgt = act.target

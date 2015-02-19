@@ -719,41 +719,6 @@ class ActionStageLaunchCard(LaunchCard):
     pass
 
 
-@register_eh
-class ShuffleHandler(EventHandler):
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_stage_action':
-            self.do_shuffle()
-
-        elif evt_type in ('action_before', 'action_after') and isinstance(arg, ActionStage):
-            self.do_shuffle()
-
-        elif evt_type == 'user_input_start':
-            trans, ilet = arg
-            if isinstance(ilet, ChoosePeerCardInputlet):
-                self.do_shuffle([ilet.target])
-
-        # <!-- This causes severe problems, do not use -->
-        # elif evt_type == 'card_migration':
-        #     act, cl, _from, to = arg
-        #     to.owner and to.type == 'cards' and self.do_shuffle([to.owner])
-
-        return arg
-
-    @staticmethod
-    def do_shuffle(pl=None):
-        from .cards import VirtualCard
-        g = Game.getgame()
-
-        for p in pl or g.players:
-            if not p.cards: continue
-            if any([c.is_card(VirtualCard) for c in p.cards]):
-                log.warning('VirtualCard in cards of %s, not shuffling.' % repr(p))
-                continue
-
-            g.deck.shuffle(p.cards)
-
-
 class ActionStage(GenericAction):
     card_usage = 'launch'
 
@@ -812,6 +777,47 @@ class ActionStage(GenericAction):
 
     def choose_player_target(self, tl):
         return tl, True
+
+
+@register_eh
+class ShuffleHandler(EventHandler):
+    interested = (
+        ('action_before', ActionStage),
+        ('action_after', ActionStage),
+        'user_input_start', 'action_stage_action',
+    )
+
+    def handle(self, evt_type, arg):
+        if evt_type == 'action_stage_action':
+            self.do_shuffle()
+
+        elif evt_type in ('action_before', 'action_after') and isinstance(arg, ActionStage):
+            self.do_shuffle()
+
+        elif evt_type == 'user_input_start':
+            trans, ilet = arg
+            if isinstance(ilet, ChoosePeerCardInputlet):
+                self.do_shuffle([ilet.target])
+
+        # <!-- This causes severe problems, do not use -->
+        # elif evt_type == 'card_migration':
+        #     act, cl, _from, to = arg
+        #     to.owner and to.type == 'cards' and self.do_shuffle([to.owner])
+
+        return arg
+
+    @staticmethod
+    def do_shuffle(pl=None):
+        from .cards import VirtualCard
+        g = Game.getgame()
+
+        for p in pl or g.players:
+            if not p.cards: continue
+            if any([c.is_card(VirtualCard) for c in p.cards]):
+                log.warning('VirtualCard in cards of %s, not shuffling.' % repr(p))
+                continue
+
+            g.deck.shuffle(p.cards)
 
 
 class FatetellStage(GenericAction):
@@ -1031,6 +1037,10 @@ class Pindian(UserAction):
 
 @register_eh
 class DyingHandler(EventHandler):
+    interested = (
+        ('action_after', BaseDamage),
+    )
+
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
         if not isinstance(act, BaseDamage): return act
@@ -1050,6 +1060,10 @@ class DyingHandler(EventHandler):
 
 @register_eh
 class CardUsageHandler(EventHandler):
+    interested = (
+        'action_transform',
+    )
+
     def handle(self, evt_type, arg):
         # FIXME: action_limit -> action_transform, modified without knowing what it does
         if evt_type == 'action_transform':

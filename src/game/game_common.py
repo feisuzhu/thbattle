@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from collections import deque
+from collections import deque, defaultdict
 from contextlib import contextmanager
 import logging
 import random
@@ -98,11 +98,27 @@ class InterruptActionFlow(GameException):
 
 
 class EventHandler(GameObject):
-    execute_before = tuple()
-    execute_after = tuple()
+    execute_before = ()
+    execute_after = ()
 
     def handle(self, evt_type, data):
         raise GameError('Override handle function to implement EventHandler logics!')
+
+    def is_interested(self, evt_type, data):
+        if not hasattr(self, 'interested'):
+            return True
+
+        for evt in self.interested:
+            if isinstance(evt, tuple):
+                evt, cls = evt
+                if evt == evt_type:
+                    # FIXME: data changed while processing
+                    return isinstance(data, cls) or True
+
+            if evt == evt_type:
+                return True
+
+        return False
 
     @staticmethod
     def make_list(eh_classes):
@@ -123,7 +139,7 @@ class EventHandler(GameObject):
             else:
                 rest.append(cls)
 
-        allnames = set(cls.__name__ for cls in eh_classes)
+        allnames = {cls.__name__ for cls in eh_classes}
 
         for cls in rest:
             eh = cls()
@@ -169,7 +185,7 @@ class EventHandler(GameObject):
     @staticmethod
     def _dump_eh_dependency_graph():
         from game.autoenv import EventHandler
-        ehs = set([i for i in all_gameobjects if issubclass(i, EventHandler)])
+        ehs = {i for i in all_gameobjects if issubclass(i, EventHandler)}
         ehs.remove(EventHandler)
         dependencies = set()
         for eh in ehs:
@@ -284,6 +300,15 @@ class Game(GameObject):
         self.winners = []
         self.turn_count = 0
 
+    @property
+    def event_handlers(self):
+        return self._event_handlers
+
+    @event_handlers.setter
+    def event_handlers(self, value):
+        self._event_handlers = value
+        self.ehs_cache = {}
+
     def game_start(g, params):
         '''
         Game logic goes here.
@@ -302,6 +327,17 @@ class Game(GameObject):
         gevent.sleep(2)
 
         raise GameEnded
+
+    def get_event_handlers(self, evt_type, data):
+        tag = evt_type  # , data.__class__
+        ehs = self.ehs_cache.get(tag)
+        if ehs is not None:
+            return ehs
+
+        ehs = [h for h in self.event_handlers if h.is_interested(evt_type, data)]
+        self.ehs_cache[tag] = ehs
+
+        return ehs
 
     def emit_event(self, evt_type, data):
         '''
@@ -322,6 +358,7 @@ class Game(GameObject):
             action_event = False
 
         for evt in self.event_handlers:
+        event_handlers = self.get_event_handlers(evt_type, data)
             try:
                 self.hybrid_stack.append(evt)
                 data = evt.handle(evt_type, data)

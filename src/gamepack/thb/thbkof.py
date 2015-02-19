@@ -30,6 +30,10 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
+    interested = (
+        ('action_before', DeadDropCards),
+    )
+
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstance(act, DeadDropCards): return act
@@ -57,6 +61,12 @@ class DeathHandler(EventHandler):
 
 @game_eh
 class KOFCharacterSwitchHandler(EventHandler):
+    interested = (
+        ('action_before', PlayerTurn),
+        ('action_after', PlayerTurn),
+        'action_stage_action',
+    )
+
     def handle(self, evt_type, act):
         cond = evt_type in ('action_before', 'action_after')
         cond = cond and isinstance(act, PlayerTurn)

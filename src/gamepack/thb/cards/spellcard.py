@@ -72,6 +72,10 @@ class Reject(InstantSpellCardAction):
 
 @register_eh
 class RejectHandler(EventHandler):
+    interested = (
+        ('action_before', SpellCardAction),
+    )
+
     card_usage = 'launch'
 
     def handle(self, evt_type, act):
@@ -169,6 +173,10 @@ class SealingArray(DelayedSpellCardAction):
 
 @register_eh
 class SealingArrayHandler(EventHandler):
+    interested = (
+        ('action_before', ActionStage),
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
             target = act.target
@@ -501,6 +509,10 @@ class FrozenFrog(DelayedSpellCardAction):
 
 @register_eh
 class FrozenFrogHandler(EventHandler):
+    interested = (
+        ('action_before', DrawCardStage),
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
             tgt = act.target

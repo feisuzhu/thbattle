@@ -37,6 +37,10 @@ def game_action(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
+    interested = (
+        ('action_before', DeadDropCards),
+    )
+
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstance(act, DeadDropCards): return act
@@ -58,6 +62,10 @@ class DeathHandler(EventHandler):
 
 @game_eh
 class HeritageHandler(EventHandler):
+    interested = (
+        ('action_before', DeadDropCards),
+    )
+
     execute_after = ('DeathHandler', 'SadistHandler')
 
     def handle(self, evt_type, act):
@@ -92,6 +100,10 @@ class HeritageHandler(EventHandler):
 
 @game_eh
 class ExtraCardHandler(EventHandler):
+    interested = (
+        ('action_before', DrawCardStage),
+    )
+
     def handle(self, evt_type, act):
         if evt_type != 'action_before':
             return act
