@@ -4,6 +4,7 @@
 import json
 import logging
 import zlib
+from collections import deque
 
 # -- third party --
 from gevent import coros, socket
@@ -26,10 +27,9 @@ class Endpoint(object):
 
     ENDPOINT_DEBUG = False
 
-    FMT_PACKED     = 1
-    FMT_COMPRESSED = 2
-    FMT_JSON       = 3
-    FMT_RAW_JSON   = 4
+    FMT_PACKED          = 1
+    FMT_BULK_COMPRESSED = 2
+    FMT_RAW_JSON        = 3
 
     def __init__(self, sock, address):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -41,6 +41,7 @@ class Endpoint(object):
         self.writelock  = coros.RLock()
         self.address    = address
         self.link_state = 'connected'  # or disconnected
+        self.recv_buf   = deque()
 
     def __repr__(self):
         return '%s:%s:%s' % (
@@ -56,11 +57,10 @@ class Endpoint(object):
 
         if format == Endpoint.FMT_PACKED:
             return msgpack.packb([Endpoint.FMT_PACKED, p], default=default, use_bin_type=True)
-        elif format == Endpoint.FMT_COMPRESSED:
+        elif format == Endpoint.FMT_BULK_COMPRESSED:
+            assert isinstance(p, list)
             data = msgpack.packb(p, default=default, use_bin_type=True)
-            return msgpack.packb([Endpoint.FMT_COMPRESSED, zlib.compress(data)], use_bin_type=True)
-        elif format == Endpoint.FMT_JSON:
-            return msgpack.packb([Endpoint.FMT_JSON, json.dumps(p, default=default)], use_bin_type=True)
+            return msgpack.packb([Endpoint.FMT_BULK_COMPRESSED, zlib.compress(data)], use_bin_type=True)
         elif format == Endpoint.FMT_RAW_JSON:
             return json.dumps(p, default=default)
         else:
@@ -68,7 +68,7 @@ class Endpoint(object):
 
     @classmethod
     def decode(cls, s):
-        return cls.decode_packet(msgpack.unpackb(s, encoding='utf-8'))
+        return cls.decode_packet(msgpack.unpackb(s, encoding='utf-8'))[1]
 
     @staticmethod
     def decode_packet(p):
@@ -78,16 +78,14 @@ class Endpoint(object):
 
             fmt, data = p
             if fmt == Endpoint.FMT_PACKED:
-                return data
-            elif fmt == Endpoint.FMT_COMPRESSED:
+                return fmt, data
+            elif fmt == Endpoint.FMT_BULK_COMPRESSED:
                 try:
                     inflated = zlib.decompress(data)
                 except Exception:
                     raise DecodeError
 
-                return msgpack.unpackb(inflated, encoding='utf-8', ext_hook=lambda code, data: None)
-            elif fmt == Endpoint.FMT_JSON:
-                return json.loads(data)
+                return fmt, msgpack.unpackb(inflated, encoding='utf-8', ext_hook=lambda code, data: None)
             else:
                 raise DecodeError
         except (ValueError, msgpack.UnpackValueError):
@@ -120,6 +118,9 @@ class Endpoint(object):
         if self.link_state != 'connected':
             raise EndpointDied
 
+        if self.recv_buf:
+            return self.recv_buf.popleft()
+
         while True:
             u = self.unpacker
             try:
@@ -131,7 +132,10 @@ class Endpoint(object):
                     self.close()
                     raise EndpointDied
 
-                d = self.decode_packet(packet)
+                fmt, d = self.decode_packet(packet)
+                if fmt == Endpoint.FMT_BULK_COMPRESSED:
+                    self.recv_buf.extend(d[1:])
+                    d = d[0]
 
                 if Endpoint.ENDPOINT_DEBUG:
                     log.debug("<<RECV %r" % d)

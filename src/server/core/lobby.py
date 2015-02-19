@@ -214,7 +214,7 @@ class Client(Endpoint, Greenlet):
         lobby.join_game(self, gameid)
 
     def command_get_lobbyinfo(self):
-        lobby.send_lobbyinfo(self)
+        lobby.send_lobbyinfo([self])
 
     @for_state('hang')
     def command_observe_user(self, uid):
@@ -346,14 +346,25 @@ class Lobby(object):
     @throttle(1.5)
     def refresh_status(self):
         ul = [u for u in self.users.values() if u.state == 'hang']
-        Pool(5).map_async(self.send_lobbyinfo, ul)
+        self.send_lobbyinfo(ul)
         interconnect.publish('current_users', self.users.values())
         interconnect.publish('current_games', self.games.values())
 
-    def send_lobbyinfo(self, user):
-        user.write(['current_games', self.games.values()], Client.FMT_COMPRESSED)
-        user.write(['current_users', self.users.values()], Client.FMT_COMPRESSED)
-        user.write(['your_account', user.account])
+    def send_lobbyinfo(self, ul):
+        d = Client.encode([
+            ['current_games', self.games.values()],
+            ['current_users', self.users.values()],
+        ], Client.FMT_BULK_COMPRESSED)
+
+        p = Pool(6)
+
+        @p.spawn
+        def send():
+            for u in ul:
+                @p.spawn
+                def send_single(u=u):
+                    u.raw_write(d)
+                    u.write(['your_account', u.account])
 
     def user_join(self, user):
         uid = user.account.userid
@@ -377,7 +388,7 @@ class Lobby(object):
             old = self.dropped_users.pop(uid)
             assert isinstance(old, DroppedClient), 'Arghhhhh'
 
-            self.send_lobbyinfo(user)
+            self.send_lobbyinfo([user])
 
             manager = GameManager.get_by_user(old)
             manager.reconnect(user)
