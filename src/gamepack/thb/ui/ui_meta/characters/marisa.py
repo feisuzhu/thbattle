@@ -14,11 +14,12 @@ class Marisa:
     # Character
     char_name = u'雾雨魔理沙'
     port_image = 'thb-portrait-marisa'
+    figure_image = 'thb-figure-marisa'
     miss_sound_effect = 'thb-cv-marisa_miss'
     description = (
         u'|DB绝非普通的强盗少女 雾雨魔理沙 体力：4|r\n\n'
         u'|G借走|r：出牌阶段限一次，你可以获得一名其他角色的一张牌，然后视为该角色对你使用了一张【弹幕】。\n\n'
-        u'|DB（画师：Pixiv ID 3812034，CV：君寻）|r'
+        u'|DB（画师：霏茶，CV：君寻）|r'
     )
 
 

@@ -190,6 +190,7 @@ inventory.update({
     'thb-figure-mamizou':                  ['lazytexture'],
     'thb-figure-kaguya':                   ['lazytexture'],
     'thb-figure-youmu':                    ['lazytexture'],
+    'thb-figure-marisa':                   ['lazytexture'],
 
     'thb-figure-komachi_alter':            ['encrypted_texture'],
     'thb-figure-patchouli_alter':          ['encrypted_texture'],
