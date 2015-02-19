@@ -1557,6 +1557,7 @@ class ReplayScreen(Screen):
         g = self.game
         g.event_observer = UIEventHook(self.gameui)
         g.event_observer.evt_user_input_begin_wait_resp = self.replay_panel.handle_delay
+        g.event_observer.set_live()
         g.start()
 
     def end_replay(self):
