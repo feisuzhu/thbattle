@@ -16,7 +16,7 @@ from utils import aes_decrypt
 
 # -- code --
 loader    = Loader(os.path.join(BASEDIR, 'resource'))
-inventory = {}
+inventory = []
 loaders   = {}
 resources = {}
 
@@ -180,7 +180,13 @@ def L(name):
     if res:
         return res
 
-    args = inventory[name]  # ['loader_name', 'arg_1', 2]
+    for pattern, args in inventory:
+        if pattern.match(name):
+            break
+    else:
+        raise Exception('ResourceLoader: No rule applies for "%s"' % name)
+
+    # args = ['loader_name', 'arg_1', 2]
     load, ext, no_cache = loaders[args[0]]
 
     path = name.replace('-', '/')

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import re
 import zipfile
 
 # -- third party --
@@ -32,68 +33,27 @@ def white(path):
     return white
 
 
-inventory.update({
-    'c-bgm_hall':               ['bgm'],
+inventory.extend([(re.compile('^%s$' % pat), ldr) for pat, ldr in (
+    (r'c-bgm_hall',            ['bgm']),
 
-    'c-bg_login':               ['lazytexture'],
-    'c-bg_gamehall':            ['lazytexture'],
-    'c-bg_ingame':              ['lazytexture'],
-    'c-worldmap':               ['lazytexture'],
-    'c-worldmap_shadow':        ['lazytexture'],
-    'c-bg_gamelist':            ['lazytexture'],
-    'c-bg_eventsbox':           ['lazytexture'],
-    'c-bg_chatbox':             ['lazytexture'],
+    (r'c-bg_[a-z_]+',          ['lazytexture']),
 
-    'c-imagesel_shine':         ['img'],
-    'c-imagesel_ban':           ['img'],
-    'c-icon':                   ['imgdata'],
+    (r'c-imagesel_.*',         ['img']),
+    (r'c-icon',                ['imgdata']),
 
-    'c-check':                  ['img'],
+    (r'c-check',               ['img']),
 
-    'c-bgm_volume':             ['img'],
-    'c-se_volume':              ['img'],
-    'c-vol_icon':               ['img'],
-    'c-vol_mute':               ['img'],
+    (r'c-(bgm|se)_volume',     ['img']),
+    (r'c-vol_(icon|mute)',     ['img']),
 
-    'c-actor_frame':            ['anim', [50] * 9, True],
-    'c-turn_frame':             ['anim', [50] * 9, True],
+    (r'c-(actor|turn)_frame',  ['anim', [50] * 9, True]),
 
-    'c-ray':                    ['texture'],
-
-    'c-pbar-bl':                ['img'],
-    'c-pbar-bm':                ['img'],
-    'c-pbar-br':                ['img'],
-    'c-pbar-bfl':               ['img'],
-    'c-pbar-bfm':               ['img'],
-    'c-pbar-bfr':               ['img'],
-    'c-pbar-sl':                ['img'],
-    'c-pbar-sm':                ['img'],
-    'c-pbar-sr':                ['img'],
-    'c-pbar-sfl':               ['img'],
-    'c-pbar-sfm':               ['img'],
-    'c-pbar-sfr':               ['img'],
-
-    'c-buttons-close_blue':     ['img_grid', 1, 4],
-    'c-buttons-close_red':      ['img_grid', 1, 4],
-    'c-buttons-close_green':    ['img_grid', 1, 4],
-    'c-buttons-close_orange':   ['img_grid', 1, 4],
-    'c-buttons-port_showncard': ['img_grid', 1, 4],
-    'c-buttons-replay':         ['img_grid', 1, 4],
-
-    'c-sound-input':            ['sound'],
-
-    'c-suit12':                 ['imgdata_grid', 1, 4],
-    'c-suit16':                 ['imgdata_grid', 1, 4],
-
-    'c-badges-dev':             ['img'],
-    'c-badges-dsb_bronze':      ['img'],
-    'c-badges-dsb_gold':        ['img'],
-    'c-badges-dsb_silver':      ['img'],
-    'c-badges-jcb_bronze':      ['img'],
-    'c-badges-jcb_gold':        ['img'],
-    'c-badges-jcb_silver':      ['img'],
-    'c-badges-contributor':     ['img'],
-
-    'c-white':                  ['white'],
-    'c-font':                   ['font'],
-})
+    (r'c-ray',                 ['texture']),
+    (r'c-pbar-[a-z]+',         ['img']),
+    (r'c-buttons-[a-z_]+',     ['img_grid', 1, 4]),
+    (r'c-sound-input',         ['sound']),
+    (r'c-suit1[26]',           ['imgdata_grid', 1, 4]),
+    (r'c-badges-.+',           ['img']),
+    (r'c-white',               ['white']),
+    (r'c-font',                ['font']),
+)])

@@ -333,7 +333,7 @@ class ServerSelectScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         Screen.__init__(self, *args, **kwargs)
-        self.worldmap = L('c-worldmap')
+        self.worldmap = L('c-bg_worldmap')
 
         from settings import ServerList, NOTICE
 
@@ -372,7 +372,7 @@ class ServerSelectScreen(Screen):
                 from base.baseclasses import main_window
                 self.window = main_window
                 self.hand_cursor = self.window.get_system_mouse_cursor('hand')
-                self.worldmap_shadow = L('c-worldmap_shadow')
+                self.worldmap_shadow = L('c-bg_worldmap_shadow')
                 self.disable_click = False
                 self.highlight = None
                 self.hldraw = None
