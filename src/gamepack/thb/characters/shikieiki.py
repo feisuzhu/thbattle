@@ -38,24 +38,29 @@ class TrialAction(UserAction):
 
 
 class TrialHandler(EventHandler):
+    interested = ('fatetell', )
     execute_before = ('YinYangOrbHandler', )
+    slot = 'ChangeFatetellHandler'
     card_usage = 'use'
 
-    def handle(self, evt_type, act):
-        if evt_type == 'fatetell':
-            g = Game.getgame()
-            pl = g.players.rotate_to(act.target)
-            for p in pl:
-                if p.dead: continue
-                if not p.has_skill(Trial): continue
+    def handle(self, evt_type, act, p=None):
+        if evt_type != 'fatetell':
+            return act
 
-                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
-                    return act
+        if not p or p.dead:
+            return act
 
-                cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-                if cards:
-                    c = cards[0]
-                    g.process_action(TrialAction(p, act.target, act, c))
+        if not p.has_skill(Trial):
+            return act
+
+        if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+            return act
+
+        cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
+
+        if cards:
+            c = cards[0]
+            Game.getgame().process_action(TrialAction(p, act.target, act, c))
 
         return act
 
@@ -74,6 +79,8 @@ class MajestyAction(UserAction):
 
 
 class MajestyHandler(EventHandler):
+    interested = (('action_after', Damage), )
+
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
         if not isinstance(act, Damage): return act

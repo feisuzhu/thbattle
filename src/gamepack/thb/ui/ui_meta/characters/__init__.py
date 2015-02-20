@@ -41,3 +41,4 @@ from . import medicine  # noqa
 from . import aya  # noqa
 from . import sp_flandre  # noqa
 from . import reisen  # noqa
+from . import shinmyoumaru  # noqa

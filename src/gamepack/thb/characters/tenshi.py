@@ -56,6 +56,10 @@ class MasochistAction(UserAction):
 
 
 class MasochistHandler(EventHandler):
+    interested = (
+        ('action_after', Damage),
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
             tgt = act.target
@@ -90,8 +94,9 @@ class ScarletPerceptionAction(GenericAction):
 
 
 class ScarletPerceptionHandler(EventHandler):
-    execute_before = ('YinYangOrbHandler', )
-    execute_after = ('TrialHandler', )
+    interested = (
+        ('action_after', Fatetell),
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Fatetell):

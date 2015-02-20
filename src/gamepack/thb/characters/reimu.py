@@ -94,6 +94,11 @@ class Tribute(Skill):
 
 
 class TributeHandler(EventHandler):
+    interested = (
+        ('action_after', PlayerRevive),
+        'game_begin', 'switch_character',
+    )
+
     def handle(self, evt_type, arg):
         if evt_type == 'game_begin':
             self.add()

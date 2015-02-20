@@ -13,11 +13,6 @@ from game.autoenv import Game, user_input
 # -- code --
 class Daze(TreatAs, VirtualCard):
     treat_as = AttackCard
-    distance = 99999
-
-    def check(self):
-        if self.associated_cards: return False
-        return True
 
 
 class BorrowAction(UserAction):
@@ -33,7 +28,7 @@ class BorrowAction(UserAction):
         migrate_cards([c], src.cards)
         src.tags['borrow_tag'] = src.tags['turn_count']
 
-        g.process_action(LaunchCard(tgt, [src], Daze(tgt)))
+        g.process_action(LaunchCard(tgt, [src], Daze(tgt), bypass_check=True))
 
         return True
 

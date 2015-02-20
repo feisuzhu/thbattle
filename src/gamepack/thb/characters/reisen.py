@@ -4,9 +4,9 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import Damage, DropCards, LaunchCard, PlayerTurn
-from gamepack.thb.actions import UserAction, user_choose_cards
-from gamepack.thb.cards import AttackCard, Card, DuelCard, Heal, HealCard, PhysicalCard, Skill
+from gamepack.thb.actions import Damage, LaunchCard, PlayerTurn
+from gamepack.thb.actions import UserAction
+from gamepack.thb.cards import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, Skill
 from gamepack.thb.cards import t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
@@ -51,7 +51,7 @@ class LunaticHandler(EventHandler):
             if not src.has_skill(Lunatic): return act
 
             tgt = act.target
-            if tgt.has_skill(Discarder): return act
+            if tgt.dead or tgt.has_skill(Discarder): return act
 
             g = Game.getgame()
             for lc in reversed(g.action_stack):
