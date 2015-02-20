@@ -100,8 +100,9 @@ class InterruptActionFlow(GameException):
 class EventHandler(GameObject):
     execute_before = ()
     execute_after = ()
+    slot = None
 
-    def handle(self, evt_type, data):
+    def handle(self, evt_type, data, player=None):
         raise GameError('Override handle function to implement EventHandler logics!')
 
     def is_interested(self, evt_type, data):
@@ -122,6 +123,29 @@ class EventHandler(GameObject):
 
     @staticmethod
     def make_list(eh_classes):
+        groups = defaultdict(list)
+        for cls in eh_classes:
+            groups[cls.slot].append(cls)
+
+        eh_classes = groups.pop(None)
+
+        def make_slot(name, ehs):
+            eb = set().union([cls.execute_before for cls in ehs])
+            ea = set().union([cls.execute_before for cls in ehs])
+
+            class Slot(EventHandlerSlot):
+                execute_before = tuple(eb)
+                execute_after = tuple(ea)
+                handlers = EventHandler.raw_make_list(ehs)
+
+            Slot.__name__ = name
+            return Slot
+
+        slots = [make_slot(name, cls) for name, cls in groups.iteritems()]
+        return EventHandler.raw_make_list(slots + eh_classes)
+
+    @staticmethod
+    def raw_make_list(eh_classes):
         table = {}
 
         before_all = []
@@ -202,6 +226,21 @@ class EventHandler(GameObject):
                 for a, b in dependencies
             ]))
             f.write('}')
+
+
+class EventHandlerSlot(EventHandler):
+    handlers = []
+
+    def handle(self, evt_type, data):
+        g = Game.getgame()
+        for p in g.ordered_players:
+            for h in self.handlers:
+                data = h.handle(evt_type, data, p)
+
+        return data
+
+    def is_interested(self, evt_type, data):
+        return any(h.is_interested(evt_type, data) for h in self.handlers)
 
 
 class Action(GameObject):
@@ -299,6 +338,7 @@ class Game(GameObject):
         self._action_hooks = []
         self.winners = []
         self.turn_count = 0
+        self.current_id = 0
 
     @property
     def event_handlers(self):
@@ -339,6 +379,13 @@ class Game(GameObject):
 
         return ehs
 
+    @property
+    def ordered_players(self):
+        cid = self.current_id
+        n = len(self.players)
+        for i in range(cid, n) + range(cid):
+            yield self.players[i]
+
     def emit_event(self, evt_type, data):
         '''
         Fire an event, all relevant event handlers will see this,
@@ -357,8 +404,8 @@ class Game(GameObject):
         else:
             action_event = False
 
-        for evt in self.event_handlers:
         event_handlers = self.get_event_handlers(evt_type, data)
+        for evt in event_handlers:
             try:
                 self.hybrid_stack.append(evt)
                 data = evt.handle(evt_type, data)
