@@ -25,7 +25,7 @@ class MiracleAction(UserAction):
         ttags(tgt)['miracle_times'] += 1
 
         if ttags(tgt)['miracle_times'] == 3:
-            candidates = [p for p in g.players if not p.dead and p.life < p.maxlife and p is not tgt]
+            candidates = [p for p in g.players if not p.dead and p.life < p.maxlife]
             if candidates:
                 beneficiery, = user_choose_players(self, tgt, candidates) or (None,)
                 if beneficiery:
@@ -169,7 +169,7 @@ class GodDescendantDrawAction(UserAction):
 
 
 class GodDescendantHandler(EventHandler):
-    execute_after = ('MaidenCostumeHandler', )
+    execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and ForEach.is_group(act):
