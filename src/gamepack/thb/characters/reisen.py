@@ -40,6 +40,10 @@ class LunaticAction(UserAction):
 
 
 class LunaticHandler(EventHandler):
+    interested = (
+        ('action_after', Damage),
+    )
+
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
             src = act.source
@@ -67,6 +71,11 @@ class LunaticHandler(EventHandler):
 
 
 class DiscarderHandler(EventHandler):
+    interested = (
+        ('action_after', PlayerTurn),
+        'action_can_fire',
+    )
+
     def handle(self, evt_type, arg):
         if evt_type == 'action_can_fire' and isinstance(arg[0], LaunchCard):
             lc, valid = arg
@@ -106,7 +115,9 @@ class MahjongDrugAction(UserAction):
 
 
 class MahjongDrugHandler(EventHandler):
-    card_usage = 'drop'
+    interested = (
+        ('action_after', Heal),
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Heal):
@@ -115,21 +126,10 @@ class MahjongDrugHandler(EventHandler):
             card = getattr(act, 'associated_card', None)
             if not card or not card.is_card(HealCard): return act
 
-            cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-            g = Game.getgame()
-
-            if cl:
-                g.process_action(DropCards(tgt, cl))
-                g.process_action(MahjongDrugAction(tgt, tgt))
+            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                Game.getgame().process_action(MahjongDrugAction(tgt, tgt))
 
         return act
-
-    def cond(self, cl):
-        if len(cl) != 1:
-            return False
-
-        return cl[0].color == Card.BLACK and \
-            cl[0].resides_in.type in ('cards', 'showncards', 'equips')
 
 
 @register_character

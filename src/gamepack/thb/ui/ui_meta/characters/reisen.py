@@ -20,7 +20,7 @@ class Reisen:
     description = (
         u'|DB永琳的首席药品品尝官 铃仙·优昙华院·因幡 体力：4|r\n\n'
         u'|G狂气|r：你因为|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害后，你可以令其获得技能|G丧心|r。\n\n'
-        u'|G生药|r：你因为|G麻薯|r而回复体力后，你可以弃置一张黑色牌，获得喝醉状态。\n\n'
+        u'|G生药|r：你因为|G麻薯|r而回复体力后，你可以获得喝醉状态。\n\n'
         u'|R丧心|r：|B锁定技|r，出牌阶段，你不能使用除|G弹幕|r以外的卡牌。你使用|G弹幕|r只能指定距离最近的目标。结束阶段开始时，你失去此技能。\n\n'
         u'|DB（画师：镜_Area@幻想梦斗符，CV：小羽）|r'
     )
@@ -56,12 +56,8 @@ class MahjongDrugAction:
 
 
 class MahjongDrugHandler:
-    # choose_card meta
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'就来一瓶，不会炸的啦')
-        else:
-            return (False, u'【生药】：弃置一张黑色牌，获得喝醉状态')
+    choose_option_prompt = u'你要发动【生药】吗？'
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
 
 
 class LunaticHandler:
