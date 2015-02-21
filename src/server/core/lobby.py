@@ -72,6 +72,9 @@ class Client(Endpoint, Greenlet):
                 self.gbreak()
                 break
 
+            except Exception:
+                log.exception("Error occurred when handling command %s" % cmd)
+
         # client died, do clean ups
         self.handle_drop()
 
@@ -741,7 +744,7 @@ class Lobby(object):
                 u.write(['system_msg', [None, msg]])
 
     def handle_admin_cmd(self, user, cmd):
-        args = shlex.split(cmd)
+        args = map(unicode, shlex.split(cmd.encode('utf-8')))
         cmd = args[0]
         args = args[1:]
 
@@ -911,6 +914,7 @@ class GameManager(object):
         g.manager   = self
         g.rndseed   = random.getrandbits(63)
         g.random    = random.Random(g.rndseed)
+        g.players   = BatchList()
         g.gr_groups = WeakSet()
 
     def __data__(self):
