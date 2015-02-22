@@ -580,7 +580,7 @@ class Hakurouken:
         if act.peer_action == 'drop':
             return u'|G【%s】|r弃置了一张牌。' % act.target.ui_meta.char_name
         else:
-            return u'|G【%s】|r摸了一张牌。' % act.source.ui_meta.char_name
+            return None  # DrawCards has it's own prompt
 
     def sound_effect(act):
         return 'thb-cv-card_hakurouken'
