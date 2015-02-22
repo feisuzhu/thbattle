@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction, PlayerTurn
-from ..actions import ShowCards, UserAction, user_choose_cards
+from ..actions import ShowCards, UserAction, user_choose_cards, LaunchCard, UseCard
 from ..cards import Card, Skill, SoberUp, VirtualCard, Wine, t_None
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
@@ -138,7 +138,8 @@ class MelancholyAction(GenericAction):
 
 
 class MelancholyHandler(EventHandler):
-    interested = ('action_after', 'action_transform')
+    interested = ('action_after', 'action_can_fire')
+
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, Damage):
             act = arg
@@ -153,19 +154,30 @@ class MelancholyHandler(EventHandler):
 
             Game.getgame().process_action(MelancholyAction(tgt, src, amount=act.amount))
 
-        elif evt_type == 'action_transform':
-            if arg.usage not in ('use', 'launch'):
+        elif evt_type == 'action_can_fire' and isinstance(arg[0], (LaunchCard, UseCard)):
+            act, valid = arg
+            if not valid: return arg
+
+            src = act.source
+            g = Game.getgame()
+            if src.tags.get('melancholy_tag') != g.turn_count:
                 return arg
 
-            src = arg.actor
-            g = Game.getgame()
-            if src.tags.get('melancholy_tag') == g.turn_count:
-                cards = VirtualCard.unwrap(arg.cards)
-                zone = src.cards, src.showncards
-                for c in cards:
-                    if c.resides_in in zone:
-                        arg.cards = [MelancholyPoison(arg.actor)]
-                        return arg
+            def walk(c):
+                if not c.is_card(VirtualCard):
+                    return [c]
+
+                if c.usage not in ('launch', 'use'):
+                    return []
+
+                cards = c.associated_cards
+                return walk(cards[0]) if len(cards) == 1 else cards
+
+            cards = walk(act.card)
+            zone = src.cards, src.showncards
+            for c in cards:
+                if c.resides_in in zone:
+                    return act, False
 
         return arg
 

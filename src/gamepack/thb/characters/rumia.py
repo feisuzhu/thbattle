@@ -37,10 +37,11 @@ class DarknessAction(UserAction):
         if len(cl) != 1: return False
         c = cl[0]
         if not c.associated_action: return False
-        if not issubclass(c.associated_action, Attack): return False
+        return issubclass(c.associated_action, Attack)
 
+    def ask_for_action_verify(self, p, cl, tl):
         attacker, victim = self.target_list
-        return LaunchCard(attacker, [victim], c).can_fire()
+        return LaunchCard(attacker, [victim], cl[0]).can_fire()
 
     def is_valid(self):
         tags = self.source.tags

@@ -70,7 +70,7 @@ class DiscarderHandler(EventHandler):
     interested = ('action_after', 'action_can_fire')
 
     def handle(self, evt_type, arg):
-        if evt_type == 'action_can_fire' and isinstance(arg[0], ActionStageLaunchCard):
+        if evt_type == 'action_can_fire' and isinstance(arg[0], LaunchCard):
             lc, valid = arg
             src = lc.source
             if not src.has_skill(Discarder): return arg

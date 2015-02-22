@@ -5,7 +5,7 @@
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import DropCards, Fatetell, FatetellAction, FatetellMalleateHandler
-from gamepack.thb.actions import LaunchCard, PostCardMigrationHandler, UserAction, user_choose_cards
+from gamepack.thb.actions import LaunchCard, PostCardMigrationHandler, UseCard, user_choose_cards
 from gamepack.thb.cards import AttackCard, Skill, TreatAs, VirtualCard, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
@@ -24,7 +24,7 @@ class VengeOfTsukumogami(Skill):
     target = t_None
 
 
-class MiracleMalletAction(UserAction):
+class MiracleMalletAction(UseCard):
     def __init__(self, source, target, ft, card):
         self.source, self.target, self.ft, self.card = \
             source, target, ft, card
@@ -49,6 +49,7 @@ class MiracleMalletHandler(EventHandler):
         if not p.has_skill(MiracleMallet): return act
 
         self.number = act.card.number
+        self.act = act
         cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
 
         if cards:
@@ -62,6 +63,10 @@ class MiracleMalletHandler(EventHandler):
             return False
 
         return cards[0].number > self.number
+
+    def ask_for_action_verify(self, p, cl, tl):
+        act = self.act
+        return MiracleMalletAction(p, act.target, act, cl[0]).can_fire()
 
 
 class VengeOfTskumogamiAttack(TreatAs, VirtualCard):

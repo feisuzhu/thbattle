@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards
-from ..actions import DropUsedCard, ForEach, GenericAction, LaunchCard, PlayerTurn, UserAction
+from ..actions import ForEach, GenericAction, LaunchCard, PlayerTurn, UserAction, UseCard
 from ..actions import register_eh, user_choose_cards
 from game.autoenv import EventHandler, Game
 
@@ -140,8 +140,10 @@ class UseAttack(AskForCard):
 
     def process_card(self, card):
         g = Game.getgame()
-        g.process_action(DropUsedCard(self.target, cards=[self.card]))
-        return True
+        return g.process_action(UseCard(self.target, card))
+
+    def ask_for_action_verify(self, p, cl, tl):
+        return UseCard(p, cl[0]).can_fire()
 
 
 class BaseUseGraze(AskForCard):
@@ -155,8 +157,10 @@ class UseGraze(BaseUseGraze):
 
     def process_card(self, card):
         g = Game.getgame()
-        g.process_action(DropUsedCard(self.target, cards=[self.card]))
-        return True
+        return g.process_action(UseCard(self.target, card))
+
+    def ask_for_action_verify(self, p, cl, tl):
+        return UseCard(p, cl[0]).can_fire()
 
 
 class LaunchGraze(BaseUseGraze):
@@ -165,8 +169,11 @@ class LaunchGraze(BaseUseGraze):
     def process_card(self, card):
         g = Game.getgame()
         tgt = self.target
-        g.process_action(LaunchCard(tgt, [tgt], card, GrazeAction))
-        return True
+        return g.process_action(LaunchCard(tgt, [tgt], card, GrazeAction))
+
+    def ask_for_action_verify(self, p, cl, tl):
+        tgt = self.target
+        return LaunchCard(tgt, [tgt], cl[0], GrazeAction).can_fire()
 
 
 class AskForHeal(AskForCard):
@@ -179,8 +186,12 @@ class AskForHeal(AskForCard):
     def process_card(self, card):
         g = Game.getgame()
         src, tgt = self.source, self.target
-        g.process_action(LaunchCard(tgt, [src], card, card.associated_action or Heal))
-        return True
+        return g.process_action(LaunchCard(tgt, [src], card, card.associated_action or Heal))
+
+    def ask_for_action_verify(self, p, cl, tl):
+        src, tgt = self.source, self.target
+        card = cl[0]
+        return LaunchCard(tgt, [src], card, card.associated_action or Heal).can_fire()
 
 
 class Wine(BasicAction):

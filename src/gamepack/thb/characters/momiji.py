@@ -46,6 +46,7 @@ class SentryHandler(EventHandler):
 
                     tgt = pact.source
                     self.target = tgt  # for ui
+                    self.act = act
                     dist = LaunchCard.calc_distance(p, AttackCard())
                     if dist.get(tgt, 1) > 0: continue
                     cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
@@ -65,6 +66,12 @@ class SentryHandler(EventHandler):
             return False
 
         return True
+
+    def ask_for_action_verify(self, p, cl, tl):
+        c = SentryAttack.wrap(cl, p)
+        tgt = self.target
+        c.target_damage = self.act
+        return LaunchCard(p, [tgt], c).can_fire()
 
 
 class SentryAttack(TreatAs, VirtualCard):

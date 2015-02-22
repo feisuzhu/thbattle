@@ -148,6 +148,11 @@ class ImperishableNightHandler(EventHandler):
         if 'skill' in card.category: return False
         if card.color != Card.RED: return False
         return bool(set(card.category) & {'basic', 'equipment'})
+    
+    def ask_for_action_verify(self, p, cl, tl):
+        tgt = self.target
+        skill = skill_wrap(p, [ImperishableNight], cards, {})
+        return LaunchCard(p, [tgt], skill).can_fire()
 
 
 @register_character

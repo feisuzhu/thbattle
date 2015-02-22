@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import Damage, DropCards, FatetellMalleateHandler, UserAction
+from gamepack.thb.actions import Damage, DropCards, FatetellMalleateHandler, UseCard, UserAction
 from gamepack.thb.actions import migrate_cards, user_choose_cards
 from gamepack.thb.cards import Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
@@ -24,7 +24,7 @@ class Majesty(Skill):
     target = t_None
 
 
-class TrialAction(UserAction):
+class TrialAction(UseCard):
     def __init__(self, source, target, ft, card):
         self.source, self.target, self.ft, self.card = \
             source, target, ft, card
@@ -47,6 +47,8 @@ class TrialHandler(EventHandler):
         if p.dead: return act
         if not p.has_skill(Trial): return act
 
+        self.act = act
+
         if not user_input([p], ChooseOptionInputlet(self, (False, True))):
             return act
 
@@ -60,6 +62,10 @@ class TrialHandler(EventHandler):
 
     def cond(self, cards):
         return len(cards) == 1
+
+    def ask_for_action_verify(self, p, cl, tl):
+        act = self.act
+        return TrialAction(p, act.target, act, cl[0]).can_fire()
 
 
 class MajestyAction(UserAction):

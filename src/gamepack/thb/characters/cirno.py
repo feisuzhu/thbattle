@@ -62,6 +62,10 @@ class BakadesuAction(UserAction):
             c.resides_in is not None and c.resides_in.type in ('cards', 'showncards')
         )
 
+    def ask_for_action_verify(self, p, cl, tl):
+        src, tgt = self.source, self.target
+        return LaunchCard(tgt, [src], cl[0]).can_fire()
+
 
 class Bakadesu(Skill):
     associated_action = BakadesuAction

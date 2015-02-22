@@ -194,9 +194,13 @@ class ActionInputlet:
         else:
             cards = rawcards
 
-        cards, players = thbactions.handle_action_transform(g, g.me, ilet, cards, usage, players)
         cards, prompt_card = pasv_handle_card_selection(g, ilet, cards)
         plsel, disables, players, prompt_target = pasv_handle_player_selection(g, ilet, players)
+
+        ask_for_action_verify = getattr(ilet.initiator, 'ask_for_action_verify', None)
+        rst = not ask_for_action_verify or ask_for_action_verify(g.me, cards, players)
+        if not rst:
+            raise ActionDisplayResult(False, reason_of(rst), plsel, disables, players)
 
         raise ActionDisplayResult(True, prompt_target or prompt_card, plsel, disables, players)
 
@@ -228,7 +232,6 @@ class ActionInputlet:
         else:
             cards = rawcards
 
-        cards, players = thbactions.handle_action_transform(g, g.me, ilet, cards, usage, players)
         card = actv_handle_card_selection(g, cards)
         players, disables, prompt = actv_handle_target_selection(g, card, players)
 

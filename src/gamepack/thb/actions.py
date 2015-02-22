@@ -16,34 +16,12 @@ from utils import BatchList, CheckFailed, check, check_type, group_by
 log = logging.getLogger('THBattle_Actions')
 
 
-class ActionTransform(object):
-    __slots__ = ('ilet', 'actor', 'cards', 'players', 'usage')
-
-    def __init__(self, ilet, actor, cards, players, usage):
-        self.ilet = ilet
-        self.actor = actor
-        self.cards = cards
-        self.players = players
-        self.usage = usage
-
-
 # ------------------------------------------
 # aux functions
 def ttags(actor):
     tags = actor.tags
     tc = tags['turn_count']
     return tags.setdefault('turn_tags:%s' % tc, defaultdict(int))
-
-
-def handle_action_transform(g, actor, ilet, cards, usage, players):
-    g = Game.getgame()
-    requested = ActionTransform(
-        ilet=ilet, actor=actor,
-        cards=cards, players=players, usage=usage,
-    )
-
-    transformed = g.emit_event('action_transform', requested)
-    return transformed.cards, transformed.players
 
 
 def ask_for_action(initiator, actors, categories, candidates, trans=None):
@@ -76,8 +54,6 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
                 cards = rawcards
                 usage = 'launch'
 
-            cards, players = handle_action_transform(g, actor, ilet, cards, usage, players)
-
             if categories:
                 if len(cards) == 1 and cards[0].is_card(VirtualCard):
                     def walk(c):
@@ -103,6 +79,11 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
             if candidates:
                 players, valid = initiator.choose_player_target(players)
                 check(valid)
+
+            ask_for_action_verify = getattr(initiator, 'ask_for_action_verify', None)
+
+            if ask_for_action_verify:
+                check(ask_for_action_verify(actor, cards, players))
 
             return cards, players, params
 
@@ -488,6 +469,16 @@ class DropUsedCard(DropCards):
     pass
 
 
+class UseCard(GenericAction):
+    def __init__(self, target, card):
+        self.source = self.target = target
+        self.card = card
+
+    def apply_action(self):
+        g = Game.getgame()
+        return g.process_action(DropUsedCard(self.target, [self.card]))
+
+
 class AskForCard(GenericAction):
 
     def __init__(self, source, target, card_cls, categories=('cards', 'showncards')):
@@ -795,6 +786,10 @@ class ActionStage(GenericAction):
             c.is_card(Skill) or c.resides_in in (tgt.cards, tgt.showncards)
         ) and (c.associated_action)
 
+    def ask_for_action_verify(self, p, cl, tl):
+        assert len(cl) == 1
+        return ActionStageLaunchCard(p, tl, cl[0]).can_fire()
+
     def choose_player_target(self, tl):
         return tl, True
 
@@ -1085,29 +1080,6 @@ class DyingHandler(EventHandler):
         g.process_action(PlayerDeath(src, tgt))
 
         return act
-
-
-@register_eh
-class CardUsageHandler(EventHandler):
-    interested = ('action_transform',)
-
-    def handle(self, evt_type, arg):
-        # FIXME: action_limit -> action_transform, modified without knowing what it does
-        if evt_type == 'action_transform':
-            if arg.usage != 'drop': return arg
-            cards = arg.cards
-            if getattr(arg.ilet.initiator, 'card_usage', None) == 'launch':
-                assert len(cards) == 1
-                while getattr(cards[0], 'usage', None) != 'drop':
-                    assert len(cards) == 1
-                    cards = cards[0].associated_cards
-                cards = cards[0].associated_cards
-
-            from .cards import VirtualCard
-            if any([c.is_card(VirtualCard) for c in cards]):
-                arg.cards = []
-
-        return arg
 
 
 class ShowCards(GenericAction):

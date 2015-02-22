@@ -104,7 +104,7 @@ class RejectHandler(EventHandler):
             has_reject = sync_primitive(has_reject, g.players)
             if not has_reject: return act
 
-            self.target_act = act  # for ui
+            self.target_act = act
 
             pl = BatchList(p for p in g.players if not p.dead)
 
@@ -126,6 +126,10 @@ class RejectHandler(EventHandler):
             return True
         except CheckFailed:
             return False
+
+    def ask_for_action_verify(self, p, cl, tl):
+        act = self.target_act
+        return LaunchCard(p, [act.target], cl[0], Reject(p, act)).can_fire()
 
 
 class DelayedSpellCardAction(SpellCardAction): pass  # 延时SC
@@ -426,10 +430,11 @@ class DollControl(InstantSpellCardAction):
         if len(cl) != 1: return False
         c = cl[0]
         if not c.associated_action: return False
-        if not issubclass(c.associated_action, basic.Attack): return False
+        return issubclass(c.associated_action, basic.Attack)
 
+    def ask_for_action_verify(self, p, cl, tl):
         attacker, victim = self.target_list
-        return LaunchCard(attacker, [victim], c).can_fire()
+        return LaunchCard(attacker, [victim], cl[0]).can_fire()
 
     def is_valid(self):
         return not self.target.dead
