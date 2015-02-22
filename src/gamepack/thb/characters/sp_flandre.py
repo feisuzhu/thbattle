@@ -32,6 +32,7 @@ class DestructionImpulseAction(GenericAction):
 
 
 class DestructionImpulseHandler(EventHandler):
+    interested = ('action_after',)
     execute_before = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):
@@ -100,6 +101,7 @@ class FourOfAKindAction(GenericAction):
 
 
 class FourOfAKindHandler(EventHandler):
+    interested = ('action_apply', 'action_before')
     execute_before = ('ProtectionHandler', )
     execute_after = (
         'RepentanceStickHandler',

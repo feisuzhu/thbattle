@@ -29,6 +29,7 @@ class SpearTheGungnirAction(GenericAction):
 
 
 class SpearTheGungnirHandler(EventHandler):
+    interested = ('action_before',)
     execute_before = ('ScarletRhapsodySwordHandler', )
     execute_after = (
         'HakuroukenEffectHandler',
@@ -68,6 +69,7 @@ class VampireKissAction(GenericAction):
 
 
 class VampireKissHandler(EventHandler):
+    interested = ('action_apply',)
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, Damage):
             src, tgt = act.source, act.target

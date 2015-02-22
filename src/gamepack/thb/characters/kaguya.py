@@ -55,6 +55,7 @@ class DilemmaHealAction(DrawCards):
 
 
 class DilemmaHandler(EventHandler):
+    interested = ('action_after',)
     execute_after = ('DyingHandler', )
 
     def handle(self, evt_type, act):
@@ -89,6 +90,7 @@ class ImperishableNight(TreatAs, Skill):
 
 
 class ImperishableNightHandler(EventHandler):
+    interested = ('action_after',)
     card_usage = 'launch'
 
     def handle(self, evt_type, act):

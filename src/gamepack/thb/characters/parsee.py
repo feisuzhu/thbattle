@@ -43,6 +43,7 @@ class EnvyRecycle(DummyCard):
 
 
 class EnvyHandler(EventHandler):
+    interested = ('action_after',)
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
         if not isinstance(act, Demolition): return act

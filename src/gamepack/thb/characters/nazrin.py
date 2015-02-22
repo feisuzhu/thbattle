@@ -31,6 +31,7 @@ class TreasureHuntSkill(Skill):
 
 
 class TreasureHuntHandler(EventHandler):
+    interested = ('action_before',)
     execute_before = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):

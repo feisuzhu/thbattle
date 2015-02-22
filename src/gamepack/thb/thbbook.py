@@ -35,9 +35,7 @@ def game_eh(cls):
 
 @game_eh
 class VictoryHandler(EventHandler):
-    interested = (
-        ('action_before', (PlayerDeath, Damage)),
-    )
+    interested = ('action_after',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerDeath):
@@ -77,9 +75,7 @@ class VictoryHandler(EventHandler):
 
 @game_eh
 class BookCardUpperLimitHandler(EventHandler):
-    interested = (
-        ('action_before', DropCardStage),
-    )
+    interested = ('action_before',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DropCardStage):
@@ -108,10 +104,7 @@ class BookShootdownCompromise(UserAction):
 
 @game_eh
 class BookShootdownCompromiseHandler(EventHandler):
-    interested = (
-        ('action_before', Damage),
-    )
-
+    interested = ('action_before',)
     execute_after = ('WineHandler', )
 
     def handle(self, evt_type, act):
@@ -130,11 +123,7 @@ class BookShootdownCompromiseHandler(EventHandler):
 
 @game_eh
 class BookTransferHandler(EventHandler):
-    interested = (
-        ('action_after', Damage),
-        ('action_apply', PlayerDeath),
-    )
-
+    interested = ('action_after', 'action_apply')
     execute_before = ('DyingHandler', 'VictoryHandler')
 
     def handle(self, evt_type, act):
@@ -160,9 +149,7 @@ class BookTransferHandler(EventHandler):
 
 @game_eh
 class InvalidateDelayedSpellcard(EventHandler):
-    interested = (
-        ('action_before', DelayedSpellCardAction),
-    )
+    interested = ('action_before',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DelayedSpellCardAction):
@@ -401,7 +388,7 @@ class THBattleBook(Game):
     def update_event_handlers(g):
         ehclasses = list(action_eventhandlers) + g.game_ehs.values()
         ehclasses += g.ehclasses
-        g.event_handlers = EventHandler.make_list(ehclasses)
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def switch_character(g, p, choice):
         choice.char_cls = choice.real_cls or choice.char_cls  # reveal akari

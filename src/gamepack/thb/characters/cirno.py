@@ -100,6 +100,8 @@ class PerfectFreezeAction(UserAction):
 
 
 class PerfectFreezeHandler(EventHandler):
+    interested = ('action_before',)
+
     execute_after = (
         'RepentanceStickHandler',
         'AyaRoundfanHandler',

@@ -72,6 +72,7 @@ class CiguateraTurnEnd(GenericAction):
 
 
 class CiguateraHandler(EventHandler):
+    interested = ('action_after', 'action_before')
     card_usage = 'drop'
 
     def handle(self, evt_type, act):
@@ -137,6 +138,7 @@ class MelancholyAction(GenericAction):
 
 
 class MelancholyHandler(EventHandler):
+    interested = ('action_after', 'action_transform')
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, Damage):
             act = arg

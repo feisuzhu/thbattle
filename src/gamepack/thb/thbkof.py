@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
-import random
-from itertools import cycle
+
+# -- stdlib --
 from collections import defaultdict
+from itertools import cycle
 import logging
+import random
+
+# -- third party --
+# -- own --
+from game import sync_primitive
+from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from gamepack.thb.actions import DeadDropCards, DistributeCards, PlayerTurn, RevealIdentity
+from gamepack.thb.actions import action_eventhandlers
+from gamepack.thb.characters.baseclasses import mixin_character
+from gamepack.thb.common import CharChoice, PlayerIdentity, get_seed_for
+from gamepack.thb.inputlets import ChooseGirlInputlet, SortCharacterInputlet
+from utils import Enum, filter_out
 import settings
 
-from utils import Enum, filter_out
 
-from game.autoenv import Game, EventHandler, InterruptActionFlow, InputTransaction, user_input
-from game import sync_primitive
-
-from .common import PlayerIdentity, CharChoice, get_seed_for
-
-from .actions import DeadDropCards, PlayerTurn, DistributeCards, RevealIdentity
-from .actions import action_eventhandlers
-
-from .characters.baseclasses import mixin_character
-
-from .inputlets import ChooseGirlInputlet, SortCharacterInputlet
-
+# -- code --
 log = logging.getLogger('THBattle')
 _game_ehs = {}
 
@@ -30,9 +31,7 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = (
-        ('action_before', DeadDropCards),
-    )
+    interested = ('action_before',)
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
@@ -61,11 +60,7 @@ class DeathHandler(EventHandler):
 
 @game_eh
 class KOFCharacterSwitchHandler(EventHandler):
-    interested = (
-        ('action_before', PlayerTurn),
-        ('action_after', PlayerTurn),
-        'action_stage_action',
-    )
+    interested = ('action_after', 'action_before', 'action_stage_action')
 
     def handle(self, evt_type, act):
         cond = evt_type in ('action_before', 'action_after')
@@ -237,7 +232,7 @@ class THBattleKOF(Game):
     def update_event_handlers(g):
         ehclasses = list(action_eventhandlers) + g.game_ehs.values()
         ehclasses += g.ehclasses
-        g.event_handlers = EventHandler.make_list(ehclasses)
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def next_character(g, p):
         assert p.characters

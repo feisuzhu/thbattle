@@ -4,10 +4,8 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import Damage, LaunchCard, PlayerTurn, ActionStageLaunchCard
-from gamepack.thb.actions import UserAction
-from gamepack.thb.cards import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, Skill
-from gamepack.thb.cards import t_None
+from gamepack.thb.actions import ActionStageLaunchCard, Damage, LaunchCard, PlayerTurn, UserAction
+from gamepack.thb.cards import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
@@ -40,9 +38,7 @@ class LunaticAction(UserAction):
 
 
 class LunaticHandler(EventHandler):
-    interested = (
-        ('action_after', Damage),
-    )
+    interested = ('action_after',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -71,10 +67,7 @@ class LunaticHandler(EventHandler):
 
 
 class DiscarderHandler(EventHandler):
-    interested = (
-        ('action_after', PlayerTurn),
-        'action_can_fire',
-    )
+    interested = ('action_after', 'action_can_fire')
 
     def handle(self, evt_type, arg):
         if evt_type == 'action_can_fire' and isinstance(arg[0], ActionStageLaunchCard):
@@ -115,9 +108,7 @@ class MahjongDrugAction(UserAction):
 
 
 class MahjongDrugHandler(EventHandler):
-    interested = (
-        ('action_after', Heal),
-    )
+    interested = ('action_after',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Heal):

@@ -81,6 +81,7 @@ class CheatingDrawCards(DrawCards):
 
 
 class CheatingHandler(EventHandler):
+    interested = ('action_after',)
     execute_before = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):

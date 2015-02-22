@@ -56,9 +56,7 @@ class MasochistAction(UserAction):
 
 
 class MasochistHandler(EventHandler):
-    interested = (
-        ('action_after', Damage),
-    )
+    interested = ('action_after',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -94,9 +92,7 @@ class ScarletPerceptionAction(GenericAction):
 
 
 class ScarletPerceptionHandler(EventHandler):
-    interested = (
-        ('action_after', Fatetell),
-    )
+    interested = ('action_after',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Fatetell):

@@ -30,10 +30,7 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = (
-        ('action_before', DeadDropCards),
-        ('action_after', PlayerDeath),
-    )
+    interested = ('action_after', 'action_before')
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DeadDropCards):
@@ -242,7 +239,7 @@ class THBattleFaith(Game):
     def update_event_handlers(g):
         ehclasses = list(action_eventhandlers) + g.game_ehs.values()
         ehclasses += g.ehclasses
-        g.event_handlers = EventHandler.make_list(ehclasses)
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def switch_character(g, p, choice):
         choice.char_cls = choice.real_cls or choice.char_cls  # reveal akari

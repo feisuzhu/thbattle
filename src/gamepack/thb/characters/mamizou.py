@@ -84,6 +84,7 @@ class Morphing(TreatAs, Skill):
 
 
 class MorphingHandler(EventHandler):
+    interested = ('action_after', 'action_can_fire')
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, ActionStageLaunchCard):
             c = arg.card

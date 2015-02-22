@@ -50,6 +50,7 @@ class DivinityAction(UserAction):
 
 
 class DivinityHandler(EventHandler):
+    interested = ('action_apply',)
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, DrawCardStage):
             tgt = act.target
@@ -88,6 +89,7 @@ class VirtueAction(UserAction):
 
 
 class VirtueHandler(EventHandler):
+    interested = ('card_migration',)
     card_usage = 'drop'
 
     def handle(self, evt_type, arg):

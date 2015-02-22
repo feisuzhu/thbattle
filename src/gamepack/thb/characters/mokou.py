@@ -49,6 +49,7 @@ class RebornAction(UserAction):
 
 
 class AshesHandler(EventHandler):
+    interested = ('action_after',)
     execute_before = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):
@@ -64,6 +65,7 @@ class AshesHandler(EventHandler):
 
 
 class RebornHandler(EventHandler):
+    interested = ('action_before',)
     execute_before = ('CiguateraHandler', )
     card_usage = 'drop'
 

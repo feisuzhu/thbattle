@@ -169,6 +169,7 @@ class GodDescendantDrawAction(UserAction):
 
 
 class GodDescendantHandler(EventHandler):
+    interested = ('action_before',)
     execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):

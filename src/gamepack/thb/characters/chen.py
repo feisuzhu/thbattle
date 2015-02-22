@@ -77,6 +77,7 @@ class FlyingSkanda(Skill):
 
 
 class FlyingSkandaHandler(EventHandler):
+    interested = ('action_after',)
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, LaunchCard):
             if not act.card.is_card(FlyingSkanda): return act
@@ -118,6 +119,7 @@ class Shikigami(Skill):
 
 
 class ShikigamiHandler(EventHandler):
+    interested = ('post_calcdistance',)
     def handle(self, evt_type, arg):
         if evt_type == 'post_calcdistance':
             src, card, dist = arg

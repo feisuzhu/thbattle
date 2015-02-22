@@ -98,6 +98,7 @@ class ReversalDuel(TreatAs, VirtualCard):
 
 
 class ReversalHandler(EventHandler):
+    interested = ('action_before',)
     execute_before = (
         'HouraiJewelHandler',
         'RejectHandler',

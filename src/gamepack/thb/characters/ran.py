@@ -50,6 +50,7 @@ class ProphetAction(GenericAction):
 
 
 class ProphetHandler(EventHandler):
+    interested = ('action_apply',)
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             tgt = act.target
@@ -109,6 +110,7 @@ class ExtremeIntelligenceAction(GenericAction):
 
 
 class ExtremeIntelligenceHandler(EventHandler):
+    interested = ('action_after', 'game_begin')
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, InstantSpellCardAction):
             if isinstance(act, Reject): return act
@@ -168,6 +170,7 @@ class NakedFoxAction(GenericAction):
 
 
 class NakedFoxHandler(EventHandler):
+    interested = ('action_before',)
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
             g = Game.getgame()

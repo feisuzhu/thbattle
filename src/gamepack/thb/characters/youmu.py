@@ -70,6 +70,7 @@ class YoumuWearEquipmentAction(UserAction):
 
 
 class YoumuHandler(EventHandler):
+    interested = ('action_apply', 'action_before', 'attack_aftergraze', 'card_migration')
     execute_before = ('ScarletRhapsodySwordHandler', 'LaevateinHandler', 'HouraiJewelHandler')
     execute_after = ('AttackCardHandler', )
 

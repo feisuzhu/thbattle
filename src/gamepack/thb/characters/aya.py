@@ -23,6 +23,7 @@ class UltimateSpeedAction(UserAction):
 
 
 class UltimateSpeedHandler(EventHandler):
+    interested = ('action_apply', 'choose_target', 'post_calcdistance')
     def handle(self, evt_type, arg):
         def is_card(card):
             return 'skill' not in card.category or 'treat_as' in card.category

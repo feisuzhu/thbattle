@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 import logging
 
 # -- third party --
-
 # -- own --
-from .inputlets import ActionInputlet, ChoosePeerCardInputlet
-from game.autoenv import Game, EventHandler, Action
-from game.autoenv import sync_primitive, user_input, InputTransaction
-from utils import check, check_type, CheckFailed, BatchList, group_by
+from game.autoenv import Action, EventHandler, EventHandlerGroup, Game, InputTransaction
+from game.autoenv import sync_primitive, user_input
+from gamepack.thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
+from utils import BatchList, CheckFailed, check, check_type, group_by
+
 
 # -- code --
 log = logging.getLogger('THBattle_Actions')
@@ -262,6 +262,26 @@ def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
 
         else:
             trans.move(l, cl, to)
+
+
+class PostCardMigrationHandler(EventHandlerGroup):
+    interested = ('post_card_migration',)
+
+    def handle(self, evt_type, arg):
+        if evt_type != 'post_card_migration': return arg
+
+        g = Game.getgame()
+
+        for cards, _from, to in arg:
+            start = _from.owner if _from is not None else g.current_turn
+            start = start or g.players[0]
+
+            for p in g.players.rotate_to(start):
+                for eh in self.handlers:
+                    rst = g.handle_single_event(eh, p, cards, _from, to)
+                    assert rst is True, 'Not supposed to do magic things here.'
+
+        return arg
 
 
 def detach_cards(cards, trans=None):
@@ -781,11 +801,7 @@ class ActionStage(GenericAction):
 
 @register_eh
 class ShuffleHandler(EventHandler):
-    interested = (
-        ('action_before', ActionStage),
-        ('action_after', ActionStage),
-        'user_input_start', 'action_stage_action',
-    )
+    interested = ('action_after', 'action_before', 'action_stage_action', 'card_migration', 'user_input_start')
 
     def handle(self, evt_type, arg):
         if evt_type == 'action_stage_action':
@@ -869,7 +885,22 @@ class TurnOverCard(BaseFatetell):
     type = 'turnover'
 
 
-class FatetellAction(GenericAction): pass
+class FatetellMalleateHandler(EventHandlerGroup):
+    interested = ('fatetell',)
+
+    def handle(self, evt_type, data):
+        if evt_type != 'fatetell': return data
+
+        g = Game.getgame()
+        for p in g.players.rotate_to(g.current_turn):
+            for eh in self.handlers:
+                data = g.handle_single_event(eh, p, data)
+
+        return data
+
+
+class FatetellAction(GenericAction):
+    pass
 
 
 class LaunchFatetellCard(FatetellAction):
@@ -946,7 +977,6 @@ class PlayerTurn(GenericAction):
         p.tags['turn_count'] += 1
         g.turn_count += 1
         g.current_turn = p
-        g.current_id = g.get_playerid(p)
 
         g.process_action(FatetellStage(p))
         g.process_action(DrawCardStage(p))
@@ -1038,9 +1068,7 @@ class Pindian(UserAction):
 
 @register_eh
 class DyingHandler(EventHandler):
-    interested = (
-        ('action_after', BaseDamage),
-    )
+    interested = ('action_after',)
 
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
@@ -1061,9 +1089,7 @@ class DyingHandler(EventHandler):
 
 @register_eh
 class CardUsageHandler(EventHandler):
-    interested = (
-        'action_transform',
-    )
+    interested = ('action_transform',)
 
     def handle(self, evt_type, arg):
         # FIXME: action_limit -> action_transform, modified without knowing what it does

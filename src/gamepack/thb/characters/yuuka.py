@@ -45,6 +45,7 @@ class ReversedScalesAction(UserAction):
 
 
 class ReversedScalesHandler(EventHandler):
+    interested = ('action_before',)
     execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):
@@ -93,6 +94,7 @@ class SadistAction(UserAction):
 
 
 class SadistHandler(EventHandler):
+    interested = ('action_after', 'action_apply')
     card_usage = 'drop'
     execute_after = ('DeathHandler', )
 

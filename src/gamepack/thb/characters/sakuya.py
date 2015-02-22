@@ -43,6 +43,7 @@ class LunaDial(Skill):
 
 
 class LunaDialHandler(EventHandler):
+    interested = ('action_before',)
     execute_after = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):

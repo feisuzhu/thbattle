@@ -55,6 +55,7 @@ class PsychopathDrawCards(DrawCards):
 
 
 class PsychopathHandler(EventHandler):
+    interested = ('card_migration',)
     def handle(self, evt_type, args):
         if evt_type == 'card_migration':
             act, cards, _from, to = args

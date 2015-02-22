@@ -53,6 +53,7 @@ class DebugDecMaxLife(Skill):
 
 
 class DebugHandler(EventHandler):
+    interested = ('action_after', 'game_begin', 'switch_character')
     '''
     Add this handler to game_eh to active debug skills
     '''

@@ -55,6 +55,7 @@ class MoeDrawCard(DrawCardStage):
 
 
 class DaiyouseiHandler(EventHandler):
+    interested = ('action_before',)
     # Well, well, things are getting messy
     def handle(self, evt_type, act):
         if evt_type == 'action_before':

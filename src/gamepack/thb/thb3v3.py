@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
+
+# -- stdlib --
+from collections import defaultdict
+from itertools import cycle
+import logging
 import random
 
-from game.autoenv import Game, EventHandler, InterruptActionFlow, user_input, InputTransaction
-
-from .actions import DeadDropCards, DrawCards, PlayerTurn, RevealIdentity
-from .actions import action_eventhandlers
-
-from .characters.baseclasses import mixin_character
-
-from itertools import cycle
-from collections import defaultdict
-
+# -- third party --
+# -- own --
+from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from gamepack.thb.actions import DeadDropCards, DrawCards, PlayerTurn, RevealIdentity
+from gamepack.thb.actions import action_eventhandlers
+from gamepack.thb.characters.baseclasses import mixin_character
+from gamepack.thb.common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
+from gamepack.thb.inputlets import ChooseGirlInputlet
 from utils import BatchList, Enum, filter_out
-
-from .common import PlayerIdentity, get_seed_for, sync_primitive, CharChoice
-from .inputlets import ChooseGirlInputlet
 import settings
 
-import logging
+
+# -- code --
 log = logging.getLogger('THBattle')
 
 _game_ehs = {}
@@ -30,9 +31,7 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = (
-        ('action_before', DeadDropCards),
-    )
+    interested = ('action_before',)
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
@@ -158,7 +157,7 @@ class THBattle(Game):
             for p, c in akaris:
                 g.set_character(p, c.char_cls)
 
-        g.event_handlers = EventHandler.make_list(ehclasses)
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
         # -------
         for p in g.players:

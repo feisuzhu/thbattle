@@ -71,6 +71,7 @@ class SpiritingAway(Skill):
 
 
 class SpiritingAwayHandler(EventHandler):
+    interested = ('action_after', 'action_apply')
     def handle(self, evt_type, arg):
         if evt_type == 'action_apply' and isinstance(arg, PlayerTurn):
             tgt = arg.target

@@ -38,6 +38,7 @@ class HopeMaskAction(UserAction):
 
 
 class HopeMaskHandler(EventHandler):
+    interested = ('action_apply',)
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
             tgt = act.target

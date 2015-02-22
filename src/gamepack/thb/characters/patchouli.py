@@ -37,6 +37,7 @@ class KnowledgeAction(GenericAction):
 
 
 class KnowledgeHandler(EventHandler):
+    interested = ('action_before',)
     execute_before = ('RejectHandler', )
 
     def handle(self, evt_type, act):
@@ -51,6 +52,7 @@ class KnowledgeHandler(EventHandler):
 
 
 class LibraryHandler(EventHandler):
+    interested = ('action_before', 'calcdistance', 'choose_target')
     execute_before = ('RejectHandler',)
 
     def handle(self, evt_type, arg):

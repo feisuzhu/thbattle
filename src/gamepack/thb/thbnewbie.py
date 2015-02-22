@@ -35,9 +35,7 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = (
-        ('action_before', DeadDropCards),
-    )
+    interested = ('action_before',)
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
@@ -120,7 +118,7 @@ class CirnoAI(object):
         cls(trans, ilet).entry()
 
 
-class DynamicEventHandler(EventHandler):
+class AdhocEventHandler(EventHandler):
     pass
 
 
@@ -185,14 +183,14 @@ class THBattleNewbie(Game):
             user_input([meirin], GalgameDialogInputlet(g, character, dialog, voice), timeout=60)
 
         def inject_eh(hook):
-            eh = DynamicEventHandler()
+            eh = AdhocEventHandler()
             eh.handle = hook
-            g.event_handlers.insert(0, eh)
+            g.add_adhoc_event_handler(eh)
             return eh
 
         def remove_eh(eh):
             try:
-                g.event_handlers.remove(eh)
+                g.remove_adhoc_event_handler(eh)
             except:
                 pass
 
@@ -583,7 +581,7 @@ class THBattleNewbie(Game):
         ehclasses = list(action_eventhandlers) + g.game_ehs.values()
         ehclasses += g.ehclasses
         ehclasses.remove(ShuffleHandler)  # disable shuffling
-        g.event_handlers = EventHandler.make_list(ehclasses)
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def set_character(g, p, cls):
         new, old_cls = mixin_character(p, cls)

@@ -37,9 +37,7 @@ def game_action(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = (
-        ('action_before', DeadDropCards),
-    )
+    interested = ('action_before',)
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
@@ -62,10 +60,7 @@ class DeathHandler(EventHandler):
 
 @game_eh
 class HeritageHandler(EventHandler):
-    interested = (
-        ('action_before', DeadDropCards),
-    )
-
+    interested = ('action_before',)
     execute_after = ('DeathHandler', 'SadistHandler')
 
     def handle(self, evt_type, act):
@@ -100,9 +95,7 @@ class HeritageHandler(EventHandler):
 
 @game_eh
 class ExtraCardHandler(EventHandler):
-    interested = (
-        ('action_before', DrawCardStage),
-    )
+    interested = ('action_before',)
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before':
@@ -239,7 +232,7 @@ class THBattle2v2(Game):
             g.players.reveal(c)
             g.set_character(p, c.char_cls)
 
-        g.event_handlers = EventHandler.make_list(ehclasses)
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
         # -------
         for p in g.players:

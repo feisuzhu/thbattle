@@ -28,6 +28,7 @@ class CriticalStrikeAction(GenericAction):
 
 
 class CriticalStrikeHandler(EventHandler):
+    interested = ('action_apply', 'action_before', 'action_can_fire', 'action_stage_action')
     execute_after = (
         'AttackCardHandler',
         'FrozenFrogHandler',
@@ -123,6 +124,8 @@ class ExterminateAction(UserAction):
 
 
 class ExterminateHandler(EventHandler):
+    interested = ('choose_target',)
+
     def handle(self, evt_type, arg):
         if evt_type == 'choose_target':
             act, tl = arg
@@ -144,6 +147,8 @@ class ExterminateHandler(EventHandler):
 
 @register_eh
 class ExterminateFadeHandler(EventHandler):
+    interested = ('action_after', 'action_apply')
+
     def handle(self, evt_type, arg):
         if ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
             (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):  # noqa

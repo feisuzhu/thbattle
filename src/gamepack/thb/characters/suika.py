@@ -31,6 +31,7 @@ class GreatLandscape(Skill):
 
 
 class GreatLandscapeHandler(EventHandler):
+    interested = ('calcdistance',)
     def handle(self, evt_type, arg):
         if evt_type == 'calcdistance':
             src, card, dist = arg
@@ -70,6 +71,7 @@ class WineGodAwake(GenericAction):
 
 
 class WineGodHandler(EventHandler):
+    interested = ('card_migration',)
     def handle(self, evt_type, arg):
         if evt_type == 'card_migration':
             act, cl, _from, to = arg
@@ -86,6 +88,7 @@ class WineGodHandler(EventHandler):
 
 
 class WineDreamHandler(EventHandler):
+    interested = ('action_after',)
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, SoberUp):
             src = act.source

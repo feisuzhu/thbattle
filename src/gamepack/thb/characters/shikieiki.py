@@ -3,11 +3,12 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DropCards, UserAction, migrate_cards, user_choose_cards
-from ..cards import Skill, t_None
-from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, DropCards, FatetellMalleateHandler, UserAction
+from gamepack.thb.actions import migrate_cards, user_choose_cards
+from gamepack.thb.cards import Skill, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
@@ -39,19 +40,12 @@ class TrialAction(UserAction):
 
 class TrialHandler(EventHandler):
     interested = ('fatetell', )
-    execute_before = ('YinYangOrbHandler', )
-    slot = 'ChangeFatetellHandler'
+    group = FatetellMalleateHandler
     card_usage = 'use'
 
-    def handle(self, evt_type, act, p=None):
-        if evt_type != 'fatetell':
-            return act
-
-        if not p or p.dead:
-            return act
-
-        if not p.has_skill(Trial):
-            return act
+    def handle(self, p, act):
+        if p.dead: return act
+        if not p.has_skill(Trial): return act
 
         if not user_input([p], ChooseOptionInputlet(self, (False, True))):
             return act
@@ -79,7 +73,7 @@ class MajestyAction(UserAction):
 
 
 class MajestyHandler(EventHandler):
-    interested = (('action_after', Damage), )
+    interested = ('action_after',)
 
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act

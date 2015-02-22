@@ -17,6 +17,7 @@ class HeterodoxySkipAction(GenericAction):
 
 
 class HeterodoxyHandler(EventHandler):
+    interested = ('action_before',)
     execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):

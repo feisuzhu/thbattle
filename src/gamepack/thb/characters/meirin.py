@@ -67,6 +67,7 @@ class LoongPunchAction(GenericAction):
 
 
 class LoongPunchHandler(EventHandler):
+    interested = ('action_after',)
     execute_after = ('DeathSickleHandler', )
 
     def handle(self, evt_type, act):
@@ -101,6 +102,7 @@ class RiverBehindAwake(GenericAction):
 
 
 class RiverBehindHandler(EventHandler):
+    interested = ('action_apply',)
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             tgt = act.target

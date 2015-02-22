@@ -3,11 +3,12 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DropCards, UserAction, user_choose_cards, FatetellAction, Fatetell, LaunchCard
-from ..cards import Skill, t_None, AttackCard, VirtualCard, TreatAs
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import DropCards, Fatetell, FatetellAction, FatetellMalleateHandler
+from gamepack.thb.actions import LaunchCard, PostCardMigrationHandler, UserAction, user_choose_cards
+from gamepack.thb.cards import AttackCard, Skill, TreatAs, VirtualCard, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -40,18 +41,12 @@ class MiracleMalletAction(UserAction):
 class MiracleMalletHandler(EventHandler):
     interested = ('fatetell', )
     execute_before = ('YinYangOrbHandler', )
-    slot = 'ChangeFatetellHandler'
+    group = FatetellMalleateHandler
     card_usage = 'use'
 
-    def handle(self, evt_type, act, p=None):
-        if evt_type != 'fatetell':
-            return act
-
-        if not p or p.dead:
-            return act
-
-        if not p.has_skill(MiracleMallet):
-            return act
+    def handle(self, p, act):
+        if p.dead: return act
+        if not p.has_skill(MiracleMallet): return act
 
         self.number = act.card.number
         cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
@@ -91,37 +86,33 @@ class VengeOfTsukumogamiAction(FatetellAction):
 
 
 class VengeOfTsukumogamiHandler(EventHandler):
-    interested = ('post_card_migration', )
-    slot = 'PostCardMigrationHandler'
+    group = PostCardMigrationHandler
 
-    def handle(self, evt_type, arg, p=None):
-        if not evt_type == 'post_card_migration': return arg
+    def handle(self, p, cards, _from, to):
+        if not p.has_skill(VengeOfTsukumogami): return True
 
-        if not p.has_skill(VengeOfTsukumogami): return arg
+        if _from is None or _from.type != 'equips':
+            return True
 
-        for cards, _from, to in arg:
-            if _from is None or _from.type != 'equips':
-                continue
+        if _from.owner is p:
+            return True
 
-            if _from.owner is p:
-                continue
+        if to.type != 'droppedcard':
+            return True
 
-            if to.type != 'droppedcard':
-                continue
+        self.target = tgt = _from.owner
+        for c in cards:
+            self.card = c
 
-            self.target = tgt = _from.owner
-            for c in cards:
-                self.card = c
+            if tgt.dead:
+                break
 
-                if tgt.dead:
-                    break
+            if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                break
 
-                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
-                    break
+            Game.getgame().process_action(VengeOfTsukumogamiAction(p, tgt, c))
 
-                Game.getgame().process_action(VengeOfTsukumogamiAction(p, tgt, c))
-
-        return arg
+        return True
 
 
 @register_character

@@ -29,10 +29,7 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = (
-        ('action_before', DeadDropCards),
-        ('action_after', PlayerDeath),
-    )
+    interested = ('action_after', 'action_before')
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DeadDropCards):
@@ -256,7 +253,7 @@ class THBattleIdentity(Game):
             choosed(c.char_cls)
             p = g.switch_character(p, c.char_cls)
 
-        g.event_handlers = EventHandler.make_list(ehclasses)
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
         g.emit_event('game_begin', g)
 

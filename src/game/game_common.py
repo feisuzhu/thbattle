@@ -100,79 +100,43 @@ class InterruptActionFlow(GameException):
 class EventHandler(GameObject):
     execute_before = ()
     execute_after = ()
-    slot = None
+    group = None
+    interested = None
 
-    def handle(self, evt_type, data, player=None):
+    def handle(self, evt_type, data):
         raise GameError('Override handle function to implement EventHandler logics!')
 
-    def is_interested(self, evt_type, data):
-        if not hasattr(self, 'interested'):
-            return True
-
-        for evt in self.interested:
-            if isinstance(evt, tuple):
-                evt, cls = evt
-                if evt == evt_type:
-                    # FIXME: data changed while processing
-                    return isinstance(data, cls) or True
-
-            if evt == evt_type:
-                return True
-
-        return False
+    def get_interested(self):
+        interested = self.interested
+        assert isinstance(interested, (list, tuple)), "Should specify interested events! %r" % self.__class__
+        return list(interested)
 
     @staticmethod
-    def make_list(eh_classes):
-        groups = defaultdict(list)
-        for cls in eh_classes:
-            groups[cls.slot].append(cls)
-
-        eh_classes = groups.pop(None)
-
-        def make_slot(name, ehs):
-            eb = set().union([cls.execute_before for cls in ehs])
-            ea = set().union([cls.execute_before for cls in ehs])
-
-            class Slot(EventHandlerSlot):
-                execute_before = tuple(eb)
-                execute_after = tuple(ea)
-                handlers = EventHandler.raw_make_list(ehs)
-
-            Slot.__name__ = name
-            return Slot
-
-        slots = [make_slot(name, cls) for name, cls in groups.iteritems()]
-        return EventHandler.raw_make_list(slots + eh_classes)
-
-    @staticmethod
-    def raw_make_list(eh_classes):
+    def make_list(eh_classes, fold_group=True):
         table = {}
-
-        before_all = []
-        after_all = []
-        rest = []
-
         eh_classes = set(eh_classes)
+        groups = defaultdict(list)
+
         for cls in eh_classes:
-            if cls.execute_before == '__all__':
-                before_all.append(cls())
-                assert not cls.execute_after
-            elif cls.execute_after == '__all__':
-                after_all.append(cls())
-                assert not cls.execute_before
-            else:
-                rest.append(cls)
+            assert not issubclass(cls, EventHandlerGroup), 'Should not pass group in make_list, %r' % cls
+            grp = cls.group if fold_group else None
+            if grp is not None:
+                groups[grp].append(cls)
+                cls = grp
+
+            table[cls.__name__] = cls()
+
+        for grp, lst in groups.iteritems():
+            eh = table[grp.__name__]
+            eh.set_handlers(EventHandler.make_list(lst, fold_group=False))
 
         allnames = {cls.__name__ for cls in eh_classes}
 
-        for cls in rest:
-            eh = cls()
+        for eh in table.itervalues():
             eh.execute_before = set(eh.execute_before) & allnames  # make it instance var
             eh.execute_after = set(eh.execute_after) & allnames
-            table[cls.__name__] = eh
 
-        for clsname in table:
-            eh = table[clsname]
+        for clsname, eh in table.iteritems():
             for before in eh.execute_before:
                 table[before].execute_after.add(clsname)
 
@@ -200,11 +164,7 @@ class EventHandler(GameObject):
             toposorted.extend(commit)
             l = deferred
 
-        rst = before_all + toposorted + after_all
-
-        assert len(rst) == len(eh_classes)
-
-        return rst
+        return toposorted
 
     @staticmethod
     def _dump_eh_dependency_graph():
@@ -228,19 +188,11 @@ class EventHandler(GameObject):
             f.write('}')
 
 
-class EventHandlerSlot(EventHandler):
-    handlers = []
+class EventHandlerGroup(EventHandler):
+    handlers = ()
 
-    def handle(self, evt_type, data):
-        g = Game.getgame()
-        for p in g.ordered_players:
-            for h in self.handlers:
-                data = h.handle(evt_type, data, p)
-
-        return data
-
-    def is_interested(self, evt_type, data):
-        return any(h.is_interested(evt_type, data) for h in self.handlers)
+    def set_handlers(self, handlers):
+        self.handlers = handlers[:]
 
 
 class Action(GameObject):
@@ -331,23 +283,29 @@ class Game(GameObject):
 
     def __init__(self):
         self.event_handlers = []
-        self.action_stack = []
-        self.hybrid_stack = []
-        self.action_types = {}
-        self.ended = False
-        self._action_hooks = []
-        self.winners = []
-        self.turn_count = 0
-        self.current_id = 0
+        self.adhoc_ehs      = []
+        self.ehs_cache      = {}
+        self.action_stack   = []
+        self.hybrid_stack   = []
+        self.action_types   = {}
+        self.ended          = False
+        self._action_hooks  = []
+        self.winners        = []
+        self.turn_count     = 0
 
-    @property
-    def event_handlers(self):
-        return self._event_handlers
-
-    @event_handlers.setter
-    def event_handlers(self, value):
-        self._event_handlers = value
+    def set_event_handlers(self, ehs):
+        self.event_handlers = ehs[:]
         self.ehs_cache = {}
+        self.adhoc_ehs = []
+
+    def add_adhoc_event_handler(self, eh):
+        self.adhoc_ehs.insert(0, eh)
+
+    def remove_adhoc_event_handler(self, eh):
+        try:
+            self.adhoc_ehs.remove(eh)
+        except ValueError:
+            pass
 
     def game_start(g, params):
         '''
@@ -368,23 +326,18 @@ class Game(GameObject):
 
         raise GameEnded
 
-    def get_event_handlers(self, evt_type, data):
-        tag = evt_type  # , data.__class__
+    def _get_relevant_eh(self, tag):
         ehs = self.ehs_cache.get(tag)
         if ehs is not None:
             return ehs
 
-        ehs = [h for h in self.event_handlers if h.is_interested(evt_type, data)]
+        ehs = [
+            eh for eh in self.event_handlers if
+            tag in eh.get_interested()
+        ]
         self.ehs_cache[tag] = ehs
 
         return ehs
-
-    @property
-    def ordered_players(self):
-        cid = self.current_id
-        n = len(self.players)
-        for i in range(cid, n) + range(cid):
-            yield self.players[i]
 
     def emit_event(self, evt_type, data):
         '''
@@ -404,19 +357,26 @@ class Game(GameObject):
         else:
             action_event = False
 
-        event_handlers = self.get_event_handlers(evt_type, data)
-        for evt in event_handlers:
-            try:
-                self.hybrid_stack.append(evt)
-                data = evt.handle(evt_type, data)
-            finally:
-                assert evt is self.hybrid_stack.pop()
+        ehs = self._get_relevant_eh(evt_type)
+        if self.adhoc_ehs:
+            ehs = self.adhoc_ehs + ehs
 
-            if data is None:
-                log.debug('EventHandler %s returned None' % evt.__class__.__name__)
-
+        for eh in ehs:
+            data = self.handle_single_event(eh, evt_type, data)
             if action_event and data.cancelled:
                 break
+
+        return data
+
+    def handle_single_event(self, eh, *a, **k):
+        try:
+            self.hybrid_stack.append(eh)
+            data = eh.handle(*a, **k)
+        finally:
+            assert eh is self.hybrid_stack.pop()
+
+        if data is None:
+            log.debug('EventHandler %s returned None' % eh.__class__.__name__)
 
         return data
 

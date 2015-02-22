@@ -43,6 +43,7 @@ class RiversideAction(UserAction):
 
 
 class RiversideHandler(EventHandler):
+    interested = ('calcdistance',)
     def handle(self, evt_type, arg):
         if evt_type == 'calcdistance':
             src, card, dist = arg
@@ -81,6 +82,7 @@ class ReturningAwake(GenericAction):
 
 
 class ReturningHandler(EventHandler):
+    interested = ('action_before',)
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, PlayerTurn):
             tgt = act.target
@@ -121,6 +123,7 @@ class FerryFeeEffect(UserAction):
 
 
 class FerryFeeHandler(EventHandler):
+    interested = ('action_after',)
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
             src = act.source

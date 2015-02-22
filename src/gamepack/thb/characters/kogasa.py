@@ -75,6 +75,7 @@ class JollyDrawCard(DrawCards):
 
 
 class JollyHandler(EventHandler):
+    interested = ('action_after',)
     choose_player_target = t_One
 
     def handle(self, evt_type, act):

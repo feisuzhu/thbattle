@@ -12,6 +12,7 @@ from game.autoenv import EventHandler, Game, user_input
 
 # -- code --
 class SentryHandler(EventHandler):
+    interested = ('action_before',)
     execute_after = (
         'RepentanceStickHandler',
         'UmbrellaHandler',
