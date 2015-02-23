@@ -16,7 +16,7 @@ class Reisen:
     char_name = u'铃仙'
     port_image = 'thb-portrait-reisen'
     figure_image = 'thb-figure-reisen'
-    # miss_sound_effect = 'thb-cv-reisen_miss'
+    miss_sound_effect = 'thb-cv-reisen_miss'
     description = (
         u'|DB永琳的首席药品品尝官 铃仙·优昙华院·因幡 体力：4|r\n\n'
         u'|G狂气|r：你因为|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害后，你可以令其获得技能|G丧心|r。\n\n'
@@ -71,7 +71,7 @@ class LunaticHandler:
 
 class LunaticAction:
     def effect_string(act):
-        return u'|G【%s】|r：“根本停不下来！”' % act.source.ui_meta.char_name
+        return u'|G【%s】|r：“给你们看看全部的，月的疯狂！”' % act.source.ui_meta.char_name
 
     def sound_effect(act):
         return 'thb-cv-reisen_lunatic'
