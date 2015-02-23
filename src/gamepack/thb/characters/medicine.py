@@ -8,7 +8,7 @@ from ..actions import ShowCards, UserAction, user_choose_cards, LaunchCard, UseC
 from ..cards import Card, Skill, SoberUp, VirtualCard, Wine, t_None
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import EventHandler, Game, user_input, ActionShootdown
 
 
 # -- code --
@@ -114,6 +114,10 @@ class MelancholyPoison(VirtualCard):
     target = t_None
 
 
+class MelancholyLimit(ActionShootdown):
+    pass
+
+
 class MelancholyAction(GenericAction):
     def __init__(self, source, target, amount):
         self.source = source
@@ -138,11 +142,11 @@ class MelancholyAction(GenericAction):
 
 
 class MelancholyHandler(EventHandler):
-    interested = ('action_after', 'action_can_fire')
+    interested = ('action_after', 'action_shootdown')
 
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_after' and isinstance(arg, Damage):
-            act = arg
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, Damage):
+            act = act
             tgt = act.target
             src = act.source
 
@@ -154,14 +158,11 @@ class MelancholyHandler(EventHandler):
 
             Game.getgame().process_action(MelancholyAction(tgt, src, amount=act.amount))
 
-        elif evt_type == 'action_can_fire' and isinstance(arg[0], (LaunchCard, UseCard)):
-            act, valid = arg
-            if not valid: return arg
-
+        elif evt_type == 'action_shootdown' and isinstance(act, (LaunchCard, UseCard)):
             src = act.source
             g = Game.getgame()
             if src.tags.get('melancholy_tag') != g.turn_count:
-                return arg
+                return act
 
             def walk(c):
                 if not c.is_card(VirtualCard):
@@ -177,9 +178,9 @@ class MelancholyHandler(EventHandler):
             zone = src.cards, src.showncards
             for c in cards:
                 if c.resides_in in zone:
-                    return act, False
+                    raise MelancholyLimit
 
-        return arg
+        return act
 
 
 @register_character

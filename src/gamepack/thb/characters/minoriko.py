@@ -24,6 +24,7 @@ class FoisonDrawCardStage(DrawCardStage):
 
 class FoisonHandler(EventHandler):
     interested = ('action_before',)
+
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
             tgt = act.target
@@ -75,6 +76,7 @@ class AkiTributeCollectCard(UserAction):
 
 class AkiTributeHandler(EventHandler):
     interested = ('choose_target', 'harvest_finish')
+
     def handle(self, evt_type, act):
         if evt_type == 'choose_target':
             act, tl = arg = act

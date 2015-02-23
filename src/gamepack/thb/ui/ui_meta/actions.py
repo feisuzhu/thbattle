@@ -221,4 +221,8 @@ class Fatetell:
 
         return prompt
 
+
+class ActionShootdown:
+    shootdown_message = u'您不能这样出牌'
+
 # -----END ACTIONS UI META-----

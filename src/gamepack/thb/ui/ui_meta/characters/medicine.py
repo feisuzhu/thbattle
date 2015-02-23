@@ -101,3 +101,7 @@ class MelancholyHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'是否发动【忧郁之毒】'
+
+
+class MelancholyLimit:
+    shootdown_message = u'【忧郁】你不能使用或打出手牌。'

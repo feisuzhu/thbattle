@@ -103,6 +103,7 @@ class RiverBehindAwake(GenericAction):
 
 class RiverBehindHandler(EventHandler):
     interested = ('action_apply',)
+
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             tgt = act.target

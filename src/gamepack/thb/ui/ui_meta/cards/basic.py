@@ -234,3 +234,7 @@ class Heal:
             return u'|G【%s】|r回复了%d点体力。' % (
                 act.target.ui_meta.char_name, act.amount
             )
+
+
+class AttackLimitExceeded:
+    shootdown_message = u'你已经用过弹幕了'

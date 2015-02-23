@@ -97,6 +97,13 @@ class InterruptActionFlow(GameException):
     pass
 
 
+class ActionShootdown(BaseException):
+    __metaclass__ = GameObjectMeta
+
+    def __nonzero__(self):
+        return False
+
+
 class EventHandler(GameObject):
     execute_before = ()
     execute_after = ()
@@ -227,13 +234,27 @@ class Action(GameObject):
         self.source = source
         self.target = target
 
+    def action_shootdown_exception(self):
+        if not self.is_valid():
+            raise ActionShootdown(self)
+
+        _ = Game.getgame().emit_event('action_shootdown', self)
+        assert _ is self, "You can't replace action in 'action_shootdown' event!"
+
+    def action_shootdown(self):
+        try:
+            self.action_shootdown_exception()
+            return None
+
+        except ActionShootdown as e:
+            return e
+
     def can_fire(self):
         '''
         Return true if the action can be fired.
         '''
-        _self, rst = Game.getgame().emit_event('action_can_fire', (self, self.is_valid()))
-        assert _self is self, "You can't replace action in 'action_can_fire' event!"
-        return rst
+        rst = self.action_shootdown()
+        return True if rst is None else rst
 
     def apply_action(self):
         raise GameError('Override apply_action to implement Action logics!')

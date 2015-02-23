@@ -22,6 +22,7 @@ class LuckDrawCards(DrawCards):
 
 class LuckHandler(EventHandler):
     interested = ('card_migration',)
+
     def handle(self, evt_type, arg):
         if evt_type != 'card_migration':
             return arg

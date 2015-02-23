@@ -7,7 +7,7 @@ from gevent import Greenlet
 # -- own --
 from game.game_common import Action, EventHandler, EventHandlerGroup, Game, GameEnded, GameError  # noqa
 from game.game_common import GameException, GameObject, InputTransaction, InterruptActionFlow, NPC  # noqa
-from game.game_common import sync_primitive  # noqa
+from game.game_common import sync_primitive, ActionShootdown  # noqa
 
 
 # -- code --

@@ -71,3 +71,11 @@ class LunaticAction:
 
     def sound_effect(act):
         return 'thb-cv-reisen_lunatic'
+
+
+class DiscarderAttackOnly:
+    shootdown_message = u'【丧心】你不能使用弹幕以外的牌。'
+
+
+class DiscarderDistanceLimit:
+    shootdown_message = u'【丧心】你只能对离你最近的角色使用弹幕。'

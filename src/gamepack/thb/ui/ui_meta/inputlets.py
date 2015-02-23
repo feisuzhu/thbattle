@@ -197,10 +197,10 @@ class ActionInputlet:
         cards, prompt_card = pasv_handle_card_selection(g, ilet, cards)
         plsel, disables, players, prompt_target = pasv_handle_player_selection(g, ilet, players)
 
-        ask_for_action_verify = getattr(ilet.initiator, 'ask_for_action_verify', None)
-        rst = not ask_for_action_verify or ask_for_action_verify(g.me, cards, players)
+        verify = getattr(ilet.initiator, 'ask_for_action_verify', None)
+        rst = not verify or verify(g.me, cards, players)
         if not rst:
-            raise ActionDisplayResult(False, reason_of(rst), plsel, disables, players)
+            raise ActionDisplayResult(False, rst.ui_meta.shootdown_message, plsel, disables, players)
 
         raise ActionDisplayResult(True, prompt_target or prompt_card, plsel, disables, players)
 
@@ -237,7 +237,8 @@ class ActionInputlet:
 
         act = thbactions.ActionStageLaunchCard(g.me, players, card)
 
-        if not act.can_fire():  # ultimate fallback
-            raise ActionDisplayResult(False, u'您不能这样出牌', True, disables, players)
+        shootdown = act.action_shootdown()
+        if shootdown is not None:
+            raise ActionDisplayResult(False, shootdown.ui_meta.shootdown_message, True, disables, players)
 
         raise ActionDisplayResult(True, prompt, True, disables, players)

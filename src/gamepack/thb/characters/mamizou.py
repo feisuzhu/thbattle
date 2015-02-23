@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStageLaunchCard
+from ..actions import ActionStageLaunchCard, ActionLimitExceeded
 from ..cards import Card, DummyCard, Skill, TreatAs
 from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler
@@ -84,24 +84,24 @@ class Morphing(TreatAs, Skill):
 
 
 class MorphingHandler(EventHandler):
-    interested = ('action_after', 'action_can_fire')
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_after' and isinstance(arg, ActionStageLaunchCard):
-            c = arg.card
+    interested = ('action_after', 'action_shootdown')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, ActionStageLaunchCard):
+            c = act.card
             if c.is_card(Morphing):
-                src = arg.source
+                src = act.source
                 src.tags['mamizou_morphing_tag'] = src.tags['turn_count']
 
-        elif evt_type == 'action_can_fire':
-            act, valid = arg
+        elif evt_type == 'action_shootdown':
             if isinstance(act, ActionStageLaunchCard):
                 c = act.card
                 if c.is_card(Morphing):
                     t = act.source.tags
                     if t['mamizou_morphing_tag'] >= t['turn_count']:
-                        return act, False
+                        raise ActionLimitExceeded
 
-        return arg
+        return act
 
 
 @register_character_to('common', '-kof')

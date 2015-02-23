@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from . import basic, spellcard
-from ..actions import Damage, DrawCards, DropCardStage, DropCards, Fatetell, FatetellAction, ForEach
+from ..actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards, Fatetell, FatetellAction, ForEach
 from ..actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction, PlayerTurn
 from ..actions import UserAction, migrate_cards, random_choose_card, register_eh, user_choose_cards
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -34,9 +34,7 @@ class WearEquipmentAction(UserAction):
 
 @register_eh
 class EquipmentTransferHandler(EventHandler):
-    interested = (
-        'card_migration',
-    )
+    interested = ('card_migration',)
 
     def handle(self, evt, args):
         if evt == 'card_migration':
@@ -967,9 +965,6 @@ class IceWing(GenericAction):
 class IceWingHandler(EventHandler):
     interested = ('action_before',)
     _effect_cls = spellcard.SealingArray, spellcard.FrozenFrog
-    interested = (
-        ('action_before', _effect_cls),
-    )
 
     execute_before = ('RejectHandler', 'SaigyouBranchHandler')
 
@@ -1012,31 +1007,30 @@ class GrimoireSkill(TreatAs, WeaponSkill):
 
 @register_eh
 class GrimoireHandler(EventHandler):
-    interested = ('action_after', 'action_can_fire')
+    interested = ('action_after', 'action_shootdown')
 
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_can_fire':
-            act, v = arg
-            if not isinstance(act, LaunchCard): return arg
+    def handle(self, evt_type, act):
+        if evt_type == 'action_shootdown':
+            if not isinstance(act, LaunchCard): return act
             c = act.card
             if c.is_card(GrimoireSkill):
                 src = act.source
                 t = src.tags
 
                 if t['turn_count'] <= t['grimoire_tag']:
-                    return (act, False)
+                    raise ActionLimitExceeded
 
                 if basic.AttackCardHandler.is_freeattack(act.source):
-                    return arg
+                    return act
 
                 if t['attack_num'] <= 0:
-                    return (act, False)
+                    raise basic.AttackLimitExceeded
 
-        elif evt_type == 'action_after' and isinstance(arg, LaunchCard):
-            c = arg.card
+        elif evt_type == 'action_after' and isinstance(act, LaunchCard):
+            c = act.card
             if c.is_card(GrimoireSkill):
-                t = arg.source.tags
+                t = act.source.tags
                 t['attack_num'] -= 1
                 t['grimoire_tag'] = t['turn_count']
 
-        return arg
+        return act

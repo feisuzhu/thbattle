@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards
+from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, ActionLimitExceeded
 from ..actions import ForEach, GenericAction, LaunchCard, PlayerTurn, UserAction, UseCard
 from ..actions import register_eh, user_choose_cards
 from game.autoenv import EventHandler, Game
@@ -50,9 +50,13 @@ class InevitableAttack(Attack):
         return True
 
 
+class AttackLimitExceeded(ActionLimitExceeded):
+    pass
+
+
 @register_eh
 class AttackCardHandler(EventHandler):
-    interested = ('action_apply', 'action_before', 'action_can_fire', 'calcdistance')
+    interested = ('action_apply', 'action_before', 'action_shootdown', 'calcdistance')
 
     def handle(self, evt_type, act):
         # if evt_type == 'action_before' and isinstance(act, PlayerTurn):
@@ -79,16 +83,15 @@ class AttackCardHandler(EventHandler):
                 for p in dist:
                     dist[p] -= l
 
-        elif evt_type == 'action_can_fire' and isinstance(act[0], ActionStageLaunchCard):
-            lc, rst = act
+        elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
             from .definition import AttackCard
-            if lc.card.is_card(AttackCard):
-                src = lc.source
+            if act.card.is_card(AttackCard):
+                src = act.source
                 if src.tags['freeattack'] >= src.tags['turn_count']:
                     return act
 
                 if src.tags['attack_num'] <= 0:
-                    return (lc, False)
+                    raise AttackLimitExceeded
 
         return act
 

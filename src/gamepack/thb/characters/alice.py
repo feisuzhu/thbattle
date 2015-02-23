@@ -46,6 +46,7 @@ class LittleLegionAction(UserAction):
 
 class LittleLegionHandler(EventHandler):
     interested = ('choose_target', 'post_card_migration')
+
     def handle(self, evt_type, arg):
         if evt_type == 'choose_target':
             lca, tl = arg
@@ -97,6 +98,7 @@ class MaidensBunraku(Skill):
 
 class MaidensBunrakuHandler(EventHandler):
     interested = ('action_apply',)
+
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, DropCardStage):
             tgt = act.target

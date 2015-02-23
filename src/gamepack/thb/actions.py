@@ -7,7 +7,7 @@ import logging
 # -- third party --
 # -- own --
 from game.autoenv import Action, EventHandler, EventHandlerGroup, Game, InputTransaction
-from game.autoenv import sync_primitive, user_input
+from game.autoenv import ActionShootdown, sync_primitive, user_input
 from gamepack.thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
 from utils import BatchList, CheckFailed, check, check_type, group_by
 
@@ -686,9 +686,11 @@ class LaunchCard(GenericAction):
         act = cls(source=src, target=target)
         act.associated_card = card
         act.target_list = tl
-        if not act.can_fire():
+        try:
+            act.action_shootdown_exception()
+        except:
             log.debug('LaunchCard card_action.can_fire() FALSE')
-            return False
+            raise
 
         return True
 
@@ -1101,3 +1103,7 @@ class ShowCards(GenericAction):
         #     type='all', timeout=1,
         # )  # just a delay
         return True
+
+
+class ActionLimitExceeded(ActionShootdown):
+    pass

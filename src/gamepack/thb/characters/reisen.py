@@ -3,8 +3,8 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import ActionStageLaunchCard, Damage, LaunchCard, PlayerTurn, UserAction
+from game.autoenv import ActionShootdown, EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, LaunchCard, PlayerTurn, UserAction
 from gamepack.thb.cards import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
@@ -66,36 +66,43 @@ class LunaticHandler(EventHandler):
         return act
 
 
+class DiscarderAttackOnly(ActionShootdown):
+    pass
+
+
+class DiscarderDistanceLimit(ActionShootdown):
+    pass
+
+
 class DiscarderHandler(EventHandler):
-    interested = ('action_after', 'action_can_fire')
+    interested = ('action_after', 'action_shootdown')
 
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_can_fire' and isinstance(arg[0], LaunchCard):
-            lc, valid = arg
-            src = lc.source
-            if not src.has_skill(Discarder): return arg
+    def handle(self, evt_type, act):
+        if evt_type == 'action_shootdown' and isinstance(act, LaunchCard):
+            src = act.source
+            if not src.has_skill(Discarder): return act
             g = Game.getgame()
-            if src is not g.current_turn: return arg
+            if src is not g.current_turn: return act
 
-            c = lc.card
-            if not c.is_card(PhysicalCard): return arg
-            if not c.is_card(AttackCard): return lc, False
+            self.card = c = act.card
+            if not c.is_card(PhysicalCard): return act
+            if not c.is_card(AttackCard): raise DiscarderAttackOnly
 
             dist = LaunchCard.calc_distance(src, Discarder(src))
             dist.pop(src, '')
             nearest = max(min(dist.values()), 0)
             avail = {p for p in dist if dist[p] <= nearest}
 
-            if not set(lc.target_list) <= avail:
-                return lc, False
+            if not set(act.target_list) <= avail:
+                raise DiscarderDistanceLimit
 
-        elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
-            tgt = arg.target
+        elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
+            tgt = act.target
             if tgt.has_skill(Discarder):
                 tgt.skills.remove(Discarder)
                 tgt.tags['reisen_discarder'] = False  # for tag
 
-        return arg
+        return act
 
 
 class MahjongDrugAction(UserAction):

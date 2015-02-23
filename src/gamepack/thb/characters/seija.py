@@ -62,7 +62,7 @@ class InciteAction(UserAction):
             return False
 
         tgt, victim = self.target_list
-        if not Pindian(src, tgt).can_fire(): return False
+        Pindian(src, tgt).action_shootdown_exception()
         return LaunchCard(tgt, [victim], InciteAttack(tgt)).can_fire()
 
 
