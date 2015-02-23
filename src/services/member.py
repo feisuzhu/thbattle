@@ -166,6 +166,8 @@ class MemberService(RPCService):
 
     @clear_session
     def get_user_info(self, uid):
+        uid = int(uid)
+
         member = session.execute(text('''
             SELECT * FROM pre_common_member
             WHERE uid=:uid
@@ -173,6 +175,26 @@ class MemberService(RPCService):
 
         if not member:
             return {}
+
+        return self._get_user_info(member)
+
+    @clear_session
+    def get_user_info_by_username(self, username):
+        if isinstance(username, unicode):
+            username = username.encode('utf-8')
+
+        member = session.execute(text('''
+            SELECT * FROM pre_common_member
+            WHERE username=:username
+        '''), {'username': username}).fetchone()
+
+        if not member:
+            return {}
+
+        return self._get_user_info(member)
+
+    def _get_user_info(self, member):
+        uid = member.uid
 
         ucmember = session.execute(text('''
             SELECT * FROM pre_ucenter_members
@@ -229,21 +251,15 @@ class MemberService(RPCService):
 
     @clear_session
     def validate_by_username(self, username, password):
-        if isinstance(username, unicode):
-            username = username.encode('utf-8')
-
         if isinstance(password, unicode):
             password = password.encode('utf-8')
 
-        ucmember = session.execute(text('''
-            select * from pre_ucenter_members
-            where username=:username
-        '''), {'username': username}).fetchone()
+        member = self.get_user_info_by_username(username)
 
-        if not ucmember:
+        if not member:
             return {}
 
-        info = self.get_user_info(ucmember.uid)
+        info = self.get_user_info(member['uid'])
 
         if md5(md5(password) + info['ucsalt']) != info['ucpassword']:
             return {}

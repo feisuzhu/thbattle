@@ -114,7 +114,7 @@ class RPCService(Greenlet):
                 _, method, args, kwargs = req
                 f = getattr(self, method, None)
 
-                if not f:
+                if not f or method.startswith('_'):
                     log.error('Calling undefined method %s.%s', self.__class__.__name__, method)
                     msgpack.pack([EXCEPTION, 'NoSuchMethod', ''], sock)
                     continue
