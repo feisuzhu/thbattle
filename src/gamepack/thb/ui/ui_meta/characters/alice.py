@@ -55,7 +55,12 @@ class LittleLegionAction:
             return 'thb-cv-alice_legion'
 
 
-class LittleLegionHandler:
+class LittleLegionDrawHandler:
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【小小军势】吗？'
+
+
+class LittleLegionDropHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【小小军势】吗？'
 

@@ -4,9 +4,9 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import DropCards, Fatetell, FatetellAction, FatetellMalleateHandler
-from gamepack.thb.actions import LaunchCard, PostCardMigrationHandler, UseCard, user_choose_cards
-from gamepack.thb.cards import AttackCard, Skill, TreatAs, VirtualCard, t_None
+from gamepack.thb.actions import DropUsedCard, Fatetell, FatetellAction, FatetellMalleateHandler
+from gamepack.thb.actions import PostCardMigrationHandler, UseCard, user_choose_cards, Damage, migrate_cards, MigrateCardsTransaction
+from gamepack.thb.cards import Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
@@ -32,9 +32,14 @@ class MiracleMalletAction(UseCard):
     def apply_action(self):
         g = Game.getgame()
         c = self.card
-        g.players.exclude(self.source).reveal(c)
-        g.process_action(DropCards(self.source, [c]))
-        self.ft.set_card(c)
+        ft = self.ft
+        src = self.source
+        g.players.exclude(src).reveal(c)
+        with MigrateCardsTransaction() as trans:
+            migrate_cards([ft.card], src.cards, trans=trans)
+            migrate_cards([c], g.deck.disputed, trans=trans)
+            self.ft.set_card(c)
+
         return True
 
 
@@ -69,10 +74,6 @@ class MiracleMalletHandler(EventHandler):
         return MiracleMalletAction(p, act.target, act, cl[0]).can_fire()
 
 
-class VengeOfTskumogamiAttack(TreatAs, VirtualCard):
-    treat_as = AttackCard
-
-
 class VengeOfTsukumogamiAction(FatetellAction):
     def __init__(self, source, target, card):
         self.source = source
@@ -82,40 +83,46 @@ class VengeOfTsukumogamiAction(FatetellAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
-        ft = Fatetell(tgt, lambda c: c.number > 9)
+        ft = Fatetell(src, lambda c: 9 <= c.number <= 13)
         g = Game.getgame()
         if g.process_action(ft):
-            g.process_action(LaunchCard(src, [tgt], VengeOfTskumogamiAttack(src), bypass_check=True))
+            g.process_action(Damage(src, tgt, 1))
 
         return True
 
 
 class VengeOfTsukumogamiHandler(EventHandler):
+    interested = ('post_card_migration',)
     group = PostCardMigrationHandler
 
-    def handle(self, p, cards, _from, to):
-        if not p.has_skill(VengeOfTsukumogami): return True
-
-        if _from is None or _from.type != 'equips':
+    def handle(self, p, trans):
+        if not p.has_skill(VengeOfTsukumogami):
             return True
 
-        if _from.owner is p:
+        if isinstance(trans.action, DropUsedCard):
             return True
 
-        if to.type != 'droppedcard':
-            return True
+        for cards, _from, to in trans:
+            if _from is None or _from.type != 'equips':
+                continue
 
-        self.target = tgt = _from.owner
-        for c in cards:
-            self.card = c
+            if _from.owner is p:
+                continue
 
-            if tgt.dead:
-                break
+            if to.type != 'droppedcard':
+                continue
 
-            if not user_input([p], ChooseOptionInputlet(self, (False, True))):
-                break
+            self.target = tgt = _from.owner
+            for c in cards:
+                self.card = c
 
-            Game.getgame().process_action(VengeOfTsukumogamiAction(p, tgt, c))
+                if tgt.dead:
+                    break
+
+                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                    break
+
+                Game.getgame().process_action(VengeOfTsukumogamiAction(p, tgt, c))
 
         return True
 

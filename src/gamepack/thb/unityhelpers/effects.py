@@ -83,7 +83,10 @@ def card_migration_instructions(g, args):
     else:
         if to.type in ('droppedcard', 'disputed'):
             if isinstance(act, BaseFatetell):
-                tail += [DUP, DUP, UNGRAY if act.succeeded else GRAY, FATETELL, AREA_DROP, MOVE]
+                if _from.type != 'disputed':
+                    tail += [DUP, DUP, UNGRAY if act.succeeded else GRAY, FATETELL, AREA_DROP, MOVE]
+                else:
+                    return []  # no animation
             else:
                 gray = not isinstance(act, DropUsedCard) and not to.type == 'disputed'
                 tail += [DUP, GRAY if gray else UNGRAY, AREA_DROP, MOVE]

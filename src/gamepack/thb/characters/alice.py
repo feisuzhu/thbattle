@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import DrawCards, DropCardStage, DropCards, UserAction, random_choose_card
-from ..actions import user_choose_players
+from ..actions import user_choose_players, PostCardMigrationHandler
 from ..cards import Skill, t_None
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from baseclasses import Character, register_character
@@ -44,8 +44,8 @@ class LittleLegionAction(UserAction):
         return True
 
 
-class LittleLegionHandler(EventHandler):
-    interested = ('choose_target', 'post_card_migration')
+class LittleLegionDrawHandler(EventHandler):
+    interested = ('choose_target',)
 
     def handle(self, evt_type, arg):
         if evt_type == 'choose_target':
@@ -59,22 +59,34 @@ class LittleLegionHandler(EventHandler):
             g = Game.getgame()
             g.process_action(LittleLegionDrawCards(src, 1))
 
-        elif evt_type == 'post_card_migration':
-            pl = set([_from.owner for _, _from, _ in arg
-                      if _from is not None and _from.type == 'equips'])
-            pl = [p for p in pl if p.has_skill(LittleLegion) and not p.dead]
-
-            g = Game.getgame()
-            for p in pl:
-                self.source = p
-                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
-                    continue
-                tl = user_choose_players(self, p, g.players.exclude(p))
-                if tl:
-                    assert len(tl) == 1
-                    g.process_action(LittleLegionAction(p, tl[0]))
-
         return arg
+
+
+class LittleLegionDropHandler(EventHandler):
+    interested = ('post_card_migration',)
+    group = PostCardMigrationHandler
+
+    def handle(self, p, arg):
+        if not p.has_skill(LittleLegion):
+            return True
+
+        equips = p.equips
+        if not any(_from is equips
+                   for _, _from, _ in arg):
+
+            return True
+
+        g = Game.getgame()
+        self.source = p
+        if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+            return True
+
+        tl = user_choose_players(self, p, g.players.exclude(p))
+        if tl:
+            assert len(tl) == 1
+            g.process_action(LittleLegionAction(p, tl[0]))
+
+        return True
 
     def cond(self, cl):
         return True
@@ -112,5 +124,5 @@ class MaidensBunrakuHandler(EventHandler):
 @register_character
 class Alice(Character):
     skills = [LittleLegion, MaidensBunraku]
-    eventhandlers_required = [LittleLegionHandler, MaidensBunrakuHandler]
+    eventhandlers_required = [LittleLegionDrawHandler, LittleLegionDropHandler, MaidensBunrakuHandler]
     maxlife = 3

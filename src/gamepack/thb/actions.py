@@ -252,15 +252,12 @@ class PostCardMigrationHandler(EventHandlerGroup):
         if evt_type != 'post_card_migration': return arg
 
         g = Game.getgame()
+        act = arg.action
+        tgt = act.target or act.source or g.players[0]
 
-        for cards, _from, to in arg:
-            start = _from.owner if _from is not None else g.current_turn
-            start = start or g.players[0]
-
-            for p in g.players.rotate_to(start):
-                for eh in self.handlers:
-                    rst = g.handle_single_event(eh, p, cards, _from, to)
-                    assert rst is True, 'Not supposed to do magic things here.'
+        for p in g.players.rotate_to(tgt):
+            for eh in self.handlers:
+                g.handle_single_event(eh, p, arg)
 
         return arg
 
@@ -861,8 +858,9 @@ class BaseFatetell(GenericAction):
         card, = g.deck.getcards(1)
         g.players.reveal(card)
         self.card = card
-        migrate_cards([card], g.deck.droppedcards)
+        migrate_cards([card], g.deck.disputed)
         g.emit_event(self.type, self)
+        migrate_cards([self.card], g.deck.droppedcards)
         return self.succeeded
 
     def set_card(self, card):

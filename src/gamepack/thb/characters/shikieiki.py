@@ -4,8 +4,8 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import Damage, DropCards, FatetellMalleateHandler, UseCard, UserAction
-from gamepack.thb.actions import migrate_cards, user_choose_cards
+from gamepack.thb.actions import Damage, FatetellMalleateHandler, UseCard, UserAction
+from gamepack.thb.actions import migrate_cards, user_choose_cards, MigrateCardsTransaction
 from gamepack.thb.cards import Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -32,9 +32,13 @@ class TrialAction(UseCard):
     def apply_action(self):
         g = Game.getgame()
         c = self.card
+        ft = self.ft
         g.players.exclude(self.source).reveal(c)
-        g.process_action(DropCards(self.source, [c]))
-        self.ft.set_card(c)
+        with MigrateCardsTransaction() as trans:
+            migrate_cards([ft.card], g.deck.droppedcards, trans=trans)
+            migrate_cards([c], g.deck.disputed, trans=trans)
+            self.ft.set_card(c)
+
         return True
 
 
