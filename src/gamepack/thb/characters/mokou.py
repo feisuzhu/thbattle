@@ -86,7 +86,7 @@ class RebornHandler(EventHandler):
             return False
 
         for card in cards:
-            if card.color != Card.RED:
+            if card.color != Card.RED or card.is_card(Skill):
                 return False
 
             if card.resides_in.type not in ('cards', 'showncards', 'equips'):

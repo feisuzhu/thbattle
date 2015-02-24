@@ -40,6 +40,9 @@ class DilemmaDamageAction(UserAction):
     def cond(self, cards):
         if len(cards) != 1: return False
         card = cards[0]
+        if card.is_card(Skill):
+            return False
+
         if card.resides_in.type not in (
             'cards', 'showncards', 'equips'
         ): return False
@@ -148,10 +151,10 @@ class ImperishableNightHandler(EventHandler):
         if 'skill' in card.category: return False
         if card.color != Card.RED: return False
         return bool(set(card.category) & {'basic', 'equipment'})
-    
+
     def ask_for_action_verify(self, p, cl, tl):
         tgt = self.target
-        skill = skill_wrap(p, [ImperishableNight], cards, {})
+        skill = skill_wrap(p, [ImperishableNight], cl, {})
         return LaunchCard(p, [tgt], skill).can_fire()
 
 

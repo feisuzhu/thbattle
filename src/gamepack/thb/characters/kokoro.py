@@ -39,6 +39,7 @@ class HopeMaskAction(UserAction):
 
 class HopeMaskHandler(EventHandler):
     interested = ('action_apply',)
+
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
             tgt = act.target
@@ -91,8 +92,7 @@ class DarkNohAction(UserAction):
         if len(cards) != self.n or self.card in cards:
             return False
 
-        tgt = self.target
-        if not all([c in tgt.cards or c in tgt.showncards for c in cards]):
+        if any([c.is_card(Skill) for c in cards]):
             return False
 
         return True

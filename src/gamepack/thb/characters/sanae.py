@@ -6,7 +6,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import DrawCards, ForEach, GenericAction, UserAction, migrate_cards
 from gamepack.thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
-from gamepack.thb.cards import Heal, Skill, VirtualCard, t_Self
+from gamepack.thb.cards import Heal, Skill, t_Self
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
@@ -76,7 +76,7 @@ class SanaeFaithCollectCardAction(GenericAction):
     def cond(self, cl):
         return len(cl) == 1 and \
             cl[0].resides_in.type in ('cards', 'showncards') and \
-            not cl[0].is_card(VirtualCard)
+            not cl[0].is_card(Skill)
 
 
 class SanaeFaithReturnCardAction(GenericAction):
@@ -96,7 +96,7 @@ class SanaeFaithReturnCardAction(GenericAction):
         return True
 
     def cond(self, cl):
-        return len(cl) == 1 and not cl[0].is_card(VirtualCard)
+        return len(cl) == 1 and not cl[0].is_card(Skill)
 
 
 class SanaeFaithAction(UserAction):

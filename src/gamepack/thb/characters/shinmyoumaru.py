@@ -59,7 +59,7 @@ class MiracleMalletHandler(EventHandler):
         return act
 
     def cond(self, cards):
-        if len(cards) != 1:
+        if len(cards) != 1 or cards[0].is_card(Skill):
             return False
 
         return cards[0].number > self.number

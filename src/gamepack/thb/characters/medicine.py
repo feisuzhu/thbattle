@@ -65,7 +65,7 @@ class CiguateraTurnEnd(GenericAction):
         return True
 
     def cond(self, cl):
-        return len(cl) == 1
+        return len(cl) == 1 and not cl[0].is_card(Skill)
 
     def is_valid(self):
         return self.source.tags.get('wine', False)
@@ -97,7 +97,7 @@ class CiguateraHandler(EventHandler):
         return act
 
     def cond(self, cl):
-        if len(cl) != 1:
+        if len(cl) != 1 or cl[0].is_card(Skill):
             return False
 
         return cl[0].resides_in.type in ('cards', 'showncards')

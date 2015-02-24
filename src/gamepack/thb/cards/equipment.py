@@ -622,8 +622,7 @@ class Hakurouken(GenericAction):
         return True
 
     def cond(self, cards):
-        tgt = self.target
-        return len(cards) == 1 and cards[0].resides_in in (tgt.cards, tgt.showncards)
+        return len(cards) == 1 and not cards[0].is_card(Skill)
 
 
 @register_eh
@@ -699,7 +698,9 @@ class AyaRoundfanHandler(EventHandler):
         return act
 
     def cond(self, cards):
-        if not len(cards) == 1: return False
+        if not len(cards) == 1 or cards[0].is_card(Skill):
+            return False
+
         return cards[0].resides_in.type in ('cards', 'showncards')
 
 
@@ -751,10 +752,12 @@ class LaevateinHandler(EventHandler):
         ) for c in cards): return False
 
         from ..cards import LaevateinCard
-        if any(
-            c.resides_in.type == 'equips' and c.is_card(LaevateinCard)
-            for c in cards
-        ): return False
+        if any(c.resides_in.type == 'equips'
+               and c.is_card(LaevateinCard)
+               or c.is_card(Skill)
+               for c in cards):
+
+            return False
 
         return True
 

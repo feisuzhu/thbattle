@@ -62,10 +62,10 @@ class SentryHandler(EventHandler):
     def cond(self, cl):
         if not len(cl) == 1: return False
         c = cl[0]
-        if not (c.is_card(AttackCard) or c.suit == Card.CLUB):
-            return False
+        if c.is_card(AttackCard):
+            return True
 
-        return True
+        return not c.is_card(Skill) and c.suit == Card.CLUB
 
     def ask_for_action_verify(self, p, cl, tl):
         c = SentryAttack.wrap(cl, p)

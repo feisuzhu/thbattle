@@ -42,8 +42,7 @@ class DivinityAction(UserAction):
         if not all(c.resides_in in (tgt.cards, tgt.showncards, tgt.equips) for c in cl):
             return False
 
-        from ..cards import VirtualCard
-        if any(c.is_card(VirtualCard) for c in cl):
+        if any(c.is_card(Skill) for c in cl):
             return False
 
         return True
@@ -51,6 +50,7 @@ class DivinityAction(UserAction):
 
 class DivinityHandler(EventHandler):
     interested = ('action_apply',)
+
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, DrawCardStage):
             tgt = act.target
@@ -133,7 +133,7 @@ class VirtueHandler(EventHandler):
         return arg
 
     def cond(self, cl):
-        return len(cl) == 1 and cl[0].resides_in.type in ('cards', 'showncards')
+        return len(cl) == 1 and not cl[0].is_card(Skill)
 
     def choose_player_target(self, tl):
         if not tl:

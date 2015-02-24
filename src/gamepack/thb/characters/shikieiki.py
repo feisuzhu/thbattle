@@ -61,7 +61,7 @@ class TrialHandler(EventHandler):
         return act
 
     def cond(self, cards):
-        return len(cards) == 1
+        return len(cards) == 1 and not cards[0].is_card(Skill)
 
     def ask_for_action_verify(self, p, cl, tl):
         act = self.act

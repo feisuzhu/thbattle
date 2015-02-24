@@ -8,7 +8,6 @@ from ..actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards, 
 from ..actions import LaunchCard, UserAction, ask_for_action, migrate_cards, random_choose_card
 from ..actions import register_eh, user_choose_cards
 from ..inputlets import ChooseIndividualCardInputlet, ChoosePeerCardInputlet
-from .base import VirtualCard
 from game import sync_primitive
 from game.autoenv import EventHandler, Game, InputTransaction, user_input
 from utils import BatchList, CheckFailed, check, flatten
@@ -461,9 +460,10 @@ class DonationBoxEffect(InstantSpellCardAction):
         return True
 
     def cond(self, cards):
+        from .base import Skill
         return len(cards) == 1 and cards[0].resides_in.type in (
             'cards', 'showncards', 'equips'
-        ) and not isinstance(cards[0], VirtualCard)
+        ) and not cards[0].is_card(Skill)
 
     def is_valid(self):
         t = self.target
