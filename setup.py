@@ -21,6 +21,7 @@ install_requires = [
 entry_points = {
     'console_scripts': [
         'aya = aya.aya:main',
+        'ayacharger = aya.charger:main',
         'forum_noti = aya.forum_noti:forum_noti',
         'services_events = services.events:main',
         'services_member = services.member:main',

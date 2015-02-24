@@ -213,11 +213,10 @@ class Aya(QQBot):
 
         with member_client_pool() as cli:
             member = cli.get_user_info(uid)
-            if member['credits'] < 10:
+            if member['credits'] < 0:
                 group_uin and self.send_group_message(group_uin, insufficient_funds_text)
                 return
 
-            cli.add_credit(uid, 'credits', -10)
             interconnect.publish('speaker', [member['username'], content])
 
 

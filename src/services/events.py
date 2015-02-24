@@ -130,7 +130,7 @@ def speaker():
 
     message = request.forms.get('message').decode('utf-8', 'ignore')
     username = member['username'].decode('utf-8', 'ignore')
-    member_service.add_credit(member['uid'], 'credits', -10)
+    # member_service.add_credit(member['uid'], 'credits', -10)
 
     interconnect.publish('speaker', [username, message])
 
