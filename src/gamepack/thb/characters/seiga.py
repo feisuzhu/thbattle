@@ -6,7 +6,7 @@
 from ..actions import ForEach, GenericAction, LaunchCard, UserAction
 from ..cards import AttackCard, AttackCardHandler, Skill
 from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
 
 
@@ -109,7 +109,7 @@ class Heterodoxy(Skill):
             return [tl[0]] + _tl, valid
 
 
-@register_character
+@register_character_to('common', '-kof', '-kof_simple')
 class Seiga(Character):
     skills = [Heterodoxy]
     eventhandlers_required = [HeterodoxyHandler]

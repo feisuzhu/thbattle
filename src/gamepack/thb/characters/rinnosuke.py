@@ -5,7 +5,7 @@
 # -- own --
 from ..actions import DrawCards, UserAction
 from ..cards import Heal, Skill, t_None, t_OtherOne
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game
 
 
@@ -68,7 +68,7 @@ class PsychopathHandler(EventHandler):
         return args
 
 
-@register_character
+@register_character_to('common', '-kof_simple')
 class Rinnosuke(Character):
     skills = [Netoru, Psychopath]
     eventhandlers_required = [PsychopathHandler]

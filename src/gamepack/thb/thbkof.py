@@ -90,13 +90,22 @@ class THBattleKOF(Game):
     game_ehs   = _game_ehs
     params_def = {
         'no_imba': (True, False),
+        'simple': (True, False),
     }
 
     def game_start(g, params):
         # game started, init state
-        from cards import Deck
+        from . import cards
 
-        g.deck = Deck()
+        if params['simple']:
+            deckdef = cards.kof_simple_card_definition
+            modename = 'kof_simple'
+
+        else:
+            deckdef = cards.card_definition
+            modename = 'kof'
+
+        g.deck = cards.Deck(deckdef)
 
         g.ehclasses = []
 
@@ -106,7 +115,7 @@ class THBattleKOF(Game):
 
         # choose girls -->
         from characters import get_characters
-        chars = get_characters('kof' if params['no_imba'] else 'kofall')
+        chars = get_characters(modename if params['no_imba'] else 'kofall')
 
         testing = list(settings.TESTING_CHARACTERS)
         testing = filter_out(chars, lambda c: c.__name__ in testing)

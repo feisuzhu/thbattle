@@ -58,7 +58,7 @@ class Medic(Skill):
         return False
 
 
-@register_character_to('common', '-kof')
+@register_character_to('common', '-kof', '-kof_simple')
 class Eirin(Character):
     skills = [Medic, FirstAid]
     eventhandlers_required = []

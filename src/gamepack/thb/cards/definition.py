@@ -377,7 +377,7 @@ class GrimoireCard:
 
 # ==================================================
 
-__metaclass__ = type
+del __metaclass__
 
 SPADE, HEART, CLUB, DIAMOND = Card.SPADE, Card.HEART, Card.CLUB, Card.DIAMOND
 A, J, Q, K = 1, 11, 12, 13
@@ -547,5 +547,123 @@ card_definition = [
 # ANCHOR(card)
 card_definition = [
 ] * 1000 or card_definition
+
+kof_simple_card_definition = [
+    # ======= Spade =======
+    (SinsackCard, SPADE, A),
+    (DeathSickleCard, SPADE, 2),
+    (RepentanceStickCard, SPADE, 3),
+    (AttackCard, SPADE, 4),
+    (HakuroukenCard, SPADE, 5),
+    (GungnirCard, SPADE, 6),
+    (SinsackCarnivalCard, SPADE, 7),
+    (AttackCard, SPADE, 8),
+    (IceWingCard, SPADE, 9),
+    (SealingArrayCard, SPADE, 10),
+    (AttackCard, SPADE, J),
+    (AttackCard, SPADE, Q),
+    (AttackCard, SPADE, K),
+
+    (DuelCard, SPADE, A),
+    (OpticalCloakCard, SPADE, 2),
+    (DemolitionCard, SPADE, 3),
+    (DemolitionCard, SPADE, 4),
+    (YukariDimensionCard, SPADE, 5),
+    (YukariDimensionCard, SPADE, 6),
+    (AttackCard, SPADE, 7),
+    (AttackCard, SPADE, 8),
+    (AttackCard, SPADE, 9),
+    (AttackCard, SPADE, 10),
+    (AttackCard, SPADE, J),
+    (AttackCard, SPADE, Q),
+    (RejectCard, SPADE, K),
+
+    # ======= Heart =======
+    (FeastCard, HEART, A),
+    (GrazeCard, HEART, 2),
+    (HealCard, HEART, 3),
+    (HarvestCard, HEART, 4),
+    (AyaRoundfanCard, HEART, 5),
+    (AttackCard, HEART, 6),
+    (NazrinRodCard, HEART, 7),
+    (NazrinRodCard, HEART, 8),
+    (NazrinRodCard, HEART, 9),
+    (SealingArrayCard, HEART, 10),
+    (AttackCard, HEART, J),
+    (DemolitionCard, HEART, Q),
+    (RejectCard, HEART, K),
+
+    (MapCannonCard, HEART, A),
+    (RejectCard, HEART, 2),
+    (GrazeCard, HEART, 3),
+    (GrazeCard, HEART, 4),
+    (HealCard, HEART, 5),
+    (HealCard, HEART, 6),
+    (HealCard, HEART, 7),
+    (HealCard, HEART, 8),
+    (GrazeCard, HEART, 9),
+    (AttackCard, HEART, 10),
+    (AttackCard, HEART, J),
+    (GrazeCard, HEART, Q),
+    (SinsackCard, HEART, K),
+
+    # ======= Club =======
+    (YoumuPhantomCard, CLUB, A),
+    (AttackCard, CLUB, 2),
+    (AttackCard, CLUB, 3),
+    (DemolitionCard, CLUB, 4),
+    (FrozenFrogCard, CLUB, 5),
+    (AttackCard, CLUB, 6),
+    (AttackCard, CLUB, 7),
+    (DemolitionCard, CLUB, 8),
+    (WineCard, CLUB, 9),
+    (AttackCard, CLUB, 10),
+    (AttackCard, CLUB, J),
+    (ExinwanCard, CLUB, Q),
+    (DollControlCard, CLUB, K),
+
+    (SuwakoHatCard, CLUB, A),
+    (UmbrellaCard, CLUB, 2),
+    (AttackCard, CLUB, 3),
+    (AttackCard, CLUB, 4),
+    (FrozenFrogCard, CLUB, 5),
+    (AttackCard, CLUB, 6),
+    (AttackCard, CLUB, 7),
+    (AttackCard, CLUB, 8),
+    (AttackCard, CLUB, 9),
+    (AttackCard, CLUB, 10),
+    (AttackCard, CLUB, J),
+    (RejectCard, CLUB, Q),
+    (DuelCard, CLUB, K),
+
+    # ======= Diamond =======
+    (DuelCard, DIAMOND, A),
+    (GrazeCard, DIAMOND, 2),
+    (HealCard, DIAMOND, 3),
+    (AttackCard, DIAMOND, 4),
+    (LaevateinCard, DIAMOND, 5),
+    (YukariDimensionCard, DIAMOND, 6),
+    (AttackCard, DIAMOND, 7),
+    (GrazeCard, DIAMOND, 8),
+    (WineCard, DIAMOND, 9),
+    (NenshaPhoneCard, DIAMOND, 10),
+    (GrazeCard, DIAMOND, J),
+    (HealCard, DIAMOND, Q),
+    (GrazeCard, DIAMOND, K),
+
+    (DuelCard, DIAMOND, A),
+    (GrazeCard, DIAMOND, 2),
+    (GrazeCard, DIAMOND, 3),
+    (HealCard, DIAMOND, 4),
+    (YukariDimensionCard, DIAMOND, 5),
+    (GrazeCard, DIAMOND, 6),
+    (GrazeCard, DIAMOND, 7),
+    (GrazeCard, DIAMOND, 8),
+    (GrazeCard, DIAMOND, 9),
+    (AttackCard, DIAMOND, 10),
+    (ExinwanCard, DIAMOND, J),
+    (RejectCard, DIAMOND, Q),
+    (GrazeCard, DIAMOND, K),
+]
 
 del A, J, Q, K

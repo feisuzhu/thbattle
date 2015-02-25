@@ -85,6 +85,14 @@ class THBattleKOF:
                 (u'允许', False),
             ],
         },
+
+        'simple': {
+            'desc': u'简化牌堆',
+            'options': [
+                (u'简化', True),
+                (u'标准', False),
+            ],
+        },
     }
 
     def ui_class():

@@ -7,7 +7,7 @@ from ..actions import DrawCards, ForEach, LaunchCard, UserAction
 from ..cards import AttackCard, DollControlCard, Heal, InstantSpellCardAction, RejectCard, Skill
 from ..cards import t_OtherOne
 from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
 
 
@@ -93,8 +93,8 @@ class ShikigamiAction(UserAction):
 
         g = Game.getgame()
 
-        if tgt.life < tgt.maxlife and user_input([tgt],
-            ChooseOptionInputlet(self, (False, True))
+        if tgt.life < tgt.maxlife and user_input(
+            [tgt], ChooseOptionInputlet(self, (False, True))
         ):
             g.process_action(Heal(src, tgt))
         else:
@@ -146,7 +146,7 @@ class ShikigamiHandler(EventHandler):
         return arg
 
 
-@register_character
+@register_character_to('common', '-kof', '-kof_simple')
 class Chen(Character):
     skills = [FlyingSkanda, Shikigami]
     eventhandlers_required = [FlyingSkandaHandler, ShikigamiHandler]

@@ -5,7 +5,7 @@
 # -- own --
 from ..actions import PlayerRevive, UserAction, migrate_cards
 from ..cards import Card, GreenUFOSkill, RejectCard, Skill, TreatAs, UFOSkill, t_None
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game
 
 
@@ -131,7 +131,7 @@ class TributeHandler(EventHandler):
                 pass
 
 
-@register_character
+@register_character_to('common', '-kof_simple')
 class Reimu(Character):
     # skills = [SealingArraySkill, Flight, TributeTarget]
     skills = [SpiritualAttack, Flight]
