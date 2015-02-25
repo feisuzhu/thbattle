@@ -62,6 +62,12 @@ class Account(AccountBase):
             return acc
 
     @server_side_only
+    def refresh(self):
+        with clipool() as cli:
+            member = cli.get_user_info(self.userid)
+            member and self._fill_account(member)
+
+    @server_side_only
     def _fill_account(self, data):
         self.username = data['username'].decode('utf-8')
         self.status = data['status']

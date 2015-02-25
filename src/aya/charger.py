@@ -24,6 +24,7 @@ from utils.rpc import RPCClient
 # -- code --
 member_service = None
 log = None
+interconnect = None
 history = defaultdict(lambda: (0, 5))
 
 
@@ -43,9 +44,11 @@ def charge(username, message):
     l = len(message)
 
     fee += 0 if l < 40 else (l - 40) * 1
-    log.info('Charge %s for %s' % (username, fee))
     history[uid] = (now, min(fee * 2, 500))
-    member_service.add_credit(user['uid'], 'credits', -int(fee))
+    fee  = int(fee)
+    log.info('Charge %s for %s' % (username, fee))
+    member_service.add_credit(user['uid'], 'credits', -fee)
+    interconnect.publish('aya_charge', [uid, fee])
 
 
 class Interconnect(Interconnect):

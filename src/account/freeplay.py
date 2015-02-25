@@ -40,5 +40,9 @@ class Account(AccountBase):
         pass
 
     @server_side_only
+    def refresh(self):
+        pass
+
+    @server_side_only
     def is_maoyu(self):
         return False

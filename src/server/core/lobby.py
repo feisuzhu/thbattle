@@ -1403,6 +1403,13 @@ if options.interconnect:
                 message.insert(0, node)
                 Pool(5).map_async(lambda u: u.write(['speaker_msg', message]), lobby.users.values())
 
+            elif topic == 'aya_charge':
+                uid, fee = message
+                user = lobby.users.get(uid)
+                if not user: return
+                gevent.spawn(user.account.refresh)
+                gevent.spawn(user.write, ['system_msg', [None, u'此次文文新闻收费 %s 节操' % int(fee)]])
+
     interconnect = InterconnectHandler.spawn(options.node, options.redis_url)
 
 else:

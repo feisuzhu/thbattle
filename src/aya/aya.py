@@ -63,11 +63,20 @@ class AyaDAO(object):
         except:
             return None
 
+    def get_binding_r(self, uid):
+        rst = self.redis.hget('aya:binding_r', int(uid))
+        try:
+            return int(rst)
+        except:
+            return None
+
     def get_all_bindings(self):
         return self.redis.hgetall('aya:binding')
 
     def set_binding(self, qq, uid):
-        self.redis.hset('aya:binding', int(qq), int(uid))
+        qq, uid = int(qq), int(uid)
+        self.redis.hset('aya:binding', qq, uid)
+        self.redis.hset('aya:binding_r', uid, qq)
 
     def is_group_on(self, group_num):
         return self.redis.sismember('aya:group_on', int(group_num))
@@ -252,6 +261,15 @@ class AyaInterconnect(Interconnect):
             C = aya.qq2uin_bycache
             aya.send_buddy_message(C(84065234), message)
             aya.send_buddy_message(C(402796982), message)
+
+        elif topic == 'aya_charge':
+            uid, fee = message
+            if fee < 50: return
+            qq = dao.get_binding_r(uid)
+            if not uid: return
+            uin = aya.qq2uin_bycache(qq)
+            if not uin: return
+            aya.send_buddy_message(uin, u'此次文文新闻收费 %s 节操。' % int(fee))
 
     def publish(self, topic, data):
         lock = self.lock
