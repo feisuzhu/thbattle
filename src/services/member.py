@@ -296,6 +296,18 @@ class MemberService(RPCService):
 
         return self.get_user_info(uid)
 
+    @clear_session
+    def touch_lastactivity(self, uid):
+        uid = int(uid)
+        if uid < 0:
+            return
+
+        session.execute(text('''
+            UPDATE pre_common_member_status
+            SET lastactivity = UNIX_TIMESTAMP()
+            WHERE uid=:uid
+        '''), {'uid': int(uid)})
+
     del clear_session
 
 

@@ -56,6 +56,9 @@ class Account(AccountBase):
 
             acc = cls()
             acc._fill_account(member)
+
+            cli.touch_lastactivity(acc.userid)
+
             return acc
 
     @server_side_only
