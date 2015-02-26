@@ -54,22 +54,30 @@ class DeathHandler(EventHandler):
                 if p.dead:
                     deads[p.identity.type].append(p)
 
-            # boss & accomplices' win
-            if len(deads[T.ATTACKER]) == g.identities.count(T.ATTACKER):
-                if len(deads[T.CURTAIN]) == g.identities.count(T.CURTAIN):
-                    pl = g.players
-                    pl.reveal([p.identity for p in g.players])
-
-                    g.winners = [p for p in pl if p.identity.type in (T.BOSS, T.ACCOMPLICE)]
-                    g.game_end()
-
-            # attackers' win
-            if len(deads[T.BOSS]):
+            def winner(*identities):
                 pl = g.players
                 pl.reveal([p.identity for p in g.players])
 
-                g.winners = [p for p in pl if p.identity.type == T.ATTACKER]
+                g.winners = [p for p in pl if p.identity.type in identities]
                 g.game_end()
+
+            def no(identity):
+                return len(deads[identity]) == g.identities.count(identity)
+
+            if g.mode == 'simple':
+                if no(T.ATTACKER) and len(deads[T.BOSS]):
+                    winner(T.CURTAIN)
+
+            # boss & accomplices' win
+            if no(T.ATTACKER) and no(T.CURTAIN):
+                winner(T.BOSS, T.ACCOMPLICE)
+
+            # attackers' win
+            if len(deads[T.BOSS]):
+                if g.mode != 'whoami' or no(T.CURTAIN):
+                    winner(T.ATTACKER)
+                else:
+                    winner(T.CURTAIN)
 
         elif evt_type == 'action_after' and isinstance(act, PlayerDeath):
             T = Identity.TYPE
@@ -107,7 +115,7 @@ class THBattleIdentity(Game):
     n_persons = 8
     character_categories = ('id', 'id8')
     params_def = {
-        'double_curtain': (False, True)
+        'curtain': ('double', 'whoami', 'simple'),
     }
     T = Identity.TYPE
     identities = [
@@ -125,7 +133,9 @@ class THBattleIdentity(Game):
 
         g.ehclasses = ehclasses = list(action_eventhandlers) + _game_ehs.values()
 
-        if params.get('double_curtain'):
+        g.mode = params.get('curtain', 'double')
+
+        if g.mode == 'double':
             g.identities = g.identities[1:] + g.identities[-1:]
 
         # choose girls init -->
