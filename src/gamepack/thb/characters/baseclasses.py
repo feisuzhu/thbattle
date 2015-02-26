@@ -5,7 +5,7 @@ from collections import defaultdict
 
 # -- third party --
 # -- own --
-from game.autoenv import GameObject
+from game.autoenv import GameObject, Game
 
 # -- code --
 # common, id8, faith, kof, 3v3, testing
@@ -81,6 +81,10 @@ def get_characters(*cats, **kwargs):
 
 def mixin_character(player, char_cls):
     assert issubclass(char_cls, Character)
+
+    g = Game.getgame()
+    player.index = g.get_playerid(player)
+
     old = None
     if isinstance(player, Character):
         old = player.__class__

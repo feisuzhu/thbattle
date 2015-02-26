@@ -270,6 +270,8 @@ class Action(GameObject):
 
 
 class AbstractPlayer(GameObject):
+    index = None
+
     def reveal(self, obj_list):
         raise GameError('Abstract')
 
@@ -327,6 +329,19 @@ class Game(GameObject):
             self.adhoc_ehs.remove(eh)
         except ValueError:
             pass
+
+    def players_from(g, p):
+        if p is None:
+            id = 0
+        elif p in g.players:
+            id = g.get_playerid(p)
+        else:
+            id = p.index
+
+        n = len(g.players)
+
+        for i in range(id, n) + range(id):
+            yield g.players[i]
 
     def game_start(g, params):
         '''

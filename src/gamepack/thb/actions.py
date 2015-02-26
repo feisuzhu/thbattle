@@ -255,7 +255,7 @@ class PostCardMigrationHandler(EventHandlerGroup):
         act = arg.action
         tgt = act.target or act.source or g.players[0]
 
-        for p in g.players.rotate_to(tgt):
+        for p in g.players_from(tgt):
             for eh in self.handlers:
                 g.handle_single_event(eh, p, arg)
 
@@ -348,13 +348,9 @@ class TryRevive(GenericAction):
     def __init__(self, target, dmgact):
         self.source = self.target = target
         self.dmgact = dmgact
-        g = Game.getgame()
         if target.dead:
             log.error('TryRevive buggy condition, __init__')
             return
-        self.asklist = BatchList(
-            p for p in g.players if not p.dead
-        ).rotate_to(target)
 
     def apply_action(self):
         tgt = self.target
@@ -371,16 +367,20 @@ class TryRevive(GenericAction):
 
         tgt.tags['in_tryrevive'] = True
         g = Game.getgame()
-        pl = self.asklist
         from .cards import AskForHeal
-        for p in pl:
+        for p in g.players_from(tgt):
             while True:
+                if p.dead:
+                    break
+
                 if g.process_action(AskForHeal(tgt, p)):
                     if tgt.life > 0:
                         tgt.tags['in_tryrevive'] = False
                         return True
                     continue
+
                 break
+
         tgt.tags['in_tryrevive'] = False
         return tgt.life > 0
 
@@ -887,7 +887,7 @@ class FatetellMalleateHandler(EventHandlerGroup):
         if evt_type != 'fatetell': return data
 
         g = Game.getgame()
-        for p in g.players.rotate_to(g.current_turn):
+        for p in g.players_from(g.current_turn):
             for eh in self.handlers:
                 data = g.handle_single_event(eh, p, data)
 
