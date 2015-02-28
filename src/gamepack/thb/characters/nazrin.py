@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Fatetell, FatetellAction, FatetellStage, migrate_cards
+from ..actions import FatetellAction, FatetellStage, migrate_cards
 from ..cards import Card, GrazeCard, Skill, TreatAs, t_None
 from ..inputlets import ChooseOptionInputlet
 from .baseclasses import Character, register_character
@@ -12,13 +12,16 @@ from game.autoenv import EventHandler, Game, user_input
 
 # -- code --
 class TreasureHunt(FatetellAction):
-    def apply_action(self):
-        tgt = self.target
-        ft = Fatetell(tgt, lambda c: c.suit in (Card.SPADE, Card.CLUB))
-        g = Game.getgame()
-        if g.process_action(ft):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+        self.fatetell_target = target
+        self.fatetell_cond = lambda c: c.color == Card.BLACK
+
+    def fatetell_action(self, ft):
+        if ft.succeeded:
             self.card = c = ft.card
-            migrate_cards([c], tgt.cards)
+            migrate_cards([c], self.target.cards)
             return True
 
         return False

@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from . import basic
-from ..actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards, Fatetell, ForEach
+from ..actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards, FatetellAction, ForEach
 from ..actions import LaunchCard, UserAction, ask_for_action, migrate_cards, random_choose_card
 from ..actions import register_eh, user_choose_cards
 from ..inputlets import ChooseIndividualCardInputlet, ChoosePeerCardInputlet
@@ -151,19 +151,22 @@ class DelayedLaunchCard(UserAction):
         return not self.target.dead
 
 
-class SealingArray(DelayedSpellCardAction):
+class SealingArray(DelayedSpellCardAction, FatetellAction):
     # 封魔阵
-    def apply_action(self):
-        g = Game.getgame()
-        target = self.target
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+        self.fatetell_target = target
+
         from ..cards import Card
-        ft = Fatetell(target, lambda card: card.suit != Card.HEART)
-        g.process_action(ft)
+        self.fatetell_cond = lambda card: card.suit != Card.HEART
+
+    def fatetell_action(self, ft):
         if ft.succeeded:
-            target.tags['sealed'] = True
+            self.target.tags['sealed'] = True
             return True
-        else:
-            return False
+
+        return False
 
     def fatetell_postprocess(self):
         g = Game.getgame()
@@ -197,17 +200,22 @@ class SinsackDamage(Damage):
     pass
 
 
-class Sinsack(DelayedSpellCardAction):
+class Sinsack(DelayedSpellCardAction, FatetellAction):
     # 罪袋
-    def apply_action(self):
-        g = Game.getgame()
-        target = self.target
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+        self.fatetell_target = target
+
         from ..cards import Card
-        ft = Fatetell(target, lambda card: card.suit == Card.SPADE and 1 <= card.number <= 8)
-        g.process_action(ft)
+        self.fatetell_cond = lambda c: c.suit == Card.SPADE and 1 <= c.number <= 8
+
+    def fatetell_action(self, ft):
         if ft.succeeded:
-            g.process_action(SinsackDamage(None, target, amount=3))
+            g = Game.getgame()
+            g.process_action(SinsackDamage(None, self.target, amount=3))
             return True
+
         return False
 
     def fatetell_postprocess(self):
@@ -487,19 +495,22 @@ class DonationBox(ForEach):
         return True
 
 
-class FrozenFrog(DelayedSpellCardAction):
+class FrozenFrog(DelayedSpellCardAction, FatetellAction):
     # 冻青蛙
-    def apply_action(self):
-        g = Game.getgame()
-        target = self.target
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+        self.fatetell_target = target
+
         from ..cards import Card
-        ft = Fatetell(target, lambda card: card.suit != Card.SPADE)
-        g.process_action(ft)
+        self.fatetell_cond = lambda c: c.suit != Card.SPADE
+
+    def fatetell_action(self, ft):
         if ft.succeeded:
-            target.tags['freezed'] = True
+            self.target.tags['freezed'] = True
             return True
-        else:
-            return False
+
+        return False
 
     def fatetell_postprocess(self):
         g = Game.getgame()

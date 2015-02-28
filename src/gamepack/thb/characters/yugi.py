@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DropCards, Fatetell, FatetellAction
+from ..actions import DropCards, FatetellAction
 from ..cards import BaseAttack, Card, InevitableAttack, RedUFOSkill, Skill, t_None
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from .baseclasses import Character, register_character
@@ -28,16 +28,16 @@ class FreakingPower(FatetellAction):
         self.atkact = atkact
         self.source = atkact.source
         self.target = atkact.target
+        self.fatetell_target = atkact.target
+        self.fatetell_cond = lambda c: c.color == Card.RED
 
-    def apply_action(self):
+    def fatetell_action(self, ft):
         act = self.atkact
-        src = act.source
-        ft = Fatetell(src, lambda c: c.suit in (Card.HEART, Card.DIAMOND))
-        g = Game.getgame()
-        if g.process_action(ft):
+        if ft.succeeded:
             act.__class__ = classmix(InevitableAttack, act.__class__)
         else:
             act.yugifptag = True
+
         return True
 
 

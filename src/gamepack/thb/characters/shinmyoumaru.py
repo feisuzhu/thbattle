@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import DropUsedCard, Fatetell, FatetellAction, FatetellMalleateHandler
+from gamepack.thb.actions import DropUsedCard, FatetellAction, FatetellMalleateHandler
 from gamepack.thb.actions import PostCardMigrationHandler, UseCard, user_choose_cards, Damage, migrate_cards, MigrateCardsTransaction
 from gamepack.thb.cards import Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
@@ -36,7 +36,7 @@ class MiracleMalletAction(UseCard):
         src = self.source
         g.players.exclude(src).reveal(c)
         with MigrateCardsTransaction() as trans:
-            migrate_cards([ft.card], src.cards, trans=trans)
+            migrate_cards([ft.card], src.cards, unwrap=True, trans=trans)
             migrate_cards([c], g.deck.disputed, trans=trans)
             self.ft.set_card(c)
 
@@ -79,14 +79,12 @@ class VengeOfTsukumogamiAction(FatetellAction):
         self.source = source
         self.target = target
         self.card = card
+        self.fatetell_target = source
+        self.fatetell_cond = lambda c: 9 <= c.number <= 13
 
-    def apply_action(self):
-        src = self.source
-        tgt = self.target
-        ft = Fatetell(src, lambda c: 9 <= c.number <= 13)
-        g = Game.getgame()
-        if g.process_action(ft):
-            g.process_action(Damage(src, tgt, 1))
+    def fatetell_action(self, ft):
+        if ft.succeeded:
+            Game.getgame().process_action(Damage(self.source, self.target))
 
         return True
 

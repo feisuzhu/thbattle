@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from . import basic, spellcard
-from ..actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards, Fatetell, FatetellAction, ForEach
+from ..actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards, FatetellAction, ForEach
 from ..actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction, PlayerTurn
 from ..actions import UserAction, migrate_cards, random_choose_card, register_eh, user_choose_cards
 from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -68,11 +68,13 @@ class OpticalCloakSkill(TreatAs, ShieldSkill):  # just a tag
 
 class OpticalCloak(FatetellAction):
     # 光学迷彩
-    def apply_action(self):
-        g = Game.getgame()
-        target = self.target
-        ft = Fatetell(target, lambda card: card.suit in (Card.HEART, Card.DIAMOND))
-        g.process_action(ft)
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+        self.fatetell_target = target
+        self.fatetell_cond = lambda card: card.color == Card.RED
+
+    def fatetell_action(self, ft):
         self.fatetell_card = ft.card
         return bool(ft.succeeded)
 
@@ -556,15 +558,15 @@ class SaigyouBranch(FatetellAction):
     def __init__(self, source, act):
         self.source = source
         self.target = source
+        self.fatetell_target = source
+        self.fatetell_cond = lambda c: 9 <= c.number <= 13
         self.act = act
 
-    def apply_action(self):
+    def fatetell_action(self, ft):
         act = self.act
         src = self.source
 
         g = Game.getgame()
-        ft = Fatetell(src, lambda card: 9 <= card.number <= 13)
-        g.process_action(ft)
         if ft.succeeded:
             # rej = spellcard.LaunchReject(src, act, SaigyouBranchSkill(src))
             g.process_action(LaunchCard(

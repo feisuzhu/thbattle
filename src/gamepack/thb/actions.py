@@ -445,6 +445,7 @@ class MaxLifeChange(GenericAction):
 
 class DropCards(GenericAction):
     def __init__(self, target, cards, detached=False):
+        self.source = Game.getgame().action_stack[-1].source
         self.target = target
         self.cards = cards
         self.detached = detached
@@ -860,7 +861,6 @@ class BaseFatetell(GenericAction):
         self.card = card
         migrate_cards([card], g.deck.disputed)
         g.emit_event(self.type, self)
-        migrate_cards([self.card], g.deck.droppedcards)
         return self.succeeded
 
     def set_card(self, card):
@@ -895,12 +895,39 @@ class FatetellMalleateHandler(EventHandlerGroup):
 
 
 class FatetellAction(GenericAction):
-    pass
+    fatetell_target = None
+
+    def apply_action(self):
+        assert self.fatetell_target is not None, 'Should specify fatetell_target!'
+
+        ft = Fatetell(self.fatetell_target, self.fatetell_cond)
+        g = Game.getgame()
+        g.process_action(ft)
+
+        if not ft.cancelled:
+            rst = self.fatetell_action(ft)
+
+            assert ft.card
+            if ft.card.resides_in is g.deck.disputed:
+                migrate_cards([ft.card], g.deck.droppedcards, unwrap=True)
+
+            return rst
+
+        return False
+
+    def fatetell_action(self, ft):
+        raise Exception('Implement fatetell_action!')
+
+    def fatetell_cond(self, card):
+        raise Exception('Implement fatetell_cond!')
+
+    def fatetell_postprocess(self):
+        pass
 
 
-class LaunchFatetellCard(FatetellAction):
+class LaunchFatetellCard(GenericAction):
     def __init__(self, target, card):
-        self.source = target
+        self.source = None
         self.target = target
         self.card = card
 
