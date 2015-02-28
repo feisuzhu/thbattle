@@ -302,28 +302,54 @@ class ExinwanEffect(GenericAction):
 class ExinwanHandler(EventHandler):
     # 恶心丸
 
-    interested = ('action_after', 'action_before')
+    interested = ('card_migration', 'post_card_migration')
 
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DropCards):
-            for c in act.cards:
-                c.exinwan_lastin = c.resides_in.type
-            return act
+    def handle(self, evt_type, arg):
+        from .base import VirtualCard, HiddenCard
+        from .definition import ExinwanCard
 
-        elif evt_type == 'action_after' and isinstance(act, DropCards):
-            from .definition import ExinwanCard
-            from .base import VirtualCard
-            typelist = ('cards', 'showncards')
-            cards = [c for c in act.cards if getattr(c, 'exinwan_lastin', None) in typelist]
-            cards = VirtualCard.unwrap(cards)
-            cards = [c for c in cards if c.is_card(ExinwanCard)]
-            if cards:
-                g = Game.getgame()
-                pact = g.action_stack[-1]
+        if evt_type == 'card_migration':
+            act, cards, _from, to = arg
 
-                target = pact.source
+            # someone is getting the ExinwanCard
+            if to.owner is not None:
+                for c in VirtualCard.unwrap(cards):
+                    # Exinwan may be HiddenCard here
+                    c.exinwan_target = None
 
-                for i in xrange(len(cards)):
-                    g.process_action(ExinwanEffect(target, target))
+                return arg
 
-        return act
+            # move from None to None do not affect Exinwan's target
+            if _from is None or _from.owner is None:
+                return arg
+
+            # someone is dropping the ExinwanCard
+            for c in VirtualCard.unwrap(cards):
+                # Exinwan may be HiddenCard here
+                c.exinwan_target = act.source
+
+            return arg
+
+        elif evt_type == 'post_card_migration':
+            dropcl = [cl for cl, _, to in arg
+                      if to.type == 'droppedcard']
+
+            def invalid(c):
+                return c.is_card(VirtualCard) or c.is_card(HiddenCard)
+
+            # cards to dropped area should all unwrapped
+            assert not any(invalid(c)
+                           for cl in dropcl for c in cl)
+
+            cards = [c for cl in dropcl for c in cl
+                     if c.is_card(ExinwanCard)]
+
+            # no same card dropped twice in the same transaction
+            assert len(cards) == len(set(cards))
+
+            for c in cards:
+                tgt = getattr(c, 'exinwan_target', None)
+                if tgt:
+                    Game.getgame().process_action(ExinwanEffect(tgt, tgt))
+
+        return arg
