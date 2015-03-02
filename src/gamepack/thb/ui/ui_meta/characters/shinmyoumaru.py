@@ -80,7 +80,7 @@ class Shinmyoumaru:
     port_image = 'thb-portrait-shinmyoumaru'
     miss_sound_effect = 'thb-cv-shinmyoumaru_miss'
     description = (
-        u'|DB小人的道路 少名针妙丸 体力：4|r\n\n'
+        u'|DB进击的小人 少名针妙丸 体力：4|r\n\n'
         u'|G付丧神之怨|r：当一名其他角色装备区的牌（因使用或打出以外的原因）直接进入弃牌堆后，你可以进行一次判定，若结果为9~K，你对其造成一点伤害。\n\n'
         u'|G万宝槌|r：在一名角色的判定牌生效前，你可以用一张点数大于此牌的牌替换之。'
     )
