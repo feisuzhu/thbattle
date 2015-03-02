@@ -44,6 +44,20 @@ pool = Pool(5)
 interconnect = None
 aya = None
 
+ping_responses = [
+    None,
+    u'文文在哦',
+    u'文文在哦',
+    u'文文在哦 (｡´-д-)疲れた。。',
+    u'(o´Д`)=з 疲れた･･･',
+    u'那个……这样就够了吧……我很忙的……',
+    u'对不起……这样会让我很困扰的……请不要再接近我了好吗(￣△￣；)',
+    u'明明是一脸恶心丸的画风，为什么还要这么跳呢（；￣д￣）',
+    u'(ﾉ｀･ﾛ)ﾉ＜嫌嫌嫌嫌嫌嫌嫌嫌嫌!!!!',
+    u'死宅真是讨厌，才不会跟死宅交往(# ﾟДﾟ)つ',
+    u'就算是破鞋，也不会找死宅的！！！ヽ(#`Д´)ﾉ┌┛',
+]
+
 
 def clipool_factory():
     from utils.rpc import RPCClient
@@ -93,6 +107,12 @@ class AyaDAO(object):
 
     def set_group_off(self, group_num):
         self.redis.srem('aya:group_on', int(group_num))
+
+    def incr_ping_count(self, gnum):
+        k = 'aya:ping_count:%s' % gnum
+        i = self.redis.incr(k)
+        self.redis.expire(k, 60)
+        return int(i)
 
 
 dao = AyaDAO()
@@ -146,7 +166,14 @@ class Aya(QQBot):
 
         if content.startswith(u'呼叫文文'):
             gnum = self.gcode2groupnum(msg['group_code'])
-            words = u'文文在哦' if dao.is_group_on(gnum) else u'哼，有人不让文文说话……'
+
+            if dao.is_group_on(gnum):
+                i = dao.incr_ping_count(gnum)
+                i = min(i, len(ping_responses) - 1)
+                words = ping_responses[i]
+            else:
+                words = u'哼，有人不让文文说话……'
+
             pool.apply_async(self.send_group_message, (msg['from_uin'], words))
 
         elif content == u'文文on':
