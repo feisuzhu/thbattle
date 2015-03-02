@@ -67,7 +67,7 @@ class LunaticHandler:
 
 class LunaticAction:
     def effect_string(act):
-        return u'|G【%s】|r：“给你们看看全部的，月的疯狂！”' % act.source.ui_meta.char_name
+        return u'|G【%s】|r：“就让你们看看全部的，月的疯狂！”' % act.source.ui_meta.char_name
 
     def sound_effect(act):
         return 'thb-cv-reisen_lunatic'

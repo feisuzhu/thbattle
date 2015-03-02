@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
 from gamepack.thb import characters
@@ -25,6 +28,12 @@ class MiracleMalletAction:
             card_desc(act.card)
         )
 
+    def sound_effect(act):
+        return random.choice((
+            'thb-cv-shinmyoumaru_mallet1',
+            'thb-cv-shinmyoumaru_mallet2',
+        ))
+
 
 class VengeOfTsukumogami:
     # Skill
@@ -39,6 +48,12 @@ class VengeOfTsukumogamiAction:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return random.choice((
+            'thb-cv-shinmyoumaru_venge1',
+            # 'thb-cv-shinmyoumaru_venge2',
+        ))
 
 
 class MiracleMalletHandler:
@@ -63,6 +78,7 @@ class Shinmyoumaru:
     # Character
     char_name = u'少名针妙丸'
     port_image = 'thb-portrait-shinmyoumaru'
+    miss_sound_effect = 'thb-cv-shinmyoumaru_miss'
     description = (
         u'|DB小人的道路 少名针妙丸 体力：4|r\n\n'
         u'|G付丧神之怨|r：当一名其他角色装备区的牌（因使用或打出以外的原因）直接进入弃牌堆后，你可以进行一次判定，若结果为9~K，你对其造成一点伤害。\n\n'
