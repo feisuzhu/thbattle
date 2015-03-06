@@ -26,6 +26,21 @@ class Alice:
     )
 
 
+class AliceKOF:
+    # Character
+    char_name = u'爱丽丝'
+    port_image = 'thb-portrait-alice'
+    figure_image = 'thb-figure-alice'
+    miss_sound_effect = 'thb-cv-alice_miss'
+    description = (
+        u'|DB七色的人偶使 爱丽丝 体力：3|r\n\n'
+        u'|G小小军势|r：当你使用装备牌时，你可以摸一张牌。当你失去装备牌区的牌后，你可以弃置其它角色的一张牌。\n\n'
+        u'|G少女文乐|r：|B锁定技|r，你的手牌上限+X，你死亡时对对手造成X点伤害。（X为你装备区牌数量的一半，向上取整且至少为1）。\n\n'
+        u'|RKOF修正角色\n\n'
+        u'|DB（画师：ideolo@NEKO WORKi，CV：小舞）|r'
+    )
+
+
 class LittleLegion:
     # Skill
     name = u'小小军势'
@@ -81,5 +96,21 @@ class MaidensBunraku:
     name = u'少女文乐'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
+
+
+class MaidensBunrakuKOF:
+    # Skill
+    name = u'少女文乐'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class MaidensBunrakuKOFAction:
+
+    def effect_string_before(act):
+        return u'|G【%s】|r向|G【%s】|r发动了|G少女文乐|r。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
 
 # ----------

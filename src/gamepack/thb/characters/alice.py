@@ -3,12 +3,13 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, DropCardStage, DropCards, UserAction, random_choose_card
-from ..actions import user_choose_players, PostCardMigrationHandler
-from ..cards import Skill, t_None
-from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-from baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, DrawCards, DropCardStage, DropCards, PlayerDeath
+from gamepack.thb.actions import PostCardMigrationHandler, UserAction, random_choose_card
+from gamepack.thb.actions import user_choose_players
+from gamepack.thb.cards import Skill, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
@@ -28,7 +29,7 @@ class LittleLegionAction(UserAction):
         src = self.source
         tgt = self.target
 
-        catnames = ['cards', 'showncards', 'equips']
+        catnames = ('cards', 'showncards', 'equips')
         cats = [getattr(tgt, i) for i in catnames]
         card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         if not card:
@@ -108,21 +109,74 @@ class MaidensBunraku(Skill):
     target = t_None
 
 
+class MaidensBunrakuKOF(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
 class MaidensBunrakuHandler(EventHandler):
-    interested = ('action_apply',)
+    interested = ('action_apply', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, DropCardStage):
             tgt = act.target
-            if not tgt.has_skill(MaidensBunraku): return act
-            amount = (len(tgt.equips) + 1) / 2
-            act.dropn -= amount if amount > 1 else 1
+            if not tgt.has_skill(MaidensBunraku) and not tgt.has_skill(MaidensBunrakuKOF): return act
+            act.dropn -= self.calc_x(tgt)
+
+        return act
+
+    @staticmethod
+    def calc_x(p):
+        amount = (len(p.equips) + 1) / 2
+        return max(amount, 1)
+
+
+class MaidensBunrakuKOFAction(UserAction):
+    def __init__(self, source, target, amount):
+        self.source = source
+        self.target = target
+        self.amount = amount
+
+    def apply_action(self):
+        tgt, n = self.target, self.amount
+        return Game.getgame().process_action(Damage(None, tgt, n))
+
+
+class MaidensBunrakuKOFHandler(EventHandler):
+    interested = ('action_apply', )
+    execute_after = ('DeathHandler', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
+            tgt = act.target
+            if not tgt.has_skill(MaidensBunrakuKOF): return act
+            g = Game.getgame()
+            op = g.get_opponent(tgt)
+            amount = MaidensBunrakuHandler.calc_x(tgt)
+            g.process_action(MaidensBunrakuKOFAction(tgt, op, amount))
 
         return act
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Alice(Character):
     skills = [LittleLegion, MaidensBunraku]
-    eventhandlers_required = [LittleLegionDrawHandler, LittleLegionDropHandler, MaidensBunrakuHandler]
+    eventhandlers_required = [
+        LittleLegionDrawHandler,
+        LittleLegionDropHandler,
+        MaidensBunrakuHandler,
+    ]
+    maxlife = 3
+
+
+@register_character_to('kof')
+class AliceKOF(Character):
+    skills = [LittleLegion, MaidensBunrakuKOF]
+    eventhandlers_required = [
+        LittleLegionDrawHandler,
+        LittleLegionDropHandler,
+        MaidensBunrakuHandler,
+        MaidensBunrakuKOFHandler,
+    ]
     maxlife = 3
