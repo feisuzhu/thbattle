@@ -257,7 +257,7 @@ class THBattleKOF(Game):
         ehs.extend(cls.eventhandlers_required)
         g.update_event_handlers()
 
-        g.emit_event('switch_character', new)
+        g.emit_event('switch_character', (p, new))
 
         return new
 

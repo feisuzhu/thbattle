@@ -1100,9 +1100,9 @@ class GameCharacterPortrait(Frame):
                 self.update_identity(self.character or self.player)
 
         elif evt_type == 'switch_character':
-            p = arg
-            if p.player is self.player:
-                self.character = p
+            old, new = arg
+            if new.player is self.player:
+                self.character = new
                 self.update()
 
     def update_identity(self, ch):

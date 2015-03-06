@@ -75,8 +75,7 @@ class THBattle(Game):
         from cards import Deck
 
         g.deck = Deck()
-
-        g.ehclasses = ehclasses = list(action_eventhandlers) + g.game_ehs.values()
+        g.ehclasses = []
 
         if params['random_seat']:
             seed = get_seed_for(g.players)
@@ -160,8 +159,6 @@ class THBattle(Game):
             for p, c in akaris:
                 g.set_character(p, c.char_cls)
 
-        g.set_event_handlers(EventHandler.make_list(ehclasses))
-
         # -------
         for p in g.players:
             log.info(
@@ -203,8 +200,14 @@ class THBattle(Game):
         assert not old_cls
         ehs = g.ehclasses
         ehs.extend(cls.eventhandlers_required)
-        g.emit_event('switch_character', new)
+        g.update_event_handlers()
+        g.emit_event('switch_character', (p, new))
         return new
+
+    def update_event_handlers(g):
+        ehclasses = list(action_eventhandlers) + g.game_ehs.values()
+        ehclasses += g.ehclasses
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def decorate(g, p):
         from .cards import CardList

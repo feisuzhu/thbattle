@@ -129,6 +129,7 @@ class Identity(PlayerIdentity):
 
 class THBattleIdentity(Game):
     n_persons = 8
+    game_ehs = _game_ehs
     character_categories = ('id', 'id8')
     params_def = {
         'curtain': ('double', 'whoami', 'simple'),
@@ -146,8 +147,7 @@ class THBattleIdentity(Game):
         from cards import Deck
 
         g.deck = Deck()
-
-        g.ehclasses = ehclasses = list(action_eventhandlers) + _game_ehs.values()
+        g.ehclasses = []
 
         g.mode = params.get('curtain', 'double')
 
@@ -279,8 +279,6 @@ class THBattleIdentity(Game):
             choosed(c.char_cls)
             p = g.switch_character(p, c.char_cls)
 
-        g.set_event_handlers(EventHandler.make_list(ehclasses))
-
         g.emit_event('game_begin', g)
 
         for p in g.players:
@@ -309,9 +307,16 @@ class THBattleIdentity(Game):
         ehs = g.ehclasses
         assert not oldcls
         ehs.extend(p.eventhandlers_required)
-        g.emit_event('switch_character', p)
+
+        g.update_event_handlers()
+        g.emit_event('switch_character', (old, p))
 
         return p
+
+    def update_event_handlers(g):
+        ehclasses = list(action_eventhandlers) + g.game_ehs.values()
+        ehclasses += g.ehclasses
+        g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def decorate(self, p):
         from cards import CardList

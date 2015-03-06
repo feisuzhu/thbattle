@@ -262,7 +262,7 @@ class THBattleFaith(Game):
         ehs.extend(p.eventhandlers_required)
 
         g.update_event_handlers()
-        g.emit_event('switch_character', p)
+        g.emit_event('switch_character', (old, p))
 
         return p
 
