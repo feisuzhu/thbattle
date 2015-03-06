@@ -3,11 +3,13 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DropCards, GenericAction, PlayerTurn, user_choose_cards
-from ..cards import InstantSpellCardAction, Reject, Skill, SpellCardAction, t_None
-from ..inputlets import ChooseOptionInputlet, ProphetInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DropCards, GenericAction, PlayerTurn
+from gamepack.thb.actions import ttags, user_choose_cards
+from gamepack.thb.cards import DummyCard, InstantSpellCardAction, Reject, Skill
+from gamepack.thb.cards import SpellCardAction, TreatAs, VirtualCard, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.inputlets import ChooseOptionInputlet, ProphetInputlet
 
 
 # -- code --
@@ -154,6 +156,47 @@ class ExtremeIntelligenceHandler(EventHandler):
         return act
 
 
+class ExtremeIntelligenceKOF(TreatAs, Skill):
+    skill_category = ('character', 'active')
+
+    def __init__(self, player):
+        Skill.__init__(self, player)
+        self.treat_as = ttags(player).get('ran_eikof_card') or DummyCard
+
+    def check(self):
+        cards = self.associated_cards
+        if len(cards) != 1: return False
+        c = cards[0]
+        if c.resides_in is None: return False
+        if c.resides_in.type not in ('cards', 'showncards'): return False
+        return True
+
+
+class ExtremeIntelligenceKOFHandler(EventHandler):
+    interested = ('action_apply', 'action_shootdown')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, ActionStageLaunchCard):
+            if not act.card.is_card(VirtualCard):
+                src = act.source
+                if not src.has_skill(ExtremeIntelligenceKOF): return act
+                c = act.card
+                if 'instant_spellcard' not in c.category: return act
+                ttags(src)['ran_eikof_card'] = c.__class__
+
+            elif act.card.is_card(ExtremeIntelligenceKOF):
+                src = act.source
+                ttags(src)['ran_eikof_tag'] = True
+
+        elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard) and act.card.is_card(ExtremeIntelligenceKOF):
+            src = act.source
+            tt = ttags(src)
+            if tt['ran_eikof_tag'] or not tt['ran_eikof_card']:
+                raise ActionLimitExceeded
+
+        return act
+
+
 class NakedFox(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')
@@ -190,12 +233,23 @@ class NakedFoxHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Ran(Character):
     skills = [Prophet, ExtremeIntelligence, NakedFox]
     eventhandlers_required = [
         ProphetHandler,
         ExtremeIntelligenceHandler,
+        NakedFoxHandler,
+    ]
+    maxlife = 3
+
+
+@register_character_to('kof')
+class RanKOF(Character):
+    skills = [Prophet, ExtremeIntelligenceKOF, NakedFox]
+    eventhandlers_required = [
+        ProphetHandler,
+        ExtremeIntelligenceKOFHandler,
         NakedFoxHandler,
     ]
     maxlife = 3

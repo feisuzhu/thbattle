@@ -4,7 +4,10 @@
 # -- third party --
 # -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+from gamepack.thb.actions import ttags
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.ran)
@@ -22,6 +25,49 @@ class ExtremeIntelligence:
     name = u'极智'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
+
+
+class ExtremeIntelligenceKOF:
+    # Skill
+    name = u'极智'
+
+    def clickable(game):
+        me = game.me
+
+        if not (my_turn() and (me.cards or me.showncards)):
+            return False
+
+        if ttags(me)['ran_eikof_tag']:
+            return False
+
+        if not ttags(me)['ran_eikof_card']:
+            return False
+
+        return True
+
+    def is_action_valid(g, cl, target_list):
+        skill = cl[0]
+        assert skill.is_card(characters.ran.ExtremeIntelligenceKOF)
+
+        cl = skill.associated_cards
+        if len(cl) != 1:
+            return (False, u'请选择一张牌！')
+
+        if cl[0].resides_in not in (g.me.cards, g.me.showncards):
+            return (False, u'请选择手牌！')
+
+        return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
+
+    def effect_string(act):
+        # for LaunchCard.ui_meta.effect_string
+        src, tl, card = act.source, act.target_list, act.card
+        s = u'|G【%s】|r发动了|G极智|r技能，将|G%s|r当作|G%s|r对%s使用。' % (
+            src.ui_meta.char_name,
+            card.associated_cards[0].ui_meta.name,
+            card.treat_as.ui_meta.name,
+            u'、'.join([u"|G【%s】|r" % i.ui_meta.char_name for i in tl]),
+        )
+        return s
 
 
 class ProphetHandler:
@@ -87,5 +133,20 @@ class Ran:
         u'|G神算|r：准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序的置于牌堆顶，其余以任意顺序置于牌堆底。（X为场上存活角色的数量，且至多为5）\n\n'
         u'|G极智|r：你的回合外，当有非延时符卡的效果对一名角色生效后，你可以弃置一张牌使该效果对该角色重新进行一次结算，此时效果来源视为你。每轮限一次。\n\n'
         u'|G素裸|r：|B锁定技|r，当你没有手牌时，你受到的符卡伤害-1。\n\n'
+        u'|DB（画师：Pixiv ID 27367823，CV：shourei小N）|r'
+    )
+
+
+class RanKOF:
+    # Character
+    char_name = u'八云蓝'
+    port_image = 'thb-portrait-ran'
+    miss_sound_effect = 'thb-cv-ran_miss'
+    description = (
+        u'|DB天河一号的核心 八云蓝 体力：3|r\n\n'
+        u'|G神算|r：准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序的置于牌堆顶，其余以任意顺序置于牌堆底。（X为场上存活角色的数量，且至多为5）\n\n'
+        u'|G极智|r：出牌阶段限一次，你可以将一张手牌当你本回合上一张使用过的非延时符卡使用。\n\n'
+        u'|G素裸|r：|B锁定技|r，当你没有手牌时，你受到的符卡伤害-1。\n\n'
+        u'|RKOF修正角色|r\n\n'
         u'|DB（画师：Pixiv ID 27367823，CV：shourei小N）|r'
     )
