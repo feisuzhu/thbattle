@@ -68,7 +68,7 @@ class PsychopathHandler(EventHandler):
         return args
 
 
-@register_character_to('common', '-kof_simple')
+@register_character_to('common', '-kof')
 class Rinnosuke(Character):
     skills = [Netoru, Psychopath]
     eventhandlers_required = [PsychopathHandler]

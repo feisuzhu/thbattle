@@ -109,7 +109,7 @@ class Heterodoxy(Skill):
             return [tl[0]] + _tl, valid
 
 
-@register_character_to('common', '-kof', '-kof_simple')
+@register_character_to('common', '-kof')
 class Seiga(Character):
     skills = [Heterodoxy]
     eventhandlers_required = [HeterodoxyHandler]

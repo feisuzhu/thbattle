@@ -146,7 +146,7 @@ class ShikigamiHandler(EventHandler):
         return arg
 
 
-@register_character_to('common', '-kof', '-kof_simple')
+@register_character_to('common', '-kof')
 class Chen(Character):
     skills = [FlyingSkanda, Shikigami]
     eventhandlers_required = [FlyingSkandaHandler, ShikigamiHandler]

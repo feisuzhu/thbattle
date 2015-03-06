@@ -534,6 +534,27 @@ def sync_primitive(val, to):
         return v.value
 
 
+def get_seed_for(p):
+    from game.autoenv import Game
+    if Game.SERVER_SIDE:
+        seed = Game.getgame().random.getrandbits(63)
+    else:
+        seed = 0L
+
+    return sync_primitive(seed, p)
+
+
+def list_shuffle(lst, plain_to):
+    seed = get_seed_for(plain_to)
+
+    if seed:  # cardlist owner & server
+        shuffler = random.Random(seed)
+        shuffler.shuffle(lst)
+    else:  # others
+        for i in lst:
+            i.conceal()
+
+
 class Inputlet(GameObject):
     RETRY = object()
     '''

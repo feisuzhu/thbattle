@@ -5,9 +5,9 @@
 from gevent import Greenlet
 
 # -- own --
-from game.game_common import Action, EventHandler, EventHandlerGroup, Game, GameEnded, GameError  # noqa
-from game.game_common import GameException, GameObject, InputTransaction, InterruptActionFlow, NPC  # noqa
-from game.game_common import sync_primitive, ActionShootdown  # noqa
+from game.game_common import Action, ActionShootdown, EventHandler, EventHandlerGroup, Game  # noqa
+from game.game_common import GameEnded, GameError, GameException, GameObject, InputTransaction  # noqa
+from game.game_common import InterruptActionFlow, NPC, get_seed_for, list_shuffle, sync_primitive  # noqa
 
 
 # -- code --

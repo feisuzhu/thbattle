@@ -8,7 +8,7 @@ import logging
 # -- third party --
 # -- own --
 from game import sync_primitive
-from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input, list_shuffle
 from gamepack.thb.actions import PlayerDeath, DistributeCards, PlayerTurn, RevealIdentity
 from gamepack.thb.actions import action_eventhandlers
 from gamepack.thb.characters.baseclasses import mixin_character
@@ -39,7 +39,7 @@ class DeathHandler(EventHandler):
 
         g = Game.getgame()
 
-        if not tgt.characters:
+        if len(tgt.choices) <= 2:
             pl = g.players[:]
             pl.remove(tgt)
             g.winners = pl
@@ -72,9 +72,19 @@ class KOFCharacterSwitchHandler(EventHandler):
     def do_switch():
         g = Game.getgame()
 
-        for p in [p for p in g.players if p.dead and p.characters]:
-            new = g.next_character(p)
-            g.process_action(DistributeCards(new, 4))
+        for p in [p for p in g.players if p.dead and p.choices]:
+            mapping = {p: p.choices}
+
+            with InputTransaction('ChooseGirl', [p], mapping=mapping) as trans:
+                rst = user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+                rst = rst or p.choices[0]
+
+            old = p
+            p = g.next_character(p, rst)
+            p.choices.remove(rst)
+
+            g.process_action(DistributeCards(p, 4))
+            g.emit_event('character_debut', (old, p))
 
 
 class Identity(PlayerIdentity):
@@ -87,25 +97,13 @@ class Identity(PlayerIdentity):
 class THBattleKOF(Game):
     n_persons  = 2
     game_ehs   = _game_ehs
-    params_def = {
-        'no_imba': (True, False),
-        'simple': (True, False),
-    }
+    params_def = {}
 
     def game_start(g, params):
         # game started, init state
         from . import cards
 
-        if params['simple']:
-            deckdef = cards.kof_simple_card_definition
-            modename = 'kof_simple'
-
-        else:
-            deckdef = cards.card_definition
-            modename = 'kof'
-
-        g.deck = cards.Deck(deckdef)
-
+        g.deck = cards.Deck(cards.kof_card_definition)
         g.ehclasses = []
 
         for i, p in enumerate(g.players):
@@ -114,7 +112,7 @@ class THBattleKOF(Game):
 
         # choose girls -->
         from characters import get_characters
-        chars = get_characters(modename if params['no_imba'] else 'kofall')
+        chars = get_characters('kof')
 
         testing = list(settings.TESTING_CHARACTERS)
         testing = filter_out(chars, lambda c: c.__name__ in testing)
@@ -186,26 +184,26 @@ class THBattleKOF(Game):
             c.char_cls = c.real_cls
             p.reveal(c)
 
-        for p in g.players:
-            seed = get_seed_for(p)
-            random.Random(seed).shuffle(p.choices)
+        for c in choice:
+            del c.chosen
+
+        list_shuffle(first.choices, first)
+        list_shuffle(second.choices, second)
 
         mapping = {first: first.choices, second: second.choices}
-        rst = user_input(g.players, SortCharacterInputlet(g, mapping, 3), timeout=30, type='all')
 
-        for p in g.players:
-            perm = p.choices
-            perm = [   # weird snap for debug
-                perm[i]
-                for i in
-                rst[p]
-                [:3]
-            ]
-            p.characters = [c.char_cls for c in perm]
-            del p.choices
+        with InputTransaction('ChooseGirl', g.players, mapping=mapping) as trans:
+            ilet = ChooseGirlInputlet(g, mapping)
+            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
+            rst = user_input(pl, ilet, type='all', trans=trans)
 
-        first = g.next_character(first)
-        second = g.next_character(second)
+        def s(p):
+            c = rst[p] or p.choices[0]
+            p = g.next_character(p, c)
+            p.choices.remove(c)
+            return p
+
+        first, second = s(first), s(second)
 
         order = [0, 1] if first is g.players[0] else [1, 0]
 
@@ -218,11 +216,13 @@ class THBattleKOF(Game):
         for p in pl:
             g.process_action(DistributeCards(p, amount=3 if p is first else 4))
 
+        for i in order:
+            g.emit_event('character_debut', (None, g.players[i]))
+
         for i, idx in enumerate(cycle(order)):
             p = g.players[idx]
             if i >= 6000: break
             if p.dead:
-                assert p.characters  # if not holds true, DeathHandler should end game.
                 KOFCharacterSwitchHandler.do_switch()
                 p = g.players[idx]  # player changed
 
@@ -234,6 +234,15 @@ class THBattleKOF(Game):
             except InterruptActionFlow:
                 pass
 
+    def get_opponent(g, p):
+        a, b = g.players
+        if p is a:
+            return b
+        elif p is b:
+            return a
+        else:
+            raise Exception('WTF?!')
+
     def can_leave(g, p):
         return False
 
@@ -242,11 +251,9 @@ class THBattleKOF(Game):
         ehclasses += g.ehclasses
         g.set_event_handlers(EventHandler.make_list(ehclasses))
 
-    def next_character(g, p):
-        assert p.characters
-        char = CharChoice(p.characters.pop(0))
-        g.players.reveal(char)
-        cls = char.char_cls
+    def next_character(g, p, choice):
+        g.players.reveal(choice)
+        cls = choice.char_cls
 
         # mix char class with player -->
         new, old_cls = mixin_character(p, cls)

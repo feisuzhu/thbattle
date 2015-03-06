@@ -5,12 +5,11 @@
 from collections import deque
 from weakref import WeakValueDictionary
 import logging
-import random
 
 # -- third party --
 # -- own --
-from ..common import get_seed_for
-from game.autoenv import Game, GameError, GameObject
+from game.autoenv import Game, GameError, GameObject, list_shuffle
+
 
 # -- code --
 log = logging.getLogger('THBattle_Cards')
@@ -79,6 +78,10 @@ class Card(GameObject):
         self.__class__ = cls
         self.suit = data['suit']
         self.number = data['number']
+
+    def conceal(self):
+        self.__class__ = HiddenCard
+        self.suit = self.number = 0
 
     def move_to(self, resides_in):
         self.detach()
@@ -317,15 +320,7 @@ class Deck(GameObject):
 
     def shuffle(self, cl):
         owner = cl.owner
-        seed = get_seed_for(owner)
-
-        if seed:  # cardlist owner & server
-            shuffler = random.Random(seed)
-            shuffler.shuffle(cl)
-        else:  # others
-            for c in cl:
-                c.__class__ = HiddenCard
-                c.suit = c.number = 0
+        list_shuffle(cl, owner)
 
         for c in cl:
             c.syncid = 0

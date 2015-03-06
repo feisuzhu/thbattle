@@ -9,7 +9,7 @@ class CharChoice(object):
     real_cls = None
     chosen = False
 
-    def __init__(self, char_cls, as_akari=False):
+    def __init__(self, char_cls=None, as_akari=False):
         self.char_cls = char_cls
         self.as_akari = as_akari
 
@@ -19,6 +19,12 @@ class CharChoice(object):
     def sync(self, data):
         from .characters.baseclasses import Character
         self.char_cls = Character.character_classes[data]
+
+    def conceal(self):
+        self.char_cls = None
+        self.real_cls = None
+        self.chosen = False
+        self.as_akari = False
 
     def __repr__(self):
         return '<Choice: {}{}>'.format(
@@ -54,12 +60,3 @@ class PlayerIdentity(object):
         return self._type
 
     type = property(get_type, set_type)
-
-
-def get_seed_for(p):
-    if Game.SERVER_SIDE:
-        seed = Game.getgame().random.getrandbits(63)
-    else:
-        seed = 0L
-
-    return sync_primitive(seed, p)

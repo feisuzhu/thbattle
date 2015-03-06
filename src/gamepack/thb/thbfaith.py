@@ -8,11 +8,12 @@ import random
 
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
+from game.autoenv import user_input
 from gamepack.thb.actions import DistributeCards, MigrateCardsTransaction, PlayerDeath, PlayerTurn
 from gamepack.thb.actions import RevealIdentity, UserAction, action_eventhandlers, migrate_cards
 from gamepack.thb.characters.baseclasses import mixin_character
-from gamepack.thb.common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
+from gamepack.thb.common import CharChoice, PlayerIdentity, sync_primitive
 from gamepack.thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
 from utils import BatchList, Enum, filter_out
 import settings

@@ -131,7 +131,7 @@ class TributeHandler(EventHandler):
                 pass
 
 
-@register_character_to('common', '-kof_simple')
+@register_character_to('common', '-kof')
 class Reimu(Character):
     # skills = [SealingArraySkill, Flight, TributeTarget]
     skills = [SpiritualAttack, Flight]
