@@ -52,6 +52,8 @@ def gen_metafunc(_for):
 
         metadata[meta_for] = _dict
 
+        return _dict
+
     return metafunc
 
 

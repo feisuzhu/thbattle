@@ -3,20 +3,19 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import FatetellAction, FatetellStage, migrate_cards
-from ..cards import Card, GrazeCard, Skill, TreatAs, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
+from gamepack.thb.actions import FatetellAction, FatetellStage, migrate_cards
+from gamepack.thb.cards import Card, GrazeCard, Skill, TreatAs, t_None
+from gamepack.thb.inputlets import ChooseOptionInputlet
+from gamepack.thb.characters.baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
 
 
 # -- code --
-class TreasureHunt(FatetellAction):
+class TreasureHuntAction(FatetellAction):
     def __init__(self, source, target):
         self.source = source
         self.target = target
         self.fatetell_target = target
-        self.fatetell_cond = lambda c: c.color == Card.BLACK
 
     def fatetell_action(self, ft):
         if ft.succeeded:
@@ -26,8 +25,11 @@ class TreasureHunt(FatetellAction):
 
         return False
 
+    def fatetell_cond(self, c):
+        return c.color == Card.BLACK
 
-class TreasureHuntSkill(Skill):
+
+class TreasureHunt(Skill):
     associated_action = None
     skill_category = ('character', 'passive')
     target = t_None
@@ -40,12 +42,12 @@ class TreasureHuntHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             tgt = act.target
-            if not tgt.has_skill(TreasureHuntSkill): return act
+            if not tgt.has_skill(TreasureHunt): return act
             g = Game.getgame()
             while True:
                 if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                     return act
-                if not g.process_action(TreasureHunt(tgt, tgt)):
+                if not g.process_action(TreasureHuntAction(tgt, tgt)):
                     return act
         return act
 
@@ -63,8 +65,28 @@ class Agile(TreatAs, Skill):
         )
 
 
-@register_character
+class AgileKOF(TreatAs, Skill):
+    skill_category = ('character', 'active')
+    treat_as = GrazeCard
+
+    def check(self):
+        cl = self.associated_cards
+        return (
+            cl and len(cl) == 1 and
+            cl[0].suit == Card.SPADE and
+            cl[0].resides_in.type in ('cards', 'showncards')
+        )
+
+
+@register_character_to('common', '-kof')
 class Nazrin(Character):
-    skills = [TreasureHuntSkill, Agile]
+    skills = [TreasureHunt, Agile]
+    eventhandlers_required = [TreasureHuntHandler]
+    maxlife = 3
+
+
+@register_character_to('kof')
+class NazrinKOF(Character):
+    skills = [TreasureHunt, AgileKOF]
     eventhandlers_required = [TreasureHuntHandler]
     maxlife = 3
