@@ -4,10 +4,11 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import DrawCards, ForEach, GenericAction, UserAction, migrate_cards
-from gamepack.thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
-from gamepack.thb.cards import Heal, Skill, t_Self
-from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.actions import DistributeCards, DrawCardStage, DrawCards, ForEach, GenericAction
+from gamepack.thb.actions import UserAction, migrate_cards, random_choose_card, ttags
+from gamepack.thb.actions import user_choose_cards, user_choose_players
+from gamepack.thb.cards import Heal, Skill, t_None, t_Self
+from gamepack.thb.characters.baseclasses import Character, register_character_to
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
@@ -139,6 +140,44 @@ class SanaeFaith(Skill):
         return not self.associated_cards
 
 
+class SanaeFaithKOF(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
+class SanaeFaithKOFDrawCards(DrawCards):
+    pass
+
+
+class SanaeFaithKOFHandler(EventHandler):
+    interested = ('card_migration',)
+
+    def handle(self, evt_type, arg):
+        if evt_type == 'card_migration':
+            act, cards, _from, to = arg
+            if isinstance(act, (DistributeCards, DrawCardStage)): return arg
+            if to is None or not to.owner: return arg
+            if to.type not in ('cards', 'showncards', 'equips'): return arg
+            if _from is not None and _from.owner is to.owner: return arg
+
+            g = Game.getgame()
+            a, b = g.players
+
+            if not a.has_skill(SanaeFaithKOF):
+                a, b = b, a
+
+            if not a.has_skill(SanaeFaithKOF): return arg
+
+            if b is not to.owner: return arg
+
+            g = Game.getgame()
+
+            g.process_action(SanaeFaithKOFDrawCards(a, 1))
+
+        return arg
+
+
 class GodDescendant(Skill):
     associated_action = None
     skill_category = ('character', 'passive')
@@ -188,8 +227,15 @@ class GodDescendantHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Sanae(Character):
     skills = [Miracle, SanaeFaith, GodDescendant]
     eventhandlers_required = [GodDescendantHandler]
+    maxlife = 3
+
+
+@register_character_to('kof')
+class SanaeKOF(Character):
+    skills = [Miracle, SanaeFaithKOF, GodDescendant]
+    eventhandlers_required = [SanaeFaithKOFHandler, GodDescendantHandler]
     maxlife = 3
