@@ -3,12 +3,12 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DeadDropCards, DropCards, GenericAction, PlayerTurn, UserAction, migrate_cards
-from ..actions import random_choose_card
-from ..cards import CardList, Skill, t_One
-from ..inputlets import ChoosePeerCardInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import GenericAction, PlayerTurn, UserAction, migrate_cards
+from gamepack.thb.actions import random_choose_card
+from gamepack.thb.cards import CardList, Skill, t_One
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChoosePeerCardInputlet
 
 
 # -- code --
@@ -17,7 +17,7 @@ class SpiritingAwayAction(UserAction):
         tgt = self.target
         src = self.source
 
-        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
         card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         card = card or random_choose_card(cats)
@@ -29,16 +29,13 @@ class SpiritingAwayAction(UserAction):
 
         src.tags['spirit_away_tag'] += 1
 
-        def spirited_away(p):
-            try:
-                return p.yukari_dimension
-            except AttributeError:
-                cl = CardList(p, 'yukari_dimension')
-                p.yukari_dimension = cl
-                p.showncardlists.append(cl)
-                return cl
+        cl = getattr(tgt, 'yukari_dimension', None)
+        if cl is None:
+            cl = CardList(tgt, 'yukari_dimension')
+            tgt.yukari_dimension = cl
+            tgt.showncardlists.append(cl)
 
-        migrate_cards([card], spirited_away(tgt))
+        migrate_cards([card], cl)
 
         return True
 
@@ -78,18 +75,6 @@ class SpiritingAwayHandler(EventHandler):
             tgt = arg.target
             if tgt.has_skill(SpiritingAway):
                 tgt.tags['spirit_away_tag'] = 0
-
-        elif evt_type == 'action_after' and isinstance(arg, DeadDropCards):
-            g = Game.getgame()
-
-            if not arg.target.has_skill(SpiritingAway):
-                return arg
-
-            for p in g.players:
-                cl = getattr(p, 'yukari_dimension', None)
-                if cl:
-                    g.process_action(DropCards(p, cl))
-                    p.showncardlists.remove(cl)
 
         elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
             tgt = arg.target
