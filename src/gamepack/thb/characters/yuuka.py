@@ -3,11 +3,13 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, ForEach, LaunchCard, PlayerDeath, UserAction, user_choose_players
-from ..cards import AttackCard, Duel, InstantSpellCardAction, Reject, Skill, TreatAs, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, DrawCards, ForEach, LaunchCard, PlayerDeath, UserAction
+from gamepack.thb.actions import user_choose_players
+from gamepack.thb.cards import AttackCard, Duel, InstantSpellCardAction, Reject, Skill, TreatAs
+from gamepack.thb.cards import t_None
+from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -27,10 +29,51 @@ class ReversedScales(TreatAs, Skill):
 
 
 class Sadist(Skill):
-    distance = 1
     associated_action = None
     skill_category = ('character', 'passive')
     target = t_None
+
+
+class SadistKOF(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
+class SadistKOFDrawCards(DrawCards):
+    pass
+
+
+class SadistKOFDamageAction(UserAction):
+    def apply_action(self):
+        g = Game.getgame()
+        src, tgt = self.source, self.target
+        return g.process_action(Damage(src, tgt, 1))
+
+
+class SadistKOFHandler(EventHandler):
+    interested = ('action_after', 'character_debut')
+    execute_after = ('DeathHandler', )
+
+    def handle(self, evt_type, arg):
+        if evt_type == 'action_after' and isinstance(arg, PlayerDeath):
+            tgt = arg.target
+            g = Game.getgame()
+            op = g.get_opponent(tgt)
+            if op.has_skill(SadistKOF):
+                g.process_action(SadistKOFDrawCards(op, 2))
+
+        elif evt_type == 'character_debut':
+            old, new = arg
+            if not old: return arg
+
+            g = Game.getgame()
+            op = g.get_opponent(new)
+
+            if op.has_skill(SadistKOF):
+                g.process_action(SadistKOFDamageAction(op, new))
+
+        return arg
 
 
 class ReversedScalesAction(UserAction):
@@ -137,4 +180,11 @@ class SadistHandler(EventHandler):
 class Yuuka(Character):
     skills = [ReversedScales, Sadist]
     eventhandlers_required = [ReversedScalesHandler, SadistHandler]
+    maxlife = 4
+
+
+@register_character_to('kof')
+class YuukaKOF(Character):
+    skills = [ReversedScales, SadistKOF]
+    eventhandlers_required = [ReversedScalesHandler, SadistKOFHandler]
     maxlife = 4
