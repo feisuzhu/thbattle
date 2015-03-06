@@ -3,10 +3,11 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DrawCards, LaunchCard, PlayerTurn, UserAction, user_choose_cards
-from ..cards import AttackCard, BaseDuel, Skill, t_None, t_OtherN, Attack
-from .baseclasses import Character, register_character
-from game.autoenv import EventHandler, Game
+from game.autoenv import ActionShootdown, EventHandler, Game
+from gamepack.thb.actions import Damage, DrawCards, LaunchCard, PlayerTurn, UserAction
+from gamepack.thb.actions import user_choose_cards
+from gamepack.thb.cards import Attack, AttackCard, BaseDuel, PhysicalCard, RejectCard, Skill, t_None, t_OtherN
+from gamepack.thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --
@@ -71,6 +72,60 @@ class Darkness(Skill):
         return True
 
 
+class DarknessKOF(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
+class DarknessKOFAction(UserAction):
+    def apply_action(self):
+        tgt = self.target
+        g = Game.getgame()
+        tgt.tags['darkness_kof_tag'] = max(g.turn_count, 1)
+        return True
+
+
+class DarknessKOFLimit(ActionShootdown):
+    pass
+
+
+class DarknessKOFHandler(EventHandler):
+    interested = ('character_debut', 'action_shootdown')
+
+    def handle(self, evt_type, arg):
+        if evt_type == 'character_debut':
+            old, new = arg
+            if new.has_skill(DarknessKOF):
+                g = Game.getgame()
+                g.process_action(DarknessKOFAction(new, new))
+
+        elif evt_type == 'action_shootdown' and isinstance(arg, LaunchCard):
+            src = arg.source
+            if not src:
+                return arg
+
+            g = Game.getgame()
+            opp = g.get_opponent(arg.source)
+            if opp.tags['darkness_kof_tag'] < g.turn_count:
+                return arg
+
+            card = arg.card
+            if not card.is_card(PhysicalCard):
+                return arg
+
+            if card.is_card(RejectCard):
+                return arg
+
+            # XXX: DollControl's second target do not count as target
+            # but in KOF the second target is always the launcher,
+            # and never be the opp, so the handle can be same.
+            if opp in arg.target_list:
+                raise DarknessKOFLimit
+
+        return arg
+
+
 class Cheating(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')
@@ -94,8 +149,15 @@ class CheatingHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Rumia(Character):
     skills = [Darkness, Cheating]
     eventhandlers_required = [CheatingHandler]
+    maxlife = 3
+
+
+@register_character_to('kof')
+class RumiaKOF(Character):
+    skills = [DarknessKOF, Cheating]
+    eventhandlers_required = [DarknessKOFHandler, CheatingHandler]
     maxlife = 3
