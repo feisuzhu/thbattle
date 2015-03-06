@@ -102,7 +102,7 @@ class ReversalHandler(EventHandler):
     execute_before = (
         'HouraiJewelHandler',
         'RejectHandler',
-        'YugiHandler',
+        'FreakingPowerHandler',
         'RoukankenEffectHandler',
     )
 

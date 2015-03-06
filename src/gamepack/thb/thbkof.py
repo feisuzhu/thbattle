@@ -105,6 +105,7 @@ class THBattleKOF(Game):
 
         g.deck = cards.Deck(cards.kof_card_definition)
         g.ehclasses = []
+        g.current_turn = None
 
         for i, p in enumerate(g.players):
             p.identity = Identity()
