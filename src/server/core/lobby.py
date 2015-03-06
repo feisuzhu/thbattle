@@ -73,7 +73,7 @@ class Client(Endpoint, Greenlet):
                 break
 
             except Exception:
-                log.exception("Error occurred when handling command %s" % cmd)
+                log.exception("Error occurred when handling client command")
 
         # client died, do clean ups
         self.handle_drop()
