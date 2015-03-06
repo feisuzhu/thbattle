@@ -6,6 +6,7 @@
 *.swp
 *.un~
 *~
+?
 .idea
 .installed.cfg
 .mr.developer.cfg

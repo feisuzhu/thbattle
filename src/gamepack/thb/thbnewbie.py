@@ -9,8 +9,8 @@ import random
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, NPC, user_input
-from gamepack.thb.actions import ActionStage, ActionStageLaunchCard, DeadDropCards, DrawCards
-from gamepack.thb.actions import DropCards, FatetellStage, LaunchCard, PlayerTurn, RevealIdentity
+from gamepack.thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCards
+from gamepack.thb.actions import FatetellStage, LaunchCard, PlayerDeath, PlayerTurn, RevealIdentity
 from gamepack.thb.actions import ShuffleHandler, action_eventhandlers, ask_for_action, migrate_cards
 from gamepack.thb.cards import AskForHeal, AttackCard, Card, Demolition, DemolitionCard
 from gamepack.thb.cards import ElementalReactorCard, ExinwanCard, FrozenFrogCard, GrazeCard
@@ -35,11 +35,11 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = ('action_before',)
+    interested = ('action_apply',)
 
     def handle(self, evt_type, act):
-        if evt_type != 'action_before': return act
-        if not isinstance(act, DeadDropCards): return act
+        if evt_type != 'action_apply': return act
+        if not isinstance(act, PlayerDeath): return act
         tgt = act.target
 
         g = Game.getgame()

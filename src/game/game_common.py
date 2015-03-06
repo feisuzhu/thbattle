@@ -18,7 +18,7 @@ from utils import Packet, instantiate
 # -- code --
 log = logging.getLogger('Game')
 
-intern('action_can_fire')
+intern('action_shootdown')
 intern('action_before')
 intern('action_apply')
 intern('action_after')

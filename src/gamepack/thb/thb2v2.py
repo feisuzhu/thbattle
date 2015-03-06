@@ -8,15 +8,16 @@ import random
 
 # -- third party --
 # -- own --
-from .actions import DeadDropCards, DistributeCards, DrawCardStage, DrawCards
-from .actions import MigrateCardsTransaction, PlayerTurn, RevealIdentity, action_eventhandlers
-from .actions import migrate_cards
-from .characters.baseclasses import mixin_character
-from .common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
-from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from gamepack.thb.actions import DeadDropCards, DistributeCards, DrawCardStage, DrawCards
+from gamepack.thb.actions import MigrateCardsTransaction, PlayerDeath, PlayerTurn, RevealIdentity
+from gamepack.thb.actions import action_eventhandlers, migrate_cards
+from gamepack.thb.characters.baseclasses import mixin_character
+from gamepack.thb.common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
+from gamepack.thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from utils.misc import BatchList, Enum, filter_out
 import settings
+
 
 # -- code --
 log = logging.getLogger('THBattle2v2')
@@ -37,21 +38,25 @@ def game_action(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = ('action_before',)
+    interested = ('action_apply',)
 
     def handle(self, evt_type, act):
-        if evt_type != 'action_before': return act
-        if not isinstance(act, DeadDropCards): return act
+        if evt_type != 'action_apply': return act
+        if not isinstance(act, PlayerDeath): return act
 
         g = Game.getgame()
+        tgt = act.target
+
+        tgt = act.target
+        dead = lambda p: p.dead or p.dropped or p is tgt
 
         # see if game ended
         force1, force2 = g.forces
-        if all(p.dead or p.dropped for p in force1):
+        if all(dead(p) for p in force1):
             g.winners = force2[:]
             g.game_end()
 
-        if all(p.dead or p.dropped for p in force2):
+        if all(dead(p) for p in force2):
             g.winners = force1[:]
             g.game_end()
 

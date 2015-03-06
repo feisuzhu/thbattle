@@ -8,14 +8,15 @@ import random
 
 # -- third party --
 # -- own --
-from .actions import DeadDropCards, DistributeCards, MigrateCardsTransaction, PlayerDeath
-from .actions import PlayerTurn, RevealIdentity, UserAction, action_eventhandlers, migrate_cards
-from .characters.baseclasses import mixin_character
-from .common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
-from .inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from gamepack.thb.actions import DistributeCards, MigrateCardsTransaction, PlayerDeath, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, UserAction, action_eventhandlers, migrate_cards
+from gamepack.thb.characters.baseclasses import mixin_character
+from gamepack.thb.common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
+from gamepack.thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
 from utils import BatchList, Enum, filter_out
 import settings
+
 
 # -- code --
 log = logging.getLogger('THBattle')
@@ -30,10 +31,10 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = ('action_after', 'action_before')
+    interested = ('action_after', 'action_apply')
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DeadDropCards):
+        if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
             g = Game.getgame()
 
             tgt = act.target

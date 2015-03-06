@@ -4,17 +4,16 @@
 from collections import defaultdict
 from itertools import cycle
 import logging
-import random
 
 # -- third party --
 # -- own --
 from game import sync_primitive
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
-from gamepack.thb.actions import DeadDropCards, DistributeCards, PlayerTurn, RevealIdentity
+from gamepack.thb.actions import PlayerDeath, DistributeCards, PlayerTurn, RevealIdentity
 from gamepack.thb.actions import action_eventhandlers
 from gamepack.thb.characters.baseclasses import mixin_character
-from gamepack.thb.common import CharChoice, PlayerIdentity, get_seed_for
-from gamepack.thb.inputlets import ChooseGirlInputlet, SortCharacterInputlet
+from gamepack.thb.common import CharChoice, PlayerIdentity
+from gamepack.thb.inputlets import ChooseGirlInputlet
 from utils import Enum, filter_out
 import settings
 
@@ -31,11 +30,11 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = ('action_before',)
+    interested = ('action_apply',)
 
     def handle(self, evt_type, act):
-        if evt_type != 'action_before': return act
-        if not isinstance(act, DeadDropCards): return act
+        if evt_type != 'action_apply': return act
+        if not isinstance(act, PlayerDeath): return act
         tgt = act.target
 
         g = Game.getgame()

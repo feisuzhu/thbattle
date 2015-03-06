@@ -8,14 +8,15 @@ import random
 
 # -- third party --
 # -- own --
-from .actions import DeadDropCards, DistributeCards, DrawCards, DropCards, PlayerDeath, PlayerTurn
-from .actions import RevealIdentity, action_eventhandlers
-from .characters.baseclasses import mixin_character
-from .common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
-from .inputlets import ChooseGirlInputlet
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
+from gamepack.thb.actions import DistributeCards, DrawCards, DropCards, PlayerDeath, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, action_eventhandlers
+from gamepack.thb.characters.baseclasses import mixin_character
+from gamepack.thb.common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
+from gamepack.thb.inputlets import ChooseGirlInputlet
 from utils import Enum, filter_out
 import settings
+
 
 # -- code --
 log = logging.getLogger('THBattleIdentity')
@@ -28,19 +29,34 @@ def game_eh(cls):
 
 
 @game_eh
-class DeathHandler(EventHandler):
-    interested = ('action_after', 'action_before')
+class IdentityRevealHandler(EventHandler):
+    interested = ('action_apply', )
+    execute_before = ('DeathHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DeadDropCards):
-            T = Identity.TYPE
+        if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
             g = Game.getgame()
             tgt = act.target
 
             g.process_action(RevealIdentity(tgt, g.players))
 
+        return act
+
+
+@game_eh
+class DeathHandler(EventHandler):
+    interested = ('action_apply', 'action_after')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
+            g = Game.getgame()
+            T = Identity.TYPE
+
+            tgt = act.target
+            dead = lambda p: p.dead or p is tgt
+
             # curtain's win
-            survivors = [p for p in g.players if not p.dead]
+            survivors = [p for p in g.players if not dead(p)]
             if len(survivors) == 1:
                 pl = g.players
                 pl.reveal([p.identity for p in g.players])
@@ -51,7 +67,7 @@ class DeathHandler(EventHandler):
 
             deads = defaultdict(list)
             for p in g.players:
-                if p.dead:
+                if dead(p):
                     deads[p.identity.type].append(p)
 
             def winner(*identities):

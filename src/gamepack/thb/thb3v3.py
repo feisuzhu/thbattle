@@ -9,7 +9,7 @@ import random
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input
-from gamepack.thb.actions import DeadDropCards, DrawCards, PlayerTurn, RevealIdentity
+from gamepack.thb.actions import DrawCards, PlayerDeath, PlayerTurn, RevealIdentity
 from gamepack.thb.actions import action_eventhandlers
 from gamepack.thb.characters.baseclasses import mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity, get_seed_for, sync_primitive
@@ -31,21 +31,24 @@ def game_eh(cls):
 
 @game_eh
 class DeathHandler(EventHandler):
-    interested = ('action_before',)
+    interested = ('action_apply',)
 
     def handle(self, evt_type, act):
-        if evt_type != 'action_before': return act
-        if not isinstance(act, DeadDropCards): return act
+        if evt_type != 'action_apply': return act
+        if not isinstance(act, PlayerDeath): return act
 
         g = Game.getgame()
 
         # see if game ended
         force1, force2 = g.forces
-        if all(p.dead or p.dropped for p in force1):
+        tgt = act.target
+        dead = lambda p: p.dead or p.dropped or p is tgt
+
+        if all(dead(p) for p in force1):
             g.winners = force2[:]
             g.game_end()
 
-        if all(p.dead or p.dropped for p in force2):
+        if all(dead(p) for p in force2):
             g.winners = force1[:]
             g.game_end()
 
