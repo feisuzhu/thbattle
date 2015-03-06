@@ -3,14 +3,16 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStage, DrawCardStage, UserAction, migrate_cards
-from ..cards import Heal, Skill, t_None, t_OtherOne
-from .baseclasses import Character, register_character
-from game.autoenv import EventHandler, Game
+from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import ActionStage, DrawCardStage, GenericAction, MigrateCardsTransaction
+from gamepack.thb.actions import PlayerDeath, UserAction, migrate_cards
+from gamepack.thb.cards import CardList, Heal, Skill, t_None, t_OtherOne
+from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
-class Support(UserAction):
+class SupportAction(UserAction):
     def apply_action(self):
         cl = self.associated_card.associated_cards
         src = self.source
@@ -27,8 +29,8 @@ class Support(UserAction):
         return True
 
 
-class SupportSkill(Skill):
-    associated_action = Support
+class Support(Skill):
+    associated_action = SupportAction
     skill_category = ('character', 'active')
     target = t_OtherOne
     usage = 'handover'
@@ -42,6 +44,58 @@ class SupportSkill(Skill):
             c.resides_in.type in ('cards', 'showncards', 'equips')
             for c in cl
         )
+
+
+class SupportKOFAction(UserAction):
+    def apply_action(self):
+        tgt = self.target
+        cl = tgt.support_cl = CardList(tgt, 'support')
+
+        with MigrateCardsTransaction() as trans:
+            migrate_cards(tgt.cards, cl, unwrap=True, trans=trans)
+            migrate_cards(tgt.showncards, cl, unwrap=True, trans=trans)
+            migrate_cards(tgt.equips, cl, unwrap=True, trans=trans)
+
+        return True
+
+
+class SupportKOFReturningAction(GenericAction):
+    def apply_action(self):
+        migrate_cards(self.source.support_cl, self.target.cards, unwrap=True)
+        return True
+
+
+class SupportKOFHandler(EventHandler):
+    interested = ('character_debut', 'action_apply')
+    execute_after = ('DeathHandler',)
+
+    def handle(self, evt_type, arg):
+        if evt_type == 'character_debut':
+            old, new = arg
+            if not old: return arg
+            if not getattr(old, 'support_cl', None): return arg
+
+            g = Game.getgame()
+            g.process_action(SupportKOFReturningAction(old, new))
+
+        elif evt_type == 'action_apply' and isinstance(arg, PlayerDeath):
+            tgt = arg.target
+            if not tgt.has_skill(SupportKOF): return arg
+
+            if not (tgt.cards or tgt.showncards or tgt.equips):
+                return arg
+
+            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                g = Game.getgame()
+                g.process_action(SupportKOFAction(tgt, tgt))
+
+        return arg
+
+
+class SupportKOF(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
 
 
 class Moe(Skill):
@@ -67,13 +121,20 @@ class DaiyouseiHandler(EventHandler):
                     act.__class__ = MoeDrawCard
             elif isinstance(act, ActionStage):
                 tgt = act.target
-                if tgt.has_skill(SupportSkill):
+                if tgt.has_skill(Support):
                     tgt.tags['daiyousei_spnum'] = 0
         return act
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Daiyousei(Character):
-    skills = [SupportSkill, Moe]
+    skills = [Support, Moe]
     eventhandlers_required = [DaiyouseiHandler]
+    maxlife = 3
+
+
+@register_character_to('kof')
+class DaiyouseiKOF(Character):
+    skills = [SupportKOF, Moe]
+    eventhandlers_required = [DaiyouseiHandler, SupportKOFHandler]
     maxlife = 3

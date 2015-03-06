@@ -24,7 +24,22 @@ class Daiyousei:
     )
 
 
-class SupportSkill:
+class DaiyouseiKOF:
+    # Character
+    char_name = u'大妖精'
+    port_image = 'thb-portrait-daiyousei'
+    figure_image = 'thb-figure-daiyousei'
+    miss_sound_effect = 'thb-cv-daiyousei_miss'
+    description = (
+        u'|DB全身萌点的保姆 大妖精 体力：3|r\n\n'
+        u'|G支援|r：你死亡时，可以将你的全部卡牌移出游戏，并使下一名登场的角色获得这些牌。\n\n'
+        u'|G卖萌|r：|B锁定技|r，摸牌阶段你额外摸X张牌（X为你已损失的体力值）。\n\n'
+        u'|RKOF修正角色|r\n\n'
+        u'|DB（画师：渚FUN，CV：简翎）|r'
+    )
+
+
+class Support:
     # Skill
     name = u'支援'
 
@@ -63,6 +78,26 @@ class SupportSkill:
 
     def sound_effect(act):
         return 'thb-cv-daiyousei_support'
+
+
+class SupportKOF:
+    # Skill
+    name = u'支援'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class SupportKOFAction:
+
+    def effect_string_before(act):
+        return u'|G【%s】|r发动了|G支援|r技能，将所有的牌转移给下一个出场角色。' % (
+            act.target.ui_meta.char_name
+        )
+
+
+class SupportKOFHandler:
+    choose_option_prompt = u'你要发动【支援】，将所有牌转移给下一名出场角色吗？'
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
 
 
 class Moe:
