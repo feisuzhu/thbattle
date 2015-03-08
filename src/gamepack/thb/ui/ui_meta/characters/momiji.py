@@ -25,6 +25,20 @@ class Momiji:
     )
 
 
+class MomijiKOF:
+    # Character
+    char_name = u'犬走椛'
+    port_image = 'thb-portrait-momiji'
+    miss_sound_effect = 'thb-cv-momiji_miss'
+    description = (
+        u'|DB山中的千里眼 犬走椛 体力：4|r\n\n'
+        u'|G哨戒|r：当一名其他角色（记作A）使用弹幕对另一角色（记作B）造成伤害时，若A在你的攻击范围内，你可以对A使用一张【弹幕】，或将一张梅花牌当【弹幕】对A使用。此【弹幕】造成伤害时，你可以防止此伤害，并且令B此次受到的伤害-1。\n\n'
+        u'|G千里眼|r：|B锁定技|r，对手获得牌时，所获得的第一张牌进入明牌区。\n\n'
+        u'|RKOF修正角色|r\n\n'
+        u'|DB（画师：Danbooru post 621700，CV：简翎）|r'
+    )
+
+
 class Sentry:
     # Skill
     name = u'哨戒'
@@ -38,6 +52,23 @@ class SharpEye:
     no_display = False
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
+
+
+class SharpEyeKOF:
+    # Skill
+    name = u'千里眼'
+    no_display = False
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class SharpEyeKOFAction:
+
+    def effect_string_before(act):
+        return u'|G【%s】|r一撅屁股，|G【%s】|r就看到了她穿了什么牌子的胖次。' % (
+            act.target.ui_meta.char_name,
+            act.source.ui_meta.char_name,
+        )
 
 
 class SentryAttack:

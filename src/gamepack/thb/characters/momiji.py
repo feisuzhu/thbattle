@@ -3,11 +3,12 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, LaunchCard, user_choose_cards
-from ..cards import AttackCard, BaseAttack, Card, RedUFOSkill, Skill, TreatAs, VirtualCard, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, LaunchCard, UserAction, migrate_cards, user_choose_cards
+from gamepack.thb.cards import AttackCard, BaseAttack, Card, RedUFOSkill, Skill, TreatAs
+from gamepack.thb.cards import VirtualCard, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -89,8 +90,63 @@ class SharpEye(RedUFOSkill):
     increment = 1
 
 
-@register_character
+class SharpEyeKOF(RedUFOSkill):
+    skill_category = ('character', 'passive', 'compulsory')
+    increment = 1
+
+
+class SharpEyeKOFAction(UserAction):
+    def __init__(self, source, target, cards):
+        self.source = source
+        self.target = target
+        self.cards = cards
+
+    def apply_action(self):
+        g = Game.getgame()
+        c = self.cards[0]
+        g.players.reveal(c)
+        migrate_cards([c], self.target.showncards, unwrap=True)
+        return True
+
+
+class SharpEyeKOFHandler(EventHandler):
+    interested = ('post_card_migration',)
+
+    def handle(self, evt_type, arg):
+        if evt_type == 'post_card_migration':
+            g = Game.getgame()
+            a, b = g.players
+            if not a.has_skill(SharpEyeKOF):
+                a, b = b, a
+
+            if not a.has_skill(SharpEyeKOF):
+                return arg
+
+            trans = arg
+
+            cl = []
+            for cards, _from, to in trans.movements:
+                if to is None: continue
+                if to.owner is not b: continue
+                if _from.owner is b: continue
+                if to.type != 'cards': continue
+                cl.extend(cards)
+
+            if cl:
+                g.process_action(SharpEyeKOFAction(a, b, cl))
+
+        return arg
+
+
+@register_character_to('common', '-kof')
 class Momiji(Character):
     skills = [Sentry, SharpEye]
     eventhandlers_required = [SentryHandler]
+    maxlife = 4
+
+
+@register_character_to('kof')
+class MomijiKOF(Character):
+    skills = [Sentry, SharpEyeKOF]
+    eventhandlers_required = [SentryHandler, SharpEyeKOFHandler]
     maxlife = 4
