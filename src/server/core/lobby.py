@@ -364,7 +364,10 @@ class Lobby(object):
                 @p.spawn
                 def send_single(u=u):
                     u.raw_write(d)
-                    u.write(['your_account', u.account])
+                    self.send_account_info(u)
+
+    def send_account_info(self, user):
+        user.write(['your_account', user.account])
 
     def user_join(self, user):
         uid = user.account.userid
@@ -388,10 +391,12 @@ class Lobby(object):
             old = self.dropped_users.pop(uid)
             assert isinstance(old, DroppedClient), 'Arghhhhh'
 
-            self.send_lobbyinfo([user])
+            @gevent.spawn
+            def reconnect():
+                self.send_account_info(self, user)
 
-            manager = GameManager.get_by_user(old)
-            manager.reconnect(user)
+                manager = GameManager.get_by_user(old)
+                manager.reconnect(user)
 
         self.users[uid] = user
 
