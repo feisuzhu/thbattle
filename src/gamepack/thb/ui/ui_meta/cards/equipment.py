@@ -545,7 +545,7 @@ class HakuroukenCard:
     image_small = 'thb-card-small-hakurouken'
     description = (
         u'|R白楼剑|r\n\n'
-        u'攻击范围2，装备后：当你使用的黑色【弹幕】指定一名目标角色后，你可以令其选择一项：\n'
+        u'攻击范围2，装备后：当你使用的草花色|G弹幕|r指定一名目标角色后，你可以令其选择一项：\n'
         u'|B|R>> |r弃置一张手牌\n'
         u'|B|R>> |r令你摸一张牌\n\n'
         u'|DB（CV：小羽）|r'

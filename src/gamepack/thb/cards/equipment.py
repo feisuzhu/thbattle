@@ -643,7 +643,7 @@ class HakuroukenHandler(EventHandler):
             src = act.source
             if not src.has_skill(HakuroukenSkill): return act
             card = act.associated_card
-            if not card.color == Card.BLACK: return act
+            if not card.suit == Card.CLUB: return act
 
             if not user_input([src], ChooseOptionInputlet(self, (False, True))):
                 return act
