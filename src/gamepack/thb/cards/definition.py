@@ -550,6 +550,7 @@ card_definition = [
 
 
 kof_card_definition = [
+
     # ======= Spade =======
     (SinsackCard, SPADE, A),
     (DeathSickleCard, SPADE, 2),
@@ -559,11 +560,11 @@ kof_card_definition = [
     (GungnirCard, SPADE, 6),
     (SinsackCarnivalCard, SPADE, 7),
     (AttackCard, SPADE, 8),
-    (IceWingCard, SPADE, 9),
+    (WineCard, SPADE, 9),
     (SealingArrayCard, SPADE, 10),
     (AttackCard, SPADE, J),
     (AttackCard, SPADE, Q),
-    (AttackCard, SPADE, K),
+    (RejectCard, SPADE, K),
 
     (DuelCard, SPADE, A),
     (OpticalCloakCard, SPADE, 2),
@@ -595,7 +596,7 @@ kof_card_definition = [
     (RejectCard, HEART, K),
 
     (MapCannonCard, HEART, A),
-    (RejectCard, HEART, 2),
+    (AttackCard, HEART, 2),
     (GrazeCard, HEART, 3),
     (GrazeCard, HEART, 4),
     (HealCard, HEART, 5),
@@ -606,11 +607,11 @@ kof_card_definition = [
     (AttackCard, HEART, 10),
     (AttackCard, HEART, J),
     (GrazeCard, HEART, Q),
-    (SinsackCard, HEART, K),
+    (DuelCard, HEART, K),
 
     # ======= Club =======
     (YoumuPhantomCard, CLUB, A),
-    (AttackCard, CLUB, 2),
+    (MomijiShieldCard, CLUB, 2),
     (AttackCard, CLUB, 3),
     (DemolitionCard, CLUB, 4),
     (FrozenFrogCard, CLUB, 5),
@@ -631,7 +632,7 @@ kof_card_definition = [
     (AttackCard, CLUB, 6),
     (AttackCard, CLUB, 7),
     (AttackCard, CLUB, 8),
-    (AttackCard, CLUB, 9),
+    (IbukiGourdCard, CLUB, 9),
     (AttackCard, CLUB, 10),
     (AttackCard, CLUB, J),
     (RejectCard, CLUB, Q),
@@ -646,13 +647,13 @@ kof_card_definition = [
     (YukariDimensionCard, DIAMOND, 6),
     (AttackCard, DIAMOND, 7),
     (GrazeCard, DIAMOND, 8),
-    (WineCard, DIAMOND, 9),
+    (AttackCard, DIAMOND, 9),
     (NenshaPhoneCard, DIAMOND, 10),
     (GrazeCard, DIAMOND, J),
     (HealCard, DIAMOND, Q),
     (GrazeCard, DIAMOND, K),
 
-    (DuelCard, DIAMOND, A),
+    (ElementalReactorCard, DIAMOND, A),
     (GrazeCard, DIAMOND, 2),
     (GrazeCard, DIAMOND, 3),
     (HealCard, DIAMOND, 4),
@@ -663,7 +664,7 @@ kof_card_definition = [
     (GrazeCard, DIAMOND, 9),
     (AttackCard, DIAMOND, 10),
     (ExinwanCard, DIAMOND, J),
-    (RejectCard, DIAMOND, Q),
+    (AttackCard, DIAMOND, Q),
     (GrazeCard, DIAMOND, K),
 ]
 
