@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
 from gamepack.thb import characters
@@ -82,10 +84,13 @@ class LunaticHandler:
 
 class LunaticAction:
     def effect_string(act):
-        return u'|G【%s】|r：“就让你们看看全部的，月的疯狂！”' % act.source.ui_meta.char_name
+        return u'|G【%s】|r看着|G【%s】|r的眼睛，突然觉得自己可以打10个！' % (
+            act.target.ui_meta.char_name,
+            act.source.ui_meta.char_name,
+        )
 
     def sound_effect(act):
-        return 'thb-cv-reisen_lunatic'
+        return 'thb-cv-reisen_lunatic%d' % random.choice([1, 2])
 
 
 class DiscarderAttackOnly:
