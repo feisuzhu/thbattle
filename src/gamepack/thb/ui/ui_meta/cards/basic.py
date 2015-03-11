@@ -237,4 +237,5 @@ class Heal:
 
 
 class AttackLimitExceeded:
+    target_independent = True
     shootdown_message = u'你已经用过弹幕了'

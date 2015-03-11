@@ -104,4 +104,5 @@ class MelancholyHandler:
 
 
 class MelancholyLimit:
-    shootdown_message = u'【忧郁】你不能使用或打出手牌。'
+    target_independent = True
+    shootdown_message = u'【忧郁】你不能使用或打出手牌'

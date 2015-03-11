@@ -36,6 +36,11 @@ class CriticalStrikeHandler:
     choose_option_prompt = u'你要发动【狂咲】吗？'
 
 
+class CriticalStrikeLimit:
+    # overrides AttackLimitExceeded
+    target_independent = False
+
+
 class CriticalStrikeAction:
     def effect_string(act):
         return u'|G【%s】|r突然呵呵一笑，进入了黑化状态！' % (

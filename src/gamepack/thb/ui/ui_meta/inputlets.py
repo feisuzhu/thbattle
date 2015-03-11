@@ -138,7 +138,12 @@ def actv_handle_target_selection(g, card, players):
         if card.target.__name__ in ('t_One', 't_OtherOne'):
             for p in g.players:
                 act = thbactions.ActionStageLaunchCard(g.me, [p], card)
-                if not act.can_fire():
+                shootdown = act.action_shootdown()
+                if shootdown is not None:
+                    if shootdown.ui_meta.target_independent:
+                        reason = shootdown.ui_meta.shootdown_message
+                        raise ActionDisplayResult(False, reason, False, [], [])
+
                     disables.append(p)
 
         plsel = True

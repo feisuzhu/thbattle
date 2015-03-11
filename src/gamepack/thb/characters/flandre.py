@@ -27,6 +27,10 @@ class CriticalStrikeAction(GenericAction):
         return True
 
 
+class CriticalStrikeLimit(AttackLimitExceeded):
+    pass
+
+
 class CriticalStrikeHandler(EventHandler):
     interested = ('action_apply', 'action_before', 'action_shootdown', 'action_stage_action')
     execute_after = (
@@ -84,7 +88,7 @@ class CriticalStrikeHandler(EventHandler):
             if not c.is_card(AttackCard): return act
             if src.has_skill(ElementalReactorSkill): return act
             if set(act.target_list) & set(tags['flan_targets']):
-                raise AttackLimitExceeded
+                raise CriticalStrikeLimit
 
             return act
 

@@ -223,6 +223,7 @@ class Fatetell:
 
 
 class ActionShootdown:
+    target_independent = False
     shootdown_message = u'您不能这样出牌'
 
 # -----END ACTIONS UI META-----
