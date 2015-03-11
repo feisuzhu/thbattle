@@ -1150,7 +1150,9 @@ class UIGalgameDialog(Control, InputHandler):
         self.draw_subcontrols()
 
     def delete(self):
-        self.player and self.player.stop()
+        p = self.player
+        p and [p.pause(), p.stop()]
+
         Control.delete(self)
 
 
