@@ -17,6 +17,7 @@ from client.ui.base.interp import AbstractInterp, InterpDesc, LinearInterp, Sine
 from client.ui.controls import BigProgressBar, Button, ConfirmButtons, Control, ImageButton
 from client.ui.controls import ImageSelector, Panel, SmallProgressBar, TextArea
 from client.ui.resloader import L
+from client.ui.soundmgr import SoundManager
 from game.autoenv import Game
 from gamepack.thb import actions as thbactions
 from gamepack.thb.cards import Card, CardList, RejectCard
@@ -1131,6 +1132,11 @@ class UIGalgameDialog(Control, InputHandler):
 
         self.should_draw = True
 
+        if ilet.voice:
+            self.player = SoundManager.play(ilet.voice)
+        else:
+            self.player = None
+
         b = SmallProgressBar(parent=self, x=self.width - 140, y=0, width=140)
         b.value = LinearInterp(1.0, 0.0, ilet.timeout)
 
@@ -1142,6 +1148,10 @@ class UIGalgameDialog(Control, InputHandler):
         glRectf(0, 0, self.width, 100)
         self.lbls.draw()
         self.draw_subcontrols()
+
+    def delete(self):
+        self.player and self.player.stop()
+        Control.delete(self)
 
 
 mapping = {

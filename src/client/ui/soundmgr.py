@@ -95,6 +95,8 @@ class SoundManager(object):
         player.queue(L(snd))
         player.play()
 
+        return player
+
     def se_suppress(self):
         self._se_suppress = True
 

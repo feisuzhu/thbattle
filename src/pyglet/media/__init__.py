@@ -1243,7 +1243,10 @@ class ManagedSoundPlayer(Player):
     def stop(self):
         self._timestamp = 0.
         clock.unschedule(self.dispatch_events)
-        managed_players.remove(self)
+        try:
+            managed_players.remove(self)
+        except ValueError:
+            pass
 
 class Listener(object):
     '''The listener properties for positional audio.

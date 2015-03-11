@@ -45,5 +45,5 @@ inventory.extend([(re.compile('^%s$' % pat), ldr) for pat, ldr in (
 
     ('thb-sound-[a-z0-9_]+',       ['sound']),
 
-    ('thb-cv-[a-z0-9_]+',          ['sound']),
+    ('thb-cv-[a-z0-9_-]+',         ['sound']),
 )])
