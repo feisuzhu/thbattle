@@ -117,19 +117,19 @@ class THBattleIdentity:
         u'\n'
         u'|!O道中|r：胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
         u'\n'
-        u'|!B城管|r：胜利条件为击坠|!RBOSS|r（演员模式下若|!G黑幕|r存活则变为|!G黑幕|r胜利）。当|!B城管|rMISS时，击坠者摸3张牌。\n'
+        u'|!B城管|r：胜利条件为击坠|!RBOSS|r。当|!B城管|rMISS时，击坠者摸3张牌。\n'
         u'\n'
-        u'|!G黑幕|r：胜利条件为在除了|!RBOSS|r（简单模式下|!O道中|r）的其他人都MISS的状况下击坠|!RBOSS|r。\n'
+        u'|!G黑幕|r：胜利条件为在|!B城管|r全部MISS的状况下击坠|!RBOSS|r。\n'
+        u'|B|R>> |r|R双黑幕模式|r下胜利条件条件是除了|!RBOSS|r的其他人全部MISS的情况下击坠|!RBOSS|r。\n'
         u'\n'
         u'玩家的身份会在MISS后公开。|!RBOSS|r的身份会在开局的时候公开。'
     )
     params_disp = {
-        'curtain': {
-            'desc': u'黑幕选项',
+        'double_curtain': {
+            'desc': u'双黑幕模式',
             'options': [
-                (u'双黑幕', 'double'),
-                (u'简单', 'simple'),
-                (u'演员', 'whoami'),
+                (u'双黑幕', True),
+                (u'正常', False),
             ],
         },
     }

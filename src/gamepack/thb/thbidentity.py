@@ -81,20 +81,19 @@ class DeathHandler(EventHandler):
             def no(identity):
                 return len(deads[identity]) == g.identities.count(identity)
 
-            if g.mode == 'simple':
-                if no(T.ATTACKER) and len(deads[T.BOSS]):
-                    winner(T.CURTAIN)
+            # attackers' & curtain's win
+            if len(deads[T.BOSS]):
+                if g.double_curtain:
+                    winner(T.ATTACKER)
+                else:
+                    if no(T.ATTACKER):
+                        winner(T.CURTAIN)
+                    else:
+                        winner(T.ATTACKER)
 
             # boss & accomplices' win
             if no(T.ATTACKER) and no(T.CURTAIN):
                 winner(T.BOSS, T.ACCOMPLICE)
-
-            # attackers' win
-            if len(deads[T.BOSS]):
-                if g.mode != 'whoami' or no(T.CURTAIN):
-                    winner(T.ATTACKER)
-                else:
-                    winner(T.CURTAIN)
 
         elif evt_type == 'action_after' and isinstance(act, PlayerDeath):
             T = Identity.TYPE
@@ -133,7 +132,7 @@ class THBattleIdentity(Game):
     game_ehs = _game_ehs
     character_categories = ('id', 'id8')
     params_def = {
-        'curtain': ('double', 'whoami', 'simple'),
+        'double_curtain': (False, True),
     }
     T = Identity.TYPE
     identities = [
@@ -150,9 +149,9 @@ class THBattleIdentity(Game):
         g.deck = Deck()
         g.ehclasses = []
 
-        g.mode = params.get('curtain', 'double')
+        g.double_curtain = params['double_curtain']
 
-        if g.mode == 'double':
+        if g.double_curtain:
             g.identities = g.identities[1:] + g.identities[-1:]
 
         # choose girls init -->
