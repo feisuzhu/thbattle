@@ -41,6 +41,7 @@ class CriticalStrikeHandler(EventHandler):
     )
     execute_before = (
         'MomijiShieldHandler',
+        'WineHandler',
     )
 
     def handle(self, evt_type, act):

@@ -137,8 +137,9 @@ class SadistAction(UserAction):
 
 
 class SadistHandler(EventHandler):
-    interested = ('action_after', 'action_apply')
+    interested = ('action_after', 'action_before')
     card_usage = 'drop'
+    execute_before = ('WineHandler', )
     execute_after = ('DeathHandler', )
 
     def handle(self, evt_type, act):
@@ -157,7 +158,7 @@ class SadistHandler(EventHandler):
             if pl:
                 Game.getgame().process_action(SadistAction(src, pl[0]))
 
-        elif evt_type == 'action_apply' and isinstance(act, Damage):
+        elif evt_type == 'action_before' and isinstance(act, Damage):
             src = act.source
             tgt = act.target
 

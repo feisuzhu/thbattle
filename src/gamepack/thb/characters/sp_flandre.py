@@ -101,41 +101,38 @@ class FourOfAKindAction(GenericAction):
 
 
 class FourOfAKindHandler(EventHandler):
-    interested = ('action_apply', 'action_before')
-    execute_before = ('ProtectionHandler', )
+    interested = ('action_before', )
+    execute_before = ('WineHandler', )
     execute_after = (
         'RepentanceStickHandler',
         'DeathSickleHandler',
+        'CriticalStrikeHandler',
+        'SadistHandler',
+        'PerfectFreezeHandler',
     )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
             if act.cancelled: return act
 
-            tgt = act.target
-            if not tgt.has_skill(FourOfAKind): return act
-            if not act.amount <= tgt.life: return act
-
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                g = Game.getgame()
-                g.process_action(FourOfAKindAction(tgt, act))
-
-        elif evt_type == 'action_apply' and isinstance(act, Damage):
             src = act.source
+            tgt = act.target
+            if tgt.has_skill(FourOfAKind) and act.amount <= tgt.life:
+                if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                    g = Game.getgame()
+                    g.process_action(FourOfAKindAction(tgt, act))
 
-            if not src: return act
-            if not src.has_skill(FourOfAKind): return act
+            if src and src.has_skill(FourOfAKind):
+                g = Game.getgame()
 
-            g = Game.getgame()
+                for a in reversed(g.action_stack):
+                    if isinstance(a, LaunchCard):
+                        break
+                else:
+                    return act
 
-            for a in reversed(g.action_stack):
-                if isinstance(a, LaunchCard):
-                    break
-            else:
-                return act
-
-            if src.life == 1:
-                act.amount += 1
+                if src.life == 1:
+                    act.amount += 1
 
         return act
 
