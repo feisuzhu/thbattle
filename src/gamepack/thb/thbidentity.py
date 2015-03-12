@@ -95,6 +95,13 @@ class DeathHandler(EventHandler):
             if no(T.ATTACKER) and no(T.CURTAIN):
                 winner(T.BOSS, T.ACCOMPLICE)
 
+            # all survivors dropped
+            if all([p.dropped for p in survivors]):
+                pl = g.players
+                pl.reveal([p.identity for p in pl])
+                g.winners = []
+                g.game_end()
+
         elif evt_type == 'action_after' and isinstance(act, PlayerDeath):
             T = Identity.TYPE
             g = Game.getgame()
