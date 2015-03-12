@@ -453,7 +453,7 @@ class THBattleNewbie(Game):
                 if evt_type == 'action_before' and isinstance(act, Demolition):
                     g.pause(1.5)
                     dialog(Cirno, u'哈哈，早知道你会用这一招，怎能让你轻易得逞！', 17)
-                    g.process_action(LaunchCard(cirno, [meirin], cirnoreject, Reject(cirno, act)))
+                    g.process_action(LaunchCard(cirno, [cirno], cirnoreject, Reject(cirno, act)))
 
                 elif evt_type == 'action_before' and isinstance(act, Reject) and act.associated_card is cirnoreject:
                     g.pause(1.5)
