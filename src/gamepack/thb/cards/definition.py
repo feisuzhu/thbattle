@@ -375,6 +375,20 @@ class GrimoireCard:
     equipment_skill = equipment.GrimoireSkill
     equipment_category = 'weapon'
 
+# --------------------------------------------------
+
+from . import debug
+
+
+class MassiveDamageCard:
+    associated_action = debug.MassiveDamage
+
+    @staticmethod
+    def target(g, source, tl):
+        return tl, True
+
+    category = ('debug', )
+
 # ==================================================
 
 del __metaclass__
