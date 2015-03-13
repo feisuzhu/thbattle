@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 245'
+VERSION = 'THBATTLE V1.0b incr 246'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -125,6 +125,14 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+铃仙：移除了生药的cost
+新人物：少名针妙丸
+KOF模式调整：选将流程调整、专有牌堆、特别修正的角色
+8人身份场调整：黑幕的胜利条件修改为“在城管全部MISS的情况下击坠BOSS”
+新人教学模式的对话有配音了（Thanks to VV、君寻、星野樱羽）
+白楼剑削弱
+一堆bug修复
+----------------------
 卡图立绘更新、bug修复
 ----------------------
 抢书模式规则微调：持有书增加手牌上限，书可以抵挡致命伤害
