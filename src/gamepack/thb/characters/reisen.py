@@ -6,7 +6,7 @@
 from game.autoenv import ActionShootdown, EventHandler, Game, user_input
 from gamepack.thb.actions import Damage, LaunchCard, PlayerTurn, UserAction
 from gamepack.thb.cards import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, Skill, t_None
-from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.characters.baseclasses import Character, register_character_to
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
@@ -130,8 +130,15 @@ class MahjongDrugHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Reisen(Character):
     skills = [Lunatic, MahjongDrug]
     eventhandlers_required = [DiscarderHandler, LunaticHandler, MahjongDrugHandler]
+    maxlife = 4
+
+
+@register_character_to('kof')
+class ReisenKOF(Character):
+    skills = [Lunatic]
+    eventhandlers_required = [DiscarderHandler, LunaticHandler]
     maxlife = 4

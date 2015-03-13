@@ -26,6 +26,21 @@ class Reisen:
     )
 
 
+class ReisenKOF:
+    # Character
+    char_name = u'铃仙'
+    port_image = 'thb-portrait-reisen'
+    figure_image = 'thb-figure-reisen'
+    miss_sound_effect = 'thb-cv-reisen_miss'
+    description = (
+        u'|DB永琳的首席药品品尝官 铃仙·优昙华院·因幡 体力：4|r\n\n'
+        u'|G狂气|r：你因为|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害后，你可以令其获得技能|G丧心|r。\n\n'
+        u'|R丧心|r：|B锁定技|r，出牌阶段，你不能使用除|G弹幕|r以外的卡牌。你使用|G弹幕|r只能指定距离最近的目标。结束阶段开始时，你失去此技能。\n\n'
+        u'|RKOF修正角色|r\n\n'
+        u'|DB（画师：镜_Area@幻想梦斗符，CV：小羽）|r'
+    )
+
+
 class Lunatic:
     # Skill
     name = u'狂气'
