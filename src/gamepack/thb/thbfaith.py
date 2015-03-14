@@ -10,8 +10,9 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
-from gamepack.thb.actions import DistributeCards, MigrateCardsTransaction, PlayerDeath, PlayerTurn
-from gamepack.thb.actions import RevealIdentity, UserAction, action_eventhandlers, migrate_cards
+from gamepack.thb.actions import DistributeCards, GenericAction, MigrateCardsTransaction
+from gamepack.thb.actions import PlayerDeath, PlayerTurn, RevealIdentity, action_eventhandlers
+from gamepack.thb.actions import migrate_cards
 from gamepack.thb.characters.baseclasses import mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity, sync_primitive
 from gamepack.thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
@@ -73,12 +74,13 @@ class DeathHandler(EventHandler):
         return act
 
 
-class RedrawCards(UserAction):
+class RedrawCards(GenericAction):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
 
         with MigrateCardsTransaction() as trans:
+            g.players.reveal(tgt.cards)
             migrate_cards(tgt.cards, g.deck.droppedcards, trans=trans)
             cards = g.deck.getcards(4)
             tgt.reveal(cards)
