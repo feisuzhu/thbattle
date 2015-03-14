@@ -5,7 +5,7 @@
 # -- own --
 from ..actions import DrawCards, UserAction, ttags
 from ..cards import Skill, t_Self
-from .baseclasses import Character, register_character_to
+from .baseclasses import Character, register_character
 from game.autoenv import Game
 
 
@@ -50,7 +50,7 @@ class Find(Skill):
         )
 
 
-@register_character_to('common', '-kof')
+@register_character
 class Koakuma(Character):
     skills = [Find]
     eventhandlers_required = []
