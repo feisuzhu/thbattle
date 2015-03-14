@@ -16,7 +16,7 @@ class FindAction(UserAction):
         cards = self.associated_card.associated_cards
         n = len(cards)
         # card will be dropped at LaunchCard
-        # g.process_action(DropCards(self.target, cards))
+        # g.process_action(DropCards(tgt, tgt, cards))
         tgt = self.target
         g.process_action(DrawCards(tgt, n))
         ttags(tgt)['find'] = True

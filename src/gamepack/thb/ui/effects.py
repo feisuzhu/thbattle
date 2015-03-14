@@ -74,7 +74,7 @@ def before_launch_card_effects(self, arg):
     for cards in group_by(rawcards, lambda c: id(c.resides_in)):
         card_migration_effects(
             self, (
-                actions.DropUsedCard(act.source, [act.card]),
+                actions.DropUsedCard(act.source, act.source, [act.card]),
                 cards,
                 cards[0].resides_in,
                 self.game.deck.droppedcards,
@@ -384,7 +384,7 @@ class UIPindianEffect(Panel):
             from .. import actions
             card_migration_effects(
                 self.parent, (
-                    actions.DropUsedCard(p, [card]),
+                    actions.DropUsedCard(p, p, [card]),
                     [card],
                     card.resides_in,
                     self.parent.game.deck.droppedcards,

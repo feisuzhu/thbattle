@@ -269,7 +269,7 @@ class THBattleNewbie(Game):
                 g.process_action(Heal(meirin, meirin, meirin.maxlife - meirin.life))
 
             if meirin.cards:
-                g.process_action(DropCards(meirin, meirin.cards))
+                g.process_action(DropCards(meirin, meirin, meirin.cards))
 
             atkcard = g.deck.inject(AttackCard, Card.SPADE, 5)
             g.process_action(DrawCards(cirno, 1))

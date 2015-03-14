@@ -61,8 +61,7 @@ class DarkNohAction(UserAction):
     card_usage = 'drop'
 
     def apply_action(self):
-        src = self.source
-        tgt = self.target
+        src, tgt = self.source, self.target
         g = Game.getgame()
 
         src.tags['darknoh_tag'] = src.tags['turn_count']
@@ -84,7 +83,7 @@ class DarkNohAction(UserAction):
             cards = cl[:n]
 
         g.players.reveal(cards)
-        g.process_action(DropCards(tgt, cards))
+        g.process_action(DropCards(src, tgt, cards))
 
         return True
 

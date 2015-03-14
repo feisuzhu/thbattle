@@ -31,8 +31,7 @@ class Demolition(InstantSpellCardAction):
 
     def apply_action(self):
         g = Game.getgame()
-        src = self.source
-        tgt = self.target
+        src, tgt = self.source, self.target
 
         catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
@@ -45,7 +44,7 @@ class Demolition(InstantSpellCardAction):
         self.card = card
         g.players.exclude(tgt).reveal(card)
         g.process_action(
-            DropCards(target=tgt, cards=[card])
+            DropCards(src, tgt, cards=[card])
         )
         return True
 
@@ -170,8 +169,8 @@ class SealingArray(DelayedSpellCardAction, FatetellAction):
 
     def fatetell_postprocess(self):
         g = Game.getgame()
-        target = self.target
-        g.process_action(DropCards(target, [self.associated_card]))
+        tgt = self.target
+        g.process_action(DropCards(tgt, tgt, [self.associated_card]))
 
 
 @register_eh
@@ -220,12 +219,12 @@ class Sinsack(DelayedSpellCardAction, FatetellAction):
 
     def fatetell_postprocess(self):
         g = Game.getgame()
-        target = self.target
-        if (not self.cancelled) and self.succeeded:
-            g.process_action(DropCards(target, [self.associated_card]))
+        tgt = self.target
+        if not self.cancelled and self.succeeded:
+            g.process_action(DropCards(tgt, tgt, [self.associated_card]))
         else:
             pl = g.players
-            stop = pl.index(target)
+            stop = pl.index(tgt)
             next = stop - len(pl) + 1
             while next < stop:
                 if not pl[next].dead:
@@ -514,8 +513,8 @@ class FrozenFrog(DelayedSpellCardAction, FatetellAction):
 
     def fatetell_postprocess(self):
         g = Game.getgame()
-        target = self.target
-        g.process_action(DropCards(target, [self.associated_card]))
+        tgt = self.target
+        g.process_action(DropCards(tgt, tgt, [self.associated_card]))
 
 
 @register_eh

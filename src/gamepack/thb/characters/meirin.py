@@ -56,13 +56,12 @@ class LoongPunchAction(GenericAction):
 
     def apply_action(self):
         g = Game.getgame()
-        src = self.source
-        tgt = self.target
+        src, tgt = self.source, self.target
         c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
         c = c or random_choose_card([tgt.cards, tgt.showncards])
         if not c: return False
         g.players.exclude(tgt).reveal(c)
-        g.process_action(DropCards(tgt, [c]))
+        g.process_action(DropCards(src, tgt, [c]))
         return True
 
 

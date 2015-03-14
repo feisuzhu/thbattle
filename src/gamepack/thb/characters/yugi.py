@@ -94,7 +94,7 @@ class FreakingPowerHandler(EventHandler):
             card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
             if card:
                 g.players.exclude(tgt).reveal(card)
-                g.process_action(DropCards(tgt, [card]))
+                g.process_action(DropCards(src, tgt, [card]))
 
         return act
 

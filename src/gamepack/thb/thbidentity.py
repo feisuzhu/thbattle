@@ -119,7 +119,7 @@ class DeathHandler(EventHandler):
                         cards.extend(src.cards)
                         cards.extend(src.showncards)
                         cards.extend(src.equips)
-                        cards and g.process_action(DropCards(src, cards))
+                        cards and g.process_action(DropCards(src, src, cards))
 
         return act
 

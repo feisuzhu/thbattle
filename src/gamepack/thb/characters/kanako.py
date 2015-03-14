@@ -30,7 +30,7 @@ class DivinityAction(UserAction):
         cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
         cl = cl or (list(tgt.showncards) + list(tgt.cards) + list(tgt.equips))[:self.amount]
         g.players.reveal(cl)
-        g.process_action(DivinityDropCards(tgt, cl))
+        g.process_action(DivinityDropCards(tgt, tgt, cl))
         return True
 
     def cond(self, cl):
@@ -82,7 +82,7 @@ class VirtueAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
         g = Game.getgame()
-        g.process_action(DropCards(src, self.cards))
+        g.process_action(DropCards(src, src, self.cards))
         g.process_action(DrawCards(tgt, 1))
         ttags(g.current_turn)['virtue'] = True
         return True

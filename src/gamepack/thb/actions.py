@@ -306,7 +306,7 @@ class DeadDropCards(GenericAction):
         for cl in lists:
             if not cl: continue
             others.reveal(list(cl))
-            g.process_action(DropCards(tgt, cl))
+            g.process_action(DropCards(tgt, tgt, cl))
             assert not cl
 
         return True
@@ -444,8 +444,8 @@ class MaxLifeChange(GenericAction):
 # ---------------------------------------------------
 
 class DropCards(GenericAction):
-    def __init__(self, target, cards, detached=False):
-        self.source = Game.getgame().action_stack[-1].source
+    def __init__(self, source, target, cards, detached=False):
+        self.source = source
         self.target = target
         self.cards = cards
         self.detached = detached
@@ -474,7 +474,8 @@ class UseCard(GenericAction):
 
     def apply_action(self):
         g = Game.getgame()
-        return g.process_action(DropUsedCard(self.target, [self.card]))
+        src, tgt = self.source, self.target
+        return g.process_action(DropUsedCard(src, tgt, [self.card]))
 
 
 class AskForCard(GenericAction):
@@ -521,20 +522,20 @@ class DropCardStage(GenericAction):
         self.cards = []
 
     def apply_action(self):
-        target = self.target
-        if target.dead: return False
+        tgt = self.target
+        if tgt.dead: return False
         n = self.dropn
         if n <= 0: return True
 
         g = Game.getgame()
-        cards = user_choose_cards(self, target, ('cards', 'showncards'))
+        cards = user_choose_cards(self, tgt, ('cards', 'showncards'))
         if cards:
-            g.process_action(DropCards(target, cards=cards))
+            g.process_action(DropCards(tgt, tgt, cards=cards))
         else:
             from itertools import chain
-            cards = list(chain(target.cards, target.showncards))[min(-n, 0):]
-            g.players.exclude(target).reveal(cards)
-            g.process_action(DropCards(target, cards=cards))
+            cards = list(chain(tgt.cards, tgt.showncards))[min(-n, 0):]
+            g.players.exclude(tgt).reveal(cards)
+            g.process_action(DropCards(tgt, tgt, cards=cards))
 
         self.cards = cards
         return True
@@ -613,7 +614,7 @@ class LaunchCard(GenericAction):
         drop = card.usage == 'drop'
         try:
             if drop:  # should drop before action
-                g.process_action(DropCards(src, cards=[card]))
+                g.process_action(DropCards(src, src, cards=[card]))
 
             elif not getattr(card, 'no_drop', False):
                 detach_cards([card])  # emit events
@@ -649,7 +650,7 @@ class LaunchCard(GenericAction):
                 # means no actions have done anything to the card/skill,
                 # drop it
                 if not getattr(card, 'no_drop', False):
-                    g.process_action(DropUsedCard(src, cards=[card], detached=True))
+                    g.process_action(DropUsedCard(src, src, [card], detached=True))
                 else:
                     from .cards import VirtualCard
                     for c in VirtualCard.unwrap([card]):
@@ -1067,8 +1068,8 @@ class Pindian(UserAction):
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
         g.emit_event('pindian_card_revealed', self)  # for ui.
-        g.process_action(DropCards(src, [pindian_card[src]], detached=True))
-        g.process_action(DropCards(tgt, [pindian_card[tgt]], detached=True))
+        g.process_action(DropCards(src, src, [pindian_card[src]], detached=True))
+        g.process_action(DropCards(tgt, tgt, [pindian_card[tgt]], detached=True))
 
         return pindian_card[src].number > pindian_card[tgt].number
 

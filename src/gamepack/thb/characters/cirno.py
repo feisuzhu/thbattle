@@ -19,12 +19,12 @@ class CirnoDropCards(GenericAction):
         self.cards = cards
 
     def apply_action(self):
-        tgt = self.target
+        src, tgt = self.source, self.target
         cards = self.cards
 
         g = Game.getgame()
         g.players.reveal(cards)
-        g.process_action(DropCards(target=tgt, cards=cards))
+        g.process_action(DropCards(src, tgt, cards))
         return True
 
 

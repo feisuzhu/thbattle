@@ -129,7 +129,7 @@ class NitoryuuDropWeapon(UserAction):
             [tgt], ChooseIndividualCardInputlet(self, weapons),
         ) or random_choose_card([weapons])
         g = Game.getgame()
-        g.process_action(DropCards(tgt, [e]))
+        g.process_action(DropCards(tgt, tgt, [e]))
 
         return True
 

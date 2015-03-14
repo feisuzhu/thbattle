@@ -120,7 +120,7 @@ def drop_cards_card_migration_instructions(g, cards):
     for cards in group_by(rawcards, lambda c: id(c.resides_in)):
         rst += card_migration_instructions(
             g, (
-                actions.DropUsedCard(None, None),
+                actions.DropUsedCard(None, None, None),
                 cards,
                 cards[0].resides_in,
                 g.deck.droppedcards,

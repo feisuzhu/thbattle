@@ -275,16 +275,16 @@ class ExinwanEffect(GenericAction):
 
     def apply_action(self):
         g = Game.getgame()
-        target = self.target
-        if target.dead:
+        tgt = self.target
+        if tgt.dead:
             return False
 
-        cards = user_choose_cards(self, target, ('cards', 'showncards', 'equips'))
+        cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
 
         if cards:
-            g.process_action(DropCards(target=target, cards=cards))
+            g.process_action(DropCards(tgt, tgt, cards))
         else:
-            g.process_action(Damage(source=None, target=target))
+            g.process_action(Damage(None, tgt))
 
         return True
 

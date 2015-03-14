@@ -15,8 +15,7 @@ from game.autoenv import EventHandler, Game, user_input
 class RiversideAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
-        src = self.source
-        tgt = self.target
+        src, tgt = self.source, self.target
         src.tags['riverside_tag'] = src.tags['turn_count']
         tgt.tags['riverside_target'] = g.turn_count
         minhp = min([p.life for p in g.players if not p.dead])
@@ -28,7 +27,7 @@ class RiversideAction(UserAction):
                 card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
                 card = card or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
                 g.players.reveal(card)
-                g.process_action(DropCards(tgt, [card]))
+                g.process_action(DropCards(src, tgt, [card]))
             else:
                 self.action = 'draw'
                 g.process_action(DrawCards(src, 1))

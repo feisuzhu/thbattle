@@ -76,7 +76,7 @@ class RebornHandler(EventHandler):
             cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
             if cards:
                 g = Game.getgame()
-                g.process_action(DropCards(tgt, cards))
+                g.process_action(DropCards(tgt, tgt, cards))
                 g.process_action(RebornAction(tgt))
 
         return act

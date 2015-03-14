@@ -83,7 +83,7 @@ class ExtremeIntelligenceAction(GenericAction):
         p = self.source
         cards = self.cards
         g = Game.getgame()
-        g.process_action(DropCards(p, cards))
+        g.process_action(DropCards(p, p, cards))
 
         act = self.action
         nact = act.__class__(source=p, target=act.target)

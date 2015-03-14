@@ -26,8 +26,7 @@ class LittleLegionDrawCards(DrawCards):
 class LittleLegionAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
-        src = self.source
-        tgt = self.target
+        src, tgt = self.source, self.target
 
         catnames = ('cards', 'showncards', 'equips')
         cats = [getattr(tgt, i) for i in catnames]
@@ -40,7 +39,7 @@ class LittleLegionAction(UserAction):
         self.card = card
         g.players.exclude(tgt).reveal(card)
         g.process_action(
-            DropCards(target=tgt, cards=[card])
+            DropCards(src, tgt, cards=[card])
         )
         return True
 

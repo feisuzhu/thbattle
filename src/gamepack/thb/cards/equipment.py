@@ -393,7 +393,8 @@ class RepentanceStick(GenericAction):
             if card:
                 l.append(card)
                 g.players.exclude(tgt).reveal(card)
-                g.process_action(DropCards(target=tgt, cards=[card]))
+                g.process_action(DropCards(src, tgt, [card]))
+
         self.cards = l
         return True
 
@@ -616,7 +617,7 @@ class Hakurouken(GenericAction):
         g = Game.getgame()
         if cards:
             self.peer_action = 'drop'
-            g.process_action(DropCards(tgt, cards))
+            g.process_action(DropCards(src, tgt, cards))
         else:
             self.peer_action = 'draw'
             g.process_action(DrawCards(src, 1))
@@ -655,15 +656,13 @@ class HakuroukenHandler(EventHandler):
 
 class AyaRoundfan(GenericAction):
     def apply_action(self):
-        src = self.source
-        tgt = self.target
-
+        src, tgt = self.source, self.target
         g = Game.getgame()
 
         equip = user_input([src], ChoosePeerCardInputlet(self, tgt, ['equips']))
         if not equip:
             equip = random_choose_card([tgt.equips])
-        g.process_action(DropCards(tgt, [equip]))
+        g.process_action(DropCards(src, tgt, [equip]))
         self.card = equip
 
         return True
@@ -695,7 +694,7 @@ class AyaRoundfanHandler(EventHandler):
             cards = user_choose_cards(self, src, ('cards', 'showncards'))
             if not cards: return act
             g = Game.getgame()
-            g.process_action(DropCards(src, cards))
+            g.process_action(DropCards(src, src, cards))
             g.process_action(AyaRoundfan(src, tgt))
 
         return act
@@ -741,7 +740,7 @@ class LaevateinHandler(EventHandler):
             if not cards:
                 return arg
 
-            g.process_action(DropCards(src, cards))
+            g.process_action(DropCards(src, src, cards))
             g.process_action(Laevatein(src, tgt))
             return act, True
 
@@ -855,7 +854,7 @@ class YinYangOrb(GenericAction):
         for e in tgt.equips:
             if e.is_card(YinYangOrbCard):
                 g = Game.getgame()
-                g.process_action(DropCards(tgt, [e]))
+                g.process_action(DropCards(tgt, tgt, [e]))
                 self.card = e
                 ft.set_card(e)
                 break

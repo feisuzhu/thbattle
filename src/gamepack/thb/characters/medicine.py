@@ -28,7 +28,7 @@ class CiguateraAction(UserAction):
         tgt = self.target
         src = self.source
         g = Game.getgame()
-        g.process_action(DropCards(src, self.cards))
+        g.process_action(DropCards(src, src, self.cards))
         g.process_action(Wine(tgt, tgt))
         tags = tgt.tags
         tags['ciguatera_tag'] = g.turn_count
@@ -56,7 +56,7 @@ class CiguateraTurnEnd(GenericAction):
         if cards:
             assert len(cards) == 1
             self.card = cards[0]
-            g.process_action(DropCards(src, cards))
+            g.process_action(DropCards(src, src, cards))
             g.process_action(draw)
         else:
             self.card = None
