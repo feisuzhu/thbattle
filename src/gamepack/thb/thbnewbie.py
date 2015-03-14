@@ -402,7 +402,7 @@ class THBattleNewbie(Game):
         g.pause(1)
         dialog(Cirno, u'呜哇你赖皮！', 12)
         dialog(Meirin, u'哪来的什么赖皮不赖皮，我有自己的能力，但是你也有啊。', 30)
-        dialog(Cirno, u'可是我又不会用！这你不赖皮你是什么嘛！', 13)
+        dialog(Cirno, u'可是我又不会用！你这不是赖皮是什么嘛！', 13)
         dialog(Meirin, u'……', None)
         dialog(Sakuya, u'……还是不要跟笨蛋说话的比较好，智商会下降的。', 12)
 
