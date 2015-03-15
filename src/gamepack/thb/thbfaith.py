@@ -80,7 +80,7 @@ class RedrawCards(GenericAction):
         g = Game.getgame()
 
         with MigrateCardsTransaction() as trans:
-            g.players.reveal(tgt.cards)
+            g.players.reveal(list(tgt.cards))
             migrate_cards(tgt.cards, g.deck.droppedcards, trans=trans)
             cards = g.deck.getcards(4)
             tgt.reveal(cards)

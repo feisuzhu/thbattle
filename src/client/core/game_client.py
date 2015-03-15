@@ -4,7 +4,7 @@
 import logging
 log = logging.getLogger('Game_Client')
 from copy import copy
-from collections import OrderedDict, deque
+from collections import OrderedDict
 
 # -- third party --
 import gevent
@@ -142,7 +142,7 @@ class TheChosenOne(game.AbstractPlayer):
         g = Game.getgame()
         st = g.get_synctag()
         _, raw_data = self.server.gexpect('Sync:%d' % st)
-        if isinstance(obj_list, (list, tuple, deque)):
+        if isinstance(obj_list, (list, tuple)):
             for o, rd in zip(obj_list, raw_data):
                 o.sync(rd)
         else:
