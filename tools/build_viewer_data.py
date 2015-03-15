@@ -136,6 +136,7 @@ result = {
 excludes = [
     cards.HiddenCard,
     cards.DummyCard,
+    cards.MassiveDamageCard,
 ]
 
 
