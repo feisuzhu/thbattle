@@ -393,7 +393,7 @@ class Lobby(object):
 
             @gevent.spawn
             def reconnect():
-                self.send_account_info(self, user)
+                self.send_account_info(user)
 
                 manager = GameManager.get_by_user(old)
                 manager.reconnect(user)
