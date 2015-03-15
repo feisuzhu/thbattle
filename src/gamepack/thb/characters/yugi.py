@@ -60,8 +60,7 @@ class FreakingPowerAction(FatetellAction):
         self.atkact = atkact
         self.source = atkact.source
         self.target = atkact.target
-        self.fatetell_target = atkact.target
-        self.fatetell_cond = lambda c: c.color == Card.RED
+        self.fatetell_target = atkact.source
 
     def fatetell_action(self, ft):
         act = self.atkact
@@ -71,6 +70,10 @@ class FreakingPowerAction(FatetellAction):
             act.yugifptag = True
 
         return True
+
+    @staticmethod
+    def fatetell_cond(c):
+        return c.color == Card.RED
 
 
 class FreakingPowerHandler(EventHandler):
