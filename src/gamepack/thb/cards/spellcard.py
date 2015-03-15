@@ -170,7 +170,7 @@ class SealingArray(DelayedSpellCardAction, FatetellAction):
     def fatetell_postprocess(self):
         g = Game.getgame()
         tgt = self.target
-        g.process_action(DropCards(tgt, tgt, [self.associated_card]))
+        g.process_action(DropCards(None, tgt, [self.associated_card]))
 
 
 @register_eh
@@ -221,7 +221,7 @@ class Sinsack(DelayedSpellCardAction, FatetellAction):
         g = Game.getgame()
         tgt = self.target
         if not self.cancelled and self.succeeded:
-            g.process_action(DropCards(tgt, tgt, [self.associated_card]))
+            g.process_action(DropCards(None, tgt, [self.associated_card]))
         else:
             pl = g.players
             stop = pl.index(tgt)
@@ -514,7 +514,7 @@ class FrozenFrog(DelayedSpellCardAction, FatetellAction):
     def fatetell_postprocess(self):
         g = Game.getgame()
         tgt = self.target
-        g.process_action(DropCards(tgt, tgt, [self.associated_card]))
+        g.process_action(DropCards(None, tgt, [self.associated_card]))
 
 
 @register_eh
