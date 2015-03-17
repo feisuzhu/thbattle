@@ -10,11 +10,13 @@ from gevent.pool import Pool
 from gevent.event import Event
 
 from collections import defaultdict
+import urllib
 from cStringIO import StringIO
 import itertools
 import json
 import logging
 import random
+import spidermonkey
 import re
 import requests
 import struct
@@ -31,7 +33,7 @@ UA_STRING = (
 
 
 class QQBot(object):
-    def __init__(self, qq, password, v=20130916001, appid=501004106):
+    def __init__(self, qq, password, v=20131024001, appid=501004106):
         self.qq = str(qq)
         self.password = password
         self.logged_in = False
@@ -41,6 +43,8 @@ class QQBot(object):
         self.v = v  # nonsense, copied from smartqq
         self.appid = appid  # nonsense, copied from smartqq
 
+        self.init_js()
+
         # [{"flag":167773201,"name":"圣维亚学院","gid":3672457874,"code":1705326190}, ...]
         self.group_list = []
 
@@ -49,6 +53,9 @@ class QQBot(object):
 
         self.cache = defaultdict(dict)
         self.session = requests.session()
+        self.session.headers.update({
+            'User-Agent': UA_STRING,
+        })
 
         self.pool = Pool(10)
         self.corepool = Pool(3)
@@ -56,6 +63,29 @@ class QQBot(object):
 
         # self.corepool.spawn(self.init)
         self.init()
+
+    def init_js(self):
+        self.js_runtime = spidermonkey.Runtime()
+        self.js_context = ctx = self.js_runtime.new_context()
+        ctx.execute('''
+            window = this; dummy = function() { return {}; }
+            document = {getElementById: dummy, createElement: dummy}
+            navigator = {userAgent: 'Chrome'}; location = {};
+            g_href = ''; document.loginform = {};
+        ''')
+
+        ctx.execute('g_appid = %s' % self.appid)
+
+        mq_comm = requests.get("https://ui.ptlogin2.qq.com/js/10114/mq_comm.js").content
+        # mq_comm = open('/dev/shm/a.js').read()
+        ctx.execute(mq_comm)
+
+        ctx.execute('''
+            ptui_checkVC = ptuiCB = function() { return [].slice.call(arguments); };
+        ''')
+
+        self._encode_password = ctx.execute('$.Encryption.getEncryption')
+        # _encode_password(password, hexuin, vc)
 
     def init(self):
         self.ready.clear()
@@ -93,24 +123,26 @@ class QQBot(object):
         sigpage = session.get('https://ui.ptlogin2.qq.com/cgi-bin/login', params={
             'daid': '164',
             'target': 'self',
-            'style': '5',
+            'style': '16',
             'mibao_css': 'm_webqq',
-            'appid': '1003903',
+            'appid': self.appid,
             'enable_qlogin': '0',
             'no_verifyimg': '1',
-            's_url': 'http://web2.qq.com/loginproxy.html',
+            's_url': 'http://w.qq.com/proxy.html',
             'f_url': 'loginerroralert',
             'strong_login': '1',
             'login_state': '10',
-            't': '20140612002',
+            't': self.v,
         }).content
+
         self.login_sig = re.findall(r'var g_login_sig=encodeURIComponent\("(.+?)"\);', sigpage)
 
         log.debug('Querying for captcha...')
         check = session.get('https://ssl.ptlogin2.qq.com/check', params={
             'uin': self.qq, 'appid': self.appid,
             'u1': 'http://w.qq.com/proxy.html',
-            'js_ver': 10051,
+            'js_ver': 10114,
+            'pt_tea': 1,
             'login_sig': self.login_sig,
             'js_type': 0,
             'r': random.random(),
@@ -118,8 +150,7 @@ class QQBot(object):
 
         assert check.ok
 
-        check_rst = self._jsonp2list(check.content)
-        state, vc, hexuin, _unknown = check_rst
+        state, vc, hexuin, pt_verifysession, is_rand_salt = self.js_context.execute(check.content)
 
         if state == '1':
             # needs captcha
@@ -132,21 +163,28 @@ class QQBot(object):
 
             vc, vctag = self.on_captcha(captcha.content)
 
-        hexuin = hexuin.replace('\\x', '').decode('hex')
         log.debug('Do stage1 login...')
-        login = session.get('https://ssl.ptlogin2.qq.com/login', params={
-            'u': self.qq, 'p': self._encode_password(hexuin, self.password, vc),
-            'verifycode': vc, 'aid': self.appid,
 
-            'webqq_type': 10, 'remember_uin': 1, 'login2qq': 1,
+        p = self._encode_password(self.password, hexuin, vc)
+        verifysession = pt_verifysession or session.cookies.get('verifysession')
+
+        login = session.get('https://ssl.ptlogin2.qq.com/login', params=urllib.urlencode({
+            'u': self.qq, 'p': p, 'verifycode': vc,
+
+            'aid': self.appid, 'webqq_type': 10, 'remember_uin': 1, 'login2qq': 1,
             'u1': 'http://w.qq.com/proxy.html?login2qq=1&webqq_type=10',
             'h': 1, 'ptredirect': 0, 'ptlang': 2052,
             'daid': 164, 'from_ui': 1, 'pttype': 1, 'dumy': '',
-            'fp': 'loginerroralert', 'action': '0-28-83753',
-            'mibao_css': 'm_webqq', 't': 2, 'g': 1, 'js_type': 0, 'js_ver': 10051,
-        })
+            'fp': 'loginerroralert', 'action': '0-45-1010',
+            'mibao_css': 'm_webqq', 't': 1, 'g': 1, 'js_type': 0, 'js_ver': 10114,
 
-        state, _, url, _, msg, _ = self._jsonp2list(login.content)
+            'login_sig': self.login_sig,
+            'pt_randsalt': is_rand_salt or '0',
+            'pt_vcode_v1': '0',
+        }) + '&pt_verifysession_v1=' + verifysession)  # tencent sucks
+
+        rst = self.js_context.execute(login.content)
+        state, _, url, _, msg, _ = rst
         state = int(state)
         if state == 4:
             # captcha wrong
@@ -733,24 +771,12 @@ class QQBot(object):
     # ----------------
 
     @staticmethod
-    def _encode_password(uin, passwd, vc):
-        from hashlib import md5 as _md5
-        md5 = lambda x: _md5(x).digest()
-        md5hex = lambda x: md5(x).encode('hex').upper()
-        return md5hex(md5hex(md5(passwd) + uin) + vc.upper())
-
-    @staticmethod
-    def _jsonp2list(jsonp):
-        args = jsonp[jsonp.find('(') + 1: jsonp.rfind(')')]
-        return [i.strip("' ") for i in args.split(',')]
-
-    @staticmethod
     def _plaintext(content):
         l = [i for i in content if isinstance(i, basestring)]
         return u''.join(l)
 
     @staticmethod
-    def _buddylist_hash_older(qq, ptwebqq):
+    def _buddylist_hash(qq, ptwebqq):
         a = [0] * 4
         for i, v in enumerate(ptwebqq):
             a[i % 4] ^= ord(v)
@@ -806,7 +832,7 @@ class QQBot(object):
         return V
 
     @staticmethod
-    def _buddylist_hash(qq, ptwebqq):
+    def _buddylist_hash_nyan(qq, ptwebqq):
         b = str(qq)
         j = ptwebqq
 

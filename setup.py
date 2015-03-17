@@ -14,6 +14,7 @@ install_requires = [
     'msgpack-python',
     'pygit2>=0.21.3',
     'redis',
+    'python-spidermonkey',
     'requests',
     'unidecode',
 ]
