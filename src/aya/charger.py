@@ -27,6 +27,15 @@ log = None
 interconnect = None
 history = defaultdict(lambda: (0, 5))
 
+privileged = (
+    109,   # 红领京巴
+    3564,  # 镜
+    6584,  # 唯夜
+    351,   # 西瓜
+    162,   # 灰
+    103,   # 八咫乌鸦
+)
+
 
 def charge(username, message):
     user = member_service.get_user_info_by_username(username)
@@ -35,6 +44,10 @@ def charge(username, message):
         return
 
     uid = user['uid']
+    if uid in privileged:
+        log.info('User %s in privileged group, not charging.' % username)
+        return
+
     t, fee = history[uid]
     now = time.time()
     fee = max(fee - (now - t) / 30.0, 5)
