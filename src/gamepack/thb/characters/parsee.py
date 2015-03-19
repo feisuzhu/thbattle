@@ -3,11 +3,12 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import EventHandler, LaunchCard, UserAction, migrate_cards
-from ..cards import Card, Demolition, DemolitionCard, DummyCard, Skill, TreatAs
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import Game, user_input
+from gamepack.thb.actions import DropCards, EventHandler, LaunchCard, migrate_cards
+from gamepack.thb.cards import Card, Demolition, DemolitionCard, DummyCard, Skill, TreatAs
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet
+from utils.misc import classmix
 
 
 # -- code --
@@ -25,16 +26,9 @@ class Envy(TreatAs, Skill):
         return True
 
 
-class EnvyRecycleAction(UserAction):
-    def __init__(self, source, target, card):
-        self.source = source
-        self.target = target
-        self.card = card
-
+class EnvyRecycleAction(object):
     def apply_action(self):
-        card = self.card
-        assert not card.resides_in or card.resides_in.owner is None
-        migrate_cards([card], self.source.cards, unwrap=True)
+        migrate_cards(self.cards, self.source.cards, unwrap=True)
         return True
 
 
@@ -43,17 +37,31 @@ class EnvyRecycle(DummyCard):
 
 
 class EnvyHandler(EventHandler):
-    interested = ('action_after',)
+    interested = ('action_before',)
 
     def handle(self, evt_type, act):
-        if evt_type != 'action_after': return act
-        if not isinstance(act, Demolition): return act
-        if not act.associated_card.is_card(Envy): return act
-        if not act.source.has_skill(Envy): return act
+        if evt_type != 'action_before': return act
+        if not isinstance(act, DropCards): return act
 
-        src = act.source
-        tgt = act.target
-        self.card = card = act.card
+        g = Game.getgame()
+        pact = g.action_stack[-1]
+        if not isinstance(pact, Demolition): return act
+        if not pact.source.has_skill(Envy): return act
+
+        src = pact.source
+        tgt = pact.target
+        self.card = card = pact.card
+
+        assert len(act.cards) == 1
+        assert card is act.cards[0]
+
+        if not card.resides_in:
+            return act
+
+        if card.resides_in.type not in ('cards', 'showncards', 'equips'):
+            return act
+
+        assert tgt is card.resides_in.owner
 
         if src.dead: return act
         if card.suit != Card.DIAMOND: return act
@@ -61,12 +69,12 @@ class EnvyHandler(EventHandler):
         dist = LaunchCard.calc_distance(src, EnvyRecycle())
         if not dist[tgt] <= 0: return act
 
+        g.emit_event('ui_show_disputed', [card])
+
         if not user_input([src], ChooseOptionInputlet(self, (False, True))):
             return act
 
-        g = Game.getgame()
-        g.process_action(EnvyRecycleAction(src, tgt, card))
-
+        act.__class__ = classmix(EnvyRecycleAction, act.__class__)
         return act
 
 

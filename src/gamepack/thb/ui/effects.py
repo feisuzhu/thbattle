@@ -82,6 +82,19 @@ def before_launch_card_effects(self, arg):
         )
 
 
+def ui_show_disputed_effect(self, cards):
+    rawcards = VirtualCard.unwrap(cards)
+    for cards in group_by(rawcards, lambda c: id(c.resides_in)):
+        card_migration_effects(
+            self, (
+                None,
+                cards,
+                cards[0].resides_in,
+                self.game.deck.disputed,
+            )
+        )
+
+
 def card_migration_effects(self, args):  # here self is the SimpleGameUI instance
     act, cards, _from, to = args
     g = self.game
@@ -616,6 +629,7 @@ mapping_events = ddict(bool, {
     'reseat':            reseat_effects,
     'mutant_morph':      mutant_morph_effects,
     'showcards':         showcards_effect,
+    'ui_show_disputed':  ui_show_disputed_effect,
 })
 
 
