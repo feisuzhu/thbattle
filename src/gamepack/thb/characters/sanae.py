@@ -109,6 +109,8 @@ class SanaeFaithAction(UserAction):
         for p in tl:
             g.process_action(SanaeFaithCollectCardAction(src, p))
 
+        g.deck.shuffle(src.cards)
+
         for p in tl:
             g.process_action(SanaeFaithReturnCardAction(src, p))
 
