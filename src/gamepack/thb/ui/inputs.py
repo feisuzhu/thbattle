@@ -1064,7 +1064,7 @@ class UIDebugUseCardSelection(CardSelectionPanel):
         if self.panel:
             return
 
-        cl = [c() for c in Card.card_classes.values() if c is not Card.card_classes['DummyCard']]
+        cl = [c() for c in Card.card_classes.values()]
         card_lists = [('', cl[i:i+12]) for i in xrange(0, len(cl), 12)]
         self.panel = panel = CardSelectionPanel(
             parent=self.parent, zindex=10,

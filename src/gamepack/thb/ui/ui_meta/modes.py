@@ -306,6 +306,10 @@ class DebugUseCard:
     def image_small(c):
         return c.treat_as.ui_meta.image_small
 
+    @meta_property
+    def tag_anim(c):
+        return c.treat_as.ui_meta.tag_anim
+
     description = u'DEBUG'
 
     def clickable(game):
