@@ -60,8 +60,9 @@ class SadistKOFHandler(EventHandler):
             tgt = arg.target
             g = Game.getgame()
             op = g.get_opponent(tgt)
-            if op.has_skill(SadistKOF):
+            if arg.source is op and op.has_skill(SadistKOF):
                 g.process_action(SadistKOFDrawCards(op, 2))
+                op.tags['sadist_kof_fire'] = True
 
         elif evt_type == 'character_debut':
             old, new = arg
@@ -70,7 +71,8 @@ class SadistKOFHandler(EventHandler):
             g = Game.getgame()
             op = g.get_opponent(new)
 
-            if op.has_skill(SadistKOF):
+            if op.has_skill(SadistKOF) and op.tags['sadist_kof_fire']:
+                op.tags['sadist_kof_fire'] = False
                 g.process_action(SadistKOFDamageAction(op, new))
 
         return arg
