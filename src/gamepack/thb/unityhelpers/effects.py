@@ -3,13 +3,11 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from gamepack.thb import actions
-from gamepack.thb.actions import BaseFatetell, DropUsedCard
+from gamepack.thb.actions import BaseFatetell
 from gamepack.thb.cards import VirtualCard
-from utils import group_by
+
 
 # -- code --
-
 
 # MigrateOpcode:
 NOP        = 0  # No operation. never used.
@@ -88,7 +86,7 @@ def card_migration_instructions(g, args):
                 else:
                     return []  # no animation
             else:
-                gray = not isinstance(act, DropUsedCard) and not to.type == 'disputed'
+                gray = to.type == 'droppedcard'
                 tail += [DUP, GRAY if gray else UNGRAY, AREA_DROP, MOVE]
 
         elif to.owner:
@@ -111,23 +109,6 @@ def card_migration_instructions(g, args):
 
     # _dbgprint(ops)
     return ops
-
-
-def drop_cards_card_migration_instructions(g, cards):
-    rawcards = VirtualCard.unwrap(cards)
-    rst = []
-
-    for cards in group_by(rawcards, lambda c: id(c.resides_in)):
-        rst += card_migration_instructions(
-            g, (
-                actions.DropUsedCard(None, None, None),
-                cards,
-                cards[0].resides_in,
-                g.deck.droppedcards,
-            )
-        )
-
-    return rst
 
 
 def get_display_tags(p):

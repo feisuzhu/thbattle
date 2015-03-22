@@ -67,21 +67,6 @@ class TagAnim(Control):
         self.x, self.y = x, y
 
 
-def before_launch_card_effects(self, arg):
-    from .. import actions
-    act = arg[0]
-    rawcards = VirtualCard.unwrap([act.card])
-    for cards in group_by(rawcards, lambda c: id(c.resides_in)):
-        card_migration_effects(
-            self, (
-                actions.DropUsedCard(act.source, act.source, [act.card]),
-                cards,
-                cards[0].resides_in,
-                self.game.deck.droppedcards,
-            )
-        )
-
-
 def ui_show_disputed_effect(self, cards):
     rawcards = VirtualCard.unwrap(cards)
     for cards in group_by(rawcards, lambda c: id(c.resides_in)):
@@ -101,8 +86,6 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
     handcard_update = False
     dropcard_update = False
     csl = BatchList()
-
-    from .. import actions
 
     # --- src ---
     rawcards = [c for c in cards if not c.is_card(VirtualCard)]
@@ -179,11 +162,10 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
                     csl[0].gray = not act.succeeded  # may be race condition
                     csl[0].do_fatetell_anim()
             else:
-                gray = not isinstance(act, (
-                    actions.DropUsedCard,
-                )) and not to.type == 'disputed'
+                gray = to.type == 'droppedcard'
                 for cs in csl:
                     cs.gray = gray
+
             csl.migrate_to(ca)
         elif to.owner:
             ca = self.player2portrait(to.owner).portcard_area
@@ -393,16 +375,6 @@ class UIPindianEffect(Panel):
                 self.srccs = CardSprite(card, parent=self, x=20, y=20)
             else:
                 self.tgtcs = CardSprite(card, parent=self, x=20+91+20, y=20)
-
-            from .. import actions
-            card_migration_effects(
-                self.parent, (
-                    actions.DropUsedCard(p, p, [card]),
-                    [card],
-                    card.resides_in,
-                    self.parent.game.deck.droppedcards,
-                )
-            )
 
     def delete(self):
         if self.parent:
@@ -623,7 +595,6 @@ mapping_events = ddict(bool, {
     'user_input':        user_input_effects,
     'user_input_finish': user_input_finish_effects,
     'card_migration':    card_migration_effects,
-    'choose_target':     before_launch_card_effects,
     'game_roll':         game_roll_prompt,
     'game_roll_result':  game_roll_result_prompt,
     'reseat':            reseat_effects,

@@ -622,6 +622,8 @@ class LaunchCard(GenericAction):
             else:
                 card.detach()
 
+            g.emit_event('ui_show_disputed', [card])
+
             _, tl = g.emit_event('choose_target', (self, target_list))
             assert _ is self
 
@@ -1063,13 +1065,13 @@ class Pindian(UserAction):
                     card = random_choose_card([p.cards, p.showncards])
 
                 pindian_card[p] = card
-                detach_cards([card])
+                migrate_cards([card], g.deck.disputed, unwrap=True)
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
         g.emit_event('pindian_card_revealed', self)  # for ui.
-        g.process_action(DropCards(src, src, [pindian_card[src]], detached=True))
-        g.process_action(DropCards(tgt, tgt, [pindian_card[tgt]], detached=True))
+        g.process_action(DropCards(src, src, [pindian_card[src]]))
+        g.process_action(DropCards(tgt, tgt, [pindian_card[tgt]]))
 
         return pindian_card[src].number > pindian_card[tgt].number
 
