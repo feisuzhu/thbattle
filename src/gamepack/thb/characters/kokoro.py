@@ -21,8 +21,8 @@ class HopeMaskAction(UserAction):
 
         tgt.reveal(cards)
         putback, acquire = user_input([tgt], HopeMaskInputlet(self, cards), timeout=20)
-        acquire and g.process_action(ShowCards(tgt, acquire))
-        migrate_cards(acquire, tgt.cards)
+        for c in acquire:
+            c.detach()
 
         assert not putback or set(putback) == set(g.deck.getcards(len(putback)))
 
@@ -31,6 +31,10 @@ class HopeMaskAction(UserAction):
             deck[i] = c
 
         assert not putback or putback == g.deck.getcards(len(putback))
+
+        if acquire:
+            g.process_action(ShowCards(tgt, acquire))
+            migrate_cards(acquire, tgt.cards)
 
         self.acquire = acquire
 
