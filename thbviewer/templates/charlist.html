@@ -1,7 +1,7 @@
 <div class="searchbox">
     <input type="text" ng-model="keyword" placeholder="搜索，中文/拼音都可以" />
 </div>
-<div ng-repeat="item in items | filter:keyword" class="pic-list-item">
+<div ng-repeat="item in items | filter:keyword" ng-class="{ kof: item.modes.indexOf('kof') >= 0 }" class="pic-list-item">
     <img ng-src="{{ options.resourceUrl }}/{{ item.image }}" alt="{{ item.name }}" class="pic" />
     <img ng-src="images/imagesel_shine.png" class="shine" charpopover="{{ item.token }}" charpopover-placement="top" />
 </div>

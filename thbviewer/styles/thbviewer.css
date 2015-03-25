@@ -150,3 +150,20 @@ body {
 .searchbox {
     margin-left: 10px;
 }
+
+.kof::before {
+    position: absolute;
+    content: "KOF";
+    color: white;
+    background: rgb(95, 158, 160);
+    z-index: 2;
+    left: 11px;
+    top: 11px;
+    padding: 0.2em 0.3em 0.05em;
+    font-weight: bold;
+    vertical-align: top;
+    border: solid #00FFFF 2px;
+    font-size: 12px;
+    line-height: normal;
+}
+
