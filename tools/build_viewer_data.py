@@ -187,6 +187,7 @@ for k, v in metadata.iteritems():
         "image":         "{}.png".format(v['port_image'].replace('-', '/')),
         "name":          v['char_name'],
         "maxlife":       k.maxlife,
+        "modes":         k.categories,
         "description":   to_html(v['description']),
         "fulltextindex": unidecode(v['description']).replace(' ', '').lower(),
         "positions":     ("暂缺",),
