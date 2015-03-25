@@ -53,7 +53,8 @@ class MockServer(object):
         if not self.gdlist:
             log.info('Game data exhausted, exiting...')
             if options.catch:
-                import pdb; pdb.set_trace()
+                import pdb
+                pdb.set_trace()
             sys.exit(0)
 
         glob = False
@@ -113,10 +114,11 @@ from client.core import game_client
 game_client.Executive = Executive  # Hack
 
 GameMode = gamemodes[mode]
+npcs = len(GameMode.npc_players)
 
-players = [PeerPlayer() for i in xrange(GameMode.n_persons)]
-players[loc].__class__ = TheLittleBrother
-players[loc].server = server
+players = [PeerPlayer() for i in xrange(GameMode.n_persons + npcs)]
+players[loc + npcs].__class__ = TheLittleBrother
+players[loc + npcs].server = server
 
 for p in players:
     p.account = Account.authenticate('Proton', '123')
@@ -124,7 +126,7 @@ for p in players:
 g = GameMode()
 g.players = BatchList(players)
 g.game_params = params
-g.me = players[loc]
+g.me = players[loc + npcs]
 g.replay_file = options.replay_file
 
 

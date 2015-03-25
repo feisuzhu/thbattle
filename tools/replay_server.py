@@ -22,7 +22,7 @@ import gevent
 from account.freeplay import Account
 from endpoint import EndpointDied
 from game import Gamedata
-from server.core import Player
+from server.core import Player, NPCPlayer, NPCClient
 from utils import BatchList
 
 # -- code --
@@ -41,7 +41,8 @@ def ask_for_feed(player_index, tag):
     if not gdlist:
         log.warning('Game data exhausted.')
         if options.catch:
-            import pdb; pdb.set_trace()
+            import pdb
+            pdb.set_trace()
 
         sys.exit(0)
 
@@ -113,6 +114,7 @@ mode = gamemodes[mode]
 
 clients = [MockClient(i) for i in xrange(mode.n_persons)]
 players = BatchList([Player(i) for i in clients])
+players[:0] = [NPCPlayer(NPCClient(i.name), i.input_handler) for i in mode.npc_players]
 
 g = mode()
 g.players = players
@@ -122,5 +124,6 @@ g.random = random.Random(rndseed)
 g.game_params = params
 g.gr_groups = WeakSet()
 g.game = g
+g.pause = lambda x: None
 gevent.getcurrent().game = g
 g.game_start(params)
