@@ -35,8 +35,13 @@ class MasochistAction(UserAction):
         while n > 0:
             pl = [p for p in g.players if not p.dead]
             pl.remove(tgt)
+            if not pl:
+                return True
+
             _, rst = ask_for_action(self, [tgt], ('cards',), pl)
-            if not rst: return True
+            if not rst:
+                return True
+
             cl, pl = rst
             pl[0].reveal(cl)
             migrate_cards(cl, pl[0].cards)
