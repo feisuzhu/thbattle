@@ -619,8 +619,6 @@ class LaunchCard(GenericAction):
             else:
                 card.detach()
 
-            g.emit_event('ui_show_disputed', [card])
-
             _, tl = g.emit_event('choose_target', (self, target_list))
             assert _ is self
 

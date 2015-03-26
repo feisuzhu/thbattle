@@ -151,7 +151,7 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
             cs.gray = False
 
     else:
-        if to.type in ('droppedcard', 'disputed'):
+        if to.type in ('droppedcard', 'disputed', 'detached'):
             dropcard_update = True
             ca = self.dropcard_area
             if isinstance(act, BaseFatetell):
