@@ -463,10 +463,6 @@ class DropCards(GenericAction):
         return True
 
 
-class DropUsedCard(DropCards):
-    pass
-
-
 class UseCard(GenericAction):
     def __init__(self, target, card):
         self.source = self.target = target
@@ -474,8 +470,9 @@ class UseCard(GenericAction):
 
     def apply_action(self):
         g = Game.getgame()
-        src, tgt = self.source, self.target
-        return g.process_action(DropUsedCard(src, tgt, [self.card]))
+        migrate_cards([self.card], g.deck.droppedcards, unwrap=True)
+
+        return True
 
 
 class AskForCard(GenericAction):
@@ -652,7 +649,8 @@ class LaunchCard(GenericAction):
                 # means no actions have done anything to the card/skill,
                 # drop it
                 if not getattr(card, 'no_drop', False):
-                    g.process_action(DropUsedCard(src, src, [card], detached=True))
+                    migrate_cards([card], g.deck.droppedcards, unwrap=True, detached=True)
+
                 else:
                     from .cards import VirtualCard
                     for c in VirtualCard.unwrap([card]):
