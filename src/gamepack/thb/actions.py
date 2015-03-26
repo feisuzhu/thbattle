@@ -1087,6 +1087,25 @@ class Pindian(UserAction):
         return True
 
 
+class Reforge(GenericAction):
+    card_usage = 'reforge'
+
+    def __init__(self, source, target, card):
+        self.source = source
+        self.target = target
+        self.card = card
+
+    def apply_action(self):
+        g = Game.getgame()
+        migrate_cards([self.card], g.deck.droppedcards, True)
+        g.process_action(DrawCards(self.source, 1))
+
+        return True
+
+    def is_valid(self):
+        return DrawCards(self.source, 1).can_fire()
+
+
 @register_eh
 class DyingHandler(EventHandler):
     interested = ('action_after',)

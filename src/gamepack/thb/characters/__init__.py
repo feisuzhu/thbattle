@@ -47,6 +47,7 @@ import aya
 import sp_flandre
 import reisen
 import shinmyoumaru
+import nitori
 
 # special
 import akari

@@ -42,9 +42,6 @@ def walk_wrapped(cl, check_is_complete):
         if not isinstance(c, thbcards.Skill):
             continue
 
-        if not g.me.has_skill(c.__class__):
-            raise ActionDisplayResult(False, u'您不能这样出牌', False, [], [])
-
         if check_is_complete:
             try:
                 is_complete = c.ui_meta.is_complete
@@ -194,6 +191,8 @@ class ActionInputlet:
         usage = getattr(ilet.initiator, 'card_usage', 'none')
 
         if skills:
+            if any(not g.me.has_skill(s) for s in skills):
+                raise ActionDisplayResult(False, u'您不能这样出牌', False, [], [])
             cards = [thbactions.skill_wrap(g.me, skills, rawcards, params)]
             usage = cards[0].usage if usage == 'launch' else usage
         else:
@@ -232,6 +231,8 @@ class ActionInputlet:
         usage = getattr(ilet.initiator, 'card_usage', 'none')
 
         if skills:
+            if any(not g.me.has_skill(s) for s in skills):
+                raise ActionDisplayResult(False, u'您不能这样出牌', False, [], [])
             cards = [thbactions.skill_wrap(g.me, skills, rawcards, params)]
             usage = cards[0].usage if usage == 'launch' else usage
         else:

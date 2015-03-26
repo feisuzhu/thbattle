@@ -103,6 +103,9 @@ class ScarletPerceptionHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, Fatetell):
             tgt = act.target
             if act.card.color != Card.RED: return act
+            g = Game.getgame()
+            if act.card.resides_in is not g.deck.disputed:
+                return act
 
             g = Game.getgame()
             pl = [p for p in g.players if p.has_skill(ScarletPerception) and not p.dead]
