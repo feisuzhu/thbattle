@@ -1061,13 +1061,12 @@ class Pindian(UserAction):
                     card = random_choose_card([p.cards, p.showncards])
 
                 pindian_card[p] = card
-                migrate_cards([card], g.deck.disputed, unwrap=True)
+                migrate_cards([card], g.deck.disputed)
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
         g.emit_event('pindian_card_revealed', self)  # for ui.
-        g.process_action(DropCards(src, src, [pindian_card[src]]))
-        g.process_action(DropCards(tgt, tgt, [pindian_card[tgt]]))
+        migrate_cards([pindian_card[src], pindian_card[tgt]], g.deck.droppedcards, unwrap=True)
 
         return pindian_card[src].number > pindian_card[tgt].number
 

@@ -74,12 +74,7 @@ class AttackCardHandler(EventHandler):
             src, card, dist = act
             from .definition import AttackCard
             if card.is_card(AttackCard):
-                from .equipment import WeaponSkill
-
-                l = [s.range - 1 for s in src.skills if issubclass(s, WeaponSkill) and src.has_skill(s)]
-                if not l: return act
-                l = min(l)
-
+                l = self.attack_range_bonus(src)
                 for p in dist:
                     dist[p] -= l
 
@@ -96,16 +91,25 @@ class AttackCardHandler(EventHandler):
         return act
 
     @staticmethod
-    def set_freeattack(player):
-        player.tags['freeattack'] = player.tags['turn_count']
+    def set_freeattack(p):
+        p.tags['freeattack'] = p.tags['turn_count']
 
     @staticmethod
-    def cancel_freeattack(player):
-        player.tags['freeattack'] = 0
+    def cancel_freeattack(p):
+        p.tags['freeattack'] = 0
 
     @staticmethod
-    def is_freeattack(player):
-        return player.tags['freeattack'] >= player.tags['turn_count']
+    def is_freeattack(p):
+        return p.tags['freeattack'] >= p.tags['turn_count']
+
+    @staticmethod
+    def attack_range_bonus(p):
+        from .equipment import WeaponSkill
+        l = [
+            s.range - 1 for s in p.skills
+            if issubclass(s, WeaponSkill) and p.has_skill(s)
+        ]
+        return max(0, 0, *l)
 
 
 class Heal(BasicAction):

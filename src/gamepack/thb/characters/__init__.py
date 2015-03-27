@@ -48,6 +48,7 @@ import sp_flandre
 import reisen
 import shinmyoumaru
 import nitori
+import shizuha
 
 # special
 import akari
