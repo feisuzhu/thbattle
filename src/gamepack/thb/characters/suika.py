@@ -3,110 +3,110 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, GenericAction, MaxLifeChange
-from ..cards import AttackCard, Card, IbukiGourdCard, Skill, SoberUp, TreatAs, WeaponSkill, WineCard
-from ..cards import t_None
+from ..actions import DrawCards, LaunchCard, Pindian, UserAction, ActionShootdown, PlayerTurn, ActionStage, ActionLimitExceeded
+from ..cards import t_None, AttackCard, VirtualCard, Skill, TreatAs, WineCard, t_OtherOne
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
 
 
 # -- code --
-class Drunkard(TreatAs, Skill):
-    skill_category = ('character', 'active')
+class HeavyDrinkerWine(TreatAs, VirtualCard):
     treat_as = WineCard
 
-    def check(self):
-        cl = self.associated_cards
-        if not (cl and len(cl) == 1 and cl[0].color == Card.BLACK):
-            return False
-        if cl[0].resides_in.type not in ('cards', 'showncards', 'equips'):
-            return False
-        return True
+
+class HeavyDrinkerFailed(ActionShootdown):
+    pass
 
 
-class GreatLandscape(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
-    target = t_None
-
-
-class GreatLandscapeHandler(EventHandler):
-    interested = ('calcdistance',)
-
-    def handle(self, evt_type, arg):
-        if evt_type == 'calcdistance':
-            src, card, dist = arg
-            if card.is_card(AttackCard):
-                if not src.has_skill(GreatLandscape): return arg
-
-                for s in src.skills:
-                    if issubclass(s, WeaponSkill):
-                        return arg
-
-                correction = src.maxlife - src.life
-                for p in dist:
-                    dist[p] -= correction
-        return arg
-
-
-class WineGod(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive', 'awake')
-    target = t_None
-
-
-class WineDream(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
-    target = t_None
-
-
-class WineGodAwake(GenericAction):
+class HeavyDrinkerAction(UserAction):
     def apply_action(self):
-        tgt = self.target
-        tgt.skills.remove(WineGod)
-        tgt.skills.append(WineDream)
+        src, tgt = self.source, self.target
         g = Game.getgame()
-        g.process_action(MaxLifeChange(tgt, tgt, -1))
+        src.tags['suika_target'].append(tgt)
+        if g.process_action(Pindian(src, tgt)):
+            g.process_action(LaunchCard(src, [src], HeavyDrinkerWine(src), bypass_check=True))
+            g.process_action(LaunchCard(tgt, [tgt], HeavyDrinkerWine(src), bypass_check=True))
+
+        else:
+            src.tags['suika_failed'] = src.tags['turn_count']
+
+        return True
+
+    def is_valid(self):
+        tags = self.source.tags
+        if tags['suika_failed'] >= tags['turn_count']:
+            raise HeavyDrinkerFailed
+
+        if self.target in tags['suika_target']:
+            raise ActionLimitExceeded
+
+        Pindian(self.source, self.target).action_shootdown_exception()
+
         return True
 
 
-class WineGodHandler(EventHandler):
-    interested = ('card_migration',)
+class HeavyDrinker(Skill):
+    skill_category = ('character', 'active')
+    associated_action = HeavyDrinkerAction
+    target = t_OtherOne
 
-    def handle(self, evt_type, arg):
-        if evt_type == 'card_migration':
-            act, cl, _from, to = arg
-
-            if to.type != 'equips': return arg
-            tgt = to.owner
-            if not tgt.has_skill(WineGod): return arg
-
-            if any(c.is_card(IbukiGourdCard) for c in cl):
-                g = Game.getgame()
-                g.process_action(WineGodAwake(tgt, tgt))
-
-        return arg
+    def check(self):
+        return not self.associated_cards
 
 
-class WineDreamHandler(EventHandler):
-    interested = ('action_after',)
+class HeavyDrinkerHandler(EventHandler):
+    interested = ('action_apply', )
+    execute_before = ('WineHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, SoberUp):
+        if evt_type == 'action_apply' and isinstance(act, ActionStage):
+            act.target.tags['suika_target'] = []
+
+        return act
+
+
+class DrunkenDream(Skill):
+    target = t_None
+    associated_action = None
+    skill_category = ('character', 'passive')
+
+
+class DrunkenDreamHandler(EventHandler):
+    interested = ('action_apply', 'calcdistance')
+    execute_before = ('WineHandler', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'calcdistance':
+            src, card, dist = act
+            if card.is_card(AttackCard):
+                if not src.has_skill(DrunkenDream):
+                    return act
+
+                if not src.tags['wine']:
+                    return act
+
+                for p in dist:
+                    dist[p] -= 2
+
+        elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             src = act.source
-            if not src.has_skill(WineDream): return act
+            if not src.has_skill(DrunkenDream):
+                return act
+
+            if not src.tags['wine']:
+                return act
+
             g = Game.getgame()
             g.process_action(DrawCards(src, 1))
+
         return act
 
 
 @register_character
 class Suika(Character):
-    skills = [GreatLandscape, Drunkard, WineGod]
+    skills = [HeavyDrinker, DrunkenDream]
     eventhandlers_required = [
-        GreatLandscapeHandler,
-        WineGodHandler,
-        WineDreamHandler
+        HeavyDrinkerHandler,
+        DrunkenDreamHandler,
     ]
     maxlife = 4
