@@ -137,7 +137,7 @@ class EventHandler(GameObject):
             eh = table[grp.__name__]
             eh.set_handlers(EventHandler.make_list(lst, fold_group=False))
 
-        allnames = {cls.__name__ for cls in eh_classes}
+        allnames = frozenset(table)
 
         for eh in table.itervalues():
             eh.execute_before = set(eh.execute_before) & allnames  # make it instance var
