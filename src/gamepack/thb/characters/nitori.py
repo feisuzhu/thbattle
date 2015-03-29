@@ -76,7 +76,7 @@ class ScienceHandler(EventHandler):
             if not act.succeeded: return act
 
             c = act.card
-            if c.resides_in is not g.deck.disputed:
+            if not c.detached:
                 return act
 
             tl = [p for p in g.players if not p.dead]

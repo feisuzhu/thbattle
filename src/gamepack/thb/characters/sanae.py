@@ -157,7 +157,7 @@ class SanaeFaithKOFHandler(EventHandler):
 
     def handle(self, evt_type, arg):
         if evt_type == 'card_migration':
-            act, cards, _from, to = arg
+            act, cards, _from, to, _ = arg
             if isinstance(act, (DistributeCards, DrawCardStage)): return arg
             if to is None or not to.owner: return arg
             if to.type not in ('cards', 'showncards', 'equips'): return arg

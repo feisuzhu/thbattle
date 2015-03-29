@@ -125,7 +125,7 @@ class SharpEyeKOFHandler(EventHandler):
             trans = arg
 
             cl = []
-            for cards, _from, to in trans.movements:
+            for cards, _from, to, is_bh in trans.get_movements():
                 if to is None: continue
                 if to.owner is not b: continue
                 if _from.owner is b: continue

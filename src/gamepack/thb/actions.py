@@ -174,11 +174,8 @@ class MigrateCardsTransaction(object):
         self.cancelled = False
         self.movements = []
 
-    def move(self, cards, _from, to):
-        self.movements.append((cards, _from, to))
-
-    def __iter__(self):
-        return iter(self.movements)
+    def move(self, cards, _from, to, is_bh):
+        self.movements.append((cards, _from, to, is_bh))
 
     def __enter__(self):
         return self
@@ -194,22 +191,39 @@ class MigrateCardsTransaction(object):
         DETACHED = migrate_cards.DETACHED
         act = self.action
 
-        for cards, _from, to in self.movements:
+        for cards, _from, to, is_bh in self.movements:
             if to is not DETACHED:
                 for c in cards: c.move_to(to)
             else:
                 for c in cards: c.detach()
 
-        for cards, _from, to in self.movements:
-            g.emit_event('card_migration', (act, cards, _from, to))
+        for cards, _from, to, is_bh in self.movements:
+            g.emit_event('card_migration', (act, cards, _from, to, is_bh))
 
         g.emit_event('post_card_migration', self)
 
+    def get_movements(self, include_detach=False, only_detach=False):
+        assert not (include_detach and only_detach)
 
-def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
+        if include_detach:
+            return self.movements
+        elif only_detach:
+            return (m for m in self.movements if m[2] is migrate_cards.DETACHED)
+        else:
+            return (m for m in self.movements if m[2] is not migrate_cards.DETACHED)
+
+
+def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
+    '''
+    cards: cards to move around
+    to: destination card list
+    unwrap: drop all VirtualCard wrapping, preserve PhysicalCard only
+    is_bh: indicates this operation is bottom half of a complete migration (pairing with detach_cards)
+    trans: associated MigrateCardsTransaction
+    '''
     if not trans:
         with MigrateCardsTransaction() as trans:
-            migrate_cards(cards, to, unwrap, detached, trans)
+            migrate_cards(cards, to, unwrap, is_bh, trans)
             return not trans.cancelled
 
     if to.owner and to.owner.dead:
@@ -224,25 +238,21 @@ def migrate_cards(cards, to, unwrap=False, detached=False, trans=None):
     detaching = to is DETACHED
 
     for l in groups:
-        if detached:
-            assert not [c for c in l if not c.detached]
-            cl = DETACHED
-        else:
-            cl = l[0].resides_in
+        cl = l[0].resides_in
 
         if l[0].is_card(VirtualCard):
             assert len(l) == 1
-            trans.move(l, cl, DETACHED if unwrap else to)
+            trans.move(l, cl, DETACHED if unwrap else to, is_bh)
             migrate_cards(
                 l[0].associated_cards,
                 to if unwrap or detaching else to.owner.special,
                 unwrap if type(unwrap) is bool else unwrap - 1,
-                detached,
+                is_bh,
                 trans
             )
 
         else:
-            trans.move(l, cl, to)
+            trans.move(l, cl, to, is_bh)
 
 
 class PostCardMigrationHandler(EventHandlerGroup):
@@ -455,7 +465,7 @@ class DropCards(GenericAction):
         target = self.target
         cards = self.cards
         assert all(c.resides_in.owner in (target, None) for c in cards), 'WTF?!'
-        migrate_cards(cards, g.deck.droppedcards, unwrap=True, detached=self.detached)
+        migrate_cards(cards, g.deck.droppedcards, unwrap=True)
 
         return True
 
@@ -647,7 +657,7 @@ class LaunchCard(GenericAction):
                 # means no actions have done anything to the card/skill,
                 # drop it
                 if not getattr(card, 'no_drop', False):
-                    migrate_cards([card], g.deck.droppedcards, unwrap=True, detached=True)
+                    migrate_cards([card], g.deck.droppedcards, unwrap=True, is_bh=True)
 
                 else:
                     from .cards import VirtualCard
@@ -811,7 +821,7 @@ class ShuffleHandler(EventHandler):
 
         # <!-- This causes severe problems, do not use -->
         # elif evt_type == 'card_migration':
-        #     act, cl, _from, to = arg
+        #     act, cl, _from, to, _ = arg
         #     to.owner and to.type == 'cards' and self.do_shuffle([to.owner])
 
         return arg
@@ -858,7 +868,7 @@ class BaseFatetell(GenericAction):
         card, = g.deck.getcards(1)
         g.players.reveal(card)
         self.card = card
-        migrate_cards([card], g.deck.disputed)
+        detach_cards([card])
         g.emit_event(self.type, self)
         return self.succeeded
 
@@ -907,7 +917,7 @@ class FatetellAction(GenericAction):
             rst = self.fatetell_action(ft)
 
             assert ft.card
-            if ft.card.resides_in is g.deck.disputed:
+            if ft.card.detached:
                 migrate_cards([ft.card], g.deck.droppedcards, unwrap=True)
 
             return rst
@@ -1061,12 +1071,12 @@ class Pindian(UserAction):
                     card = random_choose_card([p.cards, p.showncards])
 
                 pindian_card[p] = card
-                migrate_cards([card], g.deck.disputed)
+                detach_cards([card])
                 g.emit_event('pindian_card_chosen', (p, card))
 
         g.players.reveal([pindian_card[src], pindian_card[tgt]])
         g.emit_event('pindian_card_revealed', self)  # for ui.
-        migrate_cards([pindian_card[src], pindian_card[tgt]], g.deck.droppedcards, unwrap=True)
+        migrate_cards([pindian_card[src], pindian_card[tgt]], g.deck.droppedcards, unwrap=True, is_bh=True)
 
         return pindian_card[src].number > pindian_card[tgt].number
 

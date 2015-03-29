@@ -94,7 +94,7 @@ class VirtueHandler(EventHandler):
 
     def handle(self, evt_type, arg):
         if evt_type == 'card_migration':
-            act, cards, _from, to = arg
+            act, cards, _from, to, _ = arg
             if isinstance(act, (DistributeCards, DrawCardStage, DivinityDrawCards)):
                 return arg
 

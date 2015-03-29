@@ -59,12 +59,13 @@ class PsychopathHandler(EventHandler):
 
     def handle(self, evt_type, args):
         if evt_type == 'card_migration':
-            act, cards, _from, to = args
-            if _from is not None and _from.type == 'equips':
+            act, cards, _from, to, is_bh = args
+            if _from is not None and _from.type == 'equips' and not is_bh:
                 src = _from.owner
                 if src.has_skill(Psychopath) and not src.dead:
                     g = Game.getgame()
                     g.process_action(PsychopathDrawCards(src, len(cards)*2))
+
         return args
 
 

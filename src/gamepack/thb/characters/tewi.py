@@ -27,7 +27,7 @@ class LuckHandler(EventHandler):
         if evt_type != 'card_migration':
             return arg
 
-        act, l, _from, to = arg  # (action, cardlist, from, to)
+        act, l, _from, to, is_bh = arg
         p = _from.owner
 
         if p and p.has_skill(Luck) and not p.dead:

@@ -96,7 +96,7 @@ class YoumuHandler(EventHandler):
                 return [c for c in cards
                         if c.equipment_category == 'weapon']
 
-            act, cards, _from, to = arg = act
+            act, cards, _from, to, _ = arg = act
 
             for cl in (_from, to):
                 if cl.type != 'equips': continue

@@ -55,7 +55,7 @@ def _dbgprint(ins):
 
 
 def card_migration_instructions(g, args):
-    act, cards, _from, to = args
+    act, cards, _from, to, is_bh = args
 
     ops = []
 
@@ -79,9 +79,9 @@ def card_migration_instructions(g, args):
     if to.owner is g.me and to.type in ('cards', 'showncards'):
         tail += [DUP, UNGRAY, AREA_HAND, MOVE]
     else:
-        if to.type in ('droppedcard', 'disputed', 'detached'):
+        if to.type in ('droppedcard', 'detached'):
             if isinstance(act, BaseFatetell):
-                if _from.type != 'disputed':
+                if to.type == 'detached':
                     tail += [DUP, DUP, UNGRAY if act.succeeded else GRAY, FATETELL, AREA_DROP, MOVE]
                 else:
                     return []  # no animation
@@ -98,7 +98,7 @@ def card_migration_instructions(g, args):
     rawcards = [c for c in cards if not c.is_card(VirtualCard)]
 
     for c in rawcards:
-        if _from.type in ('deckcard', 'droppedcard', 'disputed') or not _from.owner:
+        if _from.type in ('deckcard', 'droppedcard') or not _from.owner:
             ops += [c, AREA_DECK, GET]
         elif _from.owner is g.me and _from.type in ('cards', 'showncards'):
             ops += [c, AREA_HAND, GET]

@@ -11,17 +11,18 @@ from pyglet.text import Label
 import pyglet
 
 # -- own --
-from ..actions import Action, ActionStage, BaseFatetell, Damage, Fatetell, LaunchCard, Pindian
-from ..actions import PlayerDeath, PlayerTurn, UserAction
-from ..cards import RejectHandler, VirtualCard
-from ..inputlets import ActionInputlet
-from .game_controls import CardSprite
 from client.ui.base.interp import LinearInterp
 from client.ui.controls import BalloonPrompt, Button, Colors, Control, Panel, SmallProgressBar
 from client.ui.resloader import L
 from client.ui.soundmgr import SoundManager
 from game.autoenv import Game
+from gamepack.thb.actions import Action, ActionStage, BaseFatetell, Damage, Fatetell, LaunchCard
+from gamepack.thb.actions import Pindian, PlayerDeath, PlayerTurn, UserAction, migrate_cards
+from gamepack.thb.cards import RejectHandler, VirtualCard
+from gamepack.thb.inputlets import ActionInputlet
+from gamepack.thb.ui.game_controls import CardSprite
 from utils import BatchList, group_by
+
 
 # -- code --
 log = logging.getLogger('THBattleUI_Effects')
@@ -72,16 +73,17 @@ def ui_show_disputed_effect(self, cards):
     for cards in group_by(rawcards, lambda c: id(c.resides_in)):
         card_migration_effects(
             self, (
-                None,
+                None,  # action, N/A
                 cards,
                 cards[0].resides_in,
-                self.game.deck.disputed,
+                migrate_cards.DETACHED,
+                None,  # is_bh, N/A
             )
         )
 
 
 def card_migration_effects(self, args):  # here self is the SimpleGameUI instance
-    act, cards, _from, to = args
+    act, cards, _from, to, is_bh = args
     g = self.game
     handcard_update = False
     dropcard_update = False
@@ -120,7 +122,7 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
 
         # others
         if not pca:
-            if _from.type in ('deckcard', 'droppedcard', 'disputed') or not _from.owner:
+            if _from.type in ('deckcard', 'droppedcard') or not _from.owner:
                 pca = self.deck_area
             # elif not _from.owner:
             #     break
@@ -151,11 +153,11 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
             cs.gray = False
 
     else:
-        if to.type in ('droppedcard', 'disputed', 'detached'):
+        if to.type in ('droppedcard', 'detached'):
             dropcard_update = True
             ca = self.dropcard_area
             if isinstance(act, BaseFatetell):
-                if _from.type != 'disputed':
+                if to.type == 'detached':
                     # do not trigger anim twice
 
                     assert len(csl) == 1

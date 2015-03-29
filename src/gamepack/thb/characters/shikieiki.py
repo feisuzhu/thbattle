@@ -4,8 +4,8 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import Damage, FatetellMalleateHandler, UseCard, UserAction
-from gamepack.thb.actions import migrate_cards, user_choose_cards, MigrateCardsTransaction
+from gamepack.thb.actions import Damage, FatetellMalleateHandler, MigrateCardsTransaction, UseCard
+from gamepack.thb.actions import UserAction, detach_cards, migrate_cards, user_choose_cards
 from gamepack.thb.cards import Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -36,7 +36,7 @@ class TrialAction(UseCard):
         g.players.exclude(self.source).reveal(c)
         with MigrateCardsTransaction() as trans:
             migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, trans=trans)
-            migrate_cards([c], g.deck.disputed, trans=trans)
+            detach_cards([c], trans=trans)
             self.ft.set_card(c)
 
         return True

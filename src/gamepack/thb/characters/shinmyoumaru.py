@@ -4,8 +4,9 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import LaunchCard, FatetellAction, FatetellMalleateHandler
-from gamepack.thb.actions import PostCardMigrationHandler, UseCard, user_choose_cards, Damage, migrate_cards, MigrateCardsTransaction
+from gamepack.thb.actions import Damage, FatetellAction, FatetellMalleateHandler, LaunchCard
+from gamepack.thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard
+from gamepack.thb.actions import detach_cards, migrate_cards, user_choose_cards
 from gamepack.thb.cards import Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
@@ -37,7 +38,7 @@ class MiracleMalletAction(UseCard):
         g.players.exclude(src).reveal(c)
         with MigrateCardsTransaction() as trans:
             migrate_cards([ft.card], src.cards, unwrap=True, trans=trans)
-            migrate_cards([c], g.deck.disputed, trans=trans)
+            detach_cards([c], trans=trans)
             self.ft.set_card(c)
 
         return True
@@ -100,7 +101,7 @@ class VengeOfTsukumogamiHandler(EventHandler):
         if isinstance(trans.action, (LaunchCard, UseCard)):
             return True
 
-        for cards, _from, to in trans:
+        for cards, _from, to, is_bh in trans.get_movements():
             if _from is None or _from.type != 'equips':
                 continue
 

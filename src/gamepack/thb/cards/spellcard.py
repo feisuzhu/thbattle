@@ -3,13 +3,14 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from . import basic
-from ..actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards, FatetellAction, ForEach
-from ..actions import LaunchCard, UserAction, ask_for_action, migrate_cards, random_choose_card
-from ..actions import register_eh, user_choose_cards
-from ..inputlets import ChooseIndividualCardInputlet, ChoosePeerCardInputlet
 from game import sync_primitive
 from game.autoenv import EventHandler, Game, InputTransaction, user_input
+from gamepack.thb.actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards
+from gamepack.thb.actions import FatetellAction, ForEach, LaunchCard, UserAction, ask_for_action
+from gamepack.thb.actions import detach_cards, migrate_cards, random_choose_card, register_eh
+from gamepack.thb.actions import user_choose_cards
+from gamepack.thb.cards import basic
+from gamepack.thb.inputlets import ChooseIndividualCardInputlet, ChoosePeerCardInputlet
 from utils import BatchList, CheckFailed, check, flatten
 
 
@@ -357,10 +358,9 @@ class Feast(ForEach):
 class HarvestEffect(InstantSpellCardAction):
     # 五谷丰登 效果
     def apply_action(self):
-        g = Game.getgame()
         pact = ForEach.get_actual_action(self)
         cards = pact.cards
-        cards_avail = [c for c in cards if c.resides_in is g.deck.disputed]
+        cards_avail = [c for c in cards if c.detached]
         if not cards_avail: return False
         tgt = self.target
 
@@ -385,8 +385,7 @@ class HarvestEffect(InstantSpellCardAction):
         if self.target.dead:
             return False
 
-        g = Game.getgame()
-        return bool([c for c in cards if c.resides_in is g.deck.disputed])
+        return bool([c for c in cards if c.detached])
 
 
 class Harvest(ForEach):
@@ -398,7 +397,7 @@ class Harvest(ForEach):
         g = Game.getgame()
         cards = g.deck.getcards(len(tl))
         g.players.reveal(cards)
-        migrate_cards(cards, g.deck.disputed)
+        detach_cards(cards)
         trans = InputTransaction('HarvestChoose', g.players, cards=cards)
         trans.begin()
         self.cards = cards
@@ -409,7 +408,7 @@ class Harvest(ForEach):
         self.trans.end()
         g.emit_event('harvest_finish', self)
         dropped = g.deck.droppedcards
-        migrate_cards([c for c in self.cards if c.resides_in is g.deck.disputed], dropped)
+        migrate_cards([c for c in self.cards if c.detached], dropped, is_bh=True)
 
 
 class DollControl(InstantSpellCardAction):

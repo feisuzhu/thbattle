@@ -38,7 +38,7 @@ class EquipmentTransferHandler(EventHandler):
 
     def handle(self, evt, args):
         if evt == 'card_migration':
-            act, cards, _from, to = args
+            act, cards, _from, to, _ = args
             if _from is not None and _from.type == 'equips':
                 for c in cards:
                     try:
@@ -280,7 +280,7 @@ class ElementalReactorHandler(EventHandler):
             basic.AttackCardHandler.set_freeattack(tgt)
 
         elif evt_type == 'card_migration':
-            act, cards, _from, to = arg
+            act, cards, _from, to, _ = arg
 
             from .definition import ElementalReactorCard
 
@@ -456,7 +456,7 @@ class IbukiGourdHandler(EventHandler):
 
         elif evt_type == 'card_migration':
             from .definition import IbukiGourdCard
-            act, cl, _from, to = arg
+            act, cl, _from, to, _ = arg
 
             if any(c.is_card(IbukiGourdCard) for c in cl):
                 g = Game.getgame()
@@ -913,13 +913,13 @@ class YoumuPhantomHandler(EventHandler):
     def handle(self, evt_type, arg):
         if not evt_type == 'card_migration': return arg
 
-        act, cards, _from, to = arg
+        act, cards, _from, to, is_bh = arg
 
         from .definition import YoumuPhantomCard
 
         g = Game.getgame()
 
-        if _from is not None and _from.type == 'equips':
+        if _from is not None and _from.type == 'equips' and not is_bh:
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
                     owner = _from.owner

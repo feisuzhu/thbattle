@@ -262,7 +262,6 @@ class Deck(GameObject):
         self.cards_record = {}
         self.vcards_record = WeakValueDictionary()
         self.droppedcards = CardList(None, 'droppedcard')
-        self.disputed = CardList(None, 'disputed')
         cards = CardList(None, 'deckcard')
         self.cards = cards
         cards.extend(

@@ -313,7 +313,7 @@ class ExinwanHandler(EventHandler):
         from .definition import ExinwanCard
 
         if evt_type == 'card_migration':
-            act, cards, _from, to = arg
+            act, cards, _from, to, _ = arg
 
             # someone is getting the ExinwanCard
             if to.owner is not None:
@@ -335,7 +335,7 @@ class ExinwanHandler(EventHandler):
             return arg
 
         elif evt_type == 'post_card_migration':
-            dropcl = [cl for cl, _, to in arg
+            dropcl = [cl for cl, _, to, _ in arg.get_movements()
                       if to.type == 'droppedcard']
 
             def invalid(c):

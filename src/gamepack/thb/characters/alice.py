@@ -71,9 +71,7 @@ class LittleLegionDropHandler(EventHandler):
             return True
 
         equips = p.equips
-        if not any(_from is equips
-                   for _, _from, _ in arg):
-
+        if not any(_from is equips for _, _from, _, _ in arg.get_movements()):
             return True
 
         g = Game.getgame()

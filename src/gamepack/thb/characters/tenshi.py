@@ -104,7 +104,7 @@ class ScarletPerceptionHandler(EventHandler):
             tgt = act.target
             if act.card.color != Card.RED: return act
             g = Game.getgame()
-            if act.card.resides_in is not g.deck.disputed:
+            if not act.card.detached:
                 return act
 
             g = Game.getgame()

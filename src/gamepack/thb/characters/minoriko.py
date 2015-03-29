@@ -96,10 +96,7 @@ class AkiTributeHandler(EventHandler):
             assert len(pl) <= 1, 'Multiple AkiTributes!'
             if not pl: return act
             p = pl[0]
-            g.process_action(AkiTributeCollectCard(p, [
-                c for c in act.cards
-                if c.resides_in is g.deck.disputed
-            ]))
+            g.process_action(AkiTributeCollectCard(p, [c for c in act.cards if c.detached]))
 
         return act
 
