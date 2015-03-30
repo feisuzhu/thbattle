@@ -1,38 +1,15 @@
 # -*- coding: utf-8 -*-
 
+# -- stdlib --
 # -- third party --
 # -- own --
-from gamepack.thb import characters, actions
-from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
-from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
+from gamepack.thb import cards, characters
+from gamepack.thb.actions import ttags
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.nitori)
-
-
-class Science:
-    # Skill
-    name = u'科学'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
-class ScienceAction:
-    def effect_string_before(act):
-        return u'|G【%s】|r使用了|G科学|r。' % (
-            act.source.ui_meta.char_name,
-        )
-
-    def target(pl):
-        if not pl:
-            return (False, u'请选择1名玩家')
-
-        return (True, u'给你牌~')
-
-
-class ScienceHandler:
-    choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【科学】吗？'
 
 
 class Dismantle:
@@ -40,50 +17,10 @@ class Dismantle:
     name = u'拆解'
 
     def clickable(g):
-        skill = characters.nitori.Dismantle(g.me)
-        return skill.ui_meta.clickable(g)
+        if ttags(g.me)['dismantle']:
+            return False
 
-
-class DismantleOwn:
-    def effect_string(act):
-        return u'|G【%s】|r|G拆解|r了%s。' % (
-            act.source.ui_meta.char_name,
-            card_desc(act.card.associated_cards),
-        )
-
-    def clickable(game):
-        try:
-            act = game.action_stack[-1]
-            if isinstance(act, actions.ActionStage):
-                return True
-
-        except IndexError:
-            pass
-
-        return False
-
-    def is_action_valid(g, cl, tl):
-        cl = cl[0].associated_cards
-        if not cl or len(cl) != 1:
-            return (False, u'请选择一张装备')
-
-        if 'equipment' not in cl[0].category:
-            return (False, u'请选择一张装备')
-
-        return (True, u'拆解！')
-
-
-class ForcedDismantle:
-    def clickable(game):
-        try:
-            act = game.action_stack[-1]
-            if isinstance(act, actions.ActionStage):
-                return True
-
-        except IndexError:
-            pass
-
-        return False
+        return my_turn()
 
     def is_action_valid(g, cl, tl):
         if cl[0].associated_cards:
@@ -95,9 +32,47 @@ class ForcedDismantle:
         return (True, u'拆解！')
 
 
-class DismantleHandler:
-    choose_option_buttons = ((u'自己', 'own'), (u'其他角色', 'forced'))
-    choose_option_prompt = u'请选择本回合【拆解】的效果的对象'
+class Craftsman:
+    name = u'匠心'
+
+    def clickable(g):
+        try:
+            if not g.me.cards and not g.me.showncards:
+                return False
+
+            act = g.hybrid_stack[-1]
+            if not act.cond([characters.nitori.Craftsman(g.me)]):
+                return False
+
+            return True
+
+        except (IndexError, AttributeError):
+            return False
+
+    def is_complete(g, cl):
+        skill = cl[0]
+        assert skill.is_card(characters.nitori.Craftsman)
+        if set(skill.associated_cards) != set(g.me.cards) | set(g.me.showncards):
+            return (False, u'请选择所有的手牌（包括明牌）！')
+
+        return (True, u'到今天为止我还没有女朋友……')
+
+    def is_action_valid(g, cl, target_list, is_complete=is_complete):
+        skill = cl[0]
+        assert skill.is_card(characters.nitori.Craftsman)
+        rst, reason = is_complete(g, cl)
+        if not rst:
+            return (rst, reason)
+        else:
+            return cards.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
+
+    def effect_string(act):
+        # for LaunchCard.effect_string
+        source = act.source
+        s = u'|G【%s】|r发动了|G匠心|r。' % (
+            source.ui_meta.char_name,
+        )
+        return s
 
 
 class Nitori:
@@ -107,9 +82,7 @@ class Nitori:
     description = (
         u'|DB水中的工程师 河城荷取 体力：3|r\n'
         u'\n'
-        u'|G拆解|r：出牌阶段开始时，你选择获得一个效果，直到本回合结束\n'
-        u'|B|R>> |r出牌阶段你可以|B重铸|r自己的装备牌\n'
-        u'|B|R>> |r出牌阶段限一次，你可以|B重铸|r一名其他角色装备区的一张牌，然后其摸一张牌。\n'
+        u'|G拆解|r：出牌阶段限一次，你可以|B重铸|r一名角色装备区里的一张装备牌，然后该角色摸一张牌。\n'
         u'\n'
-        u'|G科学|r：当你于回合外因使用、打出、弃置而失去牌后，若牌中至少有一张基本牌，你可以进行一次判定，若为非基本牌，你可以将该判定牌交给一名角色。'
+        u'|G匠心|r：你可以将你的全部手牌（至少1张）当做|G弹幕|r或|G擦弹|r使用或打出。若这些牌均为基本牌，你摸一张牌。'
     )
