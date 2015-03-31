@@ -253,6 +253,35 @@ class Aya(QQBot):
                 group_uin and self.send_group_message(group_uin, insufficient_funds_text)
                 return
 
+            # April Fool!
+            from datetime import datetime
+            import random
+            b4 = datetime(2015, 4, 1)
+            af = datetime(2015, 4, 2)
+            if b4 < datetime.now() < af:
+                content += random.choice([
+                    u'喵～', u'汪～', u'poi～', u'的说～', u'呱～', u'niconiconi～',
+                    u'（PS：灵梦没节操——',
+                    u'（PS：油咖喱的脚很臭——',
+                    u'（PS：河童喜欢巨大的黄瓜——',
+                    u'（PS：妖梦是男孩子——',
+                    u'（PS：茨木华扇又在卖自己的本子——',
+                    u'（PS：幽香和天子又在做爱做的事——',
+                    u'（PS：藤原妹红穿的是男士胖次——',
+                    u'（PS：帕秋莉喜欢在房间里练习娇喘——',
+                    u'（PS：椛椛想要——',
+                    u'（PS：爱丽丝又在扎小人——',
+                    u'（PS：有看到小伞和盖伦在酒吧喝酒——',
+                    u'（PS：四季的胸还不到A罩杯——',
+                    u'（PS：早苗的欧派，赞——',
+                    u'（PS：森近霖之助昨天买了好多卫生纸——',
+                    u'（PS：咲夜又买了更大号的PAD——',
+                    u'（PS：昨天下午菜市场关门了，原因是幽幽子上午去过——',
+                    u'（PS：昨天琪露诺和灵乌路空比算数，灵乌路空赢了——',
+                    u'（PS：守矢大法好—— 天灭博丽，退博保平安—— 人在做，天在看，毫无节操留祸患—— 上网搜“10万元COS”有真相——',
+                ])
+            # --------
+
             interconnect.publish('speaker', [member['username'], content])
 
 
