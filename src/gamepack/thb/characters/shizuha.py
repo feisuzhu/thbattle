@@ -118,7 +118,7 @@ class AutumnLeavesHandler(EventHandler):
         return True
 
 
-@register_character
+# @register_character
 class Shizuha(Character):
     skills = [Decay, AutumnLeaves]
     eventhandlers_required = [AutumnLeavesHandler]
