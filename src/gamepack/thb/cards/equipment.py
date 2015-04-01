@@ -645,12 +645,37 @@ class AyaRoundfan(GenericAction):
         g = Game.getgame()
 
         equip = user_input([src], ChoosePeerCardInputlet(self, tgt, ['equips']))
-        if not equip:
-            equip = random_choose_card([tgt.equips])
+        equip = equip or random_choose_card([tgt.equips])
         g.process_action(DropCards(src, tgt, [equip]))
         self.card = equip
 
         return True
+
+    def is_valid(self):
+        # Proton 2015/4/2 0:26:51
+        # 小爱打幽香，打中以后，弃丸子发动团扇
+        # Proton 2015/4/2 0:26:59
+        # 然后弃了自己的装备
+        # Proton 2015/4/2 0:27:25
+        # 发动了于是又弃了幽香的装备
+        # Proton 2015/4/2 0:27:41
+        # 发动了小小军势
+        # Proton 2015/4/2 0:28:02
+        # 这时候针妙丸又来了一发，幽香卒
+        # 0:28:19
+        # 八咫乌鸦 2015/4/2 0:28:19
+        # 喜闻乐见的插入结算
+        # Proton 2015/4/2 0:28:49
+        # 嗯 然后就回到了团扇的效果
+        # Proton 2015/4/2 0:29:08
+        # 团扇弃置cost把对面弃死了啊！
+        # Proton 2015/4/2 0:29:38
+        # 然后后半段效果都假设是对面还活着
+        # Proton 2015/4/2 0:29:44
+        # 崩
+
+        # 所以加上这个
+        return self.target.equips
 
 
 class AyaRoundfanSkill(WeaponSkill):
