@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 248'
+VERSION = 'THBATTLE V1.0b incr 249'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -125,6 +125,10 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新人物：河城荷取
+人物重做：伊吹萃香
+各种bug修复。
+----------------------
 铃仙：移除了生药的cost
 新人物：少名针妙丸
 KOF模式调整：选将流程调整、专有牌堆、特别修正的角色
