@@ -206,7 +206,7 @@ class THBattleKOF(Game):
 
         first, second = s(first), s(second)
 
-        order = [0, 1] if first is g.players[0] else [1, 0]
+        order = [1, 0] if first is g.players[0] else [0, 1]
 
         pl = g.players
         for p in pl:
@@ -215,7 +215,7 @@ class THBattleKOF(Game):
         g.emit_event('game_begin', g)
 
         for p in pl:
-            g.process_action(DistributeCards(p, amount=3 if p is first else 4))
+            g.process_action(DistributeCards(p, amount=4 if p is first else 3))
 
         for i in order:
             g.emit_event('character_debut', (None, g.players[i]))
