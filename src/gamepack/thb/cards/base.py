@@ -234,6 +234,20 @@ class VirtualCard(Card):
         assert self.syncid == data['syncid']
         assert self.action_params == data['params']
 
+    @staticmethod
+    def find_in_hierarchy(card, cls):
+        if card.is_card(cls):
+            return card
+
+        if not card.is_card(VirtualCard):
+            return None
+
+        for c in card.associated_cards:
+            r = VirtualCard.find_in_hierarchy(c, cls)
+            if r: return r
+
+        return None
+
 
 class CardList(GameObject, deque):
     DECKCARD = 'deckcard'

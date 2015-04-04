@@ -3,9 +3,10 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import Game, user_input, EventHandler
-from gamepack.thb.actions import DrawCards, Reforge, UserAction, random_choose_card, ttags, LaunchCard, UseCard
-from gamepack.thb.cards import Attack, AttackCard, GrazeCard, Skill, t_One, t_OtherOne
+from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import DrawCards, LaunchCard, Reforge, UseCard, UserAction
+from gamepack.thb.actions import random_choose_card, ttags
+from gamepack.thb.cards import Attack, AttackCard, GrazeCard, Skill, VirtualCard, t_One, t_OtherOne
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChoosePeerCardInputlet
 
@@ -66,8 +67,10 @@ class CraftsmanHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, (LaunchCard, UseCard)):
             c = act.card
-            if not c.is_card(Craftsman): return act
-            if not all('basic' in i.category for i in c.associated_cards): return act
+            s = VirtualCard.find_in_hierarchy(c, Craftsman)
+            if not s: return act
+            cards = VirtualCard.unwrap([s])
+            if not all('basic' in i.category for i in cards): return act
             g = Game.getgame()
             g.process_action(DrawCards(act.source, 1))
 
