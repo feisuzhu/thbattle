@@ -3,10 +3,11 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, LaunchCard, Pindian, UserAction, ActionShootdown, PlayerTurn, ActionStage, ActionLimitExceeded
-from ..cards import t_None, AttackCard, VirtualCard, Skill, TreatAs, WineCard, t_OtherOne
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
+from gamepack.thb.actions import ActionLimitExceeded, ActionShootdown, ActionStage, DrawCards
+from gamepack.thb.actions import LaunchCard, Pindian, PlayerTurn, UserAction
+from gamepack.thb.cards import AttackCard, Skill, TreatAs, VirtualCard, WineCard, t_None, t_OtherOne
+from gamepack.thb.characters.baseclasses import Character, register_character
 
 
 # -- code --
@@ -71,6 +72,10 @@ class DrunkenDream(Skill):
     skill_category = ('character', 'passive')
 
 
+class DrunkenDreamDrawCards(DrawCards):
+    pass
+
+
 class DrunkenDreamHandler(EventHandler):
     interested = ('action_apply', 'calcdistance')
     execute_before = ('WineHandler', )
@@ -97,7 +102,7 @@ class DrunkenDreamHandler(EventHandler):
                 return act
 
             g = Game.getgame()
-            g.process_action(DrawCards(src, 1))
+            g.process_action(DrunkenDreamDrawCards(src, 1))
 
         return act
 

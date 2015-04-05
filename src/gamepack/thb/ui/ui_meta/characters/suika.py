@@ -43,12 +43,27 @@ class HeavyDrinker:
 
         return True, u'来一杯！'
 
+    def sound_effect(act):
+        return 'thb-cv-suika_heavydrinker'
+
+    def effect_string(act):
+        return u'|G【%s】|r跟|G【%s】|r划起了拳：“哥俩好，三星照，只喝酒，不吃药！”' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
 
 class DrunkenDream:
     # Skill
     name = u'醉梦'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
+
+
+class DrunkenDreamDrawCards:
+
+    def sound_effect(act):
+        return 'thb-cv-suika_drunkendream'
 
 
 class Suika:
@@ -59,6 +74,6 @@ class Suika:
     description = (
         u'|DB小小的酒鬼夜行 伊吹萃香 体力：4|r\n\n'
         u'|G酒豪|r：出牌阶段，你可以与一名角色拼点，若你赢，你和其各视为使用了一张【酒】，若你没赢，本回合你无法使用该技能。每阶段对每名角色限一次。\n\n'
-        u'|R醉梦|r：|B锁定技|r，若你处于喝醉状态，你的攻击范围+2，回合开始阶段开始时，你摸1张牌。\n\n'
-        u'|DB（画师：Pixiv ID 1163421，CV：shourei小N）|r'
+        u'|G醉梦|r：|B锁定技|r，若你处于喝醉状态，你的攻击范围+2，回合开始阶段开始时，你摸1张牌。\n\n'
+        u'|DB（画师：Pixiv ID 38236110，CV：shourei小N）|r'
     )
