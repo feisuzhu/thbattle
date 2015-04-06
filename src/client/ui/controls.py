@@ -221,8 +221,12 @@ class Button(AbstractButton):
             down, down, up, up, [heavy]*4
         ])
 
+        background = OrderedGroup(0)
+        foreground = OrderedGroup(1)
+        effect = OrderedGroup(2)
+
         batch.add(
-            8, GL_QUADS, None,
+            8, GL_QUADS, background,
             ('v2f', flatten([
                 rectv2f(.5, .5, w-.5, h-.5, ax, ay),
                 rrectv2f(.5, .5, w-.5, h-.5, ax, ay),
@@ -234,11 +238,12 @@ class Button(AbstractButton):
             self.caption, u'AncientPix', 9,
             color=color.text + (255,),
             x=(ax + self.width // 2), y=(ay + self.height // 2),
-            anchor_x='center', anchor_y='center', batch=batch
+            anchor_x='center', anchor_y='center', batch=batch,
+            group=foreground
         )
 
         self.hilight_vl = batch.add(
-            4, GL_QUADS, None,
+            4, GL_QUADS, effect,
             ('v2f', (ax, ay, ax + w, ay, ax + w, ay + h, ax, ay + h)),
             ('c4f/stream', [0.0] * (4 * 4)),
         )

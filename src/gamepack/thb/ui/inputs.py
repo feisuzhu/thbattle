@@ -1151,7 +1151,9 @@ class UIGalgameDialog(Control, InputHandler):
 
     def delete(self):
         p = self.player
-        p and [p.pause(), p.stop()]
+        if p:
+            p.pause()
+            self.player = None
 
         Control.delete(self)
 

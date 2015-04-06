@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from ctypes import POINTER, byref, cast, create_string_buffer, pointer
+from ctypes import POINTER, byref, cast, create_string_buffer, pointer, c_char
 
 # -- third party --
 from pyglet.gl import GLException, GL_COMPILE_STATUS, GL_FRAGMENT_SHADER_ARB, GL_LINK_STATUS
-from pyglet.gl import GL_VERTEX_SHADER_ARB, GLint, GLsizei, c_char, glAttachObjectARB
+from pyglet.gl import GL_VERTEX_SHADER_ARB, GLint, GLsizei, glAttachObjectARB
 from pyglet.gl import glCompileShader, glCreateProgramObjectARB, glCreateShaderObjectARB
 from pyglet.gl import glGetAttribLocationARB, glGetInfoLogARB, glGetProgramiv, glGetShaderiv
 from pyglet.gl import glGetUniformLocationARB, glLinkProgram, glShaderSourceARB
