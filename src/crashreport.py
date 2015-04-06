@@ -8,8 +8,17 @@ tee = None
 debug_logfile = cStringIO.StringIO()
 
 
+class DummyStream(object):
+    def write(self, data):
+        pass
+
+
 class Tee(object):
     def __init__(self):
+        stdout = sys.__stdout__
+        # dummy stdout if underlying file not exists
+        self.stdout = DummyStream() if stdout.fileno() < 0 else stdout
+
         self.logfile = f = open('client_log.txt', 'a+')
         self.history = []
         import datetime
@@ -21,7 +30,7 @@ class Tee(object):
         f.write(s)
 
     def write(self, v):
-        sys.__stdout__.write(v)
+        self.stdout.write(v)
         self.history.append(v)
         self.logfile.write(v.encode('utf-8'))
 
