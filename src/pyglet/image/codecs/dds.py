@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -37,8 +37,10 @@
 Reference: http://msdn2.microsoft.com/en-us/library/bb172993.aspx
 '''
 
+from __future__ import division
+
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: dds.py 2496 2009-08-19 01:17:30Z benjamin.coder.smith $'
+__version__ = '$Id$'
 
 from ctypes import *
 import struct
@@ -47,9 +49,10 @@ from pyglet.gl import *
 from pyglet.image import CompressedImageData
 from pyglet.image import codecs
 from pyglet.image.codecs import s3tc
+from pyglet.compat import izip_longest as compat_izip_longest
 
 class DDSException(codecs.ImageDecodeException):
-    pass
+    exception_priority = 0
 
 # dwFlags of DDSURFACEDESC2
 DDSD_CAPS           = 0x00000001
@@ -86,7 +89,9 @@ class _filestruct(object):
         if len(data) < self.get_size():
             raise DDSException('Not a DDS file')
         items = struct.unpack(self.get_format(), data)
-        for field, value in map(None, self._fields, items):
+        for field, value in compat_izip_longest(self._fields,
+                                                items,
+                                                fillvalue=None):
             setattr(self, field[0], value)
 
     def __repr__(self):
@@ -103,7 +108,7 @@ class _filestruct(object):
     @classmethod
     def get_size(cls):
         return struct.calcsize(cls.get_format())
-
+        
 class DDSURFACEDESC2(_filestruct):
     _fields = [
         ('dwMagic', '4s'),
@@ -140,12 +145,12 @@ class DDPIXELFORMAT(_filestruct):
     ]
 
 _compression_formats = {
-    ('DXT1', False): (GL_COMPRESSED_RGB_S3TC_DXT1_EXT,  s3tc.decode_dxt1_rgb),
-    ('DXT1', True):  (GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, s3tc.decode_dxt1_rgba),
-    ('DXT3', False): (GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, s3tc.decode_dxt3),
-    ('DXT3', True):  (GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, s3tc.decode_dxt3),
-    ('DXT5', False): (GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, s3tc.decode_dxt5),
-    ('DXT5', True):  (GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, s3tc.decode_dxt5),
+    (b'DXT1', False): (GL_COMPRESSED_RGB_S3TC_DXT1_EXT,  s3tc.decode_dxt1_rgb),
+    (b'DXT1', True):  (GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, s3tc.decode_dxt1_rgba),
+    (b'DXT3', False): (GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, s3tc.decode_dxt3),
+    (b'DXT3', True):  (GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, s3tc.decode_dxt3),
+    (b'DXT5', False): (GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, s3tc.decode_dxt5),
+    (b'DXT5', True):  (GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, s3tc.decode_dxt5),
 }
 
 def _check_error():
@@ -160,13 +165,12 @@ class DDSImageDecoder(codecs.ImageDecoder):
     def decode(self, file, filename):
         header = file.read(DDSURFACEDESC2.get_size())
         desc = DDSURFACEDESC2(header)
-        if desc.dwMagic != 'DDS ' or desc.dwSize != 124:
+        if desc.dwMagic != b'DDS ' or desc.dwSize != 124:
             raise DDSException('Invalid DDS file (incorrect header).')
 
         width = desc.dwWidth
         height = desc.dwHeight
         mipmaps = 1
-
 
         if desc.dwFlags & DDSD_DEPTH:
             raise DDSException('Volume DDS files unsupported')
@@ -185,13 +189,13 @@ class DDSImageDecoder(codecs.ImageDecoder):
 
         has_alpha = desc.ddpfPixelFormat.dwRGBAlphaBitMask != 0
 
-        format, decoder = _compression_formats.get(
-            (desc.ddpfPixelFormat.dwFourCC, has_alpha), None)
-        if not format:
+        selector = (desc.ddpfPixelFormat.dwFourCC, has_alpha)
+        if selector not in _compression_formats:
             raise DDSException('Unsupported texture compression %s' % \
                 desc.ddpfPixelFormat.dwFourCC)
 
-        if format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+        dformat, decoder = _compression_formats[selector]
+        if dformat == GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
             block_size = 8
         else:
             block_size = 16
@@ -205,13 +209,13 @@ class DDSImageDecoder(codecs.ImageDecoder):
                 w = 1
             if not h:
                 h = 1
-            size = ((w + 3) / 4) * ((h + 3) / 4) * block_size
+            size = ((w + 3) // 4) * ((h + 3) // 4) * block_size
             data = file.read(size)
             datas.append(data)
             w >>= 1
             h >>= 1
 
-        image = CompressedImageData(width, height, format, datas[0],
+        image = CompressedImageData(width, height, dformat, datas[0],
             'GL_EXT_texture_compression_s3tc', decoder)
         level = 0
         for data in datas[1:]:

@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -35,7 +35,7 @@
 '''Information about version and extensions of current GL implementation.
 
 Usage::
-
+    
     from pyglet.gl import gl_info
 
     if gl_info.have_extension('GL_NV_register_combiners'):
@@ -62,12 +62,13 @@ from ctypes import *
 import warnings
 
 from pyglet.gl.gl import *
+from pyglet.compat import asstr
 
 class GLInfo(object):
     '''Information interface for a single GL context.
 
     A default instance is created automatically when the first OpenGL context
-    is created.  You can use the module functions as a convenience for
+    is created.  You can use the module functions as a convenience for 
     this default instance's methods.
 
     If you are using more than one context, you must call `set_active_context`
@@ -88,16 +89,26 @@ class GLInfo(object):
         '''
         self.have_context = True
         if not self._have_info:
-            self.vendor = cast(glGetString(GL_VENDOR), c_char_p).value
-            self.renderer = cast(glGetString(GL_RENDERER), c_char_p).value
-            self.extensions = cast(glGetString(GL_EXTENSIONS), c_char_p).value
+            self.vendor = asstr(cast(glGetString(GL_VENDOR), c_char_p).value)
+            self.renderer = asstr(cast(glGetString(GL_RENDERER),
+                                       c_char_p).value)
+            self.version = asstr(cast(glGetString(GL_VERSION), c_char_p).value)
+            if self.have_version(3):
+                from pyglet.gl.glext_arb import glGetStringi, GL_NUM_EXTENSIONS
+                num_extensions = GLint()
+                glGetIntegerv(GL_NUM_EXTENSIONS, num_extensions)
+                self.extensions = (asstr(cast(glGetStringi(GL_EXTENSIONS, i),
+                                         c_char_p).value) for i in range(num_extensions.value))
+            else:
+                self.extensions = asstr(cast(glGetString(GL_EXTENSIONS),
+                         c_char_p).value).split()
             if self.extensions:
-                self.extensions = set(self.extensions.split())
-            self.version = cast(glGetString(GL_VERSION), c_char_p).value
+                self.extensions = set(self.extensions)
             self._have_info = True
 
     def remove_active_context(self):
         self.have_context = False
+        self._have_info = False
 
     def have_extension(self, extension):
         '''Determine if an OpenGL extension is available.
@@ -143,7 +154,7 @@ class GLInfo(object):
             `minor` : int
                 The minor revision number.
             `release` : int
-                The release number.
+                The release number.  
 
         :rtype: bool
         :return: True if the requested or a later version is supported.
@@ -176,7 +187,7 @@ class GLInfo(object):
         return self.vendor
 
 # Single instance useful for apps with only a single context (or all contexts
-# have same GL driver, common case).
+# have same GL driver, common case). 
 _gl_info = GLInfo()
 
 set_active_context = _gl_info.set_active_context

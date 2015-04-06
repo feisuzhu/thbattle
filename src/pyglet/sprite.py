@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -59,6 +59,11 @@ draw event handler::
 The sprite can be moved by modifying the ``x`` and ``y`` properties.  Other
 properties determine the sprite's rotation, scale and opacity.
 
+By default sprite coordinates are restricted to integer values to avoid
+sub-pixel artifacts.  If you require to use floats, for example for smoother
+animations, you can set the ``subpixel`` parameter to ``True`` when creating
+the sprite (:since: pyglet 1.2).
+
 The sprite's positioning, rotation and scaling all honor the original
 image's anchor (anchor_x, anchor_y).
 
@@ -76,7 +81,7 @@ entire batch of sprites is then drawn in one call::
     ball_sprites = []
     for i in range(100):
         x, y = i * 10, 50
-        ball_sprites.append(pyglet.sprite.Sprite(ball_image, x, y, batch=batch)
+        ball_sprites.append(pyglet.sprite.Sprite(ball_image, x, y, batch=batch))
 
     @window.event
     def on_draw():
@@ -91,7 +96,7 @@ sprites within batches.
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: sprite.py 2541 2009-12-31 04:31:11Z benjamin.coder.smith@gmail.com $'
+__version__ = '$Id$'
 
 import math
 import sys
@@ -182,7 +187,8 @@ class Sprite(event.EventDispatcher):
                  blend_dest=GL_ONE_MINUS_SRC_ALPHA,
                  batch=None,
                  group=None,
-                 usage='dynamic'):
+                 usage='dynamic',
+                 subpixel=False):
         '''Create a sprite.
 
         :Parameters:
@@ -203,9 +209,12 @@ class Sprite(event.EventDispatcher):
             `group` : `Group`
                 Optional parent group of the sprite.
             `usage` : str
-                Vertex buffer object usage hint, one of ``"none"`` (default),
-                ``"stream"``, ``"dynamic"`` or ``"static"``.  Applies
+                Vertex buffer object usage hint, one of ``"none"``,
+                ``"stream"``, ``"dynamic"`` (default) or ``"static"``.  Applies
                 only to vertex data.
+            `subpixel` : bool
+                Allow floating-point coordinates for the sprite. By default,
+                coordinates are restricted to integer values.
 
         '''
         if batch is not None:
@@ -226,6 +235,7 @@ class Sprite(event.EventDispatcher):
 
         self._group = SpriteGroup(self._texture, blend_src, blend_dest, group)
         self._usage = usage
+        self._subpixel = subpixel
         self._create_vertex_list()
 
     def __del__(self):
@@ -335,7 +345,8 @@ class Sprite(event.EventDispatcher):
             self._frame_index = 0
             self._set_texture(img.frames[0].image.get_texture())
             self._next_dt = img.frames[0].duration
-            clock.schedule_once(self._animate, self._next_dt)
+            if self._next_dt:
+                clock.schedule_once(self._animate, self._next_dt)
         else:
             self._set_texture(img.get_texture())
         self._update_position()
@@ -363,13 +374,17 @@ class Sprite(event.EventDispatcher):
         self._texture = texture
 
     def _create_vertex_list(self):
+        if self._subpixel:
+            vertex_format = 'v2f/%s' % self._usage
+        else:
+            vertex_format = 'v2i/%s' % self._usage
         if self._batch is None:
             self._vertex_list = graphics.vertex_list(4,
-                'v2i/%s' % self._usage,
+                vertex_format, 
                 'c4B', ('t3f', self._texture.tex_coords))
         else:
             self._vertex_list = self._batch.add(4, GL_QUADS, self._group,
-                'v2i/%s' % self._usage,
+                vertex_format, 
                 'c4B', ('t3f', self._texture.tex_coords))
         self._update_position()
         self._update_color()
@@ -377,7 +392,7 @@ class Sprite(event.EventDispatcher):
     def _update_position(self):
         img = self._texture
         if not self._visible:
-            self._vertex_list.vertices[:] = [0, 0, 0, 0, 0, 0, 0, 0]
+            vertices = [0, 0, 0, 0, 0, 0, 0, 0]
         elif self._rotation:
             x1 = -img.anchor_x * self._scale
             y1 = -img.anchor_y * self._scale
@@ -389,28 +404,30 @@ class Sprite(event.EventDispatcher):
             r = -math.radians(self._rotation)
             cr = math.cos(r)
             sr = math.sin(r)
-            ax = int(x1 * cr - y1 * sr + x)
-            ay = int(x1 * sr + y1 * cr + y)
-            bx = int(x2 * cr - y1 * sr + x)
-            by = int(x2 * sr + y1 * cr + y)
-            cx = int(x2 * cr - y2 * sr + x)
-            cy = int(x2 * sr + y2 * cr + y)
-            dx = int(x1 * cr - y2 * sr + x)
-            dy = int(x1 * sr + y2 * cr + y)
-
-            self._vertex_list.vertices[:] = [ax, ay, bx, by, cx, cy, dx, dy]
+            ax = x1 * cr - y1 * sr + x
+            ay = x1 * sr + y1 * cr + y
+            bx = x2 * cr - y1 * sr + x
+            by = x2 * sr + y1 * cr + y
+            cx = x2 * cr - y2 * sr + x
+            cy = x2 * sr + y2 * cr + y
+            dx = x1 * cr - y2 * sr + x
+            dy = x1 * sr + y2 * cr + y
+            vertices = [ax, ay, bx, by, cx, cy, dx, dy]
         elif self._scale != 1.0:
-            x1 = int(self._x - img.anchor_x * self._scale)
-            y1 = int(self._y - img.anchor_y * self._scale)
-            x2 = int(x1 + img.width * self._scale)
-            y2 = int(y1 + img.height * self._scale)
-            self._vertex_list.vertices[:] = [x1, y1, x2, y1, x2, y2, x1, y2]
+            x1 = self._x - img.anchor_x * self._scale
+            y1 = self._y - img.anchor_y * self._scale
+            x2 = x1 + img.width * self._scale
+            y2 = y1 + img.height * self._scale
+            vertices = [x1, y1, x2, y1, x2, y2, x1, y2]
         else:
-            x1 = int(self._x - img.anchor_x)
-            y1 = int(self._y - img.anchor_y)
+            x1 = self._x - img.anchor_x
+            y1 = self._y - img.anchor_y
             x2 = x1 + img.width
             y2 = y1 + img.height
-            self._vertex_list.vertices[:] = [x1, y1, x2, y1, x2, y2, x1, y2]
+            vertices = [x1, y1, x2, y1, x2, y2, x1, y2]
+        if not self._subpixel:
+            vertices = [int(v) for v in vertices]
+        self._vertex_list.vertices[:] = vertices
 
     def _update_color(self):
         r, g, b = self._rgb
@@ -483,7 +500,13 @@ class Sprite(event.EventDispatcher):
     :type: float
     ''')
 
-    width = property(lambda self: int(self._texture.width * self._scale),
+    def _get_width(self):
+        if self._subpixel:
+            return self._texture.width * self._scale
+        else:
+            return int(self._texture.width * self._scale)
+
+    width = property(_get_width,
                      doc='''Scaled width of the sprite.
 
     Read-only.  Invariant under rotation.
@@ -491,7 +514,13 @@ class Sprite(event.EventDispatcher):
     :type: int
     ''')
 
-    height = property(lambda self: int(self._texture.height * self._scale),
+    def _get_height(self):
+        if self._subpixel:
+            return self._texture.height * self._scale
+        else:
+            return int(self._texture.height * self._scale)
+
+    height = property(_get_height,
                       doc='''Scaled height of the sprite.
 
     Read-only.  Invariant under rotation.
@@ -526,10 +555,10 @@ class Sprite(event.EventDispatcher):
 
     This property sets the color of the sprite's vertices. This allows the
     sprite to be drawn with a color tint.
-
+    
     The color is specified as an RGB tuple of integers ``(red, green, blue)``.
     Each color component must be in the range 0 (dark) to 255 (saturated).
-
+    
     :type: (int, int, int)
     ''')
 

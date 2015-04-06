@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -51,6 +51,12 @@ import pyglet
 _debug_lib = pyglet.options['debug_lib']
 _debug_trace = pyglet.options['debug_trace']
 
+if pyglet.options['search_local_libs']:
+    script_path = pyglet.resource.get_script_home()
+    _local_lib_paths = [script_path, os.path.join(script_path, 'lib'),]
+else:
+    _local_lib_paths = None
+
 class _TraceFunction(object):
     def __init__(self, func):
         self.__dict__['_func'] = func
@@ -78,9 +84,11 @@ class _TraceLibrary(object):
         return f
 
 class LibraryLoader(object):
+    darwin_not_found_error = "image not found"
+    linux_not_found_error  = "No such file or directory"
     def load_library(self, *names, **kwargs):
-        '''Find and load a library.
-
+        '''Find and load a library.  
+        
         More than one name can be specified, they will be tried in order.
         Platform-specific library names (given as kwargs) are tried first.
 
@@ -89,15 +97,18 @@ class LibraryLoader(object):
         if 'framework' in kwargs and self.platform == 'darwin':
             return self.load_framework(kwargs['framework'])
 
+        if not names:
+            raise ImportError("No library name specified")
+        
         platform_names = kwargs.get(self.platform, [])
         if type(platform_names) in (str, unicode):
             platform_names = [platform_names]
         elif type(platform_names) is tuple:
             platform_names = list(platform_names)
 
-        if self.platform == 'linux2':
+        if self.platform.startswith('linux'):
             for name in names:
-                libname = ctypes.util.find_library(name)
+                libname = self.find_library(name)
                 platform_names.append(libname or 'lib%s.so' % name)
 
         platform_names.extend(names)
@@ -109,7 +120,14 @@ class LibraryLoader(object):
                 if _debug_trace:
                     lib = _TraceLibrary(lib)
                 return lib
-            except OSError:
+            except OSError, o:
+                if ((self.platform == "win32" and o.winerror != 126) or
+                    (self.platform.startswith("linux") and
+                     self.linux_not_found_error not in o.args[0]) or
+                    (self.platform == "darwin" and
+                     self.darwin_not_found_error not in o.args[0])):
+                    print "Unexpected error loading library %s: %s" % (name, str(o))
+                    raise
                 path = self.find_library(name)
                 if path:
                     try:
@@ -125,7 +143,8 @@ class LibraryLoader(object):
 
     find_library = lambda self, name: ctypes.util.find_library(name)
 
-    platform = sys.platform
+    platform = pyglet.compat_platform
+    # this is only for library loading, don't include it in pyglet.platform
     if platform == 'cygwin':
         platform = 'win32'
 
@@ -138,6 +157,11 @@ class MachOLibraryLoader(LibraryLoader):
             self.ld_library_path = os.environ['LD_LIBRARY_PATH'].split(':')
         else:
             self.ld_library_path = []
+
+        if _local_lib_paths:
+            # search first for local libs
+            self.ld_library_path = _local_lib_paths + self.ld_library_path
+            os.environ['LD_LIBRARY_PATH'] = ':'.join(self.ld_library_path)
 
         if 'DYLD_LIBRARY_PATH' in os.environ:
             self.dyld_library_path = os.environ['DYLD_LIBRARY_PATH'].split(':')
@@ -152,11 +176,11 @@ class MachOLibraryLoader(LibraryLoader):
                 os.path.expanduser('~/lib'),
                 '/usr/local/lib',
                 '/usr/lib']
-
+ 
     def find_library(self, path):
         '''Implements the dylib search as specified in Apple documentation:
 
-        http://developer.apple.com/documentation/DeveloperTools/Conceptual/DynamicLibraries/Articles/DynamicLibraryUsageGuidelines.html
+        http://developer.apple.com/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/DynamicLibraryUsageGuidelines.html
 
         Before commencing the standard search, the method first checks
         the bundle's ``Frameworks`` directory if the application is running
@@ -166,12 +190,23 @@ class MachOLibraryLoader(LibraryLoader):
         libname = os.path.basename(path)
         search_path = []
 
-        if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
+        if '.' not in libname:
+            libname = 'lib' + libname + '.dylib'
+
+        # py2app support
+        if (hasattr(sys, 'frozen') and sys.frozen == 'macosx_app' and
+                'RESOURCEPATH' in os.environ):
             search_path.append(os.path.join(
                 os.environ['RESOURCEPATH'],
                 '..',
                 'Frameworks',
                 libname))
+
+        # pyinstaller.py sets sys.frozen to True, and puts dylibs in
+        # Contents/MacOS, which path pyinstaller puts in sys._MEIPASS
+        if (hasattr(sys, 'frozen') and hasattr(sys, '_MEIPASS') and
+                sys.frozen == True and pyglet.compat_platform == 'darwin'):
+            search_path.append(os.path.join(sys._MEIPASS, libname))
 
         if '/' in path:
             search_path.extend(
@@ -210,7 +245,7 @@ class MachOLibraryLoader(LibraryLoader):
         # return '/System/Library/Frameworks/OpenGL.framework/OpenGL'
         name = os.path.splitext(os.path.split(path)[1])[0]
 
-        realpath = os.path.join(path, name)
+        realpath = os.path.join(path, name) 
         if os.path.exists(realpath):
             return realpath
 
@@ -236,6 +271,27 @@ class MachOLibraryLoader(LibraryLoader):
 
 class LinuxLibraryLoader(LibraryLoader):
     _ld_so_cache = None
+    _local_libs_cache = None
+
+    def _find_libs(self, directories):
+        cache = {}
+        lib_re = re.compile('lib(.*)\.so(?:$|\.)')
+        for dir in directories:
+            try:
+                for file in os.listdir(dir):
+                    match = lib_re.match(file)
+                    if match:
+                        # Index by filename
+                        path = os.path.join(dir, file)
+                        if file not in cache:
+                            cache[file] = path
+                        # Index by library name
+                        library = match.group(1)
+                        if library not in cache:
+                            cache[library] = path
+            except OSError:
+                pass
+        return cache
 
     def _create_ld_so_cache(self):
         # Recreate search path followed by ld.so.  This is going to be
@@ -252,37 +308,24 @@ class LinuxLibraryLoader(LibraryLoader):
             pass
 
         try:
-            directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
+            with open('/etc/ld.so.conf') as fid:
+                directories.extend([dir.strip() for dir in fid])
         except IOError:
             pass
 
         directories.extend(['/lib', '/usr/lib'])
 
-        cache = {}
-        lib_re = re.compile('lib(.*)\.so')
-        for dir in directories:
-            try:
-                for file in os.listdir(dir):
-                    if '.so' not in file:
-                        continue
-
-                    # Index by filename
-                    path = os.path.join(dir, file)
-                    if file not in cache:
-                        cache[file] = path
-
-                    # Index by library name
-                    match = lib_re.match(file)
-                    if match:
-                        library = match.group(1)
-                        if library not in cache:
-                            cache[library] = path
-            except OSError:
-                pass
-
-        self._ld_so_cache = cache
+        self._ld_so_cache = self._find_libs(directories)
 
     def find_library(self, path):
+
+        # search first for local libs
+        if _local_lib_paths:
+            if not self._local_libs_cache:
+                self._local_libs_cache = self._find_libs(_local_lib_paths)
+            if path in self._local_libs_cache:
+                return self._local_libs_cache[path]
+
         # ctypes tries ldconfig, gcc and objdump.  If none of these are
         # present, we implement the ld-linux.so search path as described in
         # the man page.
@@ -296,9 +339,9 @@ class LinuxLibraryLoader(LibraryLoader):
 
         return self._ld_so_cache.get(path)
 
-if sys.platform == 'darwin':
+if pyglet.compat_platform == 'darwin':
     loader = MachOLibraryLoader()
-elif sys.platform == 'linux2':
+elif pyglet.compat_platform.startswith('linux'):
     loader = LinuxLibraryLoader()
 else:
     loader = LibraryLoader()

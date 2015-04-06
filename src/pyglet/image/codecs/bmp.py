@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -45,7 +45,7 @@ encoding.  Alpha channel is supported for 32-bit BI_RGB only.
 # http://www.fileformat.info/format/bmp/egff.htm
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: bmp.py 2019 2008-04-18 14:30:48Z Alex.Holkner $'
+__version__ = '$Id$'
 
 import ctypes
 
@@ -157,7 +157,7 @@ class BMPImageDecoder(ImageDecoder):
         bytes = file.read()
         buffer = ctypes.c_buffer(bytes)
 
-        if bytes[:2] != 'BM':
+        if bytes[:2] != b'BM':
             raise ImageDecodeException(
                 'Not a Windows bitmap file: %r' % (filename or file))
 
@@ -185,7 +185,7 @@ class BMPImageDecoder(ImageDecoder):
                 'Unsupported compression: %r' % (filename or file))
 
         clr_used = 0
-        bitcount = info_header.biBitCount
+        bitcount = info_header.biBitCount 
         if bitcount == 1:
             pitch = (width + 7) // 8
             bits_type = ctypes.c_ubyte
@@ -205,7 +205,7 @@ class BMPImageDecoder(ImageDecoder):
         elif bitcount == 24:
             pitch = width * 3
             bits_type = ctypes.c_ubyte
-            decoder = decode_24bit
+            decoder = decode_24bit 
         elif bitcount == 32:
             pitch = width * 4
             if compression == BI_RGB:
@@ -224,14 +224,14 @@ class BMPImageDecoder(ImageDecoder):
         pitch = (pitch + 3) & ~3
         packed_width = pitch // ctypes.sizeof(bits_type)
 
-        if bitcount < 16 and compression == BI_RGB:
+        if bitcount < 16 and compression == BI_RGB: 
             clr_used = info_header.biClrUsed or (1 <<  bitcount)
             palette = to_ctypes(buffer, palette_offset, RGBQUAD * clr_used)
-            bits = to_ctypes(buffer, bits_offset,
+            bits = to_ctypes(buffer, bits_offset, 
                              bits_type * packed_width * height)
             return decoder(bits, palette, width, height, pitch, pitch_sign)
         elif bitcount >= 16 and compression == BI_RGB:
-            bits = to_ctypes(buffer, bits_offset,
+            bits = to_ctypes(buffer, bits_offset, 
                              bits_type * (packed_width * height))
             return decoder(bits, None, width, height, pitch, pitch_sign)
         elif compression == BI_BITFIELDS:
@@ -243,7 +243,7 @@ class BMPImageDecoder(ImageDecoder):
                 b_mask = info_header.bV4BlueMask
             else:
                 fields_offset = info_header_offset + \
-                    ctypes.sizeof(BITMAPINFOHEADER)
+                    ctypes.sizeof(BITMAPINFOHEADER) 
                 fields = to_ctypes(buffer, fields_offset, RGBFields)
                 r_mask = fields.red
                 g_mask = fields.green
@@ -254,7 +254,7 @@ class BMPImageDecoder(ImageDecoder):
                     ('data', bits_type * packed_width * height),
                 ]
             bits = to_ctypes(buffer, bits_offset, _BitsArray).data
-            return decoder(bits, r_mask, g_mask, b_mask,
+            return decoder(bits, r_mask, g_mask, b_mask, 
                            width, height, pitch, pitch_sign)
 
 def decode_1bit(bits, palette, width, height, pitch, pitch_sign):
@@ -333,7 +333,7 @@ def get_shift(mask):
     else:
         return s, 0
 
-def decode_bitfields(bits, r_mask, g_mask, b_mask,
+def decode_bitfields(bits, r_mask, g_mask, b_mask, 
                      width, height, pitch, pitch_sign):
     r_shift1, r_shift2 = get_shift(r_mask)
     g_shift1, g_shift2 = get_shift(g_mask)

@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -41,77 +41,25 @@ __version__ = '$Id: $'
 from ctypes import *
 import unicodedata
 import warnings
-import sys
 
-if sys.platform not in ('cygwin', 'win32'):
+from pyglet import compat_platform
+if compat_platform not in ('cygwin', 'win32'):
     raise ImportError('Not a win32 platform.')
 
 import pyglet
-from pyglet.window import Platform, Display, Screen, BaseWindow, \
-    WindowException, MouseCursor, DefaultMouseCursor, _PlatformEventHandler
-from pyglet.window import event
+from pyglet.window import BaseWindow, \
+    WindowException, MouseCursor, DefaultMouseCursor, _PlatformEventHandler, \
+    _ViewEventHandler
 from pyglet.event import EventDispatcher
 from pyglet.window import key
 from pyglet.window import mouse
-from pyglet.window.win32.constants import *
-from pyglet.window.win32.winkey import *
-from pyglet.window.win32.types import *
 
-from pyglet import gl
-from pyglet.gl import gl_info
-from pyglet.gl import glu_info
-from pyglet.gl import wgl
-from pyglet.gl import wglext_arb
-from pyglet.gl import wgl_info
+from pyglet.canvas.win32 import Win32Canvas
 
-_debug_win32 = pyglet.options['debug_win32']
-
-if _debug_win32:
-    import traceback
-    _GetLastError = windll.kernel32.GetLastError
-    _SetLastError = windll.kernel32.SetLastError
-    _FormatMessageA = windll.kernel32.FormatMessageA
-
-    _log_win32 = open('debug_win32.log', 'w')
-
-    def format_error(err):
-        msg = create_string_buffer(256)
-        _FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
-                          c_void_p(),
-                          err,
-                          0,
-                          msg,
-                          len(msg),
-                          c_void_p())
-        return msg.value
-
-    class DebugLibrary(object):
-        def __init__(self, lib):
-            self.lib = lib
-
-        def __getattr__(self, name):
-            fn = getattr(self.lib, name)
-            def f(*args):
-                _SetLastError(0)
-                result = fn(*args)
-                err = _GetLastError()
-                if err != 0:
-                    map(_log_win32.write,
-                        traceback.format_list(traceback.extract_stack()[:-1]))
-                    print >> _log_win32, format_error(err)
-                return result
-            return f
-else:
-    DebugLibrary = lambda lib: lib
-
-_gdi32 = DebugLibrary(windll.gdi32)
-_kernel32 = DebugLibrary(windll.kernel32)
-_user32 = DebugLibrary(windll.user32)
-
-
-_user32.GetKeyState.restype = c_short
-_gdi32.CreateDIBitmap.argtypes = [HDC, POINTER(BITMAPINFOHEADER), DWORD,
-    c_void_p, POINTER(BITMAPINFO), c_uint]
+from pyglet.libs.win32 import _user32, _kernel32, _gdi32
+from pyglet.libs.win32.constants import *
+from pyglet.libs.win32.winkey import *
+from pyglet.libs.win32.types import *
 
 # symbol,ctrl -> motion mapping
 _motion_map = {
@@ -131,252 +79,6 @@ _motion_map = {
     (key.DELETE, False):    key.MOTION_DELETE,
 }
 
-class Win32Exception(WindowException):
-    pass
-
-class Win32Platform(Platform):
-    _display = None
-
-    def get_default_display(self):
-        if not self._display:
-            self._display = Win32Display()
-        return self._display
-
-class Win32Display(Display):
-    def get_screens(self):
-        screens = []
-        def enum_proc(hMonitor, hdcMonitor, lprcMonitor, dwData):
-            r = lprcMonitor.contents
-            width = r.right - r.left
-            height = r.bottom - r.top
-            screens.append(
-                Win32Screen(self, hMonitor, r.left, r.top, width, height))
-            return True
-        enum_proc_type = WINFUNCTYPE(BOOL, HMONITOR, HDC, POINTER(RECT), LPARAM)
-        enum_proc_ptr = enum_proc_type(enum_proc)
-        _user32.EnumDisplayMonitors(NULL, NULL, enum_proc_ptr, 0)
-        return screens
-
-class Win32Screen(Screen):
-    def __init__(self, display, handle, x, y, width, height):
-        super(Win32Screen, self).__init__(x, y, width, height)
-        self.display = display
-        self._handle = handle
-
-    def get_matching_configs(self, template):
-        # Determine which technique should be used for finding matching configs.
-        # Use the builtin PIXELFORMATDESCRIPTOR if possible, otherwise resort
-        # to the WGL_ARB_pixel_format extension.
-        need_pixel_format_arb = False
-        if template.sample_buffers or template.samples:
-            need_pixel_format_arb = True
-
-        if need_pixel_format_arb:
-            # Need a GL context before we can query WGL extensions.
-            dummy_window = None
-            if not gl_info.have_context():
-                # Create a dummy context
-                config = self.get_best_config()
-                context = config.create_context(None)
-                dummy_window = Win32Window(visible=False, context=context)
-
-            try:
-                # Check for required extensions
-                if not wgl_info.have_extension('WGL_ARB_pixel_format'):
-                    return []
-                return self._get_arb_pixel_format_matching_configs(template)
-            finally:
-                if dummy_window:
-                    dummy_window.close()
-
-        return self._get_pixel_format_descriptor_matching_configs(template)
-
-    def _get_pixel_format_descriptor_matching_configs(self, template):
-        '''Get matching configs using standard PIXELFORMATDESCRIPTOR
-        technique.'''
-        pfd = PIXELFORMATDESCRIPTOR()
-        pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR)
-        pfd.nVersion = 1
-        pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL
-
-        if template.double_buffer:
-            pfd.dwFlags |= PFD_DOUBLEBUFFER
-        else:
-            pfd.dwFlags |= PFD_DOUBLEBUFFER_DONTCARE
-
-        if template.stereo:
-            pfd.dwFlags |= PFD_STEREO
-        else:
-            pfd.dwFlags |= PFD_STEREO_DONTCARE
-
-        '''Not supported in pyglet API
-        if attributes.get('swap_copy', False):
-            pfd.dwFlags |= PFD_SWAP_COPY
-        if attributes.get('swap_exchange', False):
-            pfd.dwFlags |= PFD_SWAP_EXCHANGE
-        '''
-
-        if not template.depth_size:
-            pfd.dwFlags |= PFD_DEPTH_DONTCARE
-
-        pfd.iPixelType = PFD_TYPE_RGBA
-        pfd.cColorBits = template.buffer_size or 0
-        pfd.cRedBits = template.red_size or 0
-        pfd.cGreenBits = template.green_size or 0
-        pfd.cBlueBits = template.blue_size or 0
-        pfd.cAlphaBits = template.alpha_size or 0
-        pfd.cAccumRedBits = template.accum_red_size or 0
-        pfd.cAccumGreenBits = template.accum_green_size or 0
-        pfd.cAccumBlueBits = template.accum_blue_size or 0
-        pfd.cAccumAlphaBits = template.accum_alpha_size or 0
-        pfd.cDepthBits = template.depth_size or 0
-        pfd.cStencilBits = template.stencil_size or 0
-        pfd.cAuxBuffers = template.aux_buffers or 0
-
-        # No window created yet, so lets create a config based on
-        # the DC of the entire screen.
-        hdc = _user32.GetDC(0)
-
-        pf = _gdi32.ChoosePixelFormat(hdc, byref(pfd))
-        if pf:
-            return [Win32Config(self, hdc, pf)]
-        else:
-            return []
-
-    def _get_arb_pixel_format_matching_configs(self, template):
-        '''Get configs using the WGL_ARB_pixel_format extension.
-        This method assumes a (dummy) GL context is already created.'''
-
-        # Check for required extensions
-        if template.sample_buffers or template.samples:
-            if not gl_info.have_extension('GL_ARB_multisample'):
-                return []
-
-        # Construct array of attributes
-        attrs = []
-        for name, value in template.get_gl_attributes():
-            attr = Win32ConfigARB.attribute_ids.get(name, None)
-            if attr and value is not None:
-                attrs.extend([attr, int(value)])
-        attrs.append(0)
-        attrs = (c_int * len(attrs))(*attrs)
-
-        hdc = _user32.GetDC(0)
-
-        pformats = (c_int * 16)()
-        nformats = c_uint(16)
-        wglext_arb.wglChoosePixelFormatARB(hdc, attrs, None,
-                                           nformats, pformats, nformats)
-
-        formats = [Win32ConfigARB(self, hdc, pf) \
-                   for pf in pformats[:nformats.value]]
-        return formats
-
-class Win32Config(gl.Config):
-    def __init__(self, screen, hdc, pf):
-        self.screen = screen
-        self._hdc = hdc
-        self._pf = pf
-        self._pfd = PIXELFORMATDESCRIPTOR()
-        _gdi32.DescribePixelFormat(self._hdc,
-            self._pf, sizeof(PIXELFORMATDESCRIPTOR), byref(self._pfd))
-
-        self.double_buffer = bool(self._pfd.dwFlags & PFD_DOUBLEBUFFER)
-        self.sample_buffers = 0
-        self.samples = 0
-        self.stereo = bool(self._pfd.dwFlags & PFD_STEREO)
-        self.buffer_size = self._pfd.cColorBits
-        self.red_size = self._pfd.cRedBits
-        self.green_size = self._pfd.cGreenBits
-        self.blue_size = self._pfd.cBlueBits
-        self.alpha_size = self._pfd.cAlphaBits
-        self.accum_red_size = self._pfd.cAccumRedBits
-        self.accum_green_size = self._pfd.cAccumGreenBits
-        self.accum_blue_size = self._pfd.cAccumBlueBits
-        self.accum_alpha_size = self._pfd.cAccumAlphaBits
-        self.depth_size = self._pfd.cDepthBits
-        self.stencil_size = self._pfd.cStencilBits
-        self.aux_buffers = self._pfd.cAuxBuffers
-
-    def create_context(self, share):
-        # The context can't be created until we have the DC of the
-        # window.  It's _possible_ that this could screw things up
-        # (for example, destroying the share context before the new
-        # window is created), but these are unlikely and not in the
-        # ordinary workflow.
-        return Win32Context(self, share)
-
-    def is_complete(self):
-        return True
-
-class Win32ConfigARB(Win32Config):
-    attribute_ids = {
-        'double_buffer': wglext_arb.WGL_DOUBLE_BUFFER_ARB,
-        'stereo': wglext_arb.WGL_STEREO_ARB,
-        'buffer_size': wglext_arb.WGL_COLOR_BITS_ARB,
-        'aux_buffers': wglext_arb.WGL_AUX_BUFFERS_ARB,
-        'sample_buffers': wglext_arb.WGL_SAMPLE_BUFFERS_ARB,
-        'samples': wglext_arb.WGL_SAMPLES_ARB,
-        'red_size': wglext_arb.WGL_RED_BITS_ARB,
-        'green_size': wglext_arb.WGL_GREEN_BITS_ARB,
-        'blue_size': wglext_arb.WGL_BLUE_BITS_ARB,
-        'alpha_size': wglext_arb.WGL_ALPHA_BITS_ARB,
-        'depth_size': wglext_arb.WGL_DEPTH_BITS_ARB,
-        'stencil_size': wglext_arb.WGL_STENCIL_BITS_ARB,
-        'accum_red_size': wglext_arb.WGL_ACCUM_RED_BITS_ARB,
-        'accum_green_size': wglext_arb.WGL_ACCUM_GREEN_BITS_ARB,
-        'accum_blue_size': wglext_arb.WGL_ACCUM_BLUE_BITS_ARB,
-        'accum_alpha_size': wglext_arb.WGL_ACCUM_ALPHA_BITS_ARB,
-    }
-    def __init__(self, screen, hdc, pf):
-        self.screen = screen
-        self._hdc = hdc
-        self._pf = pf
-
-        names, attrs = map(None, *self.attribute_ids.items())
-        attrs = (c_int * len(attrs))(*attrs)
-        values = (c_int * len(attrs))()
-
-        result = wglext_arb.wglGetPixelFormatAttribivARB(hdc,
-            pf, 0, len(attrs), attrs, values)
-
-        for name, value in zip(names, values):
-            setattr(self, name, value)
-
-    def create_context(self, share):
-        return Win32ContextARB(self, share)
-
-class Win32Context(gl.Context):
-    _context = None
-    def __init__(self, config, share):
-        super(Win32Context, self).__init__(share)
-        self.config = config
-        self._share = share
-
-    def _set_window(self, window):
-        assert self._context is None
-        _gdi32.SetPixelFormat(
-            window._dc, self.config._pf, byref(self.config._pfd))
-        self._context = wgl.wglCreateContext(window._dc)
-        if self._share:
-            assert self._share._context is not None
-            if not wgl.wglShareLists(self._share._context, self._context):
-                raise gl.ContextException('Unable to share contexts')
-
-    def destroy(self):
-        super(Win32Context, self).destroy()
-        wgl.wglDeleteContext(self._context)
-
-class Win32ContextARB(Win32Context):
-    def _set_window(self, window):
-        assert self._context is None
-        _gdi32.SetPixelFormat(window._dc, self.config._pf, None)
-        self._context = wgl.wglCreateContext(window._dc)
-        if self._share:
-            assert self._share._context is not None
-            if not wgl.wglShareLists(self._share._context, self._context):
-                raise gl.ContextException('Unable to share contexts')
-
 class Win32MouseCursor(MouseCursor):
     drawable = False
     def __init__(self, cursor):
@@ -387,6 +89,7 @@ class Win32MouseCursor(MouseCursor):
 _win32_cursor_visible = True
 
 Win32EventHandler = _PlatformEventHandler
+ViewEventHandler = _ViewEventHandler
 
 class Win32Window(BaseWindow):
     _window_class = None
@@ -413,19 +116,24 @@ class Win32Window(BaseWindow):
     def __init__(self, *args, **kwargs):
         # Bind event handlers
         self._event_handlers = {}
+        self._view_event_handlers = {}
         for func_name in self._platform_event_names:
             if not hasattr(self, func_name):
                 continue
             func = getattr(self, func_name)
             for message in func._platform_event_data:
-                self._event_handlers[message] = func
+                if hasattr(func, '_view'):
+                    self._view_event_handlers[message] = func
+                else:
+                    self._event_handlers[message] = func
+
 
         super(Win32Window, self).__init__(*args, **kwargs)
-
+        
     def _recreate(self, changes):
         if 'context' in changes:
             self._wgl_context = None
-
+        
         self._create()
 
     def _create(self):
@@ -449,22 +157,42 @@ class Win32Window(BaseWindow):
         else:
             self._ws_style &= ~(WS_THICKFRAME|WS_MAXIMIZEBOX)
 
-        width, height = self._client_to_window_size(self._width, self._height)
+
+        if self._fullscreen:
+            width = self.screen.width
+            height = self.screen.height
+        else:
+            width, height = \
+                self._client_to_window_size(self._width, self._height)
 
         if not self._window_class:
             module = _kernel32.GetModuleHandleW(None)
             white = _gdi32.GetStockObject(WHITE_BRUSH)
+            black = _gdi32.GetStockObject(BLACK_BRUSH)
             self._window_class = WNDCLASS()
             self._window_class.lpszClassName = u'GenericAppClass%d' % id(self)
             self._window_class.lpfnWndProc = WNDPROC(self._wnd_proc)
             self._window_class.style = CS_VREDRAW | CS_HREDRAW
             self._window_class.hInstance = 0
-            self._window_class.hIcon = _user32.LoadIconW(module, 1)
-            self._window_class.hbrBackground = white
+            self._window_class.hIcon = _user32.LoadIconW(module, MAKEINTRESOURCE(1))
+            self._window_class.hbrBackground = black
             self._window_class.lpszMenuName = None
             self._window_class.cbClsExtra = 0
             self._window_class.cbWndExtra = 0
             _user32.RegisterClassW(byref(self._window_class))
+
+            self._view_window_class = WNDCLASS()
+            self._view_window_class.lpszClassName = \
+                u'GenericViewClass%d' % id(self)
+            self._view_window_class.lpfnWndProc = WNDPROC(self._wnd_proc_view)
+            self._view_window_class.style = 0
+            self._view_window_class.hInstance = 0
+            self._view_window_class.hIcon = 0
+            self._view_window_class.hbrBackground = white
+            self._view_window_class.lpszMenuName = None
+            self._view_window_class.cbClsExtra = 0
+            self._view_window_class.cbWndExtra = 0
+            _user32.RegisterClassW(byref(self._view_window_class)) 
 
         if not self._hwnd:
             self._hwnd = _user32.CreateWindowExW(
@@ -481,7 +209,19 @@ class Win32Window(BaseWindow):
                 self._window_class.hInstance,
                 0)
 
-            self._dc = _user32.GetDC(self._hwnd)
+            self._view_hwnd = _user32.CreateWindowExW(
+                0,
+                self._view_window_class.lpszClassName,
+                u'',
+                WS_CHILD | WS_VISIBLE,
+                0, 0, 0, 0,
+                self._hwnd,
+                0,
+                self._view_window_class.hInstance,
+                0)
+
+
+            self._dc = _user32.GetDC(self._view_hwnd)
         else:
             # Window already exists, update it with new style
 
@@ -513,9 +253,12 @@ class Win32Window(BaseWindow):
             _user32.SetWindowPos(self._hwnd, hwnd_after,
                 0, 0, width, height, SWP_NOMOVE | SWP_FRAMECHANGED)
 
+        self._update_view_location(self._width, self._height)
+
         # Context must be created after window is created.
         if not self._wgl_context:
-            self.context._set_window(self)
+            self.canvas = Win32Canvas(self.display, self._view_hwnd, self._dc)
+            self.context.attach(self.canvas)
             self._wgl_context = self.context._context
 
         self.set_caption(self._caption)
@@ -526,6 +269,17 @@ class Win32Window(BaseWindow):
         if self._visible:
             self.set_visible()
             self.dispatch_event('on_expose')
+            # Might need resize event if going from fullscreen to fullscreen
+            self.dispatch_event('on_resize', self._width, self._height)
+
+    def _update_view_location(self, width, height):
+        if self._fullscreen:
+            x = (self.screen.width - width) // 2
+            y = (self.screen.height - height) // 2
+        else:
+            x = y = 0
+        _user32.SetWindowPos(self._view_hwnd, 0,
+            x, y, width, height, SWP_NOZORDER | SWP_NOOWNERZORDER)
 
     def close(self):
         super(Win32Window, self).close()
@@ -539,31 +293,24 @@ class Win32Window(BaseWindow):
         self._wgl_context = None
 
     def _get_vsync(self):
-        if wgl_info.have_extension('WGL_EXT_swap_control'):
-            return bool(wglext_arb.wglGetSwapIntervalEXT())
+        return self.context.get_vsync()
     vsync = property(_get_vsync) # overrides BaseWindow property
 
     def set_vsync(self, vsync):
         if pyglet.options['vsync'] is not None:
             vsync = pyglet.options['vsync']
-        if wgl_info.have_extension('WGL_EXT_swap_control'):
-            wglext_arb.wglSwapIntervalEXT(int(vsync))
-        else:
-            warnings.warn('Could not set vsync; unsupported extension.')
+        self.context.set_vsync(vsync)
 
     def switch_to(self):
-        wgl.wglMakeCurrent(self._dc, self._wgl_context)
-        self._context.set_current()
-        gl_info.set_active_context()
-        glu_info.set_active_context()
+        self.context.set_current()
 
     def flip(self):
         self.draw_mouse_cursor()
-        wgl.wglSwapLayerBuffers(self._dc, wgl.WGL_SWAP_MAIN_PLANE)
+        self.context.flip()
 
     def set_location(self, x, y):
         x, y = self._client_to_window_pos(x, y)
-        _user32.SetWindowPos(self._hwnd, 0, x, y, 0, 0,
+        _user32.SetWindowPos(self._hwnd, 0, x, y, 0, 0, 
             (SWP_NOZORDER |
              SWP_NOSIZE |
              SWP_NOOWNERZORDER))
@@ -571,8 +318,11 @@ class Win32Window(BaseWindow):
     def get_location(self):
         rect = RECT()
         _user32.GetClientRect(self._hwnd, byref(rect))
-        _user32.ClientToScreen(self._hwnd, byref(rect))
-        return rect.left, rect.top
+        point = POINT()
+        point.x = rect.left
+        point.y = rect.top
+        _user32.ClientToScreen(self._hwnd, byref(point))
+        return point.x, point.y
 
     def set_size(self, width, height):
         if self._fullscreen:
@@ -584,9 +334,10 @@ class Win32Window(BaseWindow):
              SWP_NOOWNERZORDER))
 
     def get_size(self):
-        rect = RECT()
-        _user32.GetClientRect(self._hwnd, byref(rect))
-        return rect.right - rect.left, rect.bottom - rect.top
+        #rect = RECT()
+        #_user32.GetClientRect(self._hwnd, byref(rect))
+        #return rect.right - rect.left, rect.bottom - rect.top
+        return self._width, self._height
 
     def set_minimum_size(self, width, height):
         self._minimum_size = width, height
@@ -599,13 +350,12 @@ class Win32Window(BaseWindow):
 
     def set_visible(self, visible=True):
         if visible:
-            if self._fullscreen:
-                _user32.SetWindowPos(self._hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-                    SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
-            else:
-                _user32.ShowWindow(self._hwnd, SW_SHOW)
+            insertAfter = HWND_TOPMOST if self._fullscreen else HWND_TOP
+            _user32.SetWindowPos(self._hwnd, insertAfter, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
             self.dispatch_event('on_show')
             self.activate()
+            self.dispatch_event('on_resize', self._width, self._height)
         else:
             _user32.ShowWindow(self._hwnd, SW_HIDE)
             self.dispatch_event('on_hide')
@@ -627,15 +377,15 @@ class Win32Window(BaseWindow):
             platform_visible = (self._mouse_visible and
                                 not self._exclusive_mouse and
                                 not self._mouse_cursor.drawable) or \
-                               (not self._mouse_in_window or
+                               (not self._mouse_in_window or 
                                 not self._has_focus)
 
         if platform_visible and not self._mouse_cursor.drawable:
             if isinstance(self._mouse_cursor, Win32MouseCursor):
                 cursor = self._mouse_cursor.cursor
             else:
-                cursor = _user32.LoadCursorW(None, IDC_ARROW)
-            _user32.SetClassLongW(self._hwnd, GCL_HCURSOR, cursor)
+                cursor = _user32.LoadCursorW(None, MAKEINTRESOURCE(IDC_ARROW))
+            _user32.SetClassLongW(self._view_hwnd, GCL_HCURSOR, cursor)
             _user32.SetCursor(cursor)
 
         if platform_visible == self._mouse_platform_visible:
@@ -655,10 +405,10 @@ class Win32Window(BaseWindow):
         mouse.'''
         p = POINT()
         rect = RECT()
-        _user32.GetClientRect(self._hwnd, byref(rect))
-        _user32.MapWindowPoints(self._hwnd, HWND_DESKTOP, byref(rect), 2)
-        p.x = (rect.left + rect.right) / 2
-        p.y = (rect.top + rect.bottom) / 2
+        _user32.GetClientRect(self._view_hwnd, byref(rect))
+        _user32.MapWindowPoints(self._view_hwnd, HWND_DESKTOP, byref(rect), 2)
+        p.x = (rect.left + rect.right) // 2
+        p.y = (rect.top + rect.bottom) // 2
 
         # This is the point the mouse will be kept at while in exclusive
         # mode.
@@ -669,25 +419,38 @@ class Win32Window(BaseWindow):
         if self._exclusive_mouse == exclusive and \
            self._exclusive_mouse_focus == self._has_focus:
             return
-
+    
         if exclusive and self._has_focus:
             # Move mouse to the center of the window.
             self._reset_exclusive_mouse_screen()
-            _user32.SetCursorPos(*self._exclusive_mouse_screen)
+            x, y = self._exclusive_mouse_screen
+            self.set_mouse_position(x, y, absolute=True)
 
             # Clip to client area, to prevent large mouse movements taking
             # it outside the client area.
             rect = RECT()
-            _user32.GetClientRect(self._hwnd, byref(rect))
-            _user32.MapWindowPoints(self._hwnd, HWND_DESKTOP, byref(rect), 2)
+            _user32.GetClientRect(self._view_hwnd, byref(rect))
+            _user32.MapWindowPoints(self._view_hwnd, HWND_DESKTOP, 
+                                    byref(rect), 2)
             _user32.ClipCursor(byref(rect))
         else:
             # Release clip
-            _user32.ClipCursor(c_void_p())
+            _user32.ClipCursor(None)
 
         self._exclusive_mouse = exclusive
         self._exclusive_mouse_focus = self._has_focus
         self.set_mouse_platform_visible()
+
+    def set_mouse_position(self, x, y, absolute=False):
+        if not absolute:
+            rect = RECT()
+            _user32.GetClientRect(self._view_hwnd, byref(rect))
+            _user32.MapWindowPoints(self._view_hwnd, HWND_DESKTOP, byref(rect), 2)
+            
+            x = x + rect.left
+            y = rect.top + (rect.bottom - rect.top) - y
+
+        _user32.SetCursorPos(x, y)
 
     def set_exclusive_keyboard(self, exclusive=True):
         if self._exclusive_keyboard == exclusive and \
@@ -727,8 +490,8 @@ class Win32Window(BaseWindow):
             self.CURSOR_WAIT_ARROW:      IDC_APPSTARTING,
         }
         if name not in names:
-            raise Win32Exception('Unknown cursor name "%s"' % name)
-        cursor = _user32.LoadCursorW(None, names[name])
+            raise RuntimeError('Unknown cursor name "%s"' % name)
+        cursor = _user32.LoadCursorW(None, MAKEINTRESOURCE(names[name]))
         return Win32MouseCursor(cursor)
 
     def set_icon(self, *images):
@@ -784,7 +547,7 @@ class Win32Window(BaseWindow):
 
             _gdi32.DeleteObject(mask)
             _gdi32.DeleteObject(bitmap)
-
+            
             return icon
 
         # Set large icon
@@ -822,6 +585,8 @@ class Win32Window(BaseWindow):
     # Event dispatching
 
     def dispatch_events(self):
+        from pyglet import app
+        app.platform_event_loop.start()
         self._allow_dispatch_event = True
         self.dispatch_pending_events()
 
@@ -851,8 +616,20 @@ class Win32Window(BaseWindow):
                 self._event_queue.append((event_handler, msg, wParam, lParam))
                 result = 0
         if not result and msg != WM_CLOSE:
-            result = _user32.DefWindowProcW(c_int(hwnd), c_int(msg),
-                c_int(wParam), c_int(lParam))
+            result = _user32.DefWindowProcW(hwnd, msg, wParam, lParam) 
+        return result
+
+    def _wnd_proc_view(self, hwnd, msg, wParam, lParam):
+        event_handler = self._view_event_handlers.get(msg, None)
+        result = 0
+        if event_handler:
+            if self._allow_dispatch_event or not self._enable_event_queue:
+                result = event_handler(msg, wParam, lParam)
+            else:
+                self._event_queue.append((event_handler, msg, wParam, lParam))
+                result = 0
+        if not result and msg != WM_CLOSE:
+            result = _user32.DefWindowProcW(hwnd, msg, wParam, lParam) 
         return result
 
     # Event handlers
@@ -910,10 +687,10 @@ class Win32Window(BaseWindow):
             symbol = key.RALT
         elif symbol == key.LSHIFT:
             pass # TODO: some magic with getstate to find out if it's the
-                 # right or left shift key.
+                 # right or left shift key. 
 
         modifiers = self._get_modifiers(lParam)
-
+        
         if not repeat:
             self.dispatch_event(ev, symbol, modifiers)
 
@@ -938,6 +715,7 @@ class Win32Window(BaseWindow):
             self.dispatch_event('on_text', text)
         return 0
 
+    @ViewEventHandler
     @Win32EventHandler(WM_MOUSEMOVE)
     def _event_mousemove(self, msg, wParam, lParam):
         x, y = self._get_location(lParam)
@@ -948,12 +726,13 @@ class Win32Window(BaseWindow):
             self._mouse_y = y
             return 0
 
-        y = self.height - y
+        y = self._height - y
 
         if self._exclusive_mouse and self._has_focus:
             # Reset mouse position (so we don't hit the edge of the screen).
-            _user32.SetCursorPos(*self._exclusive_mouse_screen)
-
+            _x, _y = self._exclusive_mouse_screen
+            self.set_mouse_position(_x, _y, absolute=True)
+            
         dx = x - self._mouse_x
         dy = y - self._mouse_y
 
@@ -969,7 +748,7 @@ class Win32Window(BaseWindow):
             track = TRACKMOUSEEVENT()
             track.cbSize = sizeof(track)
             track.dwFlags = TME_LEAVE
-            track.hwndTrack = self._hwnd
+            track.hwndTrack = self._view_hwnd
             _user32.TrackMouseEvent(byref(track))
 
         # Don't generate motion/drag events when mouse hasn't moved. (Issue
@@ -979,7 +758,7 @@ class Win32Window(BaseWindow):
 
         self._mouse_x = x
         self._mouse_y = y
-
+        
         buttons = 0
         if wParam & MK_LBUTTON:
             buttons |= mouse.LEFT
@@ -991,20 +770,21 @@ class Win32Window(BaseWindow):
         if buttons:
             # Drag event
             modifiers = self._get_modifiers()
-            self.dispatch_event('on_mouse_drag',
+            self.dispatch_event('on_mouse_drag', 
                 x, y, dx, dy, buttons, modifiers)
         else:
             # Motion event
             self.dispatch_event('on_mouse_motion', x, y, dx, dy)
         return 0
 
+    @ViewEventHandler
     @Win32EventHandler(WM_MOUSELEAVE)
     def _event_mouseleave(self, msg, wParam, lParam):
         point = POINT()
         _user32.GetCursorPos(byref(point))
-        _user32.ScreenToClient(self._hwnd, byref(point))
+        _user32.ScreenToClient(self._view_hwnd, byref(point))
         x = point.x
-        y = self.height - point.y
+        y = self._height - point.y
         self._tracking = False
         self._mouse_in_window = False
         self.set_mouse_platform_visible()
@@ -1013,39 +793,45 @@ class Win32Window(BaseWindow):
 
     def _event_mousebutton(self, ev, button, lParam):
         if ev == 'on_mouse_press':
-            _user32.SetCapture(self._hwnd)
+            _user32.SetCapture(self._view_hwnd)
         else:
             _user32.ReleaseCapture()
         x, y = self._get_location(lParam)
-        y = self.height - y
+        y = self._height - y
         self.dispatch_event(ev, x, y, button, self._get_modifiers())
         return 0
 
+    @ViewEventHandler
     @Win32EventHandler(WM_LBUTTONDOWN)
     def _event_lbuttondown(self, msg, wParam, lParam):
         return self._event_mousebutton(
             'on_mouse_press', mouse.LEFT, lParam)
 
+    @ViewEventHandler
     @Win32EventHandler(WM_LBUTTONUP)
     def _event_lbuttonup(self, msg, wParam, lParam):
         return self._event_mousebutton(
             'on_mouse_release', mouse.LEFT, lParam)
 
+    @ViewEventHandler
     @Win32EventHandler(WM_MBUTTONDOWN)
     def _event_mbuttondown(self, msg, wParam, lParam):
         return self._event_mousebutton(
             'on_mouse_press', mouse.MIDDLE, lParam)
 
+    @ViewEventHandler
     @Win32EventHandler(WM_MBUTTONUP)
     def _event_mbuttonup(self, msg, wParam, lParam):
         return self._event_mousebutton(
             'on_mouse_release', mouse.MIDDLE, lParam)
 
+    @ViewEventHandler
     @Win32EventHandler(WM_RBUTTONDOWN)
     def _event_rbuttondown(self, msg, wParam, lParam):
         return self._event_mousebutton(
             'on_mouse_press', mouse.RIGHT, lParam)
 
+    @ViewEventHandler
     @Win32EventHandler(WM_RBUTTONUP)
     def _event_rbuttonup(self, msg, wParam, lParam):
         return self._event_mousebutton(
@@ -1054,8 +840,8 @@ class Win32Window(BaseWindow):
     @Win32EventHandler(WM_MOUSEWHEEL)
     def _event_mousewheel(self, msg, wParam, lParam):
         delta = c_short(wParam >> 16).value
-        self.dispatch_event('on_mouse_scroll',
-            self._mouse_x, self._mouse_y, 0, delta / WHEEL_DELTA)
+        self.dispatch_event('on_mouse_scroll', 
+            self._mouse_x, self._mouse_y, 0, delta / float(WHEEL_DELTA))
         return 0
 
     @Win32EventHandler(WM_CLOSE)
@@ -1063,22 +849,10 @@ class Win32Window(BaseWindow):
         self.dispatch_event('on_close')
         return 0
 
-    def _immediate_redraw(self):
-        '''If using EventLoop, redraw and flip the window immediately.
-
-        Assumes window has GL context.
-        '''
-        from pyglet import app
-        if app.event_loop is not None:
-            self.dispatch_event('on_draw')
-            self.flip()
-
+    @ViewEventHandler
     @Win32EventHandler(WM_PAINT)
     def _event_paint(self, msg, wParam, lParam):
         self.dispatch_event('on_expose')
-
-        self.switch_to()
-        self._immediate_redraw()
 
         # Validating the window using ValidateRect or ValidateRgn
         # doesn't clear the paint message when more than one window
@@ -1087,14 +861,12 @@ class Win32Window(BaseWindow):
 
     @Win32EventHandler(WM_SIZING)
     def _event_sizing(self, msg, wParam, lParam):
-        rect = cast(lParam, POINTER(RECT)).contents
-        width, height = self.get_size()
-        self.switch_to()
-        self.dispatch_event('on_resize', width, height)
+        #rect = cast(lParam, POINTER(RECT)).contents
+        #width, height = self.get_size()
 
         from pyglet import app
         if app.event_loop is not None:
-            app.event_loop._idle_chance()
+            app.event_loop.enter_blocking()
         return 1
 
     @Win32EventHandler(WM_SIZE)
@@ -1114,10 +886,12 @@ class Win32Window(BaseWindow):
             self._hidden = False
             self.dispatch_event('on_show')
         w, h = self._get_location(lParam)
+        if not self._fullscreen:
+            self._width, self._height = w, h
+        self._update_view_location(self._width, self._height)
         self._reset_exclusive_mouse_screen()
         self.switch_to()
-        self.dispatch_event('on_resize', w, h)
-        self._immediate_redraw()
+        self.dispatch_event('on_resize', self._width, self._height)
         return 0
 
     @Win32EventHandler(WM_SYSCOMMAND)
@@ -1126,8 +900,7 @@ class Win32Window(BaseWindow):
             # Should be in WM_ENTERSIZEMOVE, but we never get that message.
             from pyglet import app
             if app.event_loop is not None:
-                app.event_loop._allow_polling = False
-                app.event_loop._idle_chance()
+                app.event_loop.enter_blocking()
         return 0
 
     @Win32EventHandler(WM_MOVE)
@@ -1141,7 +914,7 @@ class Win32Window(BaseWindow):
     def _event_entersizemove(self, msg, wParam, lParam):
         from pyglet import app
         if app.event_loop is not None:
-            app.event_loop._allow_polling = True
+            app.event_loop.exit_blocking()
         return 0
 
     '''
@@ -1187,5 +960,14 @@ class Win32Window(BaseWindow):
 
     @Win32EventHandler(WM_ERASEBKGND)
     def _event_erasebkgnd(self, msg, wParam, lParam):
+        # Prevent flicker during resize; but erase bkgnd if we're fullscreen.
+        if self._fullscreen:
+            return 0
+        else:
+            return 1
+
+    @ViewEventHandler
+    @Win32EventHandler(WM_ERASEBKGND)
+    def _event_erasebkgnd_view(self, msg, wParam, lParam):
         # Prevent flicker during resize.
         return 1

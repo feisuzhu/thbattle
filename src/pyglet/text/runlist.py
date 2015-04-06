@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -138,7 +138,7 @@ class RunList(object):
         '''
         if end - start <= 0:
             return
-
+        
         # Find runs that need to be split
         i = 0
         start_i = None
@@ -154,7 +154,7 @@ class RunList(object):
                 end_i = run_i
                 end_trim = end - i
             i += count
-
+        
         # Split runs
         if start_i is not None:
             run = self.runs[start_i]
@@ -168,13 +168,13 @@ class RunList(object):
             run = self.runs[end_i]
             self.runs.insert(end_i, _Run(run.value, end_trim))
             run.count -= end_trim
-
+                
         # Set new value on runs
         i = 0
         for run in self.runs:
-            if start <= i and i + run.count <= end:
+            if start <= i and i + run.count <= end: 
                 run.value = value
-            i += run.count
+            i += run.count 
 
         # Merge adjacent runs
         last_run = self.runs[0]
@@ -244,7 +244,7 @@ class AbstractRunIterator(object):
 
     You can also iterate over monotonically non-decreasing ranges over the
     iteration.  For example::
-
+        
         run_iter = iter(run_list)
         for start, end, value in run_iter.ranges(0, 20):
             pass
@@ -262,7 +262,7 @@ class AbstractRunIterator(object):
         See the class documentation for examples of valid usage.
 
         :Parameters:
-            `index` : int
+            `index` : int   
                 Document position to query.
 
         :rtype: object
@@ -285,15 +285,16 @@ class AbstractRunIterator(object):
 
 class RunIterator(AbstractRunIterator):
     def __init__(self, run_list):
-        self.next = iter(run_list).next
+        self._run_list_iter = iter(run_list)
         self.start, self.end, self.value = self.next()
+        
+    def next(self):
+        return self._run_list_iter.next()
 
     def __getitem__(self, index):
-        try:
-            while index >= self.end:
-                self.start, self.end, self.value = self.next()
-        except StopIteration:
-            pass
+        while index >= self.end and index > self.start:
+            # condition has special case for 0-length run (fixes issue 471)
+            self.start, self.end, self.value = self.next()
         return self.value
 
     def ranges(self, start, end):
@@ -341,7 +342,7 @@ class OverriddenRunIterator(AbstractRunIterator):
             if start < self.override_end < end:
                 for r in self.iter.ranges(self.override_end, end):
                     yield r
-
+        
     def __getitem__(self, index):
         if self.override_start <= index < self.override_end:
             return self.override_value

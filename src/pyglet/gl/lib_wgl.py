@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -43,6 +43,7 @@ from ctypes import *
 
 import pyglet
 from pyglet.gl.lib import missing_function, decorate_function
+from pyglet.compat import asbytes
 
 __all__ = ['link_GL', 'link_GLU', 'link_WGL']
 
@@ -84,14 +85,14 @@ class WGLFunctionProxy(object):
         if not current_context:
             raise Exception(
                 'Call to function "%s" before GL context created' % self.name)
-        address = wglGetProcAddress(self.name)
+        address = wglGetProcAddress(asbytes(self.name))
         if cast(address, POINTER(c_int)):  # check cast because address is func
             self.func = cast(address, self.ftype)
             decorate_function(self.func, self.name)
         else:
             self.func = missing_function(
                 self.name, self.requires, self.suggestions)
-        result = self.func(*args, **kwargs)
+        result = self.func(*args, **kwargs) 
         return result
 
 def link_GL(name, restype, argtypes, requires=None, suggestions=None):
@@ -101,7 +102,7 @@ def link_GL(name, restype, argtypes, requires=None, suggestions=None):
         func.argtypes = argtypes
         decorate_function(func, name)
         return func
-    except AttributeError, e:
+    except AttributeError:
         # Not in opengl32.dll. Try and get a pointer from WGL.
         try:
             fargs = (restype,) + tuple(argtypes)
@@ -129,7 +130,7 @@ def link_GLU(name, restype, argtypes, requires=None, suggestions=None):
         func.argtypes = argtypes
         decorate_function(func, name)
         return func
-    except AttributeError, e:
+    except AttributeError:
         # Not in glu32.dll. Try and get a pointer from WGL.
         try:
             fargs = (restype,) + tuple(argtypes)

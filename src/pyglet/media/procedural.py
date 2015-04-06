@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -51,7 +51,7 @@ class ProceduralSource(Source):
         self._bytes_per_sample = sample_size >> 3
         self._bytes_per_second = self._bytes_per_sample * sample_rate
         self._max_offset = int(self._bytes_per_second * self._duration)
-
+        
         if self._bytes_per_sample == 2:
             self._max_offset &= 0xfffffffe
 
@@ -59,17 +59,17 @@ class ProceduralSource(Source):
         bytes = min(bytes, self._max_offset - self._offset)
         if bytes <= 0:
             return None
-
+        
         timestamp = float(self._offset) / self._bytes_per_second
         duration = float(bytes) / self._bytes_per_second
         data = self._generate_data(bytes, self._offset)
         self._offset += bytes
-        is_eos = self._offset >= self._max_offset
 
         return AudioData(data,
                          bytes,
                          timestamp,
-                         duration)
+                         duration, 
+                         [])
 
     def _generate_data(self, bytes, offset):
         '''Generate `bytes` bytes of data.
@@ -78,7 +78,7 @@ class ProceduralSource(Source):
         '''
         raise NotImplementedError('abstract')
 
-    def _seek(self, timestamp):
+    def seek(self, timestamp):
         self._offset = int(timestamp * self._bytes_per_second)
 
         # Bound within duration
@@ -103,7 +103,7 @@ class Sine(ProceduralSource):
     def __init__(self, duration, frequency=440, **kwargs):
         super(Sine, self).__init__(duration, **kwargs)
         self.frequency = frequency
-
+        
     def _generate_data(self, bytes, offset):
         if self._bytes_per_sample == 1:
             start = offset
@@ -126,7 +126,7 @@ class Saw(ProceduralSource):
     def __init__(self, duration, frequency=440, **kwargs):
         super(Saw, self).__init__(duration, **kwargs)
         self.frequency = frequency
-
+        
     def _generate_data(self, bytes, offset):
         # XXX TODO consider offset
         if self._bytes_per_sample == 1:
@@ -157,7 +157,7 @@ class Square(ProceduralSource):
     def __init__(self, duration, frequency=440, **kwargs):
         super(Square, self).__init__(duration, **kwargs)
         self.frequency = frequency
-
+        
     def _generate_data(self, bytes, offset):
         # XXX TODO consider offset
         if self._bytes_per_sample == 1:

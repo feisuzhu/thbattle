@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -57,18 +57,19 @@ created.
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: glu_info.py 1979 2008-03-28 15:23:51Z Alex.Holkner $'
+__version__ = '$Id$'
 
 from ctypes import *
 import warnings
 
 from pyglet.gl.glu import *
+from pyglet.compat import asstr
 
 class GLUInfo(object):
-    '''Information interface for the GLU library.
+    '''Information interface for the GLU library. 
 
     A default instance is created automatically when the first OpenGL context
-    is created.  You can use the module functions as a convenience for
+    is created.  You can use the module functions as a convenience for 
     this default instance's methods.
 
     If you are using more than one context, you must call `set_active_context`
@@ -88,8 +89,8 @@ class GLUInfo(object):
         self.have_context = True
         if not self._have_info:
             self.extensions = \
-                cast(gluGetString(GLU_EXTENSIONS), c_char_p).value.split()
-            self.version = cast(gluGetString(GLU_VERSION), c_char_p).value
+                asstr(cast(gluGetString(GLU_EXTENSIONS), c_char_p).value).split()
+            self.version = asstr(cast(gluGetString(GLU_VERSION), c_char_p).value)
             self._have_info = True
 
     def have_version(self, major, minor=0, release=0):
@@ -101,7 +102,7 @@ class GLUInfo(object):
             `minor` : int
                 The minor revision number.
             `release` : int
-                The release number.
+                The release number.  
 
         :rtype: bool
         :return: True if the requested or a later version is supported.
@@ -150,7 +151,7 @@ class GLUInfo(object):
         return self.extensions
 
 # Single instance useful for apps with only a single context (or all contexts
-# have same GLU driver, common case).
+# have same GLU driver, common case). 
 _glu_info = GLUInfo()
 
 set_active_context = _glu_info.set_active_context

@@ -158,10 +158,22 @@ class VertexDomain(object):
     def __init__(self, attribute_usages):
         self.allocator = allocation.Allocator(self._initial_count)
 
+        # If there are any MultiTexCoord attributes, then a TexCoord attribute
+        # must be converted.
+        have_multi_texcoord = False
+        for attribute, _, _ in attribute_usages:
+            if isinstance(attribute, vertexattribute.MultiTexCoordAttribute):
+                have_multi_texcoord = True
+                break
+
         static_attributes = []
         attributes = []
         self.buffer_attributes = []   # list of (buffer, attributes)
         for attribute, usage, vbo in attribute_usages:
+            if (have_multi_texcoord and
+                isinstance(attribute, vertexattribute.TexCoordAttribute)):
+                attribute.convert_to_multi_tex_coord_attribute()
+
             if usage == GL_STATIC_DRAW:
                 # Group attributes for interleaved buffer
                 static_attributes.append(attribute)
@@ -187,6 +199,7 @@ class VertexDomain(object):
             self.buffer_attributes.append(
                 (buffer, static_attributes))
 
+            attributes.extend(static_attributes)
             for attribute in static_attributes:
                 attribute.buffer = buffer
 
@@ -196,11 +209,22 @@ class VertexDomain(object):
         for attribute in attributes:
             if isinstance(attribute, vertexattribute.GenericAttribute):
                 index = attribute.index
-                if 'generic' not in self.attributes:
+                # TODO create a name and use it (e.g. 'generic3')
+                # XXX this won't migrate; not documented.
+                if 'generic' not in self.attribute_names:
                     self.attribute_names['generic'] = {}
                 assert index not in self.attribute_names['generic'], \
                     'More than one generic attribute with index %d' % index
                 self.attribute_names['generic'][index] = attribute
+            elif isinstance(attribute, vertexattribute.MultiTexCoordAttribute):
+                # XXX this won't migrate; not documented.
+                texture = attribute.texture
+                if 'multi_tex_coords' not in self.attribute_names:
+                    self.attribute_names['multi_tex_coords'] = {}
+                assert texture not in self.attribute_names['multi_tex_coords'],\
+                    'More than one multi_tex_coord attribute for texture %d' % \
+                        texture
+                self.attribute_names['multi_tex_coords'][texture] = attribute
             else:
                 name = attribute.plural
                 assert name not in self.attributes, \
@@ -211,7 +235,10 @@ class VertexDomain(object):
         # Break circular refs that Python GC seems to miss even when forced
         # collection.
         for attribute in self.attributes:
-            del attribute.buffer
+            try:
+                del attribute.buffer
+            except AttributeError:
+                pass
 
     def _safe_alloc(self, count):
         '''Allocate vertices, resizing the buffers if necessary.'''
@@ -682,7 +709,7 @@ class IndexedVertexDomain(VertexDomain):
                     self.index_buffer.ptr + starts[0])
             elif gl_info.have_version(1, 4):
                 starts = [s * self.index_element_size + self.index_buffer.ptr for s in starts]
-                starts = cast((GLuint * primcount)(*starts), POINTER(c_void_p))
+                starts = ctypes.cast((GLuint * primcount)(*starts), ctypes.POINTER(ctypes.c_void_p))
                 sizes = (GLsizei * primcount)(*sizes)
                 glMultiDrawElements(mode, sizes, GL_UNSIGNED_INT, starts,
                                     primcount)

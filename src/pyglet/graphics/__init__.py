@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -39,7 +39,7 @@ This module provides an efficient low-level abstraction over OpenGL.  It gives
 very good performance for rendering OpenGL primitives; far better than the
 typical immediate-mode usage and, on modern graphics cards, better than using
 display lists in many cases.  The module is used internally by other areas of
-pyglet.
+pyglet.  
 
 See the Programming Guide for details on how to use this graphics API.
 
@@ -57,16 +57,16 @@ object is drawn.
 
 The following example creates a batch, adds two sprites to the batch, and then
 draws the entire batch::
-
+    
     batch = pyglet.graphics.Batch()
     car = pyglet.sprite.Sprite(car_image, batch=batch)
     boat = pyglet.sprite.Sprite(boat_image, batch=batch)
-
+    
     def on_draw()
         batch.draw()
 
 Drawing a complete batch is much faster than drawing the items in the batch
-individually, especially when those items belong to a common group.
+individually, especially when those items belong to a common group.  
 
 Groups describe the OpenGL state required for an item.  This is for the most
 part managed by the sprite and text classes, however you can also use groups
@@ -78,11 +78,11 @@ car and the boat::
     background = pyglet.graphics.OrderedGroup(0)
     foreground = pyglet.graphics.OrderedGroup(1)
 
-    background = pyglet.sprite.Sprite(background_image,
+    background = pyglet.sprite.Sprite(background_image, 
                                       batch=batch, group=background)
     car = pyglet.sprite.Sprite(car_image, batch=batch, group=foreground)
     boat = pyglet.sprite.Sprite(boat_image, batch=batch, group=foreground)
-
+    
     def on_draw()
         batch.draw()
 
@@ -120,7 +120,7 @@ color attributes::
 When initial data is required, wrap the format string and the initial data in
 a tuple, for example::
 
-    vertex_list = pyglet.graphics.vertex_list(2,
+    vertex_list = pyglet.graphics.vertex_list(2, 
                                               ('v2f', (0.0, 1.0, 1.0, 0.0)),
                                               ('c4B', (255, 255, 255, 255) * 2))
 
@@ -128,12 +128,17 @@ Drawing modes
 =============
 
 Methods in this module that accept a ``mode`` parameter will accept any value
-in the OpenGL drawing mode enumeration; for example, ``GL_POINTS``,
-``GL_LINES``, ``GL_TRIANGLES``, etc.
+in the OpenGL drawing mode enumeration: ``GL_POINTS``, ``GL_LINE_STRIP``,
+``GL_LINE_LOOP``, ``GL_LINES``, ``GL_TRIANGLE_STRIP``, ``GL_TRIANGLE_FAN``,
+``GL_TRIANGLES``, ``GL_QUAD_STRIP``, ``GL_QUADS``, and ``GL_POLYGON``.
 
-Because of the way the graphics API renders multiple primitives with shared
-state, ``GL_POLYGON``, ``GL_LINE_LOOP`` and ``GL_TRIANGLE_FAN`` cannot be used
---- the results are undefined.
+:: 
+
+    pyglet.graphics.draw(1, GL_POINTS, ('v2i',(10,20)))
+
+However, because of the way the graphics API renders multiple primitives with 
+shared state, ``GL_POLYGON``, ``GL_LINE_LOOP`` and ``GL_TRIANGLE_FAN`` cannot
+be used --- the results are undefined.
 
 When using ``GL_LINE_STRIP``, ``GL_TRIANGLE_STRIP`` or ``GL_QUAD_STRIP`` care
 must be taken to insert degenerate vertices at the beginning and end of each
@@ -171,10 +176,11 @@ def draw(size, mode, *data):
     :Parameters:
         `size` : int
             Number of vertices given
-        `mode` : int
-            OpenGL drawing mode, e.g. ``GL_TRIANGLES``
+        `mode` : gl primitive type 
+            OpenGL drawing mode, e.g. ``GL_TRIANGLES``, 
+            avoiding quotes.
         `data` : data items
-            Attribute formats and data.  See the module summary for
+            Attribute formats and data.  See the module summary for 
             details.
 
     '''
@@ -195,7 +201,7 @@ def draw(size, mode, *data):
 
     glDrawArrays(mode, 0, size)
     glFlush()
-
+        
     glPopClientAttrib()
 
 def draw_indexed(size, mode, indices, *data):
@@ -240,7 +246,7 @@ def draw_indexed(size, mode, indices, *data):
     index_array = (index_c_type * len(indices))(*indices)
     glDrawElements(mode, len(indices), index_type, index_array)
     glFlush()
-
+    
     glPopClientAttrib()
 
 def _parse_data(data):
@@ -313,7 +319,7 @@ class Batch(object):
     '''
     def __init__(self):
         '''Create a graphics batch.'''
-        # Mapping to find domain.
+        # Mapping to find domain.  
         # group -> (attributes, mode, indexed) -> domain
         self.group_map = {}
 
@@ -325,6 +331,16 @@ class Batch(object):
 
         self._draw_list = []
         self._draw_list_dirty = False
+
+    def invalidate(self):
+        '''Force the batch to update the draw list.
+
+        This method can be used to force the batch to re-compute the draw list
+        when the ordering of groups has changed.
+
+        :since: pyglet 1.2
+        '''
+        self._draw_list_dirty = True
 
     def add(self, count, mode, group, *data):
         '''Add a vertex list to the batch.
@@ -346,7 +362,7 @@ class Batch(object):
         '''
         formats, initial_arrays = _parse_data(data)
         domain = self._get_domain(False, mode, group, formats)
-
+            
         # Create vertex list and initialize
         vlist = domain.create(count)
         for i, array in initial_arrays:
@@ -376,7 +392,7 @@ class Batch(object):
         '''
         formats, initial_arrays = _parse_data(data)
         domain = self._get_domain(True, mode, group, formats)
-
+            
         # Create vertex list and initialize
         vlist = domain.create(count, len(indices))
         start = vlist.start
@@ -384,20 +400,20 @@ class Batch(object):
         for i, array in initial_arrays:
             vlist._set_attribute_data(i, array)
 
-        return vlist
+        return vlist 
 
     def migrate(self, vertex_list, mode, group, batch):
         '''Migrate a vertex list to another batch and/or group.
 
         `vertex_list` and `mode` together identify the vertex list to migrate.
-        `group` and `batch` are new owners of the vertex list after migration.
+        `group` and `batch` are new owners of the vertex list after migration.  
 
         The results are undefined if `mode` is not correct or if `vertex_list`
         does not belong to this batch (they are not checked and will not
         necessarily throw an exception immediately).
 
         `batch` can remain unchanged if only a group change is desired.
-
+        
         :Parameters:
             `vertex_list` : `VertexList`
                 A vertex list currently belonging to this batch.
@@ -416,7 +432,7 @@ class Batch(object):
     def _get_domain(self, indexed, mode, group, formats):
         if group is None:
             group = null_group
-
+        
         # Batch group
         if group not in self.group_map:
             self._add_group(group)
@@ -435,7 +451,7 @@ class Batch(object):
                 domain = vertexdomain.create_domain(*formats)
             domain.__formats = formats
             domain_map[key] = domain
-            self._draw_list_dirty = True
+            self._draw_list_dirty = True 
 
         return domain
 
@@ -527,7 +543,7 @@ class Batch(object):
         print 'Draw list for %r:' % self
         for group in self.top_groups:
             dump(group)
-
+        
     def draw(self):
         '''Draw the batch.
         '''
@@ -559,9 +575,9 @@ class Batch(object):
             # Draw domains using this group
             domain_map = self.group_map[group]
             for (_, mode, _), domain in domain_map.items():
-                for list in vertex_lists:
-                    if list.domain is domain:
-                        list.draw(mode)
+                for alist in vertex_lists:
+                    if alist.domain is domain:
+                        alist.draw(mode)
 
             # Sort and visit child groups of this group
             children = self.group_children.get(group)
@@ -595,15 +611,18 @@ class Group(object):
         '''
         self.parent = parent
 
-    def set_state(self):
-        '''Apply the OpenGL state change.
+    def __lt__(self, other):
+        return hash(self) < hash(other)
 
+    def set_state(self):
+        '''Apply the OpenGL state change.  
+        
         The default implementation does nothing.'''
         pass
 
     def unset_state(self):
         '''Repeal the OpenGL state change.
-
+        
         The default implementation does nothing.'''
         pass
 
@@ -704,10 +723,10 @@ class OrderedGroup(Group):
         super(OrderedGroup, self).__init__(parent)
         self.order = order
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if isinstance(other, OrderedGroup):
-            return cmp(self.order, other.order)
-        return -1
+            return self.order < other.order
+        return super(OrderedGroup, self).__lt__(other)
 
     def __eq__(self, other):
         return (self.__class__ is other.__class__ and

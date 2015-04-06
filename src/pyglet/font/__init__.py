@@ -68,7 +68,7 @@ by this package.
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: __init__.py 2496 2009-08-19 01:17:30Z benjamin.coder.smith $'
+__version__ = '$Id$'
 
 import sys
 import os
@@ -343,6 +343,7 @@ class Text(object):
         self._layout = pyglet.text.layout.TextLayout(self._document,
                                               width=width,
                                               multiline=multiline,
+                                              wrap_lines=width is not None,
                                               dpi=font.dpi,
                                               group=self._group)
 
@@ -442,8 +443,8 @@ class Text(object):
         if self._wrap == None:
             self._layout.multiline = False
         elif self._wrap == 'width':
-            self._layout.multiline = True
             self._layout.width = self._width
+            self._layout.multiline = True
             self._document.set_style(0, len(self.text), dict(wrap=True))
         elif self._wrap == 'multiline':
             self._layout.multiline = True
@@ -459,6 +460,7 @@ class Text(object):
 
     def _set_width(self, width):
         self._width = width
+        self._layout._wrap_lines_flag = width is not None
         self._update_wrap()
 
     width = property(_get_width, _set_width,
@@ -563,10 +565,14 @@ class Text(object):
         self._layout.draw()
 
 if not getattr(sys, 'is_epydoc', False):
-    if sys.platform == 'darwin':
-        from pyglet.font.carbon import CarbonFont
-        _font_class = CarbonFont
-    elif sys.platform in ('win32', 'cygwin'):
+    if pyglet.compat_platform == 'darwin':
+        if pyglet.options['darwin_cocoa']:
+            from pyglet.font.quartz import QuartzFont
+            _font_class = QuartzFont
+        else:
+            from pyglet.font.carbon import CarbonFont
+            _font_class = CarbonFont
+    elif pyglet.compat_platform in ('win32', 'cygwin'):
         if pyglet.options['font'][0] == 'win32':
             from pyglet.font.win32 import Win32Font
             _font_class = Win32Font
@@ -578,6 +584,10 @@ if not getattr(sys, 'is_epydoc', False):
     else:
         from pyglet.font.freetype import FreeTypeFont
         _font_class = FreeTypeFont
+
+def have_font(name):
+    '''Check if specified system font name is available.'''
+    return _font_class.have_font(name)
 
 def load(name=None, size=None, bold=False, italic=False, dpi=None):
     '''Load a font for rendering.

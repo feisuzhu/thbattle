@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -47,8 +47,8 @@ from pyglet.image import *
 from pyglet.image.codecs import *
 
 from pyglet.window.carbon import carbon, quicktime, _oscheck
-from pyglet.window.carbon.constants import _name
-from pyglet.window.carbon.types import *
+from pyglet.libs.darwin.constants import _name
+from pyglet.libs.darwin.types import *
 
 Handle = POINTER(POINTER(c_byte))
 
@@ -60,7 +60,7 @@ kDataHCanRead = 1
 kDataRefExtensionFileName = _name('fnam')
 kDataRefExtensionMIMEType = _name('mime')
 ComponentInstance = c_void_p
-
+   
 k1MonochromePixelFormat       = 0x00000001
 k2IndexedPixelFormat          = 0x00000002
 k4IndexedPixelFormat          = 0x00000004
@@ -74,6 +74,9 @@ k2IndexedGrayPixelFormat      = 0x00000022
 k4IndexedGrayPixelFormat      = 0x00000024
 k8IndexedGrayPixelFormat      = 0x00000028
 kNativeEndianPixMap           = 1 << 8
+
+kGraphicsImporterDontDoGammaCorrection = 1 << 0
+kGraphicsImporterDontUseColorMatching = 1 << 3
 
 newMovieActive                = 1
 noErr                         = 0
@@ -110,7 +113,7 @@ class QuickTimeImageDecoder(ImageDecoder):
         datarec.data = addressof(data)
         datarec.dataLength = len(data)
 
-        self._data_handler_holder = data_handler = ComponentInstance()
+        self._data_handler_holder = data_handler = ComponentInstance() 
         r = quicktime.OpenADataHandler(dataref, PointerDataHandlerSubType,
             None, 0, None, kDataHCanRead, byref(data_handler))
         _oscheck(r)
@@ -129,9 +132,9 @@ class QuickTimeImageDecoder(ImageDecoder):
         dataref = c_void_p()
         r = quicktime.DataHGetDataRef(data_handler, byref(dataref))
         _oscheck(r)
-
+        
         quicktime.CloseComponent(data_handler)
-
+        
         return dataref
 
     def _get_formats(self):
@@ -147,7 +150,7 @@ class QuickTimeImageDecoder(ImageDecoder):
     def decode(self, file, filename):
         dataref = self._get_data_ref(file, filename)
         importer = ComponentInstance()
-        quicktime.GetGraphicsImporterForDataRef(dataref,
+        quicktime.GetGraphicsImporterForDataRef(dataref, 
             PointerDataHandlerSubType, byref(importer))
 
         if not importer:
@@ -166,7 +169,11 @@ class QuickTimeImageDecoder(ImageDecoder):
             byref(rect), c_void_p(), c_void_p(), 0, buffer,
             len(format) * width)
 
+        flags = (kGraphicsImporterDontUseColorMatching |
+                 kGraphicsImporterDontDoGammaCorrection)
+        quicktime.GraphicsImportSetFlags(importer, flags)
         quicktime.GraphicsImportSetGWorld(importer, world, c_void_p())
+        
         result = quicktime.GraphicsImportDraw(importer)
         quicktime.DisposeGWorld(world)
         quicktime.CloseComponent(importer)
@@ -190,7 +197,7 @@ class QuickTimeImageDecoder(ImageDecoder):
 
         movie = c_void_p()
         id = c_short()
-        result = quicktime.NewMovieFromDataRef(byref(movie),
+        result = quicktime.NewMovieFromDataRef(byref(movie), 
                                       newMovieActive,
                                       0,
                                       data_ref,
@@ -204,7 +211,7 @@ class QuickTimeImageDecoder(ImageDecoder):
         time_scale = float(quicktime.GetMovieTimeScale(movie))
 
         format, qtformat = self._get_formats()
-
+        
         # Get movie width and height
         rect = Rect()
         quicktime.GetMovieBox(movie, byref(rect))
@@ -217,12 +224,12 @@ class QuickTimeImageDecoder(ImageDecoder):
         world = GWorldPtr()
         quicktime.QTNewGWorldFromPtr(byref(world), qtformat,
             byref(rect), c_void_p(), c_void_p(), 0, buffer,
-            len(format) * width)
+            len(format) * width) 
         quicktime.SetGWorld(world, 0)
         quicktime.SetMovieGWorld(movie, world, 0)
 
-        visual = quicktime.GetMovieIndTrackType(movie, 1,
-                                                VisualMediaCharacteristic,
+        visual = quicktime.GetMovieIndTrackType(movie, 1, 
+                                                VisualMediaCharacteristic, 
                                                 movieTrackCharacteristic)
         if not visual:
             raise ImageDecodeException('No video track')

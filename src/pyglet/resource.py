@@ -91,9 +91,9 @@ import os
 import weakref
 import sys
 import zipfile
-import StringIO
 
 import pyglet
+from pyglet.compat import BytesIO
 
 class ResourceNotFoundException(Exception):
     '''The named resource was not found on the search path.'''
@@ -114,6 +114,11 @@ def get_script_home():
     If none of the above cases apply and the file for ``__main__`` cannot
     be determined the working directory is returned.
 
+    When the script is being run by a Python profiler, this function
+    may return the directory where the profiler is running instead of
+    the directory of the real script. To workaround this behaviour the
+    full path to the real script can be specified in `pyglet.resource.path`.
+
     :rtype: str
     '''
 
@@ -121,11 +126,15 @@ def get_script_home():
     if frozen in ('windows_exe', 'console_exe'):
         return os.path.dirname(sys.executable)
     elif frozen == 'macosx_app':
+        # py2app
         return os.environ['RESOURCEPATH']
     else:
         main = sys.modules['__main__']
         if hasattr(main, '__file__'):
-            return os.path.dirname(main.__file__)
+            return os.path.dirname(os.path.abspath(main.__file__))
+        else:
+            # cx_Freeze
+            return os.path.dirname(sys.executable)
 
     # Probably interactive
     return ''
@@ -138,8 +147,8 @@ def get_settings_path(name):
     conventions.  Note that the returned path may not exist: applications
     should use ``os.makedirs`` to construct it if desired.
 
-    On Linux, a hidden directory `name` in the user's home directory is
-    returned.
+    On Linux, a directory `name` in the user's configuration directory is
+    returned (usually under ``~/.config``).
 
     On Windows (including under Cygwin) the `name` directory in the user's
     ``Application Settings`` directory is returned.
@@ -153,13 +162,19 @@ def get_settings_path(name):
 
     :rtype: str
     '''
-    if sys.platform in ('cygwin', 'win32'):
+
+    if pyglet.compat_platform in ('cygwin', 'win32'):
         if 'APPDATA' in os.environ:
             return os.path.join(os.environ['APPDATA'], name)
         else:
             return os.path.expanduser('~/%s' % name)
-    elif sys.platform == 'darwin':
+    elif pyglet.compat_platform == 'darwin':
         return os.path.expanduser('~/Library/Application Support/%s' % name)
+    elif pyglet.compat_platform.startswith('linux'):
+        if 'XDG_CONFIG_HOME' in os.environ:
+            return os.path.join(os.environ['XDG_CONFIG_HOME'], name)
+        else:
+            return os.path.expanduser('~/.config/%s' % name)
     else:
         return os.path.expanduser('~/.%s' % name)
 
@@ -225,7 +240,7 @@ class ZIPLocation(Location):
         else:
             path = filename
         text = self.zip.read(path)
-        return StringIO.StringIO(text)
+        return BytesIO(text)
 
 class URLLocation(Location):
     '''Location on the network.
@@ -288,15 +303,14 @@ class Loader(object):
         if script_home is None:
             script_home = get_script_home()
         self._script_home = script_home
-        self.reindex()
-
-        # Map name to image
-        self._cached_textures = weakref.WeakValueDictionary()
-        self._cached_images = weakref.WeakValueDictionary()
-        self._cached_animations = weakref.WeakValueDictionary()
+        self._index = None
 
         # Map bin size to list of atlases
         self._texture_atlas_bins = {}
+
+    def _require_index(self):
+        if self._index is None:
+            self.reindex()
 
     def reindex(self):
         '''Refresh the file index.
@@ -304,6 +318,11 @@ class Loader(object):
         You must call this method if `path` is changed or the filesystem
         layout changes.
         '''
+        # map name to image etc.
+        self._cached_textures = weakref.WeakValueDictionary()
+        self._cached_images = weakref.WeakValueDictionary()
+        self._cached_animations = weakref.WeakValueDictionary()
+
         self._index = {}
         for path in self.path:
             if path.startswith('@'):
@@ -387,6 +406,7 @@ class Loader(object):
 
         :rtype: file object
         '''
+        self._require_index()
         try:
             location = self._index[name]
             return location.open(name, mode)
@@ -407,6 +427,7 @@ class Loader(object):
 
         :rtype: `Location`
         '''
+        self._require_index()
         try:
             return self._index[name]
         except KeyError:
@@ -428,13 +449,22 @@ class Loader(object):
                 Filename of the font resource to add.
 
         '''
+        self._require_index()
         from pyglet import font
         file = self.file(name)
         font.add_file(file)
 
-    def _alloc_image(self, name):
+    def _alloc_image(self, name, atlas=True):
         file = self.file(name)
-        img = pyglet.image.load(name, file=file)
+        try:
+            img = pyglet.image.load(name, file=file)
+        finally:
+            file.close()
+
+        if not atlas:
+            return img.get_texture(True)
+
+        # find an atlas suitable for the image
         bin = self._get_texture_atlas_bin(img.width, img.height)
         if bin is None:
             return img.get_texture(True)
@@ -464,7 +494,7 @@ class Loader(object):
 
         return bin
 
-    def image(self, name, flip_x=False, flip_y=False, rotate=0):
+    def image(self, name, flip_x=False, flip_y=False, rotate=0, atlas=True):
         '''Load an image with optional transformation.
 
         This is similar to `texture`, except the resulting image will be
@@ -481,15 +511,22 @@ class Loader(object):
             `rotate` : int
                 The returned image will be rotated clockwise by the given
                 number of degrees (a multiple of 90).
+            `atlas` : bool
+                If True, the image will be loaded into an atlas managed by
+                pyglet. If atlas loading is not appropriate for specific
+                texturing reasons (e.g. border control is required) then set
+                this argument to False.
 
         :rtype: `Texture`
-        :return: A complete texture if the image is large, otherwise a
-            `TextureRegion` of a texture atlas.
+        :return: A complete texture if the image is large or not in an atlas,
+            otherwise a `TextureRegion` of a texture atlas.
         '''
+        self._require_index()
         if name in self._cached_images:
             identity = self._cached_images[name]
         else:
-            identity = self._cached_images[name] = self._alloc_image(name)
+            identity = self._cached_images[name] = self._alloc_image(name,
+                atlas=atlas)
 
         if not rotate and not flip_x and not flip_y:
             return identity
@@ -515,6 +552,7 @@ class Loader(object):
 
         :rtype: `Animation`
         '''
+        self._require_index()
         try:
             identity = self._cached_animations[name]
         except KeyError:
@@ -539,6 +577,7 @@ class Loader(object):
         :rtype: list
         :return: List of str
         '''
+        self._require_index()
         return self._cached_images.keys()
 
     def get_cached_animation_names(self):
@@ -549,6 +588,7 @@ class Loader(object):
         :rtype: list
         :return: List of str
         '''
+        self._require_index()
         return self._cached_animations.keys()
 
     def get_texture_bins(self):
@@ -559,6 +599,7 @@ class Loader(object):
         :rtype: list
         :return: List of `TextureBin`
         '''
+        self._require_index()
         return self._texture_atlas_bins.values()
 
     def media(self, name, streaming=True):
@@ -577,6 +618,7 @@ class Loader(object):
 
         :rtype: `media.Source`
         '''
+        self._require_index()
         from pyglet import media
         try:
             location = self._index[name]
@@ -604,6 +646,7 @@ class Loader(object):
 
         :rtype: `Texture`
         '''
+        self._require_index()
         if name in self._cached_textures:
             return self._cached_textures[name]
 
@@ -621,6 +664,7 @@ class Loader(object):
 
         :rtype: `FormattedDocument`
         '''
+        self._require_index()
         file = self.file(name)
         return pyglet.text.decode_html(file.read(), self.location(name))
 
@@ -635,6 +679,7 @@ class Loader(object):
 
         :rtype: `FormattedDocument`
         '''
+        self._require_index()
         file = self.file(name)
         return pyglet.text.load(name, file, 'text/vnd.pyglet-attributed')
 
@@ -647,6 +692,7 @@ class Loader(object):
 
         :rtype: `UnformattedDocument`
         '''
+        self._require_index()
         file = self.file(name)
         return pyglet.text.load(name, file, 'text/plain')
 
@@ -655,6 +701,7 @@ class Loader(object):
 
         :rtype: list of str
         '''
+        self._require_index()
         return self._cached_textures.keys()
 
 #: Default resource search path.

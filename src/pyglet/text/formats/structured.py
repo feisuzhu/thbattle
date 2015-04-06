@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -49,13 +49,13 @@ class ImageElement(pyglet.text.document.InlineElement):
         self.height = height is None and image.height or height
         self.vertex_lists = {}
 
-        anchor_y = self.height / image.height * image.anchor_y
+        anchor_y = self.height // image.height * image.anchor_y
         ascent = max(0, self.height - anchor_y)
         descent = min(0, -anchor_y)
         super(ImageElement, self).__init__(ascent, descent, self.width)
 
     def place(self, layout, x, y):
-        group = pyglet.graphics.TextureGroup(self.image.texture,
+        group = pyglet.graphics.TextureGroup(self.image.texture, 
                                              layout.top_group)
         x1 = x
         y1 = y + self.descent
@@ -74,7 +74,7 @@ class ImageElement(pyglet.text.document.InlineElement):
 def _int_to_roman(input):
     # From http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/81611
     if not 0 < input < 4000:
-        raise ValueError, "Argument must be between 1 and 3999"
+        raise ValueError, "Argument must be between 1 and 3999"    
     ints = (1000, 900,  500, 400, 100,  90, 50,  40, 10,  9,   5,   4,  1)
     nums = ('M',  'CM', 'D', 'CD','C', 'XC','L','XL','X','IX','V','IV','I')
     result = ""
@@ -118,7 +118,7 @@ class ListBuilder(object):
                 Optional value of the list item.  The meaning is list-type
                 dependent.
 
-        '''
+        '''            
         mark = self.get_mark(value)
         if mark:
             decoder.add_text(mark)
@@ -224,7 +224,7 @@ class StructuredTextDecoder(pyglet.text.DocumentDecoder):
         return self.document
 
     def decode_structured(self, text, location):
-        raise NotImplementedError('abstract')
+        raise NotImplementedError('abstract') 
 
     def push_style(self, key, styles):
         old_styles = {}

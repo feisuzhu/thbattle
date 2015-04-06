@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -40,7 +40,7 @@ Abstract representation
 
 Styled text in pyglet is represented by one of the `AbstractDocument` classes,
 which manage the state representation of text and style independently of how
-it is loaded or rendered.
+it is loaded or rendered.  
 
 A document consists of the document text (a Unicode string) and a set of
 named style ranges.  For example, consider the following (artificial)
@@ -84,7 +84,7 @@ http://unicode.org/reports/tr13/tr13-5.html.
 Document classes
 ================
 
-Any class implementing `AbstractDocument` provides a an interface to a
+Any class implementing `AbstractDocument` provides an interface to a
 document model as described above.  In theory a structured document such as
 HTML or XML could export this model, though the classes provided by pyglet
 implement only unstructured documents.
@@ -131,7 +131,7 @@ entire paragraph, otherwise results are undefined.
 ``align``
     ``left`` (default), ``center`` or ``right``.
 ``indent``
-    Additional horizontal space to insert before the first
+    Additional horizontal space to insert before the first 
 ``leading``
     Additional space to insert between consecutive lines within a paragraph,
     in points.  Defaults to 0.
@@ -159,7 +159,7 @@ document; it will be ignored by the built-in text classes.
 
 All style attributes (including those not present in a document) default to
 ``None`` (including the so-called "boolean" styles listed above).  The meaning
-of a ``None`` style is style- and application-dependent.
+of a ``None`` style is style- and application-dependent. 
 
 :since: pyglet 1.1
 '''
@@ -183,8 +183,8 @@ class InlineElement(object):
 
     Elements behave like a single glyph in the document.  They are
     measured by their horizontal advance, ascent above the baseline, and
-    descent below the baseline.
-
+    descent below the baseline.  
+    
     The pyglet layout classes reserve space in the layout for elements and
     call the element's methods to ensure they are rendered at the
     appropriate position.
@@ -226,8 +226,8 @@ class InlineElement(object):
 
         It is the responsibility of the element to clip itself against
         the layout boundaries, and position itself appropriately with respect
-        to the layout's position and viewport offset.
-
+        to the layout's position and viewport offset.  
+        
         The `TextLayout.top_state` graphics state implements this transform
         and clipping into window space.
 
@@ -263,7 +263,7 @@ class AbstractDocument(event.EventDispatcher):
     This class can be overridden to interface pyglet with a third-party
     document format.  It may be easier to implement the document format in
     terms of one of the supplied concrete classes `FormattedDocument` or
-    `UnformattedDocument`.
+    `UnformattedDocument`. 
     '''
     _previous_paragraph_re = re.compile(u'\n[^\n\u2029]*$')
     _next_paragraph_re = re.compile(u'[\n\u2029]')
@@ -283,13 +283,13 @@ class AbstractDocument(event.EventDispatcher):
             return
         self.delete_text(0, len(self._text))
         self.insert_text(0, text)
-
-    text = property(_get_text, _set_text,
+    
+    text = property(_get_text, _set_text, 
                     doc='''Document text.
-
+                   
         For efficient incremental updates, use the `insert_text` and
         `delete_text` methods instead of replacing this property.
-
+        
         :type: str
         ''')
 
@@ -304,7 +304,7 @@ class AbstractDocument(event.EventDispatcher):
         '''
         # Tricky special case where the $ in pattern matches before the \n at
         # the end of the string instead of the end of the string.
-        if (self._text[:pos + 1].endswith('\n') or
+        if (self._text[:pos + 1].endswith('\n') or 
             self._text[:pos + 1].endswith(u'\u2029')):
             return pos
 
@@ -407,7 +407,7 @@ class AbstractDocument(event.EventDispatcher):
         :return: The font at the given position.
         '''
         raise NotImplementedError('abstract')
-
+    
     def insert_text(self, start, text, attributes=None):
         '''Insert text into the document.
 
@@ -446,8 +446,10 @@ class AbstractDocument(event.EventDispatcher):
 
     def _delete_text(self, start, end):
         for element in list(self._elements):
-            if start <= element.position < end:
+            if start <= element._position < end:
                 self._elements.remove(element)
+            elif element._position >= end: # fix bug 538
+                element._position -= (end - start)
 
         self._text = self._text[:start] + self._text[end:]
 
@@ -609,8 +611,8 @@ class UnformattedDocument(AbstractDocument):
         font_size = self.styles.get('font_size')
         bold = self.styles.get('bold', False)
         italic = self.styles.get('italic', False)
-        return font.load(font_name, font_size,
-                         bold=bool(bold), italic=bool(italic), dpi=dpi)
+        return font.load(font_name, font_size, 
+                         bold=bool(bold), italic=bool(italic), dpi=dpi) 
 
     def get_element_runs(self):
         return runlist.ConstRunIterator(len(self._text), None)
@@ -695,7 +697,7 @@ def _iter_elements(elements, length):
 
 class _ElementIterator(runlist.RunIterator):
     def __init__(self, elements, length):
-        self.next = _iter_elements(elements, length).next
+        self._run_list_iter = _iter_elements(elements, length)
         self.start, self.end, self.value = self.next()
 
 class _FontStyleRunsRangeIterator(object):
@@ -709,8 +711,8 @@ class _FontStyleRunsRangeIterator(object):
         from pyglet import font
         for start, end, styles in self.zip_iter.ranges(start, end):
             font_name, font_size, bold, italic = styles
-            ft = font.load(font_name, font_size,
-                           bold=bool(bold), italic=bool(italic),
+            ft = font.load(font_name, font_size, 
+                           bold=bool(bold), italic=bool(italic), 
                            dpi=self.dpi)
             yield start, end, ft
 
@@ -718,7 +720,7 @@ class _FontStyleRunsRangeIterator(object):
         from pyglet import font
         font_name, font_size, bold, italic = self.zip_iter[index]
         return font.load(font_name, font_size,
-                         bold=bool(bold), italic=bool(italic),
+                         bold=bool(bold), italic=bool(italic), 
                          dpi=self.dpi)
 
 class _NoStyleRangeIterator(object):

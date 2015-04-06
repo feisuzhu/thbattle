@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -47,7 +47,7 @@ methods in the `pyglet.graphics` module.
 
 Format strings have the following (BNF) syntax::
 
-    attribute ::= ( name | index 'g' 'n'? ) count type
+    attribute ::= ( name | index 'g' 'n'? | texture 't' ) count type
 
 ``name`` describes the vertex attribute, and is one of the following
 constants for the predefined attributes:
@@ -73,6 +73,10 @@ example, ``0g`` specifies the generic vertex attribute with index 0.
 If the optional constant ``n`` is present after the ``g``, the
 attribute is normalised to the range ``[0, 1]`` or ``[-1, 1]`` within
 the range of the data type.
+
+Texture coordinates for multiple texture units can be specified with the 
+texture number before the constant 't'.  For example, ``1t`` gives the
+texture coordinate attribute for texture unit 1.
 
 ``count`` gives the number of data components in the attribute.  For
 example, a 3D vertex position has a count of 3.  Some attributes
@@ -122,6 +126,8 @@ Some examples follow:
 ``2gn4B``
     4-byte generic vertex attribute 2, normalized to [0, 1] (because
     the type is unsigned)
+``3t2f``
+    2-float texture coordinate for texture unit 3.
 
 '''
 
@@ -158,9 +164,9 @@ _gl_types = {
 
 _attribute_format_re = re.compile(r'''
     (?P<name>
-       [cefnstv] |
-       (?P<generic_index>[0-9]+) g
-       (?P<generic_normalized>n?))
+       [cefnstv] | 
+       (?P<generic_index>[0-9]+) g (?P<generic_normalized>n?) |
+       (?P<texcoord_texture>[0-9]+) t)
     (?P<count>[1234])
     (?P<type>[bBsSiIfd])
 ''', re.VERBOSE)
@@ -184,7 +190,7 @@ def interleave_attributes(attributes):
     stride = 0
     max_size = 0
     for attribute in attributes:
-        stride = _align(stride, attribute.align)
+        stride = _align(stride, attribute.align)    
         attribute.offset = stride
         stride += attribute.size
         max_size = max(max_size, attribute.size)
@@ -194,7 +200,7 @@ def interleave_attributes(attributes):
 
 def serialize_attributes(count, attributes):
     '''Serialize attribute offsets.
-
+    
     Adjust the offsets of the given attributes so that they are
     packed serially against each other for `count` vertices.
 
@@ -213,7 +219,7 @@ def serialize_attributes(count, attributes):
 
 def create_attribute(format):
     '''Create a vertex attribute description from a format string.
-
+    
     The initial stride and offset of the attribute will be 0.
 
     :Parameters:
@@ -233,10 +239,14 @@ def create_attribute(format):
     count = int(match.group('count'))
     gl_type = _gl_types[match.group('type')]
     generic_index = match.group('generic_index')
+    texcoord_texture = match.group('texcoord_texture')
     if generic_index:
         normalized = match.group('generic_normalized')
         attr_class = GenericAttribute
         args = int(generic_index), normalized, count, gl_type
+    elif texcoord_texture:
+        attr_class = MultiTexCoordAttribute
+        args = int(texcoord_texture), count, gl_type
     else:
         name = match.group('name')
         attr_class = _attribute_classes[name]
@@ -247,16 +257,16 @@ def create_attribute(format):
             args = (gl_type,)
         else:
             args = (count, gl_type)
-
+    
     _attribute_cache[format] = attr_class, args
     return attr_class(*args)
 
 class AbstractAttribute(object):
     '''Abstract accessor for an attribute in a mapped buffer.
     '''
-
+    
     _fixed_count = None
-
+    
     def __init__(self, count, gl_type):
         '''Create the attribute accessor.
 
@@ -320,7 +330,7 @@ class AbstractAttribute(object):
         byte_start = self.stride * start
         byte_size = self.stride * count
         array_count = self.count * count
-        if self.stride == self.size:
+        if self.stride == self.size or not array_count:
             # non-interleaved
             ptr_type = ctypes.POINTER(self.c_type * array_count)
             return buffer.get_region(byte_start, byte_size, ptr_type)
@@ -366,14 +376,14 @@ class ColorAttribute(AbstractAttribute):
     '''Color vertex attribute.'''
 
     plural = 'colors'
-
+    
     def __init__(self, count, gl_type):
         assert count in (3, 4), 'Color attributes must have count of 3 or 4'
         super(ColorAttribute, self).__init__(count, gl_type)
 
     def enable(self):
         glEnableClientState(GL_COLOR_ARRAY)
-
+    
     def set_pointer(self, pointer):
         glColorPointer(self.count, self.gl_type, self.stride,
                        self.offset + pointer)
@@ -383,7 +393,7 @@ class EdgeFlagAttribute(AbstractAttribute):
 
     plural = 'edge_flags'
     _fixed_count = 1
-
+    
     def __init__(self, gl_type):
         assert gl_type in (GL_BYTE, GL_UNSIGNED_BYTE, GL_BOOL), \
             'Edge flag attribute must have boolean type'
@@ -391,7 +401,7 @@ class EdgeFlagAttribute(AbstractAttribute):
 
     def enable(self):
         glEnableClientState(GL_EDGE_FLAG_ARRAY)
-
+    
     def set_pointer(self, pointer):
         glEdgeFlagPointer(self.stride, self.offset + pointer)
 
@@ -399,13 +409,13 @@ class FogCoordAttribute(AbstractAttribute):
     '''Fog coordinate attribute.'''
 
     plural = 'fog_coords'
-
+    
     def __init__(self, count, gl_type):
         super(FogCoordAttribute, self).__init__(count, gl_type)
 
     def enable(self):
         glEnableClientState(GL_FOG_COORD_ARRAY)
-
+    
     def set_pointer(self, pointer):
         glFogCoordPointer(self.count, self.gl_type, self.stride,
                           self.offset + pointer)
@@ -423,7 +433,7 @@ class NormalAttribute(AbstractAttribute):
 
     def enable(self):
         glEnableClientState(GL_NORMAL_ARRAY)
-
+    
     def set_pointer(self, pointer):
         glNormalPointer(self.gl_type, self.stride, self.offset + pointer)
 
@@ -438,7 +448,7 @@ class SecondaryColorAttribute(AbstractAttribute):
 
     def enable(self):
         glEnableClientState(GL_SECONDARY_COLOR_ARRAY)
-
+    
     def set_pointer(self, pointer):
         glSecondaryColorPointer(3, self.gl_type, self.stride,
                                 self.offset + pointer)
@@ -455,7 +465,30 @@ class TexCoordAttribute(AbstractAttribute):
 
     def enable(self):
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+    
+    def set_pointer(self, pointer):
+        glTexCoordPointer(self.count, self.gl_type, self.stride,
+                       self.offset + pointer)
 
+    def convert_to_multi_tex_coord_attribute(self):
+        '''Changes the class of the attribute to `MultiTexCoordAttribute`.
+        '''
+        self.__class__ = MultiTexCoordAttribute
+        self.texture = 0
+
+class MultiTexCoordAttribute(AbstractAttribute):
+    '''Texture coordinate attribute.'''
+
+    def __init__(self, texture, count, gl_type):
+        assert gl_type in (GL_SHORT, GL_INT, GL_INT, GL_FLOAT, GL_DOUBLE), \
+            'Texture coord attribute must have non-byte signed type'
+        self.texture = texture
+        super(MultiTexCoordAttribute, self).__init__(count, gl_type)
+
+    def enable(self):
+        glClientActiveTexture(GL_TEXTURE0 + self.texture)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+    
     def set_pointer(self, pointer):
         glTexCoordPointer(self.count, self.gl_type, self.stride,
                        self.offset + pointer)
@@ -492,9 +525,8 @@ class GenericAttribute(AbstractAttribute):
 
     def set_pointer(self, pointer):
         glVertexAttribPointer(self.index, self.count, self.gl_type,
-                              self.normalized, self.stride,
+                              self.normalized, self.stride, 
                               self.offset + pointer)
-
 _attribute_classes = {
     'c': ColorAttribute,
     'e': EdgeFlagAttribute,

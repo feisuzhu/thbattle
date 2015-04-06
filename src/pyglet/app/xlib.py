@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -36,63 +36,92 @@
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: xlib.py 2496 2009-08-19 01:17:30Z benjamin.coder.smith $'
+__version__ = '$Id$'
 
+import os
 import select
+import threading
+from ctypes import *
 
-from pyglet.app import displays, windows, BaseEventLoop
-from pyglet.window.xlib import xlib
+from pyglet import app
+from pyglet.app.base import PlatformEventLoop
+from pyglet.compat import asbytes
 
-class XlibEventLoop(BaseEventLoop):
-    def run(self):
-        self._setup()
+class XlibSelectDevice(object):
+    def fileno(self):
+        '''Get the file handle for ``select()`` for this device.
 
-        e = xlib.XEvent()
-        t = 0
-        sleep_time = 0.
+        :rtype: int
+        '''
+        raise NotImplementedError('abstract')
 
-        self.dispatch_event('on_enter')
+    def select(self):
+        '''Perform event processing on the device.
 
-        while not self.has_exit:
-            # Check for already pending events
-            for display in displays:
-                if xlib.XPending(display._display):
-                    pending_displays = (display,)
-                    break
-            else:
-                # None found; select on all file descriptors or timeout
-                iwtd = self.get_select_files()
-                pending_displays, _, _ = select.select(iwtd, (), (), sleep_time)
+        Called when ``select()`` returns this device in its list of active
+        files.
+        '''
+        raise NotImplementedError('abstract')
 
-            # Dispatch platform events
-            for display in pending_displays:
-                while xlib.XPending(display._display):
-                    xlib.XNextEvent(display._display, e)
+    def poll(self):
+        '''Check if the device has events ready to process.
 
-                    # Key events are filtered by the xlib window event
-                    # handler so they get a shot at the prefiltered event.
-                    if e.xany.type not in (xlib.KeyPress, xlib.KeyRelease):
-                        if xlib.XFilterEvent(e, e.xany.window):
-                            continue
-                    try:
-                        window = display._window_map[e.xany.window]
-                    except KeyError:
-                        continue
+        :rtype: bool
+        :return: True if there are events to process, False otherwise.
+        '''
+        return False
 
-                    window.dispatch_platform_event(e)
+class NotificationDevice(XlibSelectDevice):
+    def __init__(self):
+        self._sync_file_read, self._sync_file_write = os.pipe()
+        self._event = threading.Event()
 
-            # Dispatch resize events
-            for window in windows:
-                if window._needs_resize:
-                    window.switch_to()
-                    window.dispatch_event('on_resize',
-                                          window._width, window._height)
-                    window.dispatch_event('on_expose')
-                    window._needs_resize = False
+    def fileno(self):
+        return self._sync_file_read
 
-            sleep_time = self.idle()
+    def set(self):
+        self._event.set()
+        os.write(self._sync_file_write, asbytes('1'))
 
-        self.dispatch_event('on_exit')
+    def select(self):
+        self._event.clear()
+        os.read(self._sync_file_read, 1)
+        app.platform_event_loop.dispatch_posted_events()
 
-    def get_select_files(self):
-        return list(displays)
+    def poll(self):
+        return self._event.isSet()
+
+class XlibEventLoop(PlatformEventLoop):
+    def __init__(self):
+        super(XlibEventLoop, self).__init__()
+        self._notification_device = NotificationDevice()
+        self._select_devices = set()
+        self._select_devices.add(self._notification_device)
+
+    def notify(self):
+        self._notification_device.set()
+
+    def step(self, timeout=None):
+        # Timeout is from EventLoop.idle(). Return after that timeout or directly
+        # after receiving a new event. None means: block for user input.
+
+        # Poll devices to check for already pending events (select.select is not enough)
+        pending_devices = []
+        for device in self._select_devices:
+            if device.poll():
+                pending_devices.append(device)
+
+        # If no devices were ready, wait until one gets ready
+        if not pending_devices:
+            pending_devices, _, _ = select.select(self._select_devices, (), (), timeout)
+
+        if not pending_devices:
+            # Notify caller that timeout expired without incoming events
+            return False
+
+        # Dispatch activity on matching devices
+        for device in pending_devices:
+            device.select()
+
+        # Notify caller that events were handled before timeout expired
+        return True

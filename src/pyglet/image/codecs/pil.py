@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -35,8 +35,10 @@
 '''
 '''
 
+from __future__ import absolute_import
+
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: pil.py 1768 2008-02-17 12:45:54Z Alex.Holkner $'
+__version__ = '$Id$'
 
 import os.path
 
@@ -44,7 +46,10 @@ from pyglet.gl import *
 from pyglet.image import *
 from pyglet.image.codecs import *
 
-from PIL import Image
+try:
+    import Image
+except ImportError:
+    from PIL import Image
 
 class PILImageDecoder(ImageDecoder):
     def get_file_extensions(self):
@@ -59,7 +64,11 @@ class PILImageDecoder(ImageDecoder):
             raise ImageDecodeException(
                 'PIL cannot read %r: %s' % (filename or file, e))
 
-        image = image.transpose(Image.FLIP_TOP_BOTTOM)
+        try:
+            image = image.transpose(Image.FLIP_TOP_BOTTOM)
+        except Exception, e:
+            raise ImageDecodeException(
+                'PIL failed to transpose %r: %s' % (filename or file, e))
 
         # Convert bitmap and palette images to component
         if image.mode in ('1', 'P'):
@@ -70,7 +79,10 @@ class PILImageDecoder(ImageDecoder):
         type = GL_UNSIGNED_BYTE
         width, height = image.size
 
-        return ImageData(width, height, image.mode, image.tostring())
+        # tostring is deprecated, replaced by tobytes in Pillow (PIL fork)
+        # (1.1.7) PIL still uses it
+        image_data_fn = getattr(image, "tobytes", getattr(image, "tostring"))
+        return ImageData(width, height, image.mode, image_data_fn())
 
 class PILImageEncoder(ImageEncoder):
     def get_file_extensions(self):
@@ -93,9 +105,10 @@ class PILImageEncoder(ImageEncoder):
             format = 'RGBA'
         pitch = -(image.width * len(format))
 
-        # Note: Don't try and use frombuffer(..); different versions of
-        # PIL will orient the image differently.
-        pil_image = Image.fromstring(
+        # fromstring is deprecated, replaced by frombytes in Pillow (PIL fork)
+        # (1.1.7) PIL still uses it
+        image_from_fn = getattr(Image, "frombytes", getattr(Image, "fromstring"))
+        pil_image = image_from_fn(
             format, (image.width, image.height), image.get_data(format, pitch))
 
         try:

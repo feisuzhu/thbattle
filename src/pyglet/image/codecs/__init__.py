@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -38,7 +38,7 @@ Modules must subclass ImageDecoder and ImageEncoder for each method of
 decoding/encoding they support.
 
 Modules must also implement the two functions::
-
+    
     def get_decoders():
         # Return a list of ImageDecoder instances or []
         return []
@@ -46,23 +46,24 @@ Modules must also implement the two functions::
     def get_encoders():
         # Return a list of ImageEncoder instances or []
         return []
-
+    
 '''
 
 __docformat__ = 'restructuredtext'
 __version__ = '$Id: $'
 
 import os.path
+from pyglet import compat_platform
 
 _decoders = []              # List of registered ImageDecoders
 _decoder_extensions = {}    # Map str -> list of matching ImageDecoders
-_decoder_animation_extensions = {}
+_decoder_animation_extensions = {}    
                             # Map str -> list of matching ImageDecoders
 _encoders = []              # List of registered ImageEncoders
 _encoder_extensions = {}    # Map str -> list of matching ImageEncoders
 
 class ImageDecodeException(Exception):
-    pass
+    exception_priority = 10
 
 class ImageEncodeException(Exception):
     pass
@@ -169,7 +170,7 @@ def add_encoders(module):
             if extension not in _encoder_extensions:
                 _encoder_extensions[extension] = []
             _encoder_extensions[extension].append(encoder)
-
+ 
 def add_default_image_codecs():
     # Add the codecs we know about.  These should be listed in order of
     # preference.  This is called automatically by pyglet.image.
@@ -182,29 +183,39 @@ def add_default_image_codecs():
     except ImportError:
         pass
 
-    # Mac OS X default: QuickTime
-    try:
-        import pyglet.image.codecs.quicktime
-        add_encoders(quicktime)
-        add_decoders(quicktime)
-    except ImportError:
-        pass
+    # Mac OS X default: Quicktime for Carbon, Quartz for Cocoa.
+    # TODO: Make ctypes Quartz the default for both Carbon & Cocoa.
+    if compat_platform == 'darwin':
+        try:
+            from pyglet import options as pyglet_options
+            if pyglet_options['darwin_cocoa']:
+                import pyglet.image.codecs.quartz
+                add_encoders(quartz)
+                add_decoders(quartz)
+            else:
+                import pyglet.image.codecs.quicktime
+                add_encoders(quicktime)
+                add_decoders(quicktime)
+        except ImportError:
+            pass
 
     # Windows XP default: GDI+
-    try:
-        import pyglet.image.codecs.gdiplus
-        add_encoders(gdiplus)
-        add_decoders(gdiplus)
-    except ImportError:
-        pass
+    if compat_platform in ('win32', 'cygwin'):
+        try:
+            import pyglet.image.codecs.gdiplus
+            add_encoders(gdiplus)
+            add_decoders(gdiplus)
+        except ImportError:
+            pass
 
-    # # Linux default: GdkPixbuf 2.0
-    # try:
-    #     import pyglet.image.codecs.gdkpixbuf2
-    #     add_encoders(gdkpixbuf2)
-    #     add_decoders(gdkpixbuf2)
-    # except ImportError:
-    #     pass
+    # Linux default: GdkPixbuf 2.0
+    if compat_platform.startswith('linux'):
+        try:
+            import pyglet.image.codecs.gdkpixbuf2
+            add_encoders(gdkpixbuf2)
+            add_decoders(gdkpixbuf2)
+        except ImportError:
+            pass
 
     # Fallback: PIL
     try:

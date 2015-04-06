@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -59,20 +59,20 @@ from pyglet import event
 from pyglet.window import key
 
 class Caret(object):
-    '''Visible text insertion marker for
+    '''Visible text insertion marker for 
     `pyglet.text.layout.IncrementalTextLayout`.
 
-    The caret is drawn as a single vertical bar at the document `position`
+    The caret is drawn as a single vertical bar at the document `position` 
     on a text layout object.  If `mark` is not None, it gives the unmoving
     end of the current text selection.  The visible text selection on the
     layout is updated along with `mark` and `position`.
-
+    
     By default the layout's graphics batch is used, so the caret does not need
     to be drawn explicitly.  Even if a different graphics batch is supplied,
     the caret will be correctly positioned and clipped within the layout.
 
     Updates to the document (and so the layout) are automatically propagated
-    to the caret.
+    to the caret.  
 
     The caret object can be pushed onto a window event handler stack with
     `Window.push_handlers`.  The caret will respond correctly to keyboard,
@@ -100,7 +100,7 @@ class Caret(object):
 
     #: Pixels to scroll viewport per mouse scroll wheel movement.  Defaults
     #: to 12pt at 96dpi.
-    SCROLL_INCREMENT= 12 * 96 / 72
+    SCROLL_INCREMENT= 12 * 96 // 72
 
     def __init__(self, layout, batch=None, color=(0, 0, 0)):
         '''Create a caret for a layout.
@@ -123,7 +123,7 @@ class Caret(object):
             batch = layout.batch
         r, g, b = color
         colors = (r, g, b, 255, r, g, b, 255)
-        self._list = batch.add(2, gl.GL_LINES, layout.background_group,
+        self._list = batch.add(2, gl.GL_LINES, layout.background_group, 
             'v2f', ('c4B', colors))
 
         self._ideal_x = None
@@ -166,15 +166,15 @@ class Caret(object):
     def _get_visible(self):
         return self._visible
 
-    visible = property(_get_visible, _set_visible,
+    visible = property(_get_visible, _set_visible, 
                        doc='''Caret visibility.
-
+    
     The caret may be hidden despite this property due to the periodic blinking
     or by `on_deactivate` if the event handler is attached to a window.
 
     :type: bool
     ''')
-
+    
     def _set_color(self, color):
         self._list.colors[:3] = color
         self._list.colors[4:7] = color
@@ -182,7 +182,7 @@ class Caret(object):
     def _get_color(self):
         return self._list.colors[:3]
 
-    color = property(_get_color, _set_color,
+    color = property(_get_color, _set_color, 
                      doc='''Caret color.
 
     The default caret color is ``[0, 0, 0]`` (black).  Each RGB color
@@ -199,7 +199,7 @@ class Caret(object):
     def _get_position(self):
         return self._position
 
-    position = property(_get_position, _set_position,
+    position = property(_get_position, _set_position, 
                         doc='''Position of caret within document.
 
     :type: int
@@ -211,7 +211,7 @@ class Caret(object):
         self._update(line=self._ideal_line)
         if mark is None:
             self._layout.set_selection(0, 0)
-
+    
     def _get_mark(self):
         return self._mark
 
@@ -247,7 +247,7 @@ class Caret(object):
 
     When set, `position` is modified to place the caret on requested line
     while maintaining the closest possible X offset.
-
+                    
     :type: int
     ''')
 
@@ -269,7 +269,7 @@ class Caret(object):
             try:
                 return self._next_attributes[attribute]
             except KeyError:
-                return self._layout.document.get_style(attribute,
+                return self._layout.document.get_style(attribute, 
                                                           self._position)
 
         start = min(self._position, self._mark)
@@ -313,7 +313,7 @@ class Caret(object):
         The `mark` will be reset to ``None``.
 
         :Parameters:
-            `x` : int
+            `x` : int   
                 X coordinate.
             `y` : int
                 Y coordinate.
@@ -331,7 +331,7 @@ class Caret(object):
         maintaining the `mark`.
 
         :Parameters:
-            `x` : int
+            `x` : int   
                 X coordinate.
             `y` : int
                 Y coordinate.
@@ -346,7 +346,7 @@ class Caret(object):
         '''Select the word at the given window coordinate.
 
         :Parameters:
-            `x` : int
+            `x` : int   
                 X coordinate.
             `y` : int
                 Y coordinate.
@@ -354,7 +354,7 @@ class Caret(object):
         '''
         line = self._layout.get_line_from_point(x, y)
         p = self._layout.get_position_on_line(line, x)
-        m1 = self._previous_word_re.search(self._layout.document.text,
+        m1 = self._previous_word_re.search(self._layout.document.text, 
                                            0, p+1)
         if not m1:
             m1 = 0
@@ -375,7 +375,7 @@ class Caret(object):
         '''Select the paragraph at the given window coordinate.
 
         :Parameters:
-            `x` : int
+            `x` : int   
                 X coordinate.
             `y` : int
                 Y coordinate.
@@ -385,7 +385,7 @@ class Caret(object):
         p = self._layout.get_position_on_line(line, x)
         self.mark = self._layout.document.get_paragraph_start(p)
         self._position = self._layout.document.get_paragraph_end(p)
-        self._update(line=line)
+        self._update(line=line) 
         self._next_attributes.clear()
 
     def _update(self, line=None, update_ideal_x=True):
@@ -459,8 +459,8 @@ class Caret(object):
         if motion == key.MOTION_LEFT:
             self.position = max(0, self.position - 1)
         elif motion == key.MOTION_RIGHT:
-            self.position = min(len(self._layout.document.text),
-                                self.position + 1)
+            self.position = min(len(self._layout.document.text), 
+                                self.position + 1) 
         elif motion == key.MOTION_UP:
             self.line = max(0, self.line - 1)
         elif motion == key.MOTION_DOWN:
@@ -490,7 +490,7 @@ class Caret(object):
                 self.position = m.start()
         elif motion == key.MOTION_PREVIOUS_WORD:
             pos = self._position
-            m = self._previous_word_re.search(self._layout.document.text,
+            m = self._previous_word_re.search(self._layout.document.text, 
                                               0, pos)
             if not m:
                 self.position = 0
@@ -524,7 +524,7 @@ class Caret(object):
         "click".
         '''
         self._layout.view_x -= scroll_x * self.SCROLL_INCREMENT
-        self._layout.view_y += scroll_y * self.SCROLL_INCREMENT
+        self._layout.view_y += scroll_y * self.SCROLL_INCREMENT 
         return event.EVENT_HANDLED
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -578,7 +578,7 @@ class Caret(object):
         The caret is hidden when the window is not active.
         '''
         self._active = True
-        self.visible = self.visible
+        self.visible = self._active
         return event.EVENT_HANDLED
 
     def on_deactivate(self):
@@ -587,5 +587,5 @@ class Caret(object):
         The caret is hidden when the window is not active.
         '''
         self._active = False
-        self.visible = self.visible
+        self.visible = self._active
         return event.EVENT_HANDLED

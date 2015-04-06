@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -38,7 +38,7 @@ See `Window` for a description of the window event types.
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: event.py 1669 2008-01-27 01:31:58Z Alex.Holkner $'
+__version__ = '$Id$'
 
 import sys
 
@@ -92,7 +92,6 @@ class WindowEventLogger(object):
 
         '''
         if logfile is None:
-            import sys
             logfile = sys.stdout
         self.file = logfile
 
@@ -122,7 +121,7 @@ class WindowEventLogger(object):
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         print >> self.file, 'on_mouse_drag(x=%d, y=%d, dx=%d, dy=%d, '\
                             'buttons=%s, modifiers=%s)' % (
-              x, y, dx, dy,
+              x, y, dx, dy, 
               mouse.buttons_string(buttons), key.modifiers_string(modifiers))
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -132,7 +131,7 @@ class WindowEventLogger(object):
 
     def on_mouse_release(self, x, y, button, modifiers):
         print >> self.file, 'on_mouse_release(x=%d, y=%d, button=%r, '\
-                            'modifiers=%s)' % (x, y,
+                            'modifiers=%s)' % (x, y, 
             mouse.buttons_string(button), key.modifiers_string(modifiers))
 
     def on_mouse_scroll(self, x, y, dx, dy):
@@ -175,3 +174,5 @@ class WindowEventLogger(object):
     def on_context_state_lost(self):
         print >> self.file, 'on_context_state_lost()'
 
+    def on_draw(self):
+        print >> self.file, 'on_draw()'

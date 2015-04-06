@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -40,14 +40,16 @@ __version__ = '$Id: pil.py 163 2006-11-13 04:15:46Z Alex.Holkner $'
 
 from ctypes import *
 
+from pyglet.com import IUnknown
 from pyglet.gl import *
 from pyglet.image import *
 from pyglet.image.codecs import *
-from pyglet.window.win32.constants import *
-from pyglet.window.win32.types import *
+from pyglet.libs.win32.constants import *
+from pyglet.libs.win32.types import *
+from pyglet.libs.win32 import _kernel32 as kernel32
+
 
 ole32 = windll.ole32
-kernel32 = windll.kernel32
 gdiplus = windll.gdiplus
 
 LPSTREAM = c_void_p
@@ -105,9 +107,6 @@ class Rect(Structure):
         ('Height', c_int)
     ]
 
-kernel32.GlobalAlloc.restype = HGLOBAL
-kernel32.GlobalLock.restype = c_void_p
-
 PropertyTagFrameDelay = 0x5100
 
 class PropertyItem(Structure):
@@ -117,10 +116,79 @@ class PropertyItem(Structure):
         ('type', c_short),
         ('value', c_void_p)
     ]
+    
+INT_PTR = POINTER(INT)
+UINT_PTR = POINTER(UINT)
+
+ole32.CreateStreamOnHGlobal.argtypes = [HGLOBAL, BOOL, LPSTREAM]
+
+gdiplus.GdipBitmapLockBits.restype = c_int
+gdiplus.GdipBitmapLockBits.argtypes = [c_void_p, c_void_p, UINT, c_int, c_void_p]
+gdiplus.GdipBitmapUnlockBits.restype = c_int
+gdiplus.GdipBitmapUnlockBits.argtypes = [c_void_p, c_void_p]
+gdiplus.GdipCloneStringFormat.restype = c_int
+gdiplus.GdipCloneStringFormat.argtypes = [c_void_p, c_void_p]
+gdiplus.GdipCreateBitmapFromScan0.restype = c_int
+gdiplus.GdipCreateBitmapFromScan0.argtypes = [c_int, c_int, c_int, c_int, POINTER(BYTE), c_void_p]
+gdiplus.GdipCreateBitmapFromStream.restype = c_int
+gdiplus.GdipCreateBitmapFromStream.argtypes = [c_void_p, c_void_p]
+gdiplus.GdipCreateFont.restype = c_int
+gdiplus.GdipCreateFont.argtypes = [c_void_p, REAL, INT, c_int, c_void_p]
+gdiplus.GdipCreateFontFamilyFromName.restype = c_int
+gdiplus.GdipCreateFontFamilyFromName.argtypes = [c_wchar_p, c_void_p, c_void_p]
+gdiplus.GdipCreateMatrix.restype = None
+gdiplus.GdipCreateMatrix.argtypes = [c_void_p]
+gdiplus.GdipCreateSolidFill.restype = c_int
+gdiplus.GdipCreateSolidFill.argtypes = [c_int, c_void_p]  # ARGB
+gdiplus.GdipDisposeImage.restype = c_int
+gdiplus.GdipDisposeImage.argtypes = [c_void_p]
+gdiplus.GdipDrawString.restype = c_int
+gdiplus.GdipDrawString.argtypes = [c_void_p, c_wchar_p, c_int, c_void_p, c_void_p, c_void_p, c_void_p]
+gdiplus.GdipFlush.restype = c_int
+gdiplus.GdipFlush.argtypes = [c_void_p, c_int]
+gdiplus.GdipGetImageDimension.restype = c_int
+gdiplus.GdipGetImageDimension.argtypes = [c_void_p, POINTER(REAL), POINTER(REAL)]
+gdiplus.GdipGetImageGraphicsContext.restype = c_int
+gdiplus.GdipGetImageGraphicsContext.argtypes = [c_void_p, c_void_p]
+gdiplus.GdipGetImagePixelFormat.restype = c_int
+gdiplus.GdipGetImagePixelFormat.argtypes = [c_void_p, c_void_p]
+gdiplus.GdipGetPropertyItem.restype = c_int
+gdiplus.GdipGetPropertyItem.argtypes = [c_void_p, c_uint, c_uint, c_void_p]
+gdiplus.GdipGetPropertyItemSize.restype = c_int
+gdiplus.GdipGetPropertyItemSize.argtypes = [c_void_p, c_uint, UINT_PTR]
+gdiplus.GdipGraphicsClear.restype = c_int
+gdiplus.GdipGraphicsClear.argtypes = [c_void_p, c_int]  # ARGB
+gdiplus.GdipImageGetFrameCount.restype = c_int
+gdiplus.GdipImageGetFrameCount.argtypes = [c_void_p, c_void_p, UINT_PTR]
+gdiplus.GdipImageGetFrameDimensionsCount.restype = c_int
+gdiplus.GdipImageGetFrameDimensionsCount.argtypes = [c_void_p, UINT_PTR]
+gdiplus.GdipImageGetFrameDimensionsList.restype = c_int
+gdiplus.GdipImageGetFrameDimensionsList.argtypes = [c_void_p, c_void_p, UINT]
+gdiplus.GdipImageSelectActiveFrame.restype = c_int
+gdiplus.GdipImageSelectActiveFrame.argtypes = [c_void_p, c_void_p, UINT]
+gdiplus.GdipMeasureString.restype = c_int
+gdiplus.GdipMeasureString.argtypes = [c_void_p, c_wchar_p, c_int, c_void_p, c_void_p, c_void_p, c_void_p, INT_PTR, INT_PTR]
+gdiplus.GdipNewPrivateFontCollection.restype = c_int
+gdiplus.GdipNewPrivateFontCollection.argtypes = [c_void_p]
+gdiplus.GdipPrivateAddMemoryFont.restype = c_int
+gdiplus.GdipPrivateAddMemoryFont.argtypes = [c_void_p, c_void_p, c_int]
+gdiplus.GdipSetPageUnit.restype = c_int
+gdiplus.GdipSetPageUnit.argtypes = [c_void_p, c_int]
+gdiplus.GdipSetStringFormatFlags.restype = c_int
+gdiplus.GdipSetStringFormatFlags.argtypes = [c_void_p, c_int]
+gdiplus.GdipSetTextRenderingHint.restype = c_int
+gdiplus.GdipSetTextRenderingHint.argtypes = [c_void_p, c_int]
+gdiplus.GdipStringFormatGetGenericTypographic.restype = c_int
+gdiplus.GdipStringFormatGetGenericTypographic.argtypes = [c_void_p]
+gdiplus.GdiplusShutdown.restype = None
+gdiplus.GdiplusShutdown.argtypes = [POINTER(ULONG)]
+gdiplus.GdiplusStartup.restype = c_int
+gdiplus.GdiplusStartup.argtypes = [c_void_p, c_void_p, c_void_p]
+
 
 class GDIPlusDecoder(ImageDecoder):
     def get_file_extensions(self):
-        return ['.bmp', '.gif', '.jpg', '.jpeg', '.exif', '.png', '.tif',
+        return ['.bmp', '.gif', '.jpg', '.jpeg', '.exif', '.png', '.tif', 
                 '.tiff']
 
     def get_animation_file_extensions(self):
@@ -138,14 +206,14 @@ class GDIPlusDecoder(ImageDecoder):
         kernel32.GlobalUnlock(hglob)
 
         # Create IStream for the HGLOBAL
-        stream = LPSTREAM()
-        ole32.CreateStreamOnHGlobal(hglob, True, byref(stream))
+        self.stream = IUnknown()
+        ole32.CreateStreamOnHGlobal(hglob, True, byref(self.stream))
 
         # Load image from stream
         bitmap = c_void_p()
-        status = gdiplus.GdipCreateBitmapFromStream(stream, byref(bitmap))
+        status = gdiplus.GdipCreateBitmapFromStream(self.stream, byref(bitmap))
         if status != 0:
-            # TODO release stream
+            self.stream.Release()
             raise ImageDecodeException(
                 'GDI+ cannot load %r' % (filename or file))
 
@@ -186,13 +254,13 @@ class GDIPlusDecoder(ImageDecoder):
         rect.Width = width
         rect.Height = height
         bitmap_data = BitmapData()
-        gdiplus.GdipBitmapLockBits(bitmap,
+        gdiplus.GdipBitmapLockBits(bitmap, 
             byref(rect), ImageLockModeRead, pf, byref(bitmap_data))
-
+        
         # Create buffer for RawImage
         buffer = create_string_buffer(bitmap_data.Stride * height)
         memmove(buffer, bitmap_data.Scan0, len(buffer))
-
+        
         # Unlock data
         gdiplus.GdipBitmapUnlockBits(bitmap, byref(bitmap_data))
 
@@ -201,7 +269,7 @@ class GDIPlusDecoder(ImageDecoder):
     def _delete_bitmap(self, bitmap):
         # Release image and stream
         gdiplus.GdipDisposeImage(bitmap)
-        # TODO: How to call IUnknown::Release on stream?
+        self.stream.Release()
 
     def decode(self, file, filename):
         bitmap = self._load_bitmap(file, filename)
@@ -211,13 +279,13 @@ class GDIPlusDecoder(ImageDecoder):
 
     def decode_animation(self, file, filename):
         bitmap = self._load_bitmap(file, filename)
-
+        
         dimension_count = c_uint()
         gdiplus.GdipImageGetFrameDimensionsCount(bitmap, byref(dimension_count))
         if dimension_count.value < 1:
             self._delete_bitmap(bitmap)
             raise ImageDecodeException('Image has no frame dimensions')
-
+        
         # XXX Make sure this dimension is time?
         dimensions = (c_void_p * dimension_count.value)()
         gdiplus.GdipImageGetFrameDimensionsList(bitmap, dimensions,
@@ -231,16 +299,15 @@ class GDIPlusDecoder(ImageDecoder):
         gdiplus.GdipGetPropertyItemSize(bitmap, prop_id, byref(prop_size))
 
         prop_buffer = c_buffer(prop_size.value)
-        prop_item = cast(prop_buffer, POINTER(PropertyItem)).contents
+        prop_item = cast(prop_buffer, POINTER(PropertyItem)).contents 
         gdiplus.GdipGetPropertyItem(bitmap, prop_id, prop_size.value,
             prop_buffer)
 
-        # XXX Sure it's long?
-        n_delays = prop_item.length / sizeof(c_long)
+        n_delays = prop_item.length // sizeof(c_long)
         delays = cast(prop_item.value, POINTER(c_long * n_delays)).contents
 
         frames = []
-
+        
         for i in range(frame_count.value):
             gdiplus.GdipImageSelectActiveFrame(bitmap, dimensions, i)
             image = self._get_image(bitmap)

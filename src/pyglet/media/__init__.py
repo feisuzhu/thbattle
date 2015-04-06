@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -31,7 +31,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
-# $Id: __init__.py 2541 2009-12-31 04:31:11Z benjamin.coder.smith@gmail.com $
+# $Id$
 
 '''Audio and video playback.
 
@@ -40,7 +40,7 @@ video formats.
 
 Playback is handled by the `Player` class, which reads raw data from `Source`
 objects and provides methods for pausing, seeking, adjusting the volume, and
-so on.  The `Player` class implements a the best available audio device
+so on.  The `Player` class implements the best available audio device
 (currently, only OpenAL is supported)::
 
     player = Player()
@@ -67,21 +67,31 @@ rather than streamed from disk by wrapping the source in a `StaticSource`::
 The other advantage of a `StaticSource` is that it can be queued on any number
 of players, and so played many times simultaneously.
 
+pyglet relies on Python's garbage collector to release resources when a player
+has finished playing a source. In this way some operations that could affect
+the application performance can be delayed.
+
+The player provides a `Player.delete()` method that can be used to release
+resources immediately. Also an explicit call to `gc.collect()`can be used to
+collect unused resources.
+
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: __init__.py 2541 2009-12-31 04:31:11Z benjamin.coder.smith@gmail.com $'
+__version__ = '$Id$'
 
+import atexit
 import ctypes
+import heapq
 import sys
+import threading
 import time
-import StringIO
+import warnings
 
 import pyglet
-from pyglet import clock
-from pyglet import event
+from pyglet.compat import bytes_type, BytesIO
 
-_debug_media = pyglet.options['debug_media']
+_debug = pyglet.options['debug_media']
 
 class MediaException(Exception):
     pass
@@ -91,6 +101,146 @@ class MediaFormatException(MediaException):
 
 class CannotSeekException(MediaException):
     pass
+
+class MediaThread(object):
+    '''A thread that cleanly exits on interpreter shutdown, and provides
+    a sleep method that can be interrupted and a termination method.
+
+    :Ivariables:
+        `condition` : threading.Condition
+            Lock condition on all instance variables. 
+        `stopped` : bool
+            True if `stop` has been called.
+
+    '''
+    _threads = set()
+    _threads_lock = threading.Lock()
+
+    def __init__(self, target=None):
+        self._thread = threading.Thread(target=self._thread_run)
+        self._thread.setDaemon(True)
+
+        if target is not None:
+            self.run = target
+
+        self.condition = threading.Condition()
+        self.stopped = False
+
+    @classmethod
+    def _atexit(cls):
+        cls._threads_lock.acquire()
+        threads = list(cls._threads)
+        cls._threads_lock.release()
+        for thread in threads:
+            thread.stop()
+
+    def run(self):
+        pass
+
+    def _thread_run(self):
+        if pyglet.options['debug_trace']:
+            pyglet._install_trace()
+
+        self._threads_lock.acquire()
+        self._threads.add(self)
+        self._threads_lock.release()
+        self.run()
+        self._threads_lock.acquire()
+        self._threads.remove(self)
+        self._threads_lock.release()
+
+    def start(self):
+        self._thread.start()
+
+    def stop(self):
+        '''Stop the thread and wait for it to terminate.
+
+        The `stop` instance variable is set to ``True`` and the condition is
+        notified.  It is the responsibility of the `run` method to check
+        the value of `stop` after each sleep or wait and to return if set.
+        '''
+        if _debug:
+            print 'MediaThread.stop()'
+        self.condition.acquire()
+        self.stopped = True
+        self.condition.notify()
+        self.condition.release()
+        self._thread.join()
+
+    def sleep(self, timeout):
+        '''Wait for some amount of time, or until notified.
+
+        :Parameters:
+            `timeout` : float
+                Time to wait, in seconds.
+
+        '''
+        if _debug:
+            print 'MediaThread.sleep(%r)' % timeout
+        self.condition.acquire()
+        self.condition.wait(timeout)
+        self.condition.release()
+
+    def notify(self):
+        '''Interrupt the current sleep operation.
+
+        If the thread is currently sleeping, it will be woken immediately,
+        instead of waiting the full duration of the timeout.
+        '''
+        if _debug:
+            print 'MediaThread.notify()'
+        self.condition.acquire()
+        self.condition.notify()
+        self.condition.release()
+
+atexit.register(MediaThread._atexit)
+
+class WorkerThread(MediaThread):
+    def __init__(self, target=None):
+        super(WorkerThread, self).__init__(target)
+        self._jobs = []
+
+    def run(self):
+        while True:
+            job = self.get_job()
+            if not job:
+                break
+            job()
+
+    def get_job(self):
+        self.condition.acquire()
+        while self._empty() and not self.stopped:
+            self.condition.wait()
+        if self.stopped:
+            result = None
+        else:
+            result = self._get()
+        self.condition.release()
+        return result
+        
+    def put_job(self, job):
+        self.condition.acquire()
+        self._put(job)
+        self.condition.notify()
+        self.condition.release()
+
+    def clear_jobs(self):
+        self.condition.acquire()
+        self._clear()
+        self.condition.notify()
+        self.condition.release()
+
+    def _empty(self):
+        return not self._jobs
+
+    def _get(self):
+        return self._jobs.pop(0)
+
+    def _put(self, job):
+        self._jobs.append(job)
+
+    def _clear(self):
+        del self._jobs[:]
 
 class AudioFormat(object):
     '''Audio details.
@@ -114,13 +264,13 @@ class AudioFormat(object):
         self.channels = channels
         self.sample_size = sample_size
         self.sample_rate = sample_rate
-
+        
         # Convenience
         self.bytes_per_sample = (sample_size >> 3) * channels
         self.bytes_per_second = self.bytes_per_sample * sample_rate
 
     def __eq__(self, other):
-        return (self.channels == other.channels and
+        return (self.channels == other.channels and 
                 self.sample_size == other.sample_size and
                 self.sample_rate == other.sample_rate)
 
@@ -150,13 +300,21 @@ class VideoFormat(object):
             Height of video image, in pixels.
         `sample_aspect` : float
             Aspect ratio (width over height) of a single video pixel.
+        `frame_rate` : float
+            Frame rate (frames per second) of the video.
+
+            AVbin 8 or later is required, otherwise the frame rate will be
+            ``None``.
+
+            **Since:** pyglet 1.2.
 
     '''
-
+    
     def __init__(self, width, height, sample_aspect=1.0):
         self.width = width
         self.height = height
         self.sample_aspect = sample_aspect
+        self.frame_rate = None
 
 class AudioData(object):
     '''A single packet of audio data.
@@ -172,16 +330,22 @@ class AudioData(object):
             Time of the first sample, in seconds.
         `duration` : float
             Total data duration, in seconds.
+        `events` : list of MediaEvent
+            List of events contained within this packet.  Events are
+            timestamped relative to this audio packet.
 
     '''
-    def __init__(self, data, length, timestamp, duration):
+    def __init__(self, data, length, timestamp, duration, events):
         self.data = data
         self.length = length
         self.timestamp = timestamp
         self.duration = duration
+        self.events = events
 
     def consume(self, bytes, audio_format):
-        '''Remove some data from beginning of packet.'''
+        '''Remove some data from beginning of packet.  All events are
+        cleared.'''
+        self.events = ()
         if bytes == self.length:
             self.data = None
             self.length = 0
@@ -205,84 +369,499 @@ class AudioData(object):
         self.timestamp += bytes / float(audio_format.bytes_per_second)
 
     def get_string_data(self):
-        '''Return data as a string.'''
-        if type(self.data) is str:
+        '''Return data as a string. (Python 3: return as bytes)'''
+        if isinstance(self.data, bytes_type):
             return self.data
 
         buf = ctypes.create_string_buffer(self.length)
         ctypes.memmove(buf, self.data, self.length)
         return buf.raw
 
-class AudioPlayer(object):
-    '''Abstract low-level interface for playing audio.
+class MediaEvent(object):
+    def __init__(self, timestamp, event, *args):
+        # Meaning of timestamp is dependent on context; and not seen by
+        # application.
+        self.timestamp = timestamp
+        self.event = event
+        self.args = args
 
-    AudioPlayer has no knowledge of sources or eos behaviour.  Once
-    created, its audio format cannot be modified.  The player will attempt
-    to recover automatically from a buffer underrun (but this is not
-    guaranteed).
+    def _sync_dispatch_to_player(self, player):
+        pyglet.app.platform_event_loop.post_event(player, self.event, *self.args)
+        time.sleep(0)
+        # TODO sync with media.dispatch_events
 
-    Applications should not use this class directly, but instead use `Player`.
+    def __repr__(self):
+        return '%s(%r, %r, %r)' % (self.__class__.__name__,
+            self.timestamp, self.event, self.args)
+    
+    def __lt__(self, other):
+        return hash(self) < hash(other)
+
+class SourceInfo(object):
+    '''Source metadata information.
+
+    Fields are the empty string or zero if the information is not available.
+
+    :Ivariables:
+        `title` : str
+            Title
+        `author` : str
+            Author
+        `copyright` : str
+            Copyright statement
+        `comment` : str
+            Comment
+        `album` : str
+            Album name
+        `year` : int
+            Year
+        `track` : int
+            Track number
+        `genre` : str
+            Genre
+
+    :since: pyglet 1.2
+    '''
+
+    title = ''
+    author = ''
+    copyright = ''
+    comment = ''
+    album = ''
+    year = 0
+    track = 0
+    genre = ''
+
+class Source(object):
+    '''An audio and/or video source.
 
     :Ivariables:
         `audio_format` : `AudioFormat`
-            The player's audio format (read-only).
+            Format of the audio in this source, or None if the source is
+            silent.
+        `video_format` : `VideoFormat`
+            Format of the video in this source, or None if there is no
+            video.
+        `info` : `SourceInfo`
+            Source metadata such as title, artist, etc; or None if the
+            information is not available.
+
+            **Since:** pyglet 1.2
+    '''
+
+    _duration = None
+    
+    audio_format = None
+    video_format = None
+    info = None
+
+    def _get_duration(self):
+        return self._duration
+
+    duration = property(lambda self: self._get_duration(),
+                        doc='''The length of the source, in seconds.
+
+        Not all source durations can be determined; in this case the value
+        is None.
+
+        Read-only.
+
+        :type: float
+        ''')
+
+    def play(self):
+        '''Play the source.
+
+        This is a convenience method which creates a Player for
+        this source and plays it immediately.
+
+        :rtype: `Player`
+        '''
+        player = Player()
+        player.queue(self)
+        player.play()
+        return player
+
+    def get_animation(self):
+        '''Import all video frames into memory as an `Animation`.
+
+        An empty animation will be returned if the source has no video.
+        Otherwise, the animation will contain all unplayed video frames (the
+        entire source, if it has not been queued on a player).  After creating
+        the animation, the source will be at EOS.
+
+        This method is unsuitable for videos running longer than a
+        few seconds.
+
+        :since: pyglet 1.1
+
+        :rtype: `pyglet.image.Animation`
+        '''
+        from pyglet.image import Animation, AnimationFrame
+        if not self.video_format:
+            return Animation([])
+        else:
+            frames = []
+            last_ts = 0
+            next_ts = self.get_next_video_timestamp()
+            while next_ts is not None:
+                image = self.get_next_video_frame()
+                if image is not None:
+                    delay = next_ts - last_ts
+                    frames.append(AnimationFrame(image, delay))
+                    last_ts = next_ts
+                next_ts = self.get_next_video_timestamp()
+            return Animation(frames)
+
+    def get_next_video_timestamp(self):
+        '''Get the timestamp of the next video frame.
+
+        :since: pyglet 1.1
+
+        :rtype: float
+        :return: The next timestamp, or ``None`` if there are no more video
+            frames.
+        '''
+        pass
+
+    def get_next_video_frame(self):
+        '''Get the next video frame.
+
+        Video frames may share memory: the previous frame may be invalidated
+        or corrupted when this method is called unless the application has
+        made a copy of it.
+
+        :since: pyglet 1.1
+
+        :rtype: `pyglet.image.AbstractImage`
+        :return: The next video frame image, or ``None`` if the video frame
+            could not be decoded or there are no more video frames.
+        '''
+        pass
+
+    # Internal methods that SourceGroup calls on the source:
+
+    def seek(self, timestamp):
+        '''Seek to given timestamp.'''
+        raise CannotSeekException()
+
+    def _get_queue_source(self):
+        '''Return the `Source` to be used as the queue source for a player.
+
+        Default implementation returns self.'''
+        return self
+
+    def get_audio_data(self, bytes):
+        '''Get next packet of audio data.
+
+        :Parameters:
+            `bytes` : int
+                Maximum number of bytes of data to return.
+
+        :rtype: `AudioData`
+        :return: Next packet of audio data, or None if there is no (more)
+            data.
+        '''
+        return None
+
+class StreamingSource(Source):
+    '''A source that is decoded as it is being played, and can only be
+    queued once.
+    '''
+    
+    _is_queued = False
+
+    is_queued = property(lambda self: self._is_queued,
+                         doc='''Determine if this source has been queued
+        on a `Player` yet.
+
+        Read-only.
+
+        :type: bool
+        ''')
+
+    def _get_queue_source(self):
+        '''Return the `Source` to be used as the queue source for a player.
+
+        Default implementation returns self.'''
+        if self._is_queued:
+            raise MediaException('This source is already queued on a player.')
+        self._is_queued = True
+        return self
+
+class StaticSource(Source):
+    '''A source that has been completely decoded in memory.  This source can
+    be queued onto multiple players any number of times.
+    '''
+    
+    def __init__(self, source):
+        '''Construct a `StaticSource` for the data in `source`.
+
+        :Parameters:
+            `source` : `Source`
+                The source to read and decode audio and video data from.
+
+        '''
+        source = source._get_queue_source()
+        if source.video_format:
+            raise NotImplementedError(
+                'Static sources not supported for video yet.')
+
+        self.audio_format = source.audio_format
+        if not self.audio_format:
+            return
+
+        # Arbitrary: number of bytes to request at a time.
+        buffer_size = 1 << 20 # 1 MB
+
+        # Naive implementation.  Driver-specific implementations may override
+        # to load static audio data into device (or at least driver) memory. 
+        data = BytesIO()
+        while True:
+            audio_data = source.get_audio_data(buffer_size)
+            if not audio_data:
+                break
+            data.write(audio_data.get_string_data())
+        self._data = data.getvalue()
+
+        self._duration = len(self._data) / \
+                float(self.audio_format.bytes_per_second)
+
+    def _get_queue_source(self):
+        return StaticMemorySource(self._data, self.audio_format)
+
+    def get_audio_data(self, bytes):
+        raise RuntimeError('StaticSource cannot be queued.')
+
+class StaticMemorySource(StaticSource):
+    '''Helper class for default implementation of `StaticSource`.  Do not use
+    directly.'''
+
+    def __init__(self, data, audio_format):
+        '''Construct a memory source over the given data buffer.
+        '''
+        self._file = BytesIO(data)
+        self._max_offset = len(data)
+        self.audio_format = audio_format
+        self._duration = len(data) / float(audio_format.bytes_per_second)
+
+    def seek(self, timestamp):
+        offset = int(timestamp * self.audio_format.bytes_per_second)
+
+        # Align to sample
+        if self.audio_format.bytes_per_sample == 2:
+            offset &= 0xfffffffe
+        elif self.audio_format.bytes_per_sample == 4:
+            offset &= 0xfffffffc
+
+        self._file.seek(offset)
+
+    def get_audio_data(self, bytes):
+        offset = self._file.tell()
+        timestamp = float(offset) / self.audio_format.bytes_per_second
+
+        # Align to sample size
+        if self.audio_format.bytes_per_sample == 2:
+            bytes &= 0xfffffffe
+        elif self.audio_format.bytes_per_sample == 4:
+            bytes &= 0xfffffffc
+
+        data = self._file.read(bytes)
+        if not len(data):
+            return None
+
+        duration = float(len(data)) / self.audio_format.bytes_per_second
+        return AudioData(data, len(data), timestamp, duration, [])
+
+class SourceGroup(object):
+    '''Read data from a queue of sources, with support for looping.  All
+    sources must share the same audio format.
+    
+    :Ivariables:
+        `audio_format` : `AudioFormat`
+            Required audio format for queued sources.
 
     '''
 
-    UPDATE_PERIOD = 0.15
+    # TODO can sources list go empty?  what behaviour (ignore or error)?
 
-    def __init__(self, audio_format):
-        '''Create a new audio player for the given audio format.
+    _advance_after_eos = False
+    _loop = False
 
-        :Parameters:
-            `audio_format` : `AudioFormat`
-                Audio format parameters.
-
-        '''
+    def __init__(self, audio_format, video_format):
         self.audio_format = audio_format
+        self.video_format = video_format
+        self.duration = 0.
+        self._timestamp_offset = 0.
+        self._dequeued_durations = []
+        self._sources = []
 
-    def get_write_size(self):
-        '''Return the maximum number of bytes that can be written.
+    def seek(self, time):
+        if self._sources:
+            self._sources[0].seek(time)
 
-        This is used as a hint for preparing data for `write`, not as a strict
-        contract.
+    def queue(self, source):
+        source = source._get_queue_source()
+        assert(source.audio_format == self.audio_format)
+        self._sources.append(source)
+        self.duration += source.duration
 
-        :rtype: int
-        '''
-        raise NotImplementedError('abstract')
+    def has_next(self):
+        return len(self._sources) > 1
 
-    def write(self, audio_data):
-        '''Write audio_data to the stream.
+    def next_source(self, immediate=True):
+        if immediate:
+            self._advance()
+        else:
+            self._advance_after_eos = True
 
-        This method calls `AudioData.consume` to remove data actually written.
+    #: :deprecated: Use `next_source` instead.
+    next = next_source  # old API, worked badly with 2to3
+
+    def get_current_source(self):
+        if self._sources:
+            return self._sources[0]
+
+    def _advance(self):
+        if self._sources:
+            self._timestamp_offset += self._sources[0].duration
+            self._dequeued_durations.insert(0, self._sources[0].duration)
+            old_source = self._sources.pop(0)
+            self.duration -= old_source.duration
+
+    def _get_loop(self):
+        return self._loop
+
+    def _set_loop(self, loop):
+        self._loop = loop        
+
+    loop = property(_get_loop, _set_loop, 
+                    doc='''Loop the current source indefinitely or until 
+    `next` is called.  Initially False.
+
+    :type: bool
+    ''')
+
+    def get_audio_data(self, bytes):
+        '''Get next audio packet.
 
         :Parameters:
-            `audio_data` : `AudioData`
-                Data to write.
+            `bytes` : int
+                Hint for preferred size of audio packet; may be ignored.
+
+        :rtype: `AudioData`
+        :return: Audio data, or None if there is no more data.
+        '''
+
+        data = self._sources[0].get_audio_data(bytes)
+        eos = False
+        while not data:
+            eos = True
+            if self._loop and not self._advance_after_eos:
+                self._timestamp_offset += self._sources[0].duration
+                self._dequeued_durations.insert(0, self._sources[0].duration)
+                self._sources[0].seek(0)
+            else:
+                self._advance_after_eos = False
+
+                # Advance source if there's something to advance to.
+                # Otherwise leave last source paused at EOS.
+                if len(self._sources) > 1:
+                    self._advance()
+                else:
+                    return None
+                
+            data = self._sources[0].get_audio_data(bytes) # TODO method rename
+
+        data.timestamp += self._timestamp_offset
+        if eos:
+            if _debug:
+                print 'adding on_eos event to audio data'
+            data.events.append(MediaEvent(0, 'on_eos'))
+        return data
+
+    def translate_timestamp(self, timestamp):
+        '''Get source-relative timestamp for the audio player's timestamp.'''
+        # XXX 
+        if timestamp is None:
+            return None
+
+        timestamp = timestamp - self._timestamp_offset
+        if timestamp < 0:
+            for duration in self._dequeued_durations[::-1]:
+                timestamp += duration
+                if timestamp > 0:
+                    break
+            assert timestamp >= 0, 'Timestamp beyond dequeued source memory'
+        return timestamp
+
+    def get_next_video_timestamp(self):
+        '''Get the timestamp of the next video frame.
+
+        :rtype: float
+        :return: The next timestamp, or ``None`` if there are no more video
+            frames.
+        '''
+        # TODO track current video source independently from audio source for
+        # better prebuffering.
+        timestamp = self._sources[0].get_next_video_timestamp()
+        if timestamp is not None: 
+            timestamp += self._timestamp_offset
+        return timestamp
+
+    def get_next_video_frame(self):
+        '''Get the next video frame.
+
+        Video frames may share memory: the previous frame may be invalidated
+        or corrupted when this method is called unless the application has
+        made a copy of it.
+
+        :rtype: `pyglet.image.AbstractImage`
+        :return: The next video frame image, or ``None`` if the video frame
+            could not be decoded or there are no more video frames.
+        '''
+        return self._sources[0].get_next_video_frame()
+
+class AbstractAudioPlayer(object):
+    '''Base class for driver audio players.
+    '''
+
+    def __init__(self, source_group, player):
+        '''Create a new audio player.
+
+        :Parameters:
+            `source_group` : `SourceGroup`
+                Source group to play from.
+            `player` : `Player`
+                Player to receive EOS and video frame sync events.
 
         '''
-        raise NotImplementedError('abstract')
-
-    def write_eos(self):
-        '''Write an EOS marker to the stream at the current write point.'''
-        raise NotImplementedError('abstract')
-
-    def write_end(self):
-        '''Mark that there will be no more audio data past the current write
-        point.
-
-        This does not produce an EOS, but is required to prevent data
-        underrun artifacts.
-        '''
-        raise NotImplementedError('abstract')
+        self.source_group = source_group
+        self.player = player
 
     def play(self):
         '''Begin playback.'''
         raise NotImplementedError('abstract')
 
     def stop(self):
-        '''Stop playback.'''
+        '''Stop (pause) playback.'''
         raise NotImplementedError('abstract')
+
+    def delete(self):
+        '''Stop playing and clean up all resources used by player.'''
+        raise NotImplementedError('abstract')
+   
+    def _play_group(self, audio_players):
+        '''Begin simultaneous playback on a list of audio players.'''
+        # This should be overridden by subclasses for better synchrony.
+        for player in audio_players:
+            player.play()
+
+    def _stop_group(self, audio_players):
+        '''Stop simultaneous playback on a list of audio players.'''
+        # This should be overridden by subclasses for better synchrony.
+        for player in audio_players:
+            player.play()
 
     def clear(self):
         '''Clear all buffered data and prepare for replacement data.
@@ -291,30 +870,16 @@ class AudioPlayer(object):
         '''
         raise NotImplementedError('abstract')
 
-    def pump(self):
-        '''Called once per loop iteration before checking for eos
-        triggers.'''
-        raise NotImplementedError('abstract')
-
     def get_time(self):
-        '''Return best guess of current playback time.  The time is relative
-        to the timestamps provided in the data supplied to `write`.  The time
-        is meaningless unless proper care has been taken to clear EOS markers.
+        '''Return approximation of current playback time within current source.
+
+        Returns ``None`` if the audio player does not know what the playback
+        time is (for example, before any valid audio data has been read).
 
         :rtype: float
         :return: current play cursor time, in seconds.
         '''
-        raise NotImplementedError('abstract')
-
-    def clear_eos(self):
-        '''Check if an EOS marker has been passed, and clear it.
-
-        This method should be called repeatedly to clear all pending EOS
-        markers.
-
-        :rtype: bool
-        :return: True if an EOS marker was cleared.
-        '''
+        # TODO determine which source within group
         raise NotImplementedError('abstract')
 
     def set_volume(self, volume):
@@ -353,304 +918,11 @@ class AudioPlayer(object):
         '''See `Player.cone_outer_gain`.'''
         pass
 
-class Source(object):
-    '''An audio and/or video source.
-
-    :Ivariables:
-        `audio_format` : `AudioFormat`
-            Format of the audio in this source, or None if the source is
-            silent.
-        `video_format` : `VideoFormat`
-            Format of the video in this source, or None if there is no
-            video.
+class Player(pyglet.event.EventDispatcher):
+    '''High-level sound and video player.
     '''
 
-    _duration = None
-
-    audio_format = None
-    video_format = None
-
-    def _get_duration(self):
-        return self._duration
-
-    duration = property(lambda self: self._get_duration(),
-                        doc='''The length of the source, in seconds.
-
-        Not all source durations can be determined; in this case the value
-        is None.
-
-        Read-only.
-
-        :type: float
-        ''')
-
-    def play(self):
-        '''Play the source.
-
-        This is a convenience method which creates a ManagedSoundPlayer for
-        this source and plays it immediately.
-
-        :rtype: `ManagedSoundPlayer`
-        '''
-        player = ManagedSoundPlayer()
-        player.queue(self)
-        player.play()
-        return player
-
-    def get_animation(self):
-        '''Import all video frames into memory as an `Animation`.
-
-        An empty animation will be returned if the source has no video.
-        Otherwise, the animation will contain all unplayed video frames (the
-        entire source, if it has not been queued on a player).  After creating
-        the animation, the source will be at EOS.
-
-        This method is unsuitable for videos running longer than a
-        few seconds.
-
-        :since: pyglet 1.1
-
-        :rtype: `pyglet.image.Animation`
-        '''
-        from pyglet.image import Animation, AnimationFrame
-        if not self.video_format:
-            return Animation([])
-        else:
-            # Create a dummy player for the source to push its textures onto.
-            frames = []
-            last_ts = 0
-            next_ts = self.get_next_video_timestamp()
-            while next_ts is not None:
-                image = self.get_next_video_frame()
-                assert image is not None
-                delay = next_ts - last_ts
-                frames.append(AnimationFrame(image, delay))
-                last_ts = next_ts
-                next_ts = self.get_next_video_timestamp()
-            return Animation(frames)
-
-    def get_next_video_timestamp(self):
-        '''Get the timestamp of the next video frame.
-
-        :since: pyglet 1.1
-
-        :rtype: float
-        :return: The next timestamp, or ``None`` if there are no more video
-            frames.
-        '''
-        pass
-
-    def get_next_video_frame(self):
-        '''Get the next video frame.
-
-        Video frames may share memory: the previous frame may be invalidated
-        or corrupted when this method is called unless the application has
-        made a copy of it.
-
-        :since: pyglet 1.1
-
-        :rtype: `pyglet.image.AbstractImage`
-        :return: The next video frame image, or ``None`` if there are no more
-            video frames.
-        '''
-        pass
-
-    # Internal methods that Players call on the source:
-
-    def _play(self):
-        '''Begin decoding in real-time.'''
-        pass
-
-    def _pause(self):
-        '''Pause decoding, but remain prerolled.'''
-        pass
-
-    def _stop(self):
-        '''Stop forever and clean up.'''
-        pass
-
-    def _seek(self, timestamp):
-        '''Seek to given timestamp.'''
-        raise CannotSeekException()
-
-    def _get_queue_source(self):
-        '''Return the `Source` to be used as the queue source for a player.
-
-        Default implementation returns self.'''
-        return self
-
-    def _get_audio_data(self, bytes):
-        '''Get next packet of audio data.
-
-        :Parameters:
-            `bytes` : int
-                Maximum number of bytes of data to return.
-
-        :rtype: `AudioData`
-        :return: Next packet of audio data, or None if there is no (more)
-            data.
-        '''
-        return None
-
-    def _init_texture(self, player):
-        '''Create the player's texture.'''
-        pass
-
-    def _update_texture(self, player, timestamp):
-        '''Update the texture on player.'''
-        pass
-
-    def _release_texture(self, player):
-        '''Release the player's texture.'''
-        pass
-
-class StreamingSource(Source):
-    '''A source that is decoded as it is being played, and can only be
-    queued once.
-    '''
-
-    _is_queued = False
-
-    is_queued = property(lambda self: self._is_queued,
-                         doc='''Determine if this source has been queued
-        on a `Player` yet.
-
-        Read-only.
-
-        :type: bool
-        ''')
-
-    def _get_queue_source(self):
-        '''Return the `Source` to be used as the queue source for a player.
-
-        Default implementation returns self.'''
-        if self._is_queued:
-            raise MediaException('This source is already queued on a player.')
-        self._is_queued = True
-        return self
-
-class StaticSource(Source):
-    '''A source that has been completely decoded in memory.  This source can
-    be queued onto multiple players any number of times.
-    '''
-
-    def __init__(self, source):
-        '''Construct a `StaticSource` for the data in `source`.
-
-        :Parameters:
-            `source` : `Source`
-                The source to read and decode audio and video data from.
-
-        '''
-        source = source._get_queue_source()
-        if source.video_format:
-            raise NotImplementedError(
-                'Static sources not supported for video yet.')
-
-        self.audio_format = source.audio_format
-        if not self.audio_format:
-            return
-
-        # TODO enable time-insensitive playback
-        source._play()
-
-        # Arbitrary: number of bytes to request at a time.
-        buffer_size = 1 << 20 # 1 MB
-
-        # Naive implementation.  Driver-specific implementations may override
-        # to load static audio data into device (or at least driver) memory.
-        data = StringIO.StringIO()
-        while True:
-            audio_data = source._get_audio_data(buffer_size)
-            if not audio_data:
-                break
-            data.write(audio_data.get_string_data())
-        self._data = data.getvalue()
-
-    def _get_queue_source(self):
-        return StaticMemorySource(self._data, self.audio_format)
-
-    def _get_audio_data(self, bytes):
-        raise RuntimeError('StaticSource cannot be queued.')
-
-class StaticMemorySource(StaticSource):
-    '''Helper class for default implementation of `StaticSource`.  Do not use
-    directly.'''
-
-    def __init__(self, data, audio_format):
-        '''Construct a memory source over the given data buffer.
-        '''
-        self._file = StringIO.StringIO(data)
-        self._max_offset = len(data)
-        self.audio_format = audio_format
-        self._duration = len(data) / float(audio_format.bytes_per_second)
-
-    def _seek(self, timestamp):
-        offset = int(timestamp * self.audio_format.bytes_per_second)
-
-        # Align to sample
-        if self.audio_format.bytes_per_sample == 2:
-            offset &= 0xfffffffe
-        elif self.audio_format.bytes_per_sample == 4:
-            offset &= 0xfffffffc
-
-        self._file.seek(offset)
-
-    def _get_audio_data(self, bytes):
-        offset = self._file.tell()
-        timestamp = float(offset) / self.audio_format.bytes_per_second
-
-        # Align to sample size
-        if self.audio_format.bytes_per_sample == 2:
-            bytes &= 0xfffffffe
-        elif self.audio_format.bytes_per_sample == 4:
-            bytes &= 0xfffffffc
-
-        data = self._file.read(bytes)
-        if not len(data):
-            return None
-
-        duration = float(len(data)) / self.audio_format.bytes_per_second
-        return AudioData(data, len(data), timestamp, duration)
-
-class Player(event.EventDispatcher):
-    '''A sound and/or video player.
-
-    Queue sources on this player to play them.
-    '''
-
-    #: The player will pause when it reaches the end of the stream.
-    EOS_PAUSE = 'pause'
-    #: The player will loop the current stream continuosly.
-    EOS_LOOP = 'loop'
-    #: The player will move on to the next queued stream when it reaches the
-    #: end of the current source.  If there is no source queued, the player
-    #: will pause.
-    EOS_NEXT = 'next'
-    #: The player will stop entirely; valid only for ManagedSoundPlayer.
-    EOS_STOP = 'stop'
-
-    # Source and queuing attributes
-    _source_read_index = 0
-    _eos_action = EOS_NEXT
-    _playing = False
-
-    # If True and _playing is False, user is currently seeking while paused;
-    # should refrain from filling the audio buffer.
-    _pause_seek = False
-
-    # Override audio timestamp for seeking and silent video
-    _timestamp = None
-
-    # Used to track timestamp for silent sources
-    _last_system_time = 0.
-
-    # Audio attributes
-    _audio = None
-    _audio_finished = False
-    _next_audio_data = None
-
-    # Video attributes
+    _last_video_timestamp = None
     _texture = None
 
     # Spacialisation attributes, preserved between audio players
@@ -666,593 +938,383 @@ class Player(event.EventDispatcher):
     _cone_outer_angle = 360.
     _cone_outer_gain = 1.
 
+    #: The player will pause when it reaches the end of the stream.
+    #:
+    #: :deprecated: Use `SourceGroup.advance_after_eos`
+    EOS_PAUSE = 'pause'
+
+    #: The player will loop the current stream continuosly.
+    #:
+    #: :deprecated: Use `SourceGroup.loop`
+    EOS_LOOP = 'loop'
+
+    #: The player will move on to the next queued stream when it reaches the
+    #: end of the current source.  If there is no source queued, the player
+    #: will pause.
+    #:
+    #: :deprecated: Use `SourceGroup.advance_after_eos`
+    EOS_NEXT = 'next'
+
+    #: The player will stop entirely; valid only for ManagedSoundPlayer.
+    #: 
+    #: :deprecated: Use `SourceGroup.advance_after_eos`
+    EOS_STOP = 'stop'
+
+    #: :deprecated:
+    _eos_action = EOS_NEXT
+
     def __init__(self):
-        self._sources = []
+        # List of queued source groups
+        self._groups = []
 
-    def _create_audio(self):
-        '''Create _audio for sources[0].
+        self._audio_player = None
 
-        Reuses existing _audio if it exists and is compatible.
-        '''
-        if not self._sources:
-            return
+        # Desired play state (not an indication of actual state).
+        self._playing = False
 
-        source = self._sources[0]
-        if not source.audio_format:
-            self._audio = None
-            return
-
-        if self._audio:
-            self._audio_finished = False
-            if self._audio.audio_format == source.audio_format:
-                return
-            else:
-                self._audio = None
-
-        self._audio = audio_player_class(source.audio_format)
-        self._audio.set_volume(self._volume)
-        self._audio.set_min_distance(self._min_distance)
-        self._audio.set_max_distance(self._max_distance)
-        self._audio.set_position(self._position)
-        self._audio.set_pitch(self._pitch)
-        self._audio.set_cone_orientation(self._cone_orientation)
-        self._audio.set_cone_inner_angle(self._cone_inner_angle)
-        self._audio.set_cone_outer_angle(self._cone_outer_angle)
-        self._audio.set_cone_outer_gain(self._cone_outer_gain)
-
-    def _fill_audio(self):
-        '''Ensure _audio is full.'''
-        if not self._audio or self._audio_finished:
-            return
-
-        write_size = self._audio.get_write_size()
-        if not write_size:
-            return
-
-        for audio_data, audio_format in self._get_audio_data(write_size):
-            if audio_data == 'eos':
-                self._audio.write_eos()
-                continue
-            elif audio_data == 'end':
-                self._audio.write_end()
-                self._audio_finished = True
-                return
-            if audio_format != self._audio.audio_format:
-                self._next_audio_data = audio_format, audio_data
-                return
-            length = audio_data.length
-            self._audio.write(audio_data)
-            if audio_data.length:
-                self._next_audio_data = audio_format, audio_data
-                return
-
-            write_size -= length
-            if write_size <= 0:
-                return
-
-    def _get_audio_data(self, bytes):
-        '''Yields pairs of (audio_data, audio_format).'''
-        if self._next_audio_data:
-            audio_format, audio_data = self._next_audio_data
-            self._next_audio_data = None
-            bytes -= audio_data.length
-            yield audio_data, audio_format
-
-        try:
-            source = self._sources[self._source_read_index]
-        except IndexError:
-            source = None
-
-        while source and bytes > 4: # bytes > 4 compensates for alignment loss
-            audio_data = source._get_audio_data(bytes)
-            if audio_data:
-                bytes -= audio_data.length
-                yield audio_data, source.audio_format
-            else:
-                yield 'eos', source.audio_format
-                if self._eos_action == self.EOS_NEXT:
-                    self._source_read_index += 1
-                    try:
-                        source = self._sources[self._source_read_index]
-                        source._play()
-                    except IndexError:
-                        source = None
-                elif self._eos_action == self.EOS_LOOP:
-                    source._seek(0)
-                elif self._eos_action == self.EOS_PAUSE:
-                    source = None
-                elif self._eos_action == self.EOS_STOP:
-                    source = None
-                else:
-                    assert False, 'Invalid eos_action'
-                    source = None
-
-        if not source:
-            yield 'end', None
-
-    def _update_schedule(self):
-        clock.unschedule(self.dispatch_events)
-        if self._playing and self._sources:
-            interval = 1000.
-            if self._sources[0].video_format:
-                interval = min(interval, 1/24.)
-            if self._audio:
-                interval = min(interval, self._audio.UPDATE_PERIOD)
-            clock.schedule_interval_soft(self.dispatch_events, interval)
+        self._paused_time = 0.0
 
     def queue(self, source):
-        '''Queue the source on this player.
-
-        If the player has no source, the player will be paused immediately
-        on this source.
-
-        :Parameters:
-            `source` : Source
-                The source to queue.
-
-        '''
-        self._sources.append(source._get_queue_source())
-        if len(self._sources) == 1:
-            self._source_read_index = 0
-            self._begin_source()
-
-    def play(self):
-        '''Begin playing the current source.
-
-        This has no effect if the player is already playing.
-        '''
-        self._playing = True
-        self._pause_seek = False
-
-        if self._audio:
-            self._timestamp = None
-            self._audio.play()
+        if isinstance(source, SourceGroup):
+            self._groups.append(source)
         else:
-            self._last_system_time = time.time()
+            if (self._groups and
+                source.audio_format == self._groups[-1].audio_format and
+                source.video_format == self._groups[-1].video_format):
+                self._groups[-1].queue(source)
+            else:
+                group = SourceGroup(source.audio_format, source.video_format)
+                group.queue(source)
+                self._groups.append(group)
+                self._set_eos_action(self._eos_action)
 
-        self.dispatch_events()
-        self._update_schedule()
+        self._set_playing(self._playing)
+
+    def _set_playing(self, playing):
+        #stopping = self._playing and not playing
+        #starting = not self._playing and playing
+
+        self._playing = playing
+        source = self.source
+
+        if playing and source:
+            if not self._audio_player:
+                self._create_audio_player()
+            self._audio_player.play()
+
+            if source.video_format:
+                if not self._texture:
+                    self._create_texture()
+
+                if self.source.video_format.frame_rate:
+                    period = 1. / self.source.video_format.frame_rate
+                else:
+                    period = 1. / 30.
+                pyglet.clock.schedule_interval(self.update_texture, period)
+        else:
+            if self._audio_player:
+                self._audio_player.stop()
+
+            pyglet.clock.unschedule(self.update_texture)
+
+    def play(self): 
+        self._set_playing(True)
 
     def pause(self):
-        '''Pause playback of the current source.
+        self._set_playing(False)
 
-        This has no effect if the player is already paused.
-        '''
-        self._playing = False
-        self._pause_seek = False
+        if self._audio_player:
+            time = self._audio_player.get_time()
+            time = self._groups[0].translate_timestamp(time)
+            if time is not None:
+                self._paused_time = time
+            self._audio_player.stop()
 
-        if self._audio:
-            self._audio.stop()
-        self._update_schedule()
+    def delete(self):
+        self.pause()
 
-    def seek(self, timestamp):
-        '''Seek for playback to the indicated timestamp in seconds on the
-        current source.  If the timestamp is outside the duration of the
-        source, it will be clamped to the end.
+        if self._audio_player:
+            self._audio_player.delete()
+            self._audio_player = None
 
-        :Parameters:
-            `timestamp` : float
-                Timestamp to seek to.
-        '''
-        if not self._sources:
+        while self._groups:
+            del self._groups[0]
+
+    def next_source(self):
+        if not self._groups:
             return
 
-        if not self._playing:
-            self._pause_seek = True
+        group = self._groups[0]
+        if group.has_next():
+            group.next_source()
+            return
 
-        self._audio_finished = False
-        source = self._sources[0]
-        self._source_read_index = 0
-        self._next_audio_data = None
-        source._seek(timestamp)
-        self._timestamp = timestamp
+        if self.source.video_format:
+            self._texture = None
+            pyglet.clock.unschedule(self.update_texture)
 
-        if self._audio:
-            self._audio.stop()
-            self._audio.clear()
+        if self._audio_player:
+            self._audio_player.delete()
+            self._audio_player = None
+
+        del self._groups[0]
+        if self._groups:
+            self._set_playing(self._playing)
+            return
+
+        self._set_playing(False)
+        self.dispatch_event('on_player_eos')
+
+    #: :deprecated: Use `next_source` instead.
+    next = next_source  # old API, worked badly with 2to3
+
+    def seek(self, time):
+        if _debug:
+            print 'Player.seek(%r)' % time
+
+        self._paused_time = time
+        self.source.seek(time)
+        if self._audio_player: self._audio_player.clear()
+        if self.source.video_format:
+            self._last_video_timestamp = None
+            self.update_texture(time=time)
+
+    def _create_audio_player(self):
+        assert not self._audio_player
+        assert self._groups
+
+        group = self._groups[0]
+        audio_format = group.audio_format
+        if audio_format:
+            audio_driver = get_audio_driver()
         else:
-            self._last_system_time = time.time()
+            audio_driver = get_silent_audio_driver()
+        self._audio_player = audio_driver.create_audio_player(group, self)
 
-        self.dispatch_events()
-
-    def next(self):
-        '''Move immediately to the next queued source.
-
-        There may be a gap in playback while the audio buffer is refilled.
-        '''
-        if not self._sources:
-            return
-
-        if self._audio:
-            self._audio.stop()
-            self._audio.clear()
-        else:
-            self._last_system_time = time.time()
-            self._timestamp = 0.
-
-        self._next_source()
-
-    def _next_source(self):
-        if not self._sources:
-            self._update_schedule()
-            return
-
-        self._source_read_index = max(0, self._source_read_index - 1)
-        source = self._sources.pop(0)
-        source._release_texture(self)
-        source._stop()
-        self._begin_source()
-
-    def _begin_source(self):
-        if not self._sources:
-            return
-
-        source = self._sources[0]
-        source._init_texture(self)
-        self._create_audio()
-        self._fill_audio()
-
-        if not self._audio:
-            self._timestamp = 0.
-
-        if self._playing:
-            self.play()
-            self._update_schedule()
-
-    def _on_eos(self):
-        '''Internal method when EOS is encountered.  Returns False if
-        dispatch_events should be immediately aborted.'''
-        if self._eos_action == self.EOS_NEXT:
-            self._next_source()
-        elif self._eos_action == self.EOS_PAUSE:
-            self._playing = False
-            self._timestamp = self._sources[0].duration
-        elif self._eos_action == self.EOS_STOP:
-            self.stop()
-            self._sources = []
-            return False
-        self.dispatch_event('on_eos')
-        return True
-
-    def dispatch_events(self, dt=None):
-        '''Dispatch any pending events and perform regular heartbeat functions
-        to maintain playback.
-
-        :Parameters:
-            `dt` : None
-                Ignored (for compatibility with `pyglet.clock.schedule`)
-
-        :deprecated: Since pyglet 1.1, Player objects schedule themselves on
-            the default clock automatically.  Applications should not call
-            this method.
-
-        '''
-        if not self._sources:
-            return
-
-        if not self._pause_seek:
-            self._fill_audio()
-
-        if self._audio:
-            underrun = self._audio.pump()
-            while self._audio.clear_eos():
-                if not self._on_eos():
-                    return
-            if underrun:
-                self._audio.UPDATE_PERIOD *= 0.75
-                self._audio.__class__.UPDATE_PERIOD *= 0.75
-                self._update_schedule()
-                if _debug_media:
-                    print '%r underrun: reducing update period to %.2f' % \
-                        (self._audio, self._audio.UPDATE_PERIOD)
-        else:
-            if self._playing:
-                t = time.time()
-                self._timestamp += t - self._last_system_time
-                self._last_system_time = t
-                while self._timestamp > self._sources[0].duration:
-                    if not self._on_eos():
-                        return
-                    if self._eos_action == self.EOS_LOOP:
-                        self._timestamp -= self._sources[0].duration
-
-        if self._texture:
-            self._sources[0]._update_texture(self, self._get_time())
-
-    def _get_time(self):
-        if self._timestamp is not None:
-            return self._timestamp
-        elif self._audio:
-            return self._audio.get_time()
-
-    time = property(lambda self: self._get_time(),
-                    doc='''Retrieve the current playback time of the current
-         source.
-
-         The playback time is a float expressed in seconds, with 0.0 being
-         the beginning of the sound.  The playback time returned represents
-         the time encoded in the source, and may not reflect actual time
-         passed due to pitch shifting or pausing.
-
-         Read-only.
-
-         :type: float
-         ''')
+        _class = self.__class__
+        def _set(name):
+            private_name = '_' + name
+            value = getattr(self, private_name) 
+            if value != getattr(_class, private_name):
+                getattr(self._audio_player, 'set_' + name)(value)
+        _set('volume')
+        _set('min_distance')
+        _set('max_distance')
+        _set('position')
+        _set('pitch')
+        _set('cone_orientation')
+        _set('cone_inner_angle')
+        _set('cone_outer_angle')
+        _set('cone_outer_gain')
 
     def _get_source(self):
-        if self._sources:
-            return self._sources[0]
+        if not self._groups:
+            return None
+        return self._groups[0].get_current_source()
 
-    source = property(lambda self: self._get_source(),
-                      doc='''Return the current source.
+    source = property(_get_source)
 
-         Read-only.
+    playing = property(lambda self: self._playing)
 
-         :type: Source
-         ''')
+    def _get_time(self):
+        time = None
+        if self._playing and self._audio_player:
+            time = self._audio_player.get_time()
+            time = self._groups[0].translate_timestamp(time)
 
-    def _set_eos_action(self, action):
-        self._eos_action = action
+        if time is None:
+            return self._paused_time
+        else:
+            return time
+
+    time = property(_get_time)
+
+    def _create_texture(self):
+        video_format = self.source.video_format
+        self._texture = pyglet.image.Texture.create(
+            video_format.width, video_format.height, rectangle=True)
+        self._texture = self._texture.get_transform(flip_y=True)
+        self._texture.anchor_y = 0
+
+    def get_texture(self):
+        return self._texture
+
+    def seek_next_frame(self):
+        '''Step forwards one video frame in the current Source.
+        '''
+        time = self._groups[0].get_next_video_timestamp()
+        if time is None:
+            return
+        self.seek(time)
+
+    def update_texture(self, dt=None, time=None):
+        if time is None:
+            time = self._audio_player.get_time()
+        if time is None:
+            return
+
+        if (self._last_video_timestamp is not None and 
+            time <= self._last_video_timestamp):
+            return
+
+        ts = self._groups[0].get_next_video_timestamp()
+        while ts is not None and ts < time:
+            self._groups[0].get_next_video_frame() # Discard frame
+            ts = self._groups[0].get_next_video_timestamp()
+
+        if ts is None:
+            self._last_video_timestamp = None
+            return
+
+        image = self._groups[0].get_next_video_frame()
+        if image is not None:
+            if self._texture is None:
+                self._create_texture()
+            self._texture.blit_into(image, 0, 0, 0)
+            self._last_video_timestamp = ts
+
+    def _set_eos_action(self, eos_action):
+        ''':deprecated:'''
+        warnings.warn('Player.eos_action is deprecated in favor of SourceGroup.loop and SourceGroup.advance_after_eos',
+                      category=DeprecationWarning)
+        assert eos_action in (self.EOS_NEXT, self.EOS_STOP, 
+                              self.EOS_PAUSE, self.EOS_LOOP)
+        self._eos_action = eos_action
+        for group in self._groups:
+            group.loop = eos_action == self.EOS_LOOP
+            group.advance_after_eos = eos_action == self.EOS_NEXT
 
     eos_action = property(lambda self: self._eos_action,
                           _set_eos_action,
                           doc='''Set the behaviour of the player when it
         reaches the end of the current source.
 
-        This must be one of the constants `EOS_NEXT`, `EOS_PAUSE` or
+        This must be one of the constants `EOS_NEXT`, `EOS_PAUSE`, `EOS_STOP` or
         `EOS_LOOP`.
 
+        :deprecated: Use `SourceGroup.loop` and `SourceGroup.advance_after_eos`
+
         :type: str
         ''')
 
-    playing = property(lambda self: self._playing,
-                       doc='''Determine if the player state is playing.
+    def _player_property(name, doc=None):
+        private_name = '_' + name
+        set_name = 'set_' + name
+        def _player_property_set(self, value):
+            setattr(self, private_name, value)
+            if self._audio_player:
+                getattr(self._audio_player, set_name)(value)
 
-        The `playing` property is irrespective of whether or not there is
-        actually a source to play.  If `playing` is True and a source is
-        queued, it will begin playing immediately.  If `playing` is False,
-        it is implied that the player is paused.  There is no other possible
-        state.
+        def _player_property_get(self):
+            return getattr(self, private_name)
 
-        Read-only.
+        return property(_player_property_get, _player_property_set, doc=doc)
 
-        :type: bool
-        ''')
+    # TODO docstrings for these...
+    volume = _player_property('volume')
+    min_distance = _player_property('min_distance')
+    max_distance = _player_property('max_distance')
+    position = _player_property('position')
+    pitch = _player_property('pitch')
+    cone_orientation = _player_property('cone_orientation')
+    cone_inner_angle = _player_property('cone_inner_angle')
+    cone_outer_angle = _player_property('cone_outer_angle')
+    cone_outer_gain = _player_property('cone_outer_gain')
 
-    def _set_volume(self, volume):
-        self._volume = volume
-        if self._audio:
-            self._audio.set_volume(volume)
+    # Events
 
-    volume = property(lambda self: self._volume,
-                      lambda self, volume: self._set_volume(volume),
-                      doc='''The volume level of sound playback.
+    def on_player_eos(self):
+        '''The player ran out of sources.
 
-         The nominal level is 1.0, and 0.0 is silence.
-
-         The volume level is affected by the distance from the listener (if
-         positioned).
-
-         :type: float
-         ''')
-
-    def _set_position(self, position):
-        self._position = position
-        if self._audio:
-            self._audio.set_position(position)
-
-    position = property(lambda self: self._position,
-                        lambda self, position: self._set_position(position),
-                        doc='''The position of the sound in 3D space.
-
-        The position is given as a tuple of floats (x, y, z).  The unit
-        defaults to meters, but can be modified with the listener
-        properties.
-
-        :type: 3-tuple of float
-        ''')
-
-    def _set_min_distance(self, min_distance):
-        self._min_distance = min_distance
-        if self._audio:
-            self._audio.set_min_distance(min_distance)
-
-    min_distance = property(lambda self: self._min_distance,
-                            lambda self, v: self._set_min_distance(v),
-                            doc='''The distance beyond which the sound volume
-        drops by half, and within which no attenuation is applied.
-
-        The minimum distance controls how quickly a sound is attenuated
-        as it moves away from the listener.  The gain is clamped at the
-        nominal value within the min distance.  By default the value is
-        1.0.
-
-        The unit defaults to meters, but can be modified with the listener
-        properties.
-
-        :type: float
-        ''')
-
-    def _set_max_distance(self, max_distance):
-        self._max_distance = max_distance
-        if self._audio:
-            self._audio.set_max_distance(max_distance)
-
-    max_distance = property(lambda self: self._max_distance,
-                            lambda self, v: self._set_max_distance(v),
-                            doc='''The distance at which no further attenuation
-        is applied.
-
-        When the distance from the listener to the player is greater than
-        this value, attenuation is calculated as if the distance
-        were value.  By default the maximum distance is infinity.
-
-        The unit defaults to meters, but can be modified with the listener
-        properties.
-
-        :type: float
-        ''')
-
-    def _set_pitch(self, pitch):
-        self._pitch = pitch
-        if self._audio:
-            self._audio.set_pitch(pitch)
-
-    pitch = property(lambda self: self._pitch,
-                     lambda self, pitch: self._set_pitch(pitch),
-                     doc='''The pitch shift to apply to the sound.
-
-        The nominal pitch is 1.0.  A pitch of 2.0 will sound one octave
-        higher, and play twice as fast.  A pitch of 0.5 will sound one octave
-        lower, and play twice as slow.  A pitch of 0.0 is not permitted.
-
-        :type: float
-        ''')
-
-    def _set_cone_orientation(self, cone_orientation):
-        self._cone_orientation = cone_orientation
-        if self._audio:
-            self._audio.set_cone_orientation(cone_orientation)
-
-    cone_orientation = property(lambda self: self._cone_orientation,
-                                lambda self, c: self._set_cone_orientation(c),
-                                doc='''The direction of the sound in 3D space.
-
-        The direction is specified as a tuple of floats (x, y, z), and has no
-        unit.  The default direction is (0, 0, -1).  Directional effects are
-        only noticeable if the other cone properties are changed from their
-        default values.
-
-        :type: 3-tuple of float
-        ''')
-
-    def _set_cone_inner_angle(self, cone_inner_angle):
-        self._cone_inner_angle = cone_inner_angle
-        if self._audio:
-            self._audio.set_cone_inner_angle(cone_inner_angle)
-
-    cone_inner_angle = property(lambda self: self._cone_inner_angle,
-                                lambda self, a: self._set_cone_inner_angle(a),
-                                doc='''The interior angle of the inner cone.
-
-        The angle is given in degrees, and defaults to 360.  When the listener
-        is positioned within the volume defined by the inner cone, the sound
-        is played at normal gain (see `volume`).
-
-        :type: float
-        ''')
-
-    def _set_cone_outer_angle(self, cone_outer_angle):
-        self._cone_outer_angle = cone_outer_angle
-        if self._audio:
-            self._audio.set_cone_outer_angle(cone_outer_angle)
-
-    cone_outer_angle = property(lambda self: self._cone_outer_angle,
-                                lambda self, a: self._set_cone_outer_angle(a),
-                                doc='''The interior angle of the outer cone.
-
-        The angle is given in degrees, and defaults to 360.  When the listener
-        is positioned within the volume defined by the outer cone, but outside
-        the volume defined by the inner cone, the gain applied is a smooth
-        interpolation between `volume` and `cone_outer_gain`.
-
-        :type: float
-        ''')
-
-    def _set_cone_outer_gain(self, cone_outer_gain):
-        self._cone_outer_gain = cone_outer_gain
-        if self._audio:
-            self._audio.set_cone_outer_gain(cone_outer_gain)
-
-    cone_outer_gain = property(lambda self: self._cone_outer_gain,
-                                lambda self, g: self._set_cone_outer_gain(g),
-                                doc='''The gain applied outside the cone.
-
-        When the listener is positioned outside the volume defined by the
-        outer cone, this gain is applied instead of `volume`.
-
-        :type: float
-        ''')
-
-    def get_texture(self):
-        '''Get the texture for the current video frame.
-
-        You should call this method every time you display a frame
-        of video, as multiple textures might be used.  The return value will
-        be `None` if there is no video in the current source.
-
-        :since: pyglet 1.1
-
-        :rtype: `pyglet.image.Texture`
+        :event:
         '''
-        return self._texture
+        if _debug:
+            print 'Player.on_player_eos'
 
-    texture = property(lambda self: self._texture,
-                       doc='''The video texture.
+    def on_source_group_eos(self):
+        '''The current source group ran out of data.
 
-        You should rerequest this property every time you display a frame
-        of video, as multiple textures might be used.  This property will
-        be `None` if there is no video in the current source.
+        The default behaviour is to advance to the next source group if
+        possible.
 
-        :deprecated: Use `get_texture`.
+        :event:
+        '''
+        self.next_source()
+        if _debug:
+            print 'Player.on_source_group_eos'
 
-        :type: `pyglet.image.Texture`
-        ''')
+    def on_eos(self):
+        '''
 
-    if getattr(sys, 'is_epydoc', False):
-        def on_eos():
-            '''The player has reached the end of the current source.
+        :event:
+        '''
+        if _debug:
+            print 'Player.on_eos'
 
-            This event is dispatched regardless of the EOS action.  You
-            can alter the EOS action in this event handler, however playback
-            may stutter as the media device will not have enough time to
-            decode and buffer the new data in advance.
-
-            :event:
-            '''
 Player.register_event_type('on_eos')
+Player.register_event_type('on_player_eos')
+Player.register_event_type('on_source_group_eos')
 
 class ManagedSoundPlayer(Player):
-    '''A player which takes care of updating its own audio buffers.
+    ''':deprecated: Use `Player`'''
+    def __init__(self, *args, **kwargs):
+        warnings.warn('Use `Player` instead.', category=DeprecationWarning)
+        super(ManagedSoundPlayer, self).__init__(*args, **kwargs)
 
-    This player will continue playing the sound until the sound is
-    finished, even if the application discards the player early.
+class PlayerGroup(object):
+    '''Group of players that can be played and paused simultaneously.
 
-    Only one source can be queued on the player; the player will be
-    discarded when the source finishes.
+    :Ivariables:
+        `players` : list of `Player`
+            Players in this group.
+
     '''
 
-    #: The only possible end of stream action for a managed player.
-    EOS_STOP = 'stop'
+    def __init__(self, players):
+        '''Create a player group for the given set of players.
 
-    _eos_action = EOS_STOP
-    eos_action = property(lambda self: EOS_STOP,
-                          doc='''The fixed eos_action is `EOS_STOP`,
-        in which the player is discarded as soon as the source has
-        finished.
+        All players in the group must currently not belong to any other
+        group.
 
-        Read-only.
+        :Parameters:
+            `players` : Sequence of `Player`
+                Players to add to this group.
 
-        :type: str
-        ''')
+        '''
+        self.players = list(players)
 
-    def __init__(self):
-        super(ManagedSoundPlayer, self).__init__()
-        managed_players.append(self)
+    def play(self):
+        '''Begin playing all players in the group simultaneously.
+        '''
+        audio_players = [p._audio_player \
+                         for p in self.players if p._audio_player]
+        if audio_players:
+            audio_players[0]._play_group(audio_players)
+        for player in self.players:
+            player.play()
 
-    def stop(self):
-        self._timestamp = 0.
-        clock.unschedule(self.dispatch_events)
-        try:
-            managed_players.remove(self)
-        except ValueError:
-            pass
+    def pause(self):
+        '''Pause all players in the group simultaneously.
+        '''
+        audio_players = [p._audio_player \
+                         for p in self.players if p._audio_player]
+        if audio_players:
+            audio_players[0]._stop_group(audio_players)
+        for player in self.players:
+            player.pause()
 
-class Listener(object):
+class AbstractAudioDriver(object):
+    def create_audio_player(self, source_group, player):
+        raise NotImplementedError('abstract')
+
+    def get_listener(self):
+        raise NotImplementedError('abstract')
+
+class AbstractListener(object):
     '''The listener properties for positional audio.
 
-    You can obtain the singleton instance of this class as
-    `pyglet.media.listener`.
+    You can obtain the singleton instance of this class by calling
+    `AbstractAudioDriver.get_listener`.
     '''
     _volume = 1.0
     _position = (0, 0, 0)
@@ -1269,7 +1331,7 @@ class Listener(object):
         All sound volumes are multiplied by this master volume before being
         played.  A value of 0 will silence playback (but still consume
         resources).  The nominal volume is 1.0.
-
+        
         :type: float
         ''')
 
@@ -1283,7 +1345,7 @@ class Listener(object):
         The position is given as a tuple of floats (x, y, z).  The unit
         defaults to meters, but can be modified with the listener
         properties.
-
+        
         :type: 3-tuple of float
         ''')
 
@@ -1296,9 +1358,9 @@ class Listener(object):
         listener is facing.
 
         The orientation is given as a tuple of floats (x, y, z), and has
-        no unit.  The forward orientation should be orthogonal to the
+        no unit.  The forward orientation should be orthagonal to the
         up orientation.
-
+        
         :type: 3-tuple of float
         ''')
 
@@ -1311,64 +1373,51 @@ class Listener(object):
         of the listener.
 
         The orientation is given as a tuple of floats (x, y, z), and has
-        no unit.  The up orientation should be orthogonal to the
+        no unit.  The up orientation should be orthagonal to the
         forward orientation.
-
+        
         :type: 3-tuple of float
         ''')
 
+class _LegacyListener(AbstractListener):
+    def _set_volume(self, volume):
+        get_audio_driver().get_listener().volume = volume
+        self._volume = volume
 
-if getattr(sys, 'is_epydoc', False):
-    #: The singleton listener.
-    #:
-    #: :type: `Listener`
-    listener = Listener()
+    def _set_position(self, position):
+        get_audio_driver().get_listener().position = position
+        self._position = position
 
-    #: Indication of the presence of AVbin.  When `have_avbin` is ``True``
-    #: pyglet will be able to play back compressed media streams such as
-    #: MP3, OGG and various video formats.  If ``False`` only uncompressed
-    #: Wave files can be loaded.
-    #:
-    #: :type: bool
-    have_avbin = False
-else:
-    # Find best available sound driver according to user preference
-    import pyglet
-    driver = None
-    for driver_name in pyglet.options['audio']:
-        try:
-            driver_name = 'pyglet.media.drivers.' + driver_name
-            __import__(driver_name)
-            driver = sys.modules[driver_name]
-            driver.driver_init()
-            break
-        except (ImportError, AttributeError, MediaException):
-            pass
+    def _set_forward_orientation(self, forward_orientation):
+        get_audio_driver().get_listener().forward_orientation = \
+            forward_orientation
+        self._forward_orientation = forward_orientation
 
-    if not driver:
-        raise ImportError('No suitable audio driver could be loaded.')
+    def _set_up_orientation(self, up_orientation):
+        get_audio_driver().get_listener().up_orientation = up_orientation
+        self._up_orientation = up_orientation
 
-    audio_player_class = driver.driver_audio_player_class
-    listener = driver.driver_listener
+#: The singleton `AbstractListener` object.
+#:
+#: :deprecated: Use `AbstractAudioDriver.get_listener`
+#:
+#: :type: `AbstractListener`
+listener = _LegacyListener()
 
-    # Find best available source loader
-    have_avbin = False
-    try:
-        from pyglet.media import avbin
-        _source_class = avbin.AVbinSource
-        have_avbin = True
-    except ImportError:
-        from pyglet.media import riff
-        _source_class = riff.WaveSource
+class AbstractSourceLoader(object):
+    def load(self, filename, file):
+        raise NotImplementedError('abstract')
 
-# Pretend to import some common audio drivers so that py2exe/py2app
-# are fooled into packagin them.
-if False:
-    import pyglet.media.drivers.silent
-    import pyglet.media.drivers.openal
-    import pyglet.media.drivers.directsound
-    import pyglet.media.drivers.alsa
+class AVbinSourceLoader(AbstractSourceLoader):
+    def load(self, filename, file):
+        import avbin
+        return avbin.AVbinSource(filename, file)
 
+class RIFFSourceLoader(AbstractSourceLoader):
+    def load(self, filename, file):
+        import riff
+        return riff.WaveSource(filename, file)
+    
 def load(filename, file=None, streaming=True):
     '''Load a source from a file.
 
@@ -1386,22 +1435,70 @@ def load(filename, file=None, streaming=True):
 
     :rtype: `Source`
     '''
-    source = _source_class(filename, file)
+    source = get_source_loader().load(filename, file)
     if not streaming:
         source = StaticSource(source)
     return source
 
-managed_players = []
-def dispatch_events():
-    '''Process managed audio events.
+def get_audio_driver():
+    global _audio_driver
 
-    You must call this function regularly (typically once per run loop
-    iteration) in order to keep audio buffers of managed players full.
+    if _audio_driver:
+        return _audio_driver
 
-    :deprecated: Since pyglet 1.1, Player objects schedule themselves on
-        the default clock automatically.  Applications should not call this
-        method.
+    _audio_driver = None
 
-    '''
-    for player in managed_players:
-        player.dispatch_events()
+    for driver_name in pyglet.options['audio']:
+        try:
+            if driver_name == 'pulse':
+                from drivers import pulse
+                _audio_driver = pulse.create_audio_driver()
+                break
+            elif driver_name == 'openal':
+                from drivers import openal
+                _audio_driver = openal.create_audio_driver()
+                break
+            elif driver_name == 'directsound':
+                from drivers import directsound
+                _audio_driver = directsound.create_audio_driver()
+                break
+            elif driver_name == 'silent':
+                _audio_driver = get_silent_audio_driver()
+                break
+        except Exception as exp:
+            if _debug:
+                print 'Error importing driver %s:\n%s' % (driver_name, str(exp))
+    return _audio_driver
+
+def get_silent_audio_driver():
+    global _silent_audio_driver
+    
+    if not _silent_audio_driver:
+        from drivers import silent
+        _silent_audio_driver = silent.create_audio_driver()
+
+    return _silent_audio_driver
+
+_audio_driver = None
+_silent_audio_driver = None
+
+def get_source_loader():
+    global _source_loader
+
+    if _source_loader:
+        return _source_loader
+
+    try:
+        import avbin
+        _source_loader = AVbinSourceLoader()
+    except ImportError:
+        _source_loader = RIFFSourceLoader()
+    return _source_loader
+
+_source_loader = None
+
+try:
+    import avbin
+    have_avbin = True
+except ImportError:
+    have_avbin = False

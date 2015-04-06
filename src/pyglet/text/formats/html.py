@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -38,7 +38,7 @@ A subset of HTML 4.01 Transitional is implemented.  The following elements are
 supported fully::
 
     B BLOCKQUOTE BR CENTER CODE DD DIR DL EM FONT H1 H2 H3 H4 H5 H6 I IMG KBD
-    LI MENU OL P PRE Q SAMP STRONG SUB SUP TT U UL VAR
+    LI MENU OL P PRE Q SAMP STRONG SUB SUP TT U UL VAR 
 
 The mark (bullet or number) of a list item is separated from the body of the
 list item with a tab, as the pyglet document model does not allow
@@ -93,16 +93,16 @@ _whitespace_re = re.compile(u'[\u0020\u0009\u000c\u200b\r\n]+', re.DOTALL)
 
 _metadata_elements = ['head', 'title']
 
-_block_elements = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                   'ul', 'ol', 'dir', 'menu',
-                   'pre', 'dl', 'div', 'center',
+_block_elements = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                   'ul', 'ol', 'dir', 'menu', 
+                   'pre', 'dl', 'div', 'center', 
                    'noscript', 'noframes', 'blockquote', 'form',
                    'isindex', 'hr', 'table', 'fieldset', 'address',
                     # Incorrect, but we treat list items as blocks:
                    'li', 'dd', 'dt', ]
+                  
 
-
-_block_containers = ['_top_block',
+_block_containers = ['_top_block', 
                      'body', 'div', 'center', 'object', 'applet',
                      'blockquote', 'ins', 'del', 'dd', 'li', 'form',
                      'fieldset', 'button', 'th', 'td', 'iframe', 'noscript',
@@ -124,7 +124,7 @@ class HTMLDecoder(HTMLParser.HTMLParser, structured.StructuredTextDecoder):
     }
 
     #: Map HTML font sizes to actual font sizes, in points.
-    #:
+    #: 
     #: :type: dict
     font_sizes = {
         1: 8,
@@ -207,7 +207,7 @@ class HTMLDecoder(HTMLParser.HTMLParser, structured.StructuredTextDecoder):
             style['font_name'] = 'Courier New'
         elif element == 'u':
             color = self.current_style.get('color')
-            if color is None:
+            if color is None: 
                 color = [0, 0, 0, 255]
             style['underline'] = color
         elif element == 'font':
@@ -351,7 +351,7 @@ class HTMLDecoder(HTMLParser.HTMLParser, structured.StructuredTextDecoder):
     def handle_entityref(self, name):
         if name in htmlentitydefs.name2codepoint:
             self.handle_data(unichr(htmlentitydefs.name2codepoint[name]))
-
+    
     def handle_charref(self, name):
         name = name.lower()
         try:

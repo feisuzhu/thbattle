@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -36,7 +36,7 @@
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: gdkpixbuf2.py 2496 2009-08-19 01:17:30Z benjamin.coder.smith $'
+__version__ = '$Id$'
 
 from ctypes import *
 
@@ -76,12 +76,11 @@ class GdkPixbuf2ImageDecoder(ImageDecoder):
 
     def _load(self, file, filename, load_func):
         data = file.read()
-        err = c_int()
         loader = gdkpixbuf.gdk_pixbuf_loader_new()
-        gdkpixbuf.gdk_pixbuf_loader_write(loader, data, len(data), byref(err))
-        result = load_func(loader)
-        if not gdkpixbuf.gdk_pixbuf_loader_close(loader, byref(err)):
+        gdkpixbuf.gdk_pixbuf_loader_write(loader, data, len(data), None)
+        if not gdkpixbuf.gdk_pixbuf_loader_close(loader, None):
             raise ImageDecodeException(filename)
+        result = load_func(loader)
         if not result:
             raise ImageDecodeException('Unable to load: %s' % filename)
         return result
@@ -92,6 +91,7 @@ class GdkPixbuf2ImageDecoder(ImageDecoder):
         height = gdkpixbuf.gdk_pixbuf_get_height(pixbuf)
         channels = gdkpixbuf.gdk_pixbuf_get_n_channels(pixbuf)
         rowstride = gdkpixbuf.gdk_pixbuf_get_rowstride(pixbuf)
+        #has_alpha = gdkpixbuf.gdk_pixbuf_get_has_alpha(pixbuf)
         pixels = gdkpixbuf.gdk_pixbuf_get_pixels(pixbuf)
 
         # Copy pixel data.
@@ -110,9 +110,9 @@ class GdkPixbuf2ImageDecoder(ImageDecoder):
         return ImageData(width, height, format, buffer, -rowstride)
 
     def decode(self, file, filename):
-        pixbuf = self._load(file, filename,
+        pixbuf = self._load(file, filename, 
                             gdkpixbuf.gdk_pixbuf_loader_get_pixbuf)
-
+       
         return self._pixbuf_to_image(pixbuf)
 
     def decode_animation(self, file, filename):
@@ -123,26 +123,42 @@ class GdkPixbuf2ImageDecoder(ImageDecoder):
 
         # Get GDK animation iterator
         file.seek(0)
-        anim = self._load(file, filename,
+        anim = self._load(file, filename, 
                           gdkpixbuf.gdk_pixbuf_loader_get_animation)
         time = GTimeVal(0, 0)
         iter = gdkpixbuf.gdk_pixbuf_animation_get_iter(anim, byref(time))
 
         frames = []
 
-        # Extract each image
+        # Extract each image   
         for control_delay in delays:
             pixbuf = gdkpixbuf.gdk_pixbuf_animation_iter_get_pixbuf(iter)
+            # When attempting to load animated gifs with an alpha channel on
+            #  linux gdkpixbuf will normally return a null pixbuf for the final
+            #  frame resulting in a segfault:
+            #  http://code.google.com/p/pyglet/issues/detail?id=411
+            # Since it is unclear why exactly this happens, the workaround
+            #  below is to start again and extract that frame on its own.
+            if pixbuf == None:
+                file.seek(0)
+                anim = self._load(file, filename,
+                                gdkpixbuf.gdk_pixbuf_loader_get_animation)
+                temptime = GTimeVal(0, 0)
+                iter = gdkpixbuf.gdk_pixbuf_animation_get_iter(anim, byref(temptime))
+                gdkpixbuf.gdk_pixbuf_animation_iter_advance(iter, byref(time))
+                pixbuf = gdkpixbuf.gdk_pixbuf_animation_iter_get_pixbuf(iter)
             image = self._pixbuf_to_image(pixbuf)
             frames.append(AnimationFrame(image, control_delay))
+
+            gdk_delay = gdkpixbuf.gdk_pixbuf_animation_iter_get_delay_time(iter)
+
+            if gdk_delay == -1:
+                break
 
             gdk_delay = gdkpixbuf.gdk_pixbuf_animation_iter_get_delay_time(iter)
             gdk_delay *= 1000 # milliseconds to microseconds
             # Compare gdk_delay to control_delay for interest only.
             #print control_delay, gdk_delay / 1000000.
-
-            if gdk_delay == -1:
-                break
 
             us = time.tv_usec + gdk_delay
             time.tv_sec += us // 1000000

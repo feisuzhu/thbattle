@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -36,7 +36,7 @@ off.
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: glxext_mesa.py 1579 2008-01-15 14:47:19Z Alex.Holkner $'
+__version__ = '$Id$'
 
 import ctypes
 from ctypes import *

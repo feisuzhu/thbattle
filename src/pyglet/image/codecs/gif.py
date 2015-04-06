@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
+# modification, are permitted provided that the following conditions 
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
+#  * Redistributions in binary form must reproduce the above copyright 
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -38,7 +38,7 @@ http://www.w3.org/Graphics/GIF/spec-gif89a.txt
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: gif.py 2496 2009-08-19 01:17:30Z benjamin.coder.smith $'
+__version__ = '$Id$'
 
 import struct
 
@@ -81,7 +81,7 @@ def read(file):
     # 17. Header
     signature = file.read(3)
     version = file.read(3)
-    if signature != 'GIF':
+    if signature != b'GIF':
         raise ImageDecodeException('Not a GIF stream')
 
     stream = GIFStream()
@@ -89,7 +89,7 @@ def read(file):
     # 18. Logical screen descriptor
     (logical_screen_width,
      logical_screen_height,
-     fields,
+     fields, 
      background_color_index,
      pixel_aspect_ratio) = unpack('HHBBB', file)
     global_color_table_flag = fields & 0x80
@@ -120,7 +120,7 @@ def read(file):
         block_type = read_byte(file)
 
     return stream
-
+        
 def skip_data_sub_blocks(file):
     # 15. Data sub-blocks
     block_size = read_byte(file)
@@ -132,7 +132,7 @@ def read_table_based_image(file, stream, graphics_scope):
     gif_image = GIFImage()
     stream.images.append(gif_image)
     gif_image.delay = graphics_scope.delay
-
+        
     # 20. Image descriptor
     (image_left_position,
      image_top_position,
@@ -160,7 +160,7 @@ def read_graphic_control_extension(file, stream, graphics_scope):
      terminator) = unpack('BBHBB', file)
     if block_size != 4:
         raise ImageDecodeException('Incorrect block size')
-
+    
     if delay_time:
         # Follow Firefox/Mac behaviour: use 100ms delay for any delay
         # less than 10ms.
