@@ -28,4 +28,8 @@ elif sys.platform.startswith('linux'):
     from .zenity import get_open_file_name, get_save_file_name  # noqa
 
 else:
-    raise Exception('Unsupported platform')
+    def get_open_file_name(*a):
+        return None
+
+    def get_save_file_name(*a):
+        return None
