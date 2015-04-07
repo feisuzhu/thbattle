@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -38,7 +38,7 @@ Modules must subclass ImageDecoder and ImageEncoder for each method of
 decoding/encoding they support.
 
 Modules must also implement the two functions::
-    
+
     def get_decoders():
         # Return a list of ImageDecoder instances or []
         return []
@@ -46,7 +46,7 @@ Modules must also implement the two functions::
     def get_encoders():
         # Return a list of ImageEncoder instances or []
         return []
-    
+
 '''
 
 __docformat__ = 'restructuredtext'
@@ -57,7 +57,7 @@ from pyglet import compat_platform
 
 _decoders = []              # List of registered ImageDecoders
 _decoder_extensions = {}    # Map str -> list of matching ImageDecoders
-_decoder_animation_extensions = {}    
+_decoder_animation_extensions = {}
                             # Map str -> list of matching ImageDecoders
 _encoders = []              # List of registered ImageEncoders
 _encoder_extensions = {}    # Map str -> list of matching ImageEncoders
@@ -170,7 +170,7 @@ def add_encoders(module):
             if extension not in _encoder_extensions:
                 _encoder_extensions[extension] = []
             _encoder_extensions[extension].append(encoder)
- 
+
 def add_default_image_codecs():
     # Add the codecs we know about.  These should be listed in order of
     # preference.  This is called automatically by pyglet.image.
@@ -208,6 +208,7 @@ def add_default_image_codecs():
         except ImportError:
             pass
 
+    '''
     # Linux default: GdkPixbuf 2.0
     if compat_platform.startswith('linux'):
         try:
@@ -216,6 +217,7 @@ def add_default_image_codecs():
             add_decoders(gdkpixbuf2)
         except ImportError:
             pass
+    '''
 
     # Fallback: PIL
     try:
