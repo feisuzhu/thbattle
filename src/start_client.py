@@ -69,7 +69,6 @@ def start_client():
 
     import pyglet
 
-    pyglet.options['audio'] = ('directsound', 'openal', 'alsa', 'silent')
     pyglet.options['shadow_window'] = False
 
     if not options.with_gl_errcheck:
@@ -84,11 +83,6 @@ def start_client():
             16,
         )
         sys.exit(0)
-
-    if sys.platform == 'win32':
-        from pyglet.media.drivers.directsound import DirectSoundAudioPlayer
-        DirectSoundAudioPlayer._buffer_size = 44800 * 2
-        DirectSoundAudioPlayer._update_buffer_size = 44800 * 2 // 8
 
     if sys.platform.startswith('linux') and options.dump_gameobj:
         import atexit
