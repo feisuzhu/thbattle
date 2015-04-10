@@ -2,6 +2,7 @@
 
 # -- stdlib --
 from collections import namedtuple
+from math import copysign
 import logging
 
 # -- third party --
@@ -2099,7 +2100,7 @@ class VolumeTuner(Control):
         is_se = key_state[key.LCTRL] or key_state[key.RCTRL]
 
         vol = SoundManager.se_volume if is_se else SoundManager.bgm_volume
-        vol += 0.1 * dy / abs(dy)
+        vol += copysign(0.1, dy) if dy else 0
         vol = min(1.0, vol)
         vol = max(0.0, vol)
 
