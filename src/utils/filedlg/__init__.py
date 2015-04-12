@@ -27,6 +27,9 @@ if sys.platform == 'win32':
 elif sys.platform.startswith('linux'):
     from .zenity import get_open_file_name, get_save_file_name  # noqa
 
+elif sys.platform == 'darwin':
+    from .cocoa import get_open_file_name, get_save_file_name  # noqa
+
 else:
     def get_open_file_name(*a):
         return None
