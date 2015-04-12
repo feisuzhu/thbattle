@@ -182,6 +182,7 @@ excludes = [
 for k, v in metadata.iteritems():
     if not issubclass(k, characters.baseclasses.Character): continue
     if k in excludes: continue
+    if not getattr(k, 'categories', False): continue
     result['Characters'].append({
         "token":         k.__name__,
         "image":         "{}.png".format(v['port_image'].replace('-', '/')),
