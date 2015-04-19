@@ -27,9 +27,8 @@ class Character(GameObject):
         if self.dead:
             return False
 
-        for l in self.disabled_skills.values():
-            if skill in l:
-                return False
+        if any(issubclass(skill, s) for l in self.disabled_skills.values() for s in l):
+            return False
 
         return self.get_skills(skill)
 
