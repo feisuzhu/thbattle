@@ -918,7 +918,7 @@ class FatetellAction(GenericAction):
 
             assert ft.card
             if ft.card.detached:
-                migrate_cards([ft.card], g.deck.droppedcards, unwrap=True)
+                migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, is_bh=True)
 
             return rst
 
