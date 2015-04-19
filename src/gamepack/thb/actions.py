@@ -2,12 +2,13 @@
 
 # -- stdlib --
 from collections import OrderedDict, defaultdict
+from copy import copy
 import logging
 
 # -- third party --
 # -- own --
-from game.autoenv import Action, EventHandler, EventHandlerGroup, Game, InputTransaction
-from game.autoenv import ActionShootdown, sync_primitive, user_input
+from game.autoenv import Action, ActionShootdown, EventHandler, EventHandlerGroup, Game
+from game.autoenv import InputTransaction, sync_primitive, user_input
 from gamepack.thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
 from utils import BatchList, CheckFailed, check, check_type, group_by
 
@@ -1148,7 +1149,7 @@ class ShowCards(GenericAction):
         g = Game.getgame()
         cards = self.cards
         g.players.reveal(cards)
-        g.emit_event('showcards', (self.target, cards))
+        g.emit_event('showcards', (self.target, [copy(c) for c in cards]))
         # user_input(
         #     [p for p in g.players if not p.dead],
         #     ChooseOptionInputlet(self, (True,)),
