@@ -55,7 +55,7 @@ class EnvyHandler(EventHandler):
         assert len(act.cards) == 1
         assert card is act.cards[0]
 
-        if not card.resides_in:
+        if card.resides_in is None:
             return act
 
         if card.resides_in.type not in ('cards', 'showncards', 'equips'):
