@@ -36,10 +36,10 @@ class MiracleMalletAction(UseCard):
         ft = self.ft
         src = self.source
         g.players.exclude(src).reveal(c)
-        with MigrateCardsTransaction() as trans:
+        with MigrateCardsTransaction(self) as trans:
             migrate_cards([ft.card], src.cards, unwrap=True, trans=trans)
             detach_cards([c], trans=trans)
-            self.ft.set_card(c)
+            self.ft.set_card(c, self)
 
         return True
 

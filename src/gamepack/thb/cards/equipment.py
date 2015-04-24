@@ -3,13 +3,15 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from . import basic, spellcard
-from ..actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards, FatetellAction, ForEach
-from ..actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction, PlayerTurn
-from ..actions import UserAction, migrate_cards, random_choose_card, register_eh, user_choose_cards
-from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-from .base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN, t_OtherOne
 from game.autoenv import EventHandler, Game, GameError, user_input
+from gamepack.thb.actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards
+from gamepack.thb.actions import FatetellAction, ForEach, GenericAction, LaunchCard, MaxLifeChange
+from gamepack.thb.actions import MigrateCardsTransaction, PlayerTurn, UserAction, detach_cards
+from gamepack.thb.actions import migrate_cards, random_choose_card, register_eh, user_choose_cards
+from gamepack.thb.cards import basic, spellcard
+from gamepack.thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN
+from gamepack.thb.cards.base import t_OtherOne
+from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from utils import CheckFailed, check, classmix
 
 
@@ -22,11 +24,12 @@ class WearEquipmentAction(UserAction):
         equips = target.equips
         g = Game.getgame()
 
-        with MigrateCardsTransaction() as trans:
+        with MigrateCardsTransaction(self) as trans:
             for oc in equips:
                 if oc.equipment_category == card.equipment_category:
                     migrate_cards([oc], g.deck.droppedcards, unwrap=True, trans=trans)
                     break
+
             migrate_cards([card], target.equips, trans=trans)
 
         return True
@@ -864,9 +867,12 @@ class YinYangOrb(GenericAction):
         for e in tgt.equips:
             if e.is_card(YinYangOrbCard):
                 g = Game.getgame()
-                g.process_action(DropCards(tgt, tgt, [e]))
-                self.card = e
-                ft.set_card(e)
+
+                with MigrateCardsTransaction(self) as trans:
+                    migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, trans=trans)
+                    detach_cards([e], trans=trans)
+                    self.ft.set_card(e, self)
+
                 break
         else:
             raise GameError('Player has YinYangOrb skill but no equip!')

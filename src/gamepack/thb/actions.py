@@ -170,8 +170,8 @@ def skill_check(wrapped):
 
 
 class MigrateCardsTransaction(object):
-    def __init__(self):
-        self.action = Game.getgame().action_stack[-1]
+    def __init__(self, action):
+        self.action = action
         self.cancelled = False
         self.movements = []
 
@@ -223,7 +223,7 @@ def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
     trans: associated MigrateCardsTransaction
     '''
     if not trans:
-        with MigrateCardsTransaction() as trans:
+        with MigrateCardsTransaction(Game.getgame().action_stack[-1]) as trans:
             migrate_cards(cards, to, unwrap, is_bh, trans)
             return not trans.cancelled
 
@@ -863,6 +863,7 @@ class BaseFatetell(GenericAction):
         self.target = target
         self.cond = cond
         self.initiator = Game.getgame().hybrid_stack[-1]
+        self.card_manipulator = None
 
     def apply_action(self):
         g = Game.getgame()
@@ -873,8 +874,9 @@ class BaseFatetell(GenericAction):
         g.emit_event(self.type, self)
         return self.succeeded
 
-    def set_card(self, card):
+    def set_card(self, card, card_manipulator):
         self.card = card
+        self.card_manipulator = card_manipulator
 
     @property
     def succeeded(self):
@@ -919,7 +921,8 @@ class FatetellAction(GenericAction):
 
             assert ft.card
             if ft.card.detached:
-                migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, is_bh=True)
+                with MigrateCardsTransaction(ft.card_manipulator or self) as trans:
+                    migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, is_bh=True, trans=trans)
 
             return rst
 

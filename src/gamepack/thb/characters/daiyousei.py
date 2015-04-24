@@ -51,7 +51,7 @@ class SupportKOFAction(UserAction):
         tgt = self.target
         cl = tgt.support_cl = CardList(tgt, 'support')
 
-        with MigrateCardsTransaction() as trans:
+        with MigrateCardsTransaction(self) as trans:
             migrate_cards(tgt.cards, cl, unwrap=True, trans=trans)
             migrate_cards(tgt.showncards, cl, unwrap=True, trans=trans)
             migrate_cards(tgt.equips, cl, unwrap=True, trans=trans)
