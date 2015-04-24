@@ -185,17 +185,31 @@ class RoukankenSkill(WeaponSkill):
     range = 3
 
 
-class Roukanken(object):
+class Roukanken(GenericAction):
+    def __init__(self, act):
+        assert isinstance(act, basic.BaseAttack)
+        self.action = act
+        self.source = act.source
+        self.target = act.target
+
     def apply_action(self):
-        tgt = self.target
-        for s in tgt.skills:
+        act = self.action
+        target = act.target
+        skills = target.skills
+        for e in target.equips:
+            s = e.equipment_skill
             if issubclass(s, ShieldSkill):
-                tgt.disable_skill(s, 'roukan')
+                skills.remove(s)
 
         try:
-            return super(Roukanken, self).apply_action()
+            rst = Game.getgame().process_action(act)
         finally:
-            tgt.reenable_skill('roukan')
+            for card in target.equips:
+                s = card.equipment_skill
+                if issubclass(s, ShieldSkill):
+                    target.has_skill(s) or skills.append(s)
+
+        return rst
 
 
 @register_eh
@@ -215,13 +229,14 @@ class RoukankenEffectHandler(EventHandler):
             if act.cancelled:
                 return act
 
-            if isinstance(act, Roukanken):
+            if hasattr(act, 'roukanken_tag'):
                 return act
 
+            act.roukanken_tag = True
             source = act.source
             if source.has_skill(RoukankenSkill):
-                act.__class__ = classmix(Roukanken, act.__class__)
-
+                act = Roukanken(act)
+                return act
         return act
 
 
