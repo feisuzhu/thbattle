@@ -863,7 +863,7 @@ class BaseFatetell(GenericAction):
         self.target = target
         self.cond = cond
         self.initiator = Game.getgame().hybrid_stack[-1]
-        self.card_manipulator = None
+        self.card_manipulator = self
 
     def apply_action(self):
         g = Game.getgame()
@@ -921,7 +921,7 @@ class FatetellAction(GenericAction):
 
             assert ft.card
             if ft.card.detached:
-                with MigrateCardsTransaction(ft.card_manipulator or self) as trans:
+                with MigrateCardsTransaction(ft.card_manipulator) as trans:
                     migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, is_bh=True, trans=trans)
 
             return rst

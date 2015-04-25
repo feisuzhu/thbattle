@@ -884,9 +884,10 @@ class YinYangOrb(GenericAction):
                 g = Game.getgame()
 
                 with MigrateCardsTransaction(self) as trans:
-                    migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, trans=trans)
+                    migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, trans=trans, is_bh=True)
                     detach_cards([e], trans=trans)
-                    self.ft.set_card(e, self)
+                    self.card = e
+                    ft.set_card(e, self)
 
                 break
         else:

@@ -35,7 +35,7 @@ class TrialAction(UseCard):
         ft = self.ft
         g.players.exclude(self.source).reveal(c)
         with MigrateCardsTransaction(self) as trans:
-            migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, trans=trans)
+            migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, trans=trans, is_bh=True)
             detach_cards([c], trans=trans)
             self.ft.set_card(c, self)
 
