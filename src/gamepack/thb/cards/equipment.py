@@ -862,10 +862,7 @@ class YinYangOrb(GenericAction):
         from .definition import YinYangOrbCard
         for e in tgt.equips:
             if e.is_card(YinYangOrbCard):
-                g = Game.getgame()
-                g.process_action(DropCards(tgt, tgt, [e]))
-                self.card = e
-                ft.set_card(e)
+                ft.reset_card(e)
                 break
         else:
             raise GameError('Player has YinYangOrb skill but no equip!')

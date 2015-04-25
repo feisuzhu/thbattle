@@ -876,6 +876,15 @@ class BaseFatetell(GenericAction):
     def set_card(self, card):
         self.card = card
 
+    def reset_card(self, card, origin_to=None):
+        if origin_to is None:
+            origin_to = Game.getgame().deck.droppedcards
+
+        with MigrateCardsTransaction() as trans:
+            migrate_cards([self.card], origin_to, unwrap=True, is_bh=True, trans=trans)
+            detach_cards([card], trans=trans)
+            self.card = card
+
     @property
     def succeeded(self):
         # This is necessary, for ui
