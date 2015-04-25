@@ -20,7 +20,7 @@ class TreasureHuntAction(FatetellAction):
     def fatetell_action(self, ft):
         if ft.succeeded:
             self.card = c = ft.card
-            migrate_cards([c], self.target.cards)
+            migrate_cards([c], self.target.cards, is_bh=True)
             return True
 
         return False
