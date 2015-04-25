@@ -183,16 +183,15 @@ class RoukankenSkill(WeaponSkill):
 
 
 class Roukanken(object):
-    def apply_action(self):
+    def roukan_effect(self):
         tgt = self.target
         for s in tgt.skills:
             if issubclass(s, ShieldSkill):
                 tgt.disable_skill(s, 'roukan')
 
-        try:
-            return super(Roukanken, self).apply_action()
-        finally:
-            tgt.reenable_skill('roukan')
+    def bottom_half(self):
+        self.target.reenable_skill('roukan')
+        return super(Roukanken, self).bottom_half()
 
 
 @register_eh
@@ -215,9 +214,9 @@ class RoukankenEffectHandler(EventHandler):
             if isinstance(act, Roukanken):
                 return act
 
-            source = act.source
-            if source.has_skill(RoukankenSkill):
+            if act.source.has_skill(RoukankenSkill):
                 act.__class__ = classmix(Roukanken, act.__class__)
+                act.roukan_effect()
 
         return act
 

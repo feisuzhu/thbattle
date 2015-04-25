@@ -265,6 +265,12 @@ class Action(GameObject):
         '''
         return True
 
+    def bottom_half(self):
+        '''
+        For mixins handle end of action effect
+        '''
+        pass
+
     def __repr__(self):
         return self.__class__.__name__
 
@@ -474,6 +480,7 @@ class Game(GameObject):
             rst = action.succeeded
             action.done = True
 
+        action.bottom_half()
         return rst
 
     def get_playerid(self, p):
