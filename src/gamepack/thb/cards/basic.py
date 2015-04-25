@@ -313,7 +313,7 @@ class ExinwanHandler(EventHandler):
         from .definition import ExinwanCard
 
         if evt_type == 'card_migration':
-            act, cards, _from, to, _ = arg
+            act, cards, _from, to, is_bh = arg
 
             # someone is getting the ExinwanCard
             if to.owner is not None:
@@ -324,7 +324,8 @@ class ExinwanHandler(EventHandler):
                 return arg
 
             # move from None to None do not affect Exinwan's target
-            if _from is None or _from.owner is None:
+            # (including moving detached cards to None)
+            if _from is None or _from.owner is None or is_bh:
                 return arg
 
             # someone is dropping the ExinwanCard
