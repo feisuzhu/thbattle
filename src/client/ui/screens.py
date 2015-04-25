@@ -47,6 +47,8 @@ def handle_chat(_type, args):
     if _type in ('chat_msg', 'ob_msg'):
         uname, msg = args[0]
         uname = uname.replace('|', '||')
+        if uname in UserSettings.blocked_users:
+            msg = u'***此人消息已屏蔽***'
 
         if Executive.gamemgr.account.username in RE_AT.findall(msg):
             from utils.notify import notify, AT
@@ -58,6 +60,9 @@ def handle_chat(_type, args):
 
     elif _type == 'speaker_msg':
         node, uname, msg = args[0]
+        if uname in UserSettings.blocked_users:
+            msg = u'***此人消息已屏蔽***'
+
         from utils.notify import notify, SPEAKER
         notify(u'东方符斗祭 - 『文々。新闻』',
                u'%s: %s' % (uname, msg), level=SPEAKER)

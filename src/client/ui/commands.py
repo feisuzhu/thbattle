@@ -173,3 +173,23 @@ def dbgval(key, val):
     from utils.misc import dbgvals
     dbgvals[key] = val
     return u'Done'
+
+
+@command(u'屏蔽用户', u'屏蔽该用户发言')
+@argtypes(str)
+@argdesc(u'<用户名>')
+def block(user):
+    from user_settings import UserSettings as us
+    blocked_users = us.blocked_users
+    if user not in blocked_users:
+        blocked_users.append(user)
+
+
+@command(u'取消屏蔽用户', u'恢复被屏蔽的用户')
+@argtypes(str)
+@argdesc(u'<用户名>')
+def unblock(user):
+    from user_settings import UserSettings as us
+    blocked_users = us.blocked_users
+    if user in blocked_users:
+        blocked_users.remove(user)
