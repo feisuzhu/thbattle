@@ -183,6 +183,7 @@ def add_default_image_codecs():
     except ImportError:
         pass
 
+    '''
     # Mac OS X default: Quicktime for Carbon, Quartz for Cocoa.
     # TODO: Make ctypes Quartz the default for both Carbon & Cocoa.
     if compat_platform == 'darwin':
@@ -198,6 +199,7 @@ def add_default_image_codecs():
                 add_decoders(quicktime)
         except ImportError:
             pass
+    '''
 
     # Windows XP default: GDI+
     if compat_platform in ('win32', 'cygwin'):

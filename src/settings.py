@@ -16,6 +16,9 @@ BASEDIR = os.path.dirname(os.path.realpath(__file__))
 if sys.platform == 'win32':
     LOGIC_UPDATE_BASE = "src"
     INTERPRETER_UPDATE_BASE = "Python27"
+elif sys.platform == "darwin":
+    LOGIC_UPDATE_BASE = "src"
+    INTERPRETER_UPDATE_BASE = "osx-eggs"
 else:
     LOGIC_UPDATE_BASE = BASEDIR
     INTERPRETER_UPDATE_BASE = None
