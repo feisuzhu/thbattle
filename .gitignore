@@ -1,4 +1,3 @@
-*.egg
 *.egg-info/
 *.orig
 *.pyc

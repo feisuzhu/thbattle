@@ -1,0 +1,2 @@
+_pygit2.so
+pygit2_cffi_93ecb84x5470904.so
