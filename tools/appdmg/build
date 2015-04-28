@@ -1,0 +1,17 @@
+#!/bin/bash
+set -x
+
+pushd .
+rm -rf /tmp/thb_build
+mkdir -p /tmp/thb_build
+cp -a ../THB.app /tmp/thb_build
+cd ~/.thbattle/osx-eggs
+git gc
+tar -cf /tmp/thb_build/THB.app/Contents/Resources/osx-eggs.tar .git
+cd ~/.thbattle/src
+git gc
+tar -cf /tmp/thb_build/THB.app/Contents/Resources/src.tar .git
+mv /tmp/thb_build/THB.app /tmp/thb_build/东方符斗祭.app
+popd
+appdmg thb.json /tmp/thb_build/thb-$(date +%Y%m%d).dmg
+open /tmp/thb_build

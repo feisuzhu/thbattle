@@ -1,0 +1,10 @@
+{
+  "title": "THBattle",
+  "icon": "volume.icns",
+  "background": "bg.png",
+  "icon-size": 120,
+  "contents": [
+    { "x": 349, "y": 194, "type": "link", "path": "/Applications" },
+    { "x": 116, "y": 194, "type": "file", "path": "/tmp/thb_build/东方符斗祭.app" }
+  ]
+}
