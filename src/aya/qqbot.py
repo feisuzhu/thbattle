@@ -1,26 +1,32 @@
 # -*- coding: utf-8 -*-
 
-from gevent.socket import socket as gsock
-from socket import socket
-if gsock is not socket:
-    from gevent import monkey
-    monkey.patch_all()
-
-from gevent.pool import Pool
-from gevent.event import Event
-
-from collections import defaultdict
-import urllib
+# -- stdlib --
 from cStringIO import StringIO
+from collections import defaultdict
+from socket import socket
 import itertools
 import json
 import logging
 import random
-import spidermonkey
 import re
-import requests
 import struct
 import time
+import urllib
+
+# -- third party --
+from gevent.event import Event
+from gevent.pool import Pool
+from gevent.socket import socket as gsock
+import gevent
+import requests
+import spidermonkey
+
+# -- own --
+
+# -- code --
+if gsock is not socket:
+    from gevent import monkey
+    monkey.patch_all()
 
 log = logging.getLogger('QQBot')
 
@@ -752,19 +758,25 @@ class QQBot(object):
             'User-Agent': UA_STRING,
         }
 
-        if method == 'post':
-            resp = self.session.post(
-                conf['url'].format(api_name=api_name),
-                data=req, headers=headers,
-            )
-        elif method == 'get':
-            resp = self.session.get(
-                conf['url'].format(api_name=api_name),
-                params=req, headers=headers,
-            )
+        for i in xrange(10):
+            if method == 'post':
+                resp = self.session.post(
+                    conf['url'].format(api_name=api_name),
+                    data=req, headers=headers,
+                )
+            elif method == 'get':
+                resp = self.session.get(
+                    conf['url'].format(api_name=api_name),
+                    params=req, headers=headers,
+                )
 
-        if not resp.ok:
-            raise Exception('Failed server call: %s' % resp.content)
+            if not resp.ok:
+                log.error('Failed server call: %s' % resp.content)
+                gevent.sleep(2 * i)
+            else:
+                break
+        else:
+            raise Exception('Max retries exceeded')
 
         return json.loads(resp.content)
 
