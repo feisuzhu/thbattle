@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
-from gamepack.thb import cards, characters
+from gamepack.thb import actions, cards, characters
 from gamepack.thb.actions import ttags
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn
+from gamepack.thb.ui.ui_meta.common import build_handcard, gen_metafunc, my_turn
 
 
 # -- code --
@@ -30,6 +32,15 @@ class Dismantle:
             return (False, u'请选择一名玩家')
 
         return (True, u'拆解！')
+
+    def sound_effect(act):
+        if act.source is act.target:
+            return 'thb-cv-nitori_dismantle'
+        else:
+            return random.choice([
+                'thb-cv-nitori_dismantle',
+                'thb-cv-nitori_dismantle_other',
+            ])
 
 
 class Craftsman:
@@ -74,6 +85,27 @@ class Craftsman:
         )
         return s
 
+    def sound_effect(act):
+        if isinstance(act, actions.LaunchCard):
+            if act.force_action and act.force_action is cards.GrazeAction:
+                l = ['_graze']
+            else:
+                l = ['1', '2']
+
+        elif isinstance(act, actions.AskForCard):
+            atk = act.cond([build_handcard(cards.AttackCard)])
+            graze = act.cond([build_handcard(cards.GrazeCard)])
+            if atk and not graze:
+                l = ['1', '2']
+            elif not atk and graze:
+                l = ['_graze']
+            else:
+                l = None
+        else:
+            l = None
+
+        return l and 'thb-cv-nitori_craftsman%s' % random.choice(l)
+
 
 class Nitori:
     # Character
@@ -84,7 +116,9 @@ class Nitori:
         u'\n'
         u'|G拆解|r：出牌阶段限一次，你可以|B重铸|r一名角色装备区里的一张装备牌，然后该角色摸一张牌。\n'
         u'\n'
-        u'|G匠心|r：你可以将你的全部手牌（至少1张）当做|G弹幕|r或|G擦弹|r使用或打出。若这些牌均为基本牌，你摸一张牌。'
+        u'|G匠心|r：你可以将你的全部手牌（至少1张）当做|G弹幕|r或|G擦弹|r使用或打出。若这些牌均为基本牌，你摸一张牌。\n'
         u'\n'
-        u'|RKOF不平衡角色|r'
+        u'|RKOF不平衡角色|r\n'
+        u'\n'
+        u'|DB（CV：简翎）|r\n'
     )

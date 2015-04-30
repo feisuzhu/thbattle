@@ -31,7 +31,7 @@ class AliceKOF:
     char_name = u'爱丽丝'
     port_image = 'thb-portrait-alice'
     figure_image = 'thb-figure-alice'
-    miss_sound_effect = 'thb-cv-alice_miss'
+    miss_sound_effect = 'thb-cv-alice_bunraku_kof'
     description = (
         u'|DB七色的人偶使 爱丽丝 体力：3|r\n\n'
         u'|G小小军势|r：当你使用装备牌时，你可以摸一张牌。当你失去装备牌区的牌后，你可以弃置其它角色的一张牌。\n\n'
@@ -112,5 +112,9 @@ class MaidensBunrakuKOFAction:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    # Now in AliceKOF.ui_meta.miss_sound_effect
+    # def sound_effect(act):
+    #     return 'thb-cv-alice_bunraku_kof'
 
 # ----------

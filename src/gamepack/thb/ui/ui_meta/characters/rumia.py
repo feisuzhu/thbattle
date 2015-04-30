@@ -64,6 +64,9 @@ class DarknessKOFAction:
     def effect_string(act):
         return u'|G【%s】|r一出现天就黑了，低头都看不见胖次！' % act.source.ui_meta.char_name
 
+    def sound_effect(act):
+        return 'thb-cv-rumia_darkness_kof'
+
 
 class DarknessKOFLimit:
     shootdown_message = u'【黑暗】你不能对其使用卡牌'

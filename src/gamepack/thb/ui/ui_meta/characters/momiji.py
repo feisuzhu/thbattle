@@ -2,6 +2,7 @@
 
 # -- stdlib --
 import random
+import time
 
 # -- third party --
 # -- own --
@@ -69,6 +70,12 @@ class SharpEyeKOFAction:
             act.target.ui_meta.char_name,
             act.source.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        tags = act.source.tags
+        if time.time() - tags['__sharpeye_lastplay'] > 6:
+            tags['__sharpeye_lastplay'] = time.time()
+            return 'thb-cv-momiji_sharpeye_kof'
 
 
 class SentryAttack:
