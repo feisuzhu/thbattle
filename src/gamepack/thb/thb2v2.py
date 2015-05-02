@@ -12,7 +12,7 @@ from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFl
 from game.autoenv import user_input
 from gamepack.thb.actions import DeadDropCards, DistributeCards, DrawCardStage, DrawCards
 from gamepack.thb.actions import MigrateCardsTransaction, PlayerDeath, PlayerTurn, RevealIdentity
-from gamepack.thb.actions import action_eventhandlers, migrate_cards
+from gamepack.thb.actions import UserAction, action_eventhandlers, migrate_cards
 from gamepack.thb.characters.baseclasses import mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity, sync_primitive
 from gamepack.thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
@@ -64,6 +64,20 @@ class DeathHandler(EventHandler):
         return act
 
 
+class HeritageAction(UserAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        lists = [tgt.cards, tgt.showncards, tgt.equips]
+        with MigrateCardsTransaction(self) as trans:
+            for cl in lists:
+                if not cl: continue
+                cl = list(cl)
+                src.reveal(cl)
+                migrate_cards(cl, src.cards, unwrap=True, trans=trans)
+
+        return True
+
+
 @game_eh
 class HeritageHandler(EventHandler):
     interested = ('action_before',)
@@ -85,13 +99,7 @@ class HeritageHandler(EventHandler):
         if other.dead: return act
 
         if user_input([other], ChooseOptionInputlet(self, ('inherit', 'draw'))) == 'inherit':
-            lists = [tgt.cards, tgt.showncards, tgt.equips]
-            with MigrateCardsTransaction(self) as trans:
-                for cl in lists:
-                    if not cl: continue
-                    cl = list(cl)
-                    other.reveal(cl)
-                    migrate_cards(cl, other.cards, unwrap=True, trans=trans)
+            g.process_action(HeritageAction(other, tgt))
 
         else:
             g.process_action(DrawCards(other, 2))
