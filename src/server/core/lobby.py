@@ -717,21 +717,26 @@ class Lobby(object):
         worker.gr_name = 'Invite:[%r] -> [%r]' % (user, other)
 
     def chat(self, user, msg):
+        acc = user.account
+
+        @gevent.spawn
         @log_failure(log)
         def worker():
             manager = GameManager.get_by_user(user)
 
-            if msg.startswith('!!') and (options.freeplay or user.account.userid in self.admins):
+            if msg.startswith('!!') and (options.freeplay or acc.userid in self.admins):
                 self.handle_admin_cmd(user, msg[2:])
                 return
 
-            packed = (user.account.username, msg)
+            packed = (acc.username, msg)
             if user.state == 'hang':  # lobby chat
+                log.info(u'(Lobby): %s' % msg)
                 for u in self.users.values():
                     if u.state == 'hang':
                         u.write(['chat_msg', packed])
 
             elif user.state in ('inroomwait', 'ready', 'ingame', 'observing'):  # room chat
+                log.info(u'(%s): %s' % (user.current_game.gameid, msg))
                 ul = manager.users
                 obl = BatchList()
                 map(obl.__iadd__, ul.observers)
@@ -739,8 +744,7 @@ class Lobby(object):
                 ul.write([_type, packed])  # should be here?
                 obl.write([_type, packed])
 
-        worker.gr_name = 'chat worker for %s' % user.account.username
-        gevent.spawn(worker)
+        worker.gr_name = 'Chat:%s[%s]' % (acc.username, acc.userid)
 
     def speaker(self, user, msg):
         @gevent.spawn
