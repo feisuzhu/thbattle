@@ -152,12 +152,18 @@ class Aya(QQBot):
         self.send_sess_message(msg['id'], msg['from_uin'], text)
 
     def on_message(self, msg):
-        text = (
-            u'文文最近很忙，没法跟你闲聊啦……\n'
-            u'有空了会告诉你哦～'
-        )
 
-        self.send_buddy_message(msg['from_uin'], text)
+        # text = (
+        #     u'文文最近很忙，没法跟你闲聊啦……\n'
+        #     u'有空了会告诉你哦～'
+        # )
+        # self.send_buddy_message(msg['from_uin'], text)
+
+        content = self._plaintext(msg['content']).strip()
+        if not content:
+            return
+
+        pool.apply_async(self.do_speaker, (msg['send_uin'], content, msg['from_uin']))
 
     def on_group_message(self, msg):
         content = self._plaintext(msg['content']).strip()
@@ -188,7 +194,7 @@ class Aya(QQBot):
                 dao.set_group_off(gnum)
                 pool.apply_async(self.send_group_message, (msg['from_uin'], u'哼，不理你们了。管理员叫我我才回来。哼。'))
 
-        elif content[0] in (u'`', u'•'):
+        elif content[0] in (u'`', u"'"):
             pool.apply_async(self.do_speaker, (msg['send_uin'], content[1:], msg['from_uin']))
 
     def on_system_message(self, msg):
