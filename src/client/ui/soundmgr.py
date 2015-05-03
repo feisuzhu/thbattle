@@ -20,10 +20,13 @@ log = logging.getLogger('SoundManager')
 
 
 class QueuedSoundPlayer(Player):
+    loop = False
+
     def queue(self, source):
         source_group = SourceGroup(source.audio_format, source.video_format)
         source_group.queue(source)
         Player.queue(self, source_group)
+        source_group.loop = self.loop
 
 
 class ManagedSoundPlayer(Player):
@@ -53,7 +56,7 @@ class SoundManager(object):
         self.bgm_next = None
         self.bgm_switching = False
         self.bgm_player = QueuedSoundPlayer()
-        self.bgm_player.eos_action = Player.EOS_LOOP
+        self.bgm_player.loop = True
         self.se_players = defaultdict(QueuedSoundPlayer)
         self.player_group = []
         self.muted = False
