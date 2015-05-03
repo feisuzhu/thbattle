@@ -203,6 +203,7 @@ class Client(Endpoint, Greenlet):
     @for_state('hang')
     def command_create_game(self, _type, name, invite_only):
         manager = lobby.create_game(self, _type, name, invite_only)
+        manager.add_invited(self)
         manager and lobby.join_game(self, manager.gameid)
 
     @for_state('hang')
@@ -424,7 +425,6 @@ class Lobby(object):
         gid = self.new_gid()
         gamecls = gamemodes[gametype]
         manager = GameManager(gid, gamecls, name, invite_only)
-        manager.add_invited(user)
         self.games[gid] = manager
         log.info("Create game")
         self.refresh_status()
@@ -534,7 +534,8 @@ class Lobby(object):
         if all_dropped:
             return
 
-        new_mgr = self.create_game(None, manager.gamecls.__name__, manager.game_name, manager.is_invited)
+        new_mgr = self.create_game(None, manager.gamecls.__name__, manager.game_name, manager.invite_only)
+        new_mgr.copy_invited(manager)
         manager.is_match and new_mgr.set_match(manager.match_users)
 
         for u in manager.users:
@@ -1220,6 +1221,9 @@ class GameManager(object):
 
     def add_invited(self, user):
         self.invite_list.add(user.account.userid)
+
+    def copy_invited(self, mgr):
+        self.invite_list = set(mgr.invite_list)
 
     def join_game(self, user, slot, observing=False):
         assert user not in self.users
