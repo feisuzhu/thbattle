@@ -201,8 +201,8 @@ class Client(Endpoint, Greenlet):
             self.write(['auth_result', 'invalid_credential'])
 
     @for_state('hang')
-    def command_create_game(self, _type, name):
-        manager = lobby.create_game(self, _type, name)
+    def command_create_game(self, _type, name, invite_only):
+        manager = lobby.create_game(self, _type, name, invite_only)
         manager and lobby.join_game(self, manager.gameid)
 
     @for_state('hang')
@@ -411,7 +411,7 @@ class Lobby(object):
         log.info(u'User %s leaved, online user %d' % (user.account.username, len(self.users)))
         self.refresh_status()
 
-    def create_game(self, user, gametype, name):
+    def create_game(self, user, gametype, name, invite_only):
         from gamepack import gamemodes, gamemodes_maoyu
         if user and user.account.is_maoyu() and gametype not in gamemodes_maoyu:
             user.write(['lobby_error', 'maoyu_limitation'])
@@ -423,7 +423,8 @@ class Lobby(object):
 
         gid = self.new_gid()
         gamecls = gamemodes[gametype]
-        manager = GameManager(gid, gamecls, name)
+        manager = GameManager(gid, gamecls, name, invite_only)
+        manager.add_invited(user)
         self.games[gid] = manager
         log.info("Create game")
         self.refresh_status()
@@ -444,6 +445,10 @@ class Lobby(object):
 
         if manager.is_banned(user):
             user.write(['lobby_error', 'banned'])
+            return
+
+        if not manager.is_invited(user):
+            user.write(['lobby_error', 'not_invited'])
             return
 
         log.info("join game")
@@ -501,7 +506,7 @@ class Lobby(object):
             return
 
         for manager in self.games.values():
-            if manager.next_free_slot() is not None:
+            if manager.next_free_slot() is not None and manager.is_invited(user) and not manager.is_banned(user):
                 self.join_game(user, manager.gameid)
                 return
         else:
@@ -529,7 +534,7 @@ class Lobby(object):
         if all_dropped:
             return
 
-        new_mgr = self.create_game(None, manager.gamecls.__name__, manager.game_name)
+        new_mgr = self.create_game(None, manager.gamecls.__name__, manager.game_name, manager.is_invited)
         manager.is_match and new_mgr.set_match(manager.match_users)
 
         for u in manager.users:
@@ -681,6 +686,7 @@ class Lobby(object):
             return
 
         manager = GameManager.get_by_user(user)
+        manager.add_invited(other)
 
         @gevent.spawn
         def worker():
@@ -932,7 +938,7 @@ class ClientPlaceHolder(object):
 
 class GameManager(object):
 
-    def __init__(self, gid, gamecls, name):
+    def __init__(self, gid, gamecls, name, invite_only):
         g = gamecls()
 
         self.game         = g
@@ -946,6 +952,8 @@ class GameManager(object):
         self.game_params  = {k: v[0] for k, v in gamecls.params_def.items()}
         self.is_match     = False
         self.match_users  = []
+        self.invite_only  = invite_only
+        self.invite_list  = set()
 
         g.gameid    = gid
         g.manager   = self
@@ -1206,6 +1214,12 @@ class GameManager(object):
             return not (user.account.userid in self.match_users or user.account.username in self.match_users)
 
         return len(self.banlist[user]) >= max(self.game.n_persons // 2, 1)
+
+    def is_invited(self, user):
+        return not self.invite_only or user.account.userid in self.invite_list
+
+    def add_invited(self, user):
+        self.invite_list.add(user.account.userid)
 
     def join_game(self, user, slot, observing=False):
         assert user not in self.users

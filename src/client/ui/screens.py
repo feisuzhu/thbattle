@@ -635,9 +635,13 @@ class GameHallScreen(Screen):
                 btncreate.state = Button.DISABLED
 
                 txtbox = self.txtgamename = TextBox(
-                    parent=self, x=95, y=395, width=420, height=22,
+                    parent=self, x=95, y=395, width=320, height=22,
                 )
                 uname = Executive.gamemgr.account.username
+
+                self.chk_invite_only = CheckBox(
+                    parent=self, x=423, y=397, caption=u'邀请制房间', value=False,
+                )
 
                 f = pyglet.font.load('AncientPix', 9)
 
@@ -645,6 +649,7 @@ class GameHallScreen(Screen):
 
                 if un1 != uname:
                     uname = textsnap(uname, f, 120) + u'…'
+
                 txtbox.text = uname + u'的游戏'
 
                 self.labels = batch = pyglet.graphics.Batch()
@@ -697,7 +702,7 @@ class GameHallScreen(Screen):
                     gtype = ImageSelector.get_selected(selectors).gametype
                     f = pyglet.font.load('AncientPix', 9)
                     roomname = textsnap(txtbox.text, f, 200)
-                    Executive.create_game(gtype, roomname)
+                    Executive.create_game(gtype, roomname, self.chk_invite_only.value)
                     self.delete()
 
                 @btncancel.event  # noqa
@@ -976,6 +981,7 @@ class GameHallScreen(Screen):
                 'cant_join_game': u'无法加入游戏',
                 'no_such_user': u'没有这个玩家',
                 'maoyu_limitation': u'您现在是毛玉（试玩玩家），不能这样做。\n毛玉只能玩练习模式和KOF模式。',
+                'not_invited': u'这是个邀请制房间，只能通过邀请进入。',
                 'banned': u'你已经被强制请离，不能重复进入',
             }
             ConfirmBox(mapping.get(args[0], args[0]), parent=self)
