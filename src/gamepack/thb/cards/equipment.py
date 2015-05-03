@@ -222,6 +222,7 @@ class RoukankenEffectHandler(EventHandler):
         'HouraiJewelHandler',
         'SpearTheGungnirHandler',
         'HakuroukenHandler',
+        'FreakingPowerHandler',
     )
 
     def handle(self, evt_type, act):
