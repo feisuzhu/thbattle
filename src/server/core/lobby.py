@@ -337,7 +337,8 @@ class Lobby(object):
         self.users = {}  # all users
         self.dropped_users = {}  # passively dropped users
         self.current_gid = current_gid
-        self.admins = [2, 3044]
+        self.admins = [2, 109, 351, 3044, 9783]
+        self.bigbrothers = []
 
     def new_gid(self):
         self.current_gid += 1
@@ -620,6 +621,16 @@ class Lobby(object):
             user.write(['lobby_error', 'user_not_ingame'])
             return
 
+        if user.account.userid in self.bigbrothers:
+            gevent.spawn(other.write, ['system_msg', [None,
+                u'管理员对你使用了强制观战，效果拔群。'
+                u'强制观战功能仅用来处理纠纷，如果涉及滥用，请向 Proton 投诉。'
+            ]])
+            manager = GameManager.get_by_user(other)
+            manager.observe_user(user, other)
+            self.refresh_status()
+            return
+
         @gevent.spawn
         def worker():
             with Timeout(20, False):
@@ -791,6 +802,13 @@ class Lobby(object):
         elif cmd == 'remove_admin':
             uid, = args
             self.admins.remove(int(uid))
+        elif cmd == 'bigbrother':
+            self.bigbrothers.append(user.account.userid)
+        elif cmd == 'nobigbrother':
+            try:
+                self.bigbrothers.remove(user.account.userid)
+            except Exception:
+                pass
         else:
             return
 
