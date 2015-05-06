@@ -27,9 +27,12 @@ def check_not_null(value):
         raise MediaException(pa.pa_strerror(error))
     return value
 
+
 def noop(*args):
     """Empty callback to replace deleted callbacks in PA"""
     pass
+
+noop = pa.pa_stream_notify_cb_t(noop)
 
 
 class PulseAudioDriver(AbstractAudioDriver):
@@ -46,16 +49,16 @@ class PulseAudioDriver(AbstractAudioDriver):
         player = PulseAudioPlayer(source_group, player)
         self._players.add(player)
         return player
-        
+
     def connect(self, server=None):
         '''Connect to pulseaudio server.
-        
+
         :Parameters:
             `server` : str
                 Server to connect to, or ``None`` for the default local
                 server (which may be spawned as a daemon if no server is
                 found).
-                
+
         '''
         # TODO disconnect from old
         assert not self._context, 'Already connected'
@@ -64,9 +67,9 @@ class PulseAudioDriver(AbstractAudioDriver):
         app_name = self.get_app_name()
         self._context = pa.pa_context_new(self.mainloop, app_name.encode('ASCII'))
 
-        # Context state callback 
+        # Context state callback
         self._state_cb_func = pa.pa_context_notify_cb_t(self._state_cb)
-        pa.pa_context_set_state_callback(self._context, 
+        pa.pa_context_set_state_callback(self._context,
                                          self._state_cb_func, None)
 
         # Connect
@@ -91,7 +94,7 @@ class PulseAudioDriver(AbstractAudioDriver):
         if _debug:
             print 'context state cb'
         state = pa.pa_context_get_state(self._context)
-        if state in (pa.PA_CONTEXT_READY, 
+        if state in (pa.PA_CONTEXT_READY,
                      pa.PA_CONTEXT_TERMINATED,
                      pa.PA_CONTEXT_FAILED):
             self.signal()
@@ -115,8 +118,8 @@ class PulseAudioDriver(AbstractAudioDriver):
 
     def sync_operation(self, op):
         '''Wait for an operation to be done or cancelled, then release it.
-        Uses a busy-loop -- make sure a callback is registered to 
-        signal this listener.''' 
+        Uses a busy-loop -- make sure a callback is registered to
+        signal this listener.'''
         while pa.pa_operation_get_state(op) == pa.PA_OPERATION_RUNNING:
             pa.pa_threaded_mainloop_wait(self.threaded_mainloop)
         pa.pa_operation_unref(op)
@@ -212,7 +215,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
         try:
             context.lock()
             # Create stream
-            self.stream = pa.pa_stream_new(context._context, 
+            self.stream = pa.pa_stream_new(context._context,
                                            str(id(self)).encode('ASCII'),
                                            sample_spec,
                                            channel_map)
@@ -244,18 +247,18 @@ class PulseAudioPlayer(AbstractAudioPlayer):
 
             sync_stream = None  # TODO use this
             check(
-                pa.pa_stream_connect_playback(self.stream, 
+                pa.pa_stream_connect_playback(self.stream,
                                               device,
-                                              buffer_attr, 
+                                              buffer_attr,
                                               flags,
-                                              None, 
+                                              None,
                                               sync_stream)
             )
 
             # Wait for stream readiness
-            self._state_cb_func = pa.pa_stream_notify_cb_t(self._state_cb)
-            pa.pa_stream_set_state_callback(self.stream, 
-                                            self._state_cb_func, None)
+            cb = pa.pa_stream_notify_cb_t(self._state_cb)
+            pa.pa_stream_set_state_callback(self.stream, cb, None)
+            self._state_cb_func = cb
             while pa.pa_stream_get_state(self.stream) == pa.PA_STREAM_CREATING:
                 context.wait()
 
@@ -283,7 +286,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
         # Asynchronously update time
         if self._events:
             context.async_operation(
-                pa.pa_stream_update_timing_info(self.stream, 
+                pa.pa_stream_update_timing_info(self.stream,
                                                 self._success_cb_func, None)
             )
 
@@ -313,7 +316,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
                 self._events.append((event_index, event))
 
             consumption = min(bytes, audio_data.length)
-            
+
             check(
                 pa.pa_stream_write(self.stream,
                                    audio_data.data,
@@ -344,13 +347,13 @@ class PulseAudioPlayer(AbstractAudioPlayer):
             # Whole source group has been written.  Any underflow encountered
             # after now is the EOS.
             self._underflow_is_eos = True
-            
+
             # In case the source group wasn't long enough to prebuffer stream
             # to PA's satisfaction, trigger immediate playback (has no effect
             # if stream is already playing).
             if self._playing:
                 context.async_operation(
-                     pa.pa_stream_trigger(self.stream, 
+                     pa.pa_stream_trigger(self.stream,
                                           pa.pa_stream_success_cb_t(0), None)
                 )
 
@@ -397,8 +400,8 @@ class PulseAudioPlayer(AbstractAudioPlayer):
             self.delete()
         except:
             pass
-        
-    def delete(self):   
+
+    def delete(self):
         if _debug:
             print 'delete'
         if not self.stream:
@@ -406,7 +409,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
 
         context.lock()
         pa.pa_stream_disconnect(self.stream)
-        pa.pa_stream_set_state_callback(self.stream, pa.pa_stream_notify_cb_t(noop), None)
+        pa.pa_stream_set_state_callback(self.stream, noop, None)
         context.unlock()
         pa.pa_stream_unref(self.stream)
         self.stream = None
@@ -432,15 +435,15 @@ class PulseAudioPlayer(AbstractAudioPlayer):
             print 'play'
         context.lock()
         context.async_operation(
-             pa.pa_stream_cork(self.stream, 0, 
+             pa.pa_stream_cork(self.stream, 0,
                                pa.pa_stream_success_cb_t(0), None)
         )
 
         # If whole stream has already been written, trigger immediate
-        # playback.        
+        # playback.
         if self._underflow_is_eos:
             context.async_operation(
-                 pa.pa_stream_trigger(self.stream, 
+                 pa.pa_stream_trigger(self.stream,
                                       pa.pa_stream_success_cb_t(0), None)
             )
         context.unlock()
@@ -452,7 +455,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
             print 'stop'
         context.lock()
         context.async_operation(
-             pa.pa_stream_cork(self.stream, 1, 
+             pa.pa_stream_cork(self.stream, 1,
                                pa.pa_stream_success_cb_t(0), None)
         )
         context.unlock()
@@ -464,7 +467,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
 
         context.lock()
         context.sync_operation(
-            pa.pa_stream_update_timing_info(self.stream, 
+            pa.pa_stream_update_timing_info(self.stream,
                                             self._success_cb_func, None)
         )
         context.unlock()
@@ -527,8 +530,8 @@ class PulseAudioPlayer(AbstractAudioPlayer):
 
         cvolume = pa.pa_cvolume()
         volume = pa.pa_sw_volume_from_linear(volume)
-        pa.pa_cvolume_set(cvolume, 
-                          self.source_group.audio_format.channels, 
+        pa.pa_cvolume_set(cvolume,
+                          self.source_group.audio_format.channels,
                           volume)
 
         context.lock()
@@ -547,7 +550,7 @@ class PulseAudioPlayer(AbstractAudioPlayer):
                                         int(pitch*self.sample_rate),
                                         self._success_cb_func,
                                         None)
-                                        
+
 
 def create_audio_driver():
     global context
