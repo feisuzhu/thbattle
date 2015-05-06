@@ -4,6 +4,10 @@ import sys
 reload(sys)
 sys.setdefaultencoding(sys.getfilesystemencoding())
 
+# Workaround OpenGL resource recycling issue
+import gc
+gc.disable()
+
 
 def start_client():
     import ctypes
