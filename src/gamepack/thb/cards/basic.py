@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, ActionLimitExceeded
-from ..actions import ForEach, GenericAction, LaunchCard, PlayerTurn, UserAction, UseCard
+from ..actions import ForEach, GenericAction, LaunchCard, PlayerTurn, UserAction, UseCard, DistributeCards
 from ..actions import register_eh, user_choose_cards
 from game.autoenv import EventHandler, Game
 
@@ -326,6 +326,10 @@ class ExinwanHandler(EventHandler):
             # move from None to None do not affect Exinwan's target
             # (including moving detached cards to None)
             if _from is None or _from.owner is None or is_bh:
+                return arg
+
+            # do not active when distributing cards
+            if isinstance(act, DistributeCards):
                 return arg
 
             # someone is dropping the ExinwanCard
