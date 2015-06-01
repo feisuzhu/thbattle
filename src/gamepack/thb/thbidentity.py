@@ -286,6 +286,16 @@ class THBattleIdentity(Game):
             choosed(c.char_cls)
             p = g.switch_character(p, c.char_cls)
 
+        # -------
+        for p in g.players:
+            log.info(
+                u'>> Player: %s:%s %s',
+                p.__class__.__name__,
+                Identity.TYPE.rlookup(p.identity.type),
+                p.account.username,
+            )
+        # -------
+
         g.emit_event('game_begin', g)
 
         for p in g.players:
