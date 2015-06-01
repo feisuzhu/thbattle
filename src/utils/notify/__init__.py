@@ -8,22 +8,6 @@ SPEAKER = 2
 def _notify(title, msg):
     pass
 
-
-try:
-    import pynotify
-    pynotify.init('thbattle')
-    n = pynotify.Notification('None')
-
-    def _notify(title, msg):  # noqa
-        try:
-            n.update(title, msg)
-            n.show()
-        except:
-            pass
-
-except ImportError:
-    pass
-
 import os
 import platform
 import sys
@@ -34,6 +18,13 @@ if os.name == 'nt' or platform.system() == 'Windows':
 elif sys.platform == 'darwin':
     from .cocoa import _notify
 
+else:
+    try:
+        import pynotify
+    except ImportError:
+        pass
+    else:
+        from .pynotify_adapter import _notify
 
 def notify(title, msg, level=BASIC):
     from user_settings import UserSettings as us
