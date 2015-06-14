@@ -93,8 +93,8 @@ class Craftsman:
                 l = ['1', '2']
 
         elif isinstance(act, actions.AskForCard):
-            atk = act.cond([build_handcard(cards.AttackCard)])
-            graze = act.cond([build_handcard(cards.GrazeCard)])
+            atk = act.cond([build_handcard(cards.AttackCard, act.target)])
+            graze = act.cond([build_handcard(cards.GrazeCard, act.target)])
             if atk and not graze:
                 l = ['1', '2']
             elif not atk and graze:

@@ -120,9 +120,9 @@ def card_desc(c):
     return suit + num + ' |G%s|r' % c.ui_meta.name
 
 
-def build_handcard(cardcls):
+def build_handcard(cardcls, p=None):
     from gamepack.thb.cards import CardList
-    cl = CardList(G().me, 'cards')
+    cl = CardList(p or G().me, 'cards')
     c = cardcls()
     c.move_to(cl)
     return c
