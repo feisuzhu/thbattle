@@ -175,7 +175,7 @@ class ElementalReactorCard:
     description = (
         u'|R八卦炉|r\n\n'
         u'攻击范围1，装备后：出牌阶段你可以使用任意张【弹幕】。\n\n'
-        u'|DB（画师：Pixiv UID 2022150）|r'
+        u'|DB（画师：霏茶）|r'
     )
 
     is_action_valid = equip_iav
@@ -845,7 +845,7 @@ class SuwakoHatCard:
     description = (
         u'|R青蛙帽|r\n\n'
         u'装备后：手牌上限+2\n\n'
-        u'|DB（画师：Pixiv ID 9552727，CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
 
@@ -870,7 +870,7 @@ class YoumuPhantomCard:
     description = (
         u'|R半灵|r\n\n'
         u'装备后：增加1点体力上限，当失去装备区里的【半灵】时，你回复1点体力。\n\n'
-        u'|DB（画师：Pixiv ID 376712，CV：小羽）|r'
+        u'|DB（画师：霏茶，CV：小羽）|r'
     )
 
     is_action_valid = equip_iav
@@ -896,7 +896,7 @@ class IceWingCard:
     description = (
         u'|R⑨的翅膀|r\n\n'
         u'装备后：【封魔阵】和【冻青蛙】对你无效。\n\n'
-        u'|DB（CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     is_action_valid = equip_iav
