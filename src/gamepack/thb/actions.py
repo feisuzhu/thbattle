@@ -1002,6 +1002,22 @@ class ForEach(UserAction):
         return getattr(self.get_actual_action(act), 'group_effect', False)
 
 
+class PrepareStage(GenericAction):
+    def __init__(self, target):
+        self.target = target
+
+    def apply_action(self):
+        return True
+
+
+class FinalizeStage(GenericAction):
+    def __init__(self, target):
+        self.target = target
+
+    def apply_action(self):
+        return True
+
+
 class PlayerTurn(GenericAction):
     def __init__(self, target):
         self.source = self.target = target
@@ -1013,10 +1029,12 @@ class PlayerTurn(GenericAction):
         g.turn_count += 1
         g.current_turn = p
 
+        g.process_action(PrepareStage(p))
         g.process_action(FatetellStage(p))
         g.process_action(DrawCardStage(p))
         g.process_action(ActionStage(p))
         g.process_action(DropCardStage(p))
+        g.process_action(FinalizeStage(p))
 
         return True
 

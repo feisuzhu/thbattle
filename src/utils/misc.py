@@ -721,3 +721,16 @@ def throttle(seconds):
         return wrapper
 
     return decorate
+
+
+class InstanceHookMeta(type):
+    # ABCMeta would use __subclasshook__ for instance check. Loses information.
+
+    def __instancecheck__(cls, inst):
+        return cls.instancecheck(inst)
+
+    def __subclasscheck__(cls, C):
+        return cls.subclasscheck(C)
+
+    def instancecheck(cls, inst):
+        return cls.subclasscheck(type(inst))

@@ -34,7 +34,7 @@ inventory.extend([(re.compile('^%s$' % pat), ldr) for pat, ldr in (
     ('thb-tag-books',              ['img_grid', 1, 7]),
     ('thb-tag-[a-z_]+',            ['img']),
 
-    ('thb-portrait-[a-z_]+',       ['img_with_grayed', 'portrait']),
+    ('thb-portrait-[a-z0-9_]+',    ['img_with_grayed', 'portrait']),
 
     ('thb-figure-[a-z_]+_alter',   ['encrypted_texture']),
     ('thb-figure-[a-z_]+',         ['lazytexture']),

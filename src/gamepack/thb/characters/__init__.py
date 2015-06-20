@@ -50,6 +50,9 @@ import shinmyoumaru
 import nitori
 import shizuha
 
+# weektour
+import youmu20150620
+
 # special
 import akari
 
