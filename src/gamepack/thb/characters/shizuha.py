@@ -4,122 +4,188 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import Damage, DrawCards, DropCards, LaunchCard, PostCardMigrationHandler
-from gamepack.thb.actions import UseCard, UserAction, user_choose_cards
-from gamepack.thb.cards import AttackCardHandler, Card, Skill, t_None, t_OtherOne
+from gamepack.thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction
+from gamepack.thb.actions import UserAction, random_choose_card, user_choose_players
+from gamepack.thb.cards import Skill, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
-from gamepack.thb.inputlets import ChooseOptionInputlet
+from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
-class DecayAction(UserAction):
+class AutumnWindEffect(GenericAction):
     def apply_action(self):
+        src, tgt = self.source, self.target
+
         g = Game.getgame()
 
-        src = self.source
-        tgt = self.target
-        hand = list(tgt.cards) + list(tgt.showncards)
-        cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
+        catnames = ('cards', 'showncards', 'equips')
+        cats = [getattr(tgt, i) for i in catnames]
+        card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+        card = card or random_choose_card(cats)
+        if not card:
+            return False
 
-        if not cards:
-            cl = hand + list(tgt.equips)
-            cards = cl[:2]
-
-        decay = hand and set(cards) >= set(hand)
-
-        g.players.reveal(cards)
-        g.process_action(DropCards(src, tgt, cards))
-        if decay:
-            g.process_action(Damage(src, tgt))
-
+        self.card = card
+        g.players.exclude(tgt).reveal(card)
+        g.process_action(DropCards(src, tgt, cards=[card]))
         return True
-
-    def cond(self, cl):
-        if not cl:
-            return False
-
-        if len(cl) > 2:
-            return False
-
-        if any(c.is_card(Skill) for c in cl):
-            return False
-
-        if len(cl) == 2:
-            return True
-
-        return 'basic' in cl[0].category
 
     def is_valid(self):
         tgt = self.target
-        return bool(tgt.cards or tgt.showncards or tgt.equips)
+        catnames = ('cards', 'showncards', 'equips')
+        return not tgt.dead and any(getattr(tgt, i) for i in catnames)
 
 
-class Decay(Skill):
-    associated_action = DecayAction
-    skill_category = ('character', 'active')
-    target = t_OtherOne
-    usage = 'drop'
+class AutumnWindAction(UserAction):
+    def __init__(self, source, target_list):
+        self.source = source
+        self.target = None
+        self.target_list = target_list
 
-    def check(self):
-        cl = self.associated_cards
-        if any(c.is_card(Skill) or c.color != Card.BLACK for c in cl):
-            return False
+    def apply_action(self):
+        g = Game.getgame()
+        src = self.source
 
-        return len(cl) == 2
+        for p in self.target_list:
+            g.process_action(AutumnWindEffect(src, p))
 
-    @property
-    def distance(self):
-        return 1 + AttackCardHandler.attack_range_bonus(self.player)
+        return True
 
 
-class AutumnLeaves(Skill):
+class AutumnWindHandler(EventHandler):
+    interested = ('action_after', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, DropCardStage):
+            self.n = n = act.dropn
+            if n <= 0:
+                return act
+
+            tgt = act.target
+            if not tgt.has_skill(AutumnWind):
+                return act
+
+            g = Game.getgame()
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            candidates = [
+                p for p in g.players if
+                p is not tgt and
+                (p.cards or p.showncards or p.equips) and
+                not p.dead
+            ]
+
+            pl = user_choose_players(self, tgt, candidates)
+            if not pl:
+                return act
+
+            g.process_action(AutumnWindAction(tgt, pl))
+
+        return act
+
+    def choose_player_target(self, tl):
+        if not tl:
+            return (tl, False)
+
+        return (tl[:self.n], True)
+
+
+class AutumnWind(Skill):
     associated_action = None
     skill_category = ('character', 'passive')
     target = t_None
 
 
-class AutumnLeavesHandler(EventHandler):
-    group = PostCardMigrationHandler
+class DecayDrawCards(DrawCards):
+    pass
 
-    def handle(self, p, trans):
-        if not p.has_skill(AutumnLeaves):
-            return True
 
-        if isinstance(trans.action, (LaunchCard, UseCard)):
-            return True
+class DecayDrawCardHandler(EventHandler):
+    interested = ('post_card_migration',)
+    execute_after = ('PostCardMigrationHandler',)
 
-        cond = False
-        for cards, _from, to in trans:
-            if not to or to.type != 'droppedcard':
-                continue
+    def handle(self, evt_type, arg):
+        if evt_type != 'post_card_migration':
+            return arg
 
-            if _from is None:
-                continue
+        g = Game.getgame()
+        me = getattr(g, 'current_turn', None)
+        if me is None: return arg
+        if me.dead: return arg
+        if not me.has_skill(Decay): return arg
 
-            for c in cards:
-                if 'basic' not in c.category:
-                    continue
+        trans = arg
 
-                if c.color != Card.RED:
-                    continue
+        candidates = {p for p in g.players if not p.dead and not (p.cards or p.showncards)}
+        involved = {
+            _from.owner for cards, _from, to, is_bh in trans.get_movements()
+            if _from is not None and _from.type in ('cards', 'showncards')
+        }
 
-                if _from is None or _from.type not in ('cards', 'showncards', 'equips'):
-                    continue
+        trigger = candidates & involved
 
-                if _from.owner is p:
-                    continue
+        if not trigger: return arg
+        if me in involved: return arg
 
-                cond = True
-                break
+        g.process_action(DecayDrawCards(me, 1))
 
-        if cond and user_input([p], ChooseOptionInputlet(self, (False, True))):
-            Game.getgame().process_action(DrawCards(p, 1))
+        return arg
 
+
+class DecayAction(UserAction):
+    def apply_action(self):
+        tgt = self.target
+        tgt.tags['shizuha_decay'] = True
         return True
 
 
-# @register_character
+class DecayEffect(UserAction):
+    def __init__(self, source, target, dcs):
+        self.source = source
+        self.target = target
+        self.dcs = dcs
+
+    def apply_action(self):
+        self.dcs.dropn += 1
+        return True
+
+
+class DecayDamageHandler(EventHandler):
+    interested = ('action_after', 'action_before')
+    execute_after = ('SuwakoHatHandler', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, Damage):
+            src, tgt = act.source, act.target
+            if not (tgt and tgt.has_skill(Decay)):
+                return act
+
+            g = Game.getgame()
+            if g.current_turn is tgt: return act
+            if not g.current_turn: return act
+            g.process_action(DecayAction(src, g.current_turn))
+
+        elif evt_type == 'action_before' and isinstance(act, DropCardStage):
+            tgt = act.target
+            t = tgt.tags
+            if not t['shizuha_decay']: return act
+
+            t['shizuha_decay'] = False
+            g = Game.getgame()
+            g.process_action(DecayEffect(tgt, tgt, act))
+
+        return act
+
+
+class Decay(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
+@register_character
 class Shizuha(Character):
-    skills = [Decay, AutumnLeaves]
-    eventhandlers_required = [AutumnLeavesHandler]
+    skills = [Decay, AutumnWind]
+    eventhandlers_required = [DecayDamageHandler, DecayDrawCardHandler, AutumnWindHandler]
     maxlife = 3

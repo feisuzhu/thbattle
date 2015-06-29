@@ -526,7 +526,7 @@ class DropCardStage(GenericAction):
 
     def __init__(self, target):
         self.source = self.target = target
-        self.dropn = len(target.cards) + len(target.showncards) - target.life
+        self.dropn = max(0, len(target.cards) + len(target.showncards) - target.life)
         self.cards = []
 
     def apply_action(self):

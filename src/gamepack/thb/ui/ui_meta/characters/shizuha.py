@@ -3,66 +3,85 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from gamepack.thb import cards as thbcards, characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable
-from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
+from gamepack.thb import characters
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+from utils import BatchList
 
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.shizuha)
 
 
-class DecayAction:
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return True, u'弃置这些牌'
+class AutumnWindAction:
 
-        else:
-            return False, u'请选择一张基本牌或两张牌'
+    def effect_string_before(act):
+        tl = BatchList(act.target_list)
+        return u'当|G秋风|r吹起，|G【%s】|r连牌都拿不住的时候，才回想起，妈妈说的对，要穿秋裤。' % (
+            u'】|r、|G【'.join(tl.ui_meta.char_name),
+        )
+
+    def sound_effect(act):
+        return 'thb-cv-shizuha_autumnwind'
 
 
 class Decay:
     # Skill
     name = u'凋零'
-
-    def clickable(g):
-        return my_turn()
-
-    def is_action_valid(g, cl, tl):
-        cl = cl[0].associated_cards
-
-        if len(cl) != 2:
-            return False, u'请选择两张黑色牌！'
-
-        if any(c.color != thbcards.Card.BLACK for c in cl):
-            return False, u'请选择两张黑色牌！'
-
-        if len(tl) != 1:
-            return False, u'请选择一名角色'
-
-        return True, u'凋零！'
-
-
-class AutumnLeaves:
-    # Skill
-    name = u'红叶'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
-class AutumnLeavesHandler:
+class DecayAction:
+
+    def effect_string(act):
+        return u'|G【%s】|r觉得屁股凉了一下……' % act.target.ui_meta.char_name
+
+
+class DecayEffect:
+
+    def effect_string(act):
+        return u'|G【%s】|r的|G凋零|r效果生效了。' % act.target.ui_meta.char_name
+
+    def sound_effect(act):
+        return 'thb-cv-shizuha_decay'
+
+
+class DecayDrawCards:
+
+    def sound_effect(act):
+        return 'thb-cv-shizuha_decay'
+
+
+class AutumnWind:
+    # Skill
+    name = u'秋风'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class AutumnWindHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【秋风】吗？'
 
-    choose_option_prompt = u'你要发动【红叶】吗？'
+    def target(pl):
+        if not pl:
+            return (False, u'秋风：请选择目标玩家')
+
+        return (True, u'秋风弃牌')
 
 
 class Shizuha:
     # Character
     char_name = u'秋静叶'
     port_image = 'thb-portrait-shizuha'
+    miss_sound_effect = 'thb-cv-shizuha_miss'
     description = (
         u'|DB寂寞与终焉的象征 秋静叶 体力：3|r\n\n'
-        u'|G红叶|r：当其他角色的红色基本牌因使用或打出以外的原因进入弃牌堆后，你可以摸一张牌。\n\n'
-        u'|G凋零|r：出牌阶段，你可以弃置两张黑色牌，然后令你攻击范围内一名其他角色选择一项：弃置一张基本牌，或弃置两张牌。若其以此法失去最后一张手牌后，对其造成一点伤害。'
+        u'|G凋零|r：|B锁定技|r。你的回合内，一名其他角色失去最后一张手牌时，你摸一张牌。你的回合外，你受到一次伤害后，当前角色弃牌阶段需要额外弃置一张手牌。|r\n\n'
+        # 叶子的离去，是因为风的追求，还是树的不挽留？
+        u'|G秋风|r：你的弃牌阶段结束时，你可以弃置至多X名其他角色各一张牌（X为你弃牌阶段的弃牌数）。|r\n\n'
+        # 觉得冷吗，谁叫你们不穿秋裤！（幸灾乐祸地）
+        u'|DB（画师：Pixiv ID 1658485，CV：VV，人物设计：SmiteOfKing）|r'
+        # 咦，黑幕来了，大家快逃！
     )

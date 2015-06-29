@@ -87,4 +87,10 @@ class reisen_discarder:
     display = lambda p, v: v
     description = u'丧心：下一个出牌阶段只能使用弹幕，且只能对最近的角色使用弹幕'
 
+
+class shizuha_decay:
+    tag_anim = lambda p: 'thb-tag-shizuha_decay'
+    display = lambda p, v: v
+    description = u'凋零：弃牌阶段需额外弃置一张手牌'
+
 # -----END TAGS UI META-----
