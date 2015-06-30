@@ -74,7 +74,7 @@ class DeathHandler(EventHandler):
         return act
 
 
-class RedrawCards(GenericAction):
+class RedrawCards(DistributeCards):
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
