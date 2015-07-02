@@ -3,10 +3,10 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCardStage, UserAction, migrate_cards
-from ..cards import Card, Harvest, HarvestCard, Skill, TreatAs, t_None
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
+from gamepack.thb.actions import DrawCardStage, UserAction, migrate_cards, user_choose_players
+from gamepack.thb.cards import Card, Harvest, HarvestCard, Skill, TreatAs, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character
 
 
 # -- code --
@@ -65,8 +65,9 @@ class AkiTribute(Skill):
 
 
 class AkiTributeCollectCard(UserAction):
-    def __init__(self, target, cards):
-        self.source = self.target = target
+    def __init__(self, source, target, cards):
+        self.source = source
+        self.target = target
         self.cards = cards
 
     def apply_action(self):
@@ -95,10 +96,25 @@ class AkiTributeHandler(EventHandler):
             pl = [p for p in g.players if p.has_skill(AkiTribute) and not p.dead]
             assert len(pl) <= 1, 'Multiple AkiTributes!'
             if not pl: return act
-            p = pl[0]
-            g.process_action(AkiTributeCollectCard(p, [c for c in act.cards if c.detached]))
+
+            src = pl[0]
+            cards = [c for c in act.cards if c.detached]
+            if not cards: return act
+
+            candidates = [p for p in g.players if not p.dead]
+            pl = user_choose_players(self, src, candidates)
+            if not pl: return act
+
+            tgt, = pl
+            g.process_action(AkiTributeCollectCard(src, tgt, cards))
 
         return act
+
+    def choose_player_target(self, tl):
+        if not tl:
+            return (tl, False)
+
+        return (tl[-1:], True)
 
 
 @register_character
