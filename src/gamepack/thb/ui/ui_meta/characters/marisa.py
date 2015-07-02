@@ -18,7 +18,7 @@ class Marisa:
     miss_sound_effect = 'thb-cv-marisa_miss'
     description = (
         u'|DB绝非普通的强盗少女 雾雨魔理沙 体力：4|r\n\n'
-        u'|G借走|r：出牌阶段限一次，你可以获得一名其他角色的一张牌，然后视为该角色对你使用了一张【弹幕】。\n\n'
+        u'|G借走|r：出牌阶段限一次，你可以获得一名其他角色的一张牌，然后该角色可以视为对你使用了一张【弹幕】。\n\n'
         u'|DB（画师：霏茶，CV：君寻）|r'
     )
 
@@ -32,6 +32,12 @@ class Daze:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+
+class BorrowAction:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要视为对魔理沙使用弹幕吗？'
 
 
 class Borrow:

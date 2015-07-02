@@ -3,11 +3,11 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import LaunchCard, UserAction, migrate_cards, random_choose_card
-from ..cards import AttackCard, Skill, TreatAs, VirtualCard, t_OtherOne
-from ..inputlets import ChoosePeerCardInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import Game, user_input
+from gamepack.thb.actions import LaunchCard, UserAction, migrate_cards, random_choose_card
+from gamepack.thb.cards import AttackCard, Skill, TreatAs, VirtualCard, t_OtherOne
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
@@ -28,7 +28,8 @@ class BorrowAction(UserAction):
         migrate_cards([c], src.cards)
         src.tags['borrow_tag'] = src.tags['turn_count']
 
-        g.process_action(LaunchCard(tgt, [src], Daze(tgt), bypass_check=True))
+        if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g.process_action(LaunchCard(tgt, [src], Daze(tgt), bypass_check=True))
 
         return True
 
