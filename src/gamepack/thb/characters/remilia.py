@@ -3,11 +3,11 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, GenericAction
-from ..cards import Attack, Card, Heal, InevitableAttack, Skill, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, GenericAction
+from gamepack.thb.cards import Attack, AttackCard, Card, Heal, InevitableAttack, Skill, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -69,7 +69,7 @@ class VampireKissAction(GenericAction):
 
 
 class VampireKissHandler(EventHandler):
-    interested = ('action_apply',)
+    interested = ('action_apply', 'calcdistance')
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, Damage):
@@ -82,6 +82,16 @@ class VampireKissHandler(EventHandler):
             card = pact.associated_card
             if (not card) or card.color != Card.RED: return act
             g.process_action(VampireKissAction(src, tgt))
+
+        elif evt_type == 'calcdistance':
+            src, card, dist = act
+
+            if not card.is_card(AttackCard): return act
+            if not src.has_skill(VampireKiss): return act
+            if card.color != Card.RED: return act
+
+            for p in dist:
+                dist[p] -= 99999
 
         return act
 
