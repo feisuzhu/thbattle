@@ -3,12 +3,12 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DrawCardStage, DrawCards, UserAction, migrate_cards
-from ..actions import random_choose_card, user_choose_players
-from ..cards import Card, Skill, t_None, t_One, t_OtherOne
-from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, DrawCardStage, DrawCards, UserAction, detach_cards
+from gamepack.thb.actions import migrate_cards, user_choose_players
+from gamepack.thb.cards import Card, Skill, t_None, t_One, t_OtherOne
+from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -18,7 +18,8 @@ class Jolly(Skill):
     target = t_None
 
 
-class Surprise(UserAction):
+class SurpriseAction(UserAction):
+
     def apply_action(self):
         src = self.source
         tgt = self.target
@@ -27,16 +28,16 @@ class Surprise(UserAction):
             Card.CLUB, Card.DIAMOND,
         )
 
+        card = self.associated_card
+        detach_cards([card])
         suit = user_input([tgt], ChooseOptionInputlet(self, options))
-        card = user_input([tgt], ChoosePeerCardInputlet(self, src, ('cards', 'showncards')))
-        card = card or random_choose_card([src.cards, src.showncards])
 
         src.tags['surprise_tag'] = src.tags['turn_count']
         assert card
 
         g = Game.getgame()
-        g.players.exclude(src).reveal(card)
-        migrate_cards([card], tgt.showncards)
+        g.players.reveal(card.associated_cards)
+        migrate_cards([card], tgt.showncards, unwrap=True)
 
         if card.suit != suit:
             g.process_action(Damage(src, tgt))
@@ -44,27 +45,30 @@ class Surprise(UserAction):
         else:
             rst = False
 
-        g.process_action(DrawCards(src, 1))
-
         return rst
 
     def is_valid(self):
-        src = self.source
-        if self.associated_card.associated_cards: return False
-        if src.tags.get('turn_count', 0) <= src.tags.get('surprise_tag', 0):
-            return False
-        if not (src.cards or src.showncards):
-            return False
+        t = self.source.tags
+        if t['turn_count'] <= t['surprise_tag']: return False
         return True
 
 
-class SurpriseSkill(Skill):
-    associated_action = Surprise
+class Surprise(Skill):
+    associated_action = SurpriseAction
     skill_category = ('character', 'active')
     target = t_OtherOne
+    no_reveal = True
+    no_drop = True
+    usage = 'handover'
 
     def check(self):
-        return not self.associated_cards
+        cl = self.associated_cards
+        if not len(cl) == 1: return False
+        c, = cl
+        if c.resides_in.type not in ('cards', 'showncards'):
+            return False
+
+        return True
 
 
 class JollyDrawCard(DrawCards):
@@ -104,6 +108,6 @@ class JollyHandler(EventHandler):
 
 @register_character
 class Kogasa(Character):
-    skills = [SurpriseSkill, Jolly]
+    skills = [Surprise, Jolly]
     eventhandlers_required = [JollyHandler]
     maxlife = 3

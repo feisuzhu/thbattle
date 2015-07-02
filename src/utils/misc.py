@@ -100,6 +100,8 @@ class CheckFailed(Exception):
 
 def check(b):
     if not b:
+        # import traceback
+        # traceback.print_stack()
         raise CheckFailed
 
 

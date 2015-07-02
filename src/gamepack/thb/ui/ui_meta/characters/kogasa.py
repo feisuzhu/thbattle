@@ -44,7 +44,7 @@ class JollyHandler:
         return (True, u'(～￣▽￣)～')
 
 
-class SurpriseSkill:
+class Surprise:
     # Skill
     name = u'惊吓'
 
@@ -68,8 +68,13 @@ class SurpriseSkill:
         if len(tl) != 1:
             return (False, u'请选择惊吓对象…')
 
-        if len(cl[0].associated_cards):
-            return (False, u'请不要选择牌！')
+        cl = cl[0].associated_cards
+        if len(cl) != 1:
+            return (False, u'请选择一张手牌！')
+
+        c, = cl
+        if not (c.is_card(cards.PhysicalCard) and c.resides_in.type in ('cards', 'showncards')):
+            return (False, u'请选择一张手牌！')
 
         # return (True, u'(´・ω・`)')
         return (True, u'\ ( °▽ °) /')
@@ -89,7 +94,7 @@ class SurpriseSkill:
         return 'thb-cv-kogasa_surprise'
 
 
-class Surprise:
+class SurpriseAction:
     # choose_option
     choose_option_buttons = (
         (u'黑桃', cards.Card.SPADE),
@@ -123,7 +128,7 @@ class Kogasa:
     miss_sound_effect = 'thb-cv-kogasa_miss'
     description = (
         u'|DB愉快的遗忘之伞 多多良小伞 体力：3|r\n\n'
-        u'|G惊吓|r：出牌阶段限一次，你可以选择一名其他角色，该角色选择一种花色后获得你的一张手牌并将其置入明牌区，若此牌与所选花色不同，则你对该角色造成1点伤害。无论结果如何，你摸一张牌。\n\n'
+        u'|G惊吓|r：出牌阶段限一次，你可以选择一张手牌和一名角色，该角色选择一种花色后获得这张牌，并将其置入明牌区。若此牌与所选花色不同，则你对该角色造成1点伤害。\n\n'
         u'|G愉快|r：|B锁定技|r，摸牌阶段摸牌后，你令一名角色摸一张牌。\n\n'
         u'|DB（画师：KOXO@星の妄想乡，CV：VV）|r'
     )
