@@ -17,7 +17,7 @@ class Medicine:
     port_image = 'thb-portrait-medicine'
     miss_sound_effect = 'thb-cv-medicine_miss'
     description = (
-        u'|DB 小小的甜蜜毒药 梅蒂欣 体力：3|r\n\n'
+        u'|DB小小的甜蜜毒药 梅蒂欣 体力：3|r\n\n'
         u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张手牌，令该角色获得喝醉状态。若该角色在该回合结束阶段开始时仍处于喝醉状态，其失去喝醉状态并选择一项：弃置一张手牌并令你摸一张牌或受到一点无来源伤害。\n\n'
         u'|G忧郁之毒|r：每当你受到X点有来源的伤害后，你可以摸X张牌并展示之，若其中有不为梅花的牌，伤害来源无法使用或打出手牌直到该回合结束。\n\n'
         u'|DB（画师：Pixiv ID 38268080，CV：VV）|r'
