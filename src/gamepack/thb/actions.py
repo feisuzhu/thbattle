@@ -952,6 +952,7 @@ class LaunchFatetellCard(GenericAction):
         assert act
         a = act(source=target, target=target)
         a.associated_card = card
+        self.card_action = a
         g.process_action(a)
         a.fatetell_postprocess()
         return True

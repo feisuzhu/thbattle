@@ -52,6 +52,7 @@ import shizuha
 
 # weektour
 import youmu20150620
+import mima20150705
 
 # special
 import akari

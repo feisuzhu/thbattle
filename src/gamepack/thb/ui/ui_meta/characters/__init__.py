@@ -47,3 +47,4 @@ from . import shizuha  # noqa
 
 # weektour
 from . import youmu20150620  # noqa
+from . import mima20150705  # noqa
