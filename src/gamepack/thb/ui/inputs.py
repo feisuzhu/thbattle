@@ -1040,6 +1040,39 @@ class UIMorphingCardSelection(CardSelectionPanel):
         super(UIMorphingCardSelection, self).delete()
 
 
+class UICraftsmanCardSelection(CardSelectionPanel):
+    last_cards = None
+
+    def __init__(self, parent, *a, **k):
+        CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)
+        self.view = parent
+        self.panel = None
+
+        from gamepack.thb.characters.nitori import Craftsman
+
+        cards = Craftsman.list_treat_as()
+        self.selection_mode = CardSelectionPanel.SINGLE
+        self.init([['', cards]], multiline=True)
+
+    def on_selection_change(self):
+        view = self.view
+        params = view.get_action_params()
+        if self.selection:
+            card = self.selection[0].associated_card
+            params['treat_as'] = card.__class__.__name__
+        else:
+            try:
+                del params['treat_as']
+            except:
+                pass
+
+        view.selection_change.notify()
+
+    def delete(self):
+        self.panel and self.panel.delete()
+        super(UICraftsmanCardSelection, self).delete()
+
+
 class UIDebugUseCardSelection(CardSelectionPanel):
     def __init__(self, parent, *a, **k):
         CardSelectionPanel.__init__(self, parent=parent, zindex=10, *a, **k)

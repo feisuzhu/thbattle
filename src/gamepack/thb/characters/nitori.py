@@ -3,10 +3,10 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import DrawCards, LaunchCard, Reforge, UseCard, UserAction
-from gamepack.thb.actions import random_choose_card, ttags
-from gamepack.thb.cards import Attack, AttackCard, GrazeCard, Skill, VirtualCard, t_One, t_OtherOne
+from game.autoenv import Game, user_input
+from gamepack.thb.actions import ActionLimitExceeded, ActionStageLaunchCard, DrawCards, EventHandler
+from gamepack.thb.actions import Reforge, UserAction, random_choose_card, ttags
+from gamepack.thb.cards import AttackCard, Card, Skill, TreatAs, t_OtherOne
 from gamepack.thb.characters.baseclasses import Character, register_character_to
 from gamepack.thb.inputlets import ChoosePeerCardInputlet
 
@@ -20,10 +20,10 @@ class DismantleAction(UserAction):
         g = Game.getgame()
         c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('equips', )))
         c = c or random_choose_card([tgt.equips])
+        if not c: return False
 
-        if c:
-            g.process_action(Reforge(src, tgt, c))
-            g.process_action(DrawCards(tgt, 1))
+        g.process_action(Reforge(src, tgt, c))
+        g.process_action(DrawCards(tgt, 1))
 
         return True
 
@@ -34,45 +34,53 @@ class DismantleAction(UserAction):
 class Dismantle(Skill):
     associated_action = DismantleAction
     skill_category = ('character', 'active')
-    target = t_One
+    target = t_OtherOne
 
     def check(self):
         return not self.associated_cards
 
 
-class Craftsman(Skill):
-    associated_action = Attack
-    target = t_OtherOne
+class Craftsman(TreatAs, Skill):
     skill_category = ('character', 'active')
-    category = ('basic', )
-    distance = 1
-    usage = 'launch'
 
-    def is_card(self, cls):
-        for c in (AttackCard, GrazeCard, self.__class__):
-            if issubclass(c, cls):
-                return True
-
-        return False
+    @property
+    def treat_as(self):
+        params = getattr(self, 'action_params', {})
+        return Card.card_classes.get(params.get('treat_as'), AttackCard)
 
     def check(self):
         cl = self.associated_cards
         p = self.player
-        return cl and set(cl) == (set(p.cards) | set(p.showncards))
+
+        if 'basic' not in self.treat_as.category:
+            return False
+
+        if not cl and set(cl) == (set(p.cards) | set(p.showncards)):
+            return False
+
+        return True
+
+    @classmethod
+    def list_treat_as(cls):
+        return [c() for c in Card.card_classes.values() if 'basic' in c.category]
 
 
 class CraftsmanHandler(EventHandler):
-    interested = ('action_after', )
+    interested = ('action_after', 'action_shootdown')
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, (LaunchCard, UseCard)):
+        if evt_type == 'action_after' and isinstance(act, ActionStageLaunchCard):
             c = act.card
-            s = VirtualCard.find_in_hierarchy(c, Craftsman)
-            if not s: return act
-            cards = VirtualCard.unwrap([s])
-            if not all('basic' in i.category for i in cards): return act
-            g = Game.getgame()
-            g.process_action(DrawCards(act.source, 1))
+            if c.is_card(Craftsman):
+                src = act.source
+                ttags(src)['craftsman'] = True
+
+        elif evt_type == 'action_shootdown':
+            if not isinstance(act, ActionStageLaunchCard): return act
+            c = act.card
+            if not c.is_card(Craftsman): return act
+            if ttags(act.source)['craftsman']:
+                raise ActionLimitExceeded
 
         return act
 

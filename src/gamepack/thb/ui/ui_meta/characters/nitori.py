@@ -34,25 +34,22 @@ class Dismantle:
         return (True, u'拆解！')
 
     def sound_effect(act):
-        if act.source is act.target:
-            return 'thb-cv-nitori_dismantle'
-        else:
-            return random.choice([
-                'thb-cv-nitori_dismantle',
-                'thb-cv-nitori_dismantle_other',
-            ])
+        return random.choice([
+            'thb-cv-nitori_dismantle',
+            'thb-cv-nitori_dismantle_other',
+        ])
 
 
 class Craftsman:
     name = u'匠心'
+    params_ui = 'UICraftsmanCardSelection'
 
     def clickable(g):
         try:
             if not g.me.cards and not g.me.showncards:
                 return False
 
-            act = g.hybrid_stack[-1]
-            if not act.cond([characters.nitori.Craftsman(g.me)]):
+            if ttags(g.me)['craftsman']:
                 return False
 
             return True
@@ -75,7 +72,7 @@ class Craftsman:
         if not rst:
             return (rst, reason)
         else:
-            return cards.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
+            return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
 
     def effect_string(act):
         # for LaunchCard.effect_string
@@ -87,20 +84,18 @@ class Craftsman:
 
     def sound_effect(act):
         if isinstance(act, actions.LaunchCard):
-            if act.force_action and act.force_action is cards.GrazeAction:
-                l = ['_graze']
-            else:
+            if act.card.is_card(cards.AttackCard):
                 l = ['1', '2']
+            else:
+                l = ['_graze']
 
         elif isinstance(act, actions.AskForCard):
             atk = act.cond([build_handcard(cards.AttackCard, act.target)])
             graze = act.cond([build_handcard(cards.GrazeCard, act.target)])
             if atk and not graze:
                 l = ['1', '2']
-            elif not atk and graze:
-                l = ['_graze']
             else:
-                l = None
+                l = ['_graze']
         else:
             l = None
 
@@ -114,11 +109,11 @@ class Nitori:
     description = (
         u'|DB水中的工程师 河城荷取 体力：3|r\n'
         u'\n'
-        u'|G拆解|r：出牌阶段限一次，你可以|B重铸|r一名角色装备区里的一张装备牌，然后该角色摸一张牌。\n'
+        u'|G拆解|r：出牌阶段限一次，你可以|B重铸|r一名其他角色装备区里的一张装备牌，然后该角色摸一张牌。\n'
         u'\n'
-        u'|G匠心|r：你可以将你的全部手牌（至少1张）当做|G弹幕|r或|G擦弹|r使用或打出。若这些牌均为基本牌，你摸一张牌。\n'
+        u'|G匠心|r：你可以将你的全部手牌（至少1张）当做任意的一张基本牌使用或打出。出牌阶段内使用时，一回合限一次。\n'
         u'\n'
         u'|RKOF不平衡角色|r\n'
         u'\n'
-        u'|DB（CV：简翎）|r\n'
+        u'|DB（CV：简翎）|r'
     )
