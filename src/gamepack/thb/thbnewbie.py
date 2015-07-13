@@ -618,3 +618,6 @@ class THBattleNewbie(Game):
         p.special = CardList(p, 'special')  # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
         p.tags = defaultdict(int)
+
+    def get_stats(g):
+        return []

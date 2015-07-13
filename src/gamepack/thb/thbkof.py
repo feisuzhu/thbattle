@@ -8,10 +8,11 @@ import logging
 # -- third party --
 # -- own --
 from game import sync_primitive
-from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, user_input, list_shuffle
-from gamepack.thb.actions import PlayerDeath, DistributeCards, PlayerTurn, RevealIdentity
+from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, list_shuffle
+from game.autoenv import user_input
+from gamepack.thb.actions import DistributeCards, PlayerDeath, PlayerTurn, RevealIdentity
 from gamepack.thb.actions import action_eventhandlers
-from gamepack.thb.characters.baseclasses import mixin_character
+from gamepack.thb.characters.baseclasses import Character, mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity
 from gamepack.thb.inputlets import ChooseGirlInputlet
 from utils import Enum, filter_out
@@ -102,6 +103,8 @@ class THBattleKOF(Game):
     def game_start(g, params):
         # game started, init state
         from . import cards
+
+        g.pick_history = []
 
         g.deck = cards.Deck(cards.kof_card_definition)
         g.ehclasses = []
@@ -267,6 +270,8 @@ class THBattleKOF(Game):
 
         g.emit_event('switch_character', (p, new))
 
+        g.pick_history.append([cls, p])
+
         return new
 
     def decorate(g, p):
@@ -281,3 +286,13 @@ class THBattleKOF(Game):
         p.special = CardList(p, 'special')  # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
         p.tags = defaultdict(int)
+
+    def get_stats(g):
+        to_p = lambda p: p.player if isinstance(p, Character) else p
+        history = [(cls.__name__, to_p(p)) for cls, p in g.pick_history]
+        return [{'event': 'pick', 'attributes': {
+            'character': p.__class__.__name__,
+            'gamemode': g.__class__.__name__,
+            'identity': '-',
+            'victory': p is g.winners[0].player,
+        }} for name, p in history]
