@@ -2,7 +2,7 @@
 
 # -- stdlib --
 import json
-import os
+import sys
 import uuid
 
 # -- third party --
@@ -37,7 +37,7 @@ def _stats(events):
                 data=json.dumps({
                     'client': {
                         'id': UserSettings.client_id,
-                        'platform': os.uname()[0],
+                        'platform': sys.platform,
                         'app_version': VERSION,
                         'app_channel': 'thbattle.net',
                     },
