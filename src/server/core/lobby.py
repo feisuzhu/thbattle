@@ -26,6 +26,7 @@ from options import options
 from settings import VERSION
 from utils import BatchList, instantiate, log_failure
 from utils.misc import throttle
+from utils.stats import stats
 
 
 # -- code --
@@ -373,7 +374,6 @@ class Lobby(object):
 
     def user_join(self, user):
         uid = user.account.userid
-
         user.state = 'hang'
         user.observing = None
         log.info(u'User %s joined, online user %d' % (user.account.username, len(self.users)))
@@ -453,7 +453,9 @@ class Lobby(object):
 
         log.info("join game")
 
-        manager.join_game(user, slot, observing=user.state == 'observing')
+        # TOO HACKY, PAL
+        observing = user.state == 'observing'
+        manager.join_game(user, slot, observing=observing)
         self.refresh_status()
 
     def clear_observers(self, user):
@@ -497,6 +499,7 @@ class Lobby(object):
 
     def start_game(self, manager):
         log.info("game started")
+        stats({'event': 'start_game', 'attributes': {'gametype': manager.gamecls.__name__}})
         manager.start_game()
         self.refresh_status()
 

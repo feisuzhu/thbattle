@@ -26,8 +26,9 @@ from client.ui.base import Control, Overlay
 from client.ui.base.interp import InterpDesc, LinearInterp
 from client.ui.resloader import L
 from utils import flatten, inpoly, instantiate, pyperclip, rectv2f, rrectv2f, textsnap
+from utils.stats import stats
 
-# -- code --
+
 # -- code --
 KEYMOD_MASK = key.MOD_CTRL | key.MOD_ALT | key.MOD_SHIFT
 log = logging.getLogger('UI_Controls')
@@ -1012,7 +1013,7 @@ class PlayerPortrait(Frame):
             def on_click(btn=btn, cmd=command):
                 cmd()
 
-        btn(u'请离', lambda: self.userid and Executive.kick_user(self.userid), 90, 55, 32, 20)
+        btn(u'请离', lambda: [stats({'event': 'kick'}), self.userid and Executive.kick_user(self.userid)], 90, 55, 32, 20)
 
     def update(self):
         acc = self.account
@@ -2090,8 +2091,10 @@ class VolumeTuner(Control):
         from client.ui.soundmgr import SoundManager
         if SoundManager.muted:
             SoundManager.unmute()
+            stats({'event': 'unmute'})
         else:
             SoundManager.mute()
+            stats({'event': 'mute'})
 
     def on_mouse_scroll(self, x, y, dx, dy):
         from client.ui.soundmgr import SoundManager
@@ -2180,6 +2183,10 @@ class NoInviteButton(OptionButton):
         from user_settings import UserSettings
         UserSettings.setting_change -= self
         OptionButton.delete(self)
+
+    def on_click(self):
+        OptionButton.on_click(self)
+        stats({'event': 'disable_invitation' if self.value else 'enable_invitation'})
 
 
 class CheckBox(Control):

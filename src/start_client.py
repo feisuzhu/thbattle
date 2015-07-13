@@ -67,6 +67,7 @@ def start_client():
     monkey.patch_socket()
     monkey.patch_os()
     monkey.patch_select()
+    monkey.patch_ssl()
 
     from game import autoenv
     autoenv.init('Client')
@@ -112,6 +113,8 @@ def start_client():
 
         if not options.no_crashreport:
             log.error(u'游戏崩溃，正在报告bug，请稍等下……')
+            from utils.stats import stats
+            stats({'event': 'crash'})
             from crashreport import do_crashreport
             do_crashreport()
 

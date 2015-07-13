@@ -28,6 +28,16 @@ HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 ACCOUNT_MODULE = 'freeplay' if options.freeplay else 'forum_integration'
 ACCOUNT_FORUMURL = 'http://www.thbattle.net'
 
+IS_PROTON = hasattr(os, 'uname') and ''.join(os.uname()).startswith('LinuxProton')
+
+if IS_PROTON:
+    # for debug
+    LEANCLOUD_APPID = '2h0vs77zmac59mdwimxhndan8ju61kyfdjaenr7o6xs788j3'
+    LEANCLOUD_APPKEY = 'qvdgnat506l4gmwwjbwv6qrsiej1uldznmu0gaagk23l928g'
+else:
+    LEANCLOUD_APPID = 'zuqyou98gvr3s7z3rnx27n8g8yoqu6lpwtl8jmbnq4mabbyd'
+    LEANCLOUD_APPKEY = '6va366frgv69lr28u58g0d2dw42523cvdztjmgho82bepf6x'
+
 TESTING_CHARACTERS = (
 )
 
@@ -50,9 +60,6 @@ def _get_box(vlist):
 
 
 class ServerList:
-    import os
-    IS_PROTON = hasattr(os, 'uname') and ''.join(os.uname()).startswith('LinuxProton')
-    del os
 
     class hakurei:
         address = ('cngame.thbattle.net', 8999)
@@ -113,8 +120,6 @@ class ServerList:
             u'旁边有一个神奇的物品店，只是店主有点变态。\n\n'
             u'|DB服务器地址： %s|r'
         ) % repr(address)
-
-    del IS_PROTON
 
 
 NOTICE = u'''

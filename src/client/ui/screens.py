@@ -36,8 +36,9 @@ from utils import inpoly, openurl, rect_to_dict as r2d, textsnap
 from utils.crypto import simple_decrypt, simple_encrypt
 from utils.filedlg import get_open_file_name, get_save_file_name
 from utils.misc import BatchList
+from utils.stats import stats
 
-# -- code --
+
 # -- code --
 RE_AT = re.compile(ur'@([^@ ]+)')
 log = logging.getLogger('UI_Screens')
@@ -156,6 +157,7 @@ class ChatBox(Frame):
             if text.startswith(u'`') and len(text) > 1:
                 text = text[1:]
                 if not text: return
+                stats({'event': 'speaker', 'attributes': {'length': len(text)}})
                 Executive.speaker(text)
             elif text.startswith(u'/'):
                 from . import commands
@@ -163,6 +165,7 @@ class ChatBox(Frame):
                 msg = commands.process_command(cmdline)
                 msg and self.append(msg)
             else:
+                stats({'event': 'chat', 'attributes': {'length': len(text)}})
                 Executive.chat(text)
 
     def append(self, v):
@@ -189,6 +192,7 @@ class Screen(Overlay):
     def on_message(self, _type, *args):
         if _type == 'server_dropped':
             c = ConfirmBox(u'已经与服务器断开链接，请重新启动游戏！', parent=Screen.cur_overlay)
+            stats({'event': 'server_dropped'})
 
             @c.event
             def on_confirm(v):
@@ -278,6 +282,7 @@ class UpdateScreen(Screen):
             if rst == 'update_disabled':
                 box = ConfirmBox(u'自动更新已经禁用', parent=self)
             elif rst == 'error':
+                stats({'event': 'update_error'})
                 box = ConfirmBox(u'更新过程出现错误，你可能不能正常游戏！', parent=self)
 
             if box:
@@ -330,6 +335,7 @@ class ReplayButton(ImageButton):
                     self.state = ImageButton.NORMAL
                     return
 
+            stats({'event': 'watch_replay'})
             g = Executive.start_replay(rep, ui_message)
             ReplayScreen(g, rep).switch()
 
@@ -457,6 +463,7 @@ class ServerSelectScreen(Screen):
         elif _type == 'server_connect_failed':
             self.highlight_layer.enable_click()
             log.error('Server connect failed.')
+            stats({'event': 'server_connect_failed'})
             ConfirmBox(u'服务器连接失败！', parent=self)
 
         elif _type == 'version_mismatch':
@@ -529,6 +536,7 @@ class LoginScreen(Screen):
 
             @self.btn_reg.event  # noqa
             def on_click():
+                stats({'event': 'register_clicked'})
                 openurl('http://www.thbattle.net')
 
         def do_login(self):
@@ -568,6 +576,7 @@ class LoginScreen(Screen):
             @confirm.event
             def on_confirm(val):
                 self.start_login()
+                stats({'event': 'login_try'})
                 val and Executive.auth('-1', 'guest')
 
     def on_message(self, _type, *args):
@@ -578,6 +587,7 @@ class LoginScreen(Screen):
                 dlg.txt_pwd.text if dlg.chk_savepwd.value else ''
             )
             GameHallScreen().switch()
+            stats({'event': 'login'})
 
         elif _type == 'auth_failure':
             log.error('Auth failure')
@@ -703,6 +713,7 @@ class GameHallScreen(Screen):
                     f = pyglet.font.load('AncientPix', 9)
                     roomname = textsnap(txtbox.text, f, 200)
                     Executive.create_game(gtype, roomname, self.chk_invite_only.value)
+                    stats({'event': 'create_game', 'attributes': {'gametype': gtype}})
                     self.delete()
 
                 @btncancel.event  # noqa
@@ -769,6 +780,7 @@ class GameHallScreen(Screen):
 
                         @s.event
                         def on_click(uid=acc.userid, un=acc.username):
+                            stats({'event': 'observe'})
                             Executive.observe_user(uid)
                             self.overlay.chat_box.append(u'|R已经向%s发送了旁观请求，请等待回应……|r\n' % un)
                             self.delete()
@@ -810,6 +822,7 @@ class GameHallScreen(Screen):
                 if li.started:
                     self.ObserveGamePanel(li.game_id, parent=self.overlay)
                 else:
+                    stats({'event': 'join_game', 'attributes': {'gametype': li.gtype}})
                     Executive.join_game(li.game_id)
 
         def on_message(self, _type, *args):
@@ -835,6 +848,7 @@ class GameHallScreen(Screen):
                         [u'等待中', u'游戏中'][gi['started']],
                     ], color=(0, 0, 0, 255) if gi['started'] else (0xef, 0x75, 0x45, 0xff))
                     li.game_id = gi['id']
+                    li.gtype = gi['type']
                     li.started = gi['started']
 
     class OnlineUsers(Frame):
@@ -940,6 +954,7 @@ class GameHallScreen(Screen):
 
         @b.event
         def on_click():
+            stats({'event': 'qqqun_button'})
             openurl('http://shang.qq.com/wpa/qunwpa?idkey=e25b8a940bf6e5409c48d7dac3681257c47b341c97b0d1d9c3b278d650aa8b0b')
 
         b = Button(
@@ -950,6 +965,7 @@ class GameHallScreen(Screen):
 
         @b.event
         def on_click():
+            stats({'event': 'thbio_button'})
             openurl('http://thb.io')
 
         del on_click
@@ -961,6 +977,7 @@ class GameHallScreen(Screen):
 
         @b.event
         def on_click():
+            stats({'event': 'switch_server_button'})
             Executive.disconnect()
             ServerSelectScreen().switch()
 
@@ -1098,6 +1115,7 @@ class GameScreen(Screen):
                     @s.event
                     def on_click(s=s, uid=u.userid, un=u.username):
                         Executive.invite_user(uid)
+                        stats({'event': 'invite'})
                         self.overlay.chat_box.append(u'|R已经邀请了%s，请等待回应……|r\n' % un)
                         s.state = Button.DISABLED
 
@@ -1300,6 +1318,7 @@ class GameScreen(Screen):
 
             @box.event
             def on_confirm(val):
+                stats({'event': 'exit_game_button'})
                 val and Executive.exit_game()
 
     def on_message(self, _type, *args):

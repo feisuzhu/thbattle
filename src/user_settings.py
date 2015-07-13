@@ -5,11 +5,13 @@ import atexit
 import json
 import logging
 import os.path
+import uuid
 
 # -- third party --
 # -- own --
 from utils.crypto import simple_encrypt
 from utils.misc import ObservableEvent
+
 
 # -- code --
 log = logging.getLogger('user_settings')
@@ -71,6 +73,7 @@ UserSettings.add_setting('sound_notify', True)
 UserSettings.add_setting('bgm_volume', 1.0)
 UserSettings.add_setting('se_volume', 1.0)
 UserSettings.add_setting('blocked_users', [])
+UserSettings.add_setting('client_id', str(uuid.uuid4()))
 
 UserSettings.load()
 

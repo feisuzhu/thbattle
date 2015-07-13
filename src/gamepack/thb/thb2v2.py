@@ -145,6 +145,8 @@ class THBattle2v2(Game):
         # game started, init state
         from cards import Deck
 
+        g.stats = []
+
         g.deck = Deck()
         g.ehclasses = []
 
@@ -210,6 +212,15 @@ class THBattle2v2(Game):
                 trans.notify('girl_chosen', (p, c))
 
         assert len(banned) == 4
+
+        g.stats.extend([
+            {'event': 'ban', 'attributes': {
+                'gamemode': g.__class__.__name__,
+                'character': i.__name__
+            }}
+            for i in banned
+        ])
+
         chars = [_c for _c in chars if _c not in banned]
 
         g.random.shuffle(chars)
@@ -304,3 +315,13 @@ class THBattle2v2(Game):
         p.special        = CardList(p, 'special')     # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
         p.tags           = defaultdict(int)
+
+    def get_stats(g):
+        stats = g.stats[:]
+        stats.extend([{'event': 'pick', 'attributes': {
+            'character': p.__class__.__name__,
+            'gamemode': g.__class__.__name__,
+            'identity': '-',
+            'victory': p in g.winners,
+        }} for p in g.players])
+        return stats

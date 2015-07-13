@@ -15,7 +15,9 @@ from endpoint import EndpointDied
 from game import GameEnded, InputTransaction, TimeLimitExceeded
 from utils import log_failure
 from utils.gevent_ext import iwait
+from utils.stats import stats
 import game
+
 
 # -- code --
 log = logging.getLogger('Game_Server')
@@ -260,6 +262,8 @@ class Game(Greenlet, game.Game):
             lobby.end_game(self.manager)
 
         assert self.ended
+
+        stats(*self.get_stats())
 
     @staticmethod
     def getgame():

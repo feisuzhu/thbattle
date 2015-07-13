@@ -8,6 +8,7 @@ import gevent
 
 # -- own --
 from client.core import Executive
+from utils.stats import stats
 
 # -- code --
 log = logging.getLogger('commands')
@@ -127,6 +128,7 @@ def help(cmdname):
 @argtypes(int)
 @argdesc(u'<uid>')
 def kickob(uid):
+    stats({'event': 'kick_ob'})
     Executive.kick_observer(uid)
 
     # reply by server message later

@@ -344,3 +344,11 @@ class THBattleIdentity(Game):
         p.special        = CardList(p, 'special')      # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]  # cardlists should shown to others
         p.tags           = defaultdict(int)
+
+    def get_stats(g):
+        return [{'event': 'pick', 'attributes': {
+            'character': p.__class__.__name__,
+            'gamemode': g.__class__.__name__,
+            'identity': Identity.TYPE.rlookup(p.identity.type),
+            'victory': p in g.winners,
+        }} for p in g.players]

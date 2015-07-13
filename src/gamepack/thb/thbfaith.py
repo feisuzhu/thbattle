@@ -10,9 +10,8 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
-from gamepack.thb.actions import DistributeCards, GenericAction, MigrateCardsTransaction
-from gamepack.thb.actions import PlayerDeath, PlayerTurn, RevealIdentity, action_eventhandlers
-from gamepack.thb.actions import migrate_cards
+from gamepack.thb.actions import DistributeCards, MigrateCardsTransaction, PlayerDeath, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, action_eventhandlers, migrate_cards
 from gamepack.thb.characters.baseclasses import mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity, sync_primitive
 from gamepack.thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
@@ -106,6 +105,8 @@ class THBattleFaith(Game):
     def game_start(g, params):
         # game started, init state
         from cards import Deck
+
+        g.picks = []
 
         g.deck = Deck()
 
@@ -251,6 +252,7 @@ class THBattleFaith(Game):
         g.players.reveal(choice)
         cls = choice.char_cls
 
+        g.picks.append(cls)
         log.info(u'>> NewCharacter: %s %s', Identity.TYPE.rlookup(p.identity.type), cls.__name__)
 
         # mix char class with player -->
@@ -290,3 +292,11 @@ class THBattleFaith(Game):
             return -1, -1
 
         return h, m
+
+    def get_stats(g):
+        return [{'event': 'pick', 'attributes': {
+            'character': p.__name__,
+            'gamemode': g.__class__.__name__,
+            'identity': '-',
+            'victory': None,
+        }} for p in g.picks]
