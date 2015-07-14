@@ -20,6 +20,7 @@ class CardList:
 
         # for skills
         'yukari_dimension': u'隙间',
+        'meirin_qiliao': u'气',
     }
 
 
