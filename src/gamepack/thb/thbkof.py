@@ -289,10 +289,9 @@ class THBattleKOF(Game):
 
     def get_stats(g):
         to_p = lambda p: p.player if isinstance(p, Character) else p
-        history = [(cls.__name__, to_p(p)) for cls, p in g.pick_history]
         return [{'event': 'pick', 'attributes': {
             'character': p.__class__.__name__,
             'gamemode': g.__class__.__name__,
             'identity': '-',
-            'victory': p is g.winners[0].player,
-        }} for name, p in history]
+            'victory': to_p(p) is g.winners[0].player,
+        }} for p in g.pick_history]
