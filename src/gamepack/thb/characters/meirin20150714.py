@@ -33,6 +33,10 @@ class QiliaoAction(UserAction):
 
     def is_valid(self):
         tgt = self.target
+        g = Game.getgame()
+        cl = self.associated_card.associated_cards
+        n = len([p for p in g.players if not p.dead]) / 2
+        if not 0 < len(cl) <= n: return False
         return not ttags(tgt)['qiliao']
 
 
@@ -46,7 +50,6 @@ class Qiliao(Skill):
 
     def check(self):
         cl = self.associated_cards
-        if not 0 < len(cl) <= 3: return False
         if not all([c.is_card(PhysicalCard) or c.is_card(HiddenCard) for c in cl]):
             return False
 
@@ -123,7 +126,7 @@ class QiliaoRecoverHandler(EventHandler):
         return (tl[-1:], True)
 
 
-@register_character
+# @register_character
 class Meirin20150714(Character):
     skills = [Qiliao]
     eventhandlers_required = [QiliaoDropHandler, QiliaoRecoverHandler]
