@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 253'
+VERSION = 'THBATTLE V1.0b incr 254'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -132,6 +132,10 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+新人物：秋静叶
+人物微调：河城荷取、魔理沙、多多良小伞、秋穰子、蕾米莉亚
+爱丽丝暂时神隐，等待推重
+----------------------
 邀请制房间：只有被邀请的玩家可以加入游戏，可用于开黑。
 GM功能：黑幕组现在有权强制观战用来收集信息。使用此权力时会有相应提示。
 |s2ff0000ff|W现在所有的房间内聊天都会记录日志，请文明游戏，并且不要在聊天中透露敏感信息。黑幕组会根据聊天日志对违规玩家做处罚。|r
@@ -140,12 +144,4 @@ bug修复
 新人物：河城荷取
 人物重做：伊吹萃香
 各种bug修复。
-----------------------
-铃仙：移除了生药的cost
-新人物：少名针妙丸
-KOF模式调整：选将流程调整、专有牌堆、特别修正的角色
-8人身份场调整：黑幕的胜利条件修改为“在城管全部MISS的情况下击坠BOSS”
-新人教学模式的对话有配音了（Thanks to VV、君寻、星野樱羽）
-白楼剑削弱
-一堆bug修复
 '''.strip()
