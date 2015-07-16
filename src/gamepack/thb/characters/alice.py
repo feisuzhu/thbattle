@@ -156,7 +156,7 @@ class MaidensBunrakuKOFHandler(EventHandler):
         return act
 
 
-@register_character_to('common', '-kof')
+# @register_character_to('common', '-kof')
 class Alice(Character):
     skills = [LittleLegion, MaidensBunraku]
     eventhandlers_required = [
@@ -167,7 +167,7 @@ class Alice(Character):
     maxlife = 3
 
 
-@register_character_to('kof')
+# @register_character_to('kof')
 class AliceKOF(Character):
     skills = [LittleLegion, MaidensBunrakuKOF]
     eventhandlers_required = [
