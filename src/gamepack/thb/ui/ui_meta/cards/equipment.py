@@ -600,7 +600,7 @@ class AyaRoundfanCard:
     description = (
         u'|R团扇|r\n\n'
         u'攻击距离5，装备后：当你使用的【弹幕】对目标角色造成伤害时，你可以弃置一张手牌，然后弃置其装备区里的一张牌。\n\n'
-        u'|DB（CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
 
