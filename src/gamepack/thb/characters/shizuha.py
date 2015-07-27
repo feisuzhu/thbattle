@@ -76,7 +76,7 @@ class AutumnWindHandler(EventHandler):
                 not p.dead
             ]
 
-            pl = user_choose_players(self, tgt, candidates)
+            pl = candidates and user_choose_players(self, tgt, candidates)
             if not pl:
                 return act
 
