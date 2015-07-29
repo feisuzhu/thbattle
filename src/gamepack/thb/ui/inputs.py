@@ -1135,6 +1135,7 @@ class UIGalgameDialog(Control, InputHandler):
         self.trans = trans
         self.should_draw = False
         self.lbls = pyglet.graphics.Batch()
+        self.player = None
 
     def process_user_input(self, ilet):
         meta = ilet.character.ui_meta
@@ -1167,8 +1168,6 @@ class UIGalgameDialog(Control, InputHandler):
 
         if ilet.voice:
             self.player = SoundManager.play(ilet.voice)
-        else:
-            self.player = None
 
         b = SmallProgressBar(parent=self, x=self.width - 140, y=0, width=140)
         b.value = LinearInterp(1.0, 0.0, ilet.timeout)

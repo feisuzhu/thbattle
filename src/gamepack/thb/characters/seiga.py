@@ -50,12 +50,13 @@ class HeterodoxyAction(UserAction):
         tgts = self.target_list[1:]
 
         g.players.reveal(card)
-        card.move_to(victim.cards)  # HACK: Silently, no events
+        # card.move_to(victim.cards)  # HACK: Silently, no events
         # migrate_cards([self.associated_card], victim.cards, unwrap=migrate_cards.SINGLE_LAYER)
 
         if card.is_card(AttackCard):
             src.tags['attack_num'] -= 1
 
+        # XXX: Use card owned by other
         lc = LaunchCard(victim, tgts, card)
 
         g = Game.getgame()
@@ -69,6 +70,9 @@ class HeterodoxyAction(UserAction):
         if card.is_card(AttackCard) and src.tags['attack_num'] < 1:
             if not AttackCardHandler.is_freeattack(src):
                 return False
+
+        if card.usage != 'launch':
+            return False
 
         victim = self.target
         tgts = self.target_list[1:]
