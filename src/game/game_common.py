@@ -308,7 +308,7 @@ class Game(GameObject):
         self.event_handlers = []
         self.adhoc_ehs      = []
         self.ehs_cache      = {}
-        self.action_stack   = []
+        self.action_stack   = [None]
         self.hybrid_stack   = []
         self.action_types   = {}
         self.ended          = False
