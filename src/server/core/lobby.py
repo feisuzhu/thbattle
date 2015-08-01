@@ -883,7 +883,7 @@ class Lobby(object):
             operator.write(['system_msg', [None, u'参赛人数不正确']])
             return
 
-        manager = GameManager(gid, gamecls, name)
+        manager = GameManager(gid, gamecls, name, False)
         pl = []
         for i in players:
             try:
