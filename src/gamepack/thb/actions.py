@@ -455,11 +455,10 @@ class MaxLifeChange(GenericAction):
 # ---------------------------------------------------
 
 class DropCards(GenericAction):
-    def __init__(self, source, target, cards, detached=False):
+    def __init__(self, source, target, cards):
         self.source = source
         self.target = target
         self.cards = cards
-        self.detached = detached
 
     def apply_action(self):
         g = Game.getgame()
@@ -999,7 +998,7 @@ class ForEach(UserAction):
         return getattr(act, 'parent_action', None)
 
     @classmethod
-    def is_group(self, act):
+    def is_group_effect(self, act):
         return getattr(self.get_actual_action(act), 'group_effect', False)
 
 

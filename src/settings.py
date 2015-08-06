@@ -46,6 +46,7 @@ else:
     LEANCLOUD_APPKEY = '6va366frgv69lr28u58g0d2dw42523cvdztjmgho82bepf6x'
 
 TESTING_CHARACTERS = (
+    'Satori20150804',
 )
 
 

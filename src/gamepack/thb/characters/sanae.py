@@ -227,7 +227,7 @@ class GodDescendantHandler(EventHandler):
     execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and ForEach.is_group(act):
+        if evt_type == 'action_before' and ForEach.is_group_effect(act):
             g = Game.getgame()
             tgt = act.target
             if not tgt.has_skill(GodDescendant):

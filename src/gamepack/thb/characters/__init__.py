@@ -54,6 +54,7 @@ import shizuha
 import youmu20150620
 import mima20150705
 import meirin20150714
+import satori20150804
 
 # special
 import akari
