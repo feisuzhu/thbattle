@@ -746,6 +746,7 @@ class ActionStage(GenericAction):
         self.target = target
         self.in_user_input = False
         self.one_shot = one_shot
+        self._force_break = False
 
     def apply_action(self):
         g = Game.getgame()
@@ -772,15 +773,23 @@ class ActionStage(GenericAction):
                 if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
-                    break
+                    check(False)
 
-                if self.one_shot:
+                if self.one_shot or self._force_break:
                     break
 
         except CheckFailed:
             pass
 
         return True
+
+    @staticmethod
+    def force_break():
+        g = Game.getgame()
+        for a in g.action_stack:
+            if isinstance(a, ActionStage):
+                a._force_break = True
+                break
 
     def cond(self, cl):
         from .cards import Skill
@@ -793,7 +802,7 @@ class ActionStage(GenericAction):
         c = cl[0]
         return (
             c.is_card(Skill) or c.resides_in in (tgt.cards, tgt.showncards)
-        ) and (c.associated_action)
+        ) and bool(c.associated_action)
 
     def ask_for_action_verify(self, p, cl, tl):
         assert len(cl) == 1

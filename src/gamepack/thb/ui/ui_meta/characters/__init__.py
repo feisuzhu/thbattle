@@ -1,52 +1,55 @@
-from . import akari  # noqa
-from . import alice  # noqa
-from . import chen  # noqa
-from . import cirno  # noqa
-from . import daiyousei  # noqa
-from . import eirin  # noqa
-from . import flandre  # noqa
-from . import kaguya  # noqa
-from . import koakuma  # noqa
-from . import kogasa  # noqa
-from . import komachi  # noqa
-from . import marisa  # noqa
-from . import meirin  # noqa
-from . import minoriko  # noqa
-from . import momiji  # noqa
-from . import nazrin  # noqa
-from . import parsee  # noqa
-from . import patchouli  # noqa
-from . import ran  # noqa
-from . import reimu  # noqa
-from . import remilia  # noqa
-from . import rinnosuke  # noqa
-from . import rumia  # noqa
-from . import sakuya  # noqa
-from . import sanae  # noqa
-from . import seiga  # noqa
-from . import shikieiki  # noqa
-from . import suika  # noqa
-from . import tenshi  # noqa
-from . import tewi  # noqa
-from . import youmu  # noqa
-from . import yugi  # noqa
-from . import yukari  # noqa
-from . import yuuka  # noqa
-from . import mokou  # noqa
-from . import kokoro  # noqa
-from . import mamizou  # noqa
-from . import seija  # noqa
-from . import kanako  # noqa
-from . import medicine  # noqa
-from . import aya  # noqa
-from . import sp_flandre  # noqa
-from . import reisen  # noqa
-from . import shinmyoumaru  # noqa
-from . import nitori  # noqa
-from . import shizuha  # noqa
+# flake8: noqa
+
+from . import akari
+from . import alice
+from . import chen
+from . import cirno
+from . import daiyousei
+from . import eirin
+from . import flandre
+from . import kaguya
+from . import koakuma
+from . import kogasa
+from . import komachi
+from . import marisa
+from . import meirin
+from . import minoriko
+from . import momiji
+from . import nazrin
+from . import parsee
+from . import patchouli
+from . import ran
+from . import reimu
+from . import remilia
+from . import rinnosuke
+from . import rumia
+from . import sakuya
+from . import sanae
+from . import seiga
+from . import shikieiki
+from . import suika
+from . import tenshi
+from . import tewi
+from . import youmu
+from . import yugi
+from . import yukari
+from . import yuuka
+from . import mokou
+from . import kokoro
+from . import mamizou
+from . import seija
+from . import kanako
+from . import medicine
+from . import aya
+from . import sp_flandre
+from . import reisen
+from . import shinmyoumaru
+from . import nitori
+from . import shizuha
+from . import sp_aya
 
 # weektour
-from . import youmu20150620  # noqa
-from . import mima20150705  # noqa
-from . import meirin20150714  # noqa
-from . import satori20150804  # noqa
+from . import youmu20150620
+from . import mima20150705
+from . import meirin20150714
+from . import satori20150804

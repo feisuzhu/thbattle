@@ -271,7 +271,9 @@ class BaseDuel(UserAction):
         if not t.dead:
             g.process_action(Damage(s, t, amount=1))
 
-        return s is source
+        self.winner = s
+
+        return True
 
     def is_valid(self):
         return not self.target.dead
