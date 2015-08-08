@@ -773,7 +773,7 @@ class ActionStage(GenericAction):
                 if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
-                    break
+                    check(False)
 
                 if self.one_shot:
                     break
@@ -794,7 +794,7 @@ class ActionStage(GenericAction):
         c = cl[0]
         return (
             c.is_card(Skill) or c.resides_in in (tgt.cards, tgt.showncards)
-        ) and (c.associated_action)
+        ) and bool(c.associated_action)
 
     def ask_for_action_verify(self, p, cl, tl):
         assert len(cl) == 1

@@ -439,6 +439,11 @@ class Game(GameObject):
             log.debug('action invalid %s' % action.__class__.__name__)
             return False
 
+        try:
+            action.succeeded = False
+        except AttributeError:
+            pass
+
         action = self.emit_event('action_before', action)
         if action.done:
             log.debug('action already done %s' % action.__class__.__name__)

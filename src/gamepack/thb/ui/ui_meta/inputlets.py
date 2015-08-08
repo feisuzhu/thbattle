@@ -80,7 +80,7 @@ def pasv_handle_card_selection(g, ilet, cards):
 
     c = ilet.initiator.cond(cards)
     c1, text = ilet.initiator.ui_meta.choose_card_text(g, ilet.initiator, cards)
-    assert c == c1
+    assert c == c1, 'cond = %s, meta = %s' % (c, c1)
 
     if not c:
         raise ActionDisplayResult(False, text, False, [], [])
@@ -109,16 +109,19 @@ def pasv_handle_player_selection(g, ilet, players):
     return True, disables, players, reason
 
 
-def actv_handle_card_selection(g, cards):
+def actv_handle_card_selection(g, act, cards):
     if len(cards) != 1:
         raise ActionDisplayResult(False, u'请选择一张牌使用', False, [], [])
 
     walk_wrapped(cards, False)
     card = cards[0]
 
-    from gamepack.thb.cards import VirtualCard
-    if not card.is_card(VirtualCard) and card.resides_in not in (g.me.cards, g.me.showncards):
-        raise ActionDisplayResult(False, u'您选择的牌不符合出牌规则', False, [], [])
+    c = act.cond(cards)
+    c1, text = act.ui_meta.choose_card_text(g, act, cards)
+    assert c == c1, 'cond = %s, meta = %s' % (c, c1)
+
+    if not c:
+        raise ActionDisplayResult(False, text, False, [], [])
 
     return card
 
@@ -225,8 +228,10 @@ class ActionInputlet:
     def active_action_disp(ilet, skills, rawcards, params, players):
         g = Game.getgame()
 
+        stage = ilet.initiator
+
         if not skills and not rawcards:
-            raise ActionDisplayResult(False, u'请出牌…', False, [], [])
+            raise ActionDisplayResult(False, stage.ui_meta.idle_prompt, False, [], [])
 
         usage = getattr(ilet.initiator, 'card_usage', 'none')
 
@@ -238,7 +243,7 @@ class ActionInputlet:
         else:
             cards = rawcards
 
-        card = actv_handle_card_selection(g, cards)
+        card = actv_handle_card_selection(g, stage, cards)
         players, disables, prompt = actv_handle_target_selection(g, card, players)
 
         act = thbactions.ActionStageLaunchCard(g.me, players, card)

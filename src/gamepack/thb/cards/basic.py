@@ -66,6 +66,7 @@ class AttackCardHandler(EventHandler):
         elif evt_type == 'action_apply':
             if isinstance(act, ActionStageLaunchCard):
                 from .definition import AttackCard
+
                 if act.card.is_card(AttackCard):
                     src = act.source
                     src.tags['attack_num'] -= 1
