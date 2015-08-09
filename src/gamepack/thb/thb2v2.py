@@ -11,8 +11,8 @@ import random
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
 from gamepack.thb.actions import DeadDropCards, DistributeCards, DrawCardStage, DrawCards
-from gamepack.thb.actions import MigrateCardsTransaction, PlayerDeath, PlayerTurn, RevealIdentity
-from gamepack.thb.actions import UserAction, action_eventhandlers, migrate_cards
+from gamepack.thb.actions import GenericAction, MigrateCardsTransaction, PlayerDeath, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, UserAction, action_eventhandlers, migrate_cards
 from gamepack.thb.characters.baseclasses import mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity, sync_primitive
 from gamepack.thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
@@ -132,17 +132,15 @@ class Identity(PlayerIdentity):
         MORIYA = 2
 
 
-class THBattle2v2(Game):
-    n_persons    = 4
-    game_ehs     = _game_ehs
-    game_actions = _game_actions
-    params_def   = {
-        'random_force':    (True, False),
-        'draw_extra_card': (False, True),
-    }
+class THBattle2v2Bootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+        params = self.params
+
         from cards import Deck
 
         g.stats = []
@@ -279,6 +277,19 @@ class THBattle2v2(Game):
                     g.process_action(PlayerTurn(p))
                 except InterruptActionFlow:
                     pass
+
+        return True
+
+
+class THBattle2v2(Game):
+    n_persons    = 4
+    game_ehs     = _game_ehs
+    game_actions = _game_actions
+    bootstrap    = THBattle2v2Bootstrap
+    params_def   = {
+        'random_force':    (True, False),
+        'draw_extra_card': (False, True),
+    }
 
     def can_leave(g, p):
         return getattr(p, 'dead', False)

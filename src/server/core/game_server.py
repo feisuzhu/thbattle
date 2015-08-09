@@ -249,21 +249,21 @@ class Game(Greenlet, game.Game):
         game.Game.__init__(self)
 
     @log_failure(log)
-    def _run(self):
+    def _run(g):
         from server.core.lobby import lobby
-        self.synctag = 0
-        self.game = getcurrent()
-        lobby.start_game(self.manager)
+        g.synctag = 0
+        g.game = getcurrent()
+        lobby.start_game(g.manager)
         try:
-            self.game_start(self.manager.game_params)
+            g.process_action(g.bootstrap(g.manager.game_params))
         except GameEnded:
             pass
         finally:
-            lobby.end_game(self.manager)
+            lobby.end_game(g.manager)
 
-        assert self.ended
+        assert g.ended
 
-        stats(*self.get_stats())
+        stats(*g.get_stats())
 
     @staticmethod
     def getgame():

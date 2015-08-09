@@ -10,8 +10,8 @@ import logging
 from game import sync_primitive
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, list_shuffle
 from game.autoenv import user_input
-from gamepack.thb.actions import DistributeCards, PlayerDeath, PlayerTurn, RevealIdentity
-from gamepack.thb.actions import action_eventhandlers
+from gamepack.thb.actions import DistributeCards, GenericAction, PlayerDeath, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, action_eventhandlers
 from gamepack.thb.characters.baseclasses import Character, mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity
 from gamepack.thb.inputlets import ChooseGirlInputlet
@@ -95,13 +95,14 @@ class Identity(PlayerIdentity):
         MORIYA = 2
 
 
-class THBattleKOF(Game):
-    n_persons  = 2
-    game_ehs   = _game_ehs
-    params_def = {}
+class THBattleKOFBootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+
         from . import cards
 
         g.pick_history = []
@@ -237,6 +238,13 @@ class THBattleKOF(Game):
                 g.process_action(PlayerTurn(p))
             except InterruptActionFlow:
                 pass
+
+
+class THBattleKOF(Game):
+    n_persons  = 2
+    game_ehs   = _game_ehs
+    bootstrap  = THBattleKOFBootstrap
+    params_def = {}
 
     def get_opponent(g, p):
         a, b = g.players

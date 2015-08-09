@@ -10,8 +10,9 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, NPC, user_input
 from gamepack.thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCards
-from gamepack.thb.actions import FatetellStage, LaunchCard, PlayerDeath, PlayerTurn, RevealIdentity
-from gamepack.thb.actions import ShuffleHandler, action_eventhandlers, ask_for_action, migrate_cards
+from gamepack.thb.actions import FatetellStage, GenericAction, LaunchCard, PlayerDeath, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, ShuffleHandler, action_eventhandlers
+from gamepack.thb.actions import ask_for_action, migrate_cards
 from gamepack.thb.cards import AskForHeal, AttackCard, Card, Demolition, DemolitionCard
 from gamepack.thb.cards import ElementalReactorCard, ExinwanCard, FrozenFrogCard, GrazeCard
 from gamepack.thb.cards import GreenUFOCard, Heal, HealCard, LaunchGraze, MomijiShieldCard
@@ -147,13 +148,14 @@ class DummyPlayerTurn(PlayerTurn):
         return True
 
 
-class THBattleNewbie(Game):
-    n_persons  = 1
-    game_ehs   = _game_ehs
-    npc_players  = [NPC(u'琪露诺', CirnoAI.ai_main)]
+class THBattleNewbieBootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+
         from gamepack.thb.characters.meirin import Meirin
         from gamepack.thb.characters.cirno import Cirno
         from gamepack.thb.characters.sakuya import Sakuya
@@ -584,6 +586,15 @@ class THBattleNewbie(Game):
             except InterruptActionFlow:
                 pass
 
+        return True
+
+
+class THBattleNewbie(Game):
+    n_persons   = 1
+    game_ehs    = _game_ehs
+    npc_players = [NPC(u'琪露诺', CirnoAI.ai_main)]
+    bootstrap   = THBattleNewbieBootstrap
+
     def can_leave(g, p):
         return True
 
@@ -611,11 +622,11 @@ class THBattleNewbie(Game):
         from .characters.baseclasses import Character
         assert isinstance(p, Character)
 
-        p.cards = CardList(p, 'cards')  # Cards in hand
+        p.cards = CardList(p, 'cards')            # Cards in hand
         p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-        p.equips = CardList(p, 'equips')  # Equipments
-        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-        p.special = CardList(p, 'special')  # used on special purpose
+        p.equips = CardList(p, 'equips')          # Equipments
+        p.fatetell = CardList(p, 'fatetell')      # Cards in the Fatetell Zone
+        p.special = CardList(p, 'special')        # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
         p.tags = defaultdict(int)
 

@@ -10,8 +10,8 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
-from gamepack.thb.actions import DistributeCards, DrawCards, DropCards, PlayerDeath, PlayerTurn
-from gamepack.thb.actions import RevealIdentity, action_eventhandlers
+from gamepack.thb.actions import DistributeCards, DrawCards, DropCards, GenericAction, PlayerDeath
+from gamepack.thb.actions import PlayerTurn, RevealIdentity, action_eventhandlers
 from gamepack.thb.characters.baseclasses import mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity, sync_primitive
 from gamepack.thb.inputlets import ChooseGirlInputlet
@@ -134,23 +134,15 @@ class Identity(PlayerIdentity):
         CURTAIN = 3
 
 
-class THBattleIdentity(Game):
-    n_persons = 8
-    game_ehs = _game_ehs
-    character_categories = ('id', 'id8')
-    params_def = {
-        'double_curtain': (False, True),
-    }
-    T = Identity.TYPE
-    identities = [
-        T.ATTACKER, T.ATTACKER, T.ATTACKER, T.ATTACKER,
-        T.ACCOMPLICE, T.ACCOMPLICE,
-        T.CURTAIN,
-    ]
-    del T
+class THBattleIdentityBootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+        params = self.params
+
         from cards import Deck
 
         g.deck = Deck()
@@ -310,6 +302,25 @@ class THBattleIdentity(Game):
                     g.process_action(PlayerTurn(p))
                 except InterruptActionFlow:
                     pass
+
+        return True
+
+
+class THBattleIdentity(Game):
+    n_persons = 8
+    game_ehs = _game_ehs
+    character_categories = ('id', 'id8')
+    bootstrap = THBattleIdentityBootstrap
+    params_def = {
+        'double_curtain': (False, True),
+    }
+    T = Identity.TYPE
+    identities = [
+        T.ATTACKER, T.ATTACKER, T.ATTACKER, T.ATTACKER,
+        T.ACCOMPLICE, T.ACCOMPLICE,
+        T.CURTAIN,
+    ]
+    del T
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)
