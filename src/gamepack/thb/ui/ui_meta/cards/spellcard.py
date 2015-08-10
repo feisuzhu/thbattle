@@ -20,7 +20,7 @@ class DemolitionCard:
     description = (
         u'|R城管执法|r\n\n'
         u'出牌阶段，对一名其他角色使用，弃置其区域内的一张牌。\n\n'
-        u'|DB（画师：Pixiv ID 557324，CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
