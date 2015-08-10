@@ -6,6 +6,7 @@
 *.un~
 *~
 ?
+!src/resource/c
 .idea
 .installed.cfg
 .mr.developer.cfg
