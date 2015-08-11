@@ -124,6 +124,21 @@ class dsb_2_bronze:
     badge_text = u'第二届大师杯季军'
 
 
+class xyb_1_gold:
+    badge_anim = 'c-badges-dsb_gold'
+    badge_text = u'第一届信仰杯冠军'
+
+
+class xyb_1_silver:
+    badge_anim = 'c-badges-dsb_silver'
+    badge_text = u'第一届信仰杯亚军'
+
+
+class xyb_1_bronze:
+    badge_anim = 'c-badges-dsb_bronze'
+    badge_text = u'第一届信仰杯季军'
+
+
 class fff_1_gold:
     badge_anim = 'c-badges-fff_gold'
     badge_text = u'第一届“FFF杯”符斗祭比赛冠军队'
