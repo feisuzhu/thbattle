@@ -8,7 +8,7 @@ import logging
 # -- third party --
 # -- own --
 from game.autoenv import Action, ActionShootdown, EventHandler, EventHandlerGroup, Game
-from game.autoenv import InputTransaction, sync_primitive, user_input
+from game.autoenv import GameException, InputTransaction, sync_primitive, user_input
 from gamepack.thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
 from utils import BatchList, CheckFailed, check, check_type, group_by
 
@@ -1022,6 +1022,14 @@ class FinalizeStage(GenericAction):
 class PlayerTurn(GenericAction):
     def __init__(self, target):
         self.source = self.target = target
+        self.pending_stages = [
+            PrepareStage,
+            FatetellStage,
+            DrawCardStage,
+            ActionStage,
+            DropCardStage,
+            FinalizeStage,
+        ]
 
     def apply_action(self):
         g = Game.getgame()
@@ -1030,14 +1038,23 @@ class PlayerTurn(GenericAction):
         g.turn_count += 1
         g.current_turn = p
 
-        g.process_action(PrepareStage(p))
-        g.process_action(FatetellStage(p))
-        g.process_action(DrawCardStage(p))
-        g.process_action(ActionStage(p))
-        g.process_action(DropCardStage(p))
-        g.process_action(FinalizeStage(p))
+        while self.pending_stages:
+            stage = self.pending_stages.pop(0)
+            g.process_action(stage(p))
 
         return True
+
+    @staticmethod
+    def get_current(p=None):
+        g = Game.getgame()
+        for act in g.action_stack:
+            if isinstance(act, PlayerTurn):
+                if p is not None and act.target is not p:
+                    raise GameException('Got unexpected PlayerTurn!')
+
+                return act
+
+        return None
 
 
 class DummyAction(GenericAction):

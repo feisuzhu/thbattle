@@ -6,9 +6,9 @@
 from game import sync_primitive
 from game.autoenv import EventHandler, Game, InputTransaction, user_input
 from gamepack.thb.actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards
-from gamepack.thb.actions import FatetellAction, ForEach, LaunchCard, UserAction, ask_for_action
-from gamepack.thb.actions import detach_cards, migrate_cards, random_choose_card, register_eh
-from gamepack.thb.actions import user_choose_cards
+from gamepack.thb.actions import FatetellAction, ForEach, LaunchCard, PlayerTurn, UserAction
+from gamepack.thb.actions import ask_for_action, detach_cards, migrate_cards, random_choose_card
+from gamepack.thb.actions import register_eh, user_choose_cards
 from gamepack.thb.cards import basic
 from gamepack.thb.inputlets import ChooseIndividualCardInputlet, ChoosePeerCardInputlet
 from utils import BatchList, CheckFailed, check, flatten
@@ -163,7 +163,12 @@ class SealingArray(DelayedSpellCardAction, FatetellAction):
 
     def fatetell_action(self, ft):
         if ft.succeeded:
-            self.target.tags['sealed'] = True
+            turn = PlayerTurn.get_current(self.target)
+            try:
+                turn.pending_stages.remove(ActionStage)
+            except Exception:
+                pass
+
             return True
 
         return False
@@ -172,19 +177,6 @@ class SealingArray(DelayedSpellCardAction, FatetellAction):
         g = Game.getgame()
         tgt = self.target
         g.process_action(DropCards(None, tgt, [self.associated_card]))
-
-
-@register_eh
-class SealingArrayHandler(EventHandler):
-    interested = ('action_before',)
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, ActionStage):
-            target = act.target
-            if target.tags.get('sealed'):
-                del target.tags['sealed']
-                act.cancelled = True
-        return act
 
 
 class NazrinRod(InstantSpellCardAction):
@@ -505,7 +497,12 @@ class FrozenFrog(DelayedSpellCardAction, FatetellAction):
 
     def fatetell_action(self, ft):
         if ft.succeeded:
-            self.target.tags['freezed'] = True
+            turn = PlayerTurn.get_current(self.target)
+            try:
+                turn.pending_stages.remove(DrawCardStage)
+            except Exception:
+                pass
+
             return True
 
         return False
@@ -514,16 +511,3 @@ class FrozenFrog(DelayedSpellCardAction, FatetellAction):
         g = Game.getgame()
         tgt = self.target
         g.process_action(DropCards(None, tgt, [self.associated_card]))
-
-
-@register_eh
-class FrozenFrogHandler(EventHandler):
-    interested = ('action_before',)
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
-            tgt = act.target
-            if tgt.tags.get('freezed'):
-                del tgt.tags['freezed']
-                act.cancelled = True
-        return act
