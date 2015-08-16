@@ -6,8 +6,9 @@ AT = 1
 SPEAKER = 2
 
 
-def _get_notify():
+def _notify(*a, **k):
     # lazy init, mobile platforms needs this
+    global _notify
 
     import os
     import platform
@@ -15,28 +16,25 @@ def _get_notify():
 
     if os.name == 'nt' or platform.system() == 'Windows':
         from .win32 import _notify
-        return _notify
 
     elif sys.platform == 'darwin':
         from .cocoa import _notify
-        return _notify
 
     else:
         try:
             import pynotify  # noqa
         except ImportError:
-            pass
+            _notify = lambda *a, **k: None
         else:
             from .pynotify_adapter import _notify
-            return _notify
 
-    return lambda *a, **k: None
+    return _notify(*a, **k)
 
 
 def notify(title, msg, level=BASIC):
     from user_settings import UserSettings as us
     if level <= us.notify_level:
-        _get_notify()(title, msg)
+        _notify(title, msg)
         if us.sound_notify:
             from client.ui.soundmgr import SoundManager
 
