@@ -4,8 +4,8 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, user_input
-from gamepack.thb.actions import ActionStageLaunchCard, DrawCards, DropCards, GenericAction
-from gamepack.thb.actions import UserAction, ask_for_action, random_choose_card, user_choose_cards
+from gamepack.thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCardStage
+from gamepack.thb.actions import GenericAction, PlayerTurn, UserAction, ask_for_action, ttags
 from gamepack.thb.cards import AttackCard, Skill, VirtualCard, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
@@ -41,6 +41,8 @@ class WindWalkLaunch(GenericAction):
         g.players.reveal(cl)
         c, = cl
 
+        ttags(tgt)['aya_windwalk'] = not self.is_windwalk_card(c)
+
         g.process_action(ActionStageLaunchCard(tgt, tl, c))
 
         return True
@@ -57,8 +59,18 @@ class WindWalkLaunch(GenericAction):
         return tl, True
 
 
-class WindWalkDropCards(DropCards):
-    pass
+class WindWalkSkipAction(GenericAction):
+
+    def apply_action(self):
+        tgt = self.target
+        ActionStage.force_break()
+        turn = PlayerTurn.get_current(tgt)
+        try:
+            turn.pending_stages.remove(DropCardStage)
+        except Exception:
+            pass
+
+        return True
 
 
 class WindWalkAction(UserAction):
@@ -70,16 +82,19 @@ class WindWalkAction(UserAction):
         g.process_action(dc)
         c, = dc.cards
 
+        ttags(tgt)['aya_windwalk'] = True
+
         if not g.process_action(WindWalkLaunch(tgt, c)):
-            c, = user_choose_cards(self, tgt, ('cards', 'showncards')) or (None,)
-            c = c or random_choose_card([tgt.cards, tgt.showncards])
-            g.process_action(WindWalkDropCards(tgt, tgt, [c]))
+            g.process_action(WindWalkSkipAction(tgt, tgt))
 
         return True
 
-    def cond(self, cl):
-        tgt = self.target
-        return len(cl) == 1 and cl[0].resides_in in (tgt.cards, tgt.showncards)
+    @staticmethod
+    def is_windwalk_card(c):
+        return all([
+            c.is_card(AttackCard) or 'instant_spellcard' in c.category,
+            'group_effect' not in c.category,
+        ])
 
 
 class WindWalkHandler(EventHandler):
@@ -95,14 +110,11 @@ class WindWalkHandler(EventHandler):
 
             c = act.card
 
-            if not c.is_card(AttackCard) and 'instant_spellcard' not in c.category:
-                return act
-
-            if 'group_effect' in c.category:
-                return act
-
-            if not act.card_action.succeeded:
-                return act
+            if not all([
+                WindWalkAction.is_windwalk_card(c),
+                act.card_action.succeeded,
+                not ttags(src)['aya_windwalk'],
+            ]): return act
 
             if not user_input([src], ChooseOptionInputlet(self, (False, True))):
                 return act

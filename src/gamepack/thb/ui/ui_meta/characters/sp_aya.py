@@ -4,8 +4,7 @@
 # -- third party --
 # -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
-from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
 
 # -- code --
@@ -20,7 +19,7 @@ class WindWalk:
 
 
 class WindWalkLaunch:
-    idle_prompt = u'疾风步：请使用摸到的牌（否则弃置一张牌）'
+    idle_prompt = u'疾风步：请使用摸到的牌（否则结束出牌并跳过弃牌阶段）'
 
     def choose_card_text(g, act, cards):
         if not act.cond(cards):
@@ -46,12 +45,9 @@ class WindWalkAction:
         return u'唯快不破！|G【%s】|r在一瞬之后已备好了下一招！' % act.target.ui_meta.char_name
 
 
-class WindWalkDropCards:
-
-    def effect_string(act):
-        return u'|G【%s】|r思考片刻，收回了架势，弃掉了%s。' % (
-            act.target.ui_meta.char_name, card_desc(act.cards),
-        )
+class WindWalkSkipAction:
+    def effect_string_before(act):
+        return u'|G【%s】|r放弃了追击。' % act.target.ui_meta.char_name
 
 
 class SpAya:
@@ -61,9 +57,9 @@ class SpAya:
     figure_image = 'thb-figure-sp_aya'
     description = (
         u'|DB剑圣是谁有我快吗 SP射命丸文 体力：4|r\n\n'
-        u'|G疾风步|r：出牌阶段，当你使用的一张|G弹幕|r或非群体非延时符卡生效并结算完毕后，你可以摸一张牌并选择：\n'
-        u'|B|R>> |r立即使用此牌\n'
-        u'|B|R>> |r弃置一张手牌\n'
+        u'|G疾风步|r：出牌阶段限一次，当你使用的一张|G弹幕|r或非群体非延时符卡生效并结算完毕后，你可以摸一张牌并选择：\n'
+        u'|B|R>> |r立即使用此牌，且若此牌满足|G疾风步|r的发动条件，你可以再次发动|G疾风步|r\n'
+        u'|B|R>> |r结束出牌阶段，并跳过弃牌阶段\n'
         u'\n'
         u'|DB（人物设计：吹风姬，画师：躲猫）|r'
     )
