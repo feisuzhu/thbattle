@@ -40,7 +40,7 @@ class Replay(object):
             'data':   self.gamedata,
             'users':  self.users,
             'index':  self.me_index,
-            'info' :  self.track_info,
+            'track_info' :  self.track_info,
         }, use_bin_type=True))
 
     @classmethod
@@ -54,6 +54,6 @@ class Replay(object):
         o.gamedata       = data['data']
         o.users          = data['users']
         o.me_index       = data['index']
-        o.track_info     = data.get('info')
+        o.track_info     = data.get('track_info')
 
         return o
