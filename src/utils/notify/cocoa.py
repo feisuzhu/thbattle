@@ -18,7 +18,7 @@ NotificationDelegateClass.register()
 NotificationDelegate = ObjCClass("NotificationDelegate")
 
 notificationCenter = NSUserNotificationCenter.defaultUserNotificationCenter()
-notificationCenter.setDelegate_(NotificationDelegate.alloc().init().autorelease())
+notificationCenter.setDelegate_(NotificationDelegate.alloc().init())
 
 def _notify(title, msg):
     notification = NSUserNotification.alloc().init().autorelease()
