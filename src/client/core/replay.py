@@ -29,6 +29,7 @@ class Replay(object):
         self.gamedata = []
         self.users = []
         self.me_index = -1
+        self.track_info = None
 
     def dumps(self):
         return zlib.compress(msgpack.packb({
@@ -39,6 +40,7 @@ class Replay(object):
             'data':   self.gamedata,
             'users':  self.users,
             'index':  self.me_index,
+            'track_info' :  self.track_info,
         }, use_bin_type=True))
 
     @classmethod
@@ -52,5 +54,6 @@ class Replay(object):
         o.gamedata       = data['data']
         o.users          = data['users']
         o.me_index       = data['index']
+        o.track_info     = data.get('track_info')
 
         return o
