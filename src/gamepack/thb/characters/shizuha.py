@@ -155,7 +155,7 @@ class DecayEffect(UserAction):
         self.dcs = dcs
 
     def apply_action(self):
-        self.dcs.dropn += 1
+        self.dcs.dropn += max(1, self.dcs.dropn + 1)
         return True
 
 
