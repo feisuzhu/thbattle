@@ -19,13 +19,7 @@ class WindWalk:
 
 
 class WindWalkLaunch:
-    idle_prompt = u'疾风步：请使用摸到的牌（否则结束出牌并跳过弃牌阶段）'
-
-    def choose_card_text(g, act, cards):
-        if not act.cond(cards):
-            return False, u'疾风步：只能使用摸到的牌（或者结束）'
-        else:
-            return True, u'不会显示……'
+    pass
 
 
 class WindWalkHandler:
@@ -34,12 +28,13 @@ class WindWalkHandler:
 
 
 class WindWalkAction:
+    idle_prompt = u'疾风步：请使用摸到的牌（否则结束出牌并跳过弃牌阶段）'
 
     def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'弃置这张牌')
+        if not act.cond(cards):
+            return False, u'疾风步：只能使用摸到的牌（或者结束）'
         else:
-            return (False, u'请弃置一张手牌')
+            return True, u'不会显示……'
 
     def effect_string_before(act):
         return u'唯快不破！|G【%s】|r在一瞬之后已备好了下一招！' % act.target.ui_meta.char_name

@@ -18,49 +18,11 @@ class WindWalk(Skill):
     target = t_None
 
 
-class WindWalkLaunch(GenericAction):
-    card_usage = 'launch'
-
-    def __init__(self, target, card):
-        self.target = target
-        self.card = card
-
-    def apply_action(self):
-        g = Game.getgame()
-        tgt = self.target
-
-        with InputTransaction('ActionStageAction', [tgt]) as trans:
-            p, rst = ask_for_action(
-                self, [tgt], ('cards', 'showncards'), g.players, trans
-            )
-
-        if p is not tgt:
-            return False
-
-        cl, tl = rst
-        g.players.reveal(cl)
-        c, = cl
-
-        ttags(tgt)['aya_windwalk'] = not self.is_windwalk_card(c)
-
-        g.process_action(ActionStageLaunchCard(tgt, tl, c))
-
-        return True
-
-    def cond(self, cl):
-        if not (cl and len(cl) == 1): return False
-        return bool(cl[0].associated_action) and [self.card] == VirtualCard.unwrap(cl)
-
-    def ask_for_action_verify(self, p, cl, tl):
-        assert len(cl) == 1
-        return ActionStageLaunchCard(p, tl, cl[0]).can_fire()
-
-    def choose_player_target(self, tl):
-        return tl, True
+class WindWalkLaunch(ActionStageLaunchCard):
+    pass
 
 
 class WindWalkSkipAction(GenericAction):
-
     def apply_action(self):
         tgt = self.target
         ActionStage.force_break()
@@ -74,6 +36,7 @@ class WindWalkSkipAction(GenericAction):
 
 
 class WindWalkAction(UserAction):
+    card_usage = 'launch'
 
     def apply_action(self):
         g = Game.getgame()
@@ -81,11 +44,24 @@ class WindWalkAction(UserAction):
         dc = DrawCards(tgt, 1)
         g.process_action(dc)
         c, = dc.cards
+        self.card = c
 
         ttags(tgt)['aya_windwalk'] = True
 
-        if not g.process_action(WindWalkLaunch(tgt, c)):
+        with InputTransaction('ActionStageAction', [tgt]) as trans:
+            p, rst = ask_for_action(
+                self, [tgt], ('cards', 'showncards'), g.players, trans
+            )
+
+        if p is not tgt:
             g.process_action(WindWalkSkipAction(tgt, tgt))
+            return True
+
+        cl, tl = rst
+        g.players.reveal(cl)
+        c, = cl
+
+        g.process_action(WindWalkLaunch(p, tl, c))
 
         return True
 
@@ -95,6 +71,17 @@ class WindWalkAction(UserAction):
             c.is_card(AttackCard) or 'instant_spellcard' in c.category,
             'group_effect' not in c.category,
         ])
+
+    def cond(self, cl):
+        if not (cl and len(cl) == 1): return False
+        return bool(cl[0].associated_action) and [self.card] == VirtualCard.unwrap(cl)
+
+    def ask_for_action_verify(self, p, cl, tl):
+        assert len(cl) == 1
+        return WindWalkLaunch(p, tl, cl[0]).can_fire()
+
+    def choose_player_target(self, tl):
+        return tl, True
 
 
 class WindWalkHandler(EventHandler):
@@ -113,7 +100,7 @@ class WindWalkHandler(EventHandler):
             if not all([
                 WindWalkAction.is_windwalk_card(c),
                 act.card_action.succeeded,
-                not ttags(src)['aya_windwalk'],
+                isinstance(act, WindWalkLaunch) or not ttags(src)['aya_windwalk'],
             ]): return act
 
             if not user_input([src], ChooseOptionInputlet(self, (False, True))):
