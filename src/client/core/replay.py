@@ -19,6 +19,7 @@ class Replay(object):
         'gamedata',
         'users',
         'me_index',
+        'track_info',
     )
 
     def __init__(self):
