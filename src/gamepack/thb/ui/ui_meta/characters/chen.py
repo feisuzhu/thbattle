@@ -111,6 +111,7 @@ class Chen:
     # Character
     char_name = u'橙'
     port_image = 'thb-portrait-chen'
+    figure_image = 'thb-figure-chen'
     miss_sound_effect = 'thb-cv-chen_miss'
     description = (
         u'|DB凶兆的黑喵 橙 体力：4|r\n\n'
