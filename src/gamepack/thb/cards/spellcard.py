@@ -16,14 +16,10 @@ from utils import BatchList, CheckFailed, check, flatten
 
 # -- code --
 class SpellCardAction(UserAction):
-    pass
+    non_responsive = False
 
 
 class InstantSpellCardAction(SpellCardAction):
-    pass
-
-
-class NonResponsiveInstantSpellCardAction(InstantSpellCardAction):
     pass
 
 
@@ -77,7 +73,7 @@ class RejectHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, SpellCardAction):
             if act.cancelled: return act  # some other thing have done the job
-            if isinstance(act, NonResponsiveInstantSpellCardAction):
+            if act.non_responsive:
                 return act
 
             g = Game.getgame()

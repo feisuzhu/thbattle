@@ -432,10 +432,21 @@ class MaidenCostumeSkill(ShieldSkill):
     skill_category = ('equip', 'passive')
 
 
-class MaidenCostumeEffect(spellcard.NonResponsiveInstantSpellCardAction):
+class MaidenCostumeEffect(spellcard.SinsackCarnivalEffect):
+    @property
+    def non_responsive(self):
+        return self.target.has_skill(MaidenCostumeSkill)
+
     def apply_action(self):
         g = Game.getgame()
-        g.process_action(Damage(source=self.source, target=self.target))
+        src, tgt = self.source, self.target
+        
+        if tgt.has_skill(MaidenCostumeSkill):
+            g.process_action(Damage(src, tgt))
+
+        else:
+            return super(MaidenCostumeEffect, self).apply_action()
+
         return True
 
 
@@ -448,11 +459,9 @@ class MaidenCostumeHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, spellcard.SinsackCarnivalEffect):
             target = act.target
             if not act.cancelled and target.has_skill(MaidenCostumeSkill):
-                act.cancelled = True
-                nact = MaidenCostumeEffect(source=act.source, target=target)
-                nact.associated_card = act.associated_card
-                return nact
-                # Game.getgame().process_action(nact)
+                act.__class__ = classmix(MaidenCostumeEffect, act.__class__)
+                return act
+
         return act
 
 
