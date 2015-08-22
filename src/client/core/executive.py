@@ -121,6 +121,7 @@ class GameManager(Greenlet):
         self.last_game_info = None
         self.last_replay    = None
         self.event_cb       = event_cb
+        self.server_name    = 'OFFLINE'
 
     def _run(self):
         self.link_exception(lambda *a: self.event_cb('server_dropped'))
@@ -262,6 +263,10 @@ class GameManager(Greenlet):
             rep.me_index = i
             rep.users = pldata
             rep.gamedata = Executive.server.gamedata.history
+            rep.track_info = {
+                'server': Executive.gamemgr.server_name,
+                'gameid': g.gameid,
+            }
             self.last_replay = rep
 
         @handler(('connected',), None)
@@ -279,12 +284,20 @@ class GameManager(Greenlet):
             self.event_cb('your_account', accdata)
 
         @handler(None, None)
-        def thbattle_greeting(self, ver):
+        def thbattle_greeting(self, data):
             from settings import VERSION
+
+            try:
+                name, ver = data
+
+            except ValueError:
+                name, ver = 'UNKNOWN', data
+
             if ver != VERSION:
                 self.event_cb('version_mismatch')
                 Executive.disconnect()
             else:
+                self.server_name = name
                 self.event_cb('server_connected', self)
 
         @handler(None, None)
