@@ -264,6 +264,11 @@ class CardList(GameObject, deque):
         self.type = type
         deque.__init__(self)
 
+    def __eq__(self, rhs):
+        # two empty card lists is not the same.
+        # card list never equals to a deque.
+        return self is rhs
+
     def __repr__(self):
         return "CardList(owner=%s, type=%s, len == %d)" % (self.owner, self.type, len(self))
 
