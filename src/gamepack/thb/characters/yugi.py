@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import DropCards, FatetellAction, LaunchCard
+from gamepack.thb.actions import DropCards, Damage, FatetellAction, LaunchCard
 from gamepack.thb.cards import AttackCard, BaseAttack, Card, InevitableAttack, RedUFOSkill, Skill
 from gamepack.thb.cards import TreatAs, VirtualCard, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character_to
@@ -88,11 +88,16 @@ class FreakingPowerHandler(EventHandler):
             tgt = act.target
             Game.getgame().process_action(FreakingPowerAction(act))
 
-        elif evt_type == 'action_after' and hasattr(act, 'yugifptag'):
-            if not act.succeeded: return act
-            src, tgt = act.source, act.target
-            if tgt.dead: return act
+        elif evt_type == 'action_after' and isinstance(act, Damage):
             g = Game.getgame()
+
+            pact = g.action_stack[-1]
+            if not hasattr(pact, 'yugifptag'):
+                return act
+
+            src, tgt = pact.source, act.target
+            if tgt.dead: return act
+
             catnames = ('cards', 'showncards', 'equips')
             card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
             if card:
