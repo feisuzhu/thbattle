@@ -44,6 +44,7 @@ from . import reisen  # noqa
 from . import shinmyoumaru  # noqa
 from . import nitori  # noqa
 from . import shizuha  # noqa
+from . import kyouko  # noqa
 
 # weektour
 from . import youmu20150620  # noqa

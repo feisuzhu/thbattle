@@ -359,6 +359,8 @@ class ExinwanHandler(EventHandler):
             for c in cards:
                 tgt = getattr(c, 'exinwan_target', None)
                 if tgt:
-                    Game.getgame().process_action(ExinwanEffect(tgt, tgt))
+                    act = ExinwanEffect(tgt, tgt)
+                    act.associated_card = c
+                    Game.getgame().process_action(act)
 
         return arg

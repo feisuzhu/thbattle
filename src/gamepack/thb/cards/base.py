@@ -40,6 +40,8 @@ class Card(GameObject):
     _color = None
     card_classes = {}
     usage = 'launch'
+    unwrapped = False  # True means this card's associated cards have already been taken.
+                       # Only meaningful for virtual cards.
 
     def __init__(self, suit=NOTSET, number=0, resides_in=None):
         self.syncid = 0  # Deck will touch this
@@ -153,6 +155,7 @@ class VirtualCard(Card):
         self.associated_cards = []
         self.resides_in       = player.cards
         self.action_params    = {}
+        self.unwrapped        = False
         self._suit            = None
         self._number          = None
         self._color           = None

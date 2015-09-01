@@ -49,6 +49,7 @@ import reisen
 import shinmyoumaru
 import nitori
 import shizuha
+import kyouko
 
 # weektour
 import youmu20150620
