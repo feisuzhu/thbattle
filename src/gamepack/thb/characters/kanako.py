@@ -3,137 +3,147 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DistributeCards, DrawCardStage, DrawCards, DropCards, UserAction
-from ..actions import ask_for_action, ttags, user_choose_cards
-from ..cards import Skill, t_None
+from ..actions import DrawCardStage, DrawCards, DropCards, UserAction, ShowCards
+from ..actions import user_choose_cards, random_choose_card, migrate_cards
+from ..actions import ForEach, LaunchCard, user_input, user_choose_players
+from ..cards import Skill, t_None, Card, AttackCard, TreatAs, VirtualCard, DuelCard
+from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
 
 
 # -- code --
-class DivinityDrawCards(DrawCards):
+class KanakoFaithDrawCards(DrawCards):
     pass
 
 
-class DivinityDropCards(DropCards):
+class KanakoFaithDropCards(DropCards):
     pass
 
 
-class DivinityAction(UserAction):
-    card_usage = 'drop'
+class KanakoFaithAttack(TreatAs, VirtualCard):
+    treat_as = AttackCard
 
+
+class KanakoFaithDuel(TreatAs, VirtualCard):
+    treat_as = DuelCard
+
+
+class KanakoFaithByForce(UserAction):
     def apply_action(self):
+        src, tgt = self.source, self.target
         g = Game.getgame()
-        tgt = self.target
-        self.amount = min(tgt.life, 4)
-        g.process_action(DivinityDrawCards(tgt, self.amount))
-        cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-        cl = cl or (list(tgt.showncards) + list(tgt.cards) + list(tgt.equips))[:self.amount]
-        g.players.reveal(cl)
-        g.process_action(DivinityDropCards(tgt, tgt, cl))
-        return True
 
-    def cond(self, cl):
-        if not len(cl) == self.amount:
-            return False
+        if user_input([src], ChooseOptionInputlet(self, (False, True))):
+            g.process_action(LaunchCard(src, [tgt], KanakoFaithDuel(src), bypass_check=True))
 
-        tgt = self.target
-
-        if not all(c.resides_in in (tgt.cards, tgt.showncards, tgt.equips) for c in cl):
-            return False
-
-        if any(c.is_card(Skill) for c in cl):
-            return False
+        else:
+            g.process_action(LaunchCard(src, [tgt], KanakoFaithAttack(src), bypass_check=True))
 
         return True
 
 
-class DivinityHandler(EventHandler):
-    interested = ('action_apply',)
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, DrawCardStage):
-            tgt = act.target
-            if not tgt.has_skill(Divinity):
-                return act
-
-            # if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-            #     return act
-
-            g = Game.getgame()
-            g.process_action(DivinityAction(tgt, tgt))
-
-        return act
-
-
-class Divinity(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive')
-    target = t_None
-
-
-class VirtueAction(UserAction):
-
-    def __init__(self, source, target, cards):
-        self.source = source
-        self.target = target
-        self.cards = cards
+class KanakoFaithEffect(UserAction):
+    card_usage = 'drop'
 
     def apply_action(self):
         src, tgt = self.source, self.target
         g = Game.getgame()
-        g.process_action(DropCards(src, src, self.cards))
-        g.process_action(DrawCards(tgt, 1))
-        ttags(g.current_turn)['virtue'] = True
+
+        catnames = ('cards', 'showncards', 'equips')
+        cats = [getattr(tgt, i) for i in catnames]
+
+        if any(cats) and user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            card = user_input([tgt], ChoosePeerCardInputlet(self, src, catnames))
+            if not card:
+                card = random_choose_card(cats)
+
+            assert card
+            g.players.reveal(card)
+            g.process_action(KanakoFaithDropCards(tgt, src, [card]))
+            g.process_action(KanakoFaithByForce(src, tgt))
+
+        else:
+            g.process_action(KanakoFaithDrawCards(src, 1))
+
         return True
 
 
-class VirtueHandler(EventHandler):
-    interested = ('card_migration',)
-    card_usage = 'drop'
+class KanakoFaithAction(ForEach):
+    action_cls = KanakoFaithEffect
 
-    def handle(self, evt_type, arg):
-        if evt_type == 'card_migration':
-            act, cards, _from, to, _ = arg
-            if isinstance(act, (DistributeCards, DrawCardStage, DivinityDrawCards)):
-                return arg
+    def prepare(self):
+        self.source.tags['kanako_faith'] = True
 
-            if to is None or not to.owner:
-                return arg
+    def is_valid(self):
+        return not self.source.tags['kanako_faith']
 
-            if to.type not in ('cards', 'showncards', 'equips'):
-                return arg
 
-            src = to.owner
+class KanakoFaith(Skill):
+    associated_action = KanakoFaithAction
+    skill_category = ('character', 'active', 'once')
 
-            if _from is not None and _from.owner is src:
-                return arg
+    def check(self):
+        return not self.associated_cards
 
-            if not src.has_skill(Virtue):
-                return arg
+    @staticmethod
+    def target(g, p, tl):
+        l = g.players.rotate_to(p)
+        del l[0]
 
-            g = Game.getgame()
+        dists = LaunchCard.calc_raw_distance(p, AttackCard())
+        return ([t for t in l if not t.dead and dists[t] <= 1], True)
 
-            if not hasattr(g, 'current_turn'):
-                return arg
 
-            if ttags(g.current_turn)['virtue']:
-                return arg
+class VirtueAction(UserAction):
+    card_usage = 'handover'
 
-            g = Game.getgame()
-            pl = [p for p in g.players if not p.dead and p is not src]
-            _, rst = ask_for_action(self, [src], ('cards', 'showncards'), pl)
-            if not rst:
-                return arg
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        g = Game.getgame()
+        dc = DrawCards(tgt, 2)
+        g.process_action(dc)
+        self.cards = cards = dc.cards
 
-            cl, pl = rst
+        cl = user_choose_cards(self, tgt, ('cards', 'showncards'))
+        c = cl[0] if cl else random_choose_card([cards])
+        assert c and c.resides_in.owner is tgt
 
-            g.process_action(VirtueAction(src, pl[0], cl))
+        g.players.reveal(c)
+        g.process_action(ShowCards(tgt, [c]))
 
-        return arg
+        migrate_cards([c], src.cards)
+        if c.suit == Card.HEART:
+            g.process_action(DrawCards(src, 1))
+
+        return True
 
     def cond(self, cl):
-        return len(cl) == 1 and not cl[0].is_card(Skill)
+        return len(cl) == 1 and cl[0] in self.cards
+
+
+class VirtueHandler(EventHandler):
+    interested = ('action_before',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
+            if act.cancelled:
+                return act
+
+            tgt = act.target
+            if not tgt.has_skill(Virtue):
+                return act
+
+            g = Game.getgame()
+            pl = [p for p in g.players if not p.dead and p is not tgt]
+            pl = pl and user_choose_players(self, tgt, pl)
+            if not pl:
+                return act
+
+            act.cancelled = True
+            g.process_action(VirtueAction(tgt, pl[0]))
+
+        return act
 
     def choose_player_target(self, tl):
         if not tl:
@@ -150,6 +160,6 @@ class Virtue(Skill):
 
 @register_character
 class Kanako(Character):
-    skills = [Divinity, Virtue]
-    eventhandlers_required = [DivinityHandler, VirtueHandler]
+    skills = [Virtue, KanakoFaith]
+    eventhandlers_required = [VirtueHandler]
     maxlife = 4
