@@ -85,6 +85,8 @@ class ResonanceLaunchCard(LaunchCard):
 
 
 class ResonanceAction(GenericAction):
+    card_usage = 'launch'
+
     def __init__(self, source, target, suit):
         self.source, self.target, self.suit = source, target, suit
 
@@ -114,10 +116,10 @@ class ResonanceAction(GenericAction):
 
 
 class ResonanceHandler(EventHandler):
-    interested = ('action_after',)
+    interested = ('action_done',)
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, Attack):
+        if evt_type == 'action_done' and isinstance(act, Attack):
             src = act.source
             tgt = act.target
 

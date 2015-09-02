@@ -15,10 +15,10 @@ __metaclass__ = gen_metafunc(characters.kyouko)
 
 class Kyouko:
     # Character
-    char_name = u'幽谷响子'
+    char_name = u'幽谷响子A'
     port_image = 'thb-portrait-akari'
     description = (
-        u'|DB幽谷响子 体力：3|r\n\n'
+        u'|DB幽谷响子A 体力：3|r\n\n'
         u'|G回响|r：当一张牌对你造成伤害后，你可以获得这张牌；如果这张牌是弹幕，你可改令另一名获得这张牌。\n\n'
         u'|G共振|r：当你使用的弹幕对一名角色结算完毕后，你可以选择一名其他角色，其可以立即对该角色使用一张弹幕（无视距离限制）；若其使用的弹幕花色与你所使用的相同，（在结算前）其摸一张牌。'
     )
