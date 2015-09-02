@@ -6,7 +6,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import Damage, DropCards, GenericAction, LaunchCard, LifeLost, UserAction
 from gamepack.thb.actions import random_choose_card, ttags, user_choose_cards
-from gamepack.thb.cards import AttackCard, Skill, t_None, t_OtherOne, DuelCard
+from gamepack.thb.cards import AttackCard, Skill, t_None, t_OtherOne, DuelCard, VirtualCard
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
@@ -83,6 +83,8 @@ class PerfectFreeze(Skill):
 
 
 class PerfectFreezeAction(UserAction):
+    card_usage = 'drop'
+
     def __init__(self, source, target, damage):
         self.source = source
         self.target = target
@@ -93,14 +95,29 @@ class PerfectFreezeAction(UserAction):
 
         src, tgt = self.source, self.target
         g = Game.getgame()
-        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
-        c = c or random_choose_card([tgt.cards, tgt.showncards])
-        c and g.process_action(CirnoDropCards(src, tgt, [c]))
+        cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
+        c = cl[0] if cl else random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
 
-        if len(tgt.cards) + len(tgt.showncards) < tgt.life:
-            g.process_action(LifeLost(src, tgt, 1))
+        if c:
+            damage = c.resides_in is not tgt.equips
+            g.process_action(CirnoDropCards(src, tgt, [c]))
+
+            if damage:
+                g.process_action(LifeLost(src, tgt, 1))
 
         return True
+
+    def cond(self, cl):
+        if len(cl) != 1:
+            return False
+
+        if cl[0].is_card(VirtualCard):
+            return False
+
+        return True
+
+    def ask_for_action_verify(self, p, cl, tl):
+        return CirnoDropCards(self.source, self.target, cl).can_fire()
 
 
 class PerfectFreezeHandler(EventHandler):
@@ -113,9 +130,12 @@ class PerfectFreezeHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
-            if act.cancelled: return act
+            if act.cancelled:
+                return act
+
             src, tgt = act.source, act.target
-            if not (src and src.has_skill(PerfectFreeze)): return act
+            if not (src and src.has_skill(PerfectFreeze)):
+                return act
 
             g = Game.getgame()
             for lc in reversed(g.action_stack):
@@ -124,13 +144,16 @@ class PerfectFreezeHandler(EventHandler):
             else:
                 return act
 
-            if src is not lc.source: return act
+            if src is not lc.source:
+                return act
+
             c = lc.card
             if not c.is_card(AttackCard) and not c.is_card(DuelCard):
                 return act
 
-            if not user_input([src], ChooseOptionInputlet(self, (False, True))): return act
-            g = Game.getgame()
+            if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+                return act
+
             g.process_action(PerfectFreezeAction(src, tgt, act))
 
         return act
