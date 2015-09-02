@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
@@ -49,7 +49,7 @@ def create():
     s = socket.socket()
     s.connect(('127.0.0.1', 9999))
     s.sendall(en(['auth', [names.next(), '']])); gevent.sleep(0.05)
-    s.sendall(en(['create_game', [t, u'我们是机器人哈哈哈']])); gevent.sleep(0.05)
+    s.sendall(en(['create_game', [t, u'我们是机器人哈哈哈', None]])); gevent.sleep(0.05)
     s.sendall(en(['get_ready', []])); gevent.sleep(0.05)
 
     while s.recv(100): pass
