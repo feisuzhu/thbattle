@@ -71,6 +71,9 @@ class EchoHandler(EventHandler):
             if g.current_turn is not src:
                 return act
 
+            if not isinstance(g.action_stack[-1], Attack):
+                return act
+
             dists = LaunchCard.calc_raw_distance(tgt, AttackCard())
             pl = [p for p, d in dists.items()
                   if d <= 1 and (p.cards or p.showncards or p.equips)]
