@@ -35,6 +35,13 @@ class PerfectFreezeAction:
     def sound_effect(act):
         return 'thb-cv-cirno_perfectfreeze'
 
+    # choose_card meta
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'弃置这张牌')
+        else:
+            return (False, u'完美冻结：选择一张牌弃置')
+
 
 class PerfectFreezeHandler:
     choose_option_prompt = u'你要发动【完美冻结】吗？'
@@ -94,7 +101,7 @@ class Cirno:
         u'|B|R>> |r对你使用一张|G弹幕|r\n'
         u'|B|R>> |r令你弃置其一张牌\n'
         u'\n'
-        u'|G完美冻结|r：当你使用|G弹幕|r或|G弹幕战|r对一名角色造成伤害时，你可以防止此次伤害并弃置其一张手牌。若此时其手牌数小于其当前体力值，该角色失去一点体力。\n'
+        u'|G完美冻结|r：当你使用|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害时，你可以防止此次伤害，然后令该角色弃置一张牌；若其弃置的不为装备区的牌，其失去一点体力。\n'
         u'\n'
         u'|DB（画师：渚FUN，CV：君寻）|r'
     )
