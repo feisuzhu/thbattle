@@ -42,24 +42,6 @@ class CiguateraAction:
         return 'thb-cv-medicine_ciguatera'
 
 
-class CiguateraTurnEnd:
-    def choose_card_text(g, act, cards):
-        return act.cond(cards), u'受到一点无来源伤害，或者弃置一张手牌并让【%s】摸一张牌' % act.target.ui_meta.char_name
-
-    def effect_string_before(act):
-        return u'|G【%s】|r受到|G【%s】|r的|G神经之毒|r爆发了。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
-        )
-
-    def effect_string(act):
-        if act.card:
-            return u'|G【%s】|r弃掉了%s。' % (
-                act.source.ui_meta.char_name,
-                card_desc(act.card)
-            )
-
-
 class CiguateraHandler:
     def choose_card_text(g, act, cards):
         return act.cond(cards), u'弃置一张手牌，发动【神经之毒】'
