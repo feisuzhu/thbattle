@@ -51,7 +51,7 @@ class KanakoFaithEffect(UserAction):
         g = Game.getgame()
 
         catnames = ('cards', 'showncards', 'equips')
-        cats = [getattr(tgt, i) for i in catnames]
+        cats = [getattr(src, i) for i in catnames]
 
         if any(cats) and user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             card = user_input([tgt], ChoosePeerCardInputlet(self, src, catnames))
