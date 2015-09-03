@@ -104,7 +104,7 @@ class VirtueAction(UserAction):
         g.process_action(DrawCards(tgt, 2))
 
         cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-        c = cl[0] if cl else random_choose_card([src.cards, src.showncards, src.equips])
+        c = cl[0] if cl else random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
 
         if c:
             g.players.reveal(c)
@@ -117,7 +117,7 @@ class VirtueAction(UserAction):
         return True
 
     def cond(self, cl):
-        return len(cl) == 1 and cl[0] in self.cards
+        return len(cl) == 1 and not cl[0].is_card(VirtualCard)
 
 
 class VirtueHandler(EventHandler):
