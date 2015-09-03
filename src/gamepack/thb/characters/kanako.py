@@ -101,20 +101,18 @@ class VirtueAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
         g = Game.getgame()
-        dc = DrawCards(tgt, 2)
-        g.process_action(dc)
-        self.cards = cards = dc.cards
+        g.process_action(DrawCards(tgt, 2))
 
-        cl = user_choose_cards(self, tgt, ('cards', 'showncards'))
-        c = cl[0] if cl else random_choose_card([cards])
-        assert c and c.resides_in.owner is tgt
+        cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
+        c = cl[0] if cl else random_choose_card([src.cards, src.showncards, src.equips])
 
-        g.players.reveal(c)
-        g.process_action(ShowCards(tgt, [c]))
+        if c:
+            g.players.reveal(c)
+            g.process_action(ShowCards(tgt, [c]))
 
-        migrate_cards([c], src.cards)
-        if c.suit == Card.HEART:
-            g.process_action(DrawCards(src, 1))
+            migrate_cards([c], src.cards)
+            if c.suit == Card.HEART:
+                g.process_action(DrawCards(src, 1))
 
         return True
 
