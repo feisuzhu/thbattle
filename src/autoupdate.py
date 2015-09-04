@@ -25,6 +25,17 @@ class Autoupdate(object):
     def __init__(self, base):
         self.base = base
 
+        import pygit2
+        self.repo = pygit2.Repository(self.base)
+
+    @property
+    def remote(self):
+        for remote in self.repo.remotes:
+            if remote.name == 'origin':
+                return remote
+
+        raise AttributeError
+
     def reset_update_server(self, server_name):
         from gevent.pool import Group
 
@@ -70,9 +81,7 @@ class Autoupdate(object):
         return True
 
     def set_update_url(self, url):
-        import pygit2
-        repo = pygit2.Repository(self.base)
-        remote = repo.remotes[0]
+        remote = self.remote
         remote.url = url
         remote.save()
 
@@ -80,8 +89,6 @@ class Autoupdate(object):
         if not self.reset_update_server(server_name):
             raise Exception
 
-        import pygit2
-        repo = pygit2.Repository(self.base)
         hub = get_hub()
         noti = hub.loop.async()
         lock = RLock()
@@ -92,7 +99,7 @@ class Autoupdate(object):
                 stats.append(s)
                 noti.send()
 
-        remote = repo.remotes[0]
+        remote = self.remote
         remote.transfer_progress = progress
 
         def do_fetch():
@@ -129,7 +136,7 @@ class Autoupdate(object):
 
     def switch(self, version):
         import pygit2
-        repo = pygit2.Repository(self.base)
+        repo = self.repo
         try:
             desired = repo.revparse_single(version)
         except KeyError:
@@ -139,8 +146,7 @@ class Autoupdate(object):
         return True
 
     def is_version_match(self, version):
-        import pygit2
-        repo = pygit2.Repository(self.base)
+        repo = self.repo
         try:
             current = repo.revparse_single('HEAD')
             desired = repo.revparse_single(version)
@@ -149,16 +155,12 @@ class Autoupdate(object):
             return False
 
     def get_current_version(self):
-        import pygit2
-        repo = pygit2.Repository(self.base)
-        current = repo.revparse_single('HEAD')
+        current = self.repo.revparse_single('HEAD')
         return current.id.hex
 
     def is_version_present(self, version):
-        import pygit2
-        repo = pygit2.Repository(self.base)
         try:
-            repo.revparse_single(version)
+            self.repo.revparse_single(version)
             return True
         except KeyError:
             return False
