@@ -46,10 +46,11 @@ class Craftsman:
 
     def clickable(g):
         try:
-            if not g.me.cards and not g.me.showncards:
+            me = g.me
+            if not me.cards and not me.showncards:
                 return False
 
-            if ttags(g.me)['craftsman']:
+            if ttags(me)['craftsman'] and g.current_turn is me:
                 return False
 
             return True
