@@ -25,7 +25,61 @@ class Autoupdate(object):
     def __init__(self, base):
         self.base = base
 
-    def update(self):
+    def reset_update_server(self, server_name):
+        from gevent.pool import Group
+
+        group = Group()
+
+        @group.apply_async
+        def method1():
+            import dns.resolver
+            return dns.resolver.query(server_name, 'TXT').response
+
+        @group.apply_async
+        def method2():
+            import dns.resolver
+            from settings import NAME_SERVER
+            ns = dns.resolver.query(NAME_SERVER, 'NS').response.answer[0]
+            ns = ns.items[0].target.to_text()
+
+            import socket
+            ns = socket.gethostbyname(ns)
+
+            import dns.message
+            import dns.query
+            q = dns.message.make_query(server_name, 'TXT')
+
+            return dns.query.udp(q, ns)
+
+        for result in gevent.iwait([method1, method2], 10):
+            if result.successful():
+                result = result.value
+                break
+
+            else:
+                log.exception(result.exception)
+
+        else:
+            group.kill()
+            return False
+
+        group.kill()
+        result = result.answer[0]
+        url = result.items[0].strings[0]
+        self.set_update_url(url)
+        return True
+
+    def set_update_url(self, url):
+        import pygit2
+        repo = pygit2.Repository(self.base)
+        remote = repo.remotes[0]
+        remote.url = url
+        remote.save()
+
+    def update(self, server_name):
+        if not self.reset_update_server(server_name):
+            raise Exception
+
         import pygit2
         repo = pygit2.Repository(self.base)
         hub = get_hub()
@@ -114,7 +168,7 @@ class DummyAutoupdate(object):
     def __init__(self, base):
         self.base = base
 
-    def update(self):
+    def update(self, server):
         yield
 
     def switch(self, version):

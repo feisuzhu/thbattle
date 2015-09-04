@@ -12,16 +12,23 @@ VERSION = 'THBATTLE V1.0b incr 257'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
+NAME_SERVER = 'thbattle.net'
 
 if sys.platform == 'win32':
     LOGIC_UPDATE_BASE = "src"
+    LOGIC_UPDATE_SERVER = "src.envolve.thbattle.net"
     INTERPRETER_UPDATE_BASE = "Python27"
+    INTERPRETER_UPDATE_SERVER = "interpreter.envolve.thbattle.net"
 elif sys.platform == "darwin":
     LOGIC_UPDATE_BASE = "src"
+    LOGIC_UPDATE_SERVER = "src.envolve.thbattle.net"
     INTERPRETER_UPDATE_BASE = "osx-eggs"
+    INTERPRETER_UPDATE_SERVER = "osx-eggs.envolve.thbattle.net"
 else:
     LOGIC_UPDATE_BASE = BASEDIR
+    LOGIC_UPDATE_SERVER = "src.envolve.thbattle.net"
     INTERPRETER_UPDATE_BASE = None
+    INTERPRETER_UPDATE_SERVER = None
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
