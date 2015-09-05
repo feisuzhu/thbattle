@@ -379,10 +379,10 @@ class Executive(object):
 
         errord = [False]
 
-        def do_update(name, path):
+        def do_update(name, path, server):
             up = Autoupdate(path)
             try:
-                for p in up.update():
+                for p in up.update(server):
                     update_cb(name, p)
             except Exception as e:
                 log.exception(e)
@@ -391,9 +391,9 @@ class Executive(object):
 
         pool = Pool(2)
 
-        pool.spawn(do_update, 'logic_progress', settings.LOGIC_UPDATE_BASE)
+        pool.spawn(do_update, 'logic_progress', settings.LOGIC_UPDATE_BASE, settings.LOGIC_UPDATE_SERVER)
         if settings.INTERPRETER_UPDATE_BASE:
-            pool.spawn(do_update, 'interpreter_progress', settings.INTERPRETER_UPDATE_BASE)
+            pool.spawn(do_update, 'interpreter_progress', settings.INTERPRETER_UPDATE_BASE, settings.INTERPRETER_UPDATE_SERVER)
 
         pool.join()
 
