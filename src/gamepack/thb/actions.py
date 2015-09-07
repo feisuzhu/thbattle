@@ -1036,25 +1036,31 @@ class PlayerTurn(GenericAction):
         p = self.target
         p.tags['turn_count'] += 1
         g.turn_count += 1
+        g.current_turn = self
         g.current_player = p
 
-        while self.pending_stages:
-            stage = self.pending_stages.pop(0)
-            g.process_action(stage(p))
+        try:
+            while self.pending_stages:
+                stage = self.pending_stages.pop(0)
+                self.current_stage = cs = stage(p)
+                g.process_action(cs)
+
+        finally:
+            g.current_turn = None
 
         return True
 
     @staticmethod
     def get_current(p=None):
         g = Game.getgame()
-        for act in g.action_stack:
-            if isinstance(act, PlayerTurn):
-                if p is not None and act.target is not p:
-                    raise GameException('Got unexpected PlayerTurn!')
+        act = getattr(g, 'current_turn', None)
+        if act:
+            assert isinstance(act, PlayerTurn)
 
-                return act
+            if p is not None and act.target is not p:
+                raise GameException('Got unexpected PlayerTurn!')
 
-        return None
+        return act
 
 
 class DummyAction(GenericAction):
