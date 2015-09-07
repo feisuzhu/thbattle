@@ -103,7 +103,7 @@ class CriticalStrikeHandler(EventHandler):
     def in_critical_strike(self, p):
         return (
             ttags(p)['flan_cs'] and
-            Game.getgame().current_turn is p and
+            Game.getgame().current_player is p and
             p.has_skill(CriticalStrike)
         )
 

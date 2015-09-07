@@ -33,7 +33,7 @@ class AttackCard:
         if not isinstance(act, actions.LaunchCard):
             return 'thb-cv-card_attack1'
 
-        current = G().current_turn
+        current = G().current_player
 
         if act.source is not current:
             return 'thb-cv-card_attack1'
@@ -72,7 +72,7 @@ class GrazeCard:
         if not isinstance(act, actions.LaunchCard):
             return 'thb-cv-card_graze1'
 
-        current = G().current_turn
+        current = G().current_player
 
         if act.source is not current:
             return 'thb-cv-card_graze1'

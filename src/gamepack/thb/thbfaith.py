@@ -63,7 +63,7 @@ class DeathHandler(EventHandler):
 
             tgt = g.switch_character(tgt, c)
 
-            c = getattr(g, 'current_turn', None)
+            c = getattr(g, 'current_player', None)
 
             g.process_action(DistributeCards(tgt, 4))
 

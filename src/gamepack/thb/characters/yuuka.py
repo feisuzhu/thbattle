@@ -22,7 +22,7 @@ class ReversedScales(TreatAs, Skill):
         if not cl or len(cl) != 1:
             return False
 
-        if Game.getgame().current_turn is self.player:
+        if Game.getgame().current_player is self.player:
             return False
 
         return cl[0].resides_in.type in ('cards', 'showncards')

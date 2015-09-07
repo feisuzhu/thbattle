@@ -110,7 +110,7 @@ class DecayDrawCardHandler(EventHandler):
             return arg
 
         g = Game.getgame()
-        me = getattr(g, 'current_turn', None)
+        me = getattr(g, 'current_player', None)
         if me is None: return arg
         if me.dead: return arg
         if not me.has_skill(Decay): return arg
@@ -170,9 +170,9 @@ class DecayDamageHandler(EventHandler):
                 return act
 
             g = Game.getgame()
-            if g.current_turn is tgt: return act
-            if not g.current_turn: return act
-            g.process_action(DecayAction(src, g.current_turn))
+            if g.current_player is tgt: return act
+            if not g.current_player: return act
+            g.process_action(DecayAction(src, g.current_player))
 
         elif evt_type == 'action_before' and isinstance(act, DropCardStage):
             tgt = act.target
