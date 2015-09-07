@@ -899,7 +899,7 @@ class FatetellMalleateHandler(EventHandlerGroup):
         if evt_type != 'fatetell': return data
 
         g = Game.getgame()
-        for p in g.players_from(g.current_turn):
+        for p in g.players_from(g.current_player):
             for eh in self.handlers:
                 data = g.handle_single_event(eh, p, data)
 
@@ -1036,7 +1036,7 @@ class PlayerTurn(GenericAction):
         p = self.target
         p.tags['turn_count'] += 1
         g.turn_count += 1
-        g.current_turn = p
+        g.current_player = p
 
         while self.pending_stages:
             stage = self.pending_stages.pop(0)

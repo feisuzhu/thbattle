@@ -212,7 +212,7 @@ class THBattleNewbie(Game):
         dialog(Meirin, u'前面998次你也都是这么说的……好了，废话少说，放马过来吧！', 5)
         dialog(Cirno, u'正合我意！', 2)
 
-        g.current_turn = cirno
+        g.current_player = cirno
 
         c = g.deck.inject(AttackCard, Card.SPADE, 1)
         g.process_action(DrawCards(cirno, 1))
@@ -230,7 +230,7 @@ class THBattleNewbie(Game):
         dialog(Meirin, u'我可什么都没说！', 9)
 
         # 红美铃的回合【目的:使用基本牌（麻薯，弹幕）】
-        g.current_turn = meirin
+        g.current_player = meirin
         c = g.deck.inject(HealCard, Card.HEART, 2)
         g.process_action(DrawCards(meirin, 1))
 
@@ -261,7 +261,7 @@ class THBattleNewbie(Game):
         dialog(Cirno, u'喂！悄悄话说的也太大声了！！', 5)
 
         # 琪露诺的回合【目的:使用基本牌（擦弹）】【使用太极（1）】
-        g.current_turn = cirno
+        g.current_player = cirno
         g.deck.inject(HealCard, Card.HEART, 4)
         g.process_action(DrawCards(cirno, 1))
         while True:
@@ -321,7 +321,7 @@ class THBattleNewbie(Game):
         dialog(Meirin, u'是！', 18)
 
         # 红美铃的回合【目的:使用延时符卡（冻青蛙），使用太极（2），使用红色UFO】'
-        g.current_turn = meirin
+        g.current_player = meirin
         frozen = g.deck.inject(FrozenFrogCard, Card.SPADE, 8)
         g.process_action(DrawCards(meirin, 1))
 
@@ -410,7 +410,7 @@ class THBattleNewbie(Game):
             dialog(Meirin, u'那么，把这张|G冻青蛙|r也贴上去吧！', 31)
             g.process_action(ActionStage(meirin))
 
-        g.current_turn = cirno
+        g.current_player = cirno
         g.deck.inject(SinsackCard, Card.SPADE, 13)
         g.process_action(FatetellStage(cirno))
 
@@ -434,7 +434,7 @@ class THBattleNewbie(Game):
         dialog(Sakuya, u'真是的，你之前的998局到底是怎么赢的……', 16)
 
         # 红美铃的回合【目的:使用符卡（城管执法，好人卡）】
-        g.current_turn = meirin
+        g.current_player = meirin
 
         demolition = g.deck.inject(DemolitionCard, Card.CLUB, 2)
         g.process_action(DrawCards(meirin, 1))
@@ -501,7 +501,7 @@ class THBattleNewbie(Game):
         dialog(Meirin, u'咦？咲夜，这张牌好奇怪……为什么是负面的效果？', 42)
         dialog(Sakuya, u'是|G恶心丸|r啊……你的运气不太好哦。不过尽管说是一张负面效果的牌，但是看发动条件的话，是可以恶心到别人的。情况允许的话就留在手里好了，直接吃掉肯定是不合算的。', 23)
 
-        g.current_turn = cirno
+        g.current_player = cirno
         demolition = g.deck.inject(DemolitionCard, Card.CLUB, 4)
         g.process_action(DrawCards(cirno, 1))
         dialog(Cirno, u'可恶，你到底有没有认真的在打啊！看我双倍奉还！', 20)

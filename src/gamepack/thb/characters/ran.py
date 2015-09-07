@@ -119,7 +119,7 @@ class ExtremeIntelligenceHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, InstantSpellCardAction):
             if isinstance(act, Reject): return act
             g = Game.getgame()
-            target = g.current_turn
+            target = g.current_player
 
             for p in g.players.exclude(target):
                 if p.dead:

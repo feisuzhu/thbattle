@@ -131,7 +131,7 @@ class ShikigamiHandler(EventHandler):
             if not tgt or tgt.dead: return arg
 
             g = Game.getgame()
-            if g.current_turn is not src: return arg
+            if g.current_player is not src: return arg
 
             origin = src if 'shikigami_tag' in src.tags else tgt
             if origin.tags['shikigami_tag'] != origin.tags['turn_count']:

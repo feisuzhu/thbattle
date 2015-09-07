@@ -68,7 +68,7 @@ class TianyiHandler(EventHandler):
             else:
                 return act
 
-            me = g.current_turn
+            me = g.current_player
             if not me or not me.has_skill(Tianyi):
                 return act
 
@@ -104,7 +104,7 @@ class ElingHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
             g = Game.getgame()
-            if g.current_turn is not act.target:
+            if g.current_player is not act.target:
                 return act
 
             for p in g.players:

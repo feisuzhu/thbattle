@@ -119,7 +119,7 @@ class ReversalHandler(EventHandler):
             tgt = act.target
             g = Game.getgame()
 
-            # if tgt is g.current_turn: return act
+            # if tgt is g.current_player: return act
             if not tgt.has_skill(Reversal):
                 return act
 

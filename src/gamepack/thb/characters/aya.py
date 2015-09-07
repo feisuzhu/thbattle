@@ -39,7 +39,7 @@ class UltimateSpeedHandler(EventHandler):
                 return arg
 
             g = Game.getgame()
-            if g.current_turn is not src:
+            if g.current_player is not src:
                 return arg
 
             for k in dist:
@@ -62,7 +62,7 @@ class UltimateSpeedHandler(EventHandler):
             if not src.has_skill(UltimateSpeed): return arg
 
             # if not isinstance(lca, ActionStageLaunchCard):
-            if g.current_turn is not src:
+            if g.current_player is not src:
                 return arg
 
             src.tags['aya_count'] += 1

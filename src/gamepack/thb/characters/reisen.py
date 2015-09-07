@@ -82,7 +82,7 @@ class DiscarderHandler(EventHandler):
             src = act.source
             if not src.has_skill(Discarder): return act
             g = Game.getgame()
-            if src is not g.current_turn: return act
+            if src is not g.current_player: return act
 
             self.card = c = act.card
             if not c.is_card(PhysicalCard): return act
