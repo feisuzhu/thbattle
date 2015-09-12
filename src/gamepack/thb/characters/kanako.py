@@ -34,7 +34,7 @@ class KanakoFaithByForce(UserAction):
         src, tgt = self.source, self.target
         g = Game.getgame()
 
-        if user_input([src], ChooseOptionInputlet(self, (False, True))):
+        if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             g.process_action(LaunchCard(src, [tgt], KanakoFaithDuel(src), bypass_check=True))
 
         else:
