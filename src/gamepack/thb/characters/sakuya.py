@@ -3,10 +3,10 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStage, FatetellStage, GenericAction
+from ..actions import ActionStage, PrepareStage, PlayerTurn
 from ..cards import AttackCard, Skill, TreatAs, WearEquipmentAction, t_None
 from .baseclasses import Character, register_character
-from game.autoenv import EventHandler, Game
+from game.autoenv import EventHandler
 
 
 # -- code --
@@ -17,23 +17,32 @@ class Dagger(TreatAs, Skill):
 
     def check(self):
         cards = self.associated_cards
-        if len(cards) != 1: return False
+        if len(cards) != 1:
+            return False
+
         c = cards[0]
-        if c.resides_in is None: return False
-        if c.resides_in.type not in ('cards', 'showncards', 'equips'): return False
+        if c.resides_in is None:
+            return False
+
+        if c.resides_in.type not in ('cards', 'showncards', 'equips'):
+            return False
+
         act = c.associated_action
-        if not (act and issubclass(act, WearEquipmentAction)): return False
+        if not (act and issubclass(act, WearEquipmentAction)):
+            return False
+
         return True
 
 
-class LunaDialActionStage(GenericAction):
+class LunaDialActionStage(ActionStage):
     def apply_action(self):
         tags = self.target.tags
         tags['lunadial'] = True
-        Game.getgame().process_action(ActionStage(self.target))
-        tags['lunadial'] = False
-        # tags['turn_count'] += 1
-        return True
+
+        try:
+            return super(LunaDialActionStage, self).apply_action()
+        finally:
+            tags['lunadial'] = False
 
 
 class LunaDial(Skill):
@@ -43,14 +52,17 @@ class LunaDial(Skill):
 
 
 class LunaDialHandler(EventHandler):
-    interested = ('action_before',)
+    interested = ('action_after',)
     execute_after = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, FatetellStage):
+        if evt_type == 'action_after' and isinstance(act, PrepareStage):
             src = act.target
-            if not src.has_skill(LunaDial): return act
-            Game.getgame().process_action(LunaDialActionStage(src, src))
+            if not src.has_skill(LunaDial):
+                return act
+
+            PlayerTurn.get_current(src).pending_stages.insert(0, LunaDialActionStage)
+
         return act
 
 

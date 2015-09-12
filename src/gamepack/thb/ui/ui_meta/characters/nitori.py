@@ -50,7 +50,7 @@ class Craftsman:
             if not me.cards and not me.showncards:
                 return False
 
-            if ttags(me)['craftsman'] and g.current_turn is me:
+            if ttags(me)['craftsman'] and g.current_player is me:
                 return False
 
             return True

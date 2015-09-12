@@ -84,7 +84,7 @@ class VirtueAction(UserAction):
         g = Game.getgame()
         g.process_action(DropCards(src, src, self.cards))
         g.process_action(DrawCards(tgt, 1))
-        ttags(g.current_turn)['virtue'] = True
+        ttags(g.current_player)['virtue'] = True
         return True
 
 
@@ -114,10 +114,10 @@ class VirtueHandler(EventHandler):
 
             g = Game.getgame()
 
-            if not hasattr(g, 'current_turn'):
+            if not hasattr(g, 'current_player'):
                 return arg
 
-            if ttags(g.current_turn)['virtue']:
+            if ttags(g.current_player)['virtue']:
                 return arg
 
             g = Game.getgame()
