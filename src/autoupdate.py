@@ -41,13 +41,11 @@ class Autoupdate(object):
 
         group = Group()
 
-        @group.apply_async
-        def method1():
+        def local():
             import dns.resolver
             return dns.resolver.query(server_name, 'TXT').response
 
-        @group.apply_async
-        def method2():
+        def recursive():
             import dns.resolver
             from settings import NAME_SERVER
             ns = dns.resolver.query(NAME_SERVER, 'NS').response.answer[0]
@@ -62,7 +60,24 @@ class Autoupdate(object):
 
             return dns.query.udp(q, ns)
 
-        for result in gevent.iwait([method1, method2], 10):
+        def public(ns):
+            def _public():
+                import dns.message
+                import dns.query
+                q = dns.message.make_query(server_name, 'TXT')
+                return dns.query.udp(q, ns)
+
+            return _public
+
+        workers = [group.apply_async(i) for i in [
+            local,
+            recursive,
+            public('119.29.29.29'),
+            public('114.114.114.114'),
+            public('8.8.8.8'),
+        ]]
+
+        for result in gevent.iwait(workers, 10):
             if result.successful():
                 result = result.value
                 break
