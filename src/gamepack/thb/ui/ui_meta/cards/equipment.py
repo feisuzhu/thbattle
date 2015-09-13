@@ -441,7 +441,7 @@ class IbukiGourdCard:
     description = (
         u'|R伊吹瓢|r\n\n'
         u'装备后：获得喝醉状态，并在之后失去该装备时及每个结束阶段开始时获得|B喝醉|r状态。\n\n'
-        u'|DB（画师：Pixiv ID 4578556）|r'
+        u'|DB（画师：霏茶）|r'
     )
 
 
