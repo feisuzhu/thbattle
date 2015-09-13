@@ -204,7 +204,7 @@ class HealCard:
         u'1、在你的出牌阶段，你可以使用它来回复你的1点体力。\n'
         u'2、当有角色处于濒死状态时，你可以对该角色使用【麻薯】，防止该角色的死亡。\n'
         u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。\n\n'
-        u'|DB（画师：http://seiga.nicovideo.jp/seiga/im3031795，CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
