@@ -3,8 +3,10 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+from gamepack.thb import actions, characters
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.kanako)
@@ -17,49 +19,85 @@ class Kanako:
     miss_sound_effect = 'thb-cv-kanako_miss'
     description = (
         u'|DB山丘与湖泊的化身 八坂神奈子 体力：4|r\n\n'
-        u'|G神威|r：|B锁定技|r，摸牌阶段开始时，你摸X张牌，然后弃置等量的牌（X为你的当前体力值，且至多为4）。\n\n'
-        u'|G神德|r：每名角色的回合限一次，你在自己的摸牌阶段以外获得牌时，你可以弃置一张手牌并令一名其他角色摸一张牌。\n\n'
+        u'|G神德|r：摸牌阶段开始时，你可以放弃摸牌并选择一名其他角色，改为令其摸两张牌，然后该角色需展示并交给你一张牌，若其交给你的牌为红桃，你摸一张牌。\n\n'
+        u'|G信仰|r：|B限定技|r，出牌阶段，你可以令你攻击范围内的所有其他角色选择一项：令你摸一张牌；或弃置你一张牌，然后视为你对其使用了一张|G弹幕|r或|G弹幕战|r。\n\n'
         u'|DB（画师：Pixiv ID 6725408，CV：北斗夜/VV）|r'
     )
 
 
-class Divinity:
+class KanakoFaith:
     # Skill
-    name = u'神威'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
+    name = u'信仰'
 
+    def clickable(game):
+        me = game.me
+        if me.tags['kanako_faith']:
+            return False
 
-# class DivinityHandler:
-#     # choose_option meta
-#     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-#     choose_option_prompt = u'你要发动【神威】吗？'
+        try:
+            act = game.action_stack[-1]
+            if isinstance(act, actions.ActionStage) and act.target is me:
+                return True
 
-class DivinityDrawCards:
+        except IndexError:
+            pass
+
+        return False
+
+    def is_action_valid(g, cl, tl):
+        skill = cl[0]
+        cl = skill.associated_cards
+        if cl:
+            return (False, u'请不要选择牌')
+
+        if not tl:
+            return (False, u'没有符合条件的角色')
+        else:
+            return (True, u'发动【信仰】')
+
     def effect_string(act):
-        return u'|G【%s】|r发动了|G神威|r，摸了%d张牌。' % (
-            act.target.ui_meta.char_name, act.amount,
+        return u'|G【%s】|r打开神社大门，开始收集|G信仰|r！%s表示很感兴趣。' % (
+            act.source.ui_meta.char_name,
+            u'、'.join([u'|G【%s】|r' % p.ui_meta.char_name for p in act.target_list]),
         )
 
     def sound_effect(act):
-        return 'thb-cv-kanako_divinity'
+        return 'thb-cv-kanako_faith'
 
 
-class DivinityDropCards:
-    def effect_string(act):
-        return u'|G【%s】|r弃置了%d张牌。' % (
-            act.target.ui_meta.char_name,
-            len(act.cards),
+class KanakoFaithCheers:
+    def effect_string_before(act):
+        return u'|G【%s】|r献上了信仰！' % (
+            act.source.ui_meta.char_name,
         )
 
 
-class DivinityAction:
-    # choose_card meta
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'神威：弃置这些牌')
-        else:
-            return (False, u'神威：请弃置%d张牌' % act.amount)
+class KanakoFaithCounteract:
+    def effect_string_before(act):
+        return u'|G【%s】|r决定要拆台！' % (
+            act.source.ui_meta.char_name,
+        )
+
+
+class KanakoFaithCounteractPart1:
+    def effect_string(act):
+        return u'|G【%s】|r弃置了|G【%s】|r的%s' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+            card_desc(act.card),
+        )
+
+
+class KanakoFaithCounteractPart2:
+    # choose_option meta
+    choose_option_buttons = ((u'弹幕战', 'duel'), (u'弹幕', 'attack'))
+    choose_option_prompt = u'信仰：请选择希望的效果'
+
+
+class KanakoFaithEffect:
+    # choose_option meta
+    choose_option_buttons = ((u'弃置对方的牌', 'drop'), (u'对方摸牌', 'draw'))
+    choose_option_prompt = u'信仰：请选择希望的效果'
 
 
 class Virtue:
@@ -70,18 +108,18 @@ class Virtue:
 
 
 class VirtueHandler:
-    def choose_card_text(g, act, cards):
-        prompt = u'神德：弃置1张牌，并选择一名其他角色（否则不发动）'
-        return act.cond(cards), prompt
-
     def target(pl):
         if not pl:
             return (False, u'神德：请选择1名玩家')
 
-        return (True, u'神德：选定的目标摸1张牌')
+        return (True, u'神德：放弃摸牌，选定的目标摸2张牌')
 
 
 class VirtueAction:
+    def choose_card_text(g, act, cards):
+        prompt = u'神德：交给对方一张牌'
+        return act.cond(cards), prompt
+
     def effect_string_before(act):
         return u'|G【%s】|r发动了|G神德|r，目标是|G【%s】|r。' % (
             act.source.ui_meta.char_name,
