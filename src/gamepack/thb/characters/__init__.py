@@ -50,6 +50,7 @@ import shinmyoumaru
 import nitori
 import shizuha
 import sp_aya
+import kyouko
 
 # weektour
 import youmu20150620

@@ -47,6 +47,7 @@ from . import shinmyoumaru
 from . import nitori
 from . import shizuha
 from . import sp_aya
+from . import kyouko
 
 # weektour
 from . import youmu20150620
