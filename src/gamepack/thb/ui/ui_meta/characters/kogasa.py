@@ -106,9 +106,9 @@ class SurpriseAction:
     # choose_option
     choose_option_buttons = (
         (u'♠', cards.Card.SPADE),
-        (u'♡', cards.Card.HEART),
+        (u'♥', cards.Card.HEART),
         (u'♣', cards.Card.CLUB),
-        (u'♢', cards.Card.DIAMOND),
+        (u'♦', cards.Card.DIAMOND),
     )
 
     choose_option_prompt = u'请选择一个花色…'

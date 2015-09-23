@@ -107,11 +107,11 @@ def card_desc(c):
     if c.suit == Card.SPADE:
         suit = u'|r♠'
     elif c.suit == Card.HEART:
-        suit = u'|r|cb03a11ff♡'
+        suit = u'|r|cb03a11ff♥'
     elif c.suit == Card.CLUB:
         suit = u'|r♣'
     elif c.suit == Card.DIAMOND:
-        suit = u'|r|cb03a11ff♢'
+        suit = u'|r|cb03a11ff♦'
     else:
         suit = u'|r错误'
 
