@@ -945,7 +945,7 @@ class UIKokoroHomeMask(Panel, InputHandler):
                 batch=self.lbls,
             )
 
-        lbl(u'请拖动调整牌的位置，获得的牌必须是同花色的', w // 2, h - 25)
+        lbl(u'请拖动调整牌的位置', w // 2, h - 25)
         lbl(u'牌堆顶', 50, 277)
         lbl(u'展示并获得', 50, 122)
 

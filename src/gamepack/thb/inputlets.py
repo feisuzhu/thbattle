@@ -371,6 +371,22 @@ class HopeMaskInputlet(Inputlet):
         return rst
 
 
+class HopeMaskKOFInputlet(HopeMaskInputlet):
+
+    @classmethod
+    def tag(cls):
+        return 'HopeMask'
+
+    def is_valid(self, putback, acquire):
+        if not set(self.cards) == set(putback + acquire):
+            return False
+
+        if len(acquire) > 1:
+            return False
+
+        return True
+
+
 class GalgameDialogInputlet(Inputlet):
     def init(self, character, dialog, voice):
         self.character = character
