@@ -358,7 +358,7 @@ class HarvestEffect:
         c = act.card
         return u'|G【%s】|r获得了|G%s|r' % (
             tgt.ui_meta.char_name,
-            c.ui_meta.name,
+            card_desc(c),
         )
 
 
