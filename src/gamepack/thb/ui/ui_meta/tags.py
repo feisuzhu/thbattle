@@ -93,4 +93,29 @@ class shizuha_decay:
     display = lambda p, v: v
     description = u'凋零：弃牌阶段需额外弃置一张手牌'
 
+
+class dominance_suit_SPADE:
+    tag_anim = lambda p: 'thb-tag-suit_spade'
+    display = lambda p, v: v and p is G().current_player
+    description = u'风靡：使用过♠牌'
+
+
+class dominance_suit_HEART:
+    tag_anim = lambda p: 'thb-tag-suit_heart'
+    display = lambda p, v: v and p is G().current_player
+    description = u'风靡：使用过♥牌'
+
+
+class dominance_suit_DIAMOND:
+    tag_anim = lambda p: 'thb-tag-suit_diamond'
+    display = lambda p, v: v and p is G().current_player
+    description = u'风靡：使用过♦牌'
+
+
+class dominance_suit_CLUB:
+    tag_anim = lambda p: 'thb-tag-suit_club'
+    display = lambda p, v: v and p is G().current_player
+    description = u'风靡：使用过♣牌'
+
+
 # -----END TAGS UI META-----

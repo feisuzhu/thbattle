@@ -5,8 +5,9 @@
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, user_input
 from gamepack.thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCardStage
-from gamepack.thb.actions import GenericAction, PlayerTurn, UserAction, ask_for_action, LaunchCard
-from gamepack.thb.cards import AttackCard, Skill, VirtualCard, t_Self, t_None, PhysicalCard, Card
+from gamepack.thb.actions import FinalizeStage, GenericAction, LaunchCard, PlayerTurn, UserAction
+from gamepack.thb.actions import ask_for_action
+from gamepack.thb.cards import AttackCard, Card, PhysicalCard, Skill, VirtualCard, t_None, t_Self
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
@@ -23,6 +24,7 @@ class WindWalkSkipAction(GenericAction):
         turn = PlayerTurn.get_current(tgt)
         try:
             turn.pending_stages.remove(DropCardStage)
+            turn.pending_stages.remove(FinalizeStage)
         except Exception:
             pass
 
@@ -108,7 +110,12 @@ class DominanceHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
-            act.target.tags['dominance_suits'] = set()
+            t = act.target.tags
+            t['dominance_suits']        = set()
+            t['dominance_suit_SPADE']   = False
+            t['dominance_suit_CLUB']    = False
+            t['dominance_suit_HEART']   = False
+            t['dominance_suit_DIAMOND'] = False
 
         elif evt_type == 'action_apply' and isinstance(act, LaunchCard):
             card = act.card
@@ -120,7 +127,9 @@ class DominanceHandler(EventHandler):
                 return act
 
             try:
-                act.source.tags['dominance_suits'].add(suit)
+                t = act.source.tags
+                t['dominance_suits'].add(suit)
+                t['dominance_suit_%s' % Card.SUIT_REV[suit]] = True
 
             except AttributeError:
                 pass
