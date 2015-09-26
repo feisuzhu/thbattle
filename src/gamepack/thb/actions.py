@@ -1210,8 +1210,8 @@ class DyingHandler(EventHandler):
 
 
 class ShowCards(GenericAction):
-    def __init__(self, target, cards):
-        self.source = self.target = target
+    def __init__(self, source, cards):
+        self.source = self.target = source
         self.cards = cards
 
     def apply_action(self):

@@ -3,11 +3,11 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, InputTransaction, user_input
+from game.autoenv import ActionShootdown, EventHandler, Game, InputTransaction, user_input
 from gamepack.thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCardStage
-from gamepack.thb.actions import FinalizeStage, GenericAction, LaunchCard, PlayerTurn, UserAction
-from gamepack.thb.actions import ask_for_action
-from gamepack.thb.cards import AttackCard, Card, PhysicalCard, Skill, VirtualCard, t_None, t_Self
+from gamepack.thb.actions import FinalizeStage, GenericAction, LaunchCard, PlayerTurn, ShowCards
+from gamepack.thb.actions import UserAction, ask_for_action
+from gamepack.thb.cards import Card, PhysicalCard, Skill, VirtualCard, t_None, t_Self
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
@@ -43,6 +43,7 @@ class WindWalkAction(UserAction):
             g.process_action(dc)
             c, = dc.cards
             self.card = c
+            g.process_action(ShowCards(tgt, [c]))
 
             with InputTransaction('ActionStageAction', [tgt]) as trans:
                 p, rst = ask_for_action(
@@ -61,13 +62,6 @@ class WindWalkAction(UserAction):
 
         return True
 
-    @staticmethod
-    def is_windwalk_card(c):
-        return all([
-            c.is_card(AttackCard) or 'instant_spellcard' in c.category,
-            'group_effect' not in c.category,
-        ])
-
     def cond(self, cl):
         if not (cl and len(cl) == 1):
             return False
@@ -80,6 +74,47 @@ class WindWalkAction(UserAction):
 
     def choose_player_target(self, tl):
         return tl, True
+
+
+class WindWalkTargetLimit(ActionShootdown):
+    pass
+
+
+class WindWalkHandler(EventHandler):
+    interested = ('action_apply', 'action_shootdown')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, LaunchCard):
+            src = act.source
+            if act.card.is_card(WindWalk):
+                return act
+
+            if not src.has_skill(WindWalk):
+                return act
+
+            src.tags['windwalk_last_targets'] = set(act.target_list)
+
+        elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+            src = act.source
+            if not src.has_skill(WindWalk):
+                return act
+
+            src.tags['windwalk_last_targets'] = set()
+
+        elif evt_type == 'action_shootdown' and isinstance(act, LaunchCard):
+            g = Game.getgame()
+            if not isinstance(g.action_stack[-1], WindWalkAction):
+                return act
+
+            src, tl = act.source, set(act.target_list)
+            last_tl = src.tags['windwalk_last_targets']
+
+            if not tl <= last_tl:
+                raise WindWalkTargetLimit
+
+            return act
+
+        return act
 
 
 class WindWalk(Skill):
@@ -105,6 +140,10 @@ class Dominance(Skill):
     target = t_None
 
 
+class DominanceAction(PlayerTurn):
+    pass
+
+
 class DominanceHandler(EventHandler):
     interested = ('action_after', 'action_apply')
 
@@ -118,6 +157,9 @@ class DominanceHandler(EventHandler):
             t['dominance_suit_DIAMOND'] = False
 
         elif evt_type == 'action_apply' and isinstance(act, LaunchCard):
+            if not act.source.has_skill(Dominance):
+                return act
+
             card = act.card
             if not card.is_card(PhysicalCard):
                 return act
@@ -139,13 +181,13 @@ class DominanceHandler(EventHandler):
             if not tgt.has_skill(Dominance):
                 return act
 
-            if len(tgt.tags['dominance_suits']) != 4:
+            if len(tgt.tags['dominance_suits'] or set()) != 4:
                 return act
 
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            Game.getgame().process_action(PlayerTurn(tgt))
+            Game.getgame().process_action(DominanceAction(tgt))
 
         return act
 
@@ -153,5 +195,5 @@ class DominanceHandler(EventHandler):
 @register_character
 class SpAya(Character):
     skills = [WindWalk, Dominance]
-    eventhandlers_required = [DominanceHandler]
+    eventhandlers_required = [WindWalkHandler, DominanceHandler]
     maxlife = 4

@@ -3,8 +3,9 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from gamepack.thb import characters, cards
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid, my_turn
+from gamepack.thb import cards, characters
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, my_turn, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
 
 # -- code --
@@ -37,6 +38,15 @@ class WindWalk:
 
         return (True, u'疾走')
 
+    def effect_string(act):
+        return u'唯快不破！|G【%s】|r弃置了%s，开始加速追击！' % (
+            act.source.ui_meta.char_name,
+            card_desc(act.card),
+        )
+
+    def sound_effect(act):
+        return 'thb-cv-sp_aya_windwalk'
+
 
 class WindWalkLaunch:
     pass
@@ -51,18 +61,33 @@ class WindWalkAction:
         else:
             return True, u'不会显示……'
 
-    def effect_string_before(act):
-        return u'唯快不破！|G【%s】|r在一瞬之后已备好了下一招！' % act.target.ui_meta.char_name
-
 
 class WindWalkSkipAction:
     def effect_string_before(act):
         return u'|G【%s】|r放弃了追击。' % act.target.ui_meta.char_name
 
+    def sound_effect(act):
+        return 'thb-cv-sp_aya_windwalk_stop'
+
+
+class WindWalkTargetLimit:
+    # target_independent = True
+    shootdown_message = u'你只能对上一张使用的牌的目标角色（或之一）使用。'
+
 
 class DominanceHandler:
     choose_option_prompt = u'你要发动【风靡】吗？'
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
+
+
+class DominanceAction:
+    def effect_string_before(act):
+        return u'|G【%s】|r成功地了搞了个大新闻！' % (
+            act.target.ui_meta.char_name,
+        )
+
+    def sound_effect(act):
+        return 'thb-cv-sp_aya_dominance'
 
 
 class Dominance:
@@ -77,16 +102,13 @@ class SpAya:
     char_name = u'SP射命丸文'
     port_image = 'thb-portrait-sp_aya'
     figure_image = 'thb-figure-sp_aya'
+    miss_sound_effect = 'thb-cv-sp_aya_miss'
+
     description = (
         u'|DB剑圣是谁有我快吗 SP射命丸文 体力：4|r\n\n'
-        u'|G疾走|r：出牌阶段，你可弃置一张牌；若你如此做，你亮出牌堆顶的一张牌，并选择：1.立刻使用之，然后重复此流程。2.获得此牌，并结束此回合。\n'
-        # 比你快！
-        # 还是放一下水吧
+        u'|G疾走|r：出牌阶段，你可以弃置一张牌，然后摸一张牌，对你上一张使用的牌的目标角色（或之一）使用之并重复此流程，否则结束你的回合。\n'
         u'\n'
         u'|G风靡|r：回合结束时，若你本回合的出牌阶段使用了四种花色的牌，你可执行一个额外的回合。\n'
-        #  好像有大事件，还不能休息！
         u'\n'
-        u'|DB（人物设计：吹风姬，画师：躲猫）|r'
-        # 尽管放了水，不过你真的好厉害啊
-
+        u'|DB（人物设计：吹风姬，画师：躲猫，CV：君寻）|r'
     )
