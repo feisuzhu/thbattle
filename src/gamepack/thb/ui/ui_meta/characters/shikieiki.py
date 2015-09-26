@@ -75,10 +75,11 @@ class Shikieiki:
     # Character
     char_name = u'四季映姬'
     port_image = 'thb-portrait-shikieiki'
+    figure_image = 'thb-figure-shikieiki'
     miss_sound_effect = 'thb-cv-shikieiki_miss'
     description = (
         u'|DB胸不平何以平天下 四季映姬 体力：3|r\n\n'
         u'|G审判|r：在一名角色的判定牌生效前，你可以打出一张牌代替之。\n\n'
         u'|G威严|r：当你受到一次伤害后，你可以获得伤害来源的一张牌。\n\n'
-        u'|DB（画师：Pixiv UID 409282，CV：shourei小N）|r'
+        u'|DB（画师：和茶，CV：shourei小N）|r'
     )

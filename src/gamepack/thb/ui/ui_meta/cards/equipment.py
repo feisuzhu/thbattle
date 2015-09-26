@@ -809,7 +809,8 @@ class YinYangOrbCard:
     image_small = 'thb-card-small-yinyangorb'
     description = (
         u'|R阴阳玉|r\n\n'
-        u'装备后：在你的判定牌生效前，你可以打出【阴阳玉】代替之。'
+        u'装备后：在你的判定牌生效前，你可以打出【阴阳玉】代替之。\n\n'
+        u'|DB（画师：霏茶）|r'
     )
     is_action_valid = equip_iav
 
@@ -829,9 +830,7 @@ class YinYangOrbHandler:
 
 class YinYangOrb:
     def effect_string(act):
-        return (
-            u'|G【%s】|r用|G%s|r代替了她的判定牌'
-        ) % (
+        return u'|G【%s】|r用|G%s|r代替了她的判定牌' % (
             act.target.ui_meta.char_name,
             card_desc(act.card),
         )

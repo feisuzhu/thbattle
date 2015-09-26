@@ -145,7 +145,7 @@ class FrozenFrogCard:
         u'延时类符卡\n'
         u'出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为黑桃，跳过其摸牌阶段。\n'
         u'|B|R>> |r判定开始前,你可以使用【好人卡】抵消该符卡的效果(抵消后弃掉【冻青蛙】)。\n\n'
-        u'|DB（画师：Pixiv ID 无限轨道A，CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -178,7 +178,7 @@ class NazrinRodCard:
         u'|R寻龙尺|r\n\n'
         u'非延时符卡\n'
         u'出牌阶段使用，从牌堆摸两张牌。\n\n'
-        u'|DB（CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -284,7 +284,7 @@ class MapCannonCard:
         u'|R地图炮|r\n\n'
         u'群体符卡\n'
         u'出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张【擦弹】，否则该角色受到1点伤害。\n\n'
-        u'|DB（画师：Pixiv ID 24801096，CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -369,7 +369,7 @@ class DollControlCard:
     description = (
         u'|R人形操控|r\n\n'
         u'出牌阶段，对装备区内有武器牌的一名其他角色使用，令其选择一项：对其攻击范围内一名由你指定的角色使用一张【弹幕】，或将武器交给你。\n\n'
-        u'|DB（画师：Pixiv UID 2957827，CV：小羽）|r'
+        u'|DB（画师：霏茶，CV：小羽）|r'
     )
     custom_ray = True
 

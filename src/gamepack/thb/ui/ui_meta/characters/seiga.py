@@ -14,13 +14,14 @@ class Seiga:
     # Character
     char_name = u'霍青娥'
     port_image = 'thb-portrait-seiga'
+    figure_image = 'thb-figure-seiga'
     miss_sound_effect = 'thb-cv-seiga_miss'
     description = (
         u'|DB僵尸别跑 霍青娥 体力：4|r\n\n'
         u'|G邪仙|r：出牌阶段，你可以将一张可以主动发动的手牌，在合法的情况下，以一名其他玩家的身份使用。\n'
         u'|B|R>> |r以此法使用【弹幕】时，弹幕的“一回合一次”的限制由你来承担\n'
         u'|B|R>> |r当你成为以此法使用的群体符卡的目标时，你可以选择跳过此次结算。\n\n'
-        u'|DB（画师：Pixiv ID 21105887，CV：小羽）|r'
+        u'|DB（画师：和茶，CV：小羽）|r'
     )
 
 

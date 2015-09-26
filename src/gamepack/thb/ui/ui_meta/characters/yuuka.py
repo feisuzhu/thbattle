@@ -135,12 +135,13 @@ class Yuuka:
     # Character
     char_name = u'风见幽香'
     port_image = 'thb-portrait-yuuka'
+    figure_image = 'thb-figure-yuuka'
     miss_sound_effect = 'thb-cv-yuuka_miss'
     description = (
         u'|DB四季的鲜花之主 风见幽香 体力：4|r\n\n'
         u'|G逆鳞|r：其他角色对你使用的非群体非延时符卡，你可以将其视为|G弹幕战|r；你的回合外，你可以将一张手牌当|G弹幕|r使用或打出。\n\n'
         u'|G施虐|r：当你击坠一名角色时，你可以对你攻击范围内的一名角色造成一点伤害。|B锁定技|r，你对残机数为1的其它角色造成的伤害+1。\n\n'
-        u'|DB（画师：Pixiv ID 38165143，CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
 

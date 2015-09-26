@@ -16,12 +16,13 @@ class Kanako:
     # Character
     char_name = u'八坂神奈子'
     port_image = 'thb-portrait-kanako'
+    figure_image = 'thb-figure-kanako'
     miss_sound_effect = 'thb-cv-kanako_miss'
     description = (
         u'|DB山丘与湖泊的化身 八坂神奈子 体力：4|r\n\n'
         u'|G神德|r：摸牌阶段开始时，你可以放弃摸牌并选择一名其他角色，改为令其摸两张牌，然后该角色需展示并交给你一张牌，若其交给你的牌为红桃，你摸一张牌。\n\n'
         u'|G信仰|r：|B限定技|r，出牌阶段，你可以令你攻击范围内的所有其他角色选择一项：令你摸一张牌；或弃置你一张牌，然后视为你对其使用了一张|G弹幕|r或|G弹幕战|r。\n\n'
-        u'|DB（画师：Pixiv ID 6725408，CV：北斗夜/VV）|r'
+        u'|DB（画师：和茶，CV：北斗夜/VV）|r'
     )
 
 
