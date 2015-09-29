@@ -4,12 +4,21 @@
 # -- third party --
 # -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 from utils import BatchList
 
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.shizuha)
+
+
+class AutumnWindEffect:
+    def effect_string(act):
+        return u'|G秋风|r带走了|G【%s】|r的%s。' % (
+            act.target.ui_meta.char_name,
+            card_desc(act.card),
+        )
 
 
 class AutumnWindAction:
