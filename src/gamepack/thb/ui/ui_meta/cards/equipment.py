@@ -400,7 +400,7 @@ class RepentanceStick:
 
 class MaidenCostumeEffect:
     def effect_string(act):
-        return u'|G【%s】|r美美的穿着巫女服，却在危险来到的时候踩到了裙边……' % (
+        return u'|G【%s】|r穿着|G巫女服|r，眼睁睁的看着自己被小鬼追上来……' % (
             act.target.ui_meta.char_name,
         )
 
@@ -413,7 +413,7 @@ class MaidenCostumeCard:
     description = (
         u'|R巫女服|r\n\n'
         u'对距离2以内的一名角色使用\n'
-        u'装备后：你无法响应【罪袋狂欢】。'
+        u'装备后：你无法响应【百鬼夜行】。'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -931,8 +931,8 @@ class GrimoireCard:
     image_small = 'thb-card-small-grimoire'
     description = (
         u'|R魔导书|r\n\n'
-        u'攻击距离1，装备后：出牌阶段限一次，若你于你的出牌阶段还未使用过【弹幕】，你可以消耗一次本回合使用【弹幕】的次数并将一张牌按照以下规则使用：\n'
-        u'|B|R>> |r黑桃当【罪袋狂欢】\n'
+        u'攻击距离1，装备后：出牌阶段限一次，若你于你的出牌阶段还未使用过|G弹幕|r，你可以消耗一次本回合使用|G弹幕|r的次数并将一张牌按照以下规则使用：\n'
+        u'|B|R>> |r黑桃当【百鬼夜行】\n'
         u'|B|R>> |r红桃当【宴会】\n'
         u'|B|R>> |r梅花当【地图炮】\n'
         u'|B|R>> |r方片当【五谷丰登】\n\n'

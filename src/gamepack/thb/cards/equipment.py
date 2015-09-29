@@ -432,7 +432,7 @@ class MaidenCostumeSkill(ShieldSkill):
     skill_category = ('equip', 'passive')
 
 
-class MaidenCostumeEffect(spellcard.SinsackCarnivalEffect):
+class MaidenCostumeEffect(spellcard.DemonParadeEffect):
     @property
     def non_responsive(self):
         return self.target.has_skill(MaidenCostumeSkill)
@@ -440,7 +440,7 @@ class MaidenCostumeEffect(spellcard.SinsackCarnivalEffect):
     def apply_action(self):
         g = Game.getgame()
         src, tgt = self.source, self.target
-        
+
         if tgt.has_skill(MaidenCostumeSkill):
             g.process_action(Damage(src, tgt))
 
@@ -456,7 +456,7 @@ class MaidenCostumeHandler(EventHandler):
     execute_before = ('RejectHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, spellcard.SinsackCarnivalEffect):
+        if evt_type == 'action_before' and isinstance(act, spellcard.DemonParadeEffect):
             target = act.target
             if not act.cancelled and target.has_skill(MaidenCostumeSkill):
                 act.__class__ = classmix(MaidenCostumeEffect, act.__class__)
@@ -1028,7 +1028,7 @@ class GrimoireSkill(TreatAs, WeaponSkill):
     range = 1
     from .base import Card
     lookup_tbl = {
-        Card.SPADE: Card.card_classes['SinsackCarnivalCard'],  # again...
+        Card.SPADE: Card.card_classes['DemonParadeCard'],  # again...
         Card.HEART: Card.card_classes['FeastCard'],
         Card.CLUB: Card.card_classes['MapCannonCard'],
         Card.DIAMOND: Card.card_classes['HarvestCard'],

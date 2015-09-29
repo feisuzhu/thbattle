@@ -294,21 +294,21 @@ class MapCannonCard:
         return 'thb-cv-card_mapcannon'
 
 
-class SinsackCarnivalCard:
-    image = 'thb-card-sinsackcarnival'
-    name = u'罪袋狂欢'
+class DemonParadeCard:
+    image = 'thb-card-demonparade'
+    name = u'百鬼夜行'
     description = (
-        u'|R罪袋狂欢|r\n\n'
+        u'|R百鬼夜行|r\n\n'
         u'群体符卡\n'
-        u'出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张【弹幕】，否则该角色受到1点伤害。\n\n'
-        u'|DB（画师：Pixiv UID 146732，CV：大白）|r'
+        u'出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张|G弹幕|r，否则该角色受到1点伤害。\n\n'
+        u'|DB（画师：霏茶，CV：小羽）|r'
     )
 
     def is_action_valid(g, cl, target_list):
-        return (True, u'罪袋们来送水啦！')
+        return (True, u'一只鬼，两只鬼，三只鬼……')
 
     def sound_effect(act):
-        return 'thb-cv-card_sinsackcarnival'
+        return 'thb-cv-card_demonparade'
 
 
 class FeastCard:

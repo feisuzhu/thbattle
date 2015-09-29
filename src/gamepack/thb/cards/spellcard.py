@@ -304,8 +304,7 @@ class MapCannon(ForEach):
     group_effect = True
 
 
-class SinsackCarnivalEffect(InstantSpellCardAction):
-    # 罪袋狂欢
+class DemonParadeEffect(InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         source, target = self.source, self.target
@@ -320,8 +319,8 @@ class SinsackCarnivalEffect(InstantSpellCardAction):
         return not self.target.dead
 
 
-class SinsackCarnival(ForEach):
-    action_cls = SinsackCarnivalEffect
+class DemonParade(ForEach):
+    action_cls = DemonParadeEffect
     group_effect = True
 
 
