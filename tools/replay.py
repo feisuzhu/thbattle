@@ -16,6 +16,8 @@ import logging
 import pdb
 
 # -- third party --
+from colorlog import ColoredFormatter
+
 # -- own --
 from account.freeplay import Account
 from client.core import PeerPlayer, TheLittleBrother
@@ -34,7 +36,21 @@ parser.add_argument('--action-singlestep', default=0)
 options = parser.parse_args()
 
 logging.basicConfig(stream=sys.stdout)
+
+formatter = ColoredFormatter(
+    "%(log_color)s%(message)s%(reset)s",
+    log_colors={
+        'CRITICAL': 'bold_red',
+        'ERROR': 'red',
+        'WARNING': 'yellow',
+        'INFO': 'green',
+        'DEBUG': 'blue',
+    }
+)
+
+logging.getLogger().handlers[0].setFormatter(formatter)
 logging.getLogger().setLevel(getattr(logging, options.log.upper()))
+
 log = logging.getLogger('Replay')
 
 
