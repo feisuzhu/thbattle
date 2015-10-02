@@ -3,11 +3,11 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ForEach, GenericAction, LaunchCard, UserAction
-from ..cards import AttackCard, AttackCardHandler, Skill
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import ForEach, GenericAction, LaunchCard, PlayerDeath, UserAction
+from gamepack.thb.cards import AttackCard, AttackCardHandler, Skill, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -113,8 +113,57 @@ class Heterodoxy(Skill):
             return [tl[0]] + _tl, valid
 
 
+class Summon(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive', 'once')
+    target = t_None
+
+
+class SummonAction(UserAction):
+
+    def apply_action(self):
+        src, tgt = self.source, self.target
+
+        skills = tgt.skills
+        skills = [s for s in skills if 'character' in s.skill_category]
+        skills = [s for s in skills if 'once' not in s.skill_category]
+        skills = [s for s in skills if 'awake' not in s.skill_category]
+
+        if not skills: return False
+
+        mapping = self.mapping = {s.__name__: s for s in skills}
+        names = list(sorted(mapping.keys()))
+
+        choice = user_input([src], ChooseOptionInputlet(self, names)) or names[0]
+
+        src.tags['summon_used'] = True
+        src.skills.append(mapping[choice])
+        self.choice = mapping[choice]
+
+        return True
+
+
+class SummonHandler(EventHandler):
+    interested = ('action_before', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, PlayerDeath):
+            g = Game.getgame()
+            p = getattr(g, 'current_player', None)
+
+            if not p: return act
+            if p is act.target: return act
+            if not p.has_skill(Summon): return act
+            if p.tags['summon_used']: return act
+            if not user_input([p], ChooseOptionInputlet(self, (False, True))): return act
+
+            g.process_action(SummonAction(p, act.target))
+
+        return act
+
+
 @register_character_to('common', '-kof')
 class Seiga(Character):
-    skills = [Heterodoxy]
-    eventhandlers_required = [HeterodoxyHandler]
+    skills = [Heterodoxy, Summon]
+    eventhandlers_required = [HeterodoxyHandler, SummonHandler]
     maxlife = 4
