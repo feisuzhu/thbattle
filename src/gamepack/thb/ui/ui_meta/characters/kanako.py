@@ -21,7 +21,9 @@ class Kanako:
     description = (
         u'|DB山丘与湖泊的化身 八坂神奈子 体力：4|r\n\n'
         u'|G神德|r：摸牌阶段开始时，你可以放弃摸牌并选择一名其他角色，改为令其摸两张牌，然后该角色需展示并交给你一张牌，若其交给你的牌为红桃，你摸一张牌。\n\n'
-        u'|G信仰|r：|B限定技|r，出牌阶段，你可以令你攻击范围内的所有其他角色选择一项：令你摸一张牌；或弃置你一张牌，然后视为你对其使用了一张|G弹幕|r或|G弹幕战|r。\n\n'
+        u'|G信仰|r：|B限定技|r，出牌阶段，你可以令你攻击范围内的所有其他角色选择一项：\n'
+        u'|B|R>> |r令你摸一张牌\n'
+        u'|B|R>> |r弃置你一张牌，然后你可以视为对其使用一张|G弹幕|r或|G弹幕战|r。\n\n'
         u'|DB（画师：和茶，CV：北斗夜/VV）|r'
     )
 
@@ -122,9 +124,15 @@ class VirtueAction:
         return act.cond(cards), prompt
 
     def effect_string_before(act):
-        return u'|G【%s】|r发动了|G神德|r，目标是|G【%s】|r。' % (
+        return u'|G【%s】|r对|G【%s】|r发动了|G神德|r。' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
+        )
+
+    def effect_string(act):
+        return u'|G【%s】|r归还了%s。' % (
+            act.target.ui_meta.char_name,
+            card_desc(act.card),
         )
 
     def sound_effect(act):

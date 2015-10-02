@@ -60,7 +60,7 @@ class KanakoFaithCounteractPart2(UserAction):
         src, tgt = self.source, self.target
         g = Game.getgame()
 
-        choice = user_input([src], ChooseOptionInputlet(self, ('duel', 'attack')))
+        choice = user_input([tgt], ChooseOptionInputlet(self, ('duel', 'attack')))
 
         if choice == 'duel':
             cls = KanakoFaithDuel
@@ -128,13 +128,16 @@ class VirtueAction(UserAction):
         cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
         c = cl[0] if cl else random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
 
-        if c:
-            g.players.reveal(c)
-            g.process_action(ShowCards(tgt, [c]))
+        if not c: return False
 
-            migrate_cards([c], src.cards)
-            if c.suit == Card.HEART:
-                g.process_action(DrawCards(src, 1))
+        g.players.reveal(c)
+        g.process_action(ShowCards(tgt, [c]))
+        migrate_cards([c], src.cards)
+
+        if c.suit == Card.HEART:
+            g.process_action(DrawCards(src, 1))
+
+        self.card = c
 
         return True
 
