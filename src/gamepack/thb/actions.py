@@ -762,6 +762,7 @@ class ActionStage(GenericAction):
     card_usage = 'launch'
 
     def __init__(self, target, one_shot=False):
+        self.source = self.source = target
         self.target = target
         self.in_user_input = False
         self.one_shot = one_shot

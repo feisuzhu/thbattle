@@ -4,10 +4,13 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import ForEach, GenericAction, LaunchCard, PlayerDeath, UserAction
-from gamepack.thb.cards import AttackCard, AttackCardHandler, Skill, t_None
+from gamepack.thb.actions import ActionStage, ForEach, GenericAction, LaunchCard, LifeLost
+from gamepack.thb.actions import PlayerDeath, UserAction
+from gamepack.thb.cards import AttackCard, AttackCardHandler, Skill, t_None, t_Self
 from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.common import CharChoice
 from gamepack.thb.inputlets import ChooseOptionInputlet
+from gamepack.thb.thbkof import KOFCharacterSwitchHandler
 
 
 # -- code --
@@ -162,8 +165,107 @@ class SummonHandler(EventHandler):
         return act
 
 
+class SummonKOFAction(UserAction):
+    def apply_action(self):
+        # WHOLE BUNCH OF MEGA HACK
+        old = self.target
+        g = Game.getgame()
+        old_life, maxlife_delta = old.life, old.maxlife - old.__class__.maxlife
+
+        ActionStage.force_break()
+
+        '''
+        turn = PlayerTurn.get_current(old)
+        try:
+            turn.pending_stages[:] = []
+        except Exception:
+            pass
+        '''
+
+        tgt = KOFCharacterSwitchHandler.switch(old)
+        tgt.life = old_life
+        tgt.maxlife += maxlife_delta
+
+        for l in ('cards', 'showncards', 'equips', 'fatetell', 'special'):
+            s, t = getattr(old, l), getattr(tgt, l)
+            for i in list(s):
+                i.move_to(t)
+
+        for s in old.skills:
+            if 'character' not in s.skill_category:
+                tgt.skills.append(s)
+
+        for act in g.action_stack:
+            # Meh... good enough
+            if act.source is old:
+                act.source = tgt
+
+            if act.target is old:
+                act.target = tgt
+
+            if isinstance(act, LaunchCard):
+                act.target_list[:] = [
+                    tgt if p is old else p
+                    for p in act.target_list
+                ]
+
+        tgt.tags = old.tags
+
+        tgt.choices.append(CharChoice(old.__class__))
+
+        if tgt.life > tgt.maxlife:
+            g.process_action(LifeLost(tgt, tgt, tgt.life - tgt.maxlife))
+
+        self.transition = [old, tgt]
+
+        g.emit_event('character_debut', (old, tgt))
+
+        return True
+
+
+class SummonKOFCollect(UserAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        src.choices.append(CharChoice(tgt.__class__))
+        return True
+
+
+class SummonKOFHandler(EventHandler):
+    interested = ('action_apply',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
+            g = Game.getgame()
+            src, tgt = act.source, act.target
+            p = g.get_opponent(tgt)
+
+            if not (src is p and p.has_skill(SummonKOF)):
+                return act
+
+            g.process_action(SummonKOFCollect(p, tgt))
+
+        return act
+
+
+class SummonKOF(Skill):
+    associated_action = SummonKOFAction
+    skill_category = ('character', 'active')
+    target = t_Self
+
+    def check(self):
+        cl = self.associated_cards
+        return len(cl) == 0
+
+
 @register_character_to('common', '-kof')
 class Seiga(Character):
     skills = [Heterodoxy, Summon]
     eventhandlers_required = [HeterodoxyHandler, SummonHandler]
+    maxlife = 4
+
+
+@register_character_to('kof')
+class SeigaKOF(Character):
+    skills = [SummonKOF]
+    eventhandlers_required = [SummonKOFHandler]
     maxlife = 4
