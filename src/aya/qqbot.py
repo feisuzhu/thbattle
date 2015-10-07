@@ -6,12 +6,12 @@ from collections import defaultdict
 from socket import socket
 import itertools
 import json
+import urlparse
 import logging
 import random
 import re
 import struct
 import time
-import urllib
 
 # -- third party --
 from gevent.event import Event
@@ -38,10 +38,12 @@ UA_STRING = (
 )
 
 
+def naive_qs(d):
+    return '&'.join(['%s=%s' % (k, v) for k, v in d.iteritems()])
+
+
 class QQBot(object):
-    def __init__(self, qq, password, v=20131024001, appid=501004106):
-        self.qq = str(qq)
-        self.password = password
+    def __init__(self, v=20131024001, appid=501004106):
         self.logged_in = False
         self.tick = itertools.count(random.randrange(20000000, 30000000))
         self.cface_tick = itertools.count(1)
@@ -90,9 +92,6 @@ class QQBot(object):
             ptui_checkVC = ptuiCB = function() { return [].slice.call(arguments); };
         ''')
 
-        self._encode_password = ctx.execute('$.Encryption.getEncryption')
-        # _encode_password(password, hexuin, vc)
-
     def init(self):
         self.ready.clear()
         self.login()
@@ -126,7 +125,7 @@ class QQBot(object):
 
         session = self.session
         log.debug('Querying login_sig')
-        sigpage = session.get('https://ui.ptlogin2.qq.com/cgi-bin/login', params={
+        session.get('https://ui.ptlogin2.qq.com/cgi-bin/login', params={
             'daid': '164',
             'target': 'self',
             'style': '16',
@@ -141,66 +140,54 @@ class QQBot(object):
             't': self.v,
         }).content
 
-        self.login_sig = re.findall(r'var g_login_sig=encodeURIComponent\("(.+?)"\);', sigpage)
+        while True:
+            log.debug('Querying for qrcode...')
+            qrcode = session.get('https://ssl.ptlogin2.qq.com/ptqrshow', params={
+                'appid': '501004106', 'e': '0', 'l': 'M', 's': '5',
+                'd': '72', 'v': '4', 't': random.random(),
+            }).content
 
-        log.debug('Querying for captcha...')
-        check = session.get('https://ssl.ptlogin2.qq.com/check', params={
-            'uin': self.qq, 'appid': self.appid,
-            'u1': 'http://w.qq.com/proxy.html',
-            'js_ver': 10114,
-            'pt_tea': 1,
-            'login_sig': self.login_sig,
-            'js_type': 0,
-            'r': random.random(),
-        })
+            self.on_qrcode(qrcode)
 
-        assert check.ok
+            log.debug('Waiting qrcode...')
 
-        state, vc, hexuin, pt_verifysession, is_rand_salt = self.js_context.execute(check.content)
+            success = False
 
-        if state == '1':
-            # needs captcha
-            log.debug('Captcha needed, getting captcha image...')
-            captcha = session.get('https://ssl.captcha.qq.com/getimage', params={
-                'uin': self.qq, 'aid': self.appid, 'r': random.random()
-            })
+            while True:
+                qrcode = session.get('https://ssl.ptlogin2.qq.com/ptqrlogin', params={
+                    'webqq_type': '10', 'remember_uin': '1', 'login2qq': '1',
+                    'u1': 'http://w.qq.com/proxy.html?login2qq=1&webqq_type=10',
+                    'aid': '501004106', 'ptredirect': '0', 'ptlang': '2052',
+                    'daid': '164', 'from_ui': '1', 'pttype': '1', 'dumy': '',
+                    'fp': 'loginerroralert', 'action': '0-0-2223', 'mibao_css': 'm_webqq',
+                    't': 'undefined', 'g': '1', 'js_type': '0', 'js_ver': '10135',
+                    'login_sig': '', 'pt_randsalt': '0',
+                })
 
-            assert captcha.ok
+                state, _, url, _, msg, _ = self.js_context.execute(qrcode.content)
+                log.debug(msg)
+                if state in ('66', '67'):
+                    # valid, in_progress
+                    gevent.sleep(5)
+                    continue
+                elif state in ('65',):
+                    # invalid
+                    break
+                elif state in ('0',):
+                    # success
+                    success = True
+                    break
+                else:
+                    raise Exception(msg)
 
-            vc, vctag = self.on_captcha(captcha.content)
-
-        log.debug('Do stage1 login...')
-
-        p = self._encode_password(self.password, hexuin, vc)
-        verifysession = pt_verifysession or session.cookies.get('verifysession')
-
-        login = session.get('https://ssl.ptlogin2.qq.com/login', params=urllib.urlencode({
-            'u': self.qq, 'p': p, 'verifycode': vc,
-
-            'aid': self.appid, 'webqq_type': 10, 'remember_uin': 1, 'login2qq': 1,
-            'u1': 'http://w.qq.com/proxy.html?login2qq=1&webqq_type=10',
-            'h': 1, 'ptredirect': 0, 'ptlang': 2052,
-            'daid': 164, 'from_ui': 1, 'pttype': 1, 'dumy': '',
-            'fp': 'loginerroralert', 'action': '0-45-1010',
-            'mibao_css': 'm_webqq', 't': 1, 'g': 1, 'js_type': 0, 'js_ver': 10114,
-
-            'login_sig': self.login_sig,
-            'pt_randsalt': is_rand_salt or '0',
-            'pt_vcode_v1': '0',
-        }) + '&pt_verifysession_v1=' + verifysession)  # tencent sucks
-
-        rst = self.js_context.execute(login.content)
-        state, _, url, _, msg, _ = rst
-        state = int(state)
-        if state == 4:
-            # captcha wrong
-            log.error('Captcha wrong, stage1 login failed.')
-            self.on_captcha_wrong(vctag)
-            return False
-        elif state != 0:
-            raise Exception(msg)
+            if success:
+                break
+            else:
+                gevent.sleep(20)
 
         session.get(url)
+        qs = urlparse.urlparse(url).query
+        self.qq = int(urlparse.parse_qs(qs)['uin'][0])
 
         self.skey = session.cookies['skey']
         self.original_ptwebqq = self.ptwebqq = session.cookies['ptwebqq']
@@ -492,6 +479,9 @@ class QQBot(object):
 
     def on_captcha_wrong(self):
         print 'Wrong captcha!'
+
+    def on_qrcode(self, image):
+        raise Exception('Override this!')
 
     # ----------------
 

@@ -17,6 +17,7 @@ install_requires = [
     'python-spidermonkey',
     'requests',
     'unidecode',
+    'upyun',
 ]
 
 entry_points = {

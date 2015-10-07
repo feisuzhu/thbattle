@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 # -- prioritized --
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import gevent
 from gevent import monkey
 monkey.patch_all()
@@ -9,31 +12,36 @@ monkey.patch_all()
 from cStringIO import StringIO
 from functools import partial
 import argparse
+import datetime
+import json
 import logging
 import random
 import re
-import sys
 
 # -- third party --
 from gevent.backdoor import BackdoorServer
 from gevent.coros import RLock
 from gevent.pool import Pool
 import redis
+import requests
 
 # -- own --
 from deathbycaptcha import SocketClient as DBCClient
 from qqbot import QQBot
-from utils import check, CheckFailed
+from utils import CheckFailed, check
 from utils.interconnect import Interconnect
 from utils.misc import GenericPool
+import upyun
 
 
 # -- code --
 parser = argparse.ArgumentParser('aya')
-parser.add_argument('--qq', type=int)
-parser.add_argument('--password')
 parser.add_argument('--dbc-username')
 parser.add_argument('--dbc-password')
+parser.add_argument('--bearybot')
+parser.add_argument('--upyun-bucket')
+parser.add_argument('--upyun-username')
+parser.add_argument('--upyun-password')
 parser.add_argument('--redis-url', default='redis://localhost:6379')
 parser.add_argument('--member-service', default='localhost')
 options = parser.parse_args()
@@ -142,6 +150,20 @@ class Aya(QQBot):
         log.info('Captcha wrong!')
         dbccli = DBCClient(options.dbc_username, options.dbc_password)
         dbccli.report(tag['captcha'])
+
+    def on_qrcode(self, image):
+        filename = '/qrcode/%s.png' % hex(random.getrandbits(100))
+        up = upyun.UpYun(options.upyun_bucket, options.upyun_username, options.upyun_password)
+        up.put(filename, image)
+        requests.post(options.bearybot, headers={'Content-Type': 'application/json'}, data=json.dumps({
+            'text': 'QRCode Login for Aya the QQBot',
+            'attachments': [{
+                'color': '#ffa500',
+                'images': [{'url': 'http://%s.b0.upaiyun.com%s' % (options.upyun_bucket, filename)}],
+                'title': datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S'),
+                'text': 'Meh...',
+            }],
+        }))
 
     def on_sess_message(self, msg):
         text = (
@@ -349,7 +371,7 @@ def main():
 
     gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
 
-    aya = Aya(options.qq, options.password)
+    aya = Aya()
     # aya.wait_ready()
     interconnect = AyaInterconnect.spawn('aya', options.redis_url)
     aya.join()
