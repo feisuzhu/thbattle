@@ -19,7 +19,7 @@ class Medicine:
     miss_sound_effect = 'thb-cv-medicine_miss'
     description = (
         u'|DB小小的甜蜜毒药 梅蒂欣 体力：3|r\n\n'
-        u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张手牌，令该角色失去一点残机，然后获得喝醉状态。\n\n'
+        u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张黑色牌，令该角色失去一点残机，然后获得喝醉状态。\n\n'
         u'|G忧郁之毒|r：每当你受到一次有来源的伤害后，你可以展示并获得牌堆顶一张牌，若其花色不为梅花，伤害来源无法使用或打出手牌直到该回合结束。\n\n'
         u'|DB（画师：和茶，CV：VV）|r'
     )
@@ -45,7 +45,7 @@ class CiguateraAction:
 
 class CiguateraHandler:
     def choose_card_text(g, act, cards):
-        return act.cond(cards), u'弃置一张手牌，发动【神经之毒】'
+        return act.cond(cards), u'弃置一张黑色牌，发动【神经之毒】'
 
 
 class Melancholy:

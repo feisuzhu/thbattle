@@ -49,17 +49,18 @@ class CiguateraHandler(EventHandler):
                 if not p.has_skill(Ciguatera):
                     continue
 
-                cards = user_choose_cards(self, p, ('cards', 'showncards'))
+                cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
                 if cards:
                     g.process_action(CiguateraAction(p, act.target, cards))
 
         return act
 
     def cond(self, cl):
-        if len(cl) != 1 or cl[0].is_card(Skill):
-            return False
-
-        return cl[0].resides_in.type in ('cards', 'showncards')
+        return \
+            len(cl) == 1 and \
+            not cl[0].is_card(Skill) and \
+            cl[0].resides_in.type in ('cards', 'showncards', 'equips') and \
+            cl[0].color == Card.BLACK
 
 
 class Melancholy(Skill):
