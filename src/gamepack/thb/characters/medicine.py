@@ -3,12 +3,13 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction, LifeLost
-from ..actions import ShowCards, UserAction, user_choose_cards, LaunchCard, UseCard
-from ..cards import Card, Skill, VirtualCard, Wine, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
-from game.autoenv import EventHandler, Game, user_input, ActionShootdown
+from game.autoenv import ActionShootdown, EventHandler, Game, user_input
+from gamepack.thb.actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction
+from gamepack.thb.actions import LaunchCard, LifeLost, ShowCards, UseCard, UserAction
+from gamepack.thb.actions import user_choose_cards
+from gamepack.thb.cards import Card, Skill, VirtualCard, Wine, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -146,7 +147,7 @@ class MelancholyHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Medicine(Character):
     skills = [Ciguatera, Melancholy]
     eventhandlers_required = [CiguateraHandler, MelancholyHandler]
