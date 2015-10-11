@@ -200,6 +200,7 @@ class QQBot(object):
 
         rst = self.call_server('d:login2', {
             'status': 'online',
+            'state': 'online',
             'ptwebqq': self.ptwebqq,
             'clientid': self.clientid,
             'psessionid': '',
@@ -251,14 +252,23 @@ class QQBot(object):
             elif code == 116:
                 log.debug('Refresh ptwebqq')
                 self.ptwebqq = rst['p']
+                gevent.sleep(5)
 
-            elif code in (103, 109, 121, 100006, 100001):
+            elif code == 103:
+                log.debug('Relink')
+                gevent.sleep(1)
+                self._stage2_login()
+                gevent.sleep(1)
+
+            elif code in (109, 121, 100006, 100001):
                 # {u'retcode': 121, u't': u'0'}
                 raise Exception('Goes wrong, just fail.')
+                '''
                 log.debug('Need relogin')
                 self.ready.clear()
                 self.login()
                 self.ready.set()
+                '''
 
             # elif code == 109:
             #     log.warning('Unknown code 109: %r', rst)
