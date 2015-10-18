@@ -165,27 +165,73 @@ class Aya(QQBot):
             }],
         }))
 
-    def on_sess_message(self, msg):
-        text = (
-            u'文文不认识你，不会理你哦。\n'
-            u'加好友的时候验证信息里像这样(文文求交朋友 3456 mima)填上你的论坛uid和密码，不要带括号，文文就会跟你做朋友。'
+    def _message(self, type, msg):
+        not_registered_text = (
+            u'文文不认识你，不会帮你发新闻的哦。\n'
+            u'回复“文文求交朋友 <uid> <密码>”，不要带引号，文文就会认识你啦。\n'
+            u'uid可以在登陆论坛或者游戏后知道，密码就是论坛的密码。\n'
+            u'比如这样：\n'
+            u'文文求交朋友 23333 wodemima23333\n'
+            u'\n'
+            u'文文帮你发新闻是要收费的，一发5节操。不过连续发的话收费会翻倍哦。'
         )
 
-        self.send_sess_message(msg['id'], msg['from_uin'], text)
+        registered_text = (
+            u'哎呀呀呀，原来你是%s啊，文文认识你了。\n'
+            u'只要你的节操还在，文文就会帮你发新闻～\n'
+        )
 
-    def on_message(self, msg):
+        help_text = (
+            u'所有在QQ群里以“`”或者“\'”开头的聊天都会被当做发新闻的请求～\n'
+            u'比如这样：\n'
+            u'`文文最是清正廉直！\n'
+            u'\n'
+            u'文文帮你发新闻是要收费的，一发5节操。不过连续发的话收费会翻倍哦。'
+        )
 
-        # text = (
-        #     u'文文最近很忙，没法跟你闲聊啦……\n'
-        #     u'有空了会告诉你哦～'
-        # )
-        # self.send_buddy_message(msg['from_uin'], text)
+        fail_text = (
+            u'文文调查了一下你，发现你的密码填的不对！\n'
+            u'快说你到底是谁！'
+        )
 
-        content = self._plaintext(msg['content']).strip()
-        if not content:
+        qq = self.uin2qq(msg['from_uin'])
+
+        if type == 'buddy':
+            send = lambda t: self.send_buddy_message(msg['from_uin'], t)
+        elif type == 'sess':
+            send = lambda t: self.send_sess_message(msg['id'], msg['from_uin'], t)
+
+        uid = dao.get_binding(qq)
+        if not uid:
+            content = self._plaintext(msg['content']).strip()
+            req = content.split(None, 2)
+            req = [i.strip() for i in req]
+            try:
+                check(len(req) == 3)
+                check(req[0] == u'文文求交朋友')
+                check(req[1].isdigit())
+            except CheckFailed:
+                send(not_registered_text)
+                return
+
+            uid = int(req[1])
+            pwd = req[2]
+            with member_client_pool() as cli:
+                member = cli.validate_by_uid(uid, pwd)
+
+            if not member:
+                send(fail_text)
+                return
+
+            dao.set_binding(qq, uid)
+
+            send(registered_text % member['username'] + help_text)
             return
 
-        pool.apply_async(self.do_speaker, (msg['send_uin'], content, msg['from_uin']))
+        send(help_text)
+
+    on_message = lambda self, msg: self._message('buddy', msg)
+    on_sess_message = lambda self, msg: self._message('sess', msg)
 
     def on_group_message(self, msg):
         content = self._plaintext(msg['content']).strip()
@@ -219,60 +265,14 @@ class Aya(QQBot):
         elif content[0] in (u'`', u"'"):
             pool.apply_async(self.do_speaker, (msg['send_uin'], content[1:], msg['from_uin']))
 
-    def on_system_message(self, msg):
-        pool.apply_async(self.refresh_group_list)
-
-        if msg['type'] == 'verify_required':
-            qq = self.uin2qq(msg['from_uin'])
-
-            def fail():
-                self.deny_friend_request(qq, u'好友请求填写的不对，文文不要跟你做朋友。')
-                return False
-
-            def success():
-                self.allow_friend_request(qq)
-                self.refresh_buddy_list()
-                return True
-
-            req = msg['msg'].split(None, 2)
-            req = [i.strip() for i in req]
-            try:
-                check(len(req) == 3)
-                check(req[0] == u'文文求交朋友')
-                check(req[1].isdigit())
-            except CheckFailed:
-                return fail()
-
-            uid = int(req[1])
-            pwd = req[2]
-            with member_client_pool() as cli:
-                member = cli.validate_by_uid(uid, pwd)
-
-            if not member:
-                return fail()
-
-            dao.set_binding(qq, uid)
-
-            return success()
-
-        else:
-            self.unhandled_event('system_message', msg)
-
     def do_speaker(self, uin, content, group_uin=None):
         fail_text = u'文文不认识你，才不帮你发新闻呢。想跟文文做朋友么？悄悄地告诉文文吧。'
         insufficient_funds_text = u'你的节操掉了一地，才不帮你发新闻呢。'
-        friend_uins = [i['uin'] for i in self.buddy_list]
-        if uin not in friend_uins:
-            group_uin and self.send_group_message(group_uin, fail_text)
-            return
 
         qq = self.uin2qq(uin)
         uid = dao.get_binding(qq)
         if not uid:
-            # not bound, but are friends
-            # delete him.
-            self.delete_friend(uin)
-            self.refresh_buddy_list()
+            group_uin and self.send_group_message(group_uin, fail_text)
             return
 
         with member_client_pool() as cli:
@@ -284,8 +284,8 @@ class Aya(QQBot):
             # April Fool!
             from datetime import datetime
             import random
-            b4 = datetime(2015, 4, 1)
-            af = datetime(2015, 4, 2)
+            b4 = datetime(2016, 4, 1)
+            af = datetime(2016, 4, 2)
             if b4 < datetime.now() < af:
                 content += random.choice([
                     u'喵～', u'汪～', u'poi～', u'的说～', u'呱～', u'niconiconi～',
@@ -340,11 +340,6 @@ class AyaInterconnect(Interconnect):
                 partial(aya.send_group_message, i, send)
                 for i in gids
             ])
-
-        elif topic == 'bugreport':
-            C = aya.qq2uin_bycache
-            aya.send_buddy_message(C(84065234), message)
-            aya.send_buddy_message(C(402796982), message)
 
         elif topic == 'aya_charge':
             uid, fee = message
