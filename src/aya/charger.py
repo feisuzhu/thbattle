@@ -34,6 +34,7 @@ privileged = (
     351,   # 西瓜
     162,   # 灰
     103,   # 八咫乌鸦
+    2,     # Proton
 )
 
 
@@ -57,7 +58,7 @@ def charge(username, message):
     l = len(message)
 
     fee += 0 if l < 40 else (l - 40) * 1
-    history[uid] = (now, min(fee * 2, 500))
+    history[uid] = (now, min(fee * 2, 2000))
     fee  = int(fee)
     log.info('Charge %s for %s' % (username, fee))
     member_service.add_credit(user['uid'], 'credits', -fee)
