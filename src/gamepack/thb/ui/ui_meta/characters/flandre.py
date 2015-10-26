@@ -14,12 +14,13 @@ class Flandre:
     # Character
     char_name = u'芙兰朵露'
     port_image = 'thb-portrait-flandre'
+    figure_image = 'thb-figure-flandre'
     miss_sound_effect = 'thb-cv-flandre_miss'
     description = (
         u'|DB恶魔之妹 芙兰朵露 体力：4|r\n\n'
         u'|G狂咲|r：摸牌阶段，你可以少摸一张牌，若如此做，你获得以下技能直到回合结束：你可以对任意其他角色各使用一张【弹幕】，且使用的【弹幕】和【弹幕战】（你为伤害来源时）造成的伤害+1。 \n\n'
         u'|G毁灭|r：|B锁定技|r，你使用的【弹幕】或【弹幕战】指定一名其他角色成为目标后，该角色无法使用技能直到当前回合结束。\n\n'
-        u'|DB（画师：Pixiv ID 21884840，CV：shourei小N）|r'
+        u'|DB（画师：月见，CV：shourei小N）|r'
     )
 
 
