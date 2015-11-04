@@ -26,7 +26,7 @@ class attack_num:
         if cards.AttackCardHandler.is_freeattack(p):
             return False
 
-        return v <= 0 and G().current_turn is p
+        return v <= 0 and G().current_player is p
 
     description = u'该玩家在此回合不能再使用【弹幕】了'
 
@@ -39,13 +39,13 @@ class wine:
 
 class flan_cs:
     tag_anim = lambda p: 'thb-tag-flandrecs'
-    display = lambda p, v: v >= p.tags['turn_count'] and G().current_turn is p
+    display = lambda p, v: v >= p.tags['turn_count'] and G().current_player is p
     description = u'玩坏你哦！'
 
 
 class lunadial:
     tag_anim = lambda p: 'thb-tag-lunadial'
-    display = lambda p, v: v and G().current_turn is p
+    display = lambda p, v: v and G().current_player is p
     description = u'咲夜的时间！'
 
 
@@ -72,7 +72,7 @@ class ran_ei:
 
 class aya_count:
     tag_anim = lambda p: 'thb-tag-aya_range_max'
-    display = lambda p, v: v >= 2 and p is G().current_turn
+    display = lambda p, v: v >= 2 and p is G().current_player
     description = u'使用卡牌时不受距离限制'
 
 
@@ -92,5 +92,30 @@ class shizuha_decay:
     tag_anim = lambda p: 'thb-tag-shizuha_decay'
     display = lambda p, v: v
     description = u'凋零：弃牌阶段需额外弃置一张手牌'
+
+
+class dominance_suit_SPADE:
+    tag_anim = lambda p: 'thb-tag-suit_spade'
+    display = lambda p, v: v and p is G().current_player
+    description = u'风靡：使用过♠牌'
+
+
+class dominance_suit_HEART:
+    tag_anim = lambda p: 'thb-tag-suit_heart'
+    display = lambda p, v: v and p is G().current_player
+    description = u'风靡：使用过♥牌'
+
+
+class dominance_suit_DIAMOND:
+    tag_anim = lambda p: 'thb-tag-suit_diamond'
+    display = lambda p, v: v and p is G().current_player
+    description = u'风靡：使用过♦牌'
+
+
+class dominance_suit_CLUB:
+    tag_anim = lambda p: 'thb-tag-suit_club'
+    display = lambda p, v: v and p is G().current_player
+    description = u'风靡：使用过♣牌'
+
 
 # -----END TAGS UI META-----

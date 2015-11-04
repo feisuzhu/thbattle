@@ -407,7 +407,7 @@ def user_input_effects(self, ilet):
             u.FlashWindow(main_window._hwnd, 1)
 
     g = Game.getgame()
-    if getattr(g, 'current_turn', None) is not g.me:
+    if getattr(g, 'current_player', None) is not g.me:
         input_snd_enabled = True
 
     # HACK
@@ -415,7 +415,7 @@ def user_input_effects(self, ilet):
         if isinstance(ilet, ActionInputlet) and isinstance(ilet.initiator, RejectHandler):
             input_snd_prompt()
 
-    if getattr(g, 'current_turn', None) is g.me:
+    if getattr(g, 'current_player', None) is g.me:
         input_snd_enabled = False
 
 
@@ -456,7 +456,7 @@ def action_effects(_type, self, act):
 
 def user_input_start_effects(self, arg):
     trans, ilet = arg
-    cturn = getattr(self, 'current_turn', None)
+    cturn = getattr(self, 'current_player', None)
 
     if trans.name == 'ActionStageAction':
         self.dropcard_area.fade()

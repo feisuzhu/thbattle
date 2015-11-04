@@ -190,13 +190,22 @@ class MigrateCardsTransaction(object):
     def commit(self):
         g = Game.getgame()
         DETACHED = migrate_cards.DETACHED
+        UNWRAPPED = migrate_cards.UNWRAPPED
+        from gamepack.thb.cards import VirtualCard
         act = self.action
 
         for cards, _from, to, is_bh in self.movements:
-            if to is not DETACHED:
-                for c in cards: c.move_to(to)
-            else:
+            if to is DETACHED:
                 for c in cards: c.detach()
+
+            elif to is UNWRAPPED:
+                for c in cards:
+                    assert c.is_card(VirtualCard) and not c.unwrapped
+                    c.detach()
+                    c.unwrapped = True
+
+            else:
+                for c in cards: c.move_to(to)
 
         for cards, _from, to, is_bh in self.movements:
             g.emit_event('card_migration', (act, cards, _from, to, is_bh))
@@ -236,6 +245,7 @@ def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
     groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
 
     DETACHED = migrate_cards.DETACHED
+    UNWRAPPED = migrate_cards.UNWRAPPED
     detaching = to is DETACHED
 
     for l in groups:
@@ -243,8 +253,8 @@ def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
 
         if l[0].is_card(VirtualCard):
             assert len(l) == 1
-            trans.move(l, cl, DETACHED if unwrap else to, is_bh)
-            migrate_cards(
+            trans.move(l, cl, UNWRAPPED if unwrap else to, is_bh)
+            l[0].unwrapped or migrate_cards(
                 l[0].associated_cards,
                 to if unwrap or detaching else to.owner.special,
                 unwrap if type(unwrap) is bool else unwrap - 1,
@@ -285,8 +295,17 @@ class _MigrateCardsDetached(object):
         return 'DETACHED'
 
 
+class _MigrateCardsUnwrapped(object):
+    owner = None
+    type = 'unwrapped'
+
+    def __repr__(self):
+        return 'UNWRAPPED'
+
+
 migrate_cards.SINGLE_LAYER = 1
 migrate_cards.DETACHED = _MigrateCardsDetached()
+migrate_cards.UNWRAPPED = _MigrateCardsUnwrapped()
 
 
 def register_eh(cls):
@@ -455,11 +474,10 @@ class MaxLifeChange(GenericAction):
 # ---------------------------------------------------
 
 class DropCards(GenericAction):
-    def __init__(self, source, target, cards, detached=False):
+    def __init__(self, source, target, cards):
         self.source = source
         self.target = target
         self.cards = cards
-        self.detached = detached
 
     def apply_action(self):
         g = Game.getgame()
@@ -526,7 +544,7 @@ class DropCardStage(GenericAction):
 
     def __init__(self, target):
         self.source = self.target = target
-        self.dropn = max(0, len(target.cards) + len(target.showncards) - target.life)
+        self.dropn = len(target.cards) + len(target.showncards) - target.life
         self.cards = []
 
     def apply_action(self):
@@ -657,7 +675,7 @@ class LaunchCard(GenericAction):
                 # card/skill still in disputed state,
                 # means no actions have done anything to the card/skill,
                 # drop it
-                if not getattr(card, 'no_drop', False):
+                if not getattr(card, 'no_drop', False) and not card.unwrapped:
                     migrate_cards([card], g.deck.droppedcards, unwrap=True, is_bh=True)
 
                 else:
@@ -744,9 +762,11 @@ class ActionStage(GenericAction):
     card_usage = 'launch'
 
     def __init__(self, target, one_shot=False):
+        self.source = self.source = target
         self.target = target
         self.in_user_input = False
         self.one_shot = one_shot
+        self._force_break = False
 
     def apply_action(self):
         g = Game.getgame()
@@ -773,15 +793,23 @@ class ActionStage(GenericAction):
                 if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
                     # invalid input
                     log.debug('ActionStage: LaunchCard failed.')
-                    break
+                    check(False)
 
-                if self.one_shot:
+                if self.one_shot or self._force_break:
                     break
 
         except CheckFailed:
             pass
 
         return True
+
+    @staticmethod
+    def force_break():
+        g = Game.getgame()
+        for a in g.action_stack:
+            if isinstance(a, ActionStage):
+                a._force_break = True
+                break
 
     def cond(self, cl):
         from .cards import Skill
@@ -794,7 +822,7 @@ class ActionStage(GenericAction):
         c = cl[0]
         return (
             c.is_card(Skill) or c.resides_in in (tgt.cards, tgt.showncards)
-        ) and (c.associated_action)
+        ) and bool(c.associated_action)
 
     def ask_for_action_verify(self, p, cl, tl):
         assert len(cl) == 1
@@ -899,7 +927,7 @@ class FatetellMalleateHandler(EventHandlerGroup):
         if evt_type != 'fatetell': return data
 
         g = Game.getgame()
-        for p in g.players_from(g.current_turn):
+        for p in g.players_from(g.current_player):
             for eh in self.handlers:
                 data = g.handle_single_event(eh, p, data)
 
@@ -999,7 +1027,7 @@ class ForEach(UserAction):
         return getattr(act, 'parent_action', None)
 
     @classmethod
-    def is_group(self, act):
+    def is_group_effect(self, act):
         return getattr(self.get_actual_action(act), 'group_effect', False)
 
 
@@ -1036,25 +1064,31 @@ class PlayerTurn(GenericAction):
         p = self.target
         p.tags['turn_count'] += 1
         g.turn_count += 1
-        g.current_turn = p
+        g.current_turn = self
+        g.current_player = p
 
-        while self.pending_stages:
-            stage = self.pending_stages.pop(0)
-            g.process_action(stage(p))
+        try:
+            while self.pending_stages:
+                stage = self.pending_stages.pop(0)
+                self.current_stage = cs = stage(p)
+                g.process_action(cs)
+
+        finally:
+            g.current_turn = None
 
         return True
 
     @staticmethod
     def get_current(p=None):
         g = Game.getgame()
-        for act in g.action_stack:
-            if isinstance(act, PlayerTurn):
-                if p is not None and act.target is not p:
-                    raise GameException('Got unexpected PlayerTurn!')
+        act = getattr(g, 'current_turn', None)
+        if act:
+            assert isinstance(act, PlayerTurn)
 
-                return act
+            if p is not None and act.target is not p:
+                raise GameException('Got unexpected PlayerTurn!')
 
-        return None
+        return act
 
 
 class DummyAction(GenericAction):
@@ -1177,8 +1211,8 @@ class DyingHandler(EventHandler):
 
 
 class ShowCards(GenericAction):
-    def __init__(self, target, cards):
-        self.source = self.target = target
+    def __init__(self, source, cards):
+        self.source = self.target = source
         self.cards = cards
 
     def apply_action(self):

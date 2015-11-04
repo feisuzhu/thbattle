@@ -33,7 +33,7 @@ class AttackCard:
         if not isinstance(act, actions.LaunchCard):
             return 'thb-cv-card_attack1'
 
-        current = G().current_turn
+        current = G().current_player
 
         if act.source is not current:
             return 'thb-cv-card_attack1'
@@ -72,7 +72,7 @@ class GrazeCard:
         if not isinstance(act, actions.LaunchCard):
             return 'thb-cv-card_graze1'
 
-        current = G().current_turn
+        current = G().current_player
 
         if act.source is not current:
             return 'thb-cv-card_graze1'
@@ -95,7 +95,7 @@ class WineCard:
         u'|B喝醉|r状态下，使用【弹幕】造成的伤害+1，受到致命伤害时伤害-1。\n'
         u'|B|R>> |r 效果触发或者到了自己的准备阶段开始时须弃掉|B喝醉|r状态。\n'
         u'|B|R>> |r 你可以于喝醉状态下继续使用酒，但效果不叠加。\n\n'
-        u'|DB（CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -127,7 +127,7 @@ class ExinwanCard:
         u'1.受到1点无来源伤害\n'
         u'2.弃置两张牌\n'
         u'|B|R>> |r 当你因为其他角色装备效果(如他人发动白楼剑特效）或技能效果（如正邪挑拨，秦心暗黑能乐）而将恶心丸主动置入弃牌堆时，恶心丸的弃置者视为该角色。\n\n'
-        u'|DB（画师：Pixiv ID 1203877，CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -204,7 +204,7 @@ class HealCard:
         u'1、在你的出牌阶段，你可以使用它来回复你的1点体力。\n'
         u'2、当有角色处于濒死状态时，你可以对该角色使用【麻薯】，防止该角色的死亡。\n'
         u'|B|R>> |r出牌阶段，若你没有损失体力，你不可以对自己使用【麻薯】。\n\n'
-        u'|DB（画师：http://seiga.nicovideo.jp/seiga/im3031795，CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):

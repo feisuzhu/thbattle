@@ -425,7 +425,8 @@ class Game(GameObject):
         '''
         Process an action
         '''
-        if self.ended: return False
+        if self.ended:
+            return False
 
         if action.done:
             log.debug('action already done %s' % action.__class__.__name__)
@@ -438,12 +439,18 @@ class Game(GameObject):
             log.debug('action invalid %s' % action.__class__.__name__)
             return False
 
+        try:
+            action.succeeded = False
+        except AttributeError:
+            pass
+
         action = self.emit_event('action_before', action)
         if action.done:
             log.debug('action already done %s' % action.__class__.__name__)
             rst = action.succeeded
         elif action.cancelled or not action.can_fire():
             log.debug('action cancelled/invalid %s' % action.__class__.__name__)
+            action.cancelled = True  # cancel action automatically when it is invalid
             rst = False
         else:
             log.debug('applying action %s' % action.__class__.__name__)
@@ -473,6 +480,8 @@ class Game(GameObject):
 
             rst = action.succeeded
             action.done = True
+
+        self.emit_event('action_done', action)
 
         return rst
 

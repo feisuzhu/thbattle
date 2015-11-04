@@ -226,4 +226,14 @@ class ActionShootdown:
     target_independent = False
     shootdown_message = u'您不能这样出牌'
 
+
+class ActionStage:
+    idle_prompt = u'请出牌…'
+
+    def choose_card_text(g, act, cards):
+        if not act.cond(cards):
+            return False, u'您选择的牌不符合出牌规则'
+        else:
+            return True, u'不会显示'
+
 # -----END ACTIONS UI META-----

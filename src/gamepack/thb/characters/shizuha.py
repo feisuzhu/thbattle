@@ -6,7 +6,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction
 from gamepack.thb.actions import UserAction, random_choose_card, user_choose_players
-from gamepack.thb.cards import Skill, t_None
+from gamepack.thb.cards import Skill, VirtualCard, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
@@ -102,31 +102,30 @@ class DecayDrawCards(DrawCards):
 
 
 class DecayDrawCardHandler(EventHandler):
-    interested = ('post_card_migration',)
-    execute_after = ('PostCardMigrationHandler',)
+    interested = ('card_migration',)
+    execute_before = ('LuckHandler',)
 
     def handle(self, evt_type, arg):
-        if evt_type != 'post_card_migration':
+        if evt_type != 'card_migration':
             return arg
 
         g = Game.getgame()
-        me = getattr(g, 'current_turn', None)
+        me = getattr(g, 'current_player', None)
         if me is None: return arg
         if me.dead: return arg
         if not me.has_skill(Decay): return arg
 
-        trans = arg
+        act, cards, _from, to, is_bh = arg
 
-        candidates = {p for p in g.players if not p.dead and not (p.cards or p.showncards)}
-        involved = {
-            _from.owner for cards, _from, to, is_bh in trans.get_movements()
-            if _from is not None and _from.type in ('cards', 'showncards')
-        }
-
-        trigger = candidates & involved
-
-        if not trigger: return arg
-        if me in involved: return arg
+        if is_bh or \
+            any([c.is_card(VirtualCard) for c in cards]) or \
+            _from is None or \
+            _from.owner is None or \
+            _from.owner is me or \
+            _from.type not in ('cards', 'showncards') or \
+            _from.owner.dead or \
+            _from.owner.cards or \
+            _from.owner.showncards: return arg
 
         g.process_action(DecayDrawCards(me, 1))
         import time
@@ -155,7 +154,7 @@ class DecayEffect(UserAction):
         self.dcs = dcs
 
     def apply_action(self):
-        self.dcs.dropn += 1
+        self.dcs.dropn = max(1, self.dcs.dropn + 1)
         return True
 
 
@@ -170,9 +169,9 @@ class DecayDamageHandler(EventHandler):
                 return act
 
             g = Game.getgame()
-            if g.current_turn is tgt: return act
-            if not g.current_turn: return act
-            g.process_action(DecayAction(src, g.current_turn))
+            if g.current_player is tgt: return act
+            if not g.current_player: return act
+            g.process_action(DecayAction(src, g.current_player))
 
         elif evt_type == 'action_before' and isinstance(act, DropCardStage):
             tgt = act.target

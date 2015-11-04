@@ -6,7 +6,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import DistributeCards, DrawCardStage, DrawCards, ForEach, GenericAction
 from gamepack.thb.actions import UserAction, migrate_cards, random_choose_card, ttags
-from gamepack.thb.actions import user_choose_cards, user_choose_players
+from gamepack.thb.actions import user_choose_cards, user_choose_players, PlayerTurn, ActionStage
 from gamepack.thb.cards import Heal, Skill, t_None, t_Self
 from gamepack.thb.characters.baseclasses import Character, register_character_to
 from gamepack.thb.inputlets import ChooseOptionInputlet
@@ -158,10 +158,17 @@ class SanaeFaithKOFHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type == 'card_migration':
             act, cards, _from, to, _ = arg
-            if isinstance(act, (DistributeCards, DrawCardStage)): return arg
-            if to is None or not to.owner: return arg
-            if to.type not in ('cards', 'showncards', 'equips'): return arg
-            if _from is not None and _from.owner is to.owner: return arg
+            if isinstance(act, (DistributeCards, DrawCardStage)):
+                return arg
+
+            if to is None or not to.owner:
+                return arg
+
+            if to.type not in ('cards', 'showncards', 'equips'):
+                return arg
+
+            if _from is not None and _from.owner is to.owner:
+                return arg
 
             g = Game.getgame()
             a, b = g.players
@@ -169,9 +176,15 @@ class SanaeFaithKOFHandler(EventHandler):
             if not a.has_skill(SanaeFaithKOF):
                 a, b = b, a
 
-            if not a.has_skill(SanaeFaithKOF): return arg
+            if not a.has_skill(SanaeFaithKOF):
+                return arg
 
-            if b is not to.owner: return arg
+            if b is not to.owner:
+                return arg
+
+            stage = PlayerTurn.get_current().current_stage
+            if stage.target is not b or not isinstance(stage, ActionStage):
+                return arg
 
             g = Game.getgame()
 
@@ -214,10 +227,11 @@ class GodDescendantHandler(EventHandler):
     execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and ForEach.is_group(act):
+        if evt_type == 'action_before' and ForEach.is_group_effect(act):
             g = Game.getgame()
             tgt = act.target
-            if not tgt.has_skill(GodDescendant): return act
+            if not tgt.has_skill(GodDescendant):
+                return act
 
             opt = user_input([tgt], ChooseOptionInputlet(self, ('skip', 'draw', None)))
 

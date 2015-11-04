@@ -20,7 +20,7 @@ class Koakuma:
     miss_sound_effect = 'thb-cv-koakuma_miss'
     description = (
         u'|DB图书管理员 小恶魔 体力：4|r\n\n'
-        u'|G寻找|r：出牌阶段限一次，你可以弃置任意数量的牌，然后摸等量的牌。\n\n'
+        u'|G寻找|r：出牌阶段限一次，你可以弃置至多X张牌，然后摸等量的牌（X为场上存活角色数）。\n\n'
         u'|DB（画师：渚FUN/Takibi，CV：VV）|r'
     )
 
@@ -42,8 +42,10 @@ class Find:
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
         assert skill.is_card(characters.koakuma.Find)
-        if not len(skill.associated_cards):
-            return (False, u'请选择需要换掉的牌！')
+        n = len([i for i in g.players if not i.dead])
+
+        if not 0 < len(skill.associated_cards) <= n:
+            return (False, u'请选择需要换掉的牌（至多%s张）！' % n)
 
         if not [g.me] == target_list:
             return (False, 'BUG!!')

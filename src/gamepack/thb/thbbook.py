@@ -8,16 +8,17 @@ import random
 
 # -- third party --
 # -- own --
-from .actions import ActionStageLaunchCard, Damage, DistributeCards, DrawCards, DropCardStage
-from .actions import PlayerDeath, PlayerRevive, PlayerTurn, RevealIdentity, UserAction
-from .actions import action_eventhandlers, skill_wrap
-from .cards import AttackCard, DelayedSpellCardAction, DonationBoxCard, HealCard, NazrinRodCard
-from .characters.baseclasses import mixin_character
-from .characters.koakuma import Find
-from .common import CharChoice, PlayerIdentity
-from .inputlets import ActionInputlet, ChooseGirlInputlet, ChooseOptionInputlet
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, NPC
 from game.autoenv import sync_primitive, user_input
+from gamepack.thb.actions import ActionStageLaunchCard, Damage, DistributeCards, DrawCards
+from gamepack.thb.actions import DropCardStage, GenericAction, PlayerDeath, PlayerRevive, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, UserAction, action_eventhandlers, skill_wrap
+from gamepack.thb.cards import AttackCard, DelayedSpellCardAction, DonationBoxCard, HealCard
+from gamepack.thb.cards import NazrinRodCard
+from gamepack.thb.characters.baseclasses import mixin_character
+from gamepack.thb.characters.koakuma import Find
+from gamepack.thb.common import CharChoice, PlayerIdentity
+from gamepack.thb.inputlets import ActionInputlet, ChooseGirlInputlet, ChooseOptionInputlet
 from utils import BatchList, Enum, filter_out
 import settings
 
@@ -278,19 +279,17 @@ class KoakumaAI(object):
         cls(trans, ilet).entry()
 
 
-class THBattleBook(Game):
-    n_persons    = 4
-    game_ehs     = _game_ehs
-    npc_players  = [NPC(u'小恶魔', KoakumaAI.ai_main)]
-    params_def   = {}
-    total_books  = 7
+class THBattleBookBootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+
         from cards import Deck
 
         g.deck = Deck()
-
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
         H, M, A = Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA, Identity.TYPE.ADMIN
@@ -381,6 +380,15 @@ class THBattleBook(Game):
                 g.process_action(PlayerTurn(p))
             except InterruptActionFlow:
                 pass
+
+
+class THBattleBook(Game):
+    n_persons    = 4
+    game_ehs     = _game_ehs
+    npc_players  = [NPC(u'小恶魔', KoakumaAI.ai_main)]
+    params_def   = {}
+    total_books  = 7
+    bootstrap    = THBattleBookBootstrap
 
     def can_leave(g, p):
         return False

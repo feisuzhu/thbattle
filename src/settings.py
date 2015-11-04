@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 257'
+VERSION = 'THBATTLE V1.0b incr 258'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -139,6 +139,12 @@ Proton制作
 http://www.thbattle.net
 
 |B最近更新情况：|r
+秋静叶多拿牌的bug修复
+新人物：幽谷响子，SP射命丸文，KOF秦心、KOF霍青娥
+人物调整：霍青娥（大调整）、毒人偶（大调整）、小恶魔（微调）、神奈子（推重）、琪露诺（微调）、KOF早苗（微调）
+罪带狂欢->百鬼夜行
+大量的人物/卡牌立绘更新
+----------------------
 新人物：秋静叶
 人物微调：河城荷取、魔理沙、多多良小伞、秋穰子、蕾米莉亚
 爱丽丝暂时神隐，等待推重

@@ -4,12 +4,21 @@
 # -- third party --
 # -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 from utils import BatchList
 
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.shizuha)
+
+
+class AutumnWindEffect:
+    def effect_string(act):
+        return u'|G秋风|r带走了|G【%s】|r的%s。' % (
+            act.target.ui_meta.char_name,
+            card_desc(act.card),
+        )
 
 
 class AutumnWindAction:
@@ -82,6 +91,6 @@ class Shizuha:
         # 叶子的离去，是因为风的追求，还是树的不挽留？
         u'|G秋风|r：你的弃牌阶段结束时，你可以弃置至多X名其他角色各一张牌（X为你弃牌阶段的弃牌数）。|r\n\n'
         # 觉得冷吗，谁叫你们不穿秋裤！（幸灾乐祸地）
-        u'|DB（画师：Pixiv ID 1658485，CV：VV，人物设计：SmiteOfKing）|r'
+        u'|DB（画师：Pixiv ID 42826425，CV：VV，人物设计：SmiteOfKing）|r'
         # 咦，黑幕来了，大家快逃！
     )

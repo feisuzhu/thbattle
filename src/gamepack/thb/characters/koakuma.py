@@ -28,6 +28,11 @@ class FindAction(UserAction):
             if ttags(p)['find']:
                 return False
 
+            g = Game.getgame()
+            cards = self.associated_card.associated_cards
+            if not 0 < len(cards) <= len([i for i in g.players if not i.dead]):
+                return False
+
             return True
 
         except AttributeError:  # well, some cards are skill?

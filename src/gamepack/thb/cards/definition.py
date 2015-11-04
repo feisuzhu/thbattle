@@ -120,25 +120,25 @@ class DuelCard:
 class MapCannonCard:
     associated_action = spellcard.MapCannon
     target = t_All
-    category = ('spellcard', 'instant_spellcard')
+    category = ('spellcard', 'instant_spellcard', 'group_effect')
 
 
-class SinsackCarnivalCard:
-    associated_action = spellcard.SinsackCarnival
+class DemonParadeCard:
+    associated_action = spellcard.DemonParade
     target = t_All
-    category = ('spellcard', 'instant_spellcard')
+    category = ('spellcard', 'instant_spellcard', 'group_effect')
 
 
 class FeastCard:
     associated_action = spellcard.Feast
     target = t_AllInclusive
-    category = ('spellcard', 'instant_spellcard')
+    category = ('spellcard', 'instant_spellcard', 'group_effect')
 
 
 class HarvestCard:
     associated_action = spellcard.Harvest
     target = t_AllInclusive
-    category = ('spellcard', 'instant_spellcard')
+    category = ('spellcard', 'instant_spellcard', 'group_effect')
 
 
 class DollControlCard:
@@ -404,8 +404,8 @@ card_definition = [
     (RoukankenCard, SPADE, 4),
     (HakuroukenCard, SPADE, 5),
     (GungnirCard, SPADE, 6),
-    (SinsackCarnivalCard, SPADE, 7),
-    (SinsackCarnivalCard, SPADE, 8),
+    (DemonParadeCard, SPADE, 7),
+    (DemonParadeCard, SPADE, 8),
     (SealingArrayCard, SPADE, 9),
     (SealingArrayCard, SPADE, 10),
     (AttackCard, SPADE, J),
@@ -484,7 +484,7 @@ card_definition = [
     (DemolitionCard, CLUB, 4),
     (AttackCard, CLUB, 5),
     (AttackCard, CLUB, 6),
-    (SinsackCarnivalCard, CLUB, 7),
+    (DemonParadeCard, CLUB, 7),
     (AttackCard, CLUB, 8),
     (WineCard, CLUB, 9),
     (AttackCard, CLUB, 10),
@@ -572,7 +572,7 @@ kof_card_definition = [
     (AttackCard, SPADE, 4),
     (HakuroukenCard, SPADE, 5),
     (GungnirCard, SPADE, 6),
-    (SinsackCarnivalCard, SPADE, 7),
+    (DemonParadeCard, SPADE, 7),
     (AttackCard, SPADE, 8),
     (WineCard, SPADE, 9),
     (SealingArrayCard, SPADE, 10),

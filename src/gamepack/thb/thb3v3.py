@@ -10,7 +10,7 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
-from gamepack.thb.actions import DrawCards, PlayerDeath, PlayerTurn, RevealIdentity
+from gamepack.thb.actions import DrawCards, GenericAction, PlayerDeath, PlayerTurn, RevealIdentity
 from gamepack.thb.actions import action_eventhandlers
 from gamepack.thb.characters.baseclasses import mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity, sync_primitive
@@ -63,16 +63,15 @@ class Identity(PlayerIdentity):
         MORIYA = 2
 
 
-class THBattle(Game):
-    n_persons    = 6
-    game_ehs     = _game_ehs
-    params_def   = {
-        'random_seat': (False, True),
-    }
-    order_list   = (0, 5, 3, 4, 2, 1)
+class THBattleBootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+        params = self.params
+
         from cards import Deck
 
         g.deck = Deck()
@@ -131,8 +130,10 @@ class THBattle(Game):
         # ----
 
         first_index = g.players.index(first)
-        n = len(g.order_list)
-        order = [g.players[(first_index + i) % n] for i in g.order_list]
+
+        order_list   = (0, 5, 3, 4, 2, 1)
+        n = len(order_list)
+        order = [g.players[(first_index + i) % n] for i in order_list]
 
         # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
         akaris = []
@@ -187,6 +188,17 @@ class THBattle(Game):
                     g.process_action(PlayerTurn(p))
                 except InterruptActionFlow:
                     pass
+
+        return True
+
+
+class THBattle(Game):
+    n_persons    = 6
+    game_ehs     = _game_ehs
+    bootstrap    = THBattleBootstrap
+    params_def   = {
+        'random_seat': (False, True),
+    }
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)

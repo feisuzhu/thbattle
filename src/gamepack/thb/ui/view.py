@@ -309,7 +309,7 @@ class THBattleUI(Control):
 
     def on_game_event(self, evt_type, arg):
         if evt_type == 'action_before' and isinstance(arg, actions.PlayerTurn):
-            self.current_turn = arg.target
+            self.current_player = arg.target
 
         elif evt_type in ('game_begin', 'switch_character'):
             self.update_portraits()

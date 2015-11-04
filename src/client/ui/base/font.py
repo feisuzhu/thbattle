@@ -39,9 +39,9 @@ class AncientPixGlyphRenderer(GlyphRenderer):
         else:
             suffix = '16' + suffix
 
-        if char in u'♠♡♣♢':
+        if char in u'♠♥♣♦':
             # special case for suits
-            i = u'♠♡♣♢'.index(char)
+            i = u'♠♥♣♦'.index(char)
             if font.size == 9:
                 h = 12
                 grid = L('c-suit12')

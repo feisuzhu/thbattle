@@ -3,11 +3,14 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ForEach, GenericAction, LaunchCard, UserAction
-from ..cards import AttackCard, AttackCardHandler, Skill
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
+from gamepack.thb.actions import ActionStage, ForEach, GenericAction, LaunchCard, LifeLost
+from gamepack.thb.actions import PlayerDeath, UserAction
+from gamepack.thb.cards import AttackCard, AttackCardHandler, Skill, t_None, t_Self
+from gamepack.thb.characters.baseclasses import Character, register_character_to
+from gamepack.thb.common import CharChoice
+from gamepack.thb.inputlets import ChooseOptionInputlet
+from gamepack.thb.thbkof import KOFCharacterSwitchHandler
 
 
 # -- code --
@@ -21,7 +24,7 @@ class HeterodoxyHandler(EventHandler):
     execute_before = ('MaidenCostumeHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and ForEach.is_group(act):
+        if evt_type == 'action_before' and ForEach.is_group_effect(act):
             tgt = act.target
             if not tgt.has_skill(Heterodoxy): return act
 
@@ -113,8 +116,156 @@ class Heterodoxy(Skill):
             return [tl[0]] + _tl, valid
 
 
+class Summon(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive', 'once')
+    target = t_None
+
+
+class SummonAction(UserAction):
+
+    def apply_action(self):
+        src, tgt = self.source, self.target
+
+        skills = tgt.skills
+        skills = [s for s in skills if 'character' in s.skill_category]
+        skills = [s for s in skills if 'once' not in s.skill_category]
+        skills = [s for s in skills if 'awake' not in s.skill_category]
+
+        if not skills: return False
+
+        mapping = self.mapping = {s.__name__: s for s in skills}
+        names = list(sorted(mapping.keys()))
+
+        choice = user_input([src], ChooseOptionInputlet(self, names)) or names[0]
+
+        src.tags['summon_used'] = True
+        src.skills.append(mapping[choice])
+        self.choice = mapping[choice]
+
+        return True
+
+
+class SummonHandler(EventHandler):
+    interested = ('action_before', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, PlayerDeath):
+            g = Game.getgame()
+            p = getattr(g, 'current_player', None)
+
+            if not p: return act
+            if p is act.target: return act
+            if not p.has_skill(Summon): return act
+            if p.tags['summon_used']: return act
+            if not user_input([p], ChooseOptionInputlet(self, (False, True))): return act
+
+            g.process_action(SummonAction(p, act.target))
+
+        return act
+
+
+class SummonKOFAction(UserAction):
+    def apply_action(self):
+        # WHOLE BUNCH OF MEGA HACK
+        old = self.target
+        g = Game.getgame()
+        old_life, maxlife_delta = old.life, old.maxlife - old.__class__.maxlife
+
+        ActionStage.force_break()
+
+        '''
+        turn = PlayerTurn.get_current(old)
+        try:
+            turn.pending_stages[:] = []
+        except Exception:
+            pass
+        '''
+
+        tgt = KOFCharacterSwitchHandler.switch(old)
+        tgt.life = old_life
+        tgt.maxlife += maxlife_delta
+
+        for l in ('cards', 'showncards', 'equips', 'fatetell', 'special'):
+            s, t = getattr(old, l), getattr(tgt, l)
+            for i in list(s):
+                i.move_to(t)
+
+        for s in old.skills:
+            if 'character' not in s.skill_category:
+                tgt.skills.append(s)
+
+        for act in g.action_stack:
+            # Meh... good enough
+            if act.source is old:
+                act.source = tgt
+
+            if act.target is old:
+                act.target = tgt
+
+            if isinstance(act, LaunchCard):
+                act.target_list[:] = [
+                    tgt if p is old else p
+                    for p in act.target_list
+                ]
+
+        tgt.tags = old.tags
+
+        tgt.choices.append(CharChoice(old.__class__))
+
+        if tgt.life > tgt.maxlife:
+            g.process_action(LifeLost(tgt, tgt, tgt.life - tgt.maxlife))
+
+        self.transition = [old, tgt]
+
+        g.emit_event('character_debut', (old, tgt))
+
+        return True
+
+
+class SummonKOFCollect(UserAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        src.choices.append(CharChoice(tgt.__class__))
+        return True
+
+
+class SummonKOFHandler(EventHandler):
+    interested = ('action_apply',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
+            g = Game.getgame()
+            src, tgt = act.source, act.target
+            p = g.get_opponent(tgt)
+
+            if not (src is p and p.has_skill(SummonKOF)):
+                return act
+
+            g.process_action(SummonKOFCollect(p, tgt))
+
+        return act
+
+
+class SummonKOF(Skill):
+    associated_action = SummonKOFAction
+    skill_category = ('character', 'active')
+    target = t_Self
+
+    def check(self):
+        cl = self.associated_cards
+        return len(cl) == 0
+
+
 @register_character_to('common', '-kof')
 class Seiga(Character):
-    skills = [Heterodoxy]
-    eventhandlers_required = [HeterodoxyHandler]
+    skills = [Heterodoxy, Summon]
+    eventhandlers_required = [HeterodoxyHandler, SummonHandler]
+    maxlife = 4
+
+
+@register_character_to('kof')
+class SeigaKOF(Character):
+    skills = [SummonKOF]
+    eventhandlers_required = [SummonKOFHandler]
     maxlife = 4

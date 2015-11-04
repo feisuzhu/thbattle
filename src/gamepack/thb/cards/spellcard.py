@@ -271,7 +271,9 @@ class BaseDuel(UserAction):
         if not t.dead:
             g.process_action(Damage(s, t, amount=1))
 
-        return s is source
+        self.winner = s
+
+        return True
 
     def is_valid(self):
         return not self.target.dead
@@ -302,8 +304,7 @@ class MapCannon(ForEach):
     group_effect = True
 
 
-class SinsackCarnivalEffect(InstantSpellCardAction):
-    # 罪袋狂欢
+class DemonParadeEffect(InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         source, target = self.source, self.target
@@ -318,8 +319,8 @@ class SinsackCarnivalEffect(InstantSpellCardAction):
         return not self.target.dead
 
 
-class SinsackCarnival(ForEach):
-    action_cls = SinsackCarnivalEffect
+class DemonParade(ForEach):
+    action_cls = DemonParadeEffect
     group_effect = True
 
 

@@ -19,9 +19,23 @@ class Kokoro:
     miss_sound_effect = 'thb-cv-kokoro_miss'
     description = (
         u'|DB表情丰富的扑克脸 秦心 体力：3|r\n\n'
-        u'|G希望之面|r：出牌阶段开始时。你可以观看牌堆顶1+X张牌，然后展示并获得其中任意数量的同一种花色的牌，其余以任意顺序置于牌堆顶。（X为你已损失的体力值）\n\n'
+        u'|G希望之面|r：出牌阶段开始时，你可以观看牌堆顶1+X张牌，然后展示并获得其中任意数量的同一种花色的牌，其余以任意顺序置于牌堆顶。（X为你已损失的体力值）\n\n'
         u'|G暗黑能乐|r：出牌阶段，你可以将一张黑色牌置于体力不低于你的其他角色的明牌区，该角色需弃置除获得的牌以外的手牌直至手牌数等于其当前体力值。每阶段限一次。\n\n'
-        u'|R异变模式不可用|r\n\n'
+        u'|DB（画师：Takibi，CV：小羽/VV）|r'
+    )
+
+
+class KokoroKOF:
+    # Character
+    char_name = u'秦心'
+    port_image = 'thb-portrait-kokoro'
+    figure_image = 'thb-figure-kokoro'
+    miss_sound_effect = 'thb-cv-kokoro_miss'
+    description = (
+        u'|DB表情丰富的扑克脸 秦心 体力：3|r\n\n'
+        u'|G希望之面|r：出牌阶段开始时，你可以观看牌堆顶1+X张牌，然后展示并获得其中的一张牌，其余以任意顺序置于牌堆顶。（X为你已损失的体力值）\n\n'
+        u'|G暗黑能乐|r：|B限定技|r，出牌阶段，你可以将一张黑色牌置于体力不低于你的其他角色的明牌区，该角色需弃置除获得的牌以外的手牌直至手牌数等于其当前体力值。\n\n'
+        u'|RKOF修正角色|r\n\n'
         u'|DB（画师：Takibi，CV：小羽/VV）|r'
     )
 
@@ -33,13 +47,20 @@ class HopeMask:
     is_action_valid = passive_is_action_valid
 
 
-class HopeMaskHandler:
+class HopeMaskKOF:
+    # Skill
+    name = u'希望之面'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class BaseHopeMaskHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【希望之面】吗？'
 
 
-class HopeMaskAction:
+class BaseHopeMaskAction:
     def effect_string_before(act):
         return u'|G【%s】|r挑选面具中……' % (act.source.ui_meta.char_name)
 
@@ -55,7 +76,7 @@ class HopeMaskAction:
         return 'thb-cv-kokoro_hopemask'
 
 
-class DarkNohAction:
+class BaseDarkNohAction:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -64,22 +85,9 @@ class DarkNohAction:
             return (False, u'请弃置%d张手牌（不能包含获得的那一张）' % act.n)
 
 
-class DarkNoh:
+class BaseDarkNoh:
     # Skill
     name = u'暗黑能乐'
-
-    def clickable(game):
-        me = game.me
-        if limit1_skill_used('darknoh_tag'):
-            return False
-
-        if not my_turn():
-            return False
-
-        if me.cards or me.showncards or me.equips:
-            return True
-
-        return False
 
     def is_action_valid(g, cl, target_list):
         skill = cl[0]
@@ -109,3 +117,33 @@ class DarkNoh:
 
     def sound_effect(act):
         return 'thb-cv-kokoro_darknoh'
+
+
+class DarkNoh:
+    def clickable(g):
+        me = g.me
+        if limit1_skill_used('darknoh_tag'):
+            return False
+
+        if not my_turn():
+            return False
+
+        if me.cards or me.showncards or me.equips:
+            return True
+
+        return False
+
+
+class DarkNohKOF:
+    def clickable(g):
+        me = g.me
+        if me.tags['darknoh_tag'] > 0:
+            return False
+
+        if not my_turn():
+            return False
+
+        if me.cards or me.showncards or me.equips:
+            return True
+
+        return False

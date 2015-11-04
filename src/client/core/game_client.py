@@ -212,15 +212,15 @@ class Game(Greenlet, game.Game):
         self.players = BatchList()
         self.game_params = {}
 
-    def _run(self):
-        self.synctag = 0
-        Game.thegame = self
+    def _run(g):
+        g.synctag = 0
+        Game.thegame = g
         try:
-            self.game_start(self.game_params)
+            g.process_action(g.bootstrap(g.game_params))
         except GameEnded:
             pass
 
-        assert self.ended
+        assert g.ended
 
     @classmethod
     def getgame(cls):

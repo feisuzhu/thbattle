@@ -3,16 +3,17 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStage, DropCards, ShowCards, UserAction, migrate_cards
-from ..actions import user_choose_cards
-from ..cards import Card, Skill, t_None, t_OtherOne
-from ..inputlets import ChooseOptionInputlet, HopeMaskInputlet
-from .baseclasses import Character, register_character
+from gamepack.thb.actions import ActionStage, DropCards, ShowCards, UserAction, migrate_cards
+from gamepack.thb.actions import user_choose_cards
+from gamepack.thb.cards import Card, Skill, t_None, t_OtherOne
+from gamepack.thb.inputlets import ChooseOptionInputlet, HopeMaskInputlet, HopeMaskKOFInputlet
+from gamepack.thb.characters.baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
 
 
 # -- code --
-class HopeMaskAction(UserAction):
+class BaseHopeMaskAction(UserAction):
+
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
@@ -20,7 +21,7 @@ class HopeMaskAction(UserAction):
         cards = g.deck.getcards(n)
 
         tgt.reveal(cards)
-        putback, acquire = user_input([tgt], HopeMaskInputlet(self, cards), timeout=20)
+        putback, acquire = user_input([tgt], self.inputlet_cls(self, cards), timeout=20)
         for c in acquire:
             c.detach()
 
@@ -41,16 +42,24 @@ class HopeMaskAction(UserAction):
         return True
 
 
-class HopeMaskHandler(EventHandler):
+class HopeMaskAction(BaseHopeMaskAction):
+    inputlet_cls = HopeMaskInputlet
+
+
+class HopeMaskKOFAction(BaseHopeMaskAction):
+    inputlet_cls = HopeMaskKOFInputlet
+
+
+class BaseHopeMaskHandler(EventHandler):
     interested = ('action_apply',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
             tgt = act.target
-            if not tgt.has_skill(HopeMask): return act
+            if not tgt.has_skill(self.skill): return act
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
-            Game.getgame().process_action(HopeMaskAction(tgt, tgt))
+            Game.getgame().process_action(self.action(tgt, tgt))
 
         return act
 
@@ -61,7 +70,23 @@ class HopeMask(Skill):
     target = t_None
 
 
-class DarkNohAction(UserAction):
+class HopeMaskKOF(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
+class HopeMaskHandler(BaseHopeMaskHandler):
+    skill  = HopeMask
+    action = HopeMaskAction
+
+
+class HopeMaskKOFHandler(BaseHopeMaskHandler):
+    skill  = HopeMaskKOF
+    action = HopeMaskKOFAction
+
+
+class BaseDarkNohAction(UserAction):
     card_usage = 'drop'
 
     def apply_action(self):
@@ -100,6 +125,9 @@ class DarkNohAction(UserAction):
 
         return True
 
+
+class DarkNohAction(BaseDarkNohAction):
+
     def is_valid(self):
         src = self.source
         tgt = self.target
@@ -113,9 +141,23 @@ class DarkNohAction(UserAction):
         return True
 
 
-class DarkNoh(Skill):
+class DarkNohKOFAction(BaseDarkNohAction):
+
+    def is_valid(self):
+        src = self.source
+        tgt = self.target
+
+        if src.tags['darknoh_tag'] > 0:
+            return False
+
+        if src.life > tgt.life:
+            return False
+
+        return True
+
+
+class BaseDarkNoh(Skill):
     no_drop = True
-    associated_action = DarkNohAction
     skill_category = ('character', 'active')
     target = t_OtherOne
     usage = 'handover'
@@ -130,8 +172,23 @@ class DarkNoh(Skill):
         return True
 
 
-@register_character
+class DarkNoh(BaseDarkNoh):
+    associated_action = DarkNohAction
+
+
+class DarkNohKOF(DarkNoh):
+    associated_action = DarkNohKOFAction
+
+
+@register_character_to('common', '-kof')
 class Kokoro(Character):
     skills = [HopeMask, DarkNoh]
     eventhandlers_required = [HopeMaskHandler]
+    maxlife = 3
+
+
+@register_character_to('kof')
+class KokoroKOF(Character):
+    skills = [HopeMaskKOF, DarkNohKOF]
+    eventhandlers_required = [HopeMaskKOFHandler]
     maxlife = 3

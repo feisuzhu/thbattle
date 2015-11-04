@@ -66,6 +66,7 @@ class AttackCardHandler(EventHandler):
         elif evt_type == 'action_apply':
             if isinstance(act, ActionStageLaunchCard):
                 from .definition import AttackCard
+
                 if act.card.is_card(AttackCard):
                     src = act.source
                     src.tags['attack_num'] -= 1
@@ -359,6 +360,8 @@ class ExinwanHandler(EventHandler):
             for c in cards:
                 tgt = getattr(c, 'exinwan_target', None)
                 if tgt:
-                    Game.getgame().process_action(ExinwanEffect(tgt, tgt))
+                    act = ExinwanEffect(tgt, tgt)
+                    act.associated_card = c
+                    Game.getgame().process_action(act)
 
         return arg

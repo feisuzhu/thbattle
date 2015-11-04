@@ -10,8 +10,9 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
-from gamepack.thb.actions import DistributeCards, MigrateCardsTransaction, PlayerDeath, PlayerTurn
-from gamepack.thb.actions import RevealIdentity, action_eventhandlers, migrate_cards
+from gamepack.thb.actions import DistributeCards, GenericAction, MigrateCardsTransaction
+from gamepack.thb.actions import PlayerDeath, PlayerTurn, RevealIdentity, action_eventhandlers
+from gamepack.thb.actions import migrate_cards
 from gamepack.thb.characters.baseclasses import mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity, sync_primitive
 from gamepack.thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
@@ -63,7 +64,7 @@ class DeathHandler(EventHandler):
 
             tgt = g.switch_character(tgt, c)
 
-            c = getattr(g, 'current_turn', None)
+            c = getattr(g, 'current_player', None)
 
             g.process_action(DistributeCards(tgt, 4))
 
@@ -95,19 +96,18 @@ class Identity(PlayerIdentity):
         MORIYA = 2
 
 
-class THBattleFaith(Game):
-    n_persons    = 6
-    game_ehs     = _game_ehs
-    params_def   = {
-        'random_seat': (True, False),
-    }
+class THBattleFaithBootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+        params = self.params
+
         from cards import Deck
 
         g.picks = []
-
         g.deck = Deck()
 
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
@@ -237,6 +237,17 @@ class THBattleFaith(Game):
                 g.process_action(PlayerTurn(p))
             except InterruptActionFlow:
                 pass
+
+        return True
+
+
+class THBattleFaith(Game):
+    n_persons    = 6
+    game_ehs     = _game_ehs
+    bootstrap    = THBattleFaithBootstrap
+    params_def   = {
+        'random_seat': (True, False),
+    }
 
     def can_leave(g, p):
         return False

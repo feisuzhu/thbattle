@@ -89,7 +89,7 @@ class ImperishableNight(TreatAs, Skill):
     skill_category = ('character', 'passive')
 
     def check(self):
-        return Game.getgame().current_turn is not self.player
+        return Game.getgame().current_player is not self.player
 
 
 class ImperishableNightHandler(EventHandler):
@@ -125,7 +125,7 @@ class ImperishableNightHandler(EventHandler):
         for p in g.players:
             if p.dead or p is tgt: continue
             if not p.has_skill(ImperishableNight): continue
-            if p is g.current_turn: continue
+            if p is g.current_player: continue
 
             if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                 continue

@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable
 from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
 
 # -- code --
@@ -15,12 +15,18 @@ class Medicine:
     # Character
     char_name = u'梅蒂欣'
     port_image = 'thb-portrait-medicine'
+    figure_image = 'thb-figure-medicine'
     miss_sound_effect = 'thb-cv-medicine_miss'
     description = (
-        u'|DB小小的甜蜜毒药 梅蒂欣 体力：3|r\n\n'
-        u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张手牌，令该角色获得喝醉状态。若该角色在该回合结束阶段开始时仍处于喝醉状态，其失去喝醉状态并选择一项：弃置一张手牌并令你摸一张牌或受到一点无来源伤害。\n\n'
-        u'|G忧郁之毒|r：每当你受到X点有来源的伤害后，你可以摸X张牌并展示之，若其中有不为梅花的牌，伤害来源无法使用或打出手牌直到该回合结束。\n\n'
-        u'|DB（画师：Pixiv ID 38268080，CV：VV）|r'
+        u'|DB小小的甜蜜毒药 梅蒂欣 体力：3|r\n'
+        u'\n'
+        u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张黑色牌，令该角色失去一点残机，然后获得喝醉状态。\n'
+        u'\n'
+        u'|G忧郁之毒|r：每当你受到一次有来源的伤害后，你可以展示并获得牌堆顶一张牌，若其花色不为梅花，伤害来源无法使用或打出手牌直到该回合结束。\n'
+        u'\n'
+        u'|RKOF不平衡角色|r\n'
+        u'\n'
+        u'|DB（画师：和茶，CV：VV）|r'
     )
 
 
@@ -42,27 +48,9 @@ class CiguateraAction:
         return 'thb-cv-medicine_ciguatera'
 
 
-class CiguateraTurnEnd:
-    def choose_card_text(g, act, cards):
-        return act.cond(cards), u'受到一点无来源伤害，或者弃置一张手牌并让【%s】摸一张牌' % act.target.ui_meta.char_name
-
-    def effect_string_before(act):
-        return u'|G【%s】|r受到|G【%s】|r的|G神经之毒|r爆发了。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
-        )
-
-    def effect_string(act):
-        if act.card:
-            return u'|G【%s】|r弃掉了%s。' % (
-                act.source.ui_meta.char_name,
-                card_desc(act.card)
-            )
-
-
 class CiguateraHandler:
     def choose_card_text(g, act, cards):
-        return act.cond(cards), u'弃置一张手牌，发动【神经之毒】'
+        return act.cond(cards), u'弃置一张黑色牌，发动【神经之毒】'
 
 
 class Melancholy:

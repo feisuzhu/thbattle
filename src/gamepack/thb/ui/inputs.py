@@ -554,8 +554,12 @@ class UIChooseOption(Control, InputHandler):
             ui_meta = ilet.initiator.ui_meta
             choose_option_buttons = ui_meta.choose_option_buttons
             choose_option_prompt = ui_meta.choose_option_prompt
+
             if callable(choose_option_prompt):
                 choose_option_prompt = choose_option_prompt(ilet.initiator)
+
+            if callable(choose_option_buttons):
+                choose_option_buttons = choose_option_buttons(ilet.initiator)
 
         except AttributeError:
             choose_option_buttons = ((u'确定', True), (u'结束', False))
@@ -945,7 +949,7 @@ class UIKokoroHomeMask(Panel, InputHandler):
                 batch=self.lbls,
             )
 
-        lbl(u'请拖动调整牌的位置，获得的牌必须是同花色的', w // 2, h - 25)
+        lbl(u'请拖动调整牌的位置', w // 2, h - 25)
         lbl(u'牌堆顶', 50, 277)
         lbl(u'展示并获得', 50, 122)
 

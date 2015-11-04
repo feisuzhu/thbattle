@@ -14,11 +14,12 @@ class Parsee:
     # Character
     char_name = u'水桥帕露西'
     port_image = 'thb-portrait-parsee'
+    figure_image = 'thb-figure-parsee'
     miss_sound_effect = 'thb-cv-parsee_miss'
     description = (
         u'|DB地壳下的嫉妒心 水桥帕露西 体力：4|r\n\n'
         u'|G嫉妒|r：出牌阶段，你可以将一张黑色牌当|G城管执法|r使用。你使用|G城管执法|r使一名距离1以内角色的一张方片牌进入弃牌堆时，你可以获得之。\n\n'
-        u'|DB（画师：Pixiv ID 2872076，CV：小羽）|r'
+        u'|DB（画师：和茶，CV：小羽）|r'
     )
 
 

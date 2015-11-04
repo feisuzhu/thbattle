@@ -10,8 +10,9 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, NPC, user_input
 from gamepack.thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCards
-from gamepack.thb.actions import FatetellStage, LaunchCard, PlayerDeath, PlayerTurn, RevealIdentity
-from gamepack.thb.actions import ShuffleHandler, action_eventhandlers, ask_for_action, migrate_cards
+from gamepack.thb.actions import FatetellStage, GenericAction, LaunchCard, PlayerDeath, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, ShuffleHandler, action_eventhandlers
+from gamepack.thb.actions import ask_for_action, migrate_cards
 from gamepack.thb.cards import AskForHeal, AttackCard, Card, Demolition, DemolitionCard
 from gamepack.thb.cards import ElementalReactorCard, ExinwanCard, FrozenFrogCard, GrazeCard
 from gamepack.thb.cards import GreenUFOCard, Heal, HealCard, LaunchGraze, MomijiShieldCard
@@ -147,13 +148,14 @@ class DummyPlayerTurn(PlayerTurn):
         return True
 
 
-class THBattleNewbie(Game):
-    n_persons  = 1
-    game_ehs   = _game_ehs
-    npc_players  = [NPC(u'琪露诺', CirnoAI.ai_main)]
+class THBattleNewbieBootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+
         from gamepack.thb.characters.meirin import Meirin
         from gamepack.thb.characters.cirno import Cirno
         from gamepack.thb.characters.sakuya import Sakuya
@@ -212,7 +214,7 @@ class THBattleNewbie(Game):
         dialog(Meirin, u'前面998次你也都是这么说的……好了，废话少说，放马过来吧！', 5)
         dialog(Cirno, u'正合我意！', 2)
 
-        g.current_turn = cirno
+        g.current_player = cirno
 
         c = g.deck.inject(AttackCard, Card.SPADE, 1)
         g.process_action(DrawCards(cirno, 1))
@@ -230,7 +232,7 @@ class THBattleNewbie(Game):
         dialog(Meirin, u'我可什么都没说！', 9)
 
         # 红美铃的回合【目的:使用基本牌（麻薯，弹幕）】
-        g.current_turn = meirin
+        g.current_player = meirin
         c = g.deck.inject(HealCard, Card.HEART, 2)
         g.process_action(DrawCards(meirin, 1))
 
@@ -261,7 +263,7 @@ class THBattleNewbie(Game):
         dialog(Cirno, u'喂！悄悄话说的也太大声了！！', 5)
 
         # 琪露诺的回合【目的:使用基本牌（擦弹）】【使用太极（1）】
-        g.current_turn = cirno
+        g.current_player = cirno
         g.deck.inject(HealCard, Card.HEART, 4)
         g.process_action(DrawCards(cirno, 1))
         while True:
@@ -321,7 +323,7 @@ class THBattleNewbie(Game):
         dialog(Meirin, u'是！', 18)
 
         # 红美铃的回合【目的:使用延时符卡（冻青蛙），使用太极（2），使用红色UFO】'
-        g.current_turn = meirin
+        g.current_player = meirin
         frozen = g.deck.inject(FrozenFrogCard, Card.SPADE, 8)
         g.process_action(DrawCards(meirin, 1))
 
@@ -410,7 +412,7 @@ class THBattleNewbie(Game):
             dialog(Meirin, u'那么，把这张|G冻青蛙|r也贴上去吧！', 31)
             g.process_action(ActionStage(meirin))
 
-        g.current_turn = cirno
+        g.current_player = cirno
         g.deck.inject(SinsackCard, Card.SPADE, 13)
         g.process_action(FatetellStage(cirno))
 
@@ -434,7 +436,7 @@ class THBattleNewbie(Game):
         dialog(Sakuya, u'真是的，你之前的998局到底是怎么赢的……', 16)
 
         # 红美铃的回合【目的:使用符卡（城管执法，好人卡）】
-        g.current_turn = meirin
+        g.current_player = meirin
 
         demolition = g.deck.inject(DemolitionCard, Card.CLUB, 2)
         g.process_action(DrawCards(meirin, 1))
@@ -501,7 +503,7 @@ class THBattleNewbie(Game):
         dialog(Meirin, u'咦？咲夜，这张牌好奇怪……为什么是负面的效果？', 42)
         dialog(Sakuya, u'是|G恶心丸|r啊……你的运气不太好哦。不过尽管说是一张负面效果的牌，但是看发动条件的话，是可以恶心到别人的。情况允许的话就留在手里好了，直接吃掉肯定是不合算的。', 23)
 
-        g.current_turn = cirno
+        g.current_player = cirno
         demolition = g.deck.inject(DemolitionCard, Card.CLUB, 4)
         g.process_action(DrawCards(cirno, 1))
         dialog(Cirno, u'可恶，你到底有没有认真的在打啊！看我双倍奉还！', 20)
@@ -584,6 +586,15 @@ class THBattleNewbie(Game):
             except InterruptActionFlow:
                 pass
 
+        return True
+
+
+class THBattleNewbie(Game):
+    n_persons   = 1
+    game_ehs    = _game_ehs
+    npc_players = [NPC(u'琪露诺', CirnoAI.ai_main)]
+    bootstrap   = THBattleNewbieBootstrap
+
     def can_leave(g, p):
         return True
 
@@ -611,11 +622,11 @@ class THBattleNewbie(Game):
         from .characters.baseclasses import Character
         assert isinstance(p, Character)
 
-        p.cards = CardList(p, 'cards')  # Cards in hand
+        p.cards = CardList(p, 'cards')            # Cards in hand
         p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-        p.equips = CardList(p, 'equips')  # Equipments
-        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-        p.special = CardList(p, 'special')  # used on special purpose
+        p.equips = CardList(p, 'equips')          # Equipments
+        p.fatetell = CardList(p, 'fatetell')      # Cards in the Fatetell Zone
+        p.special = CardList(p, 'special')        # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
         p.tags = defaultdict(int)
 

@@ -10,8 +10,8 @@ import logging
 from game import sync_primitive
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, list_shuffle
 from game.autoenv import user_input
-from gamepack.thb.actions import DistributeCards, PlayerDeath, PlayerTurn, RevealIdentity
-from gamepack.thb.actions import action_eventhandlers
+from gamepack.thb.actions import DistributeCards, GenericAction, PlayerDeath, PlayerTurn
+from gamepack.thb.actions import RevealIdentity, action_eventhandlers
 from gamepack.thb.characters.baseclasses import Character, mixin_character
 from gamepack.thb.common import CharChoice, PlayerIdentity
 from gamepack.thb.inputlets import ChooseGirlInputlet
@@ -40,11 +40,13 @@ class DeathHandler(EventHandler):
 
         g = Game.getgame()
 
-        if len(tgt.choices) <= 2:
+        if tgt.remaining[0] <= 0:
             pl = g.players[:]
             pl.remove(tgt)
             g.winners = pl
             g.game_end()
+
+        tgt.remaining[0] -= 1
 
         pl = g.players
         if pl[0].dropped:
@@ -66,26 +68,30 @@ class KOFCharacterSwitchHandler(EventHandler):
         cond = evt_type in ('action_before', 'action_after')
         cond = cond and isinstance(act, PlayerTurn)
         cond = cond or evt_type == 'action_stage_action'
-        cond and self.do_switch()
+        cond and self.do_switch_dead()
         return act
 
-    @staticmethod
-    def do_switch():
+    @classmethod
+    def do_switch_dead(cls):
         g = Game.getgame()
 
         for p in [p for p in g.players if p.dead and p.choices]:
-            mapping = {p: p.choices}
+            new = cls.switch(p)
+            g.process_action(DistributeCards(new, 4))
+            g.emit_event('character_debut', (p, new))
 
-            with InputTransaction('ChooseGirl', [p], mapping=mapping) as trans:
-                rst = user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
-                rst = rst or p.choices[0]
+    @staticmethod
+    def switch(p):
+        g = Game.getgame()
+        mapping = {p: p.choices}
 
-            old = p
-            p = g.next_character(p, rst)
-            p.choices.remove(rst)
+        with InputTransaction('ChooseGirl', [p], mapping=mapping) as trans:
+            rst = user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+            rst = rst or p.choices[0]
 
-            g.process_action(DistributeCards(p, 4))
-            g.emit_event('character_debut', (old, p))
+        p = g.next_character(p, rst)
+        p.choices.remove(rst)
+        return p
 
 
 class Identity(PlayerIdentity):
@@ -95,20 +101,21 @@ class Identity(PlayerIdentity):
         MORIYA = 2
 
 
-class THBattleKOF(Game):
-    n_persons  = 2
-    game_ehs   = _game_ehs
-    params_def = {}
+class THBattleKOFBootstrap(GenericAction):
+    def __init__(self, params):
+        self.source = self.target = None
+        self.params = params
 
-    def game_start(g, params):
-        # game started, init state
+    def apply_action(self):
+        g = Game.getgame()
+
         from . import cards
 
         g.pick_history = []
 
         g.deck = cards.Deck(cards.kof_card_definition)
         g.ehclasses = []
-        g.current_turn = None
+        g.current_player = None
 
         for i, p in enumerate(g.players):
             p.identity = Identity()
@@ -162,6 +169,8 @@ class THBattleKOF(Game):
         order = [A, B, B, A, A, B, B, A, A, B]
         A.choices = []
         B.choices = []
+        A.remaining = [2]
+        B.remaining = [2]
         choice_mapping = {A: choice, B: choice}
         del A, B
 
@@ -227,7 +236,7 @@ class THBattleKOF(Game):
             p = g.players[idx]
             if i >= 6000: break
             if p.dead:
-                KOFCharacterSwitchHandler.do_switch()
+                KOFCharacterSwitchHandler.do_switch_dead()
                 p = g.players[idx]  # player changed
 
             assert not p.dead
@@ -237,6 +246,13 @@ class THBattleKOF(Game):
                 g.process_action(PlayerTurn(p))
             except InterruptActionFlow:
                 pass
+
+
+class THBattleKOF(Game):
+    n_persons  = 2
+    game_ehs   = _game_ehs
+    bootstrap  = THBattleKOFBootstrap
+    params_def = {}
 
     def get_opponent(g, p):
         a, b = g.players
@@ -279,13 +295,13 @@ class THBattleKOF(Game):
         from .characters.baseclasses import Character
         assert isinstance(p, Character)
 
-        p.cards = CardList(p, 'cards')  # Cards in hand
-        p.showncards = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-        p.equips = CardList(p, 'equips')  # Equipments
-        p.fatetell = CardList(p, 'fatetell')  # Cards in the Fatetell Zone
-        p.special = CardList(p, 'special')  # used on special purpose
+        p.cards          = CardList(p, 'cards')       # Cards in hand
+        p.showncards     = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
+        p.equips         = CardList(p, 'equips')      # Equipments
+        p.fatetell       = CardList(p, 'fatetell')    # Cards in the Fatetell Zone
+        p.special        = CardList(p, 'special')     # used on special purpose
         p.showncardlists = [p.showncards, p.fatetell]
-        p.tags = defaultdict(int)
+        p.tags           = defaultdict(int)
 
     def get_stats(g):
         to_p = lambda p: p.player if isinstance(p, Character) else p
