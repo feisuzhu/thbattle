@@ -128,14 +128,6 @@ class DecayDrawCardHandler(EventHandler):
             _from.owner.showncards: return arg
 
         g.process_action(DecayDrawCards(me, 1))
-        import time
-        import pprint
-        pprint.pprint(g.hybrid_stack)
-        pprint.pprint([
-            i for i in trans.get_movements()
-            if i[1] is not None and i[1].type in ('cards', 'showncards')
-        ])
-        time.sleep(1)
 
         return arg
 
