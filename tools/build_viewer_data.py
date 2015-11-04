@@ -123,6 +123,7 @@ _card_category = {
     'redufo':            u'红色UFO',
     'greenufo':          u'绿色UFO',
     'accessories':       u'饰品',
+    'group_effect':      u'群体',
 }
 
 
