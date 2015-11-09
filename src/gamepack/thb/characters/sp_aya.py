@@ -107,7 +107,7 @@ class WindWalkHandler(EventHandler):
                 return act
 
             src, tl = act.source, set(act.target_list)
-            last_tl = src.tags['windwalk_last_targets']
+            last_tl = src.tags['windwalk_last_targets'] or set()
 
             if not tl <= last_tl:
                 raise WindWalkTargetLimit
