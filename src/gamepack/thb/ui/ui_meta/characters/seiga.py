@@ -136,7 +136,7 @@ class SummonAction:
         return [(act.source, act.target)]
 
     def effect_string(act):
-        return u'|G【%s】|r发动了|G通灵|r，以获得了|G【%s】|r的%s技能' % (
+        return u'|G【%s】|r发动了|G通灵|r，获得了|G【%s】|r的|G%s|r技能' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
             act.choice.ui_meta.name,

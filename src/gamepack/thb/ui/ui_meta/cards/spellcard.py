@@ -77,7 +77,7 @@ class RejectCard:
             return True
 
         from gamepack.thb.characters import reimu
-        if isinstance(p, reimu.Reimu) and not p.dead:
+        if p.has_skill(reimu.SpiritualAttack) and not p.dead:
             return True
 
         return False

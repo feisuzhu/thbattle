@@ -8,7 +8,7 @@ from gamepack.thb.actions import DrawCardStage, DrawCards, DropCards, ForEach, L
 from gamepack.thb.actions import UserAction, migrate_cards, random_choose_card, user_choose_cards
 from gamepack.thb.actions import user_choose_players, user_input
 from gamepack.thb.cards import AttackCard, Card, DuelCard, Skill, TreatAs, VirtualCard, t_None
-from gamepack.thb.characters.baseclasses import Character, register_character
+from gamepack.thb.characters.baseclasses import Character, register_character_to
 from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -181,7 +181,7 @@ class Virtue(Skill):
     target = t_None
 
 
-@register_character
+@register_character_to('common', '-kof')
 class Kanako(Character):
     skills = [Virtue, KanakoFaith]
     eventhandlers_required = [VirtueHandler]
