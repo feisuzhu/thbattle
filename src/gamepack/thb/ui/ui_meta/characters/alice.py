@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-import time
+import random
 
 # -- third party --
 # -- own --
 from gamepack.thb import characters
-from gamepack.thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+from gamepack.thb.ui.ui_meta.common import G, card_desc, gen_metafunc, passive_clickable
+from gamepack.thb.ui.ui_meta.common import passive_is_action_valid
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.alice)
@@ -19,25 +21,16 @@ class Alice:
     figure_image = 'thb-figure-alice'
     miss_sound_effect = 'thb-cv-alice_miss'
     description = (
-        u'|DB七色的人偶使 爱丽丝 体力：3|r\n\n'
-        u'|G小小军势|r：当你使用装备牌时，你可以摸一张牌。当你失去装备牌区的牌后，你可以弃置其它角色的一张牌。\n\n'
-        u'|G少女文乐|r：|B锁定技|r，你的手牌上限+X（X为你装备区牌数量的一半，向上取整且至少为1）。\n\n'
-        u'|DB（画师：ideolo@NEKO WORKi，CV：小舞）|r'
-    )
-
-
-class AliceKOF:
-    # Character
-    char_name = u'爱丽丝'
-    port_image = 'thb-portrait-alice'
-    figure_image = 'thb-figure-alice'
-    miss_sound_effect = 'thb-cv-alice_bunraku_kof'
-    description = (
-        u'|DB七色的人偶使 爱丽丝 体力：3|r\n\n'
-        u'|G小小军势|r：当你使用装备牌时，你可以摸一张牌。当你失去装备牌区的牌后，你可以弃置其它角色的一张牌。\n\n'
-        u'|G少女文乐|r：|B锁定技|r，你的手牌上限+X，你死亡时对对手造成X点伤害。（X为你装备区牌数量的一半，向上取整且至少为1）。\n\n'
-        u'|RKOF修正角色\n\n'
-        u'|DB（画师：ideolo@NEKO WORKi，CV：小舞）|r'
+        u'|DB七色的人偶使 爱丽丝 体力：4|r\n\n'
+        u'|G人偶爆弹|r：当你的装备区的一张牌被其他角色弃置或获得时，你可以弃置其一张牌。若按此法弃置的为被该角色获得的装备牌，你对其造成1点伤害。\n'
+        u'\n'
+        u'|G小小军势|r：出牌阶段结束时，你可以重铸一张装备牌，然后发动对应的效果：\n'
+        u'|B|R>> |r武器：视为对一名角色使用了|G弹幕|r\n'
+        u'|B|R>> |r防具：令一名角色回复一点体力\n'
+        u'|B|R>> |r饰品：跳过弃牌阶段\n'
+        u'|B|R>> |rUFO ：视为使用一张|G人型操控|r\n'
+        u'\n'
+        u'|DB（画师：霏茶，CV：小舞）|r'
     )
 
 
@@ -48,73 +41,138 @@ class LittleLegion:
     is_action_valid = passive_is_action_valid
 
 
-class LittleLegionDrawCards:
-    def sound_effect(act):
-        tags = act.source.tags
-        if time.time() - tags['__legion_lastplay'] > 10:
-            tags['__legion_lastplay'] = time.time()
-            return 'thb-cv-alice_legion'
+class LittleLegionAttackCard:
+    name = u'小小军势'
 
-
-class LittleLegionAction:
     def effect_string(act):
-        return u'|G【%s】|r对|G【%s】|r发动了|G小小军势|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
-        )
-
-    def sound_effect(act):
-        tags = act.source.tags
-        if time.time() - tags['__legion_lastplay'] > 10:
-            tags['__legion_lastplay'] = time.time()
-            return 'thb-cv-alice_legion'
-
-
-class LittleLegionDrawHandler:
-    choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【小小军势】吗？'
-
-
-class LittleLegionDropHandler:
-    choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【小小军势】吗？'
-
-    def target(tl):
-        if not tl:
-            return False, u'小小军势：弃置目标的一张牌'
-
-        tgt = tl[0]
-
-        if tgt.cards or tgt.showncards or tgt.equips:
-            return True, u'让你见识一下这人偶军团的厉害！'
-        else:
-            return False, u'这货已经没有牌了'
-
-
-class MaidensBunraku:
-    # Skill
-    name = u'少女文乐'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
-class MaidensBunrakuKOF:
-    # Skill
-    name = u'少女文乐'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
-class MaidensBunrakuKOFAction:
-
-    def effect_string_before(act):
-        return u'|G【%s】|r向|G【%s】|r发动了|G少女文乐|r。' % (
+        # for LaunchCard.ui_meta.effect_string
+        return u'|G【%s】|r操起人偶，向|G【%s】|r进攻！' % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
 
-    # Now in AliceKOF.ui_meta.miss_sound_effect
-    # def sound_effect(act):
-    #     return 'thb-cv-alice_bunraku_kof'
+    def sound_effect(act):
+        return 'thb-cv-alice_legion_attack'
+
+
+class LittleLegionDollControlCard:
+    name = u'小小军势'
+    custom_ray = True
+
+    def effect_string(act):
+        # for LaunchCard.ui_meta.effect_string
+        controllee, victim = act.target_list
+        return u'|G【%s】|r操起人偶……呃不对，是|G【%s】|r，向|G【%s】|r进攻！' % (
+            act.source.ui_meta.char_name,
+            controllee.ui_meta.char_name,
+            victim.ui_meta.char_name,
+        )
+
+    def sound_effect(act):
+        return 'thb-cv-alice_legion_control'
+
+
+class LittleLegionAttackAction:
+
+    def target(pl):
+        if not pl:
+            return (False, u'进攻：请选择1名玩家，视为使用弹幕')
+
+        return (True, u'就让你见识下人偶军团的厉害！')
+
+
+class LittleLegionCoverAction:
+
+    def target(pl):
+        if not pl:
+            return (False, u'掩护：请选择1名玩家，回复1点体力')
+
+        return (True, u'支援到了，重复，支援到了！')
+
+
+class LittleLegionHoldAction:
+
+    def sound_effect(act):
+        return 'thb-cv-alice_legion_hold'
+
+
+class LittleLegionControlAction:
+
+    def target(pl):
+        if not pl:
+            return (False, u'控场：请选择2名玩家，视为使用【人型操控】')
+
+        from gamepack.thb.cards import DollControlCard
+
+        rst, prompt = DollControlCard.ui_meta.is_action_valid(G(), [], pl)
+
+        if rst:
+            return (True, u'就让你见识下人偶军团的厉害！')
+        else:
+            return rst, prompt
+
+
+class LittleLegionHandler:
+
+    # choose_card
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            c, = cards
+            if c.equipment_category == 'weapon':
+                text = u'（武器）：视为对一名角色使用弹幕'
+            elif c.equipment_category == 'shield':
+                text = u'（防具）：令一名角色回复一点体力'
+            elif c.equipment_category == 'accessories':
+                text = u'（饰品）：跳过弃牌阶段'
+            elif c.equipment_category in ('redufo', 'greenufo'):
+                text = u'（UFO）：视为使用人型操控'
+            else:
+                text = u'（BUG）：什么鬼……'
+
+            return (True, u'小小军势' + text)
+        else:
+            return (False, u'小小军势：重铸一张装备牌，发动相应效果（否则不发动）')
+
+
+class DollBlast:
+    # Skill
+    name = u'人偶爆弹'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class DollBlastEffect:
+
+    def effect_string_before(act):
+        if act.do_damage:
+            return u'|G【%s】|r拿走了|G【%s】|r的人偶（%s），然后，BOOM！|G【%s】|r就炸了！' % (
+                act.target.ui_meta.char_name,
+                act.source.ui_meta.char_name,
+                card_desc(act.card),
+                act.target.ui_meta.char_name,
+            )
+        else:
+            return u'|G【%s】|r拿走了|G【%s】|r的人偶，|G【%s】|r非常生气，弃置|G【%s】|r的%s。' % (
+                act.target.ui_meta.char_name,
+                act.source.ui_meta.char_name,
+                act.source.ui_meta.char_name,
+                act.target.ui_meta.char_name,
+                card_desc(act.card),
+            )
+
+
+class DollBlastAction:
+
+    def sound_effect(act):
+        return random.choice([
+            'thb-cv-alice_dollblast_blast',
+            'thb-cv-alice_dollblast_noblast',
+        ])
+
+
+class DollBlastHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【人偶爆弹】吗？'
 
 # ----------

@@ -95,15 +95,15 @@ def pasv_handle_player_selection(g, ilet, players):
     disables = [p for p in g.players if p not in ilet.candidates]
     players = [p for p in players if p not in disables]
 
-    players, valid = ilet.initiator.choose_player_target(players)
+    players, logic_valid = ilet.initiator.choose_player_target(players)
     try:
-        valid1, reason = ilet.initiator.ui_meta.target(players)
-        assert bool(valid) == bool(valid1)
+        ui_meta_valid, reason = ilet.initiator.ui_meta.target(players)
+        assert bool(logic_valid) == bool(ui_meta_valid), 'logic: %s, ui: %s' % (logic_valid, ui_meta_valid)
     except:
         log.exception('act.ui_meta.target error')
         raise ActionDisplayResult(False, u'[act.ui_meta.target错误]', bool(ilet.candidates), disables, players)
 
-    if not valid:
+    if not logic_valid:
         raise ActionDisplayResult(False, reason, True, disables, players)
 
     return True, disables, players, reason

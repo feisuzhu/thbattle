@@ -409,15 +409,15 @@ class DollControl(InstantSpellCardAction):
         assert len(tl) == 2
         src = self.source
 
-        controllee, attackee = tl
-        cards = user_choose_cards(self, controllee, ['cards', 'showncards'])
+        attacker, victim = tl
+        cards = user_choose_cards(self, attacker, ['cards', 'showncards'])
         g = Game.getgame()
 
         if cards:
             g.players.reveal(cards)
-            g.process_action(LaunchCard(controllee, [attackee], cards[0]))
+            g.process_action(LaunchCard(attacker, [victim], cards[0]))
         else:
-            l = [e for e in controllee.equips if e.equipment_category == 'weapon']
+            l = [e for e in attacker.equips if e.equipment_category == 'weapon']
             migrate_cards(l, src.cards)
         return True
 
@@ -432,7 +432,21 @@ class DollControl(InstantSpellCardAction):
         return LaunchCard(attacker, [victim], cl[0]).can_fire()
 
     def is_valid(self):
-        return not self.target.dead
+        if self.target.dead:
+            return False
+
+        assert len(self.target_list) == 2
+
+        attacker, victim = self.target_list
+
+        if not any(e.equipment_category == 'weapon' for e in attacker.equips):
+            return False
+
+        from .definition import AttackCard
+        if not LaunchCard(attacker, [victim], AttackCard()).can_fire():
+            return False
+
+        return True
 
 
 class DonationBoxEffect(InstantSpellCardAction):
