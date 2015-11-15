@@ -993,8 +993,9 @@ class YoumuPhantomHandler(EventHandler):
         return arg
 
 
-class IceWingSkill(AccessoriesSkill):
+class IceWingSkill(RedUFOSkill):
     skill_category = ('equip', 'passive')
+    increment = 1
 
 
 class IceWing(GenericAction):

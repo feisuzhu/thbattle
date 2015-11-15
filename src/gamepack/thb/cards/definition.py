@@ -363,9 +363,9 @@ class YoumuPhantomCard:
 class IceWingCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
-    category = ('equipment', 'accessories')
+    category = ('equipment', 'redufo')
     equipment_skill = equipment.IceWingSkill
-    equipment_category = 'accessories'
+    equipment_category = 'redufo'
 
 
 class GrimoireCard:

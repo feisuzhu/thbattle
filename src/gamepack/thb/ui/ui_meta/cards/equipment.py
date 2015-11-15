@@ -894,7 +894,8 @@ class IceWingCard:
     image_small = 'thb-card-small-icewing'
     description = (
         u'|R⑨的翅膀|r\n\n'
-        u'装备后：【封魔阵】和【冻青蛙】对你无效。\n\n'
+        u'特殊的红色UFO装备，距离-1。\n\n'
+        u'装备后：|G封魔阵|r和|G冻青蛙|r对你无效。\n\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
 
