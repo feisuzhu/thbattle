@@ -74,7 +74,8 @@ class MomijiShieldCard:
     image_small = 'thb-card-small-momijishield'
     description = (
         u'|R天狗盾|r\n\n'
-        u'装备后：黑色【弹幕】对你无效。'
+        u'装备后：黑色|G弹幕|r对你无效。\n'
+        u'|DB（画师：霏茶）|r'
     )
 
     is_action_valid = equip_iav
@@ -196,7 +197,7 @@ class UmbrellaCard:
     description = (
         u'|R阳伞|r\n\n'
         u'装备后：符卡效果造成的伤害对你无效。\n\n'
-        u'|DB（画师：Pixiv ID 5676304）|r'
+        u'|DB（画师：霏茶）|r'
     )
 
     is_action_valid = equip_iav
@@ -460,7 +461,7 @@ class HouraiJewelCard:
     description = (
         u'|R蓬莱玉枝|r\n\n'
         u'攻击范围1。装备后，你使用的|G弹幕|r时，可以将弹幕的效果转化成如下的符卡效果：造成1点伤害。\n'
-        u'|DB（画师：Pixiv ID 12657794）|r'
+        u'|DB（画师：霏茶）|r'
     )
 
     is_action_valid = equip_iav
@@ -496,8 +497,8 @@ class SaigyouBranchCard:
     image_small = 'thb-card-small-saigyoubranch'
     description = (
         u'|R西行妖|r\n\n'
-        u'装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张【好人卡】。\n\n'
-        u'|DB（CV：VV）|r'
+        u'装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张|G好人卡|r。\n\n'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
 
@@ -793,7 +794,7 @@ class WitchBroomCard:
     description = (
         u'|R魔女扫把|r\n\n'
         u'特殊的红色UFO装备，距离-2。\n\n'
-        u'|DB（画师：Pixiv UID 286832）|r'
+        u'|DB（画师：霏茶）|r'
     )
 
 
