@@ -80,9 +80,10 @@ class RejectHandler(EventHandler):
 
             has_reject = False
             while g.SERVER_SIDE:
-                from ..characters.reimu import Reimu
+                from ..characters.baseclasses import Character
+                from ..characters.reimu import SpiritualAttack
                 for p in g.players:
-                    if isinstance(p, Reimu):
+                    if isinstance(p, Character) and p.has_skill(SpiritualAttack):
                         has_reject = True
                         break
 
@@ -229,7 +230,7 @@ class YukariDimension(InstantSpellCardAction):
         src = self.source
         tgt = self.target
 
-        catnames = ['cards', 'showncards', 'equips', 'fatetell']
+        catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
         card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         if not card:
