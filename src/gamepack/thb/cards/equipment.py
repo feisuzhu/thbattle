@@ -5,9 +5,10 @@
 # -- own --
 from game.autoenv import EventHandler, Game, GameError, user_input
 from gamepack.thb.actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards
-from gamepack.thb.actions import FatetellAction, ForEach, GenericAction, LaunchCard, MaxLifeChange
-from gamepack.thb.actions import MigrateCardsTransaction, PlayerTurn, UserAction, detach_cards
-from gamepack.thb.actions import migrate_cards, random_choose_card, register_eh, user_choose_cards
+from gamepack.thb.actions import FatetellAction, FatetellStage, ForEach, GenericAction, LaunchCard
+from gamepack.thb.actions import MaxLifeChange, MigrateCardsTransaction, PlayerTurn, UserAction
+from gamepack.thb.actions import detach_cards, migrate_cards, random_choose_card, register_eh
+from gamepack.thb.actions import user_choose_cards
 from gamepack.thb.cards import basic, spellcard
 from gamepack.thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN
 from gamepack.thb.cards.base import t_OtherOne
@@ -51,7 +52,8 @@ class EquipmentTransferHandler(EventHandler):
 
             if to is not None and to.type == 'equips':
                 for c in cards:
-                    to.owner.skills.append(c.equipment_skill)
+                    if c.equipment_skill:
+                        to.owner.skills.append(c.equipment_skill)
 
         return args
 
@@ -1078,5 +1080,49 @@ class GrimoireHandler(EventHandler):
                 t = act.source.tags
                 t['attack_num'] -= 1
                 t['grimoire_tag'] = t['turn_count']
+
+        return act
+
+
+class SinsackHatAction(FatetellAction):
+    def __init__(self, source, target, hat_card):
+        self.source = source
+        self.target = target
+        self.hat_card = hat_card
+        self.fatetell_target = target
+
+        from ..cards import Card
+        self.fatetell_cond = lambda c: c.suit == Card.SPADE
+
+    def fatetell_action(self, ft):
+        if not ft.succeeded:
+            return False
+
+        g = Game.getgame()
+        tgt, c = self.target, self.hat_card
+        g.process_action(spellcard.SinsackDamage(None, tgt, amount=2))
+        migrate_cards([c], tgt.cards, unwrap=True)
+        return True
+
+
+class SinsackHat(ShieldSkill):
+    skill_category = ('equip', 'passive')
+
+
+@register_eh
+class SinsackHatHandler(EventHandler):
+    interested = ('action_after',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, FatetellStage):
+            tgt = act.target
+            g = Game.getgame()
+            from .definition import SinsackHatCard
+            for c in list(tgt.equips):
+                if not c.is_card(SinsackHatCard):
+                    continue
+
+                g.process_action(SinsackHatAction(tgt, tgt, c))
+                return act
 
         return act

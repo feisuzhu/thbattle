@@ -994,3 +994,40 @@ class GrimoireSkill:
 
     def sound_effect(act):
         return 'thb-cv-card_grimoire'
+
+
+class SinsackHatAction:
+    fatetell_display_name = u'头套'
+
+    def effect_string_before(act):
+        return u'看着戴着|G头套|r的|G【%s】|r，真正的的罪袋们都兴奋了起来！' % (
+            act.target.ui_meta.char_name,
+        )
+
+
+class SinsackHat:
+    # Skill
+    name = u'头套'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class SinsackHatCard:
+    # action_stage meta
+    name = u'头套'
+    image = 'thb-card-sinsackhat'
+    image_small = 'thb-card-small-sinsackhat'
+    description = (
+        u'|R罪袋的头套|r\n\n'
+        u'对距离2以内的一名角色使用\n'
+        u'装备|G罪袋的头套|r的角色需在判定阶段后进行一次判定，若为黑桃，则目标角色受到2点伤害，并且将|G罪袋的头套|r收入手牌。\n'
+        u'|DB（画师：霏茶，CV：大白）|r'
+    )
+
+    def is_action_valid(g, cl, target_list):
+        if not target_list:
+            return (False, u'请选择目标')
+        t = target_list[0]
+        if g.me is t:
+            return (True, u'真的要自己戴上吗？')
+        return (True, u'是这样的，这个不是胖次……不不，真的没有胖次')

@@ -272,6 +272,15 @@ class MaidenCostumeCard:
     distance = 2
 
 
+class SinsackHatCard:
+    associated_action = equipment.WearEquipmentAction
+    target = t_One
+    category = ('equipment', 'shield')
+    equipment_skill = equipment.SinsackHat
+    equipment_category = 'shield'
+    distance = 2
+
+
 class IbukiGourdCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
@@ -564,7 +573,6 @@ card_definition = [
 
 
 kof_card_definition = [
-
     # ======= Spade =======
     (SinsackCard, SPADE, A),
     (DeathSickleCard, SPADE, 2),
