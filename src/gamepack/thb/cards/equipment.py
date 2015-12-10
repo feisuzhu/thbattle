@@ -5,10 +5,10 @@
 # -- own --
 from game.autoenv import EventHandler, Game, GameError, user_input
 from gamepack.thb.actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards
-from gamepack.thb.actions import FatetellAction, FatetellStage, ForEach, GenericAction, LaunchCard
-from gamepack.thb.actions import MaxLifeChange, MigrateCardsTransaction, PlayerTurn, UserAction
-from gamepack.thb.actions import detach_cards, migrate_cards, random_choose_card, register_eh
-from gamepack.thb.actions import user_choose_cards
+from gamepack.thb.actions import FatetellAction, FatetellStage, FinalizeStage, ForEach
+from gamepack.thb.actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction
+from gamepack.thb.actions import PlayerTurn, UserAction, detach_cards, migrate_cards
+from gamepack.thb.actions import random_choose_card, register_eh, ttags, user_choose_cards
 from gamepack.thb.cards import basic, spellcard
 from gamepack.thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN
 from gamepack.thb.cards.base import t_OtherOne
@@ -474,19 +474,30 @@ class IbukiGourdSkill(RedUFOSkill):
 
 @register_eh
 class IbukiGourdHandler(EventHandler):
-    interested = ('action_after', 'card_migration')
-    execute_after = ('WineHandler', 'CiguateraHandler', )
+    interested = ('action_apply', 'action_after', 'card_migration')
+    execute_after = ('WineHandler', )
 
-    def handle(self, evt_type, arg):
-        if evt_type == 'action_after' and isinstance(arg, PlayerTurn):
-            target = arg.target
-            if target.has_skill(IbukiGourdSkill):
-                g = Game.getgame()
-                g.process_action(basic.Wine(target, target))
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, Damage):
+            src = act.source
+            if not src: return act
+            if not src.has_skill(IbukiGourdSkill): return act
+
+            g = Game.getgame()
+            ttags(src)['ibukigourd_did_damage'] = True
+
+        elif evt_type == 'action_apply' and isinstance(act, FinalizeStage):
+            tgt = act.target
+            if not tgt.has_skill(IbukiGourdSkill): return act
+
+            g = Game.getgame()
+            if ttags(tgt)['ibukigourd_did_damage']: return act
+
+            g.process_action(basic.Wine(tgt, tgt))
 
         elif evt_type == 'card_migration':
             from .definition import IbukiGourdCard
-            act, cl, _from, to, _ = arg
+            act, cl, _from, to, _ = arg = act
 
             if any(c.is_card(IbukiGourdCard) for c in cl):
                 g = Game.getgame()
@@ -496,7 +507,9 @@ class IbukiGourdHandler(EventHandler):
                         tgt = cl.owner
                         g.process_action(basic.Wine(tgt, tgt))
 
-        return arg
+            return arg
+
+        return act
 
 
 class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
