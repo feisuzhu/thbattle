@@ -73,7 +73,7 @@ class Surprise:
             return (False, u'请选择一张手牌！')
 
         c, = cl
-        if not (c.is_card(cards.PhysicalCard) and c.resides_in.type in ('cards', 'showncards')):
+        if c.is_card(cards.VirtualCard) or c.resides_in.type not in ('cards', 'showncards'):
             return (False, u'请选择一张手牌！')
 
         # return (True, u'(´・ω・`)')

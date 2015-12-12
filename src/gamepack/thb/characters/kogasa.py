@@ -6,7 +6,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import Damage, DrawCardStage, DrawCards, UserAction, detach_cards
 from gamepack.thb.actions import migrate_cards, user_choose_players
-from gamepack.thb.cards import Card, Skill, t_None, t_One, t_OtherOne
+from gamepack.thb.cards import Card, Skill, VirtualCard, t_None, t_One, t_OtherOne
 from gamepack.thb.characters.baseclasses import Character, register_character
 from gamepack.thb.inputlets import ChooseOptionInputlet
 
@@ -65,6 +65,9 @@ class Surprise(Skill):
         cl = self.associated_cards
         if not len(cl) == 1: return False
         c, = cl
+        if c.is_card(VirtualCard):
+            return False
+
         if c.resides_in.type not in ('cards', 'showncards'):
             return False
 
