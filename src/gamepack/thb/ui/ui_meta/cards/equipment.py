@@ -399,40 +399,6 @@ class RepentanceStick:
         return 'thb-cv-card_repentancestick'
 
 
-class MaidenCostumeEffect:
-    def effect_string(act):
-        return u'|G【%s】|r穿着|G巫女服|r，眼睁睁的看着自己被小鬼追上来……' % (
-            act.target.ui_meta.char_name,
-        )
-
-
-class MaidenCostumeCard:
-    # action_stage meta
-    name = u'巫女服'
-    image = 'thb-card-maidencostume'
-    image_small = 'thb-card-small-maidencostume'
-    description = (
-        u'|R巫女服|r\n\n'
-        u'对距离2以内的一名角色使用\n'
-        u'装备后：你无法响应【百鬼夜行】。'
-    )
-
-    def is_action_valid(g, cl, target_list):
-        if not target_list:
-            return (False, u'请选择目标')
-        t = target_list[0]
-        if g.me is t:
-            return (True, u'真的要自己穿上吗？')
-        return (True, u'\腋/！')
-
-
-class MaidenCostumeSkill:
-    # Skill
-    name = u'巫女服'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
 class IbukiGourdCard:
     # action_stage meta
     name = u'伊吹瓢'
@@ -490,42 +456,41 @@ class HouraiJewelAttack:
         )
 
 
-class SaigyouBranchCard:
+class MaidenCostumeCard:
     # action_stage meta
-    name = u'西行妖'
-    image = 'thb-card-saigyoubranch'
-    image_small = 'thb-card-small-saigyoubranch'
+    name = u'巫女服'
+    image = 'thb-card-maidencostume'
+    image_small = 'thb-card-small-maidencostume'
     description = (
-        u'|R西行妖|r\n\n'
+        u'|R巫女服|r\n\n'
         u'装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张|G好人卡|r。\n\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
 
 
-class SaigyouBranchSkill:
+class MaidenCostume:
     # Skill
-    name = u'西行妖'
+    name = u'巫女服'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
     def sound_effect(act):
-        return 'thb-cv-card_saigyoubranch'
+        return 'thb-cv-card_maidencostume'
 
 
-class SaigyouBranchHandler:
+class MaidenCostumeHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【西行妖】吗？'
+    choose_option_prompt = u'你要发动【巫女服】吗？'
 
 
-class SaigyouBranch:
-    fatetell_display_name = u'西行妖'
+class MaidenCostumeAction:
+    fatetell_display_name = u'巫女服'
 
     def effect_string_before(act):
         return (
-            u'|G西行妖|r的枝条受到了|G【%s】|r春度的滋养，'
-            u'在关键时刻突然撑出一片结界，试图将符卡挡下！'
+            u'|G【%s】|r穿了|G巫女服|r，春度爆表，不怕符卡！'
         ) % (
             act.source.ui_meta.char_name,
         )
@@ -533,7 +498,7 @@ class SaigyouBranch:
     def effect_string(act):
         if not act.succeeded:
             return (
-                u'但是很明显|G【%s】|r的春度不够用了…'
+                u'好像|G【%s】|r的春度还是不够用…'
             ) % (
                 act.source.ui_meta.char_name,
             )

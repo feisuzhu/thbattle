@@ -7,8 +7,8 @@ from game.autoenv import EventHandler, Game, GameError, user_input
 from gamepack.thb.actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards
 from gamepack.thb.actions import FatetellAction, FatetellStage, FinalizeStage, ForEach
 from gamepack.thb.actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction
-from gamepack.thb.actions import PlayerTurn, UserAction, detach_cards, migrate_cards
-from gamepack.thb.actions import random_choose_card, register_eh, ttags, user_choose_cards
+from gamepack.thb.actions import UserAction, detach_cards, migrate_cards, random_choose_card
+from gamepack.thb.actions import register_eh, ttags, user_choose_cards
 from gamepack.thb.cards import basic, spellcard
 from gamepack.thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN
 from gamepack.thb.cards.base import t_OtherOne
@@ -430,43 +430,6 @@ class RepentanceStickHandler(EventHandler):
         return act
 
 
-class MaidenCostumeSkill(ShieldSkill):
-    skill_category = ('equip', 'passive')
-
-
-class MaidenCostumeEffect(spellcard.DemonParadeEffect):
-    @property
-    def non_responsive(self):
-        return self.target.has_skill(MaidenCostumeSkill)
-
-    def apply_action(self):
-        g = Game.getgame()
-        src, tgt = self.source, self.target
-
-        if tgt.has_skill(MaidenCostumeSkill):
-            g.process_action(Damage(src, tgt))
-
-        else:
-            return super(MaidenCostumeEffect, self).apply_action()
-
-        return True
-
-
-@register_eh
-class MaidenCostumeHandler(EventHandler):
-    interested = ('action_before',)
-    execute_before = ('RejectHandler', )
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, spellcard.DemonParadeEffect):
-            target = act.target
-            if not act.cancelled and target.has_skill(MaidenCostumeSkill):
-                act.__class__ = classmix(MaidenCostumeEffect, act.__class__)
-                return act
-
-        return act
-
-
 class IbukiGourdSkill(RedUFOSkill):
     skill_category = ('equip', 'passive')
     increment = 0
@@ -575,7 +538,7 @@ class UmbrellaHandler(EventHandler):
         return act
 
 
-class SaigyouBranchSkill(TreatAs, ShieldSkill):
+class MaidenCostume(TreatAs, ShieldSkill):
     treat_as = Card.card_classes['RejectCard']
     skill_category = ('equip', 'passive')
 
@@ -583,7 +546,7 @@ class SaigyouBranchSkill(TreatAs, ShieldSkill):
         return False
 
 
-class SaigyouBranch(FatetellAction):
+class MaidenCostumeAction(FatetellAction):
     def __init__(self, source, act):
         self.source = source
         self.target = source
@@ -599,7 +562,7 @@ class SaigyouBranch(FatetellAction):
         if ft.succeeded:
             # rej = spellcard.LaunchReject(src, act, SaigyouBranchSkill(src))
             g.process_action(LaunchCard(
-                src, [act.target], SaigyouBranchSkill(src), spellcard.Reject(src, act)
+                src, [act.target], MaidenCostume(src), spellcard.Reject(src, act)
             ))
             return True
         else:
@@ -607,7 +570,7 @@ class SaigyouBranch(FatetellAction):
 
 
 @register_eh
-class SaigyouBranchHandler(EventHandler):
+class MaidenCostumeHandler(EventHandler):
     interested = ('action_before',)
     execute_before = ('RejectHandler', )
     execute_after = ('HouraiJewelHandler', )
@@ -615,14 +578,14 @@ class SaigyouBranchHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, spellcard.SpellCardAction):
             tgt = act.target
-            if not tgt.has_skill(SaigyouBranchSkill): return act
+            if not tgt.has_skill(MaidenCostume): return act
             if act.cancelled: return act
             if isinstance(act, spellcard.Reject): return act  # can't respond to reject
 
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            Game.getgame().process_action(SaigyouBranch(tgt, act))
+            Game.getgame().process_action(MaidenCostumeAction(tgt, act))
 
         return act
 

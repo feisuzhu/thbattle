@@ -263,15 +263,6 @@ class RepentanceStickCard:
     equipment_category = 'weapon'
 
 
-class MaidenCostumeCard:
-    associated_action = equipment.WearEquipmentAction
-    target = t_One
-    category = ('equipment', 'shield')
-    equipment_skill = equipment.MaidenCostumeSkill
-    equipment_category = 'shield'
-    distance = 2
-
-
 class SinsackHatCard:
     associated_action = equipment.WearEquipmentAction
     target = t_One
@@ -297,11 +288,11 @@ class HouraiJewelCard:
     equipment_category = 'weapon'
 
 
-class SaigyouBranchCard:
+class MaidenCostumeCard:
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ('equipment', 'shield')
-    equipment_skill = equipment.SaigyouBranchSkill
+    equipment_skill = equipment.MaidenCostume
     equipment_category = 'shield'
 
 
