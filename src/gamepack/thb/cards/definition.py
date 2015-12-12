@@ -439,7 +439,7 @@ card_definition = [
 
     # ======= Heart =======
     (FeastCard, HEART, A),
-    (MaidenCostumeCard, HEART, 2),
+    (SinsackHatCard, HEART, 2),
     (HarvestCard, HEART, 3),
     (HarvestCard, HEART, 4),
     (AyaRoundfanCard, HEART, 5),
@@ -514,7 +514,7 @@ card_definition = [
     (IbukiGourdCard, CLUB, 9),
     (AttackCard, CLUB, 10),
     (AttackCard, CLUB, J),
-    (SaigyouBranchCard, CLUB, Q),
+    (MaidenCostumeCard, CLUB, Q),
     (DollControlCard, CLUB, K),
 
     # ======= Diamond =======
