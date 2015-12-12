@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-# Cards and Deck classes
 
 # -- stdlib --
 from collections import deque
 from weakref import WeakValueDictionary
+import itertools
 import logging
 
 # -- third party --
@@ -13,27 +13,28 @@ from game.autoenv import Game, GameError, GameObject, list_shuffle
 
 # -- code --
 log = logging.getLogger('THBattle_Cards')
+alloc_id = itertools.count(1).next
 
 
 class Card(GameObject):
-    NOTSET = 0
-    SPADE = 1
-    HEART = 2
-    CLUB = 3
+    NOTSET  = 0
+    SPADE   = 1
+    HEART   = 2
+    CLUB    = 3
     DIAMOND = 4
 
-    RED = 5
+    RED   = 5
     BLACK = 6
 
     SUIT_REV = {
         0: '?',
         1: 'SPADE', 2: 'HEART',
-        3: 'CLUB', 4: 'DIAMOND',
+        3: 'CLUB',  4: 'DIAMOND',
     }
 
     NUM_REV = {
-        0: '?', 1: 'A', 2: '2', 3: '3', 4: '4',
-        5: '5', 6: '6', 7: '7', 8: '8', 9: '9',
+        0:  '?',  1:  'A', 2:  '2', 3:  '3', 4: '4',
+        5:  '5',  6:  '6', 7:  '7', 8:  '8', 9: '9',
         10: '10', 11: 'J', 12: 'Q', 13: 'K',
     }
 
@@ -45,10 +46,11 @@ class Card(GameObject):
     # Only meaningful for virtual cards.
     unwrapped = False
 
-    def __init__(self, suit=NOTSET, number=0, resides_in=None):
-        self.syncid = 0  # Deck will touch this
-        self.suit = suit
-        self.number = number
+    def __init__(self, suit=NOTSET, number=0, resides_in=None, track_id=0):
+        self.sync_id    = 0         # Synchronization id, changes during shuffling, kept sync between client and server.
+        self.track_id   = track_id  # Card identifier, unique among all cards, 0 if doesn't care.
+        self.suit       = suit
+        self.number     = number
         self.resides_in = resides_in
 
     def __data__(self):
@@ -56,36 +58,41 @@ class Card(GameObject):
             type=self.__class__.__name__,
             suit=self.suit,
             number=self.number,
-            syncid=self.syncid,
+            sync_id=self.sync_id,
+            track_id=self.track_id,
         )
 
     def sync(self, data):  # this only executes at client side, let it crash.
-        if data['syncid'] != self.syncid:
+        if data['sync_id'] != self.sync_id:
             logging.error(
-                'CardOOS: server: %s, %s, %s, syncid=%d; client: %s, %s, %s, syncid=%d',
+                'CardOOS: server: %s, %s, %s, sync_id=%d; client: %s, %s, %s, sync_id=%d',
 
                 data['type'],
                 self.SUIT_REV.get(data['suit'], data['suit']),
                 self.NUM_REV.get(data['number'], data['number']),
-                data['syncid'],
+                data['sync_id'],
 
                 self.__class__.__name__,
                 self.SUIT_REV.get(self.suit),
                 self.NUM_REV.get(self.number),
-                self.syncid,
+                self.sync_id,
             )
             raise GameError('Card: out of sync')
 
         clsname = data['type']
         cls = Card.card_classes.get(clsname)
-        if not cls: raise GameError('Card: unknown card class')
+
+        if not cls:
+            raise GameError('Card: unknown card class')
+
         self.__class__ = cls
         self.suit = data['suit']
         self.number = data['number']
+        self.track_id = data['track_id']
 
     def conceal(self):
         self.__class__ = HiddenCard
-        self.suit = self.number = 0
+        self.suit = self.number = self.track_id = 0
 
     def move_to(self, resides_in):
         self.detach()
@@ -112,7 +119,7 @@ class Card(GameObject):
         return u"{name}({suit}, {num}{detached})".format(
             name=self.__class__.__name__,
             suit=self.SUIT_REV.get(self.suit, self.suit),
-            num=self. NUM_REV.get(self.number, self.number),
+            num=self.NUM_REV.get(self.number, self.number),
             detached=u', detached' if self.detached else u''
         )
 
@@ -138,18 +145,18 @@ class Card(GameObject):
 class PhysicalCard(Card):
     def __eq__(self, other):
         if not isinstance(other, Card): return False
-        return self.syncid == other.syncid
+        return self.sync_id == other.sync_id
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return 84065234 + self.syncid
+        return 84065234 + self.sync_id
 
 
 class VirtualCard(Card):
     sort_index = 0
-    syncid = 0
+    sync_id = 0
     usage = 'none'
 
     def __init__(self, player):
@@ -165,7 +172,7 @@ class VirtualCard(Card):
     def __data__(self):
         return {
             'class':  self.__class__.__name__,
-            'syncid': self.syncid,
+            'sync_id': self.sync_id,
             'vcard':  True,
             'params': self.action_params,
         }
@@ -236,7 +243,7 @@ class VirtualCard(Card):
     def sync(self, data):
         assert data['vcard']
         assert self.__class__.__name__ == data['class']
-        assert self.syncid == data['syncid']
+        assert self.sync_id == data['sync_id']
         assert self.action_params == data['params']
 
     @staticmethod
@@ -289,7 +296,7 @@ class Deck(GameObject):
         cards = CardList(None, 'deckcard')
         self.cards = cards
         cards.extend(
-            cls(suit, rank, cards)
+            cls(suit, rank, cards, track_id=alloc_id())
             for cls, suit, rank in card_definition
         )
         self.shuffle(cards)
@@ -306,7 +313,7 @@ class Deck(GameObject):
             dcl.extend(dropped[-10:])
 
             tmpcl = CardList(None, 'temp')
-            l = [c.__class__(c.suit, c.number, cl) for c in dropped[:-10]]
+            l = [c.__class__(c.suit, c.number, cl, c.track_id) for c in dropped[:-10]]
             tmpcl.extend(l)
             self.shuffle(tmpcl)
             cl.extend(tmpcl)
@@ -329,15 +336,15 @@ class Deck(GameObject):
         return l
 
     def register_card(self, card):
-        assert not card.syncid
+        assert not card.sync_id
         sid = Game.getgame().get_synctag()
-        card.syncid = sid
+        card.sync_id = sid
         self.cards_record[sid] = card
         return sid
 
     def register_vcard(self, vc):
         sid = Game.getgame().get_synctag()
-        vc.syncid = sid
+        vc.sync_id = sid
         self.vcards_record[sid] = vc
         return sid
 
@@ -346,7 +353,7 @@ class Deck(GameObject):
         list_shuffle(cl, owner)
 
         for c in cl:
-            c.syncid = 0
+            c.sync_id = 0
             self.register_card(c)
 
     def inject(self, cls, suit, rank):

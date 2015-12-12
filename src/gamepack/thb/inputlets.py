@@ -45,7 +45,7 @@ class ActionInputlet(Inputlet):
     def parse(self, data):
         # data = [
         #     [skill_index1, ...],
-        #     [card_syncid1, ...],
+        #     [card_sync_id1, ...],
         #     [player_id1, ...],
         #     {'action_param1': 'AttackCard'},
         # ]
@@ -99,7 +99,7 @@ class ActionInputlet(Inputlet):
         g = Game.getgame()
         actor_skills = self.actor.skills
         sid_list = [actor_skills.index(s) for s in self.skills]
-        cid_list = [c.syncid for c in self.cards]
+        cid_list = [c.sync_id for c in self.cards]
         pid_list = [g.get_playerid(p) for p in self.players]
         return [sid_list, cid_list, pid_list, self.params]
 
@@ -119,7 +119,7 @@ class ChooseIndividualCardInputlet(Inputlet):
         try:
             cid = data
             check(isinstance(cid, int))
-            cards = [c for c in self.cards if c.syncid == cid]
+            cards = [c for c in self.cards if c.sync_id == cid]
             check(len(cards))  # Invalid id
             return cards[0]
 
@@ -128,7 +128,7 @@ class ChooseIndividualCardInputlet(Inputlet):
 
     def data(self):
         sel = self.selected
-        return sel.syncid if sel else None
+        return sel.sync_id if sel else None
 
     def set_card(self, c):
         assert c in self.cards
@@ -177,7 +177,7 @@ class ChoosePeerCardInputlet(Inputlet):
 
     def data(self):
         sel = self.selected
-        return sel.syncid if sel else None
+        return sel.sync_id if sel else None
 
     def set_card(self, c):
         assert c.resides_in.type in self.categories

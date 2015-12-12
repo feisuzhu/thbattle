@@ -134,7 +134,7 @@ def random_choose_card(cardlists):
 
     g = Game.getgame()
     c = g.random.choice(allcards)
-    v = sync_primitive(c.syncid, g.players)
+    v = sync_primitive(c.sync_id, g.players)
     cl = g.deck.lookupcards([v])
     assert len(cl) == 1
     c = cl[0]
