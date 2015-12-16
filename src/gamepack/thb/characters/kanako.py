@@ -4,9 +4,10 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game
-from gamepack.thb.actions import DrawCardStage, DrawCards, DropCards, ForEach, LaunchCard, ShowCards
-from gamepack.thb.actions import UserAction, migrate_cards, random_choose_card, user_choose_cards
-from gamepack.thb.actions import user_choose_players, user_input
+from gamepack.thb.actions import Damage, DrawCardStage, DrawCards, DropCards, FinalizeStage, ForEach
+from gamepack.thb.actions import LaunchCard, ShowCards, UserAction, migrate_cards
+from gamepack.thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
+from gamepack.thb.actions import user_input
 from gamepack.thb.cards import AttackCard, Card, DuelCard, Skill, TreatAs, VirtualCard, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character_to
 from gamepack.thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -175,6 +176,43 @@ class VirtueHandler(EventHandler):
         return (tl[-1:], True)
 
 
+class KanakoFaithKOF(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
+    target = t_None
+
+
+class KanakoFaithKOFAction(DrawCards):
+    pass
+
+
+class KanakoFaithKOFHandler(EventHandler):
+    interested = ('action_before', 'action_apply')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, FinalizeStage):
+            tgt = act.target
+            if not tgt.has_skill(KanakoFaithKOF):
+                return act
+
+            g = Game.getgame()
+            op = g.get_opponent(tgt)
+
+            if tgt.life > op.life or ttags(tgt)['kanako_faith_kof']:
+                n = tgt.life - (len(tgt.cards) + len(tgt.showncards))
+                if n > 0:
+                    g.process_action(KanakoFaithKOFAction(tgt, n))
+
+        elif evt_type == 'action_apply' and isinstance(act, Damage):
+            src, tgt = act.source, act.target
+            g = Game.getgame()
+
+            if src and src.has_skill(KanakoFaithKOF) and tgt is g.get_opponent(src):
+                ttags(src)['kanako_faith_kof'] = True
+
+        return act
+
+
 class Virtue(Skill):
     associated_action = None
     skill_category = ('character', 'passive')
@@ -185,4 +223,11 @@ class Virtue(Skill):
 class Kanako(Character):
     skills = [Virtue, KanakoFaith]
     eventhandlers_required = [VirtueHandler]
+    maxlife = 4
+
+
+@register_character_to('kof')
+class KanakoKOF(Character):
+    skills = [KanakoFaithKOF]
+    eventhandlers_required = [KanakoFaithKOFHandler]
     maxlife = 4

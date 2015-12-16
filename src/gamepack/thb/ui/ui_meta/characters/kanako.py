@@ -33,6 +33,25 @@ class Kanako:
     )
 
 
+class KanakoKOF:
+    # Character
+    char_name = u'八坂神奈子'
+    port_image = 'thb-portrait-kanako'
+    figure_image = 'thb-figure-kanako'
+    miss_sound_effect = 'thb-cv-kanako_miss'
+    description = (
+        u'|DB山丘与湖泊的化身 八坂神奈子 体力：4|r\n'
+        u'\n'
+        u'|G信仰|r：|B锁定技|r，结束阶段开始时，若你满足以下条件之一，将你的手牌补至X张（X为你的当前体力值）\n'
+        u'|B|R>> |r你的体力值大于对方\n'
+        u'|B|R>> |r你曾于出牌阶段对对方造成过伤害\n'
+        u'\n'
+        u'|RKOF修正角色|r\n'
+        u'\n'
+        u'|DB（画师：和茶，CV：北斗夜/VV）|r'
+    )
+
+
 class KanakoFaith:
     # Skill
     name = u'信仰'
@@ -142,3 +161,22 @@ class VirtueAction:
 
     def sound_effect(act):
         return 'thb-cv-kanako_virtue'
+
+
+class KanakoFaithKOF:
+    # Skill
+    name = u'信仰'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+
+class KanakoFaithKOFAction:
+    def effect_string_before(act):
+        return u'|G【%s】|r又收到的%s张香火钱，比博丽神社不知道高到哪里去了！' % (
+            act.target.ui_meta.char_name,
+            act.amount,
+        )
+
+    def sound_effect(act):
+        return 'thb-cv-kanako_faith'
