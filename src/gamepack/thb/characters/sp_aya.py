@@ -192,7 +192,7 @@ class DominanceHandler(EventHandler):
         return act
 
 
-@register_character
+# @register_character
 class SpAya(Character):
     skills = [WindWalk, Dominance]
     eventhandlers_required = [WindWalkHandler, DominanceHandler]
