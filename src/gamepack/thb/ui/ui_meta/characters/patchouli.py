@@ -65,5 +65,5 @@ class Patchouli:
         u'\n'
         u'|G博学|r：|B锁定技|r，黑桃符卡对你无效。\n'
         u'\n'
-        u'|DB（画师：ideolo@NEKO WORKi，CV：shourei小N）|r'
+        u'|DB（画师：月见，CV：shourei小N）|r'
     )
