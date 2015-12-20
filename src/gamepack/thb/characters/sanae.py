@@ -182,7 +182,11 @@ class SanaeFaithKOFHandler(EventHandler):
             if b is not to.owner:
                 return arg
 
-            stage = PlayerTurn.get_current().current_stage
+            turn = PlayerTurn.get_current()
+            if not turn:
+                return arg
+
+            stage = turn.current_stage
             if stage.target is not b or not isinstance(stage, ActionStage):
                 return arg
 
