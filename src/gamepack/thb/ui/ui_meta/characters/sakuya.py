@@ -51,7 +51,7 @@ class Dagger:
         skill = cl[0]
         assert skill.is_card(characters.sakuya.Dagger)
         cl = skill.associated_cards
-        if len(cl) != 1 or not issubclass(cl[0].associated_action, cards.WearEquipmentAction):
+        if len(cl) != 1 or 'equipment' not in cl[0].category:
             return (False, u'请选择一张装备牌！')
         return (True, '快看！灰出去了！')
 

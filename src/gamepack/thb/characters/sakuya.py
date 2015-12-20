@@ -3,10 +3,10 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStage, PrepareStage, PlayerTurn
-from ..cards import AttackCard, Skill, TreatAs, WearEquipmentAction, t_None
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler
+from gamepack.thb.actions import ActionStage, PlayerTurn, PrepareStage
+from gamepack.thb.cards import AttackCard, Skill, TreatAs, t_None
+from gamepack.thb.characters.baseclasses import Character, register_character
 
 
 # -- code --
@@ -27,8 +27,7 @@ class Dagger(TreatAs, Skill):
         if c.resides_in.type not in ('cards', 'showncards', 'equips'):
             return False
 
-        act = c.associated_action
-        if not (act and issubclass(act, WearEquipmentAction)):
+        if 'equipment' not in c.category:
             return False
 
         return True
