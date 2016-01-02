@@ -148,7 +148,8 @@ class RoukankenCard:
     image_small = 'thb-card-small-roukanken'
     description = (
         u'|R楼观剑|r\n\n'
-        u'攻击范围3，装备后：你使用的【弹幕】无视防具。'
+        u'攻击范围3，装备后：你使用的【弹幕】无视防具。\n\n'
+        u'|DB（画师：霏茶）|r'
     )
     is_action_valid = equip_iav
 
@@ -235,8 +236,11 @@ class GungnirCard:
     image = 'thb-card-gungnir'
     image_small = 'thb-card-small-gungnir'
     description = (
-        u'|R冈格尼尔|r\n\n'
-        u'攻击范围3，装备后：你可以将两张手牌当【弹幕】使用或打出。'
+        u'|R冈格尼尔|r\n'
+        u'\n'
+        u'攻击范围3，装备后：你可以将两张手牌当【弹幕】使用或打出。\n'
+        u'\n'
+        u'|DB（画师：霏茶）|r'
     )
 
     is_action_valid = equip_iav
@@ -299,7 +303,7 @@ class ScarletRhapsodyCard:
     description = (
         u'|R绯想之剑|r\n\n'
         u'攻击范围4，装备后：当你使用的【弹幕】是你的最后一张手牌时，你可以为此【弹幕】指定至多三名目标。\n\n'
-        u'|DB（CV：VV）'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     is_action_valid = equip_iav
@@ -514,7 +518,7 @@ class HakuroukenCard:
         u'攻击范围2，装备后：当你使用的草花色|G弹幕|r指定一名目标角色后，你可以令其选择一项：\n'
         u'|B|R>> |r弃置一张手牌\n'
         u'|B|R>> |r令你摸一张牌\n\n'
-        u'|DB（CV：小羽）|r'
+        u'|DB（画师：霏茶，CV：小羽）|r'
     )
     is_action_valid = equip_iav
 

@@ -113,11 +113,12 @@ class Meirin:
     # Character
     char_name = u'红美铃'
     port_image = 'thb-portrait-meirin'
+    figure_image = 'thb-figure-meirin'
     miss_sound_effect = ('thb-cv-meirin_miss1', 'thb-cv-meirin_miss2')
     description = (
         u'|DB我只打盹我不翘班 红美铃 体力：4|r\n\n'
         u'|G龙拳|r：每当你使用【弹幕】被【擦弹】抵消或使用【擦弹】抵消【弹幕】时，你可以弃置对方的一张手牌。\n\n'
         u'|G背水|r：|B觉醒技|r，准备阶段开始时，若你的体力为全场最低时（或之一）且不大于2时，你减少一点体力上限并获得技能|R太极|r。\n\n'
         u'|R太极|r：你可将【弹幕】当【擦弹】，【擦弹】当【弹幕】使用或打出。\n\n'
-        u'|DB（画师：Pixiv ID 23001419，CV：小羽）|r'
+        u'|DB（画师：霏茶，CV：小羽）|r'
     )
