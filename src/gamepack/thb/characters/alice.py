@@ -120,6 +120,9 @@ class LittleLegionHandler(EventHandler):
 
             g.process_action(Reforge(tgt, tgt, c))
 
+            if tgt.dead:
+                return act
+
             if category == 'weapon':
                 g.process_action(LittleLegionAttackAction(tgt, tgt))
             elif category == 'shield':
