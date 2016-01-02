@@ -81,6 +81,17 @@ class LittleLegionAttackAction:
         return (True, u'就让你见识下人偶军团的厉害！')
 
 
+class LittltLegionCoverEffect:
+    def effect_string(act):
+        if act.succeeded:
+            return u'|G【%s】|r回复了%d点体力。' % (
+                act.target.ui_meta.char_name, act.amount
+            )
+
+    def sound_effect(act):
+        return 'thb-cv-alice_legion_cover'
+
+
 class LittleLegionCoverAction:
 
     def target(pl):

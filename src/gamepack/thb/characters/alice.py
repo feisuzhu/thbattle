@@ -49,6 +49,10 @@ class LittleLegionAttackAction(UserAction):
         return (tl[-1:], True)
 
 
+class LittleLegionCoverEffect(Heal):
+    pass
+
+
 class LittleLegionCoverAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
@@ -58,7 +62,7 @@ class LittleLegionCoverAction(UserAction):
         if beneficiary is None:
             return False
 
-        g.process_action(Heal(src, beneficiary, 1))
+        g.process_action(LittleLegionCoverEffect(src, beneficiary, 1))
         return True
 
     def choose_player_target(self, tl):
