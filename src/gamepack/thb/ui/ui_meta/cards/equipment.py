@@ -74,7 +74,7 @@ class MomijiShieldCard:
     image_small = 'thb-card-small-momijishield'
     description = (
         u'|R天狗盾|r\n\n'
-        u'装备后：黑色|G弹幕|r对你无效。\n'
+        u'装备后：黑色|G弹幕|r对你无效。\n\n'
         u'|DB（画师：霏茶）|r'
     )
 
