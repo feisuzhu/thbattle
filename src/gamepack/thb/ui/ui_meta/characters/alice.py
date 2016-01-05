@@ -81,7 +81,7 @@ class LittleLegionAttackAction:
         return (True, u'就让你见识下人偶军团的厉害！')
 
 
-class LittltLegionCoverEffect:
+class LittleLegionCoverEffect:
     def effect_string(act):
         if act.succeeded:
             return u'|G【%s】|r回复了%d点体力。' % (
