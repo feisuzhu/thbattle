@@ -4,9 +4,9 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import ActionStage, Damage, DropCardStage, DropCards, GenericAction
-from gamepack.thb.actions import LaunchCard, PlayerTurn, PostCardMigrationHandler, Reforge
-from gamepack.thb.actions import UserAction, random_choose_card, user_choose_cards
+from gamepack.thb.actions import ActionStage, Damage, DrawCards, DropCardStage, DropCards
+from gamepack.thb.actions import GenericAction, LaunchCard, PlayerTurn, PostCardMigrationHandler
+from gamepack.thb.actions import Reforge, UserAction, random_choose_card, user_choose_cards
 from gamepack.thb.actions import user_choose_players
 from gamepack.thb.cards import AttackCard, DollControlCard, Heal, Skill, TreatAs, VirtualCard
 from gamepack.thb.cards import t_None
@@ -75,6 +75,10 @@ class LittleLegionCoverAction(UserAction):
 class LittleLegionHoldAction(UserAction):
     def apply_action(self):
         src = self.source
+
+        g = Game.getgame()
+        g.process_action(DrawCards(src, 1))
+
         turn = PlayerTurn.get_current(src)
         try:
             turn.pending_stages.remove(DropCardStage)
