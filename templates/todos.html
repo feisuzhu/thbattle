@@ -1,0 +1,21 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>todos</title>
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+  </head>
+  <body>
+    <div id="container">
+      <h1>{{ title }}</h1>
+      <form action="/todos" method="POST">
+        <input type="text" name="content" />
+        <input type="submit" value="新增" />
+      </form>
+      <ul>
+        {% for todo in todos %}
+        <li>{{ todo.get('content') }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </body>
+</html>
