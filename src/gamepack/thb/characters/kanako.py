@@ -226,7 +226,7 @@ class Kanako(Character):
     maxlife = 4
 
 
-@register_character_to('kof')
+# @register_character_to('kof')
 class KanakoKOF(Character):
     skills = [KanakoFaithKOF]
     eventhandlers_required = [KanakoFaithKOFHandler]
