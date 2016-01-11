@@ -216,6 +216,9 @@ class DollBlastHandler(EventHandler):
             if to is not None and to.owner:
                 tgt = to.owner
             elif to is g.deck.droppedcards:
+                if getattr(trans.action, 'card_usage', '') != 'drop':
+                    continue
+
                 tgt = trans.action.source
             else:
                 raise Exception('WTF?!')
