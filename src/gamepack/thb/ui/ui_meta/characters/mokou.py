@@ -14,12 +14,13 @@ class Mokou:
     # Character
     char_name = u'藤原妹红'
     port_image = 'thb-portrait-mokou'
+    figure_image = 'thb-figure-mokou'
     miss_sound_effect = 'thb-cv-mokou_miss'
     description = (
         u'|DBFFF团资深团员 藤原妹红 体力：4|r\n\n'
         u'|G浴火|r：结束阶段开始时，你可以失去1点体力，然后摸两张牌。\n\n'
         u'|G重生|r：准备阶段开始时，你可以弃置X张红色牌，然后回复1点体力。（X为你的当前体力值）\n\n'
-        u'|DB（画师：Pixiv UID 150460，CV：小羽）|r'
+        u'|DB（画师：六仔OwO，CV：小羽）|r'
     )
 
 

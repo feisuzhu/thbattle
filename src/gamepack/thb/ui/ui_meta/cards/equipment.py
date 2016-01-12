@@ -660,8 +660,8 @@ class LaevateinCard:
     image_small = 'thb-card-small-laevatein'
     description = (
         u'|R莱瓦汀|r\n\n'
-        u'攻击距离3，装备后：当你使用的【弹幕】被目标角色使用的【擦弹】抵消时，你可以弃置两张牌，令此【弹幕】依然生效。\n\n'
-        u'|DB（画师：Danbooru post 1240565，CV：VV）|r'
+        u'攻击距离3，装备后：当你使用的|G弹幕|r被目标角色使用的|G擦弹|r抵消时，你可以弃置两张牌，令此|G弹幕|r依然生效。\n\n'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
 
@@ -733,7 +733,7 @@ class KeystoneCard:
         u'|R要石|r\n\n'
         u'特殊的绿色UFO装备，距离+1\n'
         u'装备后跳过【罪袋】对你的结算。\n\n'
-        u'|DB（CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
 
