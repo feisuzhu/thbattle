@@ -736,3 +736,63 @@ class InstanceHookMeta(type):
 
     def instancecheck(cls, inst):
         return cls.subclasscheck(type(inst))
+
+
+class ArgValidationError(Exception):
+    pass
+
+
+class ArgTypeError(ArgValidationError):
+    __slots__ = ('position', 'expected', 'actual')
+
+    def __init__(self, position, expected, actual):
+        self.position = position
+        self.expected = expected
+        self.actual = actual
+
+    def __unicode__(self):
+        return u'Arg %s should be "%s" type, "%s" found' % (
+            self.position,
+            self.expected.__name__,
+            self.actual.__name__,
+        )
+
+    def __str__(self):
+        return self.__unicode__().encode('utf-8')
+
+
+class ArgCountError(ArgValidationError):
+    __slots__ = ('expected', 'actual')
+
+    def __init__(self, expected, actual):
+        self.expected = expected
+        self.actual = actual
+
+    def __unicode__(self):
+        return u'Expecting %s args, %s found' % (
+            self.expected,
+            self.actual,
+        )
+
+    def __str__(self):
+        return self.__unicode__().encode('utf-8')
+
+
+def validate_args(*typelist):
+    def decorate(f):
+        @wraps(f)
+        def wrapper(*args):
+            e, a = len(typelist), len(args)
+            if e != a:
+                raise ArgCountError(e, a)
+
+            for i, e, v in zip(xrange(1000), typelist, args):
+                if not isinstance(v, e):
+                    raise ArgValidationError(i, e, v.__class__)
+
+            return f(*args)
+
+        wrapper.__name__ = f.__name__
+        return wrapper
+
+    return decorate

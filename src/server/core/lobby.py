@@ -1,326 +1,31 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
-from collections import defaultdict
-from weakref import WeakSet
 import atexit
-import gzip
-import json
 import logging
 import os
-import random
 import shlex
 import time
 
 # -- third party --
-from gevent import Greenlet, Timeout
+from gevent import Timeout
 from gevent.pool import Pool
-from gevent.queue import Empty as QueueEmpty, Queue
+from gevent.queue import Empty as QueueEmpty
 import gevent
 
 # -- own --
-from account import Account
-from endpoint import Endpoint, EndpointDied
-from game import Gamedata
 from options import options
-from settings import VERSION
-from utils import BatchList, instantiate, log_failure
+from server.core.endpoint import Client, DroppedClient
+from server.core.game_manager import GameManager
+from server.core.state import ServerState
+from utils import BatchList, log_failure
 from utils.misc import throttle
 from utils.stats import stats
 
 
 # -- code --
 log = logging.getLogger('Lobby')
-
-
-class Client(Endpoint, Greenlet):
-    def __init__(self, sock, addr):
-        Endpoint.__init__(self, sock, addr)
-        Greenlet.__init__(self)
-        self.observers = BatchList()
-        self.gamedata = Gamedata()
-        self.cmd_listeners = defaultdict(WeakSet)
-        self.current_game = None
-
-    @log_failure(log)
-    def _run(self):
-        self.account = None
-
-        # ----- Banner -----
-        from settings import VERSION
-        self.write(['thbattle_greeting', (options.node, VERSION)])
-        # ------------------
-
-        self.state = 'connected'
-        while True:
-            try:
-                hasdata = False
-                with Timeout(90, False):
-                    cmd, data = self.read()
-                    hasdata = True
-
-                if not hasdata:
-                    self.close()
-                    # client should send heartbeat periodically
-                    raise EndpointDied
-
-                if cmd == 'gamedata':
-                    self.gamedata.feed(data)
-                else:
-                    self.handle_command(cmd, data)
-
-            except EndpointDied:
-                self.gbreak()
-                break
-
-            except Exception:
-                log.exception("Error occurred when handling client command")
-
-        # client died, do clean ups
-        self.handle_drop()
-
-    def close(self):
-        Endpoint.close(self)
-        self.kill(EndpointDied)
-
-    def __repr__(self):
-        acc = self.account
-        if not acc:
-            return Endpoint.__repr__(self)
-
-        return '%s:%s:%s' % (
-            self.__class__.__name__,
-            self.address[0],
-            acc.username.encode('utf-8'),
-        )
-
-    def __data__(self):
-        return dict(
-            account=self.account,
-            state=self.state,
-        )
-
-    def __eq__(self, other):
-        return self.account is other.account
-
-    def listen_command(self, *cmds):
-        listeners_set = self.cmd_listeners
-        q = Queue(100)
-        for cmd in cmds:
-            listeners_set[cmd].add(q)
-
-        return q
-
-    def handle_command(self, cmd, data):
-        f = getattr(self, 'command_' + str(cmd), None)
-        if not f:
-            listeners = self.cmd_listeners[cmd]
-            if listeners:
-                [l.put(data) for l in listeners]
-                return
-
-            log.debug('No command %s', cmd)
-            self.write(['invalid_command', [cmd, data]])
-            return
-
-        for_state = getattr(f, 'for_state', None)
-        if for_state and self.state not in for_state:
-            log.debug('Command %s is for state %s, called in %s', cmd, for_state, self.state)
-            self.write(['invalid_command', [cmd, data]])
-            return
-
-        if not isinstance(data, (list, tuple)):
-            log.error('Malformed command: %s %s', cmd, data)
-            return
-
-        n = f.__code__.co_argcount - 1
-        if n != len(data):
-            log.error(
-                'Command "%s" argcount mismatch, expect %s, got %s',
-                cmd, n, len(data)
-            )
-        else:
-            f(*data)
-
-    def handle_drop(self):
-        if self.state not in ('connected', 'hang'):
-            lobby.exit_game(self, is_drop=True)
-
-        if self.state != 'connected':
-            lobby.user_leave(self)
-
-    def gexpect(self, tag, blocking=True):
-        tag, data = self.gamedata.gexpect(tag, blocking)
-        if tag:
-            manager = GameManager.get_by_user(self)
-            manager.record_user_gamedata(self, tag, data)
-
-        return tag, data
-
-    def gwrite(self, tag, data):
-        log.debug('GAME_WRITE: %s -> %s', self.account.username, repr([tag, data]))
-
-        manager = GameManager.get_by_user(self)
-        manager.record_gamedata(self, tag, data)
-
-        encoded = self.encode(['gamedata', [tag, data]])
-        self.raw_write(encoded)
-        self.observers and self.observers.raw_write(encoded)
-
-    def gbreak(self):
-        return self.gamedata.gbreak()
-
-    def gclear(self):
-        self.gamedata = Gamedata()
-
-    def for_state(*state):
-        def register(f):
-            f.for_state = state
-            return f
-
-        return register
-
-    # --------- Handlers ---------
-    @for_state('connected')
-    def command_auth(self, login, password):
-        if self.account:
-            self.write(['invalid_command', ['auth', '']])
-            return
-
-        acc = Account.authenticate(login, password)
-        if acc:
-            self.account = acc
-            if not acc.available():
-                self.write(['auth_result', 'not_available'])
-                self.close()
-            else:
-                self.write(['auth_result', 'success'])
-                self.account = acc
-                lobby.user_join(self)
-
-        else:
-            self.write(['auth_result', 'invalid_credential'])
-
-    @for_state('hang')
-    def command_create_game(self, _type, name, invite_only):
-        manager = lobby.create_game(self, _type, name, invite_only)
-        manager.add_invited(self)
-        manager and lobby.join_game(self, manager.gameid)
-
-    @for_state('hang')
-    def command_quick_start_game(self):
-        lobby.quick_start_game(self)
-
-    @for_state('hang')
-    def command_join_game(self, gameid):
-        lobby.join_game(self, gameid)
-
-    def command_get_lobbyinfo(self):
-        lobby.send_lobbyinfo([self])
-
-    @for_state('hang')
-    def command_observe_user(self, uid):
-        lobby.observe_user(self, uid)
-
-    @for_state('hang')
-    def command_query_gameinfo(self, gid):
-        lobby.send_gameinfo(self, gid)
-
-    @for_state('inroomwait')
-    def command_get_ready(self):
-        lobby.get_ready(self)
-
-    @for_state('inroomwait')
-    def command_set_game_param(self, key, value):
-        lobby.set_game_param(self, key, value)
-
-    @for_state('inroomwait', 'ready', 'ingame', 'observing')
-    def command_exit_game(self):
-        lobby.exit_game(self)
-
-    @for_state('inroomwait', 'ready')
-    def command_kick_user(self, uid):
-        lobby.kick_user(self, uid)
-
-    @for_state('inroomwait', 'ready')
-    def command_invite_user(self, uid):
-        lobby.invite_user(self, uid)
-
-    @for_state('inroomwait', 'ready', 'ingame')
-    def command_kick_observer(self, uid):
-        lobby.kick_observer(self, uid)
-
-    @for_state('inroomwait', 'observing')
-    def command_change_location(self, loc):
-        lobby.change_location(self, loc)
-
-    @for_state('ready')
-    def command_cancel_ready(self):
-        lobby.cancel_ready(self)
-
-    def command_heartbeat(self):
-        pass
-
-    @for_state('hang', 'inroomwait', 'ready', 'ingame', 'observing')
-    def command_chat(self, text):
-        lobby.chat(self, text)
-
-    @for_state('hang', 'inroomwait', 'ready', 'ingame', 'observing')
-    def command_speaker(self, text):
-        lobby.speaker(self, text)
-
-    del for_state
-    # --------- End handlers ---------
-
-
-class DroppedClient(Client):
-    read = write = raw_write = gclear = lambda *a, **k: None
-
-    def __init__(self, client=None):
-        client and self.__dict__.update(client.__dict__)
-
-    def __data__(self):
-        return dict(
-            account=self.account,
-            state='left',
-        )
-
-    def gwrite(self, tag, data):
-        manager = GameManager.get_by_user(self)
-        manager.record_gamedata(self, tag, data)
-
-    def gexpect(self, tag, blocking=True):
-        raise EndpointDied
-
-    @property
-    def state(self):
-        return 'dropped'
-
-    @state.setter
-    def state(self, val):
-        pass
-
-
-class NPCClient(Client):
-    read = write = raw_write = gclear = lambda *a, **k: None
-    state = property(lambda: 'ingame')
-
-    def __init__(self, name):
-        acc = Account.build_npc_account(name)
-        self.account = acc
-
-    def __data__(self):
-        return dict(
-            account=self.account,
-            state='ingame',
-        )
-
-    def gwrite(self, tag, data):
-        pass
-
-    def gexpect(self, tag, blocking=True):
-        raise Exception('Should not be called!')
-
 '''
 User state machine:
      [Observing]     --------------<------------<-----------
@@ -335,12 +40,62 @@ class Lobby(object):
     def __init__(self, current_gid=0):
         # should use WeakSet or WeakValueDictionary,
         # but this works fine, not touching it.
-        self.games = {}  # all games
-        self.users = {}  # all users
+        self.games = {}          # all games
+        self.users = {}          # all users
         self.dropped_users = {}  # passively dropped users
         self.current_gid = current_gid
         self.admins = [2, 109, 351, 3044, 6573, 9783]
         self.bigbrothers = []
+
+        self.lobby_command_dispatch = {
+            'create_game':      self.create_game_and_join,
+            'quick_start_game': self.quick_start_game,
+            'join_game':        self.join_game,
+            'get_lobbyinfo':    self.get_lobbyinfo,
+            'observe_user':     self.observe_user,
+            'query_gameinfo':   self.send_gameinfo,
+            'get_ready':        self.get_ready,
+            'set_game_param':   self.set_game_param,
+            'exit_game':        self.exit_game,
+            'kick_user':        self.kick_user,
+            'invite_user':      self.invite_user,
+            'kick_observer':    self.kick_observer,
+            'change_location':  self.change_location,
+            'cancel_ready':     self.cancel_ready,
+            'chat':             self.chat,
+            'speaker':          self.speaker,
+        }
+
+    def _command(for_state, argstype):
+        def decorate(f):
+            f._contract = (for_state, argstype)
+            return f
+
+        return decorate
+
+    def process_lobby_command(self, user, cmd, args):
+        dispatch = self.lobby_command_dispatch
+
+        handler = dispatch.get(cmd)
+
+        if not handler:
+            log.info('Unknown command %s', cmd)
+            user.write(['invalid_lobby_command', [cmd, args]])
+            return
+
+        for_state, argstype = handler._contract
+
+        if for_state and user.state not in for_state:
+            log.debug('Command %s is for state %s, called in %s', cmd, for_state, user.state)
+            user.write(['invalid_lobby_command', [cmd, args]])
+            return
+
+        if not (len(argstype) == len(args) and all(isinstance(v, t) for t, v in zip(argstype, args))):
+            log.debug('Command %s with wrong args, expecting %r, actual %r', cmd, argstype, args)
+            user.write(['invalid_lobby_command', [cmd, args]])
+            return
+
+        handler(user, *args)
 
     def new_gid(self):
         self.current_gid += 1
@@ -350,8 +105,12 @@ class Lobby(object):
     def refresh_status(self):
         ul = [u for u in self.users.values() if u.state == 'hang']
         self.send_lobbyinfo(ul)
-        interconnect.publish('current_users', self.users.values())
-        interconnect.publish('current_games', self.games.values())
+        ServerState.interconnect.publish('current_users', self.users.values())
+        ServerState.interconnect.publish('current_games', self.games.values())
+
+    @_command(['hang'], [])
+    def get_lobbyinfo(self, user):
+        self.send_lobbyinfo([user])
 
     def send_lobbyinfo(self, ul):
         d = Client.encode([
@@ -412,6 +171,12 @@ class Lobby(object):
         log.info(u'User %s leaved, online user %d' % (user.account.username, len(self.users)))
         self.refresh_status()
 
+    @_command(['hang'], [basestring, unicode, bool])
+    def create_game_and_join(self, user, gametype, name, invite_only):
+        manager = self.create_game(user, gametype, name, invite_only)
+        manager.add_invited(user)
+        manager and self.join_game(user, manager.gameid)
+
     def create_game(self, user, gametype, name, invite_only):
         from gamepack import gamemodes, gamemodes_maoyu
         if user and user.account.is_maoyu() and gametype not in gamemodes_maoyu:
@@ -431,6 +196,7 @@ class Lobby(object):
 
         return manager
 
+    @_command(['hang'], [int])
     def join_game(self, user, gameid, slot=None):
         if user.state in ('hang', 'observing') and gameid in self.games:
             manager = self.games[gameid]
@@ -483,9 +249,7 @@ class Lobby(object):
             log.info('game canceled')
 
         for u in manager.users:
-            if u is ClientPlaceHolder:
-                continue
-            self.dropped_users.pop(u.account.userid, 0)
+            u.account and self.dropped_users.pop(u.account.userid, 0)
 
         manager.kill_game()
         self.games.pop(manager.gameid, None)
@@ -503,6 +267,7 @@ class Lobby(object):
         manager.start_game()
         self.refresh_status()
 
+    @_command(['hang'], [])
     def quick_start_game(self, user):
         if user.state != 'hang':
             user.write(['lobby_error', 'cant_join_game'])
@@ -547,6 +312,7 @@ class Lobby(object):
         new_mgr.update_game_param(manager.game_params)
         self.refresh_status()
 
+    @_command(['inroomwait', 'ready', 'ingame', 'observing'], [])
     def exit_game(self, user, is_drop=False):
         manager = GameManager.get_by_user(user)
         if user.state == 'observing':
@@ -565,6 +331,7 @@ class Lobby(object):
         else:
             user.write(['lobby_error', 'not_in_a_game'])
 
+    @_command(['hang'], [int])
     def send_gameinfo(self, user, gid):
         manager = self.games.get(gid)
         if not manager:
@@ -572,6 +339,7 @@ class Lobby(object):
 
         manager.send_gameinfo(user)
 
+    @_command(['inroomwait', 'observing'], [int])
     def change_location(self, user, loc):
         manager = GameManager.get_by_user(user)
         if user.state == 'inroomwait':
@@ -580,6 +348,7 @@ class Lobby(object):
         elif user.state == 'observing':
             self.join_game(user, manager.gameid, loc)
 
+    @_command(['inroomwait'], [str, object])
     def set_game_param(self, user, key, value):
         if user.state != 'inroomwait':
             return
@@ -588,6 +357,7 @@ class Lobby(object):
         manager.set_game_param(user, key, value)
         self.refresh_status()
 
+    @_command(['inroomwait', 'ready'], [int])
     def kick_user(self, user, uid):
         other = self.users.get(uid)
         if not other:
@@ -597,6 +367,7 @@ class Lobby(object):
         if manager.kick_user(user, other):
             self.exit_game(other)
 
+    @_command(['inroomwait', 'ready', 'ingame'], [int])
     def kick_observer(self, user, uid):
         other = self.users.get(uid)
         if not other:
@@ -606,16 +377,19 @@ class Lobby(object):
         if manager.kick_observer(user, other):
             self.exit_game(other)
 
+    @_command(['inroomwait'], [])
     def get_ready(self, user):
         manager = GameManager.get_by_user(user)
         manager.get_ready(user)
         self.refresh_status()
 
+    @_command(['ready'], [])
     def cancel_ready(self, user):
         manager = GameManager.get_by_user(user)
         manager.cancel_ready(user)
         self.refresh_status()
 
+    @_command(['hang'], [int])
     def observe_user(self, user, other_userid):
         other = self.users.get(other_userid, None)
 
@@ -678,6 +452,7 @@ class Lobby(object):
 
         worker.gr_name = 'OB:[%r] -> [%r]' % (user, other)
 
+    @_command(['inroomwait', 'ready'], [int])
     def invite_user(self, user, other_userid):
         if user.account.userid < 0:
             gevent.spawn(user.write, ['system_msg', [None, u'毛玉不能使用邀请功能']])
@@ -737,6 +512,7 @@ class Lobby(object):
 
         worker.gr_name = 'Invite:[%r] -> [%r]' % (user, other)
 
+    @_command(['hang', 'inroomwait', 'ready', 'ingame', 'observing'], [unicode])
     def chat(self, user, msg):
         acc = user.account
 
@@ -767,13 +543,14 @@ class Lobby(object):
 
         worker.gr_name = 'Chat:%s[%s]' % (acc.username, acc.userid)
 
+    @_command(['hang', 'inroomwait', 'ready', 'ingame', 'observing'], [unicode])
     def speaker(self, user, msg):
         @gevent.spawn
         def worker():
             if user.account.other['credits'] < 0:
                 user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
             else:
-                interconnect.publish('speaker', [user.account.username, msg])
+                ServerState.interconnect.publish('speaker', [user.account.username, msg])
 
         log.info(u'Speaker: %s', msg)
 
@@ -926,568 +703,18 @@ if options.gidfile and os.path.exists(options.gidfile):
 else:
     last_gid = 0
 
-lobby = Lobby(last_gid)
-
-
-@instantiate
-class ClientPlaceHolder(object):
-    state     = 'left'
-    account   = None
-    observers = BatchList()
-    raw_write = write = lambda *a: False
-
-    def __data__(self):
-        return (None, None, 'left')
-
-
-class GameManager(object):
-
-    def __init__(self, gid, gamecls, name, invite_only):
-        g = gamecls()
-
-        self.game         = g
-        self.users        = BatchList([ClientPlaceHolder] * g.n_persons)
-        self.game_started = False
-        self.game_name    = name
-        self.banlist      = defaultdict(set)
-        self.ob_banlist   = defaultdict(set)
-        self.gameid       = gid
-        self.gamecls      = gamecls
-        self.game_params  = {k: v[0] for k, v in gamecls.params_def.items()}
-        self.is_match     = False
-        self.match_users  = []
-        self.invite_only  = invite_only
-        self.invite_list  = set()
-
-        g.gameid    = gid
-        g.manager   = self
-        g.rndseed   = random.getrandbits(63)
-        g.random    = random.Random(g.rndseed)
-        g.players   = BatchList()
-        g.gr_groups = WeakSet()
-
-    def __data__(self):
-        return {
-            'id':       self.gameid,
-            'type':     self.gamecls.__name__,
-            'started':  self.game_started,
-            'name':     self.game_name,
-            'nplayers': len(self.get_online_users()),
-            'params':   self.game_params,
-        }
-
-    @classmethod
-    def get_by_user(cls, user):
-        '''
-        Get GameManager object for user.
-
-        :rtype: GameManager
-        '''
-
-        return user.current_game
-
-    def send_gameinfo(self, user):
-        g = self.game
-        user.write(['gameinfo', [g.gameid, g.players]])
-
-    def set_match(self, match_users):
-        self.is_match = True
-        self.match_users = match_users
-
-        gevent.spawn(lambda: [gevent.sleep(1), interconnect.publish(
-            'speaker', [u'文文', u'“%s”房间已经建立，请相关玩家就位！' % self.game_name]
-        )])
-
-    @throttle(0.1)
-    def notify_playerchange(self):
-        @gevent.spawn
-        def notify():
-            from server.core.game_server import Player
-
-            pl = self.game.players if self.game_started else map(Player, self.users)
-            s = Client.encode(['player_change', pl])
-            for cl in self.users:
-                cl.raw_write(s)
-                cl.observers and cl.observers.raw_write(s)
-
-    def next_free_slot(self):
-        try:
-            return self.users.index(ClientPlaceHolder)
-        except ValueError:
-            return None
-
-    def archive(self):
-        g = self.game
-        if not options.archive_path:
-            return
-
-        data = []
-
-        data.append('# ' + ', '.join([
-            p.account.username.encode('utf-8')
-            for p in self.users
-        ]))
-
-        data.append('# Ver: ' + VERSION)
-        data.append('# GameId: ' + str(self.gameid))
-        s, e = int(self.start_time), int(time.time())
-        data.append('# Time: start = %d, end = %d, elapsed = %d' % (s, e, e - s))
-
-        data.append(self.gamecls.__name__)
-        data.append(json.dumps(self.game_params))
-        data.append(str(g.rndseed))
-        data.append(json.dumps(self.usergdhistory))
-        data.append(json.dumps(self.gdhistory))
-
-        f = gzip.open(os.path.join(options.archive_path, '%s-%s.gz' % (options.node, str(self.gameid))), 'wb')
-        f.write('\n'.join(data))
-        f.close()
-
-    def get_ready(self, user):
-        if user.state not in ('inroomwait',):
-            return
-
-        g = self.game
-        if user not in self.users:
-            log.error('User not in player list')
-            return
-
-        user.state = 'ready'
-        self.notify_playerchange()
-
-        if all(u.state == 'ready' for u in self.users):
-            if not g.started:
-                # race condition here.
-                # wrap in 'if g.started' to prevent double starting.
-                log.info("game starting")
-                g.start()
-
-    def cancel_ready(self, user):
-        if user.state not in ('ready',):
-            return
-
-        if user not in self.users:
-            log.error('User not in player list')
-            return
-
-        user.state = 'inroomwait'
-        self.notify_playerchange()
-
-    def set_game_param(self, user, key, value):
-        if user.state != 'inroomwait':
-            return
-
-        if user not in self.users:
-            log.error('User not in this game!')
-            return
-
-        cls = self.gamecls
-        if key not in cls.params_def:
-            log.error('Invalid option "%s"', key)
-            return
-
-        if value not in cls.params_def[key]:
-            log.error('Invalid value "%s" for key "%s"', value, key)
-            return
-
-        if self.game_params[key] == value:
-            return
-
-        self.game_params[key] = value
-
-        for u in self.users:
-            if u.state == 'ready':
-                self.cancel_ready(u)
-
-            u.write(['set_game_param', [user, key, value]])
-            u.write(['game_params', self.game_params])
-
-        self.notify_playerchange()
-
-    def update_game_param(self, params):
-        self.game_params.update(params)
-        self.users.write(['game_params', self.game_params])
-        self.notify_playerchange()
-
-    def change_location(self, user, loc):
-        if user.state not in ('inroomwait', ):
-            return
-
-        pl = self.users
-        if (not 0 <= loc < len(pl)) or (pl[loc] is not ClientPlaceHolder):
-            user.write(['change_loc_failed', None])
-            return
-
-        # observing: should send join game
-        i = pl.index(user)
-        pl[loc], pl[i] = pl[i], pl[loc]
-        self.notify_playerchange()
-
-    def kick_user(self, user, other):
-        if user.state not in ('inroomwait', 'ready'):
-            return
-
-        cl = self.users
-
-        bl = self.banlist[other]
-        bl.add(user)
-
-        s = Client.encode(['kick_request', [user, other, len(bl)]])
-        for cl in self.users:
-            cl.raw_write(s)
-            cl.observers and cl.observers.raw_write(s)
-
-        return len(bl) >= len(self.users) // 2
-
-    def kick_observer(self, user, other):
-        if user not in self.users:
-            return False
-
-        if GameManager.get_by_user(other) is not self:
-            return False
-
-        if other.state != 'observing':
-            return False
-
-        bl = self.ob_banlist[other]
-        bl.add(user)
-
-        s = Client.encode(['ob_kick_request', [user, other, len(bl)]])
-        for cl in self.users:
-            cl.raw_write(s)
-            cl.observers and cl.observers.raw_write(s)
-
-        return len(bl) >= len(self.users) // 2
-
-    def observe_leave(self, user, no_move=False):
-        assert user.state == 'observing'
-
-        tgt = user.observing
-        tgt.observers.remove(user)
-        try:
-            del self.ob_banlist[user]
-        except KeyError:
-            pass
-        user.state = 'hang'
-        user.observing = None
-        user.current_game = None
-        user.gclear()
-        no_move or user.write(['game_left', None])
-
-        @gevent.spawn
-        def notify_observer_leave():
-            ul = self.users
-            info = [user.account.userid, user.account.username, tgt.account.username]
-            ul.write(['observer_leave', info])
-            for obl in ul.observers:
-                obl and obl.write(['observer_leave', info])
-
-    def observe_user(self, user, observee):
-        g = self.game
-        assert observee in self.users
-        assert user.state == 'hang'
-
-        log.info("observe game")
-
-        observee.observers.append(user)
-
-        user.state = 'observing'
-        user.current_game = self
-        user.observing = observee
-        user.write(['game_joined', self])
-        user.gclear()  # clear stale gamedata
-
-        self.notify_playerchange()
-
-        @gevent.spawn
-        def notify_observer():
-            ul = self.users
-            info = [user.account.userid, user.account.username, observee.account.username]
-            ul.write(['observer_enter', info])
-            for obl in ul.observers:
-                obl and obl.write(['observer_enter', info])
-
-        if g.started:
-            user.write(['observe_started', [self.game_params, observee.account.userid, self.build_initial_players()]])
-            self.replay(user, observee)
-        else:
-            self.notify_playerchange()
-
-    def is_banned(self, user):
-        if self.is_match:
-            return not (user.account.userid in self.match_users or user.account.username in self.match_users)
-
-        return len(self.banlist[user]) >= max(self.game.n_persons // 2, 1)
-
-    def is_invited(self, user):
-        return not self.invite_only or user.account.userid in self.invite_list
-
-    def add_invited(self, user):
-        self.invite_list.add(user.account.userid)
-
-    def copy_invited(self, mgr):
-        self.invite_list = set(mgr.invite_list)
-
-    def join_game(self, user, slot, observing=False):
-        assert user not in self.users
-        assert user.state == ('observing' if observing else 'hang')
-
-        if slot is None:
-            slot = self.next_free_slot()
-        elif self.users[slot] is not ClientPlaceHolder:
-            slot = None
-
-        if slot is None:
-            return
-
-        self.users[slot] = user
-
-        if observing:
-            origin = self.get_by_user(user)
-            origin.observe_leave(user, no_move=origin is self)
-
-        user.current_game = self
-        user.state = 'inroomwait'
-        user.write(['game_joined', self])
-        if user.observers:
-            for ob in user.observers:
-                ob.write(['game_joined', self])
-                ob.current_game = self
-                ob.state = 'observing'
-
-        self.notify_playerchange()
-
-    def start_game(self):
-        g = self.game
-        assert ClientPlaceHolder not in self.users
-        assert all([u.state == 'ready' for u in self.users])
-
-        if self.is_match:
-            gevent.spawn(lambda: interconnect.publish(
-                'speaker', [u'文文', u'“%s”开始了！参与玩家：%s' % (
-                    self.game_name,
-                    u'，'.join(self.users.account.username)
-                )]
-            ))
-
-        self.game_started = True
-
-        g.players = self.build_initial_players()
-
-        self.usergdhistory = []
-        self.gdhistory     = [list() for p in self.users]
-
-        self.start_time = time.time()
-        for u in self.users:
-            u.write(["game_started", [self.game_params, g.players]])
-            u.gclear()
-            if u.observers:
-                u.observers.gclear()
-                u.observers.write(['observe_started', [self.game_params, u.account.userid, g.players]])
-            u.state = 'ingame'
-
-    def build_initial_players(self):
-        from server.core.game_server import Player, NPCPlayer
-
-        pl = BatchList([Player(u) for u in self.users])
-        pl[:0] = [NPCPlayer(NPCClient(i.name), i.input_handler) for i in self.game.npc_players]
-
-        return pl
-
-    def record_gamedata(self, user, tag, data):
-        idx = self.users.index(user)
-        self.gdhistory[idx].append((tag, Client.decode(Client.encode(data))))
-
-    def record_user_gamedata(self, user, tag, data):
-        idx = self.users.index(user)
-        self.usergdhistory.append((idx, tag, Client.decode(Client.encode(data))))
-
-    def replay(self, observer, observee):
-        idx = self.users.index(observee)
-        for data in self.gdhistory[idx]:
-            observer.write(['gamedata', data])
-
-    def squeeze_out(self, old, new):
-        old.write(['others_logged_in', None])
-        if old.state == 'ingame':
-            self.reconnect(new)
-
-    def reconnect(self, new):
-        g = self.game
-        new.state = 'ingame'
-        new.current_game = self
-
-        for p in g.players:
-            if p.client.account.userid == new.account.userid:
-                p.reconnect(new)
-                break
-        else:
-            assert False, 'Oops'
-
-        for i, u in enumerate(self.users):
-            if u.account.userid == new.account.userid:
-                self.users[i] = new
-                break
-        else:
-            assert False, 'Oops'
-
-        new.write(['game_joined',  self])
-        self.notify_playerchange()
-
-        players = self.build_initial_players()
-        new.write(['game_started', [self.game_params, players]])
-
-        self.replay(new, new)
-
-    def exit_game(self, user, is_drop):
-        rst = None
-        assert user in self.users
-        is_drop or user.gclear()
-        g = self.game
-        if self.game_started:
-            i = g.players.client.index(user)
-            p = g.players[i]
-            log.info('player dropped')
-            can_leave = g.can_leave(p)
-
-            if can_leave:
-                user.write(['game_left', None])
-                p.set_fleed(False)
-            else:
-                p.set_dropped()
-                if not is_drop:
-                    user.write(['fleed', None])
-                    p.set_fleed(True)
-                else:
-                    p.set_fleed(False)
-
-            p.client.gbreak()  # XXX: fuck I forgot why it's here. Exp: see comment on Client.gbreak
-
-            dummy = DroppedClient(g.players[i].client)
-            p.set_client(dummy)
-            self.users.replace(user, dummy)
-            rst = dummy
-        else:
-            log.info('player leave')
-            self.users.replace(user, ClientPlaceHolder)
-            user.write(['game_left', None])
-
-        self.notify_playerchange()
-
-        for bl in self.banlist.values():
-            bl.discard(user)
-
-        return rst
-
-    def end_game(self):
-        if self.is_match and not self.game.suicide:
-            gevent.spawn(lambda: interconnect.publish(
-                'speaker', [u'文文', u'“%s”结束了！获胜玩家：%s' % (
-                    self.game_name,
-                    u'，'.join(BatchList(self.game.winners).account.username)
-                )]
-            ))
-
-        for u in self.users:
-            u.write(['end_game', None])
-            u.observers and u.observers.write(['end_game', None])
-            u.state = 'hang'
-
-    def get_online_users(self):
-        return [p for p in self.users if (p is not ClientPlaceHolder and not isinstance(p, DroppedClient))]
-
-    def kill_game(self):
-        if self.is_match and self.game.started:
-            gevent.spawn(lambda: interconnect.publish(
-                'speaker', [u'文文', u'“%s”意外终止了！' % self.game_name]
-            ))
-
-        self.game.suicide = True  # game will kill itself in get_synctag()
-
-    def get_bonus(self):
-        assert self.get_online_users()
-
-        t = time.time()
-        g = self.game
-        percent = min(1.0, (t - self.start_time) / 1200)
-        import math
-        rate = math.sin(math.pi / 2 * percent)
-        winners = g.winners
-        bonus = g.n_persons * 5 / len(winners) if winners else 0
-
-        rst = []
-
-        for p in g.players:
-            u = p.client
-
-            if isinstance(u, NPCClient):
-                continue
-
-            rst.append((u, 'games', 1))
-            if p.dropped or p.fleed:
-                if not options.no_counting_flee:
-                    rst.append((u, 'drops', 1))
-            else:
-                s = 5 + bonus if p in winners else 5
-                rst.append((u, 'credits', int(s * rate * options.credit_multiplier)))
-
-        return rst
-
-    def record_stacktrace(self):
-        g = self.game
-        log.info('>>>>> GAME STACKTRACE <<<<<')
-
-        def logtraceback(gr):
-            import traceback
-            log.info('----- %r -----\n%s', gr, ''.join(traceback.format_stack(gr.gr_frame)))
-
-        logtraceback(g)
-        for i in g.gr_groups:
-            for j in i:
-                logtraceback(j)
-
-        for cl in g.players.client:
-            if isinstance(cl, Client):
-                logtraceback(cl)
-
-        log.info('===========================')
-
-if options.interconnect:
-    from utils.interconnect import Interconnect
-
-    class InterconnectHandler(Interconnect):
-        def on_message(self, node, topic, message):
-            if topic == 'speaker':
-                node = node if node != options.node else ''
-                message.insert(0, node)
-                Pool(5).map_async(lambda u: u.write(['speaker_msg', message]), lobby.users.values())
-
-            elif topic == 'aya_charge':
-                uid, fee = message
-                user = lobby.users.get(uid)
-                if not user: return
-                gevent.spawn(user.account.refresh)
-                gevent.spawn(user.write, ['system_msg', [None, u'此次文文新闻收费 %s 节操' % int(fee)]])
-
-    interconnect = InterconnectHandler.spawn(options.node, options.redis_url)
-
-else:
-    class DummyInterconnect(object):
-        def publish(self, key, message):
-            pass
-
-    interconnect = DummyInterconnect()
+ServerState.lobby = Lobby(last_gid)
 
 
 @atexit.register
 def _exit_handler():
     # logout all the accounts
     # to save the credits
-    for u in lobby.users.values():
+    for u in ServerState.lobby.users.values():
         u.account.add_credit('credits', 50)
 
     # save gameid
     fn = options.gidfile
     if fn:
         with open(fn, 'w') as f:
-            f.write(str(lobby.current_gid + 1))
+            f.write(str(ServerState.lobby.current_gid + 1))

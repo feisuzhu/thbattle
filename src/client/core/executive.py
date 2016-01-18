@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 import logging
@@ -6,107 +7,19 @@ import logging
 # -- third party --
 from gevent import Greenlet, socket
 from gevent.pool import Pool
-from gevent.queue import Channel
 import gevent
 
 # -- own --
-from .replay import Replay
 from account import Account
 from autoupdate import Autoupdate
-from endpoint import Endpoint
-from game import Gamedata
+from client.core.common import ForcedKill
+from client.core.endpoint import ReplayEndpoint, Server
+from client.core.replay import Replay
 from utils import BatchList, instantiate
 
 
 # -- code --
 log = logging.getLogger('Executive')
-
-
-class Server(Endpoint, Greenlet):
-    '''
-    Used at client side, to represent server
-    '''
-
-    def __init__(self, sock, addr):
-        Endpoint.__init__(self, sock, addr)
-        Greenlet.__init__(self)
-        self.ctlcmds = Channel()
-        self.userid = 0
-        self.gamedata = Gamedata(recording=True)
-
-    def _run(self):
-        while True:
-            cmd, data = self.read()
-            if cmd == 'gamedata':
-                self.gamedata.feed(data)
-            else:
-                self.ctlcmds.put([cmd, data])
-
-    def gexpect(self, tag, blocking=True):
-        return self.gamedata.gexpect(tag, blocking)
-
-    def gbreak(self):
-        return self.gamedata.gbreak()
-
-    def gclear(self):
-        self.gamedata = Gamedata(recording=True)
-
-    def gwrite(self, tag, data):
-        log.debug('GAME_WRITE: %s', repr([tag, data]))
-        encoded = self.encode(['gamedata', [tag, data]])
-        self.raw_write(encoded)
-
-    def wait_till_live(self):
-        self.gamedata.wait_empty()
-
-    def gamedata_piled(self):
-        return len(self.gamedata.gdqueue) > 60
-
-    def shutdown(self):
-        self.kill()
-        self.join()
-        self.ctlcmds.put(['shutdown', None])
-        self.close()
-
-
-class ReplayEndpoint(object):
-    def __init__(self, replay, game):
-        self.gdlist = list(replay.gamedata)
-        self.game = game
-
-    def gexpect(self, tag):
-        if not self.gdlist:
-            gevent.sleep(3)
-            raise ForcedKill
-
-        glob = False
-        if tag.endswith('*'):
-            tag = tag[:-1]
-            glob = True
-
-        for i, d in enumerate(self.gdlist):
-            if d[0] == tag or (glob and d[0].startswith(tag)):
-                del self.gdlist[i]
-                return d
-
-        gevent.sleep(3)
-        raise ForcedKill
-
-    def gwrite(self, tag, data):
-        pass
-
-    def gclear(self):
-        pass
-
-    def gbreak(self):
-        pass
-
-    def end_replay(self):
-        self.game.kill()
-
-
-class ForcedKill(gevent.GreenletExit):
-    pass
 
 
 class GameManager(Greenlet):
@@ -476,26 +389,36 @@ class Executive(object):
         wrapper.__name__ = _type
         return wrapper
 
-    auth             = _simple_op('auth')
-    cancel_ready     = _simple_op('cancel_ready')
-    change_location  = _simple_op('change_location')
-    chat             = _simple_op('chat')
-    create_game      = _simple_op('create_game')
-    exit_game        = _simple_op('exit_game')
-    get_lobbyinfo    = _simple_op('get_lobbyinfo')
-    get_ready        = _simple_op('get_ready')
-    heartbeat        = _simple_op('heartbeat')
-    invite_grant     = _simple_op('invite_grant')
-    invite_user      = _simple_op('invite_user')
-    join_game        = _simple_op('join_game')
-    kick_observer    = _simple_op('kick_observer')
-    kick_user        = _simple_op('kick_user')
-    observe_grant    = _simple_op('observe_grant')
-    observe_user     = _simple_op('observe_user')
-    pong             = _simple_op('pong')
-    query_gameinfo   = _simple_op('query_gameinfo')
-    quick_start_game = _simple_op('quick_start_game')
-    set_game_param   = _simple_op('set_game_param')
-    speaker          = _simple_op('speaker')
+    def _lobby_op(_type):
+        def wrapper(self, *args):
+            if not (self.state == 'connected'):
+                return 'connect_first'
 
-    del _simple_op
+            self.server.write(['lobby', [_type, args]])
+        wrapper.__name__ = _type
+        return wrapper
+
+    auth             = _simple_op('auth')
+    pong             = _simple_op('pong')
+    heartbeat        = _simple_op('heartbeat')
+
+    cancel_ready     = _lobby_op('cancel_ready')
+    change_location  = _lobby_op('change_location')
+    chat             = _lobby_op('chat')
+    create_game      = _lobby_op('create_game')
+    exit_game        = _lobby_op('exit_game')
+    get_lobbyinfo    = _lobby_op('get_lobbyinfo')
+    get_ready        = _lobby_op('get_ready')
+    invite_grant     = _lobby_op('invite_grant')
+    invite_user      = _lobby_op('invite_user')
+    join_game        = _lobby_op('join_game')
+    kick_observer    = _lobby_op('kick_observer')
+    kick_user        = _lobby_op('kick_user')
+    observe_grant    = _lobby_op('observe_grant')
+    observe_user     = _lobby_op('observe_user')
+    query_gameinfo   = _lobby_op('query_gameinfo')
+    quick_start_game = _lobby_op('quick_start_game')
+    set_game_param   = _lobby_op('set_game_param')
+    speaker          = _lobby_op('speaker')
+
+    del _simple_op, _lobby_op

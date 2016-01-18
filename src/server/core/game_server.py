@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from collections import OrderedDict
@@ -13,6 +14,7 @@ import gevent
 # -- own --
 from endpoint import EndpointDied
 from game import GameEnded, InputTransaction, TimeLimitExceeded
+from server.core.state import ServerState
 from utils import log_failure
 from utils.gevent_ext import iwait
 from utils.stats import stats
@@ -250,16 +252,15 @@ class Game(Greenlet, game.Game):
 
     @log_failure(log)
     def _run(g):
-        from server.core.lobby import lobby
         g.synctag = 0
         g.game = getcurrent()
-        lobby.start_game(g.manager)
+        ServerState.lobby.start_game(g.manager)
         try:
             g.process_action(g.bootstrap(g.manager.game_params))
         except GameEnded:
             pass
         finally:
-            lobby.end_game(g.manager)
+            ServerState.lobby.end_game(g.manager)
 
         assert g.ended
 
