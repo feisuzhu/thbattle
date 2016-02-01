@@ -15,7 +15,7 @@ from account import Account
 from endpoint import Endpoint, EndpointDied
 from game import Gamedata
 from options import options
-from server.core.state import ServerState
+from server.subsystem import Subsystem
 from utils import BatchList, log_failure
 
 
@@ -60,10 +60,7 @@ class Client(Endpoint, Greenlet):
                     # client should send heartbeat periodically
                     raise EndpointDied
 
-                if cmd == 'gamedata':
-                    self.gamedata.feed(data)
-                else:
-                    self.handle_command(cmd, data)
+                self.handle_command(cmd, data)
 
             except EndpointDied:
                 self.gbreak()
@@ -108,6 +105,10 @@ class Client(Endpoint, Greenlet):
         return q
 
     def handle_command(self, cmd, data):
+        if cmd == 'gamedata':
+            self.gamedata.feed(data)
+            return
+
         f = getattr(self, 'command_' + str(cmd), None)
         if not f:
             listeners = self.cmd_listeners[cmd]
@@ -134,10 +135,10 @@ class Client(Endpoint, Greenlet):
 
     def handle_drop(self):
         if self.state not in ('connected', 'hang'):
-            ServerState.lobby.exit_game(self, is_drop=True)
+            Subsystem.lobby.exit_game(self, is_drop=True)
 
         if self.state != 'connected':
-            ServerState.lobby.user_leave(self)
+            Subsystem.lobby.user_leave(self)
 
     def gexpect(self, tag, blocking=True):
         tag, data = self.gamedata.gexpect(tag, blocking)
@@ -174,13 +175,16 @@ class Client(Endpoint, Greenlet):
             else:
                 self.write(['auth_result', 'success'])
                 self.account = acc
-                ServerState.lobby.user_join(self)
+                Subsystem.lobby.user_join(self)
 
         else:
             self.write(['auth_result', 'invalid_credential'])
 
     def command_lobby(self, cmd, args):
-        ServerState.lobby.process_lobby_command(self, cmd, args)
+        Subsystem.lobby.process_command(self, cmd, args)
+
+    def command_item(self, cmd, args):
+        Subsystem.item.process_command(self, cmd, args)
 
     def command_heartbeat(self):
         pass

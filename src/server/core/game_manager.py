@@ -17,7 +17,7 @@ import gevent
 # -- own --
 from options import options
 from server.core.endpoint import Client, DroppedClient, NPCClient
-from server.core.state import ServerState
+from server.subsystem import Subsystem
 from settings import VERSION
 from utils import BatchList, instantiate
 from utils.misc import throttle
@@ -92,7 +92,7 @@ class GameManager(object):
         self.is_match = True
         self.match_users = match_users
 
-        gevent.spawn(lambda: [gevent.sleep(1), ServerState.interconnect.publish(
+        gevent.spawn(lambda: [gevent.sleep(1), Subsystem.interconnect.publish(
             'speaker', [u'文文', u'“%s”房间已经建立，请相关玩家就位！' % self.game_name]
         )])
 
@@ -361,7 +361,7 @@ class GameManager(object):
         assert all([u.state == 'ready' for u in self.users])
 
         if self.is_match:
-            gevent.spawn(lambda: ServerState.interconnect.publish(
+            gevent.spawn(lambda: Subsystem.interconnect.publish(
                 'speaker', [u'文文', u'“%s”开始了！参与玩家：%s' % (
                     self.game_name,
                     u'，'.join(self.users.account.username)
@@ -479,7 +479,7 @@ class GameManager(object):
 
     def end_game(self):
         if self.is_match and not self.game.suicide:
-            gevent.spawn(lambda: ServerState.interconnect.publish(
+            gevent.spawn(lambda: Subsystem.interconnect.publish(
                 'speaker', [u'文文', u'“%s”结束了！获胜玩家：%s' % (
                     self.game_name,
                     u'，'.join(BatchList(self.game.winners).account.username)
@@ -496,7 +496,7 @@ class GameManager(object):
 
     def kill_game(self):
         if self.is_match and self.game.started:
-            gevent.spawn(lambda: ServerState.interconnect.publish(
+            gevent.spawn(lambda: Subsystem.interconnect.publish(
                 'speaker', [u'文文', u'“%s”意外终止了！' % self.game_name]
             ))
 

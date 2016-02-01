@@ -14,7 +14,7 @@ import gevent
 # -- own --
 from endpoint import EndpointDied
 from game import GameEnded, InputTransaction, TimeLimitExceeded
-from server.core.state import ServerState
+from server.subsystem import Subsystem
 from utils import log_failure
 from utils.gevent_ext import iwait
 from utils.stats import stats
@@ -254,13 +254,13 @@ class Game(Greenlet, game.Game):
     def _run(g):
         g.synctag = 0
         g.game = getcurrent()
-        ServerState.lobby.start_game(g.manager)
+        Subsystem.lobby.start_game(g.manager)
         try:
             g.process_action(g.bootstrap(g.manager.game_params))
         except GameEnded:
             pass
         finally:
-            ServerState.lobby.end_game(g.manager)
+            Subsystem.lobby.end_game(g.manager)
 
         assert g.ended
 

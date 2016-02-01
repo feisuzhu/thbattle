@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from collections import deque
 from contextlib import contextmanager
 from functools import wraps
+import re
 
 # -- third party --
 from gevent.lock import Semaphore
@@ -11,6 +13,7 @@ from gevent.queue import Queue
 import gevent
 
 # -- own --
+
 # -- code --
 dbgvals = {}
 
@@ -796,3 +799,12 @@ def validate_args(*typelist):
         return wrapper
 
     return decorate
+
+
+class BusinessException(Exception):
+
+    def snake_case(self):
+        return '_'.join([
+            i.lower() for i in
+            re.findall(r'[A-Z]+[a-z]+', self.__class__.__name__)
+        ])

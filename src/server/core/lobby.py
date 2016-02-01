@@ -18,7 +18,7 @@ import gevent
 from options import options
 from server.core.endpoint import Client, DroppedClient
 from server.core.game_manager import GameManager
-from server.core.state import ServerState
+from server.subsystem import Subsystem
 from utils import BatchList, log_failure
 from utils.misc import throttle
 from utils.stats import stats
@@ -73,7 +73,7 @@ class Lobby(object):
 
         return decorate
 
-    def process_lobby_command(self, user, cmd, args):
+    def process_command(self, user, cmd, args):
         dispatch = self.lobby_command_dispatch
 
         handler = dispatch.get(cmd)
@@ -105,8 +105,8 @@ class Lobby(object):
     def refresh_status(self):
         ul = [u for u in self.users.values() if u.state == 'hang']
         self.send_lobbyinfo(ul)
-        ServerState.interconnect.publish('current_users', self.users.values())
-        ServerState.interconnect.publish('current_games', self.games.values())
+        Subsystem.interconnect.publish('current_users', self.users.values())
+        Subsystem.interconnect.publish('current_games', self.games.values())
 
     @_command(['hang'], [])
     def get_lobbyinfo(self, user):
@@ -168,7 +168,7 @@ class Lobby(object):
     def user_leave(self, user):
         uid = user.account.userid
         self.users.pop(uid, 0)
-        log.info(u'User %s leaved, online user %d' % (user.account.username, len(self.users)))
+        log.info(u'User %s left, online user %d' % (user.account.username, len(self.users)))
         self.refresh_status()
 
     @_command(['hang'], [basestring, unicode, bool])
@@ -550,7 +550,7 @@ class Lobby(object):
             if user.account.other['credits'] < 0:
                 user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
             else:
-                ServerState.interconnect.publish('speaker', [user.account.username, msg])
+                Subsystem.interconnect.publish('speaker', [user.account.username, msg])
 
         log.info(u'Speaker: %s', msg)
 
@@ -703,18 +703,18 @@ if options.gidfile and os.path.exists(options.gidfile):
 else:
     last_gid = 0
 
-ServerState.lobby = Lobby(last_gid)
+Subsystem.lobby = Lobby(last_gid)
 
 
 @atexit.register
 def _exit_handler():
     # logout all the accounts
     # to save the credits
-    for u in ServerState.lobby.users.values():
+    for u in Subsystem.lobby.users.values():
         u.account.add_credit('credits', 50)
 
     # save gameid
     fn = options.gidfile
     if fn:
         with open(fn, 'w') as f:
-            f.write(str(ServerState.lobby.current_gid + 1))
+            f.write(str(Subsystem.lobby.current_gid + 1))

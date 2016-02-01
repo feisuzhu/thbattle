@@ -18,7 +18,7 @@ import time
 import gevent
 
 # -- own --
-from utils.interconnect import Interconnect
+from utils.interconnect import RedisInterconnect
 from utils.rpc import RPCClient
 
 # -- code --
@@ -65,7 +65,7 @@ def charge(username, message):
     interconnect.publish('aya_charge', [uid, fee])
 
 
-class Interconnect(Interconnect):
+class Interconnect(RedisInterconnect):
     def on_message(self, node, topic, message):
         if topic == 'speaker':
             gevent.spawn(charge, message[0], message[1])
