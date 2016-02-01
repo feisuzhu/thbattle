@@ -462,13 +462,15 @@ class IbukiGourdHandler(EventHandler):
             from .definition import IbukiGourdCard
             act, cl, _from, to, _ = arg = act
 
-            if any(c.is_card(IbukiGourdCard) for c in cl):
-                g = Game.getgame()
+            if not any(c.is_card(IbukiGourdCard) for c in cl):
+                return arg
 
-                for cl in (_from, to):
-                    if cl.type == 'equips':
-                        tgt = cl.owner
-                        g.process_action(basic.Wine(tgt, tgt))
+            if to.type != 'equips':
+                return arg
+
+            tgt = cl.owner
+            g = Game.getgame()
+            g.process_action(basic.Wine(tgt, tgt))
 
             return arg
 
