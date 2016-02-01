@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from gamepack.thb.actions import DropCards, Damage, FatetellAction, LaunchCard
+from gamepack.thb.actions import Damage, DropCards, FatetellAction, LaunchCard, mark, marked
 from gamepack.thb.cards import AttackCard, BaseAttack, Card, InevitableAttack, RedUFOSkill, Skill
 from gamepack.thb.cards import TreatAs, VirtualCard, t_None
 from gamepack.thb.characters.baseclasses import Character, register_character_to
@@ -67,7 +68,7 @@ class FreakingPowerAction(FatetellAction):
         if ft.succeeded:
             act.__class__ = classmix(InevitableAttack, act.__class__)
         else:
-            act.yugifptag = True
+            mark(act, 'freaking_power')
 
         return True
 
@@ -80,7 +81,7 @@ class FreakingPowerHandler(EventHandler):
     interested = ('action_after', 'action_before', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, BaseAttack) and not hasattr(act, 'yugifptag'):
+        if evt_type == 'action_before' and isinstance(act, BaseAttack) and not marked(act, 'freaking_power'):
             src = act.source
             if not src.has_skill(FreakingPower): return act
             if not user_input([src], ChooseOptionInputlet(self, (False, True))):
@@ -92,7 +93,7 @@ class FreakingPowerHandler(EventHandler):
             g = Game.getgame()
 
             pact = g.action_stack[-1]
-            if not hasattr(pact, 'yugifptag'):
+            if not marked(pact, 'freaking_power'):
                 return act
 
             src, tgt = pact.source, act.target

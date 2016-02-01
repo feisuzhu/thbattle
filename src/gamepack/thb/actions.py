@@ -19,6 +19,14 @@ log = logging.getLogger('THBattle_Actions')
 
 # ------------------------------------------
 # aux functions
+def mark(act, tag, v=True):
+    setattr(act, '_tag_' + tag, v)
+
+
+def marked(act, tag):
+    return getattr(act, '_tag_' + tag, None)
+
+
 def ttags(actor):
     tags = actor.tags
     tc = tags['turn_count']

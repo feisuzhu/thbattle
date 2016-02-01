@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
@@ -6,8 +7,8 @@
 from game.autoenv import EventHandler, Game, user_input
 from gamepack.thb.actions import ActionStage, Damage, DrawCards, DropCardStage, DropCards
 from gamepack.thb.actions import GenericAction, LaunchCard, PlayerTurn, PostCardMigrationHandler
-from gamepack.thb.actions import Reforge, UserAction, random_choose_card, user_choose_cards
-from gamepack.thb.actions import user_choose_players
+from gamepack.thb.actions import Reforge, UserAction, mark, marked, random_choose_card
+from gamepack.thb.actions import user_choose_cards, user_choose_players
 from gamepack.thb.cards import AttackCard, DollControlCard, Heal, Skill, TreatAs, VirtualCard
 from gamepack.thb.cards import t_None
 from gamepack.thb.characters.baseclasses import Character, register_character
@@ -198,7 +199,19 @@ class DollBlastAction(UserAction):
         return True
 
 
-class DollBlastHandler(EventHandler):
+class DollBlastHandlerCommon(object):
+
+    def fire(self, src, tgt, cards):
+        self.target = tgt  # for ui
+
+        if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+            return
+
+        g = Game.getgame()
+        g.process_action(DollBlastAction(src, tgt, cards))
+
+
+class DollBlastMigrationHandler(DollBlastHandlerCommon, EventHandler):
     interested = ('post_card_migration',)
     group = PostCardMigrationHandler
 
@@ -206,22 +219,16 @@ class DollBlastHandler(EventHandler):
         if not p.has_skill(DollBlast):
             return True
 
-        g = Game.getgame()
         equips = p.equips
 
         for cl, _from, to, is_bh in trans.get_movements():
             if _from is not equips:
                 continue
 
-            if to is not None and to.owner:
-                tgt = to.owner
-            elif to is g.deck.droppedcards:
-                if getattr(trans.action, 'card_usage', '') != 'drop':
-                    continue
+            if to is None or not to.owner:
+                continue
 
-                tgt = trans.action.source
-            else:
-                raise Exception('WTF?!')
+            tgt = to.owner
 
             if tgt is _from.owner:
                 continue
@@ -229,21 +236,41 @@ class DollBlastHandler(EventHandler):
             if not (tgt.cards or tgt.showncards or tgt.equips):
                 continue
 
-            self.target = tgt  # for ui
-
-            if not user_input([p], ChooseOptionInputlet(self, (False, True))):
-                continue
-
-            g.process_action(DollBlastAction(p, tgt, cl))
+            self.fire(p, tgt, cl)
 
         return True
+
+
+class DollBlastDropHandler(DollBlastHandlerCommon, EventHandler):
+    interested = ('action_before', 'action_after')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, DropCards):
+            src, tgt = act.source, act.target
+
+            if not tgt.has_skill(DollBlast):
+                return act
+
+            if not src or src is tgt or not (src.cards or src.showncards or src.equips):
+                return act
+
+            if not any(c.resides_in.type == 'equips' for c in act.cards):
+                return act
+
+            mark(act, 'doll_blast')
+
+        elif evt_type == 'action_after' and isinstance(act, DropCards) and marked(act, 'doll_blast'):
+            self.fire(act.target, act.source, act.cards)
+
+        return act
 
 
 @register_character
 class Alice(Character):
     skills = [DollBlast, LittleLegion]
     eventhandlers_required = [
-        DollBlastHandler,
+        DollBlastMigrationHandler,
+        DollBlastDropHandler,
         LittleLegionHandler,
     ]
     maxlife = 4

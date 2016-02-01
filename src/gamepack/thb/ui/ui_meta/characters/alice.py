@@ -181,7 +181,7 @@ class DollBlastAction:
         ])
 
 
-class DollBlastHandler:
+class DollBlastHandlerCommon:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【人偶爆弹】吗？'
