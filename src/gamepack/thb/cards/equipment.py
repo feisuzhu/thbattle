@@ -468,7 +468,7 @@ class IbukiGourdHandler(EventHandler):
             if to.type != 'equips':
                 return arg
 
-            tgt = cl.owner
+            tgt = to.owner
             g = Game.getgame()
             g.process_action(basic.Wine(tgt, tgt))
 
