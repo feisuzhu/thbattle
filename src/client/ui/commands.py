@@ -4,7 +4,6 @@
 import logging
 
 # -- third party --
-import gevent
 
 # -- own --
 from client.core import Executive
@@ -133,16 +132,6 @@ def kickob(uid):
 
     # reply by server message later
     return u''
-
-
-@command(u'报告bug', u'遇到错误时，你可以用此命令主动报告bug')
-@argtypes()
-@argdesc()
-def bugreport():
-    from crashreport import do_crashreport
-    log.info('Actively filed bug report')
-    gevent.spawn(do_crashreport, active=True)
-    return u'已经发送了bug报告'
 
 
 @command(u'开启/关闭游戏邀请', u'on      开启邀请\noff     关闭邀请')

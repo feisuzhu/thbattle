@@ -16,7 +16,6 @@ import logging
 import smtplib
 import sys
 import time
-import zlib
 
 # -- third party --
 from bottle import request, response, route, run
@@ -152,101 +151,6 @@ def send_mail(send_from, send_to, subject, text, files=[], server="localhost"):
     smtp.close()
 
 
-@route('/interconnect/crashreport', method='POST')
-def crashreport():
-    gameid = int(request.forms.get('gameid', 0))
-    active = int(request.forms.get('active', 0))
-    userid = int(request.forms.get('userid', 0))
-    username = unicode(request.forms.get('username', 'unknown'), 'utf-8')
-
-    f = request.files.get('file')
-    if not f: return ''
-
-    content = f.file.read()
-    content = zlib.decompress(content)
-
-    @gevent.spawn
-    def sendmail(content=content):
-        subject = u'THB Crash Report{active} #{gameid}, reported by {username}[{userid}]'.format(
-            gameid=gameid,
-            active=' (Active)' if active else '',
-            username=username,
-            userid=userid,
-        ).encode('utf-8')
-
-        send_mail(
-            send_from='crashreport@thbattle.net',
-            send_to='feisuzhu@163.com',
-            subject=subject,
-            text=content,
-        )
-
-        send_mail(
-            send_from='crashreport@thbattle.net',
-            send_to='zhykzhykzhyk@163.com',
-            subject=subject,
-            text=content,
-        )
-
-    return ''
-
-
-@route('/interconnect/bugreport', method='POST')
-def bugreport():
-    type = request.forms.get('type', u'Unspecified')
-    gameid = int(request.forms.get('gameid', 0))
-    userid = int(request.forms.get('userid', 0))
-    username = request.forms.get('username', u'毛玉')
-    text = request.forms.get('text', u'没有正文')
-
-    subject = u'[Bug][{type}] #{gameid} {username}({userid})'.format(
-        type=type, username=username, gameid=gameid, userid=userid,
-    ).encode('utf-8')
-
-    content = (
-        u'用户: {username}[{userid}]\n'
-        u'类型: {type}\n'
-        u'游戏ID: {gameid}\n'
-        u'正文: {text}'
-    ).format(
-        userid=userid, type=type, gameid=gameid,
-        username=username, text=text,
-    ).encode('utf-8')
-
-    interconnect.publish('bugreport', content)
-
-    send_mail(
-        send_from='bugreport@thbattle.net',
-        send_to='feisuzhu@163.com',
-        subject=subject,
-        text=content,
-    )
-
-    send_mail(
-        send_from='bugreport@thbattle.net',
-        send_to='zhykzhykzhyk@163.com',
-        subject=subject,
-        text=content,
-    )
-
-
-@route('/interconnect/unsubscribe/<address>')
-def unsubscribe(address):
-    return '''
-        你(%s)以后不想再收到有关符斗祭的消息了么……确定的话点
-        <a href="/interconnect/unsubscribe/%s/confirm">这里</a>
-    ''' % (address, address)
-
-
-@route('/interconnect/unsubscribe/<address>/confirm')
-def unsubscribe_confirm(address):
-    with open(options.unsubscribe_list, 'a') as f:
-        f.write(address)
-        f.write('\n')
-
-    return '以后不会再收到东方符斗祭的邮件'
-
-
 def main():
     global options, member_service, interconnect
     parser = argparse.ArgumentParser(sys.argv[0])
@@ -255,7 +159,6 @@ def main():
     parser.add_argument('--redis-url', default='redis://localhost:6379')
     parser.add_argument('--member-service', default='localhost')
     parser.add_argument('--discuz-cookiepre', default='VfKd_')
-    parser.add_argument('--unsubscribe-list', default='/var/log/thb/unsubscribe.lst')
     options = parser.parse_args()
 
     member_service = RPCClient((options.member_service, 7000), timeout=2)

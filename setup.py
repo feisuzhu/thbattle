@@ -18,6 +18,7 @@ install_requires = [
     'requests',
     'unidecode',
     'upyun',
+    'raven',
 ]
 
 entry_points = {

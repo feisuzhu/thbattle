@@ -19,7 +19,7 @@ def start_client():
     import logging
     import os
     import argparse
-    import crashreport
+    import utils.logging
 
     parser = argparse.ArgumentParser(prog=sys.argv[0])
     parser.add_argument('--no-update', action='store_true')
@@ -29,7 +29,6 @@ def start_client():
     parser.add_argument('--dump-gameobj', action='store_true')
     parser.add_argument('--log', default='INFO')
     parser.add_argument('--color-log', action='store_true')
-    parser.add_argument('--no-crashreport', action='store_true')
     parser.add_argument('--show-hidden-modes', action='store_true')
 
     options = parser.parse_args()
@@ -39,27 +38,13 @@ def start_client():
 
     IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
 
-    crashreport.install_tee(options.log.upper())
+    import settings
+    utils.logging.init(options.log.upper(), settings.SENTRY_DSN, IS_PROTON or options.color_log)
+    utils.logging.patch_gevent_hub_print_exception()
 
     if options.no_update:
         import autoupdate
         autoupdate.Autoupdate = autoupdate.DummyAutoupdate
-
-    if IS_PROTON or options.color_log:
-        from colorlog import ColoredFormatter
-
-        formatter = ColoredFormatter(
-            "%(log_color)s%(message)s%(reset)s",
-            log_colors={
-                'CRITICAL': 'bold_red',
-                'ERROR': 'red',
-                'WARNING': 'yellow',
-                'INFO': 'green',
-                'DEBUG': 'blue',
-            }
-        )
-
-        logging.getLogger().handlers[0].setFormatter(formatter)
 
     log = logging.getLogger('start_client')
 
@@ -111,12 +96,9 @@ def start_client():
             import pdb
             pdb.post_mortem()
 
-        if not options.no_crashreport:
-            log.error(u'游戏崩溃，正在报告bug，请稍等下……')
-            from utils.stats import stats
-            stats({'event': 'crash'})
-            from crashreport import do_crashreport
-            do_crashreport()
+        log.exception(u'UI线程崩溃，正在报告bug，请稍等下……')
+        from utils.stats import stats
+        stats({'event': 'crash'})
 
         raise
 

@@ -7,12 +7,12 @@ sys.setdefaultencoding(sys.getfilesystemencoding())
 
 # -- stdlib --
 import random
-import traceback
 
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler
 from utils.misc import instantiate
+import settings
 
 
 # -- inject --
@@ -97,42 +97,15 @@ class UnityUIEventHook(EventHandler):
         self.warpgate.events.append(('game_event', self.game, 'game_live', None))
 
 
-@gevent.hub.set_hub
-@instantiate
-class UnityHub(gevent.hub.Hub):
-
-    def print_exception(self, context, type, value, tb):
-        text = ''.join(traceback.format_exception(type, value, tb))
-        del tb
-        if context is not None:
-            if not isinstance(context, str):
-                try:
-                    context = self.format_context(context)
-                except:
-                    text += 'Error formatting context\n' + traceback.format_exc()
-                    context = repr(context)
-            text += ('\n%s failed with %s\n\n' % (context, getattr(type, '__name__', 'exception'), ))
-
-        try:
-            from UnityEngine import Debug
-            Debug.LogError(text)
-        except:
-            # fuck
-            pass
-
 from gevent.resolver_ares import Resolver
 hub = gevent.hub.get_hub()
 hub.resolver = Resolver(hub=hub)
 
-
-class UnityLogStream(object):
-    def write(self, data):
-        from UnityEngine import Debug
-        Debug.Log(data)
-
 import logging
-logging.basicConfig(stream=UnityLogStream())
-logging.getLogger().setLevel(logging.ERROR)
+import utils.logging
+
+utils.logging.init_unity(logging.ERROR, settings.SENTRY_DSN)
+utils.logging.patch_gevent_hub_print_exception()
 
 
 class ExecutiveWrapper(object):
@@ -203,7 +176,6 @@ class Warpgate(object):
 
         # should set them
         options.no_update
-        options.no_crashreport
         options.show_hidden_mode
 
         options.freeplay = False
@@ -223,13 +195,6 @@ class Warpgate(object):
         autoenv.init('Client')
 
         import gamepack.thb.ui.ui_meta  # noqa, init ui_meta
-
-        # For debug
-        @gevent.spawn
-        def beat():
-            while True:
-                gevent.sleep(1)
-                # self.events.append(("tick",))
 
         from client.core.executive import Executive
         self.executive = ExecutiveWrapper(Executive, self)
