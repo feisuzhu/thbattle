@@ -156,7 +156,7 @@ def actv_handle_target_selection(g, card, players):
     try:
         rst, reason = card.ui_meta.is_action_valid(g, [card], target_list)
     except Exception as e:
-        log.exception(e)
+        log.exception('card.ui_meta.is_action_valid error')
         raise ActionDisplayResult(False, u'[card.ui_meta.is_action_valid错误]', False, [], [])
 
     if not rst:

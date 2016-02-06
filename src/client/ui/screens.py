@@ -590,7 +590,7 @@ class LoginScreen(Screen):
             stats({'event': 'login'})
 
         elif _type == 'auth_failure':
-            log.error('Auth failure')
+            log.warning('Auth failure')
             self.done_login()
             status = args[0]
             tbl = dict(
@@ -993,7 +993,7 @@ class GameHallScreen(Screen):
             GameScreen(args[0]).switch()
 
         elif _type == 'lobby_error':
-            log.error('Lobby error: %s' % args[0])  # TODO
+            log.warning('Lobby error: %s' % args[0])
             mapping = {
                 'cant_join_game': u'无法加入游戏',
                 'no_such_user': u'没有这个玩家',
