@@ -294,6 +294,8 @@ class MemberService(RPCService):
             WHERE uid=:uid
         ''' % (field, field)), {'amount': int(amount), 'uid': int(uid)})
 
+        session.commit()
+
         return self.get_user_info(uid)
 
     @clear_session
@@ -307,6 +309,8 @@ class MemberService(RPCService):
             SET lastactivity = UNIX_TIMESTAMP()
             WHERE uid=:uid
         '''), {'uid': int(uid)})
+
+        session.commit()
 
     del clear_session
 
