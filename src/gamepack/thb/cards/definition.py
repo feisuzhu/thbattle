@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# Cards and Deck definition
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from .base import Card, PhysicalCard, t_All, t_AllInclusive, t_None, t_One, t_OtherLessEqThanN
-from .base import t_OtherOne, t_Self
 from game import GameObjectMeta
+from gamepack.thb.cards.base import Card, PhysicalCard, t_All, t_AllInclusive, t_None, t_One
+from gamepack.thb.cards.base import t_OtherLessEqThanN, t_OtherOne, t_Self
 
 
 # -- code --
@@ -23,7 +23,7 @@ __metaclass__ = card_meta
 # ==================================================
 
 
-from . import basic
+from gamepack.thb.cards import basic
 
 
 class AttackCard:
@@ -58,7 +58,7 @@ class ExinwanCard:
 
 # --------------------------------------------------
 
-from . import spellcard
+from gamepack.thb.cards import spellcard
 
 
 class DemolitionCard:
@@ -164,7 +164,7 @@ class DonationBoxCard:
 
 # --------------------------------------------------
 
-from . import equipment
+from gamepack.thb.cards import equipment
 
 
 class MomijiShieldCard:
@@ -376,8 +376,16 @@ class GrimoireCard:
     equipment_category = 'weapon'
 
 # --------------------------------------------------
+from gamepack.thb.cards import special
 
-from . import debug
+
+class PPointCard:
+    associated_action = special.CollectPPoint
+    target = t_Self
+    category = ('special',)
+
+# --------------------------------------------------
+from gamepack.thb.cards import debug
 
 
 class MassiveDamageCard:

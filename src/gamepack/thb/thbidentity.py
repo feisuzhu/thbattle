@@ -145,7 +145,7 @@ class THBattleIdentityBootstrap(GenericAction):
 
         from cards import Deck
 
-        g.deck = Deck()
+        g.deck = Deck(ppoints=(1, 1, 1, 1, 1, 1, 2, 2))
         g.ehclasses = []
 
         g.double_curtain = params['double_curtain']

@@ -1,10 +1,11 @@
-# -*- coding: utf-8  -*-
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from gamepack.thb.actions import Damage, UserAction, ForEach
 from game.autoenv import Game
+from gamepack.thb.actions import Damage, ForEach, UserAction
 
 
 # -- code --

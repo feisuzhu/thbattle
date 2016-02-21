@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from collections import deque
@@ -286,18 +287,23 @@ class CardList(GameObject, deque):
 
 
 class Deck(GameObject):
-    def __init__(self, card_definition=None):
-        if not card_definition:
-            from .definition import card_definition
+    def __init__(self, card_definition=None, ppoints=()):
+        from gamepack.thb.cards import definition
+        card_definition = card_definition or definition.card_definition
 
         self.cards_record = {}
         self.vcards_record = WeakValueDictionary()
         self.droppedcards = CardList(None, 'droppedcard')
+        self.collected_ppoints = CardList(None, 'collected_ppoints')
         cards = CardList(None, 'deckcard')
         self.cards = cards
         cards.extend(
             cls(suit, rank, cards, track_id=alloc_id())
             for cls, suit, rank in card_definition
+        )
+        cards.extend(
+            definition.PPointCard(s % 4 + 1, r, cards)
+            for s, r in zip(xrange(10000), ppoints)
         )
         self.shuffle(cards)
 

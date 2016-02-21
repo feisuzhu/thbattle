@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, ActionLimitExceeded
-from ..actions import ForEach, GenericAction, LaunchCard, PlayerTurn, UserAction, UseCard, DistributeCards
-from ..actions import register_eh, user_choose_cards
 from game.autoenv import EventHandler, Game
+from gamepack.thb.actions import ActionLimitExceeded, ActionStage, ActionStageLaunchCard, AskForCard
+from gamepack.thb.actions import Damage, DistributeCards, DropCards, ForEach, GenericAction
+from gamepack.thb.actions import LaunchCard, PlayerTurn, UseCard, UserAction, register_eh
+from gamepack.thb.actions import user_choose_cards
 
 
 # -- code --

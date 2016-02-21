@@ -113,7 +113,7 @@ class THBattleKOFBootstrap(GenericAction):
 
         g.pick_history = []
 
-        g.deck = cards.Deck(cards.kof_card_definition)
+        g.deck = cards.Deck(cards.kof_card_definition, ppoints=(1,))
         g.ehclasses = []
         g.current_player = None
 

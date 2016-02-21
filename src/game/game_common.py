@@ -315,6 +315,7 @@ class Game(GameObject):
         self._action_hooks  = []
         self.winners        = []
         self.turn_count     = 0
+        self.event_observer = None
 
     def set_event_handlers(self, ehs):
         self.event_handlers = ehs[:]
@@ -393,14 +394,15 @@ class Game(GameObject):
         else:
             action_event = False
 
+        ob = (self.event_observer,) if self.event_observer else ()
+        adhoc = self.adhoc_ehs
         ehs = self._get_relevant_eh(evt_type)
-        if self.adhoc_ehs:
-            ehs = self.adhoc_ehs + ehs
 
-        for eh in ehs:
-            data = self.handle_single_event(eh, evt_type, data)
-            if action_event and data.cancelled:
-                break
+        for l in ob, adhoc, ehs:
+            for eh in l:
+                data = self.handle_single_event(eh, evt_type, data)
+                if action_event and data.cancelled:
+                    break
 
         return data
 

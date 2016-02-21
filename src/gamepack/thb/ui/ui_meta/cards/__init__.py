@@ -1,1 +1,1 @@
-from . import base, basic, debug, equipment, spellcard  # noqa
+from . import base, basic, debug, equipment, spellcard, special  # noqa

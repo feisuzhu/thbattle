@@ -230,12 +230,6 @@ class Game(Greenlet, game.Game):
         self.synctag += 1
         return self.synctag
 
-    def emit_event(self, evt_type, data):
-        if self.event_observer:
-            self.event_observer.handle(evt_type, data)
-
-        return game.Game.emit_event(self, evt_type, data)
-
     def pause(self, time):
         gevent.sleep(time)
 

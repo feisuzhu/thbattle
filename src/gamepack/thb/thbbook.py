@@ -289,7 +289,7 @@ class THBattleBookBootstrap(GenericAction):
 
         from cards import Deck
 
-        g.deck = Deck()
+        g.deck = Deck(ppoints=(1, 1))
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 
         H, M, A = Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA, Identity.TYPE.ADMIN
