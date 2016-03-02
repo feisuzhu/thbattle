@@ -5,7 +5,6 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from server.item.exceptions import InvalidItemSKU
-from server.db.models import DiscuzMember, User
 
 
 # -- code --
@@ -72,8 +71,10 @@ class Jiecao(object):
         return u'打包的%s点节操，使用后你的节操会增加。可以放在交易所出售。' % self.amount
 
     def use(self, session, user):
+        from db.models import DiscuzMember
         dz_member = session.query(DiscuzMember).filter(DiscuzMember.uid == user.id).first()
         dz_member.member_count.jiecao += self.amount
+        user.jiecao += self.amount
 
 
 @item

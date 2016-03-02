@@ -7,8 +7,8 @@ import json
 
 # -- third party --
 # -- own --
-from server.db.models import Item, ItemActivity
-from server.db.session import Session
+from db.models import Item, ItemActivity
+from db.session import Session
 from server.item import helpers, items
 from server.item.exceptions import ItemNotFound, ItemNotUsable
 

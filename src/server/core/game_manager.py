@@ -527,7 +527,7 @@ class GameManager(object):
                     rst.append((u, 'drops', 1))
             else:
                 s = 5 + bonus if p in winners else 5
-                rst.append((u, 'credits', int(s * rate * options.credit_multiplier)))
+                rst.append((u, 'jiecao', int(s * rate * options.credit_multiplier)))
 
         return rst
 

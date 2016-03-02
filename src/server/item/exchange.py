@@ -9,8 +9,8 @@ import json
 from sqlalchemy.orm import joinedload
 
 # -- own --
-from server.db.models import Exchange, Item, ItemActivity, User
-from server.db.session import Session
+from db.models import Exchange, Item, ItemActivity, User
+from db.session import Session
 from server.item import constants, helpers
 from server.item.exceptions import InsufficientFunds, ItemNotFound, TooManySellingItems
 from server.item.exceptions import UserNotFound

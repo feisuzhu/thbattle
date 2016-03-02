@@ -3,11 +3,11 @@ from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
-from sqlalchemy import Column, ForeignKey, Index, Integer, SmallInteger, String
+from sqlalchemy import Column, ForeignKey, Index, Integer, SmallInteger, String, Text
 from sqlalchemy.orm import relationship
 
 # -- own --
-from server.db.base import Model
+from db.base import Model
 
 
 # -- code --
@@ -40,6 +40,7 @@ class DiscuzMember(Model):
 
     member_count  = relationship('DiscuzMemberCount', uselist=False)
     member_status = relationship('DiscuzMemberStatus', uselist=False)
+    member_field  = relationship('DiscuzMemberField', uselist=False)
     ucmember      = relationship('DiscuzUCenterMember', uselist=False)
 
 
@@ -112,3 +113,18 @@ class DiscuzUCenterMember(Model):
     lastlogintime = Column(Integer, nullable=False, default=0)
     salt          = Column(String(6), nullable=False)
     secques       = Column(String(8), nullable=False, default='')
+
+
+class DiscuzMemberField(Model):
+    __tablename__ = 'pre_common_member_field_forum'
+
+    uid            = Column(Integer, ForeignKey('pre_common_member.uid'), primary_key=True)
+    publishfeed    = Column(Integer, nullable=False, default=0)
+    customshow     = Column(Integer, nullable=False, default=26)
+    customstatus   = Column(String(30), nullable=False, default='')
+    medals         = Column(Text, nullable=False)
+    sightml        = Column(Text, nullable=False)
+    groupterms     = Column(Text, nullable=False)
+    authstr        = Column(String(20), nullable=False, default='')
+    groups         = Column(String, nullable=False)
+    attentiongroup = Column(String(255), nullable=False, default='')

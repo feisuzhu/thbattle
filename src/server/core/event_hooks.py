@@ -7,8 +7,8 @@ import gevent
 
 # -- own --
 from game.autoenv import EventHandler
-from server.db.models import User
-from server.db.session import Session
+from db.models import User
+from db.session import Session
 
 
 # -- code --

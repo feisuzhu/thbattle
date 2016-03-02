@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from collections import defaultdict
-import random
+from itertools import count
 
 # -- third party --
 # -- own --
-from .base import server_side_only, AccountBase
+from account.base import AccountBase, server_side_only
 
 
 # -- code --
+counter = count(1).next
+
+
 class Account(AccountBase):
 
     @classmethod
@@ -17,7 +21,7 @@ class Account(AccountBase):
         if len(username) > 0:
             acc = cls()
             acc.username = username
-            acc.userid = 1 if username == 'Proton' else random.randint(10, 100000)
+            acc.userid = 1 if username == 'Proton' else counter()
             acc.other = defaultdict(
                 lambda: None,
                 title=u'野生的THB玩家',

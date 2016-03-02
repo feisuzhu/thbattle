@@ -2,6 +2,8 @@
 
 # -- stdlib --
 from cStringIO import StringIO
+import hashlib
+import os
 
 # -- third party --
 # -- own --
@@ -28,7 +30,6 @@ def aes_encrypt(data, key):
 def aes_decrypt(data, key):
     return _aes_op(data, key, 0)
 
-import hashlib
 _simple_key = hashlib.sha256('zheshijintiandeqiaokelijianpan').digest()
 _enc_head = 'ENC_HEAD'
 
@@ -44,3 +45,16 @@ def simple_decrypt(data):
         return v[len(_enc_head):]
     except:
         return ''
+
+
+# not using [sb]crypt, this is good enough, not adding dependency
+
+def password_hash(pwd):
+    salt = os.urandom(7)
+    return (hashlib.sha256(salt + pwd + salt).digest() + salt).encode('base64').strip()
+
+
+def password_hash_verify(pwd, hash):
+    raw = hash.decode('base64')
+    hash, salt = raw[:32], raw[32:]
+    return hashlib.sha256(salt + pwd + salt).digest() == hash

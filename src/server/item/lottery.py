@@ -8,8 +8,8 @@ import random
 
 # -- third party --
 # -- own --
-from server.db.models import DiscuzMember, Item, ItemActivity, User
-from server.db.session import Session
+from db.models import DiscuzMember, Item, ItemActivity, User
+from db.session import Session
 from server.item import constants, helpers
 from server.item.exceptions import InsufficientFunds, InvalidCurrency, UserNotFound
 

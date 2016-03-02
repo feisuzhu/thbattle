@@ -24,10 +24,9 @@ import gevent
 
 # -- own --
 from utils.interconnect import Interconnect
-from utils.rpc import RPCClient
+from account.forum_integration import Account
 
 # -- code --
-member_service = None
 options = None
 current_users = {}
 event_waiters = set()
@@ -120,16 +119,16 @@ def speaker():
 
     auth = unquote(request.get_cookie(idx['auth']))
     saltkey = unquote(request.get_cookie(idx['saltkey']))
-    member = member_service.validate_by_cookie(auth, saltkey)
-    if not member:
+    uid, pwd = Account.decode_cookie(auth, saltkey)
+    user = Account.find(uid)
+    if not user:
         return 'false'
 
-    if member['credits'] < 10:
+    if user.jiecao < 0:
         return 'false'
 
     message = request.forms.get('message').decode('utf-8', 'ignore')
-    username = member['username'].decode('utf-8', 'ignore')
-    # member_service.add_credit(member['uid'], 'credits', -10)
+    username = user.username.decode('utf-8', 'ignore')
 
     interconnect.publish('speaker', [username, message])
 
@@ -152,7 +151,7 @@ def send_mail(send_from, send_to, subject, text, files=[], server="localhost"):
 
 
 def main():
-    global options, member_service, interconnect
+    global options, interconnect
     parser = argparse.ArgumentParser(sys.argv[0])
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=7001)
@@ -161,7 +160,6 @@ def main():
     parser.add_argument('--discuz-cookiepre', default='VfKd_')
     options = parser.parse_args()
 
-    member_service = RPCClient((options.member_service, 7000), timeout=2)
     interconnect = Interconnect.spawn('forum', options.redis_url)
 
     run(server='gevent', host=options.host, port=options.port)

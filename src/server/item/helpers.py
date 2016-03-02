@@ -4,7 +4,7 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from server.db.models import Item
+from db.models import Item
 from server.item import constants
 from server.item.exceptions import BackpackFull
 

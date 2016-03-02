@@ -44,7 +44,7 @@ def start_server():
     parser.add_argument('--archive-path', default='')
     parser.add_argument('--interconnect', action='store_true', default=False)
     parser.add_argument('--redis-url', default='redis://localhost:6379')
-    parser.add_argument('--member-service', default='localhost:7000')
+    parser.add_argument('--discuz-authkey', default='Proton rocks')
     parser.add_argument('--db', default='sqlite:////dev/shm/thb.sqlite3')
     options = parser.parse_args()
 
@@ -52,6 +52,9 @@ def start_server():
     opmodule.options = options
 
     autoenv.init('Server')
+    import db.session
+
+    db.session.init(options.db)
 
     import settings
 

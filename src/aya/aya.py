@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- prioritized --
 import sys
@@ -26,31 +27,26 @@ import redis
 import requests
 
 # -- own --
-from deathbycaptcha import SocketClient as DBCClient
+from account.forum_integration import Account
 from qqbot import QQBot
-from utils import CheckFailed, check
+from utils import CheckFailed, check, instantiate
 from utils.interconnect import Interconnect
-from utils.misc import GenericPool
+import db
 import upyun
 
 
 # -- code --
-parser = argparse.ArgumentParser('aya')
-parser.add_argument('--dbc-username')
-parser.add_argument('--dbc-password')
-parser.add_argument('--bearybot')
-parser.add_argument('--upyun-bucket')
-parser.add_argument('--upyun-username')
-parser.add_argument('--upyun-password')
-parser.add_argument('--redis-url', default='redis://localhost:6379')
-parser.add_argument('--member-service', default='localhost')
-options = parser.parse_args()
+@instantiate
+class State(object):
+    __slots__ = (
+        'options',
+        'interconnect',
+        'aya',
+        'dao',
+    )
 
 log = logging.getLogger('Aya')
 pool = Pool(5)
-
-interconnect = None
-aya = None
 
 ping_responses = [
     None,
@@ -67,16 +63,9 @@ ping_responses = [
 ]
 
 
-def clipool_factory():
-    from utils.rpc import RPCClient
-    return RPCClient((options.member_service, 7000), timeout=6)
-
-member_client_pool = GenericPool(clipool_factory, 10)
-
-
 class AyaDAO(object):
-    def __init__(self):
-        self.redis = redis.from_url(options.redis_url)
+    def __init__(self, redis_url):
+        self.redis = redis.from_url(redis_url)
 
     def get_binding(self, qq):
         rst = self.redis.hget('aya:binding', int(qq))
@@ -123,16 +112,14 @@ class AyaDAO(object):
         return int(i)
 
 
-dao = AyaDAO()
-
-
 class Aya(QQBot):
     def on_captcha(self, image):
+        from deathbycaptcha import SocketClient as DBCClient
         logging.info('Solving captcha...')
         f = StringIO()
         f.write(image)
         f.seek(0)
-        dbccli = DBCClient(options.dbc_username, options.dbc_password)
+        dbccli = DBCClient(State.options.dbc_username, State.options.dbc_password)
 
         try:
             captcha = dbccli.decode(f, 60)
@@ -148,18 +135,19 @@ class Aya(QQBot):
 
     def on_captcha_wrong(self, tag):
         log.info('Captcha wrong!')
-        dbccli = DBCClient(options.dbc_username, options.dbc_password)
+        from deathbycaptcha import SocketClient as DBCClient
+        dbccli = DBCClient(State.options.dbc_username, State.options.dbc_password)
         dbccli.report(tag['captcha'])
 
     def on_qrcode(self, image):
         filename = '/qrcode/%s.png' % hex(random.getrandbits(100))
-        up = upyun.UpYun(options.upyun_bucket, options.upyun_username, options.upyun_password)
+        up = upyun.UpYun(State.options.upyun_bucket, State.options.upyun_username, State.options.upyun_password)
         up.put(filename, image)
-        requests.post(options.bearybot, headers={'Content-Type': 'application/json'}, data=json.dumps({
+        requests.post(State.options.bearybot, headers={'Content-Type': 'application/json'}, data=json.dumps({
             'text': 'QRCode Login for Aya the QQBot',
             'attachments': [{
                 'color': '#ffa500',
-                'images': [{'url': 'http://%s.b0.upaiyun.com%s' % (options.upyun_bucket, filename)}],
+                'images': [{'url': 'http://%s.b0.upaiyun.com%s' % (State.options.upyun_bucket, filename)}],
                 'title': datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S'),
                 'text': 'Meh...',
             }],
@@ -201,7 +189,7 @@ class Aya(QQBot):
         elif type == 'sess':
             send = lambda t: self.send_sess_message(msg['id'], msg['from_uin'], t)
 
-        uid = dao.get_binding(qq)
+        uid = State.dao.get_binding(qq)
         if not uid:
             content = self._plaintext(msg['content']).strip()
             req = content.split(None, 2)
@@ -216,16 +204,17 @@ class Aya(QQBot):
 
             uid = int(req[1])
             pwd = req[2]
-            with member_client_pool() as cli:
-                member = cli.validate_by_uid(uid, pwd)
 
-            if not member:
+            username = None
+            user = Account.find(uid)
+            if not (user and Account.validate_by_password(user.dz_member, pwd)):
                 send(fail_text)
                 return
+            username = user.username
 
-            dao.set_binding(qq, uid)
+            State.dao.set_binding(qq, uid)
 
-            send(registered_text % member['username'] + help_text)
+            send(registered_text % username + help_text)
             return
 
         send(help_text)
@@ -241,8 +230,8 @@ class Aya(QQBot):
         if content.startswith(u'呼叫文文'):
             gnum = self.gcode2groupnum(msg['group_code'])
 
-            if dao.is_group_on(gnum):
-                i = dao.incr_ping_count(gnum)
+            if State.dao.is_group_on(gnum):
+                i = State.dao.incr_ping_count(gnum)
                 i = min(i, len(ping_responses) - 1)
                 words = ping_responses[i]
             else:
@@ -253,13 +242,13 @@ class Aya(QQBot):
         elif content == u'文文on':
             superusers = self.get_group_superusers_uin(msg['group_code'])
             if msg['send_uin'] in superusers or self.uin2qq(msg['send_uin']) in (84065234,):
-                dao.set_group_on(self.gcode2groupnum(msg['group_code']))
+                State.dao.set_group_on(self.gcode2groupnum(msg['group_code']))
                 pool.apply_async(self.send_group_message, (msg['from_uin'], u'收到～文文会以最快速度播报新闻～'))
 
         elif content == u'文文off':
             gnum = self.gcode2groupnum(msg['group_code'])
-            if dao.is_group_on(gnum):
-                dao.set_group_off(gnum)
+            if State.dao.is_group_on(gnum):
+                State.dao.set_group_off(gnum)
                 pool.apply_async(self.send_group_message, (msg['from_uin'], u'哼，不理你们了。管理员叫我我才回来。哼。'))
 
         elif content[0] in (u'`', u"'"):
@@ -270,47 +259,48 @@ class Aya(QQBot):
         insufficient_funds_text = u'你的节操掉了一地，才不帮你发新闻呢。'
 
         qq = self.uin2qq(uin)
-        uid = dao.get_binding(qq)
+        uid = State.dao.get_binding(qq)
         if not uid:
             group_uin and self.send_group_message(group_uin, fail_text)
             return
 
-        with member_client_pool() as cli:
-            member = cli.get_user_info(uid)
-            if member['credits'] < 0:
-                group_uin and self.send_group_message(group_uin, insufficient_funds_text)
-                return
+        user = Account.find(uid)
+        username = user.username
 
-            # April Fool!
-            from datetime import datetime
-            import random
-            b4 = datetime(2016, 4, 1)
-            af = datetime(2016, 4, 2)
-            if b4 < datetime.now() < af:
-                content += random.choice([
-                    u'喵～', u'汪～', u'poi～', u'的说～', u'呱～', u'niconiconi～',
-                    u'（PS：灵梦没节操——',
-                    u'（PS：油咖喱的脚很臭——',
-                    u'（PS：河童喜欢巨大的黄瓜——',
-                    u'（PS：妖梦是男孩子——',
-                    u'（PS：茨木华扇又在卖自己的本子——',
-                    u'（PS：幽香和天子又在做爱做的事——',
-                    u'（PS：藤原妹红穿的是男士胖次——',
-                    u'（PS：帕秋莉喜欢在房间里练习娇喘——',
-                    u'（PS：椛椛想要——',
-                    u'（PS：爱丽丝又在扎小人——',
-                    u'（PS：有看到小伞和盖伦在酒吧喝酒——',
-                    u'（PS：四季的胸还不到A罩杯——',
-                    u'（PS：早苗的欧派，赞——',
-                    u'（PS：森近霖之助昨天买了好多卫生纸——',
-                    u'（PS：咲夜又买了更大号的PAD——',
-                    u'（PS：昨天下午菜市场关门了，原因是幽幽子上午去过——',
-                    u'（PS：昨天琪露诺和灵乌路空比算数，灵乌路空赢了——',
-                    u'（PS：守矢大法好—— 天灭博丽，退博保平安—— 人在做，天在看，毫无节操留祸患—— 上网搜“10万元COS”有真相——',
-                ])
+        if user.jiecao < 0:
+            group_uin and self.send_group_message(group_uin, insufficient_funds_text)
+            return
+
+        # April Fool!
+        from datetime import datetime
+        import random
+        b4 = datetime(2016, 4, 1)
+        af = datetime(2016, 4, 2)
+        if b4 < datetime.now() < af:
+            content += random.choice([
+                u'喵～', u'汪～', u'poi～', u'的说～', u'呱～', u'niconiconi～',
+                u'（PS：灵梦没节操——',
+                u'（PS：油咖喱的脚很臭——',
+                u'（PS：河童喜欢巨大的黄瓜——',
+                u'（PS：妖梦是男孩子——',
+                u'（PS：茨木华扇又在卖自己的本子——',
+                u'（PS：幽香和天子又在做爱做的事——',
+                u'（PS：藤原妹红穿的是男士胖次——',
+                u'（PS：帕秋莉喜欢在房间里练习娇喘——',
+                u'（PS：椛椛想要——',
+                u'（PS：爱丽丝又在扎小人——',
+                u'（PS：有看到小伞和盖伦在酒吧喝酒——',
+                u'（PS：四季的胸还不到A罩杯——',
+                u'（PS：早苗的欧派，赞——',
+                u'（PS：森近霖之助昨天买了好多卫生纸——',
+                u'（PS：咲夜又买了更大号的PAD——',
+                u'（PS：昨天下午菜市场关门了，原因是幽幽子上午去过——',
+                u'（PS：昨天琪露诺和灵乌路空比算数，灵乌路空赢了——',
+                u'（PS：守矢大法好—— 天灭博丽，退博保平安—— 人在做，天在看，毫无节操留祸患—— 上网搜“10万元COS”有真相——',
+            ])
             # --------
 
-            interconnect.publish('speaker', [member['username'], content])
+            State.interconnect.publish('speaker', [username, content])
 
 
 class AyaInterconnect(Interconnect):
@@ -330,25 +320,25 @@ class AyaInterconnect(Interconnect):
                 ServerNames.get(node, node), username, content,
             )
 
-            groups_on = [int(i) for i in dao.get_all_groups_on()]
+            groups_on = [int(i) for i in State.dao.get_all_groups_on()]
             gids = [
-                g['gid'] for g in aya.group_list
-                if aya.gcode2groupnum(g['code']) in groups_on
+                g['gid'] for g in State.aya.group_list
+                if State.aya.gcode2groupnum(g['code']) in groups_on
             ]
 
             pool.map_async(lambda f: f(), [
-                partial(aya.send_group_message, i, send)
+                partial(State.aya.send_group_message, i, send)
                 for i in gids
             ])
 
         elif topic == 'aya_charge':
             uid, fee = message
             if fee < 50: return
-            qq = dao.get_binding_r(uid)
+            qq = State.dao.get_binding_r(uid)
             if not uid: return
-            uin = aya.qq2uin_bycache(qq)
+            uin = State.aya.qq2uin_bycache(qq)
             if not uin: return
-            aya.send_buddy_message(uin, u'此次文文新闻收费 %s 节操。' % int(fee))
+            State.aya.send_buddy_message(uin, u'此次文文新闻收费 %s 节操。' % int(fee))
 
     def publish(self, topic, data):
         lock = self.lock
@@ -361,15 +351,27 @@ class AyaInterconnect(Interconnect):
 
 
 def main():
-    global interconnect, aya
+    parser = argparse.ArgumentParser('aya')
+    parser.add_argument('--dbc-username')
+    parser.add_argument('--dbc-password')
+    parser.add_argument('--bearybot')
+    parser.add_argument('--upyun-bucket')
+    parser.add_argument('--upyun-username')
+    parser.add_argument('--upyun-password')
+    parser.add_argument('--redis-url', default='redis://localhost:6379')
+    parser.add_argument('--db', default='sqlite3:////dev/shm/thb.sqlite3')
+    State.options = options = parser.parse_args()
+
     logging.basicConfig(level=logging.DEBUG)
 
+    db.session.init(options.db)
     gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
 
-    aya = Aya()
-    # aya.wait_ready()
-    interconnect = AyaInterconnect.spawn('aya', options.redis_url)
-    aya.join()
+    State.aya = Aya()
+    # State.aya.wait_ready()
+    State.interconnect = AyaInterconnect.spawn('aya', options.redis_url)
+    State.dao = AyaDAO(options.redis_url)
+    State.aya.join()
 
 
 if __name__ == '__main__':

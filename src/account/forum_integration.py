@@ -3,18 +3,17 @@ from __future__ import absolute_import
 
 # -- stdlib --
 from collections import defaultdict
+import hashlib
+import itertools
 import logging
+import time
 
 # -- third party --
 import gevent
 
 # -- own --
 from account.base import AccountBase, server_side_only
-from utils import log_failure
-from server.db.session import Session
-from server.db.models import DiscuzMember, User
-import itertools
-from sqlalchemy import func
+from utils import log_failure, password_hash
 
 
 # -- code --
@@ -48,7 +47,7 @@ def _discuz_authcode(string, operation, key, expiry=0):
             if pads != -4:
                 string += '=' * -pads
 
-            string = b64decode(string[ckey_length:])
+            string = string[ckey_length:].decode('base64')
         else:
             string = str(int(time.time()) + expiry if expiry else 10000000000)[-10:]
             string += md5(string + keyb)[:16] + string
@@ -83,17 +82,19 @@ def _discuz_authcode(string, operation, key, expiry=0):
                 return ''
 
         else:
-            return keyc + b64encode(result).replace('=', '')
+            return keyc + result.encode('base64').replace('=', '')
 
     except:
         return ''
 
 
 def authencode(plain, saltkey):
+    from options import options
     return _discuz_authcode(plain, 'ENCODE', md5(options.discuz_authkey + saltkey))
 
 
 def authdecode(encrypted, saltkey):
+    from options import options
     return _discuz_authcode(encrypted, 'DECODE', md5(options.discuz_authkey + saltkey))
 
 
@@ -102,79 +103,128 @@ class Account(AccountBase):
 
     @classmethod
     @server_side_only
-    def authenticate(cls, username, password):
+    def authenticate(cls, username, password, session=None):
+        from sqlalchemy import func
+        from db.session import Session
         try:
-            s = Session()
-
             try:
-                uid = int(username)
+                if int(username) == -1:
+                    acc = cls()
+                    acc._fill_trygame()
+                    return acc
+            except:
+                pass
+
+            s = session or Session()
+            user = cls.find(username, s)
+
+            if not user:
+                return False
+
+            if cls.validate_by_password(user, password):
+                return False
+
+            # sync
+            dz_member = user.dz_member
+            user.id       = dz_member.uid
+            user.username = dz_member.username
+            user.password = password_hash(password)
+            user.email    = dz_member.email
+            user.title    = dz_member.member_field.customstatus
+            user.status   = dz_member.status
+            user.games    = dz_member.member_count.games
+            user.drops    = dz_member.member_count.drops
+            user.jiecao   = dz_member.member_count.jiecao
+
+            acc = cls()
+            acc._fill_account(user)
+
+            user.lastactivity = func.unix_timestamp()
+            dz_member.member_status.lastactivity = func.unix_timestamp()
+
+            session or s.commit()
+
+            return acc
+        except:
+            session or s.rollback()
+            raise
+
+    @staticmethod
+    @server_side_only
+    def find(id, session=None):
+        from db.models import DiscuzMember, User
+        from db.session import Session
+        from sqlalchemy.orm import joinedload
+
+        try:
+            s = session or Session()
+            try:
+                uid = int(id)
                 uid = uid if uid < 500000 else None
             except ValueError:
                 uid = None
 
-            if uid == -1:
-                acc = cls()
-                acc._fill_trygame()
-                return acc
-            elif uid:
-                dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == uid).first()
+            q = s.query(DiscuzMember).options(joinedload('ucmember'))
+            if uid:
+                dz_member = q.filter(DiscuzMember.uid == uid).first()
             else:
-                dz_member = s.query(DiscuzMember).filter(DiscuzMember.email == username).first()
-                dz_member = dz_member or s.query(DiscuzMember).filter(DiscuzMember.username == username).first()
+                dz_member = q.filter(DiscuzMember.email == id).first()
+                dz_member = dz_member or q.filter(DiscuzMember.username == id).first()
 
             if not dz_member:
-                return False
+                return None
 
-            acc = cls()
-            acc._fill_account(dz_member)
+            user = s.query(User).filter(User.id == uid).first()
+            if not user:
+                user = User()
+                s.add(user)
 
-            dz_member.member_status.lastactivity = func.unix_timestamp()
+            user.dz_member = dz_member
 
-            s.commit()
-
-            return acc
+            return user
         except:
-            s.rollback()
+            session or s.rollback()
             raise
 
     @server_side_only
     def refresh(self):
+        from db.session import Session
         try:
             s = Session()
-            dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == self.userid).first()
-            dz_member and self._fill_account(dz_member)
+            user = self.find(self.userid, s)
+            user and self._fill_account(user)
             s.commit()
         except:
             s.rollback()
             raise
 
     @server_side_only
-    def _fill_account(self, data):
-        self.username = data['username'].decode('utf-8')
-        self.status = data['status']
-        self.userid = data['uid']
+    def _fill_account(self, user):
+        self.username = user.username
+        self.status = user.status
+        self.userid = user.uid
 
         from urlparse import urljoin
         from settings import ACCOUNT_FORUMURL
 
         self.other = defaultdict(
             lambda: None,
-            title=data['title'].decode('utf-8'),
+            title=user.title,
             avatar=urljoin(
                 ACCOUNT_FORUMURL,
-                '/uc_server/avatar.php?uid=%d&size=middle' % data['uid'],
+                '/uc_server/avatar.php?uid=%d&size=middle' % user.uid,
             ),
-            credits=data['credits'],
-            games=data['games'],
-            drops=data['drops'],
-            badges=data['badges'],
+            credits=user.credits,
+            games=user.games,
+            drops=user.drops,
         )
 
     @server_side_only
     def _fill_trygame(self):
+        c = try_counter()
         self.username = u'毛玉' + str(c)
         self.status = 0
-        self.userid = -try_counter()
+        self.userid = -c
 
         from urlparse import urljoin
         from settings import ACCOUNT_FORUMURL
@@ -189,7 +239,6 @@ class Account(AccountBase):
             credits=-998,
             games=0,
             drops=0,
-            badges=[],
         )
 
     @server_side_only
@@ -198,16 +247,54 @@ class Account(AccountBase):
 
     @server_side_only
     def add_credit(self, type, amount):
-        if self.userid < 0:
+        if self.is_maoyu() < 0:
             return
 
         @gevent.spawn
         @log_failure(log)
         def worker():
-            with clipool() as cli:
-                rst = cli.add_credit(self.userid, type, amount)
-                rst and self._fill_account(rst)
+            from db.session import Session
+            try:
+                s = Session()
+                user = self.find(self.userid, s)
+                dz_member = user.dz_member
+                if type == 'jiecao':
+                    dz_member.member_count.jiecao += amount
+                    user.jiecao += amount
+                elif type == 'games':
+                    dz_member.member_count.games += amount
+                    user.games += amount
+                elif type == 'drops':
+                    dz_member.member_count.drops += amount
+                    user.drops += amount
+                elif type == 'ppoint':
+                    user.ppoint += amount
+
+                self._fill_account(user)
+                s.commit()
+            except:
+                s.rollback()
+                raise
 
     @server_side_only
     def is_maoyu(self):
         return self.userid < 0
+
+    @staticmethod
+    @server_side_only
+    def validate_by_password(user, password):
+        dz_member = user.dz_member
+        if isinstance(password, unicode):
+            password = password.encode('utf-8')
+
+        return md5(md5(password) + dz_member.ucmember.salt) == dz_member.password
+
+    @staticmethod
+    def decode_cookie(auth, saltkey):
+        password, uid = authdecode(auth, saltkey).split('\t')
+        return uid, password
+
+    @staticmethod
+    @server_side_only
+    def validate_by_cookie_pwd(user, password):
+        return user.dz_member.password == password
