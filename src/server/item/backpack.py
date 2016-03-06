@@ -9,8 +9,9 @@ import json
 # -- own --
 from db.models import Item, ItemActivity
 from db.session import Session
-from server.item import helpers, items
-from server.item.exceptions import ItemNotFound, ItemNotUsable
+from game.item import GameItem
+from server.item import helpers
+from utils import exceptions
 
 
 # -- code --
@@ -26,7 +27,7 @@ def use(uid, item_sku_or_id, is_consume=False):
             item = s.query(Item).filter(Item.owner_id == uid, Item.sku == item_sku_or_id).first()
 
         if not item:
-            raise ItemNotFound
+            raise exceptions.ItemNotFound
 
         s.add(ItemActivity(
             uid=uid, action='use', item_id=item.id,
@@ -34,9 +35,9 @@ def use(uid, item_sku_or_id, is_consume=False):
         ))
 
         if not is_consume:
-            itemobj = items.from_sku(item.sku)
+            itemobj = GameItem.from_sku(item.sku)
             if not itemobj.usable:
-                raise ItemNotUsable
+                raise exceptions.ItemNotUsable
 
             itemobj.use(s, item.owner)
 
@@ -93,6 +94,24 @@ def list(uid):
         raise
 
 
+def should_have(uid, sku):
+    try:
+        s = Session()
+        n = s.query(Item) \
+            .filter(Item.owner_id == uid,
+                    Item.status == 'backpack',
+                    Item.sku == sku) \
+            .count()
+        s.commit()
+        return n
+    except:
+        s.rollback()
+        raise
+
+    if not n:
+        raise exceptions.ItemNotFound
+
+
 def drop(uid, item_id):
     try:
         s = Session()
@@ -103,7 +122,7 @@ def drop(uid, item_id):
             .first()
 
         if not item:
-            raise ItemNotFound
+            raise exceptions.ItemNotFound
 
         item.owner_id = None
         item.status = 'dropped'

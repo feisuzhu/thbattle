@@ -194,7 +194,7 @@ class Warpgate(object):
         from game import autoenv
         autoenv.init('Client')
 
-        import gamepack.thb.ui.ui_meta  # noqa, init ui_meta
+        import thb.ui.ui_meta  # noqa, init ui_meta
 
         from client.core.executive import Executive
         self.executive = ExecutiveWrapper(Executive, self)

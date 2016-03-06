@@ -38,8 +38,7 @@ def start_ui():
     # resulting white planes.
     # UPDATE: no more threading now, but retain notice above.
     import client.ui.resource  # noqa
-    import gamepack
-    gamepack.init_ui_resources()
+    import thb.ui.resource
 
     '''
     from client.ui.resloader import Resource

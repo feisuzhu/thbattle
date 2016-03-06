@@ -11,7 +11,7 @@ import random
 from db.models import DiscuzMember, Item, ItemActivity, User
 from db.session import Session
 from server.item import constants, helpers
-from server.item.exceptions import InsufficientFunds, InvalidCurrency, UserNotFound
+from utils import exceptions
 
 
 # -- code --
@@ -22,14 +22,14 @@ def draw(uid, currency):
         s = Session()
         u = s.query(User).filter(User.id == uid).first()
         if not u:
-            raise UserNotFound
+            raise exceptions.UserNotFound
 
         helpers.require_free_backpack_slot(s, uid)
 
         if currency == 'ppoint':
             amount = constants.LOTTERY_PRICE
             if u.ppoint < amount:
-                raise InsufficientFunds
+                raise exceptions.InsufficientFunds
 
             u.ppoint -= amount
 
@@ -37,15 +37,15 @@ def draw(uid, currency):
             amount = constants.LOTTERY_JIECAO_PRICE
             dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == uid).first()
             if not dz_member:
-                raise UserNotFound
+                raise exceptions.UserNotFound
 
             if dz_member.member_count.jiecao < amount:
-                raise InsufficientFunds
+                raise exceptions.InsufficientFunds
 
             dz_member.member_count.jiecao -= amount
 
         else:
-            raise InvalidCurrency
+            raise exceptions.InvalidCurrency
 
         reward = random.choice(constants.LOTTERY_REWARD_LIST)
 

@@ -9,4 +9,6 @@ from server.item.subsystem import ItemSystem
 
 
 # -- code --
+import server.item.items  # noqa, init it
+
 Subsystem.item = ItemSystem()

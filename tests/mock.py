@@ -6,7 +6,7 @@ import re
 
 # -- third party --
 from gevent.event import Event
-import json
+import msgpack
 
 # -- own --
 from endpoint import Endpoint
@@ -55,7 +55,7 @@ class MockConnection(object):
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
         encoded = Endpoint.encode(data)
-        self.gdhistory.append([tag, json.loads(encoded)])
+        self.gdhistory.append([tag, msgpack.unpackb(encoded)])
 
     def gclear(self):
         assert self.exhausted

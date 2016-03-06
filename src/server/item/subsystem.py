@@ -8,7 +8,7 @@ import logging
 
 # -- own --
 from server.item import backpack, exchange, lottery
-from utils.misc import BusinessException
+from utils import BusinessException
 
 
 # -- code --
@@ -59,7 +59,7 @@ class ItemSystem(object):
         try:
             handler(user, *args)
         except BusinessException as e:
-            user.write(['error', e.snake_case()])
+            user.write(['error', e.snake_case])
 
     @_command()
     def list_backpack(self, user):

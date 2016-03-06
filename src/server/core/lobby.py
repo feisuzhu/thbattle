@@ -178,17 +178,17 @@ class Lobby(object):
         manager and self.join_game(user, manager.gameid)
 
     def create_game(self, user, gametype, name, invite_only):
-        from gamepack import gamemodes, gamemodes_maoyu
-        if user and user.account.is_maoyu() and gametype not in gamemodes_maoyu:
+        from thb import modes, modes_maoyu
+        if user and user.account.is_maoyu() and gametype not in modes_maoyu:
             user.write(['lobby_error', 'maoyu_limitation'])
             return
 
-        if gametype not in gamemodes:
+        if gametype not in modes:
             user.write(['lobby_error', 'gametype_not_exist'])
             return
 
         gid = self.new_gid()
-        gamecls = gamemodes[gametype]
+        gamecls = modes[gametype]
         manager = GameManager(gid, gamecls, name, invite_only)
         self.games[gid] = manager
         log.info("Create game")
@@ -204,8 +204,8 @@ class Lobby(object):
             user.write(['lobby_error', 'cant_join_game'])
             return
 
-        from gamepack import gamemodes_maoyu
-        if user.account.is_maoyu() and manager.gamecls.__name__ not in gamemodes_maoyu:
+        from gamepack import modes_maoyu
+        if user.account.is_maoyu() and manager.gamecls.__name__ not in modes_maoyu:
             user.write(['lobby_error', 'maoyu_limitation'])
             return
 
@@ -653,9 +653,9 @@ class Lobby(object):
                 gevent.sleep(1)
 
     def setup_match(self, operator, name, gametype, *players):
-        from gamepack import gamemodes
+        from thb import modes
         gid = self.new_gid()
-        gamecls = gamemodes[gametype]
+        gamecls = modes[gametype]
         if len(players) != gamecls.n_persons:
             operator.write(['system_msg', [None, u'参赛人数不正确']])
             return

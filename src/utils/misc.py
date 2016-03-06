@@ -802,9 +802,16 @@ def validate_args(*typelist):
 
 
 class BusinessException(Exception):
+    pass
 
-    def snake_case(self):
-        return '_'.join([
-            i.lower() for i in
-            re.findall(r'[A-Z]+[a-z]+', self.__class__.__name__)
+
+@instantiate
+class exceptions(object):
+    def __getattr__(self, k):
+        snake_case = '_'.join([
+            i.lower() for i in re.findall(r'[A-Z]+[a-z]+', k)
         ])
+
+        cls = type(k, (BusinessException,), {'snake_case': snake_case})
+        setattr(self, k, cls)
+        return cls

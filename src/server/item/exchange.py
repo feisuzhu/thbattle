@@ -12,8 +12,7 @@ from sqlalchemy.orm import joinedload
 from db.models import Exchange, Item, ItemActivity, User
 from db.session import Session
 from server.item import constants, helpers
-from server.item.exceptions import InsufficientFunds, ItemNotFound, TooManySellingItems
-from server.item.exceptions import UserNotFound
+from utils import exceptions
 
 
 # -- code --
@@ -26,16 +25,16 @@ def buy(uid, entry_id):
 
         u = s.query(User).filter(User.id == uid).first()
         if not u:
-            raise UserNotFound
+            raise exceptions.UserNotFound
 
         entry = s.query(Exchange).filter(Exchange.id == entry_id).first()
         if not entry:
-            raise ItemNotFound
+            raise exceptions.ItemNotFound
 
         seller = entry.seller
 
         if u.ppoint < entry.price:
-            raise InsufficientFunds
+            raise exceptions.InsufficientFunds
 
         helpers.require_free_backpack_slot(s, uid)
 
@@ -66,11 +65,11 @@ def sell(uid, item_id, price):
         s = Session()
         item = s.query(Item).filter(Item.id == item_id, Item.owner_id == uid).first()
         if not item:
-            raise ItemNotFound
+            raise exceptions.ItemNotFound
 
         existing = s.query(Exchange).filter(Exchange.seller_id == uid).count()
         if existing > constants.MAX_SELLING_ITEMS:
-            raise TooManySellingItems
+            raise exceptions.TooManySellingItems
 
         s.add(Exchange(
             seller_id=uid,
@@ -103,7 +102,7 @@ def cancel_sell(uid, entry_id):
         ).first()
 
         if not entry:
-            raise ItemNotFound
+            raise exceptions.ItemNotFound
 
         helpers.require_free_backpack_slot(s, uid)
 

@@ -39,7 +39,7 @@ class GameManager(Greenlet):
     def _run(self):
         self.link_exception(lambda *a: self.event_cb('server_dropped'))
 
-        from gamepack import gamemodes
+        from thb import modes
         handlers = {}
 
         def handler(_from, _to):
@@ -65,7 +65,7 @@ class GameManager(Greenlet):
 
         @handler(('inroom',), 'ingame')
         def game_started(self, data):
-            params, pldata = data
+            params, items, pldata = data
             Executive.server.gclear()
             if self.last_game:
                 self.last_game.kill(ForcedKill)
@@ -82,12 +82,13 @@ class GameManager(Greenlet):
             g = self.game
             g.me = me
             g.game_params = params
+            g.game_items = items
             g.players = BatchList(pl)
             # g.start()  Starts by UI
             log.info('=======GAME STARTED: %d=======' % g.gameid)
             log.info(g)
 
-            self.last_game_info = params, i, pldata
+            self.last_game_info = params, items, i, pldata
 
             @g.link_exception
             def crash(*a):
@@ -99,7 +100,7 @@ class GameManager(Greenlet):
                 if not isinstance(v, ForcedKill):
                     self.event_cb('client_game_finished', g)
 
-            self.event_cb('game_started', (g, params, pldata, g.players[:]))
+            self.event_cb('game_started', (g, params, items, pldata, g.players[:]))
 
         @handler(('inroom',), 'ingame')
         def observe_started(self, data):
@@ -109,7 +110,7 @@ class GameManager(Greenlet):
                 self.last_game.get()
                 self.last_game = None
 
-            params, tgtid, pldata = data
+            params, items, tgtid, pldata = data
             from client.core import PeerPlayer, TheLittleBrother
             pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
@@ -122,6 +123,7 @@ class GameManager(Greenlet):
             me.server = Executive.server
             g.me = me
             g.game_params = params
+            g.game_items = items
             # g.start()  Starts by UI
             log.info('=======OBSERVE STARTED=======')
             log.info(g)
@@ -140,7 +142,7 @@ class GameManager(Greenlet):
 
         @handler(('hang', 'inroom'), 'inroom')
         def game_joined(self, data):
-            self.game = gamemodes[data['type']]()
+            self.game = modes[data['type']]()
             self.game.gameid = int(data['id'])
             self.event_cb('game_joined', self.game)
             self.event_cb('game_params', data['params'])
@@ -342,9 +344,9 @@ class Executive(object):
         self.state = 'replay'
 
         from client.core import PeerPlayer, TheLittleBrother
-        from gamepack import gamemodes
+        from thb import modes
 
-        g = gamemodes[rep.game_mode]()
+        g = modes[rep.game_mode]()
         self.server = ReplayEndpoint(rep, g)
 
         pl = [PeerPlayer.parse(i) for i in rep.users]

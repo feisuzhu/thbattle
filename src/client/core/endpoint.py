@@ -12,7 +12,7 @@ import gevent
 # -- own --
 from client.core.common import ForcedKill
 from endpoint import Endpoint
-from game import Gamedata
+from game.base import Gamedata
 
 
 # -- code --

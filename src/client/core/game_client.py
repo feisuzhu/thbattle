@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
-import logging
-log = logging.getLogger('Game_Client')
-from copy import copy
 from collections import OrderedDict
+from copy import copy
+import logging
 
 # -- third party --
-import gevent
 from gevent import Greenlet
+import gevent
 
 # -- own --
-import game
-from game import TimeLimitExceeded, InputTransaction, GameEnded
-from utils import BatchList
 from account import Account
+from game.base import GameEnded, InputTransaction, TimeLimitExceeded, AbstractPlayer
+from utils import BatchList
+import game.base
 
 # -- code --
+log = logging.getLogger('Game_Client')
 
 
 def user_input(players, inputlet, timeout=25, type='single', trans=None):
@@ -129,7 +130,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     assert False, 'WTF?!'
 
 
-class TheChosenOne(game.AbstractPlayer):
+class TheChosenOne(game.base.AbstractPlayer):
     dropped = False
     is_observer = False
 
@@ -153,12 +154,12 @@ class TheChosenOne(game.AbstractPlayer):
         pass
 
 
-class PeerPlayer(game.AbstractPlayer):
+class PeerPlayer(AbstractPlayer):
     dropped = False
     is_observer = False
 
     def __init__(self):
-        game.AbstractPlayer.__init__(self)
+        AbstractPlayer.__init__(self)
         self.account = None
 
     def reveal(self, obj_list):
@@ -188,7 +189,7 @@ class TheLittleBrother(PeerPlayer):
     reveal = TheChosenOne.reveal.im_func
 
 
-class Game(Greenlet, game.Game):
+class Game(Greenlet, game.base.Game):
     '''
     The Game class, all game mode derives from this.
     Provides fundamental behaviors.
@@ -211,12 +212,13 @@ class Game(Greenlet, game.Game):
         game.Game.__init__(self)
         self.players = BatchList()
         self.game_params = {}
+        self.game_items = {}
 
     def _run(g):
         g.synctag = 0
         Game.thegame = g
         try:
-            g.process_action(g.bootstrap(g.game_params))
+            g.process_action(g.bootstrap(g.game_params, g.game_items))
         except GameEnded:
             pass
 

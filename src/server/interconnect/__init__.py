@@ -13,5 +13,5 @@ if options.interconnect:
     from server.interconnect.redis import Interconnect
     Subsystem.interconnect = Interconnect.spawn(options.node, options.redis_url)
 else:
-    from server.interconnect.dummy import Interconnect
-    Subsystem.interconnect = Interconnect()
+    from server.interconnect.dummy import DummyInterconnect
+    Subsystem.interconnect = DummyInterconnect()

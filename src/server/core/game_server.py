@@ -13,12 +13,14 @@ import gevent
 
 # -- own --
 from endpoint import EndpointDied
-from game import GameEnded, InputTransaction, TimeLimitExceeded
+from game.base import AbstractPlayer, GameEnded, InputTransaction, TimeLimitExceeded
+from server.core.event_hooks import ServerEventHooks
+from server.core.game_manager import GameManager
 from server.subsystem import Subsystem
 from utils import log_failure
 from utils.gevent_ext import iwait
 from utils.stats import stats
-import game
+import game.base
 
 
 # -- code --
@@ -162,7 +164,7 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     assert False, 'WTF?!'
 
 
-class Player(game.AbstractPlayer):
+class Player(AbstractPlayer):
     dropped = False
     fleed   = False
     is_npc  = False
@@ -204,7 +206,7 @@ class Player(game.AbstractPlayer):
         return self.client.account
 
 
-class NPCPlayer(game.AbstractPlayer):
+class NPCPlayer(AbstractPlayer):
     dropped = False
     fleed   = False
     is_npc  = True
@@ -230,7 +232,7 @@ class NPCPlayer(game.AbstractPlayer):
         raise Exception('WTF?!')
 
 
-class Game(Greenlet, game.Game):
+class Game(Greenlet, game.base.Game):
     suicide = False
     '''
     The Game class, all game mode derives from this.
@@ -248,19 +250,21 @@ class Game(Greenlet, game.Game):
 
     def __init__(self):
         Greenlet.__init__(self)
-        game.Game.__init__(self)
+        game.base.Game.__init__(self)
 
     @log_failure(log)
     def _run(g):
         g.synctag = 0
+        g.event_observer = ServerEventHooks()
         g.game = getcurrent()
-        Subsystem.lobby.start_game(g.manager)
+        mgr = GameManager.get_by_game(g)
+        Subsystem.lobby.start_game(mgr)
         try:
-            g.process_action(g.bootstrap(g.manager.game_params))
+            g.process_action(g.bootstrap(mgr.game_params, mgr.consumed_game_items))
         except GameEnded:
             pass
         finally:
-            Subsystem.lobby.end_game(g.manager)
+            Subsystem.lobby.end_game(mgr)
 
         assert g.ended
 

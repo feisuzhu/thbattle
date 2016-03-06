@@ -6,11 +6,11 @@ from __future__ import absolute_import
 # -- own --
 from db.models import Item
 from server.item import constants
-from server.item.exceptions import BackpackFull
+from utils import exceptions
 
 
 # -- code --
 def require_free_backpack_slot(sess, uid):
     cnt = sess.query(Item).filter(Item.owner_id == uid).count()
     if cnt >= constants.BACKPACK_SIZE:
-        raise BackpackFull
+        raise exceptions.BackpackFull

@@ -206,7 +206,7 @@ class Screen(Overlay):
                 Executive.invite_grant(gid, False)
                 return
 
-            from gamepack import gamemodes as modes
+            from thb import modes
 
             gtype = modes.get(gtype, None)
             gtype = gtype and gtype.ui_meta.name
@@ -678,7 +678,7 @@ class GameHallScreen(Screen):
                     batch=batch,
                 )
 
-                from gamepack import gamemodes as modes
+                from thb import modes
 
                 self.selectors = selectors = []
 
@@ -827,7 +827,7 @@ class GameHallScreen(Screen):
 
         def on_message(self, _type, *args):
             if _type == 'current_games':
-                from gamepack import gamemodes as modes
+                from thb import modes
                 current_games = args[0]
                 glist = self.gamelist
                 glist.clear()

@@ -13,7 +13,7 @@ from gevent.queue import Queue
 # -- own --
 from account import Account
 from endpoint import Endpoint, EndpointDied
-from game import Gamedata
+from game.base import Gamedata
 from options import options
 from server.subsystem import Subsystem
 from utils import BatchList, log_failure

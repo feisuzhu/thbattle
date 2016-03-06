@@ -4,6 +4,8 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 from nose.tools import eq_, assert_raises
+from game.item import GameItem
+from utils import exceptions
 
 # -- own --
 
@@ -14,28 +16,41 @@ class options:
     db = 'sqlite:////dev/shm/thbtest.sqlite3'
 
 
+@GameItem.register
+class Foo(GameItem):
+    key, args, usable, title = 'foo', [], True, 'Foo'
+    description = u'没什么用，测试用的'
+    use = lambda *a: 0
+
+
+@GameItem.register
+class Bar(GameItem):
+    key, args, usable, title = 'bar', [], False, 'Bar'
+    description = u'没什么用，测试用的'
+
+
 class TestExchange(object):
 
     @classmethod
     def setUpClass(cls):
-        import sys
         import os
         try:
             os.unlink('/dev/shm/thbtest.sqlite3')
         except:
             pass
 
-        sys.modules['options'] = sys.modules[__name__]
+        import db.session
+        db.session.init('sqlite:////dev/shm/thbtest.sqlite3')
 
     def setUp(self):
-        from server.db.session import Session
-        from server.db.models import User, Item, DiscuzMember, DiscuzMemberCount
+        from db.session import Session
+        from db.models import User, Item, DiscuzMember, DiscuzMemberCount
         s = Session()
         [s.query(c).delete() for c in [User, Item, DiscuzMember, DiscuzMemberCount]]
         s.commit()
         [s.add(i) for i in [
-            User(id=1, name='', ppoint=1000, title='', showgirl=0),
-            User(id=2, name='', ppoint=1000, title='', showgirl=0),
+            User(id=1, username='1', ppoint=1000, title='', email='1@test.com', showgirl=0),
+            User(id=2, username='2', ppoint=1000, title='', email='2@test.com', showgirl=0),
             DiscuzMember(uid=1, username='1'),
             DiscuzMember(uid=2, username='2'),
             DiscuzMemberCount(uid=1, jiecao=100000),
@@ -46,15 +61,15 @@ class TestExchange(object):
         s.commit()
 
     def testExchange(self):
-        from server.db.session import Session
-        from server.db.models import Exchange, User, Item
-        from server.item import exchange, exceptions
+        from db.session import Session
+        from db.models import Exchange, User, Item
+        from server.item import exchange
 
         s = Session()
 
         s.rollback()
         exchange.sell(uid=1, item_id=1, price=500)
-        eq_(s.execute('select count(*) from thb_item where owner_id is not null').scalar(), 1)
+        eq_(s.query(Item).filter(Item.owner_id != None).count(), 1)  # noqa
         e = s.query(Exchange).first()
         eq_(e.item.sku, 'foo')
         eid = e.id
@@ -94,9 +109,9 @@ class TestExchange(object):
         exchange.list()
 
     def testBackpack(self):
-        from server.db.session import Session
-        from server.db.models import User, Item, DiscuzMember
-        from server.item import backpack, exceptions, constants
+        from db.session import Session
+        from db.models import User, Item, DiscuzMember
+        from server.item import backpack, constants
 
         s = Session()
 
@@ -155,9 +170,9 @@ class TestExchange(object):
         eq_(dz_member.member_count.jiecao, 1234)
 
     def testLottery(self):
-        from server.db.session import Session
-        from server.db.models import User, DiscuzMember
-        from server.item import exceptions, constants, lottery
+        from db.session import Session
+        from db.models import User, DiscuzMember
+        from server.item import constants, lottery
 
         lottery.draw(1, 'jiecao')
         lottery.draw(1, 'ppoint')

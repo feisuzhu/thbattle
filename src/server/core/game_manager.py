@@ -18,8 +18,9 @@ import gevent
 from options import options
 from server.core.endpoint import Client, DroppedClient, NPCClient
 from server.subsystem import Subsystem
+from server import item
 from settings import VERSION
-from utils import BatchList, instantiate
+from utils import BatchList, instantiate, BusinessException
 from utils.misc import throttle
 
 
@@ -51,6 +52,7 @@ class GameManager(object):
         self.ob_banlist   = defaultdict(set)
         self.gameid       = gid
         self.gamecls      = gamecls
+        self.game_items   = defaultdict(set)  # Client -> ['item:meh', ...]
         self.game_params  = {k: v[0] for k, v in gamecls.params_def.items()}
         self.is_match     = False
         self.match_users  = []
@@ -58,7 +60,7 @@ class GameManager(object):
         self.invite_list  = set()
 
         g.gameid    = gid
-        g.manager   = self
+        g._manager  = self
         g.rndseed   = random.getrandbits(63)
         g.random    = random.Random(g.rndseed)
         g.players   = BatchList()
@@ -83,6 +85,16 @@ class GameManager(object):
         '''
 
         return user.current_game
+
+    @classmethod
+    def get_by_game(cls, g):
+        '''
+        Get GameManager object for game.
+
+        :rtype: GameManager
+        '''
+
+        return g._manager
 
     def send_gameinfo(self, user):
         g = self.game
@@ -192,6 +204,7 @@ class GameManager(object):
             return
 
         self.game_params[key] = value
+        self.game_items = defaultdict(set)
 
         for u in self.users:
             if u.state == 'ready':
@@ -356,6 +369,7 @@ class GameManager(object):
         self.notify_playerchange()
 
     def start_game(self):
+        self.consume_items()
         g = self.game
         assert ClientPlaceHolder not in self.users
         assert all([u.state == 'ready' for u in self.users])
@@ -377,12 +391,40 @@ class GameManager(object):
 
         self.start_time = time.time()
         for u in self.users:
-            u.write(["game_started", [self.game_params, g.players]])
+            u.write(["game_started", [self.game_params, self.consumed_game_items, g.players]])
             u.gclear()
             if u.observers:
                 u.observers.gclear()
-                u.observers.write(['observe_started', [self.game_params, u.account.userid, g.players]])
+                u.observers.write(['observe_started', [self.game_params, self.consumed_game_items, u.account.userid, g.players]])
             u.state = 'ingame'
+
+    def consume_items(self):
+        final = {}
+        for uid, l in self.game_items:
+            consumed = []
+            for i in l:
+                try:
+                    item.backpack.consume(uid, i)
+                    consumed.append(i)
+                except item.exceptions.ItemNotFound:
+                    pass
+
+            final[uid] = consumed
+
+        self.consumed_game_items = final
+
+    def use_item(self, user, sku):
+        try:
+            item.backpack.should_have(user.userid, sku)
+            i = item.items.from_sku(sku)
+            i.should_usable_in_game(user.userid, self)
+            self.game_items[user.userid].add(sku)
+            user.write(['message', 'use_item_success'])
+        except BusinessException as e:
+            user.write(['error', e.snake_case])
+
+    def clear_item(self, user):
+        self.game_items[user.userid].clear()
 
     def build_initial_players(self):
         from server.core.game_server import Player, NPCPlayer
@@ -474,6 +516,8 @@ class GameManager(object):
 
         for bl in self.banlist.values():
             bl.discard(user)
+
+        self.game_items.pop(user.userid, 0)
 
         return rst
 

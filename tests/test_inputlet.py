@@ -1,21 +1,35 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
+# -- stdlib --
 from collections import defaultdict
-from .mock import create_mock_player, hook_game, MockConnection
-from nose.tools import eq_
+from weakref import WeakSet
 import random
 
+# -- third party --
+from nose.tools import eq_
 
+# -- own --
+from .mock import MockConnection, create_mock_player, hook_game
+
+
+# -- code --
 class TestInputlet(object):
+    @classmethod
+    def setUpClass(cls):
+        import db.session
+        db.session.init('sqlite:////dev/shm/test.sqlite3')
+
     def getInputletInstances(self):
-        from gamepack.thb.cards import AttackCard
-        from gamepack.thb.characters.youmu import Youmu
-        from gamepack.thb.common import CharChoice
-        from gamepack.thb.inputlets import ActionInputlet
-        from gamepack.thb.inputlets import ChooseGirlInputlet
-        from gamepack.thb.inputlets import ChooseIndividualCardInputlet
-        from gamepack.thb.inputlets import ChooseOptionInputlet
-        from gamepack.thb.inputlets import ChoosePeerCardInputlet
-        from gamepack.thb.inputlets import ProphetInputlet
+        from thb.cards import AttackCard
+        from thb.characters.youmu import Youmu
+        from thb.common import CharChoice
+        from thb.inputlets import ActionInputlet
+        from thb.inputlets import ChooseGirlInputlet
+        from thb.inputlets import ChooseIndividualCardInputlet
+        from thb.inputlets import ChooseOptionInputlet
+        from thb.inputlets import ChoosePeerCardInputlet
+        from thb.inputlets import ProphetInputlet
 
         g, p = self.makeGame()
 
@@ -23,7 +37,7 @@ class TestInputlet(object):
             ActionInputlet(self, ['cards', 'showncards'], []),
             ChooseGirlInputlet(self, {p: [CharChoice(Youmu)]}),
             ChooseIndividualCardInputlet(self, [AttackCard()]),
-            ChooseOptionInputlet(self),
+            ChooseOptionInputlet(self, (False, True)),
             ChoosePeerCardInputlet(self, p, ['cards']),
             ProphetInputlet(self, [AttackCard()]),
         ]
@@ -44,7 +58,7 @@ class TestInputlet(object):
             ilet.data()
 
     def testInputletNameClash(self):
-        from game import Inputlet
+        from game.base import Inputlet
         classes = Inputlet.__subclasses__()
 
         clsnames = set([cls.tag() for cls in classes])
@@ -55,8 +69,8 @@ class TestInputlet(object):
         from game.autoenv import user_input
         from client.core import TheChosenOne, PeerPlayer
 
-        from gamepack.thb.thb3v3 import THBattle
-        from gamepack.thb.inputlets import ChooseOptionInputlet
+        from thb.thb3v3 import THBattle
+        from thb.inputlets import ChooseOptionInputlet
         from utils import BatchList
 
         autoenv.init('Server')
@@ -73,8 +87,9 @@ class TestInputlet(object):
         p.client.gdevent.set()
         g.players = BatchList(pl)
         hook_game(g)
+        g.gr_groups = WeakSet()
 
-        ilet = ChooseOptionInputlet(self)
+        ilet = ChooseOptionInputlet(self, (False, True))
 
         eq_(user_input([p], ilet), True)
         eq_(user_input([p], ilet, type='all'), {p: False})
@@ -103,7 +118,7 @@ class TestInputlet(object):
         hook_game(g)
         assert autoenv.Game.getgame() is g
 
-        ilet = ChooseOptionInputlet(self)
+        ilet = ChooseOptionInputlet(self, (False, True))
 
         eq_(user_input([p], ilet), True)
         eq_(user_input([p], ilet, type='all'), {p: False})
@@ -112,9 +127,9 @@ class TestInputlet(object):
     def makeGame(self):
         from game import autoenv
 
-        from gamepack.thb.thb3v3 import THBattle
-        from gamepack.thb.cards import Deck, CardList
-        from gamepack.thb.characters.eirin import FirstAid, Medic
+        from thb.thb3v3 import THBattle
+        from thb.cards import Deck, CardList
+        from thb.characters.eirin import FirstAid, Medic
 
         from utils import BatchList
 
@@ -125,6 +140,8 @@ class TestInputlet(object):
         hook_game(g)
         deck = Deck()
         g.deck = deck
+        g.action_stack = [autoenv.Action(None, None)]
+        g.gr_groups = WeakSet()
 
         pl = [create_mock_player([]) for i in xrange(6)]
         for p in pl:
@@ -151,39 +168,40 @@ class TestInputlet(object):
 
     def testActionInputlet(self):
         from game.autoenv import user_input
-        from gamepack.thb.cards import migrate_cards
-        from gamepack.thb.characters.eirin import FirstAid, Medic
-        from gamepack.thb.inputlets import ActionInputlet
+        from thb.cards import migrate_cards
+        from thb.characters.eirin import FirstAid, Medic
+        from thb.inputlets import ActionInputlet
 
         g, p = self.makeGame()
         c1, c2, c3 = g.deck.getcards(3)
 
-        migrate_cards([c1, c2, c3], p.cards, no_event=True)
+        # migrate_cards([c1, c2, c3], p.cards, no_event=True)
+        migrate_cards([c1, c2, c3], p.cards)
 
         ilet = ActionInputlet(self, ['cards', 'showncards'], candidates=g.players)
         ilet.skills = [FirstAid]
         ilet.cards = [c1, c2]
         ilet.players = [p, p]
         ilet.actor = p
-        eq_(ilet.data(), [[0], [c1.syncid, c2.syncid], [0, 0]])
+        eq_(ilet.data(), [[0], [c1.sync_id, c2.sync_id], [0, 0], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[], [c1.syncid, c2.syncid], []]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[], [c1.sync_id, c2.sync_id], []]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], [])
-        eq_(user_input([p], ilet), [[], [c1, c2], []])
+        eq_(user_input([p], ilet), [[], [c1, c2], [], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[0], [c2.syncid, c3.syncid], []]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[0], [c2.sync_id, c3.sync_id], []]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], [])
-        eq_(user_input([p], ilet), [[FirstAid], [c2, c3], []])
+        eq_(user_input([p], ilet), [[FirstAid], [c2, c3], [], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[1, 0], [c3.syncid, c1.syncid], [0]]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[1, 0], [c3.sync_id, c1.sync_id], [0]]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], [])
-        eq_(user_input([p], ilet), [[Medic, FirstAid], [c3, c1], []])
+        eq_(user_input([p], ilet), [[Medic, FirstAid], [c3, c1], [], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[1, 0], [c3.syncid, c1.syncid], [0]]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[1, 0], [c3.sync_id, c1.sync_id], [0]]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], candidates=g.players)
-        eq_(user_input([p], ilet), [[Medic, FirstAid], [c3, c1], [p]])
+        eq_(user_input([p], ilet), [[Medic, FirstAid], [c3, c1], [p], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[3, 0], [c3.syncid, c1.syncid], [0]]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[3, 0], [c3.sync_id, c1.sync_id], [0]]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], [])
         eq_(user_input([p], ilet), None)
 
@@ -193,16 +211,16 @@ class TestInputlet(object):
 
     def testChooseIndividualCardInputlet(self):
         from game.autoenv import user_input
-        from gamepack.thb.inputlets import ChooseIndividualCardInputlet
+        from thb.inputlets import ChooseIndividualCardInputlet
 
         g, p = self.makeGame()
         cards = g.deck.getcards(5)
 
         ilet = ChooseIndividualCardInputlet(self, cards=cards)
         ilet.set_card(cards[1])
-        eq_(ilet.data(), cards[1].syncid)
+        eq_(ilet.data(), cards[1].sync_id)
 
-        p.client.gdlist.append([r'>I:ChooseIndividualCard:\d+', cards[2].syncid])
+        p.client.gdlist.append([r'>I:ChooseIndividualCard:\d+', cards[2].sync_id])
         ilet = ChooseIndividualCardInputlet(self, cards=cards)
         eq_(user_input([p], ilet), cards[2])
 
@@ -212,27 +230,27 @@ class TestInputlet(object):
 
     def testChoosePeerCardInputlet(self):
         from game.autoenv import user_input
-        from gamepack.thb.inputlets import ChoosePeerCardInputlet
-        from gamepack.thb.cards import migrate_cards
+        from thb.inputlets import ChoosePeerCardInputlet
+        from thb.cards import migrate_cards
 
         g, p = self.makeGame()
         tgt = g.players[1]
 
         cards = g.deck.getcards(5)
-        migrate_cards(cards, tgt.cards, no_event=True)
+        migrate_cards(cards, tgt.cards)
 
         showncards = g.deck.getcards(5)
-        migrate_cards(showncards, tgt.showncards, no_event=True)
+        migrate_cards(showncards, tgt.showncards)
 
         ilet = ChoosePeerCardInputlet(self, target=tgt, categories=['cards'])
         ilet.set_card(cards[1])
-        eq_(ilet.data(), cards[1].syncid)
+        eq_(ilet.data(), cards[1].sync_id)
 
-        p.client.gdlist.append([r'>I:ChoosePeerCard:\d+', cards[2].syncid])
+        p.client.gdlist.append([r'>I:ChoosePeerCard:\d+', cards[2].sync_id])
         ilet = ChoosePeerCardInputlet(self, target=tgt, categories=['cards'])
         eq_(user_input([p], ilet), cards[2])
 
-        p.client.gdlist.append([r'>I:ChoosePeerCard:\d+', showncards[2].syncid])
+        p.client.gdlist.append([r'>I:ChoosePeerCard:\d+', showncards[2].sync_id])
         ilet = ChoosePeerCardInputlet(self, target=tgt, categories=['cards'])
         eq_(user_input([p], ilet), None)
 
@@ -245,7 +263,7 @@ class TestInputlet(object):
         autoenv.init('Server')
 
         from game.autoenv import user_input
-        from gamepack.thb.inputlets import ProphetInputlet
+        from thb.inputlets import ProphetInputlet
 
         g, p = self.makeGame()
 
@@ -274,10 +292,10 @@ class TestInputlet(object):
 
     def testChooseGirlInputlet(self):
         from game.autoenv import user_input
-        from gamepack.thb.common import CharChoice
-        from gamepack.thb.characters.youmu import Youmu
-        from gamepack.thb.characters.seiga import Seiga
-        from gamepack.thb.inputlets import ChooseGirlInputlet
+        from thb.common import CharChoice
+        from thb.characters.youmu import Youmu
+        from thb.characters.seiga import Seiga
+        from thb.inputlets import ChooseGirlInputlet
 
         g, p = self.makeGame()
         choices = [CharChoice(Youmu), CharChoice(Seiga)]
@@ -293,7 +311,6 @@ class TestInputlet(object):
         eq_(user_input([p], ilet), choices[0])
 
     def testGameImport(self):
-        from gamepack.thb.thb3v3 import THBattle  # noqa
-        from gamepack.thb.thbkof import THBattleKOF  # noqa
-        from gamepack.thb.thbidentity import THBattleIdentity  # noqa
-        from gamepack.thb.thbraid import THBattleRaid  # noqa
+        from thb.thb3v3 import THBattle  # noqa
+        from thb.thbkof import THBattleKOF  # noqa
+        from thb.thbidentity import THBattleIdentity  # noqa

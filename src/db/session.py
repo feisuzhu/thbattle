@@ -12,7 +12,7 @@ from utils import instantiate
 
 
 # -- code --
-import server.db.models  # noqa
+import db.models  # noqa
 
 
 @instantiate
@@ -25,9 +25,9 @@ class DBState(object):
 # Session = None
 
 
-def init(db):
+def init(connstr):
     global Session
-    engine = create_engine(db, encoding='utf-8', convert_unicode=True)
+    engine = create_engine(connstr, encoding='utf-8', convert_unicode=True)
     Model.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
 
