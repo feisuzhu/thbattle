@@ -8,7 +8,7 @@ from thb.thb2v2 import THBattle2v2
 from thb.thbbook import THBattleBook
 from thb.thbnewbie import THBattleNewbie
 
-import thb.items  # noqa, init it
+import thb.item  # noqa, init it
 from collections import OrderedDict
 
 modes = OrderedDict()

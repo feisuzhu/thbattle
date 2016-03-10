@@ -8,7 +8,7 @@ from thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCardS
 from thb.actions import FinalizeStage, GenericAction, LaunchCard, PlayerTurn, ShowCards
 from thb.actions import UserAction, ask_for_action
 from thb.cards import Card, PhysicalCard, Skill, VirtualCard, t_None, t_Self
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
 
@@ -192,7 +192,7 @@ class DominanceHandler(EventHandler):
         return act
 
 
-# @register_character
+@register_character_to('imperial')
 class SpAya(Character):
     skills = [WindWalk, Dominance]
     eventhandlers_required = [WindWalkHandler, DominanceHandler]

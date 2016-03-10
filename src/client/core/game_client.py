@@ -136,7 +136,7 @@ class TheChosenOne(game.base.AbstractPlayer):
 
     def __init__(self, server):
         self.server = server
-        game.AbstractPlayer.__init__(self)
+        game.base.AbstractPlayer.__init__(self)
 
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.
@@ -209,7 +209,7 @@ class Game(Greenlet, game.base.Game):
 
     def __init__(self):
         Greenlet.__init__(self)
-        game.Game.__init__(self)
+        game.base.Game.__init__(self)
         self.players = BatchList()
         self.game_params = {}
         self.game_items = {}

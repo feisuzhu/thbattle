@@ -76,9 +76,9 @@ def start_client():
 
     if sys.platform.startswith('linux') and options.dump_gameobj:
         import atexit
-        import game
-        atexit.register(game.GameObjectMeta._dump_gameobject_hierarchy)
-        atexit.register(game.EventHandler._dump_eh_dependency_graph)
+        import game.base
+        atexit.register(game.base.GameObjectMeta._dump_gameobject_hierarchy)
+        atexit.register(game.base.EventHandler._dump_eh_dependency_graph)
 
     from client.ui.entry import start_ui
 

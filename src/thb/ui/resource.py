@@ -8,7 +8,7 @@ import re
 from client.ui.resloader import get_atlas, inventory
 
 # -- code --
-import gamepack.thb.ui.ui_meta  # noqa
+import thb.ui.ui_meta  # noqa
 
 get_atlas('portrait', (1024, 2048))
 

@@ -51,10 +51,10 @@ def start_server():
     import options as opmodule
     opmodule.options = options
 
-    autoenv.init('Server')
     import db.session
-
     db.session.init(options.db)
+
+    autoenv.init('Server')
 
     import settings
 

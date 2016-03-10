@@ -9,7 +9,7 @@ import json
 # -- own --
 from db.models import Item, ItemActivity
 from db.session import Session
-from game.item import GameItem
+from game.base import GameItem
 from server.item import helpers
 from utils import exceptions
 

@@ -748,7 +748,7 @@ class GameItem(object):
     def register(cls, item_cls):
         assert issubclass(item_cls, cls)
         cls.inventory[item_cls.key] = item_cls
-        return cls
+        return item_cls
 
     @classmethod
     def from_sku(cls, sku):

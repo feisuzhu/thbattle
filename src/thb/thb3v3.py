@@ -14,11 +14,9 @@ from game.autoenv import user_input
 from thb.actions import DrawCards, GenericAction, PlayerDeath, PlayerTurn, RevealIdentity
 from thb.actions import action_eventhandlers
 from thb.characters.baseclasses import mixin_character
-from thb.common import CharChoice, PlayerIdentity, sync_primitive
+from thb.common import PlayerIdentity, build_choices, roll
 from thb.inputlets import ChooseGirlInputlet
-from thb.items import European
-from utils import BatchList, Enum, filter_out
-import settings
+from utils import BatchList, Enum
 
 
 # -- code --
@@ -99,58 +97,37 @@ class THBattleBootstrap(GenericAction):
         for p in pl:
             g.process_action(RevealIdentity(p, pl))
 
-        # choose girls -->
         from . import characters
         chars = characters.get_characters('3v3')
+        choices, imperial_choices = build_choices(
+            g, self.items,
+            candidates=chars, players=g.players,
+            num=16, akaris=4, shared=True,
+        )
 
-        seed = get_seed_for(g.players)
-        random.Random(seed).shuffle(chars)
-
-        # ANCHOR(test)
-        testing = list(settings.TESTING_CHARACTERS)
-        testing = filter_out(chars, lambda c: c.__name__ in testing)
-        chars.extend(testing)
-
-        choices = [CharChoice(cls) for cls in chars[-16:]]
-        del chars[-12:]
-
-        for c in choices[:4]:
-            c.char_cls = characters.akari.Akari
-
-        if Game.SERVER_SIDE:
-            for c, cls in zip(choices[:4], g.random.sample(chars, 4)):  # yes, must random.sample
-                c.real_cls = cls
-
-        # ----- roll ------
-        roll = range(len(g.players))
-        g.random.shuffle(roll)
-        pl = g.players
-        for i, p in enumerate(pl):
-            if European.is_european(g, self.items, p):
-                g.emit_event('european', p)
-                roll.remove(i)
-                roll.insert(0, i)
-                break
-
-        roll = sync_primitive(roll, pl)
-        roll = [pl[i] for i in roll]
-        g.emit_event('game_roll', roll)
-        first = roll[0]
-        g.emit_event('game_roll_result', first)
-        # ----
-
+        roll_rst = roll(g, self.items)
+        first = roll_rst[0]
         first_index = g.players.index(first)
 
         order_list   = (0, 5, 3, 4, 2, 1)
         n = len(order_list)
         order = [g.players[(first_index + i) % n] for i in order_list]
 
-        # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
         akaris = []
-        mapping = {p: choices for p in g.players}
-        with InputTransaction('ChooseGirl', g.players, mapping=mapping) as trans:
+        with InputTransaction('ChooseGirl', g.players, mapping=choices) as trans:
+            chosen = set()
+
+            for p, c in imperial_choices:
+                chosen.add(p)
+                c.chosen = p
+                g.set_character(p, c.char_cls)
+                trans.notify('girl_chosen', (p, c))
+
             for p in order:
-                c = user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+                if p in chosen:
+                    continue
+
+                c = user_input([p], ChooseGirlInputlet(g, choices), timeout=30, trans=trans)
                 c = c or [_c for _c in choices if not _c.chosen][0]
                 c.chosen = p
 
@@ -163,9 +140,6 @@ class THBattleBootstrap(GenericAction):
 
         # reveal akaris
         if akaris:
-            for p, c in akaris:
-                c.char_cls = c.real_cls
-
             g.players.reveal([i[1] for i in akaris])
 
             for p, c in akaris:

@@ -4,15 +4,15 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.item import GameItem
-from thb.characters import Character
+from game.base import GameItem
+from thb.characters.baseclasses import Character
 from utils import exceptions
 
 
 # -- code --
 @GameItem.register
-class CharacterChooser(GameItem):
-    key = 'char-chooser'
+class ImperialChoice(GameItem):
+    key = 'imperial-choice'
     args = [str]
 
     def __init__(self, char):
@@ -38,6 +38,24 @@ class CharacterChooser(GameItem):
         for l in mgr.game_items.values():
             if self.char_cls.__name__ in l:
                 raise exceptions.ChooseCharacterConflict
+
+    @classmethod
+    def get_chosen(cls, items, pl):
+        chosen = []
+        for p in pl:
+            uid = p.account.userid
+            if uid not in items:
+                continue
+
+            for i in items[uid]:
+                i = GameItem.from_sku(i)
+                if not isinstance(i, cls):
+                    continue
+
+                chosen.append((p, i.char_cls))
+                break
+
+        return chosen
 
 
 @GameItem.register
@@ -86,12 +104,14 @@ class IdentityChooser(GameItem):
 
         for l in mgr.game_items.values():
             for i in l:
-                if not i.startswith(self.key + ':'):
+                i = GameItem.from_sku(i)
+                if not isinstance(i, self.__class__):
                     continue
-                id = i.split(':')[-1]
-                if id not in threshold:  # should not happen
+
+                if i.id not in threshold:  # should not happen
                     raise exceptions.WTF_InvalidIdentity
-                threshold[id] -= 1
+
+                threshold[i.id] -= 1
 
         if any(i < 0 for i in threshold.values()):
             # 谢谢辣条～
@@ -118,4 +138,5 @@ class European(GameItem):
 
     @classmethod
     def is_european(cls, g, items, p):
-        return cls.key in items[p.userid]
+        uid = p.account.userid
+        return uid in items and cls.key in items[uid]

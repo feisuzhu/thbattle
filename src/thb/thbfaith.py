@@ -14,11 +14,9 @@ from game.autoenv import user_input
 from thb.actions import DistributeCards, GenericAction, MigrateCardsTransaction, PlayerDeath
 from thb.actions import PlayerTurn, RevealIdentity, action_eventhandlers, migrate_cards
 from thb.characters.baseclasses import mixin_character
-from thb.common import CharChoice, PlayerIdentity, sync_primitive
+from thb.common import PlayerIdentity, build_choices, roll
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
-from thb.items import European
-from utils import BatchList, Enum, filter_out
-import settings
+from utils import BatchList, Enum
 
 
 # -- code --
@@ -152,66 +150,27 @@ class THBattleFaithBootstrap(GenericAction):
 
         g.forces = BatchList([force_hakurei, force_moriya])
 
-        # ----- roll ------
-        roll = range(len(g.players))
-        g.random.shuffle(roll)
-        pl = g.players
-
-        for i, p in enumerate(pl):
-            if European.is_european(g, self.items, p):
-                g.emit_event('european', p)
-                roll.remove(i)
-                roll.insert(0, i)
-                break
-
-        roll = sync_primitive(roll, pl)
-        roll = [pl[i] for i in roll]
-        g.emit_event('game_roll', roll)
-        first = roll[0]
-        g.emit_event('game_roll_result', first)
-        # ----
+        roll_rst = roll(g, self.items)
+        first = roll_rst[0]
 
         # choose girls -->
         from . import characters
         chars = characters.get_characters('faith')
-        g.random.shuffle(chars)
 
-        # ANCHOR(test)
-        testing = list(settings.TESTING_CHARACTERS)
-        testing = filter_out(chars, lambda c: c.__name__ in testing)
-        chars = g.random.sample(chars, 30 - len(testing))
-        chars.extend(testing)
+        choices, _ = build_choices(
+            g, self.items,
+            candidates=chars, players=g.players,
+            num=[4] * 6, akaris=[1] * 6,
+        )
 
-        if Game.SERVER_SIDE:
-            choices = [CharChoice(cls) for cls in chars[-24:]]
-        else:
-            choices = [CharChoice(None) for _ in xrange(24)]
-
-        del chars[-24:]
+        rst = user_input(g.players, SortCharacterInputlet(g, choices, 2), timeout=30, type='all')
 
         for p in g.players:
-            c = choices[-3:]
-            del choices[-3:]
-            akari = CharChoice(characters.akari.Akari)
-            akari.real_cls = chars.pop()
-            c.append(akari)
-            p.choices = c
-            p.choices_chosen = []
-            p.reveal(c)
-
-        mapping = {p: p.choices for p in g.players}
-
-        rst = user_input(g.players, SortCharacterInputlet(g, mapping, 2), timeout=30, type='all')
-        for p in g.players:
-            p.choices_chosen = [mapping[p][i] for i in rst[p][:2]]
-
-        for p in g.players:
-            a, b = p.choices_chosen
+            a, b = [choices[p][i] for i in rst[p][:2]]
             b.chosen = None
             p.force.reveal(b)
             g.switch_character(p, a)
             p.force.pool.append(b)
-            del p.choices_chosen
 
         for p in g.players:
             if p.player is first:

@@ -509,10 +509,6 @@ def game_roll_prompt(self, pl):
     self.prompt_raw('--------------------\n')
 
 
-def game_roll_result_prompt(self, p):
-    self.prompt(u'|R%s|r点数最大' % p.account.username)
-
-
 def reseat_effects(self, _):
     pl = self.game.players.rotate_to(self.game.me)
     ports = [self.player2portrait(p) for p in pl]
@@ -598,7 +594,6 @@ mapping_events = ddict(bool, {
     'user_input_finish': user_input_finish_effects,
     'card_migration':    card_migration_effects,
     'game_roll':         game_roll_prompt,
-    'game_roll_result':  game_roll_result_prompt,
     'reseat':            reseat_effects,
     'mutant_morph':      mutant_morph_effects,
     'showcards':         showcards_effect,

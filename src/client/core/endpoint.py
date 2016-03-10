@@ -28,7 +28,6 @@ class Server(Endpoint, Greenlet):
         Endpoint.__init__(self, sock, addr)
         Greenlet.__init__(self)
         self.ctlcmds = Channel()
-        self.userid = 0
         self.gamedata = Gamedata(recording=True)
 
     def _run(self):

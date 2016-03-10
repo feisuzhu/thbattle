@@ -51,6 +51,8 @@ def init(level, sentry_dsn, colored=False):
     hdlr = logging.StreamHandler(sys.stdout)
     hdlr.setLevel(getattr(logging, level))
 
+    logging.getLogger('sentry.errors').setLevel(1000)
+
     if colored:
         from colorlog import ColoredFormatter
 

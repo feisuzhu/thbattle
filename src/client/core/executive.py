@@ -115,7 +115,7 @@ class GameManager(Greenlet):
             pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
             i = pid.index(tgtid)
-            self.last_game_info = params, i, pldata
+            self.last_game_info = params, items, i, pldata
             g = self.game
             g.players = BatchList(pl)
             me = g.players[i]
@@ -173,7 +173,7 @@ class GameManager(Greenlet):
             rep = Replay()
             rep.client_version = Executive.get_current_version()
             rep.game_mode = g.__class__.__name__
-            params, i, pldata = self.last_game_info
+            params, items, i, pldata = self.last_game_info
             rep.game_params = params
             rep.me_index = i
             rep.users = pldata

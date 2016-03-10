@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from collections import deque
 from contextlib import contextmanager
 from functools import wraps
+import functools
 import re
 
 # -- third party --
@@ -461,13 +462,12 @@ def textwidth(text, font):
     return sum([g.advance for g in font.get_glyphs(text)])
 
 
-def partition(pred, l):
-    t = filter(pred, l)
-    f = filter(lambda v: not pred(v), l)
+def partition(pred, lst):
+    f, t = [], []
+    for i in lst:
+        (f, t)[pred(i)].append(i)
+
     return t, f
-
-
-import functools
 
 
 def track(f):
@@ -543,14 +543,6 @@ def group_by(l, keyfunc):
         grouped.append(group)
 
     return grouped
-
-
-def filter_out(l, func):
-    filtered = []
-    reserved = []
-    [(filtered if func(x) else reserved).append(x) for x in l]
-    l[:] = reserved
-    return filtered
 
 
 def instantiate(cls):
@@ -815,3 +807,14 @@ class exceptions(object):
         cls = type(k, (BusinessException,), {'snake_case': snake_case})
         setattr(self, k, cls)
         return cls
+
+
+def first(pred_or_l, l=None):
+    if isinstance(pred_or_l, (list, tuple)):
+        l = pred_or_l
+        return l[0] if len(l) else None
+    else:
+        pred = pred_or_l
+        for i in l:
+            if pred(i):
+                return i

@@ -5,7 +5,7 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from utils import extendclass
-from game.item import Jiecao, PPoint
+from game.items import Jiecao, PPoint
 
 
 # -- code --

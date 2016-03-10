@@ -4,55 +4,10 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from utils import exceptions
+from game.base import GameItem
 
 
 # -- code --
-class GameItem(object):
-    inventory = {}
-
-    key  = None
-    args = []
-
-    @classmethod
-    def register(cls, item_cls):
-        assert issubclass(item_cls, cls)
-        cls.inventory[item_cls.key] = item_cls
-        return cls
-
-    @classmethod
-    def from_sku(cls, sku):
-        if ':' in sku:
-            key, args = sku.split(':')
-            args = args.split(',')
-        else:
-            key = sku
-            args = []
-
-        if key not in cls.inventory:
-            raise exceptions.InvalidItemSKU
-
-        cls = cls.inventory[key]
-        if len(cls.args) != len(args):
-            raise exceptions.InvalidItemSKU
-
-        try:
-            args = [T(v) for T, v in zip(cls.args, args)]
-        except:
-            raise exceptions.InvalidItemSKU
-
-        return cls(*args)
-
-    @property
-    def title(self):
-        return u'ITEM-TITLE'
-
-    @property
-    def description(self):
-        return u'ITEM-DESC'
-
-
-# ------
 @GameItem.register
 class Jiecao(GameItem):
     key    = 'jiecao'

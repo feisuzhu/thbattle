@@ -517,7 +517,7 @@ class GameManager(object):
         for bl in self.banlist.values():
             bl.discard(user)
 
-        self.game_items.pop(user.userid, 0)
+        self.game_items.pop(user.account.userid, 0)
 
         return rst
 

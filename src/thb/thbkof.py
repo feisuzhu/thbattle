@@ -9,15 +9,13 @@ import logging
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, list_shuffle
-from game.autoenv import sync_primitive, user_input
+from game.autoenv import user_input
 from thb.actions import DistributeCards, GenericAction, PlayerDeath, PlayerTurn, RevealIdentity
 from thb.actions import action_eventhandlers
 from thb.characters.baseclasses import Character, mixin_character
-from thb.common import CharChoice, PlayerIdentity
+from thb.common import PlayerIdentity, build_choices, roll
 from thb.inputlets import ChooseGirlInputlet
-from thb.items import European
-from utils import Enum, filter_out
-import settings
+from utils import Enum, first
 
 
 # -- code --
@@ -124,119 +122,70 @@ class THBattleKOFBootstrap(GenericAction):
             p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i % 2]
 
         # choose girls -->
-        from characters import get_characters
+        from thb.characters import get_characters
         chars = get_characters('kof')
 
-        testing = list(settings.TESTING_CHARACTERS)
-        testing = filter_out(chars, lambda c: c.__name__ in testing)
-
-        _chars = g.random.sample(chars, 10)
-        _chars.extend(testing)
-
-        from characters.akari import Akari
-        if Game.SERVER_SIDE:
-            choice = [CharChoice(cls) for cls in _chars[-10:]]
-
-            for c in g.random.sample(choice, 4):
-                c.real_cls = c.char_cls
-                c.char_cls = Akari
-
-        elif Game.CLIENT_SIDE:
-            choice = [CharChoice(None) for i in xrange(10)]
-
-        # -----------
-
-        g.players.reveal(choice)
-
-        # roll
-        roll = range(len(g.players))
-        g.random.shuffle(roll)
-        pl = g.players
-
-        for i, p in enumerate(pl):
-            if European.is_european(g, self.items, p):
-                g.emit_event('european', p)
-                roll.remove(i)
-                roll.insert(0, i)
-                break
-
-        roll = sync_primitive(roll, pl)
-        roll = [pl[i] for i in roll]
-
-        g.emit_event('game_roll', roll)
-
-        first = roll[0]
-        second = roll[1]
-
-        g.emit_event('game_roll_result', first)
-        # ----
-
-        # akaris = {}  # DO NOT USE DICT! THEY ARE UNORDERED!
-        akaris = []
-
-        A, B = first, second
+        A, B = roll(g, self.items)
         order = [A, B, B, A, A, B, B, A, A, B]
-        A.choices = []
-        B.choices = []
-        A.remaining = [2]
-        B.remaining = [2]
-        choice_mapping = {A: choice, B: choice}
-        del A, B
 
-        with InputTransaction('ChooseGirl', g.players, mapping=choice_mapping) as trans:
+        choices, imperial_choices = build_choices(
+            g, self.items,
+            candidates=chars, players=[A, B],
+            num=10, akaris=4, shared=True,
+        )
+
+        chosen = {A: [], B: []}
+
+        with InputTransaction('ChooseGirl', g.players, mapping=choices) as trans:
+            for p, c in imperial_choices:
+                c.chosen = p
+                chosen[p].append(c)
+                trans.notify('girl_chosen', (p, c))
+                order.remove(p)
+
             for p in order:
-                c = user_input([p], ChooseGirlInputlet(g, choice_mapping), 10, 'single', trans)
-                if not c:
-                    # first non-chosen char
-                    for c in choice:
-                        if not c.chosen:
-                            c.chosen = p
-                            break
-
-                if issubclass(c.char_cls, Akari):
-                    akaris.append((p, c))
+                c = user_input([p], ChooseGirlInputlet(g, choices), 10, 'single', trans)
+                c = c or first(lambda c: not c.chosen, choices[p])
 
                 c.chosen = p
-                p.choices.append(c)
+                chosen[p].append(c)
 
                 trans.notify('girl_chosen', (p, c))
 
         # reveal akaris for themselves
-        for p, c in akaris:
-            c.char_cls = c.real_cls
-            p.reveal(c)
+        for p in [A, B]:
+            for c in chosen[p]:
+                c.akari = False
+                p.reveal(c)
+                del c.chosen
 
-        for c in choice:
-            del c.chosen
+        list_shuffle(chosen[A], A)
+        list_shuffle(chosen[B], B)
 
-        list_shuffle(first.choices, first)
-        list_shuffle(second.choices, second)
-
-        mapping = {first: first.choices, second: second.choices}
-
-        with InputTransaction('ChooseGirl', g.players, mapping=mapping) as trans:
-            ilet = ChooseGirlInputlet(g, mapping)
+        with InputTransaction('ChooseGirl', g.players, mapping=chosen) as trans:
+            ilet = ChooseGirlInputlet(g, chosen)
             ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
-            rst = user_input(pl, ilet, type='all', trans=trans)
+            rst = user_input([A, B], ilet, type='all', trans=trans)
 
         def s(p):
-            c = rst[p] or p.choices[0]
+            c = rst[p] or chosen[p][0]
             p = g.next_character(p, c)
-            p.choices.remove(c)
+            chosen[p].remove(c)
+            p.choices = chosen[p]
+            p.remaining = [2]
             return p
 
-        first, second = s(first), s(second)
+        A, B = s(A), s(B)
 
-        order = [1, 0] if first is g.players[0] else [0, 1]
+        order = [1, 0] if A is g.players[0] else [0, 1]
 
-        pl = g.players
-        for p in pl:
-            g.process_action(RevealIdentity(p, pl))
+        for p in [A, B]:
+            g.process_action(RevealIdentity(p, [A, B]))
 
         g.emit_event('game_begin', g)
 
-        for p in pl:
-            g.process_action(DistributeCards(p, amount=4 if p is first else 3))
+        g.process_action(DistributeCards(A, amount=4))
+        g.process_action(DistributeCards(B, amount=3))
 
         for i in order:
             g.emit_event('character_debut', (None, g.players[i]))

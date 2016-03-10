@@ -15,11 +15,11 @@ from thb.actions import DeadDropCards, DistributeCards, DrawCardStage, DrawCards
 from thb.actions import MigrateCardsTransaction, PlayerDeath, PlayerTurn, RevealIdentity, UserAction
 from thb.actions import action_eventhandlers, migrate_cards
 from thb.characters.baseclasses import mixin_character
-from thb.common import CharChoice, PlayerIdentity, sync_primitive
+from thb.common import CharChoice, PlayerIdentity, roll
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
-from thb.items import European
-from utils.misc import BatchList, Enum, filter_out
+from utils.misc import BatchList, Enum, partition
 import settings
+
 
 # -- code --
 log = logging.getLogger('THBattle2v2')
@@ -171,27 +171,11 @@ class THBattle2v2Bootstrap(GenericAction):
         for p in pl:
             g.process_action(RevealIdentity(p, pl))
 
-        # ----- roll ------
-        roll = range(len(pl))
-        g.random.shuffle(roll)
-        for i, p in enumerate(pl):
-            if European.is_european(g, self.items, p):
-                g.emit_event('european', p)
-                roll.remove(i)
-                roll.insert(0, i)
-                break
-
-        roll = sync_primitive(roll, pl)
-        roll = [pl[i] for i in roll]
-        g.emit_event('game_roll', roll)
-        for i in range(1, 3):
-            if roll[i].force == roll[0].force:
-                roll.append(roll.pop(i))
-
-        g.players[:] = roll
-        g.emit_event('game_roll_result', g.players[0])
+        roll_rst = roll(g, self.items)
+        f1, f2 = partition(lambda p: p.force is roll_rst[0].force, roll_rst)
+        final_order = [f1[0], f2[0], f2[1], f1[1]]
+        g.players[:] = final_order
         g.emit_event('reseat', None)
-        # ----
 
         # ban / choose girls -->
         from . import characters
@@ -202,7 +186,7 @@ class THBattle2v2Bootstrap(GenericAction):
 
         # ANCHOR(test)
         testing = list(settings.TESTING_CHARACTERS)
-        testing = filter_out(chars, lambda c: c.__name__ in testing)
+        testing, chars = partition(lambda c: c.__name__ in testing, chars)
         chars.extend(testing)
 
         chars = chars[-20:]

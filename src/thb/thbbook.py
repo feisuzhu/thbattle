@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from collections import defaultdict
@@ -10,17 +11,15 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, NPC
 from game.autoenv import sync_primitive, user_input
-from thb.actions import ActionStageLaunchCard, Damage, DistributeCards, DrawCards
-from thb.actions import DropCardStage, GenericAction, PlayerDeath, PlayerRevive, PlayerTurn
-from thb.actions import RevealIdentity, UserAction, action_eventhandlers, skill_wrap
-from thb.cards import AttackCard, DelayedSpellCardAction, DonationBoxCard, HealCard
-from thb.cards import NazrinRodCard
+from thb.actions import ActionStageLaunchCard, Damage, DistributeCards, DrawCards, DropCardStage
+from thb.actions import GenericAction, PlayerDeath, PlayerRevive, PlayerTurn, RevealIdentity
+from thb.actions import UserAction, action_eventhandlers, skill_wrap
+from thb.cards import AttackCard, DelayedSpellCardAction, DonationBoxCard, HealCard, NazrinRodCard
 from thb.characters.baseclasses import mixin_character
 from thb.characters.koakuma import Find
-from thb.common import CharChoice, PlayerIdentity
+from thb.common import CharChoice, PlayerIdentity, build_choices
 from thb.inputlets import ActionInputlet, ChooseGirlInputlet, ChooseOptionInputlet
-from utils import BatchList, Enum, filter_out
-import settings
+from utils import BatchList, Enum
 
 
 # -- code --
@@ -327,39 +326,20 @@ class THBattleBookBootstrap(GenericAction):
         except:
             pass
 
-        g.random.shuffle(chars)
-
-        testing = list(settings.TESTING_CHARACTERS)
-        testing = filter_out(chars, lambda c: c.__name__ in testing)
-        chars = g.random.sample(chars, 24)
-
-        if Game.SERVER_SIDE:
-            choices = [CharChoice(cls) for cls in chars[-20:]]
-        else:
-            choices = [CharChoice(None) for _ in xrange(20)]
-
-        del chars[-20:]
-
-        for p in g.players[1:]:
-            c = choices[-4:]
-            del choices[-4:]
-            akari = CharChoice(characters.akari.Akari)
-            akari.real_cls = chars.pop()
-            c.append(akari)
-            c.extend([CharChoice(cls) for cls in testing])
-            p.choices = c
-            p.reveal(c)
-
         pl = g.players[1:]
-        mapping = {p: p.choices for p in pl}
+        choices, _ = build_choices(
+            g, self.items,
+            candidates=chars, players=pl,
+            num=[5, 5, 5, 5], akaris=[1, 1, 1, 1],
+        )
 
-        with InputTransaction('ChooseGirl', pl, mapping=mapping) as trans:
-            ilet = ChooseGirlInputlet(g, mapping)
+        with InputTransaction('ChooseGirl', pl, mapping=choices) as trans:
+            ilet = ChooseGirlInputlet(g, choices)
             ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
             rst = user_input(pl, ilet, timeout=30, type='all', trans=trans)
 
         for p in pl:
-            c = rst[p] or p.choices[0]
+            c = rst[p] or choices[p][0]
             g.switch_character(p, c)
 
         g.emit_event('game_begin', g)

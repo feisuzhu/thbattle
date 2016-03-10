@@ -204,7 +204,7 @@ class Lobby(object):
             user.write(['lobby_error', 'cant_join_game'])
             return
 
-        from gamepack import modes_maoyu
+        from thb import modes_maoyu
         if user.account.is_maoyu() and manager.gamecls.__name__ not in modes_maoyu:
             user.write(['lobby_error', 'maoyu_limitation'])
             return
