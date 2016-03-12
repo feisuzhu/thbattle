@@ -145,6 +145,7 @@ class GameManager(object):
 
         data.append(self.gamecls.__name__)
         data.append(json.dumps(self.game_params))
+        data.append(json.dumps(self.game_items))
         data.append(str(g.rndseed))
         data.append(json.dumps(self.usergdhistory))
         data.append(json.dumps(self.gdhistory))

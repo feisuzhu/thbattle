@@ -21,7 +21,7 @@ from colorlog import ColoredFormatter
 # -- own --
 from account.freeplay import Account
 from client.core import PeerPlayer, TheLittleBrother
-from gamepack import gamemodes
+from thb import modes
 from utils import BatchList, hook
 
 # -- code --
@@ -129,7 +129,7 @@ Executive = MockExecutive(server)
 from client.core import game_client
 game_client.Executive = Executive  # Hack
 
-GameMode = gamemodes[mode]
+GameMode = modes[mode]
 npcs = len(GameMode.npc_players)
 
 players = [PeerPlayer() for i in xrange(GameMode.n_persons + npcs)]

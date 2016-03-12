@@ -196,10 +196,13 @@ class THBattleUI(Control):
     def afk(self):
         return self.btn_afk.value
 
+    def process_game_event(self, evt, data):
+        self.game_event.notify(evt, data)
+        return data
+
     def init(self):
         SoundManager.se_suppress()
         self.game_event = ObservableEvent()
-        self.process_game_event = self.game_event.notify
 
         self.game_event += self.on_game_event
 

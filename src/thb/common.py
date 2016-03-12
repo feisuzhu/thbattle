@@ -45,7 +45,7 @@ class CharChoice(object):
             self.akari = True
             if Game.getgame().CLIENT_SIDE:
                 from thb import characters
-                self.char_cls = characters.Akari
+                self.char_cls = characters.akari.Akari
 
     def __repr__(self):
         return '<Choice: {}{}>'.format(

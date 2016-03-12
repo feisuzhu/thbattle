@@ -1047,7 +1047,7 @@ class UIEventHook(EventHandler):
         ilet.event = evt
         self.gameui.process_game_event('user_input', arg)
         evt.wait()
-        return ilet
+        return arg
 
     def handle(self, evt, data):
         if not self.live and evt not in ('game_begin', 'switch_character', 'reseat'):
