@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
@@ -10,8 +11,6 @@ from pyglet.text import Label
 import pyglet
 
 # -- own --
-from .. import actions
-from ..cards import CardList
 from client.ui.base import Control
 from client.ui.base.interp import AbstractInterp, ChainInterp, CosineInterp, FixedInterp, InterpDesc
 from client.ui.base.interp import LinearInterp, SineInterp, getinterp
@@ -19,6 +18,8 @@ from client.ui.controls import BalloonPrompt, Button, Colors, Frame, ImageButton
 from client.ui.controls import Panel, TextArea
 from client.ui.resloader import L, get_atlas
 from game.autoenv import Game
+from thb import actions
+from thb.cards import CardList
 from utils import flatten, rectv2f, rrectv2f
 
 

@@ -535,7 +535,7 @@ class AskForCard(GenericAction):
         return self.process_card(self.card)
 
     def cond(self, cl):
-        from .. import cards
+        from thb import cards
         t = self.target
         return (
             len(cl) == 1 and

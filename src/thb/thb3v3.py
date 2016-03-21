@@ -73,7 +73,7 @@ class THBattleBootstrap(GenericAction):
         g = Game.getgame()
         params = self.params
 
-        from cards import Deck
+        from thb.cards import Deck
 
         g.deck = Deck(ppoints=(1, 1, 1, 1, 1))
         g.ehclasses = []
@@ -128,10 +128,11 @@ class THBattleBootstrap(GenericAction):
                     continue
 
                 c = user_input([p], ChooseGirlInputlet(g, choices), timeout=30, trans=trans)
-                c = c or [_c for _c in choices if not _c.chosen][0]
+                c = c or [_c for _c in choices[p] if not _c.chosen][0]
                 c.chosen = p
 
-                if issubclass(c.char_cls, characters.akari.Akari):
+                if c.akari:
+                    c.akari = False
                     akaris.append((p, c))
                 else:
                     g.set_character(p, c.char_cls)

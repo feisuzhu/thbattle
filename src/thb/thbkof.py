@@ -169,10 +169,10 @@ class THBattleKOFBootstrap(GenericAction):
 
         def s(p):
             c = rst[p] or chosen[p][0]
-            p = g.next_character(p, c)
             chosen[p].remove(c)
             p.choices = chosen[p]
             p.remaining = [2]
+            p = g.next_character(p, c)
             return p
 
         A, B = s(A), s(B)
@@ -180,7 +180,7 @@ class THBattleKOFBootstrap(GenericAction):
         order = [1, 0] if A is g.players[0] else [0, 1]
 
         for p in [A, B]:
-            g.process_action(RevealIdentity(p, [A, B]))
+            g.process_action(RevealIdentity(p, g.players))
 
         g.emit_event('game_begin', g)
 

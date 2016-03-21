@@ -144,7 +144,7 @@ class THBattleIdentityBootstrap(GenericAction):
         g = Game.getgame()
         params = self.params
 
-        from cards import Deck
+        from thb.cards import Deck
 
         g.deck = Deck(ppoints=(1, 1, 1, 1, 1, 1, 2, 2))
         g.ehclasses = []
@@ -173,12 +173,13 @@ class THBattleIdentityBootstrap(GenericAction):
             g, self.items,
             candidates=chars, players=[boss],
             num=[5], akaris=[1],
+            shared=False,
         )
 
         with InputTransaction('ChooseGirl', [boss], mapping=choices) as trans:
             c = user_input([boss], ChooseGirlInputlet(g, choices), 30, 'single', trans)
 
-            c = c or boss.choices[-1]
+            c = c or choices[boss][-1]
             c.chosen = boss
             c.akari = False
             g.players.reveal(c)
@@ -222,6 +223,7 @@ class THBattleIdentityBootstrap(GenericAction):
             g, self.items,
             candidates=chars, players=pl,
             num=[4] * len(pl), akaris=[1] * len(pl),
+            shared=False,
         )
 
         with InputTransaction('ChooseGirl', pl, mapping=choices) as trans:
@@ -251,7 +253,7 @@ class THBattleIdentityBootstrap(GenericAction):
         for p in g.players:
             g.process_action(DistributeCards(p, amount=4))
 
-        for i, p in enumerate(cycle(pl)):
+        for i, p in enumerate(cycle(g.players.rotate_to(boss))):
             if i >= 6000: break
             if not p.dead:
                 try:
@@ -302,7 +304,7 @@ class THBattleIdentity(Game):
         g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def decorate(self, p):
-        from cards import CardList
+        from thb.cards import CardList
         p.cards          = CardList(p, 'cards')        # Cards in hand
         p.showncards     = CardList(p, 'showncards')   # Cards which are shown to the others, treated as 'Cards in hand'
         p.equips         = CardList(p, 'equips')       # Equipments

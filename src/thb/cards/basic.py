@@ -144,7 +144,7 @@ class UseAttack(AskForCard):
     card_usage = 'use'
 
     def __init__(self, target):
-        from .. import cards
+        from thb import cards
         AskForCard.__init__(self, target, target, cards.AttackCard)
 
     def process_card(self, card):
@@ -157,7 +157,7 @@ class UseAttack(AskForCard):
 
 class BaseUseGraze(AskForCard):
     def __init__(self, target):
-        from .. import cards
+        from thb import cards
         AskForCard.__init__(self, target, target, cards.GrazeCard)
 
 
@@ -189,7 +189,7 @@ class AskForHeal(AskForCard):
     card_usage = 'launch'
 
     def __init__(self, source, target):
-        from .. import cards
+        from thb import cards
         AskForCard.__init__(self, source, target, cards.HealCard)
 
     def process_card(self, card):

@@ -114,7 +114,7 @@ class RejectHandler(EventHandler):
         return act
 
     def cond(self, cardlist):
-        from .. import cards
+        from thb import cards
         try:
             check(len(cardlist) == 1)
             check(cardlist[0].is_card(cards.RejectCard))
