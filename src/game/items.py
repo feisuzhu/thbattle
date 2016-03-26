@@ -2,12 +2,16 @@
 from __future__ import absolute_import
 
 # -- stdlib --
+import logging
+
 # -- third party --
 # -- own --
 from game.base import GameItem
 
-
 # -- code --
+log = logging.getLogger('game.items')
+
+
 @GameItem.register
 class Jiecao(GameItem):
     key    = 'jiecao'

@@ -287,7 +287,7 @@ class THBattleBookBootstrap(GenericAction):
     def apply_action(self):
         g = Game.getgame()
 
-        from cards import Deck
+        from thb.cards import Deck
 
         g.deck = Deck(ppoints=(1, 1))
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
@@ -331,6 +331,7 @@ class THBattleBookBootstrap(GenericAction):
             g, self.items,
             candidates=chars, players=pl,
             num=[5, 5, 5, 5], akaris=[1, 1, 1, 1],
+            shared=False,
         )
 
         with InputTransaction('ChooseGirl', pl, mapping=choices) as trans:
@@ -380,7 +381,7 @@ class THBattleBook(Game):
         g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def switch_character(g, p, choice):
-        choice.char_cls = choice.real_cls or choice.char_cls  # reveal akari
+        choice.akari = False
 
         g.players.reveal(choice)
         cls = choice.char_cls
@@ -404,7 +405,7 @@ class THBattleBook(Game):
         return p
 
     def decorate(g, p):
-        from cards import CardList
+        from thb.cards import CardList
         p.cards          = CardList(p, 'cards')       # Cards in hand
         p.showncards     = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
         p.equips         = CardList(p, 'equips')      # Equipments

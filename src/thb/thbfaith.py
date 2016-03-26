@@ -105,7 +105,7 @@ class THBattleFaithBootstrap(GenericAction):
         g = Game.getgame()
         params = self.params
 
-        from cards import Deck
+        from thb.cards import Deck
 
         g.picks = []
         g.deck = Deck(ppoints=(1, 1, 1, 1, 1, 2))
@@ -161,6 +161,7 @@ class THBattleFaithBootstrap(GenericAction):
             g, self.items,
             candidates=chars, players=g.players,
             num=[4] * 6, akaris=[1] * 6,
+            shared=False,
         )
 
         rst = user_input(g.players, SortCharacterInputlet(g, choices, 2), timeout=30, type='all')
@@ -227,7 +228,7 @@ class THBattleFaith(Game):
         g.set_event_handlers(EventHandler.make_list(ehclasses))
 
     def switch_character(g, p, choice):
-        choice.char_cls = choice.real_cls or choice.char_cls  # reveal akari
+        choice.akari = False
 
         g.players.reveal(choice)
         cls = choice.char_cls
@@ -252,7 +253,7 @@ class THBattleFaith(Game):
         return p
 
     def decorate(g, p):
-        from cards import CardList
+        from thb.cards import CardList
         p.cards          = CardList(p, 'cards')       # Cards in hand
         p.showncards     = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
         p.equips         = CardList(p, 'equips')      # Equipments

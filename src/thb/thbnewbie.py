@@ -162,7 +162,7 @@ class THBattleNewbieBootstrap(GenericAction):
         from thb.characters.sakuya import Sakuya
 
         # ----- Init -----
-        from cards import Deck
+        from thb.cards import Deck
         g.deck = Deck()
         g.ehclasses = []
 

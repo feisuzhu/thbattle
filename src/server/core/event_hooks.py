@@ -2,6 +2,8 @@
 from __future__ import absolute_import
 
 # -- stdlib --
+import logging
+
 # -- third party --
 import gevent
 
@@ -10,8 +12,10 @@ from game.autoenv import EventHandler
 from db.models import User
 from db.session import Session
 
-
 # -- code --
+log = logging.getLogger('server.core.event_hooks')
+
+
 class CollectPPointHandler(EventHandler):
     def handle(self, evt_type, arg):
         if evt_type != 'collect_ppoint':
@@ -24,6 +28,7 @@ class CollectPPointHandler(EventHandler):
 
         @gevent.spawn
         def add_ppoint():
+            # log.info('Add ppoint for %s, +%s', uid, amount)
             try:
                 s = Session()
                 u = s.query(User).filter(User.id == uid).one()
