@@ -184,3 +184,12 @@ def unblock(user):
     blocked_users = us.blocked_users
     if user in blocked_users:
         blocked_users.remove(user)
+
+
+@command(u'使用物品', u'使用在游戏中的物品（比如选将卡、欧洲卡）')
+@argtypes(str)
+@argdesc(u'物品名称')
+def use(sku):
+    from client.core.executive import Executive
+    Executive.use_item(sku)
+    return u''

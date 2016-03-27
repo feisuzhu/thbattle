@@ -56,6 +56,7 @@ class Lobby(object):
             'query_gameinfo':   self.send_gameinfo,
             'get_ready':        self.get_ready,
             'set_game_param':   self.set_game_param,
+            'use_item':         self.use_item,
             'exit_game':        self.exit_game,
             'kick_user':        self.kick_user,
             'invite_user':      self.invite_user,
@@ -180,11 +181,11 @@ class Lobby(object):
     def create_game(self, user, gametype, name, invite_only):
         from thb import modes, modes_maoyu
         if user and user.account.is_maoyu() and gametype not in modes_maoyu:
-            user.write(['lobby_error', 'maoyu_limitation'])
+            user.write(['message_err', 'maoyu_limitation'])
             return
 
         if gametype not in modes:
-            user.write(['lobby_error', 'gametype_not_exist'])
+            user.write(['message_err', 'gametype_not_exist'])
             return
 
         gid = self.new_gid()
@@ -201,20 +202,20 @@ class Lobby(object):
         if user.state in ('hang', 'observing') and gameid in self.games:
             manager = self.games[gameid]
         else:
-            user.write(['lobby_error', 'cant_join_game'])
+            user.write(['message_err', 'cant_join_game'])
             return
 
         from thb import modes_maoyu
         if user.account.is_maoyu() and manager.gamecls.__name__ not in modes_maoyu:
-            user.write(['lobby_error', 'maoyu_limitation'])
+            user.write(['message_err', 'maoyu_limitation'])
             return
 
         if manager.is_banned(user):
-            user.write(['lobby_error', 'banned'])
+            user.write(['message_err', 'banned'])
             return
 
         if not manager.is_invited(user):
-            user.write(['lobby_error', 'not_invited'])
+            user.write(['message_err', 'not_invited'])
             return
 
         log.info("join game")
@@ -270,7 +271,7 @@ class Lobby(object):
     @_command(['hang'], [])
     def quick_start_game(self, user):
         if user.state != 'hang':
-            user.write(['lobby_error', 'cant_join_game'])
+            user.write(['message_err', 'cant_join_game'])
             return
 
         for manager in self.games.values():
@@ -278,7 +279,7 @@ class Lobby(object):
                 self.join_game(user, manager.gameid)
                 return
         else:
-            user.write(['lobby_error', 'cant_join_game'])
+            user.write(['message_err', 'cant_join_game'])
 
     def end_game(self, manager):
         log.info("end game")
@@ -329,7 +330,7 @@ class Lobby(object):
             self.try_remove_empty_game(manager)
             self.refresh_status()
         else:
-            user.write(['lobby_error', 'not_in_a_game'])
+            user.write(['message_err', 'not_in_a_game'])
 
     @_command(['hang'], [int])
     def send_gameinfo(self, user, gid):
@@ -356,6 +357,14 @@ class Lobby(object):
         manager = GameManager.get_by_user(user)
         manager.set_game_param(user, key, value)
         self.refresh_status()
+
+    @_command(['inroomwait'], [str])
+    def use_item(self, user, item):
+        if user.state != 'inroomwait':
+            return
+
+        manager = GameManager.get_by_user(user)
+        manager.use_item(user, item)
 
     @_command(['inroomwait', 'ready'], [int])
     def kick_user(self, user, uid):
@@ -394,14 +403,14 @@ class Lobby(object):
         other = self.users.get(other_userid, None)
 
         if not other:
-            user.write(['lobby_error', 'no_such_user'])
+            user.write(['message_err', 'no_such_user'])
             return
 
         if other.state == 'observing':
             other = other.observing
 
         if other.state not in ('ingame', 'inroomwait', 'ready'):
-            user.write(['lobby_error', 'user_not_ingame'])
+            user.write(['message_err', 'user_not_ingame'])
             return
 
         if user.account.userid in self.bigbrothers:
@@ -442,7 +451,7 @@ class Lobby(object):
 
             if grant:
                 if other.state not in ('ingame', 'inroomwait', 'ready'):
-                    user.write(['lobby_error', 'user_not_ingame'])
+                    user.write(['message_err', 'user_not_ingame'])
                 else:
                     manager = GameManager.get_by_user(other)
                     manager.observe_user(user, other)
@@ -461,7 +470,7 @@ class Lobby(object):
         other = self.users.get(other_userid, None)
 
         if not (other and other.state in ('hang', 'observing')):
-            user.write(['lobby_error', 'no_such_user'])
+            user.write(['message_err', 'no_such_user'])
             return
 
         manager = GameManager.get_by_user(user)

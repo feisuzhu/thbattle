@@ -41,7 +41,7 @@ class ItemSystem(object):
         handler = dispatch.get(cmd)
 
         if not user.account:
-            user.write(['error', 'not_logged_in'])
+            user.write(['message_err', 'not_logged_in'])
             return
 
         if not handler:
@@ -59,7 +59,7 @@ class ItemSystem(object):
         try:
             handler(user, *args)
         except BusinessException as e:
-            user.write(['error', e.snake_case])
+            user.write(['message_err', e.snake_case])
 
     @_command()
     def list_backpack(self, user):
@@ -68,12 +68,12 @@ class ItemSystem(object):
     @_command(int)
     def do_use(self, user, item_):
         backpack.use(user.userid, item_)
-        user.write(['message', 'success'])
+        user.write(['message_info', 'success'])
 
     @_command(int)
     def do_drop(self, user, item_id):
         backpack.drop(user.userid, item_id)
-        user.write(['message', 'success'])
+        user.write(['message_info', 'success'])
 
     @_command()
     def list_exchange(self, user):
@@ -83,17 +83,17 @@ class ItemSystem(object):
     @_command(int, int)
     def do_sell(self, user, item_id, price):
         exchange.sell(user.userid, id)
-        user.write(['message', 'success'])
+        user.write(['message_info', 'success'])
 
     @_command(int)
     def do_buy(self, user, entry_id):
         exchange.buy(user.userid, entry_id)
-        user.write(['message', 'success'])
+        user.write(['message_info', 'success'])
 
     @_command(int)
     def do_cancel_sell(self, user, entry_id):
         exchange.cancel_sell(user.userid, entry_id)
-        user.write(['message', 'success'])
+        user.write(['message_info', 'success'])
 
     @_command(basestring)
     def do_lottery(self, user, currency):

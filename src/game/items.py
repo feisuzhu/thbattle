@@ -18,7 +18,7 @@ class Jiecao(GameItem):
     args   = [int]
     usable = True
 
-    def __init__(self, amount):
+    def init(self, amount):
         self.amount = amount
 
     @property
@@ -42,7 +42,7 @@ class PPoint(GameItem):
     args   = [int]
     usable = True
 
-    def __init__(self, amount):
+    def init(self, amount):
         self.amount = amount
 
     @property

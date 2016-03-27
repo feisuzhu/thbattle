@@ -423,4 +423,6 @@ class Executive(object):
     set_game_param   = _lobby_op('set_game_param')
     speaker          = _lobby_op('speaker')
 
+    use_item         = _lobby_op('use_item')
+
     del _simple_op, _lobby_op

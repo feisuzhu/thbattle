@@ -11,12 +11,14 @@ import random
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
+from game.base import sync_primitive
 from thb.actions import DistributeCards, DrawCards, DropCards, GenericAction, PlayerDeath
 from thb.actions import PlayerTurn, RevealIdentity, action_eventhandlers
 from thb.characters.baseclasses import mixin_character
-from thb.common import PlayerIdentity, build_choices, sync_primitive
+from thb.common import PlayerIdentity, build_choices
 from thb.inputlets import ChooseGirlInputlet
-from utils import Enum
+from thb.item import IdentityChooser
+from utils.misc import Enum
 
 
 # -- code --
@@ -149,23 +151,52 @@ class THBattleIdentityBootstrap(GenericAction):
         g.deck = Deck(ppoints=(1, 1, 1, 1, 1, 1, 2, 2))
         g.ehclasses = []
 
+        # arrange identities -->
         g.double_curtain = params['double_curtain']
 
+        mapping = {
+            'B': Identity.TYPE.BOSS,
+            '!': Identity.TYPE.ATTACKER,
+            '&': Identity.TYPE.ACCOMPLICE,
+            '?': Identity.TYPE.CURTAIN,
+        }
+
         if g.double_curtain:
-            g.identities = g.identities[1:] + g.identities[-1:]
+            identities = 'B!!!&&??'
+        else:
+            identities = 'B!!!!&&?'
+
+        pl = g.players[:]
+        identities = [mapping[i] for i in identities]
+        g.identities = identities[:]
+        imperial_identities = IdentityChooser.get_chosen(self.items, pl)
+        for p, i in imperial_identities:
+            pl.remove(p)
+            identities.remove(i)
+
+        g.random.shuffle(identities)
+
+        if Game.CLIENT_SIDE:
+            identities = [Identity.TYPE.HIDDEN for _ in identities]
+
+        for p, i in imperial_identities + zip(pl, identities):
+            p.identity = Identity()
+            p.identity.type = i
+            g.process_action(RevealIdentity(p, p))
+
+        del identities
+
+        is_boss = sync_primitive([p.identity.type == Identity.TYPE.BOSS for p in g.players], g.players)
+        boss_idx = is_boss.index(True)
+        boss = g.boss = g.players[boss_idx]
+
+        boss.identity = Identity()
+        boss.identity.type = Identity.TYPE.BOSS
+        g.process_action(RevealIdentity(boss, g.players))
 
         # choose girls init -->
         from .characters import get_characters
         chars = get_characters('id', 'id8')
-
-        # choose boss
-        idx = sync_primitive(g.random.randrange(len(g.players)), g.players)
-        boss = g.boss = g.players[idx]
-
-        boss.identity = Identity()
-        boss.identity.type = Identity.TYPE.BOSS
-
-        g.process_action(RevealIdentity(boss, g.players))
 
         pl = g.players.rotate_to(boss)
 
@@ -205,16 +236,6 @@ class THBattleIdentityBootstrap(GenericAction):
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(g.players)
         g.emit_event('reseat', None)
-
-        # tell the others their own identity
-        il = list(g.identities)
-        g.random.shuffle(il)
-        for p in g.players.exclude(boss):
-            p.identity = Identity()
-            id = il.pop()
-            if Game.SERVER_SIDE:
-                p.identity.type = id
-            g.process_action(RevealIdentity(p, p))
 
         # others choose girls
         pl = g.players.exclude(boss)
@@ -271,13 +292,6 @@ class THBattleIdentity(Game):
     params_def = {
         'double_curtain': (False, True),
     }
-    T = Identity.TYPE
-    identities = [
-        T.ATTACKER, T.ATTACKER, T.ATTACKER, T.ATTACKER,
-        T.ACCOMPLICE, T.ACCOMPLICE,
-        T.CURTAIN,
-    ]
-    del T
 
     def can_leave(self, p):
         return getattr(p, 'dead', False)

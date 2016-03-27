@@ -744,6 +744,13 @@ class GameItem(object):
     title = u'ITEM-TITLE'
     description = u'ITEM-DESC'
 
+    def __init__(self, sku, *args):
+        self.sku = sku
+        self.init(*args)
+
+    def init(self, *args):
+        pass
+
     @classmethod
     def register(cls, item_cls):
         assert issubclass(item_cls, cls)
@@ -771,4 +778,4 @@ class GameItem(object):
         except Exception:
             raise exceptions.InvalidItemSKU
 
-        return cls(*args)
+        return cls(sku, *args)

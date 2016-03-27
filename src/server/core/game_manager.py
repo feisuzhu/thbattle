@@ -15,13 +15,14 @@ import time
 import gevent
 
 # -- own --
+from game.base import GameItem
 from options import options
+from server import item
 from server.core.endpoint import Client, DroppedClient, NPCClient
 from server.subsystem import Subsystem
-from server import item
 from settings import VERSION
-from utils import BatchList, instantiate, BusinessException
-from utils.misc import throttle
+from utils import BatchList, BusinessException, instantiate
+from utils.misc import exceptions, throttle
 
 
 # -- code --
@@ -52,7 +53,7 @@ class GameManager(object):
         self.ob_banlist   = defaultdict(set)
         self.gameid       = gid
         self.gamecls      = gamecls
-        self.game_items   = defaultdict(set)  # Client -> ['item:meh', ...]
+        self.game_items   = defaultdict(set)  # userid -> {'item:meh', ...}
         self.game_params  = {k: v[0] for k, v in gamecls.params_def.items()}
         self.is_match     = False
         self.match_users  = []
@@ -370,7 +371,7 @@ class GameManager(object):
         self.notify_playerchange()
 
     def start_game(self):
-        self.consume_items()
+        self._consume_items()
         g = self.game
         assert ClientPlaceHolder not in self.users
         assert all([u.state == 'ready' for u in self.users])
@@ -399,15 +400,15 @@ class GameManager(object):
                 u.observers.write(['observe_started', [self.game_params, self.consumed_game_items, u.account.userid, g.players]])
             u.state = 'ingame'
 
-    def consume_items(self):
+    def _consume_items(self):
         final = {}
-        for uid, l in self.game_items:
+        for uid, l in self.game_items.items():
             consumed = []
             for i in l:
                 try:
                     item.backpack.consume(uid, i)
                     consumed.append(i)
-                except item.exceptions.ItemNotFound:
+                except exceptions.ItemNotFound:
                     pass
 
             final[uid] = consumed
@@ -416,13 +417,14 @@ class GameManager(object):
 
     def use_item(self, user, sku):
         try:
-            item.backpack.should_have(user.userid, sku)
-            i = item.items.from_sku(sku)
-            i.should_usable_in_game(user.userid, self)
-            self.game_items[user.userid].add(sku)
-            user.write(['message', 'use_item_success'])
+            uid = user.account.userid
+            item.backpack.should_have(uid, sku)
+            i = GameItem.from_sku(sku)
+            i.should_usable_in_game(uid, self)
+            self.game_items[uid].add(sku)
+            user.write(['message_info', 'use_item_success'])
         except BusinessException as e:
-            user.write(['error', e.snake_case])
+            user.write(['message_err', e.snake_case])
 
     def clear_item(self, user):
         self.game_items[user.userid].clear()
@@ -476,7 +478,7 @@ class GameManager(object):
         self.notify_playerchange()
 
         players = self.build_initial_players()
-        new.write(['game_started', [self.game_params, players]])
+        new.write(['game_started', [self.game_params, self.consumed_game_items, players]])
 
         self.replay(new, new)
 

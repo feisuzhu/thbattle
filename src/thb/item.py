@@ -15,7 +15,7 @@ class ImperialChoice(GameItem):
     key = 'imperial-choice'
     args = [str]
 
-    def __init__(self, char):
+    def init(self, char):
         if char == 'Akari' or char not in Character.character_classes:
             raise exceptions.CharacterNotFound
 
@@ -36,7 +36,7 @@ class ImperialChoice(GameItem):
             raise exceptions.IncorrectGameMode
 
         for l in mgr.game_items.values():
-            if self.char_cls.__name__ in l:
+            if self.sku in l:
                 raise exceptions.ChooseCharacterConflict
 
     @classmethod
@@ -63,7 +63,7 @@ class IdentityChooser(GameItem):
     key = 'id-chooser'
     args = [str]
 
-    def __init__(self, id):
+    def init(self, id):
         if id not in ('attacker', 'accomplice', 'curtain', 'boss'):
             raise exceptions.InvalidIdentity
 
@@ -102,20 +102,47 @@ class IdentityChooser(GameItem):
 
         threshold[self.id] -= 1
 
-        for l in mgr.game_items.values():
+        for _uid, l in mgr.game_items.items():
             for i in l:
                 i = GameItem.from_sku(i)
                 if not isinstance(i, self.__class__):
                     continue
 
-                if i.id not in threshold:  # should not happen
-                    raise exceptions.WTF_InvalidIdentity
+                if _uid == uid:
+                    raise exceptions.IdentityAlreadyChosen
+
+                assert i.id in threshold
 
                 threshold[i.id] -= 1
 
         if any(i < 0 for i in threshold.values()):
-            # 谢谢辣条～
             raise exceptions.ChooseIdentityConflict
+
+    @classmethod
+    def get_chosen(cls, items, pl):
+        from thb.thbidentity import Identity
+
+        mapping = {
+            'boss':       Identity.TYPE.BOSS,
+            'attacker':   Identity.TYPE.ATTACKER,
+            'accomplice': Identity.TYPE.ACCOMPLICE,
+            'curtain':    Identity.TYPE.CURTAIN,
+        }
+
+        rst = []
+        for p in pl:
+            uid = p.account.userid
+            if uid not in items:
+                continue
+
+            for i in items[uid]:
+                i = GameItem.from_sku(i)
+                if not isinstance(i, cls):
+                    continue
+
+                rst.append((p, mapping[i.id]))
+
+        return rst
 
 
 @GameItem.register
@@ -128,8 +155,8 @@ class European(GameItem):
 
     def should_usable_in_game(self, uid, mgr):
         from thb.thbbook import THBattleBook
-        from thb.thbidentity import THBIdentity
-        if isinstance(mgr.game, (THBattleBook, THBIdentity)):
+        from thb.thbidentity import THBattleIdentity
+        if isinstance(mgr.game, (THBattleBook, THBattleIdentity)):
             raise exceptions.IncorrectGameMode
 
         for l in mgr.game_items.values():
