@@ -9,6 +9,7 @@ import sys
 # -- third party --
 from raven.transport.gevent import GeventedHTTPTransport
 from raven.handlers.logging import SentryHandler
+import gevent
 import raven
 
 # -- own --
@@ -36,7 +37,41 @@ class UnityLogHandler(logging.Handler):
             pass
 
 
+class ServerLogFormatter(logging.Formatter):
+    def format(self, rec):
+
+        if rec.exc_info:
+            s = []
+            s.append('>>>>>>' + '-' * 74)
+            s.append(self._format(rec))
+            import traceback
+            s.append(u''.join(traceback.format_exception(*rec.exc_info)).strip())
+            s.append('<<<<<<' + '-' * 74)
+            return u'\n'.join(s)
+        else:
+            return self._format(rec)
+
+    def _format(self, rec):
+        from game.autoenv import Game
+        import time
+        try:
+            g = Game.getgame()
+        except:
+            g = gevent.getcurrent()
+
+        gr_name = getattr(g, 'gr_name', None) or repr(g)
+
+        return u'[%s %s %s] %s' % (
+            rec.levelname[0],
+            time.strftime('%y%m%d %H:%M:%S'),
+            gr_name.decode('utf-8'),
+            rec.msg % rec.args if isinstance(rec.msg, basestring) else repr((rec.msg, rec.args)),
+        )
+
+
 def init(level, sentry_dsn, colored=False):
+    patch_gevent_hub_print_exception()
+
     root = logging.getLogger()
     root.setLevel(0)
 
@@ -88,6 +123,28 @@ def init_unity(level, sentry_dsn):
 
     root.info(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
     root.info('==============================================')
+
+
+def init_server(level, sentry_dsn, logfile):
+    patch_gevent_hub_print_exception()
+
+    root = logging.getLogger()
+    root.setLevel(level)
+
+    fmter = ServerLogFormatter()
+    std = logging.StreamHandler(stream=sys.stdout)
+    std.setFormatter(fmter)
+    root.addHandler(std)
+
+    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport))
+    hdlr.setLevel(logging.ERROR)
+    root.addHandler(hdlr)
+
+    if logfile:
+        from logging.handlers import WatchedFileHandler
+        filehdlr = WatchedFileHandler(logfile)
+        filehdlr.setFormatter(fmter)
+        root.addHandler(filehdlr)
 
 
 def patch_gevent_hub_print_exception():

@@ -40,7 +40,6 @@ def start_client():
 
     import settings
     utils.logging.init(options.log.upper(), settings.SENTRY_DSN, IS_PROTON or options.color_log)
-    utils.logging.patch_gevent_hub_print_exception()
 
     if options.no_update:
         import autoupdate
