@@ -77,7 +77,7 @@ def process_command(arglist):
         prompt = cmd(*al)
         break
 
-    return u'|R%s|R\n' % prompt
+    return u'|R%s|R\n' % prompt if prompt else None
 
 # -----------------------------------
 
@@ -191,5 +191,36 @@ def unblock(user):
 @argdesc(u'物品名称')
 def use(sku):
     from client.core.executive import Executive
-    Executive.use_item(sku)
-    return u''
+    Executive.use_ingame_item(sku)
+
+
+@command(u'使用物品', u'使用可以在物品页面使用的物品')
+@argtypes(int)
+@argdesc(u'物品ID')
+def item_use(id):
+    from client.core.executive import Executive
+    Executive.item_use(id)
+
+
+@command(u'列出背包内的物品', u'RT')
+@argtypes()
+@argdesc()
+def item_backpack():
+    from client.core.executive import Executive
+    Executive.item_backpack()
+
+
+@command(u'列出交易所内的物品', u'RT')
+@argtypes()
+@argdesc()
+def item_exchange():
+    from client.core.executive import Executive
+    Executive.item_exchange()
+
+
+@command(u'抽奖', u'RT')
+@argtypes(str)
+@argdesc(u'货币类型', 'jiecao|ppoint')
+def item_lottery(currency):
+    from client.core.executive import Executive
+    Executive.item_lottery(currency)

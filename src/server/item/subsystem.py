@@ -19,14 +19,14 @@ class ItemSystem(object):
 
     def __init__(self):
         self.command_dispatch = {
-            'backpack':    self.list_backpack,
-            'use':         self.do_use,
-            'drop':        self.do_drop,
-            'exchange':    self.list_exchange,
-            'buy':         self.do_buy,
-            'sell':        self.do_sell,
-            'cancel_sell': self.do_cancel_sell,
-            'lottery':     self.do_lottery,
+            'backpack':    self.backpack,
+            'use':         self.use,
+            'drop':        self.drop,
+            'exchange':    self.exchange,
+            'buy':         self.buy,
+            'sell':        self.sell,
+            'cancel_sell': self.cancel_sell,
+            'lottery':     self.lottery,
         }
 
     def _command(*argstype):
@@ -45,15 +45,13 @@ class ItemSystem(object):
             return
 
         if not handler:
-            log.info('Unknown command %s', cmd)
-            user.write(['invalid_item_command', [cmd, args]])
+            log.info('Unknown item command %s', cmd)
             return
 
         argstype = handler._contract
 
         if not (len(argstype) == len(args) and all(isinstance(v, t) for t, v in zip(argstype, args))):
             log.debug('Command %s with wrong args, expecting %r, actual %r', cmd, argstype, args)
-            user.write(['invalid_item_command', [cmd, args]])
             return
 
         try:
@@ -62,40 +60,40 @@ class ItemSystem(object):
             user.write(['message_err', e.snake_case])
 
     @_command()
-    def list_backpack(self, user):
-        user.write(['items', backpack.list(user.userid)])
+    def backpack(self, user):
+        user.write(['backpack', backpack.list(user.account.userid)])
 
     @_command(int)
-    def do_use(self, user, item_):
-        backpack.use(user.userid, item_)
+    def use(self, user, item_):
+        backpack.use(user.account.userid, item_)
         user.write(['message_info', 'success'])
 
     @_command(int)
-    def do_drop(self, user, item_id):
-        backpack.drop(user.userid, item_id)
+    def drop(self, user, item_id):
+        backpack.drop(user.account.userid, item_id)
         user.write(['message_info', 'success'])
 
     @_command()
-    def list_exchange(self, user):
+    def exchange(self, user):
         l = exchange.list()
         user.write(['exchange', l])
 
     @_command(int, int)
-    def do_sell(self, user, item_id, price):
-        exchange.sell(user.userid, id)
+    def sell(self, user, item_id, price):
+        exchange.sell(user.account.userid, id)
         user.write(['message_info', 'success'])
 
     @_command(int)
-    def do_buy(self, user, entry_id):
-        exchange.buy(user.userid, entry_id)
+    def buy(self, user, entry_id):
+        exchange.buy(user.account.userid, entry_id)
         user.write(['message_info', 'success'])
 
     @_command(int)
-    def do_cancel_sell(self, user, entry_id):
-        exchange.cancel_sell(user.userid, entry_id)
+    def cancel_sell(self, user, entry_id):
+        exchange.cancel_sell(user.account.userid, entry_id)
         user.write(['message_info', 'success'])
 
     @_command(basestring)
-    def do_lottery(self, user, currency):
-        reward = lottery.draw(user, currency)
+    def lottery(self, user, currency):
+        reward = lottery.draw(user.account.userid, currency)
         user.write(['lottery_reward', reward])

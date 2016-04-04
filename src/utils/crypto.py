@@ -50,11 +50,13 @@ def simple_decrypt(data):
 # not using [sb]crypt, this is good enough, not adding dependency
 
 def password_hash(pwd):
+    pwd = pwd.encode('utf-8') if isinstance(pwd, unicode) else pwd
     salt = os.urandom(7)
     return (hashlib.sha256(salt + pwd + salt).digest() + salt).encode('base64').strip()
 
 
 def password_hash_verify(pwd, hash):
     raw = hash.decode('base64')
+    pwd = pwd.encode('utf-8') if isinstance(pwd, unicode) else pwd
     hash, salt = raw[:32], raw[32:]
     return hashlib.sha256(salt + pwd + salt).digest() == hash

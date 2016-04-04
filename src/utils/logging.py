@@ -140,6 +140,8 @@ def init_server(level, sentry_dsn, logfile):
     hdlr.setLevel(logging.ERROR)
     root.addHandler(hdlr)
 
+    logging.getLogger('sentry.errors').setLevel(1000)
+
     if logfile:
         from logging.handlers import WatchedFileHandler
         filehdlr = WatchedFileHandler(logfile)

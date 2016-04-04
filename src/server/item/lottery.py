@@ -37,7 +37,7 @@ def draw(uid, currency):
             amount = constants.LOTTERY_JIECAO_PRICE
             dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == uid).first()
             if not dz_member:
-                raise exceptions.UserNotFound
+                raise exceptions.DiscuzUserNotFound
 
             if dz_member.member_count.jiecao < amount:
                 raise exceptions.InsufficientFunds

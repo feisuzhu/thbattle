@@ -1464,6 +1464,36 @@ class GameScreen(Screen):
                 u'|B|R>> |r|c0000ffff%s|r飘走了\n' % obname
             )
 
+        # ----- begin items -----
+        elif _type == 'exchange':
+            items = args[0]
+            self.chat_box.append('Exchange:\n')
+            for i in items:
+                self.chat_box.append(
+                    (u'ID={i[id]}/'
+                     u'Seller={i[seller]}/'
+                     u'Item={i[item_id]}/'
+                     u'SKU={i[item_sku]}/'
+                     u'Price={i[price]}'
+                     u'\n').format(i=i)
+                )
+            self.chat_box.append('-----')
+
+        elif _type == 'backpack':
+            items = args[0]
+            self.chat_box.append('Your backpack:\n')
+            for i in items:
+                self.chat_box.append(
+                    (u'ID={i[id]}/SKU={i[sku]}\n').format(i=i)
+                )
+            self.chat_box.append('-----\n')
+
+        elif _type == 'lottery_reward':
+            item = args[0]
+            self.chat_box.append('Lottery reward: %s\n' % item)
+
+        # ----- end items -----
+
         else:
             Screen.on_message(self, _type, *args)
 

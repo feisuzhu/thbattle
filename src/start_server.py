@@ -20,6 +20,7 @@ import gevent
 
 # -- own --
 import utils
+import utils.logging
 
 # -- code --
 MAIN = gevent.getcurrent()
@@ -66,7 +67,7 @@ def start_server():
 
     import settings
 
-    utils.logging.init_server(getattr(logging, options.log.upper()), options.logfile)
+    utils.logging.init_server(getattr(logging, options.log.upper()), settings.SENTRY_DSN, options.logfile)
 
     if not options.no_backdoor:
         from gevent.backdoor import BackdoorServer

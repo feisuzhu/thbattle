@@ -202,7 +202,7 @@ class Account(AccountBase):
     def _fill_account(self, user):
         self.username = user.username
         self.status = user.status
-        self.userid = user.uid
+        self.userid = user.id
 
         from urlparse import urljoin
         from settings import ACCOUNT_FORUMURL
@@ -212,9 +212,9 @@ class Account(AccountBase):
             title=user.title,
             avatar=urljoin(
                 ACCOUNT_FORUMURL,
-                '/uc_server/avatar.php?uid=%d&size=middle' % user.uid,
+                '/uc_server/avatar.php?uid=%d&size=middle' % user.id,
             ),
-            credits=user.credits,
+            credits=user.jiecao,
             games=user.games,
             drops=user.drops,
         )

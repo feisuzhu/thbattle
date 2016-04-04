@@ -84,7 +84,7 @@ def start_ui():
             gevent.sleep(0.3)
             Executive.connect_server(('127.0.0.1', 9999), ui_message)
             gevent.sleep(0.3)
-            Executive.auth('Proton1', 'abcde')
+            Executive.auth(1, 'feisuzhu')
             gevent.sleep(0.3)
             Executive.quick_start_game()
             gevent.sleep(0.3)

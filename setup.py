@@ -7,6 +7,7 @@ install_requires = [
     'M2Crypto',
     'MySQL-python',
     'Pillow',
+    'PyMySQL',
     'SQLAlchemy',
     'bottle',
     'colorlog',

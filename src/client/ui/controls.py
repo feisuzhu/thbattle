@@ -1140,7 +1140,8 @@ class PlayerPortrait(Frame):
                 parent=self,
             ))
 
-        [B(i, v) for i, v in enumerate(acc.other['badges'])]
+        # will be replaced something else
+        # [B(i, v) for i, v in enumerate(acc.other['badges'])]
 
     def draw(self):
         PlayerPortrait.draw(self)

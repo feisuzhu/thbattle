@@ -382,7 +382,7 @@ class Executive(object):
         self.server.end_replay()
         self.server = None
 
-    def _simple_op(_type):
+    def _op(_type):
         def wrapper(self, *args):
             if not (self.state == 'connected'):
                 return 'connect_first'
@@ -391,38 +391,46 @@ class Executive(object):
         wrapper.__name__ = _type
         return wrapper
 
-    def _lobby_op(_type):
+    def _l2op(category, _type):
         def wrapper(self, *args):
             if not (self.state == 'connected'):
                 return 'connect_first'
 
-            self.server.write(['lobby', [_type, args]])
+            self.server.write([category, [_type, args]])
         wrapper.__name__ = _type
         return wrapper
 
-    auth             = _simple_op('auth')
-    pong             = _simple_op('pong')
-    heartbeat        = _simple_op('heartbeat')
+    auth      = _op('auth')
+    pong      = _op('pong')
+    heartbeat = _op('heartbeat')
 
-    cancel_ready     = _lobby_op('cancel_ready')
-    change_location  = _lobby_op('change_location')
-    chat             = _lobby_op('chat')
-    create_game      = _lobby_op('create_game')
-    exit_game        = _lobby_op('exit_game')
-    get_lobbyinfo    = _lobby_op('get_lobbyinfo')
-    get_ready        = _lobby_op('get_ready')
-    invite_grant     = _lobby_op('invite_grant')
-    invite_user      = _lobby_op('invite_user')
-    join_game        = _lobby_op('join_game')
-    kick_observer    = _lobby_op('kick_observer')
-    kick_user        = _lobby_op('kick_user')
-    observe_grant    = _lobby_op('observe_grant')
-    observe_user     = _lobby_op('observe_user')
-    query_gameinfo   = _lobby_op('query_gameinfo')
-    quick_start_game = _lobby_op('quick_start_game')
-    set_game_param   = _lobby_op('set_game_param')
-    speaker          = _lobby_op('speaker')
+    cancel_ready     = _l2op('lobby', 'cancel_ready')
+    change_location  = _l2op('lobby', 'change_location')
+    chat             = _l2op('lobby', 'chat')
+    create_game      = _l2op('lobby', 'create_game')
+    exit_game        = _l2op('lobby', 'exit_game')
+    get_lobbyinfo    = _l2op('lobby', 'get_lobbyinfo')
+    get_ready        = _l2op('lobby', 'get_ready')
+    invite_grant     = _l2op('lobby', 'invite_grant')
+    invite_user      = _l2op('lobby', 'invite_user')
+    join_game        = _l2op('lobby', 'join_game')
+    kick_observer    = _l2op('lobby', 'kick_observer')
+    kick_user        = _l2op('lobby', 'kick_user')
+    observe_grant    = _l2op('lobby', 'observe_grant')
+    observe_user     = _l2op('lobby', 'observe_user')
+    query_gameinfo   = _l2op('lobby', 'query_gameinfo')
+    quick_start_game = _l2op('lobby', 'quick_start_game')
+    set_game_param   = _l2op('lobby', 'set_game_param')
+    speaker          = _l2op('lobby', 'speaker')
+    use_ingame_item  = _l2op('lobby', 'use_item')
 
-    use_item         = _lobby_op('use_item')
+    item_backpack    = _l2op('item', 'backpack')
+    item_use         = _l2op('item', 'use')
+    item_drop        = _l2op('item', 'drop')
+    item_exchange    = _l2op('item', 'exchange')
+    item_buy         = _l2op('item', 'buy')
+    item_sell        = _l2op('item', 'sell')
+    item_cancel_sell = _l2op('item', 'cancel_sell')
+    item_lottery     = _l2op('item', 'lottery')
 
-    del _simple_op, _lobby_op
+    del _op, _l2op
