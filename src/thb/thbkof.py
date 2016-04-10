@@ -123,7 +123,7 @@ class THBattleKOFBootstrap(GenericAction):
 
         # choose girls -->
         from thb.characters import get_characters
-        chars = get_characters('kof')
+        chars = get_characters('common', 'kof')
 
         A, B = roll(g, self.items)
         order = [A, B, B, A, A, B, B, A, A, B]

@@ -8,7 +8,7 @@ from ..actions import migrate_cards, random_choose_card
 from ..cards import Attack, BaseDuel, LaunchGraze, Skill, UseAttack, WearEquipmentAction, t_None
 from ..cards import t_Self
 from ..inputlets import ChooseIndividualCardInputlet
-from .baseclasses import Character, register_character
+from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
 from utils import classmix
 
@@ -154,7 +154,7 @@ class Nitoryuu(Skill):
         return not self.associated_cards
 
 
-@register_character
+@register_character_to('common')
 class Youmu(Character):
     skills = [Mijincihangzhan, Nitoryuu]
     eventhandlers_required = [YoumuHandler]

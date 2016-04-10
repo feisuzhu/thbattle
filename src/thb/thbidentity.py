@@ -196,7 +196,7 @@ class THBattleIdentityBootstrap(GenericAction):
 
         # choose girls init -->
         from .characters import get_characters
-        chars = get_characters('id', 'id8')
+        chars = get_characters('common', 'id', 'id8')
 
         pl = g.players.rotate_to(boss)
 

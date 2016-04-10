@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, DropCards, FatetellStage, LifeLost, PlayerTurn, UserAction
-from ..actions import user_choose_cards
-from ..cards import Card, Skill, t_None
-from ..cards.basic import Heal
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from thb.actions import DrawCards, DropCards, FatetellStage, LifeLost, PlayerTurn, UserAction
+from thb.actions import user_choose_cards
+from thb.cards import Card, Skill, t_None
+from thb.cards.basic import Heal
+from thb.characters.baseclasses import Character, register_character_to
+from thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -95,7 +96,7 @@ class RebornHandler(EventHandler):
         return True
 
 
-@register_character
+@register_character_to('common')
 class Mokou(Character):
     skills = [Reborn, Ashes]
     eventhandlers_required = [AshesHandler, RebornHandler]

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
-from thb.actions import user_choose_players, ttags
-from thb.cards import Skill, t_None
-from thb.inputlets import ChooseOptionInputlet
-from thb.characters.baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from thb.actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
+from thb.actions import ttags, user_choose_players
+from thb.cards import Skill, t_None
+from thb.characters.baseclasses import Character, register_character_to
+from thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -137,7 +138,7 @@ class FourOfAKindHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class SpFlandre(Character):
     skills = [DestructionImpulse, FourOfAKind]
     eventhandlers_required = [DestructionImpulseHandler, FourOfAKindHandler]

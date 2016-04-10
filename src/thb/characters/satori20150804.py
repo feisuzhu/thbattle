@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import ActionShootdown, EventHandler, Game, user_input
-from thb.actions import Damage, DrawCards, ForEach, LaunchCard, Reforge, UserAction
-from thb.actions import migrate_cards, random_choose_card, ttags, user_choose_players
+from thb.actions import Damage, ForEach, LaunchCard, Reforge, UserAction, migrate_cards
+from thb.actions import random_choose_card, ttags
 from thb.cards import Card, Skill, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseIndividualCardInputlet, ChooseOptionInputlet
 
 
@@ -168,7 +169,7 @@ class HeartfeltFancyHandler(EventHandler):
         return arg
 
 
-# @register_character
+@register_character_to('1week')
 class Satori20150804(Character):
     skills = [MindRead, Rosa, HeartfeltFancy]
     eventhandlers_required = [

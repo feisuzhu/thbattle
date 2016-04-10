@@ -7,7 +7,7 @@ from game.autoenv import EventHandler, Game, user_input
 from thb.actions import Damage, DrawCardStage, DrawCards, UserAction, detach_cards
 from thb.actions import migrate_cards, user_choose_players
 from thb.cards import Card, Skill, VirtualCard, t_None, t_One, t_OtherOne
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
 
@@ -109,7 +109,7 @@ class JollyHandler(EventHandler):
         return (tl[-1:], True)
 
 
-@register_character
+@register_character_to('common')
 class Kogasa(Character):
     skills = [Surprise, Jolly]
     eventhandlers_required = [JollyHandler]

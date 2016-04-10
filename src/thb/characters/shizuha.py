@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction
-from thb.actions import UserAction, random_choose_card, user_choose_players
+from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, UserAction
+from thb.actions import random_choose_card, user_choose_players
 from thb.cards import Skill, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -183,7 +184,7 @@ class Decay(Skill):
     target = t_None
 
 
-@register_character
+@register_character_to('common')
 class Shizuha(Character):
     skills = [Decay, AutumnWind]
     eventhandlers_required = [DecayDamageHandler, DecayDrawCardHandler, AutumnWindHandler]

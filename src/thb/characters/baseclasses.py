@@ -61,16 +61,9 @@ def register_character_to(*cats):
 
     return register
 
-register_character = register_character_to('common')
-
 
 def get_characters(*cats, **kwargs):
     cats = set(cats)
-    if '-common' in cats:
-        cats.discard('-common')
-    else:
-        cats.add('common')
-
     chars = set()
     chars.update(*[characters_by_category[c] for c in cats])
     chars.difference_update(*[characters_by_category['-' + c] for c in cats])

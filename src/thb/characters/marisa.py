@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
@@ -6,7 +7,7 @@
 from game.autoenv import Game, user_input
 from thb.actions import LaunchCard, UserAction, migrate_cards, random_choose_card
 from thb.cards import AttackCard, Skill, TreatAs, VirtualCard, t_OtherOne
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -55,7 +56,7 @@ class Borrow(Skill):
         return True
 
 
-@register_character
+@register_character_to('common')
 class Marisa(Character):
     skills = [Borrow]
     eventhandlers_required = []

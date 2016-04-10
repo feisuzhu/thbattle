@@ -6,7 +6,7 @@
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import Damage, GenericAction
 from thb.cards import Attack, AttackCard, Card, Heal, InevitableAttack, Skill, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
 
@@ -96,7 +96,7 @@ class VampireKissHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Remilia(Character):
     skills = [SpearTheGungnir, VampireKiss]
     eventhandlers_required = [SpearTheGungnirHandler, VampireKissHandler]

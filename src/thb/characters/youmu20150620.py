@@ -8,7 +8,7 @@ from thb.actions import Damage, FinalizeStage, LaunchCard, Reforge, UserAction
 from thb.actions import ask_for_action
 from thb.cards import Attack, AttackCard, Card, GrazeCard, LaunchGraze, Skill, TreatAs
 from thb.cards import UseGraze, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from utils import classmix, InstanceHookMeta
 
 
@@ -150,7 +150,7 @@ class Xianshizhan(Skill):
     target = t_None
 
 
-# @register_character
+@register_character_to('1week')
 class Youmu20150620(Character):
     skills = [Jiongyanjian, Xianshizhan]
     eventhandlers_required = [JiongyanjianHandler, XianshizhanHandler]

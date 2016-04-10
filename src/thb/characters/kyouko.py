@@ -7,7 +7,7 @@ from game.autoenv import EventHandler, Game, user_input
 from thb.actions import Damage, DrawCards, GenericAction, LaunchCard, UserAction
 from thb.actions import migrate_cards, user_choose_cards, user_choose_players
 from thb.cards import Attack, AttackCard, PhysicalCard, Skill, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
 
@@ -151,7 +151,7 @@ class ResonanceHandler(EventHandler):
         return (tl[-1:], True)
 
 
-@register_character
+@register_character_to('common')
 class Kyouko(Character):
     skills = [Echo, Resonance]
     eventhandlers_required = [EchoHandler, ResonanceHandler]

@@ -179,7 +179,7 @@ class THBattle2v2Bootstrap(GenericAction):
 
         # ban / choose girls -->
         from . import characters
-        chars = characters.get_characters('2v2')
+        chars = characters.get_characters('common', '2v2')
 
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)

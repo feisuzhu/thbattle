@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards
-from ..cards import Skill, t_None
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
+from thb.actions import DrawCards
+from thb.cards import Skill, t_None
+from thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --
@@ -40,7 +41,7 @@ class LuckHandler(EventHandler):
         return arg
 
 
-@register_character
+@register_character_to('common')
 class Tewi(Character):
     skills = [Luck]
     eventhandlers_required = [LuckHandler]

@@ -155,7 +155,7 @@ class THBattleFaithBootstrap(GenericAction):
 
         # choose girls -->
         from . import characters
-        chars = characters.get_characters('faith')
+        chars = characters.get_characters('common', 'faith')
 
         choices, _ = build_choices(
             g, self.items,

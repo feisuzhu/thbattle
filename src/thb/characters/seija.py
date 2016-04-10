@@ -3,10 +3,10 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, LaunchCard, Pindian, UserAction
-from ..cards import AttackCard, BaseAttack, DuelCard, Skill, TreatAs, VirtualCard, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
+from thb.actions import DrawCards, LaunchCard, Pindian, UserAction
+from thb.cards import AttackCard, BaseAttack, DuelCard, Skill, TreatAs, VirtualCard, t_None
+from thb.inputlets import ChooseOptionInputlet
+from thb.characters.baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
 
 
@@ -137,7 +137,7 @@ class ReversalHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Seija(Character):
     skills = [Incite, Reversal]
     eventhandlers_required = [ReversalHandler]

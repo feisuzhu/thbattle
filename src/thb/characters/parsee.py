@@ -6,7 +6,7 @@
 from game.autoenv import Game, user_input
 from thb.actions import DropCards, EventHandler, LaunchCard, migrate_cards
 from thb.cards import Card, Demolition, DemolitionCard, DummyCard, Skill, TreatAs
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 from utils.misc import classmix
 
@@ -78,7 +78,7 @@ class EnvyHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Parsee(Character):
     skills = [Envy]
     eventhandlers_required = [EnvyHandler]

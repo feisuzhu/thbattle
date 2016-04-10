@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, GenericAction
-from ..cards import Card, RejectCard, Skill, SpellCardAction, t_None
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game
+from thb.actions import DrawCards, GenericAction
+from thb.cards import Card, RejectCard, Skill, SpellCardAction, t_None
+from thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --
@@ -88,7 +89,7 @@ class LibraryHandler(EventHandler):
         return arg
 
 
-@register_character
+@register_character_to('common')
 class Patchouli(Character):
     skills = [Library, Knowledge]
     eventhandlers_required = [LibraryHandler, KnowledgeHandler]

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game
-from thb.actions import ActionLimitExceeded, ActionShootdown, ActionStage, DrawCards
-from thb.actions import LaunchCard, Pindian, PlayerTurn, UserAction
+from thb.actions import ActionLimitExceeded, ActionShootdown, ActionStage, DrawCards, LaunchCard
+from thb.actions import Pindian, PlayerTurn, UserAction
 from thb.cards import AttackCard, Skill, TreatAs, VirtualCard, WineCard, t_None, t_OtherOne
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --
@@ -107,7 +108,7 @@ class DrunkenDreamHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Suika(Character):
     skills = [HeavyDrinker, DrunkenDream]
     eventhandlers_required = [

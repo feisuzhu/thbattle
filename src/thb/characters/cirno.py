@@ -7,7 +7,7 @@ from game.autoenv import EventHandler, Game, user_input
 from thb.actions import Damage, DropCards, GenericAction, LaunchCard, LifeLost, UserAction
 from thb.actions import random_choose_card, ttags, user_choose_cards
 from thb.cards import AttackCard, Skill, t_None, t_OtherOne, DuelCard, VirtualCard
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -159,7 +159,7 @@ class PerfectFreezeHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Cirno(Character):
     skills = [Bakadesu, PerfectFreeze]
     eventhandlers_required = [PerfectFreezeHandler]

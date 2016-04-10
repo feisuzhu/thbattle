@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
@@ -6,7 +7,7 @@
 from game.autoenv import EventHandler
 from thb.actions import ActionStage, PlayerTurn, PrepareStage
 from thb.cards import AttackCard, Skill, TreatAs, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --
@@ -65,7 +66,7 @@ class LunaDialHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Sakuya(Character):
     skills = [Dagger, LunaDial]
     eventhandlers_required = [LunaDialHandler]

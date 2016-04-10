@@ -8,7 +8,7 @@ from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAct
 from thb.actions import PlayerDeath, PlayerTurn, register_eh, ttags
 from thb.cards import AttackCard, AttackCardHandler, AttackLimitExceeded, BaseAttack, BaseDuel, DuelCard
 from thb.cards import ElementalReactorSkill, Skill, UserAction, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
 
@@ -164,7 +164,7 @@ class ExterminateFadeHandler(EventHandler):
         return arg
 
 
-@register_character
+@register_character_to('common')
 class Flandre(Character):
     skills = [CriticalStrike, Exterminate]
     eventhandlers_required = [CriticalStrikeHandler, ExterminateHandler]

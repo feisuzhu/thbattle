@@ -11,7 +11,7 @@ from thb.actions import Reforge, UserAction, mark, marked, random_choose_card
 from thb.actions import user_choose_cards, user_choose_players
 from thb.cards import AttackCard, DollControlCard, Heal, Skill, TreatAs, VirtualCard
 from thb.cards import t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -265,7 +265,7 @@ class DollBlastDropHandler(DollBlastHandlerCommon, EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Alice(Character):
     skills = [DollBlast, LittleLegion]
     eventhandlers_required = [

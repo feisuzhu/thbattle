@@ -7,7 +7,7 @@ from game.autoenv import EventHandler, Game, user_input
 from thb.actions import DropCards, PlayerTurn, UserAction, migrate_cards
 from thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
 from thb.cards import AttackCard, CardList, Heal, HiddenCard, PhysicalCard, Skill, t_Self
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseIndividualCardInputlet
 
 
@@ -126,7 +126,7 @@ class QiliaoRecoverHandler(EventHandler):
         return (tl[-1:], True)
 
 
-# @register_character
+@register_character_to('1week')
 class Meirin20150714(Character):
     skills = [Qiliao]
     eventhandlers_required = [QiliaoDropHandler, QiliaoRecoverHandler]

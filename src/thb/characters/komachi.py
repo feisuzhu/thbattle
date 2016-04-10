@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange
-from ..actions import PlayerTurn, UserAction, migrate_cards, random_choose_card
-from ..cards import Skill, t_None, t_OtherOne
-from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from thb.actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange
+from thb.actions import PlayerTurn, UserAction, migrate_cards, random_choose_card
+from thb.cards import Skill, t_None, t_OtherOne
+from thb.characters.baseclasses import Character, register_character_to
+from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
@@ -145,7 +146,7 @@ class FerryFeeHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Komachi(Character):
     skills = [Riverside, Returning]
     eventhandlers_required = [RiversideHandler, ReturningHandler, FerryFeeHandler]

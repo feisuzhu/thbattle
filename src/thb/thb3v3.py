@@ -98,7 +98,7 @@ class THBattleBootstrap(GenericAction):
             g.process_action(RevealIdentity(p, pl))
 
         from . import characters
-        chars = characters.get_characters('3v3')
+        chars = characters.get_characters('common', '3v3')
         choices, imperial_choices = build_choices(
             g, self.items,
             candidates=chars, players=g.players,

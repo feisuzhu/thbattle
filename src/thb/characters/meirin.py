@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DropCards, GenericAction, MaxLifeChange, PlayerTurn, random_choose_card
-from ..cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, TreatAs
-from ..cards import t_None
-from ..inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from thb.actions import DropCards, GenericAction, MaxLifeChange, PlayerTurn, random_choose_card
+from thb.cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, TreatAs
+from thb.cards import t_None
+from thb.characters.baseclasses import Character, register_character_to
+from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
@@ -113,7 +114,7 @@ class RiverBehindHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Meirin(Character):
     skills = [LoongPunch, RiverBehind]
     eventhandlers_required = [RiverBehindHandler, LoongPunchHandler]

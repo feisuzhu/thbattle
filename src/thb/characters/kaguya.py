@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DrawCards, LaunchCard, LifeLost, UserAction, migrate_cards
-from ..actions import skill_check, skill_wrap, user_choose_cards
-from ..cards import Card, Heal, SealingArrayCard, Skill, TreatAs, VirtualCard, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from thb.actions import Damage, DrawCards, LaunchCard, LifeLost, UserAction, migrate_cards
+from thb.actions import skill_check, skill_wrap, user_choose_cards
+from thb.cards import Card, Heal, SealingArrayCard, Skill, TreatAs, VirtualCard, t_None
+from thb.characters.baseclasses import Character, register_character_to
+from thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -158,7 +159,7 @@ class ImperishableNightHandler(EventHandler):
         return LaunchCard(p, [tgt], skill).can_fire()
 
 
-@register_character
+@register_character_to('common')
 class Kaguya(Character):
     skills = [Dilemma, ImperishableNight]
     eventhandlers_required = [DilemmaHandler, ImperishableNightHandler]

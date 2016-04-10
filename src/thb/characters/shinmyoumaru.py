@@ -8,7 +8,7 @@ from thb.actions import Damage, FatetellAction, FatetellMalleateHandler, LaunchC
 from thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard
 from thb.actions import detach_cards, migrate_cards, user_choose_cards
 from thb.cards import Skill, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
 
@@ -126,7 +126,7 @@ class VengeOfTsukumogamiHandler(EventHandler):
         return True
 
 
-@register_character
+@register_character_to('common')
 class Shinmyoumaru(Character):
     skills = [MiracleMallet, VengeOfTsukumogami]
     eventhandlers_required = [MiracleMalletHandler, VengeOfTsukumogamiHandler]

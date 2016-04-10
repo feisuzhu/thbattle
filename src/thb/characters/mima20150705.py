@@ -8,7 +8,7 @@ from thb.actions import Damage, DrawCards, ForEach, LaunchCard, LaunchFatetellCa
 from thb.actions import UserAction, ttags
 from thb.cards import AttackCard, Reject, Skill, SpellCardAction, TreatAs, VirtualCard
 from thb.cards import t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
 
@@ -115,7 +115,7 @@ class ElingHandler(EventHandler):
         return act
 
 
-# @register_character
+@register_character_to('1week')
 class Mima20150705(Character):
     skills = [Tianyi, Eling]
     eventhandlers_required = [TianyiHandler, ElingHandler]

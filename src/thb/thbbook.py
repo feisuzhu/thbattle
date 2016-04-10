@@ -320,7 +320,7 @@ class THBattleBookBootstrap(GenericAction):
         koakuma.life += 4
 
         # choose girls -->
-        chars = characters.get_characters('book')
+        chars = characters.get_characters('common', 'book')
         try:
             chars.remove(characters.koakuma.Koakuma)
         except:

@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from .baseclasses import Character, register_character_to
+from thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --

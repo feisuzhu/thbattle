@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, UserAction, ttags
-from ..cards import Skill, t_Self
-from .baseclasses import Character, register_character
 from game.autoenv import Game
+from thb.actions import DrawCards, UserAction, ttags
+from thb.cards import Skill, t_Self
+from thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --
@@ -55,7 +56,7 @@ class Find(Skill):
         )
 
 
-@register_character
+@register_character_to('common')
 class Koakuma(Character):
     skills = [Find]
     eventhandlers_required = []

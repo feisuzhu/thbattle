@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
@@ -7,7 +8,7 @@ from game.autoenv import EventHandler, Game, user_input
 from thb.actions import Damage, FatetellMalleateHandler, MigrateCardsTransaction, UseCard
 from thb.actions import UserAction, detach_cards, migrate_cards, user_choose_cards
 from thb.cards import Skill, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -107,7 +108,7 @@ class MajestyHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Shikieiki(Character):
     skills = [Trial, Majesty]
     eventhandlers_required = [TrialHandler, MajestyHandler]

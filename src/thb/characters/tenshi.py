@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import Damage, DrawCards, Fatetell, GenericAction, LaunchCard, UserAction
-from ..actions import ask_for_action, migrate_cards
-from ..cards import Card, Skill, t_None
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character
 from game.autoenv import EventHandler, Game, user_input
+from thb.actions import Damage, DrawCards, Fatetell, GenericAction, LaunchCard, UserAction
+from thb.actions import ask_for_action, migrate_cards
+from thb.cards import Card, Skill, t_None
+from thb.characters.baseclasses import Character, register_character_to
+from thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -120,7 +121,7 @@ class ScarletPerceptionHandler(EventHandler):
         return act
 
 
-@register_character
+@register_character_to('common')
 class Tenshi(Character):
     skills = [Masochist, ScarletPerception]
     eventhandlers_required = [MasochistHandler, ScarletPerceptionHandler]

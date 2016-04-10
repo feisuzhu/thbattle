@@ -7,7 +7,7 @@ from game.autoenv import EventHandler, Game
 from thb.actions import DropCardStage, GenericAction, LifeLost, migrate_cards
 from thb.actions import random_choose_card, user_choose_cards, user_choose_players
 from thb.cards import Skill, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --
@@ -133,7 +133,7 @@ class ShipwreckHandler(EventHandler):
         return (tl[-1:], True)
 
 
-# @register_character
+@register_character_to('1week')
 class Minamitsu20150818(Character):
     skills = [Shipwreck]
     eventhandlers_required = [ShipwreckHandler]

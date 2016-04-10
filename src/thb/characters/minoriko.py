@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
@@ -6,7 +7,7 @@
 from game.autoenv import EventHandler, Game
 from thb.actions import DrawCardStage, UserAction, migrate_cards, user_choose_players
 from thb.cards import Card, Harvest, HarvestCard, Skill, TreatAs, t_None
-from thb.characters.baseclasses import Character, register_character
+from thb.characters.baseclasses import Character, register_character_to
 
 
 # -- code --
@@ -117,7 +118,7 @@ class AkiTributeHandler(EventHandler):
         return (tl[-1:], True)
 
 
-@register_character
+@register_character_to('common')
 class Minoriko(Character):
     skills = [Foison, AutumnFeast, AkiTribute]
     eventhandlers_required = [FoisonHandler, AkiTributeHandler]
