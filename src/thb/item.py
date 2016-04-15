@@ -59,8 +59,8 @@ class ImperialChoice(GameItem):
 
 
 @GameItem.register
-class IdentityChooser(GameItem):
-    key = 'id-chooser'
+class ImperialIdentity(GameItem):
+    key = 'imperial-id'
     args = [str]
 
     def init(self, id):

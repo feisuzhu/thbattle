@@ -17,7 +17,7 @@ from thb.actions import PlayerTurn, RevealIdentity, action_eventhandlers
 from thb.characters.baseclasses import mixin_character
 from thb.common import PlayerIdentity, build_choices
 from thb.inputlets import ChooseGirlInputlet
-from thb.item import IdentityChooser
+from thb.item import ImperialIdentity
 from utils.misc import Enum
 
 
@@ -169,7 +169,7 @@ class THBattleIdentityBootstrap(GenericAction):
         pl = g.players[:]
         identities = [mapping[i] for i in identities]
         g.identities = identities[:]
-        imperial_identities = IdentityChooser.get_chosen(self.items, pl)
+        imperial_identities = ImperialIdentity.get_chosen(self.items, pl)
         for p, i in imperial_identities:
             pl.remove(p)
             identities.remove(i)
