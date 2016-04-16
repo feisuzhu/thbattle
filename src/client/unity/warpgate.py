@@ -3,7 +3,7 @@
 # -- prioritized --
 import sys
 reload(sys)
-sys.setdefaultencoding(sys.getfilesystemencoding())
+sys.setdefaultencoding('utf-8')
 
 # -- stdlib --
 import random
@@ -103,6 +103,8 @@ hub.resolver = Resolver(hub=hub)
 
 import logging
 import utils.logging
+
+sys.argv = []
 
 utils.logging.init_unity(logging.ERROR, settings.SENTRY_DSN)
 utils.logging.patch_gevent_hub_print_exception()

@@ -178,7 +178,7 @@ class PeerPlayer(AbstractPlayer):
         return pp
 
     def __repr__(self):
-        return u"PeerPlayer(%s)" % (self.account.username if self.account else None)
+        return "PeerPlayer(%s)" % (self.account.username if self.account else None)
 
     # account = < set by update >
 

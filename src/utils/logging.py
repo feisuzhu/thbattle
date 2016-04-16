@@ -118,7 +118,7 @@ def init_unity(level, sentry_dsn):
     root.addHandler(hdlr)
 
     hdlr = UnityLogHandler()
-    hdlr.setLevel(getattr(logging, level))
+    hdlr.setLevel(level)
     root.addHandler(hdlr)
 
     root.info(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
