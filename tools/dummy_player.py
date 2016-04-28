@@ -12,7 +12,7 @@ import msgpack
 
 # -- own --
 # -- code --
-names = range(2, 14)
+names = range(3, 14)
 names = itertools.cycle(names)
 types = {
     '3v3':   'THBattle',
