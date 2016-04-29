@@ -14,12 +14,13 @@ class Nazrin:
     # Character
     char_name = u'纳兹琳'
     port_image = 'thb-portrait-nazrin'
+    figure_image = 'thb-figure-nazrin'
     miss_sound_effect = 'thb-cv-nazrin_miss'
     description = (
         u'|DB探宝的小小大将 纳兹琳 体力：3|r\n\n'
         u'|G轻敏|r:你可以将一张黑色手牌当【擦弹】使用或打出。\n\n'
         u'|G探宝|r:准备阶段开始时，你可以进行一次判定，若结果为黑色，你获得此牌，你可以重复此流程，直到出现红色的判定结果为止。\n\n'
-        u'|DB（画师：Pixiv ID 3378132，CV：小羽）|r'
+        u'|DB（画师：月见，CV：小羽）|r'
     )
 
 
@@ -27,13 +28,14 @@ class NazrinKOF:
     # Character
     char_name = u'纳兹琳'
     port_image = 'thb-portrait-nazrin'
+    figure_image = 'thb-figure-nazrin'
     miss_sound_effect = 'thb-cv-nazrin_miss'
     description = (
         u'|DB探宝的小小大将 纳兹琳 体力：3|r\n\n'
         u'|G轻敏|r:你可以将一张|B黑桃|r色手牌当【擦弹】使用或打出。\n\n'
         u'|G探宝|r:准备阶段开始时，你可以进行一次判定，若结果为黑色，你获得此牌，你可以重复此流程，直到出现红色的判定结果为止。\n\n'
         u'|RKOF修正角色|r\n\n'
-        u'|DB（画师：Pixiv ID 3378132，CV：小羽）|r'
+        u'|DB（画师：月见，CV：小羽）|r'
     )
 
 

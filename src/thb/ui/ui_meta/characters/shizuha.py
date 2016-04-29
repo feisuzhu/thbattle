@@ -84,6 +84,7 @@ class Shizuha:
     # Character
     char_name = u'秋静叶'
     port_image = 'thb-portrait-shizuha'
+    figure_image = 'thb-figure-shizuha'
     miss_sound_effect = 'thb-cv-shizuha_miss'
     description = (
         u'|DB寂寞与终焉的象征 秋静叶 体力：3|r\n\n'
@@ -91,6 +92,6 @@ class Shizuha:
         # 叶子的离去，是因为风的追求，还是树的不挽留？
         u'|G秋风|r：你的弃牌阶段结束时，你可以弃置至多X名其他角色各一张牌（X为你弃牌阶段的弃牌数）。|r\n\n'
         # 觉得冷吗，谁叫你们不穿秋裤！（幸灾乐祸地）
-        u'|DB（画师：Pixiv ID 42826425，CV：VV，人物设计：SmiteOfKing）|r'
+        u'|DB（画师：和茶，CV：VV，人物设计：SmiteOfKing）|r'
         # 咦，黑幕来了，大家快逃！
     )

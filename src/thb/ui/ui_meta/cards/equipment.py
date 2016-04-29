@@ -27,7 +27,7 @@ class OpticalCloakCard:
     description = (
         u'|R光学迷彩|r\n\n'
         u'装备后:当你需要使用或打出【擦弹】时，可以进行一次判定，若结果为红，视为你使用或打出了一张【擦弹】。\n\n'
-        u'|DB（画师：人人网 邵思雯，CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     is_action_valid = equip_iav
@@ -364,7 +364,7 @@ class RepentanceStickCard:
         u'|R悔悟棒|r\n\n'
         u'攻击范围2，装备后：当你使用【弹幕】造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
         u'|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌\n\n'
-        u'|DB（CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     is_action_valid = equip_iav
@@ -621,8 +621,12 @@ class NenshaPhoneCard:
     image = 'thb-card-nenshaphone'
     image_small = 'thb-card-small-nenshaphone'
     description = (
-        u'|R念写机|r\n\n'
-        u'攻击距离4，装备后：当你使用的【弹幕】对目标角色造成伤害后，可以将其两张手牌置入明牌区。'
+        u'|R念写机|r\n'
+        u'\n'
+        u'攻击距离4，装备后：当你使用的【弹幕】对目标角色造成伤害后，可以将其两张手牌置入明牌区。\n'
+        u'\n'
+        u'|DB（画师：霏茶）|r'
+
     )
     is_action_valid = equip_iav
 
@@ -698,7 +702,7 @@ class DeathSickleCard:
     description = (
         u'|R死神之镰|r\n\n'
         u'攻击范围2，装备后：当你使用的【弹幕】对目标角色造成伤害时，若其没有手牌，此伤害+1。\n\n'
-        u'|DB（CV：小羽）|r'
+        u'|DB（画师：霏茶，CV：小羽）|r'
     )
     is_action_valid = equip_iav
 
@@ -908,7 +912,7 @@ class GrimoireCard:
         u'|B|R>> |r红桃当【宴会】\n'
         u'|B|R>> |r梅花当【地图炮】\n'
         u'|B|R>> |r方片当【五谷丰登】\n\n'
-        u'|DB（CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
 

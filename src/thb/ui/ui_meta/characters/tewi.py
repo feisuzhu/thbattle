@@ -31,9 +31,10 @@ class Tewi:
     # Character
     char_name = u'因幡帝'
     port_image = 'thb-portrait-tewi'
+    figure_image = 'thb-figure-tewi'
     miss_sound_effect = 'thb-cv-tewi_miss'
     description = (
         u'|DB幸运的腹黑兔子 因幡帝 体力：4|r\n\n'
         u'|G幸运|r：|B锁定技|r，当你失去最后的手牌时，你摸两张牌。\n\n'
-        u'|DB（画师：Pixiv UID 654238，CV：北斗夜）|r'
+        u'|DB（画师：和茶，CV：北斗夜）|r'
     )

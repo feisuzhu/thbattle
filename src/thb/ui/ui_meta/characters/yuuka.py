@@ -149,6 +149,7 @@ class YuukaKOF:
     # Character
     char_name = u'风见幽香'
     port_image = 'thb-portrait-yuuka'
+    figure_image = 'thb-figure-yuuka'
     miss_sound_effect = 'thb-cv-yuuka_miss'
     description = (
         u'|DB四季的鲜花之主 风见幽香 体力：4|r\n\n'

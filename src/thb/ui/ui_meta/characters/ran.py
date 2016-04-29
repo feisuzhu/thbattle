@@ -127,13 +127,14 @@ class Ran:
     # Character
     char_name = u'八云蓝'
     port_image = 'thb-portrait-ran'
+    figure_image = 'thb-figure-ran'
     miss_sound_effect = 'thb-cv-ran_miss'
     description = (
         u'|DB天河一号的核心 八云蓝 体力：3|r\n\n'
         u'|G神算|r：准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序的置于牌堆顶，其余以任意顺序置于牌堆底。（X为场上存活角色的数量，且至多为5）\n\n'
         u'|G极智|r：你的回合外，当有非延时符卡的效果对一名角色生效后，你可以弃置一张牌使该效果对该角色重新进行一次结算，此时效果来源视为你。每轮限一次。\n\n'
         u'|G素裸|r：|B锁定技|r，当你没有手牌时，你受到的符卡伤害-1。\n\n'
-        u'|DB（画师：Pixiv ID 27367823，CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
 
@@ -141,6 +142,7 @@ class RanKOF:
     # Character
     char_name = u'八云蓝'
     port_image = 'thb-portrait-ran'
+    figure_image = 'thb-figure-ran'
     miss_sound_effect = 'thb-cv-ran_miss'
     description = (
         u'|DB天河一号的核心 八云蓝 体力：3|r\n\n'
@@ -148,5 +150,5 @@ class RanKOF:
         u'|G极智|r：出牌阶段限一次，你可以将一张手牌当你本回合上一张使用过的非延时符卡使用。\n\n'
         u'|G素裸|r：|B锁定技|r，当你没有手牌时，你受到的符卡伤害-1。\n\n'
         u'|RKOF修正角色|r\n\n'
-        u'|DB（画师：Pixiv ID 27367823，CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )

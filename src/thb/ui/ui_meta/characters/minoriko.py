@@ -89,11 +89,12 @@ class Minoriko:
     # Character
     char_name = u'秋穰子'
     port_image = 'thb-portrait-minoriko'
+    figure_image = 'thb-figure-minoriko'
     miss_sound_effect = 'thb-cv-minoriko_miss'
     description = (
         u'|DB没人气的丰收神 秋穰子 体力：3|r\n\n'
         u'|G丰收|r：|B锁定技|r，摸牌阶段摸牌后，若你的手牌数不足5张，你可以补至5张。\n\n'
         u'|G秋祭|r：出牌阶段限一次，你可以将两张红色牌当|G五谷丰登|r使用。\n\n'
         u'|G上贡|r：|B锁定技|r，当有人使用|G五谷丰登|r时，你首先拿牌。|G五谷丰登|r结算完毕后，你将剩余的牌置于一名角色的明牌区。\n\n'
-        u'|DB（画师：Pixiv ID 5931998，CV：VV）|r'
+        u'|DB（画师：和茶，CV：VV）|r'
     )

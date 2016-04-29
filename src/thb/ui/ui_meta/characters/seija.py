@@ -133,10 +133,11 @@ class Seija:
     # Character
     char_name = u'鬼人正邪'
     port_image = 'thb-portrait-seija'
+    figure_image = 'thb-figure-seija'
     miss_sound_effect = 'thb-cv-seija_miss'
     description = (
         u'|DB逆袭的天邪鬼 鬼人正邪 体力：3|r\n\n'
         u'|G挑拨|r：出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内一名由你指定的另一名角色使用了一张【弹幕】。若你没赢，该角色可以视为对你使用了一张【弹幕】。\n\n'
         u'|G逆转|r：当你受到一名其他角色使用的【弹幕】效果时，你可以摸一张牌，然后若此时你的手牌数大于该角色，此弹幕对你无效并视为其对你使用了一张【弹幕战】。\n\n'
-        u'|DB（画师：Pixiv ID 37885158，CV：北斗夜）|r'
+        u'|DB（画师：霏茶，CV：北斗夜）|r'
     )

@@ -17,12 +17,13 @@ class Momiji:
     # Character
     char_name = u'犬走椛'
     port_image = 'thb-portrait-momiji'
+    figure_image = 'thb-figure-momiji'
     miss_sound_effect = 'thb-cv-momiji_miss'
     description = (
         u'|DB山中的千里眼 犬走椛 体力：4|r\n\n'
         u'|G哨戒|r：当一名其他角色（记作A）使用弹幕对另一角色（记作B）造成伤害时，若A在你的攻击范围内，你可以对A使用一张【弹幕】，或将一张梅花牌当【弹幕】对A使用。此【弹幕】造成伤害时，你可以防止此伤害，并且令B此次受到的伤害-1。\n\n'
         u'|G千里眼|r：|B锁定技|r，你与其他角色计算距离时始终-1。\n\n'
-        u'|DB（画师：Danbooru post 621700，CV：简翎）|r'
+        u'|DB（画师：和茶，CV：简翎）|r'
     )
 
 
@@ -30,13 +31,14 @@ class MomijiKOF:
     # Character
     char_name = u'犬走椛'
     port_image = 'thb-portrait-momiji'
+    figure_image = 'thb-figure-momiji'
     miss_sound_effect = 'thb-cv-momiji_miss'
     description = (
         u'|DB山中的千里眼 犬走椛 体力：4|r\n\n'
         u'|G哨戒|r：当一名其他角色（记作A）使用弹幕对另一角色（记作B）造成伤害时，若A在你的攻击范围内，你可以对A使用一张【弹幕】，或将一张梅花牌当【弹幕】对A使用。此【弹幕】造成伤害时，你可以防止此伤害，并且令B此次受到的伤害-1。\n\n'
         u'|G千里眼|r：|B锁定技|r，对手获得牌时，所获得的第一张牌进入明牌区。\n\n'
         u'|RKOF修正角色|r\n\n'
-        u'|DB（画师：Danbooru post 621700，CV：简翎）|r'
+        u'|DB（画师：和茶，CV：简翎）|r'
     )
 
 

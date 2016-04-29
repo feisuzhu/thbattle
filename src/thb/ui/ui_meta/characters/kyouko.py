@@ -16,12 +16,13 @@ class Kyouko:
     # Character
     char_name = u'幽谷响子'
     port_image = 'thb-portrait-kyouko'
+    figure_image = 'thb-figure-kyouko'
     miss_sound_effect = 'thb-cv-kyouko_miss'
     description = (
         u'|DB诵经的山彦 幽谷响子 体力：4|r\n\n'
         u'|G回响|r：你受到伤害后，可以获得对你造成的牌。若此牌为弹幕，你可以改为令一名其他角色获得之。\n\n'
         u'|G共振|r：你对一名其他角色使用的弹幕结算完毕后，你可以令另一名其他角色对其使用一张弹幕（无距离限制）。\n\n'
-        u'|DB（人物设计：蝶之羽风暂留此，CV：小羽）|r'
+        u'|DB（画师：月见，人物设计：蝶之羽风暂留此，CV：小羽）|r'
     )
 
 

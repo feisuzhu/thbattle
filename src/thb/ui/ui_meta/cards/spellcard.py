@@ -54,7 +54,7 @@ class RejectCard:
     description = (
         u'|R好人卡|r\n\n'
         u'一张符卡对一名目标角色生效前，你可以使用此牌来抵消该符卡对其目标角色产生的效果。\n\n'
-        u'|DB（CV：VV）'
+        u'|DB（画师：霏茶，CV：VV）'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -110,7 +110,7 @@ class SealingArrayCard:
         u'延时类符卡\n'
         u'出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为红桃，跳过其出牌阶段。\n'
         u'|B|R>> |r判定开始前,你可以使用【好人卡】抵消该符卡的效果（抵消后弃掉【封魔阵】）。\n\n'
-        u'|DB（CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -264,7 +264,7 @@ class DuelCard:
     description = (
         u'|R弹幕战|r\n\n'
         u'出牌阶段，对一名其他角色使用，由目标角色开始，轮流打出一张【弹幕】。首先不打出【弹幕】的一方受到另一方造成的1点伤害。\n\n'
-        u'|DB（画师：Pixiv ID 8092636，CV：小羽）|r'
+        u'|DB（画师：霏茶，CV：小羽）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -319,7 +319,7 @@ class FeastCard:
         u'|R宴会|r\n\n'
         u'群体符卡\n'
         u'出牌阶段，对所有角色使用。已受伤的角色回复一点体力，未受伤的角色获得|B喝醉|r状态。\n\n'
-        u'|DB（画师：Pixiv ID 8218978，CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -341,7 +341,7 @@ class HarvestCard:
         u'|R五谷丰登|r\n\n'
         u'群体符卡\n'
         u'出牌阶段，对所有角色使用，你从牌堆顶亮出等同于现存角色数量的牌，目标角色依次选择并获得这些牌中的一张。\n\n'
-        u'|DB（画师：牛肉かしら，CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):

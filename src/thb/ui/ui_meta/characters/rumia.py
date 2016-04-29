@@ -104,12 +104,13 @@ class Rumia:
     # Character
     char_name = u'露米娅'
     port_image = 'thb-portrait-rumia'
+    figure_image = 'thb-figure-rumia'
     miss_sound_effect = 'thb-cv-rumia_miss'
     description = (
         u'|DB宵暗的妖怪 露米娅 体力：3|r\n\n'
         u'|G黑暗|r：出牌阶段限一次，你可以弃置一张牌并指定一名其他角色。该角色需对由你指定的在其攻击范围内的另一名其他角色使用一张【弹幕】，否则你对其造成1点伤害。\n\n'
         u'|G作弊|r：|B锁定技|r，结束阶段开始时，你摸一张牌。\n\n'
-        u'|DB（画师：Pixiv ID 24890772，CV：小羽）|r'
+        u'|DB（画师：和茶，CV：小羽）|r'
     )
 
 
@@ -117,11 +118,12 @@ class RumiaKOF:
     # Character
     char_name = u'露米娅'
     port_image = 'thb-portrait-rumia'
+    figure_image = 'thb-figure-rumia'
     miss_sound_effect = 'thb-cv-rumia_miss'
     description = (
         u'|DB宵暗的妖怪 露米娅 体力：3|r\n\n'
         u'|G黑暗|r：|B登场技|r，你登场的回合，对手使用卡牌时无法指定你为目标。\n\n'
         u'|G作弊|r：|B锁定技|r，结束阶段开始时，你摸一张牌。\n\n'
         u'|RKOF修正角色\n\n'
-        u'|DB（画师：Pixiv ID 24890772，CV：小羽）|r'
+        u'|DB（画师：和茶，CV：小羽）|r'
     )
