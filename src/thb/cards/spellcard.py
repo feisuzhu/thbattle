@@ -79,16 +79,16 @@ class RejectHandler(EventHandler):
 
             has_reject = False
             while g.SERVER_SIDE:
-                from ..characters.baseclasses import Character
-                from ..characters.reimu import SpiritualAttack
-                for p in g.players:
-                    if isinstance(p, Character) and p.has_skill(SpiritualAttack):
-                        has_reject = True
-                        break
+                # from thb.characters.baseclasses import Character
+                # from thb.characters.reimu import SpiritualAttack
+                # for p in g.players:
+                #     if isinstance(p, Character) and p.has_skill(SpiritualAttack):
+                #         has_reject = True
+                #         break
 
-                if has_reject: break
+                # if has_reject: break
 
-                from .definition import RejectCard
+                from thb.cards.definition import RejectCard
                 for c in flatten([[p.cards, p.showncards] for p in g.players]):
                     if isinstance(c, RejectCard):
                         has_reject = True

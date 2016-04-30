@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import PlayerRevive, UserAction, migrate_cards
-from ..cards import Card, GreenUFOSkill, RejectCard, Skill, TreatAs, UFOSkill, t_None
-from .baseclasses import Character, register_character_to
-from game.autoenv import EventHandler, Game
+from game.autoenv import EventHandler, Game, user_input
+from thb.actions import Damage, DrawCards, FinalizeStage, LaunchCard, PlayerRevive, UserAction
+from thb.actions import migrate_cards, ttags, user_choose_cards
+from thb.cards import AttackCard, Card, GreenUFOSkill, RejectCard, Skill, TreatAs, UFOSkill, t_None
+from thb.characters.baseclasses import Character, register_character_to
+from thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -130,10 +133,108 @@ class TributeHandler(EventHandler):
             except ValueError:
                 pass
 
+# -----------------------------------------
 
-@register_character_to('common', '-kof')
+
+class ReimuExterminate(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
+class ReimuExterminateAction(UserAction):
+    def set_card(self, c):
+        self.card = c
+
+    def apply_action(self):
+        assert self.card
+        src, tgt = self.source, self.target
+        c = self.card
+        g = Game.getgame()
+        return g.process_action(LaunchCard(src, [tgt], c, bypass_check=True))
+
+    def cond(self, cl):
+        return len(cl) == 1 and cl[0].is_card(AttackCard)
+
+
+class ReimuExterminateHandler(EventHandler):
+    interested = ('action_apply',)
+    execute_after = ('DyingHandler', 'CheatingHandler')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, Damage):
+            if not act.source: return act
+            src, tgt = act.source, act.target
+            g = Game.getgame()
+            if src is not g.current_player: return act
+            if src is tgt: return act
+            ttags(src)['did_damage'] = True
+
+        elif evt_type == 'action_apply' and isinstance(act, FinalizeStage):
+            tgt = act.target
+            if not ttags(tgt)['did_damage']:
+                return act
+
+            if tgt.dead:
+                return act
+
+            g = Game.getgame()
+            for actor in g.players.rotate_to(g.current_player):
+                if tgt is actor:
+                    continue
+
+                if not actor.has_skill(ReimuExterminate):
+                    continue
+
+                a = ReimuExterminateAction(actor, tgt)
+                cl = user_choose_cards(a, actor, ('cards', 'showncards'))
+                if not cl:
+                    continue
+
+                assert len(cl) == 1
+                a.set_card(cl[0])
+                g.process_action(a)
+
+        return act
+
+
+class ReimuClear(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
+
+
+class ReimuClearAction(UserAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        g = Game.getgame()
+        g.process_action(DrawCards(src, 1))
+        g.process_action(DrawCards(tgt, 1))
+        return True
+
+
+class ReimuClearHandler(EventHandler):
+    interested = ('action_after',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, Damage):
+            src, tgt = act.source, act.target
+            if not src: return act
+            if not src.has_skill(ReimuClear): return act
+            if src is tgt: return act
+            if src.dead or tgt.dead: return act
+
+            if user_input([src], ChooseOptionInputlet(self, (False, True))):
+                g = Game.getgame()
+                g.process_action(ReimuClearAction(src, tgt))
+
+        return act
+
+
+@register_character_to('common')
 class Reimu(Character):
     # skills = [SealingArraySkill, Flight, TributeTarget]
-    skills = [SpiritualAttack, Flight]
-    eventhandlers_required = []
-    maxlife = 3
+    # skills = [SpiritualAttack, Flight]
+    skills = [ReimuExterminate, ReimuClear]
+    eventhandlers_required = [ReimuExterminateHandler, ReimuClearHandler]
+    maxlife = 4

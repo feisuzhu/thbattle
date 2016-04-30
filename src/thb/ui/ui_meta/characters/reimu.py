@@ -116,14 +116,61 @@ class Tribute:
         )
 
 
+# ----------------------
+
+class ReimuExterminate:
+    # Skill
+    name = u'退治'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class ReimuExterminateAction:
+    # choose_card
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'代表幻想乡消灭你！')
+        else:
+            return (False, u'退治：选择一张弹幕对%s使用（否则不发动）' % act.target.ui_meta.char_name)
+
+    def effect_string_before(act):
+        return u'听说异变的元凶是|G【%s】|r，|G【%s】|r马上就出现了！' % (
+            act.target.ui_meta.char_name,
+            act.source.ui_meta.char_name,
+        )
+
+
+class ReimuClear:
+    # Skill
+    name = u'快晴'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class ReimuClearAction:
+    def effect_string_before(act):
+        return u'异变解决啦！|G【%s】|r和|G【%s】|r一起去吃饭了！' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+        )
+
+
+class ReimuClearHandler:
+    choose_option_prompt  = u'要发动【快晴】吗？'
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+
+
 class Reimu:
     # Character
     char_name = u'博丽灵梦'
     port_image = 'thb-portrait-reimu'
     miss_sound_effect = 'thb-cv-reimu_miss'
     description = (
-        u'|DB节操满地跑的城管 博丽灵梦 体力：3|r\n\n'
-        u'|G灵击|r：你可以将一张红色手牌当【好人卡】使用。\n\n'
-        u'|G飞行|r：|B锁定技|r，若你没有装备任何UFO，其他玩家与你计算距离时始终+1。\n\n'
+        u'|DB节操满地跑的城管 博丽灵梦 体力：4|r\n'
+        u'\n'
+        u'|G退治|r：一名角色的结束阶段开始时，若其本回合内对其他角色造成过伤害，你可以无视距离限制对其使用一张弹幕。\n'
+        u'\n'
+        u'|G快晴|r：你对一名其他角色造成伤害后，你可以与其各摸一张牌。\n'
+        u'\n'
         u'|DB（画师：Pixiv ID 18697741，CV：shourei小N）|r'
     )
