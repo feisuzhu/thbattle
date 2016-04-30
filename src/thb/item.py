@@ -151,12 +151,11 @@ class European(GameItem):
     args = []
 
     title = u'欧洲卡'
-    description = u'Roll点保证第一。身份场、抢书不可用。'
+    description = u'Roll点保证第一。身份场不可用。'
 
     def should_usable_in_game(self, uid, mgr):
-        from thb.thbbook import THBattleBook
         from thb.thbidentity import THBattleIdentity
-        if isinstance(mgr.game, (THBattleBook, THBattleIdentity)):
+        if isinstance(mgr.game, THBattleIdentity):
             raise exceptions.IncorrectGameMode
 
         for l in mgr.game_items.values():

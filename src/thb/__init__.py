@@ -5,7 +5,6 @@ from thb.thbkof import THBattleKOF
 from thb.thbidentity import THBattleIdentity
 from thb.thbfaith import THBattleFaith
 from thb.thb2v2 import THBattle2v2
-from thb.thbbook import THBattleBook
 from thb.thbnewbie import THBattleNewbie
 
 import thb.item  # noqa, init it
@@ -18,7 +17,6 @@ l = [
     THBattleIdentity,
     THBattleFaith,
     THBattle2v2,
-    THBattleBook,
     THBattleNewbie,
 ]
 

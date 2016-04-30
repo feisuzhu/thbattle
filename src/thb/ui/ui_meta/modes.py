@@ -6,7 +6,7 @@ from collections import OrderedDict
 # -- third party --
 # -- own --
 from .common import gen_metafunc, meta_property
-from thb import thb2v2, thb3v3, thbbook, thbdebug, thbfaith, thbidentity, thbkof, thbnewbie
+from thb import thb2v2, thb3v3, thbdebug, thbfaith, thbidentity, thbkof, thbnewbie
 
 # -----BEGIN THB3v3 UI META-----
 __metaclass__ = gen_metafunc(thb3v3)
@@ -344,100 +344,6 @@ class DebugDecMaxLife:
 # -----END THBDebug UI META-----
 
 
-# -----BEGIN THBBook UI META-----
-__metaclass__ = gen_metafunc(thbbook)
-
-
-class THBattleBook:
-    name = u'抢书大作战'
-    logo = 'thb-modelogo-book'
-    params_disp = {}
-    description = (
-        u'|R游戏人数|r：4人+1NPC\n'
-        u'\n'
-        u'|G游戏目标|r：己方势力拿到尽量多的书\n'
-        u'\n'
-        u'|G游戏开始|r：\n'
-        u'|B|R>> |r游戏开始时，|G【小恶魔】|r会获得7个书的标记，体力和体力上限+4\n'
-        u'|B|R>> |r玩家按照势力以AABB的方式排座位，由|G【小恶魔】|r先出牌\n'
-        u'|B|R>> |r所有玩家摸4张牌。\n'
-        u'\n'
-        u'|G书的取得|r：\n'
-        u'|B|R>> |r你对任意角色造成伤害后，可以获得造成伤害数量的书。\n'
-        u'|B|R>> |r若该角色被你击坠，你获得该角色的所有书。\n'
-        u'|B|R>> |r若该角色受到自己/无来源的伤害导致MISS，|G【小恶魔】|r获得该角色的所有书。\n'
-        u'\n'
-        u'|G与书相关的结算|r：\n'
-        u'|B|R>> |r由玩家控制的角色，每获得1本书，手牌上限+1，最大为3。\n'
-        u'\n'
-        u'|G击坠结算|r：\n'
-        u'|B|R>> |rMISS的角色在轮到自己回合的时候重新回到场上，体力值回复2点，摸2张牌，并跳过所有阶段。\n'
-        u'|B|R>> |r由玩家控制的角色受到有来源的致命伤害时，可以交出两本书并使伤害-1。\n'
-        u'\n'
-        u'|G胜利条件|r：\n'
-        u'|B|R>> |r|G【小恶魔】|rMISS，此时持有书的数量多的势力胜利。\n'
-        u'|B|R>> |r有势力拿到所有的书，此时该势力胜利。\n'
-        u'\n'
-        u'|G小恶魔的行动|r：\n'
-        u'|B|R>> |r不会装备绿色UFO。\n'
-        u'|B|R>> |r会选择目前持有书最多的角色攻击，若此时有多于1名角色，会选择体力最多的角色攻击。若没有角色有书，则不做攻击。\n'
-        u'|B|R>> |r若无法攻击选定的目标，则不做攻击。\n'
-        u'|B|R>> |r不受延时符卡影响。\n'
-    ).strip()
-
-    def ui_class():
-        from thb.ui.view import THBattleBookUI
-        return THBattleBookUI
-
-    T = thbbook.Identity.TYPE
-    identity_table = {
-        T.HIDDEN:  u'？',
-        T.HAKUREI: u'博丽',
-        T.MORIYA:  u'守矢',
-        T.ADMIN:   u'管理员',
-    }
-
-    identity_color = {
-        T.HIDDEN:  u'blue',
-        T.HAKUREI: u'blue',
-        T.MORIYA:  u'orange',
-        T.ADMIN:   u'red',
-    }
-
-    IdentityType = T
-    del T
-
-
-class BookTransferHandler:
-    # choose_option
-    choose_option_buttons = ((u'获得书', True), (u'留在原处', False))
-    choose_option_prompt  = u'你要获得对方的书吗？'
-
-
-class BookShootdownCompromiseHandler:
-    # choose_option
-    choose_option_buttons = ((u'交出书减免伤害', True), (u'不要', False))
-    choose_option_prompt  = u'你要交出2本书并减免1点伤害吗？'
-
-
-class GrabBooks:
-    def effect_string(act):
-        return u'|G【%s】|r抢走了|G【%s】|r的%d本书。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
-            act.amount,
-        )
-
-
-class BookShootdownCompromise:
-    def effect_string(act):
-        return u'|G【%s】|r交出了书，减免1点伤害。' % (
-            act.source.ui_meta.char_name,
-        )
-
-# -----END THBBook UI META-----
-
-
 # -----BEGIN THBNewbie UI META-----
 __metaclass__ = gen_metafunc(thbnewbie)
 
@@ -459,7 +365,7 @@ class THBattleNewbie:
         from thb.ui.view import THBattleNewbieUI
         return THBattleNewbieUI
 
-    T = thbbook.Identity.TYPE
+    T = thbnewbie.Identity.TYPE
     identity_table = {
         T.HIDDEN:  u'？',
     }
