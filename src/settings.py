@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'THBATTLE V1.0b incr 263'
+VERSION = 'THBATTLE V1.0b incr 264 testing 16'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -48,6 +48,10 @@ else:
     SENTRY_DSN = 'https://3f966ce5d9d34967be39379df0e26279:69245de6617c4357af30ed99f05894db@sentry.thbattle.net/2'
 
 TESTING_CHARACTERS = (
+    'Reimu',
+    'Momiji',
+    'Seiga',
+    'Remilia',
 )
 
 
