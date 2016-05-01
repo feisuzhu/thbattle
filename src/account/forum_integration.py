@@ -174,6 +174,7 @@ class Account(AccountBase):
             if not dz_member:
                 return None
 
+            uid = dz_member.uid
             user = s.query(User).filter(User.id == uid).first()
             if not user:
                 user = User()
