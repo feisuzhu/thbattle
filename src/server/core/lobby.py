@@ -109,7 +109,7 @@ class Lobby(object):
         Subsystem.interconnect.publish('current_users', self.users.values())
         Subsystem.interconnect.publish('current_games', self.games.values())
 
-    @_command(['hang'], [])
+    @_command(None, [])
     def get_lobbyinfo(self, user):
         self.send_lobbyinfo([user])
 

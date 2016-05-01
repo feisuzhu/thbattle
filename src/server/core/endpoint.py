@@ -26,6 +26,12 @@ log = logging.getLogger('server.core.endpoint')
 def _record_gamedata(client, tag, data):
     from server.core.game_manager import GameManager
     manager = GameManager.get_by_user(client)
+    manager.record_gamedata(client, tag, data)
+
+
+def _record_user_gamedata(client, tag, data):
+    from server.core.game_manager import GameManager
+    manager = GameManager.get_by_user(client)
     manager.record_user_gamedata(client, tag, data)
 
 
@@ -142,7 +148,7 @@ class Client(Endpoint, Greenlet):
 
     def gexpect(self, tag, blocking=True):
         tag, data = self.gamedata.gexpect(tag, blocking)
-        tag and _record_gamedata(self, tag, data)
+        tag and _record_user_gamedata(self, tag, data)
         return tag, data
 
     def gwrite(self, tag, data):

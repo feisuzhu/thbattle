@@ -321,7 +321,12 @@ class GameManager(object):
                 obl and obl.write(['observer_enter', info])
 
         if g.started:
-            user.write(['observe_started', [self.game_params, observee.account.userid, self.build_initial_players()]])
+            user.write(['observe_started', [
+                self.game_params,
+                self.consumed_game_items,
+                observee.account.userid,
+                self.build_initial_players(),
+            ]])
             self.replay(user, observee)
         else:
             self.notify_playerchange()
@@ -478,7 +483,7 @@ class GameManager(object):
         self.notify_playerchange()
 
         players = self.build_initial_players()
-        new.write(['game_started', [self.game_params, self.consumed_game_items, players]])
+        new.write(['ugame_started', [self.game_params, self.consumed_game_items, players]])
 
         self.replay(new, new)
 

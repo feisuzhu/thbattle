@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from collections import deque
 from contextlib import contextmanager
 from functools import wraps
+from weakref import WeakSet
 import functools
 import re
 
@@ -598,8 +599,8 @@ def openurl(url):
 
 
 class ObservableEvent(object):
-    def __init__(self):
-        self.listeners = set()
+    def __init__(self, weakref=False):
+        self.listeners = WeakSet() if weakref else set()
 
     def __iadd__(self, ob):
         self.listeners.add(ob)
