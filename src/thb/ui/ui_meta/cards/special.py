@@ -30,7 +30,7 @@ class PPointCard:
 class CollectPPoint:
 
     def effect_string_before(act):
-        return '|G【%s】|r获得了%s点|GP点|r！' % (
+        return u'|G【%s】|r获得了%s点|GP点|r！' % (
             act.target.ui_meta.char_name,
             act.associated_card.number,
         )
