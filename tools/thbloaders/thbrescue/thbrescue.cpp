@@ -27,6 +27,11 @@ int transfer_progress(const git_transfer_progress *stats, void *data)
 
 int fix(const char *path, const char *remote_name, const char *refname)
 {
+	char git_lock_path[512];
+	strcpy_s(git_lock_path, path);
+	strcat_s(git_lock_path, "/.git/index.lock");
+	DeleteFileA(git_lock_path);
+	
 	int success = 0;
 	git_repository *repo = NULL;
 	git_object *desired = NULL;
@@ -52,6 +57,27 @@ int fix(const char *path, const char *remote_name, const char *refname)
 	return success;
 }
 
+int execute(LPCTSTR app, LPCTSTR cargs)
+{
+    PROCESS_INFORMATION pinfo;
+    STARTUPINFO sinfo = { sizeof(sinfo) };
+    BOOL rst;
+    DWORD exitcode = 1;
+
+    LPTSTR args = _tcsdup(cargs);
+    rst = CreateProcess(app, args, NULL, NULL, FALSE, 0, NULL, NULL, &sinfo, &pinfo);
+    free(args);
+
+    if(!rst) {
+        return 1;
+    }
+    CloseHandle(pinfo.hThread);
+    WaitForSingleObject(pinfo.hProcess, INFINITE);
+    GetExitCodeProcess(pinfo.hProcess, &exitcode);
+    CloseHandle(pinfo.hProcess);
+    return exitcode;
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 #ifdef _UNICODE
@@ -68,6 +94,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	} else {
 		_tprintf(_T("解释器重置完成。\n"));
 	}
+
+	// purge pyc
+	_tprintf(_T("清除缓存……\n"));
+	LPCTSTR code =
+		_T("python -c \"import os\r\nfor _ in (os.unlink(os.path.join(dirname, fn)) for dirname, dirs, files in os.walk('src') for fn in files if '.git' not in dirname): pass\"");
+	execute(_T("Python27\\python.exe"), code);
 
 	// game
 	_tprintf(_T("尝试重置游戏……\n"));
