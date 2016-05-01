@@ -8,7 +8,7 @@ import json
 # -- third party --
 # -- own --
 from db.models import Item, ItemActivity
-from db.session import Session
+from db.session import transaction_with_retry
 from game.base import GameItem
 from server.item import helpers
 from utils import exceptions
@@ -19,8 +19,8 @@ from utils import exceptions
 
 
 def use(uid, item_sku_or_id, is_consume=False):
-    try:
-        s = Session()
+    @transaction_with_retry
+    def _use(s):
         if isinstance(item_sku_or_id, int):
             item = s.query(Item).filter(Item.owner_id == uid, Item.id == item_sku_or_id).first()
         else:
@@ -43,11 +43,6 @@ def use(uid, item_sku_or_id, is_consume=False):
 
         item.status = 'used'
         item.owner_id = None
-        s.commit()
-
-    except:
-        s.rollback()
-        raise
 
 
 def consume(uid, item_sku_or_id):
@@ -55,9 +50,8 @@ def consume(uid, item_sku_or_id):
 
 
 def add(uid, item_sku, reason=None):
-    try:
-        s = Session()
-
+    @transaction_with_retry
+    def id(s):
         helpers.require_free_backpack_slot(s, uid)
 
         item = Item(owner_id=uid, sku=item_sku, status='backpack')
@@ -70,51 +64,43 @@ def add(uid, item_sku, reason=None):
             created=datetime.datetime.now(),
         ))
 
-        s.commit()
-
         return item.id
 
-    except:
-        s.rollback()
-        raise
+    return id
 
 
 def list(uid):
-    try:
-        s = Session()
+    @transaction_with_retry
+    def items(s):
         items = s.query(Item) \
             .filter(Item.owner_id == uid, Item.status == 'backpack') \
             .order_by(Item.id.desc()) \
             .all()
         items = [{'id': i.id, 'sku': i.sku} for i in items]
-        s.commit()
         return items
-    except:
-        s.rollback()
-        raise
+
+    return items
 
 
 def should_have(uid, sku):
-    try:
-        s = Session()
+    @transaction_with_retry
+    def n(s):
         n = s.query(Item) \
             .filter(Item.owner_id == uid,
                     Item.status == 'backpack',
                     Item.sku == sku) \
             .count()
-        s.commit()
         return n
-    except:
-        s.rollback()
-        raise
 
     if not n:
         raise exceptions.ItemNotFound
 
+    return n
+
 
 def drop(uid, item_id):
-    try:
-        s = Session()
+    @transaction_with_retry
+    def id(s):
         item = s.query(Item) \
             .filter(Item.id == item_id) \
             .filter(Item.owner_id == uid) \
@@ -132,10 +118,6 @@ def drop(uid, item_id):
             created=datetime.datetime.now(),
         ))
 
-        s.commit()
-
         return item.id
 
-    except:
-        s.rollback()
-        raise
+    return id

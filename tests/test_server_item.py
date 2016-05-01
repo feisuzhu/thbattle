@@ -4,7 +4,7 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 from nose.tools import eq_, assert_raises
-from game.item import GameItem
+from game.base import GameItem
 from utils import exceptions
 
 # -- own --

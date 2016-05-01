@@ -189,15 +189,12 @@ class Account(AccountBase):
 
     @server_side_only
     def refresh(self):
-        from db.session import Session
-        try:
-            s = Session()
+        from db.session import transaction_with_retry
+
+        @transaction_with_retry
+        def _(s):
             user = self.find(self.userid, s)
             user and self._fill_account(user)
-            s.commit()
-        except:
-            s.rollback()
-            raise
 
     @server_side_only
     def _fill_account(self, user):
@@ -247,35 +244,34 @@ class Account(AccountBase):
         return self.status != -1
 
     @server_side_only
-    def add_credit(self, type, amount):
+    def add_credit(self, lst):
         if self.is_maoyu() < 0:
             return
 
         @gevent.spawn
         @log_failure(log)
         def worker():
-            from db.session import Session
-            try:
-                s = Session()
+            from db.session import transaction_with_retry
+
+            @transaction_with_retry
+            def add_credit(s):
                 user = self.find(self.userid, s)
+
                 dz_member = user.dz_member
-                if type == 'jiecao':
-                    dz_member.member_count.jiecao += amount
-                    user.jiecao += amount
-                elif type == 'games':
-                    dz_member.member_count.games += amount
-                    user.games += amount
-                elif type == 'drops':
-                    dz_member.member_count.drops += amount
-                    user.drops += amount
-                elif type == 'ppoint':
-                    user.ppoint += amount
+                for type, amount in lst:
+                    if type == 'jiecao':
+                        dz_member.member_count.jiecao += amount
+                        user.jiecao += amount
+                    elif type == 'games':
+                        dz_member.member_count.games += amount
+                        user.games += amount
+                    elif type == 'drops':
+                        dz_member.member_count.drops += amount
+                        user.drops += amount
+                    elif type == 'ppoint':
+                        user.ppoint += amount
 
                 self._fill_account(user)
-                s.commit()
-            except:
-                s.rollback()
-                raise
 
     @server_side_only
     def is_maoyu(self):

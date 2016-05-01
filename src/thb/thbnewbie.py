@@ -479,7 +479,7 @@ class THBattleNewbieBootstrap(GenericAction):
                         rej = RejectHandler()
                         rej.target_act = act
                         with InputTransaction('AskForRejectAction', [meirin]) as trans:
-                            p, rst = ask_for_action(rej, [meirin], ('cards', 'showncards'), [], trans)
+                            p, rst = ask_for_action(rej, [meirin], ('cards', 'showncards'), [], trans=trans)
 
                         if not p: continue
                         cards, _ = rst

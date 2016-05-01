@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 
 # -- own --
 from db.models import Exchange, Item, ItemActivity, User
-from db.session import Session
+from db.session import transaction_with_retry
 from server.item import constants, helpers
 from utils import exceptions
 
@@ -20,9 +20,8 @@ from utils import exceptions
 
 
 def buy(uid, entry_id):
-    try:
-        s = Session()
-
+    @transaction_with_retry
+    def _buy(s):
         u = s.query(User).filter(User.id == uid).first()
         if not u:
             raise exceptions.UserNotFound
@@ -54,15 +53,10 @@ def buy(uid, entry_id):
 
         s.delete(entry)
 
-        s.commit()
-    except:
-        s.rollback()
-        raise
-
 
 def sell(uid, item_id, price):
-    try:
-        s = Session()
+    @transaction_with_retry
+    def _sell(s):
         item = s.query(Item).filter(Item.id == item_id, Item.owner_id == uid).first()
         if not item:
             raise exceptions.ItemNotFound
@@ -86,16 +80,10 @@ def sell(uid, item_id, price):
         item.status = 'exchange'
         item.owner_id = None
 
-        s.commit()
-
-    except:
-        s.rollback()
-        raise
-
 
 def cancel_sell(uid, entry_id):
-    try:
-        s = Session()
+    @transaction_with_retry
+    def _cancel_sell(s):
         entry = s.query(Exchange).filter(
             Exchange.id == entry_id,
             Exchange.seller_id == uid,
@@ -117,16 +105,11 @@ def cancel_sell(uid, entry_id):
         ))
 
         s.delete(entry)
-        s.commit()
-    except:
-        s.rollback()
-        raise
 
 
 def list():
-    try:
-        s = Session()
-
+    @transaction_with_retry
+    def l(s):
         l = s.query(Exchange).options(joinedload('item')).order_by(Exchange.id.desc())
         l = [{'id': i.id,
               'seller_id': i.seller_id,
@@ -134,8 +117,6 @@ def list():
               'item_sku': i.item.sku,
               'price': i.price} for i in l]
 
-        s.commit()
         return l
-    except:
-        s.rollback()
-        raise
+
+    return l

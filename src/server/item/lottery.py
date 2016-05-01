@@ -9,7 +9,7 @@ import random
 # -- third party --
 # -- own --
 from db.models import DiscuzMember, Item, ItemActivity, User
-from db.session import Session
+from db.session import transaction_with_retry
 from server.item import constants, helpers
 from utils import exceptions
 
@@ -18,8 +18,8 @@ from utils import exceptions
 # test: ../tests/test_server_item.py
 
 def draw(uid, currency):
-    try:
-        s = Session()
+    @transaction_with_retry
+    def reward(s):
         u = s.query(User).filter(User.id == uid).first()
         if not u:
             raise exceptions.UserNotFound
@@ -57,9 +57,6 @@ def draw(uid, currency):
             extra=json.dumps({'currency': currency, 'amount': amount}),
             created=datetime.datetime.now(),
         ))
-        s.commit()
         return reward
 
-    except:
-        s.rollback()
-        raise
+    return reward

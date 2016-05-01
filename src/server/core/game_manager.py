@@ -560,21 +560,22 @@ class GameManager(object):
         winners = g.winners
         bonus = g.n_persons * 5 / len(winners) if winners else 0
 
-        rst = []
+        rst = {}
 
         for p in g.players:
             u = p.client
+            rst[u] = []
 
             if isinstance(u, NPCClient):
                 continue
 
-            rst.append((u, 'games', 1))
+            rst[u].append(('games', 1))
             if p.dropped or p.fleed:
                 if not options.no_counting_flee:
-                    rst.append((u, 'drops', 1))
+                    rst[u].append(('drops', 1))
             else:
                 s = 5 + bonus if p in winners else 5
-                rst.append((u, 'jiecao', int(s * rate * options.credit_multiplier)))
+                rst[u].append(('jiecao', int(s * rate * options.credit_multiplier)))
 
         return rst
 

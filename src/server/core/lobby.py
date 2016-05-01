@@ -290,8 +290,8 @@ class Lobby(object):
         if not all_dropped:
             bonus = manager.get_bonus()
 
-            for u, t, v in bonus:
-                u.account.add_credit(t, v)
+            for u, l in bonus.iteritems():
+                u.account.add_credit(l)
 
         for u in manager.users:
             u.gclear()  # clear game data
@@ -720,7 +720,7 @@ def _exit_handler():
     # logout all the accounts
     # to save the credits
     for u in Subsystem.lobby.users.values():
-        u.account.add_credit('credits', 50)
+        u.account.add_credit(['credits', 50])
 
     # save gameid
     fn = options.gidfile
