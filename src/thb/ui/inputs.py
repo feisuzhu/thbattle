@@ -1261,9 +1261,9 @@ def handle_event(self, _type, arg):
         log.debug('Processing user_input: %s', trans)
         ui = input_handler_mapping.get(trans, None)
         if not ui:
-            log.error('WTF: no associated transaction')
-            log.error('trans: %r  ilet: %r', trans, ilet)
-            log.error('hybrid_stack: %r', g.hybrid_stack)
+            log.warning('WTF: no associated transaction')
+            log.warning('trans: %r  ilet: %r', trans, ilet)
+            log.warning('hybrid_stack: %r', g.hybrid_stack)
             log.debug('Error processing user_input: %s', trans)
             return
 
