@@ -121,7 +121,7 @@ class Account(AccountBase):
             if not user:
                 return False
 
-            if cls.validate_by_password(user, password):
+            if not cls.validate_by_password(user, password):
                 return False
 
             # sync
@@ -284,7 +284,7 @@ class Account(AccountBase):
         if isinstance(password, unicode):
             password = password.encode('utf-8')
 
-        return md5(md5(password) + dz_member.ucmember.salt) == dz_member.password
+        return md5(md5(password) + dz_member.ucmember.salt) == dz_member.ucmember.password
 
     @staticmethod
     def decode_cookie(auth, saltkey):
