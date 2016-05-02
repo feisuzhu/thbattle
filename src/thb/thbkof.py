@@ -145,7 +145,7 @@ class THBattleKOFBootstrap(GenericAction):
 
             for p in order:
                 c = user_input([p], ChooseGirlInputlet(g, choices), 10, 'single', trans)
-                c = c or first(lambda c: not c.chosen, choices[p])
+                c = c or first(choices[p], lambda c: not c.chosen)
 
                 c.chosen = p
                 chosen[p].append(c)

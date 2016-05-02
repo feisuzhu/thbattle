@@ -810,12 +810,12 @@ class exceptions(object):
         return cls
 
 
-def first(pred_or_l, l=None):
-    if isinstance(pred_or_l, (list, tuple)):
-        l = pred_or_l
-        return l[0] if len(l) else None
-    else:
-        pred = pred_or_l
+def first(l, pred=None):
+    if pred:
         for i in l:
             if pred(i):
                 return i
+        else:
+            return None
+    else:
+        return l[0] if len(l) else None

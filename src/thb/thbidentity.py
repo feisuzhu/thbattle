@@ -12,13 +12,16 @@ import random
 from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
 from game.base import sync_primitive
-from thb.actions import DistributeCards, DrawCards, DropCards, GenericAction, PlayerDeath
-from thb.actions import PlayerTurn, RevealIdentity, action_eventhandlers
+from thb.actions import ActionStageLaunchCard, AskForCard, DistributeCards, DrawCards, DropCardStage
+from thb.actions import DropCards, GenericAction, LifeLost, PlayerDeath, PlayerTurn, RevealIdentity
+from thb.actions import TryRevive, UserAction, action_eventhandlers, ask_for_action, ttags
+from thb.cards import AttackCard, AttackCardHandler, GrazeCard, Heal, LaunchGraze, Skill, UseAttack
+from thb.cards import UseGraze, t_None, t_One
 from thb.characters.baseclasses import mixin_character
 from thb.common import PlayerIdentity, build_choices
-from thb.inputlets import ChooseGirlInputlet
+from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from thb.item import ImperialIdentity
-from utils.misc import Enum
+from utils.misc import Enum, first
 
 
 # -- code --
@@ -126,6 +129,181 @@ class DeathHandler(EventHandler):
         return act
 
 
+class AssistedAttackAction(UserAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        g = Game.getgame()
+        pl = [p for p in g.players if not p.dead and p is not src]
+        p, rst = ask_for_action(self, pl, ('cards', 'showncards'), [], timeout=6)
+        if not p:
+            ttags(src)['assisted_attack_disable'] = True
+            return False
+
+        (c,), _ = rst
+        g.process_action(ActionStageLaunchCard(src, [tgt], c))
+
+        return True
+
+    def cond(self, cl):
+        return len(cl) == 1 and cl[0].is_card(AttackCard)
+
+    def is_valid(self):
+        src, tgt = self.source, self.target
+        act = ActionStageLaunchCard(src, [tgt], AttackCard())
+        disabled = ttags(src)['assisted_attack_disable']
+        return not disabled and AttackCardHandler.can_launch_attack(src) and act.can_fire()
+
+
+class AssistedAttack(Skill):
+    associated_action = AssistedAttackAction
+    target = t_One
+    skill_category = ('character', 'active', 'boss')
+    distance = 1
+
+    def check(self):
+        return not self.associated_cards
+
+
+class AssistedUseAction(UserAction):
+    def __init__(self, target, act):
+        self.source = self.target = target
+        self.afc_action = act
+
+    def apply_action(self):
+        tgt = self.target
+        g = Game.getgame()
+
+        pl = [p for p in g.players if not p.dead and p is not tgt]
+        p, rst = ask_for_action(self, pl, ('cards', 'showncards'), [], timeout=6)
+
+        if not p:
+            return False
+
+        (c, ), _ = rst
+
+        self.afc_action.card = c
+
+        return True
+
+    def cond(self, cl):
+        return len(cl) == 1 and cl[0].is_card(self.card_cls)
+
+
+class AssistedUseAttackAction(AssistedUseAction):
+    card_cls = AttackCard
+
+
+class AssistedUseGrazeAction(AssistedUseAction):
+    card_cls = GrazeCard
+
+
+@game_eh
+class AssistedAttackHandler(EventHandler):
+    interested = ('action_apply',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, AskForCard):
+            tgt = act.target
+            if not (tgt.has_skill(AssistedAttack) and isinstance(act, UseAttack)):
+                return act
+
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            g = Game.getgame()
+            g.process_action(AssistedUseAttackAction(tgt, act))
+
+        return act
+
+
+@game_eh
+class AssistedGrazeHandler(EventHandler):
+    interested = ('action_apply',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, AskForCard):
+            tgt = act.target
+            if not (tgt.has_skill(AssistedGraze) and isinstance(act, (UseGraze, LaunchGraze))):
+                return act
+
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            g = Game.getgame()
+            g.process_action(AssistedUseGrazeAction(tgt, act))
+
+        return act
+
+
+class AssistedGraze(Skill):
+    associated_action = None
+    target = t_None
+    skill_category = ('character', 'passive', 'boss')
+
+
+class AssistedHealAction(UserAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        g = Game.getgame()
+        g.process_action(Heal(src, tgt))
+        g.process_action(LifeLost(src, src))
+        return True
+
+
+@game_eh
+class AssistedHealHandler(EventHandler):
+    interested = ('action_after',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, TryRevive):
+            if not act.succeeded:
+                return act
+
+            tgt = act.target
+            if not tgt.has_skill(AssistedHeal):
+                return act
+
+            self.good_person = p = act.revived_by  # for ui
+
+            if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            g = Game.getgame()
+            g.process_action(AssistedHealAction(p, tgt))
+
+        return act
+
+
+class AssistedHeal(Skill):
+    associated_action = None
+    target = t_None
+    skill_category = ('character', 'passive', 'boss')
+
+
+@game_eh
+class ExtraCardSlotHandler(EventHandler):
+    interested = ('action_before',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, DropCardStage):
+            tgt = act.target
+            if not tgt.has_skill(ExtraCardSlot):
+                return act
+
+            g = Game.getgame()
+            n = sum(i == Identity.TYPE.ACCOMPLICE for i in g.identities)
+            n -= sum(p.dead and p.identity.type == Identity.TYPE.ACCOMPLICE for p in g.players)
+            act.dropn = max(act.dropn - n, 0)
+
+        return act
+
+
+class ExtraCardSlot(Skill):
+    associated_action = None
+    target = t_None
+    skill_category = ('character', 'passive', 'boss')
+
+
 class Identity(PlayerIdentity):
     # 城管 BOSS 道中 黑幕
     class TYPE(Enum):
@@ -134,6 +312,26 @@ class Identity(PlayerIdentity):
         BOSS = 4
         ACCOMPLICE = 2
         CURTAIN = 3
+
+
+class ChooseBossSkillAction(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        if hasattr(tgt, 'boss_skills'):
+            tgt.skills.extend(tgt.boss_skills)
+            return True
+
+        self.boss_skills = l = [  # for ui
+            AssistedAttack,
+            AssistedGraze,
+            AssistedHeal,
+            ExtraCardSlot,
+        ]
+        rst = user_input([tgt], ChooseOptionInputlet(self, [i.__name__ for i in l]))
+        rst = first(l, lambda i: i.__name__ == rst) or first(l)
+        tgt.skills.append(rst)
+        self.skill_chosen = rst  # for ui
+        return True
 
 
 class THBattleIdentityBootstrap(GenericAction):
@@ -231,6 +429,9 @@ class THBattleIdentityBootstrap(GenericAction):
             boss.maxlife += 1
 
         boss.life = boss.maxlife
+
+        # choose boss dedicated skill
+        g.process_action(ChooseBossSkillAction(boss, boss))
 
         # reseat
         seed = get_seed_for(g.players)

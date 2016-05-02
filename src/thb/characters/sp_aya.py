@@ -47,7 +47,7 @@ class WindWalkAction(UserAction):
 
             with InputTransaction('ActionStageAction', [tgt]) as trans:
                 p, rst = ask_for_action(
-                    self, [tgt], ('cards', 'showncards'), g.players, trans
+                    self, [tgt], ('cards', 'showncards'), g.players, trans=trans
                 )
 
             if p is not tgt:

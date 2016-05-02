@@ -84,11 +84,10 @@ class AttackCardHandler(EventHandler):
             from .definition import AttackCard
             if act.card.is_card(AttackCard):
                 src = act.source
-                if src.tags['freeattack'] >= src.tags['turn_count']:
-                    return act
-
-                if src.tags['attack_num'] <= 0:
+                if not self.can_launch_attack(src):
                     raise AttackLimitExceeded
+
+                return act
 
         return act
 
@@ -103,6 +102,16 @@ class AttackCardHandler(EventHandler):
     @staticmethod
     def is_freeattack(p):
         return p.tags['freeattack'] >= p.tags['turn_count']
+
+    @staticmethod
+    def can_launch_attack(p):
+        if p.tags['freeattack'] >= p.tags['turn_count']:
+            return True
+
+        if p.tags['attack_num'] <= 0:
+            return False
+
+        return True
 
     @staticmethod
     def attack_range_bonus(p):

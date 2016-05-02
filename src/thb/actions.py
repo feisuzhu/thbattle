@@ -33,7 +33,7 @@ def ttags(actor):
     return tags.setdefault('turn_tags:%s' % tc, defaultdict(int))
 
 
-def ask_for_action(initiator, actors, categories, candidates, trans=None):
+def ask_for_action(initiator, actors, categories, candidates, timeout=None, trans=None):
     # initiator: Action or EH requesting this
     # actors: players involved
     # categories: card categories, eg: ['cards', 'showncards']
@@ -41,6 +41,8 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
 
     assert categories or candidates
     assert actors
+
+    timeout = timeout or 25
 
     from thb.cards import VirtualCard
 
@@ -99,7 +101,7 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         except CheckFailed:
             return None
 
-    p, rst = user_input(actors, ilet, type='any', trans=trans)
+    p, rst = user_input(actors, ilet, timeout=timeout, type='any', trans=trans)
     if rst:
         cards, players, params = rst
 
@@ -116,18 +118,18 @@ def ask_for_action(initiator, actors, categories, candidates, trans=None):
         return None, None
 
 
-def user_choose_cards(initiator, actor, categories, trans=None):
+def user_choose_cards(initiator, actor, categories, timeout=None, trans=None):
     check_type([str, Ellipsis], categories)
 
-    _, rst = ask_for_action(initiator, [actor], categories, (), trans)
+    _, rst = ask_for_action(initiator, [actor], categories, (), timeout=timeout, trans=trans)
     if not rst:
         return None
 
     return rst[0]  # cards
 
 
-def user_choose_players(initiator, actor, candidates, trans=None):
-    _, rst = ask_for_action(initiator, [actor], (), candidates, trans)
+def user_choose_players(initiator, actor, candidates, timeout=None, trans=None):
+    _, rst = ask_for_action(initiator, [actor], (), candidates, timeout=timeout, trans=trans)
     if not rst:
         return None
 
@@ -386,16 +388,13 @@ class TryRevive(GenericAction):
     def __init__(self, target, dmgact):
         self.source = self.target = target
         self.dmgact = dmgact
+        self.revived_by = None
         if target.dead:
             log.error('TryRevive buggy condition, __init__')
             return
 
     def apply_action(self):
         tgt = self.target
-        if tgt.tags['in_tryrevive']:
-            # nested TryRevive, just return True
-            # will trigger when Eirin uses Diamond Exinwan to heal self
-            return True
 
         if tgt.dead:
             log.error('TryRevive buggy condition, apply')
@@ -403,7 +402,6 @@ class TryRevive(GenericAction):
             traceback.print_stack()
             return False
 
-        tgt.tags['in_tryrevive'] = True
         g = Game.getgame()
         from .cards import AskForHeal
         for p in g.players_from(tgt):
@@ -413,13 +411,12 @@ class TryRevive(GenericAction):
 
                 if g.process_action(AskForHeal(tgt, p)):
                     if tgt.life > 0:
-                        tgt.tags['in_tryrevive'] = False
+                        self.revived_by = p
                         return True
                     continue
 
                 break
 
-        tgt.tags['in_tryrevive'] = False
         return tgt.life > 0
 
     def is_valid(self):
@@ -788,7 +785,7 @@ class ActionStage(GenericAction):
                     self.in_user_input = True
                     with InputTransaction('ActionStageAction', [target]) as trans:
                         p, rst = ask_for_action(
-                            self, [target], ('cards', 'showncards'), g.players, trans
+                            self, [target], ('cards', 'showncards'), g.players, trans=trans
                         )
                     check(p is target)
                 finally:
@@ -1146,7 +1143,7 @@ class Pindian(UserAction):
 
         with InputTransaction('Pindian', pl) as trans:
             for p in pl:
-                cards = user_choose_cards(self, p, ('cards', 'showncards'), trans)
+                cards = user_choose_cards(self, p, ('cards', 'showncards'), trans=trans)
                 if cards:
                     card = cards[0]
                 else:
@@ -1208,10 +1205,18 @@ class DyingHandler(EventHandler):
         src = act.source
         tgt = act.target
         if tgt.dead or tgt.life > 0: return act
-
-        g = Game.getgame()
-        if g.process_action(TryRevive(tgt, dmgact=act)):
+        if tgt.tags['in_tryrevive']:
+            # nested TryRevive, just return
+            # will trigger when Eirin uses Diamond Exinwan to heal self
             return act
+
+        try:
+            tgt.tags['in_tryrevive'] = True
+            g = Game.getgame()
+            if g.process_action(TryRevive(tgt, dmgact=act)):
+                return act
+        finally:
+            tgt.tags['in_tryrevive'] = False
 
         g.process_action(PlayerDeath(src, tgt))
 

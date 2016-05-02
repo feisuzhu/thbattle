@@ -88,6 +88,8 @@ def start_ui():
             gevent.sleep(0.3)
             Executive.quick_start_game()
             gevent.sleep(0.3)
+            Executive.use_ingame_item('imperial-id:boss')
+            gevent.sleep(0.3)
             Executive.get_ready()
 
     else:
