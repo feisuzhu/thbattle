@@ -740,6 +740,7 @@ class GameItem(object):
 
     key  = None
     args = []
+    usable = False
 
     title = u'ITEM-TITLE'
     description = u'ITEM-DESC'

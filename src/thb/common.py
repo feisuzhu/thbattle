@@ -103,11 +103,19 @@ def roll(g, items):
 
 def build_choices(g, items, candidates, players, num, akaris, shared):
     from thb.item import ImperialChoice
+    from thb.characters.baseclasses import Character
 
-    candidates = list(candidates)
-    seed = get_seed_for(g.players)
-    shuffler = random.Random(seed)
-    shuffler.shuffle(candidates)
+    # ANCHOR(test)
+    # ----- testing -----
+    all_characters = Character.character_classes
+    testing = set(all_characters[i] for i in settings.TESTING_CHARACTERS)
+    candidates, _ = partition(lambda c: c not in testing, candidates)
+
+    if g.SERVER_SIDE:
+        candidates = list(candidates)
+        g.random.shuffle(candidates)
+    else:
+        candidates = [None] * len(candidates)
 
     if shared:
         entities = ['shared']
@@ -117,17 +125,17 @@ def build_choices(g, items, candidates, players, num, akaris, shared):
         entities = players
 
     assert len(num) == len(akaris) == len(entities), 'Uneven configuration'
-    assert sum(num) <= len(candidates), 'Insufficient choices'
+    assert sum(num) <= len(candidates) + len(testing), 'Insufficient choices'
 
     result = defaultdict(list)
 
-    # ANCHOR(test)
-    # ----- testing -----
-    testing = set(settings.TESTING_CHARACTERS)
-    testing, candidates = partition(lambda c: c.__name__ in testing, candidates)
-
     entities_for_testing = entities[:]
+
+    candidates = list(candidates)
+    seed = get_seed_for(g.players)
+    shuffler = random.Random(seed)
     shuffler.shuffle(entities_for_testing)
+
     for e, cls in zip(cycle(entities_for_testing), testing):
         result[e].append(CharChoice(cls))
 

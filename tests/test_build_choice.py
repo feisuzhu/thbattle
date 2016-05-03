@@ -68,7 +68,8 @@ class TestFunctions(object):
             'CLIENT_SIDE': False,
         })
         autoenv.Game.getgame = staticmethod(lambda: g)
-        chars = get_characters('3v3')
+        chars = get_characters('common', '3v3')
+        assert chars
 
         choices, imperial = build_choices(g, {}, chars, g.players, 10, 3, True)
         eq_(len(choices.items()), len(g.players))
