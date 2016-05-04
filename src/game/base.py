@@ -396,11 +396,14 @@ class Game(GameObject):
         else:
             action_event = False
 
-        ob = (self.event_observer,) if self.event_observer else ()
+        ob = self.event_observer
+        if ob:
+            data = ob.handle(evt_type, data)
+
         adhoc = self.adhoc_ehs
         ehs = self._get_relevant_eh(evt_type)
 
-        for l in ob, adhoc, ehs:
+        for l in adhoc, ehs:
             for eh in l:
                 data = self.handle_single_event(eh, evt_type, data)
                 if action_event and data.cancelled:
