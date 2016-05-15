@@ -23,15 +23,17 @@ import re
 from gevent.backdoor import BackdoorServer
 from gevent.coros import RLock
 from gevent.pool import Pool
+import gevent
 import redis
 import requests
 
 # -- own --
 from account.forum_integration import Account
-from qqbot import QQBot
+from .qqbot import QQBot
 from utils import CheckFailed, check, instantiate
-from utils.interconnect import Interconnect
-import db
+from utils.interconnect import RedisInterconnect
+import utils.logging
+import db.session
 import upyun
 
 
@@ -156,7 +158,7 @@ class Aya(QQBot):
     def _message(self, type, msg):
         not_registered_text = (
             u'文文不认识你，不会帮你发新闻的哦。\n'
-            u'回复“文文求交朋友 <uid> <密码>”，不要带引号，文文就会认识你啦。\n'
+            u'回复“文文求交朋友 uid 密码”，不要带引号，文文就会认识你啦。\n'
             u'uid可以在登陆论坛或者游戏后知道，密码就是论坛的密码。\n'
             u'比如这样：\n'
             u'文文求交朋友 23333 wodemima23333\n'
@@ -228,7 +230,7 @@ class Aya(QQBot):
             return
 
         if content.startswith(u'呼叫文文'):
-            gnum = self.gcode2groupnum(msg['group_code'])
+            gnum = self.uin2groupnum(msg['from_uin'])
 
             if State.dao.is_group_on(gnum):
                 i = State.dao.incr_ping_count(gnum)
@@ -240,13 +242,13 @@ class Aya(QQBot):
             pool.apply_async(self.send_group_message, (msg['from_uin'], words))
 
         elif content == u'文文on':
-            superusers = self.get_group_superusers_uin(msg['group_code'])
+            superusers = self.get_group_superusers_uin(msg['from_uin'])
             if msg['send_uin'] in superusers or self.uin2qq(msg['send_uin']) in (84065234,):
-                State.dao.set_group_on(self.gcode2groupnum(msg['group_code']))
+                State.dao.set_group_on(self.uin2groupnum(msg['from_uin']))
                 pool.apply_async(self.send_group_message, (msg['from_uin'], u'收到～文文会以最快速度播报新闻～'))
 
         elif content == u'文文off':
-            gnum = self.gcode2groupnum(msg['group_code'])
+            gnum = self.uin2groupnum(msg['from_uin'])
             if State.dao.is_group_on(gnum):
                 State.dao.set_group_off(gnum)
                 pool.apply_async(self.send_group_message, (msg['from_uin'], u'哼，不理你们了。管理员叫我我才回来。哼。'))
@@ -300,10 +302,10 @@ class Aya(QQBot):
             ])
             # --------
 
-            State.interconnect.publish('speaker', [username, content])
+        State.interconnect.publish('speaker', [username, content])
 
 
-class AyaInterconnect(Interconnect):
+class AyaInterconnect(RedisInterconnect):
     lock = None
 
     def on_message(self, node, topic, message):
@@ -321,14 +323,11 @@ class AyaInterconnect(Interconnect):
             )
 
             groups_on = [int(i) for i in State.dao.get_all_groups_on()]
-            gids = [
-                g['gid'] for g in State.aya.group_list
-                if State.aya.gcode2groupnum(g['code']) in groups_on
-            ]
 
             pool.map_async(lambda f: f(), [
-                partial(State.aya.send_group_message, i, send)
-                for i in gids
+                partial(State.aya.send_group_message, uin, send)
+                for uin, num in State.aya.get_group_tuples()
+                if num in groups_on
             ])
 
         elif topic == 'aya_charge':
@@ -336,7 +335,7 @@ class AyaInterconnect(Interconnect):
             if fee < 50: return
             qq = State.dao.get_binding_r(uid)
             if not uid: return
-            uin = State.aya.qq2uin_bycache(qq)
+            uin = State.aya.qq2uin(qq)
             if not uin: return
             State.aya.send_buddy_message(uin, u'此次文文新闻收费 %s 节操。' % int(fee))
 
@@ -347,7 +346,7 @@ class AyaInterconnect(Interconnect):
             self.lock = lock
 
         with lock:
-            return Interconnect.publish(self, topic, data)
+            return RedisInterconnect.publish(self, topic, data)
 
 
 def main():
@@ -360,18 +359,22 @@ def main():
     parser.add_argument('--upyun-password')
     parser.add_argument('--redis-url', default='redis://localhost:6379')
     parser.add_argument('--db', default='sqlite3:////dev/shm/thb.sqlite3')
+    parser.add_argument('--sentry', default='https://9b1da8b8d9d3483ba163a3f36f79f803:3ebebe6950aa494c9c1d48a75a3c342d@sentry.thbattle.net/4')
     State.options = options = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG)
-
+    utils.logging.init_server(logging.DEBUG, options.sentry, 'aya.log', with_gr_name=False)
     db.session.init(options.db)
     gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
 
-    State.aya = Aya()
-    # State.aya.wait_ready()
-    State.interconnect = AyaInterconnect.spawn('aya', options.redis_url)
-    State.dao = AyaDAO(options.redis_url)
-    State.aya.join()
+    def loop():
+        State.aya = Aya()
+        # State.aya.wait_ready()
+        State.interconnect = AyaInterconnect.spawn('aya', options.redis_url)
+        State.dao = AyaDAO(options.redis_url)
+        State.aya.join()
+
+    gevent.spawn(loop).join()
+    gevent.sleep(10)  # for sentry
 
 
 if __name__ == '__main__':

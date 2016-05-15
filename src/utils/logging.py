@@ -38,6 +38,10 @@ class UnityLogHandler(logging.Handler):
 
 
 class ServerLogFormatter(logging.Formatter):
+    def __init__(self, with_gr_name=True):
+        logging.Formatter.__init__(self)
+        self.with_gr_name = with_gr_name
+
     def format(self, rec):
 
         if rec.exc_info:
@@ -59,13 +63,21 @@ class ServerLogFormatter(logging.Formatter):
         except:
             g = gevent.getcurrent()
 
-        gr_name = getattr(g, 'gr_name', None) or repr(g)
+        if self.with_gr_name:
+            gr_name = ' ' + (getattr(g, 'gr_name', None) or repr(g))
+        else:
+            gr_name = ''
 
-        return u'[%s %s %s] %s' % (
+        if rec.args:
+            msg = rec.msg % rec.args if isinstance(rec.msg, basestring) else repr((rec.msg, rec.args)),
+        else:
+            msg = rec.msg
+
+        return u'[%s %s%s] %s' % (
             rec.levelname[0],
             time.strftime('%y%m%d %H:%M:%S'),
             gr_name.decode('utf-8'),
-            rec.msg % rec.args if isinstance(rec.msg, basestring) else repr((rec.msg, rec.args)),
+            msg,
         )
 
 
@@ -125,13 +137,13 @@ def init_unity(level, sentry_dsn):
     root.info('==============================================')
 
 
-def init_server(level, sentry_dsn, logfile):
+def init_server(level, sentry_dsn, logfile, with_gr_name=True):
     patch_gevent_hub_print_exception()
 
     root = logging.getLogger()
     root.setLevel(level)
 
-    fmter = ServerLogFormatter()
+    fmter = ServerLogFormatter(with_gr_name=with_gr_name)
     std = logging.StreamHandler(stream=sys.stdout)
     std.setFormatter(fmter)
     root.addHandler(std)

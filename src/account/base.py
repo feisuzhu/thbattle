@@ -11,6 +11,8 @@ import random
 
 # -- code --
 def server_side_only(f):
+    return f  # Meh...
+
     @wraps(f)
     def _wrapper(*a, **k):
         from game.autoenv import Game
