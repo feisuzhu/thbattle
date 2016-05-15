@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from functools import partial
@@ -6,8 +7,7 @@ import logging
 import traceback
 
 # -- third party --
-from gevent import Timeout
-from gevent import socket, Greenlet
+from gevent import Greenlet, Timeout, socket
 from gevent.coros import RLock
 import msgpack
 
