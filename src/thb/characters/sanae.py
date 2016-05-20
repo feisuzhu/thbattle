@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import DistributeCards, DrawCardStage, DrawCards, ForEach, GenericAction
-from thb.actions import UserAction, migrate_cards, random_choose_card, ttags
-from thb.actions import user_choose_cards, user_choose_players, PlayerTurn, ActionStage
+from thb.actions import ActionStage, DistributeCards, DrawCardStage, DrawCards, ForEach
+from thb.actions import GenericAction, PlayerTurn, Reforge, UserAction, migrate_cards
+from thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
 from thb.cards import Heal, Skill, t_None, t_Self
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -202,27 +203,17 @@ class GodDescendant(Skill):
     skill_category = ('character', 'passive')
 
 
-class GodDescendantSkipAction(UserAction):
-    def __init__(self, source, target, act):
+class GodDescendantAction(UserAction):
+    def __init__(self, source, target, act, card):
         self.source = source
         self.target = target
         self.action = act
-
-    def apply_action(self):
-        self.action.cancelled = True
-        return True
-
-
-class GodDescendantDrawAction(UserAction):
-    def __init__(self, source, target, act):
-        self.source = source
-        self.target = target
-        self.action = act
+        self.card   = card
 
     def apply_action(self):
         g = Game.getgame()
-        tgt = self.target
-        g.process_action(DrawCards(tgt, 1))
+        g.process_action(Reforge(self.source, self.target, self.card))
+        self.action.cancelled = True
         return True
 
 
@@ -237,14 +228,18 @@ class GodDescendantHandler(EventHandler):
             if not tgt.has_skill(GodDescendant):
                 return act
 
-            opt = user_input([tgt], ChooseOptionInputlet(self, ('skip', 'draw', None)))
+            cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
+            if not cl:
+                return act
 
-            if opt == 'skip':
-                g.process_action(GodDescendantSkipAction(tgt, tgt, act))
-            elif opt == 'draw':
-                g.process_action(GodDescendantDrawAction(tgt, tgt, act))
+            c, = cl
+
+            g.process_action(GodDescendantAction(tgt, tgt, act, c))
 
         return act
+
+    def cond(self, cl):
+        return len(cl) == 1
 
 
 @register_character_to('common', '-kof')

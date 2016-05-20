@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable
-from thb.ui.ui_meta.common import passive_is_action_valid
+from thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable, passive_is_action_valid
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.sanae)
@@ -23,7 +26,7 @@ class Sanae:
         u'|G奇迹|r：出牌阶段，你可以弃置X张牌并摸一张牌。若X为3，你可以令一名角色回复一点体力。\n'
         u'|B|R>> |rX为你本回合发动|G奇迹|r的次数，当你回合内第一次使用|G奇迹|r时，X为1，第二次为2，以此类推。\n\n'
         u'|G信仰|r：出牌阶段限一次，你可以令至多两名其他角色各交给你一张手牌，然后你交给其各一张牌。\n\n'
-        u'|G神裔|r：当你成为群体符卡的目标后，你可以摸一张牌或跳过此次结算。\n\n'
+        u'|G神裔|r：当你成为群体符卡的目标后，你可以重铸一张牌并跳过此次结算。\n\n'
         u'|DB（画师：小D@星の妄想乡，CV：VV）|r'
     )
 
@@ -143,28 +146,23 @@ class GodDescendant:
 
 
 class GodDescendantHandler:
-    # choose_option
-    choose_option_buttons = ((u'跳过结算', 'skip'), (u'摸牌', 'draw'), (u'不发动', None))
-    choose_option_prompt = u'你要发动【神裔】吗？'
+    # choose_card
+    def choose_card_text(g, act, cards):
+        if act.cond(cards):
+            return (True, u'神裔：重铸并跳过结算')
+        else:
+            return (False, u'神裔：请选择要重铸的牌并跳过结算（否则不发动）')
 
 
-class GodDescendantSkipAction:
+class GodDescendantAction:
 
     def effect_string(act):
-        return u'|G【%s】|r发动了|G神裔|r，跳过了结算。' % (
+        return u'|G【%s】|r发动了|G神裔|r，重铸了一张牌并跳过了结算。' % (
             act.target.ui_meta.char_name,
         )
 
     def sound_effect(act):
-        return 'thb-cv-sanae_goddescendant1'
-
-
-class GodDescendantDrawAction:
-
-    def effect_string(act):
-        return u'|G【%s】|r发动了|G神裔|r，摸一张牌。' % (
-            act.target.ui_meta.char_name,
-        )
-
-    def sound_effect(act):
-        return 'thb-cv-sanae_goddescendant2'
+        return random.choice([
+            'thb-cv-sanae_goddescendant1',
+            'thb-cv-sanae_goddescendant2',
+        ])
