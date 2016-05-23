@@ -128,7 +128,7 @@ class THBattleBootstrap(GenericAction):
                     continue
 
                 c = user_input([p], ChooseGirlInputlet(g, choices), timeout=30, trans=trans)
-                c = c or [_c for _c in choices[p] if not _c.chosen][0]
+                c = c or [_c for _c in reversed(choices[p]) if not _c.chosen][0]
                 c.chosen = p
 
                 if c.akari:

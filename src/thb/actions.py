@@ -1224,9 +1224,10 @@ class DyingHandler(EventHandler):
 
 
 class ShowCards(GenericAction):
-    def __init__(self, source, cards):
+    def __init__(self, source, cards, to=None):
         self.source = self.target = source
         self.cards = cards
+        self.to = to and BatchList(to)
 
     def apply_action(self):
         if not self.cards:
@@ -1234,8 +1235,9 @@ class ShowCards(GenericAction):
 
         g = Game.getgame()
         cards = self.cards
-        g.players.reveal(cards)
-        g.emit_event('showcards', (self.target, [copy(c) for c in cards]))
+        to = self.to or g.players
+        to.reveal(cards)
+        g.emit_event('showcards', (self.target, [copy(c) for c in cards], to))
         # user_input(
         #     [p for p in g.players if not p.dead],
         #     ChooseOptionInputlet(self, (True,)),

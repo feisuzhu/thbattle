@@ -126,3 +126,9 @@ def build_handcard(cardcls, p=None):
     c = cardcls()
     c.move_to(cl)
     return c
+
+
+def current_initiator():
+    g = G()
+    trans, ilet = g._my_user_input
+    return ilet and ilet.initiator

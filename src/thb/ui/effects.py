@@ -539,7 +539,14 @@ class UIShowCardsEffect(Panel):
         )
         self.lbls = lbls = pyglet.graphics.Batch()
 
-        w, h = 95 * len(cards), 125
+        max_per_line = 6
+
+        n = len(cards)
+
+        lines = max(n - 1, 0) // max_per_line + 1
+        cols = min(max_per_line, n)
+
+        w, h = 95 * cols, 127 * lines
         w = 30 + w + 30
         h = 60 + h + 50
 
@@ -558,8 +565,13 @@ class UIShowCardsEffect(Panel):
         self.width, self.height = w, h
         self.update()
 
-        for i, c in enumerate(cards):
-            cs = CardSprite(c, parent=self, x=30 + 95 * i, y=60)
+        def coords(n):
+            for i in xrange(n):
+                y, x = divmod(i, max_per_line)
+                yield x, lines - y - 1
+
+        for c, (x, y) in zip(cards, coords(len(cards))):
+            cs = CardSprite(c, parent=self, x=30 + 95 * x, y=60 + 127 * y)
             cs.associated_card = c
 
         btn = Button(parent=self, caption=u'看完了', x=w-122, y=15, width=100, height=30)
@@ -576,8 +588,9 @@ class UIShowCardsEffect(Panel):
 
 
 def showcards_effect(self, arg):
-    target, cards = arg
-    UIShowCardsEffect(target, cards, parent=self)
+    target, cards, to = arg
+    if self.game.me in to:
+        UIShowCardsEffect(target, cards, parent=self)
 
 
 def fatetell_effect(self, act):

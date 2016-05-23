@@ -30,7 +30,7 @@ class AttackCard:
         return (True, u'来一发！')
 
     def sound_effect(act):
-        if not isinstance(act, actions.LaunchCard):
+        if not isinstance(act, actions.ActionStageLaunchCard):
             return 'thb-cv-card_attack1'
 
         current = G().current_player

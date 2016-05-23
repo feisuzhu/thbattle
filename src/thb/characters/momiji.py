@@ -1,78 +1,114 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
+import itertools
+
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, LaunchCard, UserAction, migrate_cards, user_choose_cards
-from thb.cards import AttackCard, BaseAttack, Card, RedUFOSkill, Skill, TreatAs
+from game.autoenv import EventHandler, Game, sync_primitive, user_input
+from thb.actions import ActionStage, Damage, FinalizeStage, GenericAction, LaunchCard, ShowCards
+from thb.actions import UserAction, migrate_cards, user_choose_cards
+from thb.cards import AttackCard, Card, CardList, DuelCard, GrazeCard, RedUFOSkill, Skill, TreatAs
 from thb.cards import VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from utils.misc import check
 
 
 # -- code --
+class SentryHideAction(UserAction):
+    def __init__(self, source, target, cards):
+        self.source = source
+        self.target = target
+        self.cards = cards
+
+    def apply_action(self):
+        tgt = self.target
+        cl = getattr(tgt, 'momiji_sentry_cl', None)
+        if cl is None:
+            cl = CardList(tgt, 'momiji_sentry_cl')
+            tgt.momiji_sentry_cl = cl
+            tgt.showncardlists.append(cl)
+
+        migrate_cards(self.cards, cl)
+        return True
+
+
+class SentryReturningAction(GenericAction):
+    def apply_action(self):
+        tgt = self.target
+        cl = getattr(tgt, 'momiji_sentry_cl', None)
+        cl and migrate_cards(cl, tgt.cards, unwrap=True)
+        return True
+
+
 class SentryHandler(EventHandler):
-    interested = ('action_before',)
-    execute_after = (
-        'RepentanceStickHandler',
-        'UmbrellaHandler',
-    )
+    interested = ('action_after', 'action_apply')
     card_usage = 'launch'
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, Damage):
+        if evt_type == 'action_after' and isinstance(act, Damage):
             g = Game.getgame()
+            src, tgt = act.source, act.target
+            if not (src and src.has_skill(Sentry)): return act
+            if tgt.dead: return act
             pact = g.action_stack[-1]
             pcard = getattr(pact, 'associated_card', None)
             if not pcard: return act
-            if pcard.is_card(SentryAttack):
-                # Sentry effect
-                src = pact.source
-                if not src.dead and user_input([src], ChooseOptionInputlet(self, (False, True))):
-                    # Guard
-                    dmg = pcard.target_damage
-                    dmg.amount = max(0, dmg.amount - 1)
-                    act.cancelled = True
-                else:
-                    # Attack
-                    pass
 
-            elif pcard.is_card(AttackCard) and isinstance(pact, BaseAttack):
-                # Sentry fire
-                for p in g.players:
-                    if p.dead: continue
-                    if not p.has_skill(Sentry): continue
-                    if p is pact.source: continue
-
-                    tgt = pact.source
-                    self.target = tgt  # for ui
-                    self.act = act
-                    dist = LaunchCard.calc_distance(p, AttackCard())
-                    if dist.get(tgt, 1) > 0: continue
-                    cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-                    if not cl: continue
-                    c = SentryAttack.wrap(cl, p)
-                    c.target_damage = act
-                    g.process_action(LaunchCard(p, [tgt], c))
-            else:
+            if not pcard.is_card(AttackCard) and not (pcard.is_card(DuelCard) and pact.source is src):
                 return act
+
+            if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            cl = list(tgt.cards) + list(tgt.showncards)
+            g.process_action(ShowCards(tgt, cl, [src]))
+
+            if g.SERVER_SIDE:
+                l = [c.is_card(AttackCard) or 'spellcard' in c.category for c in cl]
+            else:
+                l = [False for c in cl]
+
+            l = sync_primitive(l, g.players)
+            cl = list(itertools.compress(cl, l))
+            g.process_action(SentryHideAction(src, tgt, cl))
+
+        elif evt_type == 'action_apply' and isinstance(act, ActionStage):
+            g = Game.getgame()
+            for p in g.players:
+                if p.dead: continue
+                if not p.has_skill(Sentry): continue
+
+                tgt = act.target
+                if p is tgt: continue
+                self.target = tgt  # for ui
+
+                dist = LaunchCard.calc_distance(p, AttackCard())
+                if dist.get(tgt, 1) > 0: continue
+                cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
+                if not cl: continue
+                c = SentryAttack.wrap(cl, tgt)
+                g.process_action(LaunchCard(p, [tgt], c))
+
+        elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
+            tgt = act.target
+            g = Game.getgame()
+            g.process_action(SentryReturningAction(tgt, tgt))
 
         return act
 
     def cond(self, cl):
         if not len(cl) == 1: return False
-        c = cl[0]
-        if c.is_card(AttackCard):
-            return True
-
-        return not c.is_card(Skill) and c.suit == Card.CLUB
+        return cl[0].is_card(AttackCard)
 
     def ask_for_action_verify(self, p, cl, tl):
-        c = SentryAttack.wrap(cl, p)
+        if not cl:
+            return False
+
         tgt = self.target
-        c.target_damage = self.act
-        return LaunchCard(p, [tgt], c).can_fire()
+        return LaunchCard(p, [tgt], cl[0]).can_fire()
 
 
 class SentryAttack(TreatAs, VirtualCard):
@@ -85,6 +121,40 @@ class Sentry(Skill):
     target = t_None
 
 
+class SolidShieldAttack(TreatAs, Skill):
+    skill_category = ('character', 'active', 'passive')
+    treat_as = AttackCard
+
+    def check(self):
+        try:
+            c, = self.associated_cards
+            check(c.resides_in is not None)
+            check(c.resides_in.type in ('cards', 'showncards', 'equips'))
+            check(c.color == Card.BLACK)
+            p = self.player
+            check(len(p.cards) + len(p.showncards) > p.life)
+            return True
+        except Exception:
+            return False
+
+
+class SolidShieldGraze(TreatAs, Skill):
+    skill_category = ('character', 'active', 'passive')
+    treat_as = GrazeCard
+
+    def check(self):
+        try:
+            c, = self.associated_cards
+            check(c.resides_in is not None)
+            check(c.resides_in.type in ('cards', 'showncards', 'equips'))
+            check(c.color == Card.RED)
+            p = self.player
+            check(len(p.cards) + len(p.showncards) <= p.life)
+            return True
+        except Exception:
+            return False
+
+
 class SharpEye(RedUFOSkill):
     skill_category = ('character', 'passive', 'compulsory')
     increment = 1
@@ -95,58 +165,8 @@ class SharpEyeKOF(RedUFOSkill):
     increment = 1
 
 
-class SharpEyeKOFAction(UserAction):
-    def __init__(self, source, target, cards):
-        self.source = source
-        self.target = target
-        self.cards = cards
-
-    def apply_action(self):
-        g = Game.getgame()
-        c = self.cards[0]
-        g.players.reveal(c)
-        migrate_cards([c], self.target.showncards, unwrap=True)
-        return True
-
-
-class SharpEyeKOFHandler(EventHandler):
-    interested = ('post_card_migration',)
-
-    def handle(self, evt_type, arg):
-        if evt_type == 'post_card_migration':
-            g = Game.getgame()
-            a, b = g.players
-            if not a.has_skill(SharpEyeKOF):
-                a, b = b, a
-
-            if not a.has_skill(SharpEyeKOF):
-                return arg
-
-            trans = arg
-
-            cl = []
-            for cards, _from, to, is_bh in trans.get_movements():
-                if to is None: continue
-                if to.owner is not b: continue
-                if _from.owner is b: continue
-                if to.type != 'cards': continue
-                cl.extend(cards)
-
-            if cl:
-                g.process_action(SharpEyeKOFAction(a, b, cl))
-
-        return arg
-
-
-@register_character_to('common', '-kof')
+@register_character_to('common')
 class Momiji(Character):
-    skills = [Sentry, SharpEye]
+    skills = [Sentry, SolidShieldAttack, SolidShieldGraze]
     eventhandlers_required = [SentryHandler]
-    maxlife = 4
-
-
-@register_character_to('kof')
-class MomijiKOF(Character):
-    skills = [Sentry, SharpEyeKOF]
-    eventhandlers_required = [SentryHandler, SharpEyeKOFHandler]
     maxlife = 4

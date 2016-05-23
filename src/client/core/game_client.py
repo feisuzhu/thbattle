@@ -59,6 +59,9 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     synctags_r = {v: k for k, v in synctags.items()}
 
     try:
+        if g.me in players:  # me involved
+            g._my_user_input = (trans, ilets[g.me])
+
         for p in players:
             g.emit_event('user_input_start', (trans, ilets[p]))
 
@@ -96,6 +99,9 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
             rst = my.post_process(p, rst)
 
             g.emit_event('user_input_finish', (trans, my, rst))
+
+            if p is g.me:
+                g._my_user_input = (None, None)
 
             players.remove(p)
             results[p] = rst
@@ -213,6 +219,8 @@ class Game(Greenlet, game.base.Game):
         self.players = BatchList()
         self.game_params = {}
         self.game_items = {}
+
+        self._my_user_input = (None, None)
 
     def _run(g):
         g.synctag = 0
