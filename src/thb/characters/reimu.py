@@ -4,7 +4,7 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import EventHandler, Game, InterruptActionFlow, user_input
 from thb.actions import Damage, DrawCards, FinalizeStage, LaunchCard, PlayerRevive, UserAction
 from thb.actions import migrate_cards, ttags, user_choose_cards
 from thb.cards import AttackCard, Card, GreenUFOSkill, RejectCard, Skill, TreatAs, UFOSkill, t_None
@@ -210,7 +210,7 @@ class ReimuClearAction(UserAction):
         g = Game.getgame()
         g.process_action(DrawCards(src, 1))
         g.process_action(DrawCards(tgt, 1))
-        return True
+        raise InterruptActionFlow
 
 
 class ReimuClearHandler(EventHandler):

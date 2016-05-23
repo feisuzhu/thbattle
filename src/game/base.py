@@ -96,7 +96,9 @@ class GameEnded(GameException):
 
 
 class InterruptActionFlow(GameException):
-    pass
+    def __init__(self, unwind_to=None):
+        GameException.__init__(self)
+        self.unwind_to = unwind_to
 
 
 class ActionShootdown(BaseException):
@@ -467,6 +469,9 @@ class Game(GameObject):
                 self.action_stack.append(action)
                 self.hybrid_stack.append(action)
                 rst = action.apply_action()
+            except InterruptActionFlow as e:
+                if e.unwind_to is not action:
+                    raise
             finally:
                 _a = self.action_stack.pop()
                 _b = self.hybrid_stack.pop()
