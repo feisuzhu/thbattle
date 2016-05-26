@@ -77,7 +77,7 @@ def start_server():
 
     root = logging.getLogger()
     root.info('=' * 20 + settings.VERSION + '=' * 20)
-    server = StreamServer((options.host, options.port), Client.spawn, None)
+    server = StreamServer((options.host, options.port), Client.serve, None)
     server.serve_forever()
 
 

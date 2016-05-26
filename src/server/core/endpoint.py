@@ -7,7 +7,7 @@ from weakref import WeakSet
 import logging
 
 # -- third party --
-from gevent import Greenlet, Timeout
+from gevent import Timeout, getcurrent
 from gevent.queue import Queue
 
 # -- own --
@@ -35,19 +35,26 @@ def _record_user_gamedata(client, tag, data):
     manager.record_user_gamedata(client, tag, data)
 
 
-class Client(Endpoint, Greenlet):
-    def __init__(self, sock, addr):
+class Client(Endpoint):
+    def __init__(self, sock, addr, greenlet):
         Endpoint.__init__(self, sock, addr)
-        Greenlet.__init__(self)
         self.observers = BatchList()
         self.gamedata = Gamedata()
         self.cmd_listeners = defaultdict(WeakSet)
         self.current_game = None
+        self.greenlet = greenlet
 
-    @log_failure(log)
-    def _run(self):
         self.account = None
 
+    @classmethod
+    def serve(cls, sock, addr):
+        c = getcurrent()
+        cli = cls(sock, addr, c)
+        c.gr_name = repr(cli)
+        cli._serve()
+
+    @log_failure(log)
+    def _serve(self):
         # ----- Banner -----
         from settings import VERSION
         self.write(['thbattle_greeting', (options.node, VERSION)])
@@ -80,7 +87,9 @@ class Client(Endpoint, Greenlet):
 
     def close(self):
         Endpoint.close(self)
-        self.kill(EndpointDied)
+        gr = self.greenlet
+        self.greenlet = None
+        gr and gr.kill(EndpointDied)
 
     def __repr__(self):
         acc = self.account
