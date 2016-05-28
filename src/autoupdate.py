@@ -97,8 +97,13 @@ class Autoupdate(object):
 
     def set_update_url(self, url):
         remote = self.remote
-        remote.url = url
-        remote.save()
+        if hasattr(self.repo.remotes, 'set_url'):
+            # cffi version (newer)
+            self.repo.remotes.set_url(remote.name, url)
+        else:
+            # 0.20.x
+            remote.url = url
+            remote.save()
 
     def update(self, server_name):
         if not self.reset_update_server(server_name):
