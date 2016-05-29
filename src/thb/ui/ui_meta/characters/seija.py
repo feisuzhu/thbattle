@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 import random
 
 # -- third party --
 # -- own --
-from thb import actions, characters
-from thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, passive_clickable
+from thb import characters
+from thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, my_turn, passive_clickable
 from thb.ui.ui_meta.common import passive_is_action_valid
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.seija)
@@ -46,16 +48,10 @@ class Incite:
     custom_ray = True
 
     def clickable(game):
-        try:
-            if limit1_skill_used('incite_tag'):
-                return False
-            act = game.action_stack[-1]
-            if isinstance(act, actions.ActionStage):
-                return True
-        except IndexError:
-            pass
+        if limit1_skill_used('incite_tag'):
+            return False
 
-        return False
+        return my_turn()
 
     def is_action_valid(g, cl, tl):
         if cl[0].associated_cards:
@@ -137,7 +133,7 @@ class Seija:
     miss_sound_effect = 'thb-cv-seija_miss'
     description = (
         u'|DB逆袭的天邪鬼 鬼人正邪 体力：3|r\n\n'
-        u'|G挑拨|r：出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内一名由你指定的另一名角色使用了一张【弹幕】。若你没赢，该角色可以视为对你使用了一张【弹幕】。\n\n'
-        u'|G逆转|r：当你受到一名其他角色使用的【弹幕】效果时，你可以摸一张牌，然后若此时你的手牌数大于该角色，此弹幕对你无效并视为其对你使用了一张【弹幕战】。\n\n'
+        u'|G挑拨|r：出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内一名由你指定的另一名其他角色使用了一张|G弹幕|r。若你没赢，该角色可以视为对你使用了一张|G弹幕|r。\n\n'
+        u'|G逆转|r：当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若此时你的手牌数大于该角色，此弹幕对你无效并视为其对你使用了一张|G弹幕战|r。\n\n'
         u'|DB（画师：霏茶，CV：北斗夜）|r'
     )

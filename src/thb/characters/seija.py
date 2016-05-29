@@ -72,9 +72,9 @@ class Incite(Skill):
     usage = 'none'
 
     def target(self, g, source, tl):
-        tl = [t for t in tl if not t.dead]
+        tl = [t for t in tl if not t.dead and t is not source]
 
-        if not tl or tl[0] is source:
+        if not tl:
             return ([], False)
 
         tl_, valid = AttackCard.target(g, tl[0], tl[1:])
