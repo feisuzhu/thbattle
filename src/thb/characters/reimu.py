@@ -215,6 +215,16 @@ class ReimuClearAction(UserAction):
 
 class ReimuClearHandler(EventHandler):
     interested = ('action_after',)
+    execute_before = (
+        'MasochistHandler',
+        'DecayDamageHandler',
+        'MelancholyHandler',
+    )
+
+    execute_after = (
+        'IbukiGourdHandler',
+        'AyaRoundfanHandler',
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
