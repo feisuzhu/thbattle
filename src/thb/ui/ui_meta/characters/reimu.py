@@ -164,6 +164,7 @@ class Reimu:
     # Character
     char_name = u'博丽灵梦'
     port_image = 'thb-portrait-reimu'
+    figure_image = 'thb-figure-reimu'
     miss_sound_effect = 'thb-cv-reimu_miss'
     description = (
         u'|DB节操满地跑的城管 博丽灵梦 体力：4|r\n'
@@ -172,5 +173,5 @@ class Reimu:
         u'\n'
         u'|G快晴|r：你对一名其他角色造成伤害后，你可以与其各摸一张牌，并终止当前行动角色的行动回合。\n'
         u'\n'
-        u'|DB（画师：Pixiv ID 18697741，CV：shourei小N）|r'
+        u'|DB（画师：和茶，CV：shourei小N）|r'
     )
