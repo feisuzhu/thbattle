@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from collections import namedtuple
@@ -452,7 +453,8 @@ class Frame(Control):
 
         self.bgsprite.image = bg
 
-    def on_resize(self, w, h): self.update_bg()
+    def on_resize(self, w, h):
+        self.update_bg()
 
     def _fill_batch(self, batch):
         ax, ay = self.abs_coords()
@@ -844,7 +846,7 @@ class TextBox(Control):
         self.set_handlers(self.caret)
         self.push_handlers(self)
 
-        from base.baseclasses import main_window
+        from client.ui.base.baseclasses import main_window
         self.window = main_window
         self.text_cursor = self.window.get_system_mouse_cursor('text')
         self.on_lostfocus()
@@ -969,7 +971,7 @@ class PlayerPortrait(Frame):
     def __init__(self, player_name, color=Colors.blue, *args, **kwargs):
         self.account = None
         self.ready = False
-        from base.baseclasses import main_window
+        from client.ui.base.baseclasses import main_window
         self.window = main_window
         self.hand_cursor = self.window.get_system_mouse_cursor('hand')
         self.accinfo_labels = []
@@ -1203,7 +1205,7 @@ class TextArea(Control):
         self.set_handlers(self.caret)
         self.push_handlers(self)
 
-        from base.baseclasses import main_window
+        from client.ui.base.baseclasses import main_window
         self.window = main_window
         self.text_cursor = self.window.get_system_mouse_cursor('text')
         self.on_lostfocus()
@@ -1597,7 +1599,7 @@ class ListView(Control):
     def _mouse_click(self, evt_type, x, y, button, modifier):
         h = self.height - self.header_height
         lh, vy = self.line_height, self.view_y
-        i = (h + vy - y) / lh
+        i = int((h + vy - y) / lh)
         n = len(self.items)
         if 0 <= i < n:
             # cs = self.cur_select
@@ -1894,18 +1896,21 @@ class Panel(Control):
 
     def update(self):
         w, h = int(self.width), int(self.height)
+        from options import options
+        z = options.zoom
+        zw, zh = int(w * z), int(h * z)
 
-        from .base.shader import HAVE_SHADER
+        from client.ui.base.shader import HAVE_SHADER
         if HAVE_SHADER:
-            blurtex = pyglet.image.Texture.create(w, h)
+            blurtex = pyglet.image.Texture.create(zw, zh)
 
             self.blurtex = blurtex
 
             t = blurtex.tex_coords
             x1 = 0
             y1 = 0
-            x2 = blurtex.width
-            y2 = blurtex.height
+            x2 = w
+            y2 = h
 
             array = (GLfloat * 32)(
                 t[0],  t[1],  t[2],  1.,
@@ -1926,10 +1931,13 @@ class Panel(Control):
         w, h = int(self.width), int(self.height)
 
         if blurtex:
-            from shaders import GaussianBlurHorizontal as GBH, GaussianBlurVertical as GBV, ShaderProgram
+            from client.ui.shaders import GaussianBlurHorizontal as GBH, GaussianBlurVertical as GBV, ShaderProgram
+
+            from options import options
+            z = options.zoom
 
             ax, ay = self.abs_coords()
-            ax, ay = int(ax), int(ay)
+            ax, ay = int(ax * z), int(ay * z)
 
             t = getattr(blurtex, 'owner', blurtex)
             _w, _h = t.width, t.height

@@ -271,7 +271,9 @@ class Overlay(Control):
         return ori
 
     def on_resize(self, width, height):
-        glViewport(0, 0, width, height)
+        from options import options
+        z = options.zoom
+        glViewport(0, 0, int(width * z), int(height * z))
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glOrtho(0, width, 0, height, -1000, 1000)
@@ -280,6 +282,10 @@ class Overlay(Control):
 
     def _position_events(self, _type, x, y, *args):
         cap_list = self._capture_events.setdefault(_type, [])[:]
+
+        from options import options
+        z = options.zoom
+        x, y = x / z, y / z
 
         def dispatch(this, lx, ly):
             # Top most control get event
@@ -412,8 +418,10 @@ def init_gui():
         accum_alpha_size=0,
     )
 
+    from options import options
+    z = options.zoom
     main_window = pyglet.window.Window(
-        width=WINDOW_WIDTH, height=WINDOW_HEIGHT, caption=u'东方符斗祭',
+        width=int(WINDOW_WIDTH * z), height=int(WINDOW_HEIGHT * z), caption=u'东方符斗祭',
         config=config, visible=False
     )
     sched_queue = []

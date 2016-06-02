@@ -29,6 +29,7 @@ def start_client():
     parser.add_argument('--dump-gameobj', action='store_true')
     parser.add_argument('--log', default='INFO')
     parser.add_argument('--color-log', action='store_true')
+    parser.add_argument('--zoom', type=float, default=1.0)
     parser.add_argument('--show-hidden-modes', action='store_true')
 
     options = parser.parse_args()
