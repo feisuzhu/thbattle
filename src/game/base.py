@@ -470,7 +470,9 @@ class Game(GameObject):
                 self.hybrid_stack.append(action)
                 rst = action.apply_action()
             except InterruptActionFlow as e:
-                if e.unwind_to is not action:
+                if e.unwind_to is action:
+                    rst = False
+                else:
                     raise
             finally:
                 _a = self.action_stack.pop()

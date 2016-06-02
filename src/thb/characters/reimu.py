@@ -5,8 +5,8 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, InterruptActionFlow, user_input
-from thb.actions import Damage, DrawCards, FinalizeStage, LaunchCard, PlayerRevive, UserAction
-from thb.actions import migrate_cards, ttags, user_choose_cards
+from thb.actions import ActionStage, Damage, DrawCards, FinalizeStage, LaunchCard, PlayerRevive
+from thb.actions import UserAction, migrate_cards, ttags, user_choose_cards
 from thb.cards import AttackCard, Card, GreenUFOSkill, RejectCard, Skill, TreatAs, UFOSkill, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -158,7 +158,7 @@ class ReimuExterminateAction(UserAction):
 
 
 class ReimuExterminateHandler(EventHandler):
-    interested = ('action_apply',)
+    interested = ('action_apply', 'action_after')
     execute_after = ('DyingHandler', 'CheatingHandler')
 
     def handle(self, evt_type, act):
@@ -169,6 +169,14 @@ class ReimuExterminateHandler(EventHandler):
             if src is not g.current_player: return act
             if src is tgt: return act
             ttags(src)['did_damage'] = True
+
+        elif evt_type == 'action_after' and isinstance(act, Damage):
+            if not act.source: return act
+            src, tgt = act.source, act.target
+            g = Game.getgame()
+            if not tgt.has_skill(ReimuExterminate): return act
+            if src.dead: return act
+            self.fire(tgt, g.current_player)
 
         elif evt_type == 'action_apply' and isinstance(act, FinalizeStage):
             tgt = act.target
@@ -186,16 +194,20 @@ class ReimuExterminateHandler(EventHandler):
                 if not actor.has_skill(ReimuExterminate):
                     continue
 
-                a = ReimuExterminateAction(actor, tgt)
-                cl = user_choose_cards(a, actor, ('cards', 'showncards'))
-                if not cl:
-                    continue
-
-                assert len(cl) == 1
-                a.set_card(cl[0])
-                g.process_action(a)
+                self.fire(actor, tgt)
 
         return act
+
+    def fire(self, src, tgt):
+        g = Game.getgame()
+        act = ReimuExterminateAction(src, tgt)
+        cl = user_choose_cards(act, src, ('cards', 'showncards'))
+        if not cl:
+            return
+
+        assert len(cl) == 1
+        act.set_card(cl[0])
+        g.process_action(act)
 
 
 class ReimuClear(Skill):
@@ -210,7 +222,14 @@ class ReimuClearAction(UserAction):
         g = Game.getgame()
         g.process_action(DrawCards(src, 1))
         g.process_action(DrawCards(tgt, 1))
-        raise InterruptActionFlow
+        if g.current_player is src:
+            return True
+        else:
+            for act in reversed(g.action_stack):
+                if isinstance(act, ActionStage):
+                    raise InterruptActionFlow(unwind_to=act)
+            else:
+                return True
 
 
 class ReimuClearHandler(EventHandler):
@@ -247,4 +266,4 @@ class Reimu(Character):
     # skills = [SpiritualAttack, Flight]
     skills = [ReimuExterminate, ReimuClear]
     eventhandlers_required = [ReimuExterminateHandler, ReimuClearHandler]
-    maxlife = 4
+    maxlife = 3
