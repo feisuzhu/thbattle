@@ -484,7 +484,7 @@ class GameManager(object):
         self.notify_playerchange()
 
         players = self.build_initial_players()
-        new.write(['ugame_started', [self.game_params, self.consumed_game_items, players]])
+        new.write(['game_started', [self.game_params, self.consumed_game_items, players]])
 
         self.replay(new, new)
 
