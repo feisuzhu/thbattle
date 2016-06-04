@@ -29,6 +29,7 @@ client_log.txt.gz
 components
 current_version
 d
+dd
 develop-eggs/
 dist/
 eggs/
