@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, GenericAction
-from thb.cards import Attack, AttackCard, Card, Heal, InevitableAttack, Skill, t_None
+from thb.actions import ActionShootdown, Damage, GenericAction, LaunchCard, PrepareStage, UserAction
+from thb.cards import Attack, AttackCard, Card, DummyCard, Heal, InevitableAttack, Skill, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -96,8 +97,111 @@ class VampireKissHandler(EventHandler):
         return act
 
 
+class ScarletMistAttackLimit(ActionShootdown):
+    pass
+
+
+class ScarletMistHandler(EventHandler):
+    interested = (
+        'action_after',
+        'action_apply',
+        'action_shootdown',
+        'post_calcdistance',
+    )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_shootdown' and isinstance(act, LaunchCard):
+            if act.bypass_check: return act
+            c = act.card
+            if not c.is_card(AttackCard): return act
+
+            src, tgt  = act.source, act.target
+            if not src.tags['scarlet_mist'] == 'nerf':
+                return act
+
+            dist = LaunchCard.calc_raw_distance(src, DummyCard())
+            if dist[tgt] > 1:
+                raise ScarletMistAttackLimit
+
+        elif evt_type == 'post_calcdistance':
+            src, c, dist = act
+
+            if not c.is_card(AttackCard):
+                return act
+
+            if src.tags['scarlet_mist'] != 'buff':
+                return act
+
+            for k in dist:
+                dist[k] = 0
+
+        elif evt_type == 'action_after' and isinstance(act, Damage):
+            src = act.source
+            if not (src and src.tags['scarlet_mist'] == 'buff'): return act
+            if src.life >= src.maxlife: return act
+            g = Game.getgame()
+            g.process_action(Heal(src, src, act.amount))
+
+        elif evt_type == 'action_apply' and isinstance(act, PrepareStage):
+            tgt = act.target
+            if not tgt.has_skill(ScarletMist): return act
+            g = Game.getgame()
+            g.process_action(ScarletMistEndAction(None, None))
+
+        return act
+
+
+class ScarletMistAction(UserAction):
+    def apply_action(self):
+        src, tl = self.source, self.target_list
+        src.tags['scarlet_mist_used'] = True
+        g = Game.getgame()
+        for p in g.players:
+            p.tags['scarlet_mist'] = 'nerf'
+        for p in tl:
+            p.tags['scarlet_mist'] = 'buff'
+
+        return True
+
+    def is_valid(self):
+        src = self.source
+        return not src.tags['scarlet_mist_used']
+
+
+class ScarletMistEndAction(GenericAction):
+    def apply_action(self):
+        g = Game.getgame()
+        for p in g.players:
+            p.tags['scarlet_mist'] = False
+
+        return True
+
+
+class ScarletMist(Skill):
+    associated_action = ScarletMistAction
+    skill_category = ('character', 'active', 'once', 'boss')
+
+    def check(self):
+        return not len(self.associated_cards)
+
+    def target(self, g, source, tl):
+        from thb.thbidentity import Identity
+        n = sum(i == Identity.TYPE.ACCOMPLICE for i in g.identities)
+        n -= sum(p.dead and p.identity.type == Identity.TYPE.ACCOMPLICE for p in g.players)
+
+        tl = [t for t in tl if not t.dead]
+        try:
+            tl.remove(source)
+        except ValueError:
+            pass
+
+        tl.insert(0, source)
+        return (tl[:n+1], bool(len(tl)))
+
+
 @register_character_to('common')
 class Remilia(Character):
     skills = [SpearTheGungnir, VampireKiss]
-    eventhandlers_required = [SpearTheGungnirHandler, VampireKissHandler]
+    boss_skills = [ScarletMist]
+    eventhandlers_required = [SpearTheGungnirHandler, VampireKissHandler, ScarletMistHandler]
     maxlife = 4

@@ -318,7 +318,10 @@ class ChooseBossSkillAction(GenericAction):
     def apply_action(self):
         tgt = self.target
         if hasattr(tgt, 'boss_skills'):
-            tgt.skills.extend(tgt.boss_skills)
+            bs = tgt.boss_skills
+            assert len(bs) == 1
+            tgt.skills.extend(bs)
+            self.skill_chosen = bs[0]
             return True
 
         self.boss_skills = l = [  # for ui

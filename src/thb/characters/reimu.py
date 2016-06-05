@@ -143,6 +143,11 @@ class ReimuExterminate(Skill):
 
 
 class ReimuExterminateAction(UserAction):
+    def __init__(self, source, target, cause):
+        self.source = source
+        self.target = target
+        self.cause = cause  # for ui
+
     def set_card(self, c):
         self.card = c
 
@@ -173,10 +178,13 @@ class ReimuExterminateHandler(EventHandler):
         elif evt_type == 'action_after' and isinstance(act, Damage):
             if not act.source: return act
             src, tgt = act.source, act.target
+            cur = g.current_player
             g = Game.getgame()
+            if not cur: return act
             if not tgt.has_skill(ReimuExterminate): return act
-            if src.dead: return act
-            self.fire(tgt, g.current_player)
+            if cur.dead: return act
+            if cur is tgt: return act
+            self.fire(tgt, g.current_player, 'damage')
 
         elif evt_type == 'action_apply' and isinstance(act, FinalizeStage):
             tgt = act.target
@@ -194,13 +202,13 @@ class ReimuExterminateHandler(EventHandler):
                 if not actor.has_skill(ReimuExterminate):
                     continue
 
-                self.fire(actor, tgt)
+                self.fire(actor, tgt, 'finalize')
 
         return act
 
-    def fire(self, src, tgt):
+    def fire(self, src, tgt, cause):
         g = Game.getgame()
-        act = ReimuExterminateAction(src, tgt)
+        act = ReimuExterminateAction(src, tgt, cause)
         cl = user_choose_cards(act, src, ('cards', 'showncards'))
         if not cl:
             return
@@ -266,4 +274,4 @@ class Reimu(Character):
     # skills = [SpiritualAttack, Flight]
     skills = [ReimuExterminate, ReimuClear]
     eventhandlers_required = [ReimuExterminateHandler, ReimuClearHandler]
-    maxlife = 3
+    maxlife = 4

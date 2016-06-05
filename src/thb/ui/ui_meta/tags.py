@@ -118,4 +118,9 @@ class dominance_suit_CLUB:
     description = u'风靡：使用过♣牌'
 
 
+class scarlet_mist:
+    tag_anim = lambda p: 'thb-tag-scarlet_mist'
+    display = lambda p, v: v == 'buff'
+    description = u'红雾：增益效果'
+
 # -----END TAGS UI META-----

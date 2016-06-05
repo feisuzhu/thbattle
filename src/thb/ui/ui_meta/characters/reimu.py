@@ -134,10 +134,13 @@ class ReimuExterminateAction:
             return (False, u'退治：选择一张弹幕对%s使用（否则不发动）' % act.target.ui_meta.char_name)
 
     def effect_string_before(act):
-        return u'听说异变的元凶是|G【%s】|r，|G【%s】|r马上就出现了！' % (
-            act.target.ui_meta.char_name,
-            act.source.ui_meta.char_name,
-        )
+        if act.cause == 'damage':
+            return u'|G【%s】|r： (╯‵□′)╯︵ ┻━┻ ！！！' % act.source.ui_meta.char_name
+        else:
+            return u'听说异变的元凶是|G【%s】|r，|G【%s】|r马上就出现了！' % (
+                act.target.ui_meta.char_name,
+                act.source.ui_meta.char_name,
+            )
 
 
 class ReimuClear:
@@ -167,9 +170,9 @@ class Reimu:
     figure_image = 'thb-figure-reimu'
     miss_sound_effect = 'thb-cv-reimu_miss'
     description = (
-        u'|DB节操满地跑的城管 博丽灵梦 体力：3|r\n'
+        u'|DB节操满地跑的城管 博丽灵梦 体力：4|r\n'
         u'\n'
-        u'|G退治|r：你可以在以下时机对当前行动角色使用一张弹幕（无距离限制）：\n'
+        u'|G退治|r：你可以在以下时机对当前行动角色（若不是你）使用一张弹幕（无距离限制）：\n'
         u'|B|R>> |r在当前行动角色的出牌阶段，你受到一次有来源的伤害后\n'
         u'|B|R>> |r在当前行动角色的结束阶段开始且其本回合对其他角色造成过伤害时\n'
         u'\n'
