@@ -175,6 +175,7 @@ class GameManager(Greenlet):
             rep.game_mode = g.__class__.__name__
             params, items, i, pldata = self.last_game_info
             rep.game_params = params
+            rep.game_items = items
             rep.me_index = i
             rep.users = pldata
             rep.gamedata = Executive.server.gamedata.history
@@ -357,6 +358,7 @@ class Executive(object):
         me.server = self.server
         g.me = me
         g.game_params = rep.game_params
+        g.game_items = rep.game_items
         log.info('=======REPLAY STARTED=======')
 
         # g.start()  Starts by UI
