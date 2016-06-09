@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, DrawCards, GenericAction, LaunchCard, UserAction
-from thb.actions import migrate_cards, user_choose_cards, user_choose_players
+from thb.actions import AskForCard, Damage, DrawCards, LaunchCard, UserAction, migrate_cards
+from thb.actions import user_choose_players
 from thb.cards import Attack, AttackCard, PhysicalCard, Skill, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -81,38 +82,22 @@ class ResonanceLaunchCard(LaunchCard):
     pass
 
 
-class ResonanceAction(GenericAction):
+class ResonanceAction(AskForCard):
     card_usage = 'launch'
 
     def __init__(self, source, target, victim):
+        AskForCard.__init__(self, source, target, AttackCard)
         self.source = source
         self.target = target
         self.victim = victim
 
-    def apply_action(self):
-        tgt, victim = self.target, self.victim
-        cards = user_choose_cards(self, tgt, ('cards', 'showncards'))
-        if not cards:
-            return False
-
-        c, = cards
+    def process_card(self, c):
         g = Game.getgame()
-        g.process_action(ResonanceLaunchCard(tgt, [victim], c, bypass_check=True))
-
+        g.process_action(ResonanceLaunchCard(self.target, [self.victim], c, bypass_check=True))
         return True
 
-    def cond(self, cl):
-        if len(cl) != 1:
-            return False
-
-        c = cl[0]
-        if not c.associated_action:
-            return False
-
-        return issubclass(c.associated_action, Attack)
-
     def ask_for_action_verify(self, p, cl, tl):
-        return ResonanceLaunchCard(self.source, [self.target], cl[0], bypass_check=True).can_fire()
+        return ResonanceLaunchCard(self.target, [self.victim], cl[0], bypass_check=True).can_fire()
 
 
 class ResonanceHandler(EventHandler):
