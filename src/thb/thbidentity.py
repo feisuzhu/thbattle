@@ -317,14 +317,14 @@ class Identity(PlayerIdentity):
 class ChooseBossSkillAction(GenericAction):
     def apply_action(self):
         tgt = self.target
-        if hasattr(tgt, 'boss_skills'):
-            bs = tgt.boss_skills
+        if hasattr(tgt, 'assisted_skills'):
+            bs = tgt.assisted_skills
             assert len(bs) == 1
             tgt.skills.extend(bs)
             self.skill_chosen = bs[0]
             return True
 
-        self.boss_skills = l = [  # for ui
+        self.assisted_skills = l = [  # for ui
             AssistedAttack,
             AssistedGraze,
             AssistedHeal,
