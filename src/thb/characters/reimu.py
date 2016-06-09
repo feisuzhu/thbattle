@@ -5,7 +5,7 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, InterruptActionFlow, user_input
-from thb.actions import ActionStage, Damage, DrawCards, FinalizeStage, LaunchCard, PlayerRevive
+from thb.actions import ActionStage, Damage, DrawCards, FinalizeStage, LaunchCard, PlayerRevive, AskForCard
 from thb.actions import UserAction, migrate_cards, ttags, user_choose_cards
 from thb.cards import AttackCard, Card, GreenUFOSkill, RejectCard, Skill, TreatAs, UFOSkill, t_None
 from thb.characters.baseclasses import Character, register_character_to
@@ -142,24 +142,23 @@ class ReimuExterminate(Skill):
     target = t_None
 
 
-class ReimuExterminateAction(UserAction):
-    def __init__(self, source, target, cause):
-        self.source = source
-        self.target = target
+class ReimuExterminateLaunchCard(LaunchCard):
+    def __init__(self, source, target, card, cause):
+        LaunchCard.__init__(self, source, [target], card, bypass_check=True)
         self.cause = cause  # for ui
 
-    def set_card(self, c):
-        self.card = c
 
-    def apply_action(self):
-        assert self.card
-        src, tgt = self.source, self.target
-        c = self.card
+class ReimuExterminateAction(AskForCard):
+    card_usage = 'launch'
+
+    def __init__(self, source, target, cause):
+        AskForCard.__init__(self, source, source, AttackCard)
+        self.victim = target
+        self.cause = cause  # for ui
+
+    def process_card(self, c):
         g = Game.getgame()
-        return g.process_action(LaunchCard(src, [tgt], c, bypass_check=True))
-
-    def cond(self, cl):
-        return len(cl) == 1 and cl[0].is_card(AttackCard)
+        return g.process_action(ReimuExterminateLaunchCard(self.source, self.victim, c, self.cause))
 
 
 class ReimuExterminateHandler(EventHandler):
@@ -178,13 +177,13 @@ class ReimuExterminateHandler(EventHandler):
         elif evt_type == 'action_after' and isinstance(act, Damage):
             if not act.source: return act
             src, tgt = act.source, act.target
-            cur = g.current_player
             g = Game.getgame()
+            cur = g.current_player
             if not cur: return act
             if not tgt.has_skill(ReimuExterminate): return act
             if cur.dead: return act
             if cur is tgt: return act
-            self.fire(tgt, g.current_player, 'damage')
+            g.process_action(ReimuExterminateAction(tgt, g.current_player, 'damage'))
 
         elif evt_type == 'action_apply' and isinstance(act, FinalizeStage):
             tgt = act.target
@@ -202,20 +201,9 @@ class ReimuExterminateHandler(EventHandler):
                 if not actor.has_skill(ReimuExterminate):
                     continue
 
-                self.fire(actor, tgt, 'finalize')
+                g.process_action(ReimuExterminateAction(actor, tgt, 'finalize'))
 
         return act
-
-    def fire(self, src, tgt, cause):
-        g = Game.getgame()
-        act = ReimuExterminateAction(src, tgt, cause)
-        cl = user_choose_cards(act, src, ('cards', 'showncards'))
-        if not cl:
-            return
-
-        assert len(cl) == 1
-        act.set_card(cl[0])
-        g.process_action(act)
 
 
 class ReimuClear(Skill):

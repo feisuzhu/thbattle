@@ -133,6 +133,8 @@ class ReimuExterminateAction:
         else:
             return (False, u'退治：选择一张弹幕对%s使用（否则不发动）' % act.target.ui_meta.char_name)
 
+
+class ReimuExterminateLaunchCard:
     def effect_string_before(act):
         if act.cause == 'damage':
             return u'|G【%s】|r： (╯‵□′)╯︵ ┻━┻ ！！！' % act.source.ui_meta.char_name
