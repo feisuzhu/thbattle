@@ -139,7 +139,12 @@ class ScarletMistHandler(EventHandler):
             src = act.source
             if not (src and src.tags['scarlet_mist'] == 'buff'): return act
             if src.life >= src.maxlife: return act
+
             g = Game.getgame()
+            pact = g.action_stack[-1]
+            if not isinstance(pact, Attack): return act
+            if not pact.associated_card: return act
+
             g.process_action(Heal(src, src, act.amount))
 
         elif evt_type == 'action_apply' and isinstance(act, PrepareStage):
