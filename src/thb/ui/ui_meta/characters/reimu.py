@@ -131,7 +131,7 @@ class ReimuExterminateAction:
         if act.cond(cards):
             return (True, u'代表幻想乡消灭你！')
         else:
-            return (False, u'退治：选择一张弹幕对%s使用（否则不发动）' % act.target.ui_meta.char_name)
+            return (False, u'退治：选择一张弹幕对%s使用（否则不发动）' % act.victim.ui_meta.char_name)
 
 
 class ReimuExterminateLaunchCard:
