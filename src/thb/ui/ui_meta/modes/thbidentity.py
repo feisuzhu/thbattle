@@ -92,25 +92,26 @@ class AssistedAttack:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return (
-            u'|G【%s】|r。发动了|G激将|r标是|G【%s】|r。'
+            u'|G【%s】|r发动了|G激将|r，目标是|G【%s】|r。'
         ) % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
 
 
-class AssistedUseAttackAction:
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'帮%s出弹幕' % act.target.ui_meta.char_name)
-        else:
-            return (False, u'激将：请选择一张弹幕（帮%s出）' % act.target.ui_meta.char_name)
+class AssistedUseAction:
+    def choose_option_prompt(act):
+        return u'你要帮BOSS出【%s】吗？' % (
+            act.their_afc_action.card_cls.ui_meta.name
+        )
+
+    choose_option_buttons = ((u'帮BOSS', True), (u'不关我事', False))
 
 
 class AssistedAttackAction:
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'对%s出弹幕' % act.target.ui_meta.char_name)
+            return (True, u'帮BOSS对%s出弹幕' % act.target.ui_meta.char_name)
         else:
             return (False, u'激将：请选择一张弹幕（对%s出）' % act.target.ui_meta.char_name)
 
@@ -125,14 +126,6 @@ class AssistedGraze:
     name = u'护驾'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
-
-
-class AssistedUseGrazeAction:
-    def choose_card_text(g, act, cards):
-        if act.cond(cards):
-            return (True, u'帮%s出擦弹' % act.target.ui_meta.char_name)
-        else:
-            return (False, u'护驾：请选择一张擦弹（帮%s出）' % act.target.ui_meta.char_name)
 
 
 class AssistedGrazeHandler:

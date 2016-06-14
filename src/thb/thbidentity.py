@@ -15,13 +15,12 @@ from game.base import sync_primitive
 from thb.actions import ActionStageLaunchCard, AskForCard, DistributeCards, DrawCards, DropCardStage
 from thb.actions import DropCards, GenericAction, LifeLost, PlayerDeath, PlayerTurn, RevealIdentity
 from thb.actions import TryRevive, UserAction, action_eventhandlers, ask_for_action, ttags
-from thb.cards import AttackCard, AttackCardHandler, GrazeCard, Heal, LaunchGraze, Skill, UseAttack
-from thb.cards import UseGraze, t_None, t_One
+from thb.cards import AttackCard, AttackCardHandler, GrazeCard, Heal, Skill, t_None, t_One
 from thb.characters.baseclasses import mixin_character
 from thb.common import PlayerIdentity, build_choices
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from thb.item import ImperialIdentity
-from utils.misc import Enum, first
+from utils.misc import BatchList, Enum, classmix, first
 
 
 # -- code --
@@ -157,88 +156,83 @@ class AssistedAttackAction(UserAction):
 class AssistedAttack(Skill):
     associated_action = AssistedAttackAction
     target = t_One
-    skill_category = ('character', 'active', 'boss')
+    skill_category = ('character', 'active', 'assisted')
     distance = 1
 
     def check(self):
         return not self.associated_cards
 
 
+class AssistedGraze(Skill):
+    associated_action = None
+    target = t_None
+    skill_category = ('character', 'passive', 'assisted')
+
+
+class DoNotProcessCard(object):
+
+    def process_card(self, c):
+        return True
+
+
 class AssistedUseAction(UserAction):
-    def __init__(self, target, act):
+    def __init__(self, target, afc):
         self.source = self.target = target
-        self.afc_action = act
+        self.their_afc_action = afc
 
     def apply_action(self):
         tgt = self.target
         g = Game.getgame()
 
-        pl = [p for p in g.players if not p.dead and p is not tgt]
-        p, rst = ask_for_action(self, pl, ('cards', 'showncards'), [], timeout=6)
+        pl = BatchList([p for p in g.players if not p.dead])
+        pl = pl.rotate_to(tgt)[1:]
+        rst = user_input(pl, ChooseOptionInputlet(self, (False, True)), timeout=6, type='all')
 
-        if not p:
+        afc = self.their_afc_action
+        for p in pl:
+            if p in rst and rst[p]:
+                act = classmix(DoNotProcessCard, afc.__class__)(p)
+                rst = g.process_action(act)
+                if rst:
+                    self.their_afc_action.card = act.card
+                    return True
+        else:
             return False
-
-        (c, ), _ = rst
-
-        self.afc_action.card = c
 
         return True
 
-    def cond(self, cl):
-        return len(cl) == 1 and cl[0].is_card(self.card_cls)
+
+class AssistedUseHandler(EventHandler):
+    interested = ('action_apply',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, AskForCard):
+            tgt = act.target
+            if not (tgt.has_skill(self.skill) and issubclass(act.card_cls, self.card_cls)):
+                return act
+
+            self.assist_target = tgt
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
+
+            g = Game.getgame()
+            g.process_action(AssistedUseAction(tgt, act))
+
+        return act
 
 
-class AssistedUseAttackAction(AssistedUseAction):
+
+
+@game_eh
+class AssistedAttackHandler(AssistedUseHandler):
+    skill = AssistedAttack
     card_cls = AttackCard
 
 
-class AssistedUseGrazeAction(AssistedUseAction):
+@game_eh
+class AssistedGrazeHandler(AssistedUseHandler):
+    skill = AssistedGraze
     card_cls = GrazeCard
-
-
-@game_eh
-class AssistedAttackHandler(EventHandler):
-    interested = ('action_apply',)
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, AskForCard):
-            tgt = act.target
-            if not (tgt.has_skill(AssistedAttack) and isinstance(act, UseAttack)):
-                return act
-
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                return act
-
-            g = Game.getgame()
-            g.process_action(AssistedUseAttackAction(tgt, act))
-
-        return act
-
-
-@game_eh
-class AssistedGrazeHandler(EventHandler):
-    interested = ('action_apply',)
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, AskForCard):
-            tgt = act.target
-            if not (tgt.has_skill(AssistedGraze) and isinstance(act, (UseGraze, LaunchGraze))):
-                return act
-
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                return act
-
-            g = Game.getgame()
-            g.process_action(AssistedUseGrazeAction(tgt, act))
-
-        return act
-
-
-class AssistedGraze(Skill):
-    associated_action = None
-    target = t_None
-    skill_category = ('character', 'passive', 'boss')
 
 
 class AssistedHealAction(UserAction):
@@ -277,7 +271,7 @@ class AssistedHealHandler(EventHandler):
 class AssistedHeal(Skill):
     associated_action = None
     target = t_None
-    skill_category = ('character', 'passive', 'boss')
+    skill_category = ('character', 'passive', 'assisted')
 
 
 @game_eh
@@ -301,7 +295,7 @@ class ExtraCardSlotHandler(EventHandler):
 class ExtraCardSlot(Skill):
     associated_action = None
     target = t_None
-    skill_category = ('character', 'passive', 'boss')
+    skill_category = ('character', 'passive', 'assisted')
 
 
 class Identity(PlayerIdentity):

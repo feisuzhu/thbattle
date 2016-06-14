@@ -88,6 +88,7 @@ class OpticalCloak(FatetellAction):
 @register_eh
 class OpticalCloakHandler(EventHandler):
     interested = ('action_apply',)
+    execute_after = ('AssistedGrazeHandler', )
 
     def handle(self, evt_type, act):
         from .basic import BaseUseGraze
