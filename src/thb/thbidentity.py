@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 # -- stdlib --
 from collections import defaultdict
+from copy import copy
 from itertools import cycle
 import logging
 import random
@@ -15,7 +16,8 @@ from game.base import sync_primitive
 from thb.actions import ActionStageLaunchCard, AskForCard, DistributeCards, DrawCards, DropCardStage
 from thb.actions import DropCards, GenericAction, LifeLost, PlayerDeath, PlayerTurn, RevealIdentity
 from thb.actions import TryRevive, UserAction, action_eventhandlers, ask_for_action, ttags
-from thb.cards import AttackCard, AttackCardHandler, GrazeCard, Heal, Skill, t_None, t_One
+from thb.cards import AttackCard, AttackCardHandler, GrazeCard, Heal, Skill, TreatAs, VirtualCard
+from thb.cards import t_None, t_One
 from thb.characters.baseclasses import mixin_character
 from thb.common import PlayerIdentity, build_choices
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
@@ -128,7 +130,13 @@ class DeathHandler(EventHandler):
         return act
 
 
+class AssistedAttackCard(TreatAs, VirtualCard):
+    treat_as = AttackCard
+
+
 class AssistedAttackAction(UserAction):
+    card_usage = 'launch'
+
     def apply_action(self):
         src, tgt = self.source, self.target
         g = Game.getgame()
@@ -139,7 +147,7 @@ class AssistedAttackAction(UserAction):
             return False
 
         (c,), _ = rst
-        g.process_action(ActionStageLaunchCard(src, [tgt], c))
+        g.process_action(ActionStageLaunchCard(src, [tgt], AssistedAttackCard.wrap([c], src)))
 
         return True
 
@@ -191,7 +199,9 @@ class AssistedUseAction(UserAction):
         afc = self.their_afc_action
         for p in pl:
             if p in rst and rst[p]:
-                act = classmix(DoNotProcessCard, afc.__class__)(p)
+                act = copy(afc)
+                act.__class__ = classmix(DoNotProcessCard, afc.__class__)
+                act.target = p
                 rst = g.process_action(act)
                 if rst:
                     self.their_afc_action.card = act.card
@@ -211,6 +221,9 @@ class AssistedUseHandler(EventHandler):
             if not (tgt.has_skill(self.skill) and issubclass(act.card_cls, self.card_cls)):
                 return act
 
+            if isinstance(act, DoNotProcessCard):
+                return act
+
             self.assist_target = tgt
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
@@ -221,12 +234,23 @@ class AssistedUseHandler(EventHandler):
         return act
 
 
-
-
 @game_eh
 class AssistedAttackHandler(AssistedUseHandler):
     skill = AssistedAttack
     card_cls = AttackCard
+
+
+@game_eh
+class AssistedAttackRangeHandler(AssistedUseHandler):
+    interested = ('calcdistance', )
+
+    def handle(self, evt_type, arg):
+        src, card, dist = arg
+        if evt_type == 'calcdistance':
+            if card.is_card(AssistedAttack):
+                AttackCardHandler.fix_attack_range(src, dist)
+
+        return arg
 
 
 @game_eh

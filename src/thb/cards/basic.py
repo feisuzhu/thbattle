@@ -76,9 +76,7 @@ class AttackCardHandler(EventHandler):
             src, card, dist = act
             from .definition import AttackCard
             if card.is_card(AttackCard):
-                l = self.attack_range_bonus(src)
-                for p in dist:
-                    dist[p] -= l
+                self.fix_attack_range(src, dist)
 
         elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
             from .definition import AttackCard
@@ -121,6 +119,12 @@ class AttackCardHandler(EventHandler):
             if issubclass(s, WeaponSkill) and p.has_skill(s)
         ]
         return max(0, 0, *l)
+
+    @classmethod
+    def fix_attack_range(cls, src, dist):
+        l = cls.attack_range_bonus(src)
+        for p in dist:
+            dist[p] -= l
 
 
 class Heal(BasicAction):
