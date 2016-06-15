@@ -9,7 +9,7 @@ NSTrackingArea = ObjCClass('NSTrackingArea')
 
 def getMouseDelta(nsevent):
     dx = nsevent.deltaX()
-    dy = nsevent.deltaY()
+    dy = -nsevent.deltaY()
     return dx, dy
 
 def getMousePosition(self, nsevent):
@@ -235,7 +235,7 @@ class PygletView_Implementation(object):
     def scrollWheel_(self, nsevent):
         x, y = getMousePosition(self, nsevent)
         scroll_x, scroll_y = getMouseDelta(nsevent)
-        self._window.dispatch_event('on_mouse_scroll', x, y, scroll_x, scroll_y)
+        self._window.dispatch_event('on_mouse_scroll', x, y, scroll_x, -scroll_y)
     
     @PygletView.method('v@')
     def mouseDown_(self, nsevent):
