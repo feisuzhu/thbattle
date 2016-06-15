@@ -6,7 +6,8 @@ from __future__ import absolute_import
 # -- own --
 from thb import cards, thbidentity
 from thb.actions import ttags
-from thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable, passive_is_action_valid
+from thb.ui.ui_meta.common import card_desc, gen_metafunc, my_turn, passive_clickable
+from thb.ui.ui_meta.common import passive_is_action_valid
 
 
 # -- code --
@@ -114,6 +115,16 @@ class AssistedAttackAction:
             return (True, u'帮BOSS对%s出弹幕' % act.target.ui_meta.char_name)
         else:
             return (False, u'激将：请选择一张弹幕（对%s出）' % act.target.ui_meta.char_name)
+
+
+class AssistedAttackCard:
+    def effect_string(act):
+        s = act.card
+        c = s.associated_cards[0]
+        return u'|G【%s】|r响应了|G激将|r，使用了|G%s|r' % (
+            c.resides_in.owner.ui_meta.char_name,
+            card_desc(c),
+        )
 
 
 class AssistedAttackHandler:

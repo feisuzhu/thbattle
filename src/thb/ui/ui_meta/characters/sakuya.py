@@ -38,9 +38,7 @@ class Dagger:
         try:
             act = g.hybrid_stack[-1]
             if act.cond([characters.sakuya.Dagger(me)]):
-                act = g.action_stack[-1]
-                if act.target is g.me:
-                    return True
+                return True
 
         except (IndexError, AttributeError):
             pass

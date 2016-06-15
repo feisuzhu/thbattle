@@ -112,6 +112,8 @@ def card_desc(c):
         suit = u'|r♣'
     elif c.suit == Card.DIAMOND:
         suit = u'|r|cb03a11ff♦'
+    elif c.suit == Card.NOTSET:
+        suit = u'|r '
     else:
         suit = u'|r错误'
 
