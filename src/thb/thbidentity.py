@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 # -- stdlib --
 from collections import defaultdict
+from copy import copy
 from itertools import cycle
 import logging
 import random
@@ -198,7 +199,9 @@ class AssistedUseAction(UserAction):
         afc = self.their_afc_action
         for p in pl:
             if p in rst and rst[p]:
-                act = classmix(DoNotProcessCard, afc.__class__)(p)
+                act = copy(afc)
+                act.__class__ = classmix(DoNotProcessCard, afc.__class__)
+                act.target = p
                 rst = g.process_action(act)
                 if rst:
                     self.their_afc_action.card = act.card
@@ -216,6 +219,9 @@ class AssistedUseHandler(EventHandler):
         if evt_type == 'action_apply' and isinstance(act, AskForCard):
             tgt = act.target
             if not (tgt.has_skill(self.skill) and issubclass(act.card_cls, self.card_cls)):
+                return act
+
+            if isinstance(act, DoNotProcessCard):
                 return act
 
             self.assist_target = tgt
