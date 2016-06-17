@@ -74,6 +74,9 @@ def hook_game(g):
 
     g.synctag = 0
 
+    from game.autoenv import Game
+    Game.getgame = staticmethod(lambda: g)
+
     from client.core import Game
     Game.getgame = staticmethod(lambda: g)
 
