@@ -6,7 +6,6 @@ import re
 
 # -- third party --
 from gevent.event import Event
-import msgpack
 
 # -- own --
 from endpoint import Endpoint
@@ -55,7 +54,7 @@ class MockConnection(object):
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
         encoded = Endpoint.encode(data)
-        self.gdhistory.append([tag, msgpack.unpackb(encoded)])
+        self.gdhistory.append([tag, Endpoint.decode(encoded)])
 
     def gclear(self):
         assert self.exhausted

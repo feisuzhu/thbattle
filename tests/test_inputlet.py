@@ -185,23 +185,23 @@ class TestInputlet(object):
         ilet.actor = p
         eq_(ilet.data(), [[0], [c1.sync_id, c2.sync_id], [0, 0], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[], [c1.sync_id, c2.sync_id], []]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[], [c1.sync_id, c2.sync_id], [], {}]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], [])
         eq_(user_input([p], ilet), [[], [c1, c2], [], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[0], [c2.sync_id, c3.sync_id], []]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[0], [c2.sync_id, c3.sync_id], [], {}]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], [])
         eq_(user_input([p], ilet), [[FirstAid], [c2, c3], [], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[1, 0], [c3.sync_id, c1.sync_id], [0]]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[1, 0], [c3.sync_id, c1.sync_id], [0], {}]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], [])
         eq_(user_input([p], ilet), [[Medic, FirstAid], [c3, c1], [], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[1, 0], [c3.sync_id, c1.sync_id], [0]]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[1, 0], [c3.sync_id, c1.sync_id], [0], {}]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], candidates=g.players)
         eq_(user_input([p], ilet), [[Medic, FirstAid], [c3, c1], [p], {}])
 
-        p.client.gdlist.append([r'>I:Action:\d+', [[3, 0], [c3.sync_id, c1.sync_id], [0]]])
+        p.client.gdlist.append([r'>I:Action:\d+', [[3, 0], [c3.sync_id, c1.sync_id], [0], {}]])
         ilet = ActionInputlet(self, ['cards', 'showncards'], [])
         eq_(user_input([p], ilet), None)
 
