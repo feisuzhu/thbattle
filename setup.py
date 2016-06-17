@@ -11,7 +11,7 @@ install_requires = [
     'SQLAlchemy',
     'bottle',
     'colorlog',
-    'gevent==1.0.1',
+    'gevent>=1.0.1',
     'msgpack-python',
     'pygit2>=0.21.3',
     'redis',
