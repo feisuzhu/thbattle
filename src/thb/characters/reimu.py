@@ -44,16 +44,14 @@ class SpiritualAttack(TreatAs, Skill):
 
 class TributeTarget(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ('character', 'passive', 'assisted')
     target = t_None
 
 
 class TributeAction(UserAction):
     def apply_action(self):
-        cl = self.associated_card.associated_cards
         tgt = self.target
-        tgt.reveal(cl)
-        migrate_cards([self.associated_card], tgt.cards, unwrap=True)
+        migrate_cards([self.associated_card], tgt.showncards, unwrap=True)
         src = self.source
         src.tags['tribute_tag'] = src.tags['turn_count']
         return True
@@ -75,7 +73,6 @@ class Tribute(Skill):
     associated_action = TributeAction
     skill_category = ('active',)
     no_drop = True
-    no_reveal = True
     usage = 'handover'
 
     def check(self):
@@ -101,37 +98,37 @@ class TributeHandler(EventHandler):
 
     def handle(self, evt_type, arg):
         if evt_type == 'game_begin':
-            self.add()
+            self.manage_tribute()
 
         elif evt_type == 'switch_character':
-            cond = any([
-                isinstance(p, Character) and p.has_skill(TributeTarget)
-                for p in Game.getgame().players
-            ])
-
-            self.add() if cond else self.remove()
+            self.manage_tribute()
 
         elif evt_type == 'action_after' and isinstance(arg, PlayerRevive):
-            self.add()
+            self.manage_tribute()
 
         return arg
 
-    def add(self):
-        g = Game.getgame()
-        for p in g.players:
-            if not isinstance(p, Character): continue
-            if p.has_skill(TributeTarget): continue
-            if not p.has_skill(Tribute):
-                p.skills.append(Tribute)
+    def manage_tribute(self):
+        cond = any([
+            isinstance(p, Character) and p.has_skill(TributeTarget)
+            for p in Game.getgame().players
+        ])
 
-    def remove(self):
         g = Game.getgame()
-        for p in g.players:
-            if not isinstance(p, Character): continue
-            try:
-                p.skills.remove(Tribute)
-            except ValueError:
-                pass
+        if cond:
+            for p in g.players:
+                if not isinstance(p, Character): continue
+                if p.has_skill(TributeTarget): continue
+                if not p.has_skill(Tribute):
+                    p.skills.append(Tribute)
+        else:
+            for p in g.players:
+                if not isinstance(p, Character): continue
+                try:
+                    p.skills.remove(Tribute)
+                except ValueError:
+                    pass
+
 
 # -----------------------------------------
 
@@ -261,5 +258,6 @@ class Reimu(Character):
     # skills = [SealingArraySkill, Flight, TributeTarget]
     # skills = [SpiritualAttack, Flight]
     skills = [ReimuExterminate, ReimuClear]
-    eventhandlers_required = [ReimuExterminateHandler, ReimuClearHandler]
+    assisted_skills = [TributeTarget]
+    eventhandlers_required = [ReimuExterminateHandler, ReimuClearHandler, TributeHandler]
     maxlife = 4

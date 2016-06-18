@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import actions, cards, characters
-from thb.ui.ui_meta.common import gen_metafunc, limit1_skill_used, passive_clickable
+from thb.ui.ui_meta.common import card_desc, gen_metafunc, limit1_skill_used, passive_clickable
 from thb.ui.ui_meta.common import passive_is_action_valid
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.reimu)
@@ -109,10 +111,11 @@ class Tribute:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return (
-            u'|G【%s】|r向|G【%s】|r的塞钱箱里放了一张牌… 会发生什么呢？'
+            u'|G【%s】|r向|G【%s】|r的塞钱箱里放了一张%s… 会发生什么呢？'
         ) % (
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
+            card_desc(act.card.associated_cards[0]),
         )
 
 
@@ -179,6 +182,8 @@ class Reimu:
         u'|B|R>> |r在当前行动角色的结束阶段开始且其本回合对其他角色造成过伤害时\n'
         u'\n'
         u'|G快晴|r：你对一名其他角色造成伤害后，你可以与其各摸一张牌。若当前行动角色不是你，终止当前行动角色的出牌阶段（若存在）。\n'
+        u'\n'
+        u'|G纳奉|r：|B协力技|r，若你的手牌数（包括明牌）小于你的最大体力，其他玩家可以在自己的出牌阶段交给你一张手牌，置入明牌区。\n'
         u'\n'
         u'|DB（画师：和茶，CV：shourei小N）|r'
     )
