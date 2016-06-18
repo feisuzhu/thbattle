@@ -174,7 +174,7 @@ class ChooseBossSkillAction:
     choose_option_prompt = u'请选择协力技：'
 
     def choose_option_buttons(act):
-        l = act.boss_skills
+        l = act.assisted_skills
         return [(i.ui_meta.name, i.__name__) for i in l]
 
     def effect_string(act):

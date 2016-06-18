@@ -207,6 +207,6 @@ class ScarletMist(Skill):
 @register_character_to('common')
 class Remilia(Character):
     skills = [SpearTheGungnir, VampireKiss]
-    boss_skills = [ScarletMist]
+    assisted_skills = [ScarletMist]
     eventhandlers_required = [SpearTheGungnirHandler, VampireKissHandler, ScarletMistHandler]
     maxlife = 4
