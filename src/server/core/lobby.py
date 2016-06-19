@@ -339,7 +339,7 @@ class Lobby(object):
         self.users = {}  # all users
         self.dropped_users = {}  # passively dropped users
         self.current_gid = current_gid
-        self.admins = [2, 109, 351, 3044, 6573, 9783]
+        self.admins = [2, 109, 351, 3044, 6573, 6584, 9783]
         self.bigbrothers = []
 
     def new_gid(self):
