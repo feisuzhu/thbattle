@@ -6,6 +6,7 @@ from __future__ import absolute_import
 # -- own --
 from utils import extendclass
 from game.items import Jiecao, PPoint
+from account import Account
 
 
 # -- code --
@@ -15,10 +16,7 @@ class JiecaoServerSide(Jiecao):
     usable = True
 
     def use(self, session, user):
-        from db.models import DiscuzMember
-        dz_member = session.query(DiscuzMember).filter(DiscuzMember.uid == user.id).first()
-        dz_member.member_count.jiecao += self.amount
-        user.jiecao += self.amount
+        Account.add_user_credit(user, [('jiecao', self.amount)])
 
 
 class PPointServerSide(PPoint):
@@ -27,4 +25,4 @@ class PPointServerSide(PPoint):
     usable = True
 
     def use(self, session, user):
-        user.ppoint += self.amount
+        Account.add_user_credit(user, [('ppoint', self.amount)])

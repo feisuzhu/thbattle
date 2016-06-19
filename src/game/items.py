@@ -7,6 +7,7 @@ import logging
 # -- third party --
 # -- own --
 from game.base import GameItem
+from account import Account
 
 # -- code --
 log = logging.getLogger('game.items')
@@ -30,10 +31,7 @@ class Jiecao(GameItem):
         return u'打包的%s点节操，使用后你的节操会增加。可以放在交易所出售。' % self.amount
 
     def use(self, session, user):
-        from db.models import DiscuzMember
-        dz_member = session.query(DiscuzMember).filter(DiscuzMember.uid == user.id).first()
-        dz_member.member_count.jiecao += self.amount
-        user.jiecao += self.amount
+        Account.add_user_credit(user, [('jiecao', self.amount)])
 
 
 @GameItem.register
@@ -54,4 +52,4 @@ class PPoint(GameItem):
         return u'打包的%s个P点，使用后你的P点会增加。尽管可以放在交易所出售但是好像没啥意义。' % self.amount
 
     def use(self, session, user):
-        user.ppoint += self.amount
+        Account.add_user_credit(user, [('ppoint', self.amount)])
