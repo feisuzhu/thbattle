@@ -8,7 +8,7 @@ import json
 # -- third party --
 # -- own --
 from db.models import Item, ItemActivity
-from db.session import transaction_with_retry
+from db.session import transactional, current_session
 from game.base import GameItem
 from server.item import helpers
 from utils import exceptions
@@ -18,79 +18,79 @@ from utils import exceptions
 # test: ../tests/test_server_item.py
 
 
+@transactional('new')
 def use(uid, item_sku_or_id, is_consume=False):
-    @transaction_with_retry
-    def _use(s):
-        if isinstance(item_sku_or_id, int):
-            item = s.query(Item).filter(Item.owner_id == uid, Item.id == item_sku_or_id).first()
-        else:
-            item = s.query(Item).filter(Item.owner_id == uid, Item.sku == item_sku_or_id).first()
+    s = current_session()
 
-        if not item:
-            raise exceptions.ItemNotFound
+    if isinstance(item_sku_or_id, int):
+        item = s.query(Item).filter(Item.owner_id == uid, Item.id == item_sku_or_id)
+    else:
+        item = s.query(Item).filter(Item.owner_id == uid, Item.sku == item_sku_or_id)
 
-        s.add(ItemActivity(
-            uid=uid, action='use', item_id=item.id,
-            created=datetime.datetime.now(),
-        ))
+    item = item.first()
 
-        if not is_consume:
-            itemobj = GameItem.from_sku(item.sku)
-            if not itemobj.usable:
-                raise exceptions.ItemNotUsable
+    if not item:
+        raise exceptions.ItemNotFound
 
-            itemobj.use(s, item.owner)
+    s.add(ItemActivity(
+        uid=uid, action='use', item_id=item.id,
+        created=datetime.datetime.now(),
+    ))
 
-        item.status = 'used'
-        item.owner_id = None
+    if not is_consume:
+        itemobj = GameItem.from_sku(item.sku)
+        if not itemobj.usable:
+            raise exceptions.ItemNotUsable
+
+        itemobj.use(s, item.owner)
+
+    item.status = 'used'
+    item.owner_id = None
 
 
 def consume(uid, item_sku_or_id):
     return use(uid, item_sku_or_id, is_consume=True)
 
 
+@transactional('new')
 def add(uid, item_sku, reason=None):
-    @transaction_with_retry
-    def id(s):
-        helpers.require_free_backpack_slot(s, uid)
+    s = current_session()
+    helpers.require_free_backpack_slot(s, uid)
 
-        item = Item(owner_id=uid, sku=item_sku, status='backpack')
-        s.add(item)
-        s.flush()
+    item = Item(owner_id=uid, sku=item_sku, status='backpack')
+    s.add(item)
+    s.flush()
 
-        s.add(ItemActivity(
-            uid=uid, action='get', item_id=item.id,
-            extra=reason and json.dumps(reason),
-            created=datetime.datetime.now(),
-        ))
+    s.add(ItemActivity(
+        uid=uid, action='get', item_id=item.id,
+        extra=reason and json.dumps(reason),
+        created=datetime.datetime.now(),
+    ))
 
-        return item.id
-
-    return id
+    return item.id
 
 
+@transactional('new')
 def list(uid):
-    @transaction_with_retry
-    def items(s):
-        items = s.query(Item) \
-            .filter(Item.owner_id == uid, Item.status == 'backpack') \
-            .order_by(Item.id.desc()) \
-            .all()
-        items = [{'id': i.id, 'sku': i.sku} for i in items]
-        return items
+    s = current_session()
 
+    items = s.query(Item) \
+        .filter(Item.owner_id == uid, Item.status == 'backpack') \
+        .order_by(Item.id.desc()) \
+        .all()
+    items = [{'id': i.id, 'sku': i.sku} for i in items]
     return items
 
 
+@transactional('new')
 def should_have(uid, sku):
-    @transaction_with_retry
-    def n(s):
-        n = s.query(Item) \
-            .filter(Item.owner_id == uid,
-                    Item.status == 'backpack',
-                    Item.sku == sku) \
-            .count()
-        return n
+    s = current_session()
+
+    n = s.query(Item) \
+        .filter(Item.owner_id == uid,
+                Item.status == 'backpack',
+                Item.sku == sku) \
+        .count()
 
     if not n:
         raise exceptions.ItemNotFound
@@ -98,26 +98,25 @@ def should_have(uid, sku):
     return n
 
 
+@transactional('new')
 def drop(uid, item_id):
-    @transaction_with_retry
-    def id(s):
-        item = s.query(Item) \
-            .filter(Item.id == item_id) \
-            .filter(Item.owner_id == uid) \
-            .filter(Item.status == 'backpack') \
-            .first()
+    s = current_session()
 
-        if not item:
-            raise exceptions.ItemNotFound
+    item = s.query(Item) \
+        .filter(Item.id == item_id) \
+        .filter(Item.owner_id == uid) \
+        .filter(Item.status == 'backpack') \
+        .first()
 
-        item.owner_id = None
-        item.status = 'dropped'
+    if not item:
+        raise exceptions.ItemNotFound
 
-        s.add(ItemActivity(
-            uid=uid, action='drop', item_id=item.id,
-            created=datetime.datetime.now(),
-        ))
+    item.owner_id = None
+    item.status = 'dropped'
 
-        return item.id
+    s.add(ItemActivity(
+        uid=uid, action='drop', item_id=item.id,
+        created=datetime.datetime.now(),
+    ))
 
-    return id
+    return item.id

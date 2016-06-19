@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 # -- stdlib --
 import logging
+import sys
 
 # -- third party --
 
@@ -57,6 +58,9 @@ class ItemSystem(object):
         try:
             handler(user, *args)
         except BusinessException as e:
+            log.info("Command %s execution failed, user: %s, args: %s",
+                     user.account.userid, args,
+                     exc_info=sys.exc_info())
             user.write(['message_err', e.snake_case])
 
     @_command()

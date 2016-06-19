@@ -9,8 +9,8 @@ import gevent
 
 # -- own --
 from game.autoenv import EventHandler
-from db.models import User
-from db.session import transaction_with_retry
+from account import Account
+from db.session import transactional
 
 # -- code --
 log = logging.getLogger('server.core.event_hooks')
@@ -27,12 +27,11 @@ class CollectPPointHandler(EventHandler):
             return arg
 
         @gevent.spawn
+        @transactional()
         def add_ppoint():
             # log.info('Add ppoint for %s, +%s', uid, amount)
-            @transaction_with_retry
-            def _(s):
-                u = s.query(User).filter(User.id == uid).one()
-                u.ppoint = User.ppoint + amount
+            user = Account.find(uid)
+            Account.add_user_credit(user, [('ppoint', amount)])
 
         return arg
 
