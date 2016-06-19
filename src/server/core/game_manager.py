@@ -10,6 +10,7 @@ import logging
 import os
 import random
 import time
+import sys
 
 # -- third party --
 import gevent
@@ -430,6 +431,8 @@ class GameManager(object):
             self.game_items[uid].add(sku)
             user.write(['message_info', 'use_item_success'])
         except BusinessException as e:
+            log.info('User %s failed to use item %s', user.account.userid,
+                     sku, exc_info=sys.exc_info())
             user.write(['message_err', e.snake_case])
 
     def clear_item(self, user):
