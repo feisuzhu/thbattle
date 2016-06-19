@@ -8,12 +8,17 @@ from game.base import GameItem
 from utils import exceptions
 
 # -- own --
+from db.session import current_session, transactional
+import options as opmodule
 
 # -- code --
 
 
-class options:
-    db = 'sqlite:////dev/shm/thbtest.sqlite3'
+class options(object):
+    db = 'sqlite://'
+    freeplay = True
+
+opmodule.options.__dict__.update(options.__dict__)
 
 
 @GameItem.register
@@ -33,39 +38,34 @@ class TestExchange(object):
 
     @classmethod
     def setUpClass(cls):
-        import os
-        try:
-            os.unlink('/dev/shm/thbtest.sqlite3')
-        except:
-            pass
-
         import db.session
-        db.session.init('sqlite:////dev/shm/thbtest.sqlite3')
+        db.session.init(options.db)
 
     def setUp(self):
-        from db.session import Session
+        from db.session import Session, DBState
         from db.models import User, Item, DiscuzMember, DiscuzMemberCount
+        from db.base import Model
+        Model.metadata.drop_all(DBState.engine)
+        Model.metadata.create_all(DBState.engine)
         s = Session()
-        [s.query(c).delete() for c in [User, Item, DiscuzMember, DiscuzMemberCount]]
-        s.commit()
         [s.add(i) for i in [
-            User(id=1, username='1', ppoint=1000, title='', email='1@test.com', showgirl=0),
-            User(id=2, username='2', ppoint=1000, title='', email='2@test.com', showgirl=0),
+            User(id=1, username='1', jiecao=100000, ppoint=1000, title='', email='1@test.com'),
+            User(id=2, username='2', jiecao=100000, ppoint=1000, title='', email='2@test.com'),
             DiscuzMember(uid=1, username='1'),
             DiscuzMember(uid=2, username='2'),
             DiscuzMemberCount(uid=1, jiecao=100000),
             DiscuzMemberCount(uid=2, jiecao=100000),
             Item(id=1, owner_id=1, sku='foo', status='backpack'),
             Item(id=2, owner_id=2, sku='bar', status='backpack'),
-        ]]
+        ] if not options.freeplay or 'DiscuzMember' not in i.__class__.__name__]
         s.commit()
 
+    @transactional('new', isolation_level='READ_COMMITTED')
     def testExchange(self):
-        from db.session import Session
         from db.models import Exchange, User, Item
         from server.item import exchange
 
-        s = Session()
+        s = current_session()
 
         s.rollback()
         exchange.sell(uid=1, item_id=1, price=500)
@@ -108,12 +108,12 @@ class TestExchange(object):
 
         exchange.list()
 
+    @transactional('new', isolation_level='READ_COMMITTED')
     def testBackpack(self):
-        from db.session import Session
         from db.models import User, Item, DiscuzMember
         from server.item import backpack, constants
 
-        s = Session()
+        s = current_session()
 
         backpack.use(1, 'foo')
 
@@ -154,9 +154,12 @@ class TestExchange(object):
 
         s.rollback()
         u = s.query(User).filter(User.id == 1).first()
-        dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == 1).first()
         u.ppoint = 0
-        dz_member.member_count.jiecao = 0
+        if not options.freeplay:
+            dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == 1).first()
+            dz_member.member_count.jiecao = 0
+        else:
+            u.jiecao = 0
         s.commit()
 
         backpack.add(1, 'jiecao:1234')
@@ -165,12 +168,13 @@ class TestExchange(object):
         backpack.use(1, 'ppoint:1234')
 
         u = s.query(User).filter(User.id == 1).first()
-        dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == 1).first()
         eq_(u.ppoint, 1234)
-        eq_(dz_member.member_count.jiecao, 1234)
+        if not options.freeplay:
+            dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == 1).first()
+            eq_(dz_member.member_count.jiecao, 1234)
 
+    @transactional('new', isolation_level='READ_COMMITTED')
     def testLottery(self):
-        from db.session import Session
         from db.models import User, DiscuzMember
         from server.item import constants, lottery
 
@@ -181,13 +185,17 @@ class TestExchange(object):
         lottery.draw(1, 'jiecao')
         lottery.draw(1, 'ppoint')
 
-        s = Session()
+        s = current_session()
         u = s.query(User).filter(User.id == 1).first()
         eq_(u.ppoint, 1000 - constants.LOTTERY_PRICE * 3)
-        dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == 1).first()
-        eq_(dz_member.member_count.jiecao, 100000 - constants.LOTTERY_JIECAO_PRICE * 3)
+        if not options.freeplay:
+            dz_member = s.query(DiscuzMember).filter(DiscuzMember.uid == 1).first()
+            eq_(dz_member.member_count.jiecao, 100000 - constants.LOTTERY_JIECAO_PRICE * 3)
 
-        dz_member.member_count.jiecao = 0
+            dz_member.member_count.jiecao = 0
+        else:
+            u.jiecao = 0
+
         s.commit()
 
         with assert_raises(exceptions.InsufficientFunds):
