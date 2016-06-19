@@ -71,7 +71,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             fontdata = L('c-font')['ASC%s' % suffix]
             loc = asc * datasz
             data = fontdata[loc:loc+datasz]
-            i = Image.fromstring('1', (w, h), data).convert('L')
+            i = Image.frombytes('1', (w, h), data).convert('L')
             bbox = i.getbbox()
             if bbox:
                 adj = 2 - type  # normal = 0, thinshadow = 1, thickshadow = 2
@@ -93,7 +93,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
             loc *= datasz
             fontdata = L('c-font')['GBK%s' % suffix]
             data = fontdata[loc:loc+datasz]
-            i = Image.fromstring('1', (w, h), data).convert('L')
+            i = Image.frombytes('1', (w, h), data).convert('L')
 
         ii = i
         if self.font.bold:
@@ -104,7 +104,7 @@ class AncientPixGlyphRenderer(GlyphRenderer):
         white = Image.new('L', ii.size, 255)
         final = Image.merge('RGBA', (white, white, white, ii))
 
-        img = pyglet.image.ImageData(w, h, 'RGBA', final.tostring())
+        img = pyglet.image.ImageData(w, h, 'RGBA', final.tobytes())
         glyph = self.font.create_glyph(img)
         glyph.set_bearings(2, -2, w - 4 + 1)
         t = list(glyph.tex_coords)
