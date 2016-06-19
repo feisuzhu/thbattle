@@ -605,6 +605,10 @@ class Lobby(object):
                 self.bigbrothers.remove(user.account.userid)
             except Exception:
                 pass
+        elif cmd == 'give_item':
+            from server.item import backpack
+            uid, sku = args
+            backpack.add(int(uid), sku)
         else:
             return
 
