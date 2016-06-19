@@ -9,11 +9,10 @@ import logging
 import time
 
 # -- third party --
-import gevent
-
 # -- own --
 from account.base import AccountBase, server_side_only
-from utils import log_failure, password_hash
+from utils import password_hash
+from db.session import transactional, current_session
 
 
 # -- code --
@@ -132,9 +131,6 @@ class Account(AccountBase):
             user.email    = dz_member.email
             user.title    = dz_member.member_field.customstatus
             user.status   = dz_member.status
-            user.games    = dz_member.member_count.games
-            user.drops    = dz_member.member_count.drops
-            user.jiecao   = dz_member.member_count.jiecao
 
             acc = cls()
             acc._fill_account(user)
@@ -151,50 +147,49 @@ class Account(AccountBase):
 
     @staticmethod
     @server_side_only
-    def find(id, session=None):
+    @transactional()
+    def find(id):
         from db.models import DiscuzMember, User
-        from db.session import Session
         from sqlalchemy.orm import joinedload
 
+        s = current_session()
+
         try:
-            s = session or Session()
-            try:
-                uid = int(id)
-                uid = uid if uid < 500000 else None
-            except ValueError:
-                uid = None
+            uid = int(id)
+            uid = uid if uid < 500000 else None
+        except ValueError:
+            uid = None
 
-            q = s.query(DiscuzMember).options(joinedload('ucmember'))
-            if uid:
-                dz_member = q.filter(DiscuzMember.uid == uid).first()
-            else:
-                dz_member = q.filter(DiscuzMember.email == id).first()
-                dz_member = dz_member or q.filter(DiscuzMember.username == id).first()
+        q = s.query(DiscuzMember).options(joinedload('ucmember'))
+        if uid:
+            dz_member = q.filter(DiscuzMember.uid == uid).first()
+        else:
+            dz_member = q.filter(DiscuzMember.email == id).first()
+            dz_member = dz_member or q.filter(DiscuzMember.username == id).first()
 
-            if not dz_member:
-                return None
+        if not dz_member:
+            return None
 
-            uid = dz_member.uid
-            user = s.query(User).filter(User.id == uid).first()
-            if not user:
-                user = User()
-                s.add(user)
+        uid = dz_member.uid
+        user = s.query(User).filter(User.id == uid).first()
+        if not user:
+            user = User()
+            s.add(user)
 
-            user.dz_member = dz_member
+        user.dz_member = dz_member
 
-            return user
-        except:
-            session or s.rollback()
-            raise
+        # sync
+        user.games    = dz_member.member_count.games
+        user.drops    = dz_member.member_count.drops
+        user.jiecao   = dz_member.member_count.jiecao
+
+        return user
 
     @server_side_only
+    @transactional()
     def refresh(self):
-        from db.session import transaction_with_retry
-
-        @transaction_with_retry
-        def _(s):
-            user = self.find(self.userid, s)
-            user and self._fill_account(user)
+        user = self.find(self.userid)
+        user and self._fill_account(user)
 
     @server_side_only
     def _fill_account(self, user):
@@ -243,35 +238,32 @@ class Account(AccountBase):
     def available(self):
         return self.status != -1
 
+    @classmethod
+    @server_side_only
+    @transactional()
+    def add_user_credit(cls, user, lst, negcheck=None):
+        try:
+            member_count = user.dz_member.member_count
+        except AttributeError:
+            user = cls.find(user.id)
+            member_count = user.dz_member.member_count
+
+        for type, amount in lst:
+            if type in ('jiecao', 'games', 'drops'):
+                total = getattr(member_count, type) + amount
+                if negcheck and total < 0:
+                    raise negcheck
+
+                setattr(member_count, type, total)
+
+        super(Account, cls).add_user_credit(user, lst, negcheck)
+
     @server_side_only
     def add_credit(self, lst):
         if self.is_maoyu() < 0:
             return
 
-        @gevent.spawn
-        @log_failure(log)
-        def worker():
-            from db.session import transaction_with_retry
-
-            @transaction_with_retry
-            def add_credit(s):
-                user = self.find(self.userid, s)
-
-                dz_member = user.dz_member
-                for type, amount in lst:
-                    if type == 'jiecao':
-                        dz_member.member_count.jiecao += amount
-                        user.jiecao += amount
-                    elif type == 'games':
-                        dz_member.member_count.games += amount
-                        user.games += amount
-                    elif type == 'drops':
-                        dz_member.member_count.drops += amount
-                        user.drops += amount
-                    elif type == 'ppoint':
-                        user.ppoint += amount
-
-                self._fill_account(user)
+        super(Account, self).add_credit(lst)
 
     @server_side_only
     def is_maoyu(self):

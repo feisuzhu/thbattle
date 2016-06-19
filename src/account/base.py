@@ -4,12 +4,20 @@
 from collections import defaultdict
 from functools import wraps
 import random
+import logging
 
 # -- third party --
+import gevent
+
 # -- own --
+from utils import log_failure
+from db.session import transactional
 
 
 # -- code --
+log = logging.getLogger('accout_base')
+
+
 def server_side_only(f):
     return f  # Meh...
 
@@ -52,3 +60,25 @@ class AccountBase(object):
         )
 
         return acc
+
+    @classmethod
+    @server_side_only
+    def add_user_credit(cls, user, lst, negcheck=None):
+        for type, amount in lst:
+            if type in ('jiecao', 'games', 'drops', 'ppoint'):
+                total = getattr(user, type) + amount
+                print getattr(user, type), amount, total
+                if negcheck and total < 0:
+                    raise negcheck
+
+                setattr(user, type, total)
+
+    @server_side_only
+    def add_credit(self, lst):
+        @gevent.spawn
+        @log_failure(log)
+        @transactional()
+        def worker():
+            user = self.find(self.userid)
+            self.add_user_credit(user, lst)
+            self.refresh()
