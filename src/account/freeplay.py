@@ -8,7 +8,7 @@ from itertools import count
 # -- third party --
 # -- own --
 from account.base import AccountBase, server_side_only
-from db.session import transactional, current_session
+from db import transactional, current_session
 
 
 # -- code --

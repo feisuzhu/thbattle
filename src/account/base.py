@@ -11,7 +11,7 @@ import gevent
 
 # -- own --
 from utils import log_failure
-from db.session import transactional
+from db import transactional
 
 
 # -- code --

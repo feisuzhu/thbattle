@@ -12,7 +12,7 @@ import time
 # -- own --
 from account.base import AccountBase, server_side_only
 from utils import password_hash
-from db.session import transactional, current_session
+from db import transactional, current_session
 
 
 # -- code --
