@@ -107,6 +107,7 @@ class Nitori:
     # Character
     char_name = u'河城荷取'
     port_image = 'thb-portrait-nitori'
+    figure_image = 'thb-figure-nitori'
     description = (
         u'|DB水中的工程师 河城荷取 体力：3|r\n'
         u'\n'
@@ -116,5 +117,5 @@ class Nitori:
         u'\n'
         u'|RKOF不平衡角色|r\n'
         u'\n'
-        u'|DB（CV：简翎）|r'
+        u'|DB（画师：和茶，CV：简翎）|r'
     )
