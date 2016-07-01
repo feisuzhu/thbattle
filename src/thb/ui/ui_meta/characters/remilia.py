@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
 from thb import characters
-from thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid, my_turn
+from thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable, passive_is_action_valid
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.remilia)
@@ -69,6 +73,12 @@ class ScarletMistAction:
             src.ui_meta.char_name,
             u'、'.join([u'|G【%s】|r' % p.ui_meta.char_name for p in tl]),
         )
+
+    def sound_effect(act):
+        return random.choice([
+            'thb-cv-remilia_scarletmist1',
+            'thb-cv-remilia_scarletmist2',
+        ])
 
 
 class ScarletMistEndAction:

@@ -184,7 +184,7 @@ class ScarletMistEndAction(GenericAction):
 
 class ScarletMist(Skill):
     associated_action = ScarletMistAction
-    skill_category = ('character', 'active', 'once', 'boss')
+    skill_category = ('character', 'active', 'once', 'assisted')
 
     def check(self):
         return not len(self.associated_cards)
