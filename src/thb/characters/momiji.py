@@ -9,15 +9,13 @@ import itertools
 from game.autoenv import EventHandler, Game, sync_primitive, user_input
 from thb.actions import ActionStage, Damage, FinalizeStage, GenericAction, LaunchCard, ShowCards
 from thb.actions import UserAction, migrate_cards, user_choose_cards
-from thb.cards import AttackCard, Card, CardList, DuelCard, GrazeCard, RedUFOSkill, Skill, TreatAs
-from thb.cards import VirtualCard, t_None
+from thb.cards import AttackCard, CardList, DuelCard, Skill, TreatAs, VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
-from utils.misc import check
 
 
 # -- code --
-class SentryHideAction(UserAction):
+class DisarmHideAction(UserAction):
     def __init__(self, source, target, cards):
         self.source = source
         self.target = target
@@ -35,7 +33,7 @@ class SentryHideAction(UserAction):
         return True
 
 
-class SentryReturningAction(GenericAction):
+class DisarmReturningAction(GenericAction):
     def apply_action(self):
         tgt = self.target
         cl = getattr(tgt, 'momiji_sentry_cl', None)
@@ -43,15 +41,15 @@ class SentryReturningAction(GenericAction):
         return True
 
 
-class SentryHandler(EventHandler):
-    interested = ('action_after', 'action_apply')
+class DisarmHandler(EventHandler):
+    interested = ('action_after',)
     card_usage = 'launch'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
             g = Game.getgame()
             src, tgt = act.source, act.target
-            if not (src and src.has_skill(Sentry)): return act
+            if not (src and src.has_skill(Disarm)): return act
             if tgt.dead: return act
             pact = g.action_stack[-1]
             pcard = getattr(pact, 'associated_card', None)
@@ -73,9 +71,28 @@ class SentryHandler(EventHandler):
 
             l = sync_primitive(l, g.players)
             cl = list(itertools.compress(cl, l))
-            g.process_action(SentryHideAction(src, tgt, cl))
+            g.process_action(DisarmHideAction(src, tgt, cl))
 
-        elif evt_type == 'action_apply' and isinstance(act, ActionStage):
+        elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
+            tgt = act.target
+            g = Game.getgame()
+            g.process_action(DisarmReturningAction(tgt, tgt))
+
+        return act
+
+
+class Disarm(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
+    target = t_None
+
+
+class SentryHandler(EventHandler):
+    interested = ('action_apply',)
+    card_usage = 'launch'
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, ActionStage):
             g = Game.getgame()
             for p in g.players:
                 if p.dead: continue
@@ -91,11 +108,6 @@ class SentryHandler(EventHandler):
                 if not cl: continue
                 c = SentryAttack.wrap(cl, tgt)
                 g.process_action(LaunchCard(p, [tgt], c))
-
-        elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
-            tgt = act.target
-            g = Game.getgame()
-            g.process_action(SentryReturningAction(tgt, tgt))
 
         return act
 
@@ -121,52 +133,43 @@ class Sentry(Skill):
     target = t_None
 
 
-class SolidShieldAttack(TreatAs, Skill):
-    skill_category = ('character', 'active', 'passive')
-    treat_as = AttackCard
+class SharpEyeHandler(EventHandler):
+    interested = ('calcdistance',)
+    execute_after = ('AttackCardHandler', 'UFODistanceHandler')
 
-    def check(self):
-        try:
-            c, = self.associated_cards
-            check(c.resides_in is not None)
-            check(c.resides_in.type in ('cards', 'showncards', 'equips'))
-            check(c.color == Card.BLACK)
-            p = self.player
-            check(len(p.cards) + len(p.showncards) > p.life)
-            return True
-        except Exception:
-            return False
+    processing = False
 
+    def handle(self, evt_type, arg):
+        if self.processing:
+            return arg
 
-class SolidShieldGraze(TreatAs, Skill):
-    skill_category = ('character', 'active', 'passive')
-    treat_as = GrazeCard
+        elif evt_type == 'calcdistance':
+            src, c, dist = arg
+            if not src.has_skill(SharpEye): return arg
+            if not c.is_card(AttackCard): return arg
 
-    def check(self):
-        try:
-            c, = self.associated_cards
-            check(c.resides_in is not None)
-            check(c.resides_in.type in ('cards', 'showncards', 'equips'))
-            check(c.color == Card.RED)
-            p = self.player
-            check(len(p.cards) + len(p.showncards) <= p.life)
-            return True
-        except Exception:
-            return False
+            try:
+                self.processing = True
+                for p in dist:
+                    if p is src: continue
+                    d = LaunchCard.calc_distance(p, AttackCard())
+                    if d[src] <= 0:
+                        dist[p] = 0
+
+            finally:
+                self.processing = False
+
+        return arg
 
 
-class SharpEye(RedUFOSkill):
+class SharpEye(Skill):
+    associated_action = None
     skill_category = ('character', 'passive', 'compulsory')
-    increment = 1
-
-
-class SharpEyeKOF(RedUFOSkill):
-    skill_category = ('character', 'passive', 'compulsory')
-    increment = 1
+    target = t_None
 
 
 @register_character_to('common')
 class Momiji(Character):
-    skills = [Sentry, SolidShieldAttack, SolidShieldGraze]
-    eventhandlers_required = [SentryHandler]
+    skills = [Disarm, Sentry, SharpEye]
+    eventhandlers_required = [SentryHandler, DisarmHandler, SharpEyeHandler]
     maxlife = 4

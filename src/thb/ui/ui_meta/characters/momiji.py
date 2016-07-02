@@ -22,9 +22,14 @@ class Momiji:
     figure_image = 'thb-figure-momiji'
     miss_sound_effect = 'thb-cv-momiji_miss'
     description = (
-        u'|DB山中的千里眼 犬走椛 体力：4|r\n\n'
-        u'|G哨戒|r：一名你攻击范围内的其他角色的出牌阶段开始时，你可以对其使用一张|G弹幕|r。你使用的|G弹幕|r或|G弹幕战|r造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r和符卡牌移出游戏，直到该角色的回合结束阶段，其获得这些被移出游戏的牌。\n\n'
-        u'|G坚盾|r：若你的手牌数大于你的当前体力值，你可以将一张黑色牌当|G弹幕|r使用或打出。否则你可以将一张红色牌当|G擦弹|r使用或打出。\n\n'
+        u'|DB山中的千里眼 犬走椛 体力：4|r\n'
+        u'\n'
+        u'|G解甲|r：你使用的|G弹幕|r或|G弹幕战|r造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r和符卡牌移出游戏，直到该角色的回合结束阶段，其获得这些被移出游戏的牌。\n'
+        u'\n'
+        u'|G哨戒|r：一名你攻击范围内的其他角色的出牌阶段开始时，你可以对其使用一张|G弹幕|r。\n'
+        u'\n'
+        u'|G千里眼|r：|B锁定技|r，若你在一名其他角色的攻击内，则该角色视为在你攻击范围内。\n'
+        u'\n'
         u'|DB（画师：和茶，CV：简翎）|r'
     )
 
@@ -39,114 +44,15 @@ class Sentry:
 class SharpEye:
     # Skill
     name = u'千里眼'
-    no_display = False
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
-class SolidShieldAttack:
+class Disarm:
     # Skill
-    name = u'坚盾(弹)'
-
-    def clickable(g):
-        try:
-            me = g.me
-
-            if not len(me.cards) + len(me.showncards) > me.life:
-                return False
-
-            initiator = current_initiator()
-            if isinstance(initiator, actions.ActionStage):
-                return True
-
-            if initiator.cond([build_handcard(cards.AttackCard)]):
-                return True
-        except:
-            pass
-
-        return False
-
-    def is_complete(g, cl):
-        skill = cl[0]
-        cl = skill.associated_cards
-        from thb.cards import Card
-        if len(cl) != 1 or not (cl[0].color == Card.BLACK):
-            return (False, u'请选择一张黑色牌！')
-        return (True, u'这句貌似看不到……？')
-
-    def is_action_valid(g, cl, target_list, is_complete=is_complete):
-        skill = cl[0]
-        rst, reason = is_complete(g, cl)
-        if not rst:
-            return (rst, reason)
-        else:
-            return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
-
-    def effect_string(act):
-        # for LaunchCard.ui_meta.effect_string
-        src = act.source
-        return (
-            u'|G【%s】|r发动了|G坚盾|r，将%s视为了|G弹幕|r。'
-        ) % (
-            src.ui_meta.char_name,
-            card_desc(act.card.associated_cards[0]),
-        )
-
-    def sound_effect(act):
-        from thb.cards import AttackCard
-        return AttackCard.ui_meta.sound_effect(act)
-
-
-class SolidShieldGraze:
-    # Skill
-    name = u'坚盾(擦)'
-
-    def clickable(g):
-        try:
-            me = g.me
-            if not len(me.cards) + len(me.showncards) <= me.life:
-                return False
-
-            initiator = current_initiator()
-            if isinstance(initiator, actions.ActionStage):
-                return True
-
-            if initiator.cond([build_handcard(cards.GrazeCard)]):
-                return True
-        except:
-            pass
-
-        return False
-
-    def is_complete(g, cl):
-        skill = cl[0]
-        cl = skill.associated_cards
-        from thb.cards import Card
-        if len(cl) != 1 or not (cl[0].color == Card.RED):
-            return (False, u'请选择一张红色牌！')
-        return (True, u'这句貌似看不到……？')
-
-    def is_action_valid(g, cl, target_list, is_complete=is_complete):
-        skill = cl[0]
-        rst, reason = is_complete(g, cl)
-        if not rst:
-            return (rst, reason)
-        else:
-            return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
-
-    def effect_string(act):
-        # for LaunchCard.ui_meta.effect_string
-        src = act.source
-        return (
-            u'|G【%s】|r发动了|G坚盾|r，将%s视为了|G擦弹|r。'
-        ) % (
-            src.ui_meta.char_name,
-            card_desc(act.card.associated_cards[0]),
-        )
-
-    def sound_effect(act):
-        from thb.cards import GrazeCard
-        return GrazeCard.ui_meta.sound_effect(act)
+    name = u'解甲'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
 
 class SentryAttack:
@@ -160,11 +66,13 @@ class SentryAttack:
         ])
 
 
-class SentryHandler:
+class DisarmHandler:
     # choose_option meta
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你希望【哨戒】效果？'
+    choose_option_prompt = u'你希望发动【解甲】吗？'
 
+
+class SentryHandler:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
