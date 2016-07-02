@@ -82,6 +82,18 @@ def start_client():
 
     from client.ui.entry import start_ui
 
+    # PIL compat
+    from PIL import Image
+    try:
+        Image.frombytes
+        Image.Image.tobytes
+    except AttributeError:
+        log.info('Patching PIL {from,to}bytes')
+        Image.frombytes = Image.fromstring
+        Image.Image.tobytes = Image.Image.tostring
+
+    # ----------
+
     try:
         start_ui()
     except KeyboardInterrupt:
