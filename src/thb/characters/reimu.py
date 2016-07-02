@@ -236,6 +236,7 @@ class ReimuClearHandler(EventHandler):
     execute_after = (
         'IbukiGourdHandler',
         'AyaRoundfanHandler',
+        'MajestyHandler',
     )
 
     def handle(self, evt_type, act):
