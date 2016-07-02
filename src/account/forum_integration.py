@@ -102,48 +102,41 @@ class Account(AccountBase):
 
     @classmethod
     @server_side_only
+    @transactional()
     def authenticate(cls, username, password, session=None):
         from sqlalchemy import func
-        from db.session import Session
         try:
-            try:
-                if int(username) == -1:
-                    acc = cls()
-                    acc._fill_trygame()
-                    return acc
-            except:
-                pass
-
-            s = session or Session()
-            user = cls.find(username, s)
-
-            if not user:
-                return False
-
-            if not cls.validate_by_password(user, password):
-                return False
-
-            # sync
-            dz_member = user.dz_member
-            user.id       = dz_member.uid
-            user.username = dz_member.username
-            user.password = password_hash(password)
-            user.email    = dz_member.email
-            user.title    = dz_member.member_field.customstatus
-            user.status   = dz_member.status
-
-            acc = cls()
-            acc._fill_account(user)
-
-            user.lastactivity = func.unix_timestamp()
-            dz_member.member_status.lastactivity = func.unix_timestamp()
-
-            session or s.commit()
-
-            return acc
+            if int(username) == -1:
+                acc = cls()
+                acc._fill_trygame()
+                return acc
         except:
-            session or s.rollback()
-            raise
+            pass
+
+        user = cls.find(username)
+
+        if not user:
+            return False
+
+        if not cls.validate_by_password(user, password):
+            return False
+
+        # sync
+        dz_member = user.dz_member
+        user.id       = dz_member.uid
+        user.username = dz_member.username
+        user.password = password_hash(password)
+        user.email    = dz_member.email
+        user.title    = dz_member.member_field.customstatus
+        user.status   = dz_member.status
+
+        acc = cls()
+        acc._fill_account(user)
+
+        user.lastactivity = func.unix_timestamp()
+        dz_member.member_status.lastactivity = func.unix_timestamp()
+
+        return acc
 
     @staticmethod
     @server_side_only
