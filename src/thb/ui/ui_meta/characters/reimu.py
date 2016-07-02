@@ -2,6 +2,8 @@
 from __future__ import absolute_import
 
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
 from thb import actions, cards, characters
@@ -118,6 +120,16 @@ class Tribute:
             card_desc(act.card.associated_cards[0]),
         )
 
+    def sound_effect(act):
+        c = act.card.associated_cards[0]
+        if c.is_card(cards.ExinwanCard):
+            return 'thb-cv-reimu_tribute_exinwan'
+        else:
+            return random.choice([
+                'thb-cv-reimu_tribute1',
+                'thb-cv-reimu_tribute2',
+            ])
+
 
 # ----------------------
 
@@ -147,6 +159,12 @@ class ReimuExterminateLaunchCard:
                 act.source.ui_meta.char_name,
             )
 
+    def sound_effect(act):
+        if act.cause == 'damage':
+            return 'thb-cv-reimu_exterminate_damage'
+        else:
+            return 'thb-cv-reimu_exterminate_active'
+
 
 class ReimuClear:
     # Skill
@@ -161,6 +179,9 @@ class ReimuClearAction:
             act.source.ui_meta.char_name,
             act.target.ui_meta.char_name,
         )
+
+    def sound_effect(act):
+        return 'thb-cv-reimu_clear'
 
 
 class ReimuClearHandler:
