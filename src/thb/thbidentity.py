@@ -202,8 +202,7 @@ class AssistedUseAction(UserAction):
                 act = copy(afc)
                 act.__class__ = classmix(DoNotProcessCard, afc.__class__)
                 act.target = p
-                rst = g.process_action(act)
-                if rst:
+                if g.process_action(act):
                     self.their_afc_action.card = act.card
                     return True
         else:
