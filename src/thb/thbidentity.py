@@ -19,7 +19,7 @@ from thb.actions import TryRevive, UserAction, action_eventhandlers, ask_for_act
 from thb.cards import AttackCard, AttackCardHandler, GrazeCard, Heal, Skill, TreatAs, VirtualCard
 from thb.cards import t_None, t_One
 from thb.characters.baseclasses import mixin_character
-from thb.common import PlayerIdentity, build_choices
+from thb.common import CharChoice, PlayerIdentity, build_choices
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from thb.item import ImperialIdentity
 from utils.misc import BatchList, Enum, classmix, first
@@ -414,16 +414,17 @@ class THBattleIdentityBootstrap(GenericAction):
 
         # choose girls init -->
         from .characters import get_characters
-        chars = get_characters('common', 'id', 'id8')
-
         pl = g.players.rotate_to(boss)
 
         choices, _ = build_choices(
             g, self.items,
-            candidates=chars, players=[boss],
+            candidates=get_characters('common', 'id', 'id8', '-boss'),
+            players=[boss],
             num=[5], akaris=[1],
             shared=False,
         )
+
+        choices[boss][:0] = [CharChoice(cls) for cls in get_characters('boss')]
 
         with InputTransaction('ChooseGirl', [boss], mapping=choices) as trans:
             c = user_input([boss], ChooseGirlInputlet(g, choices), 30, 'single', trans)
@@ -433,6 +434,8 @@ class THBattleIdentityBootstrap(GenericAction):
             c.akari = False
             g.players.reveal(c)
             trans.notify('girl_chosen', (boss, c))
+
+        chars = get_characters('common', 'id', 'id8')
 
         try:
             chars.remove(c.char_cls)

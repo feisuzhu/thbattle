@@ -254,7 +254,7 @@ class ReimuClearHandler(EventHandler):
         return act
 
 
-@register_character_to('common')
+@register_character_to('common', 'boss')
 class Reimu(Character):
     # skills = [SealingArraySkill, Flight, TributeTarget]
     # skills = [SpiritualAttack, Flight]

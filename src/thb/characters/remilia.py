@@ -204,7 +204,7 @@ class ScarletMist(Skill):
         return (tl[:n+1], bool(len(tl)))
 
 
-@register_character_to('common')
+@register_character_to('common', 'boss')
 class Remilia(Character):
     skills = [SpearTheGungnir, VampireKiss]
     boss_skills = [ScarletMist]
