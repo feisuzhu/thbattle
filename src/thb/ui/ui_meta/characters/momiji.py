@@ -6,9 +6,8 @@ import random
 
 # -- third party --
 # -- own --
-from thb import actions, cards, characters
-from thb.ui.ui_meta.common import build_handcard, card_desc, current_initiator, gen_metafunc
-from thb.ui.ui_meta.common import passive_clickable, passive_is_action_valid
+from thb import characters
+from thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
 
 
 # -- code --
@@ -24,7 +23,7 @@ class Momiji:
     description = (
         u'|DB山中的千里眼 犬走椛 体力：4|r\n'
         u'\n'
-        u'|G解甲|r：你使用的|G弹幕|r或|G弹幕战|r造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r和符卡牌移出游戏，直到该角色的回合结束阶段，其获得这些被移出游戏的牌。\n'
+        u'|G缴械|r：你使用的|G弹幕|r或|G弹幕战|r造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r和符卡牌移出游戏，直到该角色的回合结束阶段，其获得这些被移出游戏的牌。\n'
         u'\n'
         u'|G哨戒|r：一名你攻击范围内的其他角色的出牌阶段开始时，你可以对其使用一张|G弹幕|r。\n'
         u'\n'
@@ -50,7 +49,7 @@ class SharpEye:
 
 class Disarm:
     # Skill
-    name = u'解甲'
+    name = u'缴械'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -69,7 +68,7 @@ class SentryAttack:
 class DisarmHandler:
     # choose_option meta
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你希望发动【解甲】吗？'
+    choose_option_prompt = u'你希望发动【缴械】吗？'
 
 
 class SentryHandler:
