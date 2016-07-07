@@ -184,7 +184,7 @@ class ScarletMistEndAction(GenericAction):
 
 class ScarletMist(Skill):
     associated_action = ScarletMistAction
-    skill_category = ('character', 'active', 'once', 'assisted')
+    skill_category = ('character', 'active', 'once', 'boss')
 
     def check(self):
         return not len(self.associated_cards)
@@ -207,6 +207,6 @@ class ScarletMist(Skill):
 @register_character_to('common')
 class Remilia(Character):
     skills = [SpearTheGungnir, VampireKiss]
-    assisted_skills = [ScarletMist]
+    boss_skills = [ScarletMist]
     eventhandlers_required = [SpearTheGungnirHandler, VampireKissHandler, ScarletMistHandler]
     maxlife = 4

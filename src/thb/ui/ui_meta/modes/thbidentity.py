@@ -171,14 +171,14 @@ class ExtraCardSlot:
 
 
 class ChooseBossSkillAction:
-    choose_option_prompt = u'请选择协力技：'
+    choose_option_prompt = u'请选择BOSS技：'
 
     def choose_option_buttons(act):
-        l = act.assisted_skills
+        l = act.boss_skills
         return [(i.ui_meta.name, i.__name__) for i in l]
 
     def effect_string(act):
-        return u'|G【%s】|r选择了|G%s|r作为协力技' % (
+        return u'|G【%s】|r选择了|G%s|r作为BOSS技' % (
             act.target.ui_meta.char_name,
             act.skill_chosen.ui_meta.name,
         )

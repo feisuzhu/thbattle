@@ -164,7 +164,7 @@ class AssistedAttackAction(UserAction):
 class AssistedAttack(Skill):
     associated_action = AssistedAttackAction
     target = t_One
-    skill_category = ('character', 'active', 'assisted')
+    skill_category = ('character', 'active', 'boss')
     distance = 1
 
     def check(self):
@@ -174,7 +174,7 @@ class AssistedAttack(Skill):
 class AssistedGraze(Skill):
     associated_action = None
     target = t_None
-    skill_category = ('character', 'passive', 'assisted')
+    skill_category = ('character', 'passive', 'boss')
 
 
 class DoNotProcessCard(object):
@@ -294,7 +294,7 @@ class AssistedHealHandler(EventHandler):
 class AssistedHeal(Skill):
     associated_action = None
     target = t_None
-    skill_category = ('character', 'passive', 'assisted')
+    skill_category = ('character', 'passive', 'boss')
 
 
 @game_eh
@@ -318,7 +318,7 @@ class ExtraCardSlotHandler(EventHandler):
 class ExtraCardSlot(Skill):
     associated_action = None
     target = t_None
-    skill_category = ('character', 'passive', 'assisted')
+    skill_category = ('character', 'passive', 'boss')
 
 
 class Identity(PlayerIdentity):
@@ -334,14 +334,14 @@ class Identity(PlayerIdentity):
 class ChooseBossSkillAction(GenericAction):
     def apply_action(self):
         tgt = self.target
-        if hasattr(tgt, 'assisted_skills'):
-            bs = tgt.assisted_skills
+        if hasattr(tgt, 'boss_skills'):
+            bs = tgt.boss_skills
             assert len(bs) == 1
             tgt.skills.extend(bs)
             self.skill_chosen = bs[0]
             return True
 
-        self.assisted_skills = l = [  # for ui
+        self.boss_skills = l = [  # for ui
             AssistedAttack,
             AssistedGraze,
             AssistedHeal,

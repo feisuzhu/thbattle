@@ -44,7 +44,7 @@ class SpiritualAttack(TreatAs, Skill):
 
 class TributeTarget(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'assisted')
+    skill_category = ('character', 'passive', 'boss')
     target = t_None
 
 
@@ -259,6 +259,6 @@ class Reimu(Character):
     # skills = [SealingArraySkill, Flight, TributeTarget]
     # skills = [SpiritualAttack, Flight]
     skills = [ReimuExterminate, ReimuClear]
-    assisted_skills = [TributeTarget]
+    boss_skills = [TributeTarget]
     eventhandlers_required = [ReimuExterminateHandler, ReimuClearHandler, TributeHandler]
     maxlife = 4
