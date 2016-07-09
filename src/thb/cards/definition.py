@@ -376,15 +376,6 @@ class GrimoireCard:
     equipment_category = 'weapon'
 
 # --------------------------------------------------
-from thb.cards import special
-
-
-class PPointCard:
-    associated_action = special.CollectPPoint
-    target = t_Self
-    category = ('special',)
-
-# --------------------------------------------------
 from thb.cards import debug
 
 

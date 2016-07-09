@@ -147,7 +147,7 @@ class THBattle2v2Bootstrap(GenericAction):
 
         g.stats = []
 
-        g.deck = Deck(ppoints=(1, 1, 1))
+        g.deck = Deck()
         g.ehclasses = []
 
         if params['random_force']:

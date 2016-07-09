@@ -108,7 +108,7 @@ class THBattleFaithBootstrap(GenericAction):
         from thb.cards import Deck
 
         g.picks = []
-        g.deck = Deck(ppoints=(1, 1, 1, 1, 1, 2))
+        g.deck = Deck()
 
         g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
 

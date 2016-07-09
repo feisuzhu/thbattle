@@ -75,7 +75,7 @@ class THBattleBootstrap(GenericAction):
 
         from thb.cards import Deck
 
-        g.deck = Deck(ppoints=(1, 1, 1, 1, 1))
+        g.deck = Deck()
         g.ehclasses = []
 
         if params['random_seat']:

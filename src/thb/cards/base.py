@@ -287,7 +287,7 @@ class CardList(GameObject, deque):
 
 
 class Deck(GameObject):
-    def __init__(self, card_definition=None, ppoints=()):
+    def __init__(self, card_definition=None):
         from thb.cards import definition
         card_definition = card_definition or definition.card_definition
 
@@ -300,10 +300,6 @@ class Deck(GameObject):
         cards.extend(
             cls(suit, rank, cards, track_id=alloc_id())
             for cls, suit, rank in card_definition
-        )
-        cards.extend(
-            definition.PPointCard(s % 4 + 1, r, cards)
-            for s, r in zip(xrange(10000), ppoints)
         )
         self.shuffle(cards)
 

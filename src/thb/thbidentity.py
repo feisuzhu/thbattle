@@ -366,7 +366,7 @@ class THBattleIdentityBootstrap(GenericAction):
 
         from thb.cards import Deck
 
-        g.deck = Deck(ppoints=(1, 1, 1, 1, 1, 1, 2, 2))
+        g.deck = Deck()
         g.ehclasses = []
 
         # arrange identities -->
