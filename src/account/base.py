@@ -79,6 +79,7 @@ class AccountBase(object):
         @log_failure(log)
         @transactional()
         def worker():
-            user = self.find(self.userid)
+            uid = self.userid
+            user = self.find(uid)
             self.add_user_credit(user, lst)
             self.refresh()
