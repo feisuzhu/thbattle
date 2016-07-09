@@ -35,6 +35,9 @@ class LittleLegionAttackAction(UserAction):
         g = Game.getgame()
         src = self.source
         pl = [p for p in g.players if not p.dead and p is not src]
+        if not pl:
+            return False
+
         victim, = user_choose_players(self, src, pl) or (None,)
         if victim is None:
             return False
@@ -59,6 +62,9 @@ class LittleLegionCoverAction(UserAction):
         g = Game.getgame()
         src = self.source
         pl = [p for p in g.players if not p.dead and p.life < p.maxlife]
+        if not pl:
+            return False
+
         beneficiary, = user_choose_players(self, src, pl) or (None,)
         if beneficiary is None:
             return False
