@@ -106,7 +106,7 @@ import utils.logging
 
 sys.argv = []
 
-utils.logging.init_unity(logging.ERROR, settings.SENTRY_DSN)
+utils.logging.init_unity(logging.ERROR, settings.SENTRY_DSN, settings.VERSION)
 utils.logging.patch_gevent_hub_print_exception()
 
 

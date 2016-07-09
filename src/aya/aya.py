@@ -362,7 +362,7 @@ def main():
     parser.add_argument('--sentry', default='https://9b1da8b8d9d3483ba163a3f36f79f803:3ebebe6950aa494c9c1d48a75a3c342d@sentry.thbattle.net/4')
     State.options = options = parser.parse_args()
 
-    utils.logging.init_server(logging.DEBUG, options.sentry, 'aya.log', with_gr_name=False)
+    utils.logging.init_server(logging.DEBUG, options.sentry, 'aya-1.0', 'aya.log', with_gr_name=False)
     db.session.init(options.db)
     gevent.spawn(BackdoorServer(('127.0.0.1', 11111)).serve_forever)
 

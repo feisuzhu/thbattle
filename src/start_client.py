@@ -40,7 +40,7 @@ def start_client():
     IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
 
     import settings
-    utils.logging.init(options.log.upper(), settings.SENTRY_DSN, IS_PROTON or options.color_log)
+    utils.logging.init(options.log.upper(), settings.SENTRY_DSN, settings.VERSION, IS_PROTON or options.color_log)
 
     if options.no_update:
         import autoupdate

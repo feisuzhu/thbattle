@@ -81,7 +81,7 @@ class ServerLogFormatter(logging.Formatter):
         )
 
 
-def init(level, sentry_dsn, colored=False):
+def init(level, sentry_dsn, release, colored=False):
     patch_gevent_hub_print_exception()
 
     root = logging.getLogger()
@@ -91,7 +91,7 @@ def init(level, sentry_dsn, colored=False):
     hdlr.setLevel(logging.INFO)
     root.addHandler(hdlr)
 
-    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport))
+    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
     hdlr.setLevel(logging.ERROR)
     root.addHandler(hdlr)
 
@@ -121,11 +121,11 @@ def init(level, sentry_dsn, colored=False):
     root.info('==============================================')
 
 
-def init_unity(level, sentry_dsn):
+def init_unity(level, sentry_dsn, release):
     root = logging.getLogger()
     root.setLevel(0)
 
-    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport))
+    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
     hdlr.setLevel(logging.ERROR)
     root.addHandler(hdlr)
 
@@ -137,7 +137,7 @@ def init_unity(level, sentry_dsn):
     root.info('==============================================')
 
 
-def init_server(level, sentry_dsn, logfile, with_gr_name=True):
+def init_server(level, sentry_dsn, release, logfile, with_gr_name=True):
     patch_gevent_hub_print_exception()
 
     root = logging.getLogger()
@@ -148,7 +148,7 @@ def init_server(level, sentry_dsn, logfile, with_gr_name=True):
     std.setFormatter(fmter)
     root.addHandler(std)
 
-    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport))
+    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
     hdlr.setLevel(logging.ERROR)
     root.addHandler(hdlr)
 
