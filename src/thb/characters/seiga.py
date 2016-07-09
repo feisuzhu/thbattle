@@ -174,15 +174,10 @@ class SummonKOFAction(UserAction):
 
         ActionStage.force_break()
 
-        '''
-        turn = PlayerTurn.get_current(old)
-        try:
-            turn.pending_stages[:] = []
-        except Exception:
-            pass
-        '''
-
+        assert g.current_player is old
         tgt = KOFCharacterSwitchHandler.switch(old)
+        g.current_player = tgt
+
         tgt.life = old_life
         tgt.maxlife += maxlife_delta
 
