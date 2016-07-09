@@ -43,7 +43,7 @@ class Sentry:
     is_action_valid = passive_is_action_valid
 
 
-class SharpEye:
+class Telegnosis:
     # Skill
     name = u'千里眼'
     clickable = passive_clickable

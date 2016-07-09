@@ -134,7 +134,7 @@ class Sentry(Skill):
     target = t_None
 
 
-class SharpEyeHandler(EventHandler):
+class TelegnosisHandler(EventHandler):
     interested = ('calcdistance',)
     execute_after = ('AttackCardHandler', 'UFODistanceHandler')
 
@@ -146,7 +146,7 @@ class SharpEyeHandler(EventHandler):
 
         elif evt_type == 'calcdistance':
             src, c, dist = arg
-            if not src.has_skill(SharpEye): return arg
+            if not src.has_skill(Telegnosis): return arg
             if not c.is_card(AttackCard): return arg
 
             try:
@@ -163,7 +163,7 @@ class SharpEyeHandler(EventHandler):
         return arg
 
 
-class SharpEye(Skill):
+class Telegnosis(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')
     target = t_None
@@ -236,8 +236,8 @@ class RabiesBite(Skill):
 
 @register_character_to('common')
 class Momiji(Character):
-    # skills = [Disarm, Sentry, SharpEye]
+    # skills = [Disarm, Sentry, Telegnosis]
     skills = [Disarm, Sentry, RabiesBite]
-    # eventhandlers_required = [SentryHandler, DisarmHandler, SharpEyeHandler]
+    # eventhandlers_required = [SentryHandler, DisarmHandler, TelegnosisHandler]
     eventhandlers_required = [SentryHandler, DisarmHandler, RabiesBiteHandler]
     maxlife = 4
