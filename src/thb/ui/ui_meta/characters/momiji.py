@@ -7,7 +7,8 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+from thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
+from thb.ui.ui_meta.common import passive_is_action_valid
 
 
 # -- code --
@@ -27,7 +28,9 @@ class Momiji:
         u'\n'
         u'|G哨戒|r：一名你攻击范围内的其他角色的出牌阶段开始时，你可以对其使用一张|G弹幕|r。\n'
         u'\n'
-        u'|G千里眼|r：|B锁定技|r，若你在一名其他角色的攻击内，则该角色视为在你攻击范围内。\n'
+        # u'|G千里眼|r：|B锁定技|r，若你在一名其他角色的攻击内，则该角色视为在你攻击范围内。\n'
+        # u'\n'
+        u'|G断噬|r：你距离1以内的角色成为另一名其他角色使用的弹幕或非延时符卡的唯一目标时，若该卡牌为其出牌阶段使用的第一张卡牌，你可以令其无效并将其移出游戏。\n'
         u'\n'
         u'|DB（画师：和茶，CV：简翎）|r'
     )
@@ -78,3 +81,24 @@ class SentryHandler:
             return (True, u'吃我大弹幕啦！(对%s发动哨戒)' % act.target.ui_meta.char_name)
         else:
             return (False, u'哨戒：请选择一张弹幕发动哨戒(对%s)' % act.target.ui_meta.char_name)
+
+
+class RabiesBiteHandler:
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你希望发动【断噬】吗？'
+
+
+class RabiesBiteAction:
+    def effect_string_before(act):
+        return u'“嗷~~~~！”|G【%s】|r突然冲了出来，吓的|G【%s】|r手里的%s都掉在地上了。' % (
+            act.source.ui_meta.char_name,
+            act.target.ui_meta.char_name,
+            card_desc(act.action.card),
+        )
+
+
+class RabiesBite:
+    # Skill
+    name = u'断噬'
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid

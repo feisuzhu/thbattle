@@ -209,6 +209,7 @@ class EventHandlerGroup(EventHandler):
 class Action(GameObject):
     cancelled = False
     done = False
+    invalid = False
 
     def __new__(cls, *a, **k):
         try:
@@ -440,7 +441,7 @@ class Game(GameObject):
         if action.done:
             log.debug('action already done %s' % action.__class__.__name__)
             return action.succeeded
-        elif action.cancelled:
+        elif action.cancelled or action.invalid:
             log.debug('action cancelled/invalid %s' % action.__class__.__name__)
             return False
 
@@ -457,10 +458,12 @@ class Game(GameObject):
         if action.done:
             log.debug('action already done %s' % action.__class__.__name__)
             rst = action.succeeded
-        elif action.cancelled or not action.can_fire():
-            log.debug('action cancelled/invalid %s' % action.__class__.__name__)
-            action.cancelled = True  # cancel action automatically when it is invalid
+        elif action.cancelled:
+            log.debug('action cancelled, not firing: %s' % action.__class__.__name__)
             rst = False
+        elif not action.can_fire():
+            log.debug('action invalid, not firing: %s' % action.__class__.__name__)
+            action.invalid = True
         else:
             log.debug('applying action %s' % action.__class__.__name__)
             action = self.emit_event('action_apply', action)

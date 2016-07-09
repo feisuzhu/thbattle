@@ -7,9 +7,10 @@ import itertools
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, sync_primitive, user_input
-from thb.actions import ActionStage, Damage, FinalizeStage, GenericAction, LaunchCard, ShowCards
-from thb.actions import UserAction, migrate_cards, user_choose_cards
-from thb.cards import AttackCard, CardList, DuelCard, Skill, TreatAs, VirtualCard, t_None
+from thb.actions import ActionStage, ActionStageLaunchCard, Damage, FinalizeStage, GenericAction
+from thb.actions import LaunchCard, ShowCards, UserAction, migrate_cards, ttags, user_choose_cards
+from thb.cards import AttackCard, CardList, DollControlCard, DuelCard, Skill, TreatAs, VirtualCard
+from thb.cards import t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -168,8 +169,75 @@ class SharpEye(Skill):
     target = t_None
 
 
+class RabiesBiteHandler(EventHandler):
+    interested = ('action_before',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
+            src, tgt = act.source, act.target
+            if not src or not tgt: return act
+            ttags(src)['guard_launch_count'] += 1
+            if ttags(src)['guard_launch_count'] != 1:
+                return act
+
+            g = Game.getgame()
+            for p in g.players.rotate_to(src):
+                if p is src:
+                    continue
+
+                if not p.has_skill(RabiesBite):
+                    continue
+
+                dist = LaunchCard.calc_distance(p, RabiesBite(p))
+                if dist[tgt] > 0:
+                    continue
+
+                c = act.card
+                cond = c.is_card(AttackCard) or 'instant_spellcard' in c.category
+                cond = cond and (c.is_card(DollControlCard) or len(act.target_list) == 1)  # HACK HERE!
+                if not cond:
+                    return act
+
+                if user_input([p], ChooseOptionInputlet(self, (False, True))):
+                    g.process_action(RabiesBiteAction(p, src, act))
+                    break
+
+        return act
+
+
+class RabiesBiteAction(UserAction):
+    def __init__(self, source, target, action):
+        self.source = source
+        self.target = target
+        self.action = action
+
+    def apply_action(self):
+        tgt = self.target
+        lc = self.action
+        assert isinstance(lc, ActionStageLaunchCard)
+
+        cl = getattr(tgt, 'momiji_sentry_cl', None)
+        if cl is None:
+            cl = CardList(tgt, 'momiji_sentry_cl')
+            tgt.momiji_sentry_cl = cl
+            tgt.showncardlists.append(cl)
+
+        migrate_cards([lc.card], cl, unwrap=True)
+        lc.cancelled = True
+        return True
+
+
+class RabiesBite(Skill):
+    distance = 1
+    associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
+    target = t_None
+
+
 @register_character_to('common')
 class Momiji(Character):
-    skills = [Disarm, Sentry, SharpEye]
-    eventhandlers_required = [SentryHandler, DisarmHandler, SharpEyeHandler]
+    # skills = [Disarm, Sentry, SharpEye]
+    skills = [Disarm, Sentry, RabiesBite]
+    # eventhandlers_required = [SentryHandler, DisarmHandler, SharpEyeHandler]
+    eventhandlers_required = [SentryHandler, DisarmHandler, RabiesBiteHandler]
     maxlife = 4

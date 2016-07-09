@@ -795,10 +795,11 @@ class ActionStage(GenericAction):
                 g.players.reveal(cards)
                 card = cards[0]
 
-                if not g.process_action(ActionStageLaunchCard(target, target_list, card)):
-                    # invalid input
-                    log.debug('ActionStage: LaunchCard failed.')
-                    check(False)
+                lc = ActionStageLaunchCard(target, target_list, card)
+                if not g.process_action(lc):
+                    if lc.invalid:
+                        log.debug('ActionStage: LaunchCard invalid.')
+                        check(False)
 
                 if self.one_shot or self._force_break:
                     break
