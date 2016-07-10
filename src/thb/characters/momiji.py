@@ -7,8 +7,9 @@ import itertools
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, sync_primitive, user_input
-from thb.actions import ActionStage, ActionStageLaunchCard, Damage, FinalizeStage, GenericAction
-from thb.actions import LaunchCard, ShowCards, UserAction, migrate_cards, ttags, user_choose_cards
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, FinalizeStage
+from thb.actions import GenericAction, LaunchCard, ShowCards, UserAction, migrate_cards, ttags
+from thb.actions import user_choose_cards
 from thb.cards import AttackCard, CardList, DollControlCard, DuelCard, Skill, TreatAs, VirtualCard
 from thb.cards import t_None
 from thb.characters.baseclasses import Character, register_character_to
@@ -88,9 +89,22 @@ class Disarm(Skill):
     target = t_None
 
 
+class SentryAction(AskForCard):
+    card_usage = 'launch'
+
+    def __init__(self, source, target):
+        AskForCard.__init__(self, source, source, AttackCard)
+        self.victim = target
+
+    def process_card(self, c):
+        g = Game.getgame()
+        src, tgt = self.source, self.victim
+        c = SentryAttack.wrap([c], src)
+        return g.process_action(LaunchCard(src, [tgt], c))
+
+
 class SentryHandler(EventHandler):
     interested = ('action_apply',)
-    card_usage = 'launch'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
@@ -105,23 +119,12 @@ class SentryHandler(EventHandler):
 
                 dist = LaunchCard.calc_distance(p, AttackCard())
                 if dist.get(tgt, 1) > 0: continue
-                cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-                if not cl: continue
-                c = SentryAttack.wrap(cl, tgt)
-                g.process_action(LaunchCard(p, [tgt], c))
+                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                    continue
+
+                g.process_action(SentryAction(p, tgt))
 
         return act
-
-    def cond(self, cl):
-        if not len(cl) == 1: return False
-        return cl[0].is_card(AttackCard)
-
-    def ask_for_action_verify(self, p, cl, tl):
-        if not cl:
-            return False
-
-        tgt = self.target
-        return LaunchCard(p, [tgt], cl[0]).can_fire()
 
 
 class SentryAttack(TreatAs, VirtualCard):

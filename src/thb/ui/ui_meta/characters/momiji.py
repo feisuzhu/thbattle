@@ -77,6 +77,14 @@ class DisarmHandler:
 
 
 class SentryHandler:
+    # choose_option meta
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+
+    def choose_option_prompt(act):
+        return u'你希望发动【哨戒】吗（对%s）？' % act.target.ui_meta.char_name
+
+
+class SentryAction:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
