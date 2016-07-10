@@ -179,9 +179,11 @@ class SolidShieldHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
             src, tgt = act.source, act.target
             if not src or not tgt: return act
-            ttags(src)['guard_launch_count'] += 1
-            if ttags(src)['guard_launch_count'] != 1:
+            ttags(src)['solid_shield_launch_count'] += 1
+            if ttags(src)['solid_shield_launch_count'] != 1:
                 return act
+
+            if src is tgt: return act
 
             g = Game.getgame()
             for p in g.players.rotate_to(src):
