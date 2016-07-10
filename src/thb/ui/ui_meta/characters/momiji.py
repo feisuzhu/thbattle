@@ -30,9 +30,9 @@ class Momiji:
         u'\n'
         # u'|G千里眼|r：|B锁定技|r，若你在一名其他角色的攻击内，则该角色视为在你攻击范围内。\n'
         # u'\n'
-        u'|G断噬|r：你距离1以内的角色成为另一名其他角色使用的弹幕或非延时符卡的唯一目标时，若该卡牌为其出牌阶段使用的第一张卡牌，你可以令其无效并将其暂时移出游戏。\n'
+        u'|G坚盾|r：你距离1以内的角色成为另一名其他角色使用的弹幕或非延时符卡的唯一目标时，若该卡牌为其出牌阶段使用的第一张卡牌，你可以令其无效并将其暂时移出游戏。\n'
         u'\n'
-        u'|B*|r 暂时移出游戏：将牌移出游戏，直到该角色的回合结束阶段，其获得这些被移出游戏的牌。\n'
+        u'|B|R>> |r 暂时移出游戏：将牌移出游戏，直到该角色的回合结束阶段，其获得这些被移出游戏的牌。\n'
         u'\n'
         u'|DB（画师：和茶，CV：简翎）|r'
     )
@@ -93,22 +93,23 @@ class SentryAction:
             return (False, u'哨戒：请选择一张弹幕发动哨戒(对%s)' % act.target.ui_meta.char_name)
 
 
-class RabiesBiteHandler:
+class SolidShieldHandler:
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你希望发动【断噬】吗？'
+    choose_option_prompt = u'你希望发动【坚盾】吗？'
 
 
-class RabiesBiteAction:
+class SolidShieldAction:
     def effect_string_before(act):
-        return u'“嗷~~~~！”|G【%s】|r突然冲了出来，吓的|G【%s】|r手里的%s都掉在地上了。' % (
+        # return u'“嗷~~~~！”|G【%s】|r突然冲了出来，吓的|G【%s】|r手里的%s都掉在地上了。' % (
+        return u'“嗷~~~~！”|G【%s】|r突然冲了出来，挡在了|G【%s】|r面前。' % (
             act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
-            card_desc(act.action.card),
+            act.action.target.ui_meta.char_name,
+            # card_desc(act.action.card),
         )
 
 
-class RabiesBite:
+class SolidShield:
     # Skill
-    name = u'断噬'
+    name = u'坚盾'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

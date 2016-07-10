@@ -172,7 +172,7 @@ class Telegnosis(Skill):
     target = t_None
 
 
-class RabiesBiteHandler(EventHandler):
+class SolidShieldHandler(EventHandler):
     interested = ('action_before',)
 
     def handle(self, evt_type, act):
@@ -188,10 +188,10 @@ class RabiesBiteHandler(EventHandler):
                 if p is src:
                     continue
 
-                if not p.has_skill(RabiesBite):
+                if not p.has_skill(SolidShield):
                     continue
 
-                dist = LaunchCard.calc_distance(p, RabiesBite(p))
+                dist = LaunchCard.calc_distance(p, SolidShield(p))
                 if dist[tgt] > 0:
                     continue
 
@@ -202,13 +202,13 @@ class RabiesBiteHandler(EventHandler):
                     return act
 
                 if user_input([p], ChooseOptionInputlet(self, (False, True))):
-                    g.process_action(RabiesBiteAction(p, src, act))
+                    g.process_action(SolidShieldAction(p, src, act))
                     break
 
         return act
 
 
-class RabiesBiteAction(UserAction):
+class SolidShieldAction(UserAction):
     def __init__(self, source, target, action):
         self.source = source
         self.target = target
@@ -230,7 +230,7 @@ class RabiesBiteAction(UserAction):
         return True
 
 
-class RabiesBite(Skill):
+class SolidShield(Skill):
     distance = 1
     associated_action = None
     skill_category = ('character', 'passive', 'compulsory')
@@ -240,7 +240,7 @@ class RabiesBite(Skill):
 @register_character_to('common')
 class Momiji(Character):
     # skills = [Disarm, Sentry, Telegnosis]
-    skills = [Disarm, Sentry, RabiesBite]
+    skills = [Disarm, Sentry, SolidShield]
     # eventhandlers_required = [SentryHandler, DisarmHandler, TelegnosisHandler]
-    eventhandlers_required = [SentryHandler, DisarmHandler, RabiesBiteHandler]
+    eventhandlers_required = [SentryHandler, DisarmHandler, SolidShieldHandler]
     maxlife = 4
