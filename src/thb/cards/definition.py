@@ -120,25 +120,25 @@ class DuelCard:
 class MapCannonCard:
     associated_action = spellcard.MapCannon
     target = t_All
-    category = ('spellcard', 'instant_spellcard', 'group_effect')
+    category = ('group_effect', 'spellcard', 'instant_spellcard')
 
 
 class DemonParadeCard:
     associated_action = spellcard.DemonParade
     target = t_All
-    category = ('spellcard', 'instant_spellcard', 'group_effect')
+    category = ('group_effect', 'spellcard', 'instant_spellcard')
 
 
 class FeastCard:
     associated_action = spellcard.Feast
     target = t_AllInclusive
-    category = ('spellcard', 'instant_spellcard', 'group_effect')
+    category = ('group_effect', 'spellcard', 'instant_spellcard')
 
 
 class HarvestCard:
     associated_action = spellcard.Harvest
     target = t_AllInclusive
-    category = ('spellcard', 'instant_spellcard', 'group_effect')
+    category = ('group_effect', 'spellcard', 'instant_spellcard')
 
 
 class DollControlCard:
