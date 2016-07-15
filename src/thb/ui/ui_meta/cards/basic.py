@@ -20,7 +20,7 @@ class AttackCard:
         u'出牌阶段，对你攻击范围内的一名其他角色使用，效果是对该角色造成1点伤害。\n'
         u'|B|R>> |r默认情况下，你的攻击范围是1。\n'
         u'|B|R>> |r默认情况下，出牌阶段你只能使用一张【弹幕】。\n\n'
-        u'|DB（CV：VV）|r'
+        u'|DB（画师：霏茶，CV：VV）|r'
     )
 
     def is_action_valid(g, cl, target_list):
