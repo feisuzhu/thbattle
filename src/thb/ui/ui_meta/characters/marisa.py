@@ -12,15 +12,14 @@ __metaclass__ = gen_metafunc(characters.marisa)
 
 class Marisa:
     # Character
-    char_name = u'雾雨魔理沙'
-    port_image = 'thb-portrait-marisa'
-    figure_image = 'thb-figure-marisa'
-    miss_sound_effect = 'thb-cv-marisa_miss'
-    description = (
-        u'|DB绝非普通的强盗少女 雾雨魔理沙 体力：4|r\n\n'
-        u'|G借走|r：出牌阶段限一次，你可以获得一名其他角色的一张牌，然后该角色可以视为对你使用了一张【弹幕】。\n\n'
-        u'|DB（画师：霏茶，CV：君寻）|r'
-    )
+    name        = u'雾雨魔理沙'
+    title       = u'绝非普通的强盗少女'
+    illustrator = u'霏茶'
+    cv          = u'君寻'
+
+    port_image        = u'thb-portrait-marisa'
+    figure_image      = u'thb-figure-marisa'
+    miss_sound_effect = u'thb-cv-marisa_miss'
 
 
 class Daze:
@@ -29,8 +28,8 @@ class Daze:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return u'|G【%s】|r喊道：“打贼啦！”向|G【%s】|r使用了|G弹幕|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
 
@@ -43,6 +42,7 @@ class BorrowAction:
 class Borrow:
     # Skill
     name = u'借走'
+    description = u'出牌阶段限一次，你可以获得一名其他角色的一张牌，然后该角色可以视为对你使用了一张|G弹幕|r。'
 
     def clickable(g):
         if limit1_skill_used('borrow_tag'):
@@ -69,8 +69,8 @@ class Borrow:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return u'大盗|G【%s】|r又出来“|G借走|r”了|G【%s】|r的牌。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):

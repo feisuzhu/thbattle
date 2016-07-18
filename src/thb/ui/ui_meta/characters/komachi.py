@@ -15,23 +15,21 @@ __metaclass__ = gen_metafunc(characters.komachi)
 
 class Komachi:
     # Character
-    char_name = u'小野塚小町'
-    port_image = 'thb-portrait-komachi'
-    figure_image = 'thb-figure-komachi'
+    name        = u'小野塚小町'
+    title       = u'乳不巨何以聚人心'
+    illustrator = u'渚FUN'
+    cv          = u'VV'
+
+    port_image         = u'thb-portrait-komachi'
+    figure_image       = u'thb-figure-komachi'
     figure_image_alter = 'thb-figure-komachi_alter'
-    miss_sound_effect = 'thb-cv-komachi_miss'
-    description = (
-        u'|DB乳不巨何以聚人心 小野塚小町 体力：4|r\n\n'
-        u'|G彼岸|r：出牌阶段限一次，你可以弃置一张牌并指定一名角色，你与其距离视为1直到回合结束。若该角色为全场体力最少的角色（或之一），你可以弃置其一张牌或摸一张牌。\n\n'
-        u'|G归航|r：|B觉醒技|r，准备阶段开始时，若你的体力值低于手牌数且不大于2，你减少一点体力上限并获得技能|R渡钱|r。\n\n'
-        u'|R渡钱|r：你对距离为1的其他角色造成一次伤害后，你可以获得其一张牌。\n\n'
-        u'|DB（画师：渚FUN，CV：VV）|r'
-    )
+    miss_sound_effect  = u'thb-cv-komachi_miss'
 
 
 class Riverside:
     # Skill
     name = u'彼岸'
+    description = u'出牌阶段限一次，你可以弃置一张牌并指定一名角色，你与其距离视为1直到回合结束。若该角色为全场体力最少的角色（或之一），你可以弃置其一张牌或摸一张牌。'
 
     def clickable(g):
         if not my_turn(): return False
@@ -57,8 +55,8 @@ class Riverside:
 
     def effect_string(act):
         return u'|G【%s】|r对|G【%s】|r使用了|G彼岸|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
+            act.source.ui_meta.name,
+            act.target.ui_meta.name
         )
 
     def sound_effect(act):
@@ -74,7 +72,7 @@ class RiversideAction:
 class ReturningAwake:
     def effect_string(act):
         return u'|G【%s】|r：“啊啊不能再偷懒啦！要被四季大人说教啦！”' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -84,6 +82,11 @@ class ReturningAwake:
 class Returning:
     # Skill
     name = u'归航'
+    description = (
+        u'|B觉醒技|r，准备阶段开始时，若你的体力值低于手牌数且不大于2，你减少一点体力上限并获得技能|R渡钱|r。\n'
+        u'|B|R>> |b渡钱|r：你对距离为1的其他角色造成一次伤害后，你可以获得其一张牌。'
+    )
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -91,6 +94,8 @@ class Returning:
 class FerryFee:
     # Skill
     name = u'渡钱'
+    description = u'你对距离为1的其他角色造成一次伤害后，你可以获得其一张牌。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -98,8 +103,8 @@ class FerryFee:
 class FerryFeeEffect:
     def effect_string(act):
         return u'|G【%s】|r收走了|G【%s】|r的一张牌作为|G渡钱|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):

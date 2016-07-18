@@ -57,7 +57,7 @@ class OpticalCloak:
 
     def effect_string_before(act):
         return u'|G【%s】|r祭起了|G光学迷彩|r…' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
         )
 
     def effect_string(act):
@@ -224,7 +224,7 @@ class UmbrellaEffect:
             s = u''
 
         return u'|G【%s】|r受到的%s效果被|G阳伞|r挡下了' % (
-            dmg.target.ui_meta.char_name, s,
+            dmg.target.ui_meta.name, s,
         )
 
     def sound_effect(act):
@@ -287,8 +287,8 @@ class GungnirSkill:
         source = act.source
         target = act.target
         s = u'|G【%s】|r发动了|G冈格尼尔|r之枪，将两张牌当作|G弹幕|r对|G【%s】|r使用。' % (
-            source.ui_meta.char_name,
-            target.ui_meta.char_name,
+            source.ui_meta.name,
+            target.ui_meta.name,
         )
         return s
 
@@ -346,8 +346,8 @@ class ScarletRhapsodySkill:
         tl = BatchList(act.target_list)
 
         return u'全人类的绯想天，当然不能只打一个！于是|G【%s】|r选了|G【%s】|r一共%d个目标！' % (
-            source.ui_meta.char_name,
-            u'】|r、|G【'.join(tl.ui_meta.char_name),
+            source.ui_meta.name,
+            u'】|r、|G【'.join(tl.ui_meta.name),
             len(tl),
         )
 
@@ -388,15 +388,15 @@ class RepentanceStick:
         return (
             u'|G【%s】|r用|G悔悟棒|r狠狠的敲了|G【%s】|r一通…'
         ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
 
         )
 
     def effect_string(act):
         cl = BatchList(act.cards)
         return u'又抢过|G【%s】|r的|G%s|r扔了出去！' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
             u'|r和|G'.join(cl.ui_meta.name)
         )
 
@@ -456,8 +456,8 @@ class HouraiJewelAttack:
         return (
             u'|G【%s】|r发动了|G蓬莱玉枝|r，包裹着魔法核心的弹幕冲向了|G【%s】|r！'
         ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
 
@@ -497,7 +497,7 @@ class MaidenCostumeAction:
         return (
             u'|G【%s】|r穿了|G巫女服|r，春度爆表，不怕符卡！'
         ) % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
         )
 
     def effect_string(act):
@@ -505,7 +505,7 @@ class MaidenCostumeAction:
             return (
                 u'好像|G【%s】|r的春度还是不够用…'
             ) % (
-                act.source.ui_meta.char_name,
+                act.source.ui_meta.name,
             )
 
 
@@ -543,13 +543,13 @@ class Hakurouken:
         return (
             u'|G【%s】|r祭起了|G白楼剑|r，试图斩断|G【%s】|r的迷惘！'
         ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def effect_string(act):
         if act.peer_action == 'drop':
-            return u'|G【%s】|r弃置了一张牌。' % act.target.ui_meta.char_name
+            return u'|G【%s】|r弃置了一张牌。' % act.target.ui_meta.name
         else:
             return None  # DrawCards has it's own prompt
 
@@ -597,14 +597,14 @@ class AyaRoundfan:
         return (
             u'|G【%s】|r觉得手中的|G团扇|r用起来好顺手，便加大力度试了试…'
         ) % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
         )
 
     def effect_string(act):
         return (
             u'于是|G【%s】|r的|G%s|r就飞了出去！'
         ) % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
             act.card.ui_meta.name,
         )
 
@@ -649,8 +649,8 @@ class NenshaPhone:
         return (
             u'|G【%s】|r表示，将|G【%s】|r推倒后拍摄胖次，是记者的自我修养中不可或缺的一部分。'
         ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -720,8 +720,8 @@ class DeathSickle:
             u'|G【%s】|r看到|G【%s】|r一副丧家犬的模样，'
             u'手中的|G死神之镰|r不自觉地一狠…'
         ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -752,7 +752,7 @@ class KeystoneSkill:
 class Keystone:
     def effect_string(act):
         return u'|G【%s】|r站在|G要石|r上，照着|G罪袋|r的脸一脚踹了下去！' % (
-            act.target.ui_meta.char_name
+            act.target.ui_meta.name
         )
 
     def sound_effect(act):
@@ -806,7 +806,7 @@ class YinYangOrbHandler:
 class YinYangOrb:
     def effect_string(act):
         return u'|G【%s】|r用|G%s|r替换了她的判定牌' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
             card_desc(act.card),
         )
 
@@ -887,7 +887,7 @@ class IceWingSkill:
 class IceWing:
     def effect_string(act):
         return u'|G【%s】|r借着|G⑨的翅膀|r飞了出来，|G%s|r没起到什么作用' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
             act.action.associated_card.ui_meta.name,
         )
 
@@ -962,7 +962,7 @@ class GrimoireSkill:
             u'|G【%s】|r抓起一张牌放入|G魔导书|r' +
             u'，念动咒语，发动了|G%s|r。'
         ) % (
-            source.ui_meta.char_name,
+            source.ui_meta.name,
             card.lookup_tbl[card.associated_cards[0].suit].ui_meta.name
         )
 
@@ -975,7 +975,7 @@ class SinsackHatAction:
 
     def effect_string_before(act):
         return u'看着戴着|G头套|r的|G【%s】|r，真正的的罪袋们都兴奋了起来！' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
         )
 
 

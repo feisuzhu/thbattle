@@ -41,8 +41,8 @@ class Demolition:
     def effect_string(act):
         if not act.succeeded: return None
         return u'|G【%s】|r卸掉了|G【%s】|r的%s。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             card_desc(act.card),
         )
 
@@ -62,8 +62,8 @@ class RejectCard:
 
     def effect_string(act):
         return u'|G【%s】|r为|G【%s】|r受到的|G%s|r使用了|G%s|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             act.force_action.target_act.associated_card.ui_meta.name,
             act.card.ui_meta.name,
         )
@@ -90,7 +90,7 @@ class RejectHandler:
         name = c.ui_meta.name
 
         s = u'【%s】受到的【%s】' % (
-            act.target_act.target.ui_meta.char_name,
+            act.target_act.target.ui_meta.name,
             name,
         )
 
@@ -130,9 +130,9 @@ class SealingArray:
     def effect_string(act):
         tgt = act.target
         if act.succeeded:
-            return u'|G【%s】|r被困在了封魔阵中' % tgt.ui_meta.char_name
+            return u'|G【%s】|r被困在了封魔阵中' % tgt.ui_meta.name
         else:
-            return u'封魔阵没有布置完善，|G【%s】|r侥幸逃了出来' % tgt.ui_meta.char_name
+            return u'封魔阵没有布置完善，|G【%s】|r侥幸逃了出来' % tgt.ui_meta.name
 
 
 class FrozenFrogCard:
@@ -165,9 +165,9 @@ class FrozenFrog:
     def effect_string(act):
         tgt = act.target
         if act.succeeded:
-            return u'|G【%s】|r被冻住了……' % tgt.ui_meta.char_name
+            return u'|G【%s】|r被冻住了……' % tgt.ui_meta.name
         else:
-            return u'幻想乡今天大晴，|G【%s】|r没有被冻住~' % tgt.ui_meta.char_name
+            return u'幻想乡今天大晴，|G【%s】|r没有被冻住~' % tgt.ui_meta.name
 
 
 class NazrinRodCard:
@@ -214,7 +214,7 @@ class Sinsack:
     def effect_string(act):
         tgt = act.target
         if act.succeeded:
-            return u'罪袋终于找到了机会，将|G【%s】|r推倒了…' % tgt.ui_meta.char_name
+            return u'罪袋终于找到了机会，将|G【%s】|r推倒了…' % tgt.ui_meta.name
 
 
 class SinsackDamage:
@@ -252,8 +252,8 @@ class YukariDimension:
         src, tgt = act.source, act.target
         if act.succeeded:
             return u'|G【%s】|r透过隙间拿走了|G【%s】|r的1张牌' % (
-                src.ui_meta.char_name,
-                tgt.ui_meta.char_name
+                src.ui_meta.name,
+                tgt.ui_meta.name
             )
 
 
@@ -357,7 +357,7 @@ class HarvestEffect:
         tgt = act.target
         c = act.card
         return u'|G【%s】|r获得了|G%s|r' % (
-            tgt.ui_meta.char_name,
+            tgt.ui_meta.name,
             card_desc(c),
         )
 

@@ -14,6 +14,8 @@ __metaclass__ = gen_metafunc(characters.tenshi)
 class Masochist:
     # Skill
     name = u'抖Ｍ'
+    description = u'当你受到1点伤害后，你可以观看牌堆顶的两张牌，将其中一张交给一名角色，然后将另一张交给一名角色。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -40,7 +42,7 @@ class MasochistAction:
 
     def effect_string_before(act):
         return u'不过|G【%s】|r好像很享受的样子…' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -50,6 +52,8 @@ class MasochistAction:
 class ScarletPerception:
     # Skill
     name = u'绯想'
+    description = u'|B锁定技|r，与你距离为1以内的角色的红色判定牌进入弃牌堆后，你获得之。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -57,7 +61,7 @@ class ScarletPerception:
 class ScarletPerceptionAction:
     def effect_string(act):
         return u'|G【%s】|r获得了%s' % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
             card_desc(act.card)
         )
 
@@ -67,13 +71,11 @@ class ScarletPerceptionAction:
 
 class Tenshi:
     # Character
-    char_name = u'比那名居天子'
-    port_image = 'thb-portrait-tenshi'
-    figure_image = 'thb-figure-tenshi'
-    miss_sound_effect = 'thb-cv-tenshi_miss'
-    description = (
-        u'|DB有顶天的大M子 比那名居天子 体力：3|r\n\n'
-        u'|G抖Ｍ|r：当你受到1点伤害后，你可以观看牌堆顶的两张牌，将其中一张交给一名角色，然后将另一张交给一名角色。\n\n'
-        u'|G绯想|r：|B锁定技|r，与你距离为1以内的角色的红色判定牌进入弃牌堆后，你获得之。\n\n'
-        u'|DB（画师：月见，CV：VV）|r'
-    )
+    name        = u'比那名居天子'
+    title       = u'有顶天的大M子'
+    illustrator = u'月见'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-tenshi'
+    figure_image      = u'thb-figure-tenshi'
+    miss_sound_effect = u'thb-cv-tenshi_miss'

@@ -14,7 +14,7 @@ __metaclass__ = gen_metafunc(actions)
 class DrawCards:
     def effect_string(act):
         return u'|G【%s】|r摸了%d张牌。' % (
-            act.target.ui_meta.char_name, act.amount,
+            act.target.ui_meta.name, act.amount,
         )
 
 
@@ -29,7 +29,7 @@ class DropCardStage:
     def effect_string(act):
         if act.dropn > 0 and act.cards:
             return u'|G【%s】|r弃掉了%d张牌：%s' % (
-                act.target.ui_meta.char_name, act.dropn, card_desc(act.cards),
+                act.target.ui_meta.name, act.dropn, card_desc(act.cards),
             )
 
 
@@ -41,11 +41,11 @@ class Damage:
         s, t = act.source, act.target
         if s:
             return u'|G【%s】|r对|G【%s】|r造成了%d点伤害。' % (
-                s.ui_meta.char_name, t.ui_meta.char_name, act.amount
+                s.ui_meta.name, t.ui_meta.name, act.amount
             )
         else:
             return u'|G【%s】|r受到了%d点无来源的伤害。' % (
-                t.ui_meta.char_name, act.amount
+                t.ui_meta.name, act.amount
             )
 
     def sound_effect(act):
@@ -58,7 +58,7 @@ class LifeLost:
 
     def effect_string(act):
         return u'|G【%s】|r流失了%d点体力。' % (
-            act.target.ui_meta.char_name, act.amount
+            act.target.ui_meta.name, act.amount
         )
 
 
@@ -75,8 +75,8 @@ class LaunchCard:
             return effect_string(act)
 
         return u'|G【%s】|r对|G【%s】|r使用了|G%s|r。' % (
-            s.ui_meta.char_name,
-            u'】|r、|G【'.join(tl.ui_meta.char_name),
+            s.ui_meta.name,
+            u'】|r、|G【'.join(tl.ui_meta.name),
             act.card.ui_meta.name
         )
 
@@ -117,7 +117,7 @@ class PlayerDeath:
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|rMISS了。' % (
-            tgt.ui_meta.char_name,
+            tgt.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -135,7 +135,7 @@ class PlayerRevive:
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|r重新回到了场上。' % (
-            tgt.ui_meta.char_name,
+            tgt.ui_meta.name,
         )
 
 
@@ -143,7 +143,7 @@ class TurnOverCard:
     def effect_string(act):
         tgt = act.target
         return u'|G【%s】|r翻开了牌堆顶的一张牌，%s' % (
-            tgt.ui_meta.char_name,
+            tgt.ui_meta.name,
             card_desc(act.card)
         )
 
@@ -158,7 +158,7 @@ class RevealIdentity:
         tgt = act.target
         i = tgt.identity
         try:
-            name = u'|G%s|r' % tgt.ui_meta.char_name
+            name = u'|G%s|r' % tgt.ui_meta.name
         except:
             name = u'|R%s|r' % tgt.account.username
 
@@ -178,14 +178,14 @@ class Pindian:
 
     def effect_string_before(act):
         return u'|G【%s】|r对|G【%s】|r发起了拼点' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def effect_string(act):
         winner = act.source if act.succeeded else act.target
         return u'|G【%s】|r是人生赢家！' % (
-            winner.ui_meta.char_name
+            winner.ui_meta.name
         )
 
 
@@ -209,13 +209,13 @@ class Fatetell:
 
         if act_name:
             prompt = u'|G【%s】|r进行了一次判定（|G%s|r），结果为%s。' % (
-                act.target.ui_meta.char_name,
+                act.target.ui_meta.name,
                 act_name,
                 card_desc(act.card)
             )
         else:
             prompt = u'|G【%s】|r进行了一次判定，结果为%s。' % (
-                act.target.ui_meta.char_name,
+                act.target.ui_meta.name,
                 card_desc(act.card)
             )
 

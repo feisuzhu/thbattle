@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 import logging
@@ -21,6 +22,7 @@ from client.ui.soundmgr import SoundManager
 from game.autoenv import Game
 from thb import actions as thbactions
 from thb.cards import Card, CardList, RejectCard
+from thb.ui.ui_meta.common import char_desc
 
 
 # -- code --
@@ -343,8 +345,6 @@ class GirlSelector(ImageSelector):
         cc = choice.char_cls
         meta = cc.ui_meta
         pimg = L(meta.port_image)
-        self.char_name = meta.char_name
-        self.char_maxlife = cc.maxlife
 
         self.x = x
         self.y = y
@@ -352,7 +352,7 @@ class GirlSelector(ImageSelector):
             self, pimg, group, *a, **k
         )
 
-        self.balloon.set_balloon(meta.description)
+        self.balloon.set_balloon(char_desc(cc))
 
 
 class UIBaseChooseGirl(Panel, InputHandler):
@@ -463,7 +463,7 @@ class UIChooseGirl(UIBaseChooseGirl):
         actor, choice = arg
         choice and choice.char_cls and self.parent.prompt(u'|R%s|r选择了|G【%s】|r' % (
             actor.account.username,
-            choice.char_cls.ui_meta.char_name,
+            choice.char_cls.ui_meta.name,
         ))
 
 
@@ -492,7 +492,7 @@ class UIBanGirl(UIBaseChooseGirl):
         actor, choice = arg
         choice and choice.char_cls and self.parent.prompt(u'|R%s|rBAN掉了|G【%s】|r' % (
             actor.account.username,
-            choice.char_cls.ui_meta.char_name,
+            choice.char_cls.ui_meta.name,
         ))
 
 
@@ -687,7 +687,7 @@ class UIHarvestChoose(Panel, InputHandler):
         self.lbl.draw()
 
     def process_user_input_start(self, ilet):
-        self.lbl.text = u'等待%s选择卡牌' % (ilet.actor.ui_meta.char_name)
+        self.lbl.text = u'等待%s选择卡牌' % (ilet.actor.ui_meta.name)
         self.lbl.color = (255, 255, 160, 255)
 
     def process_user_input(self, ilet):
@@ -1146,7 +1146,7 @@ class UIGalgameDialog(Control, InputHandler):
         self.texture = L(meta.port_image)
 
         Label(
-            text=meta.char_name, x=2, y=80, font_size=12,
+            text=meta.name, x=2, y=80, font_size=12,
             anchor_x='left', anchor_y='bottom',
             color=(255, 255, 160, 255), shadow=(2, 0, 0, 0, 230),
             batch=self.lbls,

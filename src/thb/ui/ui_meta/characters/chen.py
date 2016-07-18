@@ -14,6 +14,7 @@ __metaclass__ = gen_metafunc(characters.chen)
 class FlyingSkanda:
     # Skill
     name = u'飞翔韦驮天'
+    description = u'出牌阶段限一次，你使用|G弹幕|r或除了|G人形操控|r以外的非延时单体符卡时，可以额外指定一个目标。'
 
     def clickable(game):
         me = game.me
@@ -63,9 +64,9 @@ class FlyingSkanda:
             s = u'符卡掺了金坷垃，一张能顶两张用！'
 
         return u'|G【%s】|r：“%s|G【%s】|r接招吧！”' % (
-            source.ui_meta.char_name,
+            source.ui_meta.name,
             s,
-            u'】|r、|G【'.join(tl.ui_meta.char_name),
+            u'】|r、|G【'.join(tl.ui_meta.name),
         )
 
     def sound_effect(act):
@@ -75,6 +76,7 @@ class FlyingSkanda:
 class Shikigami:
     # Skill
     name = u'式神'
+    description = u'|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：摸2张牌或回复一点体力。直到你的下个回合开始，你和该角色可以于自己的回合内对对方攻击范围内的角色使用|G弹幕|r。'
 
     def clickable(game):
         me = game.me
@@ -109,13 +111,11 @@ class ShikigamiAction:
 
 class Chen:
     # Character
-    char_name = u'橙'
-    port_image = 'thb-portrait-chen'
-    figure_image = 'thb-figure-chen'
-    miss_sound_effect = 'thb-cv-chen_miss'
-    description = (
-        u'|DB凶兆的黑喵 橙 体力：4|r\n\n'
-        u'|G飞翔韦驮天|r：出牌阶段限一次，你使用【弹幕】或除了【人形操控】以外的非延时单体符卡时，可以额外指定一个目标。\n\n'
-        u'|G式神|r：|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：摸2张牌或回复一点体力。直到你的下个回合开始，你和该角色可以于自己的回合内对对方攻击范围内的角色使用【弹幕】。\n\n'
-        u'|DB（画师：和茶，CV：shourei小N）|r'
-    )
+    name        = u'橙'
+    title       = u'凶兆的黑喵'
+    illustrator = u'和茶'
+    cv          = u'shourei小N'
+
+    port_image        = u'thb-portrait-chen'
+    figure_image      = u'thb-figure-chen'
+    miss_sound_effect = u'thb-cv-chen_miss'

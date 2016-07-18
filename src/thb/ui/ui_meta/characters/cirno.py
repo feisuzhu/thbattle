@@ -15,6 +15,8 @@ __metaclass__ = gen_metafunc(characters.cirno)
 class PerfectFreeze:
     # Skill
     name = u'完美冻结'
+    description = u'当你使用|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害时，你可以防止此次伤害，然后令该角色弃置一张牌；若其弃置的不为装备区的牌，其失去一点体力。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -22,15 +24,15 @@ class PerfectFreeze:
 class CirnoDropCards:
     def effect_string(act):
         return u'|G【%s】|r弃置了|G【%s】|r的%s。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             card_desc(act.cards),
         )
 
 
 class PerfectFreezeAction:
     def effect_string_before(act):
-        return u'|G【%s】|r被冻伤了。' % act.target.ui_meta.char_name
+        return u'|G【%s】|r被冻伤了。' % act.target.ui_meta.name
 
     def sound_effect(act):
         return 'thb-cv-cirno_perfectfreeze'
@@ -51,6 +53,11 @@ class PerfectFreezeHandler:
 class Bakadesu:
     # Skill
     name = u'最强'
+    description = (
+        u'出牌阶段限一次，你可以指定一名可以合法对你使用|G弹幕|r的角色，该角色选择一项：\n'
+        u'|B|R>> |r对你使用一张|G弹幕|r\n'
+        u'|B|R>> |r令你弃置其一张牌'
+    )
 
     def clickable(game):
         me = game.me
@@ -72,8 +79,8 @@ class Bakadesu:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return u'|G【%s】|r双手叉腰，对着|G【%s】|r大喊：“老娘最强！”' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -85,23 +92,16 @@ class BakadesuAction:
         if act.cond(cl):
             return (True, u'啪！啪！啪！')
         else:
-            return (False, u'请选择一张弹幕对【%s】使用' % act.source.ui_meta.char_name)
+            return (False, u'请选择一张弹幕对【%s】使用' % act.source.ui_meta.name)
 
 
 class Cirno:
     # Character
-    char_name = u'琪露诺'
-    port_image = 'thb-portrait-cirno'
-    figure_image = 'thb-figure-cirno'
-    miss_sound_effect = 'thb-cv-cirno_miss'
-    description = (
-        u'|DB跟青蛙过不去的笨蛋 琪露诺 体力：4|r\n'
-        u'\n'
-        u'|G最强|r：出牌阶段限一次，你可以指定一名可以合法对你使用|G弹幕|r的角色，该角色选择一项：\n'
-        u'|B|R>> |r对你使用一张|G弹幕|r\n'
-        u'|B|R>> |r令你弃置其一张牌\n'
-        u'\n'
-        u'|G完美冻结|r：当你使用|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害时，你可以防止此次伤害，然后令该角色弃置一张牌；若其弃置的不为装备区的牌，其失去一点体力。\n'
-        u'\n'
-        u'|DB（画师：渚FUN，CV：君寻）|r'
-    )
+    name        = u'琪露诺'
+    title       = u'跟青蛙过不去的笨蛋'
+    illustrator = u'渚FUN'
+    cv          = u'君寻'
+
+    port_image        = u'thb-portrait-cirno'
+    figure_image      = u'thb-figure-cirno'
+    miss_sound_effect = u'thb-cv-cirno_miss'

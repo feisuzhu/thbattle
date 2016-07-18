@@ -14,20 +14,20 @@ __metaclass__ = gen_metafunc(characters.koakuma)
 
 class Koakuma:
     # Character
-    char_name = u'小恶魔'
-    port_image = 'thb-portrait-koakuma'
-    figure_image = 'thb-figure-koakuma'
-    miss_sound_effect = 'thb-cv-koakuma_miss'
-    description = (
-        u'|DB图书管理员 小恶魔 体力：4|r\n\n'
-        u'|G寻找|r：出牌阶段限一次，你可以弃置至多X张牌，然后摸等量的牌（X为场上存活角色数）。\n\n'
-        u'|DB（画师：渚FUN/Takibi，CV：VV）|r'
-    )
+    name        = u'小恶魔'
+    title       = u'图书管理员'
+    illustrator = u'渚FUN/Takibi'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-koakuma'
+    figure_image      = u'thb-figure-koakuma'
+    miss_sound_effect = u'thb-cv-koakuma_miss'
 
 
 class Find:
     # Skill
     name = u'寻找'
+    description = u'出牌阶段限一次，你可以弃置至多X张牌，然后摸等量的牌（X为场上存活角色数）。'
 
     def clickable(game):
         me = game.me
@@ -57,7 +57,7 @@ class Find:
         source = act.source
         card = act.card
         s = u'|G【%s】|r发动了寻找技能，换掉了%d张牌。' % (
-            source.ui_meta.char_name,
+            source.ui_meta.name,
             len(card.associated_cards),
         )
         return s

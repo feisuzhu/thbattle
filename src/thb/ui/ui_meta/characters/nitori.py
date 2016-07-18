@@ -17,6 +17,7 @@ __metaclass__ = gen_metafunc(characters.nitori)
 class Dismantle:
     # Skill
     name = u'拆解'
+    description = u'出牌阶段限一次，你可以|B重铸|r一名其他角色装备区里的一张装备牌，然后该角色摸一张牌。'
 
     def clickable(g):
         if ttags(g.me)['dismantle']:
@@ -42,6 +43,8 @@ class Dismantle:
 
 class Craftsman:
     name = u'匠心'
+    description = u'你可以将你的全部手牌（至少1张）当做任意的一张基本牌使用或打出。出牌阶段内使用时，一回合限一次。'
+
     params_ui = 'UICraftsmanCardSelection'
 
     def clickable(g):
@@ -79,7 +82,7 @@ class Craftsman:
         # for LaunchCard.effect_string
         source = act.source
         s = u'|G【%s】|r发动了|G匠心|r。' % (
-            source.ui_meta.char_name,
+            source.ui_meta.name,
         )
         return s
 
@@ -105,17 +108,13 @@ class Craftsman:
 
 class Nitori:
     # Character
-    char_name = u'河城荷取'
-    port_image = 'thb-portrait-nitori'
-    figure_image = 'thb-figure-nitori'
-    description = (
-        u'|DB水中的工程师 河城荷取 体力：3|r\n'
-        u'\n'
-        u'|G拆解|r：出牌阶段限一次，你可以|B重铸|r一名其他角色装备区里的一张装备牌，然后该角色摸一张牌。\n'
-        u'\n'
-        u'|G匠心|r：你可以将你的全部手牌（至少1张）当做任意的一张基本牌使用或打出。出牌阶段内使用时，一回合限一次。\n'
-        u'\n'
-        u'|RKOF不平衡角色|r\n'
-        u'\n'
-        u'|DB（画师：和茶，CV：简翎）|r'
-    )
+    name        = u'河城荷取'
+    title       = u'水中的工程师'
+    illustrator = u'和茶'
+    cv          = u'简翎'
+
+    port_image        = u'thb-portrait-nitori'
+    figure_image      = u'thb-figure-nitori'
+    miss_sound_effect = u''
+
+    notes = u'|RKOF不平衡角色|r'

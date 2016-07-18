@@ -23,11 +23,11 @@ class ImperialChoice(GameItem):
 
     @property
     def title(self):
-        return u'选将卡（%s）' % self.char_cls.ui_meta.char_name
+        return u'选将卡（%s）' % self.char_cls.ui_meta.name
 
     @property
     def description(self):
-        return u'你可以选择%s出场。2v2模式不可用。' % self.char_cls.ui_meta.char_name
+        return u'你可以选择%s出场。2v2模式不可用。' % self.char_cls.ui_meta.name
 
     def should_usable_in_game(self, uid, mgr):
         g = mgr.game

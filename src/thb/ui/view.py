@@ -71,7 +71,7 @@ class ResultPanel(Panel):
         winners = g.winners
         for p in g.players:
             s = u'|G%s|r(|R%s|r, |c0000ffff%s|r, %s)\n' % (
-                p.ui_meta.char_name, p.account.username.replace('|', '||'),
+                p.ui_meta.name, p.account.username.replace('|', '||'),
                 g.ui_meta.identity_table[p.identity.type],
                 u'|R胜利|r' if p in winners else u'失败'
             )

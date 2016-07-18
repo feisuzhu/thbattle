@@ -20,6 +20,7 @@ from client.ui.resloader import L, get_atlas
 from game.autoenv import Game
 from thb import actions
 from thb.cards import CardList
+from thb.ui.ui_meta.common import char_desc
 from utils import flatten, rectv2f, rrectv2f
 
 
@@ -862,10 +863,11 @@ class GameCharacterPortrait(Frame):
             meta = char.ui_meta
             self.bg = L(meta.port_image)
             self.update_bg()
-            self.set_charname(meta.char_name)
-            if self._last_balloon != meta.description:
-                self.balloon.set_balloon(meta.description, (2, 74, 145, 96))
-                self._last_balloon = meta.description
+            self.set_charname(meta.name)
+            desc = char_desc(char)
+            if self._last_balloon != desc:
+                self.balloon.set_balloon(desc, (2, 74, 145, 96))
+                self._last_balloon = desc
 
         self.bot_reserve = 74
         self.gray_tex = None
@@ -875,8 +877,9 @@ class GameCharacterPortrait(Frame):
         self.tagarrange()
 
     def balloon_show(self):
+        char = self.character
         try:
-            meta = self.character.ui_meta
+            meta = char.ui_meta
             figure_image = L(meta.figure_image)
         except:
             return self.balloon.balloon_show()
@@ -891,7 +894,7 @@ class GameCharacterPortrait(Frame):
 
         return _CharacterFigure(
             figure_image,
-            meta.description,
+            char_desc(char),
             parent=self.parent,
         )
 
@@ -990,8 +993,8 @@ class GameCharacterPortrait(Frame):
             [heavy] * 4,  # cardnum box border
         ])
 
-    def set_charname(self, char_name):
-        self.charname_lbl.text = char_name
+    def set_charname(self, name):
+        self.charname_lbl.text = name
 
     @property
     def disabled(self):

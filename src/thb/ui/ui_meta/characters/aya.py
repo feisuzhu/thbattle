@@ -13,6 +13,8 @@ __metaclass__ = gen_metafunc(characters.aya)
 class UltimateSpeed:
     # Skill
     name = u'最速'
+    description = u'|B锁定技|r，你在回合内使用第二张牌时，你摸一张牌且在本回合使用卡牌时无距离限制。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -20,7 +22,7 @@ class UltimateSpeed:
 class UltimateSpeedAction:
     def effect_string(act):
         return u'|G【%s】|r：“哼哼，你已经跟不上我的速度了吧～”' % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -29,12 +31,11 @@ class UltimateSpeedAction:
 
 class Aya:
     # Character
-    char_name = u'射命丸文'
-    port_image = 'thb-portrait-aya'
-    figure_image = 'thb-figure-aya'
-    miss_sound_effect = 'thb-cv-aya_miss'
-    description = (
-        u'|DB幻想乡最速 射命丸文 体力：4|r\n\n'
-        u'|G最速|r：|B锁定技|r，你在回合内使用第二张牌时，你摸一张牌且在本回合使用卡牌时无距离限制。\n\n'
-        u'|DB（画师：渚FUN，CV：君寻）|r'
-    )
+    name        = u'射命丸文'
+    title       = u'幻想乡最速'
+    illustrator = u'渚FUN'
+    cv          = u'君寻'
+
+    port_image        = u'thb-portrait-aya'
+    figure_image      = u'thb-figure-aya'
+    miss_sound_effect = u'thb-cv-aya_miss'

@@ -14,6 +14,8 @@ __metaclass__ = gen_metafunc(characters.rumia)
 class Darkness:
     # Skill
     name = u'黑暗'
+    description = u'出牌阶段限一次，你可以弃置一张牌并指定一名其他角色。该角色需对由你指定的在其攻击范围内的另一名其他角色使用一张|G弹幕|r，否则你对其造成1点伤害。'
+
     custom_ray = True
 
     def clickable(game):
@@ -43,9 +45,9 @@ class Darkness:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return u'|G【%s】|r在黑暗中一通乱搅，结果|G【%s】|r和|G【%s】|r打了起来！' % (
-            act.source.ui_meta.char_name,
-            act.target_list[0].ui_meta.char_name,
-            act.target_list[1].ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target_list[0].ui_meta.name,
+            act.target_list[1].ui_meta.name,
         )
 
     def sound_effect(act):
@@ -55,6 +57,8 @@ class Darkness:
 class DarknessKOF:
     # Skill
     name = u'黑暗'
+    description = u'|B登场技|r，你登场的回合，对手使用卡牌时无法指定你为目标。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -62,7 +66,7 @@ class DarknessKOF:
 class DarknessKOFAction:
 
     def effect_string(act):
-        return u'|G【%s】|r一出现天就黑了，低头都看不见胖次！' % act.source.ui_meta.char_name
+        return u'|G【%s】|r一出现天就黑了，低头都看不见胖次！' % act.source.ui_meta.name
 
     def sound_effect(act):
         return 'thb-cv-rumia_darkness_kof'
@@ -88,6 +92,8 @@ class DarknessAction:
 class Cheating:
     # Skill
     name = u'作弊'
+    description = u'|B锁定技|r，结束阶段开始时，你摸一张牌。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -102,28 +108,25 @@ class CheatingDrawCards:
 
 class Rumia:
     # Character
-    char_name = u'露米娅'
-    port_image = 'thb-portrait-rumia'
-    figure_image = 'thb-figure-rumia'
-    miss_sound_effect = 'thb-cv-rumia_miss'
-    description = (
-        u'|DB宵暗的妖怪 露米娅 体力：3|r\n\n'
-        u'|G黑暗|r：出牌阶段限一次，你可以弃置一张牌并指定一名其他角色。该角色需对由你指定的在其攻击范围内的另一名其他角色使用一张【弹幕】，否则你对其造成1点伤害。\n\n'
-        u'|G作弊|r：|B锁定技|r，结束阶段开始时，你摸一张牌。\n\n'
-        u'|DB（画师：和茶，CV：小羽）|r'
-    )
+    name        = u'露米娅'
+    title       = u'宵暗的妖怪'
+    illustrator = u'和茶'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-rumia'
+    figure_image      = u'thb-figure-rumia'
+    miss_sound_effect = u'thb-cv-rumia_miss'
 
 
 class RumiaKOF:
     # Character
-    char_name = u'露米娅'
-    port_image = 'thb-portrait-rumia'
-    figure_image = 'thb-figure-rumia'
-    miss_sound_effect = 'thb-cv-rumia_miss'
-    description = (
-        u'|DB宵暗的妖怪 露米娅 体力：3|r\n\n'
-        u'|G黑暗|r：|B登场技|r，你登场的回合，对手使用卡牌时无法指定你为目标。\n\n'
-        u'|G作弊|r：|B锁定技|r，结束阶段开始时，你摸一张牌。\n\n'
-        u'|RKOF修正角色\n\n'
-        u'|DB（画师：和茶，CV：小羽）|r'
-    )
+    name        = u'露米娅'
+    title       = u'宵暗的妖怪'
+    illustrator = u'和茶'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-rumia'
+    figure_image      = u'thb-figure-rumia'
+    miss_sound_effect = u'thb-cv-rumia_miss'
+
+    notes = u'|RKOF修正角色'

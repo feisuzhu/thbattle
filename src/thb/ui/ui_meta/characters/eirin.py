@@ -13,6 +13,7 @@ __metaclass__ = gen_metafunc(characters.eirin)
 class FirstAid:
     # Skill
     name = u'急救'
+    description = u'当一名角色进入濒死状态时，你可以将一张红色牌当|G麻薯|r对其使用。'
 
     def clickable(game):
         try:
@@ -41,6 +42,7 @@ class FirstAid:
 class Medic:
     # Skill
     name = u'医者'
+    description = u'出牌阶段限一次，你可以弃置一张手牌并令一名已受伤的角色回复1点体力。'
 
     def clickable(game):
         me = game.me
@@ -78,9 +80,9 @@ class Medic:
             u'|G【%s】|r用一张|G%s|r做药引做了一贴膏药，'
             u'细心地贴在了|G【%s】|r的伤口上。'
         ) % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
             act.card.associated_cards[0].ui_meta.name,
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -89,14 +91,13 @@ class Medic:
 
 class Eirin:
     # Character
-    char_name = u'八意永琳'
-    port_image = 'thb-portrait-eirin'
-    figure_image = 'thb-figure-eirin'
-    miss_sound_effect = 'thb-cv-eirin_miss'
-    description = (
-        u'|DB街中的药贩 八意永琳 体力：3|r\n\n'
-        u'|G医者|r：出牌阶段限一次，你可以弃置一张手牌并令一名已受伤的角色回复1点体力。\n\n'
-        u'|G急救|r：当一名角色进入濒死状态时，你可以将一张红色牌当【麻薯】对其使用。\n\n'
-        u'|RKOF模式不可用\n\n'
-        u'|DB（画师：渚FUN，CV：VV）|r'
-    )
+    name        = u'八意永琳'
+    title       = u'街中的药贩'
+    illustrator = u'渚FUN'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-eirin'
+    figure_image      = u'thb-figure-eirin'
+    miss_sound_effect = u'thb-cv-eirin_miss'
+
+    notes = u'|RKOF模式不可用|r'

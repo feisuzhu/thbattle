@@ -15,6 +15,7 @@ __metaclass__ = gen_metafunc(characters.rinnosuke)
 class Netoru:
     # Skill
     name = u'寝取'
+    description = u'出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力。'
 
     def clickable(game):
         me = game.me
@@ -49,8 +50,8 @@ class Netoru:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return u'|G【%s】|r一改平日的猥琐形象，竟然用花言巧语将|G【%s】|r骗去啪啪啪了！' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -60,6 +61,8 @@ class Netoru:
 class Psychopath:
     # Skill
     name = u'变态'
+    description = u'|B锁定技|r，当你失去一张装备区里的牌时，你摸两张牌。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -69,7 +72,7 @@ class PsychopathDrawCards:
         return (
             u'|G【%s】|r满脸猥琐地将装备脱掉，结果众人抄起了%d张牌糊在了他身上。'
         ) % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
             act.amount,
         )
 
@@ -83,12 +86,11 @@ class PsychopathDrawCards:
 
 class Rinnosuke:
     # Character
-    char_name = u'森近霖之助'
-    port_image = 'thb-portrait-rinnosuke'
-    miss_sound_effect = 'thb-cv-rinnosuke_miss'
-    description = (
-        u'|DB变态出没注意 森近霖之助 体力：3|r\n\n'
-        u'|G变态|r：|B锁定技|r，当你失去一张装备区里的牌时，你摸两张牌。\n\n'
-        u'|G寝取|r：出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力。\n\n'
-        u'|DB（画师：Pixiv ID 1666615，CV：大白）|r'
-    )
+    name        = u'森近霖之助'
+    title       = u'变态出没注意'
+    illustrator = u'Pixiv ID 1666615'
+    cv          = u'大白'
+
+    port_image        = u'thb-portrait-rinnosuke'
+    figure_image      = u''
+    miss_sound_effect = u'thb-cv-rinnosuke_miss'

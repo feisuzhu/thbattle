@@ -86,6 +86,7 @@ class THBattleIdentity:
 class AssistedAttack:
     # Skill
     name = u'同仇'
+    description = u'当你需要使用或打出一张|G弹幕|r时，其他玩家可以代替你使用或打出一张|G弹幕|r'
 
     def clickable(game):
         me = game.me
@@ -110,8 +111,8 @@ class AssistedAttack:
         return (
             u'|G【%s】|r发动了|G同仇|r，目标是|G【%s】|r。'
         ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
 
@@ -127,9 +128,9 @@ class AssistedUseAction:
 class AssistedAttackAction:
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'帮BOSS对%s出弹幕' % act.target.ui_meta.char_name)
+            return (True, u'帮BOSS对%s出弹幕' % act.target.ui_meta.name)
         else:
-            return (False, u'同仇：请选择一张弹幕（对%s出）' % act.target.ui_meta.char_name)
+            return (False, u'同仇：请选择一张弹幕（对%s出）' % act.target.ui_meta.name)
 
 
 class AssistedAttackCard:
@@ -137,7 +138,7 @@ class AssistedAttackCard:
         s = act.card
         c = s.associated_cards[0]
         return u'|G【%s】|r响应了|G同仇|r，使用了|G%s|r' % (
-            c.resides_in.owner.ui_meta.char_name,
+            c.resides_in.owner.ui_meta.name,
             card_desc(c),
         )
 
@@ -150,6 +151,7 @@ class AssistedAttackHandler:
 class AssistedGraze:
     # Skill
     name = u'协力'
+    description = u'当你需要使用或打出一张|G擦弹|r时，其他玩家可以代替你使用或打出一张|G擦弹|r'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -162,7 +164,7 @@ class AssistedGrazeHandler:
 class AssistedHealAction:
     def effect_string_before(act):
         return u'|G【%s】|r发动了|G牺牲|r' % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
         )
 
 
@@ -174,6 +176,7 @@ class AssistedHealHandler:
 class AssistedHeal:
     # Skill
     name = u'牺牲'
+    description = u'当你于濒死状态下，被一名角色使用|G麻薯|r而回复体力至1后，其可以失去一点体力，令你额外回复一点体力'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -181,6 +184,7 @@ class AssistedHeal:
 class ExtraCardSlot:
     # Skill
     name = u'应援'
+    description = u'|G应援|r：锁定技，每有一名道中存活，你的手牌上限便+1'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -194,6 +198,6 @@ class ChooseBossSkillAction:
 
     def effect_string(act):
         return u'|G【%s】|r选择了|G%s|r作为BOSS技' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
             act.skill_chosen.ui_meta.name,
         )

@@ -12,20 +12,20 @@ __metaclass__ = gen_metafunc(characters.parsee)
 
 class Parsee:
     # Character
-    char_name = u'水桥帕露西'
-    port_image = 'thb-portrait-parsee'
-    figure_image = 'thb-figure-parsee'
-    miss_sound_effect = 'thb-cv-parsee_miss'
-    description = (
-        u'|DB地壳下的嫉妒心 水桥帕露西 体力：4|r\n\n'
-        u'|G嫉妒|r：出牌阶段，你可以将一张黑色牌当|G城管执法|r使用。你使用|G城管执法|r使一名距离1以内角色的一张方片牌进入弃牌堆时，你可以获得之。\n\n'
-        u'|DB（画师：和茶，CV：小羽）|r'
-    )
+    name        = u'水桥帕露西'
+    title       = u'地壳下的嫉妒心'
+    illustrator = u'和茶'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-parsee'
+    figure_image      = u'thb-figure-parsee'
+    miss_sound_effect = u'thb-cv-parsee_miss'
 
 
 class Envy:
     # Skill
     name = u'嫉妒'
+    description = u'出牌阶段，你可以将一张黑色牌当|G城管执法|r使用。你使用|G城管执法|r使一名距离1以内角色的一张方片牌进入弃牌堆时，你可以获得之。'
 
     def clickable(game):
         me = game.me
@@ -53,10 +53,10 @@ class Envy:
         card = act.card
         target = act.target
         s = u'|G【%s】|r发动了嫉妒技能，将|G%s|r当作|G%s|r对|G【%s】|r使用。' % (
-            source.ui_meta.char_name,
+            source.ui_meta.name,
             card.associated_cards[0].ui_meta.name,
             card.treat_as.ui_meta.name,
-            target.ui_meta.char_name,
+            target.ui_meta.name,
         )
         return s
 
@@ -74,5 +74,5 @@ class EnvyHandler:
 class EnvyRecycleAction:
     def effect_string(act):
         return u'|G【%s】|r：“喂喂这么好的牌扔掉不觉得可惜么？不要嫉妒我。”' % (
-            act.source.ui_meta.char_name
+            act.source.ui_meta.name
         )

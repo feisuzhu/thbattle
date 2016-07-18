@@ -15,37 +15,38 @@ __metaclass__ = gen_metafunc(characters.reisen)
 
 class Reisen:
     # Character
-    char_name = u'铃仙'
-    port_image = 'thb-portrait-reisen'
-    figure_image = 'thb-figure-reisen'
-    miss_sound_effect = 'thb-cv-reisen_miss'
-    description = (
-        u'|DB永琳的首席药品品尝官 铃仙·优昙华院·因幡 体力：4|r\n\n'
-        u'|G狂气|r：你因为|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害后，你可以令其获得技能|G丧心|r。\n\n'
-        u'|G生药|r：你因为|G麻薯|r而回复体力后，你可以获得喝醉状态。\n\n'
-        u'|R丧心|r：|B锁定技|r，出牌阶段，你不能使用除|G弹幕|r以外的卡牌。你使用|G弹幕|r只能指定距离最近的目标。结束阶段开始时，你失去此技能。\n\n'
-        u'|DB（画师：镜_Area@幻想梦斗符，CV：小羽）|r'
-    )
+    name        = u'铃仙'
+    title       = u'永琳的首席药品品尝官'
+    illustrator = u'镜_Area@幻想梦斗符'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-reisen'
+    figure_image      = u'thb-figure-reisen'
+    miss_sound_effect = u'thb-cv-reisen_miss'
 
 
 class ReisenKOF:
     # Character
-    char_name = u'铃仙'
-    port_image = 'thb-portrait-reisen'
-    figure_image = 'thb-figure-reisen'
-    miss_sound_effect = 'thb-cv-reisen_miss'
-    description = (
-        u'|DB永琳的首席药品品尝官 铃仙·优昙华院·因幡 体力：4|r\n\n'
-        u'|G狂气|r：你因为|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害后，你可以令其获得技能|G丧心|r。\n\n'
-        u'|R丧心|r：|B锁定技|r，出牌阶段，你不能使用除|G弹幕|r以外的卡牌。你使用|G弹幕|r只能指定距离最近的目标。结束阶段开始时，你失去此技能。\n\n'
-        u'|RKOF修正角色|r\n\n'
-        u'|DB（画师：镜_Area@幻想梦斗符，CV：小羽）|r'
-    )
+    name        = u'铃仙'
+    title       = u'永琳的首席药品品尝官'
+    illustrator = u'镜_Area@幻想梦斗符'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-reisen'
+    figure_image      = u'thb-figure-reisen'
+    miss_sound_effect = u'thb-cv-reisen_miss'
+
+    notes = u'|RKOF修正角色|r'
 
 
 class Lunatic:
     # Skill
     name = u'狂气'
+    description = (
+        u'你因为|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害后，你可以令其获得技能|G丧心|r。\n'
+        u'|B|R>> |b丧心|r：|B锁定技|r，出牌阶段，你不能使用除|G弹幕|r以外的卡牌。你使用|G弹幕|r只能指定距离最近的目标。结束阶段开始时，你失去此技能。'
+    )
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -53,6 +54,8 @@ class Lunatic:
 class Discarder:
     # Skill
     name = u'丧心'
+    description = u'|B锁定技|r，出牌阶段，你不能使用除|G弹幕|r以外的卡牌。你使用|G弹幕|r只能指定距离最近的目标。结束阶段开始时，你失去此技能。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -60,13 +63,15 @@ class Discarder:
 class MahjongDrug:
     # Skill
     name = u'生药'
+    description = u'你因为|G麻薯|r而回复体力后，你可以获得喝醉状态。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
 class MahjongDrugAction:
     def effect_string(act):
-        return u'|G【%s】|r：“国士无双之药，认准蓝瓶的！”' % act.target.ui_meta.char_name
+        return u'|G【%s】|r：“国士无双之药，认准蓝瓶的！”' % act.target.ui_meta.name
 
     def sound_effect(act):
         return 'thb-cv-reisen_mahjongdrug'
@@ -85,8 +90,8 @@ class LunaticHandler:
 class LunaticAction:
     def effect_string(act):
         return u'|G【%s】|r看着|G【%s】|r的眼睛，突然觉得自己可以打10个！' % (
-            act.target.ui_meta.char_name,
-            act.source.ui_meta.char_name,
+            act.target.ui_meta.name,
+            act.source.ui_meta.name,
         )
 
     def sound_effect(act):

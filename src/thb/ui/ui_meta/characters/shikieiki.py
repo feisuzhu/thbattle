@@ -15,6 +15,8 @@ __metaclass__ = gen_metafunc(characters.shikieiki)
 class Trial:
     # Skill
     name = u'审判'
+    description = u'在一名角色的判定牌生效前，你可以打出一张牌代替之。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -22,8 +24,8 @@ class Trial:
 class TrialAction:
     def effect_string(act):
         return u'幻想乡各地巫女妖怪纷纷表示坚决拥护|G【%s】|r将|G【%s】|r的判定结果修改为%s的有关决定！' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             card_desc(act.card)
         )
 
@@ -37,6 +39,8 @@ class TrialAction:
 class Majesty:
     # Skill
     name = u'威严'
+    description = u'当你受到一次伤害后，你可以获得伤害来源的一张牌。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -44,8 +48,8 @@ class Majesty:
 class MajestyAction:
     def effect_string(act):
         return u'|G【%s】|r脸上挂满黑线，收走了|G【%s】|r的一张牌填补自己的|G威严|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -73,13 +77,11 @@ class MajestyHandler:
 
 class Shikieiki:
     # Character
-    char_name = u'四季映姬'
-    port_image = 'thb-portrait-shikieiki'
-    figure_image = 'thb-figure-shikieiki'
-    miss_sound_effect = 'thb-cv-shikieiki_miss'
-    description = (
-        u'|DB胸不平何以平天下 四季映姬 体力：3|r\n\n'
-        u'|G审判|r：在一名角色的判定牌生效前，你可以打出一张牌代替之。\n\n'
-        u'|G威严|r：当你受到一次伤害后，你可以获得伤害来源的一张牌。\n\n'
-        u'|DB（画师：和茶，CV：shourei小N）|r'
-    )
+    name        = u'四季映姬'
+    title       = u'胸不平何以平天下'
+    illustrator = u'和茶'
+    cv          = u'shourei小N'
+
+    port_image        = u'thb-portrait-shikieiki'
+    figure_image      = u'thb-figure-shikieiki'
+    miss_sound_effect = u'thb-cv-shikieiki_miss'

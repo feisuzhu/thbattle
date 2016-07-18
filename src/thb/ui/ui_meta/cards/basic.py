@@ -64,7 +64,7 @@ class GrazeCard:
 
     def effect_string(act):
         return u'|G【%s】|r使用了|G%s|r。' % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
             act.card.ui_meta.name
         )
 
@@ -109,12 +109,12 @@ class WineCard:
 
 class Wine:
     def effect_string(act):
-        return u'|G【%s】|r喝醉了…' % act.target.ui_meta.char_name
+        return u'|G【%s】|r喝醉了…' % act.target.ui_meta.name
 
 
 class WineRevive:
     def effect_string(act):
-        return u'|G【%s】|r醒酒了。' % act.target.ui_meta.char_name
+        return u'|G【%s】|r醒酒了。' % act.target.ui_meta.name
 
 
 class ExinwanCard:
@@ -143,7 +143,7 @@ class ExinwanEffect:
             return (False, u'请选择两张牌（不选则受到一点无源伤害）')
 
     def effect_string_before(act):
-        return u'|G【%s】|r被恶心到了！' % act.target.ui_meta.char_name
+        return u'|G【%s】|r被恶心到了！' % act.target.ui_meta.name
 
     def sound_effect(act):
         return 'thb-cv-card_exinwan'
@@ -162,7 +162,7 @@ class UseGraze:
         if not act.succeeded: return None
         t = act.target
         return u'|G【%s】|r打出了|G%s|r。' % (
-            t.ui_meta.char_name,
+            t.ui_meta.name,
             act.card.ui_meta.name,
         )
 
@@ -189,7 +189,7 @@ class UseAttack:
         if not act.succeeded: return None
         t = act.target
         return u'|G【%s】|r打出了|G%s|r。' % (
-            t.ui_meta.char_name,
+            t.ui_meta.name,
             act.card.ui_meta.name,
         )
 
@@ -223,16 +223,16 @@ class AskForHeal:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'神说，你不能在这里MISS(对%s使用)' % act.source.ui_meta.char_name)
+            return (True, u'神说，你不能在这里MISS(对%s使用)' % act.source.ui_meta.name)
         else:
-            return (False, u'请选择一张【麻薯】(对%s使用)…' % act.source.ui_meta.char_name)
+            return (False, u'请选择一张【麻薯】(对%s使用)…' % act.source.ui_meta.name)
 
 
 class Heal:
     def effect_string(act):
         if act.succeeded:
             return u'|G【%s】|r回复了%d点体力。' % (
-                act.target.ui_meta.char_name, act.amount
+                act.target.ui_meta.name, act.amount
             )
 
 

@@ -14,21 +14,20 @@ __metaclass__ = gen_metafunc(characters.sakuya)
 
 class Sakuya:
     # Character
-    char_name = u'十六夜咲夜'
-    port_image = 'thb-portrait-sakuya'
-    figure_image = 'thb-figure-sakuya'
-    miss_sound_effect = 'thb-cv-sakuya_miss'
-    description = (
-        u'|DB完全潇洒的PAD长 十六夜咲夜 体力：4|r\n\n'
-        u'|G月时计|r：|B锁定技|r，准备阶段开始时，你执行一个额外的出牌阶段。\n\n'
-        u'|G飞刀|r：你可以将一张装备牌当|G弹幕|r使用或打出。按此法使用的|G弹幕|r无距离限制。\n\n'
-        u'|DB（画师：和茶，CV：VV）|r'
-    )
+    name        = u'十六夜咲夜'
+    title       = u'完全潇洒的PAD长'
+    illustrator = u'和茶'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-sakuya'
+    figure_image      = u'thb-figure-sakuya'
+    miss_sound_effect = u'thb-cv-sakuya_miss'
 
 
 class Dagger:
     # Skill
     name = u'飞刀'
+    description = u'你可以将一张装备牌当|G弹幕|r使用或打出。按此法使用的|G弹幕|r无距离限制。'
 
     def clickable(g):
         me = g.me
@@ -66,9 +65,9 @@ class Dagger:
         card = act.card
         target = act.target
         s = u'|G【%s】|r将|G%s|r制成了|G飞刀|r，向|G【%s】|r掷去！' % (
-            source.ui_meta.char_name,
+            source.ui_meta.name,
             card.associated_cards[0].ui_meta.name,
-            target.ui_meta.char_name,
+            target.ui_meta.name,
         )
         return s
 
@@ -87,5 +86,7 @@ class LunaDialActionStage:
 class LunaDial:
     # Skill
     name = u'月时计'
+    description = u'|B锁定技|r，准备阶段开始时，你执行一个额外的出牌阶段。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

@@ -14,6 +14,8 @@ __metaclass__ = gen_metafunc(characters.minoriko)
 class Foison:
     # Skill
     name = u'丰收'
+    description = u'|B锁定技|r，摸牌阶段摸牌后，若你的手牌数不足5张，你可以补至5张。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -21,7 +23,7 @@ class Foison:
 class FoisonDrawCardStage:
     def effect_string(act):
         return u'大丰收！|G【%s】|r一下子收获了%d张牌！' % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
             act.amount,
         )
 
@@ -32,6 +34,7 @@ class FoisonDrawCardStage:
 class AutumnFeast:
     # Skill
     name = u'秋祭'
+    description = u'出牌阶段限一次，你可以将两张红色牌当|G五谷丰登|r使用。'
 
     def clickable(game):
         me = game.me
@@ -57,7 +60,7 @@ class AutumnFeast:
         return (
             u'|G【%s】|r：麻薯年年有，今年特别多！'
         ) % (
-            source.ui_meta.char_name,
+            source.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -67,6 +70,8 @@ class AutumnFeast:
 class AkiTribute:
     # Skill
     name = u'上贡'
+    description = u'|B锁定技|r，当有人使用|G五谷丰登|r时，你首先拿牌。|G五谷丰登|r结算完毕后，你将剩余的牌置于一名角色的明牌区。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -87,14 +92,11 @@ class AkiTributeHandler:
 
 class Minoriko:
     # Character
-    char_name = u'秋穰子'
-    port_image = 'thb-portrait-minoriko'
-    figure_image = 'thb-figure-minoriko'
-    miss_sound_effect = 'thb-cv-minoriko_miss'
-    description = (
-        u'|DB没人气的丰收神 秋穰子 体力：3|r\n\n'
-        u'|G丰收|r：|B锁定技|r，摸牌阶段摸牌后，若你的手牌数不足5张，你可以补至5张。\n\n'
-        u'|G秋祭|r：出牌阶段限一次，你可以将两张红色牌当|G五谷丰登|r使用。\n\n'
-        u'|G上贡|r：|B锁定技|r，当有人使用|G五谷丰登|r时，你首先拿牌。|G五谷丰登|r结算完毕后，你将剩余的牌置于一名角色的明牌区。\n\n'
-        u'|DB（画师：和茶，CV：VV）|r'
-    )
+    name        = u'秋穰子'
+    title       = u'没人气的丰收神'
+    illustrator = u'和茶'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-minoriko'
+    figure_image      = u'thb-figure-minoriko'
+    miss_sound_effect = u'thb-cv-minoriko_miss'

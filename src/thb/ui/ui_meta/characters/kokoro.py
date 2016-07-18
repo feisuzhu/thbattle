@@ -13,36 +13,35 @@ __metaclass__ = gen_metafunc(characters.kokoro)
 
 class Kokoro:
     # Character
-    char_name = u'秦心'
-    port_image = 'thb-portrait-kokoro'
-    figure_image = 'thb-figure-kokoro'
-    miss_sound_effect = 'thb-cv-kokoro_miss'
-    description = (
-        u'|DB表情丰富的扑克脸 秦心 体力：3|r\n\n'
-        u'|G希望之面|r：出牌阶段开始时，你可以观看牌堆顶1+X张牌，然后展示并获得其中任意数量的同一种花色的牌，其余以任意顺序置于牌堆顶。（X为你已损失的体力值）\n\n'
-        u'|G暗黑能乐|r：出牌阶段，你可以将一张黑色牌置于体力不低于你的其他角色的明牌区，该角色需弃置除获得的牌以外的手牌直至手牌数等于其当前体力值。每阶段限一次。\n\n'
-        u'|DB（画师：Takibi，CV：小羽/VV）|r'
-    )
+    name        = u'秦心'
+    title       = u'表情丰富的扑克脸'
+    illustrator = u'Takibi'
+    cv          = u'小羽/VV'
+
+    port_image        = u'thb-portrait-kokoro'
+    figure_image      = u'thb-figure-kokoro'
+    miss_sound_effect = u'thb-cv-kokoro_miss'
 
 
 class KokoroKOF:
     # Character
-    char_name = u'秦心'
-    port_image = 'thb-portrait-kokoro'
-    figure_image = 'thb-figure-kokoro'
-    miss_sound_effect = 'thb-cv-kokoro_miss'
-    description = (
-        u'|DB表情丰富的扑克脸 秦心 体力：3|r\n\n'
-        u'|G希望之面|r：出牌阶段开始时，你可以观看牌堆顶1+X张牌，然后展示并获得其中的一张牌，其余以任意顺序置于牌堆顶。（X为你已损失的体力值）\n\n'
-        u'|G暗黑能乐|r：|B限定技|r，出牌阶段，你可以将一张黑色牌置于体力不低于你的其他角色的明牌区，该角色需弃置除获得的牌以外的手牌直至手牌数等于其当前体力值。\n\n'
-        u'|RKOF修正角色|r\n\n'
-        u'|DB（画师：Takibi，CV：小羽/VV）|r'
-    )
+    name        = u'秦心'
+    title       = u'表情丰富的扑克脸'
+    illustrator = u'Takibi'
+    cv          = u'小羽/VV'
+
+    port_image        = u'thb-portrait-kokoro'
+    figure_image      = u'thb-figure-kokoro'
+    miss_sound_effect = u'thb-cv-kokoro_miss'
+
+    notes = u'|RKOF修正角色|r'
 
 
 class HopeMask:
     # Skill
     name = u'希望之面'
+    description = u'出牌阶段开始时，你可以观看牌堆顶1+X张牌，然后展示并获得其中任意数量的同一种花色的牌，其余以任意顺序置于牌堆顶。（X为你已损失的体力值）'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -50,6 +49,8 @@ class HopeMask:
 class HopeMaskKOF:
     # Skill
     name = u'希望之面'
+    description = u'出牌阶段开始时，你可以观看牌堆顶1+X张牌，然后展示并获得其中的一张牌，其余以任意顺序置于牌堆顶。（X为你已损失的体力值）'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -62,14 +63,14 @@ class BaseHopeMaskHandler:
 
 class BaseHopeMaskAction:
     def effect_string_before(act):
-        return u'|G【%s】|r挑选面具中……' % (act.source.ui_meta.char_name)
+        return u'|G【%s】|r挑选面具中……' % (act.source.ui_meta.name)
 
     def effect_string(act):
         if not len(act.acquire):
             return None
 
         return u'|G【%s】|r拿起了%s，贴在了自己的脸上。' % (
-            act.source.ui_meta.char_name, card_desc(act.acquire),
+            act.source.ui_meta.name, card_desc(act.acquire),
         )
 
     def sound_effect(act):
@@ -107,11 +108,11 @@ class BaseDarkNoh:
         card = act.card
         target = act.target
         return [
-            u'|G【%s】|r：“这点失控还不够，让你的所有感情也一起爆发吧！”' % source.ui_meta.char_name,
+            u'|G【%s】|r：“这点失控还不够，让你的所有感情也一起爆发吧！”' % source.ui_meta.name,
             u'|G【%s】|r使用|G%s|r对|G【%s】|r发动了|G暗黑能乐|r。' % (
-                source.ui_meta.char_name,
+                source.ui_meta.name,
                 card.associated_cards[0].ui_meta.name,
-                target.ui_meta.char_name,
+                target.ui_meta.name,
             )
         ]
 
@@ -120,6 +121,8 @@ class BaseDarkNoh:
 
 
 class DarkNoh:
+    description = u'出牌阶段，你可以将一张黑色牌置于体力不低于你的其他角色的明牌区，该角色需弃置除获得的牌以外的手牌直至手牌数等于其当前体力值。每阶段限一次。'
+
     def clickable(g):
         me = g.me
         if limit1_skill_used('darknoh_tag'):
@@ -135,6 +138,8 @@ class DarkNoh:
 
 
 class DarkNohKOF:
+    description = u'|B限定技|r，出牌阶段，你可以将一张黑色牌置于体力不低于你的其他角色的明牌区，该角色需弃置除获得的牌以外的手牌直至手牌数等于其当前体力值。'
+
     def clickable(g):
         me = g.me
         if me.tags['darknoh_tag'] > 0:

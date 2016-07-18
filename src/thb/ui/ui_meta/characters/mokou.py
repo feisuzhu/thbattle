@@ -12,21 +12,21 @@ __metaclass__ = gen_metafunc(characters.mokou)
 
 class Mokou:
     # Character
-    char_name = u'藤原妹红'
-    port_image = 'thb-portrait-mokou'
-    figure_image = 'thb-figure-mokou'
-    miss_sound_effect = 'thb-cv-mokou_miss'
-    description = (
-        u'|DBFFF团资深团员 藤原妹红 体力：4|r\n\n'
-        u'|G浴火|r：结束阶段开始时，你可以失去1点体力，然后摸两张牌。\n\n'
-        u'|G重生|r：准备阶段开始时，你可以弃置X张红色牌，然后回复1点体力。（X为你的当前体力值）\n\n'
-        u'|DB（画师：六仔OwO，CV：小羽）|r'
-    )
+    name        = u'藤原妹红'
+    title       = u'FFF团资深团员'
+    illustrator = u'六仔OwO'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-mokou'
+    figure_image      = u'thb-figure-mokou'
+    miss_sound_effect = u'thb-cv-mokou_miss'
 
 
 class Ashes:
     # Skill
     name = u'浴火'
+    description = u'结束阶段开始时，你可以失去1点体力，然后摸两张牌。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -34,7 +34,7 @@ class Ashes:
 class AshesAction:
     def effect_string_before(act):
         return u'|G【%s】|r：“不~可~饶~恕~！”' % (
-            act.target.ui_meta.char_name
+            act.target.ui_meta.name
         )
 
     def sound_effect(act):
@@ -50,6 +50,8 @@ class AshesHandler:
 class Reborn:
     # Skill
     name = u'重生'
+    description = u'准备阶段开始时，你可以弃置X张红色牌，然后回复1点体力。（X为你的当前体力值）'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -57,7 +59,7 @@ class Reborn:
 class RebornAction:
     def effect_string(act):
         return u'|G【%s】|r使用了|G重生|r。' % (
-            act.target.ui_meta.char_name
+            act.target.ui_meta.name
         )
 
     def sound_effect(act):

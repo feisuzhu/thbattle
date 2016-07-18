@@ -13,26 +13,23 @@ __metaclass__ = gen_metafunc(characters.medicine)
 
 class Medicine:
     # Character
-    char_name = u'梅蒂欣'
-    port_image = 'thb-portrait-medicine'
-    figure_image = 'thb-figure-medicine'
-    miss_sound_effect = 'thb-cv-medicine_miss'
-    description = (
-        u'|DB小小的甜蜜毒药 梅蒂欣 体力：3|r\n'
-        u'\n'
-        u'|G神经之毒|r：一名角色的准备阶段开始时，你可以弃置一张黑色牌，令该角色失去一点残机，然后获得喝醉状态。\n'
-        u'\n'
-        u'|G忧郁之毒|r：每当你受到一次有来源的伤害后，你可以展示并获得牌堆顶一张牌，若其花色不为梅花，伤害来源无法使用或打出手牌直到该回合结束。\n'
-        u'\n'
-        u'|RKOF不平衡角色|r\n'
-        u'\n'
-        u'|DB（画师：和茶，CV：VV）|r'
-    )
+    name        = u'梅蒂欣'
+    title       = u'小小的甜蜜毒药'
+    illustrator = u'和茶'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-medicine'
+    figure_image      = u'thb-figure-medicine'
+    miss_sound_effect = u'thb-cv-medicine_miss'
+
+    notes = u'|RKOF不平衡角色|r'
 
 
 class Ciguatera:
     # Skill
     name = u'神经之毒'
+    description = u'一名角色的准备阶段开始时，你可以弃置一张黑色牌，令该角色失去一点残机，然后获得喝醉状态。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -40,8 +37,8 @@ class Ciguatera:
 class CiguateraAction:
     def effect_string_before(act):
         return u'|G【%s】|r对|G【%s】|r使用了|G神经之毒|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
+            act.source.ui_meta.name,
+            act.target.ui_meta.name
         )
 
     def sound_effect(act):
@@ -56,6 +53,8 @@ class CiguateraHandler:
 class Melancholy:
     # Skill
     name = u'忧郁之毒'
+    description = u'每当你受到一次有来源的伤害后，你可以展示并获得牌堆顶一张牌，若其花色不为梅花，伤害来源无法使用或打出手牌直到该回合结束。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -73,13 +72,13 @@ class MelancholyPoison:
 class MelancholyAction:
     def effect_string_before(act):
         return u'|G【%s】|r对|G【%s】|r使用了|G忧郁之毒|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
+            act.source.ui_meta.name,
+            act.target.ui_meta.name
         )
 
     def effect_string(act):
         return (u'|G【%s】|r陷入了忧郁。' if act.effective
-                else u'但|G【%s】|r缓了过来。') % act.target.ui_meta.char_name
+                else u'但|G【%s】|r缓了过来。') % act.target.ui_meta.name
 
     def sound_effect(act):
         return 'thb-cv-medicine_melancholy'

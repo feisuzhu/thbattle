@@ -15,6 +15,10 @@ __metaclass__ = gen_metafunc(characters.yukari)
 class SpiritingAway:
     # Skill
     name = u'神隐'
+    description = (
+        u'出牌阶段限两次，你可以将任意角色区域内的一张牌移出游戏。你的结束阶段，这些角色获得自己被移出游戏的牌。\n'
+        u'|B|R>> |r你可以观看由|G神隐|r移出的牌。'
+    )
 
     def clickable(game):
         me = game.me
@@ -53,8 +57,8 @@ class SpiritingAwayAction:
         )
         # return u'|G【{source}】|r：“{word}”（|G{target}|r的{card}不见了）'.format(
         return u'|G【{source}】|r：“{word}”（|G{target}|r的一张牌不见了）'.format(
-            source=act.source.ui_meta.char_name,
-            target=act.target.ui_meta.char_name,
+            source=act.source.ui_meta.name,
+            target=act.target.ui_meta.name,
             word=random.choice(words),
             # card=card_desc(act.card),
         )
@@ -68,13 +72,11 @@ class SpiritingAwayAction:
 
 class Yukari:
     # Character
-    char_name = u'八云紫'
-    port_image = 'thb-portrait-yukari'
-    figure_image = 'thb-figure-yukari'
-    miss_sound_effect = 'thb-cv-yukari_miss'
-    description = (
-        u'|DB永远17岁 八云紫 体力：4|r\n\n'
-        u'|G神隐|r：出牌阶段限两次，你可以将任意角色区域内的一张牌移出游戏。你的结束阶段，这些角色获得自己被移出游戏的牌。\n'
-        u'|B|R>> |r你可以观看由|G神隐|r移出的牌。\n\n'
-        u'|DB（画师：Vivicat@幻想梦斗符，CV：VV）|r'
-    )
+    name        = u'八云紫'
+    title       = u'永远17岁'
+    illustrator = u'Vivicat@幻想梦斗符'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-yukari'
+    figure_image      = u'thb-figure-yukari'
+    miss_sound_effect = u'thb-cv-yukari_miss'

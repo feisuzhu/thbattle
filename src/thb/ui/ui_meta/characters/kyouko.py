@@ -14,21 +14,22 @@ __metaclass__ = gen_metafunc(characters.kyouko)
 
 class Kyouko:
     # Character
-    char_name = u'幽谷响子'
-    port_image = 'thb-portrait-kyouko'
-    figure_image = 'thb-figure-kyouko'
-    miss_sound_effect = 'thb-cv-kyouko_miss'
-    description = (
-        u'|DB诵经的山彦 幽谷响子 体力：4|r\n\n'
-        u'|G回响|r：你受到伤害后，可以获得对你造成的牌。若此牌为弹幕，你可以改为令一名其他角色获得之。\n\n'
-        u'|G共振|r：你对一名其他角色使用的弹幕结算完毕后，你可以令另一名其他角色对其使用一张弹幕（无距离限制）。\n\n'
-        u'|DB（画师：月见，人物设计：蝶之羽风暂留此，CV：小羽）|r'
-    )
+    name        = u'幽谷响子'
+    title       = u'诵经的山彦'
+    illustrator = u'月见'
+    designer    = u'蝶之羽风暂留此'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-kyouko'
+    figure_image      = u'thb-figure-kyouko'
+    miss_sound_effect = u'thb-cv-kyouko_miss'
 
 
 class Echo:
     # Skill
     name = u'回响'
+    description = u'你受到伤害后，可以获得对你造成的牌。若此牌为弹幕，你可以改为令一名其他角色获得之。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -36,6 +37,8 @@ class Echo:
 class Resonance:
     # Skill
     name = u'共振'
+    description = u'你对一名其他角色使用的弹幕结算完毕后，你可以令另一名其他角色对其使用一张弹幕（无距离限制）。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -57,14 +60,14 @@ class ResonanceAction:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'共振：对%s使用弹幕' % act.target.ui_meta.char_name)
+            return (True, u'共振：对%s使用弹幕' % act.target.ui_meta.name)
         else:
-            return (False, u'共振：请选择一张弹幕对%s使用' % act.target.ui_meta.char_name)
+            return (False, u'共振：请选择一张弹幕对%s使用' % act.target.ui_meta.name)
 
     def effect_string_before(act):
         return u'|G【%s】|r对|G【%s】|r发动了|G共振|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def ray(act):
@@ -79,8 +82,8 @@ class EchoAction:
 
     def effect_string_before(act):
         return u'|G【%s】|r发动了|G回响|r，|G【%s】|r获得了%s' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             card_desc(thbcards.VirtualCard.unwrap([act.card])),
         )
 

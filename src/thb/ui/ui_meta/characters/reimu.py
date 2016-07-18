@@ -70,6 +70,8 @@ class SpiritualAttack:
 class TributeTarget:
     # Skill
     name = u'纳奉'
+    description = u'|BBOSS技|r，其他角色的出牌阶段限一次，若你的手牌数小于体力上限，其可以将一张手牌置入你的明牌区。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -77,6 +79,7 @@ class TributeTarget:
 class Tribute:
     # Skill
     name = u'塞钱'
+    description = u'出牌阶段限一次，若灵梦的手牌数小于体力上限，你可以将一张手牌置入灵梦的明牌区。'
 
     def clickable(game):
         me = game.me
@@ -115,8 +118,8 @@ class Tribute:
         return (
             u'|G【%s】|r向|G【%s】|r的塞钱箱里放了一张%s… 会发生什么呢？'
         ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             card_desc(act.card.associated_cards[0]),
         )
 
@@ -136,6 +139,12 @@ class Tribute:
 class ReimuExterminate:
     # Skill
     name = u'退治'
+    description = (
+        u'你可以在以下时机对当前行动角色（若不是你）使用一张弹幕（无距离限制）：\n'
+        u'|B|R>> |r在当前行动角色的出牌阶段，你受到一次有来源的伤害后\n'
+        u'|B|R>> |r在当前行动角色的结束阶段开始且其本回合对其他角色造成过伤害时'
+    )
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -146,17 +155,17 @@ class ReimuExterminateAction:
         if act.cond(cards):
             return (True, u'代表幻想乡消灭你！')
         else:
-            return (False, u'退治：选择一张弹幕对%s使用（否则不发动）' % act.victim.ui_meta.char_name)
+            return (False, u'退治：选择一张弹幕对%s使用（否则不发动）' % act.victim.ui_meta.name)
 
 
 class ReimuExterminateLaunchCard:
     def effect_string_before(act):
         if act.cause == 'damage':
-            return u'|G【%s】|r： (╯‵□′)╯︵ ┻━┻ ！！！' % act.source.ui_meta.char_name
+            return u'|G【%s】|r： (╯‵□′)╯︵ ┻━┻ ！！！' % act.source.ui_meta.name
         else:
             return u'听说异变的元凶是|G【%s】|r，|G【%s】|r马上就出现了！' % (
-                act.target.ui_meta.char_name,
-                act.source.ui_meta.char_name,
+                act.target.ui_meta.name,
+                act.source.ui_meta.name,
             )
 
     def sound_effect(act):
@@ -169,6 +178,8 @@ class ReimuExterminateLaunchCard:
 class ReimuClear:
     # Skill
     name = u'快晴'
+    description = u'你对一名其他角色造成伤害后，你可以与其各摸一张牌。若此时为其它角色的出牌阶段，终止此阶段的结算。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -176,8 +187,8 @@ class ReimuClear:
 class ReimuClearAction:
     def effect_string_before(act):
         return u'异变解决啦！|G【%s】|r和|G【%s】|r一起去吃饭了！' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -191,20 +202,11 @@ class ReimuClearHandler:
 
 class Reimu:
     # Character
-    char_name = u'博丽灵梦'
-    port_image = 'thb-portrait-reimu'
-    figure_image = 'thb-figure-reimu'
-    miss_sound_effect = 'thb-cv-reimu_miss'
-    description = (
-        u'|DB节操满地跑的城管 博丽灵梦 体力：4|r\n'
-        u'\n'
-        u'|G退治|r：你可以在以下时机对当前行动角色（若不是你）使用一张弹幕（无距离限制）：\n'
-        u'|B|R>> |r在当前行动角色的出牌阶段，你受到一次有来源的伤害后\n'
-        u'|B|R>> |r在当前行动角色的结束阶段开始且其本回合对其他角色造成过伤害时\n'
-        u'\n'
-        u'|G快晴|r：你对一名其他角色造成伤害后，你可以与其各摸一张牌。若此时为其它角色的出牌阶段，终止此阶段的结算。\n'
-        u'\n'
-        u'|G纳奉|r：|BBOSS技|r，其他角色的出牌阶段限一次，若你的手牌数小于体力上限，其可以将一张手牌置入你的明牌区。\n'
-        u'\n'
-        u'|DB（画师：和茶，CV：shourei小N）|r'
-    )
+    name        = u'博丽灵梦'
+    title       = u'节操满地跑的城管'
+    illustrator = u'和茶'
+    cv          = u'shourei小N'
+
+    port_image        = u'thb-portrait-reimu'
+    figure_image      = u'thb-figure-reimu'
+    miss_sound_effect = u'thb-cv-reimu_miss'

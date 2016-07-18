@@ -16,6 +16,8 @@ __metaclass__ = gen_metafunc(characters.shinmyoumaru)
 class MiracleMallet:
     # Skill
     name = u'万宝槌'
+    description = u'在一名角色的判定牌生效前，你可以用一张点数大于此牌的牌替换之。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -23,8 +25,8 @@ class MiracleMallet:
 class MiracleMalletAction:
     def effect_string(act):
         return u'|G【%s】|r将|G【%s】|r的判定结果改为%s。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             card_desc(act.card)
         )
 
@@ -38,6 +40,8 @@ class MiracleMalletAction:
 class VengeOfTsukumogami:
     # Skill
     name = u'付丧神之怨'
+    description = u'当一名其他角色装备区的牌（因使用或打出以外的原因）直接进入弃牌堆后，你可以进行一次判定，若结果为9~K，你对其造成一点伤害。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -45,8 +49,8 @@ class VengeOfTsukumogami:
 class VengeOfTsukumogamiAction:
     def effect_string_before(act):
         return u'|G【%s】|r对|G【%s】|r发动了|G付丧神之怨|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -71,18 +75,17 @@ class VengeOfTsukumogamiHandler:
 
     def choose_option_prompt(act):
         prompt = u'你要发动【付丧神之怨】吗（对%s）？'
-        return prompt % act.target.ui_meta.char_name
+        return prompt % act.target.ui_meta.name
 
 
 class Shinmyoumaru:
     # Character
-    char_name = u'少名针妙丸'
-    port_image = 'thb-portrait-shinmyoumaru'
-    figure_image = 'thb-figure-shinmyoumaru'
-    miss_sound_effect = 'thb-cv-shinmyoumaru_miss'
-    description = (
-        u'|DB进击的小人 少名针妙丸 体力：4|r\n\n'
-        u'|G付丧神之怨|r：当一名其他角色装备区的牌（因使用或打出以外的原因）直接进入弃牌堆后，你可以进行一次判定，若结果为9~K，你对其造成一点伤害。\n\n'
-        u'|G万宝槌|r：在一名角色的判定牌生效前，你可以用一张点数大于此牌的牌替换之。\n\n'
-        u'|DB（画师：六仔OwO，人物设计：yourccz95，CV：小羽）|r'
-    )
+    name        = u'少名针妙丸'
+    title       = u'进击的小人'
+    illustrator = u'六仔OwO'
+    designer    = u'yourccz95'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-shinmyoumaru'
+    figure_image      = u'thb-figure-shinmyoumaru'
+    miss_sound_effect = u'thb-cv-shinmyoumaru_miss'

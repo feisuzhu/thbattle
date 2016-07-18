@@ -15,21 +15,21 @@ __metaclass__ = gen_metafunc(characters.kaguya)
 
 class Kaguya:
     # Character
-    char_name = u'蓬莱山辉夜'
-    port_image = 'thb-portrait-kaguya'
-    figure_image = 'thb-figure-kaguya'
-    miss_sound_effect = 'thb-cv-kaguya_miss'
-    description = (
-        u'|DB永远的公主殿下 蓬莱山辉夜 体力：3|r\n\n'
-        u'|G难题|r：一名角色令你回复一点体力时，你可以令该角色摸一张牌；每当你受到一次伤害后，你可以令伤害来源交给你一张方片牌，否则其失去1点体力。\n\n'
-        u'|G永夜|r：你的回合外，当一名其他角色的红色基本牌因使用进入弃牌堆时，你可以将一张红色牌当【封魔阵】置于该角色的判定区里，此牌必须为基本牌或装备牌。\n\n'
-        u'|DB（画师：噗呼噗呼@星の妄想乡，CV：shourei小N）|r'
-    )
+    name        = u'蓬莱山辉夜'
+    title       = u'永远的公主殿下'
+    illustrator = u'噗呼噗呼@星の妄想乡'
+    cv          = u'shourei小N'
+
+    port_image        = u'thb-portrait-kaguya'
+    figure_image      = u'thb-figure-kaguya'
+    miss_sound_effect = u'thb-cv-kaguya_miss'
 
 
 class Dilemma:
     # Skill
     name = u'难题'
+    description = u'一名角色令你回复一点体力时，你可以令该角色摸一张牌；每当你受到一次伤害后，你可以令伤害来源交给你一张方片牌，否则其失去1点体力。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -44,15 +44,15 @@ class DilemmaDamageAction:
 
     def effect_string_before(act):
         return u'|G【%s】|r对|G【%s】|r发动了|G难题|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
+            act.source.ui_meta.name,
+            act.target.ui_meta.name
         )
 
     def effect_string(act):
         if act.peer_action == 'card':
             return u'|G【%s】|r给了|G【%s】|r一张牌。' % (
-                act.target.ui_meta.char_name,
-                act.source.ui_meta.char_name
+                act.target.ui_meta.name,
+                act.source.ui_meta.name
             )
         # elif act.peer_action == 'life':
         #     <handled by LifeLost>
@@ -67,8 +67,8 @@ class DilemmaDamageAction:
 class DilemmaHealAction:
     def effect_string(act):
         return u'|G【%s】|r发动了|G难题|r，|G【%s】|r摸了一张牌。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -93,6 +93,8 @@ class DilemmaHandler:
 class ImperishableNight:
     # Skill
     name = u'永夜'
+    description = u'你的回合外，当一名其他角色的红色基本牌因使用进入弃牌堆时，你可以将一张红色牌当|G封魔阵|r置于该角色的判定区里，此牌必须为基本牌或装备牌。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -101,14 +103,11 @@ class ImperishableNight:
         return c.associated_cards[0].ui_meta.image
 
     tag_anim = lambda c: 'thb-tag-sealarray'
-    description = (
-        u'|G【蓬莱山辉夜】|r的技能产生的【封魔阵】'
-    )
 
     def effect_string(act):
         return u'|G【%s】|r对|G【%s】|r使用了|G永夜|r。' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name
+            act.source.ui_meta.name,
+            act.target.ui_meta.name
         )
 
     def sound_effect(act):
@@ -121,7 +120,7 @@ class ImperishableNightHandler:
 
     def choose_option_prompt(act):
         prompt = u'你要发动【永夜】吗（对%s）？'
-        return prompt % act.target.ui_meta.char_name
+        return prompt % act.target.ui_meta.name
 
     # choose_card meta
     def choose_card_text(g, act, cards):

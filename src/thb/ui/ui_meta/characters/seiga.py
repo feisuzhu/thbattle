@@ -14,39 +14,28 @@ __metaclass__ = gen_metafunc(characters.seiga)
 
 class Seiga:
     # Character
-    char_name = u'霍青娥'
-    port_image = 'thb-portrait-seiga'
-    figure_image = 'thb-figure-seiga'
-    miss_sound_effect = 'thb-cv-seiga_miss'
-    description = (
-        u'|DB僵尸别跑 霍青娥 体力：4|r\n'
-        u'\n'
-        u'|G邪仙|r：出牌阶段，你可以将一张可以主动发动的手牌，在合法的情况下，以一名其他玩家的身份使用。\n'
-        u'|B|R>> |r以此法使用|G弹幕|r时，弹幕的“一回合一次”的限制由你来承担\n'
-        u'|B|R>> |r当你成为以此法使用的群体符卡的目标时，你可以选择跳过此次结算。\n'
-        u'\n'
-        u'|G通灵|r：|B限定技|r，你可以获得于你回合内死亡角色的一个技能（不包括限定技，觉醒技和BOSS技）。\n'
-        u'\n'
-        u'|DB（画师：和茶，CV：小羽）|r'
-    )
+    name        = u'霍青娥'
+    title       = u'僵尸别跑'
+    illustrator = u'和茶'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-seiga'
+    figure_image      = u'thb-figure-seiga'
+    miss_sound_effect = u'thb-cv-seiga_miss'
 
 
 class SeigaKOF:
     # Character
-    char_name = u'霍青娥'
-    port_image = 'thb-portrait-seiga'
-    figure_image = 'thb-figure-seiga'
-    miss_sound_effect = 'thb-cv-seiga_miss'
-    description = (
-        u'|DB僵尸别跑 霍青娥 体力：4|r\n'
-        u'\n'
-        u'|G通灵|r：你可以获得击坠角色的角色牌。出牌阶段，你可以和你的备选角色牌里的角色交换角色牌，然后结束你的出牌阶段。\n'
-        u'|B|R>> |r你的体力值保留，体力上限会调整到与新角色一致。\n'
-        u'\n'
-        u'|RKOF修正角色\n'
-        u'\n'
-        u'|DB（画师：和茶，CV：小羽）|r'
-    )
+    name        = u'霍青娥'
+    title       = u'僵尸别跑'
+    illustrator = u'和茶'
+    cv          = u'小羽'
+
+    port_image        = u'thb-portrait-seiga'
+    figure_image      = u'thb-figure-seiga'
+    miss_sound_effect = u'thb-cv-seiga_miss'
+
+    notes = u'|RKOF修正角色'
 
 
 class HeterodoxyHandler:
@@ -58,7 +47,7 @@ class HeterodoxyHandler:
 class HeterodoxySkipAction:
     def effect_string(act):
         return u'|G【%s】|r跳过了卡牌效果的结算' % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
         )
 
 
@@ -70,6 +59,11 @@ class HeterodoxyAction:
 class Heterodoxy:
     # Skill
     name = u'邪仙'
+    description = (
+        u'出牌阶段，你可以将一张可以主动发动的手牌，在合法的情况下，以一名其他玩家的身份使用。\n'
+        u'|B|R>> |r以此法使用|G弹幕|r时，弹幕的“一回合一次”的限制由你来承担\n'
+        u'|B|R>> |r当你成为以此法使用的群体符卡的目标时，你可以选择跳过此次结算。'
+    )
     custom_ray = True
 
     def clickable(g):
@@ -80,8 +74,8 @@ class Heterodoxy:
 
     def effect_string(act):
         return u'|G【%s】|r发动了邪仙技能，以|G【%s】|r的身份使用了卡牌' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def is_action_valid(g, cl, tl):
@@ -118,6 +112,8 @@ class Heterodoxy:
 class Summon:
     # Skill
     name = u'通灵'
+    description = u'|B限定技|r，你可以获得于你回合内死亡角色的一个技能（不包括限定技，觉醒技和BOSS技）。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -137,8 +133,8 @@ class SummonAction:
 
     def effect_string(act):
         return u'|G【%s】|r发动了|G通灵|r，获得了|G【%s】|r的|G%s|r技能' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             act.choice.ui_meta.name,
         )
 
@@ -152,6 +148,10 @@ class SummonHandler:
 class SummonKOF:
     # Skill
     name = u'通灵'
+    description = (
+        u'你可以获得击坠角色的角色牌。出牌阶段，你可以和你的备选角色牌里的角色交换角色牌，然后结束你的出牌阶段。\n'
+        u'|B|R>> |r你的体力值保留，体力上限会调整到与新角色一致。'
+    )
 
     def clickable(g):
         return my_turn()
@@ -161,12 +161,12 @@ class SummonKOF:
         if len(cl) != 0:
             return False, u'请不要选择牌'
 
-        rest = u'、'.join([c.char_cls.ui_meta.char_name for c in G().me.choices])
+        rest = u'、'.join([c.char_cls.ui_meta.name for c in G().me.choices])
         return True, u'通灵：后备角色：%s' % rest
 
     def effect_string(act):
         return u'|G【%s】|r发动了|G通灵|r！' % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
         )
 
 
@@ -175,8 +175,8 @@ class SummonKOFAction:
     def effect_string(act):
         old, new = act.transition
         return u'|G【%s】|r召唤了|G【%s】|r，自己退居幕后！' % (
-            old.ui_meta.char_name,
-            new.ui_meta.char_name,
+            old.ui_meta.name,
+            new.ui_meta.name,
         )
 
 
@@ -185,6 +185,6 @@ class SummonKOFCollect:
     def effect_string_before(act):
         src, tgt = act.source, act.target
         return u'|G【%s】|r把|G【%s】|r做成了僵尸宠物！' % (
-            src.ui_meta.char_name,
-            tgt.ui_meta.char_name,
+            src.ui_meta.name,
+            tgt.ui_meta.name,
         )

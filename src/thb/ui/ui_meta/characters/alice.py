@@ -16,27 +16,27 @@ __metaclass__ = gen_metafunc(characters.alice)
 
 class Alice:
     # Character
-    char_name = u'爱丽丝'
-    port_image = 'thb-portrait-alice'
-    figure_image = 'thb-figure-alice'
+    name        = u'爱丽丝'
+    title       = u'七色的人偶使'
+    illustrator = u'霏茶'
+    cv          = u'小舞'
+
+    port_image        = 'thb-portrait-alice'
+    figure_image      = 'thb-figure-alice'
     miss_sound_effect = 'thb-cv-alice_miss'
-    description = (
-        u'|DB七色的人偶使 爱丽丝 体力：4|r\n\n'
-        u'|G人偶爆弹|r：当你的装备区的一张牌被其他角色弃置或获得时，你可以弃置其一张牌。若按此法弃置的为被该角色获得的装备牌，你对其造成1点伤害。\n'
-        u'\n'
-        u'|G小小军势|r：出牌阶段结束时，你可以重铸一张装备牌，然后发动对应的效果：\n'
-        u'|B|R>> |r武器：视为对一名角色使用了|G弹幕|r\n'
-        u'|B|R>> |r防具：令一名角色回复一点体力\n'
-        u'|B|R>> |r饰品：你摸一张牌，并跳过弃牌阶段\n'
-        u'|B|R>> |rUFO ：视为使用一张|G人型操控|r\n'
-        u'\n'
-        u'|DB（画师：霏茶，CV：小舞）|r'
-    )
 
 
 class LittleLegion:
     # Skill
     name = u'小小军势'
+    description = (
+        u'出牌阶段结束时，你可以重铸一张装备牌，然后发动对应的效果：\n'
+        u'|B|R>> |r武器：视为对一名角色使用了|G弹幕|r\n'
+        u'|B|R>> |r防具：令一名角色回复一点体力\n'
+        u'|B|R>> |r饰品：你摸一张牌，并跳过弃牌阶段\n'
+        u'|B|R>> |rUFO ：视为使用一张|G人型操控|r'
+    )
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -47,8 +47,8 @@ class LittleLegionAttackCard:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return u'|G【%s】|r操起人偶，向|G【%s】|r进攻！' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -63,9 +63,9 @@ class LittleLegionDollControlCard:
         # for LaunchCard.ui_meta.effect_string
         controllee, victim = act.target_list
         return u'|G【%s】|r操起人偶……呃不对，是|G【%s】|r，向|G【%s】|r进攻！' % (
-            act.source.ui_meta.char_name,
-            controllee.ui_meta.char_name,
-            victim.ui_meta.char_name,
+            act.source.ui_meta.name,
+            controllee.ui_meta.name,
+            victim.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -85,7 +85,7 @@ class LittleLegionCoverEffect:
     def effect_string(act):
         if act.succeeded:
             return u'|G【%s】|r回复了%d点体力。' % (
-                act.target.ui_meta.char_name, act.amount
+                act.target.ui_meta.name, act.amount
             )
 
     def sound_effect(act):
@@ -148,6 +148,8 @@ class LittleLegionHandler:
 class DollBlast:
     # Skill
     name = u'人偶爆弹'
+    description = u'当你的装备区的一张牌被其他角色弃置或获得时，你可以弃置其一张牌。若按此法弃置的为被该角色获得的装备牌，你对其造成1点伤害。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -157,17 +159,17 @@ class DollBlastEffect:
     def effect_string_before(act):
         if act.do_damage:
             return u'|G【%s】|r拿走了|G【%s】|r的人偶（%s），然后，BOOM！|G【%s】|r就炸了！' % (
-                act.target.ui_meta.char_name,
-                act.source.ui_meta.char_name,
+                act.target.ui_meta.name,
+                act.source.ui_meta.name,
                 card_desc(act.card),
-                act.target.ui_meta.char_name,
+                act.target.ui_meta.name,
             )
         else:
             return u'|G【%s】|r拿走了|G【%s】|r的人偶，|G【%s】|r非常生气，弃置|G【%s】|r的%s。' % (
-                act.target.ui_meta.char_name,
-                act.source.ui_meta.char_name,
-                act.source.ui_meta.char_name,
-                act.target.ui_meta.char_name,
+                act.target.ui_meta.name,
+                act.source.ui_meta.name,
+                act.source.ui_meta.name,
+                act.target.ui_meta.name,
                 card_desc(act.card),
             )
 

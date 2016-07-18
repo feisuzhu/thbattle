@@ -20,8 +20,8 @@ class InciteAttack:
 
     def effect_string(act):
         return u'|G【%s】|r立刻将|G弹幕|r甩在了|G【%s】|r的脸上：“看也就看了，能别说么？”' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
 
@@ -30,21 +30,23 @@ class InciteFailAttack:
 
     def effect_string(act):
         return u'|G【%s】|r立刻将|G弹幕|r甩在了|G【%s】|r的脸上：“你怎么知道是蓝白条的？”' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
 
 class InciteSilentFailAction:
     def effect_string(act):
         return u'|G【%s】|r低头看了一眼，诶，好像真的是蓝白条……' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
         )
 
 
 class Incite:
     # Skill
     name = u'挑拨'
+    description = u'出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内一名由你指定的另一名其他角色使用了一张|G弹幕|r。若你没赢，该角色可以视为对你使用了一张|G弹幕|r。'
+
     custom_ray = True
 
     def clickable(game):
@@ -69,14 +71,14 @@ class Incite:
         tgt, victim = act.target_list
         if victim is src:
             return u'|G【%s】|r一脸坏笑，对|G【%s】|r说：“那个啥…… 蓝白条，赞！”' % (
-                src.ui_meta.char_name,
-                tgt.ui_meta.char_name,
+                src.ui_meta.name,
+                tgt.ui_meta.name,
             )
         else:
             return u'|G【%s】|r一脸坏笑，对|G【%s】|r说：“你知道吗，|G【%s】|r刚才看了你的胖次，蓝白条，赞！”' % (
-                src.ui_meta.char_name,
-                tgt.ui_meta.char_name,
-                victim.ui_meta.char_name,
+                src.ui_meta.name,
+                tgt.ui_meta.name,
+                victim.ui_meta.name,
             )
 
     def sound_effect(act):
@@ -96,12 +98,14 @@ class InciteAction:
         return [(src, tl[0]), (tl[0], tl[1])]
 
     def choose_option_prompt(act):
-        return u'你要对【%s】使用【弹幕】吗？' % act.source.ui_meta.char_name
+        return u'你要对【%s】使用【弹幕】吗？' % act.source.ui_meta.name
 
 
 class Reversal:
     # Skill
     name = u'逆转'
+    description = u'当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若此时你的手牌数大于该角色，此弹幕对你无效并视为其对你使用了一张|G弹幕战|r。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -111,8 +115,8 @@ class ReversalDuel:
 
     def effect_string(act):
         return u'|G【%s】|r对|G【%s】|r：“你敢打我脸，我就敢打回去！”' % (
-            act.target.ui_meta.char_name,
-            act.source.ui_meta.char_name,
+            act.target.ui_meta.name,
+            act.source.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -127,13 +131,11 @@ class ReversalHandler:
 
 class Seija:
     # Character
-    char_name = u'鬼人正邪'
-    port_image = 'thb-portrait-seija'
-    figure_image = 'thb-figure-seija'
-    miss_sound_effect = 'thb-cv-seija_miss'
-    description = (
-        u'|DB逆袭的天邪鬼 鬼人正邪 体力：3|r\n\n'
-        u'|G挑拨|r：出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内一名由你指定的另一名其他角色使用了一张|G弹幕|r。若你没赢，该角色可以视为对你使用了一张|G弹幕|r。\n\n'
-        u'|G逆转|r：当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若此时你的手牌数大于该角色，此弹幕对你无效并视为其对你使用了一张|G弹幕战|r。\n\n'
-        u'|DB（画师：霏茶，CV：北斗夜）|r'
-    )
+    name        = u'鬼人正邪'
+    title       = u'逆袭的天邪鬼'
+    illustrator = u'霏茶'
+    cv          = u'北斗夜'
+
+    port_image        = u'thb-portrait-seija'
+    figure_image      = u'thb-figure-seija'
+    miss_sound_effect = u'thb-cv-seija_miss'

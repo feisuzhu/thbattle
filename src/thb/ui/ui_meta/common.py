@@ -134,3 +134,44 @@ def current_initiator():
     g = G()
     trans, ilet = g._my_user_input
     return ilet and ilet.initiator
+
+
+def char_desc(ch):
+    m = ch.ui_meta
+
+    if isinstance(ch, type):
+        cls, obj = ch, None
+    else:
+        cls, obj = ch.__class__, ch
+
+    rst = []
+    rst.append(u'|DB%s %s 体力：%s|r' % (m.title, m.name, cls.maxlife))
+    skills = list(cls.skills)
+    if hasattr(cls, 'boss_skills'):
+        skills.extend(cls.boss_skills)
+
+    if obj:
+        skills.extend([
+            c for c in obj.skills
+            if 'character' in c.skill_category and c not in skills
+        ])
+
+    for s in skills:
+        sm = s.ui_meta
+        rst.append(u'|G%s|r：%s' % (sm.name, sm.description))
+
+    notes = getattr(m, 'notes', '')
+    if notes:
+        rst.append(notes)
+
+    tail = [
+        (u'画师',     getattr(m, 'illustrator', '')),
+        (u'CV',       getattr(m, 'cv', '')),
+        (u'人物设计', getattr(m, 'designer', '')),
+    ]
+
+    tail = [u'%s：%s' % i for i in tail if i[1]]
+    if tail:
+        rst.append(u'|DB（%s）|r' % u'，'.join(tail))
+
+    return u'\n\n'.join(rst)

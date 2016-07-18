@@ -17,6 +17,11 @@ __metaclass__ = gen_metafunc(characters.remilia)
 class SpearTheGungnir:
     # Skill
     name = u'神枪'
+    description = (
+        u'出现以下情况之一，你可以令你的|G弹幕|r不能被|G擦弹|r抵消：\n'
+        u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
+        u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。'
+    )
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -24,8 +29,8 @@ class SpearTheGungnir:
 class SpearTheGungnirAction:
     def effect_string(act):
         return u'|G【%s】|r举起右手，将|G弹幕|r汇聚成一把命运之矛，向|G【%s】|r掷去！' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -41,6 +46,8 @@ class SpearTheGungnirHandler:
 class VampireKiss:
     # Skill
     name = u'红魔之吻'
+    description = u'|B锁定技|r，你使用红色|G弹幕|r时无距离限制。当你使用红色|G弹幕|r对一名其他角色造成伤害后，你回复1点体力。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -48,7 +55,7 @@ class VampireKiss:
 class VampireKissAction:
     def effect_string_before(act):
         return u'|G【%s】|r:“B型血，赞！”' % (
-            act.source.ui_meta.char_name
+            act.source.ui_meta.name
         )
 
     def sound_effect(act):
@@ -70,8 +77,8 @@ class ScarletMistAction:
             pass
 
         return u'|G【%s】|r释放出了|G红雾|r，威严爆表！%s流了鼻血！' % (
-            src.ui_meta.char_name,
-            u'、'.join([u'|G【%s】|r' % p.ui_meta.char_name for p in tl]),
+            src.ui_meta.name,
+            u'、'.join([u'|G【%s】|r' % p.ui_meta.name for p in tl]),
         )
 
     def sound_effect(act):
@@ -88,6 +95,11 @@ class ScarletMistEndAction:
 
 class ScarletMist:
     name = u'红雾'
+    description = (
+        u'|BBOSS技|r，|B限定技|r，出牌阶段，你可以选择至多X名其他角色（X为存活道中数量），直到你的下个回合开始阶段，所有角色受到以下影响：\n'
+        u'|B|R>> |r你与被选择的角色使用|G弹幕|r时无视距离，且使用|G弹幕|r造成伤害后回复等量的体力。\n'
+        u'|B|R>> |r其他角色使用|G弹幕|r时只能指定距离为1的目标。'
+    )
 
     def clickable(g):
         me = g.me
@@ -106,22 +118,11 @@ class ScarletMist:
 
 class Remilia:
     # Character
-    char_name = u'蕾米莉亚'
-    port_image = 'thb-portrait-remilia'
-    figure_image = 'thb-figure-remilia'
-    miss_sound_effect = 'thb-cv-remilia_miss'
-    description = (
-        u'|DB永远幼小的红月 蕾米莉亚 体力：4|r\n'
-        u'\n'
-        u'|G神枪|r：出现以下情况之一，你可以令你的|G弹幕|r不能被|G擦弹|r抵消：\n'
-        u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
-        u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。\n'
-        u'\n'
-        u'|G红魔之吻|r：|B锁定技|r，你使用红色|G弹幕|r时无距离限制。当你使用红色|G弹幕|r对一名其他角色造成伤害后，你回复1点体力。\n'
-        u'\n'
-        u'|G红雾|r：|BBOSS技|r，|B限定技|r，出牌阶段，你可以选择至多X名其他角色（X为存活道中数量），直到你的下个回合开始阶段，所有角色受到以下影响：\n'
-        u'|B|R>> |r你与被选择的角色使用|G弹幕|r时无视距离，且使用|G弹幕|r造成伤害后回复等量的体力。\n'
-        u'|B|R>> |r其他角色使用|G弹幕|r时只能指定距离为1的目标。\n'
-        u'\n'
-        u'|DB（画师：小D@星の妄想乡，CV：VV）|r'
-    )
+    name        = u'蕾米莉亚'
+    title       = u'永远幼小的红月'
+    illustrator = u'小D@星の妄想乡'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-remilia'
+    figure_image      = u'thb-figure-remilia'
+    miss_sound_effect = u'thb-cv-remilia_miss'

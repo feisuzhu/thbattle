@@ -13,6 +13,8 @@ __metaclass__ = gen_metafunc(characters.kogasa)
 class Jolly:
     # Skill
     name = u'愉快'
+    description = u'|B锁定技|r，摸牌阶段摸牌后，你令一名角色摸一张牌。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -20,8 +22,8 @@ class Jolly:
 class JollyDrawCard:
     def effect_string(act):
         return u'|G【%s】|r高兴地让|G【%s】|r摸了%d张牌~' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
             act.amount,
         )
 
@@ -47,6 +49,7 @@ class JollyHandler:
 class Surprise:
     # Skill
     name = u'惊吓'
+    description = u'出牌阶段限一次，你可以选择一张手牌和一名角色，该角色选择一种花色后获得这张牌，并将其置入明牌区。若此牌与所选花色不同，则你对该角色造成1点伤害。'
 
     def clickable(game):
         me = game.me
@@ -85,9 +88,9 @@ class Surprise:
             u'|G【%s】|r突然出现在|G【%s】|r面前，伞上'
             u'的大舌头直接糊在了|G【%s】|r的脸上！'
         ) % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -122,13 +125,11 @@ class SurpriseAction:
 
 class Kogasa:
     # Character
-    char_name = u'多多良小伞'
-    port_image = 'thb-portrait-kogasa'
-    figure_image = 'thb-figure-kogasa'
-    miss_sound_effect = 'thb-cv-kogasa_miss'
-    description = (
-        u'|DB愉快的遗忘之伞 多多良小伞 体力：3|r\n\n'
-        u'|G惊吓|r：出牌阶段限一次，你可以选择一张手牌和一名角色，该角色选择一种花色后获得这张牌，并将其置入明牌区。若此牌与所选花色不同，则你对该角色造成1点伤害。\n\n'
-        u'|G愉快|r：|B锁定技|r，摸牌阶段摸牌后，你令一名角色摸一张牌。\n\n'
-        u'|DB（画师：霏茶，CV：VV）|r'
-    )
+    name        = u'多多良小伞'
+    title       = u'愉快的遗忘之伞'
+    illustrator = u'霏茶'
+    cv          = u'VV'
+
+    port_image        = u'thb-portrait-kogasa'
+    figure_image      = u'thb-figure-kogasa'
+    miss_sound_effect = u'thb-cv-kogasa_miss'

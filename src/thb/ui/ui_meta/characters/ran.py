@@ -16,6 +16,8 @@ __metaclass__ = gen_metafunc(characters.ran)
 class Prophet:
     # Skill
     name = u'神算'
+    description = u'准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序的置于牌堆顶，其余以任意顺序置于牌堆底。（X为场上存活角色的数量，且至多为5）'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -23,6 +25,8 @@ class Prophet:
 class ExtremeIntelligence:
     # Skill
     name = u'极智'
+    description = u'你的回合外，当有非延时符卡的效果对一名角色生效后，你可以弃置一张牌使该效果对该角色重新进行一次结算，此时效果来源视为你。每轮限一次。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -30,6 +34,7 @@ class ExtremeIntelligence:
 class ExtremeIntelligenceKOF:
     # Skill
     name = u'极智'
+    description = u'出牌阶段限一次，你可以将一张手牌当你本回合上一张使用过的非延时符卡使用。'
 
     def clickable(game):
         me = game.me
@@ -62,10 +67,10 @@ class ExtremeIntelligenceKOF:
         # for LaunchCard.ui_meta.effect_string
         src, tl, card = act.source, act.target_list, act.card
         s = u'|G【%s】|r发动了|G极智|r技能，将|G%s|r当作|G%s|r对%s使用。' % (
-            src.ui_meta.char_name,
+            src.ui_meta.name,
             card.associated_cards[0].ui_meta.name,
             card.treat_as.ui_meta.name,
-            u'、'.join([u"|G【%s】|r" % i.ui_meta.char_name for i in tl]),
+            u'、'.join([u"|G【%s】|r" % i.ui_meta.name for i in tl]),
         )
         return s
 
@@ -79,7 +84,7 @@ class ProphetHandler:
 class ProphetAction:
     def effect_string_before(act):
         return u'众人正准备接招呢，|G【%s】|r却掐着指头算了起来…' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -98,8 +103,8 @@ class ExtremeIntelligenceAction:
         return (
             u'|G【%s】|r刚松了一口气，却看见一张一模一样的符卡从|G【%s】|r的方向飞来！'
         ) % (
-            act.target.ui_meta.char_name,
-            act.source.ui_meta.char_name,
+            act.target.ui_meta.name,
+            act.source.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -109,6 +114,8 @@ class ExtremeIntelligenceAction:
 class NakedFox:
     # Skill
     name = u'素裸'
+    description = u'|B锁定技|r，当你没有手牌时，你受到的符卡伤害-1。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -120,35 +127,30 @@ class NakedFoxAction:
         else:
             s = u'符卡飞到了|G【%s】|r毛茸茸的大尾巴里，恩……似乎还是有点疼……'
 
-        return s % act.target.ui_meta.char_name
+        return s % act.target.ui_meta.name
 
 
 class Ran:
     # Character
-    char_name = u'八云蓝'
-    port_image = 'thb-portrait-ran'
-    figure_image = 'thb-figure-ran'
-    miss_sound_effect = 'thb-cv-ran_miss'
-    description = (
-        u'|DB天河一号的核心 八云蓝 体力：3|r\n\n'
-        u'|G神算|r：准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序的置于牌堆顶，其余以任意顺序置于牌堆底。（X为场上存活角色的数量，且至多为5）\n\n'
-        u'|G极智|r：你的回合外，当有非延时符卡的效果对一名角色生效后，你可以弃置一张牌使该效果对该角色重新进行一次结算，此时效果来源视为你。每轮限一次。\n\n'
-        u'|G素裸|r：|B锁定技|r，当你没有手牌时，你受到的符卡伤害-1。\n\n'
-        u'|DB（画师：霏茶，CV：shourei小N）|r'
-    )
+    name        = u'八云蓝'
+    title       = u'天河一号的核心'
+    illustrator = u'霏茶'
+    cv          = u'shourei小N'
+
+    port_image        = u'thb-portrait-ran'
+    figure_image      = u'thb-figure-ran'
+    miss_sound_effect = u'thb-cv-ran_miss'
 
 
 class RanKOF:
     # Character
-    char_name = u'八云蓝'
-    port_image = 'thb-portrait-ran'
-    figure_image = 'thb-figure-ran'
-    miss_sound_effect = 'thb-cv-ran_miss'
-    description = (
-        u'|DB天河一号的核心 八云蓝 体力：3|r\n\n'
-        u'|G神算|r：准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序的置于牌堆顶，其余以任意顺序置于牌堆底。（X为场上存活角色的数量，且至多为5）\n\n'
-        u'|G极智|r：出牌阶段限一次，你可以将一张手牌当你本回合上一张使用过的非延时符卡使用。\n\n'
-        u'|G素裸|r：|B锁定技|r，当你没有手牌时，你受到的符卡伤害-1。\n\n'
-        u'|RKOF修正角色|r\n\n'
-        u'|DB（画师：霏茶，CV：shourei小N）|r'
-    )
+    name        = u'八云蓝'
+    title       = u'天河一号的核心'
+    illustrator = u'霏茶'
+    cv          = u'shourei小N'
+
+    port_image        = u'thb-portrait-ran'
+    figure_image      = u'thb-figure-ran'
+    miss_sound_effect = u'thb-cv-ran_miss'
+
+    notes = u'|RKOF修正角色|r'

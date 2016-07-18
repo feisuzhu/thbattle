@@ -15,6 +15,7 @@ __metaclass__ = gen_metafunc(characters.sp_aya)
 class WindWalk:
     # Skill
     name = u'疾走'
+    description = u'出牌阶段，你可以弃置一张牌，然后摸一张牌，对你上一张使用的牌的目标角色（或之一）使用之并重复此流程，否则结束你的回合。'
 
     def clickable(g):
         if not my_turn():
@@ -40,7 +41,7 @@ class WindWalk:
 
     def effect_string(act):
         return u'唯快不破！|G【%s】|r弃置了%s，开始加速追击！' % (
-            act.source.ui_meta.char_name,
+            act.source.ui_meta.name,
             card_desc(act.card),
         )
 
@@ -64,7 +65,7 @@ class WindWalkAction:
 
 class WindWalkSkipAction:
     def effect_string_before(act):
-        return u'|G【%s】|r放弃了追击。' % act.target.ui_meta.char_name
+        return u'|G【%s】|r放弃了追击。' % act.target.ui_meta.name
 
     def sound_effect(act):
         return 'thb-cv-sp_aya_windwalk_stop'
@@ -83,7 +84,7 @@ class DominanceHandler:
 class DominanceAction:
     def effect_string_before(act):
         return u'|G【%s】|r成功地了搞了个大新闻！' % (
-            act.target.ui_meta.char_name,
+            act.target.ui_meta.name,
         )
 
     def sound_effect(act):
@@ -93,22 +94,20 @@ class DominanceAction:
 class Dominance:
     # Skill
     name = u'风靡'
+    description = u'回合结束时，若你本回合的出牌阶段使用了四种花色的牌，你可执行一个额外的回合。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
 class SpAya:
     # Character
-    char_name = u'SP射命丸文'
-    port_image = 'thb-portrait-sp_aya'
-    figure_image = 'thb-figure-sp_aya'
-    miss_sound_effect = 'thb-cv-sp_aya_miss'
+    name        = u'SP射命丸文'
+    title       = u'剑圣是谁有我快吗'
+    designer    = u'吹风姬'
+    illustrator = u'躲猫'
+    cv          = u'君寻'
 
-    description = (
-        u'|DB剑圣是谁有我快吗 SP射命丸文 体力：4|r\n\n'
-        u'|G疾走|r：出牌阶段，你可以弃置一张牌，然后摸一张牌，对你上一张使用的牌的目标角色（或之一）使用之并重复此流程，否则结束你的回合。\n'
-        u'\n'
-        u'|G风靡|r：回合结束时，若你本回合的出牌阶段使用了四种花色的牌，你可执行一个额外的回合。\n'
-        u'\n'
-        u'|DB（人物设计：吹风姬，画师：躲猫，CV：君寻）|r'
-    )
+    port_image        = u'thb-portrait-sp_aya'
+    figure_image      = u'thb-figure-sp_aya'
+    miss_sound_effect = u'thb-cv-sp_aya_miss'

@@ -14,6 +14,8 @@ __metaclass__ = gen_metafunc(characters.mamizou)
 class Morphing:
     # Skill
     name = u'变化'
+    description = u'出牌阶段限一次，你将两张手牌当做任何一张基本牌或非延时符卡使用。按此法使用的两张牌中至少有一张必须和你声明的牌类别一致。'
+
     params_ui = 'UIMorphingCardSelection'
 
     def clickable(game):
@@ -50,10 +52,10 @@ class Morphing:
         tl = BatchList(act.target_list)
         cl = BatchList(card.associated_cards)
         s = u'|G【%s】|r发动了|G变化|r技能，将|G%s|r当作|G%s|r对|G【%s】|r使用。' % (
-            source.ui_meta.char_name,
+            source.ui_meta.name,
             u'|r、|G'.join(cl.ui_meta.name),
             card.treat_as.ui_meta.name,
-            u'】|r、|G【'.join(tl.ui_meta.char_name),
+            u'】|r、|G【'.join(tl.ui_meta.name),
         )
 
         return s
@@ -64,13 +66,14 @@ class Morphing:
 
 class Mamizou:
     # Character
-    char_name = u'二岩猯藏'
-    port_image = 'thb-portrait-mamizou'
-    figure_image = 'thb-figure-mamizou'
-    miss_sound_effect = 'thb-cv-mamizou_miss'
-    description = (
-        u'|DB大狸子 二岩猯藏 体力：4|r\n\n'
-        u'|G变化|r：出牌阶段限一次，你将两张手牌当做任何一张基本牌或非延时符卡使用。按此法使用的两张牌中至少有一张必须和你声明的牌类别一致。\n\n'
-        u'|RKOF模式不可用\n\n'
-        u'|DB（人物设计：鵺子丶爱丽丝， 画师：hacko.@星の妄想乡，CV：shourei小N）|r'
-    )
+    name        = u'二岩猯藏'
+    title       = u'大狸子'
+    designer    = u'鵺子丶爱丽丝'
+    illustrator = u'hacko.@星の妄想乡'
+    cv          = u'shourei小N'
+
+    port_image        = u'thb-portrait-mamizou'
+    figure_image      = u'thb-figure-mamizou'
+    miss_sound_effect = u'thb-cv-mamizou_miss'
+
+    notes = u'|RKOF模式不可用'

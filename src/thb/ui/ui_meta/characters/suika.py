@@ -17,6 +17,7 @@ class HeavyDrinkerWine:
 class HeavyDrinker:
     # Skill
     name = u'酒豪'
+    description = u'出牌阶段，你可以与一名角色拼点，若你赢，你和其各视为使用了一张|G酒|r，若你没赢，本回合你无法使用该技能。每阶段对每名角色限一次。'
 
     def clickable(game):
         me = game.me
@@ -48,14 +49,16 @@ class HeavyDrinker:
 
     def effect_string(act):
         return u'|G【%s】|r跟|G【%s】|r划起了拳：“哥俩好，三星照，只喝酒，不吃药！”' % (
-            act.source.ui_meta.char_name,
-            act.target.ui_meta.char_name,
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
         )
 
 
 class DrunkenDream:
     # Skill
     name = u'醉梦'
+    description = u'|B锁定技|r，若你处于喝醉状态，你的攻击范围+2，回合开始阶段开始时，你摸1张牌。'
+
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -68,13 +71,11 @@ class DrunkenDreamDrawCards:
 
 class Suika:
     # Character
-    char_name = u'伊吹萃香'
-    port_image = 'thb-portrait-suika'
-    figure_image = 'thb-figure-suika'
-    miss_sound_effect = 'thb-cv-suika_miss'
-    description = (
-        u'|DB小小的酒鬼夜行 伊吹萃香 体力：4|r\n\n'
-        u'|G酒豪|r：出牌阶段，你可以与一名角色拼点，若你赢，你和其各视为使用了一张【酒】，若你没赢，本回合你无法使用该技能。每阶段对每名角色限一次。\n\n'
-        u'|G醉梦|r：|B锁定技|r，若你处于喝醉状态，你的攻击范围+2，回合开始阶段开始时，你摸1张牌。\n\n'
-        u'|DB（画师：和茶，CV：shourei小N）|r'
-    )
+    name        = u'伊吹萃香'
+    title       = u'小小的酒鬼夜行'
+    illustrator = u'和茶'
+    cv          = u'shourei小N'
+
+    port_image        = u'thb-portrait-suika'
+    figure_image      = u'thb-figure-suika'
+    miss_sound_effect = u'thb-cv-suika_miss'
