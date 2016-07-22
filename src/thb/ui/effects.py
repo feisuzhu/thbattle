@@ -298,6 +298,10 @@ def action_effect_before(self, act):
         for f, t in rays:
             self.ray(f, t)
 
+        se = getattr(act.ui_meta, 'sound_effect_before', None)
+        se = se and se(act)
+        se and SoundManager.play(se, 'cv')
+
 
 def action_effect_apply(self, act):
     action_effect_string_apply(self, act)

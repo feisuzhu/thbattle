@@ -80,7 +80,7 @@ class LaunchCard:
             act.card.ui_meta.name
         )
 
-    def sound_effect(act):
+    def sound_effect_before(act):
         c = act.card
         if not c:
             return
