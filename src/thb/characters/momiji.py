@@ -9,7 +9,6 @@ import itertools
 from game.autoenv import EventHandler, Game, sync_primitive, user_input
 from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, FinalizeStage
 from thb.actions import GenericAction, LaunchCard, ShowCards, UserAction, migrate_cards, ttags
-from thb.actions import user_choose_cards
 from thb.cards import AttackCard, CardList, DollControlCard, DuelCard, Skill, TreatAs, VirtualCard
 from thb.cards import t_None
 from thb.characters.baseclasses import Character, register_character_to
@@ -176,6 +175,7 @@ class Telegnosis(Skill):
 
 class SolidShieldHandler(EventHandler):
     interested = ('action_before',)
+    execute_after = ('AttackCardHandler',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
@@ -186,6 +186,10 @@ class SolidShieldHandler(EventHandler):
                 return act
 
             if src is tgt: return act
+
+            c = act.card
+            if not c.is_card(AttackCard) or 'instant_spellcard' in c.category:
+                return act
 
             g = Game.getgame()
             for p in g.players.rotate_to(src):
@@ -199,7 +203,6 @@ class SolidShieldHandler(EventHandler):
                 if dist[tgt] > 0:
                     continue
 
-                c = act.card
                 cond = c.is_card(AttackCard) or 'instant_spellcard' in c.category
                 cond = cond and (c.is_card(DollControlCard) or len(act.target_list) == 1)  # HACK HERE!
                 if not cond:

@@ -57,15 +57,14 @@ class AttackLimitExceeded(ActionLimitExceeded):
 
 @register_eh
 class AttackCardHandler(EventHandler):
-    interested = ('action_apply', 'action_before', 'action_shootdown', 'calcdistance')
+    interested = ('action_before', 'action_shootdown', 'calcdistance')
 
     def handle(self, evt_type, act):
-        # if evt_type == 'action_before' and isinstance(act, PlayerTurn):
-        if evt_type == 'action_before' and isinstance(act, ActionStage):
-            act.target.tags['attack_num'] = 1
+        if evt_type == 'action_before':
+            if isinstance(act, ActionStage):
+                act.target.tags['attack_num'] = 1
 
-        elif evt_type == 'action_apply':
-            if isinstance(act, ActionStageLaunchCard):
+            elif isinstance(act, ActionStageLaunchCard):
                 from .definition import AttackCard
 
                 if act.card.is_card(AttackCard):
