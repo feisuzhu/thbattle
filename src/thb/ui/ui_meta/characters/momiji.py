@@ -53,6 +53,17 @@ class Disarm:
     is_action_valid = passive_is_action_valid
 
 
+class DisarmHideAction:
+    def effect_string(act):
+        return u'|G【%s】|r拦下了|G【%s】|r，从头到脚检查了一边。' % (
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
+        )
+
+    def sound_effect(act):
+        return 'thb-cv-momiji_disarm'
+
+
 class SentryAttack:
     # Skill
     name = u'哨戒'
@@ -100,6 +111,9 @@ class SolidShieldAction:
             act.action.target.ui_meta.name,
             # card_desc(act.action.card),
         )
+
+    def sound_effect(act):
+        return 'thb-cv-momiji_solidshield'
 
 
 class SolidShield:
