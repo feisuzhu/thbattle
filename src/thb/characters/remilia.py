@@ -150,6 +150,7 @@ class ScarletMistHandler(EventHandler):
         elif evt_type == 'action_apply' and isinstance(act, PrepareStage):
             tgt = act.target
             if not tgt.has_skill(ScarletMist): return act
+            if not tgt.tags['scarlet_mist']: return act
             g = Game.getgame()
             g.process_action(ScarletMistEndAction(None, None))
 
