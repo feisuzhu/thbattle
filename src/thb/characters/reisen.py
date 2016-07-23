@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import ActionShootdown, EventHandler, Game, user_input
-from thb.actions import Damage, LaunchCard, PlayerTurn, UserAction
+from thb.actions import ActionStageLaunchCard, Damage, LaunchCard, PlayerTurn, UserAction
 from thb.cards import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, Skill, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -78,7 +79,7 @@ class DiscarderHandler(EventHandler):
     interested = ('action_after', 'action_shootdown')
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_shootdown' and isinstance(act, LaunchCard):
+        if evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
             src = act.source
             if not src.has_skill(Discarder): return act
             g = Game.getgame()
