@@ -1077,7 +1077,7 @@ class SinsackHatAction(FatetellAction):
         self.fatetell_target = target
 
         from ..cards import Card
-        self.fatetell_cond = lambda c: c.suit == Card.SPADE
+        self.fatetell_cond = lambda c: c.suit == Card.SPADE and 1 <= c.number <= 8
 
     def fatetell_action(self, ft):
         if not ft.succeeded:
