@@ -6,13 +6,12 @@ from __future__ import absolute_import
 # -- own --
 from game.autoenv import EventHandler, Game, GameError, user_input
 from thb.actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards
-from thb.actions import FatetellAction, FatetellStage, FinalizeStage, ForEach
-from thb.actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction
-from thb.actions import UserAction, detach_cards, migrate_cards, random_choose_card
-from thb.actions import register_eh, ttags, user_choose_cards
+from thb.actions import FatetellAction, FatetellStage, FinalizeStage, ForEach, GenericAction
+from thb.actions import LaunchCard, MaxLifeChange, MigrateCardsTransaction, Reforge, UserAction
+from thb.actions import detach_cards, migrate_cards, random_choose_card, register_eh, ttags
+from thb.actions import user_choose_cards
 from thb.cards import basic, spellcard
-from thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN
-from thb.cards.base import t_OtherOne
+from thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN, t_OtherOne
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from utils import CheckFailed, check, classmix
 
@@ -25,6 +24,12 @@ class WearEquipmentAction(UserAction):
         target = self.target
         equips = target.equips
         g = Game.getgame()
+
+        if card.equipment_category == 'weapon' and not ttags(target)['weapon_reforge']:
+            if user_input([target], ChooseOptionInputlet(self, (False, True))):
+                ttags(target)['weapon_reforge'] = True
+                g.process_action(Reforge(target, target, card))
+                return True
 
         with MigrateCardsTransaction(self) as trans:
             for oc in equips:

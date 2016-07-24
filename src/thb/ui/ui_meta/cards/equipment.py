@@ -19,6 +19,11 @@ def equip_iav(g, cl, target_list):
     return (True, u'配上好装备，不再掉节操！')
 
 
+class WearEquipmentAction:
+    choose_option_prompt = u'你希望重铸这张牌么？'
+    choose_option_buttons = ((u'重铸', True), (u'装备', False))
+
+
 class OpticalCloakCard:
     # action_stage meta
     name = u'光学迷彩'
@@ -148,8 +153,12 @@ class RoukankenCard:
     image = 'thb-card-roukanken'
     image_small = 'thb-card-small-roukanken'
     description = (
-        u'|R楼观剑|r\n\n'
-        u'攻击范围3，装备后：你使用的【弹幕】无视防具。\n\n'
+        u'|R楼观剑|r\n'
+        u'\n'
+        u'攻击范围3，装备后：你使用的|G弹幕|r无视防具。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶）|r'
     )
     is_action_valid = equip_iav
@@ -176,8 +185,12 @@ class ElementalReactorCard:
     image = 'thb-card-reactor'
     image_small = 'thb-card-small-reactor'
     description = (
-        u'|R八卦炉|r\n\n'
-        u'攻击范围1，装备后：出牌阶段你可以使用任意张【弹幕】。\n\n'
+        u'|R八卦炉|r\n'
+        u'\n'
+        u'攻击范围1，装备后：出牌阶段你可以使用任意张|G弹幕|r。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶）|r'
     )
 
@@ -239,7 +252,9 @@ class GungnirCard:
     description = (
         u'|R冈格尼尔|r\n'
         u'\n'
-        u'攻击范围3，装备后：你可以将两张手牌当【弹幕】使用或打出。\n'
+        u'攻击范围3，装备后：你可以将两张手牌当|G弹幕|r使用或打出。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
         u'\n'
         u'|DB（画师：霏茶）|r'
     )
@@ -302,8 +317,12 @@ class ScarletRhapsodyCard:
     image = 'thb-card-scarletrhapsodysword'
     image_small = 'thb-card-small-scarletrhapsodysword'
     description = (
-        u'|R绯想之剑|r\n\n'
-        u'攻击范围4，装备后：当你使用的【弹幕】是你的最后一张手牌时，你可以为此【弹幕】指定至多三名目标。\n\n'
+        u'|R绯想之剑|r\n'
+        u'\n'
+        u'攻击范围4，装备后：当你使用的|G弹幕|r是你的最后一张手牌时，你可以为此|G弹幕|r指定至多三名目标。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
 
@@ -361,9 +380,13 @@ class RepentanceStickCard:
     image = 'thb-card-repentancestick'
     image_small = 'thb-card-small-repentancestick'
     description = (
-        u'|R悔悟棒|r\n\n'
-        u'攻击范围2，装备后：当你使用【弹幕】造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
-        u'|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌\n\n'
+        u'|R悔悟棒|r\n'
+        u'\n'
+        u'攻击范围2，装备后：当你使用|G弹幕|r造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
+        u'|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
@@ -430,8 +453,12 @@ class HouraiJewelCard:
     image = 'thb-card-houraijewel'
     image_small = 'thb-card-small-houraijewel'
     description = (
-        u'|R蓬莱玉枝|r\n\n'
+        u'|R蓬莱玉枝|r\n'
+        u'\n'
         u'攻击范围1。装备后，你使用的|G弹幕|r时，可以将弹幕的效果转化成如下的符卡效果：造成1点伤害。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶）|r'
     )
 
@@ -518,7 +545,10 @@ class HakuroukenCard:
         u'|R白楼剑|r\n\n'
         u'攻击范围2，装备后：当你使用的草花色|G弹幕|r指定一名目标角色后，你可以令其选择一项：\n'
         u'|B|R>> |r弃置一张手牌\n'
-        u'|B|R>> |r令你摸一张牌\n\n'
+        u'|B|R>> |r令你摸一张牌\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶，CV：小羽）|r'
     )
     is_action_valid = equip_iav
@@ -569,8 +599,12 @@ class AyaRoundfanCard:
     image = 'thb-card-ayaroundfan'
     image_small = 'thb-card-small-ayaroundfan'
     description = (
-        u'|R团扇|r\n\n'
-        u'攻击距离5，装备后：当你使用的【弹幕】对目标角色造成伤害时，你可以弃置一张手牌，然后弃置其装备区里的一张牌。\n\n'
+        u'|R团扇|r\n'
+        u'\n'
+        u'攻击距离5，装备后：当你使用的|G弹幕|r对目标角色造成伤害时，你可以弃置一张手牌，然后弃置其装备区里的一张牌。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
@@ -623,7 +657,9 @@ class NenshaPhoneCard:
     description = (
         u'|R念写机|r\n'
         u'\n'
-        u'攻击距离4，装备后：当你使用的【弹幕】对目标角色造成伤害后，可以将其两张手牌置入明牌区。\n'
+        u'攻击距离4，装备后：当你使用的|G弹幕|r对目标角色造成伤害后，可以将其两张手牌置入明牌区。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
         u'\n'
         u'|DB（画师：霏茶）|r'
 
@@ -663,8 +699,12 @@ class LaevateinCard:
     image = 'thb-card-laevatein'
     image_small = 'thb-card-small-laevatein'
     description = (
-        u'|R莱瓦汀|r\n\n'
-        u'攻击距离3，装备后：当你使用的|G弹幕|r被目标角色使用的|G擦弹|r抵消时，你可以弃置两张牌，令此|G弹幕|r依然生效。\n\n'
+        u'|R莱瓦汀|r\n'
+        u'\n'
+        u'攻击距离3，装备后：当你使用的|G弹幕|r被目标角色使用的|G擦弹|r抵消时，你可以弃置两张牌，令此|G弹幕|r依然生效。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
@@ -700,8 +740,12 @@ class DeathSickleCard:
     image = 'thb-card-deathsickle'
     image_small = 'thb-card-small-deathsickle'
     description = (
-        u'|R死神之镰|r\n\n'
-        u'攻击范围2，装备后：当你使用的【弹幕】对目标角色造成伤害时，若其没有手牌，此伤害+1。\n\n'
+        u'|R死神之镰|r\n'
+        u'\n'
+        u'攻击范围2，装备后：当你使用的【弹幕】对目标角色造成伤害时，若其没有手牌，此伤害+1。\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶，CV：小羽）|r'
     )
     is_action_valid = equip_iav
@@ -906,12 +950,16 @@ class GrimoireCard:
     image = 'thb-card-grimoire'
     image_small = 'thb-card-small-grimoire'
     description = (
-        u'|R魔导书|r\n\n'
+        u'|R魔导书|r\n'
+        u'\n'
         u'攻击距离1，装备后：出牌阶段限一次，若你于你的出牌阶段还未使用过|G弹幕|r，你可以消耗一次本回合使用|G弹幕|r的次数并将一张牌按照以下规则使用：\n'
         u'|B|R>> |r黑桃当【百鬼夜行】\n'
         u'|B|R>> |r红桃当【宴会】\n'
         u'|B|R>> |r梅花当【地图炮】\n'
-        u'|B|R>> |r方片当【五谷丰登】\n\n'
+        u'|B|R>> |r方片当【五谷丰登】\n'
+        u'\n'
+        u'|R你可以在自己的回合内重铸手牌中的武器，每回合限一次|r\n'
+        u'\n'
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
