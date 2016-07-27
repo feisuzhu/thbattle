@@ -16,8 +16,8 @@ from game.base import sync_primitive
 from thb.actions import ActionStageLaunchCard, AskForCard, DistributeCards, DrawCards, DropCardStage
 from thb.actions import DropCards, GenericAction, LifeLost, PlayerDeath, PlayerTurn, RevealIdentity
 from thb.actions import TryRevive, UserAction, action_eventhandlers, ask_for_action, ttags
-from thb.cards import AttackCard, AttackCardHandler, GrazeCard, Heal, Skill, TreatAs, VirtualCard
-from thb.cards import t_None, t_One
+from thb.cards import AttackCard, AttackCardRangeHandler, GrazeCard, Heal, Skill, TreatAs
+from thb.cards import VirtualCard, t_None, t_One
 from thb.characters.baseclasses import mixin_character
 from thb.common import CharChoice, PlayerIdentity, build_choices
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
@@ -158,7 +158,7 @@ class AssistedAttackAction(UserAction):
         src, tgt = self.source, self.target
         act = ActionStageLaunchCard(src, [tgt], AttackCard())
         disabled = ttags(src)['assisted_attack_disable']
-        return not disabled and AttackCardHandler.can_launch_attack(src) and act.can_fire()
+        return not disabled and act.can_fire()
 
 
 class AssistedAttack(Skill):
@@ -247,7 +247,7 @@ class AssistedAttackRangeHandler(AssistedUseHandler):
         src, card, dist = arg
         if evt_type == 'calcdistance':
             if card.is_card(AssistedAttack):
-                AttackCardHandler.fix_attack_range(src, dist)
+                AttackCardRangeHandler.fix_attack_range(src, dist)
 
         return arg
 

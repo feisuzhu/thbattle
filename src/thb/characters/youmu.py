@@ -89,7 +89,7 @@ class YoumuHandler(EventHandler):
 
         elif evt_type == 'action_apply' and isinstance(act, ActionStage):
             p = act.target
-            p.tags['attack_num'] += p.tags.get('nitoryuu_tag', False)
+            p.tags['vitality'] += p.tags.get('nitoryuu_tag', False)
 
         elif evt_type == 'card_migration':
             def weapons(cards):
@@ -104,7 +104,7 @@ class YoumuHandler(EventHandler):
                 if p.has_skill(Nitoryuu):
                     active = len(weapons(p.equips)) >= 2
                     oactive = p.tags.get('nitoryuu_tag', False)
-                    p.tags['attack_num'] += active - oactive
+                    p.tags['vitality'] += active - oactive
                     p.tags['nitoryuu_tag'] = active
 
             return arg

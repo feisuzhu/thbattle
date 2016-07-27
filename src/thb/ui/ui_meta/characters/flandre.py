@@ -25,7 +25,11 @@ class Flandre:
 class CriticalStrike:
     # Skill
     name = u'狂咲'
-    description = u'摸牌阶段，你可以少摸一张牌，若如此做，你获得以下技能直到回合结束：你可以对任意其他角色各使用一张|G弹幕|r，且使用的|G弹幕|r和|G弹幕战|r（你为伤害来源时）造成的伤害+1。 '
+    description = (
+        u'摸牌阶段，你可以少摸一张牌，若如此做，你获得以下效果直到回合结束：\n'
+        u'|B|R>> |r当你没有干劲时，你可以对本阶段内没有成为过|G弹幕|r目标的其他角色使用|G弹幕|r\n'
+        u'|B|R>> |r使用的|G弹幕|r和|G弹幕战|r（你为伤害来源时）造成的伤害+1'
+    )
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -38,8 +42,8 @@ class CriticalStrikeHandler:
 
 
 class CriticalStrikeLimit:
-    # overrides AttackLimitExceeded
     target_independent = False
+    shootdown_message = u'你对这个角色使用过弹幕了'
 
 
 class CriticalStrikeAction:

@@ -8,8 +8,8 @@ from game.autoenv import EventHandler, Game, GameError, user_input
 from thb.actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards
 from thb.actions import FatetellAction, FatetellStage, FinalizeStage, ForEach, GenericAction
 from thb.actions import LaunchCard, MaxLifeChange, MigrateCardsTransaction, Reforge, UserAction
-from thb.actions import detach_cards, migrate_cards, random_choose_card, register_eh, ttags
-from thb.actions import user_choose_cards
+from thb.actions import VitalityLimitExceeded, detach_cards, migrate_cards, random_choose_card
+from thb.actions import register_eh, ttags, user_choose_cards
 from thb.cards import basic, spellcard
 from thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN, t_OtherOne
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -25,9 +25,9 @@ class WearEquipmentAction(UserAction):
         equips = target.equips
         g = Game.getgame()
 
-        if card.equipment_category == 'weapon' and not ttags(target)['weapon_reforge']:
+        if card.equipment_category == 'weapon' and target.tags['vitality'] > 0:
             if user_input([target], ChooseOptionInputlet(self, (False, True))):
-                ttags(target)['weapon_reforge'] = True
+                target.tags['vitality'] -= 1
                 g.process_action(Reforge(target, target, card))
                 return True
 
@@ -305,7 +305,7 @@ class ElementalReactorHandler(EventHandler):
         if evt_type == 'action_stage_action':
             tgt = arg
             if not tgt.has_skill(ElementalReactorSkill): return arg
-            basic.AttackCardHandler.set_freeattack(tgt)
+            basic.AttackCardVitalityHandler.disable(tgt)
 
         elif evt_type == 'card_migration':
             act, cards, _from, to, _ = arg
@@ -316,7 +316,7 @@ class ElementalReactorHandler(EventHandler):
                 src = _from.owner
                 for c in cards:
                     if c.is_card(ElementalReactorCard):
-                        basic.AttackCardHandler.cancel_freeattack(src)
+                        basic.AttackCardVitalityHandler.enable(src)
 
         return arg
 
@@ -774,17 +774,15 @@ class LaevateinHandler(EventHandler):
     def cond(self, cards):
         if not len(cards) == 2: return False
 
-        if any(c.resides_in.type not in (
-            'cards', 'showncards', 'equips'
-        ) for c in cards): return False
-
         from ..cards import LaevateinCard
-        if any(c.resides_in.type == 'equips'
-               and c.is_card(LaevateinCard)
-               or c.is_card(Skill)
-               for c in cards):
-
-            return False
+        for c in cards:
+            t = c.resides_in.type
+            if t not in ('cards', 'showncards', 'equips'):
+                return False
+            elif t == 'equips' and c.is_card(LaevateinCard):
+                return False
+            elif c.is_card(Skill):
+                return False
 
         return True
 
@@ -1053,17 +1051,14 @@ class GrimoireHandler(EventHandler):
                 if t['turn_count'] <= t['grimoire_tag']:
                     raise ActionLimitExceeded
 
-                if basic.AttackCardHandler.is_freeattack(act.source):
-                    return act
-
-                if t['attack_num'] <= 0:
-                    raise basic.AttackLimitExceeded
+                if t['vitality'] <= 0:
+                    raise VitalityLimitExceeded
 
         elif evt_type == 'action_after' and isinstance(act, LaunchCard):
             c = act.card
             if c.is_card(GrimoireSkill):
                 t = act.source.tags
-                t['attack_num'] -= 1
+                t['vitality'] -= 1
                 t['grimoire_tag'] = t['turn_count']
 
         return act

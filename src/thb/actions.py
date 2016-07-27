@@ -777,6 +777,7 @@ class ActionStage(GenericAction):
         g = Game.getgame()
         target = self.target
         if target.dead: return False
+        target.tags['vitality'] = 1
 
         try:
             while not target.dead:
@@ -1248,4 +1249,8 @@ class ShowCards(GenericAction):
 
 
 class ActionLimitExceeded(ActionShootdown):
+    pass
+
+
+class VitalityLimitExceeded(ActionLimitExceeded):
     pass

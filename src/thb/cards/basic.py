@@ -5,9 +5,9 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game
-from thb.actions import ActionLimitExceeded, ActionStage, ActionStageLaunchCard, AskForCard, Damage
-from thb.actions import DistributeCards, DropCards, ForEach, GenericAction, LaunchCard, PlayerTurn
-from thb.actions import UseCard, UserAction, register_eh, user_choose_cards
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DistributeCards
+from thb.actions import DropCards, ForEach, GenericAction, LaunchCard, PlayerTurn, UseCard
+from thb.actions import UserAction, VitalityLimitExceeded, register_eh, user_choose_cards
 
 
 # -- code --
@@ -51,64 +51,18 @@ class InevitableAttack(Attack):
         return True
 
 
-class AttackLimitExceeded(ActionLimitExceeded):
-    pass
-
-
 @register_eh
-class AttackCardHandler(EventHandler):
-    interested = ('action_before', 'action_shootdown', 'calcdistance')
+class AttackCardRangeHandler(EventHandler):
+    interested = ('calcdistance', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before':
-            if isinstance(act, ActionStage):
-                act.target.tags['attack_num'] = 1
-
-            elif isinstance(act, ActionStageLaunchCard):
-                from .definition import AttackCard
-
-                if act.card.is_card(AttackCard):
-                    src = act.source
-                    src.tags['attack_num'] -= 1
-
-        elif evt_type == 'calcdistance':
+        if evt_type == 'calcdistance':
             src, card, dist = act
             from .definition import AttackCard
             if card.is_card(AttackCard):
                 self.fix_attack_range(src, dist)
 
-        elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
-            from .definition import AttackCard
-            if act.card.is_card(AttackCard):
-                src = act.source
-                if not self.can_launch_attack(src):
-                    raise AttackLimitExceeded
-
-                return act
-
         return act
-
-    @staticmethod
-    def set_freeattack(p):
-        p.tags['freeattack'] = p.tags['turn_count']
-
-    @staticmethod
-    def cancel_freeattack(p):
-        p.tags['freeattack'] = 0
-
-    @staticmethod
-    def is_freeattack(p):
-        return p.tags['freeattack'] >= p.tags['turn_count']
-
-    @staticmethod
-    def can_launch_attack(p):
-        if p.tags['freeattack'] >= p.tags['turn_count']:
-            return True
-
-        if p.tags['attack_num'] <= 0:
-            return False
-
-        return True
 
     @staticmethod
     def attack_range_bonus(p):
@@ -124,6 +78,59 @@ class AttackCardHandler(EventHandler):
         l = cls.attack_range_bonus(src)
         for p in dist:
             dist[p] -= l
+
+
+@register_eh
+class AttackCardVitalityHandler(EventHandler):
+    interested = ('action_before', 'action_shootdown')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
+            from .definition import AttackCard
+            src = act.source
+            if act.card.is_card(AttackCard) and not self.is_disabled(src):
+                act.vitality_consumed = True
+                src.tags['vitality'] -= 1
+
+        elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
+            from .definition import AttackCard
+            if act.card.is_card(AttackCard):
+                src = act.source
+                if self.is_disabled(src):
+                    return act
+
+                if getattr(act, 'vitality_consumed', False):
+                    return act
+
+                if src.tags['vitality'] > 0:
+                    return act
+
+                raise VitalityLimitExceeded
+
+        return act
+
+    @staticmethod
+    def disable(p):
+        p.tags['attack_card_vitality'] = p.tags['turn_count']
+
+    @staticmethod
+    def enable(p):
+        p.tags['attack_card_vitality'] = 0
+
+    @staticmethod
+    def is_disabled(p):
+        return p.tags['attack_card_vitality'] >= p.tags['turn_count']
+
+
+@register_eh
+class VitalityHandler(EventHandler):
+    interested = ('action_before', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, ActionStage):
+            act.source.tags['vitality'] = 1
+
+        return act
 
 
 class Heal(BasicAction):

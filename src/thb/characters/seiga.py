@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import ActionStage, ForEach, GenericAction, LaunchCard, LifeLost
-from thb.actions import PlayerDeath, UserAction
-from thb.cards import AttackCard, AttackCardHandler, Skill, t_None, t_Self
+from thb.actions import ActionStage, ForEach, GenericAction, LaunchCard, LifeLost, PlayerDeath
+from thb.actions import UserAction
+from thb.cards import AttackCard, AttackCardVitalityHandler, Skill, t_None, t_Self
 from thb.characters.baseclasses import Character, register_character_to
 from thb.common import CharChoice
 from thb.inputlets import ChooseOptionInputlet
@@ -57,7 +58,7 @@ class HeterodoxyAction(UserAction):
         # migrate_cards([self.associated_card], victim.cards, unwrap=migrate_cards.SINGLE_LAYER)
 
         if card.is_card(AttackCard):
-            src.tags['attack_num'] -= 1
+            src.tags['vitality'] -= 1
 
         # XXX: Use card owned by other
         lc = LaunchCard(victim, tgts, card)
@@ -70,8 +71,8 @@ class HeterodoxyAction(UserAction):
     def is_valid(self):
         src = self.source
         card = self.associated_card.associated_cards[0]
-        if card.is_card(AttackCard) and src.tags['attack_num'] < 1:
-            if not AttackCardHandler.is_freeattack(src):
+        if card.is_card(AttackCard) and src.tags['vitality'] < 1:
+            if not AttackCardVitalityHandler.is_disabled(src):
                 return False
 
         if card.usage != 'launch':

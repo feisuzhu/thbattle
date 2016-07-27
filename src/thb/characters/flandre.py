@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction
-from thb.actions import PlayerDeath, PlayerTurn, register_eh, ttags
-from thb.cards import AttackCard, AttackCardHandler, AttackLimitExceeded, BaseAttack, BaseDuel, DuelCard
-from thb.cards import ElementalReactorSkill, Skill, UserAction, t_None
+from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction, PlayerDeath
+from thb.actions import PlayerTurn, register_eh, ttags
+from thb.cards import ActionLimitExceeded, AttackCard, AttackCardVitalityHandler, BaseAttack
+from thb.cards import BaseDuel, DuelCard, Skill, UserAction, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -27,7 +28,7 @@ class CriticalStrikeAction(GenericAction):
         return True
 
 
-class CriticalStrikeLimit(AttackLimitExceeded):
+class CriticalStrikeLimit(ActionLimitExceeded):
     pass
 
 
@@ -80,6 +81,15 @@ class CriticalStrikeHandler(EventHandler):
 
             act.amount += 1
 
+        elif evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
+            src = act.source
+            if not self.in_critical_strike(src):
+                return act
+
+            if act.card.is_card(AttackCard):
+                act.vitality_consumed = True
+                src.tags['vitality'] -= 1
+
         elif evt_type == 'action_shootdown':
             if not isinstance(act, ActionStageLaunchCard): return act
             c = act.card
@@ -87,7 +97,8 @@ class CriticalStrikeHandler(EventHandler):
             tags = src.tags
             if not self.in_critical_strike(src): return act
             if not c.is_card(AttackCard): return act
-            if src.has_skill(ElementalReactorSkill): return act
+            if src.tags['vitality'] > 0: return act
+            if getattr(act, 'vitality_consumed', False): return act
             if set(act.target_list) & set(tags['flan_targets']):
                 raise CriticalStrikeLimit
 
@@ -96,7 +107,7 @@ class CriticalStrikeHandler(EventHandler):
         elif evt_type == 'action_stage_action':
             tgt = act
             if not self.in_critical_strike(tgt): return act
-            AttackCardHandler.set_freeattack(tgt)
+            AttackCardVitalityHandler.disable(tgt)
 
         return act
 

@@ -4,7 +4,6 @@
 # -- third party --
 # -- own --
 from .common import G
-from thb import cards
 from utils import ObjectDict
 
 # -----BEGIN TAGS UI META-----
@@ -19,16 +18,10 @@ def tag_metafunc(clsname, bases, _dict):
 __metaclass__ = tag_metafunc
 
 
-class attack_num:
-    tag_anim = lambda p: 'thb-tag-attacked'
-
-    def display(p, v):
-        if cards.AttackCardHandler.is_freeattack(p):
-            return False
-
-        return v <= 0 and G().current_player is p
-
-    description = u'该玩家在此回合不能再使用【弹幕】了'
+class vitality:
+    tag_anim    = lambda p: 'thb-tag-attacked'
+    display     = lambda p, v: v <= 0 and G().current_player is p
+    description = u'没有干劲了……'
 
 
 class wine:

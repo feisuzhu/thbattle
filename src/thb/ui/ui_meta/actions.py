@@ -236,4 +236,9 @@ class ActionStage:
         else:
             return True, u'不会显示'
 
+
+class VitalityLimitExceeded:
+    target_independent = True
+    shootdown_message = u'你没有干劲了'
+
 # -----END ACTIONS UI META-----
