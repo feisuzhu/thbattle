@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, FatetellAction, FatetellMalleateHandler, LaunchCard
-from thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard
-from thb.actions import detach_cards, migrate_cards, user_choose_cards
+from thb.actions import Damage, DropCards, FatetellAction, FatetellMalleateHandler
+from thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard, detach_cards
+from thb.actions import migrate_cards, user_choose_cards
 from thb.cards import Skill, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -98,7 +99,7 @@ class VengeOfTsukumogamiHandler(EventHandler):
         if not p.has_skill(VengeOfTsukumogami):
             return True
 
-        if isinstance(trans.action, (LaunchCard, UseCard)):
+        if not isinstance(trans.action, DropCards):
             return True
 
         for cards, _from, to, is_bh in trans.get_movements():

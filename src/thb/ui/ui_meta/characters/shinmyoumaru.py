@@ -40,7 +40,7 @@ class MiracleMalletAction:
 class VengeOfTsukumogami:
     # Skill
     name = u'付丧神之怨'
-    description = u'当一名其他角色装备区的牌（因使用或打出以外的原因）直接进入弃牌堆后，你可以进行一次判定，若结果为9~K，你对其造成一点伤害。'
+    description = u'当一名其他角色装备区的牌因弃置进入弃牌堆后，你可以进行一次判定，若结果为9~K，你对其造成一点伤害。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
