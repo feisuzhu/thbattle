@@ -656,6 +656,9 @@ class LaunchCard(GenericAction):
             _, tl = g.emit_event('choose_target', (self, target_list))
             assert _ is self
 
+            if not tl:
+                return True
+
             if isinstance(action, Action):
                 a = action
             else:

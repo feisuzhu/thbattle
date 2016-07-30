@@ -4,13 +4,12 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import ActionStage, DistributeCards, DrawCardStage, DrawCards, ForEach
+from game.autoenv import EventHandler, Game
+from thb.actions import ActionStage, AskForCard, DistributeCards, DrawCardStage, DrawCards
 from thb.actions import GenericAction, PlayerTurn, Reforge, UserAction, migrate_cards
 from thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
-from thb.cards import Heal, Skill, t_None, t_Self
+from thb.cards import Heal, PhysicalCard, Skill, t_None, t_Self
 from thb.characters.baseclasses import Character, register_character_to
-from thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
@@ -203,40 +202,52 @@ class GodDescendant(Skill):
     skill_category = ('character', 'passive')
 
 
-class GodDescendantAction(UserAction):
-    def __init__(self, source, target, act, card):
-        self.source = source
-        self.target = target
-        self.action = act
-        self.card   = card
+class GodDescendantEffect(UserAction):
+    def __init__(self, source, target, target_list, card):
+        self.source      = source
+        self.target      = target
+        self.target_list = target_list
+        self.card        = card
 
     def apply_action(self):
         g = Game.getgame()
-        g.process_action(Reforge(self.source, self.target, self.card))
-        self.action.cancelled = True
+        src, tgt, tl = self.source, self.target, self.target_list
+        g.process_action(Reforge(src, tgt, self.card))
+        assert tgt in tl
+        tl.remove(tgt)
         return True
 
 
+class GodDescendantAction(AskForCard):
+    card_usage = 'reforge'
+
+    def __init__(self, target, target_list):
+        AskForCard.__init__(self, target, target, PhysicalCard, ('cards', 'showncards', 'equips'))
+        self.target_list = target_list
+
+    def process_card(self, c):
+        g = Game.getgame()
+        return g.process_action(GodDescendantEffect(self.source, self.target, self.target_list, c))
+
+
 class GodDescendantHandler(EventHandler):
-    interested = ('action_before',)
+    interested = ('choose_target',)
     execute_before = ('MaidenCostumeHandler', )
 
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and ForEach.is_group_effect(act):
+    def handle(self, evt_type, arg):
+        if evt_type == 'choose_target':
+            act, tl = arg
+            if 'group_effect' not in act.card.category:
+                return arg
+
             g = Game.getgame()
-            tgt = act.target
-            if not tgt.has_skill(GodDescendant):
-                return act
+            for tgt in tl:
+                if not tgt.has_skill(GodDescendant):
+                    continue
 
-            cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-            if not cl:
-                return act
+                g.process_action(GodDescendantAction(tgt, tl))
 
-            c, = cl
-
-            g.process_action(GodDescendantAction(tgt, tgt, act, c))
-
-        return act
+        return arg
 
     def cond(self, cl):
         return len(cl) == 1

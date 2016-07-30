@@ -147,7 +147,7 @@ class GodDescendant:
     is_action_valid = passive_is_action_valid
 
 
-class GodDescendantHandler:
+class GodDescendantAction:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -156,7 +156,7 @@ class GodDescendantHandler:
             return (False, u'神裔：请选择要重铸的牌并跳过结算（否则不发动）')
 
 
-class GodDescendantAction:
+class GodDescendantEffect:
 
     def effect_string(act):
         return u'|G【%s】|r发动了|G神裔|r，重铸了一张牌并跳过了结算。' % (
