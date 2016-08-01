@@ -28,7 +28,7 @@ class Kaguya:
 class Dilemma:
     # Skill
     name = u'难题'
-    description = u'一名角色令你回复一点体力时，你可以令该角色摸一张牌；每当你受到一次伤害后，你可以令伤害来源交给你一张方片牌，否则其失去1点体力。'
+    description = u'每当一名角色令你回复1点残机后，你可以令其摸一张牌；每当你受到一次伤害后，你可以令伤害来源选择一项：|B|R>> |r交给你一张方块牌，|B|R>> |r失去1点残机。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -93,7 +93,7 @@ class DilemmaHandler:
 class ImperishableNight:
     # Skill
     name = u'永夜'
-    description = u'你的回合外，当一名其他角色的红色基本牌因使用进入弃牌堆时，你可以将一张红色牌当|G封魔阵|r置于该角色的判定区里，此牌必须为基本牌或装备牌。'
+    description = u'你的回合外，每当其他角色使用的红色基本牌置入弃牌堆时，你可以将一张红色基本牌或装备牌当|G封魔阵|r对其使用。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

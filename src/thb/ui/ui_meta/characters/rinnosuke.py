@@ -15,7 +15,7 @@ __metaclass__ = gen_metafunc(characters.rinnosuke)
 class Netoru:
     # Skill
     name = u'寝取'
-    description = u'出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力。'
+    description = u'出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点残机'
 
     def clickable(game):
         me = game.me
@@ -61,7 +61,7 @@ class Netoru:
 class Psychopath:
     # Skill
     name = u'变态'
-    description = u'|B锁定技|r，当你失去一张装备区里的牌时，你摸两张牌。'
+    description = u'|B锁定技|r，当你失去一张装备区里的装备牌时，你摸两张牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

@@ -15,7 +15,7 @@ class RiverBehind:
     # Skill
     name = u'背水'
     description = (
-        u'|B觉醒技|r，准备阶段开始时，若你的体力为全场最低时（或之一）且不大于2时，你减少一点体力上限并获得技能|R太极|r。\n'
+        u'|B觉醒技|r，准备阶段开始时，若你残机数为全场最低或之一且不大于2时，你减1点残机上限并获得技能|R太极|r。\n'
         u'|B|R>> |b太极|r：你可将|G弹幕|r当|G擦弹|r，|G擦弹|r当|G弹幕|r使用或打出。'
     )
 
@@ -77,7 +77,7 @@ class Taichi:
 class LoongPunch:
     # Skill
     name = u'龙拳'
-    description = u'每当你使用|G弹幕|r被|G擦弹|r抵消或使用|G擦弹|r抵消|G弹幕|r时，你可以弃置对方的一张手牌。'
+    description = u'每当你使用的|G弹幕|r被其他角色使用的|G擦弹|r抵消时，或其他角色使用的|G弹幕|r被你使用的|G擦弹|r抵消时，你可以弃置其1张手牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

@@ -16,7 +16,7 @@ __metaclass__ = gen_metafunc(characters.shinmyoumaru)
 class MiracleMallet:
     # Skill
     name = u'万宝槌'
-    description = u'在一名角色的判定牌生效前，你可以用一张点数大于此牌的牌替换之。'
+    description = u'当一名角色的判定牌生效前，你可以用一张点数大于此牌的牌替换之。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -40,7 +40,7 @@ class MiracleMalletAction:
 class VengeOfTsukumogami:
     # Skill
     name = u'付丧神之怨'
-    description = u'当一名其他角色装备区的牌因弃置进入弃牌堆后，你可以进行一次判定，若结果为9~K，你对其造成一点伤害。'
+    description = u'每当其他角色装备区的牌因弃置而置入弃牌堆时，你可以进行一次判定，若为9~K，你对其造成1点伤害。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

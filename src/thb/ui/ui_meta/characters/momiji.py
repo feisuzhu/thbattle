@@ -29,7 +29,7 @@ class Momiji:
 class Sentry:
     # Skill
     name = u'哨戒'
-    description = u'一名你攻击范围内的其他角色的出牌阶段开始时，你可以对其使用一张|G弹幕|r。'
+    description = u'你攻击范围内的一名其它角色的出牌阶段开始时，你可以对其使用一张|G弹幕|r。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -47,7 +47,7 @@ class Telegnosis:
 class Disarm:
     # Skill
     name = u'缴械'
-    description = u'你使用的|G弹幕|r或|G弹幕战|r造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r和符卡牌暂时移出游戏。'
+    description = u'每当你使用|G弹幕|r或|G弹幕战|r对其他角色造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r或符卡牌暂时移出游戏。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -119,7 +119,7 @@ class SolidShieldAction:
 class SolidShield:
     # Skill
     name = u'坚盾'
-    description = u'你距离1以内的角色成为另一名其他角色使用的弹幕或非延时符卡的唯一目标时，若该卡牌为其出牌阶段使用的第一张卡牌，你可以令其无效并将其暂时移出游戏。'
+    description = u'你距离1以内的角色成为其它角色使用的|G弹幕|r或单体符卡的目标后，若此卡牌为其出牌阶段时使用的第一张卡牌，取消之并暂时移出游戏。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

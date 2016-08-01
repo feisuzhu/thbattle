@@ -15,7 +15,7 @@ __metaclass__ = gen_metafunc(characters.patchouli)
 class Library:
     # Skill
     name = u'图书'
-    description = u'|B锁定技|r，你使用符卡时无距离限制，你使用非延时符卡时摸一张牌。'
+    description = u'|B锁定技|r，每当你使用非延时符卡时，你摸一张牌；你使用符卡无距离限制。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

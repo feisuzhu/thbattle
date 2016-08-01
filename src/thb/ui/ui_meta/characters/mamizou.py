@@ -14,7 +14,7 @@ __metaclass__ = gen_metafunc(characters.mamizou)
 class Morphing:
     # Skill
     name = u'变化'
-    description = u'出牌阶段限一次，你将两张手牌当做任何一张基本牌或非延时符卡使用。按此法使用的两张牌中至少有一张必须和你声明的牌类别一致。'
+    description = u'出牌阶段限一次，你可以将两张手牌当任意基本牌或非延时符卡使用，这两张牌中至少有一张须与你声明使用的牌类型相同。'
 
     params_ui = 'UIMorphingCardSelection'
 

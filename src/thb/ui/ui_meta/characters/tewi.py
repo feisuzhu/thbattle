@@ -13,7 +13,7 @@ __metaclass__ = gen_metafunc(characters.tewi)
 class Luck:
     # Skill
     name = u'幸运'
-    description = u'|B锁定技|r，当你失去最后的手牌时，你摸两张牌。'
+    description = u'|B锁定技|r，每当你失去最后的手牌时，你摸两张牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

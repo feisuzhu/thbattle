@@ -14,7 +14,7 @@ __metaclass__ = gen_metafunc(characters.minoriko)
 class Foison:
     # Skill
     name = u'丰收'
-    description = u'|B锁定技|r，摸牌阶段摸牌后，若你的手牌数不足5张，你可以补至5张。'
+    description = u'|B锁定技|r，摸牌阶段摸牌后，你将手牌数补至五张。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -70,7 +70,7 @@ class AutumnFeast:
 class AkiTribute:
     # Skill
     name = u'上贡'
-    description = u'|B锁定技|r，当有人使用|G五谷丰登|r时，你首先拿牌。|G五谷丰登|r结算完毕后，你将剩余的牌置于一名角色的明牌区。'
+    description = u'|B锁定技|r，结算|G五谷丰登|r时，你首先选择牌，结算完后，你将剩余的牌置于一名角色的明牌区。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

@@ -28,7 +28,7 @@ class Medicine:
 class Ciguatera:
     # Skill
     name = u'神经之毒'
-    description = u'一名角色的准备阶段开始时，你可以弃置一张黑色牌，令该角色失去一点残机，然后获得喝醉状态。'
+    description = u'一名角色准备阶段开始时，你可以弃置一张黑色牌，令其失去1点残机并获得“喝醉”状态。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -53,7 +53,7 @@ class CiguateraHandler:
 class Melancholy:
     # Skill
     name = u'忧郁之毒'
-    description = u'每当你受到一次有来源的伤害后，你可以展示并获得牌堆顶一张牌，若其花色不为梅花，伤害来源无法使用或打出手牌直到该回合结束。'
+    description = u'每当你受到一次有来源的伤害后，你可以展示并获得牌堆顶的一张牌，若此牌不是梅花牌，伤害来源不能使用或打出手牌，直到回合结束。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

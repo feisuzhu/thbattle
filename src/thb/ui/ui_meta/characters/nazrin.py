@@ -39,7 +39,7 @@ class NazrinKOF:
 class TreasureHunt:
     # Skill
     name = u'探宝'
-    description = u'准备阶段开始时，你可以进行一次判定，若结果为黑色，你获得此牌，你可以重复此流程，直到出现红色的判定结果为止。'
+    description = u'准备阶段开始时，你可以进行一次判定，若结果为黑，你获得此牌且你可以重复此流程。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -89,7 +89,7 @@ class Agile:
 class AgileKOF:
     # Skill
     name = u'轻敏'
-    description = u'你可以将一张|B黑桃|r色手牌当|G擦弹|r使用或打出。'
+    description = u'你可以将一张|B黑桃|r手牌当|G擦弹|r使用或打出。'
 
     clickable = Agile['clickable']
 

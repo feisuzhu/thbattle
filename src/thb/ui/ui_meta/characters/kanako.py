@@ -44,9 +44,9 @@ class KanakoFaith:
     # Skill
     name = u'信仰'
     description = (
-        u'|B限定技|r，出牌阶段，你可以令你攻击范围内的所有其他角色选择一项：\n'
+        u'|B限定技|r，出牌阶段，你可以令你攻击范围内的所有其他角色依次选择一项：\n'
         u'|B|R>> |r令你摸一张牌\n'
-        u'|B|R>> |r弃置你一张牌，然后你可以视为对其使用一张|G弹幕|r或|G弹幕战|r。'
+        u'|B|R>> |r弃置你一张牌，然后你视为对其使用了一张|G弹幕|r或|G弹幕战|r（按此法使用的弹幕不消耗干劲）。'
     )
 
     def clickable(game):
@@ -123,7 +123,7 @@ class KanakoFaithEffect:
 class Virtue:
     # Skill
     name = u'神德'
-    description = u'摸牌阶段开始时，你可以放弃摸牌并选择一名其他角色，改为令其摸两张牌，然后该角色需展示并交给你一张牌，若其交给你的牌为红桃，你摸一张牌。'
+    description = u'摸牌阶段，你可以放弃摸牌，改为令一名其他角色摸两张牌，然后其须展示并交给你一张牌，若交给你的牌为红桃牌，你摸一张牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -165,6 +165,7 @@ class KanakoFaithKOF:
         u'|B锁定技|r，结束阶段开始时，若你满足以下条件之一，将你的手牌补至X张（X为你的当前体力值）\n'
         u'|B|R>> |r你的体力值大于对方\n'
         u'|B|R>> |r你曾于出牌阶段对对方造成过伤害'
+
     )
 
     clickable = passive_clickable

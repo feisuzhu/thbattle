@@ -17,7 +17,7 @@ class HeavyDrinkerWine:
 class HeavyDrinker:
     # Skill
     name = u'酒豪'
-    description = u'出牌阶段，你可以与一名角色拼点，若你赢，你和其各视为使用了一张|G酒|r，若你没赢，本回合你无法使用该技能。每阶段对每名角色限一次。'
+    description = u'出牌阶段每名角色限一次，你可以和其他角色拼点，若你赢，视为你和其各使用了一张|G酒|r，若你没赢，你不能发动此技能，直到回合结束。'
 
     def clickable(game):
         me = game.me
@@ -57,7 +57,7 @@ class HeavyDrinker:
 class DrunkenDream:
     # Skill
     name = u'醉梦'
-    description = u'|B锁定技|r，若你处于喝醉状态，你的攻击范围+2，回合开始阶段开始时，你摸1张牌。'
+    description = u'|B锁定技|r，你处于“喝醉”状态时，攻击范围+2；准备阶段开始时，你摸一张牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

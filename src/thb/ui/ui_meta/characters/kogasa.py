@@ -49,7 +49,7 @@ class JollyHandler:
 class Surprise:
     # Skill
     name = u'惊吓'
-    description = u'出牌阶段限一次，你可以选择一张手牌和一名角色，该角色选择一种花色后获得这张牌，并将其置入明牌区。若此牌与所选花色不同，则你对该角色造成1点伤害。'
+    description = u'出牌阶段限一次，你可以选择一张手牌并指定一名其他角色，该角色选择一种花色后，获得此牌并明置之。若此牌与其选择的花色不同，你对其造成1点伤害。'
 
     def clickable(game):
         me = game.me

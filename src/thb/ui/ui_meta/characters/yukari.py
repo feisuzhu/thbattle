@@ -15,10 +15,7 @@ __metaclass__ = gen_metafunc(characters.yukari)
 class SpiritingAway:
     # Skill
     name = u'神隐'
-    description = (
-        u'出牌阶段限两次，你可以将任意角色区域内的一张牌移出游戏。你的结束阶段，这些角色获得自己被移出游戏的牌。\n'
-        u'|B|R>> |r你可以观看由|G神隐|r移出的牌。'
-    )
+    description = u'出牌阶段限两次，你可以将场上的一张牌暂时移出游戏。你可以观看以此法移出游戏的牌。'
 
     def clickable(game):
         me = game.me

@@ -26,7 +26,7 @@ class Youmu:
 class Mijincihangzhan:
     # Skill
     name = u'迷津慈航斩'
-    description = u'|B锁定技|r，你使用的|G弹幕|r目标角色需连续使用两张|G擦弹|r才能抵消；与你进行|G弹幕战|r的角色每次需连续打出两张|G弹幕|r。'
+    description = u'|B锁定技|r，你使用的|G弹幕|r需要连续使用两张|G擦弹|r来抵消；与你进行|G弹幕战|r的角色每次需要连续打出两张|G弹幕|r。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -57,7 +57,7 @@ class Nitoryuu:
     # Skill
     name = u'二刀流'
     description = (
-        u'你可以同时装备两把武器。同时装备时，攻击距离加成按其中较高者计算，武器技能同时有效，且你于出牌阶段额外获得一点干劲。\n'
+        u'你可以额外装备一把武器，当你同时装备了两把武器时，攻击范围按其中较高者计算；武器技能同时有效，且你额外增加一点干劲。\n'
         u'|B|R>> |r当你受到|G人形操控|r的效果生效时，需交出全部的武器。\n'
         u'|B|R>> |r当你装备两把武器时，你可以主动弃置其中的一把。'
     )

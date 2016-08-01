@@ -16,7 +16,7 @@ __metaclass__ = gen_metafunc(characters.ran)
 class Prophet:
     # Skill
     name = u'神算'
-    description = u'准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序的置于牌堆顶，其余以任意顺序置于牌堆底。（X为场上存活角色的数量，且至多为5）'
+    description = u'准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序置于牌堆顶，其余以任意顺序置于牌堆底。（X为存活角色数且至多为5）'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -25,7 +25,7 @@ class Prophet:
 class ExtremeIntelligence:
     # Skill
     name = u'极智'
-    description = u'你的回合外，当有非延时符卡的效果对一名角色生效后，你可以弃置一张牌使该效果对该角色重新进行一次结算，此时效果来源视为你。每轮限一次。'
+    description = u'每轮限一次，你的回合外，当非延时符卡对一名角色生效后，你可以弃置一张牌，令该符卡效果对那名角色重新进行一次结算，此时使用者视为你。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -114,7 +114,7 @@ class ExtremeIntelligenceAction:
 class NakedFox:
     # Skill
     name = u'素裸'
-    description = u'|B锁定技|r，当你没有手牌时，你受到的符卡伤害-1。'
+    description = u'|B锁定技|r，若你没有手牌，符卡对你造成的伤害-1。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

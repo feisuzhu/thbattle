@@ -61,7 +61,7 @@ class AssaultKOFHandler:
 class AssaultKOF:
     # Skill
     name = u'强袭'
-    description = u'|B登场技|r，你登场时可以视为对对手使用了一张|G弹幕|r。'
+    description = u'|B登场技|r，你登场时可以视为使用了一张|G弹幕|r。'
 
     no_display = False
     clickable = passive_clickable
@@ -71,7 +71,7 @@ class AssaultKOF:
 class FreakingPower:
     # Skill
     name = u'怪力'
-    description = u'当你使用|G弹幕|r指定一名其他角色成为目标后，你可以进行一次判定：若结果为红色，则此|G弹幕|r不可闪避；若结果为黑色，则此|G弹幕|r造成伤害后你可以弃置其一张牌。'
+    description = u'每当你使用|G弹幕|r指定了其他角色时，你可以进行一次判定，若结果为红，则此|G弹幕|r不能被响应；若结果为黑，则此|G弹幕|r造成伤害后，你弃置其一张牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

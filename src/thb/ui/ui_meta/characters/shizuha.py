@@ -36,7 +36,7 @@ class AutumnWindAction:
 class Decay:
     # Skill
     name = u'凋零'
-    description = u'|B锁定技|r。你的回合内，一名其他角色失去最后一张手牌时，你摸一张牌。你的回合外，你受到一次伤害后，当前角色弃牌阶段需要额外弃置一张手牌。|r'
+    description = u'|B锁定技|r。你的回合内，每当其他角色失去最后的手牌时，你摸一张牌；你的回合外，每当你受到一次伤害后，当前回合角色于本回合弃牌阶段需额外弃置一张手牌（该效果不可叠加）。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -66,7 +66,7 @@ class DecayDrawCards:
 class AutumnWind:
     # Skill
     name = u'秋风'
-    description = u'你的弃牌阶段结束时，你可以弃置至多X名其他角色各一张牌（X为你弃牌阶段的弃牌数）。|r'
+    description = u'弃牌阶段结束时，你可以弃置至多X名角色各一张牌。（X为你本阶段弃置的手牌数）'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

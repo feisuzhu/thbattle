@@ -27,7 +27,7 @@ class Koakuma:
 class Find:
     # Skill
     name = u'寻找'
-    description = u'出牌阶段限一次，你可以弃置至多X张牌，然后摸等量的牌（X为场上存活角色数）。'
+    description = u'出牌阶段限一次，你可以弃置至多X张牌，然后摸等量的牌。（X为场上存活角色数）'
 
     def clickable(game):
         me = game.me

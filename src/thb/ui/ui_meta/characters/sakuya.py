@@ -27,7 +27,7 @@ class Sakuya:
 class Dagger:
     # Skill
     name = u'飞刀'
-    description = u'你可以将一张装备牌当|G弹幕|r使用或打出。按此法使用的|G弹幕|r无距离限制。'
+    description = u'你可以将一张装备牌当|G弹幕|r使用或打出，以此法使用的|G弹幕|r无距离限制。'
 
     def clickable(g):
         me = g.me

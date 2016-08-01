@@ -43,10 +43,7 @@ class SanaeKOF:
 
 class Miracle:
     name = u'奇迹'
-    description = (
-        u'出牌阶段，你可以弃置X张牌并摸一张牌。若X为3，你可以令一名角色回复一点体力。\n'
-        u'|B|R>> |rX为你本回合发动|G奇迹|r的次数，当你回合内第一次使用|G奇迹|r时，X为1，第二次为2，以此类推。'
-    )
+    description = u'出牌阶段，你可以弃置X张牌并摸一张牌；若X为3，你可以令一名角色回复1点残机。（X为你此阶段使用奇迹的次数）'
 
     def clickable(g):
         return my_turn()
@@ -105,7 +102,7 @@ class SanaeFaith:
 
 class SanaeFaithKOF:
     name = u'信仰'
-    description = u'|B锁定技|r，你的对手于自己的出牌阶段获得牌后，你摸一张牌。'
+    description = u'|B锁定技|r，对方的出牌阶段，每当其获得牌时，你摸一张牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -141,7 +138,7 @@ class SanaeFaithReturnCardAction:
 
 class GodDescendant:
     name = u'神裔'
-    description = u'当你成为群体符卡的目标后，你可以重铸一张牌并跳过此次结算。'
+    description = u'每当你成为群体符卡的目标后，你可以重铸一张牌并跳过此次结算。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

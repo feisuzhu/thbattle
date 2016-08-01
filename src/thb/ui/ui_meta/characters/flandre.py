@@ -28,7 +28,7 @@ class CriticalStrike:
     description = (
         u'摸牌阶段，你可以少摸一张牌，若如此做，你获得以下效果直到回合结束：\n'
         u'|B|R>> |r当你没有干劲时，你可以对本阶段内没有成为过|G弹幕|r目标的其他角色使用|G弹幕|r\n'
-        u'|B|R>> |r使用的|G弹幕|r和|G弹幕战|r（你为伤害来源时）造成的伤害+1'
+        u'|B|R>> |r你为伤害来源的|G弹幕|r和|G弹幕战|r造成的伤害+1'
     )
 
     clickable = passive_clickable
@@ -59,7 +59,7 @@ class CriticalStrikeAction:
 class Exterminate:
     # Skill
     name = u'毁灭'
-    description = u'|B锁定技|r，你使用的|G弹幕|r或|G弹幕战|r指定一名其他角色成为目标后，该角色无法使用技能直到当前回合结束。'
+    description = u'|B锁定技|r，每当你使用|G弹幕|r或|G弹幕战|r指定其他角色为目标后，其所有技能无效直到回合结束。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

@@ -14,7 +14,11 @@ __metaclass__ = gen_metafunc(characters.rumia)
 class Darkness:
     # Skill
     name = u'黑暗'
-    description = u'出牌阶段限一次，你可以弃置一张牌并指定一名其他角色。该角色需对由你指定的在其攻击范围内的另一名其他角色使用一张|G弹幕|r，否则你对其造成1点伤害。'
+    description = (
+        u'出牌阶段限一次，你可以弃置一张牌并指定一名其他角色，令其选择一项：\n'
+        u'|B|R>> |r对其攻击范围内另一名你指定的其他角色使用一张|G弹幕|r。\n'
+        u'|B|R>> |r受到你造成的1点伤害。'
+    )
 
     custom_ray = True
 
@@ -57,7 +61,7 @@ class Darkness:
 class DarknessKOF:
     # Skill
     name = u'黑暗'
-    description = u'|B登场技|r，你登场的回合，对手使用卡牌时无法指定你为目标。'
+    description = u'|B登场技|r，你登场的回合，对方使用牌时不能指定你为目标。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

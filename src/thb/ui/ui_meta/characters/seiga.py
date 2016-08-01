@@ -60,9 +60,9 @@ class Heterodoxy:
     # Skill
     name = u'邪仙'
     description = (
-        u'出牌阶段，你可以将一张可以主动发动的手牌，在合法的情况下，以一名其他玩家的身份使用。\n'
-        u'|B|R>> |r以此法使用|G弹幕|r时，消耗你的干劲\n'
-        u'|B|R>> |r当你成为以此法使用的群体符卡的目标时，你可以选择跳过此次结算。'
+        u'出牌阶段，你可以将一张手牌以一名其他角色的身份使用。\n'
+        u'|B|R>> |r以此法使用|G弹幕|r消耗你的干劲\n'
+        u'|B|R>> |r你成为此法使用的群体符卡的目标后，可以跳过此次结算。'
     )
     custom_ray = True
 
@@ -112,7 +112,7 @@ class Heterodoxy:
 class Summon:
     # Skill
     name = u'通灵'
-    description = u'|B限定技|r，你可以获得于你回合内死亡角色的一个技能（不包括限定技，觉醒技和BOSS技）。'
+    description = u'|B限定技|r，你的回合内，当有角色时，你可以获得其一个技能（不包括限定技，觉醒技）'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -149,7 +149,7 @@ class SummonKOF:
     # Skill
     name = u'通灵'
     description = (
-        u'你可以获得击坠角色的角色牌。出牌阶段，你可以和你的备选角色牌里的角色交换角色牌，然后结束你的出牌阶段。\n'
+        u'你可以将击坠角色的角色牌加入你的备选角色；出牌阶段，你可以和你的备选角色交换角色牌，然后结束出牌阶段。\n'
         u'|B|R>> |r你的体力值保留，体力上限会调整到与新角色一致。'
     )
 

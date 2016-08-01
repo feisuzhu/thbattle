@@ -140,9 +140,9 @@ class ReimuExterminate:
     # Skill
     name = u'退治'
     description = (
-        u'你可以在以下时机对当前行动角色（若不是你）使用一张弹幕（无距离限制）：\n'
-        u'|B|R>> |r在当前行动角色的出牌阶段，你受到一次有来源的伤害后\n'
-        u'|B|R>> |r在当前行动角色的结束阶段开始且其本回合对其他角色造成过伤害时'
+        u'其他角色的回合内，你可以于以下时机无视距离对其使用一张弹幕：\n'
+        u'|B|R>> |r出牌阶段，你受到伤害后\n'
+        u'|B|R>> |r回合结束阶段，且该角色本回合对其他角色造成过伤害'
     )
 
     clickable = passive_clickable
@@ -178,7 +178,7 @@ class ReimuExterminateLaunchCard:
 class ReimuClear:
     # Skill
     name = u'快晴'
-    description = u'你对一名其他角色造成伤害后，你可以与其各摸一张牌。若此时为其它角色的出牌阶段，终止此阶段的结算。'
+    description = u'你对一名其他角色造成伤害后，你可以与其各摸一张牌，若此时位于其它角色的出牌阶段，停止当前结算并结束出牌阶段。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

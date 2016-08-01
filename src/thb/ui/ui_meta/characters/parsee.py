@@ -25,7 +25,7 @@ class Parsee:
 class Envy:
     # Skill
     name = u'嫉妒'
-    description = u'出牌阶段，你可以将一张黑色牌当|G城管执法|r使用。你使用|G城管执法|r使一名距离1以内角色的一张方片牌进入弃牌堆时，你可以获得之。'
+    description = u'你可以将一张黑色牌当|G城管执法|r使用；每当距离1的其他角色的方块牌被你使用的|G城管执法|r弃置而置入弃牌堆后，你可以获得之。'
 
     def clickable(game):
         me = game.me

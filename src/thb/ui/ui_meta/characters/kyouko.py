@@ -28,7 +28,7 @@ class Kyouko:
 class Echo:
     # Skill
     name = u'回响'
-    description = u'你受到伤害后，可以获得对你造成的牌。若此牌为弹幕，你可以改为令一名其他角色获得之。'
+    description = u'每当你受到一次伤害后，你可以获得对你造成伤害的牌，若此牌为|G弹幕|r，你可以改为令一名其他角色获得之。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -37,7 +37,7 @@ class Echo:
 class Resonance:
     # Skill
     name = u'共振'
-    description = u'你对一名其他角色使用的弹幕结算完毕后，你可以令另一名其他角色对其使用一张弹幕（无距离限制）。'
+    description = u'当你对其他角色使用的|G弹幕|r结算完毕后，你可以指定另一名其他角色，该角色可以对其使用一张无视距离的|G弹幕|r。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

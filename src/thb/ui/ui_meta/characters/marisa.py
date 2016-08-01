@@ -42,7 +42,7 @@ class BorrowAction:
 class Borrow:
     # Skill
     name = u'借走'
-    description = u'出牌阶段限一次，你可以获得一名其他角色的一张牌，然后该角色可以视为对你使用了一张|G弹幕|r。'
+    description = u'出牌阶段限一次，你可以获得其他角色的一张牌，然后该角色可以视为对你使用了一张|G弹幕|r。'
 
     def clickable(g):
         if limit1_skill_used('borrow_tag'):

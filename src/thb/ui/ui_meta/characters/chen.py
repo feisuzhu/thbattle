@@ -14,7 +14,10 @@ __metaclass__ = gen_metafunc(characters.chen)
 class FlyingSkanda:
     # Skill
     name = u'飞翔韦驮天'
-    description = u'出牌阶段限一次，你使用|G弹幕|r或除了|G人形操控|r以外的非延时单体符卡时，可以额外指定一个目标。'
+    description = (
+        u'出牌阶段限一次，你使用|G弹幕|r或单体符卡时，可以额外指定一个目标。\n'
+        u'|B|R>> |r在线版本中，不能以此法使用|G人性操控|r'
+    )
 
     def clickable(game):
         me = game.me
@@ -76,7 +79,10 @@ class FlyingSkanda:
 class Shikigami:
     # Skill
     name = u'式神'
-    description = u'|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：摸2张牌或回复一点体力。直到你的下个回合开始，你和该角色可以于自己的回合内对对方攻击范围内的角色使用|G弹幕|r。'
+    description = (
+        u'|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：|B|R>> |r摸两张牌，|B|R>> |r回复1点残机。\n'
+        u'直到下次你的回合开始时，你与其可以在出牌阶段对对方攻击范围内的角色使用|G弹幕|r。'
+    )
 
     def clickable(game):
         me = game.me

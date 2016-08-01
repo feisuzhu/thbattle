@@ -13,7 +13,7 @@ __metaclass__ = gen_metafunc(characters.aya)
 class UltimateSpeed:
     # Skill
     name = u'最速'
-    description = u'|B锁定技|r，你在回合内使用第二张牌时，你摸一张牌且在本回合使用卡牌时无距离限制。'
+    description = u'|B锁定技|r，你的回合内，当你使用本回合的第二张牌时，你摸一张牌，然后你使用卡牌时无距离限制，直到回合结束。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

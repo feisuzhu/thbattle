@@ -15,7 +15,7 @@ __metaclass__ = gen_metafunc(characters.cirno)
 class PerfectFreeze:
     # Skill
     name = u'完美冻结'
-    description = u'当你使用|G弹幕|r或|G弹幕战|r对一名其他角色造成伤害时，你可以防止此次伤害，然后令该角色弃置一张牌；若其弃置的不为装备区的牌，其失去一点体力。'
+    description = u'每当你使用|G弹幕|r或|G弹幕战|r对其他角色造成伤害时，你可以防止此次伤害，并令该角色弃置一张牌，若其弃置的不为装备区的牌，其失去1点残机。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -54,7 +54,7 @@ class Bakadesu:
     # Skill
     name = u'最强'
     description = (
-        u'出牌阶段限一次，你可以指定一名可以合法对你使用|G弹幕|r的角色，该角色选择一项：\n'
+        u'出牌阶段限一次，你可以指定一名攻击范围内有你的角色，该角色选择一项：\n'
         u'|B|R>> |r对你使用一张|G弹幕|r\n'
         u'|B|R>> |r令你弃置其一张牌'
     )

@@ -15,7 +15,7 @@ __metaclass__ = gen_metafunc(characters.shikieiki)
 class Trial:
     # Skill
     name = u'审判'
-    description = u'在一名角色的判定牌生效前，你可以打出一张牌代替之。'
+    description = u'每当一名角色的判定牌生效前，你可以打出一张牌代替之。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -39,7 +39,7 @@ class TrialAction:
 class Majesty:
     # Skill
     name = u'威严'
-    description = u'当你受到一次伤害后，你可以获得伤害来源的一张牌。'
+    description = u'每当你受到一次伤害后，你可以获得伤害来源的一张牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

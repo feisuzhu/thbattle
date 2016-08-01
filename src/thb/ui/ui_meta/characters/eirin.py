@@ -13,7 +13,7 @@ __metaclass__ = gen_metafunc(characters.eirin)
 class FirstAid:
     # Skill
     name = u'急救'
-    description = u'当一名角色进入濒死状态时，你可以将一张红色牌当|G麻薯|r对其使用。'
+    description = u'你可以将一张红色牌当|G麻薯|r对濒死角色使用。'
 
     def clickable(game):
         try:
@@ -42,7 +42,7 @@ class FirstAid:
 class Medic:
     # Skill
     name = u'医者'
-    description = u'出牌阶段限一次，你可以弃置一张手牌并令一名已受伤的角色回复1点体力。'
+    description = u'出牌阶段限一次，你可以弃置一张手牌令一名已受伤的角色回复1点残机。'
 
     def clickable(game):
         me = game.me

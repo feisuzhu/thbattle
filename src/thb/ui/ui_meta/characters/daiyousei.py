@@ -39,7 +39,7 @@ class DaiyouseiKOF:
 class Support:
     # Skill
     name = u'支援'
-    description = u'出牌阶段，你可以将任意数量的牌交给其他角色，若此阶段你给出的牌张数达到3张或更多时，你回复1点体力。'
+    description = u'出牌阶段，你可将任意张牌交给其他角色，此阶段你给出的牌首次达到三张时，你回复1点残机。'
 
     def clickable(game):
         me = game.me
@@ -81,7 +81,7 @@ class Support:
 class SupportKOF:
     # Skill
     name = u'支援'
-    description = u'你死亡时，可以将你的全部卡牌移出游戏，并使下一名登场的角色获得这些牌。'
+    description = u'你死亡时，你可以将你的所有牌移出游戏，并令下一名登场的角色获得这些牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -103,7 +103,7 @@ class SupportKOFHandler:
 class Moe:
     # Skill
     name = u'卖萌'
-    description = u'|B锁定技|r，摸牌阶段你额外摸X张牌（X为你已损失的体力值）。'
+    description = u'|B锁定技|r，摸牌阶段你额外摸X张牌（X为你已损失的残机数）。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

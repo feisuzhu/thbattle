@@ -45,7 +45,7 @@ class InciteSilentFailAction:
 class Incite:
     # Skill
     name = u'挑拨'
-    description = u'出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内一名由你指定的另一名其他角色使用了一张|G弹幕|r。若你没赢，该角色可以视为对你使用了一张|G弹幕|r。'
+    description = u'出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内你指定的另一名其他角色使用了一张|G弹幕|r；若你没赢，该角色可以视为对你使用了一张|G弹幕|r。'
 
     custom_ray = True
 
@@ -104,7 +104,7 @@ class InciteAction:
 class Reversal:
     # Skill
     name = u'逆转'
-    description = u'当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若此时你的手牌数大于该角色，此弹幕对你无效并视为其对你使用了一张|G弹幕战|r。'
+    description = u'当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若你的手牌数大于其手牌数，你将此|G弹幕|r视为|G弹幕战|r'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

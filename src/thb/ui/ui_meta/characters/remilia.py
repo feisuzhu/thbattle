@@ -18,8 +18,8 @@ class SpearTheGungnir:
     # Skill
     name = u'神枪'
     description = (
-        u'出现以下情况之一，你可以令你的|G弹幕|r不能被|G擦弹|r抵消：\n'
-        u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
+        u'满足下列条件之一时，你可以令你的|G弹幕|r不能被响应：\n'
+        u'|B|R>> |r目标角色的体力值 大于 你的残机数。\n'
         u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。'
     )
     clickable = passive_clickable

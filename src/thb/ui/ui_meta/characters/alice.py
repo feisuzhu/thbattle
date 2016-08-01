@@ -31,9 +31,9 @@ class LittleLegion:
     name = u'小小军势'
     description = (
         u'出牌阶段结束时，你可以重铸一张装备牌，然后发动对应的效果：\n'
-        u'|B|R>> |r武器：视为对一名角色使用了|G弹幕|r\n'
-        u'|B|R>> |r防具：令一名角色回复一点体力\n'
-        u'|B|R>> |r饰品：你摸一张牌，并跳过弃牌阶段\n'
+        u'|B|R>> |r武器：视为对一名其他角色使用了|G弹幕|r\n'
+        u'|B|R>> |r防具：令一名角色回复1点残机\n'
+        u'|B|R>> |r饰品：摸一张牌并跳过弃牌阶段\n'
         u'|B|R>> |rUFO ：视为使用一张|G人型操控|r'
     )
 
@@ -148,7 +148,7 @@ class LittleLegionHandler:
 class DollBlast:
     # Skill
     name = u'人偶爆弹'
-    description = u'当你的装备区的一张牌被其他角色弃置或获得时，你可以弃置其一张牌。若按此法弃置的为被该角色获得的装备牌，你对其造成1点伤害。'
+    description = u'每当你装备区的牌被其他角色获得或弃置时，你可以弃置其一张牌。若此法弃置的牌为该角色获得的牌，你对其造成1点伤害。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

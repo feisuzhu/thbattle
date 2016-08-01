@@ -14,7 +14,7 @@ __metaclass__ = gen_metafunc(characters.yuuka)
 class ReversedScales:
     # Skill
     name = u'逆鳞'
-    description = u'其他角色对你使用的非群体非延时符卡，你可以将其视为|G弹幕战|r；你的回合外，你可以将一张手牌当|G弹幕|r使用或打出。'
+    description = u'每当你成为其他角色使用的单体符卡的目标时，你可以将其视为|G弹幕战|r；你的回合外，你可以将一张手牌当做|G弹幕|r使用或打出。'
 
     def clickable(game):
         me = game.me
@@ -62,7 +62,7 @@ class ReversedScales:
 class Sadist:
     # Skill
     name = u'施虐'
-    description = u'当你击坠一名角色时，你可以对你攻击范围内的一名角色造成一点伤害。|B锁定技|r，你对残机数为1的其它角色造成的伤害+1。'
+    description = u'当你击坠一名角色时，你可以对攻击范围内一名其他角色造成1点伤害；你对残机数为1的其他角色造成的伤害+1。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

@@ -29,7 +29,7 @@ class Komachi:
 class Riverside:
     # Skill
     name = u'彼岸'
-    description = u'出牌阶段限一次，你可以弃置一张牌并指定一名角色，你与其距离视为1直到回合结束。若该角色为全场体力最少的角色（或之一），你可以弃置其一张牌或摸一张牌。'
+    description = u'出牌阶段限一次，你可以弃置一张牌并指定一名其他角色，你与其距离视为1直到回合结束，然后若该角色的残机数为全场最少的（或之一），你选择一项：|B|R>> |r摸一张牌，|B|R>> |r弃置其一张牌。'
 
     def clickable(g):
         if not my_turn(): return False
@@ -83,8 +83,8 @@ class Returning:
     # Skill
     name = u'归航'
     description = (
-        u'|B觉醒技|r，准备阶段开始时，若你的体力值低于手牌数且不大于2，你减少一点体力上限并获得技能|R渡钱|r。\n'
-        u'|B|R>> |b渡钱|r：你对距离为1的其他角色造成一次伤害后，你可以获得其一张牌。'
+        u'|B觉醒技|r，准备阶段开始时，若你残机数小于手牌数且不大于2，你减1点残机上限并获得技能|R渡钱|r\n'
+        u'|B|R>> |b渡钱|r：每当你对距离1的其他角色造成伤害后，你可以获得其一张牌。'
     )
 
     clickable = passive_clickable
@@ -94,7 +94,7 @@ class Returning:
 class FerryFee:
     # Skill
     name = u'渡钱'
-    description = u'你对距离为1的其他角色造成一次伤害后，你可以获得其一张牌。'
+    description = u'每当你对距离1的其他角色造成伤害后，你可以获得其一张牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
