@@ -25,9 +25,12 @@ class WearEquipmentAction(UserAction):
         equips = target.equips
         g = Game.getgame()
 
+        self.choice = 'equip'
+
         if card.equipment_category == 'weapon' and target.tags['vitality'] > 0:
             if user_input([target], ChooseOptionInputlet(self, (False, True))):
                 target.tags['vitality'] -= 1
+                self.choice = 'reforge'
                 g.process_action(Reforge(target, target, card))
                 return True
 

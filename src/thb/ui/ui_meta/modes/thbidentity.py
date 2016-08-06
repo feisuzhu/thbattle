@@ -184,7 +184,7 @@ class AssistedHeal:
 class ExtraCardSlot:
     # Skill
     name = u'应援'
-    description = u'|G应援|r：锁定技，每有一名道中存活，你的手牌上限便+1'
+    description = u'锁定技，每有一名道中存活，你的手牌上限便+1'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 

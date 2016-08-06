@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 import random
@@ -11,6 +12,7 @@ from thb.ui.ui_meta.common import card_desc, gen_metafunc, passive_clickable
 from thb.ui.ui_meta.common import passive_is_action_valid
 from utils import BatchList
 
+
 # -- code --
 __metaclass__ = gen_metafunc(cards)
 
@@ -19,9 +21,20 @@ def equip_iav(g, cl, target_list):
     return (True, u'配上好装备，不再掉节操！')
 
 
+def suppress_launch_card_effect_string(act):
+    return None
+
+
 class WearEquipmentAction:
     choose_option_prompt = u'你希望重铸这张牌么？'
     choose_option_buttons = ((u'重铸', True), (u'装备', False))
+
+    def effect_string(act):
+        return u'|G【%s】|r%s了%s' % (
+            act.target.ui_meta.name,
+            u'重铸' if act.choice == 'reforge' else u'装备',
+            card_desc(act.associated_card),
+        )
 
 
 class OpticalCloakCard:
@@ -31,11 +44,12 @@ class OpticalCloakCard:
     image_small = 'thb-card-small-opticalcloak'
     description = (
         u'|R光学迷彩|r\n\n'
-        u'装备后:当你需要使用或打出【擦弹】时，可以进行一次判定，若结果为红，视为你使用或打出了一张【擦弹】。\n\n'
+        u'装备后:当你需要使用或打出|G擦弹|r时，可以进行一次判定，若结果为红，视为你使用或打出了一张|G擦弹|r。\n\n'
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class OpticalCloakSkill:
@@ -84,6 +98,7 @@ class MomijiShieldCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class MomijiShieldSkill:
@@ -119,6 +134,7 @@ class GreenUFOCard:
     description = ufo_desc % name
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class GreenUFOSkill:
@@ -137,6 +153,7 @@ class RedUFOCard:
     description = ufo_desc % name
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class RedUFOSkill:
@@ -162,6 +179,7 @@ class RoukankenCard:
         u'|DB（画师：霏茶）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class RoukankenSkill:
@@ -195,6 +213,7 @@ class ElementalReactorCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class ElementalReactorSkill:
@@ -216,6 +235,7 @@ class UmbrellaCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class UmbrellaSkill:
@@ -260,6 +280,7 @@ class GungnirCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class GungnirSkill:
@@ -327,6 +348,7 @@ class ScarletRhapsodyCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class ScarletRhapsodySkill:
@@ -391,6 +413,7 @@ class RepentanceStickCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class RepentanceStickSkill:
@@ -433,6 +456,8 @@ class IbukiGourdCard:
     image = 'thb-card-ibukigourd'
     image_small = 'thb-card-small-ibukigourd'
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
+
     description = (
         u'|R伊吹瓢|r\n\n'
         u'装备后：获得立即|B喝醉|r状态。并且，若你在出牌阶段没有造成过伤害，在回合结束阶段获得|B喝醉|r状态。\n\n'
@@ -463,6 +488,7 @@ class HouraiJewelCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class HouraiJewelSkill:
@@ -499,6 +525,7 @@ class MaidenCostumeCard:
         u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class MaidenCostume:
@@ -552,6 +579,7 @@ class HakuroukenCard:
         u'|DB（画师：霏茶，CV：小羽）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class HakuroukenSkill:
@@ -608,6 +636,7 @@ class AyaRoundfanCard:
         u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class AyaRoundfanSkill:
@@ -665,6 +694,7 @@ class NenshaPhoneCard:
 
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class NenshaPhoneSkill:
@@ -708,6 +738,7 @@ class LaevateinCard:
         u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class LaevateinSkill:
@@ -749,6 +780,7 @@ class DeathSickleCard:
         u'|DB（画师：霏茶，CV：小羽）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class DeathSickleSkill:
@@ -784,6 +816,7 @@ class KeystoneCard:
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class KeystoneSkill:
@@ -809,6 +842,7 @@ class WitchBroomCard:
     image = 'thb-card-witchbroom'
     image_small = 'thb-card-small-witchbroom'
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
     description = (
         u'|R魔女扫把|r\n\n'
         u'特殊的红色UFO装备，距离-2。\n\n'
@@ -832,6 +866,7 @@ class YinYangOrbCard:
         u'|DB（画师：霏茶）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class YinYangOrbSkill:
@@ -866,6 +901,7 @@ class SuwakoHatCard:
         u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class SuwakoHatSkill:
@@ -892,6 +928,7 @@ class YoumuPhantomCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class YoumuPhantomSkill:
@@ -919,6 +956,7 @@ class IceWingCard:
     )
 
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class IceWingSkill:
@@ -963,6 +1001,7 @@ class GrimoireCard:
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
     is_action_valid = equip_iav
+    effect_string = suppress_launch_card_effect_string
 
 
 class GrimoireSkill:
@@ -1053,3 +1092,5 @@ class SinsackHatCard:
         if g.me is t:
             return (True, u'真的要自己戴上吗？')
         return (True, u'是这样的，这个不是胖次……不不，真的没有胖次')
+
+    effect_string = suppress_launch_card_effect_string
