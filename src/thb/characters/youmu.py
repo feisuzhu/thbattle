@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStage, Damage, DropCards, MigrateCardsTransaction, UserAction
-from ..actions import migrate_cards, random_choose_card
-from ..cards import Attack, BaseDuel, LaunchGraze, Skill, UseAttack, WearEquipmentAction, t_None
-from ..cards import t_Self
-from ..inputlets import ChooseIndividualCardInputlet
-from .baseclasses import Character, register_character_to
 from game.autoenv import EventHandler, Game, user_input
+from thb.actions import ActionStage, Damage, DropCards, MigrateCardsTransaction, UserAction
+from thb.actions import migrate_cards, random_choose_card
+from thb.cards import Attack, BaseDuel, LaunchGraze, Skill, UseAttack, t_None, t_Self
+from thb.characters.baseclasses import Character, register_character_to
+from thb.inputlets import ChooseIndividualCardInputlet
 from utils import classmix
 
 
@@ -40,33 +40,43 @@ class MijincihangzhanDuelMixin(object):
         return d[1] is source
 
 
-class YoumuWearEquipmentAction(UserAction):
+class NitoryuuWearEquipmentAction(UserAction):
+    def __init__(self, source, target, card):
+        self.source = source
+        self.target = target
+        self.card = card
+
     def apply_action(self):
         g = Game.getgame()
-        card = self.associated_card
-        target = self.target
-        equips = target.equips
+        card = self.card
+        tgt = self.target
         g = Game.getgame()
-        cat = card.equipment_category
 
         with MigrateCardsTransaction(self) as trans:
-            if cat == 'weapon':
-                weapons = [e for e in equips if e.equipment_category == 'weapon']
-                if len(weapons) > 1:
-                    e = user_input(
-                        [target], ChooseIndividualCardInputlet(self, weapons),
-                    ) or random_choose_card([weapons])
-                    migrate_cards([e], g.deck.droppedcards, unwrap=True, trans=trans)
+            weapons = [e for e in tgt.equips if e.equipment_category == 'weapon']
+            if len(weapons) > 1:
+                e = user_input([tgt], ChooseIndividualCardInputlet(self, weapons))
+                e = e or random_choose_card([weapons])
+                migrate_cards([e], g.deck.droppedcards, unwrap=True, trans=trans)
 
-            else:
-                for oc in equips:
-                    if oc.equipment_category == cat:
-                        migrate_cards([oc], g.deck.droppedcards, unwrap=True, trans=trans)
-                        break
-
-            migrate_cards([card], target.equips, trans=trans)
+            migrate_cards([card], tgt.equips, trans=trans)
 
         return True
+
+
+class NitoryuuWearEquipmentHandler(EventHandler):
+    interested = ('wear_equipment',)
+
+    def handle(self, evt_type, arg):
+        we, tgt, c, rst = arg
+        if not evt_type == 'wear_equipment': return arg
+        if not tgt.has_skill(Nitoryuu): return arg
+        if 'equipment' not in c.category: return arg
+        if c.equipment_category != 'weapon': return arg
+
+        g = Game.getgame()
+        g.process_action(NitoryuuWearEquipmentAction(tgt, tgt, c))
+        return we, tgt, c, 'handled'
 
 
 class YoumuHandler(EventHandler):
@@ -83,9 +93,6 @@ class YoumuHandler(EventHandler):
             elif isinstance(act, BaseDuel):
                 if not isinstance(act, MijincihangzhanDuelMixin):
                     act.__class__ = classmix(MijincihangzhanDuelMixin, act.__class__)
-            elif isinstance(act, WearEquipmentAction):
-                if not act.source.has_skill(Nitoryuu): return act
-                act.__class__ = YoumuWearEquipmentAction
 
         elif evt_type == 'action_apply' and isinstance(act, ActionStage):
             p = act.target
@@ -125,9 +132,8 @@ class NitoryuuDropWeapon(UserAction):
         tgt = self.target
         equips = tgt.equips
         weapons = [e for e in equips if e.equipment_category == 'weapon']
-        e = user_input(
-            [tgt], ChooseIndividualCardInputlet(self, weapons),
-        ) or random_choose_card([weapons])
+        e = user_input([tgt], ChooseIndividualCardInputlet(self, weapons))
+        e = e or random_choose_card([weapons])
         g = Game.getgame()
         g.process_action(DropCards(tgt, tgt, [e]))
 
@@ -157,5 +163,5 @@ class Nitoryuu(Skill):
 @register_character_to('common')
 class Youmu(Character):
     skills = [Mijincihangzhan, Nitoryuu]
-    eventhandlers_required = [YoumuHandler]
+    eventhandlers_required = [YoumuHandler, NitoryuuWearEquipmentHandler]
     maxlife = 4

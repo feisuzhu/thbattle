@@ -31,6 +31,15 @@ class WearEquipmentAction(UserAction):
                 g.process_action(Reforge(target, target, card))
                 return True
 
+        _s, _t, _c, rst = g.emit_event('wear_equipment', (self, target, card, 'default'))
+        assert _s is self
+        assert _t is target
+        assert _c is card
+        assert rst in ('default', 'handled')
+
+        if rst == 'handled':
+            return True
+
         with MigrateCardsTransaction(self) as trans:
             for oc in equips:
                 if oc.equipment_category == card.equipment_category:

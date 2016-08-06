@@ -43,9 +43,9 @@ class MijincihangzhanAttack:
         return 'thb-cv-youmu_mjchz'
 
 
-class YoumuWearEquipmentAction:
+class NitoryuuWearEquipmentAction:
     def sound_effect(act):
-        card = act.associated_card
+        card = act.card
         tgt = act.target
         equips = tgt.equips
         cat = card.equipment_category
