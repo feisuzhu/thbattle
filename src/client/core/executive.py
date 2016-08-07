@@ -138,7 +138,7 @@ class GameManager(Greenlet):
                 if not isinstance(v, ForcedKill):
                     self.event_cb('client_game_finished', g)
 
-            self.event_cb('game_started', (g, params, pldata, g.players[:]))
+            self.event_cb('game_started', (g, params, items, pldata, g.players[:]))
 
         @handler(('hang', 'inroom'), 'inroom')
         def game_joined(self, data):
