@@ -52,14 +52,13 @@ class NitoryuuWearEquipmentAction(UserAction):
         tgt = self.target
         g = Game.getgame()
 
-        with MigrateCardsTransaction(self) as trans:
-            weapons = [e for e in tgt.equips if e.equipment_category == 'weapon']
-            if len(weapons) > 1:
-                e = user_input([tgt], ChooseIndividualCardInputlet(self, weapons))
-                e = e or random_choose_card([weapons])
-                migrate_cards([e], g.deck.droppedcards, unwrap=True, trans=trans)
+        weapons = [e for e in tgt.equips if e.equipment_category == 'weapon']
+        if len(weapons) > 1:
+            e = user_input([tgt], ChooseIndividualCardInputlet(self, weapons))
+            e = e or random_choose_card([weapons])
+            g.process_action(DropCards(tgt, tgt, [e]))
 
-            migrate_cards([card], tgt.equips, trans=trans)
+        migrate_cards([card], tgt.equips)
 
         return True
 

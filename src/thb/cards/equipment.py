@@ -21,35 +21,33 @@ class WearEquipmentAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
         card = self.associated_card
-        target = self.target
-        equips = target.equips
+        tgt = self.target
+        equips = tgt.equips
         g = Game.getgame()
 
         self.choice = 'equip'
 
-        if card.equipment_category == 'weapon' and target.tags['vitality'] > 0:
-            if user_input([target], ChooseOptionInputlet(self, (False, True))):
-                target.tags['vitality'] -= 1
+        if card.equipment_category == 'weapon' and tgt.tags['vitality'] > 0:
+            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                tgt.tags['vitality'] -= 1
                 self.choice = 'reforge'
-                g.process_action(Reforge(target, target, card))
+                g.process_action(Reforge(tgt, tgt, card))
                 return True
 
-        _s, _t, _c, rst = g.emit_event('wear_equipment', (self, target, card, 'default'))
+        _s, _t, _c, rst = g.emit_event('wear_equipment', (self, tgt, card, 'default'))
         assert _s is self
-        assert _t is target
+        assert _t is tgt
         assert _c is card
         assert rst in ('default', 'handled')
 
         if rst == 'handled':
             return True
 
-        with MigrateCardsTransaction(self) as trans:
-            for oc in equips:
-                if oc.equipment_category == card.equipment_category:
-                    migrate_cards([oc], g.deck.droppedcards, unwrap=True, trans=trans)
-                    break
+        for oc in list(equips):
+            if oc.equipment_category == card.equipment_category:
+                g.process_action(DropCards(tgt, tgt, [oc]))
 
-            migrate_cards([card], target.equips, trans=trans)
+        migrate_cards([card], tgt.equips)
 
         return True
 
