@@ -155,7 +155,7 @@ class GodDescendantAction:
 
 class GodDescendantEffect:
 
-    def effect_string(act):
+    def effect_string_before(act):
         return u'|G【%s】|r发动了|G神裔|r，重铸了一张牌并跳过了结算。' % (
             act.target.ui_meta.name,
         )
