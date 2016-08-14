@@ -51,7 +51,6 @@ class Account(AccountBase):
             lambda: None,
             title=u'野生的THB玩家',
             avatar='http://www.thbattle.net/maoyu.png',
-            badges=['dev', 'contributor'],
             credits=user.jiecao,
             games=user.games,
             drops=user.drops,

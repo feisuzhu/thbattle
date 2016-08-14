@@ -18,16 +18,16 @@ from pyglet.sprite import Sprite
 from pyglet.window import key, mouse
 import gevent
 import pyglet
-import requests
 
 # -- own --
 from client.core import Executive
-from client.ui import ui_meta as client_ui_meta
 from client.ui.base import Control, Overlay
 from client.ui.base.interp import InterpDesc, LinearInterp
 from client.ui.resloader import L
-from utils import flatten, inpoly, instantiate, pyperclip, rectv2f, rrectv2f, textsnap
+from utils import flatten, inpoly, instantiate, pyperclip, rectv2f, rrectv2f, textsnap, imageurl2file
 from utils.stats import stats
+import settings
+import requests
 
 
 # -- code --
@@ -1044,58 +1044,37 @@ class PlayerPortrait(Frame):
 
         avurl = acc.other['avatar'] if acc else None
         if avurl:
-            img = self.cached_avatar.get(avurl, None)
-            if img:
-                sprite = pyglet.sprite.Sprite(img, x=64, y=150)
-                sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
-                sprite._parent = self
-                self.avatar = sprite
-            else:
-                @gevent.spawn
-                def callback(avurl=avurl):
-                    resp = requests.get(avurl)
-                    if not resp.ok:
-                        log.warning('Avatar fetch not ok: %s -> %s', resp.status_code, avurl)
-                        return
+            @gevent.spawn
+            def callback(avurl=avurl):
+                ft, f = imageurl2file(avurl)
+                if not f:
+                    return
 
-                    data = resp.content
-                    if data.startswith('GIF'):
-                        fn = 'foo.gif'
-                    elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
-                        fn = 'foo.jpg'
-                    elif data.startswith('\x89PNG'):
-                        fn = 'foo.png'
-
-                    from StringIO import StringIO
-                    f = StringIO(data)
-
-                    try:
-                        if fn == 'foo.gif':
-                            from utils import gif_to_animation
-                            img = gif_to_animation(f)
-                        else:
-                            img = pyglet.image.load(fn, file=f)
-                            img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
-                    except:
-                        log.exception('Loading avatar')
-                        img = False
-
-                    sprite = False
-                    if img:
-                        sprite = pyglet.sprite.Sprite(img, x=64, y=150)
-                        sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
-                        sprite._parent = self
-
+                try:
+                    if ft == 'gif':
+                        from utils import gif_to_animation
+                        img = gif_to_animation(f)
                     else:
-                        img = sprite = False
+                        img = pyglet.image.load('foo.%s' % ft, file=f)
+                        img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
+                except:
+                    log.exception('Loading avatar')
+                    img = False
 
-                    self.cached_avatar[avurl] = img
+                sprite = False
+                if img:
+                    sprite = pyglet.sprite.Sprite(img, x=64, y=150)
+                    sprite.scale = min(1.0, 64.0*2/img.width, 170.0*2/img.height)
+                    sprite._parent = self
 
-                    if self.avatar:
-                        self.avatar.delete()
-                    self.avatar = sprite
+                else:
+                    img = sprite = False
 
-                    sprite and self.update()
+                if self.avatar:
+                    self.avatar.delete()
+                self.avatar = sprite
+
+                # sprite and self.update()
 
         Frame.update(self)
 
@@ -1123,11 +1102,19 @@ class PlayerPortrait(Frame):
         dr = int(100*d/g) if d else 0
         Lbl(u'游戏数：%d(%d%%)' % (g, dr), 2)
 
-        def B(loc, badge_name):
-            badge = client_ui_meta.badges.get(badge_name)
+        def B(loc, b):
+            ft, f = imageurl2file(b['image'])
+            if not f:
+                return
 
-            if not badge:
-                log.warning('No such badge: %s', badge_name)
+            try:
+                if ft == 'gif':
+                    from utils import gif_to_animation
+                    img = gif_to_animation(f)
+                else:
+                    img = pyglet.image.load('foo.%s' % ft, file=f)
+            except:
+                log.exception('Loading badge')
                 return
 
             if loc > 2:
@@ -1136,14 +1123,19 @@ class PlayerPortrait(Frame):
             y, x = divmod(loc, 5)
 
             self.badge_icons.append(BadgeIcon(
-                L(badge.badge_anim),
+                img,
                 128 - 30 - 22 * (4 - x), 55 + 22 * y,
-                badge.badge_text,
+                b['text'],
                 parent=self,
             ))
 
-        # will be replaced something else
-        # [B(i, v) for i, v in enumerate(acc.other['badges'])]
+        badges = requests.get('https://api.leancloud.cn/1.1/cloudQuery',
+            params={'cql': 'select * from Badge where uid = %s' % acc.userid},
+            headers={'X-LC-Id': settings.LEANCLOUD_APPID, 'X-LC-Key': settings.LEANCLOUD_APPKEY},
+        ).json()
+        badges = badges['results']
+        for i, b in enumerate(badges):
+            gevent.spawn(B, i, b)
 
     def draw(self):
         PlayerPortrait.draw(self)

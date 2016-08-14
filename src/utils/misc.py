@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from functools import wraps
 from weakref import WeakSet
 import functools
+import logging
 import re
 
 # -- third party --
@@ -17,6 +18,7 @@ import gevent
 # -- own --
 
 # -- code --
+log = logging.getLogger('util.misc')
 dbgvals = {}
 
 
@@ -819,3 +821,24 @@ def first(l, pred=None):
             return None
     else:
         return l[0] if len(l) else None
+
+
+def imageurl2file(url):
+    import requests  # Mobile version don't have this
+    resp = requests.get(url)
+    if not resp.ok:
+        log.warning('Image fetch not ok: %s -> %s', resp.status_code, url)
+        return None, None
+
+    data = resp.content
+    if data.startswith('GIF'):
+        type = 'gif'
+    elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
+        type = 'jpg'
+    elif data.startswith('\x89PNG'):
+        type = 'png'
+
+    from StringIO import StringIO
+    f = StringIO(data)
+
+    return type, f

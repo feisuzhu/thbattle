@@ -1201,13 +1201,9 @@ class GameScreen(Screen):
 
             l = []
 
-            class MyPP(PlayerPortrait):
-                # this class is INTENTIONALLY put here
-                # to make cached avatars get gc'd
-                cached_avatar = {}
-
             for x, y, color in parent.ui_class.portrait_location:
-                l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
+                l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y, color=color))
+
             self.portraits = l
 
             @self.btn_getready.event
@@ -1584,13 +1580,8 @@ class ReplayScreen(Screen):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 700)))
             l = []
 
-            class MyPP(PlayerPortrait):
-                # this class is INTENTIONALLY put here
-                # to make cached avatars get gc'd
-                cached_avatar = {}
-
             for x, y, color in parent.ui_class.portrait_location:
-                l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
+                l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y, color=color))
 
             self.portraits = l
 

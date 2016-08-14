@@ -56,7 +56,6 @@ class AccountBase(object):
             credits=0,
             games=10000,
             drops=0,
-            badges=[],
         )
 
         return acc
