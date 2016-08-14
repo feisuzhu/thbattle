@@ -139,3 +139,5 @@ class Seija:
     port_image        = u'thb-portrait-seija'
     figure_image      = u'thb-figure-seija'
     miss_sound_effect = u'thb-cv-seija_miss'
+
+    notes = u'|RKOF模式不可用|r'

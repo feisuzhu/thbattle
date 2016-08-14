@@ -41,7 +41,7 @@ class LuckHandler(EventHandler):
         return arg
 
 
-@register_character_to('common')
+@register_character_to('common', '-kof')
 class Tewi(Character):
     skills = [Luck]
     eventhandlers_required = [LuckHandler]

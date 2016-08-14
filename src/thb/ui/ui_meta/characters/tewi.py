@@ -39,3 +39,5 @@ class Tewi:
     port_image        = u'thb-portrait-tewi'
     figure_image      = u'thb-figure-tewi'
     miss_sound_effect = u'thb-cv-tewi_miss'
+
+    notes = u'|RKOF模式不可用|r'

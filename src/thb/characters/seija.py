@@ -137,7 +137,7 @@ class ReversalHandler(EventHandler):
         return act
 
 
-@register_character_to('common')
+@register_character_to('common', '-kof')
 class Seija(Character):
     skills = [Incite, Reversal]
     eventhandlers_required = [ReversalHandler]
