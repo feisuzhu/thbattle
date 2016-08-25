@@ -112,7 +112,7 @@ class Heterodoxy:
 class Summon:
     # Skill
     name = u'通灵'
-    description = u'|B限定技|r，你的回合内，当有角色时，你可以获得其一个技能（不包括限定技，觉醒技）'
+    description = u'|B限定技|r，你的回合内，当有角色被击坠时，你可以获得其一个技能（不包括限定技，觉醒技）'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

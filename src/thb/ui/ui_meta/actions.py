@@ -116,7 +116,7 @@ class PlayerDeath:
 
     def effect_string(act):
         tgt = act.target
-        return u'|G【%s】|rMISS了。' % (
+        return u'|G【%s】|r被击坠了。' % (
             tgt.ui_meta.name,
         )
 

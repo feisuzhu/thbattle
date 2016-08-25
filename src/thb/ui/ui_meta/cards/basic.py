@@ -228,7 +228,7 @@ class AskForHeal:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'神说，你不能在这里MISS(对%s使用)' % act.source.ui_meta.name)
+            return (True, u'神说，你不能在这里被击坠(对%s使用)' % act.source.ui_meta.name)
         else:
             return (False, u'请选择一张【麻薯】(对%s使用)…' % act.source.ui_meta.name)
 

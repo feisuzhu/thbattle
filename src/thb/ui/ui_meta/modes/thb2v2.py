@@ -76,4 +76,4 @@ class THBattle2v2:
 class HeritageHandler:
     # choose_option
     choose_option_buttons = ((u'获取队友的所有牌', 'inherit'), (u'摸两张牌', 'draw'))
-    choose_option_prompt  = u'队友MISS，请选择你的动作'
+    choose_option_prompt  = u'队友被击坠，请选择你的动作'
