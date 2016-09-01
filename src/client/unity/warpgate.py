@@ -20,14 +20,12 @@ def inject_static_linked_extensions():
     try:
         import gevent_ares
         import gevent_core
-        import gevent_util
         import gevent_semaphore
         import msgpack_packer
         import msgpack_unpacker
 
         sys.modules['gevent.ares'] = gevent_ares
         sys.modules['gevent.core'] = gevent_core
-        sys.modules['gevent._util'] = gevent_util
         sys.modules['gevent._semaphore'] = gevent_semaphore
         sys.modules['msgpack._packer'] = msgpack_packer
         sys.modules['msgpack._unpacker'] = msgpack_unpacker
@@ -37,7 +35,6 @@ def inject_static_linked_extensions():
 
         gevent.ares = gevent_ares
         gevent.core = gevent_core
-        gevent._util = gevent_util
         gevent._semaphore = gevent_semaphore
         msgpack._packer = msgpack_packer
         msgpack._unpacker = msgpack_unpacker
