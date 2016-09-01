@@ -4,13 +4,23 @@
 from collections import defaultdict
 from functools import wraps
 import random
+import logging
 
 # -- third party --
+import gevent
+
 # -- own --
+from utils import log_failure
+from db import transactional
 
 
 # -- code --
+log = logging.getLogger('accout_base')
+
+
 def server_side_only(f):
+    return f  # Meh...
+
     @wraps(f)
     def _wrapper(*a, **k):
         from game.autoenv import Game
@@ -46,7 +56,29 @@ class AccountBase(object):
             credits=0,
             games=10000,
             drops=0,
-            badges=[],
         )
 
         return acc
+
+    @classmethod
+    @server_side_only
+    def add_user_credit(cls, user, lst, negcheck=None):
+        for type, amount in lst:
+            if type in ('jiecao', 'games', 'drops', 'ppoint'):
+                total = getattr(user, type) + amount
+                print getattr(user, type), amount, total
+                if negcheck and total < 0:
+                    raise negcheck
+
+                setattr(user, type, total)
+
+    @server_side_only
+    def add_credit(self, lst):
+        @gevent.spawn
+        @log_failure(log)
+        @transactional()
+        def worker():
+            uid = self.userid
+            user = self.find(uid)
+            self.add_user_credit(user, lst)
+            self.refresh()

@@ -25,10 +25,11 @@ def start_client():
     parser.add_argument('--no-update', action='store_true')
     parser.add_argument('--with-gl-errcheck', action='store_true')
     parser.add_argument('--freeplay', action='store_true')
-    parser.add_argument('--fastjoin', action='store_true')
+    parser.add_argument('--fastjoin', type=int, default=None)
     parser.add_argument('--dump-gameobj', action='store_true')
     parser.add_argument('--log', default='INFO')
     parser.add_argument('--color-log', action='store_true')
+    parser.add_argument('--zoom', type=float, default=1.0)
     parser.add_argument('--show-hidden-modes', action='store_true')
 
     options = parser.parse_args()
@@ -39,8 +40,7 @@ def start_client():
     IS_PROTON = hasattr(os, 'uname') and os.uname()[:2] == ('Linux', 'Proton')
 
     import settings
-    utils.logging.init(options.log.upper(), settings.SENTRY_DSN, IS_PROTON or options.color_log)
-    utils.logging.patch_gevent_hub_print_exception()
+    utils.logging.init(options.log.upper(), settings.SENTRY_DSN, settings.VERSION, IS_PROTON or options.color_log)
 
     if options.no_update:
         import autoupdate
@@ -76,11 +76,23 @@ def start_client():
 
     if sys.platform.startswith('linux') and options.dump_gameobj:
         import atexit
-        import game
-        atexit.register(game.GameObjectMeta._dump_gameobject_hierarchy)
-        atexit.register(game.EventHandler._dump_eh_dependency_graph)
+        import game.base
+        atexit.register(game.base.GameObjectMeta._dump_gameobject_hierarchy)
+        atexit.register(game.base.EventHandler._dump_eh_dependency_graph)
 
     from client.ui.entry import start_ui
+
+    # PIL compat
+    from PIL import Image
+    try:
+        Image.frombytes
+        Image.Image.tobytes
+    except AttributeError:
+        log.info('Patching PIL {from,to}bytes')
+        Image.frombytes = Image.fromstring
+        Image.Image.tobytes = Image.Image.tostring
+
+    # ----------
 
     try:
         start_ui()

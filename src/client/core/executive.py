@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 import logging
@@ -6,107 +7,19 @@ import logging
 # -- third party --
 from gevent import Greenlet, socket
 from gevent.pool import Pool
-from gevent.queue import Channel
 import gevent
 
 # -- own --
-from .replay import Replay
 from account import Account
 from autoupdate import Autoupdate
-from endpoint import Endpoint
-from game import Gamedata
+from client.core.common import ForcedKill
+from client.core.endpoint import ReplayEndpoint, Server
+from client.core.replay import Replay
 from utils import BatchList, instantiate
 
 
 # -- code --
 log = logging.getLogger('Executive')
-
-
-class Server(Endpoint, Greenlet):
-    '''
-    Used at client side, to represent server
-    '''
-
-    def __init__(self, sock, addr):
-        Endpoint.__init__(self, sock, addr)
-        Greenlet.__init__(self)
-        self.ctlcmds = Channel()
-        self.userid = 0
-        self.gamedata = Gamedata(recording=True)
-
-    def _run(self):
-        while True:
-            cmd, data = self.read()
-            if cmd == 'gamedata':
-                self.gamedata.feed(data)
-            else:
-                self.ctlcmds.put([cmd, data])
-
-    def gexpect(self, tag, blocking=True):
-        return self.gamedata.gexpect(tag, blocking)
-
-    def gbreak(self):
-        return self.gamedata.gbreak()
-
-    def gclear(self):
-        self.gamedata = Gamedata(recording=True)
-
-    def gwrite(self, tag, data):
-        log.debug('GAME_WRITE: %s', repr([tag, data]))
-        encoded = self.encode(['gamedata', [tag, data]])
-        self.raw_write(encoded)
-
-    def wait_till_live(self):
-        self.gamedata.wait_empty()
-
-    def gamedata_piled(self):
-        return len(self.gamedata.gdqueue) > 60
-
-    def shutdown(self):
-        self.kill()
-        self.join()
-        self.ctlcmds.put(['shutdown', None])
-        self.close()
-
-
-class ReplayEndpoint(object):
-    def __init__(self, replay, game):
-        self.gdlist = list(replay.gamedata)
-        self.game = game
-
-    def gexpect(self, tag):
-        if not self.gdlist:
-            gevent.sleep(3)
-            raise ForcedKill
-
-        glob = False
-        if tag.endswith('*'):
-            tag = tag[:-1]
-            glob = True
-
-        for i, d in enumerate(self.gdlist):
-            if d[0] == tag or (glob and d[0].startswith(tag)):
-                del self.gdlist[i]
-                return d
-
-        gevent.sleep(3)
-        raise ForcedKill
-
-    def gwrite(self, tag, data):
-        pass
-
-    def gclear(self):
-        pass
-
-    def gbreak(self):
-        pass
-
-    def end_replay(self):
-        self.game.kill()
-
-
-class ForcedKill(gevent.GreenletExit):
-    pass
 
 
 class GameManager(Greenlet):
@@ -126,7 +39,7 @@ class GameManager(Greenlet):
     def _run(self):
         self.link_exception(lambda *a: self.event_cb('server_dropped'))
 
-        from gamepack import gamemodes
+        from thb import modes
         handlers = {}
 
         def handler(_from, _to):
@@ -152,7 +65,7 @@ class GameManager(Greenlet):
 
         @handler(('inroom',), 'ingame')
         def game_started(self, data):
-            params, pldata = data
+            params, items, pldata = data
             Executive.server.gclear()
             if self.last_game:
                 self.last_game.kill(ForcedKill)
@@ -169,12 +82,13 @@ class GameManager(Greenlet):
             g = self.game
             g.me = me
             g.game_params = params
+            g.game_items = items
             g.players = BatchList(pl)
             # g.start()  Starts by UI
             log.info('=======GAME STARTED: %d=======' % g.gameid)
             log.info(g)
 
-            self.last_game_info = params, i, pldata
+            self.last_game_info = params, items, i, pldata
 
             @g.link_exception
             def crash(*a):
@@ -186,7 +100,7 @@ class GameManager(Greenlet):
                 if not isinstance(v, ForcedKill):
                     self.event_cb('client_game_finished', g)
 
-            self.event_cb('game_started', (g, params, pldata, g.players[:]))
+            self.event_cb('game_started', (g, params, items, pldata, g.players[:]))
 
         @handler(('inroom',), 'ingame')
         def observe_started(self, data):
@@ -196,12 +110,12 @@ class GameManager(Greenlet):
                 self.last_game.get()
                 self.last_game = None
 
-            params, tgtid, pldata = data
+            params, items, tgtid, pldata = data
             from client.core import PeerPlayer, TheLittleBrother
             pl = [PeerPlayer.parse(i) for i in pldata]
             pid = [i.account.userid for i in pl]
             i = pid.index(tgtid)
-            self.last_game_info = params, i, pldata
+            self.last_game_info = params, items, i, pldata
             g = self.game
             g.players = BatchList(pl)
             me = g.players[i]
@@ -209,6 +123,7 @@ class GameManager(Greenlet):
             me.server = Executive.server
             g.me = me
             g.game_params = params
+            g.game_items = items
             # g.start()  Starts by UI
             log.info('=======OBSERVE STARTED=======')
             log.info(g)
@@ -223,11 +138,11 @@ class GameManager(Greenlet):
                 if not isinstance(v, ForcedKill):
                     self.event_cb('client_game_finished', g)
 
-            self.event_cb('game_started', (g, params, pldata, g.players[:]))
+            self.event_cb('game_started', (g, params, items, pldata, g.players[:]))
 
         @handler(('hang', 'inroom'), 'inroom')
         def game_joined(self, data):
-            self.game = gamemodes[data['type']]()
+            self.game = modes[data['type']]()
             self.game.gameid = int(data['id'])
             self.event_cb('game_joined', self.game)
             self.event_cb('game_params', data['params'])
@@ -258,8 +173,9 @@ class GameManager(Greenlet):
             rep = Replay()
             rep.client_version = Executive.get_current_version()
             rep.game_mode = g.__class__.__name__
-            params, i, pldata = self.last_game_info
+            params, items, i, pldata = self.last_game_info
             rep.game_params = params
+            rep.game_items = items
             rep.me_index = i
             rep.users = pldata
             rep.gamedata = Executive.server.gamedata.history
@@ -429,9 +345,9 @@ class Executive(object):
         self.state = 'replay'
 
         from client.core import PeerPlayer, TheLittleBrother
-        from gamepack import gamemodes
+        from thb import modes
 
-        g = gamemodes[rep.game_mode]()
+        g = modes[rep.game_mode]()
         self.server = ReplayEndpoint(rep, g)
 
         pl = [PeerPlayer.parse(i) for i in rep.users]
@@ -442,6 +358,7 @@ class Executive(object):
         me.server = self.server
         g.me = me
         g.game_params = rep.game_params
+        g.game_items = rep.game_items
         log.info('=======REPLAY STARTED=======')
 
         # g.start()  Starts by UI
@@ -467,7 +384,7 @@ class Executive(object):
         self.server.end_replay()
         self.server = None
 
-    def _simple_op(_type):
+    def _op(_type):
         def wrapper(self, *args):
             if not (self.state == 'connected'):
                 return 'connect_first'
@@ -476,26 +393,46 @@ class Executive(object):
         wrapper.__name__ = _type
         return wrapper
 
-    auth             = _simple_op('auth')
-    cancel_ready     = _simple_op('cancel_ready')
-    change_location  = _simple_op('change_location')
-    chat             = _simple_op('chat')
-    create_game      = _simple_op('create_game')
-    exit_game        = _simple_op('exit_game')
-    get_lobbyinfo    = _simple_op('get_lobbyinfo')
-    get_ready        = _simple_op('get_ready')
-    heartbeat        = _simple_op('heartbeat')
-    invite_grant     = _simple_op('invite_grant')
-    invite_user      = _simple_op('invite_user')
-    join_game        = _simple_op('join_game')
-    kick_observer    = _simple_op('kick_observer')
-    kick_user        = _simple_op('kick_user')
-    observe_grant    = _simple_op('observe_grant')
-    observe_user     = _simple_op('observe_user')
-    pong             = _simple_op('pong')
-    query_gameinfo   = _simple_op('query_gameinfo')
-    quick_start_game = _simple_op('quick_start_game')
-    set_game_param   = _simple_op('set_game_param')
-    speaker          = _simple_op('speaker')
+    def _l2op(category, _type):
+        def wrapper(self, *args):
+            if not (self.state == 'connected'):
+                return 'connect_first'
 
-    del _simple_op
+            self.server.write([category, [_type, args]])
+        wrapper.__name__ = _type
+        return wrapper
+
+    auth      = _op('auth')
+    pong      = _op('pong')
+    heartbeat = _op('heartbeat')
+
+    cancel_ready     = _l2op('lobby', 'cancel_ready')
+    change_location  = _l2op('lobby', 'change_location')
+    chat             = _l2op('lobby', 'chat')
+    create_game      = _l2op('lobby', 'create_game')
+    exit_game        = _l2op('lobby', 'exit_game')
+    get_lobbyinfo    = _l2op('lobby', 'get_lobbyinfo')
+    get_ready        = _l2op('lobby', 'get_ready')
+    invite_grant     = _op('invite_grant')
+    invite_user      = _l2op('lobby', 'invite_user')
+    join_game        = _l2op('lobby', 'join_game')
+    kick_observer    = _l2op('lobby', 'kick_observer')
+    kick_user        = _l2op('lobby', 'kick_user')
+    observe_grant    = _op('observe_grant')
+    observe_user     = _l2op('lobby', 'observe_user')
+    query_gameinfo   = _l2op('lobby', 'query_gameinfo')
+    quick_start_game = _l2op('lobby', 'quick_start_game')
+    set_game_param   = _l2op('lobby', 'set_game_param')
+    speaker          = _l2op('lobby', 'speaker')
+    use_ingame_item  = _l2op('lobby', 'use_item')
+
+    item_backpack    = _l2op('item', 'backpack')
+    item_use         = _l2op('item', 'use')
+    item_drop        = _l2op('item', 'drop')
+    item_exchange    = _l2op('item', 'exchange')
+    item_buy         = _l2op('item', 'buy')
+    item_sell        = _l2op('item', 'sell')
+    item_cancel_sell = _l2op('item', 'cancel_sell')
+    item_lottery     = _l2op('item', 'lottery')
+
+    del _op, _l2op

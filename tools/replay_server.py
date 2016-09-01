@@ -102,6 +102,7 @@ while data[0].startswith('#'):
 
 mode = data.pop(0)
 params = json.loads(data.pop(0))
+items = json.loads(data.pop(0))
 rndseed = long(data.pop(0))
 
 gdlist = json.loads(data.pop(0))
@@ -122,6 +123,7 @@ g.rndseed = rndseed
 g.synctag = 0
 g.random = random.Random(rndseed)
 g.game_params = params
+g.game_items = items
 g.gr_groups = WeakSet()
 g.game = g
 g.pause = lambda x: None

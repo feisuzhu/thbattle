@@ -44,7 +44,7 @@ RE_AT = re.compile(ur'@([^@ ]+)')
 log = logging.getLogger('UI_Screens')
 
 
-def handle_chat(_type, args):
+def _handle_chat(_type, args):
     if _type in ('chat_msg', 'ob_msg'):
         uname, msg = args[0]
         uname = uname.replace('|', '||')
@@ -77,6 +77,55 @@ def handle_chat(_type, args):
 
     else:
         return None
+
+
+def handle_generic_message(screen, chat_box, _type, args):
+    rst = _handle_chat(_type, args)
+    if rst:
+        chat_box.append(rst)
+        return
+
+    if _type == 'message_info':
+        is_err = False
+    elif _type == 'message_err':
+        is_err = True
+    else:
+        return False
+
+    show_message(screen, chat_box, args[0], is_err)
+    return True
+
+
+def show_message(screen, chat_box, msg_key, is_err):
+    mapping = {
+        # --- auth
+        'not_available':      u'您的帐号目前不可用，请联系管理员询问！',
+        'invalid_credential': u'认证失败！',
+
+        # --- lobby
+        'cant_join_game':   u'无法加入游戏',
+        'no_such_user':     u'没有这个玩家',
+        'maoyu_limitation': u'您现在是毛玉（试玩玩家），不能这样做。\n毛玉只能玩练习模式和KOF模式。',
+        'not_invited':      u'这是个邀请制房间，只能通过邀请进入。',
+        'banned':           u'你已经被强制请离，不能重复进入',
+
+        # --- other
+        'use_item_success': u'成功使用物品',
+    }
+
+    if msg_key not in mapping:
+        log.error('Missing message mapping for "%s"', msg_key)
+        msg = msg_key
+    else:
+        msg = mapping[msg_key]
+
+    if is_err:
+        ConfirmBox(msg, parent=screen, color=Colors.red)
+    else:
+        if chat_box:
+            chat_box.append(u'|R%s|r\n' % msg)
+        else:
+            ConfirmBox(msg, parent=screen, color=Colors.green)
 
 
 def confirm(text, title, buttons):
@@ -206,7 +255,7 @@ class Screen(Overlay):
                 Executive.invite_grant(gid, False)
                 return
 
-            from gamepack import gamemodes as modes
+            from thb import modes
 
             gtype = modes.get(gtype, None)
             gtype = gtype and gtype.ui_meta.name
@@ -283,7 +332,7 @@ class UpdateScreen(Screen):
                 box = ConfirmBox(u'自动更新已经禁用', parent=self)
             elif rst == 'error':
                 stats({'event': 'update_error'})
-                box = ConfirmBox(u'更新过程出现错误，你可能不能正常游戏！', parent=self)
+                box = ConfirmBox(u'更新过程出现错误，你可能不能正常游戏！', parent=self, color=Colors.red)
 
             if box:
                 @box.event
@@ -586,19 +635,14 @@ class LoginScreen(Screen):
             UserSettings.saved_passwd = simple_encrypt(
                 dlg.txt_pwd.text if dlg.chk_savepwd.value else ''
             )
-            GameHallScreen().switch()
+            LobbyScreen().switch()
             stats({'event': 'login'})
 
         elif _type == 'auth_failure':
             log.warning('Auth failure')
             self.done_login()
             status = args[0]
-            tbl = dict(
-                not_available=u'您的帐号目前不可用，请联系管理员询问！',
-                already_logged_in=u'请不要重复登录！',
-                invalid_credential=u'认证失败！',
-            )
-            ConfirmBox(tbl.get(status, status), parent=self)
+            show_message(self, None, status, True)
         else:
             Screen.on_message(self, _type, *args)
 
@@ -623,7 +667,7 @@ class LoginScreen(Screen):
         SoundManager.switch_bgm('c-bgm_hall')
 
 
-class GameHallScreen(Screen):
+class LobbyScreen(Screen):
     class GameList(Frame):
         class CreateGamePanel(Panel):
             def __init__(self, *a, **k):
@@ -678,7 +722,7 @@ class GameHallScreen(Screen):
                     batch=batch,
                 )
 
-                from gamepack import gamemodes as modes
+                from thb import modes
 
                 self.selectors = selectors = []
 
@@ -827,7 +871,7 @@ class GameHallScreen(Screen):
 
         def on_message(self, _type, *args):
             if _type == 'current_games':
-                from gamepack import gamemodes as modes
+                from thb import modes
                 current_games = args[0]
                 glist = self.gamelist
                 glist.clear()
@@ -940,9 +984,9 @@ class GameHallScreen(Screen):
 
         chat = self.chat_box = ChatBox(parent=self, x=35+255, y=20, width=700-255, height=180)
         chat.text = u'您现在处于游戏大厅！\n'
-        self.playerlist = GameHallScreen.OnlineUsers(parent=self)
-        self.noticebox = GameHallScreen.NoticeBox(parent=self)
-        self.statusbox = GameHallScreen.StatusBox(parent=self)
+        self.playerlist = LobbyScreen.OnlineUsers(parent=self)
+        self.noticebox = LobbyScreen.NoticeBox(parent=self)
+        self.statusbox = LobbyScreen.StatusBox(parent=self)
 
         VolumeTuner(parent=self, x=850, y=650)
         NoInviteButton(parent=self, x=654, y=650, width=80, height=35)
@@ -984,24 +1028,11 @@ class GameHallScreen(Screen):
         Executive.get_lobbyinfo()
 
     def on_message(self, _type, *args):
-        rst = handle_chat(_type, args)
-        if rst:
-            self.chat_box.append(rst)
+        if handle_generic_message(self, self.chat_box, _type, args):
             return
 
         elif _type == 'game_joined':
             GameScreen(args[0]).switch()
-
-        elif _type == 'lobby_error':
-            log.warning('Lobby error: %s' % args[0])
-            mapping = {
-                'cant_join_game': u'无法加入游戏',
-                'no_such_user': u'没有这个玩家',
-                'maoyu_limitation': u'您现在是毛玉（试玩玩家），不能这样做。\n毛玉只能玩练习模式和KOF模式。',
-                'not_invited': u'这是个邀请制房间，只能通过邀请进入。',
-                'banned': u'你已经被强制请离，不能重复进入',
-            }
-            ConfirmBox(mapping.get(args[0], args[0]), parent=self)
 
         elif _type == 'observe_refused':
             uname = args[0]
@@ -1047,7 +1078,7 @@ class UIEventHook(EventHandler):
         ilet.event = evt
         self.gameui.process_game_event('user_input', arg)
         evt.wait()
-        return ilet
+        return arg
 
     def handle(self, evt, data):
         if not self.live and evt not in ('game_begin', 'switch_character', 'reseat'):
@@ -1170,13 +1201,9 @@ class GameScreen(Screen):
 
             l = []
 
-            class MyPP(PlayerPortrait):
-                # this class is INTENTIONALLY put here
-                # to make cached avatars get gc'd
-                cached_avatar = {}
-
             for x, y, color in parent.ui_class.portrait_location:
-                l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
+                l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y, color=color))
+
             self.portraits = l
 
             @self.btn_getready.event
@@ -1322,9 +1349,7 @@ class GameScreen(Screen):
                 val and Executive.exit_game()
 
     def on_message(self, _type, *args):
-        rst = handle_chat(_type, args)
-        if rst:
-            self.chat_box.append(rst)
+        if handle_generic_message(self, self.chat_box, _type, args):
             return
 
         elif _type == 'game_started':
@@ -1387,7 +1412,7 @@ class GameScreen(Screen):
             g.ui_meta.ui_class().show_result(g)
 
         elif _type in ('game_left', 'fleed'):
-            GameHallScreen().switch()
+            LobbyScreen().switch()
 
         elif _type == 'game_joined':
             # last game ended, this is the auto
@@ -1434,6 +1459,36 @@ class GameScreen(Screen):
             self.chat_box.append(
                 u'|B|R>> |r|c0000ffff%s|r飘走了\n' % obname
             )
+
+        # ----- begin items -----
+        elif _type == 'exchange':
+            items = args[0]
+            self.chat_box.append('Exchange:\n')
+            for i in items:
+                self.chat_box.append(
+                    (u'ID={i[id]}/'
+                     u'Seller={i[seller]}/'
+                     u'Item={i[item_id]}/'
+                     u'SKU={i[item_sku]}/'
+                     u'Price={i[price]}'
+                     u'\n').format(i=i)
+                )
+            self.chat_box.append('-----')
+
+        elif _type == 'backpack':
+            items = args[0]
+            self.chat_box.append('Your backpack:\n')
+            for i in items:
+                self.chat_box.append(
+                    (u'ID={i[id]}/SKU={i[sku]}\n').format(i=i)
+                )
+            self.chat_box.append('-----\n')
+
+        elif _type == 'lottery_reward':
+            item = args[0]
+            self.chat_box.append('Lottery reward: %s\n' % item)
+
+        # ----- end items -----
 
         else:
             Screen.on_message(self, _type, *args)
@@ -1525,13 +1580,8 @@ class ReplayScreen(Screen):
             Control.__init__(self, parent=parent, **r2d((0, 0, 820, 700)))
             l = []
 
-            class MyPP(PlayerPortrait):
-                # this class is INTENTIONALLY put here
-                # to make cached avatars get gc'd
-                cached_avatar = {}
-
             for x, y, color in parent.ui_class.portrait_location:
-                l.append(MyPP('NONAME', parent=self, x=x, y=y, color=color))
+                l.append(PlayerPortrait('NONAME', parent=self, x=x, y=y, color=color))
 
             self.portraits = l
 

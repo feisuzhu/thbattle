@@ -12,7 +12,7 @@ import msgpack
 
 # -- own --
 # -- code --
-names = ['Reimu', 'Marisa', 'Sakuya', 'Youmu', 'Sanae', 'Yuyuko', 'Alice', 'Patchouli']
+names = range(3, 14)
 names = itertools.cycle(names)
 types = {
     '3v3':   'THBattle',
@@ -48,9 +48,9 @@ l = []
 def create():
     s = socket.socket()
     s.connect(('127.0.0.1', 9999))
-    s.sendall(en(['auth', [names.next(), '']])); gevent.sleep(0.05)
-    s.sendall(en(['create_game', [t, u'我们是机器人哈哈哈', None]])); gevent.sleep(0.05)
-    s.sendall(en(['get_ready', []])); gevent.sleep(0.05)
+    s.sendall(en(['auth', [names.next(), 'feisuzhu']])); gevent.sleep(0.05)
+    s.sendall(en(['lobby', ['create_game', [t, u'我们是机器人哈哈哈', False]]])); gevent.sleep(0.05)
+    s.sendall(en(['lobby', ['get_ready', []]])); gevent.sleep(0.05)
 
     while s.recv(100): pass
 
@@ -58,12 +58,12 @@ def create():
 def join():
     s = socket.socket()
     s.connect(('127.0.0.1', 9999))
-    s.sendall(en(['auth', [names.next(), '']])); gevent.sleep(0.05)
-    s.sendall(en(['quick_start_game', []])); gevent.sleep(0.05)
-    s.sendall(en(['get_ready', []])); gevent.sleep(0.05)
+    s.sendall(en(['auth', [names.next(), 'feisuzhu']])); gevent.sleep(0.05)
+    s.sendall(en(['lobby', ['quick_start_game', []]])); gevent.sleep(0.05)
+    s.sendall(en(['lobby', ['get_ready', []]])); gevent.sleep(0.05)
     while True:
         gevent.sleep(5)
-        s.sendall(en(['heartbeat', None]))
+        s.sendall(en(['heartbeat', []]))
         s.recv(100)
 
 

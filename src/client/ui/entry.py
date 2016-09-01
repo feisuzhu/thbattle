@@ -38,8 +38,7 @@ def start_ui():
     # resulting white planes.
     # UPDATE: no more threading now, but retain notice above.
     import client.ui.resource  # noqa
-    import gamepack
-    gamepack.init_ui_resources()
+    import thb.ui.resource
 
     '''
     from client.ui.resloader import Resource
@@ -85,9 +84,11 @@ def start_ui():
             gevent.sleep(0.3)
             Executive.connect_server(('127.0.0.1', 9999), ui_message)
             gevent.sleep(0.3)
-            Executive.auth('Proton1', 'abcde')
+            Executive.auth(options.fastjoin, 'feisuzhu')
             gevent.sleep(0.3)
             Executive.quick_start_game()
+            gevent.sleep(0.3)
+            Executive.use_ingame_item('imperial-id:boss')
             gevent.sleep(0.3)
             Executive.get_ready()
 

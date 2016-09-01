@@ -53,7 +53,6 @@ inventory.extend([(re.compile('^%s$' % pat), ldr) for pat, ldr in (
     (r'c-buttons-[a-z_]+',     ['img_grid', 1, 4]),
     (r'c-sound-input',         ['sound']),
     (r'c-suit1[26]',           ['imgdata_grid', 1, 4]),
-    (r'c-badges-.+',           ['img']),
     (r'c-white',               ['white']),
     (r'c-font',                ['font']),
 )])

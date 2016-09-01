@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
-import logging
-log = logging.getLogger('Game_Client')
-from copy import copy
 from collections import OrderedDict
+from copy import copy
+import logging
 
 # -- third party --
-import gevent
 from gevent import Greenlet
+import gevent
 
 # -- own --
-import game
-from game import TimeLimitExceeded, InputTransaction, GameEnded
-from utils import BatchList
 from account import Account
+from game.base import GameEnded, InputTransaction, TimeLimitExceeded, AbstractPlayer
+from utils import BatchList
+import game.base
 
 # -- code --
+log = logging.getLogger('Game_Client')
 
 
 def user_input(players, inputlet, timeout=25, type='single', trans=None):
@@ -58,6 +59,9 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     synctags_r = {v: k for k, v in synctags.items()}
 
     try:
+        if g.me in players:  # me involved
+            g._my_user_input = (trans, ilets[g.me])
+
         for p in players:
             g.emit_event('user_input_start', (trans, ilets[p]))
 
@@ -96,6 +100,9 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
 
             g.emit_event('user_input_finish', (trans, my, rst))
 
+            if p is g.me:
+                g._my_user_input = (None, None)
+
             players.remove(p)
             results[p] = rst
 
@@ -129,13 +136,13 @@ def user_input(players, inputlet, timeout=25, type='single', trans=None):
     assert False, 'WTF?!'
 
 
-class TheChosenOne(game.AbstractPlayer):
+class TheChosenOne(game.base.AbstractPlayer):
     dropped = False
     is_observer = False
 
     def __init__(self, server):
         self.server = server
-        game.AbstractPlayer.__init__(self)
+        game.base.AbstractPlayer.__init__(self)
 
     def reveal(self, obj_list):
         # It's me, server will tell me what the hell these is.
@@ -153,12 +160,12 @@ class TheChosenOne(game.AbstractPlayer):
         pass
 
 
-class PeerPlayer(game.AbstractPlayer):
+class PeerPlayer(AbstractPlayer):
     dropped = False
     is_observer = False
 
     def __init__(self):
-        game.AbstractPlayer.__init__(self)
+        AbstractPlayer.__init__(self)
         self.account = None
 
     def reveal(self, obj_list):
@@ -177,7 +184,7 @@ class PeerPlayer(game.AbstractPlayer):
         return pp
 
     def __repr__(self):
-        return u"PeerPlayer(%s)" % (self.account.username if self.account else None)
+        return "PeerPlayer(%s)" % (self.account.username if self.account else None)
 
     # account = < set by update >
 
@@ -188,7 +195,7 @@ class TheLittleBrother(PeerPlayer):
     reveal = TheChosenOne.reveal.im_func
 
 
-class Game(Greenlet, game.Game):
+class Game(Greenlet, game.base.Game):
     '''
     The Game class, all game mode derives from this.
     Provides fundamental behaviors.
@@ -208,15 +215,18 @@ class Game(Greenlet, game.Game):
 
     def __init__(self):
         Greenlet.__init__(self)
-        game.Game.__init__(self)
+        game.base.Game.__init__(self)
         self.players = BatchList()
         self.game_params = {}
+        self.game_items = {}
+
+        self._my_user_input = (None, None)
 
     def _run(g):
         g.synctag = 0
         Game.thegame = g
         try:
-            g.process_action(g.bootstrap(g.game_params))
+            g.process_action(g.bootstrap(g.game_params, g.game_items))
         except GameEnded:
             pass
 
@@ -229,12 +239,6 @@ class Game(Greenlet, game.Game):
     def get_synctag(self):
         self.synctag += 1
         return self.synctag
-
-    def emit_event(self, evt_type, data):
-        if self.event_observer:
-            self.event_observer.handle(evt_type, data)
-
-        return game.Game.emit_event(self, evt_type, data)
 
     def pause(self, time):
         gevent.sleep(time)

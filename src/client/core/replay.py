@@ -16,6 +16,7 @@ class Replay(object):
         'client_version',
         'game_mode',
         'game_params',
+        'game_items',
         'gamedata',
         'users',
         'me_index',
@@ -27,6 +28,7 @@ class Replay(object):
         self.client_version = None
         self.game_mode = None
         self.game_params = {}
+        self.game_items = {}
         self.gamedata = []
         self.users = []
         self.me_index = -1
@@ -34,14 +36,15 @@ class Replay(object):
 
     def dumps(self):
         return zlib.compress(msgpack.packb({
-            'ver':    self.version,
-            'cliver': self.client_version,
-            'mode':   self.game_mode,
-            'params': self.game_params,
-            'data':   self.gamedata,
-            'users':  self.users,
-            'index':  self.me_index,
-            'track_info' :  self.track_info,
+            'ver':        self.version,
+            'cliver':     self.client_version,
+            'mode':       self.game_mode,
+            'params':     self.game_params,
+            'items':      self.game_items,
+            'data':       self.gamedata,
+            'users':      self.users,
+            'index':      self.me_index,
+            'track_info': self.track_info,
         }, use_bin_type=True))
 
     @classmethod
@@ -52,9 +55,10 @@ class Replay(object):
         o.client_version = data['cliver']
         o.game_mode      = data['mode']
         o.game_params    = data['params']
+        o.game_items     = data['items']
         o.gamedata       = data['data']
         o.users          = data['users']
         o.me_index       = data['index']
-        o.track_info     = data.get('track_info')
+        o.track_info     = data['track_info']
 
         return o

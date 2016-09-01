@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from collections import deque
 from contextlib import contextmanager
 from functools import wraps
+from weakref import WeakSet
+import functools
+import logging
+import re
 
 # -- third party --
 from gevent.lock import Semaphore
@@ -11,7 +16,9 @@ from gevent.queue import Queue
 import gevent
 
 # -- own --
+
 # -- code --
+log = logging.getLogger('util.misc')
 dbgvals = {}
 
 
@@ -458,13 +465,12 @@ def textwidth(text, font):
     return sum([g.advance for g in font.get_glyphs(text)])
 
 
-def partition(pred, l):
-    t = filter(pred, l)
-    f = filter(lambda v: not pred(v), l)
+def partition(pred, lst):
+    f, t = [], []
+    for i in lst:
+        (f, t)[pred(i)].append(i)
+
     return t, f
-
-
-import functools
 
 
 def track(f):
@@ -542,14 +548,6 @@ def group_by(l, keyfunc):
     return grouped
 
 
-def filter_out(l, func):
-    filtered = []
-    reserved = []
-    [(filtered if func(x) else reserved).append(x) for x in l]
-    l[:] = reserved
-    return filtered
-
-
 def instantiate(cls):
     return cls()
 
@@ -603,8 +601,8 @@ def openurl(url):
 
 
 class ObservableEvent(object):
-    def __init__(self):
-        self.listeners = set()
+    def __init__(self, weakref=False):
+        self.listeners = WeakSet() if weakref else set()
 
     def __iadd__(self, ob):
         self.listeners.add(ob)
@@ -736,3 +734,111 @@ class InstanceHookMeta(type):
 
     def instancecheck(cls, inst):
         return cls.subclasscheck(type(inst))
+
+
+class ArgValidationError(Exception):
+    pass
+
+
+class ArgTypeError(ArgValidationError):
+    __slots__ = ('position', 'expected', 'actual')
+
+    def __init__(self, position, expected, actual):
+        self.position = position
+        self.expected = expected
+        self.actual = actual
+
+    def __unicode__(self):
+        return u'Arg %s should be "%s" type, "%s" found' % (
+            self.position,
+            self.expected.__name__,
+            self.actual.__name__,
+        )
+
+    def __str__(self):
+        return self.__unicode__().encode('utf-8')
+
+
+class ArgCountError(ArgValidationError):
+    __slots__ = ('expected', 'actual')
+
+    def __init__(self, expected, actual):
+        self.expected = expected
+        self.actual = actual
+
+    def __unicode__(self):
+        return u'Expecting %s args, %s found' % (
+            self.expected,
+            self.actual,
+        )
+
+    def __str__(self):
+        return self.__unicode__().encode('utf-8')
+
+
+def validate_args(*typelist):
+    def decorate(f):
+        @wraps(f)
+        def wrapper(*args):
+            e, a = len(typelist), len(args)
+            if e != a:
+                raise ArgCountError(e, a)
+
+            for i, e, v in zip(xrange(1000), typelist, args):
+                if not isinstance(v, e):
+                    raise ArgValidationError(i, e, v.__class__)
+
+            return f(*args)
+
+        wrapper.__name__ = f.__name__
+        return wrapper
+
+    return decorate
+
+
+class BusinessException(Exception):
+    pass
+
+
+@instantiate
+class exceptions(object):
+    def __getattr__(self, k):
+        snake_case = '_'.join([
+            i.lower() for i in re.findall(r'[A-Z]+[a-z]+', k)
+        ])
+
+        cls = type(k, (BusinessException,), {'snake_case': snake_case})
+        setattr(self, k, cls)
+        return cls
+
+
+def first(l, pred=None):
+    if pred:
+        for i in l:
+            if pred(i):
+                return i
+        else:
+            return None
+    else:
+        return l[0] if len(l) else None
+
+
+def imageurl2file(url):
+    import requests  # Mobile version don't have this
+    resp = requests.get(url)
+    if not resp.ok:
+        log.warning('Image fetch not ok: %s -> %s', resp.status_code, url)
+        return None, None
+
+    data = resp.content
+    if data.startswith('GIF'):
+        type = 'gif'
+    elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
+        type = 'jpg'
+    elif data.startswith('\x89PNG'):
+        type = 'png'
+
+    from StringIO import StringIO
+    f = StringIO(data)
+
+    return type, f

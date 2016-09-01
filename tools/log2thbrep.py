@@ -54,7 +54,7 @@ def main():
     gid = int(data.pop(0).split()[-1])  # GameId
     data.pop(0)  # Time
 
-    game_mode, game_params, rnd_seed, usergdhist, gdhist = data
+    game_mode, game_params, game_items, rnd_seed, usergdhist, gdhist = data
     gdhist = json.loads(gdhist)
     game_params = json.loads(game_params)
 
@@ -62,6 +62,7 @@ def main():
     rep.client_version = options.client_version
     rep.game_mode = game_mode
     rep.game_params = game_params
+    rep.game_items = json.loads(game_items)
     rep.users = [gen_fake_account(i, options.freeplay) for i in names]
 
     assert len(names) == len(gdhist), [names, len(gdhist)]

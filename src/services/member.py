@@ -11,9 +11,7 @@ import time
 
 # -- third party --
 from gevent.server import StreamServer
-from sqlalchemy import Column, Integer, String, Float, Index, DateTime
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 
@@ -30,51 +28,9 @@ CREDITS_MAPPING = {
 
 
 # -- code --
-Model = declarative_base()
-
 options = None
 session = None
 
-
-class Badges(Model):
-    __tablename__ = 'thb_badges'
-
-    id    = Column(Integer, primary_key=True)
-    uid   = Column(Integer, nullable=False)
-    badge = Column(String(32), nullable=False)
-
-
-class PeerRating(Model):
-    __tablename__ = 'thb_peer_rating'
-
-    id   = Column(Integer, primary_key=True)
-    gid  = Column(Integer, nullable=False)    # game id
-    uid1 = Column(Integer, nullable=False)    # user 1 (thinks)
-    uid2 = Column(Integer, nullable=False)    # user 2
-    vote = Column(Integer, nullable=False)    # played (well -> 1, sucks -> -1)
-
-    __table_args__ = (
-        Index('peer_rating_uniq', 'gid', 'uid1', 'uid2', unique=True),
-    )
-
-
-class PlayerRank(Model):
-    # computed from PeerRating, using PageRank.
-    __tablename__ = 'thb_player_rank'
-    uid   = Column(Integer, primary_key=True)
-    score = Column(Float, nullable=False)
-
-
-class GameResult(Model):
-    __tablename__ = 'thb_game_result'
-    gid     = Column(Integer, primary_key=True)
-    mode    = Column(String(20), nullable=False)  # 'THBattleFaith'
-    players = Column(String(120), nullable=False)  # '2,123,43534,1231,345,144'
-    winner  = Column(String(60), nullable=False)  # '2,123,144'
-    time    = Column(DateTime(True), nullable=False)  # datetime.isoformat()
-
-
-# other things: game items, hidden character availability, etc.
 
 def md5(s):
     return hashlib.md5(s).hexdigest()
@@ -211,13 +167,6 @@ class MemberService(RPCService):
             WHERE uid=:uid
         '''), {'uid': int(uid)}).fetchone()
 
-        badges = session.query(Badges.badge) \
-            .filter_by(uid=int(uid)) \
-            .order_by(Badges.id.desc()) \
-            .all()
-
-        badges = [i for i, in badges]
-
         rst = {
             'uid': int(uid),
             'username': member.username,
@@ -226,7 +175,6 @@ class MemberService(RPCService):
             'ucsalt': ucmember.salt,
             'status': member.status,
             'title': mfield.customstatus,
-            'badges': badges,
         }
 
         for k, v in CREDITS_MAPPING.items():
@@ -332,7 +280,6 @@ def main():
         encoding='utf-8',
         convert_unicode=True,
     )
-    Model.metadata.create_all(engine)
 
     session = scoped_session(sessionmaker(bind=engine))
 

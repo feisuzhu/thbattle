@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from cStringIO import StringIO
-from collections import defaultdict
 from socket import socket
 import itertools
 import json
 import urlparse
 import logging
 import random
-import re
 import struct
 import time
+import sqlite3
 
 # -- third party --
 from gevent.event import Event
@@ -33,8 +31,8 @@ log = logging.getLogger('QQBot')
 UA_STRING = (
     'Mozilla/5.0 (X11; Linux x86_64) '
     'AppleWebKit/537.36 (KHTML, like Gecko) '
-    'Ubuntu Chromium/28.0.1500.71 '
-    'Chrome/28.0.1500.71 Safari/537.36'
+    'Ubuntu Chromium/49.0.2623.108 '
+    'Chrome/49.0.2623.108 Safari/537.36'
 )
 
 
@@ -42,24 +40,78 @@ def naive_qs(d):
     return '&'.join(['%s=%s' % (k, v) for k, v in d.iteritems()])
 
 
+# db helpers
+
+
+class Piper(object):
+    def __init__(self, f):
+        self.f = f
+
+    def __ror__(self, arg):
+        return self.f(arg)
+
+    @classmethod
+    def make(cls, f):
+        return cls(f)
+
+
+@Piper.make
+def rows(c):
+    return c.fetchall()
+
+
+@Piper.make
+def row(c):
+    return c.fetchone()
+
+
+@Piper.make
+def flatted(c):
+    return [i[0] for i in c]
+
+
+@Piper.make
+def array(c):
+    colnames = zip(*c.description)[0]
+    return [dict(zip(itertools.cycle(colnames), i)) for i in c.fetchall()]
+
+
+@Piper.make
+def mapping(c):
+    assert len(c.description) == 2
+    return dict(c)
+
+
+@Piper.make
+def one(c):
+    colnames = zip(*c.description)[0]
+    row = c.fetchone()
+    if not row:
+        return None
+
+    return dict(zip(itertools.cycle(colnames), row))
+
+
+@Piper.make
+def scalar(c):
+    row = c.fetchone()
+    if not row:
+        return None
+
+    return row[0]
+
+
 class QQBot(object):
-    def __init__(self, v=20131024001, appid=501004106):
+    def __init__(self, appid=501004106):
         self.logged_in = False
         self.tick = itertools.count(random.randrange(20000000, 30000000))
         self.cface_tick = itertools.count(1)
-        self.clientid = random.randrange(30000000, 100000000)
-        self.v = v  # nonsense, copied from smartqq
+        self.clientid = 53999199
         self.appid = appid  # nonsense, copied from smartqq
 
         self.init_js()
+        self.init_db()
 
-        # [{"flag":167773201,"name":"圣维亚学院","gid":3672457874,"code":1705326190}, ...]
-        self.group_list = []
-
-        # [{"face":3,"flag":276841024,"nick":"Proton","uin":2462992553}, ...]
-        self.buddy_list = []
-
-        self.cache = defaultdict(dict)
         self.session = requests.session()
         self.session.headers.update({
             'User-Agent': UA_STRING,
@@ -84,12 +136,41 @@ class QQBot(object):
 
         ctx.execute('g_appid = %s' % self.appid)
 
-        mq_comm = requests.get("https://ui.ptlogin2.qq.com/js/10114/mq_comm.js").content
+        mq_comm = requests.get("https://ui.ptlogin2.qq.com/js/10156/mq_comm.js").content
         # mq_comm = open('/dev/shm/a.js').read()
         ctx.execute(mq_comm)
 
         ctx.execute('''
             ptui_checkVC = ptuiCB = function() { return [].slice.call(arguments); };
+        ''')
+
+    def init_db(self):
+        self.db = db = sqlite3.connect(':memory:', isolation_level=None)
+
+        db.executescript('''
+            CREATE TABLE groups (uin integer, code integer, name text, flag integer);
+            CREATE UNIQUE INDEX groups_uin ON groups (uin);
+            CREATE UNIQUE INDEX groups_code ON groups (code);
+
+            CREATE TABLE buddy (uin integer, nick text, face integer, flag integer);
+            CREATE UNIQUE INDEX buddy_uin ON buddy (uin);
+
+            CREATE TABLE uin_account (uin integer, account integer, type integer);
+            CREATE UNIQUE INDEX ua_uin ON uin_account (uin);
+            CREATE UNIQUE INDEX ua_account ON uin_account (account);
+
+            CREATE TABLE group_ext (
+                uin integer, code integer, owner integer, flag integer,
+                name text, memo text, option integer, createtime integer
+            );
+            CREATE UNIQUE INDEX ge_uin ON group_ext (uin);
+            CREATE UNIQUE INDEX ge_code ON group_ext (code);
+
+            CREATE TABLE group_member (uin integer, muin integer, mflag integer);
+            CREATE UNIQUE INDEX gm_uniq ON group_member (uin, muin);
+
+            CREATE TABLE c2cmsg (uin integer, muin integer, sig text);
+            CREATE UNIQUE INDEX c2c_uniq ON c2cmsg (uin, muin);
         ''')
 
     def init(self):
@@ -102,10 +183,125 @@ class QQBot(object):
             self.refresh_buddy_list,
             self.refresh_group_list,
         ])
+
+        # -------------
+        # preserve these, which affects login process, cunning tencent!
+        self.call_server('s:get_discus_list',
+            method='get',
+            clientid=self.clientid,
+            psessionid=self.psessionid,
+            key='',
+            vfwebqq=self.vfwebqq,
+        )
+
+        self.call_server('s:get_self_info2', t=int(time.time() * 1000))
+
+        self.call_server('d:get_online_buddies2',
+            method='get',
+            clientid=self.clientid,
+            psessionid=self.psessionid,
+            key='',
+            vfwebqq=self.vfwebqq,
+        )
+
+        self.call_server('d:get_recent_list2', {
+            'clientid': self.clientid,
+            'psessionid': self.psessionid,
+            'vfwebqq': self.vfwebqq,
+        })
+        # -------------
+
+        # self.fill_contact_info('all', 'all')
         self.ready.set()
 
-        p.map_async(self.gcode2groupnum, [g['code'] for g in self.group_list])
-        p.map_async(self.uin2qq, [i['uin'] for i in self.buddy_list])
+    def fill_contact_info(self, buddies=[], groups=[]):
+        db = self.db
+
+        if buddies == 'all':
+            buddies    = db.execute('SELECT uin FROM buddy WHERE uin NOT IN (SELECT uin FROM uin_account WHERE type = 1)') | flatted
+        else:
+            buddies    = set(buddies) - set(db.execute('SELECT uin FROM uin_account WHERE type = 1') | flatted)
+
+        if groups == 'all':
+            groups     = db.execute('SELECT code FROM groups WHERE uin NOT IN (SELECT uin FROM uin_account WHERE type = 2)') | flatted
+            group_exts = db.execute('SELECT code FROM groups WHERE code NOT IN (SELECT code FROM group_ext)') | flatted
+        else:
+            groups     = set(groups) - set(db.execute(
+                'SELECT code '
+                'FROM uin_account INNER JOIN groups '
+                'ON groups.uin = uin_account.uin '
+                'WHERE type = 2'
+            ) | flatted)
+            group_exts = groups
+
+        def uin2account(uin, type, verifysession='', code='', vctag=0):
+            uin = int(uin)
+
+            rst = self.call_server('s:get_friend_uin2', method='get',
+                tuin=uin,
+                # verifysession=verifysession,
+                type=type,
+                vfwebqq=self.vfwebqq,
+                # code=code,
+                t=int(time.time() * 1000),
+            )
+
+            rcode = rst['retcode']
+
+            if rcode == 0:
+                rst = rst['result']['account']
+                return uin, rst
+            elif rcode in (1000, 1001):
+                # captcha needed
+                if rcode == 1001:
+                    self.on_captcha_wrong(vctag)
+
+                verifysession, vc, vctag = self._new_verify_session()
+                return uin2account(uin, type, verifysession, vc, vctag)
+            else:
+                assert False, 'Unexpected retcode %d' % rcode
+
+        def get_group_info_ext(gcode):
+            log.debug('Getting ext group info for gcode %d...', gcode)
+
+            for i in xrange(3):
+                rst = self.call_server('s:get_group_info_ext2', method='get',
+                    gcode=gcode,
+                    vfwebqq=self.vfwebqq,
+                    t=int(time.time() * 1000),
+                )
+
+                if int(rst['retcode']) != 0:
+                    log.error('Error %r', rst)
+                    gevent.sleep(i * 2 + 1)
+                    return
+
+            return rst['result']
+
+        p = Pool(3)
+
+        buddies    = gevent.spawn(p.map, lambda uin: uin2account(uin, 1), buddies)
+        groups     = gevent.spawn(p.map, lambda uin: uin2account(uin, 2), groups)
+        group_exts = gevent.spawn(p.map, get_group_info_ext, group_exts)
+        buddies, groups, group_exts = [i.get() for i in [buddies, groups, group_exts]]
+
+        db.executemany('INSERT INTO uin_account (uin, account, type) VALUES (?, ?, 1)', buddies)
+        db.executemany('INSERT INTO uin_account (uin, account, type) VALUES ((SELECT uin FROM groups WHERE code = ? LIMIT 1), ?, 2)', groups)
+
+        ginfos = [i['ginfo'] for i in group_exts if i]
+        db.executemany(
+            'INSERT INTO group_ext (uin, code, owner, flag, name, memo, option, createtime) '
+            'VALUES (:gid, :code, :owner, :flag, :name, :memo, :option, :createtime)',
+            ginfos,
+        )
+
+        for g in ginfos:
+            uin, members = g['gid'], g['members']
+            db.execute('DELETE FROM group_member WHERE uin = ?', (uin,))
+            db.executemany(
+                'INSERT INTO group_member (uin, muin, mflag) VALUES (?, ?, ?)',
+                [(uin, i['muin'], i['mflag']) for i in members],
+            )
 
     def shutdown(self):
         self.ready.clear()
@@ -119,31 +315,32 @@ class QQBot(object):
         self.ready.wait()
 
     def _stage1_login(self):
-        self.group_list[:] = []
-        self.buddy_list[:] = []
-        self.cache = defaultdict(dict)
+        self.init_db()
 
         session = self.session
         log.debug('Querying login_sig')
-        session.get('https://ui.ptlogin2.qq.com/cgi-bin/login', params={
-            'daid': '164',
-            'target': 'self',
-            'style': '16',
-            'mibao_css': 'm_webqq',
-            'appid': self.appid,
-            'enable_qlogin': '0',
-            'no_verifyimg': '1',
-            's_url': 'http://w.qq.com/proxy.html',
-            'f_url': 'loginerroralert',
-            'strong_login': '1',
-            'login_state': '10',
-            't': self.v,
-        }).content
+        resp = session.get('https://ui.ptlogin2.qq.com/cgi-bin/login',
+            params={'daid': '164',
+                    'target': 'self',
+                    'style': '16',
+                    'mibao_css': 'm_webqq',
+                    'appid': self.appid,
+                    'enable_qlogin': '0',
+                    'no_verifyimg': '1',
+                    's_url': 'http://w.qq.com/proxy.html',
+                    'f_url': 'loginerroralert',
+                    'strong_login': '1',
+                    'login_state': '10',
+                    't': '20131024001'},
+            headers={'Referer': 'http://w.qq.com/'},
+        )
+
+        ref = resp.request.url
 
         while True:
             log.debug('Querying for qrcode...')
             qrcode = session.get('https://ssl.ptlogin2.qq.com/ptqrshow', params={
-                'appid': '501004106', 'e': '0', 'l': 'M', 's': '5',
+                'appid': self.appid, 'e': '0', 'l': 'M', 's': '5',
                 'd': '72', 'v': '4', 't': random.random(),
             }).content
 
@@ -154,17 +351,30 @@ class QQBot(object):
             success = False
 
             while True:
-                qrcode = session.get('https://ssl.ptlogin2.qq.com/ptqrlogin', params={
-                    'webqq_type': '10', 'remember_uin': '1', 'login2qq': '1',
-                    'u1': 'http://w.qq.com/proxy.html?login2qq=1&webqq_type=10',
-                    'aid': '501004106', 'ptredirect': '0', 'ptlang': '2052',
-                    'daid': '164', 'from_ui': '1', 'pttype': '1', 'dumy': '',
-                    'fp': 'loginerroralert', 'action': '0-0-2223', 'mibao_css': 'm_webqq',
-                    't': 'undefined', 'g': '1', 'js_type': '0', 'js_ver': '10135',
-                    'login_sig': '', 'pt_randsalt': '0',
-                })
+                qrcode = session.get('https://ssl.ptlogin2.qq.com/ptqrlogin',
+                    params={"pttype": "1",
+                            "aid": self.appid,
+                            "u1": "http://w.qq.com/proxy.html?login2qq=1&webqq_type=10",
+                            "daid": "164",
+                            "js_ver": "10156",
+                            "js_type": "0",
+                            "ptredirect": "0",
+                            "ptlang": "2052",
+                            "webqq_type": "10",
+                            "fp": "loginerroralert",
+                            "login2qq": "1",
+                            "mibao_css": "m_webqq",
+                            "action": "0-0-54527",
+                            "g": "1",
+                            "t": "undefined",
+                            "from_ui": "1",
+                            "pt_randsalt": "0",
+                            "remember_uin": "1"},
+                    headers={'Referer': ref},
+                )
 
                 state, _, url, _, msg, _ = self.js_context.execute(qrcode.content)
+
                 log.debug(msg)
                 if state in ('66', '67'):
                     # valid, in_progress
@@ -185,40 +395,38 @@ class QQBot(object):
             else:
                 gevent.sleep(20)
 
-        session.get(url)
+        session.get(url, allow_redirects=False)
+
         qs = urlparse.urlparse(url).query
         self.qq = int(urlparse.parse_qs(qs)['uin'][0])
 
-        self.skey = session.cookies['skey']
         self.original_ptwebqq = self.ptwebqq = session.cookies['ptwebqq']
 
         return True
 
     def _stage2_login(self):
 
-        log.debug('Do stage2 login...')
+        rst = self.call_server('s:getvfwebqq',
+            method='get',
+            ptwebqq=self.ptwebqq,
+            clientid=self.clientid,
+            psessionid='',
+            t=int(time.time() * 1000),
+        )
+        rst = rst['result']
+        self.vfwebqq = rst['vfwebqq']
 
+        log.debug('Do stage2 login...')
         rst = self.call_server('d:login2', {
             'status': 'online',
-            'state': 'online',
             'ptwebqq': self.ptwebqq,
             'clientid': self.clientid,
             'psessionid': '',
         })
 
         rst = rst['result']
-        self.vfwebqq = rst['vfwebqq']
         self.psessionid = rst['psessionid']
         self.status = rst['status']
-
-        # should be in separate func
-        rst = self.call_server('d:get_gface_sig2', method='get',
-            clientid=self.clientid,
-            psessionid=self.psessionid,
-        )['result']
-
-        self.gface_key = rst['gface_key']
-        self.gface_sig = rst['gface_sig']
 
     def login(self):
         self.logged_in = False
@@ -274,6 +482,9 @@ class QQBot(object):
             #     log.warning('Unknown code 109: %r', rst)
 
             elif code == 0:
+                if 'result' not in rst:
+                    continue
+
                 messages = rst['result']
                 for m in messages:
                     t = m['poll_type']
@@ -300,8 +511,12 @@ class QQBot(object):
             log.error('Error %r', rst)
             return
 
-        self.group_list[:] = rst['result']['gnamelist']
-        return self.group_list
+        db = self.db
+        db.execute('DELETE FROM groups')
+        db.executemany(
+            'INSERT INTO groups (uin, code, name, flag) VALUES (:gid, :code, :name, :flag)',
+            rst['result']['gnamelist'],
+        )
 
     def refresh_buddy_list(self):
         assert self.logged_in
@@ -318,42 +533,19 @@ class QQBot(object):
             log.error('Error %r', rst)
             return
 
-        self.buddy_list[:] = rst['result']['info']
-
-        return self.buddy_list
-
-    def get_group_info_ext(self, gcode):
-        self.ready.wait()
-
-        cache = self.cache['group_info_ext']
-        if gcode in cache:
-            return cache[gcode]
-
-        log.debug('Getting ext group info for gcode %d...', gcode)
-
-        rst = self.call_server('s:get_group_info_ext2', method='get',
-            gcode=gcode,
-            vfwebqq=self.vfwebqq,
-            cb='undefined',
-            t=int(time.time() * 1000),
+        db = self.db
+        db.execute('DELETE FROM buddy')
+        db.executemany(
+            'INSERT INTO buddy (uin, nick, face, flag) VALUES (:uin, :nick, :face, :flag)',
+            rst['result']['info'],
         )
 
-        if int(rst['retcode']) != 0:
-            log.error('Error %r', rst)
-            return
-
-        cache[gcode] = rst['result']
-        return rst['result']
-
     def get_group_superusers_uin(self, gcode):
-        self.ready.wait()
-        ginfo = self.get_group_info_ext(gcode)
-        l = [ginfo['ginfo']['owner']]
-        for m in ginfo['ginfo']['members']:
-            if m['mflag'] & 1:
-                l.append(m['muin'])
-
-        return l
+        db = self.db
+        return db.execute('''
+            SELECT owner FROM group_ext WHERE code = :code
+            UNION SELECT muin FROM group_member WHERE code = :code AND mflag & 1 = 1
+        ''', {'code': gcode}) | flatted
 
     def _default_handler(t):
         def wrapper(self, v):
@@ -531,55 +723,8 @@ class QQBot(object):
             'group_uin': group_uin,
             'content': json.dumps(content),
             'msg_id': msg_id,
-            'clientid': str(self.clientid),
+            'clientid': self.clientid,
             'psessionid': self.psessionid,
-        }
-
-        self.call_server('d:send_qun_msg2', payload, clientid=self.clientid, psessionid=self.psessionid)
-
-    def send_group_picture(self, group_uin, filename, data=None, file=None):
-        fileobj = file or (StringIO(data) if data else open(filename, 'rb'))
-        self.ready.wait()
-
-        payload = {
-            'from': 'control',
-            'f': 'EQQ.Model.ChatMsg.callbackSendPicGroup',
-            'vfwebqq': self.vfwebqq,
-            'fileid': self.cface_tick.next(),
-        }
-
-        resp = self.session.post(
-            'http://up.web2.qq.com/cgi-bin/cface_upload',
-            params={'time': int(time.time() * 1000)}, data=payload,
-            files={'custom_face': (filename, fileobj)},
-            headers={
-                'Origin': 'http://web2.qq.com',
-                'Referer': 'http://web2.qq.com/webqq.html',
-                'User-Agent': UA_STRING,
-            },
-        )
-        fileobj.close()
-
-        cfaceid = re.findall(r'''['"]msg['"]: *['"]([^'"]+)['"] *}''', resp.content)[0]
-        cfaceid = cfaceid.split()[0]
-
-        font = {
-            'name': u'宋体',
-            'size': 10,
-            'style': [0, 0, 0],
-            'color': '000000',
-        }
-        msg_id = self.tick.next()
-        content = [['cface', 'group', cfaceid], '\n', ['font', font]]
-
-        payload = {
-            'group_uin': group_uin,
-            'content': json.dumps(content),
-            'msg_id': msg_id,
-            'clientid': str(self.clientid),
-            'psessionid': self.psessionid,
-            'key': self.gface_key,
-            'sig': self.gface_sig,
         }
 
         self.call_server('d:send_qun_msg2', payload, clientid=self.clientid, psessionid=self.psessionid)
@@ -607,9 +752,10 @@ class QQBot(object):
         self.call_server('d:send_sess_msg2', payload, clientid=self.clientid, psessionid=self.psessionid)
 
     def _get_c2cmsg_sig(self, group_id, uin):
-        cache = self.cache['c2cmsg']
-        if group_id in cache:
-            return cache[(group_id, uin)]
+        db = self.db
+        sig = db.execute('SELECT sig FROM c2cmsg WHERE uin = ? AND muin = ?', (group_id, uin)) | scalar
+        if sig:
+            return sig
 
         log.debug('Getting c2cmsg sig for group=%d, uin=%d', group_id, uin)
         self.ready.wait()
@@ -628,41 +774,8 @@ class QQBot(object):
             return ''
 
         rst = rst['result']['value']
-        cache[(group_id, uin)] = rst
+        db.execute('INSERT INTO c2cmsg (uin, muin, sig) VALUES (?, ?, ?)', (group_id, uin, rst))
         return rst
-
-    def _uin2account(self, uin, type, cache, cache_rev, verifysession='', code='', vctag=0):
-        uin = int(uin)
-        cache = self.cache[cache]
-        if uin in cache:
-            return cache[uin]
-
-        cache_rev = self.cache[cache_rev]
-        rst = self.call_server('s:get_friend_uin2', method='get',
-            tuin=uin,
-            verifysession=verifysession,
-            type=type,
-            vfwebqq=self.vfwebqq,
-            code=code,
-            t=int(time.time() * 1000),
-        )
-
-        rcode = rst['retcode']
-
-        if rcode == 0:
-            rst = rst['result']['account']
-            cache[uin] = rst
-            cache_rev[rst] = uin
-            return rst
-        elif rcode in (1000, 1001):
-            # captcha needed
-            if rcode == 1001:
-                self.on_captcha_wrong(vctag)
-
-            verifysession, vc, vctag = self._new_verify_session()
-            return self._uin2account(uin, type, cache, cache_rev, verifysession, vc, vctag)
-        else:
-            assert False, 'Unexpected retcode %d' % rcode
 
     def _new_verify_session(self):
         privsess = requests.session()
@@ -670,10 +783,6 @@ class QQBot(object):
         verifysession = privsess.cookies['verifysession']
         vc, vctag = self.on_captcha(captcha.content)
         return verifysession, vc, vctag
-
-    uin2qq = lambda self, uin: self._uin2account(uin, 1, 'uin2qq', 'qq2uin')
-    gcode2groupnum = lambda self, gcode: self._uin2account(gcode, 4, 'gcode2groupnum', 'groupnum2gcode')
-    qq2uin_bycache = lambda self, qq: self.cache['qq2uin'].get(qq)
 
     def allow_friend_request(self, qq):
         log.info(u'Accepting friend request: %d', qq)
@@ -697,11 +806,8 @@ class QQBot(object):
     def delete_friend(self, uin):
         log.info(u'Deleting friend: %d', self.uin2qq(uin))
         self.ready.wait()
-        try:
-            del self.cache['uin2qq'][uin]
-        except:
-            pass
-
+        self.db.execute('DELETE FROM buddy WHERE uin = ?', (uin,))
+        self.db.execute('DELETE FROM uin_account WHERE uin = ?', (uin,))
         self.call_server('s:delete_friend', tuin=uin, delType=2, vfwebqq=self.vfwebqq)
 
     def search_and_add(self, qq, verify_msg):
@@ -738,19 +844,21 @@ class QQBot(object):
         ns, api_name = api.split(':')
         conf = {
             'd': {
-                'url': 'http://d.web2.qq.com/channel/{api_name}',
-                'referer': 'http://d.web2.qq.com/proxy.html?v=%s&callback=1&id=1' % self.v,
-                'origin': 'http://d.web2.qq.com',
+                'url': 'http://d1.web2.qq.com/channel/{api_name}',
+                'referer': 'http://d1.web2.qq.com/proxy.html?v=20151105001&callback=1&id=2',
+                'origin': 'http://d1.web2.qq.com',
             },
             's': {
                 'url': 'http://s.web2.qq.com/api/{api_name}',
-                'referer': 'http://s.web2.qq.com/proxy.html?v=%s&callback=1&id=1' % self.v,
+                'referer': 'http://s.web2.qq.com/proxy.html?v=20130916001&callback=1&id=1',
                 'origin': 'http://s.web2.qq.com',
             },
         }[ns]
         req = {}
         r and req.update({'r': json.dumps(r, ensure_ascii=False)})
         req.update(payloads)
+
+        # log.debug('CALL %s, %s', api, req)
 
         headers = {
             'Referer': conf['referer'],
@@ -778,7 +886,31 @@ class QQBot(object):
         else:
             raise Exception('Max retries exceeded')
 
-        return json.loads(resp.content)
+        rst = json.loads(resp.content)
+        # log.debug('CALLRET: %s', rst)
+        return rst
+
+    def uin2qq(self, uin):
+        self.fill_contact_info(buddies=(uin,))
+
+        return self.db.execute(
+            'SELECT account FROM uin_account WHERE uin = ? AND type = 1',
+            (uin,),
+        ) | scalar
+
+    def qq2uin(self, qq):
+        return self.db.execute(
+            'SELECT uin FROM uin_account WHERE account = ? AND type = 1'
+            (qq,),
+        ) | scalar
+
+    def uin2groupnum(self, uin):
+        self.fill_contact_info(groups='all')
+        return self.db.execute('SELECT account FROM uin_account WHERE uin = ? AND type = 2', (uin,)) | scalar
+
+    def get_group_tuples(self):
+        self.fill_contact_info(groups='all')
+        return self.db.execute('SELECT uin, account FROM uin_account WHERE type = 2') | rows
 
     # ----------------
 

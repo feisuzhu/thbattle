@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 from gevent import Greenlet
 
 # -- own --
-from game.game_common import Action, ActionShootdown, EventHandler, EventHandlerGroup, Game  # noqa
-from game.game_common import GameEnded, GameError, GameException, GameObject, InputTransaction  # noqa
-from game.game_common import InterruptActionFlow, NPC, get_seed_for, list_shuffle, sync_primitive  # noqa
+from game.base import Action, ActionShootdown, EventHandler, EventHandlerGroup, Game, GameEnded  # noqa
+from game.base import GameError, GameException, GameItem, GameObject, InputTransaction  # noqa
+from game.base import InterruptActionFlow, NPC, get_seed_for, list_shuffle, sync_primitive  # noqa
 
 
 # -- code --

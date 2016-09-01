@@ -21,7 +21,7 @@ from colorlog import ColoredFormatter
 # -- own --
 from account.freeplay import Account
 from client.core import PeerPlayer, TheLittleBrother
-from gamepack import gamemodes
+from thb import modes
 from utils import BatchList, hook
 
 # -- code --
@@ -117,6 +117,7 @@ while True:
 
 mode = last
 params = json.loads(data.pop(0))
+items = json.loads(data.pop(0))
 data.pop(0)  # seed
 data.pop(0)  # server data
 
@@ -129,7 +130,7 @@ Executive = MockExecutive(server)
 from client.core import game_client
 game_client.Executive = Executive  # Hack
 
-GameMode = gamemodes[mode]
+GameMode = modes[mode]
 npcs = len(GameMode.npc_players)
 
 players = [PeerPlayer() for i in xrange(GameMode.n_persons + npcs)]
@@ -142,6 +143,7 @@ for p in players:
 g = GameMode()
 g.players = BatchList(players)
 g.game_params = params
+g.game_items = items
 g.me = players[loc + npcs]
 g.replay_file = options.replay_file
 

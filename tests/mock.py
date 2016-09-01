@@ -6,7 +6,6 @@ import re
 
 # -- third party --
 from gevent.event import Event
-import json
 
 # -- own --
 from endpoint import Endpoint
@@ -55,7 +54,7 @@ class MockConnection(object):
     def gwrite(self, tag, data):
         log.debug('GAME_WRITE: %s', repr([tag, data]))
         encoded = Endpoint.encode(data)
-        self.gdhistory.append([tag, json.loads(encoded)])
+        self.gdhistory.append([tag, Endpoint.decode(encoded)])
 
     def gclear(self):
         assert self.exhausted
@@ -73,6 +72,9 @@ def hook_game(g):
         pass
 
     g.synctag = 0
+
+    from game.autoenv import Game
+    Game.getgame = staticmethod(lambda: g)
 
     from client.core import Game
     Game.getgame = staticmethod(lambda: g)

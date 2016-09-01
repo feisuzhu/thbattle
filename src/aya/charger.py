@@ -18,11 +18,10 @@ import time
 import gevent
 
 # -- own --
-from utils.interconnect import Interconnect
-from utils.rpc import RPCClient
+from account.forum_integration import Account
+from utils.interconnect import RedisInterconnect
 
 # -- code --
-member_service = None
 log = None
 interconnect = None
 history = defaultdict(lambda: (0, 5))
@@ -39,12 +38,12 @@ privileged = (
 
 
 def charge(username, message):
-    user = member_service.get_user_info_by_username(username)
+    user = Account.find(username)
     if not user:
         log.info('User %s not found' % username)
         return
 
-    uid = user['uid']
+    uid = user.id
     if uid in privileged:
         log.info('User %s in privileged group, not charging.' % username)
         return
@@ -61,28 +60,30 @@ def charge(username, message):
     history[uid] = (now, min(fee * 2, 2000))
     fee  = int(fee)
     log.info('Charge %s for %s' % (username, fee))
-    member_service.add_credit(user['uid'], 'credits', -fee)
+    Account.add_credit(uid, 'jiecao', -fee)
     interconnect.publish('aya_charge', [uid, fee])
 
 
-class Interconnect(Interconnect):
+class Interconnect(RedisInterconnect):
     def on_message(self, node, topic, message):
         if topic == 'speaker':
             gevent.spawn(charge, message[0], message[1])
 
 
 def main():
-    global options, member_service, interconnect, log
+    global options, interconnect, log
     parser = argparse.ArgumentParser('aya_charger')
     parser.add_argument('--redis-url', default='redis://localhost:6379')
-    parser.add_argument('--member-service', default='localhost')
+    parser.add_argument('--db', default='sqlite:////dev/shm/thb.sqlite3')
     parser.add_argument('--log', default='INFO')
     options = parser.parse_args()
+
+    import db.session
+    db.session.init(options.db)
 
     logging.basicConfig(stream=sys.stdout, level=getattr(logging, options.log))
     log = logging.getLogger('aya_charger')
 
-    member_service = RPCClient((options.member_service, 7000), timeout=2)
     interconnect = Interconnect.spawn('charger', options.redis_url)
 
     gevent.hub.get_hub().join()

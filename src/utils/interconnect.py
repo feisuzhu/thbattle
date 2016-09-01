@@ -14,7 +14,7 @@ from endpoint import Endpoint
 
 
 # -- code --
-class Interconnect(Greenlet):
+class RedisInterconnect(Greenlet):
     def __init__(self, node, url):
         Greenlet.__init__(self)
         self.node = node

@@ -3,7 +3,7 @@
 # -- prioritized --
 import sys
 reload(sys)
-sys.setdefaultencoding(sys.getfilesystemencoding())
+sys.setdefaultencoding('utf-8')
 
 # -- stdlib --
 import random
@@ -20,14 +20,12 @@ def inject_static_linked_extensions():
     try:
         import gevent_ares
         import gevent_core
-        import gevent_util
         import gevent_semaphore
         import msgpack_packer
         import msgpack_unpacker
 
         sys.modules['gevent.ares'] = gevent_ares
         sys.modules['gevent.core'] = gevent_core
-        sys.modules['gevent._util'] = gevent_util
         sys.modules['gevent._semaphore'] = gevent_semaphore
         sys.modules['msgpack._packer'] = msgpack_packer
         sys.modules['msgpack._unpacker'] = msgpack_unpacker
@@ -37,7 +35,6 @@ def inject_static_linked_extensions():
 
         gevent.ares = gevent_ares
         gevent.core = gevent_core
-        gevent._util = gevent_util
         gevent._semaphore = gevent_semaphore
         msgpack._packer = msgpack_packer
         msgpack._unpacker = msgpack_unpacker
@@ -104,7 +101,9 @@ hub.resolver = Resolver(hub=hub)
 import logging
 import utils.logging
 
-utils.logging.init_unity(logging.ERROR, settings.SENTRY_DSN)
+sys.argv = []
+
+utils.logging.init_unity(logging.ERROR, settings.SENTRY_DSN, settings.VERSION)
 utils.logging.patch_gevent_hub_print_exception()
 
 
@@ -194,7 +193,7 @@ class Warpgate(object):
         from game import autoenv
         autoenv.init('Client')
 
-        import gamepack.thb.ui.ui_meta  # noqa, init ui_meta
+        import thb.ui.ui_meta  # noqa, init ui_meta
 
         from client.core.executive import Executive
         self.executive = ExecutiveWrapper(Executive, self)
