@@ -1,19 +1,10 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 
 # -- prioritized --
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
-# -- stdlib --
-import random
-
-# -- third party --
-# -- own --
-from game.autoenv import EventHandler
-from utils.misc import instantiate
-import settings
-
 
 # -- inject --
 def inject_static_linked_extensions():
@@ -46,10 +37,18 @@ def inject_static_linked_extensions():
 
 inject_static_linked_extensions()
 
-# -- after inject --
+# -- stdlib --
+import random
+
+# -- third party --
 from gevent.event import Event
 import gevent
 import gevent.hub
+
+# -- own --
+from game.autoenv import EventHandler
+from utils.misc import instantiate
+import settings
 
 
 # -- code --
