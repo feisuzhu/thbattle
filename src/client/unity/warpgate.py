@@ -16,7 +16,7 @@ def inject_static_linked_extensions():
         import msgpack_unpacker
 
         sys.modules['gevent.ares'] = gevent_ares
-        sys.modules['gevent.core'] = gevent_core
+        # sys.modules['gevent.core'] = gevent_core
         sys.modules['gevent._semaphore'] = gevent_semaphore
         sys.modules['msgpack._packer'] = msgpack_packer
         sys.modules['msgpack._unpacker'] = msgpack_unpacker
