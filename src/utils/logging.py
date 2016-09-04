@@ -125,9 +125,10 @@ def init_unity(level, sentry_dsn, release):
     root = logging.getLogger()
     root.setLevel(0)
 
-    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
-    hdlr.setLevel(logging.ERROR)
-    root.addHandler(hdlr)
+    # Disable sentry
+    # hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
+    # hdlr.setLevel(logging.ERROR)
+    # root.addHandler(hdlr)
 
     hdlr = UnityLogHandler()
     hdlr.setLevel(level)
