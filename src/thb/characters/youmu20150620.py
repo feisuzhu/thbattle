@@ -150,7 +150,7 @@ class Xianshizhan(Skill):
     target = t_None
 
 
-@register_character_to('1week')
+# @register_character_to('1week')
 class Youmu20150620(Character):
     skills = [Jiongyanjian, Xianshizhan]
     eventhandlers_required = [JiongyanjianHandler, XianshizhanHandler]

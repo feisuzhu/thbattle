@@ -126,7 +126,7 @@ class QiliaoRecoverHandler(EventHandler):
         return (tl[-1:], True)
 
 
-@register_character_to('1week')
+# @register_character_to('1week')
 class Meirin20150714(Character):
     skills = [Qiliao]
     eventhandlers_required = [QiliaoDropHandler, QiliaoRecoverHandler]

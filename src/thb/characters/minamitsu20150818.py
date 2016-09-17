@@ -133,7 +133,7 @@ class ShipwreckHandler(EventHandler):
         return (tl[-1:], True)
 
 
-@register_character_to('1week')
+# @register_character_to('1week')
 class Minamitsu20150818(Character):
     skills = [Shipwreck]
     eventhandlers_required = [ShipwreckHandler]

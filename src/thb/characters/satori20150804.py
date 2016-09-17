@@ -169,7 +169,7 @@ class HeartfeltFancyHandler(EventHandler):
         return arg
 
 
-@register_character_to('1week')
+# @register_character_to('1week')
 class Satori20150804(Character):
     skills = [MindRead, Rosa, HeartfeltFancy]
     eventhandlers_required = [

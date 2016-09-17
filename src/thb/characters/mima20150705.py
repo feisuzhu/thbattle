@@ -115,7 +115,7 @@ class ElingHandler(EventHandler):
         return act
 
 
-@register_character_to('1week')
+# @register_character_to('1week')
 class Mima20150705(Character):
     skills = [Tianyi, Eling]
     eventhandlers_required = [TianyiHandler, ElingHandler]
