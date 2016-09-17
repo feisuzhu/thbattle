@@ -1,42 +1,27 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
+# -- prioritized --
 import sys
 sys.path.append('../src')
-
-import re
-import pyglet
-pyglet.options['shadow_window'] = False
-
-import json
-from unidecode import unidecode
 
 from game import autoenv
 autoenv.init('Client')
 
-sys.modules['client.ui.resource']       = sys.modules['__main__']  # dark art
-sys.modules['gamepack.thb.ui.resource'] = sys.modules['__main__']  # dark art
+# -- stdlib --
+import json
+import re
 
+# -- third party --
+from unidecode import unidecode
 
-class attrname(object):
-    def __init__(self, name):
-        self.name = name
-
-    def __getattr__(self, name):
-        return attrname(name)
-
-    def __str__(self):
-        return self.name
-
-
-resource = attrname('resource')
-
-
-from gamepack.thb.ui.ui_meta.common import metadata
-from gamepack.thb import cards
-from gamepack.thb import characters
+# -- own --
 from game.autoenv import Game
+from thb import cards, characters
+from thb.ui.ui_meta.common import metadata, char_desc
 
 
+# -- code --
 def to_html(text):
     result   = []
     tagstack = []
@@ -47,6 +32,13 @@ def to_html(text):
             tagstack.append('span')
         return scanner_cb
 
+    def pop(klass):
+        def scanner_cb(s, tok):
+            result.append('</span>')
+            t = tagstack.pop()
+            assert t == 'span'  # not so corrent
+        return scanner_cb
+
     def restore(s, tok):
         for i in reversed(tagstack):
             result.append('</{}>'.format(i))
@@ -54,7 +46,7 @@ def to_html(text):
         tagstack[:] = []
 
     def error(s, tok):
-        raise Exception('....')
+        raise Exception('%s\n%s' % (s, tok))
 
     def instext(s, tok):
         result.append(tok.replace('\n', '<br />'))
@@ -79,11 +71,11 @@ def to_html(text):
 
         (r'\|c[A-Fa-f0-9]{8}', color),
         (r'\|B',  push('bold')),
-        (r'\|b',  error),
+        (r'\|b',  pop('bold')),
         (r'\|I',  push('italic')),
-        (r'\|i',  error),
+        (r'\|i',  pop('italic')),
         (r'\|U',  push('underline')),
-        (r'\|u',  error),
+        (r'\|u',  pop('underline')),
         (r'\|\|', insert_pipe),
         (r'\|r',  restore),
 
@@ -184,14 +176,15 @@ for k, v in metadata.iteritems():
     if not issubclass(k, characters.baseclasses.Character): continue
     if k in excludes: continue
     if not getattr(k, 'categories', False): continue
+    desc = char_desc(k)
     result['Characters'].append({
         "token":         k.__name__,
         "image":         "{}.png".format(v['port_image'].replace('-', '/')),
-        "name":          v['char_name'],
+        "name":          v['name'],
         "maxlife":       k.maxlife,
         "modes":         k.categories,
-        "description":   to_html(v['description']),
-        "fulltextindex": unidecode(v['description']).replace(' ', '').lower(),
+        "description":   to_html(desc),
+        "fulltextindex": unidecode(desc).replace(' ', '').lower(),
         "positions":     ("暂缺",),
     })
 
