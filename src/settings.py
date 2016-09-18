@@ -48,7 +48,6 @@ else:
     SENTRY_DSN = 'https://3f966ce5d9d34967be39379df0e26279:69245de6617c4357af30ed99f05894db@sentry.thbattle.net/2'
 
 TESTING_CHARACTERS = (
-    'Youmu',
 )
 
 
