@@ -23,7 +23,7 @@ from gevent.event import Event
 import gevent
 
 # -- own --
-from utils.interconnect import Interconnect
+from utils.interconnect import RedisInterconnect
 from account.forum_integration import Account
 
 # -- code --
@@ -36,7 +36,7 @@ interconnect = None
 logging.basicConfig()
 
 
-class Interconnect(Interconnect):
+class Interconnect(RedisInterconnect):
     def on_message(self, node, topic, message):
         if topic == 'current_users':
             # [[node, username, state], ...]
