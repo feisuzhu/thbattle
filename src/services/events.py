@@ -158,7 +158,15 @@ def main():
     parser.add_argument('--redis-url', default='redis://localhost:6379')
     parser.add_argument('--member-service', default='localhost')
     parser.add_argument('--discuz-cookiepre', default='VfKd_')
+    parser.add_argument('--discuz-authkey', default='Proton rocks')
+    parser.add_argument('--db', default='sqlite:////dev/shm/thb.sqlite3')
     options = parser.parse_args()
+
+    import options as opmod
+    opmod.options = options
+
+    import db.session
+    db.session.init(options.db)
 
     interconnect = Interconnect.spawn('forum', options.redis_url)
 

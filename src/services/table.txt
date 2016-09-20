@@ -1,3 +1,2 @@
 # port    service name
-7000    service_member
 7001    service_events
