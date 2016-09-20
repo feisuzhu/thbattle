@@ -1129,13 +1129,15 @@ class PlayerPortrait(Frame):
                 parent=self,
             ))
 
-        badges = requests.get('https://api.leancloud.cn/1.1/cloudQuery',
-            params={'cql': 'select * from Badge where uid = %s' % acc.userid},
-            headers={'X-LC-Id': settings.LEANCLOUD_APPID, 'X-LC-Key': settings.LEANCLOUD_APPKEY},
-        ).json()
-        badges = badges['results']
-        for i, b in enumerate(badges):
-            gevent.spawn(B, i, b)
+        @gevent.spawn
+        def _():
+            badges = requests.get('https://api.leancloud.cn/1.1/cloudQuery',
+                params={'cql': 'select * from Badge where uid = %s' % acc.userid},
+                headers={'X-LC-Id': settings.LEANCLOUD_APPID, 'X-LC-Key': settings.LEANCLOUD_APPKEY},
+            ).json()
+            badges = badges['results']
+            for i, b in enumerate(badges):
+                gevent.spawn(B, i, b)
 
     def draw(self):
         PlayerPortrait.draw(self)

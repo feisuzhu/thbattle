@@ -823,14 +823,21 @@ def first(l, pred=None):
         return l[0] if len(l) else None
 
 
-def imageurl2file(url):
-    import requests  # Mobile version don't have this
-    resp = requests.get(url)
-    if not resp.ok:
-        log.warning('Image fetch not ok: %s -> %s', resp.status_code, url)
-        return None, None
+cached_images = {}
 
-    data = resp.content
+def imageurl2file(url):
+    if url in cached_images:
+        data = cached_images[url]
+    else:
+        import requests  # Mobile version don't have this
+        resp = requests.get(url)
+        if not resp.ok:
+            log.warning('Image fetch not ok: %s -> %s', resp.status_code, url)
+            return None, None
+
+        data = resp.content
+        cached_images[url] = data
+
     if data.startswith('GIF'):
         type = 'gif'
     elif data.startswith('\xff\xd8') and data.endswith('\xff\xd9'):
