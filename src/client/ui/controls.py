@@ -976,6 +976,7 @@ class PlayerPortrait(Frame):
         self.hand_cursor = self.window.get_system_mouse_cursor('hand')
         self.accinfo_labels = []
         self.badge_icons = []
+        self.avatar = None
 
         self.player_name = player_name
         Frame.__init__(
@@ -1019,7 +1020,6 @@ class PlayerPortrait(Frame):
 
     def update(self):
         acc = self.account
-        self.avatar = None
         if acc:
             name = u'<' + acc.username + u'>'
             if self.ready: name = u'(准备)' + name
@@ -1044,12 +1044,7 @@ class PlayerPortrait(Frame):
 
         avurl = acc.other['avatar'] if acc else None
         if avurl:
-            @gevent.spawn
-            def callback(avurl=avurl):
-                ft, f = imageurl2file(avurl)
-                if not f:
-                    return
-
+            def set_avatar(ft, f):
                 try:
                     if ft == 'gif':
                         from utils import gif_to_animation
@@ -1074,7 +1069,13 @@ class PlayerPortrait(Frame):
                     self.avatar.delete()
                 self.avatar = sprite
 
-                # sprite and self.update()
+            from utils import is_url_cached
+            if is_url_cached(avurl):
+                set_avatar(*imageurl2file(avurl))
+            else:
+                @gevent.spawn
+                def callback(avurl=avurl):
+                    set_avatar(*imageurl2file(avurl))
 
         Frame.update(self)
 
@@ -1135,9 +1136,10 @@ class PlayerPortrait(Frame):
                 params={'cql': 'select * from Badge where uid = %s' % acc.userid},
                 headers={'X-LC-Id': settings.LEANCLOUD_APPID, 'X-LC-Key': settings.LEANCLOUD_APPKEY},
             ).json()
-            badges = badges['results']
-            for i, b in enumerate(badges):
-                gevent.spawn(B, i, b)
+            if self.account:
+                badges = badges['results']
+                for i, b in enumerate(badges):
+                    gevent.spawn(B, i, b)
 
     def draw(self):
         PlayerPortrait.draw(self)

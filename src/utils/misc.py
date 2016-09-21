@@ -825,6 +825,11 @@ def first(l, pred=None):
 
 cached_images = {}
 
+
+def is_url_cached(url):
+    return url in cached_images
+
+
 def imageurl2file(url):
     if url in cached_images:
         data = cached_images[url]
