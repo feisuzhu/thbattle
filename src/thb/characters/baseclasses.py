@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 from collections import defaultdict
 
 # -- third party --
 # -- own --
-from game.autoenv import GameObject, Game
+from game.autoenv import Game, GameObject
+from utils.misc import partition
 
 # -- code --
 # common, id8, faith, kof, 3v3, testing
@@ -62,11 +64,13 @@ def register_character_to(*cats):
     return register
 
 
-def get_characters(*cats, **kwargs):
+def get_characters(*cats):
     cats = set(cats)
     chars = set()
-    chars.update(*[characters_by_category[c] for c in cats])
-    chars.difference_update(*[characters_by_category['-' + c] for c in cats])
+    pos, neg = partition(lambda c: not c.startswith('-'), cats)
+    chars.update(*[characters_by_category[c] for c in pos])
+    chars.difference_update(*[characters_by_category['-' + c] for c in pos])
+    chars.difference_update(*[characters_by_category[c.strip('-')] for c in neg])
     chars = list(sorted(chars, key=lambda i: i.__name__))
     return chars
 
