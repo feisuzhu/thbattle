@@ -780,7 +780,6 @@ class ActionStage(GenericAction):
         g = Game.getgame()
         target = self.target
         if target.dead: return False
-        target.tags['vitality'] = 1
 
         try:
             while not target.dead:

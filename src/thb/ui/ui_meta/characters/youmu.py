@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable
-from thb.ui.ui_meta.common import passive_is_action_valid
+from thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.youmu)
@@ -58,25 +59,10 @@ class Nitoryuu:
     name = u'二刀流'
     description = (
         u'你可以额外装备一把武器，当你同时装备了两把武器时，攻击范围按其中较高者计算；武器技能同时有效，且你额外增加一点干劲。\n'
-        u'|B|R>> |r当你受到|G人形操控|r的效果生效时，需交出全部的武器。\n'
-        u'|B|R>> |r当你装备两把武器时，你可以主动弃置其中的一把。'
+        u'|B|R>> |r当你受到|G人形操控|r的效果生效时，需交出全部的武器。'
     )
-
-    def clickable(game):
-        me = game.me
-        weapons = [e for e in me.equips if e.equipment_category == 'weapon']
-        return my_turn() and len(weapons) == 2
-
-    def is_action_valid(g, cl, target_list):
-        skill = cl[0]
-
-        if not [g.me] == target_list:
-            return (False, 'BUG!!')
-
-        if skill.associated_cards:
-            return (False, u'请不要选择牌！')
-
-        return (True, u'二刀流：主动弃置一把武器')
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
 
     def effect_string(act):
         return u'|G【%s】|r弃置了自己的一把武器' % (

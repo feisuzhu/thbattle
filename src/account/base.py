@@ -66,7 +66,6 @@ class AccountBase(object):
         for type, amount in lst:
             if type in ('jiecao', 'games', 'drops', 'ppoint'):
                 total = getattr(user, type) + amount
-                print getattr(user, type), amount, total
                 if negcheck and total < 0:
                     raise negcheck
 

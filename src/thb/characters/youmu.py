@@ -81,7 +81,7 @@ class NitoryuuWearEquipmentHandler(EventHandler):
 class YoumuHandler(EventHandler):
     interested = ('action_apply', 'action_before', 'attack_aftergraze', 'card_migration')
     execute_before = ('ScarletRhapsodySwordHandler', 'LaevateinHandler', 'HouraiJewelHandler')
-    execute_after = ('AttackCardHandler', )
+    execute_after = ('VitalityHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
@@ -95,23 +95,28 @@ class YoumuHandler(EventHandler):
 
         elif evt_type == 'action_apply' and isinstance(act, ActionStage):
             p = act.target
-            p.tags['vitality'] += p.tags.get('nitoryuu_tag', False)
+            p.tags['vitality'] += bool(p.has_skill(Nitoryuu) and self.weapons(p) >= 2)
 
         elif evt_type == 'card_migration':
-            def weapons(cards):
-                return [c for c in cards
-                        if c.equipment_category == 'weapon']
 
             act, cards, _from, to, _ = arg = act
 
             for cl in (_from, to):
                 if cl.type != 'equips': continue
                 p = cl.owner
-                if p.has_skill(Nitoryuu):
-                    active = len(weapons(p.equips)) >= 2
-                    oactive = p.tags.get('nitoryuu_tag', False)
-                    p.tags['vitality'] += active - oactive
-                    p.tags['nitoryuu_tag'] = active
+                if not p.has_skill(Nitoryuu): continue
+
+                n = self.weapons(p)
+                dn = len(cards)
+
+                if cl is _from and (dn + n) >= 2 and n <= 1:
+                    adjust = -1
+                elif cl is to and (n - dn) <= 1 and n >= 2:
+                    adjust = 1
+                else:
+                    adjust = 0
+
+                p.tags['vitality'] += adjust
 
             return arg
 
@@ -125,21 +130,9 @@ class YoumuHandler(EventHandler):
 
         return act
 
-
-class NitoryuuDropWeapon(UserAction):
-    def apply_action(self):
-        tgt = self.target
-        equips = tgt.equips
-        weapons = [e for e in equips if e.equipment_category == 'weapon']
-        e = user_input([tgt], ChooseIndividualCardInputlet(self, weapons))
-        e = e or random_choose_card([weapons])
-        g = Game.getgame()
-        g.process_action(DropCards(tgt, tgt, [e]))
-
-        return True
-
-    def is_valid(self):
-        return self.source.tags.get('nitoryuu_tag', False)
+    @staticmethod
+    def weapons(p):
+        return sum([c.equipment_category == 'weapon' for c in p.equips])
 
 
 class Mijincihangzhan(Skill):
@@ -151,9 +144,9 @@ class Mijincihangzhan(Skill):
 
 class Nitoryuu(Skill):
     # 二刀流
-    associated_action = NitoryuuDropWeapon
-    skill_category = ('character', 'active', 'compulsory')
-    target = t_Self
+    associated_action = None
+    skill_category = ('character', 'passive', 'compulsory')
+    target = t_None
 
     def check(self):
         return not self.associated_cards
