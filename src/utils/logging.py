@@ -69,7 +69,7 @@ class ServerLogFormatter(logging.Formatter):
             gr_name = ''
 
         if rec.args:
-            msg = rec.msg % rec.args if isinstance(rec.msg, basestring) else repr((rec.msg, rec.args)),
+            msg = (rec.msg % rec.args) if isinstance(rec.msg, basestring) else repr((rec.msg, rec.args))
         else:
             msg = rec.msg
 
