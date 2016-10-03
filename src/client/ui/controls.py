@@ -968,6 +968,8 @@ class BadgeIcon(Control):
 
 
 class PlayerPortrait(Frame):
+    cached_badges = {}
+
     def __init__(self, player_name, color=Colors.blue, *args, **kwargs):
         self.account = None
         self.ready = False
@@ -1132,14 +1134,24 @@ class PlayerPortrait(Frame):
 
         @gevent.spawn
         def _():
-            badges = requests.get('https://api.leancloud.cn/1.1/cloudQuery',
-                params={'cql': 'select * from Badge where uid = %s' % acc.userid},
-                headers={'X-LC-Id': settings.LEANCLOUD_APPID, 'X-LC-Key': settings.LEANCLOUD_APPKEY},
-            ).json()
+            badges = self._cached_fetch_badges(acc.userid)
             if self.account:
                 badges = badges['results']
                 for i, b in enumerate(badges):
                     gevent.spawn(B, i, b)
+
+    @classmethod
+    def _cached_fetch_badges(cls, uid):
+        cache = cls.cached_badges
+        if uid in cache:
+            return cache[uid]
+        else:
+            badges = requests.get('https://api.leancloud.cn/1.1/cloudQuery',
+                params={'cql': 'select * from Badge where uid = %s' % uid},
+                headers={'X-LC-Id': settings.LEANCLOUD_APPID, 'X-LC-Key': settings.LEANCLOUD_APPKEY},
+            ).json()
+            cache[uid] = badges
+            return badges
 
     def draw(self):
         PlayerPortrait.draw(self)
