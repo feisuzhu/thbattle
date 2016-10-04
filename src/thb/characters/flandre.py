@@ -8,7 +8,7 @@ from game.autoenv import EventHandler, Game, user_input
 from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction, PlayerDeath
 from thb.actions import PlayerTurn, register_eh, ttags
 from thb.cards import ActionLimitExceeded, AttackCard, AttackCardVitalityHandler, BaseAttack
-from thb.cards import BaseDuel, DuelCard, Skill, UserAction, t_None
+from thb.cards import BaseDuel, DuelCard, ElementalReactorSkill, Skill, UserAction, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -97,6 +97,7 @@ class CriticalStrikeHandler(EventHandler):
             tags = src.tags
             if not self.in_critical_strike(src): return act
             if not c.is_card(AttackCard): return act
+            if src.has_skill(ElementalReactorSkill): return act
             if src.tags['vitality'] > 0: return act
             if getattr(act, 'vitality_consumed', False): return act
             if set(act.target_list) & set(tags['flan_targets']):
