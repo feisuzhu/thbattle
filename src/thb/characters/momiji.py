@@ -188,7 +188,7 @@ class SolidShieldHandler(EventHandler):
             if src is tgt: return act
 
             c = act.card
-            if not c.is_card(AttackCard) or 'instant_spellcard' in c.category:
+            if not (c.is_card(AttackCard) or 'instant_spellcard' in c.category):
                 return act
 
             g = Game.getgame()
