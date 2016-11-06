@@ -108,7 +108,7 @@ def build_choices(g, items, candidates, players, num, akaris, shared):
     # ANCHOR(test)
     # ----- testing -----
     all_characters = Character.character_classes
-    testing = set(all_characters[i] for i in settings.TESTING_CHARACTERS)
+    testing = list(all_characters[i] for i in settings.TESTING_CHARACTERS)
     candidates, _ = partition(lambda c: c not in testing, candidates)
 
     if g.SERVER_SIDE:

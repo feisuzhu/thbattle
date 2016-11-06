@@ -14,7 +14,7 @@ __metaclass__ = gen_metafunc(characters.yuuka)
 class ReversedScales:
     # Skill
     name = u'逆鳞'
-    description = u'每当你成为其他角色使用的单体符卡的目标时，你可以将其视为|G弹幕战|r；你的回合外，你可以将一张手牌当做|G弹幕|r使用或打出。'
+    description = u'每当你成为其他角色使用的单体符卡效果目标时，你可以将其视为|G弹幕战|r效果；你的回合外，你可以将一张手牌当做|G弹幕|r使用或打出。'
 
     def clickable(game):
         me = game.me
