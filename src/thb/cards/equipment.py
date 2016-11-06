@@ -5,11 +5,11 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, GameError, user_input
-from thb.actions import ActionLimitExceeded, Damage, DrawCards, DropCardStage, DropCards
-from thb.actions import FatetellAction, FatetellStage, FinalizeStage, ForEach, GenericAction
-from thb.actions import LaunchCard, MaxLifeChange, MigrateCardsTransaction, Reforge, UserAction
-from thb.actions import VitalityLimitExceeded, detach_cards, migrate_cards, random_choose_card
-from thb.actions import register_eh, ttags, user_choose_cards
+from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DrawCards, DropCardStage
+from thb.actions import DropCards, FatetellAction, FatetellStage, FinalizeStage, ForEach
+from thb.actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction, Reforge
+from thb.actions import UserAction, VitalityLimitExceeded, detach_cards, migrate_cards
+from thb.actions import random_choose_card, register_eh, ttags, user_choose_cards
 from thb.cards import basic, spellcard
 from thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN, t_OtherOne
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -24,15 +24,6 @@ class WearEquipmentAction(UserAction):
         tgt = self.target
         equips = tgt.equips
         g = Game.getgame()
-
-        self.choice = 'equip'
-
-        if card.equipment_category == 'weapon' and tgt.tags['vitality'] > 0:
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                tgt.tags['vitality'] -= 1
-                self.choice = 'reforge'
-                g.process_action(Reforge(tgt, tgt, card))
-                return True
 
         _s, _t, _c, rst = g.emit_event('wear_equipment', (self, tgt, card, 'default'))
         assert _s is self
@@ -50,6 +41,33 @@ class WearEquipmentAction(UserAction):
         migrate_cards([card], tgt.equips)
 
         return True
+
+
+class ReforgeWeapon(Reforge):
+    pass
+
+
+@register_eh
+class WeaponReforgeHandler(EventHandler):
+    interested = ('action_before',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
+            c = act.card
+            tgt = act.target
+
+            if c.is_card(VirtualCard): return act
+            if 'equipment' not in c.category: return act
+            if c.equipment_category != 'weapon': return act
+            if tgt.tags['vitality'] <= 0: return act
+
+            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                tgt.tags['vitality'] -= 1
+                g = Game.getgame()
+                g.process_action(ReforgeWeapon(tgt, tgt, c))
+                act.cancelled = True
+
+        return act
 
 
 @register_eh

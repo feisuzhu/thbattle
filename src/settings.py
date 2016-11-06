@@ -49,7 +49,6 @@ else:
 
 
 TESTING_CHARACTERS = (
-    "Momiji",
 )
 
 
