@@ -88,9 +88,9 @@ class Rinnosuke:
     # Character
     name        = u'森近霖之助'
     title       = u'变态出没注意'
-    illustrator = u'Pixiv ID 1666615'
+    illustrator = u'霏茶'
     cv          = u'大白'
 
     port_image        = u'thb-portrait-rinnosuke'
-    figure_image      = u''
+    figure_image      = u'thb-figure-rinnosuke'
     miss_sound_effect = u'thb-cv-rinnosuke_miss'

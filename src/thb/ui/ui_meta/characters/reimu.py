@@ -78,7 +78,7 @@ class TributeTarget:
 
 class Tribute:
     # Skill
-    name = u'塞钱'
+    name = u'赛钱'
     description = u'出牌阶段限一次，若灵梦的手牌数小于体力上限，你可以将一张手牌置入灵梦的明牌区。'
 
     def clickable(game):
@@ -109,14 +109,14 @@ class Tribute:
             return (False, u'请选择一只灵梦')
 
         if len(tl[0].cards) + len(tl[0].showncards) >= tl[0].maxlife:
-            return (False, u'灵梦的塞钱箱满了')
+            return (False, u'灵梦的赛钱箱满了')
 
-        return (True, u'塞钱……会发生什么呢？')
+        return (True, u'投进去……会发生什么呢？')
 
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return (
-            u'|G【%s】|r向|G【%s】|r的塞钱箱里放了一张%s… 会发生什么呢？'
+            u'|G【%s】|r向|G【%s】|r的赛钱箱里放了一张%s… 会发生什么呢？'
         ) % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,

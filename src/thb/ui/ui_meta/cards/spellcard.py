@@ -199,8 +199,8 @@ class SinsackCard:
         u'出牌阶段，对你使用，将此牌横置于你的判定区内。判定区内有此牌的角色的判定阶段，需进行一次判定：\n'
         u'|B|R>> |r若判定结果为黑桃1-8，则目标角色受到3点无来源伤害，然后将其置入弃牌堆。\n'
         u'|B|R>> |r若判定结果不在此范围，则将其移动到下家的判定区内。\n'
-        u'|B|R>> |r判定开始前,你可以使用【好人卡】抵消该符卡的效果,并将该【罪袋】直接传递给下家。\n\n'
-        u'|DB（画师：朱鹭子，CV：VV/大白）|r'
+        u'|B|R>> |r判定开始前,你可以使用|B好人卡|r抵消该符卡的效果,并将该|G罪袋|r直接传递给下家。\n\n'
+        u'|DB（画师：霏茶，CV：VV/大白）|r'
     )
 
     def is_action_valid(g, cl, target_list):
@@ -414,13 +414,13 @@ class DollControl:
 
 class DonationBoxCard:
     # action_stage meta
-    name = u'塞钱箱'
+    name = u'赛钱箱'
     image = 'thb-card-donationbox'
     description = (
-        u'|R塞钱箱|r\n\n'
+        u'|R赛钱箱|r\n\n'
         u'非延时符卡\n'
         u'出牌阶段，对至多两名其他角色使用，目标角色需将自己的一张牌置入你的明牌区。\n\n'
-        u'|DB（画师：朱鹭子，CV：shourei小N）|r'
+        u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
     def is_action_valid(g, cl, tl):
