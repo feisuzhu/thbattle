@@ -196,6 +196,9 @@ class SolidShieldHandler(EventHandler):
                 if p is src:
                     continue
 
+                if p is tgt:
+                    continue
+
                 if not p.has_skill(SolidShield):
                     continue
 

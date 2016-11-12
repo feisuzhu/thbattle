@@ -38,7 +38,7 @@ class Sentry:
 class Telegnosis:
     # Skill
     name = u'千里眼'
-    description = u'|B锁定技|r，若你在一名其他角色的攻击内，则该角色视为在你攻击范围内。'
+    description = u'|B锁定技|r，若你在一名其他角色的攻击范围内，则该角色视为在你攻击范围内。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -55,7 +55,7 @@ class Disarm:
 
 class DisarmHideAction:
     def effect_string(act):
-        return u'|G【%s】|r拦下了|G【%s】|r，从头到脚检查了一边。' % (
+        return u'|G【%s】|r拦下了|G【%s】|r，从头到脚检查了一遍。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )
