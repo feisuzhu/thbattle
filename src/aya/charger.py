@@ -60,7 +60,7 @@ def charge(username, message):
     history[uid] = (now, min(fee * 2, 2000))
     fee  = int(fee)
     log.info('Charge %s for %s' % (username, fee))
-    Account.add_credit(uid, 'jiecao', -fee)
+    user.add_credit(['jiecao', -fee])
     interconnect.publish('aya_charge', [uid, fee])
 
 
