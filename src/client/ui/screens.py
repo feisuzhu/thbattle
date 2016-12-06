@@ -1002,6 +1002,18 @@ class LobbyScreen(Screen):
             openurl('http://shang.qq.com/wpa/qunwpa?idkey=e25b8a940bf6e5409c48d7dac3681257c47b341c97b0d1d9c3b278d650aa8b0b')
 
         b = Button(
+            parent=self, x=474, y=650, width=80, height=35,
+            color=Colors.orange, caption=u'购买实体卡',
+        )
+
+        del on_click
+
+        @b.event
+        def on_click():
+            stats({'event': 'shop_button'})
+            openurl('http://shop.thb.io')
+
+        b = Button(
             parent=self, x=750, y=650, width=80, height=35,
             color=Colors.orange, caption=u'卡牌查看器',
         )
