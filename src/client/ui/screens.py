@@ -875,6 +875,9 @@ class LobbyScreen(Screen):
                 current_games = args[0]
                 glist = self.gamelist
                 glist.clear()
+
+                current_games.sort(key=lambda gi: (gi['started'], gi['id']))
+
                 for gi in current_games:
                     gcls = modes.get(gi['type'], None)
                     if gcls:
@@ -919,14 +922,28 @@ class LobbyScreen(Screen):
                 users = args[0]
                 box = self.box
                 box.text = u'\u200b'
-                self.caption = u'当前在线玩家：%d' % len(users)
+
+                n_users = len(users)
+
+                self.caption = u'当前在线玩家：%d' % n_users
                 self.update()
                 rst = []
+
+                if n_users > 130:
+                    users = [u for u in users if u['state'] != 'ingame']
+                    rst.append(u'%s 个|G游戏中|r的玩家' % (n_users - len(users)))
+                    rst.append(u'')
+
                 for u in users:
-                    acc = Account.parse(u['account'])
+                    u['account'] = Account.parse(u['account'])
+
+                users.sort(key=lambda u: u['account'].userid)
+
+                for u in users:
+                    acc = u['account']
                     username = acc.username.replace('|', '||')
                     rst.append(u'%s([|c9100ffff%s|r], %s)' % (
-                        username.replace('|', '||'),
+                        username,
                         acc.userid,
                         lookup.get(u['state'], u['state']),
                     ))
