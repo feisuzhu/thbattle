@@ -1016,7 +1016,7 @@ class LobbyScreen(Screen):
         @b.event
         def on_click():
             stats({'event': 'qqqun_button'})
-            openurl('http://shang.qq.com/wpa/qunwpa?idkey=e25b8a940bf6e5409c48d7dac3681257c47b341c97b0d1d9c3b278d650aa8b0b')
+            openurl('http://shang.qq.com/wpa/qunwpa?idkey=8a27a9d54ab28baee232ad489856ef783a250fca72e529bf24f1b31afc5078b3')
 
         b = Button(
             parent=self, x=474, y=650, width=80, height=35,
