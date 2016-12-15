@@ -33,7 +33,10 @@ privileged = (
     351,   # 西瓜
     162,   # 灰
     103,   # 八咫乌鸦
-    2,     # Proton
+    # 2,     # Proton
+    2318,  # 镜此方
+    6573,  # 绯月
+
 )
 
 
@@ -60,7 +63,7 @@ def charge(username, message):
     history[uid] = (now, min(fee * 2, 2000))
     fee  = int(fee)
     log.info('Charge %s for %s' % (username, fee))
-    user.add_credit(['jiecao', -fee])
+    Account.add_user_credit(user, [['jiecao', -fee]])
     interconnect.publish('aya_charge', [uid, fee])
 
 
@@ -71,7 +74,7 @@ class Interconnect(RedisInterconnect):
 
 
 def main():
-    global options, interconnect, log
+    global options, interconnect, log, charge
     parser = argparse.ArgumentParser('aya_charger')
     parser.add_argument('--redis-url', default='redis://localhost:6379')
     parser.add_argument('--db', default='sqlite:////dev/shm/thb.sqlite3')
@@ -80,6 +83,7 @@ def main():
 
     import db.session
     db.session.init(options.db)
+    charge = db.session.transactional()(charge)
 
     logging.basicConfig(stream=sys.stdout, level=getattr(logging, options.log))
     log = logging.getLogger('aya_charger')
