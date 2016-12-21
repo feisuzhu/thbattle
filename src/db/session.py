@@ -33,7 +33,14 @@ current = local()
 
 def init(connstr, drop_first=False):
     global Session
-    engine = create_engine(connstr, encoding='utf-8', convert_unicode=True, echo=False, isolation_level='SERIALIZABLE')
+    engine = create_engine(
+        connstr,
+        pool_size=50, max_overflow=100,
+        encoding='utf-8',
+        convert_unicode=True,
+        echo=False,
+        isolation_level='SERIALIZABLE',
+    )
     drop_first and Model.metadata.drop_all(engine)
     Model.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
