@@ -247,7 +247,7 @@ class SolidShield(Skill):
     target = t_None
 
 
-@register_character_to('common')
+# @register_character_to('common')
 class Momiji(Character):
     # skills = [Disarm, Sentry, Telegnosis]
     skills = [Disarm, Sentry, SolidShield]
