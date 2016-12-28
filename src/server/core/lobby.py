@@ -557,10 +557,10 @@ class Lobby(object):
     def speaker(self, user, msg):
         @gevent.spawn
         def worker():
-            if user.account.other['credits'] < 0:
+            if user.account.other['credits'] <= 0:
                 user.write(['system_msg', [None, u'您的节操掉了一地，文文不愿意帮你散播消息。']])
             else:
-                Subsystem.interconnect.publish('speaker', [user.account.username, msg])
+                Subsystem.interconnect.publish('speaker', [user.account.username, msg[:100]])
 
         log.info(u'Speaker: %s', msg)
 
