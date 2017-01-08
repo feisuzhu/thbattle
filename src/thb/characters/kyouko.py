@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import AskForCard, Damage, DrawCards, LaunchCard, UserAction, migrate_cards
 from thb.actions import user_choose_players
-from thb.cards import Attack, AttackCard, PhysicalCard, Skill, t_None
+from thb.cards import Attack, AttackCard, Skill, VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -44,10 +44,13 @@ class EchoHandler(EventHandler):
             g = Game.getgame()
             pact = g.action_stack[-1]
             card = getattr(pact, 'associated_card', None)
-            if not card or not card.is_card(PhysicalCard):
+            if not card:
                 return act
 
             if not card.detached or card.unwrapped:
+                return act
+
+            if not VirtualCard.unwrap([card]):
                 return act
 
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
