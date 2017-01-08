@@ -393,7 +393,12 @@ class TreatAs(object):
         return False
 
     def is_card(self, cls):
-        if issubclass(self.treat_as, cls): return True
+        if cls is PhysicalCard:
+            return False
+
+        if issubclass(self.treat_as, cls):
+            return True
+
         return isinstance(self, cls)
 
     def __getattr__(self, name):
