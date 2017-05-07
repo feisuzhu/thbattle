@@ -10,9 +10,12 @@ import time
 
 # -- third party --
 # -- own --
+import gevent
 from account.base import AccountBase, server_side_only
 from utils import password_hash
 from db import transactional, current_session
+from utils import log_failure
+from db import transactional
 
 
 # -- code --
@@ -249,14 +252,27 @@ class Account(AccountBase):
 
                 setattr(member_count, type, total)
 
-        super(Account, cls).add_user_credit(user, lst, negcheck)
+        for type, amount in lst:
+            if type in ('jiecao', 'games', 'drops', 'ppoint'):
+                total = getattr(user, type) + amount
+                if negcheck and total < 0:
+                    raise negcheck
+
+                setattr(user, type, total)
 
     @server_side_only
     def add_credit(self, lst):
         if self.is_maoyu() < 0:
             return
 
-        super(Account, self).add_credit(lst)
+        @gevent.spawn
+        @log_failure(log)
+        @transactional()
+        def worker():
+            uid = self.userid
+            user = self.find(uid)
+            self.add_user_credit(user, lst)
+            self.refresh()
 
     @server_side_only
     def is_maoyu(self):

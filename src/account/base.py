@@ -10,8 +10,6 @@ import logging
 import gevent
 
 # -- own --
-from utils import log_failure
-from db import transactional
 
 
 # -- code --
@@ -59,25 +57,3 @@ class AccountBase(object):
         )
 
         return acc
-
-    @classmethod
-    @server_side_only
-    def add_user_credit(cls, user, lst, negcheck=None):
-        for type, amount in lst:
-            if type in ('jiecao', 'games', 'drops', 'ppoint'):
-                total = getattr(user, type) + amount
-                if negcheck and total < 0:
-                    raise negcheck
-
-                setattr(user, type, total)
-
-    @server_side_only
-    def add_credit(self, lst):
-        @gevent.spawn
-        @log_failure(log)
-        @transactional()
-        def worker():
-            uid = self.userid
-            user = self.find(uid)
-            self.add_user_credit(user, lst)
-            self.refresh()
