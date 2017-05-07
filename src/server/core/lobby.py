@@ -524,6 +524,7 @@ class Lobby(object):
     @_command(['hang', 'inroomwait', 'ready', 'ingame', 'observing'], [unicode])
     def chat(self, user, msg):
         acc = user.account
+        msg = msg[:300]
 
         @gevent.spawn
         @log_failure(log)
