@@ -544,12 +544,13 @@ class AskForCard(GenericAction):
         raise NotImplementedError
 
 
-class DropCardStage(GenericAction):
+class ActiveDropCards(GenericAction):
     card_usage = 'drop'
 
-    def __init__(self, target):
-        self.source = self.target = target
-        self.dropn = len(target.cards) + len(target.showncards) - target.life
+    def __init__(self, source, target, dropn):
+        self.source = source
+        self.target = target
+        self.dropn = dropn
         self.cards = []
 
     def apply_action(self):
@@ -565,7 +566,7 @@ class DropCardStage(GenericAction):
         else:
             from itertools import chain
             cards = list(chain(tgt.cards, tgt.showncards))[min(-n, 0):]
-            g.players.exclude(tgt).reveal(cards)
+            g.players.reveal(cards)
             g.process_action(DropCards(tgt, tgt, cards=cards))
 
         self.cards = cards
@@ -584,6 +585,12 @@ class DropCardStage(GenericAction):
             return False
 
         return True
+
+
+class DropCardStage(ActiveDropCards):
+    def __init__(self, target):
+        dropn = len(target.cards) + len(target.showncards) - target.life
+        ActiveDropCards.__init__(self, target, target, dropn)
 
 
 class BaseDrawCards(GenericAction):
