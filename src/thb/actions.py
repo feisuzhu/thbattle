@@ -773,7 +773,7 @@ class ActionStageLaunchCard(LaunchCard):
     pass
 
 
-class ActionStage(GenericAction):
+class BaseActionStage(GenericAction):
     card_usage = 'launch'
 
     def __init__(self, target, one_shot=False):
@@ -846,6 +846,10 @@ class ActionStage(GenericAction):
 
     def choose_player_target(self, tl):
         return tl, True
+
+
+class ActionStage(BaseActionStage):
+    pass
 
 
 @register_eh

@@ -5,8 +5,8 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, GameException, user_input
-from thb.actions import ActionStage, ActiveDropCards, DrawCards, DropCards, GenericAction, LifeLost
-from thb.actions import MaxLifeChange, PrepareStage, Reforge, UserAction, ask_for_action
+from thb.actions import ActionStage, ActiveDropCards, BaseActionStage, DrawCards, DropCards
+from thb.actions import GenericAction, LifeLost, MaxLifeChange, PrepareStage, Reforge, UserAction
 from thb.actions import migrate_cards, random_choose_card, ttags, user_choose_cards
 from thb.cards import Card, Heal, PhysicalCard, Skill, VirtualCard, t_None, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
@@ -18,8 +18,8 @@ class TeachTargetReforgeAction(UserAction):
     def apply_action(self):
         g = Game.getgame()
         tgt = self.target
-        c = user_choose_cards(self, [tgt], ('cards', 'showncards', 'equips'))
-        c = c or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+        c = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
+        c = c[0] if c else random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
         if not c:
             return False
 
@@ -27,10 +27,10 @@ class TeachTargetReforgeAction(UserAction):
         return True
 
     def cond(self, cards):
-        return len(cards) == 1 and not cards[0].is_card(VirtualCard)
+        return len(cards) == 1 and cards[0].is_card(PhysicalCard)
 
 
-class TeachTargetActionStage(ActionStage):
+class TeachTargetActionStage(BaseActionStage):
     def __init__(self, source, target):
         super(TeachTargetActionStage, self).__init__(target, one_shot=True)
 

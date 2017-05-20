@@ -18,7 +18,7 @@ class DrawCards:
         )
 
 
-class DropCardStage:
+class ActiveDropCards:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
@@ -227,7 +227,7 @@ class ActionShootdown:
     shootdown_message = u'您不能这样出牌'
 
 
-class ActionStage:
+class BaseActionStage:
     idle_prompt = u'请出牌…'
 
     def choose_card_text(g, act, cards):
