@@ -91,9 +91,10 @@ def init(level, sentry_dsn, release, colored=False):
     hdlr.setLevel(logging.INFO)
     root.addHandler(hdlr)
 
-    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
-    hdlr.setLevel(logging.ERROR)
-    root.addHandler(hdlr)
+    if sentry_dsn:
+        hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
+        hdlr.setLevel(logging.ERROR)
+        root.addHandler(hdlr)
 
     hdlr = logging.StreamHandler(sys.stdout)
     hdlr.setLevel(getattr(logging, level))
@@ -125,10 +126,10 @@ def init_unity(level, sentry_dsn, release):
     root = logging.getLogger()
     root.setLevel(0)
 
-    # Disable sentry
-    # hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
-    # hdlr.setLevel(logging.ERROR)
-    # root.addHandler(hdlr)
+    if sentry_dsn:
+        hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
+        hdlr.setLevel(logging.ERROR)
+        root.addHandler(hdlr)
 
     hdlr = UnityLogHandler()
     hdlr.setLevel(level)
@@ -149,9 +150,10 @@ def init_server(level, sentry_dsn, release, logfile, with_gr_name=True):
     std.setFormatter(fmter)
     root.addHandler(std)
 
-    hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
-    hdlr.setLevel(logging.ERROR)
-    root.addHandler(hdlr)
+    if sentry_dsn:
+        hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
+        hdlr.setLevel(logging.ERROR)
+        root.addHandler(hdlr)
 
     logging.getLogger('sentry.errors').setLevel(1000)
 
