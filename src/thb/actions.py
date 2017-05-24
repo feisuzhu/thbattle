@@ -776,11 +776,10 @@ class ActionStageLaunchCard(LaunchCard):
 class BaseActionStage(GenericAction):
     card_usage = 'launch'
 
-    def __init__(self, target, one_shot=False):
+    def __init__(self, target):
         self.source = self.source = target
         self.target = target
         self.in_user_input = False
-        self.one_shot = one_shot
         self._force_break = False
 
     def apply_action(self):
@@ -805,7 +804,7 @@ class BaseActionStage(GenericAction):
                 g.players.reveal(cards)
                 card = cards[0]
 
-                lc = ActionStageLaunchCard(target, target_list, card)
+                lc = self.launch_card_cls(target, target_list, card)
                 if not g.process_action(lc):
                     if lc.invalid:
                         log.debug('ActionStage: LaunchCard invalid.')
@@ -849,7 +848,8 @@ class BaseActionStage(GenericAction):
 
 
 class ActionStage(BaseActionStage):
-    pass
+    one_shot = False
+    launch_card_cls = ActionStageLaunchCard
 
 
 @register_eh

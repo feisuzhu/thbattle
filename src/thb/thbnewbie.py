@@ -34,6 +34,10 @@ def game_eh(cls):
     return cls
 
 
+class OneShotActionStage(ActionStage):
+    one_shot = True
+
+
 @game_eh
 class DeathHandler(EventHandler):
     interested = ('action_apply',)
@@ -244,7 +248,7 @@ class THBattleNewbieBootstrap(GenericAction):
                 u'（在PC版中鼠标移动到卡牌/人物上，或者手机版中长按卡牌/人物头像，就会弹出说明，很有用的）'
             )
             dialog(Meirin, text, 10)
-            g.process_action(ActionStage(meirin, one_shot=True))
+            g.process_action(OneShotActionStage(meirin))
 
         atkcard = g.deck.inject(AttackCard, Card.SPADE, 3)
         g.process_action(DrawCards(meirin, 1))
@@ -256,7 +260,7 @@ class THBattleNewbieBootstrap(GenericAction):
                 u'（在PC版中鼠标移动到卡牌/人物上，或者手机版中长按卡牌/人物头像，就会弹出说明，很有用的）'
             )
             dialog(Meirin, text, 11)
-            g.process_action(ActionStage(meirin, one_shot=True))
+            g.process_action(OneShotActionStage(meirin))
 
         dialog(Cirno, u'哎呀！？', 4)
         dialog(Sakuya, u'啊啦，干的不错。', 5)
@@ -332,14 +336,14 @@ class THBattleNewbieBootstrap(GenericAction):
         dialog(Sakuya, u'这是|G冻青蛙|r。\n（咳嗽了一声）|G冻青蛙|r是一种|R延时符卡|r，它和|G封魔阵|r一样在使用时并不会立即发生作用，只有轮到了那个角色的行动回合时，才会进行一次判定来执行该符卡的后续效果。', 8)
         dialog(Meirin, u'原来是这样……那就先贴到她脸上再说！', 20)
 
-        g.process_action(ActionStage(meirin, one_shot=True))
+        g.process_action(OneShotActionStage(meirin))
 
         dialog(Meirin, u'这是怎么回事…为什么不能使用…那就先来一发|G弹幕|r好了！', 21)
 
         atkcard = g.deck.inject(AttackCard, Card.SPADE, 9)
         g.process_action(DrawCards(meirin, 1))
 
-        g.process_action(ActionStage(meirin, one_shot=True))
+        g.process_action(OneShotActionStage(meirin))
 
         dialog(Meirin, u'咲夜咲夜咲夜，我没法打她啊！', 22)
         dialog(Sakuya, u'……你忘了琪露诺的|G绿色UFO|r吗。现在从你这边看来和琪露诺的距离为2，也就是，赤手空拳的距离1是没有办法用|G弹幕|r打中她的。我记得鬼族有她们的方法，但是很显然你并不会。', 9)
@@ -356,7 +360,7 @@ class THBattleNewbieBootstrap(GenericAction):
                 u'（红色UFO可以拉近其他角色与你的距离，快装备上吧）'
             )
             dialog(Meirin, text, 25)
-            g.process_action(ActionStage(meirin, one_shot=True))
+            g.process_action(OneShotActionStage(meirin))
 
         dialog(Sakuya, u'你这不是知道UFO的规则嘛。', 10)
         dialog(Meirin, u'只是想趁这次机会和咲夜多说说话啦，平时总是一副大忙人的样子来无影去无踪的……', 26)
@@ -390,7 +394,7 @@ class THBattleNewbieBootstrap(GenericAction):
 
                 return act
 
-            g.process_action(ActionStage(meirin, one_shot=True))
+            g.process_action(OneShotActionStage(meirin))
             remove_eh(resp)
 
             if atkcard in meirin.cards:
@@ -488,7 +492,7 @@ class THBattleNewbieBootstrap(GenericAction):
 
                 return act
 
-            g.process_action(ActionStage(meirin, one_shot=True))
+            g.process_action(OneShotActionStage(meirin))
             remove_eh(resp)
 
         if shield in cirno.equips:
@@ -561,7 +565,7 @@ class THBattleNewbieBootstrap(GenericAction):
                 u'（使用主动发动的技能：请点击技能按钮，然后选择擦弹，然后选择琪露诺，最后出牌）'
             )
             dialog(Meirin, text, 49)
-            g.process_action(ActionStage(meirin, one_shot=True))
+            g.process_action(OneShotActionStage(meirin))
 
         dialog(Cirno, u'呜啊……', 27)
         dialog(Sakuya, u'我要回去做晚饭了。一会儿到了饭点你还没有解决掉这个妖精，我可不会给你留吃的。', 26)

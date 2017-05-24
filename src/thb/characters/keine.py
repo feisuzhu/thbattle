@@ -6,8 +6,8 @@ from __future__ import absolute_import
 # -- own --
 from game.autoenv import EventHandler, Game, GameException, user_input
 from thb.actions import ActionStage, ActiveDropCards, BaseActionStage, DrawCards, DropCards
-from thb.actions import GenericAction, LifeLost, MaxLifeChange, PrepareStage, Reforge, UserAction
-from thb.actions import migrate_cards, random_choose_card, ttags, user_choose_cards
+from thb.actions import GenericAction, LaunchCard, LifeLost, MaxLifeChange, PrepareStage, Reforge
+from thb.actions import UserAction, migrate_cards, random_choose_card, ttags, user_choose_cards
 from thb.cards import Card, Heal, PhysicalCard, Skill, VirtualCard, t_None, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -31,8 +31,8 @@ class TeachTargetReforgeAction(UserAction):
 
 
 class TeachTargetActionStage(BaseActionStage):
-    def __init__(self, source, target):
-        super(TeachTargetActionStage, self).__init__(target, one_shot=True)
+    one_shot = True
+    launch_card_cls = LaunchCard
 
 
 class TeachTargetEffect(GenericAction):
@@ -51,7 +51,7 @@ class TeachTargetEffect(GenericAction):
         if choice == 'reforge':
             g.process_action(TeachTargetReforgeAction(tgt, tgt))
         else:
-            g.process_action(TeachTargetActionStage(tgt, tgt))
+            g.process_action(TeachTargetActionStage(tgt))
 
         return True
 
