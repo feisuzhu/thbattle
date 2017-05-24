@@ -189,7 +189,7 @@ class DevourHandler(EventHandler):
             g = Game.getgame()
             tgt = act.target
             for p in g.players:
-                if p.dead or p is tgt or not p.has_skill(Devour):
+                if p.dead or not p.has_skill(Devour):
                     continue
 
                 if ttags(p)['devour_used']:
