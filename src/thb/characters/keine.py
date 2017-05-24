@@ -45,6 +45,7 @@ class TeachTargetEffect(GenericAction):
         tgt = self.target
         c = self.card
         g = Game.getgame()
+        tgt.reveal(c)
         migrate_cards([c], tgt.cards, unwrap=True)
 
         choice = user_input([tgt], ChooseOptionInputlet(self, ('reforge', 'action')))
@@ -63,6 +64,8 @@ class TeachTargetEffect(GenericAction):
 
 
 class TeachAction(UserAction):
+    no_reveal = True
+
     def apply_action(self):
         src, tgt = self.source, self.target
         cl = VirtualCard.unwrap([self.associated_card])
