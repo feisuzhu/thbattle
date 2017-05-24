@@ -115,9 +115,12 @@ class KeineGuardHandler(EventHandler):
         if evt_type == 'action_before' and isinstance(act, PrepareStage):
             tgt = act.target
             g = Game.getgame()
-            if not tgt.has_skill(KeineGuard):
-                return act
-            if tgt.life <= min([p.life for p in g.players if not p.dead]):
+
+            cond = True and tgt.has_skill(KeineGuard)
+            cond = cond and (tgt.life <= min([p.life for p in g.players if not p.dead]))
+            cond = cond and tgt.life < tgt.maxlife
+
+            if cond:
                 g.process_action(KeineGuardAwake(tgt, tgt))
 
         return act

@@ -841,7 +841,7 @@ class BaseActionStage(GenericAction):
 
     def ask_for_action_verify(self, p, cl, tl):
         assert len(cl) == 1
-        return ActionStageLaunchCard(p, tl, cl[0]).can_fire()
+        return self.launch_card_cls(p, tl, cl[0]).can_fire()
 
     def choose_player_target(self, tl):
         return tl, True

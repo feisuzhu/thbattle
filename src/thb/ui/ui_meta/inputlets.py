@@ -126,7 +126,7 @@ def actv_handle_card_selection(g, act, cards):
     return card
 
 
-def actv_handle_target_selection(g, card, players):
+def actv_handle_target_selection(g, stage, card, players):
     plsel = False
     selected = []
     disables = []
@@ -137,7 +137,7 @@ def actv_handle_target_selection(g, card, players):
         # if card.target in (thbcards.t_One, thbcards.t_OtherOne):
         if card.target.__name__ in ('t_One', 't_OtherOne'):
             for p in g.players:
-                act = thbactions.ActionStageLaunchCard(g.me, [p], card)
+                act = stage.launch_card_cls(g.me, [p], card)
                 shootdown = act.action_shootdown()
                 if shootdown is not None:
                     if shootdown.ui_meta.target_independent:
@@ -244,9 +244,9 @@ class ActionInputlet:
             cards = rawcards
 
         card = actv_handle_card_selection(g, stage, cards)
-        players, disables, prompt = actv_handle_target_selection(g, card, players)
+        players, disables, prompt = actv_handle_target_selection(g, stage, card, players)
 
-        act = thbactions.ActionStageLaunchCard(g.me, players, card)
+        act = stage.launch_card_cls(g.me, players, card)
 
         shootdown = act.action_shootdown()
         if shootdown is not None:
