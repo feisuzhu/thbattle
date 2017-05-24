@@ -781,6 +781,7 @@ class BaseActionStage(GenericAction):
         self.target = target
         self.in_user_input = False
         self._force_break = False
+        self.action_count = 0
 
     def apply_action(self):
         g = Game.getgame()
@@ -809,6 +810,8 @@ class BaseActionStage(GenericAction):
                     if lc.invalid:
                         log.debug('ActionStage: LaunchCard invalid.')
                         check(False)
+
+                self.action_count += 1
 
                 if self.one_shot or self._force_break:
                     break

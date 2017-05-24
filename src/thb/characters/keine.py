@@ -51,7 +51,13 @@ class TeachTargetEffect(GenericAction):
         if choice == 'reforge':
             g.process_action(TeachTargetReforgeAction(tgt, tgt))
         else:
-            g.process_action(TeachTargetActionStage(tgt))
+            act = TeachTargetActionStage(tgt)
+            g.process_action(act)
+            if act.action_count != 1:
+                c = random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+                if c:
+                    g.players.reveal(c)
+                    g.process_action(Reforge(tgt, tgt, c))
 
         return True
 
