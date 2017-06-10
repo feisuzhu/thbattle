@@ -18,7 +18,7 @@ class Interconnect(RedisInterconnect):
         if topic == 'speaker':
             node = node if node != options.node else ''
             message.insert(0, node)
-            Pool(5).map_async(lambda u: u.write(['speaker_msg', message]), Subsystem.lobby.users.values())
+            Pool(5).map_async(lambda u: u.write(['speaker_msg', message[:300]]), Subsystem.lobby.users.values())
 
         elif topic == 'aya_charge':
             uid, fee = message
