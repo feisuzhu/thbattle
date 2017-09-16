@@ -52,6 +52,7 @@ import shizuha
 import sp_aya
 import kyouko
 import keine
+import yuyuko
 
 # weektour
 import youmu20150620

@@ -49,6 +49,7 @@ from . import shizuha
 from . import sp_aya
 from . import kyouko
 from . import keine
+from . import yuyuko
 
 # weektour
 from . import youmu20150620
