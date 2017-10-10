@@ -8,7 +8,7 @@ import traceback
 
 # -- third party --
 from gevent import Greenlet, Timeout, socket
-from gevent.coros import RLock
+from gevent.lock import RLock
 import msgpack
 
 # -- own --

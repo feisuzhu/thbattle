@@ -21,20 +21,20 @@ import re
 
 # -- third party --
 from gevent.backdoor import BackdoorServer
-from gevent.coros import RLock
+from gevent.lock import RLock
 from gevent.pool import Pool
 import gevent
 import redis
 import requests
 
 # -- own --
-from account.forum_integration import Account
 from .qqbot import QQBot
+from account.forum_integration import Account
 from utils import CheckFailed, check, instantiate
 from utils.interconnect import RedisInterconnect
-import utils.logging
 import db.session
 import upyun
+import utils.logging
 
 
 # -- code --

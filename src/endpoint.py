@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 # -- stdlib --
+from collections import deque
 import json
 import logging
 import zlib
-from collections import deque
 
 # -- third party --
-from gevent import coros, socket
+from gevent import socket
+from gevent.lock import RLock
 import msgpack
 
 # -- own --
+
 # -- code --
 log = logging.getLogger("Endpoint")
 
@@ -38,7 +41,7 @@ class Endpoint(object):
 
         self.sock       = sock
         self.unpacker   = msgpack.Unpacker(sock, encoding='utf-8')
-        self.writelock  = coros.RLock()
+        self.writelock  = RLock()
         self.address    = address
         self.link_state = 'connected'  # or disconnected
         self.recv_buf   = deque()
