@@ -204,7 +204,7 @@ class DevourHandler(EventHandler):
                 if ttags(p)['devour_used']:
                     continue
 
-                cl = user_choose_cards(self, p, ('cards', 'showncards'))
+                cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
                 if not cl:
                     continue
 
