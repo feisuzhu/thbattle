@@ -7,9 +7,9 @@ addons:
       - libnspr4-dev
       - swig
 install:
-  - wget https://github.com/libgit2/libgit2/archive/v0.24.1.tar.gz
-  - tar -xzvf v0.24.1.tar.gz
-  - (cd libgit2-0.24.1 && cmake -DCMAKE_INSTALL_PREFIX=$HOME/libgit2 && make -j8 install)
+  - wget https://github.com/libgit2/libgit2/archive/v0.26.0.tar.gz
+  - tar -xzvf v0.26.0.tar.gz
+  - (cd libgit2-0.26.0 && cmake -DCMAKE_INSTALL_PREFIX=$HOME/libgit2 && make -j8 install)
   - pip install zc.buildout
   - pip install requests
   - PKG_CONFIG_PATH=$HOME/libgit2/lib/pkgconfig CPATH=$HOME/libgit2/include LIBRARY_PATH=$HOME/libgit2/lib buildout -vv install test
