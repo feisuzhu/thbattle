@@ -6,9 +6,6 @@ from functools import wraps
 import random
 import logging
 
-# -- third party --
-import gevent
-
 # -- own --
 
 

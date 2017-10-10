@@ -35,7 +35,6 @@ def init(connstr, drop_first=False):
     global Session
     engine = create_engine(
         connstr,
-        pool_size=50, max_overflow=100,
         encoding='utf-8',
         convert_unicode=True,
         echo=False,
