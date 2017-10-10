@@ -1,6 +1,7 @@
 language: python
 python:
   - "2.7"
+
 addons:
   apt:
     packages:
@@ -12,5 +13,6 @@ install:
   - (cd libgit2-0.26.0 && cmake -DCMAKE_INSTALL_PREFIX=$HOME/libgit2 && make -j8 install)
   - pip install zc.buildout
   - pip install requests
-  - PKG_CONFIG_PATH=$HOME/libgit2/lib/pkgconfig CPATH=$HOME/libgit2/include LIBRARY_PATH=$HOME/libgit2/lib buildout -vv install test
+  - PKG_CONFIG_PATH=$HOME/libgit2/lib/pkgconfig CPATH=$HOME/libgit2/include LIBRARY_PATH=$HOME/libgit2/lib buildout install test
+
 script: bin/test
