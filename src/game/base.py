@@ -349,13 +349,6 @@ class Game(GameObject):
         for i in range(id, n) + range(id):
             yield g.players[i]
 
-    def game_start(g, params):
-        '''
-        Game logic goes here.
-        GameModes should override this.
-        '''
-        raise GameError('Override this function to implement Game logics!')
-
     def game_end(self):
         self.ended = True
         try:

@@ -221,7 +221,7 @@ class THBattle2v2Bootstrap(GenericAction):
 
         for p in g.players:
             p.choices = [CharChoice(cls) for cls in chars[-4:]]
-            p.choices[-1].as_akari = True
+            p.choices[-1].akari = True
 
             del chars[-4:]
 
@@ -243,7 +243,7 @@ class THBattle2v2Bootstrap(GenericAction):
 
         # reveal
         for p, c in rst.items():
-            c.as_akari = False
+            c.akari = False
             g.players.reveal(c)
             g.set_character(p, c.char_cls)
 

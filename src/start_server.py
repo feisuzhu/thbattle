@@ -61,7 +61,7 @@ def start_server():
     opmodule.options = options
 
     import db.session
-    db.session.init('sqlite://' if options.freeplay else options.db)
+    db.session.init(options.db)
 
     autoenv.init('Server')
 
