@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
 # -- third party --
@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import DrawCards, DummyAction, FinalizeStage, GenericAction, LifeLost
 from thb.actions import MaxLifeChange, Pindian, TryRevive, UserAction, ttags
-from thb.cards import Heal, Skill, t_None, t_OtherOne
+from thb.cards import Card, Heal, Skill, t_None, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -100,6 +100,7 @@ class SoulDrainHandler(EventHandler):
 
             tgt = act.target
             g.process_action(SoulDrainEffect(p, tgt))
+
             if tgt.life > 0:
                 # Abort TryRevive process
                 return DummyAction(p, act.target)
@@ -138,9 +139,11 @@ class PerfectCherryBlossom(Skill):
     associated_action = PerfectCherryBlossomAction
     skill_category = ('character', 'active')
     target = t_OtherOne
+    usage = 'drop'
 
     def check(self):
-        return not len(self.associated_cards)
+        cl = self.associated_cards
+        return len(cl) == 1 and cl[0].color == Card.BLACK
 
 
 @register_character_to('common')

@@ -6,6 +6,7 @@ from __future__ import absolute_import
 # -- own --
 from thb import characters
 from thb.actions import ttags
+from thb.cards import Card
 from thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable, passive_is_action_valid
 
 
@@ -50,7 +51,7 @@ class SoulDrain:
 class PerfectCherryBlossom:
     # Skill
     name = u'反魂'
-    description = u'出牌阶段限一次，你可以令一名已受伤角色失去一点体力，然后其回复一点体力。若在该过程中该角色死亡，改为你回复一点体力。'
+    description = u'出牌阶段限一次，你可以弃置一张黑色牌，令一名已受伤角色失去一点体力，然后其回复一点体力。若在该过程中该角色死亡，改为你回复一点体力。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -68,6 +69,11 @@ class PerfectCherryBlossom:
     def is_action_valid(g, cl, tl):
         skill = cl[0]
         assert skill.is_card(characters.yuyuko.PerfectCherryBlossom)
+
+        cards = skill.associated_cards
+
+        if not (len(cards) == 1 and cards[0].color == Card.BLACK):
+            return (False, u'请选择一张黑色牌')
 
         if not tl:
             return (False, u'请选择『反魂』发动的目标')
