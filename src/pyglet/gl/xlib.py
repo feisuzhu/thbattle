@@ -21,7 +21,7 @@ class XlibConfig(Config):
     def match(self, canvas):
         if not isinstance(canvas, XlibCanvas):
             raise RuntimeError('Canvas must be instance of XlibCanvas')
-        
+
         x_display = canvas.display._display
         x_screen = canvas.display.x_screen
 
@@ -34,7 +34,7 @@ class XlibConfig(Config):
                 config_class = XlibCanvasConfig10ATI
             else:
                 config_class = XlibCanvasConfig10
-        
+
         # Construct array of attributes
         attrs = []
         for name, value in self.get_gl_attributes():
@@ -60,7 +60,7 @@ class XlibConfig(Config):
             if not configs:
                 return []
 
-            configs = cast(configs, 
+            configs = cast(configs,
                            POINTER(glx.GLXFBConfig * elements.value)).contents
 
             result = [config_class(canvas, info, c, self) for c in configs]
@@ -194,13 +194,9 @@ class BaseXlibContext(Context):
         self.x_display = config.canvas.display._display
 
         self.glx_context = self._create_glx_context(share)
-        glx_context_id = self.glx_context.contents._opaque_struct
-        if glx_context_id == glx.GLX_BAD_CONTEXT:
-            raise gl.ContextException('Invalid context share')
-        elif glx_context_id == glx.GLXBadFBConfig:
-            raise gl.ContextException('Invalid GL configuration')
-        elif glx_context_id < 0:
-            raise gl.ContextException('Could not create GL context') 
+
+        if not self.glx_context:
+            raise gl.ContextException('Could not create GL context')
 
         self._have_SGI_video_sync = \
             config.glx_info.have_extension('GLX_SGI_video_sync')
@@ -215,9 +211,9 @@ class BaseXlibContext(Context):
         # 2. GLX_SGI_video_sync (does not work on Intel 945GM, but that has
         #    MESA)
         # 3. GLX_SGI_swap_control (cannot be disabled once enabled).
-        self._use_video_sync = (self._have_SGI_video_sync and 
+        self._use_video_sync = (self._have_SGI_video_sync and
                                 not self._have_MESA_swap_control)
-        
+
         # XXX mandate that vsync defaults on across all platforms.
         self._vsync = True
 
@@ -259,7 +255,7 @@ class XlibContext10(BaseXlibContext):
         else:
             share_context = None
 
-        return glx.glXCreateContext(self.config.canvas.display._display, 
+        return glx.glXCreateContext(self.config.canvas.display._display,
             self.config._visual_info, share_context, True)
 
     def attach(self, canvas):
@@ -268,7 +264,7 @@ class XlibContext10(BaseXlibContext):
         self.set_current()
 
     def set_current(self):
-        glx.glXMakeCurrent(self.x_display, self.canvas.x_window, 
+        glx.glXMakeCurrent(self.x_display, self.canvas.x_window,
                            self.glx_context)
         super(XlibContext10, self).set_current()
 
@@ -311,7 +307,7 @@ class XlibContext13(BaseXlibContext):
         else:
             share_context = None
 
-        return glx.glXCreateNewContext(self.config.canvas.display._display, 
+        return glx.glXCreateNewContext(self.config.canvas.display._display,
             self.config._fbconfig, glx.GLX_RGBA_TYPE, share_context, True)
 
     def attach(self, canvas):
@@ -328,7 +324,7 @@ class XlibContext13(BaseXlibContext):
         glx.glXMakeContextCurrent(
             self.x_display, self.glx_window, self.glx_window, self.glx_context)
         super(XlibContext13, self).set_current()
-        
+
     def detach(self):
         if not self.canvas:
             return
@@ -372,7 +368,7 @@ class XlibContextARB(XlibContext13):
             attribs.extend([glxext_arb.GLX_CONTEXT_MAJOR_VERSION_ARB,
                             self.config.major_version])
         if self.config.minor_version is not None:
-            attribs.extend([glxext_arb.GLX_CONTEXT_MINOR_VERSION_ARB, 
+            attribs.extend([glxext_arb.GLX_CONTEXT_MINOR_VERSION_ARB,
                             self.config.minor_version])
         flags = 0
         if self.config.forward_compatible:
@@ -382,7 +378,7 @@ class XlibContextARB(XlibContext13):
         if flags:
             attribs.extend([glxext_arb.GLX_CONTEXT_FLAGS_ARB, flags])
         attribs.append(0)
-        attribs = (c_int * len(attribs))(*attribs) 
+        attribs = (c_int * len(attribs))(*attribs)
 
         return glxext_arb.glXCreateContextAttribsARB(
             self.config.canvas.display._display,
