@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable, passive_is_action_valid
 from thb.actions import ttags
+from thb.ui.ui_meta.common import card_desc, gen_metafunc, my_turn, passive_clickable
+from thb.ui.ui_meta.common import passive_is_action_valid
 
 
 # -- code --
@@ -15,39 +16,49 @@ __metaclass__ = gen_metafunc(characters.keine)
 
 class Devour:
     # Skill
-    name = u'噬史'
+    name = '噬史'
     description = (
-        u'每轮限一次。一名角色的出牌阶段开始时，你可以弃置一张基本牌或装备牌，并根据其颜色发动相应效果：\n'
-        u'|B|R>> |r若为红色，你记录该角色当前的体力值\n'
-        u'|B|R>> |r若为黑色，你记录该角色当前的手牌数\n'
-        u'该角色的出牌阶段结束时，将其恢复至本回合记录时的状态。'
+        '每轮限一次。一名角色的出牌阶段开始时，你可以弃置一张基本牌或装备牌，并根据其颜色发动相应效果：\n'
+        '|B|R>> |r若为红色，你记录该角色当前的体力值\n'
+        '|B|R>> |r若为黑色，你记录该角色当前的手牌数\n'
+        '该角色的出牌阶段结束时，将其恢复至本回合记录时的状态。'
     )
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
 
 class DevourAction:
-    pass
+    def effect_string_before(act):
+        return '|G【%s】|r默默地拿出了一张%s，把|G【%s】|r的%s记在了卡牌背面。' % (
+            act.source.ui_meta.name,
+            card_desc(act.card),
+            act.target.ui_meta.name,
+            '体力值' if act.effect == 'life' else '卡牌数'
+        )
 
 
 class DevourEffect:
-    pass
+    def effect_string_before(act):
+        return '|G【%s】|r吞噬掉了刚才发生在|G【%s】|r身上的历史。' % (
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
+        )
 
 
 class DevourHandler:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'发动「噬史」')
+            return (True, '发动「噬史」')
         else:
-            return (False, u'请弃置一张牌基本牌发动「噬史」（否则不发动）')
+            return (False, '请弃置一张牌基本牌发动「噬史」（否则不发动）')
 
 
 class Teach:
     # Skill
-    name = u'授业'
+    name = '授业'
     description = (
-        u'出牌阶段限一次，你可以重铸一张牌，然后将一张牌交给一名其它角色，其选择一项：|B|R>> |r使用一张牌，|B|R>> |r重铸一张牌。'
+        '出牌阶段限一次，你可以重铸一张牌，然后将一张牌交给一名其它角色，其选择一项：|B|R>> |r使用一张牌，|B|R>> |r重铸一张牌。'
     )
 
     def clickable(g):
@@ -57,62 +68,65 @@ class Teach:
         cards = cl[0].associated_cards
 
         if not cards or len(cards) != 1:
-            return False, u'请选择一张牌（重铸）'
+            return False, '请选择一张牌（重铸）'
 
         if not tl or len(tl) != 1:
-            return False, u'请选择一个目标'
+            return False, '请选择一个目标'
 
-        return True, u'发动「授业」'
+        return True, '发动「授业」'
 
     def effect_string(act):
-        return u'授业 effect_string'
+        return '“是这样的|G【%s】|r”，|G【%s】|r说道，“两个1相加是不等于⑨的。即使是两个⑥也不行。不不，天才来算也不行。”' % (
+            act.target.ui_meta.name,
+            act.source.ui_meta.name,
+        )
 
 
 class TeachAction:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'给出这张牌')
+            return (True, '给出这张牌')
         else:
-            return (False, u'请选择你要给出的牌')
+            return (False, '请选择你要给出的牌')
 
     def target(pl):
         if not pl:
-            return (False, u'请选择1名玩家')
+            return (False, '请选择1名玩家')
 
-        return (True, u'传道授业！')
+        return (True, '传道授业！')
 
 
 class TeachTargetEffect:
     # choose_option
-    choose_option_buttons = ((u'重铸一张牌', 'reforge'), (u'使用卡牌', 'action'))
-    choose_option_prompt = u'授业：请选择你的行动'
+    choose_option_buttons = (('重铸一张牌', 'reforge'), ('使用卡牌', 'action'))
+    choose_option_prompt = '授业：请选择你的行动'
 
 
 class TeachTargetReforgeAction:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'重铸这张牌')
+            return (True, '重铸这张牌')
         else:
-            return (False, u'请选择一张牌重铸')
+            return (False, '请选择一张牌重铸')
 
     def target(pl):
         if not pl:
-            return (False, u'请选择1名玩家')
+            return (False, '请选择1名玩家')
 
-        return (True, u'传道授业！')
+        return (True, '传道授业！')
 
 
 class KeineGuard:
     # Skill
     name = u'守护'
     description = (
-        u'|B觉醒技|r，回合开始阶段，若你已受伤，且的体力值为全场最少或之一，你减少一点体力上限并获得技能|R噬史|r：\n'
-        u'每轮限一次。一名角色的出牌阶段开始时，你可以弃置一张基本牌，并根据其颜色发动相应效果：\n'
-        u'|B|R>> |r若为红色，你记录该角色当前的体力值\n'
-        u'|B|R>> |r若为黑色，你记录该角色当前的手牌数\n'
-        u'该角色的出牌阶段结束时，将其恢复至本回合记录时的状态。'
+        '|B觉醒技|r，回合开始阶段，若你已受伤，且的体力值为全场最少或之一，你减少一点体力上限并获得技能|R噬史|r：\n'
+        '每轮限一次。一名角色的出牌阶段开始时，你可以弃置一张基本牌，并根据其颜色发动相应效果：\n'
+        '|B|R>> |r若为红色，你记录该角色当前的体力值\n'
+        '|B|R>> |r若为黑色，你记录该角色当前的手牌数\n'
+        '该角色的出牌阶段结束时，将其恢复至本回合记录时的状态。'
     )
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -120,24 +134,19 @@ class KeineGuard:
 
 class KeineGuardAwake:
     def effect_string(act):
-        return u'CAVED!!!!'
+        return '直到满月，人们才回想起被|G【%s】|r的头锤 |BCAVED|r 的恐惧！！！！' % (
+            act.target.ui_meta.name
+        )
 
 
 class Keine:
     # Character
-    name        = u'上白泽慧音'
-    title       = u'人间之里的守护者'
-    designer    = u'沙包要不要'
-    illustrator = u'和茶'
-    # cv          = u'-'
+    name        = '上白泽慧音'
+    title       = '人间之里的守护者'
+    designer    = '沙包要不要'
+    illustrator = '和茶'
+    # cv          = '-'
 
-    port_image        = u'thb-portrait-keine'
-    figure_image      = u'thb-figure-keine'
-    # miss_sound_effect = u'thb-cv-keine_miss'
-
-'''
-人间之里的守护者
-4体力
-
-噬史（每轮限一次，一名角色的出牌阶段开始时，你可以弃置一张基本牌。若为红，你记录该角色当前的体力值，若为黑，你记录该角色当前的手牌数。该角色的出牌阶段结束时，将其恢复至本回合记录时的状态）。
-'''
+    port_image        = 'thb-portrait-keine'
+    figure_image      = 'thb-figure-keine'
+    # miss_sound_effect = 'thb-cv-keine_miss'

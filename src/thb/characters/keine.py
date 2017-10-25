@@ -146,13 +146,14 @@ class DevourAction(UserAction):
         self.source = source
         self.target = target
         self.card = card
+        self.effect = 'life' if card.color == Card.RED else 'cards'
 
     def apply_action(self):
         src, tgt = self.source, self.target
         c = self.card
         g = Game.getgame()
         ttags(tgt)['devour_effect'] = {
-            'effect': 'life' if c.color == Card.RED else 'cards',
+            'effect': self.effect,
             'life': tgt.life,
             'cards': len(tgt.cards) + len(tgt.showncards),
             'source': src,
