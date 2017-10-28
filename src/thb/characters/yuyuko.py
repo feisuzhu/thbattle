@@ -24,14 +24,15 @@ class GuidedDeathLifeLost(LifeLost):
 
 
 class GuidedDeathEffect(GenericAction):
+    def __init__(self, source, target_list):
+        self.source = source
+        self.target = source
+        self.target_list = target_list
+
     def apply_action(self):
         g = Game.getgame()
-        src = self.source
 
-        for p in g.players.rotate_to(src):
-            if p is src: continue
-            if p.dead: continue
-            if p.life > 1: continue
+        for p in self.target_list:
             g.process_action(GuidedDeathLifeLost(p, p))
 
         return True
@@ -48,15 +49,15 @@ class GuidedDeathHandler(EventHandler):
             if not (src.has_skill(GuidedDeath) and not src.dead):
                 return act
 
-            if all(p.life > 1 for p in g.players):
+            tl = [p for p in g.players.rotate_to(src) if p.life == 1 and p is not src]
+            if not tl:
                 return act
 
-            g.process_action(GuidedDeathEffect(src, src))
+            g.process_action(GuidedDeathEffect(src, tl))
 
         return act
 
 
-# 离魂：当一名角色进入濒死状态时，你摸1张牌，然后你可以与该角色拼点。若你赢，则将该角色的体力上限改为1。若你没赢，则将其体力值改为1。
 class SoulDrain(Skill):
     associated_action = None
     skill_category = ('character', 'passive')
@@ -92,13 +93,14 @@ class SoulDrainHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, TryRevive):
             g = Game.getgame()
+            tgt = act.target
+
             for p in g.players:
-                if p.has_skill(SoulDrain) and not p.dead:
+                if p.has_skill(SoulDrain) and not p.dead and p is not tgt:
                     break
             else:
                 return act
 
-            tgt = act.target
             g.process_action(SoulDrainEffect(p, tgt))
 
             if tgt.life > 0:
