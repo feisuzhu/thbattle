@@ -51,7 +51,7 @@ class DevourHandler:
         if act.cond(cards):
             return (True, '发动「噬史」')
         else:
-            return (False, '请弃置一张牌基本牌发动「噬史」（否则不发动）')
+            return (False, '请弃置一张牌基本牌或装备牌发动「噬史」（否则不发动）')
 
 
 class Teach:
