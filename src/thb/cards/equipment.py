@@ -222,6 +222,21 @@ class RoukankenSkill(WeaponSkill):
     range = 3
 
 
+class RoukankenMixin(object):
+    # Roukanken effect must be disabled at end of Attack.apply_action(),
+    # otherwise injected Attack actions will be affected by Roukanken too.
+    def apply_action(self):
+        tgt = self.target
+
+        try:
+            rst = super(RoukankenMixin, self).apply_action()
+        finally:
+            for s in self.roukanken_disabled_skills:
+                tgt.reenable_skill('roukanken')
+
+        return rst
+
+
 class Roukanken(GenericAction):
     def __init__(self, act):
         assert isinstance(act, basic.BaseAttack)
@@ -231,22 +246,15 @@ class Roukanken(GenericAction):
 
     def apply_action(self):
         act = self.action
-        target = act.target
-        skills = target.skills
-        for e in target.equips:
-            s = e.equipment_skill
-            if issubclass(s, ShieldSkill):
-                skills.remove(s)
+        tgt = act.target
 
-        try:
-            rst = Game.getgame().process_action(act)
-        finally:
-            for card in target.equips:
-                s = card.equipment_skill
-                if issubclass(s, ShieldSkill):
-                    target.has_skill(s) or skills.append(s)
+        skills = [s for s in tgt.skills if issubclass(s, ShieldSkill)]
+        for s in skills:
+            tgt.disable_skill(s, 'roukanken')
 
-        return rst
+        act.__class__ = classmix(RoukankenMixin, act.__class__)
+        act.roukanken_disabled_skills = skills
+        return Game.getgame().process_action(act)
 
 
 @register_eh
