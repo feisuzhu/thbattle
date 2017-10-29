@@ -184,7 +184,6 @@ class THBattle2v2Bootstrap(GenericAction):
         seed = get_seed_for(g.players)
         random.Random(seed).shuffle(chars)
 
-        # ANCHOR(test)
         testing = list(settings.TESTING_CHARACTERS)
         testing, chars = partition(lambda c: c.__name__ in testing, chars)
         chars.extend(testing)

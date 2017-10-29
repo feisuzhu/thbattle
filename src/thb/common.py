@@ -105,7 +105,6 @@ def build_choices(g, items, candidates, players, num, akaris, shared):
     from thb.item import ImperialChoice
     from thb.characters.baseclasses import Character
 
-    # ANCHOR(test)
     # ----- testing -----
     all_characters = Character.character_classes
     testing = list(all_characters[i] for i in settings.TESTING_CHARACTERS)
