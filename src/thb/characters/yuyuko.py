@@ -6,8 +6,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import DrawCards, DummyAction, FinalizeStage, GenericAction, LifeLost
-from thb.actions import MaxLifeChange, Pindian, TryRevive, UserAction, ttags
-from thb.cards import Card, Heal, Skill, t_None, t_OtherOne
+from thb.actions import MaxLifeChange, Pindian, PlayerDeath, TryRevive, UserAction, ttags
+from thb.cards import Heal, Skill, t_None, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -112,7 +112,43 @@ class SoulDrainHandler(EventHandler):
         return act
 
 
-# 反魂：出牌阶段限一次，你可以令一名已受伤角色失去一点体力，然后其回复一点体力。若在该过程中该角色死亡，改为你回复一点体力。
+class PerfectCherryBlossomHandler(EventHandler):
+    interested = ('action_apply',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
+            g = Game.getgame()
+            for pcb in reversed(g.action_stack):
+                if isinstance(pcb, PerfectCherryBlossomAction):
+                    break
+            else:
+                return act
+
+            src, tgt = pcb.source, pcb.target
+
+            if src.dead:
+                return act
+
+            g.process_action(PerfectCherryBlossomExtractAction(src, tgt))
+
+        return act
+
+
+class PerfectCherryBlossomExtractAction(UserAction):
+    def apply_action(self):
+        g = Game.getgame()
+        src = self.source
+        g.process_action(MaxLifeChange(src, src, 1))
+        g.process_action(Heal(src, src, 1))
+
+        try:
+            src.skills.remove(PerfectCherryBlossom)
+        except Exception:
+            pass
+
+        return True
+
+
 class PerfectCherryBlossomAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
@@ -120,10 +156,7 @@ class PerfectCherryBlossomAction(UserAction):
         g = Game.getgame()
         ttags(src)['perfect_cherry_blossom'] = True
         g.process_action(LifeLost(src, tgt, 1))
-        if tgt.dead:
-            if src.life < src.maxlife:
-                g.process_action(Heal(src, src, 1))
-        else:
+        if not tgt.dead:
             g.process_action(Heal(tgt, tgt, 1))
 
         return True
@@ -145,11 +178,11 @@ class PerfectCherryBlossom(Skill):
 
     def check(self):
         cl = self.associated_cards
-        return len(cl) == 1 and cl[0].color == Card.BLACK
+        return len(cl) == 0
 
 
 @register_character_to('common')
 class Yuyuko(Character):
     skills = [GuidedDeath, SoulDrain, PerfectCherryBlossom]
-    eventhandlers_required = [GuidedDeathHandler, SoulDrainHandler]
+    eventhandlers_required = [GuidedDeathHandler, SoulDrainHandler, PerfectCherryBlossomHandler]
     maxlife = 3

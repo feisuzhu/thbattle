@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.cards import Card
 from thb.ui.ui_meta.common import gen_metafunc, my_turn, passive_clickable, passive_is_action_valid
 
 
@@ -51,7 +50,10 @@ class SoulDrain:
 class PerfectCherryBlossom:
     # Skill
     name = '反魂'
-    description = '出牌阶段限一次，你可以弃置一张黑色牌，令一名已受伤角色失去一点体力，然后其回复一点体力。若在该过程中该角色死亡，改为你回复一点体力。'
+    description = (
+        '出牌阶段限一次，令一名已受伤角色失去一点体力，然后其回复一点体力。'
+        '若你以此法击坠一名角色，你增加一点体力上限并回复一点体力，然后失去此技能。'
+    )
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -72,8 +74,8 @@ class PerfectCherryBlossom:
 
         cards = skill.associated_cards
 
-        if not (len(cards) == 1 and cards[0].color == Card.BLACK):
-            return (False, '请选择一张黑色牌')
+        if len(cards) != 0:
+            return (False, '请不要选择牌')
 
         if not tl:
             return (False, '请选择『反魂』发动的目标')
@@ -85,10 +87,16 @@ class PerfectCherryBlossom:
         return (True, 'Perfect Cherry Blossom !')
 
     def effect_string(act):
-        return '幽雅地绽放吧，墨染的樱花！|G【%s】|r将|G【%s】|r献祭给了她背后的西行妖。' % (
+        return '|G【%s】|r将|G【%s】|r献祭给了西行妖。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )
+
+
+class PerfectCherryBlossomExtractAction:
+
+    def effect_string_before(act):
+        return '幽雅地绽放吧，墨染的樱花！西行妖的力量又增强了一些。'
 
 
 class GuidedDeathEffect:
