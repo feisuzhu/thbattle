@@ -225,7 +225,7 @@ class DevourHandler(EventHandler):
             return False
 
         c = cl[0]
-        return c.is_card(PhysicalCard) and {'basic', 'equipment'} & set(c.category)
+        return c.is_card(PhysicalCard) and bool({'basic', 'equipment'} & set(c.category))
 
 
 @register_character_to('common')
