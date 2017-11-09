@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
 from thb import characters
@@ -36,6 +38,18 @@ class DevourAction:
             '体力值' if act.effect == 'life' else '卡牌数'
         )
 
+    def sound_effect_before(act):
+        if act.effect == 'life':
+            return 'thb-cv-keine_devour1'
+        else:
+            return 'thb-cv-keine_devour2'
+
+        # return random.choice([
+        #     'thb-cv-keine_devour1',
+        #     'thb-cv-keine_devour2',
+        #     'thb-cv-keine_devour3',
+        # ])
+
 
 class DevourEffect:
     def effect_string_before(act):
@@ -58,7 +72,8 @@ class Teach:
     # Skill
     name = '授业'
     description = (
-        '出牌阶段限一次，你可以重铸一张牌，然后将一张牌交给一名其它角色，其选择一项：|B|R>> |r使用一张牌，|B|R>> |r重铸一张牌。'
+        '出牌阶段限一次，你可以重铸一张牌，然后将一张牌交给一名其它角色，其选择一项：'
+        '|B|R>> |r使用一张牌，|B|R>> |r重铸一张牌。'
     )
 
     def clickable(g):
@@ -80,6 +95,12 @@ class Teach:
             act.target.ui_meta.name,
             act.source.ui_meta.name,
         )
+
+    def sound_effect(act):
+        return random.choice([
+            'thb-cv-keine_teach1',
+            'thb-cv-keine_teach2',
+        ])
 
 
 class TeachAction:
@@ -138,6 +159,11 @@ class KeineGuardAwake:
             act.target.ui_meta.name
         )
 
+    def sound_effect_before(act):
+        return random.choice([
+            'thb-cv-keine_guard_awake',
+        ])
+
 
 class Keine:
     # Character
@@ -145,8 +171,8 @@ class Keine:
     title       = '人间之里的守护者'
     designer    = '沙包要不要'
     illustrator = '和茶'
-    # cv          = '-'
+    cv          = '银子'
 
     port_image        = 'thb-portrait-keine'
     figure_image      = 'thb-figure-keine'
-    # miss_sound_effect = 'thb-cv-keine_miss'
+    miss_sound_effect = 'thb-cv-keine_miss'
