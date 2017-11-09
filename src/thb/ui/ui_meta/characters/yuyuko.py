@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
+import random
+
 # -- third party --
 # -- own --
 from thb import characters
@@ -92,11 +94,17 @@ class PerfectCherryBlossom:
             act.target.ui_meta.name,
         )
 
+    def sound_effect(act):
+        return 'thb-cv-yuyuko_pcb'
+
 
 class PerfectCherryBlossomExtractAction:
 
     def effect_string_before(act):
         return '幽雅地绽放吧，墨染的樱花！西行妖的力量又增强了一些。'
+
+    def sound_effect_before(act):
+        return 'thb-cv-yuyuko_pcb_extract'
 
 
 class GuidedDeathEffect:
@@ -116,3 +124,9 @@ class SoulDrainEffect:
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )
+
+    def sound_effect_before(act):
+        return random.choice([
+            'thb-cv-yuyuko_souldrain1',
+            'thb-cv-yuyuko_souldrain2',
+        ])
