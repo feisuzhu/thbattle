@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
+import itertools
+
 # -- third party --
 # -- own --
 from thb.actions import BaseFatetell
@@ -112,19 +115,5 @@ def card_migration_instructions(g, args):
 
 
 def get_display_tags(p):
-    from thb.ui.ui_meta.tags import tags as tags_meta
-
-    rst = []
-
-    try:
-        for t in list(p.tags):
-            meta = tags_meta.get(t)
-            if meta and meta.display(p, p.tags[t]):
-                rst.append(meta.tag_anim(p))
-
-        for c in list(p.fatetell):
-            rst.append(c.ui_meta.tag_anim(c))
-    except AttributeError:
-        pass
-
-    return rst
+    from thb.ui.ui_meta.tags import get_display_tags as ui_tags
+    return [i[0] for i in ui_tags(p)]

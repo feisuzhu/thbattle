@@ -207,29 +207,11 @@ def update_tags(self, p):
 
     taganims[:] = []
 
-    from .ui_meta.tags import tags as tags_meta
+    from .ui_meta.tags import get_display_tags
 
-    # --- fatetell card
-    ftcl = getattr(p, 'fatetell', ())
-    for c in ftcl:
-        a = TagAnim(
-            L(c.ui_meta.tag_anim(c)),
-            0, 0,
-            c.ui_meta.description,
-            parent=self,
-        )
+    for t, desc in get_display_tags(p):
+        a = TagAnim(L(t), 0, 0, desc, parent=self)
         taganims.append(a)
-
-    for t in list(p.tags):
-        meta = tags_meta.get(t)
-        if meta and meta.display(p, p.tags[t]):
-            a = TagAnim(
-                L(tags_meta[t].tag_anim(p)),
-                0, 0,
-                tags_meta[t].description,
-                parent=self,
-            )
-            taganims.append(a)
 
     port.tagarrange()
 
