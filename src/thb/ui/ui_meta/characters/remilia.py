@@ -19,7 +19,7 @@ class SpearTheGungnir:
     name = u'神枪'
     description = (
         u'满足下列条件之一时，你可以令你的|G弹幕|r不能被响应：\n'
-        u'|B|R>> |r目标角色的体力值 大于 你的残机数。\n'
+        u'|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
         u'|B|R>> |r目标角色的手牌数 小于 你的手牌数。'
     )
     clickable = passive_clickable

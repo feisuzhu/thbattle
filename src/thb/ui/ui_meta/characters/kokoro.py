@@ -40,7 +40,7 @@ class KokoroKOF:
 class HopeMask:
     # Skill
     name = u'希望之面'
-    description = u'出牌阶段开始时，你可以观看牌堆顶的1+X张牌，然后展示并获得其中任意数量的同花色牌，其余的牌以任意顺序置于牌堆顶。（X为你已损失的残机数）'
+    description = u'出牌阶段开始时，你可以观看牌堆顶的1+X张牌，然后展示并获得其中任意数量的同花色牌，其余的牌以任意顺序置于牌堆顶。（X为你已损失的体力值）'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -49,7 +49,7 @@ class HopeMask:
 class HopeMaskKOF:
     # Skill
     name = u'希望之面'
-    description = u'出牌阶段开始时，你可以观看牌堆顶的X+1张牌，然后展示并获得其中一张牌，其余的牌以任意顺序置于牌堆顶。（X为你已损失的残机数）'
+    description = u'出牌阶段开始时，你可以观看牌堆顶的X+1张牌，然后展示并获得其中一张牌，其余的牌以任意顺序置于牌堆顶。（X为你已损失的体力值）'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -121,7 +121,7 @@ class BaseDarkNoh:
 
 
 class DarkNoh:
-    description = u'出牌阶段限一次，你可以将一张黑色牌置于残机数不小于你的其他角色的明牌区，然后其须弃置除获得的牌以外的手牌，直到手牌数与残机数相等。'
+    description = u'出牌阶段限一次，你可以将一张黑色牌置于体力值不小于你的其他角色的明牌区，然后其须弃置除获得的牌以外的手牌，直到手牌数与体力值相等。'
 
     def clickable(g):
         me = g.me
@@ -138,7 +138,7 @@ class DarkNoh:
 
 
 class DarkNohKOF:
-    description = u'|B限定技|r，出牌阶段，你可以将一张黑色牌置于残机数不小于你的其他角色的明牌区，然后其须弃置除获得的牌以外的手牌，直到手牌数与残机数相等。'
+    description = u'|B限定技|r，出牌阶段，你可以将一张黑色牌置于体力值不小于你的其他角色的明牌区，然后其须弃置除获得的牌以外的手牌，直到手牌数与体力值相等。'
 
     def clickable(g):
         me = g.me

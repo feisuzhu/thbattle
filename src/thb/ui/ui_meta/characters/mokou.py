@@ -50,7 +50,7 @@ class AshesHandler:
 class Reborn:
     # Skill
     name = u'重生'
-    description = u'准备阶段开始时，你可以弃置X张红色牌，然后回复1点残机。（X为你的残机数）'
+    description = u'准备阶段开始时，你可以弃置X张红色牌，然后回复1点体力。（X为你的体力值）'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

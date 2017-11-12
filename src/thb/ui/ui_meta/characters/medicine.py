@@ -28,7 +28,7 @@ class Medicine:
 class Ciguatera:
     # Skill
     name = u'神经之毒'
-    description = u'一名角色准备阶段开始时，你可以弃置一张黑色牌，令其失去1点残机并获得“喝醉”状态。'
+    description = u'一名角色准备阶段开始时，你可以弃置一张黑色牌，令其失去1点体力并获得“喝醉”状态。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

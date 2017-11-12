@@ -25,7 +25,7 @@ class SpFlandre:
 class DestructionImpulse:
     # Skill
     name = u'破坏冲动'
-    description = u'|B锁定技|r，结束阶段开始时，若你本回合没有造成过伤害，你失去1点残机并对距离最近的一名其他角色造成1点伤害。'
+    description = u'|B锁定技|r，结束阶段开始时，若你本回合没有造成过伤害，你失去1点体力并对距离最近的一名其他角色造成1点伤害。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -60,7 +60,7 @@ class DestructionImpulseHandler:
 class FourOfAKind:
     # Skill
     name = u'四重存在'
-    description = u'每当你受到一次不大于你当前残机数的伤害时，你可以减少1点残机上限并防止此伤害；你残机数为1时，你为伤害来源的卡牌造成的伤害+1。'
+    description = u'每当你受到一次不大于你当前体力值的伤害时，你可以减少1点体力上限并防止此伤害；你体力值为1时，你为伤害来源的卡牌造成的伤害+1。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

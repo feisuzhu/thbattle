@@ -43,7 +43,7 @@ class SanaeKOF:
 
 class Miracle:
     name = u'奇迹'
-    description = u'出牌阶段，你可以弃置X张牌并摸一张牌；若X为3，你可以令一名角色回复1点残机。（X为你此阶段使用奇迹的次数）'
+    description = u'出牌阶段，你可以弃置X张牌并摸一张牌；若X为3，你可以令一名角色回复1点体力。（X为你此阶段使用奇迹的次数）'
 
     def clickable(g):
         return my_turn()

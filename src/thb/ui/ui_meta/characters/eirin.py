@@ -42,7 +42,7 @@ class FirstAid:
 class Medic:
     # Skill
     name = u'医者'
-    description = u'出牌阶段限一次，你可以弃置一张手牌令一名已受伤的角色回复1点残机。'
+    description = u'出牌阶段限一次，你可以弃置一张手牌令一名已受伤的角色回复1点体力。'
 
     def clickable(game):
         me = game.me

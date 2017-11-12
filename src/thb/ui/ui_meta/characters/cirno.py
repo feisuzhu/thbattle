@@ -15,7 +15,7 @@ __metaclass__ = gen_metafunc(characters.cirno)
 class PerfectFreeze:
     # Skill
     name = u'完美冻结'
-    description = u'每当你使用|G弹幕|r或|G弹幕战|r对其他角色造成伤害时，你可以防止此次伤害，并令该角色弃置一张牌，若其弃置的不为装备区的牌，其失去1点残机。'
+    description = u'每当你使用|G弹幕|r或|G弹幕战|r对其他角色造成伤害时，你可以防止此次伤害，并令该角色弃置一张牌，若其弃置的不为装备区的牌，其失去1点体力。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

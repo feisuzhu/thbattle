@@ -28,7 +28,7 @@ class Kaguya:
 class Dilemma:
     # Skill
     name = u'难题'
-    description = u'每当一名角色令你回复1点残机后，你可以令其摸一张牌；每当你受到一次伤害后，你可以令伤害来源选择一项：|B|R>> |r交给你一张方块牌，|B|R>> |r失去1点残机。'
+    description = u'每当一名角色令你回复1点体力后，你可以令其摸一张牌；每当你受到一次伤害后，你可以令伤害来源选择一项：|B|R>> |r交给你一张方块牌，|B|R>> |r失去1点体力。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
