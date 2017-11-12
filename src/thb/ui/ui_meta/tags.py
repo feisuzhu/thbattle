@@ -190,4 +190,13 @@ class scarlet_mist:
     def description(p, v):
         return '红雾：增益效果'
 
+
+class keine_devour:
+    def anim(p, v):
+        if v and p is G().current_player:
+            return 'thb-tag-keine_devour'
+
+    def description(p, v):
+        return '这位玩家的历史将会被慧音吞噬'
+
 # -----END TAGS UI META-----

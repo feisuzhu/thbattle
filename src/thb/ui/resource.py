@@ -31,6 +31,7 @@ inventory.extend([(re.compile('^%s$' % pat), ldr) for pat, ldr in (
     ('thb-tag-sealarray',          ['anim', [83] * 36,  True]),
     ('thb-tag-wine',               ['anim', [150] * 3,  True]),
     ('thb-tag-lunadial',           ['anim', [200] * 10, True]),
+    ('thb-tag-keine_devour',       ['anim', [150] * 13, True]),
     ('thb-tag-books',              ['img_grid', 1, 7]),
     ('thb-tag-[a-z_]+',            ['img']),
 

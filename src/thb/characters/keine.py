@@ -152,7 +152,7 @@ class DevourAction(UserAction):
         src, tgt = self.source, self.target
         c = self.card
         g = Game.getgame()
-        ttags(tgt)['devour_effect'] = {
+        ttags(tgt)['keine_devour'] = {
             'effect': self.effect,
             'life': tgt.life,
             'cards': len(tgt.cards) + len(tgt.showncards),
@@ -213,10 +213,13 @@ class DevourHandler(EventHandler):
 
         elif evt_type == 'action_after' and isinstance(act, ActionStage):
             tgt = act.target
-            t = ttags(tgt)['devour_effect']
-            if t:
-                g = Game.getgame()
-                g.process_action(DevourEffect(t['source'], tgt, t))
+            t = ttags(tgt)['keine_devour']
+
+            if not t:
+                return act
+
+            g = Game.getgame()
+            g.process_action(DevourEffect(t['source'], tgt, t))
 
         return act
 
