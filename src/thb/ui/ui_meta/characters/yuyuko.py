@@ -24,7 +24,7 @@ class Yuyuko:
 
     port_image        = 'thb-portrait-yuyuko'
     figure_image      = 'thb-figure-yuyuko'
-    # miss_sound_effect = 'thb-cv-youmu_miss'
+    miss_sound_effect = 'thb-cv-yuyuko_miss'
 
 
 class GuidedDeath:
