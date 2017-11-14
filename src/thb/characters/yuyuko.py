@@ -181,7 +181,7 @@ class PerfectCherryBlossom(Skill):
         return len(cl) == 0
 
 
-@register_character_to('common')
+@register_character_to('common', '-kof')
 class Yuyuko(Character):
     skills = [GuidedDeath, SoulDrain, PerfectCherryBlossom]
     eventhandlers_required = [GuidedDeathHandler, SoulDrainHandler, PerfectCherryBlossomHandler]

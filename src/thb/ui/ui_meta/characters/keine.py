@@ -176,3 +176,5 @@ class Keine:
     port_image        = 'thb-portrait-keine'
     figure_image      = 'thb-figure-keine'
     miss_sound_effect = 'thb-cv-keine_miss'
+
+    notes = u'|RKOF不平衡角色|r'
