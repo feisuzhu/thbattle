@@ -231,7 +231,7 @@ class DevourHandler(EventHandler):
         return c.is_card(PhysicalCard) and bool({'basic', 'equipment'} & set(c.category))
 
 
-# @register_character_to('common', '-kof')
+@register_character_to('common', '-kof')
 class Keine(Character):
     skills = [Teach, KeineGuard]
     eventhandlers_required = [KeineGuardHandler, DevourHandler]
