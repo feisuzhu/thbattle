@@ -93,9 +93,9 @@ class UnityUIEventHook(EventHandler):
         self.warpgate.events.append(('game_event', self.game, 'game_live', None))
 
 
-from gevent.resolver_ares import Resolver
-hub = gevent.hub.get_hub()
-hub.resolver = Resolver(hub=hub)
+# from gevent.resolver_ares import Resolver
+# hub = gevent.hub.get_hub()
+# hub.resolver = Resolver(hub=hub)
 
 import logging
 import utils.logging
