@@ -378,6 +378,9 @@ class ReplayButton(ImageButton):
             if not Executive.is_version_match(rep.client_version):
                 if confirm(u'你的游戏没有切换到相应的版本上，要切换吗？', u'Replay', ConfirmBox.Presets.OKCancel):
                     Executive.switch_version(rep.client_version)
+                    import options as opmodule
+                    if opmodule.mutex:
+                        opmodule.mutex.release()
                     os.execv(sys.executable, [sys.executable] + sys.argv)
                     assert False, 'WTF'
                 else:
@@ -473,6 +476,9 @@ class ServerSelectScreen(Screen):
                             Executive.switch_version(server['branch'])
                             import os
                             import sys
+                            import options as opmodule
+                            if opmodule.mutex:
+                                opmodule.mutex.release()
                             os.execv(sys.executable, [sys.executable] + sys.argv)
                             assert False, 'WTF'
 

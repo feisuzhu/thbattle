@@ -31,6 +31,7 @@ def start_client():
     parser.add_argument('--color-log', action='store_true')
     parser.add_argument('--zoom', type=float, default=1.0)
     parser.add_argument('--show-hidden-modes', action='store_true')
+    parser.add_argument('--multiple-instances', action='store_true')
 
     options = parser.parse_args()
 
@@ -47,6 +48,24 @@ def start_client():
         autoupdate.Autoupdate = autoupdate.DummyAutoupdate
 
     log = logging.getLogger('start_client')
+
+    if sys.platform.startswith('win32') and not options.multiple_instances:
+        from utils.mutex import NamedMutex
+        thb_mutex = NamedMutex('thbattle-mutex')
+        if not thb_mutex.acquire(0):
+            log.error('Multiple instances detected, exiting')
+            ctypes.windll.user32.MessageBoxW(
+                0,
+                u'请遵守社区规范，素质游戏，不要开启多个游戏实例！',
+                u'东方符斗祭',
+                16,
+            )
+            sys.exit(0)
+
+        opmodule.mutex = thb_mutex
+    else:
+        opmodule.mutex = None
+
 
     from gevent import monkey
     monkey.patch_socket()
