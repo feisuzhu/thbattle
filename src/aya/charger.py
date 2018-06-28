@@ -27,16 +27,13 @@ interconnect = None
 history = defaultdict(lambda: (0, 5))
 
 privileged = (
-    109,   # 红领京巴
     3564,  # 镜
     6584,  # 唯夜
     351,   # 西瓜
     162,   # 灰
     103,   # 八咫乌鸦
     # 2,     # Proton
-    2318,  # 镜此方
     6573,  # 绯月
-
 )
 
 

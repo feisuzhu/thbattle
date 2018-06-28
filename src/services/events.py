@@ -6,14 +6,10 @@ monkey.patch_all()
 
 # -- stdlib --
 from collections import deque
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.Utils import formatdate
 from urllib import unquote
 import argparse
 import json
 import logging
-import smtplib
 import sys
 import time
 
@@ -78,7 +74,7 @@ def onlineusers():
 def events():
     try:
         last = float(request.get_cookie('interconnect_last_event'))
-    except:
+    except Exception:
         last = time.time()
 
     evt = Event()
@@ -135,21 +131,6 @@ def speaker():
     return 'true'
 
 
-def send_mail(send_from, send_to, subject, text, files=[], server="localhost"):
-    msg = MIMEMultipart('alternative')
-    msg.set_charset('utf-8')
-    msg['From'] = send_from
-    msg['To'] = send_to
-    msg['Date'] = formatdate(localtime=True)
-    msg['Subject'] = subject
-    part = MIMEText(text)
-    part.set_charset('utf-8')
-    msg.attach(part)
-    smtp = smtplib.SMTP(server)
-    smtp.sendmail(send_from, send_to, msg.as_string())
-    smtp.close()
-
-
 def main():
     global options, interconnect
     parser = argparse.ArgumentParser(sys.argv[0])
@@ -171,6 +152,7 @@ def main():
     interconnect = Interconnect.spawn('forum', options.redis_url)
 
     run(server='gevent', host=options.host, port=options.port)
+
 
 if __name__ == '__main__':
     main()
