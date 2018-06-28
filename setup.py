@@ -15,7 +15,6 @@ install_requires = [
     'msgpack-python',
     'pygit2>=0.21.3',
     'redis',
-    'python-spidermonkey',
     'requests',
     'unidecode',
     'upyun',
@@ -24,11 +23,7 @@ install_requires = [
 
 entry_points = {
     'console_scripts': [
-        'aya = aya.aya:main',
-        'ayacharger = aya.charger:main',
-        'forum_noti = aya.forum_noti:forum_noti',
         'services_events = services.events:main',
-        'services_member = services.member:main',
         'start_client = start_client:start_client',
         'start_server = start_server:start_server',
     ]
