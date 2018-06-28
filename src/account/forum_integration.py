@@ -12,10 +12,8 @@ import time
 # -- own --
 import gevent
 from account.base import AccountBase, server_side_only
-from utils import password_hash
 from db import transactional, current_session
 from utils import log_failure
-from db import transactional
 
 
 # -- code --
@@ -128,7 +126,7 @@ class Account(AccountBase):
         dz_member = user.dz_member
         user.id       = dz_member.uid
         user.username = dz_member.username
-        user.password = password_hash(password)
+        user.password = 'obsoleted'
         user.email    = dz_member.email
         user.title    = dz_member.member_field.customstatus
         user.status   = dz_member.status

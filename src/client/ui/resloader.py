@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from cStringIO import StringIO
-import hashlib
 import os
 
 # -- third party --
@@ -12,7 +10,6 @@ import pyglet
 
 # -- own --
 from settings import BASEDIR
-from utils import aes_decrypt
 
 # -- code --
 loader    = Loader(os.path.join(BASEDIR, 'resource'))
@@ -116,48 +113,6 @@ def anim(path, durlist, loop=False, atlas='__default__'):
 @resloader('.png', True, 'lazytexture')
 def texture(path):
     return loader.texture(path)
-
-
-class EncryptedTexture(object):
-    def __init__(self, path):
-        self.path = path
-        self.reference = None
-        self.decrypted = False
-        hint = loader.file(path + '.hint', 'rb').read()
-        self.hint = hint
-
-    def decrypt(self, passphrase):
-        if self.reference:
-            return False
-
-        hint = self.hint.decode('base64')
-        key = hashlib.sha256(passphrase).digest()
-        hint2 = hashlib.sha256(key).digest()
-        if hint != hint2:
-            return False
-
-        f = loader.file(self.path + '_encrypted.bin', 'rb')
-        dec = StringIO()
-        data = aes_decrypt(f.read(), key)
-        assert data.startswith('\x89PNG')
-        dec.write(data)
-        dec.seek(0)
-
-        tex = pyglet.image.load('foo.png', file=dec)
-        self.reference = tex
-        self.decrypted = True
-        return True
-
-    def get(self):
-        if not self.reference:
-            raise Exception('Not decrypted!')
-
-        return self.reference
-
-
-@resloader('')
-def encrypted_texture(path):
-    return EncryptedTexture(path)
 
 
 @resloader('.ogg', True)

@@ -881,16 +881,8 @@ class GameCharacterPortrait(Frame):
         try:
             meta = char.ui_meta
             figure_image = L(meta.figure_image)
-        except:
+        except Exception:
             return self.balloon.balloon_show()
-
-        try:
-            figure_image_alter = L(meta.figure_image_alter)
-            if figure_image_alter.decrypted:
-                figure_image = figure_image_alter.reference
-
-        except:
-            pass
 
         return _CharacterFigure(
             figure_image,

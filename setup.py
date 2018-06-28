@@ -4,7 +4,6 @@
 from setuptools import setup, find_packages
 
 install_requires = [
-    'M2Crypto',
     'MySQL-python',
     'Pillow',
     'PyMySQL',

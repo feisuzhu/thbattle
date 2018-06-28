@@ -9,7 +9,6 @@ import uuid
 
 # -- third party --
 # -- own --
-from utils.crypto import simple_encrypt
 from utils.misc import ObservableEvent
 
 
@@ -57,7 +56,7 @@ class UserSettings(dict):
             with open(conf, 'r') as f:
                 self.update(json.loads(f.read()))
 
-        except:
+        except Exception:
             log.exception('Error loading conf')
 
     def _get_conf_name(self):
@@ -67,7 +66,7 @@ class UserSettings(dict):
 UserSettings = UserSettings()
 
 UserSettings.add_setting('last_id', u'无名の罪袋')
-UserSettings.add_setting('saved_passwd', simple_encrypt(''))
+UserSettings.add_setting('saved_passwd', '')
 UserSettings.add_setting('notify_level', 1)
 UserSettings.add_setting('sound_notify', True)
 UserSettings.add_setting('bgm_volume', 1.0)

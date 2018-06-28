@@ -136,7 +136,6 @@ class THBattleUI(Control):
 
         Control.__init__(self, can_focus=True, *a, **k)
 
-        self.keystrokes = '\x00'
         self.char_portraits = None
 
         self.deck_indicator = DeckIndicator(
@@ -338,24 +337,6 @@ class THBattleUI(Control):
 
     def more_on_message(self, _type, args):
         pass
-
-    def on_text(self, text):
-        # The easter egg
-        ks = self.keystrokes
-        ks = (ks + text)[:40]
-        self.keystrokes = ks
-
-        from thb.characters.baseclasses import Character
-
-        for c in Character.character_classes.itervalues():
-            try:
-                alter = c.ui_meta.figure_image_alter
-            except:
-                continue
-
-            for i in xrange(len(ks)):
-                if L(alter).decrypt(ks[-i:]):
-                    SoundManager.play('c-sound-input')
 
     def draw(self):
         self.draw_subcontrols()

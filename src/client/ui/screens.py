@@ -33,7 +33,6 @@ from options import options
 from settings import ServerNames
 from user_settings import UserSettings
 from utils import inpoly, openurl, rect_to_dict as r2d, textsnap
-from utils.crypto import simple_decrypt, simple_encrypt
 from utils.filedlg import get_open_file_name, get_save_file_name
 from utils.misc import BatchList
 from utils.stats import stats
@@ -565,7 +564,7 @@ class LoginScreen(Screen):
             )
             self.txt_pwd = PasswordTextBox(
                 parent=self, x=438-350, y=246-165, width=220, height=20,
-                text=simple_decrypt(UserSettings.saved_passwd),
+                text=UserSettings.saved_passwd.decode('base64'),
             )
             self.chk_savepwd = CheckBox(
                 parent=self, x=438-350, y=56, caption=u'记住密码',
@@ -638,9 +637,9 @@ class LoginScreen(Screen):
         if _type == 'auth_success':
             dlg = self.dialog
             UserSettings.last_id = dlg.txt_username.text
-            UserSettings.saved_passwd = simple_encrypt(
+            UserSettings.saved_passwd = (
                 dlg.txt_pwd.text if dlg.chk_savepwd.value else ''
-            )
+            ).encode('base64')
             LobbyScreen().switch()
             stats({'event': 'login'})
 

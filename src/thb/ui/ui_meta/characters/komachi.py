@@ -20,10 +20,9 @@ class Komachi:
     illustrator = u'渚FUN'
     cv          = u'VV'
 
-    port_image         = u'thb-portrait-komachi'
-    figure_image       = u'thb-figure-komachi'
-    figure_image_alter = 'thb-figure-komachi_alter'
-    miss_sound_effect  = u'thb-cv-komachi_miss'
+    port_image        = u'thb-portrait-komachi'
+    figure_image      = u'thb-figure-komachi'
+    miss_sound_effect = u'thb-cv-komachi_miss'
 
 
 class Riverside:
