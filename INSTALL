@@ -1,9 +1,4 @@
 For Linux users:
 
-$ # Download and install libgit2 (major.minor version should match pygit2 version)
-$ sudo apt-get install zlib1g-dev libopenal1 libjpeg-dev
-$ sudo pip install zc.buildout
-$ buildout -vv
-$ bin/start_client
-
-Mac OS X not supported due to pyglet issues.
+$ pipenv install
+$ pipenv run python src/start_client.py --no-update
