@@ -32,7 +32,7 @@ else:
 
 HALL_NOTICE_URL = 'http://www.thbattle.net/notice.txt'
 
-ACCOUNT_MODULE = 'freeplay' if options.freeplay else 'forum_integration'
+ACCOUNT_MODULE = '.freeplay' if options.freeplay else '.forum_integration'
 ACCOUNT_FORUMURL = 'http://www.thbattle.net'
 
 IS_PROTON = hasattr(os, 'uname') and ''.join(os.uname()).startswith('LinuxProton')

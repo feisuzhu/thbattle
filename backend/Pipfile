@@ -1,34 +1,29 @@
 [[source]]
-
-url = "https://pypi.python.org/simple"
+url = "https://mirrors.aliyun.com/pypi/simple/"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
-pillow = "*"
-colorlog = "*"
-gevent = "*"
-msgpack-python = "*"
-"pygit2" = "==0.26.0"
 redis = "*"
 requests = "*"
-unidecode = "*"
 raven = "*"
 meinheld = "*"
 gunicorn = "*"
 django = "*"
 graphene = "*"
+django-annoying = "*"
+pillow = "*"
 graphene-django = "*"
-
+django-redis-cache = "*"
+django-redis-sessions = "*"
+cryptography = "*"
+itsdangerous = "*"
+msgpack = "*"
+pymysql = "*"
 
 [dev-packages]
-
 ipython = "*"
 nose = "*"
 
-
 [requires]
-
-python_version = "2.7"
+python_version = "3.6"

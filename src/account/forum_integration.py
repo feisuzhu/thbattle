@@ -84,7 +84,7 @@ def _discuz_authcode(string, operation, key, expiry=0):
         else:
             return keyc + result.encode('base64').replace('=', '')
 
-    except:
+    except Exception:
         return ''
 
 
