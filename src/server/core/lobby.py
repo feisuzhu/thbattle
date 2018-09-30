@@ -529,10 +529,14 @@ class Lobby(object):
         @gevent.spawn
         @log_failure(log)
         def worker():
-            manager = GameManager.get_by_user(user)
-
             if msg.startswith('!!') and (options.freeplay or acc.userid in self.admins):
                 self.handle_admin_cmd(user, msg[2:])
+                return
+
+            manager = GameManager.get_by_user(user)
+
+            if manager.muted:
+                user.write(['system_msg', [None, u'当前房间被管理员禁言']])
                 return
 
             packed = (acc.username, msg)
@@ -610,6 +614,11 @@ class Lobby(object):
             from server.item import backpack
             uid, sku = args
             backpack.add(int(uid), sku)
+
+        elif cmd == 'mute':
+            manager = GameManager.get_by_user(user)
+            if manager:
+                manager.muted = not manager.muted
         else:
             return
 

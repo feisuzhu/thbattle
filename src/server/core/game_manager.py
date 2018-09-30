@@ -60,6 +60,7 @@ class GameManager(object):
         self.match_users  = []
         self.invite_only  = invite_only
         self.invite_list  = set()
+        self.muted        = False
 
         g.gameid    = gid
         g._manager  = self
