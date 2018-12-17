@@ -1,0 +1,22 @@
+[package]
+name = "aya"
+version = "0.1.0"
+authors = ["Proton <feisuzhu@163.com>"]
+edition = "2018"
+
+[dependencies]
+actix = "0.7.8"
+actix_derive = "0.3.2"
+env_logger = "0.6.0"
+log = "0.4.6"
+chrono = "0.4.6"
+serde = "1.0.81"
+serde_derive = "1.0.81"
+serde_json = "1.0.33"
+rmp-serde = "0.13.7"
+actix-web = "0.7.15"
+chashmap = "2.2.0"
+lazy_static = "1.2.0"
+
+[patch.crates-io]
+actix = {git = 'https://github.com/feisuzhu/actix', branch = 'master' }
