@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import DrawCards, DropCards, FatetellStage, LifeLost, PlayerTurn, UserAction
 from thb.actions import user_choose_cards
-from thb.cards import Card, Skill, t_None
+from thb.cards.base import Card, Skill
 from thb.cards.basic import Heal
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.classes import t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Ashes(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class Reborn(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -32,7 +33,7 @@ class AshesAction(UserAction):
 
     def apply_action(self):
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
         g.process_action(LifeLost(tgt, tgt))
         g.process_action(DrawCards(tgt))
         return True
@@ -44,14 +45,14 @@ class RebornAction(UserAction):
 
     def apply_action(self):
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
         g.process_action(Heal(tgt, tgt))
         return True
 
 
-class AshesHandler(EventHandler):
-    interested = ('action_after',)
-    execute_before = ('CiguateraHandler', )
+class AshesHandler(THBEventHandler):
+    interested = ['action_after']
+    execute_before = ['CiguateraHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):
@@ -60,14 +61,14 @@ class AshesHandler(EventHandler):
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            Game.getgame().process_action(AshesAction(tgt))
+            self.game.process_action(AshesAction(tgt))
 
         return act
 
 
-class RebornHandler(EventHandler):
-    interested = ('action_before',)
-    execute_before = ('CiguateraHandler', )
+class RebornHandler(THBEventHandler):
+    interested = ['action_before']
+    execute_before = ['CiguateraHandler']
     card_usage = 'drop'
 
     def handle(self, evt_type, act):
@@ -76,7 +77,7 @@ class RebornHandler(EventHandler):
             if not tgt.has_skill(Reborn): return act
             cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
             if cards:
-                g = Game.getgame()
+                g = self.game
                 g.process_action(DropCards(tgt, tgt, cards))
                 g.process_action(RebornAction(tgt))
 
@@ -99,5 +100,5 @@ class RebornHandler(EventHandler):
 @register_character_to('common')
 class Mokou(Character):
     skills = [Reborn, Ashes]
-    eventhandlers_required = [AshesHandler, RebornHandler]
+    eventhandlers = [AshesHandler, RebornHandler]
     maxlife = 4

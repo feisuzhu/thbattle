@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+import logging
 
 # -- third party --
+# -- own --, PhysicalCard
+from thb.actions import MaxLifeChange, PlayerRevive, UserAction
+from thb.cards.base import Card, DummyCard, Skill, TreatAs, t_One, PhysicalCard
+from thb.characters.base import Character
+from thb.mode import THBEventHandler
 
-# -- own --
-from .actions import MaxLifeChange, PlayerRevive, UserAction
-from .characters.baseclasses import Character
-from .cards import Card, TreatAs, Skill, DummyCard, t_One
-from game.autoenv import Game, EventHandler
-import logging
 
 # -- code --
 log = logging.getLogger('THBattleDebug')
 
 
 class DebugUseCard(TreatAs, Skill):
-    skill_category = ('debug', 'active')
+    skill_category = ['debug', 'active']
 
     @property
     def treat_as(self):
@@ -35,12 +35,12 @@ class DebugUseCard(TreatAs, Skill):
 
     def get_card_cls(self):
         params = getattr(self, 'action_params', {})
-        print params
-        return Card.card_classes.get(params.get('debug_card'))
+        print(params)
+        return PhysicalCard.classes.get(params.get('debug_card'))
 
 
 class DebugDecMaxLife(Skill):
-    skill_category = ('debug', 'active')
+    skill_category = ['debug', 'active']
 
     class associated_action(MaxLifeChange, UserAction):
         def __init__(self, source, target):
@@ -52,8 +52,8 @@ class DebugDecMaxLife(Skill):
         return not self.associated_cards
 
 
-class DebugHandler(EventHandler):
-    interested = ('action_after', 'game_begin', 'switch_character')
+class DebugHandler(THBEventHandler):
+    interested = ['action_after', 'game_begin', 'switch_character']
     '''
     Add this handler to game_eh to active debug skills
     '''
@@ -71,7 +71,7 @@ class DebugHandler(EventHandler):
         return arg
 
     def add(self):
-        g = Game.getgame()
+        g = self.game
         for p in g.players:
             if not isinstance(p, Character): continue
             if not p.has_skill(DebugUseCard):

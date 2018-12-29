@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import ActionStage, ForEach, GenericAction, LaunchCard, LifeLost, PlayerDeath
 from thb.actions import UserAction
-from thb.cards import AttackCard, AttackCardVitalityHandler, Skill, t_None, t_Self
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import AttackCard, AttackCardVitalityHandler, t_None, t_Self
+from thb.characters.base import Character, register_character_to
 from thb.common import CharChoice
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 from thb.thbkof import KOFCharacterSwitchHandler
 
 
@@ -20,16 +21,16 @@ class HeterodoxySkipAction(GenericAction):
         return True
 
 
-class HeterodoxyHandler(EventHandler):
-    interested = ('action_before',)
-    execute_before = ('MaidenCostumeHandler', )
+class HeterodoxyHandler(THBEventHandler):
+    interested = ['action_before']
+    execute_before = ['MaidenCostumeHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and ForEach.is_group_effect(act):
             tgt = act.target
             if not tgt.has_skill(Heterodoxy): return act
 
-            g = Game.getgame()
+            g = self.game
             for a in reversed(g.action_stack):
                 if isinstance(a, HeterodoxyAction):
                     break
@@ -47,15 +48,13 @@ class HeterodoxyHandler(EventHandler):
 
 class HeterodoxyAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         card = self.associated_card.associated_cards[0]
         src = self.source
         victim = self.target
         tgts = self.target_list[1:]
 
         g.players.reveal(card)
-        # card.move_to(victim.cards)  # HACK: Silently, no events
-        # migrate_cards([self.associated_card], victim.cards, unwrap=migrate_cards.SINGLE_LAYER)
 
         if card.is_card(AttackCard):
             src.tags['vitality'] -= 1
@@ -63,7 +62,7 @@ class HeterodoxyAction(UserAction):
         # XXX: Use card owned by other
         lc = LaunchCard(victim, tgts, card)
 
-        g = Game.getgame()
+        g = self.game
         g.process_action(lc)
 
         return True
@@ -87,7 +86,7 @@ class HeterodoxyAction(UserAction):
 class Heterodoxy(Skill):
     no_drop = True
     associated_action = HeterodoxyAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     usage = 'handover'
 
     def check(self):
@@ -119,7 +118,7 @@ class Heterodoxy(Skill):
 
 class Summon(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'once')
+    skill_category = ['character', 'passive', 'once']
     target = t_None
 
 
@@ -147,12 +146,12 @@ class SummonAction(UserAction):
         return True
 
 
-class SummonHandler(EventHandler):
-    interested = ('action_before', )
+class SummonHandler(THBEventHandler):
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, PlayerDeath):
-            g = Game.getgame()
+            g = self.game
             p = getattr(g, 'current_player', None)
 
             if not p: return act
@@ -170,13 +169,15 @@ class SummonKOFAction(UserAction):
     def apply_action(self):
         # WHOLE BUNCH OF MEGA HACK
         old = self.target
-        g = Game.getgame()
+        g = self.game
         old_life, maxlife_delta = old.life, old.maxlife - old.__class__.maxlife
 
-        ActionStage.force_break()
+        ActionStage.force_break(g)
 
         assert g.current_player is old
-        tgt = KOFCharacterSwitchHandler.switch(old)
+
+        handler = g.dispatcher.find_by_cls(KOFCharacterSwitchHandler)
+        tgt = handler.switch(old)
         g.current_player = tgt
 
         tgt.life = old_life
@@ -200,7 +201,7 @@ class SummonKOFAction(UserAction):
                 act.target = tgt
 
             if isinstance(act, LaunchCard):
-                act.target_list[:] = [
+                act.target_list = [
                     tgt if p is old else p
                     for p in act.target_list
                 ]
@@ -226,12 +227,12 @@ class SummonKOFCollect(UserAction):
         return True
 
 
-class SummonKOFHandler(EventHandler):
-    interested = ('action_apply',)
+class SummonKOFHandler(THBEventHandler):
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
-            g = Game.getgame()
+            g = self.game
             src, tgt = act.source, act.target
             p = g.get_opponent(tgt)
 
@@ -245,7 +246,7 @@ class SummonKOFHandler(EventHandler):
 
 class SummonKOF(Skill):
     associated_action = SummonKOFAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_Self
 
     def check(self):
@@ -256,12 +257,12 @@ class SummonKOF(Skill):
 @register_character_to('common', '-kof')
 class Seiga(Character):
     skills = [Heterodoxy, Summon]
-    eventhandlers_required = [HeterodoxyHandler, SummonHandler]
+    eventhandlers = [HeterodoxyHandler, SummonHandler]
     maxlife = 4
 
 
 @register_character_to('kof')
 class SeigaKOF(Character):
     skills = [SummonKOF]
-    eventhandlers_required = [SummonKOFHandler]
+    eventhandlers = [SummonKOFHandler]
     maxlife = 4

@@ -1,33 +1,35 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import ActionShootdown, EventHandler, Game, user_input
+from game.autoenv import user_input
+from game.base import ActionShootdown
 from thb.actions import ActionStageLaunchCard, Damage, LaunchCard, PlayerTurn, UserAction
-from thb.cards import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, Skill, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Lunatic(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class Discarder(Skill):
     associated_action = None
     distance = 1
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class MahjongDrug(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -38,8 +40,8 @@ class LunaticAction(UserAction):
         return True
 
 
-class LunaticHandler(EventHandler):
-    interested = ('action_after',)
+class LunaticHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -50,7 +52,7 @@ class LunaticHandler(EventHandler):
             tgt = act.target
             if tgt.dead or tgt.has_skill(Discarder): return act
 
-            g = Game.getgame()
+            g = self.game
             for lc in reversed(g.action_stack):
                 if isinstance(lc, LaunchCard):
                     break
@@ -75,14 +77,14 @@ class DiscarderDistanceLimit(ActionShootdown):
     pass
 
 
-class DiscarderHandler(EventHandler):
-    interested = ('action_after', 'action_shootdown')
+class DiscarderHandler(THBEventHandler):
+    interested = ['action_after', 'action_shootdown']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
             src = act.source
             if not src.has_skill(Discarder): return act
-            g = Game.getgame()
+            g = self.game
             if src is not g.current_player: return act
 
             self.card = c = act.card
@@ -115,8 +117,8 @@ class MahjongDrugAction(UserAction):
         return not self.target.dead
 
 
-class MahjongDrugHandler(EventHandler):
-    interested = ('action_after',)
+class MahjongDrugHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Heal):
@@ -126,7 +128,7 @@ class MahjongDrugHandler(EventHandler):
             if not card or not card.is_card(HealCard): return act
 
             if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                Game.getgame().process_action(MahjongDrugAction(tgt, tgt))
+                self.game.process_action(MahjongDrugAction(tgt, tgt))
 
         return act
 
@@ -134,12 +136,12 @@ class MahjongDrugHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Reisen(Character):
     skills = [Lunatic, MahjongDrug]
-    eventhandlers_required = [DiscarderHandler, LunaticHandler, MahjongDrugHandler]
+    eventhandlers = [DiscarderHandler, LunaticHandler, MahjongDrugHandler]
     maxlife = 4
 
 
 @register_character_to('kof')
 class ReisenKOF(Character):
     skills = [Lunatic]
-    eventhandlers_required = [DiscarderHandler, LunaticHandler]
+    eventhandlers = [DiscarderHandler, LunaticHandler]
     maxlife = 4

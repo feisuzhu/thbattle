@@ -3,13 +3,15 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import ActionShootdown, EventHandler, Game, InputTransaction, user_input
-from thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCardStage
-from thb.actions import FinalizeStage, GenericAction, LaunchCard, PlayerTurn, ShowCards
-from thb.actions import UserAction, ask_for_action
-from thb.cards import Card, PhysicalCard, Skill, VirtualCard, t_None, t_Self
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from game.base import ActionShootdown, InputTransaction
+from thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCardStage, FinalizeStage
+from thb.actions import GenericAction, LaunchCard, PlayerTurn, ShowCards, UserAction, ask_for_action
+from thb.cards.base import Card, Skill, VirtualCard
+from thb.cards.classes import PhysicalCard, t_None, t_Self
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -18,10 +20,10 @@ class WindWalkLaunch(ActionStageLaunchCard):
 
 
 class WindWalkSkipAction(GenericAction):
-    def apply_action(self):
-        tgt = self.target
-        ActionStage.force_break()
-        turn = PlayerTurn.get_current(tgt)
+    def apply_action(self) -> bool:
+        g = self.game
+        ActionStage.force_break(g)
+        turn = PlayerTurn.get_current(g)
         try:
             turn.pending_stages.remove(DropCardStage)
             turn.pending_stages.remove(FinalizeStage)
@@ -35,7 +37,7 @@ class WindWalkAction(UserAction):
     card_usage = 'launch'
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         tgt = self.target
 
         while True:
@@ -53,6 +55,9 @@ class WindWalkAction(UserAction):
             if p is not tgt:
                 g.process_action(WindWalkSkipAction(tgt, tgt))
                 break
+
+            assert p
+            assert rst
 
             cl, tl = rst
             g.players.reveal(cl)
@@ -80,8 +85,8 @@ class WindWalkTargetLimit(ActionShootdown):
     pass
 
 
-class WindWalkHandler(EventHandler):
-    interested = ('action_apply', 'action_shootdown')
+class WindWalkHandler(THBEventHandler):
+    interested = ['action_apply', 'action_shootdown']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, LaunchCard):
@@ -102,7 +107,7 @@ class WindWalkHandler(EventHandler):
             src.tags['windwalk_last_targets'] = set()
 
         elif evt_type == 'action_shootdown' and isinstance(act, LaunchCard):
-            g = Game.getgame()
+            g = self.game
             if not isinstance(g.action_stack[-1], WindWalkAction):
                 return act
 
@@ -119,7 +124,7 @@ class WindWalkHandler(EventHandler):
 
 class WindWalk(Skill):
     associated_action = WindWalkAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_Self
     usage = 'drop'
 
@@ -136,7 +141,7 @@ class WindWalk(Skill):
 
 class Dominance(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -144,8 +149,8 @@ class DominanceAction(PlayerTurn):
     pass
 
 
-class DominanceHandler(EventHandler):
-    interested = ('action_after', 'action_apply')
+class DominanceHandler(THBEventHandler):
+    interested = ['action_after', 'action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
@@ -187,7 +192,7 @@ class DominanceHandler(EventHandler):
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            Game.getgame().process_action(DominanceAction(tgt))
+            self.game.process_action(DominanceAction(tgt))
 
         return act
 
@@ -195,5 +200,5 @@ class DominanceHandler(EventHandler):
 @register_character_to('imperial')
 class SpAya(Character):
     skills = [WindWalk, Dominance]
-    eventhandlers_required = [WindWalkHandler, DominanceHandler]
+    eventhandlers = [WindWalkHandler, DominanceHandler]
     maxlife = 4

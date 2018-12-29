@@ -1,17 +1,27 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import annotations
 
 # -- stdlib --
-from collections import OrderedDict, defaultdict
+from enum import Enum
 from itertools import cycle
+from typing import Any, Dict, Generic, Iterable, List, Optional, TYPE_CHECKING, Tuple, Type, TypeVar
 import logging
 import random
 
 # -- third party --
+from mypy_extensions import TypedDict
+
 # -- own --
-from game.autoenv import Game, sync_primitive
-from game.base import get_seed_for
-from utils import partition
+# -- typing --
+if TYPE_CHECKING:
+    from thb.characters.base import Character  # noqa: F401
+
+# -- errord --
+from game.autoenv import Game
+from game.base import GameViralContext, Player, get_seed_for, sync_primitive
+from thb.item import GameItem
+from thb.mode import THBattle
+from utils.misc import BatchList, partition
 import settings
 
 
@@ -19,31 +29,32 @@ import settings
 log = logging.getLogger('thb.common')
 
 
-class CharChoice(object):
-    chosen = False
-    akari = False
+class CharChoice(GameViralContext):
+    chosen: Any = None
+    char_cls: Optional[Type[Character]]
+    akari: bool = False
 
-    def __init__(self, char_cls=None, akari=False):
+    def __init__(self, char_cls=None, akari=False) -> None:
         self.set(char_cls, akari)
 
     def __data__(self):
         return self.char_cls.__name__ if not self.akari else 'Akari'
 
-    def sync(self, data):
-        from thb.characters.baseclasses import Character
-        self.set(Character.character_classes[data], False)
+    def sync(self, data) -> None:
+        from thb.characters.base import Character
+        self.set(Character.classes[data], False)
 
-    def conceal(self):
+    def conceal(self) -> None:
         self.char_cls = None
-        self.chosen = False
+        self.chosen = None
         self.akari = False
 
-    def set(self, char_cls, akari=False):
+    def set(self, char_cls, akari=False) -> None:
         self.char_cls = char_cls
 
         if akari:
             self.akari = True
-            if Game.getgame().CLIENT_SIDE:
+            if self.game.CLIENT:
                 from thb import characters
                 self.char_cls = characters.akari.Akari
 
@@ -54,120 +65,138 @@ class CharChoice(object):
         )
 
 
-class PlayerIdentity(object):
-    def __init__(self):
-        self._type = self.TYPE.HIDDEN
+T = TypeVar('T', bound=Enum)
 
-    def __data__(self):
-        return ['identity', self.type]
 
-    def __str__(self):
-        return self.TYPE.rlookup(self.type)
+class PlayerRole(Generic[T]):
+    _role: T
 
-    def sync(self, data):
-        assert data[0] == 'identity'
-        self._type = data[1]
+    def __init__(self, typ: Type[T]):
+        self._typ = typ
+        self._role = typ(0)
 
-    def is_type(self, t):
-        g = Game.getgame()
+    def __data__(self) -> Any:
+        return self._role.value
+
+    def __str__(self) -> str:
+        return self._role.name
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, self._typ):
+            return False
+
+        return self._role == other
+
+    def sync(self, data) -> None:
+        self._role = self._typ(data)
+
+    '''
+    def is_type(self, t: Enum) -> bool:
+        g = self.game
         pl = g.players
-        return sync_primitive(self.type == t, pl)
+        return sync_primitive(self.identity == t, pl)
+    '''
 
-    def set_type(self, t):
-        if Game.SERVER_SIDE:
-            self._type = t
+    def set(self, t: T) -> None:
+        assert isinstance(t, self._typ)
+        if Game.SERVER:
+            self._role = self._typ(t)
 
-    def get_type(self):
-        return self._type
-
-    type = property(get_type, set_type)
+    def get(self) -> T:
+        return self._role
 
 
-def roll(g, items):
+def roll(g: THBattle, pl: BatchList[Player], items: Dict[Player, List[GameItem]]) -> BatchList[Player]:
     from thb.item import European
-    roll = range(len(g.players))
+    roll = list(range(len(pl)))
     g.random.shuffle(roll)
-    pl = g.players
-    for i, p in enumerate(pl):
-        if European.is_european(g, items, p):
-            g.emit_event('european', p)
-            roll.remove(i)
-            roll.insert(0, i)
-            break
+    eu = European.get_european(g, items)
+    if eu:
+        i = pl.index(eu)
+        roll.remove(i)
+        roll.insert(0, i)
 
     roll = sync_primitive(roll, pl)
-    roll = [pl[i] for i in roll]
+    roll = BatchList(pl[i] for i in roll)
     g.emit_event('game_roll', roll)
     return roll
 
 
-def build_choices(g, items, candidates, players, num, akaris, shared):
+class BuildChoicesSpec(TypedDict):
+    num: int
+    akaris: int
+
+
+def build_choices_shared(g: THBattle,
+                         players: BatchList[Player],
+                         items: Dict[Player, List[GameItem]],
+                         candidates: List[Type[Character]],
+                         spec: BuildChoicesSpec,
+                         ) -> Tuple[List[CharChoice], Dict[Player, CharChoice]]:
+    p = Player()
+    choices, imperial = build_choices(g, players, items, candidates, {p: spec})
+    return choices[p], imperial
+
+
+def build_choices(g: THBattle,
+                  players: BatchList[Player],
+                  items: Dict[Player, List[GameItem]],
+                  candidates: List[Type[Character]],
+                  spec: Dict[Player, BuildChoicesSpec],
+                  ) -> Tuple[Dict[Player, List[CharChoice]], Dict[Player, CharChoice]]:
+
     from thb.item import ImperialChoice
-    from thb.characters.baseclasses import Character
 
     # ----- testing -----
-    all_characters = Character.character_classes
-    testing = list(all_characters[i] for i in settings.TESTING_CHARACTERS)
+    testing_lst: Iterable[str] = settings.TESTING_CHARACTERS
+    testing = list(Character.classes[i] for i in testing_lst)
     candidates, _ = partition(lambda c: c not in testing, candidates)
 
-    if g.SERVER_SIDE:
+    if g.SERVER:
         candidates = list(candidates)
         g.random.shuffle(candidates)
     else:
         candidates = [None] * len(candidates)
 
-    if shared:
-        entities = ['shared']
-        num = [num]
-        akaris = [akaris]
-    else:
-        entities = players
+    assert sum(s['num'] for p, s in spec.items()) <= len(candidates) + len(testing), 'Insufficient choices'
 
-    assert len(num) == len(akaris) == len(entities), 'Uneven configuration'
-    assert sum(num) <= len(candidates) + len(testing), 'Insufficient choices'
+    result: Dict[Player, List[CharChoice]] = {p: [] for p in spec}
 
-    result = defaultdict(list)
-
-    entities_for_testing = entities[:]
+    players_for_testing = players[:]
 
     candidates = list(candidates)
-    seed = get_seed_for(g.players)
+    seed = get_seed_for(g, players)
     shuffler = random.Random(seed)
-    shuffler.shuffle(entities_for_testing)
+    shuffler.shuffle(players_for_testing)
 
-    for e, cls in zip(cycle(entities_for_testing), testing):
+    for e, cls in zip(cycle(players_for_testing), testing):
         result[e].append(CharChoice(cls))
 
     # ----- imperial (force chosen by ImperialChoice) -----
     imperial = ImperialChoice.get_chosen(items, players)
-    imperial = [(p, CharChoice(cls)) for p, cls in imperial]
+    imperial = {p: CharChoice(cls) for p, cls in imperial.items()}
 
-    for p, c in imperial:
-        result['shared' if shared else p].append(c)
+    for p, c in imperial.items():
+        result[p].append(c)
 
     # ----- normal -----
-    for e, n in zip(entities, num):
-        for _ in xrange(len(result[e]), n):
-            result[e].append(CharChoice(candidates.pop()))
+    for p, s in spec.items():
+        for _ in range(len(result[p]), s['num']):
+            result[p].append(CharChoice(candidates.pop()))
 
     # ----- akaris -----
-    if g.SERVER_SIDE:
+    if g.SERVER:
         rest = candidates
     else:
         rest = [None] * len(candidates)
 
     g.random.shuffle(rest)
 
-    for e, n in zip(entities, akaris):
-        for i in xrange(-n, 0):
-            result[e][i].set(rest.pop(), True)
+    for p, s in spec.items():
+        for i in range(-s['akaris'], 0):
+            result[p][i].set(rest.pop(), True)
 
     # ----- compose final result, reveal, and return -----
-    if shared:
-        result = OrderedDict([(p, result['shared']) for p in players])
-    else:
-        result = OrderedDict([(p, result[p]) for p in players])
-
     for p, l in result.items():
         p.reveal(l)
 

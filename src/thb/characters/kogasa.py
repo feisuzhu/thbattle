@@ -3,18 +3,20 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, DrawCardStage, DrawCards, UserAction, detach_cards
-from thb.actions import migrate_cards, user_choose_players
-from thb.cards import Card, Skill, VirtualCard, t_None, t_One, t_OtherOne
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from thb.actions import Damage, DrawCardStage, DrawCards, UserAction, detach_cards, migrate_cards
+from thb.actions import user_choose_players
+from thb.cards.base import Card, Skill, VirtualCard
+from thb.cards.classes import t_None, t_OtherOne
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Jolly(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -35,7 +37,7 @@ class SurpriseAction(UserAction):
         src.tags['surprise_tag'] = src.tags['turn_count']
         assert card
 
-        g = Game.getgame()
+        g = self.game
         g.players.reveal(card.associated_cards)
         migrate_cards([card], tgt.showncards, unwrap=True)
 
@@ -55,7 +57,7 @@ class SurpriseAction(UserAction):
 
 class Surprise(Skill):
     associated_action = SurpriseAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_OtherOne
     no_reveal = True
     no_drop = True
@@ -81,9 +83,8 @@ class JollyDrawCard(DrawCards):
         self.amount = 1
 
 
-class JollyHandler(EventHandler):
-    interested = ('action_after',)
-    choose_player_target = t_One
+class JollyHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, DrawCardStage):
@@ -91,7 +92,7 @@ class JollyHandler(EventHandler):
 
             if not tgt.has_skill(Jolly): return act
 
-            g = Game.getgame()
+            g = self.game
             pl = user_choose_players(self, tgt, [p for p in g.players if not p.dead])
             if not pl: pl = [tgt]
 
@@ -112,5 +113,5 @@ class JollyHandler(EventHandler):
 @register_character_to('common')
 class Kogasa(Character):
     skills = [Surprise, Jolly]
-    eventhandlers_required = [JollyHandler]
+    eventhandlers = [JollyHandler]
     maxlife = 3

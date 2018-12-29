@@ -33,6 +33,7 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     'player.apps.PlayerConfig',
+    'game.apps.GameConfig',
     'badge.apps.BadgeConfig',
     'unlock.apps.UnlockConfig',
     'item.apps.ItemConfig',

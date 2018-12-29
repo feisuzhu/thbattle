@@ -1,27 +1,28 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import Damage, FatetellMalleateHandler, MigrateCardsTransaction, UseCard
 from thb.actions import UserAction, detach_cards, migrate_cards, user_choose_cards
-from thb.cards import Skill, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Trial(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class Majesty(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -31,7 +32,7 @@ class TrialAction(UseCard):
             source, target, ft, card
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         c = self.card
         ft = self.ft
         g.players.exclude(self.source).reveal(c)
@@ -43,9 +44,9 @@ class TrialAction(UseCard):
         return True
 
 
-class TrialHandler(EventHandler):
-    interested = ('fatetell', )
-    group = FatetellMalleateHandler
+class TrialHandler(THBEventHandler):
+    interested = ['fatetell']
+    arbiter = FatetellMalleateHandler
     card_usage = 'use'
 
     def handle(self, p, act):
@@ -61,7 +62,7 @@ class TrialHandler(EventHandler):
 
         if cards:
             c = cards[0]
-            Game.getgame().process_action(TrialAction(p, act.target, act, c))
+            self.game.process_action(TrialAction(p, act.target, act, c))
 
         return act
 
@@ -83,8 +84,8 @@ class MajestyAction(UserAction):
         return True
 
 
-class MajestyHandler(EventHandler):
-    interested = ('action_after',)
+class MajestyHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
@@ -103,7 +104,7 @@ class MajestyHandler(EventHandler):
         if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             return act
 
-        Game.getgame().process_action(MajestyAction(tgt, src))
+        self.game.process_action(MajestyAction(tgt, src))
 
         return act
 
@@ -111,5 +112,5 @@ class MajestyHandler(EventHandler):
 @register_character_to('common')
 class Shikieiki(Character):
     skills = [Trial, Majesty]
-    eventhandlers_required = [TrialHandler, MajestyHandler]
+    eventhandlers = [TrialHandler, MajestyHandler]
     maxlife = 3

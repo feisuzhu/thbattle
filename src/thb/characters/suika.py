@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game
 from thb.actions import ActionLimitExceeded, ActionShootdown, ActionStage, DrawCards, LaunchCard
 from thb.actions import Pindian, PlayerTurn, UserAction
-from thb.cards import AttackCard, Skill, TreatAs, VirtualCard, WineCard, t_None, t_OtherOne
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill, VirtualCard
+from thb.cards.classes import AttackCard, TreatAs, WineCard, t_None, t_OtherOne
+from thb.characters.base import Character, register_character_to
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -23,7 +23,7 @@ class HeavyDrinkerFailed(ActionShootdown):
 class HeavyDrinkerAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
         src.tags['suika_target'].append(tgt)
         if g.process_action(Pindian(src, tgt)):
             g.process_action(LaunchCard(src, [src], HeavyDrinkerWine(src), bypass_check=True))
@@ -48,7 +48,7 @@ class HeavyDrinkerAction(UserAction):
 
 
 class HeavyDrinker(Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     associated_action = HeavyDrinkerAction
     target = t_OtherOne
 
@@ -56,9 +56,9 @@ class HeavyDrinker(Skill):
         return not self.associated_cards
 
 
-class HeavyDrinkerHandler(EventHandler):
-    interested = ('action_apply', )
-    execute_before = ('WineHandler', )
+class HeavyDrinkerHandler(THBEventHandler):
+    interested = ['action_apply']
+    execute_before = ['WineHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
@@ -70,16 +70,16 @@ class HeavyDrinkerHandler(EventHandler):
 class DrunkenDream(Skill):
     target = t_None
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
 
 
 class DrunkenDreamDrawCards(DrawCards):
     pass
 
 
-class DrunkenDreamHandler(EventHandler):
-    interested = ('action_apply', 'calcdistance')
-    execute_before = ('WineHandler', )
+class DrunkenDreamHandler(THBEventHandler):
+    interested = ['action_apply', 'calcdistance']
+    execute_before = ['WineHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'calcdistance':
@@ -102,7 +102,7 @@ class DrunkenDreamHandler(EventHandler):
             if not src.tags['wine']:
                 return act
 
-            g = Game.getgame()
+            g = self.game
             g.process_action(DrunkenDreamDrawCards(src, 1))
 
         return act
@@ -111,7 +111,7 @@ class DrunkenDreamHandler(EventHandler):
 @register_character_to('common')
 class Suika(Character):
     skills = [HeavyDrinker, DrunkenDream]
-    eventhandlers_required = [
+    eventhandlers = [
         HeavyDrinkerHandler,
         DrunkenDreamHandler,
     ]

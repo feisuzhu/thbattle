@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import DropCards, GenericAction, MaxLifeChange, PlayerTurn, random_choose_card
-from thb.cards import AttackCard, BaseAttack, DummyCard, GrazeCard, LaunchGraze, Skill, TreatAs
-from thb.cards import t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import DummyCard, Skill, t_None
+from thb.cards.classes import AttackCard, BaseAttack, GrazeCard, LaunchGraze, TreatAs
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class LoongPunch(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class Taichi(TreatAs, Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
 
     @property
     def treat_as(self):
@@ -45,7 +45,7 @@ class Taichi(TreatAs, Skill):
 
 class RiverBehind(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'awake')
+    skill_category = ['character', 'passive', 'awake']
     target = t_None
 
 
@@ -56,24 +56,24 @@ class LoongPunchAction(GenericAction):
         self.type = _type
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src, tgt = self.source, self.target
         c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
-        c = c or random_choose_card([tgt.cards, tgt.showncards])
+        c = c or random_choose_card(g, [tgt.cards, tgt.showncards])
         if not c: return False
         g.players.exclude(tgt).reveal(c)
         g.process_action(DropCards(src, tgt, [c]))
         return True
 
 
-class LoongPunchHandler(EventHandler):
-    interested = ('action_after',)
-    execute_after = ('DeathSickleHandler', )
+class LoongPunchHandler(THBEventHandler):
+    interested = ['action_after']
+    execute_after = ['DeathSickleHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, LaunchGraze):
             if not act.succeeded: return act
-            g = Game.getgame()
+            g = self.game
             pact = g.action_stack[-1]
             if not isinstance(pact, BaseAttack): return act
             self.do_effect(pact.source, pact.target, 'attack')
@@ -86,7 +86,7 @@ class LoongPunchHandler(EventHandler):
         if not (tgt.cards or tgt.showncards): return
         if not user_input([src], ChooseOptionInputlet(self, (False, True))): return
 
-        g = Game.getgame()
+        g = self.game
         g.process_action(LoongPunchAction(src, tgt, _type))
 
 
@@ -96,19 +96,19 @@ class RiverBehindAwake(GenericAction):
         assert tgt.has_skill(RiverBehind)
         tgt.skills.remove(RiverBehind)
         tgt.skills.append(Taichi)
-        g = Game.getgame()
+        g = self.game
         g.process_action(MaxLifeChange(tgt, tgt, -1))
         return True
 
 
-class RiverBehindHandler(EventHandler):
-    interested = ('action_apply',)
+class RiverBehindHandler(THBEventHandler):
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             tgt = act.target
             if not tgt.has_skill(RiverBehind): return act
-            g = Game.getgame()
+            g = self.game
             if tgt.life <= 2 and tgt.life <= min(p.life for p in g.players if not p.dead):
                 g.process_action(RiverBehindAwake(tgt, tgt))
         return act
@@ -117,5 +117,5 @@ class RiverBehindHandler(EventHandler):
 @register_character_to('common')
 class Meirin(Character):
     skills = [LoongPunch, RiverBehind]
-    eventhandlers_required = [RiverBehindHandler, LoongPunchHandler]
+    eventhandlers = [RiverBehindHandler, LoongPunchHandler]
     maxlife = 4

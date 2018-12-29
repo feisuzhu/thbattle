@@ -44,3 +44,17 @@ def require_login(ctx):
         raise GraphQLError('需要登录')
 
     return True
+
+
+class Paging(gh.InputObjectType):
+    offset   = gh.Int()
+    limit    = gh.Int()
+    order_by = gh.String()
+    token    = gh.String()
+
+    def get_order_by(self, avail):
+        order = self.order_by
+        if order in avail or f'-{order}' in avail:
+            return avail
+        else:
+            return avail[0]

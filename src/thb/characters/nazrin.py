@@ -3,11 +3,13 @@
 # -- stdlib --
 # -- third party --
 # -- own --
+from game.autoenv import user_input
 from thb.actions import FatetellAction, FatetellStage, migrate_cards
-from thb.cards import Card, GrazeCard, Skill, TreatAs, t_None
+from thb.cards.base import Card, Skill
+from thb.cards.classes import GrazeCard, TreatAs, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
-from thb.characters.baseclasses import Character, register_character_to
-from game.autoenv import EventHandler, Game, user_input
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -31,19 +33,19 @@ class TreasureHuntAction(FatetellAction):
 
 class TreasureHunt(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
-class TreasureHuntHandler(EventHandler):
-    interested = ('action_before',)
-    execute_before = ('CiguateraHandler', )
+class TreasureHuntHandler(THBEventHandler):
+    interested = ['action_before']
+    execute_before = ['CiguateraHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
             tgt = act.target
             if not tgt.has_skill(TreasureHunt): return act
-            g = Game.getgame()
+            g = self.game
             while True:
                 if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                     return act
@@ -53,7 +55,7 @@ class TreasureHuntHandler(EventHandler):
 
 
 class Agile(TreatAs, Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     treat_as = GrazeCard
 
     def check(self):
@@ -66,7 +68,7 @@ class Agile(TreatAs, Skill):
 
 
 class AgileKOF(TreatAs, Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     treat_as = GrazeCard
 
     def check(self):
@@ -81,12 +83,12 @@ class AgileKOF(TreatAs, Skill):
 @register_character_to('common', '-kof')
 class Nazrin(Character):
     skills = [TreasureHunt, Agile]
-    eventhandlers_required = [TreasureHuntHandler]
+    eventhandlers = [TreasureHuntHandler]
     maxlife = 3
 
 
 @register_character_to('kof')
 class NazrinKOF(Character):
     skills = [TreasureHunt, AgileKOF]
-    eventhandlers_required = [TreasureHuntHandler]
+    eventhandlers = [TreasureHuntHandler]
     maxlife = 3

@@ -1,4 +1,0 @@
-For Linux users:
-
-$ pipenv install
-$ pipenv run python src/start_client.py --no-update

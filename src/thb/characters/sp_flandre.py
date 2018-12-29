@@ -4,19 +4,21 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
 from thb.actions import ttags, user_choose_players
-from thb.cards import Skill, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class DestructionImpulse(Skill):
     distance = 1
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -24,7 +26,7 @@ class DestructionImpulseAction(GenericAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
 
         g.process_action(LifeLost(src, src))
         g.process_action(Damage(src, tgt))
@@ -32,9 +34,9 @@ class DestructionImpulseAction(GenericAction):
         return True
 
 
-class DestructionImpulseHandler(EventHandler):
-    interested = ('action_after',)
-    execute_before = ('CiguateraHandler', )
+class DestructionImpulseHandler(THBEventHandler):
+    interested = ['action_after']
+    execute_before = ['CiguateraHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -42,14 +44,14 @@ class DestructionImpulseHandler(EventHandler):
             if not src: return act
             if not src.has_skill(DestructionImpulse): return act
 
-            g = Game.getgame()
+            g = self.game
             ttags(src)['destruction_tag'] = True
 
         elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
             if not tgt.has_skill(DestructionImpulse): return act
 
-            g = Game.getgame()
+            g = self.game
             if ttags(tgt)['destruction_tag']: return act
 
             dist = LaunchCard.calc_distance(tgt, DestructionImpulse(tgt))
@@ -82,7 +84,7 @@ class DestructionImpulseHandler(EventHandler):
 
 class FourOfAKind(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -93,7 +95,7 @@ class FourOfAKindAction(GenericAction):
         self.target = target_act.target
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src = self.source
         self.target_act.cancelled = True
         g.process_action(MaxLifeChange(src, src, -1))
@@ -101,16 +103,16 @@ class FourOfAKindAction(GenericAction):
         return True
 
 
-class FourOfAKindHandler(EventHandler):
-    interested = ('action_before', )
-    execute_before = ('WineHandler', )
-    execute_after = (
+class FourOfAKindHandler(THBEventHandler):
+    interested = ['action_before']
+    execute_before = ['WineHandler']
+    execute_after = [
         'RepentanceStickHandler',
         'DeathSickleHandler',
         'CriticalStrikeHandler',
         'SadistHandler',
         'PerfectFreezeHandler',
-    )
+    ]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
@@ -120,11 +122,11 @@ class FourOfAKindHandler(EventHandler):
             tgt = act.target
             if tgt.has_skill(FourOfAKind) and act.amount <= tgt.life:
                 if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                    g = Game.getgame()
+                    g = self.game
                     g.process_action(FourOfAKindAction(tgt, act))
 
             if src and src.has_skill(FourOfAKind):
-                g = Game.getgame()
+                g = self.game
 
                 for a in reversed(g.action_stack):
                     if isinstance(a, LaunchCard):
@@ -141,5 +143,5 @@ class FourOfAKindHandler(EventHandler):
 @register_character_to('common')
 class SpFlandre(Character):
     skills = [DestructionImpulse, FourOfAKind]
-    eventhandlers_required = [DestructionImpulseHandler, FourOfAKindHandler]
+    eventhandlers = [DestructionImpulseHandler, FourOfAKindHandler]
     maxlife = 4

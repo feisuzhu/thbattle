@@ -3,15 +3,16 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import ActionStageLaunchCard, ActionLimitExceeded
-from ..cards import Card, DummyCard, Skill, TreatAs
-from .baseclasses import Character, register_character_to
-from game.autoenv import EventHandler
+from thb.actions import ActionLimitExceeded, ActionStageLaunchCard
+from thb.cards.base import DummyCard, PhysicalCard, Skill
+from thb.cards.classes import TreatAs
+from thb.characters.base import Character, register_character_to
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Morphing(TreatAs, Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
 
     @property
     def treat_as(self):
@@ -47,7 +48,7 @@ class Morphing(TreatAs, Skill):
 
     def get_morph_cls(self):
         params = getattr(self, 'action_params', {})
-        return Card.card_classes.get(params.get('mamizou_morphing'))
+        return PhysicalCard.classes.get(params.get('mamizou_morphing'))
 
     @classmethod
     def list_morph_cards(cls, cl):
@@ -68,7 +69,7 @@ class Morphing(TreatAs, Skill):
             cats.discard('spellcard')
             cats.add('instant_spellcard')
 
-        rst = [c() for c in Card.card_classes.values() if set(c.category) & cats]
+        rst = [c() for c in PhysicalCard.classes.values() if set(c.category) & cats]
 
         def rank(c):
             cat = (set(c.category) & cats).pop()
@@ -83,8 +84,8 @@ class Morphing(TreatAs, Skill):
         return rst
 
 
-class MorphingHandler(EventHandler):
-    interested = ('action_after', 'action_shootdown')
+class MorphingHandler(THBEventHandler):
+    interested = ['action_after', 'action_shootdown']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, ActionStageLaunchCard):
@@ -107,5 +108,5 @@ class MorphingHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Mamizou(Character):
     skills = [Morphing]
-    eventhandlers_required = [MorphingHandler]
+    eventhandlers = [MorphingHandler]
     maxlife = 4

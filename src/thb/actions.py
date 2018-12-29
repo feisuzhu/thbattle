@@ -1,17 +1,30 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from collections import OrderedDict, defaultdict
 from copy import copy
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Union, cast
 import logging
 
 # -- third party --
-# -- own --
-from game.autoenv import Action, ActionShootdown, EventHandler, EventHandlerGroup, Game
-from game.autoenv import GameException, InputTransaction, sync_primitive, user_input
-from thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
-from utils import BatchList, CheckFailed, check, check_type, group_by
+from typing_extensions import Protocol
 
+# -- own --
+from game.autoenv import user_input
+from game.base import Action, ActionShootdown, EventArbiter, GameViralContext, InputTransaction
+from game.base import Player, sync_primitive
+from thb.cards.base import Card, CardList, PhysicalCard, Skill, VirtualCard
+from thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBAction, THBEventHandler, THBPlayerAction, THBattle
+from thb.common import PlayerRole
+from utils.check import CheckFailed, check, check_type
+from utils.misc import BatchList, group_by
+
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.characters.base import Character  # noqa: F401
 
 # -- code --
 log = logging.getLogger('THBattle_Actions')
@@ -19,13 +32,6 @@ log = logging.getLogger('THBattle_Actions')
 
 # ------------------------------------------
 # aux functions
-def mark(act, tag, v=True):
-    setattr(act, '_tag_' + tag, v)
-
-
-def marked(act, tag):
-    return getattr(act, '_tag_' + tag, None)
-
 
 def ttags(actor):
     tags = actor.tags
@@ -33,7 +39,26 @@ def ttags(actor):
     return tags.setdefault('turn_tags:%s' % tc, defaultdict(int))
 
 
-def ask_for_action(initiator, actors, categories, candidates, timeout=None, trans=None):
+class CardChooser(Protocol):
+    game: THBattle
+    card_usage: str
+
+    def cond(self, cards: Sequence[Card]) -> bool: ...
+
+
+class CharacterChooser(Protocol):
+    game: THBattle
+
+    def choose_player_target(self, pl: Sequence[Character]) -> Tuple[List[Character], bool]: ...
+
+
+def ask_for_action(initiator: Union[CardChooser, CharacterChooser],
+                   actors: List[Character],
+                   categories: Sequence[str],
+                   candidates: Sequence[Character],
+                   timeout: Optional[int] = None,
+                   trans: Optional[InputTransaction] = None,
+                   ) -> Tuple[Optional[Character], Optional[Tuple[List[Card], List[Character]]]]:
     # initiator: Action or EH requesting this
     # actors: players involved
     # categories: card categories, eg: ['cards', 'showncards']
@@ -44,16 +69,23 @@ def ask_for_action(initiator, actors, categories, candidates, timeout=None, tran
 
     timeout = timeout or 25
 
-    from thb.cards import VirtualCard
+    from thb.cards.base import VirtualCard
+
+    g = cast(THBattle, initiator.game)
 
     ilet = ActionInputlet(initiator, categories, candidates)
 
     @ilet.with_post_process
-    def process(actor, rst):
-        g = Game.getgame()
+    def process(actor: Character, rst):
         usage = getattr(initiator, 'card_usage', 'none')
         try:
             check(rst)
+
+            skills: List[Type[Skill]]
+            rawcards: List[Card]
+            players: List[Character]
+            params: Dict[str, Any]
+
             skills, rawcards, players, params = rst
             [check(not c.detached) for c in rawcards]
             [check(actor.has_skill(s)) for s in skills]  # has_skill may be hooked
@@ -67,11 +99,13 @@ def ask_for_action(initiator, actors, categories, candidates, timeout=None, tran
 
             if categories:
                 if len(cards) == 1 and cards[0].is_card(VirtualCard):
-                    def walk(c):
+                    def walk(c: Card):
                         if not c.is_card(VirtualCard): return
                         if getattr(c, 'no_reveal', False): return
 
-                        g.players.reveal(c.associated_cards)
+                        c = cast(VirtualCard, c)
+
+                        g.players.player.reveal(c.associated_cards)
                         for c1 in c.associated_cards:
                             walk(c1)
 
@@ -80,15 +114,15 @@ def ask_for_action(initiator, actors, categories, candidates, timeout=None, tran
 
                 else:
                     if not getattr(initiator, 'no_reveal', False):
-                        g.players.reveal(cards)
+                        g.players.player.reveal(cards)
 
-                check(initiator.cond(cards))
+                check(cast(CardChooser, initiator).cond(cards))
                 assert not (usage == 'none' and rawcards)  # should not pass check
             else:
                 cards = []
 
             if candidates:
-                players, valid = initiator.choose_player_target(players)
+                players, valid = cast(CharacterChooser, initiator).choose_player_target(players)
                 check(valid)
 
             ask_for_action_verify = getattr(initiator, 'ask_for_action_verify', None)
@@ -106,7 +140,7 @@ def ask_for_action(initiator, actors, categories, candidates, timeout=None, tran
         cards, players, params = rst
 
         if len(cards) == 1 and cards[0].is_card(VirtualCard):
-            Game.getgame().deck.register_vcard(cards[0])
+            g.deck.register_vcard(cards[0])
 
         if not cards and not players:
             return p, None
@@ -118,8 +152,13 @@ def ask_for_action(initiator, actors, categories, candidates, timeout=None, tran
         return None, None
 
 
-def user_choose_cards(initiator, actor, categories, timeout=None, trans=None):
-    check_type([str, Ellipsis], categories)
+def user_choose_cards(initiator: CardChooser,
+                      actor: Character,
+                      categories: Sequence[str],
+                      timeout: Optional[int] = None,
+                      trans: Optional[InputTransaction] = None,
+                      ) -> Optional[List[Card]]:
+    check_type([str, ...], categories)
 
     _, rst = ask_for_action(initiator, [actor], categories, (), timeout=timeout, trans=trans)
     if not rst:
@@ -128,7 +167,12 @@ def user_choose_cards(initiator, actor, categories, timeout=None, trans=None):
     return rst[0]  # cards
 
 
-def user_choose_players(initiator, actor, candidates, timeout=None, trans=None):
+def user_choose_players(initiator: CharacterChooser,
+                        actor: Character,
+                        candidates: List[Character],
+                        timeout: Optional[int] = None,
+                        trans: Optional[InputTransaction] = None,
+                        ) -> Optional[List[Character]]:
     _, rst = ask_for_action(initiator, [actor], (), candidates, timeout=timeout, trans=trans)
     if not rst:
         return None
@@ -136,23 +180,21 @@ def user_choose_players(initiator, actor, candidates, timeout=None, trans=None):
     return rst[1]  # players
 
 
-def random_choose_card(cardlists):
+def random_choose_card(g: THBattle, cardlists: Sequence[Sequence]):
     from itertools import chain
     allcards = list(chain.from_iterable(cardlists))
     if not allcards:
         return None
 
-    g = Game.getgame()
     c = g.random.choice(allcards)
-    v = sync_primitive(c.sync_id, g.players)
-    cl = g.deck.lookupcards([v])
-    assert len(cl) == 1
-    c = cl[0]
+    v = sync_primitive(c.sync_id, g.players.player)
+    c = g.deck.lookup(v)
+    assert c
     c.detach()
     return c
 
 
-def skill_wrap(actor, skills, cards, params):
+def skill_wrap(actor: Character, skills: List[Type[Skill]], cards: List[Card], params: Dict[str, Any]):
     assert skills
     for skill_cls in skills:
         card = skill_cls.wrap(cards, actor, params)
@@ -179,14 +221,37 @@ def skill_check(wrapped):
         return False
 
 
-class MigrateCardsTransaction(object):
-    def __init__(self, action):
-        self.action = action
+COMMON_EVENT_HANDLERS: Set[Type[THBEventHandler]] = set()
+
+
+def register_eh(cls):
+    COMMON_EVENT_HANDLERS.add(cls)
+    return cls
+
+
+# ------------------------------------------
+class GenericAction(THBAction):
+    pass
+
+
+class UserAction(THBAction):  # card/character skill actions
+    target_list: Sequence[Character]
+    associated_card: Card
+
+
+CardMovement = Tuple[THBAction, List[Card], Optional[CardList], Optional[CardList], bool]
+
+
+class MigrateCardsTransaction(GameViralContext):
+    movements: List[CardMovement]
+
+    def __init__(self, action: Optional[THBAction] = None):
+        self.action = cast(THBAction, action or self.game.action_stack[-1])
         self.cancelled = False
         self.movements = []
 
-    def move(self, cards, _from, to, is_bh):
-        self.movements.append((cards, _from, to, is_bh))
+    def move(self, cards: List[Card], _from: Optional[CardList], to: Optional[CardList], is_bh: bool) -> None:
+        self.movements.append((self.action, cards, _from, to, is_bh))
 
     def __enter__(self):
         return self
@@ -198,10 +263,9 @@ class MigrateCardsTransaction(object):
             log.debug('migrate_cards cancelled: %s', self.movements)
 
     def commit(self):
-        g = Game.getgame()
-        DETACHED = migrate_cards.DETACHED
-        UNWRAPPED = migrate_cards.UNWRAPPED
-        from thb.cards import VirtualCard
+        g = self.game
+        DETACHED = MigrateSpecial.DETACHED
+        UNWRAPPED = MigrateSpecial.UNWRAPPED
         act = self.action
 
         for cards, _from, to, is_bh in self.movements:
@@ -228,34 +292,38 @@ class MigrateCardsTransaction(object):
         if include_detach:
             return self.movements
         elif only_detach:
-            return (m for m in self.movements if m[2] is migrate_cards.DETACHED)
+            return (m for m in self.movements if m[2] is MigrateSpecial.DETACHED)
         else:
-            return (m for m in self.movements if m[2] is not migrate_cards.DETACHED)
+            return (m for m in self.movements if m[2] is not MigrateSpecial.DETACHED)
 
 
-def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
+def migrate_cards(cards: Sequence[Card],
+                  to: CardList,
+                  unwrap: bool=False,
+                  is_bh: bool=False,
+                  trans: Optional[MigrateCardsTransaction]=None,
+                  ):
     '''
     cards: cards to move around
     to: destination card list
-    unwrap: drop all VirtualCard wrapping, preserve PhysicalCard only
+    unwrap: tear down VirtualCard wrapping, preserve PhysicalCard only, at most X layers
     is_bh: indicates this operation is bottom half of a complete migration (pairing with detach_cards)
     trans: associated MigrateCardsTransaction
     '''
     if not trans:
-        with MigrateCardsTransaction(Game.getgame().action_stack[-1]) as trans:
-            migrate_cards(cards, to, unwrap, is_bh, trans)
-            return not trans.cancelled
+        with MigrateCardsTransaction() as t:
+            migrate_cards(cards, to, unwrap, is_bh, t)
+            return not t.cancelled
 
     if to.owner and to.owner.dead:
         # do not migrate cards to dead character
         trans.cancelled = True
         return
 
-    from .cards import VirtualCard
     groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
 
-    DETACHED = migrate_cards.DETACHED
-    UNWRAPPED = migrate_cards.UNWRAPPED
+    DETACHED = MigrateSpecial.DETACHED
+    UNWRAPPED = MigrateSpecial.UNWRAPPED
     detaching = to is DETACHED
 
     for l in groups:
@@ -263,11 +331,12 @@ def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
 
         if l[0].is_card(VirtualCard):
             assert len(l) == 1
+            assert to.owner
             trans.move(l, cl, UNWRAPPED if unwrap else to, is_bh)
             l[0].unwrapped or migrate_cards(
                 l[0].associated_cards,
                 to if unwrap or detaching else to.owner.special,
-                unwrap if type(unwrap) is bool else unwrap - 1,
+                unwrap if isinstance(unwrap, bool) else unwrap - 1,
                 is_bh,
                 trans
             )
@@ -276,13 +345,19 @@ def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
             trans.move(l, cl, to, is_bh)
 
 
-class PostCardMigrationHandler(EventHandlerGroup):
-    interested = ('post_card_migration',)
+class MigrateSpecial(object):
+    DETACHED     = CardList(None, 'DETACHED')
+    UNWRAPPED    = CardList(None, 'UNWRAPPED')
+    SINGLE_LAYER = 1
+
+
+class PostCardMigrationHandler(EventArbiter):
+    interested = ['post_card_migration']
 
     def handle(self, evt_type, arg):
         if evt_type != 'post_card_migration': return arg
 
-        g = Game.getgame()
+        g = self.game
         act = arg.action
         tgt = act.target or act.source or g.players[0]
 
@@ -293,54 +368,16 @@ class PostCardMigrationHandler(EventHandlerGroup):
         return arg
 
 
-def detach_cards(cards, trans=None):
-    migrate_cards(cards, migrate_cards.DETACHED, trans=trans)
-
-
-class _MigrateCardsDetached(object):
-    owner = None
-    type = 'detached'
-
-    def __repr__(self):
-        return 'DETACHED'
-
-
-class _MigrateCardsUnwrapped(object):
-    owner = None
-    type = 'unwrapped'
-
-    def __repr__(self):
-        return 'UNWRAPPED'
-
-
-migrate_cards.SINGLE_LAYER = 1
-migrate_cards.DETACHED = _MigrateCardsDetached()
-migrate_cards.UNWRAPPED = _MigrateCardsUnwrapped()
-
-
-def register_eh(cls):
-    action_eventhandlers.add(cls)
-    return cls
-action_eventhandlers = set()
-
-# ------------------------------------------
-
-
-class GenericAction(Action):
-    pass
-
-
-class UserAction(Action):  # card/character skill actions
-    pass
+def detach_cards(cards: Sequence[Card], trans=None):
+    migrate_cards(cards, MigrateSpecial.DETACHED, trans=trans)
 
 
 class DeadDropCards(GenericAction):
     def apply_action(self):
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
 
         others = g.players.exclude(tgt)
-        from .actions import DropCards
         lists = [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]
         lists.extend(tgt.showncardlists)
         for cl in lists:
@@ -353,12 +390,13 @@ class DeadDropCards(GenericAction):
 
 
 class PlayerDeath(GenericAction):
-    def apply_action(self):
+    # FIXME: should be `CharacterDeath`
+    def apply_action(self) -> bool:
         tgt = self.target
         tgt.dead = True
-        g = Game.getgame()
+        g = self.game
         g.process_action(DeadDropCards(tgt, tgt))
-        tgt.skills[:] = []
+        tgt.skills[:] = []  # FIXME: should be here now?
         tgt.tags.clear()
         return True
 
@@ -385,15 +423,15 @@ class PlayerRevive(GenericAction):
 
 
 class TryRevive(GenericAction):
-    def __init__(self, target, dmgact):
+    def __init__(self, target: Character, dmgact: BaseDamage):
         self.source = self.target = target
         self.dmgact = dmgact
-        self.revived_by = None
+        self.revived_by: Optional[Character] = None
         if target.dead:
             log.error('TryRevive buggy condition, __init__')
             return
 
-    def apply_action(self):
+    def apply_action(self) -> bool:
         tgt = self.target
 
         if tgt.dead:
@@ -402,9 +440,9 @@ class TryRevive(GenericAction):
             traceback.print_stack()
             return False
 
-        g = Game.getgame()
-        from .cards import AskForHeal
-        for p in g.players_from(tgt):
+        g = self.game
+        from thb.cards.basic import AskForHeal
+        for p in g.players.rotate_to(tgt):
             while True:
                 if p.dead:
                     break
@@ -459,7 +497,7 @@ class MaxLifeChange(GenericAction):
     def apply_action(self):
         src = self.source
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
         tgt.maxlife += self.amount
 
         if tgt.life > tgt.maxlife:
@@ -485,7 +523,7 @@ class DropCards(GenericAction):
         self.cards = cards
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         target = self.target
         cards = self.cards
         assert all(c.resides_in.owner in (target, None) for c in cards), 'WTF?!'
@@ -503,7 +541,7 @@ class UseCard(GenericAction):
         self.card = card
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         migrate_cards([self.card], g.deck.droppedcards, unwrap=True)
 
         return True
@@ -511,12 +549,13 @@ class UseCard(GenericAction):
 
 class AskForCard(GenericAction):
 
-    def __init__(self, source, target, card_cls, categories=('cards', 'showncards')):
+    def __init__(self, source: Character, target: Character, card_cls: Type[PhysicalCard], categories: Sequence[str]=('cards', 'showncards')):
         self.source = source
         self.target = target
         self.card_cls = card_cls
         self.categories = categories
-        self.card = None
+
+        self.card: Optional[Card] = None
 
     def apply_action(self):
         target = self.target
@@ -532,12 +571,12 @@ class AskForCard(GenericAction):
         return self.process_card(self.card)
 
     def cond(self, cl):
-        from thb import cards
+        from thb.cards.base import VirtualCard
         t = self.target
         return (
             len(cl) == 1 and
             cl[0].is_card(self.card_cls) and
-            (cl[0].is_card(cards.VirtualCard) or cl[0].resides_in.owner is t)
+            (cl[0].is_card(VirtualCard) or cl[0].resides_in.owner is t)
         )
 
     def process_card(self, card):
@@ -547,32 +586,32 @@ class AskForCard(GenericAction):
 class ActiveDropCards(GenericAction):
     card_usage = 'drop'
 
-    def __init__(self, source, target, dropn):
+    def __init__(self, source: Character, target: Character, dropn: int) -> None:
         self.source = source
         self.target = target
         self.dropn = dropn
-        self.cards = []
+        self.cards: List[Card] = []
 
-    def apply_action(self):
+    def apply_action(self) -> bool:
         tgt = self.target
         if tgt.dead: return False
         n = self.dropn
         if n <= 0: return True
 
-        g = Game.getgame()
+        g = self.game
         cards = user_choose_cards(self, tgt, ('cards', 'showncards'))
         if cards:
             g.process_action(DropCards(tgt, tgt, cards=cards))
         else:
             from itertools import chain
             cards = list(chain(tgt.cards, tgt.showncards))[min(-n, 0):]
-            g.players.reveal(cards)
+            g.players.player.reveal(cards)
             g.process_action(DropCards(tgt, tgt, cards=cards))
 
         self.cards = cards
         return True
 
-    def cond(self, cards):
+    def cond(self, cards: Sequence[Card]) -> bool:
         tgt = self.target
         if not len(cards) == self.dropn:
             return False
@@ -580,7 +619,7 @@ class ActiveDropCards(GenericAction):
         if not all(c.resides_in in (tgt.cards, tgt.showncards) for c in cards):
             return False
 
-        from .cards import Skill
+        from thb.cards.base import Skill
         if any(c.is_card(Skill) for c in cards):
             return False
 
@@ -599,7 +638,7 @@ class BaseDrawCards(GenericAction):
         self.amount = amount
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         target = self.target
 
         cards = g.deck.getcards(self.amount)
@@ -626,27 +665,31 @@ class DrawCardStage(DrawCards):
 
 
 class LaunchCard(GenericAction):
-    def __init__(self, source, target_list, card, action=None, bypass_check=False):
+    def __init__(self, src: Character,
+                       target_list: Sequence[Character],
+                       card: Card,
+                       action: Optional[UserAction] = None,
+                       bypass_check=False):
         self.force_action = action
         bypass_check = bool(action) or bypass_check
         self.bypass_check = bypass_check
         if bypass_check:
             tl, tl_valid = target_list, True
         else:
-            tl, tl_valid = card.target(Game.getgame(), source, target_list)
+            tl, tl_valid = card.target(self.game, src, target_list)
 
-        self.source, self.target_list, self.card, self.tl_valid = source, tl, card, tl_valid
-        self.target = target_list[0] if target_list else source
+        self.source, self.target_list, self.card, self.tl_valid = src, tl, card, tl_valid
+        self.target = target_list[0] if target_list else src
 
-    def apply_action(self):
+    def apply_action(self) -> bool:
         card = self.card
         target_list = self.target_list
         if not card: return False
 
-        action = self.force_action or card.associated_action
-        if not action: return False
+        if not self.force_action or card.associated_action:
+            return False
 
-        g = Game.getgame()
+        g = self.game
         src = self.source
         card = self.card
         drop = card.usage == 'drop'
@@ -666,13 +709,12 @@ class LaunchCard(GenericAction):
             if not tl:
                 return True
 
-            if isinstance(action, Action):
-                a = action
+            if self.force_action:
+                a = self.force_action
             else:
-                assert issubclass(action, UserAction)
-
                 tgt = tl[0] if tl else src
-                a = action(source=src, target=tgt)
+                assert card.associated_action
+                a = card.associated_action(source=src, target=tgt)
                 a.target_list = tl
 
             a.associated_card = card
@@ -694,13 +736,13 @@ class LaunchCard(GenericAction):
                     migrate_cards([card], g.deck.droppedcards, unwrap=True, is_bh=True)
 
                 else:
-                    from .cards import VirtualCard
+                    from thb.cards.base import VirtualCard
                     for c in VirtualCard.unwrap([card]):
                         if c.detached: c.attach()
 
         return True
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         if self.bypass_check:
             return True
 
@@ -721,6 +763,8 @@ class LaunchCard(GenericAction):
             return False
 
         cls = card.associated_action
+        if not cls:
+            return False
 
         tl = self.target_list
         target = tl[0] if tl else src
@@ -729,42 +773,42 @@ class LaunchCard(GenericAction):
         act.target_list = tl
         try:
             act.action_shootdown_exception()
-        except:
+        except Exception:
             log.debug('LaunchCard card_action.can_fire() FALSE')
             raise
 
         return True
 
     @classmethod
-    def calc_distance(cls, source, card):
-        dist = cls.calc_base_distance(source)
-        g = Game.getgame()
+    def calc_distance(cls, src, card):
+        dist = cls.calc_base_distance(src)
+        g = src.game
 
-        g.emit_event('calcdistance', (source, card, dist))
+        g.emit_event('calcdistance', (src, card, dist))
         card_dist = getattr(card, 'distance', 1000)
         for p in dist:
             dist[p] -= card_dist
-        g.emit_event('post_calcdistance', (source, card, dist))
+        g.emit_event('post_calcdistance', (src, card, dist))
 
         return dist
 
     @classmethod
-    def calc_raw_distance(cls, source, card):
-        dist = cls.calc_base_distance(source)
-        g = Game.getgame()
+    def calc_raw_distance(cls, src, card):
+        dist = cls.calc_base_distance(src)
+        g = src.game
 
-        g.emit_event('calcdistance', (source, card, dist))
+        g.emit_event('calcdistance', (src, card, dist))
         return dist
 
     @classmethod
     def calc_base_distance(cls, src):
-        g = Game.getgame()
+        g = src.game
         pl = [p for p in g.players if not p.dead or p is src]
         loc = pl.index(src)
         n = len(pl)
         dist = OrderedDict([
             (p, min(abs(i), n - abs(i)))
-            for p, i in zip(pl, xrange(-loc, -loc + n))
+            for p, i in zip(pl, range(-loc, -loc + n))
         ])
         return dist
 
@@ -775,6 +819,7 @@ class ActionStageLaunchCard(LaunchCard):
 
 class BaseActionStage(GenericAction):
     card_usage = 'launch'
+    launch_card_cls: Type[LaunchCard]
 
     def __init__(self, target):
         self.source = self.source = target
@@ -784,7 +829,7 @@ class BaseActionStage(GenericAction):
         self.action_count = 0
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         target = self.target
         if target.dead: return False
 
@@ -798,6 +843,7 @@ class BaseActionStage(GenericAction):
                             self, [target], ('cards', 'showncards'), g.players, trans=trans
                         )
                     check(p is target)
+                    assert rst
                 finally:
                     self.in_user_input = False
 
@@ -822,15 +868,13 @@ class BaseActionStage(GenericAction):
         return True
 
     @staticmethod
-    def force_break():
-        g = Game.getgame()
+    def force_break(g):
         for a in g.action_stack:
             if isinstance(a, ActionStage):
                 a._force_break = True
                 break
 
     def cond(self, cl):
-        from .cards import Skill
         if not cl: return False
 
         tgt = self.target
@@ -856,20 +900,21 @@ class ActionStage(BaseActionStage):
 
 
 @register_eh
-class ShuffleHandler(EventHandler):
-    interested = ('action_after', 'action_before', 'action_stage_action', 'card_migration', 'user_input_start')
+class ShuffleHandler(THBEventHandler):
+    interested = ['action_after', 'action_before', 'action_stage_action', 'card_migration', 'user_input_start']
 
     def handle(self, evt_type, arg):
+        g = self.game
         if evt_type == 'action_stage_action':
-            self.do_shuffle()
+            self.do_shuffle(g, g.players)
 
         elif evt_type in ('action_before', 'action_after') and isinstance(arg, ActionStage):
-            self.do_shuffle()
+            self.do_shuffle(g, g.players)
 
         elif evt_type == 'user_input_start':
             trans, ilet = arg
             if isinstance(ilet, ChoosePeerCardInputlet):
-                self.do_shuffle([ilet.target])
+                self.do_shuffle(g, [ilet.target])
 
         # <!-- This causes severe problems, do not use -->
         # elif evt_type == 'card_migration':
@@ -879,11 +924,8 @@ class ShuffleHandler(EventHandler):
         return arg
 
     @staticmethod
-    def do_shuffle(pl=None):
-        from .cards import VirtualCard
-        g = Game.getgame()
-
-        for p in pl or g.players:
+    def do_shuffle(g, pl):
+        for p in pl:
             if not p.cards: continue
             if any([c.is_card(VirtualCard) for c in p.cards]):
                 log.warning('VirtualCard in cards of %s, not shuffling.' % repr(p))
@@ -897,7 +939,7 @@ class FatetellStage(GenericAction):
         self.target = target
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         target = self.target
         if target.dead: return False
         ft_cards = target.fatetell
@@ -913,11 +955,11 @@ class BaseFatetell(GenericAction):
     def __init__(self, target, cond):
         self.target = target
         self.cond = cond
-        self.initiator = Game.getgame().hybrid_stack[-1]
+        self.initiator = self.game.hybrid_stack[-1]
         self.card_manipulator = self
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         card, = g.deck.getcards(1)
         g.players.reveal(card)
         self.card = card
@@ -943,13 +985,13 @@ class TurnOverCard(BaseFatetell):
     type = 'turnover'
 
 
-class FatetellMalleateHandler(EventHandlerGroup):
-    interested = ('fatetell',)
+class FatetellMalleateHandler(EventArbiter):
+    interested = ['fatetell']
 
     def handle(self, evt_type, data):
         if evt_type != 'fatetell': return data
 
-        g = Game.getgame()
+        g = self.game
         for p in g.players_from(g.current_player):
             for eh in self.handlers:
                 data = g.handle_single_event(eh, p, data)
@@ -964,7 +1006,7 @@ class FatetellAction(GenericAction):
         assert self.fatetell_target is not None, 'Should specify fatetell_target!'
 
         ft = Fatetell(self.fatetell_target, self.fatetell_cond)
-        g = Game.getgame()
+        g = self.game
         g.process_action(ft)
 
         if not ft.cancelled:
@@ -996,7 +1038,7 @@ class LaunchFatetellCard(GenericAction):
         self.card = card
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         target = self.target
         card = self.card
         act = card.delayed_action
@@ -1027,7 +1069,7 @@ class ForEach(UserAction):
         tl = self.target_list
         source = self.source
         card = self.associated_card
-        g = Game.getgame()
+        g = self.game
 
         try:
             self.prepare()
@@ -1071,7 +1113,7 @@ class FinalizeStage(GenericAction):
 
 
 class PlayerTurn(GenericAction):
-    def __init__(self, target):
+    def __init__(self, target: Character):
         self.source = self.target = target
         self.pending_stages = [
             PrepareStage,
@@ -1082,36 +1124,30 @@ class PlayerTurn(GenericAction):
             FinalizeStage,
         ]
 
-    def apply_action(self):
-        g = Game.getgame()
+    def apply_action(self) -> bool:
+        g = self.game
         p = self.target
         p.tags['turn_count'] += 1
+        '''
         g.turn_count += 1
         g.current_turn = self
         g.current_player = p
+        '''
 
-        try:
-            while self.pending_stages:
-                stage = self.pending_stages.pop(0)
-                self.current_stage = cs = stage(p)
-                g.process_action(cs)
-
-        finally:
-            g.current_turn = None
+        while self.pending_stages:
+            stage = self.pending_stages.pop(0)
+            self.current_stage = cs = stage(p)
+            g.process_action(cs)
 
         return True
 
     @staticmethod
-    def get_current(p=None):
-        g = Game.getgame()
-        act = getattr(g, 'current_turn', None)
-        if act:
-            assert isinstance(act, PlayerTurn)
+    def get_current(g: THBattle) -> 'PlayerTurn':
+        for act in g.action_stack:
+            if isinstance(act, PlayerTurn):
+                return act
 
-            if p is not None and act.target is not p:
-                raise GameException('Got unexpected PlayerTurn!')
-
-        return act
+        raise Exception('Could not find current turn!')
 
 
 class DummyAction(GenericAction):
@@ -1123,24 +1159,21 @@ class DummyAction(GenericAction):
         return self.result
 
 
-class RevealIdentity(GenericAction):
-    def __init__(self, target, to):
-        self.target = target
+class RevealRole(THBPlayerAction):
+
+    def __init__(self, role: PlayerRole, to: Union[Player, BatchList[Player]]):
+        self.role = role
         self.to = to
 
-    def apply_action(self):
-        tgt = self.target
-        self.to.reveal(tgt.identity)
+    def apply_action(self) -> bool:
+        self.to.reveal(self.role)
         return True
 
-    def can_be_seen_by(self, ch):
-        if isinstance(self.to, (tuple, list)):
+    def can_be_seen_by(self, ch: Character) -> bool:
+        if isinstance(self.to, BatchList):
             return ch in self.to
         else:
             return ch is self.to
-
-    def __repr__(self):
-        return u'Reveal(%s, %s)' % (self.target, self.to)
 
 
 class Pindian(UserAction):
@@ -1151,13 +1184,13 @@ class Pindian(UserAction):
         self.source = source
         self.target = target
 
-    def apply_action(self):
+    def apply_action(self) -> bool:
         src = self.source
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
 
         pl = BatchList([tgt, src])
-        pindian_card = {src: None, tgt: None}
+        pindian_card: Dict[Character, Card] = {}
 
         with InputTransaction('Pindian', pl) as trans:
             for p in pl:
@@ -1165,13 +1198,13 @@ class Pindian(UserAction):
                 if cards:
                     card = cards[0]
                 else:
-                    card = random_choose_card([p.cards, p.showncards])
+                    card = random_choose_card(g, [p.cards, p.showncards])
 
                 pindian_card[p] = card
                 detach_cards([card])
                 g.emit_event('pindian_card_chosen', (p, card))
 
-        g.players.reveal([pindian_card[src], pindian_card[tgt]])
+        g.players.player.reveal([pindian_card[src], pindian_card[tgt]])
         g.emit_event('pindian_card_revealed', self)  # for ui.
         migrate_cards([pindian_card[src], pindian_card[tgt]], g.deck.droppedcards, unwrap=True, is_bh=True)
 
@@ -1179,7 +1212,6 @@ class Pindian(UserAction):
 
     @staticmethod
     def cond(cl):
-        from .cards import Skill
         return len(cl) == 1 and \
             (not cl[0].is_card(Skill)) and \
             cl[0].resides_in.type in ('cards', 'showncards')
@@ -1202,7 +1234,7 @@ class Reforge(GenericAction):
         self.card = card
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         migrate_cards([self.card], g.deck.droppedcards, True)
         g.process_action(DrawCards(self.source, 1))
 
@@ -1213,8 +1245,8 @@ class Reforge(GenericAction):
 
 
 @register_eh
-class DyingHandler(EventHandler):
-    interested = ('action_after',)
+class DyingHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
@@ -1225,12 +1257,12 @@ class DyingHandler(EventHandler):
         if tgt.dead or tgt.life > 0: return act
         if tgt.tags['in_tryrevive']:
             # nested TryRevive, just return
-            # will trigger when Eirin uses Diamond Exinwan to heal self
+            # will trigger when Eirin uses Diamond Exinwan to heal herself
             return act
 
         try:
             tgt.tags['in_tryrevive'] = True
-            g = Game.getgame()
+            g = self.game
             if g.process_action(TryRevive(tgt, dmgact=act)):
                 return act
         finally:
@@ -1251,7 +1283,7 @@ class ShowCards(GenericAction):
         if not self.cards:
             return False
 
-        g = Game.getgame()
+        g = self.game
         cards = self.cards
         to = self.to or g.players
         to.reveal(cards)

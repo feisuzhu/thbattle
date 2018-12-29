@@ -3,12 +3,14 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, ForEach, LaunchCard, UserAction
-from ..cards import AttackCard, DollControlCard, Heal, InstantSpellCardAction, RejectCard, Skill
-from ..cards import t_OtherOne
-from ..inputlets import ChooseOptionInputlet
-from .baseclasses import Character, register_character_to
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
+from thb.actions import DrawCards, ForEach, LaunchCard, UserAction
+from thb.cards.base import Skill
+from thb.cards.classes import AttackCard, DollControlCard, Heal, InstantSpellCardAction, RejectCard
+from thb.cards.classes import t_OtherOne
+from thb.characters.base import Character, register_character_to
+from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -34,7 +36,7 @@ class FlyingSkandaAction(ForEach):
 
 class FlyingSkanda(Skill):
     associated_action = FlyingSkandaAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     usage = 'launch'
 
     def target(self, g, source, tl):
@@ -76,8 +78,8 @@ class FlyingSkanda(Skill):
         return isinstance(self, cls)
 
 
-class FlyingSkandaHandler(EventHandler):
-    interested = ('action_after',)
+class FlyingSkandaHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, LaunchCard):
@@ -91,7 +93,7 @@ class ShikigamiAction(UserAction):
         tgt = self.target
         src = self.source
 
-        g = Game.getgame()
+        g = self.game
 
         if tgt.life < tgt.maxlife and user_input(
             [tgt], ChooseOptionInputlet(self, (False, True))
@@ -112,15 +114,15 @@ class ShikigamiAction(UserAction):
 
 class Shikigami(Skill):
     associated_action = ShikigamiAction
-    skill_category = ('character', 'active', 'once')
+    skill_category = ['character', 'active', 'once']
     target = t_OtherOne
 
     def check(self):
         return not self.associated_cards
 
 
-class ShikigamiHandler(EventHandler):
-    interested = ('post_calcdistance',)
+class ShikigamiHandler(THBEventHandler):
+    interested = ['post_calcdistance']
 
     def handle(self, evt_type, arg):
         if evt_type == 'post_calcdistance':
@@ -130,7 +132,7 @@ class ShikigamiHandler(EventHandler):
             tgt = src.tags.get('shikigami_target')
             if not tgt or tgt.dead: return arg
 
-            g = Game.getgame()
+            g = self.game
             if g.current_player is not src: return arg
 
             origin = src if 'shikigami_tag' in src.tags else tgt
@@ -149,5 +151,5 @@ class ShikigamiHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Chen(Character):
     skills = [FlyingSkanda, Shikigami]
-    eventhandlers_required = [FlyingSkandaHandler, ShikigamiHandler]
+    eventhandlers = [FlyingSkandaHandler, ShikigamiHandler]
     maxlife = 4

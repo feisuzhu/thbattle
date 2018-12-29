@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler
 from thb.actions import ActionStage, PlayerTurn, PrepareStage
-from thb.cards import AttackCard, Skill, TreatAs, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import AttackCard, TreatAs, t_None
+from thb.characters.base import Character, register_character_to
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Dagger(TreatAs, Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     treat_as = AttackCard
     distance = 99999
 
@@ -47,13 +47,13 @@ class LunaDialActionStage(ActionStage):
 
 class LunaDial(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
-class LunaDialHandler(EventHandler):
-    interested = ('action_after',)
-    execute_after = ('CiguateraHandler', )
+class LunaDialHandler(THBEventHandler):
+    interested = ['action_after']
+    execute_after = ['CiguateraHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PrepareStage):
@@ -61,7 +61,8 @@ class LunaDialHandler(EventHandler):
             if not src.has_skill(LunaDial):
                 return act
 
-            PlayerTurn.get_current(src).pending_stages.insert(0, LunaDialActionStage)
+            g = self.game
+            PlayerTurn.get_current(g).pending_stages.insert(0, LunaDialActionStage)
 
         return act
 
@@ -69,5 +70,5 @@ class LunaDialHandler(EventHandler):
 @register_character_to('common')
 class Sakuya(Character):
     skills = [Dagger, LunaDial]
-    eventhandlers_required = [LunaDialHandler]
+    eventhandlers = [LunaDialHandler]
     maxlife = 4

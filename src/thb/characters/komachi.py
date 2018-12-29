@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange
 from thb.actions import PlayerTurn, UserAction, migrate_cards, random_choose_card
-from thb.cards import Skill, t_None, t_OtherOne
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import t_None, t_OtherOne
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class RiversideAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src, tgt = self.source, self.target
         src.tags['riverside_tag'] = src.tags['turn_count']
         tgt.tags['riverside_target'] = g.turn_count
@@ -26,7 +27,7 @@ class RiversideAction(UserAction):
                 self.action = 'drop'
                 catnames = ('cards', 'showncards', 'equips')
                 card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
-                card = card or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+                card = card or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
                 g.players.reveal(card)
                 g.process_action(DropCards(src, tgt, [card]))
             else:
@@ -42,8 +43,8 @@ class RiversideAction(UserAction):
         return not src.tags['riverside_tag'] >= src.tags['turn_count']
 
 
-class RiversideHandler(EventHandler):
-    interested = ('calcdistance',)
+class RiversideHandler(THBEventHandler):
+    interested = ['calcdistance']
 
     def handle(self, evt_type, arg):
         if evt_type == 'calcdistance':
@@ -51,7 +52,7 @@ class RiversideHandler(EventHandler):
             if not src.has_skill(Riverside):
                 return arg
 
-            turn_count = Game.getgame().turn_count
+            turn_count = self.game.turn_count
             for p in dist:
                 if p.tags.get('riverside_target') == turn_count:
                     dist[p] -= 10000
@@ -61,7 +62,7 @@ class RiversideHandler(EventHandler):
 
 class Riverside(Skill):
     associated_action = RiversideAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_OtherOne
     usage = 'drop'
 
@@ -73,7 +74,7 @@ class Riverside(Skill):
 
 class ReturningAwake(GenericAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         tgt = self.target
         tgt.skills.remove(Returning)
         tgt.skills.append(FerryFee)
@@ -82,14 +83,14 @@ class ReturningAwake(GenericAction):
         return True
 
 
-class ReturningHandler(EventHandler):
-    interested = ('action_before',)
+class ReturningHandler(THBEventHandler):
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, PlayerTurn):
             tgt = act.target
             if not tgt.has_skill(Returning): return act
-            g = Game.getgame()
+            g = self.game
             ncards = len(tgt.cards) + len(tgt.showncards)
             if tgt.life <= 2 and tgt.life < ncards:
                 g.process_action(ReturningAwake(tgt, tgt))
@@ -99,13 +100,13 @@ class ReturningHandler(EventHandler):
 
 class Returning(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'awake')
+    skill_category = ['character', 'passive', 'awake']
     target = t_None
 
 
 class FerryFee(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
     distance = 1
 
@@ -124,8 +125,8 @@ class FerryFeeEffect(UserAction):
         return True
 
 
-class FerryFeeHandler(EventHandler):
-    interested = ('action_after',)
+class FerryFeeHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -136,11 +137,12 @@ class FerryFeeHandler(EventHandler):
             dist = LaunchCard.calc_distance(src, FerryFee(src))
             if not dist.get(tgt, 10000) <= 0: return act
             if user_input([src], ChooseOptionInputlet(self, (False, True))):
+                g = self.game
                 catnames = ('cards', 'showncards', 'equips')
                 card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
-                card = card or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+                card = card or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
                 if not card: return act
-                g = Game.getgame()
+                g = self.game
                 g.process_action(FerryFeeEffect(src, tgt, card))
 
         return act
@@ -149,5 +151,5 @@ class FerryFeeHandler(EventHandler):
 @register_character_to('common')
 class Komachi(Character):
     skills = [Riverside, Returning]
-    eventhandlers_required = [RiversideHandler, ReturningHandler, FerryFeeHandler]
+    eventhandlers = [RiversideHandler, ReturningHandler, FerryFeeHandler]
     maxlife = 4

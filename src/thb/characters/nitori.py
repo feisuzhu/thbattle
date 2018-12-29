@@ -3,12 +3,14 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import Game, user_input
-from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, DrawCards, EventHandler
-from thb.actions import Reforge, UserAction, random_choose_card, ttags
-from thb.cards import AttackCard, Card, Skill, TreatAs, t_OtherOne
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, DrawCards, Reforge, UserAction
+from thb.actions import random_choose_card, ttags
+from thb.cards.base import PhysicalCard, Skill, TreatAs, t_OtherOne
+from thb.cards.definition import AttackCard
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -17,9 +19,9 @@ class DismantleAction(UserAction):
         src, tgt = self.source, self.target
         ttags(src)['dismantle'] = True
 
-        g = Game.getgame()
+        g = self.game
         c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('equips', )))
-        c = c or random_choose_card([tgt.equips])
+        c = c or random_choose_card(g, [tgt.equips])
         if not c: return False
 
         g.process_action(Reforge(src, tgt, c))
@@ -33,7 +35,7 @@ class DismantleAction(UserAction):
 
 class Dismantle(Skill):
     associated_action = DismantleAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_OtherOne
 
     def check(self):
@@ -41,12 +43,12 @@ class Dismantle(Skill):
 
 
 class Craftsman(TreatAs, Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
 
     @property
     def treat_as(self):
         params = getattr(self, 'action_params', {})
-        return Card.card_classes.get(params.get('treat_as'), AttackCard)
+        return PhysicalCard.classes.get(params.get('treat_as'), AttackCard)
 
     def check(self):
         cl = self.associated_cards
@@ -62,11 +64,11 @@ class Craftsman(TreatAs, Skill):
 
     @classmethod
     def list_treat_as(cls):
-        return [c() for c in Card.card_classes.values() if 'basic' in c.category]
+        return [c() for c in PhysicalCard.classes.values() if 'basic' in c.category]
 
 
-class CraftsmanHandler(EventHandler):
-    interested = ('action_after', 'action_shootdown')
+class CraftsmanHandler(THBEventHandler):
+    interested = ['action_after', 'action_shootdown']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, ActionStageLaunchCard):
@@ -88,5 +90,5 @@ class CraftsmanHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Nitori(Character):
     skills = [Dismantle, Craftsman]
-    eventhandlers_required = [CraftsmanHandler]
+    eventhandlers = [CraftsmanHandler]
     maxlife = 3

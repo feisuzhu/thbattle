@@ -3,22 +3,23 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, UserAction
-from ..cards import Heal, Skill, t_None, t_OtherOne
-from .baseclasses import Character, register_character_to
-from game.autoenv import EventHandler, Game
+from thb.actions import DrawCards, UserAction
+from thb.cards.base import Skill
+from thb.cards.classes import Heal, t_None, t_OtherOne
+from thb.characters.base import Character, register_character_to
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Psychopath(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
 class NetoruAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src = self.source
         src.tags['netoru_tag'] = src.tags['turn_count']
         tgt = self.target
@@ -37,7 +38,7 @@ class NetoruAction(UserAction):
 
 class Netoru(Skill):
     associated_action = NetoruAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_OtherOne
     usage = 'drop'
 
@@ -54,8 +55,8 @@ class PsychopathDrawCards(DrawCards):
     pass
 
 
-class PsychopathHandler(EventHandler):
-    interested = ('card_migration',)
+class PsychopathHandler(THBEventHandler):
+    interested = ['card_migration']
 
     def handle(self, evt_type, args):
         if evt_type == 'card_migration':
@@ -63,7 +64,7 @@ class PsychopathHandler(EventHandler):
             if _from is not None and _from.type == 'equips' and not is_bh:
                 src = _from.owner
                 if src.has_skill(Psychopath) and not src.dead:
-                    g = Game.getgame()
+                    g = self.game
                     g.process_action(PsychopathDrawCards(src, len(cards)*2))
 
         return args
@@ -72,5 +73,5 @@ class PsychopathHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Rinnosuke(Character):
     skills = [Netoru, Psychopath]
-    eventhandlers_required = [PsychopathHandler]
+    eventhandlers = [PsychopathHandler]
     maxlife = 3

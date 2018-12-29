@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, InterruptActionFlow, user_input
-from thb.actions import ActionStage, Damage, DrawCards, FinalizeStage, LaunchCard, PlayerRevive, AskForCard
-from thb.actions import UserAction, migrate_cards, ttags
-from thb.cards import AttackCard, Card, GreenUFOSkill, RejectCard, Skill, TreatAs, UFOSkill, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from game.base import InterruptActionFlow
+from thb.actions import ActionStage, AskForCard, Damage, DrawCards, FinalizeStage, LaunchCard
+from thb.actions import PlayerRevive, UserAction, migrate_cards, ttags
+from thb.cards.base import Card, Skill
+from thb.cards.classes import AttackCard, GreenUFOSkill, RejectCard, TreatAs, UFOSkill, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Flight(GreenUFOSkill):
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
 
     @staticmethod
     def increment(src):
@@ -26,7 +28,7 @@ class Flight(GreenUFOSkill):
 
 
 class SpiritualAttack(TreatAs, Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     treat_as = RejectCard
 
     def check(self):
@@ -44,7 +46,7 @@ class SpiritualAttack(TreatAs, Skill):
 
 class TributeTarget(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'boss')
+    skill_category = ['character', 'passive', 'boss']
     target = t_None
 
 
@@ -71,7 +73,7 @@ class TributeAction(UserAction):
 
 class Tribute(Skill):
     associated_action = TributeAction
-    skill_category = ('active',)
+    skill_category = ['active']
     no_drop = True
     usage = 'handover'
 
@@ -93,8 +95,8 @@ class Tribute(Skill):
         return (tl[-1:], bool(len(tl)))
 
 
-class TributeHandler(EventHandler):
-    interested = ('action_after', 'game_begin', 'switch_character')
+class TributeHandler(THBEventHandler):
+    interested = ['action_after', 'game_begin', 'switch_character']
 
     def handle(self, evt_type, arg):
         if evt_type == 'game_begin':
@@ -109,12 +111,12 @@ class TributeHandler(EventHandler):
         return arg
 
     def manage_tribute(self):
+        g = self.game
         cond = any([
             isinstance(p, Character) and p.has_skill(TributeTarget)
-            for p in Game.getgame().players
+            for p in g.players
         ])
 
-        g = Game.getgame()
         if cond:
             for p in g.players:
                 if not isinstance(p, Character): continue
@@ -135,7 +137,7 @@ class TributeHandler(EventHandler):
 
 class ReimuExterminate(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -154,19 +156,19 @@ class ReimuExterminateAction(AskForCard):
         self.cause = cause  # for ui
 
     def process_card(self, c):
-        g = Game.getgame()
+        g = self.game
         return g.process_action(ReimuExterminateLaunchCard(self.source, self.victim, c, self.cause))
 
 
-class ReimuExterminateHandler(EventHandler):
-    interested = ('action_apply', 'action_after')
-    execute_after = ('DyingHandler', 'CheatingHandler', 'IbukiGourdHandler')
+class ReimuExterminateHandler(THBEventHandler):
+    interested = ['action_apply', 'action_after']
+    execute_after = ['DyingHandler', 'CheatingHandler', 'IbukiGourdHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, Damage):
             if not act.source: return act
             src, tgt = act.source, act.target
-            g = Game.getgame()
+            g = self.game
             if src is not g.current_player: return act
             if src is tgt: return act
             ttags(src)['did_damage'] = True
@@ -174,7 +176,7 @@ class ReimuExterminateHandler(EventHandler):
         elif evt_type == 'action_after' and isinstance(act, Damage):
             if not act.source: return act
             src, tgt = act.source, act.target
-            g = Game.getgame()
+            g = self.game
             cur = g.current_player
             if not cur: return act
             if not tgt.has_skill(ReimuExterminate): return act
@@ -190,7 +192,7 @@ class ReimuExterminateHandler(EventHandler):
             if tgt.dead:
                 return act
 
-            g = Game.getgame()
+            g = self.game
             for actor in g.players.rotate_to(g.current_player):
                 if tgt is actor:
                     continue
@@ -205,14 +207,14 @@ class ReimuExterminateHandler(EventHandler):
 
 class ReimuClear(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class ReimuClearAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
         g.process_action(DrawCards(src, 1))
         g.process_action(DrawCards(tgt, 1))
         if g.current_player is src:
@@ -225,19 +227,19 @@ class ReimuClearAction(UserAction):
                 return True
 
 
-class ReimuClearHandler(EventHandler):
-    interested = ('action_after',)
-    execute_before = (
+class ReimuClearHandler(THBEventHandler):
+    interested = ['action_after']
+    execute_before = [
         'MasochistHandler',
         'DecayDamageHandler',
         'MelancholyHandler',
-    )
+    ]
 
-    execute_after = (
+    execute_after = [
         'IbukiGourdHandler',
         'AyaRoundfanHandler',
         'MajestyHandler',
-    )
+    ]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -248,7 +250,7 @@ class ReimuClearHandler(EventHandler):
             if src.dead or tgt.dead: return act
 
             if user_input([src], ChooseOptionInputlet(self, (False, True))):
-                g = Game.getgame()
+                g = self.game
                 g.process_action(ReimuClearAction(src, tgt))
 
         return act
@@ -260,5 +262,5 @@ class Reimu(Character):
     # skills = [SpiritualAttack, Flight]
     skills = [ReimuExterminate, ReimuClear]
     boss_skills = [TributeTarget]
-    eventhandlers_required = [ReimuExterminateHandler, ReimuClearHandler, TributeHandler]
+    eventhandlers = [ReimuExterminateHandler, ReimuClearHandler, TributeHandler]
     maxlife = 4

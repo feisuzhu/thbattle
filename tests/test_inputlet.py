@@ -2,26 +2,23 @@
 from __future__ import absolute_import
 
 # -- stdlib --
-from collections import defaultdict
-from weakref import WeakSet
-import random
 
 # -- third party --
-from nose.tools import eq_
 
 # -- own --
-from .mock import MockConnection, create_mock_player, hook_game
 
 
 # -- code --
-class TestInputlet(object):
+class TestInputletServer(object):
     @classmethod
-    def setUpClass(cls):
-        import db.session
-        db.session.init('sqlite:////dev/shm/test.sqlite3')
+    def setup_class(cls):
+        from game import autoenv
+        autoenv.init('Server')
 
     def getInputletInstances(self):
-        from thb.cards import AttackCard
+        from thb.thb2v2 import THBattle2v2
+
+        from thb.cards.definition import AttackCard
         from thb.characters.youmu import Youmu
         from thb.common import CharChoice
         from thb.inputlets import ActionInputlet
@@ -31,21 +28,36 @@ class TestInputlet(object):
         from thb.inputlets import ChoosePeerCardInputlet
         from thb.inputlets import ProphetInputlet
 
-        g, p = self.makeGame()
+        from .mock import ServerWorld
+        w = ServerWorld()
+        g = w.fullgame(THBattle2v2)
+        core = w.core
+        boot = core.game.get_bootstrap_action(g)
+        players = boot.players
 
-        ilets = [
-            ActionInputlet(self, ['cards', 'showncards'], []),
+        self.game = g
+        p = players[0]
+        ch = Youmu(p)
+
+        ilets1 = [
             ChooseGirlInputlet(self, {p: [CharChoice(Youmu)]}),
+        ]
+
+        for i in ilets1:
+            i.actor = p
+
+        ilets2 = [
+            ActionInputlet(self, ['cards', 'showncards'], []),
             ChooseIndividualCardInputlet(self, [AttackCard()]),
             ChooseOptionInputlet(self, (False, True)),
-            ChoosePeerCardInputlet(self, p, ['cards']),
+            ChoosePeerCardInputlet(self, ch, ['cards']),
             ProphetInputlet(self, [AttackCard()]),
         ]
 
-        for i in ilets:
-            i.actor = p
+        for i in ilets2:
+            i.actor = ch
 
-        return g, p, ilets
+        return g, p, ilets1 + ilets2
 
     def testParseNone(self):
         g, p, ilets = self.getInputletInstances()
@@ -64,44 +76,39 @@ class TestInputlet(object):
         clsnames = set([cls.tag() for cls in classes])
         assert len(clsnames) == len(classes)
 
-    def testChooseOptionInputlet(self):
-        from game import autoenv
+    def teztChooseOptionInputlet(self):
         from game.autoenv import user_input
-        from client.core import TheChosenOne, PeerPlayer
 
-        from thb.thb3v3 import THBattle
         from thb.inputlets import ChooseOptionInputlet
-        from utils import BatchList
+        from utils.misc import BatchList
 
-        autoenv.init('Server')
-        g = THBattle()
-        g.IS_DEBUG = True
-        pl = [create_mock_player([]) for i in xrange(6)]
+        from .mock import ServerWorld
+        w = ServerWorld()
+        g = w.fullgame()
+        core = w.core
+        boot = core.game.get_bootstrap_action(g)
+        pl = boot.players
+
         p = pl[0]
         g.me = p
-        p.client.gdlist.extend([
-            ['I:ChooseOption:1', True],
-            ['I&:ChooseOption:2', False],
-            ['I|:ChooseOption:3', True],
-        ])
-        p.client.gdevent.set()
-        g.players = BatchList(pl)
-        hook_game(g)
-        g.gr_groups = WeakSet()
+        p.client._ep.recv.put(['game:data', ['I:ChooseOption:1', True]])
+        p.client._ep.recv.put(['game:data', ['I&:ChooseOption:2', False]])
+        p.client._ep.recv.put(['game:data', ['I|:ChooseOption:3', True]])
 
         ilet = ChooseOptionInputlet(self, (False, True))
 
-        eq_(user_input([p], ilet), True)
-        eq_(user_input([p], ilet, type='all'), {p: False})
-        eq_(user_input([p], ilet, type='any'), (p, True))
+        assert user_input([p], ilet) is True
+        assert user_input([p], ilet, type='all') == {p: False}
+        assert user_input([p], ilet, type='any') == (p, True)
 
         for p in pl:
-            eq_(p.client.gdhistory, [
-                ['RI:ChooseOption:1', True],
-                ['RI&:ChooseOption:2', False],
-                ['RI|:ChooseOption:3', True],
-            ])
+            assert p.client._ep.send == [
+                ['game:data', ['RI:ChooseOption:1', True]],
+                ['game:data', ['RI&:ChooseOption:2', False]],
+                ['game:data', ['RI|:ChooseOption:3', True]],
+            ]
 
+        '''
         autoenv.init('Client')
         g = THBattle()
         pl = [PeerPlayer() for i in xrange(6)]
@@ -314,3 +321,4 @@ class TestInputlet(object):
         from thb.thb3v3 import THBattle  # noqa
         from thb.thbkof import THBattleKOF  # noqa
         from thb.thbidentity import THBattleIdentity  # noqa
+    '''

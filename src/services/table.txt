@@ -1,2 +1,0 @@
-# port    service name
-7001    service_events

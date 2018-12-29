@@ -3,19 +3,21 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import ActionShootdown, EventHandler, Game, user_input
-from thb.actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction
-from thb.actions import LaunchCard, LifeLost, ShowCards, UseCard, UserAction
-from thb.actions import user_choose_cards
-from thb.cards import Card, Skill, VirtualCard, Wine, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from game.base import ActionShootdown
+from thb.actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction, LaunchCard
+from thb.actions import LifeLost, ShowCards, UseCard, UserAction, user_choose_cards
+from thb.cards.base import Card, Skill, VirtualCard
+from thb.cards.classes import Wine, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Ciguatera(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -28,7 +30,7 @@ class CiguateraAction(UserAction):
     def apply_action(self):
         tgt = self.target
         src = self.source
-        g = Game.getgame()
+        g = self.game
         g.process_action(DropCards(src, src, self.cards))
         g.process_action(LifeLost(src, tgt, 1))
         g.process_action(Wine(src, tgt))
@@ -36,13 +38,13 @@ class CiguateraAction(UserAction):
         return True
 
 
-class CiguateraHandler(EventHandler):
-    interested = ('action_after', 'action_before')
+class CiguateraHandler(THBEventHandler):
+    interested = ['action_after', 'action_before']
     card_usage = 'drop'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
-            g = Game.getgame()
+            g = self.game
             for p in g.players:
                 if p.dead:
                     continue
@@ -66,7 +68,7 @@ class CiguateraHandler(EventHandler):
 
 class Melancholy(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -89,7 +91,7 @@ class MelancholyAction(GenericAction):
         src = self.source
         tgt = self.target
         draw = DrawCards(src, self.amount)
-        g = Game.getgame()
+        g = self.game
         g.process_action(draw)
         g.process_action(ShowCards(src, draw.cards))
         if [c for c in draw.cards if c.suit != Card.CLUB]:  # any non-club
@@ -102,8 +104,8 @@ class MelancholyAction(GenericAction):
         return True
 
 
-class MelancholyHandler(EventHandler):
-    interested = ('action_after', 'action_shootdown')
+class MelancholyHandler(THBEventHandler):
+    interested = ['action_after', 'action_shootdown']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -120,11 +122,11 @@ class MelancholyHandler(EventHandler):
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            Game.getgame().process_action(MelancholyAction(tgt, src, amount=1))
+            self.game.process_action(MelancholyAction(tgt, src, amount=1))
 
         elif evt_type == 'action_shootdown' and isinstance(act, (LaunchCard, UseCard)):
             src = act.source
-            g = Game.getgame()
+            g = self.game
             if src.tags.get('melancholy_tag') != g.turn_count:
                 return act
 
@@ -150,5 +152,5 @@ class MelancholyHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Medicine(Character):
     skills = [Ciguatera, Melancholy]
-    eventhandlers_required = [CiguateraHandler, MelancholyHandler]
+    eventhandlers = [CiguateraHandler, MelancholyHandler]
     maxlife = 3

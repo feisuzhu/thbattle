@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import Damage, DropCards, FatetellAction, FatetellMalleateHandler
 from thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard, detach_cards
 from thb.actions import migrate_cards, user_choose_cards
-from thb.cards import Skill, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class MiracleMallet(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class VengeOfTsukumogami(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -32,7 +33,7 @@ class MiracleMalletAction(UseCard):
             source, target, ft, card
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         c = self.card
         ft = self.ft
         src = self.source
@@ -45,10 +46,10 @@ class MiracleMalletAction(UseCard):
         return True
 
 
-class MiracleMalletHandler(EventHandler):
-    interested = ('fatetell', )
-    execute_before = ('YinYangOrbHandler', )
-    group = FatetellMalleateHandler
+class MiracleMalletHandler(THBEventHandler):
+    interested = ['fatetell']
+    execute_before = ['YinYangOrbHandler']
+    arbiter = FatetellMalleateHandler
     card_usage = 'use'
 
     def handle(self, p, act):
@@ -61,7 +62,7 @@ class MiracleMalletHandler(EventHandler):
 
         if cards:
             c = cards[0]
-            Game.getgame().process_action(MiracleMalletAction(p, act.target, act, c))
+            self.game.process_action(MiracleMalletAction(p, act.target, act, c))
 
         return act
 
@@ -86,14 +87,14 @@ class VengeOfTsukumogamiAction(FatetellAction):
 
     def fatetell_action(self, ft):
         if ft.succeeded:
-            Game.getgame().process_action(Damage(self.source, self.target))
+            self.game.process_action(Damage(self.source, self.target))
 
         return True
 
 
-class VengeOfTsukumogamiHandler(EventHandler):
-    interested = ('post_card_migration',)
-    group = PostCardMigrationHandler
+class VengeOfTsukumogamiHandler(THBEventHandler):
+    interested = ['post_card_migration']
+    arbiter = PostCardMigrationHandler
 
     def handle(self, p, trans):
         if not p.has_skill(VengeOfTsukumogami):
@@ -122,7 +123,7 @@ class VengeOfTsukumogamiHandler(EventHandler):
                 if not user_input([p], ChooseOptionInputlet(self, (False, True))):
                     break
 
-                Game.getgame().process_action(VengeOfTsukumogamiAction(p, tgt, c))
+                self.game.process_action(VengeOfTsukumogamiAction(p, tgt, c))
 
         return True
 
@@ -130,5 +131,5 @@ class VengeOfTsukumogamiHandler(EventHandler):
 @register_character_to('common')
 class Shinmyoumaru(Character):
     skills = [MiracleMallet, VengeOfTsukumogami]
-    eventhandlers_required = [MiracleMalletHandler, VengeOfTsukumogamiHandler]
+    eventhandlers = [MiracleMalletHandler, VengeOfTsukumogamiHandler]
     maxlife = 4

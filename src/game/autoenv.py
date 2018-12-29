@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
-# -- third party --
-from gevent import Greenlet
+from typing import Callable
 
+# -- third party --
 # -- own --
-from game.base import Action, ActionShootdown, EventHandler, EventHandlerGroup, Game, GameEnded  # noqa
-from game.base import GameError, GameException, GameItem, GameObject, InputTransaction  # noqa
-from game.base import InterruptActionFlow, NPC, get_seed_for, list_shuffle, sync_primitive  # noqa
+from game.base import Game as BaseGame
 
 
 # -- code --
-class Game(Greenlet, Game):
+class Game(BaseGame):
     pass
 
 
+U: Callable
+
+
 def user_input(*a, **k):
-    return U(*a, **k)  # noqa
+    return U(*a, **k)
 
 
-def init(place, custom=None):
-    global Game, user_input
-    if custom:
-        locals.update(custom)
-    elif place == 'Server':
-        from server.core import Game as G, user_input as U
+def init(place: str):
+    global U
+
+    if place == 'Server':
+        from server.base import Game as ServerGame, user_input as svr_user_input
+        Game.__bases__ = (ServerGame,)
+        U = svr_user_input
     elif place == 'Client':
-        from client.core import Game as G, user_input as U  # noqa
+        from client.base import Game as ClientGame, user_input as cli_user_input
+        Game.__bases__ = (ClientGame,)
+        U = cli_user_input
     else:
         raise Exception('Where am I?')
-
-    Game.__bases__ = (G,)
-    globals().update(locals())

@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "thbattle"
+version = "0.1.0"
+description = "THBattle"
+authors = ["Proton <feisuzhu@163.com>"]
+license = "GPL-3.0+"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+colorlog = "^4.0"
+gevent = "^1.4"
+pygit2 = "^0.28.2"
+requests = "^2.22"
+raven = "^6.10"
+websocket-client = "^0.56.0"
+arrow = "^0.14.2"
+dnspython = "^1.16"
+msgpack = "^0.6.1"
+mypy-extensions = "^0.4.1"
+typing-extensions = "^3.7"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.0"
+ipython = "^7.6"
+neovim = "^0.3.1"
+flake8 = "^3.7"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

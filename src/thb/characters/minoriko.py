@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game
 from thb.actions import DrawCardStage, UserAction, migrate_cards, user_choose_players
-from thb.cards import Card, Harvest, HarvestCard, Skill, TreatAs, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Card, Skill
+from thb.cards.classes import Harvest, HarvestCard, TreatAs, t_None
+from thb.characters.base import Character, register_character_to
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Foison(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -23,8 +23,8 @@ class FoisonDrawCardStage(DrawCardStage):
         return DrawCardStage.apply_action(self)
 
 
-class FoisonHandler(EventHandler):
-    interested = ('action_before',)
+class FoisonHandler(THBEventHandler):
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
@@ -50,7 +50,7 @@ class AutumnFeastAction(Harvest):
 class AutumnFeast(TreatAs, Skill):
     treat_as = HarvestCard
     associated_action = AutumnFeastAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
 
     def check(self):
         cl = self.associated_cards
@@ -61,7 +61,7 @@ class AutumnFeast(TreatAs, Skill):
 
 class AkiTribute(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -76,8 +76,8 @@ class AkiTributeCollectCard(UserAction):
         return True
 
 
-class AkiTributeHandler(EventHandler):
-    interested = ('choose_target', 'harvest_finish')
+class AkiTributeHandler(THBEventHandler):
+    interested = ['choose_target', 'harvest_finish']
 
     def handle(self, evt_type, act):
         if evt_type == 'choose_target':
@@ -93,7 +93,7 @@ class AkiTributeHandler(EventHandler):
             return act, tl
 
         elif evt_type == 'harvest_finish':
-            g = Game.getgame()
+            g = self.game
             pl = [p for p in g.players if p.has_skill(AkiTribute) and not p.dead]
             assert len(pl) <= 1, 'Multiple AkiTributes!'
             if not pl: return act
@@ -103,10 +103,10 @@ class AkiTributeHandler(EventHandler):
             if not cards: return act
 
             candidates = [p for p in g.players if not p.dead]
-            pl = user_choose_players(self, src, candidates)
-            if not pl: return act
+            tl = user_choose_players(self, src, candidates)
+            if not tl: return act
 
-            tgt, = pl
+            tgt, = tl
             g.process_action(AkiTributeCollectCard(src, tgt, cards))
 
         return act
@@ -121,5 +121,5 @@ class AkiTributeHandler(EventHandler):
 @register_character_to('common')
 class Minoriko(Character):
     skills = [Foison, AutumnFeast, AkiTribute]
-    eventhandlers_required = [FoisonHandler, AkiTributeHandler]
+    eventhandlers = [FoisonHandler, AkiTributeHandler]
     maxlife = 3

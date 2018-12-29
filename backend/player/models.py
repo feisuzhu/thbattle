@@ -90,6 +90,7 @@ class Player(models.Model):
     forum_name = models.CharField('论坛昵称', blank=True, null=True, max_length=150, unique=True, help_text='论坛昵称')
     bio        = models.CharField('签名', blank=True, max_length=150, help_text='签名')
     avatar     = models.URLField('头像', blank=True, max_length=150, help_text='头像')
+    prefs      = models.TextField('个人设置', blank=True, help_text='个人设置')
 
     ppoint = models.IntegerField('P点', default=0, help_text='P点')
     jiecao = models.IntegerField('节操', default=0, help_text='节操')

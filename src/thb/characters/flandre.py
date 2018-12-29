@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction, PlayerDeath
 from thb.actions import PlayerTurn, register_eh, ttags
-from thb.cards import ActionLimitExceeded, AttackCard, AttackCardVitalityHandler, BaseAttack
-from thb.cards import BaseDuel, DuelCard, ElementalReactorSkill, Skill, UserAction, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import ActionLimitExceeded, AttackCard, AttackCardVitalityHandler, BaseAttack
+from thb.cards.classes import BaseDuel, DuelCard, ElementalReactorSkill, UserAction, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class CriticalStrike(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -32,18 +33,18 @@ class CriticalStrikeLimit(ActionLimitExceeded):
     pass
 
 
-class CriticalStrikeHandler(EventHandler):
-    interested = ('action_apply', 'action_before', 'action_shootdown', 'action_stage_action')
-    execute_after = (
+class CriticalStrikeHandler(THBEventHandler):
+    interested = ['action_apply', 'action_before', 'action_shootdown', 'action_stage_action']
+    execute_after = [
         'AttackCardHandler',
         'FrozenFrogHandler',
         'ElementalReactorHandler',
         'ReversedScalesHandler',
-    )
-    execute_before = (
+    ]
+    execute_before = [
         'MomijiShieldHandler',
         'WineHandler',
-    )
+    ]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
@@ -53,7 +54,7 @@ class CriticalStrikeHandler(EventHandler):
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            Game.getgame().process_action(CriticalStrikeAction(tgt, tgt))
+            self.game.process_action(CriticalStrikeAction(tgt, tgt))
 
             act.amount = max(0, act.amount - 1)
 
@@ -69,7 +70,7 @@ class CriticalStrikeHandler(EventHandler):
                 act.damage += 1
 
         elif evt_type == 'action_before' and isinstance(act, Damage):
-            g = Game.getgame()
+            g = self.game
             pact = g.action_stack[-1]
             if not isinstance(pact, BaseDuel):
                 return act
@@ -87,7 +88,7 @@ class CriticalStrikeHandler(EventHandler):
                 return act
 
             if act.card.is_card(AttackCard):
-                act.vitality_consumed = True
+                act._[self.__class__] = 'vitality-consumed'
                 src.tags['vitality'] -= 1
 
         elif evt_type == 'action_shootdown':
@@ -99,7 +100,7 @@ class CriticalStrikeHandler(EventHandler):
             if not c.is_card(AttackCard): return act
             if src.has_skill(ElementalReactorSkill): return act
             if src.tags['vitality'] > 0: return act
-            if getattr(act, 'vitality_consumed', False): return act
+            if act._[self.__class__]: return act
             if set(act.target_list) & set(tags['flan_targets']):
                 raise CriticalStrikeLimit
 
@@ -115,14 +116,14 @@ class CriticalStrikeHandler(EventHandler):
     def in_critical_strike(self, p):
         return (
             ttags(p)['flan_cs'] and
-            Game.getgame().current_player is p and
+            self.game.current_player is p and
             p.has_skill(CriticalStrike)
         )
 
 
 class Exterminate(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -138,14 +139,14 @@ class ExterminateAction(UserAction):
         return True
 
 
-class ExterminateHandler(EventHandler):
-    interested = ('choose_target',)
+class ExterminateHandler(THBEventHandler):
+    interested = ['choose_target']
 
     def handle(self, evt_type, arg):
         if evt_type == 'choose_target':
             act, tl = arg
             src = act.source
-            g = Game.getgame()
+            g = self.game
 
             if not src.has_skill(Exterminate):
                 return arg
@@ -161,14 +162,14 @@ class ExterminateHandler(EventHandler):
 
 
 @register_eh
-class ExterminateFadeHandler(EventHandler):
-    interested = ('action_after', 'action_apply')
+class ExterminateFadeHandler(THBEventHandler):
+    interested = ['action_after', 'action_apply']
 
     def handle(self, evt_type, arg):
         if ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
             (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):  # noqa
 
-            g = Game.getgame()
+            g = self.game()
             for p in g.players:
                 if p.tags.pop('exterminate', ''):
                     p.reenable_skill('exterminate')
@@ -179,5 +180,5 @@ class ExterminateFadeHandler(EventHandler):
 @register_character_to('common')
 class Flandre(Character):
     skills = [CriticalStrike, Exterminate]
-    eventhandlers_required = [CriticalStrikeHandler, ExterminateHandler]
+    eventhandlers = [CriticalStrikeHandler, ExterminateHandler]
     maxlife = 4

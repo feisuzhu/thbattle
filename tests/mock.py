@@ -1,69 +1,72 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+from collections import deque
+from typing import Callable, Dict
 import logging
+import random
 import re
 
 # -- third party --
 from gevent.event import Event
+from gevent.queue import Queue
+import gevent
 
 # -- own --
-from endpoint import Endpoint
-from utils import hook
+from endpoint import Endpoint, EndpointDied
+from server.base import Player
+from server.core import Core
+from server.endpoint import Client
+from utils.misc import hook
+from server.parts.backend import MockBackend
+from server.endpoint import MockClient
+
 
 # -- code --
 log = logging.getLogger('mock')
 
 
-class MockConnection(object):
-    def __init__(self, gdlist):
-        self.gdlist = gdlist
-        self.gdevent = Event()
-        self.gdevent.clear()
-        self.exhausted = False
-        self.gdhistory = []
+class ServerWorld(object):
+    def __init__(self):
+        self.core = core = Core(disables=[
+            'archive', 'connect', 'stats', 'backend'
+        ])
+        core.backend = MockBackend(core)
 
-    def gexpect(self, tag, blocking=False):
-        assert self.gdlist, 'GAME_DATA_EXHAUSTED!'
-        # log.info('GAME_EXPECT: %s', repr(tag))
+    def client(self):
+        core = self.core
+        cli = MockClient(core)
+        cli.connected()
+        return cli
 
-        log.info('GAME_EXPECT: %s', tag)
-        glob = False
-        if tag.endswith('*'):
-            glob = True
+    def fullgame(self, cls=None, flags={}):
+        if not cls:
+            from thb.thb2v2 import THBattle2v2 as cls
 
-        missed = False
-        for i, d in enumerate(self.gdlist):
-            cond = d[0] == tag
-            cond = cond or glob and d[0].startswith(tag[:-1])
-            cond = cond or d[0].startswith('>') and re.match(d[0][1:] + '$', tag)
-            if cond:
-                log.info('GAME_READ: %s', repr(d))
-                del self.gdlist[i]
+        base = random.randint(1, 1000000)
+        core = self.core
+        g = core.room.create_game(cls, 'Game-%s' % base, flags)
+        core.game.halt_on_start(g)
 
-                if not self.gdlist:
-                    log.info('Game data exhausted.')
+        for i in range(g.n_persons):
+            u = self.client()
+            assert core.lobby.state_of(u) == 'connected'
+            core.auth.set_auth(u, base + i, 'UID%d' % (base + i))
+            core.lobby.state_of(u).transit('authed')
+            core.room.join_game(g, u, i)
+            core.room.get_ready(u)
 
-                return d
-            if not missed:
-                log.info('GAME_DATA_MISS: %s', repr(d))
-                missed = True
+        core.game.get_bootstrap_action(g)
 
-        assert False, 'GAME_DATA_MISS! EXPECTS "%s"' % tag
+        return g
 
-    def gwrite(self, tag, data):
-        log.debug('GAME_WRITE: %s', repr([tag, data]))
-        encoded = Endpoint.encode(data)
-        self.gdhistory.append([tag, Endpoint.decode(encoded)])
+    def start_game(self, g):
+        core = self.core
+        for u in core.room.users_of(g):
+            s = core.lobby.state_of(u)
+            s == 'room' and s.transit('ready')
 
-    def gclear(self):
-        assert self.exhausted
-
-
-def create_mock_player(gdlist):
-    conn = MockConnection(gdlist[:])
-    from server.core import Player
-    return Player(conn)
+        gevent.sleep(0.01)
 
 
 def hook_game(g):
@@ -72,14 +75,3 @@ def hook_game(g):
         pass
 
     g.synctag = 0
-
-    from game.autoenv import Game
-    Game.getgame = staticmethod(lambda: g)
-
-    from client.core import Game
-    Game.getgame = staticmethod(lambda: g)
-
-    from server.core import Game
-    Game.getgame = staticmethod(lambda: g)
-
-    g.__class__.getgame = staticmethod(lambda: g)

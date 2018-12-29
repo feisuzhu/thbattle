@@ -10,6 +10,7 @@
 ?
 !src/resource/c
 .idea
+.mypy_cache
 .installed.cfg
 .mr.developer.cfg
 .netrwhist
@@ -29,6 +30,7 @@ cc
 client_log.txt
 client_log.txt.gz
 components
+.dmypy.json
 current_version
 d
 dd
@@ -36,7 +38,6 @@ dd2
 develop-eggs/
 dist/
 eggs/
-parts/
 pip-delete-this-directory.txt
 pip-log.txt
 s

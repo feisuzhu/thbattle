@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import ActionStage, Damage, DropCards, MigrateCardsTransaction, UserAction
-from thb.actions import migrate_cards, random_choose_card
-from thb.cards import Attack, BaseDuel, LaunchGraze, Skill, UseAttack, t_None, t_Self
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from thb.actions import ActionStage, Damage, DropCards, UserAction, migrate_cards
+from thb.actions import random_choose_card
+from thb.cards.base import Skill
+from thb.cards.classes import Attack, BaseDuel, LaunchGraze, UseAttack, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseIndividualCardInputlet
-from utils import classmix
+from thb.mode import THBEventHandler
+from utils.misc import classmix
 
 
 # -- code --
@@ -21,7 +22,7 @@ class MijincihangzhanAttack(Attack):
 class MijincihangzhanDuelMixin(object):
     # 迷津慈航斩 弹幕战
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         source = self.source
         target = self.target
 
@@ -47,15 +48,15 @@ class NitoryuuWearEquipmentAction(UserAction):
         self.card = card
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         card = self.card
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
 
         weapons = [e for e in tgt.equips if e.equipment_category == 'weapon']
         if len(weapons) > 1:
             e = user_input([tgt], ChooseIndividualCardInputlet(self, weapons))
-            e = e or random_choose_card([weapons])
+            e = e or random_choose_card(g, [weapons])
             g.process_action(DropCards(tgt, tgt, [e]))
 
         migrate_cards([card], tgt.equips)
@@ -63,8 +64,8 @@ class NitoryuuWearEquipmentAction(UserAction):
         return True
 
 
-class NitoryuuWearEquipmentHandler(EventHandler):
-    interested = ('wear_equipment',)
+class NitoryuuWearEquipmentHandler(THBEventHandler):
+    interested = ['wear_equipment']
 
     def handle(self, evt_type, arg):
         we, tgt, c, rst = arg
@@ -73,22 +74,21 @@ class NitoryuuWearEquipmentHandler(EventHandler):
         if 'equipment' not in c.category: return arg
         if c.equipment_category != 'weapon': return arg
 
-        g = Game.getgame()
+        g = self.game
         g.process_action(NitoryuuWearEquipmentAction(tgt, tgt, c))
         return we, tgt, c, 'handled'
 
 
-class YoumuHandler(EventHandler):
-    interested = ('action_apply', 'action_before', 'attack_aftergraze', 'card_migration')
-    execute_before = ('ScarletRhapsodySwordHandler', 'LaevateinHandler', 'HouraiJewelHandler')
-    execute_after = ('VitalityHandler', )
+class YoumuHandler(THBEventHandler):
+    interested = ['action_apply', 'action_before', 'attack_aftergraze', 'card_migration']
+    execute_before = ['ScarletRhapsodySwordHandler', 'LaevateinHandler', 'HouraiJewelHandler']
+    execute_after = ['VitalityHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
             if isinstance(act, Attack):
                 if not act.source.has_skill(Mijincihangzhan): return act
                 act.__class__ = classmix(MijincihangzhanAttack, act.__class__)
-                act.graze_count = 0
             elif isinstance(act, BaseDuel):
                 if not isinstance(act, MijincihangzhanDuelMixin):
                     act.__class__ = classmix(MijincihangzhanDuelMixin, act.__class__)
@@ -125,7 +125,7 @@ class YoumuHandler(EventHandler):
             if rst: return arg
             if not isinstance(act, MijincihangzhanAttack): return arg
 
-            g = Game.getgame()
+            g = self.game
             return act, not g.process_action(LaunchGraze(act.target))
 
         return act
@@ -138,14 +138,14 @@ class YoumuHandler(EventHandler):
 class Mijincihangzhan(Skill):
     # 迷津慈航斩
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
 class Nitoryuu(Skill):
     # 二刀流
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
     def check(self):
@@ -155,5 +155,5 @@ class Nitoryuu(Skill):
 @register_character_to('common')
 class Youmu(Character):
     skills = [Mijincihangzhan, Nitoryuu]
-    eventhandlers_required = [YoumuHandler, NitoryuuWearEquipmentHandler]
+    eventhandlers = [YoumuHandler, NitoryuuWearEquipmentHandler]
     maxlife = 4

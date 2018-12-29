@@ -3,32 +3,33 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DropCards, GenericAction, PlayerTurn
-from thb.actions import ttags, user_choose_cards
-from thb.cards import DummyCard, InstantSpellCardAction, Reject, Skill
-from thb.cards import SpellCardAction, TreatAs, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DropCards, GenericAction
+from thb.actions import PlayerTurn, ttags, user_choose_cards
+from thb.cards.base import DummyCard, Skill, VirtualCard, t_None
+from thb.cards.classes import InstantSpellCardAction, Reject, SpellCardAction, TreatAs
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ProphetInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Prophet(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class ExtremeIntelligence(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class ProphetAction(GenericAction):
     def apply_action(self):
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
         n = min(len([p for p in g.players if not p.dead]), 5)
         cards = g.deck.getcards(n)
 
@@ -36,7 +37,7 @@ class ProphetAction(GenericAction):
 
         tgt.reveal(cards)
 
-        upcards, downcards = user_input([tgt], ProphetInputlet(self, cards), timeout=45) or [range(n), []]
+        upcards, downcards = user_input([tgt], ProphetInputlet(self, cards), timeout=45) or [list(range(n)), []]
 
         deck = g.deck.cards
         for i, c in enumerate(downcards):
@@ -51,8 +52,8 @@ class ProphetAction(GenericAction):
         return True
 
 
-class ProphetHandler(EventHandler):
-    interested = ('action_apply',)
+class ProphetHandler(THBEventHandler):
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
@@ -60,7 +61,7 @@ class ProphetHandler(EventHandler):
             if not tgt.has_skill(Prophet): return act
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
-            Game.getgame().process_action(ProphetAction(tgt, tgt))
+            self.game
 
         return act
 
@@ -82,7 +83,7 @@ class ExtremeIntelligenceAction(GenericAction):
     def apply_action(self):
         p = self.source
         cards = self.cards
-        g = Game.getgame()
+        g = self.game
         g.process_action(DropCards(p, p, cards))
 
         act = self.action
@@ -112,13 +113,13 @@ class ExtremeIntelligenceAction(GenericAction):
         return len(cl) == 1 and not cl[0].is_card(Skill)
 
 
-class ExtremeIntelligenceHandler(EventHandler):
-    interested = ('action_after', 'game_begin')
+class ExtremeIntelligenceHandler(THBEventHandler):
+    interested = ['action_after', 'game_begin']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, InstantSpellCardAction):
             if isinstance(act, Reject): return act
-            g = Game.getgame()
+            g = self.game
             target = g.current_player
 
             for p in g.players.exclude(target):
@@ -148,7 +149,7 @@ class ExtremeIntelligenceHandler(EventHandler):
                     g.process_action(nact)
 
         elif evt_type == 'game_begin':
-            g = Game.getgame()
+            g = self.game
             for p in g.players:
                 if isinstance(p, Ran):
                     p.tags['ran_ei'] = 0  # for ui
@@ -157,7 +158,7 @@ class ExtremeIntelligenceHandler(EventHandler):
 
 
 class ExtremeIntelligenceKOF(TreatAs, Skill):
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
 
     def __init__(self, player):
         Skill.__init__(self, player)
@@ -172,8 +173,8 @@ class ExtremeIntelligenceKOF(TreatAs, Skill):
         return True
 
 
-class ExtremeIntelligenceKOFHandler(EventHandler):
-    interested = ('action_apply', 'action_shootdown')
+class ExtremeIntelligenceKOFHandler(THBEventHandler):
+    interested = ['action_apply', 'action_shootdown']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStageLaunchCard):
@@ -199,7 +200,7 @@ class ExtremeIntelligenceKOFHandler(EventHandler):
 
 class NakedFox(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -214,12 +215,12 @@ class NakedFoxAction(GenericAction):
         return True
 
 
-class NakedFoxHandler(EventHandler):
-    interested = ('action_before',)
+class NakedFoxHandler(THBEventHandler):
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
-            g = Game.getgame()
+            g = self.game
             tgt = act.target
             if not tgt.has_skill(NakedFox): return act
             pact = g.action_stack[-1]
@@ -236,7 +237,7 @@ class NakedFoxHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Ran(Character):
     skills = [Prophet, ExtremeIntelligence, NakedFox]
-    eventhandlers_required = [
+    eventhandlers = [
         ProphetHandler,
         ExtremeIntelligenceHandler,
         NakedFoxHandler,
@@ -247,7 +248,7 @@ class Ran(Character):
 @register_character_to('kof')
 class RanKOF(Character):
     skills = [Prophet, ExtremeIntelligenceKOF, NakedFox]
-    eventhandlers_required = [
+    eventhandlers = [
         ProphetHandler,
         ExtremeIntelligenceKOFHandler,
         NakedFoxHandler,

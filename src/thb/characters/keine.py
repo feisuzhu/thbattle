@@ -1,25 +1,27 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, GameException, user_input
+from game.autoenv import user_input
+from game.base import GameException
 from thb.actions import ActionStage, ActiveDropCards, BaseActionStage, DrawCards, DropCards
 from thb.actions import GenericAction, LaunchCard, LifeLost, MaxLifeChange, PrepareStage, Reforge
 from thb.actions import UserAction, migrate_cards, random_choose_card, ttags, user_choose_cards
-from thb.cards import Card, Heal, PhysicalCard, Skill, VirtualCard, t_None, t_OtherOne
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Card, Skill, VirtualCard
+from thb.cards.classes import Heal, PhysicalCard, t_None, t_OtherOne
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class TeachTargetReforgeAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         tgt = self.target
         c = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-        c = c[0] if c else random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+        c = c[0] if c else random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
         if not c:
             return False
 
@@ -44,7 +46,7 @@ class TeachTargetEffect(GenericAction):
     def apply_action(self):
         tgt = self.target
         c = self.card
-        g = Game.getgame()
+        g = self.game
         tgt.reveal(c)
         migrate_cards([c], tgt.cards, unwrap=True)
 
@@ -55,7 +57,7 @@ class TeachTargetEffect(GenericAction):
             act = TeachTargetActionStage(tgt)
             g.process_action(act)
             if act.action_count != 1:
-                c = random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+                c = random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
                 if c:
                     g.players.reveal(c)
                     g.process_action(Reforge(tgt, tgt, c))
@@ -70,11 +72,11 @@ class TeachAction(UserAction):
         src, tgt = self.source, self.target
         cl = VirtualCard.unwrap([self.associated_card])
         assert len(cl) == 1
-        g = Game.getgame()
+        g = self.game
         ttags(src)['teach_used'] = True
         g.process_action(Reforge(src, src, cl[0]))
         cl = user_choose_cards(self, src, ('cards', 'showncards', 'equips'))
-        c = cl[0] if cl else random_choose_card([src.cards, src.showncards, src.equips])
+        c = cl[0] if cl else random_choose_card(g, [src.cards, src.showncards, src.equips])
         g.process_action(TeachTargetEffect(src, tgt, c))
         return True
 
@@ -88,7 +90,7 @@ class TeachAction(UserAction):
 
 class Teach(Skill):
     associated_action = TeachAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     no_drop = True
     target = t_OtherOne
     usage = 'reforge'
@@ -103,27 +105,27 @@ class Teach(Skill):
 
 class KeineGuard(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'awake')
+    skill_category = ['character', 'passive', 'awake']
     target = t_None
 
 
 class KeineGuardAwake(UserAction):
     def apply_action(self):
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
         g.process_action(MaxLifeChange(tgt, tgt, -1))
         tgt.skills.remove(KeineGuard)
         tgt.skills.append(Devour)
         return True
 
 
-class KeineGuardHandler(EventHandler):
-    interested = ('action_before',)
+class KeineGuardHandler(THBEventHandler):
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, PrepareStage):
             tgt = act.target
-            g = Game.getgame()
+            g = self.game
 
             cond = True and tgt.has_skill(KeineGuard)
             cond = cond and (tgt.life <= min([p.life for p in g.players if not p.dead]))
@@ -137,7 +139,7 @@ class KeineGuardHandler(EventHandler):
 
 class Devour(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -151,7 +153,7 @@ class DevourAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
         c = self.card
-        g = Game.getgame()
+        g = self.game
         ttags(tgt)['keine_devour'] = {
             'effect': self.effect,
             'life': tgt.life,
@@ -171,7 +173,7 @@ class DevourEffect(GenericAction):
     def apply_action(self):
         tgt = self.target
         params = self.params
-        g = Game.getgame()
+        g = self.game
         if params['effect'] == 'life':
             to = params['life']
             if to > tgt.life:
@@ -191,12 +193,12 @@ class DevourEffect(GenericAction):
         return True
 
 
-class DevourHandler(EventHandler):
-    interested = ('action_before', 'action_after')
+class DevourHandler(THBEventHandler):
+    interested = ['action_before', 'action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
-            g = Game.getgame()
+            g = self.game
             tgt = act.target
             for p in g.players:
                 if p.dead or not p.has_skill(Devour):
@@ -218,7 +220,7 @@ class DevourHandler(EventHandler):
             if not t:
                 return act
 
-            g = Game.getgame()
+            g = self.game
             g.process_action(DevourEffect(t['source'], tgt, t))
 
         return act
@@ -231,8 +233,11 @@ class DevourHandler(EventHandler):
         return c.is_card(PhysicalCard) and bool({'basic', 'equipment'} & set(c.category))
 
 
+register_character_to('common', '-kof')  # make pyflakes happy
+
+
 # @register_character_to('common', '-kof')
 class Keine(Character):
     skills = [Teach, KeineGuard]
-    eventhandlers_required = [KeineGuardHandler, DevourHandler]
+    eventhandlers = [KeineGuardHandler, DevourHandler]
     maxlife = 4

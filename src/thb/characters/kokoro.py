@@ -3,12 +3,14 @@
 # -- stdlib --
 # -- third party --
 # -- own --
+from game.autoenv import user_input
 from thb.actions import ActionStage, DropCards, ShowCards, UserAction, migrate_cards
 from thb.actions import user_choose_cards
-from thb.cards import Card, Skill, t_None, t_OtherOne
+from thb.cards.base import Card, Skill
+from thb.cards.classes import t_None, t_OtherOne
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, HopeMaskInputlet, HopeMaskKOFInputlet
-from thb.characters.baseclasses import Character, register_character_to
-from game.autoenv import EventHandler, Game, user_input
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -16,7 +18,7 @@ class BaseHopeMaskAction(UserAction):
 
     def apply_action(self):
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
         n = 1 + tgt.maxlife - tgt.life
         cards = g.deck.getcards(n)
 
@@ -50,8 +52,8 @@ class HopeMaskKOFAction(BaseHopeMaskAction):
     inputlet_cls = HopeMaskKOFInputlet
 
 
-class BaseHopeMaskHandler(EventHandler):
-    interested = ('action_apply',)
+class BaseHopeMaskHandler(THBEventHandler):
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
@@ -59,20 +61,20 @@ class BaseHopeMaskHandler(EventHandler):
             if not tgt.has_skill(self.skill): return act
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
-            Game.getgame().process_action(self.action(tgt, tgt))
+            self.game.process_action(self.action(tgt, tgt))
 
         return act
 
 
 class HopeMask(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class HopeMaskKOF(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -91,7 +93,7 @@ class BaseDarkNohAction(UserAction):
 
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
 
         src.tags['darknoh_tag'] = src.tags['turn_count']
         sk = self.associated_card
@@ -106,7 +108,7 @@ class BaseDarkNohAction(UserAction):
             cl = list(tgt.cards) + list(tgt.showncards)
             try:
                 cl.remove(card)
-            except:
+            except Exception:
                 pass
 
             cards = cl[:n]
@@ -158,7 +160,7 @@ class DarkNohKOFAction(BaseDarkNohAction):
 
 class BaseDarkNoh(Skill):
     no_drop = True
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_OtherOne
     usage = 'handover'
 
@@ -176,19 +178,19 @@ class DarkNoh(BaseDarkNoh):
     associated_action = DarkNohAction
 
 
-class DarkNohKOF(DarkNoh):
+class DarkNohKOF(BaseDarkNoh):
     associated_action = DarkNohKOFAction
 
 
 @register_character_to('common', '-kof')
 class Kokoro(Character):
     skills = [HopeMask, DarkNoh]
-    eventhandlers_required = [HopeMaskHandler]
+    eventhandlers = [HopeMaskHandler]
     maxlife = 3
 
 
 @register_character_to('kof')
 class KokoroKOF(Character):
     skills = [HopeMaskKOF, DarkNohKOF]
-    eventhandlers_required = [HopeMaskKOFHandler]
+    eventhandlers = [HopeMaskKOFHandler]
     maxlife = 3

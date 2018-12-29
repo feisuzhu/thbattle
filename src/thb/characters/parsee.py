@@ -3,18 +3,20 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import Game, user_input
-from thb.actions import DropCards, EventHandler, LaunchCard, migrate_cards
-from thb.cards import Card, Demolition, DemolitionCard, DummyCard, Skill, TreatAs
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from thb.actions import DropCards, LaunchCard, migrate_cards
+from thb.cards.base import Card, Skill, DummyCard
+from thb.cards.classes import Demolition, DemolitionCard, TreatAs
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 from utils.misc import classmix
 
 
 # -- code --
 class Envy(TreatAs, Skill):
     treat_as = DemolitionCard
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
 
     def check(self):
         cards = self.associated_cards
@@ -36,14 +38,14 @@ class EnvyRecycle(DummyCard):
     distance = 1
 
 
-class EnvyHandler(EventHandler):
-    interested = ('action_before',)
+class EnvyHandler(THBEventHandler):
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before': return act
         if not isinstance(act, DropCards): return act
 
-        g = Game.getgame()
+        g = self.game
         pact = g.action_stack[-1]
         if not isinstance(pact, Demolition): return act
         if not pact.source.has_skill(Envy): return act
@@ -81,5 +83,5 @@ class EnvyHandler(EventHandler):
 @register_character_to('common')
 class Parsee(Character):
     skills = [Envy]
-    eventhandlers_required = [EnvyHandler]
+    eventhandlers = [EnvyHandler]
     maxlife = 4

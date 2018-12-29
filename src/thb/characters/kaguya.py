@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, LaunchCard, LifeLost, UserAction, migrate_cards
 from thb.actions import skill_check, skill_wrap, user_choose_cards
-from thb.cards import Card, Heal, SealingArrayCard, Skill, TreatAs, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Card, Skill, VirtualCard, t_None
+from thb.cards.classes import Heal, SealingArrayCard, TreatAs
+from thb.cards.definition import BasicCard
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Dilemma(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -27,7 +29,7 @@ class DilemmaDamageAction(UserAction):
         tgt = self.target
 
         cards = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-        g = Game.getgame()
+        g = self.game
         if cards:
             self.peer_action = 'card'
             g.players.exclude(tgt).reveal(cards)
@@ -58,9 +60,9 @@ class DilemmaHealAction(DrawCards):
         self.amount = amount
 
 
-class DilemmaHandler(EventHandler):
-    interested = ('action_after',)
-    execute_after = ('DyingHandler', )
+class DilemmaHandler(THBEventHandler):
+    interested = ['action_after']
+    execute_after = ['DyingHandler']
 
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
@@ -76,7 +78,7 @@ class DilemmaHandler(EventHandler):
         if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             return act
 
-        g = Game.getgame()
+        g = self.game
         if isinstance(act, Damage):
             g.process_action(DilemmaDamageAction(tgt, src))
         else:  # Heal
@@ -87,25 +89,25 @@ class DilemmaHandler(EventHandler):
 
 class ImperishableNight(TreatAs, Skill):
     treat_as = SealingArrayCard
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
 
     def check(self):
-        return Game.getgame().current_player is not self.player
+        return self.game.current_player is not self.player
 
 
-class ImperishableNightHandler(EventHandler):
-    interested = ('action_after',)
+class ImperishableNightHandler(THBEventHandler):
+    interested = ['action_after']
     card_usage = 'launch'
 
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
         if not isinstance(act, LaunchCard): return act
 
-        g = Game.getgame()
+        g = self.game
 
         card = act.card
         if not card: return act
-        if 'basic' not in card.category: return act
+        if not isinstance(card, BasicCard): return act
         if card.color != Card.RED: return act
 
         if card.is_card(VirtualCard):
@@ -162,5 +164,5 @@ class ImperishableNightHandler(EventHandler):
 @register_character_to('common')
 class Kaguya(Character):
     skills = [Dilemma, ImperishableNight]
-    eventhandlers_required = [DilemmaHandler, ImperishableNightHandler]
+    eventhandlers = [DilemmaHandler, ImperishableNightHandler]
     maxlife = 3

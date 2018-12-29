@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, UserAction
 from thb.actions import random_choose_card, user_choose_players
-from thb.cards import Skill, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill, VirtualCard
+from thb.cards.classes import t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -17,12 +18,12 @@ class AutumnWindEffect(GenericAction):
     def apply_action(self):
         src, tgt = self.source, self.target
 
-        g = Game.getgame()
+        g = self.game
 
         catnames = ('cards', 'showncards', 'equips')
         cats = [getattr(tgt, i) for i in catnames]
         card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
-        card = card or random_choose_card(cats)
+        card = card or random_choose_card(g, cats)
         if not card:
             return False
 
@@ -44,7 +45,7 @@ class AutumnWindAction(UserAction):
         self.target_list = target_list
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src = self.source
 
         for p in self.target_list:
@@ -53,8 +54,8 @@ class AutumnWindAction(UserAction):
         return True
 
 
-class AutumnWindHandler(EventHandler):
-    interested = ('action_after', )
+class AutumnWindHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, DropCardStage):
@@ -66,7 +67,7 @@ class AutumnWindHandler(EventHandler):
             if not tgt.has_skill(AutumnWind):
                 return act
 
-            g = Game.getgame()
+            g = self.game
             if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
@@ -94,7 +95,7 @@ class AutumnWindHandler(EventHandler):
 
 class AutumnWind(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -102,15 +103,15 @@ class DecayDrawCards(DrawCards):
     pass
 
 
-class DecayDrawCardHandler(EventHandler):
-    interested = ('card_migration',)
-    execute_before = ('LuckHandler',)
+class DecayDrawCardHandler(THBEventHandler):
+    interested = ['card_migration']
+    execute_before = ['LuckHandler']
 
     def handle(self, evt_type, arg):
         if evt_type != 'card_migration':
             return arg
 
-        g = Game.getgame()
+        g = self.game
         me = getattr(g, 'current_player', None)
         if me is None: return arg
         if me.dead: return arg
@@ -151,9 +152,9 @@ class DecayEffect(UserAction):
         return True
 
 
-class DecayDamageHandler(EventHandler):
-    interested = ('action_after', 'action_before')
-    execute_after = ('SuwakoHatHandler', )
+class DecayDamageHandler(THBEventHandler):
+    interested = ['action_after', 'action_before']
+    execute_after = ['SuwakoHatHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -161,7 +162,7 @@ class DecayDamageHandler(EventHandler):
             if not (tgt and tgt.has_skill(Decay)):
                 return act
 
-            g = Game.getgame()
+            g = self.game
             if g.current_player is tgt: return act
             if not g.current_player: return act
             g.process_action(DecayAction(src, g.current_player))
@@ -172,7 +173,7 @@ class DecayDamageHandler(EventHandler):
             if not t['shizuha_decay']: return act
 
             t['shizuha_decay'] = False
-            g = Game.getgame()
+            g = self.game
             g.process_action(DecayEffect(tgt, tgt, act))
 
         return act
@@ -180,12 +181,12 @@ class DecayDamageHandler(EventHandler):
 
 class Decay(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 @register_character_to('common')
 class Shizuha(Character):
     skills = [Decay, AutumnWind]
-    eventhandlers_required = [DecayDamageHandler, DecayDrawCardHandler, AutumnWindHandler]
+    eventhandlers = [DecayDamageHandler, DecayDrawCardHandler, AutumnWindHandler]
     maxlife = 3

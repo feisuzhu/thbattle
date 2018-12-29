@@ -3,14 +3,15 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..cards import Card, Heal, HealCard, Skill, t_None, t_One
-from .baseclasses import Character, register_character_to
+from thb.cards.base import Card
+from thb.cards.classes import Heal, HealCard, Skill, t_None, t_One
+from thb.characters.base import Character, register_character_to
 
 
 # -- code --
 class FirstAid(Skill):
     associated_action = None
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_None
     usage = 'launch'
 
@@ -44,7 +45,7 @@ class EirinHeal(Heal):
 
 class Medic(Skill):
     associated_action = EirinHeal
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_One
     usage = 'drop'
 
@@ -61,5 +62,4 @@ class Medic(Skill):
 @register_character_to('common', '-kof')
 class Eirin(Character):
     skills = [Medic, FirstAid]
-    eventhandlers_required = []
     maxlife = 3

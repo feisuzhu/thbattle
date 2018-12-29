@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+from typing import Any, Type
+
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game
 from thb.actions import Damage, DrawCardStage, DrawCards, DropCards, FinalizeStage, ForEach
-from thb.actions import LaunchCard, ShowCards, UserAction, migrate_cards
-from thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
-from thb.actions import user_input
-from thb.cards import AttackCard, Card, DuelCard, Skill, TreatAs, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.actions import LaunchCard, ShowCards, UserAction, migrate_cards, random_choose_card, ttags
+from thb.actions import user_choose_cards, user_choose_players, user_input
+from thb.cards.base import Card, Skill, VirtualCard
+from thb.cards.classes import AttackCard, DuelCard, TreatAs, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class KanakoFaithCheers(UserAction):
     def apply_action(self):
-        return Game.getgame().process_action(DrawCards(self.target, 1))
+        return self.game.process_action(DrawCards(self.target, 1))
 
 
 class KanakoFaithAttack(TreatAs, VirtualCard):
@@ -30,7 +32,7 @@ class KanakoFaithDuel(TreatAs, VirtualCard):
 class KanakoFaithCounteract(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
         g.process_action(KanakoFaithCounteractPart1(src, tgt))
         g.process_action(KanakoFaithCounteractPart2(src, tgt))
         return True
@@ -40,13 +42,13 @@ class KanakoFaithCounteractPart1(UserAction):
 
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
 
         catnames = ('cards', 'showncards', 'equips')
         cats = [getattr(tgt, i) for i in catnames]
 
         card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
-        card = card or random_choose_card(cats)
+        card = card or random_choose_card(g, cats)
 
         assert card
         self.card = card
@@ -59,10 +61,11 @@ class KanakoFaithCounteractPart1(UserAction):
 class KanakoFaithCounteractPart2(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
 
         choice = user_input([tgt], ChooseOptionInputlet(self, ('duel', 'attack')))
 
+        cls: Type[Any]
         if choice == 'duel':
             cls = KanakoFaithDuel
         elif choice == 'attack':
@@ -80,7 +83,7 @@ class KanakoFaithEffect(UserAction):
 
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
 
         has_card = src.cards or src.showncards or src.equips
 
@@ -104,7 +107,7 @@ class KanakoFaithAction(ForEach):
 
 class KanakoFaith(Skill):
     associated_action = KanakoFaithAction
-    skill_category = ('character', 'active', 'once')
+    skill_category = ['character', 'active', 'once']
 
     def check(self):
         return not self.associated_cards
@@ -123,11 +126,11 @@ class VirtueAction(UserAction):
 
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
         g.process_action(DrawCards(tgt, 2))
 
         cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-        c = cl[0] if cl else random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+        c = cl[0] if cl else random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
 
         if not c: return False
 
@@ -146,8 +149,8 @@ class VirtueAction(UserAction):
         return len(cl) == 1 and not cl[0].is_card(VirtualCard)
 
 
-class VirtueHandler(EventHandler):
-    interested = ('action_before',)
+class VirtueHandler(THBEventHandler):
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DrawCardStage):
@@ -158,7 +161,7 @@ class VirtueHandler(EventHandler):
             if not tgt.has_skill(Virtue):
                 return act
 
-            g = Game.getgame()
+            g = self.game
             pl = [p for p in g.players if not p.dead and p is not tgt]
             pl = pl and user_choose_players(self, tgt, pl)
             if not pl:
@@ -178,7 +181,7 @@ class VirtueHandler(EventHandler):
 
 class KanakoFaithKOF(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -186,8 +189,8 @@ class KanakoFaithKOFAction(DrawCards):
     pass
 
 
-class KanakoFaithKOFHandler(EventHandler):
-    interested = ('action_before', 'action_apply')
+class KanakoFaithKOFHandler(THBEventHandler):
+    interested = ['action_before', 'action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FinalizeStage):
@@ -195,7 +198,7 @@ class KanakoFaithKOFHandler(EventHandler):
             if not tgt.has_skill(KanakoFaithKOF):
                 return act
 
-            g = Game.getgame()
+            g = self.game
             op = g.get_opponent(tgt)
 
             if tgt.life > op.life or ttags(tgt)['kanako_faith_kof']:
@@ -205,7 +208,7 @@ class KanakoFaithKOFHandler(EventHandler):
 
         elif evt_type == 'action_apply' and isinstance(act, Damage):
             src, tgt = act.source, act.target
-            g = Game.getgame()
+            g = self.game
 
             if src and src.has_skill(KanakoFaithKOF) and tgt is g.get_opponent(src):
                 ttags(src)['kanako_faith_kof'] = True
@@ -215,19 +218,19 @@ class KanakoFaithKOFHandler(EventHandler):
 
 class Virtue(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 @register_character_to('common', '-kof')
 class Kanako(Character):
     skills = [Virtue, KanakoFaith]
-    eventhandlers_required = [VirtueHandler]
+    eventhandlers = [VirtueHandler]
     maxlife = 4
 
 
 # @register_character_to('kof')
 class KanakoKOF(Character):
     skills = [KanakoFaithKOF]
-    eventhandlers_required = [KanakoFaithKOFHandler]
+    eventhandlers = [KanakoFaithKOFHandler]
     maxlife = 4

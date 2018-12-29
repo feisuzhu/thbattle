@@ -3,12 +3,14 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import Damage, DropCards, GenericAction, LaunchCard, LifeLost, UserAction
 from thb.actions import random_choose_card, ttags, user_choose_cards
-from thb.cards import AttackCard, Skill, t_None, t_OtherOne, DuelCard, VirtualCard
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill, VirtualCard
+from thb.cards.classes import AttackCard, DuelCard, t_None, t_OtherOne
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -22,7 +24,7 @@ class CirnoDropCards(GenericAction):
         src, tgt = self.source, self.target
         cards = self.cards
 
-        g = Game.getgame()
+        g = self.game
         g.players.reveal(cards)
         g.process_action(DropCards(src, tgt, cards))
         return True
@@ -36,12 +38,12 @@ class BakadesuAction(UserAction):
         ttags(src)['bakadesu'] = True
 
         cl = user_choose_cards(self, tgt, ('cards', 'showncards'))
-        g = Game.getgame()
+        g = self.game
         if cl:
             g.process_action(LaunchCard(tgt, [src], cl[0]))
         else:
             c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
-            c = c or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+            c = c or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
             c and g.process_action(CirnoDropCards(src, tgt, [c]))
 
         return True
@@ -69,7 +71,7 @@ class BakadesuAction(UserAction):
 
 class Bakadesu(Skill):
     associated_action = BakadesuAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_OtherOne
 
     def check(self):
@@ -78,7 +80,7 @@ class Bakadesu(Skill):
 
 class PerfectFreeze(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -94,9 +96,9 @@ class PerfectFreezeAction(UserAction):
         self.damage.cancelled = True
 
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
         cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-        c = cl[0] if cl else random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+        c = cl[0] if cl else random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
 
         if c:
             damage = c.resides_in is not tgt.equips
@@ -120,13 +122,13 @@ class PerfectFreezeAction(UserAction):
         return CirnoDropCards(self.source, self.target, cl).can_fire()
 
 
-class PerfectFreezeHandler(EventHandler):
-    interested = ('action_before',)
+class PerfectFreezeHandler(THBEventHandler):
+    interested = ['action_before']
 
-    execute_after = (
+    execute_after = [
         'RepentanceStickHandler',
         'AyaRoundfanHandler',
-    )
+    ]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
@@ -137,7 +139,7 @@ class PerfectFreezeHandler(EventHandler):
             if not (src and src.has_skill(PerfectFreeze)):
                 return act
 
-            g = Game.getgame()
+            g = self.game
             for lc in reversed(g.action_stack):
                 if isinstance(lc, LaunchCard):
                     break
@@ -162,5 +164,5 @@ class PerfectFreezeHandler(EventHandler):
 @register_character_to('common')
 class Cirno(Character):
     skills = [Bakadesu, PerfectFreeze]
-    eventhandlers_required = [PerfectFreezeHandler]
+    eventhandlers = [PerfectFreezeHandler]
     maxlife = 4

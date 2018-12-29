@@ -1,21 +1,31 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import annotations
 
 # -- stdlib --
+from typing import Any, Dict, Iterable, List, TYPE_CHECKING, Type, Union
 import logging
 
 # -- third party --
 # -- own --
-from game.autoenv import Game
-from game.base import Inputlet
-from utils import CheckFailed, check, check_type
+# -- typing --
+if TYPE_CHECKING:
+    from thb.actions import CardChooser, CharacterChooser  # noqa: F401
+    from thb.characters.base import Character  # noqa: F401
+
+# -- errord --
+from game.base import Inputlet, Player
+from thb.cards.base import Card, Skill
+from thb.common import CharChoice
+from utils.check import CheckFailed, check, check_type
+
 
 # -- code --
 log = logging.getLogger('Inputlets')
 
 
 class ChooseOptionInputlet(Inputlet):
-    def init(self, options):
+    def __init__(self, initiator: Any, options: Iterable):
+        self.initiator = initiator
         self.options = options
         self.result = None
 
@@ -34,14 +44,19 @@ class ChooseOptionInputlet(Inputlet):
 
 
 class ActionInputlet(Inputlet):
-    def init(self, categories, candidates):
+    initiator: Union[CardChooser, CharacterChooser]
+    actor: Character
+
+    def __init__(self, initiator: Union[CardChooser, CharacterChooser], categories: Iterable[str], candidates: Iterable[object]):
+        self.initiator = initiator
+
         self.categories = categories
         self.candidates = candidates
 
-        self.skills = []
-        self.cards = []
-        self.players = []
-        self.params = {}
+        self.skills: List[Type[Skill]] = []
+        self.cards: List[Card] = []
+        self.players: List[Player] = []
+        self.params: Dict[str, Any] = {}
 
     def parse(self, data):
         # data = [
@@ -52,19 +67,18 @@ class ActionInputlet(Inputlet):
         # ]
 
         actor = self.actor
-        g = Game.getgame()
+        g = self.game
         categories = self.categories
         categories = [getattr(actor, i) for i in categories] if categories else None
         candidates = self.candidates
 
-        skills = []
-        cards = []
-        players = []
-        params = {}
+        skills: List[Type[Skill]] = []
+        cards: List[Card] = []
+        players: List[Player] = []
+        params: Dict[str, Any] = {}
 
-        _ = Ellipsis
         try:
-            check_type([[int, _]] * 3 + [dict], data)
+            check_type([[int, ...]] * 3 + [dict], data)  # type: ignore
 
             sid_list, cid_list, pid_list, params = data
 
@@ -75,7 +89,7 @@ class ActionInputlet(Inputlet):
                 players = pl
 
             if categories:
-                cards = g.deck.lookupcards(cid_list)
+                cards = [g.deck.lookup(i) for i in cid_list]
                 check(len(cards) == len(cid_list))  # Invalid id
 
                 cs = set(cards)
@@ -91,13 +105,13 @@ class ActionInputlet(Inputlet):
                 else:
                     check(all(c.resides_in in categories for c in cards))  # Cards in desired categories?
 
-            return [skills, cards, players, params]
+            return (skills, cards, players, params)
 
         except CheckFailed:
             return None
 
     def data(self):
-        g = Game.getgame()
+        g = self.game
         actor_skills = self.actor.skills
         sid_list = [actor_skills.index(s) for s in self.skills]
         cid_list = [c.sync_id for c in self.cards]
@@ -112,7 +126,8 @@ class ActionInputlet(Inputlet):
 
 
 class ChooseIndividualCardInputlet(Inputlet):
-    def init(self, cards):
+    def __init__(self, initiator: Any, cards: List[Card]):
+        self.initiator = initiator
         self.cards = cards
         self.selected = None
 
@@ -144,7 +159,8 @@ class ChooseIndividualCardInputlet(Inputlet):
 
 
 class ChoosePeerCardInputlet(Inputlet):
-    def init(self, target, categories):
+    def __init__(self, initiator: Any, target: Character, categories: Iterable[str]):
+        self.initiator = initiator
         self.target = target
         self.categories = categories
         self.selected = None
@@ -159,14 +175,12 @@ class ChoosePeerCardInputlet(Inputlet):
             check(sum(len(c) for c in categories))  # no cards at all
 
             cid = data
-            g = Game.getgame()
+            g = self.game
 
             check(isinstance(cid, int))
 
-            cards = g.deck.lookupcards((cid,))
-
-            check(len(cards) == 1)  # Invalid id
-            card = cards[0]
+            card = g.deck.lookup(cid)
+            check(card)  # Invalid id
 
             check(card.resides_in.owner is target)
             check(card.resides_in in categories)
@@ -194,18 +208,18 @@ class ChoosePeerCardInputlet(Inputlet):
 
 class ProphetInputlet(Inputlet):
     '''For Ran'''
-    def init(self, cards):
+    def __init__(self, initiator: Any, cards: List[Card]):
+        self.initiator = initiator
         self.cards = cards
-        self.upcards = []
-        self.downcards = []
+        self.upcards: List[Card] = []
+        self.downcards: List[Card] = []
 
     def parse(self, data):
-        _ = Ellipsis
         try:
-            check_type([[int, _]] * 2, data)
+            check_type([[int, ...]] * 2, data)
             upcards = data[0]
             downcards = data[1]
-            check(sorted(upcards + downcards) == range(len(self.cards)))
+            check(sorted(upcards + downcards) == list(range(len(self.cards))))
         except CheckFailed:
             return [self.cards, []]
 
@@ -220,7 +234,7 @@ class ProphetInputlet(Inputlet):
         upcards = self.upcards
         downcards = self.downcards
         if not set(cards) == set(upcards + downcards):
-            return [range(len(self.cards)), []]
+            return [list(range(len(self.cards))), []]
 
         upcards = [cards.index(c) for c in upcards]
         downcards = [cards.index(c) for c in downcards]
@@ -233,13 +247,10 @@ class ProphetInputlet(Inputlet):
 
 
 class ChooseGirlInputlet(Inputlet):
-    def init(self, mapping):
-        # mapping = {
-        #   Player1: [CharChoice1, ...],
-        #   ...
-        # }
+    def __init__(self, initiator: Any, mapping: Dict[Player, List[CharChoice]]):
+        self.initiator = initiator
+
         m = dict(mapping)
-        from .common import CharChoice
         for k in m:
             assert all([isinstance(i, CharChoice) for i in m[k]])
             m[k] = m[k][:]
@@ -266,7 +277,7 @@ class ChooseGirlInputlet(Inputlet):
 
         try:
             return self.mapping[self.actor].index(self.choice)
-        except:
+        except Exception:
             log.exception('WTF?!')
             return None
 
@@ -276,17 +287,15 @@ class ChooseGirlInputlet(Inputlet):
 
 
 class SortCharacterInputlet(Inputlet):
-    def init(self, mapping, limit=None):
-        # mapping = {
-        #   Player1: [CharChoice1, ...],
-        #   ...
-        # }
-        s = set([len(l) for l in mapping.values()])
+    def __init__(self, initiator: Any, mapping: Dict[Player, List[CharChoice]], limit: int=10000):
+        self.initiator = initiator
+
+        s = {len(l) for l in list(mapping.values())}
         assert(len(s) == 1)
         self.num = n = s.pop()
         self.limit = limit if n >= limit else n
         self.mapping = mapping
-        self.result = range(n)
+        self.result = list(range(n))
 
     def parse(self, data):
         n = self.num
@@ -297,7 +306,7 @@ class SortCharacterInputlet(Inputlet):
             return data
 
         except CheckFailed:
-            return range(n)
+            return list(range(n))
 
     def data(self):
         assert set(self.result) == set(range(self.num))
@@ -310,18 +319,18 @@ class SortCharacterInputlet(Inputlet):
 
 class HopeMaskInputlet(Inputlet):
     '''For Kokoro'''
-    def init(self, cards):
+    def __init__(self, initiator: Any, cards: List[Card]):
+        self.initiator = initiator
         self.cards = cards
-        self.putback = []
-        self.acquire = []
+        self.putback: List[Card] = []
+        self.acquire: List[Card] = []
 
     def parse(self, data):
-        _ = Ellipsis
         try:
-            check_type([[int, _]] * 2, data)
+            check_type([[int, ...]] * 2, data)
             putback = data[0]
             acquire = data[1]
-            check(sorted(putback+acquire) == range(len(self.cards)))
+            check(sorted(putback+acquire) == list(range(len(self.cards))))
 
             cards = self.cards
             putback = [cards[i] for i in putback]
@@ -348,7 +357,7 @@ class HopeMaskInputlet(Inputlet):
         putback = self.putback
         acquire = self.acquire
         if not set(cards) == set(putback + acquire):
-            return [range(len(self.cards)), []]
+            return [list(range(len(self.cards))), []]
 
         putback = [cards.index(c) for c in putback]
         acquire = [cards.index(c) for c in acquire]
@@ -360,7 +369,7 @@ class HopeMaskInputlet(Inputlet):
         self.acquire = acquire
 
     def post_process(self, actor, rst):
-        g = Game.getgame()
+        g = self.game
         putback, acquire = rst
         g.players.exclude(actor).reveal(acquire)
 
@@ -389,7 +398,8 @@ class HopeMaskKOFInputlet(HopeMaskInputlet):
 
 
 class GalgameDialogInputlet(Inputlet):
-    def init(self, character, dialog, voice):
+    def __init__(self, initiator: Any, character: Character, dialog: str, voice: str):
+        self.initiator = initiator
         self.character = character
         self.dialog = dialog
         self.result = None

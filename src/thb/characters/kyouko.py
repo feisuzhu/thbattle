@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import AskForCard, Damage, DrawCards, LaunchCard, UserAction, migrate_cards
 from thb.actions import user_choose_players
-from thb.cards import Attack, AttackCard, Skill, VirtualCard, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill, VirtualCard
+from thb.cards.classes import Attack, AttackCard, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Echo(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -29,8 +30,8 @@ class EchoAction(UserAction):
         return True
 
 
-class EchoHandler(EventHandler):
-    interested = ('action_after',)
+class EchoHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -41,7 +42,7 @@ class EchoHandler(EventHandler):
             if not tgt.has_skill(Echo):
                 return act
 
-            g = Game.getgame()
+            g = self.game
             pact = g.action_stack[-1]
             card = getattr(pact, 'associated_card', None)
             if not card:
@@ -73,7 +74,7 @@ class EchoHandler(EventHandler):
 
 class Resonance(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -95,7 +96,7 @@ class ResonanceAction(AskForCard):
         self.victim = victim
 
     def process_card(self, c):
-        g = Game.getgame()
+        g = self.game
         g.process_action(ResonanceLaunchCard(self.target, [self.victim], c, bypass_check=True))
         return True
 
@@ -103,8 +104,8 @@ class ResonanceAction(AskForCard):
         return ResonanceLaunchCard(self.target, [self.victim], cl[0], bypass_check=True).can_fire()
 
 
-class ResonanceHandler(EventHandler):
-    interested = ('action_done',)
+class ResonanceHandler(THBEventHandler):
+    interested = ['action_done']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_done' and isinstance(act, Attack):
@@ -117,7 +118,7 @@ class ResonanceHandler(EventHandler):
             if not src.has_skill(Resonance):
                 return act
 
-            g = Game.getgame()
+            g = self.game
             pl = [p for p in g.players if not p.dead and p not in (src, tgt)]
 
             if not pl:
@@ -142,5 +143,5 @@ class ResonanceHandler(EventHandler):
 @register_character_to('common')
 class Kyouko(Character):
     skills = [Echo, Resonance]
-    eventhandlers_required = [EchoHandler, ResonanceHandler]
+    eventhandlers = [EchoHandler, ResonanceHandler]
     maxlife = 4

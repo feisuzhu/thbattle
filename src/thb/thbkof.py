@@ -1,67 +1,63 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import annotations
 
 # -- stdlib --
-from collections import defaultdict
+from enum import Enum
 from itertools import cycle
+from typing import Dict, List
 import logging
 
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, list_shuffle
 from game.autoenv import user_input
-from thb.actions import DistributeCards, GenericAction, PlayerDeath, PlayerTurn, RevealIdentity
-from thb.actions import action_eventhandlers
-from thb.characters.baseclasses import Character, mixin_character
-from thb.common import PlayerIdentity, build_choices, roll
+from game.base import Player, BootstrapAction, InputTransaction
+from game.base import InterruptActionFlow, list_shuffle, GameEnded
+from thb.actions import DistributeCards, PlayerDeath, PlayerTurn, RevealRole
+from thb.cards.base import Deck
+from thb.cards.definition import kof_card_definition
+from thb.common import CharChoice, PlayerRole, build_choices_shared, roll
+from thb.characters.base import Character
 from thb.inputlets import ChooseGirlInputlet
-from utils import Enum, first
+from thb.mode import THBattle, THBEventHandler
+from utils.misc import BatchList
+from thb.item import GameItem
+from typing import Any
 
 
 # -- code --
-log = logging.getLogger('THBattle')
-_game_ehs = {}
+log = logging.getLogger('THBattleKOF')
 
 
-def game_eh(cls):
-    _game_ehs[cls.__name__] = cls
-    return cls
+class DeathHandler(THBEventHandler):
+    interested = ['action_apply']
 
+    game: 'THBattleKOF'
 
-@game_eh
-class DeathHandler(EventHandler):
-    interested = ('action_apply',)
-
-    def handle(self, evt_type, act):
+    def handle(self, evt_type: str, act: PlayerDeath):
         if evt_type != 'action_apply': return act
         if not isinstance(act, PlayerDeath): return act
         tgt = act.target
+        p = tgt.player
 
-        g = Game.getgame()
+        g = self.game
+        pl = g.players.player
 
-        if tgt.remaining[0] <= 0:
-            pl = g.players[:]
-            pl.remove(tgt)
-            g.winners = pl
-            g.game_end()
+        if len(g.chosen[p]) <= 2:  # 5(total chosen) - 3(available characters) = 2
+            pl.remove(p)
+            raise GameEnded(pl)
 
-        tgt.remaining[0] -= 1
+        if g.is_dropped(pl[0]):
+            raise GameEnded([pl[1]])
 
-        pl = g.players
-        if pl[0].dropped:
-            g.winners = [pl[1]]
-            g.game_end()
-
-        if pl[1].dropped:
-            g.winners = [pl[0]]
-            g.game_end()
+        if g.is_dropped(pl[1]):
+            raise GameEnded([pl[0]])
 
         return act
 
 
-@game_eh
-class KOFCharacterSwitchHandler(EventHandler):
-    interested = ('action_after', 'action_before', 'action_stage_action')
+class KOFCharacterSwitchHandler(THBEventHandler):
+    interested = ['action_after', 'action_before', 'action_stage_action']
+    game: 'THBattleKOF'
 
     def handle(self, evt_type, act):
         cond = evt_type in ('action_before', 'action_after')
@@ -70,18 +66,16 @@ class KOFCharacterSwitchHandler(EventHandler):
         cond and self.do_switch_dead()
         return act
 
-    @classmethod
-    def do_switch_dead(cls):
-        g = Game.getgame()
+    def do_switch_dead(self):
+        g = self.game
 
         for p in [p for p in g.players if p.dead and p.choices]:
-            new = cls.switch(p)
+            new = self.switch(p)
             g.process_action(DistributeCards(new, 4))
             g.emit_event('character_debut', (p, new))
 
-    @staticmethod
-    def switch(p):
-        g = Game.getgame()
+    def switch(self, p):
+        g = self.game
         mapping = {p: p.choices}
 
         with InputTransaction('ChooseGirl', [p], mapping=mapping) as trans:
@@ -93,179 +87,141 @@ class KOFCharacterSwitchHandler(EventHandler):
         return p
 
 
-class Identity(PlayerIdentity):
-    class TYPE(Enum):
-        HIDDEN = 0
-        HAKUREI = 1
-        MORIYA = 2
+class THBKOFRole(Enum):
+    HIDDEN  = 0
+    HAKUREI = 1
+    MORIYA  = 2
 
 
-class THBattleKOFBootstrap(GenericAction):
-    def __init__(self, params, items):
+class THBattleKOFBootstrap(BootstrapAction):
+    game: 'THBattleKOF'
+
+    def __init__(self, params: Dict[str, Any],
+                       items: Dict[Player, List[GameItem]],
+                       players: BatchList[Player]):
         self.source = self.target = None
         self.params = params
         self.items = items
+        self.players = players
 
-    def apply_action(self):
-        g = Game.getgame()
+    def apply_action(self) -> bool:
+        g = self.game
 
-        from . import cards
-
-        g.pick_history = []
-
-        g.deck = cards.Deck(cards.kof_card_definition)
-        g.ehclasses = []
-        g.current_player = None
-
-        for i, p in enumerate(g.players):
-            p.identity = Identity()
-            p.identity.type = (Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA)[i % 2]
+        g.deck = Deck(g, kof_card_definition)
+        pl = self.players
+        A, B = pl
+        g.roles = {
+            A: PlayerRole(THBKOFRole),
+            B: PlayerRole(THBKOFRole),
+        }
+        g.roles[A].set(THBKOFRole.HAKUREI)
+        g.roles[B].set(THBKOFRole.MORIYA)
 
         # choose girls -->
         from thb.characters import get_characters
         chars = get_characters('common', 'kof')
 
-        A, B = roll(g, self.items)
+        A, B = roll(g, pl, self.items)
         order = [A, B, B, A, A, B, B, A, A, B]
 
-        choices, imperial_choices = build_choices(
-            g, self.items,
-            candidates=chars, players=[A, B],
-            num=10, akaris=4, shared=True,
+        choices, imperial_choices = build_choices_shared(
+            g, pl, self.items,
+            candidates=chars, spec={'num': 10, 'akaris': 4},
         )
 
-        chosen = {A: [], B: []}
+        g.chosen = {A: [], B: []}
 
-        with InputTransaction('ChooseGirl', g.players, mapping=choices) as trans:
-            for p, c in imperial_choices:
+        with InputTransaction('ChooseGirl', pl, mapping=choices) as trans:
+            for p, c in imperial_choices.items():
                 c.chosen = p
-                chosen[p].append(c)
+                g.chosen[p].append(c)
                 trans.notify('girl_chosen', (p, c))
                 order.remove(p)
 
             for p in order:
-                c = user_input([p], ChooseGirlInputlet(g, choices), 10, 'single', trans)
-                c = c or first(choices[p], lambda c: not c.chosen)
+                c = user_input([p], ChooseGirlInputlet(g, {p: choices}), 10, 'single', trans)
+                # c = c or next(choices[p], lambda c: not c.chosen, None)
+                c = c or next(c for c in choices if not c.chosen)
 
                 c.chosen = p
-                chosen[p].append(c)
+                g.chosen[p].append(c)
 
                 trans.notify('girl_chosen', (p, c))
 
         # reveal akaris for themselves
         for p in [A, B]:
-            for c in chosen[p]:
+            for c in g.chosen[p]:
                 c.akari = False
                 p.reveal(c)
                 del c.chosen
 
-        list_shuffle(chosen[A], A)
-        list_shuffle(chosen[B], B)
+        list_shuffle(g, g.chosen[A], A)
+        list_shuffle(g, g.chosen[B], B)
 
-        with InputTransaction('ChooseGirl', g.players, mapping=chosen) as trans:
-            ilet = ChooseGirlInputlet(g, chosen)
+        with InputTransaction('ChooseGirl', pl, mapping=g.chosen) as trans:
+            ilet = ChooseGirlInputlet(g, g.chosen)
             ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
             rst = user_input([A, B], ilet, type='all', trans=trans)
 
         def s(p):
-            c = rst[p] or chosen[p][0]
-            chosen[p].remove(c)
-            p.choices = chosen[p]
-            p.remaining = [2]
-            p = g.next_character(p, c)
-            return p
+            c = rst[p] or g.chosen[p][0]
+            g.chosen[p].remove(c)
 
-        A, B = s(A), s(B)
+            c.akari = False
+            pl.reveal(c)
+            cls = c.char_cls
+            assert cls
+            ch = cls(p)
+            g.refresh_dispatcher()
+            g.emit_event('switch_character', (None, ch))
 
-        order = [1, 0] if A is g.players[0] else [0, 1]
+            return ch
 
-        for p in [A, B]:
-            g.process_action(RevealIdentity(p, g.players))
+        cA, cB = g.players = BatchList([s(A), s(B)])
+
+        for p in pl:
+            g.process_action(RevealRole(p, pl))
 
         g.emit_event('game_begin', g)
 
-        g.process_action(DistributeCards(A, amount=4))
-        g.process_action(DistributeCards(B, amount=3))
+        g.process_action(DistributeCards(cA, amount=4))
+        g.process_action(DistributeCards(cB, amount=3))
 
-        for i in order:
-            g.emit_event('character_debut', (None, g.players[i]))
+        for ch in g.players:
+            g.emit_event('character_debut', (None, ch))
 
-        for i, idx in enumerate(cycle(order)):
-            p = g.players[idx]
+        for i in cycle([0, 1]):
+            ch = g.players[i]
             if i >= 6000: break
-            if p.dead:
-                KOFCharacterSwitchHandler.do_switch_dead()
-                p = g.players[idx]  # player changed
+            if ch.dead:
+                handler = g.dispatcher.find_by_cls(KOFCharacterSwitchHandler)
+                assert handler, 'WTF?!'
+                handler.do_switch_dead()
+                ch = g.players[i]  # player changed
 
-            assert not p.dead
+            assert not ch.dead
 
             try:
-                g.emit_event('player_turn', p)
-                g.process_action(PlayerTurn(p))
+                g.process_action(PlayerTurn(ch))
             except InterruptActionFlow:
                 pass
 
+        return True
 
-class THBattleKOF(Game):
+
+class THBattleKOF(THBattle):
     n_persons  = 2
-    game_ehs   = _game_ehs
+    game_ehs = [
+        DeathHandler,
+        KOFCharacterSwitchHandler,
+    ]
     bootstrap  = THBattleKOFBootstrap
-    params_def = {}
 
-    def get_opponent(g, p):
+    chosen: Dict[Player, List[CharChoice]]
+
+    def get_opponent(g: THBattleKOF, ch: Character):
         a, b = g.players
-        if p is a:
-            return b
-        elif p is b:
-            return a
-        else:
-            raise Exception('WTF?!')
+        return {a: b, b: a}[ch]
 
-    def can_leave(g, p):
+    def can_leave(g: THBattle, p: Player) -> bool:
         return False
-
-    def update_event_handlers(g):
-        ehclasses = list(action_eventhandlers) + g.game_ehs.values()
-        ehclasses += g.ehclasses
-        g.set_event_handlers(EventHandler.make_list(ehclasses))
-
-    def next_character(g, p, choice):
-        g.players.reveal(choice)
-        cls = choice.char_cls
-
-        # mix char class with player -->
-        new, old_cls = mixin_character(p, cls)
-        g.decorate(new)
-        g.players.replace(p, new)
-
-        ehs = g.ehclasses
-        ehs.extend(cls.eventhandlers_required)
-        g.update_event_handlers()
-
-        g.emit_event('switch_character', (p, new))
-
-        g.pick_history.append([cls, p])
-
-        return new
-
-    def decorate(g, p):
-        from .cards import CardList
-        from .characters.baseclasses import Character
-        assert isinstance(p, Character)
-
-        p.cards          = CardList(p, 'cards')       # Cards in hand
-        p.showncards     = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-        p.equips         = CardList(p, 'equips')      # Equipments
-        p.fatetell       = CardList(p, 'fatetell')    # Cards in the Fatetell Zone
-        p.special        = CardList(p, 'special')     # used on special purpose
-        p.showncardlists = [p.showncards, p.fatetell]
-        p.tags           = defaultdict(int)
-
-    def get_stats(g):
-        to_p = lambda p: p.player if isinstance(p, Character) else p
-        return [{'event': 'pick', 'attributes': {
-            'character': p.__class__.__name__,
-            'gamemode': g.__class__.__name__,
-            'identity': '-',
-            'victory': to_p(p) is g.winners[0].player,
-        }} for p in g.pick_history]

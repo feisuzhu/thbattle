@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 import itertools
 
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, sync_primitive, user_input
+from game.autoenv import user_input
+from game.base import sync_primitive
 from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, FinalizeStage
 from thb.actions import GenericAction, LaunchCard, ShowCards, UserAction, migrate_cards, ttags
-from thb.cards import AttackCard, CardList, DollControlCard, DuelCard, Skill, TreatAs, VirtualCard
-from thb.cards import t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import CardList, Skill, VirtualCard
+from thb.cards.classes import AttackCard, DollControlCard, DuelCard, TreatAs, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -42,15 +43,15 @@ class DisarmReturningAction(GenericAction):
         return True
 
 
-class DisarmHandler(EventHandler):
-    interested = ('action_after',)
-    execute_after = ('DeathHandler',)
+class DisarmHandler(THBEventHandler):
+    interested = ['action_after']
+    execute_after = ['DeathHandler']
 
     card_usage = 'launch'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
-            g = Game.getgame()
+            g = self.game
             src, tgt = act.source, act.target
             if not (src and src.has_skill(Disarm)): return act
             if tgt.dead: return act
@@ -67,7 +68,7 @@ class DisarmHandler(EventHandler):
             cl = list(tgt.cards) + list(tgt.showncards)
             g.process_action(ShowCards(tgt, cl, [src]))
 
-            if g.SERVER_SIDE:
+            if g.SERVER:
                 l = [bool(c.is_card(AttackCard) or 'spellcard' in c.category) for c in cl]
             else:
                 l = [False for c in cl]
@@ -78,7 +79,7 @@ class DisarmHandler(EventHandler):
 
         elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
             tgt = act.target
-            g = Game.getgame()
+            g = self.game
             g.process_action(DisarmReturningAction(tgt, tgt))
 
         return act
@@ -86,7 +87,7 @@ class DisarmHandler(EventHandler):
 
 class Disarm(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -98,18 +99,18 @@ class SentryAction(AskForCard):
         self.victim = target
 
     def process_card(self, c):
-        g = Game.getgame()
+        g = self.game
         src, tgt = self.source, self.victim
         c = SentryAttack.wrap([c], src)
         return g.process_action(LaunchCard(src, [tgt], c))
 
 
-class SentryHandler(EventHandler):
-    interested = ('action_apply',)
+class SentryHandler(THBEventHandler):
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
-            g = Game.getgame()
+            g = self.game
             for p in g.players:
                 if p.dead: continue
                 if not p.has_skill(Sentry): continue
@@ -134,13 +135,13 @@ class SentryAttack(TreatAs, VirtualCard):
 
 class Sentry(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
-class TelegnosisHandler(EventHandler):
-    interested = ('calcdistance',)
-    execute_after = ('AttackCardHandler', 'UFODistanceHandler')
+class TelegnosisHandler(THBEventHandler):
+    interested = ['calcdistance']
+    execute_after = ['AttackCardHandler', 'UFODistanceHandler']
 
     processing = False
 
@@ -169,13 +170,13 @@ class TelegnosisHandler(EventHandler):
 
 class Telegnosis(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
-class SolidShieldHandler(EventHandler):
-    interested = ('action_before',)
-    execute_after = ('AttackCardHandler',)
+class SolidShieldHandler(THBEventHandler):
+    interested = ['action_before']
+    execute_after = ['AttackCardHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
@@ -191,7 +192,7 @@ class SolidShieldHandler(EventHandler):
             if not (c.is_card(AttackCard) or 'instant_spellcard' in c.category):
                 return act
 
-            g = Game.getgame()
+            g = self.game
             for p in g.players.rotate_to(src):
                 if p is src:
                     continue
@@ -243,7 +244,7 @@ class SolidShieldAction(UserAction):
 class SolidShield(Skill):
     distance = 1
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -251,6 +252,6 @@ class SolidShield(Skill):
 class Momiji(Character):
     # skills = [Disarm, Sentry, Telegnosis]
     skills = [Disarm, Sentry, SolidShield]
-    # eventhandlers_required = [SentryHandler, DisarmHandler, TelegnosisHandler]
-    eventhandlers_required = [SentryHandler, DisarmHandler, SolidShieldHandler]
+    # eventhandlers = [SentryHandler, DisarmHandler, TelegnosisHandler]
+    eventhandlers = [SentryHandler, DisarmHandler, SolidShieldHandler]
     maxlife = 4

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
-import itertools
+from typing import List, Union
 
 # -- third party --
 # -- own --
-from thb.actions import BaseFatetell
-from thb.cards import VirtualCard
+from client.base import Game
+from thb.actions import BaseFatetell, CardMovement
+from thb.cards.base import Card, CardList, VirtualCard
+from thb.mode import THBattle
 
 
 # -- code --
@@ -57,14 +58,19 @@ def _dbgprint(ins):
     Debug.Log(repr(rst))
 
 
-def card_migration_instructions(g, args):
+class THBattleClient(THBattle, Game):
+    pass
+
+
+def card_migration_instructions(g: THBattleClient, args: CardMovement) -> List[Union[int, Card]]:
     act, cards, _from, to, is_bh = args
 
-    ops = []
+    ops: List[Union[int, Card]] = []
 
     if to is None: return ops  # not supposed to have visual effects
 
-    def _(cl):
+    def cl2index(cl: CardList) -> int:
+        assert cl.owner
         for i, p in enumerate(g.players):
             if p.player == cl.owner.player:
                 return i
@@ -72,17 +78,19 @@ def card_migration_instructions(g, args):
             raise ValueError
 
     # -- card actions --
-    if _from is g.me.showncards and to is not g.me.showncards:
+    me = g.find_character(g.me)
+
+    if _from is me.showncards and to is not me.showncards:
         tail = [DUP, UNSHOW]
-    elif _from is not g.me.showncards and to is g.me.showncards:
+    elif _from is not me.showncards and to is me.showncards:
         tail = [DUP, SHOW]
     else:
         tail = []
 
-    if to.owner is g.me and to.type in ('cards', 'showncards'):
+    if to.owner is me and to.type in ('cards', 'showncards'):
         tail += [DUP, UNGRAY, AREA_HAND, MOVE]
     else:
-        if to.type in ('droppedcard', 'detached', 'collected_ppoints'):
+        if to.type in ('droppedcard', 'detached'):
             if isinstance(act, BaseFatetell):
                 if to.type == 'detached':
                     tail += [DUP, DUP, UNGRAY if act.succeeded else GRAY, FATETELL, AREA_DROP, MOVE]
@@ -93,20 +101,21 @@ def card_migration_instructions(g, args):
                 tail += [DUP, GRAY if gray else UNGRAY, AREA_DROP, MOVE]
 
         elif to.owner:
-            tail += [DUP, DUP, UNGRAY, FADE, AREA_PORT0 + _(to), MOVE]
+            tail += [DUP, DUP, UNGRAY, FADE, AREA_PORT0 + cl2index(to), MOVE]
         else:
             return []  # no animation
 
     # -- sprites --
     rawcards = [c for c in cards if not c.is_card(VirtualCard)]
+    assert _from is not None
 
     for c in rawcards:
         if _from.type in ('deckcard', 'droppedcard') or not _from.owner:
             ops += [c, AREA_DECK, GET]
-        elif _from.owner is g.me and _from.type in ('cards', 'showncards'):
+        elif _from.owner is me and _from.type in ('cards', 'showncards'):
             ops += [c, AREA_HAND, GET]
         else:
-            ops += [c, AREA_PORT0 + _(_from), CREATE]
+            ops += [c, AREA_PORT0 + cl2index(_from), CREATE]
 
         ops += tail
 
@@ -115,5 +124,5 @@ def card_migration_instructions(g, args):
 
 
 def get_display_tags(p):
-    from thb.ui.ui_meta.tags import get_display_tags as ui_tags
+    from thb.meta.tags import get_display_tags as ui_tags
     return [i[0] for i in ui_tags(p)]

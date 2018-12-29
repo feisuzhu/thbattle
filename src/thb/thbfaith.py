@@ -1,70 +1,62 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import annotations
 
 # -- stdlib --
-from collections import defaultdict
+from enum import Enum
 from itertools import cycle
+from typing import Any, Dict, List
 import logging
 import random
 
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, InputTransaction, InterruptActionFlow, get_seed_for
 from game.autoenv import user_input
-from thb.actions import DistributeCards, GenericAction, MigrateCardsTransaction, PlayerDeath
-from thb.actions import PlayerTurn, RevealIdentity, action_eventhandlers, migrate_cards
-from thb.characters.baseclasses import mixin_character
-from thb.common import PlayerIdentity, build_choices, roll
+from game.base import BootstrapAction, GameEnded, GameItem, InputTransaction, InterruptActionFlow
+from game.base import Player, get_seed_for
+from thb.actions import DistributeCards, MigrateCardsTransaction, PlayerDeath, PlayerTurn
+from thb.actions import RevealRole, migrate_cards
+from thb.cards.base import Deck
+from thb.characters.base import Character
+from thb.common import CharChoice, PlayerRole, build_choices, roll
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet, SortCharacterInputlet
-from utils import BatchList, Enum
+from thb.mode import THBEventHandler, THBattle
+from utils.misc import BatchList
 
 
 # -- code --
 log = logging.getLogger('THBattle')
 
-_game_ehs = {}
 
+class DeathHandler(THBEventHandler):
+    interested = ['action_after', 'action_apply']
+    game: 'THBattleFaith'
 
-def game_eh(cls):
-    _game_ehs[cls.__name__] = cls
-    return cls
-
-
-@game_eh
-class DeathHandler(EventHandler):
-    interested = ('action_after', 'action_apply')
-
-    def handle(self, evt_type, act):
+    def handle(self, evt_type: str, act: PlayerDeath) -> PlayerDeath:
         if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
-            g = Game.getgame()
+            g = self.game
 
             tgt = act.target
-            force = tgt.force
-            if len(force.pool) <= 1:
-                forces = g.forces[:]
-                forces.remove(force)
-                g.winners = forces[0][:]
-                g.game_end()
+            role = g.roles[tgt.player].get()
+            pool = g.pool[role]
+            if len(pool) <= 1:
+                raise GameEnded(g.forces[g.get_opponent_role(role)])
 
         elif evt_type == 'action_after' and isinstance(act, PlayerDeath):
-            g = Game.getgame()
+            g = self.game
 
             tgt = act.target
-            pool = tgt.force.pool
-            assert pool
+            role = g.roles[tgt.player].get()
+            pool = g.pool[role]
 
-            mapping = {tgt: pool}
+            mapping = {tgt.player: pool}
             with InputTransaction('ChooseGirl', [tgt], mapping=mapping) as trans:
                 c = user_input([tgt], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
-                c = c or [_c for _c in pool if not _c.chosen][0]
+                c = c or next(_c for _c in pool if not _c.chosen)
                 c.chosen = tgt
                 pool.remove(c)
-                trans.notify('girl_chosen', (tgt, c))
+                trans.notify('girl_chosen', (tgt.player, c))
 
-            tgt = g.switch_character(tgt, c)
-
-            c = getattr(g, 'current_player', None)
-
+            tgt = g.switch_character(tgt.player, c)
             g.process_action(DistributeCards(tgt, 4))
 
             if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
@@ -76,7 +68,7 @@ class DeathHandler(EventHandler):
 class RedrawCards(DistributeCards):
     def apply_action(self):
         tgt = self.target
-        g = Game.getgame()
+        g = self.game
 
         with MigrateCardsTransaction(self) as trans:
             g.players.reveal(list(tgt.cards))
@@ -88,196 +80,153 @@ class RedrawCards(DistributeCards):
         return True
 
 
-class Identity(PlayerIdentity):
-    class TYPE(Enum):
-        HIDDEN = 0
-        HAKUREI = 1
-        MORIYA = 2
+class THBFaithRole(Enum):
+    HIDDEN  = 0
+    HAKUREI = 1
+    MORIYA  = 2
 
 
-class THBattleFaithBootstrap(GenericAction):
-    def __init__(self, params, items):
+class THBattleFaithBootstrap(BootstrapAction):
+    game: 'THBattleFaith'
+
+    def __init__(self, params: Dict[str, Any],
+                       items: Dict[Player, List[GameItem]],
+                       players: BatchList[Player]):
         self.source = self.target = None
         self.params = params
         self.items = items
+        self.players = players
 
-    def apply_action(self):
-        g = Game.getgame()
+    def apply_action(self) -> bool:
+        g = self.game
         params = self.params
+        pl = self.players
 
-        from thb.cards import Deck
+        g.deck = Deck(g)
+        g.roles = {}
 
-        g.picks = []
-        g.deck = Deck()
-
-        g.ehclasses = list(action_eventhandlers) + g.game_ehs.values()
-
-        H, M = Identity.TYPE.HAKUREI, Identity.TYPE.MORIYA
+        H, M = THBFaithRole.HAKUREI, THBFaithRole.MORIYA
         if params['random_seat']:
             # reseat
-            seed = get_seed_for(g.players)
-            random.Random(seed).shuffle(g.players)
-            g.emit_event('reseat', None)
+            orig_pl = BatchList(pl)
+            seed = get_seed_for(g, pl)
+            random.Random(seed).shuffle(pl)
+            g.emit_event('reseat', (orig_pl, pl))
 
             L = [[H, H, M, M, H, M], [H, M, H, M, H, M]]
-            rnd = random.Random(get_seed_for(g.players))
+            rnd = random.Random(get_seed_for(g, pl))
             L = rnd.choice(L) * 2
             s = rnd.randrange(0, 6)
-            idlist = L[s:s+6]
+            rl = L[s:s+6]
             del L, s, rnd
         else:
-            idlist = [H, M, H, M, H, M]
+            rl = [H, M, H, M, H, M]
 
-        del H, M
+        for p, role in zip(pl, rl):
+            g.roles[p] = PlayerRole(THBFaithRole)
+            g.roles[p].set(role)
+            g.process_action(RevealRole(p, pl))
 
-        for p, identity in zip(g.players, idlist):
-            p.identity = Identity()
-            p.identity.type = identity
-            g.process_action(RevealIdentity(p, g.players))
+        g.forces[H] = BatchList()
+        g.forces[M] = BatchList()
+        g.pool[H] = BatchList()
+        g.pool[M] = BatchList()
 
-        force_hakurei      = BatchList()
-        force_moriya       = BatchList()
-        force_hakurei.pool = []
-        force_moriya.pool  = []
+        for p in pl:
+            g.forces[g.roles[p].get()].append(p)
 
-        for p in g.players:
-            if p.identity.type == Identity.TYPE.HAKUREI:
-                force_hakurei.append(p)
-                p.force = force_hakurei
-            elif p.identity.type == Identity.TYPE.MORIYA:
-                force_moriya.append(p)
-                p.force = force_moriya
-
-        g.forces = BatchList([force_hakurei, force_moriya])
-
-        roll_rst = roll(g, self.items)
-        first = roll_rst[0]
+        roll_rst = roll(g, pl, self.items)
 
         # choose girls -->
         from . import characters
         chars = characters.get_characters('common', 'faith')
 
         choices, _ = build_choices(
-            g, self.items,
-            candidates=chars, players=g.players,
-            num=[4] * 6, akaris=[1] * 6,
-            shared=False,
+            g, pl, self.items, chars,
+            spec={p: {'num': 4, 'akaris': 1} for p in pl}
         )
 
         rst = user_input(g.players, SortCharacterInputlet(g, choices, 2), timeout=30, type='all')
 
-        for p in g.players:
-            a, b = [choices[p][i] for i in rst[p][:2]]
-            b.chosen = None
-            p.force.reveal(b)
-            g.switch_character(p, a)
-            p.force.pool.append(b)
-
-        for p in g.players:
-            if p.player is first:
-                first = p
-                break
-
-        pl = g.players
-        first_index = pl.index(first)
-        order = BatchList(range(len(pl))).rotate_to(first_index)
+        g.players = BatchList()
+        first: Character
 
         for p in pl:
-            g.process_action(RevealIdentity(p, pl))
+            a, b = [choices[p][i] for i in rst[p][:2]]
 
+            ch = g.switch_character(p, a)
+
+            if p is roll_rst[0]:
+                first = ch
+                first_index = len(g.players)
+
+            g.players.append(ch)
+
+            b.chosen = None
+            g.forces[g.roles[p].get()].reveal(b)
+            g.pool[g.roles[p].get()].append(b)
+
+        order = BatchList(range(len(pl))).rotate_to(first_index)
         g.emit_event('game_begin', g)
 
         for p in pl:
             g.process_action(DistributeCards(p, amount=4))
 
-        pl = g.players.rotate_to(first)
-        rst = user_input(pl[1:], ChooseOptionInputlet(DeathHandler(), (False, True)), type='all')
+        reordered = g.players.rotate_to(first)
+        rst = user_input(reordered[1:], ChooseOptionInputlet(DeathHandler(g), (False, True)), type='all')
 
-        for p in pl[1:]:
+        for p in reordered[1:]:
             rst.get(p) and g.process_action(RedrawCards(p, p))
 
-        pl = g.players
         for i, idx in enumerate(cycle(order)):
             if i >= 6000: break
-            p = pl[idx]
-            if p.dead: continue
+            ch = g.players[idx]
+            if ch.dead: continue
 
-            g.emit_event('player_turn', p)
             try:
-                g.process_action(PlayerTurn(p))
+                g.process_action(PlayerTurn(ch))
             except InterruptActionFlow:
                 pass
 
         return True
 
 
-class THBattleFaith(Game):
-    n_persons    = 6
-    game_ehs     = _game_ehs
-    bootstrap    = THBattleFaithBootstrap
-    params_def   = {
+class THBattleFaith(THBattle):
+    n_persons  = 6
+    game_ehs   = [DeathHandler]
+    bootstrap  = THBattleFaithBootstrap
+    params_def = {
         'random_seat': (True, False),
     }
 
-    def can_leave(g, p):
+    forces: Dict[THBFaithRole, BatchList[Player]]
+    pool: Dict[THBFaithRole, List[CharChoice]]
+
+    def can_leave(g: THBattleFaith, p: Any):
         return False
 
-    def update_event_handlers(g):
-        ehclasses = list(action_eventhandlers) + g.game_ehs.values()
-        ehclasses += g.ehclasses
-        g.set_event_handlers(EventHandler.make_list(ehclasses))
-
-    def switch_character(g, p, choice):
+    def switch_character(g, p: Player, choice: CharChoice) -> Character:
         choice.akari = False
 
-        g.players.reveal(choice)
+        g.players.player.reveal(choice)
         cls = choice.char_cls
 
-        g.picks.append(cls)
-        log.info(u'>> NewCharacter: %s %s', Identity.TYPE.rlookup(p.identity.type), cls.__name__)
+        assert cls
 
-        # mix char class with player -->
-        old = p
-        p, oldcls = mixin_character(p, cls)
-        g.decorate(p)
-        g.players.replace(old, p)
-        g.forces[0].replace(old, p)
-        g.forces[1].replace(old, p)
+        log.info('>> NewCharacter: %s %s', g.roles[p].get().name, cls.__name__)
 
-        ehs = g.ehclasses
-        ehs.extend(p.eventhandlers_required)
+        new = cls(p)
+        g.players.find_replace(lambda ch: ch.player is p, new)
+        g.refresh_dispatcher()
 
-        g.update_event_handlers()
-        g.emit_event('switch_character', (old, p))
+        g.emit_event('switch_character', (p, new))
 
-        return p
+        return new
 
-    def decorate(g, p):
-        from thb.cards import CardList
-        p.cards          = CardList(p, 'cards')       # Cards in hand
-        p.showncards     = CardList(p, 'showncards')  # Cards which are shown to the others, treated as 'Cards in hand'
-        p.equips         = CardList(p, 'equips')      # Equipments
-        p.fatetell       = CardList(p, 'fatetell')    # Cards in the Fatetell Zone
-        p.special        = CardList(p, 'special')     # used on special purpose
-        p.showncardlists = [p.showncards, p.fatetell]
-        p.tags           = defaultdict(int)
-
-    def get_remaining_characters(g):
-        try:
-            hakurei, moriya = g.forces
-        except:
-            return -1, -1
-
-        h, m = len(hakurei.pool) - 1, len(moriya.pool) - 1
-        if h < 0 or m < 0:
-            return -1, -1
-
-        return h, m
-
-    def get_stats(g):
-        return [{'event': 'pick', 'attributes': {
-            'character': p.__name__,
-            'gamemode': g.__class__.__name__,
-            'identity': '-',
-            'victory': None,
-        }} for p in g.picks]
+    def get_opponent_role(g, r: THBFaithRole) -> THBFaithRole:
+        if r == THBFaithRole.MORIYA:
+            return THBFaithRole.HAKUREI
+        elif r == THBFaithRole.MORIYA:
+            return THBFaithRole.HAKUREI
+        else:
+            assert False, 'WTF!'

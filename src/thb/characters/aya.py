@@ -3,27 +3,27 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from ..actions import DrawCards, PlayerTurn, UserAction
-from ..cards import Skill, t_None
-from .baseclasses import Character, register_character_to
-from game.autoenv import EventHandler, Game
+from thb.mode import THBEventHandler
+from thb.actions import DrawCards, PlayerTurn, UserAction
+from thb.cards.base import Skill, t_None
+from thb.characters.base import Character, register_character_to
 
 
 # -- code --
 class UltimateSpeed(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class UltimateSpeedAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         return g.process_action(DrawCards(self.target, 1))
 
 
-class UltimateSpeedHandler(EventHandler):
-    interested = ('action_apply', 'choose_target', 'post_calcdistance')
+class UltimateSpeedHandler(THBEventHandler):
+    interested = ['action_apply', 'choose_target', 'post_calcdistance']
 
     def handle(self, evt_type, arg):
         def is_card(card):
@@ -38,7 +38,7 @@ class UltimateSpeedHandler(EventHandler):
             if src.tags['aya_count'] < 2:
                 return arg
 
-            g = Game.getgame()
+            g = self.game
             if g.current_player is not src:
                 return arg
 
@@ -52,7 +52,7 @@ class UltimateSpeedHandler(EventHandler):
 
         elif evt_type == 'choose_target':
             lca, _ = arg
-            g = Game.getgame()
+            g = self.game
 
             if not is_card(lca.card):
                 return arg
@@ -75,5 +75,5 @@ class UltimateSpeedHandler(EventHandler):
 @register_character_to('common')
 class Aya(Character):
     skills = [UltimateSpeed]
-    eventhandlers_required = [UltimateSpeedHandler]
+    eventhandlers = [UltimateSpeedHandler]
     maxlife = 4

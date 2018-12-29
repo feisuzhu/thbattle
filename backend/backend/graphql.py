@@ -9,6 +9,7 @@ import graphene as gh
 from guild.schema import GuildOps, GuildQuery
 from item.schema import ExchangeOps, ExchangeQuery, ItemOps
 from player.schema import PlayerOps, PlayerQuery
+from game.schema import GameOps, GameQuery
 from system.schema import SystemOps, SystemQuery
 from unlock.schema import UnlockOps
 from utils.graphql import stub
@@ -16,18 +17,13 @@ import badge.schema  # noqa
 
 
 # -- code --
-class Query(PlayerQuery, GuildQuery, ExchangeQuery, SystemQuery, gh.ObjectType):
+class Query(PlayerQuery, GameQuery, GuildQuery, ExchangeQuery, SystemQuery, gh.ObjectType):
     pass
-    '''
-    player   = stub(PlayerQuery,   "用户/玩家")
-    guild    = stub(GuildQuery,    "势力")
-    exchange = stub(ExchangeQuery, "交易所")
-    system   = stub(SystemQuery,   "系统")
-    '''
 
 
 class Mutation(gh.ObjectType):
     player   = stub(PlayerOps,   "用户/玩家")
+    game     = stub(GameOps,     "游戏")
     guild    = stub(GuildOps,    "势力")
     item     = stub(ItemOps,     "物品")
     exchange = stub(ExchangeOps, "交易所")

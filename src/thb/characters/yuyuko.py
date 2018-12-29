@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import DrawCards, DummyAction, FinalizeStage, GenericAction, LifeLost
 from thb.actions import MaxLifeChange, Pindian, PlayerDeath, TryRevive, UserAction, ttags
-from thb.cards import Heal, Skill, t_None, t_OtherOne
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import Heal, t_None, t_OtherOne
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class GuidedDeath(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -30,7 +31,7 @@ class GuidedDeathEffect(GenericAction):
         self.target_list = target_list
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
 
         for p in self.target_list:
             g.process_action(GuidedDeathLifeLost(p, p))
@@ -38,12 +39,12 @@ class GuidedDeathEffect(GenericAction):
         return True
 
 
-class GuidedDeathHandler(EventHandler):
-    interested = ('action_apply',)
+class GuidedDeathHandler(THBEventHandler):
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, FinalizeStage):
-            g = Game.getgame()
+            g = self.game
 
             src = act.target
             if not (src.has_skill(GuidedDeath) and not src.dead):
@@ -60,14 +61,14 @@ class GuidedDeathHandler(EventHandler):
 
 class SoulDrain(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class SoulDrainEffect(GenericAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        g = Game.getgame()
+        g = self.game
         g.process_action(DrawCards(src, 1))
 
         assert tgt.life <= 0
@@ -87,12 +88,12 @@ class SoulDrainEffect(GenericAction):
         return True
 
 
-class SoulDrainHandler(EventHandler):
-    interested = ('action_before',)
+class SoulDrainHandler(THBEventHandler):
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, TryRevive):
-            g = Game.getgame()
+            g = self.game
             tgt = act.target
 
             for p in g.players:
@@ -112,12 +113,12 @@ class SoulDrainHandler(EventHandler):
         return act
 
 
-class PerfectCherryBlossomHandler(EventHandler):
-    interested = ('action_apply',)
+class PerfectCherryBlossomHandler(THBEventHandler):
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
-            g = Game.getgame()
+            g = self.game
             for pcb in reversed(g.action_stack):
                 if isinstance(pcb, PerfectCherryBlossomAction):
                     break
@@ -136,7 +137,7 @@ class PerfectCherryBlossomHandler(EventHandler):
 
 class PerfectCherryBlossomExtractAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src = self.source
         g.process_action(MaxLifeChange(src, src, 1))
         g.process_action(Heal(src, src, 1))
@@ -153,7 +154,7 @@ class PerfectCherryBlossomAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
         if tgt.dead: return True
-        g = Game.getgame()
+        g = self.game
         ttags(src)['perfect_cherry_blossom'] = True
         g.process_action(LifeLost(src, tgt, 1))
         if not tgt.dead:
@@ -172,7 +173,7 @@ class PerfectCherryBlossomAction(UserAction):
 
 class PerfectCherryBlossom(Skill):
     associated_action = PerfectCherryBlossomAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_OtherOne
     usage = 'drop'
 
@@ -184,5 +185,5 @@ class PerfectCherryBlossom(Skill):
 @register_character_to('common', '-kof')
 class Yuyuko(Character):
     skills = [GuidedDeath, SoulDrain, PerfectCherryBlossom]
-    eventhandlers_required = [GuidedDeathHandler, SoulDrainHandler, PerfectCherryBlossomHandler]
+    eventhandlers = [GuidedDeathHandler, SoulDrainHandler, PerfectCherryBlossomHandler]
     maxlife = 3

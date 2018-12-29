@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
+from typing import Sequence, Tuple, List
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import ActionStage, Damage, DrawCards, DropCardStage, DropCards
-from thb.actions import GenericAction, LaunchCard, PlayerTurn, PostCardMigrationHandler
-from thb.actions import Reforge, UserAction, mark, marked, random_choose_card
-from thb.actions import user_choose_cards, user_choose_players
-from thb.cards import AttackCard, DollControlCard, Heal, Skill, TreatAs, VirtualCard
-from thb.cards import t_None
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from thb.actions import ActionStage, Damage, DrawCards, DropCardStage, DropCards, GenericAction
+from thb.actions import LaunchCard, PlayerTurn, PostCardMigrationHandler, Reforge, UserAction
+from thb.actions import random_choose_card, user_choose_cards, user_choose_players
+from thb.cards.base import Skill, VirtualCard
+from thb.cards.definition import EquipmentCard
+from thb.cards.classes import AttackCard, DollControlCard, Heal, TreatAs, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -26,13 +27,13 @@ class LittleLegionDollControlCard(TreatAs, VirtualCard):
 
 class LittleLegion(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class LittleLegionAttackAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src = self.source
         pl = [p for p in g.players if not p.dead and p is not src]
         if not pl:
@@ -59,7 +60,7 @@ class LittleLegionCoverEffect(Heal):
 
 class LittleLegionCoverAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src = self.source
         pl = [p for p in g.players if not p.dead and p.life < p.maxlife]
         if not pl:
@@ -83,10 +84,10 @@ class LittleLegionHoldAction(UserAction):
     def apply_action(self):
         src = self.source
 
-        g = Game.getgame()
+        g = self.game
         g.process_action(DrawCards(src, 1))
 
-        turn = PlayerTurn.get_current(src)
+        turn = PlayerTurn.get_current(g)
         try:
             turn.pending_stages.remove(DropCardStage)
         except Exception:
@@ -96,27 +97,29 @@ class LittleLegionHoldAction(UserAction):
 
 
 class LittleLegionControlAction(UserAction):
-    def apply_action(self):
-        g = Game.getgame()
+    def apply_action(self) -> bool:
+        g = self.game
         src = self.source
         pl = [p for p in g.players if not p.dead]
-        attacker, victim = user_choose_players(self, src, pl) or (None, None)
-        if attacker is None:
+        rst = user_choose_players(self, src, pl)
+
+        if not rst:
             return False
 
+        attacker, victim = rst
         self.target_list = attacker, victim
 
         g.process_action(LaunchCard(src, [attacker, victim], LittleLegionDollControlCard(attacker)))
         return True
 
-    def choose_player_target(self, tl):
+    def choose_player_target(self, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
         src = self.source
-        trimmed, rst = DollControlCard.target(None, src, tl)
+        trimmed, rst = DollControlCard.target(None, None, src, tl)
         return trimmed, rst and LaunchCard(src, trimmed, LittleLegionDollControlCard(src)).can_fire()
 
 
-class LittleLegionHandler(EventHandler):
-    interested = ('action_after',)
+class LittleLegionHandler(THBEventHandler):
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, ActionStage):
@@ -128,9 +131,9 @@ class LittleLegionHandler(EventHandler):
             if c is None:
                 return act
 
-            g = Game.getgame()
+            g = self.game
 
-            assert 'equipment' in c.category
+            assert isinstance(c, EquipmentCard)
             category = c.equipment_category
 
             g.process_action(Reforge(tgt, tgt, c))
@@ -162,7 +165,7 @@ class LittleLegionHandler(EventHandler):
 
 class DollBlast(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -174,7 +177,7 @@ class DollBlastEffect(GenericAction):
         self.do_damage = do_damage
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src, tgt = self.source, self.target
         g.process_action(DropCards(src, tgt, [self.card]))
         if self.do_damage:
@@ -190,14 +193,14 @@ class DollBlastAction(UserAction):
         self.cards  = cards
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         cl = self.cards
-        track_ids = set([c.track_id for c in cl])
+        track_ids = {c.track_id for c in cl}
 
         src, tgt = self.source, self.target
         for c in cl:
             c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
-            c = c or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+            c = c or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
             if not c: return True
             g.players.reveal(c)
             g.process_action(DollBlastEffect(src, tgt, c, c.track_id in track_ids))
@@ -213,13 +216,13 @@ class DollBlastHandlerCommon(object):
         if not user_input([src], ChooseOptionInputlet(self, (False, True))):
             return
 
-        g = Game.getgame()
+        g = self.game
         g.process_action(DollBlastAction(src, tgt, cards))
 
 
-class DollBlastMigrationHandler(DollBlastHandlerCommon, EventHandler):
-    interested = ('post_card_migration',)
-    group = PostCardMigrationHandler
+class DollBlastMigrationHandler(DollBlastHandlerCommon, THBEventHandler):
+    interested = ['post_card_migration']
+    arbiter = PostCardMigrationHandler
 
     def handle(self, p, trans):
         if not p.has_skill(DollBlast):
@@ -247,8 +250,8 @@ class DollBlastMigrationHandler(DollBlastHandlerCommon, EventHandler):
         return True
 
 
-class DollBlastDropHandler(DollBlastHandlerCommon, EventHandler):
-    interested = ('action_before', 'action_after')
+class DollBlastDropHandler(DollBlastHandlerCommon, THBEventHandler):
+    interested = ['action_before', 'action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DropCards):
@@ -263,9 +266,9 @@ class DollBlastDropHandler(DollBlastHandlerCommon, EventHandler):
             if not any(c.resides_in.type == 'equips' for c in act.cards):
                 return act
 
-            mark(act, 'doll_blast')
+            act._['doll_blast'] = True
 
-        elif evt_type == 'action_after' and isinstance(act, DropCards) and marked(act, 'doll_blast'):
+        elif evt_type == 'action_after' and isinstance(act, DropCards) and act._['doll_blast']:
             self.fire(act.target, act.source, act.cards)
 
         return act
@@ -274,7 +277,7 @@ class DollBlastDropHandler(DollBlastHandlerCommon, EventHandler):
 @register_character_to('common')
 class Alice(Character):
     skills = [DollBlast, LittleLegion]
-    eventhandlers_required = [
+    eventhandlers = [
         DollBlastMigrationHandler,
         DollBlastDropHandler,
         LittleLegionHandler,

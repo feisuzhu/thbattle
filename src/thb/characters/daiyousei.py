@@ -3,12 +3,14 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import ActionStage, DrawCardStage, GenericAction, MigrateCardsTransaction
 from thb.actions import PlayerDeath, UserAction, migrate_cards
-from thb.cards import CardList, Heal, Skill, t_None, t_OtherOne
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import CardList, Skill, t_None, t_OtherOne
+from thb.cards.classes import Heal
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -17,12 +19,12 @@ class SupportAction(UserAction):
         cl = self.associated_card.associated_cards
         src = self.source
         tgt = self.target
-        l = src.tags.get('daiyousei_spnum', 0)
+        lst = src.tags.get('daiyousei_spnum', 0)
         n = len(cl)
-        if l < 3 <= l + n:
-            g = Game.getgame()
+        if lst < 3 <= lst + n:
+            g = self.game
             g.process_action(Heal(src, src))
-        src.tags['daiyousei_spnum'] = l + n
+        src.tags['daiyousei_spnum'] = lst + n
         tgt.reveal(cl)
         migrate_cards([self.associated_card], tgt.cards, unwrap=True)
         self.cards = cl
@@ -31,7 +33,7 @@ class SupportAction(UserAction):
 
 class Support(Skill):
     associated_action = SupportAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_OtherOne
     usage = 'handover'
     no_drop = True
@@ -65,9 +67,9 @@ class SupportKOFReturningAction(GenericAction):
         return True
 
 
-class SupportKOFHandler(EventHandler):
-    interested = ('character_debut', 'action_apply')
-    execute_after = ('DeathHandler',)
+class SupportKOFHandler(THBEventHandler):
+    interested = ['character_debut', 'action_apply']
+    execute_after = ['DeathHandler']
 
     def handle(self, evt_type, arg):
         if evt_type == 'character_debut':
@@ -75,7 +77,7 @@ class SupportKOFHandler(EventHandler):
             if not old: return arg
             if not getattr(old, 'support_cl', None): return arg
 
-            g = Game.getgame()
+            g = self.game
             g.process_action(SupportKOFReturningAction(old, new))
 
         elif evt_type == 'action_apply' and isinstance(arg, PlayerDeath):
@@ -86,7 +88,7 @@ class SupportKOFHandler(EventHandler):
                 return arg
 
             if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                g = Game.getgame()
+                g = self.game
                 g.process_action(SupportKOFAction(tgt, tgt))
 
         return arg
@@ -94,13 +96,13 @@ class SupportKOFHandler(EventHandler):
 
 class SupportKOF(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class Moe(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -108,8 +110,8 @@ class MoeDrawCard(DrawCardStage):
     pass
 
 
-class DaiyouseiHandler(EventHandler):
-    interested = ('action_before',)
+class DaiyouseiHandler(THBEventHandler):
+    interested = ['action_before']
 
     # Well, well, things are getting messy
     def handle(self, evt_type, act):
@@ -129,12 +131,12 @@ class DaiyouseiHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Daiyousei(Character):
     skills = [Support, Moe]
-    eventhandlers_required = [DaiyouseiHandler]
+    eventhandlers = [DaiyouseiHandler]
     maxlife = 3
 
 
 @register_character_to('kof')
 class DaiyouseiKOF(Character):
     skills = [SupportKOF, Moe]
-    eventhandlers_required = [DaiyouseiHandler, SupportKOFHandler]
+    eventhandlers = [DaiyouseiHandler, SupportKOFHandler]
     maxlife = 3

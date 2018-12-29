@@ -3,12 +3,12 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import GenericAction, PlayerTurn, UserAction, migrate_cards
-from thb.actions import random_choose_card
-from thb.cards import CardList, Skill, t_One
-from thb.characters.baseclasses import Character, register_character_to
+from game.autoenv import user_input
+from thb.actions import GenericAction, PlayerTurn, UserAction, migrate_cards, random_choose_card
+from thb.cards.base import CardList, Skill, t_One
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -16,11 +16,12 @@ class SpiritingAwayAction(UserAction):
     def apply_action(self):
         tgt = self.target
         src = self.source
+        g = self.game
 
         catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
         card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
-        card = card or random_choose_card(cats)
+        card = card or random_choose_card(g, cats)
         if not card:
             return False
 
@@ -50,7 +51,7 @@ class SpiritingAwayAction(UserAction):
 
 class SpiritingAwayReturningAction(GenericAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         for p in g.players:
             cl = getattr(p, 'yukari_dimension', None)
             cl and migrate_cards(cl, p.cards, unwrap=True)
@@ -60,15 +61,15 @@ class SpiritingAwayReturningAction(GenericAction):
 
 class SpiritingAway(Skill):
     associated_action = SpiritingAwayAction
-    skill_category = ('character', 'active')
+    skill_category = ['character', 'active']
     target = t_One
 
     def check(self):
         return not self.associated_cards
 
 
-class SpiritingAwayHandler(EventHandler):
-    interested = ('action_after', 'action_apply')
+class SpiritingAwayHandler(THBEventHandler):
+    interested = ['action_after', 'action_apply']
 
     def handle(self, evt_type, arg):
         if evt_type == 'action_apply' and isinstance(arg, PlayerTurn):
@@ -81,7 +82,7 @@ class SpiritingAwayHandler(EventHandler):
             if not tgt.has_skill(SpiritingAway):
                 return arg
 
-            g = Game.getgame()
+            g = self.game
             g.process_action(SpiritingAwayReturningAction(tgt, tgt))
 
         return arg
@@ -90,5 +91,5 @@ class SpiritingAwayHandler(EventHandler):
 @register_character_to('common')
 class Yukari(Character):
     skills = [SpiritingAway]
-    eventhandlers_required = [SpiritingAwayHandler]
+    eventhandlers = [SpiritingAwayHandler]
     maxlife = 4

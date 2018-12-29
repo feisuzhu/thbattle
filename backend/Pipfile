@@ -20,10 +20,12 @@ cryptography = "*"
 itsdangerous = "*"
 msgpack = "*"
 pymysql = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 ipython = "*"
 nose = "*"
+neovim = "*"
 
 [requires]
 python_version = "3.6"

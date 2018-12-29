@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game
 from thb.actions import DrawCards
-from thb.cards import Skill, t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import t_None
+from thb.characters.base import Character, register_character_to
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class Luck(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
+    skill_category = ['character', 'passive', 'compulsory']
     target = t_None
 
 
@@ -21,8 +21,8 @@ class LuckDrawCards(DrawCards):
     pass
 
 
-class LuckHandler(EventHandler):
-    interested = ('card_migration',)
+class LuckHandler(THBEventHandler):
+    interested = ['card_migration']
 
     def handle(self, evt_type, arg):
         if evt_type != 'card_migration':
@@ -36,7 +36,7 @@ class LuckHandler(EventHandler):
                 return arg
 
             if not (p.cards or p.showncards):
-                Game.getgame().process_action(LuckDrawCards(p, 2))
+                self.game.process_action(LuckDrawCards(p, 2))
 
         return arg
 
@@ -44,5 +44,5 @@ class LuckHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Tewi(Character):
     skills = [Luck]
-    eventhandlers_required = [LuckHandler]
+    eventhandlers = [LuckHandler]
     maxlife = 4

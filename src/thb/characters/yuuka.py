@@ -3,18 +3,19 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, ForEach, LaunchCard, PlayerDeath, UserAction
 from thb.actions import user_choose_players
-from thb.cards import AttackCard, Duel, InstantSpellCardAction, Reject, Skill, TreatAs
-from thb.cards import t_None
-from thb.characters.baseclasses import Character, register_character_to
+from thb.cards.base import Skill
+from thb.cards.classes import AttackCard, Duel, InstantSpellCardAction, Reject, TreatAs, t_None
+from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
 class ReversedScales(TreatAs, Skill):
-    skill_category = ('character', 'active', 'compulsory')
+    skill_category = ['character', 'active', 'compulsory']
     treat_as = AttackCard
 
     def check(self):
@@ -22,7 +23,7 @@ class ReversedScales(TreatAs, Skill):
         if not cl or len(cl) != 1:
             return False
 
-        if Game.getgame().current_player is self.player:
+        if self.game.current_player is self.player:
             return False
 
         return cl[0].resides_in.type in ('cards', 'showncards')
@@ -30,13 +31,13 @@ class ReversedScales(TreatAs, Skill):
 
 class Sadist(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
 class SadistKOF(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ['character', 'passive']
     target = t_None
 
 
@@ -46,19 +47,19 @@ class SadistKOFDrawCards(DrawCards):
 
 class SadistKOFDamageAction(UserAction):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src, tgt = self.source, self.target
         return g.process_action(Damage(src, tgt, 1))
 
 
-class SadistKOFHandler(EventHandler):
-    interested = ('action_after', 'character_debut')
-    execute_after = ('DeathHandler', )
+class SadistKOFHandler(THBEventHandler):
+    interested = ['action_after', 'character_debut']
+    execute_after = ['DeathHandler']
 
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, PlayerDeath):
             tgt = arg.target
-            g = Game.getgame()
+            g = self.game
             op = g.get_opponent(tgt)
             if arg.source is op and op.has_skill(SadistKOF):
                 g.process_action(SadistKOFDrawCards(op, 2))
@@ -68,7 +69,7 @@ class SadistKOFHandler(EventHandler):
             old, new = arg
             if not old: return arg
 
-            g = Game.getgame()
+            g = self.game
             op = g.get_opponent(new)
 
             if op.has_skill(SadistKOF) and op.tags['sadist_kof_fire']:
@@ -89,9 +90,9 @@ class ReversedScalesAction(UserAction):
         return True
 
 
-class ReversedScalesHandler(EventHandler):
-    interested = ('action_before',)
-    execute_before = ('MaidenCostumeHandler', )
+class ReversedScalesHandler(THBEventHandler):
+    interested = ['action_before']
+    execute_before = ['MaidenCostumeHandler']
 
     def handle(self, evt_type, act):
         if evt_type != 'action_before':
@@ -119,7 +120,7 @@ class ReversedScalesHandler(EventHandler):
         if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             return act
 
-        g = Game.getgame()
+        g = self.game
         g.process_action(ReversedScalesAction(tgt, act))
 
         return act
@@ -131,18 +132,18 @@ class SadistAction(UserAction):
         self.target = target
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         src, tgt = self.source, self.target
         tgt.tags['sadist_target'] = False
         g.process_action(Damage(src, tgt, 1))
         return True
 
 
-class SadistHandler(EventHandler):
-    interested = ('action_after', 'action_before')
+class SadistHandler(THBEventHandler):
+    interested = ['action_after', 'action_before']
     card_usage = 'drop'
-    execute_before = ('WineHandler', )
-    execute_after = ('DeathHandler', )
+    execute_before = ['WineHandler']
+    execute_after = ['DeathHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerDeath):
@@ -158,7 +159,7 @@ class SadistHandler(EventHandler):
 
             pl = user_choose_players(self, src, candidates)
             if pl:
-                Game.getgame().process_action(SadistAction(src, pl[0]))
+                self.game.process_action(SadistAction(src, pl[0]))
 
         elif evt_type == 'action_before' and isinstance(act, Damage):
             src = act.source
@@ -182,12 +183,12 @@ class SadistHandler(EventHandler):
 @register_character_to('common', '-kof')
 class Yuuka(Character):
     skills = [ReversedScales, Sadist]
-    eventhandlers_required = [ReversedScalesHandler, SadistHandler]
+    eventhandlers = [ReversedScalesHandler, SadistHandler]
     maxlife = 4
 
 
 @register_character_to('kof')
 class YuukaKOF(Character):
     skills = [ReversedScales, SadistKOF]
-    eventhandlers_required = [ReversedScalesHandler, SadistKOFHandler]
+    eventhandlers = [ReversedScalesHandler, SadistKOFHandler]
     maxlife = 4

@@ -1,20 +1,29 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import annotations
 
 # -- stdlib --
 from collections import deque
+from typing import Any, ClassVar, Dict, Iterable, List, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Tuple, Type
 from weakref import WeakValueDictionary
 import itertools
 import logging
 
 # -- third party --
 # -- own --
-from game.autoenv import Game, GameError, GameObject, list_shuffle
+from game.base import GameError, GameObject, GameViralContext, list_shuffle
+from thb.mode import THBattle
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.actions import UserAction  # noqa: F401
+    from thb.characters.base import Character  # noqa: F401
+    from thb.meta.typing import CardMeta, SkillMeta  # noqa: F401
 
 
 # -- code --
 log = logging.getLogger('THBattle_Cards')
-alloc_id = itertools.count(1).next
+alloc_id = itertools.count(1).__next__
 
 
 class Card(GameObject):
@@ -39,9 +48,13 @@ class Card(GameObject):
         10: '10', 11: 'J', 12: 'Q', 13: 'K',
     }
 
-    _color = None
-    card_classes = {}
+    _color: Optional[int] = None
     usage = 'launch'
+
+    ui_meta: ClassVar[CardMeta]
+
+    associated_action: Optional[Type[UserAction]]
+    category: Sequence[str]
 
     # True means this card's associated cards have already been taken.
     # Only meaningful for virtual cards.
@@ -81,7 +94,7 @@ class Card(GameObject):
             raise GameError('Card: out of sync')
 
         clsname = data['type']
-        cls = Card.card_classes.get(clsname)
+        cls = PhysicalCard.classes.get(clsname)
 
         if not cls:
             raise GameError('Card: unknown card class')
@@ -117,11 +130,11 @@ class Card(GameObject):
         return self.resides_in is not None and self not in self.resides_in
 
     def __repr__(self):
-        return u"{name}({suit}, {num}{detached})".format(
+        return "{name}({suit}, {num}{detached})".format(
             name=self.__class__.__name__,
             suit=self.SUIT_REV.get(self.suit, self.suit),
             num=self.NUM_REV.get(self.number, self.number),
-            detached=u', detached' if self.detached else u''
+            detached=', detached' if self.detached else ''
         )
 
     def is_card(self, cls):
@@ -142,8 +155,15 @@ class Card(GameObject):
     def color(self, val):
         self._color = val
 
+    def target(self: Any, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
+        raise Exception('Override this')
+
 
 class PhysicalCard(Card):
+    classes: ClassVar[Dict[str, Type[PhysicalCard]]] = {}
+
+    exinwan_target: Optional[Character]  # HACK, for ExinwanCard
+
     def __eq__(self, other):
         if not isinstance(other, Card): return False
         return self.sync_id == other.sync_id
@@ -155,17 +175,23 @@ class PhysicalCard(Card):
         return 84065234 + self.sync_id
 
 
-class VirtualCard(Card):
-    sort_index = 0
-    sync_id = 0
-    usage = 'none'
+class VirtualCard(Card, GameViralContext):
+    associated_cards: Sequence[Card]
+    action_params: dict
+    no_reveal: ClassVar[bool] = False
 
-    def __init__(self, player):
+    _suit: Optional[int]
+    _number: Optional[int]
+    _color: Optional[int]
+
+    def __init__(self, player: Character):
         self.player           = player
         self.associated_cards = []
         self.resides_in       = player.cards
         self.action_params    = {}
         self.unwrapped        = False
+        self.sync_id          = 0
+        self.usage            = 'none'
         self._suit            = None
         self._number          = None
         self._color           = None
@@ -182,21 +208,22 @@ class VirtualCard(Card):
         return False
 
     @classmethod
-    def unwrap(cls, vcards):
-        l = []
-        sl = vcards[:]
+    def unwrap(cls, vcards: Iterable[Card]) -> List[PhysicalCard]:
+        lst: List[PhysicalCard] = []
+        sl = list(vcards)
 
         while sl:
             s = sl.pop()
-            try:
+            if isinstance(s, VirtualCard):
                 sl.extend(s.associated_cards)
-            except AttributeError:
-                l.append(s)
+            else:
+                assert isinstance(s, PhysicalCard)
+                lst.append(s)
 
-        return l
+        return lst
 
     @classmethod
-    def wrap(cls, cl, player, params=None):
+    def wrap(cls, cl: List[Card], player: Character, params: Dict[str, Any] = None):
         vc = cls(player)
         vc.action_params = params or {}
         vc.associated_cards = cl[:]
@@ -206,7 +233,7 @@ class VirtualCard(Card):
         if self._color is not None:
             return self._color
 
-        color = set([c.color for c in self.associated_cards])
+        color = {c.color for c in self.associated_cards}
         color = color.pop() if len(color) == 1 else Card.NOTSET
         return color
 
@@ -219,7 +246,7 @@ class VirtualCard(Card):
         if self._number is not None:
             return self._number
 
-        num = set([c.number for c in self.associated_cards])
+        num = {c.number for c in self.associated_cards}
         num = num.pop() if len(num) == 1 else Card.NOTSET
         return num
 
@@ -228,7 +255,7 @@ class VirtualCard(Card):
 
     number = property(get_number, set_number)
 
-    def get_suit(self):
+    def get_suit(self) -> int:
         if self._suit is not None:
             return self._suit
 
@@ -236,7 +263,7 @@ class VirtualCard(Card):
         suit = cl[0].suit if len(cl) == 1 else Card.NOTSET
         return suit
 
-    def set_suit(self, v):
+    def set_suit(self, v: int):
         self._suit = v
 
     suit = property(get_suit, set_suit)
@@ -270,11 +297,10 @@ class CardList(GameObject, deque):
     EQUIPS = 'equips'
     FATETELL = 'fatetell'
     SPECIAL = 'special'
-    FAITHS = 'faiths'
 
-    def __init__(self, owner, type):
+    def __init__(self, owner: Optional['Character'], typ: str):
         self.owner = owner
-        self.type = type
+        self.type = typ
         deque.__init__(self)
 
     def __eq__(self, rhs):
@@ -287,14 +313,14 @@ class CardList(GameObject, deque):
 
 
 class Deck(GameObject):
-    def __init__(self, card_definition=None):
+    def __init__(self, g: THBattle, card_definition=None):
         from thb.cards import definition
+        self.game = g
         card_definition = card_definition or definition.card_definition
 
-        self.cards_record = {}
-        self.vcards_record = WeakValueDictionary()
+        self.cards_record: Dict[int, PhysicalCard] = {}
+        self.vcards_record: Dict[int, VirtualCard] = WeakValueDictionary()
         self.droppedcards = CardList(None, 'droppedcard')
-        self.collected_ppoints = CardList(None, 'collected_ppoints')
         cards = CardList(None, 'deckcard')
         self.cards = cards
         cards.extend(
@@ -303,7 +329,7 @@ class Deck(GameObject):
         )
         self.shuffle(cards)
 
-    def getcards(self, num):
+    def getcards(self, num: int) -> List[Card]:
         cl = self.cards
         if len(self.cards) <= num:
             dcl = self.droppedcards
@@ -315,50 +341,47 @@ class Deck(GameObject):
             dcl.extend(dropped[-10:])
 
             tmpcl = CardList(None, 'temp')
-            l = [c.__class__(c.suit, c.number, cl, c.track_id) for c in dropped[:-10]]
-            tmpcl.extend(l)
+            lst = [c.__class__(c.suit, c.number, cl, c.track_id) for c in dropped[:-10]]
+            tmpcl.extend(lst)
             self.shuffle(tmpcl)
             cl.extend(tmpcl)
 
         cl = self.cards
         rst = []
-        for i in xrange(min(len(cl), num)):
+        for i in range(min(len(cl), num)):
             rst.append(cl[i])
 
         return rst
 
-    def lookupcards(self, idlist):
-        l = []
-        cr = self.cards_record
-        vcr = self.vcards_record
-        for cid in idlist:
-            c = vcr.get(cid, None) or cr.get(cid, None)
-            c and l.append(c)
+    def lookup(self, sync_id: int) -> Optional[Card]:
+        return self.vcards_record.get(sync_id, None) or \
+            self.cards_record.get(sync_id, None)
 
-        return l
-
-    def register_card(self, card):
+    def register_card(self, card: PhysicalCard):
         assert not card.sync_id
-        sid = Game.getgame().get_synctag()
+        g = self.game
+        sid = g.get_synctag()
         card.sync_id = sid
         self.cards_record[sid] = card
         return sid
 
-    def register_vcard(self, vc):
-        sid = Game.getgame().get_synctag()
+    def register_vcard(self, vc: VirtualCard):
+        g = self.game
+        sid = g.get_synctag()
         vc.sync_id = sid
         self.vcards_record[sid] = vc
         return sid
 
-    def shuffle(self, cl):
+    def shuffle(self, cl: CardList):
         owner = cl.owner
-        list_shuffle(cl, owner)
+        g = self.game
+        list_shuffle(g, cl, owner)
 
         for c in cl:
             c.sync_id = 0
             self.register_card(c)
 
-    def inject(self, cls, suit, rank):
+    def inject(self, cls: Type[PhysicalCard], suit: int, rank: int) -> PhysicalCard:
         cl = self.cards
         c = cls(suit, rank, cl)
         self.register_card(c)
@@ -367,7 +390,10 @@ class Deck(GameObject):
 
 
 class Skill(VirtualCard):
-    category = ('skill', )
+    category: Sequence[str] = ['skill']
+    skill_category: Sequence[str] = []
+
+    ui_meta: ClassVar[SkillMeta]
 
     def __init__(self, player):
         assert player is not None
@@ -376,18 +402,17 @@ class Skill(VirtualCard):
     def check(self):  # override this
         return False
 
-    # target = xxx
-    # associated_action = xxx
-    # instance var: associated_cards = xxx
-
 
 class TreatAs(object):
-    treat_as = None  # can't be VirtualCard here
+    treat_as: Type[PhysicalCard]
     usage = 'launch'
 
-    @property
-    def category(self):
-        return ('skill', 'treat_as') + self.treat_as.category
+    if TYPE_CHECKING:
+        category: Sequence[str] = ['skill', 'treat_as']
+    else:
+        @property
+        def category(self) -> Sequence[str]:
+            return ['skill', 'treat_as'] + self.treat_as.category
 
     def check(self):
         return False
@@ -406,69 +431,58 @@ class TreatAs(object):
 
 
 # card targets:
-@staticmethod
-def t_None(g, source, tl):
-    return (None, False)
+def t_None(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
+    return ([], False)
 
 
-@staticmethod
-def t_Self(g, source, tl):
-    return ([source], True)
+def t_Self(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
+    return ([src], True)
 
 
-@staticmethod
-def t_OtherOne(g, source, tl):
+def t_OtherOne(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
     tl = [t for t in tl if not t.dead]
     try:
-        tl.remove(source)
+        tl.remove(src)
     except ValueError:
         pass
     return (tl[-1:], bool(len(tl)))
 
 
-@staticmethod
-def t_One(g, source, tl):
+def t_One(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
     tl = [t for t in tl if not t.dead]
     return (tl[-1:], bool(len(tl)))
 
 
-@staticmethod
-def t_All(g, source, tl):
-    l = g.players.rotate_to(source)
-    del l[0]
-    return ([t for t in l if not t.dead], True)
+def t_All(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
+    return ([t for t in g.players.rotate_to(src)[1:] if not t.dead], True)
 
 
-@staticmethod
-def t_AllInclusive(g, source, tl):
-    l = g.players.rotate_to(source)
-    return ([t for t in l if not t.dead], True)
+def t_AllInclusive(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
+    pl = g.players.rotate_to(src)
+    return ([t for t in pl if not t.dead], True)
 
 
 def t_OtherLessEqThanN(n):
-    @staticmethod
-    def _t_OtherLessEqThanN(g, source, tl):
+    def _t_OtherLessEqThanN(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
         tl = [t for t in tl if not t.dead]
         try:
-            tl.remove(source)
+            tl.remove(src)
         except ValueError:
             pass
         return (tl[:n], bool(len(tl)))
     return _t_OtherLessEqThanN
 
 
-@staticmethod
-def t_OneOrNone(g, source, tl):
+def t_OneOrNone(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
     tl = [t for t in tl if not t.dead]
     return (tl[-1:], True)
 
 
 def t_OtherN(n):
-    @staticmethod
-    def _t_OtherN(g, source, tl):
+    def _t_OtherN(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
         tl = [t for t in tl if not t.dead]
         try:
-            tl.remove(source)
+            tl.remove(src)
         except ValueError:
             pass
         return (tl[:n], bool(len(tl) >= n))
@@ -483,7 +497,7 @@ class HiddenCard(Card):  # special thing....
 class DummyCard(Card):  # another special thing....
     associated_action = None
     target = t_None
-    category = ('dummy', )
+    category = ['dummy']
 
     def __init__(self, suit=Card.NOTSET, number=0, resides_in=None, **kwargs):
         Card.__init__(self, suit, number, resides_in)

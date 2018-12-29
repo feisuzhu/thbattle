@@ -45,13 +45,14 @@ class ExchangeOps(gh.ObjectType):
 class ItemOps(gh.ObjectType):
     add = gh.Field(
         Item,
-        to=gh.Int(required=True, description="玩家ID"),
+        player=gh.Int(required=True, description="玩家ID"),
         typ=gh.String(required=True, description="物品类型"),
         reason=gh.String(required=True, description="原因"),
         description="给予玩家一个物品",
     )
     remove = gh.Boolean(
-        itemId=gh.Int(required=True, description="物品ID"),
+        player=gh.Int(required=True, description="玩家ID"),
+        typ=gh.String(required=True, description="物品类型"),
         reason=gh.String(required=True, description="原因"),
-        description="移除物品",
+        description="移除玩家的一个物品",
     )

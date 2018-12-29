@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- stdlib --
+from typing import cast
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game
-from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DistributeCards
-from thb.actions import DropCards, ForEach, GenericAction, LaunchCard, PlayerTurn, UseCard
-from thb.actions import UserAction, VitalityLimitExceeded, register_eh, user_choose_cards
+from game.base import EventHandler
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, CardMovement, Damage
+from thb.actions import DistributeCards, DropCards, ForEach, GenericAction, LaunchCard, PlayerTurn
+from thb.actions import UseCard, UserAction, VitalityLimitExceeded, register_eh, user_choose_cards
 
 
 # -- code --
@@ -23,7 +23,7 @@ class BaseAttack(UserAction):
         self.damage = damage
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         source, target = self.source, self.target
         rst = g.process_action(LaunchGraze(target))
         self1, rst = g.emit_event('attack_aftergraze', (self, not rst))
@@ -45,7 +45,7 @@ class Attack(BaseAttack, BasicAction):
 
 class InevitableAttack(Attack):
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         dmg = Damage(self.source, self.target, amount=self.damage)
         g.process_action(dmg)
         return True
@@ -53,7 +53,7 @@ class InevitableAttack(Attack):
 
 @register_eh
 class AttackCardRangeHandler(EventHandler):
-    interested = ('calcdistance', )
+    interested = ['calcdistance']
 
     def handle(self, evt_type, act):
         if evt_type == 'calcdistance':
@@ -82,24 +82,24 @@ class AttackCardRangeHandler(EventHandler):
 
 @register_eh
 class AttackCardVitalityHandler(EventHandler):
-    interested = ('action_before', 'action_shootdown')
+    interested = ['action_before', 'action_shootdown']
 
-    def handle(self, evt_type, act):
+    @classmethod
+    def handle(cls, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
             from .definition import AttackCard
             src = act.source
-            if act.card.is_card(AttackCard) and not self.is_disabled(src):
-                act.vitality_consumed = True
+            if act.card.is_card(AttackCard) and not cls.is_disabled(src):
+                act._[cls] = 'already-handled'
                 src.tags['vitality'] -= 1
 
         elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
-            from .definition import AttackCard
             if act.card.is_card(AttackCard):
                 src = act.source
-                if self.is_disabled(src):
+                if cls.is_disabled(src):
                     return act
 
-                if getattr(act, 'vitality_consumed', False):
+                if act._[cls]:
                     return act
 
                 if src.tags['vitality'] > 0:
@@ -124,7 +124,7 @@ class AttackCardVitalityHandler(EventHandler):
 
 @register_eh
 class VitalityHandler(EventHandler):
-    interested = ('action_before', )
+    interested = ['action_before']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
@@ -163,11 +163,11 @@ class UseAttack(AskForCard):
     card_usage = 'use'
 
     def __init__(self, target):
-        from thb import cards
-        AskForCard.__init__(self, target, target, cards.AttackCard)
+        from thb.cards.definition import AttackCard
+        AskForCard.__init__(self, target, target, AttackCard)
 
     def process_card(self, card):
-        g = Game.getgame()
+        g = self.game
         return g.process_action(UseCard(self.target, card))
 
     def ask_for_action_verify(self, p, cl, tl):
@@ -176,15 +176,15 @@ class UseAttack(AskForCard):
 
 class BaseUseGraze(AskForCard):
     def __init__(self, target):
-        from thb import cards
-        AskForCard.__init__(self, target, target, cards.GrazeCard)
+        from thb.cards.definition import GrazeCard
+        AskForCard.__init__(self, target, target, GrazeCard)
 
 
 class UseGraze(BaseUseGraze):
     card_usage = 'use'
 
     def process_card(self, card):
-        g = Game.getgame()
+        g = self.game
         return g.process_action(UseCard(self.target, card))
 
     def ask_for_action_verify(self, p, cl, tl):
@@ -195,13 +195,13 @@ class LaunchGraze(BaseUseGraze):
     card_usage = 'launch'
 
     def process_card(self, card):
-        g = Game.getgame()
+        g = self.game
         tgt = self.target
-        return g.process_action(LaunchCard(tgt, [tgt], card, GrazeAction))
+        return g.process_action(LaunchCard(tgt, [tgt], card, GrazeAction(tgt, tgt)))
 
     def ask_for_action_verify(self, p, cl, tl):
         tgt = self.target
-        return LaunchCard(tgt, [tgt], cl[0], GrazeAction).can_fire()
+        return LaunchCard(tgt, [tgt], cl[0], GrazeAction(tgt, tgt)).can_fire()
 
 
 class AskForHeal(AskForCard):
@@ -209,17 +209,19 @@ class AskForHeal(AskForCard):
 
     def __init__(self, source, target):
         from thb import cards
-        AskForCard.__init__(self, source, target, cards.HealCard)
+        AskForCard.__init__(self, source, target, cards.definition.HealCard)
 
     def process_card(self, card):
-        g = Game.getgame()
+        g = self.game
         src, tgt = self.source, self.target
-        return g.process_action(LaunchCard(tgt, [src], card, card.associated_action or Heal))
+        heal_cls = card.associated_action or Heal
+        return g.process_action(LaunchCard(tgt, [src], card, heal_cls(tgt, src)))
 
     def ask_for_action_verify(self, p, cl, tl):
         src, tgt = self.source, self.target
         card = cl[0]
-        return LaunchCard(tgt, [src], card, card.associated_action or Heal).can_fire()
+        heal_cls = card.associated_action or Heal
+        return LaunchCard(tgt, [src], card, heal_cls(tgt, src)).can_fire()
 
 
 class Wine(BasicAction):
@@ -246,13 +248,13 @@ class WineRevive(GenericAction):
     def apply_action(self):
         self.act.amount -= 1
         tgt = self.target
-        Game.getgame().process_action(SoberUp(tgt, tgt))
+        self.game.process_action(SoberUp(tgt, tgt))
         return True
 
 
 @register_eh
 class WineHandler(EventHandler):
-    interested = ('action_apply', 'action_before', 'post_choose_target')
+    interested = ['action_apply', 'action_before', 'post_choose_target']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack):
@@ -263,11 +265,11 @@ class WineHandler(EventHandler):
         elif evt_type == 'post_choose_target':
             act, tl = arg = act
 
-            from ..cards import AttackCard
+            from thb.cards.definition import AttackCard
             if act.card.is_card(AttackCard):
                 src = act.source
                 if src.tags['wine']:
-                    Game.getgame().process_action(SoberUp(src, src))
+                    self.game.process_action(SoberUp(src, src))
                     act.card_action.in_wine = True
 
             return arg
@@ -275,14 +277,14 @@ class WineHandler(EventHandler):
         elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             src = act.target
             if src.tags['wine']:
-                Game.getgame().process_action(SoberUp(src, src))
+                self.game.process_action(SoberUp(src, src))
 
         elif evt_type == 'action_before' and isinstance(act, Damage):
             if act.cancelled: return act
             if act.amount < 1: return act
             tgt = act.target
             if act.amount >= tgt.life and tgt.tags['wine']:
-                g = Game.getgame()
+                g = self.game
                 g.process_action(WineRevive(act))
 
         return act
@@ -299,7 +301,7 @@ class ExinwanEffect(GenericAction):
     card_usage = 'drop'
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         tgt = self.target
         if tgt.dead:
             return False
@@ -315,7 +317,7 @@ class ExinwanEffect(GenericAction):
 
     def cond(self, cards):
         if len(cards) != 2: return False
-        from .base import Skill
+        from thb.cards.base import Skill
         if any(isinstance(c, Skill) for c in cards): return False
         return True
 
@@ -327,13 +329,14 @@ class ExinwanEffect(GenericAction):
 class ExinwanHandler(EventHandler):
     # 恶心丸
 
-    interested = ('card_migration', 'post_card_migration')
+    interested = ['card_migration', 'post_card_migration']
 
-    def handle(self, evt_type, arg):
-        from .base import VirtualCard, HiddenCard
-        from .definition import ExinwanCard
+    def handle(self, evt_type, arg) -> None:
+        from thb.cards.base import VirtualCard, HiddenCard
+        from thb.cards.definition import ExinwanCard
 
         if evt_type == 'card_migration':
+            arg = cast(CardMovement, arg)
             act, cards, _from, to, is_bh = arg
 
             # someone is getting the ExinwanCard
@@ -382,6 +385,6 @@ class ExinwanHandler(EventHandler):
                 if tgt:
                     act = ExinwanEffect(tgt, tgt)
                     act.associated_card = c
-                    Game.getgame().process_action(act)
+                    self.game.process_action(act)
 
         return arg

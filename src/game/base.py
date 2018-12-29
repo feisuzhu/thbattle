@@ -1,57 +1,63 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import annotations
 
 # -- stdlib --
-from collections import defaultdict, deque
-from contextlib import contextmanager
+from collections import defaultdict
+from random import Random
+from typing import Any, ClassVar, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type
+from typing import TypeVar, Union
 import logging
 import random
 
 # -- third party --
-from gevent import Timeout, getcurrent
+from gevent import Timeout
 from gevent.event import Event
+from mypy_extensions import TypedDict
 import gevent
 
 # -- own --
 from endpoint import EndpointDied
-from utils import Packet, exceptions, instantiate
+from utils.misc import BatchList, exceptions
+from utils.viral import ViralContext
+
+# -- typing --
+if TYPE_CHECKING:
+    from server.base import Game as ServerGame  # noqa: F401
+    from server.endpoint import Client  # noqa: F401
 
 
 # -- code --
 log = logging.getLogger('Game')
-
-intern('action_shootdown')
-intern('action_before')
-intern('action_apply')
-intern('action_after')
 
 all_gameobjects = set()
 game_objects_hierarchy = set()
 
 
 class GameObjectMeta(type):
-    def __new__(mcls, clsname, bases, _dict):
-        for k, v in _dict.items():
+    def __new__(mcls, clsname, bases, kw):
+        for k, v in kw.items():
             if isinstance(v, (list, set)):
-                _dict[k] = tuple(v)  # mutable obj not allowed
+                kw[k] = tuple(v)  # mutable obj not allowed
 
-        cls = type.__new__(mcls, clsname, bases, _dict)
+        cls = super().__new__(mcls, clsname, bases, kw)
         all_gameobjects.add(cls)
         for b in bases:
             game_objects_hierarchy.add((b, cls))
 
         return cls
 
+    '''
     def __getattribute__(cls, name):
         value = type.__getattribute__(cls, name)
         if isinstance(value, classmethod):
             try:
                 rep_class = cls.rep_class(cls)
                 return lambda *a, **k: value.__get__(None, rep_class)
-            except:
+            except Exception:
                 pass
 
         return value
+    '''
 
     @staticmethod
     def _dump_gameobject_hierarchy():
@@ -63,25 +69,16 @@ class GameObjectMeta(type):
             ]))
             f.write('}')
 
-    # def __setattr__(cls, field, v):
-    #     type.__setattr__(cls, field, v)
-    #     if field in ('ui_meta', ):
-    #         return
-    #
-    #     log.warning('SetAttr: %s.%s = %s' % (cls.__name__, field, repr(v)))
+
+class GameObject(object, metaclass=GameObjectMeta):
+    pass
 
 
-class GameObject(object):
-    __metaclass__ = GameObjectMeta
+class TimeLimitExceeded(Timeout, GameObject):
+    pass
 
 
-class TimeLimitExceeded(Timeout):
-    __metaclass__ = GameObjectMeta
-
-
-class GameException(Exception):
-    __metaclass__ = GameObjectMeta
-
+class GameException(Exception, GameObject):
     def __init__(self, msg=None, **kwargs):
         Exception.__init__(self, msg)
         self.__dict__.update(kwargs)
@@ -91,193 +88,24 @@ class GameError(GameException):
     pass
 
 
-class GameEnded(GameException):
-    pass
-
-
 class InterruptActionFlow(GameException):
     def __init__(self, unwind_to=None):
         GameException.__init__(self)
         self.unwind_to = unwind_to
 
 
-class ActionShootdown(BaseException):
-    __metaclass__ = GameObjectMeta
+class AssociatedDataViralContext(ViralContext):
+    VIRAL_SEARCH: List[str] = []
+    _: dict
 
-    def __nonzero__(self):
-        return False
-
-
-class EventHandler(GameObject):
-    execute_before = ()
-    execute_after = ()
-    group = None
-    interested = None
-
-    def handle(self, evt_type, data):
-        raise GameError('Override handle function to implement EventHandler logics!')
-
-    def get_interested(self):
-        interested = self.interested
-        assert isinstance(interested, (list, tuple)), "Should specify interested events! %r" % self.__class__
-        return list(interested)
-
-    @staticmethod
-    def make_list(eh_classes, fold_group=True):
-        table = {}
-        eh_classes = set(eh_classes)
-        groups = defaultdict(list)
-
-        for cls in eh_classes:
-            assert not issubclass(cls, EventHandlerGroup), 'Should not pass group in make_list, %r' % cls
-            grp = cls.group if fold_group else None
-            if grp is not None:
-                groups[grp].append(cls)
-                cls = grp
-
-            table[cls.__name__] = cls()
-
-        for grp, lst in groups.iteritems():
-            eh = table[grp.__name__]
-            eh.set_handlers(EventHandler.make_list(lst, fold_group=False))
-
-        allnames = frozenset(table)
-
-        for eh in table.itervalues():
-            eh.execute_before = set(eh.execute_before) & allnames  # make it instance var
-            eh.execute_after = set(eh.execute_after) & allnames
-
-        for clsname, eh in table.iteritems():
-            for before in eh.execute_before:
-                table[before].execute_after.add(clsname)
-
-            for after in eh.execute_after:
-                table[after].execute_before.add(clsname)
-
-        l = table.values()
-        l.sort(key=lambda v: v.__class__.__name__)  # must sync between server and client
-
-        toposorted = []
-        while l:
-            deferred = []
-            commit = []
-            for eh in l:
-                if not eh.execute_after:
-                    for b in eh.execute_before:
-                        table[b].execute_after.remove(eh.__class__.__name__)
-                    commit.append(eh)
-                else:
-                    deferred.append(eh)
-
-            if not commit:
-                raise GameError("Can't resolve dependencies! Check for circular reference!")
-
-            toposorted.extend(commit)
-            l = deferred
-
-        return toposorted
-
-    @staticmethod
-    def _dump_eh_dependency_graph():
-        from game.autoenv import EventHandler
-        ehs = {i for i in all_gameobjects if issubclass(i, EventHandler)}
-        ehs.remove(EventHandler)
-        dependencies = set()
-        for eh in ehs:
-            for b in eh.execute_before:
-                dependencies.add((eh.__name__, b))
-
-            for a in eh.execute_after:
-                dependencies.add((a, eh.__name__))
-
-        with open('/dev/shm/eh_relations.dot', 'w') as f:
-            f.write('digraph {\nrankdir=LR;\n')
-            f.write('\n'.join([
-                '%s -> %s;' % (a, b)
-                for a, b in dependencies
-            ]))
-            f.write('}')
+    def viral_import(self, _):
+        self._ = defaultdict(bool)
 
 
-class EventHandlerGroup(EventHandler):
-    handlers = ()
+class Player(GameObject, AssociatedDataViralContext):
+    uid: int
 
-    def set_handlers(self, handlers):
-        self.handlers = handlers[:]
-
-
-class Action(GameObject):
-    cancelled = False
-    done = False
-    invalid = False
-
-    def __new__(cls, *a, **k):
-        try:
-            g = Game.getgame()
-            actual_cls = g.action_types.get(cls, cls)
-        except:
-            g = None
-            actual_cls = cls
-
-        obj = GameObject.__new__(actual_cls, *a, **k)
-
-        if g:
-            for hook in reversed(g._action_hooks):
-                obj = hook(obj)
-
-        return obj
-
-    @staticmethod
-    def rep_class(cls):
-        try:
-            g = Game.getgame()
-            return g.action_types.get(cls, cls)
-        except:
-            return cls
-
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
-    def action_shootdown_exception(self):
-        if not self.is_valid():
-            raise ActionShootdown(self)
-
-        _ = Game.getgame().emit_event('action_shootdown', self)
-        assert _ is self, "You can't replace action in 'action_shootdown' event!"
-
-    def action_shootdown(self):
-        try:
-            self.action_shootdown_exception()
-            return None
-
-        except ActionShootdown as e:
-            return e
-
-    def can_fire(self):
-        '''
-        Return true if the action can be fired.
-        '''
-        rst = self.action_shootdown()
-        return True if rst is None else rst
-
-    def apply_action(self):
-        raise GameError('Override apply_action to implement Action logics!')
-
-    def is_valid(self):
-        '''
-        Return True if this action is complete and ready to fire.
-        '''
-        return True
-
-    def __repr__(self):
-        return self.__class__.__name__
-
-
-class AbstractPlayer(GameObject):
-    index = None
-
-    def reveal(self, obj_list):
+    def reveal(self, obj_list: Any) -> None:
         raise GameError('Abstract')
 
     def __repr__(self):
@@ -292,142 +120,73 @@ class NPC(object):
         self.input_handler = input_handler
 
 
-class Game(GameObject):
-    '''
-    The Game class, all game mode derives from this.
-    Provides fundamental behaviors.
+class GameEnded(GameException):
+    winners: Sequence[Player]
 
-    Instance variables:
-        players: list(Players)
-        event_handlers: list(EventHandler)
-        npc_players: list(NPC)
+    def __init__(self, winners: Sequence[Player]):
+        GameException.__init__(self)
+        self.winners = winners
 
-        and all game related vars, eg. tags used by [EventHandler]s and [Action]s
-    '''
-    # event_handlers = []
+
+class GameViralContext(ViralContext):
+    VIRAL_SEARCH = ['g', 'self']
+    game: 'Game'
+
+    def viral_import(self, g):
+        self.game = g
+
+    def viral_export(self):
+        return self.game
+
+
+class Game(GameObject, GameViralContext):
     IS_DEBUG = False
-    params_def = {}
-    npc_players = []
 
-    def __init__(self):
-        self.event_handlers = []
-        self.adhoc_ehs      = []
-        self.ehs_cache      = {}
+    # ----- Class Variables -----
+    CLIENT: ClassVar[bool]
+    SERVER: ClassVar[bool]
+    n_persons: ClassVar[int]
+    npc_players: ClassVar[List[NPC]] = []
+    params_def: ClassVar[Dict[str, Any]] = {}
+    bootstrap: ClassVar[Type[BootstrapAction]]
+    dispatcher_cls: ClassVar[Type[EventDispatcher]]
+
+    # ----- Instance Variables -----
+    game: Game
+    dispatcher: EventDispatcher
+    event_observer: Optional[EventHandler]
+    action_stack: List[Action]
+    hybrid_stack: List[Union[Action, EventHandler]]
+    ended: bool
+    winners: Sequence[Player]
+    random: Random
+    _: dict
+
+    def __init__(self) -> None:
+        self.game = self
+
         self.action_stack   = []
         self.hybrid_stack   = []
-        self.action_types   = {}
         self.ended          = False
-        self._action_hooks  = []
         self.winners        = []
         self.turn_count     = 0
         self.event_observer = None
 
-    def set_event_handlers(self, ehs):
-        self.event_handlers = ehs[:]
-        self.ehs_cache = {}
-        self.adhoc_ehs = []
+        self._ = {}
 
-    def add_adhoc_event_handler(self, eh):
-        self.adhoc_ehs.insert(0, eh)
+        self.refresh_dispatcher()
 
-    def remove_adhoc_event_handler(self, eh):
-        try:
-            self.adhoc_ehs.remove(eh)
-        except ValueError:
-            pass
+    def refresh_dispatcher(self) -> None:
+        self.dispatcher = self.dispatcher_cls(self)
 
-    def players_from(g, p):
-        if p is None:
-            id = 0
-        elif p in g.players:
-            id = g.get_playerid(p)
-        else:
-            id = p.index
-
-        n = len(g.players)
-
-        for i in range(id, n) + range(id):
-            yield g.players[i]
-
-    def game_end(self):
-        self.ended = True
-        try:
-            winner = self.winners[0].identity
-        except:
-            winner = None
-
-        log.info(u'>> Winner: %s', winner)
-        gevent.sleep(2)
-
-        raise GameEnded
-
-    def _get_relevant_eh(self, tag):
-        ehs = self.ehs_cache.get(tag)
-        if ehs is not None:
-            return ehs
-
-        ehs = [
-            eh for eh in self.event_handlers if
-            tag in eh.get_interested()
-        ]
-        self.ehs_cache[tag] = ehs
-
-        return ehs
-
-    def emit_event(self, evt_type, data):
-        '''
-        Fire an event, all relevant event handlers will see this,
-        data can be modified.
-        '''
-        random.random() < 0.01 and gevent.sleep(0.00001)  # prevent buggy logic code blocking scheduling
-        if isinstance(data, (list, tuple, str, unicode)):
-            s = data
-        else:
-            s = data.__class__.__name__
-        log.debug('emit_event: %s %s' % (evt_type, s))
-
-        if evt_type in ('action_before', 'action_apply', 'action_after'):
-            action_event = True
-            assert isinstance(data, Action)
-        else:
-            action_event = False
-
+    def emit_event(self, evt_type: str, data: Any) -> Any:
         ob = self.event_observer
         if ob:
             data = ob.handle(evt_type, data)
 
-        adhoc = self.adhoc_ehs
-        ehs = self._get_relevant_eh(evt_type)
+        return self.dispatcher.emit(evt_type, data)
 
-        for l in adhoc, ehs:
-            for eh in l:
-                data = self.handle_single_event(eh, evt_type, data)
-                if action_event and data.cancelled:
-                    break
-
-        return data
-
-    def handle_single_event(self, eh, *a, **k):
-        try:
-            self.hybrid_stack.append(eh)
-            data = eh.handle(*a, **k)
-        finally:
-            assert eh is self.hybrid_stack.pop()
-
-        if data is None:
-            log.debug('EventHandler %s returned None' % eh.__class__.__name__)
-
-        return data
-
-    @staticmethod
-    def getgame():
-        from .autoenv import Game
-        return Game.getgame()
-
-    def process_action(self, action):
-        '''
-        Process an action
-        '''
+    def process_action(self, action: Action) -> bool:
         if self.ended:
             return False
 
@@ -495,32 +254,258 @@ class Game(GameObject):
 
         return rst
 
-    def get_playerid(self, p):
-        return self.players.index(p)
-        try:
-            return self.players.index(p)
-        except ValueError:
-            return None
+    def pause(self, t: float) -> None:
+        pass
 
-    def player_fromid(self, pid):
-        return self.players[pid]
-        try:
-            return self.players[pid]
-        except IndexError:
-            return None
-
-    def get_synctag(self):
+    def get_synctag(self) -> int:
         raise GameError('Abstract')
 
-    @contextmanager
-    def action_hook(self, hook):
-        ''' Dark art, do not use '''
+    def is_dropped(self, p: Player) -> bool:
+        raise GameError('Abstract')
+
+    def name_of(self, p: Player) -> str:
+        raise GameError('Abstract')
+
+    def can_leave(self, p: Player) -> bool:
+        raise GameError('Abstract')
+
+
+class ActionShootdown(BaseException, GameObject):
+    def __bool__(self):
+        return False
+
+
+class EventHandler(GameObject):
+    interested: List[str]
+    execute_before: List[str] = []
+    execute_after: List[str]  = []
+
+    arbiter: Optional[Type[EventArbiter]] = None
+
+    def __init__(self, g: Game):
+        self.game = g
+
+    def handle(self, evt_type: str, data: Any):
+        raise GameError('Override handle function to implement EventHandler logics!')
+
+    def get_interested(self):
+        interested = self.interested
+        assert isinstance(interested, (list, tuple)), "Should specify interested events! %r" % self.__class__
+        return list(interested)
+
+    @staticmethod
+    def make_list(g, eh_classes, fold_arbiter=True):
+        table = {}
+        eh_classes = set(eh_classes)
+        arbiters: Any = defaultdict(list)
+
+        for cls in eh_classes:
+            assert not issubclass(cls, EventArbiter), 'Should not pass arbiters in make_list, %r' % cls
+            grp = cls.arbiter if fold_arbiter else None
+            if grp is not None:
+                arbiters[grp].append(cls)
+                cls = grp
+
+            table[cls.__name__] = cls(g)
+
+        for a, lst in arbiters.items():
+            eh = table[a.__name__]
+            eh.set_handlers(EventHandler.make_list(g, lst, fold_arbiter=False))
+
+        allnames = frozenset(table)
+
+        for eh in table.values():
+            eh.execute_before = set(eh.execute_before) & allnames  # make it instance var
+            eh.execute_after = set(eh.execute_after) & allnames
+
+        for clsname, eh in table.items():
+            for before in eh.execute_before:
+                table[before].execute_after.add(clsname)
+
+            for after in eh.execute_after:
+                table[after].execute_before.add(clsname)
+
+        lst = list(table.values())
+        lst.sort(key=lambda v: v.__class__.__name__)  # must sync between server and client
+
+        toposorted = []
+        while lst:
+            deferred = []
+            commit = []
+            for eh in lst:
+                if not eh.execute_after:
+                    for b in eh.execute_before:
+                        table[b].execute_after.remove(eh.__class__.__name__)
+                    commit.append(eh)
+                else:
+                    deferred.append(eh)
+
+            if not commit:
+                raise GameError("Can't resolve dependencies! Check for circular reference!")
+
+            toposorted.extend(commit)
+            lst = deferred
+
+        return toposorted
+
+    @staticmethod
+    def _dump_eh_dependency_graph():
+        ehs: Set[Type[EventHandler]] = {i for i in all_gameobjects if issubclass(i, EventHandler)}
+        ehs.remove(EventHandler)
+        dependencies = set()
+        for eh in ehs:
+            for b in eh.execute_before:
+                dependencies.add((eh.__name__, b))
+
+            for a in eh.execute_after:
+                dependencies.add((a, eh.__name__))
+
+        with open('/dev/shm/eh_relations.dot', 'w') as f:
+            f.write('digraph {\nrankdir=LR;\n')
+            f.write('\n'.join([
+                '%s -> %s;' % (a, b)
+                for a, b in dependencies
+            ]))
+            f.write('}')
+
+
+class EventArbiter(EventHandler):
+    handlers = ()
+
+    def set_handlers(self, handlers):
+        self.handlers = handlers[:]
+
+
+T = TypeVar('T', bound=EventHandler)
+
+
+class EventDispatcher(GameObject):
+    game: Game
+    _event_handlers: Sequence[EventHandler]
+    _adhoc_ehs: List[EventHandler]
+    _ehs_cache: Dict[str, List[EventHandler]]
+
+    def __init__(self, g: Game):
+        self.game = g
+
+        self._adhoc_ehs     = []
+        self._ehs_cache     = {}
+        self._event_handlers = self.populate_handlers()
+
+    def add_adhoc(self, eh: EventHandler):
+        self._adhoc_ehs.insert(0, eh)
+
+    def remove_adhoc(self, eh: EventHandler):
         try:
-            self._action_hooks.append(hook)
-            yield
+            self._adhoc_ehs.remove(eh)
+        except ValueError:
+            pass
+
+    def populate_handlers(self) -> Sequence[EventHandler]:
+        raise Exception('Override this!')
+
+    def emit(self, evt_type: str, data: Any):
+        '''
+        Fire an event, all relevant event handlers will see this,
+        data can be modified.
+        '''
+        random.random() < 0.01 and gevent.sleep(0.00001)  # prevent buggy logic code blocking scheduling
+        if isinstance(data, (list, tuple, str)):
+            s = data
+        else:
+            s = data.__class__.__name__
+        log.debug('emit_event: %s %s' % (evt_type, s))
+
+        if evt_type in ('action_before', 'action_apply', 'action_after'):
+            action_event = True
+            assert isinstance(data, Action)
+        else:
+            action_event = False
+
+        adhoc = self._adhoc_ehs
+        ehs = self._get_relevant_eh(evt_type)
+
+        for l in adhoc, ehs:
+            for eh in l:
+                data = self.handle_single_event(eh, evt_type, data)
+                if action_event and data.cancelled:
+                    break
+
+        return data
+
+    def handle_single_event(self, eh: EventHandler, *a, **k):
+        try:
+            self.game.hybrid_stack.append(eh)
+            data = eh.handle(*a, **k)
         finally:
-            expected_hook = self._action_hooks.pop()
-            assert expected_hook is hook
+            rst = eh is self.game.hybrid_stack.pop()
+            assert rst
+
+        if data is None:
+            raise Exception('EventHandler %s returned None' % eh.__class__.__name__)
+
+        return data
+
+    def find_by_cls(self, cls: Type[T]) -> Optional[T]:
+        for c in self._event_handlers:
+            if isinstance(c, cls):
+                return c
+
+        return None
+
+    def _get_relevant_eh(self, tag: str):
+        ehs = self._ehs_cache.get(tag)
+        if ehs is not None:
+            return ehs
+
+        ehs = [
+            eh for eh in self._event_handlers if
+            tag in eh.get_interested()
+        ]
+        self._ehs_cache[tag] = ehs
+
+        return ehs
+
+
+class Action(GameObject, GameViralContext, AssociatedDataViralContext):
+    cancelled = False
+    done = False
+    invalid = False
+    succeeded: bool
+
+    def action_shootdown_exception(self) -> None:
+        if not self.is_valid():
+            raise ActionShootdown(self)
+
+        _ = self.game.emit_event('action_shootdown', self)
+        assert _ is self, "You can't replace action in 'action_shootdown' event!"
+
+    def action_shootdown(self):
+        try:
+            self.action_shootdown_exception()
+            return None
+
+        except ActionShootdown as e:
+            return e
+
+    def can_fire(self):
+        '''
+        Return true if the action can be fired.
+        '''
+        rst = self.action_shootdown()
+        return True if rst is None else rst
+
+    def apply_action(self):
+        raise GameError('Override apply_action to implement Action logics!')
+
+    def is_valid(self):
+        '''
+        Return True if this action is complete and ready to fire.
+        '''
+        return True
+
+    def __repr__(self):
+        return self.__class__.__name__
 
 
 class SyncPrimitive(GameObject):
@@ -537,34 +522,40 @@ class SyncPrimitive(GameObject):
         return self.value.__repr__()
 
 
-def sync_primitive(val, to):
+T_sync = TypeVar('T_sync', bound=Union[list, int, str, bool])
+
+
+def sync_primitive(val: T_sync, to: Union[Player, BatchList[Player]]) -> T_sync:
     if not to:  # sync to nobody
         return val
 
+    rst: Any = None
     if isinstance(val, list):
-        l = [SyncPrimitive(i) for i in val]
-        to.reveal(l)
-        return val.__class__(
-            i.value for i in l
+        lst = [SyncPrimitive(i) for i in val]
+        to.reveal(lst)
+        rst = val.__class__(
+            i.value for i in lst
         )
     else:
         v = SyncPrimitive(val)
         to.reveal(v)
-        return v.value
+        rst = v.value
+
+    return rst
 
 
-def get_seed_for(p):
+def get_seed_for(g: Game, p: Union[Player, BatchList[Player]]):
     from game.autoenv import Game
-    if Game.SERVER_SIDE:
-        seed = Game.getgame().random.getrandbits(63)
+    if Game.SERVER:
+        seed = g.random.getrandbits(63)
     else:
-        seed = 0L
+        seed = 0
 
     return sync_primitive(seed, p)
 
 
-def list_shuffle(lst, plain_to):
-    seed = get_seed_for(plain_to)
+def list_shuffle(g, lst, plain_to):
+    seed = get_seed_for(g, plain_to)
 
     if seed:  # cardlist owner & server
         shuffler = random.Random(seed)
@@ -574,25 +565,21 @@ def list_shuffle(lst, plain_to):
             i.conceal()
 
 
-class Inputlet(GameObject):
-    RETRY = object()
+class Inputlet(GameObject, GameViralContext):
     '''
     NOTICE: Inputlet instance variable should
-            not be used as side channel for infomation
-            passing in game logic code.
+            not be used as a side channel to pass infomation
+            in game logic code.
     '''
-    def __init__(self, initiator, *args, **kwargs):
-        self.initiator = initiator
-        self.init(*args, **kwargs)
+    initiator: Any
+    timeout: int
+    actor: object
 
     @classmethod
     def tag(cls):
         clsname = cls.__name__
         assert clsname.endswith('Inputlet')
         return clsname[:-8]
-
-    def init(self):
-        pass
 
     def parse(self, data):
         '''
@@ -629,11 +616,11 @@ class Inputlet(GameObject):
         return None
 
     def __repr__(self):
-        return '<I:{}>'.format(self.tag())
+        return f'<I:{self.tag()}>'
 
 
-class InputTransaction(object):
-    def __init__(self, name, involved, **kwargs):
+class InputTransaction(GameViralContext):
+    def __init__(self, name: str, involved: Sequence[Any], **kwargs):
         self.name = name
         self.involved = involved[:]
         self.__dict__.update(kwargs)
@@ -642,8 +629,7 @@ class InputTransaction(object):
         return self.begin()
 
     def begin(self):
-        from game.autoenv import Game
-        g = Game.getgame()
+        g = self.game
         g.emit_event('user_input_transaction_begin', self)
         return self
 
@@ -652,49 +638,82 @@ class InputTransaction(object):
         return False
 
     def end(self):
-        from game.autoenv import Game
-        g = Game.getgame()
+        g = self.game
         g.emit_event('user_input_transaction_end', self)
 
     def notify(self, evt_name, arg):
         '''
         Event For UI
         '''
-        Game.getgame().emit_event('user_input_transaction_feedback', (self, evt_name, arg))
+        self.game.emit_event('user_input_transaction_feedback', (self, evt_name, arg))
 
     def __repr__(self):
         return '<T:{}>'.format(self.name)
 
 
-class Gamedata(object):
-    @instantiate
-    class NODATA(object):
-        def __repr__(self):
-            return 'NODATA'
+class Packet(object):
+    __slots__ = ('tag', 'data', 'consumed')
 
-    def __init__(self, recording=False):
-        self.gdqueue = deque(maxlen=100000)
-        self.gdevent = Event()
-        self.gdempty = Event()
-        self.recording = recording
-        self.history = []
+    def __init__(self, tag: str, data: object):
+        self.tag = tag
+        self.data = data
+        self.consumed = False
+
+    def __repr__(self):
+        return 'Packet<%s, %s, %s>' % (self.tag, self.data, '_X'[self.consumed])
+
+
+class GameArchive(TypedDict):
+    send: List[Tuple[str, Any]]  # tag, data
+    recv: List[Tuple[str, Any]]  # tag, data
+
+
+class GameData(object):
+    def __init__(self, gid: int, live=True):
+        self.gid = gid
+        self._send: List[Packet] = []
+        self._recv: List[Packet] = []
+        self._seen: Set[str] = set()
+        self._pending_recv: List[Packet] = []
+        self._has_data = Event()
+        self._dead = False
+        self._live = live
+
         self._in_gexpect = False
-        self.gdempty.set()
 
-    def feed(self, data):
-        p = Packet(data)
-        self.gdqueue.append(p)
-        self.gdevent.set()
-        self.gdempty.clear()
+    def feed_recv(self, tag: str, data: object):
+        if tag in self._seen:
+            return
 
-    def gexpect(self, tag, blocking=True):
+        self._seen.add(tag)
+        p = Packet(tag, data)
+        self._recv.append(p)
+        self._pending_recv.append(p)
+        self._has_data.set()
+
+    def feed_send(self, tag: str, data: object):
+        p = Packet(tag, data)
+        self._send.append(p)
+        return p
+
+    def get_sent(self) -> List[Packet]:
+        return self._send
+
+    def is_live(self) -> bool:
+        return self._live
+
+    def gexpect(self, tag: str):
+        if self._dead:
+            raise EndpointDied
+
         try:
             assert not self._in_gexpect, 'NOT REENTRANT'
             self._in_gexpect = True
-            blocking and log.debug('GAME_EXPECT: %s', repr(tag))
-            l = self.gdqueue
-            e = self.gdevent
-            ee = self.gdempty
+
+            log.debug('GAME_EXPECT: %s', repr(tag))
+
+            recv = self._pending_recv
+            e = self._has_data
             e.clear()
 
             glob = False
@@ -703,60 +722,80 @@ class Gamedata(object):
                 glob = True
 
             while True:
-                for i, packet in enumerate(l):
+                livepkt = None
+                for i, packet in enumerate(recv):
                     if isinstance(packet, EndpointDied):
+                        del recv[i]
                         raise packet
 
-                    if packet[0] == tag or (glob and packet[0].startswith(tag)):
+                    if packet.tag == '__game_live':
+                        livepkt = packet
+                        continue
+
+                    if packet.tag == tag or (glob and packet.tag.startswith(tag)):
                         log.debug('GAME_READ: %s', repr(packet))
-                        del l[i]
-                        self.recording and self.history.append(packet)
-                        return packet
+                        del recv[i]
+                        packet.consumed = True
+                        if livepkt:
+                            self._live = True
+                        return [packet.tag, packet.data]
 
                     else:
-                        log.debug('GAME_DATA_MISS: %s', repr(packet))
-                        log.debug('EXPECTS: %s, GAME: %s', tag, getcurrent())
+                        log.debug('GAME_MISS: %s, EXPECTS: %s, GID: %s', repr(packet), tag, self.gid)
 
-                ee.set()
-                if blocking:
-                    e.wait(timeout=5)
-                    e.clear()
-                else:
-                    e.clear()
-                    return None, self.NODATA
+                e.wait(timeout=5)
+                if self._dead:
+                    raise EndpointDied
+                e.clear()
         finally:
             self._in_gexpect = False
 
-    def wait_empty(self):
-        self.gdempty.wait()
-
-    def gbreak(self):
-        # is it a hack?
-        # XXX: definitly, and why it's here?! can't remember
+    def die(self) -> None:
         # Explanation:
-        # Well, when sb. exit game in input state,
+        # When sb. exit game in input state,
         # the others must wait until his timeout exceeded.
-        # called by lobby.exit_game to break such condition.
-        self.gdqueue.append(EndpointDied())
-        self.gdevent.set()
+        # called this to break such condition.
+        self._dead = True
+        self._has_data.set()
+
+    def revive(self) -> None:
+        self._dead = False
+
+    def archive(self) -> GameArchive:
+        return {
+            'send': [(i.tag, i.data) for i in self._send],
+            'recv': [(i.tag, i.data) for i in self._recv],
+        }
+
+    def feed_archive(self, data: GameArchive) -> None:
+        recv = [Packet(t, d) for t, d in data['recv']]
+        self._recv = recv
+        self._pending_recv = list(recv)
+        self._has_data.set()
 
 
 class GameItem(object):
-    inventory = {}
+    inventory: Dict[str, Type[GameItem]] = {}
 
-    key  = None
-    args = []
+    # --- class ---
+    key: str  = ''
+    args: List[type] = []
     usable = False
 
-    title = u'ITEM-TITLE'
-    description = u'ITEM-DESC'
+    title = 'ITEM-TITLE'
+    description = 'ITEM-DESC'
 
-    def __init__(self, sku, *args):
-        self.sku = sku
-        self.init(*args)
+    # --- instance ---
+    sku: str
 
-    def init(self, *args):
-        pass
+    # --- poison ---
+    init: None
+
+    def __init__(self, *args):
+        raise Exception('Should not instantiate plain GameItem!')
+
+    def should_usable(self, g: ServerGame, u: Client) -> None:
+        ...
 
     @classmethod
     def register(cls, item_cls):
@@ -765,7 +804,7 @@ class GameItem(object):
         return item_cls
 
     @classmethod
-    def from_sku(cls, sku):
+    def from_sku(cls, sku) -> 'GameItem':
         if ':' in sku:
             key, args = sku.split(':')
             args = args.split(',')
@@ -785,4 +824,13 @@ class GameItem(object):
         except Exception:
             raise exceptions.InvalidItemSKU
 
-        return cls(sku, *args)
+        o = cls(*args)
+        o.sku = sku
+        return o
+
+
+class BootstrapAction(Action):
+    def __init__(self, params: Dict[str, Any],
+                       items: Dict[Player, List[GameItem]],
+                       players: BatchList[Player]):
+        raise Exception('Override this!')

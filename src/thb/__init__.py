@@ -1,31 +1,37 @@
-from __future__ import absolute_import
+# -*- coding: utf-8 -*-
 
-from thb.thb3v3 import THBattle
-from thb.thbkof import THBattleKOF
-from thb.thbidentity import THBattleIdentity
-from thb.thbfaith import THBattleFaith
+# -- stdlib --
+from typing import Dict, Type
+
+# -- third party --
+# -- own --
+from thb.mode import THBattle
 from thb.thb2v2 import THBattle2v2
+from thb.thbfaith import THBattleFaith
+from thb.thbrole import THBattleRole
+from thb.thbkof import THBattleKOF
 from thb.thbnewbie import THBattleNewbie
 
-import thb.item  # noqa, init it
-from collections import OrderedDict
 
-modes = OrderedDict()
-l = [
-    THBattle,
+# -- code --
+import thb.item  # noqa, init it
+import thb.meta  # noqa, init it
+
+modes: Dict[str, Type[THBattle]] = {}
+modelst = [
     THBattleKOF,
-    THBattleIdentity,
+    THBattleRole,
     THBattleFaith,
     THBattle2v2,
     THBattleNewbie,
 ]
 
-for g in l:
+for g in modelst:
     modes[g.__name__] = g
 
-del l, g, OrderedDict
+del modelst, g
 
-modes_maoyu = {
+modes_kedama = {
     'THBattleNewbie',
     'THBattleKOF',
 }

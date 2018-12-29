@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 
 # -- prioritized --
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
 from gevent import monkey
 monkey.patch_all()
 
 # -- stdlib --
 import logging
 import signal
+import sys
+import urllib.parse
 
 # -- third party --
 from gevent import signal as sig
@@ -20,7 +17,7 @@ import gevent
 
 # -- own --
 import utils
-import utils.logging
+import utils.log
 
 # -- code --
 MAIN = gevent.getcurrent()
@@ -39,45 +36,50 @@ def start_server():
 
     parser = argparse.ArgumentParser(prog=sys.argv[0])
     parser.add_argument('node', type=str)
-    parser.add_argument('--host', default='0.0.0.0', type=str)
-    parser.add_argument('--port', default=9999, type=int)
-    parser.add_argument('--backdoor-host', default='127.0.0.1', type=str)
-    parser.add_argument('--backdoor-port', default=19999, type=int)
-    parser.add_argument('--no-backdoor', action='store_true')
-    parser.add_argument('--freeplay', action='store_true')
-    parser.add_argument('--log', default='INFO')
-    parser.add_argument('--logfile', default='')
-    parser.add_argument('--gidfile', default='')
-    parser.add_argument('--credit-multiplier', type=float, default=1)
-    parser.add_argument('--no-counting-flee', action='store_true')
-    parser.add_argument('--archive-path', default='')
-    parser.add_argument('--interconnect', action='store_true', default=False)
-    parser.add_argument('--redis-url', default='redis://localhost:6379')
-    parser.add_argument('--discuz-authkey', default='Proton rocks')
-    parser.add_argument('--db', default='sqlite:////dev/shm/thb.sqlite3')
+    parser.add_argument('--listen', default='tcp://0.0.0.0:9999', type=str)
+    parser.add_argument('--backdoor', default='tcp://127.0.0.1:19999', type=str)
+    parser.add_argument('--log', default='file:///dev/shm/thb.log?level=INFO')
+    parser.add_argument('--archive-path', default='file:///dev/shm/thb-archive')
+    parser.add_argument('--backend', default='http://uid:pass@localhost/graphql')
+    parser.add_argument('--interconnect', default='ws://uid:pass@localhost/interconnect')
     options = parser.parse_args()
-
-    import options as opmodule
-    opmodule.options = options
-
-    import db.session
-    db.session.init(options.db)
 
     autoenv.init('Server')
 
     import settings
 
-    utils.logging.init_server(getattr(logging, options.log.upper()), settings.SENTRY_DSN, settings.VERSION, options.logfile)
+    log = urllib.parse.urlparse(options.log)
+    assert log.scheme == 'file'
+    args = dict(urllib.parse.parse_qsl(log.query))
+    utils.log.init_server(args.get('level', 'INFO').upper(), settings.SENTRY_DSN, settings.VERSION, log.path)
 
     if not options.no_backdoor:
         from gevent.backdoor import BackdoorServer
-        gevent.spawn(BackdoorServer((options.backdoor_host, options.backdoor_port)).serve_forever)
-
-    from server.core import Client
+        a = urllib.parse.urlparse(options.backdoor)
+        gevent.spawn(BackdoorServer((a.hostname, a.port)).serve_forever)
 
     root = logging.getLogger()
     root.info('=' * 20 + settings.VERSION + '=' * 20)
-    server = StreamServer((options.host, options.port), Client.serve, None)
+
+    from server.core import Core
+
+    core = Core(
+        node=options.node,
+        interconnect=options.interconnect,
+        archive_path=options.archive_path,
+        backend=options.backend,
+    )
+
+    def serve(sock, addr):
+        from endpoint import Endpoint
+        from server.endpoint import Client
+
+        ep = Endpoint(sock, addr)
+        cli = Client(core, ep)
+        cli.serve()
+
+    a = urllib.parse.urlparse(options.listen)
+    server = StreamServer((a.hostname, options.port), serve, None)
     server.serve_forever()
 
 
