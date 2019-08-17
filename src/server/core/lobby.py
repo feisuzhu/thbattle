@@ -524,6 +524,11 @@ class Lobby(object):
     @_command(['hang', 'inroomwait', 'ready', 'ingame', 'observing'], [unicode])
     def chat(self, user, msg):
         acc = user.account
+
+        if acc.userid < 0:
+            user.write(['system_msg', [None, u'毛玉不可以说话']])
+            return
+
         msg = msg[:300]
 
         @gevent.spawn
