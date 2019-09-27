@@ -191,12 +191,12 @@ class scarlet_mist:
         return '红雾：增益效果'
 
 
-class keine_devour:
+class devoted:
     def anim(p, v):
-        if v and p is G().current_player:
-            return 'thb-tag-keine_devour'
+        if v:
+            return 'thb-tag-keine_devoted'
 
     def description(p, v):
-        return '这位玩家的历史将会被慧音吞噬'
+        return '合格的CP当然要同富贵共患难！'
 
 # -----END TAGS UI META-----
