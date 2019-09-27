@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.base import GameException
-from thb.actions import ActionStage, ActiveDropCards, BaseActionStage, DrawCards, DropCards
-from thb.actions import GenericAction, LaunchCard, LifeLost, MaxLifeChange, PrepareStage, Reforge
-from thb.actions import UserAction, migrate_cards, random_choose_card, ttags, user_choose_cards
-from thb.cards.base import Card, Skill, VirtualCard
-from thb.cards.classes import Heal, PhysicalCard, t_None, t_OtherOne
+from thb.actions import ActionStage, BaseActionStage, Damage, DrawCards, GenericAction, LaunchCard
+from thb.actions import MaxLifeChange, Reforge, UserAction, migrate_cards, random_choose_card, ttags
+from thb.actions import user_choose_cards, user_choose_players
+from thb.cards.base import PhysicalCard, Skill, VirtualCard, t_None, t_OtherOne
+from thb.cards.basic import Heal
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 from thb.mode import THBEventHandler
@@ -55,11 +55,15 @@ class TeachTargetEffect(GenericAction):
         else:
             act = TeachTargetActionStage(tgt)
             g.process_action(act)
-            if act.action_count != 1:
-                c = random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
-                if c:
-                    g.players.reveal(c)
-                    g.process_action(Reforge(tgt, tgt, c))
+            if act.action_count == 1:
+                return False
+
+            c = random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
+            if not c:
+                return False
+
+            g.players.reveal(c)
+            g.process_action(Reforge(tgt, tgt, c))
 
         return True
 
@@ -104,139 +108,125 @@ class Teach(Skill):
 
 class KeineGuard(Skill):
     associated_action = None
-    skill_category = ['character', 'passive', 'awake']
+    skill_category = ('character', 'passive', 'awake', 'once')
     target = t_None
 
 
-class KeineGuardAwake(UserAction):
+class KeineGuardAction(UserAction):
     def apply_action(self):
-        tgt = self.target
+        src, tgt = self.source, self.target
         g = self.game
-        g.process_action(MaxLifeChange(tgt, tgt, -1))
-        tgt.skills.remove(KeineGuard)
-        tgt.skills.append(Devour)
+        g.process_action(MaxLifeChange(src, src, -1))
+        g.process_action(Heal(src, tgt))
+
+        src.skills.remove(KeineGuard)
+
+        if tgt.life == min(p.life for p in g.players if not p.dead):
+            src.skills.append(Devoted)
+            src.tags['devoted'] = {
+                'to': tgt
+            }
+            tgt.skills.append(Devoted)
+            tgt.tags['devoted'] = {
+                'to': src
+            }
+
+        return True
+
+
+class Devoted(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive', 'awake')
+    target = t_None
+
+
+class DevotedDrawCards(DrawCards):
+    pass
+
+
+class DevotedHeal(Heal):
+    pass
+
+
+class DevotedHandler(THBEventHandler):
+    interested = ('action_before', 'action_after')
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, Damage):
+            tgt = act.target
+            if not tgt.has_skill(Devoted): return act
+            cp = tgt.tags['devoted']['to']
+            if cp.dead: return act
+            if cp.life <= tgt.life: return act
+            g = self.game
+            g.process_action(DevotedAction(cp, tgt, act))
+
+        elif evt_type == 'action_after' and isinstance(act, DrawCards):
+            tgt = act.target
+            if not tgt.has_skill(Devoted): return act
+            cp = tgt.tags['devoted']['to']
+            if cp.dead: return act
+            g = self.game
+            if g.current_player is not cp: return act
+            g.process_action(DevotedDrawCards(cp, amount=act.amount))
+
+        elif evt_type == 'action_after' and isinstance(act, Heal):
+            tgt = act.target
+            if not tgt.has_skill(Devoted): return act
+            cp = tgt.tags['devoted']['to']
+            if cp.dead: return act
+            g = self.game
+            if g.current_player is not cp: return act
+            g.process_action(DevotedHeal(tgt, cp, amount=act.amount))
+
+        return act
+
+
+class DevotedAction(UserAction):
+    def __init__(self, source, target, damage):
+        self.source = source
+        self.target = target
+        self.damage = damage
+
+    def apply_action(self):
+        src = self.source
+        dmg = self.damage
+        dmg.target = src
         return True
 
 
 class KeineGuardHandler(THBEventHandler):
-    interested = ['action_before']
+    interested = ('action_apply',)
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, PrepareStage):
-            tgt = act.target
+        if evt_type == 'action_apply' and isinstance(act, ActionStage):
+            src = act.target
             g = self.game
 
-            cond = True and tgt.has_skill(KeineGuard)
-            cond = cond and (tgt.life <= min([p.life for p in g.players if not p.dead]))
-            cond = cond and tgt.life < tgt.maxlife
+            candidates = list(p for p in g.players if not p.dead and p is not src and p.life < p.maxlife)
 
-            if cond:
-                g.process_action(KeineGuardAwake(tgt, tgt))
-
-        return act
-
-
-class Devour(Skill):
-    associated_action = None
-    skill_category = ['character', 'passive']
-    target = t_None
-
-
-class DevourAction(UserAction):
-    def __init__(self, source, target, card):
-        self.source = source
-        self.target = target
-        self.card = card
-        self.effect = 'life' if card.color == Card.RED else 'cards'
-
-    def apply_action(self):
-        src, tgt = self.source, self.target
-        c = self.card
-        g = self.game
-        ttags(tgt)['keine_devour'] = {
-            'effect': self.effect,
-            'life': tgt.life,
-            'cards': len(tgt.cards) + len(tgt.showncards),
-            'source': src,
-        }
-        g.process_action(DropCards(src, src, [c]))
-        return True
-
-
-class DevourEffect(GenericAction):
-    def __init__(self, source, target, params):
-        self.source = source
-        self.target = target
-        self.params = params
-
-    def apply_action(self):
-        tgt = self.target
-        params = self.params
-        g = self.game
-        if params['effect'] == 'life':
-            to = params['life']
-            if to > tgt.life:
-                g.process_action(Heal(tgt, tgt, abs(to - tgt.life)))
-            elif to < tgt.life:
-                g.process_action(LifeLost(tgt, tgt, abs(to - tgt.life)))
-        elif params['effect'] == 'cards':
-            to = params['cards']
-            cur = len(tgt.cards) + len(tgt.showncards)
-            if to > cur:
-                g.process_action(DrawCards(tgt, abs(to - cur)))
-            elif to < cur:
-                g.process_action(ActiveDropCards(tgt, tgt, abs(to - cur)))
-        else:
-            raise GameException('WTF?!')
-
-        return True
-
-
-class DevourHandler(THBEventHandler):
-    interested = ['action_before', 'action_after']
-
-    def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, ActionStage):
-            g = self.game
-            tgt = act.target
-            for p in g.players:
-                if p.dead or not p.has_skill(Devour):
-                    continue
-
-                if ttags(p)['devour_used']:
-                    continue
-
-                cl = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
-                if not cl:
-                    continue
-
-                g.process_action(DevourAction(p, tgt, cl[0]))
-
-        elif evt_type == 'action_after' and isinstance(act, ActionStage):
-            tgt = act.target
-            t = ttags(tgt)['keine_devour']
-
-            if not t:
+            if not (src.has_skill(KeineGuard) and bool(candidates)):
                 return act
 
-            g = self.game
-            g.process_action(DevourEffect(t['source'], tgt, t))
+            tl = user_choose_players(self, src, candidates)
+            if not tl:
+                return act
+
+            tgt = tl[0]
+
+            g.process_action(KeineGuardAction(src, tgt))
 
         return act
 
-    def cond(self, cl):
-        if len(cl) != 1:
-            return False
+    def choose_player_target(self, tl):
+        if not tl:
+            return (tl, False)
 
-        c = cl[0]
-        return c.is_card(PhysicalCard) and bool({'basic', 'equipment'} & set(c.category))
-
-
-register_character_to('common', '-kof')  # make pyflakes happy
+        return (tl[-1:], True)
 
 
-# @register_character_to('common', '-kof')
+@register_character_to('common', '-kof')
 class Keine(Character):
     skills = [Teach, KeineGuard]
-    eventhandlers = [KeineGuardHandler, DevourHandler]
+    eventhandlers_required = [KeineGuardHandler, DevotedHandler]
     maxlife = 4

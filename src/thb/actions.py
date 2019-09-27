@@ -927,6 +927,7 @@ class BaseActionStage(GenericAction):
         for a in g.action_stack:
             if isinstance(a, ActionStage):
                 a._force_break = True
+                log.debug('ActioStage: force_break requested')
                 break
 
     def cond(self, cl):

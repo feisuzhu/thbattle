@@ -128,4 +128,10 @@ class keine_devour:
         if v and p is current:
             return 'thb-tag-keine_devour', '这位玩家的历史将会被慧音吞噬'
 
+
+@ui_meta
+class devoted:
+    def desc(p, v):
+        return 'thb-tag-keine_devoted', '合格的CP当然要同富贵共患难！'
+
 # -----END TAGS UI META-----
