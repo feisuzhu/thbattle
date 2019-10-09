@@ -34,7 +34,7 @@ def white(path):
 
 
 inventory.extend([(re.compile('^%s$' % pat), ldr) for pat, ldr in (
-    (r'c-bgm_hall',            ['bgm']),
+    # (r'c-bgm_hall',            ['bgm']),
 
     (r'c-bg_[a-z_]+',          ['lazytexture']),
 

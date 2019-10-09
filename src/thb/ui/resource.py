@@ -13,7 +13,7 @@ import thb.ui.ui_meta  # noqa
 get_atlas('portrait', (1024, 2048))
 
 inventory.extend([(re.compile('^%s$' % pat), ldr) for pat, ldr in (
-    ('thb-bgm_game',               ['bgm']),
+    # ('thb-bgm_game',               ['bgm']),
 
     ('thb-modelogo-[a-z0-9_]+',    ['img']),
 

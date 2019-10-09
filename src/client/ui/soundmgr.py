@@ -38,7 +38,7 @@ class ManagedSoundPlayer(Player):
     def delete(self):
         try:
             self.player_group.remove(self)
-        except:
+        except Exception:
             log.exception('ManagedSoundPlayer have already been removed from player group')
 
         Player.delete(self)
@@ -63,6 +63,10 @@ class SoundManager(object):
         self._se_suppress = time.time()
 
     def switch_bgm(self, bgm):
+        # HACK: Disable BGM due to copyright issue
+        self.bgm_next = bgm
+        return
+
         if self.muted:
             self.bgm_next = bgm
             return
