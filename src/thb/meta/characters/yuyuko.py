@@ -33,48 +33,21 @@ class Yuyuko:
 class GuidedDeath:
     # Skill
     name = '诱死'
-    description = '|B锁定技|r，你的回合结束阶段，所有体力值为1的其它角色失去一点体力。'
+    description = '出牌阶段限一次，你可以令一名其它角色失去一点体力，然后其于回合结束阶段回复一点体力。回合结束阶段，若你于出牌阶段没有发动过该技能，则所有体力值为1的其它角色失去一点体力。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
-@ui_meta(characters.yuyuko.SoulDrain)
-class SoulDrain:
-    # Skill
-    name = '离魂'
-    description = (
-        '当一名其他名角色进入濒死状态时，你摸1张牌，然后你可以与该角色拼点：\n'
-        '|B|R>> |r若你赢，则将该角色的体力上限改为1\n'
-        '|B|R>> |r若你没赢，则将其体力值改为1'
-    )
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
-@ui_meta(characters.yuyuko.PerfectCherryBlossom)
-class PerfectCherryBlossom:
-    # Skill
-    name = '反魂'
-    description = (
-        '出牌阶段限一次，令一名已受伤角色失去一点体力，然后其回复一点体力。'
-        '若你以此法击坠一名角色，你增加一点体力上限并回复一点体力，然后失去此技能。'
-    )
-
-    def clickable(self, g):
+    def clickable(g):
         me = g.me
-        if ttags(me)['perfect_cherry_blossom']:
+        if ttags(me)['guided_death_active_use']:
             return False
 
-        if my_turn():
-            return True
+        if not my_turn():
+            return False
 
-        return False
+        return True
 
     def is_action_valid(self, g, cl, tl):
         skill = cl[0]
-        assert skill.is_card(characters.yuyuko.PerfectCherryBlossom)
+        assert skill.is_card(characters.yuyuko.GuidedDeath)
 
         cards = skill.associated_cards
 
@@ -82,13 +55,9 @@ class PerfectCherryBlossom:
             return (False, '请不要选择牌')
 
         if not tl:
-            return (False, '请选择『反魂』发动的目标')
+            return (False, '请选择『诱死』发动的目标')
 
-        tgt = tl[0]
-        if not tgt.life < tgt.maxlife:
-            return (False, '只能选择已受伤的角色')
-
-        return (True, 'Perfect Cherry Blossom !')
+        return (True, '发动「诱死」（回合结束时不再发动第二效果）')
 
     def effect_string(self, act):
         return '|G【%s】|r将|G【%s】|r献祭给了西行妖。' % (
@@ -100,7 +69,30 @@ class PerfectCherryBlossom:
         return 'thb-cv-yuyuko_pcb'
 
 
-@ui_meta(characters.yuyuko.PerfectCherryBlossomExtractAction)
+class SoulDrain:
+    # Skill
+    name = '离魂'
+    description = (
+        '你的回合内，当一名其他名角色进入濒死状态时，你摸一张牌，然后你可以与该角色拼点：\n'
+        '|B|R>> |r若你赢，则将其体力上限改为1\n'
+        '|B|R>> |r若你没赢，则将其体力值改为1'
+    )
+
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class PerfectCherryBlossom:
+    # Skill
+    name = '反魂'
+    description = (
+        '|B锁定技|r，一名角色被击坠后，你增加一点体力上限并回复一点体力。你的手牌上限是你的体力上限。'
+    )
+
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
 class PerfectCherryBlossomExtractAction:
 
     def effect_string_before(self, act):
@@ -113,7 +105,7 @@ class PerfectCherryBlossomExtractAction:
 @ui_meta(characters.yuyuko.GuidedDeathEffect)
 class GuidedDeathEffect:
     def effect_string_apply(self, act):
-        return '|G【%s】|r微微一笑，身后的西行妖显得更加迷人，让人觉得不如就这样沉眠于花下好了。' % (
+        return '|G【%s】|r：“既然在座的各位中暑的中暑，受伤的受伤，不如都到花下沉眠吧！”' % (
             act.source.ui_meta.name,
         )
 
@@ -125,7 +117,7 @@ class SoulDrainEffect:
     choose_option_prompt = '你要发动『离魂』吗？'
 
     def effect_string_apply(self, act):
-        return '|G【%s】|r来了兴致，操纵起|G【%s】|r的生死。' % (
+        return '|G【%s】|r微笑着站在一旁。|G【%s】|r似乎离死亡更近了一点。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )
