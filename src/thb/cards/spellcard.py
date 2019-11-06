@@ -238,6 +238,7 @@ class YukariDimension(InstantSpellCardAction):
         tgt = self.target
         g = self.game
 
+        if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell): return False
         catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
         card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
@@ -465,6 +466,7 @@ class DonationBoxEffect(InstantSpellCardAction):
         src = self.source
         g = self.game
 
+        if not (t.cards or t.showncards or t.equips): return False
         catnames = ('cards', 'showncards', 'equips')
         cats = [getattr(t, i) for i in catnames]
         cards = user_choose_cards(self, t, catnames)
