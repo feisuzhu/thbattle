@@ -92,6 +92,8 @@ class FreakingPowerHandler(THBEventHandler):
         elif evt_type == 'action_after' and isinstance(act, Damage):
             g = self.game
 
+            if act.cancelled: return act
+            
             pact = g.action_stack[-1]
             if not pact._['freaking_power']:
                 return act
