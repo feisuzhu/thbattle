@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from game.autoenv import Game, user_input
-from thb.actions import DropCards, EventHandler, LaunchCard, migrate_cards
+from thb.actions import DropCards, EventHandler, LaunchCard, detach_cards, migrate_cards
 from thb.cards import Card, Demolition, DemolitionCard, DummyCard, Skill, TreatAs
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -28,6 +28,7 @@ class Envy(TreatAs, Skill):
 
 class EnvyRecycleAction(object):
     def apply_action(self):
+        detach_cards(self.cards)
         migrate_cards(self.cards, self.source.cards, unwrap=True)
         return True
 
