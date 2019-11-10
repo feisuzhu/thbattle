@@ -92,6 +92,8 @@ class FreakingPowerHandler(EventHandler):
         elif evt_type == 'action_after' and isinstance(act, Damage):
             g = Game.getgame()
 
+            if act.cancelled: return act
+            
             pact = g.action_stack[-1]
             if not marked(pact, 'freaking_power'):
                 return act
