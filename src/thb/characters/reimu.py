@@ -7,7 +7,7 @@ from __future__ import annotations
 from game.base import InterruptActionFlow
 from thb.actions import ActionStage, AskForCard, Damage, DrawCards, FinalizeStage, LaunchCard
 from thb.actions import PlayerRevive, PlayerTurn, UserAction, migrate_cards, ttags
-from thb.cards.base import Card, Skill
+from thb.cards.base import Card, PhysicalCard, Skill
 from thb.cards.classes import AttackCard, GreenUFOSkill, RejectCard, TreatAs, UFOSkill, t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -81,7 +81,8 @@ class Tribute(Skill):
         cl = self.associated_cards
         rst = cl and len(cl) == 1 and (
             cl[0].resides_in is not None and
-            cl[0].resides_in.type in ('cards', 'showncards')
+            cl[0].resides_in.type in ('cards', 'showncards') and
+            cl[0].is_card(PhysicalCard)
         )
         return rst
 
