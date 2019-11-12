@@ -44,7 +44,7 @@ class DisarmReturningAction(GenericAction):
 
 class DisarmHandler(EventHandler):
     interested = ('action_after',)
-    execute_after = ('DeathHandler',)
+    execute_after = ('DyingHandler',)
 
     card_usage = 'launch'
 
