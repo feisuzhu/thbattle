@@ -11,7 +11,7 @@ from thb.actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTr
 from thb.actions import UserAction, VitalityLimitExceeded, detach_cards, migrate_cards
 from thb.actions import random_choose_card, register_eh, ttags, user_choose_cards
 from thb.cards import basic, spellcard
-from thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN, t_OtherOne
+from thb.cards.base import Card, Skill, TreatAs, VirtualCard, t_None, t_OtherLessEqThanN, t_OtherOne, PhysicalCard
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from utils import CheckFailed, check, classmix
 
@@ -367,6 +367,7 @@ class GungnirSkill(TreatAs, WeaponSkill):
         cl = self.associated_cards
         cat = ('cards', 'showncards')
         if not all(c.resides_in.type in cat for c in cl): return False
+        if not all(c.is_card(PhysicalCard) for c in cl): return False
         return len(cl) == 2
 
 
@@ -390,11 +391,10 @@ class ScarletRhapsodySkill(WeaponSkill):
             from .definition import AttackCard
             check(card.is_card(AttackCard))
             tgt = card.resides_in.owner
+            check(card.is_card(PhysicalCard))
 
-            raw = VirtualCard.unwrap([card])
-            check(all(r.resides_in in (tgt.cards, tgt.showncards) for r in raw))
-            cards = set(tgt.cards) | set(tgt.showncards)
-            check(cards <= set(raw))
+            check(card.resides_in in (tgt.cards, tgt.showncards))
+            check(card in tgt.cards) or card in set(tgt.showncards)
 
             return True
         except CheckFailed:
