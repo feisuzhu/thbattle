@@ -126,6 +126,8 @@ class UserInputFuzzingHandler(EventHandler):
             pass
         elif trans.name == 'ChooseIndividualCard':
             pass
+        elif trans.name == 'BanGirl':
+            pass
         else:
             log.warning('Not processing %s transaction', trans.name)
             1/0

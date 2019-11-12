@@ -275,7 +275,7 @@ class MigrateCardsTransaction(GameViralContext):
         self.movements = []
 
     def __repr__(self):
-        return self.__class__.__name__
+        return 'MCT'
 
     def add_step(self, m: CardMigration) -> None:
         self.migrations.append(m)
@@ -558,15 +558,29 @@ class DropCards(GenericAction):
 
 
 class UseCard(GenericAction):
+
     def __init__(self, target, card):
         self.source = self.target = target
         self.card = card
 
     def apply_action(self):
         g = self.game
-        migrate_cards([self.card], g.deck.droppedcards, unwrap=True)
+        tgt = self.target
+        c = self.card
+        act = getattr(c, 'use_action', None)
+        if act:
+            return g.process_action(act(tgt, c))
+        else:
+            migrate_cards([c], g.deck.droppedcards, unwrap=True)
+            return True
 
-        return True
+    def can_fire(self):
+        c = self.card
+        act = getattr(c, 'use_action', None)
+        if act:
+            return act(self.target, self.card).can_fire()
+        else:
+            return True
 
 
 class AskForCard(GenericAction):
@@ -655,13 +669,18 @@ class DropCardStage(ActiveDropCards):
 
 
 class BaseDrawCards(GenericAction):
-    def __init__(self, target, amount=2):
+    def __init__(self, target, amount=2, back=False):
         self.source = self.target = target
         self.amount = amount
+        self.back = back
 
     def apply_action(self):
         g = self.game
         target = self.target
+
+        if self.back:
+            g.deck.getcards(self.amount)  # forcing dropped cards to join if cards in deck are insufficient
+            g.deck.cards.rotate(self.amount)
 
         cards = g.deck.getcards(self.amount)
 
@@ -684,6 +703,21 @@ class DistributeCards(BaseDrawCards):
 
 class DrawCardStage(DrawCards):
     pass
+
+
+class PutBack(GenericAction):
+    def __init__(self, source, cards, front=True):
+        self.source = self.target = source
+        self.cards = cards
+        self.front = front
+
+    def apply_action(self):
+        g = Game.getgame()
+        cards = self.cards
+
+        migrate_cards(cards, g.deck.cards, front=self.front)
+
+        return True
 
 
 class LaunchCard(GenericAction):

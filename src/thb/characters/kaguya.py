@@ -58,6 +58,7 @@ class DilemmaHealAction(DrawCards):
         self.source = source
         self.target = target
         self.amount = amount
+        self.back = False
 
 
 class DilemmaHandler(THBEventHandler):

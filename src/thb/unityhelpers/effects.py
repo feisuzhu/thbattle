@@ -90,7 +90,7 @@ def card_migration_instructions(g: THBattleClient, args: CardMovement) -> List[U
     if to.owner is me and to.type in ('cards', 'showncards'):
         tail += [DUP, UNGRAY, AREA_HAND, MOVE]
     else:
-        if to.type in ('droppedcard', 'detached'):
+        if to.type in ('droppedcard', 'detached', 'deckcard'):
             if isinstance(act, BaseFatetell):
                 if to.type == 'detached':
                     tail += [DUP, DUP, UNGRAY if act.succeeded else GRAY, FATETELL, AREA_DROP, MOVE]

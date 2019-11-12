@@ -615,7 +615,6 @@ card_definition = [
 card_definition = [
 ] * 1000 or card_definition
 
-
 kof_card_definition = [
     # ======= Spade =======
     (SinsackCard, SPADE, A),

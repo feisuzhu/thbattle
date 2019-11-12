@@ -15,10 +15,26 @@ from utils.misc import BatchList
 @ui_meta(actions.DrawCards)
 class DrawCards:
     def effect_string(self, act):
-        return '|G【%s】|r摸了%d张牌。' % (
-            act.target.ui_meta.name, act.amount,
+        if act.back:
+            direction = u'从牌堆底'
+        else:
+            direction = u''
+
+        return u'|G【%s】|r%s摸了%d张牌。' % (
+            act.target.ui_meta.name, direction, act.amount,
         )
 
+
+class PutBack:
+    def effect_string(act):
+        if act.direction == -1:
+            direction = u'底'
+        else:
+            direction = u''
+
+        return u'|G【%s】|r将%d张牌放回了牌堆%s。' % (
+            act.target.ui_meta.name, len(act.cards), direction,
+        )
 
 @ui_meta(actions.ActiveDropCards)
 class ActiveDropCards:
@@ -75,16 +91,20 @@ class LaunchCard:
         if not c:
             return None
 
+        es = None
+
         meta = getattr(c, 'ui_meta', None)
         effect_string = getattr(meta, 'effect_string', None)
         if effect_string:
-            return effect_string(act)
+            es = effect_string(act)
 
-        return '|G【%s】|r对|G【%s】|r使用了|G%s|r。' % (
+        s = es or '|G【%s】|r对|G【%s】|r使用了|G%s|r。' % (
             s.ui_meta.name,
             '】|r、|G【'.join(tl.ui_meta.name),
             act.card.ui_meta.name
         )
+
+        return s
 
     def sound_effect_before(self, act):
         c = act.card

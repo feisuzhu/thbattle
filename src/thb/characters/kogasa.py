@@ -80,6 +80,7 @@ class JollyDrawCard(DrawCards):
         self.source = source
         self.target = target
         self.amount = 1
+        self.back = False
 
 
 class JollyHandler(THBEventHandler):
