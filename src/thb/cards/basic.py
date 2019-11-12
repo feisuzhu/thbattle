@@ -336,8 +336,10 @@ class ExinwanHandler(EventHandler):
         if evt_type == 'card_migration':
             act, cards, _from, to, is_bh = arg
 
+            g = Game.getgame()
+
             # someone is getting the ExinwanCard
-            if to.owner is not None:
+            if to.owner is not None or to is g.deck.cards:
                 for c in VirtualCard.unwrap(cards):
                     # Exinwan may be HiddenCard here
                     c.exinwan_target = None
@@ -361,7 +363,7 @@ class ExinwanHandler(EventHandler):
             return arg
 
         elif evt_type == 'post_card_migration':
-            dropcl = [cl for cl, _, to, _ in arg.get_movements()
+            dropcl = [cl for cl, _, to, _, _ in arg.get_movements()
                       if to.type == 'droppedcard']
 
             def invalid(c):
