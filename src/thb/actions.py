@@ -185,8 +185,8 @@ class MigrateCardsTransaction(object):
         self.cancelled = False
         self.movements = []
 
-    def move(self, cards, _from, to, is_bh):
-        self.movements.append((cards, _from, to, is_bh))
+    def move(self, cards, _from, to, is_bh, front):
+        self.movements.append((cards, _from, to, is_bh, front))
 
     def __enter__(self):
         return self
@@ -204,7 +204,7 @@ class MigrateCardsTransaction(object):
         from thb.cards import VirtualCard
         act = self.action
 
-        for cards, _from, to, is_bh in self.movements:
+        for cards, _from, to, is_bh, front in self.movements:
             if to is DETACHED:
                 for c in cards: c.detach()
 
@@ -215,9 +215,13 @@ class MigrateCardsTransaction(object):
                     c.unwrapped = True
 
             else:
-                for c in cards: c.move_to(to)
+                for c in cards:
+                    c.move_to(to)
 
-        for cards, _from, to, is_bh in self.movements:
+                if front:
+                    to.rotate(len(cards))
+
+        for cards, _from, to, is_bh, front in self.movements:
             g.emit_event('card_migration', (act, cards, _from, to, is_bh))
 
         g.emit_event('post_card_migration', self)
@@ -233,17 +237,18 @@ class MigrateCardsTransaction(object):
             return (m for m in self.movements if m[2] is not migrate_cards.DETACHED)
 
 
-def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
+def migrate_cards(cards, to, unwrap=False, is_bh=False, front=False, trans=None):
     '''
     cards: cards to move around
     to: destination card list
     unwrap: drop all VirtualCard wrapping, preserve PhysicalCard only
     is_bh: indicates this operation is bottom half of a complete migration (pairing with detach_cards)
+    front: Rotate migrated cards to front (if not, cards are appended to the back of CardList)
     trans: associated MigrateCardsTransaction
     '''
     if not trans:
         with MigrateCardsTransaction(Game.getgame().action_stack[-1]) as trans:
-            migrate_cards(cards, to, unwrap, is_bh, trans)
+            migrate_cards(cards, to, unwrap, is_bh, front, trans)
             return not trans.cancelled
 
     if to.owner and to.owner.dead:
@@ -263,17 +268,18 @@ def migrate_cards(cards, to, unwrap=False, is_bh=False, trans=None):
 
         if l[0].is_card(VirtualCard):
             assert len(l) == 1
-            trans.move(l, cl, UNWRAPPED if unwrap else to, is_bh)
+            trans.move(l, cl, UNWRAPPED if unwrap else to, False, is_bh)
             l[0].unwrapped or migrate_cards(
                 l[0].associated_cards,
                 to if unwrap or detaching else to.owner.special,
                 unwrap if type(unwrap) is bool else unwrap - 1,
                 is_bh,
+                front,
                 trans
             )
 
         else:
-            trans.move(l, cl, to, is_bh)
+            trans.move(l, cl, to, is_bh, front)
 
 
 class PostCardMigrationHandler(EventHandlerGroup):
@@ -321,6 +327,8 @@ migrate_cards.UNWRAPPED = _MigrateCardsUnwrapped()
 def register_eh(cls):
     action_eventhandlers.add(cls)
     return cls
+
+
 action_eventhandlers = set()
 
 # ------------------------------------------
@@ -498,15 +506,29 @@ class DropCards(GenericAction):
 
 
 class UseCard(GenericAction):
+
     def __init__(self, target, card):
         self.source = self.target = target
         self.card = card
 
     def apply_action(self):
         g = Game.getgame()
-        migrate_cards([self.card], g.deck.droppedcards, unwrap=True)
+        tgt = self.target
+        c = self.card
+        act = getattr(c, 'use_action', None)
+        if act:
+            return g.process_action(act(tgt, c))
+        else:
+            migrate_cards([c], g.deck.droppedcards, unwrap=True)
+            return True
 
-        return True
+    def can_fire(self):
+        c = self.card
+        act = getattr(c, 'use_action', None)
+        if act:
+            return act(self.target, self.card).can_fire()
+        else:
+            return True
 
 
 class AskForCard(GenericAction):
@@ -594,13 +616,18 @@ class DropCardStage(ActiveDropCards):
 
 
 class BaseDrawCards(GenericAction):
-    def __init__(self, target, amount=2):
+    def __init__(self, target, amount=2, back=False):
         self.source = self.target = target
         self.amount = amount
+        self.back = back
 
     def apply_action(self):
         g = Game.getgame()
         target = self.target
+
+        if self.back:
+            g.deck.getcards(self.amount)  # forcing dropped cards to join if cards in deck are insufficient
+            g.deck.cards.rotate(self.amount)
 
         cards = g.deck.getcards(self.amount)
 
@@ -623,6 +650,21 @@ class DistributeCards(BaseDrawCards):
 
 class DrawCardStage(DrawCards):
     pass
+
+
+class PutBack(GenericAction):
+    def __init__(self, source, cards, front=True):
+        self.source = self.target = source
+        self.cards = cards
+        self.front = front
+
+    def apply_action(self):
+        g = Game.getgame()
+        cards = self.cards
+
+        migrate_cards(cards, g.deck.cards, front=self.front)
+
+        return True
 
 
 class LaunchCard(GenericAction):
