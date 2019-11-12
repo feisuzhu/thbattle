@@ -151,9 +151,10 @@ def card_migration_effects(self, args):  # here self is the SimpleGameUI instanc
         for cs in csl:
             cs.migrate_to(hca)
             cs.gray = False
+            cs.alpha = 1.0
 
     else:
-        if to.type in ('droppedcard', 'detached', 'collected_ppoints'):
+        if to.type in ('droppedcard', 'detached', 'deckcard'):
             dropcard_update = True
             ca = self.dropcard_area
             if isinstance(act, BaseFatetell):

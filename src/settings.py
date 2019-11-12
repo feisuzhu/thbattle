@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'V269'
+VERSION = 'V281'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -51,6 +51,9 @@ else:
 
 
 TESTING_CHARACTERS = (
+    'Eirin',
+    'Keine',
+    'Yuyuko',
 )
 
 

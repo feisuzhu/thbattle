@@ -4,21 +4,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import DrawCards, DummyAction, FinalizeStage, GenericAction, LifeLost
-from thb.actions import MaxLifeChange, Pindian, PlayerDeath, TryRevive, UserAction, ttags
+from game.autoenv import Game, user_input
+from game.base import EventHandler
+from thb.actions import DrawCards, DropCardStage, DummyAction, FinalizeStage, GenericAction
+from thb.actions import LifeLost, MaxLifeChange, Pindian, PlayerDeath, PlayerTurn, TryRevive
+from thb.actions import UserAction, ttags
 from thb.cards import Heal, Skill, t_None, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
-class GuidedDeath(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive')
-    target = t_None
-
-
 class GuidedDeathLifeLost(LifeLost):
     pass
 
@@ -38,22 +34,48 @@ class GuidedDeathEffect(GenericAction):
         return True
 
 
+class GuidedDeathAction(UserAction):
+    def apply_action(self):
+        src, tgt = self.source, self.target
+        if tgt.dead: return True
+        g = Game.getgame()
+        ttags(src)['guided_death_active_use'] = tgt
+        g.process_action(GuidedDeathLifeLost(src, tgt, 1))
+        return True
+
+
+class GuidedDeath(Skill):
+    associated_action = GuidedDeathAction
+    skill_category = ('character', 'active')
+    target = t_OtherOne
+    usage = 'drop'
+
+    def check(self):
+        cl = self.associated_cards
+        return len(cl) == 0
+
+
 class GuidedDeathHandler(EventHandler):
     interested = ('action_apply',)
+    execute_before = ('SoulDrainHandler',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, FinalizeStage):
             g = Game.getgame()
 
             src = act.target
-            if not (src.has_skill(GuidedDeath) and not src.dead):
+            if not src.has_skill(GuidedDeath) or src.dead:
                 return act
 
-            tl = [p for p in g.players.rotate_to(src) if p.life == 1 and p is not src]
-            if not tl:
-                return act
+            p = ttags(src)['guided_death_active_use']
+            if p:
+                g.process_action(Heal(p, p, 1))
+            else:
+                tl = [p for p in g.players.rotate_to(src) if p.life == 1 and p is not src]
+                if not tl:
+                    return act
 
-            g.process_action(GuidedDeathEffect(src, tl))
+                g.process_action(GuidedDeathEffect(src, tl))
 
         return act
 
@@ -68,9 +90,10 @@ class SoulDrainEffect(GenericAction):
     def apply_action(self):
         src, tgt = self.source, self.target
         g = Game.getgame()
-        g.process_action(DrawCards(src, 1))
 
         assert tgt.life <= 0
+
+        g.process_action(DrawCards(src, 1))
 
         if not tgt.cards and not tgt.showncards:
             return True
@@ -101,6 +124,11 @@ class SoulDrainHandler(EventHandler):
             else:
                 return act
 
+            for a in reversed(g.action_stack):
+                if isinstance(a, PlayerTurn):
+                    if a.target is not p:
+                        return act
+
             g.process_action(SoulDrainEffect(p, tgt))
 
             if tgt.life > 0:
@@ -113,23 +141,27 @@ class SoulDrainHandler(EventHandler):
 
 
 class PerfectCherryBlossomHandler(EventHandler):
-    interested = ('action_apply',)
+    interested = ('action_apply', 'action_before')
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
             g = Game.getgame()
-            for pcb in reversed(g.action_stack):
-                if isinstance(pcb, PerfectCherryBlossomAction):
+
+            for p in g.players:
+                if p.has_skill(PerfectCherryBlossom) and not p.dead and p is not act.target:
                     break
             else:
                 return act
 
-            src, tgt = pcb.source, pcb.target
+            g.process_action(PerfectCherryBlossomExtractAction(p, act.target))
 
-            if src.dead:
+        elif evt_type == 'action_before' and isinstance(act, DropCardStage):
+            g = Game.getgame()
+            tgt = act.target
+            if not tgt.has_skill(PerfectCherryBlossom):
                 return act
 
-            g.process_action(PerfectCherryBlossomExtractAction(src, tgt))
+            act.dropn -= tgt.maxlife - tgt.life
 
         return act
 
@@ -141,44 +173,13 @@ class PerfectCherryBlossomExtractAction(UserAction):
         g.process_action(MaxLifeChange(src, src, 1))
         g.process_action(Heal(src, src, 1))
 
-        try:
-            src.skills.remove(PerfectCherryBlossom)
-        except Exception:
-            pass
-
-        return True
-
-
-class PerfectCherryBlossomAction(UserAction):
-    def apply_action(self):
-        src, tgt = self.source, self.target
-        if tgt.dead: return True
-        g = Game.getgame()
-        ttags(src)['perfect_cherry_blossom'] = True
-        g.process_action(LifeLost(src, tgt, 1))
-        if not tgt.dead:
-            g.process_action(Heal(tgt, tgt, 1))
-
-        return True
-
-    def is_valid(self):
-        src, tgt = self.source, self.target
-        if ttags(src)['perfect_cherry_blossom']:
-            return False
-        if not tgt.life < tgt.maxlife:
-            return False
         return True
 
 
 class PerfectCherryBlossom(Skill):
-    associated_action = PerfectCherryBlossomAction
-    skill_category = ('character', 'active')
-    target = t_OtherOne
-    usage = 'drop'
-
-    def check(self):
-        cl = self.associated_cards
-        return len(cl) == 0
+    associated_action = None
+    skill_category = ('character', 'passive')
+    target = t_None
 
 
 @register_character_to('common', '-kof')
