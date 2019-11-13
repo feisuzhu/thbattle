@@ -88,8 +88,11 @@ class DiscarderHandler(THBEventHandler):
             if src is not current: return act
 
             self.card = c = act.card
-            if not c.is_card(PhysicalCard): return act
-            if not c.is_card(AttackCard): raise DiscarderAttackOnly
+            if not c.is_card(AttackCard):
+                if c.is_card(PhysicalCard) or 'treat_as' in c.category:
+                    raise DiscarderAttackOnly
+                else:
+                    return act
 
             dist = LaunchCard.calc_distance(g, src, Discarder(src))
             dist.pop(src, '')
