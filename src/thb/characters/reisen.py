@@ -86,7 +86,15 @@ class DiscarderHandler(EventHandler):
             if src is not g.current_player: return act
 
             self.card = c = act.card
-            if not c.is_card(PhysicalCard): return act
+            if not c.is_card(PhysicalCard):
+                vc = getattr(c, 'treat_as', False)
+                if vc:
+                    if issubclass(vc, AttackCard):
+                        return act
+                    else:
+                        raise DiscarderAttackOnly
+                else:
+                    return act
             if not c.is_card(AttackCard): raise DiscarderAttackOnly
 
             dist = LaunchCard.calc_distance(src, Discarder(src))
