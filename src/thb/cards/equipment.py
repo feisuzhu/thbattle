@@ -215,6 +215,13 @@ class WeaponSkill(Skill):
     range = 1
 
 
+class RoukankenSkill(WeaponSkill):
+    associated_action = None
+    skill_category = ('equip', 'passive')
+    target = t_None
+    range = 3
+
+
 class Roukanken(GenericAction):
     def __init__(self, act):
         assert isinstance(act, basic.BaseAttack)
