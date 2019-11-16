@@ -227,21 +227,6 @@ class RoukankenSkill(WeaponSkill):
     range = 3
 
 
-class RoukankenMixin(object):
-    # Roukanken effect must be disabled at end of Attack.apply_action(),
-    # otherwise injected Attack actions will be affected by Roukanken too.
-    def apply_action(self):
-        tgt = self.target
-
-        try:
-            rst = super(RoukankenMixin, self).apply_action()  # type: ignore
-        finally:
-            for s in self.roukanken_disabled_skills:
-                tgt.reenable_skill('roukanken')
-
-        return rst
-
-
 class Roukanken(GenericAction):
     def __init__(self, act):
         assert isinstance(act, basic.BaseAttack)
@@ -257,15 +242,14 @@ class Roukanken(GenericAction):
         for s in skills:
             tgt.disable_skill(s, 'roukanken')
 
-        act.__class__ = classmix(RoukankenMixin, act.__class__)
         act.roukanken_disabled_skills = skills
         return self.game.process_action(act)
 
 
 @register_eh
 class RoukankenEffectHandler(EventHandler):
-    interested = ['action_before']
-    execute_before = [
+    interested = ('action_before', 'action_done',)
+    execute_before = (
         'MomijiShieldHandler',
         'OpticalCloakHandler',
         'SaigyouBranchHandler',
@@ -273,7 +257,8 @@ class RoukankenEffectHandler(EventHandler):
         'SpearTheGungnirHandler',
         'HakuroukenHandler',
         'FreakingPowerHandler',
-    ]
+        'ResonanceHandler'
+    )
 
     @classmethod
     def handle(cls, evt_type, act):
@@ -290,6 +275,12 @@ class RoukankenEffectHandler(EventHandler):
             if source.has_skill(RoukankenSkill):
                 act = Roukanken(act)
                 return act
+
+        if evt_type == 'action_done' and isinstance(act, basic.BaseAttack):
+            if hasattr(act, 'roukanken_tag'):
+                for s in getattr(act, 'roukanken_disabled_skills', []):
+                    act.target.reenable_skill('roukanken')
+
         return act
 
 
