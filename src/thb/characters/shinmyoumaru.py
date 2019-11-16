@@ -6,7 +6,7 @@ from __future__ import absolute_import
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import Damage, DropCards, FatetellAction, FatetellMalleateHandler
-from thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard, detach_cards
+from thb.actions import MigrateCardsTransaction, UseCard, detach_cards
 from thb.actions import migrate_cards, user_choose_cards
 from thb.cards import Skill, t_None
 from thb.characters.baseclasses import Character, register_character_to
@@ -93,14 +93,20 @@ class VengeOfTsukumogamiAction(FatetellAction):
 
 class VengeOfTsukumogamiHandler(EventHandler):
     interested = ('post_card_migration',)
-    group = PostCardMigrationHandler
 
-    def handle(self, p, trans):
-        if not p.has_skill(VengeOfTsukumogami):
-            return True
+    def handle(self, evt_type, trans):
+        if evt_type == 'post_card_migration' and isinstance(trans, MigrateCardsTransaction):
+            pl = [p for p in Game.getgame().players if p.has_skill(VengeOfTsukumogami) and not p.dead]
+            assert len(pl) <= 1
+            if pl:
+                p = pl[0]
+            else:
+                return trans
+        else:
+            return trans
 
         if not isinstance(trans.action, DropCards):
-            return True
+            return trans
 
         for cards, _from, to, is_bh, _ in trans.get_movements():
             if _from is None or _from.type != 'equips':
@@ -124,7 +130,7 @@ class VengeOfTsukumogamiHandler(EventHandler):
 
                 Game.getgame().process_action(VengeOfTsukumogamiAction(p, tgt, c))
 
-        return True
+        return trans
 
 
 @register_character_to('common')
