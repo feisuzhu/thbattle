@@ -282,23 +282,6 @@ def migrate_cards(cards, to, unwrap=False, is_bh=False, front=False, trans=None)
             trans.move(l, cl, to, is_bh, front)
 
 
-class PostCardMigrationHandler(EventHandlerGroup):
-    interested = ('post_card_migration',)
-
-    def handle(self, evt_type, arg):
-        if evt_type != 'post_card_migration': return arg
-
-        g = Game.getgame()
-        act = arg.action
-        tgt = act.target or act.source or g.players[0]
-
-        for p in g.players_from(tgt):
-            for eh in self.handlers:
-                g.handle_single_event(eh, p, arg)
-
-        return arg
-
-
 def detach_cards(cards, trans=None):
     migrate_cards(cards, migrate_cards.DETACHED, trans=trans)
 

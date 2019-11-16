@@ -243,7 +243,7 @@ class Roukanken(GenericAction):
 
 @register_eh
 class RoukankenEffectHandler(EventHandler):
-    interested = ('action_before',)
+    interested = ('action_before', 'action_done',)
     execute_before = (
         'MomijiShieldHandler',
         'OpticalCloakHandler',
