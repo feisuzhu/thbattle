@@ -112,7 +112,7 @@ class DarknessKOFHandler(EventHandler):
                 return arg
 
             card = arg.card
-            if not card.is_card(PhysicalCard):
+            if not card.is_card(PhysicalCard) and 'treat_as' not in card.category:
                 return arg
 
             if card.is_card(RejectCard):
