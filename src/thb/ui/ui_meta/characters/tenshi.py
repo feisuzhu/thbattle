@@ -52,12 +52,7 @@ class MasochistAction:
 class ScarletPerception:
     # Skill
     name = u'绯想'
-    description = u'|B锁定技|r，距离1以内的角色的红色判定牌置入弃牌堆时，你获得之。'
-
-    # 此处OL结算有bug，当红色判定被改判成另一张红色时，应该可以发动2次|G绯想|r，并获得2张红色判定牌。
-    # 参考曹植相关FAQ:
-    # [Q]其他角色进行判定结算时，判定牌为梅花，司马懿发动|G鬼才|r打出梅花牌代替，在此过程中曹植可以发动几次|G落英|r？
-    # [A]两次。第一张判定牌被替代后进入弃牌堆时曹植可以发动第一次|G落英|r，第二张判定牌虽然是司马懿以打出的方式发动|G鬼才|r，但是该牌打出后是成为了判定牌才进入弃牌堆，并非打出后直接进入弃牌堆，因此曹植可以发动第二次|G落英|r。
+    description = u'|B锁定技|r，距离1以内的角色的红色判定牌生效后，你获得之。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
