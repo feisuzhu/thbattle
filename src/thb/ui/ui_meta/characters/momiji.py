@@ -47,7 +47,7 @@ class Telegnosis:
 class Disarm:
     # Skill
     name = u'缴械'
-    description = u'每当你使用|G弹幕|r或|G弹幕战|r对其他角色造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r或符卡牌暂时移出游戏。'
+    description = u'每当你使用|G弹幕|r或|G弹幕战|r对其他角色造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r或符卡牌暂时移出游戏。该角色被暂时移出的牌会在该角色下一个弃牌阶段后归还回其手牌中。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -119,7 +119,7 @@ class SolidShieldAction:
 class SolidShield:
     # Skill
     name = u'坚盾'
-    description = u'你距离1以内的角色成为其它角色使用的|G弹幕|r或单体符卡的目标后，若此卡牌为其出牌阶段时使用的第一张卡牌，取消之并暂时移出游戏。'
+    description = u'你距离1以内的角色成为其它角色使用的|G弹幕|r或单体符卡的目标后，若此卡牌为其出牌阶段时使用的第一张卡牌，取消之并暂时移出游戏。该角色被暂时移出的牌会在该角色下一个弃牌阶段后归还回其手牌中。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
