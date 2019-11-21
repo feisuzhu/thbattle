@@ -4,7 +4,8 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
+from game.autoenv import Game, user_input
+from game.base import EventHandler
 from thb.actions import Damage, DropCards, FatetellAction, FatetellMalleateHandler
 from thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard, detach_cards
 from thb.actions import migrate_cards, user_choose_cards
@@ -96,7 +97,7 @@ class VengeOfTsukumogamiHandler(EventHandler):
     group = PostCardMigrationHandler
 
     def handle(self, p, trans):
-        if not p.has_skill(VengeOfTsukumogami):
+        if not p.has_skill(VengeOfTsukumogami) or p.dead:
             return True
 
         if not isinstance(trans.action, DropCards):
