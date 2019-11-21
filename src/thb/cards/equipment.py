@@ -308,18 +308,20 @@ class NenshaPhoneHandler(EventHandler):
     interested = ['action_after']
 
     def handle(self, evt_type, act):
-        from .basic import BaseAttack
-        if not evt_type == 'action_after': return act
-        if not isinstance(act, BaseAttack): return act
-        if not act.succeeded: return act
-        src = act.source
-        tgt = act.target
-        if tgt.dead: return act
-        if not tgt.cards: return act
-        if not src.has_skill(NenshaPhoneSkill): return act
-        g = self.game
-        if not g.user_input([src], ChooseOptionInputlet(self, (False, True))): return act
-        g.process_action(NenshaPhone(src, tgt))
+        if evt_type == 'action_after' and isinstance(act, Damage):
+            if not act.succeeded: return act
+            g = self.game
+            pa = g.action_stack[-1]
+            if not isinstance(pa, basic.BaseAttack): return act
+
+            src = act.source
+            tgt = act.target
+            if tgt.dead: return act
+            if not tgt.cards: return act
+            if not src.has_skill(NenshaPhoneSkill): return act
+            if not g.user_input([src], ChooseOptionInputlet(self, (False, True))): return act
+            g.process_action(NenshaPhone(src, tgt))
+
         return act
 
 
