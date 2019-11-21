@@ -6,7 +6,7 @@ from __future__ import absolute_import
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import ActionStage, Damage, DrawCards, DropCardStage, DropCards
-from thb.actions import GenericAction, LaunchCard, PlayerTurn, MigrateCardsTransaction
+from thb.actions import GenericAction, LaunchCard, PlayerTurn, PostCardMigrationHandler
 from thb.actions import Reforge, UserAction, mark, marked, random_choose_card
 from thb.actions import user_choose_cards, user_choose_players
 from thb.cards import AttackCard, DollControlCard, Heal, Skill, TreatAs, VirtualCard
@@ -219,17 +219,11 @@ class DollBlastHandlerCommon(object):
 
 class DollBlastMigrationHandler(DollBlastHandlerCommon, EventHandler):
     interested = ('post_card_migration',)
+    group = PostCardMigrationHandler
 
-    def handle(self, evt_type, trans):
-        if evt_type == 'post_card_migration' and isinstance(trans, MigrateCardsTransaction):
-            pl = [p for p in Game.getgame().players if p.has_skill(DollBlast) and not p.dead]
-            assert len(pl) <= 1
-            if pl:
-                p = pl[0]
-            else:
-                return trans
-        else:
-            return trans
+    def handle(self, p, trans):
+        if not p.has_skill(DollBlast) or p.dead:
+            return True
 
         equips = p.equips
 
@@ -250,7 +244,7 @@ class DollBlastMigrationHandler(DollBlastHandlerCommon, EventHandler):
 
             self.fire(p, tgt, cl)
 
-        return trans
+        return True
 
 
 class DollBlastDropHandler(DollBlastHandlerCommon, EventHandler):

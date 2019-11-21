@@ -179,6 +179,23 @@ def skill_check(wrapped):
         return False
 
 
+class PostCardMigrationHandler(EventHandlerGroup):
+    interested = ('post_card_migration',)
+
+    def handle(self, evt_type, arg):
+        if evt_type != 'post_card_migration': return arg
+
+        g = Game.getgame()
+        act = arg.action
+        tgt = act.target or act.source or g.players[0]
+
+        for p in g.players_from(tgt):
+            for eh in self.handlers:
+                g.handle_single_event(eh, p, arg)
+
+        return arg
+
+
 class MigrateCardsTransaction(object):
     def __init__(self, action):
         self.action = action
@@ -347,10 +364,10 @@ class PlayerDeath(GenericAction):
     def apply_action(self):
         tgt = self.target
         tgt.dead = True
-        g = Game.getgame()
-        g.process_action(DeadDropCards(tgt, tgt))
         tgt.skills[:] = []
         tgt.tags.clear()
+        g = Game.getgame()
+        g.process_action(DeadDropCards(tgt, tgt))
         return True
 
 
