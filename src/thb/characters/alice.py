@@ -266,7 +266,8 @@ class DollBlastDropHandler(DollBlastHandlerCommon, EventHandler):
             mark(act, 'doll_blast')
 
         elif evt_type == 'action_after' and isinstance(act, DropCards) and marked(act, 'doll_blast'):
-            self.fire(act.target, act.source, act.cards)
+            if tgt.has_skill(DollBlast):
+                self.fire(act.target, act.source, act.cards)
 
         return act
 
