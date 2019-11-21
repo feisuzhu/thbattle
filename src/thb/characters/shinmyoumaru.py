@@ -96,7 +96,7 @@ class VengeOfTsukumogamiHandler(THBEventHandler):
     arbiter = PostCardMigrationHandler
 
     def handle(self, p, trans):
-        if not p.has_skill(VengeOfTsukumogami):
+        if not p.has_skill(VengeOfTsukumogami) or p.dead:
             return True
 
         if not isinstance(trans.action, DropCards):

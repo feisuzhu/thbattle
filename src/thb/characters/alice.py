@@ -224,7 +224,7 @@ class DollBlastMigrationHandler(DollBlastHandlerCommon, THBEventHandler):
     arbiter = PostCardMigrationHandler
 
     def handle(self, p, trans):
-        if not p.has_skill(DollBlast):
+        if not p.has_skill(DollBlast) or p.dead:
             return True
 
         equips = p.equips

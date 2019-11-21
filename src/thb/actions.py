@@ -416,10 +416,10 @@ class PlayerDeath(GenericAction):
     def apply_action(self) -> bool:
         tgt = self.target
         tgt.dead = True
+        tgt.skills[:] = []
+        tgt.tags.clear()
         g = self.game
         g.process_action(DeadDropCards(tgt, tgt))
-        tgt.skills[:] = []  # FIXME: should be here now?
-        tgt.tags.clear()
         return True
 
 
