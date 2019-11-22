@@ -221,6 +221,9 @@ class Sinsack(DelayedSpellCardAction, FatetellAction):
                     migrate_cards([self.associated_card], pl[next].fatetell)
                     return
                 next += 1
+            if next == stop and len(pl) == 2:
+                migrate_cards([self.associated_card], pl[next-1].fatetell)
+                return
 
 
 class YukariDimension(InstantSpellCardAction):
