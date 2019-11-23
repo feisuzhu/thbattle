@@ -85,7 +85,7 @@ class PerfectCherryBlossom:
     # Skill
     name = '反魂'
     description = (
-        '|B锁定技|r，一名角色被击坠后，你增加一点体力上限并回复一点体力。你的手牌上限是你的体力上限。'
+        '|B锁定技|r，一名角色被击坠后，你可以增加一点体力上限或回复一点体力。你的手牌上限是你的体力上限。'
     )
 
     clickable = passive_clickable
@@ -93,6 +93,8 @@ class PerfectCherryBlossom:
 
 
 class PerfectCherryBlossomExtractAction:
+    choose_option_prompt = '返魂：请选择你要的效果'
+    choose_option_buttons = (('回复体力', 'life'), ('增加体力上限', 'maxlife'))
 
     def effect_string_before(act):
         return '幽雅地绽放吧，墨染的樱花！西行妖的力量又增强了一些。'
