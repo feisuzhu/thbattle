@@ -170,8 +170,17 @@ class PerfectCherryBlossomExtractAction(UserAction):
     def apply_action(self):
         g = self.game
         src = self.source
-        g.process_action(MaxLifeChange(src, src, 1))
-        g.process_action(Heal(src, src, 1))
+        if src.life >= src.maxlife:
+            choice = 'maxlife'
+        elif g.user_input([src], ChooseOptionInputlet(self, ('life', 'maxlife'))) == 'maxlife':
+            choice = 'maxlife'
+        else:
+            choice = 'life'
+
+        if choice == 'life':
+            g.process_action(Heal(src, src, 1))
+        else:
+            g.process_action(MaxLifeChange(src, src, 1))
 
         return True
 
