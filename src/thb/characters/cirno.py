@@ -125,7 +125,6 @@ class PerfectFreezeHandler(EventHandler):
 
     execute_after = (
         'RepentanceStickHandler',
-        'AyaRoundfanHandler',
     )
 
     def handle(self, evt_type, act):

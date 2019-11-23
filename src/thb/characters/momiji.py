@@ -45,6 +45,7 @@ class DisarmReturningAction(GenericAction):
 class DisarmHandler(EventHandler):
     interested = ('action_after',)
     execute_after = ('DyingHandler',)
+    execute_before = ('AyaRoundfanHandler',)
 
     card_usage = 'launch'
 
