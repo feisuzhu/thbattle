@@ -299,11 +299,6 @@ class NenshaPhone(GenericAction):
 @register_eh
 class NenshaPhoneHandler(EventHandler):
     interested = ('action_after',)
-    execute_before = (
-        'MajestyHandler',
-        'MasochistHandler',
-        'MelancholyHandler',
-    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -736,11 +731,6 @@ class AyaRoundfanSkill(WeaponSkill):
 @register_eh
 class AyaRoundfanHandler(EventHandler):
     interested = ('action_after',)
-    execute_before = (
-        'DecayDamageHandler',
-        'DilemmaHandler',
-        'EchoHandler',
-    )
     card_usage = 'drop'
 
     def handle(self, evt_type, act):

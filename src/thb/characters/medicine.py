@@ -104,6 +104,11 @@ class MelancholyAction(GenericAction):
 
 class MelancholyHandler(EventHandler):
     interested = ('action_after', 'action_shootdown')
+    execute_after = (
+        'DyingHandler',
+        'AyaRoundfanHandler',
+        'NenshaPhoneHandler',
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
