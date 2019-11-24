@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import Damage, DrawCards, LaunchCard, LifeLost, UserAction, migrate_cards
 from thb.actions import skill_check, skill_wrap, user_choose_cards
-from thb.cards import Card, Heal, SealingArrayCard, Skill, TreatAs, VirtualCard, t_None
+from thb.cards import Card, Heal, HiddenCard, SealingArrayCard, Skill, TreatAs, VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -110,6 +110,8 @@ class ImperishableNightHandler(EventHandler):
 
         card = act.card
         if not card: return act
+        # Inserted settlements, like kyouko, report HiddenCard has no 'category', CRASH; prevention:
+        if card.is_card(HiddenCard): return act
         if 'basic' not in card.category: return act
         if card.color != Card.RED: return act
 
