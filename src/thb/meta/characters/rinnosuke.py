@@ -94,6 +94,5 @@ class Rinnosuke:
     cv          = '大白'
 
     port_image        = 'thb-portrait-rinnosuke'
-    # figure_image      = u'thb-figure-rinnosuke'
-    figure_image      = ''
+    figure_image      = 'thb-figure-rinnosuke'
     miss_sound_effect = 'thb-cv-rinnosuke_miss'
