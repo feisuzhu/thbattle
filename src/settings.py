@@ -32,13 +32,9 @@ IS_PROTON = hasattr(os, 'uname') and ''.join(os.uname()).startswith('LinuxProton
 
 if IS_PROTON:
     # for debug
-    LEANCLOUD_APPID = '2h0vs77zmac59mdwimxhndan8ju61kyfdjaenr7o6xs788j3'
-    LEANCLOUD_APPKEY = 'qvdgnat506l4gmwwjbwv6qrsiej1uldznmu0gaagk23l928g'
     # SENTRY_DSN = 'https://40f57b33d5814213b078a1de139cc270:5dab5dba0fdb4cb98df6c13766637726@sentry.thbattle.net/3'
     SENTRY_DSN = ''
 else:
-    LEANCLOUD_APPID = 'zuqyou98gvr3s7z3rnx27n8g8yoqu6lpwtl8jmbnq4mabbyd'
-    LEANCLOUD_APPKEY = '6va366frgv69lr28u58g0d2dw42523cvdztjmgho82bepf6x'
     # SENTRY_DSN = 'https://3f966ce5d9d34967be39379df0e26279:69245de6617c4357af30ed99f05894db@sentry.thbattle.net/2'
     SENTRY_DSN = ''
 
