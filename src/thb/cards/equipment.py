@@ -474,7 +474,6 @@ class IbukiGourdSkill(RedUFOSkill):
 @register_eh
 class IbukiGourdHandler(EventHandler):
     interested = ('action_apply', 'action_after', 'card_migration')
-    execute_after = ('WineHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -732,7 +731,6 @@ class AyaRoundfanSkill(WeaponSkill):
 @register_eh
 class AyaRoundfanHandler(EventHandler):
     interested = ('action_after',)
-    execute_after = ('DyingHandler',)
     card_usage = 'drop'
 
     def handle(self, evt_type, act):

@@ -153,7 +153,12 @@ class DecayEffect(UserAction):
 
 class DecayDamageHandler(EventHandler):
     interested = ('action_after', 'action_before')
-    execute_after = ('SuwakoHatHandler', )
+    execute_after = (
+        'DyingHandler',
+        'AyaRoundfanHandler',
+        'NenshaPhoneHandler',
+        'SuwakoHatHandler',
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):

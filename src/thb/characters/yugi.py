@@ -79,6 +79,7 @@ class FreakingPowerAction(FatetellAction):
 
 class FreakingPowerHandler(EventHandler):
     interested = ('action_after', 'action_before', )
+    execute_before = ('AyaRoundfanHandler',)
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack) and not marked(act, 'freaking_power'):

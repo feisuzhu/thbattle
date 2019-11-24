@@ -85,6 +85,11 @@ class MajestyAction(UserAction):
 
 class MajestyHandler(EventHandler):
     interested = ('action_after',)
+    execute_after = (
+        'DyingHandler',
+        'AyaRoundfanHandler',
+        'NenshaPhoneHandler',
+    )
 
     def handle(self, evt_type, act):
         if not evt_type == 'action_after': return act
