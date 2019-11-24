@@ -26,8 +26,6 @@ from client.ui.base.interp import InterpDesc, LinearInterp
 from client.ui.resloader import L
 from utils import flatten, inpoly, instantiate, pyperclip, rectv2f, rrectv2f, textsnap, imageurl2file
 from utils.stats import stats
-import settings
-import requests
 
 
 # -- code --
@@ -1054,7 +1052,7 @@ class PlayerPortrait(Frame):
                     else:
                         img = pyglet.image.load('foo.%s' % ft, file=f)
                         img.anchor_x, img.anchor_y = img.width // 2, img.height // 2
-                except:
+                except Exception:
                     log.exception('Loading avatar')
                     img = False
 
@@ -1104,54 +1102,6 @@ class PlayerPortrait(Frame):
         g, d = acc.other['games'], acc.other['drops']
         dr = int(100*d/g) if d else 0
         Lbl(u'游戏数：%d(%d%%)' % (g, dr), 2)
-
-        def B(loc, b):
-            ft, f = imageurl2file(b['image'])
-            if not f:
-                return
-
-            try:
-                if ft == 'gif':
-                    from utils import gif_to_animation
-                    img = gif_to_animation(f)
-                else:
-                    img = pyglet.image.load('foo.%s' % ft, file=f)
-            except:
-                log.exception('Loading badge')
-                return
-
-            if loc > 2:
-                loc += 2
-
-            y, x = divmod(loc, 5)
-
-            self.badge_icons.append(BadgeIcon(
-                img,
-                128 - 30 - 22 * (4 - x), 55 + 22 * y,
-                b['text'],
-                parent=self,
-            ))
-
-        @gevent.spawn
-        def _():
-            badges = self._cached_fetch_badges(acc.userid)
-            if self.account:
-                badges = badges['results']
-                for i, b in enumerate(badges):
-                    gevent.spawn(B, i, b)
-
-    @classmethod
-    def _cached_fetch_badges(cls, uid):
-        cache = cls.cached_badges
-        if uid in cache:
-            return cache[uid]
-        else:
-            badges = requests.get('https://api.leancloud.cn/1.1/cloudQuery',
-                params={'cql': 'select * from Badge where uid = %s' % uid},
-                headers={'X-LC-Id': settings.LEANCLOUD_APPID, 'X-LC-Key': settings.LEANCLOUD_APPKEY},
-            ).json()
-            cache[uid] = badges
-            return badges
 
     def draw(self):
         PlayerPortrait.draw(self)
