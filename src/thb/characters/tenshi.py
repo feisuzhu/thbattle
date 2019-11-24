@@ -83,6 +83,11 @@ class MasochistAction(UserAction):
 # 「抖M」技能的事件触发逻辑
 class MasochistHandler(THBEventHandler):
     interested = ['action_after']
+    execute_after = (
+        'DyingHandler',
+        'AyaRoundfanHandler',
+        'NenshaPhoneHandler',
+    )
 
     def handle(self, evt_type, act):
         # 当受到伤害后

@@ -167,8 +167,13 @@ class DecayEffect(UserAction):
 
 
 class DecayDamageHandler(THBEventHandler):
-    interested = ['action_after', 'action_before']
-    execute_after = ['SuwakoHatHandler']
+    interested = ('action_after', 'action_before')
+    execute_after = (
+        'DyingHandler',
+        'AyaRoundfanHandler',
+        'NenshaPhoneHandler',
+        'SuwakoHatHandler',
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):

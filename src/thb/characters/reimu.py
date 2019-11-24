@@ -240,18 +240,21 @@ class ReimuClearAction(UserAction):
 
 
 class ReimuClearHandler(THBEventHandler):
-    interested = ['action_after']
-    execute_before = [
-        'MasochistHandler',
-        'DecayDamageHandler',
-        'MelancholyHandler',
-    ]
-
-    execute_after = [
-        'IbukiGourdHandler',
+    interested = ('action_after',)
+    execute_before = (
         'AyaRoundfanHandler',
+        'NenshaPhoneHandler',
+        'DilemmaHandler',
+        'DecayDamageHandler',
+        'EchoHandler',
+        'MelancholyHandler',
         'MajestyHandler',
-    ]
+        'MasochistHandler',
+    )
+
+    execute_after = (
+        'IbukiGourdHandler',
+    )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
