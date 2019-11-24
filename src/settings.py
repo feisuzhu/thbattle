@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'V269'
+VERSION = 'V282'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -133,17 +133,11 @@ class ServerList:
 NOTICE = u'''
 |s2ff0000ff|W现在所有的房间内聊天都会记录日志，请文明游戏，并且不要在聊天中透露敏感信息。黑幕组会根据聊天日志对违规玩家做处罚。|r
 
-|B|RYOUR ATTENTION PLEASE!|r
-你最希望下一个出现的角色是谁？
-请在论坛的「文文新闻社」板块的置顶贴处投票~
-截止日期 2019-11-3
-
-|B预计下次更新情况：|r
+|B更新情况：|r
 八意永琳推倒重做
-西行寺幽幽子微调
-上白泽慧音调整后放出
-
-论坛：www.thbattle.net 贴吧：东方符斗祭吧 玩家群： 244369953（较热闹的水群）296820759（萌新群）
+西行寺幽幽子推倒重做
+上白泽慧音放出
+修正了很多 bug
 
 大型幻想对撞机 & 丝风 Presents
 '''.strip()
