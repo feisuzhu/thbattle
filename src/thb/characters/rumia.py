@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from game.autoenv import ActionShootdown, EventHandler, Game
-from thb.actions import Damage, DrawCards, LaunchCard, PlayerTurn, UserAction
+from thb.actions import Damage, DrawCards, FinalizeStage, LaunchCard, UserAction
 from thb.actions import user_choose_cards
 from thb.cards import Attack, AttackCard, BaseDuel, PhysicalCard, RejectCard, Skill, t_None, t_OtherN
 from thb.characters.baseclasses import Character, register_character_to
@@ -138,11 +138,11 @@ class CheatingDrawCards(DrawCards):
 
 
 class CheatingHandler(EventHandler):
-    interested = ('action_after',)
+    interested = ('action_apply',)
     execute_before = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_apply' and isinstance(act, FinalizeStage):
             tgt = act.target
             if tgt.has_skill(Cheating) and not tgt.dead:
                 g = Game.getgame()
