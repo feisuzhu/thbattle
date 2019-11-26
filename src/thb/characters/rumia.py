@@ -6,8 +6,10 @@ from __future__ import annotations
 # -- own --
 from game.base import ActionShootdown
 from thb.actions import Damage, DrawCards, FinalizeStage, LaunchCard, UserAction, user_choose_cards
-from thb.cards.base import Skill, t_None, t_OtherN
-from thb.cards.classes import Attack, AttackCard, BaseDuel, PhysicalCard, RejectCard
+from thb.cards.base import PhysicalCard, Skill, t_None, t_OtherN
+from thb.cards.basic import Attack
+from thb.cards.definition import AttackCard, RejectCard
+from thb.cards.spellcard import BaseDuel
 from thb.characters.base import Character, register_character_to
 from thb.mode import THBEventHandler
 
@@ -140,11 +142,11 @@ class CheatingDrawCards(DrawCards):
 
 
 class CheatingHandler(THBEventHandler):
-    interested = ['action_after']
-    execute_before = ['CiguateraHandler']
+    interested = ('action_apply',)
+    execute_before = ('CiguateraHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, FinalizeStage):
+        if evt_type == 'action_apply' and isinstance(act, FinalizeStage):
             tgt = act.target
             if tgt.has_skill(Cheating) and not tgt.dead:
                 g = self.game

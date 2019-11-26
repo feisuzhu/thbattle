@@ -38,7 +38,7 @@ class CiguateraAction(UserAction):
 
 
 class CiguateraHandler(THBEventHandler):
-    interested = ['action_after', 'action_before']
+    interested = ('action_before',)
     card_usage = 'drop'
 
     def handle(self, evt_type, act):
