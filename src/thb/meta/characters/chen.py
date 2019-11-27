@@ -44,9 +44,11 @@ class FlyingSkanda:
         while True:
             if c.is_card(AttackCard): break
 
-            rst = c.is_card(RejectCard)
-            rst = rst or c.is_card(DollControlCard)
-            rst = (not rst) and issubclass(c.associated_action, InstantSpellCardAction)
+            rst = True
+            rst = rst and not c.is_card(cards.RejectCard)
+            rst = rst and not c.is_card(cards.DollControlCard)
+            rst = rst and c.associated_action
+            rst = rst and issubclass(c.associated_action, cards.InstantSpellCardAction)
             if rst: break
 
             return (False, '请选择一张【弹幕】或者除【人形操控】与【好人卡】之外的非延时符卡！')
