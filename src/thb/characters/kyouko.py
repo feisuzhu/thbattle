@@ -4,10 +4,11 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import AskForCard, Damage, DrawCards, LaunchCard, UserAction, migrate_cards
-from thb.actions import user_choose_players
-from thb.cards import Attack, AttackCard, Skill, VirtualCard, t_None
+from game.autoenv import Game, user_input
+from game.base import EventHandler
+from thb.actions import AskForCard, Damage, DrawCards, LaunchCard, UserAction
+from thb.actions import migrate_cards, user_choose_players
+from thb.cards import Attack, AttackCard, Skill, VirtualCard, t_None, PhysicalCard, TreatAs
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 
@@ -19,12 +20,34 @@ class Echo(Skill):
     target = t_None
 
 
+class EchoPlaceholderCard(TreatAs, VirtualCard):
+
+    def __init__(self, player, card):
+        super(EchoPlaceholderCard, self).__init__(player)
+        self.treat_as = card.__class__
+        self.suit     = card.suit
+        self.number   = card.number
+
+    def check(self):
+        return True
+
+
 class EchoAction(UserAction):
-    def __init__(self, source, target, card):
-        self.source, self.target, self.card = source, target, card
+    def __init__(self, source, target, launch_action, card):
+        self.source, self.target = source, target
+        self.launch_action, self.card = launch_action, card
 
     def apply_action(self):
-        migrate_cards([self.card], self.target.cards, unwrap=True, is_bh=True)
+        tgt = self.target
+
+        lc = self.launch_action
+        if isinstance(lc.card, PhysicalCard):
+            mock = EchoPlaceholderCard(tgt, lc.card)
+            # HACK: should impl in LaunchCard
+            lc.card = mock
+            lc.card_action.associated_card = mock
+
+        migrate_cards([self.card], tgt.cards, unwrap=True, is_bh=True)
 
         return True
 
@@ -65,7 +88,13 @@ class EchoHandler(EventHandler):
             pl = attack and user_choose_players(self, tgt, [p for p in g.players if not p.dead])
             p = pl[0] if pl else tgt
 
-            g.process_action(EchoAction(tgt, p, card))
+            for lc in reversed(g.action_stack):
+                if isinstance(lc, LaunchCard) and lc.card_action is pact:
+                    break
+            else:
+                lc = None
+
+            g.process_action(EchoAction(tgt, p, lc, card))
 
         return act
 
