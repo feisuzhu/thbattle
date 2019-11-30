@@ -37,7 +37,7 @@ class SkySilk:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return (
-            '|G【%s】|r对|G【%s】|r发动「天丝」（台词待定)'
+            '|G【%s】|r对|G【%s】|r发动了「天丝」。'
         ) % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
