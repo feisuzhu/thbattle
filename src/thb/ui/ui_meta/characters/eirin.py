@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from thb import actions, characters, cards
-from thb.ui.ui_meta.common import gen_metafunc, my_turn, build_handcard
+from thb.ui.ui_meta.common import gen_metafunc, my_turn
 
 # -- code --
 __metaclass__ = gen_metafunc(characters.eirin)
@@ -37,7 +37,7 @@ class SkySilk:
     def effect_string(act):
         # for LaunchCard.ui_meta.effect_string
         return (
-            u'|G【%s】|r对|G【%s】|r发动「天丝」（台词待定)'
+            u'|G【%s】|r对|G【%s】|r发动了「天丝」。'
         ) % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
