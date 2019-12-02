@@ -457,6 +457,7 @@ class Game(GameObject):
         elif not action.can_fire():
             log.debug('action invalid, not firing: %s' % action.__class__.__name__)
             action.invalid = True
+            rst = False
         else:
             log.debug('applying action %s, current hybrid_stack: %r' % (action.__class__.__name__, self.hybrid_stack))
             action = self.emit_event('action_apply', action)
