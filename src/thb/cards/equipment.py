@@ -986,6 +986,9 @@ class YoumuPhantomHandler(EventHandler):
 
         g = Game.getgame()
 
+        # Only for daiyousei in KOF, no better fix:
+        if to.type == 'support': return arg
+
         if _from is not None and _from.type == 'equips' and not is_bh:
             for c in cards:
                 if c.is_card(YoumuPhantomCard):
