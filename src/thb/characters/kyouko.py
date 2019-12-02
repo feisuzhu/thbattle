@@ -41,7 +41,7 @@ class EchoAction(UserAction):
         tgt = self.target
 
         lc = self.launch_action
-        if isinstance(lc.card, PhysicalCard):
+        if lc and isinstance(lc.card, PhysicalCard):
             mock = EchoPlaceholderCard(tgt, lc.card)
             # HACK: should impl in LaunchCard
             lc.card = mock
