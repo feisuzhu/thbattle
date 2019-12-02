@@ -20,6 +20,7 @@ install_requires = [
     'unidecode',
     'upyun',
     'raven',
+    'dnspython',
 ]
 
 entry_points = {
