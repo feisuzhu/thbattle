@@ -269,6 +269,7 @@ class DollBlastDropHandler(DollBlastHandlerCommon, THBEventHandler):
             act._['doll_blast'] = True
 
         elif evt_type == 'action_after' and isinstance(act, DropCards) and act._['doll_blast']:
+            tgt = act.target 
             if tgt.has_skill(DollBlast):
                 self.fire(act.target, act.source, act.cards)
 
