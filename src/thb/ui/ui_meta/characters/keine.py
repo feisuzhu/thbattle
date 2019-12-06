@@ -162,7 +162,6 @@ class Keine:
     # Character
     name        = '上白泽慧音'
     title       = '人间之里的守护者'
-    designer    = '沙包要不要'
     illustrator = '和茶'
     cv          = '银子'
 
