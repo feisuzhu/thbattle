@@ -5,7 +5,7 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, UserAction
+from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, PlayerTurn, UserAction
 from thb.actions import random_choose_card, user_choose_players
 from thb.cards import Skill, VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
@@ -169,6 +169,7 @@ class DecayDamageHandler(EventHandler):
             g = Game.getgame()
             if g.current_player is tgt: return act
             if not g.current_player: return act
+            if not any(isinstance(a, PlayerTurn) for a in g.hybrid_stack): return act
             g.process_action(DecayAction(src, g.current_player))
 
         elif evt_type == 'action_before' and isinstance(act, DropCardStage):
