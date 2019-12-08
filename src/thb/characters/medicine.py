@@ -42,6 +42,7 @@ class CiguateraHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
+            if act.target.dead: return act
             g = Game.getgame()
             for p in g.players:
                 if p.dead:
