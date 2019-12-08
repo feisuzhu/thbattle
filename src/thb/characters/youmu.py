@@ -108,8 +108,9 @@ class YoumuHandler(EventHandler):
 
                 n = self.weapons(p)
                 dn = len(cards)
+                if not any(getattr(c, 'equipment_category', None) == 'weapon' for c in cards): continue
 
-                if cl is _from and (dn + n) >= 2 and n <= 1 and any(getattr(c, 'equipment_category', None) == 'weapon' for c in cards):
+                if cl is _from and (dn + n) >= 2 and n <= 1:
                     adjust = -1
                 elif cl is to and (n - dn) <= 1 and n >= 2:
                     adjust = 1
