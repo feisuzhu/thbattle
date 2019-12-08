@@ -43,6 +43,7 @@ class CiguateraHandler(THBEventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FatetellStage):
+            if act.target.dead: return act
             g = self.game
             for p in g.players:
                 if p.dead:
