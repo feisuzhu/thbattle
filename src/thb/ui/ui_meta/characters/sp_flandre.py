@@ -25,7 +25,7 @@ class SpFlandre:
 class DestructionImpulse:
     # Skill
     name = u'破坏冲动'
-    description = u'|B锁定技|r，结束阶段开始时，若你本回合没有造成过伤害，你失去1点体力并对距离最近的一名其他角色造成1点伤害。'
+    description = u'|B锁定技|r，结束阶段结束后，若你本回合没有造成过伤害，你对距离最近的一名其他角色造成1点伤害，并失去1点体力。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
