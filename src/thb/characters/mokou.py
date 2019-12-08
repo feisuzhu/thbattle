@@ -78,7 +78,8 @@ class RebornHandler(EventHandler):
             if cards:
                 g = Game.getgame()
                 g.process_action(DropCards(tgt, tgt, cards))
-                g.process_action(RebornAction(tgt))
+                if not tgt.dead: # Ensure no ui action_effect_after (str | se) after drop Exinwan causing fall
+                    g.process_action(RebornAction(tgt))
 
         return act
 
