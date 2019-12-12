@@ -33,8 +33,8 @@ class KanakoFaithCounteract(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
         g = self.game
-        g.process_action(KanakoFaithCounteractPart1(src, tgt))
-        g.process_action(KanakoFaithCounteractPart2(src, tgt))
+        src.dead or tgt.dead or g.process_action(KanakoFaithCounteractPart1(src, tgt))
+        src.dead or tgt.dead or g.process_action(KanakoFaithCounteractPart2(src, tgt))
         return True
 
 
