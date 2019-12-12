@@ -5,7 +5,7 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
+from thb.actions import Damage, FinalizeStage, GenericAction, LaunchCard, LifeLost, MaxLifeChange
 from thb.actions import ttags, user_choose_players
 from thb.cards import Skill, t_None
 from thb.characters.baseclasses import Character, register_character_to
@@ -26,8 +26,8 @@ class DestructionImpulseAction(GenericAction):
         tgt = self.target
         g = Game.getgame()
 
-        g.process_action(LifeLost(src, src))
         g.process_action(Damage(src, tgt))
+        g.process_action(LifeLost(src, src))
 
         return True
 
@@ -45,7 +45,7 @@ class DestructionImpulseHandler(EventHandler):
             g = Game.getgame()
             ttags(src)['destruction_tag'] = True
 
-        elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
             tgt = act.target
             if not tgt.has_skill(DestructionImpulse): return act
 
