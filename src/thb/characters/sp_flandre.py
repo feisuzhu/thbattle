@@ -27,8 +27,8 @@ class DestructionImpulseAction(GenericAction):
         tgt = self.target
         g = self.game
 
-        g.process_action(LifeLost(src, src))
         g.process_action(Damage(src, tgt))
+        g.process_action(LifeLost(src, src))
 
         return True
 
