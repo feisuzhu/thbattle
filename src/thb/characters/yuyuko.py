@@ -128,6 +128,10 @@ class SoulDrainHandler(EventHandler):
                 if isinstance(a, PlayerTurn):
                     if a.target is not p:
                         return act
+                    else:
+                        break
+            else:
+                return act
 
             g.process_action(SoulDrainEffect(p, tgt))
 
