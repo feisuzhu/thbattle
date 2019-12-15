@@ -7,7 +7,7 @@ from __future__ import annotations
 from game.base import EventHandler
 from thb.actions import DropCards, GenericAction, LaunchCard, ShowCards, UserAction, migrate_cards
 from thb.actions import random_choose_card, ttags
-from thb.cards.base import Card, Skill, TreatAs, t_One
+from thb.cards.base import Card, HiddenCard, PhysicalCard, Skill, TreatAs, VirtualCard, t_One
 from thb.cards.basic import Heal
 from thb.cards.definition import AttackCard
 from thb.characters.base import Character, register_character_to
@@ -100,11 +100,27 @@ class LunaStringLaunchCardHandler(EventHandler):
 
             c = act.card
 
-            if not c.is_card(LunaString):
-                return act
+            def walk(c):
+                if c.is_card(LunaString):
+                    return c
 
-            g = self.game
-            g.process_action(LunaStringPlaceCard(act.source, c))
+                if c.is_card(PhysicalCard) or c.is_card(HiddenCard):
+                    return None
+
+                assert isinstance(c, VirtualCard)
+
+                for c1 in c.associated_cards:
+                    r = walk(c1)
+                    if r:
+                        return r
+
+                return None
+
+            c = walk(c)
+
+            if c:
+                g = self.game
+                g.process_action(LunaStringPlaceCard(c.character, c))
 
         return act
 
