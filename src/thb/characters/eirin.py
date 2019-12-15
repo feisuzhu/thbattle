@@ -5,12 +5,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # -- third party --
 # -- own --
 from game.autoenv import Game, user_input
-from game.base import ActionShootdown, EventHandler
-from thb.actions import DropCards, GenericAction, LaunchCard, ShowCards, UseCard, UserAction
-from thb.actions import migrate_cards, random_choose_card, ttags
-from thb.cards import Heal, t_One
-from thb.cards import AttackCard
-from thb.cards.base import Card, DummyCard, Skill, TreatAs, VirtualCard
+from game.base import EventHandler
+from thb.actions import DropCards, GenericAction, LaunchCard, ShowCards, UserAction, migrate_cards
+from thb.actions import random_choose_card, ttags
+from thb.cards import AttackCard, Heal, t_One
+from thb.cards.base import Card, HiddenCard, PhysicalCard, Skill, TreatAs, VirtualCard
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
@@ -101,11 +100,27 @@ class LunaStringLaunchCardHandler(EventHandler):
 
             c = act.card
 
-            if not c.is_card(LunaString):
-                return act
+            def walk(c):
+                if c.is_card(LunaString):
+                    return c
 
-            g = Game.getgame()
-            g.process_action(LunaStringPlaceCard(act.source, c))
+                if c.is_card(PhysicalCard) or c.is_card(HiddenCard):
+                    return None
+
+                assert isinstance(c, VirtualCard)
+
+                for c1 in c.associated_cards:
+                    r = walk(c1)
+                    if r:
+                        return r
+
+                return None
+
+            c = walk(c)
+
+            if c:
+                g = Game.getgame()
+                g.process_action(LunaStringPlaceCard(c.player, c))
 
         return act
 
