@@ -136,15 +136,17 @@ class Devoted:
 
 class DevotedHeal:
     def effect_string(act):
-        return '守护治疗效果台词 |G【%s】|r |G【%s】|r' % (
+        return '|G【%s】|r分享了回复效果（|G决意|r），|G【%s】|r回复了%s点体力。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
+            act.amount,
         )
 
 
 class DevotedDrawCards:
     def effect_string(act):
-        return '守护摸牌效果台词 |G【%s】|r, %s张' % (
+        return '|G【%s】|r分享了摸牌效果（|G决意|r），|G【%s】|r摸了%s张牌。' % (
+            act.source.ui_meta.name,
             act.target.ui_meta.name,
             act.amount,
         )
@@ -152,7 +154,7 @@ class DevotedDrawCards:
 
 class DevotedAction:
     def effect_string(act):
-        return '守护的保护效果台词 |G【%s】|r |G【%s】|r' % (
+        return '|G【%s】|r的伤害由|G【%s】|r承受了（|G决意|r）。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )
