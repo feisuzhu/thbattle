@@ -667,7 +667,7 @@ class Lobby(object):
             while True:
                 users = BatchList(self.users.values())
                 users.write(['system_msg', [None, u'游戏已经更新，当前的游戏结束后将会被自动踢出，请更新后重新游戏']])
-                gevent.sleep(30)
+                gevent.sleep(300)
 
         @gevent.spawn
         def kick():
