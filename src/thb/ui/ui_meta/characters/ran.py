@@ -25,7 +25,7 @@ class Prophet:
 class ExtremeIntelligence:
     # Skill
     name = u'极智'
-    description = u'每轮限一次，你的回合外，当非延时符卡对一名角色生效后，你可以弃置一张牌，令该符卡效果对那名角色重新进行一次结算，此时使用者视为你。'
+    description = u'每轮限一次，你的回合外，当非延时符卡效果对一名角色生效后，你可以弃置一张牌，令该符卡效果对那名角色重新进行一次结算，此时使用者视为你。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
