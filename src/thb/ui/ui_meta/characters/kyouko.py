@@ -60,9 +60,9 @@ class ResonanceAction:
     # choose_card meta
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'共振：对%s使用弹幕' % act.target.ui_meta.name)
+            return (True, u'共振：对%s使用弹幕' % act.victim.ui_meta.name)
         else:
-            return (False, u'共振：请选择一张弹幕对%s使用' % act.target.ui_meta.name)
+            return (False, u'共振：请选择一张弹幕对%s使用' % act.victim.ui_meta.name)
 
     def effect_string_before(act):
         return u'|G【%s】|r对|G【%s】|r发动了|G共振|r。' % (
