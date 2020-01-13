@@ -212,6 +212,7 @@ ClientBin/
 *.dbproj.schemaview
 *.pfx
 *.publishsettings
+*.sqlite3
 node_modules/
 
 # RIA/Silverlight projects
