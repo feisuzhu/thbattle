@@ -387,7 +387,7 @@ class ScarletRhapsodySkill(WeaponSkill):
             check(card.is_card(PhysicalCard))
 
             check(card.resides_in in (tgt.cards, tgt.showncards))
-            check(card in tgt.cards) or card in set(tgt.showncards)
+            check(card in set(tgt.cards) or card in set(tgt.showncards))
 
             check(set(tgt.cards) | set(tgt.showncards) == set([card]))
 
