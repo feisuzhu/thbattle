@@ -149,7 +149,7 @@ class LunaString(TreatAs, Skill):
         return cl[0].resides_in.type in ('cards', 'showncards')
 
 
-@register_character_to('common')
+@register_character_to('common', '-kof')
 class Eirin(Character):
     skills = [SkySilk, LunaString]
     eventhandlers_required = [LunaStringLaunchCardHandler]
