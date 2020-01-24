@@ -6,7 +6,7 @@ from __future__ import absolute_import
 # -- own --
 from game.autoenv import Game, user_input
 from game.base import EventHandler
-from thb.actions import BaseActionStage, Damage, DrawCardStage, GenericAction, LaunchCard, LifeLost, ActionStage, MaxLifeChange
+from thb.actions import BaseActionStage, Damage, GenericAction, LaunchCard, ActionStage, MaxLifeChange
 from thb.actions import Reforge, UserAction, migrate_cards, random_choose_card, ttags
 from thb.actions import user_choose_cards, user_choose_players, DrawCards
 from thb.cards import Heal, PhysicalCard, Skill, VirtualCard, t_None, t_OtherOne
@@ -20,7 +20,11 @@ class TeachTargetReforgeAction(UserAction):
         g = Game.getgame()
         tgt = self.target
         c = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-        c = c[0] if c else random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+        if c:
+            c = c[0]
+        else:
+            c = random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
+            g.players.reveal(c)
         if not c:
             return False
 
@@ -87,8 +91,8 @@ class TeachAction(UserAction):
         return len(cl) == 1 and not cl[0].is_card(VirtualCard)
 
     def is_valid(self):
-        tgt = self.target
-        return not ttags(tgt)['teach_used']
+        src = self.source
+        return not ttags(src)['teach_used']
 
 
 class Teach(Skill):
