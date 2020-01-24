@@ -112,3 +112,5 @@ class Eirin:
     port_image        = u'thb-portrait-eirin'
     figure_image      = u'thb-figure-eirin'
     miss_sound_effect = u'thb-cv-eirin_miss'
+
+    notes = u'|RKOF不平衡角色|r'
