@@ -29,7 +29,8 @@ class Envy(TreatAs, Skill):
 class EnvyRecycleAction(object):
     def apply_action(self):
         detach_cards(self.cards)
-        migrate_cards(self.cards, self.source.cards, unwrap=True)
+        assert self.cards[0].detached
+        migrate_cards(self.cards, self.source.cards, is_bh=True, unwrap=True)
         return True
 
 

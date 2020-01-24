@@ -228,7 +228,7 @@ class DollBlastMigrationHandler(DollBlastHandlerCommon, EventHandler):
         equips = p.equips
 
         for cl, _from, to, is_bh, _ in trans.get_movements():
-            if _from is not equips:
+            if _from is not equips or is_bh:
                 continue
 
             if to is None or not to.owner:
