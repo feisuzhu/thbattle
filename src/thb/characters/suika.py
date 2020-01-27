@@ -6,7 +6,7 @@ from __future__ import absolute_import
 # -- own --
 from game.autoenv import EventHandler, Game
 from thb.actions import ActionLimitExceeded, ActionShootdown, ActionStage, DrawCards, LaunchCard
-from thb.actions import Pindian, PlayerTurn, UserAction
+from thb.actions import Pindian, PrepareStage, UserAction
 from thb.cards import AttackCard, Skill, TreatAs, VirtualCard, WineCard, t_None, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
 
@@ -94,7 +94,7 @@ class DrunkenDreamHandler(EventHandler):
                 for p in dist:
                     dist[p] -= 2
 
-        elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_apply' and isinstance(act, PrepareStage):
             src = act.source
             if not src.has_skill(DrunkenDream):
                 return act
