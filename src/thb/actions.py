@@ -1099,6 +1099,7 @@ class ForEach(UserAction):
 
 class PrepareStage(GenericAction):
     def __init__(self, target):
+        self.source = target
         self.target = target
 
     def apply_action(self):
@@ -1107,6 +1108,7 @@ class PrepareStage(GenericAction):
 
 class FinalizeStage(GenericAction):
     def __init__(self, target):
+        self.source = target
         self.target = target
 
     def apply_action(self):
