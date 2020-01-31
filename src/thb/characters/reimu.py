@@ -162,8 +162,16 @@ class ReimuExterminateAction(AskForCard):
 
 
 class ReimuExterminateHandler(THBEventHandler):
-    interested = ['action_apply', 'action_after']
-    execute_after = ['DyingHandler', 'CheatingHandler', 'IbukiGourdHandler']
+    interested = ('action_apply', 'action_after')
+    execute_after = ('DyingHandler',
+                     'CheatingHandler',
+                     'IbukiGourdHandler',
+                     'DisarmHandler',
+                     'FreakingPowerHandler',
+                     'LunaticHandler',
+                     'AyaRoundfanHandler',
+                     'NenshaPhoneHandler',
+                     )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, Damage):
