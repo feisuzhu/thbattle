@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from typing import cast
+
 # -- third party --
 # -- own --
 from game.base import EventHandler
-from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, MigrateCardsTransaction, Damage
-from thb.actions import DistributeCards, DropCards, ForEach, GenericAction, LaunchCard, PlayerTurn
-from thb.actions import UseCard, UserAction, VitalityLimitExceeded, register_eh, user_choose_cards
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, ForEach
+from thb.actions import GenericAction, LaunchCard, MigrateCardsTransaction, PrepareStage, UseCard
+from thb.actions import UserAction, VitalityLimitExceeded, register_eh, user_choose_cards
 
 
 # -- code --
@@ -275,7 +277,7 @@ class WineHandler(EventHandler):
 
             return arg
 
-        elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_apply' and isinstance(act, PrepareStage):
             src = act.target
             if src.tags['wine']:
                 self.game.process_action(SoberUp(src, src))
