@@ -6,7 +6,7 @@ from __future__ import absolute_import
 # -- own --
 from game.autoenv import EventHandler, Game
 from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DistributeCards
-from thb.actions import DropCards, ForEach, GenericAction, LaunchCard, PlayerTurn, UseCard
+from thb.actions import DropCards, ForEach, GenericAction, LaunchCard, PrepareStage, UseCard
 from thb.actions import UserAction, VitalityLimitExceeded, register_eh, user_choose_cards
 
 
@@ -272,7 +272,7 @@ class WineHandler(EventHandler):
 
             return arg
 
-        elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_apply' and isinstance(act, PrepareStage):
             src = act.target
             if src.tags['wine']:
                 Game.getgame().process_action(SoberUp(src, src))
