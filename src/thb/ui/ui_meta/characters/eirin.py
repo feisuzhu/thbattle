@@ -79,6 +79,9 @@ class LunaString:
         if c.resides_in.type not in ('cards', 'showncards'):
             return False, u'请选择一张手牌'
 
+        if c.is_card(cards.VirtualCard):
+            return False, u'「月弦」不允许组合使用'
+
         return True, u'发动「月弦」'
 
     def is_action_valid(g, cl, tl, is_complete=is_complete):

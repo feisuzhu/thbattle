@@ -146,7 +146,12 @@ class LunaString(TreatAs, Skill):
         if not len(cl) == 1:
             return False
 
-        return cl[0].resides_in.type in ('cards', 'showncards')
+        c = cl[0]
+
+        if not (c.is_card(PhysicalCard) or c.is_card(HiddenCard)):  # HiddenCard for other viewpoints
+            return False
+
+        return c.resides_in.type in ('cards', 'showncards')
 
 
 @register_character_to('common', '-kof')
