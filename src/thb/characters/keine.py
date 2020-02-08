@@ -122,9 +122,15 @@ class KeineGuardAction(UserAction):
         src, tgt = self.source, self.target
         g = self.game
         g.process_action(MaxLifeChange(src, src, -1))
+        if src.dead:
+            return False
+
         g.process_action(Heal(src, tgt))
 
-        src.skills.remove(KeineGuard)
+        try:
+            src.skills.remove(KeineGuard)
+        except ValueError:
+            pass
 
         if tgt.life == min(p.life for p in g.players if not p.dead):
             src.skills.append(Devoted)
