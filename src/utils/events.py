@@ -15,7 +15,7 @@ T = TypeVar('T')
 
 
 class EventHub(Generic[T]):
-    __slots__ = ('_subscribers',)
+    __slots__ = ('_subscribers', 'name')
 
     class StopPropagation:
         __slots__ = ()
@@ -26,6 +26,7 @@ class EventHub(Generic[T]):
 
     def __init__(self):
         self._subscribers = []
+        self.name: str = '[Anonymous]'
 
     def subscribe(self, cb: Callable[[T], Union[T, StopPropagation]], prio: float):
         self._subscribers.append((prio, cb))
@@ -41,6 +42,7 @@ class EventHub(Generic[T]):
         return self
 
     def emit(self, ev: T):
+        log.debug('EventHub: handling event %s %s', self.name, ev)
         if not self._subscribers:
             log.warning('Emit event when no subscribers present!')
             return
@@ -54,7 +56,7 @@ class EventHub(Generic[T]):
                 ev = r
 
             if ev is None:
-                raise Exception("Returning None in EventHub!")
+                raise Exception("Returning None in EventHub, last callback: %s", cb)
 
         return ev
 

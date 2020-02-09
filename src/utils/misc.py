@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from collections import deque
 from contextlib import contextmanager
 from functools import wraps
+from time import time
 from typing import Any, Callable, Dict, Iterable, List, Set, Tuple, Type, TypeVar
 from weakref import WeakSet
 import functools
@@ -362,32 +364,30 @@ class ThrottleState(object):
 
 def throttle(seconds: float) -> Callable[[T], T]:
     def decorate(f):
-        state = ThrottleState()
+        deadline = -1.0
+        gr = None
 
-        def after():
-            gevent.sleep(seconds)
-            if state.pending:
-                state.pending = False
-                a, k = state.args
-                gevent.spawn(after)
-                f(*a, **k)
-
-            else:
-                state.running = False
+        def bouncer(*a, **k):
+            nonlocal deadline, gr
+            t = deadline - time()
+            while t > 0:
+                gevent.sleep(t)
+                t = deadline - time()
+            gr = None
+            deadline = time() + seconds
+            f(*a, **k)
 
         @wraps(f)
         def wrapper(*a, **k):
-            if state.running:
-                state.pending = True
-                state.args = (a, k)
-
-            else:
-                state.running = True
-                gevent.spawn(after)
+            nonlocal deadline, gr
+            t = deadline - time()
+            if t < 0:
                 f(*a, **k)
+                deadline = time() + seconds
+            else:
+                gr = gr or gevent.spawn(bouncer, *a, **k)
 
-        wrapper.__name__ = f.__name__
-
+        wrapper.__name__ == f.__name__
         return wrapper
 
     return decorate

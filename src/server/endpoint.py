@@ -2,21 +2,21 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import TYPE_CHECKING, cast, Optional, Sequence, List, Any
+from typing import List, Optional, Sequence, TYPE_CHECKING, cast
 import logging
 
 # -- third party --
-from gevent import getcurrent, Greenlet
+from gevent import Greenlet, getcurrent
 import gevent
 
 # -- own --
 from endpoint import Endpoint, EndpointDied
-from utils.misc import log_failure, MockMeta
+from utils.misc import MockMeta, log_failure
 import wire
 
 # -- typing --
 if TYPE_CHECKING:
-    from server.core import Core
+    from server.core import Core  # noqa: F401
 
 
 # -- code --

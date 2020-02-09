@@ -31,7 +31,7 @@ class BackendError(Exception):
         )
 
     def __repr__(self) -> str:
-        return 'BackendError(%s)' % repr(self.message)
+        return f'BackendError({repr(self.message)})'
 
 
 class Backend(object):

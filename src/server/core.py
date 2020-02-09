@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
-from typing import Any, Dict, Tuple, Type, TypeVar, cast
+from typing import Any, Callable, Dict, Tuple, Type, TypeVar, cast
 
 # -- third party --
+from gevent.event import AsyncResult
+from gevent.greenlet import Greenlet
+from gevent.pool import Pool
+
 # -- own --
 from . import parts
 from .base import Game
@@ -18,6 +23,7 @@ import wire
 class Options(object):
     def __init__(self, options: Dict[str, Any]):
         self.node         = options.get('node', 'localhost')  # Current node name
+        self.listen       = options.get('listen', '')         # Listen
         self.backend      = options.get('backend', '')        # Backend URI
         self.interconnect = options.get('interconnect', '')   # URI of chat server
         self.archive_path = options.get('archive_path', '')   # file:// URI of dir for storing game archives
@@ -33,7 +39,9 @@ class _ClientCommandMapping:
 
 
 class Events(object):
-    def __init__(self) -> None:
+    def __init__(self, core: Core) -> None:
+        self.core = core
+
         # ev = (core: Core)
         self.core_initialized = EventHub[Core]()
 
@@ -92,14 +100,46 @@ class Events(object):
         # ev = (g: Game)
         self.game_aborted = EventHub[Game]()
 
+    def __setattr__(self, name, v):
+        if hasattr(v, 'name'):
+            v.name = f'{repr(self.core)}::{name}'
+        object.__setattr__(self, name, v)
+
 
 class Core(object):
+    auto_id = 0
+
     def __init__(self, **options: Dict[str, Any]):
+        self._auto_id = Core.auto_id
+        Core.auto_id += 1
+
+        self._result = AsyncResult()
+        self.runner: CoreRunner = None
+        self.tasks: Dict[str, Callable[[], None]] = {}
+
         self.options = Options(options)
+        self.events = Events(self)
+        self.tasks = {}
 
-        self.events = Events()
+        self.initialize_parts()
 
+        self.events.core_initialized.emit(self)
+
+    def __repr__(self) -> str:
+        return f'Core[S{self._auto_id}]'
+
+    @property
+    def result(self):
+        return self._result
+
+    def exception(self, e):
+        self._result.set_exception(e)
+
+    def initialize_parts(self):
         disables = self.options.disables
+
+        if 'serve' not in disables:
+            self.serve = parts.serve.Serve(self)
 
         if 'auth' not in disables:
             self.auth = parts.auth.Auth(self)
@@ -155,4 +195,31 @@ class Core(object):
         if 'view' not in disables:
             self.view = parts.view.View(self)
 
-        self.events.core_initialized.emit(self)
+
+class CoreRunner(object):
+    def __init__(self, core: Core):
+        self.core = core
+        self.tasks: Dict[str, Greenlet] = {}
+
+    def run(self) -> Any:
+        core = self.core
+        assert core.runner is None
+
+        core.runner = self
+        self.pool = pool = Pool()
+
+        try:
+            for k, f in core.tasks.items():
+                gr = pool.spawn(f)
+                gr.gr_name = k
+                self.tasks[k] = gr
+
+            return core.result.get()
+        finally:
+            self.pool.kill()
+
+    def spawn(self, fn, *args, **kw):
+        return self.pool.spawn(fn, *args, **kw)
+
+    def shutdown(self) -> None:
+        self.pool.kill()

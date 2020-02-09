@@ -82,7 +82,7 @@ class Admin(object):
             while True:
                 users = core.lobby.all_users()
                 users.write(msg.SystemMsg(msg='游戏已经更新，当前的游戏结束后将会被自动踢出，请更新后重新游戏'))
-                gevent.sleep(30)
+                gevent.sleep(300)
 
         @gevent.spawn
         def kick() -> None:

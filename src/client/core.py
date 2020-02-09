@@ -82,9 +82,19 @@ class Events(object):
         # ev = reason: str
         self.auth_error = EventHub[str]()
 
+    def __setattr__(self, name, v):
+        if hasattr(v, 'name'):
+            v.name = f'{repr(self.core)}::{name}'
+        object.__setattr__(self, name, v)
+
 
 class Core(object):
+    auto_id = 0
+
     def __init__(self: Core, **options: Dict[str, Any]):
+        self._auto_id = Core.auto_id
+        Core.auto_id += 1
+
         self.options = Options(options)
 
         self.events = Events()
@@ -107,3 +117,6 @@ class Core(object):
             self.warpgate = parts.warpgate.Warpgate(self)
 
         self.events.core_initialized.emit(self)
+
+    def __repr__(self):
+        return f'Core[C{self._auto_id}]'

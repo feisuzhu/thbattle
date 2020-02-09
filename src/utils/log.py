@@ -59,7 +59,7 @@ class ServerLogFormatter(logging.Formatter):
         g = gevent.getcurrent()
 
         if self.with_gr_name:
-            gr_name = ' ' + repr(g)
+            gr_name = ' ' + getattr(g, 'gr_name', repr(g))
         else:
             gr_name = ''
 
