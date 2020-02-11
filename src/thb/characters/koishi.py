@@ -64,7 +64,7 @@ class ParanoiaAction(UserAction):
 
         if not (tgt.cards or tgt.showncards): return False
 
-        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
+        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
         if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)
@@ -114,4 +114,4 @@ class ParanoiaHandler(EventHandler):
 class Koishi(Character):
     skills = [Unconsciousness, Paranoia]
     eventhandlers_required = [UnconsciousnessHandler, ParanoiaHandler]
-    maxlife = 3
+    maxlife = 4
