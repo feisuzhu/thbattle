@@ -440,7 +440,7 @@ class BaseDamage(GenericAction):
 
     def apply_action(self):
         tgt = self.target
-        tgt.life -= self.amount
+        tgt.life -= max(self.amount, 0)
         return True
 
     def is_valid(self):
@@ -528,6 +528,11 @@ class UseCard(GenericAction):
         if act:
             return act(self.target, self.card).can_fire()
         else:
+            try:
+                _ = Game.getgame().emit_event('action_shootdown', self)
+                assert _ is self, "You can't replace action in 'action_shootdown' event!"
+            except ActionShootdown as e:
+                return e
             return True
 
 

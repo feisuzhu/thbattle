@@ -50,6 +50,7 @@ from . import sp_aya
 from . import kyouko
 from . import keine
 from . import yuyuko
+from . import koishi
 
 # weektour
 from . import youmu20150620

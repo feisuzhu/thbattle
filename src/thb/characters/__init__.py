@@ -53,6 +53,7 @@ import sp_aya
 import kyouko
 import keine
 import yuyuko
+import koishi
 
 # weektour
 import youmu20150620
