@@ -128,7 +128,7 @@ class ResonanceHandler(THBEventHandler):
             src = act.source
             tgt = act.target
 
-            if src.dead or tgt.dead:
+            if act.cancelled or src.dead or tgt.dead:
                 return act
 
             if not src.has_skill(Resonance):
