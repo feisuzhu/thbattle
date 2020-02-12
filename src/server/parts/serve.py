@@ -30,6 +30,7 @@ class Serve(object):
     def accept(self) -> None:
         core = self.core
         a = urllib.parse.urlparse(core.options.listen)
+        assert a.scheme == 'tcp'
         server = StreamServer((a.hostname, a.port), self._serve, None)
         server.serve_forever()
 
@@ -42,4 +43,4 @@ class Serve(object):
 
         ep = Endpoint(sock, addr)
         cli = Client(core, ep)
-        core.runner.spawn(cli.serve)
+        cli.serve()

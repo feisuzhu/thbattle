@@ -125,7 +125,7 @@ class Lobby(object):
 
             # XXX
             '''
-            @gevent.spawn
+            @core.runner.spawn
             def reconnect():
                 self.send_account_info(user)
             '''
@@ -152,7 +152,7 @@ class Lobby(object):
         lst = [core.view.User(u) for u in self.users.values()]
         d = Endpoint.encode_bulk([wire.CurrentUsers(users=lst)])
 
-        @gevent.spawn
+        @core.runner.spawn
         def do_send() -> None:
             for u in ul:
                 u.raw_write(d)

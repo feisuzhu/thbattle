@@ -38,4 +38,4 @@ class Auth(object):
     # ----- Public Methods -----
     def login(self, token: str) -> None:
         core = self.core
-        core.server.write(wire.Auth(token))
+        core.server.write(wire.Auth(token=token))

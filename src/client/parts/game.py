@@ -2,21 +2,23 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Sequence, TYPE_CHECKING
 import logging
 
 # -- third party --
 from gevent import Greenlet
 from mypy_extensions import TypedDict
-import gevent
 
 # -- own --
 from client.base import ClientGameRunner, ForcedKill, Someone, Theone
-from client.core import Core
 from game.base import Game, GameData, GameItem, Player
 from utils.events import EventHub
 from utils.misc import BatchList
 import wire
+
+# -- typing --
+if TYPE_CHECKING:
+    from client.core import Core  # noqa: F401
 
 
 # -- code --
@@ -205,7 +207,7 @@ class GamePart(object):
     def start_game(self, g: Game) -> None:
         core = self.core
         runner = ClientGameRunner(core)
-        gr = gevent.spawn(runner.run, g)
+        gr = core.runner.spawn(runner.run, g)
         A(self, g)['greenlet'] = gr
 
         @gr.link_exception

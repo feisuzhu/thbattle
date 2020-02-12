@@ -7,7 +7,6 @@ import logging
 
 # -- third party --
 from gevent import Greenlet, getcurrent
-import gevent
 
 # -- own --
 from endpoint import Endpoint, EndpointDied
@@ -87,16 +86,22 @@ class Client(object):
         self._ep = None
         self._gr and self._gr.kill()  # this skips client_dropped event
 
+        core = self.core
         if other._ep:
             other._gr and other._gr.kill(Pivot)
         else:
-            other._gr = gevent.spawn(other._serve)
+            other._gr = core.runner.spawn(other._serve)
 
     def __repr__(self) -> str:
-        return '%s:%s:%s' % (
-            self.__class__.__name__,
-            'FIXME', 'FIXME'
-        )
+        if self._ep:
+            return '%s:%s:%s' % (
+                self.__class__.__name__,
+                *self._ep.address,
+            )
+        else:
+            return '%s:?' % (
+                self.__class__.__name__,
+            )
 
     def get_greenlet(self) -> Optional[Greenlet]:
         return self._gr

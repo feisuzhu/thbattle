@@ -74,8 +74,8 @@ class Server(object):
             addr = uri.hostname, uri.port
             s = socket.create_connection(addr)
             self._ep = Endpoint(s, addr)
-            self._recv_gr = gevent.spawn(self._recv)
-            self._beater_gr = gevent.spawn(self._beat)
+            self._recv_gr = core.runner.spawn(self._recv)
+            self._beater_gr = core.runner.spawn(self._beat)
             self.state = 'connected'
         except Exception:
             self.state = 'initial'
@@ -98,11 +98,17 @@ class Server(object):
 
     def write(self, v: wire.ClientToServer) -> None:
         ep = self._ep
-        if ep: ep.write(cast(wire.Message, v).encode())
+        if ep:
+            ep.write(v)
+        else:
+            raise Exception('No endpoint present')
 
     def raw_write(self, v: bytes) -> None:
         ep = self._ep
-        if ep: ep.raw_write(v)
+        if ep:
+            ep.raw_write(v)
+        else:
+            raise Exception('No endpoint present')
 
     # ----- Methods -----
     def _recv(self) -> None:
@@ -114,52 +120,11 @@ class Server(object):
         for v in self._ep.messages(timeout=None):
             D[v.__class__].emit(v)
 
-    def _dropped(self) -> None:
+    def _dropped(self, _) -> None:
         core = self.core
         core.events.server_dropped.emit(None)
 
     def _beat(self) -> None:
         while self._ep:
-            self._ep.write(['heartbeat', ()])
+            self._ep.write(wire.Beat())
             gevent.sleep(10)
-
-
-class MockServer(object):
-    def __init__(self, core: Core, error: str = ''):
-        self.core = core
-
-        self.server_name = 'Mock'
-        self.state = 'initial'
-        self.error = error
-
-        self.written_messages: List[wire.ClientToServer] = []
-
-    # ----- Public Methods -----
-    def connect(self, uri: str) -> None:
-        core = self.core
-        e = self.error
-        if e == 'refused':
-            core.events.server_refused.emit(None)
-        elif e == 'version_mismatch':
-            core.events.version_mismatch.emit(None)
-        else:
-            self.state = 'connected'
-            core.events.server_connected.emit(None)
-
-    def disconnect(self) -> None:
-        self.state = 'initial'
-
-    def write(self, v: wire.ClientToServer) -> None:
-        self.written_messages.append(v)
-
-    def raw_write(self, v: bytes) -> None:
-        self.written_messages.extend(cast(List[wire.ClientToServer], Endpoint.decode_bytes(v)))
-
-    def recv(self, v: wire.ServerToClient) -> None:
-        core = self.core
-        D = core.events.server_command
-        D[v.__class__].emit(v)
-
-    def dropped(self) -> None:
-        core = self.core
-        core.events.server_dropped.emit(None)

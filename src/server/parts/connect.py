@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 # -- code --
-log = logging.getLogger('Interconnect')
+log = logging.getLogger('Connect')
 
 
 class Connect(object):

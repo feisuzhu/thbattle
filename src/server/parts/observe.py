@@ -267,7 +267,7 @@ class Observe(object):
 
         ob.write(wire.GameJoined(core.view.GameDetail(g)))
 
-        @gevent.spawn
+        @core.runner.spawn
         def notify_observer() -> None:
             d = Endpoint.encode(wire.ObserverEnter(
                 observer=core.auth.uid_of(ob),
@@ -309,7 +309,7 @@ class Observe(object):
         gid = core.room.gid_of(g)
         ob.write(wire.GameLeft(gid))
 
-        @gevent.spawn
+        @core.runner.spawn
         def notify_observer_leave() -> None:
             assert observee
             g = core.game.current(observee)
@@ -343,7 +343,7 @@ class Observe(object):
             for u in pl:
                 obs.extend(Au(self, u)['obs'])
 
-            gevent.spawn(core.room.send_room_users, g, obs)
+            core.runner.spawn(core.room.send_room_users, g, obs)
 
         Ag(self, g)['_notifier'] = _notifier
 

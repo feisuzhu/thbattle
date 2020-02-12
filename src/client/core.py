@@ -11,6 +11,7 @@ from client import parts
 from client.base import Game
 from game.base import Player
 from utils.events import EventHub
+import core
 import wire
 
 
@@ -29,8 +30,9 @@ class _ServerCommandMapping:
 
 
 class Events(object):
-    def __init__(self) -> None:
-        # ev = (core: Core)
+    def __init__(self, core: Core) -> None:
+        self.core = core
+
         self.core_initialized = EventHub[Core]()
 
         # Fires when server send some command
@@ -88,16 +90,12 @@ class Events(object):
         object.__setattr__(self, name, v)
 
 
-class Core(object):
-    auto_id = 0
+class Core(core.Core):
+    core_type = 'C'
 
-    def __init__(self: Core, **options: Dict[str, Any]):
-        self._auto_id = Core.auto_id
-        Core.auto_id += 1
-
+    def initialize(self, options: Dict[str, Any]) -> None:
         self.options = Options(options)
-
-        self.events = Events()
+        self.events = Events(self)
 
         disables = self.options.disables
 
@@ -117,6 +115,3 @@ class Core(object):
             self.warpgate = parts.warpgate.Warpgate(self)
 
         self.events.core_initialized.emit(self)
-
-    def __repr__(self):
-        return f'Core[C{self._auto_id}]'

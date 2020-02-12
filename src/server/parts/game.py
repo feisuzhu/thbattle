@@ -28,16 +28,16 @@ if TYPE_CHECKING:
 log = logging.getLogger('Game')
 
 
-class GameAssocOnClient(TypedDict):
+class GamePartAssocOnClient(TypedDict):
     game: Optional[ServerGame]
     params: Dict[str, Any]
 
 
-def Au(self: GamePart, u: Client) -> GameAssocOnClient:
+def Au(self: GamePart, u: Client) -> GamePartAssocOnClient:
     return u._[self]
 
 
-class GameAssocOnGame(TypedDict):
+class GamePartAssocOnGame(TypedDict):
     params: Dict[str, Any]
     players: BatchList[Player]
     fleed: Dict[Client, bool]
@@ -49,7 +49,7 @@ class GameAssocOnGame(TypedDict):
     halt: Optional[AsyncResult]
 
 
-def Ag(self: GamePart, g: ServerGame) -> GameAssocOnGame:
+def Ag(self: GamePart, g: ServerGame) -> GamePartAssocOnGame:
     return g._[self]
 
 
@@ -75,7 +75,7 @@ class GamePart(object):
     def handle_user_state_transition(self, ev: Tuple[Client, str, str]) -> Tuple[Client, str, str]:
         u, f, t = ev
         if t == 'lobby':
-            u._[self] = GameAssocOnClient(game=None, params={})
+            u._[self] = GamePartAssocOnClient(game=None, params={})
 
         return ev
 
@@ -225,7 +225,7 @@ class GamePart(object):
         seed = random.getrandbits(63)
         g.random = random.Random(seed)
 
-        g._[self] = GameAssocOnGame({
+        g._[self] = GamePartAssocOnGame({
             'params': {k: v[0] for k, v in cls.params_def.items()},
             'players': BatchList(),
             'fleed': defaultdict(bool),

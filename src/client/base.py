@@ -168,7 +168,7 @@ class ClientGameRunner(GameRunner):
 
             if me in players:  # me involved
                 if not core.game.is_observe(g):
-                    inputproc = gevent.spawn(input_func, synctags[me])
+                    inputproc = core.runner.spawn(input_func, synctags[me])
 
             orig_players = players[:]
             inputany_player = None

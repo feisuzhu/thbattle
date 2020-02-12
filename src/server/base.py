@@ -189,7 +189,7 @@ class ServerGameRunner(GameRunner):
                 if isinstance(p, NPCPlayer):
                     ilet = ilets[p]
                     p.handle_user_input(trans, ilet)
-                    waiters.add(gevent.spawn(lambda v: v, ilet.data()))
+                    waiters.start(Greenlet(lambda v: v, ilet.data()))
                 else:
                     t = tag + str(synctags[p])
                     waiters.spawn(self, p, t)

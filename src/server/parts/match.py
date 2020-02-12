@@ -156,12 +156,12 @@ class Match(object):
         gid = core.room.gid_of(g)
         name = core.room.name_of(g)
 
-        @gevent.spawn
+        @core.runner.spawn
         def _noti() -> None:
             gevent.sleep(1),
             core.connect.speaker('文文', '“%s”房间已经建立，请相关玩家就位！' % name)
 
-        @gevent.spawn
+        @core.runner.spawn
         def pull() -> None:
             while core.room.get(gid) is g:
                 users = core.room.online_users_of(g)
@@ -180,7 +180,7 @@ class Match(object):
                         gevent.sleep(1)
                         core.room.join_game(g, u)
                     elif core.lobby.state_of(u) == 'game':
-                        gevent.spawn(u.write, wire.SystemMsg('你有比赛房间，请尽快结束游戏参与比赛'))
+                        core.runner.spawn(u.write, wire.SystemMsg('你有比赛房间，请尽快结束游戏参与比赛'))
 
                     gevent.sleep(0.1)
 

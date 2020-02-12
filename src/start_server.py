@@ -56,7 +56,8 @@ def start_server():
     root = logging.getLogger()
     root.info('=' * 20 + settings.VERSION + '=' * 20)
 
-    from server.core import Core, CoreRunner
+    from server.core import Core
+    from core import CoreRunner
 
     core = Core(
         node=options.node,

@@ -229,7 +229,7 @@ class Room(object):
             # prevent double starting
             if not Ag(self, g)['greenlet']:
                 log.info("game starting")
-                Ag(self, g)['greenlet'] = gevent.spawn(g.run)
+                Ag(self, g)['greenlet'] = core.runner.spawn(g.run)
 
     def is_online(self, g: Game, c: Client) -> bool:
         rst = c is not self.FREESLOT
@@ -379,6 +379,7 @@ class Room(object):
         core.lobby.state_of(u).transit('freeslot')
 
     def _notify(self, g: Game) -> None:
+        core = self.core
         notifier = Ag(self, g)['_notifier']
 
         if notifier:
@@ -387,7 +388,7 @@ class Room(object):
 
         @throttle(0.5)
         def _notifier() -> None:
-            gevent.spawn(self.send_room_users, g, Ag(self, g)['users'])
+            core.runner.spawn(self.send_room_users, g, Ag(self, g)['users'])
 
         Ag(self, g)['_notifier'] = _notifier
         _notifier()
@@ -399,7 +400,7 @@ class Room(object):
         lst = [core.view.Game(g) for g in self.games.values()]
         d = Endpoint.encode_bulk([wire.CurrentGames(lst)])
 
-        @gevent.spawn
+        @core.runner.spawn
         def do_send() -> None:
             for u in ul:
                 u.raw_write(d)
