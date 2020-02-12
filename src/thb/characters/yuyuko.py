@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import DrawCards, DummyAction, FinalizeStage, GenericAction, LifeLost
 from thb.actions import MaxLifeChange, Pindian, PlayerDeath, TryRevive, UserAction, ttags
 from thb.cards.base import Skill
@@ -79,7 +78,7 @@ class SoulDrainEffect(GenericAction):
         if src is tgt:
             return True
 
-        if user_input([src], ChooseOptionInputlet(self, (False, True))):
+        if g.user_input([src], ChooseOptionInputlet(self, (False, True))):
             if g.process_action(Pindian(src, tgt)):
                 g.process_action(MaxLifeChange(src, tgt, -tgt.maxlife + 1))
             else:

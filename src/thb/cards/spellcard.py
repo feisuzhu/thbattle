@@ -5,7 +5,6 @@ from typing import Sequence
 
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import InputTransaction, sync_primitive
 from thb.actions import ActionStage, Damage, DrawCardStage, DrawCards, DropCards, FatetellAction
 from thb.actions import ForEach, LaunchCard, PlayerTurn, UserAction, ask_for_action, detach_cards
@@ -36,7 +35,7 @@ class Demolition(InstantSpellCardAction):
 
         catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
-        card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+        card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         if not card:
             card = random_choose_card(g, cats)
             if not card:
@@ -240,7 +239,7 @@ class YukariDimension(InstantSpellCardAction):
 
         catnames = ('cards', 'showncards', 'equips', 'fatetell')
         cats = [getattr(tgt, i) for i in catnames]
-        card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+        card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         if not card:
             card = random_choose_card(g, cats)
             if not card:
@@ -363,7 +362,7 @@ class HarvestEffect(InstantSpellCardAction):
         if not cards_avail: return False
         tgt = self.target
 
-        card = user_input(
+        card = g.user_input(
             [tgt],
             ChooseIndividualCardInputlet(self, cards_avail),
             trans=pact.trans,

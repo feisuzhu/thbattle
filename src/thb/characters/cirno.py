@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DropCards, GenericAction, LaunchCard, LifeLost, UserAction
 from thb.actions import random_choose_card, ttags, user_choose_cards
 from thb.cards.base import Skill, VirtualCard
@@ -42,7 +41,7 @@ class BakadesuAction(UserAction):
         if cl:
             g.process_action(LaunchCard(tgt, [src], cl[0]))
         else:
-            c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
+            c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
             c = c or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
             c and g.process_action(CirnoDropCards(src, tgt, [c]))
 
@@ -153,7 +152,7 @@ class PerfectFreezeHandler(THBEventHandler):
             if not c.is_card(AttackCard) and not c.is_card(DuelCard):
                 return act
 
-            if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 return act
 
             g.process_action(PerfectFreezeAction(src, tgt, act))

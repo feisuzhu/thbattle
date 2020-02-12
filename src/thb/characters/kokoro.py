@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionStage, DropCards, ShowCards, UserAction, migrate_cards
 from thb.actions import user_choose_cards
 from thb.cards.base import Card, Skill
@@ -23,7 +22,7 @@ class BaseHopeMaskAction(UserAction):
         cards = g.deck.getcards(n)
 
         tgt.reveal(cards)
-        putback, acquire = user_input([tgt], self.inputlet_cls(self, cards), timeout=20)
+        putback, acquire = g.user_input([tgt], self.inputlet_cls(self, cards), timeout=20)
         for c in acquire:
             c.detach()
 
@@ -59,9 +58,10 @@ class BaseHopeMaskHandler(THBEventHandler):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
             tgt = act.target
             if not tgt.has_skill(self.skill): return act
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
-            self.game.process_action(self.action(tgt, tgt))
+            g.process_action(self.action(tgt, tgt))
 
         return act
 

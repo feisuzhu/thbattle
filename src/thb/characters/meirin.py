@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import DropCards, GenericAction, MaxLifeChange, PlayerTurn, random_choose_card
 from thb.cards.base import DummyCard, Skill, t_None
 from thb.cards.classes import AttackCard, BaseAttack, GrazeCard, LaunchGraze, TreatAs
@@ -58,7 +57,7 @@ class LoongPunchAction(GenericAction):
     def apply_action(self):
         g = self.game
         src, tgt = self.source, self.target
-        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
+        c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
         c = c or random_choose_card(g, [tgt.cards, tgt.showncards])
         if not c: return False
         g.players.exclude(tgt).reveal(c)
@@ -84,9 +83,9 @@ class LoongPunchHandler(THBEventHandler):
     def do_effect(self, src, tgt, _type):
         if not src.has_skill(LoongPunch): return
         if not (tgt.cards or tgt.showncards): return
-        if not user_input([src], ChooseOptionInputlet(self, (False, True))): return
-
         g = self.game
+        if not g.user_input([src], ChooseOptionInputlet(self, (False, True))): return
+
         g.process_action(LoongPunchAction(src, tgt, _type))
 
 

@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import ActionShootdown
 from thb.actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction, LaunchCard
 from thb.actions import LifeLost, ShowCards, UseCard, UserAction, user_choose_cards
@@ -119,10 +118,11 @@ class MelancholyHandler(THBEventHandler):
             if not tgt.has_skill(Melancholy):
                 return act
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            self.game.process_action(MelancholyAction(tgt, src, amount=1))
+            g.process_action(MelancholyAction(tgt, src, amount=1))
 
         elif evt_type == 'action_shootdown' and isinstance(act, (LaunchCard, UseCard)):
             src = act.source

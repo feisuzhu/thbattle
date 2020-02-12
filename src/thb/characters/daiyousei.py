@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionStage, DrawCardStage, GenericAction, MigrateCardsTransaction
 from thb.actions import PlayerDeath, UserAction, migrate_cards
 from thb.cards.base import CardList, Skill, t_None, t_OtherOne
@@ -87,8 +86,8 @@ class SupportKOFHandler(THBEventHandler):
             if not (tgt.cards or tgt.showncards or tgt.equips):
                 return arg
 
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                g = self.game
+            g = self.game
+            if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 g.process_action(SupportKOFAction(tgt, tgt))
 
         return arg

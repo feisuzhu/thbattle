@@ -10,7 +10,6 @@ import random
 
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import BootstrapAction, GameEnded, GameItem, InputTransaction, InterruptActionFlow
 from game.base import Player, get_seed_for
 from thb.actions import DistributeCards, MigrateCardsTransaction, PlayerDeath, PlayerTurn
@@ -50,7 +49,7 @@ class DeathHandler(THBEventHandler):
 
             mapping = {tgt.player: pool}
             with InputTransaction('ChooseGirl', [tgt], mapping=mapping) as trans:
-                c = user_input([tgt], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+                c = g.user_input([tgt], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
                 c = c or next(_c for _c in pool if not _c.chosen)
                 c.chosen = tgt
                 pool.remove(c)
@@ -59,7 +58,7 @@ class DeathHandler(THBEventHandler):
             tgt = g.switch_character(tgt.player, c)
             g.process_action(DistributeCards(tgt, 4))
 
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 g.process_action(RedrawCards(tgt, tgt))
 
         return act
@@ -146,7 +145,7 @@ class THBattleFaithBootstrap(BootstrapAction):
             spec={p: {'num': 4, 'akaris': 1} for p in pl}
         )
 
-        rst = user_input(g.players, SortCharacterInputlet(g, choices, 2), timeout=30, type='all')
+        rst = g.user_input(g.players, SortCharacterInputlet(g, choices, 2), timeout=30, type='all')
 
         g.players = BatchList()
         first: Character
@@ -173,7 +172,7 @@ class THBattleFaithBootstrap(BootstrapAction):
             g.process_action(DistributeCards(p, amount=4))
 
         reordered = g.players.rotate_to(first)
-        rst = user_input(reordered[1:], ChooseOptionInputlet(DeathHandler(g), (False, True)), type='all')
+        rst = g.user_input(reordered[1:], ChooseOptionInputlet(DeathHandler(g), (False, True)), type='all')
 
         for p in reordered[1:]:
             rst.get(p) and g.process_action(RedrawCards(p, p))

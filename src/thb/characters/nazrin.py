@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import FatetellAction, FatetellStage, migrate_cards
 from thb.cards.base import Card, Skill
 from thb.cards.classes import GrazeCard, TreatAs, t_None
@@ -47,7 +46,7 @@ class TreasureHuntHandler(THBEventHandler):
             if not tgt.has_skill(TreasureHunt): return act
             g = self.game
             while True:
-                if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                     return act
                 if not g.process_action(TreasureHuntAction(tgt, tgt)):
                     return act

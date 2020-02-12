@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DropCards, FatetellAction, FatetellMalleateHandler
 from thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard, detach_cards
 from thb.actions import migrate_cards, user_choose_cards
@@ -103,6 +102,7 @@ class VengeOfTsukumogamiHandler(THBEventHandler):
         if not isinstance(trans.action, DropCards):
             return True
 
+        g = self.game
         for cards, _from, to, is_bh in trans.get_movements():
             if _from is None or _from.type != 'equips':
                 continue
@@ -120,7 +120,7 @@ class VengeOfTsukumogamiHandler(THBEventHandler):
                 if tgt.dead:
                     break
 
-                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
                     break
 
                 self.game.process_action(VengeOfTsukumogamiAction(p, tgt, c))

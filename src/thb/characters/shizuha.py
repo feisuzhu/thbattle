@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, UserAction
 from thb.actions import random_choose_card, user_choose_players
 from thb.cards.base import Skill, VirtualCard
@@ -22,7 +21,7 @@ class AutumnWindEffect(GenericAction):
 
         catnames = ('cards', 'showncards', 'equips')
         cats = [getattr(tgt, i) for i in catnames]
-        card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+        card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         card = card or random_choose_card(g, cats)
         if not card:
             return False
@@ -68,7 +67,7 @@ class AutumnWindHandler(THBEventHandler):
                 return act
 
             g = self.game
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
             candidates = [

@@ -108,7 +108,7 @@ class Core(object):
             self.auth = parts.auth.Auth(self)
 
         if 'game' not in disables:
-            self.game = parts.game.Game(self)
+            self.game = parts.game.GamePart(self)
 
         if 'replay' not in disables:
             self.replay = parts.replay.Replay(self)

@@ -88,6 +88,10 @@ class GameError(GameException):
     pass
 
 
+class GameAbort(GameException):
+    pass
+
+
 class InterruptActionFlow(GameException):
     def __init__(self, unwind_to=None):
         GameException.__init__(self)
@@ -133,6 +137,7 @@ class GameViralContext(ViralContext):
     game: 'Game'
 
     def viral_import(self, g):
+        assert isinstance(g, Game)
         self.game = g
 
     def viral_export(self):
@@ -143,8 +148,6 @@ class Game(GameObject, GameViralContext):
     IS_DEBUG = False
 
     # ----- Class Variables -----
-    CLIENT: ClassVar[bool]
-    SERVER: ClassVar[bool]
     n_persons: ClassVar[int]
     npc_players: ClassVar[List[NPC]] = []
     params_def: ClassVar[Dict[str, Any]] = {}
@@ -153,6 +156,7 @@ class Game(GameObject, GameViralContext):
 
     # ----- Instance Variables -----
     game: Game
+    runner: GameRunner
     dispatcher: EventDispatcher
     event_observer: Optional[EventHandler]
     action_stack: List[Action]
@@ -171,6 +175,7 @@ class Game(GameObject, GameViralContext):
         self.winners        = []
         self.turn_count     = 0
         self.event_observer = None
+        self.synctag       = 0
 
         self._ = {}
 
@@ -178,6 +183,18 @@ class Game(GameObject, GameViralContext):
 
     def refresh_dispatcher(self) -> None:
         self.dispatcher = self.dispatcher_cls(self)
+
+    def user_input(
+        self,
+        players: Sequence[Any],
+        inputlet: Inputlet,
+        timeout: int = 25,
+        type: str = 'single',
+        trans: Optional[InputTransaction] = None,
+    ):
+        return self.runner.user_input(
+            players, inputlet, timeout, type, trans
+        )
 
     def emit_event(self, evt_type: str, data: Any) -> Any:
         ob = self.event_observer
@@ -255,18 +272,57 @@ class Game(GameObject, GameViralContext):
         return rst
 
     def pause(self, t: float) -> None:
-        pass
+        self.runner.pause(t)
 
     def get_synctag(self) -> int:
+        if self.runner.is_aborted():
+            raise GameAbort
+
+        self.synctag += 1
+        return self.synctag
+
+    def is_dropped(self, p: Player) -> bool:
+        return self.runner.is_dropped(p)
+
+    def is_server_side(self) -> bool:
+        return self.runner.get_side() == 'server'
+
+    def is_client_side(self) -> bool:
+        return self.runner.get_side() == 'client'
+
+    def can_leave(self, p: Player) -> bool:
+        raise GameError('Abstract')
+
+
+class GameRunner(object):
+    '''
+    The GameRunner class,
+    Provide interfaces to game environment
+    '''
+
+    def run(self, g: Game) -> None:
+        raise GameError('Abstract')
+
+    def user_input(
+        self,
+        players: Sequence[Any],
+        inputlet: Inputlet,
+        timeout: int = 25,
+        type: str = 'single',
+        trans: Optional[InputTransaction] = None,
+    ):
+        raise GameError('Abstract')
+
+    def is_aborted(self) -> bool:
         raise GameError('Abstract')
 
     def is_dropped(self, p: Player) -> bool:
         raise GameError('Abstract')
 
-    def name_of(self, p: Player) -> str:
+    def pause(self, time: float) -> None:
         raise GameError('Abstract')
 
-    def can_leave(self, p: Player) -> bool:
+    def get_side(self) -> str:
         raise GameError('Abstract')
 
 
@@ -545,8 +601,7 @@ def sync_primitive(val: T_sync, to: Union[Player, BatchList[Player]]) -> T_sync:
 
 
 def get_seed_for(g: Game, p: Union[Player, BatchList[Player]]):
-    from game.autoenv import Game
-    if Game.SERVER:
+    if g.is_server_side():
         seed = g.random.getrandbits(63)
     else:
         seed = 0

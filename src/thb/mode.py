@@ -6,8 +6,7 @@ from typing import Dict, List, Sequence, TYPE_CHECKING, Type
 
 # -- third party --
 # -- own --
-from game.autoenv import Game
-from game.base import Action, EventDispatcher, EventHandler, Player
+from game.base import Action, EventDispatcher, EventHandler, Game, Player
 from utils.misc import BatchList
 
 # -- typing --

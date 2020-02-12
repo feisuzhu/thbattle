@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from enum import Enum
@@ -9,8 +10,8 @@ import random
 
 # -- third party --
 # -- own --
-from game.autoenv import Game, user_input
-from game.base import BootstrapAction, GameItem, InputTransaction, InterruptActionFlow, NPC, Player
+from game.base import BootstrapAction, Game, GameItem, InputTransaction, InterruptActionFlow, NPC
+from game.base import Player
 from thb.actions import ActionStage, ActionStageLaunchCard, CardChooser, DrawCards, DropCards
 from thb.actions import FatetellStage, LaunchCard, PlayerDeath, PlayerTurn, RevealRole
 from thb.actions import ask_for_action, migrate_cards
@@ -198,7 +199,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
             if voice is not None:
                 voice = 'thb-cv-newbie-%s-%s' % (character.__name__.lower(), ('000' + str(voice))[-3:])
 
-            user_input([meirin], GalgameDialogInputlet(g, character, dialog, voice), timeout=60)
+            g.user_input([meirin], GalgameDialogInputlet(g, character, dialog, voice), timeout=60)
 
         def inject_eh(hook: Callable[[str, Any], Any]):
             eh = AdhocEventHandler(g, hook)

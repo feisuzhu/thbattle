@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import InterruptActionFlow
 from thb.actions import ActionStage, AskForCard, Damage, DrawCards, FinalizeStage, LaunchCard
 from thb.actions import PlayerRevive, UserAction, migrate_cards, ttags
@@ -249,8 +248,8 @@ class ReimuClearHandler(THBEventHandler):
             if src is tgt: return act
             if src.dead or tgt.dead: return act
 
-            if user_input([src], ChooseOptionInputlet(self, (False, True))):
-                g = self.game
+            g = self.game
+            if g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 g.process_action(ReimuClearAction(src, tgt))
 
         return act

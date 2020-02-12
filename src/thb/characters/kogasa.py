@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DrawCardStage, DrawCards, UserAction, detach_cards, migrate_cards
 from thb.actions import user_choose_players
 from thb.cards.base import Card, Skill, VirtualCard
@@ -32,12 +31,12 @@ class SurpriseAction(UserAction):
 
         card = self.associated_card
         detach_cards([card])
-        suit = user_input([tgt], ChooseOptionInputlet(self, options))
+        g = self.game
+        suit = g.user_input([tgt], ChooseOptionInputlet(self, options))
 
         src.tags['surprise_tag'] = src.tags['turn_count']
         assert card
 
-        g = self.game
         g.players.reveal(card.associated_cards)
         migrate_cards([card], tgt.showncards, unwrap=True)
 

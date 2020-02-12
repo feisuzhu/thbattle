@@ -30,8 +30,6 @@ def start_server():
         gevent.kill(MAIN, SystemExit)
     sig(signal.SIGTERM, _exit_handler)
 
-    from game import autoenv
-
     import argparse
 
     parser = argparse.ArgumentParser(prog=sys.argv[0])
@@ -43,8 +41,6 @@ def start_server():
     parser.add_argument('--backend', default='http://uid:pass@localhost/graphql')
     parser.add_argument('--interconnect', default='ws://uid:pass@localhost:12333/interconnect')
     options = parser.parse_args()
-
-    autoenv.init('Server')
 
     import settings
 

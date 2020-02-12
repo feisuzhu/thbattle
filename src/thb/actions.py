@@ -11,7 +11,6 @@ import logging
 from typing_extensions import Protocol
 
 # -- own --
-from game.autoenv import user_input
 from game.base import Action, ActionShootdown, EventArbiter, GameViralContext, InputTransaction
 from game.base import Player, sync_primitive
 from thb.cards.base import Card, CardList, PhysicalCard, Skill, VirtualCard
@@ -135,7 +134,7 @@ def ask_for_action(initiator: Union[CardChooser, CharacterChooser],
         except CheckFailed:
             return None
 
-    p, rst = user_input(actors, ilet, timeout=timeout, type='any', trans=trans)
+    p, rst = g.user_input(actors, ilet, timeout=timeout, type='any', trans=trans)
     if rst:
         cards, players, params = rst
 
@@ -1288,7 +1287,7 @@ class ShowCards(GenericAction):
         to = self.to or g.players
         to.reveal(cards)
         g.emit_event('showcards', (self.target, [copy(c) for c in cards], to))
-        # user_input(
+        # g.user_input(
         #     [p for p in g.players if not p.dead],
         #     ChooseOptionInputlet(self, (True,)),
         #     type='all', timeout=1,

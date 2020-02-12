@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, Fatetell, GenericAction, LaunchCard, UserAction
 from thb.actions import ask_for_action, migrate_cards
 from thb.cards.base import Card, Skill
@@ -95,11 +94,12 @@ class MasochistHandler(THBEventHandler):
             if not act.amount: return act
 
             # 选择是否发动
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
             # 实际发动技能
-            self.game.process_action(MasochistAction(tgt, act.amount))
+            g.process_action(MasochistAction(tgt, act.amount))
 
         return act
 

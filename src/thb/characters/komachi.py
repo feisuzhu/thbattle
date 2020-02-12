@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange
 from thb.actions import PlayerTurn, UserAction, migrate_cards, random_choose_card
 from thb.cards.base import Skill
@@ -23,10 +22,10 @@ class RiversideAction(UserAction):
         minhp = min([p.life for p in g.players if not p.dead])
         if tgt.life == minhp:
             has_card = tgt.cards or tgt.showncards or tgt.equips
-            if has_card and user_input([src], ChooseOptionInputlet(self, ('drop', 'draw'))) == 'drop':
+            if has_card and g.user_input([src], ChooseOptionInputlet(self, ('drop', 'draw'))) == 'drop':
                 self.action = 'drop'
                 catnames = ('cards', 'showncards', 'equips')
-                card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+                card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
                 card = card or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
                 g.players.reveal(card)
                 g.process_action(DropCards(src, tgt, [card]))
@@ -136,13 +135,13 @@ class FerryFeeHandler(THBEventHandler):
             if not (tgt.cards or tgt.showncards or tgt.equips): return act
             dist = LaunchCard.calc_distance(src, FerryFee(src))
             if not dist.get(tgt, 10000) <= 0: return act
-            if user_input([src], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 g = self.game
                 catnames = ('cards', 'showncards', 'equips')
-                card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+                card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
                 card = card or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
                 if not card: return act
-                g = self.game
                 g.process_action(FerryFeeEffect(src, tgt, card))
 
         return act

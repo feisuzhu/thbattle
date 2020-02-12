@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DropCards, GenericAction
 from thb.actions import PlayerTurn, ttags, user_choose_cards
 from thb.cards.base import DummyCard, Skill, VirtualCard, t_None
@@ -37,7 +36,7 @@ class ProphetAction(GenericAction):
 
         tgt.reveal(cards)
 
-        upcards, downcards = user_input([tgt], ProphetInputlet(self, cards), timeout=45) or [list(range(n)), []]
+        upcards, downcards = g.user_input([tgt], ProphetInputlet(self, cards), timeout=45) or [list(range(n)), []]
 
         deck = g.deck.cards
         for i, c in enumerate(downcards):
@@ -59,9 +58,9 @@ class ProphetHandler(THBEventHandler):
         if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
             tgt = act.target
             if not tgt.has_skill(Prophet): return act
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
-            self.game
 
         return act
 

@@ -4,7 +4,6 @@
 from typing import List
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import EventHandler, GameError
 from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DrawCards, DropCardStage
 from thb.actions import DropCards, FatetellAction, FatetellStage, FinalizeStage, ForEach
@@ -64,9 +63,10 @@ class WeaponReforgeHandler(EventHandler):
             if c.equipment_category != 'weapon': return act
             if tgt.tags['vitality'] <= 0: return act
 
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+
+            if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 tgt.tags['vitality'] -= 1
-                g = self.game
                 g.process_action(ReforgeWeapon(tgt, tgt, c))
                 act.cancelled = True
 
@@ -133,10 +133,11 @@ class OpticalCloakHandler(EventHandler):
             if not tgt.has_skill(OpticalCloakSkill): return act
             if act.card: return act
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            g = self.game
             if g.process_action(OpticalCloak(tgt, tgt)):
                 act.card = OpticalCloakSkill(tgt)
 
@@ -324,8 +325,8 @@ class NenshaPhoneHandler(EventHandler):
         if tgt.dead: return act
         if not tgt.cards: return act
         if not src.has_skill(NenshaPhoneSkill): return act
-        if not user_input([src], ChooseOptionInputlet(self, (False, True))): return act
         g = self.game
+        if not g.user_input([src], ChooseOptionInputlet(self, (False, True))): return act
         g.process_action(NenshaPhone(src, tgt))
         return act
 
@@ -438,7 +439,7 @@ class RepentanceStick(GenericAction):
             if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell):
                 break
 
-            card = user_input(
+            card = g.user_input(
                 [src], ChoosePeerCardInputlet(self, tgt, catnames)
             )
 
@@ -469,7 +470,7 @@ class RepentanceStickHandler(EventHandler):
                 if not (tgt.cards or tgt.showncards or tgt.equips or tgt.fatetell):
                     return act
 
-                if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+                if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                     return act
 
                 g.process_action(RepentanceStick(src, tgt))
@@ -549,7 +550,8 @@ class HouraiJewelHandler(EventHandler):
             src = act.source
             if not src.has_skill(HouraiJewelSkill): return act
             if isinstance(act, HouraiJewelAttack): return act
-            if user_input([src], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 act.__class__ = classmix(HouraiJewelAttack, act.__class__)
 
         return act
@@ -631,8 +633,8 @@ class MaidenCostumeHandler(EventHandler):
             if not tgt.has_skill(MaidenCostume): return act
             if act.cancelled: return act
             if isinstance(act, spellcard.Reject): return act  # can't respond to reject
-
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
             self.game.process_action(MaidenCostumeAction(tgt, act))
@@ -687,10 +689,11 @@ class HakuroukenHandler(EventHandler):
             card = act.associated_card
             if not card.suit == Card.CLUB: return act
 
-            if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            self.game.process_action(Hakurouken(src, act.target))
+            g.process_action(Hakurouken(src, act.target))
 
         return act
 
@@ -700,7 +703,7 @@ class AyaRoundfan(GenericAction):
         src, tgt = self.source, self.target
         g = self.game
 
-        equip = user_input([src], ChoosePeerCardInputlet(self, tgt, ['equips']))
+        equip = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ['equips']))
         equip = equip or random_choose_card(g, [tgt.equips])
         g.process_action(DropCards(src, tgt, [equip]))
         self.card = equip
@@ -940,12 +943,12 @@ class YinYangOrbHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'fatetell':
+            g = self.game
             tgt = act.target
             if not tgt.has_skill(YinYangOrbSkill): return act
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            g = self.game
             g.process_action(YinYangOrb(act))
 
         return act

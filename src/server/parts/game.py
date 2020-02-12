@@ -33,7 +33,7 @@ class GameAssocOnClient(TypedDict):
     params: Dict[str, Any]
 
 
-def Au(self: Game, u: Client) -> GameAssocOnClient:
+def Au(self: GamePart, u: Client) -> GameAssocOnClient:
     return u._[self]
 
 
@@ -49,11 +49,11 @@ class GameAssocOnGame(TypedDict):
     halt: Optional[AsyncResult]
 
 
-def Ag(self: Game, g: ServerGame) -> GameAssocOnGame:
+def Ag(self: GamePart, g: ServerGame) -> GameAssocOnGame:
     return g._[self]
 
 
-class Game(object):
+class GamePart(object):
     def __init__(self, core: Core):
         self.core = core
 
@@ -220,8 +220,7 @@ class Game(object):
 
     # ----- Public Methods -----
     def create_game(self, cls: Type[ServerGame]) -> ServerGame:
-        core = self.core
-        g = cls(core)
+        g = cls()
 
         seed = random.getrandbits(63)
         g.random = random.Random(seed)

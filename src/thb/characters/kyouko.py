@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import AskForCard, Damage, DrawCards, LaunchCard, UserAction, migrate_cards
 from thb.actions import user_choose_players
 from thb.cards.base import Skill, VirtualCard
@@ -54,7 +53,7 @@ class EchoHandler(THBEventHandler):
             if not VirtualCard.unwrap([card]):
                 return act
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
             attack = card.is_card(AttackCard)

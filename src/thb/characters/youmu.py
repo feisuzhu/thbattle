@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionStage, Damage, DropCards, UserAction, migrate_cards
 from thb.actions import random_choose_card
 from thb.cards.base import Skill
@@ -55,7 +54,7 @@ class NitoryuuWearEquipmentAction(UserAction):
 
         weapons = [e for e in tgt.equips if e.equipment_category == 'weapon']
         if len(weapons) > 1:
-            e = user_input([tgt], ChooseIndividualCardInputlet(self, weapons))
+            e = g.user_input([tgt], ChooseIndividualCardInputlet(self, weapons))
             e = e or random_choose_card(g, [weapons])
             g.process_action(DropCards(tgt, tgt, [e]))
 

@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, DrawCards, Reforge, UserAction
 from thb.actions import random_choose_card, ttags
 from thb.cards.base import PhysicalCard, Skill, TreatAs, t_OtherOne
@@ -20,7 +19,7 @@ class DismantleAction(UserAction):
         ttags(src)['dismantle'] = True
 
         g = self.game
-        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('equips', )))
+        c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ('equips', )))
         c = c or random_choose_card(g, [tgt.equips])
         if not c: return False
 

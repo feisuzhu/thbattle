@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DropCards, FatetellAction, LaunchCard
 from thb.cards.base import Card, Skill, VirtualCard
 from thb.cards.classes import AttackCard, BaseAttack, InevitableAttack, RedUFOSkill, TreatAs, t_None
@@ -44,7 +43,7 @@ class AssaultKOFHandler(THBEventHandler):
             if not lc.can_fire():
                 return arg
 
-            if user_input([new], ChooseOptionInputlet(self, (False, True))):
+            if g.user_input([new], ChooseOptionInputlet(self, (False, True))):
                 g.process_action(lc)
 
         return arg
@@ -83,11 +82,12 @@ class FreakingPowerHandler(THBEventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack) and not act._['freaking_power']:
             src = act.source
+            g = self.game
             if not src.has_skill(FreakingPower): return act
-            if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 return act
             tgt = act.target
-            self.game.process_action(FreakingPowerAction(act))
+            g.process_action(FreakingPowerAction(act))
 
         elif evt_type == 'action_after' and isinstance(act, Damage):
             g = self.game
@@ -100,7 +100,7 @@ class FreakingPowerHandler(THBEventHandler):
             if tgt.dead: return act
 
             catnames = ('cards', 'showncards', 'equips')
-            card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+            card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
             if card:
                 g.players.exclude(tgt).reveal(card)
                 g.process_action(DropCards(src, tgt, [card]))

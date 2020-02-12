@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, FatetellMalleateHandler, MigrateCardsTransaction, UseCard
 from thb.actions import UserAction, detach_cards, migrate_cards, user_choose_cards
 from thb.cards.base import Skill
@@ -55,14 +54,15 @@ class TrialHandler(THBEventHandler):
 
         self.act = act
 
-        if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+        g = self.game
+        if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
             return act
 
         cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))
 
         if cards:
             c = cards[0]
-            self.game.process_action(TrialAction(p, act.target, act, c))
+            g.process_action(TrialAction(p, act.target, act, c))
 
         return act
 
@@ -77,7 +77,8 @@ class TrialHandler(THBEventHandler):
 class MajestyAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
+        g = self.game
+        c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
         if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)
@@ -101,10 +102,11 @@ class MajestyHandler(THBEventHandler):
         if tgt.dead: return act
         if not tgt.has_skill(Majesty): return act
 
-        if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+        g = self.game
+        if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             return act
 
-        self.game.process_action(MajestyAction(tgt, src))
+        g.process_action(MajestyAction(tgt, src))
 
         return act
 

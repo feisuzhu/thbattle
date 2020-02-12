@@ -5,7 +5,6 @@ from typing import Sequence, Tuple, List
 
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import DrawCards, LaunchCard, Pindian, UserAction
 from thb.cards.base import Skill, VirtualCard
 from thb.cards.classes import AttackCard, BaseAttack, DuelCard, TreatAs, t_None
@@ -52,7 +51,7 @@ class InciteAction(UserAction):
             g.process_action(LaunchCard(tgt, [victim], InciteAttack(tgt)))
 
         else:
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 g.process_action(LaunchCard(tgt, [src], InciteFailAttack(tgt)))
             else:
                 g.process_action(InciteSilentFailAction(src, tgt))
@@ -127,7 +126,7 @@ class ReversalHandler(THBEventHandler):
             if not tgt.has_skill(Reversal):
                 return act
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
             def nhand(p):

@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import LaunchCard, UserAction, migrate_cards, random_choose_card
 from thb.cards.classes import AttackCard, Skill, TreatAs, VirtualCard, t_OtherOne
 from thb.characters.base import Character, register_character_to
@@ -24,7 +23,7 @@ class BorrowAction(UserAction):
         g = self.game
 
         # 选择目标的一张牌
-        c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
+        c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
         # 如果没选，那么随机选一张
         c = c or random_choose_card(g, [tgt.cards, tgt.showncards])
         if not c: return False
@@ -35,7 +34,7 @@ class BorrowAction(UserAction):
         src.tags['borrow_tag'] = src.tags['turn_count']
 
         # 目标选择是否向发动者发动「视为使用弹幕」的动作
-        if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+        if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             g.process_action(LaunchCard(tgt, [src], Daze(tgt), bypass_check=True))
 
         return True

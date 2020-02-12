@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, LaunchCard, LifeLost, UserAction, migrate_cards
 from thb.actions import skill_check, skill_wrap, user_choose_cards
 from thb.cards.base import Card, Skill, VirtualCard, t_None
@@ -75,10 +74,10 @@ class DilemmaHandler(THBEventHandler):
         if not src: return act
 
         self.dilemma_type = 'negative' if isinstance(act, Damage) else 'positive'
-        if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+        g = self.game
+        if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             return act
 
-        g = self.game
         if isinstance(act, Damage):
             g.process_action(DilemmaDamageAction(tgt, src))
         else:  # Heal
@@ -130,7 +129,7 @@ class ImperishableNightHandler(THBEventHandler):
             if not p.has_skill(ImperishableNight): continue
             if p is g.current_player: continue
 
-            if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
                 continue
 
             cards = user_choose_cards(self, p, ('cards', 'showncards', 'equips'))

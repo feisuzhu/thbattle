@@ -74,7 +74,6 @@ class TestStart2v2(object):
         assert len(clsnames) == len(classes)
 
     def teztChooseOptionInputlet(self):
-        from game.autoenv import user_input
 
         from thb.inputlets import ChooseOptionInputlet
         from utils.misc import BatchList
@@ -171,7 +170,6 @@ class TestStart2v2(object):
         return g, p
 
     def testActionInputlet(self):
-        from game.autoenv import user_input
         from thb.cards import migrate_cards
         from thb.characters.eirin import FirstAid, Medic
         from thb.inputlets import ActionInputlet
@@ -214,7 +212,6 @@ class TestStart2v2(object):
         eq_(user_input([p], ilet), None)
 
     def testChooseIndividualCardInputlet(self):
-        from game.autoenv import user_input
         from thb.inputlets import ChooseIndividualCardInputlet
 
         g, p = self.makeGame()
@@ -233,7 +230,6 @@ class TestStart2v2(object):
         eq_(user_input([p], ilet), None)
 
     def testChoosePeerCardInputlet(self):
-        from game.autoenv import user_input
         from thb.inputlets import ChoosePeerCardInputlet
         from thb.cards import migrate_cards
 
@@ -266,7 +262,6 @@ class TestStart2v2(object):
         from game import autoenv
         autoenv.init('Server')
 
-        from game.autoenv import user_input
         from thb.inputlets import ProphetInputlet
 
         g, p = self.makeGame()
@@ -295,7 +290,6 @@ class TestStart2v2(object):
         eq_(user_input([p], ilet), [cards, []])
 
     def testChooseGirlInputlet(self):
-        from game.autoenv import user_input
         from thb.common import CharChoice
         from thb.characters.youmu import Youmu
         from thb.characters.seiga import Seiga

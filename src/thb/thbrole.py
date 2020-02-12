@@ -11,7 +11,6 @@ import random
 
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import BootstrapAction, GameEnded, GameItem, InputTransaction, InterruptActionFlow
 from game.base import Player, get_seed_for, sync_primitive
 from thb.actions import ActionStageLaunchCard, AskForCard, DistributeCards, DrawCards, DropCardStage
@@ -191,7 +190,7 @@ class AssistedUseAction(UserAction):
 
         pl = BatchList([p for p in g.players if not p.dead])
         pl = pl.rotate_to(tgt)[1:]
-        rst = user_input(pl, ChooseOptionInputlet(self, (False, True)), timeout=6, type='all')
+        rst = g.user_input(pl, ChooseOptionInputlet(self, (False, True)), timeout=6, type='all')
 
         afc = self.their_afc_action
         for p in pl:
@@ -220,11 +219,12 @@ class AssistedUseHandler(THBEventHandler):
             if isinstance(act, DoNotProcessCard):
                 return act
 
+            g = self.game
+
             self.assist_target = tgt
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            g = self.game
             g.process_action(AssistedUseAction(tgt, act))
 
         return act
@@ -275,12 +275,12 @@ class AssistedHealHandler(THBEventHandler):
             if not tgt.has_skill(AssistedHeal):
                 return act
 
-            self.good_person = p = act.revived_by  # for ui
+            g = self.game
 
-            if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+            self.good_person = p = act.revived_by  # for ui
+            if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            g = self.game
             g.process_action(AssistedHealAction(p, tgt))
 
         return act
@@ -325,6 +325,7 @@ class THBRoleRole(Enum):
 
 class ChooseBossSkillAction(GenericAction):
     def apply_action(self) -> bool:
+        g = self.game
         tgt = self.target
 
         if tgt.boss_skills:
@@ -340,7 +341,7 @@ class ChooseBossSkillAction(GenericAction):
             AssistedHeal,
             ExtraCardSlot,
         ]
-        rst = user_input([tgt], ChooseOptionInputlet(self, [i.__name__ for i in lst]))
+        rst = g.user_input([tgt], ChooseOptionInputlet(self, [i.__name__ for i in lst]))
         rst = next((i for i in lst if i.__name__ == rst), None) or next(iter(lst))
         tgt.skills.append(rst)
         self.skill_chosen = rst  # for ui
@@ -420,7 +421,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         choices[boss][:0] = [CharChoice(cls) for cls in get_characters('boss')]
 
         with InputTransaction('ChooseGirl', [boss], mapping=choices) as trans:
-            c: CharChoice = user_input([boss], ChooseGirlInputlet(g, choices), 30, 'single', trans)
+            c: CharChoice = g.user_input([boss], ChooseGirlInputlet(g, choices), 30, 'single', trans)
 
             c = c or choices[boss][-1]
             c.chosen = boss
@@ -469,7 +470,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         with InputTransaction('ChooseGirl', pl_wo_boss, mapping=choices) as trans:
             ilet = ChooseGirlInputlet(g, choices)
             ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
-            result = user_input(pl_wo_boss, ilet, type='all', trans=trans)
+            result = g.user_input(pl_wo_boss, ilet, type='all', trans=trans)
 
         # mix char class with player -->
         for p in pl_wo_boss:

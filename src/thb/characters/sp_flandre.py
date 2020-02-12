@@ -4,7 +4,6 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
 from thb.actions import ttags, user_choose_players
 from thb.cards.base import Skill
@@ -120,9 +119,9 @@ class FourOfAKindHandler(THBEventHandler):
 
             src = act.source
             tgt = act.target
+            g = self.game
             if tgt.has_skill(FourOfAKind) and act.amount <= tgt.life:
-                if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                    g = self.game
+                if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                     g.process_action(FourOfAKindAction(tgt, act))
 
             if src and src.has_skill(FourOfAKind):

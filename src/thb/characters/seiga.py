@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionStage, ForEach, GenericAction, LaunchCard, LifeLost, PlayerDeath
 from thb.actions import UserAction
 from thb.cards.base import Skill
@@ -37,7 +36,7 @@ class HeterodoxyHandler(THBEventHandler):
             else:
                 return act
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
             act.cancelled = True
@@ -137,7 +136,8 @@ class SummonAction(UserAction):
         mapping = self.mapping = {s.__name__: s for s in skills}
         names = list(sorted(mapping.keys()))
 
-        choice = user_input([src], ChooseOptionInputlet(self, names)) or names[0]
+        g = self.game
+        choice = g.user_input([src], ChooseOptionInputlet(self, names)) or names[0]
 
         src.tags['summon_used'] = True
         src.skills.append(mapping[choice])
@@ -158,7 +158,7 @@ class SummonHandler(THBEventHandler):
             if p is act.target: return act
             if not p.has_skill(Summon): return act
             if p.tags['summon_used']: return act
-            if not user_input([p], ChooseOptionInputlet(self, (False, True))): return act
+            if not g.user_input([p], ChooseOptionInputlet(self, (False, True))): return act
 
             g.process_action(SummonAction(p, act.target))
 

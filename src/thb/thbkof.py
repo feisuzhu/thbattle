@@ -9,7 +9,6 @@ import logging
 
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import Player, BootstrapAction, InputTransaction
 from game.base import InterruptActionFlow, list_shuffle, GameEnded
 from thb.actions import DistributeCards, PlayerDeath, PlayerTurn, RevealRole
@@ -79,7 +78,7 @@ class KOFCharacterSwitchHandler(THBEventHandler):
         mapping = {p: p.choices}
 
         with InputTransaction('ChooseGirl', [p], mapping=mapping) as trans:
-            rst = user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+            rst = g.user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
             rst = rst or p.choices[0]
 
         p = g.next_character(p, rst)
@@ -139,7 +138,7 @@ class THBattleKOFBootstrap(BootstrapAction):
                 order.remove(p)
 
             for p in order:
-                c = user_input([p], ChooseGirlInputlet(g, {p: choices}), 10, 'single', trans)
+                c = g.user_input([p], ChooseGirlInputlet(g, {p: choices}), 10, 'single', trans)
                 # c = c or next(choices[p], lambda c: not c.chosen, None)
                 c = c or next(c for c in choices if not c.chosen)
 
@@ -161,7 +160,7 @@ class THBattleKOFBootstrap(BootstrapAction):
         with InputTransaction('ChooseGirl', pl, mapping=g.chosen) as trans:
             ilet = ChooseGirlInputlet(g, g.chosen)
             ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
-            rst = user_input([A, B], ilet, type='all', trans=trans)
+            rst = g.user_input([A, B], ilet, type='all', trans=trans)
 
         def s(p):
             c = rst[p] or g.chosen[p][0]

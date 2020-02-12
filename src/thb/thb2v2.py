@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from enum import Enum
 from itertools import cycle
-from typing import Any, Dict, List, Type, Set
+from typing import Any, Dict, List, Set, Type
 import logging
 import random
 
 # -- third party --
 # -- own --
-from game.autoenv import Game, user_input
-from game.base import BootstrapAction, GameEnded, GameItem, InputTransaction
-from game.base import InterruptActionFlow, get_seed_for, Player
+from game.base import BootstrapAction, Game, GameEnded, GameItem, InputTransaction
+from game.base import InterruptActionFlow, Player, get_seed_for
 from thb.actions import DeadDropCards, DistributeCards, DrawCardStage, DrawCards
 from thb.actions import MigrateCardsTransaction, PlayerDeath, PlayerTurn, RevealRole, UserAction
 from thb.actions import migrate_cards
@@ -19,7 +19,7 @@ from thb.cards.base import Deck
 from thb.characters.base import Character
 from thb.common import CharChoice, PlayerRole, roll
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
-from thb.mode import THBattle, THBEventHandler
+from thb.mode import THBEventHandler, THBattle
 from utils.misc import BatchList, partition
 import settings
 
@@ -85,7 +85,7 @@ class HeritageHandler(THBEventHandler):
         other = BatchList(f).exclude(tgt)[0]
         if other.dead: return act
 
-        if user_input([other], ChooseOptionInputlet(self, ('inherit', 'draw'))) == 'inherit':
+        if g.user_input([other], ChooseOptionInputlet(self, ('inherit', 'draw'))) == 'inherit':
             g.process_action(HeritageAction(other, tgt))
 
         else:
@@ -180,7 +180,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
         with InputTransaction('BanGirl', pl, mapping=mapping) as trans:
             for p in pl:
                 c: CharChoice
-                c = user_input([p], ChooseGirlInputlet(self, mapping), timeout=30, trans=trans)
+                c = g.user_input([p], ChooseGirlInputlet(self, mapping), timeout=30, trans=trans)
                 c = c or next(_c for _c in choices if not _c.chosen)
                 c.chosen = p
                 cls = c.char_cls
@@ -218,7 +218,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
                 trans.notify('girl_chosen', (p, c))
                 return c
 
-            rst = user_input(pl, ilet, timeout=30, type='all', trans=trans)
+            rst = g.user_input(pl, ilet, timeout=30, type='all', trans=trans)
 
         # reveal
         g.players = BatchList()

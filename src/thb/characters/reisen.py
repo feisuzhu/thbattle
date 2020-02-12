@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import ActionShootdown
 from thb.actions import ActionStageLaunchCard, Damage, LaunchCard, PlayerTurn, UserAction
 from thb.cards.base import Skill
@@ -63,7 +62,7 @@ class LunaticHandler(THBEventHandler):
             if not (c.is_card(AttackCard) or c.is_card(DuelCard)):
                 return act
 
-            if user_input([src], ChooseOptionInputlet(self, (False, True))):
+            if g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 g.process_action(LunaticAction(src, tgt))
 
         return act
@@ -127,8 +126,9 @@ class MahjongDrugHandler(THBEventHandler):
             card = getattr(act, 'associated_card', None)
             if not card or not card.is_card(HealCard): return act
 
-            if user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                self.game.process_action(MahjongDrugAction(tgt, tgt))
+            g = self.game
+            if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                g.process_action(MahjongDrugAction(tgt, tgt))
 
         return act
 

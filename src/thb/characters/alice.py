@@ -4,7 +4,6 @@ from typing import Sequence, Tuple, List
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionStage, Damage, DrawCards, DropCardStage, DropCards, GenericAction
 from thb.actions import LaunchCard, PlayerTurn, PostCardMigrationHandler, Reforge, UserAction
 from thb.actions import random_choose_card, user_choose_cards, user_choose_players
@@ -199,7 +198,7 @@ class DollBlastAction(UserAction):
 
         src, tgt = self.source, self.target
         for c in cl:
-            c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
+            c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
             c = c or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
             if not c: return True
             g.players.reveal(c)
@@ -213,10 +212,10 @@ class DollBlastHandlerCommon(object):
     def fire(self, src, tgt, cards):
         self.target = tgt  # for ui
 
-        if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+        g = self.game
+        if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
             return
 
-        g = self.game
         g.process_action(DollBlastAction(src, tgt, cards))
 
 

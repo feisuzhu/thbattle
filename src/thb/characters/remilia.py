@@ -4,7 +4,6 @@
 from typing import Sequence, Any
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionShootdown, Damage, GenericAction, LaunchCard, PrepareStage, UserAction
 from thb.cards.base import Card, DummyCard, Skill, t_None
 from thb.cards.classes import Attack, AttackCard, Heal, InevitableAttack
@@ -49,8 +48,9 @@ class SpearTheGungnirHandler(THBEventHandler):
                 if len(tgt.cards) + len(tgt.showncards) < len(src.cards) + len(src.showncards): break
                 return act
 
-            if user_input([act.source], ChooseOptionInputlet(self, (False, True))):
-                self.game.process_action(SpearTheGungnirAction(act))
+            g = self.game
+            if g.user_input([act.source], ChooseOptionInputlet(self, (False, True))):
+                g.process_action(SpearTheGungnirAction(act))
 
         return act
 

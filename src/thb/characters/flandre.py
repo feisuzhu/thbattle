@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction, PlayerDeath
 from thb.actions import PlayerTurn, register_eh, ttags
 from thb.cards.base import Skill
@@ -51,10 +50,11 @@ class CriticalStrikeHandler(THBEventHandler):
             if act.cancelled: return act
             tgt = act.target
             if not tgt.has_skill(CriticalStrike): return act
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            self.game.process_action(CriticalStrikeAction(tgt, tgt))
+            g.process_action(CriticalStrikeAction(tgt, tgt))
 
             act.amount = max(0, act.amount - 1)
 

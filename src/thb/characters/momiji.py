@@ -5,7 +5,6 @@ import itertools
 
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import sync_primitive
 from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, FinalizeStage
 from thb.actions import GenericAction, LaunchCard, ShowCards, UserAction, migrate_cards, ttags
@@ -62,7 +61,7 @@ class DisarmHandler(THBEventHandler):
             if not pcard.is_card(AttackCard) and not (pcard.is_card(DuelCard) and pact.source is src):
                 return act
 
-            if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+            if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 return act
 
             cl = list(tgt.cards) + list(tgt.showncards)
@@ -121,7 +120,7 @@ class SentryHandler(THBEventHandler):
 
                 dist = LaunchCard.calc_distance(p, AttackCard())
                 if dist.get(tgt, 1) > 0: continue
-                if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
                     continue
 
                 g.process_action(SentryAction(p, tgt))
@@ -212,7 +211,7 @@ class SolidShieldHandler(THBEventHandler):
                 if not cond:
                     return act
 
-                if user_input([p], ChooseOptionInputlet(self, (False, True))):
+                if g.user_input([p], ChooseOptionInputlet(self, (False, True))):
                     g.process_action(SolidShieldAction(p, src, act))
                     break
 

@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import ActionShootdown, InputTransaction
 from thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCardStage, FinalizeStage
 from thb.actions import GenericAction, LaunchCard, PlayerTurn, ShowCards, UserAction, ask_for_action
@@ -189,10 +188,11 @@ class DominanceHandler(THBEventHandler):
             if len(tgt.tags['dominance_suits'] or set()) != 4:
                 return act
 
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            self.game.process_action(DominanceAction(tgt))
+            g.process_action(DominanceAction(tgt))
 
         return act
 

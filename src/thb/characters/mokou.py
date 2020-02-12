@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import DrawCards, DropCards, FatetellStage, LifeLost, PlayerTurn, UserAction
 from thb.actions import user_choose_cards
 from thb.cards.base import Card, Skill
@@ -58,10 +57,11 @@ class AshesHandler(THBEventHandler):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):
             tgt = act.target
             if tgt.dead or not tgt.has_skill(Ashes): return act
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+            g = self.game
+            if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
 
-            self.game.process_action(AshesAction(tgt))
+            g.process_action(AshesAction(tgt))
 
         return act
 

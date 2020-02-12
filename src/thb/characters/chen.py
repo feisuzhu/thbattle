@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import DrawCards, ForEach, LaunchCard, UserAction
 from thb.cards.base import Skill
 from thb.cards.classes import AttackCard, DollControlCard, Heal, InstantSpellCardAction, RejectCard
@@ -95,7 +94,7 @@ class ShikigamiAction(UserAction):
 
         g = self.game
 
-        if tgt.life < tgt.maxlife and user_input(
+        if tgt.life < tgt.maxlife and g.user_input(
             [tgt], ChooseOptionInputlet(self, (False, True))
         ):
             g.process_action(Heal(src, tgt))

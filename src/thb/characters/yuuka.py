@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import Damage, DrawCards, ForEach, LaunchCard, PlayerDeath, UserAction
 from thb.actions import user_choose_players
 from thb.cards.base import Skill
@@ -117,10 +116,10 @@ class ReversedScalesHandler(THBEventHandler):
         if not tgt.has_skill(ReversedScales):
             return act
 
-        if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+        g = self.game
+        if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
             return act
 
-        g = self.game
         g.process_action(ReversedScalesAction(tgt, act))
 
         return act

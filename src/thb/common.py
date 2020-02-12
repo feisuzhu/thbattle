@@ -12,17 +12,15 @@ import random
 from mypy_extensions import TypedDict
 
 # -- own --
-# -- typing --
-if TYPE_CHECKING:
-    from thb.characters.base import Character  # noqa: F401
-
-# -- errord --
-from game.autoenv import Game
-from game.base import GameViralContext, Player, get_seed_for, sync_primitive
+from game.base import Game, GameViralContext, Player, get_seed_for, sync_primitive
 from thb.item import GameItem
 from thb.mode import THBattle
 from utils.misc import BatchList, partition
 import settings
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.characters.base import Character  # noqa: F401
 
 
 # -- code --

@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from thb.actions import DropCards, LaunchCard, migrate_cards
 from thb.cards.base import Card, Skill, DummyCard
 from thb.cards.classes import Demolition, DemolitionCard, TreatAs
@@ -73,7 +72,7 @@ class EnvyHandler(THBEventHandler):
 
         g.emit_event('ui_show_disputed', [card])
 
-        if not user_input([src], ChooseOptionInputlet(self, (False, True))):
+        if not g.user_input([src], ChooseOptionInputlet(self, (False, True))):
             return act
 
         act.__class__ = classmix(EnvyRecycleAction, act.__class__)

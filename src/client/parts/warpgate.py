@@ -126,9 +126,6 @@ class Warpgate(object):
         self.core = core
         self.events: List[Any] = []
 
-        from game import autoenv
-        autoenv.init('Client')
-
         core.events.core_initialized += self.init_warpgate
 
     def init_warpgate(self, core: Core) -> Core:

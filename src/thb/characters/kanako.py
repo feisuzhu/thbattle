@@ -47,7 +47,7 @@ class KanakoFaithCounteractPart1(UserAction):
         catnames = ('cards', 'showncards', 'equips')
         cats = [getattr(tgt, i) for i in catnames]
 
-        card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+        card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
         card = card or random_choose_card(g, cats)
 
         assert card
@@ -63,7 +63,7 @@ class KanakoFaithCounteractPart2(UserAction):
         src, tgt = self.source, self.target
         g = self.game
 
-        choice = user_input([tgt], ChooseOptionInputlet(self, ('duel', 'attack')))
+        choice = g.user_input([tgt], ChooseOptionInputlet(self, ('duel', 'attack')))
 
         cls: Type[Any]
         if choice == 'duel':
@@ -87,7 +87,7 @@ class KanakoFaithEffect(UserAction):
 
         has_card = src.cards or src.showncards or src.equips
 
-        if has_card and user_input([tgt], ChooseOptionInputlet(self, ('drop', 'draw'))) == 'drop':
+        if has_card and g.user_input([tgt], ChooseOptionInputlet(self, ('drop', 'draw'))) == 'drop':
             g.process_action(KanakoFaithCounteract(tgt, src))
         else:
             g.process_action(KanakoFaithCheers(tgt, src))

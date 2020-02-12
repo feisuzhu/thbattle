@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import user_input
 from game.base import GameException
 from thb.actions import ActionStage, ActiveDropCards, BaseActionStage, DrawCards, DropCards
 from thb.actions import GenericAction, LaunchCard, LifeLost, MaxLifeChange, PrepareStage, Reforge
@@ -50,7 +49,7 @@ class TeachTargetEffect(GenericAction):
         tgt.reveal(c)
         migrate_cards([c], tgt.cards, unwrap=True)
 
-        choice = user_input([tgt], ChooseOptionInputlet(self, ('reforge', 'action')))
+        choice = g.user_input([tgt], ChooseOptionInputlet(self, ('reforge', 'action')))
         if choice == 'reforge':
             g.process_action(TeachTargetReforgeAction(tgt, tgt))
         else:
