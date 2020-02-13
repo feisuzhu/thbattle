@@ -58,6 +58,7 @@ class GamePart(object):
         D[wire.GameEnded]      += self._game_ended
         D[wire.GameData]       += self._game_data
 
+    # ----- Reactions -----
     def _room_users(self, ev: wire.RoomUsers) -> wire.RoomUsers:
         core = self.core
 
@@ -104,7 +105,7 @@ class GamePart(object):
     def _game_joined(self, ev: wire.GameJoined) -> wire.GameJoined:
         gv = ev.game
         gid = gv['gid']
-        g = self.create_game(
+        g = self._make_game(
             gid,
             gv['type'],
             gv['name'],
@@ -147,11 +148,8 @@ class GamePart(object):
         A(self, g)['data'].feed_recv(ev.tag, ev.data)
         return ev
 
-    # ----- Public Methods -----
-    def is_observe(self, g: Game) -> bool:
-        return A(self, g)['observe']
-
-    def create_game(self, gid: int, mode: str, name: str, users: List[wire.model.User], params: Dict[str, Any], items: Dict[int, List[str]]) -> Game:
+    # ----- Private Methods -----
+    def _make_game(self, gid: int, mode: str, name: str, users: List[wire.model.User], params: Dict[str, Any], items: Dict[int, List[str]]) -> Game:
         from thb import modes
         g = modes[mode]()
         assert isinstance(g, Game)
@@ -170,17 +168,6 @@ class GamePart(object):
         g._[self] = assoc
 
         return g
-
-    def write(self, g: Game, tag: str, data: object) -> None:
-        core = self.core
-        pkt = A(self, g)['data'].feed_send(tag, data)
-        gid = A(self, g)['gid']
-        core.server.write(wire.GameData(
-            gid=gid,
-            tag=pkt.tag,
-            data=pkt.data,
-        ))
-        # core.events.game_data_send.emit((g, pkt))
 
     def _build_players(self, g: Game, uvl: Sequence[wire.model.User]) -> BatchList[Player]:
         core = self.core
@@ -204,6 +191,10 @@ class GamePart(object):
             for uid, skus in items.items()
         }
 
+    # ----- Public Methods -----
+    def is_observe(self, g: Game) -> bool:
+        return A(self, g)['observe']
+
     def start_game(self, g: Game) -> None:
         core = self.core
         runner = ClientGameRunner(core)
@@ -215,6 +206,17 @@ class GamePart(object):
             core.events.game_crashed.emit(g)
 
         log.info('----- GAME STARTED: %d -----' % A(self, g)['gid'])
+
+    def write(self, g: Game, tag: str, data: object) -> None:
+        core = self.core
+        pkt = A(self, g)['data'].feed_send(tag, data)
+        gid = A(self, g)['gid']
+        core.server.write(wire.GameData(
+            gid=gid,
+            tag=pkt.tag,
+            data=pkt.data,
+        ))
+        # core.events.game_data_send.emit((g, pkt))
 
     def kill_game(self, g: Game) -> None:
         A(self, g)['greenlet'].kill(ForcedKill)

@@ -73,8 +73,8 @@ class MockBackend(object):
 
     def _strip(self, q: str) -> str:
         q = q.strip()
-        q = re.sub(r'[\r\n]', q, '')
-        q = re.sub(r' +', q, ' ')
+        q = re.sub(r'[\r\n]', '', q)
+        q = re.sub(r' +', ' ', q)
         return q
 
     def _reg(f: Callable, strip: Any = _strip, MOCKED: Any = MOCKED) -> Callable:  # type: ignore
@@ -83,8 +83,43 @@ class MockBackend(object):
         return f
 
     @_reg
-    def gameId(self) -> Any:
+    def gameId(v) -> Any:
         '''
         query { gameId }
         '''
         return {'gameId': random.randint(0, 1000000)}
+
+    @_reg
+    def login(v) -> Any:
+        '''
+        query($token: String) {
+            player(token: $token) {
+                id
+                user {
+                    isActive
+                    userPermissions {
+                        codename
+                    }
+                    groups {
+                        permissions {
+                            codename
+                        }
+                    }
+                }
+                name
+            }
+        }
+        '''
+        return {
+            'player': {
+                'id': abs(hash(v['token'])) % 120943,
+                'user': {
+                    'isActive': True,
+                    'userPermissions': [],
+                    'groups': {
+                        'permissions': []
+                    }
+                },
+                'name': v['token'],
+            }
+        }

@@ -25,6 +25,7 @@ class Options(object):
         self.interconnect = options.get('interconnect', '')   # URI of chat server
         self.archive_path = options.get('archive_path', '')   # file:// URI of dir for storing game archives
         self.disables     = options.get('disables', [])       # disabled core components, will assign a None value
+        self.paranoid     = options.get('paranoid', False)    # For unit test
 
 
 T = TypeVar('T', bound=wire.Message)

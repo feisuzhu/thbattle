@@ -16,7 +16,7 @@ from endpoint import EndpointDied
 from game.base import BootstrapAction, Game, GameEnded, GameItem, GameRunner, InputTransaction, GameAbort
 from game.base import Inputlet, Player, TimeLimitExceeded
 from server.endpoint import Client
-from utils.misc import BatchList, log_failure
+from utils.misc import BatchList
 
 
 # -- code --
@@ -81,7 +81,6 @@ class ServerGameRunner(GameRunner):
         self.core = core
         super().__init__()
 
-    @log_failure(log)
     def run(self, g: Game) -> None:
         self.game = g
         g.synctag = 0

@@ -44,7 +44,7 @@ class EventHub(Generic[T]):
     def emit(self, ev: T):
         log.debug('Handling event %s %s', self.name, ev)
         if not self._subscribers:
-            log.warning('Emitting event %s when no subscribers present!', self.name)
+            log.debug('Emitting event %s when no subscribers present!', self.name)
             return
 
         for prio, cb in self._subscribers:

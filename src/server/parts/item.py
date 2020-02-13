@@ -63,8 +63,8 @@ class Item(object):
 
                     if rst['item']['remove']:
                         consumed.append(i)
-                except Exception as e:
-                    log.exception(e)
+                except Exception:
+                    log.exception('Error consuming item')
 
             final[uid] = consumed
 

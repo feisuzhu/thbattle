@@ -89,7 +89,7 @@ class Auth(object):
             }
         ''', token=token)
 
-        if not rst or rst['player']:
+        if not rst or not rst['player']:
             u.write(wire.AuthError('invalid_credentials'))
             return
 

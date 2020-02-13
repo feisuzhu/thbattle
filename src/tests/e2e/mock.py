@@ -25,11 +25,18 @@ class Environ(object):
         self.pool = Pool(32)
         p = random.randint(10000, 30000)
         self.rendezvous = f'tcp://127.0.0.233:{p}'
+        self.parent = gevent.getcurrent()
+
+    def _run(self, runner):
+        try:
+            runner.run()
+        except Exception as e:
+            gevent.kill(self.parent, e)
 
     def client_core(self) -> client.core.Core:
-        core = client.core.Core(disables=['warpgate'])
+        core = client.core.Core(disables=['warpgate'], paranoid=True)
         runner = CoreRunner(core)
-        self.pool.spawn(runner.run)
+        self.pool.spawn(self._run, runner)
         runner.ready.wait()
         core.server.connect(self.rendezvous)
         return core
@@ -37,10 +44,10 @@ class Environ(object):
     def server_core(self) -> server.core.Core:
         core = server.core.Core(disables=[
             'archive', 'connect', 'stats', 'backend'
-        ], listen=self.rendezvous)
+        ], listen=self.rendezvous, paranoid=True)
         core.backend = MockBackend(core)
         runner = CoreRunner(core)
-        self.pool.spawn(runner.run)
+        self.pool.spawn(self._run, runner)
         gevent.sleep(0.05)
         return core
 

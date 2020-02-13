@@ -19,6 +19,7 @@ import wire
 class Options(object):
     def __init__(self, options: Dict[str, Any]):
         self.disables = options.get('disables', [])
+        self.paranoid = options.get('paranoid', False)    # For unit test
 
 
 T = TypeVar('T')

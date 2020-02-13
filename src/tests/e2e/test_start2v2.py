@@ -13,10 +13,17 @@ from .mock import Environ
 class TestStart2v2(object):
     def testStart2v2(self, caplog):
         env = Environ()
-        sc = env.server_core()
-        cc1 = env.client_core()
-        cc2 = env.client_core()
-        cc1.auth.login('1111')
-        cc2.auth.login('2222')
-        gevent.sleep(0.1)
-        1/0
+        s = env.server_core()
+        c1 = env.client_core()
+        c2 = env.client_core()
+        c3 = env.client_core()
+        c4 = env.client_core()
+        c1.auth.login('Reimu')
+        c2.auth.login('Marisa')
+        c3.auth.login('Youmu')
+        c4.auth.login('Sakuya')
+        gevent.sleep(0.01)
+        assert c1.auth.uid
+        assert c2.auth.uid
+        assert c3.auth.uid
+        assert c4.auth.uid

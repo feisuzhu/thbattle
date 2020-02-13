@@ -45,11 +45,13 @@ class Core(object):
 
 
 class CoreRunner(object):
-    def __init__(self, core: Core):
+    def __init__(self, core: Core, paranoid: bool = False):
         self.core = core
         self.pool = Pool()
         self.ready = Event()
         self.tasks: Dict[str, Greenlet] = {}
+
+        self._paranoid = paranoid
 
     def run(self) -> Any:
         core = self.core
@@ -70,7 +72,11 @@ class CoreRunner(object):
             self.shutdown()
 
     def spawn(self, fn, *args, **kw):
-        return self.pool.spawn(fn, *args, **kw)
+        core = self.core
+        gr = self.pool.spawn(fn, *args, **kw)
+        if self._paranoid:
+            gr.link_exception(lambda gr: core.crash(gr.exception))
+        return gr
 
     def shutdown(self) -> None:
         self.pool.kill()

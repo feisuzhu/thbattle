@@ -10,7 +10,7 @@ from gevent import Greenlet, getcurrent
 
 # -- own --
 from endpoint import Endpoint, EndpointDied
-from utils.misc import MockMeta, log_failure
+from utils.misc import MockMeta
 import wire
 
 # -- typing --
@@ -41,7 +41,6 @@ class Client(object):
         self._gr = getcurrent()
         core.events.client_connected.emit(self)
 
-    @log_failure(log)
     def _serve(self) -> None:
         core = self.core
         tbl = core.events.client_command
@@ -60,7 +59,10 @@ class Client(object):
             except Pivot:
                 continue
 
-            except Exception:
+            except Exception as e:
+                if core.options.paranoid:
+                    core.crash(e)
+                    raise
                 log.exception("Error occurred when handling client command")
 
         core.events.client_dropped.emit(self)
