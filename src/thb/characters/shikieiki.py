@@ -6,7 +6,7 @@ from __future__ import absolute_import
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import Damage, FatetellMalleateHandler, MigrateCardsTransaction, UseCard
-from thb.actions import UserAction, detach_cards, migrate_cards, user_choose_cards
+from thb.actions import UserAction, detach_cards, migrate_cards, random_choose_card, user_choose_cards
 from thb.cards import Skill, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
@@ -77,6 +77,7 @@ class MajestyAction(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
         c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
+        c = c or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
         if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)
