@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import Damage, DropCards, FatetellAction, LaunchCard
+from thb.actions import Damage, DropCards, FatetellAction, LaunchCard, random_choose_card
 from thb.cards.base import Card, Skill, VirtualCard
 from thb.cards.classes import AttackCard, BaseAttack, InevitableAttack, RedUFOSkill, TreatAs, t_None
 from thb.characters.base import Character, register_character_to
@@ -94,7 +95,7 @@ class FreakingPowerHandler(THBEventHandler):
             g = self.game
 
             if act.cancelled: return act
-            
+
             pact = g.action_stack[-1]
             if not pact._['freaking_power']:
                 return act
@@ -102,8 +103,12 @@ class FreakingPowerHandler(THBEventHandler):
             src, tgt = pact.source, act.target
             if tgt.dead: return act
 
+            if not (tgt.cards or tgt.showncards or tgt.equips):
+                return act
+
             catnames = ('cards', 'showncards', 'equips')
             card = g.user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+            card = card or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
             if card:
                 g.players.exclude(tgt).reveal(card)
                 g.process_action(DropCards(src, tgt, [card]))

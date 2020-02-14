@@ -104,9 +104,8 @@ class AkiTributeHandler(THBEventHandler):
 
             candidates = [p for p in g.players if not p.dead]
             tl = user_choose_players(self, src, candidates)
-            if not tl: return act
 
-            tgt, = tl
+            tgt = tl[0] if tl else src
             g.process_action(AkiTributeCollectCard(src, tgt, cards))
 
         return act

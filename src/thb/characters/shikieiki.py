@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb.actions import Damage, FatetellMalleateHandler, MigrateCardsTransaction, UseCard
-from thb.actions import UserAction, detach_cards, migrate_cards, user_choose_cards
+from thb.actions import UserAction, detach_cards, migrate_cards, random_choose_card
+from thb.actions import user_choose_cards
 from thb.cards.base import Skill
 from thb.cards.classes import t_None
 from thb.characters.base import Character, register_character_to
@@ -79,6 +81,7 @@ class MajestyAction(UserAction):
         src, tgt = self.source, self.target
         g = self.game
         c = g.user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards', 'equips')))
+        c = c or random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
         if not c: return False
         src.reveal(c)
         migrate_cards([c], src.cards)
