@@ -5,7 +5,7 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, DropCards, FatetellAction, LaunchCard, mark, marked
+from thb.actions import Damage, DropCards, FatetellAction, LaunchCard, mark, marked, random_choose_card
 from thb.cards import AttackCard, BaseAttack, Card, InevitableAttack, RedUFOSkill, Skill
 from thb.cards import TreatAs, VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
@@ -102,8 +102,12 @@ class FreakingPowerHandler(EventHandler):
             src, tgt = pact.source, act.target
             if tgt.dead: return act
 
+            if not (tgt.cards or tgt.showncards or tgt.equips):
+                return act
+
             catnames = ('cards', 'showncards', 'equips')
             card = user_input([src], ChoosePeerCardInputlet(self, tgt, catnames))
+            card = card or random_choose_card([tgt.cards, tgt.showncards, tgt.equips])
             if card:
                 g.players.exclude(tgt).reveal(card)
                 g.process_action(DropCards(src, tgt, [card]))
