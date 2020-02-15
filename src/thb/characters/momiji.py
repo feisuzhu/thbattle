@@ -67,7 +67,7 @@ class DisarmHandler(THBEventHandler):
             cl = list(tgt.cards) + list(tgt.showncards)
             g.process_action(ShowCards(tgt, cl, [src]))
 
-            if g.SERVER:
+            if g.is_server_side():
                 l = [bool(c.is_card(AttackCard) or 'spellcard' in c.category) for c in cl]
             else:
                 l = [False for c in cl]

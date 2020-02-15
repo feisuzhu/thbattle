@@ -10,17 +10,18 @@ import time
 # -- third party --
 from gevent import Greenlet
 from mypy_extensions import TypedDict
-import gevent
 
 # -- own --
 from endpoint import Endpoint
-from server.base import Game
+from game.base import Game
+from server.base import ServerGameRunner
 from server.endpoint import Client
 from server.utils import command
 from utils.misc import BatchList, throttle
 import wire
 
-# -- typing --
+
+# -- code --
 if TYPE_CHECKING:
     from server.core import Core  # noqa: F401
 
@@ -229,7 +230,8 @@ class Room(object):
             # prevent double starting
             if not Ag(self, g)['greenlet']:
                 log.info("game starting")
-                Ag(self, g)['greenlet'] = core.runner.spawn(g.run)
+                runner = ServerGameRunner(core)
+                Ag(self, g)['greenlet'] = core.runner.spawn(runner.run, g)
 
     def is_online(self, g: Game, c: Client) -> bool:
         rst = c is not self.FREESLOT
@@ -264,7 +266,7 @@ class Room(object):
     def is_started(self, g: Game) -> bool:
         return bool(Ag(self, g)['greenlet'])
 
-    def create_game(self, gamecls: type, name: str, flags: dict) -> Game:
+    def create_game(self, gamecls: type, name: str, flags: wire.msg.CreateRoomFlags) -> Game:
         core = self.core
         gid = self._new_gid()
         g = core.game.create_game(gamecls)

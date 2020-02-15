@@ -194,7 +194,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
 
         g.random.shuffle(chars)
 
-        if Game.CLIENT:
+        if g.is_client_side():
             chars = [None] * len(chars)
 
         mapping: Dict[Player, List[CharChoice]] = {}

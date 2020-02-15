@@ -18,6 +18,7 @@ import wire
 
 # -- code --
 log = logging.getLogger("Endpoint")
+log.setLevel(logging.ERROR)
 
 
 class EndpointDied(Exception):
@@ -35,15 +36,13 @@ class Format(IntEnum):
 
 class Endpoint(object):
 
-    ENDPOINT_DEBUG = False
-
     def __init__(self, sock, address):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.read       = sock.recv
         sock.write      = sock.sendall
 
         self.sock       = sock
-        self.unpacker   = msgpack.Unpacker(sock, encoding='utf-8')
+        self.unpacker   = msgpack.Unpacker(sock, raw=False)
         self.writelock  = RLock()
         self.address    = address
         self.link_state = 'connected'  # or disconnected
@@ -65,14 +64,12 @@ class Endpoint(object):
         return msgpack.packb([Format.BulkCompressed, zlib.compress(data)], use_bin_type=True)
 
     def write(self, p) -> None:
-        if Endpoint.ENDPOINT_DEBUG:
-            log.debug("SEND>> %s" % p)
+        log.debug("%s SEND>> %s", repr(self), p)
         self.raw_write(self.encode(p))
 
     def write_bulk(self, pl: Sequence[wire.Message]) -> None:
-        if Endpoint.ENDPOINT_DEBUG:
-            for p in pl:
-                log.debug("SEND>> %s" % p)
+        for p in pl:
+            log.debug("%s SEND>> %s", repr(self), p)
         self.raw_write(self.encode_bulk(pl))
 
     def raw_write(self, s: bytes) -> None:
@@ -141,15 +138,13 @@ class Endpoint(object):
                     if fmt == Format.Packed:
                         msg = wire.Message.decode(data)
                         if msg:
-                            if Endpoint.ENDPOINT_DEBUG:
-                                log.debug("<<RECV %r" % msg)
+                            log.debug("%s <<RECV %r", repr(self), msg)
                             yield msg
                     elif fmt == Format.BulkCompressed:
                         for d in data:
                             msg = wire.Message.decode(d)
                             if msg:
-                                if Endpoint.ENDPOINT_DEBUG:
-                                    log.debug("<<RECV %r" % msg)
+                                log.debug("%s <<RECV %r", repr(self), msg)
                                 yield msg
                 else:
                     self.close()

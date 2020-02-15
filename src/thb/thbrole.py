@@ -390,7 +390,7 @@ class THBattleRoleBootstrap(BootstrapAction):
 
         g.random.shuffle(roles)
 
-        if g.CLIENT:
+        if g.is_client_side():
             roles = [THBRoleRole.HIDDEN for _ in roles]
 
         g.roles = {}

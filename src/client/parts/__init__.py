@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from . import auth, game, replay, server, warpgate
+from . import auth, game, lobby, room, replay, server, warpgate
 
 
 # -- code --

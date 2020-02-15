@@ -25,9 +25,21 @@ class Options(object):
 T = TypeVar('T')
 
 
-class _ServerCommandMapping:
+class _ServerCommandMapping(dict):
+    __slots__ = ('core',)
+
+    def __init__(self, core: Core):
+        self.core = core
+        super().__init__()
+
     def __getitem__(self, k: Type[T]) -> EventHub[T]:
-        ...
+        if k in self:
+            return dict.__getitem__(self, k)
+
+        hub = EventHub()
+        hub.name = f'{self.core}::server_command'
+        self[k] = hub
+        return hub
 
 
 class Events(object):
@@ -37,8 +49,7 @@ class Events(object):
         self.core_initialized = EventHub[Core]()
 
         # Fires when server send some command
-        self.server_command: _ServerCommandMapping = \
-            cast(_ServerCommandMapping, defaultdict(lambda: EventHub()))
+        self.server_command = _ServerCommandMapping(core)
 
         # Server connected
         self.server_connected = EventHub[None]()
@@ -51,6 +62,13 @@ class Events(object):
 
         # Server & client version mismatch
         self.version_mismatch = EventHub[None]()
+
+        # Lobby status
+        self.lobby_updated = EventHub[Tuple[Sequence[wire.model.User], Sequence[wire.model.Game]]]()
+
+        # Observer state
+        self.observer_enter = EventHub[wire.ObserverEnter]()
+        self.observer_leave = EventHub[wire.ObserverLeave]()
 
         # Joined a game
         self.game_joined = EventHub[Game]()
@@ -105,6 +123,12 @@ class Core(core.Core):
 
         if 'auth' not in disables:
             self.auth = parts.auth.Auth(self)
+
+        if 'lobby' not in disables:
+            self.lobby = parts.lobby.Lobby(self)
+
+        if 'room' not in disables:
+            self.room = parts.room.Room(self)
 
         if 'game' not in disables:
             self.game = parts.game.GamePart(self)

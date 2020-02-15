@@ -306,10 +306,11 @@ class GamePart(object):
     def write(self, g: ServerGame, u: Client, tag: str, data: object) -> None:
         core = self.core
         assert Au(self, u)['game'] is g
-        pkt = Ag(self, g)['data'][u].feed_send(tag, data)
+        Ag(self, g)['data'][u].feed_send(tag, data)
         gid = core.room.gid_of(g)
         u.write(wire.GameData(gid=gid, tag=tag, data=data))
-        core.events.game_data_send.emit((g, u, pkt))
+        # Nobody using for now
+        # core.events.game_data_send.emit((g, u, pkt))
 
     def current(self, u: Client) -> Optional[ServerGame]:
         g = Au(self, u)['game']

@@ -82,7 +82,11 @@ class ServerGameRunner(GameRunner):
         super().__init__()
 
     def run(self, g: Game) -> None:
+        gr = gevent.getcurrent()
+        gr.game = g
         self.game = g
+
+        g.runner = self
         g.synctag = 0
         core = self.core
 
@@ -290,11 +294,17 @@ class HumanPlayer(Player):
         self.uid = uid
         self.client = client
 
-    def reveal(self, ol: Any) -> None:
+    def reveal(self, obj: Any) -> None:
         g = self.game
         core = cast(ServerGameRunner, g.runner).core
         st = g.get_synctag()
-        core.game.write(g, self.client, 'Sync:%d' % st, ol)  # XXX encode?
+
+        if isinstance(obj, (list, tuple)):
+            encoded = [o.dump() for o in obj]
+        else:
+            encoded = obj.dump()
+
+        core.game.write(g, self.client, f'Sync:{st}', encoded)
 
 
 class NPCPlayer(Player):

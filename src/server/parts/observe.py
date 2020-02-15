@@ -116,6 +116,7 @@ class Observe(object):
         core = self.core
         g, u, pkt = ev
         gid = core.room.gid_of(g)
+        assert pkt is not None
 
         d = Endpoint.encode(wire.GameData(
             gid=gid, tag=pkt.tag, data=pkt.data

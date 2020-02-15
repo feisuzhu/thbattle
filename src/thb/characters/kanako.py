@@ -7,7 +7,7 @@ from typing import Any, Type
 # -- own --
 from thb.actions import Damage, DrawCardStage, DrawCards, DropCards, FinalizeStage, ForEach
 from thb.actions import LaunchCard, ShowCards, UserAction, migrate_cards, random_choose_card, ttags
-from thb.actions import user_choose_cards, user_choose_players, user_input
+from thb.actions import user_choose_cards, user_choose_players
 from thb.cards.base import Card, Skill, VirtualCard
 from thb.cards.classes import AttackCard, DuelCard, TreatAs, t_None
 from thb.characters.base import Character, register_character_to

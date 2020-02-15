@@ -132,19 +132,15 @@ class GameEnded(GameException):
         self.winners = winners
 
 
-class GameViralContext(ViralContext):
-    VIRAL_SEARCH = ['g', 'self']
-    game: 'Game'
-
-    def viral_import(self, g):
-        assert isinstance(g, Game)
-        self.game = g
-
-    def viral_export(self):
-        return self.game
+class GameViralContext(object):
+    def __new__(cls, *a, **k):
+        self = object.__new__(cls)
+        gr = gevent.getcurrent()
+        self.game = gr.game
+        return self
 
 
-class Game(GameObject, GameViralContext):
+class Game(GameObject):
     IS_DEBUG = False
 
     # ----- Class Variables -----
@@ -180,6 +176,12 @@ class Game(GameObject, GameViralContext):
         self._ = {}
 
         self.refresh_dispatcher()
+
+    def __repr__(self):
+        import base64
+        s = (id(self) % 1099511627689).to_bytes(8, byteorder='little')[:5]
+        s = base64.b32encode(s).decode('utf-8')
+        return f'<{self.__class__.__name__}[{s}]>'
 
     def refresh_dispatcher(self) -> None:
         self.dispatcher = self.dispatcher_cls(self)
@@ -571,7 +573,7 @@ class SyncPrimitive(GameObject):
     def sync(self, data):
         self.value = self.value.__class__(data)
 
-    def __data__(self):
+    def dump(self):
         return self.value
 
     def __repr__(self):
@@ -736,7 +738,7 @@ class GameData(object):
 
         self._in_gexpect = False
 
-    def feed_recv(self, tag: str, data: object):
+    def feed_recv(self, tag: str, data: object) -> Packet:
         if tag in self._seen:
             return
 
@@ -745,6 +747,7 @@ class GameData(object):
         self._recv.append(p)
         self._pending_recv.append(p)
         self._has_data.set()
+        return p
 
     def feed_send(self, tag: str, data: object):
         p = Packet(tag, data)

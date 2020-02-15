@@ -81,6 +81,8 @@ class GamePart(object):
         items = self._build_items(g, players, gv['items'])
         A(self, g)['items'] = items
         core.events.game_started.emit(g)
+        # Game not actually running now,
+        # UI should start it by core.game.start_game(g) manually
 
     def _game_started(self, ev: wire.GameStarted) -> wire.GameStarted:
         self._do_start_game(ev.game)
@@ -162,7 +164,7 @@ class GamePart(object):
             'params':  params,
             'players': [],
             'items':   items,
-            'data':    GameData(),
+            'data':    GameData(gid),
             'observe': False,
         }
         g._[self] = assoc
@@ -238,6 +240,13 @@ class GamePart(object):
 
     def players_of(self, g: Game) -> BatchList[Player]:
         return A(self, g)['players']
+
+    def theone_of(self, g: Game) -> Theone:
+        for p in A(self, g)['players']:
+            if isinstance(p, Theone):
+                return p
+        else:
+            raise Exception("Couldn't find Theone!")
 
     def is_dropped(self, g: Game, p: Player) -> bool:
         return A(self, g)['presence'].get(p, True)

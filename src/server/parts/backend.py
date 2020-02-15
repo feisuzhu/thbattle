@@ -123,3 +123,16 @@ class MockBackend(object):
                 'name': v['token'],
             }
         }
+
+    @_reg
+    def add_reward(v) -> Any:
+        '''
+        mutation AddReward($gid: Int!, $rewards: [GameRewardInput!]!) {
+          game {
+            addReward(gameId: $gid, rewards: $rewards) {
+              id
+            }
+          }
+        }
+        '''
+        return None

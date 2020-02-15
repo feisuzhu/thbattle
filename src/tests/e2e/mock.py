@@ -20,6 +20,31 @@ import server.core
 log = logging.getLogger('mock')
 
 
+def enable_endpoint_logging():
+    import endpoint
+    endpoint.log.setLevel(logging.DEBUG)
+
+
+class EventTap(object):
+
+    def __init__(self):
+        self._taps = {}
+
+    def __iadd__(self, hub):
+        def tapper(ev):
+            self._taps[hub] = ev
+            return ev
+        hub += tapper
+        return self
+
+    def tap_all(self, lst):
+        for h in lst:
+            self += h
+
+    def __getitem__(self, k):
+        return self._taps[k]
+
+
 class Environ(object):
     def __init__(self):
         self.pool = Pool(32)

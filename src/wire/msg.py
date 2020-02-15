@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar
+from typing_extensions import TypedDict
 
 # -- third party --
 from dataclasses import dataclass
@@ -248,12 +249,17 @@ class Auth(Message, ClientToServer):
 
 
 # ----- room -----
+class CreateRoomFlags(TypedDict):
+    match: bool
+    invite: bool
+
+
 @message
 @dataclass
 class CreateRoom(Message, ClientToServer):
-    mode: str
     name: str
-    flags: dict
+    mode: str
+    flags: CreateRoomFlags
 
 
 @message

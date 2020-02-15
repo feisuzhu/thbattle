@@ -67,7 +67,7 @@ class Card(GameObject):
         self.number     = number
         self.resides_in = resides_in
 
-    def __data__(self):
+    def dump(self):
         return dict(
             type=self.__class__.__name__,
             suit=self.suit,
@@ -196,7 +196,7 @@ class VirtualCard(Card, GameViralContext):
         self._number          = None
         self._color           = None
 
-    def __data__(self):
+    def dump(self):
         return {
             'class':  self.__class__.__name__,
             'sync_id': self.sync_id,

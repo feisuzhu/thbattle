@@ -82,6 +82,9 @@ class Character(GameObject):
     def reenable_skill(self, reason: str):
         self.disabled_skills.pop(reason, '')
 
+    def reveal(self, obj: Any) -> None:
+        self.player.reveal(obj)
+
     def __repr__(self) -> str:
         return '<Char: {}>'.format(self.__class__.__name__)
 

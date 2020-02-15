@@ -31,9 +31,21 @@ class Options(object):
 T = TypeVar('T', bound=wire.Message)
 
 
-class _ClientCommandMapping:
+class _ClientCommandMapping(dict):
+    __slots__ = ('core',)
+
+    def __init__(self, core: Core):
+        self.core = core
+        super().__init__()
+
     def __getitem__(self, k: Type[T]) -> EventHub[Tuple[Client, T]]:
-        ...
+        if k in self:
+            return dict.__getitem__(self, k)
+
+        hub = EventHub()
+        hub.name = f'{self.core}::client_command'
+        self[k] = hub
+        return hub
 
 
 class Events(object):
@@ -59,8 +71,7 @@ class Events(object):
 
         # Client send some command
         # ev = (c: Client, args: (...))
-        self.client_command: _ClientCommandMapping = \
-            cast(_ClientCommandMapping, defaultdict(lambda: EventHub()))
+        self.client_command = _ClientCommandMapping(core)
 
         # Game is created
         # ev = g: Game

@@ -35,17 +35,17 @@ class Theone(Player):
         self.game = game
         self.uid = uid
 
-    def reveal(self, obj_list: Any) -> None:
+    def reveal(self, obj: Any) -> None:
         # It's me, server will tell me what the hell these is.
         g = self.game
-        core = g.runner.core
+        core = cast(ClientGameRunner, g.runner).core
         st = g.get_synctag()
-        _, raw_data = core.game.gamedata_of(g).gexpect('Sync:%d' % st)
-        if isinstance(obj_list, (list, tuple)):
-            for o, rd in zip(obj_list, raw_data):
+        _, raw = core.game.gamedata_of(g).gexpect(f'Sync:{st}')
+        if isinstance(obj, (list, tuple)):
+            for o, rd in zip(obj, raw):
                 o.sync(rd)
         else:
-            obj_list.sync(raw_data)  # it's single obj actually
+            obj.sync(raw)
 
 
 class Someone(Player):
@@ -69,9 +69,13 @@ class ClientGameRunner(GameRunner):
         super().__init__()
 
     def run(self, g: Game) -> None:
+        gr = gevent.getcurrent()
+        gr.game = g
         self.game = g
-        g.random = Random()
+
+        g.runner = self
         g.synctag = 0
+        g.random = Random()
         core = self.core
         core.events.game_started.emit(g)
         params = core.game.params_of(g)
@@ -148,14 +152,14 @@ class ClientGameRunner(GameRunner):
 
         inputproc: Optional[Greenlet] = None
 
-        me = Game.me(g)
+        me = core.game.theone_of(g)
 
         def input_func(st: str) -> None:
             my = ilets[me]
             with TimeLimitExceeded(timeout + 1, False):
                 _, my = g.emit_event('user_input', (trans, my))
 
-            core.game.write(cast(Game, g), tag + str(st), my.data())
+            core.game.write(g, tag + str(st), my.data())
 
         results = {p: None for p in players}
 

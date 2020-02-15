@@ -10,6 +10,8 @@ import sys
 # -- code --
 class ViralContext(object):
     VIRAL_SEARCH = ['self']
+    CONTINUE = object()
+
     _viral_mro_cache = None
 
     def __new__(cls, *a, **k):

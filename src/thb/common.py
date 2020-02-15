@@ -35,7 +35,7 @@ class CharChoice(GameViralContext):
     def __init__(self, char_cls=None, akari=False) -> None:
         self.set(char_cls, akari)
 
-    def __data__(self):
+    def dump(self):
         return self.char_cls.__name__ if not self.akari else 'Akari'
 
     def sync(self, data) -> None:
@@ -49,10 +49,11 @@ class CharChoice(GameViralContext):
 
     def set(self, char_cls, akari=False) -> None:
         self.char_cls = char_cls
+        g = self.game
 
         if akari:
             self.akari = True
-            if self.game.CLIENT:
+            if g.is_client_side():
                 from thb import characters
                 self.char_cls = characters.akari.Akari
 
@@ -66,15 +67,12 @@ class CharChoice(GameViralContext):
 T = TypeVar('T', bound=Enum)
 
 
-class PlayerRole(Generic[T]):
+class PlayerRole(Generic[T], GameViralContext):
     _role: T
 
     def __init__(self, typ: Type[T]):
         self._typ = typ
         self._role = typ(0)
-
-    def __data__(self) -> Any:
-        return self._role.value
 
     def __str__(self) -> str:
         return self._role.name
@@ -84,6 +82,9 @@ class PlayerRole(Generic[T]):
             return False
 
         return self._role == other
+
+    def dump(self) -> Any:
+        return self._role.value
 
     def sync(self, data) -> None:
         self._role = self._typ(data)
@@ -97,7 +98,7 @@ class PlayerRole(Generic[T]):
 
     def set(self, t: T) -> None:
         assert isinstance(t, self._typ)
-        if Game.SERVER:
+        if self.game.is_server_side():
             self._role = self._typ(t)
 
     def get(self) -> T:
@@ -150,7 +151,7 @@ def build_choices(g: THBattle,
     testing = list(Character.classes[i] for i in testing_lst)
     candidates, _ = partition(lambda c: c not in testing, candidates)
 
-    if g.SERVER:
+    if g.is_server_side():
         candidates = list(candidates)
         g.random.shuffle(candidates)
     else:
@@ -183,7 +184,7 @@ def build_choices(g: THBattle,
             result[p].append(CharChoice(candidates.pop()))
 
     # ----- akaris -----
-    if g.SERVER:
+    if g.is_server_side():
         rest = candidates
     else:
         rest = [None] * len(candidates)
