@@ -101,7 +101,7 @@ class Endpoint(object):
                 except Exception:
                     raise DecodeError
 
-                return fmt, msgpack.unpackb(inflated, encoding='utf-8', ext_hook=lambda code, data: None)
+                return fmt, msgpack.unpackb(inflated, raw=False, ext_hook=lambda code, data: None)
             else:
                 raise DecodeError
         except (ValueError, msgpack.UnpackValueError):

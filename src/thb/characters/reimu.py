@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.base import InterruptActionFlow
 from thb.actions import ActionStage, AskForCard, Damage, DrawCards, FinalizeStage, LaunchCard
-from thb.actions import PlayerRevive, UserAction, migrate_cards, ttags
+from thb.actions import PlayerRevive, PlayerTurn, UserAction, migrate_cards, ttags
 from thb.cards.base import Card, Skill
 from thb.cards.classes import AttackCard, GreenUFOSkill, RejectCard, TreatAs, UFOSkill, t_None
 from thb.characters.base import Character, register_character_to
@@ -168,7 +169,8 @@ class ReimuExterminateHandler(THBEventHandler):
             if not act.source: return act
             src, tgt = act.source, act.target
             g = self.game
-            if src is not g.current_player: return act
+            current = PlayerTurn.get_current(g).target
+            if src is not current: return act
             if src is tgt: return act
             ttags(src)['did_damage'] = True
 
@@ -176,12 +178,12 @@ class ReimuExterminateHandler(THBEventHandler):
             if not act.source: return act
             src, tgt = act.source, act.target
             g = self.game
-            cur = g.current_player
+            cur = PlayerTurn.get_current(g).target
             if not cur: return act
             if not tgt.has_skill(ReimuExterminate): return act
             if cur.dead: return act
             if cur is tgt: return act
-            g.process_action(ReimuExterminateAction(tgt, g.current_player, 'damage'))
+            g.process_action(ReimuExterminateAction(tgt, cur, 'damage'))
 
         elif evt_type == 'action_apply' and isinstance(act, FinalizeStage):
             tgt = act.target
@@ -192,7 +194,8 @@ class ReimuExterminateHandler(THBEventHandler):
                 return act
 
             g = self.game
-            for actor in g.players.rotate_to(g.current_player):
+            current = PlayerTurn.get_current(g).target
+            for actor in g.players.rotate_to(current):
                 if tgt is actor:
                     continue
 
@@ -216,7 +219,8 @@ class ReimuClearAction(UserAction):
         g = self.game
         g.process_action(DrawCards(src, 1))
         g.process_action(DrawCards(tgt, 1))
-        if g.current_player is src:
+        current = PlayerTurn.get_current(g).target
+        if current is src:
             return True
         else:
             for act in reversed(g.action_stack):

@@ -13,10 +13,6 @@ from thb.characters.base import Character
 UI_META: Dict[type, Any] = {}
 
 
-def G():
-    return GameViralContext().game
-
-
 class UIMetaAccessor(object):
     def __init__(self, cls):
         self.for_cls = cls
@@ -25,7 +21,7 @@ class UIMetaAccessor(object):
     def __getattr__(self, name):
         for cls in self.mro:
             try:
-                val = getattr(UI_META[cls], name)
+                val = getattr(UI_META[cls](), name)
                 return val
             except AttributeError:
                 pass
@@ -39,9 +35,12 @@ def ui_meta(for_cls: type):
         if name in UI_META:
             raise Exception('%s ui_meta redefinition!' % name)
 
+        assert cls.__bases__ == (object,)
+        cls.__bases__ = (GameViralContext,)
+
         # Type info is handled by plugin
         for_cls.ui_meta = UIMetaAccessor(for_cls)  # type: ignore
-        UI_META[for_cls] = cls()
+        UI_META[for_cls] = cls
         return cls
     return decorate
 

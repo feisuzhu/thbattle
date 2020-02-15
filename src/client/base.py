@@ -64,14 +64,13 @@ class ClientGameRunner(GameRunner):
     game: Game
     core: Core
 
-    def __init__(self, core: Core):
+    def __init__(self, core: Core, g: Game):
         self.core = core
+        self.game = g
         super().__init__()
 
-    def run(self, g: Game) -> None:
-        gr = gevent.getcurrent()
-        gr.game = g
-        self.game = g
+    def _run(self) -> None:
+        g = self.game
 
         g.runner = self
         g.synctag = 0
@@ -100,18 +99,6 @@ class ClientGameRunner(GameRunner):
         core = self.core
         return core.game.is_dropped(self.game, p)
 
-    @property
-    def me(g) -> Theone:  # FIXME not working
-        core = g.core
-        pl = core.game.players_of(g)
-        uid = core.auth.uid
-        for p in pl:
-            if p.uid == uid:
-                assert isinstance(p, Theone)
-                return p
-        else:
-            raise Exception("Can't find Theone!")
-
     def is_aborted(self) -> bool:
         return False
 
@@ -120,7 +107,7 @@ class ClientGameRunner(GameRunner):
 
     def user_input(
         self,
-        players: Sequence[Any],
+        entities: Sequence[Any],
         inputlet: Inputlet,
         timeout: int = 25,
         type: str = 'single',
@@ -128,16 +115,16 @@ class ClientGameRunner(GameRunner):
     ):
 
         assert type in ('single', 'all', 'any')
-        assert not type == 'single' or len(players) == 1
+        assert not type == 'single' or len(entities) == 1
 
         timeout = max(0, timeout)
 
         inputlet.timeout = timeout
-        players = list(players)
+        entities = list(entities)
 
         if not trans:
-            with InputTransaction(inputlet.tag(), players) as trans:
-                return self.user_input(players, inputlet, timeout, type, trans)
+            with InputTransaction(inputlet.tag(), entities) as trans:
+                return self.user_input(entities, inputlet, timeout, type, trans)
 
         g = self.game
         assert isinstance(g, Game)
@@ -146,39 +133,52 @@ class ClientGameRunner(GameRunner):
         t = {'single': '', 'all': '&', 'any': '|'}[type]
         tag = 'I{0}:{1}:'.format(t, inputlet.tag())
 
-        ilets = {p: copy(inputlet) for p in players}
-        for p in players:
-            ilets[p].actor = p
+        ilets = {e: copy(inputlet) for e in entities}
+        for e in entities:
+            ilets[e].actor = e
 
         inputproc: Optional[Greenlet] = None
 
         me = core.game.theone_of(g)
 
+        results = {e: None for e in entities}
+
+        synctags = {e: g.get_synctag() for e in entities}
+        synctags_r = {v: k for k, v in synctags.items()}
+
+        def get_player(e):
+            if isinstance(e, Player):
+                return e
+            elif hasattr(e, 'get_player'):
+                p = e.get_player()
+                assert isinstance(p, Player), f'{e}.get_player() == {p}, not a Player'
+                return p
+            else:
+                raise Exception(f'Do not know how to process {e}')
+
+        e2p = {e: get_player(e) for e in entities}
+        p2e = {p: e for e, p in e2p.items()}
+
         def input_func(st: str) -> None:
-            my = ilets[me]
+            my = ilets[p2e[me]]
             with TimeLimitExceeded(timeout + 1, False):
                 _, my = g.emit_event('user_input', (trans, my))
 
-            core.game.write(g, tag + str(st), my.data())
-
-        results = {p: None for p in players}
-
-        synctags = {p: g.get_synctag() for p in players}
-        synctags_r = {v: k for k, v in synctags.items()}
+            core.game.write(g, f'{tag}{st}', my.data())
 
         try:
-            for p in players:
-                g.emit_event('user_input_start', (trans, ilets[p]))
+            for e in entities:
+                g.emit_event('user_input_start', (trans, ilets[e]))
 
-            if me in players:  # me involved
+            if me in p2e:  # me involved
                 if not core.game.is_observe(g):
-                    inputproc = core.runner.spawn(input_func, synctags[me])
+                    inputproc = core.runner.spawn(input_func, synctags[p2e[me]])
 
-            orig_players = players[:]
-            inputany_player = None
+            orig_entities = entities[:]
+            inputany_entity = None
 
             g.emit_event('user_input_begin_wait_resp', trans)  # for replay speed control
-            while players:
+            while entities:
                 # should be [tag, <Data for Inputlet.parse>]
                 # tag likes 'RI?:ChooseOption:2345'
                 tag_, data = core.game.gamedata_of(g).gexpect('R%s*' % tag)
@@ -187,9 +187,9 @@ class ClientGameRunner(GameRunner):
                     log.warning('Unexpected sync tag: %d', st)
                     continue
 
-                p = synctags_r[st]
+                e = synctags_r[st]
 
-                my = ilets[p]
+                my = ilets[e]
 
                 try:
                     rst = my.parse(data)
@@ -201,20 +201,20 @@ class ClientGameRunner(GameRunner):
                     # ----- END FOR DEBUG -----
                     rst = None
 
-                rst = my.post_process(p, rst)
+                rst = my.post_process(e, rst)
 
                 g.emit_event('user_input_finish', (trans, my, rst))
 
-                players.remove(p)
-                results[p] = rst
+                entities.remove(e)
+                results[e] = rst
 
                 # also remove from synctags
                 del synctags_r[st]
-                del synctags[p]
+                del synctags[e]
 
                 if type == 'any' and rst is not None:
-                    assert not inputany_player
-                    inputany_player = p
+                    assert not inputany_entity
+                    inputany_entity = e
 
             g.emit_event('user_input_end_wait_resp', trans)  # for replay speed control
 
@@ -222,16 +222,16 @@ class ClientGameRunner(GameRunner):
             inputproc and [inputproc.kill(), inputproc.join()]
 
         if type == 'single':
-            return results[orig_players[0]]
+            return results[orig_entities[0]]
 
         elif type == 'any':
-            if not inputany_player:
+            if not inputany_entity:
                 return None, None
 
-            return inputany_player, results[inputany_player]
+            return inputany_entity, results[inputany_entity]
 
         elif type == 'all':
-            # return OrderedDict([(i, results[i]) for i in orig_players])
-            return {i: results[i] for i in orig_players}
+            # return OrderedDict([(i, results[i]) for i in orig_entities])
+            return {e: results[e] for e in orig_entities}
 
         assert False, 'WTF?!'

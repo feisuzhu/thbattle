@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import Damage, DrawCards, ForEach, LaunchCard, PlayerDeath, UserAction
+from thb.actions import Damage, DrawCards, ForEach, LaunchCard, PlayerDeath, UserAction, PlayerTurn
 from thb.actions import user_choose_players
 from thb.cards.base import Skill
 from thb.cards.classes import AttackCard, Duel, InstantSpellCardAction, Reject, TreatAs, t_None
@@ -22,7 +22,8 @@ class ReversedScales(TreatAs, Skill):
         if not cl or len(cl) != 1:
             return False
 
-        if self.game.current_player is self.player:
+        g = self.game
+        if PlayerTurn.get_current(g).target is self.player:
             return False
 
         return cl[0].resides_in.type in ('cards', 'showncards')
@@ -150,7 +151,8 @@ class SadistHandler(THBEventHandler):
             if not src or not src.has_skill(Sadist):
                 return act
 
-            dist = LaunchCard.calc_distance(src, AttackCard())
+            g = self.game
+            dist = LaunchCard.calc_distance(g, src, AttackCard())
             candidates = [k for k, v in dist.items() if v <= 0 and k is not src]
 
             if not candidates:

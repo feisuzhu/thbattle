@@ -40,5 +40,20 @@ class TestStart2v2(object):
         gevent.idle()
         [c.game.start_game(t[c.events.game_started]) for c in c1234]
         gevent.idle()
-        gevent.sleep(3)
-        1/0
+        gevent.sleep(10)
+        # import sys
+        # print('===== C1 =====', file=sys.stderr)
+        # c1.runner.pool.kill(Exception('Force'))
+        # gevent.idle()
+        # print('===== C2 =====', file=sys.stderr)
+        # c2.runner.pool.kill(Exception('Force'))
+        # gevent.idle()
+        # print('===== C3 =====', file=sys.stderr)
+        # c3.runner.pool.kill(Exception('Force'))
+        # gevent.idle()
+        # print('===== C4 =====', file=sys.stderr)
+        # c4.runner.pool.kill(Exception('Force'))
+        # gevent.idle()
+        # print('===== S =====', file=sys.stderr)
+        # s.runner.pool.kill(Exception('Force'))
+        gevent.idle()

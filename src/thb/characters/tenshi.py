@@ -145,7 +145,7 @@ class ScarletPerceptionHandler(THBEventHandler):
 
             if pl:
                 p = pl[0]
-                dist = LaunchCard.calc_distance(p, ScarletPerception(p))
+                dist = LaunchCard.calc_distance(g, p, ScarletPerception(p))
                 # 若满足距离限制
                 if dist.get(tgt, 1) <= 0:
                     # 执行获得牌的动作

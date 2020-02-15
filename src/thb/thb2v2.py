@@ -39,15 +39,15 @@ class DeathHandler(THBEventHandler):
         tgt = act.target
 
         tgt = act.target
-        dead = lambda p: p.dead or p.dropped or p is tgt
+        dead = lambda ch: ch.dead or g.is_dropped(ch.player) or ch is tgt
 
         # see if game ended
-        force1, force2 = g.forces
-        if all(dead(p) for p in force1):
-            raise GameEnded(force2)
+        force1, force2 = list(g.forces.values())
+        if all(dead(ch) for ch in force1):
+            raise GameEnded(force2.player)
 
-        if all(dead(p) for p in force2):
-            raise GameEnded(force1)
+        if all(dead(ch) for ch in force2):
+            raise GameEnded(force1.player)
 
         return act
 
@@ -76,7 +76,7 @@ class HeritageHandler(THBEventHandler):
 
         g = self.game
         tgt = act.target
-        for f in g.forces:
+        for f in g.forces.values():
             if tgt in f:
                 break
         else:

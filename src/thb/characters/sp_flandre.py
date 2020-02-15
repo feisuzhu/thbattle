@@ -53,7 +53,7 @@ class DestructionImpulseHandler(THBEventHandler):
             g = self.game
             if ttags(tgt)['destruction_tag']: return act
 
-            dist = LaunchCard.calc_distance(tgt, DestructionImpulse(tgt))
+            dist = LaunchCard.calc_distance(g, tgt, DestructionImpulse(tgt))
             dist.pop(tgt, '')
 
             for k in dist:

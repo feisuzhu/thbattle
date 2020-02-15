@@ -77,14 +77,13 @@ class ServerGameRunner(GameRunner):
     game: Game
     core: Core
 
-    def __init__(self, core: Core):
+    def __init__(self, core: Core, g: Game):
         self.core = core
+        self.game = g
         super().__init__()
 
-    def run(self, g: Game) -> None:
-        gr = gevent.getcurrent()
-        gr.game = g
-        self.game = g
+    def run(self) -> None:
+        g = self.game
 
         g.runner = self
         g.synctag = 0
@@ -120,15 +119,6 @@ class ServerGameRunner(GameRunner):
             g.ended = True
             core.events.game_ended.emit(g)
 
-    # def __repr__(g) -> str:
-    #     core = g.core
-    #     try:
-    #         gid = str(core.room.gid_of(g))
-    #     except Exception:
-    #         gid = 'X'
-
-    #     return '%s:%s' % (g.__class__.__name__, gid)
-
     def get_side(self) -> str:
         return 'server'
 
@@ -140,7 +130,7 @@ class ServerGameRunner(GameRunner):
         elif isinstance(p, NPCPlayer):
             return False
         else:
-            assert False, 'WTF!'
+            assert False, f'WTF: {p} is not a Player'
 
     def pause(self, time: float) -> None:
         gevent.sleep(time)
@@ -151,61 +141,74 @@ class ServerGameRunner(GameRunner):
 
     def user_input(
         self,
-        players: Sequence[Any],
+        entities: Sequence[Any],
         inputlet: Inputlet,
         timeout: int = 25,
         type: str = 'single',
         trans: Optional[InputTransaction] = None,
     ) -> Any:
         if not trans:
-            with InputTransaction(inputlet.tag(), players) as trans:
-                return self.user_input(players, inputlet, timeout, type, trans)
+            with InputTransaction(inputlet.tag(), entities) as trans:
+                return self.user_input(entities, inputlet, timeout, type, trans)
 
-        assert players
+        assert entities
         assert type in ('single', 'all', 'any')
-        assert not type == 'single' or len(players) == 1
+        assert not type == 'single' or len(entities) == 1
 
         timeout = max(0, timeout)
 
         inputlet.timeout = timeout
         g = cast(Game, trans.game)
 
-        players = list(players)
+        entities = list(entities)
 
         t = {'single': '', 'all': '&', 'any': '|'}[type]
         tag = 'I{0}:{1}:'.format(t, inputlet.tag())
 
-        ilets = {p: copy(inputlet) for p in players}
-        for p in players:
-            ilets[p].actor = p
+        ilets = {e: copy(inputlet) for e in entities}
+        for e in entities:
+            ilets[e].actor = e
 
-        results = {p: None for p in players}
-        synctags = {p: g.get_synctag() for p in players}
+        results = {e: None for e in entities}
+        synctags = {e: g.get_synctag() for e in entities}
 
-        orig_players = players[:]
+        orig_entities = entities[:]
         waiters = InputWaiterGroup()
 
-        try:
-            inputany_player = None
+        def get_player(e):
+            if isinstance(e, Player):
+                return e
+            elif hasattr(e, 'get_player'):
+                p = e.get_player()
+                assert isinstance(p, Player), f'{e}.get_player() == {p}, not a Player'
+                return p
+            else:
+                raise Exception(f'Do not know how to process {e}')
 
-            for p in players:
+        e2p = {e: get_player(e) for e in entities}
+        p2e = {p: e for e, p in e2p.items()}
+
+        try:
+            inputany_entity = None
+
+            for e in entities:
+                p = e2p[e]
                 if isinstance(p, NPCPlayer):
-                    ilet = ilets[p]
+                    ilet = ilets[e]
                     p.handle_user_input(trans, ilet)
-                    waiters.start(Greenlet(lambda v: v, ilet.data()))
+                    waiters.start(Greenlet(lambda: p, ilet.data()))
                 else:
-                    t = tag + str(synctags[p])
+                    t = tag + str(synctags[e])
                     waiters.spawn(self, p, t)
 
-            for p in players:
-                g.emit_event('user_input_start', (trans, ilets[p]))
+            for e in entities:
+                g.emit_event('user_input_start', (trans, ilets[e]))
 
             bottom_halves: Any = []  # FIXME: proper typing
 
             def flush() -> None:
                 core = self.core
                 for t, data, trans, my, rst in bottom_halves:
-                    # for u in g.players.client:
                     for u in core.room.users_of(g):
                         core.game.write(g, u, t, data)
 
@@ -218,9 +221,11 @@ class ServerGameRunner(GameRunner):
                     rst = w.get()
                     p, data = w.player, rst
                 except Exception:
+                    log.exception('Error waiting user input, returning default')
                     p, data = w.player, None
 
-                my = ilets[p]
+                e = p2e[p]
+                my = ilets[e]
 
                 try:
                     rst = my.parse(data)
@@ -232,20 +237,20 @@ class ServerGameRunner(GameRunner):
                     # ----- END FOR DEBUG -----
                     rst = None
 
-                rst = my.post_process(p, rst)
+                rst = my.post_process(e, rst)
 
                 bottom_halves.append((
-                    'R{}{}'.format(tag, synctags[p]), data, trans, my, rst
+                    'R{}{}'.format(tag, synctags[e]), data, trans, my, rst
                 ))
 
-                players.remove(p)
-                results[p] = rst
+                entities.remove(e)
+                results[e] = rst
 
                 if type != 'any':
                     flush()
 
                 if type == 'any' and rst is not None:
-                    inputany_player = p
+                    inputany_entity = e
                     break
 
         except TimeLimitExceeded:
@@ -257,31 +262,30 @@ class ServerGameRunner(GameRunner):
         # flush bottom halves
         flush()
 
-        # timed-out players
-        for p in players:
-            my = ilets[p]
+        # timed-out entities
+        for e in entities:
+            my = ilets[e]
             rst = my.parse(None)
-            rst = my.post_process(p, rst)
-            results[p] = rst
+            rst = my.post_process(e, rst)
+            results[e] = rst
             g.emit_event('user_input_finish', (trans, my, rst))
             core = self.core
-            t = 'R{}{}'.format(tag, synctags[p])
-            # for u in g.players.client:
+            t = 'R{}{}'.format(tag, synctags[e])
             for u in core.room.users_of(g):
                 core.game.write(g, u, t, None)
 
         if type == 'single':
-            return results[orig_players[0]]
+            return results[orig_entities[0]]
 
         elif type == 'any':
-            if not inputany_player:
+            if not inputany_entity:
                 return None, None
 
-            return inputany_player, results[inputany_player]
+            return inputany_entity, results[inputany_entity]
 
         elif type == 'all':
-            # return OrderedDict([(p, results[p]) for p in orig_players])
-            return {p: results[p] for p in orig_players}
+            # return OrderedDict([(p, results[p]) for p in orig_entities])
+            return {e: results[e] for e in orig_entities}
 
         assert False, 'WTF?!'
 

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import DrawCards, ForEach, LaunchCard, UserAction
+from thb.actions import DrawCards, ForEach, LaunchCard, PlayerTurn, UserAction
 from thb.cards.base import Skill
 from thb.cards.classes import AttackCard, DollControlCard, Heal, InstantSpellCardAction, RejectCard
 from thb.cards.classes import t_OtherOne
@@ -132,7 +133,8 @@ class ShikigamiHandler(THBEventHandler):
             if not tgt or tgt.dead: return arg
 
             g = self.game
-            if g.current_player is not src: return arg
+            current = PlayerTurn.get_current(g).target
+            if current is not src: return arg
 
             origin = src if 'shikigami_tag' in src.tags else tgt
             if origin.tags['shikigami_tag'] != origin.tags['turn_count']:

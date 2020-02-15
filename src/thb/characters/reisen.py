@@ -84,13 +84,14 @@ class DiscarderHandler(THBEventHandler):
             src = act.source
             if not src.has_skill(Discarder): return act
             g = self.game
-            if src is not g.current_player: return act
+            current = PlayerTurn.get_current(g).target
+            if src is not current: return act
 
             self.card = c = act.card
             if not c.is_card(PhysicalCard): return act
             if not c.is_card(AttackCard): raise DiscarderAttackOnly
 
-            dist = LaunchCard.calc_distance(src, Discarder(src))
+            dist = LaunchCard.calc_distance(g, src, Discarder(src))
             dist.pop(src, '')
             nearest = max(min(dist.values()), 0)
             avail = {p for p in dist if dist[p] <= nearest}

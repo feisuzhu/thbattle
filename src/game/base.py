@@ -10,7 +10,7 @@ import logging
 import random
 
 # -- third party --
-from gevent import Timeout
+from gevent import Timeout, Greenlet
 from gevent.event import Event
 from mypy_extensions import TypedDict
 import gevent
@@ -137,6 +137,7 @@ class GameViralContext(object):
         self = object.__new__(cls)
         gr = gevent.getcurrent()
         self.game = gr.game
+        self._ = {}
         return self
 
 
@@ -188,14 +189,14 @@ class Game(GameObject):
 
     def user_input(
         self,
-        players: Sequence[Any],
+        entities: Sequence[Any],
         inputlet: Inputlet,
         timeout: int = 25,
         type: str = 'single',
         trans: Optional[InputTransaction] = None,
     ):
         return self.runner.user_input(
-            players, inputlet, timeout, type, trans
+            entities, inputlet, timeout, type, trans
         )
 
     def emit_event(self, evt_type: str, data: Any) -> Any:
@@ -296,18 +297,18 @@ class Game(GameObject):
         raise GameError('Abstract')
 
 
-class GameRunner(object):
+class GameRunner(Greenlet):
     '''
     The GameRunner class,
     Provide interfaces to game environment
     '''
 
-    def run(self, g: Game) -> None:
+    def _run(self) -> None:
         raise GameError('Abstract')
 
     def user_input(
         self,
-        players: Sequence[Any],
+        entities: Sequence[Any],
         inputlet: Inputlet,
         timeout: int = 25,
         type: str = 'single',
@@ -342,6 +343,7 @@ class EventHandler(GameObject):
 
     def __init__(self, g: Game):
         self.game = g
+        self._ = {}
 
     def handle(self, evt_type: str, data: Any):
         raise GameError('Override handle function to implement EventHandler logics!')
@@ -525,7 +527,7 @@ class EventDispatcher(GameObject):
         return ehs
 
 
-class Action(GameObject, GameViralContext, AssociatedDataViralContext):
+class Action(GameObject, GameViralContext):
     cancelled = False
     done = False
     invalid = False

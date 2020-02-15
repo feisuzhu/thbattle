@@ -78,5 +78,12 @@ class CoreRunner(object):
             gr.link_exception(lambda gr: core.crash(gr.exception))
         return gr
 
+    def start(self, gr):
+        core = self.core
+        self.pool.start(gr)
+        if self._paranoid:
+            gr.link_exception(lambda gr: core.crash(gr.exception))
+        return gr
+
     def shutdown(self) -> None:
         self.pool.kill()

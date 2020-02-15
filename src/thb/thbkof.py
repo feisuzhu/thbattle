@@ -56,7 +56,7 @@ class DeathHandler(THBEventHandler):
 
 class KOFCharacterSwitchHandler(THBEventHandler):
     interested = ['action_after', 'action_before', 'action_stage_action']
-    game: 'THBattleKOF'
+    game: THBattleKOF
 
     def handle(self, evt_type, act):
         cond = evt_type in ('action_before', 'action_after')

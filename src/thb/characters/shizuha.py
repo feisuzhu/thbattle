@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, UserAction
+from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, UserAction, PlayerTurn
 from thb.actions import random_choose_card, user_choose_players
 from thb.cards.base import Skill, VirtualCard
 from thb.cards.classes import t_None
@@ -111,7 +111,11 @@ class DecayDrawCardHandler(THBEventHandler):
             return arg
 
         g = self.game
-        me = getattr(g, 'current_player', None)
+        try:
+            me = PlayerTurn.get_current(g).target
+        except IndexError:
+            return arg
+
         if me is None: return arg
         if me.dead: return arg
         if not me.has_skill(Decay): return arg
@@ -162,9 +166,9 @@ class DecayDamageHandler(THBEventHandler):
                 return act
 
             g = self.game
-            if g.current_player is tgt: return act
-            if not g.current_player: return act
-            g.process_action(DecayAction(src, g.current_player))
+            cur = PlayerTurn.get_current(g).target
+            if cur is tgt: return act
+            g.process_action(DecayAction(src, cur))
 
         elif evt_type == 'action_before' and isinstance(act, DropCardStage):
             tgt = act.target

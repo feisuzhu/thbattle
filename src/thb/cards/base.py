@@ -3,8 +3,8 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import deque
-from typing import Any, ClassVar, Dict, Iterable, List, Mapping, Optional, Sequence, TYPE_CHECKING
-from typing import Tuple, Type
+from typing import Any, ClassVar, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple
+from typing import Type, Union
 from weakref import WeakValueDictionary
 import itertools
 import logging
@@ -208,7 +208,7 @@ class VirtualCard(Card, GameViralContext):
         return False
 
     @classmethod
-    def unwrap(cls, vcards: Iterable[Card]) -> List[PhysicalCard]:
+    def unwrap(cls, vcards: Iterable[Card]) -> List[Union[PhysicalCard, HiddenCard]]:
         lst: List[PhysicalCard] = []
         sl = list(vcards)
 
@@ -217,7 +217,7 @@ class VirtualCard(Card, GameViralContext):
             if isinstance(s, VirtualCard):
                 sl.extend(s.associated_cards)
             else:
-                assert isinstance(s, PhysicalCard)
+                assert isinstance(s, (PhysicalCard, HiddenCard))
                 lst.append(s)
 
         return lst

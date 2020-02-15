@@ -12,7 +12,7 @@ import random
 # -- own --
 from game.base import BootstrapAction, Game, GameItem, InputTransaction, InterruptActionFlow, NPC
 from game.base import Player
-from thb.actions import ActionStage, ActionStageLaunchCard, CardChooser, DrawCards, DropCards
+from thb.actions import ActionStage, ActionStageLaunchCard, CardChooser, DrawCards, DropCards, GenericAction
 from thb.actions import FatetellStage, LaunchCard, PlayerDeath, PlayerTurn, RevealRole
 from thb.actions import ask_for_action, migrate_cards
 from thb.cards.base import Card, Deck
@@ -162,26 +162,25 @@ class THBattleNewbieBootstrap(BootstrapAction):
 
     def apply_action(self):
         g = self.game
-        pl = self.players
 
         from thb.characters.meirin import Meirin
         from thb.characters.cirno import Cirno
-        from thb.characters.sakuya import Sakuya
 
         # ----- Init -----
+        pl = self.players
         g.deck = Deck(g)
 
-        cirno_p, meirin_p = g.players
+        cirno_p, meirin_p = pl
 
         g.roles = {
             cirno_p: PlayerRole(THBNewbieRole),
             meirin_p: PlayerRole(THBNewbieRole),
         }
-        cirno_p.set(THBNewbieRole.BAKA)
-        meirin_p.set(THBNewbieRole.NEWBIE)
+        g.roles[cirno_p].set(THBNewbieRole.BAKA)
+        g.roles[meirin_p].set(THBNewbieRole.NEWBIE)
 
-        g.process_action(RevealRole(cirno_p, pl))
-        g.process_action(RevealRole(meirin_p, pl))
+        g.process_action(RevealRole(g.roles[cirno_p], pl))
+        g.process_action(RevealRole(g.roles[meirin_p], pl))
 
         cirno = Cirno(cirno_p)
         meirin = Meirin(meirin_p)
@@ -194,6 +193,33 @@ class THBattleNewbieBootstrap(BootstrapAction):
 
         g.emit_event('game_begin', g)
         # ----- End Init -----
+
+        pt = PlayerTurn(cirno)
+        pt.pending_stages = [ScriptedStage]
+        g.process_action(pt)
+
+        for i, idx in enumerate(cycle([1, 0])):
+            p = g.players[idx]
+            if i >= 6000: break
+            try:
+                g.process_action(PlayerTurn(p))
+            except InterruptActionFlow:
+                pass
+
+        return True
+
+
+class ScriptedStage(GenericAction):
+    def __init__(self, target):
+        self.source = target
+        self.target = target
+
+    def apply_action(self):
+        g = self.game
+
+        from thb.characters.meirin import Meirin
+        from thb.characters.cirno import Cirno
+        from thb.characters.sakuya import Sakuya
 
         def dialog(character, dialog, voice):
             if voice is not None:
@@ -216,6 +242,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
             dialog(Meirin, '喂剧本不是这么写的啊，重来重来！', 1)
 
         cirno, meirin = g.players  # update
+        turn = PlayerTurn.get_current(g)
 
         dialog(Meirin, '一个pad，两个pad，三个pad……', 2)
         dialog(Sakuya, '（唰', None)
@@ -227,7 +254,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
         dialog(Meirin, '前面998次你也都是这么说的……好了，废话少说，放马过来吧！', 5)
         dialog(Cirno, '正合我意！', 2)
 
-        g.current_player = cirno
+        turn.target = cirno
 
         c = g.deck.inject(AttackCard, Card.SPADE, 1)
         g.process_action(DrawCards(cirno, 1))
@@ -245,7 +272,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
         dialog(Meirin, '我可什么都没说！', 9)
 
         # 红美铃的回合【目的:使用基本牌（麻薯，弹幕）】
-        g.current_player = meirin
+        turn.target = meirin
         c = g.deck.inject(HealCard, Card.HEART, 2)
         g.process_action(DrawCards(meirin, 1))
 
@@ -276,7 +303,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
         dialog(Cirno, '喂！悄悄话说的也太大声了！！', 5)
 
         # 琪露诺的回合【目的:使用基本牌（擦弹）】【使用太极（1）】
-        g.current_player = cirno
+        turn.target = cirno
         g.deck.inject(HealCard, Card.HEART, 4)
         g.process_action(DrawCards(cirno, 1))
         while True:
@@ -336,7 +363,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
         dialog(Meirin, '是！', 18)
 
         # 红美铃的回合【目的:使用延时符卡（冻青蛙），使用太极（2），使用红色UFO】'
-        g.current_player = meirin
+        turn.target = meirin
         frozen = g.deck.inject(FrozenFrogCard, Card.SPADE, 8)
         g.process_action(DrawCards(meirin, 1))
 
@@ -425,7 +452,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
             dialog(Meirin, '那么，把这张|G冻青蛙|r也贴上去吧！', 31)
             g.process_action(ActionStage(meirin))
 
-        g.current_player = cirno
+        turn.target = cirno
         g.deck.inject(SinsackCard, Card.SPADE, 13)
         g.process_action(FatetellStage(cirno))
 
@@ -449,7 +476,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
         dialog(Sakuya, '真是的，你之前的998局到底是怎么赢的……', 16)
 
         # 红美铃的回合【目的:使用符卡（城管执法，好人卡）】
-        g.current_player = meirin
+        turn.target = meirin
 
         demolition = g.deck.inject(DemolitionCard, Card.CLUB, 2)
         g.process_action(DrawCards(meirin, 1))
@@ -517,7 +544,7 @@ class THBattleNewbieBootstrap(BootstrapAction):
         dialog(Meirin, '咦？咲夜，这张牌好奇怪……为什么是负面的效果？', 42)
         dialog(Sakuya, '是|G恶心丸|r啊……你的运气不太好哦。不过尽管说是一张负面效果的牌，但是看发动条件的话，是可以恶心到别人的。情况允许的话就留在手里好了，直接吃掉肯定是不合算的。', 23)
 
-        g.current_player = cirno
+        turn.target = cirno
         demolition = g.deck.inject(DemolitionCard, Card.CLUB, 4)
         g.process_action(DrawCards(cirno, 1))
         dialog(Cirno, '可恶，你到底有没有认真的在打啊！看我双倍奉还！', 20)
@@ -590,16 +617,6 @@ class THBattleNewbieBootstrap(BootstrapAction):
         g.process_action(Heal(meirin, meirin, meirin.maxlife - meirin.life))
         g.process_action(DrawCards(cirno, 4))
         g.process_action(DrawCards(meirin, 4))
-
-        for i, idx in enumerate(cycle([1, 0])):
-            p = g.players[idx]
-            if i >= 6000: break
-            try:
-                g.process_action(PlayerTurn(p))
-            except InterruptActionFlow:
-                pass
-
-        return True
 
 
 class THBattleNewbie(THBattle):

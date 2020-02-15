@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import Damage, DrawCards, LaunchCard, LifeLost, UserAction, migrate_cards
-from thb.actions import skill_check, skill_wrap, user_choose_cards
+from thb.actions import Damage, DrawCards, LaunchCard, LifeLost, PlayerTurn, UserAction
+from thb.actions import migrate_cards, skill_check, skill_wrap, user_choose_cards
 from thb.cards.base import Card, Skill, VirtualCard, t_None
 from thb.cards.classes import Heal, SealingArrayCard, TreatAs
 from thb.cards.definition import BasicCard
@@ -91,7 +92,9 @@ class ImperishableNight(TreatAs, Skill):
     skill_category = ['character', 'passive']
 
     def check(self):
-        return self.game.current_player is not self.player
+        g = self.game
+        current = PlayerTurn.get_current(g).target
+        return current is not self.player
 
 
 class ImperishableNightHandler(THBEventHandler):
@@ -127,7 +130,8 @@ class ImperishableNightHandler(THBEventHandler):
         for p in g.players:
             if p.dead or p is tgt: continue
             if not p.has_skill(ImperishableNight): continue
-            if p is g.current_player: continue
+            current = PlayerTurn.get_current(g).target
+            if p is current: continue
 
             if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
                 continue

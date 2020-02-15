@@ -230,8 +230,9 @@ class Room(object):
             # prevent double starting
             if not Ag(self, g)['greenlet']:
                 log.info("game starting")
-                runner = ServerGameRunner(core)
-                Ag(self, g)['greenlet'] = core.runner.spawn(runner.run, g)
+                game_runner = ServerGameRunner(core, g)
+                Ag(self, g)['greenlet'] = game_runner
+                core.runner.start(game_runner)
 
     def is_online(self, g: Game, c: Client) -> bool:
         rst = c is not self.FREESLOT

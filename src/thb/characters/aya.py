@@ -39,7 +39,8 @@ class UltimateSpeedHandler(THBEventHandler):
                 return arg
 
             g = self.game
-            if g.current_player is not src:
+            current = PlayerTurn.get_current(g).target
+            if current is not src:
                 return arg
 
             for k in dist:
@@ -62,7 +63,8 @@ class UltimateSpeedHandler(THBEventHandler):
             if not src.has_skill(UltimateSpeed): return arg
 
             # if not isinstance(lca, ActionStageLaunchCard):
-            if g.current_player is not src:
+            current = PlayerTurn.get_current(g).target
+            if current is not src:
                 return arg
 
             src.tags['aya_count'] += 1

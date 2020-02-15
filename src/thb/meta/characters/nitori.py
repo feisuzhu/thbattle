@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 import random
@@ -6,7 +7,7 @@ import random
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.actions import ttags
+from thb.actions import PlayerTurn, ttags
 from thb.cards.classes import AttackCard, GrazeCard
 from thb.meta.common import build_handcard, my_turn, ui_meta
 
@@ -55,7 +56,8 @@ class Craftsman:
             if not me.cards and not me.showncards:
                 return False
 
-            if ttags(me)['craftsman'] and g.current_player is me:
+            current = PlayerTurn.get_current(g).target
+            if ttags(me)['craftsman'] and current is me:
                 return False
 
             return True
@@ -68,7 +70,7 @@ class Craftsman:
         if set(skill.associated_cards) != set(g.me.cards) | set(g.me.showncards):
             return (False, '请选择所有的手牌（包括明牌）！')
 
-        return (True, '到今天为止我还没有女朋友……')
+        return (True, '我TMD有老婆了！')
 
     def is_action_valid(self, g, cl, target_list, is_complete=is_complete):
         skill = cl[0]

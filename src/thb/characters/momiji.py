@@ -118,7 +118,7 @@ class SentryHandler(THBEventHandler):
                 if p is tgt: continue
                 self.target = tgt  # for ui
 
-                dist = LaunchCard.calc_distance(p, AttackCard())
+                dist = LaunchCard.calc_distance(g, p, AttackCard())
                 if dist.get(tgt, 1) > 0: continue
                 if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
                     continue
@@ -153,11 +153,13 @@ class TelegnosisHandler(THBEventHandler):
             if not src.has_skill(Telegnosis): return arg
             if not c.is_card(AttackCard): return arg
 
+            g = self.game
+
             try:
                 self.processing = True
                 for p in dist:
                     if p is src: continue
-                    d = LaunchCard.calc_distance(p, AttackCard())
+                    d = LaunchCard.calc_distance(g, p, AttackCard())
                     if d[src] <= 0:
                         dist[p] = 0
 
@@ -202,7 +204,7 @@ class SolidShieldHandler(THBEventHandler):
                 if not p.has_skill(SolidShield):
                     continue
 
-                dist = LaunchCard.calc_distance(p, SolidShield(p))
+                dist = LaunchCard.calc_distance(g, p, SolidShield(p))
                 if dist[tgt] > 0:
                     continue
 

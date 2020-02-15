@@ -199,14 +199,13 @@ class GamePart(object):
 
     def start_game(self, g: Game) -> None:
         core = self.core
-        runner = ClientGameRunner(core)
-        gr = core.runner.spawn(runner.run, g)
-        A(self, g)['greenlet'] = gr
-
+        gr = ClientGameRunner(core, g)
         @gr.link_exception
         def crash(gr: Greenlet) -> None:
             core.events.game_crashed.emit(g)
 
+        A(self, g)['greenlet'] = gr
+        core.runner.start(gr)
         log.info('----- GAME STARTED: %d -----' % A(self, g)['gid'])
 
     def write(self, g: Game, tag: str, data: object) -> None:

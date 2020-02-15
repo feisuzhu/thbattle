@@ -119,9 +119,9 @@ class ExtremeIntelligenceHandler(THBEventHandler):
         if evt_type == 'action_after' and isinstance(act, InstantSpellCardAction):
             if isinstance(act, Reject): return act
             g = self.game
-            target = g.current_player
 
-            for p in g.players.exclude(target):
+            tgt = PlayerTurn.get_current(g).target
+            for p in g.players.exclude(tgt):
                 if p.dead:
                     continue
 

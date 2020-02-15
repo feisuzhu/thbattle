@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb.actions import ActionStage, ForEach, GenericAction, LaunchCard, LifeLost, PlayerDeath
-from thb.actions import UserAction
+from thb.actions import PlayerTurn, UserAction
 from thb.cards.base import Skill
 from thb.cards.classes import AttackCard, AttackCardVitalityHandler, t_None, t_Self
 from thb.characters.base import Character, register_character_to
@@ -152,9 +153,7 @@ class SummonHandler(THBEventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, PlayerDeath):
             g = self.game
-            p = getattr(g, 'current_player', None)
-
-            if not p: return act
+            p = PlayerTurn.get_current(g).target
             if p is act.target: return act
             if not p.has_skill(Summon): return act
             if p.tags['summon_used']: return act
@@ -174,11 +173,11 @@ class SummonKOFAction(UserAction):
 
         ActionStage.force_break(g)
 
-        assert g.current_player is old
+        current = PlayerTurn.get_current(g).target
+        assert current is old
 
         handler = g.dispatcher.find_by_cls(KOFCharacterSwitchHandler)
         tgt = handler.switch(old)
-        g.current_player = tgt
 
         tgt.life = old_life
         tgt.maxlife += maxlife_delta

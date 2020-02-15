@@ -122,7 +122,6 @@ class ReversalHandler(THBEventHandler):
             tgt = act.target
             g = self.game
 
-            # if tgt is g.current_player: return act
             if not tgt.has_skill(Reversal):
                 return act
 

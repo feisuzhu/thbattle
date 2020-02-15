@@ -133,9 +133,9 @@ class FerryFeeHandler(THBEventHandler):
             tgt = act.target
             if not (src and src.has_skill(FerryFee)): return act
             if not (tgt.cards or tgt.showncards or tgt.equips): return act
-            dist = LaunchCard.calc_distance(src, FerryFee(src))
-            if not dist.get(tgt, 10000) <= 0: return act
             g = self.game
+            dist = LaunchCard.calc_distance(g, src, FerryFee(src))
+            if not dist.get(tgt, 10000) <= 0: return act
             if g.user_input([src], ChooseOptionInputlet(self, (False, True))):
                 g = self.game
                 catnames = ('cards', 'showncards', 'equips')

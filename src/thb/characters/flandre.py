@@ -114,9 +114,11 @@ class CriticalStrikeHandler(THBEventHandler):
         return act
 
     def in_critical_strike(self, p):
+        g = self.game
+        current = PlayerTurn.get_current(g).target
         return (
             ttags(p)['flan_cs'] and
-            self.game.current_player is p and
+            current is p and
             p.has_skill(CriticalStrike)
         )
 
@@ -169,7 +171,7 @@ class ExterminateFadeHandler(THBEventHandler):
         if ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
             (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):  # noqa
 
-            g = self.game()
+            g = self.game
             for p in g.players:
                 if p.tags.pop('exterminate', ''):
                     p.reenable_skill('exterminate')

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import actions
-from thb.actions import ttags
+from thb.actions import PlayerTurn, ttags
 from thb.cards import basic, definition
 from thb.meta.common import G, ui_meta
 
@@ -34,7 +35,8 @@ class AttackCard:
         if not isinstance(act, actions.ActionStageLaunchCard):
             return 'thb-cv-card_attack1'
 
-        current = G().current_player
+        g = self.game
+        current = PlayerTurn.get_current(g).target
 
         if act.source is not current:
             return 'thb-cv-card_attack1'
@@ -74,7 +76,8 @@ class GrazeCard:
         if not isinstance(act, actions.LaunchCard):
             return 'thb-cv-card_graze1'
 
-        current = G().current_player
+        g = self.game
+        current = PlayerTurn.get_current(g).target
 
         if act.source is not current:
             return 'thb-cv-card_graze1'

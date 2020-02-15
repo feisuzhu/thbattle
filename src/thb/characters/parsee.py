@@ -67,7 +67,7 @@ class EnvyHandler(THBEventHandler):
         if src.dead: return act
         if card.suit != Card.DIAMOND: return act
 
-        dist = LaunchCard.calc_distance(src, EnvyRecycle())
+        dist = LaunchCard.calc_distance(g, src, EnvyRecycle())
         if not dist[tgt] <= 0: return act
 
         g.emit_event('ui_show_disputed', [card])

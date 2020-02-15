@@ -64,6 +64,9 @@ class Character(GameObject):
         self.showncardlists = [self.showncards, self.fatetell]
         self.tags           = defaultdict(int)
 
+    def get_player(self) -> Player:
+        return self.player
+
     def get_skills(self, skill: Type['Skill']):
         return [s for s in self.skills if issubclass(s, skill)]
 

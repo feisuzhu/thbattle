@@ -11,7 +11,7 @@ import logging
 from typing_extensions import Protocol
 
 # -- own --
-from game.base import Action, ActionShootdown, EventArbiter, GameViralContext, InputTransaction
+from game.base import Action, ActionShootdown, EventArbiter, GameViralContext, InputTransaction, GameError
 from game.base import Player, sync_primitive
 from thb.cards.base import Card, CardList, PhysicalCard, Skill, VirtualCard
 from thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
@@ -238,19 +238,21 @@ class UserAction(THBAction):  # card/character skill actions
     associated_card: Card
 
 
-CardMovement = Tuple[THBAction, List[Card], Optional[CardList], Optional[CardList], bool]
+CardMovement = Tuple[List[Card], Optional[CardList], Optional[CardList], bool]
 
 
 class MigrateCardsTransaction(GameViralContext):
     movements: List[CardMovement]
 
     def __init__(self, action: Optional[THBAction] = None):
-        self.action = cast(THBAction, action or self.game.action_stack[-1])
+        g = self.game
+        self.action = cast(THBAction, action or g.action_stack[-1])
+        assert self.action is g.hybrid_stack[-1]
         self.cancelled = False
         self.movements = []
 
     def move(self, cards: List[Card], _from: Optional[CardList], to: Optional[CardList], is_bh: bool) -> None:
-        self.movements.append((self.action, cards, _from, to, is_bh))
+        self.movements.append((cards, _from, to, is_bh))
 
     def __enter__(self):
         return self
@@ -360,9 +362,11 @@ class PostCardMigrationHandler(EventArbiter):
         act = arg.action
         tgt = act.target or act.source or g.players[0]
 
-        for p in g.players_from(tgt):
+        n = len(g.players)
+        idx = g.players.index(tgt) - n
+        for i in range(idx, idx + n):
             for eh in self.handlers:
-                g.handle_single_event(eh, p, arg)
+                g.dispatcher.handle_single_event(eh, g.players[i], arg)
 
         return arg
 
@@ -754,9 +758,10 @@ class LaunchCard(GenericAction):
             log.debug('LaunchCard.card FALSE')
             return False
 
+        g = self.game
         src = self.source
 
-        dist = self.calc_distance(src, card)
+        dist = self.calc_distance(g, src, card)
         if not all([dist[p] <= 0 for p in self.target_list]):
             log.debug('LaunchCard: does not fulfill distance constraint')
             return False
@@ -779,29 +784,22 @@ class LaunchCard(GenericAction):
         return True
 
     @classmethod
-    def calc_distance(cls, src, card):
-        dist = cls.calc_base_distance(src)
-        g = src.game
-
-        g.emit_event('calcdistance', (src, card, dist))
+    def calc_distance(cls, g, src, card):
+        dist = cls.calc_raw_distance(g, src, card)
         card_dist = getattr(card, 'distance', 1000)
         for p in dist:
             dist[p] -= card_dist
         g.emit_event('post_calcdistance', (src, card, dist))
-
         return dist
 
     @classmethod
-    def calc_raw_distance(cls, src, card):
-        dist = cls.calc_base_distance(src)
-        g = src.game
-
+    def calc_raw_distance(cls, g, src, card):
+        dist = cls.calc_base_distance(g, src)
         g.emit_event('calcdistance', (src, card, dist))
         return dist
 
     @classmethod
-    def calc_base_distance(cls, src):
-        g = src.game
+    def calc_base_distance(cls, g, src):
         pl = [p for p in g.players if not p.dead or p is src]
         loc = pl.index(src)
         n = len(pl)
@@ -991,9 +989,13 @@ class FatetellMalleateHandler(EventArbiter):
         if evt_type != 'fatetell': return data
 
         g = self.game
-        for p in g.players_from(g.current_player):
+        tgt = PlayerTurn.get_current(g)
+
+        n = len(g.players)
+        idx = g.players.index(tgt) - n
+        for i in range(idx, idx + n):
             for eh in self.handlers:
-                data = g.handle_single_event(eh, p, data)
+                g.dispatcher.handle_single_event(eh, g.players[i], data)
 
         return data
 
@@ -1127,11 +1129,6 @@ class PlayerTurn(GenericAction):
         g = self.game
         p = self.target
         p.tags['turn_count'] += 1
-        '''
-        g.turn_count += 1
-        g.current_turn = self
-        g.current_player = p
-        '''
 
         while self.pending_stages:
             stage = self.pending_stages.pop(0)
@@ -1141,12 +1138,12 @@ class PlayerTurn(GenericAction):
         return True
 
     @staticmethod
-    def get_current(g: THBattle) -> 'PlayerTurn':
+    def get_current(g: THBattle) -> PlayerTurn:
         for act in g.action_stack:
             if isinstance(act, PlayerTurn):
                 return act
 
-        raise Exception('Could not find current turn!')
+        raise IndexError('Could not find current turn!')
 
 
 class DummyAction(GenericAction):
