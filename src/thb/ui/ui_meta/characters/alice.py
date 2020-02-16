@@ -31,10 +31,10 @@ class LittleLegion:
     name = u'小小军势'
     description = (
         u'出牌阶段结束时，你可以重铸一张装备牌，然后发动对应的效果：\n'
-        u'|B|R>> |r武器：视为对一名其他角色使用了|G弹幕|r\n'
-        u'|B|R>> |r防具：令一名角色回复1点体力\n'
-        u'|B|R>> |r饰品：摸一张牌并跳过弃牌阶段\n'
-        u'|B|R>> |rUFO ：视为使用一张|G人型操控|r'
+        u'|B|R>> |r武器：视为对一名其他角色使用了|G弹幕|r。\n'
+        u'|B|R>> |r防具：令一名角色回复1点体力。\n'
+        u'|B|R>> |r饰品：摸一张牌并跳过弃牌阶段。\n'
+        u'|B|R>> |rUFO：视为使用一张|G人型操控|r。'
     )
 
     clickable = passive_clickable
@@ -130,13 +130,13 @@ class LittleLegionHandler:
         if act.cond(cards):
             c, = cards
             if c.equipment_category == 'weapon':
-                text = u'（武器）：视为对一名角色使用弹幕'
+                text = u'（武器）：视为对一名角色使用弹幕。'
             elif c.equipment_category == 'shield':
-                text = u'（防具）：令一名角色回复一点体力'
+                text = u'（防具）：令一名角色回复一点体力。'
             elif c.equipment_category == 'accessories':
-                text = u'（饰品）：跳过弃牌阶段'
+                text = u'（饰品）：跳过弃牌阶段。'
             elif c.equipment_category in ('redufo', 'greenufo'):
-                text = u'（UFO）：视为使用人型操控'
+                text = u'（UFO）：视为使用人型操控。'
             else:
                 text = u'（BUG）：什么鬼……'
 

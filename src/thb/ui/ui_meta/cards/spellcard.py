@@ -19,6 +19,7 @@ class DemolitionCard:
     name = u'城管执法'
     description = (
         u'|R城管执法|r\n\n'
+        u'非延时符卡。\n'
         u'出牌阶段，对一名其他角色使用，弃置其区域内的一张牌。\n\n'
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
@@ -53,6 +54,7 @@ class RejectCard:
     image = 'thb-card-reject'
     description = (
         u'|R好人卡|r\n\n'
+        u'非延时符卡。\n'
         u'一张符卡对一名目标角色生效前，你可以使用此牌来抵消该符卡对其目标角色产生的效果。\n\n'
         u'|DB（画师：霏茶，CV：VV）'
     )
@@ -107,7 +109,7 @@ class SealingArrayCard:
     tag_anim = lambda c: 'thb-tag-sealarray'
     description = (
         u'|R封魔阵|r\n\n'
-        u'延时类符卡\n'
+        u'延时类符卡。\n'
         u'出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为红桃，跳过其出牌阶段。\n'
         u'|B|R>> |r判定开始前,你可以使用【好人卡】抵消该符卡的效果（抵消后弃掉【封魔阵】）。\n\n'
         u'|DB（画师：霏茶，CV：shourei小N）|r'
@@ -142,9 +144,9 @@ class FrozenFrogCard:
     tag_anim = lambda c: 'thb-tag-frozenfrog'
     description = (
         u'|R冻青蛙|r\n\n'
-        u'延时类符卡\n'
+        u'延时类符卡。\n'
         u'出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为黑桃，跳过其摸牌阶段。\n'
-        u'|B|R>> |r判定开始前,你可以使用【好人卡】抵消该符卡的效果(抵消后弃掉【冻青蛙】)。\n\n'
+        u'|B|R>> |r判定开始前,你可以使用【好人卡】抵消该符卡的效果（抵消后弃掉【冻青蛙】）。\n\n'
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
@@ -176,7 +178,7 @@ class NazrinRodCard:
     image = 'thb-card-nazrinrod'
     description = (
         u'|R寻龙尺|r\n\n'
-        u'非延时符卡\n'
+        u'非延时符卡。\n'
         u'出牌阶段使用，从牌堆摸两张牌。\n\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
@@ -195,7 +197,7 @@ class SinsackCard:
     tag_anim = lambda c: 'thb-tag-sinsack'
     description = (
         u'|R罪袋|r\n\n'
-        u'延时类符卡\n'
+        u'延时类符卡。\n'
         u'出牌阶段，对你使用，将此牌横置于你的判定区内。判定区内有此牌的角色的判定阶段，需进行一次判定：\n'
         u'|B|R>> |r若判定结果为黑桃1-8，则目标角色受到3点无来源伤害，然后将其置入弃牌堆。\n'
         u'|B|R>> |r若判定结果不在此范围，则将其移动到下家的判定区内。\n'
@@ -229,6 +231,7 @@ class YukariDimensionCard:
 
     description = (
         u'|R隙间|r\n\n'
+        u'非延时符卡。\n'
         u'出牌阶段，对距离为1的一名其他角色使用，获得其区域内的一张牌。\n\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
@@ -263,6 +266,7 @@ class DuelCard:
     name = u'弹幕战'
     description = (
         u'|R弹幕战|r\n\n'
+        u'非延时符卡。\n'
         u'出牌阶段，对一名其他角色使用，由目标角色开始，轮流打出一张【弹幕】。首先不打出【弹幕】的一方受到另一方造成的1点伤害。\n\n'
         u'|DB（画师：霏茶，CV：小羽）|r'
     )
@@ -282,7 +286,7 @@ class MapCannonCard:
     name = u'地图炮'
     description = (
         u'|R地图炮|r\n\n'
-        u'群体符卡\n'
+        u'群体符卡。非延时符卡。\n'
         u'出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张【擦弹】，否则该角色受到1点伤害。\n\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
@@ -299,7 +303,7 @@ class DemonParadeCard:
     name = u'百鬼夜行'
     description = (
         u'|R百鬼夜行|r\n\n'
-        u'群体符卡\n'
+        u'群体符卡。非延时符卡。\n'
         u'出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张|G弹幕|r，否则该角色受到1点伤害。\n\n'
         u'|DB（画师：霏茶，CV：小羽）|r'
     )
@@ -317,7 +321,7 @@ class FeastCard:
     name = u'宴会'
     description = (
         u'|R宴会|r\n\n'
-        u'群体符卡\n'
+        u'群体符卡。非延时符卡。\n'
         u'出牌阶段，对所有角色使用。已受伤的角色回复一点体力，未受伤的角色获得|B喝醉|r状态。\n\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
@@ -339,7 +343,7 @@ class HarvestCard:
     name = u'五谷丰登'
     description = (
         u'|R五谷丰登|r\n\n'
-        u'群体符卡\n'
+        u'群体符卡。非延时符卡。\n'
         u'出牌阶段，对所有角色使用，你从牌堆顶亮出等同于现存角色数量的牌，目标角色依次选择并获得这些牌中的一张。\n\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
@@ -368,6 +372,7 @@ class DollControlCard:
     image = 'thb-card-dollcontrol'
     description = (
         u'|R人形操控|r\n\n'
+        u'非延时符卡。\n'
         u'出牌阶段，对装备区内有武器牌的一名其他角色使用，令其选择一项：对其攻击范围内一名由你指定的角色使用一张【弹幕】，或将武器交给你。\n\n'
         u'|DB（画师：霏茶，CV：小羽）|r'
     )
@@ -418,7 +423,7 @@ class DonationBoxCard:
     image = 'thb-card-donationbox'
     description = (
         u'|R赛钱箱|r\n\n'
-        u'非延时符卡\n'
+        u'非延时符卡。\n'
         u'出牌阶段，对至多两名其他角色使用，目标角色需将自己的一张牌置入你的明牌区。\n\n'
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )

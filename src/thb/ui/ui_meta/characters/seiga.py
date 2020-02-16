@@ -61,7 +61,7 @@ class Heterodoxy:
     name = u'邪仙'
     description = (
         u'出牌阶段，你可以将一张手牌以一名其他角色的身份使用。\n'
-        u'|B|R>> |r以此法使用|G弹幕|r消耗你的干劲\n'
+        u'|B|R>> |r以此法使用|G弹幕|r消耗你的干劲。\n'
         u'|B|R>> |r你成为此法使用的群体符卡的目标后，可以跳过此次结算。'
     )
     custom_ray = True
@@ -112,7 +112,7 @@ class Heterodoxy:
 class Summon:
     # Skill
     name = u'通灵'
-    description = u'|B限定技|r，你的回合内，当有角色被击坠时，你可以获得其一个技能（不包括限定技，觉醒技）'
+    description = u'|B限定技|r，你的回合内，当有角色被击坠时，你可以获得其一个技能。（不包括限定技，觉醒技）'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
