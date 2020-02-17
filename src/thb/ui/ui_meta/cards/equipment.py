@@ -54,7 +54,7 @@ class OpticalCloakCard:
     image_small = 'thb-card-small-opticalcloak'
     description = (
         u'|R光学迷彩|r\n\n'
-        u'装备后:当你需要使用或打出|G擦弹|r时，可以进行一次判定，若结果为红，视为你使用或打出了一张|G擦弹|r。\n\n'
+        u'装备后：当你需要使用或打出|G擦弹|r时，可以进行一次判定，若结果为红，视为你使用或打出了一张|G擦弹|r。\n\n'
         u'|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
@@ -129,9 +129,9 @@ class MomijiShield:
 ufo_desc = (
     u'|R%s|r\n\n'
     u'UFO用来改变自己与其他角色之间的距离。\n'
-    u'|B|R>> |r红色UFO为进攻用，当你计算和其他角色的距离时,在原有的基础上减少相应距离。两名角色之间的距离至少为1。\n'
-    u'|B|R>> |r绿色UFO为防守用，当其他角色计算和你的距离时,在原有的基础上增加相应距离。\n'
-    u'|B|R>> |r你可以同时装备两种UFO\n\n'
+    u'|B|R>> |r红色UFO为进攻用，当你计算和其他角色的距离时，在原有的基础上减少相应距离。两名角色之间的距离至少为1。\n'
+    u'|B|R>> |r绿色UFO为防守用，当其他角色计算和你的距离时，在原有的基础上增加相应距离。\n'
+    u'|B|R>> |r你可以同时装备两种UFO。\n\n'
     u'|DB（画师：霏茶）|r'
 )
 
@@ -415,7 +415,7 @@ class RepentanceStickCard:
         u'|R悔悟棒|r\n'
         u'\n'
         u'攻击范围2，装备后：当你使用|G弹幕|r造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
-        u'|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌\n'
+        u'|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌。\n'
         u'\n'
         u'|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
         u'\n'
@@ -581,8 +581,8 @@ class HakuroukenCard:
     description = (
         u'|R白楼剑|r\n\n'
         u'攻击范围2，装备后：当你使用的草花色|G弹幕|r指定一名目标角色后，你可以令其选择一项：\n'
-        u'|B|R>> |r弃置一张手牌\n'
-        u'|B|R>> |r令你摸一张牌\n'
+        u'|B|R>> |r弃置一张手牌。\n'
+        u'|B|R>> |r令你摸一张牌。\n'
         u'\n'
         u'|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
         u'\n'
@@ -907,7 +907,7 @@ class SuwakoHatCard:
     image_small = 'thb-card-small-suwakohat'
     description = (
         u'|R青蛙帽|r\n\n'
-        u'装备后：手牌上限+2\n\n'
+        u'装备后：手牌上限+2。\n\n'
         u'|DB（画师：霏茶，CV：VV）|r'
     )
     is_action_valid = equip_iav
@@ -1001,10 +1001,10 @@ class GrimoireCard:
         u'|R魔导书|r\n'
         u'\n'
         u'攻击距离1，装备后，你可以消耗一点干劲并将一张牌按照以下规则使用：\n'
-        u'|B|R>> |r黑桃♠视为|G百鬼夜行|r\n'
-        u'|B|R>> |r红桃♥视为|G宴会|r\n'
-        u'|B|R>> |r梅花♣视为|G地图炮|r\n'
-        u'|B|R>> |r方片♦视为|G五谷丰登|r\n'
+        u'|B|R>> |r黑桃♠视为|G百鬼夜行|r。\n'
+        u'|B|R>> |r红桃♥视为|G宴会|r。\n'
+        u'|B|R>> |r梅花♣视为|G地图炮|r。\n'
+        u'|B|R>> |r方片♦视为|G五谷丰登|r。\n'
         u'\n'
         u'|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
         u'\n'
@@ -1090,7 +1090,7 @@ class SinsackHatCard:
     image_small = 'thb-card-small-sinsackhat'
     description = (
         u'|R罪袋的头套|r\n\n'
-        u'对距离2以内的一名角色使用\n'
+        u'对距离2以内的一名角色使用。\n'
         u'装备|G罪袋的头套|r的角色需在判定阶段后进行一次判定，若为黑桃1-8，则目标角色受到2点伤害，并且将|G罪袋的头套|r收入手牌。\n'
         u'|DB（画师：霏茶，CV：大白）|r'
     )

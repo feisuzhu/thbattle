@@ -104,7 +104,7 @@ class InciteAction:
 class Reversal:
     # Skill
     name = u'逆转'
-    description = u'当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若你的手牌数大于其手牌数，取消该|G弹幕|r效果，并视为该角色再对你使用一张|G弹幕战|r'
+    description = u'当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若你的手牌数大于其手牌数，取消该|G弹幕|r效果，并视为该角色再对你使用一张|G弹幕战|r。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

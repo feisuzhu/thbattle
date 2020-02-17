@@ -141,8 +141,8 @@ class ReimuExterminate:
     name = u'退治'
     description = (
         u'其他角色的回合内，你可以于以下时机无视距离对其使用一张弹幕：\n'
-        u'|B|R>> |r出牌阶段，你受到伤害后\n'
-        u'|B|R>> |r回合结束阶段，且该角色本回合对其他角色造成过伤害'
+        u'|B|R>> |r出牌阶段，你受到伤害后。\n'
+        u'|B|R>> |r回合结束阶段，且该角色本回合对其他角色造成过伤害。'
     )
 
     clickable = passive_clickable

@@ -15,7 +15,7 @@ __metaclass__ = gen_metafunc(characters.rinnosuke)
 class Netoru:
     # Skill
     name = u'寝取'
-    description = u'出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力'
+    description = u'出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力。'
 
     def clickable(game):
         me = game.me
