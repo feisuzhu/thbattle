@@ -74,8 +74,8 @@ class SoulDrain:
     name = '离魂'
     description = (
         '你的回合内，当一名其它角色进入濒死状态时，你摸一张牌，然后你可以与该角色拼点：\n'
-        '|B|R>> |r若你赢，则将其体力上限改为1\n'
-        '|B|R>> |r若你没赢，则将其体力值改为1'
+        '|B|R>> |r若你赢，则将其体力上限改为1。\n'
+        '|B|R>> |r若你没赢，则将其体力值改为1。'
     )
 
     clickable = passive_clickable

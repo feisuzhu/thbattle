@@ -66,7 +66,7 @@ class Discarder:
 class MahjongDrug:
     # Skill
     name = '生药'
-    description = '每当你因使用|G麻薯|r回复体力后，你可以获得“喝醉”状态。'
+    description = '每当你因使用|G麻薯|r回复体力后，你可以获得|B喝醉|r状态。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

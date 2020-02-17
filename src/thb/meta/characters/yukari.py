@@ -15,7 +15,7 @@ from thb.meta.common import ui_meta
 class SpiritingAway:
     # Skill
     name = '神隐'
-    description = '出牌阶段限两次，你可以将场上的一张牌暂时移出游戏。你可以观看以此法移出游戏的牌。该角色被紫暂时移出的牌会在紫的结束阶段后归还回该角色的手牌中。'
+    description = '出牌阶段限两次，你可以将场上的一张牌暂时移出游戏。你可以观看以此法移出游戏的牌。任何角色被紫暂时移出的牌，会在紫的结束阶段后归还回该角色的手牌中。'
 
     def clickable(self, game):
         me = game.me

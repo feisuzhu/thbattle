@@ -39,7 +39,7 @@ class Echo:
 class Resonance:
     # Skill
     name = '共振'
-    description = '当你对其他角色使用的|G弹幕|r结算完毕后，你可以指定另一名其他角色，该角色可以对其使用一张无视距离的|G弹幕|r。'
+    description = '当你对其他角色使用的|G弹幕|r结算完毕后，你可以指定另一名其他角色，被指定角色可以对其使用一张无视距离的|G弹幕|r。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid

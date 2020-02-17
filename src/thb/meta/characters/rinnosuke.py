@@ -14,7 +14,7 @@ from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
 class Netoru:
     # Skill
     name = '寝取'
-    description = '出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力'
+    description = '出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力。'
 
     def clickable(self, game):
         me = game.me

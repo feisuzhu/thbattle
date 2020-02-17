@@ -59,8 +59,8 @@ class Bakadesu:
     name = '最强'
     description = (
         '出牌阶段限一次，你可以指定一名攻击范围内有你的角色，该角色选择一项：\n'
-        '|B|R>> |r对你使用一张|G弹幕|r\n'
-        '|B|R>> |r令你弃置其一张牌'
+        '|B|R>> |r对你使用一张|G弹幕|r。\n'
+        '|B|R>> |r令你弃置其一张牌。'
     )
 
     def clickable(self, game):
