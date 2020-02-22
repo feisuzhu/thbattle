@@ -7,7 +7,6 @@ license = "GPL-3.0+"
 
 [tool.poetry.dependencies]
 python = "^3.6"
-colorlog = "^4.0"
 gevent = "^1.4"
 pygit2 = "^0.28.2"
 requests = "^2.22"

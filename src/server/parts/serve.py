@@ -8,6 +8,7 @@ import urllib.parse
 
 # -- third party --
 from gevent.server import StreamServer
+import gevent
 
 # -- own --
 # -- typing --
@@ -43,4 +44,8 @@ class Serve(object):
 
         ep = Endpoint(sock, addr)
         cli = Client(core, ep)
+
+        gr = gevent.getcurrent()
+        gr.gr_name = repr(cli)
+
         cli.serve()

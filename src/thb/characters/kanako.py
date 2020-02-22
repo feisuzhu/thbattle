@@ -117,7 +117,7 @@ class KanakoFaith(Skill):
         l = g.players.rotate_to(p)
         del l[0]
 
-        dists = LaunchCard.calc_raw_distance(p, AttackCard())
+        dists = LaunchCard.calc_raw_distance(g, p, AttackCard())
         return ([t for t in l if not t.dead and dists[t] <= 1], True)
 
 

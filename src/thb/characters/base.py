@@ -25,12 +25,12 @@ class Character(GameObject):
 
     # ----- Class Variables -----
     ui_meta: ClassVar[CharacterMeta]
-    eventhandlers: ClassVar[List[Type[THBEventHandler]]] = []
-    categories: ClassVar[Iterable[str]]
-    boss_skills: ClassVar[List[Type[Skill]]]
+    eventhandlers: ClassVar[List[Type[THBEventHandler]]] = ()
+    categories: ClassVar[Iterable[str]] = ()
+    boss_skills: ClassVar[List[Type[Skill]]] = ()
 
-    skills: List[Type[Skill]]
-    maxlife: int
+    skills: List[Type[Skill]] = ()
+    maxlife: int = 0
 
     # ----- Instance Variables -----
     dead: bool

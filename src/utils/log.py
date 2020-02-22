@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from typing import Any
@@ -13,6 +14,7 @@ import gevent
 import raven
 
 # -- own --
+from utils.escapes import escape_codes
 
 
 # -- code --
@@ -36,7 +38,7 @@ class UnityLogHandler(logging.Handler):
             pass
 
 
-class ServerLogFormatter(logging.Formatter):
+class _ServerLogFormatter_OLD(logging.Formatter):
     def __init__(self, with_gr_name=True):
         logging.Formatter.__init__(self)
         self.with_gr_name = with_gr_name
@@ -76,7 +78,59 @@ class ServerLogFormatter(logging.Formatter):
         )
 
 
-def init(level, sentry_dsn, release, colored=False):
+class ServerLogFormatter(logging.Formatter):
+    def __init__(self, use_color=True):
+        super().__init__()
+        self.use_color = use_color
+        self.color_mapping = {
+            'CRITICAL': 'bold_red',
+            'ERROR': 'red',
+            'WARNING': 'yellow',
+            'INFO': 'green',
+            'DEBUG': 'blue',
+        }
+
+    def format(self, rec):
+
+        if rec.exc_info:
+            s = []
+            s.append('>>>>>>' + '-' * 74)
+            s.append(self._format(rec))
+            import traceback
+            s.append(''.join(traceback.format_exception(*rec.exc_info)).strip())
+            s.append('<<<<<<' + '-' * 74)
+            return '\n'.join(s)
+        else:
+            return self._format(rec)
+
+    def _format(self, rec):
+        import time
+        g = gevent.getcurrent()
+        gr_name = getattr(g, 'gr_name', None)
+        if not gr_name:
+            if isinstance(g, gevent.Greenlet):
+                gr_name = repr(g)
+            else:
+                gr_name = '<RAW>'
+
+        rec.message = rec.getMessage()
+        lvl = rec.levelname
+        prefix = '[{} {} {}:{} {}]'.format(
+            lvl[0],
+            time.strftime('%y%m%d %H:%M:%S'),
+            rec.module,
+            rec.lineno,
+            gr_name,
+        )
+        if self.use_color:
+            E = escape_codes
+            M = self.color_mapping
+            prefix = f"{E[M[lvl]]}{prefix}{E['reset']}"
+
+        return f'{prefix} {rec.message}'
+
+
+def init(level, sentry_dsn, release):
     patch_gevent_hub_print_exception()
 
     root = logging.getLogger()
@@ -98,21 +152,8 @@ def init(level, sentry_dsn, release, colored=False):
 
     logging.getLogger('sentry.errors').setLevel(1000)
 
-    if colored:
-        from colorlog import ColoredFormatter  # type: ignore
-
-        formatter = ColoredFormatter(
-            "%(log_color)s%(message)s%(reset)s",
-            log_colors={
-                'CRITICAL': 'bold_red',
-                'ERROR': 'red',
-                'WARNING': 'yellow',
-                'INFO': 'green',
-                'DEBUG': 'blue',
-            }
-        )
-        hdlr.setFormatter(formatter)
-
+    formatter = ServerLogFormatter()
+    hdlr.setFormatter(formatter)
     root.addHandler(hdlr)
 
     root.info(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
@@ -142,7 +183,7 @@ def init_server(level, sentry_dsn, release, logfile, with_gr_name=True):
     root = logging.getLogger()
     root.setLevel(level)
 
-    fmter = ServerLogFormatter(with_gr_name=with_gr_name)
+    fmter = ServerLogFormatter()
     std = logging.StreamHandler(stream=sys.stdout)
     std.setFormatter(fmter)
     root.addHandler(std)

@@ -31,11 +31,14 @@ class EventTap(object):
         self._taps = {}
 
     def __iadd__(self, hub):
+        self.tap(hub)
+        return self
+
+    def tap(self, hub):
         def tapper(ev):
             self._taps[hub] = ev
             return ev
         hub += tapper
-        return self
 
     def tap_all(self, lst):
         for h in lst:
@@ -54,6 +57,8 @@ class Environ(object):
 
     def _run(self, runner):
         try:
+            g = gevent.getcurrent()
+            g.gr_name = f'Environ.init({runner})'
             runner.run()
         except Exception as e:
             gevent.kill(self.parent, e)

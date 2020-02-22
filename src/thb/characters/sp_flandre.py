@@ -4,7 +4,7 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, PlayerTurn
+from thb.actions import Damage, GenericAction, LaunchCard, LifeLost, MaxLifeChange, FinalizeStage
 from thb.actions import ttags, user_choose_players
 from thb.cards.base import Skill
 from thb.cards.classes import t_None
@@ -46,7 +46,7 @@ class DestructionImpulseHandler(THBEventHandler):
             g = self.game
             ttags(src)['destruction_tag'] = True
 
-        elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
             tgt = act.target
             if not tgt.has_skill(DestructionImpulse): return act
 

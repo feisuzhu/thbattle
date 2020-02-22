@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from copy import copy
 from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Union, cast
 import logging
@@ -82,16 +82,17 @@ def ask_for_action(initiator: Union[CardChooser, CharacterChooser],
 
             skills: List[Type[Skill]]
             rawcards: List[Card]
-            players: List[Character]
+            characters: List[Character]
             params: Dict[str, Any]
 
-            skills, rawcards, players, params = rst
+            skills, rawcards, characters, params = rst
             [check(not c.detached) for c in rawcards]
             [check(actor.has_skill(s)) for s in skills]  # has_skill may be hooked
 
             if skills:
                 cards = [skill_wrap(actor, skills, rawcards, params)]
                 usage = cards[0].usage if usage == 'launch' else usage
+                assert usage != 'none', (cards[0], cards[0].usage)
             else:
                 cards = rawcards
                 usage = 'launch'
@@ -116,37 +117,37 @@ def ask_for_action(initiator: Union[CardChooser, CharacterChooser],
                         g.players.player.reveal(cards)
 
                 check(cast(CardChooser, initiator).cond(cards))
-                assert not (usage == 'none' and rawcards)  # should not pass check
+                assert not (usage == 'none' and rawcards), (skills, rawcards, characters, params)  # should not pass check
             else:
                 cards = []
 
             if candidates:
-                players, valid = cast(CharacterChooser, initiator).choose_player_target(players)
+                characters, valid = cast(CharacterChooser, initiator).choose_player_target(characters)
                 check(valid)
 
             ask_for_action_verify = getattr(initiator, 'ask_for_action_verify', None)
 
             if ask_for_action_verify:
-                check(ask_for_action_verify(actor, cards, players))
+                check(ask_for_action_verify(actor, cards, characters))
 
-            return cards, players, params
+            return cards, characters, params
 
         except CheckFailed:
             return None
 
     p, rst = g.user_input(actors, ilet, timeout=timeout, type='any', trans=trans)
     if rst:
-        cards, players, params = rst
+        cards, characters, params = rst
 
         if len(cards) == 1 and cards[0].is_card(VirtualCard):
             g.deck.register_vcard(cards[0])
 
-        if not cards and not players:
+        if not cards and not characters:
             return p, None
 
         [c.detach() for c in VirtualCard.unwrap(cards)]
 
-        return p, (cards, players)
+        return p, (cards, characters)
     else:
         return None, None
 
@@ -209,10 +210,10 @@ def skill_check(wrapped):
         check(wrapped.check())
         for c in wrapped.associated_cards:
             if c.is_card(Skill):
-                check(c.player is wrapped.player)
+                check(c.character is wrapped.character)
                 check(skill_check(c))
             else:
-                check(c.resides_in.owner is wrapped.player)
+                check(c.resides_in.owner is wrapped.character)
 
         return True
 
@@ -247,7 +248,11 @@ class MigrateCardsTransaction(GameViralContext):
     def __init__(self, action: Optional[THBAction] = None):
         g = self.game
         self.action = cast(THBAction, action or g.action_stack[-1])
-        assert self.action is g.hybrid_stack[-1]
+
+        if self.action is g.action_stack[-1]:
+            # Ensure no card movements in EventHandlers!
+            assert self.action is g.hybrid_stack[-1], (self.action, g.hybrid_stack[-1])
+
         self.cancelled = False
         self.movements = []
 
@@ -300,9 +305,9 @@ class MigrateCardsTransaction(GameViralContext):
 
 def migrate_cards(cards: Sequence[Card],
                   to: CardList,
-                  unwrap: bool=False,
-                  is_bh: bool=False,
-                  trans: Optional[MigrateCardsTransaction]=None,
+                  unwrap: bool = False,
+                  is_bh: bool = False,
+                  trans: Optional[MigrateCardsTransaction] = None,
                   ):
     '''
     cards: cards to move around
@@ -332,7 +337,7 @@ def migrate_cards(cards: Sequence[Card],
 
         if l[0].is_card(VirtualCard):
             assert len(l) == 1
-            assert to.owner
+            # assert to.owner # ??????
             trans.move(l, cl, UNWRAPPED if unwrap else to, is_bh)
             l[0].unwrapped or migrate_cards(
                 l[0].associated_cards,
@@ -689,7 +694,7 @@ class LaunchCard(GenericAction):
         target_list = self.target_list
         if not card: return False
 
-        if not self.force_action or card.associated_action:
+        if not self.force_action and not card.associated_action:
             return False
 
         g = self.game
@@ -803,10 +808,10 @@ class LaunchCard(GenericAction):
         pl = [p for p in g.players if not p.dead or p is src]
         loc = pl.index(src)
         n = len(pl)
-        dist = OrderedDict([
-            (p, min(abs(i), n - abs(i)))
+        dist = {
+            p: min(abs(i), n - abs(i))
             for p, i in zip(pl, range(-loc, -loc + n))
-        ])
+        }
         return dist
 
 
@@ -989,7 +994,7 @@ class FatetellMalleateHandler(EventArbiter):
         if evt_type != 'fatetell': return data
 
         g = self.game
-        tgt = PlayerTurn.get_current(g)
+        tgt = PlayerTurn.get_current(g).target
 
         n = len(g.players)
         idx = g.players.index(tgt) - n

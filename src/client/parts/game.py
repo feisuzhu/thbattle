@@ -248,4 +248,5 @@ class GamePart(object):
             raise Exception("Couldn't find Theone!")
 
     def is_dropped(self, g: Game, p: Player) -> bool:
-        return A(self, g)['presence'].get(p, True)
+        assert isinstance(p, Player), p
+        return not A(self, g)['presence'].get(p, True)

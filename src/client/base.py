@@ -72,6 +72,11 @@ class ClientGameRunner(GameRunner):
     def _run(self) -> None:
         g = self.game
 
+        import base64
+        s = (id(self) % 1099511627689).to_bytes(8, byteorder='little')[:5]
+        s = base64.b32encode(s).decode('utf-8')
+        self.gr_name = f'{repr(self.game)}:{s[:5]}'
+
         g.runner = self
         g.synctag = 0
         g.random = Random()
@@ -173,6 +178,14 @@ class ClientGameRunner(GameRunner):
             if me in p2e:  # me involved
                 if not core.game.is_observe(g):
                     inputproc = core.runner.spawn(input_func, synctags[p2e[me]])
+                    inputproc.game = g
+                    gr_current = gevent.getcurrent()
+
+                    @inputproc.link_exception
+                    def chain_failure(gr):
+                        exc = Exception("input_func failed")
+                        exc.__cause__ = gr.exception
+                        gr_current.kill(exc)
 
             orig_entities = entities[:]
             inputany_entity = None
@@ -184,7 +197,7 @@ class ClientGameRunner(GameRunner):
                 tag_, data = core.game.gamedata_of(g).gexpect('R%s*' % tag)
                 st = int(tag_.split(':')[2])
                 if st not in synctags_r:
-                    log.warning('Unexpected sync tag: %d', st)
+                    log.warning('Unexpected sync tag: %d, expecting %s', st, list(synctags_r))
                     continue
 
                 e = synctags_r[st]

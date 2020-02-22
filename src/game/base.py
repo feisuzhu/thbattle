@@ -108,6 +108,7 @@ class AssociatedDataViralContext(ViralContext):
 
 class Player(GameObject, AssociatedDataViralContext):
     uid: int
+    name: str
 
     def reveal(self, obj_list: Any) -> None:
         raise GameError('Abstract')
@@ -137,7 +138,7 @@ class GameViralContext(object):
         self = object.__new__(cls)
         gr = gevent.getcurrent()
         self.game = gr.game
-        self._ = {}
+        self._ = defaultdict(bool)
         return self
 
 
@@ -179,10 +180,7 @@ class Game(GameObject):
         self.refresh_dispatcher()
 
     def __repr__(self):
-        import base64
-        s = (id(self) % 1099511627689).to_bytes(8, byteorder='little')[:5]
-        s = base64.b32encode(s).decode('utf-8')
-        return f'<{self.__class__.__name__}[{s}]>'
+        return self.__class__.__name__
 
     def refresh_dispatcher(self) -> None:
         self.dispatcher = self.dispatcher_cls(self)
@@ -285,7 +283,9 @@ class Game(GameObject):
         return self.synctag
 
     def is_dropped(self, p: Player) -> bool:
-        return self.runner.is_dropped(p)
+        v = self.runner.is_dropped(p)
+        log.debug('Game.is_dropped(%s) == %s', p, v)
+        return v
 
     def is_server_side(self) -> bool:
         return self.runner.get_side() == 'server'
@@ -344,6 +344,9 @@ class EventHandler(GameObject):
     def __init__(self, g: Game):
         self.game = g
         self._ = {}
+
+    def __repr__(self) -> str:
+        return f'EV:{self.__class__.__name__}'
 
     def handle(self, evt_type: str, data: Any):
         raise GameError('Override handle function to implement EventHandler logics!')

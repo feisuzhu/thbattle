@@ -94,7 +94,7 @@ class ImperishableNight(TreatAs, Skill):
     def check(self):
         g = self.game
         current = PlayerTurn.get_current(g).target
-        return current is not self.player
+        return current is not self.character
 
 
 class ImperishableNightHandler(THBEventHandler):

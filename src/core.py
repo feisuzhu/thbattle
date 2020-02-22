@@ -44,6 +44,10 @@ class Core(object):
         raise Exception('Abstract')
 
 
+class CoreCrashed(Exception):
+    pass
+
+
 class CoreRunner(object):
     def __init__(self, core: Core, paranoid: bool = False):
         self.core = core
@@ -67,7 +71,10 @@ class CoreRunner(object):
                 self.tasks[k] = gr
 
             self.ready.set()
-            return core.result.get()
+            try:
+                return core.result.get()
+            except BaseException as e:
+                raise CoreCrashed(f'{core} crashed') from e
         finally:
             self.shutdown()
 

@@ -109,6 +109,10 @@ class Events(object):
         # ev = (g: Game)
         self.game_aborted = EventHub[Game]()
 
+        # Game crashed
+        # ev = (g: Game)
+        self.game_crashed = EventHub[Game]()
+
     def __setattr__(self, name, v):
         if hasattr(v, 'name'):
             v.name = f'{repr(self.core)}::{name}'

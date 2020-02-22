@@ -82,12 +82,15 @@ class ServerGameRunner(GameRunner):
         self.game = g
         super().__init__()
 
-    def run(self) -> None:
+    def _run(self) -> None:
+        core = self.core
         g = self.game
+
+        gid = core.room.gid_of(g)
+        self.gr_name = f'{repr(g)}:{gid}'
 
         g.runner = self
         g.synctag = 0
-        core = self.core
 
         core.events.game_started.emit(g)
 
@@ -112,9 +115,6 @@ class ServerGameRunner(GameRunner):
             # caused by last player leave,
             # events will be handled by lobby
             return
-        except Exception:
-            core.game.mark_crashed(g)
-            raise
         finally:
             g.ended = True
             core.events.game_ended.emit(g)

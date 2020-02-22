@@ -112,9 +112,10 @@ class Server(object):
 
     # ----- Methods -----
     def _recv(self) -> None:
+        core = self.core
         me = gevent.getcurrent()
         me.link_exception(self._dropped)
-        core = self.core
+        me.gr_name = f'{core}::RECV'
         D = core.events.server_command
         assert self._ep
         for v in self._ep.messages(timeout=None):

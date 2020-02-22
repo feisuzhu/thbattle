@@ -46,6 +46,7 @@ class ChooseOptionInputlet(Inputlet):
 class ActionInputlet(Inputlet):
     initiator: Union[CardChooser, CharacterChooser]
     actor: Character
+    game: THBattle
 
     def __init__(self, initiator: Union[CardChooser, CharacterChooser], categories: Iterable[str], candidates: Iterable[object]):
         self.initiator = initiator
@@ -55,7 +56,7 @@ class ActionInputlet(Inputlet):
 
         self.skills: List[Type[Skill]] = []
         self.cards: List[Card] = []
-        self.players: List[Player] = []
+        self.characters: List[Player] = []
         self.params: Dict[str, Any] = {}
 
     def parse(self, data):
@@ -74,7 +75,7 @@ class ActionInputlet(Inputlet):
 
         skills: List[Type[Skill]] = []
         cards: List[Card] = []
-        players: List[Player] = []
+        characters: List[Player] = []
         params: Dict[str, Any] = {}
 
         try:
@@ -84,9 +85,10 @@ class ActionInputlet(Inputlet):
 
             if candidates:
                 check(candidates)
-                pl = [g.player_fromid(i) for i in pid_list]
+                check(all(0 <= i < len(g.players) for i in pid_list))
+                pl = [g.players[i] for i in pid_list]
                 check(all([p in candidates for p in pl]))
-                players = pl
+                characters = pl
 
             if categories:
                 cards = [g.deck.lookup(i) for i in cid_list]
@@ -105,7 +107,7 @@ class ActionInputlet(Inputlet):
                 else:
                     check(all(c.resides_in in categories for c in cards))  # Cards in desired categories?
 
-            return (skills, cards, players, params)
+            return (skills, cards, characters, params)
 
         except CheckFailed:
             return None
@@ -115,13 +117,13 @@ class ActionInputlet(Inputlet):
         actor_skills = self.actor.skills
         sid_list = [actor_skills.index(s) for s in self.skills]
         cid_list = [c.sync_id for c in self.cards]
-        pid_list = [g.get_playerid(p) for p in self.players]
+        pid_list = [g.players.index(p) for p in self.characters]
         return [sid_list, cid_list, pid_list, self.params]
 
-    def set_result(self, skills, cards, players, params=None):
+    def set_result(self, skills, cards, characters, params=None):
         self.skills = skills
         self.cards = cards
-        self.players = players
+        self.characters = characters
         self.params = params or {}
 
 

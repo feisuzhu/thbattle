@@ -51,12 +51,12 @@ class Craftsman(TreatAs, Skill):
 
     def check(self):
         cl = self.associated_cards
-        p = self.player
+        p = self.character
 
         if 'basic' not in self.treat_as.category:
             return False
 
-        if not cl and set(cl) == (set(p.cards) | set(p.showncards)):
+        if not cl or set(cl) != (set(p.cards) | set(p.showncards)):
             return False
 
         return True

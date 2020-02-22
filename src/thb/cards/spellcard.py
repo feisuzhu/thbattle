@@ -82,7 +82,7 @@ class RejectHandler(THBEventHandler):
             g = self.game
 
             has_reject = False
-            while g.SERVER:
+            while g.is_server_side():
                 # from thb.characters.base import Character
                 # from thb.characters.reimu import SpiritualAttack
                 # for p in g.players:
@@ -166,7 +166,7 @@ class SealingArray(DelayedSpellCardAction, FatetellAction):
         g = self.game
         if ft.succeeded:
             turn = PlayerTurn.get_current(g)
-            assert turn is self.target
+            assert turn.target is self.target, (turn.target, self.target)
             try:
                 turn.pending_stages.remove(ActionStage)
             except Exception:
@@ -518,7 +518,7 @@ class FrozenFrog(DelayedSpellCardAction, FatetellAction):
         g = self.game
         if ft.succeeded:
             turn = PlayerTurn.get_current(g)
-            assert turn is self.target
+            assert turn.target is self.target, (turn.target, self.target)
             try:
                 turn.pending_stages.remove(DrawCardStage)
             except Exception:

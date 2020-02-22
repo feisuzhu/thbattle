@@ -23,7 +23,7 @@ class ReversedScales(TreatAs, Skill):
             return False
 
         g = self.game
-        if PlayerTurn.get_current(g).target is self.player:
+        if PlayerTurn.get_current(g).target is self.character:
             return False
 
         return cl[0].resides_in.type in ('cards', 'showncards')

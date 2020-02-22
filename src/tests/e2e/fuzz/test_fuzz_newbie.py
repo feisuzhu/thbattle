@@ -6,11 +6,16 @@ from __future__ import annotations
 import gevent
 
 # -- own --
-from .mock import Environ, EventTap
+from ..mock import Environ, EventTap
 from utils.misc import BatchList
+from .user_input import UserInputFuzzingHandler
 
 
 # -- code --
+class GameEnded(Exception):
+    pass
+
+
 class TestStart2v2(object):
     def testStart2v2(self):
         env = Environ()
@@ -35,8 +40,20 @@ class TestStart2v2(object):
         c1.room.get_ready()
         gevent.idle()
         c1.events.game_crashed += fail_crash
-        c1.game.start_game(t[c1.events.game_started])
-        gevent.idle()
-        gevent.sleep(3)
-        1/0
 
+        g = t[c1.events.game_started]
+        g.event_observer = UserInputFuzzingHandler(g)
+
+        def game_ended(g):
+            gevent.kill(me, GameEnded())
+            return g
+
+        s.events.game_ended += game_ended
+
+        c1.game.start_game(t[c1.events.game_started])
+
+        try:
+            gevent.sleep(2)
+            raise Exception('Time limit exceeded!')
+        except GameEnded:
+            pass

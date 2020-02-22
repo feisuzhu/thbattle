@@ -184,10 +184,10 @@ class VirtualCard(Card, GameViralContext):
     _number: Optional[int]
     _color: Optional[int]
 
-    def __init__(self, player: Character):
-        self.player           = player
+    def __init__(self, character: Character):
+        self.character        = character
         self.associated_cards = []
-        self.resides_in       = player.cards
+        self.resides_in       = character.cards
         self.action_params    = {}
         self.unwrapped        = False
         self.sync_id          = 0
@@ -223,8 +223,8 @@ class VirtualCard(Card, GameViralContext):
         return lst
 
     @classmethod
-    def wrap(cls, cl: List[Card], player: Character, params: Dict[str, Any] = None):
-        vc = cls(player)
+    def wrap(cls, cl: List[Card], character: Character, params: Dict[str, Any] = None):
+        vc = cls(character)
         vc.action_params = params or {}
         vc.associated_cards = cl[:]
         return vc
@@ -395,9 +395,10 @@ class Skill(VirtualCard):
 
     ui_meta: ClassVar[SkillMeta]
 
-    def __init__(self, player):
-        assert player is not None
-        VirtualCard.__init__(self, player)
+    def __init__(self, character):
+        assert character is not None
+        VirtualCard.__init__(self, character)
+        self.usage = 'launch'
 
     def check(self):  # override this
         return False
@@ -412,7 +413,7 @@ class TreatAs(object):
     else:
         @property
         def category(self) -> Sequence[str]:
-            return ['skill', 'treat_as'] + self.treat_as.category
+            return ['skill', 'treat_as'] + list(self.treat_as.category)
 
     def check(self):
         return False
@@ -425,6 +426,9 @@ class TreatAs(object):
             return True
 
         return isinstance(self, cls)
+
+    def target(self: Any, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
+        return self.treat_as().target(g, src, tl)
 
     def __getattr__(self, name):
         return getattr(self.treat_as, name)
@@ -470,6 +474,8 @@ def t_OtherLessEqThanN(n):
         except ValueError:
             pass
         return (tl[:n], bool(len(tl)))
+
+    _t_OtherLessEqThanN._for_test_OtherLessEqThanN = n
     return _t_OtherLessEqThanN
 
 
@@ -486,6 +492,8 @@ def t_OtherN(n):
         except ValueError:
             pass
         return (tl[:n], bool(len(tl) >= n))
+
+    _t_OtherN._for_test_OtherN = n
     return _t_OtherN
 
 

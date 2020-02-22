@@ -40,6 +40,7 @@ class FlyingSkanda(Skill):
     usage = 'launch'
 
     def target(self, g, source, tl):
+        tl = [ch for ch in tl if not ch.dead]
         cl = self.associated_cards
         if not cl: return ([], False)
         c = cl[0]
@@ -69,7 +70,9 @@ class FlyingSkanda(Skill):
         if c.is_card(RejectCard): return False
 
         act = c.associated_action
+        if not act: return False
         if not issubclass(act, InstantSpellCardAction): return False
+
         return True
 
     def is_card(self, cls):
@@ -140,7 +143,7 @@ class ShikigamiHandler(THBEventHandler):
             if origin.tags['shikigami_tag'] != origin.tags['turn_count']:
                 return arg
 
-            dist2 = LaunchCard.calc_raw_distance(tgt, AttackCard())
+            dist2 = LaunchCard.calc_raw_distance(g, tgt, AttackCard())
 
             for k in dist2:
                 if dist[k] > 0 and dist2[k] <= 1:

@@ -231,6 +231,14 @@ class Room(object):
             if not Ag(self, g)['greenlet']:
                 log.info("game starting")
                 game_runner = ServerGameRunner(core, g)
+
+                @game_runner.link_exception
+                def notify_crashed(runner):
+                    g = runner.game
+                    assert g, g
+                    core.game.mark_crashed(g)
+                    core.events.game_crashed.emit(g)
+
                 Ag(self, g)['greenlet'] = game_runner
                 core.runner.start(game_runner)
 

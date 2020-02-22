@@ -39,7 +39,7 @@ class RoleRevealHandler(THBEventHandler):
             g = self.game
             tgt = act.target
 
-            g.process_action(RevealRole(tgt.player, g.players.player))
+            g.process_action(RevealRole(g.roles[tgt.player], g.players.player))
 
         return act
 
@@ -113,6 +113,7 @@ class DeathHandler(THBEventHandler):
                 g.process_action(DrawCards(src, 3))
             elif g.roles[tgt.player] == T.ACCOMPLICE:
                 if g.roles[src.player] == T.BOSS:
+                    pl = g.players.player
                     pl.exclude(src.player).reveal(list(src.cards))
 
                     cards: List[Card] = []
@@ -302,8 +303,8 @@ class ExtraCardSlotHandler(THBEventHandler):
                 return act
 
             g = self.game
-            n = sum(i == THBRoleRole.ACCOMPLICE for i in g.roles)
-            n -= sum(p.dead and p.identity.type == THBRoleRole.ACCOMPLICE for p in g.players)
+            n = sum(i == THBRoleRole.ACCOMPLICE for i in g.roles.values())
+            n -= sum(ch.dead and g.roles[ch.player] == THBRoleRole.ACCOMPLICE for ch in g.players)
             act.dropn = max(act.dropn - n, 0)
 
         return act
@@ -398,7 +399,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         for p, i in imperial_roles + list(zip(pl, roles)):
             g.roles[p] = PlayerRole(THBRoleRole)
             g.roles[p].set(i)
-            g.process_action(RevealRole(p, p))
+            g.process_action(RevealRole(g.roles[p], p))
 
         del roles
 
@@ -406,7 +407,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         boss_idx = is_boss.index(True)
         boss = g.boss = pl[boss_idx]
 
-        g.process_action(RevealRole(boss, pl))
+        g.process_action(RevealRole(g.roles[boss], pl))
 
         # choose girls init -->
         from .characters import get_characters
@@ -482,7 +483,8 @@ class THBattleRoleBootstrap(BootstrapAction):
             g.players.append(ch)
             g.emit_event('switch_character', (None, ch))
 
-        assert g.players.player == pl
+        assert set(g.players.player) == set(pl)
+        assert len(pl) == g.n_persons
 
         # -------
         for ch in g.players:
@@ -490,7 +492,7 @@ class THBattleRoleBootstrap(BootstrapAction):
                 '>> Player: %s:%s %s',
                 ch.__class__.__name__,
                 g.roles[ch.player].get().name,
-                g.name_of(ch.player),
+                ch.player.uid,
             )
         # -------
 

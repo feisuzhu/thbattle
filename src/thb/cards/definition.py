@@ -169,7 +169,7 @@ class DollControlCard(SpellcardCard):
 
     def t_DollControl(self: Any, g: Any, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
         if not tl: return ([], False)
-        tl = list(tl)
+        tl = [ch for ch in tl if not ch.dead]
         while tl and src is tl[0]:
             del tl[0]
         return (tl[:2], len(tl) >= 2)

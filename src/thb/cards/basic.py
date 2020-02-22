@@ -94,6 +94,7 @@ class AttackCardVitalityHandler(EventHandler):
                 src.tags['vitality'] -= 1
 
         elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
+            from .definition import AttackCard
             if act.card.is_card(AttackCard):
                 src = act.source
                 if cls.is_disabled(src):

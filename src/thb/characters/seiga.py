@@ -107,7 +107,7 @@ class Heterodoxy(Skill):
         tl = [t for t in tl if not t.dead]
 
         if not tl: return [], False
-        if tl[0] is self.player: return [], False
+        if tl[0] is self.character: return [], False
 
         if tname in ('t_Self', 't_All', 't_AllInclusive'):
             return tl[-1:], True
