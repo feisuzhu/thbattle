@@ -63,7 +63,11 @@ class UltimateSpeedHandler(THBEventHandler):
             if not src.has_skill(UltimateSpeed): return arg
 
             # if not isinstance(lca, ActionStageLaunchCard):
-            current = PlayerTurn.get_current(g).target
+            try:
+                current = PlayerTurn.get_current(g).target
+            except IndexError:
+                return arg
+
             if current is not src:
                 return arg
 

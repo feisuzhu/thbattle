@@ -127,10 +127,14 @@ class ImperishableNightHandler(THBEventHandler):
 
         if tgt.dead: return act
 
+        try:
+            current = PlayerTurn.get_current(g).target
+        except IndexError:
+            current = None
+
         for p in g.players:
             if p.dead or p is tgt: continue
             if not p.has_skill(ImperishableNight): continue
-            current = PlayerTurn.get_current(g).target
             if p is current: continue
 
             if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):

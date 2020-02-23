@@ -994,7 +994,15 @@ class FatetellMalleateHandler(EventArbiter):
         if evt_type != 'fatetell': return data
 
         g = self.game
-        tgt = PlayerTurn.get_current(g).target
+        try:
+            tgt = PlayerTurn.get_current(g).target
+        except IndexError:
+            for a in g.action_stack:
+                if isinstance(a, LaunchCard):
+                    tgt = a.source
+                    break
+
+            raise Exception('Could not find appropriate start point')
 
         n = len(g.players)
         idx = g.players.index(tgt) - n

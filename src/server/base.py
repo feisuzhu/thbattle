@@ -115,9 +115,6 @@ class ServerGameRunner(GameRunner):
             # caused by last player leave,
             # events will be handled by lobby
             return
-        finally:
-            g.ended = True
-            core.events.game_ended.emit(g)
 
     def get_side(self) -> str:
         return 'server'

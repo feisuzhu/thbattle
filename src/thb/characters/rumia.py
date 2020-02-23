@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.base import ActionShootdown
-from thb.actions import Damage, DrawCards, LaunchCard, PlayerTurn, UserAction, user_choose_cards
+from thb.actions import Damage, DrawCards, FinalizeStage, LaunchCard, UserAction, user_choose_cards
 from thb.cards.base import Skill, t_None, t_OtherN
 from thb.cards.classes import Attack, AttackCard, BaseDuel, PhysicalCard, RejectCard
 from thb.characters.base import Character, register_character_to
@@ -143,7 +144,7 @@ class CheatingHandler(THBEventHandler):
     execute_before = ['CiguateraHandler']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_after' and isinstance(act, FinalizeStage):
             tgt = act.target
             if tgt.has_skill(Cheating) and not tgt.dead:
                 g = self.game

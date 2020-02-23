@@ -68,22 +68,27 @@ class KOFCharacterSwitchHandler(THBEventHandler):
     def do_switch_dead(self):
         g = self.game
 
-        for p in [p for p in g.players if p.dead and p.choices]:
-            new = self.switch(p)
+        # for p in [p for p in g.players if p.dead and p.chosen]:
+        for ch in [ch for ch in g.players if ch.dead]:
+            new = self.switch(ch)
             g.process_action(DistributeCards(new, 4))
-            g.emit_event('character_debut', (p, new))
+            g.emit_event('character_debut', (ch, new))
 
-    def switch(self, p):
+    def switch(self, old: Character):
         g = self.game
-        mapping = {p: p.choices}
+        p = old.player
+        mapping = {p: g.chosen[p]}
 
         with InputTransaction('ChooseGirl', [p], mapping=mapping) as trans:
-            rst = g.user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
-            rst = rst or p.choices[0]
+            choice = g.user_input([p], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+            choice = choice or g.chosen[p][0]
 
-        p = g.next_character(p, rst)
-        p.choices.remove(rst)
-        return p
+        g.players.reveal(choice)
+        new = choice.char_cls(p)
+        g.players.replace(old, new)
+        g.refresh_dispatcher()
+        g.chosen[p].remove(choice)
+        return new
 
 
 class THBKOFRole(Enum):
@@ -179,8 +184,9 @@ class THBattleKOFBootstrap(BootstrapAction):
         cA, cB = g.players = BatchList([s(A), s(B)])
 
         for p in pl:
-            g.process_action(RevealRole(p, pl))
+            g.process_action(RevealRole(g.roles[p], pl))
 
+        g.refresh_dispatcher()
         g.emit_event('game_begin', g)
 
         g.process_action(DistributeCards(cA, amount=4))

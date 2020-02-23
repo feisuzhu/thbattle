@@ -207,7 +207,7 @@ class SummonKOFAction(UserAction):
 
         tgt.tags = old.tags
 
-        tgt.choices.append(CharChoice(old.__class__))
+        g.chosen[tgt.player].append(CharChoice(old.__class__))
 
         if tgt.life > tgt.maxlife:
             g.process_action(LifeLost(tgt, tgt, tgt.life - tgt.maxlife))
@@ -222,7 +222,8 @@ class SummonKOFAction(UserAction):
 class SummonKOFCollect(UserAction):
     def apply_action(self):
         src, tgt = self.source, self.target
-        src.choices.append(CharChoice(tgt.__class__))
+        g = self.game
+        g.chosen[src.player].append(CharChoice(tgt.__class__))
         return True
 
 

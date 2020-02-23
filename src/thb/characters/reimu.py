@@ -169,7 +169,12 @@ class ReimuExterminateHandler(THBEventHandler):
             if not act.source: return act
             src, tgt = act.source, act.target
             g = self.game
-            current = PlayerTurn.get_current(g).target
+
+            try:
+                current = PlayerTurn.get_current(g).target
+            except IndexError:
+                return act
+
             if src is not current: return act
             if src is tgt: return act
             ttags(src)['did_damage'] = True
@@ -178,7 +183,10 @@ class ReimuExterminateHandler(THBEventHandler):
             if not act.source: return act
             src, tgt = act.source, act.target
             g = self.game
-            cur = PlayerTurn.get_current(g).target
+            try:
+                cur = PlayerTurn.get_current(g).target
+            except IndexError:
+                return act
             if not cur: return act
             if not tgt.has_skill(ReimuExterminate): return act
             if cur.dead: return act

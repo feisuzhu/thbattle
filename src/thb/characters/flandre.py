@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction, PlayerDeath
-from thb.actions import PlayerTurn, register_eh, ttags
+from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, FinalizeStage, GenericAction
+from thb.actions import PlayerDeath, PlayerTurn, register_eh, ttags
 from thb.cards.base import Skill
 from thb.cards.classes import ActionLimitExceeded, AttackCard, AttackCardVitalityHandler, BaseAttack
 from thb.cards.classes import BaseDuel, DuelCard, ElementalReactorSkill, UserAction, t_None
@@ -115,7 +116,11 @@ class CriticalStrikeHandler(THBEventHandler):
 
     def in_critical_strike(self, p):
         g = self.game
-        current = PlayerTurn.get_current(g).target
+        try:
+            current = PlayerTurn.get_current(g).target
+        except IndexError:
+            return False
+
         return (
             ttags(p)['flan_cs'] and
             current is p and
@@ -168,7 +173,7 @@ class ExterminateFadeHandler(THBEventHandler):
     interested = ['action_after', 'action_apply']
 
     def handle(self, evt_type, arg):
-        if ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
+        if ((evt_type == 'action_after' and isinstance(arg, FinalizeStage)) or
             (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):  # noqa
 
             g = self.game

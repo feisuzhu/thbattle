@@ -3,7 +3,7 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import ActionLimitExceeded, ActionShootdown, ActionStage, DrawCards, LaunchCard
+from thb.actions import ActionLimitExceeded, ActionShootdown, ActionStage, DrawCards, LaunchCard, PrepareStage
 from thb.actions import Pindian, PlayerTurn, UserAction
 from thb.cards.base import Skill, VirtualCard
 from thb.cards.classes import AttackCard, TreatAs, WineCard, t_None, t_OtherOne
@@ -61,7 +61,7 @@ class HeavyDrinkerHandler(THBEventHandler):
     execute_before = ['WineHandler']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, ActionStage):
+        if evt_type == 'action_apply' and isinstance(act, PrepareStage):
             act.target.tags['suika_target'] = []
 
         return act
@@ -94,16 +94,16 @@ class DrunkenDreamHandler(THBEventHandler):
                 for p in dist:
                     dist[p] -= 2
 
-        elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
-            src = act.source
-            if not src.has_skill(DrunkenDream):
+        elif evt_type == 'action_apply' and isinstance(act, PrepareStage):
+            tgt = act.target
+            if not tgt.has_skill(DrunkenDream):
                 return act
 
-            if not src.tags['wine']:
+            if not tgt.tags['wine']:
                 return act
 
             g = self.game
-            g.process_action(DrunkenDreamDrawCards(src, 1))
+            g.process_action(DrunkenDreamDrawCards(tgt, 1))
 
         return act
 

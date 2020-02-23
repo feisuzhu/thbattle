@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import DrawCards, DropCards, FatetellStage, LifeLost, PlayerTurn, UserAction
+from thb.actions import DrawCards, DropCards, FatetellStage, FinalizeStage, LifeLost, UserAction
 from thb.actions import user_choose_cards
 from thb.cards.base import Card, Skill
 from thb.cards.basic import Heal
@@ -54,7 +55,7 @@ class AshesHandler(THBEventHandler):
     execute_before = ['CiguateraHandler']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_after' and isinstance(act, FinalizeStage):
             tgt = act.target
             if tgt.dead or not tgt.has_skill(Ashes): return act
             g = self.game

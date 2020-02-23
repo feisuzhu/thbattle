@@ -166,7 +166,13 @@ class DecayDamageHandler(THBEventHandler):
                 return act
 
             g = self.game
-            cur = PlayerTurn.get_current(g).target
+
+            try:
+                cur = PlayerTurn.get_current(g).target
+            except IndexError:
+                # Yugi AssaultKOF & Yuuka Sadist
+                return act
+
             if cur is tgt: return act
             g.process_action(DecayAction(src, cur))
 

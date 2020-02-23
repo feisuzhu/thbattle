@@ -4,7 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 from enum import Enum
 from itertools import cycle
-from typing import Any, Dict, Generic, Iterable, List, Optional, TYPE_CHECKING, Tuple, Type, TypeVar
+from typing import Any, Dict, Generic, Iterable, List, Optional, TYPE_CHECKING, Tuple, Type, TypeVar, Sequence
 import logging
 import random
 
@@ -126,13 +126,24 @@ class BuildChoicesSpec(TypedDict):
     akaris: int
 
 
+class VirtualPlayer(Player):
+
+    def __init__(self, players: Sequence[Player]):
+        self.players = players
+        super().__init__()
+
+    def reveal(self, obj: Any):
+        for p in self.players:
+            p.reveal(obj)
+
+
 def build_choices_shared(g: THBattle,
                          players: BatchList[Player],
                          items: Dict[Player, List[GameItem]],
                          candidates: List[Type[Character]],
                          spec: BuildChoicesSpec,
                          ) -> Tuple[List[CharChoice], Dict[Player, CharChoice]]:
-    p = Player()
+    p = VirtualPlayer(players)
     choices, imperial = build_choices(g, players, items, candidates, {p: spec})
     return choices[p], imperial
 

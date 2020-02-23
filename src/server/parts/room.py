@@ -236,8 +236,17 @@ class Room(object):
                 def notify_crashed(runner):
                     g = runner.game
                     assert g, g
+                    g.ended = True
                     core.game.mark_crashed(g)
                     core.events.game_crashed.emit(g)
+                    core.events.game_ended.emit(g)
+
+                @game_runner.link_value
+                def notify_ended(runner):
+                    g = runner.game
+                    assert g, g
+                    g.ended = True
+                    core.events.game_ended.emit(g)
 
                 Ag(self, g)['greenlet'] = game_runner
                 core.runner.start(game_runner)

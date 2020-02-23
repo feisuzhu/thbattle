@@ -7,6 +7,7 @@ from random import Random
 from typing import Any, ClassVar, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type
 from typing import TypeVar, Union
 import logging
+import inspect
 import random
 
 # -- third party --
@@ -477,7 +478,25 @@ class EventDispatcher(GameObject):
             s = data
         else:
             s = data.__class__.__name__
-        log.debug('emit_event: %s %s' % (evt_type, s))
+
+        if log.isEnabledFor(logging.DEBUG):
+            if evt_type in ('action_before', 'action_apply', 'action_after'):
+                co_argnames = inspect.getfullargspec(data.__init__).args
+                try:
+                    co_argnames.remove('self')
+                except Exception:
+                    pass
+                co_args = []
+                BAD = object()
+                for n in co_argnames:
+                    co_arg = getattr(data, n, BAD)
+                    if co_arg is not BAD:
+                        co_args.append((n, co_arg))
+                co_argsstr = ', '.join(f'{name}={repr(a)}' for name, a in co_args)
+                act_repr = f'{s}({co_argsstr})'
+                log.debug('emit_event: %s %s', evt_type, act_repr)
+            else:
+                log.debug('emit_event: %s %s', evt_type, s)
 
         if evt_type in ('action_before', 'action_apply', 'action_after'):
             action_event = True

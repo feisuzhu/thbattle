@@ -90,8 +90,9 @@ class UserInputFuzzingHandler(EventHandler):
             tgt = ilet.target
             if random.random() < 0.9:
                 cats = [getattr(tgt, i) for i in ilet.categories]
-                c = random.choice(list(chain(*cats)))
-                ilet.set_card(c)
+                cl = list(chain(*cats))
+                if cl:
+                    ilet.set_card(random.choice(cl))
         else:
             log.warning('Not processing %s transaction', trans.name)
 
