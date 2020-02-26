@@ -368,7 +368,11 @@ class PostCardMigrationHandler(EventArbiter):
         tgt = act.target or act.source or g.players[0]
 
         n = len(g.players)
-        idx = g.players.index(tgt) - n
+        try:
+            idx = g.players.index(tgt) - n
+        except ValueError:
+            # Character died or switched out or whatever
+            return arg
         for i in range(idx, idx + n):
             for eh in self.handlers:
                 g.dispatcher.handle_single_event(eh, g.players[i], arg)

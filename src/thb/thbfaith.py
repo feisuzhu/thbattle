@@ -55,7 +55,7 @@ class DeathHandler(THBEventHandler):
                 pool.remove(c)
                 trans.notify('girl_chosen', (tgt.player, c))
 
-            tgt = g.switch_character(tgt.player, c)
+            tgt = g.switch_character(tgt, c)
             g.process_action(DistributeCards(tgt, 4))
 
             if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
@@ -124,12 +124,16 @@ class THBattleFaithBootstrap(BootstrapAction):
         for p, role in zip(pl, rl):
             g.roles[p] = PlayerRole(THBFaithRole)
             g.roles[p].set(role)
-            g.process_action(RevealRole(p, pl))
+            g.process_action(RevealRole(g.roles[p], pl))
 
-        g.forces[H] = BatchList()
-        g.forces[M] = BatchList()
-        g.pool[H] = BatchList()
-        g.pool[M] = BatchList()
+        g.forces = {
+            H: BatchList(),
+            M: BatchList(),
+        }
+        g.pool = {
+            H: BatchList(),
+            M: BatchList(),
+        }
 
         for p in pl:
             g.forces[g.roles[p].get()].append(p)
@@ -145,21 +149,22 @@ class THBattleFaithBootstrap(BootstrapAction):
             spec={p: {'num': 4, 'akaris': 1} for p in pl}
         )
 
-        rst = g.user_input(g.players, SortCharacterInputlet(g, choices, 2), timeout=30, type='all')
+        rst = g.user_input(pl, SortCharacterInputlet(g, choices, 2), timeout=30, type='all')
 
-        g.players = BatchList()
+        g.players = BatchList([Character(p) for p in pl])
         first: Character
 
-        for p in pl:
+        for i, ch in enumerate(g.players):
+            p = ch.player
             a, b = [choices[p][i] for i in rst[p][:2]]
 
-            ch = g.switch_character(p, a)
+            ch = g.switch_character(ch, a)
 
             if p is roll_rst[0]:
                 first = ch
-                first_index = len(g.players)
+                first_index = i
 
-            g.players.append(ch)
+            g.players[i] = (ch)
 
             b.chosen = None
             g.forces[g.roles[p].get()].reveal(b)
@@ -168,8 +173,8 @@ class THBattleFaithBootstrap(BootstrapAction):
         order = BatchList(range(len(pl))).rotate_to(first_index)
         g.emit_event('game_begin', g)
 
-        for p in pl:
-            g.process_action(DistributeCards(p, amount=4))
+        for ch in g.players:
+            g.process_action(DistributeCards(ch, amount=4))
 
         reordered = g.players.rotate_to(first)
         rst = g.user_input(reordered[1:], ChooseOptionInputlet(DeathHandler(g), (False, True)), type='all')
@@ -204,7 +209,8 @@ class THBattleFaith(THBattle):
     def can_leave(g: THBattleFaith, p: Any):
         return False
 
-    def switch_character(g, p: Player, choice: CharChoice) -> Character:
+    def switch_character(g, old: Character, choice: CharChoice) -> Character:
+        p = old.player
         choice.akari = False
 
         g.players.player.reveal(choice)
@@ -218,14 +224,14 @@ class THBattleFaith(THBattle):
         g.players.find_replace(lambda ch: ch.player is p, new)
         g.refresh_dispatcher()
 
-        g.emit_event('switch_character', (p, new))
+        g.emit_event('switch_character', (old, new))
 
         return new
 
     def get_opponent_role(g, r: THBFaithRole) -> THBFaithRole:
         if r == THBFaithRole.MORIYA:
             return THBFaithRole.HAKUREI
-        elif r == THBFaithRole.MORIYA:
-            return THBFaithRole.HAKUREI
+        elif r == THBFaithRole.HAKUREI:
+            return THBFaithRole.MORIYA
         else:
-            assert False, 'WTF!'
+            assert False, f'WTF: {r}'

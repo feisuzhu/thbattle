@@ -413,7 +413,7 @@ class YoumuPhantomCard(EquipmentCard):
 
 
 @physical_card
-class IceWingCard(PhysicalCard):
+class IceWingCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
     target = t_Self
     category = ['equipment', 'redufo']
