@@ -5,7 +5,7 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
-from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, UserAction
+from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, PlayerTurn, UserAction
 from thb.actions import random_choose_card, user_choose_players
 from thb.cards import Skill, VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
@@ -183,6 +183,18 @@ class DecayDamageHandler(EventHandler):
         return act
 
 
+class DecayFadeHandler(EventHandler):
+    interested = ('action_after', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, PlayerTurn):
+            tgt = act.target
+            if tgt.tags['shizuha_decay']:
+                tgt.tags['shizuha_decay'] = False
+
+        return act
+
+
 class Decay(Skill):
     associated_action = None
     skill_category = ('character', 'passive')
@@ -192,5 +204,5 @@ class Decay(Skill):
 @register_character_to('common')
 class Shizuha(Character):
     skills = [Decay, AutumnWind]
-    eventhandlers_required = [DecayDamageHandler, DecayDrawCardHandler, AutumnWindHandler]
+    eventhandlers_required = [DecayDamageHandler, DecayDrawCardHandler, DecayFadeHandler, AutumnWindHandler]
     maxlife = 3
