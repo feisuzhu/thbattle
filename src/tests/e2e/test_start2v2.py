@@ -12,7 +12,7 @@ from utils.misc import BatchList
 
 # -- code --
 class TestStart2v2(object):
-    def testStart2v2(self):
+    def _testStart2v2(self):
         env = Environ()
         t = EventTap()
 

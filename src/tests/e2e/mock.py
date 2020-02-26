@@ -52,7 +52,8 @@ class Environ(object):
     def __init__(self):
         self.pool = Pool(32)
         p = random.randint(10000, 30000)
-        self.rendezvous = f'tcp://127.0.0.233:{p}'
+        ip = random.randint(1, 16777215)
+        self.rendezvous = f'tcp://127.{ip}:{p}'
         self.parent = gevent.getcurrent()
 
     def _run(self, runner):
