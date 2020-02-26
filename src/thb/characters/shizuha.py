@@ -204,6 +204,18 @@ class DecayDamageHandler(THBEventHandler):
         return act
 
 
+class DecayFadeHandler(THBEventHandler):
+    interested = ('action_after', )
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_after' and isinstance(act, PlayerTurn):
+            tgt = act.target
+            if tgt.tags['shizuha_decay']:
+                tgt.tags['shizuha_decay'] = False
+
+        return act
+
+
 class Decay(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
@@ -213,5 +225,5 @@ class Decay(Skill):
 @register_character_to('common')
 class Shizuha(Character):
     skills = [Decay, AutumnWind]
-    eventhandlers = [DecayDamageHandler, DecayDrawCardHandler, AutumnWindHandler]
+    eventhandlers = [DecayDamageHandler, DecayDrawCardHandler, DecayFadeHandler, AutumnWindHandler]
     maxlife = 3
