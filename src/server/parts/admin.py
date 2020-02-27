@@ -62,7 +62,7 @@ class Admin(object):
     def _kick(self, c: Client, m: msg.AdminKick) -> None:
         core = self.core
         u = core.lobby.get(m.uid)
-        if u: u.close()
+        u and u.terminate()
 
     @_need_admin
     def _clearzombies(self, c: Client, m: msg.AdminClearZombies) -> None:
@@ -91,7 +91,7 @@ class Admin(object):
                 users = core.lobby.all_users()
                 for u in users:
                     if core.lobby.state_of(u) in ('lobby', 'room', 'ready', 'connected'):
-                        u.close()
+                        u.terminate()
 
                 gevent.sleep(1)
 

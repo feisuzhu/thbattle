@@ -131,7 +131,10 @@ class Endpoint(object):
             try:
                 v = _NONE
                 with Timeout(timeout, False):
-                    v = next(unpacker)
+                    try:
+                        v = next(unpacker)
+                    except StopIteration:
+                        pass
 
                 if v is not _NONE:
                     fmt, data = self._decode_packet(v)

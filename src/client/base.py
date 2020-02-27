@@ -98,7 +98,9 @@ class ClientGameRunner(GameRunner):
         core.events.client_game_finished.emit(g)
 
     def pause(self, time: float) -> None:
-        gevent.sleep(time)
+        core = self.core
+        if not core.options.testing:
+            gevent.sleep(time)
 
     def is_dropped(self, p: Player) -> bool:
         core = self.core
@@ -165,6 +167,7 @@ class ClientGameRunner(GameRunner):
         p2e = {p: e for e, p in e2p.items()}
 
         def input_func(st: str) -> None:
+            gevent.getcurrent().gr_name = 'InputFunc'
             my = ilets[p2e[me]]
             with TimeLimitExceeded(timeout + 1, False):
                 _, my = g.emit_event('user_input', (trans, my))
@@ -207,11 +210,9 @@ class ClientGameRunner(GameRunner):
                 try:
                     rst = my.parse(data)
                 except Exception:
-                    log.exception('user_input: exception in .process()')
-                    # ----- FOR DEBUG -----
-                    if g.IS_DEBUG:
+                    if core.options.testing:
                         raise
-                    # ----- END FOR DEBUG -----
+                    log.exception('user_input: exception in .process()')
                     rst = None
 
                 rst = my.post_process(e, rst)

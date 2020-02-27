@@ -45,10 +45,10 @@ class Lobby(object):
         core.events.lobby_updated.emit((self.users, self.games))
         return ev
 
-    def _server_dropped(self, _: None) -> None:
+    def _server_dropped(self, v: bool) -> bool:
         self.users = []
         self.games = []
-        return None
+        return v
 
     # ----- Public Method -----
     def create_room(self, name: str, mode: str, flags: wire.msg.CreateRoomFlags) -> None:

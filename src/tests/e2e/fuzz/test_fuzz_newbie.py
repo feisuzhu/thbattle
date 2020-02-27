@@ -16,8 +16,14 @@ class GameEnded(Exception):
     pass
 
 
-class TestStart2v2(object):
-    def testStart2v2(self):
+def wait():
+    gevent.idle()
+    gevent.sleep(0.01)
+    gevent.idle()
+
+
+class TestFuzzTHBattleFaith(object):
+    def testFuzzTHBattleFaith(self):
         env = Environ()
         t = EventTap()
 
@@ -27,22 +33,26 @@ class TestStart2v2(object):
             e = Exception('GAME CRASH')
             e.__cause__ = g.runner.exception
             gevent.kill(me, e)
+            return g
 
         s = env.server_core()
-        c1 = env.client_core()
-        c1.auth.login('Reimu')
-        gevent.idle()
-        assert c1.auth.uid
-        t += c1.events.game_joined
-        c1.room.create('Test1', 'THBattleNewbie', {})
-        gevent.idle()
-        t += c1.events.game_started
-        c1.room.get_ready()
-        gevent.idle()
-        c1.events.game_crashed += fail_crash
+        c = env.client_core()
+        c.auth.login('Reimu')
+        wait()
+        assert c.auth.uid
+        t += c.events.game_joined
+        c.room.create('Test1', 'THBattleNewbie', {})
+        wait()
+        t += c.events.game_started
 
-        g = t[c1.events.game_started]
+        s.events.game_crashed += fail_crash
+
+        g = t[c.events.game_joined]
+        c.events.game_crashed += fail_crash
         g.event_observer = UserInputFuzzingHandler(g)
+
+        c.room.get_ready()
+        wait()
 
         def game_ended(g):
             gevent.kill(me, GameEnded())
@@ -50,10 +60,10 @@ class TestStart2v2(object):
 
         s.events.game_ended += game_ended
 
-        c1.game.start_game(t[c1.events.game_started])
+        c.game.start_game(t[c.events.game_started])
 
         try:
-            gevent.sleep(2)
+            gevent.sleep(4)
             raise Exception('Time limit exceeded!')
         except GameEnded:
             pass

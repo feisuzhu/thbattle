@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import List, Optional, Sequence, TYPE_CHECKING, cast
+from typing import Optional, Sequence, TYPE_CHECKING, cast
 import logging
 
 # -- third party --
@@ -10,7 +10,6 @@ from gevent import Greenlet, getcurrent
 
 # -- own --
 from endpoint import Endpoint, EndpointDied
-from utils.misc import MockMeta
 import wire
 
 # -- typing --
@@ -60,22 +59,22 @@ class Client(object):
                 continue
 
             except Exception as e:
-                if core.options.paranoid:
+                if core.options.testing:
                     core.crash(e)
                     raise
                 log.exception("Error occurred when handling client command")
 
+        self._ep and self._ep.close()
+        self._ep = None
+        self._gr = None
         core.events.client_dropped.emit(self)
 
     def serve(self) -> None:
         self._before_serve()
         self._serve()
 
-    def close(self) -> None:
-        self._ep and self._ep.close()
-        self._ep = None
+    def terminate(self) -> None:
         self._gr and self._gr.kill(EndpointDied)
-        self._gr = None
 
     def is_dead(self) -> bool:
         return not self._gr or self._gr.ready()
@@ -119,48 +118,3 @@ class Client(object):
     def raw_write(self, v: bytes) -> None:
         ep = self._ep
         if ep: ep.raw_write(v)
-
-
-class MockClient(Client, metaclass=MockMeta):
-
-    def __init__(self, core: Core):
-        self.core = core
-        self.dead = False
-        self.written_messages: List[wire.ServerToClient] = []
-
-        self._: dict = {}
-
-    def dropped(self) -> None:
-        core = self.core
-        core.events.client_dropped.emit(self)
-
-    def connected(self) -> None:
-        core = self.core
-        core.events.client_connected.emit(self)
-
-    def recv(self, v: wire.ServerToClient) -> None:
-        self.written_messages.append(v)
-
-    def close(self) -> None:
-        pass
-
-    def is_dead(self) -> bool:
-        return self.dead
-
-    def pivot_to(self, other: Client) -> None:
-        pass
-
-    def __repr__(self) -> str:
-        return '%s:%s:%s' % (
-            self.__class__.__name__,
-            'FIXME', 'FIXME'
-        )
-
-    def write(self, v: wire.ServerToClient) -> None:
-        self.written_messages.append(v)
-
-    def write_bulk(self, vl: Sequence[wire.ServerToClient]) -> None:
-        self.written_messages.extend(vl)
-
-    def raw_write(self, v: bytes) -> None:
-        self.written_messages.extend(cast(List[wire.ServerToClient], Endpoint.decode_bytes(v)))

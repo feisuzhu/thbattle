@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import deque
+import random
 from typing import Any, ClassVar, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple
 from typing import Type, Union
 from weakref import WeakValueDictionary
@@ -11,7 +12,7 @@ import logging
 
 # -- third party --
 # -- own --
-from game.base import GameError, GameObject, GameViralContext, list_shuffle
+from game.base import GameError, GameObject, GameViralContext, list_shuffle, get_seed_for
 from thb.mode import THBattle
 
 # -- typing --
@@ -62,7 +63,7 @@ class Card(GameObject):
 
     def __init__(self, suit=NOTSET, number=0, resides_in=None, track_id=0):
         self.sync_id    = 0         # Synchronization id, changes during shuffling, kept sync between client and server.
-        self.track_id   = track_id  # Card identifier, unique among all cards, 0 if doesn't care.
+        self.track_id   = track_id  # Card identifier, unique among all cards, 0 if doesn't care, or not known.
         self.suit       = suit
         self.number     = number
         self.resides_in = resides_in
@@ -104,8 +105,17 @@ class Card(GameObject):
         self.number = data['number']
         self.track_id = data['track_id']
 
-    def conceal(self):
-        self.__class__ = HiddenCard
+    @staticmethod
+    def copy(o):
+        return o.__class__(
+            o.suit,
+            o.number,
+            o.resides_in,
+            o.track_id,
+        )
+
+    def shred(self):
+        self.__class__ = ShreddedCard
         self.suit = self.number = self.track_id = 0
 
     def move_to(self, resides_in):
@@ -130,11 +140,12 @@ class Card(GameObject):
         return self.resides_in is not None and self not in self.resides_in
 
     def __repr__(self):
-        return "{name}({suit}, {num}{detached})".format(
+        return "{name}({suit}, {num}{detached}, SyncID:{sync_id})".format(
             name=self.__class__.__name__,
             suit=self.SUIT_REV.get(self.suit, self.suit),
             num=self.NUM_REV.get(self.number, self.number),
-            detached=', detached' if self.detached else ''
+            detached=', detached' if self.detached else '',
+            sync_id=self.sync_id,
         )
 
     def is_card(self, cls):
@@ -217,7 +228,7 @@ class VirtualCard(Card, GameViralContext):
             if isinstance(s, VirtualCard):
                 sl.extend(s.associated_cards)
             else:
-                assert isinstance(s, (PhysicalCard, HiddenCard))
+                assert isinstance(s, (PhysicalCard, HiddenCard)), s
                 lst.append(s)
 
         return lst
@@ -375,10 +386,25 @@ class Deck(GameObject):
     def shuffle(self, cl: CardList):
         owner = cl.owner
         g = self.game
-        list_shuffle(g, cl, owner)
+
+        assert all(c.resides_in is cl for c in cl)
+
+        seed = get_seed_for(g, owner)
+
+        if seed:  # cardlist owner & server
+            cards = [Card.copy(c) for c in cl]
+            shuffler = random.Random(seed)
+            shuffler.shuffle(cards)
+        else:  # others
+            cards = [HiddenCard(resides_in=cl) for c in cl]
 
         for c in cl:
-            c.sync_id = 0
+            c.shred()
+
+        cl.clear()
+        cl.extend(cards)
+
+        for c in cl:
             self.register_card(c)
 
     def inject(self, cls: Type[PhysicalCard], suit: int, rank: int) -> PhysicalCard:
@@ -498,6 +524,11 @@ def t_OtherN(n):
 
 
 class HiddenCard(Card):  # special thing....
+    associated_action = None
+    target = t_None
+
+
+class ShreddedCard(Card):  # Become this after shuffling
     associated_action = None
     target = t_None
 

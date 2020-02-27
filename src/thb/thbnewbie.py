@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import annotations
+from __future__ import absolute_import, annotations, division, print_function, unicode_literals
 
 # -- stdlib --
 from enum import Enum
@@ -10,11 +10,11 @@ import random
 
 # -- third party --
 # -- own --
-from game.base import BootstrapAction, Game, GameItem, InputTransaction, InterruptActionFlow, NPC
-from game.base import Player
-from thb.actions import ActionStage, ActionStageLaunchCard, CardChooser, DrawCards, DropCards, GenericAction
-from thb.actions import FatetellStage, LaunchCard, PlayerDeath, PlayerTurn, RevealRole
-from thb.actions import ask_for_action, migrate_cards
+from game.base import BootstrapAction, GameEnded, GameItem, InputTransaction, InterruptActionFlow
+from game.base import NPC, Player
+from thb.actions import ActionStage, ActionStageLaunchCard, CardChooser, DrawCards, DropCards
+from thb.actions import FatetellStage, FinalizeStage, GenericAction, LaunchCard, PlayerDeath
+from thb.actions import PlayerTurn, PrepareStage, RevealRole, ShuffleHandler, ask_for_action
 from thb.cards.base import Card, Deck
 from thb.cards.classes import AskForHeal, AttackCard, Demolition, DemolitionCard
 from thb.cards.classes import ElementalReactorCard, ExinwanCard, FrozenFrogCard, GrazeCard
@@ -44,12 +44,9 @@ class DeathHandler(THBEventHandler):
         tgt = act.target
 
         g = self.game
-        pl = g.players
+        a, b = g.players
 
-        g.winners = [pl[1]] if tgt is pl[0] else [pl[0]]
-        g.game_end()
-
-        return act
+        raise GameEnded([a.player if b is tgt else b.player])
 
 
 class THBNewbieRole(Enum):
@@ -69,7 +66,7 @@ class CirnoAI(object):
         trans = self.trans
         p = ilet.actor
 
-        g = self.game
+        g = trans.game
         g.pause(1.2)
 
         if trans.name == 'ActionStageAction':
@@ -94,7 +91,7 @@ class CirnoAI(object):
             _, C = chain, lambda r: combinations(cl, r)
             for c in _(C(1), C(2)):
                 if cond(c):
-                    ilet.set_result(skills=[], cards=c, players=[])
+                    ilet.set_result(skills=[], cards=c, characters=[])
                     return True
 
         elif trans.name == 'ChoosePeerCard':
@@ -108,7 +105,7 @@ class CirnoAI(object):
         p = self.ilet.actor
         act = ActionStageLaunchCard(p, tl, c)
         if act.can_fire():
-            self.ilet.set_result(skills=skills, cards=[c], players=tl)
+            self.ilet.set_result(skills=skills, cards=[c], characters=tl)
             return True
 
         return False
@@ -119,36 +116,11 @@ class CirnoAI(object):
 
 
 class AdhocEventHandler(THBEventHandler):
-    def __init__(self, g: Game, hook: Callable[[str, Any], Any]):
+    def __init__(self, hook: Callable[[str, Any], Any]):
         self._handle = hook  # typing: ignore
 
     def handle(self, evt_type: str, arg: Any) -> Any:
         return self._handle(evt_type, arg)
-
-
-class DrawShownCards(DrawCards):
-    def __init__(self, target, amount=2):
-        self.source = self.target = target
-        self.amount = amount
-
-    def apply_action(self):
-        g = self.game
-        target = self.target
-
-        cards = g.deck.getcards(self.amount)
-
-        target.reveal(cards)
-        migrate_cards(cards, target.showncards)
-        self.cards = cards
-        return True
-
-    def is_valid(self):
-        return not self.target.dead
-
-
-class DummyPlayerTurn(PlayerTurn):
-    def apply_action(self):
-        return True
 
 
 class THBattleNewbieBootstrap(BootstrapAction):
@@ -221,6 +193,8 @@ class ScriptedStage(GenericAction):
         from thb.characters.cirno import Cirno
         from thb.characters.sakuya import Sakuya
 
+        g.dispatcher.remove_by_cls(ShuffleHandler)
+
         def dialog(character, dialog, voice):
             if voice is not None:
                 voice = 'thb-cv-newbie-%s-%s' % (character.__name__.lower(), ('000' + str(voice))[-3:])
@@ -228,14 +202,15 @@ class ScriptedStage(GenericAction):
             g.user_input([meirin], GalgameDialogInputlet(g, character, dialog, voice), timeout=60)
 
         def inject_eh(hook: Callable[[str, Any], Any]):
-            eh = AdhocEventHandler(g, hook)
-            g.add_adhoc_event_handler(eh)
+            eh = AdhocEventHandler(hook)
+            g.dispatcher.add_adhoc(eh)
             return eh
 
         def remove_eh(eh):
             try:
-                g.remove_adhoc_event_handler(eh)
+                g.dispatcher.remove_adhoc(eh)
             except Exception:
+                raise
                 pass
 
         def fail():
@@ -430,7 +405,7 @@ class ScriptedStage(GenericAction):
                 return act
 
             g.process_action(OneShotActionStage(meirin))
-            remove_eh(resp)
+            remove_eh(handle_longquan)
 
             if atkcard in meirin.cards:
                 continue
@@ -529,7 +504,7 @@ class ScriptedStage(GenericAction):
                 return act
 
             g.process_action(OneShotActionStage(meirin))
-            remove_eh(resp)
+            remove_eh(handle_rejectcard)
 
         if shield in cirno.equips:
             dialog(Sakuya, '喂，不是说要拆掉|G天狗盾|r吗，你明明装备着|G红色UFO|r的，她是在你的距离范围内的。', 22)
@@ -545,8 +520,9 @@ class ScriptedStage(GenericAction):
         dialog(Sakuya, '是|G恶心丸|r啊……你的运气不太好哦。不过尽管说是一张负面效果的牌，但是看发动条件的话，是可以恶心到别人的。情况允许的话就留在手里好了，直接吃掉肯定是不合算的。', 23)
 
         turn.target = cirno
-        demolition = g.deck.inject(DemolitionCard, Card.CLUB, 4)
+        g.deck.inject(DemolitionCard, Card.CLUB, 4)
         g.process_action(DrawCards(cirno, 1))
+
         dialog(Cirno, '可恶，你到底有没有认真的在打啊！看我双倍奉还！', 20)
         g.process_action(LaunchCard(cirno, [meirin], demolition))
 
@@ -585,7 +561,9 @@ class ScriptedStage(GenericAction):
         dialog(Sakuya, '嗯……说的不错。|R一回合只能使用一次|r这个规则是没错啦，不过你看她的手上，是河童们研制的迷你|G八卦炉|r，只要装备上的话，一回合就可以使用任意次数的|G弹幕|r了。', 24)
         dialog(Meirin, '你这家伙好像【借】来了不少东西嘛……不过笨蛋就是笨蛋，我怎么可能会输在笨蛋的手上！', 48)
 
-        g.process_action(DummyPlayerTurn(meirin))  # awake!
+        pt = PlayerTurn(meirin)
+        pt.pending_stages = [PrepareStage, FinalizeStage]
+        g.process_action(pt)  # awake!
         g.pause(2)
 
         dialog(Cirno, '你怎么会突然多出来一个技能，这一点也不公平！', 25)
@@ -617,6 +595,10 @@ class ScriptedStage(GenericAction):
         g.process_action(Heal(meirin, meirin, meirin.maxlife - meirin.life))
         g.process_action(DrawCards(cirno, 4))
         g.process_action(DrawCards(meirin, 4))
+
+        g.refresh_dispatcher()
+
+        return True
 
 
 class THBattleNewbie(THBattle):

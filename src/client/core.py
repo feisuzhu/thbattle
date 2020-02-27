@@ -19,7 +19,7 @@ import wire
 class Options(object):
     def __init__(self, options: Dict[str, Any]):
         self.disables = options.get('disables', [])
-        self.paranoid = options.get('paranoid', False)    # For unit test
+        self.testing = options.get('testing', False)      # In tests?
 
 
 T = TypeVar('T')
@@ -52,16 +52,16 @@ class Events(object):
         self.server_command = _ServerCommandMapping(core)
 
         # Server connected
-        self.server_connected = EventHub[None]()
+        self.server_connected = EventHub[bool]()
 
         # Server timed-out or actively rejects
-        self.server_refused = EventHub[None]()
+        self.server_refused = EventHub[bool]()
 
         # Server dropped
-        self.server_dropped = EventHub[None]()
+        self.server_dropped = EventHub[bool]()
 
         # Server & client version mismatch
-        self.version_mismatch = EventHub[None]()
+        self.version_mismatch = EventHub[bool]()
 
         # Lobby status
         self.lobby_updated = EventHub[Tuple[Sequence[wire.model.User], Sequence[wire.model.Game]]]()
@@ -135,6 +135,9 @@ class Core(core.Core):
 
         if 'replay' not in disables:
             self.replay = parts.replay.Replay(self)
+
+        if 'admin' not in disables:
+            self.admin = parts.admin.Admin(self)
 
         if 'warpgate' not in disables:
             self.warpgate = parts.warpgate.Warpgate(self)

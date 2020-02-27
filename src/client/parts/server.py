@@ -12,7 +12,7 @@ from gevent import Greenlet
 import gevent
 
 # -- own --
-from endpoint import Endpoint
+from endpoint import Endpoint, EndpointDied
 from utils.events import EventHub
 import wire
 
@@ -48,10 +48,10 @@ class Server(object):
 
         if ev.version != VERSION:
             self.disconnect()
-            core.events.version_mismatch.emit(None)
+            core.events.version_mismatch.emit(True)
         else:
             self.server_name = ev.node
-            core.events.server_connected.emit(None)
+            core.events.server_connected.emit(True)
 
         return ev
 
@@ -80,7 +80,7 @@ class Server(object):
         except Exception:
             self.state = 'initial'
             log.exception('Error connecting server')
-            core.events.server_refused.emit(None)
+            core.events.server_refused.emit(True)
 
     def disconnect(self) -> None:
         if self.state != 'connected':
@@ -118,12 +118,17 @@ class Server(object):
         me.gr_name = f'{core}::RECV'
         D = core.events.server_command
         assert self._ep
-        for v in self._ep.messages(timeout=None):
-            D[v.__class__].emit(v)
+        try:
+            for v in self._ep.messages(timeout=None):
+                D[v.__class__].emit(v)
+        except EndpointDied:
+            pass
+
+        core.events.server_dropped.emit(True)
 
     def _dropped(self, _) -> None:
         core = self.core
-        core.events.server_dropped.emit(None)
+        core.events.server_dropped.emit(True)
 
     def _beat(self) -> None:
         while self._ep:

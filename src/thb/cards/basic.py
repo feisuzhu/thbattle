@@ -373,7 +373,7 @@ class ExinwanHandler(EventHandler):
 
             # cards to dropped area should all unwrapped
             assert not any(invalid(c)
-                           for cl in dropcl for c in cl)
+                           for cl in dropcl for c in cl), dropcl
 
             cards = [c for cl in dropcl for c in cl
                      if c.is_card(ExinwanCard)]

@@ -110,19 +110,34 @@ class MockBackend(object):
             }
         }
         '''
-        return {
-            'player': {
-                'id': abs(hash(v['token'])) % 120943,
-                'user': {
-                    'isActive': True,
-                    'userPermissions': [],
-                    'groups': {
-                        'permissions': []
-                    }
-                },
-                'name': v['token'],
+        if v['token'] == 'Proton':
+            return {
+                'player': {
+                    'id': 2,
+                    'user': {
+                        'isActive': True,
+                        'userPermissions': [],
+                        'groups': {
+                            'permissions': []
+                        }
+                    },
+                    'name': v['token'],
+                }
             }
-        }
+        else:
+            return {
+                'player': {
+                    'id': abs(hash(v['token'])) % 120943,
+                    'user': {
+                        'isActive': True,
+                        'userPermissions': [],
+                        'groups': {
+                            'permissions': []
+                        }
+                    },
+                    'name': v['token'],
+                }
+            }
 
     @_reg
     def add_reward(v) -> Any:

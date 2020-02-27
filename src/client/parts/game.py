@@ -220,7 +220,8 @@ class GamePart(object):
         # core.events.game_data_send.emit((g, pkt))
 
     def kill_game(self, g: Game) -> None:
-        A(self, g)['greenlet'].kill(ForcedKill)
+        if 'greenlet' in A(self, g):
+            A(self, g)['greenlet'].kill(ForcedKill)
 
     def gid_of(self, g: Game) -> int:
         return A(self, g)['gid']

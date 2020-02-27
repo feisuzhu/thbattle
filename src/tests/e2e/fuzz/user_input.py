@@ -72,7 +72,7 @@ class UserInputFuzzingHandler(EventHandler):
                     if self.try_launch(ilet, [c], t):
                         return True
 
-        elif trans.name == 'Action' and isinstance(ilet, ActionInputlet):
+        elif trans.name in ('Action', 'AskForRejectAction') and isinstance(ilet, ActionInputlet):
             if not (ilet.categories and not ilet.candidates):
                 return True
 

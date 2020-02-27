@@ -416,3 +416,6 @@ class GalgameDialogInputlet(Inputlet):
     def set_result(self, value):
         'For UI'
         self.result = value
+
+    def __repr__(self):
+        return f'<{self.dialog}>'

@@ -47,6 +47,9 @@ class EventTap(object):
     def __getitem__(self, k):
         return self._taps[k]
 
+    def __contains__(self, k):
+        return k in self._taps
+
 
 class Environ(object):
     def __init__(self):
@@ -65,8 +68,8 @@ class Environ(object):
             gevent.kill(self.parent, e)
 
     def client_core(self) -> client.core.Core:
-        core = client.core.Core(disables=['warpgate'], paranoid=True)
-        runner = CoreRunner(core)
+        core = client.core.Core(disables=['warpgate'], testing=True)
+        runner = CoreRunner(core, paranoid=True)
         self.pool.spawn(self._run, runner)
         runner.ready.wait()
         core.server.connect(self.rendezvous)
@@ -75,9 +78,9 @@ class Environ(object):
     def server_core(self) -> server.core.Core:
         core = server.core.Core(disables=[
             'archive', 'connect', 'stats', 'backend'
-        ], listen=self.rendezvous, paranoid=True)
+        ], listen=self.rendezvous, testing=True)
         core.backend = MockBackend(core)
-        runner = CoreRunner(core)
+        runner = CoreRunner(core, paranoid=True)
         self.pool.spawn(self._run, runner)
         gevent.sleep(0.05)
         return core

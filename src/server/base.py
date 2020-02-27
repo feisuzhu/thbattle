@@ -48,7 +48,7 @@ class InputWaiter(Greenlet):
             return None
 
     def __repr__(self) -> str:
-        return '<InputWaiter: p = %s, tag = %s>' % (self.player, self.tag)
+        return f'InputWaiter:[{self.tag}]'
 
 
 class InputWaiterGroup(GreenletGroup):
@@ -130,7 +130,9 @@ class ServerGameRunner(GameRunner):
             assert False, f'WTF: {p} is not a Player'
 
     def pause(self, time: float) -> None:
-        gevent.sleep(time)
+        core = self.core
+        if not core.options.testing:
+            gevent.sleep(time)
 
     def is_aborted(self) -> bool:
         core = self.core
@@ -147,6 +149,8 @@ class ServerGameRunner(GameRunner):
         if not trans:
             with InputTransaction(inputlet.tag(), entities) as trans:
                 return self.user_input(entities, inputlet, timeout, type, trans)
+
+        core = self.core
 
         assert entities
         assert type in ('single', 'all', 'any')
@@ -193,7 +197,9 @@ class ServerGameRunner(GameRunner):
                 if isinstance(p, NPCPlayer):
                     ilet = ilets[e]
                     p.handle_user_input(trans, ilet)
-                    waiters.start(Greenlet(lambda: p, ilet.data()))
+                    w = Greenlet(lambda _: ilet.data(), None)
+                    w.player = p
+                    waiters.start(w)
                 else:
                     t = tag + str(synctags[e])
                     waiters.spawn(self, p, t)
@@ -204,7 +210,6 @@ class ServerGameRunner(GameRunner):
             bottom_halves: Any = []  # FIXME: proper typing
 
             def flush() -> None:
-                core = self.core
                 for t, data, trans, my, rst in bottom_halves:
                     for u in core.room.users_of(g):
                         core.game.write(g, u, t, data)
@@ -218,6 +223,8 @@ class ServerGameRunner(GameRunner):
                     rst = w.get()
                     p, data = w.player, rst
                 except Exception:
+                    if core.options.testing:
+                        raise
                     log.exception('Error waiting user input, returning default')
                     p, data = w.player, None
 
@@ -227,11 +234,9 @@ class ServerGameRunner(GameRunner):
                 try:
                     rst = my.parse(data)
                 except Exception:
-                    log.exception('user_input: exception in .process()')
-                    # ----- FOR DEBUG -----
-                    if g.IS_DEBUG:
+                    if core.options.testing:
                         raise
-                    # ----- END FOR DEBUG -----
+                    log.exception('user_input: exception in .process()')
                     rst = None
 
                 rst = my.post_process(e, rst)

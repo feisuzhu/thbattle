@@ -144,8 +144,6 @@ class GameViralContext(object):
 
 
 class Game(GameObject):
-    IS_DEBUG = False
-
     # ----- Class Variables -----
     n_persons: ClassVar[int]
     npc_players: ClassVar[List[NPC]] = []
@@ -532,6 +530,19 @@ class EventDispatcher(GameObject):
         for c in self._event_handlers:
             if isinstance(c, cls):
                 return c
+
+        return None
+
+    def remove_by_cls(self, cls: Type[T]) -> bool:
+        for c in self._event_handlers:
+            if isinstance(c, cls):
+                break
+        else:
+            return False
+
+        self._event_handlers.remove(c)
+        for i in c.interested:
+            self._ehs_cache.pop(i, '')
 
         return None
 
