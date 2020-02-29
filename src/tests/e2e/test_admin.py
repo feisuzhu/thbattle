@@ -16,9 +16,9 @@ class GameEnded(Exception):
 
 
 def wait():
-    gevent.idle()
+    gevent.idle(-100)
     gevent.sleep(0.01)
-    gevent.idle()
+    gevent.idle(-100)
 
 
 class TestAdmin(object):

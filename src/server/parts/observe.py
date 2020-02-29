@@ -8,7 +8,6 @@ import logging
 # -- third party --
 from gevent import Greenlet
 from mypy_extensions import TypedDict
-import gevent
 
 # -- own --
 from endpoint import Endpoint
@@ -54,7 +53,7 @@ class Observe(object):
         core.events.user_state_transition += self.handle_ust_observee
         core.events.game_created += self.handle_game_created
         core.events.game_joined += self.handle_game_joined
-        core.events.game_data_recv += self.handle_game_data_recv
+        core.events.game_data_send += self.handle_game_data_send
 
         _ = core.events.client_command
         _[wire.Observe] += self._observe
@@ -74,9 +73,13 @@ class Observe(object):
             for u in Au(self, c)['obs']:
                 self._observe_start(u, c)
 
-        elif (f, t) == ('game', 'lobby'):
-            for u in Au(self, c)['obs']:
+        elif f in ('room', 'ready', 'wait') and t == 'lobby':
+            for u in list(Au(self, c)['obs']):
                 self._observe_detach(u)
+
+        elif (f, t) == ('game', 'finishing'):
+            for u in list(Au(self, c)['obs']):
+                self._observe_end(u, c)
 
         if t == 'lobby' or \
            (f, t) == ('uninitialized', 'freeslot'):
@@ -112,17 +115,22 @@ class Observe(object):
 
         return ev
 
-    def handle_game_data_recv(self, ev: Tuple[Game, Client, Packet]) -> Tuple[Game, Client, Packet]:
+    def handle_game_data_send(self, ev: Tuple[Game, Client, Packet]) -> Tuple[Game, Client, Packet]:
         core = self.core
         g, u, pkt = ev
         gid = core.room.gid_of(g)
         assert pkt is not None
 
+        obs = Au(self, u)['obs']
+
+        if not obs:
+            return ev
+
         d = Endpoint.encode(wire.GameData(
             gid=gid, tag=pkt.tag, data=pkt.data
         ))
 
-        for u in Au(self, u)['obs']:
+        for u in obs:
             u.raw_write(d)
 
         return ev
@@ -165,6 +173,8 @@ class Observe(object):
         if ev.uid not in Au(self, c)['reqs']:
             return
 
+        Au(self, c)['reqs'].remove(ev.uid)
+
         core = self.core
         ob = core.lobby.get(ev.uid)
 
@@ -195,9 +205,9 @@ class Observe(object):
         else:
             return
 
-        assert core.lobby.state_of(u) == 'ob'
+        assert core.lobby.state_of(ob) == 'ob', (ob, core.lobby.state_of(ob))
 
-        self._observe_detach(u)
+        self._observe_detach(ob)
         return
 
         # TODO

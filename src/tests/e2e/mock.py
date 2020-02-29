@@ -52,6 +52,9 @@ class EventTap(object):
         del self._taps[hub]
         return v
 
+    def clear(self):
+        self._taps.clear()
+
     def __getitem__(self, k):
         return self._taps[k]
 

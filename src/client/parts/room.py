@@ -24,20 +24,7 @@ class Room(object):
     def __init__(self, core: Core):
         self.core = core
 
-        D = core.events.server_command
-        D[wire.ObserverEnter] += self._observer_enter
-        D[wire.ObserverLeave] += self._observer_leave
-
     # ---- Reactions -----
-    def _observer_enter(self, ev: wire.ObserverEnter) -> wire.ObserverEnter:
-        core = self.core
-        core.events.observer_enter.emit(ev)
-        return ev
-
-    def _observer_leave(self, ev: wire.ObserverLeave) -> wire.ObserverLeave:
-        core = self.core
-        core.events.observer_leave.emit(ev)
-        return ev
 
     # ----- Public Method -----
     def create(self, name: str, mode: str, flags: wire.CreateRoomFlags) -> None:
@@ -71,15 +58,3 @@ class Room(object):
     def kick(self, uid: int):
         core = self.core
         core.server.write(wire.Kick(uid=uid))
-
-    def observe(self, uid: int):
-        core = self.core
-        core.server.write(wire.Observe(uid=uid))
-
-    def grant_observe(self, uid: int, grant: bool):
-        core = self.core
-        core.server.write(wire.GrantObserve(uid=uid, grant=grant))
-
-    def kick_observer(self, uid: int):
-        core = self.core
-        core.server.write(wire.KickObserver(uid=uid))

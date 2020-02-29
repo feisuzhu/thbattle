@@ -67,6 +67,7 @@ class Lobby(object):
                     'room',
                     'ready',
                     'game',
+                    'finishing',
                     'ob',
                     'dropped',
                 ],

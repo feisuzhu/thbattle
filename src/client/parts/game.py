@@ -71,12 +71,12 @@ class GamePart(object):
 
         return ev
 
-    def _do_start_game(self, gv: wire.model.GameDetail) -> None:
+    def _do_start_game(self, gv: wire.model.GameDetail, me_uid: int) -> None:
         core = self.core
         g = self.games[gv['gid']]
         A(self, g)['users'] = gv['users']
         A(self, g)['params'] = gv['params']
-        players = self._build_players(g, A(self, g)['users'])
+        players = self._build_players(g, A(self, g)['users'], me_uid)
         A(self, g)['players'] = players
         items = self._build_items(g, players, gv['items'])
         A(self, g)['items'] = items
@@ -85,13 +85,14 @@ class GamePart(object):
         # UI should start it by core.game.start_game(g) manually
 
     def _game_started(self, ev: wire.GameStarted) -> wire.GameStarted:
-        self._do_start_game(ev.game)
+        core = self.core
+        self._do_start_game(ev.game, core.auth.uid)
         return ev
 
     def _observe_started(self, ev: wire.ObserveStarted) -> wire.ObserveStarted:
         g = self.games[ev.game['gid']]
         A(self, g)['observe'] = True
-        self._do_start_game(ev.game)
+        self._do_start_game(ev.game, ev.observee)
         return ev
 
     def _player_presence(self, ev: wire.PlayerPresence) -> wire.PlayerPresence:
@@ -171,9 +172,7 @@ class GamePart(object):
 
         return g
 
-    def _build_players(self, g: Game, uvl: Sequence[wire.model.User]) -> BatchList[Player]:
-        core = self.core
-        me_uid = core.auth.uid
+    def _build_players(self, g: Game, uvl: Sequence[wire.model.User], me_uid: int) -> BatchList[Player]:
         assert me_uid in [uv['uid'] for uv in uvl]
 
         me = Theone(g, me_uid)

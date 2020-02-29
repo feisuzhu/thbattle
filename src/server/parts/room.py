@@ -136,7 +136,7 @@ class Room(object):
         )
 
         for u in online_users:
-            core.lobby.state_of(u).transit('lobby')
+            core.lobby.state_of(u).transit('finishing')
 
         core.events.game_successive_create.emit((old, g))
 
@@ -310,7 +310,7 @@ class Room(object):
     def join_game(self, g: Game, u: Client, slot: Optional[int] = None) -> None:
         core = self.core
 
-        assert core.lobby.state_of(u) == 'lobby', core.lobby.state_of(u)
+        assert core.lobby.state_of(u) in ('lobby', 'finishing'), core.lobby.state_of(u)
 
         slot = slot if slot is not None else self._next_slot(g)
 

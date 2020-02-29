@@ -42,14 +42,14 @@ class TestFuzzTHBattleRole(object):
         )
         for i, name in zip(cl, names):
             i.auth.login(name)
-        gevent.idle()
+        gevent.idle(-100)
         assert all(cl.auth.uid)
         t.tap_all(cl.events.game_joined)
         c.room.create('Test1', 'THBattleRole', {})
-        gevent.idle()
+        gevent.idle(-100)
         gid = c.game.gid_of(t[c.events.game_joined])
         c1r.room.join(gid)
-        gevent.idle()
+        gevent.idle(-100)
         assert [gid] * 8 == [i.game.gid_of(t[i.events.game_joined]) for i in cl]
         t.tap_all(cl.events.game_started)
 
@@ -60,10 +60,10 @@ class TestFuzzTHBattleRole(object):
             g.event_observer = UserInputFuzzingHandler(g)
 
         cl.room.get_ready()
-        gevent.idle()
+        gevent.idle(-100)
         assert [gid] * 8 == [i.game.gid_of(t[i.events.game_started]) for i in cl]
 
-        gevent.idle()
+        gevent.idle(-100)
 
         def game_ended(g):
             gevent.kill(me, GameEnded())

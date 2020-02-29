@@ -9,9 +9,7 @@ utils.log.patch_gevent_hub_print_exception()
 
 import _pytest.logging
 
+_pytest.logging.LoggingPlugin._create_formatter = lambda *_: utils.log.ServerLogFormatter()
 
-def _create_formatter(self, log_format, log_date_format, auto_indent):
-    return utils.log.ServerLogFormatter()
-
-
-_pytest.logging.LoggingPlugin._create_formatter = _create_formatter
+from thb.thbunit import inject
+inject()

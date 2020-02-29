@@ -69,9 +69,12 @@ class Events(object):
         # Lobby status
         self.lobby_updated = EventHub[Tuple[Sequence[wire.model.User], Sequence[wire.model.Game]]]()
 
+        # Observer request
+        self.observe_request = EventHub[int]()
+
         # Observer state
-        self.observer_enter = EventHub[wire.ObserverEnter]()
-        self.observer_leave = EventHub[wire.ObserverLeave]()
+        self.observer_enter = EventHub[Tuple[int, int]]()
+        self.observer_leave = EventHub[Tuple[int, int]]()
 
         # Joined a game
         self.game_joined = EventHub[Game]()
@@ -132,6 +135,9 @@ class Core(core.Core):
 
         if 'room' not in disables:
             self.room = parts.room.Room(self)
+
+        if 'observe' not in disables:
+            self.observe = parts.observe.Observe(self)
 
         if 'game' not in disables:
             self.game = parts.game.GamePart(self)
