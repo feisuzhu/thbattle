@@ -51,6 +51,7 @@ from . import kyouko
 from . import keine
 from . import yuyuko
 from . import koishi
+from . import sp_satori
 
 # weektour
 from . import youmu20150620

@@ -1,0 +1,198 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
+# -- stdlib --
+# -- third party --
+# -- own --
+from thb import characters
+from thb.ui.ui_meta.common import card_desc, gen_metafunc, limit1_skill_used, my_turn, passive_clickable, passive_is_action_valid
+
+
+# -- code --
+__metaclass__ = gen_metafunc(characters.sp_satori)
+
+
+class ThirdEye:
+    # Skill
+    name = u'想起'
+    description = (
+        u'你的回合开始前，你可以随机抽取三张角色牌，声明其中一个非觉醒、非限定、非BOSS的技能，并获得之。'
+        u'你只能拥有一个被“想起”的技能，即“想起”获得的新技能会替换原来“想起”的技能。'
+    )
+
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class ThirdEyeChooseGirl:
+    # char choice
+    def effect_string(act):
+        return u'|G【%s】|r选择了|G【%s】|r的技能组。' % (
+            act.source.ui_meta.name,
+            act.char_choice.ui_meta.name,
+        )
+
+
+class ThirdEyeAction:
+    # choose_option meta
+    choose_option_prompt = u'请选择需要【想起】的技能：'
+
+    def choose_option_buttons(act):
+        return [
+            (s.ui_meta.name, n)
+            for n, s in act.mapping.items()
+        ]
+
+    def effect_string_apply(act):
+        return u'|G【%s】|r发动了|G【想起】|r，更新了|G想起|r的技能。' % (
+            act.source.ui_meta.name,
+        ) if act.source.tags['recollected_char'] else \
+            u'|G【%s】|r发动了|G想起|r，获得了新的技能。' % (
+            act.source.ui_meta.name,
+        )
+
+    def effect_string(act):
+        if getattr(act, 'sk_choice', None):
+            act.sk_choice.ui_meta.name = '想起'
+
+            return u'|G【%s】|r想起了技能|G【%s】|r。' % (
+                act.source.ui_meta.name,
+                act.sk_choice.ui_meta.name,
+            )
+
+    def sound_effect(act):
+        return ''
+
+
+class ThirdEyeHandler:
+    # choose_option
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+    choose_option_prompt = u'你要发动【想起】吗？'
+
+    def sound_effect(act):
+        return ''
+
+
+class Rosa:
+    # Skill
+    name = u'蔷薇'
+    description = u'出牌阶段限一次，你可以重铸游戏中任意一张明牌区内的牌；当你对一名其他角色造成伤害时，你可以将其手牌中的一张牌置入明牌区。'
+
+    def clickable(g):
+        if limit1_skill_used('rosa_reforge'):
+            return False
+
+        return my_turn() and any(getattr(p, 'showncards') for p in g.players)
+
+    def is_action_valid(g, cl, tl):
+        if cl[0].associated_cards:
+            return (False, u'请不要选择牌！')
+
+        if not len(tl):
+            return (False, u'请选择一只角色~')
+
+        # for more str to complete:
+        return (True, u'蔷薇の地狱！！！')
+
+
+class RosaReforgeAction:
+    def effect_string(act):
+        return u'|G【%s】|r的|G薔薇|r生效，|G【%s】|r的%s消失了！' % (
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
+            card_desc(act.card)
+        )
+
+    def ray(act):
+        return [(act.source, act.target)]
+
+    def sound_effect(act):
+        return ''
+
+
+class RosaRevealAction:
+    def effect_string(act):
+        return u'|G【%s】|r的|G蔷薇|r生效：|G【%s】|r内心深处的%s被读出了！' % (
+            act.source.ui_meta.name,
+            act.target.ui_meta.name,
+            card_desc(act.card)
+        )
+
+    def ray(act):
+        return [(act.source, act.target)]
+
+    def sound_effect(act):
+        return ''
+
+
+class RosaHandler:
+    # choose_option
+    choose_option_prompt = u'你要发动【蔷薇】吗？'
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+
+
+class MindReadAction:
+    def effect_string(act):
+        src = act.source
+        tl = list(act.target_list)
+
+        return u'|G【%s】|r发动了|G读心|r，%s的身份已经被获知了！' % (
+            src.ui_meta.name,
+            tl[0].ui_meta.name,
+        )
+
+    def ray(act):
+        return [(act.source, act.target_list[0])]
+
+
+class MindRead:
+    # Skill
+    name = u'读心'
+    description = u'|B限定技|r，出牌阶段，选择一名角色，你可以获知其身份。'
+
+    def clickable(g):
+        me = g.me
+        return my_turn() and not me.tags['mind_read_used']
+
+    def is_action_valid(g, cl, tl):
+        skill = cl[0]
+        if skill.associated_cards:
+            return (False, u'读心：请不要选择牌！')
+
+        if not tl:
+            return (False, u'读心：选择目标')
+
+        if len(tl) > 1:
+            return (False, u'只可以选一只角色读心哦~')
+
+        return (True, u'读心：选择一角色获知其身份')
+
+    def sound_effect(act):
+        return ''
+
+
+class TerribleSouvenir:
+    # Skill
+    name = u'恐怖催眠'
+    description = u'|BBOSS技|r，其它角色的出牌阶段开始前，若该角色手牌中存在明牌，则你可以令该角色的干劲置为零。'
+
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class TerribleSouvenirHandler:
+    # choose_option
+    choose_option_prompt = u'你要发动【恐怖催眠】吗？'
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
+
+
+class SpSatori:
+    # Character
+    name        = u'SP古明地觉'
+    title       = u'幻灵录专项SP订稿'
+    illustrator = u'月见'
+    cv          = u'暂缺'
+
+    port_image        = u'thb-portrait-sp_satori'
+    figure_image      = u'thb-figure-sp_satori'
+    miss_sound_effect = u''
