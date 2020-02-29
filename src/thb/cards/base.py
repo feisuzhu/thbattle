@@ -346,16 +346,19 @@ class Deck(GameObject):
             dcl = self.droppedcards
 
             assert all(not c.is_card(VirtualCard) for c in dcl)
+
             dropped = list(dcl)
-
             dcl.clear()
-            dcl.extend(dropped[-10:])
+            rest = list(cl)
+            cl.clear()
 
-            tmpcl = CardList(None, 'temp')
-            lst = [c.__class__(c.suit, c.number, cl, c.track_id) for c in dropped[:-10]]
-            tmpcl.extend(lst)
-            self.shuffle(tmpcl)
-            cl.extend(tmpcl)
+            dcl.extend(dropped[-10:])
+            cl.extend([Card.copy(c) for c in dropped[:-10]])
+            self.shuffle(cl)
+            cl.extendleft(reversed(rest))
+
+            # assert all(not isinstance(c, ShreddedCard) for c in cl)
+            # assert rest == list(cl)[:len(rest)]
 
         cl = self.cards
         rst = []
@@ -387,7 +390,7 @@ class Deck(GameObject):
         owner = cl.owner
         g = self.game
 
-        assert all(c.resides_in is cl for c in cl)
+        # assert all(c.resides_in is cl for c in cl)
 
         seed = get_seed_for(g, owner)
 
@@ -396,16 +399,21 @@ class Deck(GameObject):
             shuffler = random.Random(seed)
             shuffler.shuffle(cards)
         else:  # others
-            cards = [HiddenCard(resides_in=cl) for c in cl]
+            cards = [HiddenCard() for c in cl]
 
         for c in cl:
             c.shred()
+
+        for c in cards:
+            c.resides_in = cl
 
         cl.clear()
         cl.extend(cards)
 
         for c in cl:
             self.register_card(c)
+
+        # assert all(not isinstance(c, ShreddedCard) for c in cl)
 
     def inject(self, cls: Type[PhysicalCard], suit: int, rank: int) -> PhysicalCard:
         cl = self.cards
