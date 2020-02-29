@@ -54,6 +54,7 @@ import kyouko
 import keine
 import yuyuko
 import koishi
+import sp_satori
 
 # weektour
 import youmu20150620
