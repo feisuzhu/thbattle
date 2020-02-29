@@ -67,7 +67,7 @@ class Koishi:
 
     port_image        = u'thb-portrait-koishi'
     figure_image      = u'thb-figure-koishi'
-    miss_sound_effect = u''
+    miss_sound_effect = u'thb-cv-card_graze3'
 
 
 # As for names for skills, reference:

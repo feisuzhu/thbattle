@@ -64,7 +64,10 @@ class ThirdEyeAction:
 
     # tewi se to mock
     def sound_effect(act):
-        return 'thb-cv-tewi_miss'
+        return random.choice([
+            'thb-cv-tewi_lucky',
+            'thb-cv-tewi_miss',
+        ])
 
 
 class ThirdEyeHandler:

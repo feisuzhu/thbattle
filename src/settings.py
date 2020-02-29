@@ -47,6 +47,10 @@ else:
 
 
 TESTING_CHARACTERS = (
+    # 'SpSatori',
+    # 'Koishi',
+
+    # better put it as no, as build choices in sp_satori will always put they 2 of 3 cards
 )
 
 
