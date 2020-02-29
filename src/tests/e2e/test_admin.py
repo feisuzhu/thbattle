@@ -26,7 +26,7 @@ class TestAdmin(object):
         env = Environ()
         t = EventTap()
 
-        s = env.server_core()
+        _ = env.server_core()
         proton = env.client_core()
         naughty = env.client_core()
         proton.auth.login("Proton")
@@ -90,7 +90,7 @@ class TestAdmin(object):
     def testSystemCommands(self):
         env = Environ()
 
-        s = env.server_core()
+        _ = env.server_core()
         proton = env.client_core()
         proton.auth.login("Proton")
 

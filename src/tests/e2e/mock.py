@@ -35,6 +35,9 @@ class EventTap(object):
         return self
 
     def tap(self, hub):
+        if hub in self._taps:
+            raise Exception(f'Already tapped: {hub}')
+
         def tapper(ev):
             self._taps[hub] = ev
             return ev
@@ -43,6 +46,11 @@ class EventTap(object):
     def tap_all(self, lst):
         for h in lst:
             self += h
+
+    def take(self, hub):
+        v = self._taps[hub]
+        del self._taps[hub]
+        return v
 
     def __getitem__(self, k):
         return self._taps[k]

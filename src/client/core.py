@@ -63,6 +63,9 @@ class Events(object):
         # Server & client version mismatch
         self.version_mismatch = EventHub[bool]()
 
+        # Server error
+        self.server_error = EventHub[str]()
+
         # Lobby status
         self.lobby_updated = EventHub[Tuple[Sequence[wire.model.User], Sequence[wire.model.Game]]]()
 

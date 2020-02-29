@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
-from typing import Dict, Optional, Set, TYPE_CHECKING, Tuple
+from typing import Dict, Optional, Set, TYPE_CHECKING, Tuple, Union
 import logging
 
 # -- third party --
@@ -75,11 +75,11 @@ class Invite(object):
 
     # ----- Commands -----
     @command()
-    def _room_join_invite_limit(self, u: Client, ev: wire.JoinRoom) -> Optional[EventHub.StopPropagation]:
+    def _room_join_invite_limit(self, u: Client, ev: wire.JoinRoom) -> Union[wire.JoinRoom, EventHub.StopPropagation]:
         core = self.core
         g = core.room.get(ev.gid)
         if not g:
-            return None
+            return ev
 
         flags = core.room.flags_of(g)
         uid = core.auth.uid_of(u)
@@ -97,10 +97,10 @@ class Invite(object):
             u.write(wire.Error('not_invited'))
             return EventHub.STOP_PROPAGATION
 
-        return None
+        return ev
 
     @command('room', 'ready')
-    def _invite(self, u: Client, ev: wire.Invite) -> None:
+    def _invite(self, u: Client, ev: wire.Invite) -> wire.Invite:
         core = self.core
         ouid = ev.uid
 
@@ -119,8 +119,10 @@ class Invite(object):
             type=g.__class__.__name__,
         ))
 
+        return ev
+
     @command('room', 'ready')
-    def _kick(self, u: Client, ev: wire.Kick) -> None:
+    def _kick(self, u: Client, ev: wire.Kick) -> wire.Kick:
         core = self.core
         ouid = ev.uid
         other = core.lobby.get(ouid)
@@ -148,6 +150,8 @@ class Invite(object):
         if len(bl) >= len(core.room.users_of(g)) // 2:
             A(self, g)['invited'].discard(ouid)
             core.room.exit_game(other)
+
+        return ev
 
     # ----- Methods -----
     def add_invited(self, g: Game, u: Client) -> None:

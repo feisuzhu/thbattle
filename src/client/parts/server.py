@@ -40,6 +40,7 @@ class Server(object):
         D = core.events.server_command
         D[wire.Greeting] += self._greeting
         D[wire.Ping] += self._ping
+        D[wire.Error] += self._error
 
     def _greeting(self, ev: wire.Greeting) -> wire.Greeting:
         from settings import VERSION
@@ -57,6 +58,12 @@ class Server(object):
 
     def _ping(self, ev: wire.Ping) -> wire.Ping:
         self.write(wire.Pong())
+        return ev
+
+    def _error(self, ev: wire.Error) -> wire.Error:
+        log.warning('ServerError: %s', ev.msg)
+        core = self.core
+        core.events.server_error.emit(ev.msg)
         return ev
 
     # ----- Public Methods -----

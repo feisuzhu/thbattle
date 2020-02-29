@@ -64,6 +64,14 @@ class Room(object):
         core = self.core
         core.server.write(wire.ChangeLocation(loc=loc))
 
+    def invite(self, uid: int):
+        core = self.core
+        core.server.write(wire.Invite(uid=uid))
+
+    def kick(self, uid: int):
+        core = self.core
+        core.server.write(wire.Kick(uid=uid))
+
     def observe(self, uid: int):
         core = self.core
         core.server.write(wire.Observe(uid=uid))

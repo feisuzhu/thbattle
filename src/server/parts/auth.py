@@ -36,7 +36,8 @@ def A(self: Auth, v: Client) -> AuthAssocOnClient:
 class Auth(object):
     def __init__(self, core: Core):
         self.core = core
-        self._kedama_uid = -10032
+        self._kedama_uid = 10032
+        self._allow_kedama = True
 
         core.events.user_state_transition += self.handle_user_state_transition
         D = core.events.client_command
@@ -68,6 +69,24 @@ class Auth(object):
     def _auth(self, u: Client, m: wire.Auth) -> None:
         core = self.core
         token = m.token
+
+        if token == '':
+            if self._allow_kedama:
+                uid = -self._kedama_uid
+                self._kedama_uid += 1
+                u.write(wire.AuthSuccess(uid))
+                assoc: AuthAssocOnClient = {
+                    'uid': uid,
+                    'name': f'毛玉{-uid}',
+                    'kedama': True,
+                    'permissions': set(),
+                }
+                u._[self] = assoc
+                core.lobby.state_of(u).transit('authed')
+            else:
+                u.write(wire.AuthError('not_available'))
+
+            return
 
         rst = core.backend.query('''
             query($token: String) {
@@ -113,6 +132,12 @@ class Auth(object):
             core.lobby.state_of(u).transit('authed')
 
     # ----- Public Methods -----
+    def allow_kedama(self) -> None:
+        self._allow_kedama = True
+
+    def deny_kedama(self) -> None:
+        self._allow_kedama = False
+
     def uid_of(self, u: Client) -> int:
         return A(self, u)['uid']
 

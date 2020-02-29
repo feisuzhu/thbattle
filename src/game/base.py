@@ -233,6 +233,7 @@ class Game(GameObject):
         elif not action.can_fire():
             log.debug('action invalid, not firing: %s' % action.__class__.__name__)
             action.invalid = True
+            rst = False
         else:
             log.debug('applying action %s' % action.__class__.__name__)
             action = self.emit_event('action_apply', action)
@@ -256,7 +257,7 @@ class Game(GameObject):
                 # code below makes no sense,
                 # so it's ok to ignore them.
 
-            assert rst in [True, False], 'Action.apply_action must return boolean!'
+            assert rst in (True, False), 'Action.apply_action must return boolean!'
             try:
                 action.succeeded = rst
             except AttributeError:

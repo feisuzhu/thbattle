@@ -25,7 +25,7 @@ def command(*states: Sequence[str]) -> Callable[[Callable[[Any, Client, T], Opti
         def wrapper(self: Any, ev: Tuple[Client, T]) -> Union[Tuple[Client, T], EventHub.StopPropagation]:
             core = self.core
             u, msg = ev
-            if core.lobby.state_of(u) not in states:
+            if '*' not in states and core.lobby.state_of(u) not in states:
                 return ev
             else:
                 ret = f(self, u, msg)
