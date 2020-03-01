@@ -8,7 +8,7 @@ import random
 # -- own --
 from thb import characters
 from thb.ui.ui_meta.common import card_desc, gen_metafunc, my_turn, passive_clickable
-from thb.ui.ui_meta.common import passive_is_action_valid
+from thb.ui.ui_meta.common import passive_is_action_valid, limit1_skill_used
 
 
 # -- code --
@@ -17,9 +17,12 @@ __metaclass__ = gen_metafunc(characters.sp_satori)
 
 class ThirdEye:
     # Skill
-    name = u'3rd Eye'
+    name = u'想起'
     description = (
-        u'每当你受到伤害后，你可以随机抽取三张角色牌，并声明其中一个非觉醒、非限定、非boss的技能，并获得技能“想起”，此技能效果等同于你声明的技能，如果你已经拥有“想起”的技能，则新技能会替换它（你只能拥有一个被“想起”的技能）。'
+        u'每当你受到伤害后，你可以随机抽取三张角色牌，'
+        u'并声明其中一个非觉醒、非限定、非boss的技能，'
+        u'并获得技能“想起”，此技能效果等同于你声明的技能，'
+        u'如果你已经拥有“想起”的技能，则新技能会替换它（你只能拥有一个被“想起”的技能）。'
     )
 
     clickable = passive_clickable
@@ -46,10 +49,10 @@ class ThirdEyeAction:
         ]
 
     def effect_string_apply(act):
-        return u'|G【%s】|r发动了|G3rd Eye|r，更新了技能|G【想起】|r。' % (
+        return u'|G【%s】|r发动了|G想起|r，更新了技能|G【想起】|r。' % (
             act.source.ui_meta.name,
         ) if act.source.tags['recollected_char'] else \
-            u'|G【%s】|r发动了|G3rd Eye|r，获得了技能|G【想起】|r。' % (
+            u'|G【%s】|r发动了|G想起|r，获得了技能|G【想起】|r。' % (
             act.source.ui_meta.name,
         )
 
@@ -73,7 +76,7 @@ class ThirdEyeAction:
 class ThirdEyeHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
-    choose_option_prompt = u'你要发动【3rd Eye】吗？'
+    choose_option_prompt = u'你要发动【想起】吗？'
 
 
 class Rosa:
@@ -82,7 +85,7 @@ class Rosa:
     description = u'出牌阶段限一次，你可以重铸游戏中任意一张明牌区内的牌；当你对一名其他角色造成伤害时，你可以将其手牌中的一张牌置入明牌区。'
 
     def clickable(g):
-        if g.me.tags['rosa_reforge'] >= g.me.tags['turn_count']:
+        if limit1_skill_used('rosa_reforge'):
             return False
 
         return my_turn() and any(getattr(p, 'showncards') for p in g.players)
@@ -123,7 +126,7 @@ class RosaReforgeAction:
 
 class RosaRevealAction:
     def effect_string(act):
-        return u'|G【%s】|r的|G心花|r生效：|G【%s】|r内心深处的%s被读出了！' % (
+        return u'|G【%s】|r的|G蔷薇|r生效：|G【%s】|r内心深处的%s被读出了！' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
             card_desc(act.card)
@@ -139,7 +142,7 @@ class RosaRevealAction:
 
 class RosaHandler:
     # choose_option
-    choose_option_prompt = u'你要发动【心花】吗？'
+    choose_option_prompt = u'你要发动【蔷薇】吗？'
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
 
 

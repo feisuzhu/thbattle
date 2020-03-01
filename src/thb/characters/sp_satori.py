@@ -28,7 +28,7 @@ class ThirdEyeAction(UserAction):
         src = self.source
 
         if g.process_action(ThirdEyeChooseGirl(self.source, self.target)):
-             tgt = src.tags['recollected_char']
+            tgt = src.tags['recollected_char']
         else:
             return False
 
@@ -51,7 +51,7 @@ class ThirdEyeAction(UserAction):
 
         for skill in src.skills:
             if src.has_skill(skill) and skill.__name__ == 'Recollection':
-                src.skills.remove(skill) # shall not fail
+                src.skills.remove(skill)  # shall not fail
 
         for s in tgt.skills:
             if s.__name__ == name_chosen:
@@ -98,13 +98,13 @@ class ThirdEyeChooseGirl(UserAction):
         if getattr(self, 'char_choice', None):
             try:
                 chars.remove(self.char_choice)
-            except:
+            except Exception:
                 pass
 
         choices, _ = build_choices(
             g, {},
             candidates=chars, players=[src],
-            num=[3] * 1,# for testing: num=[4] * 1,
+            num=[3] * 1,  # for testing: num=[4] * 1,
             akaris=[0] * 1,
             shared=False,
         )
@@ -113,7 +113,7 @@ class ThirdEyeChooseGirl(UserAction):
             c = user_input([src], ChooseGirlInputlet(g, choices), timeout=30, trans=trans)
             c = c or choices[src][0]
 
-        g.players.reveal(c) # nec., for sync, no showing image
+        g.players.reveal(c)  # nec., for sync, no showing image
 
         # for ui display:
         self.char_choice = c.char_cls
@@ -162,7 +162,7 @@ class RosaReforgeAction(UserAction):
             return False
 
         g.process_action(Reforge(src, tgt, card))
-        self.card = card # for ui show showncard
+        self.card = card  # for ui show showncard
 
         return True
 
@@ -202,7 +202,7 @@ class RosaRevealAction(UserAction):
         g.players.reveal(card)
         migrate_cards([card], tgt.showncards)
 
-        self.card = card # for ui
+        self.card = card  # for ui
 
         return True
 
