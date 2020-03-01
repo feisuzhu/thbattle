@@ -40,7 +40,7 @@ class Theone(Player):
         g = self.game
         core = cast(ClientGameRunner, g.runner).core
         st = g.get_synctag()
-        _, raw = core.game.gamedata_of(g).gexpect(f'Sync:{st}')
+        _, raw = core.game.gamedata_of(g).gexpect([f'Sync:{st}'])
         if isinstance(obj, (list, tuple)):
             for o, rd in zip(obj, raw):
                 o.sync(rd)
@@ -197,7 +197,7 @@ class ClientGameRunner(GameRunner):
             while entities:
                 # should be [tag, <Data for Inputlet.parse>]
                 # tag likes 'RI?:ChooseOption:2345'
-                tag_, data = core.game.gamedata_of(g).gexpect('R%s*' % tag)
+                tag_, data = core.game.gamedata_of(g).gexpect([f'R{tag}{st}' for st in synctags_r])
                 st = int(tag_.split(':')[2])
                 if st not in synctags_r:
                     log.warning('Unexpected sync tag: %d, expecting %s', st, list(synctags_r))

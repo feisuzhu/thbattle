@@ -6,12 +6,13 @@ from collections import defaultdict
 from random import Random
 from typing import Any, ClassVar, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type
 from typing import TypeVar, Union
-import logging
 import inspect
+import logging
 import random
+import types
 
 # -- third party --
-from gevent import Timeout, Greenlet
+from gevent import Greenlet, Timeout
 from gevent.event import Event
 from mypy_extensions import TypedDict
 import gevent
@@ -36,9 +37,13 @@ game_objects_hierarchy = set()
 
 class GameObjectMeta(type):
     def __new__(mcls, clsname, bases, kw):
+        from utils.codeobj import adjust
         for k, v in kw.items():
             if isinstance(v, (list, set)):
                 kw[k] = tuple(v)  # mutable obj not allowed
+            elif isinstance(v, types.FunctionType):
+                v.__name__ = f'{clsname}.{v.__name__}'
+                v.__code__ = adjust(v.__code__, name=v.__name__)
 
         cls = super().__new__(mcls, clsname, bases, kw)
         all_gameobjects.add(cls)
@@ -771,6 +776,7 @@ class GameData(object):
         self._has_data = Event()
         self._dead = False
         self._live = live
+        self._tainted = set()
 
         self._in_gexpect = False
 
@@ -796,7 +802,10 @@ class GameData(object):
     def is_live(self) -> bool:
         return self._live
 
-    def gexpect(self, tag: str):
+    def gexpect(self, tags: Sequence[str]):
+        assert not isinstance(tags, str)  # legacy usage
+        assert '*' not in tags[0]  # legacy usage
+
         if self._dead:
             raise EndpointDied
 
@@ -804,19 +813,16 @@ class GameData(object):
             assert not self._in_gexpect, 'NOT REENTRANT'
             self._in_gexpect = True
 
-            log.debug('GAME_EXPECT: %s', repr(tag))
+            log.debug('GAME_EXPECT: %s', repr(tags))
+            tags = set(tags)
 
             recv = self._pending_recv
             e = self._has_data
             e.clear()
 
-            glob = False
-            if tag.endswith('*'):
-                tag = tag[:-1]
-                glob = True
-
             while True:
                 livepkt = None
+                dropped = False
                 for i, packet in enumerate(recv):
                     if isinstance(packet, EndpointDied):
                         del recv[i]
@@ -826,16 +832,26 @@ class GameData(object):
                         livepkt = packet
                         continue
 
-                    if packet.tag == tag or (glob and packet.tag.startswith(tag)):
+                    if packet.tag in tags:
                         log.debug('GAME_READ: %s', repr(packet))
                         del recv[i]
                         packet.consumed = True
                         if livepkt:
                             self._live = True
+                        tags.discard(packet.tag)
+                        self._tainted |= tags
                         return [packet.tag, packet.data]
-
+                    elif packet.tag in self._tainted:
+                        log.warning('GAME_DROP: %s, GID: %s', repr(packet), self.gid)
+                        del recv[i]
+                        self._tainted.discard(packet.tag)
+                        dropped = True
+                        break
                     else:
-                        log.debug('GAME_MISS: %s, EXPECTS: %s, GID: %s', repr(packet), tag, self.gid)
+                        log.debug('GAME_MISS: %s, EXPECTS: %s, GID: %s', repr(packet), tags, self.gid)
+
+                if dropped:
+                    continue
 
                 e.wait(timeout=5)
                 if self._dead:

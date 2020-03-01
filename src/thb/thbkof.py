@@ -4,23 +4,22 @@ from __future__ import annotations
 # -- stdlib --
 from enum import Enum
 from itertools import cycle
-from typing import Dict, List
+from typing import Any, Dict, List
 import logging
 
 # -- third party --
 # -- own --
-from game.base import Player, BootstrapAction, InputTransaction
-from game.base import InterruptActionFlow, list_shuffle, GameEnded
+from game.base import BootstrapAction, GameEnded, InputTransaction, InterruptActionFlow, Player
+from game.base import list_shuffle
 from thb.actions import DistributeCards, PlayerDeath, PlayerTurn, RevealRole
 from thb.cards.base import Deck
 from thb.cards.definition import kof_card_definition
-from thb.common import CharChoice, PlayerRole, build_choices_shared, roll
 from thb.characters.base import Character
+from thb.common import CharChoice, PlayerRole, build_choices_shared, roll
 from thb.inputlets import ChooseGirlInputlet
-from thb.mode import THBattle, THBEventHandler
-from utils.misc import BatchList
 from thb.item import GameItem
-from typing import Any
+from thb.mode import THBEventHandler, THBattle
+from utils.misc import BatchList
 
 
 # -- code --

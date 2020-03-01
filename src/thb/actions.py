@@ -1005,8 +1005,10 @@ class FatetellMalleateHandler(EventArbiter):
                 if isinstance(a, LaunchCard):
                     tgt = a.source
                     break
-
-            raise Exception('Could not find appropriate start point')
+            else:
+                # No one's turn
+                # Only observed in `character_debut` events
+                tgt = g.players[0]
 
         n = len(g.players)
         idx = g.players.index(tgt) - n

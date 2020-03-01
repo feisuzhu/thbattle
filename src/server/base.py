@@ -10,6 +10,7 @@ import logging
 from gevent import Greenlet, iwait
 from gevent.pool import Group as GreenletGroup
 import gevent
+from gevent.timeout import Timeout
 
 # -- own --
 from endpoint import EndpointDied
@@ -42,7 +43,7 @@ class InputWaiter(Greenlet):
         try:
             # should be [tag, <Data for Inputlet.parse>]
             # tag likes 'I?:ChooseOption:2345'
-            tag, rst = core.game.gamedata_of(g, p.client).gexpect(t)
+            tag, rst = core.game.gamedata_of(g, p.client).gexpect([t])
             return rst
         except EndpointDied:
             return None
