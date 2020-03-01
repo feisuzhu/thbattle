@@ -24,6 +24,8 @@ exclude_lines =
     if 0:
     if __name__ == .__main__.:
 
+    if TYPE_CHECKING:
+
 ignore_errors = True
 
 [html]

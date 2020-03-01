@@ -151,3 +151,16 @@ class MockBackend(object):
         }
         '''
         return None
+
+    @_reg
+    def archive(v) -> Any:
+        '''
+        mutation ArchiveGame($game: GameInput!, $archive: String!) {
+          game {
+            archive(game: $meta, archive: $archive) {
+              gid
+            }
+          }
+        }
+        '''
+        return {'game': {'archive': {'gid': 0}}}

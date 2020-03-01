@@ -88,7 +88,7 @@ class Environ(object):
 
     def server_core(self) -> server.core.Core:
         core = server.core.Core(disables=[
-            'archive', 'connect', 'stats', 'backend'
+            'connect', 'stats', 'backend'
         ], listen=self.rendezvous, testing=True)
         core.backend = MockBackend(core)
         runner = CoreRunner(core, paranoid=True)
