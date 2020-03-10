@@ -305,6 +305,7 @@ class ExtraCardSlotHandler(THBEventHandler):
             g = self.game
             n = sum(i == THBRoleRole.ACCOMPLICE for i in g.roles.values())
             n -= sum(ch.dead and g.roles[ch.player] == THBRoleRole.ACCOMPLICE for ch in g.players)
+            n = sync_primitive(n, g.players)
             act.dropn = max(act.dropn - n, 0)
 
         return act

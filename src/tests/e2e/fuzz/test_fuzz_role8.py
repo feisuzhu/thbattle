@@ -9,11 +9,26 @@ import gevent
 from ..mock import Environ, EventTap
 from utils.misc import BatchList
 from .user_input import UserInputFuzzingHandler
+from game.base import sync_primitive
+from thb.actions import THBEventHandler
+from thb.actions import COMMON_EVENT_HANDLERS
 
 
 # -- code --
 class GameEnded(Exception):
     pass
+
+
+class ParanoidSyncHandler(THBEventHandler):
+    interested = ['action_after']
+
+    def handle(self, evt_type, arg):
+        g = self.game
+        if hasattr(g, 'players'):
+            me = [len(ch.cards) for ch in g.players]
+            svr = sync_primitive(me, g.players)
+            assert me == svr, (me, svr)
+        return arg
 
 
 class TestFuzzTHBattleRole(object):
@@ -23,6 +38,8 @@ class TestFuzzTHBattleRole(object):
 
         # from thb.cards import definition
         # definition.card_definition = [(definition.ExinwanCard, 1, 1)] * 1000
+
+        COMMON_EVENT_HANDLERS.add(ParanoidSyncHandler)
 
         me = gevent.getcurrent()
 

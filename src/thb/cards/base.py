@@ -346,6 +346,7 @@ class Deck(GameObject):
             dcl = self.droppedcards
 
             assert all(not c.is_card(VirtualCard) for c in dcl)
+            assert all(not c.is_card(ShreddedCard) for c in dcl)
 
             dropped = list(dcl)
             dcl.clear()

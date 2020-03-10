@@ -28,7 +28,7 @@ class Core(object):
 
         self._result = AsyncResult()
         self.tasks: Dict[str, Callable[[], None]] = {}
-        self.options = options
+        self._options = options
 
     def __repr__(self) -> str:
         return f'Core[{self.core_type}{self._auto_id}]'
@@ -61,7 +61,7 @@ class CoreRunner(object):
         core = self.core
 
         core.runner = self
-        core.initialize(core.options)
+        core.initialize(core._options)
 
         try:
             for k, f in core.tasks.items():
