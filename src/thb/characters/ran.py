@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DropCards, GenericAction
-from thb.actions import PlayerTurn, ttags, user_choose_cards
+from thb.actions import PlayerTurn, PrepareStage, ttags, user_choose_cards
 from thb.cards.base import DummyCard, Skill, VirtualCard, t_None
 from thb.cards.classes import InstantSpellCardAction, Reject, SpellCardAction, TreatAs
 from thb.characters.base import Character, register_character_to
@@ -55,12 +56,14 @@ class ProphetHandler(THBEventHandler):
     interested = ['action_apply']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_apply' and isinstance(act, PrepareStage):
             tgt = act.target
             if not tgt.has_skill(Prophet): return act
             g = self.game
             if not g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
                 return act
+
+            g.process_action(ProphetAction(tgt, tgt))
 
         return act
 

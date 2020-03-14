@@ -15,12 +15,12 @@ from thb.mode import THBEventHandler
 
 # -- code --
 class FlyingSkandaAction(ForEach):
-    @property
-    def action_cls(self):
+
+    def prepare(self):
         skill = self.associated_card
         card = skill.associated_cards[0]
         action = card.associated_action
-        return action
+        self.action_cls = action
 
     def is_valid(self):
         p = self.source

@@ -289,7 +289,7 @@ class ChooseGirlInputlet(Inputlet):
 
 
 class SortCharacterInputlet(Inputlet):
-    def __init__(self, initiator: Any, mapping: Dict[Player, List[CharChoice]], limit: int=10000):
+    def __init__(self, initiator: Any, mapping: Dict[Player, List[CharChoice]], limit: int = 10000):
         self.initiator = initiator
 
         s = {len(l) for l in list(mapping.values())}

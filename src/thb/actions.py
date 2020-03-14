@@ -703,7 +703,6 @@ class LaunchCard(GenericAction):
 
         g = self.game
         src = self.source
-        card = self.card
         drop = card.usage == 'drop'
         try:
             if drop:  # should drop before action
@@ -717,6 +716,7 @@ class LaunchCard(GenericAction):
 
             _, tl = g.emit_event('choose_target', (self, target_list))
             assert _ is self
+            card = self.card  # card may be touched
 
             if not tl:
                 return True
@@ -733,12 +733,17 @@ class LaunchCard(GenericAction):
             self.card_action = a
 
             _ = g.emit_event('post_choose_target', (self, tl))
+            card = self.card  # card may be touched
             assert _ == (self, tl)
 
             g.process_action(a)
+            card = self.card  # card may be touched
 
             return True
         finally:
+            # card may be touched
+            # e.g. Kyouko Echo will move this card, left a placeholder here.
+            card = self.card
 
             if not drop and card.detached:
                 # card/skill still in disputed state,

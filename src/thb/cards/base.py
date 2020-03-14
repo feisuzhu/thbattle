@@ -220,7 +220,7 @@ class VirtualCard(Card, GameViralContext):
 
     @classmethod
     def unwrap(cls, vcards: Iterable[Card]) -> List[Union[PhysicalCard, HiddenCard]]:
-        lst: List[PhysicalCard] = []
+        lst: List[Union[PhysicalCard, HiddenCard]] = []
         sl = list(vcards)
 
         while sl:

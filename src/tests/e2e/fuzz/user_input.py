@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- ChooseIndividualCard: utf-8 -*-
 from __future__ import annotations
 
 # -- stdlib --
@@ -93,8 +93,28 @@ class UserInputFuzzingHandler(EventHandler):
                 cl = list(chain(*cats))
                 if cl:
                     ilet.set_card(random.choice(cl))
+        elif trans.name == 'SortCharacter':
+            pass
+        elif trans.name == 'ChooseGirl':
+            from settings import TESTING_CHARACTERS as TESTS
+            choices = [c for c in ilet.mapping[ilet.actor] if c.char_cls and c.char_cls.__name__ in TESTS]
+            if choices:
+                c = random.choice(choices)
+                log.info('Got %s', c.char_cls)
+                ilet.set_choice(c)
+        elif trans.name == 'HarvestChoose':
+            pass
+        elif trans.name == 'Pindian':
+            pass
+        elif trans.name == 'HopeMask':
+            pass
+        elif trans.name == 'Prophet':
+            pass
+        elif trans.name == 'ChooseIndividualCard':
+            pass
         else:
             log.warning('Not processing %s transaction', trans.name)
+            1/0
 
     def try_launch(self, ilet, cl, tl, skills=[]):
         p = ilet.actor

@@ -39,7 +39,7 @@ class TestFuzzTHBattleRole(object):
         # from thb.cards import definition
         # definition.card_definition = [(definition.ExinwanCard, 1, 1)] * 1000
 
-        COMMON_EVENT_HANDLERS.add(ParanoidSyncHandler)
+        # COMMON_EVENT_HANDLERS.add(ParanoidSyncHandler)
 
         me = gevent.getcurrent()
 

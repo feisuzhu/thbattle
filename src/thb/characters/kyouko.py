@@ -24,7 +24,19 @@ class EchoAction(UserAction):
         self.source, self.target, self.card = source, target, card
 
     def apply_action(self):
-        migrate_cards([self.card], self.target.cards, unwrap=True, is_bh=True)
+        src, tgt, c = self.target, self.target, self.card
+        g = self.game
+
+        assert c.detached
+
+        shadow = Echo(src)
+        for a in g.action_stack:
+            if isinstance(a, LaunchCard) and a.card is c:
+                a.card = shadow
+            elif getattr(a, 'associated_card', None) is c:
+                a.associated_card = shadow
+
+        migrate_cards([c], tgt.cards, unwrap=True, is_bh=True)
 
         return True
 

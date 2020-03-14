@@ -158,6 +158,8 @@ def build_choices(g: THBattle,
     from thb.item import ImperialChoice
 
     # ----- testing -----
+    from thb.characters.base import Character
+
     testing_lst: Iterable[str] = settings.TESTING_CHARACTERS
     testing = list(Character.classes[i] for i in testing_lst)
     candidates, _ = partition(lambda c: c not in testing, candidates)
@@ -172,7 +174,7 @@ def build_choices(g: THBattle,
 
     result: Dict[Player, List[CharChoice]] = {p: [] for p in spec}
 
-    players_for_testing = players[:]
+    players_for_testing = list(spec)
 
     candidates = list(candidates)
     seed = get_seed_for(g, players)
