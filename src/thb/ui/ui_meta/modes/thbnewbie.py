@@ -17,11 +17,11 @@ class THBattleNewbie:
     logo = 'thb-modelogo-newbie'
     params_disp = {}
     description = (
-        u'|R游戏人数|r：1人+1NPC\n'
+        u'|R游戏人数|r：1人+1NPC。\n'
         u'\n'
-        u'|G游戏目标|r：让琪露诺带你飞\n'
+        u'|G游戏目标|r：让琪露诺带你飞。\n'
         u'\n'
-        u'|G胜利条件|r：完整的完成教学，不掉线\n'
+        u'|G胜利条件|r：完整地完成教学，不掉线。\n'
         u'\n'
     ).strip()
 
