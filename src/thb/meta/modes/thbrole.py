@@ -16,9 +16,9 @@ class THBattleRole:
     name = '8人身份场'
     logo = 'thb-modelogo-8id'
     description = (
-        '|R游戏人数|r：8人\n'
+        '|R游戏人数|r：8人。\n'
         '\n'
-        '|R身份分配|r：1|!RBOSS|r、2|!O道中|r、1|!G黑幕|r、4|!B城管|r\n'
+        '|R身份分配|r：1|!RBOSS|r、2|!O道中|r、1|!G黑幕|r、4|!B城管|r。\n'
         '\n'
         '|!RBOSS|r：|!RBOSS|r的体力上限+1。游戏开局时展示身份，并获得BOSS技。胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
         '\n'
@@ -27,23 +27,23 @@ class THBattleRole:
         '|!B城管|r：胜利条件为击坠|!RBOSS|r。当|!B城管|r被击坠时，击坠者摸3张牌。\n'
         '\n'
         '|!G黑幕|r：胜利条件为在|!B城管|r全部被击坠的状况下击坠|!RBOSS|r。\n'
-        '|B|R>> |r|R双黑幕模式|r下胜利条件条件是除了|!RBOSS|r的其他人全部被击坠的情况下击坠|!RBOSS|r。\n'
+        '|B|R>> |r|R双黑幕模式|r下胜利条件条件是除了|!RBOSS|r的其他人全部被击坠的情况下击坠|!RBOSS|r。当|!RBOSS|r被击坠时，若场上只有一名未被击坠的角色且其身份为|!G黑幕|r，则该|!G黑幕|r胜利，另一|!G黑幕|r失败；反之，两位|!G黑幕|r失败，而|!B城管|r阵营胜利。\n'
         '\n'
         '玩家的身份会在被击坠后公开。|!RBOSS|r的身份会在开局的时候公开。\n'
         '\n'
         '|RBOSS技：|r'
         '|!RBOSS|r身份的玩家在开场会获得BOSS技。'
         '\n'
-        '某些角色在在设定上有专属的BOSS技，开局时会额外获得\n'
+        '某些角色在在设定上有专属的BOSS技，开局时会额外获得。\n'
         '没有专属BOSS技的角色会在如下几个通用BOSS技中选择一个获得：\n'
         '\n'
-        '|G同仇|r：当你需要使用或打出一张|G弹幕|r时，其他玩家可以代替你使用或打出一张|G弹幕|r\n'
+        '|G同仇|r：当你需要使用或打出一张|G弹幕|r时，其他玩家可以代替你使用或打出一张|G弹幕|r。\n'
         '\n'
-        '|G协力|r：当你需要使用或打出一张|G擦弹|r时，其他玩家可以代替你使用或打出一张|G擦弹|r\n'
+        '|G协力|r：当你需要使用或打出一张|G擦弹|r时，其他玩家可以代替你使用或打出一张|G擦弹|r。\n'
         '\n'
-        '|G牺牲|r：当你于濒死状态下，被一名角色使用|G麻薯|r而回复体力至1后，其可以失去一点体力，令你额外回复一点体力\n'
+        '|G牺牲|r：当你于濒死状态下，被一名角色使用|G麻薯|r而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。\n'
         '\n'
-        '|G应援|r：锁定技，每有一名道中存活，你的手牌上限便+1\n'
+        '|G应援|r：|B锁定技|r，每有一名道中存活，你的手牌上限增加一。\n'
     ).strip()
 
     params_disp = {
@@ -69,7 +69,7 @@ class THBattleRole:
 class AssistedAttack:
     # Skill
     name = '同仇'
-    description = '当你需要使用或打出一张|G弹幕|r时，其他玩家可以代替你使用或打出一张|G弹幕|r'
+    description = '当你需要使用或打出一张|G弹幕|r时，其他玩家可以代替你使用或打出一张|G弹幕|r。'
 
     def clickable(self, g):
         me = g.me
@@ -139,7 +139,7 @@ class AssistedAttackHandler:
 class AssistedGraze:
     # Skill
     name = '协力'
-    description = '当你需要使用或打出一张|G擦弹|r时，其他玩家可以代替你使用或打出一张|G擦弹|r'
+    description = '当你需要使用或打出一张|G擦弹|r时，其他玩家可以代替你使用或打出一张|G擦弹|r。'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -168,7 +168,7 @@ class AssistedHealHandler:
 class AssistedHeal:
     # Skill
     name = '牺牲'
-    description = '当你于濒死状态下，被一名角色使用|G麻薯|r而回复体力至1后，其可以失去一点体力，令你额外回复一点体力'
+    description = '当你于濒死状态下，被一名角色使用|G麻薯|r而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
@@ -177,7 +177,7 @@ class AssistedHeal:
 class ExtraCardSlot:
     # Skill
     name = '应援'
-    description = '锁定技，每有一名道中存活，你的手牌上限便+1'
+    description = '锁定技，每有一名道中存活，你的手牌上限增加一。'
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
