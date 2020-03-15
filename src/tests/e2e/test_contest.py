@@ -34,6 +34,7 @@ class TestContest(object):
         s = env.server_core()
         proton = env.client_core()
         a, b, c, d, e = [env.client_core() for _ in range(5)]
+        t.tap(proton, a, b, c, d, e)
         proton.auth.login("Proton")
         a.auth.login("Alice")
         b.auth.login("Bob")
@@ -46,18 +47,6 @@ class TestContest(object):
         assert b.auth.uid > 0
         assert c.auth.uid > 0
         assert e.auth.uid > 0
-
-        t += proton.events.server_error
-        t += a.events.game_joined
-        t += b.events.game_joined
-        t += c.events.game_joined
-        t += d.events.game_joined
-        t += e.events.game_joined
-        t += a.events.game_started
-        t += b.events.game_started
-        t += c.events.game_started
-        t += d.events.game_started
-        t += e.events.game_started
 
         # Wrong players count
         proton.contest.setup("TestContest", "THBattle2v2", [a.auth.uid, b.auth.uid]); wait()
@@ -95,7 +84,6 @@ class TestContest(object):
         assert b.events.game_joined in t
 
         # Onlookers should not be able to interfere
-        t += e.events.server_error
         gid = a.game.gid_of(t[a.events.game_joined])
         e.room.join(gid); wait()
         assert t.take(e.events.server_error) == 'not_competitor'

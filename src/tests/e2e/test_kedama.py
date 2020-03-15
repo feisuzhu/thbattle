@@ -7,7 +7,6 @@ import gevent
 
 # -- own --
 from .mock import Environ, EventTap
-from game.base import EventHandler
 
 
 # -- code --
@@ -29,6 +28,8 @@ class TestKedama(object):
         _ = env.server_core()
         proton = env.client_core()
         kedama = env.client_core()
+        t.tap(proton, kedama)
+
         proton.auth.login("Proton")
         kedama.auth.login("")
         wait()
@@ -36,15 +37,12 @@ class TestKedama(object):
         # Kedama should not create modes not allowed
         assert proton.auth.uid == 2
         assert kedama.auth.uid < 0
-        t += kedama.events.game_joined
-        t += kedama.events.server_error
         kedama.room.create('Boom', 'THBattle2v2', {})
         wait()
         assert kedama.events.game_joined not in t
         assert t.take(kedama.events.server_error) == 'kedama_limitation'
 
         # Kedama should not join modes not allowed
-        t += proton.events.game_joined
         proton.room.create('Meh', 'THBattle2v2', {}); wait()
         g = t.take(proton.events.game_joined)
         gid = proton.game.gid_of(g)

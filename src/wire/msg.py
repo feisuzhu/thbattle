@@ -250,7 +250,7 @@ class Auth(Message, ClientToServer):
 
 # ----- room -----
 class CreateRoomFlags(TypedDict):
-    match: bool
+    contest: bool
     invite: bool
 
 

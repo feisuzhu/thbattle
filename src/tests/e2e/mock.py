@@ -15,6 +15,7 @@ from server.parts.backend import MockBackend
 from server.parts.connect import MockConnect
 import client.core
 import server.core
+from utils.events import EventHub
 
 
 # -- code --
@@ -31,22 +32,21 @@ class EventTap(object):
     def __init__(self):
         self._taps = {}
 
-    def __iadd__(self, hub):
-        self.tap(hub)
-        return self
+    def tap(self, *cores):
+        for core in cores:
+            for k in dir(core.events):
+                if k.startswith('__'):
+                    continue
 
-    def tap(self, hub):
-        if hub in self._taps:
-            raise Exception(f'Already tapped: {hub}')
+                hub = getattr(core.events, k)
+                if not isinstance(hub, EventHub):
+                    continue
 
-        def tapper(ev):
-            self._taps[hub] = ev
-            return ev
-        hub += tapper
+                def tapper(ev, hub=hub):
+                    self._taps[hub] = ev
+                    return ev
 
-    def tap_all(self, lst):
-        for h in lst:
-            self += h
+                hub += tapper
 
     def take(self, hub):
         v = self._taps[hub]

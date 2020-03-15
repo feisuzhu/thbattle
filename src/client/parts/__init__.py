@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from . import admin, contest, observe, auth, game, lobby, room, replay, server, warpgate
+from . import admin, auth, contest, game, lobby, observe, replay, room, server, warpgate  # noqa
 
 
 # -- code --

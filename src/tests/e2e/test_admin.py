@@ -37,8 +37,7 @@ class TestAdmin(object):
         assert proton.auth.uid == 2
         assert naughty.auth.uid
 
-        t += proton.events.server_dropped
-        t += naughty.events.server_dropped
+        t.tap(proton, naughty)
 
         naughty.admin.kick(proton.auth.uid)
         wait()
@@ -59,6 +58,8 @@ class TestAdmin(object):
         s = env.server_core()
         proton = env.client_core()
         naughty = env.client_core()
+        t.tap(proton, naughty)
+
         proton.auth.login("Proton")
         naughty.auth.login("Naughty")
 
@@ -75,7 +76,6 @@ class TestAdmin(object):
             def handle(self, evt: str, arg):
                 gevent.sleep(10000)
 
-        t += naughty.events.game_joined
         naughty.room.create('Boom!', 'THBattleNewbie', {})
         wait()
         g = t[naughty.events.game_joined]

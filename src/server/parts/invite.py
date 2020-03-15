@@ -74,7 +74,7 @@ class Invite(object):
         return ev
 
     # ----- Commands -----
-    @command()
+    @command('*')
     def _room_join_invite_limit(self, u: Client, ev: wire.JoinRoom) -> Union[wire.JoinRoom, EventHub.StopPropagation]:
         core = self.core
         g = core.room.get(ev.gid)

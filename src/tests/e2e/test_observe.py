@@ -28,22 +28,13 @@ class TestObserve(object):
         s = env.server_core()
         youmu = env.client_core()
         yuyuko = env.client_core()
+        t.tap(youmu, yuyuko)
+
         youmu.auth.login("Youmu")
         yuyuko.auth.login("Yuyuko")
         wait()
         assert youmu.auth.uid
         assert yuyuko.auth.uid
-
-        t += youmu.events.game_joined
-        t += yuyuko.events.game_joined
-        t += youmu.events.game_started
-        t += yuyuko.events.game_started
-        t += youmu.events.game_left
-        t += yuyuko.events.game_left
-        t += youmu.events.game_ended
-        t += yuyuko.events.game_ended
-        t += youmu.events.observe_request
-        t += yuyuko.events.observe_request
 
         youmu.room.create('Boom', 'THBattleDummy1', {}); wait()
         assert youmu.events.game_joined in t
