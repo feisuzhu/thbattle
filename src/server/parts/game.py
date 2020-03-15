@@ -66,7 +66,6 @@ class GamePart(object):
         core.events.client_pivot += self.handle_client_pivot
 
         D = core.events.client_command
-        D[wire.SetGameParam] += self._set_param
         D[wire.GameData] += self._gamedata
 
     def __repr__(self) -> str:
@@ -147,46 +146,6 @@ class GamePart(object):
         return ev
 
     # ----- Commands -----
-    @command('room')
-    def _set_param(self, u: Client, ev: wire.SetGameParam) -> None:
-        core = self.core
-
-        if core.lobby.state_of(u) != 'room':
-            return
-
-        g = core.game.current(u)
-        if not g:
-            return None
-
-        users = core.room.online_users_of(g)
-
-        if core.room.gid_of(g) != ev.gid:
-            log.error("Error setting game param, gid mismatch with user's current game")
-            return
-
-        cls = g.__class__
-        if ev.key not in cls.params_def:
-            log.error('Invalid option "%s"', ev.key)
-            return
-
-        if ev.value not in cls.params_def[ev.key]:
-            log.error('Invalid value "%s" for key "%s"', ev.value, ev.key)
-            return
-
-        if Ag(self, g)['params'][ev.key] == ev.value:
-            return
-
-        Ag(self, g)['params'][ev.key] = ev.value
-
-        gid = core.room.gid_of(g)
-
-        for u in users:
-            if core.lobby.state_of(u) == 'ready':
-                core.room.cancel_ready(u)
-
-            u.write(ev)
-            u.write(wire.GameParams(gid, Ag(self, g)['params']))
-
     @command('game')
     def _gamedata(self, u: Client, ev: wire.GameData) -> None:
         core = self.core
@@ -285,10 +244,9 @@ class GamePart(object):
     def is_crashed(self, g: ServerGame) -> bool:
         return Ag(self, g)['crashed']
 
-    def abort(self, g: ServerGame) -> None:
+    def mark_aborted(self, g: ServerGame) -> None:
         core = self.core
         Ag(self, g)['aborted'] = True
-        core.events.game_aborted.emit(g)
 
     def is_aborted(self, g: ServerGame) -> bool:
         return Ag(self, g)['aborted']
@@ -317,6 +275,13 @@ class GamePart(object):
 
     def set_winners(self, g: ServerGame, winners: List[Player]) -> None:
         Ag(self, g)['winners'] = winners
+
+    def set_param(self, g: ServerGame, key: str, value: Any) -> bool:
+        if Ag(self, g)['params'][key] == value:
+            return False
+
+        Ag(self, g)['params'][key] = value
+        return True
 
     def params_of(self, g: ServerGame) -> Dict[str, Any]:
         return Ag(self, g)['params']

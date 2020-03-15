@@ -42,6 +42,10 @@ class Lobby(object):
     def handle_user_state_transition(self, ev: Tuple[Client, str, str]) -> Tuple[Client, str, str]:
         c, f, t = ev
 
+        if (f, t) == ('uninitialized', 'freeslot'):
+            # Just don't bother, core is not running at this time
+            return ev
+
         if (f, t) == ('connected', 'authed'):
             self._user_join(c)
 

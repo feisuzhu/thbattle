@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from . import admin, archive, auth, backend, connect, game, serve, hooks, invite, item, kedama, lobby, log  # noqa
-from . import match, observe, reward, room, serve, stats, view  # noqa
+from . import admin, archive, auth, backend, connect, contest, game, hooks, invite, item, kedama  # noqa
+from . import lobby, log, observe, reward, room, serve, stats, view  # noqa
 
 
 # -- code --

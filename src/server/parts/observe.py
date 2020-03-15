@@ -75,14 +75,13 @@ class Observe(object):
 
         elif f in ('room', 'ready', 'wait') and t == 'lobby':
             for u in list(Au(self, c)['obs']):
-                self._observe_detach(u)
+                self.observe_detach(u)
 
         elif (f, t) == ('game', 'finishing'):
             for u in list(Au(self, c)['obs']):
                 self._observe_end(u, c)
 
-        if t == 'lobby' or \
-           (f, t) == ('uninitialized', 'freeslot'):
+        if t == 'lobby' or (f, t) == ('uninitialized', 'freeslot'):
             assoc: ObserveAssocOnClient = {
                 'obs': set(),
                 'reqs': set(),
@@ -158,7 +157,7 @@ class Observe(object):
                 '管理员对你使用了强制观战，效果拔群。'
                 '强制观战功能仅用来处理纠纷，如果涉及滥用，请向 Proton 投诉。'
             ))
-            self._observe_attach(u, observee)
+            self.observe_attach(u, observee)
             return
 
         if uid in Au(self, observee)['reqs']:
@@ -185,7 +184,7 @@ class Observe(object):
             return
 
         if ev.grant:
-            self._observe_attach(ob, c)
+            self.observe_attach(ob, c)
         else:
             ob.write(wire.Error('observe_refused'))
 
@@ -207,7 +206,7 @@ class Observe(object):
 
         assert core.lobby.state_of(ob) == 'ob', (ob, core.lobby.state_of(ob))
 
-        self._observe_detach(ob)
+        self.observe_detach(ob)
         return
 
         # TODO
@@ -227,7 +226,7 @@ class Observe(object):
 
     @command('ob')
     def _leave(self, u: Client, ev: wire.LeaveRoom) -> None:
-        self._observe_detach(u)
+        self.observe_detach(u)
 
     # ----- Public Methods -----
     def add_bigbrother(self, uid: int) -> None:
@@ -239,25 +238,7 @@ class Observe(object):
         except Exception:
             pass
 
-    # ----- Methods -----
-    def _observe_start(self, ob: Client, observee: Client) -> None:
-        core = self.core
-        uid = core.auth.uid_of(observee)
-        g = core.game.current(observee)
-        assert g
-
-        ob.write(wire.ObserveStarted(core.view.GameDetail(g), observee=uid))
-        core.lobby.state_of(ob).transit('ob')
-
-    def _observe_end(self, ob: Client, observee: Client) -> None:
-        core = self.core
-        g = core.game.current(observee)
-        if not g: return
-        gid = core.room.gid_of(g)
-        ob.write(wire.GameEnded(gid))
-        core.lobby.state_of(ob).transit('ob')
-
-    def _observe_attach(self, ob: Client, observee: Client) -> None:
+    def observe_attach(self, ob: Client, observee: Client) -> None:
         core = self.core
 
         g = core.game.current(observee)
@@ -294,7 +275,7 @@ class Observe(object):
             self._observe_start(ob, observee)
             core.game.replay(observee, to=ob)
 
-    def _observe_detach(self, ob: Client) -> None:
+    def observe_detach(self, ob: Client) -> None:
         core = self.core
         assert core.lobby.state_of(ob) == 'ob'
 
@@ -338,6 +319,24 @@ class Observe(object):
                 u.raw_write(d)
                 for i in Au(self, u)['obs']:
                     i.raw_write(d)
+
+    # ----- Methods -----
+    def _observe_start(self, ob: Client, observee: Client) -> None:
+        core = self.core
+        uid = core.auth.uid_of(observee)
+        g = core.game.current(observee)
+        assert g
+
+        ob.write(wire.ObserveStarted(core.view.GameDetail(g), observee=uid))
+        core.lobby.state_of(ob).transit('ob')
+
+    def _observe_end(self, ob: Client, observee: Client) -> None:
+        core = self.core
+        g = core.game.current(observee)
+        if not g: return
+        gid = core.room.gid_of(g)
+        ob.write(wire.GameEnded(gid))
+        core.lobby.state_of(ob).transit('ob')
 
     def _notify(self, g: Game) -> None:
         notifier = Ag(self, g)['_notifier']

@@ -55,8 +55,22 @@ class Backend(object):
         return rst['data']
 
 
+
 class MockBackend(object):
     MOCKED: Dict[str, Callable] = {}
+    NAMED = {
+        'Proton':    2,
+        'Alice':     3,
+        'Bob':       4,
+        'Cirno':     9,
+        'Daiyousei': 7,
+        'Reimu':     8,
+        'Marisa':    11,
+        'Youmu':     12,
+        'Sakuya':    16,
+        'Rumia':     10,
+        'Utsuho':    6,
+    }
 
     def __init__(self, core: Core):
         self.core = core
@@ -89,8 +103,11 @@ class MockBackend(object):
         '''
         return {'gameId': random.randint(0, 1000000)}
 
+    def uid_of(self, token):
+        return self.NAMED.get(token)
+
     @_reg
-    def login(v) -> Any:
+    def login(v, NAMED=NAMED) -> Any:
         '''
         query($token: String) {
             player(token: $token) {
@@ -110,34 +127,20 @@ class MockBackend(object):
             }
         }
         '''
-        if v['token'] == 'Proton':
-            return {
-                'player': {
-                    'id': 2,
-                    'user': {
-                        'isActive': True,
-                        'userPermissions': [],
-                        'groups': {
-                            'permissions': []
-                        }
-                    },
-                    'name': v['token'],
-                }
+
+        return {
+            'player': {
+                'id': NAMED.get(v['token'], abs(hash(v['token'])) % 120943),
+                'user': {
+                    'isActive': True,
+                    'userPermissions': [],
+                    'groups': {
+                        'permissions': []
+                    }
+                },
+                'name': v['token'],
             }
-        else:
-            return {
-                'player': {
-                    'id': abs(hash(v['token'])) % 120943,
-                    'user': {
-                        'isActive': True,
-                        'userPermissions': [],
-                        'groups': {
-                            'permissions': []
-                        }
-                    },
-                    'name': v['token'],
-                }
-            }
+        }
 
     @_reg
     def add_reward(v) -> Any:

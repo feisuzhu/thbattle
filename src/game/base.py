@@ -477,7 +477,7 @@ class EventDispatcher(GameObject):
         Fire an event, all relevant event handlers will see this,
         data can be modified.
         '''
-        random.random() < 0.01 and gevent.sleep(0.00001)  # prevent buggy logic code blocking scheduling
+        random.random() < 0.01 and gevent.idle()  # prevent buggy logic code block scheduling
         if isinstance(data, (list, tuple, str)):
             s = data
         else:

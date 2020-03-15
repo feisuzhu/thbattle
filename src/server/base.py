@@ -133,7 +133,7 @@ class ServerGameRunner(GameRunner):
     def pause(self, time: float) -> None:
         core = self.core
         if not core.options.testing:
-            gevent.sleep(time)
+            core.runner.sleep(time)
 
     def is_aborted(self) -> bool:
         core = self.core

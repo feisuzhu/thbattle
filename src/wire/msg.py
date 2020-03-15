@@ -408,10 +408,10 @@ class AdminRemoveBigbrother(Message, ClientToServer):
     uid: int
 
 
-# ----- match -----
+# ----- contest -----
 @message
 @dataclass
-class SetupMatch(Message, ClientToServer):
+class SetupContest(Message, ClientToServer):
     name: str
     mode: str
     uids: List[int]

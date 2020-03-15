@@ -9,6 +9,7 @@ import logging
 from gevent.event import AsyncResult, Event
 from gevent.greenlet import Greenlet
 from gevent.pool import Pool
+import gevent
 
 # -- own --
 
@@ -22,13 +23,12 @@ class Core(object):
 
     runner: CoreRunner
 
-    def __init__(self, **options: Dict[str, Any]):
+    def __init__(self):
         self._auto_id = Core._auto_id
         Core._auto_id += 1
 
         self._result = AsyncResult()
         self.tasks: Dict[str, Callable[[], None]] = {}
-        self._options = options
 
     def __repr__(self) -> str:
         return f'Core[{self.core_type}{self._auto_id}]'
@@ -39,9 +39,6 @@ class Core(object):
 
     def crash(self, e):
         self._result.set_exception(e)
-
-    def initialize(self, options: Dict[str, Any]) -> None:
-        raise Exception('Abstract')
 
 
 class CoreCrashed(Exception):
@@ -61,7 +58,6 @@ class CoreRunner(object):
         core = self.core
 
         core.runner = self
-        core.initialize(core._options)
 
         try:
             for k, f in core.tasks.items():
@@ -81,6 +77,7 @@ class CoreRunner(object):
     def spawn(self, fn, *args, **kw):
         core = self.core
         gr = self.pool.spawn(fn, *args, **kw)
+        gr.gr_name = f'{repr(self.core)}/{fn.__qualname__}'
         if self._paranoid:
             gr.link_exception(lambda gr: core.crash(gr.exception))
         return gr
@@ -91,6 +88,12 @@ class CoreRunner(object):
         if self._paranoid:
             gr.link_exception(lambda gr: core.crash(gr.exception))
         return gr
+
+    def sleep(self, t):
+        gevent.sleep(t)
+
+    def idle(self, prio=0):
+        gevent.idle(prio)
 
     def shutdown(self) -> None:
         self.pool.kill()

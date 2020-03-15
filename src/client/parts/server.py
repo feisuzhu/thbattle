@@ -138,6 +138,10 @@ class Server(object):
         core.events.server_dropped.emit(True)
 
     def _beat(self) -> None:
+        core = self.core
+        if core.options.testing:
+            return
+
         while self._ep:
             self._ep.write(wire.Beat())
-            gevent.sleep(10)
+            core.runner.sleep(10)

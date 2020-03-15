@@ -118,7 +118,9 @@ class Events(object):
 class Core(core.Core):
     core_type = 'C'
 
-    def initialize(self, options: Dict[str, Any]) -> None:
+    def __init__(self, **options: Dict[str, Any]) -> None:
+        super().__init__()
+
         self.options = Options(options)
         self.events = Events(self)
 
@@ -141,6 +143,9 @@ class Core(core.Core):
 
         if 'game' not in disables:
             self.game = parts.game.GamePart(self)
+
+        if 'contest' not in disables:
+            self.contest = parts.contest.Contest(self)
 
         if 'replay' not in disables:
             self.replay = parts.replay.Replay(self)

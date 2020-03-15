@@ -122,7 +122,9 @@ class Events(object):
 class Core(core.Core):
     core_type = 'S'
 
-    def initialize(self, options: Dict[str, Any]) -> None:
+    def __init__(self, **options: Dict[str, Any]) -> None:
+        super().__init__()
+
         self.options = Options(options)
         self.events = Events(self)
         disables = self.options.disables
@@ -154,8 +156,8 @@ class Core(core.Core):
         if 'reward' not in disables:
             self.reward = parts.reward.Reward(self)
 
-        if 'match' not in disables:
-            self.match = parts.match.Match(self)
+        if 'contest' not in disables:
+            self.contest = parts.contest.Contest(self)
 
         if 'admin' not in disables:
             self.admin = parts.admin.Admin(self)

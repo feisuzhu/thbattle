@@ -76,7 +76,7 @@ class UnityUIEventHook(EventHandler):
             core.warpgate.feed_ev({'t': 'g', 'g': g, 'evt': evt, 'arg': arg})
 
         if random.random() < 0.01:
-            gevent.sleep(0.005)
+            core.runner.idle()
 
         return arg
 

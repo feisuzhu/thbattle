@@ -81,6 +81,17 @@ class Connect(object):
                 return
             except Exception:
                 log.exception('Error sending interconnect message')
-                gevent.sleep(3)
+                core.runner.sleep(3)
 
         log.error('WebSocket send with multiple failed attempts, giving up, message: %s', v)
+
+
+class MockConnect(Connect):
+    def __init__(self, core: Core):
+        super().__init__(core)
+
+        self.mock_sent_messages = []
+
+    def _wssend(self, v: Any) -> None:
+        self.mock_sent_messages.append(v)
+        log.info("MockClient: Send %s", v)

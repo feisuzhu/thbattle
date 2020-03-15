@@ -12,6 +12,7 @@ import gevent
 # -- own --
 from core import CoreRunner
 from server.parts.backend import MockBackend
+from server.parts.connect import MockConnect
 import client.core
 import server.core
 
@@ -91,6 +92,7 @@ class Environ(object):
             'connect', 'stats', 'backend'
         ], listen=self.rendezvous, testing=True)
         core.backend = MockBackend(core)
+        core.connect = MockConnect(core)
         runner = CoreRunner(core, paranoid=True)
         self.pool.spawn(self._run, runner)
         gevent.sleep(0.05)

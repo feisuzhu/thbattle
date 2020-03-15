@@ -82,18 +82,18 @@ class Admin(object):
             while True:
                 users = core.lobby.all_users()
                 users.write(msg.SystemMsg(msg='游戏已经更新，当前的游戏结束后将会被自动踢出，请更新后重新游戏'))
-                gevent.sleep(300)
+                core.runner.sleep(300)
 
         @core.runner.spawn
         def kick() -> None:
-            gevent.sleep(30)
+            core.runner.sleep(30)
             while True:
                 users = core.lobby.all_users()
                 for u in users:
                     if core.lobby.state_of(u) in ('lobby', 'room', 'ready', 'connected'):
                         u.terminate()
 
-                gevent.sleep(1)
+                core.runner.sleep(1)
 
     @_need_admin
     def _stacktrace(self, c: Client, m: msg.AdminStacktrace) -> None:

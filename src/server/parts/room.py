@@ -13,7 +13,7 @@ from mypy_extensions import TypedDict
 
 # -- own --
 from endpoint import Endpoint
-from game.base import Game
+from game.base import Game, GameAbort
 from server.base import ServerGameRunner
 from server.endpoint import Client
 from server.utils import command
@@ -64,6 +64,7 @@ class Room(object):
         D[wire.LeaveRoom]      += self._leave
         D[wire.GetRoomUsers]   += self._users
         D[wire.GetReady]       += self._get_ready
+        D[wire.SetGameParam]   += self._set_param
         D[wire.ChangeLocation] += self._change_location
         D[wire.CancelReady]    += self._cancel_ready
 
@@ -79,6 +80,10 @@ class Room(object):
     def handle_user_state_transition(self, ev: Tuple[Client, str, str]) -> Tuple[Client, str, str]:
         c, f, t = ev
         core = self.core
+
+        if (f, t) == ('uninitialized', 'freeslot'):
+            # Just don't bother, core is not running at this time
+            return ev
 
         if t == 'dropped' and f in ('room', 'ready', 'game'):
             self.exit_game(c)
@@ -179,6 +184,43 @@ class Room(object):
             return
 
         self.send_room_users(g, [u])
+
+    @command('room')
+    def _set_param(self, u: Client, ev: wire.SetGameParam) -> None:
+        core = self.core
+
+        if core.lobby.state_of(u) != 'room':
+            return
+
+        g = self.games.get(ev.gid)
+        if not g:
+            return None
+
+        users = self.online_users_of(g)
+
+        gid = Ag(self, g)['gid']
+        if gid != ev.gid:
+            log.error("Error setting game param, gid mismatch with user's current game")
+            return
+
+        cls = g.__class__
+        if ev.key not in cls.params_def:
+            log.error('Invalid option "%s"', ev.key)
+            return
+
+        if ev.value not in cls.params_def[ev.key]:
+            log.error('Invalid value "%s" for key "%s"', ev.value, ev.key)
+            return
+
+        if not core.game.set_param(ev.key, ev.value):
+            return
+
+        for u in users:
+            if core.lobby.state_of(u) == 'ready':
+                core.room.cancel_ready(u)
+
+            u.write(ev)
+            u.write(wire.GameParams(gid, core.game.params_of(g)))
 
     @command('room')
     def _get_ready(self, u: Client, ev: wire.GetReady) -> None:
@@ -332,6 +374,7 @@ class Room(object):
 
         g = core.game.current(u)
         if not g:
+            assert core.lobby.state_of(u) not in ('room', 'ready', 'game'), core.lobby.state_of(u)
             return
 
         if not self.is_started(g):
@@ -361,7 +404,11 @@ class Room(object):
 
         if self.is_started(g):
             log.info('Game [%s] aborted', gid)
-            core.game.abort(g)
+            core.game.mark_aborted(g)
+            gr = Ag(self, g)['greenlet']
+            if gr and not gr.ready():
+                gr.kill(GameAbort)
+            core.events.game_aborted.emit(g)
         else:
             log.info('Game [%s] cancelled', gid)
             self.games.pop(gid, 0)
