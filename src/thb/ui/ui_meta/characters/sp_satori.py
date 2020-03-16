@@ -65,12 +65,12 @@ class ThirdEyeAction:
                 act.sk_choice.ui_meta.name,
             )
 
-    # tewi se to mock
-    def sound_effect(act):
-        return random.choice([
-            'thb-cv-tewi_lucky',
-            'thb-cv-tewi_miss',
-        ])
+    # # tewi se to mock
+    # def sound_effect(act):
+    #     return random.choice([
+    #         'thb-cv-tewi_lucky',
+    #         'thb-cv-tewi_miss',
+    #     ])
 
 
 class ThirdEyeHandler:
@@ -100,12 +100,12 @@ class Rosa:
         # for more str to complete:
         return (True, u'蔷薇の地狱！！！')
 
-    # mock with nitori se
-    def sound_effect(act):
-        return random.choice([
-            'thb-cv-nitori_dismantle',
-            'thb-cv-nitori_dismantle_other',
-        ])
+    # # mock with nitori se
+    # def sound_effect(act):
+    #     return random.choice([
+    #         'thb-cv-nitori_dismantle',
+    #         'thb-cv-nitori_dismantle_other',
+    #     ])
 
 
 class RosaReforgeAction:
@@ -119,9 +119,9 @@ class RosaReforgeAction:
     def ray(act):
         return [(act.source, act.target)]
 
-    # mock with suika se
-    def sound_effect(act):
-        return 'thb-cv-suika_drunkendream'
+    # # mock with suika se
+    # def sound_effect(act):
+    #     return 'thb-cv-suika_drunkendream'
 
 
 class RosaRevealAction:
@@ -135,9 +135,9 @@ class RosaRevealAction:
     def ray(act):
         return [(act.source, act.target)]
 
-    # mock using momiji se
-    def sound_effect(act):
-        return 'thb-cv-momiji_disarm'
+    # # mock using momiji se
+    # def sound_effect(act):
+    #     return 'thb-cv-momiji_disarm'
 
 
 class RosaHandler:
@@ -182,9 +182,9 @@ class MindRead:
 
         return (True, u'读心：选择一角色获知其身份')
 
-    # mock using rumia se
-    def sound_effect(act):
-        return 'thb-cv-rumia_miss'
+    # # mock using rumia se
+    # def sound_effect(act):
+    #     return 'thb-cv-rumia_miss'
 
 
 class SpSatori:
@@ -196,4 +196,4 @@ class SpSatori:
 
     port_image        = u'thb-portrait-sp_satori'
     figure_image      = u'thb-figure-sp_satori'
-    miss_sound_effect = u'thb-cv-tenshi_miss'
+    # miss_sound_effect = u'thb-cv-tenshi_miss'
