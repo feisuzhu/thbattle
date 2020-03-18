@@ -19,10 +19,9 @@ class ThirdEye:
     # Skill
     name = u'想起'
     description = (
-        u'每当你受到伤害后，你可以随机抽取三张角色牌，'
-        u'并声明其中一个非觉醒、非限定、非boss的技能，'
-        u'并获得技能“想起”，此技能效果等同于你声明的技能，'
-        u'如果你已经拥有“想起”的技能，则新技能会替换它（你只能拥有一个被“想起”的技能）。'
+        u'每当你受到伤害后，且其它同时机事件结算完毕后，你可以随机抽取三张角色牌，'
+        u'声明其中一个非觉醒、非限定、非boss的技能，并获得之。'
+        u'如果你已经拥有被“想起”的技能，则新获得的技能会替换它（你只能拥有一个被“想起”的技能）。'
     )
 
     clickable = passive_clickable
@@ -40,7 +39,7 @@ class ThirdEyeChooseGirl:
 
 class ThirdEyeAction:
     # choose_option meta
-    choose_option_prompt = u'请选择【想起】的技能：'
+    choose_option_prompt = u'请选择需要【想起】的技能：'
 
     def choose_option_buttons(act):
         return [
@@ -49,10 +48,10 @@ class ThirdEyeAction:
         ]
 
     def effect_string_apply(act):
-        return u'|G【%s】|r发动了|G想起|r，更新了技能|G【想起】|r。' % (
+        return u'|G【%s】|r发动了|G【想起】|r，更新了|G想起|r的技能。' % (
             act.source.ui_meta.name,
         ) if act.source.tags['recollected_char'] else \
-            u'|G【%s】|r发动了|G想起|r，获得了技能|G【想起】|r。' % (
+            u'|G【%s】|r发动了|G想起|r，获得了新的技能。' % (
             act.source.ui_meta.name,
         )
 

@@ -2,8 +2,6 @@
 from __future__ import absolute_import
 
 # -- stdlib --
-from copy import deepcopy
-
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, user_input
@@ -50,13 +48,13 @@ class ThirdEyeAction(UserAction):
         name_chosen = user_input([src], ChooseOptionInputlet(self, names)) or names[0]
 
         for skill in src.skills:
-            if src.has_skill(skill) and skill.__name__ == 'Recollection':
+            if src.has_skill(skill) and src.tags['_recollected_sk'] == skill.__name__:
                 src.skills.remove(skill)  # shall not fail
 
         for s in tgt.skills:
             if s.__name__ == name_chosen:
-                s.__name__ = 'Recollection'
-                self.sk_choice = deepcopy(s)
+                self.sk_choice = s
+                src.tags['_recollected_sk'] = s.__name__
                 break
         else:
             assert None, 'please kill a coffeeyin if this occurs'
@@ -89,22 +87,26 @@ class ThirdEyeChooseGirl(UserAction):
         #     chars = get_characters('common')
         # if mode_name == '...':
         #     chars = get_characters('common', 'kof')
-        # ...
-        # ...
+
+        mode_name = g.__class__.__name__
         from thb.characters import get_characters
-        chars = get_characters('common')
-        charset = set(chars)
-        chars = list(charset - set(p.__class__ for p in g.players))
+        if mode_name == 'THBattleKOF':
+            chars = get_characters('common', 'kof')
+        else:
+            chars = get_characters('common')
+
+        chars = list(set(chars) - set(p.__class__ for p in g.players))
+
         if getattr(self, 'char_choice', None):
             try:
-                chars.remove(self.char_choice)
+                chars.remove(self.char_choice.__class__)
             except Exception:
                 pass
 
         choices, _ = build_choices(
             g, {},
             candidates=chars, players=[src],
-            num=[3] * 1,  # for testing: num=[4] * 1,
+            num=[3] * 1,
             akaris=[0] * 1,
             shared=False,
         )
@@ -128,9 +130,20 @@ class ThirdEyeChooseGirl(UserAction):
 class ThirdEyeHandler(EventHandler):
     interested = ('action_after',)
     execute_after = (
-        'DyingHandler',
+        'DyingHandler', # 1 system 4 active "after doing damage" 2 weapon "after doing damage" 7 passive "after enduring damage"
+        'DisarmHandler',
+        'FreakingPowerHandler',
+        'LunaticHandler',
+        'ParanoiaHandler',
         'AyaRoundfanHandler',
         'NenshaPhoneHandler',
+        'DilemmaHandler',
+        'DecayDamageHandler',
+        'EchoHandler',
+        'MelancholyHandler',
+        'MajestyHandler',
+        'MasochistHandler',
+        'ReimuExterminateHandler'
     )
 
     def handle(self, evt_type, act):
