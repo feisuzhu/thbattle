@@ -45,7 +45,7 @@ class ActiveDropCards:
 
     def effect_string(act):
         if act.dropn > 0 and act.cards:
-            return u'|G【%s】|r弃掉了%d张牌：%s' % (
+            return u'|G【%s】|r弃掉了%d张牌：%s。' % (
                 act.target.ui_meta.name, act.dropn, card_desc(act.cards),
             )
 
@@ -163,7 +163,7 @@ class PlayerRevive:
 class TurnOverCard:
     def effect_string(act):
         tgt = act.target
-        return u'|G【%s】|r翻开了牌堆顶的一张牌，%s' % (
+        return u'|G【%s】|r翻开了牌堆顶的一张牌，%s。' % (
             tgt.ui_meta.name,
             card_desc(act.card)
         )
@@ -183,7 +183,7 @@ class RevealIdentity:
         except:
             name = u'|R%s|r' % tgt.account.username
 
-        return u'%s的身份是：|R%s|r' % (
+        return u'%s的身份是：|R%s|r。' % (
             name,
             G().ui_meta.identity_table[i.type],
         )
@@ -198,7 +198,7 @@ class Pindian:
             return (False, u'请选择一张牌用于拼点')
 
     def effect_string_before(act):
-        return u'|G【%s】|r对|G【%s】|r发起了拼点' % (
+        return u'|G【%s】|r对|G【%s】|r发起了拼点：' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )

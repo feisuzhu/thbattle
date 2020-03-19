@@ -65,6 +65,6 @@ class Nitoryuu:
     is_action_valid = passive_is_action_valid
 
     def effect_string(act):
-        return u'|G【%s】|r弃置了自己的一把武器' % (
+        return u'|G【%s】|r弃置了自己的一把武器。' % (
             act.target.ui_meta.name,
         )

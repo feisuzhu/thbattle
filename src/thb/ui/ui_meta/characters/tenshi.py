@@ -60,7 +60,7 @@ class ScarletPerception:
 
 class ScarletPerceptionAction:
     def effect_string(act):
-        return u'|G【%s】|r获得了%s' % (
+        return u'|G【%s】|r获得了%s。' % (
             act.source.ui_meta.name,
             card_desc(act.card)
         )

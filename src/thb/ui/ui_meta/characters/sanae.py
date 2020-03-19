@@ -49,7 +49,7 @@ class Miracle:
         return my_turn()
 
     def effect_string(act):
-        return u'|G【%s】|r发动了|G奇迹|r，弃置了%d张牌' % (
+        return u'|G【%s】|r发动了|G奇迹|r，弃置了%d张牌。' % (
             act.source.ui_meta.name,
             len(act.card.associated_cards),
         )
