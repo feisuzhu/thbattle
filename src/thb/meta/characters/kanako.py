@@ -105,8 +105,8 @@ class KanakoFaithCounteract:
 
 @ui_meta(characters.kanako.KanakoFaithCounteractPart1)
 class KanakoFaithCounteractPart1:
-    def effect_string(self, act):
-        return '|G【%s】|r弃置了|G【%s】|r的%s' % (
+    def effect_string(act):
+        return '|G【%s】|r弃置了|G【%s】|r的%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
             card_desc(act.card),
@@ -173,9 +173,9 @@ class KanakoFaithKOF:
     # Skill
     name = '信仰'
     description = (
-        '|B锁定技|r，结束阶段开始时，若你满足以下条件之一，将你的手牌补至X张（X为你的当前体力值）\n'
-        '|B|R>> |r你的体力值大于对方\n'
-        '|B|R>> |r你曾于出牌阶段对对方造成过伤害'
+        '|B锁定技|r，结束阶段开始时，若你满足以下条件之一，将你的手牌补至X张（X为你的当前体力值）：\n'
+        '|B|R>> |r你的体力值大于对方。\n'
+        '|B|R>> |r你曾于出牌阶段对对方造成过伤害。'
 
     )
 

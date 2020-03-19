@@ -68,7 +68,7 @@ class Nitoryuu:
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
-    def effect_string(self, act):
-        return '|G【%s】|r弃置了自己的一把武器' % (
+    def effect_string(act):
+        return '|G【%s】|r弃置了自己的一把武器。' % (
             act.target.ui_meta.name,
         )

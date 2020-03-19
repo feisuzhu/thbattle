@@ -70,7 +70,7 @@ class Support:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return '|G【%s】|r发动了|G支援|r技能，将%d张牌交给了|G【%s】|r' % (
+        return '|G【%s】|r发动了|G支援|r技能，将%d张牌交给了|G【%s】|r。' % (
             act.source.ui_meta.name,
             len(act.card.associated_cards),
             act.target.ui_meta.name,
@@ -84,7 +84,7 @@ class Support:
 class SupportKOF:
     # Skill
     name = '支援'
-    description = '你死亡时，你可以将你的所有牌移出游戏，并令下一名登场的角色获得这些牌。'
+    description = '你被击坠时，你可以将你的所有牌移出游戏，并令下一名登场的角色获得这些牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -117,8 +117,8 @@ class Moe:
 
 @ui_meta(characters.daiyousei.MoeDrawCard)
 class MoeDrawCard:
-    def effect_string(self, act):
-        return '|G【%s】|r用手扯开脸颊，向大家做了一个夸张的笑脸，摸了%d张牌跑开了' % (
+    def effect_string(act):
+        return '|G【%s】|r用手扯开脸颊，向大家做了一个夸张的笑脸，摸了%d张牌跑开了~' % (
             act.target.ui_meta.name,
             act.amount,
         )

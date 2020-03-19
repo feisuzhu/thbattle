@@ -123,7 +123,7 @@ class AssistedAttackCard:
     def effect_string(self, act):
         s = act.card
         c = s.associated_cards[0]
-        return '|G【%s】|r响应了|G同仇|r，使用了|G%s|r' % (
+        return '|G【%s】|r响应了|G同仇|r，使用了|G%s|r。' % (
             c.resides_in.owner.ui_meta.name,
             card_desc(c),
         )
@@ -152,8 +152,8 @@ class AssistedGrazeHandler:
 
 @ui_meta(thbrole.AssistedHealAction)
 class AssistedHealAction:
-    def effect_string_before(self, act):
-        return '|G【%s】|r发动了|G牺牲|r' % (
+    def effect_string_before(act):
+        return '|G【%s】|r发动了|G牺牲|r。' % (
             act.source.ui_meta.name,
         )
 
@@ -190,8 +190,8 @@ class ChooseBossSkillAction:
         l = act.boss_skills
         return [(i.ui_meta.name, i.__name__) for i in l]
 
-    def effect_string(self, act):
-        return '|G【%s】|r选择了|G%s|r作为BOSS技' % (
+    def effect_string(act):
+        return '|G【%s】|r选择了|G%s|r作为BOSS技。' % (
             act.target.ui_meta.name,
             act.skill_chosen.ui_meta.name,
         )

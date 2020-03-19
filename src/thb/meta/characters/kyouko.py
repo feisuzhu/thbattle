@@ -85,8 +85,8 @@ class ResonanceAction:
 @ui_meta(characters.kyouko.EchoAction)
 class EchoAction:
 
-    def effect_string_before(self, act):
-        return '|G【%s】|r发动了|G回响|r，|G【%s】|r获得了%s' % (
+    def effect_string_before(act):
+        return '|G【%s】|r发动了|G回响|r，|G【%s】|r获得了%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
             card_desc(VirtualCard.unwrap([act.card])),

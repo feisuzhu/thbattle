@@ -28,8 +28,8 @@ def suppress_launch_card_effect_string(self, act):
 @ui_meta(equipment.WearEquipmentAction)
 class WearEquipmentAction:
 
-    def effect_string(self, act):
-        return '|G【%s】|r装备了%s' % (
+    def effect_string(act):
+        return '|G【%s】|r装备了%s。' % (
             act.target.ui_meta.name,
             card_desc(act.associated_card),
         )
@@ -43,8 +43,8 @@ class WeaponReforgeHandler:
 
 @ui_meta(equipment.ReforgeWeapon)
 class ReforgeWeapon:
-    def effect_string(self, act):
-        return '|G【%s】|r重铸了%s' % (
+    def effect_string(act):
+        return '|G【%s】|r重铸了%s。' % (
             act.target.ui_meta.name,
             card_desc(act.card),
         )
@@ -288,7 +288,7 @@ class UmbrellaEffect:
         else:
             s = ''
 
-        return '|G【%s】|r受到的%s效果被|G阳伞|r挡下了' % (
+        return '|G【%s】|r受到的%s效果被|G阳伞|r挡下了…' % (
             dmg.target.ui_meta.name, s,
         )
 
@@ -471,7 +471,7 @@ class RepentanceStickHandler:
 class RepentanceStick:
     def effect_string_before(self, act):
         return (
-            '|G【%s】|r用|G悔悟棒|r狠狠的敲了|G【%s】|r一通…'
+            '|G【%s】|r用|G悔悟棒|r狠狠地敲了|G【%s】|r一通…'
         ) % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
@@ -960,8 +960,8 @@ class YinYangOrbHandler:
 
 @ui_meta(equipment.YinYangOrb)
 class YinYangOrb:
-    def effect_string(self, act):
-        return '|G【%s】|r用|G%s|r替换了她的判定牌' % (
+    def effect_string(act):
+        return '|G【%s】|r用|G%s|r替换了她的判定牌。' % (
             act.target.ui_meta.name,
             card_desc(act.card),
         )
@@ -1053,8 +1053,8 @@ class IceWingSkill:
 
 @ui_meta(equipment.IceWing)
 class IceWing:
-    def effect_string(self, act):
-        return '|G【%s】|r借着|G⑨的翅膀|r飞了出来，|G%s|r没起到什么作用' % (
+    def effect_string(act):
+        return '|G【%s】|r借着|G⑨的翅膀|r飞了出来，|G%s|r没起到什么作用。' % (
             act.target.ui_meta.name,
             act.action.associated_card.ui_meta.name,
         )

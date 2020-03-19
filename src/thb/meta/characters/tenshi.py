@@ -63,8 +63,8 @@ class ScarletPerception:
 
 @ui_meta(characters.tenshi.ScarletPerceptionAction)
 class ScarletPerceptionAction:
-    def effect_string(self, act):
-        return '|G【%s】|r获得了%s' % (
+    def effect_string(act):
+        return '|G【%s】|r获得了%s。' % (
             act.source.ui_meta.name,
             card_desc(act.card)
         )

@@ -50,8 +50,8 @@ class Miracle:
     def clickable(self, g):
         return my_turn()
 
-    def effect_string(self, act):
-        return '|G【%s】|r发动了|G奇迹|r，弃置了%d张牌' % (
+    def effect_string(act):
+        return '|G【%s】|r发动了|G奇迹|r，弃置了%d张牌。' % (
             act.source.ui_meta.name,
             len(act.card.associated_cards),
         )
