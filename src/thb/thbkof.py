@@ -179,6 +179,11 @@ class THBattleKOFBootstrap(GenericAction):
 
         order = [1, 0] if A is g.players[0] else [0, 1]
 
+        # Inaccessible Bottom Pocket:
+        g.pool = []
+        for p in [A, B]:
+            g.pool += list(p.choices)
+
         for p in [A, B]:
             g.process_action(RevealIdentity(p, g.players))
 

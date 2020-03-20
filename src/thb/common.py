@@ -109,11 +109,6 @@ def build_choices(g, items, candidates, players, num, akaris, shared):
     all_characters = Character.character_classes
     testing = list(all_characters[i] for i in settings.TESTING_CHARACTERS)
 
-    # HACK!
-    import sys
-    if 'satori' in sys._getframe(1).f_code.co_filename:
-        testing = []
-
     # ==============
 
     candidates, _ = partition(lambda c: c not in testing, candidates)
