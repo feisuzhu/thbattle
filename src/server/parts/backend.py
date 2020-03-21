@@ -55,7 +55,6 @@ class Backend(object):
         return rst['data']
 
 
-
 class MockBackend(object):
     MOCKED: Dict[str, Callable] = {}
     NAMED = {

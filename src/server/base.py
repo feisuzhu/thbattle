@@ -56,23 +56,6 @@ class InputWaiterGroup(GreenletGroup):
     greenlet_class = InputWaiter
 
 
-class HaltOnStart(BootstrapAction):
-    def __init__(self, params: Dict[str, Any],
-                       items: Dict[Player, List[GameItem]],
-                       players: BatchList[Player]):
-        self.params  = params
-        self.items   = items
-        self.players = players
-
-    def apply_action(self) -> bool:
-        g = self.game
-        assert isinstance(g, Game)
-        core = cast(ServerGameRunner, g.runner).core
-        core.game.set_bootstrap_action(g, self)
-        g.pause(99999999)
-        return True
-
-
 class ServerGameRunner(GameRunner):
 
     game: Game
@@ -107,8 +90,6 @@ class ServerGameRunner(GameRunner):
 
         try:
             cls = g.bootstrap
-            if core.game.should_halt(g):
-                cls = HaltOnStart
             g.process_action(cls(params, items, players))
         except GameEnded as e:
             core.game.set_winners(g, list(e.winners))

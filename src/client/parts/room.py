@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import logging
 
 # -- third party --
@@ -50,6 +50,14 @@ class Room(object):
     def change_location(self, loc: int):
         core = self.core
         core.server.write(wire.ChangeLocation(loc=loc))
+
+    def get_room_users(self, gid: int):
+        core = self.core
+        core.server.write(wire.GetRoomUsers(gid=gid))
+
+    def set_game_param(self, gid: int, key: str, value: Any):
+        core = self.core
+        core.server.write(wire.SetGameParam(gid=gid, key=key, value=value))
 
     def invite(self, uid: int):
         core = self.core

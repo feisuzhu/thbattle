@@ -138,6 +138,9 @@ class GamePart(object):
         old, g = ev
         core = self.core
 
+        assert old.ended
+        assert not g.ended
+
         params = Ag(self, old)['params']
         Ag(self, g)['params'] = params
         gid = core.room.gid_of(g)
@@ -198,30 +201,6 @@ class GamePart(object):
 
         return g
 
-    def halt_on_start(self, g: ServerGame) -> None:
-        "For testing"
-        g._[self]['halt'] = AsyncResult()
-
-    def should_halt(self, g: ServerGame) -> bool:
-        "For testing"
-        return bool(g._[self]['halt'])
-
-    def get_bootstrap_action(self, g: ServerGame) -> BootstrapAction:
-        "For testing"
-        rst = g._[self]['halt']
-        if not rst:
-            raise Exception('Game will not halt')
-
-        return rst.get()
-
-    def set_bootstrap_action(self, g: ServerGame, act: BootstrapAction) -> None:
-        "For testing"
-        rst = g._[self]['halt']
-        if not rst:
-            raise Exception('Game will not halt')
-
-        rst.set(act)
-
     def replay(self, u: Client, to: Client) -> None:
         core = self.core
         g = Au(self, u)['game']
@@ -245,7 +224,6 @@ class GamePart(object):
         return Ag(self, g)['crashed']
 
     def mark_aborted(self, g: ServerGame) -> None:
-        core = self.core
         Ag(self, g)['aborted'] = True
 
     def is_aborted(self, g: ServerGame) -> bool:

@@ -74,6 +74,48 @@ class THBattleDummy4(THBattle):
         return False
 
 
+class THBattleUTCrashBootstrap(BootstrapAction):
+
+    def __init__(self, params: Dict[str, Any],
+                       items: Dict[Player, List[GameItem]],
+                       players: BatchList[Player]):
+        pass
+
+    def apply_action(self):
+        raise Exception("Deliberate crash")
+
+
+class THBattleCrash(THBattle):
+    n_persons  = 1
+    game_ehs = []
+    bootstrap  = THBattleUTCrashBootstrap
+
+    def can_leave(g: THBattle, p: Player) -> bool:
+        return False
+
+
+class THBattleUTHaltBootstrap(BootstrapAction):
+
+    def __init__(self, params: Dict[str, Any],
+                       items: Dict[Player, List[GameItem]],
+                       players: BatchList[Player]):
+        pass
+
+    def apply_action(self):
+        g = self.game
+        g.core.runner.sleep(10000000)
+        return True
+
+
+class THBattleHalt(THBattle):
+    n_persons  = 1
+    game_ehs = []
+    bootstrap  = THBattleUTHaltBootstrap
+
+    def can_leave(g: THBattle, p: Player) -> bool:
+        return False
+
+
 def inject():
     import thb
     thb.modes.update({cls.__name__: cls for cls in [
@@ -81,4 +123,6 @@ def inject():
         THBattleDummy2,
         THBattleDummy3,
         THBattleDummy4,
+        THBattleCrash,
+        THBattleHalt,
     ]})

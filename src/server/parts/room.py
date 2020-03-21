@@ -177,7 +177,7 @@ class Room(object):
     def _leave(self, u: Client, ev: wire.LeaveRoom) -> None:
         self.exit_game(u)
 
-    @command('lobby')
+    @command('lobby', 'room', 'ready', 'game')
     def _users(self, u: Client, ev: wire.GetRoomUsers) -> None:
         g = self.games.get(ev.gid)
         if not g:
@@ -212,7 +212,7 @@ class Room(object):
             log.error('Invalid value "%s" for key "%s"', ev.value, ev.key)
             return
 
-        if not core.game.set_param(ev.key, ev.value):
+        if not core.game.set_param(g, ev.key, ev.value):
             return
 
         for u in users:
