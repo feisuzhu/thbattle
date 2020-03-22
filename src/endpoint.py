@@ -47,6 +47,8 @@ class Endpoint(object):
         self.address    = address
         self.link_state = 'connected'  # or disconnected
 
+        self.active     = False
+
     def __repr__(self):
         return '%s:%s:%s' % (
             self.__class__.__name__,
@@ -77,6 +79,7 @@ class Endpoint(object):
             try:
                 with self.writelock:
                     self.sock.sendall(s)
+                    self.active = True
             except IOError:
                 log.exception('Error raw_write, closing Endpoint')
                 self.close()
@@ -85,6 +88,7 @@ class Endpoint(object):
         if not self.link_state == 'disconnected':
             self.link_state = 'disconnected'
             self.sock.close()
+            self.active = False
 
     @staticmethod
     def _decode_packet(p: Any) -> Tuple[Format, Any]:
@@ -134,6 +138,7 @@ class Endpoint(object):
                 with Timeout(timeout, False):
                     try:
                         v = next(unpacker)
+                        self.active = True
                     except StopIteration:
                         pass
 

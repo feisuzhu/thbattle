@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
+from typing import cast
+
 # -- third party --
 # -- own --
-from thb.actions import DrawCards, UserAction
+# -- errord --
+from thb.actions import DrawCards, MigrateCardsTransaction, UserAction
 from thb.cards.base import Skill
 from thb.cards.classes import Heal, t_None, t_OtherOne
 from thb.characters.base import Character, register_character_to
@@ -56,18 +60,20 @@ class PsychopathDrawCards(DrawCards):
 
 
 class PsychopathHandler(THBEventHandler):
-    interested = ['card_migration']
+    interested = ['post_card_migration']
 
-    def handle(self, evt_type, args):
-        if evt_type == 'card_migration':
-            act, cards, _from, to, is_bh = args
-            if _from is not None and _from.type == 'equips' and not is_bh:
-                src = _from.owner
-                if src.has_skill(Psychopath) and not src.dead:
-                    g = self.game
-                    g.process_action(PsychopathDrawCards(src, len(cards)*2))
+    def handle(self, evt_type, arg):
+        if evt_type == 'post_card_migration':
+            g = self.game
+            trans = cast(MigrateCardsTransaction, arg)
+            for m in trans.movements:
+                if m.fr.type != 'equips': continue
+                src = m.fr.owner
+                if src.dead: continue
+                if not src.has_skill(Psychopath): continue
+                g.process_action(PsychopathDrawCards(src, 2))
 
-        return args
+        return arg
 
 
 @register_character_to('common', '-kof')

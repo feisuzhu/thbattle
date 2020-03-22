@@ -8,7 +8,7 @@ import gevent
 # -- own --
 from ..mock import Environ, EventTap
 from utils.misc import BatchList
-from .user_input import UserInputFuzzingHandler
+from .common import UserInputFuzzingHandler, let_it_go
 
 
 # -- code --
@@ -37,6 +37,8 @@ class TestFuzzTHBattleFaith(object):
 
         s = env.server_core()
         cl = BatchList([env.client_core() for _ in range(6)])
+        t.tap(s, *cl)
+
         c1r = BatchList(cl[1:])
         c = cl[0]
         names = (
@@ -47,14 +49,12 @@ class TestFuzzTHBattleFaith(object):
             i.auth.login(name)
         wait()
         assert all(cl.auth.uid)
-        t.tap_all(cl.events.game_joined)
         c.room.create('Test1', 'THBattleFaith', {})
         wait()
         gid = c.game.gid_of(t[c.events.game_joined])
         c1r.room.join(gid)
         wait()
         assert [gid] * 6 == [i.game.gid_of(t[i.events.game_joined]) for i in cl]
-        t.tap_all(cl.events.game_started)
 
         s.events.game_crashed += fail_crash
         for i in cl:
@@ -77,7 +77,6 @@ class TestFuzzTHBattleFaith(object):
         [i.game.start_game(t[i.events.game_started]) for i in cl]
 
         try:
-            gevent.sleep(60)
-            raise Exception('Time limit exceeded!')
+            let_it_go(*cl)
         except GameEnded:
             pass

@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
+from typing import cast
+
 # -- third party --
 # -- own --
-from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction, UserAction, PlayerTurn
-from thb.actions import random_choose_card, user_choose_players
+# -- errord --
+from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction
+from thb.actions import MigrateCardsTransaction, PlayerTurn, UserAction, random_choose_card
+from thb.actions import user_choose_players
 from thb.cards.base import Skill, VirtualCard
 from thb.cards.classes import t_None
 from thb.characters.base import Character, register_character_to
@@ -103,14 +108,15 @@ class DecayDrawCards(DrawCards):
 
 
 class DecayDrawCardHandler(THBEventHandler):
-    interested = ['card_migration']
+    interested = ['post_card_migration']
     execute_before = ['LuckHandler']
 
     def handle(self, evt_type, arg):
-        if evt_type != 'card_migration':
+        if evt_type != 'post_card_migration':
             return arg
 
         g = self.game
+
         try:
             me = PlayerTurn.get_current(g).target
         except IndexError:
@@ -120,19 +126,24 @@ class DecayDrawCardHandler(THBEventHandler):
         if me.dead: return arg
         if not me.has_skill(Decay): return arg
 
-        act, cards, _from, to, is_bh = arg
+        trans = cast(MigrateCardsTransaction, arg)
 
-        if is_bh or \
-            any([c.is_card(VirtualCard) for c in cards]) or \
-            _from is None or \
-            _from.owner is None or \
-            _from.owner is me or \
-            _from.type not in ('cards', 'showncards') or \
-            _from.owner.dead or \
-            _from.owner.cards or \
-            _from.owner.showncards: return arg
+        candidates = {}
 
-        g.process_action(DecayDrawCards(me, 1))
+        for m in trans.movements:
+            src = m.fr.owner
+            if not src: continue
+            if m.card.is_card(VirtualCard): continue
+            if m.fr.type not in ('cards', 'showncards'): continue
+            if src.cards or src.showncards: continue
+            if src.dead: continue
+            if src is me: continue
+            candidates[src] = 1
+
+        if not candidates:
+            return arg
+
+        g.process_action(DecayDrawCards(me, len(candidates)))
 
         return arg
 

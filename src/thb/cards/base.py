@@ -219,14 +219,16 @@ class VirtualCard(Card, GameViralContext):
         return False
 
     @classmethod
-    def unwrap(cls, vcards: Iterable[Card]) -> List[Union[PhysicalCard, HiddenCard]]:
-        lst: List[Union[PhysicalCard, HiddenCard]] = []
+    def unwrap(cls, vcards: Iterable[Card], include_vcards: bool = False) -> List[Card]:
+        lst: List[Card] = []
         sl = list(vcards)
 
         while sl:
             s = sl.pop()
             if isinstance(s, VirtualCard):
-                sl.extend(s.associated_cards)
+                if include_vcards:
+                    lst.append(s)
+                sl.extend(VirtualCard.unwrap(s.associated_cards, include_vcards))
             else:
                 assert isinstance(s, (PhysicalCard, HiddenCard)), s
                 lst.append(s)

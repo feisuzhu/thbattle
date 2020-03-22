@@ -5,7 +5,7 @@ from typing import Sequence, Tuple, List
 # -- third party --
 # -- own --
 from thb.actions import ActionStage, Damage, DrawCards, DropCardStage, DropCards, GenericAction
-from thb.actions import LaunchCard, PlayerTurn, PostCardMigrationHandler, Reforge, UserAction
+from thb.actions import LaunchCard, PlayerTurn, PostCardMigrationHandler, Reforge, UserAction, MigrateCardsTransaction
 from thb.actions import random_choose_card, user_choose_cards, user_choose_players
 from thb.cards.base import Skill, VirtualCard
 from thb.cards.definition import EquipmentCard
@@ -229,22 +229,23 @@ class DollBlastMigrationHandler(DollBlastHandlerCommon, THBEventHandler):
 
         equips = p.equips
 
-        for cl, _from, to, is_bh in trans.get_movements():
-            if _from is not equips:
+        assert isinstance(trans, MigrateCardsTransaction)
+        for m in trans.movements:
+            if m.fr is not equips:
                 continue
 
-            if to is None or not to.owner:
+            if not m.to.owner:
                 continue
 
-            tgt = to.owner
+            tgt = m.to.owner
 
-            if tgt is _from.owner:
+            if tgt is m.fr.owner:
                 continue
 
             if not (tgt.cards or tgt.showncards or tgt.equips):
                 continue
 
-            self.fire(p, tgt, cl)
+            self.fire(p, tgt, [m.card])
 
         return True
 

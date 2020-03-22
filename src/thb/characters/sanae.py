@@ -3,7 +3,8 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import ActionStage, AskForCard, DistributeCards, DrawCardStage, DrawCards
+from typing import cast
+from thb.actions import ActionStage, AskForCard, DistributeCards, DrawCardStage, DrawCards, MigrateCardsTransaction
 from thb.actions import GenericAction, PlayerTurn, Reforge, UserAction, migrate_cards
 from thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
 from thb.cards.base import Skill
@@ -155,46 +156,42 @@ class SanaeFaithKOFDrawCards(DrawCards):
 
 
 class SanaeFaithKOFHandler(THBEventHandler):
-    interested = ['card_migration']
+    interested = ['post_card_migration']
 
     def handle(self, evt_type, arg):
-        if evt_type == 'card_migration':
-            act, cards, _from, to, _ = arg
-            if isinstance(act, (DistributeCards, DrawCardStage)):
-                return arg
-
-            if to is None or not to.owner:
-                return arg
-
-            if to.type not in ('cards', 'showncards', 'equips'):
-                return arg
-
-            if _from is not None and _from.owner is to.owner:
-                return arg
-
-            g = self.game
-            a, b = g.players
-
-            if not a.has_skill(SanaeFaithKOF):
-                a, b = b, a
-
-            if not a.has_skill(SanaeFaithKOF):
-                return arg
-
-            if b is not to.owner:
-                return arg
-
-            turn = PlayerTurn.get_current(g)
-            if not turn:
-                return arg
-
-            stage = turn.current_stage
-            if stage.target is not b or not isinstance(stage, ActionStage):
+        if evt_type == 'post_card_migration':
+            trans = cast(MigrateCardsTransaction, arg)
+            if isinstance(trans.action, (DistributeCards, DrawCardStage)):
                 return arg
 
             g = self.game
 
-            g.process_action(SanaeFaithKOFDrawCards(a, 1))
+            for m in trans.movements:
+                if not m.to.owner:
+                    continue
+
+                if m.to.type not in ('cards', 'showncards', 'equips'):
+                    continue
+
+                if m.fr.owner is m.to.owner:
+                    continue
+
+                tgt = g.get_opponent(m.to.owner)
+
+                if not tgt.has_skill(SanaeFaithKOF):
+                    continue
+
+                turn = PlayerTurn.get_current(g)
+                if not turn:
+                    continue
+
+                stage = turn.current_stage
+                if stage.target is not m.to.owner or not isinstance(stage, ActionStage):
+                    continue
+
+                g.process_action(SanaeFaithKOFDrawCards(tgt, 1))
+
+                break
 
         return arg
 

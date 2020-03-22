@@ -1,23 +1,37 @@
-# -*- ChooseIndividualCard: utf-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 # -- stdlib --
-import logging
 from itertools import chain, combinations, permutations
 from typing import Any, cast
+import logging
 import random
 
 # -- third party --
+import gevent
+
 # -- own --
 from game.base import EventHandler
 from thb.actions import ActionStageLaunchCard, CardChooser, skill_wrap
-from thb.cards.base import t_None, t_All, t_AllInclusive, t_One, t_OtherOne, t_Self, t_OneOrNone
 from thb.inputlets import ActionInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
 log = logging.getLogger('UserInputFuzzingHandler')
 C = combinations
+
+
+def let_it_go(*cores):
+    while True:
+        gevent.idle(-100)
+        gevent.sleep(0.001)
+        gevent.idle(-100)
+
+        if all(not c.server._ep.active for c in cores):
+            raise Exception('STUCK!')
+
+        for c in cores:
+            c.server._ep.active = False
 
 
 class UserInputFuzzingHandler(EventHandler):
@@ -184,8 +198,8 @@ class UserInputFuzzingHandler(EventHandler):
             random.shuffle(rl)
 
         for i in rl:
-            log.debug("tgt %s", target)
-            log.debug("rl %s", i)
+            # log.debug("tgt %s", target)
+            # log.debug("rl %s", i)
             rst, ok = c.target(g, me, i)
             if ok:
                 yield rst

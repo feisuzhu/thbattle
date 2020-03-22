@@ -5,7 +5,7 @@ from typing import cast
 # -- third party --
 # -- own --
 from game.base import EventHandler
-from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, CardMovement, Damage
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, MigrateCardsTransaction, Damage
 from thb.actions import DistributeCards, DropCards, ForEach, GenericAction, LaunchCard, PlayerTurn
 from thb.actions import UseCard, UserAction, VitalityLimitExceeded, register_eh, user_choose_cards
 
@@ -330,62 +330,32 @@ class ExinwanEffect(GenericAction):
 class ExinwanHandler(EventHandler):
     # 恶心丸
 
-    interested = ['card_migration', 'post_card_migration']
+    interested = ['post_card_migration']
 
     def handle(self, evt_type, arg) -> None:
         from thb.cards.base import VirtualCard, HiddenCard
         from thb.cards.definition import ExinwanCard
 
-        if evt_type == 'card_migration':
-            arg = cast(CardMovement, arg)
-            act, cards, _from, to, is_bh = arg
-
-            # someone is getting the ExinwanCard
-            if to.owner is not None:
-                for c in VirtualCard.unwrap(cards):
-                    # Exinwan may be HiddenCard here
-                    c.exinwan_target = None
-
-                return arg
-
-            # move from None to None do not affect Exinwan's target
-            # (including moving detached cards to None)
-            if _from is None or _from.owner is None or is_bh:
-                return arg
-
-            # do not active when distributing cards
-            if isinstance(act, DistributeCards):
-                return arg
-
-            # someone is dropping the ExinwanCard
-            for c in VirtualCard.unwrap(cards):
-                # Exinwan may be HiddenCard here
-                c.exinwan_target = act.source
-
-            return arg
-
-        elif evt_type == 'post_card_migration':
-            dropcl = [cl for cl, _, to, _ in arg.get_movements()
-                      if to.type == 'droppedcard']
-
-            def invalid(c):
-                return c.is_card(VirtualCard) or c.is_card(HiddenCard)
+        if evt_type == 'post_card_migration':
+            moves = cast(MigrateCardsTransaction, arg).movements
+            moves = [m for m in moves if m.to.type == 'droppedcard']
 
             # cards to dropped area should all unwrapped
-            assert not any(invalid(c)
-                           for cl in dropcl for c in cl), dropcl
+            assert not any(
+                m.card.is_card(VirtualCard) or m.card.is_card(HiddenCard)
+                for m in moves
+            )
 
-            cards = [c for cl in dropcl for c in cl
-                     if c.is_card(ExinwanCard)]
+            moves = [m for m in moves if m.card.is_card(ExinwanCard)]
 
             # no same card dropped twice in the same transaction
-            assert len(cards) == len(set(cards))
+            assert len(moves) == len(set(m.card for m in moves))
 
-            for c in cards:
-                tgt = getattr(c, 'exinwan_target', None)
-                if tgt:
+            for m in moves:
+                tgt = m.trans.action.source
+                if tgt and not tgt.dead:
                     act = ExinwanEffect(tgt, tgt)
-                    act.associated_card = c
+                    act.associated_card = m.card
                     self.game.process_action(act)
 
         return arg

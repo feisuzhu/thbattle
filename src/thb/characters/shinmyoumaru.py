@@ -38,7 +38,7 @@ class MiracleMalletAction(UseCard):
         src = self.source
         g.players.exclude(src).reveal(c)
         with MigrateCardsTransaction(self) as trans:
-            migrate_cards([ft.card], src.cards, unwrap=True, trans=trans, is_bh=True)
+            migrate_cards([ft.card], src.cards, unwrap=True, trans=trans)
             detach_cards([c], trans=trans)
             self.ft.set_card(c, self)
 
@@ -103,27 +103,26 @@ class VengeOfTsukumogamiHandler(THBEventHandler):
             return True
 
         g = self.game
-        for cards, _from, to, is_bh in trans.get_movements():
-            if _from is None or _from.type != 'equips':
+        for m in trans.movements:
+            if m.fr.type != 'equips':
                 continue
 
-            if _from.owner is p:
+            if m.fr.owner is p:
                 continue
 
-            if to.type != 'droppedcard':
+            if m.to.type != 'droppedcard':
                 continue
 
-            self.target = tgt = _from.owner
-            for c in cards:
-                self.card = c
+            self.target = tgt = m.fr.owner
+            self.card = m.card
 
-                if tgt.dead:
-                    break
+            if tgt.dead:
+                break
 
-                if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
-                    break
+            if not g.user_input([p], ChooseOptionInputlet(self, (False, True))):
+                break
 
-                self.game.process_action(VengeOfTsukumogamiAction(p, tgt, c))
+            self.game.process_action(VengeOfTsukumogamiAction(p, tgt, m.card))
 
         return True
 

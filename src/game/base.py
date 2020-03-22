@@ -478,12 +478,13 @@ class EventDispatcher(GameObject):
         data can be modified.
         '''
         random.random() < 0.01 and gevent.idle()  # prevent buggy logic code block scheduling
-        if isinstance(data, (list, tuple, str)):
-            s = data
-        else:
-            s = data.__class__.__name__
 
         if log.isEnabledFor(logging.DEBUG):
+            if isinstance(data, (list, tuple, str)) or hasattr(data, '__dataclass_fields__'):
+                s = data
+            else:
+                s = data.__class__.__name__
+
             if evt_type in ('action_before', 'action_apply', 'action_after'):
                 co_argnames = inspect.getfullargspec(data.__init__).args
                 try:

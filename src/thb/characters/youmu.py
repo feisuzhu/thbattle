@@ -151,7 +151,7 @@ class Nitoryuu(Skill):
         return not self.associated_cards
 
 
-@register_character_to('common')
+# @register_character_to('common')
 class Youmu(Character):
     skills = [Mijincihangzhan, Nitoryuu]
     eventhandlers = [YoumuHandler, NitoryuuWearEquipmentHandler]

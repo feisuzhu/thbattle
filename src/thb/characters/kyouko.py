@@ -36,7 +36,7 @@ class EchoAction(UserAction):
             elif getattr(a, 'associated_card', None) is c:
                 a.associated_card = shadow
 
-        migrate_cards([c], tgt.cards, unwrap=True, is_bh=True)
+        migrate_cards([c], tgt.cards, unwrap=True)
 
         return True
 

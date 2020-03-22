@@ -405,8 +405,7 @@ class Harvest(ForEach):
         g = self.game
         self.trans.end()
         g.emit_event('harvest_finish', self)
-        dropped = g.deck.droppedcards
-        migrate_cards([c for c in self.cards if c.detached], dropped, is_bh=True)
+        migrate_cards([c for c in self.cards if c.detached], g.deck.droppedcards)
 
 
 class DollControl(InstantSpellCardAction):

@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections import defaultdict
 from copy import copy
 from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Union, cast
+from typing_extensions import Literal
+from dataclasses import dataclass
 import logging
 
 # -- third party --
@@ -239,7 +241,22 @@ class UserAction(THBAction):  # card/character skill actions
     associated_card: Card
 
 
-CardMovement = Tuple[List[Card], Optional[CardList], Optional[CardList], bool]
+@dataclass
+class CardMigration:
+    trans: MigrateCardsTransaction
+    cards: List[Card]
+    to: CardList
+    unwrap: bool = True  # will cards be unwrapped?
+    direction: Literal['front', 'back'] = 'front'
+
+
+@dataclass
+class CardMovement:
+    trans: MigrateCardsTransaction
+    card: Card
+    fr: CardList
+    to: CardList
+    direction: Literal['front', 'back'] = 'front'
 
 
 class MigrateCardsTransaction(GameViralContext):
@@ -254,10 +271,14 @@ class MigrateCardsTransaction(GameViralContext):
             assert self.action is g.hybrid_stack[-1], (self.action, g.hybrid_stack[-1])
 
         self.cancelled = False
+        self.migrations = []
         self.movements = []
 
-    def move(self, cards: List[Card], _from: Optional[CardList], to: Optional[CardList], is_bh: bool) -> None:
-        self.movements.append((cards, _from, to, is_bh))
+    def __repr__(self):
+        return self.__class__.__name__
+
+    def add_step(self, m: CardMigration) -> None:
+        self.migrations.append(m)
 
     def __enter__(self):
         return self
@@ -270,91 +291,77 @@ class MigrateCardsTransaction(GameViralContext):
 
     def commit(self):
         g = self.game
-        DETACHED = MigrateSpecial.DETACHED
-        UNWRAPPED = MigrateSpecial.UNWRAPPED
-        act = self.action
 
-        for cards, _from, to, is_bh in self.movements:
-            if to is DETACHED:
-                for c in cards: c.detach()
+        seen = set()
 
-            elif to is UNWRAPPED:
-                for c in cards:
-                    assert c.is_card(VirtualCard) and not c.unwrapped
-                    c.detach()
-                    c.unwrapped = True
+        for m in self.migrations:
+            cards = VirtualCard.unwrap(m.cards, include_vcards=True)
+            n = 0
+            for c in cards:
+                if c in seen:
+                    continue
 
-            else:
-                for c in cards: c.move_to(to)
+                if isinstance(c, VirtualCard):
+                    if not m.unwrap:
+                        assert m.to.owner, 'Invalid move!'
+                        sp = m.to.owner.special
+                        for ac in c.associated_cards:
+                            assert ac not in seen
+                            if not isinstance(ac, VirtualCard):
+                                self.movements.append(CardMovement(
+                                    trans=self, card=ac, fr=ac.resides_in, to=sp, direction='front'
+                                ))
+                                ac.move_to(sp)
+                                seen.add(ac)
+                    else:
+                        c.detach()
+                        c.unwrapped = True
+                        continue
 
-        for cards, _from, to, is_bh in self.movements:
-            g.emit_event('card_migration', (act, cards, _from, to, is_bh))
+                self.movements.append(CardMovement(
+                    trans=self, card=c, fr=c.resides_in, to=m.to, direction=m.direction
+                ))
+                c.move_to(m.to)
+                seen.add(c)
+                n += 1
+
+            if m.direction == 'back':
+                m.to.rotate(n)
 
         g.emit_event('post_card_migration', self)
-
-    def get_movements(self, include_detach=False, only_detach=False):
-        assert not (include_detach and only_detach)
-
-        if include_detach:
-            return self.movements
-        elif only_detach:
-            return (m for m in self.movements if m[2] is MigrateSpecial.DETACHED)
-        else:
-            return (m for m in self.movements if m[2] is not MigrateSpecial.DETACHED)
 
 
 def migrate_cards(cards: Sequence[Card],
                   to: CardList,
                   unwrap: bool = False,
-                  is_bh: bool = False,
+                  direction: Literal['front', 'back'] = 'front',
                   trans: Optional[MigrateCardsTransaction] = None,
                   ):
     '''
     cards: cards to move around
     to: destination card list
-    unwrap: tear down VirtualCard wrapping, preserve PhysicalCard only, at most X layers
-    is_bh: indicates this operation is bottom half of a complete migration (pairing with detach_cards)
+    unwrap: tear down VirtualCard wrapping, preserve PhysicalCard only
     trans: associated MigrateCardsTransaction
     '''
     if not trans:
         with MigrateCardsTransaction() as t:
-            migrate_cards(cards, to, unwrap, is_bh, t)
+            migrate_cards(cards, to, unwrap, direction, t)
             return not t.cancelled
+
+    assert to is not None
 
     if to.owner and to.owner.dead:
         # do not migrate cards to dead character
         trans.cancelled = True
         return
 
-    groups = group_by(cards, lambda c: id(c) if c.is_card(VirtualCard) else id(c.resides_in))
-
-    DETACHED = MigrateSpecial.DETACHED
-    UNWRAPPED = MigrateSpecial.UNWRAPPED
-    detaching = to is DETACHED
-
-    for l in groups:
-        cl = l[0].resides_in
-
-        if l[0].is_card(VirtualCard):
-            assert len(l) == 1
-            # assert to.owner # ??????
-            trans.move(l, cl, UNWRAPPED if unwrap else to, is_bh)
-            l[0].unwrapped or migrate_cards(
-                l[0].associated_cards,
-                to if unwrap or detaching else to.owner.special,
-                unwrap if isinstance(unwrap, bool) else unwrap - 1,
-                is_bh,
-                trans
-            )
-
-        else:
-            trans.move(l, cl, to, is_bh)
-
-
-class MigrateSpecial(object):
-    DETACHED     = CardList(None, 'DETACHED')
-    UNWRAPPED    = CardList(None, 'UNWRAPPED')
-    SINGLE_LAYER = 1
+    trans.add_step(CardMigration(
+        trans=trans,
+        cards=cards,
+        to=to,
+        unwrap=unwrap,
+        direction=direction,
+    ))
 
 
 class PostCardMigrationHandler(EventArbiter):
@@ -381,7 +388,10 @@ class PostCardMigrationHandler(EventArbiter):
 
 
 def detach_cards(cards: Sequence[Card], trans=None):
-    migrate_cards(cards, MigrateSpecial.DETACHED, trans=trans)
+    g = MigrateCardsTransaction().game
+    for c in VirtualCard.unwrap(cards):
+        c.detach()
+    g.emit_event('detach_cards', cards)
 
 
 class DeadDropCards(GenericAction):
@@ -750,7 +760,7 @@ class LaunchCard(GenericAction):
                 # means no actions have done anything to the card/skill,
                 # drop it
                 if not getattr(card, 'no_drop', False) and not card.unwrapped:
-                    migrate_cards([card], g.deck.droppedcards, unwrap=True, is_bh=True)
+                    migrate_cards([card], g.deck.droppedcards, unwrap=True)
 
                 else:
                     from thb.cards.base import VirtualCard
@@ -912,7 +922,7 @@ class ActionStage(BaseActionStage):
 
 @register_eh
 class ShuffleHandler(THBEventHandler):
-    interested = ['action_after', 'action_before', 'action_stage_action', 'card_migration', 'user_input_start']
+    interested = ['action_after', 'action_before', 'action_stage_action', 'user_input_start']
 
     def handle(self, evt_type, arg):
         g = self.game
@@ -926,11 +936,6 @@ class ShuffleHandler(THBEventHandler):
             trans, ilet = arg
             if isinstance(ilet, ChoosePeerCardInputlet):
                 self.do_shuffle(g, [ilet.target])
-
-        # <!-- This causes severe problems, do not use -->
-        # elif evt_type == 'card_migration':
-        #     act, cl, _from, to, _ = arg
-        #     to.owner and to.type == 'cards' and self.do_shuffle([to.owner])
 
         return arg
 
@@ -964,6 +969,7 @@ class FatetellStage(GenericAction):
 
 class BaseFatetell(GenericAction):
     def __init__(self, target, cond):
+        self.source = None
         self.target = target
         self.cond = cond
         self.initiator = self.game.hybrid_stack[-1]
@@ -1040,7 +1046,7 @@ class FatetellAction(GenericAction):
             assert ft.card
             if ft.card.detached:
                 with MigrateCardsTransaction(ft.card_manipulator) as trans:
-                    migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, is_bh=True, trans=trans)
+                    migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, trans=trans)
 
             return rst
 
@@ -1226,7 +1232,7 @@ class Pindian(UserAction):
 
         g.players.player.reveal([pindian_card[src], pindian_card[tgt]])
         g.emit_event('pindian_card_revealed', self)  # for ui.
-        migrate_cards([pindian_card[src], pindian_card[tgt]], g.deck.droppedcards, unwrap=True, is_bh=True)
+        migrate_cards([pindian_card[src], pindian_card[tgt]], g.deck.droppedcards, unwrap=True)
 
         return pindian_card[src].number > pindian_card[tgt].number
 

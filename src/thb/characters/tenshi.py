@@ -120,7 +120,7 @@ class ScarletPerceptionAction(GenericAction):
         self.card = card
 
     def apply_action(self):
-        migrate_cards([self.card], self.source.cards, is_bh=True)
+        migrate_cards([self.card], self.source.cards)
         return True
 
 

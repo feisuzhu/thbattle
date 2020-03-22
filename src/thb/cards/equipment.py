@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from typing import List
+from typing import List, cast
 # -- third party --
 # -- own --
 from game.base import EventHandler, GameError
 from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DrawCards, DropCardStage
-from thb.actions import DropCards, FatetellAction, FatetellStage, FinalizeStage, ForEach
+from thb.actions import DropCards, FatetellAction, FatetellStage, FinalizeStage, ForEach, CardMigration
 from thb.actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction, Reforge
 from thb.actions import UserAction, VitalityLimitExceeded, detach_cards, migrate_cards
 from thb.actions import random_choose_card, register_eh, ttags, user_choose_cards
@@ -75,24 +75,23 @@ class WeaponReforgeHandler(EventHandler):
 
 @register_eh
 class EquipmentTransferHandler(EventHandler):
-    interested = ['card_migration']
+    interested = ['post_card_migration']
 
-    def handle(self, evt, args):
-        if evt == 'card_migration':
-            act, cards, _from, to, _ = args
-            if _from is not None and _from.type == 'equips':
-                for c in cards:
+    def handle(self, evt, trans):
+        if evt == 'post_card_migration':
+            assert isinstance(trans, MigrateCardsTransaction)
+            for m in trans.movements:
+                if m.fr.type == 'equips':
                     try:
-                        _from.owner.skills.remove(c.equipment_skill)
+                        m.fr.owner.skills.remove(m.card.equipment_skill)
                     except ValueError:
                         pass
 
-            if to is not None and to.type == 'equips':
-                for c in cards:
-                    if c.equipment_skill:
-                        to.owner.skills.append(c.equipment_skill)
+                if m.to.type == 'equips':
+                    if m.card.equipment_skill:
+                        m.to.owner.skills.append(m.card.equipment_skill)
 
-        return args
+        return trans
 
 
 class ShieldSkill(Skill):
@@ -340,7 +339,7 @@ class ElementalReactorSkill(WeaponSkill):
 
 @register_eh
 class ElementalReactorHandler(EventHandler):
-    interested = ['action_stage_action', 'card_migration']
+    interested = ['action_stage_action', 'post_card_migration']
     execute_after = ['EquipmentTransferHandler']
 
     def handle(self, evt_type, arg):
@@ -349,16 +348,13 @@ class ElementalReactorHandler(EventHandler):
             if not tgt.has_skill(ElementalReactorSkill): return arg
             basic.AttackCardVitalityHandler.disable(tgt)
 
-        elif evt_type == 'card_migration':
-            act, cards, _from, to, _ = arg
-
+        elif evt_type == 'post_card_migration':
+            trans = cast(MigrateCardsTransaction, arg)
             from .definition import ElementalReactorCard
 
-            if _from is not None and _from.type == 'equips':
-                src = _from.owner
-                for c in cards:
-                    if c.is_card(ElementalReactorCard):
-                        basic.AttackCardVitalityHandler.enable(src)
+            for m in trans.movements:
+                if m.fr.type == 'equips' and m.card.is_card(ElementalReactorCard):
+                    basic.AttackCardVitalityHandler.enable(m.fr.owner)
 
         return arg
 
@@ -486,7 +482,7 @@ class IbukiGourdSkill(RedUFOSkill):
 
 @register_eh
 class IbukiGourdHandler(EventHandler):
-    interested = ['action_apply', 'action_after', 'card_migration']
+    interested = ['action_apply', 'action_after', 'post_card_migration']
     execute_after = ['WineHandler']
 
     def handle(self, evt_type, act):
@@ -507,21 +503,15 @@ class IbukiGourdHandler(EventHandler):
 
             g.process_action(basic.Wine(tgt, tgt))
 
-        elif evt_type == 'card_migration':
+        elif evt_type == 'post_card_migration':
             from .definition import IbukiGourdCard
-            act, cl, _from, to, _ = arg = act
+            trans = cast(MigrateCardsTransaction, act)
 
-            if not any(c.is_card(IbukiGourdCard) for c in cl):
-                return arg
-
-            if to.type != 'equips':
-                return arg
-
-            tgt = to.owner
-            g = self.game
-            g.process_action(basic.Wine(tgt, tgt))
-
-            return arg
+            for m in trans.movements:
+                if m.card.is_card(IbukiGourdCard) and m.to.type == 'equips':
+                    tgt = m.to.owner
+                    g = self.game
+                    g.process_action(basic.Wine(tgt, tgt))
 
         return act
 
@@ -920,7 +910,7 @@ class YinYangOrb(GenericAction):
         for e in tgt.equips:
             if e.is_card(YinYangOrbCard):
                 with MigrateCardsTransaction(self) as trans:
-                    migrate_cards([ft.card], tgt.cards, unwrap=True, trans=trans, is_bh=True)
+                    migrate_cards([ft.card], tgt.cards, unwrap=True, trans=trans)
                     detach_cards([e], trans=trans)
                     self.card = e
                     ft.set_card(e, self)
@@ -991,30 +981,28 @@ class YoumuPhantomHeal(basic.Heal):
 
 @register_eh
 class YoumuPhantomHandler(EventHandler):
-    interested = ['card_migration']
+    interested = ['post_card_migration']
 
     def handle(self, evt_type, arg):
-        if not evt_type == 'card_migration': return arg
-
-        act, cards, _from, to, is_bh = arg
+        if not evt_type == 'post_card_migration': return arg
 
         from .definition import YoumuPhantomCard
-
+        trans = cast(MigrateCardsTransaction, arg)
         g = self.game
 
-        if _from is not None and _from.type == 'equips' and not is_bh:
-            for c in cards:
-                if c.is_card(YoumuPhantomCard):
-                    owner = _from.owner
+        for m in trans.movements:
+            if not m.card.is_card(YoumuPhantomCard):
+                continue
 
-                    g.process_action(MaxLifeChange(owner, owner, -1))
-                    if not owner.dead:
-                        g.process_action(YoumuPhantomHeal(owner, owner))
+            if m.fr.type == 'equips':
+                tgt = m.fr.owner
+                g.process_action(MaxLifeChange(tgt, tgt, -1))
+                if not tgt.dead:
+                    g.process_action(YoumuPhantomHeal(tgt, tgt))
 
-        if to is not None and to.type == 'equips':
-            for c in cards:
-                if c.is_card(YoumuPhantomCard):
-                    g.process_action(MaxLifeChange(to.owner, to.owner, 1))
+            if m.to.type == 'equips':
+                tgt = m.to.owner
+                g.process_action(MaxLifeChange(tgt, tgt, 1))
 
         return arg
 
