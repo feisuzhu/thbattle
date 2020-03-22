@@ -8,6 +8,7 @@ import logging
 # -- third party --
 # -- own --
 from game.base import BootstrapAction, GameEnded, Player, sync_primitive
+from thb.common import roll
 from thb.item import GameItem
 from thb.mode import THBattle
 from utils.misc import BatchList
@@ -29,6 +30,9 @@ class THBattleUTBootstrap(BootstrapAction):
 
     def apply_action(self) -> bool:
         pl = self.players
+        g = self.game
+        items = self.items
+        _ = roll(g, pl, items)
         sync_primitive(1, pl)
         sync_primitive(2, pl)
         sync_primitive(3, pl)

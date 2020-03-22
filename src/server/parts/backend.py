@@ -73,6 +73,7 @@ class MockBackend(object):
 
     def __init__(self, core: Core):
         self.core = core
+        self.items: Dict[int, Dict[str, int]] = {}
 
     def __repr__(self) -> str:
         return self.__class__.__name__
@@ -82,7 +83,7 @@ class MockBackend(object):
         if q not in self.MOCKED:
             raise Exception("Can't mock query %s" % q)
 
-        return self.MOCKED[q](vars)
+        return self.MOCKED[q](self, vars)
 
     def _strip(self, q: str) -> str:
         q = q.strip()
@@ -96,7 +97,7 @@ class MockBackend(object):
         return f
 
     @_reg
-    def gameId(v) -> Any:
+    def gameId(self, v) -> Any:
         '''
         query { gameId }
         '''
@@ -106,7 +107,7 @@ class MockBackend(object):
         return self.NAMED.get(token)
 
     @_reg
-    def login(v, NAMED=NAMED) -> Any:
+    def login(self, v, NAMED=NAMED) -> Any:
         '''
         query($token: String) {
             player(token: $token) {
@@ -142,7 +143,7 @@ class MockBackend(object):
         }
 
     @_reg
-    def add_reward(v) -> Any:
+    def add_reward(self, v) -> Any:
         '''
         mutation AddReward($gid: Int!, $rewards: [GameRewardInput!]!) {
           game {
@@ -155,7 +156,7 @@ class MockBackend(object):
         return None
 
     @_reg
-    def archive(v) -> Any:
+    def archive(self, v) -> Any:
         '''
         mutation ArchiveGame($game: GameInput!, $archive: String!) {
           game {
@@ -166,3 +167,26 @@ class MockBackend(object):
         }
         '''
         return {'game': {'archive': {'gid': 0}}}
+
+    @_reg
+    def if_have_item(self, v) -> Any:
+        '''
+        query($uid: Int!, $sku: String!) {
+            player(id: $id) {
+                haveItem(sku: $sku)
+            }
+        }
+        '''
+        return {'player': {'haveItem': self.items[v['uid']][v['sku']] > 0}}
+
+    @_reg
+    def remove_item(self, v) -> Any:
+        '''
+        mutation($id: Int!, $sku: String, $r: String) {
+            item {
+                remove(player: $id, sku: $sku, reason: $r)
+            }
+        }
+        '''
+        self.items[v['id']][v['sku']] -= 1
+        return {'item': {'remove': True}}

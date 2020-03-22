@@ -42,7 +42,7 @@ class Endpoint(object):
         sock.write      = sock.sendall
 
         self.sock       = sock
-        self.unpacker   = msgpack.Unpacker(sock, raw=False)
+        self.unpacker   = msgpack.Unpacker(sock, raw=False, strict_map_key=False)
         self.writelock  = RLock()
         self.address    = address
         self.link_state = 'connected'  # or disconnected
@@ -78,6 +78,7 @@ class Endpoint(object):
                 with self.writelock:
                     self.sock.sendall(s)
             except IOError:
+                log.exception('Error raw_write, closing Endpoint')
                 self.close()
 
     def close(self):
@@ -136,25 +137,29 @@ class Endpoint(object):
                     except StopIteration:
                         pass
 
-                if v is not _NONE:
-                    fmt, data = self._decode_packet(v)
-                    if fmt == Format.Packed:
-                        msg = wire.Message.decode(data)
+                if v is _NONE:
+                    break
+
+                fmt, data = self._decode_packet(v)
+                if fmt == Format.Packed:
+                    msg = wire.Message.decode(data)
+                    if msg:
+                        log.debug("%s <<RECV %r", repr(self), msg)
+                        yield msg
+                elif fmt == Format.BulkCompressed:
+                    for d in data:
+                        msg = wire.Message.decode(d)
                         if msg:
                             log.debug("%s <<RECV %r", repr(self), msg)
                             yield msg
-                    elif fmt == Format.BulkCompressed:
-                        for d in data:
-                            msg = wire.Message.decode(d)
-                            if msg:
-                                log.debug("%s <<RECV %r", repr(self), msg)
-                                yield msg
-                else:
-                    self.close()
-                    raise EndpointDied
 
             except DecodeError:
-                continue
+                log.info('DecodeError')
+                break
 
             except msgpack.UnpackValueError:
-                continue
+                log.exception('UnpackValueError')
+                break
+
+        self.close()
+        raise EndpointDied

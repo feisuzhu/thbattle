@@ -10,8 +10,8 @@ import random
 
 # -- third party --
 # -- own --
-from game.base import BootstrapAction, Game, GameEnded, GameItem, InputTransaction
-from game.base import InterruptActionFlow, Player, get_seed_for
+from game.base import BootstrapAction, GameEnded, GameItem, InputTransaction, InterruptActionFlow
+from game.base import Player, get_seed_for
 from thb.actions import DeadDropCards, DistributeCards, DrawCardStage, DrawCards
 from thb.actions import MigrateCardsTransaction, PlayerDeath, PlayerTurn, RevealRole, UserAction
 from thb.actions import migrate_cards

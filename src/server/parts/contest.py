@@ -191,7 +191,7 @@ class Contest(object):
                         core.runner.spawn(u.write, wire.SystemMsg('你有比赛房间，请尽快结束游戏参与比赛'))
 
                 if core.options.testing:
-                    core.runner.sleep(0.1)
+                    core.runner.sleep(0.01)
                 else:
                     core.runner.sleep(30)
 

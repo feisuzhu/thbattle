@@ -59,6 +59,10 @@ class Room(object):
         core = self.core
         core.server.write(wire.SetGameParam(gid=gid, key=key, value=value))
 
+    def use_item(self, sku: str):
+        core = self.core
+        core.server.write(wire.UseItem(sku=sku))
+
     def invite(self, uid: int):
         core = self.core
         core.server.write(wire.Invite(uid=uid))

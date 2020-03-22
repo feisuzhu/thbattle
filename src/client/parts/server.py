@@ -40,6 +40,7 @@ class Server(object):
         D = core.events.server_command
         D[wire.Greeting] += self._greeting
         D[wire.Ping] += self._ping
+        D[wire.Info] += self._info
         D[wire.Error] += self._error
 
     def _greeting(self, ev: wire.Greeting) -> wire.Greeting:
@@ -58,6 +59,11 @@ class Server(object):
 
     def _ping(self, ev: wire.Ping) -> wire.Ping:
         self.write(wire.Pong())
+        return ev
+
+    def _info(self, ev: wire.Info) -> wire.Info:
+        core = self.core
+        core.events.server_info.emit(ev.msg)
         return ev
 
     def _error(self, ev: wire.Error) -> wire.Error:
@@ -124,6 +130,7 @@ class Server(object):
         me.link_exception(self._dropped)
         me.gr_name = f'{core}::RECV'
         D = core.events.server_command
+
         assert self._ep
         try:
             for v in self._ep.messages(timeout=None):

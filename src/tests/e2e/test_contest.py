@@ -75,12 +75,12 @@ class TestContest(object):
 
         # Daiyousei poped up, should be pulled into contest
         d.auth.login('Daiyousei'); wait()
-        gevent.sleep(0.2)
+        gevent.sleep(0.02)
         assert d.events.game_joined in t
 
         # Bob exits, should be pulled into contest too
         b.room.leave(); wait()
-        gevent.sleep(0.2)
+        gevent.sleep(0.02)
         assert b.events.game_joined in t
 
         # Onlookers should not be able to interfere
@@ -95,4 +95,3 @@ class TestContest(object):
         c.room.get_ready()
         d.room.get_ready()
         wait()
-        gevent.sleep(0.2)

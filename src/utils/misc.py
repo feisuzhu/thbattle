@@ -476,7 +476,7 @@ class BusinessExceptionGenerator(object):
             i.lower() for i in re.findall(r'[A-Z][a-z]+|[A-Z]+(?![a-z])', k)
         ])
 
-        cls = type(k, (BusinessException,), {'snake_case': snake_case})
+        cls = type(k, (BusinessException,), {'name': k, 'snake_case': snake_case})
         setattr(self, k, cls)
         return cls
 

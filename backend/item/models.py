@@ -23,11 +23,12 @@ class Item(models.Model):
         verbose_name='所有者',
         help_text='所有者',
     )
-    type = models.SlugField('类型', max_length=20, help_text='类型')  # some-item:arg
+    sku = models.SlugField('类型', max_length=20, help_text='类型')  # some-item:arg
     count = models.PositiveIntegerField('数量', help_text='数量')
 
     def __str__(self):
-        return f'[{self.id}] {self.type}:{self.arg}'
+        return f'[{self.id}] {self.sku}'
+
 
 '''
 class ItemActivity(models.Model):
@@ -65,8 +66,8 @@ class Exchange(models.Model):
         Player, models.CASCADE, related_name='exchanges',
         verbose_name='卖家', help_text='卖家',
     )
-    type = models.SlugField('类型', max_length=20, help_text='类型')  # some-item:arg
+    sku = models.SlugField('类型', max_length=20, help_text='SKU')  # some-item:arg
     price = models.PositiveIntegerField('价格', help_text='价格')
 
     def __str__(self):
-        return f'[{self.id}] {self.item.type}'
+        return f'[{self.id}] {self.sku}'

@@ -902,7 +902,7 @@ class GameItem(object):
     init: None
 
     def __init__(self, *args):
-        raise Exception('Should not instantiate plain GameItem!')
+        raise Exception('Abstract')
 
     def should_usable(self, g: ServerGame, u: Client) -> None:
         ...
@@ -914,7 +914,7 @@ class GameItem(object):
         return item_cls
 
     @classmethod
-    def from_sku(cls, sku) -> 'GameItem':
+    def from_sku(cls, sku) -> GameItem:
         if ':' in sku:
             key, args = sku.split(':')
             args = args.split(',')

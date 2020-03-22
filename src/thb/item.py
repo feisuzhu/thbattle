@@ -3,11 +3,13 @@ from __future__ import annotations
 
 # -- stdlib --
 from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Tuple, Type
+import logging
 
 # -- third party --
 # -- own --
 from game.base import Game, GameItem, Player
 from server.base import Client, Game as ServerGame
+from server.core import Core as ServerCore
 from utils.misc import BatchList, exceptions
 
 
@@ -16,7 +18,11 @@ if TYPE_CHECKING:
     from thb.characters.base import Character  # noqa: F401
     from thb.thbrole import THBRoleRole  # noqa: F401
 
+
 # -- code --
+log = logging.getLogger('thb.item')
+
+
 @GameItem.register
 class ImperialChoice(GameItem):
     key = 'imperial-choice'
@@ -36,7 +42,7 @@ class ImperialChoice(GameItem):
     def description(self):
         return '你可以选择%s出场。2v2模式不可用。' % self.char_cls.ui_meta.name
 
-    def should_usable(self, g: ServerGame, u: Client):
+    def should_usable(self, core: ServerCore, g: ServerGame, u: Client):
         from thb.thb2v2 import THBattle2v2
         if isinstance(g, THBattle2v2):
             raise exceptions.IncorrectGameMode
@@ -73,7 +79,7 @@ class ImperialRole(GameItem):
 
     def __init__(self, role: str):
         if role not in ('attacker', 'accomplice', 'curtain', 'boss'):
-            raise exceptions.InvalidIdentity
+            raise exceptions.InvalidItemSKU
 
         self.role = role
         mapping = {
@@ -92,7 +98,7 @@ class ImperialRole(GameItem):
     def description(self):
         return '你可以选择%s身份。身份场可用。' % self.disp_name
 
-    def should_usable(self, g: ServerGame, u: Client):
+    def should_usable(self, core: ServerCore, g: ServerGame, u: Client):
         from thb.thbrole import THBattleRole
         if not isinstance(g, THBattleRole):
             raise exceptions.IncorrectGameMode
@@ -161,17 +167,20 @@ class European(GameItem):
     title = '欧洲卡'
     description = 'Roll点保证第一。身份场不可用。'
 
-    @classmethod
-    def should_usable(cls, g: ServerGame, u: Client):
+    def __init__(self):
+        pass
+
+    def should_usable(self, core: ServerCore, g: ServerGame, u: Client):
+        cls = self.__class__
+
         from thb.thbrole import THBattleRole
         if isinstance(g, THBattleRole):
             raise exceptions.IncorrectGameMode
 
-        core = g.core
         items = core.item.items_of(g)
 
-        for l in items:
-            if isinstance(l, cls):
+        for uid, l in items.items():
+            if any(isinstance(i, cls) for i in l):
                 raise exceptions.EuropeanConflict
 
     @classmethod

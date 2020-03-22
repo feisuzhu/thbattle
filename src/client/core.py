@@ -66,6 +66,9 @@ class Events(object):
         # Server error
         self.server_error = EventHub[str]()
 
+        # Server info
+        self.server_info = EventHub[str]()
+
         # Lobby status
         self.lobby_updated = EventHub[Tuple[Sequence[wire.model.User], Sequence[wire.model.Game]]]()
 

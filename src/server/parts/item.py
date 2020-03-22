@@ -40,7 +40,7 @@ class Item(object):
         core.events.game_created += self.handle_game_created
         core.events.game_started += self.handle_game_started
         _ = core.events.client_command
-        _['item:use'] += self._use_item
+        _[wire.UseItem] += self._use_item
 
     def __repr__(self) -> str:
         return self.__class__.__name__
@@ -54,12 +54,12 @@ class Item(object):
             for i in l:
                 try:
                     rst = core.backend.query('''
-                        mutation($id: Int!, $typ: String, $r: String) {
+                        mutation($id: Int!, $sku: String, $r: String) {
                             item {
-                                remove(player: $id, typ: $typ, reason: $r)
+                                remove(player: $id, sku: $sku, reason: $r)
                             }
                         }
-                    ''', id=uid, typ=i, reason="Use in game %s" % core.room.gid_of(g))
+                    ''', id=uid, sku=i.sku, reason="Use in game %s" % core.room.gid_of(g))
 
                     if rst['item']['remove']:
                         consumed.append(i)
@@ -95,14 +95,27 @@ class Item(object):
         assert g
 
         try:
-            i = GameItem.from_sku(ev.sku)
-            i.should_usable(g, u)
             uid = core.auth.uid_of(u)
+            i = GameItem.from_sku(ev.sku)
+            i.should_usable(core, g, u)
+
+            have_item = core.backend.query('''
+                query($uid: Int!, $sku: String!) {
+                    player(id: $id) {
+                        haveItem(sku: $sku)
+                    }
+                }
+            ''', uid=uid, sku=ev.sku)['player']['haveItem']
+
+            if not have_item:
+                from utils.misc import exceptions
+                raise exceptions.ItemNotFound
+
             A(self, g)['items'][uid].append(i)
             u.write(wire.Info('use_item_success'))
         except BusinessException as e:
             uid = core.auth.uid_of(u)
-            log.exception('User %s failed to use item %s', uid, ev.sku)
+            log.error('User %s failed to use item %s: %s', uid, ev.sku, e.name)
             u.write(wire.Error(e.snake_case))
 
     # ----- Methods ------
