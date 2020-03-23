@@ -8,7 +8,7 @@ from game.autoenv import EventHandler, Game, InputTransaction, user_input
 from thb.actions import Damage, Reforge, RevealIdentity, UserAction, migrate_cards, random_choose_card
 from thb.cards import Skill, t_None, t_One, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
-from thb.common import build_choices
+from thb.common import CharChoice
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -26,7 +26,7 @@ class ThirdEyeAction(UserAction):
         src = self.source
 
         if g.process_action(ThirdEyeChooseGirl(self.source, self.target)):
-            tgt = src.tags['recollected_char']
+            tgt = src.tags['_recollected_char']
         else:
             return False
 
@@ -66,7 +66,6 @@ class ThirdEyeAction(UserAction):
         p = self.target
         ehs = g.ehclasses
         ehs.extend(p.eventhandlers_required)
-
         g.update_event_handlers()
 
         return True
@@ -80,14 +79,7 @@ class ThirdEyeChooseGirl(UserAction):
         src = self.source
         if not src.has_skill(ThirdEye): return False
 
-        # if nec., for different modes:
-        # mode_name = g.__class__.__name__
-        # assert mode_name
-        # if mode_name == 'THBattleKOF':
-        #     chars = get_characters('common')
-        # if mode_name == '...':
-        #     chars = get_characters('common', 'kof')
-
+        # different modes (KOF or not):
         mode_name = g.__class__.__name__
         from thb.characters import get_characters
         if mode_name == 'THBattleKOF':
@@ -95,31 +87,42 @@ class ThirdEyeChooseGirl(UserAction):
         else:
             chars = get_characters('common')
 
-        chars = list(set(chars) - set(p.__class__ for p in g.players))
+        # following approach produces no problem when excluding chars:
+        if g.SERVER_SIDE:
 
-        if getattr(self, 'char_choice', None):
-            try:
-                chars.remove(self.char_choice.__class__)
-            except Exception:
-                pass
+            # excluding onplaying charset for mutually exclusive:
+            chars = set(chars) - set(p.__class__ for p in g.players)
 
-        choices, _ = build_choices(
-            g, {},
-            candidates=chars, players=[src],
-            num=[3] * 1,
-            akaris=[0] * 1,
-            shared=False,
-        )
+            # excluding unswitched members in pool (KOF and Faith):
+            if mode_name in ('THBattleKOF', 'THBattleFaith'):
+                chars = chars - set(m.char_cls for m in g.pool)
+
+            # excluding previous recollection:
+            chars = list(chars)
+            previous_char = src.tags['_recollected_char']
+            if previous_char:
+                chars.remove(previous_char) # shall not fail
+
+            # only server build choices:
+            chars = g.random.sample(chars, 3)
+            l = [CharChoice(c) for c in chars]
+
+        else:
+            l = [CharChoice() for _ in range(3)]
+
+        g.players.reveal(l)
+
+        choices = {src: l}
 
         with InputTransaction('ChooseGirl', [src], mapping=choices) as trans:
             c = user_input([src], ChooseGirlInputlet(g, choices), timeout=30, trans=trans)
             c = c or choices[src][0]
 
-        g.players.reveal(c)  # nec., for sync, no showing image
+        g.players.reveal(c)
 
         # for ui display:
         self.char_choice = c.char_cls
-        src.tags['recollected_char'] = c.char_cls
+        src.tags['_recollected_char'] = c.char_cls
 
         if self.char_choice in set(p.__class__ for p in g.players):
             return False

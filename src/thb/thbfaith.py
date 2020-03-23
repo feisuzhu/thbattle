@@ -182,6 +182,9 @@ class THBattleFaithBootstrap(GenericAction):
         first_index = pl.index(first)
         order = BatchList(range(len(pl))).rotate_to(first_index)
 
+        # Inaccessible Bottom Pocket:
+        g.pool = force_hakurei.pool + force_moriya.pool
+
         for p in pl:
             g.process_action(RevealIdentity(p, pl))
 
