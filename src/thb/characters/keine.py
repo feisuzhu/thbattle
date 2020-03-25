@@ -99,7 +99,8 @@ class Teach(Skill):
     usage = 'reforge'
 
     def check(self):
-        if not self.associated_cards:
+        acards = self.associated_cards
+        if not acards or len(acards) != 1:
             return False
 
         c = self.associated_cards[0]
