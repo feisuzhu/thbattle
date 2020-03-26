@@ -24,10 +24,13 @@ C = combinations
 def let_it_go(*cores):
     while True:
         gevent.idle(-100)
-        gevent.sleep(0.001)
-        gevent.idle(-100)
 
-        if all(not c.server._ep.active for c in cores):
+        for i in range(10):
+            if any(c.server._ep.active for c in cores):
+                break
+
+            gevent.sleep(0.05)
+        else:
             raise Exception('STUCK!')
 
         for c in cores:
