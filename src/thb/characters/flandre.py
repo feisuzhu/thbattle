@@ -4,125 +4,71 @@ from __future__ import absolute_import
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.autoenv import EventHandler, Game, user_input
-from thb.actions import ActionStageLaunchCard, Damage, DrawCardStage, GenericAction, PlayerDeath
-from thb.actions import PlayerTurn, register_eh, ttags
-from thb.cards import ActionLimitExceeded, AttackCard, AttackCardVitalityHandler, BaseAttack
-from thb.cards import BaseDuel, DuelCard, ElementalReactorSkill, Skill, UserAction, t_None
+from game.autoenv import EventHandler, Game
+from thb.actions import Damage, DrawCards, LaunchCard, PlayerDeath, PlayerTurn
+from thb.cards import AttackCard, DuelCard, Heal, Skill, UserAction, t_None
 from thb.characters.baseclasses import Character, register_character_to
-from thb.inputlets import ChooseOptionInputlet
 
 
 # -- code --
-class CriticalStrike(Skill):
+class ForbiddenFruits(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
-class CriticalStrikeAction(GenericAction):
-    def apply_action(self):
-        tgt = self.target
-        ttags(tgt)['flan_cs'] = True
-        tgt.tags['flan_targets'] = []
-        return True
-
-
-class CriticalStrikeLimit(ActionLimitExceeded):
+class ForbiddenFruitsHeal(Heal):
     pass
 
 
-class CriticalStrikeHandler(EventHandler):
-    interested = ('action_apply', 'action_before', 'action_shootdown', 'action_stage_action')
-    execute_after = (
-        'AttackCardHandler',
-        'FrozenFrogHandler',
-        'ElementalReactorHandler',
-        'ReversedScalesHandler',
-    )
+class ForbiddenFruitsHandler(EventHandler):
+    interested = ('action_after',)
+    execute_after = ('DyingHandler',)
     execute_before = (
-        'MomijiShieldHandler',
-        'WineHandler',
+        'AyaRoundfanHandler',
+        'NenshaPhoneHandler',
+        'DilemmaHandler',
+        'DecayDamageHandler',
+        'EchoHandler',
+        'MelancholyHandler',
+        'MajestyHandler',
+        'MasochistHandler',
+        'ThirdEyeHandler',
     )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, DrawCardStage):
-            if act.cancelled: return act
-            tgt = act.target
-            if not tgt.has_skill(CriticalStrike): return act
-            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                return act
-
-            Game.getgame().process_action(CriticalStrikeAction(tgt, tgt))
-
-            act.amount = max(0, act.amount - 1)
-
-        elif evt_type == 'action_apply' and isinstance(act, BaseAttack):
-            src = act.source
-            tags = src.tags
-            if not self.in_critical_strike(src):
-                return act
-
-            tgt = act.target
-            if isinstance(act, BaseAttack):
-                tags['flan_targets'].append(tgt)
-                act.damage += 1
-
-        elif evt_type == 'action_before' and isinstance(act, Damage):
-            g = Game.getgame()
-            pact = g.action_stack[-1]
-            if not isinstance(pact, BaseDuel):
-                return act
-
+        if evt_type == 'action_after' and isinstance(act, Damage):
             src, tgt = act.source, act.target
+            if act.cancelled or tgt.dead: return act
 
-            if not self.in_critical_strike(src):
+            if not src: return act
+            if not src.has_skill(ForbiddenFruits): return act
+
+            g = Game.getgame()
+            for lc in reversed(g.action_stack):
+                if isinstance(lc, LaunchCard):
+                    break
+            else:
                 return act
 
-            act.amount += 1
-
-        elif evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
-            src = act.source
-            if not self.in_critical_strike(src):
+            c = lc.card
+            if not (c.is_card(AttackCard) or c.is_card(DuelCard)):
                 return act
 
-            if act.card.is_card(AttackCard):
-                act.vitality_consumed = True
-                src.tags['vitality'] -= 1
-
-        elif evt_type == 'action_shootdown':
-            if not isinstance(act, ActionStageLaunchCard): return act
-            c = act.card
-            src = act.source
-            tags = src.tags
-            if not self.in_critical_strike(src): return act
-            if not c.is_card(AttackCard): return act
-            if src.has_skill(ElementalReactorSkill): return act
-            if src.tags['vitality'] > 0: return act
-            if getattr(act, 'vitality_consumed', False): return act
-            if set(act.target_list) & set(tags['flan_targets']):
-                raise CriticalStrikeLimit
-
-            return act
-
-        elif evt_type == 'action_stage_action':
-            tgt = act
-            if not self.in_critical_strike(tgt): return act
-            AttackCardVitalityHandler.disable(tgt)
+            if lc.source is src:
+                n = act.amount * 2 - (src.maxlife - src.life)
+                if n > 0:
+                    g.process_action(DrawCards(src, n))
+                    src.maxlife - src.life and g.process_action(ForbiddenFruitsHeal(src, src, src.maxlife - src.life))
+                else:
+                    g.process_action(ForbiddenFruitsHeal(src, src, act.amount * 2))
 
         return act
-
-    def in_critical_strike(self, p):
-        return (
-            ttags(p)['flan_cs'] and
-            Game.getgame().current_player is p and
-            p.has_skill(CriticalStrike)
-        )
 
 
 class Exterminate(Skill):
     associated_action = None
-    skill_category = ('character', 'passive')
+    skill_category = ('character', 'passive', 'compulsory')
     target = t_None
 
 
@@ -160,7 +106,6 @@ class ExterminateHandler(EventHandler):
         return arg
 
 
-@register_eh
 class ExterminateFadeHandler(EventHandler):
     interested = ('action_after', 'action_apply')
 
@@ -178,6 +123,6 @@ class ExterminateFadeHandler(EventHandler):
 
 @register_character_to('common')
 class Flandre(Character):
-    skills = [CriticalStrike, Exterminate]
-    eventhandlers_required = [CriticalStrikeHandler, ExterminateHandler]
-    maxlife = 4
+    skills = [Exterminate, ForbiddenFruits]
+    eventhandlers_required = [ExterminateHandler, ExterminateFadeHandler, ForbiddenFruitsHandler]
+    maxlife = 3

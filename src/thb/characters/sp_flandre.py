@@ -107,7 +107,6 @@ class FourOfAKindHandler(EventHandler):
     execute_after = (
         'RepentanceStickHandler',
         'DeathSickleHandler',
-        'CriticalStrikeHandler',
         'SadistHandler',
         'PerfectFreezeHandler',
     )
