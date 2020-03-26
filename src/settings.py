@@ -49,6 +49,7 @@ else:
 TESTING_CHARACTERS = (
     'Koishi',
     'SpSatori',
+    'Flandre',
 )
 
 

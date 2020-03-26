@@ -133,7 +133,7 @@ class ThirdEyeChooseGirl(UserAction):
 class ThirdEyeHandler(EventHandler):
     interested = ('action_after',)
     execute_after = (
-        'DyingHandler', # 1 system 4 active "after doing damage" 2 weapon "after doing damage" 7 passive "after enduring damage"
+        'DyingHandler',
         'DisarmHandler',
         'FreakingPowerHandler',
         'LunaticHandler',
