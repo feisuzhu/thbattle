@@ -146,6 +146,7 @@ class SoulDrainHandler(THBEventHandler):
 
 class PerfectCherryBlossomHandler(THBEventHandler):
     interested = ['action_apply', 'action_before']
+    execute_after = ('DeathHandler', )
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
