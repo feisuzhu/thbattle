@@ -19,7 +19,7 @@ class FlyingSkanda:
     name = '飞翔韦驮天'
     description = (
         '出牌阶段限一次，你使用|G弹幕|r或单体符卡时，可以额外指定一个目标。\n'
-        '|B|R>> |r在线版本中，不能以此法使用|G人形操控|r'
+        '|B|R>> |r此处不能使用|G人形操控|r'
     )
 
     def clickable(self):
