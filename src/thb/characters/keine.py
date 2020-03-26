@@ -84,6 +84,8 @@ class TeachAction(UserAction):
         g.process_action(Reforge(src, src, cl[0]))
         cl = user_choose_cards(self, src, ('cards', 'showncards', 'equips'))
         c = cl[0] if cl else random_choose_card(g, [src.cards, src.showncards, src.equips])
+        if not c:
+            return False
         g.process_action(TeachTargetEffect(src, tgt, c))
         return True
 
