@@ -148,10 +148,11 @@ class SummonAction(UserAction):
 
 
 class SummonHandler(EventHandler):
-    interested = ('action_before', )
+    interested = ('action_apply', )
+    execute_after = ('DeathHandler', )
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, PlayerDeath):
+        if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
             g = Game.getgame()
             p = getattr(g, 'current_player', None)
 
