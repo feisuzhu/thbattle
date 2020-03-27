@@ -14,7 +14,7 @@ __metaclass__ = gen_metafunc(characters.koishi)
 
 class Unconsciousness:
     name = u'无我'
-    description = u'|B锁定技|r，你对有手牌的角色造成的伤害-1，对没有手牌的角色造成的伤害+1。'
+    description = u'|B锁定技|r，你的回合内手牌数不小于体力的其他角色不能使用或打出牌，且你对其造成的伤害-1。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -30,9 +30,14 @@ class UnconsciousnessAction:
         return ''
 
 
+class UnconsciousnessLimit:
+    target_independent = True
+    shootdown_message = u'【无意识】你的手牌数不小于体力值，不能使用或打出任一张牌'
+
+
 class Paranoia:
     name = u'偏执'
-    description = u'每当你对一名角色造成伤害后，若该伤害恰为0点，你可以获得其一张手牌，该伤害若是|G弹幕|r效果造成的，且当前是你的回合，你额外+1干劲。'
+    description = u'每当你对一名角色造成伤害后，该伤害若是|G弹幕|r效果造成的，直到回合结束时其所有技能失效且你的干劲置为一；若该伤害恰为0点，你可以获得其一张手牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -68,7 +73,3 @@ class Koishi:
     port_image        = u'thb-portrait-koishi'
     figure_image      = u'thb-figure-koishi'
     miss_sound_effect = u''
-
-
-# As for names for skills, reference:
-# https://en.touhouwiki.net/wiki/Koishi_Komeiji#Spell_Cards

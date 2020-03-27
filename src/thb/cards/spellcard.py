@@ -293,8 +293,8 @@ class MapCannonEffect(InstantSpellCardAction):
     def apply_action(self):
         g = Game.getgame()
         source, target = self.source, self.target
-        graze_action = basic.UseGraze(target)
-        if not g.process_action(graze_action):
+        use_action = basic.UseGraze(target)
+        if not g.process_action(use_action):
             g.process_action(Damage(source, target, amount=1))
             return True
         else:
