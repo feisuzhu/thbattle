@@ -38,9 +38,8 @@ class ForbiddenFruitsHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
-            src, tgt = act.source, act.target
-            if act.cancelled or tgt.dead: return act
-
+            src = act.source
+            if act.cancelled: return act
             if not src: return act
             if not src.has_skill(ForbiddenFruits): return act
 
