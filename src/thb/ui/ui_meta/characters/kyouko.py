@@ -81,7 +81,7 @@ class ResonanceAction:
 class EchoAction:
 
     def effect_string_before(act):
-        return u'|G【%s】|r发动了|G回响|r，|G【%s】|r获得了%s' % (
+        return u'|G【%s】|r发动了|G回响|r，|G【%s】|r获得了%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
             card_desc(thbcards.VirtualCard.unwrap([act.card])),

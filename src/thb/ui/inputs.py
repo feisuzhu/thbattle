@@ -461,7 +461,7 @@ class UIChooseGirl(UIBaseChooseGirl):
     def on_girl_chosen(self, arg):
         UIBaseChooseGirl.on_girl_chosen(self, arg)
         actor, choice = arg
-        choice and choice.char_cls and self.parent.prompt(u'|R%s|r选择了|G【%s】|r' % (
+        choice and choice.char_cls and self.parent.prompt(u'|R%s|r选择了|G【%s】|r。' % (
             actor.account.username,
             choice.char_cls.ui_meta.name,
         ))
@@ -490,7 +490,7 @@ class UIBanGirl(UIBaseChooseGirl):
     def on_girl_chosen(self, arg):
         UIBaseChooseGirl.on_girl_chosen(self, arg)
         actor, choice = arg
-        choice and choice.char_cls and self.parent.prompt(u'|R%s|rBAN掉了|G【%s】|r' % (
+        choice and choice.char_cls and self.parent.prompt(u'|R%s|rBAN掉了|G【%s】|r。' % (
             actor.account.username,
             choice.char_cls.ui_meta.name,
         ))

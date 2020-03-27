@@ -132,9 +132,9 @@ class SealingArray:
     def effect_string(act):
         tgt = act.target
         if act.succeeded:
-            return u'|G【%s】|r被困在了封魔阵中' % tgt.ui_meta.name
+            return u'|G【%s】|r被困在了封魔阵中。' % tgt.ui_meta.name
         else:
-            return u'封魔阵没有布置完善，|G【%s】|r侥幸逃了出来' % tgt.ui_meta.name
+            return u'封魔阵没有布置完善，|G【%s】|r侥幸逃了出来！' % tgt.ui_meta.name
 
 
 class FrozenFrogCard:
@@ -254,7 +254,7 @@ class YukariDimension:
     def effect_string(act):
         src, tgt = act.source, act.target
         if act.succeeded:
-            return u'|G【%s】|r透过隙间拿走了|G【%s】|r的1张牌' % (
+            return u'|G【%s】|r透过隙间拿走了|G【%s】|r的1张牌。' % (
                 src.ui_meta.name,
                 tgt.ui_meta.name
             )
@@ -360,7 +360,7 @@ class HarvestEffect:
         if not act.succeeded: return None
         tgt = act.target
         c = act.card
-        return u'|G【%s】|r获得了|G%s|r' % (
+        return u'|G【%s】|r获得了|G%s|r。' % (
             tgt.ui_meta.name,
             card_desc(c),
         )
