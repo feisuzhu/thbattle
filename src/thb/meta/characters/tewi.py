@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
 
 # -- code --
 
@@ -14,9 +14,6 @@ class Luck:
     # Skill
     name = '幸运'
     description = '|B锁定技|r，每当你失去最后的手牌时，你摸两张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.tewi.LuckDrawCards)

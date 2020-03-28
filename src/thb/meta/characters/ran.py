@@ -1,25 +1,20 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta, my_turn, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.ran.Prophet)
 class Prophet:
     # Skill
     name = '神算'
     description = '准备阶段开始时，你可以观看牌堆顶的X张牌，将其中任意数量的牌以任意顺序置于牌堆顶，其余以任意顺序置于牌堆底。（X为存活角色数且至多为5）'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.ran.ExtremeIntelligence)
@@ -28,9 +23,6 @@ class ExtremeIntelligence:
     name = u'极智'
     description = '每轮限一次，你的回合外，当非延时符卡效果对一名角色生效后，你可以弃置一张牌，令该符卡效果对那名角色重新进行一次结算，此时使用者视为你。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.ran.ExtremeIntelligenceKOF)
 class ExtremeIntelligenceKOF:
@@ -38,10 +30,10 @@ class ExtremeIntelligenceKOF:
     name = '极智'
     description = '出牌阶段限一次，你可以将一张手牌当你本回合上一张使用过的非延时符卡使用。'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        me = self.me
 
-        if not (my_turn() and (me.cards or me.showncards)):
+        if not (self.my_turn() and (me.cards or me.showncards)):
             return False
 
         if ttags(me)['ran_eikof_tag']:
@@ -121,9 +113,6 @@ class NakedFox:
     # Skill
     name = '素裸'
     description = '|B锁定技|r，若你没有手牌，符卡对你造成的伤害-1。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.ran.NakedFoxAction)

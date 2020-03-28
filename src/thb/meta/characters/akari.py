@@ -5,7 +5,7 @@
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import passive_clickable, passive_is_action_valid, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -16,9 +16,6 @@ class AkariSkill:
     # Skill
     name = '阿卡林'
     description = '消失在画面里的能力。在开局之前没有人知道这是谁。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.akari.Akari)

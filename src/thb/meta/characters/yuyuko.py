@@ -8,7 +8,7 @@ import random
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta, my_turn, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -35,12 +35,12 @@ class GuidedDeath:
     name = '诱死'
     description = '出牌阶段限一次，你可以令一名其它角色失去一点体力，然后其于回合结束阶段回复一点体力。回合结束阶段，若你于出牌阶段没有发动过该技能，则所有体力值为1的其它角色失去一点体力。'
 
-    def clickable(g):
-        me = g.me
+    def clickable(self):
+        me = self.game.me
         if ttags(me)['guided_death_active_use']:
             return False
 
-        if not my_turn():
+        if not self.my_turn():
             return False
 
         return True
@@ -78,9 +78,6 @@ class SoulDrain:
         '|B|R>> |r若你没赢，则将其体力值改为1。'
     )
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 class PerfectCherryBlossom:
     # Skill
@@ -88,9 +85,6 @@ class PerfectCherryBlossom:
     description = (
         '|B锁定技|r，一名角色被击坠后，你可以增加一点体力上限或回复一点体力。你的手牌上限是你的体力上限。'
     )
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 class PerfectCherryBlossomExtractAction:

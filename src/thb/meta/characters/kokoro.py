@@ -5,8 +5,7 @@
 # -- own --
 from thb import characters
 from thb.cards.base import Card, Skill
-from thb.meta.common import card_desc, limit1_skill_used, my_turn, passive_clickable
-from thb.meta.common import passive_is_action_valid, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -46,18 +45,12 @@ class HopeMask:
     name = '希望之面'
     description = '出牌阶段开始时，你可以观看牌堆顶的1+X张牌，然后展示并获得其中任意数量的同花色牌，其余的牌以任意顺序置于牌堆顶。（X为你已损失的体力值）'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.kokoro.HopeMaskKOF)
 class HopeMaskKOF:
     # Skill
     name = '希望之面'
     description = '出牌阶段开始时，你可以观看牌堆顶的X+1张牌，然后展示并获得其中一张牌，其余的牌以任意顺序置于牌堆顶。（X为你已损失的体力值）'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.kokoro.BaseHopeMaskHandler)
@@ -77,7 +70,7 @@ class BaseHopeMaskAction:
             return None
 
         return '|G【%s】|r拿起了%s，贴在了自己的脸上。' % (
-            act.source.ui_meta.name, card_desc(act.acquire),
+            act.source.ui_meta.name, self.card_desc(act.acquire),
         )
 
     def sound_effect(self, act):
@@ -133,12 +126,12 @@ class BaseDarkNoh:
 class DarkNoh:
     description = '出牌阶段限一次，你可以将一张黑色牌置于体力值不小于你的其他角色的明牌区，然后其须弃置除获得的牌以外的手牌，直到手牌数与体力值相等。'
 
-    def clickable(self, g):
-        me = g.me
-        if limit1_skill_used('darknoh_tag'):
+    def clickable(self):
+        me = self.me
+        if self.limit1_skill_used('darknoh_tag'):
             return False
 
-        if not my_turn():
+        if not self.my_turn():
             return False
 
         if me.cards or me.showncards or me.equips:
@@ -151,12 +144,12 @@ class DarkNoh:
 class DarkNohKOF:
     description = '|B限定技|r，出牌阶段，你可以将一张黑色牌置于体力值不小于你的其他角色的明牌区，然后其须弃置除获得的牌以外的手牌，直到手牌数与体力值相等。'
 
-    def clickable(self, g):
-        me = g.me
+    def clickable(self):
+        me = self.me
         if me.tags['darknoh_tag'] > 0:
             return False
 
-        if not my_turn():
+        if not self.my_turn():
             return False
 
         if me.cards or me.showncards or me.equips:

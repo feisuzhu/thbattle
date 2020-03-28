@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.aya.UltimateSpeed)
 class UltimateSpeed:
     # Skill
     name = '最速'
     description = '|B锁定技|r，你的回合内，当你使用本回合的第二张牌时，你摸一张牌，然后你使用卡牌时无距离限制，直到回合结束。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.aya.UltimateSpeedAction)

@@ -37,7 +37,7 @@ def ui_meta(for_cls: type):
             raise Exception(f'{name} ui_meta redefinition!')
 
         assert cls.__bases__ == (object,)
-        cls.__bases__ = (GameViralContext,)
+        cls.__bases__ = (UIMetaBase,)
 
         # Type info is handled by plugin
         for_cls.ui_meta = UIMetaAccessor(for_cls)  # type: ignore
@@ -47,107 +47,106 @@ def ui_meta(for_cls: type):
 
 
 # -----BEGIN COMMON FUNCTIONS-----
-def my_turn(g):
-    try:
-        act = g.action_stack[-1]
-    except IndexError:
+class UIMetaBase(GameViralContext):
+
+    def my_turn(self):
+        g = self.game
+        try:
+            act = g.action_stack[-1]
+        except IndexError:
+            return False
+
+        from thb import actions
+        if not isinstance(act, actions.ActionStage):
+            return False
+
+        if act.target is not g.me: return False
+
+        if not act.in_user_input: return False
+
+        return True
+
+    def limit1_skill_used(self, tag):
+        g = self.game
+        t = g.me.tags
+        return t[tag] >= t['turn_count']
+
+    def clickable(self):
         return False
 
-    from thb import actions
-    if not isinstance(act, actions.ActionStage):
-        return False
+    def is_action_valid(self, cl, tl):
+        return (False, 'BUG!')
 
-    if act.target is not g.me: return False
+    def card_desc(self, c):
+        if isinstance(c, (list, tuple)):
+            return '、'.join([self.card_desc(i) for i in c])
 
-    if not act.in_user_input: return False
+        from thb.cards.base import Card, HiddenCard
+        if c.is_card(HiddenCard): return '一张牌'
 
-    return True
+        if c.suit == Card.SPADE:
+            suit = '|r♠'
+        elif c.suit == Card.HEART:
+            suit = '|r|cb03a11ff♥'
+        elif c.suit == Card.CLUB:
+            suit = '|r♣'
+        elif c.suit == Card.DIAMOND:
+            suit = '|r|cb03a11ff♦'
+        elif c.suit == Card.NOTSET:
+            suit = '|r '
+        else:
+            suit = '|r错误'
 
+        num = ' A23456789_JQK'[c.number]
+        if num == '_': num = '10'
+        return suit + num + ' |G%s|r' % c.ui_meta.name
 
-def limit1_skill_used(g, tag):
-    t = g.me.tags
-    return t[tag] >= t['turn_count']
+    def build_handcard(self, cardcls, p=None):
+        g = self.game
+        from thb.cards.base import CardList
+        cl = CardList(p or g.me, 'cards')
+        c = cardcls()
+        c.move_to(cl)
+        return c
 
+    def char_desc(self, ch: Union[Character, Type[Character]]):
+        m = ch.ui_meta
 
-def passive_clickable(self, g):
-    return False
+        cls: Type[Character]
+        obj: Optional[Character]
 
+        if isinstance(ch, Character):
+            cls, obj = ch.__class__, ch
+        else:
+            cls, obj = ch, None
 
-def passive_is_action_valid(self, g, cl, target_list):
-    return (False, 'BUG!')
+        rst = []
+        rst.append('|DB%s %s 体力：%s|r' % (m.title, m.name, cls.maxlife))
+        skills = list(cls.skills)
+        if hasattr(cls, 'boss_skills'):
+            skills.extend(cls.boss_skills)
 
+        if obj:
+            skills.extend([
+                c for c in obj.skills
+                if 'character' in c.skill_category and c not in skills
+            ])
 
-def card_desc(c):
-    if isinstance(c, (list, tuple)):
-        return '、'.join([card_desc(i) for i in c])
+        for s in skills:
+            sm = s.ui_meta
+            rst.append('|G%s|r：%s' % (sm.name, sm.description))
 
-    from thb.cards.base import Card, HiddenCard
-    if c.is_card(HiddenCard): return '一张牌'
+        notes = getattr(m, 'notes', '')
+        if notes:
+            rst.append(notes)
 
-    if c.suit == Card.SPADE:
-        suit = '|r♠'
-    elif c.suit == Card.HEART:
-        suit = '|r|cb03a11ff♥'
-    elif c.suit == Card.CLUB:
-        suit = '|r♣'
-    elif c.suit == Card.DIAMOND:
-        suit = '|r|cb03a11ff♦'
-    elif c.suit == Card.NOTSET:
-        suit = '|r '
-    else:
-        suit = '|r错误'
+        tail = ['%s：%s' % i for i in [
+            ('画师',     m.illustrator),
+            ('CV',       m.cv),
+            ('人物设计', m.designer),
+        ] if i[1]]
 
-    num = ' A23456789_JQK'[c.number]
-    if num == '_': num = '10'
-    return suit + num + ' |G%s|r' % c.ui_meta.name
+        if tail:
+            rst.append('|DB（%s）|r' % '，'.join(tail))
 
-
-def build_handcard(g, cardcls, p=None):
-    from thb.cards.base import CardList
-    cl = CardList(p or g.me, 'cards')
-    c = cardcls()
-    c.move_to(cl)
-    return c
-
-
-def char_desc(ch: Union[Character, Type[Character]]):
-    m = ch.ui_meta
-
-    cls: Type[Character]
-    obj: Optional[Character]
-
-    if isinstance(ch, Character):
-        cls, obj = ch.__class__, ch
-    else:
-        cls, obj = ch, None
-
-    rst = []
-    rst.append('|DB%s %s 体力：%s|r' % (m.title, m.name, cls.maxlife))
-    skills = list(cls.skills)
-    if hasattr(cls, 'boss_skills'):
-        skills.extend(cls.boss_skills)
-
-    if obj:
-        skills.extend([
-            c for c in obj.skills
-            if 'character' in c.skill_category and c not in skills
-        ])
-
-    for s in skills:
-        sm = s.ui_meta
-        rst.append('|G%s|r：%s' % (sm.name, sm.description))
-
-    notes = getattr(m, 'notes', '')
-    if notes:
-        rst.append(notes)
-
-    tail = ['%s：%s' % i for i in [
-        ('画师',     m.illustrator),
-        ('CV',       m.cv),
-        ('人物设计', m.designer),
-    ] if i[1]]
-
-    if tail:
-        rst.append('|DB（%s）|r' % '，'.join(tail))
-
-    return '\n\n'.join(rst)
+        return '\n\n'.join(rst)

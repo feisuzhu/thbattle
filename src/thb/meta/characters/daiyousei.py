@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.daiyousei.Daiyousei)
 class Daiyousei:
     # Character
@@ -86,9 +86,6 @@ class SupportKOF:
     name = '支援'
     description = '你被击坠时，你可以将你的所有牌移出游戏，并令下一名登场的角色获得这些牌。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.daiyousei.SupportKOFAction)
 class SupportKOFAction:
@@ -110,9 +107,6 @@ class Moe:
     # Skill
     name = '卖萌'
     description = '|B锁定技|r，摸牌阶段你额外摸X张牌（X为你已损失的体力值）。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.daiyousei.MoeDrawCard)

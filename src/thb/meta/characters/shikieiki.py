@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 # -- stdlib --
 import random
 
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import card_desc, ui_meta, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.shikieiki.Trial)
 class Trial:
     # Skill
     name = '审判'
     description = '每当一名角色的判定牌生效前，你可以打出一张牌代替之。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.shikieiki.TrialAction)
@@ -27,7 +24,7 @@ class TrialAction:
         return '幻想乡各地巫女妖怪纷纷表示坚决拥护|G【%s】|r将|G【%s】|r的判定结果修改为%s的有关决定！' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
-            card_desc(act.card)
+            self.card_desc(act.card)
         )
 
     def sound_effect(self, act):
@@ -42,9 +39,6 @@ class Majesty:
     # Skill
     name = '威严'
     description = '每当你受到一次伤害后，你可以获得伤害来源的一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.shikieiki.MajestyAction)

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.sp_flandre.SpFlandre)
 class SpFlandre:
     # Character
@@ -27,9 +27,6 @@ class DestructionImpulse:
     # Skill
     name = '破坏冲动'
     description = '|B锁定技|r，结束阶段结束后，若你本回合没有造成过伤害，你对距离最近的一名其他角色造成1点伤害，并失去1点体力。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.sp_flandre.DestructionImpulseAction)
@@ -65,9 +62,6 @@ class FourOfAKind:
     # Skill
     name = '四重存在'
     description = '每当你受到一次不大于你当前体力值的伤害时，你可以减少1点体力上限并防止此伤害；你体力值为1时，你为伤害来源的卡牌造成的伤害+1。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.sp_flandre.FourOfAKindHandler)

@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.medicine.Medicine)
 class Medicine:
     # Character
@@ -30,9 +29,6 @@ class Ciguatera:
     # Skill
     name = '神经之毒'
     description = '一名角色准备阶段开始时，你可以弃置一张黑色牌，令其失去1点体力并获得|B喝醉|r状态。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.medicine.CiguateraAction)
@@ -58,9 +54,6 @@ class Melancholy:
     # Skill
     name = '忧郁之毒'
     description = '每当你受到一次有来源的伤害后，你可以展示并获得牌堆顶的一张牌，若此牌不是梅花牌，伤害来源不能使用或打出手牌，直到回合结束。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.medicine.MelancholyPoison)

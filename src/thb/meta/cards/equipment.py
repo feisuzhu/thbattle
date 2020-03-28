@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from typing import Optional
@@ -7,16 +8,14 @@ import random
 # -- third party --
 # -- own --
 from thb import actions
-from thb.cards.base import Card
 from thb.actions import ttags
 from thb.cards import definition, equipment
-from thb.meta.common import card_desc, passive_clickable, passive_is_action_valid, ui_meta
+from thb.cards.base import Card
+from thb.meta.common import ui_meta
 from utils.misc import BatchList
 
 
 # -- code --
-
-
 def equip_iav(self, g, cl, tl):
     return (True, '配上好装备，不再掉节操！')
 
@@ -28,10 +27,10 @@ def suppress_launch_card_effect_string(self, act):
 @ui_meta(equipment.WearEquipmentAction)
 class WearEquipmentAction:
 
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r装备了%s。' % (
             act.target.ui_meta.name,
-            card_desc(act.associated_card),
+            self.card_desc(act.associated_card),
         )
 
 
@@ -43,10 +42,10 @@ class WeaponReforgeHandler:
 
 @ui_meta(equipment.ReforgeWeapon)
 class ReforgeWeapon:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r重铸了%s。' % (
             act.target.ui_meta.name,
-            card_desc(act.card),
+            self.card_desc(act.card),
         )
 
 
@@ -70,8 +69,6 @@ class OpticalCloakCard:
 class OpticalCloakSkill:
     # Skill
     name = '光学迷彩'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
     def sound_effect(self, act):
         return 'thb-cv-card_opticalcloak'
@@ -123,8 +120,6 @@ class MomijiShieldCard:
 class MomijiShieldSkill:
     # Skill
     name = '天狗盾'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.MomijiShield)
@@ -163,8 +158,6 @@ class GreenUFOSkill:
     # Skill
     name = '绿色UFO'
     no_display = True
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(definition.RedUFOCard)
@@ -184,8 +177,6 @@ class RedUFOSkill:
     # Skill
     name = '红色UFO'
     no_display = True
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(definition.RoukankenCard)
@@ -211,8 +202,6 @@ class RoukankenCard:
 class RoukankenSkill:
     # Skill
     name = '楼观剑'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.Roukanken)
@@ -248,8 +237,6 @@ class ElementalReactorCard:
 class ElementalReactorSkill:
     # Skill
     name = '八卦炉'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(definition.UmbrellaCard)
@@ -272,8 +259,6 @@ class UmbrellaCard:
 class UmbrellaSkill:
     # Skill
     name = '紫的阳伞'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.UmbrellaEffect)
@@ -456,8 +441,6 @@ class RepentanceStickCard:
 class RepentanceStickSkill:
     # Skill
     name = '悔悟棒'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.RepentanceStickHandler)
@@ -509,8 +492,6 @@ class IbukiGourdCard:
 class IbukiGourdSkill:
     # Skill
     name = '伊吹瓢'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(definition.HouraiJewelCard)
@@ -537,8 +518,6 @@ class HouraiJewelCard:
 class HouraiJewelSkill:
     # Skill
     name = '蓬莱玉枝'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.HouraiJewelHandler)
@@ -578,8 +557,6 @@ class MaidenCostumeCard:
 class MaidenCostume:
     # Skill
     name = '巫女服'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
     def sound_effect(self, act):
         return 'thb-cv-card_maidencostume'
@@ -636,8 +613,6 @@ class HakuroukenCard:
 class HakuroukenSkill:
     # Skill
     name = '白楼剑'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.Hakurouken)
@@ -697,8 +672,6 @@ class AyaRoundfanCard:
 class AyaRoundfanSkill:
     # Skill
     name = '团扇'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.AyaRoundfanHandler)
@@ -759,8 +732,6 @@ class NenshaPhoneCard:
 class NenshaPhoneSkill:
     # Skill
     name = '念写机'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.NenshaPhoneHandler)
@@ -807,8 +778,6 @@ class LaevateinCard:
 class LaevateinSkill:
     # Skill
     name = '莱瓦汀'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.LaevateinHandler)
@@ -853,8 +822,6 @@ class DeathSickleCard:
 class DeathSickleSkill:
     # Skill
     name = '死神之镰'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.DeathSickle)
@@ -892,8 +859,6 @@ class KeystoneCard:
 class KeystoneSkill:
     # Skill
     name = '要石'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.Keystone)
@@ -947,8 +912,6 @@ class YinYangOrbCard:
 class YinYangOrbSkill:
     # Skill
     name = '阴阳玉'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.YinYangOrbHandler)
@@ -960,10 +923,10 @@ class YinYangOrbHandler:
 
 @ui_meta(equipment.YinYangOrb)
 class YinYangOrb:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r用|G%s|r替换了她的判定牌。' % (
             act.target.ui_meta.name,
-            card_desc(act.card),
+            self.card_desc(act.card),
         )
 
 
@@ -986,8 +949,6 @@ class SuwakoHatCard:
 class SuwakoHatSkill:
     # Skill
     name = '青蛙帽'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.SuwakoHatEffect)
@@ -1016,8 +977,6 @@ class YoumuPhantomCard:
 class YoumuPhantomSkill:
     # Skill
     name = '半灵'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.YoumuPhantomHeal)
@@ -1047,8 +1006,6 @@ class IceWingCard:
 class IceWingSkill:
     # Skill
     name = '⑨的翅膀'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(equipment.IceWing)
@@ -1159,8 +1116,6 @@ class SinsackHatAction:
 class SinsackHat:
     # Skill
     name = '头套'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(definition.SinsackHatCard)

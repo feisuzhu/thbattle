@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
 from thb.cards.base import Skill
-from thb.meta.common import limit1_skill_used, my_turn, passive_clickable, passive_is_action_valid
 from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.komachi.Komachi)
 class Komachi:
     # Character
@@ -31,9 +29,10 @@ class Riverside:
     name = '彼岸'
     description = '出牌阶段限一次，你可以弃置一张牌并指定一名其他角色，你与其距离视为1直到回合结束，然后若该角色的体力值为全场最少的（或之一），你选择一项：|B|R>> |r摸一张牌，|B|R>> |r弃置其一张牌。'
 
-    def clickable(self, g):
-        if not my_turn(): return False
-        if limit1_skill_used('riverside_tag'): return False
+    def clickable(self):
+        g = self.game
+        if not self.my_turn(): return False
+        if self.limit1_skill_used('riverside_tag'): return False
 
         me = g.me
         return bool(me.cards or me.showncards or me.equips)
@@ -90,18 +89,12 @@ class Returning:
         '|B|R>> |b渡钱|r：每当你对距离1的其他角色造成伤害后，你可以获得其一张牌。'
     )
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.komachi.FerryFee)
 class FerryFee:
     # Skill
     name = '渡钱'
     description = '每当你对距离1的其他角色造成伤害后，你可以获得其一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.komachi.FerryFeeEffect)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
@@ -6,12 +7,10 @@
 from thb import characters
 from thb.cards.base import Card
 from thb.cards.classes import BaseUseGraze
-from thb.meta.common import passive_clickable, passive_is_action_valid, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.nazrin.Nazrin)
 class Nazrin:
     # Character
@@ -45,9 +44,6 @@ class TreasureHunt:
     # Skill
     name = '探宝'
     description = '准备阶段开始时，你可以进行一次判定，若结果为黑，你获得此牌且你可以重复此流程。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.nazrin.TreasureHuntHandler)

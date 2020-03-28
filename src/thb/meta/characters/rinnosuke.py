@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 import time
@@ -6,22 +7,22 @@ import time
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 class Netoru:
     # Skill
     name = '寝取'
     description = '出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力。'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
         try:
             if me.tags['netoru_tag'] >= me.tags['turn_count']:
                 return False
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 return True
         except IndexError:
@@ -62,9 +63,6 @@ class Psychopath:
     # Skill
     name = '变态'
     description = '|B锁定技|r，当你失去一张装备区里的装备牌时，你摸两张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.rinnosuke.PsychopathDrawCards)

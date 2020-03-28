@@ -4,8 +4,7 @@
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta, limit1_skill_used, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
 
 # -- code --
 
@@ -24,7 +23,7 @@ class Darkness:
 
     def clickable(self, game):
         try:
-            if limit1_skill_used('darkness_tag'):
+            if self.limit1_skill_used('darkness_tag'):
                 return False
             act = game.action_stack[-1]
             if isinstance(act, actions.ActionStage):
@@ -64,9 +63,6 @@ class DarknessKOF:
     name = '黑暗'
     description = '|B登场技|r，你登场的回合，对方使用牌时不能指定你为目标。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.rumia.DarknessKOFAction)
 class DarknessKOFAction:
@@ -102,9 +98,6 @@ class Cheating:
     # Skill
     name = '作弊'
     description = '|B锁定技|r，结束阶段开始时，你摸一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.rumia.CheatingDrawCards)

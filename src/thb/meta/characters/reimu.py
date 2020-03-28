@@ -8,7 +8,6 @@ import random
 from thb import actions, characters
 from thb.cards.base import Card
 from thb.cards.classes import ExinwanCard, RejectCard
-from thb.meta.common import card_desc, limit1_skill_used, passive_clickable, passive_is_action_valid
 from thb.meta.common import ui_meta
 
 
@@ -19,8 +18,6 @@ from thb.meta.common import ui_meta
 class Flight:
     # Skill
     name = '飞行'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.reimu.SpiritualAttack)
@@ -74,9 +71,6 @@ class TributeTarget:
     name = '纳奉'
     description = '|BBOSS技|r，其他角色的出牌阶段限一次，若你的手牌数小于体力上限，其可以将一张手牌置入你的明牌区。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.reimu.Tribute)
 class Tribute:
@@ -84,14 +78,15 @@ class Tribute:
     name = '赛钱'
     description = '出牌阶段限一次，若灵梦的手牌数小于体力上限，你可以将一张手牌置入灵梦的明牌区。'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
 
-        if limit1_skill_used('tribute_tag'):
+        if self.limit1_skill_used('tribute_tag'):
             return False
 
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
         except IndexError:
             return False
 
@@ -123,7 +118,7 @@ class Tribute:
         ) % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
-            card_desc(act.card.associated_cards[0]),
+            self.card_desc(act.card.associated_cards[0]),
         )
 
     def sound_effect(self, act):
@@ -148,9 +143,6 @@ class ReimuExterminate:
         '|B|R>> |r出牌阶段，你受到伤害后。\n'
         '|B|R>> |r回合结束阶段，且该角色本回合对其他角色造成过伤害。'
     )
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.reimu.ReimuExterminateAction)
@@ -186,9 +178,6 @@ class ReimuClear:
     # Skill
     name = '快晴'
     description = '你对一名其他角色造成伤害后，你可以与其各摸一张牌，若此时位于其它角色的出牌阶段，停止当前结算并结束出牌阶段。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.reimu.ReimuClearAction)

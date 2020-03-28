@@ -7,7 +7,7 @@ import random
 # -- own --
 from thb import characters
 from thb.cards.classes import AttackCard
-from thb.meta.common import passive_clickable, passive_is_action_valid, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -91,6 +91,3 @@ class LunaDial:
     # Skill
     name = '月时计'
     description = '|B锁定技|r，准备阶段开始时，你执行一个额外的出牌阶段。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid

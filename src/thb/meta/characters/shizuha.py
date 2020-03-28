@@ -4,8 +4,7 @@
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import card_desc, ui_meta, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
 from utils.misc import BatchList
 
 
@@ -17,7 +16,7 @@ class AutumnWindEffect:
     def effect_string(self, act):
         return '|G秋风|r带走了|G【%s】|r的%s。' % (
             act.target.ui_meta.name,
-            card_desc(act.card),
+            self.card_desc(act.card),
         )
 
 
@@ -39,9 +38,6 @@ class Decay:
     # Skill
     name = '凋零'
     description = '|B锁定技|r。你的回合内，每当其他角色失去最后的手牌时，你摸一张牌；你的回合外，每当你受到一次伤害后，当前回合角色于本回合弃牌阶段需额外弃置一张手牌（该效果不可叠加）。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.shizuha.DecayAction)
@@ -73,9 +69,6 @@ class AutumnWind:
     # Skill
     name = '秋风'
     description = '弃牌阶段结束时，你可以弃置至多X名角色各一张牌。（X为你本阶段弃置的手牌数）'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.shizuha.AutumnWindHandler)

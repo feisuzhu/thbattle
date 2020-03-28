@@ -5,7 +5,7 @@
 # -- own --
 from thb import actions, characters
 from thb.cards.classes import AttackCard, GrazeCard
-from thb.meta.common import build_handcard, passive_clickable, passive_is_action_valid, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -20,9 +20,6 @@ class RiverBehind:
         '|B|R>> |b太极|r：你可将|G弹幕|r当|G擦弹|r，|G擦弹|r当|G弹幕|r使用或打出。'
     )
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.meirin.Taichi)
 class Taichi:
@@ -36,10 +33,10 @@ class Taichi:
             if isinstance(act, actions.ActionStage):
                 return True
 
-            if act.cond([build_handcard(AttackCard)]):
+            if act.cond([self.build_handcard(AttackCard)]):
                 return True
 
-            if act.cond([build_handcard(GrazeCard)]):
+            if act.cond([self.build_handcard(GrazeCard)]):
                 return True
 
         except Exception:
@@ -80,9 +77,6 @@ class LoongPunch:
     # Skill
     name = '龙拳'
     description = '每当你使用的|G弹幕|r被其他角色使用的|G擦弹|r抵消时，或其他角色使用的|G弹幕|r被你使用的|G擦弹|r抵消时，你可以弃置其1张手牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.meirin.LoongPunchHandler)

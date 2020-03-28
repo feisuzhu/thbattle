@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
 
 # -- code --
 
@@ -27,9 +27,6 @@ class Ashes:
     # Skill
     name = '浴火'
     description = '结束阶段开始时，你可以失去1点体力，然后摸两张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.mokou.AshesAction)
@@ -55,9 +52,6 @@ class Reborn:
     # Skill
     name = '重生'
     description = '准备阶段开始时，你可以弃置X张红色牌，然后回复1点体力。（X为你的体力值）'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.mokou.RebornAction)

@@ -7,7 +7,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, my_turn, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta, my_turn
 
 
 # -- code --
@@ -22,8 +22,6 @@ class SpearTheGungnir:
         '|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
         '|B|R>> |r目标角色的手牌数 小于 你的手牌数。'
     )
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.remilia.SpearTheGungnirAction)
@@ -50,9 +48,6 @@ class VampireKiss:
     # Skill
     name = '红魔之吻'
     description = '|B锁定技|r，你使用红色|G弹幕|r时无距离限制。当你使用红色|G弹幕|r对一名其他角色造成伤害后，你回复1点体力。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.remilia.VampireKissAction)

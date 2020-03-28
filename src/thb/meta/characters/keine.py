@@ -8,8 +8,7 @@ import random
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta, my_turn, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -23,8 +22,8 @@ class Teach:
         '|B|R>> |r使用一张牌，|B|R>> |r重铸一张牌。'
     )
 
-    def clickable(self, g):
-        return my_turn() and not ttags(g.me)['teach_used']
+    def clickable(self):
+        return self.my_turn() and not ttags(self.me)['teach_used']
 
     def is_action_valid(self, g, cl, tl):
         cards = cl[0].associated_cards
@@ -97,8 +96,6 @@ class KeineGuard:
         '|B限定技|r，出牌阶段开始时，你可以失去一点体力上限，令一名其它已受伤角色回复一点体力。之后，若其体力仍然是全场最低的，则你与其获得技能|R决意|r。\n'
         '|B|R>> |b决意|r：当你受到伤害时，若同样拥有|R决意|r的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有|R决意|r的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。'
     )
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 class KeineGuardAction:
@@ -133,8 +130,6 @@ class Devoted:
     description = (
         '当你受到伤害时，若同样拥有|R决意|r的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有|R决意|r的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。'
     )
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 class DevotedHeal:

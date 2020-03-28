@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.suika.HeavyDrinkerWine)
 class HeavyDrinkerWine:
     name = '酒'
@@ -60,9 +60,6 @@ class DrunkenDream:
     # Skill
     name = '醉梦'
     description = '|B锁定技|r，你处于“喝醉”状态时，攻击范围+2；准备阶段开始时，你摸一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.suika.DrunkenDreamDrawCards)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 import random
@@ -6,19 +7,15 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.patchouli.Library)
 class Library:
     # Skill
     name = '图书'
     description = '|B锁定技|r，每当你使用非延时符卡时，你摸一张牌；你使用符卡无距离限制。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.patchouli.LibraryDrawCards)
@@ -40,9 +37,6 @@ class Knowledge:
     # Skill
     name = '博学'
     description = '|B锁定技|r，黑桃符卡对你无效。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.patchouli.KnowledgeAction)

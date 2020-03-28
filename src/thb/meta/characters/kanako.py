@@ -4,8 +4,7 @@
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import card_desc, ui_meta, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -105,11 +104,11 @@ class KanakoFaithCounteract:
 
 @ui_meta(characters.kanako.KanakoFaithCounteractPart1)
 class KanakoFaithCounteractPart1:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r弃置了|G【%s】|r的%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
-            card_desc(act.card),
+            self.card_desc(act.card),
         )
 
 
@@ -132,9 +131,6 @@ class Virtue:
     # Skill
     name = '神德'
     description = '摸牌阶段，你可以放弃摸牌，改为令一名其他角色摸两张牌，然后其须展示并交给你一张牌，若交给你的牌为红桃牌，你摸一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.kanako.VirtueHandler)
@@ -161,7 +157,7 @@ class VirtueAction:
     def effect_string(self, act):
         return '|G【%s】|r归还了%s。' % (
             act.target.ui_meta.name,
-            card_desc(act.card),
+            self.card_desc(act.card),
         )
 
     def sound_effect(self, act):
@@ -178,9 +174,6 @@ class KanakoFaithKOF:
         '|B|R>> |r你曾于出牌阶段对对方造成过伤害。'
 
     )
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.kanako.KanakoFaithKOFAction)

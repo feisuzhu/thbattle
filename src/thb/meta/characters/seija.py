@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import annotations
 
 # -- stdlib --
 import random
@@ -7,13 +7,10 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, limit1_skill_used, my_turn, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.seija.InciteAttack)
 class InciteAttack:
     name = '挑拨'
@@ -52,11 +49,11 @@ class Incite:
 
     custom_ray = True
 
-    def clickable(self, game):
-        if limit1_skill_used('incite_tag'):
+    def clickable(self):
+        if self.limit1_skill_used('incite_tag'):
             return False
 
-        return my_turn()
+        return self.my_turn()
 
     def is_action_valid(self, g, cl, tl):
         if cl[0].associated_cards:
@@ -110,9 +107,6 @@ class Reversal:
     # Skill
     name = '逆转'
     description = '当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若你的手牌数大于其手牌数，取消该|G弹幕|r效果，并视为该角色再对你使用一张|G弹幕战|r。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.seija.ReversalDuel)

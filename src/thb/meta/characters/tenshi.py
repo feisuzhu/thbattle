@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import card_desc, ui_meta, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.tenshi.Masochist)
 class Masochist:
     # Skill
     name = '抖Ｍ'
     description = '每当你受到1点伤害后，你可以观看牌堆顶的两张牌，并将这些牌交给至少一名角色。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.tenshi.MasochistHandler)
@@ -57,16 +53,13 @@ class ScarletPerception:
     name = '绯想'
     description = '|B锁定技|r，距离1以内的角色的红色判定牌生效后，你获得之。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.tenshi.ScarletPerceptionAction)
 class ScarletPerceptionAction:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r获得了%s。' % (
             act.source.ui_meta.name,
-            card_desc(act.card)
+            self.card_desc(act.card)
         )
 
     def sound_effect(self, act):

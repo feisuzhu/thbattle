@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, limit1_skill_used, my_turn
-from thb.meta.common import passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.minoriko.Foison)
 class Foison:
     # Skill
     name = '丰收'
     description = '|B锁定技|r，摸牌阶段摸牌后，你将手牌数补至五张。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.minoriko.FoisonDrawCardStage)
@@ -38,10 +34,10 @@ class AutumnFeast:
     name = '秋祭'
     description = '出牌阶段限一次，你可以将两张红色牌当|G五谷丰登|r使用。'
 
-    def clickable(self, game):
-        me = game.me
-        if not my_turn(): return False
-        if limit1_skill_used('autumnfeast_tag'): return False
+    def clickable(self):
+        me = self.me
+        if not self.my_turn(): return False
+        if self.limit1_skill_used('autumnfeast_tag'): return False
 
         if not (me.cards or me.showncards or me.equips):
             return False
@@ -74,9 +70,6 @@ class AkiTribute:
     # Skill
     name = '上贡'
     description = '|B锁定技|r，结算|G五谷丰登|r时，你首先选择牌，结算完后，你将剩余的牌置于一名角色的明牌区。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.minoriko.AkiTributeCollectCard)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 import random
@@ -6,20 +7,15 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import card_desc, ui_meta, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.shinmyoumaru.MiracleMallet)
 class MiracleMallet:
     # Skill
     name = '万宝槌'
     description = '当一名角色的判定牌生效前，你可以用一张点数大于此牌的牌替换之。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.shinmyoumaru.MiracleMalletAction)
@@ -28,7 +24,7 @@ class MiracleMalletAction:
         return '|G【%s】|r将|G【%s】|r的判定结果改为%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
-            card_desc(act.card)
+            self.card_desc(act.card)
         )
 
     def sound_effect(self, act):
@@ -43,9 +39,6 @@ class VengeOfTsukumogami:
     # Skill
     name = '付丧神之怨'
     description = '每当其他角色装备区的牌因弃置而置入弃牌堆时，你可以进行一次判定，若为9~K，你对其造成1点伤害。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.shinmyoumaru.VengeOfTsukumogamiAction)

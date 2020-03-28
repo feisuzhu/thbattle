@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 import random
@@ -6,13 +7,10 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import G, card_desc, ui_meta, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.alice.Alice)
 class Alice:
     # Character
@@ -37,9 +35,6 @@ class LittleLegion:
         '|B|R>> |r饰品：摸一张牌并跳过弃牌阶段。\n'
         '|B|R>> |rUFO：视为使用一张|G人型操控|r。'
     )
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.alice.LittleLegionAttackCard)
@@ -118,12 +113,14 @@ class LittleLegionHoldAction:
 class LittleLegionControlAction:
 
     def target(self, pl):
+        g = self.game
+
         if not pl:
             return (False, '控场：请选择2名玩家，视为使用【人型操控】')
 
         from thb.cards.classes import DollControlCard
 
-        rst, prompt = DollControlCard.ui_meta.is_action_valid(G(), [], pl)
+        rst, prompt = DollControlCard.ui_meta.is_action_valid(g, [], pl)
 
         if rst:
             return (True, '就让你见识下人偶军团的厉害！')
@@ -160,9 +157,6 @@ class DollBlast:
     name = '人偶爆弹'
     description = '每当你装备区的牌被其他角色获得或弃置时，你可以弃置其一张牌。若此法弃置的牌为该角色获得的牌，你对其造成1点伤害。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.alice.DollBlastEffect)
 class DollBlastEffect:
@@ -172,7 +166,7 @@ class DollBlastEffect:
             return '|G【%s】|r拿走了|G【%s】|r的人偶（%s），然后，BOOM！|G【%s】|r就炸了！' % (
                 act.target.ui_meta.name,
                 act.source.ui_meta.name,
-                card_desc(act.card),
+                self.card_desc(act.card),
                 act.target.ui_meta.name,
             )
         else:
@@ -181,7 +175,7 @@ class DollBlastEffect:
                 act.source.ui_meta.name,
                 act.source.ui_meta.name,
                 act.target.ui_meta.name,
-                card_desc(act.card),
+                self.card_desc(act.card),
             )
 
 

@@ -7,7 +7,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -32,9 +32,6 @@ class Sentry:
     name = '哨戒'
     description = '你攻击范围内的一名其它角色的出牌阶段开始时，你可以对其使用一张|G弹幕|r。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.momiji.Telegnosis)
 class Telegnosis:
@@ -42,18 +39,12 @@ class Telegnosis:
     name = '千里眼'
     description = '|B锁定技|r，若你在一名其他角色的攻击范围内，则该角色视为在你攻击范围内。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.momiji.Disarm)
 class Disarm:
     # Skill
     name = '缴械'
     description = '每当你使用|G弹幕|r或|G弹幕战|r对其他角色造成伤害后，你可以观看其手牌，并将其中任意数量的|G弹幕|r或符卡牌暂时移出游戏。该角色被暂时移出的牌会在该角色下一个弃牌阶段后归还回其手牌中。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.momiji.DisarmHideAction)
@@ -131,6 +122,3 @@ class SolidShield:
     # Skill
     name = '坚盾'
     description = '你距离1以内的角色成为其它角色使用的|G弹幕|r或单体符卡的目标后，若此卡牌为其出牌阶段时使用的第一张卡牌，取消之并暂时移出游戏。该角色被暂时移出的牌会在该角色下一个弃牌阶段后归还回其手牌中。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid

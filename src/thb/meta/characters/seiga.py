@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
 from thb.cards.base import Skill
-from thb.meta.common import G, my_turn, passive_clickable, passive_is_action_valid, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.seiga.Seiga)
 class Seiga:
     # Character
@@ -71,10 +70,9 @@ class Heterodoxy:
     )
     custom_ray = True
 
-    def clickable(self, g):
-        if not my_turn(): return False
-
-        me = g.me
+    def clickable(self):
+        if not self.my_turn(): return False
+        me = self.me
         return bool(me.cards or me.showncards or me.equips)
 
     def effect_string(self, act):
@@ -120,9 +118,6 @@ class Summon:
     name = '通灵'
     description = '|B限定技|r，你的回合内，当有角色被击坠时，你可以获得其一个技能。（不包括限定技，觉醒技）'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.seiga.SummonAction)
 class SummonAction:
@@ -162,15 +157,15 @@ class SummonKOF:
         '|B|R>> |r你的体力值保留，体力上限会调整到与新角色一致。'
     )
 
-    def clickable(self, g):
-        return my_turn()
+    def clickable(self):
+        return self.my_turn()
 
     def is_action_valid(self, g, cl, target_list):
         cl = cl[0].associated_cards
         if len(cl) != 0:
             return False, '请不要选择牌'
 
-        rest = '、'.join([c.char_cls.ui_meta.name for c in G().me.choices])
+        rest = '、'.join([c.char_cls.ui_meta.name for c in self.me.choices])
         return True, '通灵：后备角色：%s' % rest
 
     def effect_string(self, act):

@@ -1,24 +1,20 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import card_desc, ui_meta, my_turn, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.cirno.PerfectFreeze)
 class PerfectFreeze:
     # Skill
     name = '完美冻结'
     description = '每当你使用|G弹幕|r或|G弹幕战|r对其他角色造成伤害时，你可以防止此次伤害，并令该角色弃置一张牌，若其弃置的不为装备区的牌，其失去1点体力。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.cirno.CirnoDropCards)
@@ -27,7 +23,7 @@ class CirnoDropCards:
         return '|G【%s】|r弃置了|G【%s】|r的%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
-            card_desc(act.cards),
+            self.card_desc(act.cards),
         )
 
 
@@ -63,13 +59,11 @@ class Bakadesu:
         '|B|R>> |r令你弃置其一张牌。'
     )
 
-    def clickable(self, game):
-        me = game.me
-
-        if ttags(me)['bakadesu']:
+    def clickable(self):
+        if ttags(self.me)['bakadesu']:
             return False
 
-        return my_turn()
+        return self.my_turn()
 
     def is_action_valid(self, g, cl, tl):
         if len(tl) != 1:

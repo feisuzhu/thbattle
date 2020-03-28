@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.yugi.Yugi)
 class Yugi:
     # Character
@@ -44,8 +44,6 @@ class Assault:
     description = '|B锁定技|r，你与其他角色计算距离时始终-1。'
 
     no_display = False
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.yugi.AssaultAttack)
@@ -69,8 +67,6 @@ class AssaultKOF:
     description = '|B登场技|r，你登场时可以视为使用了一张|G弹幕|r。'
 
     no_display = False
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.yugi.FreakingPower)
@@ -78,9 +74,6 @@ class FreakingPower:
     # Skill
     name = '怪力'
     description = '每当你使用|G弹幕|r指定了其他角色时，你可以进行一次判定，若结果为红，则此|G弹幕|r不能被响应；若结果为黑，则此|G弹幕|r造成伤害后，你弃置其一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.yugi.FreakingPowerAction)

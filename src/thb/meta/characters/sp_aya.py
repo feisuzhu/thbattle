@@ -1,27 +1,26 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
 from thb.cards.base import Skill
-from thb.meta.common import card_desc, my_turn, passive_clickable, passive_is_action_valid
 from thb.meta.common import ui_meta
 
+
 # -- code --
-
-
 @ui_meta(characters.sp_aya.WindWalk)
 class WindWalk:
     # Skill
     name = '疾走'
     description = '出牌阶段，你可以弃置一张牌，然后摸一张牌，对你上一张使用的牌的目标角色（或之一）使用之并重复此流程，否则结束你的回合。'
 
-    def clickable(self, g):
-        if not my_turn():
+    def clickable(self):
+        if not self.my_turn():
             return False
 
-        me = g.me
+        me = self.me
         return bool(me.cards or me.showncards or me.equips)
 
     def is_action_valid(self, g, cl, tl):
@@ -42,7 +41,7 @@ class WindWalk:
     def effect_string(self, act):
         return '唯快不破！|G【%s】|r弃置了%s，开始加速追击！' % (
             act.source.ui_meta.name,
-            card_desc(act.card),
+            self.card_desc(act.card),
         )
 
     def sound_effect(self, act):
@@ -102,9 +101,6 @@ class Dominance:
     # Skill
     name = '风靡'
     description = '回合结束时，若你本回合的出牌阶段使用了四种花色的牌，你可执行一个额外的回合。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.sp_aya.SpAya)

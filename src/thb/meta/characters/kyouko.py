@@ -5,7 +5,7 @@
 # -- own --
 from thb import characters
 from thb.cards.base import VirtualCard
-from thb.meta.common import card_desc, passive_clickable, passive_is_action_valid, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -31,18 +31,12 @@ class Echo:
     name = '回响'
     description = '每当你受到一次伤害后，你可以获得对你造成伤害的牌，若此牌为|G弹幕|r，你可以改为令一名其他角色获得之。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.kyouko.Resonance)
 class Resonance:
     # Skill
     name = '共振'
     description = '当你对其他角色使用的|G弹幕|r结算完毕后，你可以指定另一名其他角色，被指定角色可以对其使用一张无视距离的|G弹幕|r。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.kyouko.EchoHandler)
@@ -85,11 +79,11 @@ class ResonanceAction:
 @ui_meta(characters.kyouko.EchoAction)
 class EchoAction:
 
-    def effect_string_before(act):
+    def effect_string_before(self, act):
         return '|G【%s】|r发动了|G回响|r，|G【%s】|r获得了%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
-            card_desc(VirtualCard.unwrap([act.card])),
+            self.card_desc(VirtualCard.unwrap([act.card])),
         )
 
     def sound_effect(self, act):

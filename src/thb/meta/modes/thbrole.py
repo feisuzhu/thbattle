@@ -6,7 +6,6 @@
 from thb import thbrole
 from thb.actions import ttags
 from thb.cards.classes import AttackCard
-from thb.meta.common import card_desc, my_turn, passive_clickable, passive_is_action_valid
 from thb.meta.common import ui_meta
 
 
@@ -71,12 +70,11 @@ class AssistedAttack:
     name = '同仇'
     description = '当你需要使用或打出一张|G弹幕|r时，其他玩家可以代替你使用或打出一张|G弹幕|r。'
 
-    def clickable(self, g):
-        me = g.me
-        if not my_turn():
+    def clickable(self):
+        if not self.my_turn():
             return False
 
-        if ttags(me)['assisted_attack_disable']:
+        if ttags(self.me)['assisted_attack_disable']:
             return False
 
         return True
@@ -125,7 +123,7 @@ class AssistedAttackCard:
         c = s.associated_cards[0]
         return '|G【%s】|r响应了|G同仇|r，使用了|G%s|r。' % (
             c.resides_in.owner.ui_meta.name,
-            card_desc(c),
+            self.card_desc(c),
         )
 
 
@@ -140,8 +138,6 @@ class AssistedGraze:
     # Skill
     name = '协力'
     description = '当你需要使用或打出一张|G擦弹|r时，其他玩家可以代替你使用或打出一张|G擦弹|r。'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(thbrole.AssistedGrazeHandler)
@@ -169,8 +165,6 @@ class AssistedHeal:
     # Skill
     name = '牺牲'
     description = '当你于濒死状态下，被一名角色使用|G麻薯|r而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(thbrole.ExtraCardSlot)
@@ -178,8 +172,6 @@ class ExtraCardSlot:
     # Skill
     name = '应援'
     description = '锁定技，每有一名道中存活，你的手牌上限增加一。'
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(thbrole.ChooseBossSkillAction)

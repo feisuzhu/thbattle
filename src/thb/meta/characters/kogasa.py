@@ -5,7 +5,7 @@
 # -- own --
 from thb import actions, characters
 from thb.cards.base import Card, VirtualCard
-from thb.meta.common import passive_clickable, passive_is_action_valid, ui_meta
+from thb.meta.common import ui_meta
 
 # -- code --
 
@@ -15,9 +15,6 @@ class Jolly:
     # Skill
     name = '愉快'
     description = '|B锁定技|r，摸牌阶段摸牌后，你令一名角色摸一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.kogasa.JollyDrawCard)

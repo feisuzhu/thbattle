@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.flandre.Flandre)
 class Flandre:
     # Character
@@ -31,9 +31,6 @@ class CriticalStrike:
         '|B|R>> |r当你没有干劲时，你可以对本阶段内没有成为过|G弹幕|r目标的其他角色使用|G弹幕|r。\n'
         '|B|R>> |r你为伤害来源的|G弹幕|r和|G弹幕战|r造成的伤害+1。'
     )
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.flandre.CriticalStrikeHandler)
@@ -65,9 +62,6 @@ class Exterminate:
     # Skill
     name = '毁灭'
     description = '|B锁定技|r，每当你使用|G弹幕|r或|G弹幕战|r指定其他角色为目标后，其所有技能无效直到回合结束。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.flandre.ExterminateAction)

@@ -6,8 +6,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable
-from thb.meta.common import passive_is_action_valid
+from thb.meta.common import ui_meta
 
 # -- code --
 
@@ -30,9 +29,6 @@ class Dilemma:
     # Skill
     name = '难题'
     description = '每当一名角色令你回复1点体力后，你可以令其摸一张牌；每当你受到一次伤害后，你可以令伤害来源选择一项：|B|R>> |r交给你一张方块牌，|B|R>> |r失去1点体力。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.kaguya.DilemmaDamageAction)
@@ -99,9 +95,6 @@ class ImperishableNight:
     # Skill
     name = '永夜'
     description = '你的回合外，每当其他角色使用的红色基本牌置入弃牌堆时，你可以将一张红色基本牌或装备牌当|G封魔阵|r对其使用。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
     image = None
 

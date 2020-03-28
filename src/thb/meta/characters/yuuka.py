@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
 from thb.cards.classes import AttackCard
-from thb.meta.common import build_handcard, my_turn, passive_clickable, passive_is_action_valid
 from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.yuuka.ReversedScales)
 class ReversedScales:
     # Skill
     name = '逆鳞'
     description = '每当你成为其他角色使用的单体符卡效果目标时，你可以将其视为|G弹幕战|r效果；你的回合外，你可以将一张手牌当做|G弹幕|r使用或打出。'
 
-    def clickable(self, g):
-        me = g.me
-        if my_turn():
+    def clickable(self):
+        g = self.game
+        me = self.me
+        if self.my_turn():
             return False
 
         if not (me.cards or me.showncards):
@@ -28,7 +27,7 @@ class ReversedScales:
 
         try:
             act = g.action_stack[-1]
-            return act.cond([build_handcard(AttackCard)])
+            return act.cond([self.build_handcard(AttackCard)])
         except Exception:
             pass
 
@@ -66,18 +65,12 @@ class Sadist:
     name = '施虐'
     description = '当你击坠一名角色时，你可以对攻击范围内一名其他角色造成1点伤害；你对体力值为1的其他角色造成的伤害+1。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.yuuka.SadistKOF)
 class SadistKOF:
     # Skill
     name = '施虐'
     description = '|B锁定技|r，当你击坠对手后，你摸2张牌并对其下一名登场角色造成1点伤害。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.yuuka.ReversedScalesAction)

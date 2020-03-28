@@ -8,7 +8,7 @@ import random
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta, my_turn, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -47,8 +47,8 @@ class Miracle:
     name = '奇迹'
     description = '出牌阶段，你可以弃置X张牌并摸一张牌；若X为3，你可以令一名角色回复1点体力。（X为你此阶段使用奇迹的次数）'
 
-    def clickable(self, g):
-        return my_turn()
+    def clickable(self):
+        return self.my_turn()
 
     def effect_string(act):
         return '|G【%s】|r发动了|G奇迹|r，弃置了%d张牌。' % (
@@ -84,8 +84,9 @@ class SanaeFaith:
     name = '信仰'
     description = '出牌阶段限一次，你可以令至多两名其他角色各交给你一张手牌，然后你交给其各一张牌。'
 
-    def clickable(self, g):
-        return my_turn() and not ttags(g.me)['faith']
+    def clickable(self):
+        g = self.game
+        return self.my_turn() and not ttags(g.me)['faith']
 
     def effect_string(self, act):
         return '|G【%s】|r的|G信仰|r大作战！向%s收集了信仰！' % (
@@ -108,9 +109,6 @@ class SanaeFaith:
 class SanaeFaithKOF:
     name = '信仰'
     description = '|B锁定技|r，对方的出牌阶段，每当其获得牌时，你摸一张牌。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.sanae.SanaeFaithKOFDrawCards)
@@ -148,9 +146,6 @@ class SanaeFaithReturnCardAction:
 class GodDescendant:
     name = '神裔'
     description = '每当你成为群体符卡的目标后，你可以重铸一张牌并跳过此次结算。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.sanae.GodDescendantAction)

@@ -6,7 +6,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_is_action_valid, passive_clickable
+from thb.meta.common import ui_meta
 
 # -- code --
 
@@ -48,9 +48,6 @@ class Lunatic:
         '|B|R>> |b丧心|r：|B锁定技|r，出牌阶段，你不能使用|G弹幕|r以外的牌；你使用|G弹幕|r只能指定距离最近的目标；结束阶段开始时，你失去此技能。'
     )
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.reisen.Discarder)
 class Discarder:
@@ -58,18 +55,12 @@ class Discarder:
     name = '丧心'
     description = '|B锁定技|r，出牌阶段，你不能使用|G弹幕|r以外的牌；你使用|G弹幕|r只能指定距离最近的目标；结束阶段开始时，你失去此技能。'
 
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
 
 @ui_meta(characters.reisen.MahjongDrug)
 class MahjongDrug:
     # Skill
     name = '生药'
     description = '每当你因使用|G麻薯|r回复体力后，你可以获得|B喝醉|r状态。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.reisen.MahjongDrugAction)
