@@ -140,24 +140,25 @@ class ParanoiaHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
 
-            if act.amount: return act
-
             g = Game.getgame()
 
             src, tgt = act.source, act.target
-            if not src or not src.has_skill(Paranoia) or tgt.dead: return act
-            if not (tgt.cards or tgt.showncards): return act
+            if not src or not src.has_skill(Paranoia): return act
 
             pact = g.action_stack[-1]
             if isinstance(pact, Attack) and g.current_player is src:
                 if not src.tags['vitality']:
                     src.tags['vitality'] += 1
 
-                # disable skills:
+                if tgt.dead: return act
+
                 tgt.tags['paranoia'] = True
                 for s in tgt.skills:
                     if 'character' in s.skill_category:
                         tgt.disable_skill(s, 'paranoia')
+
+            if act.amount: return act
+            if not (tgt.cards or tgt.showncards) or tgt.dead: return act
 
             if user_input([src], ChooseOptionInputlet(self, (False, True))):
                 g.process_action(ParanoiaAction(src, tgt))
