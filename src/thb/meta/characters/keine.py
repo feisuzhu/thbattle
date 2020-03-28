@@ -8,7 +8,7 @@ import random
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import card_desc, ui_meta, my_turn, passive_clickable
+from thb.meta.common import ui_meta, my_turn, passive_clickable
 from thb.meta.common import passive_is_action_valid
 
 

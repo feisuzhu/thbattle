@@ -84,7 +84,7 @@ class Surprise:
             return (False, '请选择一张手牌！')
 
         # return (True, u'(´・ω・`)')
-        return (True, '\ ( °▽ °) /')
+        return (True, r'\ ( °▽ °) /')
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string

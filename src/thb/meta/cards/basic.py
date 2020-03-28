@@ -7,7 +7,7 @@ from __future__ import annotations
 from thb import actions
 from thb.actions import PlayerTurn, ttags
 from thb.cards import basic, definition
-from thb.meta.common import G, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --

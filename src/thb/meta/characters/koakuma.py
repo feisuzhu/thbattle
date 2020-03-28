@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta, my_turn
+from thb.meta.common import my_turn, ui_meta
+
 
 # -- code --
-
-
-
 @ui_meta(characters.koakuma.Koakuma)
 class Koakuma:
     # Character
@@ -30,17 +29,19 @@ class Find:
     name = '寻找'
     description = '出牌阶段限一次，你可以弃置至多X张牌，然后摸等量的牌。（X为场上存活角色数）'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = g.me
         if ttags(me)['find']:
             return False
 
-        if my_turn() and (me.cards or me.showncards or me.equips):
+        if my_turn(g) and (me.cards or me.showncards or me.equips):
             return True
 
         return False
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, cl, target_list):
+        g = self.game
         skill = cl[0]
         assert skill.is_card(characters.koakuma.Find)
         n = len([i for i in g.players if not i.dead])

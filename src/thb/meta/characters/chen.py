@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from typing import cast
+
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.cards.classes import AttackCard, DollControlCard, InstantSpellCardAction, RejectCard
 from thb.meta.common import ui_meta
-from thb.meta.typing import CharacterMeta
 from utils.misc import BatchList
+import thb.cards.classes as cards
 
 
 # -- code --
-
-
 @ui_meta(characters.chen.FlyingSkanda)
 class FlyingSkanda:
     # Skill
@@ -42,7 +41,7 @@ class FlyingSkanda:
         c = acards[0]
 
         while True:
-            if c.is_card(AttackCard): break
+            if c.is_card(cards.AttackCard): break
 
             rst = True
             rst = rst and not c.is_card(cards.RejectCard)
@@ -67,7 +66,7 @@ class FlyingSkanda:
         card = cast(characters.chen.FlyingSkanda, act.card).associated_cards[0]
         tl = BatchList(act.target_list)
 
-        if card.is_card(AttackCard):
+        if card.is_card(cards.AttackCard):
             s = '弹幕掺了金坷垃，攻击范围一千八！'
         else:
             s = '符卡掺了金坷垃，一张能顶两张用！'
