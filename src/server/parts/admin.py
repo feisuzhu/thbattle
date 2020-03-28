@@ -6,8 +6,6 @@ from typing import Any, Callable, List, TYPE_CHECKING, Tuple, TypeVar
 import logging
 
 # -- third party --
-import gevent
-
 # -- own --
 from server.endpoint import Client
 from utils.events import EventHub

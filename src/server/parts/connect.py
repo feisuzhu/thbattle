@@ -7,7 +7,6 @@ import json
 import logging
 
 # -- third party --
-import gevent
 import websocket
 
 # -- own --

@@ -12,7 +12,7 @@ from gevent.event import AsyncResult
 from mypy_extensions import TypedDict
 
 # -- own --
-from game.base import GameArchive, GameData, Player, BootstrapAction, GameItem
+from game.base import GameArchive, GameData, Player
 from server.base import Game as ServerGame, HumanPlayer, NPCPlayer
 from server.endpoint import Client
 from server.utils import command

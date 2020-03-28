@@ -4,7 +4,8 @@ from __future__ import annotations
 # -- stdlib --
 from enum import Enum
 from itertools import cycle
-from typing import Any, Dict, Generic, Iterable, List, Optional, TYPE_CHECKING, Tuple, Type, TypeVar, Sequence
+from typing import Any, Dict, Generic, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple
+from typing import Type, TypeVar
 import logging
 import random
 
@@ -12,7 +13,7 @@ import random
 from mypy_extensions import TypedDict
 
 # -- own --
-from game.base import Game, GameViralContext, Player, get_seed_for, sync_primitive
+from game.base import GameViralContext, Player, get_seed_for, sync_primitive
 from thb.item import GameItem
 from thb.mode import THBattle
 from utils.misc import BatchList, partition

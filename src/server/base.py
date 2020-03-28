@@ -3,24 +3,20 @@ from __future__ import annotations
 
 # -- stdlib --
 from copy import copy
-from typing import Any, Callable, Dict, List, Optional, Sequence, TYPE_CHECKING, Tuple, cast
+from typing import Any, Callable, Dict, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 import logging
 
 # -- third party --
 from gevent import Greenlet, iwait
 from gevent.pool import Group as GreenletGroup
-import gevent
-from gevent.timeout import Timeout
 
 # -- own --
 from endpoint import EndpointDied
-from game.base import BootstrapAction, Game, GameEnded, GameItem, GameRunner, InputTransaction, GameAbort
-from game.base import Inputlet, Player, TimeLimitExceeded
+from game.base import Game, GameAbort, GameEnded, GameRunner, InputTransaction, Inputlet, Player
+from game.base import TimeLimitExceeded
 from server.endpoint import Client
-from utils.misc import BatchList
 
-
-# -- code --
+# -- typing --
 if TYPE_CHECKING:
     from server.core import Core  # noqa: F401
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
-from typing import Dict, Optional, Set, TYPE_CHECKING, Tuple, Union
+from typing import Dict, Set, TYPE_CHECKING, Tuple, Union
 import logging
 
 # -- third party --

@@ -4,28 +4,27 @@ from __future__ import annotations
 # -- stdlib --
 from collections import defaultdict
 from copy import copy
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Union, cast
-from typing_extensions import Literal
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Union, cast
 import logging
 
 # -- third party --
-from typing_extensions import Protocol
+from typing_extensions import Literal, Protocol
 
 # -- own --
-from game.base import Action, ActionShootdown, EventArbiter, GameViralContext, InputTransaction, GameError
+from game.base import Action, ActionShootdown, EventArbiter, GameViralContext, InputTransaction
 from game.base import Player, sync_primitive
 from thb.cards.base import Card, CardList, PhysicalCard, Skill, VirtualCard
+from thb.common import PlayerRole
 from thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
 from thb.mode import THBAction, THBEventHandler, THBPlayerAction, THBattle
-from thb.common import PlayerRole
 from utils.check import CheckFailed, check, check_type
-from utils.misc import BatchList, group_by
-
+from utils.misc import BatchList
 
 # -- typing --
 if TYPE_CHECKING:
     from thb.characters.base import Character  # noqa: F401
+
 
 # -- code --
 log = logging.getLogger('THBattle_Actions')
@@ -585,7 +584,7 @@ class UseCard(GenericAction):
 
 class AskForCard(GenericAction):
 
-    def __init__(self, source: Character, target: Character, card_cls: Type[PhysicalCard], categories: Sequence[str]=('cards', 'showncards')):
+    def __init__(self, source: Character, target: Character, card_cls: Type[PhysicalCard], categories: Sequence[str] = ('cards', 'showncards')):
         self.source = source
         self.target = target
         self.card_cls = card_cls
@@ -712,7 +711,7 @@ class PutBack(GenericAction):
         self.front = front
 
     def apply_action(self):
-        g = Game.getgame()
+        g = self.game
         cards = self.cards
 
         migrate_cards(cards, g.deck.cards, front=self.front)

@@ -3,16 +3,16 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import deque
-import random
 from typing import Any, ClassVar, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple
-from typing import Type, Union
+from typing import Type
 from weakref import WeakValueDictionary
 import itertools
 import logging
+import random
 
 # -- third party --
 # -- own --
-from game.base import GameError, GameObject, GameViralContext, list_shuffle, get_seed_for
+from game.base import GameError, GameObject, GameViralContext, get_seed_for
 from thb.mode import THBattle
 
 # -- typing --

@@ -15,6 +15,7 @@ from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 class Daze(TreatAs, VirtualCard):
     treat_as = AttackCard
 
+
 # 「借走」的逻辑
 class BorrowAction(UserAction):
     def apply_action(self):

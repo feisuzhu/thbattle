@@ -7,16 +7,16 @@ import logging
 
 # -- third party --
 # -- own --
-# -- typing --
-if TYPE_CHECKING:
-    from thb.actions import CardChooser, CharacterChooser  # noqa: F401
-    from thb.characters.base import Character  # noqa: F401
-
-# -- errord --
 from game.base import Inputlet, Player
 from thb.cards.base import Card, Skill
 from thb.common import CharChoice
 from utils.check import CheckFailed, check, check_type
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.actions import CardChooser, CharacterChooser  # noqa: F401
+    from thb.characters.base import Character  # noqa: F401
+    from thb.mode import THBattle  # noqa: F401
 
 
 # -- code --

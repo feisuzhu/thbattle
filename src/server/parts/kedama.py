@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Union
 import logging
 
 # -- third party --

@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from collections import defaultdict
-from typing import Any, Dict, Sequence, Tuple, Type, TypeVar, cast
+from typing import Any, Dict, Sequence, Tuple, Type, TypeVar
 
 # -- third party --
 # -- own --

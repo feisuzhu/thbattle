@@ -9,7 +9,6 @@ import gevent
 
 # -- own --
 from .mock import Environ, EventTap
-from game.base import EventHandler
 
 
 # -- code --
@@ -31,7 +30,7 @@ class TestInvite(object):
         env = Environ()
         t = EventTap()
 
-        s = env.server_core()
+        _ = env.server_core()
         a, b, c, d, e = [env.client_core() for _ in range(5)]
         t.tap(a, b, c, d, e)
 

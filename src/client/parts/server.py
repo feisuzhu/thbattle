@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Optional, TYPE_CHECKING, cast, List
+from typing import Optional, TYPE_CHECKING
 from urllib.parse import urlparse
 import logging
 import socket

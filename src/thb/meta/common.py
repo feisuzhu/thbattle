@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
-from typing import Dict, Optional, Type, Union, Any
+from typing import Any, Dict, Optional, Type, Union
 
 # -- third party --
 # -- own --
-from game.base import GameObject, GameViralContext
+from game.base import GameViralContext
 from thb.characters.base import Character
 
 
@@ -26,14 +27,14 @@ class UIMetaAccessor(object):
             except AttributeError:
                 pass
 
-        raise AttributeError('%s.%s' % (self.cls.__name__, name))
+        raise AttributeError(f'{self.cls.__name__}.{name}')
 
 
 def ui_meta(for_cls: type):
     def decorate(cls: type):
         name = cls.__name__
         if name in UI_META:
-            raise Exception('%s ui_meta redefinition!' % name)
+            raise Exception(f'{name} ui_meta redefinition!')
 
         assert cls.__bases__ == (object,)
         cls.__bases__ = (GameViralContext,)
@@ -46,9 +47,7 @@ def ui_meta(for_cls: type):
 
 
 # -----BEGIN COMMON FUNCTIONS-----
-def my_turn():
-    g = G()
-
+def my_turn(g):
     try:
         act = g.action_stack[-1]
     except IndexError:
@@ -65,8 +64,8 @@ def my_turn():
     return True
 
 
-def limit1_skill_used(tag):
-    t = G().me.tags
+def limit1_skill_used(g, tag):
+    t = g.me.tags
     return t[tag] >= t['turn_count']
 
 
@@ -103,9 +102,9 @@ def card_desc(c):
     return suit + num + ' |G%s|r' % c.ui_meta.name
 
 
-def build_handcard(cardcls, p=None):
+def build_handcard(g, cardcls, p=None):
     from thb.cards.base import CardList
-    cl = CardList(p or G().me, 'cards')
+    cl = CardList(p or g.me, 'cards')
     c = cardcls()
     c.move_to(cl)
     return c

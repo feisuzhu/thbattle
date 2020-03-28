@@ -9,7 +9,6 @@ import gevent
 
 # -- own --
 from .mock import Environ, EventTap
-from game.base import EventHandler
 
 
 # -- code --

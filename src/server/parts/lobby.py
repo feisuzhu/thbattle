@@ -6,8 +6,6 @@ from typing import Dict, Optional, Sequence, TYPE_CHECKING, Tuple
 import logging
 
 # -- third party --
-import gevent
-
 # -- own --
 from endpoint import Endpoint
 from server.base import Game

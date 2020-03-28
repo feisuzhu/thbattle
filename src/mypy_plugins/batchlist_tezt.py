@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 
 from utils.misc import BatchList
-from typing import Type, Callable, Any
+from typing import Callable, Any
 
 
 def deco(f) -> Callable[[Any, int], int]:
@@ -38,10 +38,3 @@ class A:
 
 
 a = BatchList[A]([A(), A()])
-reveal_type(a.foo)
-reveal_type(a.bar)
-reveal_type(a.baz)
-reveal_type(a.meh)
-reveal_type(a.aha)
-reveal_type(a.moo)
-reveal_type(a.mua)
