@@ -100,7 +100,7 @@ class AutumnWindHandler(THBEventHandler):
 class AutumnWind(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class DecayDrawCards(DrawCards):
@@ -219,7 +219,7 @@ class DecayFadeHandler(THBEventHandler):
 class Decay(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 @register_character_to('common')

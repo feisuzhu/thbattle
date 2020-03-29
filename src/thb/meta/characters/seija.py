@@ -55,8 +55,8 @@ class Incite:
 
         return self.my_turn()
 
-    def is_action_valid(self, g, cl, tl):
-        if cl[0].associated_cards:
+    def is_action_valid(self, sk, tl):
+        if sk.associated_cards:
             return (False, '请不要选择牌！')
 
         if not len(tl):

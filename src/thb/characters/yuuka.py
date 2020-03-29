@@ -32,13 +32,13 @@ class ReversedScales(TreatAs, Skill):
 class Sadist(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class SadistKOF(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class SadistKOFDrawCards(DrawCards):

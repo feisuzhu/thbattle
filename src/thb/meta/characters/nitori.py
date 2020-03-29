@@ -9,26 +9,24 @@ import random
 from thb import actions, characters
 from thb.actions import PlayerTurn, ttags
 from thb.cards.classes import AttackCard, GrazeCard
-from thb.meta.common import build_handcard, my_turn, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.nitori.Dismantle)
 class Dismantle:
     # Skill
     name = '拆解'
     description = '出牌阶段限一次，你可以|B重铸|r一名其他角色装备区里的一张装备牌，然后该角色摸一张牌。'
 
-    def clickable(self, g):
-        if ttags(g.me)['dismantle']:
+    def clickable(self):
+        if ttags(self.me)['dismantle']:
             return False
 
-        return my_turn()
+        return self.my_turn()
 
-    def is_action_valid(self, g, cl, tl):
-        if cl[0].associated_cards:
+    def is_action_valid(self, sk, tl):
+        if sk.associated_cards:
             return (False, '请不要选择牌！')
 
         if not len(tl):
@@ -65,21 +63,21 @@ class Craftsman:
         except (IndexError, AttributeError):
             return False
 
-    def is_complete(self, g, skill):
+    def is_complete(self, skill):
+        me = self.me
         assert skill.is_card(characters.nitori.Craftsman)
-        if set(skill.associated_cards) != set(g.me.cards) | set(g.me.showncards):
+        if set(skill.associated_cards) != set(me.cards) | set(me.showncards):
             return (False, '请选择所有的手牌（包括明牌）！')
 
         return (True, '我TMD有老婆了！')
 
-    def is_action_valid(self, g, cl, target_list, is_complete=is_complete):
-        skill = cl[0]
-        assert skill.is_card(characters.nitori.Craftsman)
-        rst, reason = is_complete(g, cl)
+    def is_action_valid(self, sk, tl):
+        assert sk.is_card(characters.nitori.Craftsman)
+        rst, reason = self.is_complete(sk)
         if not rst:
             return (rst, reason)
         else:
-            return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
+            return sk.treat_as.ui_meta.is_action_valid([sk], tl)
 
     def effect_string(self, act):
         # for LaunchCard.effect_string
@@ -97,8 +95,8 @@ class Craftsman:
                 l = ['_graze']
 
         elif isinstance(act, actions.AskForCard):
-            atk = act.cond([build_handcard(AttackCard, act.target)])
-            graze = act.cond([build_handcard(GrazeCard, act.target)])
+            atk = act.cond([self.build_handcard(AttackCard, act.target)])
+            graze = act.cond([self.build_handcard(GrazeCard, act.target)])
             if atk and not graze:
                 l = ['1', '2']
             else:

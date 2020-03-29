@@ -98,7 +98,7 @@ class EquipmentTransferHandler(EventHandler):
 
 class ShieldSkill(Skill):
     associated_action = None
-    target = t_None
+    target = t_None()
 
 
 class OpticalCloakSkill(TreatAs, ShieldSkill):  # just a tag
@@ -179,7 +179,7 @@ class MomijiShieldHandler(EventHandler):
 class UFOSkill(Skill):
     associated_action = None
     skill_category = ['equip', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class GreenUFOSkill(UFOSkill):
@@ -223,7 +223,7 @@ class WeaponSkill(Skill):
 class RoukankenSkill(WeaponSkill):
     associated_action = None
     skill_category = ['equip', 'passive']
-    target = t_None
+    target = t_None()
     range = 3
 
 
@@ -287,7 +287,7 @@ class RoukankenEffectHandler(EventHandler):
 class NenshaPhoneSkill(WeaponSkill):
     associated_action = None
     skill_category = ['equip', 'passive']
-    target = t_None
+    target = t_None()
     range = 4
 
 
@@ -328,7 +328,7 @@ class NenshaPhoneHandler(EventHandler):
 class ElementalReactorSkill(WeaponSkill):
     associated_action = None
     skill_category = ['equip', 'passive']
-    target = t_None
+    target = t_None()
     range = 1
 
 
@@ -355,7 +355,7 @@ class ElementalReactorHandler(EventHandler):
 
 
 class GungnirSkill(TreatAs, WeaponSkill):
-    target = t_OtherOne
+    target = t_OtherOne()
     skill_category = ['equip', 'active']
     range = 3
     treat_as = PhysicalCard.classes['AttackCard']  # arghhhhh, nasty circular references!
@@ -416,7 +416,7 @@ class RepentanceStickSkill(WeaponSkill):
     range = 2
     skill_category = ['equip', 'passive']
     associated_action = None
-    target = t_None
+    target = t_None()
 
 
 class RepentanceStick(GenericAction):
@@ -522,7 +522,7 @@ class HouraiJewelAttack(basic.BaseAttack, spellcard.InstantSpellCardAction):
 class HouraiJewelSkill(WeaponSkill):
     associated_action = None
     skill_category = ['equip', 'passive']
-    target = t_None
+    target = t_None()
     range = 1
 
 
@@ -632,7 +632,7 @@ class HakuroukenSkill(WeaponSkill):
     range = 2
     skill_category = ['equip', 'passive']
     associated_action = None
-    target = t_None
+    target = t_None()
 
 
 class Hakurouken(GenericAction):
@@ -727,7 +727,7 @@ class AyaRoundfanSkill(WeaponSkill):
     range = 5
     skill_category = ['equip', 'passive']
     associated_action = None
-    target = t_None
+    target = t_None()
 
 
 @register_eh
@@ -769,7 +769,7 @@ class LaevateinSkill(WeaponSkill):
     range = 3
     skill_category = ['equip', 'passive']
     associated_action = None
-    target = t_None
+    target = t_None()
 
 
 @register_eh
@@ -820,7 +820,7 @@ class DeathSickleSkill(WeaponSkill):
     range = 2
     skill_category = ['equip', 'passive']
     associated_action = None
-    target = t_None
+    target = t_None()
 
 
 class DeathSickle(GenericAction):
@@ -890,7 +890,7 @@ class WitchBroomSkill(RedUFOSkill):
 
 class AccessoriesSkill(Skill):
     associated_action = None
-    target = t_None
+    target = t_None()
 
 
 class YinYangOrb(GenericAction):

@@ -49,7 +49,7 @@ class THBattle(Game):
             if ch.player is p:
                 return ch
 
-        raise Exception('Could not find character!')
+        raise IndexError('Could not find character!')
 
 
 class THBAction(Action):

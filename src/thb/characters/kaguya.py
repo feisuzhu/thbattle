@@ -18,7 +18,7 @@ from thb.mode import THBEventHandler
 class Dilemma(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class DilemmaDamageAction(UserAction):

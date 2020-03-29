@@ -317,8 +317,8 @@ class GungnirSkill:
 
         return False
 
-    def is_complete(self, g, skill):
-        me = g.me
+    def is_complete(self, skill):
+        me = self.me
         assert skill.is_card(equipment.GungnirSkill)
         acards = skill.associated_cards
         if len(acards) != 2:
@@ -327,14 +327,13 @@ class GungnirSkill:
             return (False, '只能使用手牌发动！')
         return (True, '反正这条也看不到，偷个懒~~~')
 
-    def is_action_valid(self, g, cl, target_list, is_complete=is_complete):
-        skill = cl[0]
-        assert skill.is_card(equipment.GungnirSkill)
-        rst, reason = is_complete(g, cl)
+    def is_action_valid(self, sk, tl):
+        assert sk.is_card(equipment.GungnirSkill)
+        rst, reason = self.is_complete(sk)
         if not rst:
             return (rst, reason)
         else:
-            return definition.AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
+            return definition.AttackCard().ui_meta.is_action_valid(sk, tl)
 
     def effect_string(self, act):
         # for LaunchCard.effect_string
@@ -387,16 +386,15 @@ class ScarletRhapsodySkill:
 
         return False
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
-        assert skill.is_card(equipment.ScarletRhapsodySkill)
-        if not skill.check():
+    def is_action_valid(self, sk, tl):
+        assert sk.is_card(equipment.ScarletRhapsodySkill)
+        if not sk.check():
             return (False, '请选择你的最后一张【弹幕】！')
         else:
-            if not target_list:
+            if not tl:
                 return (False, '请选择弹幕的目标（最多可以选择3名玩家）')
 
-            if g.me in target_list:
+            if self.me in tl:
                 return (True, '您真的要自残么？！')
             else:
                 return (True, '全人类的绯想天！')
@@ -1076,14 +1074,13 @@ class GrimoireSkill:
 
         return False
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
-        assert skill.is_card(equipment.GrimoireSkill)
-        acards = skill.associated_cards
+    def is_action_valid(self, sk, tl):
+        assert sk.is_card(equipment.GrimoireSkill)
+        acards = sk.associated_cards
         if not (len(acards)) == 1:
             return (False, '请选择一张牌')
         else:
-            s = skill.lookup_tbl[acards[0].suit].ui_meta.name
+            s = sk.lookup_tbl[acards[0].suit].ui_meta.name
             return (True, '发动【%s】' % s)
 
     def effect_string(self, act):
@@ -1131,11 +1128,11 @@ class SinsackHatCard:
         '|DB（画师：霏茶，CV：大白）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
-        if not target_list:
+    def is_action_valid(self, c, tl):
+        if not tl:
             return (False, '请选择目标')
-        t = target_list[0]
-        if g.me is t:
+        t = tl[0]
+        if self.me is t:
             return (True, '真的要自己戴上吗？')
         return (True, '是这样的，这个不是胖次……不不，真的没有胖次')
 

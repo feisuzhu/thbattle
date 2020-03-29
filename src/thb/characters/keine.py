@@ -101,7 +101,7 @@ class Teach(Skill):
     associated_action = TeachAction
     skill_category = ['character', 'active']
     no_drop = True
-    target = t_OtherOne
+    target = t_OtherOne()
     usage = 'reforge'
 
     def check(self):
@@ -116,7 +116,7 @@ class Teach(Skill):
 class KeineGuard(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'awake', 'once')
-    target = t_None
+    target = t_None()
 
 
 class KeineGuardAction(UserAction):
@@ -150,7 +150,7 @@ class KeineGuardAction(UserAction):
 class Devoted(Skill):
     associated_action = None
     skill_category = ('character', 'passive', 'awake')
-    target = t_None
+    target = t_None()
 
 
 class DevotedDrawCards(DrawCards):

@@ -60,10 +60,10 @@ class Melancholy:
 class MelancholyPoison:
     name = '忧郁之毒(效果)'
 
-    def is_complete(self, g, skill):
+    def is_complete(self, skill):
         return (False, '忧郁之毒：无法使用或打出手牌直到该回合结束')
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, sk, tl):
         return (False, '忧郁之毒：无法使用或打出手牌直到该回合结束')
 
 

@@ -72,13 +72,14 @@ class Agile:
 
         return False
 
-    def is_complete(self, g, skill):
+    def is_complete(self, skill):
         cl = skill.associated_cards
+        me = self.me
         if len(cl) != 1:
             return (False, '请选择一张牌！')
         else:
             c = cl[0]
-            if c.resides_in not in (g.me.cards, g.me.showncards):
+            if c.resides_in not in (me.cards, me.showncards):
                 return (False, '请选择手牌！')
             if c.suit not in (Card.SPADE, Card.CLUB):
                 return (False, '请选择一张黑色的牌！')
@@ -96,13 +97,14 @@ class AgileKOF:
 
     clickable = Agile.clickable
 
-    def is_complete(self, g, skill):
+    def is_complete(self, skill):
         cl = skill.associated_cards
+        me = self.me
         if len(cl) != 1:
             return (False, '请选择一张牌！')
         else:
             c = cl[0]
-            if c.resides_in not in (g.me.cards, g.me.showncards):
+            if c.resides_in not in (me.cards, me.showncards):
                 return (False, '请选择手牌！')
             if c.suit != Card.SPADE:
                 return (False, '请选择一张黑桃色手牌牌！')

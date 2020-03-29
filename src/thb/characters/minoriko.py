@@ -14,7 +14,7 @@ from thb.mode import THBEventHandler
 class Foison(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class FoisonDrawCardStage(DrawCardStage):
@@ -62,7 +62,7 @@ class AutumnFeast(TreatAs, Skill):
 class AkiTribute(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class AkiTributeCollectCard(UserAction):

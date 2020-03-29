@@ -112,8 +112,8 @@ class KanakoFaith(Skill):
     def check(self):
         return not self.associated_cards
 
-    @staticmethod
-    def target(g, p, tl):
+    def target(self, p, tl):
+        g = self.game
         l = g.players.rotate_to(p)
         del l[0]
 
@@ -182,7 +182,7 @@ class VirtueHandler(THBEventHandler):
 class KanakoFaithKOF(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class KanakoFaithKOFAction(DrawCards):
@@ -219,7 +219,7 @@ class KanakoFaithKOFHandler(THBEventHandler):
 class Virtue(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 @register_character_to('common', '-kof')

@@ -33,9 +33,8 @@ class FlyingSkanda:
             pass
         return False
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
-        acards = skill.associated_cards
+    def is_action_valid(self, sk, tl):
+        acards = sk.associated_cards
         if len(acards) != 1:
             return (False, '请选择一张牌！')
         c = acards[0]
@@ -52,10 +51,10 @@ class FlyingSkanda:
 
             return (False, '请选择一张【弹幕】或者除【人形操控】与【好人卡】之外的非延时符卡！')
 
-        if len(target_list) != 2:
+        if len(tl) != 2:
             return (False, '请选择目标（2名玩家）')
 
-        if g.me is target_list[-1]:
+        if self.me is tl[-1]:
             return (False, '不允许选择自己')
         else:
             return (True, '喵！')
@@ -101,9 +100,8 @@ class Shikigami:
             pass
         return False
 
-    def is_action_valid(self, g, cl, tl):
-        skill = cl[0]
-        cl = skill.associated_cards
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
         if cl:
             return (False, '请不要选择牌')
 

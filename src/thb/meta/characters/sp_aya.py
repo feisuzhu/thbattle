@@ -23,8 +23,8 @@ class WindWalk:
         me = self.me
         return bool(me.cards or me.showncards or me.equips)
 
-    def is_action_valid(self, g, cl, tl):
-        acards = cl[0].associated_cards
+    def is_action_valid(self, sk, tl):
+        acards = sk.associated_cards
         if (not acards) or len(acards) != 1:
             return (False, '请选择一张牌')
 

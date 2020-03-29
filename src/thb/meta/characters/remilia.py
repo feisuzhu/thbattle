@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import annotations
 
 # -- stdlib --
 import random
@@ -7,12 +7,10 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, my_turn
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.remilia.SpearTheGungnir)
 class SpearTheGungnir:
     # Skill
@@ -104,13 +102,12 @@ class ScarletMist:
         '|B|R>> |r其他角色使用|G弹幕|r时只能指定距离为1的目标。'
     )
 
-    def clickable(self, g):
-        me = g.me
-        return my_turn() and not me.tags['scarlet_mist_used']
+    def clickable(self):
+        me = self.me
+        return self.my_turn() and not me.tags['scarlet_mist_used']
 
-    def is_action_valid(self, g, cl, tl):
-        skill = cl[0]
-        if skill.associated_cards:
+    def is_action_valid(self, sk, tl):
+        if sk.associated_cards:
             return (False, '红雾：请不要选择牌！')
 
         if not tl:

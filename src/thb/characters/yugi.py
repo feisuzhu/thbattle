@@ -22,7 +22,7 @@ class Assault(RedUFOSkill):
 class AssaultKOF(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class AssaultAttack(TreatAs, VirtualCard):
@@ -53,7 +53,7 @@ class AssaultKOFHandler(THBEventHandler):
 class FreakingPower(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class FreakingPowerAction(FatetellAction):

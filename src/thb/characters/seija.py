@@ -92,7 +92,7 @@ class Incite(Skill):
 class Reversal(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class ReversalDuel(TreatAs, VirtualCard):

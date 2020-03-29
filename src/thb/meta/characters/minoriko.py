@@ -44,9 +44,8 @@ class AutumnFeast:
 
         return True
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
-        cl = skill.associated_cards
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
         from thb.cards.classes import Card
         if len(cl) != 2 or any(c.color != Card.RED for c in cl):
             return (False, '请选择2张红色的牌！')

@@ -21,7 +21,7 @@ class Masochist(Skill):
     # 技能的分类
     skill_category = ['character', 'passive']
     # 技能的目标，因为没有附带动作所以也没有目标
-    target = t_None
+    target = t_None()
 
 
 # 「抖M」技能动作
@@ -115,7 +115,7 @@ class ScarletPerception(Skill):
     distance = 1
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class ScarletPerceptionAction(GenericAction):

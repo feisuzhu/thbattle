@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, TYPE_CHECKING, Type, Union
 
 # -- third party --
 # -- own --
 from game.base import GameViralContext
-from thb.characters.base import Character
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.mode import THBattle
+    from thb.characters.base import Character  # noqa: F401
 
 
 # -- code --
@@ -36,8 +40,7 @@ def ui_meta(for_cls: type):
         if name in UI_META:
             raise Exception(f'{name} ui_meta redefinition!')
 
-        assert cls.__bases__ == (object,)
-        cls.__bases__ = (UIMetaBase,)
+        cls = type(name, (cls, UIMetaBase), {})
 
         # Type info is handled by plugin
         for_cls.ui_meta = UIMetaAccessor(for_cls)  # type: ignore
@@ -48,6 +51,15 @@ def ui_meta(for_cls: type):
 
 # -----BEGIN COMMON FUNCTIONS-----
 class UIMetaBase(GameViralContext):
+    game: THBattle
+
+    def __init__(self):
+        g = self.game
+        me = g.runner.core.game.theone_of(g)
+        try:
+            self.me = g.find_character(me)
+        except IndexError:
+            self.me = me
 
     def my_turn(self):
         g = self.game
@@ -74,7 +86,7 @@ class UIMetaBase(GameViralContext):
     def clickable(self):
         return False
 
-    def is_action_valid(self, cl, tl):
+    def is_action_valid(self, c, tl):
         return (False, 'BUG!')
 
     def card_desc(self, c):

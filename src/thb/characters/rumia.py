@@ -80,7 +80,7 @@ class Darkness(Skill):
 class DarknessKOF(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class DarknessKOFAction(UserAction):
@@ -134,7 +134,7 @@ class DarknessKOFHandler(THBEventHandler):
 class Cheating(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class CheatingDrawCards(DrawCards):

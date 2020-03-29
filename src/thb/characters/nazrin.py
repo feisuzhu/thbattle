@@ -33,7 +33,7 @@ class TreasureHuntAction(FatetellAction):
 class TreasureHunt(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class TreasureHuntHandler(THBEventHandler):

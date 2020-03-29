@@ -160,7 +160,7 @@ class AssistedAttackAction(UserAction):
 
 class AssistedAttack(Skill):
     associated_action = AssistedAttackAction
-    target = t_One
+    target = t_One()
     skill_category = ['character', 'active', 'boss']
     distance = 1
 
@@ -170,7 +170,7 @@ class AssistedAttack(Skill):
 
 class AssistedGraze(Skill):
     associated_action = None
-    target = t_None
+    target = t_None()
     skill_category = ['character', 'passive', 'boss']
 
 
@@ -289,7 +289,7 @@ class AssistedHealHandler(THBEventHandler):
 
 class AssistedHeal(Skill):
     associated_action = None
-    target = t_None
+    target = t_None()
     skill_category = ['character', 'passive', 'boss']
 
 
@@ -313,7 +313,7 @@ class ExtraCardSlotHandler(THBEventHandler):
 
 class ExtraCardSlot(Skill):
     associated_action = None
-    target = t_None
+    target = t_None()
     skill_category = ['character', 'passive', 'boss']
 
 

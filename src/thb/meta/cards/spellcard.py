@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 import itertools
@@ -7,7 +8,7 @@ import random
 # -- third party --
 # -- own --
 from thb.cards import definition, spellcard
-from thb.meta.common import card_desc, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -23,11 +24,11 @@ class DemolitionCard:
         '|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
-        if not target_list:
+    def is_action_valid(self, c, tl):
+        if not tl:
             return (False, '请选择拆除目标')
 
-        tgt = target_list[0]
+        tgt = tl[0]
         if not sum([len(l) for l in [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell]]):
             return (False, '这货已经没有牌了')
         else:
@@ -44,7 +45,7 @@ class Demolition:
         return '|G【%s】|r卸掉了|G【%s】|r的%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
-            card_desc(act.card),
+            self.card_desc(act.card),
         )
 
 
@@ -60,7 +61,7 @@ class RejectCard:
         '|DB（画师：霏茶，CV：VV）'
     )
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, c, tl):
         return (False, '你不能主动出好人卡')
 
     def effect_string(self, act):
@@ -118,11 +119,11 @@ class SealingArrayCard:
         '|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
-        if len(target_list) != 1:
+    def is_action_valid(self, c, tl):
+        if len(tl) != 1:
             return (False, '请选择封魔阵的目标')
-        t = target_list[0]
-        if g.me is t:
+        t = tl[0]
+        if self.me is t:
             return (False, '你不能跟自己过不去啊！')
 
         return (True, '画个圈圈诅咒你！')
@@ -155,11 +156,11 @@ class FrozenFrogCard:
         '|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
-        if len(target_list) != 1:
+    def is_action_valid(self, c, tl):
+        if len(tl) != 1:
             return (False, '请选择冻青蛙的目标')
-        t = target_list[0]
-        if g.me is t:
+        t = tl[0]
+        if self.me is t:
             return (False, '你不能跟自己过不去啊！')
 
         return (True, '伸手党什么的，冻住就好了！')
@@ -190,7 +191,7 @@ class NazrinRodCard:
         '|DB（画师：霏茶，CV：VV）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, c, tl):
         return (True, '看看能找到什么好东西~')
 
     def sound_effect(self, act):
@@ -213,7 +214,7 @@ class SinsackCard:
         '|DB（画师：霏茶，CV：VV/大白）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, c, tl):
         return (True, '别来找我！')
 
     def sound_effect(self, act):
@@ -247,11 +248,11 @@ class YukariDimensionCard:
         '|DB（画师：霏茶，CV：VV）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
-        if not target_list:
+    def is_action_valid(self, c, tl):
+        if not tl:
             return (False, '请选择目标')
 
-        target = target_list[0]
+        target = tl[0]
         if not (target.cards or target.showncards or target.equips or target.fatetell):
             return (False, '这货已经没有牌了')
         else:
@@ -284,8 +285,8 @@ class DuelCard:
         '|DB（画师：霏茶，CV：小羽）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
-        if not target_list:
+    def is_action_valid(self, c, tl):
+        if not tl:
             return (False, '请选择弹幕战的目标')
 
         return (True, '来，战个痛快！')
@@ -305,7 +306,7 @@ class MapCannonCard:
         '|DB（画师：霏茶，CV：VV）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, c, tl):
         return (True, '一个都不能跑！')
 
     def sound_effect(self, act):
@@ -323,7 +324,7 @@ class DemonParadeCard:
         '|DB（画师：霏茶，CV：小羽）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, c, tl):
         return (True, '一只鬼，两只鬼，三只鬼……')
 
     def sound_effect(self, act):
@@ -342,7 +343,7 @@ class FeastCard:
         '|DB（画师：霏茶，CV：VV）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, c, tl):
         return (True, '开宴啦~~')
 
     def sound_effect(self, act):
@@ -365,7 +366,7 @@ class HarvestCard:
         '|DB（画师：霏茶，CV：VV）|r'
     )
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, c, tl):
         return (True, '麻薯会有的，节操是没有的！')
 
     def sound_effect(self, act):
@@ -380,7 +381,7 @@ class HarvestEffect:
         c = act.card
         return '|G【%s】|r获得了|G%s|r。' % (
             tgt.ui_meta.name,
-            card_desc(c),
+            self.card_desc(c),
         )
 
 
@@ -397,12 +398,12 @@ class DollControlCard:
     )
     custom_ray = True
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, c, tl):
         n = len(tl)
         if n == 0:
             return (False, '请选择被控者')
 
-        if tl[0] is g.me:
+        if tl[0] is self.me:
             return (False, '你不可以控制你自己')
 
         if all(e.equipment_category != 'weapon' for e in tl[0].equips):
@@ -434,7 +435,7 @@ class DollControl:
 
     def ray(self, act):
         src = act.source
-        tl = act.target_list
+        tl = act.tl
         return [(src, tl[0]), (tl[0], tl[1])]
 
 
@@ -450,7 +451,7 @@ class DonationBoxCard:
         '|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, c, tl):
         n = len(tl)
         if not n:
             return (False, '请选择1-2名玩家')

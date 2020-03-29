@@ -45,11 +45,9 @@ class GuidedDeath:
 
         return True
 
-    def is_action_valid(self, g, cl, tl):
-        skill = cl[0]
-        assert skill.is_card(characters.yuyuko.GuidedDeath)
-
-        cards = skill.associated_cards
+    def is_action_valid(self, sk, tl):
+        assert sk.is_card(characters.yuyuko.GuidedDeath)
+        cards = sk.associated_cards
 
         if len(cards) != 0:
             return (False, '请不要选择牌')
@@ -69,6 +67,7 @@ class GuidedDeath:
         return 'thb-cv-yuyuko_pcb'
 
 
+@ui_meta(characters.yuyuko.SoulDrain)
 class SoulDrain:
     # Skill
     name = '离魂'
@@ -79,6 +78,7 @@ class SoulDrain:
     )
 
 
+@ui_meta(characters.yuyuko.PerfectCherryBlossom)
 class PerfectCherryBlossom:
     # Skill
     name = '反魂'
@@ -87,6 +87,7 @@ class PerfectCherryBlossom:
     )
 
 
+@ui_meta(characters.yuyuko.PerfectCherryBlossomExtractAction)
 class PerfectCherryBlossomExtractAction:
     choose_option_prompt = '返魂：请选择你要的效果'
     choose_option_buttons = (('回复体力', 'life'), ('增加体力上限', 'maxlife'))

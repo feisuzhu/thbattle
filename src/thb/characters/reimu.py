@@ -47,7 +47,7 @@ class SpiritualAttack(TreatAs, Skill):
 class TributeTarget(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'boss']
-    target = t_None
+    target = t_None()
 
 
 class TributeAction(UserAction):
@@ -86,11 +86,10 @@ class Tribute(Skill):
         )
         return rst
 
-    @staticmethod
-    def target(g, source, tl):
+    def target(self, src, tl):
         tl = [t for t in tl if not t.dead and t.has_skill(TributeTarget)]
         try:
-            tl.remove(source)
+            tl.remove(src)
         except ValueError:
             pass
         return (tl[-1:], bool(len(tl)))
@@ -139,7 +138,7 @@ class TributeHandler(THBEventHandler):
 class ReimuExterminate(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class ReimuExterminateLaunchCard(LaunchCard):
@@ -227,7 +226,7 @@ class ReimuExterminateHandler(THBEventHandler):
 class ReimuClear(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class ReimuClearAction(UserAction):

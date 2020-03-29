@@ -25,7 +25,7 @@ class AttackCard:
         '|DB（画师：霏茶，CV：VV）|r'
     )
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, c, tl):
         if not tl:
             return (False, '请选择弹幕的目标')
 
@@ -63,7 +63,7 @@ class GrazeCard:
         '|DB（画师：霏茶，CV：小羽）|r'
     )
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, c, tl):
         return (False, '你不能主动使用擦弹')
 
     def effect_string(self, act):
@@ -104,8 +104,9 @@ class WineCard:
         '|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
-    def is_action_valid(self, g, cl, tl):
-        if g.me.tags.get('wine', False):
+    def is_action_valid(self, c, tl):
+        me = self.me
+        if me.tags.get('wine', False):
             return (True, '你已经醉了，还要再喝吗？')
         return (True, '青岛啤酒，神主也爱喝！')
 
@@ -142,7 +143,7 @@ class ExinwanCard:
         '|DB（画师：霏茶，CV：shourei小N）|r'
     )
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, c, tl):
         return (True, '哼，哼，哼哼……')
 
 
@@ -225,7 +226,7 @@ class HealCard:
         '|DB（画师：霏茶，CV：VV）|r'
     )
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, c, tl):
         target = tl[0]
 
         if target.life >= target.maxlife:

@@ -35,7 +35,7 @@ class DismantleAction(UserAction):
 class Dismantle(Skill):
     associated_action = DismantleAction
     skill_category = ['character', 'active']
-    target = t_OtherOne
+    target = t_OtherOne()
 
     def check(self):
         return not self.associated_cards

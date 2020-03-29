@@ -56,16 +56,16 @@ class Support:
 
         return False
 
-    def is_action_valid(self, g, cl, target_list):
-        cl = cl[0].associated_cards
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
         if not cl: return (False, '请选择要给出的牌')
-        me = g.me
+        me = self.me
         allcards = list(me.cards) + list(me.showncards) + list(me.equips)
         if any(
             c not in allcards
             for c in cl
         ): return (False, '你只能选择手牌与装备牌！')
-        if len(target_list) != 1: return (False, '请选择1名玩家')
+        if len(tl) != 1: return (False, '请选择1名玩家')
         return (True, '加油！')
 
     def effect_string(self, act):

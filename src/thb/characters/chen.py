@@ -39,17 +39,17 @@ class FlyingSkanda(Skill):
     skill_category = ['character', 'active']
     usage = 'launch'
 
-    def target(self, g, source, tl):
+    def target(self, src, tl):
         tl = [ch for ch in tl if not ch.dead]
         cl = self.associated_cards
         if not cl: return ([], False)
         c = cl[0]
         if len(tl) < 2:
-            return c.target(g, source, tl)
+            return c.target(src, tl)
         else:
-            rst = c.target(g, source, tl[:-1])
+            rst = c.target(src, tl[:-1])
             a = tl[-1]
-            if a is source:
+            if a is src:
                 return rst[0], False
             else:
                 return rst[0] + [a], rst[1]
@@ -118,7 +118,7 @@ class ShikigamiAction(UserAction):
 class Shikigami(Skill):
     associated_action = ShikigamiAction
     skill_category = ['character', 'active', 'once']
-    target = t_OtherOne
+    target = t_OtherOne()
 
     def check(self):
         return not self.associated_cards

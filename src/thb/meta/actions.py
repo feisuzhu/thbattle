@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from typing import Optional
@@ -7,7 +8,7 @@ import random
 # -- third party --
 # -- own --
 from thb import actions
-from thb.meta.common import G, card_desc, ui_meta
+from thb.meta.common import ui_meta
 from utils.misc import BatchList
 
 
@@ -49,7 +50,7 @@ class ActiveDropCards:
     def effect_string(self, act):
         if act.dropn > 0 and act.cards:
             return '|G【%s】|r弃掉了%d张牌：%s。' % (
-                act.target.ui_meta.name, act.dropn, card_desc(act.cards),
+                act.target.ui_meta.name, act.dropn, self.card_desc(act.cards),
             )
 
 
@@ -175,15 +176,15 @@ class TurnOverCard:
         tgt = act.target
         return '|G【%s】|r翻开了牌堆顶的一张牌，%s。' % (
             tgt.ui_meta.name,
-            card_desc(act.card)
+            self.card_desc(act.card)
         )
 
 
 @ui_meta(actions.RevealRole)
 class RevealRole:
     def effect_string(self, act):
-        g = G()
-        me = g.me
+        g = self.game
+        me = self.me
         if not (me in act.to if isinstance(act.to, list) else me is act.to):
             return
 
@@ -196,7 +197,7 @@ class RevealRole:
 
         return '%s的身份是：|R%s|r。' % (
             name,
-            G().ui_meta.identity_table[i.type],
+            g.ui_meta.identity_table[i.type],
         )
 
 

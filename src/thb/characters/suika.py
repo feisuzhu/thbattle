@@ -51,7 +51,7 @@ class HeavyDrinkerAction(UserAction):
 class HeavyDrinker(Skill):
     skill_category = ['character', 'active']
     associated_action = HeavyDrinkerAction
-    target = t_OtherOne
+    target = t_OtherOne()
 
     def check(self):
         return not self.associated_cards
@@ -69,7 +69,7 @@ class HeavyDrinkerHandler(THBEventHandler):
 
 
 class DrunkenDream(Skill):
-    target = t_None
+    target = t_None()
     associated_action = None
     skill_category = ['character', 'passive']
 

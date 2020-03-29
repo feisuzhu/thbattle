@@ -47,19 +47,19 @@ class Dagger:
 
         return False
 
-    def is_complete(self, g, skill):
+    def is_complete(self, skill):
         assert skill.is_card(characters.sakuya.Dagger)
         cl = skill.associated_cards
         if len(cl) != 1 or 'equipment' not in cl[0].category:
             return (False, '请选择一张装备牌！')
         return (True, '快看！灰出去了！')
 
-    def is_action_valid(self, g, cl, target_list, is_complete=is_complete):
-        rst, reason = is_complete(g, cl)
+    def is_action_valid(self, sk, tl):
+        rst, reason = self.is_complete(sk)
         if not rst:
             return rst, reason
         else:
-            return AttackCard.ui_meta.is_action_valid(g, cl, target_list)
+            return AttackCard().ui_meta.is_action_valid(sk, tl)
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string

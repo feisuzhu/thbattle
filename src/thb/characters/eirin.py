@@ -62,7 +62,7 @@ class SkySilkAction(UserAction):
 class SkySilk(Skill):
     associated_action = SkySilkAction
     skill_category = ('character', 'active')
-    target = t_One
+    target = t_One()
     usage = 'drop'
 
     def check(self):

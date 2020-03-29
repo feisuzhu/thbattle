@@ -14,13 +14,13 @@ from thb.mode import THBEventHandler
 class Library(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class Knowledge(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class LibraryDrawCards(DrawCards):

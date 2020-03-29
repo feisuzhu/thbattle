@@ -79,13 +79,12 @@ class AssistedAttack:
 
         return True
 
-    def is_action_valid(self, g, cl, tl):
-        s = cl[0]
-        cl = s.associated_cards
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
         if len(cl):
             return (False, '请不要选择牌！')
 
-        return AttackCard.ui_meta.is_action_valid(g, [s], tl)
+        return AttackCard().ui_meta.is_action_valid(sk, tl)
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string

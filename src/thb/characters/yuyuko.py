@@ -47,7 +47,7 @@ class GuidedDeathAction(UserAction):
 class GuidedDeath(Skill):
     associated_action = GuidedDeathAction
     skill_category = ('character', 'active')
-    target = t_OtherOne
+    target = t_OtherOne()
     usage = 'drop'
 
     def check(self):
@@ -83,7 +83,7 @@ class GuidedDeathHandler(THBEventHandler):
 class SoulDrain(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class SoulDrainEffect(GenericAction):
@@ -192,7 +192,7 @@ class PerfectCherryBlossomExtractAction(UserAction):
 class PerfectCherryBlossom(Skill):
     associated_action = None
     skill_category = ('character', 'passive')
-    target = t_None
+    target = t_None()
 
 
 @register_character_to('common', '-kof')

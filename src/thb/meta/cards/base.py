@@ -32,5 +32,5 @@ class HiddenCard:
     name = '隐藏卡片'
     description = '|R隐藏卡片|r\n\n这张卡片你看不到'
 
-    def is_action_valid(self, g, cl, target_list):
+    def is_action_valid(self, c, tl):
         return (False, '这是BUG，你没法发动这张牌…')

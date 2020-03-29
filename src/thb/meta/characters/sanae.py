@@ -56,10 +56,10 @@ class Miracle:
             len(act.card.associated_cards),
         )
 
-    def is_action_valid(self, g, cl, tl):
-        cards = cl[0].associated_cards
+    def is_action_valid(self, sk, tl):
+        cards = sk.associated_cards
 
-        expected = ttags(g.me)['miracle_times'] + 1
+        expected = ttags(self.me)['miracle_times'] + 1
         if len(cards) != expected:
             return (False, '奇迹：请选择%d张牌！' % expected)
 
@@ -94,8 +94,8 @@ class SanaeFaith:
             '、'.join(['|G【%s】|r' % p.ui_meta.name for p in act.target_list]),
         )
 
-    def is_action_valid(self, g, cl, tl):
-        cards = cl[0].associated_cards
+    def is_action_valid(self, sk, tl):
+        cards = sk.associated_cards
         if cards:
             return (False, '请不要选择牌！')
 

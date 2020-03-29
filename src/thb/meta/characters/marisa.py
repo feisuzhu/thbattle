@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, limit1_skill_used, my_turn
+from thb.meta.common import ui_meta
+
 
 # -- code --
-
-
 @ui_meta(characters.marisa.Marisa)
 class Marisa:
     # Character
@@ -47,23 +47,22 @@ class Borrow:
     name = '借走'
     description = '出牌阶段限一次，你可以获得其他角色的一张牌，然后该角色可以视为对你使用了一张|G弹幕|r。'
 
-    def clickable(self, g):
-        if limit1_skill_used('borrow_tag'):
+    def clickable(self):
+        if self.limit1_skill_used('borrow_tag'):
             return False
 
-        if not my_turn(): return False
+        if not self.my_turn(): return False
 
         return True
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
-        if skill.associated_cards:
+    def is_action_valid(self, sk, tl):
+        if sk.associated_cards:
             return (False, '请不要选择牌!')
 
-        if len(target_list) != 1:
+        if len(tl) != 1:
             return (False, '请选择1名玩家')
 
-        tgt = target_list[0]
+        tgt = tl[0]
         if not (tgt.cards or tgt.showncards or tgt.equips):
             return (False, '目标没有牌可以“借给”你')
 

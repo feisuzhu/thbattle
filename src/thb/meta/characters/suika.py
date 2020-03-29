@@ -36,8 +36,8 @@ class HeavyDrinker:
 
         return True
 
-    def is_action_valid(self, g, cl, target_list):
-        if cl[0].associated_cards:
+    def is_action_valid(self, sk, tl):
+        if sk.associated_cards:
             return False, '请不要选择牌！'
 
         if not target_list:

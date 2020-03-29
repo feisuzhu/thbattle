@@ -18,13 +18,13 @@ from thb.mode import THBEventHandler
 class Trial(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class Majesty(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class TrialAction(UseCard):

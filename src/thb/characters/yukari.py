@@ -61,7 +61,7 @@ class SpiritingAwayReturningAction(GenericAction):
 class SpiritingAway(Skill):
     associated_action = SpiritingAwayAction
     skill_category = ['character', 'active']
-    target = t_One
+    target = t_One()
 
     def check(self):
         return not self.associated_cards

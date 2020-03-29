@@ -17,13 +17,13 @@ from thb.mode import THBEventHandler
 class Prophet(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class ExtremeIntelligence(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class ProphetAction(GenericAction):
@@ -203,7 +203,7 @@ class ExtremeIntelligenceKOFHandler(THBEventHandler):
 class NakedFox(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class NakedFoxAction(GenericAction):

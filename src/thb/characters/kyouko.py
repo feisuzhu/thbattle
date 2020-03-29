@@ -16,7 +16,7 @@ from thb.mode import THBEventHandler
 class Echo(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class EchoAction(UserAction):
@@ -91,7 +91,7 @@ class EchoHandler(THBEventHandler):
 class Resonance(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class ResonanceDrawAction(DrawCards):

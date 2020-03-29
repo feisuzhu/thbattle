@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb import characters
-from thb.meta.common import ui_meta, limit1_skill_used, my_turn
-from thb import actions
+from thb import actions, characters
+from thb.meta.common import ui_meta
 from utils.misc import BatchList
 
+
 # -- code --
-
-
 @ui_meta(characters.mamizou.Morphing)
 class Morphing:
     # Skill
@@ -19,32 +18,31 @@ class Morphing:
 
     params_ui = 'UIMorphingCardSelection'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        me = self.me
 
-        if limit1_skill_used('mamizou_morphing_tag'):
+        if self.limit1_skill_used('mamizou_morphing_tag'):
             return False
 
-        if not (my_turn() and (me.cards or me.showncards)):
+        if not (self.my_turn() and (me.cards or me.showncards)):
             return False
 
         return True
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
-        assert skill.is_card(characters.mamizou.Morphing)
-        cl = skill.associated_cards
+    def is_action_valid(self, sk, tl):
+        assert sk.is_card(characters.mamizou.Morphing)
+        cl = sk.associated_cards
         if len(cl) != 2 or any([c.resides_in.type not in ('cards', 'showncards') for c in cl]):
             return (False, '请选择两张手牌！')
 
-        cls = skill.get_morph_cls()
+        cls = sk.get_morph_cls()
         if not cls:
             return (False, '请选择需要变化的牌')
 
-        if not skill.is_morph_valid():
+        if not sk.is_morph_valid():
             return (False, '选择的变化牌不符和规则')
 
-        return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
+        return sk.treat_as().ui_meta.is_action_valid(sk, tl)
 
     def effect_string(self, act: actions.LaunchCard):
         # for LaunchCard.ui_meta.effect_string

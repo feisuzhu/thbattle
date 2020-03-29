@@ -14,7 +14,7 @@ from thb.mode import THBEventHandler
 class AkariSkill(Skill):
     associated_action = None
     skill_category: List[str] = []
-    target = t_None
+    target = t_None()
 
 
 @register_character_to('special')

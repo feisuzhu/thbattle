@@ -87,7 +87,7 @@ class DisarmHandler(THBEventHandler):
 class Disarm(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class SentryAction(AskForCard):
@@ -135,7 +135,7 @@ class SentryAttack(TreatAs, VirtualCard):
 class Sentry(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class TelegnosisHandler(THBEventHandler):
@@ -172,7 +172,7 @@ class TelegnosisHandler(THBEventHandler):
 class Telegnosis(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class SolidShieldHandler(THBEventHandler):
@@ -246,7 +246,7 @@ class SolidShield(Skill):
     distance = 1
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 @register_character_to('common')

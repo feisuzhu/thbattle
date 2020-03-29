@@ -731,7 +731,7 @@ class LaunchCard(GenericAction):
         if bypass_check:
             tl, tl_valid = target_list, True
         else:
-            tl, tl_valid = card.target(self.game, src, target_list)
+            tl, tl_valid = card.target(src, target_list)
 
         self.source, self.target_list, self.card, self.tl_valid = src, tl, card, tl_valid
         self.target = target_list[0] if target_list else src

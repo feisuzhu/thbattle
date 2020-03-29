@@ -71,7 +71,7 @@ class BakadesuAction(UserAction):
 class Bakadesu(Skill):
     associated_action = BakadesuAction
     skill_category = ['character', 'active']
-    target = t_OtherOne
+    target = t_OtherOne()
 
     def check(self):
         return not self.associated_cards
@@ -80,7 +80,7 @@ class Bakadesu(Skill):
 class PerfectFreeze(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class PerfectFreezeAction(UserAction):

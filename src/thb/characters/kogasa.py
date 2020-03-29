@@ -16,7 +16,7 @@ from thb.mode import THBEventHandler
 class Jolly(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class SurpriseAction(UserAction):
@@ -57,7 +57,7 @@ class SurpriseAction(UserAction):
 class Surprise(Skill):
     associated_action = SurpriseAction
     skill_category = ['character', 'active']
-    target = t_OtherOne
+    target = t_OtherOne()
     no_reveal = True
     no_drop = True
     usage = 'handover'

@@ -33,20 +33,19 @@ class ReversedScales:
 
         return False
 
-    def is_complete(self, g, skill):
+    def is_complete(self, skill):
         acards = skill.associated_cards
         if len(acards) != 1:
             return (False, '请选择1张牌！')
 
         return (True, '反正这条也看不到，偷个懒~~~')
 
-    def is_action_valid(self, g, cl, target_list, is_complete=is_complete):
-        skill = cl[0]
-        rst, reason = is_complete(g, cl)
+    def is_action_valid(self, sk, tl):
+        rst, reason = self.is_complete(sk)
         if not rst:
             return (rst, reason)
         else:
-            return AttackCard.ui_meta.is_action_valid(g, [skill], target_list)
+            return AttackCard().ui_meta.is_action_valid([sk], tl)
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string

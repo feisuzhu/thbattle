@@ -18,13 +18,13 @@ from thb.mode import THBEventHandler
 class Ashes(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class Reborn(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class AshesAction(UserAction):

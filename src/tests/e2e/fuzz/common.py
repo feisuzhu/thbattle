@@ -65,20 +65,49 @@ class UserInputFuzzingHandler(EventHandler):
                     break
 
                 # Card
-                cc = list(chain(*[combinations(cards, i) for i in range(5)]))
+                cc = list(chain(*[combinations(cards, i) for i in range(4)]))
                 random.shuffle(cc)
+
+                # for i in rl:
+                #     # log.debug("tgt %s", target)
+                #     # log.debug("rl %s", i)
+                #     rst, ok = c.target(g, me, i)
+                #     if ok:
+                #         yield rst
+
                 for cl in cc:
-                    c = skill_wrap(p, [sk], cl, {})
-                    if c.check():
-                        break
-                else:
-                    break
+                    for tl in self.possible_targets(g, p, sk):
+                        c = skill_wrap(p, [sk], cl, {})
 
-                # Targets
-                for t in self.possible_targets(g, p, c):
-                    if self.try_launch(ilet, cl, t, skills=[sk]):
-                        return
+                        ok, reason = self.ui_meta_walk_wrapped([c])
+                        if not ok:
+                            assert not c.check(), (c, c.associated_cards, c.check(), ok, reason)
+                            continue
 
+                        try:
+                            tl, ok = c.target(p, tl)
+                        except Exception as e:
+                            raise Exception(f"{c}.target: {c.target} failed") from e
+
+                        try:
+                            ok2, reason = c.ui_meta.is_action_valid(c, tl)
+                        except Exception as e:
+                            raise Exception(f"{c}.ui_meta.is_action_valid failed") from e
+
+                        assert (ok and c.check()) == ok2, {
+                            'ok': ok,
+                            'c.check()': c.check(),
+                            'ok2': ok2,
+                            'c': c,
+                            'tl': tl,
+                            'reason': reason,
+                        }
+
+                        if not ok:
+                            continue
+
+                        if self.try_launch(ilet, cl, tl, skills=[sk]):
+                            return
                 break
 
             for c in cards:
@@ -134,6 +163,23 @@ class UserInputFuzzingHandler(EventHandler):
         else:
             log.warning('Not processing %s transaction', trans.name)
             1/0
+
+    def ui_meta_walk_wrapped(self, cl, check_is_complete=False):
+        from thb.cards.base import Skill
+        for c in cl:
+            if not isinstance(c, Skill):
+                continue
+
+            if check_is_complete:
+                rst, reason = c.ui_meta.is_complete(c)
+                if not rst:
+                    return rst, reason
+
+            rst, reason = self.ui_meta_walk_wrapped(c.associated_cards, True)
+            if not rst:
+                return rst, reason
+
+        return True, 'OK'
 
     def try_launch(self, ilet, cl, tl, skills=[]):
         p = ilet.actor
@@ -202,9 +248,4 @@ class UserInputFuzzingHandler(EventHandler):
                 rl.extend(list(permutations(pl, i)))
             random.shuffle(rl)
 
-        for i in rl:
-            # log.debug("tgt %s", target)
-            # log.debug("rl %s", i)
-            rst, ok = c.target(g, me, i)
-            if ok:
-                yield rst
+        return rl

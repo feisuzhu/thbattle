@@ -68,11 +68,11 @@ class Surprise:
 
         return False
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, sk, tl):
         if len(tl) != 1:
             return (False, '请选择惊吓对象…')
 
-        cl = cl[0].associated_cards
+        cl = sk.associated_cards
         if len(cl) != 1:
             return (False, '请选择一张手牌！')
 

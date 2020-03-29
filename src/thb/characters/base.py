@@ -3,15 +3,18 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
-from typing import Any, ClassVar, Dict, Iterable, List, Set, Type
+from typing import Any, ClassVar, Dict, Iterable, List, Set, TYPE_CHECKING, Type
 
 # -- third party --
 # -- own --
 from game.base import GameObject, Player
 from thb.cards.base import CardList, Skill
-from thb.meta.typing import CharacterMeta
 from thb.mode import THBEventHandler
 from utils.misc import partition
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.meta.typing import CharacterMeta  # noqa: F401
 
 
 # -- code --

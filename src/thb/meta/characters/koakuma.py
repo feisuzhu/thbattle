@@ -6,7 +6,7 @@ from __future__ import annotations
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import my_turn, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -35,21 +35,20 @@ class Find:
         if ttags(me)['find']:
             return False
 
-        if my_turn(g) and (me.cards or me.showncards or me.equips):
+        if self.my_turn(g) and (me.cards or me.showncards or me.equips):
             return True
 
         return False
 
-    def is_action_valid(self, cl, target_list):
+    def is_action_valid(self, sk, tl):
         g = self.game
-        skill = cl[0]
-        assert skill.is_card(characters.koakuma.Find)
+        assert sk.is_card(characters.koakuma.Find)
         n = len([i for i in g.players if not i.dead])
 
-        if not 0 < len(skill.associated_cards) <= n:
+        if not 0 < len(sk.associated_cards) <= n:
             return (False, '请选择需要换掉的牌（至多%s张）！' % n)
 
-        if not [g.me] == target_list:
+        if not [self.me] == tl:
             return (False, 'BUG!!')
 
         return (True, '换掉这些牌')

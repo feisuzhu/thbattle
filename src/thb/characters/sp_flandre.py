@@ -18,7 +18,7 @@ class DestructionImpulse(Skill):
     distance = 1
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class DestructionImpulseAction(GenericAction):
@@ -84,7 +84,7 @@ class DestructionImpulseHandler(THBEventHandler):
 class FourOfAKind(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class FourOfAKindAction(GenericAction):

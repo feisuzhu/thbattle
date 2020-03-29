@@ -17,7 +17,7 @@ from thb.mode import THBEventHandler
 class Ciguatera(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class CiguateraAction(UserAction):
@@ -69,12 +69,12 @@ class CiguateraHandler(THBEventHandler):
 class Melancholy(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class MelancholyPoison(VirtualCard):
     associated_action = None
-    target = t_None
+    target = t_None()
 
 
 class MelancholyLimit(ActionShootdown):

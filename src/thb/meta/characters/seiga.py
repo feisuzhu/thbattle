@@ -81,8 +81,8 @@ class Heterodoxy:
             act.target.ui_meta.name,
         )
 
-    def is_action_valid(self, g, cl, tl):
-        acards = cl[0].associated_cards
+    def is_action_valid(self, sk, tl):
+        acards = sk.associated_cards
         if (not acards) or len(acards) != 1:
             return (False, '请选择一张手牌')
 
@@ -101,8 +101,8 @@ class Heterodoxy:
             return (False, '请选择一名玩家作为卡牌发起者')
 
         victim = tl[0]
-        _tl, valid = card.target(g, victim, tl[1:])
-        return card.ui_meta.is_action_valid(g, [card], _tl)
+        _tl, valid = card.target(victim, tl[1:])
+        return card.ui_meta.is_action_valid([card], _tl)
 
         # can't reach here
         # return (True, u'僵尸什么的最萌了！')
@@ -160,8 +160,8 @@ class SummonKOF:
     def clickable(self):
         return self.my_turn()
 
-    def is_action_valid(self, g, cl, target_list):
-        cl = cl[0].associated_cards
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
         if len(cl) != 0:
             return False, '请不要选择牌'
 

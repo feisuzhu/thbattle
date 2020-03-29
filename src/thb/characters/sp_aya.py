@@ -124,7 +124,7 @@ class WindWalkHandler(THBEventHandler):
 class WindWalk(Skill):
     associated_action = WindWalkAction
     skill_category = ['character', 'active']
-    target = t_Self
+    target = t_Self()
     usage = 'drop'
 
     def check(self):
@@ -141,7 +141,7 @@ class WindWalk(Skill):
 class Dominance(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class DominanceAction(PlayerTurn):

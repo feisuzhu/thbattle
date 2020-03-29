@@ -13,7 +13,7 @@ from thb.characters.base import Character, register_character_to
 class UltimateSpeed(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class UltimateSpeedAction(UserAction):

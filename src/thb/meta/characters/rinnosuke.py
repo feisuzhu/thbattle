@@ -11,6 +11,7 @@ from thb.meta.common import ui_meta
 
 
 # -- code --
+@ui_meta(characters.rinnosuke.Netoru)
 class Netoru:
     # Skill
     name = '寝取'
@@ -29,10 +30,9 @@ class Netoru:
             pass
         return False
 
-    def is_action_valid(self, g, cl, tl):
-        skill = cl[0]
-        cl = skill.associated_cards
-        me = g.me
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
+        me = self.me
         if not cl or len(cl) != 2:
             return (False, '请选择两张手牌')
         elif any(c.resides_in not in (me.cards, me.showncards) for c in cl):

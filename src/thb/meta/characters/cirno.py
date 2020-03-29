@@ -65,11 +65,11 @@ class Bakadesu:
 
         return self.my_turn()
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, sk, tl):
         if len(tl) != 1:
             return (False, '请选择嘲讽对象')
 
-        if len(cl[0].associated_cards):
+        if len(sk.associated_cards):
             return (False, '请不要选择牌！')
 
         return (True, '老娘最强！')

@@ -49,7 +49,7 @@ class MiracleAction(UserAction):
 class Miracle(Skill):
     associated_action = MiracleAction
     skill_category = ['character', 'active']
-    target = t_Self
+    target = t_Self()
     usage = 'drop'
 
     def check(self):
@@ -131,11 +131,10 @@ class SanaeFaith(Skill):
     skill_category = ['character', 'active']
     usage = 'launch'
 
-    @staticmethod
-    def target(g, source, tl):
+    def target(self, src, tl):
         tl = [t for t in tl if not t.dead and (t.cards or t.showncards)]
         try:
-            tl.remove(source)
+            tl.remove(src)
         except ValueError:
             pass
 
@@ -148,7 +147,7 @@ class SanaeFaith(Skill):
 class SanaeFaithKOF(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class SanaeFaithKOFDrawCards(DrawCards):

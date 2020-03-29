@@ -15,7 +15,7 @@ from thb.mode import THBEventHandler
 class LoongPunch(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class Taichi(TreatAs, Skill):
@@ -45,7 +45,7 @@ class Taichi(TreatAs, Skill):
 class RiverBehind(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'awake']
-    target = t_None
+    target = t_None()
 
 
 class LoongPunchAction(GenericAction):

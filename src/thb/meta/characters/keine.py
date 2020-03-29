@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import annotations
 
 # -- stdlib --
 import random
@@ -12,8 +12,7 @@ from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
+@ui_meta(characters.keine.Teach)
 class Teach:
     # Skill
     name = '授业'
@@ -25,8 +24,8 @@ class Teach:
     def clickable(self):
         return self.my_turn() and not ttags(self.me)['teach_used']
 
-    def is_action_valid(self, g, cl, tl):
-        cards = cl[0].associated_cards
+    def is_action_valid(self, sk, tl):
+        cards = sk.associated_cards
 
         if not cards or len(cards) != 1:
             return False, '请选择一张牌（重铸）'
@@ -113,7 +112,7 @@ class KeineGuardAction:
 
 class KeineGuardHandler:
 
-    def target(pl):
+    def target(self, pl):
         if not pl:
             return (False, u'守护：请选择1名其他角色（或不发动）')
 

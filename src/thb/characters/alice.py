@@ -27,7 +27,7 @@ class LittleLegionDollControlCard(TreatAs, VirtualCard):
 class LittleLegion(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class LittleLegionAttackAction(UserAction):
@@ -165,7 +165,7 @@ class LittleLegionHandler(THBEventHandler):
 class DollBlast(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class DollBlastEffect(GenericAction):

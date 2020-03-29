@@ -16,20 +16,20 @@ from thb.mode import THBEventHandler
 class Lunatic(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class Discarder(Skill):
     associated_action = None
     distance = 1
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class MahjongDrug(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class LunaticAction(UserAction):

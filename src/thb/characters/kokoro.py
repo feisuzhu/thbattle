@@ -69,13 +69,13 @@ class BaseHopeMaskHandler(THBEventHandler):
 class HopeMask(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class HopeMaskKOF(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class HopeMaskHandler(BaseHopeMaskHandler):
@@ -161,7 +161,7 @@ class DarkNohKOFAction(BaseDarkNohAction):
 class BaseDarkNoh(Skill):
     no_drop = True
     skill_category = ['character', 'active']
-    target = t_OtherOne
+    target = t_OtherOne()
     usage = 'handover'
 
     def check(self):

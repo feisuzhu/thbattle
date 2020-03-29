@@ -18,7 +18,7 @@ from thb.mode import THBEventHandler
 class CriticalStrike(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class CriticalStrikeAction(GenericAction):
@@ -131,7 +131,7 @@ class CriticalStrikeHandler(THBEventHandler):
 class Exterminate(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class ExterminateAction(UserAction):

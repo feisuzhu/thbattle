@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta, passive_clickable, passive_is_action_valid
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.youmu.Youmu)
 class Youmu:
     # Character
@@ -29,9 +27,6 @@ class Mijincihangzhan:
     # Skill
     name = '迷津慈航斩'
     description = '|B锁定技|r，你使用的|G弹幕|r需要连续使用两张|G擦弹|r来抵消；与你进行|G弹幕战|r的角色每次需要连续打出两张|G弹幕|r。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
 
 @ui_meta(characters.youmu.MijincihangzhanAttack)
@@ -65,8 +60,6 @@ class Nitoryuu:
         '你可以额外装备一把武器，当你同时装备了两把武器时，攻击范围按其中较高者计算；武器技能同时有效，且你额外增加一点干劲。\n'
         '|B|R>> |r当你受到|G人形操控|r的效果生效时，需交出全部的武器。'
     )
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
 
     def effect_string(act):
         return '|G【%s】|r弃置了自己的一把武器。' % (

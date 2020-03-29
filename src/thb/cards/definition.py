@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, List, Sequence, Tuple, Type
+from typing import Any, List, Sequence, TYPE_CHECKING, Tuple, Type
 
 # -- third party --
 # -- own --
 from thb.cards.base import Card, PhysicalCard, Skill, t_All, t_AllInclusive, t_None, t_One
 from thb.cards.base import t_OtherLessEqThanN, t_OtherOne, t_Self
-from thb.characters.base import Character
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.characters.base import Character  # noqa: F401
 
 
 # -- code --
@@ -30,7 +34,7 @@ class BasicCard(PhysicalCard):
 @physical_card
 class AttackCard(BasicCard):
     associated_action = basic.Attack
-    target = t_OtherOne
+    target = t_OtherOne()
     category = ['basic']
     distance = 1
 
@@ -38,28 +42,28 @@ class AttackCard(BasicCard):
 @physical_card
 class GrazeCard(BasicCard):
     associated_action = None
-    target = t_None
+    target = t_None()
     category = ['basic']
 
 
 @physical_card
 class HealCard(BasicCard):
     associated_action = basic.Heal
-    target = t_Self
+    target = t_Self()
     category = ['basic']
 
 
 @physical_card
 class WineCard(BasicCard):
     associated_action = basic.Wine
-    target = t_Self
+    target = t_Self()
     category = ['basic']
 
 
 @physical_card
 class ExinwanCard(BasicCard):
     associated_action = basic.Exinwan
-    target = t_Self
+    target = t_Self()
     category = ['basic']
 
 
@@ -74,21 +78,21 @@ class SpellcardCard(PhysicalCard):
 @physical_card
 class DemolitionCard(SpellcardCard):
     associated_action = spellcard.Demolition
-    target = t_OtherOne
+    target = t_OtherOne()
     category = ['spellcard', 'instant_spellcard']
 
 
 @physical_card
 class RejectCard(SpellcardCard):
     associated_action = None
-    target = t_None
+    target = t_None()
     category = ['spellcard', 'instant_spellcard']
 
 
 @physical_card
 class SealingArrayCard(SpellcardCard):
     associated_action = spellcard.DelayedLaunchCard
-    target = t_OtherOne
+    target = t_OtherOne()
     category = ['spellcard', 'delayed_spellcard']
     delayed_action = spellcard.SealingArray
     no_drop = True
@@ -97,7 +101,7 @@ class SealingArrayCard(SpellcardCard):
 @physical_card
 class FrozenFrogCard(SpellcardCard):
     associated_action = spellcard.DelayedLaunchCard
-    target = t_OtherOne
+    target = t_OtherOne()
     category = ['spellcard', 'delayed_spellcard']
     distance = 1
     delayed_action = spellcard.FrozenFrog
@@ -107,14 +111,14 @@ class FrozenFrogCard(SpellcardCard):
 @physical_card
 class NazrinRodCard(SpellcardCard):
     associated_action = spellcard.NazrinRod
-    target = t_Self
+    target = t_Self()
     category = ['spellcard', 'instant_spellcard']
 
 
 @physical_card
 class SinsackCard(SpellcardCard):
     associated_action = spellcard.DelayedLaunchCard
-    target = t_Self
+    target = t_Self()
     category = ['spellcard', 'delayed_spellcard']
     delayed_action = spellcard.Sinsack
     no_drop = True
@@ -123,7 +127,7 @@ class SinsackCard(SpellcardCard):
 @physical_card
 class YukariDimensionCard(SpellcardCard):
     associated_action = spellcard.YukariDimension
-    target = t_OtherOne
+    target = t_OtherOne()
     category = ['spellcard', 'instant_spellcard']
     distance = 1
 
@@ -131,35 +135,35 @@ class YukariDimensionCard(SpellcardCard):
 @physical_card
 class DuelCard(SpellcardCard):
     associated_action = spellcard.Duel
-    target = t_OtherOne
+    target = t_OtherOne()
     category = ['spellcard', 'instant_spellcard']
 
 
 @physical_card
 class MapCannonCard(SpellcardCard):
     associated_action = spellcard.MapCannon
-    target = t_All
+    target = t_All()
     category = ['group_effect', 'spellcard', 'instant_spellcard']
 
 
 @physical_card
 class DemonParadeCard(SpellcardCard):
     associated_action = spellcard.DemonParade
-    target = t_All
+    target = t_All()
     category = ['group_effect', 'spellcard', 'instant_spellcard']
 
 
 @physical_card
 class FeastCard(SpellcardCard):
     associated_action = spellcard.Feast
-    target = t_AllInclusive
+    target = t_AllInclusive()
     category = ['group_effect', 'spellcard', 'instant_spellcard']
 
 
 @physical_card
 class HarvestCard(SpellcardCard):
     associated_action = spellcard.Harvest
-    target = t_AllInclusive
+    target = t_AllInclusive()
     category = ['group_effect', 'spellcard', 'instant_spellcard']
 
 
@@ -167,7 +171,7 @@ class HarvestCard(SpellcardCard):
 class DollControlCard(SpellcardCard):
     associated_action = spellcard.DollControl
 
-    def t_DollControl(self: Any, g: Any, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
+    def t_DollControl(self: Any, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
         if not tl: return ([], False)
         tl = [ch for ch in tl if not ch.dead]
         while tl and src is tl[0]:
@@ -198,7 +202,7 @@ class EquipmentCard(PhysicalCard):
 @physical_card
 class MomijiShieldCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'shield']
     equipment_skill = equipment.MomijiShieldSkill
     equipment_category = 'shield'
@@ -207,7 +211,7 @@ class MomijiShieldCard(EquipmentCard):
 @physical_card
 class OpticalCloakCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'shield']
     equipment_skill = equipment.OpticalCloakSkill
     equipment_category = 'shield'
@@ -216,7 +220,7 @@ class OpticalCloakCard(EquipmentCard):
 @physical_card
 class GreenUFOCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'greenufo']
     equipment_skill = equipment.GreenUFOSkill
     equipment_category = 'greenufo'
@@ -225,7 +229,7 @@ class GreenUFOCard(EquipmentCard):
 @physical_card
 class RedUFOCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'redufo']
     equipment_skill = equipment.RedUFOSkill
     equipment_category = 'redufo'
@@ -234,7 +238,7 @@ class RedUFOCard(EquipmentCard):
 @physical_card
 class HakuroukenCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.HakuroukenSkill
     equipment_category = 'weapon'
@@ -243,7 +247,7 @@ class HakuroukenCard(EquipmentCard):
 @physical_card
 class ElementalReactorCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.ElementalReactorSkill
     equipment_category = 'weapon'
@@ -252,7 +256,7 @@ class ElementalReactorCard(EquipmentCard):
 @physical_card
 class UmbrellaCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'shield']
     equipment_skill = equipment.UmbrellaSkill
     equipment_category = 'shield'
@@ -261,7 +265,7 @@ class UmbrellaCard(EquipmentCard):
 @physical_card
 class RoukankenCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.RoukankenSkill
     equipment_category = 'weapon'
@@ -270,7 +274,7 @@ class RoukankenCard(EquipmentCard):
 @physical_card
 class GungnirCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.GungnirSkill
     equipment_category = 'weapon'
@@ -279,7 +283,7 @@ class GungnirCard(EquipmentCard):
 @physical_card
 class LaevateinCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.LaevateinSkill
     equipment_category = 'weapon'
@@ -288,7 +292,7 @@ class LaevateinCard(EquipmentCard):
 @physical_card
 class NenshaPhoneCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.NenshaPhoneSkill
     equipment_category = 'weapon'
@@ -297,7 +301,7 @@ class NenshaPhoneCard(EquipmentCard):
 @physical_card
 class RepentanceStickCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.RepentanceStickSkill
     equipment_category = 'weapon'
@@ -306,7 +310,7 @@ class RepentanceStickCard(EquipmentCard):
 @physical_card
 class SinsackHatCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_One
+    target = t_One()
     category = ['equipment', 'shield']
     equipment_skill = equipment.SinsackHat
     equipment_category = 'shield'
@@ -316,7 +320,7 @@ class SinsackHatCard(EquipmentCard):
 @physical_card
 class IbukiGourdCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'redufo']
     equipment_skill = equipment.IbukiGourdSkill
     equipment_category = 'redufo'
@@ -325,7 +329,7 @@ class IbukiGourdCard(EquipmentCard):
 @physical_card
 class HouraiJewelCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.HouraiJewelSkill
     equipment_category = 'weapon'
@@ -334,7 +338,7 @@ class HouraiJewelCard(EquipmentCard):
 @physical_card
 class MaidenCostumeCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'shield']
     equipment_skill = equipment.MaidenCostume
     equipment_category = 'shield'
@@ -343,7 +347,7 @@ class MaidenCostumeCard(EquipmentCard):
 @physical_card
 class AyaRoundfanCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.AyaRoundfanSkill
     equipment_category = 'weapon'
@@ -352,7 +356,7 @@ class AyaRoundfanCard(EquipmentCard):
 @physical_card
 class ScarletRhapsodyCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.ScarletRhapsodySkill
     equipment_category = 'weapon'
@@ -361,7 +365,7 @@ class ScarletRhapsodyCard(EquipmentCard):
 @physical_card
 class DeathSickleCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.DeathSickleSkill
     equipment_category = 'weapon'
@@ -370,7 +374,7 @@ class DeathSickleCard(EquipmentCard):
 @physical_card
 class KeystoneCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'greenufo']
     equipment_skill = equipment.KeystoneSkill
     equipment_category = 'greenufo'
@@ -379,7 +383,7 @@ class KeystoneCard(EquipmentCard):
 @physical_card
 class WitchBroomCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'redufo']
     equipment_skill = equipment.WitchBroomSkill
     equipment_category = 'redufo'
@@ -388,7 +392,7 @@ class WitchBroomCard(EquipmentCard):
 @physical_card
 class YinYangOrbCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'accessories']
     equipment_skill = equipment.YinYangOrbSkill
     equipment_category = 'accessories'
@@ -397,7 +401,7 @@ class YinYangOrbCard(EquipmentCard):
 @physical_card
 class SuwakoHatCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'accessories']
     equipment_skill = equipment.SuwakoHatSkill
     equipment_category = 'accessories'
@@ -406,7 +410,7 @@ class SuwakoHatCard(EquipmentCard):
 @physical_card
 class YoumuPhantomCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'accessories']
     equipment_skill = equipment.YoumuPhantomSkill
     equipment_category = 'accessories'
@@ -415,7 +419,7 @@ class YoumuPhantomCard(EquipmentCard):
 @physical_card
 class IceWingCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'redufo']
     equipment_skill = equipment.IceWingSkill
     equipment_category = 'redufo'
@@ -424,25 +428,10 @@ class IceWingCard(EquipmentCard):
 @physical_card
 class GrimoireCard(EquipmentCard):
     associated_action = equipment.WearEquipmentAction
-    target = t_Self
+    target = t_Self()
     category = ['equipment', 'weapon']
     equipment_skill = equipment.GrimoireSkill
     equipment_category = 'weapon'
-
-
-# --------------------------------------------------
-from thb.cards import debug
-
-
-@physical_card
-class MassiveDamageCard(PhysicalCard):
-    associated_action = debug.MassiveDamage
-
-    @staticmethod
-    def target(g, source, tl):
-        return tl, True
-
-    category = ['debug']
 
 
 # ==================================================

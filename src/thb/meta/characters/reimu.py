@@ -39,8 +39,8 @@ class SpiritualAttack:
 
         return False
 
-    def is_complete(self, g, skill):
-        me = g.me
+    def is_complete(self, skill):
+        me = self.me
         assert skill.is_card(characters.reimu.SpiritualAttack)
         acards = skill.associated_cards
         if len(acards) != 1:
@@ -55,7 +55,7 @@ class SpiritualAttack:
 
         return (True, '反正这条也看不到，偷个懒~~~')
 
-    def is_action_valid(self, g, cl, tl):
+    def is_action_valid(self, sk, tl):
         return (False, '你不能主动使用灵击')
 
     def sound_effect(self, act):
@@ -95,8 +95,8 @@ class Tribute:
 
         return False
 
-    def is_action_valid(self, g, cl, tl):
-        cl = cl[0].associated_cards
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
         if not cl: return (False, '请选择要给出的牌')
         if len(cl) != 1: return (False, '只能选择一张手牌')
 

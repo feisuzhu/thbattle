@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import actions, cards, characters
-from thb.meta.common import my_turn, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
@@ -19,16 +19,15 @@ class SkySilk:
         '|B|R>> |r展示牌堆底的3张牌，获得其中的非基本牌，并弃置其他的牌。'
     )
 
-    def clickable(game):
-        me = game.me
-        if not my_turn() or actions.ttags(me)['sky_silk']:
+    def clickable(self):
+        me = self.me
+        if not self.my_turn() or actions.ttags(me)['sky_silk']:
             return False
 
         return True
 
-    def is_action_valid(g, cl, tl):
-        skill = cl[0]
-        cl = skill.associated_cards
+    def is_action_valid(g, sk, tl):
+        cl = sk.associated_cards
         if cl:
             return False, '请不要选择牌！'
 
@@ -70,8 +69,7 @@ class LunaString:
 
         return False
 
-    def is_complete(g, cl):
-        sk = cl[0]
+    def is_complete(self, sk):
         acards = sk.associated_cards
         if len(acards) != 1:
             return False, '请选择一张手牌'
@@ -86,13 +84,12 @@ class LunaString:
 
         return True, '发动「月弦」'
 
-    def is_action_valid(g, cl, tl, is_complete=is_complete):
-        sk = cl[0]
-        isc, t = is_complete(g, cl)
+    def is_action_valid(self, sk, tl):
+        isc, t = self.is_complete(sk)
         if not isc:
             return isc, t
         c = sk.associated_cards[0]
-        return cards.AttackCard.ui_meta.is_action_valid(g, [c], tl)
+        return cards.AttackCard().ui_meta.is_action_valid(c, tl)
 
 
 @ui_meta(characters.eirin.LunaStringPlaceCard)

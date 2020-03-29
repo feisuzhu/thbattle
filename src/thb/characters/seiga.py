@@ -98,7 +98,7 @@ class Heterodoxy(Skill):
             getattr(cl[0], 'associated_action', None)
         )
 
-    def target(self, g, src, tl):
+    def target(self, src, tl):
         cl = self.associated_cards
         if not cl: return ([], False)
         c = cl[0]
@@ -112,14 +112,14 @@ class Heterodoxy(Skill):
         if tname in ('t_Self', 't_All', 't_AllInclusive'):
             return tl[-1:], True
         else:
-            _tl, valid = c.target(g, tl[0], tl[1:])
+            _tl, valid = c.target(tl[0], tl[1:])
             return [tl[0]] + _tl, valid
 
 
 class Summon(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'once']
-    target = t_None
+    target = t_None()
 
 
 class SummonAction(UserAction):
@@ -247,7 +247,7 @@ class SummonKOFHandler(THBEventHandler):
 class SummonKOF(Skill):
     associated_action = SummonKOFAction
     skill_category = ['character', 'active']
-    target = t_Self
+    target = t_Self()
 
     def check(self):
         cl = self.associated_cards

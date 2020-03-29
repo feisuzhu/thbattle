@@ -16,7 +16,7 @@ from thb.mode import THBEventHandler
 class SpearTheGungnir(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class SpearTheGungnirAction(GenericAction):
@@ -58,7 +58,7 @@ class SpearTheGungnirHandler(THBEventHandler):
 class VampireKiss(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class VampireKissAction(GenericAction):
@@ -189,7 +189,8 @@ class ScarletMist(Skill):
     def check(self) -> bool:
         return not len(self.associated_cards)
 
-    def target(self, g: Any, src: Character, tl: Sequence[Character]):
+    def target(self, src: Character, tl: Sequence[Character]):
+        g = self.game
         from thb.thbrole import THBRoleRole
         n = sum(i == THBRoleRole.ACCOMPLICE for i in g.roles.values())
         n -= sum(ch.dead and g.roles[ch.player] == THBRoleRole.ACCOMPLICE for ch in g.players)

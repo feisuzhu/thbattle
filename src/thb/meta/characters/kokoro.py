@@ -92,9 +92,8 @@ class BaseDarkNoh:
     # Skill
     name = '暗黑能乐'
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
-        cl = skill.associated_cards
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
         if len(cl) != 1 or cl[0].suit not in (Card.SPADE, Card.CLUB):
             return (False, '请选择一张黑色的牌！')
 

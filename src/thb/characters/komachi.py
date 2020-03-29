@@ -62,7 +62,7 @@ class RiversideHandler(THBEventHandler):
 class Riverside(Skill):
     associated_action = RiversideAction
     skill_category = ['character', 'active']
-    target = t_OtherOne
+    target = t_OtherOne()
     usage = 'drop'
 
     def check(self):
@@ -100,13 +100,13 @@ class ReturningHandler(THBEventHandler):
 class Returning(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'awake']
-    target = t_None
+    target = t_None()
 
 
 class FerryFee(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
     distance = 1
 
 

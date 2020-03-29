@@ -47,7 +47,7 @@ class CardMeta(Protocol):
     image: str
     description: str
 
-    def is_action_valid(self, g: THBattle, cl: Sequence[Card], tl: Sequence[Character]) -> Tuple[bool, str]:
+    def is_action_valid(self, c: Card, tl: Sequence[Character]) -> Tuple[bool, str]:
         ...
 
     def sound_effect(self, act: THBAction) -> Optional[str]:
@@ -58,5 +58,5 @@ class SkillMeta(CardMeta):
     def clickable(self, g: THBattle) -> bool:
         ...
 
-    def is_complete(self, g: THBattle, c: Skill) -> Tuple[bool, str]:
+    def is_complete(self, c: Skill) -> Tuple[bool, str]:
         ...

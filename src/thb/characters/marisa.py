@@ -57,7 +57,7 @@ class Borrow(Skill):
     associated_action = BorrowAction
     skill_category = ['character', 'active']
     # 技能的目标，这里是除了你之外的一个玩家
-    target = t_OtherOne
+    target = t_OtherOne()
 
     def check(self):
         if self.associated_cards: return False

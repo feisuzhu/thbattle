@@ -33,7 +33,7 @@ class SupportAction(UserAction):
 class Support(Skill):
     associated_action = SupportAction
     skill_category = ['character', 'active']
-    target = t_OtherOne
+    target = t_OtherOne()
     usage = 'handover'
     no_drop = True
     no_reveal = True
@@ -96,13 +96,13 @@ class SupportKOFHandler(THBEventHandler):
 class SupportKOF(Skill):
     associated_action = None
     skill_category = ['character', 'passive']
-    target = t_None
+    target = t_None()
 
 
 class Moe(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class MoeDrawCard(DrawCardStage):

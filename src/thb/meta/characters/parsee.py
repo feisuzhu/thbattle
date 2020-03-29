@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
@@ -6,12 +7,10 @@
 from thb import characters
 from thb.cards.base import Card
 from thb.cards.classes import DemolitionCard
-from thb.meta.common import my_turn, ui_meta
+from thb.meta.common import ui_meta
 
 
 # -- code --
-
-
 @ui_meta(characters.parsee.Parsee)
 class Parsee:
     # Character
@@ -31,25 +30,25 @@ class Envy:
     name = '嫉妒'
     description = '你可以将一张黑色牌当|G城管执法|r使用；每当距离1的其他角色的方块牌被你使用的|G城管执法|r弃置而置入弃牌堆后，你可以获得之。'
 
-    def clickable(self, g):
-        me = g.me
+    def clickable(self):
+        me = self.me
 
-        if my_turn() and (me.cards or me.showncards or me.equips):
+        if self.my_turn() and (me.cards or me.showncards or me.equips):
             return True
 
         return False
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
+    def is_action_valid(self, sk, tl):
+        skill = sk
         assert skill.is_card(characters.parsee.Envy)
         cl = skill.associated_cards
         if len(cl) != 1:
             return (False, '请选择一张牌！')
         else:
-            c = cl[0]
+            c = sk
             if c.suit not in (Card.SPADE, Card.CLUB):
                 return (False, '请选择一张黑色的牌！')
-            return DemolitionCard.ui_meta.is_action_valid(g, [skill], target_list)
+            return DemolitionCard().ui_meta.is_action_valid([skill], tl)
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string

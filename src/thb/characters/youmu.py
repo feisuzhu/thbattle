@@ -139,14 +139,14 @@ class Mijincihangzhan(Skill):
     # 迷津慈航斩
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class Nitoryuu(Skill):
     # 二刀流
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
     def check(self):
         return not self.associated_cards

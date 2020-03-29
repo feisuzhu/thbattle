@@ -44,18 +44,18 @@ class ExtremeIntelligenceKOF:
 
         return True
 
-    def is_action_valid(self, g, cl, target_list):
-        skill = cl[0]
-        assert skill.is_card(characters.ran.ExtremeIntelligenceKOF)
+    def is_action_valid(self, sk, tl):
+        me = self.me
+        assert sk.is_card(characters.ran.ExtremeIntelligenceKOF)
 
-        cl = skill.associated_cards
+        cl = sk.associated_cards
         if len(cl) != 1:
             return (False, '请选择一张牌！')
 
-        if cl[0].resides_in not in (g.me.cards, g.me.showncards):
+        if cl[0].resides_in not in (me.cards, me.showncards):
             return (False, '请选择手牌！')
 
-        return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
+        return sk.treat_as().ui_meta.is_action_valid(sk, tl)
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string

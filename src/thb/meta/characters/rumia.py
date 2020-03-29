@@ -32,9 +32,8 @@ class Darkness:
             pass
         return False
 
-    def is_action_valid(self, g, cl, tl):
-        skill = cl[0]
-        cl = skill.associated_cards
+    def is_action_valid(self, sk, tl):
+        cl = sk.associated_cards
         if not cl or len(cl) != 1:
             return (False, '请选择一张牌')
 

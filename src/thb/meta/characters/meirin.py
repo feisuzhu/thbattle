@@ -44,20 +44,19 @@ class Taichi:
 
         return False
 
-    def is_complete(self, g, skill):
+    def is_complete(self, skill):
         cl = skill.associated_cards
         from thb.cards.classes import AttackCard, GrazeCard
         if len(cl) != 1 or not (cl[0].is_card(AttackCard) or cl[0].is_card(GrazeCard)):
             return (False, '请选择一张【弹幕】或者【擦弹】！')
         return (True, '动之则分，静之则合。无过不及，随曲就伸')
 
-    def is_action_valid(self, g, cl, target_list, is_complete=is_complete):
-        skill = cl[0]
-        rst, reason = is_complete(g, cl)
+    def is_action_valid(self, sk, tl):
+        rst, reason = self.is_complete(sk)
         if not rst:
             return (rst, reason)
         else:
-            return skill.treat_as.ui_meta.is_action_valid(g, [skill], target_list)
+            return sk.treat_as().ui_meta.is_action_valid(sk, tl)
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string

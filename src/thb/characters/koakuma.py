@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
@@ -42,7 +43,7 @@ class FindAction(UserAction):
 class Find(Skill):
     associated_action = FindAction
     skill_category = ['character', 'active']
-    target = t_Self
+    target = t_Self()
     usage = 'drop'
 
     def check(self):

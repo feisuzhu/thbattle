@@ -18,7 +18,7 @@ from thb.mode import THBEventHandler
 class Luck(Skill):
     associated_action = None
     skill_category = ['character', 'passive', 'compulsory']
-    target = t_None
+    target = t_None()
 
 
 class LuckDrawCards(DrawCards):
