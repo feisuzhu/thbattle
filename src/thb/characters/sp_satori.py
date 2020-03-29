@@ -5,7 +5,7 @@ from __future__ import absolute_import
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game, InputTransaction, user_input
-from thb.actions import Damage, Reforge, RevealIdentity, UserAction, migrate_cards, random_choose_card
+from thb.actions import ActionStage, Damage, PlayerTurn, Reforge, RevealIdentity, UserAction, migrate_cards, random_choose_card
 from thb.cards import Skill, t_None, t_One, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
 from thb.common import CharChoice
@@ -73,7 +73,6 @@ class ThirdEyeAction(UserAction):
 
 class ThirdEyeChooseGirl(UserAction):
     # CharChoice
-
     def apply_action(self):
         g = Game.getgame()
         src = self.source
@@ -131,36 +130,20 @@ class ThirdEyeChooseGirl(UserAction):
 
 
 class ThirdEyeHandler(EventHandler):
-    interested = ('action_after',)
-    execute_after = (
-        'DyingHandler',
-        'DisarmHandler',
-        'FreakingPowerHandler',
-        'LunaticHandler',
-        'ParanoiaHandler',
-        'AyaRoundfanHandler',
-        'NenshaPhoneHandler',
-        'DilemmaHandler',
-        'DecayDamageHandler',
-        'EchoHandler',
-        'MelancholyHandler',
-        'MajestyHandler',
-        'MasochistHandler',
-        'ReimuExterminateHandler'
-    )
+    interested = ('action_before', )
 
     def handle(self, evt_type, act):
-        if not evt_type == 'action_after': return act
-        if not isinstance(act, Damage): return act
+        if evt_type == 'action_before' and isinstance(act, PlayerTurn):
 
-        tgt = act.target
+            tgt = act.target
+            if not tgt.has_skill(ThirdEye): return act
 
-        if not tgt.has_skill(ThirdEye): return act
+            g = Game.getgame()
 
-        if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-            return act
+            if not user_input([tgt], ChooseOptionInputlet(self, (False, True))):
+                return act
 
-        Game.getgame().process_action(ThirdEyeAction(tgt, tgt))
+            g.process_action(ThirdEyeAction(tgt, tgt))
 
         return act
 
@@ -271,16 +254,47 @@ class MindReadAction(UserAction):
 
 class MindRead(Skill):
     associated_action = MindReadAction
-    skill_category = ('character', 'active', 'once', 'boss')
+    skill_category = ('character', 'active', 'once')
     target = t_OtherOne
 
     def check(self):
         return not len(self.associated_cards)
 
 
+class TerribleSouvenir(Skill):
+    associated_action = None
+    skill_category = ('character', 'passive', 'boss')
+    target = t_None
+
+
+class TerribleSouvenirHandler(EventHandler):
+    interested = ('action_before',)
+    execute_after = ('VitalityHandler',)
+
+    def handle(self, evt_type, act):
+        if evt_type == 'action_before' and isinstance(act, ActionStage):
+            tgt = act.target
+            assert act.target is act.source
+
+            if tgt.dead or tgt.has_skill(TerribleSouvenir): return act
+
+            if tgt.showncards and tgt.tags['vitality']:
+                g = Game.getgame()
+                pl = [p for p in g.players if p.has_skill(TerribleSouvenir)]
+                if pl:
+                    assert len(pl) <= 1
+                    p = pl[0]
+                    if not user_input([p], ChooseOptionInputlet(self, (False, True))):
+                        return act
+                    else:
+                        tgt.tags['vitality'] = 0
+
+        return act
+
+
 @register_character_to('common', 'boss')
 class SpSatori(Character):
-    skills = [ThirdEye, Rosa]
-    boss_skills = [MindRead]
-    eventhandlers_required = [ThirdEyeHandler, RosaHandler]
+    skills = [ThirdEye, MindRead, Rosa]
+    boss_skills = [TerribleSouvenir]
+    eventhandlers_required = [TerribleSouvenirHandler, ThirdEyeHandler, RosaHandler]
     maxlife = 3
