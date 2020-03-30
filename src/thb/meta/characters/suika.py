@@ -40,7 +40,7 @@ class HeavyDrinker:
         if sk.associated_cards:
             return False, '请不要选择牌！'
 
-        if not target_list:
+        if not tl:
             return False, '请选择一名角色！'
 
         return True, '来一杯！'

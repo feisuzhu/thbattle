@@ -94,14 +94,15 @@ class UserInputFuzzingHandler(EventHandler):
                         except Exception as e:
                             raise Exception(f"{c}.ui_meta.is_action_valid failed") from e
 
-                        assert (ok and c.check()) == ok2, {
-                            'ok': ok,
-                            'c.check()': c.check(),
-                            'ok2': ok2,
-                            'c': c,
-                            'tl': tl,
-                            'reason': reason,
-                        }
+                        # This can happen
+                        # assert (ok and bool(c.check())) == ok2, {
+                        #     'ok': ok,
+                        #     'c.check()': c.check(),
+                        #     'ok2': ok2,
+                        #     'c': c,
+                        #     'tl': tl,
+                        #     'reason': reason,
+                        # }
 
                         if not ok:
                             continue

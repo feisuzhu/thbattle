@@ -189,6 +189,8 @@ class SolidShieldHandler(THBEventHandler):
 
             if src is tgt: return act
 
+            if tgt.dead: return act
+
             c = act.card
             if not (c.is_card(AttackCard) or 'instant_spellcard' in c.category):
                 return act

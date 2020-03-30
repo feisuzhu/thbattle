@@ -4,7 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb import actions, cards, characters
+from thb import actions, characters
 from thb.meta.common import ui_meta
 
 
@@ -70,6 +70,8 @@ class LunaString:
         return False
 
     def is_complete(self, sk):
+        from thb.cards.base import VirtualCard
+
         acards = sk.associated_cards
         if len(acards) != 1:
             return False, '请选择一张手牌'
@@ -79,17 +81,19 @@ class LunaString:
         if c.resides_in.type not in ('cards', 'showncards'):
             return False, '请选择一张手牌'
 
-        if c.is_card(cards.VirtualCard):
+        if c.is_card(VirtualCard):
             return False, '「月弦」不允许组合使用'
 
         return True, '发动「月弦」'
 
     def is_action_valid(self, sk, tl):
+        from thb.cards.classes import AttackCard
+
         isc, t = self.is_complete(sk)
         if not isc:
             return isc, t
         c = sk.associated_cards[0]
-        return cards.AttackCard().ui_meta.is_action_valid(c, tl)
+        return AttackCard().ui_meta.is_action_valid(c, tl)
 
 
 @ui_meta(characters.eirin.LunaStringPlaceCard)

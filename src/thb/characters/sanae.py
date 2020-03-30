@@ -197,6 +197,7 @@ class SanaeFaithKOFHandler(THBEventHandler):
 
 class GodDescendant(Skill):
     associated_action = None
+    target = t_None()
     skill_category = ['character', 'passive']
 
 

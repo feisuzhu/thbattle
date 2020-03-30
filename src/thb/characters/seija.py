@@ -74,13 +74,13 @@ class Incite(Skill):
     skill_category = ['character', 'active']
     usage = 'none'
 
-    def target(self, g: THBattle, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
+    def target(self, src: Character, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
         tl = [t for t in tl if not t.dead and t is not src]
 
         if not tl:
             return ([], False)
 
-        tl_, valid = AttackCard.target(None, g, tl[0], tl[1:])
+        tl_, valid = AttackCard().target(tl[0], tl[1:])
         tl = tl[:1]
         tl.extend(tl_)
         return tl, valid

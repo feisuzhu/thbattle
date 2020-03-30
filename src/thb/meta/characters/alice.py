@@ -120,7 +120,7 @@ class LittleLegionControlAction:
 
         from thb.cards.classes import DollControlCard
 
-        rst, prompt = DollControlCard.ui_meta.is_action_valid(g, [], pl)
+        rst, prompt = DollControlCard().ui_meta.is_action_valid([], pl)
 
         if rst:
             return (True, '就让你见识下人偶军团的厉害！')

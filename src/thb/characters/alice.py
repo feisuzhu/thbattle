@@ -113,7 +113,7 @@ class LittleLegionControlAction(UserAction):
 
     def choose_player_target(self, tl: Sequence[Character]) -> Tuple[List[Character], bool]:
         src = self.source
-        trimmed, rst = DollControlCard.target(None, None, src, tl)
+        trimmed, rst = DollControlCard.target(None, src, tl)
         return trimmed, rst and LaunchCard(src, trimmed, LittleLegionDollControlCard(src)).can_fire()
 
 

@@ -16,7 +16,7 @@ from utils.misc import BatchList
 
 
 # -- code --
-def equip_iav(self, g, cl, tl):
+def equip_iav(self, cl, tl):
     return (True, '配上好装备，不再掉节操！')
 
 

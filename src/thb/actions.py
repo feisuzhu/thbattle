@@ -1077,10 +1077,10 @@ class FatetellAction(GenericAction):
         if not ft.cancelled:
             rst = self.fatetell_action(ft)
 
-            assert ft.card
-            if ft.card.detached:
+            c = ft.card
+            if (isinstance(c, PhysicalCard) and c.detached) or isinstance(c, VirtualCard):
                 with MigrateCardsTransaction(ft.card_manipulator) as trans:
-                    migrate_cards([ft.card], g.deck.droppedcards, unwrap=True, trans=trans)
+                    migrate_cards([c], g.deck.droppedcards, unwrap=True, trans=trans)
 
             return rst
 
