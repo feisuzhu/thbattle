@@ -29,6 +29,7 @@ class SkySilkAction(UserAction):
         g.players.reveal(c)
 
         g.process_action(DropCards(src, tgt, [c]))
+        if tgt.dead: return False
 
         action = 'draw'
         if tgt.life < tgt.maxlife:
