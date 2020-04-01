@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from game.autoenv import Game, user_input
-from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, DrawCards, EventHandler
+from thb.actions import ActionLimitExceeded, DrawCards, EventHandler, LaunchCard
 from thb.actions import Reforge, UserAction, random_choose_card, ttags
 from thb.cards import AttackCard, Card, Skill, TreatAs, t_OtherOne
 from thb.characters.baseclasses import Character, register_character_to
@@ -69,17 +69,17 @@ class CraftsmanHandler(EventHandler):
     interested = ('action_after', 'action_shootdown')
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, ActionStageLaunchCard):
+        if evt_type == 'action_after' and isinstance(act, LaunchCard):
             c = act.card
             if c.is_card(Craftsman):
                 src = act.source
                 ttags(src)['craftsman'] = True
 
         elif evt_type == 'action_shootdown':
-            if not isinstance(act, ActionStageLaunchCard): return act
+            if not isinstance(act, LaunchCard): return act
             c = act.card
             if not c.is_card(Craftsman): return act
-            if ttags(act.source)['craftsman']:
+            if ttags(act.source)['craftsman'] and Game.getgame().current_player is act.source:
                 raise ActionLimitExceeded
 
         return act
