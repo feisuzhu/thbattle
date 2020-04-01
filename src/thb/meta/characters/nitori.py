@@ -44,7 +44,7 @@ class Dismantle:
 @ui_meta(characters.nitori.Craftsman)
 class Craftsman:
     name = '匠心'
-    description = '你可以将你的全部手牌（至少1张）当做任意的一张基本牌使用或打出。出牌阶段内使用时，一回合限一次。'
+    description = '你可以将你的全部手牌（至少1张）当做任意的一张基本牌使用或打出。你的回合以此方式使用牌时，一回合限一次。'
 
     params_ui = 'UICraftsmanCardSelection'
 

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, DrawCards, Reforge, UserAction
+from thb.actions import ActionLimitExceeded, DrawCards, LaunchCard, PlayerTurn, Reforge, UserAction
 from thb.actions import random_choose_card, ttags
 from thb.cards.base import PhysicalCard, Skill, TreatAs, t_OtherOne
 from thb.cards.definition import AttackCard
@@ -70,17 +71,23 @@ class CraftsmanHandler(THBEventHandler):
     interested = ['action_after', 'action_shootdown']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, ActionStageLaunchCard):
+        if evt_type == 'action_after' and isinstance(act, LaunchCard):
             c = act.card
             if c.is_card(Craftsman):
                 src = act.source
                 ttags(src)['craftsman'] = True
 
         elif evt_type == 'action_shootdown':
-            if not isinstance(act, ActionStageLaunchCard): return act
+            if not isinstance(act, LaunchCard): return act
             c = act.card
             if not c.is_card(Craftsman): return act
-            if ttags(act.source)['craftsman']:
+            g = self.game
+            try:
+                current = PlayerTurn.get_current(g).target
+            except IndexError:
+                return act
+
+            if ttags(act.source)['craftsman'] and current is act.source:
                 raise ActionLimitExceeded
 
         return act
