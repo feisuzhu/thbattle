@@ -31,23 +31,3 @@ class ForbiddenFruits:
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
-
-
-class Exterminate:
-    # Skill
-    name = u'毁灭'
-    description = u'|B锁定技|r，每当你使用|G弹幕|r或|G弹幕战|r指定其他角色为目标后，其所有技能无效直到回合结束。'
-
-    clickable = passive_clickable
-    is_action_valid = passive_is_action_valid
-
-
-class ExterminateAction:
-    def effect_string(act):
-        return u'|G【%s】|r被|G【%s】|r玩坏了……' % (
-            act.target.ui_meta.name,
-            act.source.ui_meta.name,
-        )
-
-    def sound_effect(act):
-        return 'thb-cv-flandre_cs'

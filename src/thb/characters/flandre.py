@@ -64,63 +64,8 @@ class ForbiddenFruitsHandler(EventHandler):
         return act
 
 
-class Exterminate(Skill):
-    associated_action = None
-    skill_category = ('character', 'passive', 'compulsory')
-    target = t_None
-
-
-class ExterminateAction(UserAction):
-
-    def apply_action(self):
-        tgt = self.target
-        tgt.tags['exterminate'] = True
-        for s in tgt.skills:
-            if 'character' in s.skill_category:
-                tgt.disable_skill(s, 'exterminate')
-
-        return True
-
-
-class ExterminateHandler(EventHandler):
-    interested = ('choose_target',)
-
-    def handle(self, evt_type, arg):
-        if evt_type == 'choose_target':
-            act, tl = arg
-            src = act.source
-            g = Game.getgame()
-
-            if not src.has_skill(Exterminate):
-                return arg
-
-            c = act.card
-            if not c.is_card(AttackCard) and not c.is_card(DuelCard):
-                return arg
-
-            for tgt in tl:
-                g.process_action(ExterminateAction(src, tgt))
-
-        return arg
-
-
-class ExterminateFadeHandler(EventHandler):
-    interested = ('action_after', 'action_apply')
-
-    def handle(self, evt_type, arg):
-        if ((evt_type == 'action_after' and isinstance(arg, PlayerTurn)) or
-            (evt_type == 'action_apply' and isinstance(arg, PlayerDeath) and arg.target.has_skill(Exterminate))):  # noqa
-
-            g = Game.getgame()
-            for p in g.players:
-                if p.tags.pop('exterminate', ''):
-                    p.reenable_skill('exterminate')
-
-        return arg
-
-
 @register_character_to('common')
 class Flandre(Character):
-    skills = [Exterminate, ForbiddenFruits]
-    eventhandlers_required = [ExterminateHandler, ExterminateFadeHandler, ForbiddenFruitsHandler]
+    skills = [ForbiddenFruits]
+    eventhandlers_required = [ForbiddenFruitsHandler]
     maxlife = 3

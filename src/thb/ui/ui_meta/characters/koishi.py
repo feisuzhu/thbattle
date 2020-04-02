@@ -37,7 +37,7 @@ class UnconsciousnessLimit:
 
 class Paranoia:
     name = u'偏执'
-    description = u'每当你对一名角色造成伤害后，该伤害若是|G弹幕|r效果造成的，直到回合结束时其所有技能失效且你的干劲置为一；若该伤害恰为0点，你可以获得其一张手牌。'
+    description = u'你的回合内，每当你对一名角色造成伤害后，该伤害若是|G弹幕|r效果造成的，直到回合结束时其所有技能失效且你的干劲置为一；若该伤害恰为0点，你可以获得其一张手牌。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
