@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from itertools import chain, combinations, permutations
+from itertools import chain, combinations as C, permutations as P
 from typing import Any, cast
 import logging
 import random
@@ -12,13 +12,12 @@ import gevent
 
 # -- own --
 from game.base import EventHandler
-from thb.actions import ActionStageLaunchCard, CardChooser, skill_wrap
+from thb.actions import ActionStageLaunchCard, CardChooser, skill_wrap, CharacterChooser
 from thb.inputlets import ActionInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
 log = logging.getLogger('UserInputFuzzingHandler')
-C = combinations
 
 
 def let_it_go(*cores):
@@ -65,15 +64,8 @@ class UserInputFuzzingHandler(EventHandler):
                     break
 
                 # Card
-                cc = list(chain(*[combinations(cards, i) for i in range(4)]))
+                cc = list(chain(*[C(cards, i) for i in range(4)]))
                 random.shuffle(cc)
-
-                # for i in rl:
-                #     # log.debug("tgt %s", target)
-                #     # log.debug("rl %s", i)
-                #     rst, ok = c.target(g, me, i)
-                #     if ok:
-                #         yield rst
 
                 for cl in cc:
                     for tl in self.possible_targets(g, p, sk):
@@ -120,15 +112,47 @@ class UserInputFuzzingHandler(EventHandler):
                         return True
 
         elif trans.name in ('Action', 'AskForRejectAction') and isinstance(ilet, ActionInputlet):
-            if not (ilet.categories and not ilet.candidates):
-                return True
+            rst = {
+                'skills': [],
+                'cards': [],
+                'characters': [],
+            }
 
-            cond = cast(CardChooser, ilet.initiator).cond
-            cl = list(p.showncards) + list(p.cards)
-            for c in chain(C(cl, 1), C(cl, 2)):
-                if cond(c):
-                    ilet.set_result(skills=[], cards=c, characters=[])
-                    return True
+            if ilet.categories:
+                cond = cast(CardChooser, ilet.initiator).cond
+                cl = list(p.showncards) + list(p.cards)
+
+                for skcls in ilet.actor.skills:
+                    if cond([skcls(ilet.actor)]) and random.random() < 0.5:
+                        for c in chain([], C(cl, 1), C(cl, 2), [cl]):
+                            sk = skill_wrap(p, [skcls], c, {})
+                            assert cond([sk])
+                            rst['skills'] = [skcls]
+                            rst['cards'] = c
+                            break
+
+                    if rst:
+                        break
+                else:
+                    for c in chain(C(cl, 1), C(cl, 2), [cl]):
+                        if cond(c):
+                            rst['cards'] = c
+                            break
+
+            if ilet.candidates:
+                target = cast(CharacterChooser, ilet.initiator).choose_player_target
+                # (self, pl: Sequence[Character]) -> Tuple[List[Character], bool]: ...
+                pl = ilet.candidates
+                for p in chain(C(pl, 1), C(pl, 2), [pl]):
+                    p, ok = target(p)
+                    if ok:
+                        rst['characters'] = p
+                        break
+
+            if rst:
+                ilet.set_result(**rst)
+
+            return True
 
         elif trans.name == 'ChooseOption' and isinstance(ilet, ChooseOptionInputlet):
             ilet.set_option(random.choice(list(ilet.options) * 2 + [None]))
@@ -230,7 +254,7 @@ class UserInputFuzzingHandler(EventHandler):
             n = target._for_test_OtherLessEqThanN
             rl = []
             for i in range(n+1):
-                rl.extend(list(permutations(pl, i)))
+                rl.extend(list(P(pl, i)))
             random.shuffle(rl)
 
         elif tn == 't_OneOrNone':
@@ -240,13 +264,13 @@ class UserInputFuzzingHandler(EventHandler):
 
         elif tn == '_t_OtherN':
             n = target._for_test_OtherN
-            rl = list(permutations(pl, n))
+            rl = list(P(pl, n))
             random.shuffle(rl)
             rl = [list(i) for i in rl]
         else:
             rl = []
             for i in range(3):  # HACK: should be enough
-                rl.extend(list(permutations(pl, i)))
+                rl.extend(list(P(pl, i)))
             random.shuffle(rl)
 
         return rl
