@@ -2,13 +2,10 @@
 from __future__ import absolute_import
 
 # -- stdlib --
-import random
-
 # -- third party --
 # -- own --
 from thb import characters
-from thb.ui.ui_meta.common import card_desc, gen_metafunc, my_turn, passive_clickable
-from thb.ui.ui_meta.common import passive_is_action_valid, limit1_skill_used
+from thb.ui.ui_meta.common import card_desc, gen_metafunc, limit1_skill_used, my_turn, passive_clickable, passive_is_action_valid
 
 
 # -- code --
@@ -19,9 +16,8 @@ class ThirdEye:
     # Skill
     name = u'想起'
     description = (
-        u'每当你受到伤害后，且其它同时机事件结算完毕后，你可以随机抽取三张角色牌，'
-        u'声明其中一个非觉醒、非限定、非boss的技能，并获得之。'
-        u'如果你已经拥有被“想起”的技能，则新获得的技能会替换它（你只能拥有一个被“想起”的技能）。'
+        u'你的回合开始前，你可以随机抽取三张角色牌，声明其中一个非觉醒、非限定、非BOSS的技能，并获得之。'
+        u'你只能拥有一个被“想起”的技能，即“想起”获得的新技能会替换原来“想起”的技能。'
     )
 
     clickable = passive_clickable
@@ -64,18 +60,17 @@ class ThirdEyeAction:
                 act.sk_choice.ui_meta.name,
             )
 
-    # # tewi se to mock
-    # def sound_effect(act):
-    #     return random.choice([
-    #         'thb-cv-tewi_lucky',
-    #         'thb-cv-tewi_miss',
-    #     ])
+    def sound_effect(act):
+        return ''
 
 
 class ThirdEyeHandler:
     # choose_option
     choose_option_buttons = ((u'发动', True), (u'不发动', False))
     choose_option_prompt = u'你要发动【想起】吗？'
+
+    def sound_effect(act):
+        return ''
 
 
 class Rosa:
@@ -99,13 +94,6 @@ class Rosa:
         # for more str to complete:
         return (True, u'蔷薇の地狱！！！')
 
-    # # mock with nitori se
-    # def sound_effect(act):
-    #     return random.choice([
-    #         'thb-cv-nitori_dismantle',
-    #         'thb-cv-nitori_dismantle_other',
-    #     ])
-
 
 class RosaReforgeAction:
     def effect_string(act):
@@ -118,9 +106,8 @@ class RosaReforgeAction:
     def ray(act):
         return [(act.source, act.target)]
 
-    # # mock with suika se
-    # def sound_effect(act):
-    #     return 'thb-cv-suika_drunkendream'
+    def sound_effect(act):
+        return ''
 
 
 class RosaRevealAction:
@@ -134,9 +121,8 @@ class RosaRevealAction:
     def ray(act):
         return [(act.source, act.target)]
 
-    # # mock using momiji se
-    # def sound_effect(act):
-    #     return 'thb-cv-momiji_disarm'
+    def sound_effect(act):
+        return ''
 
 
 class RosaHandler:
@@ -162,7 +148,7 @@ class MindReadAction:
 class MindRead:
     # Skill
     name = u'读心'
-    description = u'|BBOSS技|r，|B限定技|r，出牌阶段，选择一名角色，你可以获知其身份。'
+    description = u'|B限定技|r，出牌阶段，选择一名角色，你可以获知其身份。'
 
     def clickable(g):
         me = g.me
@@ -181,9 +167,23 @@ class MindRead:
 
         return (True, u'读心：选择一角色获知其身份')
 
-    # # mock using rumia se
-    # def sound_effect(act):
-    #     return 'thb-cv-rumia_miss'
+    def sound_effect(act):
+        return ''
+
+
+class TerribleSouvenir:
+    # Skill
+    name = u'恐怖催眠'
+    description = u'|BBOSS技|r，其它角色的出牌阶段开始前，若该角色手牌中存在明牌，则你可以令该角色的干劲置为零。'
+
+    clickable = passive_clickable
+    is_action_valid = passive_is_action_valid
+
+
+class TerribleSouvenirHandler:
+    # choose_option
+    choose_option_prompt = u'你要发动【恐怖催眠】吗？'
+    choose_option_buttons = ((u'发动', True), (u'不发动', False))
 
 
 class SpSatori:
@@ -195,4 +195,4 @@ class SpSatori:
 
     port_image        = u'thb-portrait-sp_satori'
     figure_image      = u'thb-figure-sp_satori'
-    # miss_sound_effect = u'thb-cv-tenshi_miss'
+    miss_sound_effect = u''

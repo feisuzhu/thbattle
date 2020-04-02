@@ -33,7 +33,6 @@ class ForbiddenFruitsHandler(EventHandler):
         'MelancholyHandler',
         'MajestyHandler',
         'MasochistHandler',
-        'ThirdEyeHandler',
     )
 
     def handle(self, evt_type, act):

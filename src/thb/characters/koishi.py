@@ -130,7 +130,6 @@ class ParanoiaHandler(EventHandler):
         'MelancholyHandler',
         'MajestyHandler',
         'MasochistHandler',
-        'ThirdEyeHandler',
     )
 
     execute_after = (
