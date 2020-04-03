@@ -150,7 +150,7 @@ class ExinwanCard:
 @ui_meta(basic.ExinwanEffect)
 class ExinwanEffect:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '节操给你，离我远点！')
         else:
@@ -167,7 +167,7 @@ class ExinwanEffect:
 class UseGraze:
     # choose_card meta
 
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '我闪！')
         else:
@@ -186,7 +186,7 @@ class UseGraze:
 class LaunchGraze:
     # choose_card meta
 
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '我闪！')
         else:
@@ -196,7 +196,7 @@ class LaunchGraze:
 @ui_meta(basic.UseAttack)
 class UseAttack:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '打架？来吧！')
         else:
@@ -241,7 +241,7 @@ class HealCard:
 @ui_meta(basic.AskForHeal)
 class AskForHeal:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '神说，你不能在这里被击坠(对%s使用)' % act.source.ui_meta.name)
         else:

@@ -306,10 +306,12 @@ class GungnirSkill:
     # Skill
     name = '冈格尼尔'
 
-    def clickable(self, g):
+    def clickable(self):
+        g = self.game
+        me = self.me
         try:
             act = g.hybrid_stack[-1]
-            if act.cond([equipment.GungnirSkill(g.me)]):
+            if act.cond([equipment.GungnirSkill(me)]):
                 return True
 
         except (IndexError, AttributeError):
@@ -374,10 +376,11 @@ class ScarletRhapsodySkill:
     # Skill
     name = '绯想之剑'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 return act.target is me
 
@@ -616,7 +619,7 @@ class HakuroukenSkill:
 @ui_meta(equipment.Hakurouken)
 class Hakurouken:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '弃置这张牌')
         else:
@@ -675,7 +678,7 @@ class AyaRoundfanSkill:
 @ui_meta(equipment.AyaRoundfanHandler)
 class AyaRoundfanHandler:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '这种妨碍拍摄的东西，统统脱掉！')
         else:
@@ -781,7 +784,7 @@ class LaevateinSkill:
 @ui_meta(equipment.LaevateinHandler)
 class LaevateinHandler:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '灭世之炎岂能轻易闪过！')
         else:
@@ -1051,14 +1054,15 @@ class GrimoireSkill:
     # Skill
     name = '魔导书'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
         t = me.tags
         if t['grimoire_tag'] >= t['turn_count']:
             return False
 
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 if me.tags['freeattack'] >= me.tags['turn_count']:
                     return True

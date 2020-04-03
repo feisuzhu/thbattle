@@ -36,7 +36,7 @@ class PerfectFreezeAction:
         return 'thb-cv-cirno_perfectfreeze'
 
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '弃置这张牌')
         else:
@@ -87,7 +87,7 @@ class Bakadesu:
 
 @ui_meta(characters.cirno.BakadesuAction)
 class BakadesuAction:
-    def choose_card_text(self, g, act, cl):
+    def choose_card_text(self, act, cl):
         if act.cond(cl):
             return (True, '啪！啪！啪！')
         else:

@@ -58,10 +58,12 @@ class LunaString:
     name = '月弦'
     description = '你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张|G弹幕|r。'
 
-    def clickable(g):
+    def clickable(self):
+        g = self.game
+        me = self.me
         try:
             act = g.hybrid_stack[-1]
-            if act.cond and act.cond([characters.eirin.LunaString(g.me)]):
+            if act.cond and act.cond([characters.eirin.LunaString(me)]):
                 return True
 
         except (IndexError, AttributeError):

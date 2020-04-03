@@ -30,12 +30,11 @@ class Find:
     description = '出牌阶段限一次，你可以弃置至多X张牌，然后摸等量的牌。（X为场上存活角色数）'
 
     def clickable(self):
-        g = self.game
-        me = g.me
+        me = self.me
         if ttags(me)['find']:
             return False
 
-        if self.my_turn(g) and (me.cards or me.showncards or me.equips):
+        if self.my_turn() and (me.cards or me.showncards or me.equips):
             return True
 
         return False

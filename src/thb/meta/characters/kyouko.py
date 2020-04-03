@@ -56,7 +56,7 @@ class EchoHandler:
 @ui_meta(characters.kyouko.ResonanceAction)
 class ResonanceAction:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '共振：对%s使用弹幕' % act.victim.ui_meta.name)
         else:

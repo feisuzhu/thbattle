@@ -55,7 +55,7 @@ class CardMeta(Protocol):
 
 
 class SkillMeta(CardMeta):
-    def clickable(self, g: THBattle) -> bool:
+    def clickable(self) -> bool:
         ...
 
     def is_complete(self, c: Skill) -> Tuple[bool, str]:

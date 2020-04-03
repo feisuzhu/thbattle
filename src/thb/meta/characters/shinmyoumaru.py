@@ -59,7 +59,7 @@ class VengeOfTsukumogamiAction:
 @ui_meta(characters.shinmyoumaru.MiracleMalletHandler)
 class MiracleMalletHandler:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '发动【万宝槌】！')
         else:

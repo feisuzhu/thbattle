@@ -43,7 +43,7 @@ class DestructionImpulseAction:
 
 @ui_meta(characters.sp_flandre.DestructionImpulseHandler)
 class DestructionImpulseHandler:
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if cards:
             return (False, '请不要选择牌！')
 

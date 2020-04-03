@@ -90,7 +90,7 @@ class ProphetAction:
 @ui_meta(characters.ran.ExtremeIntelligenceAction)
 class ExtremeIntelligenceAction:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '再来！')
         else:

@@ -90,7 +90,7 @@ class SentryHandler:
 @ui_meta(characters.momiji.SentryAction)
 class SentryAction:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '吃我大弹幕啦！(对%s发动哨戒)' % act.target.ui_meta.name)
         else:

@@ -43,11 +43,12 @@ class Support:
     name = '支援'
     description = '出牌阶段，你可将任意张牌交给其他角色，此阶段你给出的牌首次达到三张时，你回复1点体力。'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
 
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
         except IndexError:
             return False
 

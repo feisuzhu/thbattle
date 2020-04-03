@@ -20,14 +20,15 @@ class HeavyDrinker:
     name = '酒豪'
     description = '出牌阶段每名角色限一次，你可以和其他角色拼点，若你赢，视为你和其各使用了一张|G酒|r，若你没赢，你不能发动此技能，直到回合结束。'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
 
         if me.tags['suika_failed'] >= me.tags['turn_count']:
             return False
 
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
         except IndexError:
             return False
 

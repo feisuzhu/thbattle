@@ -57,7 +57,7 @@ class WindWalkLaunch:
 class WindWalkAction:
     idle_prompt = '疾走：请使用摸到的牌（否则结束出牌并跳过弃牌阶段）'
 
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if not act.cond(cards):
             return False, '疾走：只能使用摸到的牌（或者结束）'
         else:

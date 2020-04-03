@@ -45,7 +45,7 @@ class CiguateraAction:
 
 @ui_meta(characters.medicine.CiguateraHandler)
 class CiguateraHandler:
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         return act.cond(cards), '弃置一张黑色牌，发动【神经之毒】'
 
 

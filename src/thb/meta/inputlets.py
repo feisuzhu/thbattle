@@ -186,14 +186,15 @@ def action_disp_func(f):
 class ActionInputlet:
     @action_disp_func
     def passive_action_disp(self, ilet, skills, rawcards, params, players):
-        g = ilet.initiator.game
+        g = self.game
+        me = self.me
 
         usage = getattr(ilet.initiator, 'card_usage', 'none')
 
         if skills:
-            if any(not g.me.has_skill(s) for s in skills):
+            if any(not me.has_skill(s) for s in skills):
                 raise ActionDisplayResult(False, '您不能这样出牌', False, [], [])
-            cards = [actions.skill_wrap(g.me, skills, rawcards, params)]
+            cards = [actions.skill_wrap(me, skills, rawcards, params)]
             usage = cards[0].usage if usage == 'launch' else usage
         else:
             cards = rawcards
@@ -202,28 +203,29 @@ class ActionInputlet:
         plsel, disables, players, prompt_target = pasv_handle_player_selection(g, ilet, players)
 
         verify = getattr(ilet.initiator, 'ask_for_action_verify', None)
-        rst = not verify or verify(g.me, cards, players)
+        rst = not verify or verify(me, cards, players)
         if not rst:
             raise ActionDisplayResult(False, rst.ui_meta.shootdown_message, plsel, disables, players)
 
         raise ActionDisplayResult(True, prompt_target or prompt_card, plsel, disables, players)
 
     def passive_action_recommend(self, ilet):
-        g = ilet.initiator.game
+        me = self.me
 
         if not ilet.categories: return
 
-        for c in g.me.showncards:
+        for c in me.showncards:
             if not ilet.initiator.cond([c]): continue
             return c
 
-        for c in g.me.cards:
+        for c in me.cards:
             if not ilet.initiator.cond([c]): continue
             return c
 
     @action_disp_func
     def active_action_disp(self, ilet, skills, rawcards, params, players):
-        g = ilet.initiator.game
+        g = self.game
+        me = self.me
 
         stage = ilet.initiator
 
@@ -233,9 +235,9 @@ class ActionInputlet:
         usage = getattr(ilet.initiator, 'card_usage', 'none')
 
         if skills:
-            if any(not g.me.has_skill(s) for s in skills):
+            if any(not me.has_skill(s) for s in skills):
                 raise ActionDisplayResult(False, '您不能这样出牌', False, [], [])
-            cards = [actions.skill_wrap(g.me, skills, rawcards, params)]
+            cards = [actions.skill_wrap(me, skills, rawcards, params)]
             usage = cards[0].usage if usage == 'launch' else usage
         else:
             cards = rawcards
@@ -243,7 +245,7 @@ class ActionInputlet:
         card = actv_handle_card_selection(g, stage, cards)
         players, disables, prompt = actv_handle_target_selection(g, stage, card, players)
 
-        act = stage.launch_card_cls(g.me, players, card)
+        act = stage.launch_card_cls(me, players, card)
 
         shootdown = act.action_shootdown()
         if shootdown is not None:

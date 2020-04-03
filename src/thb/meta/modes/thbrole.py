@@ -108,7 +108,7 @@ class AssistedUseAction:
 
 @ui_meta(thbrole.AssistedAttackAction)
 class AssistedAttackAction:
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '帮BOSS对%s出弹幕' % act.target.ui_meta.name)
         else:

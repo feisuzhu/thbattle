@@ -57,7 +57,8 @@ class UserInputFuzzingHandler(EventHandler):
 
             while random.random() < 0.5:
                 # Skill
-                skl = [sk for sk in p.skills if sk.target.__name__ != 't_None']
+                skl = [sk for sk in p.skills if 't_None' not in sk.target.__name__]
+                [sk.ui_meta.clickable() for sk in skl]
                 if skl:
                     sk = random.choice(skl)
                 else:
@@ -99,6 +100,9 @@ class UserInputFuzzingHandler(EventHandler):
                         if not ok:
                             continue
 
+                        # This can happen too
+                        # assert c.ui_meta.clickable(), c
+
                         if self.try_launch(ilet, cl, tl, skills=[sk]):
                             return
                 break
@@ -119,33 +123,49 @@ class UserInputFuzzingHandler(EventHandler):
             }
 
             if ilet.categories:
-                cond = cast(CardChooser, ilet.initiator).cond
+                initiator = cast(CardChooser, ilet.initiator)
+                cond = initiator.cond
                 cl = list(p.showncards) + list(p.cards)
 
+                found = False
                 for skcls in ilet.actor.skills:
-                    if cond([skcls(ilet.actor)]) and random.random() < 0.5:
+                    sk = skcls(ilet.actor)
+                    if not sk.ui_meta.clickable():
+                        continue
+
+                    uiok, uireason = self.ui_meta_walk_wrapped([sk])
+                    cct_ok, cct_reason = initiator.ui_meta.choose_card_text(initiator, [sk])
+                    if cond([sk]) and random.random() < 0.5:
                         for c in chain([], C(cl, 1), C(cl, 2), [cl]):
                             sk = skill_wrap(p, [skcls], c, {})
+                            uiok, uireason = self.ui_meta_walk_wrapped([sk])
+                            assert uiok
                             assert cond([sk])
                             rst['skills'] = [skcls]
                             rst['cards'] = c
+                            found = True
                             break
 
-                    if rst:
+                    if found:
                         break
                 else:
                     for c in chain(C(cl, 1), C(cl, 2), [cl]):
+                        cct_ok, cct_reason = initiator.ui_meta.choose_card_text(initiator, c)
                         if cond(c):
+                            assert cct_ok, (c, cct_reason)
                             rst['cards'] = c
                             break
 
             if ilet.candidates:
-                target = cast(CharacterChooser, ilet.initiator).choose_player_target
+                initiator = cast(CharacterChooser, ilet.initiator)
+                target = initiator.choose_player_target
                 # (self, pl: Sequence[Character]) -> Tuple[List[Character], bool]: ...
                 pl = ilet.candidates
                 for p in chain(C(pl, 1), C(pl, 2), [pl]):
                     p, ok = target(p)
+                    ccp_ok, ccp_reason = initiator.ui_meta.target(p)
                     if ok:
+                        assert ccp_ok, (p, ccp_reason)
                         rst['characters'] = p
                         break
 

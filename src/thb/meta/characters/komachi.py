@@ -30,11 +30,10 @@ class Riverside:
     description = '出牌阶段限一次，你可以弃置一张牌并指定一名其他角色，你与其距离视为1直到回合结束，然后若该角色的体力值为全场最少的（或之一），你选择一项：|B|R>> |r摸一张牌，|B|R>> |r弃置其一张牌。'
 
     def clickable(self):
-        g = self.game
+        me = self.me
         if not self.my_turn(): return False
         if self.limit1_skill_used('riverside_tag'): return False
 
-        me = g.me
         return bool(me.cards or me.showncards or me.equips)
 
     def is_action_valid(self, sk, tl):

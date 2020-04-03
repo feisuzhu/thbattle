@@ -85,8 +85,8 @@ class SanaeFaith:
     description = '出牌阶段限一次，你可以令至多两名其他角色各交给你一张手牌，然后你交给其各一张牌。'
 
     def clickable(self):
-        g = self.game
-        return self.my_turn() and not ttags(g.me)['faith']
+        me = self.me
+        return self.my_turn() and not ttags(me)['faith']
 
     def effect_string(self, act):
         return '|G【%s】|r的|G信仰|r大作战！向%s收集了信仰！' % (
@@ -125,7 +125,7 @@ class SanaeFaithKOFDrawCards:
 @ui_meta(characters.sanae.SanaeFaithCollectCardAction)
 class SanaeFaithCollectCardAction:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '信仰：交出这一张手牌，然后收回一张牌')
         else:
@@ -135,7 +135,7 @@ class SanaeFaithCollectCardAction:
 @ui_meta(characters.sanae.SanaeFaithReturnCardAction)
 class SanaeFaithReturnCardAction:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '信仰：将这一张牌返还给%s' % act.target.ui_meta.name)
         else:
@@ -151,7 +151,7 @@ class GodDescendant:
 @ui_meta(characters.sanae.GodDescendantAction)
 class GodDescendantAction:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '神裔：重铸并跳过结算')
         else:

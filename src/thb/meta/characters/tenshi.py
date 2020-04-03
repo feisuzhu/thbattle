@@ -26,7 +26,7 @@ class MasochistHandler:
 @ui_meta(characters.tenshi.MasochistAction)
 class MasochistAction:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '给你牌~')
         else:

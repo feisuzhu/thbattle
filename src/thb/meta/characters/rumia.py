@@ -21,11 +21,12 @@ class Darkness:
 
     custom_ray = True
 
-    def clickable(self, game):
+    def clickable(self):
+        g = self.game
         try:
             if self.limit1_skill_used('darkness_tag'):
                 return False
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage):
                 return True
         except IndexError:
@@ -85,7 +86,7 @@ class DarknessAction:
         tl = act.target_list
         return [(src, tl[0]), (tl[0], tl[1])]
 
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '使用【弹幕】')
         else:

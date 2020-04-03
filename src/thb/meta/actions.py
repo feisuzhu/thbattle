@@ -41,7 +41,7 @@ class PutBack:
 @ui_meta(actions.ActiveDropCards)
 class ActiveDropCards:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, 'OK，就这些了')
         else:
@@ -204,7 +204,7 @@ class RevealRole:
 @ui_meta(actions.Pindian)
 class Pindian:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '不服来战！')
         else:
@@ -267,7 +267,7 @@ class ActionShootdown:
 class BaseActionStage:
     idle_prompt = '请出牌…'
 
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if not act.cond(cards):
             return False, '您选择的牌不符合出牌规则'
         else:

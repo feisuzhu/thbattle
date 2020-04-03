@@ -80,7 +80,7 @@ class BaseHopeMaskAction:
 @ui_meta(characters.kokoro.BaseDarkNohAction)
 class BaseDarkNohAction:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '真坑！')
         else:

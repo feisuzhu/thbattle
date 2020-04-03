@@ -116,7 +116,7 @@ class SadistKOFDamageAction:
 @ui_meta(characters.yuuka.SadistHandler)
 class SadistHandler:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '发动【施虐】')
         else:

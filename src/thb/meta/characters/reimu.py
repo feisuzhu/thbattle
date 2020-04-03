@@ -24,8 +24,9 @@ class Flight:
 class SpiritualAttack:
     name = '灵击'
 
-    def clickable(self, g):
-        me = g.me
+    def clickable(self):
+        g = self.game
+        me = self.me
 
         if not (me.cards or me.showncards): return False
 
@@ -148,7 +149,7 @@ class ReimuExterminate:
 @ui_meta(characters.reimu.ReimuExterminateAction)
 class ReimuExterminateAction:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '代表幻想乡消灭你！')
         else:

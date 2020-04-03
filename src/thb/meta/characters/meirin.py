@@ -27,7 +27,8 @@ class Taichi:
     name = '太极'
     description = '你可将|G弹幕|r当|G擦弹|r，|G擦弹|r当|G弹幕|r使用或打出。'
 
-    def clickable(self, g):
+    def clickable(self):
+        g = self.game
         try:
             act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage):

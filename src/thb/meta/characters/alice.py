@@ -132,7 +132,7 @@ class LittleLegionControlAction:
 class LittleLegionHandler:
 
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             c, = cards
             if c.equipment_category == 'weapon':

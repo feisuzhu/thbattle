@@ -48,9 +48,10 @@ class Craftsman:
 
     params_ui = 'UICraftsmanCardSelection'
 
-    def clickable(self, g):
+    def clickable(self):
+        g = self.game
+        me = self.me
         try:
-            me = g.me
             if not me.cards and not me.showncards:
                 return False
 

@@ -68,7 +68,7 @@ class RebornAction:
 @ui_meta(characters.mokou.RebornHandler)
 class RebornHandler:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '弃置这些牌并回复1点体力')
         else:

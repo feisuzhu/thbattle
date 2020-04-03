@@ -34,7 +34,7 @@ class Dilemma:
 @ui_meta(characters.kaguya.DilemmaDamageAction)
 class DilemmaDamageAction:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '交出一张方片牌')
         else:
@@ -120,7 +120,7 @@ class ImperishableNightHandler:
         return prompt % act.target.ui_meta.name
 
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '陷入永夜吧！')
         else:

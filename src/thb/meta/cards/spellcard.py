@@ -90,7 +90,7 @@ class RejectCard:
 @ui_meta(spellcard.RejectHandler)
 class RejectHandler:
     # choose_card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         c = act.target_act.associated_card
         name = c.ui_meta.name
 
@@ -427,7 +427,7 @@ class DollControlCard:
 @ui_meta(spellcard.DollControl)
 class DollControl:
     # choose card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '那好吧…')
         else:
@@ -469,7 +469,7 @@ class DonationBoxCard:
 @ui_meta(spellcard.DonationBoxEffect)
 class DonationBoxEffect:
     # choose card meta
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '这是抢劫啊！')
         else:

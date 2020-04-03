@@ -51,7 +51,7 @@ class Teach:
 @ui_meta(characters.keine.TeachAction)
 class TeachAction:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '给出这张牌')
         else:
@@ -74,7 +74,7 @@ class TeachTargetEffect:
 @ui_meta(characters.keine.TeachTargetReforgeAction)
 class TeachTargetReforgeAction:
     # choose_card
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if act.cond(cards):
             return (True, '重铸这张牌')
         else:
@@ -97,6 +97,7 @@ class KeineGuard:
     )
 
 
+@ui_meta(characters.keine.KeineGuardAction)
 class KeineGuardAction:
     def effect_string_before(act):
         return '“我绝对不会让你们碰到|G【%s】|r 一根手指的！”|G【%s】|r冲着所有人喊道。' % (
@@ -110,6 +111,7 @@ class KeineGuardAction:
         ])
 
 
+@ui_meta(characters.keine.KeineGuardHandler)
 class KeineGuardHandler:
 
     def target(self, pl):
@@ -123,6 +125,7 @@ class KeineGuardHandler:
         return True, u'我的CP由我来守护！'
 
 
+@ui_meta(characters.keine.Devoted)
 class Devoted:
     # Skill
     name = u'决意'
@@ -131,6 +134,7 @@ class Devoted:
     )
 
 
+@ui_meta(characters.keine.DevotedHeal)
 class DevotedHeal:
     def effect_string(act):
         return '|G【%s】|r分享了回复效果（|G决意|r），|G【%s】|r回复了%s点体力。' % (
@@ -140,6 +144,7 @@ class DevotedHeal:
         )
 
 
+@ui_meta(characters.keine.DevotedDrawCards)
 class DevotedDrawCards:
     def effect_string(act):
         return '|G【%s】|r分享了摸牌效果（|G决意|r），|G【%s】|r摸了%s张牌。' % (
@@ -149,6 +154,7 @@ class DevotedDrawCards:
         )
 
 
+@ui_meta(characters.keine.DevotedAction)
 class DevotedAction:
     def effect_string(act):
         return '|G【%s】|r的伤害由|G【%s】|r承受了（|G决意|r）。' % (
@@ -157,6 +163,7 @@ class DevotedAction:
         )
 
 
+@ui_meta(characters.keine.Keine)
 class Keine:
     # Character
     name        = '上白泽慧音'

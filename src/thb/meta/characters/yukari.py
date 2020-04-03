@@ -17,11 +17,12 @@ class SpiritingAway:
     name = '神隐'
     description = '出牌阶段限两次，你可以将场上的一张牌暂时移出游戏。你可以观看以此法移出游戏的牌。任何角色被紫暂时移出的牌，会在紫的结束阶段后归还回该角色的手牌中。'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
         if me.tags['spirit_away_tag'] >= 2: return False
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage) and act.target is me:
                 return True
         except IndexError:

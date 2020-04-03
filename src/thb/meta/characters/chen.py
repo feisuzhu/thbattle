@@ -22,11 +22,12 @@ class FlyingSkanda:
         '|B|R>> |r在线版本中，不能以此法使用|G人形操控|r'
     )
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
         if me.tags['flying_skanda'] >= me.tags['turn_count']: return False
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage) and act.target is me:
                 return True
         except IndexError:
@@ -89,11 +90,12 @@ class Shikigami:
         '直到下次你的回合开始时，你与其可以在出牌阶段对对方攻击范围内的角色使用|G弹幕|r。'
     )
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
         if me.tags.get('shikigami_tag'): return False
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage) and act.target is me:
                 return True
         except IndexError:

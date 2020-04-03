@@ -50,13 +50,14 @@ class KanakoFaith:
         '|B|R>> |r弃置你一张牌，然后你视为对其使用了一张|G弹幕|r或|G弹幕战|r（按此法使用的弹幕不消耗干劲）。'
     )
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
         if me.tags['kanako_faith']:
             return False
 
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage) and act.target is me:
                 return True
 
@@ -143,7 +144,7 @@ class VirtueHandler:
 
 @ui_meta(characters.kanako.VirtueAction)
 class VirtueAction:
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         prompt = '神德：交给对方一张牌'
         return act.cond(cards), prompt
 

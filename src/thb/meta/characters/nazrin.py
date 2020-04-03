@@ -59,11 +59,12 @@ class Agile:
     name = '轻敏'
     description = '你可以将一张黑色手牌当|G擦弹|r使用或打出。'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
 
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
         except IndexError:
             return False
 

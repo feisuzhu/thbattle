@@ -63,6 +63,7 @@ class UIMetaBase(GameViralContext):
 
     def my_turn(self):
         g = self.game
+        me = self.me
         try:
             act = g.action_stack[-1]
         except IndexError:
@@ -72,15 +73,15 @@ class UIMetaBase(GameViralContext):
         if not isinstance(act, actions.ActionStage):
             return False
 
-        if act.target is not g.me: return False
+        if act.target is not me: return False
 
         if not act.in_user_input: return False
 
         return True
 
     def limit1_skill_used(self, tag):
-        g = self.game
-        t = g.me.tags
+        me = self.me
+        t = me.tags
         return t[tag] >= t['turn_count']
 
     def clickable(self):
@@ -114,9 +115,9 @@ class UIMetaBase(GameViralContext):
         return suit + num + ' |G%s|r' % c.ui_meta.name
 
     def build_handcard(self, cardcls, p=None):
-        g = self.game
+        me = self.me
         from thb.cards.base import CardList
-        cl = CardList(p or g.me, 'cards')
+        cl = CardList(p or me, 'cards')
         c = cardcls()
         c.move_to(cl)
         return c

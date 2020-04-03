@@ -32,8 +32,9 @@ class Dagger:
     name = '飞刀'
     description = '你可以将一张装备牌当|G弹幕|r使用或打出，以此法使用的|G弹幕|r无距离限制。'
 
-    def clickable(self, g):
-        me = g.me
+    def clickable(self):
+        g = self.game
+        me = self.me
 
         if not (me.cards or me.showncards or me.equips): return False
 

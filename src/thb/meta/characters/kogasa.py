@@ -32,7 +32,7 @@ class JollyDrawCard:
 
 @ui_meta(characters.kogasa.JollyHandler)
 class JollyHandler:
-    def choose_card_text(self, g, act, cards):
+    def choose_card_text(self, act, cards):
         if cards:
             return (False, '请不要选择牌！')
 
@@ -52,14 +52,15 @@ class Surprise:
     name = '惊吓'
     description = '出牌阶段限一次，你可以选择一张手牌并指定一名其他角色，该角色选择一种花色后，获得此牌并明置之。若此牌与其选择的花色不同，你对其造成1点伤害。'
 
-    def clickable(self, game):
-        me = game.me
+    def clickable(self):
+        g = self.game
+        me = self.me
 
         if me.tags.get('surprise_tag', 0) >= me.tags.get('turn_count', 0):
             return False
 
         try:
-            act = game.action_stack[-1]
+            act = g.action_stack[-1]
         except IndexError:
             return False
 

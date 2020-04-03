@@ -36,7 +36,7 @@ class GuidedDeath:
     description = '出牌阶段限一次，你可以令一名其它角色失去一点体力，然后其于回合结束阶段回复一点体力。回合结束阶段，若你于出牌阶段没有发动过该技能，则所有体力值为1的其它角色失去一点体力。'
 
     def clickable(self):
-        me = self.game.me
+        me = self.me
         if ttags(me)['guided_death_active_use']:
             return False
 
