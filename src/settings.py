@@ -8,7 +8,7 @@ __metaclass__ = lambda _1, _2, _dict: _dict.pop('__module__', '..') and _dict
 
 
 # -- begin settings --
-VERSION = 'V291'
+VERSION = 'V292'
 
 CWD = os.getcwd()
 BASEDIR = os.path.dirname(os.path.realpath(__file__))
@@ -134,6 +134,8 @@ NOTICE = u'''
 |s2ff0000ff|W现在所有的房间内聊天都会记录日志，请文明游戏，并且不要在聊天中透露敏感信息。黑幕组会根据聊天日志对违规玩家做处罚。|r
 
 |B更新情况：|r
+一堆小BUG修复
+----
 八意永琳BUG修复
 上白泽慧音崩溃BUG修复
 ----
