@@ -48,8 +48,8 @@ class DeathHandler(THBEventHandler):
             pool = g.pool[role]
 
             mapping = {tgt.player: pool}
-            with InputTransaction('ChooseGirl', [tgt], mapping=mapping) as trans:
-                c = g.user_input([tgt], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
+            with InputTransaction('ChooseGirl', [tgt.player], mapping=mapping) as trans:
+                c = g.user_input([tgt.player], ChooseGirlInputlet(g, mapping), timeout=30, trans=trans)
                 c = c or next(_c for _c in pool if not _c.chosen)
                 c.chosen = tgt
                 pool.remove(c)

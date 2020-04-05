@@ -6,11 +6,16 @@ from __future__ import annotations
 # -- own --
 from thb import actions
 from thb.actions import PlayerTurn, ttags
-from thb.cards import basic, definition
+from thb.cards import basic, base, definition
 from thb.meta.common import ui_meta
 
 
 # -- code --
+@ui_meta(base.DummyCard)
+class DummyCard:
+    pass
+
+
 @ui_meta(definition.AttackCard)
 class AttackCard:
     # action_stage meta
@@ -77,9 +82,16 @@ class GrazeCard:
             return 'thb-cv-card_graze1'
 
         g = self.game
-        current = PlayerTurn.get_current(g).target
+        try:
+            current = PlayerTurn.get_current(g).target
+        except IndexError:
+            return 'thb-cv-card_graze1'
 
         if act.source is not current:
+            return 'thb-cv-card_graze1'
+
+        cnt = ttags(current)['__attack_graze_count']
+        if not cnt:
             return 'thb-cv-card_graze1'
 
         return [
@@ -87,7 +99,7 @@ class GrazeCard:
             'thb-cv-card_graze2',
             'thb-cv-card_graze3',
             'thb-cv-card_graze4',
-        ][ttags(current)['__attack_graze_count'] % 4 - 1]
+        ][cnt % 4 - 1]
 
 
 @ui_meta(definition.WineCard)

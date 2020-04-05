@@ -161,12 +161,14 @@ class SummonKOF:
         return self.my_turn()
 
     def is_action_valid(self, sk, tl):
+        g = self.game
+        me = self.me
         cl = sk.associated_cards
         if len(cl) != 0:
             return False, '请不要选择牌'
 
-        rest = '、'.join([c.char_cls.ui_meta.name for c in self.me.choices])
-        return True, '通灵：后备角色：%s' % rest
+        rest = '、'.join([c.char_cls.ui_meta.name for c in g.chosen[me.player]])
+        return True, f'通灵：后备角色：{rest}'
 
     def effect_string(self, act):
         return '|G【%s】|r发动了|G通灵|r！' % (
