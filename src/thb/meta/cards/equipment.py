@@ -1011,7 +1011,7 @@ class IceWingSkill:
 
 @ui_meta(equipment.IceWing)
 class IceWing:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r借着|G⑨的翅膀|r飞了出来，|G%s|r没起到什么作用。' % (
             act.target.ui_meta.name,
             act.action.associated_card.ui_meta.name,

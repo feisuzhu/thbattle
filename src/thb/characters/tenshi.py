@@ -5,7 +5,7 @@
 # -- own --
 from thb.actions import Damage, DrawCards, Fatetell, GenericAction, LaunchCard, UserAction
 from thb.actions import ask_for_action, migrate_cards
-from thb.cards.base import Card, Skill
+from thb.cards.base import Card, Skill, ShreddedCard
 from thb.cards.classes import t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -143,18 +143,22 @@ class ScarletPerceptionHandler(THBEventHandler):
             if not act.card.detached:
                 return act
 
+            # 此处只有被小爱的技能 drop 掉这一种情况，没发现其他的
+            if isinstance(act.card, ShreddedCard):
+                return act
+
             # 寻找场内身负「绯想」技能的人
             g = self.game
             pl = [p for p in g.players if p.has_skill(ScarletPerception) and not p.dead]
-            assert len(pl) <= 1
 
-            if pl:
+            for p in pl:
                 p = pl[0]
                 dist = LaunchCard.calc_distance(g, p, ScarletPerception(p))
                 # 若满足距离限制
                 if dist.get(tgt, 1) <= 0:
                     # 执行获得牌的动作
                     g.process_action(ScarletPerceptionAction(p, tgt, act.card))
+                    break
 
         return act
 

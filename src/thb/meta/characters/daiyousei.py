@@ -112,7 +112,7 @@ class Moe:
 
 @ui_meta(characters.daiyousei.MoeDrawCard)
 class MoeDrawCard:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r用手扯开脸颊，向大家做了一个夸张的笑脸，摸了%d张牌跑开了~' % (
             act.target.ui_meta.name,
             act.amount,

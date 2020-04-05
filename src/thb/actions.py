@@ -975,6 +975,8 @@ class ShuffleHandler(THBEventHandler):
 
     @staticmethod
     def do_shuffle(g, pl):
+        log.debug('Shuffling cards')
+
         for p in pl:
             if not p.cards: continue
             if any([c.is_card(VirtualCard) for c in p.cards]):

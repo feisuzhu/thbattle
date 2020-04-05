@@ -61,7 +61,7 @@ class Nitoryuu:
         '|B|R>> |r当你受到|G人形操控|r的效果生效时，需交出全部的武器。'
     )
 
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r弃置了自己的一把武器。' % (
             act.target.ui_meta.name,
         )

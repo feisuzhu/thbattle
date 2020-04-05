@@ -907,7 +907,9 @@ class YinYangOrb(GenericAction):
             if e.is_card(YinYangOrbCard):
                 with MigrateCardsTransaction(self) as trans:
                     migrate_cards([ft.card], tgt.cards, unwrap=True, trans=trans)
-                    detach_cards([e], trans=trans)
+                    migrate_cards([e], tgt.special, trans=trans)
+
+                detach_cards([e], trans=trans)
                 self.card = e
                 ft.set_card(e, self)
 

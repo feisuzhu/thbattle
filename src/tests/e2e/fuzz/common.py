@@ -42,8 +42,36 @@ class UserInputFuzzingHandler(EventHandler):
         if evt == 'user_input':
             trans, ilet = arg
             self.react(trans, ilet)
+        elif evt in ('action_before', 'action_apply', 'action_after'):
+            self.effect_meta(evt, arg)
 
         return arg
+
+    def effect_meta(self, evt: str, act: Any):
+        while hasattr(act, 'ui_meta'):
+            _type = {
+                'action_before': 'effect_string_before',
+                'action_apply':  'effect_string_apply',
+                'action_after':  'effect_string',
+            }[evt]
+            prompt = getattr(act.ui_meta, _type, None)
+            if not prompt: return
+            prompt(act)
+            break
+
+        while hasattr(act, 'ui_meta'):
+            if evt == 'action_before':
+                rays = getattr(act.ui_meta, 'ray', None)
+                rays = rays(act) if rays else []
+
+            _type = {
+                'action_before': 'sound_effect_before',
+                'action_apply':  'sound_effect_apply',
+                'action_after':  'sound_effect',
+            }[evt]
+            se = getattr(act.ui_meta, _type, None)
+            se = se and se(act)
+            break
 
     def react(self, trans, ilet):
         p = ilet.actor

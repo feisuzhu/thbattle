@@ -25,13 +25,16 @@ class UIMetaAccessor(object):
 
     def __getattr__(self, name):
         for cls in self.mro:
+            if cls not in UI_META:
+                continue
+
             try:
                 val = getattr(UI_META[cls](), name)
                 return val
             except AttributeError:
                 pass
 
-        raise AttributeError(f'{self.cls.__name__}.{name}')
+        raise AttributeError(f'{self.for_cls.__name__}.{name}')
 
 
 def ui_meta(for_cls: type):

@@ -147,7 +147,7 @@ class AssistedGrazeHandler:
 
 @ui_meta(thbrole.AssistedHealAction)
 class AssistedHealAction:
-    def effect_string_before(act):
+    def effect_string_before(self, act):
         return '|G【%s】|r发动了|G牺牲|r。' % (
             act.source.ui_meta.name,
         )
@@ -181,7 +181,7 @@ class ChooseBossSkillAction:
         l = act.boss_skills
         return [(i.ui_meta.name, i.__name__) for i in l]
 
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r选择了|G%s|r作为BOSS技。' % (
             act.target.ui_meta.name,
             act.skill_chosen.ui_meta.name,

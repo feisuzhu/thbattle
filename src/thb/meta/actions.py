@@ -27,7 +27,7 @@ class DrawCards:
 
 
 class PutBack:
-    def effect_string(act):
+    def effect_string(self, act):
         if act.direction == -1:
             direction = u'底'
         else:
@@ -210,7 +210,7 @@ class Pindian:
         else:
             return (False, '请选择一张牌用于拼点')
 
-    def effect_string_before(act):
+    def effect_string_before(self, act):
         return '|G【%s】|r对|G【%s】|r发起了拼点：' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
@@ -227,8 +227,6 @@ class Pindian:
 class Fatetell:
 
     def fatetell_prompt_string(self, act):
-        from thb.meta.common import card_desc
-
         act_name = None
 
         try:
@@ -246,12 +244,12 @@ class Fatetell:
             prompt = '|G【%s】|r进行了一次判定（|G%s|r），结果为%s。' % (
                 act.target.ui_meta.name,
                 act_name,
-                card_desc(act.card)
+                self.card_desc(act.card)
             )
         else:
             prompt = '|G【%s】|r进行了一次判定，结果为%s。' % (
                 act.target.ui_meta.name,
-                card_desc(act.card)
+                self.card_desc(act.card)
             )
 
         return prompt

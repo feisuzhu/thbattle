@@ -99,7 +99,7 @@ class KeineGuard:
 
 @ui_meta(characters.keine.KeineGuardAction)
 class KeineGuardAction:
-    def effect_string_before(act):
+    def effect_string_before(self, act):
         return '“我绝对不会让你们碰到|G【%s】|r 一根手指的！”|G【%s】|r冲着所有人喊道。' % (
             act.target.ui_meta.name,
             act.source.ui_meta.name,
@@ -136,7 +136,7 @@ class Devoted:
 
 @ui_meta(characters.keine.DevotedHeal)
 class DevotedHeal:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r分享了回复效果（|G决意|r），|G【%s】|r回复了%s点体力。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
@@ -146,7 +146,7 @@ class DevotedHeal:
 
 @ui_meta(characters.keine.DevotedDrawCards)
 class DevotedDrawCards:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r分享了摸牌效果（|G决意|r），|G【%s】|r摸了%s张牌。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
@@ -156,7 +156,7 @@ class DevotedDrawCards:
 
 @ui_meta(characters.keine.DevotedAction)
 class DevotedAction:
-    def effect_string(act):
+    def effect_string(self, act):
         return '|G【%s】|r的伤害由|G【%s】|r承受了（|G决意|r）。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,

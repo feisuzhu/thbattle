@@ -33,7 +33,7 @@ class SkySilk:
 
         return True, '发动「天丝」'
 
-    def effect_string(act):
+    def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
         return (
             '|G【%s】|r对|G【%s】|r发动了「天丝」。'
@@ -42,7 +42,7 @@ class SkySilk:
             act.target.ui_meta.name,
         )
 
-    def sound_effect(act):
+    def sound_effect(self, act):
         return 'thb-cv-eirin_medic'
 
 
@@ -104,7 +104,7 @@ class LunaStringPlaceCard:
     choose_option_buttons = (('牌堆顶↑', 'front'), ('牌堆底↓', 'back'))
     choose_option_prompt = '你要把牌放到哪里'
 
-    def effect_string(act):
+    def effect_string(self, act):
         if act.direction == 'front':
             return '阴谋！有人注意到牌堆上面的牌变了吗？'
         else:
