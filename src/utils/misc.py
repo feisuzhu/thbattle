@@ -351,15 +351,7 @@ def debounce(seconds):
     return decorate
 
 
-class ThrottleState(object):
-    __slots__ = ('running', 'pending', 'args')
-
-    running: bool
-    pending: bool
-    args: Tuple[tuple, dict]
-
-    def __init__(self):
-        self.running = self.pending = False
+DO_NOT_THROTTLE = False
 
 
 def throttle(seconds: float) -> Callable[[T], T]:
@@ -379,6 +371,9 @@ def throttle(seconds: float) -> Callable[[T], T]:
 
         @wraps(f)
         def wrapper(*a, **k):
+            if DO_NOT_THROTTLE:
+                return f(*a, **k)
+
             nonlocal deadline, gr
             t = deadline - time()
             if t < 0:

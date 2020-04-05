@@ -13,3 +13,6 @@ _pytest.logging.LoggingPlugin._create_formatter = lambda *_: utils.log.ServerLog
 
 from thb.thbunit import inject
 inject()
+
+import utils.misc
+utils.misc.DO_NOT_THROTTLE = True

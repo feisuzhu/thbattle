@@ -35,7 +35,7 @@ class RoomAssocOnGame(TypedDict):
     users: BatchList[Client]
     left: Dict[Client, bool]
     name: str
-    flags: Dict[str, Any]
+    flags: wire.msg.CreateRoomFlags
     start_time: float
     greenlet: Optional[Greenlet]
 
@@ -275,7 +275,7 @@ class Room(object):
                 game_runner = ServerGameRunner(core, g)
 
                 @game_runner.link_exception
-                def notify_crashed(runner):
+                def notify_crashed(runner: Any) -> None:
                     g = runner.game
                     assert g, g
                     g.ended = True
@@ -284,7 +284,7 @@ class Room(object):
                     core.events.game_ended.emit(g)
 
                 @game_runner.link_value
-                def notify_ended(runner):
+                def notify_ended(runner: Any) -> None:
                     g = runner.game
                     assert g, g
                     g.ended = True
@@ -314,7 +314,7 @@ class Room(object):
     def name_of(self, g: Game) -> str:
         return Ag(self, g)['name']
 
-    def flags_of(self, g: Game) -> Dict[str, Any]:
+    def flags_of(self, g: Game) -> wire.msg.CreateRoomFlags:
         return Ag(self, g)['flags']
 
     def start_time_of(self, g: Game) -> int:
@@ -427,6 +427,9 @@ class Room(object):
             return
 
         g = core.game.current(u)
+        if not g:
+            return
+
         users = Ag(self, g)['users']
         if u not in users:
             log.error('User not in player list')

@@ -98,7 +98,7 @@ class Client(object):
             return '%s:%s:%s' % (
                 self.__class__.__name__,
                 *self._ep.address,
-            )
+            )  # noqa
         else:
             return '%s:?' % (
                 self.__class__.__name__,
