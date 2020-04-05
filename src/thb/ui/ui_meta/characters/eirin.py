@@ -55,7 +55,7 @@ class SkySilkAction:
 
 class LunaString:
     name = u'月弦'
-    description = u'你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张|G弹幕|r。'
+    description = u'你可以将一张手牌置于牌堆顶或牌堆底，视为使用或打出了一张手牌|G弹幕|r。'
 
     def clickable(g):
         try:
