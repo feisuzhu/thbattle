@@ -7,7 +7,7 @@ from typing import Callable, Optional, cast
 # -- own --
 # -- errord --
 from mypy.checkmember import bind_self
-from mypy.nodes import Decorator, MemberExpr, SYMBOL_FUNCBASE_TYPES
+from mypy.nodes import Decorator, MemberExpr, CallExpr
 from mypy.plugin import AttributeContext, MethodSigContext, Plugin
 from mypy.types import AnyType, CallableType, Instance, Type, TypeOfAny, UnionType
 
@@ -33,7 +33,7 @@ class BatchListPlugin(Plugin):
 def batchlist_attribute_hook(ctx: AttributeContext) -> Type:
     if isinstance(ctx.type, UnionType):
         for i in ctx.type.items:
-            if isinstance(i, Instance) and i.type.fullname() == 'utils.misc.BatchList':
+            if isinstance(i, Instance) and i.type.fullname == 'utils.misc.BatchList':
                 instance = i
                 break
 
@@ -46,9 +46,16 @@ def batchlist_attribute_hook(ctx: AttributeContext) -> Type:
     typeinfo = instance.type
 
     expr = ctx.context
-    assert isinstance(expr, MemberExpr), expr
-
-    field = expr.name
+    if isinstance(expr, MemberExpr):
+        is_method = False
+        field = expr.name
+    elif isinstance(expr, CallExpr):
+        is_method = True
+        callee = expr.callee
+        assert isinstance(callee, MemberExpr)
+        field = callee.name
+    else:
+        assert False, expr
 
     if field in typeinfo.names:
         t = typeinfo.names[field].type
@@ -75,29 +82,27 @@ def batchlist_attribute_hook(ctx: AttributeContext) -> Type:
     node = stnode.node
     typ = stnode.type
 
-    if isinstance(node, SYMBOL_FUNCBASE_TYPES):
+    if is_method:
         assert isinstance(typ, CallableType)
-        t = bind_self(typ)
-    elif isinstance(node, Decorator) and node.var.is_classmethod:
-        assert isinstance(typ, CallableType)
-        t = bind_self(typ, is_classmethod=True)
-    elif isinstance(node, Decorator) and node.var.is_staticmethod:
-        assert isinstance(typ, CallableType)
-        t = typ
-    elif isinstance(node, Decorator) and node.var.is_property:
-        assert isinstance(typ, CallableType)
-        t = typ.ret_type
-    elif isinstance(node, Decorator) and isinstance(typ, CallableType):
-        t = bind_self(typ)
+
+        if isinstance(node, Decorator) and node.var.is_classmethod:
+            t = bind_self(typ, is_classmethod=True)
+        elif isinstance(node, Decorator) and node.var.is_staticmethod:
+            t = typ
+        else:
+            t = bind_self(typ)
     else:
-        t = typ
-        if not t:
-            ctx.api.fail(
-                'BatchList item {} has attribute "{}" with no annotation'.format(
-                    instance.args[0], field,
-                ), expr
-            )
-            t = Instance(typeinfo, [AnyType(TypeOfAny.from_error)])
+        if isinstance(node, Decorator) and node.var.is_property:
+            assert isinstance(typ, CallableType)
+            t = typ.ret_type
+        else:
+            t = typ
+
+    if not t:
+        ctx.api.fail(
+            f'BatchList item {instance.args[0]} has attribute "{field}" with no annotation', expr
+        )
+        t = Instance(typeinfo, [AnyType(TypeOfAny.from_error)])
 
     return Instance(typeinfo, [t])
 

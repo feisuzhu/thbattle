@@ -39,7 +39,7 @@ def ui_meta_class_deco_hook(ctx: ClassDefContext) -> None:
 
     var = Var('ui_meta', Instance(ctx.cls.info, []))
     var.info = ctx.cls.info
-    ti.names[var.name()] = SymbolTableNode(MDEF, var)
+    ti.names[var.name] = SymbolTableNode(MDEF, var)
 
 
 def plugin(version: str) -> type:
