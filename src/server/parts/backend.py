@@ -97,17 +97,17 @@ class MockBackend(object):
         return f
 
     @_reg
-    def gameId(self, v) -> Any:
+    def gameId(self, v: Any) -> Any:
         '''
         query { gameId }
         '''
         return {'gameId': random.randint(0, 1000000)}
 
-    def uid_of(self, token):
-        return self.NAMED.get(token)
+    def uid_of(self, token: str) -> int:
+        return self.NAMED.get(token, abs(hash(token)) % 120943)
 
     @_reg
-    def login(self, v, NAMED=NAMED) -> Any:
+    def login(self, v: Any) -> Any:
         '''
         query($token: String) {
             player(token: $token) {
@@ -130,7 +130,7 @@ class MockBackend(object):
 
         return {
             'player': {
-                'id': NAMED.get(v['token'], abs(hash(v['token'])) % 120943),
+                'id': self.uid_of(v['token']),
                 'user': {
                     'isActive': True,
                     'userPermissions': [],
@@ -143,7 +143,7 @@ class MockBackend(object):
         }
 
     @_reg
-    def add_reward(self, v) -> Any:
+    def add_reward(self, v: Any) -> Any:
         '''
         mutation AddReward($gid: Int!, $rewards: [GameRewardInput!]!) {
           game {
@@ -156,7 +156,7 @@ class MockBackend(object):
         return None
 
     @_reg
-    def archive(self, v) -> Any:
+    def archive(self, v: Any) -> Any:
         '''
         mutation ArchiveGame($game: GameInput!, $archive: String!) {
           game {
@@ -169,7 +169,7 @@ class MockBackend(object):
         return {'game': {'archive': {'gid': 0}}}
 
     @_reg
-    def if_have_item(self, v) -> Any:
+    def if_have_item(self, v: Any) -> Any:
         '''
         query($uid: Int!, $sku: String!) {
             player(id: $id) {
@@ -180,7 +180,7 @@ class MockBackend(object):
         return {'player': {'haveItem': self.items[v['uid']][v['sku']] > 0}}
 
     @_reg
-    def remove_item(self, v) -> Any:
+    def remove_item(self, v: Any) -> Any:
         '''
         mutation($id: Int!, $sku: String, $r: String) {
             item {

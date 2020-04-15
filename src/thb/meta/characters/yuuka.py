@@ -17,7 +17,6 @@ class ReversedScales:
     description = '每当你成为其他角色使用的单体符卡效果目标时，你可以将其视为|G弹幕战|r效果；你的回合外，你可以将一张手牌当做|G弹幕|r使用或打出。'
 
     def clickable(self):
-        g = self.game
         me = self.me
         if self.my_turn():
             return False
@@ -25,13 +24,7 @@ class ReversedScales:
         if not (me.cards or me.showncards):
             return False
 
-        try:
-            act = g.action_stack[-1]
-            return act.cond([self.build_handcard(AttackCard)])
-        except Exception:
-            pass
-
-        return False
+        return self.accept_cards([self.build_handcard(AttackCard)])
 
     def is_complete(self, skill):
         acards = skill.associated_cards

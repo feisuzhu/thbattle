@@ -30,6 +30,7 @@ class SurpriseAction(UserAction):
         )
 
         card = self.associated_card
+        assert isinstance(card, Surprise)
         detach_cards([card])
         g = self.game
         suit = g.user_input([tgt], ChooseOptionInputlet(self, options))

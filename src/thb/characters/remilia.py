@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
-from typing import Sequence, Any
+from typing import Sequence, TYPE_CHECKING
+
 # -- third party --
 # -- own --
 from thb.actions import ActionShootdown, Damage, GenericAction, LaunchCard, PrepareStage, UserAction
@@ -10,6 +12,10 @@ from thb.cards.classes import Attack, AttackCard, Heal, InevitableAttack
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 from thb.mode import THBEventHandler
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.thbrole import THBattleRole  # noqa: F401
 
 
 # -- code --
@@ -118,7 +124,8 @@ class ScarletMistHandler(THBEventHandler):
             if not src.tags['scarlet_mist'] == 'nerf':
                 return act
 
-            dist = LaunchCard.calc_raw_distance(src, DummyCard())
+            g = self.game
+            dist = LaunchCard.calc_raw_distance(g, src, DummyCard())
             if dist[tgt] > 1:
                 raise ScarletMistAttackLimit
 
@@ -185,6 +192,7 @@ class ScarletMistEndAction(GenericAction):
 class ScarletMist(Skill):
     associated_action = ScarletMistAction
     skill_category = ['character', 'active', 'once', 'boss']
+    game: THBattleRole
 
     def check(self) -> bool:
         return not len(self.associated_cards)

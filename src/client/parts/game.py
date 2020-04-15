@@ -114,7 +114,6 @@ class GamePart(object):
             gv['name'],
             gv['users'],
             gv['params'],
-            gv['items'],
         )
         self.games[gid] = g
         core = self.core
@@ -152,7 +151,7 @@ class GamePart(object):
         return ev
 
     # ----- Private Methods -----
-    def _make_game(self, gid: int, mode: str, name: str, users: List[wire.model.User], params: Dict[str, Any], items: Dict[int, List[str]]) -> Game:
+    def _make_game(self, gid: int, mode: str, name: str, users: List[wire.model.User], params: Dict[str, Any]) -> Game:
         from thb import modes
         g = modes[mode]()
         assert isinstance(g, Game)
@@ -163,10 +162,11 @@ class GamePart(object):
             'users':   users,
             'presence': {},
             'params':  params,
-            'players': [],
-            'items':   items,
+            'players': BatchList[Player](),
+            'items':   {},
             'data':    GameData(gid),
             'observe': False,
+            'greenlet': None,
         }
         g._[self] = assoc
 

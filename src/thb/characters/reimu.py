@@ -161,16 +161,17 @@ class ReimuExterminateAction(AskForCard):
 
 
 class ReimuExterminateHandler(THBEventHandler):
-    interested = ('action_apply', 'action_after')
-    execute_after = ('DyingHandler',
-                     'CheatingHandler',
-                     'IbukiGourdHandler',
-                     'DisarmHandler',
-                     'FreakingPowerHandler',
-                     'LunaticHandler',
-                     'AyaRoundfanHandler',
-                     'NenshaPhoneHandler',
-                     )
+    interested = ['action_apply', 'action_after']
+    execute_after = [
+        'DyingHandler',
+        'CheatingHandler',
+        'IbukiGourdHandler',
+        'DisarmHandler',
+        'FreakingPowerHandler',
+        'LunaticHandler',
+        'AyaRoundfanHandler',
+        'NenshaPhoneHandler',
+    ]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, Damage):
@@ -247,8 +248,8 @@ class ReimuClearAction(UserAction):
 
 
 class ReimuClearHandler(THBEventHandler):
-    interested = ('action_after',)
-    execute_before = (
+    interested = ['action_after']
+    execute_before = [
         'AyaRoundfanHandler',
         'NenshaPhoneHandler',
         'DilemmaHandler',
@@ -257,11 +258,9 @@ class ReimuClearHandler(THBEventHandler):
         'MelancholyHandler',
         'MajestyHandler',
         'MasochistHandler',
-    )
+    ]
 
-    execute_after = (
-        'IbukiGourdHandler',
-    )
+    execute_after = ['IbukiGourdHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):

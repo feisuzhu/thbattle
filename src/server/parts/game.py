@@ -160,7 +160,8 @@ class GamePart(object):
             return
 
         pkt = Ag(self, g)['data'][u].feed_recv(ev.tag, ev.data)
-        core.events.game_data_recv.emit((g, u, pkt))
+        if pkt:
+            core.events.game_data_recv.emit((g, u, pkt))
 
     # ----- Private Methods -----
     def _setup_game(self, g: ServerGame) -> None:

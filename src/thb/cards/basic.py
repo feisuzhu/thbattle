@@ -86,23 +86,22 @@ class AttackCardRangeHandler(EventHandler):
 class AttackCardVitalityHandler(EventHandler):
     interested = ['action_before', 'action_shootdown']
 
-    @classmethod
-    def handle(cls, evt_type, act):
+    def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStageLaunchCard):
             from .definition import AttackCard
             src = act.source
-            if act.card.is_card(AttackCard) and not cls.is_disabled(src):
-                act._[cls] = 'already-handled'
+            if act.card.is_card(AttackCard) and not self.is_disabled(src):
+                act._['vitality-handler'] = 'already-handled'
                 src.tags['vitality'] -= 1
 
         elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
             from .definition import AttackCard
             if act.card.is_card(AttackCard):
                 src = act.source
-                if cls.is_disabled(src):
+                if self.is_disabled(src):
                     return act
 
-                if act._[cls]:
+                if act._['vitality-handler']:
                     return act
 
                 if src.tags['vitality'] > 0:

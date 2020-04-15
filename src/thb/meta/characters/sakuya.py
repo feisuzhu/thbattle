@@ -33,20 +33,10 @@ class Dagger:
     description = '你可以将一张装备牌当|G弹幕|r使用或打出，以此法使用的|G弹幕|r无距离限制。'
 
     def clickable(self):
-        g = self.game
         me = self.me
 
         if not (me.cards or me.showncards or me.equips): return False
-
-        try:
-            act = g.hybrid_stack[-1]
-            if act.cond([characters.sakuya.Dagger(me)]):
-                return True
-
-        except (IndexError, AttributeError):
-            pass
-
-        return False
+        return self.accept_cards([characters.sakuya.Dagger(me)])
 
     def is_complete(self, skill):
         assert skill.is_card(characters.sakuya.Dagger)

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- prioritized --
 from gevent import monkey
 monkey.patch_all()
 
 # -- stdlib --
+from typing import TYPE_CHECKING
 import logging
 import signal
 import sys
@@ -18,9 +20,16 @@ import gevent
 import utils
 import utils.log
 
+# -- typing --
+if TYPE_CHECKING:
+    from server.core import Core  # noqa: F401
+
+
 # -- code --
 MAIN = gevent.getcurrent()
 MAIN.gr_name = 'MAIN'
+
+core: Core
 
 
 def start_server():

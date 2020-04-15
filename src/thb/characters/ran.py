@@ -99,7 +99,7 @@ class ExtremeIntelligenceAction(GenericAction):
             # HACK: This is for actions triggered by ForEach action.
             # Well, actually it's for Harvest since only this
             # uses the attrib
-            nact.parent_action = act.parent_action
+            nact._['for_each'] = act._['for_each']
         except AttributeError:
             pass
 

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING
 import logging
 
 # -- third party --
@@ -34,35 +34,35 @@ class Kedama(object):
 
     # ----- Commands -----
     @command('*')
-    def _room_create_limit(self, u: Client, ev: wire.CreateRoom) -> Union[wire.CreateRoom, EventHub.StopPropagation]:
+    def _room_create_limit(self, u: Client, ev: wire.CreateRoom) -> Optional[EventHub.StopPropagation]:
         core = self.core
         from thb import modes_kedama
         if core.auth.is_kedama(u) and ev.mode not in modes_kedama:
             u.write(wire.Error('kedama_limitation'))
             return EventHub.STOP_PROPAGATION
 
-        return ev
+        return None
 
     @command('*')
-    def _room_join_limit(self, u: Client, ev: wire.JoinRoom) -> Union[wire.JoinRoom, EventHub.StopPropagation]:
+    def _room_join_limit(self, u: Client, ev: wire.JoinRoom) -> Optional[EventHub.StopPropagation]:
         core = self.core
         g = core.room.get(ev.gid)
         if not g:
-            return ev
+            return None
 
         from thb import modes_kedama
         if core.auth.is_kedama(u) and g.__class__.__name__ not in modes_kedama:
             u.write(wire.Error('kedama_limitation'))
             return EventHub.STOP_PROPAGATION
 
-        return ev
+        return None
 
     @command('*')
-    def _invite_limit(self, c: Client, ev: wire.Invite) -> Union[wire.Invite, EventHub.StopPropagation]:
+    def _invite_limit(self, c: Client, ev: wire.Invite) -> Optional[EventHub.StopPropagation]:
         core = self.core
         uid = core.auth.uid_of(c)
         if uid <= 0:
             c.write(wire.Error('kedama_limitation'))
             return EventHub.STOP_PROPAGATION
 
-        return ev
+        return None

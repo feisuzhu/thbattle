@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Type
+from typing import Any, TYPE_CHECKING, Type
 
 # -- third party --
 # -- own --
@@ -13,6 +14,10 @@ from thb.cards.classes import AttackCard, DuelCard, TreatAs, t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 from thb.mode import THBEventHandler
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.thbkof import THBattleKOF  # noqa: F401
 
 
 # -- code --
@@ -191,6 +196,7 @@ class KanakoFaithKOFAction(DrawCards):
 
 class KanakoFaithKOFHandler(THBEventHandler):
     interested = ['action_before', 'action_apply']
+    game: THBattleKOF
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, FinalizeStage):

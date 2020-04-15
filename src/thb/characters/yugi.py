@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 # -- stdlib --
+from typing import TYPE_CHECKING, cast
+
 # -- third party --
 # -- own --
 from thb.actions import Damage, DropCards, FatetellAction, LaunchCard, random_choose_card
@@ -9,8 +11,12 @@ from thb.cards.base import Card, Skill, VirtualCard
 from thb.cards.classes import AttackCard, BaseAttack, InevitableAttack, RedUFOSkill, TreatAs, t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-from thb.mode import THBEventHandler
+from thb.mode import THBEventHandler, THBAction
 from utils.misc import classmix
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.thbkof import THBattleKOF  # noqa: F401
 
 
 # -- code --
@@ -31,6 +37,7 @@ class AssaultAttack(TreatAs, VirtualCard):
 
 class AssaultKOFHandler(THBEventHandler):
     interested = ['character_debut']
+    game: THBattleKOF
 
     def handle(self, evt_type, arg):
         if evt_type == 'character_debut':
@@ -78,8 +85,8 @@ class FreakingPowerAction(FatetellAction):
 
 
 class FreakingPowerHandler(THBEventHandler):
-    interested = ('action_after', 'action_before', )
-    execute_before = ('AyaRoundfanHandler',)
+    interested = ['action_after', 'action_before']
+    execute_before = ['AyaRoundfanHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, BaseAttack) and not act._['freaking_power']:
@@ -96,7 +103,7 @@ class FreakingPowerHandler(THBEventHandler):
 
             if act.cancelled: return act
 
-            pact = g.action_stack[-1]
+            pact = cast(THBAction, g.action_stack[-1])
             if not pact._['freaking_power']:
                 return act
 

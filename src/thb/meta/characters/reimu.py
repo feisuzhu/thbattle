@@ -25,20 +25,10 @@ class SpiritualAttack:
     name = '灵击'
 
     def clickable(self):
-        g = self.game
         me = self.me
 
         if not (me.cards or me.showncards): return False
-
-        try:
-            act = g.hybrid_stack[-1]
-            if act.cond([characters.reimu.SpiritualAttack(me)]):
-                return True
-
-        except (IndexError, AttributeError):
-            pass
-
-        return False
+        return self.accept_cards([characters.reimu.SpiritualAttack(me)])
 
     def is_complete(self, skill):
         me = self.me

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 import itertools
@@ -12,7 +13,7 @@ from thb.cards.base import CardList, Skill, VirtualCard
 from thb.cards.classes import AttackCard, DollControlCard, DuelCard, TreatAs, t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
-from thb.mode import THBEventHandler
+from thb.mode import THBAction, THBEventHandler
 
 
 # -- code --
@@ -24,10 +25,10 @@ class DisarmHideAction(UserAction):
 
     def apply_action(self):
         tgt = self.target
-        cl = getattr(tgt, 'momiji_sentry_cl', None)
+        cl = tgt._.get('momoji-sentry-cards')
         if cl is None:
-            cl = CardList(tgt, 'momiji_sentry_cl')
-            tgt.momiji_sentry_cl = cl
+            cl = CardList(tgt, 'momiji-sentry-cards')
+            tgt._['momiji-sentry-cards'] = cl
             tgt.showncardlists.append(cl)
 
         migrate_cards(self.cards, cl)
@@ -37,14 +38,14 @@ class DisarmHideAction(UserAction):
 class DisarmReturningAction(GenericAction):
     def apply_action(self):
         tgt = self.target
-        cl = getattr(tgt, 'momiji_sentry_cl', None)
+        cl = tgt._.get('momiji-sentry-cards')
         cl and migrate_cards(cl, tgt.cards, unwrap=True)
         return True
 
 
 class DisarmHandler(THBEventHandler):
-    interested = ('action_after',)
-    execute_after = ('DyingHandler',)
+    interested = ['action_after']
+    execute_after = ['DyingHandler']
 
     card_usage = 'launch'
 
@@ -57,6 +58,8 @@ class DisarmHandler(THBEventHandler):
             pact = g.action_stack[-1]
             pcard = getattr(pact, 'associated_card', None)
             if not pcard: return act
+
+            assert isinstance(pact, THBAction)
 
             if not pcard.is_card(AttackCard) and not (pcard.is_card(DuelCard) and pact.source is src):
                 return act
@@ -72,7 +75,7 @@ class DisarmHandler(THBEventHandler):
             else:
                 l = [False for c in cl]
 
-            l = sync_primitive(l, g.players)
+            l = sync_primitive(l, g.players.player)
             cl = list(itertools.compress(cl, l))
             g.process_action(DisarmHideAction(src, tgt, cl))
 
@@ -233,10 +236,10 @@ class SolidShieldAction(UserAction):
         lc = self.action
         assert isinstance(lc, ActionStageLaunchCard)
 
-        cl = getattr(tgt, 'momiji_sentry_cl', None)
+        cl = tgt._.get('momoji-sentry-cards')
         if cl is None:
-            cl = CardList(tgt, 'momiji_sentry_cl')
-            tgt.momiji_sentry_cl = cl
+            cl = CardList(tgt, 'momiji-sentry-cards')
+            tgt._['momiji-sentry-cards'] = cl
             tgt.showncardlists.append(cl)
 
         migrate_cards([lc.card], cl, unwrap=True)

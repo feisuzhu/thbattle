@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List
 import json
 import logging
 
@@ -89,7 +89,7 @@ class MockConnect(Connect):
     def __init__(self, core: Core):
         super().__init__(core)
 
-        self.mock_sent_messages = []
+        self.mock_sent_messages: List[Any] = []
 
     def _wssend(self, v: Any) -> None:
         self.mock_sent_messages.append(v)

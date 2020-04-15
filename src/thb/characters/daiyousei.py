@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
@@ -15,7 +16,9 @@ from thb.mode import THBEventHandler
 # -- code --
 class SupportAction(UserAction):
     def apply_action(self):
-        cl = self.associated_card.associated_cards
+        sk = self.associated_card
+        assert isinstance(sk, Support)
+        cl = sk.associated_cards
         src = self.source
         tgt = self.target
         lst = src.tags.get('daiyousei_spnum', 0)
@@ -50,7 +53,8 @@ class Support(Skill):
 class SupportKOFAction(UserAction):
     def apply_action(self):
         tgt = self.target
-        cl = tgt.support_cl = CardList(tgt, 'support')
+        p = tgt.player
+        cl = p._['support-cards'] = CardList(tgt, 'support')
 
         with MigrateCardsTransaction(self) as trans:
             migrate_cards(tgt.cards, cl, unwrap=True, trans=trans)
@@ -62,7 +66,11 @@ class SupportKOFAction(UserAction):
 
 class SupportKOFReturningAction(GenericAction):
     def apply_action(self):
-        migrate_cards(self.source.support_cl, self.target.cards, unwrap=True)
+        src, tgt = self.source, self.target
+        p = src.player
+        assert p is tgt.player
+        cl = p._['support-cards']
+        migrate_cards(cl, tgt.cards, unwrap=True)
         return True
 
 
@@ -74,7 +82,14 @@ class SupportKOFHandler(THBEventHandler):
         if evt_type == 'character_debut':
             old, new = arg
             if not old: return arg
-            if not getattr(old, 'support_cl', None): return arg
+
+            assert isinstance(old, Character)
+            assert isinstance(new, Character)
+
+            p = old.player
+
+            if not p._['support-cards']:
+                return arg
 
             g = self.game
             g.process_action(SupportKOFReturningAction(old, new))

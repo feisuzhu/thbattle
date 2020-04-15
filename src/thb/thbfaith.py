@@ -124,7 +124,7 @@ class THBattleFaithBootstrap(BootstrapAction):
         for p, role in zip(pl, rl):
             g.roles[p] = PlayerRole(THBFaithRole)
             g.roles[p].set(role)
-            g.process_action(RevealRole(g.roles[p], pl))
+            g.process_action(RevealRole(p, g.roles[p], pl))
 
         g.forces = {
             H: BatchList(),

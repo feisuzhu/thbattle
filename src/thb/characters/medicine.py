@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
@@ -38,7 +39,7 @@ class CiguateraAction(UserAction):
 
 
 class CiguateraHandler(THBEventHandler):
-    interested = ('action_before',)
+    interested = ['action_before']
     card_usage = 'drop'
 
     def handle(self, evt_type, act):
@@ -105,12 +106,12 @@ class MelancholyAction(GenericAction):
 
 
 class MelancholyHandler(THBEventHandler):
-    interested = ('action_after', 'action_shootdown')
-    execute_after = (
+    interested = ['action_after', 'action_shootdown']
+    execute_after = [
         'DyingHandler',
         'AyaRoundfanHandler',
         'NenshaPhoneHandler',
-    )
+    ]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):

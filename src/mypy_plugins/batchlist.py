@@ -44,13 +44,11 @@ def batchlist_attribute_hook(ctx: AttributeContext) -> Type:
         assert False, 'WTF?!'
 
     typeinfo = instance.type
-
     expr = ctx.context
+
     if isinstance(expr, MemberExpr):
-        is_method = False
         field = expr.name
     elif isinstance(expr, CallExpr):
-        is_method = True
         callee = expr.callee
         assert isinstance(callee, MemberExpr)
         field = callee.name
@@ -82,9 +80,7 @@ def batchlist_attribute_hook(ctx: AttributeContext) -> Type:
     node = stnode.node
     typ = stnode.type
 
-    if is_method:
-        assert isinstance(typ, CallableType)
-
+    if isinstance(typ, CallableType):
         if isinstance(node, Decorator) and node.var.is_classmethod:
             t = bind_self(typ, is_classmethod=True)
         elif isinstance(node, Decorator) and node.var.is_staticmethod:

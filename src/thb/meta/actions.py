@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from enum import IntEnum
-from typing import List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import List, Optional, Sequence, TYPE_CHECKING, Union, Any
 import random
 
 # -- third party --
@@ -190,22 +190,37 @@ class TurnOverCard:
 
 @ui_meta(actions.RevealRole)
 class RevealRole:
-    def effect_string(self, act):
-        g = self.game
+    def effect_string(self, act: actions.RevealRole):
+        from thb.characters.base import Character
+
+        g: Any = self.game
         me = self.me
-        if not (me in act.to if isinstance(act.to, list) else me is act.to):
+
+        if isinstance(me, Character):
+            p = me.player
+        else:
+            p = me
+
+        while True:
+            if p is act.to:
+                break
+            if isinstance(act.to, list):
+                if p in act.to:
+                    break
             return
 
-        tgt = act.target
-        i = tgt.identity
+        p = act.player
+        role = act.role
+
         try:
-            name = '|G%s|r' % tgt.ui_meta.name
+            ch = g.find_character(p)
+            name = f'|G{ch.ui_meta.name}|r'
         except Exception:
-            name = '|R%s|r' % tgt.account.username
+            name = f'|R{p.name}|r'
 
         return '%s的身份是：|R%s|r。' % (
             name,
-            g.ui_meta.identity_table[i.type],
+            g.ui_meta.roles_disp[role.get()],
         )
 
 

@@ -65,7 +65,7 @@ class BatchList(List[T]):
 
     def __call__(self, *a, **k):
         return BatchList(
-            f(*a, **k) for f in self
+            f(*a, **k) for f in self  # type: ignore
         )
 
     '''
@@ -266,7 +266,7 @@ class ObservableEvent(object):
     listeners: Set[Callable]
 
     def __init__(self, weakref=False):
-        self.listeners = WeakSet() if weakref else set()
+        self.listeners = WeakSet() if weakref else set()  # type: ignore
 
     def __iadd__(self, ob):
         self.listeners.add(ob)
@@ -388,19 +388,6 @@ def throttle(seconds: float) -> Callable[[T], T]:
     return decorate
 
 
-class InstanceHookMeta(type):
-    # ABCMeta would use __subclasshook__ for instance check. Loses information.
-
-    def __instancecheck__(cls, inst):
-        return cls.instancecheck(inst)
-
-    def __subclasscheck__(cls, C):
-        return cls.subclasscheck(C)
-
-    def instancecheck(cls, inst):
-        return cls.subclasscheck(type(inst))
-
-
 class ArgValidationError(Exception):
     pass
 
@@ -462,6 +449,7 @@ def validate_args(*typelist):
 
 
 class BusinessException(Exception):
+    name: str
     snake_case: str
 
 

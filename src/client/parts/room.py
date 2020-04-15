@@ -35,38 +35,38 @@ class Room(object):
         core = self.core
         core.server.write(wire.JoinRoom(gid=gid, slot=slot))
 
-    def leave(self):
+    def leave(self) -> None:
         core = self.core
         core.server.write(wire.LeaveRoom())
 
-    def get_ready(self):
+    def get_ready(self) -> None:
         core = self.core
         core.server.write(wire.GetReady())
 
-    def cancel_ready(self):
+    def cancel_ready(self) -> None:
         core = self.core
         core.server.write(wire.CancelReady())
 
-    def change_location(self, loc: int):
+    def change_location(self, loc: int) -> None:
         core = self.core
         core.server.write(wire.ChangeLocation(loc=loc))
 
-    def get_room_users(self, gid: int):
+    def get_room_users(self, gid: int) -> None:
         core = self.core
         core.server.write(wire.GetRoomUsers(gid=gid))
 
-    def set_game_param(self, gid: int, key: str, value: Any):
+    def set_game_param(self, gid: int, key: str, value: Any) -> None:
         core = self.core
         core.server.write(wire.SetGameParam(gid=gid, key=key, value=value))
 
-    def use_item(self, sku: str):
+    def use_item(self, sku: str) -> None:
         core = self.core
         core.server.write(wire.UseItem(sku=sku))
 
-    def invite(self, uid: int):
+    def invite(self, uid: int) -> None:
         core = self.core
         core.server.write(wire.Invite(uid=uid))
 
-    def kick(self, uid: int):
+    def kick(self, uid: int) -> None:
         core = self.core
         core.server.write(wire.Kick(uid=uid))

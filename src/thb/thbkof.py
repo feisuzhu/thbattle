@@ -83,6 +83,7 @@ class KOFCharacterSwitchHandler(THBEventHandler):
             choice = choice or g.chosen[p][0]
 
         g.players.reveal(choice)
+        assert choice.char_cls
         new = choice.char_cls(p)
         g.players.replace(old, new)
         g.refresh_dispatcher()
@@ -183,7 +184,7 @@ class THBattleKOFBootstrap(BootstrapAction):
         cA, cB = g.players = BatchList([s(A), s(B)])
 
         for p in pl:
-            g.process_action(RevealRole(g.roles[p], pl))
+            g.process_action(RevealRole(p, g.roles[p], pl))
 
         g.refresh_dispatcher()
         g.emit_event('game_begin', g)

@@ -69,6 +69,7 @@ class PsychopathHandler(THBEventHandler):
             for m in trans.movements:
                 if m.fr.type != 'equips': continue
                 src = m.fr.owner
+                assert src
                 if src.dead: continue
                 if not src.has_skill(Psychopath): continue
                 g.process_action(PsychopathDrawCards(src, 2))

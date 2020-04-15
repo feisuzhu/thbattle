@@ -45,7 +45,7 @@ class AutumnWindEffect(GenericAction):
 class AutumnWindAction(UserAction):
     def __init__(self, source, target_list):
         self.source = source
-        self.target = None
+        self.target = source
         self.target_list = target_list
 
     def apply_action(self):
@@ -167,13 +167,13 @@ class DecayEffect(UserAction):
 
 
 class DecayDamageHandler(THBEventHandler):
-    interested = ('action_after', 'action_before')
-    execute_after = (
+    interested = ['action_after', 'action_before']
+    execute_after = [
         'DyingHandler',
         'AyaRoundfanHandler',
         'NenshaPhoneHandler',
         'SuwakoHatHandler',
-    )
+    ]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -205,7 +205,7 @@ class DecayDamageHandler(THBEventHandler):
 
 
 class DecayFadeHandler(THBEventHandler):
-    interested = ('action_after', )
+    interested = ['action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, PlayerTurn):

@@ -435,7 +435,7 @@ class DollControl:
 
     def ray(self, act):
         src = act.source
-        tl = act.tl
+        tl = act.target_list
         return [(src, tl[0]), (tl[0], tl[1])]
 
 

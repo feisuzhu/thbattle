@@ -2,11 +2,17 @@
 from __future__ import annotations
 
 # -- stdlib --
+from typing import TYPE_CHECKING
+
 # -- third party --
 # -- own --
 from thb import characters
 from thb.cards.base import Skill
 from thb.meta.common import ui_meta
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.thbkof import THBattleKOF  # noqa: F401
 
 
 # -- code --
@@ -150,6 +156,8 @@ class SummonHandler:
 
 @ui_meta(characters.seiga.SummonKOF)
 class SummonKOF:
+    game: THBattleKOF
+
     # Skill
     name = '通灵'
     description = (
@@ -167,7 +175,7 @@ class SummonKOF:
         if len(cl) != 0:
             return False, '请不要选择牌'
 
-        rest = '、'.join([c.char_cls.ui_meta.name for c in g.chosen[me.player]])
+        rest = '、'.join([c.char_cls.ui_meta.name for c in g.chosen[me.player] if c.char_cls])
         return True, f'通灵：后备角色：{rest}'
 
     def effect_string(self, act):

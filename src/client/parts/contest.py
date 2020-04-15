@@ -21,4 +21,4 @@ class Contest(object):
     # ----- Public Methods -----
     def setup(self, name: str, mode: str, uids: Sequence[int]) -> None:
         core = self.core
-        core.server.write(wire.msg.SetupContest(name=name, mode=mode, uids=uids))
+        core.server.write(wire.msg.SetupContest(name=name, mode=mode, uids=list(uids)))

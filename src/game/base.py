@@ -4,7 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 from collections import defaultdict
 from random import Random
-from typing import Any, ClassVar, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type
+from typing import Any, ClassVar, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Generic
 from typing import TypeVar, Union
 import inspect
 import logging
@@ -25,6 +25,7 @@ from utils.viral import ViralContext
 # -- typing --
 if TYPE_CHECKING:
     from server.base import Game as ServerGame  # noqa: F401
+    from server.core import Core as ServerCore  # noqa: F401
     from server.endpoint import Client  # noqa: F401
 
 
@@ -77,7 +78,7 @@ class GameObjectMeta(type):
 
 
 class GameObject(object, metaclass=GameObjectMeta):
-    pass
+    _: dict
 
 
 class TimeLimitExceeded(Timeout, GameObject):
@@ -123,6 +124,12 @@ class Player(GameObject, AssociatedDataViralContext):
         return self.__class__.__name__
 
 
+class Nobody(Player):
+
+    def reveal(self, obj_list: Any) -> None:
+        pass
+
+
 class NPC(object):
     __slots__ = ('name', 'input_handler')
 
@@ -140,6 +147,8 @@ class GameEnded(GameException):
 
 
 class GameViralContext(object):
+    game: Game
+
     def __new__(cls, *a, **k):
         self = object.__new__(cls)
         gr = gevent.getcurrent()
@@ -148,7 +157,11 @@ class GameViralContext(object):
         return self
 
 
-class Game(GameObject):
+A = TypeVar('A', bound='Action')
+EH = TypeVar('EH', bound='EventHandler')
+
+
+class Game(GameObject, Generic[A, EH]):
     # ----- Class Variables -----
     n_persons: ClassVar[int]
     npc_players: ClassVar[List[NPC]] = []
@@ -161,8 +174,8 @@ class Game(GameObject):
     runner: GameRunner
     dispatcher: EventDispatcher
     event_observer: Optional[EventHandler]
-    action_stack: List[Action]
-    hybrid_stack: List[Union[Action, EventHandler]]
+    action_stack: List[A]
+    hybrid_stack: List[Union[A, EH]]
     ended: bool
     winners: Sequence[Player]
     random: Random
@@ -438,7 +451,7 @@ class EventHandler(GameObject):
 
 
 class EventArbiter(EventHandler):
-    handlers = ()
+    handlers: Sequence[EventHandler] = []
 
     def set_handlers(self, handlers):
         self.handlers = handlers[:]
@@ -449,7 +462,7 @@ T = TypeVar('T', bound=EventHandler)
 
 class EventDispatcher(GameObject):
     game: Game
-    _event_handlers: Sequence[EventHandler]
+    _event_handlers: List[EventHandler]
     _adhoc_ehs: List[EventHandler]
     _ehs_cache: Dict[str, List[EventHandler]]
 
@@ -469,7 +482,7 @@ class EventDispatcher(GameObject):
         except ValueError:
             pass
 
-    def populate_handlers(self) -> Sequence[EventHandler]:
+    def populate_handlers(self) -> List[EventHandler]:
         raise Exception('Override this!')
 
     def emit(self, evt_type: str, data: Any):
@@ -541,17 +554,20 @@ class EventDispatcher(GameObject):
         return None
 
     def remove_by_cls(self, cls: Type[T]) -> bool:
+        c: Any  # stupid mypy
+
         for c in self._event_handlers:
             if isinstance(c, cls):
                 break
         else:
             return False
 
-        self._event_handlers.remove(c)
         for i in c.interested:
             self._ehs_cache.pop(i, '')
 
-        return None
+        self._event_handlers.remove(c)
+
+        return True
 
     def _get_relevant_eh(self, tag: str):
         ehs = self._ehs_cache.get(tag)
@@ -672,7 +688,7 @@ class Inputlet(GameObject, GameViralContext):
     '''
     initiator: Any
     timeout: int
-    actor: object
+    actor: Any
 
     @classmethod
     def tag(cls):
@@ -703,7 +719,7 @@ class Inputlet(GameObject, GameViralContext):
         def process(args):
             ...
         '''
-        self.post_process = f
+        self.post_process = f  # type: ignore
         return f
 
     def data(self):
@@ -777,13 +793,13 @@ class GameData(object):
         self._has_data = Event()
         self._dead = False
         self._live = live
-        self._tainted = set()
+        self._tainted: Set[str] = set()
 
         self._in_gexpect = False
 
-    def feed_recv(self, tag: str, data: object) -> Packet:
+    def feed_recv(self, tag: str, data: object) -> Optional[Packet]:
         if tag in self._seen:
-            return
+            return None
 
         self._seen.add(tag)
         p = Packet(tag, data)
@@ -815,7 +831,9 @@ class GameData(object):
             self._in_gexpect = True
 
             log.debug('GAME_EXPECT: %s', repr(tags))
-            tags = set(tags)
+
+            tags = set(tags)  # type: ignore
+            assert isinstance(tags, set)  # stupid mypy
 
             recv = self._pending_recv
             e = self._has_data
@@ -905,7 +923,7 @@ class GameItem(object):
     def __init__(self, *args):
         raise Exception('Abstract')
 
-    def should_usable(self, g: ServerGame, u: Client) -> None:
+    def should_usable(self, core: ServerCore, g: ServerGame, u: Client) -> None:
         ...
 
     @classmethod

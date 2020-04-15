@@ -1,16 +1,23 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
+from typing import TYPE_CHECKING, cast
+
 # -- third party --
 # -- own --
-from typing import cast
-from thb.actions import ActionStage, AskForCard, DistributeCards, DrawCardStage, DrawCards, MigrateCardsTransaction
-from thb.actions import GenericAction, PlayerTurn, Reforge, UserAction, migrate_cards
-from thb.actions import random_choose_card, ttags, user_choose_cards, user_choose_players
+from thb.actions import ActionStage, AskForCard, DistributeCards, DrawCardStage, DrawCards
+from thb.actions import GenericAction, MigrateCardsTransaction, PlayerTurn, Reforge, UserAction
+from thb.actions import migrate_cards, random_choose_card, ttags, user_choose_cards
+from thb.actions import user_choose_players
 from thb.cards.base import Skill
 from thb.cards.classes import Heal, PhysicalCard, t_None, t_Self
 from thb.characters.base import Character, register_character_to
 from thb.mode import THBEventHandler
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.thbkof import THBattleKOF  # noqa: F401
 
 
 # -- code --
@@ -43,7 +50,9 @@ class MiracleAction(UserAction):
 
     def is_valid(self):
         tgt = self.target
-        return len(self.associated_card.associated_cards) == ttags(tgt)['miracle_times'] + 1
+        sk = self.associated_card
+        assert isinstance(sk, Miracle)
+        return len(sk.associated_cards) == ttags(tgt)['miracle_times'] + 1
 
 
 class Miracle(Skill):
@@ -155,6 +164,7 @@ class SanaeFaithKOFDrawCards(DrawCards):
 
 
 class SanaeFaithKOFHandler(THBEventHandler):
+    game: THBattleKOF
     interested = ['post_card_migration']
 
     def handle(self, evt_type, arg):

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Any
 from urllib.parse import urlparse
 import logging
 import socket
@@ -84,6 +84,7 @@ class Server(object):
 
         try:
             self.state = 'connecting'
+            assert uri.port
             addr = uri.hostname, uri.port
             s = socket.create_connection(addr)
             self._ep = Endpoint(s, addr)
@@ -140,7 +141,7 @@ class Server(object):
 
         core.events.server_dropped.emit(True)
 
-    def _dropped(self, _) -> None:
+    def _dropped(self, _: Any) -> None:
         core = self.core
         core.events.server_dropped.emit(True)
 

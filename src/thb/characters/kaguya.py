@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 # -- stdlib --
+from typing import Optional
+
 # -- third party --
 # -- own --
 from thb.actions import Damage, DrawCards, LaunchCard, LifeLost, PlayerTurn, UserAction
@@ -62,12 +64,12 @@ class DilemmaHealAction(DrawCards):
 
 
 class DilemmaHandler(THBEventHandler):
-    interested = ('action_after',)
-    execute_after = (
+    interested = ['action_after']
+    execute_after = [
         'DyingHandler',
         'AyaRoundfanHandler',
         'NenshaPhoneHandler',
-    )
+    ]
 
     def handle(self, evt_type, act):
         if evt_type != 'action_after': return act
@@ -131,6 +133,8 @@ class ImperishableNightHandler(THBEventHandler):
         self.target = tgt  # for ui
 
         if tgt.dead: return act
+
+        current: Optional[Character]
 
         try:
             current = PlayerTurn.get_current(g).target

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
+from typing import Sequence, Type
 import sys
 
 # -- third party --
@@ -12,9 +14,9 @@ class ViralContext(object):
     VIRAL_SEARCH = ['self']
     CONTINUE = object()
 
-    _viral_mro_cache = None
+    _viral_mro_cache: Sequence[Type[ViralContext]] = []
 
-    def __new__(cls, *a, **k):
+    def __new__(cls: Type[ViralContext], *a, **k):
         self = object.__new__(cls)
         cache = cls._viral_mro_cache if '_viral_mro_cache' in cls.__dict__ else None
         if not cache:
@@ -29,7 +31,7 @@ class ViralContext(object):
 
     @classmethod
     def viral_search(cls, start=1):
-        f = sys._getframe(start)
+        f = sys._getframe(start) or None
         while f:
             for name in cls.VIRAL_SEARCH:
                 that = f.f_locals.get(name)

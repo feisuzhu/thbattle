@@ -28,11 +28,11 @@ class Character(GameObject):
 
     # ----- Class Variables -----
     ui_meta: ClassVar[CharacterMeta]
-    eventhandlers: ClassVar[List[Type[THBEventHandler]]] = ()
+    eventhandlers: ClassVar[List[Type[THBEventHandler]]] = []
     categories: ClassVar[Iterable[str]] = ()
-    boss_skills: ClassVar[List[Type[Skill]]] = ()
+    boss_skills: ClassVar[List[Type[Skill]]] = []
 
-    skills: List[Type[Skill]] = ()
+    skills: List[Type[Skill]] = []
     maxlife: int = 0
 
     # ----- Instance Variables -----
@@ -66,6 +66,8 @@ class Character(GameObject):
         self.special        = CardList(self, 'special')     # used on special purpose
         self.showncardlists = [self.showncards, self.fatetell]
         self.tags           = defaultdict(int)
+
+        self._: dict        = {}
 
     def get_player(self) -> Player:
         return self.player

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Optional, TYPE_CHECKING, Type, Union
+from typing import Any, Dict, Optional, TYPE_CHECKING, Type, Union, Sequence
 
 # -- third party --
 # -- own --
@@ -12,6 +12,7 @@ from game.base import GameViralContext
 if TYPE_CHECKING:
     from thb.mode import THBattle
     from thb.characters.base import Character  # noqa: F401
+    from thb.cards.base import Card  # noqa: F401
 
 
 # -- code --
@@ -124,6 +125,18 @@ class UIMetaBase(GameViralContext):
         c = cardcls()
         c.move_to(cl)
         return c
+
+    def accept_cards(self, cl: Sequence[Card]):
+        g = self.game
+        try:
+            act = g.hybrid_stack[-1]
+            if act.cond(cl):  # type: ignore
+                return True
+
+        except (IndexError, AttributeError):
+            pass
+
+        return False
 
     def char_desc(self, ch: Union[Character, Type[Character]]):
         m = ch.ui_meta

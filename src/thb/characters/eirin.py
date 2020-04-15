@@ -4,7 +4,6 @@ from __future__ import annotations
 # -- stdlib --
 # -- third party --
 # -- own --
-from game.base import EventHandler
 from thb.actions import DropCards, GenericAction, LaunchCard, ShowCards, UserAction, migrate_cards
 from thb.actions import random_choose_card, ttags
 from thb.cards.base import Card, HiddenCard, PhysicalCard, Skill, TreatAs, VirtualCard, t_One
@@ -12,6 +11,7 @@ from thb.cards.basic import Heal
 from thb.cards.definition import AttackCard
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -90,9 +90,9 @@ class LunaStringPlaceCard(GenericAction):
         return True
 
 
-class LunaStringLaunchCardHandler(EventHandler):
-    interested = ('action_before',)
-    execute_before = ('SolidShieldHandler',)
+class LunaStringLaunchCardHandler(THBEventHandler):
+    interested = ['action_before']
+    execute_before = ['SolidShieldHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before':
@@ -121,6 +121,7 @@ class LunaStringLaunchCardHandler(EventHandler):
 
             if c:
                 g = self.game
+                assert isinstance(c, LunaString)
                 g.process_action(LunaStringPlaceCard(c.character, c))
 
         return act
@@ -133,9 +134,9 @@ class LunaString(TreatAs, Skill):
     no_reveal = True
     use_action = LunaStringPlaceCard  # UseCard hook
 
-    color  = Card.NOTSET
-    suit   = Card.NOTSET
-    number = 0
+    color  = Card.NOTSET  # type: ignore
+    suit   = Card.NOTSET  # type: ignore
+    number = 0  # type: ignore
 
     cost_detached = False
 

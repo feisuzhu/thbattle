@@ -16,7 +16,7 @@ from utils.misc import BatchList
 
 
 # -- code --
-def equip_iav(self, cl, tl):
+def equip_iav(self, c, tl):
     return (True, '配上好装备，不再掉节操！')
 
 
@@ -307,17 +307,8 @@ class GungnirSkill:
     name = '冈格尼尔'
 
     def clickable(self):
-        g = self.game
         me = self.me
-        try:
-            act = g.hybrid_stack[-1]
-            if act.cond([equipment.GungnirSkill(me)]):
-                return True
-
-        except (IndexError, AttributeError):
-            pass
-
-        return False
+        return self.accept_cards([equipment.GungnirSkill(me)])
 
     def is_complete(self, skill):
         me = self.me

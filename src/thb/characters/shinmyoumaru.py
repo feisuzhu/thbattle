@@ -6,7 +6,7 @@
 from thb.actions import Damage, DropCards, FatetellAction, FatetellMalleateHandler
 from thb.actions import MigrateCardsTransaction, PostCardMigrationHandler, UseCard, detach_cards
 from thb.actions import migrate_cards, user_choose_cards
-from thb.cards.base import Skill
+from thb.cards.base import Skill, Card
 from thb.cards.classes import t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -82,13 +82,15 @@ class VengeOfTsukumogamiAction(FatetellAction):
         self.target = target
         self.card = card
         self.fatetell_target = source
-        self.fatetell_cond = lambda c: 9 <= c.number <= 13
 
     def fatetell_action(self, ft):
         if ft.succeeded:
             self.game.process_action(Damage(self.source, self.target))
 
         return True
+
+    def fatetell_cond(self, c: Card):
+        return 9 <= c.number <= 13
 
 
 class VengeOfTsukumogamiHandler(THBEventHandler):

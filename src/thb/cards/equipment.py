@@ -6,7 +6,7 @@ from typing import List, cast
 
 # -- third party --
 # -- own --
-from game.base import EventHandler, GameError
+from game.base import GameError
 from thb.actions import ActionLimitExceeded, ActionStageLaunchCard, Damage, DrawCards, DropCardStage
 from thb.actions import DropCards, FatetellAction, FatetellStage, FinalizeStage, ForEach
 from thb.actions import GenericAction, LaunchCard, MaxLifeChange, MigrateCardsTransaction, Reforge
@@ -16,6 +16,7 @@ from thb.cards import basic, spellcard
 from thb.cards.base import Card, PhysicalCard, Skill, TreatAs, VirtualCard, t_None
 from thb.cards.base import t_OtherLessEqThanN, t_OtherOne
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
+from thb.mode import THBEventHandler
 from utils.check import CheckFailed, check
 from utils.misc import classmix
 
@@ -25,6 +26,10 @@ class WearEquipmentAction(UserAction):
     def apply_action(self):
         g = self.game
         card = self.associated_card
+
+        from thb.cards.definition import EquipmentCard
+        assert isinstance(card, EquipmentCard)
+
         tgt = self.target
         equips = tgt.equips
 
@@ -51,7 +56,7 @@ class ReforgeWeapon(Reforge):
 
 
 @register_eh
-class WeaponReforgeHandler(EventHandler):
+class WeaponReforgeHandler(THBEventHandler):
     interested = ['action_before']
 
     def handle(self, evt_type, act):
@@ -76,22 +81,32 @@ class WeaponReforgeHandler(EventHandler):
 
 
 @register_eh
-class EquipmentTransferHandler(EventHandler):
+class EquipmentTransferHandler(THBEventHandler):
     interested = ['post_card_migration']
 
     def handle(self, evt, trans):
         if evt == 'post_card_migration':
+            from thb.cards.definition import EquipmentCard
             assert isinstance(trans, MigrateCardsTransaction)
             for m in trans.movements:
+                c = m.card
+                if not isinstance(c, EquipmentCard):
+                    continue
+
                 if m.fr.type == 'equips':
+                    owner = m.fr.owner
+                    assert owner
+
                     try:
-                        m.fr.owner.skills.remove(m.card.equipment_skill)
+                        owner.skills.remove(c.equipment_skill)
                     except ValueError:
                         pass
 
                 if m.to.type == 'equips':
-                    if m.card.equipment_skill:
-                        m.to.owner.skills.append(m.card.equipment_skill)
+                    owner = m.to.owner
+                    assert owner
+                    if c.equipment_skill:
+                        owner.skills.append(c.equipment_skill)
 
         return trans
 
@@ -115,15 +130,17 @@ class OpticalCloak(FatetellAction):
         self.source = source
         self.target = target
         self.fatetell_target = target
-        self.fatetell_cond = lambda card: card.color == Card.RED
 
     def fatetell_action(self, ft):
         self.fatetell_card = ft.card
         return bool(ft.succeeded)
 
+    def fatetell_cond(self, card: Card):
+        return card.color == Card.RED
+
 
 @register_eh
-class OpticalCloakHandler(EventHandler):
+class OpticalCloakHandler(THBEventHandler):
     interested = ['action_apply']
     execute_after = ['AssistedGrazeHandler']
 
@@ -160,7 +177,7 @@ class MomijiShield(GenericAction):
 
 
 @register_eh
-class MomijiShieldHandler(EventHandler):
+class MomijiShieldHandler(THBEventHandler):
     interested = ['action_before']
     execute_before = ['HouraiJewelHandler']
 
@@ -191,7 +208,7 @@ class RedUFOSkill(UFOSkill):
 
 
 @register_eh
-class UFODistanceHandler(EventHandler):
+class UFODistanceHandler(THBEventHandler):
     interested = ['calcdistance']
 
     def handle(self, evt_type, arg):
@@ -228,28 +245,21 @@ class RoukankenSkill(WeaponSkill):
 
 
 class Roukanken(GenericAction):
-    def __init__(self, act):
-        assert isinstance(act, basic.BaseAttack)
-        self.action = act
-        self.source = act.source
-        self.target = act.target
 
     def apply_action(self):
-        act = self.action
-        tgt = act.target
+        tgt = self.target
 
         skills = [s for s in tgt.skills if issubclass(s, ShieldSkill)]
         for s in skills:
             tgt.disable_skill(s, 'roukanken')
 
-        act.roukanken_disabled_skills = skills
-        return self.game.process_action(act)
+        return True
 
 
 @register_eh
-class RoukankenEffectHandler(EventHandler):
-    interested = ('action_before', 'action_done',)
-    execute_before = (
+class RoukankenEffectHandler(THBEventHandler):
+    interested = ['action_before', 'action_done']
+    execute_before = [
         'MomijiShieldHandler',
         'OpticalCloakHandler',
         'SaigyouBranchHandler',
@@ -258,28 +268,27 @@ class RoukankenEffectHandler(EventHandler):
         'HakuroukenHandler',
         'FreakingPowerHandler',
         'ResonanceHandler'
-    )
+    ]
 
-    @classmethod
-    def handle(cls, evt_type, act):
+    def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, basic.BaseAttack):
+            cls = self.__class__
+            g = self.game
+
             if act.cancelled:
                 return act
 
-            if act._[cls]:
+            if act._[cls] == 'roukanken-processed':
                 return act
 
             act._[cls] = 'roukanken-processed'
 
-            source = act.source
-            if source.has_skill(RoukankenSkill):
-                act = Roukanken(act)
-                return act
+            src, tgt = act.source, act.target
+            if src.has_skill(RoukankenSkill):
+                g.process_action(Roukanken(src, tgt))
 
         if evt_type == 'action_done' and isinstance(act, basic.BaseAttack):
-            if hasattr(act, 'roukanken_tag'):
-                for s in getattr(act, 'roukanken_disabled_skills', []):
-                    act.target.reenable_skill('roukanken')
+            act.target.reenable_skill('roukanken')
 
         return act
 
@@ -304,7 +313,7 @@ class NenshaPhone(GenericAction):
 
 
 @register_eh
-class NenshaPhoneHandler(EventHandler):
+class NenshaPhoneHandler(THBEventHandler):
     interested = ['action_after']
 
     def handle(self, evt_type, act):
@@ -333,7 +342,7 @@ class ElementalReactorSkill(WeaponSkill):
 
 
 @register_eh
-class ElementalReactorHandler(EventHandler):
+class ElementalReactorHandler(THBEventHandler):
     interested = ['action_stage_action', 'post_card_migration']
     execute_after = ['EquipmentTransferHandler']
 
@@ -406,10 +415,11 @@ class ScarletRhapsodySkill(WeaponSkill):
 
     @property
     def distance(self):
-        try:
-            return max(1, self.associated_cards[0].distance)
-        except Exception:
+        cl = self.associated_cards
+        if not cl:
             return 1
+        c = cl[0]
+        return max(1, getattr(c, 'distance', 1))
 
 
 class RepentanceStickSkill(WeaponSkill):
@@ -448,7 +458,7 @@ class RepentanceStick(GenericAction):
 
 
 @register_eh
-class RepentanceStickHandler(EventHandler):
+class RepentanceStickHandler(THBEventHandler):
     interested = ['action_before']
     execute_before = ['WineHandler']
 
@@ -478,8 +488,8 @@ class IbukiGourdSkill(RedUFOSkill):
 
 
 @register_eh
-class IbukiGourdHandler(EventHandler):
-    interested = ('action_apply', 'action_after', 'card_migration')
+class IbukiGourdHandler(THBEventHandler):
+    interested = ['action_apply', 'action_after', 'card_migration']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, Damage):
@@ -505,6 +515,7 @@ class IbukiGourdHandler(EventHandler):
 
             for m in trans.movements:
                 if m.card.is_card(IbukiGourdCard) and m.to.type == 'equips':
+                    assert m.to.owner
                     tgt = m.to.owner
                     g = self.game
                     g.process_action(basic.Wine(tgt, tgt))
@@ -527,7 +538,7 @@ class HouraiJewelSkill(WeaponSkill):
 
 
 @register_eh
-class HouraiJewelHandler(EventHandler):
+class HouraiJewelHandler(THBEventHandler):
     interested = ['action_before']
     execute_before = ['RejectHandler', 'WineHandler']  # wine does not affect this.
 
@@ -559,7 +570,7 @@ class UmbrellaEffect(GenericAction):
 
 
 @register_eh
-class UmbrellaHandler(EventHandler):
+class UmbrellaHandler(THBEventHandler):
     # 紫的阳伞
     interested = ['action_before']
     execute_before = ['RejectHandler']
@@ -589,7 +600,6 @@ class MaidenCostumeAction(FatetellAction):
         self.source = source
         self.target = source
         self.fatetell_target = source
-        self.fatetell_cond = lambda c: 9 <= c.number <= 13
         self.act = act
 
     def fatetell_action(self, ft):
@@ -606,9 +616,12 @@ class MaidenCostumeAction(FatetellAction):
         else:
             return False
 
+    def fatetell_cond(self, c: Card):
+        return 9 <= c.number <= 13
+
 
 @register_eh
-class MaidenCostumeHandler(EventHandler):
+class MaidenCostumeHandler(THBEventHandler):
     interested = ['action_before']
     execute_before = ['RejectHandler']
     execute_after = ['HouraiJewelHandler']
@@ -658,7 +671,7 @@ class Hakurouken(GenericAction):
 
 
 @register_eh
-class HakuroukenHandler(EventHandler):
+class HakuroukenHandler(THBEventHandler):
     interested = ['action_before']
 
     # BUG WITH OUT THIS LINE:
@@ -731,9 +744,9 @@ class AyaRoundfanSkill(WeaponSkill):
 
 
 @register_eh
-class AyaRoundfanHandler(EventHandler):
-    interested = ('action_after',)
-    execute_after = ('DyingHandler', )
+class AyaRoundfanHandler(THBEventHandler):
+    interested = ['action_after']
+    execute_after = ['DyingHandler']
     card_usage = 'drop'
 
     def handle(self, evt_type, act):
@@ -773,7 +786,7 @@ class LaevateinSkill(WeaponSkill):
 
 
 @register_eh
-class LaevateinHandler(EventHandler):
+class LaevateinHandler(THBEventHandler):
     interested = ['attack_aftergraze']
     card_usage = 'drop'
 
@@ -834,7 +847,7 @@ class DeathSickle(GenericAction):
 
 
 @register_eh
-class DeathSickleHandler(EventHandler):
+class DeathSickleHandler(THBEventHandler):
     interested = ['action_before']
     execute_before = ['WineHandler']
 
@@ -870,7 +883,7 @@ class Keystone(GenericAction):
 
 
 @register_eh
-class KeystoneHandler(EventHandler):
+class KeystoneHandler(THBEventHandler):
     interested = ['action_before']
     execute_before = ['SaigyouBranchHandler', 'RejectHandler']
 
@@ -925,7 +938,7 @@ class YinYangOrbSkill(AccessoriesSkill):
 
 
 @register_eh
-class YinYangOrbHandler(EventHandler):
+class YinYangOrbHandler(THBEventHandler):
     interested = ['fatetell']
     execute_after = ['FatetellMalleateHandler']
 
@@ -957,7 +970,7 @@ class SuwakoHatEffect(UserAction):
 
 
 @register_eh
-class SuwakoHatHandler(EventHandler):
+class SuwakoHatHandler(THBEventHandler):
     interested = ['action_before']
 
     def handle(self, evt_type, act):
@@ -978,7 +991,7 @@ class YoumuPhantomHeal(basic.Heal):
 
 
 @register_eh
-class YoumuPhantomHandler(EventHandler):
+class YoumuPhantomHandler(THBEventHandler):
     interested = ['post_card_migration']
 
     def handle(self, evt_type, arg):
@@ -994,12 +1007,14 @@ class YoumuPhantomHandler(EventHandler):
 
             if m.fr.type == 'equips':
                 tgt = m.fr.owner
+                assert tgt
                 g.process_action(MaxLifeChange(tgt, tgt, -1))
                 if not tgt.dead:
                     g.process_action(YoumuPhantomHeal(tgt, tgt))
 
             if m.to.type == 'equips':
                 tgt = m.to.owner
+                assert tgt
                 g.process_action(MaxLifeChange(tgt, tgt, 1))
 
         return arg
@@ -1022,7 +1037,7 @@ class IceWing(GenericAction):
 
 
 @register_eh
-class IceWingHandler(EventHandler):
+class IceWingHandler(THBEventHandler):
     interested = ['action_before']
     _effect_cls = spellcard.SealingArray, spellcard.FrozenFrog
 
@@ -1064,7 +1079,7 @@ class GrimoireSkill(TreatAs, WeaponSkill):
 
 
 @register_eh
-class GrimoireHandler(EventHandler):
+class GrimoireHandler(THBEventHandler):
     interested = ['action_after', 'action_shootdown']
 
     def handle(self, evt_type, act):
@@ -1098,8 +1113,6 @@ class SinsackHatAction(FatetellAction):
         self.hat_card = hat_card
         self.fatetell_target = target
 
-        self.fatetell_cond = lambda c: c.suit == Card.SPADE and 1 <= c.number <= 8
-
     def fatetell_action(self, ft):
         if not ft.succeeded:
             return False
@@ -1110,13 +1123,16 @@ class SinsackHatAction(FatetellAction):
         migrate_cards([c], tgt.cards, unwrap=True)
         return True
 
+    def fatetell_cond(self, c: Card):
+        return c.suit == Card.SPADE and 1 <= c.number <= 8
+
 
 class SinsackHat(ShieldSkill):
     skill_category = ['equip', 'passive']
 
 
 @register_eh
-class SinsackHatHandler(EventHandler):
+class SinsackHatHandler(THBEventHandler):
     interested = ['action_after']
 
     def handle(self, evt_type, act):

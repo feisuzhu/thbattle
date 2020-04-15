@@ -29,10 +29,10 @@ class SpiritingAwayAction(UserAction):
 
         src.tags['spirit_away_tag'] += 1
 
-        cl = getattr(tgt, 'yukari_dimension', None)
+        cl = tgt._.get('yukari_dimension')
         if cl is None:
             cl = CardList(tgt, 'yukari_dimension')
-            tgt.yukari_dimension = cl
+            tgt._['yukari_dimension'] = cl
             tgt.showncardlists.append(cl)
 
         migrate_cards([card], cl)
@@ -52,7 +52,7 @@ class SpiritingAwayReturningAction(GenericAction):
     def apply_action(self):
         g = self.game
         for p in g.players:
-            cl = getattr(p, 'yukari_dimension', None)
+            cl = p._.get('yukari_dimension')
             cl and migrate_cards(cl, p.cards, unwrap=True)
 
         return True

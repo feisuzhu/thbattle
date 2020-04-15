@@ -59,17 +59,7 @@ class LunaString:
     description = '你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张|G弹幕|r。'
 
     def clickable(self):
-        g = self.game
-        me = self.me
-        try:
-            act = g.hybrid_stack[-1]
-            if act.cond and act.cond([characters.eirin.LunaString(me)]):
-                return True
-
-        except (IndexError, AttributeError):
-            pass
-
-        return False
+        return self.accept_cards([characters.eirin.LunaString(self.me)])
 
     def is_complete(self, sk):
         from thb.cards.base import VirtualCard

@@ -12,12 +12,12 @@ import logging
 from typing_extensions import Literal, Protocol
 
 # -- own --
-from game.base import Action, ActionShootdown, EventArbiter, GameViralContext, InputTransaction
-from game.base import Player, sync_primitive
+from game.base import ActionShootdown, EventArbiter, GameViralContext, InputTransaction, Player
+from game.base import sync_primitive
 from thb.cards.base import Card, CardList, PhysicalCard, Skill, VirtualCard
 from thb.common import PlayerRole
 from thb.inputlets import ActionInputlet, ChoosePeerCardInputlet
-from thb.mode import THBAction, THBEventHandler, THBPlayerAction, THBattle
+from thb.mode import THBAction, THBEventHandler, THBattle
 from utils.check import CheckFailed, check, check_type
 from utils.misc import BatchList
 
@@ -236,7 +236,7 @@ class GenericAction(THBAction):
 
 
 class UserAction(THBAction):  # card/character skill actions
-    target_list: Sequence[Character]
+    target_list: List[Character]
     associated_card: Card
 
 
@@ -515,13 +515,13 @@ class Damage(BaseDamage):
 
 class LifeLost(BaseDamage):
     def __init__(self, source, target, amount=1):
-        self.source = None
+        self.source = None  # type: ignore
         self.target = target
         self.amount = amount
 
 
 class MaxLifeChange(GenericAction):
-    def __init__(self, source, target, amount):
+    def __init__(self, source: Character, target: Character, amount):
         self.source = source
         self.target = target
         self.amount = amount
@@ -594,6 +594,7 @@ class UseCard(GenericAction):
 
 
 class AskForCard(GenericAction):
+    card_usage = 'drop'
 
     def __init__(self, source: Character, target: Character, card_cls: Type[PhysicalCard], categories: Sequence[str] = ('cards', 'showncards')):
         self.source = source
@@ -630,7 +631,7 @@ class AskForCard(GenericAction):
 
 
 class ActiveDropCards(GenericAction):
-    card_usage = 'drop'
+    card_usage: str
 
     def __init__(self, source: Character, target: Character, dropn: int) -> None:
         self.source = source
@@ -716,16 +717,16 @@ class DrawCardStage(DrawCards):
 
 
 class PutBack(GenericAction):
-    def __init__(self, source, cards, front=True):
+    def __init__(self, source, cards, direction: Literal['front', 'back'] = 'front'):
         self.source = self.target = source
         self.cards = cards
-        self.front = front
+        self.direction = direction
 
     def apply_action(self):
         g = self.game
         cards = self.cards
 
-        migrate_cards(cards, g.deck.cards, front=self.front)
+        migrate_cards(cards, g.deck.cards, direction=self.direction)
 
         return True
 
@@ -740,7 +741,7 @@ class LaunchCard(GenericAction):
         bypass_check = bool(action) or bypass_check
         self.bypass_check = bypass_check
         if bypass_check:
-            tl, tl_valid = target_list, True
+            tl, tl_valid = list(target_list), True
         else:
             tl, tl_valid = card.target(src, target_list)
 
@@ -884,6 +885,7 @@ class ActionStageLaunchCard(LaunchCard):
 
 class BaseActionStage(GenericAction):
     card_usage = 'launch'
+    one_shot: bool
     launch_card_cls: Type[LaunchCard]
 
     def __init__(self, target):
@@ -1015,8 +1017,10 @@ class FatetellStage(GenericAction):
 
 
 class BaseFatetell(GenericAction):
+    type: str
+
     def __init__(self, target, cond):
-        self.source = None
+        self.source = target
         self.target = target
         self.cond = cond
         self.initiator = self.game.hybrid_stack[-1]
@@ -1051,6 +1055,7 @@ class TurnOverCard(BaseFatetell):
 
 class FatetellMalleateHandler(EventArbiter):
     interested = ['fatetell']
+    game: THBattle
 
     def handle(self, evt_type, data):
         if evt_type != 'fatetell': return data
@@ -1111,7 +1116,7 @@ class FatetellAction(GenericAction):
 
 class LaunchFatetellCard(GenericAction):
     def __init__(self, target, card):
-        self.source = None
+        self.source = target
         self.target = target
         self.card = card
 
@@ -1130,7 +1135,7 @@ class LaunchFatetellCard(GenericAction):
 
 
 class ForEach(UserAction):
-    # action_cls == __subclass__.action_cls
+    action_cls: Type[THBAction]
     include_dead = False
 
     def prepare(self):
@@ -1141,7 +1146,7 @@ class ForEach(UserAction):
 
     def __init__(self, source, target):
         self.source = source
-        self.target = None
+        self.target = target
 
     def apply_action(self):
         tl = self.target_list
@@ -1156,7 +1161,7 @@ class ForEach(UserAction):
                     continue
                 a = self.action_cls(source, t)
                 a.associated_card = card
-                a.parent_action = self
+                a._['for_each'] = self
                 g.process_action(a)
 
         finally:
@@ -1165,12 +1170,12 @@ class ForEach(UserAction):
         return True
 
     @classmethod
-    def get_actual_action(self, act):
-        assert isinstance(act, Action)
-        return getattr(act, 'parent_action', None)
+    def get_actual_action(self, act: THBAction):
+        assert isinstance(act, THBAction)
+        return act._.get('for_each')
 
     @classmethod
-    def is_group_effect(self, act):
+    def is_group_effect(self, act: THBAction):
         return getattr(self.get_actual_action(act), 'group_effect', False)
 
 
@@ -1234,21 +1239,20 @@ class DummyAction(GenericAction):
         return self.result
 
 
-class RevealRole(THBPlayerAction):
+class RevealRole(THBAction):
 
-    def __init__(self, role: PlayerRole, to: Union[Player, BatchList[Player]]):
+    def __init__(self, p: Player, role: PlayerRole, to: Sequence[Player]):
+        self.player = p
         self.role = role
         self.to = to
 
     def apply_action(self) -> bool:
-        self.to.reveal(self.role)
+        for p in self.to:
+            p.reveal(self.role)
         return True
 
-    def can_be_seen_by(self, ch: Character) -> bool:
-        if isinstance(self.to, BatchList):
-            return ch in self.to
-        else:
-            return ch is self.to
+    def can_be_seen_by(self, p: Player) -> bool:
+        return p in self.to
 
 
 class Pindian(UserAction):
@@ -1349,10 +1353,10 @@ class DyingHandler(THBEventHandler):
 
 
 class ShowCards(GenericAction):
-    def __init__(self, source, cards, to=None):
+    def __init__(self, source, cards, to: Optional[Sequence[Character]] = None):
         self.source = self.target = source
         self.cards = cards
-        self.to = to and BatchList(to)
+        self.to: Optional[BatchList[Character]] = BatchList(to) if to is not None else None
 
     def apply_action(self):
         if not self.cards:
@@ -1360,7 +1364,8 @@ class ShowCards(GenericAction):
 
         g = self.game
         cards = self.cards
-        to = self.to or g.players
+        to = self.to
+        to = g.players if to is None else to
         to.reveal(cards)
         g.emit_event('showcards', (self.target, [copy(c) for c in cards], to))
         # g.user_input(

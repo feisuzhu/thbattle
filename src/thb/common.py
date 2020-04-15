@@ -37,6 +37,7 @@ class CharChoice(GameViralContext):
         self.set(char_cls, akari)
 
     def dump(self):
+        assert self.char_cls
         return self.char_cls.__name__ if not self.akari else 'Akari'
 
     def sync(self, data) -> None:

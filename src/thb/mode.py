@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Dict, List, Sequence, TYPE_CHECKING, Type
+from typing import Dict, List, TYPE_CHECKING, Type
 
 # -- third party --
 # -- own --
@@ -11,7 +11,7 @@ from utils.misc import BatchList
 
 # -- typing --
 if TYPE_CHECKING:
-    from thb.cards.base import Deck  # noqa: F401
+    from thb.cards.base import Card, Deck  # noqa: F401
     from thb.characters.base import Character  # noqa: F401
     from thb.common import PlayerRole  # noqa: F401
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class THBEventDispatcher(EventDispatcher):
     game: 'THBattle'
 
-    def populate_handlers(self) -> Sequence['THBEventHandler']:
+    def populate_handlers(self) -> List[EventHandler]:
         from thb.actions import COMMON_EVENT_HANDLERS
         g = self.game
         ehclasses = list(COMMON_EVENT_HANDLERS) + list(g.game_ehs)
@@ -34,7 +34,18 @@ class THBEventHandler(EventHandler):
     game: THBattle
 
 
-class THBattle(Game):
+class THBAction(Action):
+    source: Character
+    target: Character
+    game: THBattle
+    associated_card: Card
+
+    def __init__(self, source: Character, target: Character):
+        self.source = source
+        self.target = target
+
+
+class THBattle(Game[THBAction, THBEventHandler]):
     game: THBattle
     game_ehs: List[Type[THBEventHandler]]
     deck: Deck
@@ -50,23 +61,3 @@ class THBattle(Game):
                 return ch
 
         raise IndexError('Could not find character!')
-
-
-class THBAction(Action):
-    source: 'Character'
-    target: 'Character'
-    game: THBattle
-
-    def __init__(self, source: Character, target: Character):
-        self.source = source
-        self.target = target
-
-
-class THBPlayerAction(Action):
-    source: Player
-    target: Player
-    game: THBattle
-
-    def __init__(self, source: Player, target: Player):
-        self.source = source
-        self.target = target

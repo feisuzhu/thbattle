@@ -1,15 +1,22 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
+from typing import TYPE_CHECKING
+
 # -- third party --
 # -- own --
-from thb.actions import Damage, DrawCards, ForEach, LaunchCard, PlayerDeath, UserAction, PlayerTurn
+from thb.actions import Damage, DrawCards, ForEach, LaunchCard, PlayerDeath, PlayerTurn, UserAction
 from thb.actions import user_choose_players
 from thb.cards.base import Skill
 from thb.cards.classes import AttackCard, Duel, InstantSpellCardAction, Reject, TreatAs, t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
 from thb.mode import THBEventHandler
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.thbkof import THBattleKOF  # noqa: F401
 
 
 # -- code --
@@ -55,6 +62,7 @@ class SadistKOFDamageAction(UserAction):
 class SadistKOFHandler(THBEventHandler):
     interested = ['action_after', 'character_debut']
     execute_after = ['DeathHandler']
+    game: THBattleKOF
 
     def handle(self, evt_type, arg):
         if evt_type == 'action_after' and isinstance(arg, PlayerDeath):

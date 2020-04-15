@@ -12,7 +12,7 @@ from thb.cards.definition import EquipmentCard
 from thb.cards.classes import AttackCard, DollControlCard, Heal, TreatAs, t_None
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
-from thb.mode import THBEventHandler
+from thb.mode import THBEventHandler, THBattle
 
 
 # -- code --
@@ -106,7 +106,7 @@ class LittleLegionControlAction(UserAction):
             return False
 
         attacker, victim = rst
-        self.target_list = attacker, victim
+        self.target_list = [attacker, victim]
 
         g.process_action(LaunchCard(src, [attacker, victim], LittleLegionDollControlCard(attacker)))
         return True
@@ -119,6 +119,7 @@ class LittleLegionControlAction(UserAction):
 
 class LittleLegionHandler(THBEventHandler):
     interested = ['action_after']
+    card_usage = 'reforge'
 
     def handle(self, evt_type, act):
         if evt_type == 'action_after' and isinstance(act, ActionStage):
@@ -208,6 +209,7 @@ class DollBlastAction(UserAction):
 
 
 class DollBlastHandlerCommon(object):
+    game: THBattle
 
     def fire(self, src, tgt, cards):
         self.target = tgt  # for ui
@@ -222,6 +224,7 @@ class DollBlastHandlerCommon(object):
 class DollBlastMigrationHandler(DollBlastHandlerCommon, THBEventHandler):
     interested = ['post_card_migration']
     arbiter = PostCardMigrationHandler
+    game: THBattle
 
     def handle(self, p, trans):
         if not p.has_skill(DollBlast) or p.dead:
@@ -252,6 +255,7 @@ class DollBlastMigrationHandler(DollBlastHandlerCommon, THBEventHandler):
 
 class DollBlastDropHandler(DollBlastHandlerCommon, THBEventHandler):
     interested = ['action_before', 'action_after']
+    game: THBattle
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, DropCards):

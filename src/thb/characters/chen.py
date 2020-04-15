@@ -17,9 +17,11 @@ from thb.mode import THBEventHandler
 class FlyingSkandaAction(ForEach):
 
     def prepare(self):
-        skill = self.associated_card
-        card = skill.associated_cards[0]
+        sk = self.associated_card
+        assert isinstance(sk, FlyingSkanda)
+        card = sk.associated_cards[0]
         action = card.associated_action
+        assert action
         self.action_cls = action
 
     def is_valid(self):
@@ -58,7 +60,7 @@ class FlyingSkanda(Skill):
     def distance(self):
         cl = self.associated_cards
         if not cl: return 0
-        return cl[0].distance
+        return getattr(cl[0], 'distance', 99999)
 
     def check(self):
         cl = self.associated_cards

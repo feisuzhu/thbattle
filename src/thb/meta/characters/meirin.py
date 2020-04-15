@@ -29,19 +29,16 @@ class Taichi:
 
     def clickable(self):
         g = self.game
-        try:
-            act = g.action_stack[-1]
-            if isinstance(act, actions.ActionStage):
-                return True
 
-            if act.cond([self.build_handcard(AttackCard)]):
-                return True
+        act = g.action_stack[-1]
+        if isinstance(act, actions.ActionStage):
+            return True
 
-            if act.cond([self.build_handcard(GrazeCard)]):
-                return True
+        if self.accept_cards([self.build_handcard(AttackCard)]):
+            return True
 
-        except Exception:
-            pass
+        if self.accept_cards([self.build_handcard(GrazeCard)]):
+            return True
 
         return False
 

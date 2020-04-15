@@ -69,13 +69,14 @@ class Auth(object):
     def _auth(self, u: Client, m: wire.Auth) -> None:
         core = self.core
         token = m.token
+        assoc: AuthAssocOnClient
 
         if token == '':
             if self._allow_kedama:
                 uid = -self._kedama_uid
                 self._kedama_uid += 1
                 u.write(wire.AuthSuccess(uid))
-                assoc: AuthAssocOnClient = {
+                assoc = {
                     'uid': uid,
                     'name': f'毛玉{-uid}',
                     'kedama': True,
@@ -119,7 +120,7 @@ class Auth(object):
         else:
             uid = int(rst['id'])
             u.write(wire.AuthSuccess(uid))
-            assoc: AuthAssocOnClient = {
+            assoc = {
                 'uid': uid,
                 'name': rst['name'],
                 'kedama': False,

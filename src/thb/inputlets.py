@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Iterable, List, TYPE_CHECKING, Type, Union
+from typing import Any, Dict, Iterable, List, TYPE_CHECKING, Type, Union, Optional
 import logging
 
 # -- third party --
@@ -56,7 +56,7 @@ class ActionInputlet(Inputlet):
 
         self.skills: List[Type[Skill]] = []
         self.cards: List[Card] = []
-        self.characters: List[Player] = []
+        self.characters: List[Character] = []
         self.params: Dict[str, Any] = {}
 
     def parse(self, data):
@@ -75,7 +75,7 @@ class ActionInputlet(Inputlet):
 
         skills: List[Type[Skill]] = []
         cards: List[Card] = []
-        characters: List[Player] = []
+        characters: List[Character] = []
         params: Dict[str, Any] = {}
 
         try:
@@ -91,7 +91,7 @@ class ActionInputlet(Inputlet):
                 characters = pl
 
             if categories:
-                cards = [g.deck.lookup(i) for i in cid_list]
+                cards = [c for c in [g.deck.lookup(i) for i in cid_list] if c]
                 check(len(cards) == len(cid_list))  # Invalid id
 
                 cs = set(cards)
@@ -131,7 +131,7 @@ class ChooseIndividualCardInputlet(Inputlet):
     def __init__(self, initiator: Any, cards: List[Card]):
         self.initiator = initiator
         self.cards = cards
-        self.selected = None
+        self.selected: Optional[Card] = None
 
     def parse(self, data):
         try:
@@ -161,11 +161,13 @@ class ChooseIndividualCardInputlet(Inputlet):
 
 
 class ChoosePeerCardInputlet(Inputlet):
+    game: THBattle
+
     def __init__(self, initiator: Any, target: Character, categories: Iterable[str]):
         self.initiator = initiator
         self.target = target
         self.categories = categories
-        self.selected = None
+        self.selected: Optional[Card] = None
 
     def parse(self, data):
         target = self.target
@@ -182,7 +184,9 @@ class ChoosePeerCardInputlet(Inputlet):
             check(isinstance(cid, int))
 
             card = g.deck.lookup(cid)
-            check(card)  # Invalid id
+            if not card:
+                # not using check(...) because stupid mypy
+                raise CheckFailed  # Invalid id
 
             check(card.resides_in.owner is target)
             check(card.resides_in in categories)
@@ -192,7 +196,7 @@ class ChoosePeerCardInputlet(Inputlet):
         except CheckFailed:
             return None
 
-    def data(self):
+    def data(self) -> Optional[int]:
         sel = self.selected
         return sel.sync_id if sel else None
 
@@ -249,6 +253,7 @@ class ProphetInputlet(Inputlet):
 
 
 class ChooseGirlInputlet(Inputlet):
+
     def __init__(self, initiator: Any, mapping: Dict[Player, List[CharChoice]]):
         self.initiator = initiator
 
@@ -257,7 +262,7 @@ class ChooseGirlInputlet(Inputlet):
             assert all([isinstance(i, CharChoice) for i in m[k]])
             m[k] = m[k][:]
 
-        self.mapping = m
+        self.mapping: Dict[Player, List[CharChoice]] = m
         self.choice = None
 
     def parse(self, i):
@@ -321,6 +326,8 @@ class SortCharacterInputlet(Inputlet):
 
 class HopeMaskInputlet(Inputlet):
     '''For Kokoro'''
+    game: THBattle
+
     def __init__(self, initiator: Any, cards: List[Card]):
         self.initiator = initiator
         self.cards = cards

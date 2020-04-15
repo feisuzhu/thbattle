@@ -41,7 +41,7 @@ class _ClientCommandMapping(dict):
         if k in self:
             return dict.__getitem__(self, k)
 
-        hub = EventHub()
+        hub = EventHub[Tuple[Client, T]]()
         hub.name = f'{self.core}::client_command'
         self[k] = hub
         return hub
@@ -112,7 +112,7 @@ class Events(object):
         # ev = (g: Game)
         self.game_crashed = EventHub[Game]()
 
-    def __setattr__(self, name, v):
+    def __setattr__(self, name: str, v: Any) -> None:
         if hasattr(v, 'name'):
             v.name = f'{repr(self.core)}::{name}'
         object.__setattr__(self, name, v)

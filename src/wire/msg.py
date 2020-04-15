@@ -53,7 +53,7 @@ def message(cls: Type[Message]) -> Type[Message]:
     Message.types[cls.op] = cls
 
     if cls.encode is Message.encode:
-        env = {}
+        env: Any = {}
         fields = [f"    '{i.name}': self.{i.name}," for i in dataclasses.fields(cls)]
         code = (
             "def encode(self) -> dict:"
@@ -63,7 +63,7 @@ def message(cls: Type[Message]) -> Type[Message]:
             "    }"
         ) % '\n'.join(fields)
         exec(code, env)
-        cls.encode = env['encode']
+        cls.encode = env['encode']  # type: ignore
 
     return cls
 
@@ -249,7 +249,7 @@ class Auth(Message, ClientToServer):
 
 
 # ----- room -----
-class CreateRoomFlags(TypedDict):
+class CreateRoomFlags(TypedDict, total=False):
     contest: bool
     invite: bool
 

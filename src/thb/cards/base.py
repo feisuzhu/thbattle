@@ -12,7 +12,7 @@ import random
 
 # -- third party --
 # -- own --
-from game.base import GameError, GameObject, GameViralContext, get_seed_for
+from game.base import GameError, GameObject, GameViralContext, get_seed_for, Nobody
 from thb.mode import THBattle
 
 # -- typing --
@@ -173,8 +173,6 @@ class Card(GameObject, GameViralContext):
 class PhysicalCard(Card):
     classes: ClassVar[Dict[str, Type[PhysicalCard]]] = {}
 
-    exinwan_target: Optional[Character]  # HACK, for ExinwanCard
-
     def __eq__(self, other):
         if not isinstance(other, Card): return False
         return self.sync_id == other.sync_id
@@ -190,6 +188,7 @@ class VirtualCard(Card, GameViralContext):
     associated_cards: Sequence[Card]
     action_params: dict
     no_reveal: ClassVar[bool] = False
+    game: THBattle
 
     _suit: Optional[int]
     _number: Optional[int]
@@ -332,7 +331,7 @@ class Deck(GameObject):
         card_definition = card_definition or definition.card_definition
 
         self.cards_record: Dict[int, PhysicalCard] = {}
-        self.vcards_record: Dict[int, VirtualCard] = WeakValueDictionary()
+        self.vcards_record: WeakValueDictionary[int, VirtualCard] = WeakValueDictionary()
         self.droppedcards = CardList(None, 'droppedcard')
         cards = CardList(None, 'deckcard')
         self.cards = cards
@@ -390,7 +389,8 @@ class Deck(GameObject):
         return sid
 
     def shuffle(self, cl: CardList):
-        owner = cl.owner
+        owner = cl.owner.player if cl.owner else Nobody()
+
         g = self.game
 
         # assert all(c.resides_in is cl for c in cl)
@@ -526,7 +526,7 @@ def t_OtherLessEqThanN(n):
             pass
         return (tl[:n], bool(len(tl)))
 
-    t_OtherLessEqThanN._for_test_OtherLessEqThanN = n
+    t_OtherLessEqThanN._for_test_OtherLessEqThanN = n  # type: ignore
     return t_OtherLessEqThanN
 
 
@@ -546,7 +546,7 @@ def t_OtherN(n):
             pass
         return (tl[:n], bool(len(tl) >= n))
 
-    t_OtherN._for_test_OtherN = n
+    t_OtherN._for_test_OtherN = n  # type: ignore
     return t_OtherN
 
 
@@ -560,7 +560,7 @@ class ShreddedCard(Card):  # Become this after shuffling
     target = t_None()
 
 
-class DummyCard(Card):  # another special thing....
+class DummyCard(PhysicalCard):  # another special thing....
     associated_action = None
     target = t_None()
     category = ['dummy']

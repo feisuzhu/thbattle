@@ -154,7 +154,7 @@ class ServerGameRunner(GameRunner):
         orig_entities = entities[:]
         waiters = InputWaiterGroup()
 
-        def get_player(e):
+        def get_player(e: Any) -> Player:
             if isinstance(e, Player):
                 return e
             elif hasattr(e, 'get_player'):

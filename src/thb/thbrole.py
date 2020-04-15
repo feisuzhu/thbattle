@@ -5,7 +5,7 @@ from collections import defaultdict
 from copy import copy
 from enum import Enum
 from itertools import cycle
-from typing import Any, Dict, List
+from typing import Any, Dict, List, ClassVar, Type
 import logging
 import random
 
@@ -38,8 +38,9 @@ class RoleRevealHandler(THBEventHandler):
         if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
             g = self.game
             tgt = act.target
+            p = tgt.player
 
-            g.process_action(RevealRole(g.roles[tgt.player], g.players.player))
+            g.process_action(RevealRole(p, g.roles[p], g.players.player))
 
         return act
 
@@ -210,6 +211,8 @@ class AssistedUseAction(UserAction):
 
 class AssistedUseHandler(THBEventHandler):
     interested = ['action_apply']
+    skill: ClassVar[Type[Skill]]
+    card_cls: ClassVar[Type[Card]]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, AskForCard):
@@ -236,7 +239,7 @@ class AssistedAttackHandler(AssistedUseHandler):
     card_cls = AttackCard
 
 
-class AssistedAttackRangeHandler(AssistedUseHandler):
+class AssistedAttackRangeHandler(THBEventHandler):
     interested = ['calcdistance']
 
     def handle(self, evt_type, arg):
@@ -305,7 +308,7 @@ class ExtraCardSlotHandler(THBEventHandler):
             g = self.game
             n = sum(i == THBRoleRole.ACCOMPLICE for i in g.roles.values())
             n -= sum(ch.dead and g.roles[ch.player] == THBRoleRole.ACCOMPLICE for ch in g.players)
-            n = sync_primitive(n, g.players)
+            n = sync_primitive(n, g.players.player)
             act.dropn = max(act.dropn - n, 0)
 
         return act
@@ -400,7 +403,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         for p, i in imperial_roles + list(zip(pl, roles)):
             g.roles[p] = PlayerRole(THBRoleRole)
             g.roles[p].set(i)
-            g.process_action(RevealRole(g.roles[p], p))
+            g.process_action(RevealRole(p, g.roles[p], [p]))
 
         del roles
 
@@ -408,7 +411,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         boss_idx = is_boss.index(True)
         boss = g.boss = pl[boss_idx]
 
-        g.process_action(RevealRole(g.roles[boss], pl))
+        g.process_action(RevealRole(boss, g.roles[boss], pl))
 
         # choose girls init -->
         from .characters import get_characters

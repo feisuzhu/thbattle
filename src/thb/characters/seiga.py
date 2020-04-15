@@ -11,8 +11,8 @@ from thb.cards.classes import AttackCard, AttackCardVitalityHandler, t_None, t_S
 from thb.characters.base import Character, register_character_to
 from thb.common import CharChoice
 from thb.inputlets import ChooseOptionInputlet
-from thb.mode import THBEventHandler
-from thb.thbkof import KOFCharacterSwitchHandler
+from thb.mode import THBEventHandler, THBAction
+from thb.thbkof import KOFCharacterSwitchHandler, THBattleKOF
 
 
 # -- code --
@@ -49,7 +49,10 @@ class HeterodoxyHandler(THBEventHandler):
 class HeterodoxyAction(UserAction):
     def apply_action(self):
         g = self.game
-        card = self.associated_card.associated_cards[0]
+        sk = self.associated_card
+        assert isinstance(sk, Heterodoxy)
+        card = sk.associated_cards[0]
+
         src = self.source
         victim = self.target
         tgts = self.target_list[1:]
@@ -69,7 +72,9 @@ class HeterodoxyAction(UserAction):
 
     def is_valid(self):
         src = self.source
-        card = self.associated_card.associated_cards[0]
+        sk = self.associated_card
+        assert isinstance(sk, Heterodoxy)
+        card = sk.associated_cards[0]
         if card.is_card(AttackCard) and src.tags['vitality'] < 1:
             if not AttackCardVitalityHandler.is_disabled(src):
                 return False
@@ -149,7 +154,7 @@ class SummonAction(UserAction):
 
 class SummonHandler(THBEventHandler):
     interested = ['action_apply']
-    execute_after = ('DeathHandler', )
+    execute_after = ['DeathHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
@@ -166,6 +171,8 @@ class SummonHandler(THBEventHandler):
 
 
 class SummonKOFAction(UserAction):
+    game: THBattleKOF
+
     def apply_action(self):
         # WHOLE BUNCH OF MEGA HACK
         old = self.target
@@ -178,6 +185,7 @@ class SummonKOFAction(UserAction):
         assert current is old
 
         handler = g.dispatcher.find_by_cls(KOFCharacterSwitchHandler)
+        assert handler
         tgt = handler.switch(old)
 
         tgt.life = old_life
@@ -194,6 +202,9 @@ class SummonKOFAction(UserAction):
 
         for act in g.action_stack:
             # Meh... good enough
+            if not isinstance(act, THBAction):
+                continue
+
             if act.source is old:
                 act.source = tgt
 
@@ -221,6 +232,8 @@ class SummonKOFAction(UserAction):
 
 
 class SummonKOFCollect(UserAction):
+    game: THBattleKOF
+
     def apply_action(self):
         src, tgt = self.source, self.target
         g = self.game
@@ -229,6 +242,7 @@ class SummonKOFCollect(UserAction):
 
 
 class SummonKOFHandler(THBEventHandler):
+    game: THBattleKOF
     interested = ['action_apply']
 
     def handle(self, evt_type, act):

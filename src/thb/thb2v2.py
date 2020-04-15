@@ -29,6 +29,7 @@ log = logging.getLogger('THBattle2v2')
 
 
 class DeathHandler(THBEventHandler):
+    game: THBattle2v2
     interested = ['action_apply']
 
     def handle(self, evt_type, act):
@@ -59,14 +60,15 @@ class HeritageAction(UserAction):
         with MigrateCardsTransaction(self) as trans:
             for cl in lists:
                 if not cl: continue
-                cl = list(cl)
-                src.reveal(cl)
-                migrate_cards(cl, src.cards, unwrap=True, trans=trans)
+                cards = list(cl)
+                src.reveal(cards)
+                migrate_cards(cards, src.cards, unwrap=True, trans=trans)
 
         return True
 
 
 class HeritageHandler(THBEventHandler):
+    game: THBattle2v2
     interested = ['action_before']
     execute_after = ['DeathHandler', 'SadistHandler']
 
@@ -95,6 +97,7 @@ class HeritageHandler(THBEventHandler):
 
 
 class ExtraCardHandler(THBEventHandler):
+    game: THBattle2v2
     interested = ['action_before']
 
     def handle(self, evt_type, act):
@@ -150,7 +153,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
         for p, id in zip(pl, [H, H, M, M]):
             g.roles[p] = r = PlayerRole(THB2v2Role)
             g.roles[p].set(id)
-            g.process_action(RevealRole(r, pl))
+            g.process_action(RevealRole(p, r, pl))
 
         roll_rst = roll(g, pl, items)
         '''

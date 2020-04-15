@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
+from typing import Any
+
 # -- third party --
 # -- own --
-from thb.actions import DropCards, LaunchCard, migrate_cards, detach_cards
-from thb.cards.base import Card, Skill, DummyCard
+from thb.actions import DropCards, LaunchCard, detach_cards, migrate_cards
+from thb.cards.base import Card, DummyCard, Skill
 from thb.cards.classes import Demolition, DemolitionCard, TreatAs
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet
@@ -28,7 +31,7 @@ class Envy(TreatAs, Skill):
 
 
 class EnvyRecycleAction(object):
-    def apply_action(self):
+    def apply_action(self: Any):
         detach_cards(self.cards)
         migrate_cards(self.cards, self.source.cards, unwrap=True)
         return True

@@ -17,13 +17,17 @@ log = logging.getLogger("server.utils")
 STOP = EventHub.STOP_PROPAGATION
 
 T = TypeVar('T', bound=Message)
+Self = TypeVar('Self')
+
+CommandHandler = Callable[[Self, Client, T], Optional[EventHub.StopPropagation]]
+WrappedCommandHandler = Callable[[Self, Tuple[Client, T]], Union[Tuple[Client, T], EventHub.StopPropagation]]
 
 
-def command(*states: Sequence[str]) -> Callable[[Callable[[Any, Client, T], Optional[EventHub.StopPropagation]]], Callable[[Any, Tuple[Client, T]], Union[Tuple[Client, T], EventHub.StopPropagation]]]:
-    def decorate(f: Any) -> Any:
+def command(*states: Sequence[str]) -> Callable[[CommandHandler], WrappedCommandHandler]:
+    def decorate(f: CommandHandler) -> WrappedCommandHandler:
         @functools.wraps(f)
-        def wrapper(self: Any, ev: Tuple[Client, T]) -> Union[Tuple[Client, T], EventHub.StopPropagation]:
-            core = self.core
+        def wrapper(self: Self, ev: Tuple[Client, T]) -> Union[Tuple[Client, T], EventHub.StopPropagation]:
+            core = self.core  # type: ignore
             u, msg = ev
             if '*' not in states and core.lobby.state_of(u) not in states:
                 return ev

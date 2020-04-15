@@ -14,7 +14,9 @@ from thb.characters.base import Character, register_character_to
 class FindAction(UserAction):
     def apply_action(self):
         g = self.game
-        cards = self.associated_card.associated_cards
+        sk = self.associated_card
+        assert isinstance(sk, Find)
+        cards = sk.associated_cards
         n = len(cards)
         # card will be dropped at LaunchCard
         # g.process_action(DropCards(tgt, tgt, cards))
@@ -30,7 +32,9 @@ class FindAction(UserAction):
                 return False
 
             g = self.game
-            cards = self.associated_card.associated_cards
+            sk = self.associated_card
+            assert isinstance(sk, Find)
+            cards = sk.associated_cards
             if not 0 < len(cards) <= len([i for i in g.players if not i.dead]):
                 return False
 

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
+from typing import ClassVar, Type
+
 # -- third party --
 # -- own --
 from thb.actions import ActionStage, DropCards, ShowCards, UserAction, migrate_cards
@@ -8,12 +11,13 @@ from thb.actions import user_choose_cards
 from thb.cards.base import Card, Skill
 from thb.cards.classes import t_None, t_OtherOne
 from thb.characters.base import Character, register_character_to
-from thb.inputlets import ChooseOptionInputlet, HopeMaskInputlet, HopeMaskKOFInputlet
-from thb.mode import THBEventHandler
+from thb.inputlets import ChooseOptionInputlet, HopeMaskInputlet, HopeMaskKOFInputlet, Inputlet
+from thb.mode import THBEventHandler, THBAction
 
 
 # -- code --
 class BaseHopeMaskAction(UserAction):
+    inputlet_cls: ClassVar[Type[Inputlet]]
 
     def apply_action(self):
         tgt = self.target
@@ -53,6 +57,8 @@ class HopeMaskKOFAction(BaseHopeMaskAction):
 
 class BaseHopeMaskHandler(THBEventHandler):
     interested = ['action_apply']
+    skill: ClassVar[Type[Skill]]
+    action: ClassVar[Type[THBAction]]
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):
@@ -97,6 +103,7 @@ class BaseDarkNohAction(UserAction):
 
         src.tags['darknoh_tag'] = src.tags['turn_count']
         sk = self.associated_card
+        assert isinstance(sk, (DarkNoh, DarkNohKOF))
         card = sk.associated_cards[0]
         self.card = card
         migrate_cards([sk], tgt.showncards, unwrap=True)

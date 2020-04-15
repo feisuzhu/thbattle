@@ -109,7 +109,6 @@ class ImperialRole(GameItem):
             'accomplice': 2,
             'curtain': 1,
         }
-        core = g.core
         params = core.game.params_of(g)
         if params['double_curtain']:
             threshold['curtain'] += 1

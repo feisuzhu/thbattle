@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from typing import Sequence
@@ -101,7 +102,7 @@ class RejectHandler(THBEventHandler):
 
                 break
 
-            has_reject = sync_primitive(has_reject, g.players)
+            has_reject = sync_primitive(has_reject, g.players.player)
             if not has_reject: return act
 
             self.target_act = act
@@ -133,15 +134,13 @@ class RejectHandler(THBEventHandler):
         return LaunchCard(p, [act.target], cl[0], Reject(p, act)).can_fire()
 
 
-class DelayedSpellCardAction(SpellCardAction): pass  # 延时SC
+class DelayedSpellCardAction(SpellCardAction):
+    pass
 
 
 class DelayedLaunchCard(UserAction):
     def apply_action(self):
         card = self.associated_card
-        action = card.delayed_action
-        assert issubclass(action, DelayedSpellCardAction)
-
         t = self.target
         migrate_cards([card], t.fatetell)
 
@@ -160,9 +159,6 @@ class SealingArray(DelayedSpellCardAction, FatetellAction):
         self.target = target
         self.fatetell_target = target
 
-        from thb.cards.base import Card
-        self.fatetell_cond = lambda card: card.suit != Card.HEART
-
     def fatetell_action(self, ft):
         g = self.game
         if ft.succeeded:
@@ -176,6 +172,9 @@ class SealingArray(DelayedSpellCardAction, FatetellAction):
             return True
 
         return False
+
+    def fatetell_cond(self, c: Card):
+        return c.suit != Card.HEART
 
     def fatetell_postprocess(self):
         g = self.game
@@ -203,9 +202,6 @@ class Sinsack(DelayedSpellCardAction, FatetellAction):
         self.target = target
         self.fatetell_target = target
 
-        from thb.cards.base import Card
-        self.fatetell_cond = lambda c: c.suit == Card.SPADE and 1 <= c.number <= 8
-
     def fatetell_action(self, ft):
         if ft.succeeded:
             g = self.game
@@ -213,6 +209,9 @@ class Sinsack(DelayedSpellCardAction, FatetellAction):
             return True
 
         return False
+
+    def fatetell_cond(self, c: Card):
+        return c.suit == Card.SPADE and 1 <= c.number <= 8
 
     def fatetell_postprocess(self):
         g = self.game
@@ -517,8 +516,6 @@ class FrozenFrog(DelayedSpellCardAction, FatetellAction):
         self.target = target
         self.fatetell_target = target
 
-        self.fatetell_cond = lambda c: c.suit != Card.SPADE
-
     def fatetell_action(self, ft):
         g = self.game
         if ft.succeeded:
@@ -532,6 +529,9 @@ class FrozenFrog(DelayedSpellCardAction, FatetellAction):
             return True
 
         return False
+
+    def fatetell_cond(self, c: Card):
+        return c.suit != Card.SPADE
 
     def fatetell_postprocess(self):
         g = self.game

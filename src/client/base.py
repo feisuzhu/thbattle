@@ -119,7 +119,7 @@ class ClientGameRunner(GameRunner):
         timeout: int = 25,
         type: str = 'single',
         trans: Optional[InputTransaction] = None,
-    ):
+    ) -> Any:
 
         assert type in ('single', 'all', 'any')
         assert not type == 'single' or len(entities) == 1
@@ -153,7 +153,7 @@ class ClientGameRunner(GameRunner):
         synctags = {e: g.get_synctag() for e in entities}
         synctags_r = {v: k for k, v in synctags.items()}
 
-        def get_player(e):
+        def get_player(e: Any) -> Player:
             if isinstance(e, Player):
                 return e
             elif hasattr(e, 'get_player'):
@@ -185,7 +185,7 @@ class ClientGameRunner(GameRunner):
                     gr_current = gevent.getcurrent()
 
                     @inputproc.link_exception
-                    def chain_failure(gr):
+                    def chain_failure(gr: Greenlet) -> None:
                         exc = Exception("input_func failed")
                         exc.__cause__ = gr.exception
                         gr_current.kill(exc)

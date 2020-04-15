@@ -4,7 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import ActionStage, BaseActionStage, Damage, DrawCards, GenericAction, LaunchCard
+from thb.actions import ActionStage, BaseActionStage, Damage, DrawCards, GenericAction, LaunchCard, PlayerTurn
 from thb.actions import MaxLifeChange, Reforge, UserAction, migrate_cards, random_choose_card, ttags
 from thb.actions import user_choose_cards, user_choose_players
 from thb.cards.base import PhysicalCard, Skill, VirtualCard, t_None, t_OtherOne
@@ -16,12 +16,14 @@ from thb.mode import THBEventHandler
 
 # -- code --
 class TeachTargetReforgeAction(UserAction):
+    card_usage = 'reforge'
+
     def apply_action(self):
         g = self.game
         tgt = self.target
-        c = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
-        if c:
-            c = c[0]
+        cl = user_choose_cards(self, tgt, ('cards', 'showncards', 'equips'))
+        if cl:
+            c = cl[0]
         else:
             c = random_choose_card(g, [tgt.cards, tgt.showncards, tgt.equips])
             g.players.reveal(c)
@@ -74,6 +76,7 @@ class TeachTargetEffect(GenericAction):
 
 class TeachAction(UserAction):
     no_reveal = True
+    card_usage = 'any'
 
     def apply_action(self):
         src, tgt = self.source, self.target
@@ -162,7 +165,7 @@ class DevotedHeal(Heal):
 
 
 class DevotedHandler(THBEventHandler):
-    interested = ('action_before', 'action_after')
+    interested = ['action_before', 'action_after']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Damage):
@@ -180,7 +183,7 @@ class DevotedHandler(THBEventHandler):
             cp = tgt.tags['devoted']['to']
             if cp.dead: return act
             g = self.game
-            if g.current_player is not cp: return act
+            if PlayerTurn.get_current(g).target is not cp: return act
             g.process_action(DevotedDrawCards(cp, amount=act.amount))
 
         elif evt_type == 'action_after' and isinstance(act, Heal):
@@ -189,7 +192,7 @@ class DevotedHandler(THBEventHandler):
             cp = tgt.tags['devoted']['to']
             if cp.dead: return act
             g = self.game
-            if g.current_player is not cp: return act
+            if PlayerTurn.get_current(g).target is not cp: return act
             g.process_action(DevotedHeal(tgt, cp, amount=act.amount))
 
         return act
@@ -209,7 +212,7 @@ class DevotedAction(UserAction):
 
 
 class KeineGuardHandler(THBEventHandler):
-    interested = ('action_apply',)
+    interested = ['action_apply']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, ActionStage):

@@ -46,14 +46,14 @@ class Observe(object):
         return ev
 
     # ----- Public Method -----
-    def observe(self, uid: int):
+    def observe(self, uid: int) -> None:
         core = self.core
         core.server.write(wire.Observe(uid=uid))
 
-    def grant(self, uid: int, grant: bool):
+    def grant(self, uid: int, grant: bool) -> None:
         core = self.core
         core.server.write(wire.GrantObserve(uid=uid, grant=grant))
 
-    def kick(self, uid: int):
+    def kick(self, uid: int) -> None:
         core = self.core
         core.server.write(wire.KickObserver(uid=uid))

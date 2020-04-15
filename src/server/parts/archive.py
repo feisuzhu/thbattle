@@ -56,13 +56,10 @@ class Archive(object):
     def _meta(self, g: Game) -> Dict[str, Any]:
         core = self.core
         start = core.room.start_time_of(g)
-        flags = core.room.flags_of(g)
 
-        if core.game.is_crashed(g):
-            flags['crashed'] = True
-
-        if core.game.is_aborted(g):
-            flags['aborted'] = True
+        flags = dict(core.room.flags_of(g))
+        flags['crashed'] = core.game.is_crashed(g)
+        flags['aborted'] = core.game.is_aborted(g)
 
         return {
             'gid': core.room.gid_of(g),

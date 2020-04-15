@@ -124,6 +124,8 @@ class AdhocEventHandler(THBEventHandler):
 
 
 class THBattleNewbieBootstrap(BootstrapAction):
+    game: THBattleNewbie
+
     def __init__(self, params: Dict[str, Any],
                        items: Dict[Player, List[GameItem]],
                        players: BatchList[Player]):
@@ -151,8 +153,8 @@ class THBattleNewbieBootstrap(BootstrapAction):
         g.roles[cirno_p].set(THBNewbieRole.BAKA)
         g.roles[meirin_p].set(THBNewbieRole.NEWBIE)
 
-        g.process_action(RevealRole(g.roles[cirno_p], pl))
-        g.process_action(RevealRole(g.roles[meirin_p], pl))
+        g.process_action(RevealRole(cirno_p, g.roles[cirno_p], pl))
+        g.process_action(RevealRole(meirin_p, g.roles[meirin_p], pl))
 
         cirno = Cirno(cirno_p)
         meirin = Meirin(meirin_p)

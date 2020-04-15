@@ -60,7 +60,7 @@ class Admin(object):
     def _kick(self, c: Client, m: msg.AdminKick) -> None:
         core = self.core
         u = core.lobby.get(m.uid)
-        u and u.terminate()
+        if u: u.terminate()
 
     @_need_admin
     def _clearzombies(self, c: Client, m: msg.AdminClearZombies) -> None:
@@ -102,9 +102,9 @@ class Admin(object):
 
         log.info('>>>>> GAME STACKTRACE <<<<<')
 
-        def logtraceback(f: Any) -> None:
+        def logtraceback(gr: Any) -> None:
             import traceback
-            log.info('----- %r -----\n%s', gr, ''.join(traceback.format_stack(f)))
+            log.info('----- %r -----\n%s', gr, ''.join(traceback.format_stack(gr)))
 
         logtraceback(g)
 

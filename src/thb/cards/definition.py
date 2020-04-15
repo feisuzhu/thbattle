@@ -438,7 +438,7 @@ class GrimoireCard(EquipmentCard):
 SPADE, HEART, CLUB, DIAMOND = Card.SPADE, Card.HEART, Card.CLUB, Card.DIAMOND
 A, J, Q, K = 1, 11, 12, 13
 
-card_definition = [
+card_definition: List[Tuple[Type[PhysicalCard], int, int]] = [
     # ======= Spade =======
     (SinsackCard, SPADE, A),
     (DeathSickleCard, SPADE, 2),
@@ -601,10 +601,10 @@ card_definition = [
 ]
 
 # ANCHOR(card)
-card_definition = [
+card_definition: List[Tuple[Type[PhysicalCard], int, int]] = [
 ] * 1000 or card_definition
 
-kof_card_definition = [
+kof_card_definition: List[Tuple[Type[PhysicalCard], int, int]] = [
     # ======= Spade =======
     (SinsackCard, SPADE, A),
     (DeathSickleCard, SPADE, 2),

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Type
 import logging
 
 # -- third party --
@@ -12,6 +12,7 @@ from thb.common import roll
 from thb.item import GameItem
 from thb.mode import THBattle
 from utils.misc import BatchList
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -19,6 +20,7 @@ log = logging.getLogger('THBattleUnit')
 
 
 class THBattleUTBootstrap(BootstrapAction):
+    game: THBattle
 
     def __init__(self, params: Dict[str, Any],
                        items: Dict[Player, List[GameItem]],
@@ -44,7 +46,7 @@ class THBattleUTBootstrap(BootstrapAction):
 
 class THBattleDummy1(THBattle):
     n_persons  = 1
-    game_ehs = []
+    game_ehs: List[Type[THBEventHandler]] = []
     bootstrap  = THBattleUTBootstrap
 
     def can_leave(g: THBattle, p: Player) -> bool:
@@ -53,7 +55,7 @@ class THBattleDummy1(THBattle):
 
 class THBattleDummy2(THBattle):
     n_persons  = 2
-    game_ehs = []
+    game_ehs: List[Type[THBEventHandler]] = []
     bootstrap  = THBattleUTBootstrap
 
     def can_leave(g: THBattle, p: Player) -> bool:
@@ -62,7 +64,7 @@ class THBattleDummy2(THBattle):
 
 class THBattleDummy3(THBattle):
     n_persons  = 3
-    game_ehs = []
+    game_ehs: List[Type[THBEventHandler]] = []
     bootstrap  = THBattleUTBootstrap
 
     def can_leave(g: THBattle, p: Player) -> bool:
@@ -71,7 +73,7 @@ class THBattleDummy3(THBattle):
 
 class THBattleDummy4(THBattle):
     n_persons  = 4
-    game_ehs = []
+    game_ehs: List[Type[THBEventHandler]] = []
     bootstrap  = THBattleUTBootstrap
 
     def can_leave(g: THBattle, p: Player) -> bool:
@@ -91,7 +93,7 @@ class THBattleUTCrashBootstrap(BootstrapAction):
 
 class THBattleCrash(THBattle):
     n_persons  = 1
-    game_ehs = []
+    game_ehs: List[Type[THBEventHandler]] = []
     bootstrap  = THBattleUTCrashBootstrap
 
     def can_leave(g: THBattle, p: Player) -> bool:
@@ -107,13 +109,13 @@ class THBattleUTHaltBootstrap(BootstrapAction):
 
     def apply_action(self):
         g = self.game
-        g.core.runner.sleep(10000000)
+        g.core.runner.sleep(10000000)  # type: ignore
         return True
 
 
 class THBattleHalt(THBattle):
     n_persons  = 1
-    game_ehs = []
+    game_ehs: List[Type[THBEventHandler]] = []
     bootstrap  = THBattleUTHaltBootstrap
 
     def can_leave(g: THBattle, p: Player) -> bool:

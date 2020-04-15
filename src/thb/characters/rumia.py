@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 # -- stdlib --
+from typing import TYPE_CHECKING
+
 # -- third party --
 # -- own --
 from game.base import ActionShootdown
@@ -12,6 +14,10 @@ from thb.cards.definition import AttackCard, RejectCard
 from thb.cards.spellcard import BaseDuel
 from thb.characters.base import Character, register_character_to
 from thb.mode import THBEventHandler
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.thbkof import THBattleKOF  # noqa: F401
 
 
 # -- code --
@@ -97,6 +103,7 @@ class DarknessKOFLimit(ActionShootdown):
 
 class DarknessKOFHandler(THBEventHandler):
     interested = ['character_debut', 'action_shootdown']
+    game: THBattleKOF
 
     def handle(self, evt_type, arg):
         if evt_type == 'character_debut':
@@ -142,8 +149,8 @@ class CheatingDrawCards(DrawCards):
 
 
 class CheatingHandler(THBEventHandler):
-    interested = ('action_apply',)
-    execute_before = ('CiguateraHandler', )
+    interested = ['action_apply']
+    execute_before = ['CiguateraHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, FinalizeStage):

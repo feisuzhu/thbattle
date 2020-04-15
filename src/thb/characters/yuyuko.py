@@ -56,8 +56,8 @@ class GuidedDeath(Skill):
 
 
 class GuidedDeathHandler(THBEventHandler):
-    interested = ('action_apply',)
-    execute_before = ('SoulDrainHandler',)
+    interested = ['action_apply']
+    execute_before = ['SoulDrainHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, FinalizeStage):
@@ -146,7 +146,7 @@ class SoulDrainHandler(THBEventHandler):
 
 class PerfectCherryBlossomHandler(THBEventHandler):
     interested = ['action_apply', 'action_before']
-    execute_after = ('DeathHandler', )
+    execute_after = ['DeathHandler']
 
     def handle(self, evt_type, act):
         if evt_type == 'action_apply' and isinstance(act, PlayerDeath):
