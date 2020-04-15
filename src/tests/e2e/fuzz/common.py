@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from itertools import chain, combinations as C, permutations as P
-from typing import Any, cast
+from typing import Any, cast, Tuple, Sequence
 import logging
 import random
 
@@ -12,7 +12,9 @@ import gevent
 
 # -- own --
 from game.base import EventHandler
-from thb.actions import ActionStageLaunchCard, CardChooser, skill_wrap, CharacterChooser
+from thb.cards.base import Card
+from thb.actions import ActionStageLaunchCard, CardChooser, CharacterChooser
+from thb.actions import MigrateCardsTransaction, skill_wrap
 from thb.inputlets import ActionInputlet, ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
@@ -44,8 +46,20 @@ class UserInputFuzzingHandler(EventHandler):
             self.react(trans, ilet)
         elif evt in ('action_before', 'action_apply', 'action_after'):
             self.effect_meta(evt, arg)
+        elif evt == 'post_card_migration':
+            self.card_mig_ui_meta(arg)
+        elif evt == 'detach_cards':
+            self.detach_ui_meta(arg)
 
         return arg
+
+    def card_mig_ui_meta(self, arg: MigrateCardsTransaction):
+        arg.ui_meta.animation_instructions(arg)
+
+    def detach_ui_meta(self, arg: Tuple[MigrateCardsTransaction, Sequence[Card]]):
+        trans, cards = arg
+        rst = trans.ui_meta.detach_animation_instructions(trans, cards)
+        assert rst
 
     def effect_meta(self, evt: str, act: Any):
         while hasattr(act, 'ui_meta'):
@@ -55,11 +69,11 @@ class UserInputFuzzingHandler(EventHandler):
                 'action_after':  'effect_string',
             }[evt]
             prompt = getattr(act.ui_meta, _type, None)
-            if not prompt: return
+            if not prompt: break
             prompt(act)
             break
 
-        while hasattr(act, 'ui_meta'):
+        if hasattr(act, 'ui_meta'):
             if evt == 'action_before':
                 rays = getattr(act.ui_meta, 'ray', None)
                 rays = rays(act) if rays else []
@@ -71,7 +85,6 @@ class UserInputFuzzingHandler(EventHandler):
             }[evt]
             se = getattr(act.ui_meta, _type, None)
             se = se and se(act)
-            break
 
     def react(self, trans, ilet):
         p = ilet.actor

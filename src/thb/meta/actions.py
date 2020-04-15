@@ -2,14 +2,22 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Optional
+from enum import IntEnum
+from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 import random
 
 # -- third party --
+from typing_extensions import Literal, TypedDict
+
 # -- own --
 from thb import actions
 from thb.meta.common import ui_meta
 from utils.misc import BatchList
+from thb.mode import THBAction
+
+# -- typing --
+if TYPE_CHECKING:
+    from thb.cards.base import Card, CardList  # noqa: F401
 
 
 # -- code --
@@ -276,3 +284,146 @@ class BaseActionStage:
 class VitalityLimitExceeded:
     target_independent = True
     shootdown_message = '你没有干劲了'
+
+
+class MigrateCardsAnimationOp(IntEnum):
+    PUSH       = 0  # Push next as-is
+    DUP        = 1  # Duplicate top elem
+    GET        = 2  # Get a CardSprite, find in hand/dropped area. Create if not found. args: Card, create_in return value: CardSprite.
+    MOVE       = 3  # Move CardSprite to another Area. arg: CardSprite, Area, no return value.
+    FADE       = 4  # Fade CardSprite, arg: CardSprite, no ret val.
+    GRAY       = 5  # Set CardSprite gray, arg: CardSprite, no ret val.
+    UNGRAY     = 6  # Unset CardSprite gray, arg: CardSprite, no ret val.
+    FATETELL   = 7  # Play Fatetell animation, arg: CardSprite, no ret val.
+    SHOW       = 8
+    UNSHOW     = 9
+    AREA_HAND  = 10
+    AREA_DECK  = 11
+    AREA_DROP  = 12
+    AREA_PORT0 = 13
+    AREA_PORT1 = 14
+    AREA_PORT2 = 15
+    AREA_PORT3 = 16
+    AREA_PORT4 = 17
+    AREA_PORT5 = 18
+    AREA_PORT6 = 19
+    AREA_PORT7 = 20
+    AREA_PORT8 = 21
+    AREA_PORT9 = 22
+
+
+class CardView(TypedDict):
+    type: Literal['card']
+    card: str
+    suit: int
+    number: int
+    sync_id: int
+
+
+@ui_meta(actions.MigrateCardsTransaction)
+class MigrateCardsTransaction:
+
+    # def dbgprint(self, ins):
+    #     rst: Any = []
+    #     for i in ins:
+    #         if isinstance(i, int):
+    #             rst.append(Op(i))
+    #         else:
+    #             rst.append(repr(i))
+
+    #     from UnityEngine import Debug
+    #     Debug.Log(repr(rst))
+
+    def cl2index(self, cl: CardList) -> int:
+        g = self.game
+        assert cl.owner
+        for i, p in enumerate(g.players):
+            if p.player == cl.owner.player:
+                return i
+        else:
+            raise ValueError
+
+    def view(self, c: Card) -> CardView:
+        return {
+            'type': 'card',
+            'card': c.__class__.__name__,
+            'suit': c.suit,
+            'number': c.number,
+            'sync_id': c.sync_id,
+        }
+
+    def animation_instructions(self, trans: actions.MigrateCardsTransaction) -> List[Union[MigrateCardsAnimationOp, CardView]]:
+        Op = MigrateCardsAnimationOp
+
+        me = self.me
+        ops: List[Union[MigrateCardsAnimationOp, CardView]] = []
+
+        # class CardMovement:
+        #     trans: MigrateCardsTransaction
+        #     card: Card
+        #     fr: CardList
+        #     to: CardList
+        #     direction: Literal['front', 'back'] = 'front'
+
+        for m in trans.movements:
+            # -- card actions --
+            c = self.view(m.card)
+            tail: List[Union[MigrateCardsAnimationOp, CardView]] = []
+
+            if m.fr.type in ('deckcard', 'droppedcard') or not m.fr.owner:
+                tail += [c, Op.AREA_DECK, Op.GET]
+            elif m.fr in (me.cards, me.showncards):
+                tail += [c, Op.AREA_HAND, Op.GET]
+            else:
+                tail += [c, Op(Op.AREA_PORT0 + self.cl2index(m.fr)), Op.GET]
+
+            showing = (m.fr.type == 'showncards', m.to.type == 'showncards')
+
+            if showing == (True, False):
+                tail += [Op.DUP, Op.UNSHOW]
+            elif showing == (False, True):
+                tail += [Op.DUP, Op.SHOW]
+
+            if m.to in (me.cards, me.showncards):
+                tail += [Op.DUP, Op.UNGRAY, Op.AREA_HAND, Op.MOVE]
+            else:
+                if m.to.type in ('droppedcard', 'deckcard'):
+                    gray = m.to.type == 'droppedcard'
+                    tail += [Op.DUP, Op.GRAY if gray else Op.UNGRAY, Op.AREA_DROP, Op.MOVE]
+
+                elif m.to.owner:
+                    tail += [Op.DUP, Op.UNGRAY, Op.DUP, Op.FADE, Op(Op.AREA_PORT0 + self.cl2index(m.to)), Op.MOVE]
+                else:
+                    continue  # no animation
+
+            ops += tail
+
+        return ops
+
+    def detach_animation_instructions(self, trans: MigrateCardsTransaction, cards: Sequence[Card]) -> List[Union[MigrateCardsAnimationOp, CardView]]:
+        Op = MigrateCardsAnimationOp
+
+        me = self.me
+        ops: List[Union[MigrateCardsAnimationOp, CardView]] = []
+
+        for c in cards:
+            cv = self.view(c)
+            fr = c.resides_in
+
+            if fr.type in ('deckcard', 'droppedcard') or not fr.owner:
+                ops += [cv, Op.AREA_DECK, Op.GET]
+            elif fr in (me.cards, me.showncards):
+                ops += [cv, Op.AREA_HAND, Op.GET]
+            else:
+                ops += [cv, Op(Op.AREA_PORT0 + self.cl2index(fr)), Op.GET]
+
+            if fr.type == 'showncards':
+                ops += [Op.DUP, Op.UNSHOW]
+
+            act = trans.action
+            if isinstance(act, actions.BaseFatetell):
+                ops += [Op.DUP, Op.DUP, Op.UNGRAY if act.succeeded else Op.GRAY, Op.FATETELL, Op.AREA_DROP, Op.MOVE]
+            else:
+                ops += [Op.DUP, Op.UNGRAY, Op.AREA_DROP, Op.MOVE]
+
+        return ops

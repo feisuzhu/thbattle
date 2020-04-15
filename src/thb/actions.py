@@ -243,7 +243,7 @@ class UserAction(THBAction):  # card/character skill actions
 @dataclass
 class CardMigration:
     trans: MigrateCardsTransaction
-    cards: List[Card]
+    cards: Sequence[Card]
     to: CardList
     unwrap: bool = True  # will cards be unwrapped?
     direction: Literal['front', 'back'] = 'front'
@@ -259,6 +259,9 @@ class CardMovement:
 
 
 class MigrateCardsTransaction(GameViralContext):
+    game: THBattle
+    action: THBAction
+    migrations: List[CardMigration]
     movements: List[CardMovement]
 
     def __init__(self, action: Optional[THBAction] = None):
@@ -291,7 +294,7 @@ class MigrateCardsTransaction(GameViralContext):
     def commit(self):
         g = self.game
 
-        seen = set()
+        seen: Set[Card] = set()
 
         for m in self.migrations:
             cards = VirtualCard.unwrap(m.cards, include_vcards=True)
@@ -364,6 +367,9 @@ def migrate_cards(cards: Sequence[Card],
 
 
 class PostCardMigrationHandler(EventArbiter):
+    game: THBattle
+    handlers: Sequence[THBEventHandler]
+
     interested = ['post_card_migration']
 
     def handle(self, evt_type, arg):
@@ -387,10 +393,15 @@ class PostCardMigrationHandler(EventArbiter):
 
 
 def detach_cards(cards: Sequence[Card], trans=None):
-    g = MigrateCardsTransaction().game
+    if not trans:
+        with MigrateCardsTransaction() as t:
+            return detach_cards(cards, t)
+
     for c in VirtualCard.unwrap(cards):
         c.detach()
-    g.emit_event('detach_cards', cards)
+
+    g = trans.game
+    g.emit_event('detach_cards', (trans, cards))
 
 
 class DeadDropCards(GenericAction):
