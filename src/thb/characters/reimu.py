@@ -158,6 +158,10 @@ class ReimuExterminateAction(AskForCard):
         g = Game.getgame()
         return g.process_action(ReimuExterminateLaunchCard(self.source, self.victim, c, self.cause))
 
+    def ask_for_action_verify(self, p, cl, tl):
+        src, tgt = self.source, self.victim
+        return ReimuExterminateLaunchCard(src, tgt, cl[0], self.cause).can_fire()
+
 
 class ReimuExterminateHandler(EventHandler):
     interested = ('action_apply', 'action_after')
