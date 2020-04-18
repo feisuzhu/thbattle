@@ -90,10 +90,8 @@ class UnconsciousSilenceHandler(EventHandler):
 
             cards = walk(act.card)
 
-            zone = src.cards, src.showncards, src.equips, src.fatetell, src.special
-            for c in cards:
-                if c.resides_in in zone:
-                    raise UnconsciousnessLimit
+            if cards: # no matter where it resides in, even if others (i.e. puppeteer Seiga having Unconsciousness)
+                raise UnconsciousnessLimit
 
         return act
 
