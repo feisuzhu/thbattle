@@ -81,7 +81,7 @@ class FreakingPowerAction:
     fatetell_display_name = u'怪力'
 
     def effect_string_before(act):
-        return u'|G【%s】|r稍微认真了一下，弹幕以惊人的速度冲向|G【%s】|r' % (
+        return u'|G【%s】|r稍微认真了一下，弹幕以惊人的速度冲向|G【%s】|r！' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )

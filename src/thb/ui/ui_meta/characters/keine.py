@@ -20,7 +20,7 @@ class Teach:
     # Skill
     name = '授业'
     description = (
-        '出牌阶段限一次，你可以重铸一张牌，然后将一张牌交给一名其它角色，其选择一项：'
+        '出牌阶段限一次，你可以重铸一张牌并选定一名其它角色，然后将一张牌交给该角色，其选择一项：'
         '|B|R>> |r使用一张牌，|B|R>> |r重铸一张牌。'
     )
 
@@ -39,7 +39,7 @@ class Teach:
         return True, '发动「授业」'
 
     def effect_string(act):
-        return '“是这样的|G【%s】|r”，|G【%s】|r说道，“两个1相加是不等于⑨的。即使是两个⑥也不行。不不，天才来算也不行。”' % (
+        return '“是这样的|G【%s】|r，”|G【%s】|r说道，“两个1相加是不等于⑨的。即使是两个⑥也不行。不不，天才来算也不行。”' % (
             act.target.ui_meta.name,
             act.source.ui_meta.name,
         )

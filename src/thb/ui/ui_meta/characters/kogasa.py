@@ -120,7 +120,7 @@ class SurpriseAction:
         if act.succeeded:
             return u'效果拔群！'
         else:
-            return u'似乎没有什么效果'
+            return u'似乎没有什么效果……'
 
 
 class Kogasa:

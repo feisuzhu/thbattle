@@ -114,7 +114,7 @@ class TreasureHuntAction:
 
     def effect_string(act):
         if act.succeeded:
-            return u'|G【%s】|r找到了|G%s|r' % (
+            return u'|G【%s】|r找到了|G%s|r。' % (
                 act.target.ui_meta.name,
                 act.card.ui_meta.name,
             )
