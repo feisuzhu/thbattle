@@ -8,6 +8,7 @@ import random
 # -- third party --
 # -- own --
 from thb.cards import definition, spellcard
+from thb.cards.base import PhysicalCard
 from thb.meta.common import ui_meta
 
 
@@ -42,6 +43,16 @@ class DemolitionCard:
 class Demolition:
     def effect_string(self, act):
         if not act.succeeded: return None
+
+        # This could happen when:
+        # 1. Parsee uses Envy, recycled a diamond card
+        # 2. The card is an equipment weared by Alice
+        # 3. Alice fires DollBlast, drops the very same card
+        # 4. Sometime here, cards are shuffled
+        # 5. Demolition now holds a ShreddedCard
+        if not isinstance(act.card, PhysicalCard):
+            return None
+
         return '|G【%s】|r卸掉了|G【%s】|r的%s。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
