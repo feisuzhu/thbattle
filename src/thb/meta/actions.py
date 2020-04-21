@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # -- stdlib --
 from enum import IntEnum
-from typing import List, Optional, Sequence, TYPE_CHECKING, Union, Any
+from typing import Any, List, Optional, Sequence, TYPE_CHECKING, Union
 import random
 
 # -- third party --
@@ -13,7 +13,6 @@ from typing_extensions import Literal, TypedDict
 from thb import actions
 from thb.meta.common import ui_meta
 from utils.misc import BatchList
-from thb.mode import THBAction
 
 # -- typing --
 if TYPE_CHECKING:
@@ -415,7 +414,7 @@ class MigrateCardsTransaction:
 
         return ops
 
-    def detach_animation_instructions(self, trans: MigrateCardsTransaction, cards: Sequence[Card]) -> List[Union[MigrateCardsAnimationOp, CardView]]:
+    def detach_animation_instructions(self, trans: actions.MigrateCardsTransaction, cards: Sequence[Card]) -> List[Union[MigrateCardsAnimationOp, CardView]]:
         Op = MigrateCardsAnimationOp
 
         me = self.me

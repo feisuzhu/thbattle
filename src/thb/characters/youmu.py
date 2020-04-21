@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
@@ -6,8 +7,9 @@
 from thb.actions import ActionStage, Damage, DropCards, UserAction, migrate_cards
 from thb.actions import random_choose_card
 from thb.cards.base import Skill
-from thb.cards.classes import Attack, BaseDuel, LaunchGraze, UseAttack, t_None
-from thb.characters.base import Character, register_character_to
+from thb.cards.classes import Attack, BaseDuel, InstantSpellCardAction, LaunchGraze, UseAttack
+from thb.cards.classes import t_None
+from thb.characters.base import Character
 from thb.inputlets import ChooseIndividualCardInputlet
 from thb.mode import THBEventHandler
 from utils.misc import classmix
@@ -18,7 +20,7 @@ class MijincihangzhanAttack(Attack):
     pass
 
 
-class MijincihangzhanDuelMixin(object):
+class MijincihangzhanDuelMixin(InstantSpellCardAction):
     # 迷津慈航斩 弹幕战
     def apply_action(self):
         g = self.game

@@ -47,7 +47,6 @@ class ImperialChoice(GameItem):
         if isinstance(g, THBattle2v2):
             raise exceptions.IncorrectGameMode
 
-        core = g.core
         items = core.item.items_of(g)
 
         for l in items.values():
@@ -114,25 +113,24 @@ class ImperialRole(GameItem):
             threshold['curtain'] += 1
             threshold['attacker'] -= 1
 
-        threshold[self.id] -= 1
+        threshold[self.role] -= 1
 
         items = core.item.items_of(g)
         uid = core.auth.uid_of(u)
-        for _uid, l in items:
+        for _uid, l in items.items():
             for i in l:
-                i = GameItem.from_sku(i)
                 if not isinstance(i, self.__class__):
                     continue
 
                 if _uid == uid:
-                    raise exceptions.IdentityAlreadyChosen
+                    raise exceptions.RoleAlreadyChosen
 
-                assert i.id in threshold
+                assert i.role in threshold
 
-                threshold[i.id] -= 1
+                threshold[i.role] -= 1
 
         if any(i < 0 for i in threshold.values()):
-            raise exceptions.ChooseIdentityConflict
+            raise exceptions.ChooseRoleConflict
 
     @classmethod
     def get_chosen(cls, items: Dict[Player, List[GameItem]], pl: Sequence[Player]) -> List[Tuple[Player, THBRoleRole]]:

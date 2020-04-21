@@ -907,15 +907,14 @@ class GameItem(object):
     inventory: Dict[str, Type[GameItem]] = {}
 
     # --- class ---
-    key: str  = ''
-    args: List[type] = []
-    usable = False
-
-    title = 'ITEM-TITLE'
-    description = 'ITEM-DESC'
+    key: ClassVar[str]  = ''
+    args: ClassVar[List[type]] = []
+    usable: ClassVar[bool] = False
 
     # --- instance ---
     sku: str
+    title: str = 'ITEM-TITLE'
+    description: str = 'ITEM-DESC'
 
     # --- poison ---
     init: None
@@ -933,7 +932,7 @@ class GameItem(object):
         return item_cls
 
     @classmethod
-    def from_sku(cls, sku) -> GameItem:
+    def from_sku(cls, sku: str) -> GameItem:
         if ':' in sku:
             key, args = sku.split(':')
             args = args.split(',')
