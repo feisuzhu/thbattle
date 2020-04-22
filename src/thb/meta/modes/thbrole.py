@@ -115,17 +115,6 @@ class AssistedAttackAction:
             return (False, '同仇：请选择一张弹幕（对%s出）' % act.target.ui_meta.name)
 
 
-@ui_meta(thbrole.AssistedAttackCard)
-class AssistedAttackCard:
-    def effect_string(self, act):
-        s = act.card
-        c = s.associated_cards[0]
-        return '|G【%s】|r响应了|G同仇|r，使用了|G%s|r。' % (
-            c.resides_in.owner.ui_meta.name,
-            self.card_desc(c),
-        )
-
-
 @ui_meta(thbrole.AssistedAttackHandler)
 class AssistedAttackHandler:
     choose_option_prompt = '你要发动【同仇】吗？'

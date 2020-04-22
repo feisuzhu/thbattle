@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
 from copy import copy
 from enum import Enum
 from itertools import cycle
-from typing import Any, Dict, List, ClassVar, Type
+from typing import Any, ClassVar, Dict, List, Type
 import logging
 import random
 
@@ -16,9 +17,8 @@ from game.base import Player, get_seed_for, sync_primitive
 from thb.actions import ActionStageLaunchCard, AskForCard, DistributeCards, DrawCards, DropCardStage
 from thb.actions import DropCards, GenericAction, LifeLost, PlayerDeath, PlayerTurn, RevealRole
 from thb.actions import TryRevive, UserAction, ask_for_action, ttags
-from thb.cards.base import Card, Deck, Skill, VirtualCard
-from thb.cards.classes import AttackCard, AttackCardRangeHandler, GrazeCard, Heal, TreatAs, t_None
-from thb.cards.classes import t_One
+from thb.cards.base import Card, Deck, Skill
+from thb.cards.classes import AttackCard, AttackCardRangeHandler, GrazeCard, Heal, t_None, t_One
 from thb.common import CharChoice, PlayerRole, build_choices
 from thb.inputlets import ChooseGirlInputlet, ChooseOptionInputlet
 from thb.item import ImperialRole
@@ -126,10 +126,6 @@ class DeathHandler(THBEventHandler):
         return act
 
 
-class AssistedAttackCard(TreatAs, VirtualCard):
-    treat_as = AttackCard
-
-
 class AssistedAttackAction(UserAction):
     card_usage = 'launch'
 
@@ -145,7 +141,7 @@ class AssistedAttackAction(UserAction):
         assert rst
 
         (c,), _ = rst
-        g.process_action(ActionStageLaunchCard(src, [tgt], AssistedAttackCard.wrap([c], src)))
+        g.process_action(ActionStageLaunchCard(src, [tgt], c, bypass_check=True))
 
         return True
 
