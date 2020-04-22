@@ -410,9 +410,7 @@ class DeadDropCards(GenericAction):
         g = self.game
 
         others = g.players.exclude(tgt)
-        lists = [tgt.cards, tgt.showncards, tgt.equips, tgt.fatetell, tgt.special]
-        lists.extend(tgt.showncardlists)
-        for cl in lists:
+        for cl in tgt.lists:
             if not cl: continue
             others.reveal(list(cl))
             g.process_action(DropCards(tgt, tgt, cl))

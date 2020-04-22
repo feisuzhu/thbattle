@@ -7,7 +7,7 @@ from typing import Any, List, Optional, Sequence, TYPE_CHECKING, Union
 import random
 
 # -- third party --
-from typing_extensions import Literal, TypedDict
+from typing_extensions import TypedDict
 
 # -- own --
 from thb import actions
@@ -327,7 +327,6 @@ class MigrateCardsAnimationOp(IntEnum):
 
 
 class CardView(TypedDict):
-    type: Literal['card']
     card: str
     suit: int
     number: int
@@ -357,9 +356,9 @@ class MigrateCardsTransaction:
         else:
             raise ValueError
 
-    def view(self, c: Card) -> CardView:
+    @staticmethod
+    def card_view(c: Card) -> CardView:
         return {
-            'type': 'card',
             'card': c.__class__.__name__,
             'suit': c.suit,
             'number': c.number,
@@ -381,7 +380,7 @@ class MigrateCardsTransaction:
 
         for m in trans.movements:
             # -- card actions --
-            c = self.view(m.card)
+            c = self.card_view(m.card)
             tail: List[Union[MigrateCardsAnimationOp, CardView]] = []
 
             if m.fr.type in ('deckcard', 'droppedcard') or not m.fr.owner:
@@ -421,7 +420,7 @@ class MigrateCardsTransaction:
         ops: List[Union[MigrateCardsAnimationOp, CardView]] = []
 
         for c in cards:
-            cv = self.view(c)
+            cv = self.card_view(c)
             fr = c.resides_in
 
             if fr.type in ('deckcard', 'droppedcard') or not fr.owner:

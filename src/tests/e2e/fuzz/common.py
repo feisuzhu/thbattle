@@ -50,8 +50,14 @@ class UserInputFuzzingHandler(EventHandler):
             self.card_mig_ui_meta(arg)
         elif evt == 'detach_cards':
             self.detach_ui_meta(arg)
+        elif evt == 'action_stage_action':
+            self.get_game_state()
 
         return arg
+
+    def get_game_state(self):
+        from thb.meta.state import state_of
+        state_of(self.game)
 
     def card_mig_ui_meta(self, arg: MigrateCardsTransaction):
         arg.ui_meta.animation_instructions(arg)

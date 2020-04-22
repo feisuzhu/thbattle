@@ -33,7 +33,7 @@ class SpiritingAwayAction(UserAction):
         if cl is None:
             cl = CardList(tgt, 'yukari_dimension')
             tgt._['yukari_dimension'] = cl
-            tgt.showncardlists.append(cl)
+            tgt.lists.append(cl)
 
         migrate_cards([card], cl)
 

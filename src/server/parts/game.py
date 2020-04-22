@@ -9,7 +9,7 @@ import random
 
 # -- third party --
 from gevent.event import AsyncResult
-from mypy_extensions import TypedDict
+from typing_extensions import TypedDict
 
 # -- own --
 from game.base import GameArchive, GameData, Player

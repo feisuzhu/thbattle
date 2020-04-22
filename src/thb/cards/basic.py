@@ -7,9 +7,10 @@ from typing import cast
 # -- third party --
 # -- own --
 from game.base import EventHandler
-from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, ForEach
-from thb.actions import GenericAction, LaunchCard, MigrateCardsTransaction, PrepareStage, UseCard
-from thb.actions import UserAction, VitalityLimitExceeded, register_eh, user_choose_cards
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards
+from thb.actions import FinalizeStage, ForEach, GenericAction, LaunchCard, MigrateCardsTransaction
+from thb.actions import PrepareStage, UseCard, UserAction, VitalityLimitExceeded, register_eh
+from thb.actions import user_choose_cards
 
 
 # -- code --
@@ -131,6 +132,8 @@ class VitalityHandler(EventHandler):
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
             act.source.tags['vitality'] = 1
+        elif evt_type == 'action_before' and isinstance(act, FinalizeStage):
+            act.source.tags['vitality'] = 0
 
         return act
 

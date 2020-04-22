@@ -121,7 +121,7 @@ class SealingArrayCard:
     # action_stage meta
     name = '封魔阵'
     image = 'thb-card-sealarray'
-    tag_anim = lambda c: 'thb-tag-sealarray'
+    tag = 'thb-tag-sealarray'
     description = (
         '|R封魔阵|r\n\n'
         '延时类符卡。\n'
@@ -158,7 +158,7 @@ class FrozenFrogCard:
     # action_stage meta
     name = '冻青蛙'
     image = 'thb-card-frozenfrog'
-    tag_anim = lambda c: 'thb-tag-frozenfrog'
+    tag = 'thb-tag-frozenfrog'
     description = (
         '|R冻青蛙|r\n\n'
         '延时类符卡。\n'
@@ -214,7 +214,7 @@ class SinsackCard:
     # action_stage meta
     name = '罪袋'
     image = 'thb-card-sinsack'
-    tag_anim = lambda c: 'thb-tag-sinsack'
+    tag = 'thb-tag-sinsack'
     description = (
         '|R罪袋|r\n\n'
         '延时类符卡。\n'

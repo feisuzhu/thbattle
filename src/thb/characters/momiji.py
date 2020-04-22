@@ -29,7 +29,7 @@ class DisarmHideAction(UserAction):
         if cl is None:
             cl = CardList(tgt, 'momiji-sentry-cards')
             tgt._['momiji-sentry-cards'] = cl
-            tgt.showncardlists.append(cl)
+            tgt.lists.append(cl)
 
         migrate_cards(self.cards, cl)
         return True
@@ -240,7 +240,7 @@ class SolidShieldAction(UserAction):
         if cl is None:
             cl = CardList(tgt, 'momiji-sentry-cards')
             tgt._['momiji-sentry-cards'] = cl
-            tgt.showncardlists.append(cl)
+            tgt.lists.append(cl)
 
         migrate_cards([lc.card], cl, unwrap=True)
         lc.cancelled = True

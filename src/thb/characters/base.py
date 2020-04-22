@@ -45,7 +45,7 @@ class Character(GameObject):
     equips: CardList
     fatetell: CardList
     special: CardList
-    showncardlists: List[CardList]
+    lists: List[CardList]
     player: Player
 
     def __init__(self, player: Player):
@@ -64,7 +64,13 @@ class Character(GameObject):
         self.equips         = CardList(self, 'equips')      # Equipments
         self.fatetell       = CardList(self, 'fatetell')    # Cards in the Fatetell Zone
         self.special        = CardList(self, 'special')     # used on special purpose
-        self.showncardlists = [self.showncards, self.fatetell]
+        self.lists         = [
+            self.cards,
+            self.showncards,
+            self.equips,
+            self.fatetell,
+            self.special,
+        ]
         self.tags           = defaultdict(int)
 
         self._: dict        = {}
