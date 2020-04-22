@@ -141,12 +141,13 @@ class VirtueAction(UserAction):
 
         g.players.reveal(c)
         g.process_action(ShowCards(tgt, [c]))
+
+        self.card_shadow = Card.copy(c)
+
         migrate_cards([c], src.cards)
 
         if c.suit == Card.HEART:
             g.process_action(DrawCards(src, 1))
-
-        self.card = c
 
         return True
 

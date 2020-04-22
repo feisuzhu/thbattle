@@ -157,7 +157,7 @@ class VirtueAction:
     def effect_string(self, act):
         return '|G【%s】|r归还了%s。' % (
             act.target.ui_meta.name,
-            self.card_desc(act.card),
+            self.card_desc(act.card_shadow),
         )
 
     def sound_effect(self, act):
