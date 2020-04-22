@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.base import ActionShootdown, InputTransaction
 from thb.actions import ActionStage, ActionStageLaunchCard, DrawCards, DropCardStage, FinalizeStage
-from thb.actions import GenericAction, LaunchCard, PlayerTurn, ShowCards, UserAction, ask_for_action
+from thb.actions import GenericAction, LaunchCard, PlayerTurn, PrepareStage, ShowCards, UserAction
+from thb.actions import ask_for_action
 from thb.cards.base import Card, Skill, VirtualCard
 from thb.cards.classes import PhysicalCard, t_None, t_Self
 from thb.characters.base import Character, register_character_to
@@ -98,7 +100,7 @@ class WindWalkHandler(THBEventHandler):
 
             src.tags['windwalk_last_targets'] = set(act.target_list)
 
-        elif evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_apply' and isinstance(act, PrepareStage):
             src = act.source
             if not src.has_skill(WindWalk):
                 return act
@@ -152,7 +154,7 @@ class DominanceHandler(THBEventHandler):
     interested = ['action_after', 'action_apply']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_apply' and isinstance(act, PrepareStage):
             t = act.target.tags
             t['dominance_suits']        = set()
             t['dominance_suit_SPADE']   = False
@@ -180,7 +182,7 @@ class DominanceHandler(THBEventHandler):
             except AttributeError:
                 pass
 
-        elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
             tgt = act.target
             if not tgt.has_skill(Dominance):
                 return act

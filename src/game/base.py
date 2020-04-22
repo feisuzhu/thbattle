@@ -259,6 +259,7 @@ class Game(GameObject, Generic[A, EH]):
             try:
                 self.action_stack.append(action)
                 self.hybrid_stack.append(action)
+                hybrid = self.hybrid_stack  # noqa, when crashes pytest will show hybrid stack here by inspecting local variables
                 rst = action.apply_action()
             except InterruptActionFlow as e:
                 if e.unwind_to is action:

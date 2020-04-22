@@ -6,8 +6,7 @@ from typing import cast
 
 # -- third party --
 # -- own --
-# -- errord --
-from thb.actions import Damage, DrawCards, DropCardStage, DropCards, GenericAction
+from thb.actions import Damage, DrawCards, DropCardStage, DropCards, FinalizeStage, GenericAction
 from thb.actions import MigrateCardsTransaction, PlayerTurn, UserAction, random_choose_card
 from thb.actions import user_choose_players
 from thb.cards.base import Skill, VirtualCard
@@ -208,7 +207,7 @@ class DecayFadeHandler(THBEventHandler):
     interested = ['action_after']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_after' and isinstance(act, FinalizeStage):
             tgt = act.target
             if tgt.tags['shizuha_decay']:
                 tgt.tags['shizuha_decay'] = False

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import GenericAction, PlayerTurn, UserAction, migrate_cards, random_choose_card
+from thb.actions import FinalizeStage, GenericAction, PrepareStage, UserAction, migrate_cards
+from thb.actions import random_choose_card
 from thb.cards.base import CardList, Skill, t_One
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChoosePeerCardInputlet
@@ -71,12 +73,12 @@ class SpiritingAwayHandler(THBEventHandler):
     interested = ['action_after', 'action_apply']
 
     def handle(self, evt_type, arg):
-        if evt_type == 'action_apply' and isinstance(arg, PlayerTurn):
+        if evt_type == 'action_apply' and isinstance(arg, PrepareStage):
             tgt = arg.target
             if tgt.has_skill(SpiritingAway):
                 tgt.tags['spirit_away_tag'] = 0
 
-        elif evt_type == 'action_after' and isinstance(arg, PlayerTurn):
+        elif evt_type == 'action_after' and isinstance(arg, FinalizeStage):
             tgt = arg.target
             if not tgt.has_skill(SpiritingAway):
                 return arg

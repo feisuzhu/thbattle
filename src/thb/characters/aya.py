@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.mode import THBEventHandler
-from thb.actions import DrawCards, PlayerTurn, UserAction
+from thb.actions import DrawCards, PlayerTurn, PrepareStage, UserAction
 from thb.cards.base import Skill, t_None
 from thb.characters.base import Character, register_character_to
+from thb.mode import THBEventHandler
 
 
 # -- code --
@@ -46,7 +47,7 @@ class UltimateSpeedHandler(THBEventHandler):
             for k in dist:
                 dist[k] = 0
 
-        elif evt_type == 'action_apply' and isinstance(arg, PlayerTurn):
+        elif evt_type == 'action_apply' and isinstance(arg, PrepareStage):
             tags = arg.target.tags
             tags['aya_count'] = 0
             tags['aya_range_max'] = False

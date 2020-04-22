@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import DropCards, GenericAction, MaxLifeChange, PlayerTurn, random_choose_card
+from thb.actions import DropCards, GenericAction, MaxLifeChange, PrepareStage, random_choose_card
 from thb.cards.base import DummyCard, Skill, t_None
 from thb.cards.classes import AttackCard, BaseAttack, GrazeCard, LaunchGraze, TreatAs
 from thb.characters.base import Character, register_character_to
@@ -104,7 +105,7 @@ class RiverBehindHandler(THBEventHandler):
     interested = ['action_apply']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_apply' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_apply' and isinstance(act, PrepareStage):
             tgt = act.target
             if not tgt.has_skill(RiverBehind): return act
             g = self.game

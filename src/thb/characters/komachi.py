@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from thb.actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange
-from thb.actions import PlayerTurn, UserAction, migrate_cards, random_choose_card
+from thb.actions import PrepareStage, UserAction, migrate_cards, random_choose_card
 from thb.cards.base import Skill
 from thb.cards.classes import t_None, t_OtherOne
 from thb.characters.base import Character, register_character_to
@@ -86,7 +87,7 @@ class ReturningHandler(THBEventHandler):
     interested = ['action_before']
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_before' and isinstance(act, PlayerTurn):
+        if evt_type == 'action_before' and isinstance(act, PrepareStage):
             tgt = act.target
             if not tgt.has_skill(Returning): return act
             g = self.game

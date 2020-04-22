@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
 # -- third party --
 # -- own --
 from game.base import ActionShootdown
-from thb.actions import ActionStageLaunchCard, Damage, LaunchCard, PlayerTurn, UserAction
+from thb.actions import ActionStageLaunchCard, Damage, FinalizeStage, LaunchCard, PlayerTurn
+from thb.actions import UserAction
 from thb.cards.base import Skill
 from thb.cards.classes import AttackCard, DuelCard, Heal, HealCard, PhysicalCard, t_None
 from thb.characters.base import Character, register_character_to
@@ -102,7 +104,7 @@ class DiscarderHandler(THBEventHandler):
             if not set(act.target_list) <= avail:
                 raise DiscarderDistanceLimit
 
-        elif evt_type == 'action_after' and isinstance(act, PlayerTurn):
+        elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
             tgt = act.target
             if tgt.has_skill(Discarder):
                 tgt.skills.remove(Discarder)
