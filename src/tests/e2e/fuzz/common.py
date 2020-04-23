@@ -115,19 +115,26 @@ class UserInputFuzzingHandler(EventHandler):
                 cc = list(chain(*[C(cards, i) for i in range(4)]))
                 random.shuffle(cc)
 
-                for cl in cc:
-                    for tl in self.possible_targets(g, p, sk):
+                for tl in self.possible_targets(g, p, sk):
+                    tl_seen = set()
+                    for cl in cc:
                         c = skill_wrap(p, [sk], cl, {})
-
-                        ok, reason = self.ui_meta_walk_wrapped([c])
-                        if not ok:
-                            assert not c.check(), (c, c.associated_cards, c.check(), ok, reason)
-                            continue
 
                         try:
                             tl, ok = c.target(p, tl)
                         except Exception as e:
                             raise Exception(f"{c}.target: {c.target} failed") from e
+
+                        tl1 = tuple(tl)
+                        if tl1 in tl_seen:
+                            continue
+
+                        tl_seen.add(tl1)
+
+                        ok, reason = self.ui_meta_walk_wrapped([c])
+                        if not ok:
+                            assert not c.check(), (c, c.associated_cards, c.check(), ok, reason)
+                            continue
 
                         try:
                             ok2, reason = c.ui_meta.is_action_valid(c, tl)
