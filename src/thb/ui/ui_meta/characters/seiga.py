@@ -73,7 +73,7 @@ class Heterodoxy:
         return bool(me.cards or me.showncards or me.equips)
 
     def effect_string(act):
-        return u'|G【%s】|r发动了邪仙技能，以|G【%s】|r的身份使用了卡牌' % (
+        return u'|G【%s】|r发动了邪仙技能，以|G【%s】|r的身份使用了卡牌。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )
