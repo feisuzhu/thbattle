@@ -199,4 +199,12 @@ class devoted:
     def description(p, v):
         return '合格的CP当然要同富贵共患难！'
 
+
+class paranoia:
+    def anim(p, v):
+        return v and 'thb-tag-koishi_paranoia'
+
+    def description(p, v):
+        return '抑制「超我」——角色技能暂时失效'
+
 # -----END TAGS UI META-----
