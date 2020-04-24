@@ -26,9 +26,6 @@ class UnconsciousnessAction:
             act.source.ui_meta.name,
         )
 
-    def sound_effect(act):
-        return ''
-
 
 class UnconsciousnessLimit:
     target_independent = True
@@ -45,12 +42,9 @@ class Paranoia:
 
 class ParanoiaAction:
     def effect_string(act):
-
-        return u'|G【%s】|r发动了|G偏执|r，获得|G【%s】|r的一张手牌。\n|G【%s】|r的干劲当前为%s。' % (
+        return u'|G【%s】|r发动了|G偏执|r，获得|G【%s】|r的一张手牌。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
-            act.source.ui_meta.name,
-            act.source.tags['vitality'],
         )
 
     def sound_effect(act):
@@ -68,6 +62,7 @@ class Koishi:
     name        = u'古明地恋'
     title       = u'紧闭的恋之瞳'
     illustrator = u'和茶'
+    designer    = u'真炎的爆发'
     cv          = u'暂缺'
 
     port_image        = u'thb-portrait-koishi'
