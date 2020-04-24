@@ -1,29 +1,15 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
 # -- stdlib --
-from typing import Callable, Optional, cast
-
-# -- third party --
-# -- own --
-# -- errord --
-from mypy.checkmember import bind_self
-from mypy.nodes import Decorator, MemberExpr, CallExpr, NameExpr
-from mypy.plugin import AttributeContext, MethodSigContext, Plugin
-from mypy.types import AnyType, CallableType, Instance, Type, TypeOfAny, UnionType
-
-
-# -- code --
-
-# -- stdlib --
-# -- third party --
 from typing import Callable, Optional
 
-# -- own --
-# -- errord --
-from mypy.nodes import CallExpr, MDEF, MemberExpr, SymbolTableNode, TypeInfo, Var
+# -- third party --
+from mypy.nodes import CallExpr, MDEF, MemberExpr, NameExpr, SymbolTableNode, TypeInfo, Var
 from mypy.plugin import ClassDefContext, Plugin
 from mypy.types import Instance
+
+# -- own --
 
 
 # -- code --
