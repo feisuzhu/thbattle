@@ -104,6 +104,10 @@ class SentryAction(AskForCard):
         c = SentryAttack.wrap([c], src)
         return g.process_action(LaunchCard(src, [tgt], c))
 
+    def ask_for_action_verify(self, p, cl, tl):
+        src, tgt = self.source, self.victim
+        return LaunchCard(src, [tgt], cl[0]).can_fire()
+
 
 class SentryHandler(EventHandler):
     interested = ('action_apply',)
