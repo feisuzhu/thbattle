@@ -50,6 +50,7 @@ TESTING_CHARACTERS = (
     'Flandre',
     'Koishi',
     'SpSatori',
+    'SpYoumu'
 )
 
 
