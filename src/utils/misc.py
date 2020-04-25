@@ -473,3 +473,25 @@ class MockMeta(type):
         bases = cls.__bases__
         assert len(bases) == 1
         return [cls, object]
+
+
+class LoopBreaker(object):
+    def __init__(self, resets_to=True):
+        self._should_continue = True
+        self._reset_to = resets_to
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._should_continue:
+            self._should_continue = self._reset_to
+            return self
+        else:
+            raise StopIteration
+
+    def stop(self):
+        self._should_continue = False
+
+    def cont(self):
+        self._should_continue = True

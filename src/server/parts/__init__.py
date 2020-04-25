@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from . import admin, archive, auth, backend, connect, contest, game, hooks, invite, item, kedama  # noqa
-from . import lobby, log, observe, reward, room, serve, stats, view  # noqa
+from . import lobby, log, matching, observe, reward, room, serve, stats, view  # noqa
 
 
 # -- code --

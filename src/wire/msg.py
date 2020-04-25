@@ -252,6 +252,7 @@ class Auth(Message, ClientToServer):
 class CreateRoomFlags(TypedDict, total=False):
     contest: bool
     invite: bool
+    chat: bool
 
 
 @message
@@ -297,6 +298,13 @@ class CancelReady(Message, ClientToServer):
 @dataclass
 class ChangeLocation(Message, ClientToServer):
     loc: int
+
+
+# ----- matching -----
+@message
+@dataclass
+class StartMatching(Message, BiDirectional):
+    modes: List[str]
 
 
 # ----- observe -----

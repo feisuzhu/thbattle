@@ -143,6 +143,9 @@ class Core(core.Core):
         if 'game' not in disables:
             self.game = parts.game.GamePart(self)
 
+        if 'matching' not in disables:
+            self.matching = parts.matching.Matching(self)
+
         if 'observe' not in disables:
             self.observe = parts.observe.Observe(self)
 

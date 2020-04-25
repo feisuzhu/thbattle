@@ -140,6 +140,9 @@ class Core(core.Core):
         if 'room' not in disables:
             self.room = parts.room.Room(self)
 
+        if 'matching' not in disables:
+            self.matching = parts.matching.Matching(self)
+
         if 'observe' not in disables:
             self.observe = parts.observe.Observe(self)
 
