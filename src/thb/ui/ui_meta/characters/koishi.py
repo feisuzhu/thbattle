@@ -14,7 +14,7 @@ __metaclass__ = gen_metafunc(characters.koishi)
 
 class Unconsciousness:
     name = u'无我'
-    description = u'|B锁定技|r，你的回合内手牌数不小于体力的其他角色不能使用或打出牌，且你对其造成的伤害-1。'
+    description = u'|B锁定技|r，你的回合内手牌数不小于体力的其他角色不能使用任一张牌，且你对其造成的伤害-1。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
@@ -29,7 +29,7 @@ class UnconsciousnessAction:
 
 class UnconsciousnessLimit:
     target_independent = True
-    shootdown_message = u'【无意识】你的手牌数不小于体力值，不能使用或打出任一张牌'
+    shootdown_message = u'【无意识】你的手牌数不小于体力值，不能使用任一张牌'
 
 
 class Paranoia:
