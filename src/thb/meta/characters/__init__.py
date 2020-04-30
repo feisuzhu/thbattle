@@ -49,3 +49,4 @@ from . import sp_aya
 from . import kyouko
 from . import keine
 from . import yuyuko
+from . import suwako

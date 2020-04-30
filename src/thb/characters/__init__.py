@@ -54,5 +54,7 @@ from . import kyouko
 from . import keine
 from . import yuyuko
 
+from . import suwako
+
 # special
 from .base import get_characters
