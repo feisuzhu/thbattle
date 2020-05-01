@@ -5,7 +5,7 @@
 # -- own --
 from game.autoenv import EventHandler, Game, user_input
 from thb.actions import ActionShootdown, Damage, GenericAction, PlayerDeath, PlayerTurn, UserAction, migrate_cards
-from thb.cards import Attack, LaunchCard, Skill, UseCard, VirtualCard, t_None
+from thb.cards import Attack, LaunchCard, Skill, VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
@@ -64,7 +64,7 @@ class UnconsciousSilenceHandler(EventHandler):
     interested = ('action_shootdown',)
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_shootdown' and isinstance(act, (LaunchCard, UseCard)):
+        if evt_type == 'action_shootdown' and isinstance(act, LaunchCard):
             src = act.source
             tgt = act.target
 
@@ -82,7 +82,7 @@ class UnconsciousSilenceHandler(EventHandler):
                 if not c.is_card(VirtualCard):
                     return [c]
 
-                if c.usage not in ('launch', 'use'):
+                if c.usage not in ('launch',):
                     return []
 
                 cards = c.associated_cards
