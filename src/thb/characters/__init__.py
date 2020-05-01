@@ -56,6 +56,7 @@ import yuyuko
 import koishi
 import suwako
 import sp_satori
+import sp_youmu
 
 # weektour
 import youmu20150620
