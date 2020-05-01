@@ -31,11 +31,9 @@ class SpearTheGungnirAction(GenericAction):
 
 class SpearTheGungnirHandler(EventHandler):
     interested = ('action_before',)
-    execute_before = ('ScarletRhapsodySwordHandler', )
-    execute_after = (
-        'HakuroukenEffectHandler',
-        'HouraiJewelHandler',
-    )
+    execute_before = ('ScarletRhapsodySwordHandler',
+                      'HouraiJewelHandler',
+                      'HakuroukenHandler')
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, Attack):
