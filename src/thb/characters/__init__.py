@@ -59,11 +59,11 @@ import sp_satori
 import sp_youmu
 
 # weektour
-import youmu20150620
-import mima20150705
-import meirin20150714
-import satori20150804
-import minamitsu20150818
+# import youmu20150620
+# import mima20150705
+# import meirin20150714
+# import satori20150804
+# import minamitsu20150818
 
 # special
 import akari

@@ -56,8 +56,8 @@ from . import sp_satori
 from . import sp_youmu
 
 # weektour
-from . import youmu20150620
-from . import mima20150705
-from . import meirin20150714
-from . import satori20150804
-from . import minamitsu20150818
+# from . import youmu20150620
+# from . import mima20150705
+# from . import meirin20150714
+# from . import satori20150804
+# from . import minamitsu20150818
