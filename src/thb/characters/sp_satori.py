@@ -292,7 +292,7 @@ class TerribleSouvenirHandler(EventHandler):
         return act
 
 
-@register_character_to('common', 'boss')
+# @register_character_to('common', 'boss')
 class SpSatori(Character):
     skills = [ThirdEye, MindRead, Rosa]
     boss_skills = [TerribleSouvenir]
