@@ -64,7 +64,7 @@ class ForbiddenFruitsHandler(EventHandler):
         return act
 
 
-@register_character_to('common')
+# @register_character_to('common')
 class Flandre(Character):
     skills = [ForbiddenFruits]
     eventhandlers_required = [ForbiddenFruitsHandler]

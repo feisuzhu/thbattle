@@ -22,7 +22,7 @@ class DivineFetchAction(UserAction):
         tgt = self.target
         g = Game.getgame()
 
-        if tgt.tags['divine_tgt_tag'] >= src.tags['turn_count']:
+        if src.tags['divine_picker']:
             return False
 
         c = user_input([src], ChoosePeerCardInputlet(self, tgt, ('cards', 'showncards')))
@@ -32,7 +32,7 @@ class DivineFetchAction(UserAction):
         src.reveal(c)
         migrate_cards([c], src.cards)
 
-        tgt.tags['divine_tgt_tag'] = src.tags['turn_count']
+        src.tags['divine_picker'] = tgt
 
         return True
 
@@ -93,8 +93,11 @@ class DivinePickHandler(EventHandler):
         if evt_type == 'action_after' and isinstance(act, DropCardStage):
             dropper, g = act.target, Game.getgame()
             if dropper.has_skill(Divine):
-                pl = [p for p in g.players if not p.dead and p is not dropper and p.tags['divine_tgt_tag'] == dropper.tags['turn_count']]
+                pl = [p for p in g.players if not p.dead and p is not dropper and p is dropper.tags['divine_picker']]
                 assert len(pl) <= 1
+
+                dropper.tags['divine_picker'] = None
+
                 if pl:
                     picker = pl[0]
                     dropn = getattr(act, 'dropn', 0)

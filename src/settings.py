@@ -48,9 +48,7 @@ else:
 
 TESTING_CHARACTERS = (
     'Suwako',
-    'Flandre',
     'Koishi',
-    'SpSatori',
     'SpYoumu'
 )
 
