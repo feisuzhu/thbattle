@@ -3,8 +3,8 @@
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb import characters
-from thb.ui.ui_meta.common import gen_metafunc, passive_clickable, passive_is_action_valid
+from thb import actions, cards, characters
+from thb.ui.ui_meta.common import G, gen_metafunc, passive_clickable, passive_is_action_valid
 
 
 # -- code --
@@ -25,17 +25,13 @@ class SpYoumu:
 class PresentWorldSlash:
     # Skill
     name = u'现世'
-    description = u'出牌阶段结束后，若你没有干劲，你可以将一张牌当|G弹幕|r使用。'
+    description = u'出牌阶段结束时，若你没有干劲，你可以将一张牌当|G弹幕|r使用。'
 
     clickable = passive_clickable
     is_action_valid = passive_is_action_valid
 
-
-class PresentWorldSlashAction:
-
     def effect_string(act):
-        # for LaunchCard.ui_meta.effect_string
-        return u'|G【%s】|r对|G【%s】|r使用了|G现世|r。' % (
+        return u'|G【%s】|r对|G【%s】|r发动了|G现世|r。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )
@@ -44,11 +40,21 @@ class PresentWorldSlashAction:
         return 'thb-cv-youmu_mjchz'
 
 
+class PresentWorldSlashAction:
+
+    def effect_string(act):
+        return u'（现世发动后相关描写）'
+
+    # no effect string, for skill wrap has it; if put here, double strings in game info
+    def sound_effect(act):
+        return 'thb-cv-card_attack2'
+
+
 class PresentWorldSlashHandler:
     # choose_card
     def choose_card_text(g, act, cards):
         if act.cond(cards):
-            return (True, u'使用现世斩!')
+            return (True, u'发动现世斩!')
         else:
             return (False, u'现世：请选择一张牌（否则不发动）')
 
@@ -72,5 +78,36 @@ class InsightfulSword:
 
 class InsightfulSwordGrazeAction:
 
+    def effect_string(act):
+        return u'|G【%s】|r发动了|G炯眼|r。' % (
+            act.source.ui_meta.name,
+        )
+
     def sound_effect(act):
         return 'thb-cv-youmu_nitoryuu'
+
+
+class InsightfulSwordDamageAction:
+
+    def effect_string(act):
+        return u'（剑斩弹幕+反伤动作描写）'
+
+    def sound_effect(act):
+        return ''
+
+
+class InsightfulSwordGrazeCard:
+
+    # Card Virtual but name displayed in UseCard
+    name = u'炯眼'
+
+    def effect_string(act):
+        return u'（炯眼+突然拔剑动作描写）'
+
+    def sound_effect(act):
+        if not isinstance(act, actions.LaunchCard):
+            return 'thb-cv-card_graze2'
+
+        current = G().current_player
+        if act.source is not current:
+            return 'thb-cv-card_graze3'
