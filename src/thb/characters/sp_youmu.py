@@ -4,9 +4,9 @@
 # -- third party --
 # -- own --
 from game.autoenv import EventHandler, Game
-from thb.actions import ActionStage, Damage, LaunchCard, UserAction
+from thb.actions import ActionStage, AskForCard, Damage, LaunchCard, UserAction
 from thb.actions import ask_for_action, skill_check, skill_wrap
-from thb.cards import Attack, AttackCard, Card, GrazeCard, LaunchGraze, Skill, TreatAs
+from thb.cards import AttackCard, BaseAttack, Card, GrazeCard, LaunchGraze, Skill, TreatAs
 from thb.cards import UseGraze, VirtualCard, t_None
 from thb.characters.baseclasses import Character, register_character_to
 from utils import classmix, InstanceHookMeta
@@ -57,21 +57,24 @@ class InsightfulSwordDamageAction(UserAction):
         return True
 
 
-class InsightfulSwordMixin(object):
+class InsightfulSwordMixin(AskForCard):
     def process_card(self, card):
         g = Game.getgame()
         if not card.is_card(GrazeCard):
             tgt = self.target
             if not g.process_action(InsightfulSwordGrazeAction(tgt, tgt, card)):
                 return False
+            if not tgt.has_skill(InsightfulSword): # fall when wearing weapon
+                return False
 
             card = InsightfulSwordGrazeCard(tgt)
+            self.card = card # for UI UseCard display
 
         return super(InsightfulSwordMixin, self).process_card(card)
 
 
 class InsightfulMarkingHandler(EventHandler):
-    interested = ('action_before',)
+    interested = ('action_before', 'action_after')
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, (UseGraze, LaunchGraze)):
@@ -80,6 +83,16 @@ class InsightfulMarkingHandler(EventHandler):
                 act.__class__ = classmix(InsightfulSwordMixin, act.__class__)
                 act.card_cls = InsightfulSwordLegalCard
 
+        elif evt_type == 'action_after' and isinstance(act, LaunchGraze):
+            tgt = act.target
+            if tgt.has_skill(InsightfulSword):
+                t = tgt.tags
+                t['sword_graze_undone'] = False
+
+                launched = getattr(act, 'card', None)
+                if launched and launched.is_card(InsightfulSwordGrazeCard):
+                    t['sword_graze_undone'] = True
+
         return act
 
 
@@ -87,10 +100,15 @@ class InsightfulSwordHandler(EventHandler):
     interested = ('action_after',)
 
     def handle(self, evt_type, act):
-        if evt_type == 'action_after' and isinstance(act, Attack):
-            src, tgt = act.source, act.target
-            if not act.succeeded and tgt.has_skill(InsightfulSword):
-                Game.getgame().process_action(InsightfulSwordDamageAction(tgt, src))
+        if evt_type == 'action_after' and isinstance(act, BaseAttack):
+            src = act.source
+            tgt = act.target
+            t = tgt.tags
+
+            if t['sword_graze_undone']:
+                t['sword_graze_undone'] = False
+                if not act.succeeded and not src.dead and tgt.has_skill(InsightfulSword):
+                    Game.getgame().process_action(InsightfulSwordDamageAction(tgt, src))
 
         return act
 
@@ -130,6 +148,9 @@ class PresentWorldSlashHandler(EventHandler):
             tgt = act.target
             if tgt.tags['vitality']: return act
             if tgt.has_skill(PresentWorldSlash):
+                if not (tgt.cards, tgt.showncards, tgt.equips):
+                    return act
+
                 g = Game.getgame()
                 pl = [p for p in g.players if not p.dead and p is not tgt]
                 _, rst = ask_for_action(self, [tgt], ('cards', 'showncards', 'equips'), pl)
