@@ -1014,10 +1014,10 @@ class UIMorphingCardSelection(CardSelectionPanel):
         card_lists = []
 
         l = [c for c in cards if 'basic' in c.category]
-        l and card_lists.append(('基本牌', l))
+        l and card_lists.append((u'基本牌', l))
 
         l = [c for c in cards if 'instant_spellcard' in c.category]
-        l and card_lists.append(('符卡', l))
+        l and card_lists.append((u'符卡', l))
 
         self.selection_mode = CardSelectionPanel.SINGLE
         self.init(card_lists, multiline=len(card_lists) < 2)
