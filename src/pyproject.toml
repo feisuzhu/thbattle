@@ -7,14 +7,13 @@ license = "GPL-3.0+"
 
 [tool.poetry.dependencies]
 python = "^3.6"
-gevent = "*"
-pygit2 = "^0.28.2"
+gevent = "^20.5.0"
 requests = "*"
 raven = "*"
 websocket-client = "*"
 arrow = "*"
 dnspython = "*"
-msgpack = "*"
+msgpack = "^1.0.0"
 mypy-extensions = "*"
 typing-extensions = "*"
 
