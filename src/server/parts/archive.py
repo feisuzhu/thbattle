@@ -4,14 +4,13 @@ from __future__ import annotations
 # -- stdlib --
 from typing import Any, Dict, TYPE_CHECKING
 import base64
+import datetime
 import json
 import logging
 import time
 import zlib
 
 # -- third party --
-import arrow
-
 # -- own --
 from server.base import Game, HumanPlayer
 import settings
@@ -68,7 +67,7 @@ class Archive(object):
             'flags': flags,
             'players': [core.auth.uid_of(u) for u in core.room.users_of(g)],
             'winners': [core.auth.uid_of(p.client) if isinstance(p, HumanPlayer) else 0 for p in core.game.winners_of(g)],
-            'startedAt': arrow.get(start).to('Asia/Shanghai').isoformat(),
+            'startedAt': datetime.datetime.now().isoformat(),
             'duration': int(time.time() - start),
         }
 
