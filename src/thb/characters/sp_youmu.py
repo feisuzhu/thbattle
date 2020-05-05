@@ -45,6 +45,14 @@ class InsightfulSwordGrazeAction(UserAction):
         tgt, card = self.target, self.card
         return Game.getgame().process_action(LaunchCard(tgt, [tgt], card))
 
+    def is_valid(self):
+        tgt, card = self.target, self.card
+        return LaunchCard(tgt, [tgt], card).can_fire()
+
+    def ask_for_action_verify(self, p, cl, tl):
+        tgt, card = self.target, cl[0]
+        return LaunchCard(tgt, [tgt], card).can_fire()
+
 
 class InsightfulSwordDamageAction(UserAction):
 
@@ -62,6 +70,9 @@ class InsightfulSwordMixin(AskForCard):
         g = Game.getgame()
         if not card.is_card(GrazeCard):
             tgt = self.target
+            card.move_to(tgt.cards) # shall not be detached yet, yet detached already, when AskForCard -> UseGraze -> ...
+            assert card.usage == 'launch'
+
             if not g.process_action(InsightfulSwordGrazeAction(tgt, tgt, card)):
                 return False
             if not tgt.has_skill(InsightfulSword): # fall when wearing weapon
