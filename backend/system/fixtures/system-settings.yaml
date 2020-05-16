@@ -1,0 +1,8 @@
+- model: system.setting
+  pk: interpreter-update-url
+  fields:
+    value: http://envolve.thb.io/interpreter
+- model: system.setting
+  pk: update-url
+  fields:
+    value: http://envolve.thb.io/src

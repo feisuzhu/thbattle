@@ -19,11 +19,11 @@ class Server(models.Model):
     name        = models.CharField('名称', max_length=20, help_text='名称')
     description = models.TextField('描述', help_text='描述')
     version     = models.IntegerField('兼容客户端版本', help_text='兼容客户端版本')
-    url         = models.URLField('服务器地址', help_text='服务器地址')  # tcp://cngame.thbattle.net:9999
-    branch      = models.TextField('Git 分支', help_text='Git 分支')  # production
+    url         = models.CharField('服务器地址', max_length=200, help_text='服务器地址')  # tcp://cngame.thbattle.net:9999
+    branch      = models.CharField('Git 分支', max_length=20, help_text='Git 分支')  # production
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 
 class Setting(models.Model):

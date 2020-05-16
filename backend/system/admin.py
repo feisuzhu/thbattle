@@ -12,10 +12,18 @@ from . import models
 # -- code --
 @admin.register(models.Server)
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'version', 'branch', 'url')
+    list_display = ('name', 'version', 'branch', 'url')
     list_filter = ()
     search_fields = ()
     ordering = ('id',)
+
+
+@admin.register(models.Setting)
+class SettingAdmin(admin.ModelAdmin):
+    list_display = ('key', 'value')
+    list_filter = ()
+    search_fields = ()
+    ordering = ('key',)
 
 
 @admin.register(models.News)
