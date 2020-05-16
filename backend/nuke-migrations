@@ -1,7 +1,7 @@
 rm db.sqlite3
 
 for i in `ls -d */migrations`; do
-    rm $i/*;
+    rm -rf $i/*;
     touch $i/__init__.py
 done
 

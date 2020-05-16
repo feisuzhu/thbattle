@@ -14,9 +14,9 @@ import utils.leancloud
 
 
 # -- code --
-class Version(DjangoObjectType):
+class Server(DjangoObjectType):
     class Meta:
-        model = models.Version
+        model = models.Server
 
 
 class News(DjangoObjectType):
@@ -31,15 +31,15 @@ class Setting(DjangoObjectType):
 
 # ------------------------
 class SystemQuery(gh.ObjectType):
-    version = gh.Field(
-        Version,
-        id=gh.String(required=True, description="客户端版本ID"),
-        description="获取版本信息（Unity客户端用）",
+    servers = gh.List(
+        gh.NonNull(Server),
+        description="获取服务器列表",
+        required=True,
     )
 
     @staticmethod
-    def resolve_version(root, info, id):
-        return models.Version.objects.get(id=id)
+    def resolve_servers(root, info):
+        return models.Server.objects.all()
 
     setting = gh.String(
         key=gh.String(required=True, description="设置 Key"),

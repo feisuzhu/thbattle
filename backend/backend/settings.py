@@ -26,6 +26,7 @@ SECRET_KEY = 'ew&(_dc#t346(!qzan_paw2^5f3r)3g80)1l+s_e%7&!a7nr$-'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    "proton.local",
 ]
 
 

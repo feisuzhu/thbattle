@@ -10,9 +10,9 @@ from . import models
 
 
 # -- code --
-@admin.register(models.Version)
-class VersionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'url', 'testing')
+@admin.register(models.Server)
+class ServerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'version', 'branch', 'url')
     list_filter = ()
     search_fields = ()
     ordering = ('id',)

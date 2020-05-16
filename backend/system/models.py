@@ -9,15 +9,18 @@ from django.db import models
 
 
 # -- code --
-class Version(models.Model):
+class Server(models.Model):
 
     class Meta:
-        verbose_name        = '游戏版本'
-        verbose_name_plural = '游戏版本'
+        verbose_name        = '服务器'
+        verbose_name_plural = '服务器'
 
-    id = models.SlugField('版本', max_length=20, primary_key=True, help_text='版本')
-    url = models.FileField('更新文件', help_text='更新文件')
-    testing = models.BooleanField('显示测试服入口', default=False, help_text='显示测试服入口')
+    id          = models.AutoField(primary_key=True)
+    name        = models.CharField('名称', max_length=20, help_text='名称')
+    description = models.TextField('描述', help_text='描述')
+    version     = models.IntegerField('兼容客户端版本', help_text='兼容客户端版本')
+    url         = models.URLField('服务器地址', help_text='服务器地址')  # tcp://cngame.thbattle.net:9999
+    branch      = models.TextField('Git 分支', help_text='Git 分支')  # production
 
     def __str__(self):
         return self.id
