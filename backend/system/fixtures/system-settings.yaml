@@ -1,8 +1,20 @@
 - model: system.setting
-  pk: interpreter-update-url
+  pk: runtime-update-url
   fields:
-    value: http://envolve.thb.io/interpreter
+    value: http://envolve.thb.io/runtime
 - model: system.setting
-  pk: update-url
+  pk: core-update-url
   fields:
-    value: http://envolve.thb.io/src
+    value: http://envolve.thb.io/core
+- model: system.setting
+  pk: enable-kedama
+  fields:
+    value: "true"
+- model: system.setting
+  pk: enable-aya-news
+  fields:
+    value: "true"
+- model: system.setting
+  pk: enable-register
+  fields:
+    value: "true"

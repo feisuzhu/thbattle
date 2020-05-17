@@ -42,13 +42,13 @@ class SystemQuery(gh.ObjectType):
         return models.Server.objects.all()
 
     setting = gh.String(
-        key=gh.String(required=True, description="设置 Key"),
+        key=gh.String(required=True),
         description="获取全局设置",
     )
 
     @staticmethod
     def resolve_setting(root, info, key):
-        r = models.Setting.get(key=key)
+        r = models.Setting.objects.get(key=key)
         return r and r.value
 
     news = gh.String(description="获取当前新闻")
