@@ -52,7 +52,6 @@ from . import keine
 from . import yuyuko
 from . import koishi
 from . import suwako
-from . import sp_satori
 from . import sp_youmu
 
 # weektour
