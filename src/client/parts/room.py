@@ -57,7 +57,7 @@ class Room(object):
 
     def set_game_param(self, gid: int, key: str, value: Any) -> None:
         core = self.core
-        core.server.write(wire.SetGameParam(gid=gid, key=key, value=value))
+        core.server.write(wire.SetGameParam(gid=gid, uid=0, key=key, value=value))
 
     def use_item(self, sku: str) -> None:
         core = self.core

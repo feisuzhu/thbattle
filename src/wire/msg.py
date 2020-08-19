@@ -155,6 +155,7 @@ class GameParams(Message, ServerToClient):
 @dataclass
 class SetGameParam(Message, BiDirectional):
     gid: int
+    uid: int
     key: str
     value: Any
 

@@ -53,6 +53,7 @@ class GamePart(object):
         D[wire.GameStarted]    += self._game_started
         D[wire.PlayerPresence] += self._player_presence
         D[wire.GameJoined]     += self._game_joined
+        D[wire.SetGameParam]   += self._set_game_param
         D[wire.ObserveStarted] += self._observe_started
         D[wire.GameLeft]       += self._game_left
         D[wire.GameEnded]      += self._game_ended
@@ -118,6 +119,11 @@ class GamePart(object):
         self.games[gid] = g
         core = self.core
         core.events.game_joined.emit(g)
+        return ev
+
+    def _set_game_param(self, ev: wire.SetGameParam) -> wire.SetGameParam:
+        core = self.core
+        core.events.set_game_param.emit(ev)
         return ev
 
     def _game_left(self, ev: wire.GameLeft) -> wire.GameLeft:
@@ -199,6 +205,7 @@ class GamePart(object):
     def start_game(self, g: Game) -> None:
         core = self.core
         gr = ClientGameRunner(core, g)
+
         @gr.link_exception
         def crash(gr: Greenlet) -> None:
             core.events.game_crashed.emit(g)

@@ -17,6 +17,7 @@ import wire
 # -- code --
 class Options(object):
     def __init__(self, options: Dict[str, Any]):
+        self.gate_uri = options.get('gate_uri', 'tcp://127.84.72.66:23333')
         self.disables = options.get('disables', [])
         self.testing = options.get('testing', False)      # In tests?
 
@@ -80,6 +81,9 @@ class Events(object):
 
         # Joined a game
         self.game_joined = EventHub[Game]()
+
+        # Game param changed
+        self.set_game_param = EventHub[wire.SetGameParam]()
 
         # Player presence changed
         self.player_presence = EventHub[Tuple[Game, Dict[Player, bool]]]()
@@ -158,7 +162,7 @@ class Core(core.Core):
         if 'admin' not in disables:
             self.admin = parts.admin.Admin(self)
 
-        if 'warpgate' not in disables:
-            self.warpgate = parts.warpgate.Warpgate(self)
+        if 'gate' not in disables:
+            self.gate = parts.gate.Gate(self)
 
         self.events.core_initialized.emit(self)

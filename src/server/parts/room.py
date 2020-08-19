@@ -215,6 +215,8 @@ class Room(object):
         if not core.game.set_param(g, ev.key, ev.value):
             return
 
+        ev.uid = core.auth.uid_of(u)
+
         for u in users:
             if core.lobby.state_of(u) == 'ready':
                 core.room.cancel_ready(u)

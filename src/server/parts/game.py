@@ -8,7 +8,6 @@ import logging
 import random
 
 # -- third party --
-from gevent.event import AsyncResult
 from typing_extensions import TypedDict
 
 # -- own --
@@ -46,7 +45,6 @@ class GamePartAssocOnGame(TypedDict):
     rngseed: int
     data: Dict[Client, GameData]
     winners: List[Player]
-    halt: Optional[AsyncResult]
 
 
 def Ag(self: GamePart, g: ServerGame) -> GamePartAssocOnGame:
@@ -197,7 +195,6 @@ class GamePart(object):
             'rngseed': seed,
             'data': {},
             'winners': [],
-            'halt': None,
         })
 
         return g
