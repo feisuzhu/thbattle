@@ -18,26 +18,6 @@ from utils.escapes import escape_codes
 
 
 # -- code --
-class UnityLogHandler(logging.Handler):
-
-    def emit(self, rec):
-        msg = self.format(rec)
-
-        try:
-            from UnityEngine import Debug
-            if rec.levelno <= logging.DEBUG:
-                Debug.LogDebug(msg)
-            elif rec.levelno <= logging.INFO:
-                Debug.LogInfo(msg)
-            elif rec.levelno <= logging.ERROR:
-                Debug.LogError(msg)
-            else:
-                Debug.LogError(msg)
-        except Exception:
-            # fuck
-            pass
-
-
 class _ServerLogFormatter_OLD(logging.Formatter):
     def __init__(self, with_gr_name=True):
         logging.Formatter.__init__(self)
@@ -130,7 +110,7 @@ class ServerLogFormatter(logging.Formatter):
         return f'{prefix} {rec.message}'
 
 
-def init(level, sentry_dsn, release):
+def init(logfile, level, sentry_dsn, release):
     patch_gevent_hub_print_exception()
 
     root = logging.getLogger()
@@ -138,7 +118,7 @@ def init(level, sentry_dsn, release):
 
     hdlr: Any
 
-    hdlr = logging.FileHandler('client_log.txt', encoding='utf-8')
+    hdlr = logging.FileHandler(logfile, encoding='utf-8')
     hdlr.setLevel(logging.INFO)
     root.addHandler(hdlr)
 
@@ -154,23 +134,6 @@ def init(level, sentry_dsn, release):
 
     formatter = ServerLogFormatter()
     hdlr.setFormatter(formatter)
-    root.addHandler(hdlr)
-
-    root.info(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-    root.info('==============================================')
-
-
-def init_unity(level, sentry_dsn, release):
-    root = logging.getLogger()
-    root.setLevel(0)
-
-    if sentry_dsn:
-        hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
-        hdlr.setLevel(logging.ERROR)
-        root.addHandler(hdlr)
-
-    hdlr = UnityLogHandler()
-    hdlr.setLevel(level)
     root.addHandler(hdlr)
 
     root.info(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))

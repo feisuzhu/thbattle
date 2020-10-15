@@ -12,25 +12,24 @@ if TYPE_CHECKING:
 
 
 # -- code --
-def bootstrap() -> Core:
+def ignite(logfile: str) -> None:
     import logging
-
-    from UnityEngine import Debug
+    import threading
 
     import utils.log
     import settings
 
-    Debug.Log("bootstrap: Initializing logging")
-    utils.log.init_unity(logging.ERROR, settings.SENTRY_DSN, settings.VERSION)
-    utils.log.patch_gevent_hub_print_exception()
+    utils.log.init(logfile, logging.ERROR, settings.SENTRY_DSN, settings.VERSION)
 
-    Debug.Log("bootstrap: Before gevent")
     from gevent import monkey
     monkey.patch_socket()
     monkey.patch_time()
     monkey.patch_select()
-    Debug.Log("bootstrap: After gevent")
 
     from client.core import Core
+    from core import CoreRunner
     core = Core()
-    return core
+    runner = CoreRunner(core)
+
+    threading.Thread(target=runner.run, daemon=True).start()
+

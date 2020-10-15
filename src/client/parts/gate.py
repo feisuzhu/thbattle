@@ -78,6 +78,12 @@ class UnityUIEventHook(EventHandler):
 
 # g.event_observer = UnityUIEventHook(self.warpgate, g)
 
+class DoCallArgs(TypedDict):
+    method: str
+    args: list
+    kwargs: dict
+
+
 class Gate(object):
     def __init__(self, core: Core):
         self.core = core
@@ -133,17 +139,27 @@ class Gate(object):
                 # {'op': 'xxx', 'v': Any}
                 op, v = msg
 
-                if op == 'eval':
-                    self.do_eval(v)
+                if op == 'call':
+                    self.do_call(v)
+                elif op == 'exec':
+                    self.do_exec(v)
 
         except Exception as e:
             core.crash(e)
             return
+        finally:
+            self.connected = False
+            try:
+                s.close()
+            except Exception:
+                pass
+
 
         core.crash(Exception('Gate closed'))
 
     def post(self, op: str, data: Any) -> None:
         if not self.connected:
+            log.error('Attempt to post message when gate is not conected: %s -> %s', op, data)
             return
 
         b = msgpack.packb(data, use_bin_type=True)
@@ -152,8 +168,12 @@ class Gate(object):
             self.sock.sendall(payload)
 
     # ----- RPCs -----
-    def do_eval(self, v: str) -> None:
-        pass
+    def do_call(self, v: DoCallArgs):
+        core = self.core
+        eval(v['method'])(*v['args'], **v['kwargs'])
+
+    def do_exec(self, v: str) -> None:
+        exec(v)
 
     # ----- Handlers -----
     def on_server_connected(self, v: bool) -> bool:
