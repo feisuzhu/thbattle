@@ -115,7 +115,6 @@ class AssociatedDataViralContext(ViralContext):
 
 class Player(GameObject, AssociatedDataViralContext):
     uid: int
-    name: str
 
     def reveal(self, obj_list: Any) -> None:
         raise GameError('Abstract')

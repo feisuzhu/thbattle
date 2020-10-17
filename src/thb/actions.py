@@ -1257,6 +1257,8 @@ class Pindian(UserAction):
     no_reveal = True
     card_usage = 'pindian'
 
+    pindian_card: Dict[Character, Card]
+
     def __init__(self, source, target):
         self.source = source
         self.target = target
@@ -1267,7 +1269,7 @@ class Pindian(UserAction):
         g = self.game
 
         pl = BatchList([tgt, src])
-        pindian_card: Dict[Character, Card] = {}
+        pindian_card = self.pindian_card = {}
 
         with InputTransaction('Pindian', pl) as trans:
             for p in pl:
@@ -1365,7 +1367,7 @@ class ShowCards(GenericAction):
         to = self.to
         to = g.players if to is None else to
         to.reveal(cards)
-        g.emit_event('showcards', (self.target, [copy(c) for c in cards], to))
+        g.emit_event('showcards', self)
         # g.user_input(
         #     [p for p in g.players if not p.dead],
         #     ChooseOptionInputlet(self, (True,)),

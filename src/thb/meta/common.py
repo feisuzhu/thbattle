@@ -40,7 +40,7 @@ class UIMetaAccessor(object):
 
 def ui_meta(for_cls: type):
     def decorate(cls: type):
-        name = cls.__name__
+        name = for_cls.__name__
         if name in UI_META:
             raise Exception(f'{name} ui_meta redefinition!')
 

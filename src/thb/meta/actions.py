@@ -7,8 +7,6 @@ from typing import Any, List, Optional, Sequence, TYPE_CHECKING, Union
 import random
 
 # -- third party --
-from typing_extensions import TypedDict
-
 # -- own --
 from thb import actions
 from thb.meta.common import ui_meta
@@ -16,7 +14,7 @@ from utils.misc import BatchList
 
 # -- typing --
 if TYPE_CHECKING:
-    from thb.cards.base import Card, CardList  # noqa: F401
+    from thb.cards.base import Card, CardView, CardList  # noqa: F401
 
 
 # -- code --
@@ -245,6 +243,13 @@ class Pindian:
         )
 
 
+@ui_meta(actions.ShowCards)
+class ShowCards:
+    def is_relevant_to_me(self, act):
+        if self.me in act.to:
+            return True
+
+
 @ui_meta(actions.Fatetell)
 class Fatetell:
 
@@ -326,13 +331,6 @@ class MigrateCardsAnimationOp(IntEnum):
     AREA_PORT9 = 22
 
 
-class CardView(TypedDict):
-    card: str
-    suit: int
-    number: int
-    sync_id: int
-
-
 @ui_meta(actions.MigrateCardsTransaction)
 class MigrateCardsTransaction:
 
@@ -356,15 +354,6 @@ class MigrateCardsTransaction:
         else:
             raise ValueError
 
-    @staticmethod
-    def card_view(c: Card) -> CardView:
-        return {
-            'card': c.__class__.__name__,
-            'suit': c.suit,
-            'number': c.number,
-            'sync_id': c.sync_id,
-        }
-
     def animation_instructions(self, trans: actions.MigrateCardsTransaction) -> List[Union[MigrateCardsAnimationOp, CardView]]:
         Op = MigrateCardsAnimationOp
 
@@ -378,9 +367,11 @@ class MigrateCardsTransaction:
         #     to: CardList
         #     direction: Literal['front', 'back'] = 'front'
 
+        view = Card.ui_meta.view
+
         for m in trans.movements:
             # -- card actions --
-            c = self.card_view(m.card)
+            c = view(m.card)
             tail: List[Union[MigrateCardsAnimationOp, CardView]] = []
 
             if m.fr.type in ('deckcard', 'droppedcard') or not m.fr.owner:
@@ -419,8 +410,10 @@ class MigrateCardsTransaction:
         me = self.me
         ops: List[Union[MigrateCardsAnimationOp, CardView]] = []
 
+        view = Card.ui_meta.view
+
         for c in cards:
-            cv = self.card_view(c)
+            cv = view(c)
             fr = c.resides_in
 
             if fr.type in ('deckcard', 'droppedcard') or not fr.owner:

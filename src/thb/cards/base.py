@@ -9,8 +9,10 @@ from weakref import WeakValueDictionary
 import itertools
 import logging
 import random
+from typing import TypedDict
 
 # -- third party --
+
 # -- own --
 from game.base import GameError, GameObject, GameViralContext, get_seed_for, Nobody
 from thb.mode import THBattle
@@ -25,6 +27,17 @@ if TYPE_CHECKING:
 # -- code --
 log = logging.getLogger('THBattle_Cards')
 alloc_id = itertools.count(1).__next__
+
+
+class CardView(TypedDict):
+    type: str
+    vcard: bool
+    suit: int
+    number: int
+    color: str
+    sync_id: int
+    track_id: int
+    params: dict
 
 
 class Card(GameObject, GameViralContext):
@@ -68,14 +81,17 @@ class Card(GameObject, GameViralContext):
         self.number     = number
         self.resides_in = resides_in
 
-    def dump(self):
-        return dict(
-            type=self.__class__.__name__,
-            suit=self.suit,
-            number=self.number,
-            sync_id=self.sync_id,
-            track_id=self.track_id,
-        )
+    def dump(self) -> CardView:
+        return {
+            'type': self.__class__.__name__,
+            'vcard': False,
+            'suit': self.suit,
+            'number': self.number,
+            'color': self.color,
+            'sync_id': self.sync_id,
+            'track_id': self.track_id,
+            'params': {},
+        }
 
     def sync(self, data):  # this only executes at client side, let it crash.
         if data['sync_id'] != self.sync_id:
@@ -208,9 +224,13 @@ class VirtualCard(Card, GameViralContext):
 
     def dump(self):
         return {
-            'class':  self.__class__.__name__,
-            'sync_id': self.sync_id,
+            'type':  self.__class__.__name__,
             'vcard':  True,
+            'suit': self.suit,
+            'number': self.number,
+            'color': self.color,
+            'sync_id': self.sync_id,
+            'track_id': -1,
             'params': self.action_params,
         }
 
@@ -282,7 +302,7 @@ class VirtualCard(Card, GameViralContext):
 
     def sync(self, data):
         assert data['vcard']
-        assert self.__class__.__name__ == data['class']
+        assert self.__class__.__name__ == data['type']
         assert self.sync_id == data['sync_id']
         assert self.action_params == data['params']
 

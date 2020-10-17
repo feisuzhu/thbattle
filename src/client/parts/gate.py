@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Callable, Dict, Sequence, TYPE_CHECKING, Tuple, Optional
+from typing import Any, Callable, Dict, Sequence, TYPE_CHECKING, Tuple, Optional, List
 from urllib.parse import urlparse
 import logging
 import random
@@ -20,7 +20,7 @@ import msgpack
 
 # -- own --
 from client.base import Game
-from game.base import EventHandler, Player
+from game.base import EventHandler, Player, InputTransaction, Inputlet
 import wire
 
 
@@ -41,24 +41,34 @@ class UnityUIEventHook(EventHandler):
         self.core = core
         self.game = g
         self.gid = core.game.gid_of(g)
-        self.input_done: Optional[Event] = None
+        self.input_session: Optional[dict] = None
+        self.event_stream: List[Any] = []
+        self.event_acked = 0
 
     def evt_user_input(self, arg: Tuple[InputTransaction, Inputlet]) -> Tuple[InputTransaction, Inputlet]:
         evt = Event()
-        self.input_done = evt
         g, core = self.game, self.core
 
-        core.gate.post('game_input', {
-            'type': 'input',
-            'gid': self.gid,
-
-            {'t': 'i', 'g': g, 'arg': arg, 'done': evt.set})
-        })
+        trans, ilet = arg
+        self.input_session = {
+            'g': g,
+            'core': core,
+            'trans': trans,
+            'ilet': ilet,
+            'ev': evt,
+            'hook': self,
+        }
 
         try:
+            core.gate.post('game_input', {
+                'gid': self.gid,
+                'type': ilet.tag(),
+            })
             evt.wait()
         finally:
-            self.input_done = None
+            self.input_session = None
+
+        return arg
 
     def handle(self, evt: str, arg: Any) -> Any:
         g, core = self.game, self.core
@@ -66,15 +76,26 @@ class UnityUIEventHook(EventHandler):
         if evt == 'user_input':
             self.evt_user_input(arg)
         elif evt == '__game_live':
+            # TODO: not working
             self.live = True
             return None
         else:
-            core.warpgate.feed_ev({'t': 'g', 'g': g, 'evt': evt, 'arg': arg})
-
-        if random.random() < 0.01:
-            core.runner.idle()
+            self.event_stream.append((evt, arg))
+            core.gate.post('game_event', {
+                'gid': self.gid,
+                'evt': evt,
+                'seq': self.event_acked + len(self.event_stream),
+            })
 
         return arg
+
+    def acknowledge(self, seq: int) -> None:
+        if seq <= self.event_acked:
+            return
+
+        del self.event_stream[0:(seq - self.event_acked)]
+
+        self.event_acked = seq
 
 # g.event_observer = UnityUIEventHook(self.warpgate, g)
 

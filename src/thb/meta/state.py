@@ -10,7 +10,6 @@ from typing_extensions import TypedDict
 from game.base import GameViralContext
 from client.base import ClientGameRunner
 from thb.meta.tags import TagAnimation, get_display_tags
-from thb.meta.actions import MigrateCardsTransaction
 
 # -- typing --
 if TYPE_CHECKING:
@@ -52,6 +51,7 @@ def state_of(g: THBattle) -> GameState:
     core = runner.core
     chs: List[CharacterState] = []
     me = core.game.theone_of(g)
+
     for ch in g.players:
         chs.append({
             'uid': ch.player.uid,
@@ -62,7 +62,7 @@ def state_of(g: THBattle) -> GameState:
             'role': 'what?',
             'cards': [{
                 'type': cl.type,
-                'cards': [MigrateCardsTransaction.card_view(c) for c in cl],
+                'cards': [Card.ui_meta.view(c) for c in cl],
             } for cl in ch.lists],
             'tags': get_display_tags(g, ch),
         })

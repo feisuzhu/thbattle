@@ -24,7 +24,6 @@ log = logging.getLogger('Auth')
 
 class AuthAssocOnClient(TypedDict):
     uid: int
-    name: str
     kedama: bool
     permissions: Set[str]
 
@@ -55,7 +54,6 @@ class Auth(object):
             u.write(wire.Greeting(node=core.options.node, version=VERSION))
             assoc: AuthAssocOnClient = {
                 'uid': 0,
-                'name': '',
                 'kedama': False,
                 'permissions': set(),
             }
@@ -78,7 +76,6 @@ class Auth(object):
                 u.write(wire.AuthSuccess(uid))
                 assoc = {
                     'uid': uid,
-                    'name': f'毛玉{-uid}',
                     'kedama': True,
                     'permissions': set(),
                 }
@@ -104,7 +101,6 @@ class Auth(object):
                             }
                         }
                     }
-                    name
                 }
             }
         ''', token=token)
@@ -122,7 +118,6 @@ class Auth(object):
             u.write(wire.AuthSuccess(uid))
             assoc = {
                 'uid': uid,
-                'name': rst['name'],
                 'kedama': False,
                 'permissions': set(
                     [i['codename'] for i in rst['user']['userPermissions']] +
@@ -142,16 +137,12 @@ class Auth(object):
     def uid_of(self, u: Client) -> int:
         return A(self, u)['uid']
 
-    def name_of(self, u: Client) -> str:
-        return A(self, u)['name']
-
     def is_kedama(self, u: Client) -> bool:
         return A(self, u)['kedama']
 
-    def set_auth(self, u: Client, uid: int = 1, name: str = 'Foo', kedama: bool = False, permissions: Sequence[str] = []) -> None:
+    def set_auth(self, u: Client, uid: int = 1, kedama: bool = False, permissions: Sequence[str] = []) -> None:
         assoc: AuthAssocOnClient = {
             'uid': uid,
-            'name': name,
             'kedama': kedama,
             'permissions': set(permissions),
         }
