@@ -4,12 +4,12 @@
 # -- third party --
 # -- own --
 from thb import thb2v2
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, UIMetaBare
 
 
 # -- code --
 @ui_meta(thb2v2.THBattle2v2)
-class THBattle2v2:
+class THBattle2v2(UIMetaBare):
     name = '2v2模式'
     logo = 'thb-modelogo-2v2'
     description = (

@@ -2,21 +2,21 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Optional, TYPE_CHECKING, Type, Union, Sequence, List
-from typing_extensions import TypedDict
+from typing import List, TYPE_CHECKING
 
 # -- third party --
+from typing_extensions import TypedDict
+
 # -- own --
-from game.base import GameViralContext
 from client.base import ClientGameRunner
 from thb.meta.tags import TagAnimation, get_display_tags
+from thb.cards.base import Card
 
 # -- typing --
 if TYPE_CHECKING:
-    from thb.mode import THBattle
     from thb.characters.base import Character  # noqa: F401
-    from thb.cards.base import Card  # noqa: F401
     from thb.meta.actions import CardView  # noqa: F401
+    from thb.mode import THBattle  # noqa: F401
 
 
 # -- code --
@@ -62,7 +62,7 @@ def state_of(g: THBattle) -> GameState:
             'role': 'what?',
             'cards': [{
                 'type': cl.type,
-                'cards': [Card.ui_meta.view(c) for c in cl],
+                'cards': [Card.dump(c) for c in cl],
             } for cl in ch.lists],
             'tags': get_display_tags(g, ch),
         })

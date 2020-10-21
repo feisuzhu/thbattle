@@ -172,7 +172,6 @@ class GameData(Message, BiDirectional):
 @dataclass
 class InviteRequest(Message, ServerToClient):
     uid: int
-    name: str
     gid: int
     type: str
 

@@ -214,8 +214,7 @@ class Game(GameObject, Generic[A, EH]):
         )
 
     def emit_event(self, evt_type: str, data: Any) -> Any:
-        ob = self.event_observer
-        if ob:
+        if ob := self.event_observer:
             data = ob.handle(evt_type, data)
 
         return self.dispatcher.emit(evt_type, data)

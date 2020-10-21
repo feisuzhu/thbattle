@@ -29,8 +29,9 @@ class UIMetaAccessor(object):
             if cls not in UI_META:
                 continue
 
+            obj = UI_META[cls]()
             try:
-                val = getattr(UI_META[cls](), name)
+                val = getattr(obj, name)
                 return val
             except AttributeError:
                 pass
@@ -44,7 +45,8 @@ def ui_meta(for_cls: type):
         if name in UI_META:
             raise Exception(f'{name} ui_meta redefinition!')
 
-        cls = type(name, (cls, UIMetaBase), {})
+        if cls.__base__ is object:
+            cls = type(cls.__name__, (cls, UIMetaBase), {})
 
         # Type info is handled by plugin
         for_cls.ui_meta = UIMetaAccessor(for_cls)  # type: ignore
@@ -54,6 +56,10 @@ def ui_meta(for_cls: type):
 
 
 # -----BEGIN COMMON FUNCTIONS-----
+class UIMetaBare:
+    pass
+
+
 class UIMetaBase(GameViralContext):
     game: THBattle
 

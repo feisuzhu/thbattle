@@ -163,6 +163,6 @@ class Core(core.Core):
             self.admin = parts.admin.Admin(self)
 
         if 'gate' not in disables:
-            self.gate = parts.gate.Gate(self)
+            self.gate = parts.gate.Gate(self, testing=self.options.testing)
 
         self.events.core_initialized.emit(self)

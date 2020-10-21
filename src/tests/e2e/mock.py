@@ -80,7 +80,7 @@ class Environ(object):
             gevent.kill(self.parent, e)
 
     def client_core(self) -> client.core.Core:
-        core = client.core.Core(disables=['gate'], testing=True)
+        core = client.core.Core(testing=True)
         runner = CoreRunner(core, paranoid=True)
         self.pool.spawn(self._run, runner)
         runner.ready.wait()

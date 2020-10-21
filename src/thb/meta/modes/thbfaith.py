@@ -4,12 +4,12 @@
 # -- third party --
 # -- own --
 from thb import thbfaith
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, UIMetaBare
 
 
 # -- code --
 @ui_meta(thbfaith.THBattleFaith)
-class THBattleFaith:
+class THBattleFaith(UIMetaBare):
     name = '信仰争夺战'
     logo = 'thb-modelogo-faith'
     description = (

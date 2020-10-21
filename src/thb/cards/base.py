@@ -217,6 +217,7 @@ class VirtualCard(Card, GameViralContext):
         self.action_params    = {}
         self.unwrapped        = False
         self.sync_id          = 0
+        self.track_id         = 0
         self.usage            = 'none'
         self._suit            = None
         self._number          = None

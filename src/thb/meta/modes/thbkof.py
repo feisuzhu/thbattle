@@ -4,12 +4,12 @@
 # -- third party --
 # -- own --
 from thb import thbkof
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, UIMetaBare
 
 
 # -- code --
 @ui_meta(thbkof.THBattleKOF)
-class THBattleKOF:
+class THBattleKOF(UIMetaBare):
     name = 'KOF模式'
     logo = 'thb-modelogo-kof'
     description = (

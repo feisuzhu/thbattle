@@ -6,12 +6,12 @@
 from thb import thbrole
 from thb.actions import ttags
 from thb.cards.classes import AttackCard
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, UIMetaBare
 
 
 # -- code --
 @ui_meta(thbrole.THBattleRole)
-class THBattleRole:
+class THBattleRole(UIMetaBare):
     name = '8人身份场'
     logo = 'thb-modelogo-8id'
     description = (

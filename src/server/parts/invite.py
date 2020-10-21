@@ -115,7 +115,6 @@ class Invite(object):
 
         other.write(wire.InviteRequest(
             uid=core.auth.uid_of(u),
-            name=core.auth.name_of(u),
             gid=core.room.gid_of(g),
             type=g.__class__.__name__,
         ))

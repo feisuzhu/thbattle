@@ -113,17 +113,16 @@ class Lobby(object):
     def _user_join(self, u: Client) -> None:
         core = self.core
         uid = core.auth.uid_of(u)
-        name = core.auth.name_of(u)
 
         old = None
 
         if uid in self.users:
             # squeeze the original one out
-            log.info('%s[%s] has been squeezed out' % (name, uid))
+            log.info('UID:%s has been squeezed out', uid)
             old = self.users[uid]
 
         if uid in self.dropped_users:
-            log.info('%s[%s] rejoining dropped game' % (name, uid))
+            log.info('UID:%s rejoining dropped game', uid)
             old = self.dropped_users.pop(uid)
 
             # XXX
@@ -140,14 +139,13 @@ class Lobby(object):
             self.users[uid] = u
             self.state_of(u).transit('lobby')
 
-        log.info('User %s joined, online user %d' % (name, len(self.users)))
+        log.info('User UID:%s joined, online user %d', uid, len(self.users))
 
     def _user_leave(self, u: Client) -> None:
         core = self.core
         uid = core.auth.uid_of(u)
-        name = core.auth.name_of(u)
         self.users.pop(uid, 0)
-        log.info('User %s left, online user %d' % (name, len(self.users)))
+        log.info('User UID:%s left, online user %d', uid, len(self.users))
 
     @throttle(3)
     def _notify_online_users(self, ul: Sequence[Client]) -> None:

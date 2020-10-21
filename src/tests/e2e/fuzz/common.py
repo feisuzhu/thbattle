@@ -39,19 +39,27 @@ def let_it_go(*cores):
 
 
 class UserInputFuzzingHandler(EventHandler):
+    def __init__(self, g: Game):
+        super().__init__(g)
+        self.event_translator = g.ui_meta.event_translator
 
     def handle(self, evt: str, arg: Any) -> Any:
         if evt == 'user_input':
             trans, ilet = arg
             self.react(trans, ilet)
-        elif evt in ('action_before', 'action_apply', 'action_after'):
-            self.effect_meta(evt, arg)
-        elif evt == 'post_card_migration':
-            self.card_mig_ui_meta(arg)
-        elif evt == 'detach_cards':
-            self.detach_ui_meta(arg)
-        elif evt == 'action_stage_action':
-            self.get_game_state()
+        else:
+            g = self.game
+            core = g.runner.core
+            self.event_translator(g, core, evt, arg)
+
+        # elif evt in ('action_before', 'action_apply', 'action_after'):
+        #     self.effect_meta(evt, arg)
+        # elif evt == 'post_card_migration':
+        #     self.card_mig_ui_meta(arg)
+        # elif evt == 'detach_cards':
+        #     self.detach_ui_meta(arg)
+        # elif evt == 'action_stage_action':
+        #     self.get_game_state()
 
         return arg
 

@@ -11,13 +11,6 @@ from thb.meta.common import ui_meta
 
 
 # -- code --
-@ui_meta(base.Card)
-class Card:
-    @staticmethod
-    def view(c: base.Card) -> CardView:
-        return c.dump()
-
-
 @ui_meta(base.CardList)
 class CardList:
     lookup = {

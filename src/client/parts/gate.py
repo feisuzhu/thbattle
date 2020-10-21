@@ -2,29 +2,23 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Callable, Dict, Sequence, TYPE_CHECKING, Tuple, Optional, List
+from typing import Any, Dict, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 from urllib.parse import urlparse
 import logging
-import random
 import socket
-import sys
 
 # -- third party --
 from gevent.event import Event
 from gevent.lock import RLock
 from mypy_extensions import TypedDict
-from typing_extensions import Literal
-import gevent
-import gevent.hub
 import msgpack
 
 # -- own --
 from client.base import Game
-from game.base import EventHandler, Player, InputTransaction, Inputlet
+from game.base import EventHandler, InputTransaction, Inputlet, Player
 import wire
 
-
-# -- code --
+# -- typing --
 if TYPE_CHECKING:
     from client.core import Core  # noqa: F401
 
@@ -42,25 +36,28 @@ class UnityUIEventHook(EventHandler):
         self.game = g
         self.gid = core.game.gid_of(g)
         self.input_session: Optional[dict] = None
-        self.event_stream: List[Any] = []
-        self.event_acked = 0
+
+        # FIXME: ui_meta is currently a THB concept but this hook is game agnostic
+        self.game_event_translator = cast(Any, g).ui_meta.event_translator
 
     def evt_user_input(self, arg: Tuple[InputTransaction, Inputlet]) -> Tuple[InputTransaction, Inputlet]:
         evt = Event()
         g, core = self.game, self.core
 
         trans, ilet = arg
+        assert not self.input_session
+
         self.input_session = {
             'g': g,
             'core': core,
             'trans': trans,
             'ilet': ilet,
-            'ev': evt,
+            'done': evt.set,
             'hook': self,
         }
 
         try:
-            core.gate.post('game_input', {
+            core.gate.post('game.input', {
                 'gid': self.gid,
                 'type': ilet.tag(),
             })
@@ -80,43 +77,36 @@ class UnityUIEventHook(EventHandler):
             self.live = True
             return None
         else:
-            self.event_stream.append((evt, arg))
-            core.gate.post('game_event', {
-                'gid': self.gid,
-                'evt': evt,
-                'seq': self.event_acked + len(self.event_stream),
-            })
+            self.game_event_translator(g, core, evt, arg)
 
         return arg
 
-    def acknowledge(self, seq: int) -> None:
-        if seq <= self.event_acked:
-            return
-
-        del self.event_stream[0:(seq - self.event_acked)]
-
-        self.event_acked = seq
-
 # g.event_observer = UnityUIEventHook(self.warpgate, g)
 
+
 class DoCallArgs(TypedDict):
+    call_id: int
+    environ: Literal['input', 'core']
     method: str
     args: list
-    kwargs: dict
 
 
 class Gate(object):
-    def __init__(self, core: Core):
+    def __init__(self, core: Core, testing: bool = False):
         self.core = core
+        self.current_game: Optional[Game] = None
 
-        self.connected = False
-        self.writelock = RLock()
+        self.testing = testing
+        if not testing:
+            self.connected = False
+            self.writelock = RLock()
+            core.tasks['gate/connect'] = self.connect
+        else:
+            self.connected = True
 
         self.eval_environ: Any = {
             'core': core
         }
-
-        core.tasks['gate/connect'] = self.connect
 
         core.events.server_connected     += self.on_server_connected
         core.events.server_refused       += self.on_server_refused
@@ -175,7 +165,6 @@ class Gate(object):
             except Exception:
                 pass
 
-
         core.crash(Exception('Gate closed'))
 
     def post(self, op: str, data: Any) -> None:
@@ -185,16 +174,36 @@ class Gate(object):
 
         b = msgpack.packb(data, use_bin_type=True)
         payload = msgpack.packb({'op': op, 'payload': b})
+
+        if self.testing:
+            log.info('Posted to gate: %s -> %s', op, data)
+            return
+
         with self.writelock:
             self.sock.sendall(payload)
 
     # ----- RPCs -----
-    def do_call(self, v: DoCallArgs):
-        core = self.core
-        eval(v['method'])(*v['args'], **v['kwargs'])
+    def do_call(self, v: DoCallArgs) -> None:
+        env = None
+        if v['environ'] == 'input':
+            if (g := self.current_game) and (ob := g.event_observer):
+                assert isinstance(ob, UnityUIEventHook)
+                env = ob.input_session
+        elif v['environ'] == 'core':
+            env = self.eval_environ
+
+        if env is None:
+            return
+
+        ret = eval(v['method'], env)(*v['args'])
+        if cid := v.get('call_id'):
+            self.post('call_response', {
+                'call_id': cid,
+                'result': ret,
+            })
 
     def do_exec(self, v: str) -> None:
-        exec(v)
+        exec(v, self.eval_environ)
 
     # ----- Handlers -----
     def on_server_connected(self, v: bool) -> bool:
@@ -284,16 +293,20 @@ class Gate(object):
 
     def on_game_started(self, g: Game) -> Game:
         core = self.core
+        self.current_game = g
+        g.event_observer = UnityUIEventHook(core, g)
         self.post("game_started", core.game.gid_of(g))
         return g
 
     def on_game_crashed(self, g: Game) -> Game:
         core = self.core
+        self.current_game = None
         self.post("game_crashed", core.game.gid_of(g))
         return g
 
     def on_client_game_finished(self, g: Game) -> Game:
         core = self.core
+        self.current_game = None
         self.post("client_game_finished", core.game.gid_of(g))
         return g
 

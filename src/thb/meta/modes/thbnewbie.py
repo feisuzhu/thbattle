@@ -4,12 +4,12 @@
 # -- third party --
 # -- own --
 from thb import thbnewbie
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, UIMetaBare
 
 
 # -- code --
 @ui_meta(thbnewbie.THBattleNewbie)
-class THBattleNewbie:
+class THBattleNewbie(UIMetaBare):
     name = '琪露诺的完美THB教室'
     logo = 'thb-modelogo-newbie'
     description = (

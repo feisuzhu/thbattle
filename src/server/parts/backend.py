@@ -123,7 +123,6 @@ class MockBackend(object):
                         }
                     }
                 }
-                name
             }
         }
         '''
@@ -138,7 +137,6 @@ class MockBackend(object):
                         'permissions': []
                     }
                 },
-                'name': v['token'],
             }
         }
 

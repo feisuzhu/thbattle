@@ -11,10 +11,11 @@ import random
 from thb import actions
 from thb.meta.common import ui_meta
 from utils.misc import BatchList
+from thb.cards.base import Card
 
 # -- typing --
 if TYPE_CHECKING:
-    from thb.cards.base import Card, CardView, CardList  # noqa: F401
+    from thb.cards.base import CardView, CardList  # noqa: F401
 
 
 # -- code --
@@ -148,6 +149,7 @@ class AskForCard:
 @ui_meta(actions.PlayerDeath)
 class PlayerDeath:
     update_portrait = True
+    play_sound_at_target = True
 
     def effect_string(self, act):
         tgt = act.target
@@ -213,12 +215,10 @@ class RevealRole:
             ch = g.find_character(p)
             name = f'|G{ch.ui_meta.name}|r'
         except Exception:
-            name = f'|R{p.name}|r'
+            name = f'|R*[uid:{p.uid}]|r'
 
-        return '%s的身份是：|R%s|r。' % (
-            name,
-            g.ui_meta.roles_disp[role.get()],
-        )
+        role = g.ui_meta.roles_disp[role.get()],
+        return f'{name}的身份是：|R{role}|r。'
 
 
 @ui_meta(actions.Pindian)
@@ -367,7 +367,7 @@ class MigrateCardsTransaction:
         #     to: CardList
         #     direction: Literal['front', 'back'] = 'front'
 
-        view = Card.ui_meta.view
+        view = Card.dump
 
         for m in trans.movements:
             # -- card actions --
@@ -404,13 +404,13 @@ class MigrateCardsTransaction:
 
         return ops
 
-    def detach_animation_instructions(self, trans: actions.MigrateCardsTransaction, cards: Sequence[Card]) -> List[Union[MigrateCardsAnimationOp, CardView]]:
+    def detach_animation_instructions(self, trans: Optional[actions.MigrateCardsTransaction], cards: Sequence[Card]) -> List[Union[MigrateCardsAnimationOp, CardView]]:
         Op = MigrateCardsAnimationOp
 
         me = self.me
         ops: List[Union[MigrateCardsAnimationOp, CardView]] = []
 
-        view = Card.ui_meta.view
+        view = Card.dump
 
         for c in cards:
             cv = view(c)
@@ -426,9 +426,8 @@ class MigrateCardsTransaction:
             if fr.type == 'showncards':
                 ops += [Op.DUP, Op.UNSHOW]
 
-            act = trans.action
-            if isinstance(act, actions.BaseFatetell):
-                ops += [Op.DUP, Op.DUP, Op.UNGRAY if act.succeeded else Op.GRAY, Op.FATETELL, Op.AREA_DROP, Op.MOVE]
+            if trans and isinstance(trans.action, actions.BaseFatetell):
+                ops += [Op.DUP, Op.DUP, Op.UNGRAY if trans.action.succeeded else Op.GRAY, Op.FATETELL, Op.AREA_DROP, Op.MOVE]
             else:
                 ops += [Op.DUP, Op.UNGRAY, Op.AREA_DROP, Op.MOVE]
 

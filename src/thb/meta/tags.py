@@ -65,7 +65,10 @@ def get_display_tags(g: THBattle, ch: Character) -> List[TagAnimation]:
 
 @ui_meta
 def vitality(g, p, v):
-    current = PlayerTurn.get_current(g).target
+    try:
+        current = PlayerTurn.get_current(g).target
+    except IndexError:
+        return None
     if v <= 0 and current is p:
         return 'thb-tag-attacked', '没有干劲了……'
 
@@ -77,14 +80,20 @@ def wine(g, p, v):
 
 @ui_meta
 def flan_cs(g, p, v):
-    current = PlayerTurn.get_current(g).target
+    try:
+        current = PlayerTurn.get_current(g).target
+    except IndexError:
+        return None
     if v >= p.tags['turn_count'] and current is p:
         return 'thb-tag-flandrecs', '玩坏你哦！'
 
 
 @ui_meta
 def lunadial(g, p, v):
-    current = PlayerTurn.get_current(g).target
+    try:
+        current = PlayerTurn.get_current(g).target
+    except IndexError:
+        return None
     if v and current is p:
         return 'thb-tag-lunadial',  '咲夜的时间！'
 
@@ -103,7 +112,10 @@ def ran_ei(g, p, v):
 
 @ui_meta
 def aya_count(g, p, v):
-    current = PlayerTurn.get_current(g).target
+    try:
+        current = PlayerTurn.get_current(g).target
+    except IndexError:
+        return None
     if v >= 2 and p is current:
         return 'thb-tag-aya_range_max',  '使用卡牌时不受距离限制'
 
@@ -131,7 +143,10 @@ def scarlet_mist(g, p, v):
 
 @ui_meta
 def keine_devour(g, p, v):
-    current = PlayerTurn.get_current(g).target
+    try:
+        current = PlayerTurn.get_current(g).target
+    except IndexError:
+        return None
     if v and p is current:
         return 'thb-tag-keine_devour', '这位玩家的历史将会被慧音吞噬'
 

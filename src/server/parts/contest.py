@@ -63,7 +63,7 @@ class Contest(object):
         if flags.get('contest'):
             core.connect.speaker(
                 '文文', '“%s”开始了！参与玩家：%s' % (
-                    name, '，'.join([core.auth.name_of(u) for u in users])
+                    name, '，'.join([f'*[uid:{core.auth.uid_of(u)}]' for u in users])
                 )
             )
 
@@ -96,7 +96,7 @@ class Contest(object):
             '文文',
             '“%s”结束了！获胜玩家：%s' % (
                 core.room.name_of(g),
-                '，'.join([core.auth.name_of(u) for u in winners])
+                '，'.join([f'*[uid:{core.auth.uid_of(u)}]' for u in winners])
             )
         )
 

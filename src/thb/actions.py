@@ -1270,6 +1270,7 @@ class Pindian(UserAction):
 
         pl = BatchList([tgt, src])
         pindian_card = self.pindian_card = {}
+        self.pindian_card = pindian_card
 
         with InputTransaction('Pindian', pl) as trans:
             for p in pl:
@@ -1366,6 +1367,7 @@ class ShowCards(GenericAction):
         cards = self.cards
         to = self.to
         to = g.players if to is None else to
+        self.to = to
         to.reveal(cards)
         g.emit_event('showcards', self)
         # g.user_input(

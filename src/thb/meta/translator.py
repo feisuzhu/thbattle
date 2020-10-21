@@ -89,8 +89,8 @@ def general_action_effect(g: THBattle, core: Core, evt: str, act: THBAction):
 
 def ui_show_disputed_effect(g: THBattle, core: Core, evt: str, cards: List[Card]):
     rawcards = VirtualCard.unwrap(cards)
-    for cards in group_by(rawcards, lambda c: id(c.resides_in)):
-        card_detach_effects(g, core, evt, cards)
+    instructions = MigrateCardsTransaction.ui_meta.detach_animation_instructions(None, rawcards)
+    core.gate.post('thb.ui.card_migration', instructions)
 
 
 def pindian_effect_start(g: THBattle, core: Core, evt: str, act: Any):
@@ -104,12 +104,12 @@ def pindian_effect_chosen(g: THBattle, core: Core, evt: str, arg: Any):
     p, card = arg
     core.gate.post('thb.ui.pindian:chosen', {
         'who': to_actor(p),
-        'card': Card.ui_meta.view(card),
+        'card': Card.dump(card),
     })
 
 
 def pindian_effect_card_reveal(g: THBattle, core: Core, evt: str, act: Any):
-    view = Card.ui_meta.view
+    view = Card.dump
     cards = act.pindian_card
     core.gate.post('thb.ui.pindian:reveal', {
         'source_card': view(cards[act.source]),
@@ -129,17 +129,17 @@ def sync_game_state(g: THBattle, core: Core, evt: str, act: Any):
 
 
 actions_mapping: Dict[str, Dict[Type[THBAction], Callable]] = {
-    'before': {
+    'action_before': {
         Pindian:     pindian_effect_start,
         ActionStage: sync_game_state,
         PlayerTurn:  player_turn_effect,
         THBAction:   general_action_effect,
     },
-    'apply': {
+    'action_apply': {
         Damage: damage_effect,
         THBAction: general_action_effect,
     },
-    'after': {
+    'action_after': {
         Pindian:     pindian_effect_finish,
         PlayerDeath: sync_game_state,
         LaunchCard:  sync_game_state,
@@ -150,15 +150,15 @@ actions_mapping: Dict[str, Dict[Type[THBAction], Callable]] = {
 }
 
 
-def action_effects(_type: str, g: THBattle, core: Core, evt: str, act: THBAction):
+def action_effects(g: THBattle, core: Core, evt: str, act: THBAction):
     cls = act.__class__
 
     if isinstance(act, UserAction):
         sync_game_state(g, core, evt, act)
 
     while cls is not object:
-        f = actions_mapping[_type].get(cls)
-        f and f(g, core, evt, act)
+        if f := actions_mapping[evt].get(cls):
+            f(g, core, evt, act)
         cls = cls.__base__
 
 
@@ -168,7 +168,7 @@ def to_actor(o: Any) -> dict:
     elif isinstance(o, Player):
         return {'uid': o.uid}
     else:
-        raise Exception('WTF!')
+        raise Exception(f'WTF: {o}')
 
 
 def user_input_start_effects(g: THBattle, core: Core, evt: str, arg: Any):
@@ -208,7 +208,7 @@ def showcards_effect(g: THBattle, core: Core, evt: str, act: Any):
     if act.ui_meta.is_relevant_to_me(act):
         core.gate.post('thb.ui.showcards', {
             'who': to_actor(act.target),
-            'cards': [Card.ui_meta.view(c) for c in act.cards],
+            'cards': [Card.dump(c) for c in act.cards],
             'to': [to_actor(ch) for ch in act.to],
         })
 
@@ -230,24 +230,23 @@ def reseat_effects(g: THBattle, core: Core, evt: str, arg: Any):
 
 
 events_mapping: Dict[str, Callable] = {
-    'action_before':     general_action_effect,
-    'action_apply':      general_action_effect,
-    'action_after':      general_action_effect,
-    'fatetell':          fatetell_effect,
-    'user_input_start':  user_input_start_effects,
-    'user_input_finish': user_input_finish_effects,
-    'card_migration':    card_migration_effects,
-    'detach_cards':      card_detach_effects,
-    'game_roll':         game_roll_prompt,
-    'reseat':            reseat_effects,
-    'showcards':         showcards_effect,
-    'ui_show_disputed':  ui_show_disputed_effect,
+    'action_before':       action_effects,
+    'action_apply':        action_effects,
+    'action_after':        action_effects,
+    'fatetell':            fatetell_effect,
+    'user_input_start':    user_input_start_effects,
+    'user_input_finish':   user_input_finish_effects,
+    'post_card_migration': card_migration_effects,
+    'detach_cards':        card_detach_effects,
+    'game_roll':           game_roll_prompt,
+    'reseat':              reseat_effects,
+    'showcards':           showcards_effect,
+    'ui_show_disputed':    ui_show_disputed_effect,
 }
 
 
 def handle_event(g: THBattle, core: Core, evt: str, arg: Any):
-    f = events_mapping.get(evt)
-    if f:
+    if f := events_mapping.get(evt):
         f(g, core, evt, arg)
         return True
     else:

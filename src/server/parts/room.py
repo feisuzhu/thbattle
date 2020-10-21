@@ -388,8 +388,8 @@ class Room(object):
         u.write(wire.GameLeft(Ag(self, g)['gid']))
 
         log.info(
-            'Player %s left game [%s]',
-            core.auth.name_of(u),
+            'Player *[uid:{%s}] left game [%s]',
+            core.auth.uid_of(u),
             gid,
         )
 
@@ -446,7 +446,7 @@ class Room(object):
     def _init_freeslot(self) -> None:
         core = self.core
         self.FREESLOT = u = Client(core, None)
-        core.auth.set_auth(u, uid=0, name='空位置')
+        core.auth.set_auth(u, uid=0)
         core.lobby.init_freeslot(u)
         core.lobby.state_of(u).transit('freeslot')
 
