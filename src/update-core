@@ -1,0 +1,10 @@
+#!/bin/bash -xe
+
+THIS=$(pwd)
+
+cd ~/my_projects/thb-update/core
+rm -rf *
+cp -a $THIS/* .
+find -name __pycache__ | xargs rm -rf
+git add -A .
+git commit -a -m "Updated at $(date -R)"
