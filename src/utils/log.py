@@ -110,13 +110,15 @@ class ServerLogFormatter(logging.Formatter):
         return f'{prefix} {rec.message}'
 
 
-def init(logfile, level, sentry_dsn, release):
+def init_embedded(logfile, level, sentry_dsn, release):
     patch_gevent_hub_print_exception()
 
     root = logging.getLogger()
     root.setLevel(0)
 
     hdlr: Any
+
+    logging.getLogger('sentry.errors').setLevel(1000)
 
     hdlr = logging.FileHandler(logfile, encoding='utf-8')
     hdlr.setLevel(logging.INFO)
@@ -129,9 +131,6 @@ def init(logfile, level, sentry_dsn, release):
 
     hdlr = logging.StreamHandler(sys.stdout)
     hdlr.setLevel(getattr(logging, level))
-
-    logging.getLogger('sentry.errors').setLevel(1000)
-
     formatter = ServerLogFormatter()
     hdlr.setFormatter(formatter)
     root.addHandler(hdlr)

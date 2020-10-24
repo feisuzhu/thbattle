@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 # -- stdlib --
-# -- third party --
 from typing import TYPE_CHECKING
+import os
+import os.path
+import sys
 
+# -- third party --
 # -- own --
 # -- typing --
 if TYPE_CHECKING:
@@ -12,14 +15,26 @@ if TYPE_CHECKING:
 
 
 # -- code --
-def ignite(logfile: str) -> None:
+def unhandled_exception(etype, value, tb):
+    try:
+        import traceback
+        fn = os.path.join(workdir, 'exception.log')
+        with open(fn, 'w') as f:
+            f.write(traceback.format_exception(etype, value, tb))
+    except:  # noqa
+        pass
+
+
+def run_core() -> None:
     import logging
     import threading
 
     import utils.log
     import settings
 
-    utils.log.init(logfile, logging.ERROR, settings.SENTRY_DSN, settings.VERSION)
+    workdir = os.environ['APPLICATION_WORKING_DIR']
+
+    utils.log.init_embedded(os.path.join(workdir, 'client.log'), logging.INFO, settings.SENTRY_DSN, settings.VERSION)
 
     from gevent import monkey
     monkey.patch_socket()
@@ -30,6 +45,4 @@ def ignite(logfile: str) -> None:
     from core import CoreRunner
     core = Core()
     runner = CoreRunner(core)
-
-    threading.Thread(target=runner.run, daemon=True).start()
-
+    runner.run()
