@@ -26,12 +26,15 @@ from graphene_django.views import GraphQLView
 
 # -- own --
 from .graphql import schema
+from .view import MessagePackGraphQLView
 
 
 # -- code --
 admin.site.site_header = '东方符斗祭后台'
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('graphql', csrf_exempt(GraphQLView.as_view(schema=schema, graphiql=True))),
+    path('graphql-msgpack', MessagePackGraphQLView.as_view(schema=schema)),
 ]
