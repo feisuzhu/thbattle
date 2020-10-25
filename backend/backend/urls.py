@@ -16,7 +16,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
 # -- third party --

@@ -3,7 +3,6 @@
 # -- stdlib --
 # -- third party --
 from django.db import models
-from django.contrib.postgres import fields as pg
 
 # -- own --
 from player.models import Player
@@ -22,7 +21,7 @@ class Game(models.Model):
     id         = models.IntegerField(**_('游戏ID'), primary_key=True)
     name       = models.CharField(**_('游戏名称'), max_length=100)
     type       = models.CharField(**_('游戏类型'), max_length=20)
-    flags      = pg.JSONField(**_('游戏选项'))
+    flags      = models.JSONField(**_('游戏选项'))
     players    = models.ManyToManyField(Player, **_('参与玩家'), related_name='+')
     winners    = models.ManyToManyField(Player, **_('胜利玩家'), related_name='+')
     started_at = models.DateTimeField(auto_now_add=True, **_('开始时间'))
