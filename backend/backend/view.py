@@ -16,6 +16,8 @@ import msgpack
 # -- code --
 class MessagePackGraphQLView(View):
 
+    schema = None
+
     def __init__(self, schema):
         self.schema = self.schema or schema
         self.backend = get_default_backend()

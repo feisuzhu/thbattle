@@ -110,7 +110,7 @@ class ServerLogFormatter(logging.Formatter):
         return f'{prefix} {rec.message}'
 
 
-def init_embedded(logfile, level, sentry_dsn, release):
+def init_embedded(level, sentry_dsn, release):
     patch_gevent_hub_print_exception()
 
     root = logging.getLogger()
@@ -120,17 +120,13 @@ def init_embedded(logfile, level, sentry_dsn, release):
 
     logging.getLogger('sentry.errors').setLevel(1000)
 
-    hdlr = logging.FileHandler(logfile, encoding='utf-8')
-    hdlr.setLevel(logging.INFO)
-    root.addHandler(hdlr)
-
     if sentry_dsn:
         hdlr = SentryHandler(raven.Client(sentry_dsn, transport=GeventedHTTPTransport, release=release))
         hdlr.setLevel(logging.ERROR)
         root.addHandler(hdlr)
 
     hdlr = logging.StreamHandler(sys.stdout)
-    hdlr.setLevel(getattr(logging, level))
+    hdlr.setLevel(level)
     formatter = ServerLogFormatter()
     hdlr.setFormatter(formatter)
     root.addHandler(hdlr)
