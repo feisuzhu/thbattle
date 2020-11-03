@@ -33,13 +33,13 @@ class View(object):
     def __repr__(self) -> str:
         return self.__class__.__name__
 
-    def Game(self, g: Game) -> GameView:
-        core = self.core
+    # def Game(self, g: Game) -> GameView:
+    #     core = self.core
 
-        return {
-            'gid':      core.game.gid_of(g),
-            'type':     g.__class__.__name__,
-            'name':     core.game.name_of(g),
-            'started':  core.room.is_started(g),
-            'online':   len(core.room.online_users_of(g)),
-        }
+    #     return {
+    #         'gid':      core.game.gid_of(g),
+    #         'type':     g.__class__.__name__,
+    #         'name':     core.game.name_of(g),
+    #         'started':  core.room.is_started(g),
+    #         'online':   len(core.room.online_users_of(g)),
+    #     }
