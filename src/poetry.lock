@@ -276,7 +276,7 @@ typing-extensions = ">=3.7.4"
 dmypy = ["psutil (>=4.0)"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
 name = "mypy-extensions"
 optional = false
@@ -535,7 +535,7 @@ python-versions = "*"
 version = "1.4.1"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Backported and Experimental Type Hints for Python 3.5+"
 name = "typing-extensions"
 optional = false
@@ -619,7 +619,7 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [metadata]
-content-hash = "d16a6a8f0be6bb2b879b588e2b20fdc7e04db1073957ded6607321f48266c009"
+content-hash = "77eddcf302ecc29d89d863022c368388c1447e707478bcb46d558e474069aeaf"
 python-versions = "^3.6"
 
 [metadata.files]

@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, TYPE_CHECKING, TypedDict
 import zlib
 
 # -- third party --
-from mypy_extensions import TypedDict
 import msgpack
 
 # -- own --

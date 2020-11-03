@@ -2,22 +2,15 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, List, Sequence, TYPE_CHECKING
-import logging
+from typing import Any, Dict, List, TYPE_CHECKING, TypedDict
 
 # -- third party --
-from gevent import Greenlet
-from mypy_extensions import TypedDict
-
 # -- own --
-from client.base import ClientGameRunner, ForcedKill, Someone, Theone, Game
-from game.base import Game, GameData, GameItem, Player
-from utils.events import EventHub
-from utils.misc import BatchList
 import wire
 
 # -- typing --
 if TYPE_CHECKING:
+    from client.base import Game  # noqa: F401
     from client.core import Core  # noqa: F401
 
 

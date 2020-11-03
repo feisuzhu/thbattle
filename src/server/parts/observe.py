@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import List, Optional, Set, TYPE_CHECKING, Tuple
+from typing import List, Optional, Set, TYPE_CHECKING, Tuple, TypedDict
 import logging
 
 # -- third party --
 from gevent import Greenlet
-from mypy_extensions import TypedDict
 
 # -- own --
 from endpoint import Endpoint
@@ -18,8 +17,7 @@ from server.utils import command
 from utils.misc import throttle
 import wire
 
-
-# -- code --
+# -- typing --
 if TYPE_CHECKING:
     from server.core import Core  # noqa: F401
 

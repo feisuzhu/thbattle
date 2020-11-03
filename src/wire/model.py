@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TypedDict
 
 # -- third party --
-from mypy_extensions import TypedDict
-
 # -- own --
 
 

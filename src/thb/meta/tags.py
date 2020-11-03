@@ -2,12 +2,10 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import List, TYPE_CHECKING, cast
+from typing import List, TYPE_CHECKING, TypedDict, cast
 import itertools
 
 # -- third party --
-from typing_extensions import TypedDict
-
 # -- own --
 from thb.actions import PlayerTurn
 from thb.mode import THBattle

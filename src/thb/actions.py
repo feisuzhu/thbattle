@@ -3,14 +3,12 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
-from copy import copy
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Protocol, Sequence, Set, TYPE_CHECKING, Tuple
+from typing import Type, Union, cast
 import logging
 
 # -- third party --
-from typing_extensions import Literal, Protocol
-
 # -- own --
 from game.base import ActionShootdown, EventArbiter, GameViralContext, InputTransaction, Player
 from game.base import sync_primitive

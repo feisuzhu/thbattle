@@ -4,8 +4,8 @@ from __future__ import annotations
 # -- stdlib --
 from collections import defaultdict
 from random import Random
-from typing import Any, ClassVar, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Generic
-from typing import TypeVar, Union
+from typing import Any, ClassVar, Dict, Generic, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple
+from typing import Type, TypeVar, TypedDict, Union
 import inspect
 import logging
 import random
@@ -14,7 +14,6 @@ import types
 # -- third party --
 from gevent import Greenlet, Timeout
 from gevent.event import Event
-from mypy_extensions import TypedDict
 import gevent
 
 # -- own --

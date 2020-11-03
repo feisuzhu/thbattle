@@ -3,13 +3,12 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, TypedDict
 import logging
 import time
 
 # -- third party --
 from gevent import Greenlet
-from mypy_extensions import TypedDict
 
 # -- own --
 from endpoint import Endpoint
@@ -20,8 +19,7 @@ from server.utils import command
 from utils.misc import BatchList, throttle
 import wire
 
-
-# -- code --
+# -- typing --
 if TYPE_CHECKING:
     from server.core import Core  # noqa: F401
 

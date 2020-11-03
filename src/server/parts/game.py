@@ -3,13 +3,11 @@ from __future__ import annotations
 
 # -- stdlib --
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, Type
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, Type, TypedDict
 import logging
 import random
 
 # -- third party --
-from typing_extensions import TypedDict
-
 # -- own --
 from game.base import GameArchive, GameData, Player
 from server.base import Game as ServerGame, HumanPlayer, NPCPlayer

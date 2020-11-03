@@ -3,12 +3,9 @@ from __future__ import annotations
 
 # -- stdlib --
 from enum import Enum
-from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Tuple
+from typing import Dict, List, Optional, Protocol, Sequence, TYPE_CHECKING, Tuple, TypedDict
 
 # -- third party --
-from mypy_extensions import TypedDict
-from typing_extensions import Protocol
-
 # -- own --
 # -- typing --
 if TYPE_CHECKING:

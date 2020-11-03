@@ -2,15 +2,13 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, TypedDict
 
 # -- third party --
-from typing_extensions import TypedDict
-
 # -- own --
 from client.base import ClientGameRunner
-from thb.meta.tags import TagAnimation, get_display_tags
 from thb.cards.base import Card
+from thb.meta.tags import TagAnimation, get_display_tags
 
 # -- typing --
 if TYPE_CHECKING:

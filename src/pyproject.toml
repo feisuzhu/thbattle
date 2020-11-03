@@ -13,8 +13,6 @@ raven = "*"
 websocket-client = "*"
 dnspython = "*"
 msgpack = "^1.0.0"
-mypy-extensions = "*"
-typing-extensions = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

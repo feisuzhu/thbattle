@@ -2,12 +2,10 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import List, Optional, Sequence, TYPE_CHECKING, Tuple
+from typing import List, Optional, Sequence, TYPE_CHECKING, Tuple, TypedDict
 import logging
 
 # -- third party --
-from mypy_extensions import TypedDict
-
 # -- own --
 from server.base import Game, HumanPlayer
 from server.endpoint import Client

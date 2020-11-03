@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, cast
+from typing import Any, Dict, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, TypedDict, cast
 from urllib.parse import urlparse
 import logging
 import socket
@@ -10,7 +10,6 @@ import socket
 # -- third party --
 from gevent.event import Event
 from gevent.lock import RLock
-from mypy_extensions import TypedDict
 import msgpack
 
 # -- own --

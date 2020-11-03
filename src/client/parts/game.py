@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, List, Sequence, TYPE_CHECKING
+from typing import Any, Dict, List, Sequence, TYPE_CHECKING, TypedDict
 import logging
 
 # -- third party --
 from gevent import Greenlet
-from mypy_extensions import TypedDict
 
 # -- own --
 from client.base import ClientGameRunner, ForcedKill, Someone, Theone

@@ -2,12 +2,10 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Dict, List, Set, TYPE_CHECKING, Tuple
+from typing import Dict, List, Set, TYPE_CHECKING, Tuple, TypedDict
 import logging
 
 # -- third party --
-from typing_extensions import TypedDict
-
 # -- own --
 from server.endpoint import Client
 from server.utils import command

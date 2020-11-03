@@ -2,13 +2,11 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar
-from typing_extensions import TypedDict
-
-# -- third party --
 from dataclasses import dataclass
+from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, TypedDict
 import dataclasses
 
+# -- third party --
 # -- own --
 from . import model
 

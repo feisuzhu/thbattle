@@ -5,13 +5,11 @@ from __future__ import annotations
 from enum import Enum
 from itertools import cycle
 from typing import Any, Dict, Generic, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple
-from typing import Type, TypeVar
+from typing import Type, TypeVar, TypedDict
 import logging
 import random
 
 # -- third party --
-from mypy_extensions import TypedDict
-
 # -- own --
 from game.base import GameViralContext, Player, get_seed_for, sync_primitive
 from thb.item import GameItem
