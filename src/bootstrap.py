@@ -8,9 +8,15 @@ from __future__ import annotations
 
 
 # -- code --
-def run_core() -> None:
-    import logging
 
+def run_core() -> None:
+    import sys
+    import pathlib
+
+    p = pathlib.Path(__file__) / '../modmocks'
+    sys.path.insert(0, str(p.resolve()))
+
+    import logging
     import utils.log
     import settings
 
