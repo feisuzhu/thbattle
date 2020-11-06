@@ -76,6 +76,8 @@ class Server(object):
     def connect(self, uri: str) -> None:
         core = self.core
 
+        log.info('Connecting to %s', uri)
+
         uri = urlparse(uri)
         assert uri.scheme == 'tcp'
 

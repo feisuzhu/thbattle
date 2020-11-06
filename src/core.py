@@ -71,6 +71,8 @@ class CoreRunner(object):
                 return core.result.get()
             except BaseException as e:
                 raise CoreCrashed(f'{core} crashed') from e
+
+            log.debug('Core finished')
         finally:
             self.shutdown()
 

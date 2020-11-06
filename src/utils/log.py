@@ -127,7 +127,7 @@ def init_embedded(level, sentry_dsn, release):
 
     hdlr = logging.StreamHandler(sys.stdout)
     hdlr.setLevel(level)
-    formatter = ServerLogFormatter()
+    formatter = ServerLogFormatter(use_color=(sys.platform == 'linux'))
     hdlr.setFormatter(formatter)
     root.addHandler(hdlr)
 

@@ -83,7 +83,7 @@ class UnityUIEventHook(EventHandler):
 # g.event_observer = UnityUIEventHook(self.warpgate, g)
 
 
-class DoCallArgs(TypedDict):
+class CoreCall(TypedDict):
     call_id: int
     environ: Literal['input', 'core']
     method: str
@@ -145,8 +145,11 @@ class Gate(object):
             s.write = s.sendall
             u = self.unpacker = msgpack.Unpacker(s, raw=False)
 
+            log.info('Gate is now connected to the shell')
+
             for msg in u:
                 # {'op': 'xxx', 'v': Any}
+                log.debug('core msg: %s', repr(msg))
                 op, v = msg
 
                 if op == 'call':
@@ -154,17 +157,18 @@ class Gate(object):
                 elif op == 'exec':
                     self.do_exec(v)
 
+            core.result.set('gate_collapsed')
+
         except Exception as e:
             core.crash(e)
             return
         finally:
             self.connected = False
+
             try:
                 s.close()
             except Exception:
                 pass
-
-        core.crash(Exception('Gate closed'))
 
     def post(self, op: str, data: Any) -> None:
         if not self.connected:
@@ -182,7 +186,7 @@ class Gate(object):
             self.sock.sendall(payload)
 
     # ----- RPCs -----
-    def do_call(self, v: DoCallArgs) -> None:
+    def do_call(self, v: CoreCall) -> None:
         env = None
         if v['environ'] == 'input':
             if (g := self.current_game) and (ob := g.event_observer):
@@ -198,7 +202,7 @@ class Gate(object):
         if cid := v.get('call_id'):
             self.post('call_response', {
                 'call_id': cid,
-                'result': ret,
+                'result': msgpack.packb(ret, use_bin_type=True),
             })
 
     def do_exec(self, v: str) -> None:

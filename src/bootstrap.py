@@ -20,7 +20,7 @@ def run_core() -> None:
     import utils.log
     import settings
 
-    utils.log.init_embedded(logging.INFO, settings.SENTRY_DSN, settings.VERSION)
+    utils.log.init_embedded(logging.DEBUG, settings.SENTRY_DSN, settings.VERSION)
 
     from gevent import monkey
     monkey.patch_socket()
@@ -32,3 +32,5 @@ def run_core() -> None:
     core = Core()
     runner = CoreRunner(core)
     runner.run()
+
+    logging.info("Core halted because %s", core.result.get())
