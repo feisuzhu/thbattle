@@ -142,7 +142,7 @@ class Gate(object):
             self.sock = s
 
             s.read = s.recv
-            s.write = s.sendall
+            # s.write = s.sendall
             u = self.unpacker = msgpack.Unpacker(s, raw=False)
 
             log.info('Gate is now connected to the shell')

@@ -13,7 +13,8 @@ def run_core() -> None:
     import sys
     import pathlib
 
-    p = pathlib.Path(__file__) / '../modmocks'
+    base = (pathlib.Path(__file__) / '..').resolve()
+    p = base / 'modmocks'
     sys.path.insert(0, str(p.resolve()))
 
     import logging

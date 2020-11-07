@@ -8,12 +8,11 @@ monkey.patch_all()
 # -- stdlib --
 from typing import TYPE_CHECKING
 import logging
-import signal
 import sys
 import urllib.parse
 
 # -- third party --
-from gevent import signal as sig
+from gevent import signal
 import gevent
 
 # -- own --
@@ -37,7 +36,8 @@ def start_server():
 
     def _exit_handler(*a, **k):
         gevent.kill(MAIN, SystemExit)
-    sig(signal.SIGTERM, _exit_handler)
+
+    signal.signal(signal.SIGTERM, _exit_handler)
 
     import argparse
 

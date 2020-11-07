@@ -70,6 +70,9 @@ class Connect(object):
 
     def _wssend(self, v: Any) -> None:
         core = self.core
+        if not core.options.interconnect:
+            return
+
         for i in range(3):
             try:
                 conn = self._wsconn

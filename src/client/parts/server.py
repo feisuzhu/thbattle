@@ -73,7 +73,7 @@ class Server(object):
         return ev
 
     # ----- Public Methods -----
-    def connect(self, uri: str) -> None:
+    def connect(self, uri: str) -> str:
         core = self.core
 
         log.info('Connecting to %s', uri)
@@ -82,7 +82,7 @@ class Server(object):
         assert uri.scheme == 'tcp'
 
         if not self.state == 'initial':
-            return
+            return 'already_connected'
 
         try:
             self.state = 'connecting'
@@ -93,10 +93,12 @@ class Server(object):
             self._recv_gr = core.runner.spawn(self._recv)
             self._beater_gr = core.runner.spawn(self._beat)
             self.state = 'connected'
+            return 'success'
         except Exception:
             self.state = 'initial'
             log.exception('Error connecting server')
             core.events.server_refused.emit(True)
+            return 'failed'
 
     def disconnect(self) -> None:
         if self.state != 'connected':
