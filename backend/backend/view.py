@@ -34,6 +34,7 @@ class MessagePackGraphQLView(View):
             return self.make_400_message('Invalid Content-Type')
 
         r = msgpack.unpackb(request.body)
+        print(r)
         query = r.get('query')
         if not query:
             return self.make_400_message('query is missing')

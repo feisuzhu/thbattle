@@ -99,7 +99,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     @classmethod
     def from_token(cls, token, max_age=30):
         uid = cls.uid_from_token(token, max_age) or None
-        return uid and cls.objects.get(uid)
+        return uid and cls.objects.get(id=uid)
 
 
 class Player(models.Model):

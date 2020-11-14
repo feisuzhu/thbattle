@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "proton.local",
-    "localhost:8000",
+    "192.168.233.11",
     "localhost",
 ]
 

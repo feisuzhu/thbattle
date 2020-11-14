@@ -142,7 +142,7 @@ class UserQuery(gh.ObjectType):
             require_perm(ctx, 'player.view_user')
             return models.User.objects.get(id=id)
         elif token is not None:
-            return User.from_token(token)
+            return models.User.from_token(token)
 
         return None
 

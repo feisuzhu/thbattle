@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # -- stdlib --
+from base64 import b64decode
+
 # -- third party --
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
@@ -29,7 +31,11 @@ class TokenAuthMiddleware(object):
             except Exception:
                 break
 
-            if tag != 'Bearer':
+            if tag == 'Basic':
+                token = b64decode(token).decode('utf-8')
+            elif tag == 'Bearer':
+                pass
+            else:
                 break
 
             from player.models import User
@@ -38,7 +44,7 @@ class TokenAuthMiddleware(object):
             break
 
         if uid is None:
-            return HttpResponse('{}', content_type='application/json', status=401)
+            return HttpResponse('{"data": null, "errors": []}', content_type='application/json', status=401)
         else:
             request.api_user = SimpleLazyObject(lambda: User.objects.get(uid))
 
