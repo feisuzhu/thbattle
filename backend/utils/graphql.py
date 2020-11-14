@@ -20,9 +20,9 @@ def stub(cls, desc):
 
 
 def require_perm(ctx, perm):
-    u = ctx.user
+    u = ctx.api_user
     if not u.has_perm(perm):
-        raise GraphQLError('没有权限')
+        raise GraphQLError('权限不足')
 
     return True
 
@@ -39,7 +39,7 @@ def rate_limit(token: str, duration: float) -> None:
 
 
 def require_login(ctx):
-    u = ctx.user
+    u = ctx.api_user
     if not u.is_authenticated:
         raise GraphQLError('需要登录')
 

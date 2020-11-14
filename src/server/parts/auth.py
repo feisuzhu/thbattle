@@ -67,6 +67,8 @@ class Auth(object):
         token = m.token
         assoc: AuthAssocOnClient
 
+        from server.parts.backend import BackendError
+
         if token == '':
             if self._allow_kedama:
                 uid = -self._kedama_uid
@@ -84,11 +86,10 @@ class Auth(object):
 
             return
 
-        rst = core.backend.query('''
-            query($token: String) {
-                player(token: $token) {
-                    id
-                    user {
+        try:
+            rst = core.backend.query('''
+                query($token: String) {
+                    user(token: $token) {
                         isActive
                         userPermissions {
                             codename
@@ -98,12 +99,18 @@ class Auth(object):
                                 codename
                             }
                         }
+                        player {
+                            id
+                        }
                     }
                 }
-            }
-        ''', token=token)
+            ''', token=token)
+        except BackendError:
+            log.exception("Error getting user by token")
+            u.write(wire.AuthError('not_available'))
+            return
 
-        if not rst or not rst['player']:
+        if not rst or not rst['user']:
             u.write(wire.AuthError('invalid_credentials'))
             return
 
@@ -112,7 +119,7 @@ class Auth(object):
         if not rst['user']['isActive']:
             u.write(wire.AuthError('not_available'))
         else:
-            uid = int(rst['id'])
+            uid = int(rst['player']['id'])
             u.write(wire.AuthSuccess(uid))
             assoc = {
                 'uid': uid,

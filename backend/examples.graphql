@@ -1,0 +1,23 @@
+# login
+
+query {
+    login(phone, password) {
+        # User
+    }
+}
+
+# query user
+
+query {
+    user(id, token) {
+        # User
+    }
+}
+
+# query player
+
+query {
+    player($id) {
+        .....
+    }
+}

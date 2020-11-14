@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "proton.local",
+    "localhost:8000",
+    "localhost",
 ]
 
 
@@ -53,8 +55,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'backend.auth.TokenAuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -160,12 +162,6 @@ class LeanCloudCredentials:
     APP_KEY    = ''
     MASTER_KEY = ''
     URL        = ''
-
-
-class ForumInterconnect:
-    COOKIEPRE = ''
-    AUTHKEY   = ''
-    DB        = ''
 
 
 try:

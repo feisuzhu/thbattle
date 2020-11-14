@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
 import base64
+import logging
 import re
 
 # -- third party --
@@ -17,6 +17,9 @@ import backend.settings
 
 
 # -- code --
+log = logging.getLogger("player.model")
+
+
 def is_phone_number(value):
     if not isinstance(value, str):
         return False
@@ -73,6 +76,31 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     is_active = models.BooleanField('启用帐号', default=True, help_text='指明用户是否被认为活跃的。以反选代替删除帐号。')
     date_joined = models.DateTimeField('加入日期', default=timezone.now, help_text='加入日期')
 
+    token_signer = itsdangerous.TimestampSigner(backend.settings.SECRET_KEY)
+
+    def token(self):
+        data = base64.b64encode(msgpack.dumps({'type': 'user', 'id': self.id}))
+        return self.token_signer.sign(data).decode('utf-8')
+
+    @classmethod
+    def uid_from_token(cls, token, max_age=30 * 86400):
+        try:
+            data = cls.token_signer.unsign(token.encode('utf-8'), max_age=max_age)
+        except Exception as e:
+            log.info("User.from_token unsign failed: %s", e)
+            return None
+
+        data = msgpack.loads(base64.b64decode(data))
+        if data.get('type') != 'user':
+            return None
+
+        return data['id']
+
+    @classmethod
+    def from_token(cls, token, max_age=30):
+        uid = cls.uid_from_token(token, max_age) or None
+        return uid and cls.objects.get(uid)
+
 
 class Player(models.Model):
 
@@ -84,13 +112,11 @@ class Player(models.Model):
             ("change_credit", "可以修改积分"),
         )
 
-    user       = models.OneToOneField(User, models.CASCADE, verbose_name='用户', help_text='关联用户')
-    name       = models.CharField('昵称', unique=True, max_length=15, validators=[is_name], help_text='昵称')
-    forum_id   = models.IntegerField('论坛ID', blank=True, null=True, unique=True, help_text='论坛ID')
-    forum_name = models.CharField('论坛昵称', blank=True, null=True, max_length=150, unique=True, help_text='论坛昵称')
-    bio        = models.CharField('签名', blank=True, max_length=150, help_text='签名')
-    avatar     = models.URLField('头像', blank=True, max_length=150, help_text='头像')
-    prefs      = models.TextField('个人设置', blank=True, help_text='个人设置')
+    user   = models.OneToOneField(User, models.CASCADE, verbose_name='用户', help_text='关联用户')
+    name   = models.CharField('昵称', unique=True, max_length=15, validators=[is_name], help_text='昵称')
+    bio    = models.CharField('签名', blank=True, max_length=150, help_text='签名')
+    avatar = models.URLField('头像', blank=True, max_length=150, help_text='头像')
+    prefs  = models.TextField('个人设置', blank=True, help_text='个人设置')
 
     ppoint = models.IntegerField('P点', default=0, help_text='P点')
     jiecao = models.IntegerField('节操', default=0, help_text='节操')
@@ -121,21 +147,6 @@ class Player(models.Model):
         symmetrical=False, blank=True,
         help_text='黑名单',
     )
-
-    token_signer = itsdangerous.TimestampSigner(backend.settings.SECRET_KEY)
-
-    def token(self):
-        data = base64.b64encode(msgpack.dumps({'player': True, 'id': self.id}))
-        return self.token_signer.sign(data).decode('utf-8')
-
-    @classmethod
-    def from_token(cls, token, max_age=30):
-        data = cls.token_signer.unsign(token.encode('utf-8'), max_age=max_age)
-        data = msgpack.loads(base64.b64decode(data), encoding='utf-8')
-        if data.get('player') is not True:
-            return None
-
-        return cls.objects.get(id=data['id'])
 
     def __str__(self):
         return self.name

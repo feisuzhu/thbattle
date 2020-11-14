@@ -21,7 +21,6 @@ Including another URLconf
 # -- third party --
 from django.contrib import admin
 from django.urls import path
-from django.views.decorators.csrf import csrf_exempt
 from graphene_django.views import GraphQLView
 
 # -- own --
@@ -35,6 +34,16 @@ admin.site.site_header = '东方符斗祭后台'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('graphql', csrf_exempt(GraphQLView.as_view(schema=schema, graphiql=True))),
-    path('graphql-msgpack', csrf_exempt(MessagePackGraphQLView.as_view(schema=schema))),
+    path('graphql', GraphQLView.as_view(schema=schema, graphiql=True)),
+    path('graphql-msgpack', MessagePackGraphQLView.as_view(schema=schema)),
 ]
+
+import os
+if os.uname()[:2] == ('Linux', 'Proton'):
+    from . import debug
+    urlpatterns += [
+        path('.debug/console/<tb>', debug.debug_page),
+        path('.debug/static/<path:filename>', debug.static_files),
+        path('.debug/traceback/<tb>', debug.traceback),
+        path('.debug/frame/<frame>/exec', debug.frame_exec),
+    ]
