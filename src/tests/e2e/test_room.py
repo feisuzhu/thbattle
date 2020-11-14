@@ -39,9 +39,9 @@ class TestRoom(object):
         a.room.get_ready()
         wait()
         assert a.events.game_joined in t
-        assert s.lobby.state_of(s.lobby.get(a.auth.uid)) == 'ready'
+        assert s.lobby.state_of(s.lobby.get(a.auth.pid)) == 'ready'
         a.room.cancel_ready(); wait()
-        assert s.lobby.state_of(s.lobby.get(a.auth.uid)) == 'room'
+        assert s.lobby.state_of(s.lobby.get(a.auth.pid)) == 'room'
 
         # Changing location won't crash
         a.room.change_location(-1)
@@ -52,7 +52,7 @@ class TestRoom(object):
         a.room.change_location(4)
         a.room.change_location(5)
         wait()
-        assert s.lobby.state_of(s.lobby.get(a.auth.uid)) == 'room'
+        assert s.lobby.state_of(s.lobby.get(a.auth.pid)) == 'room'
 
         # Can set param
         gid = a.game.gid_of(t[a.events.game_joined])

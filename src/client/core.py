@@ -109,7 +109,7 @@ class Events(object):
         # ev = (g: Game)
         self.game_ended = EventHub[Game]()
 
-        # ev = uid: int
+        # ev = pid: int
         self.auth_success = EventHub[int]()
 
         # ev = reason: str

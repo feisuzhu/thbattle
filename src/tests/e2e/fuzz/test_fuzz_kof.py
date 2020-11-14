@@ -48,7 +48,7 @@ class TestFuzzTHBattleKOF(object):
         for i, name in zip(cl, names):
             i.auth.login(name)
         wait()
-        assert all(cl.auth.uid)
+        assert all(cl.auth.pid)
         c.room.create('Test1', 'THBattleKOF', {})
         wait()
         gid = c.game.gid_of(t[c.events.game_joined])

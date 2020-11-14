@@ -57,16 +57,16 @@ class Room(object):
 
     def set_game_param(self, gid: int, key: str, value: Any) -> None:
         core = self.core
-        core.server.write(wire.SetGameParam(gid=gid, uid=0, key=key, value=value))
+        core.server.write(wire.SetGameParam(gid=gid, pid=0, key=key, value=value))
 
     def use_item(self, sku: str) -> None:
         core = self.core
         core.server.write(wire.UseItem(sku=sku))
 
-    def invite(self, uid: int) -> None:
+    def invite(self, pid: int) -> None:
         core = self.core
-        core.server.write(wire.Invite(uid=uid))
+        core.server.write(wire.Invite(pid=pid))
 
-    def kick(self, uid: int) -> None:
+    def kick(self, pid: int) -> None:
         core = self.core
-        core.server.write(wire.Kick(uid=uid))
+        core.server.write(wire.Kick(pid=pid))

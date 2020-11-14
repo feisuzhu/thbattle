@@ -49,17 +49,17 @@ class TestItem(object):
         assert t.take(a.events.server_error) == 'incorrect_game_mode'
 
         # Can't use item which do not own
-        s.backend.items[a.auth.uid] = {'european': 0}
+        s.backend.items[a.auth.pid] = {'european': 0}
         a.room.use_item('european'); wait()
         assert t.take(a.events.server_error) == 'item_not_found'
 
         # Happy path
-        s.backend.items[a.auth.uid] = {'european': 1}
+        s.backend.items[a.auth.pid] = {'european': 1}
         a.room.use_item('european'); wait()
         assert t.take(a.events.server_info) == 'use_item_success'
 
         # 2nd use should conflict
-        s.backend.items[b.auth.uid] = {'european': 1}
+        s.backend.items[b.auth.pid] = {'european': 1}
         b.room.use_item('european'); wait()
         assert t.take(b.events.server_error) == 'european_conflict'
 
@@ -69,5 +69,5 @@ class TestItem(object):
         c.room.get_ready()
         d.room.get_ready()
         wait()
-        assert s.backend.items[a.auth.uid]['european'] == 0
-        assert s.backend.items[b.auth.uid]['european'] == 1
+        assert s.backend.items[a.auth.pid]['european'] == 0
+        assert s.backend.items[b.auth.pid]['european'] == 1

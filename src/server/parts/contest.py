@@ -23,7 +23,7 @@ log = logging.getLogger('Contest')
 
 
 class ContestAssocOnGame(TypedDict):
-    uids: List[int]
+    pids: List[int]
 
 
 def A(self: Contest, g: Game) -> ContestAssocOnGame:
@@ -61,7 +61,7 @@ class Contest(object):
         if flags.get('contest'):
             core.connect.speaker(
                 '文文', '“%s”开始了！参与玩家：%s' % (
-                    name, '，'.join([f'*[uid:{core.auth.uid_of(u)}]' for u in users])
+                    name, '，'.join([f'*[pid:{core.auth.pid_of(u)}]' for u in users])
                 )
             )
 
@@ -94,7 +94,7 @@ class Contest(object):
             '文文',
             '“%s”结束了！获胜玩家：%s' % (
                 core.room.name_of(g),
-                '，'.join([f'*[uid:{core.auth.uid_of(u)}]' for u in winners])
+                '，'.join([f'*[pid:{core.auth.pid_of(u)}]' for u in winners])
             )
         )
 
@@ -107,7 +107,7 @@ class Contest(object):
         if flags.get('contest'):
             fields = old._[self]
             g._[self] = fields
-            self._start_poll(g, fields['uids'])
+            self._start_poll(g, fields['pids'])
         return ev
 
     # ----- Client Commands -----
@@ -116,17 +116,17 @@ class Contest(object):
         core = self.core
         from thb import modes
         gamecls = modes[ev.mode]
-        if len(ev.uids) != gamecls.n_persons:
+        if len(ev.pids) != gamecls.n_persons:
             c.write(wire.Error(msg='wrong_players_count'))
             return
 
         g = core.room.create_game(gamecls, ev.name, {'contest': True})
 
         assoc: ContestAssocOnGame = {
-            'uids': ev.uids,
+            'pids': ev.pids,
         }
         g._[self] = assoc
-        self._start_poll(g, ev.uids)
+        self._start_poll(g, ev.pids)
 
     @command('*')
     def _room_join_contest_limit(self, u: Client, ev: wire.JoinRoom) -> Optional[EventHub.StopPropagation]:
@@ -137,18 +137,18 @@ class Contest(object):
             return None
 
         flags = core.room.flags_of(g)
-        uid = core.auth.uid_of(u)
+        pid = core.auth.pid_of(u)
 
         if flags.get('contest'):
-            uid = core.auth.uid_of(u)
-            if uid not in A(self, g)['uids']:
+            pid = core.auth.pid_of(u)
+            if pid not in A(self, g)['pids']:
                 u.write(wire.Error('not_competitor'))
                 return EventHub.STOP_PROPAGATION
 
         return None
 
     # ----- Methods -----
-    def _start_poll(self, g: Game, uids: Sequence[int]) -> None:
+    def _start_poll(self, g: Game, pids: Sequence[int]) -> None:
         core = self.core
         gid = core.room.gid_of(g)
         name = core.room.name_of(g)
@@ -159,33 +159,33 @@ class Contest(object):
         def pull() -> None:
             while core.room.get(gid) is g:
                 users = core.room.online_users_of(g)
-                uids = {core.auth.uid_of(u) for u in users}
-                contest_uids = set(A(self, g)['uids'])
-                pending = contest_uids - uids
+                pids = {core.auth.pid_of(u) for u in users}
+                contest_pids = set(A(self, g)['pids'])
+                pending = contest_pids - pids
                 if not pending:
                     break
 
                 log.debug("Contest: Ready to pull %s", pending)
 
-                for uid in pending:
-                    u = core.lobby.get(uid)
+                for pid in pending:
+                    u = core.lobby.get(pid)
                     if not u:
-                        log.debug("Contest: %s not found", uid)
+                        log.debug("Contest: %s not found", pid)
                         continue
 
                     if core.lobby.state_of(u) == 'lobby':
-                        log.debug("Contest: Pulling %s", uid)
+                        log.debug("Contest: Pulling %s", pid)
                         core.room.join_game(g, u)
                     elif core.lobby.state_of(u) in ('ready', 'room'):
-                        log.debug("Contest: Pulling %s from state [%s]", uid, core.lobby.state_of(u).state)
+                        log.debug("Contest: Pulling %s from state [%s]", pid, core.lobby.state_of(u).state)
                         core.room.exit_game(u)
                         core.room.join_game(g, u)
                     elif core.lobby.state_of(u) == 'ob':
-                        log.debug("Contest: Pulling %s from state [%s]", uid, core.lobby.state_of(u).state)
+                        log.debug("Contest: Pulling %s from state [%s]", pid, core.lobby.state_of(u).state)
                         core.observe.observe_detach(u)
                         core.room.join_game(g, u)
                     elif core.lobby.state_of(u) == 'game':
-                        log.debug("Contest: %s in game, sending warning", uid)
+                        log.debug("Contest: %s in game, sending warning", pid)
                         core.runner.spawn(u.write, wire.SystemMsg('你有比赛房间，请尽快结束游戏参与比赛'))
 
                 if core.options.testing:

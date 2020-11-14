@@ -65,8 +65,8 @@ class Archive(object):
             'name': core.room.name_of(g),
             'type': g.__class__.__name__,
             'flags': flags,
-            'players': [core.auth.uid_of(u) for u in core.room.users_of(g)],
-            'winners': [core.auth.uid_of(p.client) if isinstance(p, HumanPlayer) else 0 for p in core.game.winners_of(g)],
+            'players': [core.auth.pid_of(u) for u in core.room.users_of(g)],
+            'winners': [core.auth.pid_of(p.client) if isinstance(p, HumanPlayer) else 0 for p in core.game.winners_of(g)],
             'startedAt': datetime.datetime.now().isoformat(),
             'duration': int(time.time() - start),
         }
@@ -80,7 +80,7 @@ class Archive(object):
             'params': core.game.params_of(g),
             'items': core.item.item_skus_of(g),
             'rngseed': core.game.rngseed_of(g),
-            'players': [core.auth.uid_of(u) for u in core.room.users_of(g)],
+            'players': [core.auth.pid_of(u) for u in core.room.users_of(g)],
             'data': core.game.get_gamedata_archive(g),
         }
 

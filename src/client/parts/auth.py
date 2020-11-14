@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class Auth(object):
     def __init__(self, core: Core):
         self.core = core
-        self.uid = 0
+        self.pid = 0
 
         D = core.events.server_command
         D[wire.AuthSuccess] += self._auth_success
@@ -26,8 +26,8 @@ class Auth(object):
 
     def _auth_success(self, ev: wire.AuthSuccess) -> EventHub.StopPropagation:
         core = self.core
-        self.uid = ev.uid
-        core.events.auth_success.emit(ev.uid)
+        self.pid = ev.pid
+        core.events.auth_success.emit(ev.pid)
         return EventHub.STOP_PROPAGATION
 
     def _auth_error(self, ev: wire.AuthError) -> EventHub.StopPropagation:

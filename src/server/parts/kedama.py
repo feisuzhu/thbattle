@@ -60,8 +60,8 @@ class Kedama(object):
     @command('*')
     def _invite_limit(self, c: Client, ev: wire.Invite) -> Optional[EventHub.StopPropagation]:
         core = self.core
-        uid = core.auth.uid_of(c)
-        if uid <= 0:
+        pid = core.auth.pid_of(c)
+        if pid <= 0:
             c.write(wire.Error('kedama_limitation'))
             return EventHub.STOP_PROPAGATION
 

@@ -41,14 +41,14 @@ class TestContest(object):
         e.auth.login("Eirin")
         wait()
 
-        assert proton.auth.uid == 2
-        assert a.auth.uid > 0
-        assert b.auth.uid > 0
-        assert c.auth.uid > 0
-        assert e.auth.uid > 0
+        assert proton.auth.pid == 2
+        assert a.auth.pid > 0
+        assert b.auth.pid > 0
+        assert c.auth.pid > 0
+        assert e.auth.pid > 0
 
         # Wrong players count
-        proton.contest.setup("TestContest", "THBattle2v2", [a.auth.uid, b.auth.uid]); wait()
+        proton.contest.setup("TestContest", "THBattle2v2", [a.auth.pid, b.auth.pid]); wait()
         assert t.take(proton.events.server_error) == 'wrong_players_count'
         assert a.events.game_joined not in t
         assert b.events.game_joined not in t
@@ -59,13 +59,13 @@ class TestContest(object):
         # Cirno rubberducking Bob fighting Cirno (haha),
         # and Daiyousei not showing at the time.
         b.room.create('Wow', 'THBattleNewbie', {}); wait()
-        s.observe.add_bigbrother(c.auth.uid)
+        s.observe.add_bigbrother(c.auth.pid)
         b.room.get_ready()
-        c.observe.observe(b.auth.uid); wait()
+        c.observe.observe(b.auth.pid); wait()
         assert b.events.game_started in t
         assert c.events.game_started in t
         t.clear()
-        proton.contest.setup("TestContest", "THBattleDummy4", [i.auth.uid for i in (a, b, c)] + [s.backend.uid_of('Daiyousei')]); wait()
+        proton.contest.setup("TestContest", "THBattleDummy4", [i.auth.pid for i in (a, b, c)] + [s.backend.pid_of('Daiyousei')]); wait()
         assert a.events.game_joined in t
         assert b.events.game_joined not in t
         assert c.events.game_joined in t

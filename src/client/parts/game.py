@@ -71,12 +71,12 @@ class GamePart(object):
 
         return ev
 
-    def _do_start_game(self, gv: wire.model.GameDetail, me_uid: int) -> None:
+    def _do_start_game(self, gv: wire.model.GameDetail, me_pid: int) -> None:
         core = self.core
         g = self.games[gv['gid']]
         A(self, g)['users'] = gv['users']
         A(self, g)['params'] = gv['params']
-        players = self._build_players(g, A(self, g)['users'], me_uid)
+        players = self._build_players(g, A(self, g)['users'], me_pid)
         A(self, g)['players'] = players
         items = self._build_items(g, players, gv['items'])
         A(self, g)['items'] = items
@@ -86,7 +86,7 @@ class GamePart(object):
 
     def _game_started(self, ev: wire.GameStarted) -> wire.GameStarted:
         core = self.core
-        self._do_start_game(ev.game, core.auth.uid)
+        self._do_start_game(ev.game, core.auth.pid)
         return ev
 
     def _observe_started(self, ev: wire.ObserveStarted) -> wire.ObserveStarted:
@@ -100,7 +100,7 @@ class GamePart(object):
         g = self.games[ev.gid]
         pl = A(self, g)['players']
         tbl = ev.presence
-        presence = {p: tbl[p.uid] for p in pl}
+        presence = {p: tbl[p.pid] for p in pl}
         A(self, g)['presence'] = presence
         core.events.player_presence.emit((g, presence))
         return ev
@@ -177,13 +177,13 @@ class GamePart(object):
 
         return g
 
-    def _build_players(self, g: Game, uvl: Sequence[wire.model.User], me_uid: int) -> BatchList[Player]:
-        assert me_uid in [uv['uid'] for uv in uvl]
+    def _build_players(self, g: Game, uvl: Sequence[wire.model.User], me_pid: int) -> BatchList[Player]:
+        assert me_pid in [uv['pid'] for uv in uvl]
 
-        me = Theone(g, me_uid)
+        me = Theone(g, me_pid)
 
         pl = BatchList[Player]([
-            me if uv['uid'] == me_uid else Someone(g, uv['uid'])
+            me if uv['pid'] == me_pid else Someone(g, uv['pid'])
             for uv in uvl
         ])
         pl[:0] = [Someone(g, 0) for i, npc in enumerate(g.npc_players)]
@@ -191,10 +191,10 @@ class GamePart(object):
         return pl
 
     def _build_items(self, g: Game, players: Sequence[Player], items: Dict[int, List[str]]) -> Dict[Player, List[GameItem]]:
-        m = {p.uid: p for p in players}
+        m = {p.pid: p for p in players}
         return {
-            m[uid]: [GameItem.from_sku(i) for i in skus]
-            for uid, skus in items.items()
+            m[pid]: [GameItem.from_sku(i) for i in skus]
+            for pid, skus in items.items()
         }
 
     # ----- Public Methods -----

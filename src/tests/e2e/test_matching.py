@@ -41,10 +41,10 @@ class TestMatching(object):
         b.matching.start(['THBattleKOF'])
         wait()
         assert a.events.game_joined not in t
-        assert s.lobby.state_of(s.lobby.get(a.auth.uid)) == 'lobby'
-        assert s.lobby.state_of(s.lobby.get(b.auth.uid)) == 'lobby'
+        assert s.lobby.state_of(s.lobby.get(a.auth.pid)) == 'lobby'
+        assert s.lobby.state_of(s.lobby.get(b.auth.pid)) == 'lobby'
         a.matching.start(['THBattleKOF'])
         wait()
         assert a.events.game_joined in t
-        assert s.lobby.state_of(s.lobby.get(a.auth.uid)) == 'room'
-        assert s.lobby.state_of(s.lobby.get(b.auth.uid)) == 'room'
+        assert s.lobby.state_of(s.lobby.get(a.auth.pid)) == 'room'
+        assert s.lobby.state_of(s.lobby.get(b.auth.pid)) == 'room'

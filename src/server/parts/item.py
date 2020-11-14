@@ -47,7 +47,7 @@ class Item(object):
         core = self.core
         final: Dict[int, List[GameItem]] = {}
 
-        for uid, l in A(self, g)['items'].items():
+        for pid, l in A(self, g)['items'].items():
             consumed = []
             for i in l:
                 try:
@@ -57,14 +57,14 @@ class Item(object):
                                 remove(player: $id, sku: $sku, reason: $r)
                             }
                         }
-                    ''', id=uid, sku=i.sku, reason="Use in game %s" % core.room.gid_of(g))
+                    ''', id=pid, sku=i.sku, reason="Use in game %s" % core.room.gid_of(g))
 
                     if rst['item']['remove']:
                         consumed.append(i)
                 except Exception:
                     log.exception('Error consuming item')
 
-            final[uid] = consumed
+            final[pid] = consumed
 
         A(self, g)['items'] = final
 
@@ -81,7 +81,7 @@ class Item(object):
         g, u = ev
         core = self.core
         if not core.room.is_started(g) and not g.ended:
-            A(self, g)['items'].pop(core.auth.uid_of(u), None)
+            A(self, g)['items'].pop(core.auth.pid_of(u), None)
 
         return ev
 
@@ -93,27 +93,27 @@ class Item(object):
         assert g
 
         try:
-            uid = core.auth.uid_of(u)
+            pid = core.auth.pid_of(u)
             i = GameItem.from_sku(ev.sku)
             i.should_usable(core, g, u)
 
             have_item = core.backend.query('''
-                query($uid: Int!, $sku: String!) {
+                query($pid: Int!, $sku: String!) {
                     player(id: $id) {
                         haveItem(sku: $sku)
                     }
                 }
-            ''', uid=uid, sku=ev.sku)['player']['haveItem']
+            ''', pid=pid, sku=ev.sku)['player']['haveItem']
 
             if not have_item:
                 from utils.misc import exceptions
                 raise exceptions.ItemNotFound
 
-            A(self, g)['items'][uid].append(i)
+            A(self, g)['items'][pid].append(i)
             u.write(wire.Info('use_item_success'))
         except BusinessException as e:
-            uid = core.auth.uid_of(u)
-            log.error('User %s failed to use item %s: %s', uid, ev.sku, e.name)
+            pid = core.auth.pid_of(u)
+            log.error('User %s failed to use item %s: %s', pid, ev.sku, e.name)
             u.write(wire.Error(e.snake_case))
 
     # ----- Methods ------

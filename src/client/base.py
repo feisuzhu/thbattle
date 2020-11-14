@@ -30,10 +30,10 @@ class ForcedKill(gevent.GreenletExit):
 
 class Theone(Player):
 
-    def __init__(self, game: Game, uid: int):
+    def __init__(self, game: Game, pid: int):
         Player.__init__(self)
         self.game = game
-        self.uid = uid
+        self.pid = pid
 
     def reveal(self, obj: Any) -> None:
         # It's me, server will tell me what the hell these is.
@@ -50,10 +50,10 @@ class Theone(Player):
 
 class Someone(Player):
 
-    def __init__(self, game: Game, uid: int):
+    def __init__(self, game: Game, pid: int):
         Player.__init__(self)
         self.game = game
-        self.uid = uid
+        self.pid = pid
 
     def reveal(self, ol: Any) -> None:
         # Peer player, won't reveal.

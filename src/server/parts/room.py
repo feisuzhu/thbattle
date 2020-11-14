@@ -213,7 +213,7 @@ class Room(object):
         if not core.game.set_param(g, ev.key, ev.value):
             return
 
-        ev.uid = core.auth.uid_of(u)
+        ev.pid = core.auth.pid_of(u)
 
         for u in users:
             if core.lobby.state_of(u) == 'ready':
@@ -386,8 +386,8 @@ class Room(object):
         u.write(wire.GameLeft(Ag(self, g)['gid']))
 
         log.info(
-            'Player *[uid:{%s}] left game [%s]',
-            core.auth.uid_of(u),
+            'Player *[pid:{%s}] left game [%s]',
+            core.auth.pid_of(u),
             gid,
         )
 
@@ -444,7 +444,7 @@ class Room(object):
     def _init_freeslot(self) -> None:
         core = self.core
         self.FREESLOT = u = Client(core, None)
-        core.auth.set_auth(u, uid=0)
+        core.auth.set_auth(u, pid=0)
         core.lobby.init_freeslot(u)
         core.lobby.state_of(u).transit('freeslot')
 

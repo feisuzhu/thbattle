@@ -48,7 +48,8 @@ class Observe(object):
     def __init__(self, core: Core):
         self.core = core
 
-        core.events.user_state_transition += self.handle_ust_observee
+        # core.events.user_state_transition += self.handle_ust_observee
+        core.events.user_state_transition.subscribe(self.handle_ust_observee, -1)
         core.events.game_created += self.handle_game_created
         core.events.game_joined += self.handle_game_joined
         core.events.game_data_send += self.handle_game_data_send
@@ -72,6 +73,7 @@ class Observe(object):
                 self._observe_start(u, c)
 
         elif f in ('room', 'ready', 'wait') and t == 'lobby':
+            core =self.core
             for u in list(Au(self, c)['obs']):
                 self.observe_detach(u)
 
@@ -137,7 +139,7 @@ class Observe(object):
     def _observe(self, u: Client, ev: wire.Observe) -> None:
         core = self.core
 
-        observee = core.lobby.get(ev.uid)
+        observee = core.lobby.get(ev.pid)
         if observee is None:
             return
 
@@ -148,9 +150,9 @@ class Observe(object):
         if core.lobby.state_of(observee) not in ('game', 'room', 'ready'):
             return
 
-        uid = core.auth.uid_of(u)
+        pid = core.auth.pid_of(u)
 
-        if uid in self._bigbrothers:
+        if pid in self._bigbrothers:
             observee.write(wire.SystemMsg(
                 '管理员对你使用了强制观战，效果拔群。'
                 '强制观战功能仅用来处理纠纷，如果涉及滥用，请向 Proton 投诉。'
@@ -158,22 +160,22 @@ class Observe(object):
             self.observe_attach(u, observee)
             return
 
-        if uid in Au(self, observee)['reqs']:
+        if pid in Au(self, observee)['reqs']:
             # request already sent
             return
 
-        Au(self, observee)['reqs'].add(uid)
-        observee.write(wire.ObserveRequest(uid=uid))
+        Au(self, observee)['reqs'].add(pid)
+        observee.write(wire.ObserveRequest(pid=pid))
 
     @command('room', 'ready', 'game')
     def _grant(self, c: Client, ev: wire.GrantObserve) -> None:
-        if ev.uid not in Au(self, c)['reqs']:
+        if ev.pid not in Au(self, c)['reqs']:
             return
 
-        Au(self, c)['reqs'].remove(ev.uid)
+        Au(self, c)['reqs'].remove(ev.pid)
 
         core = self.core
-        ob = core.lobby.get(ev.uid)
+        ob = core.lobby.get(ev.pid)
 
         if ob is None:
             return
@@ -189,7 +191,7 @@ class Observe(object):
     @command('room', 'ready', 'game')
     def _kick(self, c: Client, ev: wire.KickObserver) -> None:
         core = self.core
-        ob = core.lobby.get(ev.uid)
+        ob = core.lobby.get(ev.pid)
         if not ob:
             return
 
@@ -227,12 +229,12 @@ class Observe(object):
         self.observe_detach(u)
 
     # ----- Public Methods -----
-    def add_bigbrother(self, uid: int) -> None:
-        self._bigbrothers.append(uid)
+    def add_bigbrother(self, pid: int) -> None:
+        self._bigbrothers.append(pid)
 
-    def remove_bigbrother(self, uid: int) -> None:
+    def remove_bigbrother(self, pid: int) -> None:
         try:
-            self._bigbrothers.remove(uid)
+            self._bigbrothers.remove(pid)
         except Exception:
             pass
 
@@ -260,8 +262,8 @@ class Observe(object):
         @core.runner.spawn
         def notify_observer() -> None:
             d = Endpoint.encode(wire.ObserverEnter(
-                observer=core.auth.uid_of(ob),
-                observee=core.auth.uid_of(observee),
+                observer=core.auth.pid_of(ob),
+                observee=core.auth.pid_of(observee),
             ))
 
             for u in users:
@@ -309,8 +311,8 @@ class Observe(object):
             ul = core.room.online_users_of(g)
 
             d = Endpoint.encode(wire.ObserverLeave(
-                observer=core.auth.uid_of(ob),
-                observee=core.auth.uid_of(observee),
+                observer=core.auth.pid_of(ob),
+                observee=core.auth.pid_of(observee),
             ))
 
             for u in ul:
@@ -321,11 +323,11 @@ class Observe(object):
     # ----- Methods -----
     def _observe_start(self, ob: Client, observee: Client) -> None:
         core = self.core
-        uid = core.auth.uid_of(observee)
+        pid = core.auth.pid_of(observee)
         g = core.game.current(observee)
         assert g
 
-        ob.write(wire.ObserveStarted(core.view.GameDetail(g), observee=uid))
+        ob.write(wire.ObserveStarted(core.view.GameDetail(g), observee=pid))
         core.lobby.state_of(ob).transit('ob')
 
     def _observe_end(self, ob: Client, observee: Client) -> None:

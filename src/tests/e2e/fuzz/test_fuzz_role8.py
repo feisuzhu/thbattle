@@ -62,7 +62,7 @@ class TestFuzzTHBattleRole(object):
         for i, name in zip(cl, names):
             i.auth.login(name)
         gevent.idle(-100)
-        assert all(cl.auth.uid)
+        assert all(cl.auth.pid)
         c.room.create('Test1', 'THBattleRole', {})
         gevent.idle(-100)
         gid = c.game.gid_of(t[c.events.game_joined])

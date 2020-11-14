@@ -122,8 +122,8 @@ class GamePart(object):
         core = self.core
         if core.room.is_started(g):
             Ag(self, g)['data'][u].die()
-            uid = core.auth.uid_of(u)
-            p = next(i for i in Ag(self, g)['players'] if i.uid == uid)
+            pid = core.auth.pid_of(u)
+            p = next(i for i in Ag(self, g)['players'] if i.pid == pid)
             Ag(self, g)['fleed'][u] = bool(g.can_leave(p))
 
         Au(self, u)['game'] = None
@@ -172,7 +172,7 @@ class GamePart(object):
 
     def _build_players(self, g: ServerGame, users: List[Client]) -> BatchList[Player]:
         core = self.core
-        pl: BatchList[Player] = BatchList([HumanPlayer(g, core.auth.uid_of(u), u) for u in users])
+        pl: BatchList[Player] = BatchList([HumanPlayer(g, core.auth.pid_of(u), u) for u in users])
         pl[:0] = [NPCPlayer(g, i.name, i.input_handler) for i in g.npc_players]
 
         return pl

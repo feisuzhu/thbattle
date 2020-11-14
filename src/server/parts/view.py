@@ -31,7 +31,7 @@ class View(object):
         core = self.core
 
         return {
-            'uid': core.auth.uid_of(u),
+            'pid': core.auth.pid_of(u),
             'state': core.lobby.state_of(u).state,
         }
 

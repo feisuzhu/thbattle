@@ -26,7 +26,7 @@ def _need_admin(f: Callable[[Admin, Client, T], Any]) -> Callable[[Admin, Tuple[
     def wrapper(self: Admin, ev: Tuple[Client, T]) -> EventHub.StopPropagation:
         core = self.core
         u, m = ev
-        if core.auth.uid_of(u) not in self.admins:
+        if core.auth.pid_of(u) not in self.admins:
             return STOP
 
         f(self, u, m)
@@ -59,7 +59,7 @@ class Admin(object):
     @_need_admin
     def _kick(self, c: Client, m: msg.AdminKick) -> None:
         core = self.core
-        u = core.lobby.get(m.uid)
+        u = core.lobby.get(m.pid)
         if u: u.terminate()
 
     @_need_admin
@@ -127,21 +127,21 @@ class Admin(object):
 
     @_need_admin
     def _add(self, c: Client, m: msg.AdminAdd) -> None:
-        self.admins.append(m.uid)
+        self.admins.append(m.pid)
 
     @_need_admin
     def _remove(self, c: Client, m: msg.AdminRemove) -> None:
         try:
-            self.admins.remove(m.uid)
+            self.admins.remove(m.pid)
         except Exception:
             pass
 
     @_need_admin
     def _add_bigbrother(self, c: Client, m: msg.AdminAddBigbrother) -> None:
         core = self.core
-        core.observe.add_bigbrother(m.uid)
+        core.observe.add_bigbrother(m.pid)
 
     @_need_admin
     def _remove_bigbrother(self, c: Client, m: msg.AdminRemoveBigbrother) -> None:
         core = self.core
-        core.observe.remove_bigbrother(m.uid)
+        core.observe.remove_bigbrother(m.pid)

@@ -42,18 +42,18 @@ class Observe(object):
 
     def _observe_request(self, ev: wire.ObserveRequest) -> wire.ObserveRequest:
         core = self.core
-        core.events.observe_request.emit(ev.uid)
+        core.events.observe_request.emit(ev.pid)
         return ev
 
     # ----- Public Method -----
-    def observe(self, uid: int) -> None:
+    def observe(self, pid: int) -> None:
         core = self.core
-        core.server.write(wire.Observe(uid=uid))
+        core.server.write(wire.Observe(pid=pid))
 
-    def grant(self, uid: int, grant: bool) -> None:
+    def grant(self, pid: int, grant: bool) -> None:
         core = self.core
-        core.server.write(wire.GrantObserve(uid=uid, grant=grant))
+        core.server.write(wire.GrantObserve(pid=pid, grant=grant))
 
-    def kick(self, uid: int) -> None:
+    def kick(self, pid: int) -> None:
         core = self.core
-        core.server.write(wire.KickObserver(uid=uid))
+        core.server.write(wire.KickObserver(pid=pid))

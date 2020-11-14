@@ -41,13 +41,13 @@ class Reward(object):
         users = core.room.users_of(g)
         fleed = [u for u in users if core.game.is_fleed(g, u)]
         rewards.extend([{
-            'playerId': core.auth.uid_of(u),
+            'playerId': core.auth.pid_of(u),
             'type': 'game',
             'amount': 1,
         } for u in users])
 
         rewards.extend([{
-            'playerId': core.auth.uid_of(u),
+            'playerId': core.auth.pid_of(u),
             'type': 'drop',
             'amount': 1,
         } for u in fleed])
@@ -57,7 +57,7 @@ class Reward(object):
         bonus = len(users) * 5 / len(winners_good) if winners_good else 0
 
         rewards.extend([{
-            'playerId': core.auth.uid_of(u),
+            'playerId': core.auth.pid_of(u),
             'type': 'jiecao',
             'amount': 2 + bonus if u in winners_good else 2,
         } for u in good])

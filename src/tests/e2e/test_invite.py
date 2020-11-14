@@ -41,11 +41,11 @@ class TestInvite(object):
         e.auth.login("Eirin")
         wait()
 
-        assert a.auth.uid > 0
-        assert b.auth.uid > 0
-        assert c.auth.uid > 0
-        assert d.auth.uid > 0
-        assert e.auth.uid > 0
+        assert a.auth.pid > 0
+        assert b.auth.pid > 0
+        assert c.auth.pid > 0
+        assert d.auth.pid > 0
+        assert e.auth.pid > 0
 
         # Onlookers should not be able to join invite only rooms
         a.room.create("TestInvite", "THBattleDummy4", {'invite': True}); wait()
@@ -55,7 +55,7 @@ class TestInvite(object):
         assert b.events.game_joined not in t
 
         # Happy path
-        [a.room.invite(i.auth.uid) for i in (b, c, d)]; wait()
+        [a.room.invite(i.auth.pid) for i in (b, c, d)]; wait()
         [i.room.join(gid) for i in (b, c, d)]; wait()
         assert b.events.game_joined in t
         assert c.events.game_joined in t
@@ -63,9 +63,9 @@ class TestInvite(object):
 
         # Kick happy path
         t.clear()
-        a.room.kick(d.auth.uid); wait()
+        a.room.kick(d.auth.pid); wait()
         assert d.events.game_left not in t
-        b.room.kick(d.auth.uid); wait()
+        b.room.kick(d.auth.pid); wait()
         assert d.events.game_left in t
 
         # Banned player can't join again
@@ -78,6 +78,6 @@ class TestInvite(object):
         b.room.leave(); wait()
         d.room.join(gid); wait()
         assert t.take(d.events.server_error) == 'not_invited'
-        c.room.invite(d.auth.uid); wait()
+        c.room.invite(d.auth.pid); wait()
         d.room.join(gid); wait()
         assert d.events.game_joined in t

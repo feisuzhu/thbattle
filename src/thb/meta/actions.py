@@ -215,7 +215,7 @@ class RevealRole:
             ch = g.find_character(p)
             name = f'|G{ch.ui_meta.name}|r'
         except Exception:
-            name = f'|R*[uid:{p.uid}]|r'
+            name = f'|R*[pid:{p.pid}]|r'
 
         role = g.ui_meta.roles_disp[role.get()],
         return f'{name}的身份是：|R{role}|r。'

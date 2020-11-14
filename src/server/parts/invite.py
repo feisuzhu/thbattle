@@ -67,7 +67,7 @@ class Invite(object):
         core = self.core
 
         for bl in A(self, g)['banned'].values():
-            bl.discard(core.auth.uid_of(c))
+            bl.discard(core.auth.pid_of(c))
 
         return ev
 
@@ -80,18 +80,18 @@ class Invite(object):
             return None
 
         flags = core.room.flags_of(g)
-        uid = core.auth.uid_of(u)
+        pid = core.auth.pid_of(u)
 
         banned = A(self, g)['banned']
         invited = A(self, g)['invited']
 
         # banned
-        if len(banned[uid]) >= max(g.n_persons // 2, 1):
+        if len(banned[pid]) >= max(g.n_persons // 2, 1):
             u.write(wire.Error('banned'))
             return EventHub.STOP_PROPAGATION
 
         # invite
-        if flags.get('invite') and uid not in invited:
+        if flags.get('invite') and pid not in invited:
             u.write(wire.Error('not_invited'))
             return EventHub.STOP_PROPAGATION
 
@@ -100,19 +100,19 @@ class Invite(object):
     @command('room', 'ready')
     def _invite(self, u: Client, ev: wire.Invite) -> None:
         core = self.core
-        ouid = ev.uid
+        opid = ev.pid
 
-        other = core.lobby.get(ouid)
+        other = core.lobby.get(opid)
         if not (other and core.lobby.state_of(other) in ('lobby', 'ob')):
             return
 
         g = core.game.current(u)
         assert g
 
-        A(self, g)['invited'].add(ouid)
+        A(self, g)['invited'].add(opid)
 
         other.write(wire.InviteRequest(
-            uid=core.auth.uid_of(u),
+            pid=core.auth.pid_of(u),
             gid=core.room.gid_of(g),
             type=g.__class__.__name__,
         ))
@@ -120,8 +120,8 @@ class Invite(object):
     @command('room', 'ready')
     def _kick(self, u: Client, ev: wire.Kick) -> None:
         core = self.core
-        ouid = ev.uid
-        other = core.lobby.get(ouid)
+        opid = ev.pid
+        other = core.lobby.get(opid)
         if not other:
             return
 
@@ -136,21 +136,21 @@ class Invite(object):
         if core.lobby.state_of(other) not in ('room', 'ready'):
             return
 
-        bl = A(self, g)['banned'][ouid]
-        bl.add(core.auth.uid_of(u))
+        bl = A(self, g)['banned'][opid]
+        bl.add(core.auth.pid_of(u))
 
         for u in core.room.online_users_of(g):
             u.write(wire.KickRequest(
-                uid=core.auth.uid_of(u),
-                victim=core.auth.uid_of(other),
+                pid=core.auth.pid_of(u),
+                victim=core.auth.pid_of(other),
                 votes=len(bl),
             ))
 
         if len(bl) >= len(core.room.users_of(g)) // 2:
-            A(self, g)['invited'].discard(ouid)
+            A(self, g)['invited'].discard(opid)
             core.room.exit_game(other)
 
     # ----- Methods -----
     def add_invited(self, g: Game, u: Client) -> None:
         core = self.core
-        A(self, g)['invited'].add(core.auth.uid_of(u))
+        A(self, g)['invited'].add(core.auth.pid_of(u))

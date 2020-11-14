@@ -153,7 +153,7 @@ class GameParams(Message, ServerToClient):
 @dataclass
 class SetGameParam(Message, BiDirectional):
     gid: int
-    uid: int
+    pid: int
     key: str
     value: Any
 
@@ -169,7 +169,7 @@ class GameData(Message, BiDirectional):
 @message
 @dataclass
 class InviteRequest(Message, ServerToClient):
-    uid: int
+    pid: int
     gid: int
     type: str
 
@@ -177,13 +177,13 @@ class InviteRequest(Message, ServerToClient):
 @message
 @dataclass
 class ObserveRequest(Message, ServerToClient):
-    uid: int
+    pid: int
 
 
 @message
 @dataclass
 class KickRequest(Message, ServerToClient):
-    uid: int
+    pid: int
     victim: int
     votes: int
 
@@ -217,7 +217,7 @@ class AuthError(Message, ServerToClient):
 @message
 @dataclass
 class AuthSuccess(Message, ServerToClient):
-    uid: int
+    pid: int
 
 
 @message
@@ -309,20 +309,20 @@ class StartMatching(Message, BiDirectional):
 @message
 @dataclass
 class Observe(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 @message
 @dataclass
 class GrantObserve(Message, ClientToServer):
-    uid: int
+    pid: int
     grant: bool
 
 
 @message
 @dataclass
 class KickObserver(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 @message
@@ -343,13 +343,13 @@ class ObserverLeave(Message, ServerToClient):
 @message
 @dataclass
 class Invite(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 @message
 @dataclass
 class Kick(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 # ----- item -----
@@ -381,7 +381,7 @@ class AdminMigrate(Message, ClientToServer):
 @message
 @dataclass
 class AdminKick(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 @message
@@ -393,25 +393,25 @@ class AdminKillGame(Message, ClientToServer):
 @message
 @dataclass
 class AdminAdd(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 @message
 @dataclass
 class AdminRemove(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 @message
 @dataclass
 class AdminAddBigbrother(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 @message
 @dataclass
 class AdminRemoveBigbrother(Message, ClientToServer):
-    uid: int
+    pid: int
 
 
 # ----- contest -----
@@ -420,4 +420,4 @@ class AdminRemoveBigbrother(Message, ClientToServer):
 class SetupContest(Message, ClientToServer):
     name: str
     mode: str
-    uids: List[int]
+    pids: List[int]

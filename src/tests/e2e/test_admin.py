@@ -34,18 +34,18 @@ class TestAdmin(object):
 
         wait()
 
-        assert proton.auth.uid == 2
-        assert naughty.auth.uid
+        assert proton.auth.pid == 2
+        assert naughty.auth.pid
 
         t.tap(proton, naughty)
 
-        naughty.admin.kick(proton.auth.uid)
+        naughty.admin.kick(proton.auth.pid)
         wait()
 
         assert proton.events.server_dropped not in t
         assert naughty.events.server_dropped not in t
 
-        proton.admin.kick(naughty.auth.uid)
+        proton.admin.kick(naughty.auth.pid)
         wait()
 
         assert proton.events.server_dropped not in t
@@ -65,10 +65,10 @@ class TestAdmin(object):
 
         wait()
 
-        assert proton.auth.uid == 2
-        assert naughty.auth.uid
+        assert proton.auth.pid == 2
+        assert naughty.auth.pid
 
-        naughty.admin.kick(proton.auth.uid)
+        naughty.admin.kick(proton.auth.pid)
 
         wait()
 

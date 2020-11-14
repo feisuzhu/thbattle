@@ -24,7 +24,7 @@ class GameState(TypedDict):
 
 
 class CharacterState(TypedDict):
-    uid: int
+    pid: int
     character: str
     life: int
     maxlife: int
@@ -35,7 +35,7 @@ class CharacterState(TypedDict):
 
 
 class TheoneState(TypedDict):
-    uid: int
+    pid: int
 
 
 class CardListView(TypedDict):
@@ -52,7 +52,7 @@ def state_of(g: THBattle) -> GameState:
 
     for ch in g.players:
         chs.append({
-            'uid': ch.player.uid,
+            'pid': ch.player.pid,
             'character': ch.__class__.__name__,
             'life': ch.life,
             'maxlife': ch.maxlife,
@@ -68,14 +68,14 @@ def state_of(g: THBattle) -> GameState:
     return {
         'characters': chs,
         'me': {
-            'uid': me.uid,
+            'pid': me.pid,
         },
     }
 
 
 {
     'characters': [{
-        'uid': 2,
+        'pid': 2,
         'character': 'Youmu',
         'life': 3,
         'maxlife': 4,
@@ -108,6 +108,6 @@ def state_of(g: THBattle) -> GameState:
         }, ...],
     }, ...],
     'me': {
-        'uid': 2,
+        'pid': 2,
     },
 }

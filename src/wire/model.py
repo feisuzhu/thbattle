@@ -9,7 +9,7 @@ from typing import Any, Dict, List, TypedDict
 
 # -- code --
 class User(TypedDict):
-    uid: int
+    pid: int
     state: str
 
 

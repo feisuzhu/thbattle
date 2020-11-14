@@ -274,7 +274,7 @@ class Gate(object):
         self.post("player_presence", {
             'gid': core.game.gid_of(g),
             'players': [{
-                'uid': p.uid,
+                'pid': p.pid,
                 'present': b,
             } for p, b in pd.items()]
         })
@@ -318,9 +318,9 @@ class Gate(object):
         self.post("game_ended", core.game.gid_of(g))
         return g
 
-    def on_auth_success(self, uid: int) -> int:
-        self.post("auth_success", uid)
-        return uid
+    def on_auth_success(self, pid: int) -> int:
+        self.post("auth_success", pid)
+        return pid
 
     def on_auth_error(self, v: str) -> str:
         self.post("auth_error", v)

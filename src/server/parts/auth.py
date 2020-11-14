@@ -21,7 +21,7 @@ log = logging.getLogger('Auth')
 
 
 class AuthAssocOnClient(TypedDict):
-    uid: int
+    pid: int
     kedama: bool
     permissions: Set[str]
 
@@ -33,7 +33,7 @@ def A(self: Auth, v: Client) -> AuthAssocOnClient:
 class Auth(object):
     def __init__(self, core: Core):
         self.core = core
-        self._kedama_uid = 10032
+        self._kedama_pid = 10032
         self._allow_kedama = True
 
         core.events.user_state_transition += self.handle_user_state_transition
@@ -51,7 +51,7 @@ class Auth(object):
             core = self.core
             u.write(wire.Greeting(node=core.options.node, version=VERSION))
             assoc: AuthAssocOnClient = {
-                'uid': 0,
+                'pid': 0,
                 'kedama': False,
                 'permissions': set(),
             }
@@ -71,11 +71,11 @@ class Auth(object):
 
         if token == '':
             if self._allow_kedama:
-                uid = -self._kedama_uid
-                self._kedama_uid += 1
-                u.write(wire.AuthSuccess(uid))
+                pid = -self._kedama_pid
+                self._kedama_pid += 1
+                u.write(wire.AuthSuccess(pid))
                 assoc = {
-                    'uid': uid,
+                    'pid': pid,
                     'kedama': True,
                     'permissions': set(),
                 }
@@ -114,19 +114,19 @@ class Auth(object):
             u.write(wire.AuthError('invalid_credentials'))
             return
 
-        rst = rst['player']
+        rst = rst['user']
 
-        if not rst['user']['isActive']:
+        if not rst['isActive']:
             u.write(wire.AuthError('not_available'))
         else:
-            uid = int(rst['player']['id'])
-            u.write(wire.AuthSuccess(uid))
+            pid = int(rst['player']['id'])
+            u.write(wire.AuthSuccess(pid))
             assoc = {
-                'uid': uid,
+                'pid': pid,
                 'kedama': False,
                 'permissions': set(
-                    [i['codename'] for i in rst['user']['userPermissions']] +
-                    [i['codename'] for i in rst['user']['groups']['permissions']]
+                    [i['codename'] for i in rst['userPermissions']] +
+                    [i['codename'] for i in rst['groups']['permissions']]
                 ),
             }
             u._[self] = assoc
@@ -139,15 +139,15 @@ class Auth(object):
     def deny_kedama(self) -> None:
         self._allow_kedama = False
 
-    def uid_of(self, u: Client) -> int:
-        return A(self, u)['uid']
+    def pid_of(self, u: Client) -> int:
+        return A(self, u)['pid']
 
     def is_kedama(self, u: Client) -> bool:
         return A(self, u)['kedama']
 
-    def set_auth(self, u: Client, uid: int = 1, kedama: bool = False, permissions: Sequence[str] = []) -> None:
+    def set_auth(self, u: Client, pid: int = 1, kedama: bool = False, permissions: Sequence[str] = []) -> None:
         assoc: AuthAssocOnClient = {
-            'uid': uid,
+            'pid': pid,
             'kedama': kedama,
             'permissions': set(permissions),
         }

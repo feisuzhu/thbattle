@@ -33,34 +33,34 @@ class TestObserve(object):
         youmu.auth.login("Youmu")
         yuyuko.auth.login("Yuyuko")
         wait()
-        assert youmu.auth.uid
-        assert yuyuko.auth.uid
+        assert youmu.auth.pid
+        assert yuyuko.auth.pid
 
         youmu.room.create('Boom', 'THBattleDummy1', {}); wait()
         assert youmu.events.game_joined in t
 
         # Grant without request
-        youmu.observe.grant(yuyuko.auth.uid, True); wait()
+        youmu.observe.grant(yuyuko.auth.pid, True); wait()
         assert yuyuko.events.game_joined not in t
 
         # Denied request
-        yuyuko.observe.observe(youmu.auth.uid); wait()
-        assert t.take(youmu.events.observe_request) == yuyuko.auth.uid
-        youmu.observe.grant(yuyuko.auth.uid, False); wait()
+        yuyuko.observe.observe(youmu.auth.pid); wait()
+        assert t.take(youmu.events.observe_request) == yuyuko.auth.pid
+        youmu.observe.grant(yuyuko.auth.pid, False); wait()
         assert yuyuko.events.game_joined not in t
 
         # Subsequent grant should not take effect
-        youmu.observe.grant(yuyuko.auth.uid, True); wait()
+        youmu.observe.grant(yuyuko.auth.pid, True); wait()
         assert yuyuko.events.game_joined not in t
 
         # Subsequent request should not take effect
-        yuyuko.observe.observe(youmu.auth.uid); wait()
-        assert t.take(youmu.events.observe_request) == yuyuko.auth.uid
-        yuyuko.observe.observe(youmu.auth.uid); wait()
+        yuyuko.observe.observe(youmu.auth.pid); wait()
+        assert t.take(youmu.events.observe_request) == yuyuko.auth.pid
+        yuyuko.observe.observe(youmu.auth.pid); wait()
         assert youmu.events.observe_request not in t
 
         # Happy path
-        youmu.observe.grant(yuyuko.auth.uid, True); wait()
+        youmu.observe.grant(yuyuko.auth.pid, True); wait()
         assert yuyuko.events.game_joined in t
 
         # Observers should not interference legit game players
@@ -70,12 +70,12 @@ class TestObserve(object):
 
         # Kick observer
         t.clear()
-        youmu.observe.kick(yuyuko.auth.uid); wait()
+        youmu.observe.kick(yuyuko.auth.pid); wait()
         assert t.take(yuyuko.events.game_left)
 
         # Big brother
-        s.observe.add_bigbrother(yuyuko.auth.uid)
-        yuyuko.observe.observe(youmu.auth.uid); wait()
+        s.observe.add_bigbrother(yuyuko.auth.pid)
+        yuyuko.observe.observe(youmu.auth.pid); wait()
         assert yuyuko.events.game_joined in t
 
         # Stop observing
@@ -84,8 +84,8 @@ class TestObserve(object):
         assert yuyuko.events.game_left in t
 
         # Big brother, again
-        s.observe.add_bigbrother(yuyuko.auth.uid)
-        yuyuko.observe.observe(youmu.auth.uid); wait()
+        s.observe.add_bigbrother(yuyuko.auth.pid)
+        yuyuko.observe.observe(youmu.auth.pid); wait()
         assert yuyuko.events.game_joined in t
 
         # Observee exits
@@ -93,17 +93,17 @@ class TestObserve(object):
         youmu.room.leave(); wait()
         assert t.take(youmu.events.game_left)
         assert t.take(yuyuko.events.game_left)
-        assert s.lobby.state_of(s.lobby.get(youmu.auth.uid)) == 'lobby'
-        assert s.lobby.state_of(s.lobby.get(yuyuko.auth.uid)) == 'lobby'
+        assert s.lobby.state_of(s.lobby.get(youmu.auth.pid)) == 'lobby'
+        assert s.lobby.state_of(s.lobby.get(yuyuko.auth.pid)) == 'lobby'
 
         # Stop being big brother
-        s.observe.remove_bigbrother(yuyuko.auth.uid)
+        s.observe.remove_bigbrother(yuyuko.auth.pid)
 
         # Happy path
         t.clear()
         youmu.room.create('Boom', 'THBattleDummy1', {}); wait()
-        yuyuko.observe.observe(youmu.auth.uid); wait()
-        youmu.observe.grant(yuyuko.auth.uid, True); wait()
+        yuyuko.observe.observe(youmu.auth.pid); wait()
+        youmu.observe.grant(yuyuko.auth.pid, True); wait()
         youmu.room.get_ready(); wait()
         assert not youmu.game.is_observe(t[youmu.events.game_started])
         assert yuyuko.game.is_observe(t[yuyuko.events.game_started])

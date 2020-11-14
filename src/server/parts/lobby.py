@@ -31,8 +31,8 @@ class Lobby(object):
         core.events.user_state_transition += self.handle_user_state_transition
         core.events.game_ended += self.handle_game_ended
 
-        self.users: Dict[int, Client] = {}          # all users
-        self.dropped_users: Dict[int, Client] = {}  # passively dropped users
+        self.users: Dict[int, Client] = {}          # all players
+        self.dropped_users: Dict[int, Client] = {}  # passively dropped players
 
     def __repr__(self) -> str:
         return self.__class__.__name__
@@ -85,7 +85,7 @@ class Lobby(object):
         users = core.room.users_of(g)
 
         for u in users:
-            self.dropped_users.pop(core.auth.uid_of(u), 0)
+            self.dropped_users.pop(core.auth.pid_of(u), 0)
 
         return g
 
@@ -97,8 +97,8 @@ class Lobby(object):
     def all_users(self) -> BatchList[Client]:
         return BatchList(self.users.values())
 
-    def get(self, uid: int) -> Optional[Client]:
-        return self.users.get(uid)
+    def get(self, pid: int) -> Optional[Client]:
+        return self.users.get(pid)
 
     def init_freeslot(self, c: Client) -> None:
         core = self.core
@@ -112,40 +112,33 @@ class Lobby(object):
     # ----- Methods -----
     def _user_join(self, u: Client) -> None:
         core = self.core
-        uid = core.auth.uid_of(u)
+        pid = core.auth.pid_of(u)
 
         old = None
 
-        if uid in self.users:
+        if pid in self.users:
             # squeeze the original one out
-            log.info('UID:%s has been squeezed out', uid)
-            old = self.users[uid]
+            log.info('PID:%s has been squeezed out', pid)
+            old = self.users[pid]
 
-        if uid in self.dropped_users:
-            log.info('UID:%s rejoining dropped game', uid)
-            old = self.dropped_users.pop(uid)
-
-            # XXX
-            '''
-            @core.runner.spawn
-            def reconnect():
-                self.send_account_info(user)
-            '''
+        if pid in self.dropped_users:
+            log.info('PID:%s rejoining dropped game', pid)
+            old = self.dropped_users.pop(pid)
 
         if old:
             u.pivot_to(old)
             core.events.client_pivot.emit(old)
         else:
-            self.users[uid] = u
+            self.users[pid] = u
             self.state_of(u).transit('lobby')
 
-        log.info('User UID:%s joined, online user %d', uid, len(self.users))
+        log.info('User PID:%s joined, online user %d', pid, len(self.users))
 
     def _user_leave(self, u: Client) -> None:
         core = self.core
-        uid = core.auth.uid_of(u)
-        self.users.pop(uid, 0)
-        log.info('User UID:%s left, online user %d', uid, len(self.users))
+        pid = core.auth.pid_of(u)
+        self.users.pop(pid, 0)
+        log.info('User PID:%s left, online user %d', pid, len(self.users))
 
     @throttle(3)
     def _notify_online_users(self, ul: Sequence[Client]) -> None:

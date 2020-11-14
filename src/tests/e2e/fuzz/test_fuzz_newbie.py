@@ -40,7 +40,7 @@ class TestFuzzTHBattleFaith(object):
 
         c.auth.login('Reimu')
         wait()
-        assert c.auth.uid
+        assert c.auth.pid
         c.room.create('Test1', 'THBattleNewbie', {})
         wait()
 

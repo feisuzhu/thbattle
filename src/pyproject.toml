@@ -21,6 +21,7 @@ neovim = "*"
 flake8 = "*"
 coverage = "*"
 mypy = "*"
+jedi = "^0.17.2"
 
 [build-system]
 requires = ["poetry>=0.12"]

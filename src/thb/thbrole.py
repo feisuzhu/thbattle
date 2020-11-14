@@ -492,7 +492,7 @@ class THBattleRoleBootstrap(BootstrapAction):
                 '>> Player: %s:%s %s',
                 ch.__class__.__name__,
                 g.roles[ch.player].get().name,
-                ch.player.uid,
+                ch.player.pid,
             )
         # -------
 

@@ -36,8 +36,8 @@ class Replay(object):
 
     def dumps(self, g: Game) -> bytes:
         core = self.core
-        uid = core.auth.uid
-        uids = [p.uid for p in core.game.players_of(g)]
+        pid = core.auth.pid
+        pids = [p.pid for p in core.game.players_of(g)]
 
         rep: ReplayFile = {
             'version': 1,
@@ -46,11 +46,11 @@ class Replay(object):
             'name': core.game.name_of(g),
             'params': core.game.params_of(g),
             'items': {
-                p.uid: [i.sku for i in items]
+                p.pid: [i.sku for i in items]
                 for p, items in core.game.items_of(g).items()
             },
-            'users': uids,
-            'me': uid,
+            'users': pids,
+            'me': pid,
             'data': core.game.gamedata_of(g).archive(),
             'gid': core.game.gid_of(g),
         }
@@ -67,7 +67,7 @@ class Replay(object):
             rep['gid'],
             rep['mode'],
             rep['name'],
-            [{'uid': i, 'state': 'game'} for i in rep['users']],
+            [{'pid': i, 'state': 'game'} for i in rep['users']],
             rep['params'],
             rep['items'],
         )

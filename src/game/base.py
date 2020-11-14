@@ -113,7 +113,7 @@ class AssociatedDataViralContext(ViralContext):
 
 
 class Player(GameObject, AssociatedDataViralContext):
-    uid: int
+    pid: int
 
     def reveal(self, obj_list: Any) -> None:
         raise GameError('Abstract')

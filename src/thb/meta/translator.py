@@ -164,9 +164,9 @@ def action_effects(g: THBattle, core: Core, evt: str, act: THBAction):
 
 def to_actor(o: Any) -> dict:
     if isinstance(o, Character):
-        return {'uid': o.player.uid}
+        return {'pid': o.player.pid}
     elif isinstance(o, Player):
-        return {'uid': o.uid}
+        return {'pid': o.pid}
     else:
         raise Exception(f'WTF: {o}')
 
@@ -200,7 +200,7 @@ def card_detach_effects(g: THBattle, core: Core, evt: str, arg: Any):
 
 def game_roll_prompt(g: THBattle, core: Core, evt: str, arg: Any):
     pl = cast(BatchList[Player], arg)
-    t = ' -> '.join(f'*[user:{p.uid}]' for p in pl)
+    t = ' -> '.join(f'*[user:{p.pid}]' for p in pl)
     core.gate.post('thb.ui.text', {'text': f'Roll点顺序：{t}'})
 
 

@@ -35,8 +35,8 @@ class TestKedama(object):
         wait()
 
         # Kedama should not create modes not allowed
-        assert proton.auth.uid == 2
-        assert kedama.auth.uid < 0
+        assert proton.auth.pid == 2
+        assert kedama.auth.pid < 0
         kedama.room.create('Boom', 'THBattle2v2', {})
         wait()
         assert kedama.events.game_joined not in t
@@ -55,5 +55,5 @@ class TestKedama(object):
         kedama.room.create('Meh', 'THBattleKOF', {}); wait()
         g = t.take(kedama.events.game_joined)
         gid = kedama.game.gid_of(g)
-        kedama.room.invite(proton.auth.uid); wait()
+        kedama.room.invite(proton.auth.pid); wait()
         assert t.take(kedama.events.server_error) == 'kedama_limitation'

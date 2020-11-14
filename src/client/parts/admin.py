@@ -19,9 +19,9 @@ class Admin(object):
         self.core = core
 
     # ----- Public Methods -----
-    def kick(self, uid: int) -> None:
+    def kick(self, pid: int) -> None:
         core = self.core
-        core.server.write(wire.msg.AdminKick(uid=uid))
+        core.server.write(wire.msg.AdminKick(pid=pid))
 
     def clearzombies(self) -> None:
         core = self.core

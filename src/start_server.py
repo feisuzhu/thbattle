@@ -47,7 +47,7 @@ def start_server():
     parser.add_argument('--backdoor', default='tcp://127.0.0.1:19999', type=str)
     parser.add_argument('--log', default='file:///dev/shm/thb.log?level=INFO')
     parser.add_argument('--archive-path', default='file:///dev/shm/thb-archive')
-    parser.add_argument('--backend', default='http://uid:pass@localhost/graphql')
+    parser.add_argument('--backend', default='http://token@localhost/graphql')
     parser.add_argument('--interconnect', default='ws://uid:pass@localhost:12333/interconnect')
     options = parser.parse_args()
 

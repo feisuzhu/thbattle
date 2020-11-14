@@ -78,7 +78,7 @@ class ServerGameRunner(GameRunner):
         players = core.game.players_of(g)
 
         m: Dict[int, Player] = {
-            core.auth.uid_of(p.client): p
+            core.auth.pid_of(p.client): p
             for p in players if isinstance(p, HumanPlayer)
         }
 
@@ -273,9 +273,9 @@ class ServerGameRunner(GameRunner):
 class HumanPlayer(Player):
     client: Client
 
-    def __init__(self, g: Game, uid: int, client: Client):
+    def __init__(self, g: Game, pid: int, client: Client):
         self.game = g
-        self.uid = uid
+        self.pid = pid
         self.client = client
 
     def reveal(self, obj: Any) -> None:
@@ -295,7 +295,7 @@ class NPCPlayer(Player):
 
     def __init__(self, g: Game, name: str, handler: Callable[[InputTransaction, Inputlet], Any]):
         self.game = g
-        self.uid = 0
+        self.pid = 0
         self.name = name
         self.handle_user_input = handler
 

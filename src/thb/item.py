@@ -116,13 +116,13 @@ class ImperialRole(GameItem):
         threshold[self.role] -= 1
 
         items = core.item.items_of(g)
-        uid = core.auth.uid_of(u)
-        for _uid, l in items.items():
+        pid = core.auth.pid_of(u)
+        for _pid, l in items.items():
             for i in l:
                 if not isinstance(i, self.__class__):
                     continue
 
-                if _uid == uid:
+                if _pid == pid:
                     raise exceptions.RoleAlreadyChosen
 
                 assert i.role in threshold
@@ -176,7 +176,7 @@ class European(GameItem):
 
         items = core.item.items_of(g)
 
-        for uid, l in items.items():
+        for pid, l in items.items():
             if any(isinstance(i, cls) for i in l):
                 raise exceptions.EuropeanConflict
 

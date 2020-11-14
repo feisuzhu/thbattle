@@ -103,7 +103,7 @@ class MockBackend(object):
         '''
         return {'gameId': random.randint(0, 1000000)}
 
-    def uid_of(self, token: str) -> int:
+    def pid_of(self, token: str) -> int:
         return self.NAMED.get(token, abs(hash(token)) % 120943)
 
     @_reg
@@ -135,7 +135,7 @@ class MockBackend(object):
                     'permissions': []
                 },
                 "player": {
-                    'id': self.uid_of(v['token']),
+                    'id': self.pid_of(v['token']),
                 }
             },
         }
@@ -169,13 +169,13 @@ class MockBackend(object):
     @_reg
     def if_have_item(self, v: Any) -> Any:
         '''
-        query($uid: Int!, $sku: String!) {
+        query($pid: Int!, $sku: String!) {
             player(id: $id) {
                 haveItem(sku: $sku)
             }
         }
         '''
-        return {'player': {'haveItem': self.items[v['uid']][v['sku']] > 0}}
+        return {'player': {'haveItem': self.items[v['pid']][v['sku']] > 0}}
 
     @_reg
     def remove_item(self, v: Any) -> Any:
