@@ -11,7 +11,7 @@ import random
 import gevent
 
 # -- own --
-from game.base import EventHandler
+from game.base import EventHandler, Game
 from thb.cards.base import Card
 from thb.actions import ActionStageLaunchCard, CardChooser, CharacterChooser
 from thb.actions import MigrateCardsTransaction, skill_wrap

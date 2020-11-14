@@ -80,8 +80,6 @@ class UnityUIEventHook(EventHandler):
 
         return arg
 
-# g.event_observer = UnityUIEventHook(self.warpgate, g)
-
 
 class CoreCall(TypedDict):
     call_id: int
@@ -179,7 +177,7 @@ class Gate(object):
         payload = msgpack.packb({'op': op, 'payload': b})
 
         if self.testing:
-            log.info('Posted to gate: %s -> %s', op, data)
+            log.debug('Posted to gate: %s -> %s', op, data)
             return
 
         with self.writelock:
@@ -297,7 +295,8 @@ class Gate(object):
     def on_game_started(self, g: Game) -> Game:
         core = self.core
         self.current_game = g
-        g.event_observer = UnityUIEventHook(core, g)
+        if not self.testing:
+            g.event_observer = UnityUIEventHook(core, g)
         self.post("game_started", core.game.gid_of(g))
         return g
 
