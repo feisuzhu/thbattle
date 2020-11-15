@@ -126,7 +126,7 @@ class Auth(object):
                 'kedama': False,
                 'permissions': set(
                     [i['codename'] for i in rst['userPermissions']] +
-                    [i['codename'] for i in rst['groups']['permissions']]
+                    [i['codename'] for g in rst['groups'] for i in g['permissions']]
                 ),
             }
             u._[self] = assoc

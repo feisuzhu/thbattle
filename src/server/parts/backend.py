@@ -130,10 +130,12 @@ class MockBackend(object):
         return {
             'user': {
                 'isActive': True,
-                'userPermissions': [],
-                'groups': {
-                    'permissions': []
-                },
+                'userPermissions': [{"codename": "perm1"}],
+                'groups': [{
+                    'permissions': [{"codename": "perm2"}, {"codename": "perm3"}]
+                }, {
+                    'permissions': [{"codename": "perm4"}]
+                }],
                 "player": {
                     'id': self.pid_of(v['token']),
                 }
