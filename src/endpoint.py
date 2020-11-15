@@ -147,14 +147,12 @@ class Endpoint(object):
 
                 fmt, data = self._decode_packet(v)
                 if fmt == Format.Packed:
-                    msg = wire.Message.decode(data)
-                    if msg:
+                    if msg := wire.Message.decode(data):
                         log.debug("%s <<RECV %r", repr(self), msg)
                         yield msg
                 elif fmt == Format.BulkCompressed:
                     for d in data:
-                        msg = wire.Message.decode(d)
-                        if msg:
+                        if msg := wire.Message.decode(d):
                             log.debug("%s <<RECV %r", repr(self), msg)
                             yield msg
 

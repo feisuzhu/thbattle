@@ -97,7 +97,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
         return data['id']
 
     @classmethod
-    def from_token(cls, token, max_age=30):
+    def from_token(cls, token, max_age=30 * 86400):
         uid = cls.uid_from_token(token, max_age) or None
         return uid and cls.objects.get(id=uid)
 

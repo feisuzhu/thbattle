@@ -79,7 +79,12 @@ class GamePart(object):
         if core.lobby.state_of(u) == 'game':
             g = Au(self, u)['game']
             assert g
-            assert u in core.room.users_of(g)
+
+            pid = core.auth.pid_of(u)
+            for p in Ag(self, g)['players']:
+                if isinstance(p, HumanPlayer):
+                    if core.auth.pid_of(p.client) == pid:
+                        p.client = u
 
             u.write(wire.GameJoined(core.view.GameDetail(g)))
             u.write(wire.GameStarted(core.view.GameDetail(g)))

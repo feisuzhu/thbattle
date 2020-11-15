@@ -115,15 +115,13 @@ class Server(object):
         self.state = 'initial'
 
     def write(self, v: wire.ClientToServer) -> None:
-        ep = self._ep
-        if ep:
+        if ep := self._ep:
             ep.write(v)
         else:
             raise Exception('No endpoint present')
 
     def raw_write(self, v: bytes) -> None:
-        ep = self._ep
-        if ep:
+        if ep := self._ep:
             ep.raw_write(v)
         else:
             raise Exception('No endpoint present')

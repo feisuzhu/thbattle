@@ -21,10 +21,6 @@ if TYPE_CHECKING:
 log = logging.getLogger('server.core.endpoint')
 
 
-class Pivot(Exception):
-    pass
-
-
 class Client(object):
     __slots__ = ('_ep', '_gr', 'core', '_')
 
@@ -55,9 +51,6 @@ class Client(object):
             except EndpointDied:
                 break
 
-            except Pivot:
-                continue
-
             except Exception as e:
                 if core.options.testing:
                     core.crash(e)
@@ -79,19 +72,17 @@ class Client(object):
     def is_dead(self) -> bool:
         return not self._gr or self._gr.ready()
 
-    def pivot_to(self, other: Client) -> None:
-        if not self._ep:
-            raise Exception("self._ep is not valid!")
-
-        other._ep = self._ep
-        self._ep = None
-        self._gr and self._gr.kill()  # this skips client_dropped event
-
+    def pivot_to(self, new: Client) -> None:
         core = self.core
-        if other._ep:
-            other._gr and other._gr.kill(Pivot)
-        else:
-            other._gr = core.runner.spawn(other._serve)
+
+        cur = getcurrent()
+        new._ = dict(self._)
+
+        assert cur is not self._gr
+        self.terminate()
+
+        if not new._gr:
+            new._gr = core.runner.spawn(new._serve)
 
     def __repr__(self) -> str:
         if self._ep:

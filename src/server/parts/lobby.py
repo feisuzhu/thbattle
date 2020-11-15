@@ -126,8 +126,9 @@ class Lobby(object):
             old = self.dropped_users.pop(pid)
 
         if old:
-            u.pivot_to(old)
-            core.events.client_pivot.emit(old)
+            old.pivot_to(u)
+            self.users[pid] = u
+            core.events.client_pivot.emit(u)
         else:
             self.users[pid] = u
             self.state_of(u).transit('lobby')

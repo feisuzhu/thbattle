@@ -54,6 +54,7 @@ class Room(object):
         core.events.game_joined += self.handle_game_joined
         core.events.game_left += self.handle_game_left
         core.events.game_ended += self.handle_game_ended
+        core.events.client_pivot += self.handle_client_pivot
         core.events.core_initialized += self.handle_core_initialized
 
         D = core.events.client_command
@@ -148,6 +149,21 @@ class Room(object):
                 self.join_game(g, u)
 
         return old
+
+    def handle_client_pivot(self, u: Client) -> Client:
+        core = self.core
+        g = core.game.current(u)
+        if not g:
+            return u
+
+        pid = core.auth.pid_of(u)
+        ul = Ag(self, g)['users']
+        for i in range(len(ul)):
+            if ul[i] and core.auth.pid_of(ul[i]) == pid:
+                ul[i] = u
+                break
+
+        return u
 
     # ----- Client Commands -----
     @command('lobby')
