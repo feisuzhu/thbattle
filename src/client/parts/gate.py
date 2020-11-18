@@ -89,6 +89,8 @@ class CoreCall(TypedDict):
 
 
 class Gate(object):
+    sock: socket.socket
+
     def __init__(self, core: Core, testing: bool = False):
         self.core = core
         self.current_game: Optional[Game] = None
@@ -125,6 +127,29 @@ class Gate(object):
         core.events.game_ended           += self.on_game_ended
         core.events.auth_success         += self.on_auth_success
         core.events.auth_error           += self.on_auth_error
+
+        D = core.events.server_command
+        D[wire.InviteRequest] += self.handle_invite_request
+        D[wire.KickRequest]   += self.handle_kick_request
+        D[wire.SystemMsg]     += self.handle_system_msg
+        D[wire.GameParams]    += self.handle_game_params
+        D[wire.SetGameParam]  += self.handle_set_game_param
+        D[wire.StartMatching] += self.handle_start_matching
+
+    def post(self, op: str, data: Any) -> None:
+        if not self.connected:
+            log.error('Attempt to post message when gate is not conected: %s -> %s', op, data)
+            return
+
+        b = msgpack.packb(data, use_bin_type=True)
+        payload = msgpack.packb({'op': op, 'payload': b})
+
+        if self.testing:
+            log.debug('Posted to gate: %s -> %s', op, data)
+            return
+
+        with self.writelock:
+            self.sock.sendall(payload)
 
     def connect(self) -> None:
         core = self.core
@@ -167,21 +192,6 @@ class Gate(object):
                 s.close()
             except Exception:
                 pass
-
-    def post(self, op: str, data: Any) -> None:
-        if not self.connected:
-            log.error('Attempt to post message when gate is not conected: %s -> %s', op, data)
-            return
-
-        b = msgpack.packb(data, use_bin_type=True)
-        payload = msgpack.packb({'op': op, 'payload': b})
-
-        if self.testing:
-            log.debug('Posted to gate: %s -> %s', op, data)
-            return
-
-        with self.writelock:
-            self.sock.sendall(payload)
 
     # ----- RPCs -----
     def do_call(self, v: CoreCall) -> None:
@@ -324,3 +334,27 @@ class Gate(object):
     def on_auth_error(self, v: str) -> str:
         self.post("auth_error", v)
         return v
+
+    def handle_invite_request(self, m: wire.InviteRequest) -> wire.InviteRequest:
+        self.post('invite_request', m.encode())
+        return m
+
+    def handle_kick_request(self, m: wire.KickRequest) -> wire.KickRequest:
+        self.post('kick_request', m.encode())
+        return m
+
+    def handle_system_msg(self, m: wire.SystemMsg) -> wire.SystemMsg:
+        self.post('system_msg', m.msg)
+        return m
+
+    def handle_game_params(self, m: wire.GameParams) -> wire.GameParams:
+        self.post('game_params', m.encode())
+        return m
+
+    def handle_set_game_param(self, m: wire.SetGameParam) -> wire.SetGameParam:
+        self.post('set_game_param', m.encode())
+        return m
+
+    def handle_start_matching(self, m: wire.StartMatching) -> wire.StartMatching:
+        self.post('start_matching', m.modes)
+        return m
