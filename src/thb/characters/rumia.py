@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 # -- third party --
 # -- own --
 from game.base import ActionShootdown
-from thb.actions import Damage, DrawCards, FinalizeStage, LaunchCard, UserAction, user_choose_cards
+from thb.actions import Damage, DrawCards, FinalizeStage, LaunchCard, UserAction, ttags
+from thb.actions import user_choose_cards
 from thb.cards.base import PhysicalCard, Skill, t_None, t_OtherN
 from thb.cards.basic import Attack
 from thb.cards.definition import AttackCard, RejectCard
@@ -32,8 +33,7 @@ class DarknessAction(UserAction):
         attacker, victim = self.target_list
         src = self.source
         g = self.game
-        tags = self.source.tags
-        tags['darkness_tag'] = tags['turn_count']
+        ttags(src)['darkness_tag'] = True
 
         cards = user_choose_cards(self, attacker, ('cards', 'showncards'))
         if cards:
@@ -55,8 +55,7 @@ class DarknessAction(UserAction):
         return LaunchCard(attacker, [victim], cl[0]).can_fire()
 
     def is_valid(self):
-        tags = self.source.tags
-        if tags['turn_count'] <= tags['darkness_tag']:
+        if ttags(self.source)['darkness_tag']:
             return False
 
         attacker, victim = self.target_list
@@ -92,8 +91,7 @@ class DarknessKOF(Skill):
 class DarknessKOFAction(UserAction):
     def apply_action(self):
         tgt = self.target
-        g = self.game
-        tgt.tags['darkness_kof_tag'] = max(g.turn_count, 1)
+        ttags(tgt)['darkness_kof_tag'] = True
         return True
 
 
@@ -119,7 +117,7 @@ class DarknessKOFHandler(THBEventHandler):
 
             g = self.game
             opp = g.get_opponent(arg.source)
-            if opp.tags['darkness_kof_tag'] < g.turn_count:
+            if ttags(opp)['darkness_kof_tag']:
                 return arg
 
             card = arg.card

@@ -293,10 +293,9 @@ class HumanPlayer(Player):
 
 class NPCPlayer(Player):
 
-    def __init__(self, g: Game, name: str, handler: Callable[[InputTransaction, Inputlet], Any]):
+    def __init__(self, g: Game, pid: int, handler: Callable[[InputTransaction, Inputlet], Any]):
         self.game = g
-        self.pid = 0
-        self.name = name
+        self.pid = pid
         self.handle_user_input = handler
 
     def reveal(self, ol: Any) -> None:

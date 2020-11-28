@@ -4,8 +4,8 @@ from __future__ import annotations
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange
-from thb.actions import PrepareStage, UserAction, migrate_cards, random_choose_card
+from thb.actions import Damage, DrawCards, DropCards, GenericAction, LaunchCard, MaxLifeChange, ttags
+from thb.actions import PrepareStage, UserAction, migrate_cards, random_choose_card, FinalizeStage
 from thb.cards.base import Skill
 from thb.cards.classes import t_None, t_OtherOne
 from thb.characters.base import Character, register_character_to
@@ -18,8 +18,8 @@ class RiversideAction(UserAction):
     def apply_action(self):
         g = self.game
         src, tgt = self.source, self.target
-        src.tags['riverside_tag'] = src.tags['turn_count']
-        tgt.tags['riverside_target'] = g.turn_count
+        ttags(src)['riverside'] = True
+        tgt.tags['riverside_target'] = True
         minhp = min([p.life for p in g.players if not p.dead])
         if tgt.life == minhp:
             has_card = tgt.cards or tgt.showncards or tgt.equips
@@ -44,7 +44,7 @@ class RiversideAction(UserAction):
 
 
 class RiversideHandler(THBEventHandler):
-    interested = ['calcdistance']
+    interested = ['calcdistance', 'action_after']
 
     def handle(self, evt_type, arg):
         if evt_type == 'calcdistance':
@@ -52,10 +52,14 @@ class RiversideHandler(THBEventHandler):
             if not src.has_skill(Riverside):
                 return arg
 
-            turn_count = self.game.turn_count
             for p in dist:
-                if p.tags.get('riverside_target') == turn_count:
+                if p.tags['riverside_target']:
                     dist[p] -= 10000
+
+        elif evt_type == 'action_after' and isinstance(arg, FinalizeStage):
+            g = self.game
+            for ch in g.players:
+                ch.tags.pop('riverside_target', 0)
 
         return arg
 

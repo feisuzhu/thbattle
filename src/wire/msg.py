@@ -3,7 +3,8 @@ from __future__ import annotations
 
 # -- stdlib --
 from dataclasses import dataclass
-from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, TypedDict
+from enum import IntEnum
+from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, TypedDict, Tuple
 import dataclasses
 
 # -- third party --
@@ -126,6 +127,12 @@ class GameStarted(Message, ServerToClient):
     game: model.GameDetail
 
 
+class PresenceState(IntEnum):
+    ONLINE  = 1
+    DROPPED = 2
+    FLED   = 3
+
+
 @message
 @dataclass
 class PlayerPresence(Message, ServerToClient):
@@ -133,7 +140,7 @@ class PlayerPresence(Message, ServerToClient):
     Indicates if player is still in the game
     '''
     gid: int
-    presence: Dict[int, bool]
+    presence: List[PresenceState]
 
 
 @message

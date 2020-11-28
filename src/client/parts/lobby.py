@@ -34,15 +34,15 @@ class Lobby(object):
 
     # ----- Reactions -----
     def _current_games(self, ev: wire.msg.CurrentGames) -> wire.msg.CurrentGames:
-        self.games = ev.games
         core = self.core
-        core.events.lobby_updated.emit((self.users, self.games))
+        self.games = ev.games
+        core.events.lobby_games.emit(ev.games)
         return ev
 
     def _current_users(self, ev: wire.msg.CurrentUsers) -> wire.msg.CurrentUsers:
-        self.users = ev.users
         core = self.core
-        core.events.lobby_updated.emit((self.users, self.games))
+        self.users = ev.users
+        core.events.lobby_users.emit(ev.users)
         return ev
 
     def _server_dropped(self, v: bool) -> bool:

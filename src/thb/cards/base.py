@@ -29,7 +29,7 @@ log = logging.getLogger('THBattle_Cards')
 alloc_id = itertools.count(1).__next__
 
 
-class CardView(TypedDict):
+class CardView(TypedDict, total=False):
     type: str
     vcard: bool
     suit: int
@@ -37,7 +37,7 @@ class CardView(TypedDict):
     color: str
     sync_id: int
     track_id: int
-    params: dict
+    params: Optional[Dict[str, Any]]
 
 
 class Card(GameObject, GameViralContext):
@@ -81,7 +81,7 @@ class Card(GameObject, GameViralContext):
         self.number     = number
         self.resides_in = resides_in
 
-    def dump(self) -> CardView:
+    def dump(self, with_meta=False, with_description=False) -> CardView:
         return {
             'type': self.__class__.__name__,
             'vcard': False,
@@ -90,7 +90,7 @@ class Card(GameObject, GameViralContext):
             'color': self.color,
             'sync_id': self.sync_id,
             'track_id': self.track_id,
-            'params': {},
+            'params': None,
         }
 
     def sync(self, data):  # this only executes at client side, let it crash.
@@ -226,7 +226,7 @@ class VirtualCard(Card, GameViralContext):
     def dump(self):
         return {
             'type':  self.__class__.__name__,
-            'vcard':  True,
+            'vcard': True,
             'suit': self.suit,
             'number': self.number,
             'color': self.color,

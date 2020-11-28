@@ -4,9 +4,11 @@ from __future__ import annotations
 # -- stdlib --
 from typing import Any, Dict, List, TYPE_CHECKING, TypedDict
 
+
 # -- third party --
 # -- own --
 import wire
+
 
 # -- typing --
 if TYPE_CHECKING:
@@ -15,15 +17,14 @@ if TYPE_CHECKING:
 
 
 # -- code --
-class GameView(TypedDict):
-    gid: int
-    type: str
+class CardMetaView(TypedDict):
     name: str
-    users: List[wire.model.User]
-    presence: Dict[int, bool]
-    params: Dict[str, Any]
-    items: Dict[int, List[str]]
-    observe: bool
+    image: str
+    desc: Optional[str]
+    eqpcat: str
+    skcat: List[str]
+    nodisp: bool
+    ui: str
 
 
 class View(object):
@@ -33,13 +34,38 @@ class View(object):
     def __repr__(self) -> str:
         return self.__class__.__name__
 
-    # def Game(self, g: Game) -> GameView:
-    #     core = self.core
+    def Character(self, ch: Character):
+        pass
 
-    #     return {
-    #         'gid':      core.game.gid_of(g),
-    #         'type':     g.__class__.__name__,
-    #         'name':     core.game.name_of(g),
-    #         'started':  core.room.is_started(g),
-    #         'online':   len(core.room.online_users_of(g)),
-    #     }
+    def Card(self, c: Card, with_description=False) -> CardView:
+        rst: CardView = {
+            'type': self.__class__.__name__,
+            'vcard': False,
+            'suit': self.suit,
+            'number': self.number,
+            'color': self.color,
+            'sync_id': self.sync_id,
+            'track_id': self.track_id,
+            'params': {},
+            'm': None,
+        }
+
+        rst = c.dump()
+
+        if with_meta:
+            m = self.ui_meta
+            meta: CardMetaView = {
+                'name': self.ui_meta.name,
+                'image': self.ui_meta.image,
+                'eqpcat': getattr(self, 'equipment_category', None),
+                'skcat': getattr(self, 'skill_category', None),
+                'nodisp': getattr(m, 'no_display', False),
+                'ui': getattr(m, 'params_ui', None),
+                'desc': None,
+            }
+            if with_description:
+                meta['desc'] = getattr(m, 'description', None)
+
+            rst['m'] = meta
+
+        return rst

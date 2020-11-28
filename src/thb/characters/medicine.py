@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from game.base import ActionShootdown
-from thb.actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction, LaunchCard
+from thb.actions import Damage, DrawCards, DropCards, FatetellStage, GenericAction, LaunchCard, FinalizeStage
 from thb.actions import LifeLost, ShowCards, UseCard, UserAction, user_choose_cards
 from thb.cards.base import Card, Skill, VirtualCard
 from thb.cards.classes import Wine, t_None
@@ -96,7 +96,7 @@ class MelancholyAction(GenericAction):
         g.process_action(draw)
         g.process_action(ShowCards(src, draw.cards))
         if [c for c in draw.cards if c.suit != Card.CLUB]:  # any non-club
-            tgt.tags['melancholy_tag'] = g.turn_count
+            tgt.tags['melancholy_limit'] = True
             self.effective = True
 
         else:
@@ -134,7 +134,7 @@ class MelancholyHandler(THBEventHandler):
         elif evt_type == 'action_shootdown' and isinstance(act, (LaunchCard, UseCard)):
             src = act.source
             g = self.game
-            if src.tags.get('melancholy_tag') != g.turn_count:
+            if src.tags['melancholy_limit']:
                 return act
 
             def walk(c):
@@ -152,6 +152,11 @@ class MelancholyHandler(THBEventHandler):
             for c in cards:
                 if c.resides_in in zone:
                     raise MelancholyLimit
+
+        elif evt_type == 'action_after' and isinstance(act, FinalizeStage):
+            g = self.game
+            for ch in g.players:
+                ch.tags.pop('melancholy_limit', 0)
 
         return act
 

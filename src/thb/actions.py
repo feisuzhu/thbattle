@@ -34,7 +34,13 @@ log = logging.getLogger('THBattle_Actions')
 def ttags(actor):
     tags = actor.tags
     tc = tags['turn_count']
-    return tags.setdefault('turn_tags:%s' % tc, defaultdict(int))
+    return tags.setdefault(f'turn_tags:{tc}', defaultdict(int))
+
+
+def ttags_flush(actor):
+    tags = actor.tags
+    tc = tags['turn_count']
+    return tags.pop(f'turn_tags:{tc}', 0)
 
 
 class CardChooser(Protocol):
@@ -1208,6 +1214,7 @@ class PlayerTurn(GenericAction):
     def apply_action(self) -> bool:
         g = self.game
         p = self.target
+
         p.tags['turn_count'] += 1
 
         while self.pending_stages:
@@ -1215,6 +1222,7 @@ class PlayerTurn(GenericAction):
             self.current_stage = cs = stage(p)
             g.process_action(cs)
 
+        ttags_flush(p)
         return True
 
     @staticmethod

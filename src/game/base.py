@@ -186,7 +186,6 @@ class Game(GameObject, Generic[A, EH]):
         self.hybrid_stack   = []
         self.ended          = False
         self.winners        = []
-        self.turn_count     = 0
         self.event_observer = None
         self.synctag       = 0
 

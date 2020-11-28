@@ -71,8 +71,7 @@ class Auth(object):
 
         if token == '':
             if self._allow_kedama:
-                pid = -self._kedama_pid
-                self._kedama_pid += 1
+                pid = self.next_kedama_pid()
                 u.write(wire.AuthSuccess(pid))
                 assoc = {
                     'pid': pid,
@@ -138,6 +137,11 @@ class Auth(object):
 
     def deny_kedama(self) -> None:
         self._allow_kedama = False
+
+    def next_kedama_pid(self) -> int:
+        pid = -self._kedama_pid
+        self._kedama_pid += 1
+        return pid
 
     def pid_of(self, u: Client) -> int:
         return A(self, u)['pid']

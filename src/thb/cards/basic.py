@@ -7,10 +7,9 @@ from typing import cast
 # -- third party --
 # -- own --
 from game.base import EventHandler
-from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards
-from thb.actions import FinalizeStage, ForEach, GenericAction, LaunchCard, MigrateCardsTransaction
-from thb.actions import PrepareStage, UseCard, UserAction, VitalityLimitExceeded, register_eh
-from thb.actions import user_choose_cards
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, ForEach
+from thb.actions import GenericAction, LaunchCard, MigrateCardsTransaction, PrepareStage, UseCard
+from thb.actions import UserAction, VitalityLimitExceeded, register_eh, ttags, user_choose_cards
 
 
 # -- code --
@@ -93,7 +92,7 @@ class AttackCardVitalityHandler(EventHandler):
             src = act.source
             if act.card.is_card(AttackCard) and not self.is_disabled(src):
                 act._['vitality-handler'] = 'already-handled'
-                src.tags['vitality'] -= 1
+                ttags(src)['vitality'] -= 1
 
         elif evt_type == 'action_shootdown' and isinstance(act, ActionStageLaunchCard):
             from .definition import AttackCard
@@ -105,7 +104,7 @@ class AttackCardVitalityHandler(EventHandler):
                 if act._['vitality-handler']:
                     return act
 
-                if src.tags['vitality'] > 0:
+                if ttags(src)['vitality'] > 0:
                     return act
 
                 raise VitalityLimitExceeded
@@ -114,15 +113,15 @@ class AttackCardVitalityHandler(EventHandler):
 
     @staticmethod
     def disable(p):
-        p.tags['attack_card_vitality'] = p.tags['turn_count']
+        ttags(p)['attack_card_vitality'] = True
 
     @staticmethod
     def enable(p):
-        p.tags['attack_card_vitality'] = 0
+        ttags(p)['attack_card_vitality'] = False
 
     @staticmethod
     def is_disabled(p):
-        return p.tags['attack_card_vitality'] >= p.tags['turn_count']
+        return ttags(p)['attack_card_vitality']
 
 
 @register_eh
@@ -131,9 +130,7 @@ class VitalityHandler(EventHandler):
 
     def handle(self, evt_type, act):
         if evt_type == 'action_before' and isinstance(act, ActionStage):
-            act.source.tags['vitality'] = 1
-        elif evt_type == 'action_before' and isinstance(act, FinalizeStage):
-            act.source.tags['vitality'] = 0
+            ttags(act.source)['vitality'] = 1
 
         return act
 

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, TypedDict, cast
+from typing import Any, Dict, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, TypedDict, cast, List
 from urllib.parse import urlparse
 import logging
 import socket
@@ -14,7 +14,7 @@ import msgpack
 
 # -- own --
 from client.base import Game
-from game.base import EventHandler, InputTransaction, Inputlet, Player
+from game.base import EventHandler, InputTransaction, Inputlet
 import wire
 
 # -- typing --
@@ -86,6 +86,7 @@ class CoreCall(TypedDict):
     environ: Literal['input', 'core']
     method: str
     args: list
+    as_ref: bool
 
 
 class Gate(object):
@@ -104,8 +105,12 @@ class Gate(object):
             self.connected = True
 
         self.eval_environ: Any = {
-            'core': core
+            'core': core,
+            'set': lambda name, v: self.eval_environ[name].__setattr__(name, eval(v)),
         }
+
+        self.refs: Dict[int, Any] = {}
+        self.ref_id = 1
 
         core.events.server_connected     += self.on_server_connected
         core.events.server_refused       += self.on_server_refused
@@ -113,7 +118,8 @@ class Gate(object):
         core.events.version_mismatch     += self.on_version_mismatch
         core.events.server_error         += self.on_server_error
         core.events.server_info          += self.on_server_info
-        core.events.lobby_updated        += self.on_lobby_updated
+        core.events.lobby_users          += self.on_lobby_users
+        core.events.lobby_games          += self.on_lobby_games
         core.events.observe_request      += self.on_observe_request
         core.events.observer_enter       += self.on_observer_enter
         core.events.observer_leave       += self.on_observer_leave
@@ -194,20 +200,31 @@ class Gate(object):
                 pass
 
     # ----- RPCs -----
-    def do_call(self, v: CoreCall) -> None:
+    def do_call(self, call: CoreCall) -> None:
         env = None
-        if v['environ'] == 'input':
+        if call['environ'] == 'input':
             if (g := self.current_game) and (ob := g.event_observer):
                 assert isinstance(ob, UnityUIEventHook)
                 env = ob.input_session
-        elif v['environ'] == 'core':
+        elif call['environ'] == 'core':
             env = self.eval_environ
 
         if env is None:
             return
 
-        ret = eval(v['method'], env)(*v['args'])
-        if cid := v.get('call_id'):
+        args = call['args']
+        for i, v in enumerate(args):
+            if isinstance(v, msgpack.ExtType):
+                if v.code == 66:
+                    args[i] = self.refs[int.from_bytes(v.data, byteorder='little')]
+                else:
+                    raise Exception("Invalid ExtType")
+
+        ret = eval(call['method'], env)(*args)
+        if cid := call.get('call_id'):
+            if call['as_ref']:
+                ret = self._new_ref(ret)
+
             self.post('call_response', {
                 'call_id': cid,
                 'result': msgpack.packb(ret, use_bin_type=True),
@@ -215,6 +232,12 @@ class Gate(object):
 
     def do_exec(self, v: str) -> None:
         exec(v, self.eval_environ)
+
+    def _new_ref(self, v: Any) -> msgpack.ExtType:
+        ref_id = self.ref_id
+        self.ref_id += 1
+        self.refs[ref_id] = v
+        return msgpack.ExtType(66, ref_id.to_bytes(4, 'little'))
 
     # ----- Handlers -----
     def on_server_connected(self, v: bool) -> bool:
@@ -241,12 +264,12 @@ class Gate(object):
         self.post("server_info", v)
         return v
 
-    def on_lobby_updated(self, v: Tuple[Sequence[wire.model.User], Sequence[wire.model.Game]]) -> Any:
-        ul, gl = v
-        self.post("lobby_updated", {
-            'users': ul,
-            'games': gl,
-        })
+    def on_lobby_users(self, v: Sequence[wire.model.User]) -> Any:
+        self.post("lobby_users", v)
+        return v
+
+    def on_lobby_games(self, v: Sequence[wire.model.Game]) -> Any:
+        self.post("lobby_games", v)
         return v
 
     def on_observe_request(self, v: int) -> int:
@@ -269,27 +292,39 @@ class Gate(object):
 
     def on_game_joined(self, g: Game) -> Game:
         core = self.core
-        self.post("game_joined", core.game.gid_of(g))
+        mode = g.__class__.__name__
+
+        self.eval_environ['g'] = g
+
+        # <HACK: cross abstraction boundary>
+        from thb.meta import view
+        self.eval_environ['view'] = view
+        # </HACK>
+
+        meta = {
+            'gid': core.game.gid_of(g),
+            'type': mode,
+        }
+
+        self.post("game_joined", meta)
         return g
 
     def on_set_game_param(self, v: wire.SetGameParam) -> wire.SetGameParam:
         self.post("set_game_param", v)
         return v
 
-    def on_player_presence(self, v: Tuple[Game, Dict[Player, bool]]) -> Any:
+    def on_player_presence(self, v: Tuple[Game, List[Tuple[int, wire.PresenceState]]]) -> Any:
         core = self.core
-        g, pd = v
+        g, presence = v
         self.post("player_presence", {
             'gid': core.game.gid_of(g),
-            'players': [{
-                'pid': p.pid,
-                'present': b,
-            } for p, b in pd.items()]
+            'presence': presence,
         })
         return v
 
     def on_game_left(self, g: Game) -> Game:
         core = self.core
+        self.eval_environ.pop('g', '')
         self.post("game_left", core.game.gid_of(g))
         return g
 
@@ -307,7 +342,13 @@ class Gate(object):
         self.current_game = g
         if not self.testing:
             g.event_observer = UnityUIEventHook(core, g)
-        self.post("game_started", core.game.gid_of(g))
+
+        self.post("game_started", {
+            'gid': core.game.gid_of(g),
+            'type': g.__class__.__name__,
+            'me': core.game.theone_of(g).pid,
+            'pids': [p.pid for p in core.game.players_of(g)],
+        })
         return g
 
     def on_game_crashed(self, g: Game) -> Game:
@@ -336,7 +377,7 @@ class Gate(object):
         return v
 
     def handle_invite_request(self, m: wire.InviteRequest) -> wire.InviteRequest:
-        self.post('invite_request', m.encode())
+        self.post('invite_request', m)
         return m
 
     def handle_kick_request(self, m: wire.KickRequest) -> wire.KickRequest:
@@ -358,3 +399,13 @@ class Gate(object):
     def handle_start_matching(self, m: wire.StartMatching) -> wire.StartMatching:
         self.post('start_matching', m.modes)
         return m
+
+    # ----- Methods -----
+    def ignite(self, gid: int) -> None:
+        core = self.core
+        g = core.game.from_gid(gid)
+        assert g, 'No such game'
+        core.game.start_game(g)
+
+    def invalidate_ref(self, ref_id: int) -> None:
+        self.refs.pop(ref_id, '')

@@ -68,12 +68,12 @@ class WeaponReforgeHandler(THBEventHandler):
             from thb.cards.definition import EquipmentCard
             if not isinstance(c, EquipmentCard): return act
             if c.equipment_category != 'weapon': return act
-            if tgt.tags['vitality'] <= 0: return act
+            if ttags(tgt)['vitality'] <= 0: return act
 
             g = self.game
 
             if g.user_input([tgt], ChooseOptionInputlet(self, (False, True))):
-                tgt.tags['vitality'] -= 1
+                ttags(tgt)['vitality'] -= 1
                 g.process_action(ReforgeWeapon(tgt, tgt, c))
                 act.cancelled = True
 
@@ -1088,9 +1088,9 @@ class GrimoireHandler(THBEventHandler):
             c = act.card
             if c.is_card(GrimoireSkill):
                 src = act.source
-                t = src.tags
+                t = ttags(src)
 
-                if t['turn_count'] <= t['grimoire_tag']:
+                if t['grimoire_tag']:
                     raise ActionLimitExceeded
 
                 if t['vitality'] <= 0:
@@ -1099,9 +1099,10 @@ class GrimoireHandler(THBEventHandler):
         elif evt_type == 'action_after' and isinstance(act, LaunchCard):
             c = act.card
             if c.is_card(GrimoireSkill):
-                t = act.source.tags
+                src = act.source
+                t = ttags(src)
                 t['vitality'] -= 1
-                t['grimoire_tag'] = t['turn_count']
+                t['grimoire_tag'] = True
 
         return act
 

@@ -33,11 +33,11 @@ class Character(GameObject):
     boss_skills: ClassVar[List[Type[Skill]]] = []
 
     skills: List[Type[Skill]] = []
-    maxlife: int = 0
 
     # ----- Instance Variables -----
     dead: bool
     life: int
+    maxlife: int = 0
     disabled_skills: Dict[str, Set[Type[Skill]]]
     tags: Dict[str, Any]
     cards: CardList

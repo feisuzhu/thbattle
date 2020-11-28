@@ -25,7 +25,7 @@ class CriticalStrikeAction(GenericAction):
     def apply_action(self):
         tgt = self.target
         ttags(tgt)['flan_cs'] = True
-        tgt.tags['flan_targets'] = []
+        ttags(tgt)['flan_targets'] = []
         return True
 
 
@@ -61,13 +61,12 @@ class CriticalStrikeHandler(THBEventHandler):
 
         elif evt_type == 'action_apply' and isinstance(act, BaseAttack):
             src = act.source
-            tags = src.tags
             if not self.in_critical_strike(src):
                 return act
 
             tgt = act.target
             if isinstance(act, BaseAttack):
-                tags['flan_targets'].append(tgt)
+                ttags(src)['flan_targets'].append(tgt)
                 act.damage += 1
 
         elif evt_type == 'action_before' and isinstance(act, Damage):
@@ -90,19 +89,18 @@ class CriticalStrikeHandler(THBEventHandler):
 
             if act.card.is_card(AttackCard):
                 act._[self.__class__] = 'vitality-consumed'
-                src.tags['vitality'] -= 1
+                ttags(src)['vitality'] -= 1
 
         elif evt_type == 'action_shootdown':
             if not isinstance(act, ActionStageLaunchCard): return act
             c = act.card
             src = act.source
-            tags = src.tags
             if not self.in_critical_strike(src): return act
             if not c.is_card(AttackCard): return act
             if src.has_skill(ElementalReactorSkill): return act
-            if src.tags['vitality'] > 0: return act
+            if ttags(src)['vitality'] > 0: return act
             if act._[self.__class__]: return act
-            if set(act.target_list) & set(tags['flan_targets']):
+            if set(act.target_list) & set(ttags(src)['flan_targets']):
                 raise CriticalStrikeLimit
 
             return act

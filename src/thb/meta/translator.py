@@ -14,7 +14,8 @@ from thb.actions import PlayerDeath, PlayerTurn, UserAction
 from thb.cards.base import Card, VirtualCard
 from thb.characters.base import Character
 from thb.mode import THBattle
-from utils.misc import BatchList, group_by
+from utils.misc import BatchList
+from thb.meta import view
 
 
 # -- code --
@@ -24,7 +25,7 @@ log = logging.getLogger('THBattleUI_Effects')
 def damage_effect(g: THBattle, core: Core, evt: str, act: Damage):
     core.gate.post('thb.ui.damage', {
         'target': to_actor(act.target),
-        'amount': act.amount,
+        # 'amount': act.amount,
     })
 
 
@@ -61,11 +62,11 @@ def general_action_effect(g: THBattle, core: Core, evt: str, act: THBAction):
 
     if evt == 'action_before':
         rays = getattr(meta, 'ray', None)
-        rays = rays(act) if rays else []
-        for f, t in rays:
-            core.gate.post('thb.ui.ray', {
+        rays = rays(act) if rays else None
+        if rays:
+            core.gate.post('thb.ui.ray', [{
                 'from': to_actor(f), 'to': to_actor(t)
-            })
+            } for f, t in rays])
 
     text = lambda t: core.gate.post('thb.ui.text', {'text': t})
 
@@ -104,16 +105,15 @@ def pindian_effect_chosen(g: THBattle, core: Core, evt: str, arg: Any):
     p, card = arg
     core.gate.post('thb.ui.pindian:chosen', {
         'who': to_actor(p),
-        'card': Card.dump(card),
+        'card': view.card(card),
     })
 
 
 def pindian_effect_card_reveal(g: THBattle, core: Core, evt: str, act: Any):
-    view = Card.dump
     cards = act.pindian_card
     core.gate.post('thb.ui.pindian:reveal', {
-        'source_card': view(cards[act.source]),
-        'target_card': view(cards[act.target]),
+        'source_card': view.card(cards[act.source]),
+        'target_card': view.card(cards[act.target]),
     })
 
 
@@ -124,8 +124,8 @@ def pindian_effect_finish(g: THBattle, core: Core, evt: str, act: Any):
 
 
 def sync_game_state(g: THBattle, core: Core, evt: str, act: Any):
-    from .state import state_of
-    core.gate.post('thb.ui.game_state', state_of(g))
+    from .view import state_of
+    core.gate.post('thb.ui.state', state_of(g))
 
 
 actions_mapping: Dict[str, Dict[Type[THBAction], Callable]] = {
@@ -162,11 +162,11 @@ def action_effects(g: THBattle, core: Core, evt: str, act: THBAction):
         cls = cls.__base__
 
 
-def to_actor(o: Any) -> dict:
+def to_actor(o: Any) -> int:
     if isinstance(o, Character):
-        return {'pid': o.player.pid}
+        return o.player.pid
     elif isinstance(o, Player):
-        return {'pid': o.pid}
+        return o.pid
     else:
         raise Exception(f'WTF: {o}')
 

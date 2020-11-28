@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, List, Sequence, TYPE_CHECKING, TypedDict
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING, TypedDict
 import logging
 
 # -- third party --
@@ -29,13 +29,22 @@ class GamePartAssocOnGame(TypedDict):
     gid: int
     name: str
     users: List[wire.model.User]
-    presence: Dict[Player, bool]
+    presence: List[wire.PresenceState]
     params: Dict[str, Any]
     players: BatchList[Player]
     items: Dict[Player, List[GameItem]]
     data: GameData
     observe: bool
     greenlet: Greenlet
+
+
+class GameDisplayInfo(TypedDict):
+    type: str
+    n_persons: int
+    dispname: str
+    logo: str
+    desc: str
+    params: dict
 
 
 def A(self: GamePart, v: Game) -> GamePartAssocOnGame:
@@ -98,11 +107,11 @@ class GamePart(object):
     def _player_presence(self, ev: wire.PlayerPresence) -> wire.PlayerPresence:
         core = self.core
         g = self.games[ev.gid]
+        A(self, g)['presence'] = ev.presence
         pl = A(self, g)['players']
-        tbl = ev.presence
-        presence = {p: tbl[p.pid] for p in pl}
-        A(self, g)['presence'] = presence
-        core.events.player_presence.emit((g, presence))
+        assert len(ev.presence) == len(pl)
+        lst = [(p.pid, pr) for p, pr in zip(pl, ev.presence)]
+        core.events.player_presence.emit((g, lst))
         return ev
 
     def _game_joined(self, ev: wire.GameJoined) -> wire.GameJoined:
@@ -165,7 +174,7 @@ class GamePart(object):
             'gid':     gid,
             'name':    name,
             'users':   users,
-            'presence': {},
+            'presence': [wire.PresenceState.ONLINE for u in users],
             'params':  params,
             'players': BatchList[Player](),
             'items':   {},
@@ -198,6 +207,9 @@ class GamePart(object):
         }
 
     # ----- Public Methods -----
+    def from_gid(self, gid: int) -> Optional[Game]:
+        return self.games.get(gid)
+
     def is_observe(self, g: Game) -> bool:
         return A(self, g)['observe']
 
@@ -225,8 +237,7 @@ class GamePart(object):
         # core.events.game_data_send.emit((g, pkt))
 
     def kill_game(self, g: Game) -> None:
-        gr = A(self, g)['greenlet']
-        if gr:
+        if gr := A(self, g)['greenlet']:
             gr.kill(ForcedKill)
 
     def gid_of(self, g: Game) -> int:
@@ -256,4 +267,19 @@ class GamePart(object):
 
     def is_dropped(self, g: Game, p: Player) -> bool:
         assert isinstance(p, Player), p
-        return not A(self, g)['presence'].get(p, True)
+        idx = A(self, g)['players'].index(p)
+        return A(self, g)['presence'][idx] in (
+            wire.PresenceState.DROPPED,
+            wire.PresenceState.FLED,
+        )
+
+    def get_all_metadata(self) -> Dict[str, GameDisplayInfo]:
+        from thb import modes
+        return {k: {
+            'type': k,
+            'n_persons': v.n_persons,
+            'dispname': v.ui_meta.name,
+            'logo': v.ui_meta.logo,
+            'desc': v.ui_meta.description,
+            'params': v.ui_meta.params_disp,
+        } for k, v in modes.items()}

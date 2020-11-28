@@ -9,6 +9,7 @@ import random
 
 # -- third party --
 # -- own --
+from endpoint import Endpoint
 from game.base import GameArchive, GameData, Player
 from server.base import Game as ServerGame, HumanPlayer, NPCPlayer
 from server.endpoint import Client
@@ -37,7 +38,7 @@ def Au(self: GamePart, u: Client) -> GamePartAssocOnClient:
 class GamePartAssocOnGame(TypedDict):
     params: Dict[str, Any]
     players: BatchList[Player]
-    fleed: Dict[Client, bool]
+    fled: Dict[Client, bool]
     aborted: bool
     crashed: bool
     rngseed: int
@@ -101,6 +102,7 @@ class GamePart(object):
         for u in users:
             u.write(wire.GameStarted(core.view.GameDetail(g)))
 
+        self._notify_presence(g)
         return g
 
     def handle_game_ended(self, g: ServerGame) -> ServerGame:
@@ -116,7 +118,8 @@ class GamePart(object):
         core = self.core
         if core.room.is_started(g):
             Ag(self, g)['data'][u].revive()
-            Ag(self, g)['fleed'][u] = False
+            Ag(self, g)['fled'][u] = False
+            self._notify_presence(g)
 
         Au(self, u)['game'] = g
 
@@ -129,7 +132,8 @@ class GamePart(object):
             Ag(self, g)['data'][u].die()
             pid = core.auth.pid_of(u)
             p = next(i for i in Ag(self, g)['players'] if i.pid == pid)
-            Ag(self, g)['fleed'][u] = bool(g.can_leave(p))
+            Ag(self, g)['fled'][u] = bool(g.can_leave(p))
+            self._notify_presence(g)
 
         Au(self, u)['game'] = None
 
@@ -178,9 +182,34 @@ class GamePart(object):
     def _build_players(self, g: ServerGame, users: List[Client]) -> BatchList[Player]:
         core = self.core
         pl: BatchList[Player] = BatchList([HumanPlayer(g, core.auth.pid_of(u), u) for u in users])
-        pl[:0] = [NPCPlayer(g, i.name, i.input_handler) for i in g.npc_players]
+        pl[:0] = [NPCPlayer(g, core.auth.next_kedama_pid(), i.input_handler) for i in g.npc_players]
 
         return pl
+
+    def _notify_presence(self, g: ServerGame) -> None:
+        core = self.core
+        rst = []
+        for p in Ag(self, g)['players']:
+            if isinstance(p, NPCPlayer):
+                rst.append(wire.PresenceState.ONLINE)
+            elif isinstance(p, HumanPlayer):
+                if Ag(self, g)['fled'].get(p.client):
+                    rst.append(wire.PresenceState.FLED)
+                elif core.lobby.state_of(p.client) == 'dropped':
+                    rst.append(wire.PresenceState.DROPPED)
+                else:
+                    rst.append(wire.PresenceState.ONLINE)
+            else:
+                raise Exception('WTF')
+
+        ul = core.room.online_users_of(g)
+
+        d = Endpoint.encode_bulk([wire.PlayerPresence(
+            gid=core.room.gid_of(g),
+            presence=rst,
+        )])
+
+        core.runner.spawn(ul.raw_write, d)
 
     # ----- Public Methods -----
     def create_game(self, cls: Type[ServerGame]) -> ServerGame:
@@ -192,7 +221,7 @@ class GamePart(object):
         g._[self] = GamePartAssocOnGame({
             'params': {k: v[0] for k, v in cls.params_def.items()},
             'players': BatchList(),
-            'fleed': defaultdict(bool),
+            'fled': defaultdict(bool),
             'aborted': False,
             'crashed': False,
             'rngseed': seed,
@@ -230,8 +259,8 @@ class GamePart(object):
     def is_aborted(self, g: ServerGame) -> bool:
         return Ag(self, g)['aborted']
 
-    def is_fleed(self, g: ServerGame, u: Client) -> bool:
-        return Ag(self, g)['fleed'][u]
+    def is_fled(self, g: ServerGame, u: Client) -> bool:
+        return Ag(self, g)['fled'][u]
 
     def get_gamedata_archive(self, g: ServerGame) -> List[GameArchive]:
         core = self.core

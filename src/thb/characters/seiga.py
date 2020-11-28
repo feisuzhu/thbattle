@@ -60,7 +60,7 @@ class HeterodoxyAction(UserAction):
         g.players.reveal(card)
 
         if card.is_card(AttackCard):
-            src.tags['vitality'] -= 1
+            ttags(src)['vitality'] -= 1
 
         # XXX: Use card owned by other
         lc = LaunchCard(victim, tgts, card)
@@ -75,7 +75,7 @@ class HeterodoxyAction(UserAction):
         sk = self.associated_card
         assert isinstance(sk, Heterodoxy)
         card = sk.associated_cards[0]
-        if card.is_card(AttackCard) and src.tags['vitality'] < 1:
+        if card.is_card(AttackCard) and ttags(src)['vitality'] < 1:
             if not AttackCardVitalityHandler.is_disabled(src):
                 return False
 

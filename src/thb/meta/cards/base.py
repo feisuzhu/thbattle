@@ -29,7 +29,6 @@ class CardList:
 
 @ui_meta(base.HiddenCard)
 class HiddenCard:
-    # action_stage meta
     image = 'thb-card-hidden'
     name = '隐藏卡片'
     description = '|R隐藏卡片|r\n\n这张卡片你看不到'

@@ -4,7 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 # -- third party --
 # -- own --
-from thb.actions import DrawCards, PlayerTurn, PrepareStage, UserAction
+from thb.actions import DrawCards, PlayerTurn, PrepareStage, UserAction, ttags
 from thb.cards.base import Skill, t_None
 from thb.characters.base import Character, register_character_to
 from thb.mode import THBEventHandler
@@ -24,7 +24,7 @@ class UltimateSpeedAction(UserAction):
 
 
 class UltimateSpeedHandler(THBEventHandler):
-    interested = ['action_apply', 'choose_target', 'post_calcdistance']
+    interested = ['choose_target', 'post_calcdistance']
 
     def handle(self, evt_type, arg):
         def is_card(card):
@@ -36,7 +36,7 @@ class UltimateSpeedHandler(THBEventHandler):
             if not is_card(card):
                 return arg
 
-            if src.tags['aya_count'] < 2:
+            if ttags(src)['aya_count'] < 2:
                 return arg
 
             g = self.game
@@ -46,11 +46,6 @@ class UltimateSpeedHandler(THBEventHandler):
 
             for k in dist:
                 dist[k] = 0
-
-        elif evt_type == 'action_apply' and isinstance(arg, PrepareStage):
-            tags = arg.target.tags
-            tags['aya_count'] = 0
-            tags['aya_range_max'] = False
 
         elif evt_type == 'choose_target':
             lca, _ = arg
@@ -72,8 +67,8 @@ class UltimateSpeedHandler(THBEventHandler):
             if current is not src:
                 return arg
 
-            src.tags['aya_count'] += 1
-            if src.tags['aya_count'] == 2:
+            ttags(src)['aya_count'] += 1
+            if ttags(src)['aya_count'] == 2:
                 g.process_action(UltimateSpeedAction(src, src))
 
         return arg

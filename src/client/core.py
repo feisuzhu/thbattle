@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Sequence, Tuple, Type, TypeVar
+from typing import Any, Dict, Sequence, Tuple, Type, TypeVar, List
 
 # -- third party --
 # -- own --
@@ -70,7 +70,8 @@ class Events(object):
         self.server_info = EventHub[str]()
 
         # Lobby status
-        self.lobby_updated = EventHub[Tuple[Sequence[wire.model.User], Sequence[wire.model.Game]]]()
+        self.lobby_users = EventHub[Sequence[wire.model.User]]()
+        self.lobby_games = EventHub[Sequence[wire.model.Game]]()
 
         # Observer request
         self.observe_request = EventHub[int]()
@@ -86,7 +87,7 @@ class Events(object):
         self.set_game_param = EventHub[wire.SetGameParam]()
 
         # Player presence changed
-        self.player_presence = EventHub[Tuple[Game, Dict[Player, bool]]]()
+        self.player_presence = EventHub[Tuple[Game, List[Tuple[int, wire.PresenceState]]]]()
 
         # Left a game
         self.game_left = EventHub[Game]()

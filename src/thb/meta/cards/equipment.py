@@ -9,7 +9,7 @@ import random
 # -- own --
 from thb import actions
 from thb.actions import ttags
-from thb.cards import definition, equipment
+from thb.cards import basic, definition, equipment
 from thb.cards.base import Card
 from thb.meta.common import ui_meta
 from utils.misc import BatchList
@@ -1048,18 +1048,15 @@ class GrimoireSkill:
     def clickable(self):
         g = self.game
         me = self.me
-        t = me.tags
-        if t['grimoire_tag'] >= t['turn_count']:
+        if ttags(me)['grimoire_tag']:
             return False
 
         try:
             act = g.action_stack[-1]
             if isinstance(act, actions.ActionStage):
-                if me.tags['freeattack'] >= me.tags['turn_count']:
-                    return True
-
-                if me.tags['vitality'] > 0:
-                    return True
+                if ttags(me)['vitality'] > 0:
+                    if not basic.AttackCardVitalityHandler.is_disabled(me):
+                        return True
 
                 if me.has_skill(equipment.ElementalReactorSkill):
                     return True

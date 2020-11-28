@@ -90,8 +90,8 @@ class Room(object):
         if f in ('room', 'ready', 'game') or \
            t in ('room', 'ready', 'game'):
             # TODO: order with core.game?
-            g = core.game.current(c)
-            if g: self._notify(g)
+            if g := core.game.current(c):
+                self._notify(g)
 
         users = core.lobby.all_users()
         ul = [u for u in users if core.lobby.state_of(u) == 'lobby']
