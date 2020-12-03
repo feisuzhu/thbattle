@@ -8,7 +8,7 @@ import logging
 
 # -- third party --
 # -- own --
-from thb import actions
+from thb import actions, inputlets
 from thb.actions import BaseActionStage
 from thb.cards.base import Card, Skill
 from thb.characters.base import Character
@@ -19,22 +19,58 @@ from thb.meta.common import ui_meta
 log = logging.getLogger('Inputlets UI Meta')
 
 
+@ui_meta(inputlets.ChooseOptionInputlet)
+class ChooseOptionInputlet:
+
+    def get_buttons(self, ilet: inputlets.ChooseOptionInputlet) -> dict:
+        try:
+            ui_meta = ilet.initiator.ui_meta
+            buttons = ui_meta.choose_option_buttons
+            prompt = ui_meta.choose_option_prompt
+            if callable(prompt):
+                prompt = prompt(ilet.initiator)
+            if callable(buttons):
+                buttons = buttons(ilet.initiator)
+
+            buttons = list(reversed(buttons))
+
+            return {'prompt': prompt, 'buttons': buttons}
+        except AttributeError:
+            name = ilet.initiator.__class__.__name__
+            return {
+                'prompt': f"UIChooseOption: {name} missing ui_meta",
+                'buttons': (('确定', True), ('结束', False))
+            }
+
+
+@ui_meta(inputlets.ChoosePeerCardInputlet)
+class ChoosePeerCardInputlet:
+
+    def get_lists(self, ilet: inputlets.ChoosePeerCardInputlet) -> list:
+        from thb.cards.base import CardList
+        from thb.meta import view
+
+        lists = [getattr(ilet.target, cat) for cat in ilet.categories]
+        return [{
+            'name': CardList.ui_meta.lookup[i.type],
+            'cards': [view.card(c) for c in i]
+        } for i in lists if i]
+
+
 class ActionDisplayResult(Exception):
     __slots__ = (
-        'valid',
-        'prompt',
-        'pl_selecting',
-        'pl_disabled',
-        'pl_selected',
+        'result',
     )
 
     def __init__(self, valid, prompt, pl_selecting, pl_disabled, pl_selected):
         Exception.__init__(self)
-        self.valid = valid
-        self.prompt = prompt
-        self.pl_selecting = pl_selecting
-        self.pl_disabled = pl_disabled
-        self.pl_selected = pl_selected
+        self.result = {
+            'valid': valid,
+            'prompt': prompt,
+            'pl_selecting': pl_selecting,
+            'pl_disabled': [p.get_player().pid for p in pl_disabled],
+            'pl_selected': [p.get_player().pid for p in pl_selected],
+        }
 
 
 def walk_wrapped(g, cl, check_is_complete):
@@ -53,7 +89,7 @@ def walk_wrapped(g, cl, check_is_complete):
                 rst, reason = is_complete(c)
             except Exception:
                 log.exception('card.ui_meta.is_complete error')
-                raise ActionDisplayResult(False, '[card.ui_meta.is_complete错误]', False, [], [])
+                raise ActionDisplayResult(False, '[card.ui_meta.is_complete 错误]', False, [], [])
 
             if not rst:
                 raise ActionDisplayResult(False, reason, False, [], [])
@@ -63,22 +99,23 @@ def walk_wrapped(g, cl, check_is_complete):
 
 def action_disp_func(f):
     @wraps(f)
-    def wrapper(*a, **k):
+    def wrapper(self, ilet, skills, rawcards, params, players):
         try:
-            f(*a, **k)
+            skills, rawcards, players = ilet.lookup_stuffs(skills, rawcards, players)
+            f(self, ilet, skills, rawcards, params, players)
             raise Exception("Didn't raise ActionDisplayResult!")
         except ActionDisplayResult as e:
-            return e
+            return e.result
 
         except Exception as e:
             log.exception("ActionInputlet meta failure")
-            return ActionDisplayResult(False, str(e), False, [], [])
+            return ActionDisplayResult(False, str(e), False, [], []).result
 
     wrapper.__name__ = f.__name__
     return wrapper
 
 
-@ui_meta(actions.ActionInputlet)
+@ui_meta(inputlets.ActionInputlet)
 class ActionInputlet:
     @action_disp_func
     def passive_action_disp(self, ilet, skills, rawcards, params, players):
@@ -142,7 +179,7 @@ class ActionInputlet:
             assert bool(logic_valid) == bool(ui_meta_valid), 'logic: %s, ui: %s' % (logic_valid, ui_meta_valid)
         except Exception:
             log.exception('act.ui_meta.target error')
-            raise ActionDisplayResult(False, '[act.ui_meta.target错误]', bool(ilet.candidates), disables, players)
+            raise ActionDisplayResult(False, '[act.ui_meta.target 错误]', bool(ilet.candidates), disables, players)
 
         if not logic_valid:
             raise ActionDisplayResult(False, reason, True, disables, players)
@@ -150,17 +187,32 @@ class ActionInputlet:
         return True, disables, players, reason
 
     def passive_action_recommend(self, ilet):
-        me = self.me
-
         if not ilet.categories: return
+
+        me = self.me
+        from thb.meta import view
 
         for c in me.showncards:
             if not ilet.initiator.cond([c]): continue
-            return c
+            return view.card(c)
 
         for c in me.cards:
             if not ilet.initiator.cond([c]): continue
-            return c
+            return view.card(c)
+
+    def get_selectable_cards(self, ilet, for_skill):
+        cards = []
+        actor = ilet.actor
+        if for_skill:
+            cards += actor.cards
+            cards += actor.showncards
+            cards += actor.equips
+        else:
+            for cat in ilet.categories:
+                cards += getattr(actor, cat)
+
+        from thb.meta import view
+        return [view.card(c) for c in cards]
 
     @action_disp_func
     def active_action_disp(self, ilet, skills, rawcards, params, players):

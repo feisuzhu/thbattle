@@ -28,6 +28,8 @@ class CardMetaView(TypedDict, total=False):
     sync_id: int
     track_id: int
     params: Optional[Dict[str, Any]]
+    resides_in: Optional[str]
+    owner: int
     name: str
     image: str
     desc: Optional[str]
@@ -41,6 +43,13 @@ class CardListView(TypedDict):
 
 def card(c, with_description=False) -> CardMetaView:
     m = c.ui_meta
+    if (l := c.resides_in) is not None:
+        resides_in = l.type
+        owner = l.owner
+    else:
+        resides_in = None
+        owner = 0
+
     rst: CardMetaView = {
         'type': c.__class__.__name__,
         'suit': c.suit,
@@ -49,7 +58,8 @@ def card(c, with_description=False) -> CardMetaView:
         'sync_id': c.sync_id,
         'track_id': c.track_id,
         'params': getattr(c, 'action_params', None),
-
+        'resides_in': resides_in,
+        'owner': owner,
         'name': c.ui_meta.name,
         'image': c.ui_meta.image,
         'eqpcat': getattr(c, 'equipment_category', None),
@@ -76,7 +86,7 @@ class CharacterView(TypedDict):
     figure: str
 
 
-def character(ch, with_description=False) -> CharacterView:
+def character(ch) -> CharacterView:
     m = ch.ui_meta
     return {
         'pid': ch.player.pid,
@@ -94,6 +104,10 @@ def character(ch, with_description=False) -> CharacterView:
         'portrait': m.port_image,
         'figure': m.figure_image,
     }
+
+
+def character_description(ch) -> str:
+    return 'MEH!'
 
 
 class SkillView(TypedDict, total=False):

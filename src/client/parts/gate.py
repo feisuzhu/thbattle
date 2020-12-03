@@ -6,6 +6,7 @@ from typing import Any, Dict, Literal, Optional, Sequence, TYPE_CHECKING, Tuple,
 from urllib.parse import urlparse
 import logging
 import socket
+from functools import partial
 
 # -- third party --
 from gevent.event import Event
@@ -47,8 +48,8 @@ class UnityUIEventHook(EventHandler):
         assert not self.input_session
 
         self.input_session = {
+            **core.gate.eval_environ,
             'g': g,
-            'core': core,
             'trans': trans,
             'ilet': ilet,
             'done': evt.set,
@@ -57,8 +58,11 @@ class UnityUIEventHook(EventHandler):
 
         try:
             core.gate.post('game.input', {
-                'gid': self.gid,
-                'type': ilet.tag(),
+                'gid': core.game.gid_of(g),
+                'tag': ilet.tag(),
+                'trans_id': id(trans),
+                'actor': ilet.actor.get_player().pid,
+                'timeout': ilet.timeout,
             })
             evt.wait()
         finally:
@@ -71,6 +75,43 @@ class UnityUIEventHook(EventHandler):
 
         if evt == 'user_input':
             self.evt_user_input(arg)
+
+        elif evt == 'user_input_transaction_begin':
+            core.gate.post("game.input.trans:begin", {
+                'gid': core.game.gid_of(g),
+                'id': id(arg),
+                'name': arg.name,
+                'involved': [e.get_player().pid for e in arg.involved],
+            })
+
+        elif evt == 'user_input_transaction_end':
+            core.gate.post("game.input.trans:end", {
+                'gid': core.game.gid_of(g),
+                'id': id(arg),
+                'name': arg.name,
+                'involved': [e.get_player().pid for e in arg.involved],
+            })
+
+        elif evt == 'user_input_start':
+            trans, ilet = arg
+            core.gate.post("game.input:start", {
+                'gid': core.game.gid_of(g),
+                'tag': ilet.tag(),
+                'trans_id': id(trans),
+                'actor': ilet.actor.get_player().pid,
+                'timeout': ilet.timeout,
+            })
+
+        elif evt == 'user_input_finish':
+            trans, ilet = arg
+            core.gate.post("game.input:finish", {
+                'gid': core.game.gid_of(g),
+                'tag': ilet.tag(),
+                'trans_id': id(trans),
+                'actor': ilet.actor.get_player().pid,
+                'timeout': ilet.timeout,
+            })
+
         elif evt == '__game_live':
             # TODO: not working
             self.live = True
@@ -104,9 +145,13 @@ class Gate(object):
         else:
             self.connected = True
 
+        def setv(name: str, v: Any) -> None:
+            self.eval_environ[name] = eval(v, self.eval_environ)
+
         self.eval_environ: Any = {
             'core': core,
-            'set': lambda name, v: self.eval_environ[name].__setattr__(name, eval(v)),
+            'set': setv,
+            'partial': partial,
         }
 
         self.refs: Dict[int, Any] = {}

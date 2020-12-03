@@ -25,20 +25,18 @@ class THBattleFaith(UIMetaBare):
         '\n'
         '|G胜负条件|r：当一方累计被击坠角色数到达三名，或投降时，该方判负。'
     )
-    params_disp = {
-        'random_seat': {
-            'desc': '随机座位阵营',
-            'options': [
-                ('随机', True),
-                ('固定', False),
-            ],
-        },
+
+    params = {
+        'random_seat': [
+            ('随机座位阵营', True),
+            ('固定座位阵营', False),
+        ],
     }
 
-    roles_disp = {
-        thbfaith.THBFaithRole.HIDDEN: '？',
-        thbfaith.THBFaithRole.HAKUREI: '博丽',
-        thbfaith.THBFaithRole.MORIYA: '守矢',
+    roles = {
+        'HIDDEN':  {'name': '？',   'sprite': 'role-hidden'},
+        'HAKUREI': {'name': '博丽', 'sprite': 'role-hakurei'},
+        'MORIYA':  {'name': '守矢', 'sprite': 'role-moriya'},
     }
 
 

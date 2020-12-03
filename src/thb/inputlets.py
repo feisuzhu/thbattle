@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Iterable, List, TYPE_CHECKING, Type, Union, Optional
+from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING, Type, TypeVar, Union, Tuple
 import logging
 
 # -- third party --
@@ -21,6 +21,14 @@ if TYPE_CHECKING:
 
 # -- code --
 log = logging.getLogger('Inputlets')
+T = TypeVar('T')
+
+
+def unwrap(v: Optional[T]) -> T:
+    if v is None:
+        raise Exception("Unwrapping none value!")
+
+    return v
 
 
 class ChooseOptionInputlet(Inputlet):
@@ -126,6 +134,20 @@ class ActionInputlet(Inputlet):
         self.characters = characters
         self.params = params or {}
 
+    def lookup_stuffs(self, skills: List[str], cards: List[int], characters: List[int]) -> Tuple[List[Skill], List[Card], List[Character]]:
+        # Method also used by ui_meta
+        g = self.game
+        m = {sk.__name__: sk for sk in self.actor.skills}
+        skills = [m[v] for v in skills]
+        cards = [unwrap(g.deck.lookup(v)) for v in cards]
+        m = {p.get_player().pid: p for p in g.players}
+        characters = [m[v] for v in characters]
+        return skills, cards, characters
+
+    def set_result_by_id(self, skills: List[str], cards: List[int], characters: List[int], params: dict = None) -> None:
+        self.skills, self.cards, self.characters = self.lookup_stuffs(skills, cards, characters)
+        self.params = params or {}
+
 
 class ChooseIndividualCardInputlet(Inputlet):
     def __init__(self, initiator: Any, cards: List[Card]):
@@ -167,7 +189,7 @@ class ChoosePeerCardInputlet(Inputlet):
         self.initiator = initiator
         self.target = target
         self.categories = categories
-        self.selected: Optional[Card] = None
+        self.selected: Optional[int] = None
 
     def parse(self, data):
         target = self.target
@@ -197,12 +219,13 @@ class ChoosePeerCardInputlet(Inputlet):
             return None
 
     def data(self) -> Optional[int]:
-        sel = self.selected
-        return sel.sync_id if sel else None
+        return self.selected
 
     def set_card(self, c):
-        assert c.resides_in.type in self.categories
-        self.selected = c
+        self.selected = c.sync_id
+
+    def set_card_sid(self, sid):
+        self.selected = sid
 
     def post_process(self, actor, card):
         if card:

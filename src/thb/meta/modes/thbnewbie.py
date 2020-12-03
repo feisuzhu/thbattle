@@ -21,8 +21,8 @@ class THBattleNewbie(UIMetaBare):
         '\n'
     ).strip()
 
-    roles_disp = {
-        thbnewbie.THBNewbieRole.HIDDEN: '？',
-        thbnewbie.THBNewbieRole.NEWBIE: '萌新',
-        thbnewbie.THBNewbieRole.BAKA:   '笨蛋',
+    roles = {
+        'HIDDEN': {'name': '？',   'sprite': 'role-hidden'},
+        'BAKA':   {'name': '笨蛋', 'sprite': 'role-baka'},
+        'NEWBIE': {'name': '萌新', 'sprite': 'role-newbie'},
     }

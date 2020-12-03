@@ -30,21 +30,21 @@ class THBattle2v2(UIMetaBare):
         '当一方所有的角色都被击坠时，游戏结束，另一方获胜。\n'
     )
 
-    params_disp = {
-        'draw_extra_card': {
-            'desc': '摸牌数量',
-            'options': [('2张', False), ('3张', True)]
-        },
-        'random_force': {
-            'desc': '随机阵营',
-            'options': [('随机', True), ('固定', False)]
-        }
+    params = {
+        'draw_extra_card': [
+            ('正常摸牌', False),
+            ('摸3张牌', True),
+        ],
+        'random_force': [
+            ('随机阵营', True),
+            ('固定阵营', False),
+        ]
     }
 
-    roles_disp = {
-        thb2v2.THB2v2Role.HIDDEN: '？',
-        thb2v2.THB2v2Role.HAKUREI: '博丽',
-        thb2v2.THB2v2Role.MORIYA: '守矢',
+    roles = {
+        'HIDDEN':  {'name': '？',   'sprite': 'role-hidden'},
+        'HAKUREI': {'name': '博丽', 'sprite': 'role-hakurei'},
+        'MORIYA':  {'name': '守矢', 'sprite': 'role-moriya'},
     }
 
 

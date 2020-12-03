@@ -22,8 +22,8 @@ class THBattleKOF(UIMetaBare):
         '|R胜利条件|r：当其中一方3名角色被击坠时，判对方胜出。'
     )
 
-    roles_disp = {
-        thbkof.THBKOFRole.HIDDEN: '？',
-        thbkof.THBKOFRole.HAKUREI: '博丽',
-        thbkof.THBKOFRole.MORIYA: '守矢',
+    roles = {
+        'HIDDEN':  {'name': '？',   'sprite': 'role-hidden'},
+        'HAKUREI': {'name': '博丽', 'sprite': 'role-hakurei'},
+        'MORIYA':  {'name': '守矢', 'sprite': 'role-moriya'},
     }

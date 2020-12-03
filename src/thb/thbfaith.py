@@ -235,3 +235,9 @@ class THBattleFaith(THBattle):
             return THBFaithRole.MORIYA
         else:
             assert False, f'WTF: {r}'
+
+    def get_remaining(g) -> Dict[str, int]:
+        return {
+            k.name: len(v) - 1
+            for k, v in g.pool.items()
+        }

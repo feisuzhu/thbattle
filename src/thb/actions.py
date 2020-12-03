@@ -1215,14 +1215,16 @@ class PlayerTurn(GenericAction):
         g = self.game
         p = self.target
 
-        p.tags['turn_count'] += 1
+        try:
+            p.tags['turn_count'] += 1
 
-        while self.pending_stages:
-            stage = self.pending_stages.pop(0)
-            self.current_stage = cs = stage(p)
-            g.process_action(cs)
+            while self.pending_stages:
+                stage = self.pending_stages.pop(0)
+                self.current_stage = cs = stage(p)
+                g.process_action(cs)
+        finally:
+            ttags_flush(p)
 
-        ttags_flush(p)
         return True
 
     @staticmethod

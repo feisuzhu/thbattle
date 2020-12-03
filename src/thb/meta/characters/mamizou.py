@@ -63,6 +63,14 @@ class Morphing:
     def sound_effect(self, act):
         return 'thb-cv-mamizou_morph'
 
+    # ----- FOR UI -----
+    def list_morph_cards(self, cls, sid_list):
+        g = self.game
+        cl = [g.deck.lookup(c) for c in sid_list]
+        cl = cls.list_morph_cards(cl)
+        from thb.meta import view
+        return [view.card(c) for c in cl]
+
 
 @ui_meta(characters.mamizou.Mamizou)
 class Mamizou:

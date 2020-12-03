@@ -107,6 +107,11 @@ class Craftsman:
 
         return l and 'thb-cv-nitori_craftsman%s' % random.choice(l)
 
+    # ----- FOR UI -----
+    def list_treat_as(self, cls):
+        from thb.meta import view
+        return [view.card(c) for c in cls.list_treat_as()]
+
 
 @ui_meta(characters.nitori.Nitori)
 class Nitori:

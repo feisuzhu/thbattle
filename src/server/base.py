@@ -154,17 +154,7 @@ class ServerGameRunner(GameRunner):
         orig_entities = entities[:]
         waiters = InputWaiterGroup()
 
-        def get_player(e: Any) -> Player:
-            if isinstance(e, Player):
-                return e
-            elif hasattr(e, 'get_player'):
-                p = e.get_player()
-                assert isinstance(p, Player), f'{e}.get_player() == {p}, not a Player'
-                return p
-            else:
-                raise Exception(f'Do not know how to process {e}')
-
-        e2p = {e: get_player(e) for e in entities}
+        e2p = {e: e.get_player() for e in entities}
         p2e = {p: e for e, p in e2p.items()}
 
         try:

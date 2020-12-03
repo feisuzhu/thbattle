@@ -118,6 +118,9 @@ class Player(GameObject, AssociatedDataViralContext):
     def reveal(self, obj_list: Any) -> None:
         raise GameError('Abstract')
 
+    def get_player(self) -> Player:
+        return self
+
     def __repr__(self):
         return self.__class__.__name__
 

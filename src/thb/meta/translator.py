@@ -8,14 +8,14 @@ import logging
 # -- third party --
 # -- own --
 from client.core import Core
-from game.base import Player
-from thb.actions import THBAction, ActionStage, Damage, Fatetell, LaunchCard, MigrateCardsTransaction, Pindian
-from thb.actions import PlayerDeath, PlayerTurn, UserAction
+from game.base import BootstrapAction, Player, Action
+from thb.actions import ActionStage, Damage, Fatetell, LaunchCard, MigrateCardsTransaction, Pindian
+from thb.actions import PlayerDeath, PlayerTurn, RevealRole, THBAction, UserAction
 from thb.cards.base import Card, VirtualCard
 from thb.characters.base import Character
+from thb.meta import view
 from thb.mode import THBattle
 from utils.misc import BatchList
-from thb.meta import view
 
 
 # -- code --
@@ -128,7 +128,20 @@ def sync_game_state(g: THBattle, core: Core, evt: str, act: Any):
     core.gate.post('thb.ui.state', state_of(g))
 
 
-actions_mapping: Dict[str, Dict[Type[THBAction], Callable]] = {
+def reveal_role_effect(g: THBattle, core: Core, evt: str, act: Any):
+    assert isinstance(act, RevealRole)
+    if act.can_be_seen_by(core.game.theone_of(g)):
+        core.gate.post('thb.ui.reveal_role', {
+            'actor': to_actor(act.target),
+            'role': act.role.get().name,
+        })
+
+
+def bootstrap_action_effect(g: THBattle, core: Core, evt: str, arg: Any):
+    core.gate.post('thb.ui.roles_definition', list(g.ui_meta.roles.items()))
+
+
+actions_mapping: Dict[str, Dict[Type[Action], Callable]] = {
     'action_before': {
         Pindian:     pindian_effect_start,
         ActionStage: sync_game_state,
@@ -138,6 +151,7 @@ actions_mapping: Dict[str, Dict[Type[THBAction], Callable]] = {
     'action_apply': {
         Damage: damage_effect,
         THBAction: general_action_effect,
+        BootstrapAction: bootstrap_action_effect,
     },
     'action_after': {
         Pindian:     pindian_effect_finish,
@@ -145,6 +159,7 @@ actions_mapping: Dict[str, Dict[Type[THBAction], Callable]] = {
         LaunchCard:  sync_game_state,
         ActionStage: sync_game_state,
         PlayerTurn:  player_turn_effect_after,
+        RevealRole:  reveal_role_effect,
         THBAction:   general_action_effect,
     }
 }
@@ -163,12 +178,7 @@ def action_effects(g: THBattle, core: Core, evt: str, act: THBAction):
 
 
 def to_actor(o: Any) -> int:
-    if isinstance(o, Character):
-        return o.player.pid
-    elif isinstance(o, Player):
-        return o.pid
-    else:
-        raise Exception(f'WTF: {o}')
+    return o.get_player().pid
 
 
 def user_input_start_effects(g: THBattle, core: Core, evt: str, arg: Any):
@@ -176,6 +186,7 @@ def user_input_start_effects(g: THBattle, core: Core, evt: str, arg: Any):
     core.gate.post('thb.ui.input_start', {
         'trans_name': trans.name,
         'actor': to_actor(ilet.actor),
+        'timeout': ilet.timeout,
     })
 
 
@@ -188,14 +199,14 @@ def user_input_finish_effects(g: THBattle, core: Core, evt: str, arg: Any):
 
 
 def card_migration_effects(g: THBattle, core: Core, evt: str, arg: Any):
-    instructions = MigrateCardsTransaction.ui_meta.animation_instructions(arg)
-    core.gate.post('thb.ui.card_migration', instructions)
+    if instructions := MigrateCardsTransaction.ui_meta.animation_instructions(arg):
+        core.gate.post('thb.ui.card_migration', instructions)
 
 
 def card_detach_effects(g: THBattle, core: Core, evt: str, arg: Any):
     trans, cards = arg
-    instructions = MigrateCardsTransaction.ui_meta.detach_animation_instructions(trans, cards)
-    core.gate.post('thb.ui.card_migration', instructions)
+    if instructions := MigrateCardsTransaction.ui_meta.detach_animation_instructions(trans, cards):
+        core.gate.post('thb.ui.card_migration', instructions)
 
 
 def game_roll_prompt(g: THBattle, core: Core, evt: str, arg: Any):
@@ -208,7 +219,7 @@ def showcards_effect(g: THBattle, core: Core, evt: str, act: Any):
     if act.ui_meta.is_relevant_to_me(act):
         core.gate.post('thb.ui.showcards', {
             'who': to_actor(act.target),
-            'cards': [Card.dump(c) for c in act.cards],
+            'cards': [view.card(c) for c in act.cards],
             'to': [to_actor(ch) for ch in act.to],
         })
 
@@ -224,6 +235,10 @@ def reseat_effects(g: THBattle, core: Core, evt: str, arg: Any):
         'before': [to_actor(p) for p in b4],
         'after': [to_actor(p) for p in after],
     })
+
+
+def simple_event(g: THBattle, core: Core, evt: str, arg: Any):
+    core.gate.post(f'thb.ui.simple_event:{evt}', 0)
 
 
 # ----- MAPPING -----
@@ -242,6 +257,9 @@ events_mapping: Dict[str, Callable] = {
     'reseat':              reseat_effects,
     'showcards':           showcards_effect,
     'ui_show_disputed':    ui_show_disputed_effect,
+
+    'action_stage_action': simple_event,
+    'switch_character':    simple_event,
 }
 
 

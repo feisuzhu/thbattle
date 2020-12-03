@@ -45,22 +45,19 @@ class THBattleRole(UIMetaBare):
         '|G应援|r：|B锁定技|r，每有一名道中存活，你的手牌上限增加一。\n'
     ).strip()
 
-    params_disp = {
-        'double_curtain': {
-            'desc': '双黑幕模式',
-            'options': [
-                ('双黑幕', True),
-                ('正常', False),
-            ],
-        },
+    params = {
+        'double_curtain': [
+            ('正常模式', False),
+            ('双黑幕模式', True),
+        ],
     }
 
-    roles_disp = {
-        thbrole.THBRoleRole.HIDDEN:     '？',
-        thbrole.THBRoleRole.BOSS:       'BOSS',
-        thbrole.THBRoleRole.ACCOMPLICE: '道中',
-        thbrole.THBRoleRole.ATTACKER:   '城管',
-        thbrole.THBRoleRole.CURTAIN:    '黑幕',
+    roles = {
+        'HIDDEN':     {'name': '？',   'sprite': 'role-hidden'},
+        'BOSS':       {'name': 'BOSS', 'sprite': 'role-boss'},
+        'ACCOMPLICE': {'name': '道中', 'sprite': 'role-accomplice'},
+        'ATTACKER':   {'name': '城管', 'sprite': 'role-attacker'},
+        'CURTAIN':    {'name': '黑幕', 'sprite': 'role-curtain'},
     }
 
 
