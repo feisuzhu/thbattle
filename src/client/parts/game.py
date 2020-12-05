@@ -281,5 +281,5 @@ class GamePart(object):
             'dispname': v.ui_meta.name,
             'logo': v.ui_meta.logo,
             'desc': v.ui_meta.description,
-            'params': v.ui_meta.params_disp,
+            'params': v.ui_meta.params,
         } for k, v in modes.items()}

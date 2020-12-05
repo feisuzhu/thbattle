@@ -95,6 +95,7 @@ class ClientGameRunner(GameRunner):
         finally:
             g.ended = True
 
+        g.emit_event('game_finished', g)
         core.events.client_game_finished.emit(g)
 
     def pause(self, time: float) -> None:

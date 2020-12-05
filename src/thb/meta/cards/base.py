@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import TypedDict
-
 # -- third party --
 # -- own --
 from thb.cards import base

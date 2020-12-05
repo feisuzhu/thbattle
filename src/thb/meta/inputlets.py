@@ -12,6 +12,7 @@ from thb import actions, inputlets
 from thb.actions import BaseActionStage
 from thb.cards.base import Card, Skill
 from thb.characters.base import Character
+from thb.meta import view
 from thb.meta.common import ui_meta
 
 
@@ -48,7 +49,6 @@ class ChoosePeerCardInputlet:
 
     def get_lists(self, ilet: inputlets.ChoosePeerCardInputlet) -> list:
         from thb.cards.base import CardList
-        from thb.meta import view
 
         lists = [getattr(ilet.target, cat) for cat in ilet.categories]
         return [{
@@ -190,7 +190,6 @@ class ActionInputlet:
         if not ilet.categories: return
 
         me = self.me
-        from thb.meta import view
 
         for c in me.showncards:
             if not ilet.initiator.cond([c]): continue
@@ -211,7 +210,6 @@ class ActionInputlet:
             for cat in ilet.categories:
                 cards += getattr(actor, cat)
 
-        from thb.meta import view
         return [view.card(c) for c in cards]
 
     @action_disp_func
@@ -293,7 +291,7 @@ class ActionInputlet:
             rst, reason = card.ui_meta.is_action_valid(card, tl)
         except Exception:
             log.exception('card.ui_meta.is_action_valid error')
-            raise ActionDisplayResult(False, '[card.ui_meta.is_action_valid错误]', False, [], [])
+            raise ActionDisplayResult(False, '[card.ui_meta.is_action_valid 错误]', False, [], [])
 
         if not rst:
             raise ActionDisplayResult(False, reason, plsel, disables, selected)
@@ -302,3 +300,54 @@ class ActionInputlet:
             raise ActionDisplayResult(False, '您选择的目标不符合规则', plsel, disables, selected)
 
         return tl, disables, reason
+
+    def handle_reject_autoresponse(self, trans, ilet):
+        from thb.actions import ForEach
+        from thb.cards.definition import RejectCard
+
+        act = ilet.initiator.target_act
+        if not RejectCard.ui_meta.has_reject_card(ilet.actor):
+            return {'cancel': True}
+        has_dont_care = ForEach.get_actual_action(act) is not None
+        if has_dont_care and getattr(trans, '_dont_care', None):
+            return {'cancel': True}
+        return {'has_dont_care': has_dont_care}
+
+    def set_reject_dontcare(self, trans):
+        trans._dont_care = True
+
+
+@ui_meta(inputlets.SortCharacterInputlet)
+class SortCharacterInputlet:
+
+    def get_my_choices(self, ilet):
+        me = self.me
+        return {
+            'chars': [view.character_cls(ch.char_cls) for ch in ilet.mapping[me]],
+            'limit': ilet.limit,
+        }
+
+
+@ui_meta(inputlets.ChooseGirlInputlet)
+class ChooseGirlInputlet:
+
+    def get_my_choices(self, trans, ilet):
+        me = self.me
+        return [{
+            'index': i,
+            'id': id(c),
+            'char': view.character_cls(c.char_cls),
+        } for i, c in enumerate(trans.mapping[me])]
+
+
+@ui_meta(inputlets.GalgameDialogInputlet)
+class GalgameDialogInputlet:
+
+    def get_dialog(self, ilet):
+        ch = ilet.character
+        return {
+            'portrait': ch.ui_meta.port_image,
+            'name': ch.ui_meta.name,
+            'text': ilet.dialog,
+            'voice': ilet.voice,
+        }

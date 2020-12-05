@@ -374,7 +374,7 @@ class HarvestEffect(InstantSpellCardAction):
 
         migrate_cards([card], tgt.cards)
 
-        pact.trans.notify('harvest_choose', card)
+        pact.trans.notify('harvest_choose', {'card': card.sync_id})
         self.card = card
         return True
 

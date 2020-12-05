@@ -53,7 +53,10 @@ class DeathHandler(THBEventHandler):
                 c = c or next(_c for _c in pool if not _c.chosen)
                 c.chosen = tgt
                 pool.remove(c)
-                trans.notify('girl_chosen', (tgt.player, c))
+                trans.notify('girl_chosen', {
+                    'choice_id': id(c),
+                    'pid': tgt.get_player().pid,
+                })
 
             tgt = g.switch_character(tgt, c)
             g.process_action(DistributeCards(tgt, 4))

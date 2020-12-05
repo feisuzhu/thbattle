@@ -134,7 +134,7 @@ class ActionInputlet(Inputlet):
         self.characters = characters
         self.params = params or {}
 
-    def lookup_stuffs(self, skills: List[str], cards: List[int], characters: List[int]) -> Tuple[List[Skill], List[Card], List[Character]]:
+    def lookup_stuffs(self, skills: List[str], cards: List[int], characters: List[int]) -> Tuple[List[Type[Skill]], List[Card], List[Character]]:
         # Method also used by ui_meta
         g = self.game
         m = {sk.__name__: sk for sk in self.actor.skills}
@@ -173,6 +173,11 @@ class ChooseIndividualCardInputlet(Inputlet):
     def set_card(self, c):
         assert c in self.cards
         self.selected = c
+
+    def set_card_sid(self, sid):
+        g: Any = self.game
+        c = g.deck.lookup(sid)
+        self.set_card(c)
 
     def post_process(self, actor, card):
         if card:
@@ -274,6 +279,12 @@ class ProphetInputlet(Inputlet):
         self.upcards = upcards
         self.downcards = downcards
 
+    def set_result_sid(self, upcards, downcards):
+        g: Any = self.game
+        upcards = [g.deck.lookup(i) for i in upcards]
+        downcards = [g.deck.lookup(i) for i in downcards]
+        self.set_result(upcards, downcards)
+
 
 class ChooseGirlInputlet(Inputlet):
 
@@ -314,6 +325,9 @@ class ChooseGirlInputlet(Inputlet):
     def set_choice(self, choice):
         assert choice in self.mapping[self.actor]
         self.choice = choice
+
+    def set_choice_index(self, idx):
+        self.choice = self.mapping[self.actor][idx]
 
 
 class SortCharacterInputlet(Inputlet):
@@ -384,6 +398,12 @@ class HopeMaskInputlet(Inputlet):
 
         return True
 
+    def is_valid_sid(self, putback, acquire):
+        g = self.game
+        putback = [g.deck.lookup(i) for i in putback]
+        acquire = [g.deck.lookup(i) for i in acquire]
+        return self.is_valid_sid(putback, acquire)
+
     def data(self):
         cards = self.cards
         putback = self.putback
@@ -399,6 +419,12 @@ class HopeMaskInputlet(Inputlet):
         assert self.is_valid(putback, acquire)
         self.putback = putback
         self.acquire = acquire
+
+    def set_result_sid(self, putback, acquire):
+        g = self.game
+        putback = [g.deck.lookup(i) for i in putback]
+        acquire = [g.deck.lookup(i) for i in acquire]
+        self.set_result(putback, acquire)
 
     def post_process(self, actor, rst):
         g = self.game

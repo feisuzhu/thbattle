@@ -189,7 +189,10 @@ class THBattle2v2Bootstrap(BootstrapAction):
                 cls = c.char_cls
                 assert cls
                 banned.add(cls)
-                trans.notify('girl_chosen', (p, c))
+                trans.notify('girl_chosen', {
+                    'choice_id': __builtins__.id(c),
+                    'pid': p.get_player().pid,
+                })
 
         assert len(banned) == 4
 
@@ -218,7 +221,10 @@ class THBattle2v2Bootstrap(BootstrapAction):
             @ilet.with_post_process
             def process(p, c):
                 c = c or mapping[p][0]
-                trans.notify('girl_chosen', (p, c))
+                trans.notify('girl_chosen', {
+                    'choice_id': __builtins__.id(c),
+                    'pid': p.get_player().pid,
+                })
                 return c
 
             rst = g.user_input(pl, ilet, timeout=30, type='all', trans=trans)

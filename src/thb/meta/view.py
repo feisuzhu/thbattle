@@ -38,6 +38,7 @@ class CardMetaView(TypedDict, total=False):
 
 class CardListView(TypedDict):
     type: str
+    name: str
     cards: List[CardMetaView]
 
 
@@ -72,21 +73,24 @@ def card(c, with_description=False) -> CardMetaView:
     return cast(CardMetaView, rst)
 
 
-class CharacterView(TypedDict):
-    pid: int
+class CharacterTypeView(TypedDict):
     type: str
     life: int
     maxlife: int
-    dead: bool
-    cards: List[CardListView]
-    tags: List[TagAnimation]
-
     name: str
     portrait: str
     figure: str
+    desc: str
 
 
-def character(ch) -> CharacterView:
+class CharacterView(CharacterTypeView):
+    pid: int
+    dead: bool
+    cards: Optional[List[CardListView]]
+    tags: Optional[List[TagAnimation]]
+
+
+def character(ch, extra=True) -> CharacterView:
     m = ch.ui_meta
     return {
         'pid': ch.player.pid,
@@ -96,18 +100,29 @@ def character(ch) -> CharacterView:
         'dead': ch.dead,
         'cards': [{
             'type': cl.type,
+            'name': cl.ui_meta.lookup[cl.type],
             'cards': [card(c) for c in cl],
-        } for cl in ch.lists],
-        'tags': get_display_tags(ch),
+        } for cl in ch.lists] if extra else None,
+        'tags': get_display_tags(ch) if extra else None,
 
         'name': m.name,
         'portrait': m.port_image,
         'figure': m.figure_image,
+        'desc': m.char_desc(ch),
     }
 
 
-def character_description(ch) -> str:
-    return 'MEH!'
+def character_cls(cls) -> CharacterTypeView:
+    m = cls.ui_meta
+    return {
+        'type': cls.__name__,
+        'life': cls.life,
+        'maxlife': cls.maxlife,
+        'name': m.name,
+        'portrait': m.port_image,
+        'figure': m.figure_image,
+        'desc': m.char_desc(cls),
+    }
 
 
 class SkillView(TypedDict, total=False):

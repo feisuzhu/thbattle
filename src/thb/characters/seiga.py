@@ -5,13 +5,13 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb.actions import ActionStage, ForEach, GenericAction, LaunchCard, LifeLost, PlayerDeath
-from thb.actions import PlayerTurn, UserAction
+from thb.actions import PlayerTurn, UserAction, ttags
 from thb.cards.base import Skill
 from thb.cards.classes import AttackCard, AttackCardVitalityHandler, t_None, t_Self
 from thb.characters.base import Character, register_character_to
 from thb.common import CharChoice
 from thb.inputlets import ChooseOptionInputlet
-from thb.mode import THBEventHandler, THBAction
+from thb.mode import THBAction, THBEventHandler
 from thb.thbkof import KOFCharacterSwitchHandler, THBattleKOF
 
 

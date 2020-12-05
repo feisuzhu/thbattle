@@ -139,7 +139,10 @@ class THBattleKOFBootstrap(BootstrapAction):
             for p, c in imperial_choices.items():
                 c.chosen = p
                 g.chosen[p].append(c)
-                trans.notify('girl_chosen', (p, c))
+                trans.notify('girl_chosen', {
+                    'choice_id': id(c),
+                    'pid': p.get_player().pid,
+                })
                 order.remove(p)
 
             for p in order:
@@ -150,7 +153,10 @@ class THBattleKOFBootstrap(BootstrapAction):
                 c.chosen = p
                 g.chosen[p].append(c)
 
-                trans.notify('girl_chosen', (p, c))
+                trans.notify('girl_chosen', {
+                    'choice_id': id(c),
+                    'pid': p.get_player().pid,
+                })
 
         # reveal akaris for themselves
         for p in [A, B]:
@@ -164,7 +170,15 @@ class THBattleKOFBootstrap(BootstrapAction):
 
         with InputTransaction('ChooseGirl', pl, mapping=g.chosen) as trans:
             ilet = ChooseGirlInputlet(g, g.chosen)
-            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
+
+            @ilet.with_post_process
+            def notify(p, rst):
+                trans.notify('girl_chosen', {
+                    'choice_id': id(rst),
+                    'pid': p.get_player().pid,
+                })
+                return rst
+
             rst = g.user_input([A, B], ilet, type='all', trans=trans)
 
         def s(p):

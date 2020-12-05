@@ -237,6 +237,19 @@ def reseat_effects(g: THBattle, core: Core, evt: str, arg: Any):
     })
 
 
+def render_game_results(g: THBattle, core: Core, evt: str, arg: Any):
+    rst = {
+        'win': core.game.theone_of(g) in g.winners,
+        'detail': [{
+            'pid': p.pid,
+            'char_name': g.find_character(p).ui_meta.name,
+            'role': g.roles[p].get().name,
+            'win': p in g.winners,
+        } for p in core.game.players_of(g)]
+    }
+    core.gate.post('thb.ui.game_result', rst)
+
+
 def simple_event(g: THBattle, core: Core, evt: str, arg: Any):
     core.gate.post(f'thb.ui.simple_event:{evt}', 0)
 
@@ -257,6 +270,7 @@ events_mapping: Dict[str, Callable] = {
     'reseat':              reseat_effects,
     'showcards':           showcards_effect,
     'ui_show_disputed':    ui_show_disputed_effect,
+    'game_finished':       render_game_results,
 
     'action_stage_action': simple_event,
     'switch_character':    simple_event,

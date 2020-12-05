@@ -385,9 +385,9 @@ class THBattleRoleBootstrap(BootstrapAction):
         g.roles_config = roles[:]
 
         imperial_roles = ImperialRole.get_chosen(self.items, pl)
-        for p, i in imperial_roles:
+        for p, role in imperial_roles:
             pl.remove(p)
-            roles.remove(i)
+            roles.remove(role)
 
         g.random.shuffle(roles)
 
@@ -396,9 +396,9 @@ class THBattleRoleBootstrap(BootstrapAction):
 
         g.roles = {}
 
-        for p, i in imperial_roles + list(zip(pl, roles)):
+        for p, role in imperial_roles + list(zip(pl, roles)):
             g.roles[p] = PlayerRole(THBRoleRole)
-            g.roles[p].set(i)
+            g.roles[p].set(role)
             g.process_action(RevealRole(p, g.roles[p], [p]))
 
         del roles
@@ -428,7 +428,10 @@ class THBattleRoleBootstrap(BootstrapAction):
             c.chosen = boss
             c.akari = False
             pl.reveal(c)
-            trans.notify('girl_chosen', (boss, c))
+            trans.notify('girl_chosen', {
+                'choice_id': id(c),
+                'pid': boss.get_player().pid,
+            })
             assert c.char_cls
 
         chars = get_characters('common', 'id', 'id8')
@@ -470,7 +473,15 @@ class THBattleRoleBootstrap(BootstrapAction):
 
         with InputTransaction('ChooseGirl', pl_wo_boss, mapping=choices) as trans:
             ilet = ChooseGirlInputlet(g, choices)
-            ilet.with_post_process(lambda p, rst: trans.notify('girl_chosen', (p, rst)) or rst)
+
+            @ilet.with_post_process
+            def notify(p, rst):
+                trans.notify('girl_chosen', {
+                    'choice_id': id(rst),
+                    'pid': p.get_player().pid,
+                })
+                return rst
+
             result = g.user_input(pl_wo_boss, ilet, type='all', trans=trans)
 
         # mix char class with player -->
@@ -499,14 +510,14 @@ class THBattleRoleBootstrap(BootstrapAction):
         g.refresh_dispatcher()
         g.emit_event('game_begin', g)
 
-        for p in g.players:
+        for ch in g.players:
             g.process_action(DistributeCards(p, amount=4))
 
-        for i, p in enumerate(cycle(g.players.rotate_to(boss_ch))):
+        for i, ch in enumerate(cycle(g.players.rotate_to(boss_ch))):
             if i >= 6000: break
-            if not p.dead:
+            if not ch.dead:
                 try:
-                    g.process_action(PlayerTurn(p))
+                    g.process_action(PlayerTurn(ch))
                 except InterruptActionFlow:
                     pass
 

@@ -39,7 +39,7 @@ class Reward(object):
         rewards = []
 
         users = core.room.users_of(g)
-        fleed = [u for u in users if core.game.is_fleed(g, u)]
+        fleed = [u for u in users if core.game.is_fled(g, u)]
         rewards.extend([{
             'playerId': core.auth.pid_of(u),
             'type': 'game',
