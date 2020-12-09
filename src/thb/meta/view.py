@@ -15,7 +15,6 @@ from thb.mode import THBattle
 if TYPE_CHECKING:
     from thb.actions import UserAction  # noqa: F401
     from thb.characters.base import Character  # noqa: F401
-    from thb.meta.actions import CardView  # noqa: F401
     from thb.meta.typing import CardMeta, SkillMeta  # noqa: F401
 
 
@@ -46,7 +45,7 @@ def card(c, with_description=False) -> CardMetaView:
     m = c.ui_meta
     if (l := c.resides_in) is not None:
         resides_in = l.type
-        owner = l.owner
+        owner = l.owner.get_player().pid if l.owner else 0
     else:
         resides_in = None
         owner = 0
@@ -102,7 +101,7 @@ def character(ch, extra=True) -> CharacterView:
             'type': cl.type,
             'name': cl.ui_meta.lookup[cl.type],
             'cards': [card(c) for c in cl],
-        } for cl in ch.lists] if extra else None,
+        } for cl in ch.lists if cl.type != 'special'] if extra else None,
         'tags': get_display_tags(ch) if extra else None,
 
         'name': m.name,
@@ -139,7 +138,6 @@ def skill(sk) -> SkillView:
     return {
         'type': sk.__name__,
         'name': m.name,
-        'desc':  m.description,
         'skcat': sk.skill_category,
         'ui': getattr(sk, 'params_ui', None),
         'clickable': sk.ui_meta.clickable(),
@@ -160,10 +158,13 @@ def state_of(g: THBattle) -> GameState:
     chs: List[view.CharacterView] = []
     me = core.game.theone_of(g)
 
+    p = None
     for ch in g.players:
         if ch.player is me:
             p = ch
         chs.append(character(ch))
+
+    assert p
 
     return {
         'characters': chs,

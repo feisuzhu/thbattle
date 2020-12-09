@@ -25,7 +25,7 @@ class ModeMeta(Protocol):
     logo: str
     description: str
     params_disp: Dict[str, ParamDisplayItem]
-    roles_disp: Dict[Enum, str]
+    roles: Dict[Enum, str]
 
 
 class CharacterMeta(Protocol):

@@ -7,9 +7,10 @@ from typing import cast
 # -- third party --
 # -- own --
 from game.base import EventHandler
-from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DropCards, ForEach
-from thb.actions import GenericAction, LaunchCard, MigrateCardsTransaction, PrepareStage, UseCard
-from thb.actions import UserAction, VitalityLimitExceeded, register_eh, ttags, user_choose_cards
+from thb.actions import ActionStage, ActionStageLaunchCard, AskForCard, Damage, DistributeCards
+from thb.actions import DropCards, FatetellAction, ForEach, GenericAction, LaunchCard
+from thb.actions import MigrateCardsTransaction, PrepareStage, UseCard, UserAction
+from thb.actions import VitalityLimitExceeded, register_eh, ttags, user_choose_cards
 
 
 # -- code --
@@ -352,11 +353,18 @@ class ExinwanHandler(EventHandler):
             # no same card dropped twice in the same transaction
             assert len(moves) == len(set(m.card for m in moves))
 
-            for m in moves:
-                tgt = m.trans.action.source
+            for mo in moves:
+                trans = mo.trans
+                act = trans.action
+
+                # do not trigger when distributing cards and doing fatetell
+                if isinstance(act, (DistributeCards, FatetellAction)):
+                    return arg
+
+                tgt = act.source
                 if tgt and not tgt.dead:
-                    act = ExinwanEffect(tgt, tgt)
-                    act.associated_card = m.card
-                    self.game.process_action(act)
+                    ee = ExinwanEffect(tgt, tgt)
+                    ee.associated_card = mo.card
+                    self.game.process_action(ee)
 
         return arg

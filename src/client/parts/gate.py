@@ -430,7 +430,7 @@ class Gate(object):
         return v
 
     def handle_invite_request(self, m: wire.InviteRequest) -> wire.InviteRequest:
-        self.post('invite_request', m)
+        self.post('invite_request', m.encode())
         return m
 
     def handle_kick_request(self, m: wire.KickRequest) -> wire.KickRequest:

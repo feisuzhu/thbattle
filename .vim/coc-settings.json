@@ -1,0 +1,11 @@
+{
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "codeLens.enable": true,
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportGeneralTypeIssues": "none"
+    },
+    "python.analysis.typeCheckingMode": "off",
+    "diagnostic.level": "warning"
+}

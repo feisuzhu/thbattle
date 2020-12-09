@@ -511,7 +511,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         g.emit_event('game_begin', g)
 
         for ch in g.players:
-            g.process_action(DistributeCards(p, amount=4))
+            g.process_action(DistributeCards(ch, amount=4))
 
         for i, ch in enumerate(cycle(g.players.rotate_to(boss_ch))):
             if i >= 6000: break

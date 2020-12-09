@@ -150,9 +150,9 @@ class THBattle2v2Bootstrap(BootstrapAction):
         H, M = THB2v2Role.HAKUREI, THB2v2Role.MORIYA
         g.forces = {H: BatchList(), M: BatchList()}
 
-        for p, id in zip(pl, [H, H, M, M]):
+        for p, i in zip(pl, [H, H, M, M]):
             g.roles[p] = r = PlayerRole(THB2v2Role)
-            g.roles[p].set(id)
+            g.roles[p].set(i)
             g.process_action(RevealRole(p, r, pl))
 
         roll_rst = roll(g, pl, items)
@@ -190,7 +190,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
                 assert cls
                 banned.add(cls)
                 trans.notify('girl_chosen', {
-                    'choice_id': __builtins__.id(c),
+                    'choice_id': id(c),
                     'pid': p.get_player().pid,
                 })
 
@@ -222,7 +222,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
             def process(p, c):
                 c = c or mapping[p][0]
                 trans.notify('girl_chosen', {
-                    'choice_id': __builtins__.id(c),
+                    'choice_id': id(c),
                     'pid': p.get_player().pid,
                 })
                 return c

@@ -3,20 +3,16 @@ from __future__ import annotations
 
 # -- stdlib --
 from enum import IntEnum
-from typing import Any, List, Optional, Sequence, TYPE_CHECKING, Union, TypedDict, Tuple, Callable
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 import random
 
 # -- third party --
 # -- own --
 from thb import actions
+from thb.cards.base import Card, CardList, VirtualCard
 from thb.meta import view
 from thb.meta.common import ui_meta
 from utils.misc import BatchList
-from thb.cards.base import Card
-
-# -- typing --
-if TYPE_CHECKING:
-    from thb.cards.base import CardView, CardList  # noqa: F401
 
 
 # -- code --
@@ -191,15 +187,9 @@ class TurnOverCard:
 @ui_meta(actions.RevealRole)
 class RevealRole:
     def effect_string(self, act: actions.RevealRole):
-        from thb.characters.base import Character
-
         g: Any = self.game
         me = self.me
-
-        if isinstance(me, Character):
-            p = me.player
-        else:
-            p = me
+        p = me.get_player()
 
         while True:
             if p is act.to:
@@ -218,7 +208,7 @@ class RevealRole:
         except Exception:
             name = f'|R*[pid:{p.pid}]|r'
 
-        role = g.ui_meta.roles_disp[role.get()],
+        role = g.ui_meta.roles[role.get().name],
         return f'{name}的身份是：|R{role}|r。'
 
 
@@ -377,30 +367,32 @@ class MigrateCardsTransaction:
 
         for m in trans.movements:
             # -- card actions --
-            ops += [CARD(m.card), AREA(m.fr), GET]
+            getops = [CARD(m.card), AREA(m.fr), GET]
 
             showing = (m.fr.type == 'showncards', m.to.type == 'showncards')
 
             if showing == (True, False):
-                ops += [DUP, UNSHOW]
+                ops += getops + [DUP, UNSHOW]
             elif showing == (False, True):
-                ops += [DUP, SHOW]
+                ops += getops + [DUP, SHOW]
 
             if m.to in (me.cards, me.showncards):
-                ops += [DUP, UNGRAY, AREA('hand'), MOVE]
+                ops += getops + [DUP, UNGRAY, AREA('hand'), MOVE]
             elif m.to.type == 'droppedcard':
-                ops += [DUP, GRAY, AREA('dropped'), MOVE]
+                ops += getops + [DUP, GRAY, AREA('dropped'), MOVE]
             elif m.to.owner:
-                ops += [DUP, UNGRAY, DUP, FADE, AREA(m.to), MOVE]
+                ops += getops + [DUP, UNGRAY, DUP, FADE, AREA(m.to), MOVE]
             else:
                 continue  # no animation
 
+        import logging
+        logging.debug('meh %s', ops)
         return ops
 
     def detach_animation_instructions(self, trans: Optional[actions.MigrateCardsTransaction], cards: Sequence[Card]) -> List[MigrateInstruction]:
         ops: List[MigrateInstruction] = []
 
-        for c in cards:
+        for c in VirtualCard.unwrap(cards):
             fr = c.resides_in
 
             ops += [CARD(c), AREA(fr), GET]

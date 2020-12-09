@@ -21,7 +21,7 @@ class CardList:
         # for skills
         'yukari_dimension': '隙间',
         'meirin_qiliao':    '气',
-        'momiji_sentry_cl': '哨戒',
+        'momiji-sentry-cards': '哨戒',
     }
 
 

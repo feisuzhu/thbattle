@@ -2,17 +2,17 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Optional, TYPE_CHECKING, Type, Union, Sequence
+from typing import Any, Dict, Optional, Sequence, TYPE_CHECKING, Type, Union
 
 # -- third party --
 # -- own --
 from game.base import GameViralContext
+from thb.characters.base import Character
 
 # -- typing --
 if TYPE_CHECKING:
-    from thb.mode import THBattle
-    from thb.characters.base import Character  # noqa: F401
     from thb.cards.base import Card  # noqa: F401
+    from thb.mode import THBattle  # noqa: F401
 
 
 # -- code --
@@ -62,6 +62,7 @@ class UIMetaBare:
 
 class UIMetaBase(GameViralContext):
     game: THBattle
+    designer = None
 
     def __init__(self):
         g = self.game

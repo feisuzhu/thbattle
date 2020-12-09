@@ -73,7 +73,7 @@ class Observe(object):
                 self._observe_start(u, c)
 
         elif f in ('room', 'ready', 'wait') and t == 'lobby':
-            core =self.core
+            core = self.core
             for u in list(Au(self, c)['obs']):
                 self.observe_detach(u)
 
@@ -207,7 +207,6 @@ class Observe(object):
         assert core.lobby.state_of(ob) == 'ob', (ob, core.lobby.state_of(ob))
 
         self.observe_detach(ob)
-        return
 
         # TODO
         '''

@@ -132,7 +132,7 @@ def reveal_role_effect(g: THBattle, core: Core, evt: str, act: Any):
     assert isinstance(act, RevealRole)
     if act.can_be_seen_by(core.game.theone_of(g)):
         core.gate.post('thb.ui.reveal_role', {
-            'actor': to_actor(act.target),
+            'actor': to_actor(act.player),
             'role': act.role.get().name,
         })
 
