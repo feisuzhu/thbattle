@@ -49,3 +49,9 @@ class Lobby(object):
         self.users = []
         self.games = []
         return v
+
+    # ----- Methods -----
+    def send_status(self) -> None:
+        core = self.core
+        core.events.lobby_games.emit(self.games)
+        core.events.lobby_users.emit(self.users)
