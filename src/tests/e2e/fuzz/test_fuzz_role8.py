@@ -7,11 +7,11 @@ import gevent
 
 # -- own --
 from ..mock import Environ, EventTap
-from utils.misc import BatchList
-from .common import UserInputFuzzingHandler, let_it_go
+from .common import let_it_go
 from game.base import sync_primitive
-from thb.actions import THBEventHandler
-from thb.actions import COMMON_EVENT_HANDLERS
+from thb.actions import COMMON_EVENT_HANDLERS, THBEventHandler
+from thb.bot import BotUserInputHandler
+from utils.misc import BatchList
 
 
 # -- code --
@@ -74,7 +74,7 @@ class TestFuzzTHBattleRole(object):
         for i in cl:
             g = t[i.events.game_joined]
             i.events.game_crashed += fail_crash
-            g.event_observer = UserInputFuzzingHandler(g)
+            g.event_observer = BotUserInputHandler(g)
 
         cl.room.get_ready()
         gevent.idle(-100)

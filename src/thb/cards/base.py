@@ -256,7 +256,7 @@ class VirtualCard(Card, GameViralContext):
         return lst
 
     @classmethod
-    def wrap(cls, cl: List[Card], character: Character, params: Dict[str, Any] = None):
+    def wrap(cls, cl: Sequence[Card], character: Character, params: Dict[str, Any] = None):
         vc = cls(character)
         vc.action_params = params or {}
         vc.associated_cards = cl[:]

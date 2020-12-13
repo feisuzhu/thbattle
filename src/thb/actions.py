@@ -199,7 +199,7 @@ def random_choose_card(g: THBattle, cardlists: Sequence[Sequence]):
     return c
 
 
-def skill_wrap(actor: Character, skills: List[Type[Skill]], cards: List[Card], params: Dict[str, Any]):
+def skill_wrap(actor: Character, skills: Sequence[Type[Skill]], cards: Sequence[Card], params: Dict[str, Any]):
     assert skills
     for skill_cls in skills:
         card = skill_cls.wrap(cards, actor, params)

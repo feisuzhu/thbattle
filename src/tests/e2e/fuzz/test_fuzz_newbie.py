@@ -7,7 +7,8 @@ import gevent
 
 # -- own --
 from ..mock import Environ, EventTap
-from .common import UserInputFuzzingHandler, let_it_go
+from .common import let_it_go
+from thb.bot import BotUserInputHandler
 
 
 # -- code --
@@ -48,7 +49,7 @@ class TestFuzzTHBattleFaith(object):
 
         g = t[c.events.game_joined]
         c.events.game_crashed += fail_crash
-        g.event_observer = UserInputFuzzingHandler(g)
+        g.event_observer = BotUserInputHandler(g)
 
         c.room.get_ready()
         wait()

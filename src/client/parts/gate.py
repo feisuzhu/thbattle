@@ -195,7 +195,7 @@ class Gate(object):
 
     def post(self, op: str, data: Any) -> None:
         if not self.connected:
-            log.error('Attempt to post message when gate is not conected: %s -> %s', op, data)
+            log.debug('Attempt to post message when gate is not conected: %s -> %s', op, data)
             return
 
         b = msgpack.packb(data, use_bin_type=True)
@@ -397,7 +397,8 @@ class Gate(object):
     def on_game_started(self, g: Game) -> Game:
         core = self.core
         self.current_game = g
-        if not self.testing:
+        if not g.event_observer:
+            log.info('core.gate: Not installing event hook')
             g.event_observer = UnityUIEventHook(core, g)
 
         self.post("game_started", {
