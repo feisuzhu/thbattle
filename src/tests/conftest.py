@@ -12,6 +12,7 @@ import _pytest.logging
 _pytest.logging.LoggingPlugin._create_formatter = lambda *_: utils.log.ServerLogFormatter()
 
 from thb.thbunit import inject
+from thb.meta.modes import thbunit  # noqa
 inject()
 
 import utils.misc

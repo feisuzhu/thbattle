@@ -27,3 +27,5 @@ class THBattleKOF(UIMetaBare):
         'HAKUREI': {'name': '博丽', 'sprite': 'role-hakurei'},
         'MORIYA':  {'name': '守矢', 'sprite': 'role-moriya'},
     }
+
+    params: dict = {}

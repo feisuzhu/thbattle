@@ -156,7 +156,7 @@ class ActionInputlet:
                 raise ActionDisplayResult(False, '您不能这样出牌', False, [], [])
 
         c = ilet.initiator.cond(cards)
-        c1, text = ilet.initiator.ui_meta.choose_card_text(g, ilet.initiator, cards)
+        c1, text = ilet.initiator.ui_meta.choose_card_text(ilet.initiator, cards)
         assert c == c1, 'cond = %s, meta = %s' % (c, c1)
 
         if not c:
@@ -251,7 +251,7 @@ class ActionInputlet:
         card = cards[0]
 
         c = act.cond(cards)
-        c1, text = act.ui_meta.choose_card_text(g, act, cards)
+        c1, text = act.ui_meta.choose_card_text(act, cards)
         assert c == c1, 'cond = %s, meta = %s' % (c, c1)
 
         if not c:

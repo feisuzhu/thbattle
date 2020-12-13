@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 import logging
 
 # -- third party --
 # -- own --
 from utils.events import EventHub
+from game.base import Game
 import wire
 
 # -- typing --
@@ -23,8 +24,19 @@ STOP = EventHub.STOP_PROPAGATION
 class Room(object):
     def __init__(self, core: Core):
         self.core = core
+        self.current_game: Optional[Game] = None
+
+        core.events.game_joined += self.on_game_joined
+        core.events.game_left   += self.on_game_left
 
     # ---- Reactions -----
+    def on_game_joined(self, g: Game) -> Game:
+        self.current_game = g
+        return g
+
+    def on_game_left(self, g: Game) -> Game:
+        self.current_game = None
+        return g
 
     # ----- Public Method -----
     def create(self, name: str, mode: str, flags: wire.CreateRoomFlags) -> None:
@@ -51,12 +63,16 @@ class Room(object):
         core = self.core
         core.server.write(wire.ChangeLocation(loc=loc))
 
-    def get_room_users(self, gid: int) -> None:
+    def get_room_users(self) -> None:
         core = self.core
+        assert self.current_game
+        gid = core.game.gid_of(self.current_game)
         core.server.write(wire.GetRoomUsers(gid=gid))
 
-    def set_game_param(self, gid: int, key: str, value: Any) -> None:
+    def set_game_param(self, key: str, value: Any) -> None:
         core = self.core
+        assert self.current_game
+        gid = core.game.gid_of(self.current_game)
         core.server.write(wire.SetGameParam(gid=gid, pid=0, key=key, value=value))
 
     def use_item(self, sku: str) -> None:

@@ -29,7 +29,9 @@ class Lobby(object):
 
         core.events.client_connected += self.handle_client_connected
         core.events.user_state_transition += self.handle_user_state_transition
-        core.events.game_ended += self.handle_game_ended
+        core.events.game_ended += self.handle_game_ended_aborted
+        core.events.game_aborted += self.handle_game_ended_aborted
+        core.events.client_dropped += self.handle_client_dropped
 
         self.users: Dict[int, Client] = {}          # all players
         self.dropped_users: Dict[int, Client] = {}  # passively dropped players
@@ -46,10 +48,6 @@ class Lobby(object):
 
         if (f, t) == ('connected', 'authed'):
             self._user_join(c)
-
-        if t == 'dropped':
-            if f != 'connected':
-                self._user_leave(c)
 
         ul = [u for u in self.users.values() if u._[self]['state'] == 'lobby']
         self._notify_online_users(ul)
@@ -71,7 +69,6 @@ class Lobby(object):
                     'game',
                     'finishing',
                     'ob',
-                    'dropped',
                 ],
                 'initial',
                 FSM.to_evhub(core.events.user_state_transition),
@@ -80,7 +77,13 @@ class Lobby(object):
         c._[self]['state'].transit('connected')
         return c
 
-    def handle_game_ended(self, g: Game) -> Game:
+    def handle_client_dropped(self, c: Client) -> Client:
+        if c._[self]['state'] != 'connected':
+            self._user_leave(c)
+
+        return c
+
+    def handle_game_ended_aborted(self, g: Game) -> Game:
         core = self.core
         users = core.room.users_of(g)
 

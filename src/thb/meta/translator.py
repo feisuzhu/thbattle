@@ -38,7 +38,7 @@ def player_turn_effect(g: THBattle, core: Core, evt: str, act: PlayerTurn):
 
 def player_turn_effect_after(g: THBattle, core: Core, evt: str, act: PlayerTurn):
     core.gate.post('thb.ui.player_turn', {
-        'actor': None
+        'actor': 0
     })
     sync_game_state(g, core, evt, act)
 

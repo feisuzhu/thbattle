@@ -26,3 +26,5 @@ class THBattleNewbie(UIMetaBare):
         'BAKA':   {'name': '笨蛋', 'sprite': 'role-baka'},
         'NEWBIE': {'name': '萌新', 'sprite': 'role-newbie'},
     }
+
+    params: dict = {}

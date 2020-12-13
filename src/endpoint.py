@@ -126,7 +126,7 @@ class Endpoint(object):
 
         assert False, 'WTF'
 
-    def messages(self, timeout=90) -> Iterator[wire.Message]:
+    def messages(self, timeout=45) -> Iterator[wire.Message]:
         if self.link_state != 'connected':
             raise EndpointDied
 

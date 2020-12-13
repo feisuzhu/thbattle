@@ -11,6 +11,7 @@ from functools import partial
 # -- third party --
 from gevent.event import Event
 from gevent.lock import RLock
+from gevent import getcurrent
 import msgpack
 
 # -- own --
@@ -35,7 +36,7 @@ class UnityUIEventHook(EventHandler):
         self.core = core
         self.game = g
         self.gid = core.game.gid_of(g)
-        self.input_session: Optional[dict] = None
+        self.input_sessions: Dict[int, dict] = {}
 
         # FIXME: ui_meta is currently a THB concept but this hook is game agnostic
         self.game_event_translator = cast(Any, g).ui_meta.event_translator
@@ -45,28 +46,17 @@ class UnityUIEventHook(EventHandler):
         g, core = self.game, self.core
 
         trans, ilet = arg
-        assert not self.input_session
 
-        self.input_session = {
-            **core.gate.eval_environ,
-            'g': g,
-            'trans': trans,
-            'ilet': ilet,
-            'done': evt.set,
-            'hook': self,
-        }
+        self.input_sessions[id(trans)]['done'] = evt.set
 
-        try:
-            core.gate.post('game.input', {
-                'gid': core.game.gid_of(g),
-                'tag': ilet.tag(),
-                'trans_id': id(trans),
-                'actor': ilet.actor.get_player().pid,
-                'timeout': ilet.timeout,
-            })
-            evt.wait()
-        finally:
-            self.input_session = None
+        core.gate.post('game.input', {
+            'gid': core.game.gid_of(g),
+            'tag': ilet.tag(),
+            'trans_id': id(trans),
+            'actor': ilet.actor.get_player().pid,
+            'timeout': ilet.timeout,
+        })
+        evt.wait()
 
         return arg
 
@@ -77,6 +67,10 @@ class UnityUIEventHook(EventHandler):
             self.evt_user_input(arg)
 
         elif evt == 'user_input_transaction_begin':
+            env = dict(core.gate.eval_environ)
+            env['trans'] = arg
+            self.input_sessions[id(arg)] = env
+
             core.gate.post("game.input.trans:begin", {
                 'gid': core.game.gid_of(g),
                 'id': id(arg),
@@ -91,24 +85,28 @@ class UnityUIEventHook(EventHandler):
                 'name': arg.name,
                 'involved': [e.get_player().pid for e in arg.involved],
             })
+            # core.gate.barrier()
+            self.input_sessions.pop(id(arg), '')
 
         elif evt == 'user_input_start':
             trans, ilet = arg
+            self.input_sessions[id(trans)]['ilet'] = ilet
             core.gate.post("game.input:start", {
-                'gid': core.game.gid_of(g),
+                'id': id(ilet),
                 'tag': ilet.tag(),
                 'trans_id': id(trans),
-                'id': id(ilet),
+                'trans_name': trans.name,
                 'actor': ilet.actor.get_player().pid,
                 'timeout': ilet.timeout,
             })
 
         elif evt == 'user_input_finish':
-            trans, ilet = arg
+            trans, ilet, rst = arg
             core.gate.post("game.input:finish", {
-                'gid': core.game.gid_of(g),
+                'id': id(ilet),
                 'tag': ilet.tag(),
                 'trans_id': id(trans),
+                'trans_name': trans.name,
                 'actor': ilet.actor.get_player().pid,
                 'timeout': ilet.timeout,
             })
@@ -207,6 +205,8 @@ class Gate(object):
             log.debug('Posted to gate: %s -> %s', op, data)
             return
 
+        log.debug('Posted to gate: %s -> %s', op, msgpack.unpackb(b))
+
         with self.writelock:
             self.sock.sendall(payload)
 
@@ -255,29 +255,31 @@ class Gate(object):
     # ----- RPCs -----
     def do_call(self, call: CoreCall) -> None:
         env = None
-        if call['environ'] == 'input':
+        if call['environ'].startswith('input:'):
             if (g := self.current_game) and (ob := g.event_observer):
                 assert isinstance(ob, UnityUIEventHook)
-                env = ob.input_session
+                env = ob.input_sessions.get(int(call['environ'][6:]))
+                getcurrent().game = g
         elif call['environ'] == 'core':
             env = self.eval_environ
 
-        if env is None:
-            return
+        ret = None
+        if env is not None:
+            args = call['args']
+            for i, v in enumerate(args):
+                if isinstance(v, msgpack.ExtType):
+                    if v.code == 66:
+                        args[i] = self.refs[int.from_bytes(v.data, byteorder='little')]
+                    else:
+                        raise Exception("Invalid ExtType")
 
-        args = call['args']
-        for i, v in enumerate(args):
-            if isinstance(v, msgpack.ExtType):
-                if v.code == 66:
-                    args[i] = self.refs[int.from_bytes(v.data, byteorder='little')]
-                else:
-                    raise Exception("Invalid ExtType")
+            ret = eval(call['method'], env)(*args)
 
-        ret = eval(call['method'], env)(*args)
         if cid := call.get('call_id'):
             if call['as_ref']:
                 ret = self._new_ref(ret)
 
+            log.debug('call resp: %s -> %s', cid, ret)
             self.post('call_response', {
                 'call_id': cid,
                 'result': msgpack.packb(ret, use_bin_type=True),
@@ -346,6 +348,7 @@ class Gate(object):
     def on_game_joined(self, g: Game) -> Game:
         core = self.core
         mode = g.__class__.__name__
+        self.current_game = g
 
         self.eval_environ['g'] = g
 
@@ -378,6 +381,7 @@ class Gate(object):
     def on_game_left(self, g: Game) -> Game:
         core = self.core
         self.eval_environ.pop('g', '')
+        self.current_game = None
         self.post("game_left", core.game.gid_of(g))
         return g
 
@@ -454,11 +458,16 @@ class Gate(object):
         return m
 
     # ----- Methods -----
-    def ignite(self, gid: int) -> None:
+    def ignite(self) -> None:
         core = self.core
-        g = core.game.from_gid(gid)
-        assert g, 'No such game'
-        core.game.start_game(g)
+        assert self.current_game, 'No current game'
+        core.game.start_game(self.current_game)
+
+    def barrier(self) -> None:
+        evt = Event()
+        self.eval_environ['cross_barrier'] = evt.set
+        self.post('barrier', 0)
+        evt.wait()
 
     def invalidate_ref(self, ref_id: int) -> None:
         self.refs.pop(ref_id, '')

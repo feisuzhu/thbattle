@@ -39,14 +39,14 @@ class Archive(object):
         archive = self._archive(g)
 
         core.backend.query('''
-            mutation ArchiveGame($game: GameInput!, $archive: String!) {
+            mutation ArchiveGame($meta: GameInput!, $archive: String!) {
               game {
                 archive(game: $meta, archive: $archive) {
-                  gid
+                  id
                 }
               }
             }
-        ''', game=meta, archive=archive)
+        ''', meta=meta, archive=archive)
 
         return g
 
@@ -61,7 +61,7 @@ class Archive(object):
         flags['aborted'] = core.game.is_aborted(g)
 
         return {
-            'gid': core.room.gid_of(g),
+            'gameId': core.room.gid_of(g),
             'name': core.room.name_of(g),
             'type': g.__class__.__name__,
             'flags': flags,

@@ -195,7 +195,7 @@ class GamePart(object):
             elif isinstance(p, HumanPlayer):
                 if Ag(self, g)['fled'].get(p.client):
                     rst.append(wire.PresenceState.FLED)
-                elif core.lobby.state_of(p.client) == 'dropped':
+                elif p.client.is_dead():
                     rst.append(wire.PresenceState.DROPPED)
                 else:
                     rst.append(wire.PresenceState.ONLINE)

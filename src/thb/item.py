@@ -8,13 +8,12 @@ import logging
 # -- third party --
 # -- own --
 from game.base import Game, GameItem, Player
-from server.base import Client, Game as ServerGame
-from server.core import Core as ServerCore
 from utils.misc import BatchList, exceptions
-
 
 # -- typing --
 if TYPE_CHECKING:
+    from server.base import Client, Game as ServerGame  # noqa: F401
+    from server.core import Core as ServerCore  # noqa: F401
     from thb.characters.base import Character  # noqa: F401
     from thb.thbrole import THBRoleRole  # noqa: F401
 

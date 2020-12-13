@@ -25,10 +25,13 @@ class BackendError(Exception):
 
     def __init__(self, errors: List[Dict[str, Any]]):
         self.errors = errors
-        self.message = ', '.join(
-            '%s: %s' % ('.'.join(e['path']), e['message'])
-            for e in errors
-        )
+        try:
+            self.message = ', '.join(
+                '%s: %s' % ('.'.join(e['path']), e['message'])
+                for e in errors
+            )
+        except Exception:
+            self.message = repr(errors)
 
     def __repr__(self) -> str:
         return f'BackendError({repr(self.message)})'

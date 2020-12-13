@@ -227,23 +227,11 @@ class AuthSuccess(Message, ServerToClient):
     pid: int
 
 
-@message
-@dataclass
-class Ping(Message, ServerToClient):
-    pass
-
-
 # --------------------------------
 # ----- system -----
 @message
 @dataclass
 class Beat(Message, ClientToServer):
-    pass
-
-
-@message
-@dataclass
-class Pong(Message, ClientToServer):
     pass
 
 

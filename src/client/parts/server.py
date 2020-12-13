@@ -39,7 +39,6 @@ class Server(object):
 
         D = core.events.server_command
         D[wire.Greeting] += self._greeting
-        D[wire.Ping] += self._ping
         D[wire.Info] += self._info
         D[wire.Error] += self._error
 
@@ -55,10 +54,6 @@ class Server(object):
             self.server_name = ev.node
             core.events.server_connected.emit(True)
 
-        return ev
-
-    def _ping(self, ev: wire.Ping) -> wire.Ping:
-        self.write(wire.Pong())
         return ev
 
     def _info(self, ev: wire.Info) -> wire.Info:

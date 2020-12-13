@@ -54,6 +54,7 @@ class Room(object):
         core.events.game_joined += self.handle_game_joined
         core.events.game_left += self.handle_game_left
         core.events.game_ended += self.handle_game_ended
+        core.events.client_dropped += self.handle_client_dropped
         core.events.client_pivot += self.handle_client_pivot
         core.events.core_initialized += self.handle_core_initialized
 
@@ -83,9 +84,6 @@ class Room(object):
         if (f, t) == ('uninitialized', 'freeslot'):
             # Just don't bother, core is not running at this time
             return ev
-
-        if t == 'dropped' and f in ('room', 'ready', 'game'):
-            self.exit_game(c)
 
         if f in ('room', 'ready', 'game') or \
            t in ('room', 'ready', 'game'):
@@ -149,6 +147,12 @@ class Room(object):
                 self.join_game(g, u)
 
         return old
+
+    def handle_client_dropped(self, u: Client) -> Client:
+        core = self.core
+        if core.lobby.state_of(u) in ('room', 'ready', 'game'):
+            self.exit_game(u)
+        return u
 
     def handle_client_pivot(self, u: Client) -> Client:
         core = self.core
@@ -268,6 +272,8 @@ class Room(object):
         i = users.index(u)
         users[ev.loc], users[i] = users[i], users[ev.loc]
 
+        self._notify(g)
+
         # core.events.game_change_location.emit(g)
 
     # ----- Public Methods -----
@@ -313,6 +319,7 @@ class Room(object):
         rst = c is not self.FREESLOT
         rst = rst and c in Ag(self, g)['users']
         rst = rst and not Ag(self, g)['left'][c]
+        rst = rst and not c.is_dead()
         return bool(rst)
 
     def is_left(self, g: Game, c: Client) -> bool:
@@ -408,6 +415,7 @@ class Room(object):
         )
 
         core.lobby.state_of(u).transit('lobby')
+
         core.events.game_left.emit((g, u))
 
         if gid not in self.games:
@@ -427,6 +435,7 @@ class Room(object):
             core.events.game_aborted.emit(g)
         else:
             log.info('Game [%s] cancelled', gid)
+            core.events.game_aborted.emit(g)
             self.games.pop(gid, 0)
 
     def send_room_users(self, g: Game, to: List[Client]) -> None:
@@ -466,9 +475,7 @@ class Room(object):
 
     def _notify(self, g: Game) -> None:
         core = self.core
-        notifier = Ag(self, g)['_notifier']
-
-        if notifier:
+        if notifier := Ag(self, g)['_notifier']:
             notifier()
             return
 

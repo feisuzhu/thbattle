@@ -81,7 +81,8 @@ class ClientGameRunner(GameRunner):
         g.synctag = 0
         g.random = Random()
         core = self.core
-        core.events.game_started.emit(g)
+        # This is emitted by core.game, not here
+        # core.events.game_started.emit(g)
         params = core.game.params_of(g)
         items = core.game.items_of(g)
         players = core.game.players_of(g)

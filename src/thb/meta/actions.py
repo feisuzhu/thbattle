@@ -327,7 +327,7 @@ FATETELL: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.FATETELL,)
 SHOW: MigrateInstruction     = (MigrateInstructionType.OP, (MigrateOp.SHOW,))
 UNSHOW: MigrateInstruction   = (MigrateInstructionType.OP, (MigrateOp.UNSHOW,))
 
-CARD: Callable[[Card], MigrateInstruction] = lambda c: (MigrateInstructionType.CARD, view.card(c))
+CARD: Callable[[Card], MigrateInstruction] = lambda c: (MigrateInstructionType.CARD, [view.card(c)])
 
 
 class PredefinedLocation(IntEnum):
