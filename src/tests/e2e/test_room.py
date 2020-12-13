@@ -56,16 +56,16 @@ class TestRoom(object):
 
         # Can set param
         gid = a.game.gid_of(t[a.events.game_joined])
-        a.room.set_game_param(gid, "whatever", "meh")
-        a.room.set_game_param(gid, "random_force", "foo")
+        a.room.set_game_param("whatever", "meh")
+        a.room.set_game_param("random_force", "foo")
         wait()
         assert s.game.params_of(s.room.get(gid))['random_force'] == True  # noqa
-        a.room.set_game_param(gid, "random_force", False); wait()
+        a.room.set_game_param("random_force", False); wait()
         assert s.game.params_of(s.room.get(gid))['random_force'] == False  # noqa
 
         # Send room users
         t.clear()
-        a.room.get_room_users(gid); wait()
+        a.room.get_room_users(); wait()
         assert a.events.room_users in t
         a.room.leave()
 

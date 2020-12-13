@@ -64,7 +64,7 @@ class UserInputFuzzingHandler(EventHandler):
         return arg
 
     def get_game_state(self):
-        from thb.meta.state import state_of
+        from thb.meta.view import state_of
         state_of(self.game)
 
     def card_mig_ui_meta(self, arg: MigrateCardsTransaction):

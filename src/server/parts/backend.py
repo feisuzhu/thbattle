@@ -161,15 +161,15 @@ class MockBackend(object):
     @_reg
     def archive(self, v: Any) -> Any:
         '''
-        mutation ArchiveGame($game: GameInput!, $archive: String!) {
+        mutation ArchiveGame($meta: GameInput!, $archive: String!) {
           game {
             archive(game: $meta, archive: $archive) {
-              gid
+              id
             }
           }
         }
         '''
-        return {'game': {'archive': {'gid': 0}}}
+        return {'game': {'archive': {'id': 0}}}
 
     @_reg
     def if_have_item(self, v: Any) -> Any:
