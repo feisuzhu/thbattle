@@ -62,7 +62,7 @@ class UIMetaBare:
 
 class UIMetaBase(GameViralContext):
     game: THBattle
-    designer = None
+    designer: Optional[str] = None
 
     def __init__(self):
         g = self.game

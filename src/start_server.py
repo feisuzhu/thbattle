@@ -6,7 +6,7 @@ from gevent import monkey
 monkey.patch_all()
 
 # -- stdlib --
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import logging
 import sys
 import urllib.parse
@@ -49,6 +49,7 @@ def start_server():
     parser.add_argument('--archive-path', default='file:///dev/shm/thb-archive')
     parser.add_argument('--backend', default='http://token@localhost/graphql')
     parser.add_argument('--interconnect', default='ws://uid:pass@localhost:12333/interconnect')
+    parser.add_argument('--kedama-has-rights', action='store_true', default=False)
     options = parser.parse_args()
 
     import settings
@@ -68,12 +69,17 @@ def start_server():
     from server.core import Core
     from core import CoreRunner
 
+    disables: Any = []  # stupid mypy
+    if options.kedama_has_rights:
+        disables.append('kedama')
+
     core = Core(
         node=options.node,
         listen=options.listen,
         interconnect=options.interconnect,
         archive_path=options.archive_path,
         backend=options.backend,
+        disables=disables,
     )
     runner = CoreRunner(core)
     runner.run()

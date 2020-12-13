@@ -315,7 +315,7 @@ class MigrateInstructionType(IntEnum):
     AREA = 3
 
 
-MigrateInstruction = Tuple[MigrateInstructionType, Union[Tuple[MigrateOp], Tuple[int], view.CardMetaView]]
+MigrateInstruction = Tuple[MigrateInstructionType, Union[Tuple[MigrateOp], Tuple[int], Tuple[view.CardMetaView]]]
 
 DUP: MigrateInstruction      = (MigrateInstructionType.OP, (MigrateOp.DUP,))
 GET: MigrateInstruction      = (MigrateInstructionType.OP, (MigrateOp.GET,))
@@ -327,7 +327,7 @@ FATETELL: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.FATETELL,)
 SHOW: MigrateInstruction     = (MigrateInstructionType.OP, (MigrateOp.SHOW,))
 UNSHOW: MigrateInstruction   = (MigrateInstructionType.OP, (MigrateOp.UNSHOW,))
 
-CARD: Callable[[Card], MigrateInstruction] = lambda c: (MigrateInstructionType.CARD, [view.card(c)])
+CARD: Callable[[Card], MigrateInstruction] = lambda c: (MigrateInstructionType.CARD, (view.card(c),))
 
 
 class PredefinedLocation(IntEnum):

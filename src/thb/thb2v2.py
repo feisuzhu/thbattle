@@ -150,12 +150,13 @@ class THBattle2v2Bootstrap(BootstrapAction):
         H, M = THB2v2Role.HAKUREI, THB2v2Role.MORIYA
         g.forces = {H: BatchList(), M: BatchList()}
 
-        for p, i in zip(pl, [H, H, M, M]):
+        for p, v in zip(pl, [H, H, M, M]):
             g.roles[p] = r = PlayerRole(THB2v2Role)
-            g.roles[p].set(i)
+            g.roles[p].set(v)
             g.process_action(RevealRole(p, r, pl))
 
         roll_rst = roll(g, pl, items)
+
         '''
         winner = g.forces[roll_rst[0].identity.value]
         f1, f2 = partition(lambda ch: g.forces[ch.identity.value] is winner, roll_rst)
