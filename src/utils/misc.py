@@ -221,10 +221,6 @@ def group_by(l, keyfunc):
     return grouped
 
 
-def instantiate(cls):
-    return cls()
-
-
 def surpress_and_restart(f):
     def wrapper(*a, **k):
         while True:

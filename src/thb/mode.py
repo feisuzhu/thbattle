@@ -57,7 +57,7 @@ class THBattle(Game[THBAction, THBEventHandler]):
 
     def find_character(g, p: Player) -> Character:
         for ch in g.players:
-            if ch.player is p:
+            if ch.get_player() is p:
                 return ch
 
         raise IndexError('Could not find character!')

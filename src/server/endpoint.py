@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Optional, Sequence, TYPE_CHECKING, cast
+from typing import Optional, Sequence, TYPE_CHECKING, cast, Type
 import logging
 
 # -- third party --
@@ -19,6 +19,10 @@ if TYPE_CHECKING:
 
 # -- code --
 log = logging.getLogger('server.core.endpoint')
+
+
+class Pivot(Exception):
+    pass
 
 
 class Client(object):
@@ -51,23 +55,27 @@ class Client(object):
             except EndpointDied:
                 break
 
+            except Pivot:
+                return
+
             except Exception as e:
                 if core.options.testing:
                     core.crash(e)
                     raise
                 log.exception("Error occurred when handling client command")
+            finally:
+                self._ep and self._ep.close()
+                self._ep = None
+                self._gr = None
 
-        self._ep and self._ep.close()
-        self._ep = None
-        self._gr = None
         core.events.client_dropped.emit(self)
 
     def serve(self) -> None:
         self._before_serve()
         self._serve()
 
-    def terminate(self) -> None:
-        self._gr and self._gr.kill(EndpointDied)
+    def terminate(self, exc: Type[Exception] = EndpointDied) -> None:
+        self._gr and self._gr.kill(exc)
 
     def is_dead(self) -> bool:
         return not self._gr or self._gr.ready()
@@ -79,7 +87,7 @@ class Client(object):
         new._ = dict(self._)
 
         assert cur is not self._gr
-        self.terminate()
+        self.terminate(Pivot)
 
         if not new._gr:
             new._gr = core.runner.spawn(new._serve)

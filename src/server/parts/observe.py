@@ -52,6 +52,7 @@ class Observe(object):
         core.events.user_state_transition.subscribe(self.handle_ust_observee, -1)
         core.events.game_created += self.handle_game_created
         core.events.game_joined += self.handle_game_joined
+        core.events.client_dropped += self.handle_client_dropped
         core.events.game_data_send += self.handle_game_data_send
 
         _ = core.events.client_command
@@ -72,7 +73,7 @@ class Observe(object):
             for u in Au(self, c)['obs']:
                 self._observe_start(u, c)
 
-        elif f in ('room', 'ready', 'wait') and t == 'lobby':
+        elif f in ('room', 'ready', 'game', 'wait') and t == 'lobby':
             core = self.core
             for u in list(Au(self, c)['obs']):
                 self.observe_detach(u)
@@ -81,7 +82,7 @@ class Observe(object):
             for u in list(Au(self, c)['obs']):
                 self._observe_end(u, c)
 
-        if t == 'lobby' or (f, t) == ('uninitialized', 'freeslot'):
+        if (f, t) in (('uninitialized', 'freeslot'), ('authed', 'lobby')):
             assoc: ObserveAssocOnClient = {
                 'obs': set(),
                 'reqs': set(),
@@ -97,6 +98,12 @@ class Observe(object):
             if g: self._notify(g)
 
         return ev
+
+    def handle_client_dropped(self, c: Client) -> Client:
+        for u in list(Au(self, c)['obs']):
+            self.observe_detach(u)
+
+        return c
 
     def handle_game_created(self, g: Game) -> Game:
         assoc: ObserveAssocOnGame = {

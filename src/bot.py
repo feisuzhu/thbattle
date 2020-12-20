@@ -77,15 +77,21 @@ class EventTap(object):
             gevent.sleep(0.01)
 
 
-def run_bot(n, server, mode):
+def run_bot(n, server, mode, delay):
     log = logging.getLogger('bot')
     log.info('Bot %s starting', n)
-    core = Core()
+    core = Core(disables=['gate'])  # type: ignore
     runner = CoreRunner(core)
     tap = EventTap()
     tap.tap(core)
     gevent.spawn(runner.run)
     runner.ready.wait()
+
+    def on_observe(pid: int) -> None:
+        core.observe.grant(pid, True)
+        return pid
+
+    core.events.observe_request += on_observe
 
     log.info('Bot %s connecting', n)
     rst = core.server.connect(server)
@@ -99,7 +105,7 @@ def run_bot(n, server, mode):
     log.info('Bot %s waiting game start', n)
     tap.wait(core.events.game_joined)
     g = tap[core.events.game_joined]
-    g.event_observer = BotUserInputHandler(g)
+    g.event_observer = BotUserInputHandler(g, delay=delay)
     core.room.get_ready()
     tap.wait(core.events.game_started)
 
@@ -127,6 +133,7 @@ def start_bot():
     parser.add_argument('--server', default='tcp://127.0.0.1:9999', type=str)
     parser.add_argument('--mode', default='THBattle2v2', type=str)
     parser.add_argument('--bots', default=3, type=int)
+    parser.add_argument('--delay', default=0.0, type=float)
     options = parser.parse_args()
 
     import settings
@@ -134,7 +141,7 @@ def start_bot():
 
     pool = Pool(10)
     for i in range(options.bots):
-        pool.spawn(run_bot, i, options.server, options.mode)
+        pool.spawn(run_bot, i, options.server, options.mode, options.delay)
 
     pool.join()
 

@@ -34,6 +34,8 @@ log = logging.getLogger('Game')
 all_gameobjects = set()
 game_objects_hierarchy = set()
 
+apply = lambda f, args: f(*args)
+
 
 class GameObjectMeta(type):
     def __new__(mcls, clsname, bases, kw):
@@ -148,14 +150,16 @@ class GameEnded(GameException):
 
 
 class GameViralContext(object):
-    game: Game
+    _game: Optional[Game] = None
 
     def __new__(cls, *a, **k):
         self = object.__new__(cls)
-        gr = gevent.getcurrent()
-        self.game = gr.game
         self._ = defaultdict(bool)
         return self
+
+    @property
+    def game(self) -> Game:
+        return gevent.getcurrent().game
 
 
 A = TypeVar('A', bound='Action')

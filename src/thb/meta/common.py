@@ -56,21 +56,30 @@ def ui_meta(for_cls: type):
 
 
 # -----BEGIN COMMON FUNCTIONS-----
+apply = lambda f, *a: f(*a)
+
+
 class UIMetaBare:
     pass
 
 
 class UIMetaBase(GameViralContext):
     game: THBattle
-    designer: Optional[str] = None
+    _me = None
 
-    def __init__(self):
-        g = self.game
-        me = g.runner.core.game.theone_of(g)
-        try:
-            self.me = g.find_character(me)
-        except IndexError:
-            self.me = me
+    @property
+    def me(self):
+        if (me := self._me) is not None:
+            return me
+        else:
+            g = self.game
+            me = g.runner.core.game.theone_of(g)
+            try:
+                me = g.find_character(me)
+            except (AttributeError, IndexError):
+                pass
+            self._me = me
+            return me
 
     def my_turn(self):
         g = self.game
@@ -177,9 +186,9 @@ class UIMetaBase(GameViralContext):
             rst.append(notes)
 
         tail = ['%s：%s' % i for i in [
-            ('画师',     m.illustrator),
-            ('CV',       m.cv),
-            ('人物设计', m.designer),
+            ('画师',     getattr(m, 'illustrator', None)),
+            ('CV',       getattr(m, 'cv', None)),
+            ('人物设计', getattr(m, 'designer', None)),
         ] if i[1]]
 
         if tail:

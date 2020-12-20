@@ -165,5 +165,7 @@ class Core(core.Core):
 
         if 'gate' not in disables:
             self.gate = parts.gate.Gate(self, testing=self.options.testing)
+        else:
+            self.gate = parts.gate.MockGate(self)  # type: ignore
 
         self.events.core_initialized.emit(self)

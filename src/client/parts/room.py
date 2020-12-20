@@ -63,10 +63,13 @@ class Room(object):
         core = self.core
         core.server.write(wire.ChangeLocation(loc=loc))
 
-    def get_room_users(self) -> None:
+    def get_room_users(self, gid: int = 0) -> None:
         core = self.core
-        assert self.current_game
-        gid = core.game.gid_of(self.current_game)
+        if not gid:
+            if self.current_game:
+                gid = core.game.gid_of(self.current_game)
+            else:
+                return
         core.server.write(wire.GetRoomUsers(gid=gid))
 
     def set_game_param(self, key: str, value: Any) -> None:

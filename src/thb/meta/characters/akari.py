@@ -25,3 +25,4 @@ class Akari:
     title       = '会是谁呢'
 
     port_image  = 'thb-portrait-akari'
+    figure_image = 'thb-portrait-akari'

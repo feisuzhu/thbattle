@@ -2,21 +2,28 @@
 from __future__ import annotations
 
 # -- stdlib --
+from enum import Enum
 from typing import Any, Dict, List, Type
 import logging
 
 # -- third party --
 # -- own --
 from game.base import BootstrapAction, GameEnded, Player, sync_primitive
-from thb.common import roll
+from thb.common import PlayerRole, roll
+from thb.actions import THBAction
+from thb.inputlets import ChooseOptionInputlet
+from thb.characters.koakuma import Koakuma
 from thb.item import GameItem
-from thb.mode import THBattle
+from thb.mode import THBEventHandler, THBattle
 from utils.misc import BatchList
-from thb.mode import THBEventHandler
 
 
 # -- code --
 log = logging.getLogger('THBattleUnit')
+
+
+class THBUnitRole(Enum):
+    WHATEVER = 0
 
 
 class THBattleUTBootstrap(BootstrapAction):
@@ -31,8 +38,11 @@ class THBattleUTBootstrap(BootstrapAction):
         self.players = players
 
     def apply_action(self) -> bool:
+        from thb.characters.alice import Alice
         pl = self.players
         g = self.game
+        g.players = BatchList([Alice(p) for p in pl])
+        g.roles = {p: PlayerRole(THBUnitRole) for p in pl}
         items = self.items
         _ = roll(g, pl, items)
         sync_primitive(1, pl)
@@ -100,21 +110,49 @@ class THBattleCrash(THBattle):
         return False
 
 
+class OrdinaryAction(THBAction):
+
+    def apply_action(self):
+        g = self.game
+        tgt = self.target
+        rst = g.user_input([tgt], ChooseOptionInputlet(self, (False, True)))
+        sync_primitive(g.players, rst)
+        return True
+
+
 class THBattleUTHaltBootstrap(BootstrapAction):
 
     def __init__(self, params: Dict[str, Any],
                        items: Dict[Player, List[GameItem]],
                        players: BatchList[Player]):
-        pass
+        self.players = players
 
     def apply_action(self):
-        g = self.game
-        g.core.runner.sleep(10000000)  # type: ignore
+        g: Any = self.game
+        g.players = BatchList([Koakuma(p) for p in self.players])
+        sync_primitive([1, 2, 3, 4, 5], self.players)
+        sync_primitive([2, 2, 3, 4, 5], self.players)
+
+        import gevent
+        while True:
+            for p in g.players:
+                g.process_action(OrdinaryAction(p, p))
+            gevent.sleep(0.1)
+
         return True
 
 
 class THBattleHalt(THBattle):
     n_persons  = 1
+    game_ehs: List[Type[THBEventHandler]] = []
+    bootstrap  = THBattleUTHaltBootstrap
+
+    def can_leave(g: THBattle, p: Player) -> bool:
+        return False
+
+
+class THBattleHalt2(THBattle):
+    n_persons  = 2
     game_ehs: List[Type[THBEventHandler]] = []
     bootstrap  = THBattleUTHaltBootstrap
 
@@ -131,4 +169,5 @@ def inject():
         THBattleDummy4,
         THBattleCrash,
         THBattleHalt,
+        THBattleHalt2,
     ]})

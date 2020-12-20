@@ -177,7 +177,7 @@ class Gate(object):
         core.events.game_joined          += self.on_game_joined
         core.events.player_presence      += self.on_player_presence
         core.events.game_left            += self.on_game_left
-        core.events.room_users           += self.on_room_users
+        # core.events.room_users           += self.on_room_users  # Direct forward server message
         core.events.game_started         += self.on_game_started
         core.events.game_crashed         += self.on_game_crashed
         core.events.client_game_finished += self.on_client_game_finished
@@ -192,6 +192,7 @@ class Gate(object):
         D[wire.GameParams]    += self.handle_game_params
         D[wire.SetGameParam]  += self.handle_set_game_param
         D[wire.StartMatching] += self.handle_start_matching
+        D[wire.RoomUsers]     += self.handle_room_users
 
     def post(self, op: str, data: Any) -> None:
         if not self.connected:
@@ -458,6 +459,10 @@ class Gate(object):
         self.post('start_matching', m.modes)
         return m
 
+    def handle_room_users(self, ev: wire.RoomUsers) -> wire.RoomUsers:
+        self.post('room_users', ev.encode())
+        return ev
+
     # ----- Methods -----
     def ignite(self) -> None:
         core = self.core
@@ -472,3 +477,12 @@ class Gate(object):
 
     def invalidate_ref(self, ref_id: int) -> None:
         self.refs.pop(ref_id, '')
+
+
+class MockGate(object):
+
+    def __init__(self, core: Core):
+        self.core = core
+
+    def post(self, op: str, data: Any) -> None:
+        pass

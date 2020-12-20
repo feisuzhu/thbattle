@@ -307,12 +307,15 @@ class MigrateOp(IntEnum):
     FATETELL = 7  # Play Fatetell animation, arg: CardSprite, no ret val.
     SHOW     = 8
     UNSHOW   = 9
+    DECKAREA = 10
+    DROPAREA = 11
+    HANDAREA = 12
 
 
 class MigrateInstructionType(IntEnum):
     OP   = 1
     CARD = 2
-    AREA = 3
+    PORTAREA = 3
 
 
 MigrateInstruction = Tuple[MigrateInstructionType, Union[Tuple[MigrateOp], Tuple[int], Tuple[view.CardMetaView]]]
@@ -326,14 +329,11 @@ UNGRAY: MigrateInstruction   = (MigrateInstructionType.OP, (MigrateOp.UNGRAY,))
 FATETELL: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.FATETELL,))
 SHOW: MigrateInstruction     = (MigrateInstructionType.OP, (MigrateOp.SHOW,))
 UNSHOW: MigrateInstruction   = (MigrateInstructionType.OP, (MigrateOp.UNSHOW,))
+DECKAREA: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.DECKAREA,))
+DROPAREA: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.DROPAREA,))
+HANDAREA: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.HANDAREA,))
 
 CARD: Callable[[Card], MigrateInstruction] = lambda c: (MigrateInstructionType.CARD, (view.card(c),))
-
-
-class PredefinedLocation(IntEnum):
-    DECK = -1
-    DROPPED = -2
-    HAND = -3
 
 
 def AREA(cl: Any) -> MigrateInstruction:
@@ -341,21 +341,21 @@ def AREA(cl: Any) -> MigrateInstruction:
 
     if isinstance(cl, CardList):
         if cl.type == 'deckcard':
-            t = PredefinedLocation.DECK
+            return DECKAREA
         elif cl.type == 'droppedcard':
-            t = PredefinedLocation.DROPPED
+            return DROPAREA
         elif cl.owner is None:
-            t = PredefinedLocation.DECK
+            return DECKAREA
         else:
             t = cl.owner.player.pid
     elif cl == 'dropped':
-        t = PredefinedLocation.DROPPED
+        return DROPAREA
     elif cl == 'hand':
-        t = PredefinedLocation.HAND
+        return HANDAREA
     else:
         raise Exception("WTF")
 
-    return (MigrateInstructionType.AREA, (t,))
+    return (MigrateInstructionType.PORTAREA, (t,))
 
 
 @ui_meta(actions.MigrateCardsTransaction)

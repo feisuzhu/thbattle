@@ -38,11 +38,11 @@ def Au(self: GamePart, u: Client) -> GamePartAssocOnClient:
 class GamePartAssocOnGame(TypedDict):
     params: Dict[str, Any]
     players: BatchList[Player]
-    fled: Dict[Client, bool]
+    fled: Dict[int, bool]
     aborted: bool
     crashed: bool
     rngseed: int
-    data: Dict[Client, GameData]
+    data: Dict[int, GameData]
     winners: List[Player]
 
 
@@ -84,7 +84,7 @@ class GamePart(object):
             pid = core.auth.pid_of(u)
             for p in Ag(self, g)['players']:
                 if isinstance(p, HumanPlayer):
-                    if core.auth.pid_of(p.client) == pid:
+                    if p.pid == pid:
                         p.client = u
 
             u.write(wire.GameJoined(core.view.GameDetail(g)))
@@ -116,9 +116,10 @@ class GamePart(object):
     def handle_game_joined(self, ev: Tuple[ServerGame, Client]) -> Tuple[ServerGame, Client]:
         g, u = ev
         core = self.core
+        pid = core.auth.pid_of(u)
         if core.room.is_started(g):
-            Ag(self, g)['data'][u].revive()
-            Ag(self, g)['fled'][u] = False
+            Ag(self, g)['data'][pid].revive()
+            Ag(self, g)['fled'][pid] = False
             self._notify_presence(g)
 
         Au(self, u)['game'] = g
@@ -129,10 +130,10 @@ class GamePart(object):
         g, u = ev
         core = self.core
         if core.room.is_started(g):
-            Ag(self, g)['data'][u].die()
             pid = core.auth.pid_of(u)
+            Ag(self, g)['data'][pid].die()
             p = next(i for i in Ag(self, g)['players'] if i.pid == pid)
-            Ag(self, g)['fled'][u] = bool(g.can_leave(p))
+            Ag(self, g)['fled'][pid] = bool(g.can_leave(p))
             self._notify_presence(g)
 
         Au(self, u)['game'] = None
@@ -164,7 +165,8 @@ class GamePart(object):
         if ev.gid != core.room.gid_of(g):
             return
 
-        pkt = Ag(self, g)['data'][u].feed_recv(ev.tag, ev.data)
+        pid = core.auth.pid_of(u)
+        pkt = Ag(self, g)['data'][pid].feed_recv(ev.tag, ev.data)
         if pkt:
             core.events.game_data_recv.emit((g, u, pkt))
 
@@ -175,7 +177,7 @@ class GamePart(object):
         gid = core.room.gid_of(g)
 
         Ag(self, g)['data'] = {
-            u: GameData(gid) for u in users
+            core.auth.pid_of(u): GameData(gid) for u in users
         }
         Ag(self, g)['players'] = self._build_players(g, users)
 
@@ -193,7 +195,7 @@ class GamePart(object):
             if isinstance(p, NPCPlayer):
                 rst.append(wire.PresenceState.ONLINE)
             elif isinstance(p, HumanPlayer):
-                if Ag(self, g)['fled'].get(p.client):
+                if Ag(self, g)['fled'].get(p.pid):
                     rst.append(wire.PresenceState.FLED)
                 elif p.client.is_dead():
                     rst.append(wire.PresenceState.DROPPED)
@@ -235,7 +237,8 @@ class GamePart(object):
         core = self.core
         g = Au(self, u)['game']
         assert g
-        pkts = Ag(self, g)['data'][u].get_sent()
+        pid = core.auth.pid_of(u)
+        pkts = Ag(self, g)['data'][pid].get_sent()
         if not pkts:
             return
 
@@ -260,19 +263,22 @@ class GamePart(object):
         return Ag(self, g)['aborted']
 
     def is_fled(self, g: ServerGame, u: Client) -> bool:
-        return Ag(self, g)['fled'][u]
+        core = self.core
+        pid = core.auth.pid_of(u)
+        return Ag(self, g)['fled'][pid]
 
     def get_gamedata_archive(self, g: ServerGame) -> List[GameArchive]:
         core = self.core
         ul = core.room.users_of(g)
         return [
-            Ag(self, g)['data'][u].archive() for u in ul
+            Ag(self, g)['data'][core.auth.pid_of(u)].archive() for u in ul
         ]
 
     def write(self, g: ServerGame, u: Client, tag: str, data: object) -> None:
         core = self.core
         assert Au(self, u)['game'] is g
-        pkt = Ag(self, g)['data'][u].feed_send(tag, data)
+        pid = core.auth.pid_of(u)
+        pkt = Ag(self, g)['data'][pid].feed_send(tag, data)
         gid = core.room.gid_of(g)
         u.write(wire.GameData(gid=gid, tag=tag, data=data))
         core.events.game_data_send.emit((g, u, pkt))
@@ -301,7 +307,9 @@ class GamePart(object):
         return Ag(self, g)['rngseed']
 
     def gamedata_of(self, g: ServerGame, u: Client) -> GameData:
-        return Ag(self, g)['data'][u]
+        core = self.core
+        pid = core.auth.pid_of(u)
+        return Ag(self, g)['data'][pid]
 
     def players_of(self, g: ServerGame) -> BatchList[Player]:
         return Ag(self, g)['players']

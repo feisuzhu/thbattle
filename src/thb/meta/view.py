@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, TypedDict, cast
+from typing import Any, Dict, List, Optional, TypedDict, cast
 
 # -- third party --
 # -- own --
@@ -10,12 +10,6 @@ from client.base import ClientGameRunner
 from thb.meta import view
 from thb.meta.tags import TagAnimation, get_display_tags
 from thb.mode import THBattle
-
-# -- typing --
-if TYPE_CHECKING:
-    from thb.actions import UserAction  # noqa: F401
-    from thb.characters.base import Character  # noqa: F401
-    from thb.meta.typing import CardMeta, SkillMeta  # noqa: F401
 
 
 # -- code --
@@ -74,7 +68,6 @@ def card(c, with_description=False) -> CardMetaView:
 
 class CharacterTypeView(TypedDict):
     type: str
-    life: int
     maxlife: int
     name: str
     portrait: str
@@ -84,6 +77,7 @@ class CharacterTypeView(TypedDict):
 
 class CharacterView(CharacterTypeView):
     pid: int
+    life: int
     dead: bool
     cards: Optional[List[CardListView]]
     tags: Optional[List[TagAnimation]]
@@ -115,7 +109,6 @@ def character_cls(cls) -> CharacterTypeView:
     m = cls.ui_meta
     return {
         'type': cls.__name__,
-        'life': cls.life,
         'maxlife': cls.maxlife,
         'name': m.name,
         'portrait': m.port_image,
@@ -160,7 +153,7 @@ def state_of(g: THBattle) -> GameState:
 
     p = None
     for ch in g.players:
-        if ch.player is me:
+        if ch.get_player() is me:
             p = ch
         chs.append(character(ch))
 
@@ -172,6 +165,6 @@ def state_of(g: THBattle) -> GameState:
         'my_pid': me.pid,
         'my_skills': [
             skill(sk) for sk in p.skills
-            if not getattr(sk, 'no_display', False)
+            if not getattr(sk.ui_meta, 'no_display', False)
         ],
     }

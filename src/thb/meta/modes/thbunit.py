@@ -14,6 +14,7 @@ from thb.meta.common import ui_meta, UIMetaBare
 @ui_meta(thbunit.THBattleDummy3)
 @ui_meta(thbunit.THBattleDummy4)
 @ui_meta(thbunit.THBattleHalt)
+@ui_meta(thbunit.THBattleHalt2)
 class THBattleUnitMeta(UIMetaBare):
     name = '单元测试模式'
     logo = 'thb-modelogo-8id'

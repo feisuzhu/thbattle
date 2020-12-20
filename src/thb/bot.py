@@ -21,14 +21,18 @@ log = logging.getLogger('Bot')
 
 
 class BotUserInputHandler(THBEventHandler):
-    def __init__(self, g: THBattle):
+    def __init__(self, g: THBattle, delay: float = 0.0):
         super().__init__(g)
         self.event_translator = g.ui_meta.event_translator
+        self.delay = delay
 
     def handle(self, evt: str, arg: Any) -> Any:
         if evt == 'user_input':
             trans, ilet = arg
             self.react(trans, ilet)
+            if self.delay > 0.0:
+                import gevent
+                gevent.sleep(self.delay)
         else:
             g = self.game
             core = g.runner.core

@@ -33,3 +33,13 @@ class HiddenCard:
 
     def is_action_valid(self, c, tl):
         return (False, '这是BUG，你没法发动这张牌…')
+
+
+@ui_meta(base.ShreddedCard)
+class ShreddedCard:
+    image = 'thb-card-hidden'
+    name = '被撕碎的卡片'
+    description = '|R被撕碎的卡片|r\n\n你不应该看到这个，这是个 BUG'
+
+    def is_action_valid(self, c, tl):
+        return (False, '这是BUG，你没法发动这张牌…')

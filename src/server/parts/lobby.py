@@ -128,7 +128,7 @@ class Lobby(object):
             log.info('PID:%s rejoining dropped game', pid)
             old = self.dropped_users.pop(pid)
 
-        if old:
+        if old is not None:
             old.pivot_to(u)
             self.users[pid] = u
             core.events.client_pivot.emit(u)

@@ -136,7 +136,6 @@ class Room(object):
             Ag(self, old)['name'],
             Ag(self, old)['flags'],
         )
-
         for u in online_users:
             core.lobby.state_of(u).transit('finishing')
 
@@ -145,6 +144,11 @@ class Room(object):
         for u in Ag(self, old)['users']:
             if self.is_online(old, u):
                 self.join_game(g, u)
+
+        if not self.online_users_of(g):
+            # This may happen if all `online_users` are dropped
+            # after the initial `if not online_users` guard statement
+            self.nuke_game(g)
 
         return old
 
@@ -425,6 +429,12 @@ class Room(object):
 
         if users:
             return
+
+        self.nuke_game(g)
+
+    def nuke_game(self, g: Game) -> None:
+        core = self.core
+        gid = Ag(self, g)['gid']
 
         if self.is_started(g):
             log.info('Game [%s] aborted', gid)

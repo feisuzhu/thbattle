@@ -79,3 +79,36 @@ class TestRoom(object):
         a.room.get_ready(); wait()
         wait()
         assert s.game.is_crashed(g), g._
+
+    def testPivot(self):
+        env = Environ()
+        t = EventTap()
+
+        s = env.server_core()
+        a = env.client_core()
+        b = env.client_core()
+        a2 = env.client_core()
+        t.tap(a, b, a2)
+
+        a.auth.login("Alice")
+        b.auth.login("Bob")
+        wait()
+
+        # Should be able to pivot
+        a.room.create('Boom', 'THBattleHalt2', {})
+        a.room.get_ready()
+        wait()
+        gid = a.game.gid_of(t[a.events.game_joined])
+        b.room.join(gid)
+        b.room.get_ready()
+        wait()
+        a.game.start_game(t[a.events.game_started])
+        b.game.start_game(t[b.events.game_started])
+        wait()
+
+        a2.auth.login("Alice")
+        wait()
+        assert a.events.game_left not in t
+        assert a2.events.game_left not in t
+        assert a2.events.game_joined in t
+        assert a2.events.game_started in t

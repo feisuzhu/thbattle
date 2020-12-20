@@ -80,8 +80,8 @@ class Endpoint(object):
                 with self.writelock:
                     self.sock.sendall(s)
                     self.active = True
-            except IOError:
-                log.exception('Error raw_write, closing Endpoint')
+            except IOError as e:
+                log.warning('Error raw_write, closing Endpoint: %s', e)
                 self.close()
 
     def close(self):
@@ -139,6 +139,8 @@ class Endpoint(object):
                     try:
                         v = next(unpacker)
                         self.active = True
+                    except socket.error:
+                        pass
                     except StopIteration:
                         pass
 

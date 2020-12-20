@@ -35,6 +35,7 @@ class Matching(object):
 
         core.events.user_state_transition += self.handle_user_state_transition
         core.events.core_initialized += self.handle_core_initialized
+        core.events.client_dropped += self.handle_client_dropped
 
         D = core.events.client_command
         D[wire.StartMatching] += self._start_matching
@@ -53,6 +54,10 @@ class Matching(object):
             self.outstanding[m] = set()
 
         return ev
+
+    def handle_client_dropped(self, c: Client) -> Client:
+        self._clear(c)
+        return c
 
     def handle_user_state_transition(self, ev: Tuple[Client, str, str]) -> Tuple[Client, str, str]:
         c, f, t = ev
