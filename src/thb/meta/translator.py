@@ -138,7 +138,8 @@ def reveal_role_effect(g: THBattle, core: Core, evt: str, act: Any):
 
 
 def bootstrap_action_effect(g: THBattle, core: Core, evt: str, arg: Any):
-    core.gate.post('thb.ui.roles_definition', list(g.ui_meta.roles.items()))
+    # core.gate.post('thb.ui.roles_definition', list(g.ui_meta.roles.items()))
+    pass
 
 
 actions_mapping: Dict[str, Dict[Type[Action], Callable]] = {

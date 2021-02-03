@@ -23,20 +23,20 @@ class CardMetaView(TypedDict, total=False):
     params: Optional[Dict[str, Any]]
     resides_in: Optional[str]
     owner: int
-    name: str
-    image: str
-    desc: Optional[str]
-    eqpcat: str
+    # name: str
+    # image: str
+    # desc: Optional[str]
+    # eqpcat: str
 
 
 class CardListView(TypedDict):
     type: str
-    name: str
+    # name: str
     cards: List[CardMetaView]
 
 
 def card(c, with_description=False) -> CardMetaView:
-    m = c.ui_meta
+    # m = c.ui_meta
     if (l := c.resides_in) is not None:
         resides_in = l.type
         owner = l.owner.get_player().pid if l.owner else 0
@@ -54,25 +54,26 @@ def card(c, with_description=False) -> CardMetaView:
         'params': getattr(c, 'action_params', None),
         'resides_in': resides_in,
         'owner': owner,
-        'name': c.ui_meta.name,
-        'image': c.ui_meta.image,
-        'eqpcat': getattr(c, 'equipment_category', None),
+        # 'name': c.ui_meta.name,
+        # 'image': c.ui_meta.image,
+        # 'eqpcat': getattr(c, 'equipment_category', None),
     }
 
-    if with_description:
-        rst['desc'] = getattr(m, 'description', None)
+    # if with_description:
+    #     rst['desc'] = getattr(m, 'description', None)
 
     rst = {k: v for k, v in rst.items() if v is not None}
     return cast(CardMetaView, rst)
 
 
+# FIXME: merge this with CharacterView
 class CharacterTypeView(TypedDict):
     type: str
-    maxlife: int
-    name: str
-    portrait: str
-    figure: str
-    desc: str
+    # maxlife: int
+    # name: str
+    # portrait: str
+    # figure: str
+    # desc: str
 
 
 class CharacterView(CharacterTypeView):
@@ -84,55 +85,57 @@ class CharacterView(CharacterTypeView):
 
 
 def character(ch, extra=True) -> CharacterView:
-    m = ch.ui_meta
+    # m = ch.ui_meta
     return {
         'pid': ch.player.pid,
         'type': ch.__class__.__name__,
         'life': ch.life,
-        'maxlife': ch.maxlife,
+        # 'maxlife': ch.maxlife,
         'dead': ch.dead,
         'cards': [{
             'type': cl.type,
-            'name': cl.ui_meta.lookup[cl.type],
+            # 'name': cl.ui_meta.lookup[cl.type],
             'cards': [card(c) for c in cl],
         } for cl in ch.lists if cl.type != 'special'] if extra else None,
         'tags': get_display_tags(ch) if extra else None,
 
-        'name': m.name,
-        'portrait': m.port_image,
-        'figure': m.figure_image,
-        'desc': m.char_desc(ch),
+        # 'name': m.name,
+        # 'portrait': m.port_image,
+        # 'figure': m.figure_image,
+        # 'desc': m.char_desc(ch),
     }
 
 
-def character_cls(cls) -> CharacterTypeView:
-    m = cls.ui_meta
-    return {
-        'type': cls.__name__,
-        'maxlife': cls.maxlife,
-        'name': m.name,
-        'portrait': m.port_image,
-        'figure': m.figure_image,
-        'desc': m.char_desc(cls),
-    }
+def character_cls(cls) -> str:
+    return cls.__name__
+
+    # m = cls.ui_meta
+    # return {
+    #     'type': cls.__name__,
+    #     'maxlife': cls.maxlife,
+    #     'name': m.name,
+    #     'portrait': m.port_image,
+    #     'figure': m.figure_image,
+    #     'desc': m.char_desc(cls),
+    # }
 
 
 class SkillView(TypedDict, total=False):
     type: str
-    name: str
-    desc: str
-    skcat: List[str]
-    ui: str
+    # name: str
+    # desc: str
+    # skcat: List[str]
+    # ui: str
     clickable: bool
 
 
 def skill(sk) -> SkillView:
-    m = sk.ui_meta
+    # m = sk.ui_meta
     return {
         'type': sk.__name__,
-        'name': m.name,
-        'skcat': sk.skill_category,
-        'ui': getattr(sk, 'params_ui', None),
+        # 'name': m.name,
+        # 'skcat': sk.skill_category,
+        # 'ui': getattr(sk, 'params_ui', None),
         'clickable': sk.ui_meta.clickable(),
     }
 
