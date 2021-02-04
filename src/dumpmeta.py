@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-# myu
+
+import sys
+import os.path
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # -- stdlib --
 import gc
 import json
+import sys
 
 # -- third party --
 # -- own --
@@ -13,6 +18,7 @@ import thb.meta
 
 
 # -- code --
+
 kls = [
     c for c in gc.get_objects()
     if isinstance(c, type) and issubclass(c, game.base.GameObject)

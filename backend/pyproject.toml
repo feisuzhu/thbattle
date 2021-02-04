@@ -5,7 +5,7 @@ description = ""
 authors = ["Proton <feisuzhu@163.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.8"
 redis = "^3.4.1"
 requests = "^2.23.0"
 raven = "^6.10.0"
@@ -18,7 +18,7 @@ pillow = "^7.0.0"
 graphene-django = "^2.8.2"
 django-redis-cache = "2.1.1"
 django-redis-sessions = "^0.6.1"
-cryptography = "^2.8"
+cryptography = "*"
 itsdangerous = "^1.1.0"
 msgpack = "^1.0.0"
 pymysql = "^0.9.3"
