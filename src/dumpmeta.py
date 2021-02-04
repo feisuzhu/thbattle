@@ -136,12 +136,12 @@ ilets = [v for v in ilets if v]
 
 # =========================
 rst = {
-    'Characters': {v['Type']: json.dumps(v) for v in chars},
+    'Characters': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in chars],
     'UIMetaInputHandlers': json.dumps(ilets),
-    'PhysicalCards': {v['Type']: json.dumps(v) for v in physical_cards},
-    'RoleDefinitions': {v['Type']: json.dumps(v) for v in roles},
-    'Skills': {v['Type']: json.dumps(v) for v in skills},
-    'Modes': {v['Type']: json.dumps(v) for v in modes},
+    'PhysicalCards': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in physical_cards],
+    'RoleDefinitions': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in roles],
+    'Skills': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in skills],
+    'Modes': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in modes],
 }
 
 print(json.dumps(rst))
