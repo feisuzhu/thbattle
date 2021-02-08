@@ -71,7 +71,7 @@ class HeavyDrinkerHandler(THBEventHandler):
 class DrunkenDream(Skill):
     target = t_None()
     associated_action = None
-    skill_category = ['character', 'passive']
+    skill_category = ['character', 'passive', 'compulsory']
 
 
 class DrunkenDreamDrawCards(DrawCards):

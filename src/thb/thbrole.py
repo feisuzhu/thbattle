@@ -313,7 +313,7 @@ class ExtraCardSlotHandler(THBEventHandler):
 class ExtraCardSlot(Skill):
     associated_action = None
     target = t_None()
-    skill_category = ['character', 'passive', 'boss']
+    skill_category = ['character', 'passive', 'boss', 'compulsory']
 
 
 class THBRoleRole(Enum):
