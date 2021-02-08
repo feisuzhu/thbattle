@@ -19,15 +19,13 @@ class DummyCard:
 @ui_meta(definition.AttackCard)
 class AttackCard:
     # action_stage meta
-    image = 'thb-card-attack'
     name = '弹幕'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R弹幕|r\n\n'
         '出牌阶段，消耗1点干劲，对你攻击范围内的一名其他角色使用，对该角色造成1点伤害。\n'
         '|B|R>> |r默认情况下，你的攻击范围是1。\n'
-        '|B|R>> |r干劲在出牌阶段开始时恢复成1点。\n'
-        '\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '|B|R>> |r干劲在出牌阶段开始时恢复成1点。'
     )
 
     def is_action_valid(self, c, tl):
@@ -60,12 +58,11 @@ class AttackCard:
 class GrazeCard:
     # action_stage meta
     name = '擦弹'
-    image = 'thb-card-graze'
+    illustrator = '霏茶'
+    cv = '小羽'
     description = (
-        '|R擦弹|r\n\n'
         '当你受到|G弹幕|r的攻击时，你可以使用一张|G擦弹|r来抵消|G弹幕|r的效果。\n'
-        '|B|R>> |r默认情况下，|G擦弹|r只能在回合外使用或打出。\n\n'
-        '|DB（画师：霏茶，CV：小羽）|r'
+        '|B|R>> |r默认情况下，|G擦弹|r只能在回合外使用或打出。'
     )
 
     def is_action_valid(self, c, tl):
@@ -106,14 +103,13 @@ class GrazeCard:
 class WineCard:
     # action_stage meta
     name = '酒'
-    image = 'thb-card-wine'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     description = (
-        '|R酒|r\n\n'
         '出牌阶段，对自己使用。使用后获得|B喝醉|r状态。\n'
         '|B喝醉|r状态下，使用【弹幕】造成的伤害+1，受到致命伤害时伤害-1。\n'
         '|B|R>> |r 效果触发或者到了自己的准备阶段开始时须弃掉|B喝醉|r状态。\n'
-        '|B|R>> |r 你可以于喝醉状态下继续使用酒，但效果不叠加。\n\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '|B|R>> |r 你可以于喝醉状态下继续使用酒，但效果不叠加。'
     )
 
     def is_action_valid(self, c, tl):
@@ -142,17 +138,14 @@ class WineRevive:
 class ExinwanCard:
     # action_stage meta
     name = '恶心丸'
-    image = 'thb-card-exinwan'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     description = (
-        '|R恶心丸|r\n'
-        '\n'
         '出牌阶段，对自己使用。使用时没有额外效果。当此牌以任意的方式进入弃牌堆时，引发弃牌动作的角色需选择其中一项执行：\n'
         '|B|R>> |r受到1点无来源伤害。\n'
         '|B|R>> |r弃置两张牌。\n'
         '\n'
-        '|B|R! |r 当你因为其他角色装备效果(如他人发动白楼剑特效）或技能效果（如正邪挑拨，秦心暗黑能乐）而将恶心丸主动置入弃牌堆时，恶心丸的弃置者视为该角色。\n'
-        '\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '|B|R! |r 当你因为其他角色装备效果(如他人发动白楼剑特效）或技能效果（如正邪挑拨，秦心暗黑能乐）而将恶心丸主动置入弃牌堆时，恶心丸的弃置者视为该角色。'
     )
 
     def is_action_valid(self, c, tl):
@@ -226,16 +219,13 @@ class UseAttack:
 @ui_meta(definition.HealCard)
 class HealCard:
     # action_stage meta
-    image = 'thb-card-heal'
     name = '麻薯'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R麻薯|r\n'
-        '\n'
         '你可以在如下状况中使用，回复1点体力：\n'
         '|B|R>> |r在你的出牌阶段且你的当前体力小于最大体力。\n'
-        '|B|R>> |r当有角色处于濒死状态时。\n'
-        '\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '|B|R>> |r当有角色处于濒死状态时。'
     )
 
     def is_action_valid(self, c, tl):

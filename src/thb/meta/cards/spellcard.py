@@ -16,13 +16,11 @@ from thb.meta.common import ui_meta
 @ui_meta(definition.DemolitionCard)
 class DemolitionCard:
     # action_stage meta
-    image = 'thb-card-demolition'
     name = '城管执法'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     description = (
-        '|R城管执法|r\n\n'
-        '非延时符卡。\n'
-        '出牌阶段，对一名其他角色使用，弃置其区域内的一张牌。\n\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '出牌阶段，对一名其他角色使用，弃置其区域内的一张牌。'
     )
 
     def is_action_valid(self, c, tl):
@@ -64,12 +62,10 @@ class Demolition:
 class RejectCard:
     # action_stage meta
     name = '好人卡'
-    image = 'thb-card-reject'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R好人卡|r\n\n'
-        '非延时符卡。\n'
-        '一张符卡对一名目标角色生效前，你可以使用此牌来抵消该符卡对其目标角色产生的效果。\n\n'
-        '|DB（画师：霏茶，CV：VV）'
+        '一张符卡对一名目标角色生效前，你可以使用此牌来抵消该符卡对其目标角色产生的效果。'
     )
 
     def is_action_valid(self, c, tl):
@@ -120,14 +116,11 @@ class RejectHandler:
 class SealingArrayCard:
     # action_stage meta
     name = '封魔阵'
-    image = 'thb-card-sealarray'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     tag = 'thb-tag-sealarray'
     description = (
-        '|R封魔阵|r\n\n'
-        '延时类符卡。\n'
-        '出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为红桃，跳过其出牌阶段。\n'
-        '|B|R>> |r判定开始前,你可以使用【好人卡】抵消该符卡的效果（抵消后弃掉【封魔阵】）。\n\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为红桃，跳过其出牌阶段。'
     )
 
     def is_action_valid(self, c, tl):
@@ -157,14 +150,11 @@ class SealingArray:
 class FrozenFrogCard:
     # action_stage meta
     name = '冻青蛙'
-    image = 'thb-card-frozenfrog'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     tag = 'thb-tag-frozenfrog'
     description = (
-        '|R冻青蛙|r\n\n'
-        '延时类符卡。\n'
-        '出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为黑桃，跳过其摸牌阶段。\n'
-        '|B|R>> |r判定开始前,你可以使用【好人卡】抵消该符卡的效果（抵消后弃掉【冻青蛙】）。\n\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为黑桃，跳过其摸牌阶段。'
     )
 
     def is_action_valid(self, c, tl):
@@ -194,12 +184,10 @@ class FrozenFrog:
 class NazrinRodCard:
     # action_stage meta
     name = '寻龙尺'
-    image = 'thb-card-nazrinrod'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R寻龙尺|r\n\n'
-        '非延时符卡。\n'
-        '出牌阶段使用，从牌堆摸两张牌。\n\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '出牌阶段使用，摸两张牌。'
     )
 
     def is_action_valid(self, c, tl):
@@ -213,16 +201,14 @@ class NazrinRodCard:
 class SinsackCard:
     # action_stage meta
     name = '罪袋'
-    image = 'thb-card-sinsack'
+    illustrator = '霏茶'
+    cv = 'VV/大白'
     tag = 'thb-tag-sinsack'
     description = (
-        '|R罪袋|r\n\n'
-        '延时类符卡。\n'
         '出牌阶段，对你使用，将此牌横置于你的判定区内。判定区内有此牌的角色的判定阶段，需进行一次判定：\n'
         '|B|R>> |r若判定结果为黑桃1-8，则目标角色受到3点无来源伤害，然后将其置入弃牌堆。\n'
         '|B|R>> |r若判定结果不在此范围，则将其移动到下家的判定区内。\n'
-        '|B|R>> |r判定开始前,你可以使用|B好人卡|r抵消该符卡的效果,并将该|G罪袋|r直接传递给下家。\n\n'
-        '|DB（画师：霏茶，CV：VV/大白）|r'
+        '|B|R>> |r判定开始前,你可以使用|B好人卡|r抵消该符卡的效果,并将该|G罪袋|r直接传递给下家。'
     )
 
     def is_action_valid(self, c, tl):
@@ -249,14 +235,12 @@ class SinsackDamage:
 @ui_meta(definition.YukariDimensionCard)
 class YukariDimensionCard:
     # action_stage meta
-    image = 'thb-card-yukaridimension'
     name = '隙间'
+    illustrator = '霏茶'
+    cv = 'VV'
 
     description = (
-        '|R隙间|r\n\n'
-        '非延时符卡。\n'
-        '出牌阶段，对距离为1的一名其他角色使用，获得其区域内的一张牌。\n\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '出牌阶段，对距离为1的一名其他角色使用，获得其区域内的一张牌。'
     )
 
     def is_action_valid(self, c, tl):
@@ -287,13 +271,11 @@ class YukariDimension:
 @ui_meta(definition.DuelCard)
 class DuelCard:
     # action_stage meta
-    image = 'thb-card-duel'
     name = '弹幕战'
+    illustrator = '霏茶'
+    cv = '小羽'
     description = (
-        '|R弹幕战|r\n\n'
-        '非延时符卡。\n'
-        '出牌阶段，对一名其他角色使用，由目标角色开始，轮流打出一张【弹幕】。首先不打出【弹幕】的一方受到另一方造成的1点伤害。\n\n'
-        '|DB（画师：霏茶，CV：小羽）|r'
+        '出牌阶段，对一名其他角色使用，由目标角色开始，轮流打出一张|G弹幕|r。首先不打出|G弹幕|r的一方受到另一方造成的1点伤害。'
     )
 
     def is_action_valid(self, c, tl):
@@ -308,13 +290,11 @@ class DuelCard:
 
 @ui_meta(definition.MapCannonCard)
 class MapCannonCard:
-    image = 'thb-card-mapcannon'
     name = '地图炮'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R地图炮|r\n\n'
-        '群体符卡。非延时符卡。\n'
-        '出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张【擦弹】，否则该角色受到1点伤害。\n\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张【擦弹】，否则该角色受到1点伤害。'
     )
 
     def is_action_valid(self, c, tl):
@@ -326,13 +306,11 @@ class MapCannonCard:
 
 @ui_meta(definition.DemonParadeCard)
 class DemonParadeCard:
-    image = 'thb-card-demonparade'
     name = '百鬼夜行'
+    illustrator = '霏茶'
+    cv = '小羽'
     description = (
-        '|R百鬼夜行|r\n\n'
-        '群体符卡。非延时符卡。\n'
-        '出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张|G弹幕|r，否则该角色受到1点伤害。\n\n'
-        '|DB（画师：霏茶，CV：小羽）|r'
+        '出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张|G弹幕|r，否则该角色受到1点伤害。'
     )
 
     def is_action_valid(self, c, tl):
@@ -345,13 +323,11 @@ class DemonParadeCard:
 @ui_meta(definition.FeastCard)
 class FeastCard:
     # action_stage meta
-    image = 'thb-card-feast'
     name = '宴会'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R宴会|r\n\n'
-        '群体符卡。非延时符卡。\n'
-        '出牌阶段，对所有角色使用。已受伤的角色回复一点体力，未受伤的角色获得|B喝醉|r状态。\n\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '出牌阶段，对所有角色使用。已受伤的角色回复一点体力，未受伤的角色获得|B喝醉|r状态。'
     )
 
     def is_action_valid(self, c, tl):
@@ -368,13 +344,11 @@ class FeastCard:
 @ui_meta(definition.HarvestCard)
 class HarvestCard:
     # action_stage meta
-    image = 'thb-card-harvest'
     name = '五谷丰登'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R五谷丰登|r\n\n'
-        '群体符卡。非延时符卡。\n'
-        '出牌阶段，对所有角色使用，你从牌堆顶亮出等同于现存角色数量的牌，目标角色依次选择并获得这些牌中的一张。\n\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '出牌阶段，对所有角色使用，你从牌堆顶亮出等同于现存角色数量的牌，目标角色依次选择并获得这些牌中的一张。'
     )
 
     def is_action_valid(self, c, tl):
@@ -400,12 +374,10 @@ class HarvestEffect:
 class DollControlCard:
     # action_stage meta
     name = '人形操控'
-    image = 'thb-card-dollcontrol'
+    illustrator = '霏茶'
+    cv = '小羽'
     description = (
-        '|R人形操控|r\n\n'
-        '非延时符卡。\n'
-        '出牌阶段，对装备区内有武器牌的一名其他角色使用，令其选择一项：对其攻击范围内一名由你指定的角色使用一张【弹幕】，或将武器交给你。\n\n'
-        '|DB（画师：霏茶，CV：小羽）|r'
+        '出牌阶段，对装备区内有武器牌的一名其他角色使用，令其选择一项：对其攻击范围内一名由你指定的角色使用一张|G弹幕|r，或将武器交给你。'
     )
     custom_ray = True
 
@@ -454,12 +426,10 @@ class DollControl:
 class DonationBoxCard:
     # action_stage meta
     name = '赛钱箱'
-    image = 'thb-card-donationbox'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     description = (
-        '|R赛钱箱|r\n\n'
-        '非延时符卡。\n'
-        '出牌阶段，对至多两名其他角色使用，目标角色需将自己的一张牌置入你的明牌区。\n\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '出牌阶段，对至多两名其他角色使用，目标角色需将自己的一张牌置入你的明牌区。'
     )
 
     def is_action_valid(self, c, tl):

@@ -83,10 +83,12 @@ for c in card_cls:
     physical_cards[c.__name__] = {
         'Type': c.__name__,
         'Name': c.ui_meta.name,
-        'Categories': c.category,
-        'EquipmentCategory': getattr(c, 'equipment_category', ''),
+        'CategoryStrings': c.category,
+        'EquipmentCategoryString': getattr(c, 'equipment_category', ''),
         'DistanceAdjust': distadj(c),
         'Description': c.ui_meta.description,
+        'Illustrator': c.ui_meta.illustrator,
+        'CV': c.ui_meta.cv,
     }
 
 

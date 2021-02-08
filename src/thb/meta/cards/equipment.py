@@ -53,12 +53,10 @@ class ReforgeWeapon:
 class OpticalCloakCard:
     # action_stage meta
     name = '光学迷彩'
-    image = 'thb-card-opticalcloak'
-    image_small = 'thb-card-small-opticalcloak'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     description = (
-        '|R光学迷彩|r\n\n'
-        '装备后：当你需要使用或打出|G擦弹|r时，可以进行一次判定，若结果为红，视为你使用或打出了一张|G擦弹|r。\n\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '装备后：当你需要使用或打出|G擦弹|r时，可以进行一次判定，若结果为红，视为你使用或打出了一张|G擦弹|r。'
     )
 
     is_action_valid = equip_iav
@@ -104,12 +102,10 @@ class OpticalCloak:
 class MomijiShieldCard:
     # action_stage meta
     name = '天狗盾'
-    image = 'thb-card-momijishield'
-    image_small = 'thb-card-small-momijishield'
+    illustrator = '霏茶'
+    cv = ''
     description = (
-        '|R天狗盾|r\n\n'
         '装备后：黑色|G弹幕|r对你无效。\n\n'
-        '|DB（画师：霏茶）|r'
     )
 
     is_action_valid = equip_iav
@@ -132,12 +128,10 @@ class MomijiShield:
 
 
 ufo_desc = (
-    '|R%s|r\n\n'
     'UFO用来改变自己与其他角色之间的距离。\n'
     '|B|R>> |r红色UFO为进攻用，当你计算和其他角色的距离时，在原有的基础上减少相应距离。两名角色之间的距离至少为1。\n'
     '|B|R>> |r绿色UFO为防守用，当其他角色计算和你的距离时，在原有的基础上增加相应距离。\n'
-    '|B|R>> |r你可以同时装备两种UFO。\n\n'
-    '|DB（画师：霏茶）|r'
+    '|B|R>> |r你可以同时装备两种UFO。'
 )
 
 
@@ -145,9 +139,9 @@ ufo_desc = (
 class GreenUFOCard:
     # action_stage meta
     name = '绿色UFO'
-    image = 'thb-card-greenufo'
-    image_small = 'thb-card-small-greenufo'
-    description = ufo_desc % name
+    description = ufo_desc
+    illustrator = '霏茶'
+    cv = ''
 
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -164,9 +158,9 @@ class GreenUFOSkill:
 class RedUFOCard:
     # action_stage meta
     name = '红色UFO'
-    image = 'thb-card-redufo'
-    image_small = 'thb-card-small-redufo'
-    description = ufo_desc % name
+    illustrator = '霏茶'
+    cv = ''
+    description = ufo_desc
 
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -183,16 +177,12 @@ class RedUFOSkill:
 class RoukankenCard:
     # action_stage meta
     name = '楼观剑'
-    image = 'thb-card-roukanken'
-    image_small = 'thb-card-small-roukanken'
+    illustrator = '霏茶'
+    cv = ''
     description = (
-        '|R楼观剑|r\n'
-        '\n'
         '攻击范围3，装备后：你使用的|G弹幕|r无视防具。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -217,16 +207,12 @@ class Roukanken:
 class ElementalReactorCard:
     # action_stage meta
     name = '八卦炉'
-    image = 'thb-card-reactor'
-    image_small = 'thb-card-small-reactor'
+    illustrator = '霏茶'
+    cv = ''
     description = (
-        '|R八卦炉|r\n'
-        '\n'
         '攻击范围1，装备后：出牌阶段你使用|G弹幕|r时不消耗干劲。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
 
     is_action_valid = equip_iav
@@ -243,12 +229,10 @@ class ElementalReactorSkill:
 class UmbrellaCard:
     # action_stage meta
     name = '阳伞'
-    image = 'thb-card-umbrella'
-    image_small = 'thb-card-small-umbrella'
+    illustrator = '霏茶'
+    cv = ''
     description = (
-        '|R阳伞|r\n\n'
-        '装备后：符卡效果造成的伤害对你无效。\n\n'
-        '|DB（画师：霏茶）|r'
+        '符卡效果造成的伤害对你无效。'
     )
 
     is_action_valid = equip_iav
@@ -285,16 +269,12 @@ class UmbrellaEffect:
 class GungnirCard:
     # action_stage meta
     name = '冈格尼尔'
-    image = 'thb-card-gungnir'
-    image_small = 'thb-card-small-gungnir'
+    illustrator = '霏茶'
+    cv = ''
     description = (
-        '|R冈格尼尔|r\n'
-        '\n'
         '攻击范围3，装备后：你可以将两张手牌当|G弹幕|r使用或打出。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
 
     is_action_valid = equip_iav
@@ -346,16 +326,12 @@ class GungnirSkill:
 class ScarletRhapsodyCard:
     # action_stage meta
     name = '绯想之剑'
-    image = 'thb-card-scarletrhapsodysword'
-    image_small = 'thb-card-small-scarletrhapsodysword'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R绯想之剑|r\n'
-        '\n'
         '攻击范围4，装备后：当你使用的|G弹幕|r是你的最后一张手牌时，你可以为此|G弹幕|r指定至多三名目标。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
 
     is_action_valid = equip_iav
@@ -412,17 +388,13 @@ class ScarletRhapsodySkill:
 class RepentanceStickCard:
     # action_stage meta
     name = '悔悟棒'
-    image = 'thb-card-repentancestick'
-    image_small = 'thb-card-small-repentancestick'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     description = (
-        '|R悔悟棒|r\n'
-        '\n'
         '攻击范围2，装备后：当你使用|G弹幕|r造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
         '|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
 
     is_action_valid = equip_iav
@@ -468,15 +440,13 @@ class RepentanceStick:
 class IbukiGourdCard:
     # action_stage meta
     name = '伊吹瓢'
-    image = 'thb-card-ibukigourd'
-    image_small = 'thb-card-small-ibukigourd'
+    illustrator = '霏茶'
+    cv = ''
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
 
     description = (
-        '|R伊吹瓢|r\n\n'
-        '装备后：获得立即|B喝醉|r状态。并且，若你在出牌阶段没有造成过伤害，在回合结束阶段获得|B喝醉|r状态。\n\n'
-        '|DB（画师：霏茶）|r'
+        '装备后立即获得|B喝醉|r状态。并且，若你在出牌阶段没有造成过伤害，在回合结束阶段获得|B喝醉|r状态。'
     )
 
 
@@ -490,16 +460,12 @@ class IbukiGourdSkill:
 class HouraiJewelCard:
     # action_stage meta
     name = '蓬莱玉枝'
-    image = 'thb-card-houraijewel'
-    image_small = 'thb-card-small-houraijewel'
+    illustrator = '霏茶'
+    cv = ''
     description = (
-        '|R蓬莱玉枝|r\n'
-        '\n'
         '攻击范围1。装备后，你使用的|G弹幕|r时，可以将弹幕的效果转化成如下的符卡效果：造成1点伤害。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
 
     is_action_valid = equip_iav
@@ -534,12 +500,10 @@ class HouraiJewelAttack:
 class MaidenCostumeCard:
     # action_stage meta
     name = '巫女服'
-    image = 'thb-card-maidencostume'
-    image_small = 'thb-card-small-maidencostume'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R巫女服|r\n\n'
-        '装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张|G好人卡|r。\n\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张|G好人卡|r。'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -585,17 +549,14 @@ class MaidenCostumeAction:
 class HakuroukenCard:
     # action_stage meta
     name = '白楼剑'
-    image = 'thb-card-hakurouken'
-    image_small = 'thb-card-small-hakurouken'
+    illustrator = '霏茶'
+    cv = '小羽'
     description = (
-        '|R白楼剑|r\n\n'
         '攻击范围2，装备后：当你使用的草花色|G弹幕|r指定一名目标角色后，你可以令其选择一项：\n'
         '|B|R>> |r弃置一张手牌。\n'
         '|B|R>> |r令你摸一张牌。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶，CV：小羽）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -645,16 +606,12 @@ class HakuroukenHandler:
 class AyaRoundfanCard:
     # action_stage meta
     name = '团扇'
-    image = 'thb-card-ayaroundfan'
-    image_small = 'thb-card-small-ayaroundfan'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R团扇|r\n'
-        '\n'
         '攻击距离5，装备后：当你使用的|G弹幕|r对目标角色造成伤害后，你可以弃置一张手牌，然后弃置其装备区里的一张牌。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -704,17 +661,12 @@ class AyaRoundfan:
 class NenshaPhoneCard:
     # action_stage meta
     name = '念写机'
-    image = 'thb-card-nenshaphone'
-    image_small = 'thb-card-small-nenshaphone'
+    illustrator = '霏茶'
+    cv = ''
     description = (
-        '|R念写机|r\n'
-        '\n'
         '攻击距离4，装备后：当你使用的|G弹幕|r对目标角色造成伤害后，可以将其两张手牌置入明牌区。\n'
         '\n'
         '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶）|r'
-
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -751,16 +703,12 @@ class NenshaPhone:
 class LaevateinCard:
     # action_stage meta
     name = '莱瓦汀'
-    image = 'thb-card-laevatein'
-    image_small = 'thb-card-small-laevatein'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R莱瓦汀|r\n'
-        '\n'
         '攻击距离3，装备后：当你使用的|G弹幕|r被目标角色使用的|G擦弹|r抵消时，你可以弃置两张牌，令此|G弹幕|r依然生效。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -795,16 +743,12 @@ class Laevatein:
 class DeathSickleCard:
     # action_stage meta
     name = '死神之镰'
-    image = 'thb-card-deathsickle'
-    image_small = 'thb-card-small-deathsickle'
+    illustrator = '霏茶'
+    cv = '小羽'
     description = (
-        '|R死神之镰|r\n'
+        '攻击范围2，装备后：当你使用的|G弹幕|r对目标角色造成伤害时，若其没有手牌，此伤害+1。\n'
         '\n'
-        '攻击范围2，装备后：当你使用的【弹幕】对目标角色造成伤害时，若其没有手牌，此伤害+1。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶，CV：小羽）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -835,13 +779,11 @@ class DeathSickle:
 class KeystoneCard:
     # action_stage meta
     name = '要石'
-    image = 'thb-card-keystone'
-    image_small = 'thb-card-small-keystone'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     description = (
-        '|R要石|r\n\n'
         '特殊的绿色UFO装备，距离+1\n'
-        '装备后跳过【罪袋】对你的结算。\n\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '装备后跳过|G罪袋|r对你的结算。'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -868,14 +810,12 @@ class Keystone:
 class WitchBroomCard:
     # action_stage meta
     name = '魔女扫把'
-    image = 'thb-card-witchbroom'
-    image_small = 'thb-card-small-witchbroom'
+    illustrator = '霏茶'
+    cv = ''
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
     description = (
-        '|R魔女扫把|r\n\n'
-        '特殊的红色UFO装备，距离-2。\n\n'
-        '|DB（画师：霏茶）|r'
+        '特殊的红色UFO装备，距离-2。'
     )
 
 
@@ -889,12 +829,10 @@ class WitchBroomSkill:
 class YinYangOrbCard:
     # action_stage meta
     name = '阴阳玉'
-    image = 'thb-card-yinyangorb'
-    image_small = 'thb-card-small-yinyangorb'
+    illustrator = '霏茶'
+    cv = ''
     description = (
-        '|R阴阳玉|r\n\n'
-        '装备后：在你的判定牌生效前，你可以用装备区内的|G阴阳玉|r替换之。\n\n'
-        '|DB（画师：霏茶）|r'
+        '在你的判定牌生效前，你可以用装备区内的|G阴阳玉|r替换之。'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -926,12 +864,10 @@ class YinYangOrb:
 class SuwakoHatCard:
     # action_stage meta
     name = '青蛙帽'
-    image = 'thb-card-suwakohat'
-    image_small = 'thb-card-small-suwakohat'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R青蛙帽|r\n\n'
-        '装备后：手牌上限+2。\n\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '装备后手牌上限+2。'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -953,12 +889,10 @@ class SuwakoHatEffect:
 class YoumuPhantomCard:
     # action_stage meta
     name = '半灵'
-    image = 'thb-card-phantom'
-    image_small = 'thb-card-small-phantom'
+    illustrator = '霏茶'
+    cv = '小羽'
     description = (
-        '|R半灵|r\n\n'
-        '装备后：增加1点体力上限，当失去装备区里的【半灵】时，你回复1点体力。\n\n'
-        '|DB（画师：霏茶，CV：小羽）|r'
+        '装备后增加1点体力上限。当失去装备区里的|G半灵|r时，你回复1点体力。'
     )
 
     is_action_valid = equip_iav
@@ -981,13 +915,11 @@ class YoumuPhantomHeal:
 class IceWingCard:
     # action_stage meta
     name = '⑨的翅膀'
-    image = 'thb-card-icewing'
-    image_small = 'thb-card-small-icewing'
+    illustrator = '霏茶'
+    cv = 'VV'
     description = (
-        '|R⑨的翅膀|r\n\n'
         '特殊的红色UFO装备，距离-1。\n\n'
-        '装备后：|G封魔阵|r和|G冻青蛙|r对你无效。\n\n'
-        '|DB（画师：霏茶，CV：VV）|r'
+        '装备后，|G封魔阵|r和|G冻青蛙|r对你无效。'
     )
 
     is_action_valid = equip_iav
@@ -1021,20 +953,16 @@ class IceWing:
 class GrimoireCard:
     # action_stage meta
     name = '魔导书'
-    image = 'thb-card-grimoire'
-    image_small = 'thb-card-small-grimoire'
+    illustrator = '霏茶'
+    cv = 'shourei小N'
     description = (
-        '|R魔导书|r\n'
-        '\n'
         '攻击距离1，装备后，你可以消耗一点干劲并将一张牌按照以下规则使用：\n'
         '|B|R>> |r黑桃♠视为|G百鬼夜行|r。\n'
         '|B|R>> |r红桃♥视为|G宴会|r。\n'
         '|B|R>> |r梅花♣视为|G地图炮|r。\n'
         '|B|R>> |r方片♦视为|G五谷丰登|r。\n'
         '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
-        '\n'
-        '|DB（画师：霏茶，CV：shourei小N）|r'
+        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -1111,13 +1039,11 @@ class SinsackHat:
 class SinsackHatCard:
     # action_stage meta
     name = '头套'
-    image = 'thb-card-sinsackhat'
-    image_small = 'thb-card-small-sinsackhat'
+    illustrator = '霏茶'
+    cv = '大白'
     description = (
-        '|R罪袋的头套|r\n\n'
         '对距离2以内的一名角色使用。\n'
-        '装备|G罪袋的头套|r的角色需在判定阶段后进行一次判定，若为黑桃1-8，则目标角色受到2点伤害，并且将|G罪袋的头套|r收入手牌。\n'
-        '|DB（画师：霏茶，CV：大白）|r'
+        '装备|G罪袋的头套|r的角色需在判定阶段后进行一次判定，若为黑桃1-8，则目标角色受到2点伤害，并且将|G罪袋的头套|r收入手牌。'
     )
 
     def is_action_valid(self, c, tl):
