@@ -123,6 +123,7 @@ for c in modes_cls:
         'Type': c.__name__,
         'Name': c.ui_meta.name,
         'Description': c.ui_meta.description,
+        'Players': c.n_persons,
         'RoleIDs': [k for k in c.ui_meta.roles],
     }
 

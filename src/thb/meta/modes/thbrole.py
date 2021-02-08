@@ -15,8 +15,6 @@ class THBattleRole(UIMetaBare):
     name = '8人身份场'
     logo = 'thb-modelogo-8id'
     description = (
-        '|R游戏人数|r：8人。\n'
-        '\n'
         '|R身份分配|r：1|!RBOSS|r、2|!O道中|r、1|!G黑幕|r、4|!B城管|r。\n'
         '\n'
         '|!RBOSS|r：|!RBOSS|r的体力上限+1。游戏开局时展示身份，并获得BOSS技。胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'

@@ -13,8 +13,6 @@ class THBattle2v2(UIMetaBare):
     name = '2v2模式'
     logo = 'thb-modelogo-2v2'
     description = (
-        '|R游戏人数|r：4人。\n'
-        '\n'
         '|G座次|r：\n'
         '创建房间时可选固定阵容或随机阵容。\n'
         'Roll点，由点数最高的玩家为1号位，然后对面点数最大的为2号位，按1-2-2-1的顺序逆时针行动。\n'
