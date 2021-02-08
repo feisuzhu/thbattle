@@ -120,24 +120,22 @@ for c in modes_cls:
     modes[c] = {
         'Type': c.__name__,
         'Name': c.ui_meta.name,
-        'Roles': {
-            k: None for k in c.ui_meta.roles
-        }
+        'Description': c.ui_meta.description,
+        'RoleIDs': [k for k in c.ui_meta.roles],
     }
 
 modes = list(modes.values())
 
 # ----------
 ilets = {}
-ilet_cls = [c for c in kls if issubclass(
-    c, thb.inputlets.Inputlet) and c is not thb.inputlets.Inputlet]
+ilet_cls = [c for c in kls if issubclass(c, thb.inputlets.Inputlet) and c is not thb.inputlets.Inputlet]
 ilets = [v.tag() for v in ilet_cls]
 ilets = [v for v in ilets if v]
 
 # =========================
 rst = {
     'Characters': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in chars],
-    'UIMetaInputHandlers': json.dumps(ilets),
+    'UIMetaInputHandlers': ilets,
     'PhysicalCards': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in physical_cards],
     'RoleDefinitions': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in roles],
     'Skills': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in skills],
