@@ -14,6 +14,7 @@ __metaclass__ = gen_metafunc(characters.suwako)
 
 class Divine:
     # Skill
+    # 做一点微小的工作
     name = u'神御'
     description = u'准备阶段开始时，你可以获得一名与你距离2以内角色的一张手牌；若如此做，你的弃牌阶段结束后，该角色从你的弃牌中获得一张牌。'
 
@@ -57,6 +58,7 @@ class DivinePickAction:
 
 class SpringSign:
     # Skill
+    # 闷声发大财
     name = u'丰源'
     description = u'|B锁定技|r，​你的出牌阶段结束时，你摸两张牌。'
 
@@ -76,10 +78,11 @@ class SpringSignDrawCards:
 class Suwako:
     # Character
     name        = u'洩矢诹访子'
-    title       = u'土谷神之假身'
+    title       = u'小小青蛙不输风雨'
     illustrator = u'暂缺'
     cv          = u'暂缺'
 
     port_image        = u'thb-portrait-suwako'
     figure_image      = u''
+    # 这都是历史的进程啊
     miss_sound_effect = u''
