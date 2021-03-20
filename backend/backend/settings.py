@@ -26,6 +26,7 @@ SECRET_KEY = 'ew&(_dc#t346(!qzan_paw2^5f3r)3g80)1l+s_e%7&!a7nr$-'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    "0.0.0.0",
     "proton.local",
     "192.168.233.11",
     "localhost",
@@ -40,7 +41,7 @@ INSTALLED_APPS = [
     'badge.apps.BadgeConfig',
     'unlock.apps.UnlockConfig',
     'item.apps.ItemConfig',
-    'guild.apps.GuildConfig',
+    # 'guild.apps.GuildConfig',
     'system.apps.SystemConfig',
     'graphene_django',
     'django.contrib.admin',
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'schema_graph',
 ]
 
 MIDDLEWARE = [

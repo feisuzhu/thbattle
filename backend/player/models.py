@@ -118,17 +118,21 @@ class Player(models.Model):
     avatar = models.URLField('头像', blank=True, max_length=150, help_text='头像')
     prefs  = models.TextField('个人设置', blank=True, help_text='个人设置')
 
-    ppoint = models.IntegerField('P点', default=0, help_text='P点')
-    jiecao = models.IntegerField('节操', default=0, help_text='节操')
+    point = models.IntegerField('点', default=0, help_text='点')
+    power = models.IntegerField('P', default=0, help_text='P')
+    bomb = models.IntegerField('B', default=0, help_text='B')
+    full = models.IntegerField('F', default=0, help_text='F')
+    up = models.IntegerField('+1UP', default=0, help_text='+1UP')
+
     games  = models.IntegerField('游戏数', default=0, help_text='游戏数')
     drops  = models.IntegerField('逃跑数', default=0, help_text='逃跑数')
 
-    guild = models.ForeignKey(
-        'guild.Guild', models.SET_NULL,
-        related_name='members', verbose_name='势力',
-        blank=True, null=True,
-        help_text='势力',
-    )
+    # guild = models.ForeignKey(
+    #     'guild.Guild', models.SET_NULL,
+    #     related_name='members', verbose_name='势力',
+    #     blank=True, null=True,
+    #     help_text='势力',
+    # )
     badges = models.ManyToManyField(
         'badge.Badge',
         related_name='players', verbose_name='勋章',

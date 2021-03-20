@@ -39,7 +39,7 @@ class GameReward(models.Model):
 
     id     = models.AutoField(primary_key=True)
     game   = models.ForeignKey(Game, **_('游戏'), related_name='rewards', on_delete=models.CASCADE)
-    player = models.ForeignKey(Player,  **_('玩家'), on_delete=models.CASCADE)
+    player = models.ForeignKey(Player,  **_('玩家'), related_name='rewards', on_delete=models.CASCADE)
     type   = models.CharField(**_('积分类型'), max_length=20)
     amount = models.PositiveIntegerField(**_('数量'))
 

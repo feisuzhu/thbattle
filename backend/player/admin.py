@@ -34,9 +34,9 @@ class UserAdmin(OriginalUserAdmin):
 
 @admin.register(models.Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name', 'guild', 'ppoint', 'jiecao', 'games', 'drops')
+    list_display = ('user', 'name', 'point', 'power', 'bomb', 'full', 'games', 'drops')
     list_filter = ()
-    search_fields = ('user__phone', 'name', 'guild__name')
+    search_fields = ('user__phone', 'name')
     filter_horizontal = ('badges', 'friends', 'blocks')
     ordering = ('user',)
 

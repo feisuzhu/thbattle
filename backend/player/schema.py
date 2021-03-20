@@ -90,6 +90,13 @@ class Player(DjangoObjectType):
         if u.id == root.user.id or require_perm(ctx, 'player.view_user'):
             return root.user
 
+    badges = gh.List(gh.NonNull('badge.schema.PlayerBadge'), description='玩家的勋章')
+
+    @staticmethod
+    def resolve_badges(root, info):
+        from badge.models import PlayerBadge
+        return PlayerBadge.objects.filter(player__id=root.id)
+
 
 class Report(DjangoObjectType):
     class Meta:
@@ -475,11 +482,11 @@ class UserOps(gh.ObjectType):
 
 
 class PlayerOps(gh.ObjectType):
-    update     = Update.Field(description="更新资料")
-    bind_forum = BindForum.Field(description="绑定论坛帐号")
-    friend     = Friend.Field(description="发起好友请求")
-    unfriend   = Unfriend.Field(description="移除好友/拒绝好友请求")
-    block      = Block.Field(description="拉黑")
-    unblock    = Unblock.Field(description="解除拉黑")
-    report     = ReportOp.Field(description="举报玩家")
-    add_credit = AddCredit.Field(description="增加积分（服务器用）")
+    PlUpdate    = Update.Field(description="更新资料")
+    PlBindForum = BindForum.Field(description="绑定论坛帐号")
+    PlFriend    = Friend.Field(description="发起好友请求")
+    PlUnfriend  = Unfriend.Field(description="移除好友/拒绝好友请求")
+    PlBlock     = Block.Field(description="拉黑")
+    PlUnblock   = Unblock.Field(description="解除拉黑")
+    PlReport    = ReportOp.Field(description="举报玩家")
+    PlAddCredit = AddCredit.Field(description="增加积分（服务器用）")

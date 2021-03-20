@@ -13,3 +13,8 @@ from . import models
 class Badge(DjangoObjectType):
     class Meta:
         model = models.Badge
+
+
+class PlayerBadge(DjangoObjectType):
+    class Meta:
+        model = models.PlayerBadge

@@ -10,27 +10,32 @@ from . import models
 
 
 # -- code --
-'''
 @admin.register(models.Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'owner', 'type')
-    list_filter = ('type',)
+    list_display = ('id', 'owner', 'sku')
+    list_filter = ('sku',)
     search_fields = ('player__name',)
     ordering = ('owner',)
 
 
 @admin.register(models.ItemActivity)
 class ItemActivityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'player', 'action', 'item', 'extra', 'created_at')
-    list_filter = ('action',)
+    list_display = ('id', 'player', 'reason', 'sku', 'count', 'extra', 'created_at')
+    list_filter = ('reason',)
     search_fields = ('player__name', 'item__type')
     ordering = ('player',)
 
 
-@admin.register(models.Exchange)
-class ExchangeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'seller', 'type', 'price')
-    list_filter = ()
-    search_fields = ('seller__username', 'type')
-    ordering = ('seller',)
-'''
+@admin.register(models.ShopItem)
+class ShopItemAdmin(admin.ModelAdmin):
+    list_display = ('id', 'sku', 'count', 'currency', 'price')
+    list_filter = ('sku', 'currency')
+    search_fields = ('sku',)
+    ordering = ('sku',)
+
+    def __str__(self):
+        return self.id
+
+
+# RELATED FILES:
+# models.py

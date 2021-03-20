@@ -25,6 +25,7 @@ from graphene_django.views import GraphQLView
 
 # -- own --
 from .graphql import schema
+from schema_graph.views import Schema
 from .view import MessagePackGraphQLView
 
 
@@ -36,6 +37,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('graphql', GraphQLView.as_view(schema=schema, graphiql=True)),
     path('graphql-msgpack', MessagePackGraphQLView.as_view(schema=schema)),
+    path(".dev/schema/", Schema.as_view()),
 ]
 
 import os

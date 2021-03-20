@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 # -- stdlib --
 # -- third party --
@@ -23,3 +22,18 @@ class Badge(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PlayerBadge(models.Model):
+
+    class Meta:
+        verbose_name        = '玩家的勋章'
+        verbose_name_plural = '玩家的勋章'
+
+    id         = models.AutoField(primary_key=True)
+    player     = models.ForeignKey('player.Player', on_delete=models.CASCADE, related_name='+', help_text='玩家')
+    badge      = models.ForeignKey(Badge, on_delete=models.CASCADE, related_name='+', help_text='勋章')
+    granted_at = models.DateTimeField('获得日期', auto_now_add=True, help_text='获得日期')
+
+    def __str__(self):
+        return f'{self.player.name} - {self.badge.title}'

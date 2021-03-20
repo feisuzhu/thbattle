@@ -18,9 +18,5 @@ class UnlockedAdmin(admin.ModelAdmin):
     ordering = ('player',)
 
 
-@admin.register(models.Achievement)
-class AchievementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'player', 'achievement')
-    list_filter = ()
-    search_fields = ('player__name', 'achievement')
-    ordering = ('player',)
+# RELATED FILES:
+# models.py

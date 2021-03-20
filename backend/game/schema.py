@@ -2,13 +2,13 @@
 
 # -- stdlib --
 # -- third party --
+from django.core.cache import caches
 from graphene.types import generic as ghg
 from graphene_django.types import DjangoObjectType
 import graphene as gh
 
 # -- own --
 from . import models
-from player.schema import Player
 from utils.graphql import Paging
 
 
@@ -77,15 +77,23 @@ class GameRewardInput(gh.InputObjectType):
 
 
 class GameOps(gh.ObjectType):
-    archive = gh.Field(
+    GmArchive = gh.Field(
         Game,
         game=gh.Argument(GameInput, required=True, description='游戏元数据'),
         archive=gh.String(required=True, description='游戏 Replay 数据（Base64）'),
         description='保存游戏存档',
     )
-    add_reward = gh.Field(
+    GmAddReward = gh.Field(
         Game,
         game_id=gh.Int(required=True, description='游戏ID'),
         rewards=gh.List(gh.NonNull(GameRewardInput), required=True, description='积分列表'),
         description='增加游戏积分',
     )
+
+    GmAllocGameId = gh.Int(required=True, description="分配游戏ID")
+
+    @staticmethod
+    def resolve_GmAllocGameId(root, info):
+        c = caches['default']
+        c.get_or_set('next_game_id', lambda: 0)
+        return c.incr('next_game_id')

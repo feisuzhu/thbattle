@@ -12,7 +12,7 @@ from . import models
 # -- code --
 @admin.register(models.Guild)
 class GuildAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'founder', 'leader', 'slogan', 'totem', 'founded_at')
+    list_display = ('id', 'name', 'leader', 'slogan', 'totem', 'founded_at')
     list_filter = ()
-    search_fields = ('name', 'founder__username', 'leader__username')
+    search_fields = ('name', 'leader__username')
     ordering = ('id',)

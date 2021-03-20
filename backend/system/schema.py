@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 # -- stdlib --
 # -- third party --
-from django.core.cache import caches
 from graphene_django.types import DjangoObjectType
 import graphene as gh
 
@@ -58,23 +57,15 @@ class SystemQuery(gh.ObjectType):
         r = models.News.objects.order_by('-id').first()
         return r.text if r else ''
 
-    game_id = gh.Int(required=True, description="分配游戏ID")
-
-    @staticmethod
-    def resolve_game_id(root, info):
-        c = caches['default']
-        c.get_or_set('next_game_id', lambda: 0)
-        return c.incr('next_game_id')
-
 
 class SystemOps(gh.ObjectType):
-    sms_code = gh.Boolean(
+    SyRequestSmsCode = gh.Boolean(
         phone=gh.String(required=True, description="手机号"),
         description="请求验证码",
     )
 
     @staticmethod
-    def resolve_sms_code(root, info, phone):
+    def resolve_SyRequestSmsCode(root, info, phone):
         rate_limit(f"sms-code:ip:{info.context.META['REMOTE_ADDR']}", 60)
         rate_limit(f"sms-code:phone:{phone}", 60)
         utils.leancloud.send_smscode(phone)

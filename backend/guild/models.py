@@ -23,12 +23,6 @@ class Guild(models.Model):
         unique=True,
         help_text='名称',
     )
-    founder = models.ForeignKey(Player,
-        models.CASCADE,
-        related_name='founded_guilds',
-        verbose_name='创始人',
-        help_text='创始人',
-    )
     leader = models.OneToOneField(Player,
         models.CASCADE,
         unique=True,

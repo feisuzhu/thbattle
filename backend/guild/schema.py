@@ -43,7 +43,7 @@ class GuildQuery(gh.ObjectType):
 
 
 class GuildOps(gh.ObjectType):
-    create = gh.Field(
+    GuCreate = gh.Field(
         Guild,
         name=gh.String(required=True, description="势力名称"),
         slogan=gh.String(required=True, description="势力口号"),
@@ -51,32 +51,32 @@ class GuildOps(gh.ObjectType):
         description="创建势力",
     )
 
-    transfer = gh.Boolean(
+    GuTransfer = gh.Boolean(
         guild_id=gh.Int(required=True, description="势力ID"),
         to=gh.Int(required=True, description="接收人用户ID"),
         description="转让势力",
     )
 
-    join = gh.Boolean(
+    GuJoin = gh.Boolean(
         guild_id=gh.Int(required=True, description="势力ID"),
         description="申请加入势力",
     )
 
-    approve = gh.Boolean(
+    GuApprove = gh.Boolean(
         player_id=gh.Int(required=True, description="玩家ID"),
         description="批准加入势力",
     )
 
-    kick = gh.Boolean(
+    GuKick = gh.Boolean(
         player_id=gh.Int(required=True, description="玩家ID"),
         description="踢出势力",
     )
 
-    quit = gh.Boolean(
+    GuQuit = gh.Boolean(
         description="退出势力",
     )
 
-    update = gh.Field(
+    GuUpdate = gh.Field(
         Guild,
         slogan=gh.String(description="口号"),
         totem=gh.String(description="图腾（URL）"),
