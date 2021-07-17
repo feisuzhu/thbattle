@@ -70,29 +70,43 @@ def distadj(c):
 
 card_cls = [
     c for c in kls
-    if issubclass(c, thb.cards.base.PhysicalCard)
+    if (
+        issubclass(c, thb.cards.base.PhysicalCard) or
+        issubclass(c, thb.cards.base.VirtualCard)
+    )
     and is_leaf(c)
     and c not in (thb.cards.base.DummyCard, thb.characters.parsee.EnvyRecycle)
 ]
 
 
-physical_cards = {}
+cards = {}
 
 
 for c in card_cls:
-    physical_cards[c.__name__] = {
-        'Type': c.__name__,
-        'Name': c.ui_meta.name,
-        'CategoryStrings': c.category,
-        'EquipmentCategoryString': getattr(c, 'equipment_category', ''),
-        'DistanceAdjust': distadj(c),
-        'Description': c.ui_meta.description,
-        'Illustrator': c.ui_meta.illustrator,
-        'CV': c.ui_meta.cv,
-    }
+    if issubclass(c, thb.cards.base.PhysicalCard):
+        cards[c.__name__] = {
+            'Type': c.__name__,
+            'Name': c.ui_meta.name,
+            'CategoryStrings': c.category,
+            'EquipmentCategoryString': getattr(c, 'equipment_category', ''),
+            'DistanceAdjust': distadj(c),
+            'Description': c.ui_meta.description,
+            'Illustrator': c.ui_meta.illustrator,
+            'CV': c.ui_meta.cv,
+        }
+    elif hasattr(c, 'ui_meta') and hasattr(c.ui_meta, 'description'):
+        cards[c.__name__] = {
+            'Type': c.__name__,
+            'Name': c.ui_meta.name,
+            'CategoryStrings': ['virtual'],
+            'DistanceAdjust': 0,
+            'Description': getattr(c.ui_meta, 'description', ''),
+            'Illustrator': '',
+            'CV': '',
+        }
 
 
-physical_cards = list(physical_cards.values())
+cards = list(cards.values())
 
 
 # ----------
@@ -139,7 +153,7 @@ ilets = [v for v in ilets if v]
 rst = {
     'Characters': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in chars],
     'UIMetaInputHandlers': ilets,
-    'PhysicalCards': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in physical_cards],
+    'Cards': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in cards],
     'RoleDefinitions': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in roles],
     'Skills': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in skills],
     'Modes': [{'Key': v['Type'], 'Value': json.dumps(v)} for v in modes],

@@ -7,5 +7,6 @@
         "reportGeneralTypeIssues": "none"
     },
     "python.analysis.typeCheckingMode": "off",
-    "diagnostic.level": "warning"
+    "diagnostic.level": "warning",
+    "python.pythonPath": "/home/proton/.cache/pypoetry/virtualenvs/thbattle-yOdJ0ZoF-py3.8/bin/python"
 }

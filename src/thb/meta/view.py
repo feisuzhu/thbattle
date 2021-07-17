@@ -59,9 +59,6 @@ def card(c, with_description=False) -> CardMetaView:
         # 'eqpcat': getattr(c, 'equipment_category', None),
     }
 
-    # if with_description:
-    #     rst['desc'] = getattr(m, 'description', None)
-
     rst = {k: v for k, v in rst.items() if v is not None}
     return cast(CardMetaView, rst)
 
