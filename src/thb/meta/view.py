@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, TypedDict, cast
 # -- third party --
 # -- own --
 from client.base import ClientGameRunner
+from thb.cards.base import VirtualCard
 from thb.meta import view
 from thb.meta.tags import TagAnimation, get_display_tags
 from thb.mode import THBattle
@@ -15,6 +16,7 @@ from thb.mode import THBattle
 # -- code --
 class CardMetaView(TypedDict, total=False):
     type: str
+    ptype: str
     suit: int
     number: int
     color: str
@@ -44,8 +46,15 @@ def card(c, with_description=False) -> CardMetaView:
         resides_in = None
         owner = 0
 
+    cl = VirtualCard.unwrap([c])
+    if len(cl) == 1:
+        ptype = cl[0].__class__.__name__
+    else:
+        ptype = "Fallback"
+
     rst: CardMetaView = {
         'type': c.__class__.__name__,
+        'ptype': ptype,  # Actual PhysicalCard type
         'suit': c.suit,
         'number': c.number,
         'color': c.color,
@@ -54,9 +63,6 @@ def card(c, with_description=False) -> CardMetaView:
         'params': getattr(c, 'action_params', None),
         'resides_in': resides_in,
         'owner': owner,
-        # 'name': c.ui_meta.name,
-        # 'image': c.ui_meta.image,
-        # 'eqpcat': getattr(c, 'equipment_category', None),
     }
 
     rst = {k: v for k, v in rst.items() if v is not None}

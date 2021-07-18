@@ -72,7 +72,7 @@ card_cls = [
     c for c in kls
     if (
         issubclass(c, thb.cards.base.PhysicalCard) or
-        issubclass(c, thb.cards.base.VirtualCard)
+        issubclass(c, thb.cards.base.TreatAs)
     )
     and is_leaf(c)
     and c not in (thb.cards.base.DummyCard, thb.characters.parsee.EnvyRecycle)
@@ -94,11 +94,22 @@ for c in card_cls:
             'Illustrator': c.ui_meta.illustrator,
             'CV': c.ui_meta.cv,
         }
-    elif hasattr(c, 'ui_meta') and hasattr(c.ui_meta, 'description'):
+
+    elif issubclass(c, thb.cards.base.TreatAs):
+        if not hasattr(c, 'ui_meta'):
+            continue
+
+        if not hasattr(c.ui_meta, 'description'):
+            continue
+
+        cats = ['skill', 'treat_as']
+        if hasattr(c, 'treat_as') and isinstance(c.treat_as, list):
+             cats += list(c.treat_as.category)
+
         cards[c.__name__] = {
             'Type': c.__name__,
             'Name': c.ui_meta.name,
-            'CategoryStrings': ['virtual'],
+            'CategoryStrings': cats,
             'DistanceAdjust': 0,
             'Description': getattr(c.ui_meta, 'description', ''),
             'Illustrator': '',
