@@ -89,6 +89,7 @@ for c in card_cls:
             'Name': c.ui_meta.name,
             'CategoryStrings': c.category,
             'EquipmentCategoryString': getattr(c, 'equipment_category', ''),
+            'EquipmentSkill': getattr(getattr(c, 'equipment_skill', None), '__name__', ''),
             'DistanceAdjust': distadj(c),
             'Description': c.ui_meta.description,
             'Illustrator': c.ui_meta.illustrator,
@@ -159,6 +160,14 @@ ilets = {}
 ilet_cls = [c for c in kls if issubclass(c, thb.inputlets.Inputlet) and c is not thb.inputlets.Inputlet]
 ilets = [v.tag() for v in ilet_cls]
 ilets = [v for v in ilets if v]
+ilets.extend([
+    'ActionStageAction',
+    'AskForRejectAction',
+    'BanGirl',
+    'ChooseGirl',
+    'Pindian',
+])
+
 
 # =========================
 rst = {

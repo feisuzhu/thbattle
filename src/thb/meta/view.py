@@ -65,8 +65,7 @@ def card(c, with_description=False) -> CardMetaView:
         'owner': owner,
     }
 
-    rst = {k: v for k, v in rst.items() if v is not None}
-    return cast(CardMetaView, rst)
+    return cast(CardMetaView, {k: v for k, v in rst.items() if v is not None})
 
 
 # FIXME: merge this with CharacterView
