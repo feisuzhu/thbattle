@@ -8,3 +8,4 @@ cp -a $THIS/* .
 find -name __pycache__ | xargs rm -rf
 git add -A .
 git commit -a -m "Updated at $(date -R)"
+git push gitee
