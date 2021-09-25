@@ -237,3 +237,5 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+
+.vim
