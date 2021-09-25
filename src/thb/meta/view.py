@@ -33,7 +33,7 @@ class CardMetaView(TypedDict, total=False):
 
 class CardListView(TypedDict):
     type: str
-    # name: str
+    name: str
     cards: List[CardMetaView]
 
 
@@ -72,7 +72,7 @@ def card(c, with_description=False) -> CardMetaView:
 class CharacterTypeView(TypedDict):
     type: str
     # maxlife: int
-    # name: str
+    name: str
     # portrait: str
     # figure: str
     # desc: str
@@ -87,21 +87,21 @@ class CharacterView(CharacterTypeView):
 
 
 def character(ch, extra=True) -> CharacterView:
-    # m = ch.ui_meta
+    m = ch.ui_meta
     return {
         'pid': ch.player.pid,
         'type': ch.__class__.__name__,
+        'name': m.name,
         'life': ch.life,
         # 'maxlife': ch.maxlife,
         'dead': ch.dead,
         'cards': [{
             'type': cl.type,
-            # 'name': cl.ui_meta.lookup[cl.type],
+            'name': cl.ui_meta.lookup[cl.type],
             'cards': [card(c) for c in cl],
         } for cl in ch.lists if cl.type != 'special'] if extra else None,
         'tags': get_display_tags(ch) if extra else None,
 
-        # 'name': m.name,
         # 'portrait': m.port_image,
         # 'figure': m.figure_image,
         # 'desc': m.char_desc(ch),
@@ -124,7 +124,7 @@ def character_cls(cls) -> str:
 
 class SkillView(TypedDict, total=False):
     type: str
-    # name: str
+    name: str
     # desc: str
     # skcat: List[str]
     # ui: str
@@ -132,10 +132,10 @@ class SkillView(TypedDict, total=False):
 
 
 def skill(sk) -> SkillView:
-    # m = sk.ui_meta
+    m = sk.ui_meta
     return {
         'type': sk.__name__,
-        # 'name': m.name,
+        'name': m.name,
         # 'skcat': sk.skill_category,
         # 'ui': getattr(sk, 'params_ui', None),
         'clickable': sk.ui_meta.clickable(),
