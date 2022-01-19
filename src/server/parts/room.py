@@ -516,5 +516,5 @@ class Room(object):
 
     def _new_gid(self) -> int:
         core = self.core
-        gid = core.backend.query('query { gameId }')['gameId']
+        gid = core.backend.query('mutation { GmAllocGameId }')['GmAllocGameId']
         return gid

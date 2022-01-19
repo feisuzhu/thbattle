@@ -102,7 +102,7 @@ class MockBackend(object):
     @_reg
     def gameId(self, v: Any) -> Any:
         '''
-        query { gameId }
+        mutation { GmAllocGameId }
         '''
         return {'gameId': random.randint(0, 1000000)}
 

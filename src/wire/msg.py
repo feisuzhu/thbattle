@@ -4,7 +4,7 @@ from __future__ import annotations
 # -- stdlib --
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, TypedDict, Tuple
+from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, TypedDict
 import dataclasses
 
 # -- third party --
