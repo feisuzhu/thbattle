@@ -34,12 +34,12 @@ class MessagePackGraphQLView(View):
             return self.make_400_message('Invalid Content-Type')
 
         r = msgpack.unpackb(request.body)
-        print(r)
         query = r.get('query')
         if not query:
             return self.make_400_message('query is missing')
 
         variables = r.get('variables')
+        strip = r.get('strip')
 
         execution_result = self.execute_graphql_request(request, query, variables)
 
@@ -55,7 +55,19 @@ class MessagePackGraphQLView(View):
             if execution_result.invalid:
                 status_code = 400
             else:
-                response["data"] = msgpack.packb(execution_result.data)
+                data = execution_result.data
+                if strip:
+                    fields = strip.split('.')
+                    for f in fields:
+                        if data is None:
+                            break
+                        if not isinstance(data, dict):
+                            data = None
+                            break
+
+                        data = data.get(f)
+
+                response["data"] = msgpack.packb(data)
 
             result = msgpack.packb(response)
         else:
