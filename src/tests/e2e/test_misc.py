@@ -21,11 +21,11 @@ def wait():
     gevent.idle(-100)
 
 
-class TestMisc(object):
-    def testClientUiHelper(self):
-        env = Environ()
-        # t = EventTap()
+# class TestMisc(object):
+#     def testClientUiHelper(self):
+#         env = Environ()
+#         # t = EventTap()
 
-        _ = env.server_core()
-        proton = env.client_core()
-        proton.game.get_all_metadata()
+#         _ = env.server_core()
+#         proton = env.client_core()
+#         proton.game.get_all_metadata()

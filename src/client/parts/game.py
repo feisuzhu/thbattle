@@ -272,14 +272,3 @@ class GamePart(object):
             wire.PresenceState.DROPPED,
             wire.PresenceState.FLED,
         )
-
-    def get_all_metadata(self) -> Dict[str, GameDisplayInfo]:
-        from thb import modes
-        return {k: {
-            'type': k,
-            'n_persons': v.n_persons,
-            'dispname': v.ui_meta.name,
-            'logo': v.ui_meta.logo,
-            'desc': v.ui_meta.description,
-            'params': v.ui_meta.params,
-        } for k, v in modes.items()}
