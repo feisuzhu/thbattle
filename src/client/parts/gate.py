@@ -113,7 +113,7 @@ class UnityUIEventHook(EventHandler):
 
         elif evt == 'user_input_transaction_feedback':
             trans, ev, data = arg
-            core.gate.post("game.input.trans:feedback:{ev}", {
+            core.gate.post(f"game.input.trans:feedback:{ev}", {
                 'id': id(trans),
                 **data,
             })

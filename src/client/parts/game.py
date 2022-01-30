@@ -214,6 +214,8 @@ class GamePart(object):
         return A(self, g)['observe']
 
     def start_game(self, g: Game) -> None:
+        assert A(self, g)['greenlet'] is None, 'Game already started!'
+
         core = self.core
         gr = ClientGameRunner(core, g)
 
