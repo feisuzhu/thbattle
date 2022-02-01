@@ -93,7 +93,7 @@ def character(ch, extra=True) -> CharacterView:
         'type': ch.__class__.__name__,
         'name': m.name,
         'life': ch.life,
-        # 'maxlife': ch.maxlife,
+        'maxlife': ch.maxlife,  # maxlife is an instance variable! DO NOT OMIT!
         'dead': ch.dead,
         'cards': [{
             'type': cl.type,

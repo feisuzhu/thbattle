@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
-VERSION = 'V270'
+VERSION = 'V20220201175636'
 TESTING_CHARACTERS = ()
 SENTRY_DSN = ''
