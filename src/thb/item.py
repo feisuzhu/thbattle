@@ -28,7 +28,7 @@ class ImperialChoice(GameItem):
     args = [str]
 
     def __init__(self, char: str):
-        if char == 'Akari' or char not in Character.classes:
+        if char not in Character.classes:
             raise exceptions.CharacterNotFound
 
         self.char_cls = Character.classes[char]

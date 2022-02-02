@@ -1,6 +1,5 @@
 # flake8: noqa
 
-from . import akari
 from . import alice
 from . import chen
 from . import cirno

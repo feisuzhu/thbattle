@@ -416,7 +416,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         choices, _ = build_choices(
             g, pl, self.items,
             candidates=get_characters('common', 'id', 'id8', '-boss'),
-            spec={boss: {'num': 5, 'akaris': 1}},
+            spec={boss: {'num': 5}},
         )
 
         choices[boss][:0] = [CharChoice(cls) for cls in get_characters('boss')]
@@ -426,7 +426,6 @@ class THBattleRoleBootstrap(BootstrapAction):
 
             c = c or choices[boss][-1]
             c.chosen = boss
-            c.akari = False
             pl.reveal(c)
             trans.notify('girl_chosen', {
                 'choice_id': id(c),
@@ -468,7 +467,7 @@ class THBattleRoleBootstrap(BootstrapAction):
         choices, _ = build_choices(
             g, pl, self.items,
             candidates=chars,
-            spec={p: {'num': 4, 'akaris': 1} for p in pl_wo_boss},
+            spec={p: {'num': 4} for p in pl_wo_boss},
         )
 
         with InputTransaction('ChooseGirl', pl_wo_boss, mapping=choices) as trans:
@@ -487,7 +486,6 @@ class THBattleRoleBootstrap(BootstrapAction):
         # mix char class with player -->
         for p in pl_wo_boss:
             c = result[p] or choices[p][-1]
-            c.akari = False
             pl.reveal(c)
             assert c.char_cls
             ch = c.char_cls(p)

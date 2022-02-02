@@ -149,7 +149,7 @@ class THBattleFaithBootstrap(BootstrapAction):
 
         choices, _ = build_choices(
             g, pl, self.items, chars,
-            spec={p: {'num': 4, 'akaris': 1} for p in pl}
+            spec={p: {'num': 4} for p in pl}
         )
 
         rst = g.user_input(pl, SortCharacterInputlet(g, choices, 2), timeout=30, type='all')
@@ -214,7 +214,6 @@ class THBattleFaith(THBattle):
 
     def switch_character(g, old: Character, choice: CharChoice) -> Character:
         p = old.player
-        choice.akari = False
 
         g.players.player.reveal(choice)
         cls = choice.char_cls

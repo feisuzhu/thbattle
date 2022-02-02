@@ -208,8 +208,6 @@ class THBattle2v2Bootstrap(BootstrapAction):
 
         for p in pl:
             mapping[p] = [CharChoice(cls) for cls in chars[-4:]]
-            mapping[p][-1].akari = True
-
             del chars[-4:]
 
             p.reveal(mapping[p])
@@ -235,7 +233,6 @@ class THBattle2v2Bootstrap(BootstrapAction):
 
         for p in pl:
             c = rst[p]
-            c.akari = False
             pl.reveal(c)
             assert c.char_cls
             ch = c.char_cls(p)

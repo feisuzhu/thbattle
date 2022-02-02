@@ -130,7 +130,7 @@ class THBattleKOFBootstrap(BootstrapAction):
 
         choices, imperial_choices = build_choices_shared(
             g, pl, self.items,
-            candidates=chars, spec={'num': 10, 'akaris': 4},
+            candidates=chars, spec={'num': 10},
         )
 
         g.chosen = {A: [], B: []}
@@ -158,13 +158,6 @@ class THBattleKOFBootstrap(BootstrapAction):
                     'pid': p.get_player().pid,
                 })
 
-        # reveal akaris for themselves
-        for p in [A, B]:
-            for c in g.chosen[p]:
-                c.akari = False
-                p.reveal(c)
-                del c.chosen
-
         list_shuffle(g, g.chosen[A], A)
         list_shuffle(g, g.chosen[B], B)
 
@@ -185,7 +178,6 @@ class THBattleKOFBootstrap(BootstrapAction):
             c = rst[p] or g.chosen[p][0]
             g.chosen[p].remove(c)
 
-            c.akari = False
             pl.reveal(c)
             cls = c.char_cls
             assert cls

@@ -29,38 +29,28 @@ log = logging.getLogger('thb.common')
 class CharChoice(GameViralContext):
     chosen: Any = None
     char_cls: Optional[Type[Character]]
-    akari: bool = False
 
-    def __init__(self, char_cls=None, akari=False) -> None:
-        self.set(char_cls, akari)
+    def __init__(self, char_cls=None) -> None:
+        self.set(char_cls)
 
     def dump(self):
         assert self.char_cls
-        return self.char_cls.__name__ if not self.akari else 'Akari'
+        return self.char_cls.__name__
 
     def sync(self, data) -> None:
         from thb.characters.base import Character
-        self.set(Character.classes[data], False)
+        self.set(Character.classes[data])
 
     def conceal(self) -> None:
         self.char_cls = None
         self.chosen = None
-        self.akari = False
 
-    def set(self, char_cls, akari=False) -> None:
+    def set(self, char_cls) -> None:
         self.char_cls = char_cls
-        g = self.game
-
-        if akari:
-            self.akari = True
-            if g.is_client_side():
-                from thb import characters
-                self.char_cls = characters.akari.Akari
 
     def __repr__(self):
-        return '<Choice: {}{}>'.format(
+        return '<Choice: {}>'.format(
             'None' if not self.char_cls else self.char_cls.__name__,
-            '[Akari]' if self.akari else '',
         )
 
 
@@ -123,7 +113,6 @@ def roll(g: THBattle, pl: BatchList[Player], items: Dict[Player, List[GameItem]]
 
 class BuildChoicesSpec(TypedDict):
     num: int
-    akaris: int
 
 
 class VirtualPlayer(Player):
@@ -195,18 +184,6 @@ def build_choices(g: THBattle,
     for p, s in spec.items():
         for _ in range(len(result[p]), s['num']):
             result[p].append(CharChoice(candidates.pop()))
-
-    # ----- akaris -----
-    if g.is_server_side():
-        rest = candidates
-    else:
-        rest = [None] * len(candidates)
-
-    g.random.shuffle(rest)
-
-    for p, s in spec.items():
-        for i in range(-s['akaris'], 0):
-            result[p][i].set(rest.pop(), True)
 
     # ----- compose final result, reveal, and return -----
     for p, l in result.items():

@@ -55,6 +55,4 @@ from . import keine
 from . import yuyuko
 
 # special
-from . import akari
-
 from .base import get_characters
