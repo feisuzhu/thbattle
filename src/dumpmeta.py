@@ -126,6 +126,10 @@ cards = list(cards.values())
 skill_cls = [
     c for c in kls
     if issubclass(c, thb.cards.base.Skill) and is_leaf(c)
+    or c in (
+        thb.cards.equipment.GreenUFOSkill,
+        thb.cards.equipment.RedUFOSkill,
+    )
 ]
 
 skills = {}
