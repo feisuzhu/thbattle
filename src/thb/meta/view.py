@@ -170,6 +170,5 @@ def state_of(g: THBattle) -> GameState:
         'my_pid': me.pid,
         'my_skills': [
             skill(sk) for sk in p.skills
-            if not getattr(sk.ui_meta, 'no_display', False)
         ],
     }

@@ -43,8 +43,6 @@ class Assault:
     name = '强袭'
     description = '|B锁定技|r，你与其他角色计算距离时始终-1。'
 
-    no_display = False
-
 
 @ui_meta(characters.yugi.AssaultAttack)
 class AssaultAttack:
@@ -65,8 +63,6 @@ class AssaultKOF:
     # Skill
     name = '强袭'
     description = '|B登场技|r，你登场时可以视为使用了一张|G弹幕|r。'
-
-    no_display = False
 
 
 @ui_meta(characters.yugi.FreakingPower)

@@ -151,7 +151,6 @@ class GreenUFOCard:
 class GreenUFOSkill:
     # Skill
     name = '绿色UFO'
-    no_display = True
 
 
 @ui_meta(definition.RedUFOCard)
@@ -170,7 +169,6 @@ class RedUFOCard:
 class RedUFOSkill:
     # Skill
     name = '红色UFO'
-    no_display = True
 
 
 @ui_meta(definition.RoukankenCard)
@@ -819,10 +817,10 @@ class WitchBroomCard:
     )
 
 
-@ui_meta(equipment.WitchBroomSkill)
-class WitchBroomSkill:
-    # Skill
-    no_display = True
+# @ui_meta(equipment.WitchBroomSkill)
+# class WitchBroomSkill:
+#     # Skill
+#     pass
 
 
 @ui_meta(definition.YinYangOrbCard)
