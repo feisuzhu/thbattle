@@ -192,6 +192,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
                 banned.add(cls)
                 trans.notify('girl_chosen', {
                     'choice_id': id(c),
+                    'char': c.char_cls.__name__ if c.char_cls else None,
                     'pid': p.get_player().pid,
                 })
 
@@ -222,6 +223,7 @@ class THBattle2v2Bootstrap(BootstrapAction):
                 c = c or mapping[p][0]
                 trans.notify('girl_chosen', {
                     'choice_id': id(c),
+                    'char': c.char_cls.__name__ if c.char_cls else None,
                     'pid': p.get_player().pid,
                 })
                 return c

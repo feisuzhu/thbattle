@@ -141,6 +141,7 @@ class THBattleKOFBootstrap(BootstrapAction):
                 g.chosen[p].append(c)
                 trans.notify('girl_chosen', {
                     'choice_id': id(c),
+                    'char': c.char_cls.__name__ if c.char_cls else None,
                     'pid': p.get_player().pid,
                 })
                 order.remove(p)
@@ -155,6 +156,7 @@ class THBattleKOFBootstrap(BootstrapAction):
 
                 trans.notify('girl_chosen', {
                     'choice_id': id(c),
+                    'char': c.char_cls.__name__ if c.char_cls else None,
                     'pid': p.get_player().pid,
                 })
 
@@ -165,12 +167,13 @@ class THBattleKOFBootstrap(BootstrapAction):
             ilet = ChooseGirlInputlet(g, g.chosen)
 
             @ilet.with_post_process
-            def notify(p, rst):
+            def notify(p, c):
                 trans.notify('girl_chosen', {
-                    'choice_id': id(rst),
+                    'choice_id': id(c),
+                    'char': c.char_cls.__name__ if c.char_cls else None,
                     'pid': p.get_player().pid,
                 })
-                return rst
+                return c
 
             rst = g.user_input([A, B], ilet, type='all', trans=trans)
 

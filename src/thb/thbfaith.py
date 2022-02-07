@@ -55,6 +55,7 @@ class DeathHandler(THBEventHandler):
                 pool.remove(c)
                 trans.notify('girl_chosen', {
                     'choice_id': id(c),
+                    'char': c.char_cls.__name__ if c.char_cls else None,
                     'pid': tgt.get_player().pid,
                 })
 

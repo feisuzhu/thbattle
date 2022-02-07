@@ -429,6 +429,7 @@ class THBattleRoleBootstrap(BootstrapAction):
             pl.reveal(c)
             trans.notify('girl_chosen', {
                 'choice_id': id(c),
+                'char': c.char_cls.__name__ if c.char_cls else None,
                 'pid': boss.get_player().pid,
             })
             assert c.char_cls
@@ -474,12 +475,13 @@ class THBattleRoleBootstrap(BootstrapAction):
             ilet = ChooseGirlInputlet(g, choices)
 
             @ilet.with_post_process
-            def notify(p, rst):
+            def notify(p, c):
                 trans.notify('girl_chosen', {
-                    'choice_id': id(rst),
+                    'choice_id': id(c),
+                    'char': c.char_cls.__name__ if c.char_cls else None,
                     'pid': p.get_player().pid,
                 })
-                return rst
+                return c
 
             result = g.user_input(pl_wo_boss, ilet, type='all', trans=trans)
 
