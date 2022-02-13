@@ -57,3 +57,6 @@ class SkillMeta(CardMeta):
 
     def is_complete(self, c: Skill) -> Tuple[bool, str]:
         ...
+
+    def is_available(self, ch: Character) -> bool:
+        ...

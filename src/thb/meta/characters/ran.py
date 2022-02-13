@@ -20,8 +20,11 @@ class Prophet:
 @ui_meta(characters.ran.ExtremeIntelligence)
 class ExtremeIntelligence:
     # Skill
-    name = u'极智'
+    name = '极智'
     description = '每轮限一次，你的回合外，当非延时符卡效果对一名角色生效后，你可以弃置一张牌，令该符卡效果对那名角色重新进行一次结算，此时使用者视为你。'
+
+    def is_available(self, ch):
+        return ch.tags['ran_ei'] < ch.tags['turn_count'] + 1
 
 
 @ui_meta(characters.ran.ExtremeIntelligenceKOF)

@@ -153,7 +153,7 @@ class ExtremeIntelligenceHandler(THBEventHandler):
         elif evt_type == 'game_begin':
             g = self.game
             for p in g.players:
-                if isinstance(p, Ran):
+                if p.has_skill(ExtremeIntelligence):
                     p.tags['ran_ei'] = 0  # for ui
 
         return act

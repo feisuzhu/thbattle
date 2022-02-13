@@ -12,7 +12,6 @@ from game.base import BootstrapAction, Player, Action
 from thb.actions import ActionStage, Damage, Fatetell, LaunchCard, MigrateCardsTransaction, Pindian
 from thb.actions import PlayerDeath, PlayerTurn, RevealRole, THBAction, UserAction
 from thb.cards.base import Card, VirtualCard
-from thb.characters.base import Character
 from thb.meta import view
 from thb.mode import THBattle
 from utils.misc import BatchList
@@ -20,6 +19,13 @@ from utils.misc import BatchList
 
 # -- code --
 log = logging.getLogger('THBattleUI_Effects')
+
+
+def fuse(*funcs):
+    def fused(*a, **k):
+        for f in funcs:
+            f(*a, **k)
+    return fused
 
 
 def damage_effect(g: THBattle, core: Core, evt: str, act: Damage):
@@ -138,7 +144,6 @@ def reveal_role_effect(g: THBattle, core: Core, evt: str, act: Any):
 
 
 def bootstrap_action_effect(g: THBattle, core: Core, evt: str, arg: Any):
-    # core.gate.post('thb.ui.roles_definition', list(g.ui_meta.roles.items()))
     pass
 
 
@@ -150,11 +155,12 @@ actions_mapping: Dict[str, Dict[Type[Action], Callable]] = {
         THBAction:   general_action_effect,
     },
     'action_apply': {
-        Damage: damage_effect,
-        THBAction: general_action_effect,
+        Damage:          damage_effect,
+        THBAction:       general_action_effect,
         BootstrapAction: bootstrap_action_effect,
     },
     'action_after': {
+        Damage:      sync_game_state,
         Pindian:     pindian_effect_finish,
         PlayerDeath: sync_game_state,
         LaunchCard:  sync_game_state,
@@ -273,7 +279,8 @@ events_mapping: Dict[str, Callable] = {
     'ui_show_disputed':    ui_show_disputed_effect,
     'game_finished':       render_game_results,
 
-    'action_stage_action': simple_event,
+    'game_begin':          simple_event,
+    'action_stage_action': fuse(sync_game_state, simple_event),
     'switch_character':    simple_event,
 }
 

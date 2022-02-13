@@ -124,6 +124,9 @@ class Summon:
     name = '通灵'
     description = '|B限定技|r，你的回合内，当有角色被击坠时，你可以获得其一个技能。（不包括限定技，觉醒技）'
 
+    def is_available(self, ch):
+        return bool(ch.tags['summon_used'])
+
 
 @ui_meta(characters.seiga.SummonAction)
 class SummonAction:

@@ -115,6 +115,9 @@ class Shikigami:
     def sound_effect(self, act):
         return 'thb-cv-chen_shikigami'
 
+    def is_available(self, ch):
+        return 'shikigami_tag' not in ch.tags
+
 
 @ui_meta(characters.chen.ShikigamiAction)
 class ShikigamiAction:

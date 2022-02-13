@@ -118,7 +118,7 @@ class SealingArrayCard:
     name = '封魔阵'
     illustrator = '霏茶'
     cv = 'shourei小N'
-    tag = 'thb-tag-sealarray'
+    tag = 'sealarray'
     description = (
         '出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为红桃，跳过其出牌阶段。'
     )
@@ -152,7 +152,7 @@ class FrozenFrogCard:
     name = '冻青蛙'
     illustrator = '霏茶'
     cv = 'shourei小N'
-    tag = 'thb-tag-frozenfrog'
+    tag = 'frozenfrog'
     description = (
         '出牌阶段，对一名其他角色使用，将此牌横置于该角色的判定区内。该角色的判定阶段，需进行一次判定然后弃置此牌。若判定结果不为黑桃，跳过其摸牌阶段。'
     )
@@ -203,7 +203,7 @@ class SinsackCard:
     name = '罪袋'
     illustrator = '霏茶'
     cv = 'VV/大白'
-    tag = 'thb-tag-sinsack'
+    tag = 'sinsack'
     description = (
         '出牌阶段，对你使用，将此牌横置于你的判定区内。判定区内有此牌的角色的判定阶段，需进行一次判定：\n'
         '|B|R>> |r若判定结果为黑桃1-8，则目标角色受到3点无来源伤害，然后将其置入弃牌堆。\n'

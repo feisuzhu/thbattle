@@ -24,7 +24,7 @@ class Lunatic(Skill):
 class Discarder(Skill):
     associated_action = None
     distance = 1
-    skill_category = ['character', 'passive', 'compulsory']
+    skill_category = ['character', 'passive', 'compulsory', 'acquired']
     target = t_None()
 
 

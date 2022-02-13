@@ -152,7 +152,7 @@ class KeineGuardAction(UserAction):
 
 class Devoted(Skill):
     associated_action = None
-    skill_category = ('character', 'passive', 'awake')
+    skill_category = ['character', 'passive', 'acquired']
     target = t_None()
 
 

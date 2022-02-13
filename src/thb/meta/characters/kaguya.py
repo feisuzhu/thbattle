@@ -96,7 +96,7 @@ class ImperishableNight:
     name = '永夜'
     description = '你的回合外，每当其他角色使用的红色基本牌置入弃牌堆时，你可以将一张红色基本牌或装备牌当|G封魔阵|r对其使用。'
     image = None
-    tag = 'thb-tag-sealarray'
+    tag = 'sealarray'
 
     def effect_string(self, act):
         return '|G【%s】|r对|G【%s】|r使用了|G永夜|r。' % (

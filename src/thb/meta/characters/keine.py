@@ -96,6 +96,9 @@ class KeineGuard:
         '|B|R>> |b决意|r：当你受到伤害时，若同样拥有|R决意|r的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有|R决意|r的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。'
     )
 
+    def is_available(self, ch):
+        return characters.keine.KeineGuard in ch.skills
+
 
 @ui_meta(characters.keine.KeineGuardAction)
 class KeineGuardAction:

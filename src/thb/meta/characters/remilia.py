@@ -115,6 +115,9 @@ class ScarletMist:
 
         return (True, '红雾：选择这些角色获得增益效果')
 
+    def is_available(self, ch):
+        pass
+
 
 @ui_meta(characters.remilia.Remilia)
 class Remilia:

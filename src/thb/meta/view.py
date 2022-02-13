@@ -9,7 +9,8 @@ from typing import Any, Dict, List, Optional, TypedDict, cast
 from client.base import ClientGameRunner
 from thb.cards.base import VirtualCard
 from thb.meta import view
-from thb.meta.tags import TagAnimation, get_display_tags
+from thb.meta.tags import TagAnimation, get_display_acqsktags, get_display_ctags
+from thb.meta.tags import get_display_skatags, get_display_tags
 from thb.mode import THBattle
 
 
@@ -81,12 +82,17 @@ class CharacterTypeView(TypedDict):
 class CharacterView(CharacterTypeView):
     pid: int
     life: int
+    maxlife: int
     dead: bool
-    cards: Optional[List[CardListView]]
-    tags: Optional[List[TagAnimation]]
+    cards: List[CardListView]
+    tags: List[TagAnimation]       # Tags;
+    acqsktags: List[TagAnimation]  # AcquiredSkillTags;
+    skatags: List[TagAnimation]    # SkillAvailabilityTags;
+    ctags: List[TagAnimation]      # CardTags;
+    drunk: bool
 
 
-def character(ch, extra=True) -> CharacterView:
+def character(ch) -> CharacterView:
     m = ch.ui_meta
     return {
         'pid': ch.player.pid,
@@ -99,12 +105,12 @@ def character(ch, extra=True) -> CharacterView:
             'type': cl.type,
             'name': cl.ui_meta.lookup[cl.type],
             'cards': [card(c) for c in cl],
-        } for cl in ch.lists if cl.type != 'special'] if extra else None,
-        'tags': get_display_tags(ch) if extra else None,
-
-        # 'portrait': m.port_image,
-        # 'figure': m.figure_image,
-        # 'desc': m.char_desc(ch),
+        } for cl in ch.lists if cl.type != 'special'],
+        'tags': get_display_tags(ch),
+        'acqsktags': get_display_acqsktags(ch),
+        'skatags': get_display_skatags(ch),
+        'ctags': get_display_ctags(ch),
+        'drunk': ch.tags['wine'] > 0,
     }
 
 

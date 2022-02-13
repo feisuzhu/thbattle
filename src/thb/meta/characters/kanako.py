@@ -85,6 +85,9 @@ class KanakoFaith:
     def sound_effect(self, act):
         return 'thb-cv-kanako_faith'
 
+    def is_available(self, ch):
+        return not bool(ch.tags['kanako_faith'])
+
 
 @ui_meta(characters.kanako.KanakoFaithCheers)
 class KanakoFaithCheers:

@@ -24,6 +24,7 @@ def ui_meta(f):
 
 class TagAnimation(TypedDict):
     sprite: str
+    gray: bool
     desc: str
 
 
@@ -47,12 +48,51 @@ def get_display_tags(ch: Character) -> List[TagAnimation]:
             assert isinstance(s, str)
             rst.append({
                 'sprite': sprite,
+                'gray': False,
                 'desc': s,
             })
+
+    return rst
+
+
+def get_display_acqsktags(ch: Character) -> List[TagAnimation]:
+    rst: List[TagAnimation] = []
+
+    for sk in ch.skills:
+        if 'acquired' in sk.skill_category:
+            rst.append({
+                'sprite': cast(str, sk.__name__),
+                'gray': False,
+                'desc': cast(str, sk.ui_meta.description),
+            })
+
+    return rst
+
+
+def get_display_skatags(ch: Character) -> List[TagAnimation]:
+    rst: List[TagAnimation] = []
+
+    skills = set(ch.__class__.skills)
+    skills.update(ch.skills)
+
+    for sk in skills:
+        if avail := getattr(sk.ui_meta, 'is_available', None):
+            rst.append({
+                'sprite': cast(str, sk.__name__),
+                'gray': not avail(ch),
+                'desc': cast(str, sk.ui_meta.description),
+            })
+
+    return rst
+
+
+def get_display_ctags(ch: Character) -> List[TagAnimation]:
+    rst: List[TagAnimation] = []
 
     for c in ch.fatetell:
         rst.append({
             'sprite': cast(str, c.ui_meta.tag),
+            'gray': False,
             'desc': cast(str, c.ui_meta.description),
         })
 
@@ -60,63 +100,49 @@ def get_display_tags(ch: Character) -> List[TagAnimation]:
 
 
 @ui_meta
-def vitality(p, v):
-    return v and ('thb-tag-attacked', '没有干劲了……')
-
-
-@ui_meta
-def wine(p, v):
-    return v and ('thb-tag-wine', '喝醉了…')
-
-
-@ui_meta
 def flan_cs(p, v):
-    return v and ('thb-tag-flandrecs', '玩坏你哦！')
+    return v and ('flandre-cs', '玩坏你哦！')
 
 
 @ui_meta
 def lunadial(p, v):
-    return v and ('thb-tag-lunadial',  '咲夜的时间！')
+    return v and ('lunadial',  '咲夜的时间！')
 
 
 @ui_meta
 def riverside_target(p, v):
-    return v and ('thb-tag-riverside', '被指定为彼岸的目标')
-
-
-@ui_meta
-def ran_ei(p, v):
-    if v < p.tags['turn_count'] + 1:
-        return 'thb-tag-ran_ei', '还可以发动极智'
+    return v and ('riverside', '被指定为彼岸的目标')
 
 
 @ui_meta
 def aya_count(p, v):
-    return ('thb-tag-aya_range_max',  '使用卡牌时不受距离限制') if v >= 2 else None
+    return ('aya-range-max',  '使用卡牌时不受距离限制') if v >= 2 else None
 
 
 @ui_meta
 def exterminate(p, v):
-    return v and 'thb-tag-flandre_exterminate', '毁灭：无法使用人物技能'
-
-
-@ui_meta
-def reisen_discarder(p, v):
-    return v and 'thb-tag-reisen_discarder', '丧心：下一个出牌阶段只能使用弹幕，且只能对最近的角色使用弹幕'
+    return v and 'flandre-exterminate', '毁灭：无法使用人物技能'
 
 
 @ui_meta
 def shizuha_decay(p, v):
-    return v and 'thb-tag-shizuha_decay', '凋零：弃牌阶段需额外弃置一张手牌'
+    return v and 'shizuha-decay', '凋零：弃牌阶段需额外弃置一张手牌'
 
 
 @ui_meta
 def scarlet_mist(p, v):
-    return ('thb-tag-scarlet_mist', '红雾：增益效果') if v == 'buff' else None
+    if v == 'buff':
+        return ('scarlet-mist-buff', '红雾：弹幕无视距离 & 回复体力')
+    else:
+        return ('scarlet-mist-nerf', '红雾：弹幕仅可以指定距离为1的目标')
 
 
 @ui_meta
-def devoted(p, v):
-    return 'thb-tag-keine_devoted', '合格的CP当然要同富贵共患难！'
+def shikigami_target(p, v):
+    other = p.tags['shikigami_target']
+    origin = p if 'shikigami_tag' in p.tags else other
+    if origin.tags['shikigami_tag'] == origin.tags['turn_count']:
+        return ('shikigami', '式神：共享攻击范围')
+
 
 # -----END TAGS UI META-----
