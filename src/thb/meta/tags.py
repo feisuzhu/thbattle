@@ -133,8 +133,10 @@ def shizuha_decay(p, v):
 def scarlet_mist(p, v):
     if v == 'buff':
         return ('scarlet-mist-buff', '红雾：弹幕无视距离 & 回复体力')
-    else:
+    elif v == 'nerf':
         return ('scarlet-mist-nerf', '红雾：弹幕仅可以指定距离为1的目标')
+    else:
+        return None
 
 
 @ui_meta
