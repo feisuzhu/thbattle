@@ -48,11 +48,9 @@ class ChooseOptionInputlet:
 class ChoosePeerCardInputlet:
 
     def get_lists(self, ilet: inputlets.ChoosePeerCardInputlet) -> list:
-        from thb.cards.base import CardList
-
         lists = [getattr(ilet.target, cat) for cat in ilet.categories]
         return [{
-            'name': CardList.ui_meta.lookup[i.type],
+            'name': i.type,
             'cards': [view.card(c) for c in i]
         } for i in lists if i]
 
