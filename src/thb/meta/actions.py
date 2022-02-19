@@ -385,8 +385,6 @@ class MigrateCardsTransaction:
             else:
                 continue  # no animation
 
-        import logging
-        logging.debug('meh %s', ops)
         return ops
 
     def detach_animation_instructions(self, trans: Optional[actions.MigrateCardsTransaction], cards: Sequence[Card]) -> List[MigrateInstruction]:
