@@ -129,9 +129,16 @@ def pindian_effect_finish(g: THBattle, core: Core, evt: str, act: Any):
     })
 
 
+LAST_GAME_STATE = None
+
+
 def sync_game_state(g: THBattle, core: Core, evt: str, act: Any):
     from .view import state_of
-    core.gate.post('thb.ui.state', state_of(g))
+    global LAST_GAME_STATE
+    state = state_of(g)
+    if state != LAST_GAME_STATE:
+        core.gate.post('thb.ui.state', state)
+        LAST_GAME_STATE = state
 
 
 def reveal_role_effect(g: THBattle, core: Core, evt: str, act: Any):
