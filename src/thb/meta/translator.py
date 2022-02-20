@@ -136,6 +136,9 @@ def sync_game_state(g: THBattle, core: Core, evt: str, act: Any):
     from .view import state_of
     global LAST_GAME_STATE
     state = state_of(g)
+    if not state:
+        return
+
     if state != LAST_GAME_STATE:
         core.gate.post('thb.ui.state', state)
         LAST_GAME_STATE = state
@@ -157,7 +160,6 @@ def bootstrap_action_effect(g: THBattle, core: Core, evt: str, arg: Any):
 actions_mapping: Dict[str, Dict[Type[Action], Callable]] = {
     'action_before': {
         Pindian:     pindian_effect_start,
-        ActionStage: sync_game_state,
         PlayerTurn:  player_turn_effect,
         THBAction:   general_action_effect,
     },
@@ -167,11 +169,7 @@ actions_mapping: Dict[str, Dict[Type[Action], Callable]] = {
         BootstrapAction: bootstrap_action_effect,
     },
     'action_after': {
-        Damage:      sync_game_state,
         Pindian:     pindian_effect_finish,
-        PlayerDeath: sync_game_state,
-        LaunchCard:  sync_game_state,
-        ActionStage: sync_game_state,
         PlayerTurn:  player_turn_effect_after,
         RevealRole:  reveal_role_effect,
         THBAction:   general_action_effect,
@@ -274,7 +272,7 @@ def simple_event(g: THBattle, core: Core, evt: str, arg: Any):
 events_mapping: Dict[str, Callable] = {
     'action_before':       action_effects,
     'action_apply':        action_effects,
-    'action_after':        action_effects,
+    'action_after':        fuse(sync_game_state, action_effects),
     'fatetell':            fatetell_effect,
     'user_input_start':    user_input_start_effects,
     'user_input_finish':   user_input_finish_effects,

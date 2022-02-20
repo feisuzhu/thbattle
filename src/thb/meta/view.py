@@ -110,7 +110,7 @@ def character(ch) -> CharacterView:
         'acqsktags': get_display_acqsktags(ch),
         'skatags': get_display_skatags(ch),
         'ctags': get_display_ctags(ch),
-        'drunk': ch.tags['wine'] > 0,
+        'drunk': bool(ch.tags['wine']),
     }
 
 
@@ -155,7 +155,11 @@ class GameState(TypedDict):
     my_skills: List[view.SkillView]
 
 
-def state_of(g: THBattle) -> GameState:
+def state_of(g: THBattle) -> Optional[GameState]:
+    players = getattr(g, 'players', None)
+    if not players:
+        return None
+
     runner = g.runner
     assert isinstance(runner, ClientGameRunner)
     core = runner.core
