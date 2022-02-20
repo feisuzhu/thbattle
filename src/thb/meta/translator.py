@@ -284,7 +284,7 @@ events_mapping: Dict[str, Callable] = {
     'reseat':              reseat_effects,
     'showcards':           showcards_effect,
     'ui_show_disputed':    ui_show_disputed_effect,
-    'game_finished':       render_game_results,
+    'game_finished':       fuse(sync_game_state, render_game_results),
 
     'game_begin':          simple_event,
     'action_stage_action': fuse(sync_game_state, simple_event),

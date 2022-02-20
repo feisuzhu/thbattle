@@ -37,7 +37,6 @@ class DeathHandler(THBEventHandler):
         if not isinstance(act, PlayerDeath): return act
 
         g = self.game
-        tgt = act.target
 
         tgt = act.target
         dead = lambda ch: ch.dead or g.is_dropped(ch.player) or ch is tgt
@@ -45,9 +44,11 @@ class DeathHandler(THBEventHandler):
         # see if game ended
         force1, force2 = list(g.forces.values())
         if all(dead(ch) for ch in force1):
+            tgt.dead = True  # UI need this
             raise GameEnded(force2.player)
 
         if all(dead(ch) for ch in force2):
+            tgt.dead = True  # UI need this
             raise GameEnded(force1.player)
 
         return act
