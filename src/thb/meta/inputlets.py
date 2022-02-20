@@ -267,7 +267,7 @@ class ActionInputlet:
         tl, tl_valid = card.target(me, players)
         if tl is not None:
             selected = list(tl)
-            if card.target.__name__ in ('t_One', 't_OtherOne'):
+            if card.target.__name__.split('.')[-1] in ('t_One', 't_OtherOne'):
                 for p in g.players:
                     act = stage.launch_card_cls(me, [p], card)
                     shootdown = act.action_shootdown()

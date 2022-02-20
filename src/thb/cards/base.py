@@ -156,7 +156,7 @@ class Card(GameObject, GameViralContext):
         return self.resides_in is not None and self not in self.resides_in
 
     def __repr__(self):
-        return "{name}({suit}.{num}{detached}-{sync_id})".format(
+        return "{name}({suit}.{num}{detached}, {sync_id})".format(
             name=self.__class__.__name__,
             suit=self.SUIT_REV.get(self.suit, self.suit),
             num=self.NUM_REV.get(self.number, self.number),
