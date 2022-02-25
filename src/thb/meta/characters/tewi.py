@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 # -- code --
 
@@ -13,15 +13,13 @@ from thb.meta.common import ui_meta
 class Luck:
     # Skill
     name = '幸运'
-    description = '|B锁定技|r，每当你失去最后的手牌时，你摸两张牌。'
+    description = '<style=B>锁定技</style>，每当你失去最后的手牌时，你摸两张牌。'
 
 
 @ui_meta(characters.tewi.LuckDrawCards)
 class LuckDrawCards:
     def effect_string(self, act):
-        return '|G【%s】|r觉得手上没有牌就输了，于是又摸了2张牌。' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}觉得手上没有牌就输了，于是又摸了{act.amount}张牌。'
 
     def sound_effect(self, act):
         return 'thb-cv-tewi_lucky'
@@ -39,4 +37,4 @@ class Tewi:
     figure_image      = 'thb-figure-tewi'
     miss_sound_effect = 'thb-cv-tewi_miss'
 
-    notes = '|RKOF模式不可用|r'
+    notes = 'KOF模式不可用'

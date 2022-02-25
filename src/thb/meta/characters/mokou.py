@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 # -- code --
 
@@ -32,9 +32,7 @@ class Ashes:
 @ui_meta(characters.mokou.AshesAction)
 class AshesAction:
     def effect_string_before(self, act):
-        return '|G【%s】|r：“不~可~饶~恕~！”' % (
-            act.target.ui_meta.name
-        )
+        return f'{N.char(act.target)}：“不~可~饶~恕~！”'
 
     def sound_effect(self, act):
         return 'thb-cv-mokou_ashes'
@@ -44,7 +42,7 @@ class AshesAction:
 class AshesHandler:
     # choose_option meta
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【浴火】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>浴火</style>吗？'
 
 
 @ui_meta(characters.mokou.Reborn)
@@ -57,9 +55,7 @@ class Reborn:
 @ui_meta(characters.mokou.RebornAction)
 class RebornAction:
     def effect_string(self, act):
-        return '|G【%s】|r使用了|G重生|r。' % (
-            act.target.ui_meta.name
-        )
+        return f'{N.char(act.target)}使用了<style=Skill.Name>重生</style>。'
 
     def sound_effect(self, act):
         return 'thb-cv-mokou_reborn'
@@ -72,4 +68,4 @@ class RebornHandler:
         if act.cond(cards):
             return (True, '弃置这些牌并回复1点体力')
         else:
-            return (False, '重生：选择%d张红色牌弃置并回复一点体力' % act.target.life)
+            return (False, f'<style=Skill.Name>重生</style>：选择{act.target.life}张红色牌弃置并回复一点体力')

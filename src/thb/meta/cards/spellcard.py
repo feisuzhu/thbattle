@@ -9,7 +9,7 @@ import random
 # -- own --
 from thb.cards import definition, spellcard
 from thb.cards.base import PhysicalCard
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -51,11 +51,7 @@ class Demolition:
         if not isinstance(act.card, PhysicalCard):
             return None
 
-        return '|G【%s】|r卸掉了|G【%s】|r的%s。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            self.card_desc(act.card),
-        )
+        return f'{N.char(act.source)}卸掉了{N.char(act.target)}的{N.card(act.card)}。'
 
 
 @ui_meta(definition.RejectCard)
@@ -69,15 +65,10 @@ class RejectCard:
     )
 
     def is_action_valid(self, c, tl):
-        return (False, '你不能主动出好人卡')
+        return (False, '你不能主动使用好人卡')
 
     def effect_string(self, act):
-        return '|G【%s】|r为|G【%s】|r受到的|G%s|r使用了|G%s|r。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            act.force_action.target_act.associated_card.ui_meta.name,
-            act.card.ui_meta.name,
-        )
+        return f'{N.char(act.source)}为{N.char(act.target)}受到的{N.card(act.force_action.target_act.associated_card)}使用了{N.card(act.card)}。'
 
     def sound_effect(self, act):
         return 'thb-cv-card_reject'
@@ -99,17 +90,12 @@ class RejectHandler:
     # choose_card meta
     def choose_card_text(self, act, cards):
         c = act.target_act.associated_card
-        name = c.ui_meta.name
-
-        s = '【%s】受到的【%s】' % (
-            act.target_act.target.ui_meta.name,
-            name,
-        )
+        s = f'{N.char(act.target_act.target)}受到的{N.card(c)}'
 
         if act.cond(cards):
-            return (True, '对不起，你是一个好人(%s)' % s)
+            return True, f'对不起，你是一个好人({s})'
         else:
-            return (False, '请选择一张好人卡（%s)' % s)
+            return False, f'请选择一张好人卡（{s})'
 
 
 @ui_meta(definition.SealingArrayCard)
@@ -141,9 +127,9 @@ class SealingArray:
     def effect_string(self, act):
         tgt = act.target
         if act.succeeded:
-            return '|G【%s】|r被困在了封魔阵中。' % tgt.ui_meta.name
+            return f'{N.char(tgt)}被困在了封魔阵中。'
         else:
-            return '封魔阵没有布置完善，|G【%s】|r侥幸逃了出来！' % tgt.ui_meta.name
+            return f'封魔阵没有布置完善，{N.char(tgt)}侥幸逃了出来！'
 
 
 @ui_meta(definition.FrozenFrogCard)
@@ -175,9 +161,9 @@ class FrozenFrog:
     def effect_string(self, act):
         tgt = act.target
         if act.succeeded:
-            return '|G【%s】|r被冻住了……' % tgt.ui_meta.name
+            return f'{N.char(tgt)}被冻住了……'
         else:
-            return '幻想乡今天大晴，|G【%s】|r没有被冻住~' % tgt.ui_meta.name
+            return f'幻想乡今天大晴，{N.char(tgt)}没有被冻住~'
 
 
 @ui_meta(definition.NazrinRodCard)
@@ -205,10 +191,10 @@ class SinsackCard:
     cv = 'VV/大白'
     tag = 'sinsack'
     description = (
-        '出牌阶段，对你使用，将此牌横置于你的判定区内。判定区内有此牌的角色的判定阶段，需进行一次判定：\n'
-        '|B|R>> |r若判定结果为黑桃1-8，则目标角色受到3点无来源伤害，然后将其置入弃牌堆。\n'
-        '|B|R>> |r若判定结果不在此范围，则将其移动到下家的判定区内。\n'
-        '|B|R>> |r判定开始前,你可以使用|B好人卡|r抵消该符卡的效果,并将该|G罪袋|r直接传递给下家。'
+        '出牌阶段，对你使用，将此牌横置于你的判定区内。判定区内有此牌的角色的判定阶段，需进行一次判定：'
+        '<style=Desc.Li>若判定结果为♠1-8，则目标角色受到3点无来源伤害，然后将其置入弃牌堆。</style>'
+        '<style=Desc.Li>若判定结果不在此范围，则将其移动到下家的判定区内。</style>'
+        '<style=Desc.Li>判定开始前,你可以使用<style=B>好人卡</style>抵消该符卡的效果,并将该<style=Card.Name>罪袋</style>直接传递给下家。</style>'
     )
 
     def is_action_valid(self, c, tl):
@@ -223,7 +209,7 @@ class Sinsack:
     def effect_string(self, act):
         tgt = act.target
         if act.succeeded:
-            return '罪袋终于找到了机会，将|G【%s】|r推倒了…' % tgt.ui_meta.name
+            return f'罪袋终于找到了机会，将{N.char(tgt)}推倒了…'
 
 
 @ui_meta(spellcard.SinsackDamage)
@@ -262,10 +248,7 @@ class YukariDimension:
     def effect_string(self, act):
         src, tgt = act.source, act.target
         if act.succeeded:
-            return '|G【%s】|r透过隙间拿走了|G【%s】|r的1张牌。' % (
-                src.ui_meta.name,
-                tgt.ui_meta.name
-            )
+            return f'{N.char(src)}透过隙间拿走了{N.char(tgt)}的{N.card(act.card)}。'
 
 
 @ui_meta(definition.DuelCard)
@@ -275,7 +258,7 @@ class DuelCard:
     illustrator = '霏茶'
     cv = '小羽'
     description = (
-        '出牌阶段，对一名其他角色使用，由目标角色开始，轮流打出一张|G弹幕|r。首先不打出|G弹幕|r的一方受到另一方造成的1点伤害。'
+        '出牌阶段，对一名其他角色使用，由目标角色开始，轮流打出一张<style=Card.Name>弹幕</style>。首先不打出<style=Card.Name>弹幕</style>的一方受到另一方造成的1点伤害。'
     )
 
     def is_action_valid(self, c, tl):
@@ -294,7 +277,7 @@ class MapCannonCard:
     illustrator = '霏茶'
     cv = 'VV'
     description = (
-        '出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张【擦弹】，否则该角色受到1点伤害。'
+        '出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张<style=Card.Name>擦弹</style>，否则该角色受到1点伤害。'
     )
 
     def is_action_valid(self, c, tl):
@@ -310,7 +293,7 @@ class DemonParadeCard:
     illustrator = '霏茶'
     cv = '小羽'
     description = (
-        '出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张|G弹幕|r，否则该角色受到1点伤害。'
+        '出牌阶段，对除你以外的所有其他角色使用，目标角色需依次打出一张<style=Card.Name>弹幕</style>，否则该角色受到1点伤害。'
     )
 
     def is_action_valid(self, c, tl):
@@ -327,7 +310,7 @@ class FeastCard:
     illustrator = '霏茶'
     cv = 'VV'
     description = (
-        '出牌阶段，对所有角色使用。已受伤的角色回复一点体力，未受伤的角色获得|B喝醉|r状态。'
+        '出牌阶段，对所有角色使用。已受伤的角色回复一点体力，未受伤的角色获得<style=B>喝醉</style>状态。'
     )
 
     def is_action_valid(self, c, tl):
@@ -362,12 +345,7 @@ class HarvestCard:
 class HarvestEffect:
     def effect_string(self, act):
         if not act.succeeded: return None
-        tgt = act.target
-        c = act.card
-        return '|G【%s】|r获得了|G%s|r。' % (
-            tgt.ui_meta.name,
-            self.card_desc(c),
-        )
+        return f'{N.char(act.target)}获得了{N.card(act.card)}。'
 
 
 @ui_meta(definition.DollControlCard)
@@ -377,7 +355,7 @@ class DollControlCard:
     illustrator = '霏茶'
     cv = '小羽'
     description = (
-        '出牌阶段，对装备区内有武器牌的一名其他角色使用，令其选择一项：对其攻击范围内一名由你指定的角色使用一张|G弹幕|r，或将武器交给你。'
+        '出牌阶段，对装备区内有武器牌的一名其他角色使用，令其选择一项：对其攻击范围内一名由你指定的角色使用一张<style=Card.Name>弹幕</style>，或将武器交给你。'
     )
     custom_ray = True
 
@@ -400,7 +378,7 @@ class DollControlCard:
             c = AttackCard()
             lc = LaunchCard(tl[0], [tl[1]], c)
             if not lc.can_fire():
-                return (False, '被控者无法向目标出【弹幕】！')
+                return (False, '被控者无法向目标使用<style=Card.Name>弹幕</style>！')
             return (True, '乖，听话！')
 
     def sound_effect(self, act):
@@ -414,7 +392,7 @@ class DollControl:
         if act.cond(cards):
             return (True, '那好吧…')
         else:
-            return (False, '请出【弹幕】（否则你的武器会被拿走）')
+            return (False, '请使用<style=Card.Name>弹幕</style>（否则你的武器会被拿走）')
 
     def ray(self, act):
         src = act.source

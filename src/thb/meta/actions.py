@@ -11,7 +11,7 @@ import random
 from thb import actions
 from thb.cards.base import Card, CardList, VirtualCard
 from thb.meta import view
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 from utils.misc import BatchList
 
 
@@ -24,9 +24,7 @@ class DrawCards:
         else:
             direction = u''
 
-        return u'|G【%s】|r%s摸了%d张牌。' % (
-            act.target.ui_meta.name, direction, act.amount,
-        )
+        return f'{N.char(act.target)}{direction}摸了{act.amount}张牌。'
 
 
 class PutBack:
@@ -36,9 +34,7 @@ class PutBack:
         else:
             direction = u''
 
-        return u'|G【%s】|r将%d张牌放回了牌堆%s。' % (
-            act.target.ui_meta.name, len(act.cards), direction,
-        )
+        return f'{N.char(act.target)}将{len(act.cards)}张牌放回了牌堆{direction}。'
 
 
 @ui_meta(actions.ActiveDropCards)
@@ -48,13 +44,11 @@ class ActiveDropCards:
         if act.cond(cards):
             return (True, 'OK，就这些了')
         else:
-            return (False, '请弃掉%d张牌…' % act.dropn)
+            return (False, f'请弃掉{act.dropn}张牌…')
 
     def effect_string(self, act):
         if act.dropn > 0 and act.cards:
-            return '|G【%s】|r弃掉了%d张牌：%s。' % (
-                act.target.ui_meta.name, act.dropn, self.card_desc(act.cards),
-            )
+            return f'{N.char(act.target)}弃掉了{act.dropn}张牌：{N.card(act.cards)}。'
 
 
 @ui_meta(actions.Damage)
@@ -65,13 +59,9 @@ class Damage:
     def effect_string(self, act):
         s, t = act.source, act.target
         if s:
-            return '|G【%s】|r对|G【%s】|r造成了%d点伤害。' % (
-                s.ui_meta.name, t.ui_meta.name, act.amount
-            )
+            return f'{N.char(s)}对{N.char(t)}造成了{act.amount}点伤害。'
         else:
-            return '|G【%s】|r受到了%d点无来源的伤害。' % (
-                t.ui_meta.name, act.amount
-            )
+            return f'{N.char(t)}受到了{act.amount}点无来源的伤害。'
 
     def sound_effect(self, act):
         return 'thb-sound-hit'
@@ -83,9 +73,7 @@ class LifeLost:
     play_sound_at_target = True
 
     def effect_string(self, act):
-        return '|G【%s】|r流失了%d点体力。' % (
-            act.target.ui_meta.name, act.amount
-        )
+        return f'{N.char(act.target)}流失了{act.amount}点体力。'
 
 
 @ui_meta(actions.LaunchCard)
@@ -103,11 +91,7 @@ class LaunchCard:
         if effect_string:
             es = effect_string(act)
 
-        s = es or '|G【%s】|r对|G【%s】|r使用了|G%s|r。' % (
-            s.ui_meta.name,
-            '】|r、|G【'.join(tl.ui_meta.name),
-            act.card.ui_meta.name
-        )
+        s = es or f'{N.char(s)}对{N.char(tl)}使用了{N.card(act.card)}。'
 
         return s
 
@@ -150,9 +134,7 @@ class PlayerDeath:
 
     def effect_string(self, act):
         tgt = act.target
-        return '|G【%s】|r被击坠了。' % (
-            tgt.ui_meta.name,
-        )
+        return f'{N.char(tgt)}被击坠了。'
 
     def sound_effect(self, act):
         meta = act.target.ui_meta
@@ -169,19 +151,14 @@ class PlayerRevive:
 
     def effect_string(self, act):
         tgt = act.target
-        return '|G【%s】|r重新回到了场上。' % (
-            tgt.ui_meta.name,
-        )
+        return f'{N.char(tgt)}重新回到了场上。'
 
 
 @ui_meta(actions.TurnOverCard)
 class TurnOverCard:
     def effect_string(self, act):
         tgt = act.target
-        return '|G【%s】|r翻开了牌堆顶的一张牌，%s。' % (
-            tgt.ui_meta.name,
-            self.card_desc(act.card)
-        )
+        return f'{N.char(tgt)}翻开了牌堆顶的一张牌，{N.card(act.card)}。'
 
 
 @ui_meta(actions.RevealRole)
@@ -204,12 +181,12 @@ class RevealRole:
 
         try:
             ch = g.find_character(p)
-            name = f'|G{ch.ui_meta.name}|r'
+            name = f'<style=Char.Name>{ch.ui_meta.name}</style>'
         except Exception:
-            name = f'|R*[pid:{p.pid}]|r'
+            name = f'*[pid:{p.pid}]'
 
-        role = g.ui_meta.roles[role.get().name],
-        return f'{name}的身份是：|R{role}|r。'
+        role = g.ui_meta.roles[role.get().name]
+        return f'{name}的身份是：<style=B>{role}</style>。'
 
 
 @ui_meta(actions.Pindian)
@@ -222,16 +199,11 @@ class Pindian:
             return (False, '请选择一张牌用于拼点')
 
     def effect_string_before(self, act):
-        return '|G【%s】|r对|G【%s】|r发起了拼点：' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}对{N.char(act.target)}发起了拼点：'
 
     def effect_string(self, act):
         winner = act.source if act.succeeded else act.target
-        return '|G【%s】|r是人生赢家！' % (
-            winner.ui_meta.name
-        )
+        return f'{N.char(winner)}是人生赢家！'
 
 
 @ui_meta(actions.ShowCards)
@@ -259,16 +231,9 @@ class Fatetell:
             pass
 
         if act_name:
-            prompt = '|G【%s】|r进行了一次判定（|G%s|r），结果为%s。' % (
-                act.target.ui_meta.name,
-                act_name,
-                self.card_desc(act.card)
-            )
+            prompt = f'{N.char(act.target)}进行了一次判定（{act_name}），结果为{N.card(act.card)}。'
         else:
-            prompt = '|G【%s】|r进行了一次判定，结果为%s。' % (
-                act.target.ui_meta.name,
-                self.card_desc(act.card)
-            )
+            prompt = f'{N.char(act.target)}进行了一次判定，结果为{N.card(act.card)}。'
 
         return prompt
 

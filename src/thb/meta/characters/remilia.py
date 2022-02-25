@@ -7,7 +7,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -16,19 +16,16 @@ class SpearTheGungnir:
     # Skill
     name = '神枪'
     description = (
-        '满足下列条件之一时，你可以令你的|G弹幕|r不能被响应：\n'
-        '|B|R>> |r目标角色的体力值 大于 你的体力值。\n'
-        '|B|R>> |r目标角色的手牌数 小于 你的手牌数。'
+        '满足下列条件之一时，你可以令你的<style=Card.Name>弹幕</style>不能被响应：'
+        '<style=Desc.Li>目标角色的体力值 大于 你的体力值。</style>'
+        '<style=Desc.Li>目标角色的手牌数 小于 你的手牌数。</style>'
     )
 
 
 @ui_meta(characters.remilia.SpearTheGungnirAction)
 class SpearTheGungnirAction:
     def effect_string(self, act):
-        return '|G【%s】|r举起右手，将|G弹幕|r汇聚成一把命运之矛，向|G【%s】|r掷去！' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}举起右手，将<style=Card.Name>弹幕</style>汇聚成一把命运之矛，向{N.char(act.target)}掷去！'
 
     def sound_effect(self, act):
         return 'thb-cv-remilia_stg'
@@ -38,22 +35,20 @@ class SpearTheGungnirAction:
 class SpearTheGungnirHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【神枪】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>神枪</style>吗？'
 
 
 @ui_meta(characters.remilia.VampireKiss)
 class VampireKiss:
     # Skill
     name = '红魔之吻'
-    description = '|B锁定技|r，你使用红色|G弹幕|r时无距离限制。当你使用红色|G弹幕|r对一名其他角色造成伤害后，你回复1点体力。'
+    description = '<style=B>锁定技</style>，你使用红色<style=Card.Name>弹幕</style>时无距离限制。当你使用红色<style=Card.Name>弹幕</style>对一名其他角色造成伤害后，你回复1点体力。'
 
 
 @ui_meta(characters.remilia.VampireKissAction)
 class VampireKissAction:
     def effect_string_before(self, act):
-        return '|G【%s】|r:“B型血，赞！”' % (
-            act.source.ui_meta.name
-        )
+        return f'{N.char(act.source)}:“B型血，赞！”'
 
     def sound_effect(self, act):
         return 'thb-cv-remilia_vampirekiss'
@@ -75,10 +70,7 @@ class ScarletMistAction:
         except Exception:
             pass
 
-        return '|G【%s】|r释放出了|G红雾|r，威严爆表！%s流了鼻血！' % (
-            src.ui_meta.name,
-            '、'.join(['|G【%s】|r' % p.ui_meta.name for p in tl]),
-        )
+        return f'{N.char(src)}释放出了<style=Card.Name>红雾</style>，威严爆表！{N.char(tl)}流了鼻血！'
 
     def sound_effect(self, act):
         return random.choice([
@@ -90,16 +82,16 @@ class ScarletMistAction:
 @ui_meta(characters.remilia.ScarletMistEndAction)
 class ScarletMistEndAction:
     def effect_string(self, act):
-        return '|G红雾|r结束了。'
+        return '<style=Card.Name>红雾</style>结束了。'
 
 
 @ui_meta(characters.remilia.ScarletMist)
 class ScarletMist:
     name = '红雾'
     description = (
-        '|BBOSS技|r，|B限定技|r，出牌阶段，你可以选择至多X名其他角色（X为存活道中数量），直到你的下个回合开始阶段，所有角色受到以下影响：\n'
-        '|B|R>> |r你与被选择的角色使用|G弹幕|r时无视距离，且使用|G弹幕|r造成伤害后回复等量的体力。\n'
-        '|B|R>> |r其他角色使用|G弹幕|r时只能指定距离为1的目标。'
+        '<style=B>BOSS技</style>，<style=B>限定技</style>，出牌阶段，你可以选择至多X名其他角色（X为存活道中数量），直到你的下个回合开始阶段，所有角色受到以下影响：'
+        '<style=Desc.Li>你与被选择的角色使用<style=Card.Name>弹幕</style>时无视距离，且使用<style=Card.Name>弹幕</style>造成伤害后回复等量的体力。</style>'
+        '<style=Desc.Li>其他角色使用<style=Card.Name>弹幕</style>时只能指定距离为1的目标。</style>'
     )
 
     def clickable(self):

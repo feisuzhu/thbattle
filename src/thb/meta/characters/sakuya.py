@@ -7,7 +7,7 @@ import random
 # -- own --
 from thb import characters
 from thb.cards.classes import AttackCard
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -30,7 +30,7 @@ class Sakuya:
 class Dagger:
     # Skill
     name = '飞刀'
-    description = '你可以将一张装备牌当|G弹幕|r使用或打出，以此法使用的|G弹幕|r无距离限制。'
+    description = '你可以将一张装备牌当<style=Card.Name>弹幕</style>使用或打出，以此法使用的<style=Card.Name>弹幕</style>无距离限制。'
 
     def clickable(self):
         me = self.me
@@ -54,15 +54,10 @@ class Dagger:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        source = act.source
-        card = act.card
-        target = act.target
-        s = '|G【%s】|r将|G%s|r制成了|G飞刀|r，向|G【%s】|r掷去！' % (
-            source.ui_meta.name,
-            card.associated_cards[0].ui_meta.name,
-            target.ui_meta.name,
-        )
-        return s
+        src, tgt = act.source, act.target
+        sk = act.card
+        c = sk.associated_cards[0]
+        return f'{N.char(src)}将{N.card(c)}制成了<style=Skill.Name>飞刀</style>，向{N.char(tgt)}掷去！'
 
     def sound_effect(self, act):
         return random.choice([
@@ -81,4 +76,4 @@ class LunaDialActionStage:
 class LunaDial:
     # Skill
     name = '月时计'
-    description = '|B锁定技|r，准备阶段开始时，你执行一个额外的出牌阶段。'
+    description = '<style=B>锁定技</style>，准备阶段开始时，你执行一个额外的出牌阶段。'

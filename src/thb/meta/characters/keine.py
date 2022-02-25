@@ -8,7 +8,7 @@ import random
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -18,7 +18,7 @@ class Teach:
     name = '授业'
     description = (
         '出牌阶段限一次，你可以重铸一张牌，然后将一张牌交给一名其它角色，其选择一项：'
-        '|B|R>> |r使用一张牌，|B|R>> |r重铸一张牌。'
+        '<style=Desc.Li>使用一张牌，</style><style=Desc.Li>重铸一张牌。</style>'
     )
 
     def clickable(self):
@@ -33,13 +33,10 @@ class Teach:
         if not tl or len(tl) != 1:
             return False, '请选择一个目标'
 
-        return True, '发动「授业」'
+        return True, '发动<style=Skill.Name>授业</style>'
 
     def effect_string(self, act):
-        return '“是这样的|G【%s】|r”，|G【%s】|r说道，“两个1相加是不等于⑨的。即使是两个⑥也不行。不不，天才来算也不行。”' % (
-            act.target.ui_meta.name,
-            act.source.ui_meta.name,
-        )
+        return f'“是这样的{N.char(act.target)}”，{N.char(act.source)}说道，“两个1相加是不等于⑨的。即使是两个⑥也不行。不不，天才来算也不行。”'
 
     def sound_effect(self, act):
         return random.choice([
@@ -68,7 +65,7 @@ class TeachAction:
 class TeachTargetEffect:
     # choose_option
     choose_option_buttons = (('重铸一张牌', 'reforge'), ('使用卡牌', 'action'))
-    choose_option_prompt = '授业：请选择你的行动'
+    choose_option_prompt = '<style=Skill.Name>授业</style>：请选择你的行动'
 
 
 @ui_meta(characters.keine.TeachTargetReforgeAction)
@@ -92,8 +89,8 @@ class KeineGuard:
     # Skill
     name = '守护'
     description = (
-        '|B限定技|r，出牌阶段开始时，你可以失去一点体力上限，令一名其它已受伤角色回复一点体力。之后，若其体力仍然是全场最低的，则你与其获得技能|R决意|r。\n'
-        '|B|R>> |b决意|r：当你受到伤害时，若同样拥有|R决意|r的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有|R决意|r的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。'
+        '<style=B>限定技</style>，出牌阶段开始时，你可以失去一点体力上限，令一名其它已受伤角色回复一点体力。之后，若其体力仍然是全场最低的，则你与其获得技能<style=Skill.Name>决意</style>。'
+        '<style=Desc.Li><style=Skill.Name>决意</style>：当你受到伤害时，若同样拥有<style=Skill.Name>决意</style>的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有<style=Skill.Name>决意</style>的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。</style>'
     )
 
     def is_available(self, ch):
@@ -103,10 +100,7 @@ class KeineGuard:
 @ui_meta(characters.keine.KeineGuardAction)
 class KeineGuardAction:
     def effect_string_before(self, act):
-        return '“我绝对不会让你们碰到|G【%s】|r 一根手指的！”|G【%s】|r冲着所有人喊道。' % (
-            act.target.ui_meta.name,
-            act.source.ui_meta.name,
-        )
+        return f'“我绝对不会让你们碰到{N.char(act.target)} 一根手指的！”{N.char(act.source)}冲着所有人喊道。'
 
     def sound_effect_before(self, act):
         return random.choice([
@@ -119,7 +113,7 @@ class KeineGuardHandler:
 
     def target(self, pl):
         if not pl:
-            return (False, u'守护：请选择1名其他角色（或不发动）')
+            return (False, u'<style=Skill.Name>守护</style>：请选择1名其他角色（或不发动）')
 
         p = pl[0]
         if p.life >= p.maxlife:
@@ -133,34 +127,26 @@ class Devoted:
     # Skill
     name = u'决意'
     description = (
-        '当你受到伤害时，若同样拥有|R决意|r的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有|R决意|r的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。'
+        '当你受到伤害时，若同样拥有<style=Skill.Name>决意</style>的另一名角色的体力值比你高，则伤害改为由该角色承受。同样拥有<style=Skill.Name>决意</style>的另一名角色于你的回合内摸牌/回复体力时，你摸相同数量的牌/回复相同的体力。'
     )
 
 
 @ui_meta(characters.keine.DevotedHeal)
 class DevotedHeal:
     def effect_string(self, act):
-        return '|G【%s】|r分享了回复效果（|G决意|r），|G【%s】|r回复了%s点体力。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            act.amount,
-        )
+        return f'{N.char(act.source)}分享了回复效果（<style=Skill.Name>决意</style>），{N.char(act.target)}回复了{act.amount}点体力。'
 
 
 @ui_meta(characters.keine.DevotedDrawCards)
 class DevotedDrawCards:
     def effect_string(self, act):
-        return '|G【%s】|r分享了摸牌效果（|G决意|r），|G【%s】|r摸了%s张牌。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            act.amount,
-        )
+        return f'{N.char(act.source)}分享了摸牌效果（<style=Skill.Name>决意</style>），{N.char(act.target)}摸了{act.amount}张牌。'
 
 
 @ui_meta(characters.keine.DevotedAction)
 class DevotedAction:
     def effect_string(self, act):
-        return '|G【%s】|r的伤害由|G【%s】|r承受了（|G决意|r）。' % (
+        return f'{N.char(act.source)}的伤害由{N.char(act.target)}承受了（<style=Skill.Name>决意</style>）。' % (
             act.source.ui_meta.name,
             act.target.ui_meta.name,
         )
@@ -178,4 +164,4 @@ class Keine:
     figure_image      = 'thb-figure-keine'
     miss_sound_effect = 'thb-cv-keine_miss'
 
-    notes = '|RKOF不平衡角色|r'
+    notes = 'KOF不平衡角色'

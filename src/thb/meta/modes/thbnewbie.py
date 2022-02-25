@@ -13,10 +13,8 @@ class THBattleNewbie(UIMetaBare):
     name = '琪露诺的完美THB教室'
     logo = 'thb-modelogo-newbie'
     description = (
-        '|G游戏目标|r：让琪露诺带你飞。\n'
-        '\n'
-        '|G胜利条件|r：完整地完成教学，不掉线。\n'
-        '\n'
+        '<style=B>游戏目标</style>：让琪露诺带你飞。\n'
+        '<style=B>胜利条件</style>：完整地完成教学，不掉线。\n'
     ).strip()
 
     roles = {

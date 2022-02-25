@@ -9,7 +9,7 @@ import random
 from thb import actions, characters
 from thb.actions import PlayerTurn, ttags
 from thb.cards.classes import AttackCard, GrazeCard
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -17,7 +17,7 @@ from thb.meta.common import ui_meta
 class Dismantle:
     # Skill
     name = '拆解'
-    description = '出牌阶段限一次，你可以|B重铸|r一名其他角色装备区里的一张装备牌，然后该角色摸一张牌。'
+    description = '出牌阶段限一次，你可以<style=B>重铸</style>一名其他角色装备区里的一张装备牌，然后该角色摸一张牌。'
 
     def clickable(self):
         if ttags(self.me)['dismantle']:
@@ -82,11 +82,8 @@ class Craftsman:
 
     def effect_string(self, act):
         # for LaunchCard.effect_string
-        source = act.source
-        s = '|G【%s】|r发动了|G匠心|r。' % (
-            source.ui_meta.name,
-        )
-        return s
+        src = act.source
+        return f'{N.char(src)}发动了<style=Skill.Name>匠心</style>。'
 
     def sound_effect(self, act):
         if isinstance(act, actions.LaunchCard):
@@ -125,4 +122,4 @@ class Nitori:
     figure_image      = 'thb-figure-nitori'
     miss_sound_effect = ''
 
-    notes = '|RKOF不平衡角色|r'
+    notes = 'KOF不平衡角色'

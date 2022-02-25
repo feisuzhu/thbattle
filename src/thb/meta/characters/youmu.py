@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -26,16 +26,13 @@ class Youmu:
 class Mijincihangzhan:
     # Skill
     name = '迷津慈航斩'
-    description = '|B锁定技|r，你使用的|G弹幕|r需要连续使用两张|G擦弹|r来抵消；与你进行|G弹幕战|r的角色每次需要连续打出两张|G弹幕|r。'
+    description = '<style=B>锁定技</style>，你使用的<style=Card.Name>弹幕</style>需要连续使用两张<style=Card.Name>擦弹</style>来抵消；与你进行<style=Card.Name>弹幕战</style>的角色每次需要连续打出两张<style=Card.Name>弹幕</style>。'
 
 
 @ui_meta(characters.youmu.MijincihangzhanAttack)
 class MijincihangzhanAttack:
     def effect_string_apply(self, act):
-        src = act.source
-        return '|G【%s】|r在弹幕中注入了妖力，弹幕形成了一个巨大的光刃，怕是不能轻易地闪开的！' % (
-            src.ui_meta.name,
-        )
+        return f'{N.char(act.source)}在弹幕中注入了妖力，怕是不能轻易地闪开的！'
 
     def sound_effect(self, act):
         return 'thb-cv-youmu_mjchz'
@@ -57,11 +54,9 @@ class Nitoryuu:
     # Skill
     name = '二刀流'
     description = (
-        '你可以额外装备一把武器，当你同时装备了两把武器时，攻击范围按其中较高者计算；武器技能同时有效，且你额外增加一点干劲。\n'
-        '|B|R>> |r当你受到|G人形操控|r的效果生效时，需交出全部的武器。'
+        '你可以额外装备一把武器，当你同时装备了两把武器时，攻击范围按其中较高者计算；武器技能同时有效，且你额外增加一点干劲。'
+        '<style=Desc.Li>当你受到<style=Card.Name>人形操控</style>的效果生效时，需交出全部的武器。</style>'
     )
 
     def effect_string(self, act):
-        return '|G【%s】|r弃置了自己的一把武器。' % (
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.target)}弃置了自己的一把武器。'

@@ -257,7 +257,7 @@ class ScriptedStage(GenericAction):
             text = (
                 '总之，这里先回复……\n'
                 '（请使用麻薯）\n'
-                '（在PC版中鼠标移动到卡牌/人物上，或者手机版中长按卡牌/人物头像，就会弹出说明，很有用的）'
+                '（长按卡牌/人物头像，就会弹出说明）'
             )
             dialog(Meirin, text, 10)
             g.process_action(OneShotActionStage(meirin))
@@ -269,7 +269,7 @@ class ScriptedStage(GenericAction):
             text = (
                 '好，状态全满！那边的妖精！吃我大弹幕啦！\n'
                 '（请首先点击弹幕，然后点击琪露诺，最后点击出牌）\n'
-                '（在PC版中鼠标移动到卡牌/人物上，或者手机版中长按卡牌/人物头像，就会弹出说明，很有用的）'
+                '（长按卡牌/人物头像，就会弹出说明）'
             )
             dialog(Meirin, text, 11)
             g.process_action(OneShotActionStage(meirin))
@@ -335,7 +335,7 @@ class ScriptedStage(GenericAction):
 
         dialog(Meirin, '咦……', 16)
         dialog(Sakuya, '不会连这个你也不清楚吧。', 6)
-        dialog(Meirin, '我记得是记得啦，似乎是我现在够不到琪露诺了之类的而琪露诺可以够到我……吧？说回来，这样的解释似乎很不科学诶，为什么我够不到但是对方够得到我啊，这个|G绿色UFO|r到底是什么东西……', 17)
+        dialog(Meirin, '我记得是记得啦，似乎是我现在够不到琪露诺了之类的而琪露诺可以够到我……吧？说回来，这样的解释似乎很不科学诶，为什么我够不到但是对方够得到我啊，这个<style=Card.Name>绿色UFO</style>到底是什么东西……', 17)
         dialog(Sakuya, '……你只要好好打完这局就可以了，再问这么多为什么，我可不保证你的脑门上会多出什么奇怪的金属制品。', 7)
         dialog(Meirin, '是！', 18)
 
@@ -345,12 +345,12 @@ class ScriptedStage(GenericAction):
         g.process_action(DrawCards(meirin, 1))
 
         dialog(Meirin, '咦，这张牌是……', 19)
-        dialog(Sakuya, '这是|G冻青蛙|r。\n（咳嗽了一声）|G冻青蛙|r是一种|R延时符卡|r，它和|G封魔阵|r一样在使用时并不会立即发生作用，只有轮到了那个角色的行动回合时，才会进行一次判定来执行该符卡的后续效果。', 8)
+        dialog(Sakuya, '这是<style=Card.Name>冻青蛙</style>。\n（咳）<style=Card.Name>冻青蛙</style>是一种<style=B>延时符卡</style>，它和<style=Card.Name>封魔阵</style>一样在使用时并不会立即发生作用，只有轮到了那个角色的行动回合时，才会进行一次判定来执行该符卡的后续效果。', 8)
         dialog(Meirin, '原来是这样……那就先贴到她脸上再说！', 20)
 
         g.process_action(OneShotActionStage(meirin))
 
-        dialog(Meirin, '这是怎么回事…为什么不能使用…那就先来一发|G弹幕|r好了！', 21)
+        dialog(Meirin, '这是怎么回事…为什么不能使用…那就先来一发<style=Card.Name>弹幕</style>好了！', 21)
 
         atkcard = g.deck.inject(AttackCard, Card.SPADE, 9)
         g.process_action(DrawCards(meirin, 1))
@@ -358,7 +358,7 @@ class ScriptedStage(GenericAction):
         g.process_action(OneShotActionStage(meirin))
 
         dialog(Meirin, '咲夜咲夜咲夜，我没法打她啊！', 22)
-        dialog(Sakuya, '……你忘了琪露诺的|G绿色UFO|r吗。现在从你这边看来和琪露诺的距离为2，也就是，赤手空拳的距离1是没有办法用|G弹幕|r打中她的。我记得鬼族有她们的方法，但是很显然你并不会。', 9)
+        dialog(Sakuya, '……你忘了琪露诺的<style=Card.Name>绿色UFO</style>吗。现在从你这边看来和琪露诺的距离为2，也就是，赤手空拳的距离1是没有办法用<style=Card.Name>弹幕</style>打中她的。我记得鬼族有她们的方法，但是很显然你并不会。', 9)
         dialog(Meirin, '好吧……所以？', 23)
         dialog(Sakuya, '（掏出飞刀', None)
         dialog(Meirin, '好啦好啦，我不问啦！', 24)
@@ -426,7 +426,7 @@ class ScriptedStage(GenericAction):
         dialog(Sakuya, '……还是不要跟笨蛋说话的比较好，智商会下降的。', 12)
 
         while frozen in meirin.cards:
-            dialog(Meirin, '那么，把这张|G冻青蛙|r也贴上去吧！', 31)
+            dialog(Meirin, '那么，把这张<style=Card.Name>冻青蛙</style>也贴上去吧！', 31)
             g.process_action(ActionStage(meirin))
 
         turn.target = cirno
@@ -462,10 +462,10 @@ class ScriptedStage(GenericAction):
 
         while demolition in meirin.cards:
             dialog(Meirin, '咲夜咲夜！', 36)
-            dialog(Sakuya, '是啦，这就是我说的那张符卡了。和其他的|R非延时符卡|r使用方法都一样，属于发动之后就会立即生效的类型。', 17)
+            dialog(Sakuya, '是啦，这就是我说的那张符卡了。和其他的<style=B>非延时符卡</style>使用方法都一样，属于发动之后就会立即生效的类型。', 17)
             dialog(Meirin, '……不是很好理解诶。', 37)
 
-            dialog(Sakuya, '用用看就知道了。快去卸掉她的|G天狗盾|r吧。', 18)
+            dialog(Sakuya, '用用看就知道了。快去卸掉她的<style=Card.Name>天狗盾</style>吧。', 18)
 
             @inject_eh
             def handle_rejectcard(evt_type: str, act: Any):
@@ -476,21 +476,21 @@ class ScriptedStage(GenericAction):
 
                 elif evt_type == 'action_before' and isinstance(act, Reject) and act.associated_card is cirnoreject:
                     g.pause(1.5)
-                    dialog(Meirin, '这又是怎么回事……好像|G城管执法|r并没有起作用？', 38)
-                    dialog(Sakuya, '咦，这笨蛋居然知道用|G好人卡|r啊……', 19)
+                    dialog(Meirin, '这又是怎么回事……好像<style=Card.Name>城管执法</style>并没有起作用？', 38)
+                    dialog(Sakuya, '咦，这笨蛋居然知道用<style=Card.Name>好人卡</style>啊……', 19)
                     dialog(Cirno, '什么笨蛋，老娘是天才，天～才～', 18)
                     text = (
-                        '|G好人卡|r的效果是|R抵消符卡效果|r，也就是说，你的|G城管执法|r的效果被无效化了。\n'
-                        '（在PC版中鼠标移动到卡牌/人物上，或者手机版中长按卡牌/人物头像，就会弹出说明，很有用的）'
+                        '<style=Card.Name>好人卡</style>的效果是<style=B>抵消符卡效果</style>，也就是说，你的<style=Card.Name>城管执法</style>的效果被无效化了。\n'
+                        '（长按卡牌/人物头像，就会弹出说明）'
                     )
                     dialog(Sakuya, text, 20)
-                    dialog(Sakuya, '但是，|G好人卡|r的“无效符卡”的效果，本身也是符卡效果，是可以被|G好人卡|r抵消的！', 21)
+                    dialog(Sakuya, '但是，<style=Card.Name>好人卡</style>的“无效符卡”的效果，本身也是符卡效果，是可以被<style=Card.Name>好人卡</style>抵消的！', 21)
 
                     meirinreject = g.deck.inject(RejectCard, Card.CLUB, 4)
                     g.process_action(DrawCards(meirin, 1))
 
                     while not act.cancelled:
-                        dialog(Meirin, '我知道了，我也用|G好人卡|r去抵消她的|G好人卡|r效果就好了！', 39)
+                        dialog(Meirin, '我知道了，我也用<style=Card.Name>好人卡</style>去抵消她的<style=Card.Name>好人卡</style>效果就好了！', 39)
 
                         rej = RejectHandler(g)
                         rej.target_act = act
@@ -509,17 +509,17 @@ class ScriptedStage(GenericAction):
             remove_eh(handle_rejectcard)
 
         if shield in cirno.equips:
-            dialog(Sakuya, '喂，不是说要拆掉|G天狗盾|r吗，你明明装备着|G红色UFO|r的，她是在你的距离范围内的。', 22)
+            dialog(Sakuya, '喂，不是说要拆掉<style=Card.Name>天狗盾</style>吗，你明明装备着<style=Card.Name>红色UFO</style>的，她是在你的距离范围内的。', 22)
             dialog(Meirin, '哎呀，手抖了的说……', 40)
         else:
-            dialog(Cirno, '呜哇你赔我的|G天狗盾|r！', 19)
+            dialog(Cirno, '呜哇你赔我的<style=Card.Name>天狗盾</style>！', 19)
             dialog(Meirin, '怪我咯！？', 41)
 
         g.deck.inject(ExinwanCard, Card.CLUB, 3)
         g.process_action(DrawCards(meirin, 1))
 
         dialog(Meirin, '咦？咲夜，这张牌好奇怪……为什么是负面的效果？', 42)
-        dialog(Sakuya, '是|G恶心丸|r啊……你的运气不太好哦。不过尽管说是一张负面效果的牌，但是看发动条件的话，是可以恶心到别人的。情况允许的话就留在手里好了，直接吃掉肯定是不合算的。', 23)
+        dialog(Sakuya, '是<style=Card.Name>恶心丸</style>啊……你的运气不太好哦。不过尽管说是一张负面效果的牌，但是看发动条件的话，是可以恶心到别人的。情况允许的话就留在手里好了，直接吃掉肯定是不合算的。', 23)
 
         turn.target = cirno
         g.deck.inject(DemolitionCard, Card.CLUB, 4)
@@ -549,7 +549,7 @@ class ScriptedStage(GenericAction):
         g.process_action(DrawCards(meirin, 1))
 
         while wine in meirin.cards:
-            dialog(Meirin, '没办法，这瓶|G酒|r本来是想留着|R来一发2点伤害的弹幕|r用的，现在只能用来|R抵挡1点致命伤害|r了……', 45)
+            dialog(Meirin, '没办法，这瓶<style=Card.Name>酒</style>本来是想留着<style=B>来一发2点伤害的弹幕</style>用的，现在只能用来<style=B>抵挡1点致命伤害</style>了……', 45)
             g.process_action(ActionStage(meirin))
 
         g.pause(0.5)
@@ -559,8 +559,8 @@ class ScriptedStage(GenericAction):
         dialog(Cirno, '怎么样，老娘最强！', 24)
 
         dialog(Meirin, '呼呼，撑过来了……', 46)
-        dialog(Meirin, '咲夜，这是怎么回事？|G弹幕|r不应该|R一回合只能使用一次|r吗？', 47)
-        dialog(Sakuya, '嗯……说的不错。|R一回合只能使用一次|r这个规则是没错啦，不过你看她的手上，是河童们研制的迷你|G八卦炉|r，只要装备上的话，一回合就可以使用任意次数的|G弹幕|r了。', 24)
+        dialog(Meirin, '咲夜，这是怎么回事？<style=Card.Name>弹幕</style>不应该<style=B>一回合只能使用一次</style>吗？', 47)
+        dialog(Sakuya, '嗯……说的不错。<style=B>一回合只能使用一次</style>这个规则是没错啦，不过你看她的手上，是河童们研制的迷你<style=B>八卦炉</style>，只要装备上的话，一回合就可以使用任意次数的<style=Card.Name>弹幕</style>了。', 24)
         dialog(Meirin, '你这家伙好像【借】来了不少东西嘛……不过笨蛋就是笨蛋，我怎么可能会输在笨蛋的手上！', 48)
 
         pt = PlayerTurn(meirin)
@@ -569,7 +569,7 @@ class ScriptedStage(GenericAction):
         g.pause(2)
 
         dialog(Cirno, '你怎么会突然多出来一个技能，这一点也不公平！', 25)
-        dialog(Sakuya, '“笨蛋就是笨蛋”这句话说的一点没错……你像这样打伤美铃，触发了美铃的|R觉醒技|r。|R觉醒技|r通常都是很厉害的技能，但是要满足一定条件以后才可以开始使用。据我所知，那个三途川的草鞋船夫也有类似的能力，而美铃的觉醒技，就是|G太极|r了。', 25)
+        dialog(Sakuya, '“笨蛋就是笨蛋”这句话说的一点没错……你像这样打伤美铃，触发了美铃的<style=B>觉醒技</style>。<style=B>觉醒技</style>通常都是很厉害的技能，但是要满足一定条件以后才可以开始使用。据我所知，那个三途川的草鞋船夫也有类似的能力，而美铃的觉醒技，就是<style=Skill.Name>太极</style>了。', 25)
         dialog(Cirno, '啊，原来是这样……不不，才不是笨蛋，老娘最强！', 26)
 
         graze = g.deck.inject(GrazeCard, Card.DIAMOND, 11)
@@ -577,7 +577,7 @@ class ScriptedStage(GenericAction):
 
         while graze in meirin.cards:
             text = (
-                '现在说不是笨蛋是不是有点晚啊……见识一下吧，这来自古老东方的两仪|G太极|r之力！\n'
+                '现在说不是笨蛋是不是有点晚啊……见识一下吧，这来自古老东方的两仪<style=Skill.Name>太极</style>之力！\n'
                 '（使用主动发动的技能：请点击技能按钮，然后选择擦弹，然后选择琪露诺，最后出牌）'
             )
             dialog(Meirin, text, 49)

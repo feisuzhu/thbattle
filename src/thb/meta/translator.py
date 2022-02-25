@@ -8,9 +8,9 @@ import logging
 # -- third party --
 # -- own --
 from client.core import Core
-from game.base import BootstrapAction, Player, Action
-from thb.actions import ActionStage, Damage, Fatetell, LaunchCard, MigrateCardsTransaction, Pindian
-from thb.actions import PlayerDeath, PlayerTurn, RevealRole, THBAction, UserAction
+from game.base import Action, BootstrapAction, Player
+from thb.actions import Damage, Fatetell, MigrateCardsTransaction, Pindian, PlayerTurn, RevealRole
+from thb.actions import THBAction, UserAction
 from thb.cards.base import Card, VirtualCard
 from thb.meta import view
 from thb.mode import THBattle
@@ -135,6 +135,10 @@ LAST_GAME_STATE = None
 def sync_game_state(g: THBattle, core: Core, evt: str, act: Any):
     from .view import state_of
     global LAST_GAME_STATE
+
+    if not g.action_stack:
+        return
+
     state = state_of(g)
     if not state:
         return

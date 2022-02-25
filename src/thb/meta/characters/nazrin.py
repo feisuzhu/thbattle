@@ -7,7 +7,7 @@ from __future__ import annotations
 from thb import characters
 from thb.cards.base import Card
 from thb.cards.classes import BaseUseGraze
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -36,7 +36,7 @@ class NazrinKOF:
     figure_image      = 'thb-figure-nazrin'
     miss_sound_effect = 'thb-cv-nazrin_miss'
 
-    notes = '|RKOF修正角色|r'
+    notes = 'KOF修正角色'
 
 
 @ui_meta(characters.nazrin.TreasureHunt)
@@ -50,14 +50,14 @@ class TreasureHunt:
 class TreasureHuntHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【探宝】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>探宝</style>吗？'
 
 
 @ui_meta(characters.nazrin.Agile)
 class Agile:
     # Skill
     name = '轻敏'
-    description = '你可以将一张黑色手牌当|G擦弹|r使用或打出。'
+    description = '你可以将一张黑色手牌当<style=Card.Name>擦弹</style>使用或打出。'
 
     def clickable(self):
         g = self.game
@@ -94,7 +94,7 @@ class Agile:
 class AgileKOF:
     # Skill
     name = '轻敏'
-    description = '你可以将一张|B黑桃|r手牌当|G擦弹|r使用或打出。'
+    description = '你可以将一张♠手牌当<style=Card.Name>擦弹</style>使用或打出。'
 
     clickable = Agile.clickable
 
@@ -119,15 +119,11 @@ class TreasureHuntAction:
     fatetell_display_name = '探宝'
 
     def effect_string(self, act):
+        tgt = act.target
         if act.succeeded:
-            return '|G【%s】|r找到了|G%s|r' % (
-                act.target.ui_meta.name,
-                act.card.ui_meta.name,
-            )
+            return f'{N.char(tgt)}找到了{N.card(act.card)}'
         else:
-            return '|G【%s】|r什么也没有找到…' % (
-                act.target.ui_meta.name,
-            )
+            return f'{N.char(tgt)}什么也没有找到…'
 
     def sound_effect(self, act):
         tgt = act.target

@@ -7,8 +7,7 @@ from typing import cast
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta
-from utils.misc import BatchList
+from thb.meta.common import ui_meta, N
 import thb.cards.classes as cards
 
 
@@ -18,8 +17,8 @@ class FlyingSkanda:
     # Skill
     name = '飞翔韦驮天'
     description = (
-        '出牌阶段限一次，你使用|G弹幕|r或单体符卡时，可以额外指定一个目标。\n'
-        '|B|R>> |r此处不能使用|G人形操控|r'
+        '出牌阶段限一次，你使用<style=Card.Name>弹幕</style>或单体符卡时，可以额外指定一个目标。'
+        '<style=Desc.Attention>此处不能使用<style=Card.Name>人形操控</style></style>'
     )
 
     def clickable(self):
@@ -50,7 +49,7 @@ class FlyingSkanda:
             rst = rst and issubclass(c.associated_action, cards.InstantSpellCardAction)
             if rst: break
 
-            return (False, '请选择一张【弹幕】或者除【人形操控】与【好人卡】之外的非延时符卡！')
+            return (False, '请选择一张<style=Card.Name>弹幕</style>或者除<style=Card.Name>人形操控</style>与<style=Card.Name>好人卡</style>之外的非延时符卡！')
 
         if len(tl) != 2:
             return (False, '请选择目标（2名玩家）')
@@ -64,18 +63,14 @@ class FlyingSkanda:
         # for LaunchCard.ui_meta.effect_string
         src = act.source
         card = cast(characters.chen.FlyingSkanda, act.card).associated_cards[0]
-        tl = BatchList(act.target_list)
+        tl = act.target_list
 
         if card.is_card(cards.AttackCard):
             s = '弹幕掺了金坷垃，攻击范围一千八！'
         else:
             s = '符卡掺了金坷垃，一张能顶两张用！'
 
-        return '|G【%s】|r：“%s|G【%s】|r接招吧！”' % (
-            src.ui_meta.name,
-            s,
-            '】|r、|G【'.join(tl.ui_meta.name),
-        )
+        return f'{N.char(src)}：“{s}{N.char(tl)}接招吧！”'
 
     def sound_effect(self, act):
         return 'thb-cv-chen_skanda'
@@ -86,8 +81,8 @@ class Shikigami:
     # Skill
     name = '式神'
     description = (
-        '|B限定技|r，出牌阶段，你可以令一名其他角色选择一项：|B|R>> |r摸两张牌，|B|R>> |r回复1点体力。\n'
-        '直到下次你的回合开始时，你与其可以在出牌阶段对对方攻击范围内的角色使用|G弹幕|r。'
+        '<style=B>限定技</style>，出牌阶段，你可以令一名其他角色选择一项：<style=Desc.Li>摸两张牌，</style><style=Desc.Li>回复1点体力。</style>'
+        '直到下次你的回合开始时，你与其可以在出牌阶段对对方攻击范围内的角色使用<style=Card.Name>弹幕</style>。'
     )
 
     def clickable(self):
@@ -110,7 +105,7 @@ class Shikigami:
         if not tl:
             return (False, '请选择一名玩家')
         else:
-            return (True, '发动【式神】')
+            return (True, '发动<style=Skill.Name>式神</style>')
 
     def sound_effect(self, act):
         return 'thb-cv-chen_shikigami'
@@ -122,7 +117,7 @@ class Shikigami:
 @ui_meta(characters.chen.ShikigamiAction)
 class ShikigamiAction:
     choose_option_buttons = (('摸2张牌', False), ('回复1点体力', True))
-    choose_option_prompt = '请为受到的【式神】选择效果'
+    choose_option_prompt = '请为受到的<style=Skill.Name>式神</style>选择效果'
 
 
 @ui_meta(characters.chen.Chen)

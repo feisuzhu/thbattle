@@ -9,9 +9,9 @@ import random
 # -- own --
 from thb import actions
 from thb.actions import ttags
-from thb.cards import basic, definition, equipment
+from thb.cards import basic, definition, equipment, definition as D
 from thb.cards.base import Card
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 from utils.misc import BatchList
 
 
@@ -28,10 +28,8 @@ def suppress_launch_card_effect_string(self, act):
 class WearEquipmentAction:
 
     def effect_string(self, act):
-        return '|G【%s】|r装备了%s。' % (
-            act.target.ui_meta.name,
-            self.card_desc(act.associated_card),
-        )
+        c = act.associated_card
+        return f'{N.char(act.target)}装备了{N.card(c)}。'
 
 
 @ui_meta(equipment.WeaponReforgeHandler)
@@ -43,10 +41,7 @@ class WeaponReforgeHandler:
 @ui_meta(equipment.ReforgeWeapon)
 class ReforgeWeapon:
     def effect_string(self, act):
-        return '|G【%s】|r重铸了%s。' % (
-            act.target.ui_meta.name,
-            self.card_desc(act.card),
-        )
+        return f'{N.char(act.target)}重铸了{N.card(act.card)}。'
 
 
 @ui_meta(definition.OpticalCloakCard)
@@ -56,7 +51,7 @@ class OpticalCloakCard:
     illustrator = '霏茶'
     cv = 'shourei小N'
     description = (
-        '装备后：当你需要使用或打出|G擦弹|r时，可以进行一次判定，若结果为红，视为你使用或打出了一张|G擦弹|r。'
+        '装备后：当你需要使用或打出<style=Card.Name>擦弹</style>时，可以进行一次判定，若结果为红，视为你使用或打出了一张<style=Card.Name>擦弹</style>。'
     )
 
     is_action_valid = equip_iav
@@ -79,7 +74,7 @@ class OpticalCloakSkill:
 class OpticalCloakHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【光学迷彩】吗？'
+    choose_option_prompt = '你要发动<style=Card.Name>光学迷彩</style>吗？'
 
 
 @ui_meta(equipment.OpticalCloak)
@@ -87,9 +82,7 @@ class OpticalCloak:
     fatetell_display_name = '光学迷彩'
 
     def effect_string_before(self, act):
-        return '|G【%s】|r祭起了|G光学迷彩|r…' % (
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.target)}祭起了{N.card(D.OpticalCloakCard)}…'
 
     def effect_string(self, act):
         if act.succeeded:
@@ -105,7 +98,7 @@ class MomijiShieldCard:
     illustrator = '霏茶'
     cv = ''
     description = (
-        '装备后：黑色|G弹幕|r对你无效。\n\n'
+        '装备后：黑色<style=Card.Name>弹幕</style>对你无效。\n\n'
     )
 
     is_action_valid = equip_iav
@@ -121,17 +114,17 @@ class MomijiShieldSkill:
 @ui_meta(equipment.MomijiShield)
 class MomijiShield:
     def effect_string(self, act):
-        return '被|G天狗盾|r挡下了…'
+        return '被{N.char(D.MomijiShieldCard)}挡下了…'
 
     def sound_effect(self, act):
         return 'thb-cv-card_momijishield'
 
 
 ufo_desc = (
-    'UFO用来改变自己与其他角色之间的距离。\n'
-    '|B|R>> |r红色UFO为进攻用，当你计算和其他角色的距离时，在原有的基础上减少相应距离。两名角色之间的距离至少为1。\n'
-    '|B|R>> |r绿色UFO为防守用，当其他角色计算和你的距离时，在原有的基础上增加相应距离。\n'
-    '|B|R>> |r你可以同时装备两种UFO。'
+    'UFO用来改变自己与其他角色之间的距离。'
+    '<style=Desc.Li>红色UFO为进攻用，当你计算和其他角色的距离时，在原有的基础上减少相应距离。两名角色之间的距离至少为1。</style>'
+    '<style=Desc.Li>绿色UFO为防守用，当其他角色计算和你的距离时，在原有的基础上增加相应距离。</style>'
+    '<style=Desc.Li>你可以同时装备两种UFO。</style>'
 )
 
 
@@ -178,9 +171,8 @@ class RoukankenCard:
     illustrator = '霏茶'
     cv = ''
     description = (
-        '攻击范围3，装备后：你使用的|G弹幕|r无视防具。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击范围3，装备后：你使用的<style=Card.Name>弹幕</style>无视防具。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -195,7 +187,7 @@ class RoukankenSkill:
 @ui_meta(equipment.Roukanken)
 class Roukanken:
     def effect_string_apply(self, act):
-        return '没有什么防具是|G楼观剑|r斩不断的！'
+        return '没有什么防具是<style=Card.Name>楼观剑</style>斩不断的！'
 
     def sound_effect(self, act):
         return 'thb-cv-card_roukanken'
@@ -208,9 +200,8 @@ class ElementalReactorCard:
     illustrator = '霏茶'
     cv = ''
     description = (
-        '攻击范围1，装备后：出牌阶段你使用|G弹幕|r时不消耗干劲。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击范围1，装备后：出牌阶段你使用<style=Card.Name>弹幕</style>时不消耗干劲。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
 
     is_action_valid = equip_iav
@@ -251,13 +242,11 @@ class UmbrellaEffect:
         card = getattr(a, 'associated_card', None)
         if card and card.associated_action and isinstance(a, card.associated_action):
             # Some skills changes action
-            s = '|G%s|r' % card.ui_meta.name
+            s = N.card(card.__class__)
         else:
             s = ''
 
-        return '|G【%s】|r受到的%s效果被|G阳伞|r挡下了…' % (
-            dmg.target.ui_meta.name, s,
-        )
+        return f'{N.char(dmg.target)}受到的{s}效果被<style=Card.Name>阳伞</style>挡下了…'
 
     def sound_effect(self, act):
         return 'thb-cv-card_umbrella'
@@ -270,9 +259,8 @@ class GungnirCard:
     illustrator = '霏茶'
     cv = ''
     description = (
-        '攻击范围3，装备后：你可以将两张手牌当|G弹幕|r使用或打出。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击范围3，装备后：你可以将两张手牌当<style=Card.Name>弹幕</style>使用或打出。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
 
     is_action_valid = equip_iav
@@ -310,11 +298,7 @@ class GungnirSkill:
         # for LaunchCard.effect_string
         source = act.source
         target = act.target
-        s = '|G【%s】|r发动了|G冈格尼尔|r之枪，将两张牌当作|G弹幕|r对|G【%s】|r使用。' % (
-            source.ui_meta.name,
-            target.ui_meta.name,
-        )
-        return s
+        return f'{N.char(source)}发动了<style=Card.Name>冈格尼尔</style>之枪，将两张牌当作<style=Card.Name>弹幕</style>对{N.char(target)}使用。'
 
     def sound_effect(self, act):
         return definition.AttackCard.ui_meta.sound_effect(act)
@@ -327,9 +311,8 @@ class ScarletRhapsodyCard:
     illustrator = '霏茶'
     cv = 'VV'
     description = (
-        '攻击范围4，装备后：当你使用的|G弹幕|r是你的最后一张手牌时，你可以为此|G弹幕|r指定至多三名目标。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击范围4，装备后：当你使用的<style=Card.Name>弹幕</style>是你的最后一张手牌时，你可以为此<style=Card.Name>弹幕</style>指定至多三名目标。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
 
     is_action_valid = equip_iav
@@ -357,7 +340,7 @@ class ScarletRhapsodySkill:
     def is_action_valid(self, sk, tl):
         assert sk.is_card(equipment.ScarletRhapsodySkill)
         if not sk.check():
-            return (False, '请选择你的最后一张【弹幕】！')
+            return (False, '请选择你的最后一张<style=Card.Name>弹幕</style>！')
         else:
             if not tl:
                 return (False, '请选择弹幕的目标（最多可以选择3名玩家）')
@@ -372,11 +355,7 @@ class ScarletRhapsodySkill:
         src = act.source
         tl = BatchList(act.target_list)
 
-        return '全人类的绯想天，当然不能只打一个！于是|G【%s】|r选了|G【%s】|r一共%d个目标！' % (
-            src.ui_meta.name,
-            '】|r、|G【'.join(tl.ui_meta.name),
-            len(tl),
-        )
+        return f'全人类的绯想天，当然不能只打一个！于是{N.char(src)}选了{N.char(tl)}一共{len(tl)}个目标！'
 
     def sound_effect(self, act):
         return 'thb-cv-card_srs'
@@ -389,10 +368,9 @@ class RepentanceStickCard:
     illustrator = '霏茶'
     cv = 'shourei小N'
     description = (
-        '攻击范围2，装备后：当你使用|G弹幕|r造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。\n'
-        '|B|R>> |r 区域内的牌包括手牌，装备区的牌和判定区的牌。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击范围2，装备后：当你使用<style=Card.Name>弹幕</style>造成伤害时，你可以防止此伤害，改为依次弃置目标角色区域内的两张牌。'
+        '<style=Desc.Li>区域内的牌包括手牌，装备区的牌和判定区的牌。</style>'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
 
     is_action_valid = equip_iav
@@ -409,26 +387,17 @@ class RepentanceStickSkill:
 class RepentanceStickHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【悔悟棒】吗？'
+    choose_option_prompt = '你要发动<style=Card.Name>悔悟棒</style>吗？'
 
 
 @ui_meta(equipment.RepentanceStick)
 class RepentanceStick:
     def effect_string_before(self, act):
-        return (
-            '|G【%s】|r用|G悔悟棒|r狠狠地敲了|G【%s】|r一通…'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-
-        )
+        return f'{N.char(act.source)}用<style=Card.Name>悔悟棒</style>狠狠地敲了{N.char(act.target)}一通…'
 
     def effect_string(self, act: equipment.RepentanceStick) -> str:
         cl = BatchList[Card](act.cards)
-        return '又抢过|G【%s】|r的|G%s|r扔了出去！' % (
-            act.target.ui_meta.name,
-            '|r和|G'.join(cl.ui_meta.name)
-        )
+        return f"又抢过{N.char(act.target)}的{N.card(cl, '和')}扔了出去！"
 
     def sound_effect(self, act):
         return 'thb-cv-card_repentancestick'
@@ -444,7 +413,7 @@ class IbukiGourdCard:
     effect_string = suppress_launch_card_effect_string
 
     description = (
-        '装备后立即获得|B喝醉|r状态。并且，若你在出牌阶段没有造成过伤害，在回合结束阶段获得|B喝醉|r状态。'
+        '装备后立即获得<style=B>喝醉</style>状态。并且，若你在出牌阶段没有造成过伤害，在回合结束阶段获得<style=B>喝醉</style>状态。'
     )
 
 
@@ -461,9 +430,8 @@ class HouraiJewelCard:
     illustrator = '霏茶'
     cv = ''
     description = (
-        '攻击范围1。装备后，你使用的|G弹幕|r时，可以将弹幕的效果转化成如下的符卡效果：造成1点伤害。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击范围1。装备后，你使用的<style=Card.Name>弹幕</style>时，可以将弹幕的效果转化成如下的符卡效果：造成1点伤害。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
 
     is_action_valid = equip_iav
@@ -480,18 +448,13 @@ class HouraiJewelSkill:
 class HouraiJewelHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【蓬莱玉枝】吗？'
+    choose_option_prompt = '你要发动<style=Card.Name>蓬莱玉枝</style>吗？'
 
 
 @ui_meta(equipment.HouraiJewelAttack)
 class HouraiJewelAttack:
     def effect_string_apply(self, act):
-        return (
-            '|G【%s】|r发动了|G蓬莱玉枝|r，包裹着魔法核心的弹幕冲向了|G【%s】|r！'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了<style=Card.Name>蓬莱玉枝</style>，包裹着魔法核心的弹幕冲向了{N.char(act.target)}！'
 
 
 @ui_meta(definition.MaidenCostumeCard)
@@ -501,7 +464,7 @@ class MaidenCostumeCard:
     illustrator = '霏茶'
     cv = 'VV'
     description = (
-        '装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张|G好人卡|r。'
+        '装备后：当你成为一张符卡的目标时，你可以进行一次判定：若判定牌点数为9到K，则视为你使用了一张<style=Card.Name>好人卡</style>。'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -520,7 +483,7 @@ class MaidenCostume:
 class MaidenCostumeHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【巫女服】吗？'
+    choose_option_prompt = '你要发动<style=Card.Name>巫女服</style>吗？'
 
 
 @ui_meta(equipment.MaidenCostumeAction)
@@ -528,19 +491,11 @@ class MaidenCostumeAction:
     fatetell_display_name = '巫女服'
 
     def effect_string_before(self, act):
-        return (
-            '|G【%s】|r穿了|G巫女服|r，春度爆表，不怕符卡！'
-        ) % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}穿了<style=Card.Name>巫女服</style>，春度爆表，不怕符卡！'
 
     def effect_string(self, act):
         if not act.succeeded:
-            return (
-                '好像|G【%s】|r的春度还是不够用…'
-            ) % (
-                act.source.ui_meta.name,
-            )
+            return f'好像{N.char(act.source)}的春度还是不够用…'
 
 
 @ui_meta(definition.HakuroukenCard)
@@ -550,11 +505,10 @@ class HakuroukenCard:
     illustrator = '霏茶'
     cv = '小羽'
     description = (
-        '攻击范围2，装备后：当你使用的草花色|G弹幕|r指定一名目标角色后，你可以令其选择一项：\n'
-        '|B|R>> |r弃置一张手牌。\n'
-        '|B|R>> |r令你摸一张牌。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击范围2，装备后：当你使用的草花色<style=Card.Name>弹幕</style>指定一名目标角色后，你可以令其选择一项：'
+        '<style=Desc.Li>弃置一张手牌。</style>'
+        '<style=Desc.Li>令你摸一张牌。</style>'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -576,16 +530,11 @@ class Hakurouken:
             return (False, '请弃掉一张牌（否则对方摸一张牌）')
 
     def effect_string_before(self, act):
-        return (
-            '|G【%s】|r祭起了|G白楼剑|r，试图斩断|G【%s】|r的迷惘！'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}祭起了<style=Card.Name>白楼剑</style>，试图斩断{N.char(act.target)}的迷惘！'
 
     def effect_string(self, act):
         if act.peer_action == 'drop':
-            return '|G【%s】|r弃置了一张牌。' % act.target.ui_meta.name
+            return f'{N.char(act.target)}弃置了一张牌。'
         else:
             return None  # DrawCards has it's own prompt
 
@@ -597,7 +546,7 @@ class Hakurouken:
 class HakuroukenHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【白楼剑】吗？'
+    choose_option_prompt = '你要发动<style=Card.Name>白楼剑</style>吗？'
 
 
 @ui_meta(definition.AyaRoundfanCard)
@@ -607,9 +556,8 @@ class AyaRoundfanCard:
     illustrator = '霏茶'
     cv = 'VV'
     description = (
-        '攻击距离5，装备后：当你使用的|G弹幕|r对目标角色造成伤害后，你可以弃置一张手牌，然后弃置其装备区里的一张牌。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击距离5，装备后：当你使用的<style=Card.Name>弹幕</style>对目标角色造成伤害后，你可以弃置一张手牌，然后弃置其装备区里的一张牌。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -634,19 +582,10 @@ class AyaRoundfanHandler:
 @ui_meta(equipment.AyaRoundfan)
 class AyaRoundfan:
     def effect_string_before(self, act):
-        return (
-            '|G【%s】|r觉得手中的|G团扇|r用起来好顺手，便加大力度试了试…'
-        ) % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}觉得手中的<style=Card.Name>团扇</style>用起来好顺手，便加大力度试了试…'
 
     def effect_string(self, act):
-        return (
-            '于是|G【%s】|r的|G%s|r就飞了出去！'
-        ) % (
-            act.target.ui_meta.name,
-            act.card.ui_meta.name,
-        )
+        return f'于是{N.char(act.target)}的{N.card(act.card)}就飞了出去！'
 
     def sound_effect(self, act):
         return random.choice([
@@ -662,9 +601,8 @@ class NenshaPhoneCard:
     illustrator = '霏茶'
     cv = ''
     description = (
-        '攻击距离4，装备后：当你使用的|G弹幕|r对目标角色造成伤害后，可以将其两张手牌置入明牌区。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r\n'
+        '攻击距离4，装备后：当你使用的<style=Card.Name>弹幕</style>对目标角色造成伤害后，可以将其两张手牌置入明牌区。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -680,18 +618,13 @@ class NenshaPhoneSkill:
 class NenshaPhoneHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【念写机】吗？'
+    choose_option_prompt = '你要发动<style=Card.Name>念写机</style>吗？'
 
 
 @ui_meta(equipment.NenshaPhone)
 class NenshaPhone:
     def effect_string(self, act):
-        return (
-            '|G【%s】|r表示，将|G【%s】|r推倒后拍摄胖次，是记者的自我修养中不可或缺的一部分。'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}表示，将{N.char(act.target)}推倒后拍摄胖次，是记者的自我修养中不可或缺的一部分。'
 
     def sound_effect(self, act):
         return 'thb-cv-card_nenshaphone'
@@ -704,9 +637,8 @@ class LaevateinCard:
     illustrator = '霏茶'
     cv = 'VV'
     description = (
-        '攻击距离3，装备后：当你使用的|G弹幕|r被目标角色使用的|G擦弹|r抵消时，你可以弃置两张牌，令此|G弹幕|r依然生效。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击距离3，装备后：当你使用的<style=Card.Name>弹幕</style>被目标角色使用的<style=Card.Name>擦弹</style>抵消时，你可以弃置两张牌，令此<style=Card.Name>弹幕</style>依然生效。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -731,7 +663,7 @@ class LaevateinHandler:
 @ui_meta(equipment.Laevatein)
 class Laevatein:
     def effect_string_before(self, act):
-        return '|G莱瓦汀|r的灭世之炎岂能轻易闪过！'
+        return '<style=Card.Name>莱瓦汀</style>的灭世之炎岂能轻易闪过！'
 
     def sound_effect(self, act):
         return 'thb-cv-card_laevatein'
@@ -744,9 +676,8 @@ class DeathSickleCard:
     illustrator = '霏茶'
     cv = '小羽'
     description = (
-        '攻击范围2，装备后：当你使用的|G弹幕|r对目标角色造成伤害时，若其没有手牌，此伤害+1。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击范围2，装备后：当你使用的<style=Card.Name>弹幕</style>对目标角色造成伤害时，若其没有手牌，此伤害+1。'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -761,13 +692,7 @@ class DeathSickleSkill:
 @ui_meta(equipment.DeathSickle)
 class DeathSickle:
     def effect_string(self, act):
-        return (
-            '|G【%s】|r看到|G【%s】|r一副丧家犬的模样，'
-            '手中的|G死神之镰|r不自觉地一狠…'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}看到{N.char(act.target)}一副丧家犬的模样，手中的<style=Card.Name>死神之镰</style>不自觉地一狠…'
 
     def sound_effect(self, act):
         return 'thb-cv-card_deathsickle'
@@ -780,8 +705,8 @@ class KeystoneCard:
     illustrator = '霏茶'
     cv = 'shourei小N'
     description = (
-        '特殊的绿色UFO装备，距离+1\n'
-        '装备后跳过|G罪袋|r对你的结算。'
+        '特殊的绿色UFO装备，距离+1。'
+        '装备后跳过<style=Card.Name>罪袋</style>对你的结算。'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -796,9 +721,7 @@ class KeystoneSkill:
 @ui_meta(equipment.Keystone)
 class Keystone:
     def effect_string(self, act):
-        return '|G【%s】|r站在|G要石|r上，照着|G罪袋|r的脸一脚踹了下去！' % (
-            act.target.ui_meta.name
-        )
+        return f'{N.char(act.target)}站在<style=Card.Name>要石</style>上，照着<style=Card.Name>罪袋</style>的脸一脚踹了下去！'
 
     def sound_effect(self, act):
         return 'thb-cv-card_keystone'
@@ -830,7 +753,7 @@ class YinYangOrbCard:
     illustrator = '霏茶'
     cv = ''
     description = (
-        '在你的判定牌生效前，你可以用装备区内的|G阴阳玉|r替换之。'
+        '在你的判定牌生效前，你可以用装备区内的<style=Card.Name>阴阳玉</style>替换之。'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -846,16 +769,13 @@ class YinYangOrbSkill:
 class YinYangOrbHandler:
     # choose_option
     choose_option_buttons = (('替换', True), ('不替换', False))
-    choose_option_prompt = '你要使用【阴阳玉】替换当前的判定牌吗？'
+    choose_option_prompt = '你要使用<style=Card.Name>阴阳玉</style>替换当前的判定牌吗？'
 
 
 @ui_meta(equipment.YinYangOrb)
 class YinYangOrb:
     def effect_string(self, act):
-        return '|G【%s】|r用|G%s|r替换了她的判定牌。' % (
-            act.target.ui_meta.name,
-            self.card_desc(act.card),
-        )
+        return f'{N.char(act.target)}用{N.card(act.card)}替换了她的判定牌。'
 
 
 @ui_meta(definition.SuwakoHatCard)
@@ -890,7 +810,7 @@ class YoumuPhantomCard:
     illustrator = '霏茶'
     cv = '小羽'
     description = (
-        '装备后增加1点体力上限。当失去装备区里的|G半灵|r时，你回复1点体力。'
+        '装备后增加1点体力上限。当失去装备区里的<style=Card.Name>半灵</style>时，你回复1点体力。'
     )
 
     is_action_valid = equip_iav
@@ -916,8 +836,8 @@ class IceWingCard:
     illustrator = '霏茶'
     cv = 'VV'
     description = (
-        '特殊的红色UFO装备，距离-1。\n\n'
-        '装备后，|G封魔阵|r和|G冻青蛙|r对你无效。'
+        '特殊的红色UFO装备，距离-1。'
+        '装备后，<style=Card.Name>封魔阵</style>和<style=Card.Name>冻青蛙</style>对你无效。'
     )
 
     is_action_valid = equip_iav
@@ -933,10 +853,8 @@ class IceWingSkill:
 @ui_meta(equipment.IceWing)
 class IceWing:
     def effect_string(self, act):
-        return '|G【%s】|r借着|G⑨的翅膀|r飞了出来，|G%s|r没起到什么作用。' % (
-            act.target.ui_meta.name,
-            act.action.associated_card.ui_meta.name,
-        )
+        c = act.action.associated_card
+        return f'{N.char(act.target)}借着<style=Card.Name>⑨的翅膀</style>飞了出来，{N.card(c)}没起到什么作用。'
 
     def sound_effect(self, act):
         tgt = act.target
@@ -954,13 +872,12 @@ class GrimoireCard:
     illustrator = '霏茶'
     cv = 'shourei小N'
     description = (
-        '攻击距离1，装备后，你可以消耗一点干劲并将一张牌按照以下规则使用：\n'
-        '|B|R>> |r黑桃♠视为|G百鬼夜行|r。\n'
-        '|B|R>> |r红桃♥视为|G宴会|r。\n'
-        '|B|R>> |r梅花♣视为|G地图炮|r。\n'
-        '|B|R>> |r方片♦视为|G五谷丰登|r。\n'
-        '\n'
-        '|R出牌阶段你可以消耗1点干劲重铸手牌中的武器|r'
+        '攻击距离1，装备后，你可以消耗一点干劲并将一张牌按照以下规则使用：'
+        '<style=Desc.Li>黑桃♠视为<style=Card.Name>百鬼夜行</style>。</style>'
+        '<style=Desc.Li>红桃♥视为<style=Card.Name>宴会</style>。</style>'
+        '<style=Desc.Li>梅花♣视为<style=Card.Name>地图炮</style>。</style>'
+        '<style=Desc.Li>方片♦视为<style=Card.Name>五谷丰登</style>。</style>'
+        '<style=Desc.Attention>出牌阶段你可以消耗1点干劲重铸手牌中的武器</style>'
     )
     is_action_valid = equip_iav
     effect_string = suppress_launch_card_effect_string
@@ -998,20 +915,15 @@ class GrimoireSkill:
         if not (len(acards)) == 1:
             return (False, '请选择一张牌')
         else:
-            s = sk.lookup_tbl[acards[0].suit].ui_meta.name
-            return (True, '发动【%s】' % s)
+            cls = sk.lookup_tbl[acards[0].suit]
+            return (True, f'发动{N.card(cls)}')
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
-        return (
-            '|G【%s】|r抓起一张牌放入|G魔导书|r' +
-            '，念动咒语，发动了|G%s|r。'
-        ) % (
-            source.ui_meta.name,
-            card.lookup_tbl[card.associated_cards[0].suit].ui_meta.name
-        )
+        tc = card.lookup_tbl[card.associated_cards[0].suit]
+        return f'{N.char(source)}抓起一张牌放入<style=Card.Name>魔导书</style>，念动咒语，发动了{N.card(tc)}。'
 
     def sound_effect(self, act):
         return 'thb-cv-card_grimoire'
@@ -1022,9 +934,7 @@ class SinsackHatAction:
     fatetell_display_name = '头套'
 
     def effect_string_before(self, act):
-        return '看着戴着|G头套|r的|G【%s】|r，真正的的罪袋们都兴奋了起来！' % (
-            act.target.ui_meta.name,
-        )
+        return f'看着戴着<style=Card.Name>头套</style>的{N.char(act.target)}，真正的的罪袋们都兴奋了起来！'
 
 
 @ui_meta(equipment.SinsackHat)
@@ -1040,8 +950,8 @@ class SinsackHatCard:
     illustrator = '霏茶'
     cv = '大白'
     description = (
-        '对距离2以内的一名角色使用。\n'
-        '装备|G罪袋的头套|r的角色需在判定阶段后进行一次判定，若为黑桃1-8，则目标角色受到2点伤害，并且将|G罪袋的头套|r收入手牌。'
+        '对距离2以内的一名角色使用。'
+        '装备<style=Card.Name>头套</style>的角色需在判定阶段后进行一次判定，若为♠1-8，则该角色受到2点伤害，并且将<style=Card.Name>头套</style>收入手牌。'
     )
 
     def is_action_valid(self, c, tl):

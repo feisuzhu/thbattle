@@ -5,8 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta
-from utils.misc import BatchList
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -46,17 +45,12 @@ class Morphing:
 
     def effect_string(self, act: actions.LaunchCard):
         # for LaunchCard.ui_meta.effect_string
-        source = act.source
-        card = act.card
-        assert isinstance(card, characters.mamizou.Morphing)
-        tl = BatchList(act.target_list)
-        cl = BatchList(card.associated_cards)
-        s = '|G【%s】|r发动了|G变化|r技能，将|G%s|r当作|G%s|r对|G【%s】|r使用。' % (
-            source.ui_meta.name,
-            '|r、|G'.join(cl.ui_meta.name),
-            card.treat_as.ui_meta.name,
-            '】|r、|G【'.join(tl.ui_meta.name),
-        )
+        src = act.source
+        sk = act.card
+        assert isinstance(sk, characters.mamizou.Morphing)
+        tl = act.target_list
+        cl = sk.associated_cards
+        s = f'{N.char(src)}发动了<style=Skill.Name>变化</style>技能，将{N.card(cl)}当作{N.card(sk.treat_as)}对{N.char(tl)}使用。'
 
         return s
 
@@ -85,4 +79,4 @@ class Mamizou:
     figure_image      = 'thb-figure-mamizou'
     miss_sound_effect = 'thb-cv-mamizou_miss'
 
-    notes = '|RKOF模式不可用'
+    notes = 'KOF模式不可用'

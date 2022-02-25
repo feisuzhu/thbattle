@@ -2,19 +2,18 @@
 from __future__ import annotations
 
 # -- stdlib --
-import time
 
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
 @ui_meta(characters.rinnosuke.Netoru)
 class Netoru:
     # Skill
-    name = '寝取'
+    name = '午茶'
     description = '出牌阶段限一次，你可以弃置两张手牌并指定一名已受伤的其他角色，你与其各回复1点体力。'
 
     def clickable(self):
@@ -43,44 +42,36 @@ class Netoru:
 
         t = tl[0]
         if t.life >= t.maxlife:
-            return (False, '这位少女节操满满，不会答应你的…')
+            return (False, '少女吃饱了…')
         else:
-            return (True, '少女，做个好梦~')
+            return (True, '下午茶时间到了~')
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return '|G【%s】|r一改平日的猥琐形象，竟然用花言巧语将|G【%s】|r骗去啪啪啪了！' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}拖着疲惫的{N.char(act.target)}去吃下午茶。真是满足呢。'
 
-    def sound_effect(self, act):
-        return 'thb-cv-rinnosuke_nitoru'
+    # def sound_effect(self, act):
+    #     return 'thb-cv-rinnosuke_nitoru'
 
 
 @ui_meta(characters.rinnosuke.Psychopath)
 class Psychopath:
     # Skill
-    name = '变态'
-    description = '|B锁定技|r，当你失去一张装备区里的装备牌时，你摸两张牌。'
+    name = '鉴宝'
+    description = '<style=B>锁定技</style>，当你失去一张装备区里的装备牌时，你摸两张牌。'
 
 
 @ui_meta(characters.rinnosuke.PsychopathDrawCards)
 class PsychopathDrawCards:
     def effect_string(self, act):
-        return (
-            '|G【%s】|r满脸猥琐地将装备脱掉，结果众人抄起了%d张牌糊在了他身上。'
-        ) % (
-            act.target.ui_meta.name,
-            act.amount,
-        )
+        return f'{N.char(act.target)}又脱手了一件宝物，赚到了{act.amount}张牌。'
 
-    def sound_effect(self, act):
-        tgt = act.target
-        t = tgt.tags
-        if time.time() - t['__psycopath_lastplay'] > 10:
-            t['__psycopath_lastplay'] = time.time()
-            return 'thb-cv-rinnosuke_psycopath'
+    # def sound_effect(self, act):
+    #     tgt = act.target
+    #     t = tgt.tags
+    #     if time.time() - t['__psycopath_lastplay'] > 10:
+    #         t['__psycopath_lastplay'] = time.time()
+    #         return 'thb-cv-rinnosuke_psycopath'
 
 
 @ui_meta(characters.rinnosuke.Rinnosuke)
@@ -93,4 +84,4 @@ class Rinnosuke:
 
     port_image        = 'thb-portrait-rinnosuke'
     figure_image      = 'thb-figure-rinnosuke'
-    miss_sound_effect = 'thb-cv-rinnosuke_miss'
+    # miss_sound_effect = 'thb-cv-rinnosuke_miss'

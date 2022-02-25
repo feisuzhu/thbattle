@@ -6,7 +6,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 # -- code --
 
@@ -28,7 +28,7 @@ class Kaguya:
 class Dilemma:
     # Skill
     name = '难题'
-    description = '每当一名角色令你回复1点体力后，你可以令其摸一张牌；每当你受到一次伤害后，你可以令伤害来源选择一项：|B|R>> |r交给你一张方块牌，|B|R>> |r失去1点体力。'
+    description = '每当一名角色令你回复1点体力后，你可以令其摸一张牌；每当你受到一次伤害后，你可以令伤害来源选择一项：<style=Desc.Li>交给你一张方块牌，</style><style=Desc.Li>失去1点体力。</style>'
 
 
 @ui_meta(characters.kaguya.DilemmaDamageAction)
@@ -41,17 +41,11 @@ class DilemmaDamageAction:
             return (False, '请选择交出一张方片牌（否则失去一点体力）')
 
     def effect_string_before(self, act):
-        return '|G【%s】|r对|G【%s】|r发动了|G难题|r。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name
-        )
+        return f'{N.char(act.source)}对{N.char(act.target)}发动了<style=Skill.Name>难题</style>。'
 
     def effect_string(self, act):
         if act.peer_action == 'card':
-            return '|G【%s】|r给了|G【%s】|r一张牌。' % (
-                act.target.ui_meta.name,
-                act.source.ui_meta.name
-            )
+            return f'{N.char(act.target)}给了{N.char(act.source)}一张牌。'
         # elif act.peer_action == 'life':
         #     <handled by LifeLost>
 
@@ -65,10 +59,7 @@ class DilemmaDamageAction:
 @ui_meta(characters.kaguya.DilemmaHealAction)
 class DilemmaHealAction:
     def effect_string(self, act):
-        return '|G【%s】|r发动了|G难题|r，|G【%s】|r摸了一张牌。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了<style=Skill.Name>难题</style>，{N.char(act.target)}摸了一张牌。'
 
     def sound_effect(self, act):
         return random.choice([
@@ -87,22 +78,19 @@ class DilemmaHandler:
             'positive': '正面效果',
             'negative': '负面效果'
         }.get(act.dilemma_type, 'WTF?!')
-        return '你要发动【难题】吗（%s）？' % _type
+        return f'你要发动<style=Skill.Name>难题</style>吗（{_type}）？'
 
 
 @ui_meta(characters.kaguya.ImperishableNight)
 class ImperishableNight:
     # Skill
     name = '永夜'
-    description = '你的回合外，每当其他角色使用的红色基本牌置入弃牌堆时，你可以将一张红色基本牌或装备牌当|G封魔阵|r对其使用。'
+    description = '你的回合外，每当其他角色使用的红色基本牌置入弃牌堆时，你可以将一张红色基本牌或装备牌当<style=Card.Name>封魔阵</style>对其使用。'
     image = None
     tag = 'sealarray'
 
     def effect_string(self, act):
-        return '|G【%s】|r对|G【%s】|r使用了|G永夜|r。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name
-        )
+        return f'{N.char(act.source)}对{N.char(act.target)}使用了<style=Skill.Name>永夜</style>。'
 
     def sound_effect(self, act):
         return 'thb-cv-kaguya_inight'
@@ -114,8 +102,7 @@ class ImperishableNightHandler:
     choose_option_buttons = (('发动', True), ('不发动', False))
 
     def choose_option_prompt(self, act):
-        prompt = '你要发动【永夜】吗（对%s）？'
-        return prompt % act.target.ui_meta.name
+        return f'你要发动<style=Skill.Name>永夜</style>吗（对{N.char(act.target)}）？'
 
     # choose_card meta
     def choose_card_text(self, act, cards):

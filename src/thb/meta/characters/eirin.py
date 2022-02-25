@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta
+from thb.meta.common import N, ui_meta
 
 
 # -- code --
@@ -14,9 +14,9 @@ class SkySilk:
     # Skill
     name = '天丝'
     description = (
-        '出牌阶段限一次，你可以弃置一名角色的一张牌，并令其选择一项：\n'
-        '|B|R>> |r回复1点体力。\n'
-        '|B|R>> |r展示牌堆底的3张牌，获得其中的非基本牌，并弃置其他的牌。'
+        '出牌阶段限一次，你可以弃置一名角色的一张牌，并令其选择一项：'
+        '<style=Desc.Li>回复1点体力。</style>'
+        '<style=Desc.Li>展示牌堆底的3张牌，获得其中的非基本牌，并弃置其他的牌。</style>'
     )
 
     def clickable(self):
@@ -35,12 +35,7 @@ class SkySilk:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return (
-            '|G【%s】|r对|G【%s】|r发动了「天丝」。'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}对{N.char(act.target)}发动了<style=Skill.Name>天丝</style>。'
 
     def sound_effect(self, act):
         return 'thb-cv-eirin_medic'
@@ -56,13 +51,15 @@ class SkySilkAction:
 @ui_meta(characters.eirin.LunaString)
 class LunaString:
     name = '月弦'
-    description = '你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张|G弹幕|r。'
+    description = '你可以将一张手牌置于牌堆顶或牌堆底底，视为使用或打出了一张<style=Card.Name>弹幕</style>。'
 
     def clickable(self):
         return self.accept_cards([characters.eirin.LunaString(self.me)])
 
     def is_complete(self, sk):
         from thb.cards.base import VirtualCard
+
+        s = N.card(characters.eirin.LunaString)
 
         acards = sk.associated_cards
         if len(acards) != 1:
@@ -74,9 +71,9 @@ class LunaString:
             return False, '请选择一张手牌'
 
         if c.is_card(VirtualCard):
-            return False, '「月弦」不允许组合使用'
+            return False, f'{s}不允许组合使用'
 
-        return True, '发动「月弦」'
+        return True, f'发动{s}'
 
     def is_action_valid(self, sk, tl):
         from thb.cards.classes import AttackCard
@@ -109,8 +106,6 @@ class Eirin:
     illustrator = '渚FUN'
     cv          = 'VV'
 
-    port_image        = 'thb-portrait-eirin'
-    figure_image      = 'thb-figure-eirin'
     miss_sound_effect = 'thb-cv-eirin_miss'
 
-    notes = u'|RKOF不平衡角色|r'
+    notes = 'KOF不平衡角色'

@@ -29,7 +29,7 @@ class CardList:
 class HiddenCard:
     image = 'thb-card-hidden'
     name = '隐藏卡片'
-    description = '|R隐藏卡片|r\n\n这张卡片你看不到'
+    description = '隐藏卡片：这张卡片你看不到'
 
     def is_action_valid(self, c, tl):
         return (False, '这是BUG，你没法发动这张牌…')
@@ -39,7 +39,7 @@ class HiddenCard:
 class ShreddedCard:
     image = 'thb-card-hidden'
     name = '被撕碎的卡片'
-    description = '|R被撕碎的卡片|r\n\n你不应该看到这个，这是个 BUG'
+    description = '被撕碎的卡片：你不应该看到这个，这是个 BUG'
 
     def is_action_valid(self, c, tl):
         return (False, '这是BUG，你没法发动这张牌…')

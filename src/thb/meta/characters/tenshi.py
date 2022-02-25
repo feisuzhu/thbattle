@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -20,7 +20,7 @@ class Masochist:
 class MasochistHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【抖Ｍ】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>抖Ｍ</style>吗？'
 
 
 @ui_meta(characters.tenshi.MasochistAction)
@@ -39,9 +39,7 @@ class MasochistAction:
         return (True, '给你牌~')
 
     def effect_string_before(self, act):
-        return '不过|G【%s】|r好像很享受的样子…' % (
-            act.target.ui_meta.name,
-        )
+        return f'不过{N.char(act.target)}好像很享受的样子…'
 
     def sound_effect(self, act):
         return 'thb-cv-tenshi_masochist'
@@ -51,16 +49,13 @@ class MasochistAction:
 class ScarletPerception:
     # Skill
     name = '绯想'
-    description = '|B锁定技|r，距离1以内的角色的红色判定牌生效后，你获得之。'
+    description = '<style=B>锁定技</style>，距离1以内的角色的红色判定牌生效后，你获得之。'
 
 
 @ui_meta(characters.tenshi.ScarletPerceptionAction)
 class ScarletPerceptionAction:
     def effect_string(self, act):
-        return '|G【%s】|r获得了%s。' % (
-            act.source.ui_meta.name,
-            self.card_desc(act.card)
-        )
+        return f'{N.char(act.source)}获得了{N.card(act.card)}。'
 
     def sound_effect(self, act):
         return 'thb-cv-tenshi_sp'

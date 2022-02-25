@@ -5,7 +5,7 @@
 # -- own --
 from thb import characters
 from thb.cards.base import Card, Skill
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -36,7 +36,7 @@ class KokoroKOF:
     figure_image      = 'thb-figure-kokoro'
     miss_sound_effect = 'thb-cv-kokoro_miss'
 
-    notes = '|RKOF修正角色|r'
+    notes = 'KOF修正角色'
 
 
 @ui_meta(characters.kokoro.HopeMask)
@@ -57,21 +57,19 @@ class HopeMaskKOF:
 class BaseHopeMaskHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【希望之面】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>希望之面</style>吗？'
 
 
 @ui_meta(characters.kokoro.BaseHopeMaskAction)
 class BaseHopeMaskAction:
     def effect_string_before(self, act):
-        return '|G【%s】|r挑选面具中……' % (act.source.ui_meta.name)
+        return f'{N.char(act.source)}挑选面具中……'
 
     def effect_string(self, act):
         if not len(act.acquire):
             return None
 
-        return '|G【%s】|r拿起了%s，贴在了自己的脸上。' % (
-            act.source.ui_meta.name, self.card_desc(act.acquire),
-        )
+        return f'{N.char(act.source)}拿起了{N.card(act.acquire)}，贴在了自己的脸上。'
 
     def sound_effect(self, act):
         return 'thb-cv-kokoro_hopemask'
@@ -84,7 +82,7 @@ class BaseDarkNohAction:
         if act.cond(cards):
             return (True, '真坑！')
         else:
-            return (False, '请弃置%d张手牌（不能包含获得的那一张）' % act.n)
+            return (False, f'请弃置{act.n}张手牌（不能包含获得的那一张）')
 
 
 @ui_meta(characters.kokoro.BaseDarkNoh)
@@ -108,13 +106,10 @@ class BaseDarkNoh:
         source = act.source
         card = act.card
         target = act.target
+        assoc = card.associated_cards[0]
         return [
-            '|G【%s】|r：“这点失控还不够，让你的所有感情也一起爆发吧！”' % source.ui_meta.name,
-            '|G【%s】|r使用|G%s|r对|G【%s】|r发动了|G暗黑能乐|r。' % (
-                source.ui_meta.name,
-                card.associated_cards[0].ui_meta.name,
-                target.ui_meta.name,
-            )
+            f'{N.char(source)}：“这点失控还不够，让你的所有感情也一起爆发吧！”',
+            f'{N.char(source)}使用{N.card(assoc)}对{N.char(target)}发动了{N.card(characters.kokoro.BaseDarkNoh)}。'
         ]
 
     def sound_effect(self, act):
@@ -141,7 +136,7 @@ class DarkNoh:
 
 @ui_meta(characters.kokoro.DarkNohKOF)
 class DarkNohKOF:
-    description = '|B限定技|r，出牌阶段，你可以将一张黑色牌置于体力值不小于你的其他角色的明牌区，然后其须弃置除获得的牌以外的手牌，直到手牌数与体力值相等。'
+    description = '<style=B>限定技</style>，出牌阶段，你可以将一张黑色牌置于体力值不小于你的其他角色的明牌区，然后其须弃置除获得的牌以外的手牌，直到手牌数与体力值相等。'
 
     def clickable(self):
         me = self.me

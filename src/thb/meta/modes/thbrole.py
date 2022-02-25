@@ -6,41 +6,28 @@
 from thb import thbrole
 from thb.actions import ttags
 from thb.cards.classes import AttackCard
-from thb.meta.common import ui_meta, UIMetaBare
+from thb.meta.common import ui_meta, UIMetaBare, N
 
 
 # -- code --
 @ui_meta(thbrole.THBattleRole)
 class THBattleRole(UIMetaBare):
     name = '8人身份场'
-    logo = 'thb-modelogo-8id'
     description = (
-        '|R身份分配|r：1|!RBOSS|r、2|!O道中|r、1|!G黑幕|r、4|!B城管|r。\n'
+        '<style=B>身份分配</style>：1<sprite=Role.Boss>、2<sprite=Role.Accomplice>、1<sprite=Role.Curtain>、4<sprite=Role.Attacker>。'
+        '<style=Desc.Li><sprite=Role.Boss>：<sprite=Role.Boss>的体力上限+1。游戏开局时展示身份，并获得BOSS技。胜利条件为击坠所有<sprite=Role.Attacker>以及<sprite=Role.Curtain>。</style>'
+        '<style=Desc.Li><sprite=Role.Accomplice>：胜利条件为击坠所有<sprite=Role.Attacker>以及<sprite=Role.Curtain>。当<sprite=Role.Accomplice>被<sprite=Role.Boss>击坠后，<sprite=Role.Boss>需弃置所有手牌和装备牌。</style>'
+        '<style=Desc.Li><sprite=Role.Attacker>：胜利条件为击坠<sprite=Role.Boss>。当<sprite=Role.Attacker>被击坠后，击坠者摸3张牌。</style>'
+        '<style=Desc.Li><sprite=Role.Curtain>：胜利条件为在<sprite=Role.Attacker>全部被击坠的状况下击坠<sprite=Role.Boss>。</style>'
+        # '<style=Desc.Li><style=B>双黑幕模式</style>：胜利条件条件是除了<sprite=Role.Boss>的其他人全部被击坠的情况下击坠<sprite=Role.Boss>。当<sprite=Role.Boss>被击坠时，若场上只有一名未被击坠的角色且其身份为<sprite=Role.Curtain>，则该<sprite=Role.Curtain>胜利，另一<sprite=Role.Curtain>失败；反之，两位<sprite=Role.Curtain>失败，而<sprite=Role.Attacker>阵营胜利。</style>'
         '\n'
-        '|!RBOSS|r：|!RBOSS|r的体力上限+1。游戏开局时展示身份，并获得BOSS技。胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。\n'
+        '玩家的身份会在被击坠后公开。<sprite=Role.Boss>的身份会在开局的时候公开。'
         '\n'
-        '|!O道中|r：胜利条件为击坠所有|!B城管|r以及|!G黑幕|r。当|!O道中|r被|!RBOSS|r击坠后，|!RBOSS|r需弃置所有手牌和装备牌。\n'
-        '\n'
-        '|!B城管|r：胜利条件为击坠|!RBOSS|r。当|!B城管|r被击坠后，击坠者摸3张牌。\n'
-        '\n'
-        '|!G黑幕|r：胜利条件为在|!B城管|r全部被击坠的状况下击坠|!RBOSS|r。\n'
-        '|B|R>> |r|R双黑幕模式|r下胜利条件条件是除了|!RBOSS|r的其他人全部被击坠的情况下击坠|!RBOSS|r。当|!RBOSS|r被击坠时，若场上只有一名未被击坠的角色且其身份为|!G黑幕|r，则该|!G黑幕|r胜利，另一|!G黑幕|r失败；反之，两位|!G黑幕|r失败，而|!B城管|r阵营胜利。\n'
-        '\n'
-        '玩家的身份会在被击坠后公开。|!RBOSS|r的身份会在开局的时候公开。\n'
-        '\n'
-        '|RBOSS技：|r'
-        '|!RBOSS|r身份的玩家在开场会获得BOSS技。'
-        '\n'
-        '某些角色在在设定上有专属的BOSS技，开局时会额外获得。\n'
-        '没有专属BOSS技的角色会在如下几个通用BOSS技中选择一个获得：\n'
-        '\n'
-        '|G同仇|r：当你需要使用或打出一张|G弹幕|r时，其他玩家可以代替你使用或打出一张|G弹幕|r。\n'
-        '\n'
-        '|G协力|r：当你需要使用或打出一张|G擦弹|r时，其他玩家可以代替你使用或打出一张|G擦弹|r。\n'
-        '\n'
-        '|G牺牲|r：当你于濒死状态下，被一名角色使用|G麻薯|r而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。\n'
-        '\n'
-        '|G应援|r：|B锁定技|r，每有一名道中存活，你的手牌上限增加一。\n'
+        '<style=B>BOSS技</style>：<sprite=Role.Boss>身份的玩家在开场会获得BOSS技。某些角色在在设定上有专属的BOSS技，开局时会额外获得。没有专属BOSS技的角色会在如下几个通用BOSS技中选择一个获得：'
+        '<style=Desc.Li><style=Skill.Name>同仇</style>：当你需要使用或打出一张<style=Card.Name>弹幕</style>时，其他玩家可以代替你使用或打出一张<style=Card.Name>弹幕</style>。</style>'
+        '<style=Desc.Li><style=Skill.Name>协力</style>：当你需要使用或打出一张<style=Card.Name>擦弹</style>时，其他玩家可以代替你使用或打出一张<style=Card.Name>擦弹</style>。</style>'
+        '<style=Desc.Li><style=Skill.Name>牺牲</style>：当你于濒死状态下，被一名角色使用<style=Card.Name>麻薯</style>而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。</style>'
+        '<style=Desc.Li><style=Skill.Name>应援</style>：<style=B>锁定技</style>，每有一名道中存活，你的手牌上限增加一。</style>'
     ).strip()
 
     params = {
@@ -63,7 +50,7 @@ class THBattleRole(UIMetaBare):
 class AssistedAttack:
     # Skill
     name = '同仇'
-    description = '当你需要使用或打出一张|G弹幕|r时，其他玩家可以代替你使用或打出一张|G弹幕|r。'
+    description = '当你需要使用或打出一张<style=Card.Name>弹幕</style>时，其他玩家可以代替你使用或打出一张<style=Card.Name>弹幕</style>。'
 
     def clickable(self):
         if not self.my_turn():
@@ -83,20 +70,13 @@ class AssistedAttack:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return (
-            '|G【%s】|r发动了|G同仇|r，目标是|G【%s】|r。'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了<style=Skill.Name>同仇</style>，目标是{N.char(act.target)}。'
 
 
 @ui_meta(thbrole.AssistedUseAction)
 class AssistedUseAction:
     def choose_option_prompt(self, act):
-        return '你要帮BOSS出【%s】吗？' % (
-            act.their_afc_action.card_cls.ui_meta.name
-        )
+        return f'你要帮BOSS出{N.card(act.their_afc_action.card_cls)}吗？'
 
     choose_option_buttons = (('帮BOSS', True), ('不关我事', False))
 
@@ -105,14 +85,14 @@ class AssistedUseAction:
 class AssistedAttackAction:
     def choose_card_text(self, act, cards):
         if act.cond(cards):
-            return (True, '帮BOSS对%s出弹幕' % act.target.ui_meta.name)
+            return (True, f'帮BOSS对{N.char(act.target)}出弹幕')
         else:
-            return (False, '同仇：请选择一张弹幕（对%s出）' % act.target.ui_meta.name)
+            return (False, '<style=Skill.Name>同仇</style>：请选择一张弹幕（对{N.char(act.target)}出）')
 
 
 @ui_meta(thbrole.AssistedAttackHandler)
 class AssistedAttackHandler:
-    choose_option_prompt = '你要发动【同仇】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>同仇</style>吗？'
     choose_option_buttons = (('发动', True), ('不发动', False))
 
 
@@ -120,26 +100,24 @@ class AssistedAttackHandler:
 class AssistedGraze:
     # Skill
     name = '协力'
-    description = '当你需要使用或打出一张|G擦弹|r时，其他玩家可以代替你使用或打出一张|G擦弹|r。'
+    description = '当你需要使用或打出一张<style=Card.Name>擦弹</style>时，其他玩家可以代替你使用或打出一张<style=Card.Name>擦弹</style>。'
 
 
 @ui_meta(thbrole.AssistedGrazeHandler)
 class AssistedGrazeHandler:
-    choose_option_prompt = '你要发动【协力】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>协力</style>吗？'
     choose_option_buttons = (('发动', True), ('不发动', False))
 
 
 @ui_meta(thbrole.AssistedHealAction)
 class AssistedHealAction:
     def effect_string_before(self, act):
-        return '|G【%s】|r发动了|G牺牲|r。' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了<style=Skill.Name>牺牲</style>。'
 
 
 @ui_meta(thbrole.AssistedHealHandler)
 class AssistedHealHandler:
-    choose_option_prompt = '你要发动【牺牲】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>牺牲</style>吗？'
     choose_option_buttons = (('发动', True), ('不发动', False))
 
 
@@ -147,7 +125,7 @@ class AssistedHealHandler:
 class AssistedHeal:
     # Skill
     name = '牺牲'
-    description = '当你于濒死状态下，被一名角色使用|G麻薯|r而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。'
+    description = '当你于濒死状态下，被一名角色使用<style=Card.Name>麻薯</style>而回复体力至1后，其可以失去一点体力，令你额外回复一点体力。'
 
 
 @ui_meta(thbrole.ExtraCardSlot)
@@ -166,7 +144,4 @@ class ChooseBossSkillAction:
         return [(i.ui_meta.name, i.__name__) for i in l]
 
     def effect_string(self, act):
-        return '|G【%s】|r选择了|G%s|r作为BOSS技。' % (
-            act.target.ui_meta.name,
-            act.skill_chosen.ui_meta.name,
-        )
+        return f'{N.char(act.target)}选择了{N.card(act.skill_chosen)}作为BOSS技。'

@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 from utils.misc import BatchList
 
 
@@ -14,20 +14,14 @@ from utils.misc import BatchList
 @ui_meta(characters.shizuha.AutumnWindEffect)
 class AutumnWindEffect:
     def effect_string(self, act):
-        return '|G秋风|r带走了|G【%s】|r的%s。' % (
-            act.target.ui_meta.name,
-            self.card_desc(act.card),
-        )
+        return f'<style=Skill.Name>秋风</style>带走了{N.char(act.target)}的{N.card(act.card)}。'
 
 
 @ui_meta(characters.shizuha.AutumnWindAction)
 class AutumnWindAction:
 
     def effect_string_before(self, act: characters.shizuha.AutumnWindAction):
-        tl = BatchList(act.target_list)
-        return '当|G秋风|r吹起，|G【%s】|r连牌都拿不住的时候，才回想起，妈妈说的对，要穿秋裤。' % (
-            '】|r、|G【'.join(tl.ui_meta.name),
-        )
+        return f'当<style=Skill.Name>秋风</style>吹起，{N.char(act.target_list)}连牌都拿不住的时候，才回想起，妈妈说的对，要穿秋裤。'
 
     def sound_effect(self, act):
         return 'thb-cv-shizuha_autumnwind'
@@ -37,21 +31,21 @@ class AutumnWindAction:
 class Decay:
     # Skill
     name = '凋零'
-    description = '|B锁定技|r。你的回合内，每当其他角色失去最后的手牌时，你摸一张牌；你的回合外，每当你受到一次伤害后，当前回合角色于本回合弃牌阶段需额外弃置一张手牌（该效果不可叠加）。'
+    description = '<style=B>锁定技</style>。你的回合内，每当其他角色失去最后的手牌时，你摸一张牌；你的回合外，每当你受到一次伤害后，当前回合角色于本回合弃牌阶段需额外弃置一张手牌（该效果不可叠加）。'
 
 
 @ui_meta(characters.shizuha.DecayAction)
 class DecayAction:
 
     def effect_string(self, act):
-        return '|G【%s】|r觉得屁股凉了一下……' % act.target.ui_meta.name
+        return f'{N.char(act.target)}觉得屁股凉了一下……'
 
 
 @ui_meta(characters.shizuha.DecayEffect)
 class DecayEffect:
 
     def effect_string(self, act):
-        return '|G【%s】|r的|G凋零|r效果生效了。' % act.target.ui_meta.name
+        return f'{N.char(act.target)}的<style=Skill.Name>凋零</style>效果生效了。'
 
     def sound_effect(self, act):
         return 'thb-cv-shizuha_decay'
@@ -75,11 +69,11 @@ class AutumnWind:
 class AutumnWindHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【秋风】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>秋风</style>吗？'
 
     def target(self, pl):
         if not pl:
-            return (False, '秋风：请选择目标玩家')
+            return (False, '<style=Skill.Name>秋风</style>：请选择目标玩家')
 
         return (True, '秋风弃牌')
 

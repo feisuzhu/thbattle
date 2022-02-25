@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -28,10 +28,7 @@ class Daze:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return '|G【%s】|r喊道：“打贼啦！”向|G【%s】|r使用了|G弹幕|r。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}喊道：“打贼啦！”向{N.char(act.target)}使用了<style=Card.Name>弹幕</style>。'
 
 
 @ui_meta(characters.marisa.BorrowAction)
@@ -45,7 +42,7 @@ class BorrowAction:
 class Borrow:
     # Skill
     name = '借走'
-    description = '出牌阶段限一次，你可以获得其他角色的一张牌，然后该角色可以视为对你使用了一张|G弹幕|r。'
+    description = '出牌阶段限一次，你可以获得其他角色的一张牌，然后该角色可以视为对你使用了一张<style=Card.Name>弹幕</style>。'
 
     def clickable(self):
         if self.limit1_skill_used('borrow_tag'):
@@ -70,10 +67,7 @@ class Borrow:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return '大盗|G【%s】|r又出来“|G借走|r”了|G【%s】|r的牌。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'大盗{N.char(act.source)}“<style=Skill.Name>借走</style>”了{N.char(act.target)}的牌。'
 
     def sound_effect(self, act):
         return 'thb-cv-marisa_borrow'

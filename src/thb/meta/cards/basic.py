@@ -6,8 +6,8 @@ from __future__ import annotations
 # -- own --
 from thb import actions
 from thb.actions import PlayerTurn, ttags
-from thb.cards import basic, base, definition
-from thb.meta.common import ui_meta
+from thb.cards import base, basic, definition as D
+from thb.meta.common import N, ui_meta
 
 
 # -- code --
@@ -16,16 +16,16 @@ class DummyCard:
     pass
 
 
-@ui_meta(definition.AttackCard)
+@ui_meta(D.AttackCard)
 class AttackCard:
     # action_stage meta
     name = '弹幕'
     illustrator = '霏茶'
     cv = 'VV'
     description = (
-        '出牌阶段，消耗1点干劲，对你攻击范围内的一名其他角色使用，对该角色造成1点伤害。\n'
-        '|B|R>> |r默认情况下，你的攻击范围是1。\n'
-        '|B|R>> |r干劲在出牌阶段开始时恢复成1点。'
+        '出牌阶段，消耗1点干劲，对你攻击范围内的一名其他角色使用，对该角色造成1点伤害。'
+        '<style=Desc.Li>默认情况下，你的攻击范围是1。</style>'
+        '<style=Desc.Li>干劲在出牌阶段开始时恢复成1点。</style>'
     )
 
     def is_action_valid(self, c, tl):
@@ -54,25 +54,22 @@ class AttackCard:
         ][ttags(current)['__attack_graze_count'] % 4 - 1]
 
 
-@ui_meta(definition.GrazeCard)
+@ui_meta(D.GrazeCard)
 class GrazeCard:
     # action_stage meta
     name = '擦弹'
     illustrator = '霏茶'
     cv = '小羽'
     description = (
-        '当你受到|G弹幕|r的攻击时，你可以使用一张|G擦弹|r来抵消|G弹幕|r的效果。\n'
-        '|B|R>> |r默认情况下，|G擦弹|r只能在回合外使用或打出。'
+        '当你受到<style=Card.Name>弹幕</style>的攻击时，你可以使用一张<style=Card.Name>擦弹</style>来抵消<style=Card.Name>弹幕</style>的效果。'
+        '<style=Desc.Li>默认情况下，<style=Card.Name>擦弹</style>只能在回合外使用或打出。</style>'
     )
 
     def is_action_valid(self, c, tl):
-        return (False, '你不能主动使用擦弹')
+        return False, '你不能主动使用擦弹'
 
     def effect_string(self, act):
-        return '|G【%s】|r使用了|G%s|r。' % (
-            act.source.ui_meta.name,
-            act.card.ui_meta.name
-        )
+        return f'{N.char(act.source)}使用了{N.card(act.card)}。'
 
     def sound_effect(self, act):
         if not isinstance(act, actions.LaunchCard):
@@ -99,24 +96,24 @@ class GrazeCard:
         ][cnt % 4 - 1]
 
 
-@ui_meta(definition.WineCard)
+@ui_meta(D.WineCard)
 class WineCard:
     # action_stage meta
     name = '酒'
     illustrator = '霏茶'
     cv = 'shourei小N'
     description = (
-        '出牌阶段，对自己使用。使用后获得|B喝醉|r状态。\n'
-        '|B喝醉|r状态下，使用【弹幕】造成的伤害+1，受到致命伤害时伤害-1。\n'
-        '|B|R>> |r 效果触发或者到了自己的准备阶段开始时须弃掉|B喝醉|r状态。\n'
-        '|B|R>> |r 你可以于喝醉状态下继续使用酒，但效果不叠加。'
+        '出牌阶段，对自己使用。使用后获得<style=B>喝醉</style>状态。'
+        '<style=Desc.Li><style=B>喝醉</style>状态下，使用<style=Card.Name>弹幕</style>造成的伤害+1，受到致命伤害时伤害-1。</style>'
+        '<style=Desc.Li>效果触发或者到了自己的准备阶段开始时须弃掉<style=B>喝醉</style>状态。</style>'
+        '<style=Desc.Li>你可以于喝醉状态下继续使用酒，但效果不叠加。</style>'
     )
 
     def is_action_valid(self, c, tl):
         me = self.me
         if me.tags.get('wine', False):
             return (True, '你已经醉了，还要再喝吗？')
-        return (True, '青岛啤酒，神主也爱喝！')
+        return (True, '嗝~~~ (*´ω`*)')
 
     def sound_effect(self, act):
         return 'thb-cv-card_wine'
@@ -125,27 +122,26 @@ class WineCard:
 @ui_meta(basic.Wine)
 class Wine:
     def effect_string(self, act):
-        return '|G【%s】|r喝醉了…' % act.target.ui_meta.name
+        return f'{N.char(act.target)}喝醉了…'
 
 
 @ui_meta(basic.WineRevive)
 class WineRevive:
     def effect_string(self, act):
-        return '|G【%s】|r醒酒了。' % act.target.ui_meta.name
+        return f'{N.char(act.target)}醒酒了。'
 
 
-@ui_meta(definition.ExinwanCard)
+@ui_meta(D.ExinwanCard)
 class ExinwanCard:
     # action_stage meta
     name = '恶心丸'
     illustrator = '霏茶'
     cv = 'shourei小N'
     description = (
-        '出牌阶段，对自己使用。使用时没有额外效果。当此牌以任意的方式进入弃牌堆时，引发弃牌动作的角色需选择其中一项执行：\n'
-        '|B|R>> |r受到1点无来源伤害。\n'
-        '|B|R>> |r弃置两张牌。\n'
-        '\n'
-        '|B|R! |r 当你因为其他角色装备效果(如他人发动白楼剑特效）或技能效果（如正邪挑拨，秦心暗黑能乐）而将恶心丸主动置入弃牌堆时，恶心丸的弃置者视为该角色。'
+        '出牌阶段，对自己使用。使用时没有额外效果。当此牌以任意的方式进入弃牌堆时，引发弃牌动作的角色需选择其中一项执行：'
+        '<style=Desc.Li>受到1点无来源伤害。</style>'
+        '<style=Desc.Li>弃置两张牌。</style>'
+        '<style=Desc.Attention>当你因为其他角色装备效果(如他人发动白楼剑特效）或技能效果（如正邪挑拨，秦心暗黑能乐）而将恶心丸主动置入弃牌堆时，恶心丸的弃置者视为该角色。</style>'
     )
 
     def is_action_valid(self, c, tl):
@@ -162,7 +158,7 @@ class ExinwanEffect:
             return (False, '请选择两张牌（不选则受到一点无源伤害）')
 
     def effect_string_before(self, act):
-        return '|G【%s】|r被恶心到了！' % act.target.ui_meta.name
+        return f'{N.char(act.target)}被恶心到了！'
 
     def sound_effect(self, act):
         return 'thb-cv-card_exinwan'
@@ -176,15 +172,12 @@ class UseGraze:
         if act.cond(cards):
             return (True, '我闪！')
         else:
-            return (False, '请打出一张【擦弹】…')
+            return (False, '请打出一张<style=Card.Name>擦弹</style>…')
 
     def effect_string(self, act):
         if not act.succeeded: return None
         t = act.target
-        return '|G【%s】|r打出了|G%s|r。' % (
-            t.ui_meta.name,
-            act.card.ui_meta.name,
-        )
+        return f'{N.char(t)}打出了{N.card(act.card)}。'
 
 
 @ui_meta(basic.LaunchGraze)
@@ -195,7 +188,7 @@ class LaunchGraze:
         if act.cond(cards):
             return (True, '我闪！')
         else:
-            return (False, '请使用一张【擦弹】抵消【弹幕】效果…')
+            return False, f'请使用一张{N.card(D.GrazeCard)}抵消{N.card(D.AttackCard)}效果…'
 
 
 @ui_meta(basic.UseAttack)
@@ -210,13 +203,10 @@ class UseAttack:
     def effect_string(self, act):
         if not act.succeeded: return None
         t = act.target
-        return '|G【%s】|r打出了|G%s|r。' % (
-            t.ui_meta.name,
-            act.card.ui_meta.name,
-        )
+        return f'{N.char(t)}打出了{N.card(act.card)}。'
 
 
-@ui_meta(definition.HealCard)
+@ui_meta(D.HealCard)
 class HealCard:
     # action_stage meta
     name = '麻薯'
@@ -224,8 +214,8 @@ class HealCard:
     cv = 'VV'
     description = (
         '你可以在如下状况中使用，回复1点体力：\n'
-        '|B|R>> |r在你的出牌阶段且你的当前体力小于最大体力。\n'
-        '|B|R>> |r当有角色处于濒死状态时。'
+        '<style=Desc.Li>在你的出牌阶段且你的当前体力小于最大体力。\n'
+        '<style=Desc.Li>当有角色处于濒死状态时。'
     )
 
     def is_action_valid(self, c, tl):
@@ -245,15 +235,13 @@ class AskForHeal:
     # choose_card meta
     def choose_card_text(self, act, cards):
         if act.cond(cards):
-            return (True, '神说，你不能在这里被击坠(对%s使用)' % act.source.ui_meta.name)
+            return True, f'神说，你不能在这里被击坠(对{N.char(act.source)}使用)'
         else:
-            return (False, '请选择一张【麻薯】(对%s使用)…' % act.source.ui_meta.name)
+            return False, f'请选择一张<style=Card.Name>麻薯</style>对{N.char(act.source)}使用)…'
 
 
 @ui_meta(basic.Heal)
 class Heal:
     def effect_string(self, act):
         if act.succeeded:
-            return '|G【%s】|r回复了%d点体力。' % (
-                act.target.ui_meta.name, act.amount
-            )
+            return f'{N.char(act.target)}回复了{act.amount}点体力。'

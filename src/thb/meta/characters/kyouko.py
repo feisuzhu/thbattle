@@ -5,7 +5,7 @@
 # -- own --
 from thb import characters
 from thb.cards.base import VirtualCard
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -29,26 +29,26 @@ class Kyouko:
 class Echo:
     # Skill
     name = '回响'
-    description = '每当你受到一次伤害后，你可以获得对你造成伤害的牌，若此牌为|G弹幕|r，你可以改为令一名其他角色获得之。'
+    description = '每当你受到一次伤害后，你可以获得对你造成伤害的牌，若此牌为<style=Card.Name>弹幕</style>，你可以改为令一名其他角色获得之。'
 
 
 @ui_meta(characters.kyouko.Resonance)
 class Resonance:
     # Skill
     name = '共振'
-    description = '当你对其他角色使用的|G弹幕|r结算完毕后，你可以指定另一名其他角色，被指定角色可以对其使用一张无视距离的|G弹幕|r。'
+    description = '当你对其他角色使用的<style=Card.Name>弹幕</style>结算完毕后，你可以指定另一名其他角色，被指定角色可以对其使用一张无视距离的<style=Card.Name>弹幕</style>。'
 
 
 @ui_meta(characters.kyouko.EchoHandler)
 class EchoHandler:
     # choose_option meta
     choose_option_buttons = (('发动', True), ('放弃', False))
-    choose_option_prompt = '是否发动【回响】'
+    choose_option_prompt = '是否发动<style=Skill.Name>回响</style>'
 
     # choose_players
     def target(self, pl):
         if not pl:
-            return (False, '回响：请选择获得【弹幕】的角色')
+            return (False, '<style=Skill.Name>回响</style>：请选择获得<style=Card.Name>弹幕</style>的角色')
 
         return (True, '回响···')
 
@@ -58,15 +58,12 @@ class ResonanceAction:
     # choose_card meta
     def choose_card_text(self, act, cards):
         if act.cond(cards):
-            return (True, '共振：对%s使用弹幕' % act.victim.ui_meta.name)
+            return (True, f'<style=Card.Name>共振</style>：对{N.char(act.victim)}使用弹幕')
         else:
-            return (False, '共振：请选择一张弹幕对%s使用' % act.victim.ui_meta.name)
+            return (False, f'<style=Card.Name>共振</style>：请选择一张弹幕对{N.char(act.victim)}使用')
 
     def effect_string_before(self, act):
-        return '|G【%s】|r对|G【%s】|r发动了|G共振|r。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}对{N.char(act.target)}发动了<style=Skill.Name>共振</style>。'
 
     def ray(self, act):
         src, tgt = act.source, act.target
@@ -80,11 +77,8 @@ class ResonanceAction:
 class EchoAction:
 
     def effect_string_before(self, act):
-        return '|G【%s】|r发动了|G回响|r，|G【%s】|r获得了%s。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            self.card_desc(VirtualCard.unwrap([act.card])),
-        )
+        c = VirtualCard.unwrap([act.card])
+        return f'{N.char(act.source)}发动了<style=Skill.Name>回响</style>，{N.char(act.target)}获得了{N.card(c)}。'
 
     def sound_effect(self, act):
         return 'thb-cv-kyouko_echo'
@@ -95,6 +89,6 @@ class ResonanceHandler:
     # choose_players
     def target(self, pl):
         if not pl:
-            return (False, '共振：请选择一名角色使用【弹幕】')
+            return (False, '<style=Skill.Name>共振</style>：请选择一名角色使用<style=Skill.Name>弹幕</style>')
 
-        return (True, '发动【共振】')
+        return (True, '发动<style=Skill.Name>共振</style>')

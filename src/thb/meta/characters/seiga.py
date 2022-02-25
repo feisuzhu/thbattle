@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 # -- own --
 from thb import characters
 from thb.cards.base import Skill
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 # -- typing --
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ class SeigaKOF:
     figure_image      = 'thb-figure-seiga'
     miss_sound_effect = 'thb-cv-seiga_miss'
 
-    notes = '|RKOF修正角色'
+    notes = 'KOF修正角色'
 
 
 @ui_meta(characters.seiga.HeterodoxyHandler)
@@ -54,9 +54,7 @@ class HeterodoxyHandler:
 @ui_meta(characters.seiga.HeterodoxySkipAction)
 class HeterodoxySkipAction:
     def effect_string(self, act):
-        return '|G【%s】|r跳过了卡牌效果的结算' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}跳过了卡牌效果的结算'
 
 
 @ui_meta(characters.seiga.HeterodoxyAction)
@@ -70,9 +68,9 @@ class Heterodoxy:
     # Skill
     name = '邪仙'
     description = (
-        '出牌阶段，你可以将一张手牌以一名其他角色的身份使用。\n'
-        '|B|R>> |r以此法使用|G弹幕|r消耗你的干劲。\n'
-        '|B|R>> |r你成为此法使用的群体符卡的目标后，可以跳过此次结算。'
+        '出牌阶段，你可以将一张手牌以一名其他角色的身份使用。'
+        '<style=Desc.Li>以此法使用<style=Card.Name>弹幕</style>消耗你的干劲。</style>'
+        '<style=Desc.Li>你成为此法使用的群体符卡的目标后，可以跳过此次结算。</style>'
     )
     custom_ray = True
 
@@ -82,10 +80,7 @@ class Heterodoxy:
         return bool(me.cards or me.showncards or me.equips)
 
     def effect_string(self, act):
-        return '|G【%s】|r发动了邪仙技能，以|G【%s】|r的身份使用了卡牌' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了邪仙技能，以{N.char(act.target)}的身份使用了卡牌'
 
     def is_action_valid(self, sk, tl):
         acards = sk.associated_cards
@@ -122,7 +117,7 @@ class Heterodoxy:
 class Summon:
     # Skill
     name = '通灵'
-    description = '|B限定技|r，你的回合内，当有角色被击坠时，你可以获得其一个技能。（不包括限定技，觉醒技）'
+    description = '<style=B>限定技</style>，你的回合内，当有角色被击坠时，你可以获得其一个技能。（不包括限定技，觉醒技）'
 
     def is_available(self, ch):
         return bool(ch.tags['summon_used'])
@@ -143,18 +138,14 @@ class SummonAction:
         return [(act.source, act.target)]
 
     def effect_string(self, act):
-        return '|G【%s】|r发动了|G通灵|r，获得了|G【%s】|r的|G%s|r技能。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            act.choice.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了<style=Skill.Name>通灵</style>，获得了{N.char(act.target)}的{N.card(act.choice)}技能。'
 
 
 @ui_meta(characters.seiga.SummonHandler)
 class SummonHandler:
     # choose_option meta
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【通灵】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>通灵</style>吗？'
 
 
 @ui_meta(characters.seiga.SummonKOF)
@@ -164,8 +155,8 @@ class SummonKOF:
     # Skill
     name = '通灵'
     description = (
-        '你可以将击坠角色的角色牌加入你的备选角色；出牌阶段，你可以和你的备选角色交换角色牌，然后结束出牌阶段。\n'
-        '|B|R>> |r你的体力值保留，体力上限会调整到与新角色一致。'
+        '你可以将击坠角色的角色牌加入你的备选角色；出牌阶段，你可以和你的备选角色交换角色牌，然后结束出牌阶段。'
+        '<style=Desc.Attention>你的体力值保留，体力上限会调整到与新角色一致。</style>'
     )
 
     def clickable(self):
@@ -178,13 +169,11 @@ class SummonKOF:
         if len(cl) != 0:
             return False, '请不要选择牌'
 
-        rest = '、'.join([c.char_cls.ui_meta.name for c in g.chosen[me.player] if c.char_cls])
+        rest = N.char([c.char_cls for c in g.chosen[me.player] if c.char_cls])
         return True, f'通灵：后备角色：{rest}'
 
     def effect_string(self, act):
-        return '|G【%s】|r发动了|G通灵|r！' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了<style=Skill.Name>通灵</style>！'
 
 
 @ui_meta(characters.seiga.SummonKOFAction)
@@ -192,10 +181,7 @@ class SummonKOFAction:
 
     def effect_string(self, act):
         old, new = act.transition
-        return '|G【%s】|r召唤了|G【%s】|r，自己退居幕后！' % (
-            old.ui_meta.name,
-            new.ui_meta.name,
-        )
+        return f'{N.char(old)}召唤了{N.char(new)}，自己退居幕后！'
 
 
 @ui_meta(characters.seiga.SummonKOFCollect)
@@ -203,7 +189,4 @@ class SummonKOFCollect:
 
     def effect_string_before(self, act):
         src, tgt = act.source, act.target
-        return '|G【%s】|r把|G【%s】|r做成了僵尸宠物！' % (
-            src.ui_meta.name,
-            tgt.ui_meta.name,
-        )
+        return f'{N.char(src)}把{N.char(tgt)}做成了僵尸宠物！'

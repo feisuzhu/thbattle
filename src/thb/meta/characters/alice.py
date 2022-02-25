@@ -7,7 +7,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -29,11 +29,11 @@ class LittleLegion:
     # Skill
     name = '小小军势'
     description = (
-        '出牌阶段结束时，你可以重铸一张装备牌，然后发动对应的效果：\n'
-        '|B|R>> |r武器：视为对一名其他角色使用了|G弹幕|r。\n'
-        '|B|R>> |r防具：令一名角色回复1点体力。\n'
-        '|B|R>> |r饰品：摸一张牌并跳过弃牌阶段。\n'
-        '|B|R>> |rUFO：视为使用一张|G人型操控|r。'
+        '出牌阶段结束时，你可以重铸一张装备牌，然后发动对应的效果：'
+        '<style=Desc.Li>武器：视为对一名其他角色使用了<style=Card.Name>弹幕</style>。</style>'
+        '<style=Desc.Li>防具：令一名角色回复1点体力。</style>'
+        '<style=Desc.Li>饰品：摸一张牌并跳过弃牌阶段。</style>'
+        '<style=Desc.Li>UFO：视为使用一张<style=Card.Name>人型操控</style>。</style>'
     )
 
 
@@ -43,10 +43,7 @@ class LittleLegionAttackCard:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return '|G【%s】|r操起人偶，向|G【%s】|r进攻！' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}操起人偶，向{N.char(act.target)}进攻！'
 
     def sound_effect(self, act):
         return 'thb-cv-alice_legion_attack'
@@ -60,11 +57,7 @@ class LittleLegionDollControlCard:
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
         controllee, victim = act.target_list
-        return '|G【%s】|r操起人偶……呃不对，是|G【%s】|r，向|G【%s】|r进攻！' % (
-            act.source.ui_meta.name,
-            controllee.ui_meta.name,
-            victim.ui_meta.name,
-        )
+        return f'{N.char(act.source)}操起人偶……呃不对，是{N.char(controllee)}，向{N.char(victim)}进攻！'
 
     def sound_effect(self, act):
         return 'thb-cv-alice_legion_control'
@@ -84,9 +77,7 @@ class LittleLegionAttackAction:
 class LittleLegionCoverEffect:
     def effect_string(self, act):
         if act.succeeded:
-            return '|G【%s】|r回复了%d点体力。' % (
-                act.target.ui_meta.name, act.amount
-            )
+            return f'{N.char(act.target)}回复了{act.amount}点体力。'
 
     def sound_effect(self, act):
         return 'thb-cv-alice_legion_cover'
@@ -116,7 +107,7 @@ class LittleLegionControlAction:
         g = self.game
 
         if not pl:
-            return (False, '控场：请选择2名玩家，视为使用【人型操控】')
+            return (False, '控场：请选择2名玩家，视为使用<style=Card.Name>人型操控</style>')
 
         from thb.cards.classes import DollControlCard
 
@@ -142,7 +133,7 @@ class LittleLegionHandler:
             elif c.equipment_category == 'accessories':
                 text = '（饰品）：跳过弃牌阶段。'
             elif c.equipment_category in ('redufo', 'greenufo'):
-                text = '（UFO）：视为使用人型操控。'
+                text = '（UFO）：视为使用<style=Card.Name>人型操控</style>。'
             else:
                 text = '（BUG）：什么鬼……'
 
@@ -162,21 +153,12 @@ class DollBlast:
 class DollBlastEffect:
 
     def effect_string_before(self, act):
+        src, tgt = act.source, act.target
+        c = act.card
         if act.do_damage:
-            return '|G【%s】|r拿走了|G【%s】|r的人偶（%s），然后，BOOM！|G【%s】|r就炸了！' % (
-                act.target.ui_meta.name,
-                act.source.ui_meta.name,
-                self.card_desc(act.card),
-                act.target.ui_meta.name,
-            )
+            return f'{N.char(tgt)}拿走了{N.char(src)}的人偶（{N.card(c)}），然后，BOOM！{N.char(tgt)}就炸了！'
         else:
-            return '|G【%s】|r拿走了|G【%s】|r的人偶，|G【%s】|r非常生气，弃置|G【%s】|r的%s。' % (
-                act.target.ui_meta.name,
-                act.source.ui_meta.name,
-                act.source.ui_meta.name,
-                act.target.ui_meta.name,
-                self.card_desc(act.card),
-            )
+            return f'{N.char(tgt)}拿走了{N.char(src)}的人偶，{N.char(src)}非常生气，弃置了{N.char(tgt)}的{N.card(c)}。'
 
 
 @ui_meta(characters.alice.DollBlastAction)
@@ -193,6 +175,6 @@ class DollBlastAction:
 class DollBlastHandlerCommon:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【人偶爆弹】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>人偶爆弹</style>吗？'
 
 # ----------

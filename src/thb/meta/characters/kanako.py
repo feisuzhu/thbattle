@@ -4,7 +4,7 @@
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -22,7 +22,7 @@ class Kanako:
     figure_image      = 'thb-figure-kanako'
     miss_sound_effect = 'thb-cv-kanako_miss'
 
-    notes = '|RKOF模式不可用|r'
+    notes = 'KOF模式不可用'
 
 
 @ui_meta(characters.kanako.KanakoKOF)
@@ -37,7 +37,7 @@ class KanakoKOF:
     figure_image      = 'thb-figure-kanako'
     miss_sound_effect = 'thb-cv-kanako_miss'
 
-    notes = '|RKOF修正角色|r'
+    notes = 'KOF修正角色'
 
 
 @ui_meta(characters.kanako.KanakoFaith)
@@ -45,9 +45,9 @@ class KanakoFaith:
     # Skill
     name = '信仰'
     description = (
-        '|B限定技|r，出牌阶段，你可以令你攻击范围内的所有其他角色依次选择一项：\n'
-        '|B|R>> |r令你摸一张牌。\n'
-        '|B|R>> |r弃置你一张牌，然后你视为对其使用了一张|G弹幕|r或|G弹幕战|r（按此法使用的弹幕不消耗干劲）。'
+        '<style=B>限定技</style>，出牌阶段，你可以令你攻击范围内的所有其他角色依次选择一项：'
+        '<style=Desc.Li>令你摸一张牌。</style>'
+        '<style=Desc.Li>弃置你一张牌，然后你视为对其使用了一张<style=Card.Name>弹幕</style>或<style=Card.Name>弹幕战</style>（按此法使用的弹幕不消耗干劲）。</style>'
     )
 
     def clickable(self):
@@ -74,13 +74,10 @@ class KanakoFaith:
         if not tl:
             return (False, '没有符合条件的角色')
         else:
-            return (True, '发动【信仰】')
+            return (True, '发动<style=Skill.Name>信仰</style>')
 
     def effect_string(self, act):
-        return '|G【%s】|r打开神社大门，开始收集|G信仰|r！%s表示很感兴趣。' % (
-            act.source.ui_meta.name,
-            '、'.join(['|G【%s】|r' % p.ui_meta.name for p in act.target_list]),
-        )
+        return f'{N.char(act.source)}打开神社大门，开始收集<style=Skill.Name>信仰</style>！{N.char(act.target_list)}表示很感兴趣。'
 
     def sound_effect(self, act):
         return 'thb-cv-kanako_faith'
@@ -92,41 +89,33 @@ class KanakoFaith:
 @ui_meta(characters.kanako.KanakoFaithCheers)
 class KanakoFaithCheers:
     def effect_string_before(self, act):
-        return '|G【%s】|r献上了信仰！' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}献上了信仰！'
 
 
 @ui_meta(characters.kanako.KanakoFaithCounteract)
 class KanakoFaithCounteract:
     def effect_string_before(self, act):
-        return '|G【%s】|r决定要拆台！' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}决定要拆台！'
 
 
 @ui_meta(characters.kanako.KanakoFaithCounteractPart1)
 class KanakoFaithCounteractPart1:
     def effect_string(self, act):
-        return '|G【%s】|r弃置了|G【%s】|r的%s。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            self.card_desc(act.card),
-        )
+        return f'{N.char(act.source)}弃置了{N.char(act.target)}的{N.card(act.card)}。'
 
 
 @ui_meta(characters.kanako.KanakoFaithCounteractPart2)
 class KanakoFaithCounteractPart2:
     # choose_option meta
     choose_option_buttons = (('弹幕战', 'duel'), ('弹幕', 'attack'))
-    choose_option_prompt = '信仰：请选择希望的效果'
+    choose_option_prompt = '<style=Skill.Name>信仰</style>：请选择希望的效果'
 
 
 @ui_meta(characters.kanako.KanakoFaithEffect)
 class KanakoFaithEffect:
     # choose_option meta
     choose_option_buttons = (('弃置对方的牌', 'drop'), ('对方摸牌', 'draw'))
-    choose_option_prompt = '信仰：请选择希望的效果'
+    choose_option_prompt = '<style=Skill.Name>信仰</style>：请选择希望的效果'
 
 
 @ui_meta(characters.kanako.Virtue)
@@ -140,28 +129,22 @@ class Virtue:
 class VirtueHandler:
     def target(self, pl):
         if not pl:
-            return (False, '神德：请选择1名玩家')
+            return (False, '<style=Skill.Name>神德</style>：请选择1名玩家')
 
-        return (True, '神德：放弃摸牌，选定的目标摸2张牌')
+        return (True, '<style=Skill.Name>神德</style>：放弃摸牌，选定的目标摸2张牌')
 
 
 @ui_meta(characters.kanako.VirtueAction)
 class VirtueAction:
     def choose_card_text(self, act, cards):
-        prompt = '神德：交给对方一张牌'
+        prompt = '<style=Skill.Name>神德</style>：交给对方一张牌'
         return act.cond(cards), prompt
 
     def effect_string_before(self, act):
-        return '|G【%s】|r对|G【%s】|r发动了|G神德|r。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}对{N.char(act.target)}发动了<style=Skill.Name>神德</style>。'
 
     def effect_string(self, act):
-        return '|G【%s】|r归还了%s。' % (
-            act.target.ui_meta.name,
-            self.card_desc(act.card_shadow),
-        )
+        return f'{N.char(act.target)}归还了{N.card(act.card_shadow)}。'
 
     def sound_effect(self, act):
         return 'thb-cv-kanako_virtue'
@@ -172,9 +155,9 @@ class KanakoFaithKOF:
     # Skill
     name = '信仰'
     description = (
-        '|B锁定技|r，结束阶段开始时，若你满足以下条件之一，将你的手牌补至X张（X为你的当前体力值）：\n'
-        '|B|R>> |r你的体力值大于对方。\n'
-        '|B|R>> |r你曾于出牌阶段对对方造成过伤害。'
+        '<style=B>锁定技</style>，结束阶段开始时，若你满足以下条件之一，将你的手牌补至X张（X为你的当前体力值）：'
+        '<style=Desc.Li>你的体力值大于对方。\n'
+        '<style=Desc.Li>你曾于出牌阶段对对方造成过伤害。\n'
 
     )
 
@@ -182,10 +165,7 @@ class KanakoFaithKOF:
 @ui_meta(characters.kanako.KanakoFaithKOFAction)
 class KanakoFaithKOFAction:
     def effect_string_before(self, act):
-        return '|G【%s】|r又收到的%s张香火钱，比博丽神社不知道高到哪里去了！' % (
-            act.target.ui_meta.name,
-            act.amount,
-        )
+        return f'{N.char(act.target)}又收到的{act.amount}张香火钱，比博丽神社不知道高到哪里去了！'
 
     def sound_effect(self, act):
         return 'thb-cv-kanako_faith'

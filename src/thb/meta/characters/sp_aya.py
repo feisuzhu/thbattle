@@ -6,7 +6,7 @@ from __future__ import annotations
 # -- own --
 from thb import characters
 from thb.cards.base import Skill
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -39,10 +39,7 @@ class WindWalk:
         return (True, '疾走')
 
     def effect_string(self, act):
-        return '唯快不破！|G【%s】|r弃置了%s，开始加速追击！' % (
-            act.source.ui_meta.name,
-            self.card_desc(act.card),
-        )
+        return f'唯快不破！{N.char(act.source)}弃置了{N.card(act.card)}，开始加速追击！'
 
     def sound_effect(self, act):
         return 'thb-cv-sp_aya_windwalk'
@@ -67,7 +64,7 @@ class WindWalkAction:
 @ui_meta(characters.sp_aya.WindWalkSkipAction)
 class WindWalkSkipAction:
     def effect_string_before(self, act):
-        return '|G【%s】|r放弃了追击。' % act.target.ui_meta.name
+        return f'{N.char(act.target)}放弃了追击。'
 
     def sound_effect(self, act):
         return 'thb-cv-sp_aya_windwalk_stop'
@@ -81,16 +78,14 @@ class WindWalkTargetLimit:
 
 @ui_meta(characters.sp_aya.DominanceHandler)
 class DominanceHandler:
-    choose_option_prompt = '你要发动【风靡】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>风靡</style>吗？'
     choose_option_buttons = (('发动', True), ('不发动', False))
 
 
 @ui_meta(characters.sp_aya.DominanceAction)
 class DominanceAction:
     def effect_string_before(self, act):
-        return '|G【%s】|r成功地了搞了个大新闻！' % (
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.target)}成功地了搞了个大新闻！'
 
     def sound_effect(self, act):
         return 'thb-cv-sp_aya_dominance'

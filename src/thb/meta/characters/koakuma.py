@@ -6,7 +6,7 @@ from __future__ import annotations
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -45,7 +45,7 @@ class Find:
         n = len([i for i in g.players if not i.dead])
 
         if not 0 < len(sk.associated_cards) <= n:
-            return (False, '请选择需要换掉的牌（至多%s张）！' % n)
+            return (False, f'请选择需要换掉的牌（至多{n}张）！')
 
         if not [self.me] == tl:
             return (False, 'BUG!!')
@@ -56,10 +56,7 @@ class Find:
         # for LaunchCard.ui_meta.effect_string
         source = act.source
         card = act.card
-        s = '|G【%s】|r发动了寻找技能，换掉了%d张牌。' % (
-            source.ui_meta.name,
-            len(card.associated_cards),
-        )
+        s = f'{N.char(source)}发动了寻找技能，换掉了{len(card.associated_cards)}张牌。'
         return s
 
     def sound_effect(self, act):

@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -13,15 +13,13 @@ from thb.meta.common import ui_meta
 class UltimateSpeed:
     # Skill
     name = '最速'
-    description = '|B锁定技|r，你的回合内，当你使用本回合的第二张牌时，你摸一张牌，然后你使用卡牌时无距离限制，直到回合结束。'
+    description = '<style=B>锁定技</style>，你的回合内，当你使用本回合的第二张牌时，你摸一张牌，然后你使用卡牌时无距离限制，直到回合结束。'
 
 
 @ui_meta(characters.aya.UltimateSpeedAction)
 class UltimateSpeedAction:
     def effect_string(self, act):
-        return '|G【%s】|r：“哼哼，你已经跟不上我的速度了吧～”' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}：“哼哼，你已经跟不上我的速度了吧～”'
 
     def sound_effect(self, act):
         return 'thb-cv-aya_ultimatespeed'

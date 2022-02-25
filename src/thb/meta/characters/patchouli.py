@@ -7,7 +7,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -15,15 +15,13 @@ from thb.meta.common import ui_meta
 class Library:
     # Skill
     name = '图书'
-    description = '|B锁定技|r，每当你使用非延时符卡时，你摸一张牌；你使用符卡无距离限制。'
+    description = '<style=B>锁定技</style>，每当你使用非延时符卡时，你摸一张牌；你使用符卡无距离限制。'
 
 
 @ui_meta(characters.patchouli.LibraryDrawCards)
 class LibraryDrawCards:
     def effect_string(self, act):
-        return '|G【%s】|r发动了|G图书|r技能，摸1张牌。' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了<style=Skill.Name>图书</style>技能，摸1张牌。'
 
     def sound_effect(self, act):
         return random.choice([
@@ -36,15 +34,13 @@ class LibraryDrawCards:
 class Knowledge:
     # Skill
     name = '博学'
-    description = '|B锁定技|r，黑桃符卡对你无效。'
+    description = '<style=B>锁定技</style>，黑桃符卡对你无效。'
 
 
 @ui_meta(characters.patchouli.KnowledgeAction)
 class KnowledgeAction:
     def effect_string(self, act):
-        return '|G【%s】|r一眼就看穿了这张符卡，直接挡下。' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}一眼就看穿了这张符卡，直接挡下。'
 
     def sound_effect(self, act):
         return 'thb-cv-patchouli_knowledge'

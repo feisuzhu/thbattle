@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -26,16 +26,13 @@ class SpFlandre:
 class DestructionImpulse:
     # Skill
     name = '破坏冲动'
-    description = '|B锁定技|r，结束阶段结束后，若你本回合没有造成过伤害，你对距离最近的一名其他角色造成1点伤害，并失去1点体力。'
+    description = '<style=B>锁定技</style>，结束阶段结束后，若你本回合没有造成过伤害，你对距离最近的一名其他角色造成1点伤害，并失去1点体力。'
 
 
 @ui_meta(characters.sp_flandre.DestructionImpulseAction)
 class DestructionImpulseAction:
     def effect_string_before(self, act):
-        return '|G【%s】|r：“|G【%s】|r来陪我玩好不好？”' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'“来陪我玩好不好呀？”，{N.char(act.source)}对{N.char(act.target)}说道。'
 
     def sound_effect(self, act):
         return 'thb-cv-spflandre_destructionimpulse'
@@ -68,15 +65,13 @@ class FourOfAKind:
 class FourOfAKindHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【四重存在】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>四重存在</style>吗？'
 
 
 @ui_meta(characters.sp_flandre.FourOfAKindAction)
 class FourOfAKindAction:
     def effect_string(self, act):
-        return '|G【%s】|r发动了|G四重存在|r，防止了此次伤害。' % (
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.target)}发动了<style=Skill.Name>四重存在</style>，防止了此次伤害。'
 
     def sound_effect(self, act):
         return 'thb-cv-spflandre_fourofakind'

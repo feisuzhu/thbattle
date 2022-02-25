@@ -5,7 +5,7 @@
 # -- own --
 from thb import actions, characters
 from thb.cards.base import Card, VirtualCard
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 # -- code --
 
@@ -14,17 +14,13 @@ from thb.meta.common import ui_meta
 class Jolly:
     # Skill
     name = '愉快'
-    description = '|B锁定技|r，摸牌阶段摸牌后，你令一名角色摸一张牌。'
+    description = '<style=B>锁定技</style>，摸牌阶段摸牌后，你令一名角色摸一张牌。'
 
 
 @ui_meta(characters.kogasa.JollyDrawCard)
 class JollyDrawCard:
     def effect_string(self, act):
-        return '|G【%s】|r高兴地让|G【%s】|r摸了%d张牌~' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            act.amount,
-        )
+        return f'{N.char(act.source)}高兴地让{N.char(act.target)}摸了{act.amount}张牌~'
 
     def sound_effect(self, act):
         return 'thb-cv-kogasa_jolly'
@@ -86,14 +82,8 @@ class Surprise:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return (
-            '|G【%s】|r突然出现在|G【%s】|r面前，伞上'
-            '的大舌头直接糊在了|G【%s】|r的脸上！'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        src, tgt = act.source, act.target
+        return f'{N.char(src)}突然出现在{N.char(tgt)}面前，小伞上大舌头直接糊在了{N.char(tgt)}的脸上！'
 
     def sound_effect(self, act):
         return 'thb-cv-kogasa_surprise'

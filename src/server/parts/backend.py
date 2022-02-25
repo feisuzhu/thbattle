@@ -104,7 +104,7 @@ class MockBackend(object):
         '''
         mutation { GmAllocGameId }
         '''
-        return {'gameId': random.randint(0, 1000000)}
+        return {'GmAllocGameId': random.randint(0, 1000000)}
 
     def pid_of(self, token: str) -> int:
         return self.NAMED.get(token, abs(hash(token)) % 120943)

@@ -7,7 +7,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -21,11 +21,7 @@ class Trial:
 @ui_meta(characters.shikieiki.TrialAction)
 class TrialAction:
     def effect_string(self, act):
-        return '幻想乡各地巫女妖怪纷纷表示坚决拥护|G【%s】|r将|G【%s】|r的判定结果修改为%s的有关决定！' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            self.card_desc(act.card)
-        )
+        return f'幻想乡各地巫女妖怪纷纷表示坚决拥护{N.char(act.source)}将{N.char(act.target)}的判定结果修改为{N.card(act.card)}的有关决定！'
 
     def sound_effect(self, act):
         return random.choice([
@@ -44,10 +40,7 @@ class Majesty:
 @ui_meta(characters.shikieiki.MajestyAction)
 class MajestyAction:
     def effect_string(self, act):
-        return '|G【%s】|r脸上挂满黑线，收走了|G【%s】|r的一张牌填补自己的|G威严|r。' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}脸上挂满黑线，收走了{N.char(act.target)}的一张牌填补自己的<style=Skill.Name>威严</style>。'
 
     def sound_effect(self, act):
         return 'thb-cv-shikieiki_majesty'
@@ -57,7 +50,7 @@ class MajestyAction:
 class TrialHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【审判】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>审判</style>吗？'
 
     # choose_card
     def choose_card_text(self, act, cards):
@@ -71,7 +64,7 @@ class TrialHandler:
 class MajestyHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【威严】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>威严</style>吗？'
 
 
 @ui_meta(characters.shikieiki.Shikieiki)

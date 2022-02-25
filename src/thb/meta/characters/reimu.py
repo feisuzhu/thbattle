@@ -8,7 +8,7 @@ import random
 from thb import actions, characters
 from thb.cards.base import Card
 from thb.cards.classes import ExinwanCard, RejectCard
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -60,7 +60,7 @@ class SpiritualAttack:
 class TributeTarget:
     # Skill
     name = '纳奉'
-    description = '|BBOSS技|r，其他角色的出牌阶段限一次，若你的手牌数小于体力上限，其可以将一张手牌置入你的明牌区。'
+    description = '<style=B>BOSS技</style>，其他角色的出牌阶段限一次，若你的手牌数小于体力上限，其可以将一张手牌置入你的明牌区。'
 
 
 @ui_meta(characters.reimu.Tribute)
@@ -104,13 +104,8 @@ class Tribute:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return (
-            '|G【%s】|r向|G【%s】|r的赛钱箱里放了一张%s… 会发生什么呢？'
-        ) % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-            self.card_desc(act.card.associated_cards[0]),
-        )
+        c = act.card.associated_cards[0]
+        return f'{N.char(act.source)}向{N.char(act.target)}的赛钱箱里放了一张{N.card(c)}… 会发生什么呢？'
 
     def sound_effect(self, act):
         c = act.card.associated_cards[0]
@@ -130,9 +125,9 @@ class ReimuExterminate:
     # Skill
     name = '退治'
     description = (
-        '其他角色的回合内，你可以于以下时机无视距离对其使用一张弹幕：\n'
-        '|B|R>> |r出牌阶段，你受到伤害后。\n'
-        '|B|R>> |r回合结束阶段，且该角色本回合对其他角色造成过伤害。'
+        '其他角色的回合内，你可以于以下时机无视距离对其使用一张弹幕：'
+        '<style=Desc.Li>出牌阶段，你受到伤害后。</style>'
+        '<style=Desc.Li>回合结束阶段，且该角色本回合对其他角色造成过伤害。</style>'
     )
 
 
@@ -143,19 +138,16 @@ class ReimuExterminateAction:
         if act.cond(cards):
             return (True, '代表幻想乡消灭你！')
         else:
-            return (False, '退治：选择一张弹幕对%s使用（否则不发动）' % act.victim.ui_meta.name)
+            return (False, f'<style=Skill.Name>退治</style>：选择一张弹幕对{N.char(act.victim)}使用（否则不发动）')
 
 
 @ui_meta(characters.reimu.ReimuExterminateLaunchCard)
 class ReimuExterminateLaunchCard:
     def effect_string_before(self, act):
         if act.cause == 'damage':
-            return '|G【%s】|r： (╯‵□′)╯︵ ┻━┻ ！！！' % act.source.ui_meta.name
+            return f'{N.char(act.source)}： (╯‵□′)╯︵ ┻━┻ ！！！'
         else:
-            return '听说异变的元凶是|G【%s】|r，|G【%s】|r马上就出现了！' % (
-                act.target.ui_meta.name,
-                act.source.ui_meta.name,
-            )
+            return f'听说异变的元凶是{N.char(act.target)}，{N.char(act.source)}马上就出现了！'
 
     def sound_effect(self, act):
         if act.cause == 'damage':
@@ -174,10 +166,7 @@ class ReimuClear:
 @ui_meta(characters.reimu.ReimuClearAction)
 class ReimuClearAction:
     def effect_string_before(self, act):
-        return '异变解决啦！|G【%s】|r和|G【%s】|r一起去吃饭了！' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'异变解决啦！{N.char(act.source)}和{N.char(act.target)}一起去吃饭了！'
 
     def sound_effect(self, act):
         return 'thb-cv-reimu_clear'
@@ -185,7 +174,7 @@ class ReimuClearAction:
 
 @ui_meta(characters.reimu.ReimuClearHandler)
 class ReimuClearHandler:
-    choose_option_prompt  = '要发动【快晴】吗？'
+    choose_option_prompt  = '要发动<style=Skill.Name>快晴</style>吗？'
     choose_option_buttons = (('发动', True), ('不发动', False))
 
 

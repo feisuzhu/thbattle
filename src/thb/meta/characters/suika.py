@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -18,7 +18,7 @@ class HeavyDrinkerWine:
 class HeavyDrinker:
     # Skill
     name = '酒豪'
-    description = '出牌阶段每名角色限一次，你可以和其他角色拼点，若你赢，视为你和其各使用了一张|G酒|r，若你没赢，你不能发动此技能，直到回合结束。'
+    description = '出牌阶段每名角色限一次，你可以和其他角色拼点，若你赢，视为你和其各使用了一张<style=Card.Name>酒</style>，若你没赢，你不能发动此技能，直到回合结束。'
 
     def clickable(self):
         g = self.game
@@ -50,17 +50,14 @@ class HeavyDrinker:
         return 'thb-cv-suika_heavydrinker'
 
     def effect_string(self, act):
-        return '|G【%s】|r跟|G【%s】|r划起了拳：“哥俩好，三星照，只喝酒，不吃药！”' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}跟{N.char(act.target)}划起了拳：“哥俩好，三星照，只喝酒，不吃药！”'
 
 
 @ui_meta(characters.suika.DrunkenDream)
 class DrunkenDream:
     # Skill
     name = '醉梦'
-    description = '|B锁定技|r，你处于“喝醉”状态时，攻击范围+2；准备阶段开始时，你摸一张牌。'
+    description = '<style=B>锁定技</style>，你处于<style=B>喝醉</style>状态时，攻击范围+2；准备阶段开始时，你摸一张牌。'
 
 
 @ui_meta(characters.suika.DrunkenDreamDrawCards)

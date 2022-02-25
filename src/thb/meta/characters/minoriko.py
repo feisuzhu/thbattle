@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -13,16 +13,13 @@ from thb.meta.common import ui_meta
 class Foison:
     # Skill
     name = '丰收'
-    description = '|B锁定技|r，摸牌阶段摸牌后，你将手牌数补至五张。'
+    description = '<style=B>锁定技</style>，摸牌阶段摸牌后，你将手牌数补至五张。'
 
 
 @ui_meta(characters.minoriko.FoisonDrawCardStage)
 class FoisonDrawCardStage:
     def effect_string(self, act):
-        return '大丰收！|G【%s】|r一下子收获了%d张牌！' % (
-            act.source.ui_meta.name,
-            act.amount,
-        )
+        return f'大丰收！{N.char(act.source)}一下子收获了{act.amount}张牌！'
 
     def sound_effect(self, act):
         return 'thb-cv-minoriko_foison'
@@ -32,7 +29,7 @@ class FoisonDrawCardStage:
 class AutumnFeast:
     # Skill
     name = '秋祭'
-    description = '出牌阶段限一次，你可以将两张红色牌当|G五谷丰登|r使用。'
+    description = '出牌阶段限一次，你可以将两张红色牌当<style=Card.Name>五谷丰登</style>使用。'
 
     def clickable(self):
         me = self.me
@@ -53,12 +50,7 @@ class AutumnFeast:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        source = act.source
-        return (
-            '|G【%s】|r：麻薯年年有，今年特别多！'
-        ) % (
-            source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}：麻薯年年有，今年特别多！'
 
     def sound_effect(self, act):
         return 'thb-cv-minoriko_autumnfeast'
@@ -68,7 +60,7 @@ class AutumnFeast:
 class AkiTribute:
     # Skill
     name = '上贡'
-    description = '|B锁定技|r，结算|G五谷丰登|r时，你首先选择牌，结算完后，你将剩余的牌置于一名角色的明牌区。'
+    description = '<style=B>锁定技</style>，结算<style=Card.Name>五谷丰登</style>时，你首先选择牌，结算完后，你将剩余的牌置于一名角色的明牌区。'
 
 
 @ui_meta(characters.minoriko.AkiTributeCollectCard)

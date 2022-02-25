@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Optional, Sequence, TYPE_CHECKING, Type, Union
+from typing import Any, Dict, Sequence, TYPE_CHECKING
 
 # -- third party --
 # -- own --
 from game.base import GameViralContext
-from thb.characters.base import Character
 
 # -- typing --
 if TYPE_CHECKING:
@@ -110,30 +109,6 @@ class UIMetaBase(GameViralContext):
     def is_action_valid(self, c, tl):
         return (False, 'BUG!')
 
-    def card_desc(self, c):
-        if isinstance(c, (list, tuple)):
-            return '、'.join([self.card_desc(i) for i in c])
-
-        from thb.cards.base import Card, HiddenCard
-        if c.is_card(HiddenCard): return '一张牌'
-
-        if c.suit == Card.SPADE:
-            suit = '|r♠'
-        elif c.suit == Card.HEART:
-            suit = '|r|cb03a11ff♥'
-        elif c.suit == Card.CLUB:
-            suit = '|r♣'
-        elif c.suit == Card.DIAMOND:
-            suit = '|r|cb03a11ff♦'
-        elif c.suit == Card.NOTSET:
-            suit = '|r '
-        else:
-            suit = '|r错误'
-
-        num = ' A23456789_JQK'[c.number]
-        if num == '_': num = '10'
-        return suit + num + ' |G%s|r' % c.ui_meta.name
-
     def build_handcard(self, cardcls, p=None):
         me = self.me
         from thb.cards.base import CardList
@@ -154,44 +129,43 @@ class UIMetaBase(GameViralContext):
 
         return False
 
-    def char_desc(self, ch: Union[Character, Type[Character]]):
-        m = ch.ui_meta
 
-        cls: Type[Character]
-        obj: Optional[Character]
+class N:
 
-        if isinstance(ch, Character):
-            cls, obj = ch.__class__, ch
+    @staticmethod
+    def card(c, conj='、'):
+        if isinstance(c, (list, tuple)):
+            return conj.join([N.card(i) for i in c])
+
+        from thb.cards.base import Card, HiddenCard
+
+        if isinstance(c, type):
+            return f'<style=Card.Name>{c.ui_meta.name}</style>'
+
+        if c.is_card(HiddenCard):
+            return '一张牌'
+
+        num = ' A23456789_JQK'[c.number]
+        if num == '_': num = '10'
+
+        if c.suit == Card.SPADE:
+            suitnum = f'<style=Card.Black>♠{num}</style>'
+        elif c.suit == Card.HEART:
+            suitnum = f'<style=Card.Red>♥{num}</style>'
+        elif c.suit == Card.CLUB:
+            suitnum = f'<style=Card.Black>♣{num}</style>'
+        elif c.suit == Card.DIAMOND:
+            suitnum = f'<style=Card.Red>♦{num}</style>'
+        elif c.suit == Card.NOTSET:
+            suitnum = ''
         else:
-            cls, obj = ch, None
+            suitnum = '错误'
 
-        rst = []
-        rst.append('|DB%s %s 体力：%s|r' % (m.title, m.name, cls.maxlife))
-        skills = list(cls.skills)
-        if hasattr(cls, 'boss_skills'):
-            skills.extend(cls.boss_skills)
+        return f'{suitnum}<style=Card.Name>{c.ui_meta.name}</style>'
 
-        if obj:
-            skills.extend([
-                c for c in obj.skills
-                if 'character' in c.skill_category and c not in skills
-            ])
-
-        for s in skills:
-            sm = s.ui_meta
-            rst.append('|G%s|r：%s' % (sm.name, sm.description))
-
-        notes = getattr(m, 'notes', '')
-        if notes:
-            rst.append(notes)
-
-        tail = ['%s：%s' % i for i in [
-            ('画师',     getattr(m, 'illustrator', None)),
-            ('CV',       getattr(m, 'cv', None)),
-            ('人物设计', getattr(m, 'designer', None)),
-        ] if i[1]]
-
-        if tail:
-            rst.append('|DB（%s）|r' % '，'.join(tail))
-
-        return '\n\n'.join(rst)
+    @staticmethod
+    def char(ch, conj='、'):
+        if isinstance(ch, (list, tuple)):
+            return conj.join([N.char(i) for i in ch])
+        m = ch.ui_meta
+        return f'<style=Char.Name>{m.name}</style>'

@@ -6,7 +6,7 @@ from __future__ import annotations
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -62,13 +62,9 @@ class ExtremeIntelligenceKOF:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        src, tl, card = act.source, act.target_list, act.card
-        s = '|G【%s】|r发动了|G极智|r技能，将|G%s|r当作|G%s|r对%s使用。' % (
-            src.ui_meta.name,
-            card.associated_cards[0].ui_meta.name,
-            card.treat_as.ui_meta.name,
-            '、'.join(["|G【%s】|r" % i.ui_meta.name for i in tl]),
-        )
+        src, tl, sk = act.source, act.target_list, act.card
+        card = sk.associated_cards[0]
+        s = f'{N.char(src)}发动了<style=Skill.Name>极智</style>技能，将{N.card(card)}当作{N.char(sk.treat_as)}对{N.char(tl)}使用。'
         return s
 
 
@@ -76,15 +72,13 @@ class ExtremeIntelligenceKOF:
 class ProphetHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【神算】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>神算</style>吗？'
 
 
 @ui_meta(characters.ran.ProphetAction)
 class ProphetAction:
     def effect_string_before(self, act):
-        return '众人正准备接招呢，|G【%s】|r却掐着指头算了起来…' % (
-            act.target.ui_meta.name,
-        )
+        return f'众人正准备接招呢，{N.char(act.target)}却掐着指头算了起来…'
 
     def sound_effect(self, act):
         return 'thb-cv-ran_prophet'
@@ -97,15 +91,10 @@ class ExtremeIntelligenceAction:
         if act.cond(cards):
             return (True, '再来！')
         else:
-            return (False, '弃置1张牌并发动【极智】')
+            return (False, '弃置1张牌并发动<style=Skill.Name>极智</style>')
 
     def effect_string_before(self, act):
-        return (
-            '|G【%s】|r刚松了一口气，却看见一张一模一样的符卡从|G【%s】|r的方向飞来！'
-        ) % (
-            act.target.ui_meta.name,
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.target)}刚松了一口气，却看见一张一模一样的符卡从{N.char(act.source)}的方向飞来！'
 
     def sound_effect(self, act):
         return 'thb-cv-ran_ei'
@@ -115,18 +104,17 @@ class ExtremeIntelligenceAction:
 class NakedFox:
     # Skill
     name = '素裸'
-    description = '|B锁定技|r，若你没有手牌，符卡对你造成的伤害-1。'
+    description = '<style=B>锁定技</style>，若你没有手牌，符卡对你造成的伤害-1。'
 
 
 @ui_meta(characters.ran.NakedFoxAction)
 class NakedFoxAction:
     def effect_string_before(self, act):
+        tgt = act.target
         if act.dmgamount <= 1:
-            s = '符卡飞到了|G【%s】|r毛茸茸的大尾巴里，然后……就没有然后了……'
+            return f'符卡飞到了{N.char(tgt)}毛茸茸的大尾巴里，然后……就没有然后了……'
         else:
-            s = '符卡飞到了|G【%s】|r毛茸茸的大尾巴里，恩……似乎还是有点疼……'
-
-        return s % act.target.ui_meta.name
+            return f'符卡飞到了{N.char(tgt)}毛茸茸的大尾巴里，恩……似乎还是有点疼……'
 
 
 @ui_meta(characters.ran.Ran)
@@ -154,4 +142,4 @@ class RanKOF:
     figure_image      = 'thb-figure-ran'
     miss_sound_effect = 'thb-cv-ran_miss'
 
-    notes = '|RKOF修正角色|r'
+    notes = 'KOF修正角色'

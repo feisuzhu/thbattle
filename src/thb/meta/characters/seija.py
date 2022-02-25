@@ -7,7 +7,7 @@ import random
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -16,10 +16,7 @@ class InciteAttack:
     name = '挑拨'
 
     def effect_string(self, act):
-        return '|G【%s】|r立刻将|G弹幕|r甩在了|G【%s】|r的脸上：“看也就看了，能别说么？”' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}立刻将<style=Card.Name>弹幕</style>甩在了{N.char(act.source)}的脸上：“看也就看了，能别说么？”'
 
 
 @ui_meta(characters.seija.InciteFailAttack)
@@ -27,25 +24,20 @@ class InciteFailAttack:
     name = '挑拨'
 
     def effect_string(self, act):
-        return '|G【%s】|r立刻将|G弹幕|r甩在了|G【%s】|r的脸上：“你怎么知道是蓝白条的？”' % (
-            act.source.ui_meta.name,
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}立刻将<style=Card.Name>弹幕</style>甩在了{N.char(act.target)}的脸上：“你怎么知道是蓝白条的？”'
 
 
 @ui_meta(characters.seija.InciteSilentFailAction)
 class InciteSilentFailAction:
     def effect_string(self, act):
-        return '|G【%s】|r低头看了一眼，诶，好像真的是蓝白条……' % (
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.target)}低头看了一眼，诶，好像真的是蓝白条……'
 
 
 @ui_meta(characters.seija.Incite)
 class Incite:
     # Skill
     name = '挑拨'
-    description = '出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内你指定的另一名其他角色使用了一张|G弹幕|r；若你没赢，该角色可以视为对你使用了一张|G弹幕|r。'
+    description = '出牌阶段限一次，你可以与一名其他角色拼点，若你赢，视为该角色对其攻击范围内你指定的另一名其他角色使用了一张<style=Card.Name>弹幕</style>；若你没赢，该角色可以视为对你使用了一张<style=Card.Name>弹幕</style>。'
 
     custom_ray = True
 
@@ -60,9 +52,9 @@ class Incite:
             return (False, '请不要选择牌！')
 
         if not len(tl):
-            return (False, '请选择第一名玩家（【拼点】的对象）')
+            return (False, '请选择第一名玩家（<style=Skill.Name>拼点</style>的对象）')
         elif len(tl) == 1:
-            return (False, '请选择第二名玩家（【弹幕】的目标）')
+            return (False, '请选择第二名玩家（<style=Card.Name>弹幕</style>的目标）')
         else:
             return (True, '大嘴正邪愉快的一天开始了～')
 
@@ -70,16 +62,9 @@ class Incite:
         src = act.source
         tgt, victim = act.target_list
         if victim is src:
-            return '|G【%s】|r一脸坏笑，对|G【%s】|r说：“那个啥…… 蓝白条，赞！”' % (
-                src.ui_meta.name,
-                tgt.ui_meta.name,
-            )
+            return f'{N.char(src)}一脸坏笑，对{N.char(tgt)}说：“那个啥…… 蓝白条，赞！”'
         else:
-            return '|G【%s】|r一脸坏笑，对|G【%s】|r说：“你知道吗，|G【%s】|r刚才看了你的胖次，蓝白条，赞！”' % (
-                src.ui_meta.name,
-                tgt.ui_meta.name,
-                victim.ui_meta.name,
-            )
+            return f'{N.char(src)}一脸坏笑，对{N.char(tgt)}说：“你知道吗，{N.char(victim)}刚才看了你的胖次，蓝白条，赞！”'
 
     def sound_effect(self, act):
         return random.choice([
@@ -99,14 +84,14 @@ class InciteAction:
         return [(src, tl[0]), (tl[0], tl[1])]
 
     def choose_option_prompt(self, act):
-        return '你要对【%s】使用【弹幕】吗？' % act.source.ui_meta.name
+        return f'你要对{N.char(act.source)}使用<style=Card.Name>弹幕</style>吗？'
 
 
 @ui_meta(characters.seija.Reversal)
 class Reversal:
     # Skill
     name = '逆转'
-    description = '当你受到一名其他角色使用的|G弹幕|r效果时，你可以摸一张牌，然后若你的手牌数大于其手牌数，取消该|G弹幕|r效果，并视为该角色再对你使用一张|G弹幕战|r。'
+    description = '当你受到一名其他角色使用的<style=Card.Name>弹幕</style>效果时，你可以摸一张牌，然后若你的手牌数大于其手牌数，取消该<style=Card.Name>弹幕</style>效果，并视为该角色再对你使用一张<style=Card.Name>弹幕战</style>。'
 
 
 @ui_meta(characters.seija.ReversalDuel)
@@ -114,10 +99,7 @@ class ReversalDuel:
     name = '逆转'
 
     def effect_string(self, act):
-        return '|G【%s】|r对|G【%s】|r：“你敢打我脸，我就敢打回去！”' % (
-            act.target.ui_meta.name,
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.target)}对{N.char(act.source)}：“你敢打我脸，我就敢打回去！”'
 
     def sound_effect(self, act):
         return 'thb-cv-seija_reversal'
@@ -127,7 +109,7 @@ class ReversalDuel:
 class ReversalHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【逆转】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>逆转</style>吗？'
 
 
 @ui_meta(characters.seija.Seija)
@@ -142,4 +124,4 @@ class Seija:
     figure_image      = 'thb-figure-seija'
     miss_sound_effect = 'thb-cv-seija_miss'
 
-    notes = '|RKOF模式不可用|r'
+    notes = 'KOF模式不可用'

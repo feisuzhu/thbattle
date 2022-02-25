@@ -8,7 +8,7 @@ import random
 # -- own --
 from thb import characters
 from thb.actions import ttags
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -39,7 +39,7 @@ class SanaeKOF:
     figure_image      = 'thb-figure-sanae'
     miss_sound_effect = 'thb-cv-sanae_miss'
 
-    notes = '|RKOF修正角色|r'
+    notes = 'KOF修正角色'
 
 
 @ui_meta(characters.sanae.Miracle)
@@ -51,17 +51,14 @@ class Miracle:
         return self.my_turn()
 
     def effect_string(self, act):
-        return '|G【%s】|r发动了|G奇迹|r，弃置了%d张牌。' % (
-            act.source.ui_meta.name,
-            len(act.card.associated_cards),
-        )
+        return f'{N.char(act.source)}发动了<style=Skill.Name>奇迹</style>，弃置了{len(act.card.associated_cards)}张牌。'
 
     def is_action_valid(self, sk, tl):
         cards = sk.associated_cards
 
         expected = ttags(self.me)['miracle_times'] + 1
         if len(cards) != expected:
-            return (False, '奇迹：请选择%d张牌！' % expected)
+            return (False, f'奇迹：请选择{expected}张牌！')
 
         return (True, '奇迹是存在的！')
 
@@ -74,9 +71,9 @@ class MiracleAction:
 
     def target(self, pl):
         if not pl:
-            return (False, '奇迹：请选择1名受伤的玩家，回复一点体力（否则不发动）')
+            return (False, '<style=Skill.Name>奇迹</style>：请选择1名受伤的玩家，回复一点体力（否则不发动）')
 
-        return (True, '奇迹：回复1点体力')
+        return (True, '<style=Skill.Name>奇迹</style>：回复1点体力')
 
 
 @ui_meta(characters.sanae.SanaeFaith)
@@ -89,10 +86,7 @@ class SanaeFaith:
         return self.my_turn() and not ttags(me)['faith']
 
     def effect_string(self, act):
-        return '|G【%s】|r的|G信仰|r大作战！向%s收集了信仰！' % (
-            act.source.ui_meta.name,
-            '、'.join(['|G【%s】|r' % p.ui_meta.name for p in act.target_list]),
-        )
+        return f'{N.char(act.source)}的<style=Skill.Name>信仰</style>大作战！向{N.char(act.target_list)}收集了信仰！'
 
     def is_action_valid(self, sk, tl):
         cards = sk.associated_cards
@@ -108,15 +102,13 @@ class SanaeFaith:
 @ui_meta(characters.sanae.SanaeFaithKOF)
 class SanaeFaithKOF:
     name = '信仰'
-    description = '|B锁定技|r，对方的出牌阶段，每当其获得牌时，你摸一张牌。'
+    description = '<style=B>锁定技</style>，对方的出牌阶段，每当其获得牌时，你摸一张牌。'
 
 
 @ui_meta(characters.sanae.SanaeFaithKOFDrawCards)
 class SanaeFaithKOFDrawCards:
     def effect_string(self, act):
-        return '|G【%s】|r向牌堆收集了1点|G信仰|r。' % (
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.source)}向牌堆收集了1点<style=Skill.Name>信仰</style>。'
 
     def sound_effect(self, act):
         return 'thb-cv-sanae_faith'
@@ -127,9 +119,9 @@ class SanaeFaithCollectCardAction:
     # choose_card meta
     def choose_card_text(self, act, cards):
         if act.cond(cards):
-            return (True, '信仰：交出这一张手牌，然后收回一张牌')
+            return (True, '<style=Skill.Name>信仰</style>：交出这一张手牌，然后收回一张牌')
         else:
-            return (False, '信仰：请交出一张手牌')
+            return (False, '<style=Skill.Name>信仰</style>：请交出一张手牌')
 
 
 @ui_meta(characters.sanae.SanaeFaithReturnCardAction)
@@ -137,9 +129,9 @@ class SanaeFaithReturnCardAction:
     # choose_card meta
     def choose_card_text(self, act, cards):
         if act.cond(cards):
-            return (True, '信仰：将这一张牌返还给%s' % act.target.ui_meta.name)
+            return (True, '<style=Skill.Name>信仰</style>：将这一张牌返还给%s' % act.target.ui_meta.name)
         else:
-            return (False, '信仰：选择一张牌返还给%s' % act.target.ui_meta.name)
+            return (False, '<style=Skill.Name>信仰</style>：选择一张牌返还给%s' % act.target.ui_meta.name)
 
 
 @ui_meta(characters.sanae.GodDescendant)
@@ -153,18 +145,16 @@ class GodDescendantAction:
     # choose_card
     def choose_card_text(self, act, cards):
         if act.cond(cards):
-            return (True, '神裔：重铸并跳过结算')
+            return (True, '<style=Skill.Name>神裔</style>：重铸并跳过结算')
         else:
-            return (False, '神裔：请选择要重铸的牌并跳过结算（否则不发动）')
+            return (False, '<style=Skill.Name>神裔</style>：请选择要重铸的牌并跳过结算（否则不发动）')
 
 
 @ui_meta(characters.sanae.GodDescendantEffect)
 class GodDescendantEffect:
 
     def effect_string_before(self, act):
-        return '|G【%s】|r发动了|G神裔|r，重铸了一张牌并跳过了结算。' % (
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.target)}发动了<style=Skill.Name>神裔</style>，重铸了一张牌并跳过了结算。'
 
     def sound_effect(self, act):
         return random.choice([

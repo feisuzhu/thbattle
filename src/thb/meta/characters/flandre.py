@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -27,9 +27,9 @@ class CriticalStrike:
     # Skill
     name = '狂咲'
     description = (
-        '摸牌阶段，你可以少摸一张牌，若如此做，你获得以下效果直到回合结束：\n'
-        '|B|R>> |r当你没有干劲时，你可以对本阶段内没有成为过|G弹幕|r目标的其他角色使用|G弹幕|r。\n'
-        '|B|R>> |r你为伤害来源的|G弹幕|r和|G弹幕战|r造成的伤害+1。'
+        '摸牌阶段，你可以少摸一张牌，若如此做，你获得以下效果直到回合结束：'
+        '<style=Desc.Li>当你没有干劲时，你可以对本阶段内没有成为过<style=Card.Name>弹幕</style>目标的其他角色使用<style=Card.Name>弹幕</style>。</style>'
+        '<style=Desc.Li>你为伤害来源的<style=Card.Name>弹幕</style>和<style=Card.Name>弹幕战</style>造成的伤害+1。</style>'
     )
 
 
@@ -37,7 +37,7 @@ class CriticalStrike:
 class CriticalStrikeHandler:
     # choose_option
     choose_option_buttons = (('发动', True), ('不发动', False))
-    choose_option_prompt = '你要发动【狂咲】吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>狂咲</style>吗？'
 
 
 @ui_meta(characters.flandre.CriticalStrikeLimit)
@@ -49,9 +49,7 @@ class CriticalStrikeLimit:
 @ui_meta(characters.flandre.CriticalStrikeAction)
 class CriticalStrikeAction:
     def effect_string(self, act):
-        return '|G【%s】|r突然呵呵一笑，进入了黑化状态！' % (
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.target)}突然呵呵一笑，进入了黑化状态！'
 
     def sound_effect(self, act):
         return 'thb-cv-flandre_cs'
@@ -61,16 +59,13 @@ class CriticalStrikeAction:
 class Exterminate:
     # Skill
     name = '毁灭'
-    description = '|B锁定技|r，每当你使用|G弹幕|r或|G弹幕战|r指定其他角色为目标后，其所有技能无效直到回合结束。'
+    description = '<style=B>锁定技</style>，每当你使用<style=Card.Name>弹幕</style>或<style=Card.Name>弹幕战</style>指定其他角色为目标后，其所有技能无效直到回合结束。'
 
 
 @ui_meta(characters.flandre.ExterminateAction)
 class ExterminateAction:
     def effect_string(self, act):
-        return '|G【%s】|r被|G【%s】|r玩坏了……' % (
-            act.target.ui_meta.name,
-            act.source.ui_meta.name,
-        )
+        return f'{N.char(act.target)}被{N.char(act.source)}玩坏了……'
 
     def sound_effect(self, act):
         return None

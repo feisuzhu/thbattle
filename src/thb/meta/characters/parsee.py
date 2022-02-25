@@ -7,7 +7,7 @@ from __future__ import annotations
 from thb import characters
 from thb.cards.base import Card
 from thb.cards.classes import DemolitionCard
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -28,7 +28,7 @@ class Parsee:
 class Envy:
     # Skill
     name = '嫉妒'
-    description = '你可以将一张黑色牌当|G城管执法|r使用；每当距离1的其他角色的方块牌被你使用的|G城管执法|r弃置而置入弃牌堆后，你可以获得之。'
+    description = '你可以将一张黑色牌当<style=Card.Name>城管执法</style>使用；每当距离1的其他角色的方块牌被你使用的<style=Card.Name>城管执法</style>弃置而置入弃牌堆后，你可以获得之。'
 
     def clickable(self):
         me = self.me
@@ -52,16 +52,10 @@ class Envy:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        source = act.source
-        card = act.card
-        target = act.target
-        s = '|G【%s】|r发动了嫉妒技能，将|G%s|r当作|G%s|r对|G【%s】|r使用。' % (
-            source.ui_meta.name,
-            card.associated_cards[0].ui_meta.name,
-            card.treat_as.ui_meta.name,
-            target.ui_meta.name,
-        )
-        return s
+        src, tgt = act.source, act.target
+        sk = act.card
+        c = sk.associated_cards[0]
+        return f'{N.char(src)}发动了嫉妒技能，将{N.card(c)}当作{N.char(sk.treat_as)}对{N.char(tgt)}使用。'
 
     def sound_effect(self, act):
         return 'thb-cv-parsee_envy'
@@ -72,12 +66,10 @@ class EnvyHandler:
     choose_option_buttons = (('获得', True), ('不获得', False))
 
     def choose_option_prompt(self, act):
-        return '你要获得【%s】吗？' % act.card.ui_meta.name
+        return f'你要获得{N.card(act.card)}吗？'
 
 
 @ui_meta(characters.parsee.EnvyRecycleAction)
 class EnvyRecycleAction:
     def effect_string(self, act):
-        return '|G【%s】|r：“喂喂这么好的牌扔掉不觉得可惜么？不要嫉妒我。”' % (
-            act.source.ui_meta.name
-        )
+        return f'{N.char(act.source)}：“喂喂这么好的牌扔掉不觉得可惜么？不要嫉妒我。”'

@@ -5,7 +5,7 @@ from __future__ import annotations
 # -- third party --
 # -- own --
 from thb import actions, characters
-from thb.meta.common import ui_meta
+from thb.meta.common import ui_meta, N
 
 
 # -- code --
@@ -34,7 +34,7 @@ class DaiyouseiKOF:
     figure_image      = 'thb-figure-daiyousei'
     miss_sound_effect = 'thb-cv-daiyousei_miss'
 
-    notes = '|RKOF修正角色|r'
+    notes = 'KOF修正角色'
 
 
 @ui_meta(characters.daiyousei.Support)
@@ -71,11 +71,7 @@ class Support:
 
     def effect_string(self, act):
         # for LaunchCard.ui_meta.effect_string
-        return '|G【%s】|r发动了|G支援|r技能，将%d张牌交给了|G【%s】|r。' % (
-            act.source.ui_meta.name,
-            len(act.card.associated_cards),
-            act.target.ui_meta.name,
-        )
+        return f'{N.char(act.source)}发动了<style=Skill.Name>支援</style>技能，将{len(act.card.associated_cards)}张牌交给了{N.char(act.target)}。'
 
     def sound_effect(self, act):
         return 'thb-cv-daiyousei_support'
@@ -92,14 +88,12 @@ class SupportKOF:
 class SupportKOFAction:
 
     def effect_string_before(self, act):
-        return '|G【%s】|r发动了|G支援|r技能，将所有的牌转移给下一个出场角色。' % (
-            act.target.ui_meta.name
-        )
+        return f'{N.char(act.target)}发动了<style=Skill.Name>支援</style>技能，将所有的牌转移给下一个出场角色。'
 
 
 @ui_meta(characters.daiyousei.SupportKOFHandler)
 class SupportKOFHandler:
-    choose_option_prompt = '你要发动【支援】，将所有牌转移给下一名出场角色吗？'
+    choose_option_prompt = '你要发动<style=Skill.Name>支援</style>，将所有牌转移给下一名出场角色吗？'
     choose_option_buttons = (('发动', True), ('不发动', False))
 
 
@@ -107,16 +101,13 @@ class SupportKOFHandler:
 class Moe:
     # Skill
     name = '卖萌'
-    description = '|B锁定技|r，摸牌阶段你额外摸X张牌（X为你已损失的体力值）。'
+    description = '<style=B>锁定技</style>，摸牌阶段你额外摸X张牌（X为你已损失的体力值）。'
 
 
 @ui_meta(characters.daiyousei.MoeDrawCard)
 class MoeDrawCard:
     def effect_string(self, act):
-        return '|G【%s】|r用手扯开脸颊，向大家做了一个夸张的笑脸，摸了%d张牌跑开了~' % (
-            act.target.ui_meta.name,
-            act.amount,
-        )
+        return f'{N.char(act.target)}用手扯开脸颊，向大家做了一个夸张的笑脸，摸了{act.amount}张牌跑开了~'
 
     def sound_effect(self, act):
         return 'thb-cv-daiyousei_moe'
