@@ -118,6 +118,16 @@ class KanakoFaithEffect:
     choose_option_prompt = '<style=Skill.Name>信仰</style>：请选择希望的效果'
 
 
+@ui_meta(characters.kanako.KanakoFaithAttack)
+class KanakoFaithAttack:
+    name = '弹幕（信仰）'
+
+
+@ui_meta(characters.kanako.KanakoFaithDuel)
+class KanakoFaithDuel:
+    name = '决斗（信仰）'
+
+
 @ui_meta(characters.kanako.Virtue)
 class Virtue:
     # Skill

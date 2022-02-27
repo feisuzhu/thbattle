@@ -172,13 +172,11 @@ def state_of(g: THBattle) -> Optional[GameState]:
             p = ch
         chs.append(character(ch))
 
-    assert p
+    skills = [skill(sk) for sk in p.skills] if p else []
 
     return {
         'characters': chs,
         'deck_remaining': len(g.deck.cards),
         'my_pid': me.pid,
-        'my_skills': [
-            skill(sk) for sk in p.skills
-        ],
+        'my_skills': skills,
     }

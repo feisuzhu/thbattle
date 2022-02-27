@@ -478,7 +478,7 @@ class THBattleRoleBootstrap(BootstrapAction):
             def notify(p, c):
                 trans.notify('girl_chosen', {
                     'choice_id': id(c),
-                    'char': c.char_cls.__name__ if c.char_cls else None,
+                    'char': c.char_cls.__name__ if c and c.char_cls else None,
                     'pid': p.get_player().pid,
                 })
                 return c

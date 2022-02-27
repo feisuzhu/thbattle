@@ -220,7 +220,13 @@ class Sinsack(DelayedSpellCardAction, FatetellAction):
             g.process_action(DropCards(None, tgt, [self.associated_card]))
         else:
             pl = g.players
-            stop = pl.index(tgt)
+            try:
+                stop = pl.index(tgt)
+            except IndexError:
+                # character no longer present, may be dead and switched out
+                # just drop the card
+                migrate_cards([self.associated_card], g.deck.droppedcards, unwrap=True)
+                return
             next = stop - len(pl) + 1
             while next < stop:
                 if not pl[next].dead:

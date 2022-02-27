@@ -165,7 +165,8 @@ class ServerGameRunner(GameRunner):
                 if isinstance(p, NPCPlayer):
                     ilet = ilets[e]
                     p.handle_user_input(trans, ilet)
-                    w = Greenlet(lambda _: ilet.data(), None)
+                    v = ilet.data()  # Should call ilet.data in game context
+                    w = Greenlet(lambda _: v, None)
                     w.player = p
                     waiters.start(w)
                 else:
