@@ -276,11 +276,12 @@ class GamePart(object):
 
     def write(self, g: ServerGame, u: Client, tag: str, data: object) -> None:
         core = self.core
-        assert Au(self, u)['game'] is g
         pid = core.auth.pid_of(u)
         pkt = Ag(self, g)['data'][pid].feed_send(tag, data)
-        gid = core.room.gid_of(g)
-        u.write(wire.GameData(gid=gid, tag=tag, data=data))
+        if Au(self, u)['game'] is g:
+            # Only send game data when user in the requested game
+            gid = core.room.gid_of(g)
+            u.write(wire.GameData(gid=gid, tag=tag, data=data))
         core.events.game_data_send.emit((g, u, pkt))
 
     def current(self, u: Client) -> Optional[ServerGame]:
