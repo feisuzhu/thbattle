@@ -197,23 +197,6 @@ def to_actor(o: Any) -> int:
     return o.get_player().pid
 
 
-def user_input_start_effects(g: THBattle, core: Core, evt: str, arg: Any):
-    trans, ilet = arg
-    core.gate.post('thb.ui.input_start', {
-        'trans_name': trans.name,
-        'actor': to_actor(ilet.actor),
-        'timeout': ilet.timeout,
-    })
-
-
-def user_input_finish_effects(g: THBattle, core: Core, evt: str, arg: Any):
-    trans, ilet, rst = arg
-    core.gate.post('thb.ui.input_finish', {
-        'trans_name': trans.name,
-        'actor': to_actor(ilet.actor),
-    })
-
-
 def card_migration_effects(g: THBattle, core: Core, evt: str, arg: Any):
     if instructions := MigrateCardsTransaction.ui_meta.animation_instructions(arg):
         core.gate.post('thb.ui.card_migration', instructions)
@@ -278,8 +261,7 @@ events_mapping: Dict[str, Callable] = {
     'action_apply':        action_effects,
     'action_after':        fuse(sync_game_state, action_effects),
     'fatetell':            fatetell_effect,
-    'user_input_start':    user_input_start_effects,
-    'user_input_finish':   user_input_finish_effects,
+    'user_input_start':    sync_game_state,
     'post_card_migration': card_migration_effects,
     'detach_cards':        card_detach_effects,
     'game_roll':           game_roll_prompt,

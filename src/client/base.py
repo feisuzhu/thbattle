@@ -67,6 +67,7 @@ class ClientGameRunner(GameRunner):
     def __init__(self, core: Core, g: Game):
         self.core = core
         self.game = g
+        self.in_user_input = False
         super().__init__()
 
     def _run(self) -> None:
@@ -74,8 +75,8 @@ class ClientGameRunner(GameRunner):
 
         import base64
         s = (id(self) % 1099511627689).to_bytes(8, byteorder='little')[:5]
-        s = base64.b32encode(s).decode('utf-8')
-        self.gr_name = f'{repr(self.game)}:{s[:5]}'
+        i = base64.b32encode(s).decode('utf-8')
+        self.gr_name = f'{repr(self.game)}:{i[:5]}'
 
         g.runner = self
         g.synctag = 0
@@ -168,6 +169,8 @@ class ClientGameRunner(GameRunner):
 
         try:
             for e in entities:
+                if e2p[e] is me:
+                    self.in_user_input = True
                 g.emit_event('user_input_start', (trans, ilets[e]))
 
             if me in p2e:  # me involved
@@ -208,6 +211,9 @@ class ClientGameRunner(GameRunner):
                     rst = None
 
                 rst = my.post_process(e, rst)
+
+                if e2p[e] is me:
+                    self.in_user_input = False
 
                 g.emit_event('user_input_finish', (trans, my, rst))
 

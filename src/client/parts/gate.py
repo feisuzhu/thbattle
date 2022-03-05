@@ -99,6 +99,7 @@ class UnityUIEventHook(EventHandler):
                 'actor': ilet.actor.get_player().pid,
                 'timeout': ilet.timeout,
             })
+            self.game_event_translator(g, core, evt, arg)
 
         elif evt == 'user_input_finish':
             trans, ilet, rst = arg
@@ -110,6 +111,7 @@ class UnityUIEventHook(EventHandler):
                 'actor': ilet.actor.get_player().pid,
                 'timeout': ilet.timeout,
             })
+            self.game_event_translator(g, core, evt, arg)
 
         elif evt == 'user_input_transaction_feedback':
             trans, ev, data = arg

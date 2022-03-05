@@ -137,14 +137,16 @@ class SkillView(TypedDict, total=False):
     clickable: bool
 
 
-def skill(sk) -> SkillView:
-    m = sk.ui_meta
+def skill(g, sk) -> SkillView:
+    runner = g.runner
+    assert isinstance(runner, ClientGameRunner)
+    in_user_input = runner.in_user_input
     return {
         'type': sk.__name__,
-        'name': m.name,
+        # 'name': m.name,
         # 'skcat': sk.skill_category,
         # 'ui': getattr(sk, 'params_ui', None),
-        'clickable': sk.ui_meta.clickable(),
+        'clickable': in_user_input and sk.ui_meta.clickable(),
     }
 
 
@@ -172,7 +174,7 @@ def state_of(g: THBattle) -> Optional[GameState]:
             p = ch
         chs.append(character(ch))
 
-    skills = [skill(sk) for sk in p.skills] if p else []
+    skills = [skill(g, sk) for sk in p.skills] if p else []
 
     return {
         'characters': chs,
