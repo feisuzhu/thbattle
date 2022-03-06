@@ -894,18 +894,15 @@ class GrimoireSkill:
         if ttags(me)['grimoire_tag']:
             return False
 
-        try:
-            act = g.action_stack[-1]
-            if isinstance(act, actions.ActionStage):
-                if ttags(me)['vitality'] > 0:
-                    if not basic.AttackCardVitalityHandler.is_disabled(me):
-                        return True
+        if not self.my_turn():
+            return False
 
-                if me.has_skill(equipment.ElementalReactorSkill):
-                    return True
+        if ttags(me)['vitality'] > 0:
+            if not basic.AttackCardVitalityHandler.is_disabled(me):
+                return True
 
-        except IndexError:
-            pass
+        if me.has_skill(equipment.ElementalReactorSkill):
+            return True
 
         return False
 
