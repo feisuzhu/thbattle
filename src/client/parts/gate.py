@@ -2,16 +2,18 @@
 from __future__ import annotations
 
 # -- stdlib --
-from typing import Any, Dict, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, TypedDict, cast, List
+from functools import partial
+from typing import Any, Dict, List, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, TypedDict
+from typing import cast
 from urllib.parse import urlparse
+import importlib
 import logging
 import socket
-from functools import partial
 
 # -- third party --
+from gevent import getcurrent
 from gevent.event import Event
 from gevent.lock import RLock
-from gevent import getcurrent
 import msgpack
 
 # -- own --
@@ -90,13 +92,17 @@ class UnityUIEventHook(EventHandler):
 
         elif evt == 'user_input_start':
             trans, ilet = arg
-            self.input_sessions[id(trans)]['ilet'] = ilet
+            actor_player = ilet.actor.get_player()
+
+            if actor_player is core.game.theone_of(g):
+                self.input_sessions[id(trans)]['ilet'] = ilet
+
             core.gate.post("game.input:start", {
                 'id': id(ilet),
                 'tag': ilet.tag(),
                 'trans_id': id(trans),
                 'trans_name': trans.name,
-                'actor': ilet.actor.get_player().pid,
+                'actor': actor_player.pid,
                 'timeout': ilet.timeout,
             })
             self.game_event_translator(g, core, evt, arg)
@@ -160,6 +166,7 @@ class Gate(object):
             'core': core,
             'set': setv,
             'partial': partial,
+            'I': importlib.import_module,
         }
 
         self.refs: Dict[int, Any] = {}

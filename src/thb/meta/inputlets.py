@@ -305,14 +305,20 @@ class ActionInputlet:
 
         act = ilet.initiator.target_act
         if not RejectCard.ui_meta.has_reject_card(ilet.actor):
-            return {'cancel': True}
-        has_dont_care = ForEach.get_actual_action(act) is not None
-        if has_dont_care and getattr(trans, '_dont_care', None):
-            return {'cancel': True}
-        return {'has_dont_care': has_dont_care}
+            return {'cancel': True, 'no_reject_card': True}
+        pact = ForEach.get_actual_action(act)
 
-    def set_reject_dontcare(self, trans):
-        trans._dont_care = True
+        if pact is not None and pact._.get('__dont_care'):
+            return {'cancel': True, 'dont_care_clicked': True}
+        return {'has_dont_care': pact is not None}
+
+    def set_reject_dontcare(self, trans, ilet):
+        from thb.actions import ForEach
+
+        act = ilet.initiator.target_act
+        pact = ForEach.get_actual_action(act)
+        if pact is not None:
+            pact._['__dont_care'] = True
 
 
 @ui_meta(inputlets.SortCharacterInputlet)
@@ -329,7 +335,7 @@ class SortCharacterInputlet:
 @ui_meta(inputlets.ChooseGirlInputlet)
 class ChooseGirlInputlet:
 
-    def get_my_choices(self, trans, ilet):
+    def get_my_choices(self, trans):
         me = self.me
         return [{
             'index': i,
