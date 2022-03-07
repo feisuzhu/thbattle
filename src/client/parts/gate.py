@@ -69,8 +69,20 @@ class UnityUIEventHook(EventHandler):
             self.evt_user_input(arg)
 
         elif evt == 'user_input_transaction_begin':
-            env = dict(core.gate.eval_environ)
-            env['trans'] = arg
+
+            def setv(name: str, v: Any) -> None:
+                env[name] = eval(v, env)
+
+            def eval_env(v: Any) -> Any:
+                return eval(v, env)
+
+            env: dict = {
+                **core.gate.eval_environ,
+                'set': setv,
+                'eval_env': eval_env,
+                'trans': arg,
+            }
+
             self.input_sessions[id(arg)] = env
 
             core.gate.post("game.input.trans:begin", {
@@ -162,10 +174,14 @@ class Gate(object):
         def setv(name: str, v: Any) -> None:
             self.eval_environ[name] = eval(v, self.eval_environ)
 
+        def eval_env(v: Any) -> Any:
+            return eval(v, self.eval_environ)
+
         self.eval_environ: Any = {
             'core': core,
             'set': setv,
             'partial': partial,
+            'eval_env': eval_env,
             'I': importlib.import_module,
         }
 
@@ -361,11 +377,6 @@ class Gate(object):
         self.current_game = g
 
         self.eval_environ['g'] = g
-
-        # <HACK: cross abstraction boundary>
-        from thb.meta import view
-        self.eval_environ['view'] = view
-        # </HACK>
 
         meta = {
             'gid': core.game.gid_of(g),

@@ -91,7 +91,7 @@ class SentryAction:
         if act.cond(cards):
             return (True, f'吃我大弹幕啦！(对{N.char(act.target)}发动哨戒)')
         else:
-            return (False, '<style=Skill.Name>哨戒</style>：请选择一张弹幕发动哨戒(对{N.char(act.target)})')
+            return (False, f'<style=Skill.Name>哨戒</style>：请选择一张弹幕发动哨戒(对{N.char(act.target)})')
 
 
 @ui_meta(characters.momiji.SolidShieldHandler)

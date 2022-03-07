@@ -402,7 +402,7 @@ class HopeMaskInputlet(Inputlet):
         g = self.game
         putback = [g.deck.lookup(i) for i in putback]
         acquire = [g.deck.lookup(i) for i in acquire]
-        return self.is_valid_sid(putback, acquire)
+        return self.is_valid(putback, acquire)
 
     def data(self):
         cards = self.cards
