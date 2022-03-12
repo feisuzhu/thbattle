@@ -60,7 +60,7 @@ class HeterodoxySkipAction:
 @ui_meta(characters.seiga.HeterodoxyAction)
 class HeterodoxyAction:
     def ray(self, act):
-        return [(act.source, act.target_list[0])]
+        return [(act.source, act.target_list[0]), ...]
 
 
 @ui_meta(characters.seiga.Heterodoxy)

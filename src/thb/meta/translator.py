@@ -70,9 +70,10 @@ def general_action_effect(g: THBattle, core: Core, evt: str, act: THBAction):
         rays = getattr(meta, 'ray', None)
         rays = rays(act) if rays else None
         if rays:
-            core.gate.post('thb.ui.ray', [{
-                'from': to_actor(f), 'to': to_actor(t)
-            } for f, t in rays])
+            core.gate.post('thb.ui.ray', [
+                {'from': to_actor(v[0]), 'to': to_actor(v[1])} if v is not ... else {'partial': True}
+                for v in rays
+            ])
 
     text = lambda t: core.gate.post('thb.ui.text', {'text': t})
 
