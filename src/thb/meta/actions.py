@@ -269,12 +269,13 @@ class MigrateOp(IntEnum):
     FADE     = 4  # Fade CardSprite, arg: CardSprite, no ret val.
     GRAY     = 5  # Set CardSprite gray, arg: CardSprite, no ret val.
     UNGRAY   = 6  # Unset CardSprite gray, arg: CardSprite, no ret val.
-    FATETELL = 7  # Play Fatetell animation, arg: CardSprite, no ret val.
-    SHOW     = 8
-    UNSHOW   = 9
-    DECKAREA = 10
-    DROPAREA = 11
-    HANDAREA = 12
+    FT_SUCC  = 7  # Play Fatetell animation, arg: CardSprite, no ret val.
+    FT_FAIL  = 8  # Play Fatetell animation, arg: CardSprite, no ret val.
+    SHOW     = 9
+    UNSHOW   = 10
+    DECKAREA = 11
+    DROPAREA = 12
+    HANDAREA = 13
 
 
 class MigrateInstructionType(IntEnum):
@@ -291,7 +292,8 @@ MOVE: MigrateInstruction     = (MigrateInstructionType.OP, (MigrateOp.MOVE,))
 FADE: MigrateInstruction     = (MigrateInstructionType.OP, (MigrateOp.FADE,))
 GRAY: MigrateInstruction     = (MigrateInstructionType.OP, (MigrateOp.GRAY,))
 UNGRAY: MigrateInstruction   = (MigrateInstructionType.OP, (MigrateOp.UNGRAY,))
-FATETELL: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.FATETELL,))
+FT_SUCC: MigrateInstruction  = (MigrateInstructionType.OP, (MigrateOp.FT_SUCC,))
+FT_FAIL: MigrateInstruction  = (MigrateInstructionType.OP, (MigrateOp.FT_FAIL,))
 SHOW: MigrateInstruction     = (MigrateInstructionType.OP, (MigrateOp.SHOW,))
 UNSHOW: MigrateInstruction   = (MigrateInstructionType.OP, (MigrateOp.UNSHOW,))
 DECKAREA: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.DECKAREA,))
@@ -345,7 +347,7 @@ class MigrateCardsTransaction:
                 ops += getops + [DUP, UNGRAY, AREA('hand'), MOVE]
             elif m.to.type == 'droppedcard':
                 ops += getops + [DUP, GRAY, AREA('dropped'), MOVE]
-            elif m.to.owner:
+            elif m.to.owner and m.to.type != 'special':
                 ops += getops + [DUP, UNGRAY, DUP, FADE, AREA(m.to), MOVE]
             else:
                 continue  # no animation
@@ -364,7 +366,7 @@ class MigrateCardsTransaction:
                 ops += [DUP, UNSHOW]
 
             if trans and isinstance(trans.action, actions.BaseFatetell):
-                ops += [DUP, DUP, UNGRAY if trans.action.succeeded else GRAY, FATETELL, AREA('dropped'), MOVE]
+                ops += [DUP, FT_SUCC if trans.action.succeeded else FT_FAIL, AREA('dropped'), MOVE]
             else:
                 ops += [DUP, UNGRAY, AREA('dropped'), MOVE]
 
