@@ -173,10 +173,6 @@ class THBattle2v2Bootstrap(BootstrapAction):
         seed = get_seed_for(g, pl)
         random.Random(seed).shuffle(chars)
 
-        testing: List[str] = list(settings.TESTING_CHARACTERS)
-        testing, chars = partition(lambda c: c.__name__ in testing, chars)
-        chars.extend(testing)
-
         chars = chars[-20:]
         choices = [CharChoice(cls) for cls in chars]
 
@@ -208,8 +204,10 @@ class THBattle2v2Bootstrap(BootstrapAction):
 
         mapping: Dict[Player, List[CharChoice]] = {}
 
+        testing: List[Type[Character]] = [Character.classes[n] for n in list(settings.TESTING_CHARACTERS)]
+
         for p in pl:
-            mapping[p] = [CharChoice(cls) for cls in chars[-4:]]
+            mapping[p] = [CharChoice(cls) for cls in chars[-4:] + testing]
             del chars[-4:]
 
             p.reveal(mapping[p])
