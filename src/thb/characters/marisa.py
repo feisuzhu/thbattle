@@ -4,13 +4,13 @@
 # -- third party --
 # -- own --
 from thb.actions import LaunchCard, UserAction, migrate_cards, random_choose_card
-from thb.cards.classes import AttackCard, Skill, TreatAs, VirtualCard, t_OtherOne
+from thb.cards.base import Skill, VirtualCard
+from thb.cards.classes import AttackCard, TreatAs, t_OtherOne
 from thb.characters.base import Character, register_character_to
 from thb.inputlets import ChooseOptionInputlet, ChoosePeerCardInputlet
 
 
 # -- code --
-
 # 虚拟卡牌，复制「弹幕」的信息
 class Daze(TreatAs, VirtualCard):
     treat_as = AttackCard

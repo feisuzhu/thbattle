@@ -26,16 +26,13 @@ def suppress_launch_card_effect_string(self, act):
 
 @ui_meta(equipment.WearEquipmentAction)
 class WearEquipmentAction:
-
-    def effect_string(self, act):
-        c = act.associated_card
-        return f'{N.char(act.target)}装备了{N.card(c)}。'
-
-
-@ui_meta(equipment.WeaponReforgeHandler)
-class WeaponReforgeHandler:
     choose_option_prompt = '你希望重铸这张牌么？'
     choose_option_buttons = (('重铸', True), ('装备', False))
+
+    def effect_string(self, act):
+        if act.action == 'wear':
+            c = act.associated_card
+            return f'{N.char(act.target)}装备了{N.card(c)}。'
 
 
 @ui_meta(equipment.ReforgeWeapon)
