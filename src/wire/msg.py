@@ -300,6 +300,18 @@ class StartMatching(Message, BiDirectional):
     modes: List[str]
 
 
+@message
+@dataclass
+class QueryMatching(Message, ClientToServer):
+    pass
+
+
+@message
+@dataclass
+class CurrentMatching(Message, ServerToClient):
+    matches: Dict[str, List[int]]  # mode -> [pid, ...]
+
+
 # ----- observe -----
 @message
 @dataclass

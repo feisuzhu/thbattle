@@ -7,9 +7,10 @@ import logging
 
 # -- third party --
 # -- own --
+from endpoint import Endpoint
 from server.endpoint import Client
 from server.utils import command
-from utils.misc import LoopBreaker
+from utils.misc import throttle
 import wire
 
 # -- typing --
@@ -39,6 +40,7 @@ class Matching(object):
 
         D = core.events.client_command
         D[wire.StartMatching] += self._start_matching
+        D[wire.QueryMatching] += self._query_matching
 
         self.outstanding: Dict[str, Set[Client]] = {}
 
@@ -74,14 +76,37 @@ class Matching(object):
             }
             c._[self] = assoc
 
+        if t != 'freeslot':
+            self.notify_matching_for_all()
+
         return ev
+
+    def _notify_matching(self, ul: List[Client]) -> None:
+        core = self.core
+
+        matches = {
+            k: sorted([core.auth.pid_of(u) for u in v])
+            for k, v in self.outstanding.items()
+        }
+
+        d = Endpoint.encode_bulk([wire.CurrentMatching(matches=matches)])
+
+        @core.runner.spawn
+        def do_send() -> None:
+            for u in ul:
+                u.raw_write(d)
+
+    @throttle(0.5)
+    def notify_matching_for_all(self) -> None:
+        core = self.core
+        self._notify_matching(core.lobby.all_users())
 
     # ----- Public Methods -----
     def do_match(self) -> None:
         core = self.core
         from thb import modes
 
-        for loop in LoopBreaker(False):
+        while True:
             for m in self.outstanding:
                 candidates = []
                 avail = self.outstanding[m]
@@ -101,8 +126,9 @@ class Matching(object):
                 for u in candidates:
                     core.room.join_game(g, u)
 
-                loop.cont()
                 break
+            else:
+                return
 
     # ----- Methods -----
     def _clear(self, u: Client) -> None:
@@ -126,3 +152,8 @@ class Matching(object):
             self.outstanding[m].add(u)
 
         self.do_match()
+        self.notify_matching_for_all()
+
+    @command('lobby')
+    def _query_matching(self, u: Client, ev: wire.QueryMatching) -> None:
+        self._notify_matching([u])

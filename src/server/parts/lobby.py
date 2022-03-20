@@ -69,6 +69,7 @@ class Lobby(object):
                     'game',
                     'finishing',
                     'ob',
+                    'leaving',
                 ],
                 'initial',
                 FSM.to_evhub(core.events.user_state_transition),
@@ -140,6 +141,7 @@ class Lobby(object):
 
     def _user_leave(self, u: Client) -> None:
         core = self.core
+        u._[self]['state'].transit('leaving')
         pid = core.auth.pid_of(u)
         self.users.pop(pid, 0)
         log.info('User PID:%s left, online user %d', pid, len(self.users))

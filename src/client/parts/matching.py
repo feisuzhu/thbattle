@@ -26,3 +26,7 @@ class Matching(object):
     def stop(self) -> None:
         core = self.core
         core.server.write(wire.msg.StartMatching(modes=[]))
+
+    def query(self) -> None:
+        core = self.core
+        core.server.write(wire.msg.QueryMatching())

@@ -211,13 +211,14 @@ class Gate(object):
         core.events.auth_error           += self.on_auth_error
 
         D = core.events.server_command
-        D[wire.InviteRequest] += self.handle_invite_request
-        D[wire.KickRequest]   += self.handle_kick_request
-        D[wire.SystemMsg]     += self.handle_system_msg
-        D[wire.GameParams]    += self.handle_game_params
-        D[wire.SetGameParam]  += self.handle_set_game_param
-        D[wire.StartMatching] += self.handle_start_matching
-        D[wire.RoomUsers]     += self.handle_room_users
+        D[wire.InviteRequest]   += self.handle_invite_request
+        D[wire.KickRequest]     += self.handle_kick_request
+        D[wire.SystemMsg]       += self.handle_system_msg
+        D[wire.GameParams]      += self.handle_game_params
+        D[wire.SetGameParam]    += self.handle_set_game_param
+        D[wire.StartMatching]   += self.handle_start_matching
+        D[wire.CurrentMatching] += self.handle_current_matching
+        D[wire.RoomUsers]       += self.handle_room_users
 
     def post(self, op: str, data: Any) -> None:
         if not self.connected:
@@ -477,6 +478,10 @@ class Gate(object):
 
     def handle_start_matching(self, m: wire.StartMatching) -> wire.StartMatching:
         self.post('start_matching', m.modes)
+        return m
+
+    def handle_current_matching(self, m: wire.CurrentMatching) -> wire.CurrentMatching:
+        self.post('current_matching', m.matches)
         return m
 
     def handle_room_users(self, ev: wire.RoomUsers) -> wire.RoomUsers:
