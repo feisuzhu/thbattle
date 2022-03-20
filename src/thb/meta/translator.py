@@ -242,7 +242,7 @@ def render_game_results(g: THBattle, core: Core, evt: str, arg: Any):
         'win': core.game.theone_of(g) in g.winners,
         'detail': [{
             'pid': p.pid,
-            'char_name': g.find_character(p).ui_meta.name,
+            'char': g.find_character(p).__class__.__name__,
             'role': g.roles[p].get().name,
             'win': p in g.winners,
         } for p in core.game.players_of(g)]
