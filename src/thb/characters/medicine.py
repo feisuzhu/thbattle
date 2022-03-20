@@ -134,7 +134,7 @@ class MelancholyHandler(THBEventHandler):
         elif evt_type == 'action_shootdown' and isinstance(act, (LaunchCard, UseCard)):
             src = act.source
             g = self.game
-            if src.tags['melancholy_limit']:
+            if not src.tags['melancholy_limit']:
                 return act
 
             def walk(c):
