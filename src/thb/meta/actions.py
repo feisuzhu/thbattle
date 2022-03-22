@@ -111,6 +111,29 @@ class LaunchCard:
         s = act.source
         return [(s, t) for t in act.target_list]
 
+    def detach_cards_tip(self, trans: actions.MigrateCardsTransaction, cards: List[Card]) -> str:
+        g = self.game
+        act = trans.action
+        assert isinstance(act, actions.LaunchCard)
+
+        tl = set(act.target_list)
+        tl2 = set([t for t in g.players if not t.dead])
+
+        td = ''
+        if tl == set([act.source]):
+            td = '自己'
+        elif tl == tl2:
+            td = '全体'
+        elif tl == tl2 - set([act.source]):
+            td = '全体'
+        else:
+            td = N.char(act.target_list)
+
+        return f'{N.char(act.source)}对{td}'
+
+    def drop_cards_tip(self, trans: actions.MigrateCardsTransaction) -> str:
+        return ''
+
 
 @ui_meta(actions.AskForCard)
 class AskForCard:
@@ -237,6 +260,13 @@ class Fatetell:
 
         return prompt
 
+    def detach_cards_tip(self, trans: actions.MigrateCardsTransaction, cards: List[Card]) -> str:
+        c = cards[0]
+        return f'{N.char(trans.action.target)}判定（<style=Card.Name>{c.ui_meta.name}</style>）'
+
+    def drop_cards_tip(self, trans: actions.MigrateCardsTransaction) -> str:
+        return ''
+
 
 @ui_meta(actions.ActionShootdown)
 class ActionShootdown:
@@ -281,10 +311,11 @@ class MigrateOp(IntEnum):
 class MigrateInstructionType(IntEnum):
     OP   = 1
     CARD = 2
-    PORTAREA = 3
+    DESC = 3
+    AREA = 4
 
 
-MigrateInstruction = Tuple[MigrateInstructionType, Union[Tuple[MigrateOp], Tuple[int], Tuple[view.CardMetaView]]]
+MigrateInstruction = Tuple[MigrateInstructionType, Union[Tuple[MigrateOp], Tuple[int], Tuple[view.CardMetaView], Tuple[str]]]
 
 DUP: MigrateInstruction      = (MigrateInstructionType.OP, (MigrateOp.DUP,))
 GET: MigrateInstruction      = (MigrateInstructionType.OP, (MigrateOp.GET,))
@@ -301,6 +332,7 @@ DROPAREA: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.DROPAREA,)
 HANDAREA: MigrateInstruction = (MigrateInstructionType.OP, (MigrateOp.HANDAREA,))
 
 CARD: Callable[[Card], MigrateInstruction] = lambda c: (MigrateInstructionType.CARD, (view.card(c),))
+DESC: Callable[[str], MigrateInstruction] = lambda s: (MigrateInstructionType.DESC, (s,))
 
 
 def AREA(cl: Any) -> MigrateInstruction:
@@ -322,15 +354,26 @@ def AREA(cl: Any) -> MigrateInstruction:
     else:
         raise Exception("WTF")
 
-    return (MigrateInstructionType.PORTAREA, (t,))
+    return (MigrateInstructionType.AREA, (t,))
 
 
 @ui_meta(actions.MigrateCardsTransaction)
 class MigrateCardsTransaction:
 
+    def get_tip(self, trans: actions.MigrateCardsTransaction, fn: str) -> str:
+        if not (meta := getattr(trans.action, 'ui_meta', None)):
+            return trans.action.__class__.__name__
+
+        if f := getattr(meta, fn, None):
+            return f(trans)
+        else:
+            return trans.action.__class__.__name__
+
     def animation_instructions(self, trans: actions.MigrateCardsTransaction) -> List[MigrateInstruction]:
         me = self.me
         ops: List[MigrateInstruction] = []
+
+        tip = None
 
         for m in trans.movements:
             # -- card actions --
@@ -346,7 +389,13 @@ class MigrateCardsTransaction:
             if m.to in (me.cards, me.showncards):
                 ops += getops + [DUP, UNGRAY, AREA('hand'), MOVE]
             elif m.to.type == 'droppedcard':
-                ops += getops + [DUP, GRAY, AREA('dropped'), MOVE]
+                if tip is None:
+                    meta = getattr(trans.action, 'ui_meta', None)
+                    if f := getattr(meta, 'drop_cards_tip', None):
+                        tip = f(trans)
+                    else:
+                        tip = trans.action.__class__.__name__
+                ops += getops + [DUP, GRAY, DUP, DESC(tip), AREA('dropped'), MOVE]
             elif m.to.owner and m.to.type != 'special':
                 ops += getops + [DUP, UNGRAY, DUP, FADE, AREA(m.to), MOVE]
             else:
@@ -357,6 +406,14 @@ class MigrateCardsTransaction:
     def detach_animation_instructions(self, trans: Optional[actions.MigrateCardsTransaction], cards: Sequence[Card]) -> List[MigrateInstruction]:
         ops: List[MigrateInstruction] = []
 
+        tip = None
+        if trans:
+            meta = getattr(trans.action, 'ui_meta', None)
+            if f := getattr(meta, 'detach_cards_tip', None):
+                tip = f(trans, cards)
+            else:
+                tip = trans.action.__class__.__name__
+
         for c in VirtualCard.unwrap(cards):
             fr = c.resides_in
 
@@ -365,8 +422,11 @@ class MigrateCardsTransaction:
             if fr.type == 'showncards':
                 ops += [DUP, UNSHOW]
 
-            if trans and isinstance(trans.action, actions.BaseFatetell):
-                ops += [DUP, FT_SUCC if trans.action.succeeded else FT_FAIL, AREA('dropped'), MOVE]
+            if trans:
+                if isinstance(trans.action, actions.BaseFatetell):
+                    ops += [DUP, FT_SUCC if trans.action.succeeded else FT_FAIL, DUP, DESC(tip), AREA('dropped'), MOVE]
+                elif trans:
+                    ops += [DUP, UNGRAY, DUP, DESC(tip), AREA('dropped'), MOVE]
             else:
                 ops += [DUP, UNGRAY, AREA('dropped'), MOVE]
 
