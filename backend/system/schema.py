@@ -17,6 +17,12 @@ class Server(DjangoObjectType):
     class Meta:
         model = models.Server
 
+    status = gh.String(required=True, description="服务器状态")
+
+    @staticmethod
+    def resolve_status(root, info):
+        return "fluent"
+
 
 class News(DjangoObjectType):
     class Meta:
