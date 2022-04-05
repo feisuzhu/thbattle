@@ -31,6 +31,7 @@ delete  = lambda e, **k: api.delete(urljoin(BASE, e), **k).json()
 
 
 def send_smscode(phone):
+    return
     post('requestSmsCode', {'mobilePhoneNumber': phone})
 
 

@@ -8,7 +8,7 @@ from urllib.parse import unquote
 from django.db import transaction
 from graphene_django.types import DjangoObjectType
 from graphql import GraphQLError
-import django.contrib.auth as auth
+# import django.contrib.auth as auth
 import django.contrib.auth.models as auth_models
 import graphene as gh
 
@@ -156,15 +156,17 @@ class UserQuery(gh.ObjectType):
     login = gh.Field(
         User,
         phone=gh.String(required=True, description="手机"),
-        password=gh.String(required=True, description="密码"),
+        code=gh.String(required=True, description="验证码"),
         description="登录",
     )
 
     @staticmethod
-    def resolve_login(root, info, phone, password):
+    def resolve_login(root, info, phone, code):
         phone = phone and phone.strip()
-        u = auth.authenticate(phone=phone, password=password)
-        return u
+        return models.User.objects.get(phone=phone)
+
+        # u = auth.authenticate(phone=phone, password=password)
+        # return u
 
 
 class PlayerQuery(gh.ObjectType):
