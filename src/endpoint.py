@@ -38,11 +38,10 @@ class Endpoint(object):
 
     def __init__(self, sock, address):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        sock.read       = sock.recv
-        sock.write      = sock.sendall
+        sockfile = sock.makefile(mode='rwb', buffering=0)
 
         self.sock       = sock
-        self.unpacker   = msgpack.Unpacker(sock, raw=False, strict_map_key=False)
+        self.unpacker   = msgpack.Unpacker(sockfile, raw=False, strict_map_key=False)
         self.writelock  = RLock()
         self.address    = address
         self.link_state = 'connected'  # or disconnected
