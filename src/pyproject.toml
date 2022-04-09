@@ -6,7 +6,7 @@ authors = ["Proton <feisuzhu@163.com>"]
 license = "GPL-3.0+"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.8"
 gevent = "^20.5.0"
 requests = "*"
 raven = "*"
